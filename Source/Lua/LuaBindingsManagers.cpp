@@ -33,20 +33,33 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, AudioMan) {
 	    .def("StopAll", &AudioMan::StopAll)
 	    .def("GetGlobalPitch", &AudioMan::GetGlobalPitch)
 	    .def("IsMusicPlaying", &AudioMan::IsMusicPlaying)
-	    .def("SetTempMusicVolume", &AudioMan::SetTempMusicVolume)
-	    .def("GetMusicPosition", &AudioMan::GetMusicPosition)
-	    .def("SetMusicPosition", &AudioMan::SetMusicPosition)
 	    .def("SetMusicPitch", &AudioMan::SetMusicPitch)
-	    .def("StopMusic", &AudioMan::StopMusic)
-	    .def("PlayMusic", &AudioMan::PlayMusic)
-	    .def("PlayNextStream", &AudioMan::PlayNextStream)
-	    .def("StopMusic", &AudioMan::StopMusic)
-	    .def("QueueMusicStream", &AudioMan::QueueMusicStream)
-	    .def("QueueSilence", &AudioMan::QueueSilence)
-	    .def("ClearMusicQueue", &AudioMan::ClearMusicQueue)
+	    .def("SetMusicMuffledState", &AudioMan::SetMusicMuffledState)
 	    .def("PlaySound", (SoundContainer * (AudioMan::*)(const std::string& filePath)) & AudioMan::PlaySound, luabind::adopt(luabind::result))
 	    .def("PlaySound", (SoundContainer * (AudioMan::*)(const std::string& filePath, const Vector& position)) & AudioMan::PlaySound, luabind::adopt(luabind::result))
 	    .def("PlaySound", (SoundContainer * (AudioMan::*)(const std::string& filePath, const Vector& position, int player)) & AudioMan::PlaySound, luabind::adopt(luabind::result));
+}
+
+LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MusicMan) {
+	return luabind::class_<MusicMan>("MusicManager")
+
+	    .def("ResetMusicState", &MusicMan::ResetMusicState)
+	    .def("IsMusicPlaying", &MusicMan::IsMusicPlaying)
+	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong1)
+	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong2)
+	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong3)
+	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong4)
+	    .def("PlayDynamicSong", &LuaAdaptersMusicMan::PlayDynamicSong5)
+	    .def("SetNextDynamicSongSection", &LuaAdaptersMusicMan::SetNextDynamicSongSection1)
+	    .def("SetNextDynamicSongSection", &LuaAdaptersMusicMan::SetNextDynamicSongSection2)
+	    .def("SetNextDynamicSongSection", &LuaAdaptersMusicMan::SetNextDynamicSongSection3)
+	    .def("SetNextDynamicSongSection", &LuaAdaptersMusicMan::SetNextDynamicSongSection4)
+	    .def("CyclePlayingSoundContainers", &LuaAdaptersMusicMan::CyclePlayingSoundContainers1)
+	    .def("CyclePlayingSoundContainers", &LuaAdaptersMusicMan::CyclePlayingSoundContainers2)
+	    .def("EndDynamicMusic", &LuaAdaptersMusicMan::EndDynamicMusic1)
+	    .def("EndDynamicMusic", &LuaAdaptersMusicMan::EndDynamicMusic2)
+	    .def("PlayInterruptingMusic", &MusicMan::PlayInterruptingMusic)
+	    .def("EndInterruptingMusic", &MusicMan::EndInterruptingMusic);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, ConsoleMan) {
@@ -64,6 +77,7 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, FrameMan) {
 	    .property("PlayerScreenWidth", &FrameMan::GetPlayerScreenWidth)
 	    .property("PlayerScreenHeight", &FrameMan::GetPlayerScreenHeight)
 	    .property("ScreenCount", &FrameMan::GetScreenCount)
+	    .property("ResolutionMultiplier", &FrameMan::GetResolutionMultiplier)
 
 	    .def("IsHudDisabled", &FrameMan::IsHudDisabled)
 	    .def("SetHudDisabled", &FrameMan::SetHudDisabled)
@@ -313,15 +327,14 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SceneMan) {
 	    .def("CastMORay", &SceneMan::CastMORay)
 	    .def("CastFindMORay", &SceneMan::CastFindMORay)
 	    .def("CastObstacleRay", &SceneMan::CastObstacleRay)
+	    .def("CastTerrainPenetrationRay", &SceneMan::CastTerrainPenetrationRay)
 	    .def("GetLastRayHitPos", &SceneMan::GetLastRayHitPos)
 	    .def("FindAltitude", (float(SceneMan::*)(const Vector&, int, int)) & SceneMan::FindAltitude)
 	    .def("FindAltitude", (float(SceneMan::*)(const Vector&, int, int, bool)) & SceneMan::FindAltitude)
 	    .def("MovePointToGround", &SceneMan::MovePointToGround)
 	    .def("IsWithinBounds", &SceneMan::IsWithinBounds)
-	    .def("ForceBounds", (bool(SceneMan::*)(int&, int&)) & SceneMan::ForceBounds)
-	    .def("ForceBounds", (bool(SceneMan::*)(Vector&)) & SceneMan::ForceBounds) //, out_value(_2))
-	    .def("WrapPosition", (bool(SceneMan::*)(int&, int&)) & SceneMan::WrapPosition)
-	    .def("WrapPosition", (bool(SceneMan::*)(Vector&)) & SceneMan::WrapPosition) //, out_value(_2))
+	    .def("ForceBounds", (bool(SceneMan::*)(Vector&) const) & SceneMan::ForceBounds) //, out_value(_2))
+	    .def("WrapPosition", (bool(SceneMan::*)(Vector&) const) & SceneMan::WrapPosition) //, out_value(_2))
 	    .def("SnapPosition", &SceneMan::SnapPosition)
 	    .def("ShortestDistance", &SceneMan::ShortestDistance)
 	    .def("WrapBox", &LuaAdaptersSceneMan::WrapBoxes, luabind::return_stl_iterator)
@@ -329,7 +342,16 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SceneMan) {
 	    .def("ObscuredPoint", (bool(SceneMan::*)(int, int, int)) & SceneMan::ObscuredPoint)
 	    .def("AddSceneObject", &SceneMan::AddSceneObject, luabind::adopt(_2))
 	    .def("CheckAndRemoveOrphans", (int(SceneMan::*)(int, int, int, int, bool)) & SceneMan::RemoveOrphans)
-	    .def("DislodgePixel", &SceneMan::DislodgePixel);
+	    .def("DislodgePixel", &SceneMan::DislodgePixel)
+	    .def("DislodgePixel", &SceneMan::DislodgePixelBool)
+	    .def("DislodgePixelLine", (const std::vector<MOPixel*>* (SceneMan::*)(const Vector& start, const Vector& ray, int skip, bool deletePixels) const) & SceneMan::DislodgePixelLine, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+	    .def("DislodgePixelLine", (const std::vector<MOPixel*>* (SceneMan::*)(const Vector& start, const Vector& ray, int skip) const) & SceneMan::DislodgePixelLineNoBool, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+	    .def("DislodgePixelCircle", (const std::vector<MOPixel*>* (SceneMan::*)(const Vector& centre, float radius, bool deletePixels) const) & SceneMan::DislodgePixelCircle, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+	    .def("DislodgePixelCircle", (const std::vector<MOPixel*>* (SceneMan::*)(const Vector& centre, float radius) const) & SceneMan::DislodgePixelCircleNoBool, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+	    .def("DislodgePixelBox", (const std::vector<MOPixel*>* (SceneMan::*)(const Vector& upperLeftCorner, const Vector& lowerRightCorner, bool deletePixels) const) & SceneMan::DislodgePixelBox, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+	    .def("DislodgePixelBox", (const std::vector<MOPixel*>* (SceneMan::*)(const Vector& upperLeftCorner, const Vector& lowerRightCorner) const) & SceneMan::DislodgePixelBoxNoBool, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+	    .def("DislodgePixelRing", (const std::vector<MOPixel*>* (SceneMan::*)(const Vector& centre, float innerRadius, float outerRadius, bool deletePixels) const) & SceneMan::DislodgePixelRing, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+	    .def("DislodgePixelRing", (const std::vector<MOPixel*>* (SceneMan::*)(const Vector& centre, float innerRadius, float outerRadius) const) & SceneMan::DislodgePixelRingNoBool, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, CameraMan) {

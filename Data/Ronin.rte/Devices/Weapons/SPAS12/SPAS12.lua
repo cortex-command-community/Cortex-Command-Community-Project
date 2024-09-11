@@ -11,11 +11,13 @@ function Update(self)
 	if not (actor and IsAHuman(actor)) then
 		self.pullTimer:Reset();
 	end
+	
 	if self.FiredFrame and self.RoundInMagCount == 0 then
 		self.loaded = false;
 		self.playedSound = false;
 		self.rotFactor = math.pi;
 	end
+
 	if not self.loaded and self.RoundInMagCount > 0 and not self.reloadCycle then
 		self:Deactivate();
 		if self.pullTimer:IsPastSimMS(30000/self.RateOfFire) then
@@ -23,6 +25,7 @@ function Update(self)
 				self.cockSound:Play(self.Pos);
 				self.playedSound = true;
 			end
+
 			self.Frame = 1;
 			self.SupportOffset = Vector(-2, 4);
 			local rotTotal = math.sin(self.rotFactor) * 0.2;
@@ -31,6 +34,7 @@ function Update(self)
 			self.Pos = self.Pos - jointOffset + Vector(jointOffset.X, jointOffset.Y):RadRotate(-rotTotal * self.FlipFactor);
 			self.rotFactor = self.rotFactor - 0.15;
 		end
+
 		if self.rotFactor <= 0 then
 			self.loaded = true;
 			self.Frame = 0;

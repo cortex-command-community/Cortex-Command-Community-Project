@@ -3,6 +3,7 @@
 #include "LuabindObjectWrapper.h"
 #include "LuaBindingRegisterDefinitions.h"
 #include "ThreadMan.h"
+#include "System.h"
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyLua.hpp"
@@ -33,7 +34,8 @@ void LuaStateWrapper::Initialize() {
 	tracy::LuaRegister(m_State);
 
 	// Disable gc. We do this manually, so we can thread it to occur parallel with non-lua updates
-	lua_gc(m_State, LUA_GCSTOP, 0);
+	// Not doing this for now... see StartAsyncGarbageCollection()
+	// lua_gc(m_State, LUA_GCSTOP, 0);
 
 	const luaL_Reg libsToLoad[] = {
 	    {LUA_COLIBNAME, luaopen_base},
@@ -42,6 +44,7 @@ void LuaStateWrapper::Initialize() {
 	    {LUA_STRLIBNAME, luaopen_string},
 	    {LUA_MATHLIBNAME, luaopen_math},
 	    {LUA_DBLIBNAME, luaopen_debug},
+	    {LUA_BITLIBNAME, luaopen_bit},
 	    {LUA_JITLIBNAME, luaopen_jit},
 	    {NULL, NULL} // End of array
 	};
@@ -77,7 +80,6 @@ void LuaStateWrapper::Initialize() {
 	                             .def("GetFileList", &LuaStateWrapper::FileList, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	                             .def("FileExists", &LuaStateWrapper::FileExists)
 	                             .def("DirectoryExists", &LuaStateWrapper::DirectoryExists)
-	                             .def("IsValidModulePath", &LuaStateWrapper::IsValidModulePath)
 	                             .def("FileOpen", &LuaStateWrapper::FileOpen)
 	                             .def("FileClose", &LuaStateWrapper::FileClose)
 	                             .def("FileRemove", &LuaStateWrapper::FileRemove)
@@ -92,7 +94,10 @@ void LuaStateWrapper::Initialize() {
 	                             .def("FileEOF", &LuaStateWrapper::FileEOF),
 
 	                         luabind::def("DeleteEntity", &LuaAdaptersUtility::DeleteEntity, luabind::adopt(_1)), // NOT a member function, so adopting _1 instead of the _2 for the first param, since there's no "this" pointer!!
-	                         luabind::def("LERP", &LERP),
+	                         luabind::def("LERP", (float (*)(float, float, float, float, float)) & Lerp),
+	                         luabind::def("Lerp", (float (*)(float, float, float, float, float)) & Lerp),
+	                         luabind::def("Lerp", (Vector(*)(float, float, Vector, Vector, float)) & Lerp),
+	                         luabind::def("Lerp", (Matrix(*)(float, float, Matrix, Matrix, float)) & Lerp),
 	                         luabind::def("EaseIn", &EaseIn),
 	                         luabind::def("EaseOut", &EaseOut),
 	                         luabind::def("EaseInOut", &EaseInOut),
@@ -105,6 +110,7 @@ void LuaStateWrapper::Initialize() {
 	                         luabind::def("GetMPP", &LuaAdaptersUtility::GetMPP),
 	                         luabind::def("GetPPL", &LuaAdaptersUtility::GetPPL),
 	                         luabind::def("GetLPP", &LuaAdaptersUtility::GetLPP),
+	                         luabind::def("GetPathFindingFlyingJumpHeight", &LuaAdaptersUtility::GetPathFindingFlyingJumpHeight),
 	                         luabind::def("GetPathFindingDefaultDigStrength", &LuaAdaptersUtility::GetPathFindingDefaultDigStrength),
 	                         luabind::def("RoundFloatToPrecision", &RoundFloatToPrecision),
 	                         luabind::def("RoundToNearestMultiple", &RoundToNearestMultiple),
@@ -165,6 +171,7 @@ void LuaStateWrapper::Initialize() {
 	                         RegisterLuaBindingsOfType(GUILuaBindings, SceneEditorGUI),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, ActivityMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, AudioMan),
+	                         RegisterLuaBindingsOfType(ManagerLuaBindings, MusicMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, CameraMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, ConsoleMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, FrameMan),
@@ -215,6 +222,7 @@ void LuaStateWrapper::Initialize() {
 	luabind::globals(m_State)["PrimitiveMan"] = &g_PrimitiveMan;
 	luabind::globals(m_State)["PresetMan"] = &g_PresetMan;
 	luabind::globals(m_State)["AudioMan"] = &g_AudioMan;
+	luabind::globals(m_State)["MusicMan"] = &g_MusicMan;
 	luabind::globals(m_State)["UInputMan"] = &g_UInputMan;
 	luabind::globals(m_State)["SceneMan"] = &g_SceneMan;
 	luabind::globals(m_State)["ActivityMan"] = &g_ActivityMan;
@@ -230,24 +238,25 @@ void LuaStateWrapper::Initialize() {
 
 	luaL_dostring(m_State,
 	              // Add cls() as a shortcut to ConsoleMan:Clear().
-	              "cls = function() ConsoleMan:Clear(); end"
-	              "\n"
+	              "cls = function() ConsoleMan:Clear(); end\n"
 	              // Override "print" in the lua state to output to the console.
-	              "print = function(stringToPrint) ConsoleMan:PrintString(\"PRINT: \" .. tostring(stringToPrint)); end"
-	              "\n"
+	              "print = function(stringToPrint) ConsoleMan:PrintString(\"PRINT: \" .. tostring(stringToPrint)); end\n"
 	              // Override random functions to appear global instead of under LuaMan
 	              "SelectRand = function(lower, upper) return LuaMan:SelectRand(lower, upper); end;\n"
 	              "RangeRand = function(lower, upper) return LuaMan:RangeRand(lower, upper); end;\n"
 	              "PosRand = function() return LuaMan:PosRand(); end;\n"
 	              "NormalRand = function() return LuaMan:NormalRand(); end;\n"
 	              // Override "math.random" in the lua state to use RTETools MT19937 implementation. Preserve return types of original to not break all the things.
-	              "math.random = function(lower, upper) if lower ~= nil and upper ~= nil then return LuaMan:SelectRand(lower, upper); elseif lower ~= nil then return LuaMan:SelectRand(1, lower); else return LuaMan:PosRand(); end end"
-	              "\n"
+	              "math.random = function(lower, upper) if lower ~= nil and upper ~= nil then return LuaMan:SelectRand(lower, upper); elseif lower ~= nil then return LuaMan:SelectRand(1, lower); else return LuaMan:PosRand(); end end\n"
 	              // Override "dofile"/"loadfile" to be able to account for Data/ or Mods/ directory.
-	              "OriginalDoFile = dofile; dofile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end;"
-	              "OriginalLoadFile = loadfile; loadfile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalLoadFile(filePath); end end;"
+	              "OriginalDoFile = dofile; dofile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end;\n"
+	              "OriginalLoadFile = loadfile; loadfile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalLoadFile(filePath); end end;\n"
+	              // Override "require" to be able to track loaded packages so we can clear them when scripts are reloaded.
+	              "_RequiredPackages = {};\n"
+	              "OriginalRequire = require; require = function(filePath) _RequiredPackages[filePath] = true; return OriginalRequire(filePath); end;\n"
+	              "_ClearRequiredPackages = function() for k, v in pairs(_RequiredPackages) do package.loaded[k] = nil; end; _RequiredPackages = {}; end;\n"
 	              // Internal helper functions to add callbacks for async pathing requests
-	              "_AsyncPathCallbacks = {};"
+	              "_AsyncPathCallbacks = {};\n"
 	              "_AddAsyncPathCallback = function(id, callback) _AsyncPathCallbacks[id] = callback; end\n"
 	              "_TriggerAsyncPathCallback = function(id, param) if _AsyncPathCallbacks[id] ~= nil then _AsyncPathCallbacks[id](param); _AsyncPathCallbacks[id] = nil; end end\n");
 }
@@ -277,7 +286,6 @@ const std::vector<std::string>* LuaStateWrapper::DirectoryList(const std::string
 const std::vector<std::string>* LuaStateWrapper::FileList(const std::string& path) { return g_LuaMan.FileList(path); }
 bool LuaStateWrapper::FileExists(const std::string& path) { return g_LuaMan.FileExists(path); }
 bool LuaStateWrapper::DirectoryExists(const std::string& path) { return g_LuaMan.DirectoryExists(path); }
-bool LuaStateWrapper::IsValidModulePath(const std::string& path) { return g_LuaMan.IsValidModulePath(path); }
 int LuaStateWrapper::FileOpen(const std::string& path, const std::string& accessMode) { return g_LuaMan.FileOpen(path, accessMode); }
 void LuaStateWrapper::FileClose(int fileIndex) { return g_LuaMan.FileClose(fileIndex); }
 void LuaStateWrapper::FileCloseAll() { return g_LuaMan.FileCloseAll(); }
@@ -412,7 +420,7 @@ void LuaMan::Destroy() {
 }
 
 void LuaStateWrapper::ClearUserModuleCache() {
-	luaL_dostring(m_State, "for m, n in pairs(package.loaded) do if type(n) == \"boolean\" then package.loaded[m] = nil; end; end;");
+	luaL_dostring(m_State, "_ClearRequiredPackages();");
 }
 
 void LuaStateWrapper::ClearLuaScriptCache() {
@@ -884,17 +892,17 @@ LuaMan::~LuaMan() {
 }
 
 const std::vector<std::string>* LuaMan::DirectoryList(const std::string& path) {
-	std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
+	std::string fullPath = System::GetWorkingDirectory() + path;
 	auto* directoryPaths = new std::vector<std::string>();
 
-	if (IsValidModulePath(fullPath)) {
+	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
 		if (std::filesystem::exists(fullPath)) {
-			for (const std::filesystem::directory_entry& directoryEntry: std::filesystem::directory_iterator(fullPath)) {
-				if (directoryEntry.is_directory()) {
-					directoryPaths->emplace_back(directoryEntry.path().filename().generic_string());
+			for (const auto& entry: std::filesystem::directory_iterator(fullPath)) {
+				if (entry.is_directory()) {
+					directoryPaths->emplace_back(entry.path().filename().generic_string());
 				}
 			}
 		}
@@ -903,17 +911,17 @@ const std::vector<std::string>* LuaMan::DirectoryList(const std::string& path) {
 }
 
 const std::vector<std::string>* LuaMan::FileList(const std::string& path) {
-	std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
+	std::string fullPath = System::GetWorkingDirectory() + path;
 	auto* filePaths = new std::vector<std::string>();
 
-	if (IsValidModulePath(fullPath)) {
+	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
 		if (std::filesystem::exists(fullPath)) {
-			for (const std::filesystem::directory_entry& directoryEntry: std::filesystem::directory_iterator(fullPath)) {
-				if (directoryEntry.is_regular_file()) {
-					filePaths->emplace_back(directoryEntry.path().filename().generic_string());
+			for (const auto& entry: std::filesystem::directory_iterator(fullPath)) {
+				if (entry.is_regular_file()) {
+					filePaths->emplace_back(entry.path().filename().generic_string());
 				}
 			}
 		}
@@ -923,7 +931,7 @@ const std::vector<std::string>* LuaMan::FileList(const std::string& path) {
 
 bool LuaMan::FileExists(const std::string& path) {
 	std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
-	if (IsValidModulePath(fullPath)) {
+	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
@@ -934,7 +942,7 @@ bool LuaMan::FileExists(const std::string& path) {
 
 bool LuaMan::DirectoryExists(const std::string& path) {
 	std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
-	if (IsValidModulePath(fullPath)) {
+	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
@@ -1048,7 +1056,7 @@ bool LuaMan::FileRemove(const std::string& path) {
 
 bool LuaMan::DirectoryCreate(const std::string& path, bool recursive) {
 	std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
-	if (IsValidModulePath(fullPath)) {
+	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
@@ -1066,7 +1074,7 @@ bool LuaMan::DirectoryCreate(const std::string& path, bool recursive) {
 
 bool LuaMan::DirectoryRemove(const std::string& path, bool recursive) {
 	std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
-	if (IsValidModulePath(fullPath)) {
+	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
 #endif
@@ -1108,7 +1116,7 @@ bool LuaMan::FileRename(const std::string& oldPath, const std::string& newPath) 
 bool LuaMan::DirectoryRename(const std::string& oldPath, const std::string& newPath) {
 	std::string fullOldPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(oldPath);
 	std::string fullNewPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(newPath);
-	if (IsValidModulePath(fullOldPath) && IsValidModulePath(fullNewPath)) {
+	if (fullOldPath.find("..") == std::string::npos && fullNewPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullOldPath = GetCaseInsensitiveFullPath(fullOldPath);
 		fullNewPath = GetCaseInsensitiveFullPath(fullNewPath);
@@ -1173,6 +1181,11 @@ void LuaMan::Update() {
 
 void LuaMan::StartAsyncGarbageCollection() {
 	ZoneScoped;
+
+	// For now we're not doing this... because it's slower than normal (blocking) GC collection during the update
+	// This is because Lua is trash and basically GCSTEP is meaningless and can cause memory leak runaway, whereas GCCOLLECT is ultra-expensive
+	// So for now we do normal GC collection :(
+	return;
 
 	std::vector<LuaStateWrapper*> allStates;
 	allStates.reserve(m_ScriptStates.size() + 1);

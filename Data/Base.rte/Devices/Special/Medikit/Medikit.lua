@@ -2,10 +2,8 @@ function Create(self)
 	self.baseStrength = 40;
 	self.maxStrength = self.baseStrength * 2;
 
-	self.confirmSound = CreateSoundContainer("Confirm", "Base.rte");
-	self.confirmSound.Immobile = false;
-	self.errorSound = CreateSoundContainer("Error", "Base.rte");
-	self.errorSound.Immobile = false;
+	self.useSound = CreateSoundContainer("Medikit Use", "Base.rte");
+	self.failSound = CreateSoundContainer("Medikit Fail", "Base.rte");
 end
 
 function OnFire(self)
@@ -26,7 +24,7 @@ function OnFire(self)
 			target.Health = math.min(target.Health + strength, target.MaxHealth);
 			
 			target:FlashWhite(50);
-			self.confirmSound:Play(self.Pos);
+			self.useSound:Play(self.Pos);
 
 			local particleCount = math.ceil(1 + target.Radius * 0.5);
 			for i = 1, particleCount do
@@ -50,7 +48,7 @@ function OnFire(self)
 				ActivityMan:GetActivity():ReportDeath(target.Team, -1);
 			end
 		else
-			self.errorSound:Play(self.Pos);
+			self.failSound:Play(self.Pos);
 			if self.Magazine then
 				self.Magazine.RoundCount = self.Magazine.RoundCount + self.RoundsFired;
 			end

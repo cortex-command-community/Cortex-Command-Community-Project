@@ -2,7 +2,6 @@ require("Actors/Infantry/BrowncoatBoss/BrowncoatBossFunctions");
 dofile("Base.rte/Constants.lua")
 
 function Create(self)
-
 	self.voiceSounds = {
 	Pain = CreateSoundContainer("Browncoat Boss VO Pain", "Browncoats.rte"),
 	Death = CreateSoundContainer("Browncoat Boss VO Death", "Browncoats.rte"),
@@ -49,17 +48,13 @@ function Create(self)
 	
 	self.moveSoundTimer = Timer();
 	
-	
 	if self.PresetName == "Browncoat Boss Scripted" then
 		self.bossMode = true;
 	end
-	
 end
 
 function OnStride(self)
-
 	if self.BGFoot and self.FGFoot then
-
 		local startPos = self.foot == 0 and self.BGFoot.Pos or self.FGFoot.Pos
 		self.foot = (self.foot + 1) % 2
 		
@@ -70,9 +65,7 @@ function OnStride(self)
 		if terrPixel ~= 0 then -- 0 = air
 			self.stepSound:Play(self.Pos);
 		end
-		
 	elseif self.BGFoot then
-	
 		local startPos = self.BGFoot.Pos
 		
 		local pos = Vector(0, 0);
@@ -82,9 +75,7 @@ function OnStride(self)
 		if terrPixel ~= 0 then -- 0 = air
 			self.stepSound:Play(self.Pos);
 		end
-		
 	elseif self.FGFoot then
-	
 		local startPos = self.FGFoot.Pos
 		
 		local pos = Vector(0, 0);
@@ -94,9 +85,7 @@ function OnStride(self)
 		if terrPixel ~= 0 then -- 0 = air
 			self.stepSound:Play(self.Pos);
 		end
-		
 	end
-	
 end
 
 function OnMessage(self, message, context)
@@ -112,7 +101,6 @@ function OnMessage(self, message, context)
 end
 
 function Update(self)
-
 	self.voiceSound.Pos = self.Pos;
 
 	self.controller = self:GetController();
@@ -127,6 +115,7 @@ function Update(self)
 		else
 			self.isInAir = false;
 		end
+
 		for i = 1, 2 do
 			--local foot = self.feet[i]
 			local foot = nil
@@ -174,15 +163,15 @@ function Update(self)
 	
 	-- Jumppack custom fx, for extra control actor-side
 	
-	local jumpPackTrigger = self.Jetpack and self.Jetpack:IsEmitting() and not self.jetpackEmitting;
+	--local jumpPackTrigger = self.Jetpack and self.Jetpack:IsEmitting() and not self.jetpackEmitting;
 	
-	if jumpPackTrigger then
-		BrowncoatBossFunctions.JumpPack(self)
-	end
+	--if jumpPackTrigger then
+	--	BrowncoatBossFunctions.JumpPack(self)
+	--end
 	
-	if not self.Jetpack or not self.Jetpack:IsEmitting() then
-		self.jetpackEmitting = false;
-	end
+	--if not self.Jetpack or not self.Jetpack:IsEmitting() then
+	--	self.jetpackEmitting = false;
+	--end
 
 	-- Jump to make this guy more bearable movement-wise
 	-- Also for extra cool boss ability
@@ -191,7 +180,7 @@ function Update(self)
 		self.controller:IsState(Controller.BODY_CROUCH) == false and
 		self.jumpTimer:IsPastSimMS(self.jumpDelay) and
 		not self.isJumping and
-		not jumpPackTrigger)
+		not jumpPackTrigger);
 	
 	if jump or self.abilityShockwaveTrigger then
 		if (self:IsPlayerControlled() and self.feetContact[1] == true or self.feetContact[2] == true) or self.isInAir == false then
@@ -213,23 +202,23 @@ function Update(self)
 			elseif self.controller:IsState(Controller.MOVE_RIGHT) == true then
 				jumpVec.X = jumpWalkX
 			end
+
 			self.jumpSound:Play(self.Pos);
 			if math.abs(self.Vel.X) > jumpWalkX * 2.0 then
 				self.Vel = Vector(self.Vel.X, self.Vel.Y + jumpVec.Y)
 			else
 				self.Vel = Vector(self.Vel.X + jumpVec.X, self.Vel.Y + jumpVec.Y)
 			end
+
 			self.isJumping = true
 			self.jumpTimer:Reset()
 			self.jumpStop:Reset()
 		end
-		
 	elseif self.isJumping or self.isInAir then
 		if (self:IsPlayerControlled() and self.feetContact[1] == true or self.feetContact[2] == true) and self.jumpStop:IsPastSimMS(100) then
 			self.isJumping = false
 			self.isInAir = false;
 			if (self.Vel.Y > 0 and self.moveSoundTimer:IsPastSimMS(500)) or self.abilityShockwaveOngoing == true then
-			
 				if self.abilityShockwaveOngoing == true then
 					self.abilityShockwaveOngoing = false;
 					self.abilityShockwaveWhooshSound:Stop(-1);
@@ -242,15 +231,12 @@ function Update(self)
 					self.landSound:Play(self.Pos);
 				end
 				
-				self.moveSoundTimer:Reset();
-				
-				
+				self.moveSoundTimer:Reset();			
 			end
 		end
 	end
 	
 	-- Throw Foley
-	
 	if self.EquippedItem and IsTDExplosive(self.EquippedItem) and (self.EquippedItem:IsActivated() or self.controller:IsState(Controller.PRIMARY_ACTION)) then
 		self.toThrowFoley = true;
 	elseif self.toThrowFoley then
@@ -258,5 +244,4 @@ function Update(self)
 		BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.ThrowGrunt, 3, false);
 		self.throwFoleySound:Play(self.Pos);
 	end
-
 end

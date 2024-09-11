@@ -17,6 +17,7 @@ function Create(self)
 			end
 		end
 	end
+
 	--Equip loadout actors with random weapons
 	if not self:NumberValueExists("Equipped") then
 		local headgear;
@@ -54,6 +55,7 @@ function Create(self)
 			headgear = CreateAttachable("Ronin ".. RoninLoadouts["Machinegunner"]["Headgear"][math.random(#RoninLoadouts["Machinegunner"]["Headgear"])], self.ModuleName);
 			self.Head:AddAttachable(headgear);
 		end
+
 		if self.Head and (self.face == 1 or self.face == 4) then	--Female
 			self.DeathSound.Pitch = 1.2;
 			self.PainSound.Pitch = 1.2;
@@ -61,6 +63,7 @@ function Create(self)
 				self.Head:AddAttachable(CreateAttachable("Ronin " .. (self.face == 1 and "Black" or "Blonde") .. " Hair", self.ModuleName));
 			end
 		end
+		
 		self:SetNumberValue("Equipped", 1);
 	end
 end

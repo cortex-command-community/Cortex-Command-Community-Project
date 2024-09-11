@@ -24,6 +24,9 @@
 #include "Deployment.h"
 #include "BunkerAssemblyScheme.h"
 
+#include <array>
+#include <string>
+
 using namespace RTE;
 
 #define MAXBRAINPATHCOST 10000
@@ -1410,8 +1413,14 @@ void SceneEditorGUI::UpdateBrainSkyPathAndCost(Vector brainPos) {
 		}
 	}
 
+	Vector pos1 = orbitPos;
+	Vector pos2 = brainPos;
+	if (pos1.GetY() > pos2.GetY()) {
+		std::swap(pos1, pos2);
+	}
+
 	Activity::Teams team = static_cast<Activity::Teams>(g_ActivityMan.GetActivity()->GetTeamOfPlayer(m_pController->GetPlayer()));
-	m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(orbitPos, brainPos, c_PathFindingDefaultDigStrength, team,
+	m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(pos1, pos2, FLT_MAX, c_PathFindingDefaultDigStrength, team,
 	                                                          [&](std::shared_ptr<volatile PathRequest> pathRequest) {
 		                                                          m_BrainSkyPath = const_cast<std::list<Vector>&>(pathRequest->path);
 		                                                          m_BrainSkyPathCost = pathRequest->totalCost;

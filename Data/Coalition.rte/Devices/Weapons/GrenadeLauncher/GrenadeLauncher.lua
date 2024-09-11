@@ -53,6 +53,7 @@ function Update(self)
 		if self.Magazine then
 			self.Magazine.Frame = (self.Magazine.Frame + 1) % self.Magazine.FrameCount;	--To-do: add animation frames for the Magazine
 		end
+
 		local mode = self:GetStringValue("GrenadeMode");
 		local bullet = CreateActor("Coalition Grenade Launcher Shot", "Coalition.rte");
 		bullet.Pos = self.MuzzlePos;
@@ -64,6 +65,7 @@ function Update(self)
 			if actor:GetController():IsState(Controller.AIM_SHARP) then
 				bullet.Vel = self.Vel + Vector(35 * self.FlipFactor, 0):RadRotate(self.RotAngle):DegRotate(self.SharpShakeRange * 0.5 - (self.SharpShakeRange * math.random()));
 			end
+			
 			if mode == "Remote" then
 				if actor:IsPlayerControlled() then
 					if self.grenadeTableA[self.maxActiveGrenades] then
@@ -89,6 +91,7 @@ function Update(self)
 		bullet:SetStringValue("GrenadeMode", mode);
 		MovableMan:AddParticle(bullet);
 	end
+
 	if self:StringValueExists("GrenadeTrigger") then
 		local trigger = self:GetStringValue("GrenadeTrigger");
 		for i = 1, #self.grenadeTableA do
@@ -96,6 +99,7 @@ function Update(self)
 				self.grenadeTableA[i]:SetStringValue("GrenadeMode", trigger);
 			end
 		end
+
 		self.grenadeTableA = {};
 		self:RemoveNumberValue("CoalitionRemoteGrenades");
 		self:RemoveStringValue("GrenadeTrigger");

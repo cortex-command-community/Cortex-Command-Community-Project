@@ -25,6 +25,7 @@ function Update(self)
 		self.ToDelete = false;
 		self.ToSettle = false;
 	end
+
 	if self.sticky then
 		if self.actionPhase == 0 then
 			local rayHitPos = Vector();
@@ -45,6 +46,7 @@ function Update(self)
 					break;
 				end
 			end
+			
 			if rayHit == true then
 				self.actionPhase = 1;
 			else

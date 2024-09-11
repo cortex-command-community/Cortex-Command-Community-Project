@@ -42,10 +42,10 @@ env:
   SOLUTION_FILE_PATH: RTEA.sln
   NAME_MAPPING: |
     {
-      "Final": "Cortex Command.exe",
-      "Debug Release": "Cortex Command.debug.release.exe",
-      "Debug Minimal": "Cortex Command.debug.minimal.exe",
-      "Debug Full": "Cortex Command.debug.full.exe"
+      "Final": "Cortex Command",
+      "Debug Release": "Cortex Command.debug.release",
+      "Debug Minimal": "Cortex Command.debug.minimal",
+      "Debug Full": "Cortex Command.debug.full"
     }
 
 jobs:
@@ -54,10 +54,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v1
+        uses: microsoft/setup-msbuild@v2
 
       - name: Set Version
         if: ${{inputs.new_release_version}}
@@ -81,8 +81,8 @@ jobs:
 
       - name: Upload Artifact
         if: ${{inputs.upload_artefacts}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.executable_name.outputs.EXECUTABLE_NAME }}
-          path: ${{ steps.executable_name.outputs.EXECUTABLE_NAME }}
+          path: ${{ steps.executable_name.outputs.EXECUTABLE_NAME }}.*
           if-no-files-found: error

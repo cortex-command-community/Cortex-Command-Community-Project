@@ -26,6 +26,8 @@
 
 #include "tracy/Tracy.hpp"
 
+#include <fstream>
+
 using namespace RTE;
 
 ConcreteClassInfo(GAScripted, GameActivity, 0);
@@ -312,12 +314,6 @@ void GAScripted::End() {
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          UpdateEditing
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     This is a special update step for when any player is still editing the
-//                  scene.
-
 void GAScripted::UpdateEditing() {
     GameActivity::UpdateEditing();
 }

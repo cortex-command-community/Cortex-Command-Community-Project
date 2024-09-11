@@ -2,17 +2,12 @@ name: Master Build and Release
 # Controls when the action will run.
 on:
   workflow_dispatch:
-    inputs:
-      new_release_version:
-        description: "New version number to release"
-        type: string
-        required: true
 
 concurrency:
   group: release-${{ github.ref_name }}
 
 env:
-  LATEST_TAG: latest
+  LATEST_TAG: latest-release
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -22,7 +17,6 @@ jobs:
     uses: ./.github/workflows/meson.yml
     with:
       upload_artefacts: true
-      new_release_version: ${{ github.event.inputs.new_release_version }}
 
   build-msbuild-releases:
     name: Windows Release Build
@@ -30,7 +24,6 @@ jobs:
     uses: ./.github/workflows/msbuild.yml
     with:
       upload_artefacts: true
-      new_release_version: ${{ github.event.inputs.new_release_version }}
 
   release:
     name: Publish Release
@@ -40,43 +33,35 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: fetch tags
         run: git fetch --tags origin
 
-      - name: Set Version
-        if: ${{ github.event.inputs.new_release_version}}
-        uses: ./.github/actions/set_version
-        with:
-          new_release_version: ${{ github.event.inputs.new_release_version}}
+      - name: Get Release Version
+        id: get-release-version
+        uses: ./.github/actions/get-game-version
 
       - name: Bundle release assets
         uses: ./.github/actions/bundle_release
 
       - name: Create a new Release
         run: |
-          gh release create v${{ github.event.inputs.new_release_version }} \
-            --title "Release ${{ github.event.inputs.new_release_version }}" \
+          gh release create v${{ steps.get-release-version.outputs.game-version }} \
+            --title "Release v${{ steps.get-release-version.outputs.game-version }}" \
             --generate-notes \
             --draft \
             --target ${{ github.ref_name }} \
             ${{format('--notes-start-tag {0}', env.LATEST_TAG) || ''}} \
-            'CortexCommand.windows.zip#Cortex Command [v${{ github.event.inputs.new_release_version }}] (Windows Release)' \
-            'CortexCommand.linux.zip#Cortex Command [v${{ github.event.inputs.new_release_version }}] (Linux Release)' \
-            'CortexCommand.macos.zip#Cortex Command [v${{ github.event.inputs.new_release_version }}] (macOS Release)'
+            'CortexCommand.windows.zip#Cortex Command [v${{ steps.get-release-version.outputs.game-version }}] (Windows Release)' \
+            'CortexCommand.linux.zip#Cortex Command [v${{ steps.get-release-version.outputs.game-version }}] (Linux Release)' \
+            'CortexCommand.macos.zip#Cortex Command [v${{ steps.get-release-version.outputs.game-version }}] (macOS Release)'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit and push Version Changes and Update latest tag
         shell: bash
         run: |
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
-          git add Source/System/GameVersion.h meson.build
-          git commit -m "Release v${{ inputs.new_release_version }}" || echo "No changes to commit"
-          git push
-
           RELEASE_COMMIT=$(git rev-parse HEAD)
           curl -X PATCH \
             -H "Authorization: Bearer ${{ secrets.WORKFLOW_TOKEN }}" \
@@ -86,5 +71,4 @@ jobs:
               "sha": "'"$RELEASE_COMMIT"'",
               "ref": "${{ github.ref }}"
             }'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN}}
+

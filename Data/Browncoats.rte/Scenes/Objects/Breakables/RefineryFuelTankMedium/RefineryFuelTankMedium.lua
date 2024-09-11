@@ -1,11 +1,8 @@
 function Create(self)
-
 	self.unpinThreshold = self.GibWoundLimit * 0.5;
-	
 end
 
 function Update(self)
-
 	if self.WoundCount > self.unpinThreshold and self.PinStrength > 0 then
 		self.PinStrength = 0;
 		
@@ -13,15 +10,8 @@ function Update(self)
 		self.Vel = self.Vel + Vector(math.random(-2, 2), 0);
 		
 	end
-	
 end
 
 function OnCollideWithTerrain(self)
-
 	self:GibThis();
-	
-end
-
-function OnDestroy(self)
-
 end

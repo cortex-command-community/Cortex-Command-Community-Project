@@ -11,6 +11,9 @@
 #include "Controller.h"
 #include "PieSlice.h"
 
+#include <list>
+#include <memory>
+
 struct BITMAP;
 
 namespace RTE {

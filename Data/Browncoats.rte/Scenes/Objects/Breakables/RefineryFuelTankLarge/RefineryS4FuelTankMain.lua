@@ -1,5 +1,4 @@
 function Create(self)
-	
 	-- TODO figure out something better than having all these mosrotatings in Actors
 	self.auxiliaryTanksTable = {};
 	for par in MovableMan.Particles do
@@ -14,11 +13,9 @@ function Create(self)
 			table.insert(self.doorsTable, actor);
 		end
 	end
-	
 end
 
 function Update(self)
-
 	if self.blowUpTimer then
 		if self.blowUpTimer:IsPastSimMS(1000) then
 		
@@ -39,12 +36,10 @@ function Update(self)
 					tank:SendMessage("RefineryAssault_S4TankBlownUp");
 				end
 			end
-			
 		end
 	elseif self.WoundCount > 100 then
 		self.blowUpTimer = Timer();
 		local soundContainer = CreateSoundContainer("Yskely Refinery S4 Tank Burst");
 		soundContainer:Play(self.Pos);
 	end
-	
 end

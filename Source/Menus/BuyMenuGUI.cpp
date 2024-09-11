@@ -30,6 +30,7 @@
 #include "HeldDevice.h"
 #include "AHuman.h"
 #include "ACraft.h"
+#include "System.h"
 
 using namespace RTE;
 
@@ -1823,12 +1824,6 @@ void BuyMenuGUI::Draw(BITMAP* drawBitmap) const {
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Virtual Method:  FocusChange
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes sure all things that to happen when focus is moved from one area
-//                  or control to the next within the menu, will happen.
-
 void BuyMenuGUI::FocusChange()
 {
     // Set control focus accordingly

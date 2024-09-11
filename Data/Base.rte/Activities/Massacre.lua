@@ -5,7 +5,10 @@ function Massacre:StartActivity(isNewGame)
 	self.startMessageTimer = Timer();
 	self.enemySpawnTimer = Timer();
 
+	self.humanTeam = Activity.TEAM_2;
+	
 	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
+	self.humanTechName = self:GetTeamTech(self.humanTeam);
 
 	if isNewGame then
 		self:StartNewGame();
@@ -18,7 +21,7 @@ function Massacre:OnSave()
 	self:SaveNumber("startMessageTimer.ElapsedSimTimeMS", self.startMessageTimer.ElapsedSimTimeMS);
 	self:SaveNumber("enemySpawnTimer.ElapsedSimTimeMS", self.enemySpawnTimer.ElapsedSimTimeMS);
 
-	self:SaveNumber("_currentKills", self:GetTeamDeathCount((Activity.TEAM_2)));
+	self:SaveNumber("_currentKills", self:GetTeamDeathCount((self.CPUTeam)));
 	self:SaveNumber("killsNeeded", self.killsNeeded);
 	self:SaveString("killsDisplay", self.killsDisplay);
 	self:SaveNumber("baseSpawnTime", self.baseSpawnTime);
@@ -28,12 +31,14 @@ end
 
 function Massacre:StartNewGame()
 	self:SetTeamFunds(1000000, self.CPUTeam);
-	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
+	self:SetTeamFunds(self:GetStartingGold(), self.humanTeam);
 
 	self.addFogOfWar = self:GetFogOfWarEnabled();
 
 	for actor in MovableMan.AddedActors do
-		actor.Team = Activity.TEAM_1;
+		if IsADoor(actor) then
+			actor.Team = self.humanTeam;
+		end
 	end
 
 	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
@@ -80,9 +85,9 @@ function Massacre:SetupHumanPlayerBrains()
 				-- If we can't find an unassigned brain in the scene to give each player, then force to go into editing mode to place one
 				if not foundBrain then
 					self.ActivityState = Activity.EDITING;
-					AudioMan:ClearMusicQueue();
-					AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", -1, -1);
+					MusicMan:PlayDynamicSong("Generic Ambient Music");
 				else
+					MusicMan:PlayDynamicSong("Generic Battle Music");
 					-- Set the found brain to be the selected actor at start
 					self:SetPlayerBrain(foundBrain, player);
 					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
@@ -99,7 +104,7 @@ function Massacre:ResumeLoadedGame()
 	self.startMessageTimer.ElapsedSimTimeMS = self:LoadNumber("startMessageTimer.ElapsedSimTimeMS");
 	self.enemySpawnTimer.ElapsedSimTimeMS = self:LoadNumber("enemySpawnTimer.ElapsedSimTimeMS");
 
-	self:ReportDeath(Activity.TEAM_2, self:LoadNumber("_currentKills"));
+	self:ReportDeath(self.CPUTeam, self:LoadNumber("_currentKills"));
 	self.killsNeeded = self:LoadNumber("killsNeeded");
 	self.killsDisplay = self:LoadString("killsDisplay");
 	self.baseSpawnTime = self:LoadNumber("baseSpawnTime");
@@ -129,33 +134,34 @@ function Massacre:EndActivity()
 	if not self:IsPaused() then
 		-- Play sad music if no humans are left
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
 			-- But if humans are left, then play happy music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end
 
 function Massacre:UpdateActivity()
 	if self.ActivityState ~= Activity.OVER and self.ActivityState ~= Activity.EDITING then
+		if not self.musicStarted then
+			self.musicStarted = true;
+			MusicMan:PlayDynamicSong("Generic Battle Music", "Default", true);
+		end
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				local screen = self:ScreenOfPlayer(player);
 				--Display messages.
 				if self.startMessageTimer:IsPastSimMS(3000) then
-					if self.killsNeeded - self:GetTeamDeathCount(Activity.TEAM_2) > 1 then
-						FrameMan:SetScreenText(self.killsNeeded - self:GetTeamDeathCount(Activity.TEAM_2) .. " enemies left!", Activity.PLAYER_1, 0, 1000, false);
+					if self.killsNeeded - self:GetTeamDeathCount(self.CPUTeam) > 1 then
+						FrameMan:SetScreenText(self.killsNeeded - self:GetTeamDeathCount(self.CPUTeam) .. " enemies left!", screen, 0, 1000, false);
 					else
-						FrameMan:SetScreenText("1 enemy left!", Activity.PLAYER_1, 0, 1000, false);
+						FrameMan:SetScreenText("1 enemy left!", screen, 0, 1000, false);
 					end
 				else
-					FrameMan:SetScreenText("Kill " .. self.killsDisplay .. " enemies!", player, 333, 5000, true);
+					FrameMan:SetScreenText("Kill " .. self.killsDisplay .. " enemies!", screen, 333, 5000, true);
 				end
 
 				-- The current player's team
@@ -175,8 +181,8 @@ function Massacre:UpdateActivity()
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					self:SetPlayerBrain(nil, player);
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(player);
-					FrameMan:SetScreenText("Your brain has been destroyed!", player, 333, -1, false);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText("Your brain has been destroyed!", screen, 333, -1, false);
 					-- Now see if all brains of self player's team are dead, and if so, end the game
 					if not MovableMan:GetFirstBrainActor(team) then
 						self.WinnerTeam = self:OtherTeam(team);
@@ -185,12 +191,12 @@ function Massacre:UpdateActivity()
 				end
 
 				--Check if the player has won.
-				if self:GetTeamDeathCount(Activity.TEAM_2) >= self.killsNeeded then
+				if self:GetTeamDeathCount(self.CPUTeam) >= self.killsNeeded then
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(player);
-					FrameMan:SetScreenText("You killed all the attackers!", player, 333, -1, false);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText("You killed all the attackers!", screen, 333, -1, false);
 
-					self.WinnerTeam = Activity.TEAM_1;
+					self.WinnerTeam = self.humanTeam;
 
 					--Kill all enemies.
 					for actor in MovableMan.Actors do
@@ -205,7 +211,28 @@ function Massacre:UpdateActivity()
 		end
 
 		if self.addFogOfWar then
-			SceneMan:MakeAllUnseen(Vector(20, 20), self:GetTeamOfPlayer(Activity.PLAYER_1));
+			local fogResolution = 4;
+			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
+			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.humanTeam);
+
+			-- Reveal outside areas for everyone.
+			for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+				local altitude = Vector(0, 0);
+				SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+				if altitude.Y > 1 then
+					SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
+					SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.humanTeam);
+				end
+			end
+
+			for Act in MovableMan.AddedActors do
+				if not IsADoor(Act) then
+					for angle = 0, math.pi * 2, 0.05 do
+						SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+					end
+				end
+			end
+
 			self.addFogOfWar = false;
 		end
 
@@ -297,11 +324,11 @@ function Massacre:UpdateActivity()
 
 			if ship then
 				-- Set the spawn point of the ship from orbit
-				if self.playertally == 1 then
-					for i = 1, #self.playerlist do
-						if self.playerlist[i] == true then
+				if self.HumanCount == 1 then
+					for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+						if self:PlayerActive(player) and self:PlayerHuman(player) then
 							local sceneChunk = SceneMan.SceneWidth / 3;
-							local checkPos = self:GetPlayerBrain(i - 1).Pos.X + (SceneMan.SceneWidth/2) + ( (sceneChunk/2) - (math.random()*sceneChunk) );
+							local checkPos = self:GetPlayerBrain(player).Pos.X + (SceneMan.SceneWidth/2) + ( (sceneChunk/2) - (math.random()*sceneChunk) );
 							if checkPos > SceneMan.SceneWidth then
 								checkPos = checkPos - SceneMan.SceneWidth;
 							elseif checkPos < 0 then
@@ -340,5 +367,6 @@ function Massacre:UpdateActivity()
 		end
 	else
 		self.startMessageTimer:Reset();
+		self.musicStarted = false;
 	end
 end

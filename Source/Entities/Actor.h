@@ -613,15 +613,6 @@ namespace RTE {
 		/// @param movableObjectToIgnore A pointer to an MO which the Gibs and Attachables should not be colliding with.
 		void GibThis(const Vector& impactImpulse = Vector(), MovableObject* movableObjectToIgnore = nullptr) override;
 
-		/// Calculates the collision response when another MO's Atom collides with
-		/// this MO's physical representation. The effects will be applied
-		/// directly to this MO, and also represented in the passed in HitData.
-		/// @param hitData Reference to the HitData struct which describes the collision. This
-		/// will be modified to represent the results of the collision.
-		/// @return Whether the collision has been deemed valid. If false, then disregard
-		/// any impulses in the Hitdata.
-		bool CollideAtPoint(HitData& hitData) override;
-
 		/// Determines whether a particle which has hit this MO will penetrate,
 		/// and if so, whether it gets lodged or exits on the other side of this
 		/// MO. Appropriate effects will be determined and applied ONLY IF there
@@ -648,9 +639,6 @@ namespace RTE {
 		/// @return The number of waypoints in the MovePath.
 		int GetMovePathSize() const { return m_MovePath.size(); }
 
-		/// Starts updating this Actor's movepath.
-		virtual void UpdateMovePath();
-
 		/// Returns whether we're waiting on a new pending movepath.
 		/// @return Whether we're waiting on a new pending movepath.
 		bool IsWaitingOnNewMovePath() const { return m_PathRequest != nullptr || m_UpdateMovePath; }
@@ -658,6 +646,10 @@ namespace RTE {
 		/// Estimates what material strength this actor can penetrate.
 		/// @return The actor's dig strength.
 		virtual float EstimateDigStrength() const;
+
+		/// Estimates how high this actor can jump.
+		/// @return The actor's jump height.
+		virtual float EstimateJumpHeight() const;
 
 		/// Gets this Actor's base dig strength, or the strength of terrain they can expect to walk through without tools.
 		/// @return The actors base dig strength.
@@ -672,6 +664,9 @@ namespace RTE {
 
 		/// Updates this MovableObject. Supposed to be done every frame.
 		void Update() override;
+
+		/// Cast see rays for this actor.
+		void CastSeeRays();
 
 		/// Updates the full state of this object in one call. (PreControllerUpdate(), Controller::Update(), and Update())
 		virtual void FullUpdate() override;
@@ -813,6 +808,9 @@ namespace RTE {
 		/// Function that is called when we get a new movepath.
 		/// This processes and cleans up the movepath.
 		virtual void OnNewMovePath();
+
+		/// Starts updating this Actor's movepath.
+		virtual void UpdateMovePath();
 
 		// Member variables
 		static Entity::ClassInfo m_sClass;

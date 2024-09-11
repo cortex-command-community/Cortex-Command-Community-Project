@@ -22,6 +22,7 @@ function Update(self)
 			MovableMan:AddParticle(damagePar);
 		end
 	end
+	
 	if self.lifeTimer:IsPastSimTimeLimit() then
 		self:GibThis();
 	end

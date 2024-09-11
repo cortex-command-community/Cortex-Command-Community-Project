@@ -27,18 +27,30 @@ function Create(self)
 			end
 		end
 	end
+	
 	for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
 		if SceneMan:AnythingUnseen(team) then
 			local size = self.effectRadius * 0.6;
-			local dots = 10;
-			SceneMan:RestoreUnseenBox(self.Pos.X - (size * 0.5), self.Pos.Y - (size * 0.5), size, size, team);
-			for i = 1, dots do
-				local vector = Vector(size, 0):RadRotate(6.28 * i/dots);
+			local slices = size/10;
+			for i = 1, slices do
+				local angle = -math.pi/2 * i/slices;
+				local vector = Vector(-size, 0):RadRotate(angle);
 				local startPos = self.Pos + vector;
-				SceneMan:RestoreUnseenBox(startPos.X - (size * 0.5), startPos.Y - (size * 0.5), size, size, team);
+				SceneMan:RestoreUnseenBox(startPos.X, startPos.Y, vector.X * -2, vector.Y * -2, team);
+			end
+			local dots = math.sqrt(size) * 10;
+			for i = 1, dots do
+				local angle = math.pi * 2 * math.random();
+				local extent = (1 - math.random());
+				local startX = self.Pos.X + math.cos(angle) * size * (1 + extent);
+				local startY = self.Pos.Y + math.sin(angle) * size * (1 + extent);
+				local extentVariant = (1 - extent) * 10;
+
+				SceneMan:RestoreUnseenBox(startX - extentVariant, startY - extentVariant, extentVariant * 2, extentVariant * 2, team);
 			end
 		end
 	end
+
 	self.buzzSound = CreateSoundContainer("Ronin Scrambler Buzz", "Ronin.rte");
 end
 
@@ -58,15 +70,18 @@ function Update(self)
 					if ctrl:IsState(Controller.MOVE_LEFT) then
 						dir = dir - 1;
 					end
+
 					if ctrl:IsState(Controller.MOVE_RIGHT) then
 						dir = dir + 1;
 					end
+
 					actor.AngularVel = actor.AngularVel - dir/(1 + math.abs(actor.AngularVel));
 					if math.random(50) < numberValue then
 						for i = 0, 29 do --Go through and disable the gameplay-related controller states
 							ctrl:SetState(i, false);
 						end
 					end
+
 					local framesPerFlash = 6;
 					if (numberValue/framesPerFlash) - math.floor(numberValue/framesPerFlash) == 0 then
 						actor:FlashWhite(1);
@@ -74,6 +89,7 @@ function Update(self)
 							self.buzzSound:Play(actor.Pos);
 						end
 					end
+
 					actor:SetNumberValue("RoninScrambler", numberValue - 1);
 				else
 					actor:RemoveNumberValue("RoninScrambler");
@@ -81,6 +97,7 @@ function Update(self)
 			end
 		end
 	end
+
 	if actorCount == 0 then
 		self.ToDelete = true;
 	end

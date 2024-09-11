@@ -1,3 +1,4 @@
+
 #include "MetagameGUI.h"
 
 #include "WindowMan.h"
@@ -38,6 +39,8 @@
 #include "SLTerrain.h"
 #include "DataModule.h"
 #include "Loadout.h"
+#include "MusicMan.h"
+#include "System.h"
 
 using namespace RTE;
 
@@ -68,9 +71,9 @@ void MetagameGUI::SiteTarget::Draw(BITMAP* drawBitmap) const {
 
 	// Draw the appropriate growing geometric figure around the location, growing
 	if (m_Style == SiteTarget::CROSSHAIRSSHRINK) {
-		float radius = LERP(0.0, 1.0, 200, 10, m_AnimProgress);
-		float lineLen = LERP(0.0, 1.0, 60, 10, m_AnimProgress);
-		float rotation = 0; // LERP(0.0, 1.0, -c_EighthPI, 0.0, m_AnimProgress);
+		float radius = Lerp(0.0f, 1.0f, 200.0f, 10.0f, m_AnimProgress);
+		float lineLen = Lerp(0.0f, 1.0f, 60.0f, 10.0f, m_AnimProgress);
+		float rotation = Lerp(0.0f, 1.0f, Matrix(-c_EighthPI), Matrix(0.0f), m_AnimProgress).GetRadAngle();
 		Vector inner;
 		Vector outer;
 
@@ -83,9 +86,9 @@ void MetagameGUI::SiteTarget::Draw(BITMAP* drawBitmap) const {
 			DrawGlowLine(drawBitmap, m_CenterPos + inner, m_CenterPos + outer, m_Color);
 		}
 	} else if (m_Style == SiteTarget::CROSSHAIRSGROW) {
-		float radius = LERP(0.0, 1.0, 10, 200, m_AnimProgress);
-		float lineLen = LERP(0.0, 1.0, 10, 60, m_AnimProgress);
-		float rotation = 0; // LERP(0.0, 1.0, -c_EighthPI, 0.0, m_AnimProgress);
+		float radius = Lerp(0.0f, 1.0f, 10.0f, 200.0f, m_AnimProgress);
+		float lineLen = Lerp(0.0f, 1.0f, 10.0f, 60.0f, m_AnimProgress);
+		float rotation = Lerp(0.0f, 1.0f, Matrix(-c_EighthPI), Matrix(0.0f), m_AnimProgress).GetRadAngle();
 		Vector inner;
 		Vector outer;
 
@@ -98,26 +101,26 @@ void MetagameGUI::SiteTarget::Draw(BITMAP* drawBitmap) const {
 			DrawGlowLine(drawBitmap, m_CenterPos + inner, m_CenterPos + outer, m_Color);
 		}
 	} else if (m_Style == SiteTarget::CIRCLESHRINK) {
-		float radius = LERP(0.0, 1.0, 24, 6, m_AnimProgress);
-		int blendAmount = LERP(0.0, 1.0, 0, 255, m_AnimProgress); // + 15 * NormalRand();
+		float radius = Lerp(0.0f, 1.0f, 24.0f, 6.0f, m_AnimProgress);
+		int blendAmount = Lerp(0.0f, 1.0f, 0.0f, 255.0f, m_AnimProgress); // + 15 * NormalRand();
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 		circle(drawBitmap, m_CenterPos.m_X, m_CenterPos.m_Y, radius, m_Color);
 	} else if (m_Style == SiteTarget::CIRCLEGROW) {
-		float radius = LERP(0.0, 1.0, 6, 24, m_AnimProgress);
-		int blendAmount = LERP(0.0, 1.0, 255, 0, m_AnimProgress); // + 15 * NormalRand();
+		float radius = Lerp(0.0f, 1.0f, 6.0f, 24.0f, m_AnimProgress);
+		int blendAmount = Lerp(0.0f, 1.0f, 255.0f, 0.0f, m_AnimProgress); // + 15 * NormalRand();
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 		circle(drawBitmap, m_CenterPos.m_X, m_CenterPos.m_Y, radius, m_Color);
 	} else if (m_Style == SiteTarget::SQUARESHRINK) {
-		float radius = LERP(0.0, 1.0, 24, 6, m_AnimProgress);
-		int blendAmount = LERP(0.0, 1.0, 0, 255, m_AnimProgress); // + 15 * NormalRand();
+		float radius = Lerp(0.0f, 1.0f, 24.0f, 6.0f, m_AnimProgress);
+		int blendAmount = Lerp(0.0f, 1.0f, 0.0f, 255.0f, m_AnimProgress); // + 15 * NormalRand();
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 		rect(drawBitmap, m_CenterPos.m_X - radius, m_CenterPos.m_Y - radius, m_CenterPos.m_X + radius, m_CenterPos.m_Y + radius, m_Color);
 	}
 	// Default
 	else // if (m_Style == SiteTarget::SQUAREGROW)
 	{
-		float radius = LERP(0.0, 1.0, 6, 24, m_AnimProgress);
-		int blendAmount = LERP(0.0, 1.0, 255, 0, m_AnimProgress); // + 15 * NormalRand();
+		float radius = Lerp(0.0f, 1.0f, 6.0f, 24.0f, m_AnimProgress);
+		int blendAmount = Lerp(0.0f, 1.0f, 255.0f, 0.0f, m_AnimProgress); // + 15 * NormalRand();
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 		rect(drawBitmap, m_CenterPos.m_X - radius, m_CenterPos.m_Y - radius, m_CenterPos.m_X + radius, m_CenterPos.m_Y + radius, m_Color);
 	}
@@ -161,7 +164,7 @@ void MetagameGUI::Clear() {
 	m_AnimFundsMax = 0;
 	m_AnimFundsMin = 0;
 	m_AnimBuildCount = 0;
-	m_AnimIncomeLine = 0;
+	m_AnimIncomeLineIndex = 0;
 	m_AnimIncomeLineChange = false;
 	m_AnimActionLine = 0;
 	m_AnimActionLineChange = false;
@@ -580,6 +583,7 @@ int MetagameGUI::Create(Controller* pController) {
 
 	// Hide all screens, the appropriate screen will reappear on next update
 	HideAllScreens();
+	m_TechAndFlagListFetched = false;
 	return 0;
 }
 
@@ -715,35 +719,48 @@ void MetagameGUI::SetEnabled(bool enable) {
 		g_GUISound.ExitMenuSound()->Play();
 	}
 
-	// Populate the tech comboboxes with the available tech modules
-	for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
-		m_apPlayerTechSelect[team]->GetListPanel()->AddItem("-Random-", "", nullptr, nullptr, -1);
-		m_apPlayerTechSelect[team]->SetSelectedIndex(0);
-	}
-	for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); ++moduleID) {
-		if (const DataModule* dataModule = g_PresetMan.GetDataModule(moduleID)) {
-			if (dataModule->IsFaction()) {
-				for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
-					m_apPlayerTechSelect[team]->GetListPanel()->AddItem(dataModule->GetFriendlyName(), "", nullptr, nullptr, moduleID);
-					m_apPlayerTechSelect[team]->GetListPanel()->ScrollToTop();
+	if (!m_TechAndFlagListFetched) {
+		m_TechAndFlagListFetched = true;
+		// Populate the tech comboboxes with the available tech modules
+		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+			m_apPlayerTechSelect[player]->GetListPanel()->AddItem("-Random-", "", nullptr, nullptr, -1);
+			m_apPlayerTechSelect[player]->SetSelectedIndex(0);
+		}
+		for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); ++moduleID) {
+			if (const DataModule* dataModule = g_PresetMan.GetDataModule(moduleID)) {
+				if (dataModule->IsFaction()) {
+					for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+						m_apPlayerTechSelect[player]->GetListPanel()->AddItem(dataModule->GetFriendlyName(), "", nullptr, nullptr, moduleID);
+					}
+				}
+			}
+		}
+		// Start scrolled to the top.
+		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+			m_apPlayerTechSelect[player]->GetListPanel()->ScrollToTop();
+		}
+
+		// Populate team selection flags.
+		std::list<Entity*> flagList;
+		g_PresetMan.GetAllOfGroup(flagList, "Flags", "Icon");
+		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+			for (std::list<Entity*>::iterator itr = flagList.begin(); itr != flagList.end(); ++itr) {
+				if (const Icon* pIcon = dynamic_cast<Icon*>(*itr)) {
+					m_apPlayerTeamSelect[player]->AddItem("", "", new AllegroBitmap(pIcon->GetBitmaps32()[0]), pIcon);
 				}
 			}
 		}
 	}
-
-	std::list<Entity*> flagList;
-	g_PresetMan.GetAllOfGroup(flagList, "Flags", "Icon");
+	// If a player has no team selected, default to the same team as their player index.
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
-		for (std::list<Entity*>::iterator itr = flagList.begin(); itr != flagList.end(); ++itr) {
-			if (const Icon* pIcon = dynamic_cast<Icon*>(*itr)) {
-				m_apPlayerTeamSelect[player]->AddItem("", "", new AllegroBitmap(pIcon->GetBitmaps32()[0]), pIcon);
-			}
+		if (m_apPlayerTeamSelect[player]->GetSelectedIndex() < 0) {
+			m_apPlayerTeamSelect[player]->SetSelectedIndex(player);
 		}
 	}
-	if (m_apPlayerTeamSelect[Players::PlayerOne]->GetSelectedIndex() < 0) {
-		m_apPlayerTeamSelect[Players::PlayerOne]->SetSelectedIndex(0);
-	}
 
+	if (enable) {
+		UpdatePlayerSetup(); // Ensure everything's ready to jump right in to the game, if the player wants.
+	}
 	m_ScreenChange = true;
 }
 
@@ -1050,8 +1067,9 @@ bool MetagameGUI::LoadGame() {
 			UpdateScenesBox(true);
 
 			// Make sure GUI boxes are on the screen; save game might have been made on wonky resolution
-			for (unsigned int metaPlayer = Players::PlayerOne; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer)
+			for (size_t metaPlayer = Players::PlayerOne; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer) {
 				KeepBoxOnScreen(m_apPlayerBox[metaPlayer], 30);
+			}
 			KeepBoxOnScreen(m_pPhaseBox, 30);
 			KeepBoxOnScreen(m_pSceneInfoPopup, 30);
 
@@ -1511,9 +1529,9 @@ void MetagameGUI::Update() {
 		}
 
 		// Show that the game is over because noone has any brains left to do anyhting with
-		for (int metaPlayer = 0; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer)
+		for (size_t metaPlayer = 0; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer) {
 			m_apBrainPoolLabel[metaPlayer]->SetVisible(m_AnimTimer2.AlternateReal(333));
-
+		}
 		// Show a lil descriptive message as to why the game ended
 		m_pGameMessageLabel->SetVisible(true);
 		m_pGameMessageLabel->SetPositionAbs(m_pGameMessageLabel->GetXPos(), (m_apScreenBox[ROOTBOX]->GetHeight() / 2) + 110 - 16);
@@ -1625,7 +1643,7 @@ void MetagameGUI::Update() {
 	UpdateScenesBox();
 
 	// Update the site lines, if neccessary
-	for (unsigned int metaPlayer = 0; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer) {
+	for (size_t metaPlayer = 0; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer) {
 		// The tradestar is a moving target
 		if (m_aStationIncomeLineIndices[metaPlayer] >= 0 && !m_IncomeSiteLines.empty())
 			m_IncomeSiteLines[m_aStationIncomeLineIndices[metaPlayer]].m_PlanetPoint = m_StationPosOnOrbit;
@@ -1702,7 +1720,7 @@ void MetagameGUI::Draw(BITMAP* drawBitmap) {
 
 		// Draw all the player income site lines we are supposed to
 		//    for (vector<SiteLine>::const_iterator slItr = m_IncomeSiteLines.begin(); slItr != m_IncomeSiteLines.end(); ++slItr)
-		for (int slI = 0; slI < m_IncomeSiteLines.size(); ++slI) {
+		for (size_t slI = 0; slI < m_IncomeSiteLines.size(); ++slI) {
 			// Don't draw these during state change frames, to avoid blinking things inappropriately
 			if (m_ContinuePhase || g_MetaMan.m_StateChanged)
 				continue;
@@ -1710,7 +1728,7 @@ void MetagameGUI::Draw(BITMAP* drawBitmap) {
 			if (g_MetaMan.m_GameState != MetaMan::RUNACTIVITIES && m_IncomeSiteLines[slI].m_Player != m_ActivePlayerIncomeLines)
 				continue;
 			// If this is the line currently being animated, report back if the line connected with the current parameters
-			if (slI == m_AnimIncomeLine)
+			if (slI == m_AnimIncomeLineIndex)
 				m_LineConnected = DrawPlayerLineToSitePoint(drawBitmap, m_IncomeSiteLines[slI]) || m_LineConnected;
 			// Just draw the regular unanimated line
 			else
@@ -2169,7 +2187,7 @@ void MetagameGUI::UpdateInput() {
 				// Add the players who own this place, if any - their actors and brains are in the scene and should be shown
 				if (g_MetaMan.IsActiveTeam(m_pSelectedScene->GetTeamOwnership())) {
 					// Go through all players and add the ones of the defending team, based on who has resident brains here
-					for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+					for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 						// Got to remember to translate from metagame player index into the in-game player index and to flag them as not a human so they dont' get their own screens
 						//                            if (g_MetaMan.m_Players[mp].GetTeam() == m_pSelectedScene->GetTeamOwnership())
 						if (m_pSelectedScene->GetResidentBrain(g_MetaMan.m_Players[mp].GetInGamePlayer()))
@@ -2604,7 +2622,8 @@ void MetagameGUI::CompletedActivity() {
 			UpdateScenesBox(true);
 
 			// Play some nice ambient music
-			g_AudioMan.PlayMusic("Base.rte/Music/Hubnester/ccmenu.ogg", -1, 0.4);
+			g_MusicMan.PlayInterruptingMusic(dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Main Menu Music")));
+			g_AudioMan.SetMusicMuffledState(false);
 		}
 	}
 }
@@ -3003,23 +3022,23 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 		} while (++m_AnimMetaPlayer < g_MetaMan.m_Players.size());
 
 		// Start animating these lines appearing, one after another
-		m_AnimIncomeLine = 0;
+		m_AnimIncomeLineIndex = 0;
 		m_AnimIncomeLineChange = true;
 		m_AnimTimer1.Reset();
 		ChangeAnimMode(PAUSEANIM);
 	}
 
 	// Animate sitelines into view, one by one
-	if (!initOverride && !m_IncomeSiteLines.empty() && m_AnimIncomeLine < m_IncomeSiteLines.size()) {
+	if (!initOverride && !m_IncomeSiteLines.empty() && m_AnimIncomeLineIndex < m_IncomeSiteLines.size()) {
 		// Did the players change? If so, pause
 		//        if (m_AnimMetaPlayer != m_IncomeSiteLines[m_AnimIncomeLine].m_Player && !m_AnimTimer1.IsPastRealMS(1000))
 		//            ChangeAnimMode(PAUSEANIM);
 		// If a new line, choose which animation is appropriate
 		if (m_AnimIncomeLineChange) {
 			// Which player is this line of?
-			m_AnimMetaPlayer = m_ActivePlayerIncomeLines = m_IncomeSiteLines[m_AnimIncomeLine].m_Player;
+			m_AnimMetaPlayer = m_ActivePlayerIncomeLines = m_IncomeSiteLines[m_AnimIncomeLineIndex].m_Player;
 			// Station line, blink its meter and grow outward to the station
-			if (m_AnimIncomeLine == m_aStationIncomeLineIndices[m_AnimMetaPlayer])
+			if (m_AnimIncomeLineIndex == m_aStationIncomeLineIndices[m_AnimMetaPlayer])
 				ChangeAnimMode(BLINKMETER);
 			// Regular site line, start with shrinking circle around the site and draw the line backward toward the bar
 			else
@@ -3056,24 +3075,24 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 				m_LineConnected = false;
 			}
 			// Show the circle
-			m_IncomeSiteLines[m_AnimIncomeLine].m_OnlyLastSegments = m_AnimSegment;
+			m_IncomeSiteLines[m_AnimIncomeLineIndex].m_OnlyLastSegments = m_AnimSegment;
 			// Show the site name over the site loc
-			UpdateSiteNameLabel(true, m_IncomeSiteLines[m_AnimIncomeLine].m_SiteName, m_IncomeSiteLines[m_AnimIncomeLine].m_PlanetPoint);
+			UpdateSiteNameLabel(true, m_IncomeSiteLines[m_AnimIncomeLineIndex].m_SiteName, m_IncomeSiteLines[m_AnimIncomeLineIndex].m_PlanetPoint);
 			// Shrink by certain rate
 			if (!m_AnimTimer1.IsPastRealMS(350)) {
 				// If line to space station, special case animation
-				if (m_AnimIncomeLine == m_aStationIncomeLineIndices[m_AnimMetaPlayer])
-					m_IncomeSiteLines[m_AnimIncomeLine].m_CircleSize = EaseOut(20.0, 2.0, EaseOut(0, 1.0, m_AnimTimer1.GetElapsedRealTimeMS() / 350));
+				if (m_AnimIncomeLineIndex == m_aStationIncomeLineIndices[m_AnimMetaPlayer])
+					m_IncomeSiteLines[m_AnimIncomeLineIndex].m_CircleSize = EaseOut(20.0, 2.0, EaseOut(0, 1.0, m_AnimTimer1.GetElapsedRealTimeMS() / 350));
 				else
-					m_IncomeSiteLines[m_AnimIncomeLine].m_CircleSize = EaseOut(7.0, 1.0, EaseOut(0, 1.0, m_AnimTimer1.GetElapsedRealTimeMS() / 350));
+					m_IncomeSiteLines[m_AnimIncomeLineIndex].m_CircleSize = EaseOut(7.0, 1.0, EaseOut(0, 1.0, m_AnimTimer1.GetElapsedRealTimeMS() / 350));
 
 				m_AnimTimer2.Reset();
 			}
 			// Finished shrinking circle to the target size, now pause and blink it for a lil bit
 			else if (!m_AnimTimer2.IsPastRealMS(600)) {
-				m_IncomeSiteLines[m_AnimIncomeLine].m_OnlyLastSegments = m_AnimTimer2.AlternateReal(150) ? 0 : 1;
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_OnlyLastSegments = m_AnimTimer2.AlternateReal(150) ? 0 : 1;
 				// Also finish the circle in the destination size
-				m_IncomeSiteLines[m_AnimIncomeLine].m_CircleSize = m_AnimIncomeLine == m_aStationIncomeLineIndices[m_AnimMetaPlayer] ? 2.0 : 1.0;
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_CircleSize = m_AnimIncomeLineIndex == m_aStationIncomeLineIndices[m_AnimMetaPlayer] ? 2.0 : 1.0;
 			} else {
 				// Start connecting the circle to the player bar!
 				ChangeAnimMode(LINECONNECTBW);
@@ -3081,8 +3100,8 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 			}
 		} else if (m_AnimMode == LINECONNECTFW) {
 			if (NewAnimMode()) {
-				m_IncomeSiteLines[m_AnimIncomeLine].m_OnlyFirstSegments = 0;
-				m_IncomeSiteLines[m_AnimIncomeLine].m_OnlyLastSegments = -1;
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_OnlyFirstSegments = 0;
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_OnlyLastSegments = -1;
 				m_LineConnected = false;
 				// Hide the site name over the site loc at first
 				UpdateSiteNameLabel(false);
@@ -3091,7 +3110,7 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 			// If line not yet connected, keep revealing segments
 			if (!m_LineConnected) {
 				if (m_AnimTimer1.GetElapsedRealTimeMS() > 150) {
-					m_IncomeSiteLines[m_AnimIncomeLine].m_OnlyFirstSegments = ++m_AnimSegment;
+					m_IncomeSiteLines[m_AnimIncomeLineIndex].m_OnlyFirstSegments = ++m_AnimSegment;
 					m_AnimTimer1.Reset();
 				}
 			}
@@ -3111,7 +3130,7 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 				// Just another line on the same player, so start animating it immediately
 				//                else
 				{
-					m_IncomeSiteLines[m_AnimIncomeLine].m_OnlyFirstSegments = -1;
+					m_IncomeSiteLines[m_AnimIncomeLineIndex].m_OnlyFirstSegments = -1;
 					/*
 					                    // Hide the site label again
 					                    UpdateSiteNameLabel(false);
@@ -3124,22 +3143,22 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 			}
 		} else if (m_AnimMode == LINECONNECTBW) {
 			if (NewAnimMode()) {
-				m_IncomeSiteLines[m_AnimIncomeLine].m_OnlyFirstSegments = -1;
-				m_IncomeSiteLines[m_AnimIncomeLine].m_OnlyLastSegments = 0;
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_OnlyFirstSegments = -1;
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_OnlyLastSegments = 0;
 				m_LineConnected = false;
 			}
 			// Show the site name over the site loc
-			UpdateSiteNameLabel(true, m_IncomeSiteLines[m_AnimIncomeLine].m_SiteName, m_IncomeSiteLines[m_AnimIncomeLine].m_PlanetPoint);
+			UpdateSiteNameLabel(true, m_IncomeSiteLines[m_AnimIncomeLineIndex].m_SiteName, m_IncomeSiteLines[m_AnimIncomeLineIndex].m_PlanetPoint);
 			// Need to set up the ratio animation before we draw the line so it appears as the meter is 0
 			if (m_AnimFundsMax == 0) {
-				m_AnimFundsMax = m_IncomeSiteLines[m_AnimIncomeLine].m_FundsAmount;
-				m_IncomeSiteLines[m_AnimIncomeLine].m_FundsAmount = 0;
+				m_AnimFundsMax = m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount;
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount = 0;
 			}
 
 			// If line not yet connected, keep revealing segments
 			if (!m_LineConnected) {
 				if (m_AnimTimer1.GetElapsedRealTimeMS() > 150) {
-					m_IncomeSiteLines[m_AnimIncomeLine].m_OnlyLastSegments = ++m_AnimSegment;
+					m_IncomeSiteLines[m_AnimIncomeLineIndex].m_OnlyLastSegments = ++m_AnimSegment;
 					m_AnimTimer1.Reset();
 				}
 			}
@@ -3150,13 +3169,13 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 			if (NewAnimMode()) {
 				m_AnimTimer1.Reset();
 				// Show the meter
-				m_IncomeSiteLines[m_AnimIncomeLine].m_OnlyLastSegments = -1;
-				m_IncomeSiteLines[m_AnimIncomeLine].m_OnlyFirstSegments = 1;
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_OnlyLastSegments = -1;
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_OnlyFirstSegments = 1;
 			}
 			// Start blinking
 			if (!m_AnimTimer1.IsPastRealMS(1500)) {
 				m_apPlayerBarLabel[m_AnimMetaPlayer]->SetVisible(m_AnimTimer1.AlternateReal(150));
-				m_IncomeSiteLines[m_AnimIncomeLine].m_OnlyFirstSegments = m_AnimTimer1.AlternateReal(150) ? 1 : 0;
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_OnlyFirstSegments = m_AnimTimer1.AlternateReal(150) ? 1 : 0;
 			} else {
 				// Leave the label showing
 				m_apPlayerBarLabel[m_AnimMetaPlayer]->SetVisible(true);
@@ -3169,14 +3188,14 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 		else if (m_AnimMode == GROWMETER) {
 			if (NewAnimMode()) {
 				// Longer if we're liquidating brain.. it's important
-				m_AnimModeDuration = m_AnimIncomeLine == m_aBrainSaleIncomeLineIndices[m_AnimMetaPlayer] ? 4000 : 2000;
+				m_AnimModeDuration = m_AnimIncomeLineIndex == m_aBrainSaleIncomeLineIndices[m_AnimMetaPlayer] ? 4000 : 2000;
 				m_AnimTimer1.Reset();
-				m_IncomeSiteLines[m_AnimIncomeLine].m_OnlyLastSegments = -1;
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_OnlyLastSegments = -1;
 				// Show the change
-				FundsChangeIndication(m_AnimMetaPlayer, m_IncomeSiteLines[m_AnimIncomeLine].m_FundsTarget - m_IncomeSiteLines[m_AnimIncomeLine].m_FundsAmount, Vector(m_apPlayerBarLabel[m_AnimMetaPlayer]->GetXPos() + m_apPlayerBarLabel[m_AnimMetaPlayer]->GetWidth(), m_apPlayerBarLabel[m_AnimMetaPlayer]->GetYPos()), m_AnimModeDuration);
+				FundsChangeIndication(m_AnimMetaPlayer, m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsTarget - m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount, Vector(m_apPlayerBarLabel[m_AnimMetaPlayer]->GetXPos() + m_apPlayerBarLabel[m_AnimMetaPlayer]->GetWidth(), m_apPlayerBarLabel[m_AnimMetaPlayer]->GetYPos()), m_AnimModeDuration);
 
 				// Show the brain being sucked away if this is a brain liquidation income event
-				if (m_AnimIncomeLine == m_aBrainSaleIncomeLineIndices[m_AnimMetaPlayer]) {
+				if (m_AnimIncomeLineIndex == m_aBrainSaleIncomeLineIndices[m_AnimMetaPlayer]) {
 					// This is the text label showing the brain going away
 					BrainsChangeIndication(m_AnimMetaPlayer, -1, Vector(m_apBrainPoolLabel[m_AnimMetaPlayer]->GetXPos(), m_apBrainPoolLabel[m_AnimMetaPlayer]->GetYPos()), m_apBrainPoolLabel[m_AnimMetaPlayer]->GetHAlignment(), m_AnimModeDuration);
 					// This is the display adjustment to the actual counter; the final actual change at the end of the animation
@@ -3184,11 +3203,11 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 				}
 			}
 			// Show the site name over the site loc
-			UpdateSiteNameLabel(true, m_IncomeSiteLines[m_AnimIncomeLine].m_SiteName, m_IncomeSiteLines[m_AnimIncomeLine].m_PlanetPoint);
+			UpdateSiteNameLabel(true, m_IncomeSiteLines[m_AnimIncomeLineIndex].m_SiteName, m_IncomeSiteLines[m_AnimIncomeLineIndex].m_PlanetPoint);
 			// Grow for a certain amount of time
 			if (!m_AnimTimer1.IsPastRealMS(m_AnimModeDuration)) {
 				// Make this animation correlate in duration with the funds change label that rises
-				m_IncomeSiteLines[m_AnimIncomeLine].m_FundsAmount = EaseOut(0, m_IncomeSiteLines[m_AnimIncomeLine].m_FundsTarget, m_AnimTimer1.GetElapsedRealTimeMS() / m_AnimModeDuration);
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount = EaseOut(0, m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsTarget, m_AnimTimer1.GetElapsedRealTimeMS() / m_AnimModeDuration);
 				g_MetaMan.m_Players[m_AnimMetaPlayer].m_Funds = GetPlayerLineFunds(m_IncomeSiteLines, m_AnimMetaPlayer);
 				UpdatePlayerLineRatios(m_IncomeSiteLines, m_AnimMetaPlayer);
 				m_AnimTimer2.Reset();
@@ -3196,21 +3215,21 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 			// Finished growing the meter to the target size
 			else {
 				UpdateSiteNameLabel(false);
-				m_IncomeSiteLines[m_AnimIncomeLine].m_FundsAmount = m_IncomeSiteLines[m_AnimIncomeLine].m_FundsTarget;
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount = m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsTarget;
 				g_MetaMan.m_Players[m_AnimMetaPlayer].m_Funds = GetPlayerLineFunds(m_IncomeSiteLines, m_AnimMetaPlayer);
 				UpdatePlayerLineRatios(m_IncomeSiteLines, m_AnimMetaPlayer);
 
 				// Check if there's more lines to draw, and if so, if the next one is of a different player
 				// OR if there's no lines left at all, just retract the last player's lines we just finished
 				// Then pause to retract all the lines of the just finished player
-				if ((m_AnimIncomeLine + 1) >= m_IncomeSiteLines.size() || m_IncomeSiteLines[m_AnimIncomeLine + 1].m_Player != m_AnimMetaPlayer) {
+				if ((m_AnimIncomeLineIndex + 1) >= static_cast<int>(m_IncomeSiteLines.size()) || m_IncomeSiteLines[m_AnimIncomeLineIndex + 1].m_Player != m_AnimMetaPlayer) {
 					// Wait for a little bit when we've displayed all sites of a player
 					if (m_AnimTimer2.IsPastRealMS(500))
 						ChangeAnimMode(RETRACTLINES);
 				}
 				// Just another line on the same player, so start animating it immediately
 				else {
-					m_AnimIncomeLine++;
+					m_AnimIncomeLineIndex++;
 					m_AnimIncomeLineChange = true;
 					ChangeAnimMode(SHRINKCIRCLE);
 				}
@@ -3221,12 +3240,12 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 			if (NewAnimMode()) {
 				m_AnimModeDuration = 2000;
 				m_AnimTimer1.Reset();
-				m_IncomeSiteLines[m_AnimIncomeLine].m_OnlyLastSegments = -1;
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_OnlyLastSegments = -1;
 				// Show the change, if any
-				if (fabs(m_IncomeSiteLines[m_AnimIncomeLine].m_FundsTarget - m_IncomeSiteLines[m_AnimIncomeLine].m_FundsAmount) > 0) {
+				if (fabs(m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsTarget - m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount) > 0) {
 					// Show why we are paying money
 					PlayerTextIndication(m_AnimMetaPlayer, "TradeStar brain storage rent", Vector(m_apPlayerBarLabel[m_AnimMetaPlayer]->GetXPos() + (m_apPlayerBarLabel[m_AnimMetaPlayer]->GetWidth() / 2), m_apPlayerBarLabel[m_AnimMetaPlayer]->GetYPos() + (m_apPlayerBarLabel[m_AnimMetaPlayer]->GetHeight() / 2)), m_AnimModeDuration);
-					FundsChangeIndication(m_AnimMetaPlayer, m_IncomeSiteLines[m_AnimIncomeLine].m_FundsTarget - m_IncomeSiteLines[m_AnimIncomeLine].m_FundsAmount, Vector(m_apPlayerBarLabel[m_AnimMetaPlayer]->GetXPos() + m_apPlayerBarLabel[m_AnimMetaPlayer]->GetWidth(), m_apPlayerBarLabel[m_AnimMetaPlayer]->GetYPos()), m_AnimModeDuration);
+					FundsChangeIndication(m_AnimMetaPlayer, m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsTarget - m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount, Vector(m_apPlayerBarLabel[m_AnimMetaPlayer]->GetXPos() + m_apPlayerBarLabel[m_AnimMetaPlayer]->GetWidth(), m_apPlayerBarLabel[m_AnimMetaPlayer]->GetYPos()), m_AnimModeDuration);
 				}
 				// Indicate why we're not paying anything
 				else
@@ -3249,11 +3268,11 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 			// Show the site name over the site loc
 			//            UpdateSiteNameLabel(true, m_IncomeSiteLines[m_AnimIncomeLine].m_SiteName, m_IncomeSiteLines[m_AnimIncomeLine].m_PlanetPoint, 1.2);
 			// This'll always be the tradestar, so hardcode some descriptive text
-			UpdateSiteNameLabel(true, "TradeStar Midas", m_IncomeSiteLines[m_AnimIncomeLine].m_PlanetPoint, 1.25);
+			UpdateSiteNameLabel(true, "TradeStar Midas", m_IncomeSiteLines[m_AnimIncomeLineIndex].m_PlanetPoint, 1.25);
 			// Shrink for a certain amount of time
 			if (!m_AnimTimer1.IsPastRealMS(m_AnimModeDuration)) {
 				// Make this animation correlate in duration with the funds change label that rises
-				m_IncomeSiteLines[m_AnimIncomeLine].m_FundsAmount = EaseOut(g_MetaMan.m_Players[m_AnimMetaPlayer].m_PhaseStartFunds, m_IncomeSiteLines[m_AnimIncomeLine].m_FundsTarget, m_AnimTimer1.GetElapsedRealTimeMS() / m_AnimModeDuration);
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount = EaseOut(g_MetaMan.m_Players[m_AnimMetaPlayer].m_PhaseStartFunds, m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsTarget, m_AnimTimer1.GetElapsedRealTimeMS() / m_AnimModeDuration);
 				UpdatePlayerLineRatios(m_IncomeSiteLines, m_AnimMetaPlayer);
 				g_MetaMan.m_Players[m_AnimMetaPlayer].m_Funds = GetPlayerLineFunds(m_IncomeSiteLines, m_AnimMetaPlayer);
 				m_AnimTimer2.Reset();
@@ -3261,21 +3280,21 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 			// Finished shrinking the meter to the target size
 			else {
 				UpdateSiteNameLabel(false);
-				m_IncomeSiteLines[m_AnimIncomeLine].m_FundsAmount = m_IncomeSiteLines[m_AnimIncomeLine].m_FundsTarget;
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount = m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsTarget;
 				g_MetaMan.m_Players[m_AnimMetaPlayer].m_Funds = GetPlayerLineFunds(m_IncomeSiteLines, m_AnimMetaPlayer);
 				UpdatePlayerLineRatios(m_IncomeSiteLines, m_AnimMetaPlayer);
 
 				// Check if there's more lines to draw, and if so, if the next one is of a different player
 				// OR if there's no lines left at all, just retract the last player's lines we just finished
 				// Then pause to retract all the lines of the just finished player
-				if ((m_AnimIncomeLine + 1) >= m_IncomeSiteLines.size() || m_IncomeSiteLines[m_AnimIncomeLine + 1].m_Player != m_AnimMetaPlayer) {
+				if ((m_AnimIncomeLineIndex + 1) >= m_IncomeSiteLines.size() || m_IncomeSiteLines[m_AnimIncomeLineIndex + 1].m_Player != m_AnimMetaPlayer) {
 					// Wait for a little bit when we've displayed all sites of a player
 					if (m_AnimTimer2.IsPastRealMS(500))
 						ChangeAnimMode(RETRACTLINES);
 				}
 				// Just another line on the same player, so start animating it immediately
 				else {
-					m_AnimIncomeLine++;
+					m_AnimIncomeLineIndex++;
 					m_AnimIncomeLineChange = true;
 					ChangeAnimMode(SHRINKCIRCLE);
 				}
@@ -3304,7 +3323,7 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 			}
 			if (m_AnimSegment == 0) {
 				// Have another player's lines to animate, so start doing that
-				m_AnimIncomeLine++;
+				m_AnimIncomeLineIndex++;
 				m_AnimIncomeLineChange = true;
 				ChangeAnimMode(SHRINKCIRCLE);
 			}
@@ -3312,7 +3331,7 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 	}
 
 	// If no more lines, DONE, continue phase to next
-	if (m_AnimIncomeLine >= m_IncomeSiteLines.size() && !initOverride)
+	if (m_AnimIncomeLineIndex >= static_cast<int>(m_IncomeSiteLines.size()) && !initOverride)
 		m_ContinuePhase = true;
 
 	// Phase ending, make sure everything is set up to continue
@@ -3338,7 +3357,7 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 		m_ActivePlayerIncomeLines = -1;
 
 		// Make sure all fund labels and line ratios are good
-		for (int metaPlayer = Players::PlayerOne; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer) {
+		for (int metaPlayer = Players::PlayerOne; metaPlayer < static_cast<int>(g_MetaMan.m_Players.size()); ++metaPlayer) {
 			UpdatePlayerLineRatios(m_IncomeSiteLines, metaPlayer, false);
 			m_apPlayerBarLabel[metaPlayer]->SetVisible(true);
 			// Set all funds to the final values, if not a gameover guy
@@ -3392,7 +3411,7 @@ void MetagameGUI::UpdateBaseBuilding() {
 	// First do setup
 	if (g_MetaMan.m_StateChanged) {
 		// Make sure all fund labels and line ratios are good
-		for (int metaPlayer = Players::PlayerOne; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer) {
+		for (int metaPlayer = Players::PlayerOne; metaPlayer < static_cast<int>(g_MetaMan.m_Players.size()); ++metaPlayer) {
 			// Save the fund levels FROM THE START so we can calculate the after state if players skip the animation
 			g_MetaMan.m_Players[metaPlayer].m_PhaseStartFunds = g_MetaMan.m_Players[metaPlayer].m_Funds;
 
@@ -3442,7 +3461,7 @@ void MetagameGUI::UpdateBaseBuilding() {
 		//            ChangeAnimMode(PAUSEANIM);
 
 		// Find the next green defense line of this player
-		while (m_AnimActionLine < m_ActionSiteLines[m_AnimMetaPlayer].size() && m_ActionSiteLines[m_AnimMetaPlayer][m_AnimActionLine].m_Color != c_GUIColorGreen)
+		while (m_AnimActionLine < static_cast<int>(m_ActionSiteLines[m_AnimMetaPlayer].size()) && m_ActionSiteLines[m_AnimMetaPlayer][m_AnimActionLine].m_Color != c_GUIColorGreen)
 			m_AnimActionLine++;
 
 		// Regular site line, start with bar bracket and line appearing toward the site
@@ -3455,7 +3474,7 @@ void MetagameGUI::UpdateBaseBuilding() {
 
 	// Animate defense spending sitelines into view, and then count them away one by one
 	//    for (vector<SiteLine>::iterator slItr = m_ActionSiteLines[m_AnimMetaPlayer].begin(); slItr != m_ActionSiteLines[m_AnimMetaPlayer].end(); ++slItr)
-	if (!m_ActionSiteLines[m_AnimMetaPlayer].empty() && m_AnimActionLine < m_ActionSiteLines[m_AnimMetaPlayer].size()) {
+	if (!m_ActionSiteLines[m_AnimMetaPlayer].empty() && m_AnimActionLine < static_cast<int>(m_ActionSiteLines[m_AnimMetaPlayer].size())) {
 		if (m_AnimMode == BLINKMETER) {
 			if (NewAnimMode()) {
 				m_AnimTimer1.Reset();
@@ -3579,12 +3598,13 @@ void MetagameGUI::UpdateBaseBuilding() {
 	}
 
 	// If no more lines, DONE, continue to next player, and if no more players, continue to next phase of the round
-	if (m_AnimActionLine >= m_ActionSiteLines[m_AnimMetaPlayer].size()) {
+	if (m_AnimActionLine >= static_cast<int>(m_ActionSiteLines[m_AnimMetaPlayer].size())) {
 		m_AnimActionLineChange = true;
 		m_AnimActionLine = 0;
 
-		if (++m_AnimMetaPlayer >= g_MetaMan.m_Players.size())
+		if (++m_AnimMetaPlayer >= static_cast<int>(g_MetaMan.m_Players.size())) {
 			m_ContinuePhase = true;
+		}
 	}
 
 	// Phase ENDING, make sure everything is set up to continue
@@ -3593,7 +3613,7 @@ void MetagameGUI::UpdateBaseBuilding() {
 
 		// Make sure all fund labels and line ratios are good
 		Scene* pScene = 0;
-		for (unsigned int metaPlayer = Players::PlayerOne; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer) {
+		for (int metaPlayer = Players::PlayerOne; metaPlayer < static_cast<int>(g_MetaMan.m_Players.size()); ++metaPlayer) {
 			// Reset the funds to the full value before we started messing with animating them
 			g_MetaMan.m_Players[metaPlayer].m_Funds = g_MetaMan.m_Players[metaPlayer].m_PhaseStartFunds;
 
@@ -3641,7 +3661,7 @@ void MetagameGUI::SetupOffensives() {
 	bool playerDone = false;
 	int team = Activity::NoTeam;
 	int offensiveCount = 0;
-	for (int metaPlayer = Players::PlayerOne; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer) {
+	for (int metaPlayer = Players::PlayerOne; metaPlayer < static_cast<int>(g_MetaMan.m_Players.size()); ++metaPlayer) {
 		playerDone = false;
 		team = g_MetaMan.m_Players[metaPlayer].GetTeam();
 		// If we have a selected offensive target, find its scene in the metagame
@@ -3684,7 +3704,7 @@ void MetagameGUI::SetupOffensives() {
 						// Unless exploring an unclaimed spot, there's going to be defenders
 						if ((*sItr)->GetTeamOwnership() != Activity::NoTeam) {
 							// Go through all players and add the ones of the defending team, based on who has resident brains here
-							for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+							for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 								// Got to remember to translate from metagame player index into the in-game player index
 								// TODO: Remove this requirement to have a brain resident to play? error-prone and not so fun for co-op player on sme team if they can't all play
 								//                                if (g_MetaMan.m_Players[mp].GetTeam() == (*sItr)->GetTeamOwnership())
@@ -3782,7 +3802,7 @@ void MetagameGUI::UpdateOffensives() {
 			m_AnimDefenseTeam = m_pAnimScene->GetTeamOwnership();
 
 		// Set up all the offensive and defensive lines for each player involved in this site's battle
-		for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+		for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			// If this player is involved in this fight, show his lines etc
 			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 				// Save the fund levels FROM THE START of each battle so we can calculate the after state if players skip the animation
@@ -3898,7 +3918,7 @@ void MetagameGUI::UpdateOffensives() {
 	if (m_AnimMode == LINECONNECTFW) {
 		if (NewAnimMode()) {
 			// Make sure all offensive action lines are set up for this phase
-			for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+			for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 				// Find all players that are active during this battle
 				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 					// If this player is attacking, indicate that we've got a brain in transit.. this just changes the display, not the actual brain pool count yet
@@ -3928,7 +3948,7 @@ void MetagameGUI::UpdateOffensives() {
 		// Keep revealing segments simultaneously from all attackers until they are all revealed
 		if (m_AnimSegment < 15) {
 			if (m_AnimTimer1.GetElapsedRealTimeMS() > 150) {
-				for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+				for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 					// Only care if this player is attacking this site
 					if (m_pAnimScene->GetPresetName() == g_MetaMan.m_Players[mp].GetOffensiveTargetName() && g_MetaMan.m_Players[mp].GetOffensiveBudget() > 0)
 					//                    if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer()))
@@ -3970,7 +3990,7 @@ void MetagameGUI::UpdateOffensives() {
 	if (m_AnimMode == SHOWDEFENDERS) {
 		if (NewAnimMode()) {
 			// Make sure all defensive and unallocated budget action lines are set up for this phase
-			for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+			for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			}
 
 			m_AnimModeDuration = 500;
@@ -4004,7 +4024,7 @@ void MetagameGUI::UpdateOffensives() {
 	if (m_AnimMode == LINECONNECTBW) {
 		if (NewAnimMode()) {
 			// Make sure all defensive and unallocated budget action lines are set up for this phase
-			for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+			for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 				// Only care of this player is involved in this particular battle
 				// Only care about defending players of this site
 				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer()) &&
@@ -4033,7 +4053,7 @@ void MetagameGUI::UpdateOffensives() {
 		// Keep revealing segments simultaneously from all attackers until they are all revealed
 		if (m_AnimSegment < 15) {
 			if (m_AnimTimer1.GetElapsedRealTimeMS() > 150) {
-				for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+				for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 					// Only care of this player is involved in this particular battle
 					if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 						// Find their defensive-related funds site lines
@@ -4102,7 +4122,7 @@ void MetagameGUI::UpdateOffensives() {
 			m_AnimModeDuration = 2000;
 
 			// Make sure all offensive action-related lines are set up for this battle review animation
-			for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+			for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 				// Only the players of this battle
 				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 					// Find their site lines that are connected to the site
@@ -4130,7 +4150,7 @@ void MetagameGUI::UpdateOffensives() {
 		}
 
 		// Find the players who are involved in this battle
-		for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+		for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			// Only the players of this battle
 			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 				// The brains who DID NOT MAKE IT - Show them blowing up at some random interval into the animation
@@ -4189,7 +4209,7 @@ void MetagameGUI::UpdateOffensives() {
 		if (m_AnimTimer2.GetElapsedRealTimeMS() > m_AnimModeDuration) {
 			// Blow up any remaining brains who are doomed
 			// Find the players who are involved in this battle
-			for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+			for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 				// Only the players of this battle who didn't evacuate
 				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp].GetInGamePlayer()) &&
 				    !g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
@@ -4214,7 +4234,7 @@ void MetagameGUI::UpdateOffensives() {
 	if (m_AnimMode == SHOWPOSTBATTLEBRAINS) {
 		if (NewAnimMode()) {
 			// Make sure all defensive and unallocated budget action lines are set up for this phase
-			for (unsigned mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+			for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			}
 
 			// The duration of this depends on whethere there are any evacuees to travel back
@@ -4243,7 +4263,7 @@ void MetagameGUI::UpdateOffensives() {
 			// Change the display to show the evacuees transferring back to their brain pools
 			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->AnyBrainWasEvacuated()) {
 				// Find the players who are evacuated anything this battle
-				for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+				for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 					// Only the players of this battle who evac'd their brain
 					if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 						// Both an Attacker aborting an attack, and a Defender abandoning his site has the same effect here on the brian pool display
@@ -4261,7 +4281,7 @@ void MetagameGUI::UpdateOffensives() {
 	if (m_AnimMode == SHOWNEWRESIDENTS) {
 		if (NewAnimMode()) {
 			// Make sure all defensive and unallocated budget action lines are set up for this phase
-			for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+			for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			}
 
 			m_AnimModeDuration = m_BattleCausedOwnershipChange ? 500 : 750;
@@ -4283,7 +4303,7 @@ void MetagameGUI::UpdateOffensives() {
 			UpdatePostBattleResidents(EaseOut(0, 1.0, MIN(1.0, m_AnimTimer2.GetElapsedRealTimeMS() / m_AnimModeDuration)));
 
 		// Find the players who are involved in this battle
-		for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+		for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			// Only the players of this battle
 			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 				// The guys who died - remove their icons completely
@@ -4311,7 +4331,7 @@ void MetagameGUI::UpdateOffensives() {
 		UpdateSiteNameLabel(false);
 
 		// Max out the offensive lines in case the player started the battle before the lines were fully animated as connected
-		for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+		for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			// Only care of this player is involved in this particular battle
 			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 				for (std::vector<SiteLine>::iterator slItr = m_ActionSiteLines[mp].begin(); slItr != m_ActionSiteLines[mp].end(); ++slItr) {
@@ -4386,7 +4406,7 @@ bool MetagameGUI::FinalizeOffensive() {
 	}
 
 	// Deduct the original funds contribution of each player - less any unused funds of the team, taking original player contribution ratios into account
-	for (unsigned int mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
+	for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 		// Only the players who were battling this offensive
 		if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
 			// Re-set the funds level to where it was at the start of this offensive (NOT at the start of the phase, actually)
@@ -5675,8 +5695,8 @@ float MetagameGUI::GetPlayerLineFunds(std::vector<SiteLine>& lineList, int metaP
 	return totalFunds;
 }
 
-void MetagameGUI::UpdatePlayerLineRatios(std::vector<SiteLine>& lineList, unsigned int metaPlayer, bool onlyVisible, float total) {
-	if (metaPlayer < Players::PlayerOne || metaPlayer >= g_MetaMan.m_Players.size())
+void MetagameGUI::UpdatePlayerLineRatios(std::vector<SiteLine>& lineList, int metaPlayer, bool onlyVisible, float total) {
+	if (metaPlayer < Players::PlayerOne || metaPlayer >= static_cast<int>(g_MetaMan.m_Players.size()))
 		return;
 
 	// Figure out the total visible meter funds of this player, unless a total already specifically specified

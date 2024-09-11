@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stack>
+
 namespace RTE {
 
 	/// Reads GUI objects from std::istreams.

@@ -76,17 +76,14 @@ namespace RTE {
 		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
-		/// Method:			GetBitmapWidth
 		/// Gets the width this' bitmap.
 		/// @return Width of bitmap.
 		const int GetBitmapWidth() const { return m_pPresentationBitmap->w; }
 
-		/// Method:			GetBitmapHeight
 		/// Gets the height this' material bitmap.
 		/// @return Height of 'material' bitmap.
 		const int GetBitmapHeight() const { return m_pPresentationBitmap->h; }
 
-		/// Method:			GetBitmapOffset
 		/// Gets the offset of presentation bitmap
 		/// @return Offset of bitmap
 		const Vector GetBitmapOffset() const { return m_BitmapOffset; }

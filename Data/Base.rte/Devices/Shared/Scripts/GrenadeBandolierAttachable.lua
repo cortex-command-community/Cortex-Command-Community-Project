@@ -174,6 +174,7 @@ function Destroy(self)
 				bandolierAngularVel = self.grenadePreviouslyHeldByRootParent.AngularVel;
 			end
 		end
+		
 		if self.currentGrenadeCount > 0 then
 			self.bandolierObjectForDropping:SetNumberValue("GrenadesRemainingInBandolier", self.currentGrenadeCount);
 			

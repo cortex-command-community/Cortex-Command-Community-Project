@@ -5,7 +5,10 @@ function MetaFight:BrainCheck()
 	-- Clear all objective markers, they get re-added each frame
 	self:ClearObjectivePoints();
 	-- Keep track of which teams we have set objective points for already, since multiple players can be on the same team
-	local setTeam = { [Activity.TEAM_1] = false, [Activity.TEAM_2] = false, [Activity.TEAM_3] = false, [Activity.TEAM_4] = false };
+	local setTeam = {};
+	for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
+		setTeam[team] = false;
+	end
 
 	-----------------------------------------------------------------
 	-- Brain integrity check logic for every player, Human or AI
@@ -33,7 +36,7 @@ function MetaFight:BrainCheck()
 					-- All hope is lost for this player
 					else
 						self:ResetMessageTimer(player);
---						FrameMan:ClearScreenText(player);
+--						FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 --						FrameMan:SetScreenText("Your brain has been destroyed!", self:ScreenOfPlayer(player), 333, -1, false);
 						-- Save the position of this player's brain's last known position as the last brain death position
 						self.LastBrainDeathPos = self.LastBrainPos[player];
@@ -166,28 +169,17 @@ function MetaFight:StartActivity()
 --	self.CurrentScanStage = { [Activity.TEAM_1] = self.ScanStage.PRESCAN, [Activity.TEAM_2] = self.ScanStage.PRESCAN, [Activity.TEAM_3] = self.ScanStage.PRESCAN, [Activity.TEAM_4] = self.ScanStage.PRESCAN };
 	-- Start by assming no teams have scanning scheduled
 	self.CurrentScanStage = self.ScanStage.DONESCAN;
-	self.ScanPosX = { [Activity.TEAM_1] = -1, [Activity.TEAM_2] = -1, [Activity.TEAM_3] = -1, [Activity.TEAM_4] = -1 };
-	self.ScanTimer = { [Activity.TEAM_1] = Timer(), [Activity.TEAM_2] = Timer(), [Activity.TEAM_3] = Timer(), [Activity.TEAM_4] = Timer() };
-	self.StartFunds = { [Activity.TEAM_1] = 0, [Activity.TEAM_2] = 0, [Activity.TEAM_3] = 0, [Activity.TEAM_4] = 0 };
+	self.ScanPosX = {};
+	self.ScanTimer = {};
+	self.StartFunds = {};
 	self.ScanEndPos = Vector();
 
-	-- Reset scan timers and check that there's any teams with a scheduled scan at all
-	for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
-		if self:TeamActive(team) then
-			self.ScanTimer[team]:Reset();
-			-- Yes there is at least one active team that has scanning scheduled
-			if SceneMan.Scene:IsScanScheduled(team) then
-				self.CurrentScanStage = self.ScanStage.PRESCAN;
-			end
-		end
-	end
-
 	-- Which are the invading teams
-	self.InvadingTeam = { [Activity.TEAM_1] = false, [Activity.TEAM_2] = false, [Activity.TEAM_3] = false, [Activity.TEAM_4] = false };
+	self.InvadingTeam = {};
 	-- Which Teams are managed tactically by the AI? Only teams with NO human players on them
-	self.TeamAIActive = { [Activity.TEAM_1] = false, [Activity.TEAM_2] = false, [Activity.TEAM_3] = false, [Activity.TEAM_4] = false };
+	self.TeamAIActive = {};
 	-- Team has given up and is evacuating their brain
-	self.TeamEvacuating = { [Activity.TEAM_1] = false, [Activity.TEAM_2] = false, [Activity.TEAM_3] = false, [Activity.TEAM_4] = false };
+	self.TeamEvacuating = {};
 
 	-- A list of AI controlled team numbers
 	local CPUTeams = {};
@@ -195,7 +187,15 @@ function MetaFight:StartActivity()
 	self.AIModeTimer = {};
 
 	for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
+		self.ScanPosX[team] = -1;
+		self.ScanTimer[team] = Timer();
+		self.StartFunds[team] = 0;
+
 		if self:TeamActive(team) then
+			if SceneMan.Scene:IsScanScheduled(team) then
+				-- Yes there is at least one active team that has scanning scheduled
+				self.CurrentScanStage = self.ScanStage.PRESCAN;
+			end
 			-- Start out assuming all teams are all AI invaders, then disprove it
 			self.InvadingTeam[team] = true;
 			self.TeamAIActive[team] = true;
@@ -220,34 +220,32 @@ function MetaFight:StartActivity()
 				self.AIModeTimer[team] = Timer();
 				table.insert(CPUTeams, team);
 			end
+		else
+			self.InvadingTeam[team] = false;
+			self.TeamAIActive[team] = false;
+			self.TeamEvacuating[team] = false;
 		end
 	end
 
 	-- MetaFight-specific player parameters
-	self.InvadingPlayer = { [Activity.PLAYER_1] = false, [Activity.PLAYER_2] = false, [Activity.PLAYER_3] = false, [Activity.PLAYER_4] = false };
-	self.Ready = { [Activity.PLAYER_1] = false, [Activity.PLAYER_2] = false, [Activity.PLAYER_3] = false, [Activity.PLAYER_4] = false };
+	self.InvadingPlayer = {};
+	self.Ready = {};
 	self.InvadingPlayerCount = 0;
 	-- At what funds level the AI starts thinking about going into brain evacuation mode
-	self.EvacThreshold = { [Activity.PLAYER_1] = 100, [Activity.PLAYER_2] = 100, [Activity.PLAYER_3] = 100, [Activity.PLAYER_4] = 100 };
+	self.EvacThreshold = {};
 	-- The last known position of all players' active brains
-	self.LastBrainPos = { [Activity.PLAYER_1] = Vector(), [Activity.PLAYER_2] = Vector(), [Activity.PLAYER_3] = Vector(), [Activity.PLAYER_4] = Vector() };
+	self.LastBrainPos = {};
 	-- The position of the last brain that died
 	self.LastBrainDeathPos = Vector();
-
-	-- Count how many invading players there are
-	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-		if self:PlayerActive(player) then -- and self:PlayerHuman(player) then
-			if not SceneMan.Scene:GetResidentBrain(player) then
-				self.InvadingPlayerCount = self.InvadingPlayerCount + 1;
-			end
-		end
-	end
 
 	local defenderTeam;
 	local defenderTeamNativeCostMultiplier = 1.0;
 
 	-- Now init all players
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+		self.Ready[player] = false;
+		self.EvacThreshold[player] = 100;
+		self.LastBrainPos[player] = Vector();
 		if self:PlayerActive(player) then
 			-- Reset the timer that will measure the delay between ordering of reinforcements
 			-- Determine whether this player is invading or already has a brain to defend here
@@ -273,10 +271,7 @@ function MetaFight:StartActivity()
 			-- Invading player
 			if not residentBrain then
 				self.InvadingPlayer[player] = true;
-				-- Sanity check
-				if self.InvadingPlayerCount < 1 then
-					self.InvadingPlayerCount = 1;
-				end
+				self.InvadingPlayerCount = self.InvadingPlayerCount + 1;
 
 				-- Human player; init as appropriate for invaders
 				if self:PlayerHuman(player) then
@@ -324,7 +319,7 @@ function MetaFight:StartActivity()
 						if residentBrain.Pos.X == -1 and residentBrain.Pos.Y == -1 then
 							-- Find some random spot to put our brain
 							local pos;
-							local sucess = false;
+							local success = false;
 							-- Make few attempts to find a suitable spot
 							for i = 1, 10 do
 								local rangeWidth;
@@ -351,16 +346,16 @@ function MetaFight:StartActivity()
 
 								pos = Vector(math.random(rangeStart, rangeEnd), 0);
 
-								sucess = true;
+								success = true;
 
 								-- Measure heights 5 times and verify that we can put brain there
 								for j = -2, 2 do
 									if SceneMan:FindAltitude(pos + Vector(j * 10, 0), 0, 19) < 25 then
-										sucess = false;
+										success = false;
 									end
 								end
 
-								if sucess then
+								if success then
 									break;
 								end
 							end
@@ -417,7 +412,7 @@ function MetaFight:StartActivity()
 					if residentBrain.Pos.X == -1 and residentBrain.Pos.Y == -1 then
 						-- Find some random spot to put our brain
 						local pos;
-						local sucess = false;
+						local success = false;
 						-- Make few attempts to find a suitable spot
 						for i = 1, 20 do
 							local rangeWidth;
@@ -444,16 +439,16 @@ function MetaFight:StartActivity()
 
 							pos = Vector(math.random(rangeStart, rangeEnd), 0);
 
-							sucess = true;
+							success = true;
 
 							-- Measure heights 5 times and verify that we can put brain there
 							for j = -2, 2 do
 								if SceneMan:FindAltitude(pos + Vector(j * 10, 0), 0, 19) < 25 then
-									sucess = false;
+									success = false;
 								end
 							end
 
-							if sucess then
+							if success then
 								break;
 							end
 						end
@@ -508,8 +503,7 @@ function MetaFight:StartActivity()
 
 	-- Starting in pregame, so play some appropriate music
 	if self.ActivityState == Activity.PREGAME then
-		AudioMan:ClearMusicQueue();
-		AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", -1, -1);
+		MusicMan:PlayDynamicSong("Generic Ambient Music");
 	end
 
 	-- Disable AI if we are editing pregame
@@ -566,23 +560,17 @@ function MetaFight:EndActivity()
 			-- Should not clear blueprints because this wipes all placed loadouts info
 			--SceneMan.Scene:ClearPlacedObjectSet(Scene.BLUEPRINT);
 			-- Sad music
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		-- Also play sad music if no humans are left
 		elseif self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		-- But if humans are left, then play happy music!
 		else
 			-- Win music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 
@@ -754,8 +742,9 @@ function MetaFight:UpdateActivity()
 				local team = self:GetTeamOfPlayer(player);
 	--				if (self.ActivityState == Activity.RUNNING) then
 				if (SceneMan.Scene:IsScanScheduled(team)) then
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-					FrameMan:SetScreenText(scanMessage, self:ScreenOfPlayer(player), messageBlink, 8000, false);
+					local screen = self:ScreenOfPlayer(player);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText(scanMessage, screen, messageBlink, 8000, false);
 				end
 			end
 		end
@@ -835,9 +824,10 @@ function MetaFight:UpdateActivity()
 						self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 						-- Clear the messages before starting the game
 						self:ResetMessageTimer(player);
-						FrameMan:ClearScreenText(player);
+						local screen = self:ScreenOfPlayer(player);
+						FrameMan:ClearScreenText(screen);
 						-- Reset the screen occlusion if any players are still in menus
-						CameraMan:SetScreenOcclusion(Vector(), self:ScreenOfPlayer(player));
+						CameraMan:SetScreenOcclusion(Vector(), screen);
 					end
 				end
 			end
@@ -856,12 +846,7 @@ function MetaFight:UpdateActivity()
 			UInputMan:SetMouseValueMagnitude(0, -1);
 			SceneMan.Scene:ResetPathFinding();
 			-- Start the in-game music track
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/cc2g.ogg", 0, -1.0);
-			AudioMan:QueueSilence(30);
-			AudioMan:QueueMusicStream("Base.rte/Music/Watts/Last Man.ogg");
-			AudioMan:QueueSilence(30);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/cc2g.ogg");
+			MusicMan:PlayDynamicSong("Generic Battle Music");
 
 			-- Find LZs for the AI teams
 			self:DesignateLZs();
@@ -1373,9 +1358,9 @@ function MetaFight:PickCraft(MetaPlayer)
 	-- Use base crafts as a fall-back
 	if not Craft then
 		if math.random() < 0.5 then
-			Craft = RandomACDropShip("Craft", MetaPlayer.NativeTechModule);
+			Craft = RandomACDropShip("Craft", "Base.rte");
 		else
-			Craft = RandomACRocket("Craft", MetaPlayer.NativeTechModule);
+			Craft = RandomACRocket("Craft", "Base.rte");
 		end
 	end
 
@@ -1411,9 +1396,9 @@ function MetaFight:OrderHeavyLoadout(player, team)
 			craftMaxMass = math.huge;
 		elseif craftMaxMass < 1 then
 			if math.random() < 0.5 then
-				Craft = RandomACDropShip("Craft", MetaPlayer.NativeTechModule);
+				Craft = RandomACDropShip("Craft", "Base.rte");
 			else
-				Craft = RandomACRocket("Craft", MetaPlayer.NativeTechModule);
+				Craft = RandomACRocket("Craft", "Base.rte");
 			end
 			craftMaxMass = Craft.MaxInventoryMass;
 		end
@@ -1435,13 +1420,13 @@ function MetaFight:OrderHeavyLoadout(player, team)
 			if actorsInCargo >= passengerLimit or totalMass > craftMaxMass then
 				break;
 			end
-
-			return true;
 		end
 
 		if diggers < 1 then
 			self:AddOverridePurchase(CreateHDFirearm("Light Digger", "Base.rte"), player);
 		end
+
+		return true;
 	end
 end
 
@@ -1472,9 +1457,9 @@ function MetaFight:OrderMediumLoadout(player, team)
 			craftMaxMass = math.huge;
 		elseif craftMaxMass < 1 then
 			if math.random() < 0.5 then
-				Craft = RandomACDropShip("Craft", MetaPlayer.NativeTechModule);
+				Craft = RandomACDropShip("Craft", "Base.rte");
 			else
-				Craft = RandomACRocket("Craft", MetaPlayer.NativeTechModule);
+				Craft = RandomACRocket("Craft", "Base.rte");
 			end
 			craftMaxMass = Craft.MaxInventoryMass;
 		end
@@ -1533,9 +1518,9 @@ function MetaFight:OrderLightLoadout(player, team)
 			craftMaxMass = math.huge;
 		elseif craftMaxMass < 1 then
 			if math.random() < 0.5 then
-				Craft = RandomACDropShip("Craft", MetaPlayer.NativeTechModule);
+				Craft = RandomACDropShip("Craft", "Base.rte");
 			else
-				Craft = RandomACRocket("Craft", MetaPlayer.NativeTechModule);
+				Craft = RandomACRocket("Craft", "Base.rte");
 			end
 			craftMaxMass = Craft.MaxInventoryMass;
 		end
@@ -1588,9 +1573,9 @@ function MetaFight:OrderScoutLoadout(player, team)
 			craftMaxMass = math.huge;
 		elseif craftMaxMass < 1 then
 			if math.random() < 0.5 then
-				Craft = RandomACDropShip("Craft", MetaPlayer.NativeTechModule);
+				Craft = RandomACDropShip("Craft", "Base.rte");
 			else
-				Craft = RandomACRocket("Craft", MetaPlayer.NativeTechModule);
+				Craft = RandomACRocket("Craft", "Base.rte");
 			end
 			craftMaxMass = Craft.MaxInventoryMass;
 		end

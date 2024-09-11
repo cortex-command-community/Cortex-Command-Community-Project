@@ -197,7 +197,7 @@ function ThreadedUpdateAI(self)
 		change = self.YposPID:Update(dist.Y, 0);
 		if math.abs(self.RotAngle) < 0.9 then
 			if self.AIMode == Actor.AIMODE_GOTO then
-				if change < -0.5 then
+				if change < 0 then
 					self.burstUp = nil;
 					self.Ctrl:SetState(Controller.MOVE_UP, true);
 				end
@@ -206,8 +206,12 @@ function ThreadedUpdateAI(self)
 					self.burstUp = nil;
 					self.Ctrl:SetState(Controller.MOVE_UP, true);	-- Don't burst when returning to orbit
 				else
-					if change < -7 and not self.burstUp then
+					if change < -2.2 and not self.burstUp then
 						self.burstUp = math.max(9 - change, 2); -- Wait n frames until next burst (lower -> better control)
+						if change < -6 then
+							self.Ctrl:SetState(Controller.MOVE_UP, true);
+							self.burstUp = nil;
+						end
 					elseif change > 20 then
 						self.burstUp = nil;
 						self.Ctrl:SetState(Controller.MOVE_DOWN, true);
@@ -275,7 +279,7 @@ function ThreadedUpdateAI(self)
 		self.burstUp = self.burstUp - SettingsMan.AIUpdateInterval;
 		if self.burstUp < 0 then
 			self.Ctrl:SetState(Controller.MOVE_UP, true);
-			if self.burstUp < -16 then
+			if self.burstUp < -8 then
 				self.burstUp = nil;
 			end
 		end

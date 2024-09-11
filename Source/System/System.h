@@ -1,5 +1,10 @@
 #pragma once
 
+#include <unordered_set>
+#include <source_location>
+#include <filesystem> // only one use of std::filesystem::file_time_type
+#include <vector>
+
 namespace RTE {
 
 	/// Class for the system functionality.

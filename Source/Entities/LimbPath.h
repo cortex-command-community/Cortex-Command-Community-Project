@@ -45,20 +45,16 @@ namespace RTE {
 		int Create() override;
 
 		/*
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Virtual method:  Create
-		//////////////////////////////////////////////////////////////////////////////////////////
-		// Description:     Makes the LimbPath object ready for use.
-		// Arguments:       A Vector specifying starting point of this LimbPath, relative
-		//                  to the owning RTEActor's origin.
-		//                  An int specifying how many segments there are in the following
-		//                  segment array. This MUST match the actual size of the array!
-		//                  An array of Vectors that hold the desired path segments to use.
-		//                  A float specifying the constant travel speed the limb traveling this
-		//                  LimbPath should have, in m/s.
-		// Return value:    An error return value signaling sucess or any particular failure.
-		//                  Anything below 0 is an error signal.
-
+		/// Makes the LimbPath object ready for use.
+		/// @param startPoint A Vector specifying starting point of this LimbPath, relative
+		/// to the owning RTEActor's origin.
+		/// @param segCount An int specifying how many segments there are in the following (default: 1)
+		/// segment array. This MUST match the actual size of the array!
+		/// @param aSegArray An array of Vectors that hold the desired path segments to use. (default: new Vector)
+		/// @param travelSpeed A float specifying the constant travel speed the limb traveling this (default: 1.0)
+		/// LimbPath should have, in m/s.
+		/// @return An error return value signaling sucess or any particular failure.
+		/// Anything below 0 is an error signal.
 		    int Create(const Vector &startPoint,
 		                       const unsigned int segCount = 1,
 		                       const Vector *aSegArray = new Vector,
@@ -94,13 +90,13 @@ namespace RTE {
 		/// Gets the number of Vector:s the internal array of 'waypoints' or
 		/// segments of this LimbPath.
 		/// @return An int with he count.
-		unsigned int GetSegCount() const { return m_Segments.size(); }
+		int GetSegCount() const { return m_Segments.size(); }
 
 		/// Gets a pointer to the segment at the given index. Ownership is NOT transferred.
 		/// @param segmentIndex The index of the segment to get.
 		/// @return A pointer to the segment at the given index. Ownership is NOT transferred.
-		Vector* GetSegment(unsigned int segmentIndex) {
-			if (segmentIndex < m_Segments.size()) {
+		Vector* GetSegment(int segmentIndex) {
+			if (segmentIndex < static_cast<int>(m_Segments.size())) {
 				return &m_Segments.at(segmentIndex);
 			}
 			return nullptr;
@@ -219,7 +215,7 @@ namespace RTE {
 
 		/// Gets the current segment as a number, rather than an iterator.
 		/// @return The current segment as a number.
-		unsigned int GetCurrentSegmentNumber() const;
+		int GetCurrentSegmentNumber() const;
 
 		/// Sets a new array of 'waypoints' or segments of this LimbPath.
 		/// @param newSpeed An int specifying how many segments there are in the following
@@ -374,7 +370,7 @@ namespace RTE {
 		// The iterator to the segment of the path that the limb ended up on the end of
 		std::deque<Vector>::iterator m_CurrentSegment;
 
-		unsigned int m_FootCollisionsDisabledSegment; //!< The segment after which foot collisions will be disabled for this limbpath, if it's for legs.
+		int m_FootCollisionsDisabledSegment; //!< The segment after which foot collisions will be disabled for this limbpath, if it's for legs.
 
 		// Normalized measure of how far the limb has progressed toward the
 		// current segment's target. 0.0 means its farther away than the

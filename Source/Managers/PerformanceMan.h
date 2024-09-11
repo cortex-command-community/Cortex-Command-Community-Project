@@ -3,7 +3,12 @@
 #include "Singleton.h"
 #include "Timer.h"
 
+#include <array>
 #include <atomic>
+#include <unordered_map>
+#include <memory>
+#include <vector>
+#include <string>
 
 #define g_PerformanceMan PerformanceMan::Instance()
 

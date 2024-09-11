@@ -16,6 +16,7 @@ function Create(self)
 		MovableMan:AddParticle(particle);
 		table.insert(self.trailPar, particle);
 	end
+
 	self.endPar = CreateMOSParticle("Tiny Smoke Ball 1 Glow Yellow");
 end
 
@@ -29,6 +30,7 @@ function Update(self)
 			end
 		end
 	end
+	
 	if self.Vel:MagnitudeIsLessThan(4) then
 		self.ToDelete = true;
 	end

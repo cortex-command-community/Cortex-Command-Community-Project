@@ -1,20 +1,45 @@
 function Create(self)
-	self.muzzleSmokeSize = self:NumberValueExists("MuzzleSmokeSize") and self:GetNumberValue("MuzzleSmokeSize") or self.Mass * 0.5;
 
-	self.muzzleSmokeCountMax = self.muzzleSmokeSize;
-	self.muzzleSmokeCountMin = math.ceil(self.muzzleSmokeCountMax * 0.5);
+	if self.Magazine then
+		local particleCount = self.Magazine.NextRound.ParticleCount;
+		local particleMass = self.Magazine.NextRound.NextParticle.Mass;
+		local fireVel = self.Magazine.NextRound.FireVel;
+	
+		self.muzzleSmokeSize = math.min(50, particleCount * particleMass * fireVel);
+	end
+	
+	self.muzzleSmokeSize = self:NumberValueExists("MuzzleSmokeSize") and self:GetNumberValue("MuzzleSmokeSize") or self.muzzleSmokeSize;
+	if self.muzzleSmokeSize == nil then
+		self.muzzleSmokeSize = self.Mass/1.5;
+	end
+	
 	self.muzzleSmokeVel = math.sqrt(self.muzzleSmokeSize) * 5;
-	self.muzzleSmokeSpread = math.rad((self.ShakeRange + self.SharpShakeRange) * 0.5 + (self.muzzleSmokeVel + self.ParticleSpreadRange) * 0.5);
+	
+	self.fireSmokeEffect = {};
+	self.fireSmokeEffect.Position = self.MuzzlePos;
+	self.fireSmokeEffect.Source = self;
+	self.fireSmokeEffect.RadAngle = self.RotAngle;
+	self.fireSmokeEffect.Power = self.muzzleSmokeSize;
+	self.fireSmokeEffect.Spread = (self.ShakeRange + self.SharpShakeRange) * 0.5 + self.ParticleSpreadRange;
+	self.fireSmokeEffect.SmokeMult = 0.5;
+	self.fireSmokeEffect.ExploMult = 1;
+	self.fireSmokeEffect.WidthSpread = 0;
+	self.fireSmokeEffect.VelocityMult = 0.5;
+	self.fireSmokeEffect.LingerMult = 0.45;
+	self.fireSmokeEffect.AirResistanceMult = 1;
+	self.fireSmokeEffect.GravMult = 1;
+	
+	self.particleUtility = require("Scripts/Utility/ParticleUtility");	
+	
 end
 
 function OnFire(self)
-	local smokeCount = math.random(self.muzzleSmokeCountMin, self.muzzleSmokeCountMax);
 
-	for i = 1, smokeCount do
-		local smoke = CreateMOSParticle("Tiny Smoke Trail " .. math.random(3));
-		smoke.Pos = self.MuzzlePos;
-		smoke.AirResistance = smoke.AirResistance * RangeRand(0.5, 1.0);
-		smoke.Vel = Vector(i/smokeCount * self.muzzleSmokeVel * self.FlipFactor, 0):RadRotate(self.RotAngle + self.muzzleSmokeSpread * RangeRand(-1, 1));
-		MovableMan:AddParticle(smoke);
-	end
+	local flip = self.HFlipped and math.pi or 0;
+	local angle = self.RotAngle + flip;
+	self.fireSmokeEffect.Position = self.MuzzlePos;
+	self.fireSmokeEffect.RadAngle = angle;
+	
+	self.particleUtility:CreateDirectionalSmokeEffect(self.fireSmokeEffect);
+
 end

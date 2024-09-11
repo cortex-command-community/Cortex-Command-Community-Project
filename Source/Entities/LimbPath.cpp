@@ -61,11 +61,6 @@ int LimbPath::Create() {
 }
 
 /*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Method:          Create
-//////////////////////////////////////////////////////////////////////////////////////////
-// Description:     Makes the LimbPath object ready for use.
-
 int LimbPath::Create(const Vector &startPoint,
                      const unsigned int segCount,
                      const Vector *aSegArray,
@@ -341,8 +336,8 @@ float LimbPath::GetRegularProgress() const {
 	return prog / m_RegularLength;
 }
 
-unsigned int LimbPath::GetCurrentSegmentNumber() const {
-	unsigned int progress = 0;
+int LimbPath::GetCurrentSegmentNumber() const {
+	int progress = 0;
 	if (!m_Ended && !IsStaticPoint()) {
 		for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_CurrentSegment; ++itr) {
 			progress++;

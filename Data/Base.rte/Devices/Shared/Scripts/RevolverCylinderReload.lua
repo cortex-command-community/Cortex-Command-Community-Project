@@ -15,6 +15,7 @@ function Update(self)
 			shell.AngularVel = RangeRand(-1, 1);
 			MovableMan:AddParticle(shell);
 		end
+		
 		self.shellsToEject = 0;
 	end
 end

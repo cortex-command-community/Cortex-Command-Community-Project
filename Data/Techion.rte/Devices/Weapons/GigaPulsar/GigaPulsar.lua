@@ -39,6 +39,7 @@ function Update(self)
 				MovableMan:AddParticle(effect);
 			end
 		end
+		
 		self.dingSound = true;
 	end
 end

@@ -2,6 +2,10 @@
 
 #include "PieSlice.h"
 
+#include <array>
+#include <memory>
+#include <vector>
+
 namespace RTE {
 
 	/// A quadrant in a PieMenu, for easy PieSlice organization.

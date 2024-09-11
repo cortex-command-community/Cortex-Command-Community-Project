@@ -1,6 +1,8 @@
 #include "GUI.h"
 #include "Timer.h"
 
+#include <cassert>
+
 using namespace RTE;
 
 GUIManager::GUIManager(GUIInput* input) {

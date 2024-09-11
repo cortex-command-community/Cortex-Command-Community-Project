@@ -14,6 +14,7 @@
 #include "SLTerrain.h"
 #include "SLBackground.h"
 #include "Scene.h"
+#include "System.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
@@ -241,15 +242,12 @@ void FrameMan::Update() {
 }
 
 void FrameMan::ResetSplitScreens(bool hSplit, bool vSplit) {
-	if (m_PlayerScreen) {
-		release_bitmap(m_PlayerScreen.get());
-	}
-
 	// Override screen splitting according to settings if needed
 	if ((hSplit || vSplit) && !(hSplit && vSplit) && m_TwoPlayerVSplit) {
 		hSplit = false;
 		vSplit = m_TwoPlayerVSplit;
 	}
+
 	m_HSplit = hSplit;
 	m_VSplit = vSplit;
 
@@ -270,6 +268,10 @@ void FrameMan::ResetSplitScreens(bool hSplit, bool vSplit) {
 		m_FlashScreenColor[i] = -1;
 		m_FlashedLastFrame[i] = false;
 	}
+}
+
+float FrameMan::GetResolutionMultiplier() const {
+	return g_WindowMan.GetResMultiplier();
 }
 
 Vector FrameMan::GetMiddleOfPlayerScreen(int whichPlayer) {
@@ -586,8 +588,8 @@ void FrameMan::SaveScreenToBitmap() {
 		return;
 	}
 
-	glBindTexture(GL_TEXTURE_2D, g_WindowMan.GetScreenBufferTexture());
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, m_ScreenDumpBuffer->line[0]);
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_WindowMan.GetScreenBufferTexture()));
+	GL_CHECK(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, m_ScreenDumpBuffer->line[0]));
 }
 
 int FrameMan::SaveIndexedPNG(const char* fileName, BITMAP* bitmapToSave) const {
@@ -706,8 +708,6 @@ int FrameMan::SharedDrawLine(BITMAP* bitmap, const Vector& start, const Vector& 
 			skipped = 0;
 		}
 	}
-
-	// release_bitmap(bitmap);
 
 	// Return the end phase state of the skipping
 	return skipped;
@@ -959,11 +959,6 @@ void FrameMan::DrawScreenText(int playerScreen, AllegroBitmap playerGUIBitmap) {
 			case g_LayerTerrainMatter:
 				GetSmallFont()->DrawAligned(&playerGUIBitmap, GetPlayerScreenWidth() / 2, GetPlayerScreenHeight() - 12, "Viewing terrain material layer\nHit Ctrl+M to cycle modes", GUIFont::Centre, GUIFont::Bottom);
 				break;
-#ifdef DRAW_MOID_LAYER
-			case g_LayerMOID:
-				GetSmallFont()->DrawAligned(&playerGUIBitmap, GetPlayerScreenWidth() / 2, GetPlayerScreenHeight() - 12, "Viewing MovableObject ID layer\nHit Ctrl+M to cycle modes", GUIFont::Centre, GUIFont::Bottom);
-				break;
-#endif
 			default:
 				break;
 		}

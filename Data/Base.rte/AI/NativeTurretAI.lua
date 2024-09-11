@@ -1,7 +1,7 @@
 require("Constants")
-require("AI/HumanBehaviors");
-require("AI/CrabBehaviors");
 require("AI/TurretBehaviors");
+require("AI/SharedBehaviors");
+require("AI/CrabBehaviors");
 
 NativeTurretAI = {};
 
@@ -26,9 +26,15 @@ function NativeTurretAI:Create(Owner)
 		Members.PlayerInterferedTimer = Timer();
 		Members.PlayerInterferedTimer:SetSimTimeLimitMS(500);
 	end
+	
+	-- customizable variables, trend started by pawnis on 01/09/2023 :)
+	
+	-- humble beginnings
+	-- pause time between sweeping aim up and down when guarding
+	Members.idleAimTime = Owner:NumberValueExists("AIIdleAimTime") and Owner:GetNumberValue("AIIdleAimTime") or 500;
 
 	-- set shooting skill
-	Members.aimSpeed, Members.aimSkill = HumanBehaviors.GetTeamShootingSkill(Owner.Team);
+	Members.aimSpeed, Members.aimSkill = SharedBehaviors.GetTeamShootingSkill(Owner.Team);
 
 	setmetatable(Members, self);
 	self.__index = self;
@@ -162,7 +168,7 @@ function NativeTurretAI:Update(Owner)
 
 	-- listen and react to relevant AlarmEvents
 	if not self.Target and not self.UnseenTarget then
-		if self.AlarmTimer:IsPastSimTimeLimit() and HumanBehaviors.ProcessAlarmEvent(self, Owner) then
+		if self.AlarmTimer:IsPastSimTimeLimit() and SharedBehaviors.ProcessAlarmEvent(self, Owner) then
 			self.AlarmTimer:Reset();
 		end
 	end
@@ -238,14 +244,14 @@ function NativeTurretAI:CreateSuppressBehavior(Owner)
 end
 
 function NativeTurretAI:CreateFaceAlarmBehavior(Owner)
-	self.NextBehavior = coroutine.create(HumanBehaviors.FaceAlarm);
+	self.NextBehavior = coroutine.create(SharedBehaviors.FaceAlarm);
 	self.NextBehaviorName = "FaceAlarm";
 	self.NextCleanup = nil;
 end
 
 function NativeTurretAI:CreatePinBehavior(Owner)
 	if self.OldTargetPos and Owner.FirearmIsReady then
-		self.NextBehavior = coroutine.create(HumanBehaviors.PinArea);
+		self.NextBehavior = coroutine.create(SharedBehaviors.PinArea);
 		self.NextBehaviorName = "PinArea";
 	else
 		return;

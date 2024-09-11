@@ -6,6 +6,9 @@
 #include "SettingsGameplayGUI.h"
 #include "SettingsMiscGUI.h"
 
+#include <array>
+#include <memory>
+
 namespace RTE {
 
 	class AllegroScreen;

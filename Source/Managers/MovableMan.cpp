@@ -123,7 +123,20 @@ void MovableMan::Destroy() {
 
 MovableObject* MovableMan::GetMOFromID(MOID whichID) {
 	if (whichID != g_NoMOID && whichID != 0 && whichID < m_MOIDIndex.size()) {
-		return m_MOIDIndex[whichID];
+		// This is really, really awful
+		// But, Lua scripts can take ownership of an MO which exists in this list
+		// And then the MO can be deallocated by Lua GC
+		// Meaning that this ptr points to stale memory.
+		// Due to our pooled memory system, we can avoid a crash by just... checking that the MO isn't NoMOID
+		// But this is still atrociously awful and terrible and this can point to a newly-allocated object that just so happens to be allocated the same place.
+		// Anyways, until we can fix the god-awful abomination that is this game's memory ownership semantics, we're stuck with this
+		// Which is also technically undefined behaviour
+		MovableObject* candidate = m_MOIDIndex[whichID];
+		if (candidate->GetID() != whichID) {
+			return nullptr;
+		}
+
+		return candidate;
 	}
 	return nullptr;
 }
@@ -134,7 +147,8 @@ MOID MovableMan::GetMOIDPixel(int pixelX, int pixelY, const std::vector<int>& mo
 		MOID moid = *itr;
 		const MovableObject* mo = GetMOFromID(moid);
 
-		RTEAssert(mo, "Null MO found in MOID list!");
+		// Commented... see MovableMan::GetMOFromID
+		// RTEAssert(mo, "Null MO found in MOID list!");
 		if (mo == nullptr) {
 			continue;
 		}
@@ -652,7 +666,7 @@ bool MovableMan::AddMO(MovableObject* movableObjectToAdd) {
 }
 
 void MovableMan::AddActor(Actor* actorToAdd) {
-	if (actorToAdd) {
+	if (actorToAdd && g_ActivityMan.GetActivity()) {
 		actorToAdd->SetAsAddedToMovableMan();
 		actorToAdd->CorrectAttachableAndWoundPositionsAndRotations();
 
@@ -667,7 +681,7 @@ void MovableMan::AddActor(Actor* actorToAdd) {
 			}
 			actorToAdd->NotResting();
 			actorToAdd->NewFrame();
-			actorToAdd->SetAge(g_TimerMan.GetDeltaTimeMS() * -1.0f);
+			actorToAdd->SetAge(0);
 		}
 
 		{
@@ -682,8 +696,9 @@ void MovableMan::AddActor(Actor* actorToAdd) {
 }
 
 void MovableMan::AddItem(HeldDevice* itemToAdd) {
-	if (itemToAdd) {
+	if (itemToAdd && g_ActivityMan.GetActivity()) {
 		g_ActivityMan.GetActivity()->ForceSetTeamAsActive(itemToAdd->GetTeam());
+
 		itemToAdd->SetAsAddedToMovableMan();
 		itemToAdd->CorrectAttachableAndWoundPositionsAndRotations();
 
@@ -695,7 +710,7 @@ void MovableMan::AddItem(HeldDevice* itemToAdd) {
 			}
 			itemToAdd->NotResting();
 			itemToAdd->NewFrame();
-			itemToAdd->SetAge(g_TimerMan.GetDeltaTimeMS() * -1.0f);
+			itemToAdd->SetAge(0);
 		}
 
 		std::lock_guard<std::mutex> lock(m_AddedItemsMutex);
@@ -705,8 +720,9 @@ void MovableMan::AddItem(HeldDevice* itemToAdd) {
 }
 
 void MovableMan::AddParticle(MovableObject* particleToAdd) {
-	if (particleToAdd) {
+	if (particleToAdd && g_ActivityMan.GetActivity()) {
 		g_ActivityMan.GetActivity()->ForceSetTeamAsActive(particleToAdd->GetTeam());
+
 		particleToAdd->SetAsAddedToMovableMan();
 		if (MOSRotating* particleToAddAsMOSRotating = dynamic_cast<MOSRotating*>(particleToAdd)) {
 			particleToAddAsMOSRotating->CorrectAttachableAndWoundPositionsAndRotations();
@@ -718,7 +734,7 @@ void MovableMan::AddParticle(MovableObject* particleToAdd) {
 			// TODO consider moving particles out of grass. It's old code that was removed because it's slow to do this for every particle.
 			particleToAdd->NotResting();
 			particleToAdd->NewFrame();
-			particleToAdd->SetAge(g_TimerMan.GetDeltaTimeMS() * -1.0f);
+			particleToAdd->SetAge(0);
 		}
 		if (particleToAdd->IsDevice()) {
 			std::lock_guard<std::mutex> lock(m_AddedItemsMutex);
@@ -1110,7 +1126,7 @@ int MovableMan::GetTeamMOIDCount(int team) const {
 void MovableMan::OpenAllDoors(bool open, int team) const {
 	for (std::deque<Actor*> actorDeque: {m_Actors, m_AddedActors}) {
 		for (Actor* actor: actorDeque) {
-			if (ADoor* actorAsADoor = dynamic_cast<ADoor*>(actor); actorAsADoor && (team == Activity::NoTeam || actorAsADoor->GetTeam() == team)) {
+			if (ADoor* actorAsADoor = dynamic_cast<ADoor*>(actor); actorAsADoor && actorAsADoor->GetTeam() == team) {
 				if (actorAsADoor->GetDoorState() != (open ? ADoor::DoorState::OPEN : ADoor::DoorState::CLOSED)) {
 					actorAsADoor->Update();
 					actorAsADoor->SetClosedByDefault(!open);
@@ -1142,20 +1158,6 @@ void MovableMan::OverrideMaterialDoors(bool eraseDoorMaterial, int team) const {
 void MovableMan::RegisterAlarmEvent(const AlarmEvent& newEvent) {
 	std::lock_guard<std::mutex> lock(m_AddedAlarmEventsMutex);
 	m_AddedAlarmEvents.push_back(newEvent);
-}
-
-void MovableMan::RedrawOverlappingMOIDs(MovableObject* pOverlapsThis) {
-	for (std::deque<Actor*>::iterator aIt = m_Actors.begin(); aIt != m_Actors.end(); ++aIt) {
-		(*aIt)->DrawMOIDIfOverlapping(pOverlapsThis);
-	}
-
-	for (std::deque<MovableObject*>::iterator iIt = m_Items.begin(); iIt != m_Items.end(); ++iIt) {
-		(*iIt)->DrawMOIDIfOverlapping(pOverlapsThis);
-	}
-
-	for (std::deque<MovableObject*>::iterator parIt = m_Particles.begin(); parIt != m_Particles.end(); ++parIt) {
-		(*parIt)->DrawMOIDIfOverlapping(pOverlapsThis);
-	}
 }
 
 void callLuaFunctionOnMORecursive(MovableObject* mo, const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
@@ -1334,7 +1336,9 @@ void MovableMan::Update() {
 			                                                     g_LuaMan.SetThreadLuaStateOverride(&luaState);
 
 			                                                     for (MovableObject* mo: luaState.GetRegisteredMOs()) {
-				                                                     mo->RunScriptedFunctionInAppropriateScripts(threadedUpdate, false, false, {}, {}, {});
+				                                                     if (ValidMO(mo->GetRootParent())) {
+					                                                     mo->RunScriptedFunctionInAppropriateScripts(threadedUpdate, false, false, {}, {}, {});
+				                                                     }
 			                                                     }
 
 			                                                     g_LuaMan.SetThreadLuaStateOverride(nullptr);
@@ -1363,6 +1367,14 @@ void MovableMan::Update() {
 	g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
 
 	{
+		auto actorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
+		                                                                            [&](int start, int end) {
+			                                                                            ZoneScopedN("Actors See");
+			                                                                            for (int i = start; i < end; ++i) {
+				                                                                            m_Actors[i]->CastSeeRays();
+			                                                                            }
+		                                                                            });
+
 		{
 			ZoneScopedN("Actors Update");
 
@@ -1425,13 +1437,17 @@ void MovableMan::Update() {
 			for (Actor* actor: m_Actors) {
 				actor->PostUpdate();
 			}
+
 			for (MovableObject* item: m_Items) {
 				item->PostUpdate();
 			}
+
 			for (MovableObject* particle: m_Particles) {
 				particle->PostUpdate();
 			}
 		}
+
+		actorsSeeFuture.wait();
 	} // namespace RTE
 
 	//////////////////////////////////////////////////////////////////////
@@ -1637,7 +1653,7 @@ void MovableMan::Update() {
 	////////////////////////////////////////////////////////////////////////
 	// Draw the MO matter and IDs to their layers for next frame
 	m_DrawMOIDsTask = g_ThreadMan.GetPriorityThreadPool().submit([this]() {
-		UpdateDrawMOIDs(g_SceneMan.GetMOIDBitmap());
+		UpdateDrawMOIDs();
 	});
 
 	////////////////////////////////////////////////////////////////////
@@ -1661,10 +1677,6 @@ void MovableMan::Update() {
 
 void MovableMan::Travel() {
 	ZoneScoped;
-
-	if (m_DrawMOIDsTask.valid()) {
-		m_DrawMOIDsTask.wait();
-	}
 
 	// Travel Actors
 	{
@@ -1801,7 +1813,7 @@ void MovableMan::VerifyMOIDIndex() {
 	}
 }
 
-void MovableMan::UpdateDrawMOIDs(BITMAP* pTargetBitmap) {
+void MovableMan::UpdateDrawMOIDs() {
 	ZoneScoped;
 
 	///////////////////////////////////////////////////
@@ -1823,7 +1835,7 @@ void MovableMan::UpdateDrawMOIDs(BITMAP* pTargetBitmap) {
 		m_ContiguousActorIDs[actor] = actorID++;
 		if (!actor->IsSetToDelete()) {
 			actor->UpdateMOID(m_MOIDIndex);
-			actor->Draw(pTargetBitmap, Vector(), g_DrawMOID, true);
+			actor->Draw(nullptr, Vector(), g_DrawMOID, true);
 			currentMOID = m_MOIDIndex.size();
 		} else {
 			actor->SetAsNoID();
@@ -1833,7 +1845,7 @@ void MovableMan::UpdateDrawMOIDs(BITMAP* pTargetBitmap) {
 	for (MovableObject* item: m_Items) {
 		if (!item->IsSetToDelete()) {
 			item->UpdateMOID(m_MOIDIndex);
-			item->Draw(pTargetBitmap, Vector(), g_DrawMOID, true);
+			item->Draw(nullptr, Vector(), g_DrawMOID, true);
 			currentMOID = m_MOIDIndex.size();
 		} else {
 			item->SetAsNoID();
@@ -1843,7 +1855,7 @@ void MovableMan::UpdateDrawMOIDs(BITMAP* pTargetBitmap) {
 	for (MovableObject* particle: m_Particles) {
 		if (!particle->IsSetToDelete()) {
 			particle->UpdateMOID(m_MOIDIndex);
-			particle->Draw(pTargetBitmap, Vector(), g_DrawMOID, true);
+			particle->Draw(nullptr, Vector(), g_DrawMOID, true);
 			currentMOID = m_MOIDIndex.size();
 		} else {
 			particle->SetAsNoID();
@@ -1862,6 +1874,12 @@ void MovableMan::UpdateDrawMOIDs(BITMAP* pTargetBitmap) {
 				m_TeamMOIDCount[team]++;
 			}
 		}
+	}
+}
+
+void MovableMan::CompleteQueuedMOIDDrawings() {
+	if (m_DrawMOIDsTask.valid()) {
+		m_DrawMOIDsTask.wait();
 	}
 }
 

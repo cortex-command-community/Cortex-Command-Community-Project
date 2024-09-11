@@ -3,6 +3,10 @@
 #include "ContentFile.h"
 #include "Timer.h"
 #include "Box.h"
+#include "Hash.h"
+
+#include <array>
+#include <unordered_map>
 
 #define g_FrameMan FrameMan::Instance()
 
@@ -107,6 +111,9 @@ namespace RTE {
 		/// Gets the height of the individual player screens. This will only be less than the backbuffer resolution if there are split screens.
 		/// @return The height of the player screens.
 		int GetPlayerScreenHeight() const { return GetPlayerFrameBufferHeight(-1); }
+
+		/// Gets the resolution multiplier.
+		float GetResolutionMultiplier() const;
 
 		/// Gets a Vector with the absolute position of the middle of the specified player's screen.
 		/// @param whichPlayer Player to get the middle of the screen for. -1 will give the middle of the entire game window.

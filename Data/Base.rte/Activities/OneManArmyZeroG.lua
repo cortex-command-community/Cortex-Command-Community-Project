@@ -86,6 +86,8 @@ function OneManArmyZeroG:StartNewGame()
 	self.timeDisplay = timeLimitText .. " minutes";
 	self.enemySpawnTimeLimit = 500;
 	
+	MusicMan:PlayDynamicSong("Generic Battle Music");
+	
 	local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 	automoverController.Team = -1;
 	automoverController:SetNumberValue("MovementSpeed", 16);
@@ -129,19 +131,19 @@ function OneManArmyZeroG:SetupHumanPlayerBrains(actorGroup, primaryGroup, second
 						local primaryWeapon, secondaryWeapon, tertiaryWeapon, actor;
 						for entity in dataModule.Presets do
 							local picked;	--Prevent duplicates
-							if not primaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(primaryGroup) and ToMOSRotating(entity).IsBuyable then
+							if not primaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(primaryGroup) and ToMOSRotating(entity).Buyable then
 								primaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
 								picked = true;
 							end
-							if not picked and not secondaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(secondaryGroup) and ToMOSRotating(entity).IsBuyable then
+							if not picked and not secondaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(secondaryGroup) and ToMOSRotating(entity).Buyable then
 								secondaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
 								picked = true;
 							end
-							if not picked and not tertiaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(tertiaryGroup) and ToMOSRotating(entity).IsBuyable then
+							if not picked and not tertiaryWeapon and entity.ClassName == "HDFirearm" and ToMOSRotating(entity):HasObjectInGroup(tertiaryGroup) and ToMOSRotating(entity).Buyable then
 								tertiaryWeapon = CreateHDFirearm(entity:GetModuleAndPresetName());
 								picked = true;
 							end
-							if not picked and not actor and entity.ClassName == "AHuman" and ToMOSRotating(entity):HasObjectInGroup(actorGroup) and ToMOSRotating(entity).IsBuyable then
+							if not picked and not actor and entity.ClassName == "AHuman" and ToMOSRotating(entity):HasObjectInGroup(actorGroup) and ToMOSRotating(entity).Buyable then
 								actor = CreateAHuman(entity:GetModuleAndPresetName());
 							end
 						end
@@ -268,16 +270,12 @@ function OneManArmyZeroG:EndActivity()
 	if not self:IsPaused() then
 		--Play sad music if no humans are left
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
 			--But if humans are left, play happy music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end
@@ -287,11 +285,12 @@ function OneManArmyZeroG:UpdateActivity()
 		ActivityMan:GetActivity():SetTeamFunds(0, 0);
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				local screen = self:ScreenOfPlayer(player);
 				--Display messages
 				if self.startMessageTimer:IsPastSimMS(3000) then
-					FrameMan:SetScreenText(math.floor(self.winTimer:LeftTillSimMS(self.timeLimit) * 0.001) .. " seconds left", player, 0, 1000, false);
+					FrameMan:SetScreenText(math.floor(self.winTimer:LeftTillSimMS(self.timeLimit) * 0.001) .. " seconds left", screen, 0, 1000, false);
 				else
-					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", player, 333, 5000, true);
+					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", screen, 333, 5000, true);
 				end
 
 				local team = self:GetTeamOfPlayer(player);
@@ -299,8 +298,8 @@ function OneManArmyZeroG:UpdateActivity()
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					self:SetPlayerBrain(nil, player);
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(player);
-					FrameMan:SetScreenText("Your brain has been destroyed!", player, 333, -1, false);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText("Your brain has been destroyed!", screen, 333, -1, false);
 					--Now see if all brains of self player's team are dead, and if so, end the game
 					if not MovableMan:GetFirstBrainActor(team) then
 						self.WinnerTeam = self:OtherTeam(team);
@@ -311,8 +310,8 @@ function OneManArmyZeroG:UpdateActivity()
 				--Check if the player has won
 				if self.winTimer:IsPastSimMS(self.timeLimit) then
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(player);
-					FrameMan:SetScreenText("You survived!", player, 333, -1, false);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText("You survived!", screen, 333, -1, false);
 
 					self.WinnerTeam = player;
 

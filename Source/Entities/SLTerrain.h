@@ -98,37 +98,37 @@ namespace RTE {
 		/// @return A pointer to the material bitmap.
 		BITMAP* GetMaterialBitmap() { return m_MainBitmap; }
 
-		/// Gets a specific pixel from the foreground color bitmap of this. LockBitmaps() must be called before using this method.
+		/// Gets a specific pixel from the foreground color bitmap of this.
 		/// @param pixelX The X coordinate of the pixel to get.
 		/// @param pixelY The Y coordinate of the pixel to get.
 		/// @return An int specifying the requested pixel's foreground color index.
 		int GetFGColorPixel(int pixelX, int pixelY) const { return m_FGColorLayer->GetPixel(pixelX, pixelY); }
 
-		/// Sets a specific pixel on the foreground color bitmap of this SLTerrain to a specific color. LockBitmaps() must be called before using this method.
+		/// Sets a specific pixel on the foreground color bitmap of this SLTerrain to a specific color.
 		/// @param pixelX The X coordinate of the pixel to set.
 		/// @param pixelY The Y coordinate of the pixel to set.
 		/// @param materialID The color index to set the pixel to.
 		void SetFGColorPixel(int pixelX, int pixelY, const int materialID) const { m_FGColorLayer->SetPixel(pixelX, pixelY, materialID); }
 
-		/// Gets a specific pixel from the background color bitmap of this. LockBitmaps() must be called before using this method.
+		/// Gets a specific pixel from the background color bitmap of this.
 		/// @param pixelX The X coordinate of the pixel to get.
 		/// @param pixelY The Y coordinate of the pixel to get.
 		/// @return An int specifying the requested pixel's background color index.
 		int GetBGColorPixel(int pixelX, int pixelY) const { return m_BGColorLayer->GetPixel(pixelX, pixelY); }
 
-		/// Sets a specific pixel on the background color bitmap of this SLTerrain to a specific color. LockBitmaps() must be called before using this method.
+		/// Sets a specific pixel on the background color bitmap of this SLTerrain to a specific color.
 		/// @param pixelX The X coordinate of the pixel to set.
 		/// @param pixelY The Y coordinate of the pixel to set.
 		/// @param materialID The color index to set the pixel to.
 		void SetBGColorPixel(int pixelX, int pixelY, int materialID) const { m_BGColorLayer->SetPixel(pixelX, pixelY, materialID); }
 
-		/// Gets a specific pixel from the material bitmap of this SceneLayer. LockBitmaps() must be called before using this method.
+		/// Gets a specific pixel from the material bitmap of this SceneLayer.
 		/// @param pixelX The X coordinate of the pixel to get.
 		/// @param pixelY The Y coordinate of the pixel to get.
 		/// @return An int specifying the requested pixel's material index.
 		int GetMaterialPixel(int pixelX, int pixelY) const { return GetPixel(pixelX, pixelY); }
 
-		/// Sets a specific pixel on the material bitmap of this SLTerrain to a specific material. LockMaterialBitmap() must be called before using this method.
+		/// Sets a specific pixel on the material bitmap of this SLTerrain to a specific material.
 		/// @param pixelX The X coordinate of the pixel to set.
 		/// @param pixelY The Y coordinate of the pixel to set.
 		/// @param materialID The material index to set the pixel to.

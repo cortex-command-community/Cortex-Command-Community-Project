@@ -155,13 +155,14 @@
     <LocalDebuggerWorkingDirectory>$(OutDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <Import Project="RTEA.common.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Full|Win32'">
     <ClCompile>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='16.0'">/bigobj /Zm300 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='17.0'">/bigobj %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\Source;$(ProjectDir)Source\System;$(ProjectDir)Source\Lua;$(ProjectDir)Source\Entities;$(ProjectDir)Source\Activities;$(ProjectDir)Source\Managers;$(ProjectDir)Source\Menus;$(ProjectDir)Source\GUI;$(ProjectDir)Source\GUI\Wrappers;$(ProjectDir)external\include\boost_1_75;$(ProjectDir)external\include\glm-0.9.9.8;$(ProjectDir)external\include\glad-2.0.0-beta;$(ProjectDir)external\include\LZ4-1.9.3\LZ4;$(ProjectDir)external\include\fmod-2.2.13;$(ProjectDir)external\include\thread-pool-3.5.0\include;$(ProjectDir)external\include\hopscotch-map-2.3.1\include;$(ProjectDir)external\sources\libpng-1.6.40\include;$(ProjectDir)external\sources\zlib-ng-2.1.3\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\addons\loadpng;$(ProjectDir)external\sources\SDL2-2.26.3\include;$(ProjectDir)external\sources\LuaJIT-2.1\src;$(ProjectDir)external\sources\luabind-0.7.1\;$(ProjectDir)external\sources\luabind-0.7.1\luabind;$(ProjectDir)external\sources\RakNet\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\src;$(ProjectDir)external\sources\tracy\public</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;WIN32_LEAN_AND_MEAN;ALLEGRO_STATICLINK;ALLEGRO_NO_STD_HEADERS;ALLEGRO_NO_MAGIC_MAIN;_CRT_SECURE_NO_DEPRECATE;ZLIB_WINAPI;ZLIB_COMPAT;_WINDOWS;WIN32;DEBUG_BUILD;DEBUGMODE;TARGET_MACHINE_X86;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;ZLIB_COMPAT;_WINDOWS;WIN32;DEBUG_BUILD;DEBUGMODE;TARGET_MACHINE_X86;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -207,13 +208,14 @@
       <OutputFile>$(IntDir)$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
+  <Import Project="RTEA.common.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Full|x64'">
     <ClCompile>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='16.0'">/bigobj /Zm300 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='17.0'">/bigobj %(AdditionalOptions)</AdditionalOptions>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\Source;$(ProjectDir)Source\System;$(ProjectDir)Source\Lua;$(ProjectDir)Source\Entities;$(ProjectDir)Source\Activities;$(ProjectDir)Source\Managers;$(ProjectDir)Source\Menus;$(ProjectDir)Source\GUI;$(ProjectDir)Source\GUI\Wrappers;$(ProjectDir)external\include\boost_1_75;$(ProjectDir)external\include\glm-0.9.9.8;$(ProjectDir)external\include\glad-2.0.0-beta;$(ProjectDir)external\include\LZ4-1.9.3\LZ4;$(ProjectDir)external\include\fmod-2.2.13;$(ProjectDir)external\include\thread-pool-3.5.0\include;$(ProjectDir)external\include\hopscotch-map-2.3.1\include;$(ProjectDir)external\sources\libpng-1.6.40\include;$(ProjectDir)external\sources\zlib-ng-2.1.3\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\addons\loadpng;$(ProjectDir)external\sources\SDL2-2.26.3\include;$(ProjectDir)external\sources\LuaJIT-2.1\src;$(ProjectDir)external\sources\luabind-0.7.1\;$(ProjectDir)external\sources\luabind-0.7.1\luabind;$(ProjectDir)external\sources\RakNet\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\src;$(ProjectDir)external\sources\tracy\public</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;WIN32_LEAN_AND_MEAN;ALLEGRO_STATICLINK;ALLEGRO_NO_STD_HEADERS;ALLEGRO_NO_MAGIC_MAIN;_CRT_SECURE_NO_DEPRECATE;ZLIB_WINAPI;ZLIB_COMPAT;_WINDOWS;WIN32;TRACY_ENABLE;TRACY_ON_DEMAND;DEBUG_BUILD;DEBUGMODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;ZLIB_COMPAT;_WINDOWS;WIN32;DEBUG_BUILD;DEBUGMODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -259,13 +261,14 @@
       <OutputFile>$(IntDir)$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
+  <Import Project="RTEA.common.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Minimal|Win32'">
     <ClCompile>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='16.0'">/bigobj /Zm300 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='17.0'">/bigobj %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\Source;$(ProjectDir)Source\System;$(ProjectDir)Source\Lua;$(ProjectDir)Source\Entities;$(ProjectDir)Source\Activities;$(ProjectDir)Source\Managers;$(ProjectDir)Source\Menus;$(ProjectDir)Source\GUI;$(ProjectDir)Source\GUI\Wrappers;$(ProjectDir)external\include\boost_1_75;$(ProjectDir)external\include\glm-0.9.9.8;$(ProjectDir)external\include\glad-2.0.0-beta;$(ProjectDir)external\include\LZ4-1.9.3\LZ4;$(ProjectDir)external\include\fmod-2.2.13;$(ProjectDir)external\include\thread-pool-3.5.0\include;$(ProjectDir)external\include\hopscotch-map-2.3.1\include;$(ProjectDir)external\sources\libpng-1.6.40\include;$(ProjectDir)external\sources\zlib-ng-2.1.3\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\addons\loadpng;$(ProjectDir)external\sources\SDL2-2.26.3\include;$(ProjectDir)external\sources\LuaJIT-2.1\src;$(ProjectDir)external\sources\luabind-0.7.1\;$(ProjectDir)external\sources\luabind-0.7.1\luabind;$(ProjectDir)external\sources\RakNet\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\src;$(ProjectDir)external\sources\tracy\public</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;WIN32_LEAN_AND_MEAN;ALLEGRO_STATICLINK;ALLEGRO_NO_STD_HEADERS;ALLEGRO_NO_MAGIC_MAIN;_CRT_SECURE_NO_DEPRECATE;ZLIB_WINAPI;ZLIB_COMPAT;_WINDOWS;WIN32;MIN_DEBUG_BUILD;DEBUGMODE;TARGET_MACHINE_X86;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;ZLIB_COMPAT;_WINDOWS;WIN32;MIN_DEBUG_BUILD;DEBUGMODE;TARGET_MACHINE_X86;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -311,13 +314,14 @@
       <OutputFile>$(IntDir)$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
+  <Import Project="RTEA.common.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Minimal|x64'">
     <ClCompile>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='16.0'">/bigobj /Zm300 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='17.0'">/bigobj %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\Source;$(ProjectDir)Source\System;$(ProjectDir)Source\Lua;$(ProjectDir)Source\Entities;$(ProjectDir)Source\Activities;$(ProjectDir)Source\Managers;$(ProjectDir)Source\Menus;$(ProjectDir)Source\GUI;$(ProjectDir)Source\GUI\Wrappers;$(ProjectDir)external\include\boost_1_75;$(ProjectDir)external\include\glm-0.9.9.8;$(ProjectDir)external\include\glad-2.0.0-beta;$(ProjectDir)external\include\LZ4-1.9.3\LZ4;$(ProjectDir)external\include\fmod-2.2.13;$(ProjectDir)external\include\thread-pool-3.5.0\include;$(ProjectDir)external\include\hopscotch-map-2.3.1\include;$(ProjectDir)external\sources\libpng-1.6.40\include;$(ProjectDir)external\sources\zlib-ng-2.1.3\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\addons\loadpng;$(ProjectDir)external\sources\SDL2-2.26.3\include;$(ProjectDir)external\sources\LuaJIT-2.1\src;$(ProjectDir)external\sources\luabind-0.7.1\;$(ProjectDir)external\sources\luabind-0.7.1\luabind;$(ProjectDir)external\sources\RakNet\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\src;$(ProjectDir)external\sources\tracy\public</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;WIN32_LEAN_AND_MEAN;ALLEGRO_STATICLINK;ALLEGRO_NO_STD_HEADERS;ALLEGRO_NO_MAGIC_MAIN;_CRT_SECURE_NO_DEPRECATE;ZLIB_WINAPI;ZLIB_COMPAT;_WINDOWS;WIN32;MIN_DEBUG_BUILD;DEBUGMODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;ZLIB_COMPAT;_WINDOWS;WIN32;MIN_DEBUG_BUILD;DEBUGMODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -363,6 +367,7 @@
       <OutputFile>$(IntDir)$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
+  <Import Project="RTEA.common.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Release|Win32'">
     <ClCompile>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='16.0'">/bigobj /Zm300 %(AdditionalOptions)</AdditionalOptions>
@@ -372,7 +377,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\Source;$(ProjectDir)Source\System;$(ProjectDir)Source\Lua;$(ProjectDir)Source\Entities;$(ProjectDir)Source\Activities;$(ProjectDir)Source\Managers;$(ProjectDir)Source\Menus;$(ProjectDir)Source\GUI;$(ProjectDir)Source\GUI\Wrappers;$(ProjectDir)external\include\boost_1_75;$(ProjectDir)external\include\glm-0.9.9.8;$(ProjectDir)external\include\glad-2.0.0-beta;$(ProjectDir)external\include\LZ4-1.9.3\LZ4;$(ProjectDir)external\include\fmod-2.2.13;$(ProjectDir)external\include\thread-pool-3.5.0\include;$(ProjectDir)external\include\hopscotch-map-2.3.1\include;$(ProjectDir)external\sources\libpng-1.6.40\include;$(ProjectDir)external\sources\zlib-ng-2.1.3\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\addons\loadpng;$(ProjectDir)external\sources\SDL2-2.26.3\include;$(ProjectDir)external\sources\LuaJIT-2.1\src;$(ProjectDir)external\sources\luabind-0.7.1\;$(ProjectDir)external\sources\luabind-0.7.1\luabind;$(ProjectDir)external\sources\RakNet\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\src;$(ProjectDir)external\sources\tracy\public</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;WIN32_LEAN_AND_MEAN;ALLEGRO_STATICLINK;ALLEGRO_NO_STD_HEADERS;ALLEGRO_NO_MAGIC_MAIN;_CRT_SECURE_NO_DEPRECATE;ZLIB_WINAPI;ZLIB_COMPAT;_WINDOWS;WIN32;DEBUG_RELEASE_BUILD;NDEBUG;TRACY_ENABLE;TRACY_ON_DEMAND;TARGET_MACHINE_X86;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;ZLIB_COMPAT;_WINDOWS;WIN32;DEBUG_RELEASE_BUILD;NDEBUG;TRACY_ENABLE;TRACY_ON_DEMAND;TARGET_MACHINE_X86;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -424,6 +429,7 @@
       <OutputFile>$(IntDir)$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
+  <Import Project="RTEA.common.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profiling|Win32'">
     <ClCompile>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='16.0'">/bigobj /Zm300 %(AdditionalOptions)</AdditionalOptions>
@@ -433,7 +439,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\Source;$(ProjectDir)Source\System;$(ProjectDir)Source\Lua;$(ProjectDir)Source\Entities;$(ProjectDir)Source\Activities;$(ProjectDir)Source\Managers;$(ProjectDir)Source\Menus;$(ProjectDir)Source\GUI;$(ProjectDir)Source\GUI\Wrappers;$(ProjectDir)external\include\boost_1_75;$(ProjectDir)external\include\glm-0.9.9.8;$(ProjectDir)external\include\glad-2.0.0-beta;$(ProjectDir)external\include\LZ4-1.9.3\LZ4;$(ProjectDir)external\include\fmod-2.2.13;$(ProjectDir)external\include\thread-pool-3.5.0\include;$(ProjectDir)external\include\hopscotch-map-2.3.1\include;$(ProjectDir)external\sources\libpng-1.6.40\include;$(ProjectDir)external\sources\zlib-ng-2.1.3\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\addons\loadpng;$(ProjectDir)external\sources\SDL2-2.26.3\include;$(ProjectDir)external\sources\LuaJIT-2.1\src;$(ProjectDir)external\sources\luabind-0.7.1\;$(ProjectDir)external\sources\luabind-0.7.1\luabind;$(ProjectDir)external\sources\RakNet\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\src;$(ProjectDir)external\sources\tracy\public</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;WIN32_LEAN_AND_MEAN;ALLEGRO_STATICLINK;ALLEGRO_NO_STD_HEADERS;ALLEGRO_NO_MAGIC_MAIN;_CRT_SECURE_NO_DEPRECATE;ZLIB_WINAPI;ZLIB_COMPAT;_WINDOWS;WIN32;TRACY_ENABLE;TRACY_ON_DEMAND;PROFILING_BUILD;NDEBUG;TARGET_MACHINE_X86;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;ZLIB_COMPAT;_WINDOWS;WIN32;TRACY_ENABLE;TRACY_ON_DEMAND;PROFILING_BUILD;NDEBUG;TARGET_MACHINE_X86;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -485,6 +491,7 @@
       <OutputFile>$(IntDir)$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
+  <Import Project="RTEA.common.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Release|x64'">
     <ClCompile>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='16.0'">/bigobj /Zm300 %(AdditionalOptions)</AdditionalOptions>
@@ -494,7 +501,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\Source;$(ProjectDir)Source\System;$(ProjectDir)Source\Lua;$(ProjectDir)Source\Entities;$(ProjectDir)Source\Activities;$(ProjectDir)Source\Managers;$(ProjectDir)Source\Menus;$(ProjectDir)Source\GUI;$(ProjectDir)Source\GUI\Wrappers;$(ProjectDir)external\include\boost_1_75;$(ProjectDir)external\include\glm-0.9.9.8;$(ProjectDir)external\include\glad-2.0.0-beta;$(ProjectDir)external\include\LZ4-1.9.3\LZ4;$(ProjectDir)external\include\fmod-2.2.13;$(ProjectDir)external\include\thread-pool-3.5.0\include;$(ProjectDir)external\include\hopscotch-map-2.3.1\include;$(ProjectDir)external\sources\libpng-1.6.40\include;$(ProjectDir)external\sources\zlib-ng-2.1.3\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\addons\loadpng;$(ProjectDir)external\sources\SDL2-2.26.3\include;$(ProjectDir)external\sources\LuaJIT-2.1\src;$(ProjectDir)external\sources\luabind-0.7.1\;$(ProjectDir)external\sources\luabind-0.7.1\luabind;$(ProjectDir)external\sources\RakNet\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\src;$(ProjectDir)external\sources\tracy\public</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;WIN32_LEAN_AND_MEAN;ALLEGRO_STATICLINK;ALLEGRO_NO_STD_HEADERS;ALLEGRO_NO_MAGIC_MAIN;_CRT_SECURE_NO_DEPRECATE;ZLIB_WINAPI;ZLIB_COMPAT;_WINDOWS;WIN32;DEBUG_RELEASE_BUILD;NDEBUG;TRACY_ENABLE;TRACY_ON_DEMAND;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;ZLIB_COMPAT;_WINDOWS;WIN32;DEBUG_RELEASE_BUILD;NDEBUG;TRACY_ENABLE;TRACY_ON_DEMAND;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -546,6 +553,7 @@
       <OutputFile>$(IntDir)$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
+  <Import Project="RTEA.common.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Profiling|x64'">
     <ClCompile>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='16.0'">/bigobj /Zm300 %(AdditionalOptions)</AdditionalOptions>
@@ -555,7 +563,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\Source;$(ProjectDir)Source\System;$(ProjectDir)Source\Lua;$(ProjectDir)Source\Entities;$(ProjectDir)Source\Activities;$(ProjectDir)Source\Managers;$(ProjectDir)Source\Menus;$(ProjectDir)Source\GUI;$(ProjectDir)Source\GUI\Wrappers;$(ProjectDir)external\include\boost_1_75;$(ProjectDir)external\include\glm-0.9.9.8;$(ProjectDir)external\include\glad-2.0.0-beta;$(ProjectDir)external\include\LZ4-1.9.3\LZ4;$(ProjectDir)external\include\fmod-2.2.13;$(ProjectDir)external\include\thread-pool-3.5.0\include;$(ProjectDir)external\include\hopscotch-map-2.3.1\include;$(ProjectDir)external\sources\libpng-1.6.40\include;$(ProjectDir)external\sources\zlib-ng-2.1.3\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\addons\loadpng;$(ProjectDir)external\sources\SDL2-2.26.3\include;$(ProjectDir)external\sources\LuaJIT-2.1\src;$(ProjectDir)external\sources\luabind-0.7.1\;$(ProjectDir)external\sources\luabind-0.7.1\luabind;$(ProjectDir)external\sources\RakNet\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\src;$(ProjectDir)external\sources\tracy\public</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;WIN32_LEAN_AND_MEAN;ALLEGRO_STATICLINK;ALLEGRO_NO_STD_HEADERS;ALLEGRO_NO_MAGIC_MAIN;_CRT_SECURE_NO_DEPRECATE;ZLIB_WINAPI;ZLIB_COMPAT;_WINDOWS;WIN32;TRACY_ENABLE;TRACY_ON_DEMAND;PROFILING_BUILD;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;ZLIB_COMPAT;_WINDOWS;WIN32;TRACY_ENABLE;TRACY_ON_DEMAND;PROFILING_BUILD;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -607,6 +615,7 @@
       <OutputFile>$(IntDir)$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
+  <Import Project="RTEA.common.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">
     <ClCompile>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='16.0'">/bigobj /Zm300 %(AdditionalOptions)</AdditionalOptions>
@@ -616,7 +625,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\Source;$(ProjectDir)Source\System;$(ProjectDir)Source\Lua;$(ProjectDir)Source\Entities;$(ProjectDir)Source\Activities;$(ProjectDir)Source\Managers;$(ProjectDir)Source\Menus;$(ProjectDir)Source\GUI;$(ProjectDir)Source\GUI\Wrappers;$(ProjectDir)external\include\boost_1_75;$(ProjectDir)external\include\glm-0.9.9.8;$(ProjectDir)external\include\glad-2.0.0-beta;$(ProjectDir)external\include\LZ4-1.9.3\LZ4;$(ProjectDir)external\include\fmod-2.2.13;$(ProjectDir)external\include\thread-pool-3.5.0\include;$(ProjectDir)external\include\hopscotch-map-2.3.1\include;$(ProjectDir)external\sources\libpng-1.6.40\include;$(ProjectDir)external\sources\zlib-ng-2.1.3\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\addons\loadpng;$(ProjectDir)external\sources\SDL2-2.26.3\include;$(ProjectDir)external\sources\LuaJIT-2.1\src;$(ProjectDir)external\sources\luabind-0.7.1\;$(ProjectDir)external\sources\luabind-0.7.1\luabind;$(ProjectDir)external\sources\RakNet\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\src;$(ProjectDir)external\sources\tracy\public</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;WIN32_LEAN_AND_MEAN;ALLEGRO_STATICLINK;ALLEGRO_NO_STD_HEADERS;ALLEGRO_NO_MAGIC_MAIN;_CRT_SECURE_NO_DEPRECATE;ZLIB_WINAPI;ZLIB_COMPAT;_WINDOWS;WIN32;RELEASE_BUILD;NDEBUG;LUABIND_NO_ERROR_CHECKING;TRACY_ENABLE;TRACY_ON_DEMAND;TRACY_ONLY_LOCALHOST;TRACY_NO_BROADCAST;TARGET_MACHINE_X86;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;ZLIB_COMPAT;_WINDOWS;WIN32;RELEASE_BUILD;NDEBUG;TRACY_ENABLE;TRACY_ON_DEMAND;TRACY_ONLY_LOCALHOST;TRACY_NO_BROADCAST;TARGET_MACHINE_X86;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -666,6 +675,7 @@
       <OutputFile>$(IntDir)$(TargetName).bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
+  <Import Project="RTEA.common.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Final|x64'">
     <ClCompile>
       <AdditionalOptions Condition="'$(VisualStudioVersion)'=='16.0'">/bigobj /Zm300 %(AdditionalOptions)</AdditionalOptions>
@@ -675,7 +685,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)\Source;$(ProjectDir)Source\System;$(ProjectDir)Source\Lua;$(ProjectDir)Source\Entities;$(ProjectDir)Source\Activities;$(ProjectDir)Source\Managers;$(ProjectDir)Source\Menus;$(ProjectDir)Source\GUI;$(ProjectDir)Source\GUI\Wrappers;$(ProjectDir)external\include\boost_1_75;$(ProjectDir)external\include\glm-0.9.9.8;$(ProjectDir)external\include\glad-2.0.0-beta;$(ProjectDir)external\include\LZ4-1.9.3\LZ4;$(ProjectDir)external\include\fmod-2.2.13;$(ProjectDir)external\include\thread-pool-3.5.0\include;$(ProjectDir)external\include\hopscotch-map-2.3.1\include;$(ProjectDir)external\sources\libpng-1.6.40\include;$(ProjectDir)external\sources\zlib-ng-2.1.3\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\include;$(ProjectDir)external\sources\allegro 4.4.3.1-custom\addons\loadpng;$(ProjectDir)external\sources\SDL2-2.26.3\include;$(ProjectDir)external\sources\LuaJIT-2.1\src;$(ProjectDir)external\sources\luabind-0.7.1\;$(ProjectDir)external\sources\luabind-0.7.1\luabind;$(ProjectDir)external\sources\RakNet\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\include;$(ProjectDir)external\sources\minizip-ng-4.0.0\src;$(ProjectDir)external\sources\tracy\public</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;WIN32_LEAN_AND_MEAN;ALLEGRO_STATICLINK;ALLEGRO_NO_STD_HEADERS;ALLEGRO_NO_MAGIC_MAIN;_CRT_SECURE_NO_DEPRECATE;ZLIB_WINAPI;ZLIB_COMPAT;_WINDOWS;WIN32;RELEASE_BUILD;NDEBUG;LUABIND_NO_ERROR_CHECKING;TRACY_ENABLE;TRACY_ON_DEMAND;TRACY_ONLY_LOCALHOST;TRACY_NO_BROADCAST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_ITERATOR_DEBUG_LEVEL=0;ZLIB_COMPAT;_WINDOWS;WIN32;RELEASE_BUILD;NDEBUG;TRACY_ENABLE;TRACY_ON_DEMAND;TRACY_ONLY_LOCALHOST;TRACY_NO_BROADCAST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -729,6 +739,7 @@
     <ClInclude Include="Source\Entities\Activity.h" />
     <ClInclude Include="Source\Entities\ADSensor.h" />
     <ClInclude Include="Source\Entities\AEJetpack.h" />
+    <ClInclude Include="Source\Entities\DynamicSong.h" />
     <ClInclude Include="Source\Entities\Emission.h" />
     <ClInclude Include="Source\Entities\Gib.h" />
     <ClInclude Include="Source\Entities\MetaSave.h" />
@@ -749,6 +760,7 @@
     <ClInclude Include="Source\Lua\LuaBindingRegisterDefinitions.h" />
     <ClInclude Include="Source\GUI\GUIWriter.h" />
     <ClInclude Include="Source\Managers\CameraMan.h" />
+    <ClInclude Include="Source\Managers\MusicMan.h" />
     <ClInclude Include="Source\Managers\MenuMan.h" />
     <ClInclude Include="Source\Managers\NetworkClient.h" />
     <ClInclude Include="Source\Managers\NetworkServer.h" />
@@ -921,6 +933,7 @@
   <ItemGroup>
     <ClCompile Include="external\sources\tracy\public\TracyClient.cpp" />
     <ClCompile Include="Source\Entities\AEJetpack.cpp" />
+    <ClCompile Include="Source\Entities\DynamicSong.cpp" />
     <ClCompile Include="Source\GUI\Wrappers\AllegroBitmap.cpp" />
     <ClCompile Include="Source\GUI\Wrappers\AllegroScreen.cpp" />
     <ClCompile Include="Source\GUI\Wrappers\GUIInputWrapper.cpp" />
@@ -974,6 +987,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <LanguageStandard Condition="'$(VisualStudioVersion)'=='16.0'">stdcpp17</LanguageStandard>
     </ClCompile>
+    <ClCompile Include="Source\Managers\MusicMan.cpp" />
     <ClCompile Include="Source\Managers\LuaMan.cpp">
       <ConformanceMode>false</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -1068,7 +1082,18 @@
     <ClCompile Include="Source\System\RTEError.cpp" />
     <ClCompile Include="Source\System\RTETools.cpp" />
     <ClCompile Include="Source\System\Matrix.cpp" />
-    <ClCompile Include="Source\System\MicroPather\micropather.cpp" />
+    <ClCompile Include="Source\System\MicroPather\micropather.cpp">
+      <IncludeInUnityFile Condition="'$(Configuration)|$(Platform)'=='Debug Release|Win32'">false</IncludeInUnityFile>
+      <IncludeInUnityFile Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">false</IncludeInUnityFile>
+      <IncludeInUnityFile Condition="'$(Configuration)|$(Platform)'=='Profiling|Win32'">false</IncludeInUnityFile>
+      <IncludeInUnityFile Condition="'$(Configuration)|$(Platform)'=='Debug Minimal|Win32'">false</IncludeInUnityFile>
+      <IncludeInUnityFile Condition="'$(Configuration)|$(Platform)'=='Debug Full|Win32'">false</IncludeInUnityFile>
+      <IncludeInUnityFile Condition="'$(Configuration)|$(Platform)'=='Debug Release|x64'">false</IncludeInUnityFile>
+      <IncludeInUnityFile Condition="'$(Configuration)|$(Platform)'=='Final|x64'">false</IncludeInUnityFile>
+      <IncludeInUnityFile Condition="'$(Configuration)|$(Platform)'=='Profiling|x64'">false</IncludeInUnityFile>
+      <IncludeInUnityFile Condition="'$(Configuration)|$(Platform)'=='Debug Minimal|x64'">false</IncludeInUnityFile>
+      <IncludeInUnityFile Condition="'$(Configuration)|$(Platform)'=='Debug Full|x64'">false</IncludeInUnityFile>
+    </ClCompile>
     <ClCompile Include="Source\System\PathFinder.cpp" />
     <ClCompile Include="Source\System\Reader.cpp" />
     <ClCompile Include="Source\System\System.cpp" />

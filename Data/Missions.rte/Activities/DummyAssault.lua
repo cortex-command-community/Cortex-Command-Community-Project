@@ -13,8 +13,6 @@ function DummyAssault:StartActivity(isNewGame)
 	self.CPUTeam = Activity.TEAM_2;
 	self.CPUTech = self:GetTeamTech(Activity.TEAM_2);
 
-	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
-
 	if isNewGame then
 		self:StartNewGame();
 	else
@@ -29,23 +27,12 @@ function DummyAssault:OnSave()
 end
 
 function DummyAssault:StartNewGame()
+
+	MusicMan:PlayDynamicSong("Generic Battle Music");
+
 	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
 
-	if self:GetFogOfWarEnabled() then
-		-- Make the scene unseen for the player team
-		SceneMan:MakeAllUnseen(Vector(20, 20), Activity.TEAM_1);
-		for x = SceneMan.SceneWidth - 1000, SceneMan.SceneWidth - 20, 25 do	-- Reveal the LZ
-			SceneMan:CastSeeRay(Activity.TEAM_1, Vector(x,-25), Vector(0,SceneMan.SceneHeight), Vector(), 4, 20);
-		end
-
-		-- Hide the player LZ for the AI
-		SceneMan:MakeAllUnseen(Vector(50, 50), Activity.TEAM_2);
-		for y = 0, SceneMan.SceneHeight, 50 do
-			for x = 0, SceneMan.SceneWidth-1000, 50 do
-				SceneMan:RevealUnseen(x, y, Activity.TEAM_2);
-			end
-		end
-	end
+	self:SetupFogOfWar();
 
 	-- Set up AI modes for the Actors that have been added to the scene by the scene definition
 	for actor in MovableMan.AddedActors do
@@ -81,6 +68,41 @@ function DummyAssault:StartNewGame()
 	end
 end
 
+function DummyAssault:SetupFogOfWar()
+	if self:GetFogOfWarEnabled() then
+		local fogResolution = 4;
+
+		-- Make the scene unseen for the player team
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
+
+		-- Reveal open air for everyone
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_1);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
+			end
+		end
+
+		-- Hide player landing zone for AI
+		for x = SceneMan.SceneWidth - 1000, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			SceneMan:RestoreUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
+		end
+
+		-- Reveal a circle around actors.
+		for Act in MovableMan.AddedActors do
+			if not IsADoor(Act) then
+				for angle = 0, math.pi * 2, 0.05 do
+					SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+				end
+			end
+		end
+	end
+end
+
 function DummyAssault:ResumeLoadedGame()
 	self.spawnTimer.ElapsedSimTimeMS = self:LoadNumber("spawnTimer.ElapsedSimTimeMS");
 
@@ -98,8 +120,9 @@ function DummyAssault:EndActivity()
 	if self.humanTeam == self.WinnerTeam then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
-				FrameMan:ClearScreenText(player);
-				FrameMan:SetScreenText("Congratulations, you've destroyed the enemy base!", player, 0, -1, false);
+				local screen = self:ScreenOfPlayer(player);
+				FrameMan:ClearScreenText(screen);
+				FrameMan:SetScreenText("Congratulations, you've destroyed the enemy base!", screen, 0, -1, false);
 			end
 		end
 	end
@@ -108,16 +131,12 @@ function DummyAssault:EndActivity()
 	if not self:IsPaused() then
 		-- Play sad music if no humans are left
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
 			-- But if humans are left, then play happy music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end
@@ -141,7 +160,7 @@ function DummyAssault:UpdateActivity()
 						self:SwitchToActor(newBrain, player, team);
 						self:GetBanner(GUIBanner.RED, player):ClearText();
 					else
-						FrameMan:SetScreenText("Your brain has been lost!", player, 333, -1, false);
+						FrameMan:SetScreenText("Your brain has been lost!", self:ScreenOfPlayer(player), 333, -1, false);
 						self.brainDead[player] = true;
 						-- Now see if all brains of self player's team are dead, and if so, end the game
 						if not MovableMan:GetFirstBrainActor(team) then

@@ -26,6 +26,7 @@
 #include "NetworkServer.h"
 #include "MultiplayerServerLobby.h"
 #include "MultiplayerGame.h"
+#include "MusicMan.h"
 
 using namespace RTE;
 
@@ -48,8 +49,6 @@ void ActivityMan::Clear() {
 	m_ActivityNeedsResume = false;
 	m_ResumingActivityFromPauseMenu = false;
 	m_SkipPauseMenuWhenPausingActivity = false;
-	m_LastMusicPath.clear();
-	m_LastMusicPos = 0.0F;
 	m_LaunchIntoActivity = false;
 	m_LaunchIntoEditor = false;
 }
@@ -289,11 +288,10 @@ int ActivityMan::StartActivity(Activity* activity) {
 	g_ThreadMan.GetPriorityThreadPool().wait_for_tasks();
 	g_ThreadMan.GetBackgroundThreadPool().wait_for_tasks();
 
-	// Stop all music played by the current activity. It will be re-started by the new Activity.
-	g_AudioMan.StopMusic();
-
 	m_StartActivity.reset(activity);
 	m_Activity.reset(dynamic_cast<Activity*>(m_StartActivity->Clone()));
+
+	g_MusicMan.ResetMusicState();
 
 	m_Activity->SetupPlayers();
 	int error = m_Activity->Start();
@@ -318,8 +316,6 @@ int ActivityMan::StartActivity(Activity* activity) {
 	// Reset the mouse input to the center
 	g_UInputMan.SetMouseValueMagnitude(0.05F);
 
-	m_LastMusicPath = "";
-	m_LastMusicPos = 0;
 	g_AudioMan.PauseIngameSounds(false);
 
 	g_PerformanceMan.ResetPerformanceTimings();
@@ -355,26 +351,18 @@ void ActivityMan::PauseActivity(bool pause, bool skipPauseMenu) {
 		return;
 	}
 
-	if (pause) {
-		m_LastMusicPath = g_AudioMan.GetMusicPath();
-		m_LastMusicPos = g_AudioMan.GetMusicPosition();
-	} else {
-		if (!m_ResumingActivityFromPauseMenu && (!m_LastMusicPath.empty() && m_LastMusicPos > 0)) {
-			g_AudioMan.ClearMusicQueue();
-			g_AudioMan.PlayMusic(m_LastMusicPath.c_str());
-			g_AudioMan.SetMusicPosition(m_LastMusicPos);
-			g_AudioMan.QueueSilence(30);
-			g_AudioMan.QueueMusicStream("Base.rte/Music/Watts/Last Man.ogg");
-			g_AudioMan.QueueSilence(30);
-			g_AudioMan.QueueMusicStream("Base.rte/Music/dBSoundworks/cc2g.ogg");
-		}
-	}
-
 	m_Activity->SetPaused(pause);
 	m_InActivity = !pause;
 	m_ResumingActivityFromPauseMenu = false;
 	m_SkipPauseMenuWhenPausingActivity = skipPauseMenu;
+
 	g_AudioMan.PauseIngameSounds(pause);
+	g_AudioMan.SetMusicMuffledState(pause);
+
+	if (!pause) {
+		g_MusicMan.EndInterruptingMusic();
+	}
+
 	g_ConsoleMan.PrintString("SYSTEM: Activity \"" + m_Activity->GetPresetName() + "\" was " + (pause ? "paused" : "resumed"));
 }
 

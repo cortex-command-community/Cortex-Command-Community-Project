@@ -14,6 +14,7 @@ function Update(self)
 		self.thrown = false;
 		self.Mass = self.origMass;
 	end
+
 	if not self.lit and self.WoundCount > 0 then
 		--Slight chance for projectiles to light the molotov instead of breaking it
 		if math.random(0, 10) < self.WoundCount then
@@ -22,6 +23,7 @@ function Update(self)
 			self:GibThis();
 		end
 	end
+	
 	self.lit = self:IsActivated();
 end
 
