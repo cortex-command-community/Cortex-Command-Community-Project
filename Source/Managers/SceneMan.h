@@ -39,7 +39,7 @@ namespace RTE {
 	// Different modes to draw the SceneLayers in
 	enum LayerDrawMode {
 		g_LayerNormal = 0,
-		g_LayerTerrainMatter
+		g_LayerTerrainMatter,
 	};
 
 #define SCENEGRIDSIZE 24
@@ -251,23 +251,6 @@ namespace RTE {
 		/// different possible settings.
 		void SetLayerDrawMode(int mode) { m_LayerDrawMode = mode; }
 
-		/// Locks all dynamic internal scene bitmaps so that manipulaitons of the
-		/// scene's color and matter representations can take place.
-		/// Doing it in a separate method like this is more efficient because
-		/// many bitmap manipulaitons can be performed between a lock and unlock.
-		/// UnlockScene() should always be called after accesses are completed.
-		void LockScene();
-
-		/// Unlocks the scene's bitmaps and prevents access to display memory.
-		/// Doing it in a separate method like this is more efficient because
-		/// many bitmap accesses can be performed between a lock and an unlock.
-		/// UnlockScene() should only be called after LockScene().
-		void UnlockScene();
-
-		/// Indicates whether the entire scene is currently locked or not.
-		/// @return Whether the entire scene is currently locked or not.
-		bool SceneIsLocked() const;
-
 		/// Registers a moid being drawn, so it can be added to our spatial partitioning grid.
 		/// @param moid The MOID.
 		/// @param left The left boundary of the draw area.
@@ -285,9 +268,7 @@ namespace RTE {
 		/// Clears all registered as drawn MOIDs, clearing our spatial partitioning grid.
 		void ClearAllMOIDDrawings();
 
-		/// Test whether a pixel of the scene would be knocked loose and
-		/// turned into a MO by another particle of a certain material going at a
-		/// certain velocity. Scene needs to be locked to do this!
+		/// Test whether a pixel of the scene would be knocked loose and turned into a MO by another particle of a certain material going at a certain velocity.
 		/// @param posX The X and Y coords of the scene pixel that is collided with.
 		/// @param posY The velocity of the incoming particle.
 		/// @param velocity The mass of the incoming particle.
@@ -299,9 +280,7 @@ namespace RTE {
 		                   const Vector& velocity,
 		                   const float mass) { return WillPenetrate(posX, posY, velocity * mass); }
 
-		/// Test whether a pixel of the scene would be knocked loose and
-		/// turned into a MO by a certian impulse force. Scene needs to be locked
-		/// to do this!
+		/// Test whether a pixel of the scene would be knocked loose and turned into a MO by a certain impulse force.
 		/// @param posX The X and Y coords of the scene pixel that is collided with.
 		/// @param posY The impulse force vector, in Kg * m/s.
 		/// @return A bool indicating wether the scene pixel would be knocked loose or
@@ -311,11 +290,8 @@ namespace RTE {
 		                   const int posY,
 		                   const Vector& impulse);
 
-		/// Calculate whether a pixel of the scene would be knocked loose and
-		/// turned into a MO by another particle of a certain material going at a
-		/// certain velocity. If so, the incoming particle will knock loose the
-		/// specified pixel in the scene and momentarily take its place.
-		/// Scene needs to be locked to do this!
+		/// Calculate whether a pixel of the scene would be knocked loose and turned into a MO by another particle of a certain material going at a certain velocity.
+		/// If so, the incoming particle will knock loose the specified pixel in the scene and momentarily take its place.
 		/// @param posX The X and Y coord of the scene pixel that is to be collided with.
 		/// @param posY The impulse force exerted on the terrain pixel. If this magnitude
 		/// exceeds the strength threshold of the material of the terrain pixel
@@ -511,7 +487,7 @@ namespace RTE {
 		/// @return Whether the ray was stopped prematurely or not.
 		bool CastTerrainPenetrationRay(const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip);
 
-		/// Traces along a vector and reveals or hides pixels on the unseen layer of a team
+		/// Traces a box along a vector and reveals or hides pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
 		/// don't exceed a specific value.
 		/// @param team The team to see for.
@@ -526,7 +502,7 @@ namespace RTE {
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal);
 
-		/// Traces along a vector and reveals pixels on the unseen layer of a team
+		/// Traces a box along a vector and reveals pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
 		/// don't exceed a specific value.
 		/// @param team The team to see for.
@@ -540,7 +516,7 @@ namespace RTE {
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0);
 
-		/// Traces along a vector and hides pixels on the unseen layer of a team
+		/// Traces a box along a vector and hides pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
 		/// don't exceed a specific value.
 		/// @param team The team to see for.
@@ -726,22 +702,23 @@ namespace RTE {
 		/// @return A vector with the absolute pos of where the last ray cast hit somehting.
 		const Vector& GetLastRayHitPos();
 
-		/// Calculates the altitide of a certain point above the terrain, measured
-		/// in pixels.
+		/// Calculates the altitude of a certain point above the terrain, measured in pixels.
 		/// @param from The max altitude you care to check for. 0 Means check the whole scene's height.
-		/// @param max The accuracy within screen measurement is acceptable. Higher number
-		/// here means less calculation.
+		/// @param max The accuracy within screen measurement is acceptable. Higher number here means less calculation.
 		/// @return The altitude over the terrain, in pixels.
 		float FindAltitude(const Vector& from, int max, int accuracy, bool fromSceneOrbitDirection);
 		float FindAltitude(const Vector& from, int max, int accuracy) { return FindAltitude(from, max, accuracy, false); }
 
-		/// Calculates the altitide of a certain point above the terrain, measured
-		/// in pixels, and then tells if that point is over a certain value.
+		/// Calculates the altitude of a certain point above the terrain, measured in pixels, and then tells if that point is over a certain value.
 		/// @param point The altitude threshold you want to check for.
-		/// @param threshold The accuracy within screen measurement is acceptable. Higher number
-		/// here means less costly.
+		/// @param threshold The accuracy within screen measurement is acceptable. Higher number here means less costly.
 		/// @return Whether the point is over the threshold altitude or not.
 		bool OverAltitude(const Vector& point, int threshold, int accuracy = 0);
+
+		/// Returns whether a given point is inside a no-grav area.
+		/// @param point The point you want to check.
+		/// @return Whether the point is inside a nograv area.
+		bool IsPointInNoGravArea(const Vector& point) const;
 
 		/// Takes an arbitrary point in the air and calculates it to be straight
 		/// down at a certain maximum distance from the ground.
@@ -892,12 +869,9 @@ namespace RTE {
 		/// @param screenId Which screen to update for. (default: 0)
 		void Update(int screenId = 0);
 
-		/// Draws this SceneMan's current graphical representation to a
-		/// BITMAP of choice.
-		/// @param targetBitmap A pointer to a BITMAP to draw on, appropriately sized for the split
-		/// screen segment.
-		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner
-		/// is located.
+		/// Draws this SceneMan's current graphical representation to a BITMAP of choice.
+		/// @param targetBitmap A pointer to a BITMAP to draw on, appropriately sized for the split screen segment.
+		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner is located.
 		void Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector& targetPos = Vector(), bool skipBackgroundLayers = false, bool skipTerrain = false);
 
 		/// Clears the list of pixels on the unseen map that have been revealed.
@@ -947,8 +921,6 @@ namespace RTE {
 		// Current scene being used
 		Scene* m_pCurrentScene;
 
-		// MovableObject ID layer
-		SceneLayerTracked* m_pMOIDLayer;
 		// A spatial partitioning grid of MOIDs, used to optimize collision and distance queries
 		SpatialPartitionGrid m_MOIDsGrid;
 

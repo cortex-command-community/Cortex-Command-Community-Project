@@ -86,7 +86,7 @@ function Create(self)
 
 	for actor in MovableMan.Actors do
 		if actor.PresetName:find("Automover Controller") and actor.Team == self.Team and actor.UniqueID ~= self.UniqueID then
-			ActivityMan:GetActivity():SetTeamFunds(ActivityMan:GetActivity():GetTeamFunds(self.Team) + actor:GetGoldValue(0, 0), self.Team);
+			self.currentActivity:SetTeamFunds(self.currentActivity:GetTeamFunds(self.Team) + actor:GetGoldValue(0, 0), self.Team);
 			actor.ToDelete = true;
 		end
 	end
@@ -752,7 +752,7 @@ automoverUtilityFunctions.findNodeWithShortestScenePath = function(self, positio
 
 	local shortestPathCoroutine = coroutine.create(FindStartPositionWithShortestPathToEndPosition);
 	while coroutine.status(shortestPathCoroutine) ~= "dead" do
-		local _, result = coroutine.resume(shortestPathCoroutine, potentialClosestNodes, positionToFindClosestNodeFor, pathfinderTeam, false, pathfinderDigStrength);
+		local _, result = coroutine.resume(shortestPathCoroutine, potentialClosestNodes, positionToFindClosestNodeFor, pathfinderTeam, GetPathFindingFlyingJumpHeight(), pathfinderDigStrength);
 		if result then
 			return result;
 		else
@@ -914,8 +914,8 @@ automoverActorFunctions.addActorToAutomoverTable = function(self, actor)
 		actor:SetNumberValue("Automover_OldMoveProximityLimit", actor.MoveProximityLimit);
 	end
 
-	-- Make move proximity much lower so we don't get caught on corners
-	actor.MoveProximityLimit = 2;
+	-- Make move proximity much higher so we don't zigzag back and forth
+	actor.MoveProximityLimit = 5;
 
 	self.affectedActorsCount = self.affectedActorsCount + 1;
 
@@ -1082,9 +1082,10 @@ automoverActorFunctions.chooseTeleporterForPlayerControlledActor = function(self
 		end
 
 		local player = actorController.Player;
-		CameraMan:SetScrollTarget(manualTeleporterData.sortedTeleporters[manualTeleporterData.currentChosenTeleporter].node.Pos, 1, player);
-		FrameMan:ClearScreenText(player);
-		FrameMan:SetScreenText("CHOOSING TELEPORTER: Move Left or Right to change teleporter. Press Fire to teleport. Open the Pie Menu to cancel.", player, 0, 100, false);
+		local screen = self.currentActivity:ScreenOfPlayer(player);
+		CameraMan:SetScrollTarget(manualTeleporterData.sortedTeleporters[manualTeleporterData.currentChosenTeleporter].node.Pos, 1, screen);
+		FrameMan:ClearScreenText(screen);
+		FrameMan:SetScreenText("CHOOSING TELEPORTER: Move Left or Right to change teleporter. Press Fire to teleport. Open the Pie Menu to cancel.", screen, 0, 100, false);
 	else
 		self:changeScaleOfMOSRotatingAndAttachables(actor, (manualTeleporterData.actorTeleportationStage == 2 and manualTeleporterData.teleporterVisualsTimer.SimTimeLimitProgress or 1 - manualTeleporterData.teleporterVisualsTimer.SimTimeLimitProgress));
 		self:centreActorToClosestNodeIfMovingInAppropriateDirection(actorData, true);
@@ -1126,17 +1127,33 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 
 		analogMove = wptPos - actor.Pos;
 
-		-- the ai only removes points if it's not flying and moving, so let's remove the point if needed
-		if analogMove:MagnitudeIsLessThan(3) then
-			actor:RemoveMovePathBeginning();
+		-- zero out the axis we're being centred on, if we're only being centred on one
+		if actorData.centeringAxes ~= nil and #actorData.centeringAxes == 1 then
+			analogMove[actorData.centeringAxes[1]] = 0;
 		end
 
-		if (actor.Pos - actor.PrevPos):MagnitudeIsLessThan(0.05) then
-			-- choose a random direction to get unstuck
-			-- TODO, it'd be better if the AI logic can communicate this to us instead!
-			analogMove:RadRotate(RangeRand(-math.pi,math.pi));
+		if actor:NumberValueExists("AI_StuckForTime") and actorData.lastAnalogMove ~= nil then
+			-- Sometimes give no input to let things reset
+			local stuckForMS = actor:GetNumberValue("AI_StuckForTime");
+			if math.fmod(stuckForMS, 5000) < 500 then
+				analogMove = Vector();
+			else
+				if actorData.lastAnalogMove:IsZero() then
+					-- We tried a random direction and failed to get unstuck in 5 secs
+					-- so try the opposite direction as our waypoint
+					actorData.lastAnalogMove = analogMove * -1;
+				end
+
+				-- add a random deviation to get unstuck
+				actorData.lastAnalogMove:RadRotate(RangeRand(-0.15,0.15));
+				analogMove = actorData.lastAnalogMove;
+			end
 		end
+
+		analogMove:Normalize();
 	end
+
+	actorData.lastAnalogMove = analogMove;
 
 	local deadZone = 0.1;
 	if analogMove:MagnitudeIsGreaterThan(deadZone) then
@@ -1489,7 +1506,7 @@ automoverActorFunctions.handleActorThatHasReachedItsEndNode = function(self, act
 						end
 					end
 				end,
-				actor.Pos, waypointData.targetPosition, false, GetPathFindingDefaultDigStrength(), self.Team
+				actor.Pos, waypointData.targetPosition, GetPathFindingFlyingJumpHeight(), GetPathFindingDefaultDigStrength(), self.Team
 			);
 		elseif waypointData.exitPath ~= nil and #waypointData.exitPath > 0 then
 			local distanceFromActorToFirstExitPathPosition = SceneMan:ShortestDistance(waypointData.exitPath[1], actor.Pos, self.checkWrapping);
@@ -1537,6 +1554,8 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 	local actor = actorData.actor;
 	local actorDirection = actorData.direction;
 
+	actorData.centeringAxes = {};
+
 	local oldClosestNode = actorData.currentClosestNode;
 	local closestNode = self:findClosestNode(actor.Pos, actorData.currentClosestNode, true, true) or actorData.currentClosestNode;
 	actorData.currentClosestNode = closestNode;
@@ -1574,19 +1593,21 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 		else
 			centeringAxes = { (directionToUseForCentering == Directions.Up or directionToUseForCentering == Directions.Down) and "X" or "Y"; }
 		end
+		actorData.centeringAxes = centeringAxes;
+
 		local gravityAdjustment = SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs * -1;
 		local centeringSpeedAndDistance = self.movementAcceleration * 5;
 
 		for _, centeringAxis in pairs(centeringAxes) do
-			if actor.MovePathSize > 0 then
+			if actor.MovePathSize > 0 and directionConnectingArea ~= nil then
 				-- Collect all points ahead of us in the box to adjust to centre
 				local positionsToFixUp = {};
+				local stop = false;
 				for pos in actor.MovePath do
-					if pos[centeringAxis] == closestNode.Pos[centeringAxis] or directionConnectingArea == nil or not directionConnectingArea:IsInside(pos) then
-						break;
-					end
 					local adjustedPos = pos;
-					adjustedPos[centeringAxis] = closestNode.Pos[centeringAxis];
+					if directionConnectingArea:IsInside(pos) then
+						adjustedPos[centeringAxis] = closestNode.Pos[centeringAxis];
+					end
 					table.insert(positionsToFixUp, adjustedPos);
 				end
 

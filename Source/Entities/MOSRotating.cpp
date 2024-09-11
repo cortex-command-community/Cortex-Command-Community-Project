@@ -610,8 +610,7 @@ bool MOSRotating::CollideAtPoint(HitData& hd) {
 		// If a particle, which does not penetrate, but bounces, do any additional
 		// effects of that bounce.
 		if (!ParticlePenetration(hd)) {
-			// TODO: Add blunt trauma effects here!")
-			;
+			// TODO: Add blunt trauma effects here!
 		}
 
 		// If the hittee is pinned, see if the collision's impulse is enough to dislodge it.
@@ -791,6 +790,9 @@ bool MOSRotating::ParticlePenetration(HitData& hd) {
 			hd.ResImpulse[HITOR] = -(hd.ResImpulse[HITEE]);
 		} else {
 			// Particle got lodged inside this MOSRotating, so stop it and delete it from scene.
+			// Set the exiting particle's position to where it looks lodged
+			// hd.Body[HITOR]->SetPos(m_Pos - m_SpriteOffset + entryPos);
+			// hd.Body[HITOR]->SetVel(Vector());
 			hd.Body[HITOR]->SetToDelete(true);
 			hd.Terminate[HITOR] = true;
 		}
@@ -1085,6 +1087,7 @@ bool MOSRotating::IsAtRest() {
 	} else if (m_VelOscillations > 2 || m_AngOscillations > 2) {
 		return true;
 	}
+
 	return m_RestTimer.IsPastSimMS(m_RestThreshold);
 }
 
@@ -1155,6 +1158,7 @@ bool MOSRotating::DeepCheck(bool makeMOPs, int skipMOP, int maxMOPs) {
 			if (!m_pFlipBitmap) {
 				m_pFlipBitmap = create_bitmap_ex(8, m_aSprite[m_Frame]->w, m_aSprite[m_Frame]->h);
 			}
+
 			clear_to_color(m_pFlipBitmap, g_MaskColor);
 
 			// Draw either the source color bitmap or the intermediate material bitmap onto the intermediate flipping bitmap
@@ -1193,16 +1197,13 @@ bool MOSRotating::DeepCheck(bool makeMOPs, int skipMOP, int maxMOPs) {
 	return false;
 }
 
-void MOSRotating::PreTravel() {
-	MOSprite::PreTravel();
-}
-
 void MOSRotating::Travel() {
 	MOSprite::Travel();
 
 	// Pinned objects don't travel!
-	if (m_PinStrength)
+	if (m_PinStrength) {
 		return;
+	}
 
 	float deltaTime = g_TimerMan.GetDeltaTimeSecs();
 
@@ -1223,8 +1224,9 @@ void MOSRotating::Travel() {
 	/////////////////////////////////
 	// AtomGroup travel
 
-	if (!IsTooFast())
-		m_pAtomGroup->Travel(deltaTime, true, true, g_SceneMan.SceneIsLocked());
+	if (!IsTooFast()) {
+		m_pAtomGroup->Travel(deltaTime, true, true);
+	}
 
 	// Now clear out the ignore override for next frame
 	m_pAtomGroup->ClearMOIDIgnoreList();
@@ -1342,7 +1344,7 @@ void MOSRotating::PostUpdate() {
 		(*itr)->PostUpdate();
 	}
 
-	MovableObject::PostUpdate();
+	MOSprite::PostUpdate();
 }
 
 // TODO This should just be defined in MOSR instead of having an empty definition in MO. MOSR would need to override UpdateMOID accordingly, but this would clean things up a little.

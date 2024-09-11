@@ -1,3 +1,4 @@
+
 #include "MetagameGUI.h"
 
 #include "WindowMan.h"
@@ -38,6 +39,7 @@
 #include "SLTerrain.h"
 #include "DataModule.h"
 #include "Loadout.h"
+#include "MusicMan.h"
 #include "System.h"
 
 using namespace RTE;
@@ -69,9 +71,9 @@ void MetagameGUI::SiteTarget::Draw(BITMAP* drawBitmap) const {
 
 	// Draw the appropriate growing geometric figure around the location, growing
 	if (m_Style == SiteTarget::CROSSHAIRSSHRINK) {
-		float radius = Lerp(0.0, 1.0, 200, 10, m_AnimProgress);
-		float lineLen = Lerp(0.0, 1.0, 60, 10, m_AnimProgress);
-		float rotation = 0; // Lerp(0.0, 1.0, -c_EighthPI, 0.0, m_AnimProgress);
+		float radius = Lerp(0.0f, 1.0f, 200.0f, 10.0f, m_AnimProgress);
+		float lineLen = Lerp(0.0f, 1.0f, 60.0f, 10.0f, m_AnimProgress);
+		float rotation = Lerp(0.0f, 1.0f, Matrix(-c_EighthPI), Matrix(0.0f), m_AnimProgress).GetRadAngle();
 		Vector inner;
 		Vector outer;
 
@@ -84,9 +86,9 @@ void MetagameGUI::SiteTarget::Draw(BITMAP* drawBitmap) const {
 			DrawGlowLine(drawBitmap, m_CenterPos + inner, m_CenterPos + outer, m_Color);
 		}
 	} else if (m_Style == SiteTarget::CROSSHAIRSGROW) {
-		float radius = Lerp(0.0, 1.0, 10, 200, m_AnimProgress);
-		float lineLen = Lerp(0.0, 1.0, 10, 60, m_AnimProgress);
-		float rotation = 0; // Lerp(0.0, 1.0, -c_EighthPI, 0.0, m_AnimProgress);
+		float radius = Lerp(0.0f, 1.0f, 10.0f, 200.0f, m_AnimProgress);
+		float lineLen = Lerp(0.0f, 1.0f, 10.0f, 60.0f, m_AnimProgress);
+		float rotation = Lerp(0.0f, 1.0f, Matrix(-c_EighthPI), Matrix(0.0f), m_AnimProgress).GetRadAngle();
 		Vector inner;
 		Vector outer;
 
@@ -99,26 +101,26 @@ void MetagameGUI::SiteTarget::Draw(BITMAP* drawBitmap) const {
 			DrawGlowLine(drawBitmap, m_CenterPos + inner, m_CenterPos + outer, m_Color);
 		}
 	} else if (m_Style == SiteTarget::CIRCLESHRINK) {
-		float radius = Lerp(0.0, 1.0, 24, 6, m_AnimProgress);
-		int blendAmount = Lerp(0.0, 1.0, 0, 255, m_AnimProgress); // + 15 * NormalRand();
+		float radius = Lerp(0.0f, 1.0f, 24.0f, 6.0f, m_AnimProgress);
+		int blendAmount = Lerp(0.0f, 1.0f, 0.0f, 255.0f, m_AnimProgress); // + 15 * NormalRand();
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 		circle(drawBitmap, m_CenterPos.m_X, m_CenterPos.m_Y, radius, m_Color);
 	} else if (m_Style == SiteTarget::CIRCLEGROW) {
-		float radius = Lerp(0.0, 1.0, 6, 24, m_AnimProgress);
-		int blendAmount = Lerp(0.0, 1.0, 255, 0, m_AnimProgress); // + 15 * NormalRand();
+		float radius = Lerp(0.0f, 1.0f, 6.0f, 24.0f, m_AnimProgress);
+		int blendAmount = Lerp(0.0f, 1.0f, 255.0f, 0.0f, m_AnimProgress); // + 15 * NormalRand();
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 		circle(drawBitmap, m_CenterPos.m_X, m_CenterPos.m_Y, radius, m_Color);
 	} else if (m_Style == SiteTarget::SQUARESHRINK) {
-		float radius = Lerp(0.0, 1.0, 24, 6, m_AnimProgress);
-		int blendAmount = Lerp(0.0, 1.0, 0, 255, m_AnimProgress); // + 15 * NormalRand();
+		float radius = Lerp(0.0f, 1.0f, 24.0f, 6.0f, m_AnimProgress);
+		int blendAmount = Lerp(0.0f, 1.0f, 0.0f, 255.0f, m_AnimProgress); // + 15 * NormalRand();
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 		rect(drawBitmap, m_CenterPos.m_X - radius, m_CenterPos.m_Y - radius, m_CenterPos.m_X + radius, m_CenterPos.m_Y + radius, m_Color);
 	}
 	// Default
 	else // if (m_Style == SiteTarget::SQUAREGROW)
 	{
-		float radius = Lerp(0.0, 1.0, 6, 24, m_AnimProgress);
-		int blendAmount = Lerp(0.0, 1.0, 255, 0, m_AnimProgress); // + 15 * NormalRand();
+		float radius = Lerp(0.0f, 1.0f, 6.0f, 24.0f, m_AnimProgress);
+		int blendAmount = Lerp(0.0f, 1.0f, 255.0f, 0.0f, m_AnimProgress); // + 15 * NormalRand();
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 		rect(drawBitmap, m_CenterPos.m_X - radius, m_CenterPos.m_Y - radius, m_CenterPos.m_X + radius, m_CenterPos.m_Y + radius, m_Color);
 	}
@@ -581,6 +583,7 @@ int MetagameGUI::Create(Controller* pController) {
 
 	// Hide all screens, the appropriate screen will reappear on next update
 	HideAllScreens();
+	m_TechAndFlagListFetched = false;
 	return 0;
 }
 
@@ -716,35 +719,48 @@ void MetagameGUI::SetEnabled(bool enable) {
 		g_GUISound.ExitMenuSound()->Play();
 	}
 
-	// Populate the tech comboboxes with the available tech modules
-	for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
-		m_apPlayerTechSelect[team]->GetListPanel()->AddItem("-Random-", "", nullptr, nullptr, -1);
-		m_apPlayerTechSelect[team]->SetSelectedIndex(0);
-	}
-	for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); ++moduleID) {
-		if (const DataModule* dataModule = g_PresetMan.GetDataModule(moduleID)) {
-			if (dataModule->IsFaction()) {
-				for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
-					m_apPlayerTechSelect[team]->GetListPanel()->AddItem(dataModule->GetFriendlyName(), "", nullptr, nullptr, moduleID);
-					m_apPlayerTechSelect[team]->GetListPanel()->ScrollToTop();
+	if (!m_TechAndFlagListFetched) {
+		m_TechAndFlagListFetched = true;
+		// Populate the tech comboboxes with the available tech modules
+		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+			m_apPlayerTechSelect[player]->GetListPanel()->AddItem("-Random-", "", nullptr, nullptr, -1);
+			m_apPlayerTechSelect[player]->SetSelectedIndex(0);
+		}
+		for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); ++moduleID) {
+			if (const DataModule* dataModule = g_PresetMan.GetDataModule(moduleID)) {
+				if (dataModule->IsFaction()) {
+					for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+						m_apPlayerTechSelect[player]->GetListPanel()->AddItem(dataModule->GetFriendlyName(), "", nullptr, nullptr, moduleID);
+					}
+				}
+			}
+		}
+		// Start scrolled to the top.
+		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+			m_apPlayerTechSelect[player]->GetListPanel()->ScrollToTop();
+		}
+
+		// Populate team selection flags.
+		std::list<Entity*> flagList;
+		g_PresetMan.GetAllOfGroup(flagList, "Flags", "Icon");
+		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+			for (std::list<Entity*>::iterator itr = flagList.begin(); itr != flagList.end(); ++itr) {
+				if (const Icon* pIcon = dynamic_cast<Icon*>(*itr)) {
+					m_apPlayerTeamSelect[player]->AddItem("", "", new AllegroBitmap(pIcon->GetBitmaps32()[0]), pIcon);
 				}
 			}
 		}
 	}
-
-	std::list<Entity*> flagList;
-	g_PresetMan.GetAllOfGroup(flagList, "Flags", "Icon");
+	// If a player has no team selected, default to the same team as their player index.
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
-		for (std::list<Entity*>::iterator itr = flagList.begin(); itr != flagList.end(); ++itr) {
-			if (const Icon* pIcon = dynamic_cast<Icon*>(*itr)) {
-				m_apPlayerTeamSelect[player]->AddItem("", "", new AllegroBitmap(pIcon->GetBitmaps32()[0]), pIcon);
-			}
+		if (m_apPlayerTeamSelect[player]->GetSelectedIndex() < 0) {
+			m_apPlayerTeamSelect[player]->SetSelectedIndex(player);
 		}
 	}
-	if (m_apPlayerTeamSelect[Players::PlayerOne]->GetSelectedIndex() < 0) {
-		m_apPlayerTeamSelect[Players::PlayerOne]->SetSelectedIndex(0);
-	}
 
+	if (enable) {
+		UpdatePlayerSetup(); // Ensure everything's ready to jump right in to the game, if the player wants.
+	}
 	m_ScreenChange = true;
 }
 
@@ -2606,7 +2622,8 @@ void MetagameGUI::CompletedActivity() {
 			UpdateScenesBox(true);
 
 			// Play some nice ambient music
-			g_AudioMan.PlayMusic("Base.rte/Music/Hubnester/ccmenu.ogg", -1, 0.4);
+			g_MusicMan.PlayInterruptingMusic(dynamic_cast<const SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Main Menu Music")));
+			g_AudioMan.SetMusicMuffledState(false);
 		}
 	}
 }

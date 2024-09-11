@@ -2,13 +2,14 @@ function Survival:StartActivity(isNewGame)
 	SceneMan.Scene:GetArea("LZ Team 1");
 	SceneMan.Scene:GetArea("LZ All");
 
+	self.humanTeam = Activity.TEAM_2;
+	
+	self.humanTechName = self:GetTeamTech(self.humanTeam);
 	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
 
 	self.startMessageTimer = Timer();
 	self.enemySpawnTimer = Timer();
 	self.winTimer = Timer();
-
-	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
 
 	if isNewGame then
 		self:StartNewGame();
@@ -31,9 +32,15 @@ end
 
 function Survival:StartNewGame()
 	self:SetTeamFunds(1000000, self.CPUTeam);
-	self:SetTeamFunds(self:GetStartingGold(), Activity.TEAM_1);
+	self:SetTeamFunds(self:GetStartingGold(), self.humanTeam);
 
 	self.addFogOfWar = self:GetFogOfWarEnabled();
+
+	for actor in MovableMan.AddedActors do
+		if IsADoor(actor) then
+			actor.Team = self.humanTeam;
+		end
+	end
 
 	if self.Difficulty <= GameActivity.CAKEDIFFICULTY then
 		self.timeLimit = 125000;
@@ -86,9 +93,9 @@ function Survival:SetupHumanPlayerBrains()
 				-- If we can't find an unassigned brain in the scene to give each player, then force to go into editing mode to place one
 				if not foundBrain then
 					self.ActivityState = Activity.EDITING;
-					AudioMan:ClearMusicQueue();
-					AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/ccambient4.ogg", -1, -1);
+					MusicMan:PlayDynamicSong("Generic Ambient Music");
 				else
+					MusicMan:PlayDynamicSong("Generic Battle Music");
 					-- Set the found brain to be the selected actor at start
 					self:SetPlayerBrain(foundBrain, player);
 					self:SwitchToActor(foundBrain, player, self:GetTeamOfPlayer(player));
@@ -118,16 +125,12 @@ function Survival:EndActivity()
 	if not self:IsPaused() then
 		-- Play sad music if no humans are left
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
 			-- But if humans are left, then play happy music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end
@@ -136,18 +139,23 @@ function Survival:UpdateActivity()
 	self:ClearObjectivePoints();
 
 	if self.ActivityState ~= Activity.OVER and self.ActivityState ~= Activity.EDITING then
+		if not self.musicStarted then
+			self.musicStarted = true;
+			MusicMan:PlayDynamicSong("Generic Battle Music", "Default", true);
+		end
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				local screen = self:ScreenOfPlayer(player);
 				--Display messages.
 				if self.startMessageTimer:IsPastSimMS(3000) then
 					local secondsLeft = math.floor(self.winTimer:LeftTillSimMS(self.timeLimit) / 1000);
 					if (secondsLeft > 1) then
-						FrameMan:SetScreenText(secondsLeft .. " seconds left", self:ScreenOfPlayer(player), 0, 1000, false);
+						FrameMan:SetScreenText(secondsLeft .. " seconds left", screen, 0, 1000, false);
 					else
-						FrameMan:SetScreenText("1 second left!", self:ScreenOfPlayer(player), 0, 1000, false);
+						FrameMan:SetScreenText("1 second left!", screen, 0, 1000, false);
 					end
 				else
-					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", self:ScreenOfPlayer(player), 333, 5000, true);
+					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", screen, 333, 5000, true);
 				end
 
 				-- The current player's team
@@ -167,8 +175,8 @@ function Survival:UpdateActivity()
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					self:SetPlayerBrain(nil, player);
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-					FrameMan:SetScreenText("Your brain has been destroyed!", self:ScreenOfPlayer(player), 333, -1, false);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText("Your brain has been destroyed!", screen, 333, -1, false);
 					-- Now see if all brains of self player's team are dead, and if so, end the game
 					if not MovableMan:GetFirstBrainActor(team) then
 						self.WinnerTeam = self:OtherTeam(team);
@@ -181,10 +189,10 @@ function Survival:UpdateActivity()
 				--Check if the player has won.
 				if self.winTimer:IsPastSimMS(self.timeLimit) then
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-					FrameMan:SetScreenText("You survived!", self:ScreenOfPlayer(player), 333, -1, false);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText("You survived!", screen, 333, -1, false);
 
-					self.WinnerTeam = Activity.TEAM_1;
+					self.WinnerTeam = self.humanTeam;
 
 					--Kill all enemies.
 					for actor in MovableMan.Actors do
@@ -199,7 +207,29 @@ function Survival:UpdateActivity()
 		end
 
 		if self.addFogOfWar then
-			SceneMan:MakeAllUnseen(Vector(20, 20), self:GetTeamOfPlayer(Activity.PLAYER_1));
+			local fogResolution = 4;
+			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.humanTeam);
+			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
+
+			-- Reveal outside areas for everyone.
+			for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+				local altitude = Vector(0, 0);
+				SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+				if altitude.Y > 1 then
+					SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.humanTeam);
+					SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
+				end
+			end
+
+			-- Reveal a circle around actors, so they're not standing in the dark.
+			for Act in MovableMan.AddedActors do
+				if not IsADoor(Act) then
+					for angle = 0, math.pi * 2, 0.05 do
+						SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+					end
+				end
+			end
+
 			self.addFogOfWar = false;
 		end
 
@@ -275,11 +305,11 @@ function Survival:UpdateActivity()
 
 			if ship then
 				-- Set the spawn point of the ship from orbit
-				if self.playertally == 1 then
-					for i = 1, #self.playerlist do
-						if self.playerlist[i] == true then
+				if self.HumanCount == 1 then
+					for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+						if self:PlayerActive(player) and self:PlayerHuman(player) then
 							local sceneChunk = SceneMan.SceneWidth / 3;
-							local checkPos = self:GetPlayerBrain(i - 1).Pos.X + (SceneMan.SceneWidth/2) + ( (sceneChunk/2) - (math.random()*sceneChunk) );
+							local checkPos = self:GetPlayerBrain(player).Pos.X + (SceneMan.SceneWidth/2) + ( (sceneChunk/2) - (math.random()*sceneChunk) );
 							if checkPos > SceneMan.SceneWidth then
 								checkPos = checkPos - SceneMan.SceneWidth;
 							elseif checkPos < 0 then
@@ -318,6 +348,7 @@ function Survival:UpdateActivity()
 		end
 	else
 		self.startMessageTimer:Reset();
+		self.musicStarted = false;
 		self.winTimer:Reset();
 	end
 

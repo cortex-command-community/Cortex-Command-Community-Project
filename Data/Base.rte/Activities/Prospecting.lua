@@ -32,9 +32,10 @@ function Prospecting:StartActivity()
 			self.braindead[player] = false;
 		end
 	end
+	MusicMan:PlayDynamicSong("Generic Ambient Music");
 
 	-- Set up the unseen layers
-	SceneMan:MakeAllUnseen(Vector(25, 25), Activity.TEAM_1);
+	SceneMan:MakeAllUnseen(Vector(4, 4), Activity.TEAM_1);
 	SceneMan:LoadUnseenLayer("Base.rte/Scenes/UnseenTest.png", Activity.TEAM_2);
 end
 
@@ -135,8 +136,9 @@ function Prospecting:UpdateActivity()
 				-- The current player's team
 				local team = self:GetTeamOfPlayer(player);
 				if (self.ActivityState == Activity.STARTING) then
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-					FrameMan:SetScreenText(scanMessage, self:ScreenOfPlayer(player), messageBlink, 8000, true);
+					local screen = self:ScreenOfPlayer(player);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText(scanMessage, screen, messageBlink, 8000, true);
 				end
 			end
 		end

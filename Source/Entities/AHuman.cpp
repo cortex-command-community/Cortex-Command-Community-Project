@@ -575,56 +575,6 @@ BITMAP* AHuman::GetGraphicalIcon() const {
 	return m_GraphicalIcon ? m_GraphicalIcon : (m_pHead ? m_pHead->GetSpriteFrame(0) : GetSpriteFrame(0));
 }
 
-bool AHuman::CollideAtPoint(HitData& hd) {
-	return Actor::CollideAtPoint(hd);
-
-	/*
-	    hd.ResImpulse[HITOR].Reset();
-	    hd.ResImpulse[HITEE].Reset();
-	    hd.HitRadius[HITEE] = (hd.HitPoint - m_Pos) * c_MPP;
-	    hd.mass[HITEE] = m_Mass;
-	    hd.MomInertia[HITEE] = m_pAtomGroup->GetMomentOfInertia();
-	    hd.HitVel[HITEE] = m_Vel + hd.HitRadius[HITEE].GetPerpendicular() * m_AngularVel;
-	    hd.VelDiff = hd.HitVel[HITOR] - hd.HitVel[HITEE];
-	    Vector hitAcc = -hd.VelDiff * (1 + hd.Body[HITOR]->GetMaterial().restitution * GetMaterial().restitution);
-
-	    float hittorLever = hd.HitRadius[HITOR].GetPerpendicular().Dot(hd.BitmapNormal);
-	    float hitteeLever = hd.HitRadius[HITEE].GetPerpendicular().Dot(hd.BitmapNormal);
-	    hittorLever *= hittorLever;
-	    hitteeLever *= hitteeLever;
-	    float impulse = hitAcc.Dot(hd.BitmapNormal) / (((1 / hd.mass[HITOR]) + (1 / hd.mass[HITEE])) +
-	                    (hittorLever / hd.MomInertia[HITOR]) + (hitteeLever / hd.MomInertia[HITEE]));
-
-	    hd.ResImpulse[HITOR] = hd.BitmapNormal * impulse * hd.ImpulseFactor[HITOR];
-	    hd.ResImpulse[HITEE] = hd.BitmapNormal * -impulse * hd.ImpulseFactor[HITEE];
-
-	    ////////////////////////////////////////////////////////////////////////////////
-	    // If a particle, which does not penetrate, but bounces, do any additional
-	    // effects of that bounce.
-	    if (!ParticlePenetration())
-	// TODO: Add blunt trauma effects here!")
-	        ;
-	    }
-
-	    m_Vel += hd.ResImpulse[HITEE] / hd.mass[HITEE];
-	    m_AngularVel += hd.HitRadius[HITEE].GetPerpendicular().Dot(hd.ResImpulse[HITEE]) /
-	                    hd.MomInertia[HITEE];
-	*/
-}
-
-/*
-bool AHuman::OnBounce(const Vector &pos)
-{
-    return false;
-}
-
-
-bool AHuman::OnSink(const Vector &pos)
-{
-    return false;
-}
-*/
-
 bool AHuman::HandlePieCommand(PieSliceType pieSliceIndex) {
 	if (pieSliceIndex != PieSliceType::NoType) {
 		if (pieSliceIndex == PieSliceType::Pickup) {
@@ -647,7 +597,6 @@ bool AHuman::HandlePieCommand(PieSliceType pieSliceIndex) {
 		} else if (pieSliceIndex == PieSliceType::GoTo) {
 			m_AIMode = AIMODE_GOTO;
 			ClearAIWaypoints();
-			m_UpdateMovePath = true;
 		} else if (pieSliceIndex == PieSliceType::GoldDig) {
 			m_AIMode = AIMODE_GOLDDIG;
 		} else {
@@ -766,6 +715,7 @@ bool AHuman::EquipDeviceInGroup(std::string group, bool doEquip) {
 						if (previouslyHeldItem->GetsHitByMOs()) {
 							previouslyHeldItem->SetTraveling(true);
 						}
+
 						AddToInventoryBack(previouslyHeldItem);
 					}
 				}
@@ -981,6 +931,34 @@ float AHuman::EstimateDigStrength() const {
 	}
 
 	return maxPenetration;
+}
+
+float AHuman::EstimateJumpHeight() const {
+	if (!m_pJetpack) {
+		return 0.0F;
+	}
+
+	float totalMass = GetMass();
+	float fuelTime = m_pJetpack->GetJetTimeTotal();
+	float fuelUseMultiplier = m_pJetpack->GetThrottleFactor();
+	float impulseBurst = m_pJetpack->EstimateImpulse(true) / totalMass;
+	float impulseThrust = m_pJetpack->EstimateImpulse(false) / totalMass;
+
+	Vector globalAcc = g_SceneMan.GetGlobalAcc() * g_TimerMan.GetDeltaTimeSecs();
+	Vector currentVelocity = Vector(0.0F, -impulseBurst);
+	float totalHeight = currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
+	do {
+		currentVelocity += globalAcc;
+		totalHeight += currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
+		if (fuelTime > 0.0F) {
+			currentVelocity.m_Y -= impulseThrust;
+			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplier;
+		}
+	} while (currentVelocity.GetY() < 0.0F);
+
+	float finalCalculatedHeight = totalHeight * -1.0F * c_MPP;
+	float finalHeightMultipler = 0.8f; // Make us think we can do a little less because AI path following is shit
+	return finalCalculatedHeight * finalHeightMultipler;
 }
 
 bool AHuman::EquipShield() {
@@ -1282,8 +1260,9 @@ bool AHuman::IsWithinRange(Vector& point) const {
 }
 
 bool AHuman::Look(float FOVSpread, float range) {
-	if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false)
+	if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false) {
 		return false;
+	}
 
 	// Set the length of the look vector
 	float aimDistance = m_AimDistance + range;
@@ -1308,11 +1287,13 @@ bool AHuman::Look(float FOVSpread, float range) {
 	// Add the spread
 	lookVector.DegRotate(FOVSpread * RandomNormalNum());
 
+	// The smallest dimension of the fog block, divided by two, but always at least one, as the step for the casts
+	int step = (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2;
+
 	// TODO: generate an alarm event if we spot an enemy actor?
 
-	Vector ignored;
-	// Cast the seeing ray, adjusting the skip to match the resolution of the unseen map
-	return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2);
+	Vector ignored(0, 0);
+	return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, step);
 }
 
 bool AHuman::LookForGold(float FOVSpread, float range, Vector& foundLocation) const {
@@ -1364,34 +1345,6 @@ void AHuman::ResetAllTimers() {
 
 void AHuman::OnNewMovePath() {
 	Actor::OnNewMovePath();
-
-	// Process the new path we now have, if any
-	if (!m_MovePath.empty()) {
-		// Smash all airborne waypoints down to just above the ground, except for when it makes the path intersect terrain or it is the final destination
-		std::list<Vector>::iterator finalItr = m_MovePath.end();
-		finalItr--;
-		Vector smashedPoint;
-		Vector previousPoint = *(m_MovePath.begin());
-		std::list<Vector>::iterator nextItr = m_MovePath.begin();
-		for (std::list<Vector>::iterator lItr = m_MovePath.begin(); lItr != finalItr; ++lItr) {
-			nextItr++;
-			smashedPoint = g_SceneMan.MovePointToGround((*lItr), m_CharHeight * 0.2, 7);
-
-			// Only smash if the new location doesn't cause the path to intersect hard terrain ahead or behind of it
-			// Try three times to halve the height to see if that won't intersect
-			for (int i = 0; i < 3; i++) {
-				Vector notUsed;
-				if (!g_SceneMan.CastStrengthRay(previousPoint, smashedPoint - previousPoint, 5, notUsed, 3, g_MaterialDoor) &&
-				    nextItr != m_MovePath.end() && !g_SceneMan.CastStrengthRay(smashedPoint, (*nextItr) - smashedPoint, 5, notUsed, 3, g_MaterialDoor)) {
-					(*lItr) = smashedPoint;
-					break;
-				} else
-					smashedPoint.m_Y -= ((smashedPoint.m_Y - (*lItr).m_Y) / 2);
-			}
-
-			previousPoint = (*lItr);
-		}
-	}
 }
 
 void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
@@ -2292,7 +2245,7 @@ void AHuman::PreControllerUpdate() {
 				} else if (heldDevice) {
 					if (HeldDevice* bgDevice = GetEquippedBGItem(); bgDevice && !heldDevice->IsOneHanded()) {
 						UnequipBGArm();
-					} else if (!bgDevice && !heldDevice->IsReloading() && heldDevice->IsSupportable()) {
+					} else if (!bgDevice && (!heldDevice->IsReloading() || heldDevice->GetUseSupportOffsetWhileReloading()) && heldDevice->IsSupportable()) {
 						m_pBGArm->SetHeldDeviceThisArmIsTryingToSupport(heldDevice);
 
 						if (!m_pBGArm->HasAnyHandTargets() && m_pBGArm->GetHandHasReachedCurrentTarget()) {
@@ -2529,8 +2482,6 @@ void AHuman::DrawThrowingReticle(BITMAP* targetBitmap, const Vector& targetPos, 
 	Vector outOffset(m_pFGArm->GetMaxLength() * GetFlipFactor(), -m_pFGArm->GetMaxLength() * 0.5F);
 	float adjustedAimAngle = m_AimAngle * GetFlipFactor();
 
-	acquire_bitmap(targetBitmap);
-
 	for (int i = 0; i < pointCount * progressScalar; ++i) {
 		points[i].FlipX(m_HFlipped);
 		points[i] += outOffset;
@@ -2540,8 +2491,6 @@ void AHuman::DrawThrowingReticle(BITMAP* targetBitmap, const Vector& targetPos, 
 		g_PostProcessMan.RegisterGlowDotEffect(points[i], YellowDot, RandomNum(63, 127));
 		putpixel(targetBitmap, points[i].GetFloorIntX() - targetPos.GetFloorIntX(), points[i].GetFloorIntY() - targetPos.GetFloorIntY(), g_YellowGlowColor);
 	}
-
-	release_bitmap(targetBitmap);
 }
 
 void AHuman::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {

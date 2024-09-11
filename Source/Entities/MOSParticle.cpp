@@ -21,6 +21,7 @@ MOSParticle::~MOSParticle() {
 void MOSParticle::Clear() {
 	m_Atom = nullptr;
 	m_SpriteAnimMode = OVERLIFETIME;
+	m_PostEffectEnabled = true; // Default to true for backwards compatibility reasons
 }
 
 int MOSParticle::Create() {
@@ -119,7 +120,7 @@ void MOSParticle::Travel() {
 	// Do static particle bounce calculations.
 	int hitCount = 0;
 	if (!IsTooFast()) {
-		m_Atom->Travel(g_TimerMan.GetDeltaTimeSecs(), true, g_SceneMan.SceneIsLocked());
+		m_Atom->Travel(g_TimerMan.GetDeltaTimeSecs(), true);
 	}
 
 	m_Atom->ClearMOIDIgnoreList();
@@ -148,10 +149,6 @@ void MOSParticle::Travel() {
 
 void MOSParticle::Update() {
 	MOSprite::Update();
-
-	if (m_pScreenEffect) {
-		SetPostScreenEffectToDraw();
-	}
 }
 
 void MOSParticle::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
@@ -263,13 +260,5 @@ void MOSParticle::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode m
 		g_ThreadMan.GetSimRenderQueue().push_back(renderFunc);
 	} else {
 		renderFunc(1.0F);
-	}
-}
-
-void MOSParticle::SetPostScreenEffectToDraw() const {
-	if (m_AgeTimer.GetElapsedSimTimeMS() >= m_EffectStartTime && (m_EffectStopTime == 0 || !m_AgeTimer.IsPastSimMS(m_EffectStopTime))) {
-		if (m_EffectAlwaysShows || !g_SceneMan.ObscuredPoint(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY())) {
-			g_PostProcessMan.RegisterPostEffect(m_Pos, m_pScreenEffect, m_ScreenEffectHash, Lerp(m_EffectStartTime, m_EffectStopTime, m_EffectStartStrength, m_EffectStopStrength, m_AgeTimer.GetElapsedSimTimeMS()), m_EffectRotAngle);
-		}
 	}
 }

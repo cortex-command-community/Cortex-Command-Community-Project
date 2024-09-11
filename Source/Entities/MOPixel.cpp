@@ -25,6 +25,7 @@ void MOPixel::Clear() {
 	m_MaxLethalRange = 1;
 	m_LethalSharpness = 1;
 	m_Staininess = 0;
+	m_PostEffectEnabled = true; // Default to true for backwards compatibility reasons
 }
 
 int MOPixel::Create() {
@@ -166,7 +167,7 @@ void MOPixel::Travel() {
 	// Do static particle bounce calculations.
 	int hitCount = 0;
 	if (!IsTooFast()) {
-		hitCount = m_Atom->Travel(g_TimerMan.GetDeltaTimeSecs(), true, g_SceneMan.SceneIsLocked());
+		hitCount = m_Atom->Travel(g_TimerMan.GetDeltaTimeSecs(), true);
 	}
 
 	m_Atom->ClearMOIDIgnoreList();
@@ -185,6 +186,7 @@ bool MOPixel::CollideAtPoint(HitData& hd) {
 	} else {
 		m_AlreadyHitBy.insert(hd.Body[HITOR]->GetID());
 	}
+
 	return true;
 }
 
@@ -217,10 +219,6 @@ void MOPixel::Update() {
 				m_Sharpness *= 1.0F - (10.0F * g_TimerMan.GetDeltaTimeSecs());
 			}
 		}
-	}
-
-	if (m_pScreenEffect) {
-		SetPostScreenEffectToDraw();
 	}
 }
 
@@ -260,14 +258,6 @@ void MOPixel::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode,
 			g_ThreadMan.GetSimRenderQueue().push_back(renderFunc);
 		} else {
 			renderFunc(1.0F);
-		}
-	}
-}
-
-void MOPixel::SetPostScreenEffectToDraw() const {
-	if (m_AgeTimer.GetElapsedSimTimeMS() >= m_EffectStartTime && (m_EffectStopTime == 0 || !m_AgeTimer.IsPastSimMS(m_EffectStopTime))) {
-		if (m_EffectAlwaysShows || !g_SceneMan.ObscuredPoint(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY())) {
-			g_PostProcessMan.RegisterPostEffect(m_Pos, m_pScreenEffect, m_ScreenEffectHash, Lerp(m_EffectStartTime, m_EffectStopTime, m_EffectStartStrength, m_EffectStopStrength, m_AgeTimer.GetElapsedSimTimeMS()), m_EffectRotAngle);
 		}
 	}
 }

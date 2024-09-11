@@ -109,7 +109,7 @@ void Actor::Clear() {
 	m_PrevPathTarget.Reset();
 	m_MoveVector.Reset();
 	m_MovePath.clear();
-	m_UpdateMovePath = true;
+	m_UpdateMovePath = false;
 	m_MoveProximityLimit = 20.0F;
 	m_AIBaseDigStrength = c_PathFindingDefaultDigStrength;
 	m_BaseMass = std::numeric_limits<float>::infinity();
@@ -135,7 +135,6 @@ int Actor::Create() {
 	// Default to an interesting AI controller mode
 	m_Controller.SetInputMode(Controller::CIM_AI);
 	m_Controller.SetControlledActor(this);
-	m_UpdateMovePath = true;
 
 	m_ViewPoint = m_Pos;
 	m_HUDStack = -m_CharHeight / 2;
@@ -570,8 +569,9 @@ Controller::InputMode Actor::SwapControllerModes(Controller::InputMode newMode, 
 }
 
 bool Actor::Look(float FOVSpread, float range) {
-	if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false)
+	if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false) {
 		return false;
+	}
 
 	// Use the 'eyes' on the 'head', if applicable
 	Vector aimPos = GetEyePos();
@@ -601,8 +601,13 @@ bool Actor::Look(float FOVSpread, float range) {
 		lookVector.DegRotate(FOVSpread * RandomNormalNum());
 	}
 
-	Vector ignored;
-	return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2);
+	// The smallest dimension of the fog block, divided by two, but always at least one, as the step for the casts
+	int step = (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2;
+
+	// TODO: generate an alarm event if we spot an enemy actor?
+
+	Vector ignored(0, 0);
+	return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, step);
 }
 
 void Actor::AddGold(float goldOz) {
@@ -939,10 +944,6 @@ void Actor::GibThis(const Vector& impactImpulse, MovableObject* movableObjectToI
 	}
 }
 
-bool Actor::CollideAtPoint(HitData& hd) {
-	return MOSRotating::CollideAtPoint(hd);
-}
-
 bool Actor::ParticlePenetration(HitData& hd) {
 	bool penetrated = MOSRotating::ParticlePenetration(hd);
 
@@ -988,17 +989,18 @@ void Actor::UpdateMovePath() {
 
 	// Estimate how much material this actor can dig through
 	float digStrength = EstimateDigStrength();
+	float jumpHeight = EstimateJumpHeight();
 
 	// If we're following someone/thing, then never advance waypoints until that thing disappears
 	if (g_MovableMan.ValidMO(m_pMOMoveTarget)) {
-		m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), m_pMOMoveTarget->GetPos(), digStrength, static_cast<Activity::Teams>(m_Team));
+		m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), m_pMOMoveTarget->GetPos(), jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
 	} else {
 		// Do we currently have a path to a static target we would like to still pursue?
 		if (m_MovePath.empty()) {
 			// Ok no path going, so get a new path to the next waypoint, if there is a next waypoint
 			if (!m_Waypoints.empty()) {
 				// Make sure the path starts from the ground and not somewhere up in the air if/when dropped out of ship
-				m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), m_Waypoints.front().first, digStrength, static_cast<Activity::Teams>(m_Team));
+				m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), m_Waypoints.front().first, jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
 
 				// If the waypoint was tied to an MO to pursue, then load it into the current MO target
 				if (g_MovableMan.ValidMO(m_Waypoints.front().second)) {
@@ -1012,12 +1014,12 @@ void Actor::UpdateMovePath() {
 			}
 			// Just try to get to the last Move Target
 			else {
-				m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), m_MoveTarget, digStrength, static_cast<Activity::Teams>(m_Team));
+				m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), m_MoveTarget, jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
 			}
 		}
 		// We had a path before trying to update, so use its last point as the final destination
 		else {
-			m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), Vector(m_MovePath.back()), digStrength, static_cast<Activity::Teams>(m_Team));
+			m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), Vector(m_MovePath.back()), jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
 		}
 	}
 
@@ -1026,6 +1028,10 @@ void Actor::UpdateMovePath() {
 
 float Actor::EstimateDigStrength() const {
 	return m_AIBaseDigStrength;
+}
+
+float Actor::EstimateJumpHeight() const {
+	return FLT_MAX;
 }
 
 void Actor::VerifyMOIDs() {
@@ -1088,18 +1094,15 @@ void Actor::Update() {
 	// Update the viewpoint to be at least what the position is
 	m_ViewPoint = m_Pos;
 
-	// "See" the location and surroundings of this actor on the unseen map
-	if (m_Status != Actor::INACTIVE)
-		Look(45 * m_Perceptiveness, g_FrameMan.GetPlayerScreenWidth() * 0.51 * m_Perceptiveness);
-
 	// Check if the MO we're following still exists, and if not, then clear the destination
-	if (m_pMOMoveTarget && !g_MovableMan.ValidMO(m_pMOMoveTarget))
-		m_pMOMoveTarget = 0;
+	if (m_pMOMoveTarget && !g_MovableMan.ValidMO(m_pMOMoveTarget)) {
+		m_pMOMoveTarget = nullptr;
+	}
 
 	///////////////////////////////////////////////////////////////////////////////
 	// Check for manual player-made progress made toward the set AI goal
 
-	if ((m_AIMode == AIMODE_GOTO || m_AIMode == AIMODE_SQUAD) && m_Controller.IsPlayerControlled() && !m_Controller.IsDisabled()) {
+	if ((m_AIMode == AIMODE_GOTO || m_AIMode == AIMODE_SQUAD) && (!m_PathRequest || m_PathRequest->complete) && m_Controller.IsPlayerControlled() && !m_Controller.IsDisabled()) {
 		Vector notUsed;
 		// See if we are close enough to the next move target that we should grab the next in the path that is out of proximity range
 		Vector pathPointVec;
@@ -1267,6 +1270,16 @@ void Actor::Update() {
 	}
 }
 
+void RTE::Actor::CastSeeRays() {
+	// "See" the location and surroundings of this actor on the unseen map
+	if (m_Status != Actor::INACTIVE) {
+		const int lookIterations = 6; // How many see rays to cast per frame
+		for (int i = 0; i < lookIterations; ++i) {
+			Look(45 * m_Perceptiveness, g_FrameMan.GetPlayerScreenWidth() * 0.51 * m_Perceptiveness);
+		}
+	}
+}
+
 void Actor::FullUpdate() {
 	PreControllerUpdate();
 	m_Controller.Update();
@@ -1350,8 +1363,7 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 			// If we're still alive, show the team colors
 			if (m_Health > 0) {
 				if (IsPlayerControlled() && g_FrameMan.IsInMultiplayerMode()) {
-					m_pControllerIcon = 0;
-
+					m_pControllerIcon = nullptr;
 					if (m_Team == 0) {
 						m_pControllerIcon = g_UInputMan.GetDeviceIcon(DEVICE_GAMEPAD_1);
 					} else if (m_Team == 1) {

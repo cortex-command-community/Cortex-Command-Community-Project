@@ -44,6 +44,7 @@ void LuaStateWrapper::Initialize() {
 	    {LUA_STRLIBNAME, luaopen_string},
 	    {LUA_MATHLIBNAME, luaopen_math},
 	    {LUA_DBLIBNAME, luaopen_debug},
+	    {LUA_BITLIBNAME, luaopen_bit},
 	    {LUA_JITLIBNAME, luaopen_jit},
 	    {NULL, NULL} // End of array
 	};
@@ -93,6 +94,7 @@ void LuaStateWrapper::Initialize() {
 	                             .def("FileEOF", &LuaStateWrapper::FileEOF),
 
 	                         luabind::def("DeleteEntity", &LuaAdaptersUtility::DeleteEntity, luabind::adopt(_1)), // NOT a member function, so adopting _1 instead of the _2 for the first param, since there's no "this" pointer!!
+	                         luabind::def("LERP", (float (*)(float, float, float, float, float)) & Lerp),
 	                         luabind::def("Lerp", (float (*)(float, float, float, float, float)) & Lerp),
 	                         luabind::def("Lerp", (Vector(*)(float, float, Vector, Vector, float)) & Lerp),
 	                         luabind::def("Lerp", (Matrix(*)(float, float, Matrix, Matrix, float)) & Lerp),
@@ -108,6 +110,7 @@ void LuaStateWrapper::Initialize() {
 	                         luabind::def("GetMPP", &LuaAdaptersUtility::GetMPP),
 	                         luabind::def("GetPPL", &LuaAdaptersUtility::GetPPL),
 	                         luabind::def("GetLPP", &LuaAdaptersUtility::GetLPP),
+	                         luabind::def("GetPathFindingFlyingJumpHeight", &LuaAdaptersUtility::GetPathFindingFlyingJumpHeight),
 	                         luabind::def("GetPathFindingDefaultDigStrength", &LuaAdaptersUtility::GetPathFindingDefaultDigStrength),
 	                         luabind::def("RoundFloatToPrecision", &RoundFloatToPrecision),
 	                         luabind::def("RoundToNearestMultiple", &RoundToNearestMultiple),
@@ -168,6 +171,7 @@ void LuaStateWrapper::Initialize() {
 	                         RegisterLuaBindingsOfType(GUILuaBindings, SceneEditorGUI),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, ActivityMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, AudioMan),
+	                         RegisterLuaBindingsOfType(ManagerLuaBindings, MusicMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, CameraMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, ConsoleMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, FrameMan),
@@ -218,6 +222,7 @@ void LuaStateWrapper::Initialize() {
 	luabind::globals(m_State)["PrimitiveMan"] = &g_PrimitiveMan;
 	luabind::globals(m_State)["PresetMan"] = &g_PresetMan;
 	luabind::globals(m_State)["AudioMan"] = &g_AudioMan;
+	luabind::globals(m_State)["MusicMan"] = &g_MusicMan;
 	luabind::globals(m_State)["UInputMan"] = &g_UInputMan;
 	luabind::globals(m_State)["SceneMan"] = &g_SceneMan;
 	luabind::globals(m_State)["ActivityMan"] = &g_ActivityMan;
@@ -233,24 +238,25 @@ void LuaStateWrapper::Initialize() {
 
 	luaL_dostring(m_State,
 	              // Add cls() as a shortcut to ConsoleMan:Clear().
-	              "cls = function() ConsoleMan:Clear(); end"
-	              "\n"
+	              "cls = function() ConsoleMan:Clear(); end\n"
 	              // Override "print" in the lua state to output to the console.
-	              "print = function(stringToPrint) ConsoleMan:PrintString(\"PRINT: \" .. tostring(stringToPrint)); end"
-	              "\n"
+	              "print = function(stringToPrint) ConsoleMan:PrintString(\"PRINT: \" .. tostring(stringToPrint)); end\n"
 	              // Override random functions to appear global instead of under LuaMan
 	              "SelectRand = function(lower, upper) return LuaMan:SelectRand(lower, upper); end;\n"
 	              "RangeRand = function(lower, upper) return LuaMan:RangeRand(lower, upper); end;\n"
 	              "PosRand = function() return LuaMan:PosRand(); end;\n"
 	              "NormalRand = function() return LuaMan:NormalRand(); end;\n"
 	              // Override "math.random" in the lua state to use RTETools MT19937 implementation. Preserve return types of original to not break all the things.
-	              "math.random = function(lower, upper) if lower ~= nil and upper ~= nil then return LuaMan:SelectRand(lower, upper); elseif lower ~= nil then return LuaMan:SelectRand(1, lower); else return LuaMan:PosRand(); end end"
-	              "\n"
+	              "math.random = function(lower, upper) if lower ~= nil and upper ~= nil then return LuaMan:SelectRand(lower, upper); elseif lower ~= nil then return LuaMan:SelectRand(1, lower); else return LuaMan:PosRand(); end end\n"
 	              // Override "dofile"/"loadfile" to be able to account for Data/ or Mods/ directory.
-	              "OriginalDoFile = dofile; dofile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end;"
-	              "OriginalLoadFile = loadfile; loadfile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalLoadFile(filePath); end end;"
+	              "OriginalDoFile = dofile; dofile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end;\n"
+	              "OriginalLoadFile = loadfile; loadfile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalLoadFile(filePath); end end;\n"
+	              // Override "require" to be able to track loaded packages so we can clear them when scripts are reloaded.
+	              "_RequiredPackages = {};\n"
+	              "OriginalRequire = require; require = function(filePath) _RequiredPackages[filePath] = true; return OriginalRequire(filePath); end;\n"
+	              "_ClearRequiredPackages = function() for k, v in pairs(_RequiredPackages) do package.loaded[k] = nil; end; _RequiredPackages = {}; end;\n"
 	              // Internal helper functions to add callbacks for async pathing requests
-	              "_AsyncPathCallbacks = {};"
+	              "_AsyncPathCallbacks = {};\n"
 	              "_AddAsyncPathCallback = function(id, callback) _AsyncPathCallbacks[id] = callback; end\n"
 	              "_TriggerAsyncPathCallback = function(id, param) if _AsyncPathCallbacks[id] ~= nil then _AsyncPathCallbacks[id](param); _AsyncPathCallbacks[id] = nil; end end\n");
 }
@@ -414,7 +420,7 @@ void LuaMan::Destroy() {
 }
 
 void LuaStateWrapper::ClearUserModuleCache() {
-	luaL_dostring(m_State, "for m, n in pairs(package.loaded) do if type(n) == \"boolean\" then package.loaded[m] = nil; end; end;");
+	luaL_dostring(m_State, "_ClearRequiredPackages();");
 }
 
 void LuaStateWrapper::ClearLuaScriptCache() {

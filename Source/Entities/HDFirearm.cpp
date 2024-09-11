@@ -531,6 +531,10 @@ Vector HDFirearm::GetMuzzlePos() const {
 	return m_Pos + RotateOffset(m_MuzzleOff);
 }
 
+Vector HDFirearm::GetEjectionPos() const {
+	return m_Pos + RotateOffset(m_EjectOff);
+}
+
 void HDFirearm::RestDetection() {
 	HeldDevice::RestDetection();
 

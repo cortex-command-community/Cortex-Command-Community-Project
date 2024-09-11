@@ -12,6 +12,7 @@
 #include "PieMenu.h"
 #include "Serializable.h"
 #include "System.h"
+#include "PostProcessMan.h"
 
 #include "Base64/base64.h"
 #include "tracy/Tracy.hpp"
@@ -96,6 +97,7 @@ void MovableObject::Clear() {
 	m_EffectStartStrength = 128;
 	m_EffectStopStrength = 128;
 	m_EffectAlwaysShows = false;
+	m_PostEffectEnabled = false;
 
 	m_UniqueID = 0;
 
@@ -223,6 +225,7 @@ int MovableObject::Create(const MovableObject& reference) {
 	m_MissionCritical = reference.m_MissionCritical;
 	m_CanBeSquished = reference.m_CanBeSquished;
 	m_HUDVisible = reference.m_HUDVisible;
+	m_PostEffectEnabled = reference.m_PostEffectEnabled;
 
 	m_ForceIntoMasterLuaState = reference.m_ForceIntoMasterLuaState;
 	for (auto& [scriptPath, scriptEnabled]: reference.m_AllLoadedScripts) {
@@ -344,6 +347,7 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 		m_pScreenEffect = m_ScreenEffectFile.GetAsBitmap();
 		m_ScreenEffectHash = m_ScreenEffectFile.GetHash();
 	});
+	MatchProperty("PostEffectEnabled", { reader >> m_PostEffectEnabled; });
 	MatchProperty("EffectStartTime", { reader >> m_EffectStartTime; });
 	MatchProperty("EffectRotAngle", { reader >> m_EffectRotAngle; });
 	MatchProperty("InheritEffectRotAngle", { reader >> m_InheritEffectRotAngle; });
@@ -449,6 +453,8 @@ int MovableObject::Save(Writer& writer) const {
 	}
 	writer.NewProperty("ScreenEffect");
 	writer << m_ScreenEffectFile;
+	writer.NewProperty("PostEffectEnabled");
+	writer << m_PostEffectEnabled;
 	writer.NewProperty("EffectStartTime");
 	writer << m_EffectStartTime;
 	writer.NewProperty("EffectStopTime");
@@ -881,6 +887,10 @@ void MovableObject::Update() {
 	if (m_RandomizeEffectRotAngleEveryFrame) {
 		m_EffectRotAngle = c_PI * 2.0F * RandomNormalNum();
 	}
+
+	if (m_pScreenEffect && m_PostEffectEnabled) {
+		SetPostScreenEffectToDraw();
+	}
 }
 
 int MovableObject::UpdateScripts() {
@@ -1112,4 +1122,12 @@ void MovableObject::SetPos(const Vector& newPos, bool teleport) {
 void MovableObject::NewFrame() {
 	m_PrevPos = m_Pos;
 	m_PrevVel = m_Vel;
+}
+
+void MovableObject::SetPostScreenEffectToDraw() const {
+	if (m_AgeTimer.GetElapsedSimTimeMS() >= m_EffectStartTime && (m_EffectStopTime == 0 || !m_AgeTimer.IsPastSimMS(m_EffectStopTime))) {
+		if (m_EffectAlwaysShows || !g_SceneMan.ObscuredPoint(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY())) {
+			g_PostProcessMan.RegisterPostEffect(m_Pos, m_pScreenEffect, m_ScreenEffectHash, Lerp(m_EffectStartTime, m_EffectStopTime, m_EffectStartStrength, m_EffectStopStrength, m_AgeTimer.GetElapsedSimTimeMS()), m_EffectRotAngle);
+		}
+	}
 }

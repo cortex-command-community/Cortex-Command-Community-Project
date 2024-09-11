@@ -49,6 +49,7 @@
 #include "PrimitiveMan.h"
 #include "ThreadMan.h"
 #include "LuaMan.h"
+#include "MusicMan.h"
 #include "System.h"
 
 #include "tracy/Tracy.hpp"
@@ -77,6 +78,7 @@ void InitializeManagers() {
 	PrimitiveMan::Construct();
 	AudioMan::Construct();
 	GUISound::Construct();
+	MusicMan::Construct();
 	UInputMan::Construct();
 	ConsoleMan::Construct();
 	SceneMan::Construct();
@@ -101,6 +103,7 @@ void InitializeManagers() {
 
 	if (g_AudioMan.Initialize()) {
 		g_GUISound.Initialize();
+		g_MusicMan.Initialize();
 	}
 
 	g_UInputMan.Initialize();
@@ -130,6 +133,7 @@ void DestroyManagers() {
 	g_ActivityMan.Destroy();
 	g_GUISound.Destroy();
 	g_AudioMan.Destroy();
+	g_MusicMan.Destroy();
 	g_PresetMan.Destroy();
 	g_UInputMan.Destroy();
 	g_PostProcessMan.Destroy();
@@ -270,6 +274,7 @@ void RunMenuLoop() {
 		g_UInputMan.Update();
 		g_TimerMan.Update();
 		g_AudioMan.Update();
+		g_MusicMan.Update();
 
 		if (g_WindowMan.ResolutionChanged()) {
 			g_MenuMan.Reinitialize();
@@ -332,9 +337,12 @@ void RunGameLoop() {
 		serverUpdated = false;
 
 		g_TimerMan.UpdateSim();
-		g_UInputMan.Update();
 
 		g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::SimTotal);
+
+		g_LuaMan.Update();
+
+		g_UInputMan.Update();
 
 		// TODO_MULTITHREAD
 #ifndef MULTITHREAD_SIM_AND_RENDER
@@ -346,6 +354,10 @@ void RunGameLoop() {
 #endif
 
 		g_FrameMan.Update();
+
+		g_MovableMan.CompleteQueuedMOIDDrawings();
+
+		g_ConsoleMan.Update();
 		g_ActivityMan.Update();
 
 		if (g_SceneMan.GetScene()) {
@@ -357,6 +369,7 @@ void RunGameLoop() {
 		g_PerformanceMan.UpdateSortedScriptTimings(g_LuaMan.GetScriptTimings());
 
 		g_AudioMan.Update();
+		g_MusicMan.Update();
 
 		g_ActivityMan.LateUpdateGlobalScripts();
 

@@ -80,6 +80,33 @@ function OneManArmy:StartNewGame()
 		secondaryGroup = "Tools";
 	end
 	self.enemySpawnTimeLimit = 500;
+	
+	MusicMan:PlayDynamicSong("Generic Battle Music");
+
+	if self:GetFogOfWarEnabled() then
+		local fogResolution = 4;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
+
+		-- Reveal outside areas for everyone.
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_1);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
+			end
+		end
+
+		-- Reveal a circle around actors, so they're not standing in the dark.
+		for Act in MovableMan.AddedActors do
+			if not IsADoor(Act) then
+				for angle = 0, math.pi * 2, 0.05 do
+					SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+				end
+			end
+		end
+	end
 
 	MovableMan:OpenAllDoors(true, -1);
 	for actor in MovableMan.AddedActors do
@@ -203,56 +230,50 @@ function OneManArmy:EndActivity()
 	if not self:IsPaused() then
 		-- Play sad music if no humans are left
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
 			-- But if humans are left, then play happy music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end
 
 function OneManArmy:UpdateActivity()
 	if self.ActivityState ~= Activity.OVER then
-		ActivityMan:GetActivity():SetTeamFunds(0,0);
+		ActivityMan:GetActivity():SetTeamFunds(0, Activity.TEAM_1);
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 			if self:PlayerActive(player) and self:PlayerHuman(player) then
+				local screen = self:ScreenOfPlayer(player);
 				--Display messages.
 				if self.startMessageTimer:IsPastSimMS(3000) then
-					FrameMan:SetScreenText(math.floor(self.winTimer:LeftTillSimMS(self.timeLimit) / 1000) .. " seconds left", self:ScreenOfPlayer(player), 0, 1000, false);
+					FrameMan:SetScreenText(math.floor(self.winTimer:LeftTillSimMS(self.timeLimit) / 1000) .. " seconds left", screen, 0, 1000, false);
 				else
-					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", self:ScreenOfPlayer(player), 333, 5000, true);
+					FrameMan:SetScreenText("Survive for " .. self.timeDisplay .. "!", screen, 333, 5000, true);
 				end
 
-				-- The current player's team
 				local team = self:GetTeamOfPlayer(player);
 				-- Check if any player's brain is dead
 				if not MovableMan:IsActor(self:GetPlayerBrain(player)) then
 					self:SetPlayerBrain(nil, player);
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-					FrameMan:SetScreenText("Your brain has been destroyed!", self:ScreenOfPlayer(player), 333, -1, false);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText("Your brain has been destroyed!", screen, 333, -1, false);
 					-- Now see if all brains of self player's team are dead, and if so, end the game
 					if not MovableMan:GetFirstBrainActor(team) then
 						self.WinnerTeam = self:OtherTeam(team);
 						ActivityMan:EndActivity();
 					end
-				else
-					self.HuntPlayer = player;
 				end
 
 				--Check if the player has won.
 				if self.winTimer:IsPastSimMS(self.timeLimit) then
 					self:ResetMessageTimer(player);
-					FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-					FrameMan:SetScreenText("You survived!", self:ScreenOfPlayer(player), 333, -1, false);
+					FrameMan:ClearScreenText(screen);
+					FrameMan:SetScreenText("You survived!", screen, 333, -1, false);
 
-					self.WinnerTeam = player;
+					self.WinnerTeam = team;
 
 					--Kill all enemies.
 					for actor in MovableMan.Actors do
@@ -321,11 +342,11 @@ function OneManArmy:UpdateActivity()
 
 			if ship then
 				-- Set the spawn point of the ship from orbit
-				if self.playertally == 1 then
-					for i = 1, #self.playerlist do
-						if self.playerlist[i] == true then
+				if self.HumanCount == 1 then
+					for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
+						if self:PlayerActive(player) and self:PlayerHuman(player) then
 							local sceneChunk = SceneMan.SceneWidth / 3;
-							local checkPos = self:GetPlayerBrain(i - 1).Pos.X + (SceneMan.SceneWidth/2) + ( (sceneChunk/2) - (math.random()*sceneChunk) );
+							local checkPos = self:GetPlayerBrain(player).Pos.X + (SceneMan.SceneWidth/2) + ( (sceneChunk/2) - (math.random()*sceneChunk) );
 							if checkPos > SceneMan.SceneWidth then
 								checkPos = checkPos - SceneMan.SceneWidth;
 							elseif checkPos < 0 then

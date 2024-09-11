@@ -205,15 +205,6 @@ namespace RTE {
 		/// @param newProneState This AHuman's new ProneState.
 		void SetProneState(ProneState newProneState) { m_ProneState = newProneState; }
 
-		/// Calculates the collision response when another MO's Atom collides with
-		/// this MO's physical representation. The effects will be applied
-		/// directly to this MO, and also represented in the passed in HitData.
-		/// @param hitData Reference to the HitData struct which describes the collision. This
-		/// will be modified to represent the results of the collision.
-		/// @return Whether the collision has been deemed valid. If false, then disregard
-		/// any impulses in the Hitdata.
-		bool CollideAtPoint(HitData& hitData) override;
-
 		/// Tries to handle the activated PieSlice in this object's PieMenu, if there is one, based on its SliceType.
 		/// @param pieSliceType The SliceType of the PieSlice being handled.
 		/// @return Whether or not the activated PieSlice SliceType was able to be handled.
@@ -295,6 +286,10 @@ namespace RTE {
 		/// Estimates what material strength any digger this AHuman is carrying can penetrate.
 		/// @return The maximum material strength this AHuman's digger can penetrate, or a default dig strength if they don't have a digger.
 		float EstimateDigStrength() const override;
+
+		// Estimates how high this actor can jump.
+		/// @return The actor's jump height.
+		virtual float EstimateJumpHeight() const override;
 
 		/// Switches the currently held device (if any) to the first found shield
 		/// in the inventory. If the held device already is a shield, or no

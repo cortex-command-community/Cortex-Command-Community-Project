@@ -424,25 +424,6 @@ Vector SceneMan::GetGlobalAcc() const {
 	return m_pCurrentScene->GetGlobalAcc();
 }
 
-void SceneMan::LockScene() {
-	//    RTEAssert(!m_pCurrentScene->IsLocked(), "Hey, locking already locked scene!");
-	if (m_pCurrentScene && !m_pCurrentScene->IsLocked()) {
-		m_pCurrentScene->Lock();
-	}
-}
-
-void SceneMan::UnlockScene() {
-	//    RTEAssert(m_pCurrentScene->IsLocked(), "Hey, unlocking already unlocked scene!");
-	if (m_pCurrentScene && m_pCurrentScene->IsLocked()) {
-		m_pCurrentScene->Unlock();
-	}
-}
-
-bool SceneMan::SceneIsLocked() const {
-	RTEAssert(m_pCurrentScene, "Trying to check if scene is locked before there is a scene or terrain!");
-	return m_pCurrentScene->IsLocked();
-}
-
 void SceneMan::RegisterMOIDDrawing(int moid, int left, int top, int right, int bottom) {
 	if (const MovableObject* mo = g_MovableMan.GetMOFromID(moid)) {
 		m_MOIDsGrid.Add(IntRect(left, top, right, bottom), *mo);
@@ -1121,17 +1102,12 @@ bool SceneMan::RestoreUnseen(const int posX, const int posY, const int team) {
 		int scaledX = posX / scale.m_X;
 		int scaledY = posY / scale.m_Y;
 
-		// Make sure we're actually revealing an unseen pixel that is ON the bitmap!
+		// Make sure we're actually hiding a seen pixel that is ON the bitmap!
 		int pixel = getpixel(pUnseenLayer->GetBitmap(), scaledX, scaledY);
 		if (pixel != g_BlackColor && pixel != -1) {
-			// Add the pixel to the list of now seen pixels so it can be visually flashed
-			m_pCurrentScene->GetSeenPixels(team).push_back(Vector(scaledX, scaledY));
-			// Clear to key color that pixel on the map so it won't be detected as unseen again
+			// Restore that pixel on the map so it won't be detected as seen again
 			putpixel(pUnseenLayer->GetBitmap(), scaledX, scaledY, g_BlackColor);
-			// Play the reveal sound, if there's not too many already revealed this frame
-			// if (g_SettingsMan.BlipOnRevealUnseen() && m_pUnseenRevealSound && m_pCurrentScene->GetSeenPixels(team).size() < 5)
-			//    m_pUnseenRevealSound->Play(g_SceneMan.TargetDistanceScalar(Vector(posX, posY)));
-			// Show that we actually cleared an unseen pixel
+			// Show that we actually restored a seen pixel
 			return true;
 		}
 	}
@@ -1271,6 +1247,7 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 		return false;
 
 	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
+	int size = 40 - GetUnseenResolution(team).GetLargest();
 	int intPos[2], delta[2], delta2[2], increment[2];
 	bool affectedAny = false;
 	unsigned char materialID;
@@ -1328,15 +1305,21 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 		}
 		error += delta2[sub];
 
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
+		// Only check space if we're not due to skip any, or if this is the last step
 		if (++skipped > skip || domSteps + 1 == delta[dom]) {
 			// Scene wrapping
-			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
+			WrapPosition(intPos[X], intPos[Y]);
+
 			// Reveal if we can, save the result
-			if (reveal)
-				affectedAny = RevealUnseen(intPos[X], intPos[Y], team) || affectedAny;
-			else
-				affectedAny = RestoreUnseen(intPos[X], intPos[Y], team) || affectedAny;
+			if (reveal) {
+				if (affectedAny = IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y], team) || IsUnseen(intPos[X] + size, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - size, team) || IsUnseen(intPos[X], intPos[Y] + size, team)) {
+					RevealUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
+				}
+			} else {
+				if (affectedAny = !(IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y], team) || IsUnseen(intPos[X] + size, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - size, team) || IsUnseen(intPos[X], intPos[Y] + size, team))) {
+					RestoreUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
+				}
+			}
 
 			// Check the strength of the terrain to see if we can penetrate further
 			materialID = GetTerrMatter(intPos[X], intPos[Y]);
@@ -2242,13 +2225,21 @@ bool SceneMan::OverAltitude(const Vector& point, int threshold, int accuracy) {
 	return g_SceneMan.CastNotMaterialRay(temp, Vector(0, threshold), g_MaterialAir, accuracy) < 0;
 }
 
-Vector SceneMan::MovePointToGround(const Vector& from, int maxAltitude, int accuracy) {
+bool SceneMan::IsPointInNoGravArea(const Vector& point) const {
 	// Todo, instead of a nograv area maybe best to tag certain areas as NoGrav. As otherwise it's tricky to keep track of when things are removed
 	if (m_pCurrentScene) {
 		Scene::Area* noGravArea = m_pCurrentScene->GetOptionalArea("NoGravityArea");
-		if (noGravArea && noGravArea->IsInside(from)) {
-			return from;
+		if (noGravArea && noGravArea->IsInside(point)) {
+			return true;
 		}
+	}
+
+	return false;
+}
+
+Vector SceneMan::MovePointToGround(const Vector& from, int maxAltitude, int accuracy) {
+	if (IsPointInNoGravArea(from)) {
+		return from;
 	}
 
 	Vector temp(from);
@@ -2661,24 +2652,30 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 				g_ActivityMan.GetActivity()->DrawGUI(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
 			}
 
-#ifdef DRAW_NOGRAV_BOXES
-			if (Scene::Area* noGravArea = m_pCurrentScene->GetArea("NoGravityArea")) {
-				const std::vector<Box>& boxList = noGravArea->GetBoxes();
-				g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
-				drawing_mode(DRAW_MODE_TRANS, 0, 0, 0);
+			static bool s_drawNoGravBoxes = false;
+			if (s_drawNoGravBoxes) {
+				if (Scene::Area* noGravArea = m_pCurrentScene->GetArea("NoGravityArea")) {
+					const std::vector<Box>& boxList = noGravArea->GetBoxes();
+					g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
+					drawing_mode(DRAW_MODE_TRANS, 0, 0, 0);
 
-				std::list<Box> wrappedBoxes;
-				for (std::vector<Box>::const_iterator bItr = boxList.begin(); bItr != boxList.end(); ++bItr) {
-					wrappedBoxes.clear();
-					g_SceneMan.WrapBox(*bItr, wrappedBoxes);
+					std::list<Box> wrappedBoxes;
+					for (std::vector<Box>::const_iterator bItr = boxList.begin(); bItr != boxList.end(); ++bItr) {
+						wrappedBoxes.clear();
+						g_SceneMan.WrapBox(*bItr, wrappedBoxes);
 
-					for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
-						Vector adjCorner = (*wItr).GetCorner() - targetPos;
-						rectfill(targetBitmap, adjCorner.m_X, adjCorner.m_Y, adjCorner.m_X + (*wItr).GetWidth(), adjCorner.m_Y + (*wItr).GetHeight(), g_RedColor);
+						for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
+							Vector adjCorner = (*wItr).GetCorner() - targetPos;
+							rectfill(targetBitmap, adjCorner.m_X, adjCorner.m_Y, adjCorner.m_X + (*wItr).GetWidth(), adjCorner.m_Y + (*wItr).GetHeight(), g_RedColor);
+						}
 					}
 				}
 			}
-#endif
+
+			static int s_drawPathfinderDebugForTeam = -2;
+			if (s_drawPathfinderDebugForTeam > -2) {
+				m_pCurrentScene->GetPathFinder(static_cast<Activity::Teams>(s_drawPathfinderDebugForTeam)).DebugRender(targetBitmap, targetPos, m_LastUpdatedScreen);
+			}
 
 			if (m_pDebugLayer) {
 				m_pDebugLayer->Draw(targetBitmap, targetBox);

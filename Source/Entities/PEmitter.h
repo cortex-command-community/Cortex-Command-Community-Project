@@ -244,7 +244,6 @@ namespace RTE {
 
 		/// Updates this MovableObject. Supposed to be done every frame.
 		void Update() override;
-		void PostUpdate() override { MOSParticle::PostUpdate(); }
 
 		/// Draws this PEmitter's current graphical representation to a
 		/// BITMAP of choice.

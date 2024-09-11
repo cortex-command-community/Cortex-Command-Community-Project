@@ -872,12 +872,6 @@ int GameActivity::Start() {
 	}
 
 	// Start the in-game music
-	g_AudioMan.ClearMusicQueue();
-	g_AudioMan.PlayMusic("Base.rte/Music/dBSoundworks/cc2g.ogg", 0);
-	g_AudioMan.QueueSilence(30);
-	g_AudioMan.QueueMusicStream("Base.rte/Music/Watts/Last Man.ogg");
-	g_AudioMan.QueueSilence(30);
-	g_AudioMan.QueueMusicStream("Base.rte/Music/dBSoundworks/cc2g.ogg");
 
 	return error;
 }
@@ -1064,12 +1058,12 @@ void GameActivity::UpdateEditing() {
 			g_UInputMan.SetMouseValueMagnitude(0);
 			g_SceneMan.GetScene()->ResetPathFinding();
 			// Start the in-game track
-			g_AudioMan.ClearMusicQueue();
-			g_AudioMan.PlayMusic("Base.rte/Music/dBSoundworks/cc2g.ogg", 0);
-			g_AudioMan.QueueSilence(30);
-			g_AudioMan.QueueMusicStream("Base.rte/Music/Watts/Last Man.ogg");
-			g_AudioMan.QueueSilence(30);
-			g_AudioMan.QueueMusicStream("Base.rte/Music/dBSoundworks/cc2g.ogg");
+			// g_AudioMan.ClearMusicQueue();
+			// g_AudioMan.PlayMusic("Base.rte/Music/dBSoundworks/cc2g.ogg", 0);
+			// g_AudioMan.QueueSilence(30);
+			// g_AudioMan.QueueMusicStream("Base.rte/Music/Watts/Last Man.ogg");
+			// g_AudioMan.QueueSilence(30);
+			// g_AudioMan.QueueMusicStream("Base.rte/Music/dBSoundworks/cc2g.ogg");
 		}
 	}
 }
@@ -1330,8 +1324,6 @@ void GameActivity::Update() {
 			if (m_PlayerController[player].IsState(PRESS_SECONDARY) || m_PlayerController[player].IsState(ACTOR_NEXT_PREP) || m_PlayerController[player].IsState(ACTOR_PREV_PREP)) {
 				// Stop drawing the waypoints
 				//                m_ControlledActor[player]->DrawWaypoints(false);
-				// Update the player's move path now to the first waypoint set
-				m_ControlledActor[player]->UpdateMovePath();
 				// Give player control back to actor
 				m_ControlledActor[player]->GetController()->SetDisabled(false);
 				// Switch back to normal view
@@ -1351,8 +1343,7 @@ void GameActivity::Update() {
 				// Just pointing into somewhere in the scene, so give that command
 				else
 					m_ControlledActor[player]->AddAISceneWaypoint(m_ActorCursor[player]);
-				// Update the player's move path now to the first waypoint set
-				m_ControlledActor[player]->UpdateMovePath();
+
 				if (m_pLastMarkedActor[player] && m_pLastMarkedActor[player]->GetPieMenu()) {
 					m_pLastMarkedActor[player]->GetPieMenu()->SetAnimationModeToNormal();
 				}
@@ -1439,7 +1430,7 @@ void GameActivity::Update() {
 								pActor->ClearAIWaypoints();
 								pActor->SetAIMode(Actor::AIMODE_SQUAD);
 								pActor->AddAIMOWaypoint(m_ControlledActor[player]);
-								pActor->UpdateMovePath(); // Make sure pActor has m_ControlledActor registered as an AIMOWaypoint
+								pActor->SetMovePathToUpdate();
 							}
 					}
 

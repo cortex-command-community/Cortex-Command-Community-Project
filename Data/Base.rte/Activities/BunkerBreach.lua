@@ -194,12 +194,18 @@ end
 
 function BunkerBreach:SetupFogOfWar()
 	if self:GetFogOfWarEnabled() then
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.attackerTeam);
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.defenderTeam);
+		local fogResolution = 4;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.attackerTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.defenderTeam);
 
 		-- Reveal outside areas for the attacker.
-		for x = 0, SceneMan.SceneWidth - 1, 20 do
-			SceneMan:CastSeeRay(self.attackerTeam, Vector(x, 0), Vector(0, SceneMan.SceneHeight), Vector(), 1, 9);
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.attackerTeam);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.defenderTeam);
+			end
 		end
 
 		-- Reveal the main bunker area for the defender.
@@ -208,9 +214,11 @@ function BunkerBreach:SetupFogOfWar()
 		end
 
 		-- Reveal a circle around actors, so they're not standing in the dark.
-		for actor in MovableMan.AddedActors do
-			for angle = 0, math.pi * 2, 0.05 do
-				SceneMan:CastSeeRay(actor.Team, actor.EyePos, Vector(150 + FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 1, 4);
+		for Act in MovableMan.AddedActors do
+			if not IsADoor(Act) then
+				for angle = 0, math.pi * 2, 0.05 do
+					SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+				end
 			end
 		end
 	end
@@ -253,6 +261,8 @@ function BunkerBreach:StartActivity(isNewGame)
 			FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 		end
 	end
+	
+	MusicMan:PlayDynamicSong("Generic Battle Music");
 
 	if isNewGame then
 		-- Because of game oddities, we need to set funds to match starting gold manually.
@@ -326,15 +336,11 @@ function BunkerBreach:EndActivity()
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
 	if not self:IsPaused() then
 		if self.WinnerTeam == self.CPUTeam then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end
@@ -498,7 +504,7 @@ function BunkerBreach:SendDefenderGuardsAtEnemiesInsideBunker()
 			local closestFriendlyUnitData = {};
 			for _, friendlyUnitInsideBunker in pairs(self.AI.friendlyUnitsInsideBunker) do
 				if not friendlyUnitInsideBunker:IsInGroup("Brains") then
-					local pathLengthFromFriendlyUnitToEnemy = SceneMan.Scene:CalculatePath(friendlyUnitInsideBunker.Pos, enemyUnitInsideBunker.Pos, false, GetPathFindingDefaultDigStrength(), self.CPUTeam);
+					local pathLengthFromFriendlyUnitToEnemy = SceneMan.Scene:CalculatePath(friendlyUnitInsideBunker.Pos, enemyUnitInsideBunker.Pos, GetPathFindingFlyingJumpHeight(), GetPathFindingDefaultDigStrength(), self.CPUTeam);
 					if closestFriendlyUnitData.pathLengthToEnemy == nil or pathLengthFromFriendlyUnitToEnemy < closestFriendlyUnitData.pathLengthToEnemy then
 						closestFriendlyUnitData.pathLengthToEnemy = pathLengthFromFriendlyUnitToEnemy;
 						closestFriendlyUnitData.actor = friendlyUnitInsideBunker;
@@ -626,7 +632,7 @@ function BunkerBreach:CalculateInternalReinforcementPositionsToEnemyTargets(numb
 		local internalReinforcementPositionForEnemy;
 		local pathLengthFromClosestInternalReinforcementPositionToEnemy = SceneMan.SceneWidth * SceneMan.SceneHeight;
 		for _, internalReinforcementPosition in pairs(self.AI.internalReinforcementPositions) do
-			local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTarget.Pos, false, GetPathFindingDefaultDigStrength(), self.CPUTeam);
+			local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTarget.Pos, GetPathFindingFlyingJumpHeight(), GetPathFindingDefaultDigStrength(), self.CPUTeam);
 			if pathLengthFromInternalReinforcementPositionToEnemy < pathLengthFromClosestInternalReinforcementPositionToEnemy then
 				internalReinforcementPositionForEnemy = internalReinforcementPosition;
 				pathLengthFromClosestInternalReinforcementPositionToEnemy = pathLengthFromInternalReinforcementPositionToEnemy;

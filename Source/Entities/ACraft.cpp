@@ -406,7 +406,6 @@ bool ACraft::HandlePieCommand(PieSliceType pieSliceIndex) {
 			m_AIMode = AIMODE_GOTO;
 			m_DeliveryState = FALL;
 			ClearAIWaypoints();
-			m_UpdateMovePath = true;
 		} else if (pieSliceIndex == PieSliceType::Scuttle) {
 			m_AIMode = AIMODE_SCUTTLE;
 		} else {
@@ -772,12 +771,12 @@ void ACraft::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 	GUIFont* pSmallFont = g_FrameMan.GetSmallFont();
 
 	// Draw hud guides for the Exits, depending on whether the doors are open
-	if (m_HatchState == OPEN) {
+	if (m_HatchState == OPEN /* || m_HatchState == OPENING*/) {
 		// Doors open and inventory not empty yet, so show arrows pointing out of the exits since things are still coming out
 		if (!IsInventoryEmpty()) {
 			//  --------
 			//  |  \  \
-        // -+-  |  |
+			// -+-  |  |
 			//  |  /  /
 			//  --------
 			// Make the dotted lines crawl out of the exit, indicating that things are still coming out

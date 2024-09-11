@@ -251,15 +251,12 @@ void FrameMan::Update() {
 }
 
 void FrameMan::ResetSplitScreens(bool hSplit, bool vSplit) {
-	if (m_PlayerScreen) {
-		release_bitmap(m_PlayerScreen.get());
-	}
-
 	// Override screen splitting according to settings if needed
 	if ((hSplit || vSplit) && !(hSplit && vSplit) && m_TwoPlayerVSplit) {
 		hSplit = false;
 		vSplit = m_TwoPlayerVSplit;
 	}
+
 	m_HSplit = hSplit;
 	m_VSplit = vSplit;
 

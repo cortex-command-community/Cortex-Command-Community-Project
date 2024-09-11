@@ -285,6 +285,7 @@ bool Attachable::CollideAtPoint(HitData& hd) {
 	if (m_IgnoresParticlesWhileAttached && m_Parent && !m_Parent->ToDelete() && !dynamic_cast<MOSRotating*>(hd.Body[HITOR])) {
 		return false;
 	}
+
 	return MOSRotating::CollideAtPoint(hd);
 }
 
@@ -295,16 +296,20 @@ bool Attachable::ParticlePenetration(HitData& hd) {
 		MovableObject* hitor = hd.Body[HITOR];
 		float damageToAdd = hitor->DamageOnCollision();
 		damageToAdd += penetrated ? hitor->DamageOnPenetration() : 0;
-		if (hitor->GetApplyWoundDamageOnCollision()) {
-			damageToAdd += m_pEntryWound->GetEmitDamage() * hitor->WoundDamageMultiplier();
-		}
-		if (hitor->GetApplyWoundBurstDamageOnCollision()) {
-			damageToAdd += m_pEntryWound->GetBurstDamage() * hitor->WoundDamageMultiplier();
+
+		if (m_pEntryWound) {
+			if (hitor->GetApplyWoundDamageOnCollision()) {
+				damageToAdd += m_pEntryWound->GetEmitDamage() * hitor->WoundDamageMultiplier();
+			}
+			if (hitor->GetApplyWoundBurstDamageOnCollision()) {
+				damageToAdd += m_pEntryWound->GetBurstDamage() * hitor->WoundDamageMultiplier();
+			}
 		}
 
 		if (damageToAdd != 0) {
 			AddDamage(damageToAdd);
 		}
+
 		if (penetrated || damageToAdd != 0) {
 			if (Actor* parentAsActor = dynamic_cast<Actor*>(GetRootParent()); parentAsActor && parentAsActor->GetPerceptiveness() > 0) {
 				Vector extruded(hd.HitVel[HITOR]);

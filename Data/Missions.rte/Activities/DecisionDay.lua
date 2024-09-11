@@ -68,6 +68,9 @@ function DecisionDay:SetupInternalReinforcementsData()
 end
 
 function DecisionDay:StartActivity(isNewGame)
+
+	MusicMan:PlayDynamicSong("Generic Battle Music");
+
 	if self.Difficulty <= Activity.MINDIFFICULTY then
 		self.difficultyRatio = 0.5;
 	elseif self.Difficulty <= Activity.CAKEDIFFICULTY then
@@ -449,18 +452,23 @@ end
 
 function DecisionDay:SetupFogOfWar()
 	if self:GetFogOfWarEnabled() then
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.humanTeam);
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.aiTeam);
+		local fogResolution = 4;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.humanTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.aiTeam);
 
 		-- Reveal above ground for everyone.
-		for x = 0, SceneMan.SceneWidth - 1, 20 do
-			SceneMan:CastSeeRay(self.humanTeam, Vector(x, 0), Vector(0, SceneMan.SceneHeight), Vector(), 1, 9);
-			SceneMan:CastSeeRay(self.aiTeam, Vector(x, 0), Vector(0, SceneMan.SceneHeight), Vector(), 1, 9);
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.humanTeam);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.aiTeam);
+			end
 		end
 
 		-- Reveal extra areas - roofs and such that don't get handled by the vertical rays.
 		for box in self.initialExtraFOWReveal.Boxes do
-			SceneMan:RevealUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.humanTeam);
+			SceneMan:RevealUnseenBox(box.Corner.X - 10, box.Corner.Y - 10, box.Width + 20, box.Height + 20, self.humanTeam);
 			SceneMan:RevealUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.aiTeam);
 		end
 
@@ -471,20 +479,23 @@ function DecisionDay:SetupFogOfWar()
 		end
 
 		-- Reveal the dead bodies for the human team.
-		SceneMan:RevealUnseenBox(self.initialDeadBodiesArea.FirstBox.Center.X - 150, self.initialDeadBodiesArea.FirstBox.Center.Y - 150, 200, 420, self.humanTeam);
+		SceneMan:RevealUnseenBox(self.initialDeadBodiesArea.FirstBox.Center.X - 150, self.initialDeadBodiesArea.FirstBox.Center.Y - 150, SceneMan.SceneWidth - (self.initialDeadBodiesArea.FirstBox.Center.X - 150), 420, self.humanTeam);
 
-		-- Reveal the bunkers for the AI and hide them for the player.
+		-- Reveal the bunkers for the AI.
+		-- These areas are hidden with inset for the player, so that the outter surface is visible.
 		for _, bunkerArea in ipairs(self.bunkerAreas) do
 			for box in bunkerArea.totalArea.Boxes do
 				SceneMan:RevealUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.aiTeam);
-				SceneMan:RestoreUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.humanTeam);
+				SceneMan:RestoreUnseenBox(box.Corner.X + 10, box.Corner.Y + 10, box.Width - 20, box.Height - 20, self.humanTeam);
 			end
 		end
 
 		-- Reveal a circle around actors.
-		for actor in MovableMan.AddedActors do
-			for angle = 0, math.pi * 2, 0.05 do
-				SceneMan:CastSeeRay(actor.Team, actor.EyePos, Vector(150 + FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 1, 4);
+		for Act in MovableMan.AddedActors do
+			if not IsADoor(Act) then
+				for angle = 0, math.pi * 2, 0.05 do
+					SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+				end
 			end
 		end
 	end
@@ -841,7 +852,7 @@ function DecisionDay:DoSpeedrunMode()
 	self:SetTeamTech(self.aiTeam, "-All-");
 	self.aiTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.aiTeam));
 	
-	AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/bossfight.ogg", -1, -1);
+	MusicMan:PlayDynamicSong("Generic Boss Fight Music", "Default", true);
 	
 	self.messageTimer:SetSimTimeLimitMS(1);
 	
@@ -989,8 +1000,9 @@ end
 function DecisionDay:UpdateCamera()
 	for _, player in pairs(self.humanPlayers) do
 		local adjustedCameraMinimumX = self.cameraMinimumX + (0.5 * (FrameMan.PlayerScreenWidth - 960))
-		if CameraMan:GetScrollTarget(player).X < adjustedCameraMinimumX then
-			CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(player).Y), 0.25, 0);
+		local screen = self:ScreenOfPlayer(player);
+		if CameraMan:GetScrollTarget(screen).X < adjustedCameraMinimumX then
+			CameraMan:SetScrollTarget(Vector(adjustedCameraMinimumX, CameraMan:GetScrollTarget(screen).Y), 0.25, screen);
 		end
 	end
 	
@@ -1006,10 +1018,7 @@ function DecisionDay:UpdateCamera()
 	local scrollTargetAndSpeed;
 	if self.currentStage <= self.stages.showInitialText then
 		if self.currentStage == self.stages.showInitialText and self.messageTimer.SimTimeLimitProgress > 0.75 then
-			local brain = self:GetPlayerBrain(0);
-			if brain then
-				scrollTargetAndSpeed = {brain.Pos, fastScroll};
-			end
+			scrollTargetAndSpeed = {nil, fastScroll};
 		else
 			local dropShipToFollow = #self.initialDropShipsAndVelocities > 0 and self.initialDropShipsAndVelocities[1].dropShip or nil;
 			if dropShipToFollow then
@@ -1101,7 +1110,14 @@ function DecisionDay:UpdateCamera()
 
 	if scrollTargetAndSpeed then
 		for _, player in pairs(self.humanPlayers) do
-			CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], player);
+			if not scrollTargetAndSpeed[1] then
+				brain = self:GetPlayerBrain(player)
+				if brain then
+					CameraMan:SetScrollTarget(brain.Pos, scrollTargetAndSpeed[2], self:ScreenOfPlayer(player))
+				end
+			else
+				CameraMan:SetScrollTarget(scrollTargetAndSpeed[1], scrollTargetAndSpeed[2], self:ScreenOfPlayer(player));
+			end
 		end
 	end
 	self.cameraIsPanning = scrollTargetAndSpeed ~= nil;
@@ -1204,8 +1220,9 @@ function DecisionDay:UpdateMessages()
 		end
 
 		if messageText then
-			FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-			FrameMan:SetScreenText(messageText, self:ScreenOfPlayer(player), blinkTime, 0, textCentered);
+			local screen = self:ScreenOfPlayer(player);
+			FrameMan:ClearScreenText(screen);
+			FrameMan:SetScreenText(messageText, screen, blinkTime, 0, textCentered);
 		end
 	end
 end
@@ -1305,7 +1322,7 @@ function DecisionDay:UpdateObjectiveArrowsAndRegionVisuals()
 
 				for _, player in pairs(self.humanPlayers) do
 					if self:GetViewState(player) == Activity.ACTORSELECT then
-						if math.abs((bunkerRegionData.totalArea.Center - CameraMan:GetScrollTarget(player)).X) < FrameMan.PlayerScreenWidth * 0.75 then
+						if math.abs((bunkerRegionData.totalArea.Center - CameraMan:GetScrollTarget(self:ScreenOfPlayer(player))).X) < FrameMan.PlayerScreenWidth * 0.75 then
 							local boxFillPrimitives = {};
 							for box in bunkerRegionData.totalArea.Boxes do
 								boxFillPrimitives[#boxFillPrimitives + 1] = BoxFillPrimitive(player, box.Corner, box.Corner + Vector(box.Width, box.Height), bunkerRegionData.ownerTeam == self.humanTeam and 147 or 13);
@@ -1656,7 +1673,7 @@ function DecisionDay:UpdateAIDecisions()
 					for movableObject in MovableMan:GetMOsInRadius(captureAreaCenter, self.aiData.bunkerRegionDefenseRange, self.humanTeam, true) do
 						if (IsAHuman(movableObject) or IsACrab(movableObject)) and (not movableObject:IsInGroup("AI Region Defenders") or movableObject:IsInGroup("AI Region Defenders - " .. bunkerRegionName)) and movableObject.PinStrength == 0 and not movableObject:IsInGroup("Actors - Turrets")  then
 							--TODO when we have calculate path async with limited max path length, use it here. Will have to do coroutine, etc.
-							--local pathLengthToCaptureArea = SceneMan.Scene:CalculatePath(movableObject.Pos, captureAreaCenter, false, GetPathFindingDefaultDigStrength(), self.aiTeam) * 20;
+							--local pathLengthToCaptureArea = SceneMan.Scene:CalculatePath(movableObject.Pos, captureAreaCenter, GetPathFindingFlyingJumpHeight(), GetPathFindingDefaultDigStrength(), self.aiTeam) * 20;
 							--if pathLengthToCaptureArea < self.aiData.bunkerRegionDefenseRange then
 								local actor = ToActor(movableObject);
 								actor.AIMode = Actor.AIMODE_GOTO;
@@ -2045,8 +2062,8 @@ function DecisionDay:UpdateMainBunkerExternalPopoutTurrets()
 			if not boxData.movementTimer:IsPastSimTimeLimit() and boxData.actor then
 				local startPos = self.popoutTurretsData[bunkerId].turretsActivated and box.Center or box.Center + Vector(25, 25);
 				local endPos = self.popoutTurretsData[bunkerId].turretsActivated and box.Center + Vector(25, 25) or box.Center;
-				boxData.actor.Pos.X = LERP(0, 1, startPos.X, endPos.X, boxData.movementTimer.SimTimeLimitProgress);
-				boxData.actor.Pos.Y = LERP(0, 1, startPos.Y, endPos.Y, boxData.movementTimer.SimTimeLimitProgress);
+				boxData.actor.Pos.X = Lerp(0, 1, startPos.X, endPos.X, boxData.movementTimer.SimTimeLimitProgress);
+				boxData.actor.Pos.Y = Lerp(0, 1, startPos.Y, endPos.Y, boxData.movementTimer.SimTimeLimitProgress);
 				if boxData.movementSound:IsBeingPlayed() then
 					boxData.movementSound.Pos = boxData.actor.Pos;
 				else
@@ -2187,7 +2204,7 @@ function DecisionDay:UpdateActivity()
 		if self.currentStage >= self.stages.middleBunkerCaptured then
 			if self.bunkerRegions["Main Bunker Shield Generator"].ownerTeam == self.aiTeam and self.mainBunkerShieldedAreaFOWTimer:IsPastSimTimeLimit() then
 				for box in self.bunkerRegions["Main Bunker Command Center"].shieldedArea.Boxes do
-					SceneMan:RestoreUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.humanTeam);
+					SceneMan:RestoreUnseenBox(box.Corner.X + 10, box.Corner.Y + 10, box.Width - 20, box.Height - 20, self.humanTeam);
 				end
 				self.mainBunkerShieldedAreaFOWTimer:Reset();
 			end
@@ -2221,15 +2238,11 @@ function DecisionDay:EndActivity()
 	-- Temp fix so music doesn't start playing if ending the Activity when changing resolution through the ingame settings.
 	if not self:IsPaused() then
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end

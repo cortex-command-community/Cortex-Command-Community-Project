@@ -42,6 +42,8 @@ function BrainvsBrain:StartActivity(isNewGame)
 	if self.CPUTeam ~= Activity.NOTEAM then
 		self.CPUTechID = PresetMan:GetModuleID(self.TechName[self.CPUTeam]);
 	end
+	
+	MusicMan:PlayDynamicSong("Generic Battle Music");
 
 	if isNewGame then
 		self:StartNewGame();
@@ -97,25 +99,18 @@ function BrainvsBrain:StartNewGame()
 		local RedAreaString = "Red Build Area Center";
 		local GreenAreaString = "Green Build Area Center";
 		if SceneMan.Scene:HasArea(RedAreaString) and SceneMan.Scene:HasArea(GreenAreaString) then
-			local fogWidth = 20;
+			local fogResolution = 4;
 
-			SceneMan:MakeAllUnseen(Vector(fogWidth, fogWidth), Activity.TEAM_1);
-			SceneMan:MakeAllUnseen(Vector(fogWidth, fogWidth), Activity.TEAM_2);
+			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
+			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_2);
 
 			-- Reveal the build areas
 			local RedCenter = SceneMan.Scene:GetArea(RedAreaString):GetCenterPoint();
 			local GreenCenter = SceneMan.Scene:GetArea(GreenAreaString):GetCenterPoint();
 			local range = SceneMan:ShortestDistance(RedCenter, GreenCenter, false).Magnitude * 0.45;
-
-			for y = fogWidth/2, SceneMan.SceneHeight, fogWidth do
-				for x = fogWidth/2, SceneMan.SceneWidth, fogWidth do
-					if SceneMan:ShortestDistance(RedCenter, Vector(x, y), false).Largest < range then
-						SceneMan:RevealUnseen(x, y, Activity.TEAM_1);
-					elseif SceneMan:ShortestDistance(GreenCenter, Vector(x, y), false).Largest < range then
-						SceneMan:RevealUnseen(x, y, Activity.TEAM_2);
-					end
-				end
-			end
+			
+			SceneMan:RevealUnseenBox(RedCenter.X - range, RedCenter.Y - range, range * 2, range * 2, Activity.TEAM_1);
+			SceneMan:RevealUnseenBox(GreenCenter.X - range, GreenCenter.Y - range, range * 2, range * 2, Activity.TEAM_2);
 		end
 	else
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -125,13 +120,25 @@ function BrainvsBrain:StartNewGame()
 					local foundBrain = MovableMan:GetUnassignedBrain(self:GetTeamOfPlayer(player));
 					-- Spawn a brain if we can't find an unassigned brain in the scene to give each player
 					if not foundBrain then
-						local Brain = RandomAHuman("Brains", self:GetTeamTech(self:GetTeamOfPlayer(player)));
-						if Brain then
-							local Weapon = RandomHDFirearm("Weapons - Primary", self:GetTeamTech(self:GetTeamOfPlayer(player)));
-							if Weapon then
-								Brain:AddInventoryItem(Weapon);
+						local techID = PresetMan:GetModuleID(self:GetTeamTech(self:GetTeamOfPlayer(player)));
+						local Brain;
+						if techID ~= -1 then
+							Brain = PresetMan:GetLoadout("Infantry Brain", techID, false);
+							if Brain then
+								Brain:RemoveInventoryItem("Constructor");
 							end
+						end
+						if not Brain then
+							Brain = RandomAHuman("Brains", techID);
+							if Brain then
+								local Weapon = RandomHDFirearm("Weapons - Primary", self:GetTeamTech(self:GetTeamOfPlayer(player)));
+								if Weapon then
+									Brain:AddInventoryItem(Weapon);
+								end
+							end
+						end
 
+						if Brain then
 							Brain.AIMode = Actor.AIMODE_SENTRY;
 							Brain.Team = self:GetTeamOfPlayer(player);
 
@@ -192,13 +199,24 @@ function BrainvsBrain:StartNewGame()
 		self:SetTeamFunds(self:GetStartingGold()*(self.Difficulty/100+0.5), self.CPUTeam);
 		self.bombChance = math.random(self.Difficulty*0.7, self.Difficulty) / 120;
 
-		self.CPUBrain = CreateAHuman("Brain Robot", "Base.rte");
-		if self.CPUBrain then
-			local Weapon = CreateHDFirearm("SMG", "Base.rte");
-			if Weapon then
-				self.CPUBrain:AddInventoryItem(Weapon);
+		local techID = PresetMan:GetModuleID(self:GetTeamTech(self.CPUTeam));
+		if techID ~= -1 then
+			self.CPUBrain = PresetMan:GetLoadout("Infantry Brain", techID, false);
+			if self.CPUBrain then
+				self.CPUBrain:RemoveInventoryItem("Constructor");
 			end
+		end
+		if not self.CPUBrain then
+			self.CPUBrain = RandomAHuman("Brains", techID);
+			if self.CPUBrain then
+				local Weapon = CreateHDFirearm("SMG", "Base.rte");
+				if Weapon then
+					self.CPUBrain:AddInventoryItem(Weapon);
+				end
+			end
+		end
 
+		if self.CPUBrain then
 			self.CPUBrain.AIMode = Actor.AIMODE_SENTRY;
 			self.CPUBrain.Team = self.CPUTeam;
 
@@ -288,16 +306,11 @@ function BrainvsBrain:EndActivity()
 	if not self:IsPaused() then
 		-- Play sad music if no humans are left
 		if self:HumanBrainCount() == 0 then
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/udiedfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Defeat Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		else
-			-- But if humans are left, then play happy music!
-			AudioMan:ClearMusicQueue();
-			AudioMan:PlayMusic("Base.rte/Music/dBSoundworks/uwinfinal.ogg", 2, -1.0);
-			AudioMan:QueueSilence(10);
-			AudioMan:QueueMusicStream("Base.rte/Music/dBSoundworks/ccambient4.ogg");
+			MusicMan:PlayDynamicSong("Generic Victory Music", "Default", true);
+			MusicMan:PlayDynamicSong("Generic Ambient Music");
 		end
 	end
 end
@@ -320,16 +333,26 @@ function BrainvsBrain:UpdateActivity()
 
 			-- Add fog
 			if self:GetFogOfWarEnabled() then
-				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						SceneMan:MakeAllUnseen(Vector(32, 32), self:GetTeamOfPlayer(player));
+				local fogResolution = 4;
+				SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
+				SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_2);
+
+				-- Reveal outside areas for everyone.
+				for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+					local altitude = Vector(0, 0);
+					SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+					if altitude.Y > 1 then
+						SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_1);
+						SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_2);
 					end
 				end
 
 				-- Lift the fog around friendly actors
 				for Act in MovableMan.AddedActors do
-					for ang = 0, math.pi*2, 0.1 do
-						SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(130+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 1, 4);
+					if not IsADoor(Act) then
+						for angle = 0, math.pi * 2, 0.05 do
+							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+						end
 					end
 				end
 			else -- Lift any fog covering the build areas
@@ -387,8 +410,9 @@ function BrainvsBrain:UpdateActivity()
 							end
 						else
 							self:ResetMessageTimer(player);
-							FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
-							FrameMan:SetScreenText("Your brain has been destroyed!", self:ScreenOfPlayer(player), 2000, -1, false);
+							local screen = self:ScreenOfPlayer(player);
+							FrameMan:ClearScreenText(screen);
+							FrameMan:SetScreenText("Your brain has been destroyed!", screen, 2000, -1, false);
 						end
 					end
 				end
