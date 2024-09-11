@@ -490,8 +490,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Removed `RealToSimCap` and `OneSimUpdatePerFrame`. Instead we try to always target 60fps, even if it slows the simulation down a little.
 
-- Removed `Settings.ini` property `SimplifiedCollisionDetection = 0/1`. With the physics detection overhaul in pre-5, this became unnecessary.
-
 </details>
 
 ***
