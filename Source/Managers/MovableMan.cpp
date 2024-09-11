@@ -1696,11 +1696,11 @@ void MovableMan::Travel() {
 
 		g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::ParticlesTravel);
 		for (auto parIt = m_Particles.begin(); parIt != m_Particles.end(); ++parIt) {
+			(*parIt)->NewFrame();
 			(*parIt)->ApplyForces();
 			(*parIt)->PreTravel();
 			(*parIt)->Travel();
 			(*parIt)->PostTravel();
-			(*parIt)->NewFrame();
 		}
 		g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ParticlesTravel);
 	}

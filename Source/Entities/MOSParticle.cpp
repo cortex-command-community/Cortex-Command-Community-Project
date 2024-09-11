@@ -185,12 +185,12 @@ void MOSParticle::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode m
 		int drawPasses = 1;
 		if (g_SceneMan.SceneWrapsX()) {
 			if (renderPos.IsZero() && wrapDoubleDraw) {
-				if (spritePos.GetFloorIntX() < currentFrame->w) {
-					drawPositions[drawPasses] = spritePos;
+				if (renderPos.GetFloorIntX() < currentFrame->w) {
+					drawPositions[drawPasses] = renderPos;
 					drawPositions[drawPasses].m_X += static_cast<float>(pTargetBitmap->w);
 					drawPasses++;
-				} else if (spritePos.GetFloorIntX() > pTargetBitmap->w - currentFrame->w) {
-					drawPositions[drawPasses] = spritePos;
+				} else if (renderPos.GetFloorIntX() > pTargetBitmap->w - currentFrame->w) {
+					drawPositions[drawPasses] = renderPos;
 					drawPositions[drawPasses].m_X -= static_cast<float>(pTargetBitmap->w);
 					drawPasses++;
 				}
@@ -209,12 +209,12 @@ void MOSParticle::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode m
 		}
 		if (g_SceneMan.SceneWrapsY()) {
 			if (renderPos.IsZero() && wrapDoubleDraw) {
-				if (spritePos.GetFloorIntY() < currentFrame->h) {
-					drawPositions[drawPasses] = spritePos;
+				if (renderPos.GetFloorIntY() < currentFrame->h) {
+					drawPositions[drawPasses] = renderPos;
 					drawPositions[drawPasses].m_Y += static_cast<float>(pTargetBitmap->h);
 					drawPasses++;
-				} else if (spritePos.GetFloorIntY() > pTargetBitmap->h - currentFrame->h) {
-					drawPositions[drawPasses] = spritePos;
+				} else if (renderPos.GetFloorIntY() > pTargetBitmap->h - currentFrame->h) {
+					drawPositions[drawPasses] = renderPos;
 					drawPositions[drawPasses].m_Y -= static_cast<float>(pTargetBitmap->h);
 					drawPasses++;
 				}
