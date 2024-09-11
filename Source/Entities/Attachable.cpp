@@ -363,7 +363,6 @@ void Attachable::Update() {
 			m_Parent->HandlePotentialRadiusAffectingAttachable(this);
 		}
 
-		m_PrevVel = m_Vel;
 		m_Vel = m_Parent->GetVel();
 
 		m_Team = m_Parent->GetTeam();
@@ -550,7 +549,6 @@ void Attachable::SetParent(MOSRotating* newParent) {
 void Attachable::UpdatePositionAndJointPositionBasedOnOffsets(bool newAdded) {
 	if (m_Parent) {
 		m_JointPos = m_Parent->GetPos() + m_Parent->RotateOffset(GetParentOffset());
-		m_PrevPos = m_Pos;
 		m_Pos = m_JointPos - RotateOffset(m_JointOffset);
 		if (newAdded) {
 			// Avoid render interp from 0, 0 to our new position
