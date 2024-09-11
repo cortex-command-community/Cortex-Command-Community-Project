@@ -8,8 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Added</b></summary>
 
-- New `ModuleMan` to handle module management, and allow global scripts and mod modules can now be dynamically enabled or disabled mid-game.
-	Moved the `PresetMan` lua parameters/functions `Modules`, `GetDataModule`, `GetModuleID`, `GetModuleIDFromPath`, `GetTotalModuleCount`, `IsModuleOfficial`, `IsModuleUserdata` and `GetFullModulePath` into `ModuleMan`
+- Pathfinding and navigation overhaul, including jetpack/jump-aware pathfinding.  
+	Actors will now intelligently choose their path depending on how high they can jump, instead of always taking the shortest flying path. This will reduce instances of the AI getting stuck while trying to take paths that are impossible for them.  
+	Improvements to both `ACrab` and `AHuman` navigation. `ACrab`s are now aware of how to pathfind and navigate using their jetpack, and will use it where applicable. Actors are better at using their jetpack, and will use automovers if their jetpack is not sufficient to reach a destination.  
+	Actors are now more capable and responsive when digging. They will dig to their target if they cannot reach it with their jetpack (for example if there is a long vertical shaft in the route they cannot get up), and they preferentially avoid rocks, metal and other hard substances by digging around them. Actors also dig faster and spend less time idle.  
+	In the `CalculatePath` and `CalculatePathAsync` functions, the parameter `movePathToGround` has been replaced with `jumpHeight`, which is the height in metres the pathfind can jump vertically.  
+	New `Actor` Lua property `JumpHeight` (R) to estimate the jump height of the actor (in metres), based on the actor's jetpack and weight. Actors without a jetpack return 0.  
+	The new function `GetPathFindingFlyingJumpHeight()` can be used to get a jumpHeight that allows flying (i.e infinite jump height). This is also the value that `ACRocket`s and `ACDropships` return for `JumpHeight`.
 
 - New music system, including a dynamic horizontal sequencing system, under the new music manager `MusicMan`.  
 	`PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to play a new DynamicSong.
@@ -26,6 +31,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - New `SoundContainer` features.  
 	Lua property `Paused` (R/W) to pause or unpause all sounds of a SoundContainer. Newly played sounds will not begin playback until unpaused.  
 	Lua function `GetAudibleVolume` to get the real audible volume of a SoundContainer's sounds as a float from 0 to 1. This accounts for literally everything, including game volume.
+
+- New `ModuleMan` to handle module management, and allow global scripts and mod modules can now be dynamically enabled or disabled mid-game.
+	Moved the `PresetMan` lua parameters/functions `Modules`, `GetDataModule`, `GetModuleID`, `GetModuleIDFromPath`, `GetTotalModuleCount`, `IsModuleOfficial`, `IsModuleUserdata` and `GetFullModulePath` into `ModuleMan`
 
 - Allow lua scripts to use LuaJIT's BitOp module (see https://bitop.luajit.org/api.html)
 
@@ -47,7 +55,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
 
-- `MovableObject`'s `UniqueID` and `Age` fields are now persisted through game save/load.
+- `MovableMan:OpenAllDoors()`, when passed `NOTEAM`, will now open/close doors specifically for `NOTEAM` (instead of all doors).
 
 </details>
 

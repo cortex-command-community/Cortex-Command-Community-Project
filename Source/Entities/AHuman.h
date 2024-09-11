@@ -287,6 +287,10 @@ namespace RTE {
 		/// @return The maximum material strength this AHuman's digger can penetrate, or a default dig strength if they don't have a digger.
 		float EstimateDigStrength() const override;
 
+		// Estimates how high this actor can jump.
+		/// @return The actor's jump height.
+		virtual float EstimateJumpHeight() const override;
+
 		/// Switches the currently held device (if any) to the first found shield
 		/// in the inventory. If the held device already is a shield, or no
 		/// shield is in inventory, nothing happens.

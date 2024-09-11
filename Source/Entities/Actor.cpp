@@ -109,7 +109,7 @@ void Actor::Clear() {
 	m_PrevPathTarget.Reset();
 	m_MoveVector.Reset();
 	m_MovePath.clear();
-	m_UpdateMovePath = true;
+	m_UpdateMovePath = false;
 	m_MoveProximityLimit = 20.0F;
 	m_AIBaseDigStrength = c_PathFindingDefaultDigStrength;
 	m_BaseMass = std::numeric_limits<float>::infinity();
@@ -135,7 +135,6 @@ int Actor::Create() {
 	// Default to an interesting AI controller mode
 	m_Controller.SetInputMode(Controller::CIM_AI);
 	m_Controller.SetControlledActor(this);
-	m_UpdateMovePath = true;
 
 	m_ViewPoint = m_Pos;
 	m_HUDStack = -m_CharHeight / 2;
@@ -990,17 +989,18 @@ void Actor::UpdateMovePath() {
 
 	// Estimate how much material this actor can dig through
 	float digStrength = EstimateDigStrength();
+	float jumpHeight = EstimateJumpHeight();
 
 	// If we're following someone/thing, then never advance waypoints until that thing disappears
 	if (g_MovableMan.ValidMO(m_pMOMoveTarget)) {
-		m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), m_pMOMoveTarget->GetPos(), digStrength, static_cast<Activity::Teams>(m_Team));
+		m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), m_pMOMoveTarget->GetPos(), jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
 	} else {
 		// Do we currently have a path to a static target we would like to still pursue?
 		if (m_MovePath.empty()) {
 			// Ok no path going, so get a new path to the next waypoint, if there is a next waypoint
 			if (!m_Waypoints.empty()) {
 				// Make sure the path starts from the ground and not somewhere up in the air if/when dropped out of ship
-				m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), m_Waypoints.front().first, digStrength, static_cast<Activity::Teams>(m_Team));
+				m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), m_Waypoints.front().first, jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
 
 				// If the waypoint was tied to an MO to pursue, then load it into the current MO target
 				if (g_MovableMan.ValidMO(m_Waypoints.front().second)) {
@@ -1014,12 +1014,12 @@ void Actor::UpdateMovePath() {
 			}
 			// Just try to get to the last Move Target
 			else {
-				m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), m_MoveTarget, digStrength, static_cast<Activity::Teams>(m_Team));
+				m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), m_MoveTarget, jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
 			}
 		}
 		// We had a path before trying to update, so use its last point as the final destination
 		else {
-			m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), Vector(m_MovePath.back()), digStrength, static_cast<Activity::Teams>(m_Team));
+			m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), Vector(m_MovePath.back()), jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
 		}
 	}
 
@@ -1028,6 +1028,10 @@ void Actor::UpdateMovePath() {
 
 float Actor::EstimateDigStrength() const {
 	return m_AIBaseDigStrength;
+}
+
+float Actor::EstimateJumpHeight() const {
+	return FLT_MAX;
 }
 
 void Actor::VerifyMOIDs() {
@@ -1098,7 +1102,7 @@ void Actor::Update() {
 	///////////////////////////////////////////////////////////////////////////////
 	// Check for manual player-made progress made toward the set AI goal
 
-	if ((m_AIMode == AIMODE_GOTO || m_AIMode == AIMODE_SQUAD) && m_Controller.IsPlayerControlled() && !m_Controller.IsDisabled()) {
+	if ((m_AIMode == AIMODE_GOTO || m_AIMode == AIMODE_SQUAD) && (!m_PathRequest || m_PathRequest->complete) && m_Controller.IsPlayerControlled() && !m_Controller.IsDisabled()) {
 		Vector notUsed;
 		// See if we are close enough to the next move target that we should grab the next in the path that is out of proximity range
 		Vector pathPointVec;

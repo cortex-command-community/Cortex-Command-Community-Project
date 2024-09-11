@@ -406,7 +406,6 @@ bool ACraft::HandlePieCommand(PieSliceType pieSliceIndex) {
 			m_AIMode = AIMODE_GOTO;
 			m_DeliveryState = FALL;
 			ClearAIWaypoints();
-			m_UpdateMovePath = true;
 		} else if (pieSliceIndex == PieSliceType::Scuttle) {
 			m_AIMode = AIMODE_SCUTTLE;
 		} else {

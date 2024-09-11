@@ -111,6 +111,7 @@ void LuaStateWrapper::Initialize() {
 	                         luabind::def("GetMPP", &LuaAdaptersUtility::GetMPP),
 	                         luabind::def("GetPPL", &LuaAdaptersUtility::GetPPL),
 	                         luabind::def("GetLPP", &LuaAdaptersUtility::GetLPP),
+	                         luabind::def("GetPathFindingFlyingJumpHeight", &LuaAdaptersUtility::GetPathFindingFlyingJumpHeight),
 	                         luabind::def("GetPathFindingDefaultDigStrength", &LuaAdaptersUtility::GetPathFindingDefaultDigStrength),
 	                         luabind::def("RoundFloatToPrecision", &RoundFloatToPrecision),
 	                         luabind::def("RoundToNearestMultiple", &RoundToNearestMultiple),

@@ -469,7 +469,7 @@ function Siege:PlayerBrainsReachable()
 
 	for actor in MovableMan.Actors do
 		if actor.Team == self.PlayerTeam and actor:IsInGroup("Brains") then
-			local pathCost = SceneMan.Scene:CalculatePath(actor.Pos, Vector(actor.Pos.X, 0), false, 0);
+			local pathCost = SceneMan.Scene:CalculatePath(actor.Pos, Vector(actor.Pos.X, 0), GetPathFindingFlyingJumpHeight(), GetPathFindingDefaultDigStrength());
 			if pathCost > 10000 then
 				reachable = false;
 				break;

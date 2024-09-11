@@ -1673,7 +1673,7 @@ function DecisionDay:UpdateAIDecisions()
 					for movableObject in MovableMan:GetMOsInRadius(captureAreaCenter, self.aiData.bunkerRegionDefenseRange, self.humanTeam, true) do
 						if (IsAHuman(movableObject) or IsACrab(movableObject)) and (not movableObject:IsInGroup("AI Region Defenders") or movableObject:IsInGroup("AI Region Defenders - " .. bunkerRegionName)) and movableObject.PinStrength == 0 and not movableObject:IsInGroup("Actors - Turrets")  then
 							--TODO when we have calculate path async with limited max path length, use it here. Will have to do coroutine, etc.
-							--local pathLengthToCaptureArea = SceneMan.Scene:CalculatePath(movableObject.Pos, captureAreaCenter, false, GetPathFindingDefaultDigStrength(), self.aiTeam) * 20;
+							--local pathLengthToCaptureArea = SceneMan.Scene:CalculatePath(movableObject.Pos, captureAreaCenter, GetPathFindingFlyingJumpHeight(), GetPathFindingDefaultDigStrength(), self.aiTeam) * 20;
 							--if pathLengthToCaptureArea < self.aiData.bunkerRegionDefenseRange then
 								local actor = ToActor(movableObject);
 								actor.AIMode = Actor.AIMODE_GOTO;

@@ -102,7 +102,6 @@ void SaveLoadMenuGUI::PopulateSaveGamesList() {
 
 		              std::string originalScenePresetName;
 		              while (reader.NextProperty()) {
-			              // This is a bit unsafe because it skips properties, but meh, doesn't matter as long as Activity and OriginalScenePresetName are first
 			              std::string propName = reader.ReadPropName();
 			              if (propName == "Activity") {
 				              reader >> activity;

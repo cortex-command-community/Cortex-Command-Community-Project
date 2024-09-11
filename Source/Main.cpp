@@ -246,7 +246,6 @@ void PollSDLEvents() {
 void RunMenuLoop() {
 	g_UInputMan.DisableKeys(false);
 	g_UInputMan.TrapMousePos(false);
-	g_TimerMan.PauseSim(true);
 
 	while (!System::IsSetToQuit()) {
 		g_WindowMan.ClearRenderer();

@@ -49,7 +49,7 @@ void SettingsMan::Clear() {
 	m_SceneBackgroundAutoScaleMode = 1;
 	m_DisableFactionBuyMenuThemes = false;
 	m_DisableFactionBuyMenuThemeCursors = false;
-	m_PathFinderGridNodeSize = c_PPM;
+	m_PathFinderGridNodeSize = SCENEGRIDSIZE;
 	m_AIUpdateInterval = 2;
 
 	m_NumberOfLuaStatesOverride = -1;

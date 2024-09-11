@@ -504,7 +504,7 @@ function BunkerBreach:SendDefenderGuardsAtEnemiesInsideBunker()
 			local closestFriendlyUnitData = {};
 			for _, friendlyUnitInsideBunker in pairs(self.AI.friendlyUnitsInsideBunker) do
 				if not friendlyUnitInsideBunker:IsInGroup("Brains") then
-					local pathLengthFromFriendlyUnitToEnemy = SceneMan.Scene:CalculatePath(friendlyUnitInsideBunker.Pos, enemyUnitInsideBunker.Pos, false, GetPathFindingDefaultDigStrength(), self.CPUTeam);
+					local pathLengthFromFriendlyUnitToEnemy = SceneMan.Scene:CalculatePath(friendlyUnitInsideBunker.Pos, enemyUnitInsideBunker.Pos, GetPathFindingFlyingJumpHeight(), GetPathFindingDefaultDigStrength(), self.CPUTeam);
 					if closestFriendlyUnitData.pathLengthToEnemy == nil or pathLengthFromFriendlyUnitToEnemy < closestFriendlyUnitData.pathLengthToEnemy then
 						closestFriendlyUnitData.pathLengthToEnemy = pathLengthFromFriendlyUnitToEnemy;
 						closestFriendlyUnitData.actor = friendlyUnitInsideBunker;
@@ -632,7 +632,7 @@ function BunkerBreach:CalculateInternalReinforcementPositionsToEnemyTargets(numb
 		local internalReinforcementPositionForEnemy;
 		local pathLengthFromClosestInternalReinforcementPositionToEnemy = SceneMan.SceneWidth * SceneMan.SceneHeight;
 		for _, internalReinforcementPosition in pairs(self.AI.internalReinforcementPositions) do
-			local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTarget.Pos, false, GetPathFindingDefaultDigStrength(), self.CPUTeam);
+			local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTarget.Pos, GetPathFindingFlyingJumpHeight(), GetPathFindingDefaultDigStrength(), self.CPUTeam);
 			if pathLengthFromInternalReinforcementPositionToEnemy < pathLengthFromClosestInternalReinforcementPositionToEnemy then
 				internalReinforcementPositionForEnemy = internalReinforcementPosition;
 				pathLengthFromClosestInternalReinforcementPositionToEnemy = pathLengthFromInternalReinforcementPositionToEnemy;
