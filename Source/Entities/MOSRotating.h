@@ -540,6 +540,8 @@ namespace RTE {
 		Vector m_RecoilOffset;
 		// The list of wound AEmitters currently attached to this MOSRotating, and owned here as well.
 		std::vector<AEmitter*> m_Wounds;
+		// Whether we added a wound with a BurstSound this frame or not, so we can disable further ones to avoid audio spam.
+		bool m_WoundBurstSoundPlayedThisFrame;
 		// The list of Attachables currently attached and Owned by this.
 		std::list<Attachable*> m_Attachables;
 		std::unordered_set<unsigned long> m_ReferenceHardcodedAttachableUniqueIDs; //!< An unordered set is filled with the Unique IDs of all of the reference object's hardcoded Attachables when using the copy Create.

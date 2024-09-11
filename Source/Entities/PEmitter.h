@@ -226,6 +226,14 @@ namespace RTE {
 		/// Indicates whether this PEmitter is set to burst next update or not.
 		/// @return Whether a burst is gonna happen or not..
 		bool IsSetToBurst() const { return m_BurstTriggered; }
+		
+		/// Returns whether this emitter will play its burst sound when appropriate or not.
+		/// @return Whether this emitter will play its burst sound when appropriate or not.
+		bool GetPlayBurstSound() const { return m_PlayBurstSound; }
+
+		/// Sets whether this emitter will play its burst sound when appropriate or not.
+		/// @param playBurstSound Whether this emitter should play its burst sound when appropriate or not.
+		void SetPlayBurstSound(bool playBurstSound) { m_PlayBurstSound = playBurstSound; }
 
 		/// Registers a new AlarmEvent if this emitter has a loudness above zero.
 		/// @param Team Team that will ignore this AlarmEvent.
@@ -300,6 +308,8 @@ namespace RTE {
 		float m_BurstSpacing;
 		// Measures the shortest possible time between bursts
 		Timer m_BurstTimer;
+		// Whether to play the BurstSound when a burst is triggered or not.
+		bool m_PlayBurstSound;
 		// The angle of the direction the emitted particles will head in.
 		// The m_Roataion of this PEmitter will be added to this angle.
 		Matrix m_EmitAngle;

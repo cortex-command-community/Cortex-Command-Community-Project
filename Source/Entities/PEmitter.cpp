@@ -35,6 +35,7 @@ void PEmitter::Clear() {
 	// Set this to really long so an initial burst will be possible
 	m_BurstTimer.SetElapsedSimTimeS(50000);
 	m_BurstTimer.SetElapsedRealTimeS(50000);
+	m_PlayBurstSound = true;
 	m_EmitAngle.Reset();
 	m_EmissionOffset.Reset();
 	m_LastEmitTmr.Reset();
@@ -73,6 +74,7 @@ int PEmitter::Create(const PEmitter& reference) {
 	m_BurstScale = reference.m_BurstScale;
 	m_BurstSpacing = reference.m_BurstSpacing;
 	m_BurstTriggered = reference.m_BurstTriggered;
+	m_PlayBurstSound = reference.m_PlayBurstSound;
 	m_EmitAngle = reference.m_EmitAngle;
 	m_EmissionOffset = reference.m_EmissionOffset;
 	m_FlashScale = reference.m_FlashScale;
@@ -122,6 +124,7 @@ int PEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("BurstScale", { reader >> m_BurstScale; });
 	MatchProperty("BurstSpacing", { reader >> m_BurstSpacing; });
 	MatchProperty("BurstTriggered", { reader >> m_BurstTriggered; });
+	MatchProperty("PlayBurstSound", { reader >> m_PlayBurstSound; });
 	MatchProperty("EmissionAngle", { reader >> m_EmitAngle; });
 	MatchProperty("EmissionOffset", { reader >> m_EmissionOffset; });
 	MatchProperty("FlashScale", { reader >> m_FlashScale; });
@@ -166,6 +169,8 @@ int PEmitter::Save(Writer& writer) const {
 	writer << m_BurstSpacing;
 	writer.NewProperty("BurstTriggered");
 	writer << m_BurstTriggered;
+	writer.NewProperty("PlayBurstSound");
+	writer << m_PlayBurstSound;
 	writer.NewProperty("EmissionAngle");
 	writer << m_EmitAngle;
 	writer.NewProperty("EmissionOffset");
@@ -295,7 +300,7 @@ void PEmitter::Update() {
 		float throttleFactor = GetThrottleFactor();
 		m_FlashScale = throttleFactor;
 		// Check burst triggering against whether the spacing is fulfilled
-		if (m_BurstTriggered && (m_BurstSpacing <= 0 || m_BurstTimer.IsPastSimMS(m_BurstSpacing))) {
+		if (m_PlayBurstSound && m_BurstTriggered && (m_BurstSpacing <= 0 || m_BurstTimer.IsPastSimMS(m_BurstSpacing))) {
 			// Play burst sound
 			m_BurstSound.Play(m_Pos);
 			// Start timing until next burst

@@ -340,6 +340,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AEmitter) {
 	    .property("BurstSound", &AEmitter::GetBurstSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AEmitterSetBurstSound)
 	    .property("EndSound", &AEmitter::GetEndSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AEmitterSetEndSound)
 	    .property("BurstScale", &AEmitter::GetBurstScale, &AEmitter::SetBurstScale)
+	    .property("PlayBurstSound", &AEmitter::GetPlayBurstSound, &AEmitter::SetPlayBurstSound)
 	    .property("EmitAngle", &AEmitter::GetEmitAngle, &AEmitter::SetEmitAngle)
 	    .property("GetThrottle", &AEmitter::GetThrottle, &AEmitter::SetThrottle)
 	    .property("Throttle", &AEmitter::GetThrottle, &AEmitter::SetThrottle)
@@ -1002,6 +1003,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PEmitter) {
 	return ConcreteTypeLuaClassDefinition(PEmitter, MOSParticle)
 
 	    .property("BurstScale", &PEmitter::GetBurstScale, &PEmitter::SetBurstScale)
+	    .property("PlayBurstSound", &PEmitter::GetPlayBurstSound, &PEmitter::SetPlayBurstSound)
 	    .property("EmitAngle", &PEmitter::GetEmitAngle, &PEmitter::SetEmitAngle)
 	    .property("GetThrottle", &PEmitter::GetThrottle, &PEmitter::SetThrottle)
 	    .property("Throttle", &PEmitter::GetThrottle, &PEmitter::SetThrottle)
