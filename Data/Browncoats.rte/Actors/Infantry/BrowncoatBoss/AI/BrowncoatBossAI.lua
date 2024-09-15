@@ -1,7 +1,6 @@
 require("AI/NativeHumanAI");
 
 function Create(self)
-
 	self.activity = ToGameActivity(ActivityMan:GetActivity())
 
 	-- AI Overrides
@@ -63,6 +62,12 @@ function Create(self)
 	self.abilityShockwaveWhooshSound = CreateSoundContainer("Browncoat Boss Ability Shockwave Whoosh", "Browncoats.rte");	
 	self.abilityShockwaveLandSound = CreateSoundContainer("Browncoat Boss Ability Shockwave Land", "Browncoats.rte");	
 	
+	self.abilityShockwaveTerrainSounds = {};
+	
+	self.abilityShockwaveTerrainSounds.Concrete = CreateSoundContainer("Browncoat Boss Ability Shockwave Concrete Add", "Browncoats.rte");	
+	self.abilityShockwaveTerrainSounds.Dirt = CreateSoundContainer("Browncoat Boss Ability Shockwave Dirt Add", "Browncoats.rte");	
+	self.abilityShockwaveTerrainSounds.Metal = CreateSoundContainer("Browncoat Boss Ability Shockwave Metal Add", "Browncoats.rte");	
+	
 	self.abilityShockwaveTimer = Timer();
 	self.abilityShockwaveJumpPackDelay = 300;
 	
@@ -83,8 +88,8 @@ function Create(self)
 	self.deathScriptedStartSound = CreateSoundContainer("Browncoat Boss DeathScriptedStart", "Browncoats.rte");
 	self.deathScriptedMidBurnSound = CreateSoundContainer("Browncoat Boss DeathScriptedMidBurn", "Browncoats.rte");
 	self.deathScriptedExplodeSound = CreateSoundContainer("Browncoat Boss DeathScriptedExplode", "Browncoats.rte");	
-
 	
+	BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.MonologueOutro, 11, true);
 end
 
 function Update(self)
@@ -161,6 +166,8 @@ function Update(self)
 				att.MissionCritical = false;
 			end
 			
+			self.activity:SendMessage("Refinery_RefineryS10FinalBossExploded");
+			
 			self:GibThis();
 			
 			CameraMan:AddScreenShake(25, self.Pos);
@@ -227,17 +234,23 @@ function Update(self)
 			end
 		end
 	end
+	
+	-- Random taunting
+	if self.tauntVoiceLineTimer:IsPastSimMS(self.tauntVoiceLineDelay) then
+		BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.Taunt, 10, false);
+		self.tauntVoiceLineTimer:Reset();
+		self.tauntVoiceLineDelay = math.random(40000, 70000);
+	end
 end
 
 function UpdateAI(self)
 	-- Quick throw AI trigger on a timer
-
 	if not self:IsPlayerControlled() then -- just in case
 		if self.quickThrowTimer:IsPastSimMS(self.quickThrowDelay) then
-			if not (self.EquippedItem and self.EquippedItem:IsReloading() or self.EquippedItem:NumberValueExists("Busy")) then
+			if (self.EquippedItem) and not (self.EquippedItem and self.EquippedItem:IsReloading() or self.EquippedItem:NumberValueExists("Busy")) then
 				if self.AI:CreateQuickthrowBehavior(self) then
 					self.quickThrowTimer:Reset();
-					BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.OilThrowTaunt, 10, true);
+					BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.OilThrowTaunt, 10, false);
 				end
 			end
 		end
@@ -248,5 +261,4 @@ end
 
 function Destroy(self)
 	self.AI:Destroy(self);
-	self.activity:SendMessage("Refinery_S10FinalBossDead");
 end

@@ -3,17 +3,24 @@ dofile("Base.rte/Constants.lua")
 
 function Create(self)
 	self.voiceSounds = {
-	Pain = CreateSoundContainer("Browncoat Boss VO Pain", "Browncoats.rte"),
+	LightPain = CreateSoundContainer("Browncoat Boss VO Light Pain", "Browncoats.rte"),
+	MediumPain = CreateSoundContainer("Browncoat Boss VO Medium Pain", "Browncoats.rte"),
+	HeavyPain = CreateSoundContainer("Browncoat Boss VO Heavy Pain", "Browncoats.rte"),
 	Death = CreateSoundContainer("Browncoat Boss VO Death", "Browncoats.rte"),
-	DeathScripted = CreateSoundContainer("Browncoat Boss VO DeathScripted", "Browncoats.rte"),
-	JumpAttack = CreateSoundContainer("Browncoat Boss VO JumpAttack", "Browncoats.rte"),
-	OilThrowTaunt = CreateSoundContainer("Browncoat Boss VO OilThrowTaunt", "Browncoats.rte"),
-	ThrowGrunt = CreateSoundContainer("Browncoat Boss VO ThrowGrunt", "Browncoats.rte")}
+	Throw = CreateSoundContainer("Browncoat Boss VO Throw", "Browncoats.rte"),
+	Jump = CreateSoundContainer("Browncoat Boss VO Jump", "Browncoats.rte"),
+	Land = CreateSoundContainer("Browncoat Boss VO Land", "Browncoats.rte"),
+	SquadLead = CreateSoundContainer("Browncoat Boss VO Squad Lead", "Browncoats.rte"),
+	Taunt = CreateSoundContainer("Browncoat Boss VO Taunt", "Browncoats.rte"),
+	MonologueOutro = CreateSoundContainer("Browncoat Boss VO Monologue Outro", "Browncoats.rte"),
+	DeathScripted = CreateSoundContainer("Browncoat Boss VO Death Scripted", "Browncoats.rte"),
+	JumpAttack = CreateSoundContainer("Browncoat Boss VO Ability Jump Attack", "Browncoats.rte"),
+	OilThrowTaunt = CreateSoundContainer("Browncoat Boss VO Ability Oil Throw", "Browncoats.rte")}
 	
-	self.voiceSound = CreateSoundContainer("Browncoat Boss JumpPack", "Browncoats.rte");
+	self.voiceSound = CreateSoundContainer("Browncoat Boss Jump Pack", "Browncoats.rte");
 	-- MEANINGLESS! this is just so we can do voiceSound.Pos without an if check first! it will be overwritten first actual VO play
 
-	self.jumpPackSound = CreateSoundContainer("Browncoat Boss JumpPack", "Browncoats.rte");
+	self.jumpPackSound = CreateSoundContainer("Browncoat Boss Jump Pack", "Browncoats.rte");
 
 	self.stepSound = CreateSoundContainer("Browncoat Boss Stride", "Browncoats.rte");	
 	self.jumpSound = CreateSoundContainer("Browncoat Boss Jump", "Browncoats.rte");	
@@ -48,8 +55,13 @@ function Create(self)
 	
 	self.moveSoundTimer = Timer();
 	
+	self.squadLeadVoiceLineTimer = Timer();
+	self.squadLeadVoiceLineDelay = 15000;
+	
 	if self.PresetName == "Browncoat Boss Scripted" then
 		self.bossMode = true;
+		self.tauntVoiceLineTimer = Timer();
+		self.tauntVoiceLineDelay = 45000;
 	end
 end
 
@@ -108,7 +120,6 @@ function Update(self)
 	BrowncoatBossFunctions.updateHealth(self);
 
 	-- Leg Collision Detection system
-    --local i = 0
 	if self:IsPlayerControlled() then -- AI doesn't update its own foot checking when playercontrolled so we have to do it
 		if self.Vel.Y > 5 then
 			self.isInAir = true;
@@ -117,32 +128,24 @@ function Update(self)
 		end
 
 		for i = 1, 2 do
-			--local foot = self.feet[i]
 			local foot = nil
-			--local leg = self.legs[i]
 			if i == 1 then
 				foot = self.FGFoot 
 			else
 				foot = self.BGFoot 
 			end
 
-			--if foot ~= nil and leg ~= nil and leg.ID ~= rte.NoMOID then
 			if foot ~= nil then
 				local footPos = foot.Pos				
 				local mat = nil
 				local pixelPos = footPos + Vector(0, 4)
 				self.footPixel = SceneMan:GetTerrMatter(pixelPos.X, pixelPos.Y)
-				--PrimitiveMan:DrawLinePrimitive(pixelPos, pixelPos, 13)
 				if self.footPixel ~= 0 then
 					mat = SceneMan:GetMaterialFromID(self.footPixel)
-				--	PrimitiveMan:DrawLinePrimitive(pixelPos, pixelPos, 162);
-				--else
-				--	PrimitiveMan:DrawLinePrimitive(pixelPos, pixelPos, 13);
 				end
 				
 				local movement = (self.controller:IsState(Controller.MOVE_LEFT) == true or self.controller:IsState(Controller.MOVE_RIGHT) == true or self.Vel.Magnitude > 3)
 				if mat ~= nil then
-					--PrimitiveMan:DrawTextPrimitive(footPos, mat.PresetName, true, 0);
 					if self.feetContact[i] == false then
 						self.feetContact[i] = true
 						if self.feetTimers[i]:IsPastSimMS(self.footstepTime) and movement then																	
@@ -160,18 +163,6 @@ function Update(self)
 			end
 		end
 	end
-	
-	-- Jumppack custom fx, for extra control actor-side
-	
-	--local jumpPackTrigger = self.Jetpack and self.Jetpack:IsEmitting() and not self.jetpackEmitting;
-	
-	--if jumpPackTrigger then
-	--	BrowncoatBossFunctions.JumpPack(self)
-	--end
-	
-	--if not self.Jetpack or not self.Jetpack:IsEmitting() then
-	--	self.jetpackEmitting = false;
-	--end
 
 	-- Jump to make this guy more bearable movement-wise
 	-- Also for extra cool boss ability
@@ -209,6 +200,10 @@ function Update(self)
 			else
 				self.Vel = Vector(self.Vel.X + jumpVec.X, self.Vel.Y + jumpVec.Y)
 			end
+			
+			if math.random(0, 100) < 20 then
+				BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.Jump, 2, false);
+			end
 
 			self.isJumping = true
 			self.jumpTimer:Reset()
@@ -224,24 +219,74 @@ function Update(self)
 					self.abilityShockwaveWhooshSound:Stop(-1);
 					self.voiceSound:FadeOut(90);
 					
+					-- it's stupid that this is here in force, but the rest of the game has nothing like this yet and so it isn't standardized.
+					local terrainIDs = {
+					[12] = "Concrete",
+					[164] = "Concrete",
+					[176] = "Concrete",
+					[177] = "Concrete",
+					[9] = "Dirt",
+					[10] = "Dirt",
+					[11] = "Dirt",
+					[128] = "Dirt",
+					[6] = "Dirt",
+					[8] = "Dirt",
+					[178] = "Metal",
+					[179] = "Metal",
+					[180] = "Metal",
+					[181] = "Metal",
+					[182] = "Metal"};
+					
+					local hitPos = Vector(0, 0);
+					local ray = SceneMan:CastObstacleRay(self.Pos, Vector(0, 50), hitPos, Vector(0, 0), self.ID, self.Team, 0, 3);	
+					if ray ~= -1 then
+						terrainID = SceneMan:GetTerrMatter(hitPos.X, hitPos.Y)
+						
+						if terrainID ~= -1 then
+							if terrainIDs[terrainID] then
+								if self.abilityShockwaveTerrainSounds[terrainIDs[terrainID]] ~= nil then
+									self.abilityShockwaveTerrainSounds[terrainIDs[terrainID]]:Play(self.Pos);
+								end
+							end	
+						end
+					end
+					
 					self.abilityShockwaveLandSound:Play(self.Pos);
 					
 					BrowncoatBossFunctions.abilityShockwaveLanding(self);
 				else
 					self.landSound:Play(self.Pos);
+					if math.random(0, 100) < 20 then
+						BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.Land, 2, false);
+					end
 				end
+				
 				
 				self.moveSoundTimer:Reset();			
 			end
 		end
 	end
 	
-	-- Throw Foley
+	-- Throw foley
 	if self.EquippedItem and IsTDExplosive(self.EquippedItem) and (self.EquippedItem:IsActivated() or self.controller:IsState(Controller.PRIMARY_ACTION)) then
 		self.toThrowFoley = true;
 	elseif self.toThrowFoley then
 		self.toThrowFoley = false;
-		BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.ThrowGrunt, 3, false);
+		BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.Throw, 2, false);
 		self.throwFoleySound:Play(self.Pos);
+	end
+	
+	-- Squad leading VO
+	-- this is imperfect: it'll only play when we go straight from being in a squad to being player controlled (i.e. we are now the leader)
+	-- there is no way to see if we're leading a squad, so that close approximation is the best we can get.
+	
+	if self.AIMode == 11 then
+		self.toPlaySquadLeadVoiceline = true;
+	elseif self.toPlaySquadLeadVoiceline == true and self:IsPlayerControlled() and self.squadLeadVoiceLineTimer:IsPastSimMS(self.squadLeadVoiceLineDelay) then
+		self.toPlaySquadLeadVoiceline = false;
+		BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.SquadLead, 3, false);
+		self.squadLeadVoiceLineTimer:Reset();
+	else
+		self.toPlaySquadLeadVoiceline = false;
 	end
 end

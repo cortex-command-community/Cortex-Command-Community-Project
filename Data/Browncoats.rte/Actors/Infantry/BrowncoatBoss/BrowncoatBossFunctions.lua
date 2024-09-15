@@ -44,12 +44,12 @@ function BrowncoatBossFunctions.updateHealth(self)
 
 	if (healthTimerReady or wasInjured) and not self.deathScripted then
 	
-		self.oldHealth = self.Health;
 		self.healthUpdateTimer:Reset();
 		if self.Health <= 0 then
 			if not self.bossMode then
 				BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.Death, 11, true);
-			else
+			else		
+				self.activity:SendMessage("Refinery_RefineryS10FinalBossDead");
 				
 				self.deathScripted = true;
 				self.deathScriptedTimer:Reset();
@@ -83,9 +83,16 @@ function BrowncoatBossFunctions.updateHealth(self)
 				
 			end
 		elseif wasInjured then
-			BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.Pain, 2, true);
+			if self.oldHealth - self.Health > self.PainThreshold * 3 then
+				BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.HeavyPain, 7, true);
+			elseif self.oldHealth - self.Health > self.PainThreshold * 2 then
+				BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.MediumPain, 4, true);
+			else
+				BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.LightPain, 2, true);
+			end
 		end
-
+		
+		self.oldHealth = self.Health;
 	end
 	
 end

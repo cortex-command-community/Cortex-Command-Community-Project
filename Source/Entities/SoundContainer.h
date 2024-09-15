@@ -269,11 +269,11 @@ namespace RTE {
 
 		/// Gets the music post-exit time for this SoundContainer.
 		/// @return The time after the music ends in this SoundContainer in MS.
-		float GetMusicPostExitTime() const { return m_MusicPostExitTime; }
+		float GetMusicExitTime() const { return m_MusicExitTime; }
 
 		/// Sets the music post-exit time for this SoundContainer.
-		/// @param newValue The new MusicPostExitTime for this SoundContainer in MS.
-		void SetMusicPostExitTime(float newValue) { m_MusicPostExitTime = newValue; }
+		/// @param newValue The new MusicExitTime for this SoundContainer in MS.
+		void SetMusicExitTime(float newValue) { m_MusicExitTime = newValue; }
 #pragma endregion
 
 #pragma region Playback Controls
@@ -360,7 +360,7 @@ namespace RTE {
 		bool m_WasFadedOut; //!< Whether this SoundContainer has had its current playing sounds faded out or not.
 		bool m_Paused; //!< Whether this SoundContainer is paused or not.
 		float m_MusicPreEntryTime; //!< The time in MS before the music starts in this SoundContainer.
-		float m_MusicPostExitTime; //!< The time in MS after the music ends in this SoundContainer, until the end of the sound.
+		float m_MusicExitTime; //!< The time position in MS at which the music ends in this SoundContainer.
 
 		/// Clears all the member variables of this SoundContainer, effectively resetting the members of this abstraction level only.
 		void Clear();

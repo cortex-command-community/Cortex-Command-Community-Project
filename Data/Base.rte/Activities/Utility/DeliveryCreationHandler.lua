@@ -278,6 +278,38 @@ function DeliveryCreationHandler:OnSave(saveLoadHandler)
 	
 end
 
+function DeliveryCreationHandler:GetHandlerAsSerialized(saveLoadHandler)
+	return saveLoadHandler:SerializeTable(self.saveTable);
+end
+
+function DeliveryCreationHandler:ReplaceHandlerWithSerialized(saveLoadHandler, saveTable)
+	self.saveTable = saveLoadHandler:DeserializeTable(saveTable);
+	
+	-- re-add virtual teams
+	
+	for team, techName in pairs(self.saveTable.virtualTeams) do
+		self:AddVirtualTeam(team, techName);
+	end
+	
+	-- redo adding and removing presets
+	
+	for team, presetsTable in pairs(self.saveTable.teamRemovedPresets) do
+		for i, presetName in pairs(self.saveTable.teamRemovedPresets[team]) do
+			self:RemoveAvailablePreset(team, presetName, true);
+		end
+	end
+	
+	for team, presetsTable in pairs(self.saveTable.teamAddedPresets) do
+		for i, presetTable in pairs(self.saveTable.teamAddedPresets[team]) do
+			self:AddAvailablePreset(team, presetTable.PresetName, presetTable.ClassName, presetTable.TechName, true);
+		end
+	end
+	
+	if self.verboseLogging then
+		print("INFO: DeliveryCreationHandler just replaced itself with a serialized saveTable!");
+	end
+end
+
 function DeliveryCreationHandler:AddVirtualTeam(team, techName)
 
 	if team and techName then
@@ -441,7 +473,7 @@ function DeliveryCreationHandler:ReplaceInfantryTypeWeightsTable(team, newWeight
 		
 		return true;
 	else
-		print("DeliveryCreationHandler tried to replace infantry type weights, but wasn't given both a team and a table!");
+		print("ERROR: DeliveryCreationHandler tried to replace infantry type weights, but wasn't given both a team and a table!");
 		return false;
 	end
 	
@@ -458,7 +490,7 @@ function DeliveryCreationHandler:AddAvailablePreset(team, presetName, className,
 		for i, groupTable in pairs(self.teamPresetTables[team]) do
 			for presetIndex, presetTable in pairs(groupTable) do
 				if presetTable.PresetName == presetName then
-					print("DeliveryCreationHandler tried to add an available preset that was already there!");
+					print("ERROR: DeliveryCreationHandler tried to add an available preset that was already there!");
 					return false;
 				end
 			end
@@ -491,7 +523,7 @@ function DeliveryCreationHandler:AddAvailablePreset(team, presetName, className,
 		return true;
 
 	else
-		print("DeliveryCreationHandler tried to add an available preset but was not given all of a team, presetName, className, and techName!");
+		print("ERROR: DeliveryCreationHandler tried to add an available preset but was not given all of a team, presetName, className, and techName!");
 		return false;
 	end
 	
@@ -500,6 +532,10 @@ end
 function DeliveryCreationHandler:RemoveAvailablePreset(team, presetName, doNotSaveNewEntry)
 
 	-- check through every group and delete the preset with the given presetname from every one
+	
+	if self.verboseLogging then
+		print("INFO: DeliveryCreationHandler is trying to delete preset " .. presetName .. " from team " .. team);
+	end
 
 	local found = false;
 

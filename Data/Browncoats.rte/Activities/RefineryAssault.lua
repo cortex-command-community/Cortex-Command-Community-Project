@@ -3,19 +3,14 @@ package.loaded.Constants = nil; require("Constants");
 dofile("Browncoats.rte/Activities/RefineryAssaultFunctions.lua");
 
 function RefineryAssault:OnGlobalMessage(message, object)
-
 	self:HandleMessage(message, object);
-
 end
 
 function RefineryAssault:OnMessage(message, object)
-
 	self:HandleMessage(message, object);
-
 end
 
 function RefineryAssault:SetupBuyDoorAreaTable(self, area)
-
 	-- remove BuyDoorArea_ from the area name to get our table key
 	local areaKey = string.sub(area.Name, 13, -1);
 	
@@ -42,51 +37,40 @@ function RefineryAssault:SetupBuyDoorAreaTable(self, area)
 			self.saveTable.buyDoorTables[areaKey][tonumber(#self.saveTable.buyDoorTables.All)] = mo;
 		end
 	end
-		
-
 end
 
 
 function RefineryAssault:GetAIFunds(team)
-
 	if team == self.humanTeam then
 		return self.humanAIFunds;
 	elseif team == self.aiTeam then
 		return self:GetTeamFunds(self.aiTeam);
 	end
-
 end
 
 function RefineryAssault:ChangeAIFunds(team, changeAmount)
-
 	if team == self.humanTeam then
 		self.humanAIFunds = self.humanAIFunds + changeAmount;
 	elseif team == self.aiTeam then
 		self:ChangeTeamFunds(changeAmount, self.aiTeam);
 	end
-
 end
 
 function RefineryAssault:UpdateFunds()
-
 	-- Gold increasing for teams
-	
 	local playerFunds = self:GetTeamFunds(self.humanTeam);
 	local aiTeamFunds = self:GetTeamFunds(self.aiTeam);
 
-	if self.goldTimer:IsPastSimMS(self.goldIncreaseDelay) then
-	
-		self.goldTimer:Reset();
+	if self.saveTable.goldTimer:IsPastSimMS(self.goldIncreaseDelay) then
+		self.saveTable.goldTimer:Reset();
 		
 		self:SetTeamFunds(playerFunds + self.playerGoldIncreaseAmount, self.humanTeam);
 		self.humanAIFunds = self.humanAIFunds + self.humanAIGoldIncreaseAmount;
 		
 		self:SetTeamFunds(aiTeamFunds + self.aiTeamGoldIncreaseAmount, self.aiTeam);
-	
 	end
 
 	-- Debug view
-	
 	if self.HUDHandler:GetCameraPanEventCount(self.humanTeam) == 0 then
 		for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do	
 
@@ -104,28 +88,13 @@ function RefineryAssault:UpdateFunds()
 				
 				local textPos = Vector(pos.X - 100, pos.Y - 20);
 				--PrimitiveMan:DrawTextPrimitive(textPos, "humanai: " ..  tostring(self.humanAIFunds), false, 1)
-
-				
 			end
 		end	
 	end
-
 end
 
 -----------------------------------------------------------------------------------------
-
------------------------------------------------------------------------------------------
--- Game functions
------------------------------------------------------------------------------------------
-
------------------------------------------------------------------------------------------
-
-
-
-
------------------------------------------------------------------------------------------
--- Start Activity
------------------------------------------------------------------------------------------
+-- Game functions after this point
 
 function RefineryAssault:StartActivity(newGame)
 	print("START! -- RefineryAssault:StartActivity()!");
@@ -146,8 +115,6 @@ function RefineryAssault:StartActivity(newGame)
 		end
 	end
 	
-	
-	self.goldTimer = Timer();
 	self.goldIncreaseDelay = 4000;
 	
 	self.playerGoldIncreaseAmount = 5;	
@@ -156,7 +123,6 @@ function RefineryAssault:StartActivity(newGame)
 	self.aiTeamGoldIncreaseAmount = 0;
 	
 	self.humanAIFunds = 1;
-	
 	
 	self.saveLoadHandler = require("Activities/Utility/SaveLoadHandler");
 	self.saveLoadHandler:Initialize(self.verboseLogging);
@@ -178,12 +144,16 @@ function RefineryAssault:StartActivity(newGame)
 	
 	self.particleUtility = require("Scripts/Utility/ParticleUtility");
 	
-	self.MOUtility = require("Scripts/Utility/MOUtility");	
+	self.MOUtility = require("Scripts/Utility/MOUtility");
+	
+	self.GameIntensityCalculator = require("Activities/Utility/GameIntensityCalculator");
+	self.GameIntensityCalculator:Initialize(self, newGame, 0.11, 0.01, self.verboseLogging);
+	
+	self.actorSpawnerReturnedActors = {};
 	
 	-- Stage stuff
 	
 	--2
-	self.stage2HoldTimer = Timer();
 	self.stage2TimeToHoldConsoles = 5000;
 	
 	self.stageFunctionTable = {};
@@ -213,8 +183,17 @@ function RefineryAssault:StartActivity(newGame)
 	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 3");
 	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
 	
+	self.musicGraceTimer = Timer();
+	self.musicGraceTime = 4000;
+	
 	if newGame then
+	
 		self.saveTable = {};
+		self.saveTable.goldTimer = Timer();
+		
+		self.saveTable.musicState = "Ambient";
+		MusicMan:PlayDynamicSong("BC", "Intro", true, true, true);
+		MusicMan:SetNextDynamicSongSection("Ambient", false, false, false);
 		
 		self.saveTable.activeDocks = {1, 2};
 		self.deliveryCreationHandler:RemoveAvailablePreset(-1, "Tubby Rocket");
@@ -232,8 +211,9 @@ function RefineryAssault:StartActivity(newGame)
 				self.saveTable.roninPrisonerDoor = actor;
 				table.insert(self.saveTable.doorsToConstantlyReset, actor);
 			end
-			
 		end
+		
+		self.saveTable.stage2HoldTimer = Timer();
 		
 		-- Always active base task for defenders
 		self.tacticsHandler:AddTask("Brainhunt", self.aiTeam, Vector(0, 0), "Brainhunt", 2);
@@ -326,7 +306,7 @@ function RefineryAssault:StartActivity(newGame)
 		-- Stage stuff
 
 		--3
-		self.stage3ConsolesBroken = 0;
+		self.saveTable.stage3ConsolesBroken = 0;
 		
 		for particle in MovableMan.Particles do
 			if particle.PresetName == "Browncoat Refinery Console Breakable Objective" then
@@ -339,7 +319,6 @@ function RefineryAssault:StartActivity(newGame)
 				particle.MissionCritical = true;
 			end
 		end
-	
 	else
 		self:ResumeLoadedGame();
 	end
@@ -368,24 +347,14 @@ function RefineryAssault:StartActivity(newGame)
 			-- end
 		-- end
 	-- end	
-	
 end
 
 function RefineryAssault:ResumeLoadedGame()
-
 	print("loading local refineryassault save table...");
 	self.saveTable = self.saveLoadHandler:ReadSavedStringAsTable("saveTable");
 	print("loaded local refineryassault save table!");
 	
 	self.Stage = self:LoadNumber("stage");
-
-	self.goldTimer.ElapsedRealTimeMS = self:LoadNumber("goldTimer");
-	
-	self.stage2HoldingBothConsoles = self:LoadNumber("stage2HoldingBothConsoles") == 1 and true or false;
-	self.stage2HoldTimer.ElapsedRealTimeMS = self:LoadNumber("stage2HoldTimer");
-	
-	self.stage3ConsolesBroken = self:LoadNumber("stage3ConsolesBroken");
-	self.stage3DrillOverloaded = self:LoadNumber("stage3DrillOverloaded") == 1 and true or false;
 	
 	-- Handlers
 	self.tacticsHandler:OnLoad(self.saveLoadHandler);
@@ -395,24 +364,19 @@ function RefineryAssault:ResumeLoadedGame()
 	self.HUDHandler:OnLoad(self.saveLoadHandler);
 	
 	self.MOUtility:OnLoad(self.saveLoadHandler);
+	self.GameIntensityCalculator:OnLoad(self.saveLoadHandler);
 	
 	self.buyDoorHandler:ReplaceBuyDoorTable(self.saveTable.buyDoorTables.All);
-		
+	
+	-- Resume music
+	MusicMan:ResetMusicState()
+	MusicMan:PlayDynamicSong("BC", self.saveTable.musicState, true, true, true);
 end
 
 function RefineryAssault:OnSave()
-	
 	self.saveLoadHandler:SaveTableAsString("saveTable", self.saveTable);
 	
 	self:SaveNumber("stage", self.Stage);
-
-	self:SaveNumber("goldTimer", self.goldTimer.ElapsedRealTimeMS);
-	
-	self:SaveNumber("stage2HoldingBothConsoles", self.stage2HoldingBothConsoles and 1 or 0);
-	self:SaveNumber("stage2HoldTimer", self.stage2HoldTimer.ElapsedRealTimeMS);
-	
-	self:SaveNumber("stage3ConsolesBroken", self.stage2ConsolesBroken or 0);
-	self:SaveNumber("stage3DrillOverloaded", self.stage2DrillOverloaded and 1 or 0);
 	
 	-- Handlers
 	self.tacticsHandler:OnSave(self.saveLoadHandler);
@@ -422,31 +386,18 @@ function RefineryAssault:OnSave()
 	self.HUDHandler:OnSave(self.saveLoadHandler);
 	
 	self.MOUtility:OnSave(self.saveLoadHandler);
-	
+	self.GameIntensityCalculator:OnSave(self.saveLoadHandler);
 end
-
------------------------------------------------------------------------------------------
--- Pause Activity
------------------------------------------------------------------------------------------
 
 function RefineryAssault:PauseActivity(pause)
 	print("PAUSE! -- RefineryAssault:PauseActivity()!");
 end
 
------------------------------------------------------------------------------------------
--- End Activity
------------------------------------------------------------------------------------------
-
 function RefineryAssault:EndActivity()
 	print("END! -- RefineryAssault:EndActivity()!");
 end
 
------------------------------------------------------------------------------------------
--- Update Activity
------------------------------------------------------------------------------------------
-
 function RefineryAssault:UpdateActivity()
-
 	-- if UInputMan:KeyPressed(Key.F) and UInputMan:KeyHeld(Key.SPACE) then
 		-- self.ActivityState = Activity.EDITING;
 
@@ -461,53 +412,79 @@ function RefineryAssault:UpdateActivity()
 			-- end
 		-- end
 	-- end
+	
+	if not self.saveTable.gameFinished then
 
-	-- Monitor stage objectives
-	
-	self.stageFunc = self.stageFunctionTable[self.Stage];
-	self:stageFunc();
+		-- Monitor stage objectives
+		self.stageFunc = self.stageFunctionTable[self.Stage];
+		self:stageFunc();
 
-
-	self:UpdateFunds();
-	
-	
-	-- Seek tasks to create squads for
-	-- Only human team uses docks
-	
-	local team, task = self.tacticsHandler:UpdateTacticsHandler();
-	
-	if task and self:GetAIFunds(team) > 0 then
-		--print("gottask")
-		local squad;
-		if team == self.aiTeam then
-			squad = self:SendBuyDoorDelivery(team, task);
-		else
-			if math.random() < 0.2 then
-				squad = self:SendDockDelivery(team, task);
+		self:UpdateFunds();
+		
+		-- Seek tasks to create squads for
+		-- Only human team uses docks
+		local team, task = self.tacticsHandler:UpdateTacticsHandler();
+		
+		if task and self:GetAIFunds(team) > 0 then
+			--print("gottask")
+			local squad;
+			if team == self.aiTeam then
+				squad = self:SendBuyDoorDelivery(team, task);
 			else
-				squad = self:SendBuyDoorDelivery(team, task);
+				if math.random() < 0.2 then
+					squad = self:SendDockDelivery(team, task);
+				else
+					squad = self:SendBuyDoorDelivery(team, task);
+				end
+				if not squad then
+					squad = self:SendBuyDoorDelivery(team, task);
+				end
 			end
-			if not squad then
-				squad = self:SendBuyDoorDelivery(team, task);
+			if squad then
+				self.tacticsHandler:AddSquad(team, squad, task.Name, true);
 			end
 		end
-		if squad then
-			self.tacticsHandler:AddSquad(team, squad, task.Name, true);
+	else
+		if self.saveTable.finalMessageTimer and self.saveTable.finalMessageTimer:IsPastSimMS(2000) and not self.saveTable.finalMessagesQueued then
+			self.saveTable.finalMessagesQueued = true;
+		
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"The Baron's death has forced the refinery to surrender to us wholly. Brilliant job!",
+			7000,
+			0,
+			true);
+			
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"Aside from utterly defeating the fearsome Browncoats, this facility will be indispensable.",
+			13000,
+			0,
+			true);
+			
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"Oil and steel alike are available to us in great quantities - after a few repairs, anyway...",
+			10000,
+			0,
+			true);
+			
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"And now lacking a leader, what's left of the Browncoats may very well fight for us instead.",
+			15000,
+			0,
+			true);
+			
+			self.HUDHandler:QueueScreenText(self.humanTeam,
+			"Today is a great victory. Your efforts will not be forgotten, commander.",
+			20000,
+			0,
+			true);
 		end
 	end
 	
-	-- Update docking craft
-	
 	self.dockingHandler:UpdateDockingCraft();
-	
-	-- Update HUD handler
-	
 	self.HUDHandler:UpdateHUDHandler();
 	
 	-- Update MOUtility not needed yet
-	
 	--self.MOUtility:Update();
-	
 
 	for k, door in pairs(self.saveTable.doorsToConstantlyReset) do
 		if not door or not MovableMan:ValidMO(door) then
@@ -516,18 +493,19 @@ function RefineryAssault:UpdateActivity()
 		end
 	end
 	
-	if self.HUDHandler:GetCameraPanEventCount(self.humanTeam) > 0 and not self.saveTable.brainsInvincible then
-		self.saveTable.brainsInvincible = true;
-		for k, brain in pairs(self.saveTable.playerBrains) do
-			self.MOUtility:SetMOUnhittable(brain, true);
-		end
-	elseif self.saveTable.brainsInvincible and self.HUDHandler:GetCameraPanEventCount(self.humanTeam) == 0 then
-		self.saveTable.brainsInvincible = false;
-		for k, brain in pairs(self.saveTable.playerBrains) do
-			self.MOUtility:SetMOUnhittable(brain, false);
+	if not self.saveTable.debugInvincibleBrain then
+		if self.HUDHandler:GetCameraPanEventCount(self.humanTeam) > 0 and not self.saveTable.brainsInvincible then
+			self.saveTable.brainsInvincible = true;
+			for k, brain in pairs(self.saveTable.playerBrains) do
+				self.MOUtility:SetMOUnhittable(brain, true);
+			end
+		elseif self.saveTable.brainsInvincible and self.HUDHandler:GetCameraPanEventCount(self.humanTeam) == 0 then
+			self.saveTable.brainsInvincible = false;
+			for k, brain in pairs(self.saveTable.playerBrains) do
+				self.MOUtility:SetMOUnhittable(brain, false);
+			end
 		end
 	end
-	
 	
 	if self.roninPrisonerMessageTimer and not self.roninPrisonerMessageTimer:IsPastSimMS(6000) then
 		if self.saveTable.roninPrisonerLeader and MovableMan:ValidMO(self.saveTable.roninPrisonerLeader) then
@@ -540,12 +518,35 @@ function RefineryAssault:UpdateActivity()
 		end
 	end
 	
-	
+	if #self.actorSpawnerReturnedActors > 0 then
+		self.actorSpawnerReturnedActors = {};
+	end
 	
 	-- Debug
-	
 	if UInputMan.FlagAltState then
-
+	
+		-- Force music state
+		
+		if UInputMan:KeyPressed(Key.H) then
+			self.forcedGameIntensity = nil;
+			print("REFINERY ASSAULT: Cleared forced music intensity")
+		end		
+		
+		if UInputMan:KeyPressed(Key.J) then
+			self.forcedGameIntensity = -0;
+			print("REFINERY ASSAULT: Ambient forced music intensity")
+		end
+		
+		if UInputMan:KeyPressed(Key.K) then
+			self.forcedGameIntensity = 0.5;
+			print("REFINERY ASSAULT: Tense forced music intensity")
+		end
+		
+		if UInputMan:KeyPressed(Key.L) then
+			self.forcedGameIntensity = 1.0;
+			print("REFINERY ASSAULT: Intense forced music intensity")
+		end
+	
 		-- Unlimit camera
 		if UInputMan:KeyPressed(Key.KP_8) then
 			self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, 999999);
@@ -557,35 +558,95 @@ function RefineryAssault:UpdateActivity()
 			self:ChangeAIFunds(1, 200);
 		end
 		
-		if UInputMan:KeyPressed(Key.KP_6) then
-			self:SendMessage("Captured_RefineryS3DockConsole")
+		-- Brain teleport to cursor
+		if UInputMan:KeyPressed(Key.SPACE) then
+			for k, brain in pairs(self.saveTable.playerBrains) do
+				local pos = CameraMan:GetScrollTarget(0);
+				brain.Pos = pos;
+			end
 		end
 		
+		-- Invincible brain and infinite gun
+		if not self.saveTable.debugInvincibleBrain and UInputMan:KeyPressed(Key.KP_6) then
+			self.saveTable.debugInvincibleBrain = true;
+			for k, brain in pairs(self.saveTable.playerBrains) do
+				if not self.saveTable.brainsInvincible then
+					self.MOUtility:SetMOUnhittable(brain, true);
+				end
+				local gun = CreateHDFirearm("M16A2", "Ronin.rte");
+				gun.Magazine.RoundCount = -1;
+				gun.RateOfFire = 1500;
+				gun.PresetName = "Debug M16A2";
+				gun.Reloadable = false;
+				brain:AddInventoryItem(gun);
+				
+				brain.GetsHitByMOs = true; -- need this for capturables to work
+				
+				ToAHuman(brain).Jetpack.JetTimeTotal = 9999;
+				ToAHuman(brain).Jetpack.JetReplenishRate = 99;
+				
+				brain.MissionCritical = true;
+				ToAHuman(brain).Head.MissionCritical = true;
+				ToAHuman(brain).MaxHealth = 999999;
+				ToAHuman(brain).Health = 999999;
+				brain.GibImpulseLimit = 999999;
+				brain.GibWoundLimit = 999999;
+				for att in brain.Attachables do
+					att.GibImpulseLimit = 999999;
+					att.GibWoundLimit = 999999;
+				end			
+			end
+		end
 	end
 	
-	local debugDoorTrigger = UInputMan:KeyPressed(Key.J)	
+	-- Music
+	local gameIntensity = self.GameIntensityCalculator:UpdateGameIntensityCalculator();
+	if self.forcedGameIntensity then
+		gameIntensity = self.forcedGameIntensity;
+	end
+	if self.saveTable.musicState ~= "Boss" and self.musicGraceTimer:IsPastRealMS(self.musicGraceTime) then
+		self.musicGraceTimer:Reset();
+		if gameIntensity > 0.67 then
+			if self.saveTable.musicState ~= "Intense" then
+				self.saveTable.musicState = "Intense";
+				if MusicMan:GetCurrentDynamicSongSectionType() == "Intense" then
+					MusicMan:SetNextDynamicSongSection("Intense", false, false, false);
+				else
+					MusicMan:SetNextDynamicSongSection("Intense", true, true, false);
+				end
+			end
+		elseif gameIntensity > 0.2 then
+			if self.saveTable.musicState ~= "Tense" then
+				local playImmediately = self.saveTable.musicState == "Ambient" and true or false;
+				self.saveTable.musicState = "Tense";
+				if MusicMan:GetCurrentDynamicSongSectionType() == "Tense" then
+					MusicMan:SetNextDynamicSongSection("Tense", false, false, false);
+				else
+					MusicMan:SetNextDynamicSongSection("Tense", playImmediately, true, true);
+				end
+			end
+		else
+			if self.saveTable.musicState ~= "Ambient" then
+				self.saveTable.musicState = "Ambient";
+				MusicMan:SetNextDynamicSongSection("Ambient", false, true, false);
+			end
+		end
+	end
 	
-	local debugTrigger = UInputMan:KeyPressed(Key.I)
-	
-	local debugRocketTrigger = UInputMan:KeyPressed(Key.U)
-	
+	local debugDoorTrigger = UInputMan:KeyPressed(Key.J);
 	if debugDoorTrigger then
-	
 		self:SendBuyDoorDelivery(self.humanTeam);
-		
 	end
 	
+	local debugTrigger = UInputMan:KeyPressed(Key.I);
 	if debugTrigger then
-	
 		--self:SendDockDelivery(self.humanTeam, false);
 		print("tried dropship")
-		
 	end
 	
+	local debugRocketTrigger = UInputMan:KeyPressed(Key.U);
 	if debugRocketTrigger then
-	
 		--self:SendDockDelivery(self.humanTeam, true);
 		print("triedrocket")
-		
 	end	
 end

@@ -64,6 +64,10 @@ namespace RTE {
 		/// @return Whether the function completed successfully or not.
 		bool CyclePlayingSoundContainers(bool smoothFade = false);
 
+		/// Gets the current DynamicSongSectionType being played.
+		/// @return The current DynamicSongSectionType being played.
+		std::string GetCurrentSongSectionType() const { return m_CurrentSongSectionType; }
+
 		/// Sets the current playing dynamic music to end, disabling further playback of new music.
 		/// @param fadeOutCurrent Whether to also fade out the current playing music or not.
 		/// @return True if this was not set to end music previously, false if it already was.
@@ -85,8 +89,9 @@ namespace RTE {
 		std::unique_ptr<SoundContainer> m_InterruptingMusicSoundContainer; //!< Current interrupting music being played.
 
 		std::unique_ptr<DynamicSong> m_CurrentSong; //!< The current DynamicSong being played.
-		std::string m_CurrentSongSectionType; //!< The current type of DynamicSongSection we are trying to play.
-		DynamicSongSection* m_CurrentSongSection; //!< The current DynamicSongSection we are actually playing.
+		std::string m_NextSongSectionType; //!< The type of DynamicSongSection we will try to play next.
+		std::string m_CurrentSongSectionType; //!< The current type of DynamicSongSection we are actually playing.
+		DynamicSongSection* m_NextSongSection; //!< The DynamicSongSection we will try to play next.
 
 		std::unique_ptr<SoundContainer> m_PreviousSoundContainer; //!< The previous SoundContainer that was played as music. We keep it to allow it to play out while Current ramps up.
 		std::unique_ptr<SoundContainer> m_CurrentSoundContainer; //!< The current selected SoundContainer playing as music.
@@ -102,7 +107,7 @@ namespace RTE {
 #pragma region Internal Music Handling
 		/// Sets the current SongSectionType this wants to play.
 		/// @param newSongSectionType New SongSectionType for this to want to play.
-		void SetCurrentSongSectionType(const std::string& newSongSectionType) { m_CurrentSongSectionType = newSongSectionType; }
+		void SetNextSongSectionType(const std::string& newSongSectionType) { m_NextSongSectionType = newSongSectionType; }
 
 		/// Selects and sets the next SongSection based on the current SongSectionType.
 		void SelectNextSongSection();

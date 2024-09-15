@@ -56,6 +56,7 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MusicMan) {
 	    .def("SetNextDynamicSongSection", &LuaAdaptersMusicMan::SetNextDynamicSongSection4)
 	    .def("CyclePlayingSoundContainers", &LuaAdaptersMusicMan::CyclePlayingSoundContainers1)
 	    .def("CyclePlayingSoundContainers", &LuaAdaptersMusicMan::CyclePlayingSoundContainers2)
+	    .def("GetCurrentDynamicSongSectionType", &MusicMan::GetCurrentSongSectionType)
 	    .def("EndDynamicMusic", &LuaAdaptersMusicMan::EndDynamicMusic1)
 	    .def("EndDynamicMusic", &LuaAdaptersMusicMan::EndDynamicMusic2)
 	    .def("PlayInterruptingMusic", &MusicMan::PlayInterruptingMusic)
