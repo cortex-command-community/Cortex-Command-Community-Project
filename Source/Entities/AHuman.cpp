@@ -235,7 +235,6 @@ int AHuman::Create(const AHuman& reference) {
 		m_Paths[BGROUND][RUN].Create(reference.m_Paths[BGROUND][WALK]);
 		m_Paths[FGROUND][RUN].SetBaseSpeedMultiplier(reference.m_Paths[FGROUND][WALK].GetSpeed(Speed::FAST) / reference.m_Paths[FGROUND][WALK].GetSpeed(Speed::NORMAL));
 		m_Paths[BGROUND][RUN].SetBaseSpeedMultiplier(reference.m_Paths[BGROUND][WALK].GetSpeed(Speed::FAST) / reference.m_Paths[BGROUND][WALK].GetSpeed(Speed::NORMAL));
-		m_RotAngleTargets[RUN] = reference.m_RotAngleTargets[WALK];
 	}
 
 	m_DeviceState = reference.m_DeviceState;
