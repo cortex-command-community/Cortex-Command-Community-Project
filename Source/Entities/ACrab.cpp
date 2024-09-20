@@ -62,21 +62,6 @@ void ACrab::Clear() {
 		//        m_StrideTimer[side].Reset();
 	}
 	m_Aiming = false;
-
-	m_DeviceState = SCANNING;
-	m_SweepState = NOSWEEP;
-	m_DigState = NOTDIGGING;
-	m_JumpState = NOTJUMPING;
-	m_JumpTarget.Reset();
-	m_JumpingRight = true;
-	m_DigTunnelEndPos.Reset();
-	m_SweepCenterAimAngle = 0;
-	m_SweepRange = c_EighthPI;
-	m_DigTarget.Reset();
-	m_FireTimer.Reset();
-	m_SweepTimer.Reset();
-	m_PatrolTimer.Reset();
-	m_JumpTimer.Reset();
 	m_AimRangeUpperLimit = -1;
 	m_AimRangeLowerLimit = -1;
 	m_LockMouseAimInput = false;
@@ -229,15 +214,6 @@ int ACrab::Create(const ACrab& reference) {
 		}
 	}
 
-	m_DeviceState = reference.m_DeviceState;
-	m_SweepState = reference.m_SweepState;
-	m_DigState = reference.m_DigState;
-	m_JumpState = reference.m_JumpState;
-	m_JumpTarget = reference.m_JumpTarget;
-	m_JumpingRight = reference.m_JumpingRight;
-	m_DigTunnelEndPos = reference.m_DigTunnelEndPos;
-	m_SweepCenterAimAngle = reference.m_SweepCenterAimAngle;
-	m_SweepRange = reference.m_SweepRange;
 	m_AimRangeUpperLimit = reference.m_AimRangeUpperLimit;
 	m_AimRangeLowerLimit = reference.m_AimRangeLowerLimit;
 	m_LockMouseAimInput = reference.m_LockMouseAimInput;

@@ -84,22 +84,6 @@ void AHuman::Clear() {
 	m_WalkPathOffset.Reset();
 	m_ArmSwingRate = 1.0F;
 	m_DeviceArmSwayRate = 0.5F;
-
-	m_DeviceState = SCANNING;
-	m_SweepState = NOSWEEP;
-	m_DigState = NOTDIGGING;
-	m_JumpState = NOTJUMPING;
-	m_JumpTarget.Reset();
-	m_JumpingRight = true;
-	m_Crawling = false;
-	m_DigTunnelEndPos.Reset();
-	m_SweepCenterAimAngle = 0;
-	m_SweepRange = c_EighthPI;
-	m_DigTarget.Reset();
-	m_FireTimer.Reset();
-	m_SweepTimer.Reset();
-	m_PatrolTimer.Reset();
-	m_JumpTimer.Reset();
 }
 
 int AHuman::Create() {
@@ -237,17 +221,6 @@ int AHuman::Create(const AHuman& reference) {
 		m_Paths[FGROUND][RUN].SetBaseSpeedMultiplier(reference.m_Paths[FGROUND][WALK].GetSpeed(Speed::FAST) / reference.m_Paths[FGROUND][WALK].GetSpeed(Speed::NORMAL));
 		m_Paths[BGROUND][RUN].SetBaseSpeedMultiplier(reference.m_Paths[BGROUND][WALK].GetSpeed(Speed::FAST) / reference.m_Paths[BGROUND][WALK].GetSpeed(Speed::NORMAL));
 	}
-
-	m_DeviceState = reference.m_DeviceState;
-	m_SweepState = reference.m_SweepState;
-	m_DigState = reference.m_DigState;
-	m_JumpState = reference.m_JumpState;
-	m_JumpTarget = reference.m_JumpTarget;
-	m_JumpingRight = reference.m_JumpingRight;
-	m_Crawling = reference.m_Crawling;
-	m_DigTunnelEndPos = reference.m_DigTunnelEndPos;
-	m_SweepCenterAimAngle = reference.m_SweepCenterAimAngle;
-	m_SweepRange = reference.m_SweepRange;
 
 	return 0;
 }
