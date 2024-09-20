@@ -638,6 +638,44 @@ namespace RTE {
 		float m_ArmSwingRate; //!< Controls the rate at which this AHuman's Arms follow the movement of its Legs while they're not holding device(s).
 		float m_DeviceArmSwayRate; //!< Controls the rate at which this AHuman's Arms follow the movement of its Legs while they're holding device(s). One-handed devices sway half as much as two-handed ones. Defaults to three quarters of Arm swing rate.
 
+		// AI States
+		enum DeviceHandlingState {
+			STILL = 0,
+			POINTING,
+			SCANNING,
+			AIMING,
+			FIRING,
+			THROWING,
+			DIGGING
+		};
+
+		enum SweepState {
+			NOSWEEP = 0,
+			SWEEPINGUP,
+			SWEEPUPPAUSE,
+			SWEEPINGDOWN,
+			SWEEPDOWNPAUSE
+		};
+
+		enum DigState {
+			NOTDIGGING = 0,
+			PREDIG,
+			STARTDIG,
+			TUNNELING,
+			FINISHINGDIG,
+			PAUSEDIGGER
+		};
+
+		enum JumpState {
+			NOTJUMPING = 0,
+			FORWARDJUMP,
+			PREUPJUMP,
+			UPJUMP,
+			APEXJUMP,
+			LANDJUMP
+		};
+
+
 #pragma region Event Handling
 		/// Event listener to be run while this AHuman's PieMenu is opened.
 		/// @param pieMenu The PieMenu this event listener needs to listen to. This will always be this' m_PieMenu and only exists for std::bind.

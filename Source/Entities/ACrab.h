@@ -324,6 +324,43 @@ namespace RTE {
 		// Whether mouse input should be locked to the aim range, or whether we can "wander" out. For static emplacements like turrets, this is good, but for moving things it's a bit sticky.
 		bool m_LockMouseAimInput;
 
+		// AI States
+		enum DeviceHandlingState {
+			STILL = 0,
+			POINTING,
+			SCANNING,
+			AIMING,
+			FIRING,
+			THROWING,
+			DIGGING
+		};
+
+		enum SweepState {
+			NOSWEEP = 0,
+			SWEEPINGUP,
+			SWEEPUPPAUSE,
+			SWEEPINGDOWN,
+			SWEEPDOWNPAUSE
+		};
+
+		enum DigState {
+			NOTDIGGING = 0,
+			PREDIG,
+			STARTDIG,
+			TUNNELING,
+			FINISHINGDIG,
+			PAUSEDIGGER
+		};
+
+		enum JumpState {
+			NOTJUMPING = 0,
+			FORWARDJUMP,
+			PREUPJUMP,
+			UPJUMP,
+			APEXJUMP,
+			LANDJUMP
+		};
+
 #pragma region Event Handling
 		/// Event listener to be run while this ACrab's PieMenu is opened.
 		/// @param pieMenu The PieMenu this event listener needs to listen to. This will always be this' m_PieMenu and only exists for std::bind.
