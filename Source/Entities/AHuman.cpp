@@ -1372,8 +1372,13 @@ void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
 		const float maxAngleDegrees = 40.0F;
 		float terrainRotationDegs = std::clamp((hitPosRight - hitPosLeft).GetAbsDegAngle(), -maxAngleDegrees, maxAngleDegrees);
 
+		//const float fastMovementAngleReduction = 10.0F;
+		//const float ourMaxMovementSpeed = std::max(m_Paths[FGROUND][WALK].GetSpeed(), m_Paths[BGROUND][WALK].GetSpeed()) * 0.5F;
+		//float speedRotationDegs = Lerp(0.0F, ourMaxMovementSpeed, fastMovementAngleReduction, -fastMovementAngleReduction, m_Vel.m_X);
+		float speedRotationDegs = 0.0F; // TODO, this makes things stumble more although looks a bit better
+
 		Matrix walkAngle;
-		walkAngle.SetDegAngle(terrainRotationDegs);
+		walkAngle.SetDegAngle(terrainRotationDegs + speedRotationDegs);
 		m_WalkAngle[whichLayer] = walkAngle;
 	}
 }
@@ -1409,18 +1414,41 @@ void AHuman::UpdateCrouching() {
 		float finalWalkPathYOffset = std::clamp(Lerp(0.0F, 1.0F, -m_WalkPathOffset.m_Y, desiredWalkPathYOffset, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
 		m_WalkPathOffset.m_Y = -finalWalkPathYOffset;
 
-		// If crouching, move at reduced speed
-		const float crouchSpeedMultiplier = 0.5F;
-		float travelSpeedMultiplier = Lerp(0.0F, m_MaxWalkPathCrouchShift, 1.0F, crouchSpeedMultiplier, -m_WalkPathOffset.m_Y);
-		m_Paths[FGROUND][WALK].SetTravelSpeedMultiplier(travelSpeedMultiplier);
-		m_Paths[BGROUND][WALK].SetTravelSpeedMultiplier(travelSpeedMultiplier);
-
 		// Adjust our X offset to try to keep our legs under our centre-of-mass
 		const float ratioBetweenBodyAndHeadToAimFor = 0.15F;
 		float predictedPosition = ((m_pHead->GetPos().m_X - m_Pos.m_X) * ratioBetweenBodyAndHeadToAimFor) + m_Vel.m_X;
 		m_WalkPathOffset.m_X = predictedPosition;
 	} else {
 		m_WalkPathOffset.Reset();
+	}
+}
+
+void AHuman::UpdateLimbPathSpeed() {
+	// Reset travel speed so limbpath GetSpeed() gives us sensible values
+	m_Paths[FGROUND][m_MoveState].SetTravelSpeedMultiplier(1.0F);
+	m_Paths[BGROUND][m_MoveState].SetTravelSpeedMultiplier(1.0F);
+
+	if (m_MoveState == WALK || m_MoveState == CRAWL) {
+		// If crouching, move at reduced speed
+		const float crouchSpeedMultiplier = 0.5F;
+		float travelSpeedMultiplier = Lerp(0.0F, m_MaxWalkPathCrouchShift, 1.0F, crouchSpeedMultiplier, -m_WalkPathOffset.m_Y);
+
+		// If we're moving slowly horizontally, move at reduced speed (otherwise our legs kick about wildly as we're not yet up to speed)
+		// Calculate a min multiplier that is based on the total walkpath speed (so a fast walkpath has a smaller multipler). This is so a slow walkpath gets up to speed faster
+		const float ourMaxMovementSpeed = std::max(m_Paths[FGROUND][m_MoveState].GetSpeed(), m_Paths[BGROUND][m_MoveState].GetSpeed()) * 0.5F;
+		const float minSpeed = 2.0F;
+		const float minMultiplier = minSpeed / ourMaxMovementSpeed;
+		travelSpeedMultiplier *= Lerp(0.0F, ourMaxMovementSpeed, minMultiplier, 1.0F, std::abs(m_Vel.m_X));
+
+		m_Paths[FGROUND][m_MoveState].SetTravelSpeedMultiplier(travelSpeedMultiplier);
+		m_Paths[BGROUND][m_MoveState].SetTravelSpeedMultiplier(travelSpeedMultiplier);
+
+		// Also extend our stride depending on speed
+		const float strideXMultiplier = Lerp(0.0F, ourMaxMovementSpeed, 0.8F, 1.2F, std::abs(m_Vel.m_X));
+		const float strideYMultiplier = Lerp(0.0F, ourMaxMovementSpeed, 0.9F, 1.1F, std::abs(m_Vel.m_X));
+		Vector scale = Vector(strideXMultiplier, strideYMultiplier);
+		m_Paths[FGROUND][m_MoveState].SetScaleMultiplier(scale);
+		m_Paths[BGROUND][m_MoveState].SetScaleMultiplier(scale);
 	}
 }
 
@@ -1946,6 +1974,8 @@ void AHuman::PreControllerUpdate() {
 		if (m_pBGLeg) {
 			UpdateWalkAngle(BGROUND);
 		}
+
+		UpdateLimbPathSpeed();
 
 		// WALKING, OR WE ARE JETPACKING AND STUCK
 		if (m_MoveState == WALK || (m_MoveState == JUMP && isStill)) {

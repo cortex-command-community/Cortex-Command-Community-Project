@@ -130,7 +130,7 @@ namespace RTE {
 
 		/// Gets the speed that a limb traveling this LimbPath should have.
 		/// @return A float describing the speed in m/s.
-		float GetSpeed() const { return m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier; }
+		float GetSpeed() const { return m_TravelSpeed[m_WhichSpeed] * GetTravelSpeedMultiplier(); }
 
 		/// Gets the speed that a limb traveling this LimbPath should have for the specified preset.
 		/// @param speedPreset Predefined speed preset to set the value for.
@@ -144,11 +144,19 @@ namespace RTE {
 
 		/// Sets the current travel speed multiplier.
 		/// @param newValue The new travel speed multiplier.
-		void SetTravelSpeedMultiplier(float newValue) { m_TravelSpeedMultiplier = newValue; }
+		void SetTravelSpeedMultiplier(float newValue) { m_CurrentTravelSpeedMultiplier = newValue; }
 
 		/// Gets the current travel speed multiplier.
 		/// @return The current travel speed multiplier.
-		float GetTravelSpeedMultiplier() const { return m_TravelSpeedMultiplier; }
+		float GetTravelSpeedMultiplier() const { return m_BaseTravelSpeedMultiplier * m_CurrentTravelSpeedMultiplier; }
+
+		/// Sets the current scale multiplier.
+		/// @param newValue The new scale multiplier.
+		void SetScaleMultiplier(Vector newValue) { m_CurrentScaleMultiplier = newValue; }
+
+		/// Gets the current scale multiplier.
+		/// @return The current scale multiplier.
+		Vector GetScaleMultiplier() const { return m_BaseScaleMultiplier * m_CurrentScaleMultiplier; }
 
 		/// Gets the force that a limb traveling this LimbPath can push against
 		/// stuff in the scene with. It will increase to the double if progress
@@ -173,12 +181,12 @@ namespace RTE {
 		/// Gets the total time that this entire path should take to travel along
 		/// with the current speed setting, including the start segments.
 		/// @return The total time (ms) this should take to travel along, if unobstructed.
-		float GetTotalPathTime() const { return ((m_TotalLength * c_MPP) / (m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier)) * 1000; }
+		float GetTotalPathTime() const { return ((m_TotalLength * c_MPP * GetScaleMultiplier().GetMagnitude()) / (m_TravelSpeed[m_WhichSpeed] * GetTravelSpeedMultiplier())) * 1000; }
 
 		/// Gets the total time that this path should take to travel along
 		/// with the current speed setting, NOT including the start segments.
 		/// @return The total time (ms) this should take to travel along, if unobstructed.
-		float GetRegularPathTime() const { return ((m_RegularLength * c_MPP) / (m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier)) * 1000; }
+		float GetRegularPathTime() const { return ((m_RegularLength * c_MPP * GetScaleMultiplier().GetMagnitude()) / (m_TravelSpeed[m_WhichSpeed] * GetTravelSpeedMultiplier())) * 1000; }
 
 		/// Gets the ratio of time since the path was restarted and the total time
 		/// it should take to travel along the path with the current speed setting,
@@ -381,8 +389,17 @@ namespace RTE {
 		// The constant speed that the limb traveling this path has in m/s.
 		float m_TravelSpeed[SPEEDCOUNT];
 
-		// The current travel speed multiplier
-		float m_TravelSpeedMultiplier;
+		// How close we must get to the end of each segment to consider it finished
+		float m_SegmentEndedThreshold;
+
+		// The base/current travel speed multiplier
+		float m_BaseTravelSpeedMultiplier;
+		float m_CurrentTravelSpeedMultiplier;
+
+		// The base/current scale multiplier (we extend the walkpath when running fast to take longer strides)
+		// This is a vector to allow scaling on seperate axis
+		Vector m_BaseScaleMultiplier;
+		Vector m_CurrentScaleMultiplier;
 
 		// The current speed setting.
 		int m_WhichSpeed;

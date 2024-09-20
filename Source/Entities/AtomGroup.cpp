@@ -1268,11 +1268,12 @@ bool AtomGroup::PushAsLimb(const Vector& jointPos, const Vector& velocity, const
 		                              owner->GetController()->IsState(MOVE_RIGHT) && pushImpulse.m_X < 0.0F;
 		if (againstTravelDirection) {
 			// Filter some of our impulse out. We're pushing against an obstacle, but we don't want to kick backwards!
-			const float againstIntendedDirectionMultiplier = 0.5F;
+			const float againstIntendedDirectionMultiplier = 0.3F;
 
 			if (!owner->GetController()->IsState(BODY_CROUCH) && !owner->GetController()->IsState(MOVE_DOWN)) {
 				// Translate it into to upwards motion to step over what we're walking into instead ;)
-				pushImpulse.m_Y -= std::abs(pushImpulse.m_X * (1.0F - againstIntendedDirectionMultiplier));
+				// Disabled just now.. causes us to jump up at high speeds
+				//pushImpulse.m_Y -= std::abs(pushImpulse.m_X * (1.0F - againstIntendedDirectionMultiplier));
 			}
 
 			pushImpulse.m_X *= againstIntendedDirectionMultiplier;

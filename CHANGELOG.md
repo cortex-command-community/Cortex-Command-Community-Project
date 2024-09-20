@@ -31,7 +31,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - New `SoundContainer` features.  
 	Lua property `Paused` (R/W) to pause or unpause all sounds of a SoundContainer. Newly played sounds will not begin playback until unpaused.  
 	Lua function `GetAudibleVolume` to get the real audible volume of a SoundContainer's sounds as a float from 0 to 1. This accounts for literally everything, including game volume.
-	
+
+- New `LimbPath` features.
+	New `LimbPath` INI property `ScaleMultiplier`, which is a vector. This will scale the X/Y axes of the limbpath accordingly, allowing for easily adjusting limbpaths to differently sized actors.  
+	New `LimbPath` INI property `SegmentEndedThreshold`, which defines the distance the limb must be from the end of the segment before it's considered complete. This defaults to 2.5.  
+	The `TravelSpeedMultiplier` property has been adjusted to work more consistently when interacting with script.
+
 - New `AEmitter` and `PEmitter` INI and Lua (R/W) property `PlayBurstSound` which denotes whether the BurstSound should play when appropriate. This should not be confused for a trigger - it's just a enable/disable toggle to avoid having to remove and add BurstSound altogether.
 
 - Allow lua scripts to use LuaJIT's BitOp module (see https://bitop.luajit.org/api.html)
@@ -40,10 +45,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Changed</b></summary>
 
-- Conquest activities will once again fall-back to using base dropships and rockets if a random selection of the selected tech's craft can't find one capable of carrying passengers and/or cargo.
-
-- All music-related functionality from AudioMan has been removed due to the addition of the MusicMan. Generic DynamicSongs have been put in to use instead.
-	Mod activities that used to queue up all the vanilla music should now instead call, for example, `MusicMan:PlayDynamicSong("Generic Battle Music")`
+- Improved navigation, making running and fast walkpaths much more consistent.
 
 - Increased fog-of-war resolution in all vanilla activities, and conquest, from 20x20 to 4x4.
 	The Ronin Scrambler, the basic scanner, and `SceneMan:CastUnseenRay` have been changed to accomodate fog-of-war resolutions as fine as 1x1 and as course as 20x20.
@@ -52,7 +54,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - All vanilla scenario activities have had their settings polished, respecting settings which make sense and disabling settings which don't.
 	You can now have fog of war in the test scene, and can no longer require path to orbit in Zero-G Diggers-Only One Man Army.
 
-- The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
+- Conquest activities will once again fall-back to using base dropships and rockets if a random selection of the selected tech's craft can't find one capable of carrying passengers and/or cargo.
 
 - `MovableMan:OpenAllDoors()`, when passed `NOTEAM`, will now open/close doors specifically for `NOTEAM` (instead of all doors).
 
@@ -71,6 +73,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed a bug in Decision Day that could cause an error when trying to set the camera's scroll target, in addition to the previous issue.
 
 - Fixed a bug in Harvester and Massacre where setting deploy units would auto-assign units of the wrong tech.
+
+</details>
+
+<details><summary><b>Removed</b></summary>
+
+- All music-related functionality from AudioMan has been removed due to the addition of the MusicMan. Generic DynamicSongs have been put in to use instead.
+	Mod activities that used to queue up all the vanilla music should now instead call, for example, `MusicMan:PlayDynamicSong("Generic Battle Music")`
+
+- The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
 
 </details>
 

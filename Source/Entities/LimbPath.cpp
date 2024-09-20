@@ -27,7 +27,11 @@ void LimbPath::Clear() {
 	for (int i = 0; i < SPEEDCOUNT; ++i) {
 		m_TravelSpeed[i] = 0.0;
 	}
-	m_TravelSpeedMultiplier = 1.0F;
+	m_SegmentEndedThreshold = 2.5F;
+	m_BaseTravelSpeedMultiplier = 1.0F;
+	m_CurrentTravelSpeedMultiplier = 1.0F;
+	m_BaseScaleMultiplier = Vector(1.0F, 1.0F);
+	m_CurrentScaleMultiplier = Vector(1.0F, 1.0F);
 	m_WhichSpeed = NORMAL;
 	m_PushForce = 0.0;
 	m_JointPos.Reset();
@@ -103,7 +107,11 @@ int LimbPath::Create(const LimbPath& reference) {
 	for (int i = 0; i < SPEEDCOUNT; ++i) {
 		m_TravelSpeed[i] = reference.m_TravelSpeed[i];
 	}
-	m_TravelSpeedMultiplier = reference.m_TravelSpeedMultiplier;
+	m_SegmentEndedThreshold = reference.m_SegmentEndedThreshold;
+	m_BaseTravelSpeedMultiplier = reference.m_BaseTravelSpeedMultiplier;
+	m_CurrentTravelSpeedMultiplier = reference.m_CurrentTravelSpeedMultiplier;
+	m_BaseScaleMultiplier = reference.m_BaseScaleMultiplier;
+	m_CurrentScaleMultiplier = reference.m_CurrentScaleMultiplier;
 	m_PushForce = reference.m_PushForce;
 	m_TimeLeft = reference.m_TimeLeft;
 	m_TotalLength = reference.m_TotalLength;
@@ -132,6 +140,7 @@ int LimbPath::ReadProperty(const std::string_view& propName, Reader& reader) {
 		              }
 	              });
 	MatchProperty("EndSegCount", { reader >> m_FootCollisionsDisabledSegment; });
+	MatchProperty("SegmentEndedThreshold", { reader >> m_SegmentEndedThreshold; });
 
 	MatchProperty("SlowTravelSpeed", {
 		reader >> m_TravelSpeed[SLOW];
@@ -145,7 +154,8 @@ int LimbPath::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader >> m_TravelSpeed[FAST];
 		// m_TravelSpeed[FAST] = m_TravelSpeed[FAST] * 2;
 	});
-	MatchProperty("TravelSpeedMultiplier", { reader >> m_TravelSpeedMultiplier; });
+	MatchProperty("TravelSpeedMultiplier", { reader >> m_BaseTravelSpeedMultiplier; });
+	MatchProperty("ScaleMultiplier", { reader >> m_BaseScaleMultiplier; });
 	MatchProperty("PushForce", {
 		reader >> m_PushForce;
 		// m_PushForce = m_PushForce / 1.5;
@@ -162,24 +172,21 @@ Vector LimbPath::RotatePoint(const Vector& point) const {
 int LimbPath::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewProperty("StartOffset");
-	writer << m_Start;
-	writer.NewProperty("StartSegCount");
-	writer << m_StartSegCount;
+	writer.NewPropertyWithValue("StartOffset", m_Start);
+	writer.NewPropertyWithValue("StartSegCount", m_StartSegCount);
 	for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr) {
 		writer.NewProperty("AddSegment");
 		writer << *itr;
 	}
-	writer.NewProperty("SlowTravelSpeed");
-	writer << m_TravelSpeed[SLOW];
-	writer.NewProperty("NormalTravelSpeed");
-	writer << m_TravelSpeed[NORMAL];
-	writer.NewProperty("FastTravelSpeed");
-	writer << m_TravelSpeed[FAST];
-	writer.NewProperty("TravelSpeedMultiplier");
-	writer << m_TravelSpeedMultiplier;
-	writer.NewProperty("PushForce");
-	writer << m_PushForce;
+	writer.NewPropertyWithValue("EndSegCount", m_FootCollisionsDisabledSegment);
+	writer.NewPropertyWithValue("SegmentEndedThreshold", m_SegmentEndedThreshold);
+
+	writer.NewPropertyWithValue("SlowTravelSpeed", m_TravelSpeed[SLOW]);
+	writer.NewPropertyWithValue("NormalTravelSpeed", m_TravelSpeed[NORMAL]);
+	writer.NewPropertyWithValue("FastTravelSpeed", m_TravelSpeed[FAST]);
+	writer.NewPropertyWithValue("TravelSpeedMultiplier", m_BaseTravelSpeedMultiplier);
+	writer.NewPropertyWithValue("ScaleMultiplier", m_BaseScaleMultiplier);
+	writer.NewPropertyWithValue("PushForce", m_PushForce);
 
 	return 0;
 }
@@ -214,7 +221,7 @@ Vector LimbPath::GetProgressPos() {
 Vector LimbPath::GetCurrentSegTarget() {
 	Vector returnVec(m_Start);
 	if (IsStaticPoint()) {
-		return m_JointPos + RotatePoint(returnVec);
+		return m_JointPos + (RotatePoint(returnVec) * GetScaleMultiplier());
 	}
 
 	std::deque<Vector>::const_iterator itr;
@@ -227,13 +234,13 @@ Vector LimbPath::GetCurrentSegTarget() {
 		returnVec += *m_CurrentSegment;
 	}
 
-	return m_JointPos + RotatePoint(returnVec);
+	return m_JointPos + (RotatePoint(returnVec) * GetScaleMultiplier());
 }
 
 Vector LimbPath::GetCurrentVel(const Vector& limbPos) {
 	Vector returnVel;
 	Vector distVect = g_SceneMan.ShortestDistance(limbPos, GetCurrentSegTarget());
-	float adjustedTravelSpeed = (m_TravelSpeed[m_WhichSpeed] / (1.0F + std::abs(m_JointVel.GetY()) * 0.1F)) * m_TravelSpeedMultiplier;
+	float adjustedTravelSpeed = (m_TravelSpeed[m_WhichSpeed] / (1.0F + std::abs(m_JointVel.GetY()) * 0.1F)) * GetTravelSpeedMultiplier();
 
 	if (IsStaticPoint()) {
 		returnVel = distVect * c_MPP / 0.020 /* + m_JointVel*/;
@@ -290,9 +297,7 @@ void LimbPath::ReportProgress(const Vector& limbPos) {
 		float distance = distVec.GetMagnitude();
 		float segMag = (*(m_CurrentSegment)).GetMagnitude();
 
-		// TODO: Don't hardcode this!")
-		const float segmentEndedThreshold = 1.5F;
-		if (distance < segmentEndedThreshold) {
+		if (distance < m_SegmentEndedThreshold) {
 			if (++(m_CurrentSegment) == m_Segments.end()) {
 				--(m_CurrentSegment);
 				// Get normalized progress measure toward the target.
@@ -301,7 +306,7 @@ void LimbPath::ReportProgress(const Vector& limbPos) {
 			}
 			// Next segment!
 			else {
-				m_SegProgress = 0.0;
+				m_SegProgress = 0.0F;
 				m_SegTimer.Reset();
 				m_Ended = false;
 			}

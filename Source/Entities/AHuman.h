@@ -415,13 +415,6 @@ namespace RTE {
 		/// held dormant in an inventory.
 		void ResetAllTimers() override;
 
-		/// Detects slopes in terrain and updates the walk path rotation for the corresponding Layer accordingly.
-		/// @param whichLayer The Layer in question.
-		void UpdateWalkAngle(AHuman::Layer whichLayer);
-
-		/// Detects overhead ceilings and crouches for them.
-		void UpdateCrouching();
-
 		/// Gets the walk path rotation for the specified Layer.
 		/// @param whichLayer The Layer in question.
 		/// @return The walk angle in radians.
@@ -569,6 +562,16 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene.
 		/// @param progressScalar A normalized scalar that determines the magnitude of the reticle, to indicate force in the throw.
 		void DrawThrowingReticle(BITMAP* targetBitmap, const Vector& targetPos = Vector(), float progressScalar = 1.0F) const;
+
+		/// Detects slopes in terrain and updates the walk path rotation for the corresponding Layer accordingly.
+		/// @param whichLayer The Layer in question.
+		void UpdateWalkAngle(AHuman::Layer whichLayer);
+
+		/// Detects overhead ceilings and crouches for them.
+		void UpdateCrouching();
+
+		/// Updates our limbpath speed based on our current movement speed and style (crouching, walking etc).
+		void UpdateLimbPathSpeed();
 
 		// Member variables
 		static Entity::ClassInfo m_sClass;
