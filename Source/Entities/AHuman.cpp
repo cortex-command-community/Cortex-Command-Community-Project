@@ -1407,7 +1407,7 @@ void AHuman::UpdateCrouching() {
 		desiredWalkPathYOffset = m_CrouchAmountOverride * m_MaxWalkPathCrouchShift;
 	} else if (!m_Controller.IsState(BODY_PRONE)) {
 		if (m_Controller.IsState(BODY_CROUCH)) {
-			// Manually crouch fully is the crouch controller state is set
+			// Manually crouch fully when the crouch controller state is set
 			desiredWalkPathYOffset = m_MaxWalkPathCrouchShift;
 		} else if (!m_Controller.IsState(BODY_JUMP) && m_pHead) {
 			// Otherwise figure out auto crouching
@@ -1435,20 +1435,14 @@ void AHuman::UpdateCrouching() {
 	}
 
 	float finalWalkPathYOffset = std::clamp(Lerp(0.0F, 1.0F, -m_WalkPathOffset.m_Y, desiredWalkPathYOffset, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
+	m_CrouchAmount = std::clamp(0.0F, 1.0F, finalWalkPathYOffset / m_MaxWalkPathCrouchShift - 0.5F); // because it's lerped, it never hits 1 exactly. thus the -0.5F
 	m_WalkPathOffset.m_Y = -finalWalkPathYOffset;
-	
-	m_CrouchAmount = desiredWalkPathYOffset / m_MaxWalkPathCrouchShift;
 
 	// Adjust our X offset to try to keep our legs under our centre-of-mass
 	const float ratioBetweenBodyAndHeadToAimFor = 0.15F;
 	Vector headPos = m_pHead ? m_pHead->GetPos() : m_Pos;
 	float predictedPosition = ((headPos.m_X - m_Pos.m_X) * ratioBetweenBodyAndHeadToAimFor) + m_Vel.m_X;
 	m_WalkPathOffset.m_X = predictedPosition;
-	if (m_CrouchAmount > 0.9F && !m_MoveState == WALK ) {
-		// Let the CrouchLimbPath take over here
-		m_WalkPathOffset.m_Y = 0.0F;
-		m_WalkPathOffset.m_X = 0.0F;
-	}
 }
 
 void AHuman::UpdateLimbPathSpeed() {
@@ -1457,9 +1451,13 @@ void AHuman::UpdateLimbPathSpeed() {
 	m_Paths[BGROUND][m_MoveState].SetTravelSpeedMultiplier(1.0F);
 
 	if (m_MoveState == WALK || m_MoveState == RUN || m_MoveState == CRAWL) {
+		float travelSpeedMultiplier = 1.0F;
+		
 		// If crouching, move at reduced speed
-		const float crouchSpeedMultiplier = 0.7F;
-		float travelSpeedMultiplier = Lerp(0.0F, m_MaxWalkPathCrouchShift, 1.0F, crouchSpeedMultiplier, -m_WalkPathOffset.m_Y);
+		if (m_MoveState == WALK) {
+			const float crouchSpeedMultiplier = 0.7F;
+			travelSpeedMultiplier *= Lerp(0.0F, 1.0F, 1.0F, crouchSpeedMultiplier, m_CrouchAmount);
+		}
 
 		// If we're moving slowly horizontally, move at reduced speed (otherwise our legs kick about wildly as we're not yet up to speed)
 		// Calculate a min multiplier that is based on the total walkpath speed (so a fast walkpath has a smaller multipler). This is so a slow walkpath gets up to speed faster
@@ -1575,7 +1573,7 @@ void AHuman::PreControllerUpdate() {
 			if (prone) {
 				// Don't go back to prone if we're already prone, the player has to let go of the crouch button first. If already laying down, just stay put.
 				m_MoveState = m_ProneState == NOTPRONE ? PRONE : NOMOVE;
-			} else if (m_CrouchAmount > 0.9F) {
+			} else if (m_CrouchAmount >= 1.0F) {
 				// Fully crouching will set the appropriate state so we can use CrouchLimbPath
 				m_MoveState = CROUCH;
 			} else {
@@ -1706,13 +1704,15 @@ void AHuman::PreControllerUpdate() {
 
 	// TODO: make the delay data driven by both the actor and the device!
 	//
-	if (isSharpAiming && m_Status == STABLE && (m_MoveState == STAND || m_MoveState == PRONE || m_MoveState == NOMOVE || m_MoveState == WALK) && m_Vel.MagnitudeIsLessThan(5.0F) && GetEquippedItem()) {
+	if (isSharpAiming && m_Status == STABLE && m_Vel.MagnitudeIsLessThan(5.0F) && GetEquippedItem() &&
+	    (m_MoveState == STAND || m_MoveState == CROUCH || m_MoveState == PRONE || m_MoveState == NOMOVE || m_MoveState == WALK)) {
 		float aimMag = analogAim.GetMagnitude();
 
 		// If aim sharp is being done digitally, then translate to full analog aim mag
 		if (aimMag < 0.1F) {
 			aimMag = 1.0F;
 		}
+		
 		if (m_MoveState == WALK) {
 			aimMag *= 0.3F;
 		}
@@ -1991,6 +1991,11 @@ void AHuman::PreControllerUpdate() {
 
 	UpdateCrouching();
 
+	Vector pathOffset;
+	if (m_MoveState == WALK) {
+		pathOffset = m_WalkPathOffset;
+	}
+
 	if (m_Status == STABLE && !m_LimbPushForcesAndCollisionsDisabled && m_MoveState != NOMOVE) {
 		// This exists to support disabling foot collisions if the limbpath has that flag set.
 		if ((m_pFGFootGroup->GetAtomCount() == 0 && m_BackupFGFootGroup->GetAtomCount() > 0) != m_Paths[FGROUND][m_MoveState].FootCollisionsShouldBeDisabled()) {
@@ -2033,7 +2038,7 @@ void AHuman::PreControllerUpdate() {
 					m_StrideTimer.Reset();
 				}
 				Vector jointPos = m_Pos + RotateOffset(m_pFGLeg->GetParentOffset());
-				m_ArmClimbing[BGROUND] = !m_pFGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][movementPath], deltaTime, &restarted, false, Vector(0.0F, m_Paths[FGROUND][movementPath].GetLowestY()), m_WalkPathOffset);
+				m_ArmClimbing[BGROUND] = !m_pFGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][movementPath], deltaTime, &restarted, false, Vector(0.0F, m_Paths[FGROUND][movementPath].GetLowestY()), pathOffset);
 			} else {
 				m_ArmClimbing[BGROUND] = false;
 			}
@@ -2044,7 +2049,7 @@ void AHuman::PreControllerUpdate() {
 					m_StrideTimer.Reset();
 				}
 				Vector jointPos = m_Pos + RotateOffset(m_pBGLeg->GetParentOffset());
-				m_ArmClimbing[FGROUND] = !m_pBGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][movementPath], deltaTime, &restarted, false, Vector(0.0F, m_Paths[BGROUND][movementPath].GetLowestY()), m_WalkPathOffset);
+				m_ArmClimbing[FGROUND] = !m_pBGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][movementPath], deltaTime, &restarted, false, Vector(0.0F, m_Paths[BGROUND][movementPath].GetLowestY()), pathOffset);
 			} else {
 				if (m_pBGLeg) {
 					m_pBGFootGroup->FlailAsLimb(m_Pos, RotateOffset(m_pBGLeg->GetParentOffset()), m_pBGLeg->GetMaxLength(), m_PrevVel, m_AngularVel, m_pBGLeg->GetMass(), deltaTime);
@@ -2208,12 +2213,12 @@ void AHuman::PreControllerUpdate() {
 
 					if (m_pFGLeg) {
 						Vector jointPos = m_Pos.GetFloored() + m_pFGLeg->GetParentOffset().GetXFlipped(m_HFlipped);
-						m_pFGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][STAND], deltaTime, nullptr, !m_pBGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY()), m_WalkPathOffset);
+						m_pFGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][STAND], deltaTime, nullptr, !m_pBGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY()), pathOffset);
 					}
 
 					if (m_pBGLeg) {
 						Vector jointPos = m_Pos.GetFloored() + m_pBGLeg->GetParentOffset().GetXFlipped(m_HFlipped);
-						m_pBGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][STAND], deltaTime, nullptr, !m_pFGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY()), m_WalkPathOffset);
+						m_pBGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][STAND], deltaTime, nullptr, !m_pFGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY()), pathOffset);
 					}
 				}
 			}
@@ -2383,7 +2388,7 @@ void AHuman::Update() {
 			m_SharpAimMaxedOut = true;
 		} else if (m_MoveState == WALK) {
 			maxLength *= 0.7F;
-		} else if (m_MoveState == CROUCH) {
+		} else if (m_MoveState == CROUCH || m_MoveState == PRONE) {
 			// Only when crouching still, otherwise it's WALK
 			maxLength *= 1.2F;
 		}
@@ -2488,7 +2493,7 @@ void AHuman::Update() {
 			}
 			
 			float rotDiff = rot - rotTarget;
-			if (std::abs(rotDiff) > c_PI) {
+			if (std::abs(rotDiff) > c_PI * 0.75F) {
 				// We've h-flipped, so just snap to new orientation
 				rot = rotTarget;
 			} else {
