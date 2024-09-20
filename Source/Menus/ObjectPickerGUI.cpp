@@ -543,9 +543,7 @@ bool ObjectPickerGUI::HandleMouseEvents() {
 				if (guiEvent.GetMsg() == GUIListBox::MouseDown && (guiEvent.GetData() & GUIListBox::MOUSE_LEFT)) {
 					m_ObjectsList->ScrollToSelected();
 					if (const GUIListPanel::Item* objectListItem = m_ObjectsList->GetSelected()) {
-						if (objectListItem->m_ExtraIndex >= 0) {
-							ToggleObjectsListModuleGroupExpansion(objectListItem->m_ExtraIndex);
-						} else if (objectListItem->m_pEntity) {
+						if (objectListItem->m_pEntity) {
 							SelectObjectByIndex(m_ObjectsList->GetSelectedIndex());
 							return true;
 						}
