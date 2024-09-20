@@ -16,12 +16,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	New `Actor` Lua property `JumpHeight` (R) to estimate the jump height of the actor (in metres), based on the actor's jetpack and weight. Actors without a jetpack return 0.  
 	The new function `GetPathFindingFlyingJumpHeight()` can be used to get a jumpHeight that allows flying (i.e infinite jump height). This is also the value that `ACRocket`s and `ACDropships` return for `JumpHeight`.
 
-- Improved Locomotion.
+- Improved locomotion.
 	Added the ability to run. When running, you cannot sharpaim whatsoever.
-	Added the ability to manually crouch. When crouching, your sharpaim distance is sligtly increased.
+	Added the ability to manually crouch. When crouching, your sharpaim distance is slightly increased.
 	Players on PC can enable running by holding the shift key, or crouch by holding control. Players using the arrow keys can use right ctrl/shift. Controllers can run by clicking in the left stick, or crouch by holding the left stick down. Prone on controllers is now performed by clicking in the right stick. SNES/d-pad controllers run using the right bumper.
-	Added new `MovementState` type `RUN` for script.
-	Added new `Controller` state `WALKCROUCH` for crouching, and `PRONE` for prone. The existing `CROUCH` state has been deprecated, as it referred to PRONE. 
+	Prone input now immediately throws you to the ground instead of crouching first.
+	Added new `MovementState` type `RUN` for scripts.
+	Added new `Controller` state `WALKCROUCH` for crouching, and `PRONE` for prone. The existing `CROUCH` state has been deprecated, as it referred to PRONE.
+	Added new `Actor` INI and Lua (R/W) property `CanRun` which denotes whether the Actor can run or not.
 
 - New music system, including a dynamic horizontal sequencing system, under the new music manager `MusicMan`.  
 	`PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to play a new DynamicSong.
@@ -89,6 +91,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	Mod activities that used to queue up all the vanilla music should now instead call, for example, `MusicMan:PlayDynamicSong("Generic Battle Music")`
 
 - The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
+
+- Removed `AHUman` property MaxCrouchRotation. CrouchRotAngleTarget is now used.
 
 </details>
 

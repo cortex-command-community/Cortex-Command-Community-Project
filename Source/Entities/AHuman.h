@@ -36,7 +36,7 @@ namespace RTE {
 		enum ProneState {
 			NOTPRONE = 0,
 			GOPRONE,
-			PRONE,
+			LAYINGPRONE,
 			PRONESTATECOUNT
 		};
 
@@ -523,17 +523,9 @@ namespace RTE {
 		/// @param newValue The new value for this AHuman's max walkpath adjustment.
 		void SetMaxWalkPathCrouchShift(float newValue) { m_MaxWalkPathCrouchShift = newValue; }
 
-		/// Gets this AHuman's max crouch rotation to duck below low ceilings.
-		/// @return This AHuman's max crouch rotation adjustment.
-		float GetMaxCrouchRotation() const { return m_MaxCrouchRotation; }
-
-		/// Sets this AHuman's max crouch rotation to duck below low ceilings.
-		/// @param newValue The new value for this AHuman's max crouch rotation adjustment.
-		void SetMaxCrouchRotation(float newValue) { m_MaxCrouchRotation = newValue; }
-
 		/// Gets this AHuman's current crouch amount. 0.0 == fully standing, 1.0 == fully crouched.
 		/// @return This AHuman's current crouch amount.
-		float GetCrouchAmount() const { return (m_WalkPathOffset.m_Y * -1.0F) / m_MaxWalkPathCrouchShift; }
+		float GetCrouchAmount() const { return m_CrouchAmount; }
 
 		/// Gets this AHuman's current crouch amount override. 0.0 == fully standing, 1.0 == fully crouched, -1 == no override.
 		/// @return This AHuman's current crouch amount override.
@@ -613,10 +605,10 @@ namespace RTE {
 		ProneState m_ProneState;
 		// Timer for the going prone procedural animation
 		Timer m_ProneTimer;
-		// The maximum amount our walkpath can be shifted upwards to crouch and avoid ceilings above us
+		// The maximum amount our walkpath can be shifted upwards to crouch, whether manually or automatically.
 		float m_MaxWalkPathCrouchShift;
-		// The maximum amount we will duck our head down to avoid obstacles above us.
-		float m_MaxCrouchRotation;
+		// The current crouching amount from 0.0 to 1.0, where 1.0 is applying maximum walk path shift.
+		float m_CrouchAmount;
 		// The script-set forced crouching amount. 0.0 == fully standing, 1.0 == fully crouched, -1 == no override.
 		float m_CrouchAmountOverride;
 		// Limb paths for different movement states.

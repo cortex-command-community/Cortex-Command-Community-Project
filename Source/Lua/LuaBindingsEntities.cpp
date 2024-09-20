@@ -175,6 +175,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 	    .property("DeviceSwitchSound", &Actor::GetDeviceSwitchSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ActorSetDeviceSwitchSound)
 	    .property("ImpulseDamageThreshold", &Actor::GetTravelImpulseDamage, &Actor::SetTravelImpulseDamage)
 	    .property("StableRecoveryDelay", &Actor::GetStableRecoverDelay, &Actor::SetStableRecoverDelay)
+	    .property("CanRun", &Actor::GetCanRun, &Actor::SetCanRun)
 	    .property("Status", &Actor::GetStatus, &Actor::SetStatus)
 	    .property("Health", &Actor::GetHealth, &Actor::SetHealth)
 	    .property("PrevHealth", &Actor::GetPrevHealth)
@@ -266,12 +267,13 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 	                     luabind::value("DYING", Actor::Status::DYING),
 	                     luabind::value("DEAD", Actor::Status::DEAD)]
 	    .enum_("MovementState")[luabind::value("NOMOVE", Actor::MovementState::NOMOVE),
+	                            luabind::value("CROUCH", Actor::MovementState::CROUCH),
 	                            luabind::value("STAND", Actor::MovementState::STAND),
 	                            luabind::value("WALK", Actor::MovementState::WALK),
 	                            luabind::value("RUN", Actor::MovementState::RUN),
 	                            luabind::value("JUMP", Actor::MovementState::JUMP),
 	                            luabind::value("DISLODGE", Actor::MovementState::DISLODGE),
-	                            luabind::value("CROUCH", Actor::MovementState::CROUCH),
+	                            luabind::value("PRONE", Actor::MovementState::PRONE),
 	                            luabind::value("CRAWL", Actor::MovementState::CRAWL),
 	                            luabind::value("ARMCRAWL", Actor::MovementState::ARMCRAWL),
 	                            luabind::value("CLIMB", Actor::MovementState::CLIMB),
@@ -405,7 +407,6 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AHuman) {
 	    .property("FGFoot", &AHuman::GetFGFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetFGFoot)
 	    .property("BGFoot", &AHuman::GetBGFoot, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetBGFoot)
 	    .property("MaxWalkPathCrouchShift", &AHuman::GetMaxWalkPathCrouchShift, &AHuman::SetMaxWalkPathCrouchShift)
-	    .property("MaxCrouchRotation", &AHuman::GetMaxCrouchRotation, &AHuman::SetMaxCrouchRotation)
 	    .property("CrouchAmount", &AHuman::GetCrouchAmount)
 	    .property("CrouchAmountOverride", &AHuman::GetCrouchAmountOverride, &AHuman::SetCrouchAmountOverride)
 	    .property("StrideSound", &AHuman::GetStrideSound, &LuaAdaptersPropertyOwnershipSafetyFaker::AHumanSetStrideSound)
@@ -466,7 +467,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AHuman) {
 	                             luabind::value("THROWING_RELEASE", AHuman::UpperBodyState::THROWING_RELEASE)]
 	    .enum_("ProneState")[luabind::value("NOTPRONE", AHuman::ProneState::NOTPRONE),
 	                         luabind::value("GOPRONE", AHuman::ProneState::GOPRONE),
-	                         luabind::value("PRONE", AHuman::ProneState::PRONE),
+	                         luabind::value("PRONE", AHuman::ProneState::LAYINGPRONE),
 	                         luabind::value("PRONESTATECOUNT", AHuman::ProneState::PRONESTATECOUNT)]
 	    .enum_("Layer")[luabind::value("FGROUND", AHuman::Layer::FGROUND),
 	                    luabind::value("BGROUND", AHuman::Layer::BGROUND)]

@@ -39,12 +39,13 @@ namespace RTE {
 		// TODO - move into ALocomotable intermediate class under ACrab/AHuman
 		enum MovementState {
 			NOMOVE = 0,
+			CROUCH,
 			STAND,
 			WALK,
 			RUN,
 			JUMP,
 			DISLODGE,
-			CROUCH,
+			PRONE,
 			CRAWL,
 			ARMCRAWL,
 			CLIMB,
@@ -768,6 +769,14 @@ namespace RTE {
 		/// @param newRecoverDelay The recovery delay, in MS.
 		void SetStableRecoverDelay(int newRecoverDelay) { m_StableRecoverDelay = newRecoverDelay; }
 
+		/// Gets whether this can run or not.
+		/// @return Whether this can run or not.
+		int GetCanRun() const { return m_CanRun; }
+
+		/// Sets whether this can run or not.
+		/// @param newCanRun The new value for whether this can run or not.
+		void SetCanRun(bool newCanRun) { m_CanRun = newCanRun; }
+
 		/// Gets the distance in which the Actor will have considered itself to have reached it's waypoint.
 		/// @return The move proximity limit.
 		float GetMoveProximityLimit() const { return m_MoveProximityLimit; }
@@ -874,6 +883,8 @@ namespace RTE {
 		float m_GoldCarried;
 		// Whether or not any gold was picked up this frame.
 		bool m_GoldPicked;
+		// Whether this can engage RUN state or not
+		bool m_CanRun;
 		// Aiming state
 		char m_AimState;
 		// The arc range of the aiming angle, in each direction, in radians. Eg if HalfPI, it means full 180 degree range

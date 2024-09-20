@@ -55,7 +55,7 @@ void AHuman::Clear() {
 	m_ProneState = NOTPRONE;
 	m_ProneTimer.Reset();
 	m_MaxWalkPathCrouchShift = 6.0F;
-	m_MaxCrouchRotation = c_QuarterPI * 0.85F;
+	m_CrouchAmount = 0.0F;
 	m_CrouchAmountOverride = -1.0F;
 	for (int i = 0; i < MOVEMENTSTATECOUNT; ++i) {
 		m_Paths[FGROUND][i].Reset();
@@ -64,6 +64,8 @@ void AHuman::Clear() {
 		m_Paths[BGROUND][i].Terminate();
 		m_RotAngleTargets[i] = 0.0F;
 	}
+	// Default CROUCH RotAngleTarget to a more sensible number
+	m_RotAngleTargets[CROUCH] = c_QuarterPI * 0.85F;
 	m_Aiming = false;
 	m_ArmClimbing[FGROUND] = false;
 	m_ArmClimbing[BGROUND] = false;
@@ -213,7 +215,6 @@ int AHuman::Create(const AHuman& reference) {
 	m_BackupBGFootGroup->SetLimbPos(atomGroupToUseAsFootGroupBG->GetLimbPos());
 
 	m_MaxWalkPathCrouchShift = reference.m_MaxWalkPathCrouchShift;
-	m_MaxCrouchRotation = reference.m_MaxCrouchRotation;
 
 	if (reference.m_StrideSound) {
 		m_StrideSound = dynamic_cast<SoundContainer*>(reference.m_StrideSound->Clone());
@@ -293,7 +294,6 @@ int AHuman::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_BackupBGFootGroup->RemoveAllAtoms();
 	});
 	MatchProperty("MaxWalkPathCrouchShift", { reader >> m_MaxWalkPathCrouchShift; });
-	MatchProperty("MaxCrouchRotation", { reader >> m_MaxCrouchRotation; });
 	MatchProperty("StrideSound", {
 		m_StrideSound = new SoundContainer;
 		reader >> m_StrideSound;
@@ -302,8 +302,8 @@ int AHuman::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("StandLimbPathBG", { reader >> m_Paths[BGROUND][STAND]; });
 	MatchProperty("WalkLimbPath", { reader >> m_Paths[FGROUND][WALK]; });
 	MatchProperty("RunLimbPath", { reader >> m_Paths[FGROUND][RUN]; });
-	MatchProperty("CrouchLimbPath", { reader >> m_Paths[FGROUND][CROUCH]; });
-	MatchProperty("CrouchLimbPathBG", { reader >> m_Paths[BGROUND][CROUCH]; });
+	MatchProperty("CrouchLimbPath", { reader >> m_Paths[FGROUND][PRONE]; });
+	MatchProperty("CrouchLimbPathBG", { reader >> m_Paths[BGROUND][PRONE]; });
 	MatchProperty("CrawlLimbPath", { reader >> m_Paths[FGROUND][CRAWL]; });
 	MatchProperty("ArmCrawlLimbPath", { reader >> m_Paths[FGROUND][ARMCRAWL]; });
 	MatchProperty("ClimbLimbPath", { reader >> m_Paths[FGROUND][CLIMB]; });
@@ -353,8 +353,6 @@ int AHuman::Save(Writer& writer) const {
 	writer << m_pBGFootGroup;
 	writer.NewProperty("MaxWalkPathCrouchShift");
 	writer << m_MaxWalkPathCrouchShift;
-	writer.NewProperty("MaxCrouchRotation");
-	writer << m_MaxCrouchRotation;
 	writer.NewProperty("StrideSound");
 	writer << m_StrideSound;
 
@@ -367,7 +365,7 @@ int AHuman::Save(Writer& writer) const {
 	writer.NewProperty("RunLimbPath");
 	writer << m_Paths[FGROUND][RUN];
 	writer.NewProperty("CrouchLimbPath");
-	writer << m_Paths[FGROUND][CROUCH];
+	writer << m_Paths[FGROUND][PRONE];
 	writer.NewProperty("CrawlLimbPath");
 	writer << m_Paths[FGROUND][CRAWL];
 	writer.NewProperty("ArmCrawlLimbPath");
@@ -382,7 +380,7 @@ int AHuman::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("StandRotAngleTarget", m_RotAngleTargets[STAND]);
 	writer.NewPropertyWithValue("WalkRotAngleTarget", m_RotAngleTargets[WALK]);
 	writer.NewPropertyWithValue("RunRotAngleTarget", m_RotAngleTargets[RUN]);
-	writer.NewPropertyWithValue("CrouchRotAngleTarget", m_RotAngleTargets[CROUCH]);
+	writer.NewPropertyWithValue("CrouchRotAngleTarget", m_RotAngleTargets[PRONE]);
 	writer.NewPropertyWithValue("JumpRotAngleTarget", m_RotAngleTargets[JUMP]);
 
 	return 0;
@@ -1438,12 +1436,19 @@ void AHuman::UpdateCrouching() {
 
 	float finalWalkPathYOffset = std::clamp(Lerp(0.0F, 1.0F, -m_WalkPathOffset.m_Y, desiredWalkPathYOffset, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
 	m_WalkPathOffset.m_Y = -finalWalkPathYOffset;
+	
+	m_CrouchAmount = desiredWalkPathYOffset / m_MaxWalkPathCrouchShift;
 
 	// Adjust our X offset to try to keep our legs under our centre-of-mass
 	const float ratioBetweenBodyAndHeadToAimFor = 0.15F;
 	Vector headPos = m_pHead ? m_pHead->GetPos() : m_Pos;
 	float predictedPosition = ((headPos.m_X - m_Pos.m_X) * ratioBetweenBodyAndHeadToAimFor) + m_Vel.m_X;
 	m_WalkPathOffset.m_X = predictedPosition;
+	if (m_CrouchAmount > 0.9F && !m_MoveState == WALK ) {
+		// Let the CrouchLimbPath take over here
+		m_WalkPathOffset.m_Y = 0.0F;
+		m_WalkPathOffset.m_X = 0.0F;
+	}
 }
 
 void AHuman::UpdateLimbPathSpeed() {
@@ -1512,6 +1517,11 @@ void AHuman::PreControllerUpdate() {
 
 	if (!keepOldState) {
 		bool prone = m_Controller.IsState(BODY_PRONE);
+		// Engage prone state, this makes the body's rotational spring pull it horizontal instead of upright.
+		if (prone && m_ProneState == NOTPRONE) {
+			m_ProneState = GOPRONE;
+			m_ProneTimer.Reset();
+		}
 		if ((m_Controller.IsState(MOVE_RIGHT) || m_Controller.IsState(MOVE_LEFT) || m_MoveState == JUMP) && m_Status != INACTIVE) {
 			for (int i = WALK; i < MOVEMENTSTATECOUNT; ++i) {
 				m_Paths[FGROUND][i].SetHFlip(m_HFlipped);
@@ -1520,9 +1530,9 @@ void AHuman::PreControllerUpdate() {
 			// Only if not jumping, OR if jumping, and apparently stuck on something - then help out with the limbs.
 			if (m_MoveState != JUMP || isStill) {
 				MovementState oldMoveState = m_MoveState;
-				if (prone) {
+				if (!m_ProneState == NOTPRONE) {
 					m_MoveState = CRAWL;
-				} else if (m_Controller.IsState(MOVE_FAST) && !m_Controller.IsState(BODY_CROUCH)) {
+				} else if (m_CanRun && m_Controller.IsState(MOVE_FAST) && !m_Controller.IsState(BODY_CROUCH)) {
 					m_MoveState = RUN;
 				} else {
 					m_MoveState = WALK;
@@ -1532,12 +1542,6 @@ void AHuman::PreControllerUpdate() {
 				if (m_MoveState != oldMoveState) {
 					m_StrideStart = true;
 					MoveOutOfTerrain(g_MaterialGrass);
-				}
-
-				// Engage prone state, this makes the body's rotational spring pull it horizontal instead of upright.
-				if (m_MoveState == CRAWL && m_ProneState == NOTPRONE) {
-					m_ProneState = GOPRONE;
-					m_ProneTimer.Reset();
 				}
 			}
 
@@ -1562,7 +1566,7 @@ void AHuman::PreControllerUpdate() {
 				m_StrideStart = true;
 				// Stop the going prone spring.
 				if (m_ProneState == GOPRONE) {
-					m_ProneState = PRONE;
+					m_ProneState = LAYINGPRONE;
 				}
 			}
 		} else {
@@ -1570,7 +1574,10 @@ void AHuman::PreControllerUpdate() {
 			m_ArmClimbing[BGROUND] = false;
 			if (prone) {
 				// Don't go back to prone if we're already prone, the player has to let go of the crouch button first. If already laying down, just stay put.
-				m_MoveState = m_ProneState == NOTPRONE ? CROUCH : NOMOVE;
+				m_MoveState = m_ProneState == NOTPRONE ? PRONE : NOMOVE;
+			} else if (m_CrouchAmount > 0.9F) {
+				// Fully crouching will set the appropriate state so we can use CrouchLimbPath
+				m_MoveState = CROUCH;
 			} else {
 				m_MoveState = STAND;
 			}
@@ -1682,7 +1689,7 @@ void AHuman::PreControllerUpdate() {
 			m_StrideStart = true;
 			// Stop the going prone spring.
 			if (m_ProneState == GOPRONE) {
-				m_ProneState = PRONE;
+				m_ProneState = LAYINGPRONE;
 			}
 		}
 		// Correct angle based on flip.
@@ -1699,7 +1706,7 @@ void AHuman::PreControllerUpdate() {
 
 	// TODO: make the delay data driven by both the actor and the device!
 	//
-	if (isSharpAiming && m_Status == STABLE && (m_MoveState == STAND || m_MoveState == CROUCH || m_MoveState == NOMOVE || m_MoveState == WALK) && m_Vel.MagnitudeIsLessThan(5.0F) && GetEquippedItem()) {
+	if (isSharpAiming && m_Status == STABLE && (m_MoveState == STAND || m_MoveState == PRONE || m_MoveState == NOMOVE || m_MoveState == WALK) && m_Vel.MagnitudeIsLessThan(5.0F) && GetEquippedItem()) {
 		float aimMag = analogAim.GetMagnitude();
 
 		// If aim sharp is being done digitally, then translate to full analog aim mag
@@ -2119,7 +2126,7 @@ void AHuman::PreControllerUpdate() {
 			}
 		} else if (m_MoveState == CRAWL) {
 			// Start crawling only once we are fully prone.
-			if (m_ProneState == PRONE) {
+			if (m_ProneState == LAYINGPRONE) {
 
 				float FGLegProg = m_Paths[FGROUND][CRAWL].GetRegularProgress();
 				float BGLegProg = m_Paths[BGROUND][CRAWL].GetRegularProgress();
@@ -2184,11 +2191,11 @@ void AHuman::PreControllerUpdate() {
 					m_Paths[BGROUND][CRAWL].Terminate();
 
 					if (m_pFGLeg) {
-						m_pFGFootGroup->PushAsLimb(m_Pos.GetFloored() + m_pFGLeg->GetParentOffset().GetXFlipped(m_HFlipped), m_Vel, Matrix(), m_Paths[FGROUND][CROUCH], deltaTime);
+						m_pFGFootGroup->PushAsLimb(m_Pos.GetFloored() + m_pFGLeg->GetParentOffset().GetXFlipped(m_HFlipped), m_Vel, Matrix(), m_Paths[FGROUND][PRONE], deltaTime);
 					}
 
 					if (m_pBGLeg) {
-						m_pBGFootGroup->PushAsLimb(m_Pos.GetFloored() + m_pBGLeg->GetParentOffset().GetXFlipped(m_HFlipped), m_Vel, Matrix(), m_Paths[BGROUND][CROUCH], deltaTime);
+						m_pBGFootGroup->PushAsLimb(m_Pos.GetFloored() + m_pBGLeg->GetParentOffset().GetXFlipped(m_HFlipped), m_Vel, Matrix(), m_Paths[BGROUND][PRONE], deltaTime);
 					}
 
 				} else {
@@ -2289,7 +2296,7 @@ void AHuman::PreControllerUpdate() {
 		if (m_Status == STABLE) {
 			if (m_ArmClimbing[BGROUND]) {
 				// Can't climb or crawl with the shield
-				if (m_MoveState != CRAWL || m_ProneState == PRONE) {
+				if (m_MoveState != CRAWL || m_ProneState == LAYINGPRONE) {
 					UnequipBGArm();
 				}
 				m_pBGArm->AddHandTarget("Hand AtomGroup Limb Pos", m_pBGHandGroup->GetLimbPos(m_HFlipped));
@@ -2309,7 +2316,7 @@ void AHuman::PreControllerUpdate() {
 							m_pBGArm->SetRecoil(heldDevice->GetRecoilForce(), heldDevice->GetRecoilOffset(), heldDevice->IsRecoiled());
 						} else {
 							// BGArm did not reach to support the device. Count device as supported anyway, if crouching or prone.
-							heldDevice->SetSupported(m_MoveState == CROUCH || m_ProneState == PRONE);
+							heldDevice->SetSupported(m_MoveState == PRONE || m_ProneState == LAYINGPRONE);
 							m_pBGArm->SetRecoil(Vector(), Vector(), false);
 						}
 					}
@@ -2335,7 +2342,7 @@ void AHuman::PreControllerUpdate() {
 			if (arm && !arm->GetHeldDeviceThisArmIsTryingToSupport()) {
 				Leg* legToSwingWith = arm == m_pFGArm ? m_pBGLeg : m_pFGLeg;
 				Leg* otherLeg = legToSwingWith == m_pBGLeg ? m_pFGLeg : m_pBGLeg;
-				if (!legToSwingWith || m_MoveState == JUMP || m_MoveState == CROUCH) {
+				if (!legToSwingWith || m_MoveState == JUMP || m_MoveState == PRONE) {
 					std::swap(legToSwingWith, otherLeg);
 				}
 
@@ -2376,10 +2383,8 @@ void AHuman::Update() {
 			m_SharpAimMaxedOut = true;
 		} else if (m_MoveState == WALK) {
 			maxLength *= 0.7F;
-		}
-
-		// If we're fully crouching, improve our aim a little
-		if (m_MaxWalkPathCrouchShift > 0.0F && m_WalkPathOffset.m_Y * -1.0F >= m_MaxWalkPathCrouchShift * 0.9F) {
+		} else if (m_MoveState == CROUCH) {
+			// Only when crouching still, otherwise it's WALK
 			maxLength *= 1.2F;
 		}
 
@@ -2461,9 +2466,9 @@ void AHuman::Update() {
 				} else {
 					// Done going down, now stay down without spring.
 					m_AngularVel *= 0.5F;
-					m_ProneState = PRONE;
+					m_ProneState = LAYINGPRONE;
 				}
-			} else if (m_ProneState == PRONE) {
+			} else if (m_ProneState == LAYINGPRONE) {
 				// If down, try to keep flat against the ground.
 				if (std::abs(rotDiff) > c_SixteenthPI && std::abs(rotDiff) < c_HalfPI) {
 					m_AngularVel += rotDiff * 0.65F;
@@ -2475,18 +2480,22 @@ void AHuman::Update() {
 			// Upright body posture
 			float rotTarget = (GetRotAngleTarget(m_MoveState) * (m_AimAngle > 0 ? 1.0F - (m_AimAngle / c_HalfPI) : 1.0F) * GetFlipFactor());
 
-			// Lean forwards when crouching
-			float crouchAngleAdjust = m_HFlipped ? m_MaxCrouchRotation : -m_MaxCrouchRotation;
-			rotTarget += Lerp(0.0F, m_MaxWalkPathCrouchShift, 0.0F, crouchAngleAdjust, m_WalkPathOffset.m_Y * -1.0F);
-
+			if (m_MoveState != CROUCH) {
+				// In crouch state the above is rotated already, but in any other state we do the incremental lean here
+				float crouchAngleAdjust = m_HFlipped ? -m_RotAngleTargets[CROUCH] : m_RotAngleTargets[CROUCH];
+				float difference = crouchAngleAdjust - rotTarget;
+				rotTarget += Lerp(0.0F, 1.0F, 0.0F, difference, m_CrouchAmount);
+			}
+			
 			float rotDiff = rot - rotTarget;
-			if (std::abs(rotDiff) > c_HalfPI) {
+			if (std::abs(rotDiff) > c_PI) {
 				// We've h-flipped, so just snap to new orientation
 				rot = rotTarget;
 			} else {
 				// Lerp towards the angle
 				m_AngularVel = m_AngularVel * (0.98F - 0.06F * (m_Health / m_MaxHealth)) - (rotDiff * 0.5F);
 			}
+			
 		}
 	} else if (m_Status == UNSTABLE) {
 		float rotTarget = 0;
