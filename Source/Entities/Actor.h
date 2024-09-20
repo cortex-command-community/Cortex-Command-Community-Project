@@ -41,6 +41,7 @@ namespace RTE {
 			NOMOVE = 0,
 			STAND,
 			WALK,
+			RUN,
 			JUMP,
 			DISLODGE,
 			CROUCH,

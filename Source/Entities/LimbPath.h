@@ -142,6 +142,10 @@ namespace RTE {
 				return 0;
 		}
 
+		/// Sets the base travel speed multiplier.
+		/// @param newValue The new travel speed multiplier.
+		void SetBaseSpeedMultiplier(float newValue) { m_BaseTravelSpeedMultiplier = newValue; }
+
 		/// Sets the current travel speed multiplier.
 		/// @param newValue The new travel speed multiplier.
 		void SetTravelSpeedMultiplier(float newValue) { m_CurrentTravelSpeedMultiplier = newValue; }

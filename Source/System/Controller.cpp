@@ -296,6 +296,11 @@ void Controller::UpdatePlayerPieMenuInput() {
 			m_ControlStates[ControlState::MOVE_IDLE] = true;
 		}
 
+		// RUNNING
+		if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_MOVE_FAST)) {
+			m_ControlStates[ControlState::MOVE_FAST] = true;
+		}
+
 		// AIM LEFT AND RIGHT DIGITALLY - not really used as aiming, so convert into movement input
 		if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_AIM_LEFT)) {
 			m_ControlStates[ControlState::MOVE_LEFT] = true;

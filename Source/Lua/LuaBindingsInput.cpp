@@ -27,6 +27,7 @@ LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, InputElements) {
 	                            luabind::value("INPUT_L_DOWN", InputElements::INPUT_L_DOWN),
 	                            luabind::value("INPUT_L_LEFT", InputElements::INPUT_L_LEFT),
 	                            luabind::value("INPUT_L_RIGHT", InputElements::INPUT_L_RIGHT),
+	                            luabind::value("INPUT_MOVE_FAST", InputElements::INPUT_MOVE_FAST),
 	                            luabind::value("INPUT_R_UP", InputElements::INPUT_R_UP),
 	                            luabind::value("INPUT_R_DOWN", InputElements::INPUT_R_DOWN),
 	                            luabind::value("INPUT_R_LEFT", InputElements::INPUT_R_LEFT),

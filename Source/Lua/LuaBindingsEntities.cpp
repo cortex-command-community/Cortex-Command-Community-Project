@@ -268,6 +268,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 	    .enum_("MovementState")[luabind::value("NOMOVE", Actor::MovementState::NOMOVE),
 	                            luabind::value("STAND", Actor::MovementState::STAND),
 	                            luabind::value("WALK", Actor::MovementState::WALK),
+	                            luabind::value("RUN", Actor::MovementState::RUN),
 	                            luabind::value("JUMP", Actor::MovementState::JUMP),
 	                            luabind::value("DISLODGE", Actor::MovementState::DISLODGE),
 	                            luabind::value("CROUCH", Actor::MovementState::CROUCH),

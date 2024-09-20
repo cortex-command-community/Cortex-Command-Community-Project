@@ -39,6 +39,7 @@ int InputScheme::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("LeftDown", { reader >> m_InputMappings[InputElements::INPUT_L_DOWN]; });
 	MatchProperty("LeftLeft", { reader >> m_InputMappings[InputElements::INPUT_L_LEFT]; });
 	MatchProperty("LeftRight", { reader >> m_InputMappings[InputElements::INPUT_L_RIGHT]; });
+	MatchProperty("MoveFast", { reader >> m_InputMappings[InputElements::INPUT_MOVE_FAST]; });
 	MatchProperty("Fire", { reader >> m_InputMappings[InputElements::INPUT_FIRE]; });
 	MatchProperty("Aim", { reader >> m_InputMappings[InputElements::INPUT_AIM]; });
 	MatchProperty("AimUp", { reader >> m_InputMappings[InputElements::INPUT_AIM_UP]; });
@@ -80,6 +81,7 @@ int InputScheme::Save(Writer& writer) const {
 		writer.NewPropertyWithValue("LeftDown", m_InputMappings[InputElements::INPUT_L_DOWN]);
 		writer.NewPropertyWithValue("LeftLeft", m_InputMappings[InputElements::INPUT_L_LEFT]);
 		writer.NewPropertyWithValue("LeftRight", m_InputMappings[InputElements::INPUT_L_RIGHT]);
+		writer.NewPropertyWithValue("MoveFast", m_InputMappings[InputElements::INPUT_MOVE_FAST]);
 		writer.NewPropertyWithValue("Fire", m_InputMappings[InputElements::INPUT_FIRE]);
 		writer.NewPropertyWithValue("Aim", m_InputMappings[InputElements::INPUT_AIM]);
 		writer.NewPropertyWithValue("AimUp", m_InputMappings[InputElements::INPUT_AIM_UP]);
@@ -154,6 +156,7 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			m_InputMappings[InputElements::INPUT_L_DOWN].SetKey(SDL_SCANCODE_DOWN);
 			m_InputMappings[InputElements::INPUT_L_LEFT].SetKey(SDL_SCANCODE_LEFT);
 			m_InputMappings[InputElements::INPUT_L_RIGHT].SetKey(SDL_SCANCODE_RIGHT);
+			m_InputMappings[InputElements::INPUT_MOVE_FAST].SetKey(SDL_SCANCODE_KP_PLUS);
 			m_InputMappings[InputElements::INPUT_FIRE].SetKey(SDL_SCANCODE_KP_1);
 			m_InputMappings[InputElements::INPUT_AIM].SetKey(SDL_SCANCODE_KP_2);
 			m_InputMappings[InputElements::INPUT_AIM_UP].SetKey(SDL_SCANCODE_UP);
@@ -174,6 +177,7 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			m_InputMappings[InputElements::INPUT_L_DOWN].SetKey(SDL_SCANCODE_S);
 			m_InputMappings[InputElements::INPUT_L_LEFT].SetKey(SDL_SCANCODE_A);
 			m_InputMappings[InputElements::INPUT_L_RIGHT].SetKey(SDL_SCANCODE_D);
+			m_InputMappings[InputElements::INPUT_MOVE_FAST].SetKey(SDL_SCANCODE_LSHIFT);
 			m_InputMappings[InputElements::INPUT_FIRE].SetKey(SDL_SCANCODE_H);
 			m_InputMappings[InputElements::INPUT_AIM].SetKey(SDL_SCANCODE_J);
 			m_InputMappings[InputElements::INPUT_AIM_UP].SetKey(SDL_SCANCODE_W);
@@ -194,6 +198,7 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			m_InputMappings[InputElements::INPUT_L_DOWN].SetKey(SDL_SCANCODE_S);
 			m_InputMappings[InputElements::INPUT_L_LEFT].SetKey(SDL_SCANCODE_A);
 			m_InputMappings[InputElements::INPUT_L_RIGHT].SetKey(SDL_SCANCODE_D);
+			m_InputMappings[InputElements::INPUT_MOVE_FAST].SetKey(SDL_SCANCODE_LSHIFT);
 			m_InputMappings[InputElements::INPUT_FIRE].SetMouseButton(MouseButtons::MOUSE_LEFT);
 			m_InputMappings[InputElements::INPUT_AIM].SetPresetDescription("Mouse Move");
 			m_InputMappings[InputElements::INPUT_AIM_UP].SetPresetDescription("Mouse Move");

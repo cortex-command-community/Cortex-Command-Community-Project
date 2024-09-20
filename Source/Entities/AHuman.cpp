@@ -229,6 +229,15 @@ int AHuman::Create(const AHuman& reference) {
 		m_RotAngleTargets[i] = reference.m_RotAngleTargets[i];
 	}
 
+	// Default the run walkpath to be the same as the walk one, if it doesn't exist
+	if (m_Paths[FGROUND][RUN].GetSegCount() == 0) {
+		const LimbPath& walkLimbPath = reference.m_Paths[FGROUND][WALK];
+		float speedIncrease = walkLimbPath.GetSpeed(Speed::FAST) / walkLimbPath.GetSpeed(Speed::NORMAL);
+		m_Paths[FGROUND][RUN].Create(walkLimbPath);
+		m_Paths[FGROUND][RUN].SetBaseSpeedMultiplier(speedIncrease);
+		m_RotAngleTargets[RUN] = reference.m_RotAngleTargets[RUN];
+	}
+
 	m_DeviceState = reference.m_DeviceState;
 	m_SweepState = reference.m_SweepState;
 	m_DigState = reference.m_DigState;
@@ -293,6 +302,7 @@ int AHuman::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("StandLimbPath", { reader >> m_Paths[FGROUND][STAND]; });
 	MatchProperty("StandLimbPathBG", { reader >> m_Paths[BGROUND][STAND]; });
 	MatchProperty("WalkLimbPath", { reader >> m_Paths[FGROUND][WALK]; });
+	MatchProperty("RunLimbPath", { reader >> m_Paths[FGROUND][RUN]; });
 	MatchProperty("CrouchLimbPath", { reader >> m_Paths[FGROUND][CROUCH]; });
 	MatchProperty("CrouchLimbPathBG", { reader >> m_Paths[BGROUND][CROUCH]; });
 	MatchProperty("CrawlLimbPath", { reader >> m_Paths[FGROUND][CRAWL]; });
@@ -300,8 +310,10 @@ int AHuman::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("ClimbLimbPath", { reader >> m_Paths[FGROUND][CLIMB]; });
 	MatchProperty("JumpLimbPath", { reader >> m_Paths[FGROUND][JUMP]; });
 	MatchProperty("DislodgeLimbPath", { reader >> m_Paths[FGROUND][DISLODGE]; });
+
 	MatchProperty("StandRotAngleTarget", { reader >> m_RotAngleTargets[STAND]; });
 	MatchProperty("WalkRotAngleTarget", { reader >> m_RotAngleTargets[WALK]; });
+	MatchProperty("RunRotAngleTarget", { reader >> m_RotAngleTargets[RUN]; });
 	MatchProperty("CrouchRotAngleTarget", { reader >> m_RotAngleTargets[CROUCH]; });
 	MatchProperty("JumpRotAngleTarget", { reader >> m_RotAngleTargets[JUMP]; });
 
@@ -353,6 +365,8 @@ int AHuman::Save(Writer& writer) const {
 	writer << m_Paths[BGROUND][STAND];
 	writer.NewProperty("WalkLimbPath");
 	writer << m_Paths[FGROUND][WALK];
+	writer.NewProperty("RunLimbPath");
+	writer << m_Paths[FGROUND][RUN];
 	writer.NewProperty("CrouchLimbPath");
 	writer << m_Paths[FGROUND][CROUCH];
 	writer.NewProperty("CrawlLimbPath");
@@ -365,6 +379,12 @@ int AHuman::Save(Writer& writer) const {
 	writer << m_Paths[FGROUND][JUMP];
 	writer.NewProperty("DislodgeLimbPath");
 	writer << m_Paths[FGROUND][DISLODGE];
+
+	writer.NewPropertyWithValue("StandRotAngleTarget", m_RotAngleTargets[STAND]);
+	writer.NewPropertyWithValue("WalkRotAngleTarget", m_RotAngleTargets[WALK]);
+	writer.NewPropertyWithValue("RunRotAngleTarget", m_RotAngleTargets[RUN]);
+	writer.NewPropertyWithValue("CrouchRotAngleTarget", m_RotAngleTargets[CROUCH]);
+	writer.NewPropertyWithValue("JumpRotAngleTarget", m_RotAngleTargets[JUMP]);
 
 	return 0;
 }
@@ -1428,7 +1448,7 @@ void AHuman::UpdateLimbPathSpeed() {
 	m_Paths[FGROUND][m_MoveState].SetTravelSpeedMultiplier(1.0F);
 	m_Paths[BGROUND][m_MoveState].SetTravelSpeedMultiplier(1.0F);
 
-	if (m_MoveState == WALK || m_MoveState == CRAWL) {
+	if (m_MoveState == WALK || m_MoveState == RUN || m_MoveState == CRAWL) {
 		// If crouching, move at reduced speed
 		const float crouchSpeedMultiplier = 0.5F;
 		float travelSpeedMultiplier = Lerp(0.0F, m_MaxWalkPathCrouchShift, 1.0F, crouchSpeedMultiplier, -m_WalkPathOffset.m_Y);
@@ -1496,22 +1516,26 @@ void AHuman::PreControllerUpdate() {
 			}
 			// Only if not jumping, OR if jumping, and apparently stuck on something - then help out with the limbs.
 			if (m_MoveState != JUMP || isStill) {
+				MovementState oldMoveState = m_MoveState;
+				if (crouching) {
+					m_MoveState = CRAWL;
+				} else if (m_Controller.IsState(MOVE_FAST)) {
+					m_MoveState = RUN;
+				} else {
+					m_MoveState = WALK;
+				}
+
 				// Restart the stride if we're just starting to walk or crawl.
-				if ((m_MoveState != WALK && !crouching) || (m_MoveState != CRAWL && crouching)) {
+				if (m_MoveState != oldMoveState) {
 					m_StrideStart = true;
 					MoveOutOfTerrain(g_MaterialGrass);
 				}
-
-				m_MoveState = crouching ? CRAWL : WALK;
 
 				// Engage prone state, this makes the body's rotational spring pull it horizontal instead of upright.
 				if (m_MoveState == CRAWL && m_ProneState == NOTPRONE) {
 					m_ProneState = GOPRONE;
 					m_ProneTimer.Reset();
 				}
-
-				m_Paths[FGROUND][m_MoveState].SetSpeed(m_Controller.IsState(MOVE_FAST) ? FAST : NORMAL);
-				m_Paths[BGROUND][m_MoveState].SetSpeed(m_Controller.IsState(MOVE_FAST) ? FAST : NORMAL);
 			}
 
 			// Walk backwards if the aiming is already focused in the opposite direction of travel.
@@ -1978,14 +2002,13 @@ void AHuman::PreControllerUpdate() {
 		UpdateLimbPathSpeed();
 
 		// WALKING, OR WE ARE JETPACKING AND STUCK
-		if (m_MoveState == WALK || (m_MoveState == JUMP && isStill)) {
+		if (m_MoveState == WALK || m_MoveState == RUN || (m_MoveState == JUMP && isStill)) {
 			m_Paths[FGROUND][STAND].Terminate();
 			m_Paths[BGROUND][STAND].Terminate();
 
-			//            float FGLegProg = MAX(m_Paths[FGROUND][WALK].GetRegularProgress(), m_Paths[FGROUND][WALK].GetTotalTimeProgress());
-			//            float BGLegProg = MAX(m_Paths[BGROUND][WALK].GetRegularProgress(), m_Paths[BGROUND][WALK].GetTotalTimeProgress());
-			float FGLegProg = m_Paths[FGROUND][WALK].GetRegularProgress();
-			float BGLegProg = m_Paths[BGROUND][WALK].GetRegularProgress();
+			MovementState movementPath = m_MoveState == RUN ? RUN : WALK;
+			float FGLegProg = m_Paths[FGROUND][movementPath].GetRegularProgress();
+			float BGLegProg = m_Paths[BGROUND][movementPath].GetRegularProgress();
 
 			bool restarted = false;
 
@@ -1994,24 +2017,24 @@ void AHuman::PreControllerUpdate() {
 				m_StrideStart = true;
 			}
 
-			if (m_pFGLeg && (!m_pBGLeg || !(m_Paths[FGROUND][WALK].PathEnded() && BGLegProg < 0.5F) || m_StrideStart)) {
+			if (m_pFGLeg && (!m_pBGLeg || !(m_Paths[FGROUND][movementPath].PathEnded() && BGLegProg < 0.5F) || m_StrideStart)) {
 				// Reset the stride timer if the path is about to restart.
-				if (m_Paths[FGROUND][WALK].PathEnded() || m_Paths[FGROUND][WALK].PathIsAtStart()) {
+				if (m_Paths[FGROUND][movementPath].PathEnded() || m_Paths[FGROUND][movementPath].PathIsAtStart()) {
 					m_StrideTimer.Reset();
 				}
 				Vector jointPos = m_Pos + RotateOffset(m_pFGLeg->GetParentOffset());
-				m_ArmClimbing[BGROUND] = !m_pFGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][WALK], deltaTime, &restarted, false, Vector(0.0F, m_Paths[FGROUND][WALK].GetLowestY()), m_WalkPathOffset);
+				m_ArmClimbing[BGROUND] = !m_pFGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][movementPath], deltaTime, &restarted, false, Vector(0.0F, m_Paths[FGROUND][movementPath].GetLowestY()), m_WalkPathOffset);
 			} else {
 				m_ArmClimbing[BGROUND] = false;
 			}
-			if (m_pBGLeg && (!m_pFGLeg || !(m_Paths[BGROUND][WALK].PathEnded() && FGLegProg < 0.5F))) {
+			if (m_pBGLeg && (!m_pFGLeg || !(m_Paths[BGROUND][movementPath].PathEnded() && FGLegProg < 0.5F))) {
 				m_StrideStart = false;
 				// Reset the stride timer if the path is about to restart.
-				if (m_Paths[BGROUND][WALK].PathEnded() || m_Paths[BGROUND][WALK].PathIsAtStart()) {
+				if (m_Paths[BGROUND][movementPath].PathEnded() || m_Paths[BGROUND][movementPath].PathIsAtStart()) {
 					m_StrideTimer.Reset();
 				}
 				Vector jointPos = m_Pos + RotateOffset(m_pBGLeg->GetParentOffset());
-				m_ArmClimbing[FGROUND] = !m_pBGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][WALK], deltaTime, &restarted, false, Vector(0.0F, m_Paths[BGROUND][WALK].GetLowestY()), m_WalkPathOffset);
+				m_ArmClimbing[FGROUND] = !m_pBGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][movementPath], deltaTime, &restarted, false, Vector(0.0F, m_Paths[BGROUND][movementPath].GetLowestY()), m_WalkPathOffset);
 			} else {
 				if (m_pBGLeg) {
 					m_pBGFootGroup->FlailAsLimb(m_Pos, RotateOffset(m_pBGLeg->GetParentOffset()), m_pBGLeg->GetMaxLength(), m_PrevVel, m_AngularVel, m_pBGLeg->GetMass(), deltaTime);
@@ -2054,7 +2077,7 @@ void AHuman::PreControllerUpdate() {
 			if (climbing) {
 				if (m_pFGArm && !m_pFGArm->GetHeldDevice() && !(m_Paths[FGROUND][CLIMB].PathEnded() && BGArmProg > 0.1F)) { // < 0.5F
 					m_ArmClimbing[FGROUND] = true;
-					m_Paths[FGROUND][WALK].Terminate();
+					m_Paths[FGROUND][movementPath].Terminate();
 					m_StrideStart = true;
 					// Reset the stride timer if the path is about to restart.
 					if (m_Paths[FGROUND][CLIMB].PathEnded() || m_Paths[FGROUND][CLIMB].PathIsAtStart()) {
@@ -2067,7 +2090,7 @@ void AHuman::PreControllerUpdate() {
 				}
 				if (m_pBGArm) {
 					m_ArmClimbing[BGROUND] = true;
-					m_Paths[BGROUND][WALK].Terminate();
+					m_Paths[BGROUND][movementPath].Terminate();
 					m_StrideStart = true;
 					// Reset the stride timer if the path is about to restart.
 					if (m_Paths[BGROUND][CLIMB].PathEnded() || m_Paths[BGROUND][CLIMB].PathIsAtStart()) {
@@ -2085,11 +2108,11 @@ void AHuman::PreControllerUpdate() {
 				m_StrideStart = true;
 				m_Paths[FGROUND][CLIMB].Terminate();
 				m_Paths[BGROUND][CLIMB].Terminate();
-			} else if (m_StrideTimer.IsPastSimMS(static_cast<double>(m_Paths[FGROUND][WALK].GetTotalPathTime() * 1.1F))) {
+			} else if (m_StrideTimer.IsPastSimMS(static_cast<double>(m_Paths[FGROUND][movementPath].GetTotalPathTime() * 1.1F))) {
 				// Reset the walking stride if it's taking longer than it should.
 				m_StrideStart = true;
-				m_Paths[FGROUND][WALK].Terminate();
-				m_Paths[BGROUND][WALK].Terminate();
+				m_Paths[FGROUND][movementPath].Terminate();
+				m_Paths[BGROUND][movementPath].Terminate();
 			}
 		} else if (m_MoveState == CRAWL) {
 			// Start crawling only once we are fully prone.
@@ -2345,7 +2368,7 @@ void AHuman::Update() {
 
 	if (HeldDevice* heldDevice = GetEquippedItem()) {
 		float maxLength = heldDevice->GetSharpLength();
-		if (maxLength == 0) {
+		if (maxLength == 0.0F || m_MoveState == RUN) {
 			m_SharpAimProgress = 0;
 			m_SharpAimMaxedOut = true;
 		} else if (m_MoveState == WALK) {

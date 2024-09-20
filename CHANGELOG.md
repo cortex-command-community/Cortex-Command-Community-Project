@@ -16,6 +16,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	New `Actor` Lua property `JumpHeight` (R) to estimate the jump height of the actor (in metres), based on the actor's jetpack and weight. Actors without a jetpack return 0.  
 	The new function `GetPathFindingFlyingJumpHeight()` can be used to get a jumpHeight that allows flying (i.e infinite jump height). This is also the value that `ACRocket`s and `ACDropships` return for `JumpHeight`.
 
+- Added running.
+	Players on PC can enable running by holding the shift key. TBD add other platforms  
+	When running, you cannot sharpaim or shoot your weapon.  
+	Added new `MovementState` type `RUN` for script.
+
 - New music system, including a dynamic horizontal sequencing system, under the new music manager `MusicMan`.  
 	`PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to play a new DynamicSong.
 	`SetNextDynamicSongSection(string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to queue a new DynamicSongSection for the currently playing song.  

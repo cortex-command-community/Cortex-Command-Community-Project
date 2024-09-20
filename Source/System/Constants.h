@@ -199,6 +199,7 @@ namespace RTE {
 		INPUT_L_DOWN,
 		INPUT_L_LEFT,
 		INPUT_L_RIGHT,
+		INPUT_MOVE_FAST,
 		INPUT_AIM_UP,
 		INPUT_AIM_DOWN,
 		INPUT_AIM_LEFT,
@@ -230,6 +231,7 @@ namespace RTE {
 	    "Move Down", // INPUT_L_DOWN
 	    "Move Left", // INPUT_L_LEFT
 	    "Move Right", // INPUT_L_RIGHT
+	    "Run", // INPUT_MOVE_FAST
 	    "Aim Up", // INPUT_AIM_UP
 	    "Aim Down", // INPUT_AIM_DOWN
 	    "Aim Left", // INPUT_AIM_LEFT
