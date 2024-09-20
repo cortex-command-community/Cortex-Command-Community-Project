@@ -28,6 +28,7 @@ LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, InputElements) {
 	                            luabind::value("INPUT_L_LEFT", InputElements::INPUT_L_LEFT),
 	                            luabind::value("INPUT_L_RIGHT", InputElements::INPUT_L_RIGHT),
 	                            luabind::value("INPUT_MOVE_FAST", InputElements::INPUT_MOVE_FAST),
+	                            luabind::value("INPUT_MOVE_FAST_TOGGLE", InputElements::INPUT_MOVE_FAST_TOGGLE),
 	                            luabind::value("INPUT_R_UP", InputElements::INPUT_R_UP),
 	                            luabind::value("INPUT_R_DOWN", InputElements::INPUT_R_DOWN),
 	                            luabind::value("INPUT_R_LEFT", InputElements::INPUT_R_LEFT),
@@ -41,7 +42,9 @@ LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, InputElements) {
 	                            luabind::value("INPUT_PIEMENU_ANALOG", InputElements::INPUT_PIEMENU_ANALOG),
 	                            luabind::value("INPUT_PIEMENU_DIGITAL", InputElements::INPUT_PIEMENU_DIGITAL),
 	                            luabind::value("INPUT_JUMP", InputElements::INPUT_JUMP),
-	                            luabind::value("INPUT_CROUCH", InputElements::INPUT_CROUCH),
+	                            luabind::value("INPUT_CROUCH", InputElements::INPUT_PRONE), // awful, but script compat
+	                            luabind::value("INPUT_PRONE", InputElements::INPUT_PRONE),
+	                            luabind::value("INPUT_WALKCROUCH", InputElements::INPUT_CROUCH),
 	                            luabind::value("INPUT_NEXT", InputElements::INPUT_NEXT),
 	                            luabind::value("INPUT_PREV", InputElements::INPUT_PREV),
 	                            luabind::value("INPUT_START", InputElements::INPUT_START),

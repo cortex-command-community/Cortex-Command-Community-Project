@@ -168,7 +168,7 @@ function Update(self)
 	-- Also for extra cool boss ability
 	
 	local jump = (self.controller:IsState(Controller.BODY_JUMPSTART) == true and
-		self.controller:IsState(Controller.BODY_CROUCH) == false and
+		self.controller:IsState(Controller.BODY_PRONE) == false and
 		self.jumpTimer:IsPastSimMS(self.jumpDelay) and
 		not self.isJumping and
 		not jumpPackTrigger);

@@ -361,7 +361,7 @@ function NativeHumanAI:Update(Owner)
 						local dist = SceneMan:ShortestDistance(Owner.Pos, Leader.Pos, false).Largest;
 						local radius = (Leader.Height + Owner.Height) * 0.5;
 						if dist < radius then
-							local copyControls = {Controller.MOVE_LEFT, Controller.MOVE_RIGHT, Controller.BODY_JUMPSTART, Controller.BODY_JUMP, Controller.BODY_CROUCH};
+							local copyControls = {Controller.MOVE_LEFT, Controller.MOVE_RIGHT, Controller.BODY_JUMPSTART, Controller.BODY_JUMP, Controller.BODY_PRONE};
 							for _, control in pairs(copyControls) do
 								local state = Leader:GetController():IsState(control);
 								self.Ctrl:SetState(control, state);
@@ -634,7 +634,7 @@ function NativeHumanAI:Update(Owner)
 	if self.proneState == AHuman.GOPRONE then
 		self.proneState = AHuman.PRONE;
 	elseif self.proneState == AHuman.PRONE then
-		self.Ctrl:SetState(Controller.BODY_CROUCH, true);
+		self.Ctrl:SetState(Controller.BODY_PRONE, true);
 	end
 
 	if self.lateralMoveState == Actor.LAT_LEFT then

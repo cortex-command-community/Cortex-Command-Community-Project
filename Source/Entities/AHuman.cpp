@@ -231,10 +231,10 @@ int AHuman::Create(const AHuman& reference) {
 
 	// Default the run walkpath to be the same as the walk one, if it doesn't exist
 	if (m_Paths[FGROUND][RUN].GetSegCount() == 0) {
-		const LimbPath& walkLimbPath = reference.m_Paths[FGROUND][WALK];
-		float speedIncrease = walkLimbPath.GetSpeed(Speed::FAST) / walkLimbPath.GetSpeed(Speed::NORMAL);
-		m_Paths[FGROUND][RUN].Create(walkLimbPath);
-		m_Paths[FGROUND][RUN].SetBaseSpeedMultiplier(speedIncrease);
+		m_Paths[FGROUND][RUN].Create(reference.m_Paths[FGROUND][WALK]);
+		m_Paths[BGROUND][RUN].Create(reference.m_Paths[BGROUND][WALK]);
+		m_Paths[FGROUND][RUN].SetBaseSpeedMultiplier(reference.m_Paths[FGROUND][WALK].GetSpeed(Speed::FAST) / reference.m_Paths[FGROUND][WALK].GetSpeed(Speed::NORMAL));
+		m_Paths[BGROUND][RUN].SetBaseSpeedMultiplier(reference.m_Paths[BGROUND][WALK].GetSpeed(Speed::FAST) / reference.m_Paths[BGROUND][WALK].GetSpeed(Speed::NORMAL));
 		m_RotAngleTargets[RUN] = reference.m_RotAngleTargets[RUN];
 	}
 
@@ -1404,9 +1404,16 @@ void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
 }
 
 void AHuman::UpdateCrouching() {
-	if (!m_Controller.IsState(BODY_JUMP) && m_pHead) {
-		float desiredWalkPathYOffset = 0.0F;
-		if (m_CrouchAmountOverride == -1.0F) {
+	float desiredWalkPathYOffset = 0.0F;
+	if (m_CrouchAmountOverride != -1.0F) {
+		// If overridden in script, use that directly
+		desiredWalkPathYOffset = m_CrouchAmountOverride * m_MaxWalkPathCrouchShift;
+	} else if (!m_Controller.IsState(BODY_PRONE)) {
+		if (m_Controller.IsState(BODY_CROUCH)) {
+			// Manually crouch fully is the crouch controller state is set
+			desiredWalkPathYOffset = m_MaxWalkPathCrouchShift;
+		} else if (!m_Controller.IsState(BODY_JUMP) && m_pHead) {
+			// Otherwise figure out auto crouching
 			// Cast a ray above our head to either side to determine whether we need to crouch
 			float desiredCrouchHeadRoom = std::floor(m_pHead->GetRadius() + 2.0f);
 			float toPredicted = std::floor(m_Vel.m_X * m_pHead->GetRadius()); // Check where we'll be a second from now
@@ -1427,20 +1434,17 @@ void AHuman::UpdateCrouching() {
 
 			float headroom = m_pHead->GetPos().m_Y - std::max(hitPos.m_Y, hitPosPredicted.m_Y);
 			desiredWalkPathYOffset = desiredCrouchHeadRoom - headroom;
-		} else {
-			desiredWalkPathYOffset = m_CrouchAmountOverride * m_MaxWalkPathCrouchShift;
 		}
-
-		float finalWalkPathYOffset = std::clamp(Lerp(0.0F, 1.0F, -m_WalkPathOffset.m_Y, desiredWalkPathYOffset, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
-		m_WalkPathOffset.m_Y = -finalWalkPathYOffset;
-
-		// Adjust our X offset to try to keep our legs under our centre-of-mass
-		const float ratioBetweenBodyAndHeadToAimFor = 0.15F;
-		float predictedPosition = ((m_pHead->GetPos().m_X - m_Pos.m_X) * ratioBetweenBodyAndHeadToAimFor) + m_Vel.m_X;
-		m_WalkPathOffset.m_X = predictedPosition;
-	} else {
-		m_WalkPathOffset.Reset();
 	}
+
+	float finalWalkPathYOffset = std::clamp(Lerp(0.0F, 1.0F, -m_WalkPathOffset.m_Y, desiredWalkPathYOffset, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
+	m_WalkPathOffset.m_Y = -finalWalkPathYOffset;
+
+	// Adjust our X offset to try to keep our legs under our centre-of-mass
+	const float ratioBetweenBodyAndHeadToAimFor = 0.15F;
+	Vector headPos = m_pHead ? m_pHead->GetPos() : m_Pos;
+	float predictedPosition = ((headPos.m_X - m_Pos.m_X) * ratioBetweenBodyAndHeadToAimFor) + m_Vel.m_X;
+	m_WalkPathOffset.m_X = predictedPosition;
 }
 
 void AHuman::UpdateLimbPathSpeed() {
@@ -1450,12 +1454,12 @@ void AHuman::UpdateLimbPathSpeed() {
 
 	if (m_MoveState == WALK || m_MoveState == RUN || m_MoveState == CRAWL) {
 		// If crouching, move at reduced speed
-		const float crouchSpeedMultiplier = 0.5F;
+		const float crouchSpeedMultiplier = 0.7F;
 		float travelSpeedMultiplier = Lerp(0.0F, m_MaxWalkPathCrouchShift, 1.0F, crouchSpeedMultiplier, -m_WalkPathOffset.m_Y);
 
 		// If we're moving slowly horizontally, move at reduced speed (otherwise our legs kick about wildly as we're not yet up to speed)
 		// Calculate a min multiplier that is based on the total walkpath speed (so a fast walkpath has a smaller multipler). This is so a slow walkpath gets up to speed faster
-		const float ourMaxMovementSpeed = std::max(m_Paths[FGROUND][m_MoveState].GetSpeed(), m_Paths[BGROUND][m_MoveState].GetSpeed()) * 0.5F;
+		const float ourMaxMovementSpeed = std::max(m_Paths[FGROUND][m_MoveState].GetSpeed(), m_Paths[BGROUND][m_MoveState].GetSpeed()) * 0.5F * travelSpeedMultiplier;
 		const float minSpeed = 2.0F;
 		const float minMultiplier = minSpeed / ourMaxMovementSpeed;
 		travelSpeedMultiplier *= Lerp(0.0F, ourMaxMovementSpeed, minMultiplier, 1.0F, std::abs(m_Vel.m_X));
@@ -1508,7 +1512,7 @@ void AHuman::PreControllerUpdate() {
 	bool keepOldState = m_Controller.IsKeyboardOnlyControlled() && m_Controller.IsState(PIE_MENU_ACTIVE);
 
 	if (!keepOldState) {
-		bool crouching = m_Controller.IsState(BODY_CROUCH);
+		bool prone = m_Controller.IsState(BODY_PRONE);
 		if ((m_Controller.IsState(MOVE_RIGHT) || m_Controller.IsState(MOVE_LEFT) || m_MoveState == JUMP) && m_Status != INACTIVE) {
 			for (int i = WALK; i < MOVEMENTSTATECOUNT; ++i) {
 				m_Paths[FGROUND][i].SetHFlip(m_HFlipped);
@@ -1517,9 +1521,9 @@ void AHuman::PreControllerUpdate() {
 			// Only if not jumping, OR if jumping, and apparently stuck on something - then help out with the limbs.
 			if (m_MoveState != JUMP || isStill) {
 				MovementState oldMoveState = m_MoveState;
-				if (crouching) {
+				if (prone) {
 					m_MoveState = CRAWL;
-				} else if (m_Controller.IsState(MOVE_FAST)) {
+				} else if (m_Controller.IsState(MOVE_FAST) && !m_Controller.IsState(BODY_CROUCH)) {
 					m_MoveState = RUN;
 				} else {
 					m_MoveState = WALK;
@@ -1565,15 +1569,15 @@ void AHuman::PreControllerUpdate() {
 		} else {
 			m_ArmClimbing[FGROUND] = false;
 			m_ArmClimbing[BGROUND] = false;
-			if (crouching) {
-				// Don't go back to crouching if we're already prone, the player has to let go of the crouch button first. If already laying down, just stay put.
+			if (prone) {
+				// Don't go back to prone if we're already prone, the player has to let go of the crouch button first. If already laying down, just stay put.
 				m_MoveState = m_ProneState == NOTPRONE ? CROUCH : NOMOVE;
 			} else {
 				m_MoveState = STAND;
 			}
 		}
-		// Disengage the prone state as soon as crouch is released.
-		if (!crouching && m_ProneState != NOTPRONE) {
+		// Disengage the prone state as soon as prone is released.
+		if (!prone && m_ProneState != NOTPRONE) {
 			EquipShieldInBGArm();
 			m_ProneState = NOTPRONE;
 		}
@@ -2374,6 +2378,12 @@ void AHuman::Update() {
 		} else if (m_MoveState == WALK) {
 			maxLength *= 0.7F;
 		}
+
+		// If we're fully crouching, improve our aim a little
+		if (m_MaxWalkPathCrouchShift > 0.0F && m_WalkPathOffset.m_Y * -1.0F >= m_MaxWalkPathCrouchShift * 0.9F) {
+			maxLength *= 1.2F;
+		}
+
 		// Use a non-terrain check ray to cap the magnitude, so we can't see into objects etc
 		if (m_SharpAimProgress > 0) {
 			// TODO: make an uniform function to get the total GripStrength of an AHuman?
@@ -2471,7 +2481,13 @@ void AHuman::Update() {
 			rotTarget += Lerp(0.0F, m_MaxWalkPathCrouchShift, 0.0F, crouchAngleAdjust, m_WalkPathOffset.m_Y * -1.0F);
 
 			float rotDiff = rot - rotTarget;
-			m_AngularVel = m_AngularVel * (0.98F - 0.06F * (m_Health / m_MaxHealth)) - (rotDiff * 0.5F);
+			if (std::abs(rotDiff) > c_HalfPI) {
+				// We've h-flipped, so just snap to new orientation
+				rot = rotTarget;
+			} else {
+				// Lerp towards the angle
+				m_AngularVel = m_AngularVel * (0.98F - 0.06F * (m_Health / m_MaxHealth)) - (rotDiff * 0.5F);
+			}
 		}
 	} else if (m_Status == UNSTABLE) {
 		float rotTarget = 0;

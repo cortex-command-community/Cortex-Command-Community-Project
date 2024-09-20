@@ -180,13 +180,14 @@ void Controller::ResetCommandState() {
 }
 
 void Controller::GetInputFromPlayer() {
+	std::array<bool, ControlState::CONTROLSTATECOUNT> lastControlStates = m_ControlStates;
 	ResetCommandState();
 
 	if ((g_ConsoleMan.IsEnabled() && !g_ConsoleMan.IsReadOnly()) || m_Player < 0) {
 		return;
 	}
 
-	UpdatePlayerInput();
+	UpdatePlayerInput(lastControlStates);
 }
 
 bool Controller::ShouldUpdateAIThisFrame() const {
@@ -218,8 +219,8 @@ void Controller::Override(const Controller& otherController) {
 	*this = otherController;
 }
 
-void Controller::UpdatePlayerInput() {
-	UpdatePlayerPieMenuInput();
+void Controller::UpdatePlayerInput(std::array<bool, ControlState::CONTROLSTATECOUNT> lastControlStates) {
+	UpdatePlayerPieMenuInput(lastControlStates);
 
 	// Only actually switch when the change button(s) are released
 	// BRAIN ACTOR
@@ -271,7 +272,7 @@ void Controller::UpdatePlayerInput() {
 	UpdatePlayerAnalogInput();
 }
 
-void Controller::UpdatePlayerPieMenuInput() {
+void Controller::UpdatePlayerPieMenuInput(std::array<bool, ControlState::CONTROLSTATECOUNT> lastControlStates) {
 	// Holding of the switch buttons disables aiming later
 	if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_NEXT)) {
 		m_ControlStates[ControlState::ACTOR_NEXT_PREP] = true;
@@ -286,6 +287,7 @@ void Controller::UpdatePlayerPieMenuInput() {
 		m_ControlStates[ControlState::BODY_JUMPSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_JUMP);
 		m_ControlStates[ControlState::BODY_JUMP] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_JUMP);
 		m_ControlStates[ControlState::BODY_CROUCH] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_CROUCH);
+		m_ControlStates[ControlState::BODY_PRONE] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PRONE);
 
 		// MOVEMENT LEFT/RIGHT
 		if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_L_RIGHT)) {
@@ -297,7 +299,11 @@ void Controller::UpdatePlayerPieMenuInput() {
 		}
 
 		// RUNNING
-		if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_MOVE_FAST)) {
+		if (g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_MOVE_FAST_TOGGLE) || lastControlStates[ControlState::MOVE_FAST_TOGGLE]) {
+			// If our toggle is on, keep it on until we stop moving
+			m_ControlStates[ControlState::MOVE_FAST_TOGGLE] = m_ControlStates[ControlState::MOVE_LEFT] || m_ControlStates[ControlState::MOVE_RIGHT];
+			m_ControlStates[ControlState::MOVE_FAST] = m_ControlStates[ControlState::MOVE_FAST_TOGGLE];
+		} else if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_MOVE_FAST)) {
 			m_ControlStates[ControlState::MOVE_FAST] = true;
 		}
 
@@ -369,6 +375,7 @@ void Controller::UpdatePlayerPieMenuInput() {
 			m_ControlStates[ControlState::BODY_JUMP] = false;
 			m_ControlStates[ControlState::BODY_JUMPSTART] = false;
 			m_ControlStates[ControlState::BODY_CROUCH] = false;
+			m_ControlStates[ControlState::BODY_PRONE] = false;
 		}
 	}
 }
