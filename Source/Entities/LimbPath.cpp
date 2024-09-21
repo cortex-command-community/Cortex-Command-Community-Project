@@ -155,8 +155,9 @@ int LimbPath::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader >> discard;
 	});
 	MatchProperty("TravelSpeed", {
-	reader >> m_TravelSpeed;
-});
+		reader >> m_TravelSpeed;
+	});
+	MatchProperty("BaseTravelSpeedMultiplier", { reader >> m_BaseTravelSpeedMultiplier; });
 	MatchProperty("BaseScaleMultiplier", { reader >> m_BaseScaleMultiplier; });
 	MatchProperty("PushForce", {
 		reader >> m_PushForce;

@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	Added new `MovementState` type `RUN` for scripts.
 	Added new `Controller` state `WALKCROUCH` for crouching, and `PRONE` for prone. The existing `CROUCH` state has been deprecated, as it referred to PRONE.
 	Added new `Actor` INI and Lua (R/W) property `CanRun` which denotes whether the Actor can run or not.
+	Added new `Actor` INI and Lua (R/W) property `CrouchWalkSpeedMultiplier` which is a walking speed multiplier when at max crouch amount.
 
 - New music system, including a dynamic horizontal sequencing system, under the new music manager `MusicMan`.  
 	`PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to play a new DynamicSong.
