@@ -66,7 +66,6 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACrab) {
 	    .property("FirearmNeedsReload", &ACrab::FirearmNeedsReload)
 	    .property("FirearmIsSemiAuto", &ACrab::FirearmIsSemiAuto)
 	    .property("FirearmActivationDelay", &ACrab::FirearmActivationDelay)
-	    .property("LimbPathPushForce", &ACrab::GetLimbPathPushForce, &ACrab::SetLimbPathPushForce)
 	    .property("AimRangeUpperLimit", &ACrab::GetAimRangeUpperLimit, &ACrab::SetAimRangeUpperLimit)
 	    .property("AimRangeLowerLimit", &ACrab::GetAimRangeLowerLimit, &ACrab::SetAimRangeLowerLimit)
 
@@ -75,8 +74,10 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACrab) {
 	    .def("Look", &ACrab::Look)
 	    .def("LookForMOs", &ACrab::LookForMOs)
 	    .def("GetLimbPath", &ACrab::GetLimbPath)
-	    .def("GetLimbPathSpeed", &ACrab::GetLimbPathSpeed)
-	    .def("SetLimbPathSpeed", &ACrab::SetLimbPathSpeed)
+	    .def("GetLimbPathTravelSpeed", &ACrab::GetLimbPathTravelSpeed)
+	    .def("SetLimbPathTravelSpeed", &ACrab::SetLimbPathTravelSpeed)
+	    .def("GetLimbPathPushForce", &ACrab::GetLimbPathPushForce)
+	    .def("SetLimbPathPushForce", &ACrab::SetLimbPathPushForce)
 
 	    .enum_("Side")[luabind::value("LEFTSIDE", ACrab::Side::LEFTSIDE),
 	                   luabind::value("RIGHTSIDE", ACrab::Side::RIGHTSIDE),
@@ -176,6 +177,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 	    .property("ImpulseDamageThreshold", &Actor::GetTravelImpulseDamage, &Actor::SetTravelImpulseDamage)
 	    .property("StableRecoveryDelay", &Actor::GetStableRecoverDelay, &Actor::SetStableRecoverDelay)
 	    .property("CanRun", &Actor::GetCanRun, &Actor::SetCanRun)
+	    .property("CrouchWalkSpeedMultiplier", &Actor::GetCrouchWalkSpeedMultiplier, &Actor::SetCrouchWalkSpeedMultiplier)
 	    .property("Status", &Actor::GetStatus, &Actor::SetStatus)
 	    .property("Health", &Actor::GetHealth, &Actor::SetHealth)
 	    .property("PrevHealth", &Actor::GetPrevHealth)
@@ -424,7 +426,6 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AHuman) {
 	    .property("FirearmNeedsReload", &AHuman::FirearmNeedsReload)
 	    .property("FirearmIsSemiAuto", &AHuman::FirearmIsSemiAuto)
 	    .property("FirearmActivationDelay", &AHuman::FirearmActivationDelay)
-	    .property("LimbPathPushForce", &AHuman::GetLimbPathPushForce, &AHuman::SetLimbPathPushForce)
 	    .property("IsClimbing", &AHuman::IsClimbing)
 	    .property("StrideFrame", &AHuman::StrideFrame)
 	    .property("ArmSwingRate", &AHuman::GetArmSwingRate, &AHuman::SetArmSwingRate)
@@ -450,8 +451,10 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AHuman) {
 	    .def("LookForGold", &AHuman::LookForGold)
 	    .def("LookForMOs", &AHuman::LookForMOs)
 	    .def("GetLimbPath", &AHuman::GetLimbPath)
-	    .def("GetLimbPathSpeed", &AHuman::GetLimbPathSpeed)
-	    .def("SetLimbPathSpeed", &AHuman::SetLimbPathSpeed)
+	    .def("GetLimbPathTravelSpeed", &AHuman::GetLimbPathTravelSpeed)
+	    .def("SetLimbPathTravelSpeed", &AHuman::SetLimbPathTravelSpeed)
+	    .def("GetLimbPathPushForce", &AHuman::GetLimbPathPushForce)
+	    .def("SetLimbPathPushForce", &AHuman::SetLimbPathPushForce)
 	    .def("GetRotAngleTarget", &AHuman::GetRotAngleTarget)
 	    .def("SetRotAngleTarget", &AHuman::SetRotAngleTarget)
 	    .def("GetWalkAngle", &AHuman::GetWalkAngle)
@@ -716,7 +719,9 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, LimbPath) {
 
 	    .property("StartOffset", &LimbPath::GetStartOffset, &LimbPath::SetStartOffset)
 	    .property("SegmentCount", &LimbPath::GetSegCount)
-	    .property("TravelSpeedMultiplier", &LimbPath::GetTravelSpeedMultiplier, &LimbPath::SetTravelSpeedMultiplier)
+	    .property("BaseTravelSpeedMultiplier", &LimbPath::GetBaseTravelSpeedMultiplier, &LimbPath::SetBaseTravelSpeedMultiplier)
+	    .property("TravelSpeed", &LimbPath::GetTravelSpeed, &LimbPath::SetTravelSpeed)
+	    .property("PushForce", &LimbPath::GetPushForce, &LimbPath::SetPushForce)
 
 	    .def("GetSegment", &LimbPath::GetSegment);
 }

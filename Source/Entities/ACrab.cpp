@@ -811,10 +811,11 @@ void ACrab::PreControllerUpdate() {
 
 				m_MoveState = WALK;
 
-				for (int side = 0; side < SIDECOUNT; ++side) {
-					m_Paths[side][FGROUND][m_MoveState].SetSpeed(m_Controller.IsState(MOVE_FAST) ? FAST : NORMAL);
-					m_Paths[side][BGROUND][m_MoveState].SetSpeed(m_Controller.IsState(MOVE_FAST) ? FAST : NORMAL);
-				}
+				// Was never actually used
+				//for (int side = 0; side < SIDECOUNT; ++side) {
+				//	m_Paths[side][FGROUND][m_MoveState].SetSpeed(m_Controller.IsState(MOVE_FAST) ? FAST : NORMAL);
+				//	m_Paths[side][BGROUND][m_MoveState].SetSpeed(m_Controller.IsState(MOVE_FAST) ? FAST : NORMAL);
+				//}
 			}
 
 			// Walk backwards if the aiming is already focused in the opposite direction of travel.
@@ -1434,28 +1435,28 @@ void ACrab::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 	}
 }
 
-float ACrab::GetLimbPathSpeed(int speedPreset) const {
-	return m_Paths[LEFTSIDE][FGROUND][WALK].GetSpeed(speedPreset);
+float ACrab::GetLimbPathTravelSpeed(MovementState movementState) {
+	return m_Paths[LEFTSIDE][FGROUND][movementState].GetTravelSpeed();
 }
 
-void ACrab::SetLimbPathSpeed(int speedPreset, float speed) {
-	m_Paths[LEFTSIDE][FGROUND][WALK].OverrideSpeed(speedPreset, speed);
-	m_Paths[RIGHTSIDE][FGROUND][WALK].OverrideSpeed(speedPreset, speed);
+void ACrab::SetLimbPathTravelSpeed(MovementState movementState, float newSpeed) {
+	m_Paths[LEFTSIDE][FGROUND][movementState].SetTravelSpeed(newSpeed);
+	m_Paths[RIGHTSIDE][FGROUND][movementState].SetTravelSpeed(newSpeed);
 
-	m_Paths[LEFTSIDE][BGROUND][WALK].OverrideSpeed(speedPreset, speed);
-	m_Paths[RIGHTSIDE][BGROUND][WALK].OverrideSpeed(speedPreset, speed);
+	m_Paths[LEFTSIDE][BGROUND][movementState].SetTravelSpeed(newSpeed);
+	m_Paths[RIGHTSIDE][BGROUND][movementState].SetTravelSpeed(newSpeed);
 }
 
-float ACrab::GetLimbPathPushForce() const {
-	return m_Paths[LEFTSIDE][FGROUND][WALK].GetDefaultPushForce();
+float ACrab::GetLimbPathPushForce(MovementState movementState) {
+	return m_Paths[LEFTSIDE][FGROUND][movementState].GetPushForce();
 }
 
-void ACrab::SetLimbPathPushForce(float force) {
-	m_Paths[LEFTSIDE][FGROUND][WALK].OverridePushForce(force);
-	m_Paths[RIGHTSIDE][FGROUND][WALK].OverridePushForce(force);
+void ACrab::SetLimbPathPushForce(MovementState movementState, float newForce) {
+	m_Paths[LEFTSIDE][FGROUND][movementState].SetPushForce(newForce);
+	m_Paths[RIGHTSIDE][FGROUND][movementState].SetPushForce(newForce);
 
-	m_Paths[LEFTSIDE][BGROUND][WALK].OverridePushForce(force);
-	m_Paths[RIGHTSIDE][BGROUND][WALK].OverridePushForce(force);
+	m_Paths[LEFTSIDE][BGROUND][movementState].SetPushForce(newForce);
+	m_Paths[RIGHTSIDE][BGROUND][movementState].SetPushForce(newForce);
 }
 
 int ACrab::WhilePieMenuOpenListener(const PieMenu* pieMenu) {

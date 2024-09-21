@@ -25,14 +25,13 @@ void LimbPath::Clear() {
 	m_FootCollisionsDisabledSegment = -1;
 	m_SegProgress = 0.0;
 	for (int i = 0; i < SPEEDCOUNT; ++i) {
-		m_TravelSpeed[i] = 0.0;
+		m_TravelSpeed = 0.0;
 	}
 	m_SegmentEndedThreshold = 2.5F;
 	m_BaseTravelSpeedMultiplier = 1.0F;
 	m_CurrentTravelSpeedMultiplier = 1.0F;
 	m_BaseScaleMultiplier = Vector(1.0F, 1.0F);
 	m_CurrentScaleMultiplier = Vector(1.0F, 1.0F);
-	m_WhichSpeed = NORMAL;
 	m_PushForce = 0.0;
 	m_JointPos.Reset();
 	m_JointVel.Reset();
@@ -105,7 +104,7 @@ int LimbPath::Create(const LimbPath& reference) {
 
 	m_SegProgress = reference.m_SegProgress;
 	for (int i = 0; i < SPEEDCOUNT; ++i) {
-		m_TravelSpeed[i] = reference.m_TravelSpeed[i];
+		m_TravelSpeed = reference.m_TravelSpeed;
 	}
 	m_SegmentEndedThreshold = reference.m_SegmentEndedThreshold;
 	m_BaseTravelSpeedMultiplier = reference.m_BaseTravelSpeedMultiplier;
@@ -142,20 +141,23 @@ int LimbPath::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("EndSegCount", { reader >> m_FootCollisionsDisabledSegment; });
 	MatchProperty("SegmentEndedThreshold", { reader >> m_SegmentEndedThreshold; });
 
+	// Deprecated, here for backwards compat to avoid crashes
 	MatchProperty("SlowTravelSpeed", {
-		reader >> m_TravelSpeed[SLOW];
-		// m_TravelSpeed[SLOW] = m_TravelSpeed[SLOW] * 2;
+		// We have to put it somewhere or the reader goes wonky
+		float discard;
+		reader >> discard;
 	});
 	MatchProperty("NormalTravelSpeed", {
-		reader >> m_TravelSpeed[NORMAL];
-		// m_TravelSpeed[NORMAL] = m_TravelSpeed[NORMAL] * 2;
+		reader >> m_TravelSpeed;
 	});
 	MatchProperty("FastTravelSpeed", {
-		reader >> m_TravelSpeed[FAST];
-		// m_TravelSpeed[FAST] = m_TravelSpeed[FAST] * 2;
+		float discard;
+		reader >> discard;
 	});
-	MatchProperty("TravelSpeedMultiplier", { reader >> m_BaseTravelSpeedMultiplier; });
-	MatchProperty("ScaleMultiplier", { reader >> m_BaseScaleMultiplier; });
+	MatchProperty("TravelSpeed", {
+	reader >> m_TravelSpeed;
+});
+	MatchProperty("BaseScaleMultiplier", { reader >> m_BaseScaleMultiplier; });
 	MatchProperty("PushForce", {
 		reader >> m_PushForce;
 		// m_PushForce = m_PushForce / 1.5;
@@ -180,12 +182,10 @@ int LimbPath::Save(Writer& writer) const {
 	}
 	writer.NewPropertyWithValue("EndSegCount", m_FootCollisionsDisabledSegment);
 	writer.NewPropertyWithValue("SegmentEndedThreshold", m_SegmentEndedThreshold);
-
-	writer.NewPropertyWithValue("SlowTravelSpeed", m_TravelSpeed[SLOW]);
-	writer.NewPropertyWithValue("NormalTravelSpeed", m_TravelSpeed[NORMAL]);
-	writer.NewPropertyWithValue("FastTravelSpeed", m_TravelSpeed[FAST]);
-	writer.NewPropertyWithValue("TravelSpeedMultiplier", m_BaseTravelSpeedMultiplier);
-	writer.NewPropertyWithValue("ScaleMultiplier", m_BaseScaleMultiplier);
+	
+	writer.NewPropertyWithValue("TravelSpeed", m_TravelSpeed);
+	writer.NewPropertyWithValue("BaseTravelSpeedMultiplier", m_BaseTravelSpeedMultiplier);
+	writer.NewPropertyWithValue("BaseScaleMultiplier", m_BaseScaleMultiplier);
 	writer.NewPropertyWithValue("PushForce", m_PushForce);
 
 	return 0;
@@ -221,7 +221,7 @@ Vector LimbPath::GetProgressPos() {
 Vector LimbPath::GetCurrentSegTarget() {
 	Vector returnVec(m_Start);
 	if (IsStaticPoint()) {
-		return m_JointPos + (RotatePoint(returnVec) * GetScaleMultiplier());
+		return m_JointPos + (RotatePoint(returnVec) * GetTotalScaleMultiplier());
 	}
 
 	std::deque<Vector>::const_iterator itr;
@@ -234,13 +234,13 @@ Vector LimbPath::GetCurrentSegTarget() {
 		returnVec += *m_CurrentSegment;
 	}
 
-	return m_JointPos + (RotatePoint(returnVec) * GetScaleMultiplier());
+	return m_JointPos + (RotatePoint(returnVec) * GetTotalScaleMultiplier());
 }
 
 Vector LimbPath::GetCurrentVel(const Vector& limbPos) {
 	Vector returnVel;
 	Vector distVect = g_SceneMan.ShortestDistance(limbPos, GetCurrentSegTarget());
-	float adjustedTravelSpeed = (m_TravelSpeed[m_WhichSpeed] / (1.0F + std::abs(m_JointVel.GetY()) * 0.1F)) * GetTravelSpeedMultiplier();
+	float adjustedTravelSpeed = (m_TravelSpeed / (1.0F + std::abs(m_JointVel.GetY()) * 0.1F)) * GetTotalTravelSpeedMultiplier();
 
 	if (IsStaticPoint()) {
 		returnVel = distVect * c_MPP / 0.020 /* + m_JointVel*/;
@@ -277,7 +277,7 @@ float LimbPath::GetNextTimeChunk(const Vector& limbPos) {
 
 		// Figure out the time needed to get to the target at the current speed, if
 		// there are no obstacles.
-		timeChunk = distance.GetMagnitude() / (GetSpeed() + m_JointVel.GetMagnitude());
+		timeChunk = distance.GetMagnitude() / (GetEffectiveTravelSpeed() + m_JointVel.GetMagnitude());
 		// Cap the time segment off to what we have left, if needed.
 		timeChunk = timeChunk > m_TimeLeft ? m_TimeLeft : timeChunk;
 		// Deduct the time used to pushtravel from the total time left.
@@ -349,21 +349,6 @@ int LimbPath::GetCurrentSegmentNumber() const {
 		}
 	}
 	return progress;
-}
-
-void LimbPath::SetSpeed(int newSpeed) {
-	if (newSpeed <= SLOW)
-		m_WhichSpeed = SLOW;
-	else if (newSpeed >= FAST)
-		m_WhichSpeed = FAST;
-	else
-		m_WhichSpeed = NORMAL;
-}
-
-void LimbPath::OverrideSpeed(int speedPreset, float newSpeed) {
-	if (speedPreset == SLOW || speedPreset == FAST || speedPreset == NORMAL) {
-		m_TravelSpeed[m_WhichSpeed] = newSpeed;
-	}
 }
 
 void LimbPath::Terminate() {

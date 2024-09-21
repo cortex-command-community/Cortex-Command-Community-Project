@@ -1255,7 +1255,7 @@ bool AtomGroup::PushAsLimb(const Vector& jointPos, const Vector& velocity, const
 				return false;
 			}
 		}
-		pushImpulse = PushTravel(m_LimbPos, limbPath.GetCurrentVel(m_LimbPos), limbPath.GetPushForce(), didWrap, limbPath.GetNextTimeChunk(m_LimbPos), false, false);
+		pushImpulse = PushTravel(m_LimbPos, limbPath.GetCurrentVel(m_LimbPos), limbPath.GetEffectivePushForce(), didWrap, limbPath.GetNextTimeChunk(m_LimbPos), false, false);
 		limbPath.ReportProgress(m_LimbPos);
 	} while (!limbPath.FrameDone() && !limbPath.PathEnded());
 

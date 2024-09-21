@@ -777,6 +777,14 @@ namespace RTE {
 		/// @param newCanRun The new value for whether this can run or not.
 		void SetCanRun(bool newCanRun) { m_CanRun = newCanRun; }
 
+		/// Gets the crouch walk speed multiplier.
+		/// @return The crouch walk speed multiplier.
+		float GetCrouchWalkSpeedMultiplier() const { return m_CrouchWalkSpeedMultiplier; }
+
+		/// Sets the crouch walk speed multiplier.
+		/// @param newSpeed The new value for the crouch walk speed multiplier.
+		void SetCrouchWalkSpeedMultiplier(float newSpeed) { m_CrouchWalkSpeedMultiplier = newSpeed; }
+
 		/// Gets the distance in which the Actor will have considered itself to have reached it's waypoint.
 		/// @return The move proximity limit.
 		float GetMoveProximityLimit() const { return m_MoveProximityLimit; }
@@ -885,6 +893,8 @@ namespace RTE {
 		bool m_GoldPicked;
 		// Whether this can engage RUN state or not
 		bool m_CanRun;
+		// Multiplier applied to walking speed at maximum crouch.
+		float m_CrouchWalkSpeedMultiplier;
 		// Aiming state
 		char m_AimState;
 		// The arc range of the aiming angle, in each direction, in radians. Eg if HalfPI, it means full 180 degree range

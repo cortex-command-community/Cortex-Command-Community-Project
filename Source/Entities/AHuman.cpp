@@ -218,8 +218,9 @@ int AHuman::Create(const AHuman& reference) {
 	if (m_Paths[FGROUND][RUN].GetSegCount() == 0) {
 		m_Paths[FGROUND][RUN].Create(reference.m_Paths[FGROUND][WALK]);
 		m_Paths[BGROUND][RUN].Create(reference.m_Paths[BGROUND][WALK]);
-		m_Paths[FGROUND][RUN].SetBaseSpeedMultiplier(reference.m_Paths[FGROUND][WALK].GetSpeed(Speed::FAST) / reference.m_Paths[FGROUND][WALK].GetSpeed(Speed::NORMAL));
-		m_Paths[BGROUND][RUN].SetBaseSpeedMultiplier(reference.m_Paths[BGROUND][WALK].GetSpeed(Speed::FAST) / reference.m_Paths[BGROUND][WALK].GetSpeed(Speed::NORMAL));
+		// Sensible default multiplier
+		m_Paths[FGROUND][RUN].SetTravelSpeed(m_Paths[FGROUND][RUN].GetTravelSpeed() * 1.5);
+		m_Paths[BGROUND][RUN].SetTravelSpeed(m_Paths[BGROUND][RUN].GetTravelSpeed() * 1.5);
 	}
 
 	return 0;
@@ -1419,22 +1420,17 @@ void AHuman::UpdateCrouching() {
 }
 
 void AHuman::UpdateLimbPathSpeed() {
-	// Reset travel speed so limbpath GetSpeed() gives us sensible values
-	m_Paths[FGROUND][m_MoveState].SetTravelSpeedMultiplier(1.0F);
-	m_Paths[BGROUND][m_MoveState].SetTravelSpeedMultiplier(1.0F);
-
 	if (m_MoveState == WALK || m_MoveState == RUN || m_MoveState == CRAWL) {
 		float travelSpeedMultiplier = 1.0F;
 		
 		// If crouching, move at reduced speed
 		if (m_MoveState == WALK) {
-			const float crouchSpeedMultiplier = 0.7F;
-			travelSpeedMultiplier *= Lerp(0.0F, 1.0F, 1.0F, crouchSpeedMultiplier, m_CrouchAmount);
+			travelSpeedMultiplier *= Lerp(0.0F, 1.0F, 1.0F, m_CrouchWalkSpeedMultiplier, m_CrouchAmount);
 		}
 
 		// If we're moving slowly horizontally, move at reduced speed (otherwise our legs kick about wildly as we're not yet up to speed)
 		// Calculate a min multiplier that is based on the total walkpath speed (so a fast walkpath has a smaller multipler). This is so a slow walkpath gets up to speed faster
-		const float ourMaxMovementSpeed = std::max(m_Paths[FGROUND][m_MoveState].GetSpeed(), m_Paths[BGROUND][m_MoveState].GetSpeed()) * 0.5F * travelSpeedMultiplier;
+		const float ourMaxMovementSpeed = std::max(m_Paths[FGROUND][m_MoveState].GetTravelSpeed(), m_Paths[BGROUND][m_MoveState].GetTravelSpeed()) * 0.5F * travelSpeedMultiplier;
 		const float minSpeed = 2.0F;
 		const float minMultiplier = minSpeed / ourMaxMovementSpeed;
 		travelSpeedMultiplier *= Lerp(0.0F, ourMaxMovementSpeed, minMultiplier, 1.0F, std::abs(m_Vel.m_X));
@@ -2817,22 +2813,25 @@ void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 	}
 }
 
-float AHuman::GetLimbPathSpeed(int speedPreset) const {
-	return m_Paths[FGROUND][WALK].GetSpeed(speedPreset);
+float AHuman::GetLimbPathTravelSpeed(MovementState movementState) {
+	return m_Paths[FGROUND][movementState].GetTravelSpeed();
 }
 
-void AHuman::SetLimbPathSpeed(int speedPreset, float speed) {
-	m_Paths[FGROUND][WALK].OverrideSpeed(speedPreset, speed);
-	m_Paths[BGROUND][WALK].OverrideSpeed(speedPreset, speed);
+void AHuman::SetLimbPathTravelSpeed(MovementState movementState, float newSpeed) {
+	m_Paths[FGROUND][movementState].SetTravelSpeed(newSpeed);
+	m_Paths[FGROUND][movementState].SetTravelSpeed(newSpeed);
 }
 
-float AHuman::GetLimbPathPushForce() const {
-	return m_Paths[FGROUND][WALK].GetDefaultPushForce();
+float AHuman::GetLimbPathPushForce(MovementState movementState) {
+	return m_Paths[FGROUND][movementState].GetPushForce();
 }
 
-void AHuman::SetLimbPathPushForce(float force) {
-	m_Paths[FGROUND][WALK].OverridePushForce(force);
-	m_Paths[BGROUND][WALK].OverridePushForce(force);
+void AHuman::SetLimbPathPushForce(MovementState movementState, float newForce) {
+	m_Paths[FGROUND][movementState].SetPushForce(newForce);
+	m_Paths[FGROUND][movementState].SetPushForce(newForce);
+
+	m_Paths[BGROUND][movementState].SetPushForce(newForce);
+	m_Paths[BGROUND][movementState].SetPushForce(newForce);
 }
 
 int AHuman::WhilePieMenuOpenListener(const PieMenu* pieMenu) {

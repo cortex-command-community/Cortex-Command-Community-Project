@@ -42,9 +42,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	Lua function `GetAudibleVolume` to get the real audible volume of a SoundContainer's sounds as a float from 0 to 1. This accounts for literally everything, including game volume.
 
 - New `LimbPath` features.
-	New `LimbPath` INI property `ScaleMultiplier`, which is a vector. This will scale the X/Y axes of the limbpath accordingly, allowing for easily adjusting limbpaths to differently sized actors.  
+	New `LimbPath` INI and Lua (R/W) property `BaseTravelSpeedMultiplier` which is a multiplier on the TravelSpeed of that LimbPath, on top of any other gameplay multipliers like from crouching.
+	New `LimbPath` INI and Lua (R/W) property `BaseScaleMultiplier`, which is a vector. This will scale the X/Y axes of the limbpath accordingly, allowing for easily adjusting limbpaths to differently sized actors, on top of any other gameplay multipliers like from running.
 	New `LimbPath` INI property `SegmentEndedThreshold`, which defines the distance the limb must be from the end of the segment before it's considered complete. This defaults to 2.5.  
-	The `TravelSpeedMultiplier` property has been adjusted to work more consistently when interacting with script.
+	Exposed `LimbPath` properties `TravelSpeed` and `PushForce` to Lua (R/W).
 
 - New `AEmitter` and `PEmitter` INI and Lua (R/W) property `PlayBurstSound` which denotes whether the BurstSound should play when appropriate. This should not be confused for a trigger - it's just a enable/disable toggle to avoid having to remove and add BurstSound altogether.
 
@@ -68,6 +69,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `MovableMan:OpenAllDoors()`, when passed `NOTEAM`, will now open/close doors specifically for `NOTEAM` (instead of all doors).
 
 - MOs now only play the BurstSound of the first Wound they receive in a frame, which not only solves audio spam during e.g. explosions but also preserves intended audio when firing guns with a high ParticleCount at them.
+
+- Changed how Get and SetLimbPathSpeed/PushForce work for `AHuman` and `ACrab`. The functions are as following:
+	`GetLimbPathSpeed` has been renamed to `GetLimbPathTravelSpeed`.
+	`SetLimbPathSpeed` has been renamed to `SetLimbPathTravelSpeed`.
+	`GetLimbPathTravelSpeed(Actor.MovementState)` returns the FG/left side (for crabs) limb path travel speed for that specific movement state, instead of being hardcoded to walking only.
+	`SetLimbPathTravelSpeed(Actor.MovementState, float newValue)` sets the travel speed for all layers and sides of any particular movement state's limb paths, instead of being hardcoded to walking only.
+	`GetLimbPathPushForce(Actor.MovementState)` returns the FG/left side (for crabs) limb path push force for that specific movement state, instead of being hardcoded to walking only.
+	`SetLimbPathPushForce(Actor.MovementState, float newValue)` sets the push force for all layers and sides of any particular movement state's limb paths, instead of being hardcoded to walking only.
+	
+- The `LimbPath` property `NormalTravelSpeed` has been renamed to just `TravelSpeed`.
 
 </details>
 
@@ -93,6 +104,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
 
 - Removed `AHuman` property `MaxCrouchRotation`. `CrouchRotAngleTarget` is now used instead.
+
+- Deprecated `LimbPath` properties `SlowTravelSpeed`, `NormalTravelSpeed` and `FastTravelSpeed`. For the sake of backwards compatibility they will not crash the game and `NormalTravelSpeed` is a valid synonym for the new `TravelSpeed`.
 
 </details>
 

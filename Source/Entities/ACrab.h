@@ -224,24 +224,24 @@ namespace RTE {
 		/// @return The LimbPath corresponding to the passed in Layer and MovementState values.
 		LimbPath* GetLimbPath(Side side, Layer layer, MovementState movementState) { return &m_Paths[side][layer][movementState]; }
 
-		/// Get walking limb path speed for the specified preset.
-		/// @param speedPreset Speed preset to set 0 = LimbPath::SLOW, 1 = Limbpath::NORMAL, 2 = LimbPath::FAST
-		/// @return Limb path speed for the specified preset in m/s.
-		float GetLimbPathSpeed(int speedPreset) const;
+		/// Shortcut to get the speed of a particular move state's FG (and left side if relevant) limb path.
+		/// @param movementState Which movement state to get the limb path speed for.
+		/// @return Limb path speed for the specified movement state in m/s.
+		float GetLimbPathTravelSpeed(MovementState movementState);
 
-		/// Set walking limb path speed for the specified preset.
-		/// @param speedPreset Speed preset to set 0 = LimbPath::SLOW, 1 = Limbpath::NORMAL, 2 = LimbPath::FAST. New speed value in m/s.
-		void SetLimbPathSpeed(int speedPreset, float speed);
+		/// Shortcut to set the speed of a particular move state's limb path, including all layers (and sides if relevant)
+		/// @param movementState Which movement state to set the limb path speed for.
+		/// @param newSpeed New speed value in m/s.
+		void SetLimbPathTravelSpeed(MovementState movementStateourmaxmovement, float newSpeed);
 
-		/// Gets the default force that a limb traveling walking LimbPath can push against
-		/// stuff in the scene with.
-		/// @return The default set force maximum, in kg * m/s^2.
-		float GetLimbPathPushForce() const;
+		/// Shortcut to get the push force of a particular move state's FG (and left side if relevant) limb path.
+		/// @return The push force, in kg * m/s^2.
+		float GetLimbPathPushForce(MovementState movementState);
 
-		/// Sets the default force that a limb traveling walking LimbPath can push against
-		/// stuff in the scene with.
-		/// @param force The default set force maximum, in kg * m/s^2.
-		void SetLimbPathPushForce(float force);
+		/// Shortcut to set the push force of a particular move state's limb path, including all layers (and sides if relevant)
+		/// @param movementState Which movement state to set the limb path speed for.
+		/// @param newForce New push force value in kg * m/s^2.
+		void SetLimbPathPushForce(MovementState movementState, float newForce);
 
 		/// Gets this ACrab's stride sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this ACrab's stride sound.

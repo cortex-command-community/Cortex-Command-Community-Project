@@ -67,6 +67,7 @@ void Actor::Clear() {
 	m_StableVel.SetXY(15.0F, 25.0F);
 	m_StableRecoverDelay = 1000;
 	m_CanRun = true;
+	m_CrouchWalkSpeedMultiplier = 0.7F;
 	m_HeartBeat.Reset();
 	m_NewControlTmr.Reset();
 	m_DeathTmr.Reset();
@@ -200,6 +201,7 @@ int Actor::Create(const Actor& reference) {
 	m_StableVel = reference.m_StableVel;
 	m_StableRecoverDelay = reference.m_StableRecoverDelay;
 	m_CanRun = reference.m_CanRun;
+	m_CrouchWalkSpeedMultiplier = reference.m_CrouchWalkSpeedMultiplier;
 	m_GoldCarried = reference.m_GoldCarried;
 	m_AimState = reference.m_AimState;
 	m_AimRange = reference.m_AimRange;
@@ -330,6 +332,7 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("StableVelocityThreshold", { reader >> m_StableVel; });
 	MatchProperty("StableRecoveryDelay", { reader >> m_StableRecoverDelay; });
 	MatchProperty("CanRun", { reader >> m_CanRun; });
+	MatchProperty("CrouchWalkSpeedMultiplier", { reader >> m_CrouchWalkSpeedMultiplier; });
 	MatchProperty("AimAngle", { reader >> m_AimAngle; });
 	MatchProperty("AimRange", { reader >> m_AimRange; });
 	MatchProperty("AimDistance", { reader >> m_AimDistance; });
@@ -406,6 +409,8 @@ int Actor::Save(Writer& writer) const {
 	writer << m_StableRecoverDelay;
 	writer.NewProperty("CanRun");
 	writer << m_CanRun;
+	writer.NewProperty("CrouchWalkSpeedMultiplier");
+	writer << m_CrouchWalkSpeedMultiplier;
 	writer.NewProperty("AimAngle");
 	writer << m_AimAngle;
 	writer.NewProperty("AimRange");

@@ -14,12 +14,6 @@ namespace RTE {
 
 #define SPEEDCOUNT 3
 
-	enum Speed {
-		SLOW = 0,
-		NORMAL,
-		FAST
-	};
-
 	/// A set of Vector:s making up a motion path for a AtomGroup's limb. The
 	/// path is continuous.
 	class LimbPath : public Entity {
@@ -128,50 +122,51 @@ namespace RTE {
 		/// @return A Vector with the current move velocity.
 		Vector GetCurrentVel(const Vector& limbPos);
 
-		/// Gets the speed that a limb traveling this LimbPath should have.
-		/// @return A float describing the speed in m/s.
-		float GetSpeed() const { return m_TravelSpeed[m_WhichSpeed] * GetTravelSpeedMultiplier(); }
-
-		/// Gets the speed that a limb traveling this LimbPath should have for the specified preset.
-		/// @param speedPreset Predefined speed preset to set the value for.
-		/// @return A float describing the speed in m/s.
-		float GetSpeed(int speedPreset) const {
-			if (speedPreset == SLOW || speedPreset == NORMAL || speedPreset == FAST)
-				return m_TravelSpeed[speedPreset];
-			else
-				return 0;
-		}
+		/// Gets the base travel speed multiplier.
+		/// @return The base travel speed multiplier.
+		float GetBaseTravelSpeedMultiplier() const { return m_BaseTravelSpeedMultiplier; }
 
 		/// Sets the base travel speed multiplier.
-		/// @param newValue The new travel speed multiplier.
-		void SetBaseSpeedMultiplier(float newValue) { m_BaseTravelSpeedMultiplier = newValue; }
+		/// @param newValue The new base travel speed multiplier.
+		void SetBaseTravelSpeedMultiplier(float newValue) { m_BaseTravelSpeedMultiplier = newValue; }
+
+		/// Gets the current travel speed multiplier.
+		/// @return The current travel speed multiplier.
+		float GetTravelSpeedMultiplier() const { return m_CurrentTravelSpeedMultiplier; }
 
 		/// Sets the current travel speed multiplier.
 		/// @param newValue The new travel speed multiplier.
 		void SetTravelSpeedMultiplier(float newValue) { m_CurrentTravelSpeedMultiplier = newValue; }
 
-		/// Gets the current travel speed multiplier.
-		/// @return The current travel speed multiplier.
-		float GetTravelSpeedMultiplier() const { return m_BaseTravelSpeedMultiplier * m_CurrentTravelSpeedMultiplier; }
+		/// Gets the total travel speed multiplier including Base and Current.
+		/// @return The total travel speed multiplier.
+		float GetTotalTravelSpeedMultiplier() const { return m_BaseTravelSpeedMultiplier * m_CurrentTravelSpeedMultiplier; }
+
+		/// Gets the base scale multiplier.
+		/// @return The current scale multiplier.
+		Vector GetBaseScaleMultiplier() const { return m_BaseScaleMultiplier; }
+
+		/// Sets the base scale multiplier.
+		/// @param newValue The new base scale multiplier.
+		void SetBaseScaleMultiplier(Vector newValue) { m_BaseScaleMultiplier = newValue; }
+
+		/// Gets the current scale multiplier.
+		/// @return The current scale multiplier.
+		Vector GetScaleMultiplier() const { return m_CurrentScaleMultiplier; }
 
 		/// Sets the current scale multiplier.
 		/// @param newValue The new scale multiplier.
 		void SetScaleMultiplier(Vector newValue) { m_CurrentScaleMultiplier = newValue; }
 
-		/// Gets the current scale multiplier.
-		/// @return The current scale multiplier.
-		Vector GetScaleMultiplier() const { return m_BaseScaleMultiplier * m_CurrentScaleMultiplier; }
+		/// Gets the total scale multiplier including Base and Current.
+		/// @return The total scale multiplier.
+		Vector GetTotalScaleMultiplier() const { return m_BaseScaleMultiplier * m_CurrentScaleMultiplier; }
 
 		/// Gets the force that a limb traveling this LimbPath can push against
-		/// stuff in the scene with. It will increase to the double if progress
+		/// stuff in the scene with, increasing to double if progress
 		/// isn't made on the segment.
 		/// @return The currently set force maximum, in kg * m/s^2.
-		float GetPushForce() const { return m_PushForce + (m_PushForce * (m_SegTimer.GetElapsedSimTimeMS() / 500)); }
-
-		/// Gets thedefault, unaltered force that a limb traveling this LimbPath can push against
-		/// stuff in the scene with.
-		/// @return The default set force maximum, in kg * m/s^2.
-		float GetDefaultPushForce() const { return m_PushForce; }
+		float GetEffectivePushForce() const { return m_PushForce + (m_PushForce * (m_SegTimer.GetElapsedSimTimeMS() / 500)); }
 
 		/// Gets the time needed to get to the target waypoint of the current
 		/// segment at the current speed, if there are no obstacles. The chunk
@@ -182,15 +177,15 @@ namespace RTE {
 		/// @return A float describing the time chunk in seconds.
 		float GetNextTimeChunk(const Vector& limbPos);
 
-		/// Gets the total time that this entire path should take to travel along
-		/// with the current speed setting, including the start segments.
+		/// Gets the total time that this entire path should take to travel along,
+		/// including the start segments.
 		/// @return The total time (ms) this should take to travel along, if unobstructed.
-		float GetTotalPathTime() const { return ((m_TotalLength * c_MPP * GetScaleMultiplier().GetMagnitude()) / (m_TravelSpeed[m_WhichSpeed] * GetTravelSpeedMultiplier())) * 1000; }
+		float GetTotalPathTime() const { return ((m_TotalLength * c_MPP * GetTotalScaleMultiplier().GetMagnitude()) / (m_TravelSpeed * GetTotalTravelSpeedMultiplier())) * 1000; }
 
 		/// Gets the total time that this path should take to travel along
-		/// with the current speed setting, NOT including the start segments.
+		/// NOT including the start segments.
 		/// @return The total time (ms) this should take to travel along, if unobstructed.
-		float GetRegularPathTime() const { return ((m_RegularLength * c_MPP * GetScaleMultiplier().GetMagnitude()) / (m_TravelSpeed[m_WhichSpeed] * GetTravelSpeedMultiplier())) * 1000; }
+		float GetRegularPathTime() const { return ((m_RegularLength * c_MPP * GetTotalScaleMultiplier().GetMagnitude()) / (m_TravelSpeed * GetTotalTravelSpeedMultiplier())) * 1000; }
 
 		/// Gets the ratio of time since the path was restarted and the total time
 		/// it should take to travel along the path with the current speed setting,
@@ -239,21 +234,27 @@ namespace RTE {
 		/// @param newSpeed An int that is an index to a valid element of the internal segment array.
 		//    void SetCurrentSeg(unsigned int currentSeg) { m_CurrentSegment = currentSeg; }
 
-		/// Sets the speed that a limb traveling this LimbPath should have to one
-		/// of the three predefined speed settings.
-		/// @param newSpeed An int specifying which discrete speed setting to use from the Speed
-		/// enumeration.
-		void SetSpeed(int newSpeed);
+		/// Gets the speed that a limb traveling this LimbPath has, without any multiplications.
+		/// @return A float with the travel speed.
+		float GetTravelSpeed() const { return m_TravelSpeed; }
 
-		/// Sets the speed that a limb traveling this LimbPath with the specified preset should have.
-		/// @param speedPreset An int specifying which discrete speed setting to use from the Speed
-		/// enumeration. New limb travel speed value.
-		void OverrideSpeed(int speedPreset, float newSpeed);
+		/// Sets the speed that a limb traveling this LimbPath should have.
+		/// @param newSpeed A float with the new speed.
+		void SetTravelSpeed(float newSpeed) { m_TravelSpeed = newSpeed; }
 
+		/// Gets the effective speed that a limb traveling this LimbPath has, including all multiplications.
+		/// @return A float with the effective travel speed.
+		float GetEffectiveTravelSpeed() { return m_TravelSpeed * GetTotalTravelSpeedMultiplier(); }
+
+		/// Gets the force that a limb traveling this LimbPath can push against
+		/// stuff in the scene with.
+		/// @return The default set force maximum, in kg * m/s^2.
+		float GetPushForce() const { return m_PushForce; }
+		
 		/// Sets the force that a limb traveling this LimbPath can push against
 		/// stuff in the scene with.
 		/// @param newForce The new push force maximum, in kg * m/s^2.
-		void OverridePushForce(float newForce) { m_PushForce = newForce; };
+		void SetPushForce(float newForce) { m_PushForce = newForce; }
 
 		/// Sets the amount of time that will be used by the limb to travel every
 		/// frame. Defined in seconds.
@@ -391,7 +392,7 @@ namespace RTE {
 		float m_SegProgress;
 
 		// The constant speed that the limb traveling this path has in m/s.
-		float m_TravelSpeed[SPEEDCOUNT];
+		float m_TravelSpeed;
 
 		// How close we must get to the end of each segment to consider it finished
 		float m_SegmentEndedThreshold;
@@ -404,9 +405,6 @@ namespace RTE {
 		// This is a vector to allow scaling on seperate axis
 		Vector m_BaseScaleMultiplier;
 		Vector m_CurrentScaleMultiplier;
-
-		// The current speed setting.
-		int m_WhichSpeed;
 
 		// The max force that a limb travelling along this path can push.
 		// In kg * m/(s^2)
