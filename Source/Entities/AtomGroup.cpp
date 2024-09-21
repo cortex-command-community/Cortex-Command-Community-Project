@@ -1264,8 +1264,9 @@ bool AtomGroup::PushAsLimb(const Vector& jointPos, const Vector& velocity, const
 	}
 
 	if (Actor* owner = dynamic_cast<Actor*>(m_OwnerMOSR)) {
-		bool againstTravelDirection = owner->GetController()->IsState(MOVE_LEFT) && pushImpulse.m_X > 0.0F ||
-		                              owner->GetController()->IsState(MOVE_RIGHT) && pushImpulse.m_X < 0.0F;
+		bool againstTravelDirection = !owner->GetController()->IsState(BODY_JUMP) && /*owner->EstimateJumpHeight() > 0.0F && // little inefficient for now*/
+		                              ((owner->GetController()->IsState(MOVE_LEFT)  && pushImpulse.m_X > 0.0F) ||
+		                               (owner->GetController()->IsState(MOVE_RIGHT) && pushImpulse.m_X < 0.0F));
 		if (againstTravelDirection) {
 			// Filter some of our impulse out. We're pushing against an obstacle, but we don't want to kick backwards!
 			const float againstIntendedDirectionMultiplier = 0.3F;
