@@ -1356,14 +1356,23 @@ void AHuman::UpdateWalkAngle(AHuman::Layer whichLayer) {
 
 		// Cast a ray down from the left and right of us, to determine our angle of ascent
 		// TODO Don't use a magic number here, calculate something based on stride length and maybe footgroup width.
-		Vector hitPosLeft = hipPos + Vector(-10.0F, 0.0F);
-		Vector hitPosRight = hipPos + Vector(10.0F, 0.0F);
-		g_SceneMan.CastStrengthRay(hitPosLeft, Vector(0.0F, rayLength), 10.0F, hitPosLeft, 0, g_MaterialGrass);
-		g_SceneMan.CastStrengthRay(hitPosRight, Vector(0.0F, rayLength), 10.0F, hitPosRight, 0, g_MaterialGrass);
+		Vector startPosLeft = hipPos + Vector(-10.0F, 0.0F);
+		Vector startPosRight = hipPos + Vector(10.0F, 0.0F);
+		Vector hitPosLeft, hitPosRight;
+		g_SceneMan.CastStrengthRay(startPosLeft, Vector(0.0F, rayLength), 10.0F, hitPosLeft, 0, g_MaterialGrass);
+		g_SceneMan.CastStrengthRay(startPosRight, Vector(0.0F, rayLength), 10.0F, hitPosRight, 0, g_MaterialGrass);
+
+		float angle = 0.0F;
+
+		// If we immediately hit something, we're probably against a wall. So don't bother trying to walk over it
+		bool immediateHit = hitPosLeft == startPosLeft || hitPosRight == startPosRight;
+		if (!immediateHit) {
+			angle = (hitPosRight - hitPosLeft).GetAbsDegAngle();
+		}
 
 		// Clamp the max angle, so we don't end up trying to walk at a 80 degree angle up sheer walls
 		const float maxAngleDegrees = 40.0F;
-		float terrainRotationDegs = std::clamp((hitPosRight - hitPosLeft).GetAbsDegAngle(), -maxAngleDegrees, maxAngleDegrees);
+		float terrainRotationDegs = std::clamp(angle, -maxAngleDegrees, maxAngleDegrees);
 
 		//const float fastMovementAngleReduction = 10.0F;
 		//const float ourMaxMovementSpeed = std::max(m_Paths[FGROUND][WALK].GetSpeed(), m_Paths[BGROUND][WALK].GetSpeed()) * 0.5F;
