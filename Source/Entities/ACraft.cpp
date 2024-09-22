@@ -180,7 +180,7 @@ MOSRotating* ACraft::Exit::SuckInMOs(ACraft* pExitOwner) {
 void ACraft::Clear() {
 	m_AIMode = AIMODE_DELIVER;
 
-	m_MoveState = NOMOVE;
+	m_MovementState = NOMOVE;
 	m_HatchState = CLOSED;
 	m_HatchTimer.Reset();
 	m_HatchDelay = 0;
@@ -225,7 +225,7 @@ int ACraft::Create() {
 int ACraft::Create(const ACraft& reference) {
 	Actor::Create(reference);
 
-	m_MoveState = reference.m_MoveState;
+	m_MovementState = reference.m_MovementState;
 	m_HatchState = reference.m_HatchState;
 	m_HatchDelay = reference.m_HatchDelay;
 	if (reference.m_HatchOpenSound) {

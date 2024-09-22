@@ -51,7 +51,7 @@ void AHuman::Clear() {
 	m_BackupBGFootGroup = nullptr;
 	m_StrideSound = nullptr;
 	m_ArmsState = WEAPON_READY;
-	m_MoveState = STAND;
+	m_MovementState = STAND;
 	m_ProneState = NOTPRONE;
 	m_ProneTimer.Reset();
 	m_MaxWalkPathCrouchShift = 6.0F;
@@ -205,7 +205,7 @@ int AHuman::Create(const AHuman& reference) {
 	}
 
 	m_ArmsState = reference.m_ArmsState;
-	m_MoveState = reference.m_MoveState;
+	m_MovementState = reference.m_MovementState;
 	m_ProneState = reference.m_ProneState;
 
 	for (int i = 0; i < MOVEMENTSTATECOUNT; ++i) {
@@ -1420,30 +1420,30 @@ void AHuman::UpdateCrouching() {
 }
 
 void AHuman::UpdateLimbPathSpeed() {
-	if (m_MoveState == WALK || m_MoveState == RUN || m_MoveState == CRAWL) {
+	if (m_MovementState == WALK || m_MovementState == RUN || m_MovementState == CRAWL) {
 		float travelSpeedMultiplier = 1.0F;
 		
 		// If crouching, move at reduced speed
-		if (m_MoveState == WALK) {
+		if (m_MovementState == WALK) {
 			travelSpeedMultiplier *= Lerp(0.0F, 1.0F, 1.0F, m_CrouchWalkSpeedMultiplier, m_CrouchAmount);
 		}
 
 		// If we're moving slowly horizontally, move at reduced speed (otherwise our legs kick about wildly as we're not yet up to speed)
 		// Calculate a min multiplier that is based on the total walkpath speed (so a fast walkpath has a smaller multipler). This is so a slow walkpath gets up to speed faster
-		const float ourMaxMovementSpeed = std::max(m_Paths[FGROUND][m_MoveState].GetTravelSpeed(), m_Paths[BGROUND][m_MoveState].GetTravelSpeed()) * 0.5F * travelSpeedMultiplier;
+		const float ourMaxMovementSpeed = std::max(m_Paths[FGROUND][m_MovementState].GetTravelSpeed(), m_Paths[BGROUND][m_MovementState].GetTravelSpeed()) * 0.5F * travelSpeedMultiplier;
 		const float minSpeed = 2.0F;
 		const float minMultiplier = minSpeed / ourMaxMovementSpeed;
 		travelSpeedMultiplier *= Lerp(0.0F, ourMaxMovementSpeed, minMultiplier, 1.0F, std::abs(m_Vel.m_X));
 
-		m_Paths[FGROUND][m_MoveState].SetTravelSpeedMultiplier(travelSpeedMultiplier);
-		m_Paths[BGROUND][m_MoveState].SetTravelSpeedMultiplier(travelSpeedMultiplier);
+		m_Paths[FGROUND][m_MovementState].SetTravelSpeedMultiplier(travelSpeedMultiplier);
+		m_Paths[BGROUND][m_MovementState].SetTravelSpeedMultiplier(travelSpeedMultiplier);
 
 		// Also extend our stride depending on speed
 		const float strideXMultiplier = Lerp(0.0F, ourMaxMovementSpeed, 0.8F, 1.2F, std::abs(m_Vel.m_X));
 		const float strideYMultiplier = Lerp(0.0F, ourMaxMovementSpeed, 0.9F, 1.1F, std::abs(m_Vel.m_X));
 		Vector scale = Vector(strideXMultiplier, strideYMultiplier);
-		m_Paths[FGROUND][m_MoveState].SetScaleMultiplier(scale);
-		m_Paths[BGROUND][m_MoveState].SetScaleMultiplier(scale);
+		m_Paths[FGROUND][m_MovementState].SetScaleMultiplier(scale);
+		m_Paths[BGROUND][m_MovementState].SetScaleMultiplier(scale);
 	}
 }
 
@@ -1458,8 +1458,8 @@ void AHuman::PreControllerUpdate() {
 	Vector analogAim = m_Controller.GetAnalogAim();
 	const float analogDeadzone = 0.1F;
 
-	m_Paths[FGROUND][m_MoveState].SetHFlip(m_HFlipped);
-	m_Paths[BGROUND][m_MoveState].SetHFlip(m_HFlipped);
+	m_Paths[FGROUND][m_MovementState].SetHFlip(m_HFlipped);
+	m_Paths[BGROUND][m_MovementState].SetHFlip(m_HFlipped);
 
 	if (m_pJetpack && m_pJetpack->IsAttached()) {
 		m_pJetpack->UpdateBurstState(*this);
@@ -1491,25 +1491,25 @@ void AHuman::PreControllerUpdate() {
 			m_ProneTimer.Reset();
 		}
 
-		if ((m_Controller.IsState(MOVE_RIGHT) || m_Controller.IsState(MOVE_LEFT) || m_MoveState == JUMP) && m_Status != INACTIVE) {
+		if ((m_Controller.IsState(MOVE_RIGHT) || m_Controller.IsState(MOVE_LEFT) || m_MovementState == JUMP) && m_Status != INACTIVE) {
 			for (int i = WALK; i < MOVEMENTSTATECOUNT; ++i) {
 				m_Paths[FGROUND][i].SetHFlip(m_HFlipped);
 				m_Paths[BGROUND][i].SetHFlip(m_HFlipped);
 			}
 
 			// Only if not jumping, OR if jumping, and apparently stuck on something - then help out with the limbs.
-			if (m_MoveState != JUMP || isStill) {
-				MovementState oldMoveState = m_MoveState;
+			if (m_MovementState != JUMP || isStill) {
+				MovementState oldMoveState = m_MovementState;
 				if (!m_ProneState == NOTPRONE) {
-					m_MoveState = CRAWL;
+					m_MovementState = CRAWL;
 				} else if (m_CanRun && m_Controller.IsState(MOVE_FAST) && !m_Controller.IsState(BODY_CROUCH)) {
-					m_MoveState = RUN;
+					m_MovementState = RUN;
 				} else {
-					m_MoveState = WALK;
+					m_MovementState = WALK;
 				}
 
 				// Restart the stride if we're just starting to walk or crawl.
-				if (m_MoveState != oldMoveState) {
+				if (m_MovementState != oldMoveState) {
 					m_StrideStart = true;
 					MoveOutOfTerrain(g_MaterialGrass);
 				}
@@ -1518,8 +1518,8 @@ void AHuman::PreControllerUpdate() {
 			// Walk backwards if the aiming is already focused in the opposite direction of travel.
 			// Note that we check against zero here rather than the deadzone, because using the deadzone makes jetpacking mouse players unable to fly one way and aim the other.
 			if (!analogAim.IsZero() || isSharpAiming) {
-				m_Paths[FGROUND][m_MoveState].SetHFlip(m_Controller.IsState(MOVE_LEFT));
-				m_Paths[BGROUND][m_MoveState].SetHFlip(m_Controller.IsState(MOVE_LEFT));
+				m_Paths[FGROUND][m_MovementState].SetHFlip(m_Controller.IsState(MOVE_LEFT));
+				m_Paths[BGROUND][m_MovementState].SetHFlip(m_Controller.IsState(MOVE_LEFT));
 			} else if ((m_Controller.IsState(MOVE_RIGHT) && m_HFlipped) || (m_Controller.IsState(MOVE_LEFT) && !m_HFlipped)) {
 				m_HFlipped = !m_HFlipped;
 				m_CheckTerrIntersection = true;
@@ -1544,12 +1544,12 @@ void AHuman::PreControllerUpdate() {
 			m_ArmClimbing[BGROUND] = false;
 			if (prone) {
 				// Don't go back to prone if we're already prone, the player has to let go of the crouch button first. If already laying down, just stay put.
-				m_MoveState = m_ProneState == NOTPRONE ? PRONE : NOMOVE;
+				m_MovementState = m_ProneState == NOTPRONE ? PRONE : NOMOVE;
 			} else if (m_CrouchAmount >= 1.0F) {
 				// Fully crouching will set the appropriate state so we can use CrouchLimbPath
-				m_MoveState = CROUCH;
+				m_MovementState = CROUCH;
 			} else {
-				m_MoveState = STAND;
+				m_MovementState = STAND;
 			}
 		}
 		// Disengage the prone state as soon as prone is released.
@@ -1677,7 +1677,7 @@ void AHuman::PreControllerUpdate() {
 	// TODO: make the delay data driven by both the actor and the device!
 	//
 	if (isSharpAiming && m_Status == STABLE && m_Vel.MagnitudeIsLessThan(5.0F) && GetEquippedItem() &&
-	    (m_MoveState == STAND || m_MoveState == CROUCH || m_MoveState == PRONE || m_MoveState == NOMOVE || m_MoveState == WALK)) {
+	    (m_MovementState == STAND || m_MovementState == CROUCH || m_MovementState == PRONE || m_MovementState == NOMOVE || m_MovementState == WALK)) {
 		float aimMag = analogAim.GetMagnitude();
 
 		// If aim sharp is being done digitally, then translate to full analog aim mag
@@ -1685,7 +1685,7 @@ void AHuman::PreControllerUpdate() {
 			aimMag = 1.0F;
 		}
 		
-		if (m_MoveState == WALK) {
+		if (m_MovementState == WALK) {
 			aimMag *= 0.3F;
 		}
 
@@ -1964,17 +1964,17 @@ void AHuman::PreControllerUpdate() {
 	UpdateCrouching();
 
 	Vector pathOffset;
-	if (m_MoveState == WALK) {
+	if (m_MovementState == WALK) {
 		pathOffset = m_WalkPathOffset;
 	}
 
-	if (m_Status == STABLE && !m_LimbPushForcesAndCollisionsDisabled && m_MoveState != NOMOVE) {
+	if (m_Status == STABLE && !m_LimbPushForcesAndCollisionsDisabled && m_MovementState != NOMOVE) {
 		// This exists to support disabling foot collisions if the limbpath has that flag set.
-		if ((m_pFGFootGroup->GetAtomCount() == 0 && m_BackupFGFootGroup->GetAtomCount() > 0) != m_Paths[FGROUND][m_MoveState].FootCollisionsShouldBeDisabled()) {
+		if ((m_pFGFootGroup->GetAtomCount() == 0 && m_BackupFGFootGroup->GetAtomCount() > 0) != m_Paths[FGROUND][m_MovementState].FootCollisionsShouldBeDisabled()) {
 			m_BackupFGFootGroup->SetLimbPos(m_pFGFootGroup->GetLimbPos());
 			std::swap(m_pFGFootGroup, m_BackupFGFootGroup);
 		}
-		if ((m_pBGFootGroup->GetAtomCount() == 0 && m_BackupBGFootGroup->GetAtomCount() > 0) != m_Paths[BGROUND][m_MoveState].FootCollisionsShouldBeDisabled()) {
+		if ((m_pBGFootGroup->GetAtomCount() == 0 && m_BackupBGFootGroup->GetAtomCount() > 0) != m_Paths[BGROUND][m_MovementState].FootCollisionsShouldBeDisabled()) {
 			m_BackupBGFootGroup->SetLimbPos(m_pBGFootGroup->GetLimbPos());
 			std::swap(m_pBGFootGroup, m_BackupBGFootGroup);
 		}
@@ -1989,11 +1989,11 @@ void AHuman::PreControllerUpdate() {
 		UpdateLimbPathSpeed();
 
 		// WALKING, OR WE ARE JETPACKING AND STUCK
-		if (m_MoveState == WALK || m_MoveState == RUN || (m_MoveState == JUMP && isStill)) {
+		if (m_MovementState == WALK || m_MovementState == RUN || (m_MovementState == JUMP && isStill)) {
 			m_Paths[FGROUND][STAND].Terminate();
 			m_Paths[BGROUND][STAND].Terminate();
 
-			MovementState movementPath = m_MoveState == RUN ? RUN : WALK;
+			MovementState movementPath = m_MovementState == RUN ? RUN : WALK;
 			float FGLegProg = m_Paths[FGROUND][movementPath].GetRegularProgress();
 			float BGLegProg = m_Paths[BGROUND][movementPath].GetRegularProgress();
 
@@ -2101,7 +2101,7 @@ void AHuman::PreControllerUpdate() {
 				m_Paths[FGROUND][movementPath].Terminate();
 				m_Paths[BGROUND][movementPath].Terminate();
 			}
-		} else if (m_MoveState == CRAWL) {
+		} else if (m_MovementState == CRAWL) {
 			// Start crawling only once we are fully prone.
 			if (m_ProneState == LAYINGPRONE) {
 
@@ -2149,7 +2149,7 @@ void AHuman::PreControllerUpdate() {
 				}
 			}
 		} else if (m_pFGLeg || m_pBGLeg) {
-			if (m_MoveState == JUMP) {
+			if (m_MovementState == JUMP) {
 				// TODO: Utilize jump paths in an intuitive way!
 				if (m_pFGLeg) {
 					m_pFGFootGroup->FlailAsLimb(m_Pos, RotateOffset(m_pFGLeg->GetParentOffset()), m_pFGLeg->GetMaxLength(), m_PrevVel, m_AngularVel, m_pFGLeg->GetMass(), deltaTime);
@@ -2161,7 +2161,7 @@ void AHuman::PreControllerUpdate() {
 			} else {
 				m_Paths[FGROUND][JUMP].Terminate();
 				m_Paths[BGROUND][JUMP].Terminate();
-				if (m_MoveState == CROUCH) {
+				if (m_MovementState == CROUCH) {
 					m_Paths[FGROUND][WALK].Terminate();
 					m_Paths[BGROUND][WALK].Terminate();
 					m_Paths[FGROUND][CRAWL].Terminate();
@@ -2214,7 +2214,7 @@ void AHuman::PreControllerUpdate() {
 			m_pBGFootGroup->FlailAsLimb(m_Pos, RotateOffset(m_pBGLeg->GetParentOffset()), m_pBGLeg->GetMaxLength(), m_PrevVel * m_pBGLeg->GetJointStiffness(), m_AngularVel, m_pBGLeg->GetMass(), deltaTime);
 		}
 	}
-	if (m_MoveState != WALK && m_StrideSound && m_StrideSound->GetLoopSetting() < 0) {
+	if (m_MovementState != WALK && m_StrideSound && m_StrideSound->GetLoopSetting() < 0) {
 		m_StrideSound->Stop();
 	}
 
@@ -2273,7 +2273,7 @@ void AHuman::PreControllerUpdate() {
 		if (m_Status == STABLE) {
 			if (m_ArmClimbing[BGROUND]) {
 				// Can't climb or crawl with the shield
-				if (m_MoveState != CRAWL || m_ProneState == LAYINGPRONE) {
+				if (m_MovementState != CRAWL || m_ProneState == LAYINGPRONE) {
 					UnequipBGArm();
 				}
 				m_pBGArm->AddHandTarget("Hand AtomGroup Limb Pos", m_pBGHandGroup->GetLimbPos(m_HFlipped));
@@ -2293,7 +2293,7 @@ void AHuman::PreControllerUpdate() {
 							m_pBGArm->SetRecoil(heldDevice->GetRecoilForce(), heldDevice->GetRecoilOffset(), heldDevice->IsRecoiled());
 						} else {
 							// BGArm did not reach to support the device. Count device as supported anyway, if crouching or prone.
-							heldDevice->SetSupported(m_MoveState == PRONE || m_ProneState == LAYINGPRONE);
+							heldDevice->SetSupported(m_MovementState == PRONE || m_ProneState == LAYINGPRONE);
 							m_pBGArm->SetRecoil(Vector(), Vector(), false);
 						}
 					}
@@ -2314,12 +2314,12 @@ void AHuman::PreControllerUpdate() {
 	/////////////////////////////////
 	// Arm swinging or device swaying walking animations
 
-	if (m_MoveState != MovementState::STAND && (m_ArmSwingRate != 0 || m_DeviceArmSwayRate != 0)) {
+	if (m_MovementState != MovementState::STAND && (m_ArmSwingRate != 0 || m_DeviceArmSwayRate != 0)) {
 		for (Arm* arm: {m_pFGArm, m_pBGArm}) {
 			if (arm && !arm->GetHeldDeviceThisArmIsTryingToSupport()) {
 				Leg* legToSwingWith = arm == m_pFGArm ? m_pBGLeg : m_pFGLeg;
 				Leg* otherLeg = legToSwingWith == m_pBGLeg ? m_pFGLeg : m_pBGLeg;
-				if (!legToSwingWith || m_MoveState == JUMP || m_MoveState == PRONE) {
+				if (!legToSwingWith || m_MovementState == JUMP || m_MovementState == PRONE) {
 					std::swap(legToSwingWith, otherLeg);
 				}
 
@@ -2355,12 +2355,12 @@ void AHuman::Update() {
 
 	if (HeldDevice* heldDevice = GetEquippedItem()) {
 		float maxLength = heldDevice->GetSharpLength();
-		if (maxLength == 0.0F || m_MoveState == RUN) {
+		if (maxLength == 0.0F || m_MovementState == RUN) {
 			m_SharpAimProgress = 0;
 			m_SharpAimMaxedOut = true;
-		} else if (m_MoveState == WALK) {
+		} else if (m_MovementState == WALK) {
 			maxLength *= 0.7F;
-		} else if (m_MoveState == CROUCH || m_MoveState == PRONE) {
+		} else if (m_MovementState == CROUCH || m_MovementState == PRONE) {
 			// Only when crouching still, otherwise it's WALK
 			maxLength *= 1.2F;
 		}
@@ -2455,9 +2455,9 @@ void AHuman::Update() {
 			}
 		} else {
 			// Upright body posture
-			float rotTarget = (GetRotAngleTarget(m_MoveState) * (m_AimAngle > 0 ? 1.0F - (m_AimAngle / c_HalfPI) : 1.0F) * GetFlipFactor());
+			float rotTarget = (GetRotAngleTarget(m_MovementState) * (m_AimAngle > 0 ? 1.0F - (m_AimAngle / c_HalfPI) : 1.0F) * GetFlipFactor());
 
-			if (m_MoveState != CROUCH) {
+			if (m_MovementState != CROUCH) {
 				// In crouch state the above is rotated already, but in any other state we do the incremental lean here
 				float crouchAngleAdjust = m_HFlipped ? -m_RotAngleTargets[CROUCH] : m_RotAngleTargets[CROUCH];
 				float difference = crouchAngleAdjust - rotTarget;

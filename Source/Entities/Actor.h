@@ -280,11 +280,11 @@ namespace RTE {
 
 		/// Gets this Actor's MovementState.
 		/// @return This Actor's MovementState.
-		MovementState GetMovementState() const { return m_MoveState; }
+		MovementState GetMovementState() const { return m_MovementState; }
 
 		/// Sets this Actor's MovementState to the new state.
 		/// @param newMovementState This Actor's new MovementState.
-		void SetMovementState(MovementState newMovementState) { m_MoveState = newMovementState; }
+		void SetMovementState(MovementState newMovementState) { m_MovementState = newMovementState; }
 
 		/// Sets which team this Actor belongs to.
 		/// @param team The assigned team number.
@@ -1015,7 +1015,7 @@ namespace RTE {
 		// The minimum range to consider having reached a move target is considered
 		float m_MoveProximityLimit;
 		// Current movement state.
-		MovementState m_MoveState;
+		MovementState m_MovementState;
 
 		bool m_Organic; //!< Flag for whether or not this Actor is organic. Useful for lua purposes and mod support.
 		bool m_Mechanical; //!< Flag for whether or not this Actor is robotic. Useful for lua purposes and mod support.
