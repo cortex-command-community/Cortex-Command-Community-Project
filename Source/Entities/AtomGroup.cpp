@@ -1211,7 +1211,7 @@ Vector AtomGroup::PushTravel(Vector& position, const Vector& velocity, float pus
 	return returnPush;
 }
 
-bool AtomGroup::PushAsLimb(const Vector& jointPos, const Vector& velocity, const Matrix& rotation, LimbPath& limbPath, const float travelTime, bool* restarted, bool affectRotation, Vector rotationOffset, Vector positionOffset) {
+bool AtomGroup::PushAsLimb(const Vector& jointPos, const float limbRadius, const Vector& velocity, const Matrix& rotation, LimbPath& limbPath, const float travelTime, bool* restarted, bool affectRotation, Vector rotationOffset, Vector positionOffset) {
 	RTEAssert(m_OwnerMOSR, "Tried to push-as-limb an AtomGroup that has no parent!");
 
 	bool didWrap = false;
@@ -1259,6 +1259,13 @@ bool AtomGroup::PushAsLimb(const Vector& jointPos, const Vector& velocity, const
 		limbPath.ReportProgress(m_LimbPos);
 	} while (!limbPath.FrameDone() && !limbPath.PathEnded());
 
+	// Todo, right now this doesn't really work well. Need to investigate
+	/*Vector limbRange = m_LimbPos - adjustedJointPos;
+	if (limbRange.MagnitudeIsGreaterThan(limbRadius)) {
+		limbRange.SetMagnitude(limbRadius);
+		m_LimbPos = jointPos + limbRange;
+	}*/
+
 	if (pushImpulse.GetLargest() > 10000.0F) {
 		pushImpulse.Reset();
 	}
@@ -1298,11 +1305,11 @@ void AtomGroup::FlailAsLimb(const Vector& ownerPos, const Vector& jointOffset, c
 	Vector pushImpulse = PushTravel(m_LimbPos, totalVel, 100, didWrap, travelTime, false, false);
 
 	Vector limbRange = m_LimbPos - jointPos;
-
 	if (limbRange.MagnitudeIsGreaterThan(limbRadius)) {
 		limbRange.SetMagnitude(limbRadius);
 		m_LimbPos = jointPos + limbRange;
 	}
+
 	return;
 }
 

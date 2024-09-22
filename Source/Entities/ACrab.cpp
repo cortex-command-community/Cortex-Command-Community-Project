@@ -1024,14 +1024,14 @@ void ACrab::PreControllerUpdate() {
 
 			if (m_pLFGLeg && (!m_pLBGLeg || (!(m_Paths[LEFTSIDE][FGROUND][WALK].PathEnded() && LBGLegProg < 0.5F) || m_StrideStart[LEFTSIDE]))) {
 				m_StrideTimer[LEFTSIDE].Reset();
-				m_pLFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLFGLeg->GetParentOffset()), m_Vel, walkAngle, m_Paths[LEFTSIDE][FGROUND][WALK], deltaTime, &restarted);
+				m_pLFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLFGLeg->GetParentOffset()), m_pLFGLeg->GetMaxLength(), m_Vel, walkAngle, m_Paths[LEFTSIDE][FGROUND][WALK], deltaTime, &restarted);
 			}
 
 			if (m_pLBGLeg) {
 				if (!m_pLFGLeg || !(m_Paths[LEFTSIDE][BGROUND][WALK].PathEnded() && LFGLegProg < 0.5F)) {
 					m_StrideStart[LEFTSIDE] = false;
 					m_StrideTimer[LEFTSIDE].Reset();
-					m_pLBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLBGLeg->GetParentOffset()), m_Vel, walkAngle, m_Paths[LEFTSIDE][BGROUND][WALK], deltaTime);
+					m_pLBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLBGLeg->GetParentOffset()), m_pLBGLeg->GetMaxLength(), m_Vel, walkAngle, m_Paths[LEFTSIDE][BGROUND][WALK], deltaTime);
 				} else {
 					m_pLBGFootGroup->FlailAsLimb(m_Pos, RotateOffset(m_pLBGLeg->GetParentOffset()), m_pLBGLeg->GetMaxLength(), m_PrevVel, m_AngularVel, m_pLBGLeg->GetMass(), deltaTime);
 				}
@@ -1049,7 +1049,7 @@ void ACrab::PreControllerUpdate() {
 				if (!m_pRBGLeg || !(m_Paths[RIGHTSIDE][FGROUND][WALK].PathEnded() && RBGLegProg < 0.5F)) {
 					m_StrideStart[RIGHTSIDE] = false;
 					m_StrideTimer[RIGHTSIDE].Reset();
-					m_pRFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRFGLeg->GetParentOffset()), m_Vel, walkAngle, m_Paths[RIGHTSIDE][FGROUND][WALK], deltaTime, &restarted);
+					m_pRFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRFGLeg->GetParentOffset()), m_pRFGLeg->GetMaxLength(), m_Vel, walkAngle, m_Paths[RIGHTSIDE][FGROUND][WALK], deltaTime, &restarted);
 				} else {
 					m_pRFGFootGroup->FlailAsLimb(m_Pos, RotateOffset(m_pRFGLeg->GetParentOffset()), m_pRFGLeg->GetMaxLength(), m_PrevVel, m_AngularVel, m_pRFGLeg->GetMass(), deltaTime);
 				}
@@ -1057,7 +1057,7 @@ void ACrab::PreControllerUpdate() {
 
 			if (m_pRBGLeg && (!m_pRFGLeg || (!(m_Paths[RIGHTSIDE][BGROUND][WALK].PathEnded() && RFGLegProg < 0.5F) || m_StrideStart[RIGHTSIDE]))) {
 				m_StrideTimer[RIGHTSIDE].Reset();
-				m_pRBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRBGLeg->GetParentOffset()), m_Vel, walkAngle, m_Paths[RIGHTSIDE][BGROUND][WALK], deltaTime);
+				m_pRBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRBGLeg->GetParentOffset()), m_pRBGLeg->GetMaxLength(), m_Vel, walkAngle, m_Paths[RIGHTSIDE][BGROUND][WALK], deltaTime);
 			}
 
 			// Reset the right-side walking stride if it's taking longer than it should.
@@ -1118,19 +1118,19 @@ void ACrab::PreControllerUpdate() {
 					}
 				}
 				if (m_pLFGLeg) {
-					m_pLFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLFGLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[LEFTSIDE][FGROUND][STAND], deltaTime, nullptr, !m_pRFGLeg);
+					m_pLFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLFGLeg->GetParentOffset()), m_pLFGLeg->GetMaxLength(), m_Vel, m_Rotation, m_Paths[LEFTSIDE][FGROUND][STAND], deltaTime, nullptr, !m_pRFGLeg);
 				}
 
 				if (m_pLBGLeg) {
-					m_pLBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLBGLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[LEFTSIDE][BGROUND][STAND], deltaTime);
+					m_pLBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLBGLeg->GetParentOffset()), m_pLBGLeg->GetMaxLength(), m_Vel, m_Rotation, m_Paths[LEFTSIDE][BGROUND][STAND], deltaTime);
 				}
 
 				if (m_pRFGLeg) {
-					m_pRFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRFGLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[RIGHTSIDE][FGROUND][STAND], deltaTime, nullptr, !m_pLFGLeg);
+					m_pRFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRFGLeg->GetParentOffset()), m_pRFGLeg->GetMaxLength(), m_Vel, m_Rotation, m_Paths[RIGHTSIDE][FGROUND][STAND], deltaTime, nullptr, !m_pLFGLeg);
 				}
 
 				if (m_pRBGLeg) {
-					m_pRBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRBGLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[RIGHTSIDE][BGROUND][STAND], deltaTime);
+					m_pRBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRBGLeg->GetParentOffset()), m_pRBGLeg->GetMaxLength(), m_Vel, m_Rotation, m_Paths[RIGHTSIDE][BGROUND][STAND], deltaTime);
 				}
 			}
 		}

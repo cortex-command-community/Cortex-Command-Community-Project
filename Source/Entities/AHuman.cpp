@@ -2012,7 +2012,7 @@ void AHuman::PreControllerUpdate() {
 					m_StrideTimer.Reset();
 				}
 				Vector jointPos = m_Pos + RotateOffset(m_pFGLeg->GetParentOffset());
-				m_ArmClimbing[BGROUND] = !m_pFGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][movementPath], deltaTime, &restarted, false, Vector(0.0F, m_Paths[FGROUND][movementPath].GetLowestY()), pathOffset);
+				m_ArmClimbing[BGROUND] = !m_pFGFootGroup->PushAsLimb(jointPos, m_pFGLeg->GetMaxLength(), m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][movementPath], deltaTime, &restarted, false, Vector(0.0F, m_Paths[FGROUND][movementPath].GetLowestY()), pathOffset);
 			} else {
 				m_ArmClimbing[BGROUND] = false;
 			}
@@ -2023,7 +2023,7 @@ void AHuman::PreControllerUpdate() {
 					m_StrideTimer.Reset();
 				}
 				Vector jointPos = m_Pos + RotateOffset(m_pBGLeg->GetParentOffset());
-				m_ArmClimbing[FGROUND] = !m_pBGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][movementPath], deltaTime, &restarted, false, Vector(0.0F, m_Paths[BGROUND][movementPath].GetLowestY()), pathOffset);
+				m_ArmClimbing[FGROUND] = !m_pBGFootGroup->PushAsLimb(jointPos, m_pBGLeg->GetMaxLength(), m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][movementPath], deltaTime, &restarted, false, Vector(0.0F, m_Paths[BGROUND][movementPath].GetLowestY()), pathOffset);
 			} else {
 				if (m_pBGLeg) {
 					m_pBGFootGroup->FlailAsLimb(m_Pos, RotateOffset(m_pBGLeg->GetParentOffset()), m_pBGLeg->GetMaxLength(), m_PrevVel, m_AngularVel, m_pBGLeg->GetMass(), deltaTime);
@@ -2072,7 +2072,7 @@ void AHuman::PreControllerUpdate() {
 					if (m_Paths[FGROUND][CLIMB].PathEnded() || m_Paths[FGROUND][CLIMB].PathIsAtStart()) {
 						m_StrideTimer.Reset();
 					}
-					m_pFGHandGroup->PushAsLimb(m_Pos + Vector(0, m_pFGArm->GetParentOffset().m_Y).RadRotate(-rot), m_Vel, Matrix(), m_Paths[FGROUND][CLIMB], deltaTime, 0, false);
+					m_pFGHandGroup->PushAsLimb(m_Pos + Vector(0, m_pFGArm->GetParentOffset().m_Y).RadRotate(-rot), m_pFGArm->GetMaxLength(), m_Vel, Matrix(), m_Paths[FGROUND][CLIMB], deltaTime, 0, false);
 				} else {
 					m_ArmClimbing[FGROUND] = false;
 					m_Paths[FGROUND][CLIMB].Terminate();
@@ -2085,7 +2085,7 @@ void AHuman::PreControllerUpdate() {
 					if (m_Paths[BGROUND][CLIMB].PathEnded() || m_Paths[BGROUND][CLIMB].PathIsAtStart()) {
 						m_StrideTimer.Reset();
 					}
-					m_pBGHandGroup->PushAsLimb(m_Pos + Vector(0, m_pBGArm->GetParentOffset().m_Y).RadRotate(-rot), m_Vel, Matrix(), m_Paths[BGROUND][CLIMB], deltaTime, 0, false);
+					m_pBGHandGroup->PushAsLimb(m_Pos + Vector(0, m_pBGArm->GetParentOffset().m_Y).RadRotate(-rot), m_pBGArm->GetMaxLength(), m_Vel, Matrix(), m_Paths[BGROUND][CLIMB], deltaTime, 0, false);
 				} else {
 					m_ArmClimbing[BGROUND] = false;
 					m_Paths[BGROUND][CLIMB].Terminate();
@@ -2114,7 +2114,7 @@ void AHuman::PreControllerUpdate() {
 					if (m_Paths[FGROUND][CRAWL].PathEnded() || m_Paths[FGROUND][CRAWL].PathIsAtStart()) {
 						m_StrideTimer.Reset();
 					}
-					m_pFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pFGLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[FGROUND][CRAWL], deltaTime);
+					m_pFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pFGLeg->GetParentOffset()), m_pFGLeg->GetMaxLength(), m_Vel, m_Rotation, m_Paths[FGROUND][CRAWL], deltaTime);
 				} else {
 					m_Paths[FGROUND][CRAWL].Terminate();
 				}
@@ -2123,17 +2123,17 @@ void AHuman::PreControllerUpdate() {
 					if (m_Paths[BGROUND][CRAWL].PathEnded() || m_Paths[BGROUND][CRAWL].PathIsAtStart()) {
 						m_StrideTimer.Reset();
 					}
-					m_pBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pBGLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[BGROUND][CRAWL], deltaTime);
+					m_pBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pBGLeg->GetParentOffset()), m_pBGLeg->GetMaxLength(), m_Vel, m_Rotation, m_Paths[BGROUND][CRAWL], deltaTime);
 				} else {
 					m_Paths[BGROUND][CRAWL].Terminate();
 				}
 				if (m_pBGArm) {
 					m_ArmClimbing[BGROUND] = true;
-					m_pBGHandGroup->PushAsLimb(m_Pos + RotateOffset(Vector(0, m_pBGArm->GetParentOffset().m_Y)), m_Vel, m_Rotation, m_Paths[BGROUND][ARMCRAWL], deltaTime);
+					m_pBGHandGroup->PushAsLimb(m_Pos + RotateOffset(Vector(0, m_pBGArm->GetParentOffset().m_Y)), m_pBGArm->GetMaxLength(), m_Vel, m_Rotation, m_Paths[BGROUND][ARMCRAWL], deltaTime);
 				}
 				if (m_pFGArm && !m_pFGArm->GetHeldDevice() && !(m_Paths[FGROUND][ARMCRAWL].PathEnded() && m_Paths[BGROUND][ARMCRAWL].GetRegularProgress() < 0.5F)) {
 					m_ArmClimbing[FGROUND] = true;
-					m_pFGHandGroup->PushAsLimb(m_Pos + RotateOffset(Vector(0, m_pFGArm->GetParentOffset().m_Y)), m_Vel, m_Rotation, m_Paths[FGROUND][ARMCRAWL], deltaTime);
+					m_pFGHandGroup->PushAsLimb(m_Pos + RotateOffset(Vector(0, m_pFGArm->GetParentOffset().m_Y)), m_pFGArm->GetMaxLength(), m_Vel, m_Rotation, m_Paths[FGROUND][ARMCRAWL], deltaTime);
 				}
 				// Restart the stride if the current one seems to be taking too long.
 				if (m_StrideTimer.IsPastSimMS(m_Paths[FGROUND][CRAWL].GetTotalPathTime())) {
@@ -2170,11 +2170,11 @@ void AHuman::PreControllerUpdate() {
 					m_Paths[BGROUND][CRAWL].Terminate();
 
 					if (m_pFGLeg) {
-						m_pFGFootGroup->PushAsLimb(m_Pos.GetFloored() + m_pFGLeg->GetParentOffset().GetXFlipped(m_HFlipped), m_Vel, Matrix(), m_Paths[FGROUND][PRONE], deltaTime);
+						m_pFGFootGroup->PushAsLimb(m_Pos.GetFloored() + m_pFGLeg->GetParentOffset().GetXFlipped(m_HFlipped), m_pFGLeg->GetMaxLength(), m_Vel, Matrix(), m_Paths[FGROUND][PRONE], deltaTime);
 					}
 
 					if (m_pBGLeg) {
-						m_pBGFootGroup->PushAsLimb(m_Pos.GetFloored() + m_pBGLeg->GetParentOffset().GetXFlipped(m_HFlipped), m_Vel, Matrix(), m_Paths[BGROUND][PRONE], deltaTime);
+						m_pBGFootGroup->PushAsLimb(m_Pos.GetFloored() + m_pBGLeg->GetParentOffset().GetXFlipped(m_HFlipped), m_pBGLeg->GetMaxLength(), m_Vel, Matrix(), m_Paths[BGROUND][PRONE], deltaTime);
 					}
 
 				} else {
@@ -2187,12 +2187,12 @@ void AHuman::PreControllerUpdate() {
 
 					if (m_pFGLeg) {
 						Vector jointPos = m_Pos.GetFloored() + m_pFGLeg->GetParentOffset().GetXFlipped(m_HFlipped);
-						m_pFGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][STAND], deltaTime, nullptr, !m_pBGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY()), pathOffset);
+						m_pFGFootGroup->PushAsLimb(jointPos, m_pFGLeg->GetMaxLength(), m_Vel, m_WalkAngle[FGROUND], m_Paths[FGROUND][STAND], deltaTime, nullptr, !m_pBGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY()), pathOffset);
 					}
 
 					if (m_pBGLeg) {
 						Vector jointPos = m_Pos.GetFloored() + m_pBGLeg->GetParentOffset().GetXFlipped(m_HFlipped);
-						m_pBGFootGroup->PushAsLimb(jointPos, m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][STAND], deltaTime, nullptr, !m_pFGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY()), pathOffset);
+						m_pBGFootGroup->PushAsLimb(jointPos, m_pBGLeg->GetMaxLength(), m_Vel, m_WalkAngle[BGROUND], m_Paths[BGROUND][STAND], deltaTime, nullptr, !m_pFGLeg, Vector(0.0F, m_Paths[FGROUND][STAND].GetLowestY()), pathOffset);
 					}
 				}
 			}
