@@ -1442,7 +1442,7 @@ void AHuman::UpdateLimbPathSpeed() {
 
 		// Also extend our stride depending on speed
 		const float strideXMultiplier = Lerp(0.0F, ourMaxMovementSpeed, 0.8F, 1.2F, std::abs(m_Vel.m_X));
-		const float strideYMultiplier = Lerp(0.0F, ourMaxMovementSpeed, 0.9F, 1.1F, std::abs(m_Vel.m_X));
+		const float strideYMultiplier = Lerp(0.0F, ourMaxMovementSpeed, 0.9F, 1.0F, std::abs(m_Vel.m_X));
 		Vector scale = Vector(strideXMultiplier, strideYMultiplier);
 		m_Paths[FGROUND][m_MovementState].SetScaleMultiplier(scale);
 		m_Paths[BGROUND][m_MovementState].SetScaleMultiplier(scale);
