@@ -1502,7 +1502,7 @@ void AHuman::PreControllerUpdate() {
 			// Only if not jumping, OR if jumping, and apparently stuck on something - then help out with the limbs.
 			if (m_MovementState != JUMP || isStill) {
 				MovementState oldMoveState = m_MovementState;
-				if (!m_ProneState == NOTPRONE) {
+				if (m_ProneState != NOTPRONE) {
 					m_MovementState = CRAWL;
 				} else if (m_CanRun && m_Controller.IsState(MOVE_FAST) && !m_Controller.IsState(BODY_CROUCH)) {
 					m_MovementState = RUN;
