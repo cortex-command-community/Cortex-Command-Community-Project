@@ -219,10 +219,10 @@ int AHuman::Create(const AHuman& reference) {
 		m_Paths[FGROUND][RUN].Create(reference.m_Paths[FGROUND][WALK]);
 		m_Paths[BGROUND][RUN].Create(reference.m_Paths[BGROUND][WALK]);
 		// Sensible default multiplier
-		m_Paths[FGROUND][RUN].SetTravelSpeed(m_Paths[FGROUND][RUN].GetTravelSpeed() * 2.5F);
-		m_Paths[BGROUND][RUN].SetTravelSpeed(m_Paths[BGROUND][RUN].GetTravelSpeed() * 2.5F);
-		m_Paths[FGROUND][RUN].SetBaseScaleMultiplier(Vector(1.3F, 1.0F));
-		m_Paths[BGROUND][RUN].SetBaseScaleMultiplier(Vector(1.3F, 1.0F));
+		m_Paths[FGROUND][RUN].SetTravelSpeed(m_Paths[FGROUND][RUN].GetTravelSpeed() * 2.0F);
+		m_Paths[BGROUND][RUN].SetTravelSpeed(m_Paths[BGROUND][RUN].GetTravelSpeed() * 2.0F);
+		m_Paths[FGROUND][RUN].SetBaseScaleMultiplier(Vector(1.2F, 1.0F));
+		m_Paths[BGROUND][RUN].SetBaseScaleMultiplier(Vector(1.2F, 1.0F));
 	}
 
 	return 0;
