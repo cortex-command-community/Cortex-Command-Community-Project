@@ -180,7 +180,7 @@ MOSRotating* ACraft::Exit::SuckInMOs(ACraft* pExitOwner) {
 void ACraft::Clear() {
 	m_AIMode = AIMODE_DELIVER;
 
-	m_MoveState = 0;
+	m_MoveState = NOMOVE;
 	m_HatchState = CLOSED;
 	m_HatchTimer.Reset();
 	m_HatchDelay = 0;

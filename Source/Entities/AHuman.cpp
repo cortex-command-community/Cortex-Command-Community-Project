@@ -1484,16 +1484,19 @@ void AHuman::PreControllerUpdate() {
 
 	if (!keepOldState) {
 		bool prone = m_Controller.IsState(BODY_PRONE);
+
 		// Engage prone state, this makes the body's rotational spring pull it horizontal instead of upright.
 		if (prone && m_ProneState == NOTPRONE) {
 			m_ProneState = GOPRONE;
 			m_ProneTimer.Reset();
 		}
+
 		if ((m_Controller.IsState(MOVE_RIGHT) || m_Controller.IsState(MOVE_LEFT) || m_MoveState == JUMP) && m_Status != INACTIVE) {
 			for (int i = WALK; i < MOVEMENTSTATECOUNT; ++i) {
 				m_Paths[FGROUND][i].SetHFlip(m_HFlipped);
 				m_Paths[BGROUND][i].SetHFlip(m_HFlipped);
 			}
+
 			// Only if not jumping, OR if jumping, and apparently stuck on something - then help out with the limbs.
 			if (m_MoveState != JUMP || isStill) {
 				MovementState oldMoveState = m_MoveState;

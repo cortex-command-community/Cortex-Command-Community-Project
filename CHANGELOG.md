@@ -95,6 +95,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed a bug in Harvester and Massacre where setting deploy units would auto-assign units of the wrong tech.
 
+- Fixed an issue where an `Actor`'s MovementState wasn't correctly accessible from script.
+
 </details>
 
 <details><summary><b>Removed</b></summary>

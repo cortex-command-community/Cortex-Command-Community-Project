@@ -597,8 +597,6 @@ namespace RTE {
 		Timer m_IconBlinkTimer;
 		// Current upper body state.
 		UpperBodyState m_ArmsState;
-		// Current movement state.
-		MovementState m_MoveState;
 		// Whether the guy is currently lying down on the ground, rotational spring pulling him that way
 		// This is engaged if the player first crouches (still upright spring), and then presses left/right
 		// It is disengaged as soon as the crouch button/direction is released
