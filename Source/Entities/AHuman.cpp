@@ -2585,10 +2585,7 @@ void AHuman::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode,
 	}
 
 	if (mode == g_DrawColor && !onlyPhysical && g_SettingsMan.DrawLimbPathVisualizations()) {
-		m_Paths[m_HFlipped][WALK].Draw(pTargetBitmap, targetPos, 122);
-		m_Paths[m_HFlipped][CRAWL].Draw(pTargetBitmap, targetPos, 122);
-		m_Paths[m_HFlipped][ARMCRAWL].Draw(pTargetBitmap, targetPos, 13);
-		m_Paths[m_HFlipped][CLIMB].Draw(pTargetBitmap, targetPos, 165);
+		m_Paths[m_HFlipped][m_MovementState].Draw(pTargetBitmap, targetPos, 122);
 	}
 }
 

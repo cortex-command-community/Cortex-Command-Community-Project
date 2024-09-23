@@ -202,7 +202,7 @@ void LimbPath::Destroy(bool notInherited) {
 Vector LimbPath::GetProgressPos() {
 	Vector returnVec(m_Start);
 	if (IsStaticPoint()) {
-		return m_JointPos + RotatePoint(returnVec);
+		return m_JointPos + (RotatePoint(returnVec) * GetTotalScaleMultiplier());
 	}
 
 	// Add all the segments before the current one
@@ -216,7 +216,7 @@ Vector LimbPath::GetProgressPos() {
 		returnVec += *m_CurrentSegment * m_SegProgress;
 	}
 
-	return m_JointPos + RotatePoint(returnVec);
+	return m_JointPos + (RotatePoint(returnVec) * GetTotalScaleMultiplier());
 }
 
 Vector LimbPath::GetCurrentSegTarget() {
@@ -296,7 +296,7 @@ void LimbPath::ReportProgress(const Vector& limbPos) {
 		// Check if we are sufficiently close to the target to start going after the next one.
 		Vector distVec = g_SceneMan.ShortestDistance(limbPos, GetCurrentSegTarget());
 		float distance = distVec.GetMagnitude();
-		float segMag = (*(m_CurrentSegment)).GetMagnitude();
+		float segMag = (*m_CurrentSegment * GetTotalScaleMultiplier()).GetMagnitude();
 
 		if (distance < m_SegmentEndedThreshold) {
 			if (++(m_CurrentSegment) == m_Segments.end()) {
@@ -398,8 +398,8 @@ bool LimbPath::RestartFree(Vector& limbPos, MOID MOIDToIgnore, int ignoreTeam) {
 		// Find the first start segment that has an obstacle on it
 		int i = 0;
 		for (; i < m_StartSegCount; ++i) {
-			Vector offsetSegment = (*m_CurrentSegment);
-			result = g_SceneMan.CastObstacleRay(GetProgressPos(), RotatePoint(offsetSegment), notUsed, limbPos, MOIDToIgnore, ignoreTeam, g_MaterialGrass);
+			Vector offsetSegment = (*m_CurrentSegment) * GetTotalScaleMultiplier();
+			result = g_SceneMan.CastObstacleRay(GetProgressPos(), offsetSegment, notUsed, limbPos, MOIDToIgnore, ignoreTeam, g_MaterialGrass);
 
 			// If we found an obstacle after the first pixel, report the current segment as the starting one and that there is free space here
 			if (result > 0) {
@@ -477,6 +477,29 @@ float LimbPath::GetMiddleX() const {
 	return m_HFlipped ? -result : result;
 }
 
+// TODO -  these implementations should be more accurate (segments are additive), but they don't seem to work as well
+// Investigate!
+/*float LimbPath::GetLowestY() const {
+	float lowestY = m_Start.GetY();
+	for (auto itr = m_Segments.begin() + m_StartSegCount; itr != m_Segments.end(); ++itr) {
+		lowestY += itr->GetY() > 0 ? itr->GetY() : 0;
+	}
+	return lowestY * GetTotalScaleMultiplier().GetY();
+}
+
+float LimbPath::GetMiddleX() const {
+	float lowestX = m_Start.GetX();
+	float highestX = m_Start.GetX();
+	for (auto itr = m_Segments.begin() + m_StartSegCount; itr != m_Segments.end(); ++itr) {
+		lowestX  += itr->GetX() < 0 ? itr->GetX() : 0;
+		highestX += itr->GetX() > 0 ? itr->GetX() : 0;
+	}
+	lowestX  *= GetTotalScaleMultiplier().GetX();
+	highestX *= GetTotalScaleMultiplier().GetX();
+	float result = (lowestX + highestX) * 0.5F;
+	return m_HFlipped ? -result : result;
+}*/
+
 void LimbPath::Draw(BITMAP* pTargetBitmap,
                     const Vector& targetPos,
                     unsigned char color) const {
@@ -485,8 +508,8 @@ void LimbPath::Draw(BITMAP* pTargetBitmap,
 	for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr) {
 		nextPoint += *itr;
 
-		Vector prevWorldPosition = m_JointPos + RotatePoint(prevPoint);
-		Vector nextWorldPosition = m_JointPos + RotatePoint(nextPoint);
+		Vector prevWorldPosition = m_JointPos + (RotatePoint(prevPoint) * GetTotalScaleMultiplier());
+		Vector nextWorldPosition = m_JointPos + (RotatePoint(nextPoint) * GetTotalScaleMultiplier());
 		line(pTargetBitmap, prevWorldPosition.m_X, prevWorldPosition.m_Y, nextWorldPosition.m_X, nextWorldPosition.m_Y, color);
 
 		Vector min(std::min(prevWorldPosition.m_X, nextWorldPosition.m_X), std::min(prevWorldPosition.m_Y, nextWorldPosition.m_Y));
