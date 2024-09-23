@@ -1094,23 +1094,56 @@ bool MovableObject::DrawToTerrain(SLTerrain* terrain) {
 				}
 			}
 		};
-		BITMAP* tempBitmap = g_SceneMan.GetIntermediateBitmapForSettlingIntoTerrain(static_cast<int>(GetDiameter()));
-		Vector tempBitmapPos = m_Pos.GetFloored() - Vector(static_cast<float>(tempBitmap->w / 2), static_cast<float>(tempBitmap->w / 2));
+		int diameter = static_cast<int>(GetDiameter());
+		BITMAP* tempBitmap = g_SceneMan.GetIntermediateBitmapForSettlingIntoTerrain(diameter);
 
-		clear_bitmap(tempBitmap);
-		// Draw the object to the temp bitmap, then draw the foreground layer on top of it, then draw it to the foreground layer.
-		Draw(tempBitmap, tempBitmapPos, DrawMode::g_DrawColor, true);
-		wrappedMaskedBlit(terrain->GetFGColorBitmap(), tempBitmap, tempBitmapPos, false);
-		wrappedMaskedBlit(terrain->GetFGColorBitmap(), tempBitmap, tempBitmapPos, true);
+		int gridDimension = diameter / 512 + 1;
+		std::vector<std::vector<int>> grid(gridDimension, std::vector<int>(gridDimension, 0));
+		bool gridBypass = (gridDimension == 1 or !dynamic_cast<MOSRotating*>(this));
 
-		clear_bitmap(tempBitmap);
-		// Draw the object to the temp bitmap, then draw the material layer on top of it, then draw it to the material layer.
-		Draw(tempBitmap, tempBitmapPos, DrawMode::g_DrawMaterial, true);
-		wrappedMaskedBlit(terrain->GetMaterialBitmap(), tempBitmap, tempBitmapPos, false);
-		wrappedMaskedBlit(terrain->GetMaterialBitmap(), tempBitmap, tempBitmapPos, true);
+		// If the object fits in one cel, or it's not a MOSRotating (no attachables to check)
+		// then using the grid as below is retreading done work, so skip here and forget later
+		if (!gridBypass) {
+			std::vector<MOID> descendantMOIDs;
+			GetMOIDs(descendantMOIDs);
+			for (MOID moid : descendantMOIDs) {
+				MovableObject* mo = g_MovableMan.GetMOFromID(moid);
+				float r = mo->GetRadius();
+				Vector relPos = mo->m_Pos - m_Pos;
+				int minX = static_cast<int>(std::floor((relPos.m_X - r) / 512) + gridDimension / 2.0);
+				int maxX = static_cast<int>(std::floor((relPos.m_X + r) / 512) + gridDimension / 2.0);
+				int minY = static_cast<int>(std::floor((relPos.m_Y - r) / 512) + gridDimension / 2.0);
+				int maxY = static_cast<int>(std::floor((relPos.m_Y + r) / 512) + gridDimension / 2.0);
+				for (int i = minX; i <= maxX; i++) {
+					for (int o = minY; o <= maxY; o++) {
+						grid[i][o]++;
+					}
+				}
+			}
+		}
 
-		terrain->AddUpdatedMaterialArea(Box(tempBitmapPos, static_cast<float>(tempBitmap->w), static_cast<float>(tempBitmap->h)));
-		g_SceneMan.RegisterTerrainChange(tempBitmapPos.GetFloorIntX(), tempBitmapPos.GetFloorIntY(), tempBitmap->w, tempBitmap->h, ColorKeys::g_MaskColor, false);
+		for (int i = 0; i < gridDimension; i++) {
+			for (int o = 0; o < gridDimension; o++) {
+				if (gridBypass or grid[i][o] > 0) {
+					Vector tempBitmapPos = m_Pos.GetFloored() + Vector((i - gridDimension / 2.0) * 512, (o - gridDimension / 2.0) * 512) - Vector(static_cast<float>(tempBitmap->w / 2), static_cast<float>(tempBitmap->w / 2));
+
+					clear_bitmap(tempBitmap);
+					// Draw the object to the temp bitmap, then draw the foreground layer on top of it, then draw it to the foreground layer.
+					Draw(tempBitmap, tempBitmapPos, DrawMode::g_DrawColor, true);
+					wrappedMaskedBlit(terrain->GetFGColorBitmap(), tempBitmap, tempBitmapPos, false);
+					wrappedMaskedBlit(terrain->GetFGColorBitmap(), tempBitmap, tempBitmapPos, true);
+
+					clear_bitmap(tempBitmap);
+					// Draw the object to the temp bitmap, then draw the material layer on top of it, then draw it to the material layer.
+					Draw(tempBitmap, tempBitmapPos, DrawMode::g_DrawMaterial, true);
+					wrappedMaskedBlit(terrain->GetMaterialBitmap(), tempBitmap, tempBitmapPos, false);
+					wrappedMaskedBlit(terrain->GetMaterialBitmap(), tempBitmap, tempBitmapPos, true);
+
+					terrain->AddUpdatedMaterialArea(Box(tempBitmapPos, static_cast<float>(tempBitmap->w), static_cast<float>(tempBitmap->h)));
+					g_SceneMan.RegisterTerrainChange(tempBitmapPos.GetFloorIntX(), tempBitmapPos.GetFloorIntY(), tempBitmap->w, tempBitmap->h, ColorKeys::g_MaskColor, false);
+				}
+			}
+		}
 	} else {
 		Draw(terrain->GetFGColorBitmap(), Vector(), DrawMode::g_DrawColor, true);
 		Material const* terrMat = g_SceneMan.GetMaterialFromID(g_SceneMan.GetTerrain()->GetMaterialPixel(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY()));
