@@ -202,7 +202,7 @@ void LimbPath::Destroy(bool notInherited) {
 Vector LimbPath::GetProgressPos() {
 	Vector returnVec(m_Start);
 	if (IsStaticPoint()) {
-		return m_JointPos + (RotatePoint(returnVec) * GetTotalScaleMultiplier());
+		return m_JointPos + (RotatePoint(returnVec * GetTotalScaleMultiplier()));
 	}
 
 	// Add all the segments before the current one
@@ -216,13 +216,13 @@ Vector LimbPath::GetProgressPos() {
 		returnVec += *m_CurrentSegment * m_SegProgress;
 	}
 
-	return m_JointPos + (RotatePoint(returnVec) * GetTotalScaleMultiplier());
+	return m_JointPos + (RotatePoint(returnVec * GetTotalScaleMultiplier()));
 }
 
 Vector LimbPath::GetCurrentSegTarget() {
 	Vector returnVec(m_Start);
 	if (IsStaticPoint()) {
-		return m_JointPos + (RotatePoint(returnVec) * GetTotalScaleMultiplier());
+		return m_JointPos + (RotatePoint(returnVec * GetTotalScaleMultiplier()));
 	}
 
 	std::deque<Vector>::const_iterator itr;
@@ -235,7 +235,7 @@ Vector LimbPath::GetCurrentSegTarget() {
 		returnVec += *m_CurrentSegment;
 	}
 
-	return m_JointPos + (RotatePoint(returnVec) * GetTotalScaleMultiplier());
+	return m_JointPos + (RotatePoint(returnVec * GetTotalScaleMultiplier()));
 }
 
 Vector LimbPath::GetCurrentVel(const Vector& limbPos) {
@@ -379,7 +379,7 @@ bool LimbPath::RestartFree(Vector& limbPos, MOID MOIDToIgnore, int ignoreTeam) {
 
 	if (IsStaticPoint()) {
 		Vector notUsed;
-		Vector targetPos = m_JointPos + (RotatePoint(m_Start) * GetTotalScaleMultiplier());
+		Vector targetPos = m_JointPos + (RotatePoint(m_Start * GetTotalScaleMultiplier()));
 		Vector beginPos = targetPos;
 		// TODO: don't hardcode the beginpos
 		beginPos.m_Y -= 24;
@@ -508,8 +508,8 @@ void LimbPath::Draw(BITMAP* pTargetBitmap,
 	for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr) {
 		nextPoint += *itr;
 
-		Vector prevWorldPosition = m_JointPos + (RotatePoint(prevPoint) * GetTotalScaleMultiplier());
-		Vector nextWorldPosition = m_JointPos + (RotatePoint(nextPoint) * GetTotalScaleMultiplier());
+		Vector prevWorldPosition = m_JointPos + (RotatePoint(prevPoint * GetTotalScaleMultiplier()));
+		Vector nextWorldPosition = m_JointPos + (RotatePoint(nextPoint * GetTotalScaleMultiplier()));
 		line(pTargetBitmap, prevWorldPosition.m_X, prevWorldPosition.m_Y, nextWorldPosition.m_X, nextWorldPosition.m_Y, color);
 
 		Vector min(std::min(prevWorldPosition.m_X, nextWorldPosition.m_X), std::min(prevWorldPosition.m_Y, nextWorldPosition.m_Y));
