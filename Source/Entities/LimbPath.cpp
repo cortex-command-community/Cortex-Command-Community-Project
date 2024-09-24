@@ -485,19 +485,23 @@ float LimbPath::GetMiddleX() const {
 // TODO -  these implementations should be more accurate (segments are additive), but they don't seem to work as well
 // Investigate!
 /*float LimbPath::GetLowestY() const {
-	float lowestY = m_Start.GetY();
+	float currentY = m_Start.GetY();
+	float lowestY = currentY;
 	for (auto itr = m_Segments.begin() + m_StartSegCount; itr != m_Segments.end(); ++itr) {
-		lowestY += itr->GetY() > 0 ? itr->GetY() : 0;
+		currentY += itr->GetY();
+		lowestY = std::min(currentY, lowestY);
 	}
 	return lowestY * GetTotalScaleMultiplier().GetY();
 }
 
 float LimbPath::GetMiddleX() const {
-	float lowestX = m_Start.GetX();
-	float highestX = m_Start.GetX();
+	float currentX = m_Start.GetX();
+	float lowestX = currentX;
+	float highestX = currentX;
 	for (auto itr = m_Segments.begin() + m_StartSegCount; itr != m_Segments.end(); ++itr) {
-		lowestX  += itr->GetX() < 0 ? itr->GetX() : 0;
-		highestX += itr->GetX() > 0 ? itr->GetX() : 0;
+		currentX += itr->GetX();
+		lowestX = std::min(currentX, lowestX);
+		highestX = std::max(currentX, highestX);
 	}
 	lowestX  *= GetTotalScaleMultiplier().GetX();
 	highestX *= GetTotalScaleMultiplier().GetX();
