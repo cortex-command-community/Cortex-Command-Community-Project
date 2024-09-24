@@ -373,7 +373,7 @@ void LimbPath::Restart() {
 bool LimbPath::RestartFree(Vector& limbPos, MOID MOIDToIgnore, int ignoreTeam) {
 	std::deque<Vector>::iterator prevSeg = m_CurrentSegment;
 	float prevProg = m_SegProgress;
-	m_SegProgress = 0;
+	m_SegProgress = 0.0F;
 	bool found = false;
 	float result = 0;
 
@@ -387,8 +387,9 @@ bool LimbPath::RestartFree(Vector& limbPos, MOID MOIDToIgnore, int ignoreTeam) {
 		result = g_SceneMan.CastObstacleRay(beginPos, targetPos - beginPos, notUsed, limbPos, MOIDToIgnore, ignoreTeam, g_MaterialGrass);
 
 		// Only indicate that we found free position if there were any free pixels encountered
-		if (result < 0 || result > 0)
+		if (result < 0 || result > 0) {
 			found = true;
+		}
 	} else {
 		Vector notUsed;
 
@@ -398,14 +399,18 @@ bool LimbPath::RestartFree(Vector& limbPos, MOID MOIDToIgnore, int ignoreTeam) {
 		// Find the first start segment that has an obstacle on it
 		int i = 0;
 		for (; i < m_StartSegCount; ++i) {
-			Vector offsetSegment = (*m_CurrentSegment) * GetTotalScaleMultiplier();
-			result = g_SceneMan.CastObstacleRay(GetProgressPos(), offsetSegment, notUsed, limbPos, MOIDToIgnore, ignoreTeam, g_MaterialGrass);
+			Vector segmentStart = GetProgressPos();
+			++m_CurrentSegment;
+			Vector segmentEnd = GetProgressPos();
+			--m_CurrentSegment;
+			Vector currentSegment = segmentEnd - segmentStart;
+			result = g_SceneMan.CastObstacleRay(segmentStart, currentSegment, notUsed, limbPos, MOIDToIgnore, ignoreTeam, g_MaterialGrass);
 
 			// If we found an obstacle after the first pixel, report the current segment as the starting one and that there is free space here
 			if (result > 0) {
 				// Set accurate segment progress
 				// TODO: See if this is a good idea, or if we should just set it to 0 and set limbPos to the start of current segment
-				m_SegProgress = g_SceneMan.ShortestDistance(GetProgressPos(), limbPos).GetMagnitude() / offsetSegment.GetMagnitude();
+				m_SegProgress = g_SceneMan.ShortestDistance(GetProgressPos(), limbPos).GetMagnitude() / currentSegment.GetMagnitude();
 				limbPos = GetProgressPos();
 				//                m_SegProgress = 0;
 				m_Ended = false;
