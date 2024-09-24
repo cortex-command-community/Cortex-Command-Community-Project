@@ -379,7 +379,7 @@ bool LimbPath::RestartFree(Vector& limbPos, MOID MOIDToIgnore, int ignoreTeam) {
 
 	if (IsStaticPoint()) {
 		Vector notUsed;
-		Vector targetPos = m_JointPos + RotatePoint(m_Start);
+		Vector targetPos = m_JointPos + (RotatePoint(m_Start) * GetTotalScaleMultiplier());
 		Vector beginPos = targetPos;
 		// TODO: don't hardcode the beginpos
 		beginPos.m_Y -= 24;
