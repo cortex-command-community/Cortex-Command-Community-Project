@@ -4,6 +4,7 @@
 #include "CameraMan.h"
 #include "ConsoleMan.h"
 #include "PresetMan.h"
+#include "ModuleMan.h"
 #include "UInputMan.h"
 #include "AudioMan.h"
 #include "WindowMan.h"
@@ -85,7 +86,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	}
 
 	// TODO, save to a zip instead of a directory
-	std::filesystem::create_directory(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName);
+	std::filesystem::create_directory(g_ModuleMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName);
 
 	if (scene->SaveData(c_UserScriptedSavesModuleName + "/" + fileName + "/Save") < 0) {
 		// This print is actually pointless because game will abort if it fails to save layer bitmaps. It stays here for now because in reality the game doesn't properly abort if the layer bitmaps fail to save. It is what it is.
@@ -101,15 +102,15 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 
 	// Become our own original preset, instead of being a copy of the Scene we got cloned from, so we don't still pick up the PlacedObjectSets from our parent when loading.
 	modifiableScene->SetPresetName(fileName);
-	modifiableScene->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
+	modifiableScene->MigrateToModule(g_ModuleMan.GetModuleID(c_UserScriptedSavesModuleName));
 	modifiableScene->SetSavedGameInternal(true);
 
 	// Make sure the terrain is also treated as an original preset, otherwise it will screw up if we save then load then save again, since it'll try to be a CopyOf of itself.
 	modifiableScene->GetTerrain()->SetPresetName(fileName);
-	modifiableScene->GetTerrain()->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
+	modifiableScene->GetTerrain()->MigrateToModule(g_ModuleMan.GetModuleID(c_UserScriptedSavesModuleName));
 
 	// Block the main thread for a bit to let the Writer access the relevant data.
-	std::unique_ptr<Writer> writer(std::make_unique<Writer>(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + "/Save.ini"));
+	std::unique_ptr<Writer> writer(std::make_unique<Writer>(g_ModuleMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + "/Save.ini"));
 	writer->NewPropertyWithValue("Activity", activity);
 
 	// Pull all stuff from MovableMan into the Scene for saving, so existing Actors/ADoors are saved, without transferring ownership, so the game can continue.
@@ -144,7 +145,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	m_SaveGameTask.wait();
 
-	std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + "/Save.ini";
+	std::string saveFilePath = g_ModuleMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + "/Save.ini";
 
 	if (!std::filesystem::exists(saveFilePath)) {
 		RTEError::ShowMessageBox("Game loading failed! Make sure you have a saved game called \"" + fileName + "\"");

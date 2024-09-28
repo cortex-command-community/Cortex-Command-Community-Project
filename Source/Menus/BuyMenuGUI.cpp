@@ -3,6 +3,7 @@
 #include "CameraMan.h"
 #include "WindowMan.h"
 #include "FrameMan.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "ActivityMan.h"
 #include "UInputMan.h"
@@ -21,7 +22,6 @@
 #include "GUIButton.h"
 #include "GUILabel.h"
 
-#include "DataModule.h"
 #include "Controller.h"
 #include "SceneObject.h"
 #include "MovableObject.h"
@@ -78,7 +78,7 @@ void BuyMenuGUI::Clear() {
 	m_MetaPlayer = Players::NoPlayer;
 	m_NativeTechModule = 0;
 	m_ForeignCostMult = 4.0;
-	int moduleCount = g_PresetMan.GetTotalModuleCount();
+	int moduleCount = g_ModuleMan.GetTotalModuleCount();
 	m_aExpandedModules = new bool[moduleCount];
 	for (int i = 0; i < moduleCount; ++i)
 		m_aExpandedModules[i] = i == 0 ? true : false;
@@ -554,13 +554,13 @@ void BuyMenuGUI::SetMetaPlayer(int metaPlayer) {
 }
 
 void BuyMenuGUI::SetNativeTechModule(int whichModule) {
-	if (whichModule >= 0 && whichModule < g_PresetMan.GetTotalModuleCount()) {
+	if (whichModule >= 0 && whichModule < g_ModuleMan.GetTotalModuleCount()) {
 		m_NativeTechModule = whichModule;
 		SetModuleExpanded(m_NativeTechModule);
 		DeployLoadout(0);
 
 		if (!g_SettingsMan.FactionBuyMenuThemesDisabled() && m_NativeTechModule > 0) {
-			if (const DataModule* techModule = g_PresetMan.GetDataModule(whichModule); techModule->IsFaction()) {
+			if (const DataModule* techModule = g_ModuleMan.GetDataModule(whichModule); techModule->IsFaction()) {
 				const DataModule::BuyMenuTheme& techBuyMenuTheme = techModule->GetFactionBuyMenuTheme();
 
 				if (!techBuyMenuTheme.SkinFilePath.empty()) {
@@ -583,7 +583,7 @@ void BuyMenuGUI::SetNativeTechModule(int whichModule) {
 }
 
 void BuyMenuGUI::SetModuleExpanded(int whichModule, bool expanded) {
-	int moduleCount = g_PresetMan.GetTotalModuleCount();
+	int moduleCount = g_ModuleMan.GetTotalModuleCount();
 	if (whichModule > 0 && whichModule < moduleCount) {
 		m_aExpandedModules[whichModule] = expanded;
 		// Refresh the item view with the newly expanded module items
@@ -1220,7 +1220,7 @@ void BuyMenuGUI::Update() {
 				}
 			}
 		} else if (pItem && pItem->m_ExtraIndex >= 0) {
-			const DataModule* pModule = g_PresetMan.GetDataModule(pItem->m_ExtraIndex);
+			const DataModule* pModule = g_ModuleMan.GetDataModule(pItem->m_ExtraIndex);
 			if (pModule && !pModule->GetDescription().empty()) {
 				description = pModule->GetDescription();
 			}
@@ -1933,7 +1933,7 @@ void BuyMenuGUI::CategoryChange(bool focusOnCategoryTabs) {
 			// Don't add anyhting to the real buy item list if the current module didn't yield any valid items
 			if (!tempList.empty()) {
 				// Add the DataModule separator in the shop list, with appropriate name and perhaps icon? Don't add for first base module
-				if (moduleID != 0 && (pModule = g_PresetMan.GetDataModule(moduleID))) {
+				if (moduleID != 0 && (pModule = g_ModuleMan.GetDataModule(moduleID))) {
 					pItemBitmap = pModule->GetIcon() ? new AllegroBitmap(pModule->GetIcon()) : 0;
 					// Passing in ownership of the bitmap, making uppercase the name
 					std::string name = pModule->GetFriendlyName();
@@ -2082,11 +2082,11 @@ bool BuyMenuGUI::DeployLoadout(int index) {
 }
 
 void BuyMenuGUI::AddObjectsToItemList(std::vector<std::list<Entity*>>& moduleList, const std::string& type, const std::vector<std::string>& groups, bool excludeGroups) {
-	while (moduleList.size() < g_PresetMan.GetTotalModuleCount()) {
+	while (moduleList.size() < g_ModuleMan.GetTotalModuleCount()) {
 		moduleList.emplace_back();
 	}
-	for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); ++moduleID) {
-		if ((g_SettingsMan.ShowForeignItems() || m_NativeTechModule <= 0) || (moduleID == 0 || moduleID == m_NativeTechModule || g_PresetMan.GetDataModule(moduleID)->IsMerchant())) {
+	for (int moduleID = 0; moduleID < g_ModuleMan.GetTotalModuleCount(); ++moduleID) {
+		if ((g_SettingsMan.ShowForeignItems() || m_NativeTechModule <= 0) || (moduleID == 0 || moduleID == m_NativeTechModule || g_ModuleMan.GetDataModule(moduleID)->IsMerchant())) {
 			if (groups.empty() || std::find(groups.begin(), groups.end(), "All") != groups.end()) {
 				g_PresetMan.GetAllOfType(moduleList[moduleID], type, moduleID);
 			} else {

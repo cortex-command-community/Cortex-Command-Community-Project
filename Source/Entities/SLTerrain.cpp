@@ -1,4 +1,5 @@
 #include "SLTerrain.h"
+#include "ModuleMan.h"
 #include "TerrainFrosting.h"
 #include "TerrainDebris.h"
 #include "TerrainObject.h"
@@ -6,8 +7,6 @@
 #include "MOSprite.h"
 #include "MOPixel.h"
 #include "Atom.h"
-#include "DataModule.h"
-#include "PresetMan.h"
 
 #include <array>
 #include <execution>
@@ -188,7 +187,7 @@ void SLTerrain::TexturizeTerrain() {
 	BITMAP* bgLayerTexture = m_BGColorLayer->GetBitmap();
 
 	const std::array<Material*, c_PaletteEntriesNumber>& materialPalette = g_SceneMan.GetMaterialPalette();
-	const std::array<unsigned char, c_PaletteEntriesNumber>& materialMappings = g_PresetMan.GetDataModule(m_BitmapFile.GetDataModuleID())->GetAllMaterialMappings();
+	const std::array<unsigned char, c_PaletteEntriesNumber>& materialMappings = g_ModuleMan.GetDataModule(g_ModuleMan.GetModuleIDFromPath(m_BitmapFile.GetDataPath()))->GetAllMaterialMappings();
 
 	std::array<BITMAP*, c_PaletteEntriesNumber> materialFGTextures;
 	materialFGTextures.fill(nullptr);

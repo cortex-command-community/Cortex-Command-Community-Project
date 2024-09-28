@@ -17,7 +17,6 @@
 #include "ACRocket.h"
 #include "HeldDevice.h"
 #include "Scene.h"
-#include "DataModule.h"
 
 #include "SceneEditorGUI.h"
 
@@ -245,7 +244,7 @@ bool BaseEditor::SaveScene(std::string saveAsName, bool forceOverwrite) {
 	    // Set the name of the current scene in effect
 	    g_SceneMan.GetScene()->SetPresetName(saveAsName);
 	    // Try to save to the data module
-	    string sceneFilePath(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Scenes/" + saveAsName + ".ini");
+	    string sceneFilePath(g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Scenes/" + saveAsName + ".ini");
 	    if (g_PresetMan.AddEntityPreset(g_SceneMan.GetScene(), m_ModuleSpaceID, forceOverwrite, sceneFilePath))
 	    {
 	        // Does ini already exist? If yes, then no need to add it to a scenes.ini etc
@@ -260,7 +259,7 @@ bool BaseEditor::SaveScene(std::string saveAsName, bool forceOverwrite) {
 	        if (!sceneFileExisted)
 	        {
 	            // First find/create  a .rte/Scenes.ini file to include the new .ini into
-	            string scenesFilePath(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Scenes.ini");
+	            string scenesFilePath(g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Scenes.ini");
 	            bool scenesFileExisted = System::PathExistsCaseSensitive(scenesFilePath.c_str());
 	            Writer scenesWriter(scenesFilePath.c_str(), true);
 	            scenesWriter.NewProperty("\nIncludeFile");
@@ -270,7 +269,7 @@ bool BaseEditor::SaveScene(std::string saveAsName, bool forceOverwrite) {
 	            // If it's already included, it doens't matter, the definitions will just bounce the second time
 	            if (!scenesFileExisted)
 	            {
-	                string indexFilePath(g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Index.ini");
+	                string indexFilePath(g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName() + "/Index.ini");
 	                Writer indexWriter(indexFilePath.c_str(), true);
 	                // Add extra tab since the DataModule has everything indented
 	                indexWriter.NewProperty("\tIncludeFile");

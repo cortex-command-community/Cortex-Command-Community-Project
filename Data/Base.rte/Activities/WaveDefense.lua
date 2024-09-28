@@ -107,7 +107,7 @@ function WaveDefense:StartNewGame()
 		end
 		MovableMan:ChangeActorTeam(actor, self.playerTeam);
 	end
-	
+
 	self:CheckBrains();
 	
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
@@ -137,7 +137,7 @@ function WaveDefense:ResumeLoadedGame()
 	self.AI.lastWaveValue = self:LoadNumber("AI_lastWaveValue");
 
 	self.AI.Tech = self:GetTeamTech(self.CPUTeam);
-	self.AI.TechID = PresetMan:GetModuleID(self.AI.Tech);
+	self.AI.TechID = ModuleMan:GetModuleID(self.AI.Tech);
 end
 
 function WaveDefense:InitWave()
@@ -149,7 +149,7 @@ function WaveDefense:InitWave()
 	self.AI.HuntTimer:Reset();
 
 	self.AI.Tech = self:GetTeamTech(self.CPUTeam);	-- Select a tech for the CPU player
-	self.AI.TechID = PresetMan:GetModuleID(self.AI.Tech);
+	self.AI.TechID = ModuleMan:GetModuleID(self.AI.Tech);
 
 	local lastWavePlayerValue = self.AI.playerValue;
 	self.AI.playerValue = self:GetTeamFunds(self.playerTeam); -- The gold value of the players
@@ -623,7 +623,7 @@ function WaveDefense:CreateHeavyDrop(xPosLZ, Destination)
 			passengers = 2;
 		end
 
-		local crabRatio = self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.AI.Tech));
+		local crabRatio = self:GetCrabToHumanSpawnRatio(ModuleMan:GetModuleID(self.AI.Tech));
 		for _ = 1, passengers do
 			local Passenger;
 			if crabRatio > 0 and math.random() < crabRatio + self.Difficulty / 800 then

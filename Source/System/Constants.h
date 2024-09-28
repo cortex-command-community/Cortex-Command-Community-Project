@@ -342,7 +342,7 @@ namespace RTE {
 	    {Directions::Right, 0.0F}};
 #pragma endregion
 
-#pragma region Un - Definitions
+#pragma region Un-Definitions
 // Allegro defines these via define in astdint.h and Boost with stdlib go crazy so we need to undefine them manually.
 #undef int8_t
 #undef uint8_t

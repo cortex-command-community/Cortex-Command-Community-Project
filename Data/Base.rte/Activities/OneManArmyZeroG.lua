@@ -8,7 +8,7 @@ function OneManArmyZeroG:StartActivity(isNewGame)
 	self.winTimer = Timer();
 
 	self.CPUTechName = self:GetTeamTech(self.CPUTeam);
-	
+
 	self.isDiggersOnly = self.PresetName:find("Diggers") ~= nil;
 
 	if isNewGame then
@@ -87,7 +87,7 @@ function OneManArmyZeroG:StartNewGame()
 	self.enemySpawnTimeLimit = 500;
 	
 	MusicMan:PlayDynamicSong("Generic Battle Music");
-	
+
 	local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 	automoverController.Team = -1;
 	automoverController:SetNumberValue("MovementSpeed", 16);
@@ -123,11 +123,11 @@ function OneManArmyZeroG:SetupHumanPlayerBrains(actorGroup, primaryGroup, second
 
 				--If we can't find an unassigned brain in the scene to give the player, create one
 				if not foundBrain then
-					local tech = PresetMan:GetModuleID(self:GetTeamTech(team));
+					local tech = ModuleMan:GetModuleID(self:GetTeamTech(team));
 					foundBrain = CreateAHuman(defaultActor);
 					--If a faction was chosen, pick the first item from faction listing
 					if tech ~= -1 then
-						local dataModule = PresetMan:GetDataModule(tech);
+						local dataModule = ModuleMan:GetDataModule(tech);
 						local primaryWeapon, secondaryWeapon, tertiaryWeapon, actor;
 						for entity in dataModule.Presets do
 							local picked;	--Prevent duplicates
@@ -250,14 +250,14 @@ function OneManArmyZeroG:ResumeLoadedGame()
 			end
 		end
 	end
-	
+
 	for particle in MovableMan.AddedParticles do
 		if particle.PresetName == "Automover Node 1x1" then
 			particle.Scale = 0;
 			break;
 		end
 	end
-	
+
 	for actor in MovableMan.AddedActors do
 		if actor.Team ~= Activity.TEAM_1 then
 			actor.AIMode = Actor.AIMODE_BRAINHUNT;
@@ -342,7 +342,7 @@ function OneManArmyZeroG:UpdateActivity()
 		if self.CPUTeam ~= Activity.NOTEAM and self.enemySpawnTimer:LeftTillSimMS(self.enemySpawnTimeLimit) <= 0 then
 			for i = 1, math.random(1, 3) do
 				local actor = RandomAHuman("Actors - Light", self.CPUTechName);
-				if actor.ModuleID ~= PresetMan:GetModuleID(self.CPUTechName) then
+				if actor.ModuleID ~= ModuleMan:GetModuleID(self.CPUTechName) then
 					actor = RandomAHuman("Actors", self.CPUTechName);
 				end
 

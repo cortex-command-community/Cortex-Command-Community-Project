@@ -3,6 +3,7 @@
 #include "LuabindObjectWrapper.h"
 #include "LuaBindingRegisterDefinitions.h"
 #include "ThreadMan.h"
+#include "ModuleMan.h"
 #include "System.h"
 
 #include "tracy/Tracy.hpp"
@@ -176,6 +177,7 @@ void LuaStateWrapper::Initialize() {
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, ConsoleMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, FrameMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, MetaMan),
+	                         RegisterLuaBindingsOfType(ManagerLuaBindings, ModuleMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, MovableMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, PerformanceMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, PostProcessMan),
@@ -220,6 +222,7 @@ void LuaStateWrapper::Initialize() {
 	luabind::globals(m_State)["PerformanceMan"] = &g_PerformanceMan;
 	luabind::globals(m_State)["PostProcessMan"] = &g_PostProcessMan;
 	luabind::globals(m_State)["PrimitiveMan"] = &g_PrimitiveMan;
+	luabind::globals(m_State)["ModuleMan"] = &g_ModuleMan;
 	luabind::globals(m_State)["PresetMan"] = &g_PresetMan;
 	luabind::globals(m_State)["AudioMan"] = &g_AudioMan;
 	luabind::globals(m_State)["MusicMan"] = &g_MusicMan;
@@ -249,8 +252,8 @@ void LuaStateWrapper::Initialize() {
 	              // Override "math.random" in the lua state to use RTETools MT19937 implementation. Preserve return types of original to not break all the things.
 	              "math.random = function(lower, upper) if lower ~= nil and upper ~= nil then return LuaMan:SelectRand(lower, upper); elseif lower ~= nil then return LuaMan:SelectRand(1, lower); else return LuaMan:PosRand(); end end\n"
 	              // Override "dofile"/"loadfile" to be able to account for Data/ or Mods/ directory.
-	              "OriginalDoFile = dofile; dofile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end;\n"
-	              "OriginalLoadFile = loadfile; loadfile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalLoadFile(filePath); end end;\n"
+	              "OriginalDoFile = dofile; dofile = function(filePath) filePath = ModuleMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end;\n"
+	              "OriginalLoadFile = loadfile; loadfile = function(filePath) filePath = ModuleMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalLoadFile(filePath); end end;\n"
 	              // Override "require" to be able to track loaded packages so we can clear them when scripts are reloaded.
 	              "_RequiredPackages = {};\n"
 	              "OriginalRequire = require; require = function(filePath) _RequiredPackages[filePath] = true; return OriginalRequire(filePath); end;\n"
@@ -447,8 +450,8 @@ void LuaStateWrapper::SetTempEntityVector(const std::vector<const Entity*>& enti
 }
 
 void LuaStateWrapper::SetLuaPath(const std::string& filePath) {
-	const std::string moduleName = g_PresetMan.GetModuleNameFromPath(filePath);
-	const std::string moduleFolder = g_PresetMan.IsModuleOfficial(moduleName) ? System::GetDataDirectory() : System::GetModDirectory();
+	const std::string moduleName = g_ModuleMan.GetModuleNameFromPath(filePath);
+	const std::string moduleFolder = g_ModuleMan.IsModuleOfficial(moduleName) ? System::GetDataDirectory() : System::GetModDirectory();
 	const std::string scriptPath = moduleFolder + moduleName + "/?.lua";
 
 	lua_getglobal(m_State, "package");
@@ -626,7 +629,7 @@ int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functio
 }
 
 int LuaStateWrapper::RunScriptFile(const std::string& filePath, bool consoleErrors, bool doInSandboxedEnvironment) {
-	const std::string fullScriptPath = g_PresetMan.GetFullModulePath(filePath);
+	const std::string fullScriptPath = g_ModuleMan.GetFullModulePath(filePath);
 	if (fullScriptPath.empty()) {
 		m_LastError = "Can't run a script file with an empty filepath!";
 		return -1;
@@ -932,7 +935,7 @@ const std::vector<std::string>* LuaMan::FileList(const std::string& path) {
 }
 
 bool LuaMan::FileExists(const std::string& path) {
-	std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
+	std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(path);
 	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
@@ -943,7 +946,7 @@ bool LuaMan::FileExists(const std::string& path) {
 }
 
 bool LuaMan::DirectoryExists(const std::string& path) {
-	std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
+	std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(path);
 	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
@@ -976,7 +979,7 @@ int LuaMan::FileOpen(const std::string& path, const std::string& accessMode) {
 		return -1;
 	}
 
-	std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
+	std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(path);
 	if (IsValidModulePath(fullPath)) {
 #ifdef _WIN32
 		FILE* file = fopen(fullPath.c_str(), accessMode.c_str());
@@ -1043,7 +1046,7 @@ void LuaMan::FileCloseAll() {
 }
 
 bool LuaMan::FileRemove(const std::string& path) {
-	std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
+	std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(path);
 	if (IsValidModulePath(fullPath)) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
@@ -1057,7 +1060,7 @@ bool LuaMan::FileRemove(const std::string& path) {
 }
 
 bool LuaMan::DirectoryCreate(const std::string& path, bool recursive) {
-	std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
+	std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(path);
 	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
@@ -1075,7 +1078,7 @@ bool LuaMan::DirectoryCreate(const std::string& path, bool recursive) {
 }
 
 bool LuaMan::DirectoryRemove(const std::string& path, bool recursive) {
-	std::string fullPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(path);
+	std::string fullPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(path);
 	if (fullPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullPath = GetCaseInsensitiveFullPath(fullPath);
@@ -1095,8 +1098,8 @@ bool LuaMan::DirectoryRemove(const std::string& path, bool recursive) {
 }
 
 bool LuaMan::FileRename(const std::string& oldPath, const std::string& newPath) {
-	std::string fullOldPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(oldPath);
-	std::string fullNewPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(newPath);
+	std::string fullOldPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(oldPath);
+	std::string fullNewPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(newPath);
 	if (IsValidModulePath(fullOldPath) && IsValidModulePath(fullNewPath)) {
 #ifndef _WIN32
 		fullOldPath = GetCaseInsensitiveFullPath(fullOldPath);
@@ -1116,8 +1119,8 @@ bool LuaMan::FileRename(const std::string& oldPath, const std::string& newPath) 
 }
 
 bool LuaMan::DirectoryRename(const std::string& oldPath, const std::string& newPath) {
-	std::string fullOldPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(oldPath);
-	std::string fullNewPath = System::GetWorkingDirectory() + g_PresetMan.GetFullModulePath(newPath);
+	std::string fullOldPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(oldPath);
+	std::string fullNewPath = System::GetWorkingDirectory() + g_ModuleMan.GetFullModulePath(newPath);
 	if (fullOldPath.find("..") == std::string::npos && fullNewPath.find("..") == std::string::npos) {
 #ifndef _WIN32
 		fullOldPath = GetCaseInsensitiveFullPath(fullOldPath);

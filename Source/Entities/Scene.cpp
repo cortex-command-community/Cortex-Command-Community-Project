@@ -1,5 +1,6 @@
 #include "Scene.h"
 
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
 #include "FrameMan.h"
@@ -809,7 +810,7 @@ int Scene::ExpandAIPlanAssemblySchemes() {
 }
 
 int Scene::SaveData(std::string pathBase, bool doAsyncSaves) {
-	const std::string fullPathBase = g_PresetMan.GetFullModulePath(pathBase);
+	const std::string fullPathBase = g_ModuleMan.GetFullModulePath(pathBase);
 	if (fullPathBase.empty())
 		return -1;
 

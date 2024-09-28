@@ -353,7 +353,7 @@ function MaginotMission:UpdateAttackerSpawns()
 
 		if self.currentFightStage >= self.fightStage.defendRight then
 			local attackerActor;
-			if math.random() < self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(self.attackerTech)) then
+			if math.random() < self:GetCrabToHumanSpawnRatio(ModuleMan:GetModuleID(self.attackerTech)) then
 				attackerActor = RandomACrab("Actors - Mecha", self.attackerTech);
 				if attackerActor then
 					attackerActor.Team = self.attackerTeam;
@@ -381,7 +381,7 @@ function MaginotMission:UpdateActivity()
 	end
 
 	self:DoGameOverCheck();
-	
+
 	local enemyInsideBrainEvacuateArea = false;
 	if self.currentFightStage < self.fightStage.evacuateBrain and self.evacuateCheckTimer:IsPastSimTimeLimit() then
 		for movableObject in MovableMan:GetMOsInBox(self.evacuateTrigger.FirstBox, self.defenderTeam, true) do

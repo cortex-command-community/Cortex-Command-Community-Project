@@ -133,11 +133,11 @@ function OneManArmy:SetupHumanPlayerBrains(actorGroup, primaryGroup, secondaryGr
 				local foundBrain = MovableMan:GetUnassignedBrain(team);
 				-- If we can't find an unassigned brain in the scene to give the player, create one
 				if not foundBrain then
-					local tech = PresetMan:GetModuleID(self:GetTeamTech(team));
+					local tech = ModuleMan:GetModuleID(self:GetTeamTech(team));
 					foundBrain = CreateAHuman(defaultActor);
 					-- If a faction was chosen, pick the first item from faction listing
 					if tech ~= -1 then
-						local module = PresetMan:GetDataModule(tech);
+						local module = ModuleMan:GetDataModule(tech);
 						local primaryWeapon, secondaryWeapon, throwable, actor;
 						for entity in module.Presets do
 							local picked;	-- Prevent duplicates
@@ -308,7 +308,7 @@ function OneManArmy:UpdateActivity()
 			-- Set the ship up with a cargo of a few armed and equipped actors
 			for i = 1, actorsInCargo do
 				local passenger = RandomAHuman("Actors - " .. ((self.Difficulty > 75 and math.random() > 0.5) and "Heavy" or "Light"), self.CPUTechName);
-				if passenger.ModuleID ~= PresetMan:GetModuleID(self.CPUTechName) then
+				if passenger.ModuleID ~= ModuleMan:GetModuleID(self.CPUTechName) then
 					passenger = RandomAHuman("Actors", self.CPUTechName);
 				end
 

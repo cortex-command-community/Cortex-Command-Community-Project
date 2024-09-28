@@ -762,6 +762,7 @@
     <ClInclude Include="Source\Managers\CameraMan.h" />
     <ClInclude Include="Source\Managers\MusicMan.h" />
     <ClInclude Include="Source\Managers\MenuMan.h" />
+    <ClInclude Include="Source\Managers\ModuleMan.h" />
     <ClInclude Include="Source\Managers\NetworkClient.h" />
     <ClInclude Include="Source\Managers\NetworkServer.h" />
     <ClInclude Include="Source\Managers\PerformanceMan.h" />
@@ -1007,6 +1008,7 @@
     <ClCompile Include="Source\GUI\GUISound.cpp" />
     <ClCompile Include="Source\GUI\GUIWriter.cpp" />
     <ClCompile Include="Source\Managers\MenuMan.cpp" />
+    <ClCompile Include="Source\Managers\ModuleMan.cpp" />
     <ClCompile Include="Source\Managers\NetworkClient.cpp" />
     <ClCompile Include="Source\Managers\NetworkServer.cpp" />
     <ClCompile Include="Source\Managers\PerformanceMan.cpp" />

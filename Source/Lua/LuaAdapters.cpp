@@ -25,22 +25,22 @@ std::unordered_map<std::string, std::function<LuabindObjectWrapper*(Entity*, lua
 	TYPE* LuaAdaptersEntityCreate::Random##TYPE(std::string groupName, int moduleSpaceID) { \
 		const Entity* entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, moduleSpaceID); \
 		if (!entityPreset) { \
-			entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, g_PresetMan.GetModuleID("Base.rte")); \
+			entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, g_ModuleMan.GetModuleID("Base.rte")); \
 		} \
 		if (!entityPreset) { \
 			entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech("Any", #TYPE, moduleSpaceID); \
 		} \
 		if (!entityPreset) { \
-			g_ConsoleMan.PrintString(std::string("WARNING: Could not find any ") + std::string(#TYPE) + std::string(" defined in a Group called \"") + groupName + std::string("\" in module ") + g_PresetMan.GetDataModuleName(moduleSpaceID) + "!"); \
+			g_ConsoleMan.PrintString(std::string("WARNING: Could not find any ") + std::string(#TYPE) + std::string(" defined in a Group called \"") + groupName + std::string("\" in module ") + g_ModuleMan.GetModuleName(moduleSpaceID) + "!"); \
 			return nullptr; \
 		} \
 		return dynamic_cast<TYPE*>(entityPreset->Clone()); \
 	} \
 	TYPE* LuaAdaptersEntityCreate::Random##TYPE(std::string groupName, std::string dataModuleName) { \
-		int moduleSpaceID = g_PresetMan.GetModuleID(dataModuleName); \
+		int moduleSpaceID = g_ModuleMan.GetModuleID(dataModuleName); \
 		const Entity* entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, moduleSpaceID); \
 		if (!entityPreset) { \
-			entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, g_PresetMan.GetModuleID("Base.rte")); \
+			entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, g_ModuleMan.GetModuleID("Base.rte")); \
 		} \
 		if (!entityPreset) { \
 			entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech("Any", #TYPE, moduleSpaceID); \
@@ -336,11 +336,11 @@ void LuaAdaptersActivity::SendMessage2(Activity* luaSelfObject, const std::strin
 }
 
 bool LuaAdaptersMovableObject::HasScript(MovableObject* luaSelfObject, const std::string& scriptPath) {
-	return luaSelfObject->HasScript(g_PresetMan.GetFullModulePath(scriptPath));
+	return luaSelfObject->HasScript(g_ModuleMan.GetFullModulePath(scriptPath));
 }
 
 bool LuaAdaptersMovableObject::AddScript(MovableObject* luaSelfObject, const std::string& scriptPath) {
-	switch (std::string correctedScriptPath = g_PresetMan.GetFullModulePath(scriptPath); luaSelfObject->LoadScript(correctedScriptPath)) {
+	switch (std::string correctedScriptPath = g_ModuleMan.GetFullModulePath(scriptPath); luaSelfObject->LoadScript(correctedScriptPath)) {
 		case 0:
 			return true;
 		case -1:
@@ -366,7 +366,7 @@ bool LuaAdaptersMovableObject::AddScript(MovableObject* luaSelfObject, const std
 }
 
 bool LuaAdaptersMovableObject::EnableScript(MovableObject* luaSelfObject, const std::string& scriptPath) {
-	return luaSelfObject->EnableOrDisableScript(g_PresetMan.GetFullModulePath(scriptPath), true);
+	return luaSelfObject->EnableOrDisableScript(g_ModuleMan.GetFullModulePath(scriptPath), true);
 }
 
 bool LuaAdaptersMovableObject::DisableScript1(MovableObject* luaSelfObject) {
@@ -375,7 +375,7 @@ bool LuaAdaptersMovableObject::DisableScript1(MovableObject* luaSelfObject) {
 }
 
 bool LuaAdaptersMovableObject::DisableScript2(MovableObject* luaSelfObject, const std::string& scriptPath) {
-	return luaSelfObject->EnableOrDisableScript(g_PresetMan.GetFullModulePath(scriptPath), false);
+	return luaSelfObject->EnableOrDisableScript(g_ModuleMan.GetFullModulePath(scriptPath), false);
 }
 
 void LuaAdaptersMovableObject::SendMessage1(MovableObject* luaSelfObject, const std::string& message) {

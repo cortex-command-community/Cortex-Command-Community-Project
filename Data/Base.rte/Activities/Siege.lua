@@ -27,7 +27,7 @@ function Siege:StartActivity()
 	self.CPUTechName = self:GetTeamTech(self.CPUTeam);	-- Select a tech for the CPU player
 	self.PlayerTechName = self:GetTeamTech(self.PlayerTeam);
 	gPrevAITech = self.CPUTechName	-- Store the AI tech in a global so we don't pick the same tech again next round
-	self.CPUTechID = PresetMan:GetModuleID(self.CPUTechName);
+	self.CPUTechID = ModuleMan:GetModuleID(self.CPUTechName);
 
 	self:SetTeamFunds(math.ceil((3000 + self.Difficulty * 175) * rte.StartingFundsScale), self.CPUTeam);
 	if self.Difficulty == 100 then
@@ -496,7 +496,7 @@ function Siege:CreateHeavyDrop(xPosLZ, techName)
 		Craft.Pos = Vector(xPosLZ, -30); -- Set the spawn point of the craft
 
 		for i = 1, Craft.MaxPassengers do
-			if math.random() < self:GetCrabToHumanSpawnRatio(PresetMan:GetModuleID(techName)) then
+			if math.random() < self:GetCrabToHumanSpawnRatio(ModuleMan:GetModuleID(techName)) then
 				Passenger = self:CreateCrab(Actor.AIMODE_GOTO, techName);
 			elseif RangeRand(0, 105) < self.Difficulty then
 				Passenger = self:CreateHeavyInfantry(Actor.AIMODE_GOTO,techName);
@@ -516,7 +516,7 @@ function Siege:CreateHeavyDrop(xPosLZ, techName)
 		end
 
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
-		self:ChangeTeamFunds(-Craft:GetTotalValue(PresetMan:GetModuleID(techName), 2), self.CPUTeam);
+		self:ChangeTeamFunds(-Craft:GetTotalValue(ModuleMan:GetModuleID(techName), 2), self.CPUTeam);
 
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft);
@@ -553,7 +553,7 @@ function Siege:CreateSWATDrop(xPosLZ, techName)
 		end
 
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
-		self:ChangeTeamFunds(-Craft:GetTotalValue(PresetMan:GetModuleID(techName), 2), self.CPUTeam);
+		self:ChangeTeamFunds(-Craft:GetTotalValue(ModuleMan:GetModuleID(techName), 2), self.CPUTeam);
 
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft);
@@ -590,7 +590,7 @@ function Siege:CreateArtilleryDrop(xPosLZ, techName)
 		end
 
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
-		self:ChangeTeamFunds(-Craft:GetTotalValue(PresetMan:GetModuleID(techName), 2), self.CPUTeam);
+		self:ChangeTeamFunds(-Craft:GetTotalValue(ModuleMan:GetModuleID(techName), 2), self.CPUTeam);
 
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft);
@@ -644,7 +644,7 @@ function Siege:CreateMediumDrop(xPosLZ, techName)
 		end
 
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
-		self:ChangeTeamFunds(-Craft:GetTotalValue(PresetMan:GetModuleID(techName), 2), self.CPUTeam);
+		self:ChangeTeamFunds(-Craft:GetTotalValue(ModuleMan:GetModuleID(techName), 2), self.CPUTeam);
 
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft);
@@ -696,7 +696,7 @@ function Siege:CreateLightDrop(xPosLZ, techName)
 		end
 
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
-		self:ChangeTeamFunds(-Craft:GetTotalValue(PresetMan:GetModuleID(techName), 2), self.CPUTeam);
+		self:ChangeTeamFunds(-Craft:GetTotalValue(ModuleMan:GetModuleID(techName), 2), self.CPUTeam);
 
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft);
@@ -744,7 +744,7 @@ function Siege:CreateEngineerDrop(xPosLZ, techName)
 		end
 
 		-- Subtract the total value of the craft+cargo from the CPU team's funds
-		self:ChangeTeamFunds(-Craft:GetTotalValue(PresetMan:GetModuleID(techName), 2), self.CPUTeam);
+		self:ChangeTeamFunds(-Craft:GetTotalValue(ModuleMan:GetModuleID(techName), 2), self.CPUTeam);
 
 		-- Spawn the Craft onto the scene
 		MovableMan:AddActor(Craft);

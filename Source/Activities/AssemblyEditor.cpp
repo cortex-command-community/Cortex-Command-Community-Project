@@ -1,6 +1,7 @@
 #include "AssemblyEditor.h"
 
 #include "WindowMan.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
 #include "FrameMan.h"
@@ -13,7 +14,6 @@
 #include "ACRocket.h"
 #include "HeldDevice.h"
 #include "Scene.h"
-#include "DataModule.h"
 #include "System.h"
 
 #include "GUI.h"
@@ -244,10 +244,10 @@ void AssemblyEditor::Update() {
 					// Get the Module ID that the scene exists in, so we can limit the picker to only show objects from that DataModule space
 					if (g_SceneMan.GetScene()) {
 						// m_ModuleSpaceID = g_SceneMan.GetScene()->GetModuleID();
-						m_ModuleSpaceID = g_PresetMan.GetModuleID(m_pModuleCombo->GetSelectedItem()->m_Name);
+						m_ModuleSpaceID = g_ModuleMan.GetModuleID(m_pModuleCombo->GetSelectedItem()->m_Name);
 						RTEAssert(m_ModuleSpaceID >= 0, "Loaded Scene's DataModule ID is negative? Should always be a specific one..");
 						m_pEditorGUI->Destroy();
-						if (m_ModuleSpaceID == g_PresetMan.GetModuleID(c_UserScenesModuleName))
+						if (m_ModuleSpaceID == g_ModuleMan.GetModuleID(c_UserScenesModuleName))
 							m_pEditorGUI->Create(&(m_PlayerController[0]), AssemblyEditorGUI::ONLOADEDIT, -1);
 						else
 							m_pEditorGUI->Create(&(m_PlayerController[0]), AssemblyEditorGUI::ONLOADEDIT, m_ModuleSpaceID);
@@ -457,10 +457,10 @@ BunkerAssembly* AssemblyEditor::BuildAssembly(std::string saveAsName) {
 bool AssemblyEditor::SaveAssembly(const std::string& saveAsName, bool forceOverwrite) {
 	std::unique_ptr<BunkerAssembly> editedAssembly(BuildAssembly(saveAsName));
 
-	std::string dataModuleName = g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName();
+	std::string dataModuleName = g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName();
 	bool savingToUserScenesModule = (dataModuleName == c_UserScenesModuleName);
 
-	std::string dataModuleFullPath = g_PresetMan.GetFullModulePath(dataModuleName);
+	std::string dataModuleFullPath = g_ModuleMan.GetFullModulePath(dataModuleName);
 	std::string assemblySavePath;
 
 	if (savingToUserScenesModule) {
@@ -529,16 +529,16 @@ void AssemblyEditor::UpdateLoadDialog() {
 	int scenesIndex = 0;
 
 	if (m_pModuleCombo->GetCount() <= 0) {
-		for (int module = 0; module < g_PresetMan.GetTotalModuleCount(); ++module) {
+		for (int module = 0; module < g_ModuleMan.GetTotalModuleCount(); ++module) {
 			// Cut-off vanilla modules except Base.rte
 			bool isValid = false;
 
 			// If metascenes are visible then allow to save assemblies to Base.rte
 			if (g_SettingsMan.ShowMetascenes()) {
-				if ((module == 0 || module > 8) && g_PresetMan.GetDataModule(module)->GetFileName() != c_UserConquestSavesModuleName && g_PresetMan.GetDataModule(module)->GetFileName() != "Missions.rte")
+				if ((module == 0 || module > 8) && g_ModuleMan.GetDataModule(module)->GetFileName() != c_UserConquestSavesModuleName && g_ModuleMan.GetDataModule(module)->GetFileName() != "Missions.rte")
 					isValid = true;
 			} else {
-				if (module > 8 && g_PresetMan.GetDataModule(module)->GetFileName() != c_UserConquestSavesModuleName && g_PresetMan.GetDataModule(module)->GetFileName() != "Missions.rte" && g_PresetMan.GetDataModule(module)->GetFileName() != c_UserScriptedSavesModuleName)
+				if (module > 8 && g_ModuleMan.GetDataModule(module)->GetFileName() != c_UserConquestSavesModuleName && g_ModuleMan.GetDataModule(module)->GetFileName() != "Missions.rte" && g_ModuleMan.GetDataModule(module)->GetFileName() != c_UserScriptedSavesModuleName)
 					isValid = true;
 			}
 
@@ -547,14 +547,14 @@ void AssemblyEditor::UpdateLoadDialog() {
 				isValid = true;
 
 			if (isValid) {
-				m_pModuleCombo->AddItem(g_PresetMan.GetDataModule(module)->GetFileName());
+				m_pModuleCombo->AddItem(g_ModuleMan.GetDataModule(module)->GetFileName());
 
 				if (g_SettingsMan.AllowSavingToBase()) {
 					// If editors are in dev-mode then select Base.rte as default module to save stuff
-					if (g_PresetMan.GetDataModule(module)->GetFileName() == "Base.rte")
+					if (g_ModuleMan.GetDataModule(module)->GetFileName() == "Base.rte")
 						scenesIndex = m_pModuleCombo->GetCount() - 1;
 				} else {
-					if (g_PresetMan.GetDataModule(module)->GetFileName() == c_UserScenesModuleName)
+					if (g_ModuleMan.GetDataModule(module)->GetFileName() == c_UserScenesModuleName)
 						scenesIndex = m_pModuleCombo->GetCount() - 1;
 				}
 			}
@@ -593,7 +593,7 @@ void AssemblyEditor::UpdateSaveDialog() {
 		defaultName = pScheme->GetPresetName() + " - ";
 
 	m_pSaveNameBox->SetText(m_pEditorGUI->GetCurrentAssemblyName() == "" ? defaultName : m_pEditorGUI->GetCurrentAssemblyName());
-	m_pSaveModuleLabel->SetText("Will save in " + g_PresetMan.GetDataModule(m_ModuleSpaceID)->GetFileName());
+	m_pSaveModuleLabel->SetText("Will save in " + g_ModuleMan.GetDataModule(m_ModuleSpaceID)->GetFileName());
 }
 
 void AssemblyEditor::UpdateChangesDialog() {

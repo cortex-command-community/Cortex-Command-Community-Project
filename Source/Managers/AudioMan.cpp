@@ -1,5 +1,6 @@
 #include "AudioMan.h"
 
+#include "ModuleMan.h"
 #include "CameraMan.h"
 #include "ConsoleMan.h"
 #include "FrameMan.h"
@@ -8,7 +9,6 @@
 #include "ActivityMan.h"
 #include "SoundContainer.h"
 #include "GUISound.h"
-#include "PresetMan.h"
 #include "SoundSet.h"
 
 #include <cstring>

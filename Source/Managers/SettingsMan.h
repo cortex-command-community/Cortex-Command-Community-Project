@@ -260,15 +260,6 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Mod and Script Management
-		/// Gets the map of mods which are disabled.
-		/// @return Map of mods which are disabled.
-		std::unordered_map<std::string, bool>& GetDisabledModsMap() { return m_DisabledMods; }
-
-		/// Gets whether the specified mod is disabled in the settings.
-		/// @param modModule Mod to check.
-		/// @return Whether the mod is disabled via settings.
-		bool IsModDisabled(const std::string& modModule) const { return (m_DisabledMods.find(modModule) != m_DisabledMods.end()) ? m_DisabledMods.at(modModule) : false; }
-
 		/// Gets the map of global scripts which are enabled.
 		/// @return Map of global scripts which are enabled.
 		std::unordered_map<std::string, bool>& GetEnabledGlobalScriptMap() { return m_EnabledGlobalScripts; }
@@ -406,7 +397,6 @@ namespace RTE {
 		bool m_MeasureModuleLoadTime; //!< Whether to measure the duration of data module loading (extraction included). For benchmarking purposes.
 
 		std::list<std::string> m_VisibleAssemblyGroupsList; //!< List of assemblies groups always shown in editors.
-		std::unordered_map<std::string, bool> m_DisabledMods; //!< Map of the module names we disabled.
 		std::unordered_map<std::string, bool> m_EnabledGlobalScripts; //!< Map of the global script names we enabled.
 
 	private:

@@ -1,5 +1,6 @@
 #include "MultiplayerServerLobby.h"
 
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
 #include "FrameMan.h"
@@ -12,7 +13,6 @@
 #include "ACRocket.h"
 #include "HeldDevice.h"
 #include "Scene.h"
-#include "DataModule.h"
 #include "MetaMan.h"
 #include "AudioMan.h"
 #include "LuaMan.h"
@@ -234,8 +234,8 @@ int MultiplayerServerLobby::Start() {
 	m_pCPULockLabel = dynamic_cast<GUILabel*>(m_pGUIController->GetControl("CPULockLabel"));
 
 	// Populate the tech comboboxes with the available tech modules
-	for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); ++moduleID) {
-		if (const DataModule* dataModule = g_PresetMan.GetDataModule(moduleID)) {
+	for (int moduleID = 0; moduleID < g_ModuleMan.GetTotalModuleCount(); ++moduleID) {
+		if (const DataModule* dataModule = g_ModuleMan.GetDataModule(moduleID)) {
 			if (dataModule->IsFaction()) {
 				for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 					m_apTeamTechSelect[team]->GetListPanel()->AddItem(dataModule->GetFriendlyName(), "", nullptr, nullptr, moduleID);
@@ -787,7 +787,7 @@ bool MultiplayerServerLobby::StartGame() {
 				if (pTechItem->m_ExtraIndex == -2)
 					pGameActivity->SetTeamTech(team, "-All-");
 				else
-					pGameActivity->SetTeamTech(team, g_PresetMan.GetDataModuleName(pTechItem->m_ExtraIndex));
+					pGameActivity->SetTeamTech(team, g_ModuleMan.GetModuleName(pTechItem->m_ExtraIndex));
 			}
 		}
 

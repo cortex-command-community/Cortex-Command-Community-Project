@@ -34,8 +34,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	
 - New `AEmitter` and `PEmitter` INI and Lua (R/W) property `PlayBurstSound` which denotes whether the BurstSound should play when appropriate. This should not be confused for a trigger - it's just a enable/disable toggle to avoid having to remove and add BurstSound altogether.
 
+- New `ModuleMan` to handle module management, and allow global scripts and mod modules can now be dynamically enabled or disabled mid-game.
+	Moved the `PresetMan` lua parameters/functions `Modules`, `GetDataModule`, `GetModuleID`, `GetModuleIDFromPath`, `GetTotalModuleCount`, `IsModuleOfficial`, `IsModuleUserdata` and `GetFullModulePath` into `ModuleMan`
+
 - Allow lua scripts to use LuaJIT's BitOp module (see https://bitop.luajit.org/api.html)
-  
+
 </details>
 
 <details><summary><b>Changed</b></summary>
