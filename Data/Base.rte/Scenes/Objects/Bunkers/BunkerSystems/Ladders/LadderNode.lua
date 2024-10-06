@@ -23,7 +23,7 @@ function Update(self)
 					if controller:IsState(Controller.MOVE_LEFT) or controller:IsState(Controller.MOVE_RIGHT) then
 						local speed = actor:GetLimbPathSpeed(1)/velFactor;
 						actor.Vel = actor.Vel + Vector(speed * 0.5, 0):RadRotate(actor:GetAimAngle(true)) - Vector(0, speed);
-					elseif controller:IsState(Controller.BODY_CROUCH) then
+					elseif controller:IsState(Controller.BODY_PRONE) then
 						actor.Vel = actor.Vel * 0.5;
 					end
 					self.Frame = (self.Frame + 1) % self.FrameCount;

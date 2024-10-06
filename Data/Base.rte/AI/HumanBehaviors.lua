@@ -1223,7 +1223,7 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, AI.Target.Pos, false).Normalized;
 				if AI.lateralMoveState == Actor.LAT_STILL then
 					AI.proneState = AHuman.PRONE;
-					--AI.Ctrl:SetState(Controller.BODY_CROUCH, true);
+					--AI.Ctrl:SetState(Controller.BODY_PRONE, true);
 				end
 			elseif Owner:EquipFirearm(true) then
 				local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame, just in case the magazine is replenished by another script

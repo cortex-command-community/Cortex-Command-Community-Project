@@ -216,6 +216,7 @@ namespace RTE {
 		/// Makes this AtomGroup travel as a pushing entity relative to the position of the owning MOSRotating.
 		/// If stuff in the scene is hit, resulting forces are be added to the owning MOSRotating's impulse forces.
 		/// @param jointPos A reference to a Vector with the world position of the limb joint which this AtomGroup is being pushed along.
+		/// @param limbRadius The radius/range of the limb this is to simulate.
 		/// @param velocity A Vector with the velocity of the owning MOSRotating.
 		/// @param rotation A Matrix with the rotation of the owning MOSRotating.
 		/// @param limbPath A LimbPath which this AtomGroup should travel along.
@@ -225,7 +226,7 @@ namespace RTE {
 		/// @param rotationOffset The position, relative to the owning actor's position, that we should rotate around.
 		/// @param rotationOffset The positional offset to apply to our limb path.
 		/// @return Whether the LimbPath passed in could start free of terrain or not.
-		bool PushAsLimb(const Vector& jointPos, const Vector& velocity, const Matrix& rotation, LimbPath& limbPath, const float travelTime, bool* restarted = nullptr, bool affectRotation = true, Vector rotationOffset = Vector(), Vector positionOffset = Vector());
+		bool PushAsLimb(const Vector& jointPos, const float limbRadius, const Vector& velocity, const Matrix& rotation, LimbPath& limbPath, const float travelTime, bool* restarted = nullptr, bool affectRotation = true, Vector rotationOffset = Vector(), Vector positionOffset = Vector());
 
 		/// Makes this AtomGroup travel as a lifeless limb, constrained to a radius around the joint pin in the center.
 		/// @param ownerPos A Vector with the world position of the owner MOSRotating.

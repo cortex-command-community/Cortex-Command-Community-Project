@@ -36,7 +36,7 @@ namespace RTE {
 		enum ProneState {
 			NOTPRONE = 0,
 			GOPRONE,
-			PRONE,
+			LAYINGPRONE,
 			PRONESTATECOUNT
 		};
 
@@ -415,13 +415,6 @@ namespace RTE {
 		/// held dormant in an inventory.
 		void ResetAllTimers() override;
 
-		/// Detects slopes in terrain and updates the walk path rotation for the corresponding Layer accordingly.
-		/// @param whichLayer The Layer in question.
-		void UpdateWalkAngle(AHuman::Layer whichLayer);
-
-		/// Detects overhead ceilings and crouches for them.
-		void UpdateCrouching();
-
 		/// Gets the walk path rotation for the specified Layer.
 		/// @param whichLayer The Layer in question.
 		/// @return The walk angle in radians.
@@ -469,24 +462,24 @@ namespace RTE {
 		/// @return The LimbPath corresponding to the passed in Layer and MovementState values.
 		LimbPath* GetLimbPath(Layer layer, MovementState movementState) { return &m_Paths[layer][movementState]; }
 
-		/// Get walking limb path speed for the specified preset.
-		/// @param speedPreset Speed preset to set 0 = LimbPath::SLOW, 1 = Limbpath::NORMAL, 2 = LimbPath::FAST
-		/// @return Limb path speed for the specified preset in m/s.
-		float GetLimbPathSpeed(int speedPreset) const;
+		/// Shortcut to get the speed of a particular move state's FG (and left side if relevant) limb path.
+		/// @param movementState Which movement state to get the limb path speed for.
+		/// @return Limb path speed for the specified movement state in m/s.
+		float GetLimbPathTravelSpeed(MovementState movementState);
 
-		/// Set walking limb path speed for the specified preset.
-		/// @param speedPreset Speed preset to set 0 = LimbPath::SLOW, 1 = Limbpath::NORMAL, 2 = LimbPath::FAST. New speed value in m/s.
-		void SetLimbPathSpeed(int speedPreset, float speed);
+		/// Shortcut to set the speed of a particular move state's limb path, including all layers (and sides if relevant)
+		/// @param movementState Which movement state to set the limb path speed for.
+		/// @param newSpeed New speed value in m/s.
+		void SetLimbPathTravelSpeed(MovementState movementState, float newSpeed);
 
-		/// Gets the default force that a limb traveling walking LimbPath can push against
-		/// stuff in the scene with.
-		/// @return The default set force maximum, in kg * m/s^2.
-		float GetLimbPathPushForce() const;
+		/// Shortcut to get the push force of a particular move state's FG (and left side if relevant) limb path.
+		/// @return The push force, in kg * m/s^2.
+		float GetLimbPathPushForce(MovementState movementState);
 
-		/// Sets the default force that a limb traveling walking LimbPath can push against
-		/// stuff in the scene with.
-		/// @param force The default set force maximum, in kg * m/s^2.
-		void SetLimbPathPushForce(float force);
+		/// Shortcut to set the push force of a particular move state's limb path, including all layers (and sides if relevant)
+		/// @param movementState Which movement state to set the limb path speed for.
+		/// @param newForce New push force value in kg * m/s^2.
+		void SetLimbPathPushForce(MovementState movementState, float newForce);
 
 		/// Gets the target rot angle for the given MovementState.
 		/// @param movementState The MovementState to get the rot angle target for.
@@ -530,17 +523,9 @@ namespace RTE {
 		/// @param newValue The new value for this AHuman's max walkpath adjustment.
 		void SetMaxWalkPathCrouchShift(float newValue) { m_MaxWalkPathCrouchShift = newValue; }
 
-		/// Gets this AHuman's max crouch rotation to duck below low ceilings.
-		/// @return This AHuman's max crouch rotation adjustment.
-		float GetMaxCrouchRotation() const { return m_MaxCrouchRotation; }
-
-		/// Sets this AHuman's max crouch rotation to duck below low ceilings.
-		/// @param newValue The new value for this AHuman's max crouch rotation adjustment.
-		void SetMaxCrouchRotation(float newValue) { m_MaxCrouchRotation = newValue; }
-
 		/// Gets this AHuman's current crouch amount. 0.0 == fully standing, 1.0 == fully crouched.
 		/// @return This AHuman's current crouch amount.
-		float GetCrouchAmount() const { return (m_WalkPathOffset.m_Y * -1.0F) / m_MaxWalkPathCrouchShift; }
+		float GetCrouchAmount() const { return m_CrouchAmount; }
 
 		/// Gets this AHuman's current crouch amount override. 0.0 == fully standing, 1.0 == fully crouched, -1 == no override.
 		/// @return This AHuman's current crouch amount override.
@@ -569,6 +554,16 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene.
 		/// @param progressScalar A normalized scalar that determines the magnitude of the reticle, to indicate force in the throw.
 		void DrawThrowingReticle(BITMAP* targetBitmap, const Vector& targetPos = Vector(), float progressScalar = 1.0F) const;
+
+		/// Detects slopes in terrain and updates the walk path rotation for the corresponding Layer accordingly.
+		/// @param whichLayer The Layer in question.
+		void UpdateWalkAngle(AHuman::Layer whichLayer);
+
+		/// Detects overhead ceilings and crouches for them.
+		void UpdateCrouching();
+
+		/// Updates our limbpath speed based on our current movement speed and style (crouching, walking etc).
+		void UpdateLimbPathSpeed();
 
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -602,18 +597,16 @@ namespace RTE {
 		Timer m_IconBlinkTimer;
 		// Current upper body state.
 		UpperBodyState m_ArmsState;
-		// Current movement state.
-		MovementState m_MoveState;
 		// Whether the guy is currently lying down on the ground, rotational spring pulling him that way
 		// This is engaged if the player first crouches (still upright spring), and then presses left/right
 		// It is disengaged as soon as the crouch button/direction is released
 		ProneState m_ProneState;
 		// Timer for the going prone procedural animation
 		Timer m_ProneTimer;
-		// The maximum amount our walkpath can be shifted upwards to crouch and avoid ceilings above us
+		// The maximum amount our walkpath can be shifted upwards to crouch, whether manually or automatically.
 		float m_MaxWalkPathCrouchShift;
-		// The maximum amount we will duck our head down to avoid obstacles above us.
-		float m_MaxCrouchRotation;
+		// The current crouching amount from 0.0 to 1.0, where 1.0 is applying maximum walk path shift.
+		float m_CrouchAmount;
 		// The script-set forced crouching amount. 0.0 == fully standing, 1.0 == fully crouched, -1 == no override.
 		float m_CrouchAmountOverride;
 		// Limb paths for different movement states.
@@ -643,9 +636,7 @@ namespace RTE {
 		float m_ArmSwingRate; //!< Controls the rate at which this AHuman's Arms follow the movement of its Legs while they're not holding device(s).
 		float m_DeviceArmSwayRate; //!< Controls the rate at which this AHuman's Arms follow the movement of its Legs while they're holding device(s). One-handed devices sway half as much as two-handed ones. Defaults to three quarters of Arm swing rate.
 
-		////////////////
 		// AI States
-
 		enum DeviceHandlingState {
 			STILL = 0,
 			POINTING,
@@ -682,36 +673,6 @@ namespace RTE {
 			LANDJUMP
 		};
 
-		// What the AI is doing with its held devices
-		DeviceHandlingState m_DeviceState;
-		// What we are doing with a device sweeping
-		SweepState m_SweepState;
-		// The current digging state
-		DigState m_DigState;
-		// The current jumping state
-		JumpState m_JumpState;
-		// Jumping target, overshoot this and the jump is completed
-		Vector m_JumpTarget;
-		// Jumping left or right
-		bool m_JumpingRight;
-		// AI is crawling
-		bool m_Crawling;
-		// The position of the end of the current tunnel being dug. When it is reached, digging can stop.
-		Vector m_DigTunnelEndPos;
-		// The center angle (in rads) for the sweeping motion done duing scannign and digging
-		float m_SweepCenterAimAngle;
-		// The range to each direction of the center that the sweeping motion will be done in
-		float m_SweepRange;
-		// The absolute coordinates of the last detected gold deposits
-		Vector m_DigTarget;
-		// Timer for how long to be shooting at a seen enemy target
-		Timer m_FireTimer;
-		// Timer for how long to be shooting at a seen enemy target
-		Timer m_SweepTimer;
-		// Timer for how long to be patrolling in a direction
-		Timer m_PatrolTimer;
-		// Timer for how long to be firing the jetpack in a direction
-		Timer m_JumpTimer;
 
 #pragma region Event Handling
 		/// Event listener to be run while this AHuman's PieMenu is opened.

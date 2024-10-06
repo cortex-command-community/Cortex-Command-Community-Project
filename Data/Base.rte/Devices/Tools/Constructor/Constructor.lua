@@ -434,7 +434,7 @@ function Update(self)
 					cursorMovement = cursorMovement + Vector(0, -1);
 				end
 
-				if ctrl:IsState(Controller.HOLD_DOWN) or ctrl:IsState(Controller.BODY_CROUCH) then
+				if ctrl:IsState(Controller.HOLD_DOWN) or ctrl:IsState(Controller.BODY_PRONE) then
 					cursorMovement = cursorMovement + Vector(0, 1);
 				end
 

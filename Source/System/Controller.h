@@ -20,9 +20,11 @@ namespace RTE {
 		MOVE_UP,
 		MOVE_DOWN,
 		MOVE_FAST,
+		MOVE_FAST_TOGGLE,
 		BODY_JUMPSTART,
 		BODY_JUMP,
 		BODY_CROUCH,
+		BODY_PRONE,
 		AIM_UP,
 		AIM_DOWN,
 		AIM_SHARP,
@@ -340,10 +342,10 @@ namespace RTE {
 #pragma region Update Breakdown
 		/// Updates the player's inputs portion of this Controller. For breaking down Update into more comprehensible chunks.
 		/// This method will call both UpdatePlayerPieMenuInput and UpdatePlayerAnalogInput.
-		void UpdatePlayerInput();
+		void UpdatePlayerInput(std::array<bool, ControlState::CONTROLSTATECOUNT> lastControlStates);
 
 		/// Updates the player's PieMenu inputs portion of this Controller. For breaking down Update into more comprehensible chunks.
-		void UpdatePlayerPieMenuInput();
+		void UpdatePlayerPieMenuInput(std::array<bool, ControlState::CONTROLSTATECOUNT> lastControlStates);
 
 		/// Updates the player's analog inputs portion of this Controller. For breaking down Update into more comprehensible chunks.
 		void UpdatePlayerAnalogInput();

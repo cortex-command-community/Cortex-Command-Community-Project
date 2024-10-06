@@ -9,7 +9,7 @@ function ThreadedUpdate(self)
 	self.climbingWall = false;
 
 	local controller = self:GetController();
-	if self.Status == Actor.STABLE and not (controller:IsState(Controller.BODY_JUMP) or controller:IsState(Controller.BODY_CROUCH)) then	
+	if self.Status == Actor.STABLE and not (controller:IsState(Controller.BODY_JUMP) or controller:IsState(Controller.BODY_PRONE)) then	
 		for _, foot in pairs ({self.FGFoot, self.BGFoot}) do
 			if foot then
 				local lowerCheck = SceneMan:CastMORay(foot.Pos, Vector(0, 1), self.ID, -2, rte.airID, false, 1);
