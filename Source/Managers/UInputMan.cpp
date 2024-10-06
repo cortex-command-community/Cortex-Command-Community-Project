@@ -864,7 +864,7 @@ void UInputMan::HandleSpecialInput() {
 		}
 		// Ctrl+R or Back button for controllers to reset activity.
 		if (!g_MetaMan.GameInProgress() && !g_ActivityMan.ActivitySetToRestart()) {
-			g_ActivityMan.SetRestartActivity((FlagCtrlState() && KeyPressed(SDLK_r)) || AnyBackPress());
+			g_ActivityMan.SetRestartActivity((FlagRCtrlState() && KeyPressed(SDLK_r)) || AnyBackPress());
 		}
 		if (g_ActivityMan.ActivitySetToRestart()) {
 			return;
@@ -875,7 +875,7 @@ void UInputMan::HandleSpecialInput() {
 		return;
 	}
 
-	if (FlagCtrlState() && !FlagAltState()) {
+	if (FlagRCtrlState() && !FlagAltState()) {
 		// Ctrl+S to save continuous ScreenDumps
 		if (KeyHeld(SDLK_s)) {
 			g_FrameMan.SaveScreenToPNG("ScreenDump");
@@ -899,7 +899,7 @@ void UInputMan::HandleSpecialInput() {
 				g_TimerMan.SetDeltaTimeSecs(c_DefaultDeltaTimeS);
 			}
 		}
-	} else if (!FlagCtrlState() && FlagAltState()) {
+	} else if (!FlagRCtrlState() && FlagAltState()) {
 		if (KeyPressed(SDLK_F2)) {
 			ContentFile::ReloadAllBitmaps();
 			// Alt+Enter to switch resolution multiplier

@@ -159,6 +159,10 @@ namespace RTE {
 		/// @return Whether any back buttons have been pressed at all since last frame.
 		bool AnyBackPress();
 
+		/// Gets the state of the Right Ctrl key.
+		/// @return The state of the Right Ctrl key.
+		bool FlagRCtrlState() const { return ((SDL_GetModState() & KMOD_RCTRL) > 0) ? true : false; }
+
 		/// Gets the state of the Ctrl key.
 		/// @return The state of the Ctrl key.
 		bool FlagCtrlState() const { return ((SDL_GetModState() & KMOD_CTRL) > 0) ? true : false; }

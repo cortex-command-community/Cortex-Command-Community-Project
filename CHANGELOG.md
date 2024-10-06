@@ -81,6 +81,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	
 - The `LimbPath` property `NormalTravelSpeed` has been renamed to just `TravelSpeed`.
 
+- All ctrl+* special inputs functionality (i.e restarting activity, world dumps, showing performance stats) are now mapped to right ctrl, to not interfere with default couching input.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>

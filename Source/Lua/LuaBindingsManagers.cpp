@@ -403,6 +403,7 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, UInputMan) {
 
 	    .property("FlagAltState", &UInputMan::FlagAltState)
 	    .property("FlagCtrlState", &UInputMan::FlagCtrlState)
+	    .property("FlagRCtrlState", &UInputMan::FlagRCtrlState)
 	    .property("FlagShiftState", &UInputMan::FlagShiftState)
 
 	    .def("GetInputDevice", &UInputMan::GetInputDevice)
