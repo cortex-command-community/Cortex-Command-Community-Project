@@ -288,9 +288,9 @@ void ConsoleMan::Update() {
 
 	m_GUIControlManager->Update();
 
-	if (g_UInputMan.FlagRAltState() && g_UInputMan.KeyPressed(SDLK_DOWN)) {
+	if (g_UInputMan.FlagCtrlState() && g_UInputMan.KeyPressed(SDLK_DOWN)) {
 		SetConsoleScreenSize(m_ConsoleScreenRatio + 0.05F);
-	} else if (g_UInputMan.FlagRAltState() && g_UInputMan.KeyPressed(SDLK_UP)) {
+	} else if (g_UInputMan.FlagCtrlState() && g_UInputMan.KeyPressed(SDLK_UP)) {
 		SetConsoleScreenSize(m_ConsoleScreenRatio - 0.05F);
 	}
 
@@ -298,7 +298,7 @@ void ConsoleMan::Update() {
 		m_InputTextBox->SetEnabled(true);
 		m_InputTextBox->SetFocus();
 
-		if (!m_InputLog.empty() && !g_UInputMan.FlagRAltState()) {
+		if (!m_InputLog.empty() && !g_UInputMan.FlagCtrlState()) {
 			if (g_UInputMan.KeyPressed(SDLK_UP)) {
 				LoadLoggedInput(false);
 			} else if (g_UInputMan.KeyPressed(SDLK_DOWN)) {
