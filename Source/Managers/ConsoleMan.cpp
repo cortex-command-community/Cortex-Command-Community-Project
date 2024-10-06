@@ -222,36 +222,36 @@ void ConsoleMan::ShowShortcuts() {
 
 	PrintString(
 	    "\n--- SHORTCUTS ---\n"
-	    "CTRL + ~ - Console in read-only mode without input capture\n"
-	    "CTRL + DOWN / UP - Increase/decrease console size (Only while console is open)\n"
-	    "CTRL + S - Make continuous screenshots while the keys are held\n"
-	    "CTRL + W - Make a screenshot of the entire level\n"
+	    "RALT + ~ - Console in read-only mode without input capture\n"
+	    "RALT + DOWN / UP - Increase/decrease console size (Only while console is open)\n"
+	    "RALT + S - Make continuous screenshots while the keys are held\n"
+	    "RALT + W - Make a screenshot of the entire level\n"
 	    "ALT  + W - Make a miniature preview image of the entire level\n"
-	    "CTRL + P - Show performance stats\n"
+	    "RALT + P - Show performance stats\n"
 	    "ALT  + P - Show advanced performance stats (Only while performance stats are visible)\n"
-	    "CTRL + R - Reset activity\n"
-	    "CTRL + M - Switch display mode: Draw -> Material -> MO\n"
-	    "CTRL + O - Toggle one sim update per frame\n"
+	    "RALT + R - Reset activity\n"
+	    "RALT + M - Switch display mode: Draw -> Material -> MO\n"
+	    "RALT + O - Toggle one sim update per frame\n"
 	    "SHIFT + ESC - Skip pause menu when pausing activity (straight to scenario/conquest menu)\n"
 	    "----------------\n"
 	    "F2 - Reload all Lua scripts\n"
 	    "ALT  + F2 - Reload all sprites\n"
-	    "CTRL + F2 - Quick reload Entity preset previously reloaded with PresetMan:ReloadEntityPreset\n"
+	    "RALT + F2 - Quick reload Entity preset previously reloaded with PresetMan:ReloadEntityPreset\n"
 	    "F3 - Save console log\n"
 	    "F4 - Save console user input log\n"
 	    "F5 - Quick save\n"
 	    "F9 - Load latest quick-save\n"
-	    "CTRL + F9 - Load latest auto-save\n"
+	    "RALT + F9 - Load latest auto-save\n"
 	    "F10 - Clear Console log\n"
 	    "F12 - Make a single screenshot");
 }
 
 void ConsoleMan::Update() {
-	if (g_UInputMan.FlagCtrlState() && g_UInputMan.KeyPressed(SDL_SCANCODE_GRAVE)) {
+	if (g_UInputMan.FlagRAltState() && g_UInputMan.KeyPressed(SDL_SCANCODE_GRAVE)) {
 		SetReadOnly();
 	}
 
-	if (!g_UInputMan.FlagShiftState() && (!g_UInputMan.FlagCtrlState() && (g_UInputMan.KeyPressed(SDL_SCANCODE_GRAVE) || (IsEnabled() && g_UInputMan.KeyPressed(SDL_SCANCODE_ESCAPE))))) {
+	if (!g_UInputMan.FlagShiftState() && (!g_UInputMan.FlagRAltState() && (g_UInputMan.KeyPressed(SDL_SCANCODE_GRAVE) || (IsEnabled() && g_UInputMan.KeyPressed(SDL_SCANCODE_ESCAPE))))) {
 		if (IsEnabled()) {
 			if (!m_ReadOnly) {
 				m_InputTextBox->SetEnabled(false);
@@ -288,9 +288,9 @@ void ConsoleMan::Update() {
 
 	m_GUIControlManager->Update();
 
-	if (g_UInputMan.FlagCtrlState() && g_UInputMan.KeyPressed(SDLK_DOWN)) {
+	if (g_UInputMan.FlagRAltState() && g_UInputMan.KeyPressed(SDLK_DOWN)) {
 		SetConsoleScreenSize(m_ConsoleScreenRatio + 0.05F);
-	} else if (g_UInputMan.FlagCtrlState() && g_UInputMan.KeyPressed(SDLK_UP)) {
+	} else if (g_UInputMan.FlagRAltState() && g_UInputMan.KeyPressed(SDLK_UP)) {
 		SetConsoleScreenSize(m_ConsoleScreenRatio - 0.05F);
 	}
 
@@ -298,7 +298,7 @@ void ConsoleMan::Update() {
 		m_InputTextBox->SetEnabled(true);
 		m_InputTextBox->SetFocus();
 
-		if (!m_InputLog.empty() && !g_UInputMan.FlagCtrlState()) {
+		if (!m_InputLog.empty() && !g_UInputMan.FlagRAltState()) {
 			if (g_UInputMan.KeyPressed(SDLK_UP)) {
 				LoadLoggedInput(false);
 			} else if (g_UInputMan.KeyPressed(SDLK_DOWN)) {

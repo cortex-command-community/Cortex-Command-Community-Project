@@ -864,7 +864,7 @@ void UInputMan::HandleSpecialInput() {
 		}
 		// Ctrl+R or Back button for controllers to reset activity.
 		if (!g_MetaMan.GameInProgress() && !g_ActivityMan.ActivitySetToRestart()) {
-			g_ActivityMan.SetRestartActivity((FlagRCtrlState() && KeyPressed(SDLK_r)) || AnyBackPress());
+			g_ActivityMan.SetRestartActivity((FlagRAltState() && KeyPressed(SDLK_r)) || AnyBackPress());
 		}
 		if (g_ActivityMan.ActivitySetToRestart()) {
 			return;
@@ -876,16 +876,16 @@ void UInputMan::HandleSpecialInput() {
 	}
 
 	if (FlagRAltState()) {
-		// Ctrl+S to save continuous ScreenDumps
+		// RAlt+S to save continuous ScreenDumps
 		if (KeyHeld(SDLK_s)) {
 			g_FrameMan.SaveScreenToPNG("ScreenDump");
-			// Ctrl+W to save a WorldDump
+			// RAlt+W to save a WorldDump
 		} else if (KeyPressed(SDLK_w)) {
 			g_FrameMan.SaveWorldToPNG("WorldDump");
-			// Ctrl+M to cycle draw modes
+			// RAlt+M to cycle draw modes
 		} else if (KeyPressed(SDLK_m)) {
 			g_SceneMan.SetLayerDrawMode((g_SceneMan.GetLayerDrawMode() + 1) % 3);
-			// Ctrl+P to toggle performance stats
+			// RAlt+P to toggle performance stats
 		} else if (KeyPressed(SDLK_p)) {
 			g_PerformanceMan.ShowPerformanceStats(!g_PerformanceMan.IsShowingPerformanceStats());
 		} else if (KeyPressed(SDLK_F2)) {
