@@ -401,9 +401,14 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, TimerMan) {
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, UInputMan) {
 	return luabind::class_<UInputMan>("UInputManager")
 
+	    .property("FlagLAltState", &UInputMan::FlagLAltState)
+	    .property("FlagRAltState", &UInputMan::FlagRAltState)
 	    .property("FlagAltState", &UInputMan::FlagAltState)
-	    .property("FlagCtrlState", &UInputMan::FlagCtrlState)
+	    .property("FlagLCtrlState", &UInputMan::FlagLCtrlState)
 	    .property("FlagRCtrlState", &UInputMan::FlagRCtrlState)
+	    .property("FlagCtrlState", &UInputMan::FlagCtrlState)
+	    .property("FlagLShiftState", &UInputMan::FlagLShiftState)
+	    .property("FlagRShiftState", &UInputMan::FlagRShiftState)
 	    .property("FlagShiftState", &UInputMan::FlagShiftState)
 
 	    .def("GetInputDevice", &UInputMan::GetInputDevice)

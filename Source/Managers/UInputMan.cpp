@@ -875,7 +875,7 @@ void UInputMan::HandleSpecialInput() {
 		return;
 	}
 
-	if (FlagRCtrlState() && !FlagAltState()) {
+	if (FlagRAltState()) {
 		// Ctrl+S to save continuous ScreenDumps
 		if (KeyHeld(SDLK_s)) {
 			g_FrameMan.SaveScreenToPNG("ScreenDump");
@@ -899,7 +899,7 @@ void UInputMan::HandleSpecialInput() {
 				g_TimerMan.SetDeltaTimeSecs(c_DefaultDeltaTimeS);
 			}
 		}
-	} else if (!FlagRCtrlState() && FlagAltState()) {
+	} else if (FlagLAltState()) {
 		if (KeyPressed(SDLK_F2)) {
 			ContentFile::ReloadAllBitmaps();
 			// Alt+Enter to switch resolution multiplier
