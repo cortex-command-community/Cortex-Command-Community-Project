@@ -66,7 +66,9 @@ LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Controller) {
 	                           luabind::value("MOVE_FAST", ControlState::MOVE_FAST),
 	                           luabind::value("BODY_JUMPSTART", ControlState::BODY_JUMPSTART),
 	                           luabind::value("BODY_JUMP", ControlState::BODY_JUMP),
-	                           luabind::value("BODY_CROUCH", ControlState::BODY_CROUCH),
+	                           luabind::value("BODY_CROUCH", ControlState::BODY_PRONE), // awful, but script compat
+	                           luabind::value("BODY_PRONE", ControlState::BODY_PRONE),
+	                           luabind::value("BODY_WALKCROUCH", ControlState::BODY_CROUCH),
 	                           luabind::value("AIM_UP", ControlState::AIM_UP),
 	                           luabind::value("AIM_DOWN", ControlState::AIM_DOWN),
 	                           luabind::value("AIM_SHARP", ControlState::AIM_SHARP),
