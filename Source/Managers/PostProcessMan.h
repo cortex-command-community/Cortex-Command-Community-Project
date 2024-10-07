@@ -17,9 +17,6 @@
 
 namespace RTE {
 	/// Struct for storing GL information in the BITMAP->extra field.
-	struct GLBitmapInfo {
-		GLuint m_Texture;
-	};
 
 	/// Structure for storing a post-process screen effect to be applied at the last stage of 32bpp rendering.
 	struct PostEffect {
@@ -181,7 +178,6 @@ namespace RTE {
 		GLuint m_BackBuffer8; //!< Backbuffer texture for incoming indexed drawings.
 		GLuint m_BackBuffer32; //!< Backbuffer texture for the final 32bpp frame.
 		GLuint m_Palette8Texture; //!< Palette texture for incoming indexed drawings.
-		std::vector<std::unique_ptr<GLBitmapInfo>> m_BitmapTextures; //!< Vector of all the GL textures for the bitmaps that have been uploaded so far.
 		GLuint m_BlitFramebuffer; //!< Framebuffer for blitting the 8bpp backbuffer to the 32bpp backbuffer.
 		GLuint m_PostProcessFramebuffer; //!< Framebuffer for post-processing effects.
 		GLuint m_PostProcessDepthBuffer; //!< Depth buffer for post-processing effects.
@@ -243,10 +239,6 @@ namespace RTE {
 
 		/// Updates the palette texture with the current palette.
 		void UpdatePalette();
-
-		/// Creates and upload a new GL texture. The texture pointer is stored in the BITMAP->extra field.
-		/// @param bitmap The bitmap to create a texture for.
-		void LazyInitBitmap(BITMAP* bitmap);
 
 		// Disallow the use of some implicit methods.
 		PostProcessMan(const PostProcessMan& reference) = delete;

@@ -8,6 +8,7 @@
 #include "Matrix.h"
 
 #include "PresetMan.h"
+#include "GLResourceMan.h"
 
 #include "GLCheck.h"
 #include "glad/gl.h"
@@ -40,7 +41,6 @@ void PostProcessMan::Clear() {
 	m_Palette8Texture = 0;
 	m_PostProcessFramebuffer = 0;
 	m_PostProcessDepthBuffer = 0;
-	m_BitmapTextures.clear();
 	m_VertexBuffer = 0;
 	m_VertexArray = 0;
 	for (int i = 0; i < c_MaxScreenCount; ++i) {
@@ -102,9 +102,6 @@ void PostProcessMan::DestroyGLPointers() {
 	GL_CHECK(glDeleteTextures(1, &m_BackBuffer32));
 	GL_CHECK(glDeleteTextures(1, &m_Palette8Texture));
 	GL_CHECK(glDeleteFramebuffers(1, &m_BlitFramebuffer));
-	for (auto& bitmapTexture: m_BitmapTextures) {
-		GL_CHECK(glDeleteTextures(1, &bitmapTexture->m_Texture));
-	}
 	GL_CHECK(glDeleteFramebuffers(1, &m_PostProcessFramebuffer));
 	GL_CHECK(glDeleteTextures(1, &m_PostProcessDepthBuffer));
 	GL_CHECK(glDeleteVertexArrays(1, &m_VertexArray));
@@ -145,19 +142,6 @@ void PostProcessMan::UpdatePalette() {
 	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, c_PaletteEntriesNumber, 1, GL_RGBA, GL_UNSIGNED_BYTE, palette.data()));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-}
-
-void PostProcessMan::LazyInitBitmap(BITMAP* bitmap) {
-	m_BitmapTextures.emplace_back(new GLBitmapInfo);
-	GL_CHECK(glGenTextures(1, &m_BitmapTextures.back()->m_Texture));
-	bitmap->extra = reinterpret_cast<void*>(m_BitmapTextures.back().get());
-	GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, bitmap_color_depth(bitmap) == 8 ? 1 : 4));
-	GL_CHECK(glActiveTexture(GL_TEXTURE0));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, reinterpret_cast<GLBitmapInfo*>(bitmap->extra)->m_Texture));
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bitmap->w, bitmap->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmap->line[0]));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-	GL_CHECK(glGenerateMipmap(GL_TEXTURE_2D));
 }
 
 void PostProcessMan::Destroy() {
@@ -424,13 +408,10 @@ void PostProcessMan::DrawDotGlowEffects() {
 	int endX = 0;
 	int endY = 0;
 	int testpixel = 0;
-	if (!m_YellowGlow->extra) {
-		LazyInitBitmap(m_YellowGlow);
-	}
 
 	GL_CHECK(glBindVertexArray(m_VertexArray));
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, reinterpret_cast<GLBitmapInfo*>(m_YellowGlow->extra)->m_Texture));
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_GLResourceMan.GetStaticTextureFromBitmap(m_YellowGlow)));
 
 	// Randomly sample the entire backbuffer, looking for pixels to put a glow on.
 	for (const Box& glowBox: m_PostScreenGlowBoxes) {
@@ -494,9 +475,6 @@ void PostProcessMan::DrawPostScreenEffects() {
 
 	for (const PostEffect& postEffect: m_PostScreenEffects) {
 		if (postEffect.m_Bitmap) {
-			if (!postEffect.m_Bitmap->extra) {
-				LazyInitBitmap(postEffect.m_Bitmap);
-			}
 			effectBitmap = postEffect.m_Bitmap;
 			effectStrength = postEffect.m_Strength / 255.f;
 			effectPosX = postEffect.m_Pos.m_X;
@@ -508,7 +486,7 @@ void PostProcessMan::DrawPostScreenEffects() {
 			transformMatrix = glm::rotate(transformMatrix, -postEffect.m_Angle, glm::vec3(0, 0, 1));
 			transformMatrix = glm::scale(transformMatrix, glm::vec3(static_cast<float>(effectBitmap->w) * 0.5f, static_cast<float>(effectBitmap->h) * 0.5f, 1.0f));
 
-			GL_CHECK(glBindTexture(GL_TEXTURE_2D, reinterpret_cast<GLBitmapInfo*>(postEffect.m_Bitmap->extra)->m_Texture));
+			GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_GLResourceMan.GetStaticTextureFromBitmap(postEffect.m_Bitmap)));
 			m_PostProcessShader->SetMatrix4f(m_PostProcessShader->GetTransformUniform(), transformMatrix);
 
 			GL_CHECK(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));

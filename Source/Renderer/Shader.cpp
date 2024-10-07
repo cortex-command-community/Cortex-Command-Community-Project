@@ -3,7 +3,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "GLCheck.h"
-
+#include "Managers/PresetMan.h"
 #include "Managers/ConsoleMan.h"
 #include "System/System.h"
 #include "RTEError.h"
@@ -11,6 +11,8 @@
 #include <fstream>
 
 using namespace RTE;
+
+ConcreteClassInfo(Shader, Entity, 0);
 
 Shader::Shader() :
     m_ProgramID(0), m_TextureUniform(-1), m_ColorUniform(-1), m_TransformUniform(-1), m_ProjectionUniform(-1) {}
@@ -26,6 +28,36 @@ Shader::~Shader() {
 	}
 }
 
+int Shader::ReadProperty(const std::string_view& propName, Reader& reader) {
+	StartPropertyList(return Entity::ReadProperty(propName, reader));
+	MatchProperty("VertexShader", { reader >> m_VertexPath; });
+	MatchProperty("FragmentShader", { reader >> m_FragmentPath; });
+	EndPropertyList;
+}
+
+int Shader::Save(Writer& writer) const {
+	Entity::Save(writer);
+	writer.NewPropertyWithValue("VertexShader", m_VertexPath);
+	writer.NewPropertyWithValue("FragmentShader", m_FragmentPath);
+	return 0;
+}
+
+int Shader::Create() {
+	if (m_FragmentPath.empty() || m_VertexPath.empty()) {
+		return -1;
+	}
+	m_ProgramID = glCreateProgram();
+	Compile(m_VertexPath, m_FragmentPath);
+	return 0;
+}
+
+int Shader::Create(const Shader& shader) {
+	Entity::Create(shader);
+	m_VertexPath = shader.m_VertexPath;
+	m_FragmentPath = shader.m_FragmentPath;
+	return Create();
+}
+
 bool Shader::Compile(const std::string& vertexPath, const std::string& fragPath) {
 	assert(m_ProgramID != 0);
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -33,7 +65,7 @@ bool Shader::Compile(const std::string& vertexPath, const std::string& fragPath)
 	bool result{false};
 
 	std::string error;
-	result = CompileShader(vertexShader, vertexPath, error) && CompileShader(fragmentShader, fragPath, error);
+	result = CompileShader(vertexShader, g_PresetMan.GetFullModulePath(vertexPath), error) && CompileShader(fragmentShader, g_PresetMan.GetFullModulePath(fragPath), error);
 	if (result) {
 		GL_CHECK(glBindAttribLocation(m_ProgramID, 0, "rteVertexPosition"));
 		GL_CHECK(glBindAttribLocation(m_ProgramID, 1, "rteVertexTexUV"));

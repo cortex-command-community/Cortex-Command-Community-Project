@@ -1,11 +1,15 @@
 #pragma once
 
-#include "Serializable.h"
+#include "Entity.h"
 #include "glm/fwd.hpp"
+#include "glad/gl.h"
 
 namespace RTE {
-	class Shader {
+	class Shader: public Entity {
 	public:
+		EntityAllocation(Shader);
+		SerializableOverrideMethods;
+		ClassInfoGetters;
 		/// Constructs an empty shader program, which can be initialized using `Shader::Compile`
 		Shader();
 
@@ -18,6 +22,10 @@ namespace RTE {
 
 		/// Destructor.
 		virtual ~Shader();
+
+		int Create() override;
+
+		int Create(const Shader& shader);
 
 		/// Create this shader from a vertex shader file and a fragment shader file.
 		/// @param vertexFilename
@@ -162,8 +170,11 @@ namespace RTE {
 		int GetProjectionUniform() { return m_ProjectionUniform; }
 
 #pragma endregion
-	private:
-		uint32_t m_ProgramID;
+	protected:
+		static Entity::ClassInfo m_sClass;
+		std::string m_FragmentPath{};
+		std::string m_VertexPath{};
+		GLuint m_ProgramID{0};
 
 		/// Compiles a shader component from a data string.
 		/// @param shaderID
@@ -188,10 +199,10 @@ namespace RTE {
 		/// Sets default values for the shader uniforms (may not persist across frames!)
 		void ApplyDefaultUniforms();
 
-		int m_TextureUniform; //!< Location of the texture uniform (sampler2d rteTexture).
-		int m_ColorUniform; //!< Location of the colormod uniform (vec4 rteColor).
-		int m_TransformUniform; //!< Location of the transform uniform (mat4 rteTransform).
-		int m_UVTransformUniform; //!< Location of the UV transform uniform (mat4 rteUVTransform).
-		int m_ProjectionUniform; //!< Location of the projection uniform (mat4 rteProjection).
+		GLint m_TextureUniform{0}; //!< Location of the texture uniform (sampler2d rteTexture).
+		GLint m_ColorUniform{0}; //!< Location of the colormod uniform (vec4 rteColor).
+		GLint m_TransformUniform{0}; //!< Location of the transform uniform (mat4 rteTransform).
+		GLint m_UVTransformUniform{0}; //!< Location of the UV transform uniform (mat4 rteUVTransform).
+		GLint m_ProjectionUniform{0}; //!< Location of the projection uniform (mat4 rteProjection).
 	};
 } // namespace RTE
