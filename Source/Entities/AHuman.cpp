@@ -1420,7 +1420,7 @@ void AHuman::UpdateCrouching() {
 	}
 
 	float finalWalkPathYOffset = std::clamp(Lerp(0.0F, 1.0F, -m_WalkPathOffset.m_Y, desiredWalkPathYOffset, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
-	m_CrouchAmount = std::clamp(0.0F, 1.0F, finalWalkPathYOffset / m_MaxWalkPathCrouchShift - 0.5F); // because it's lerped, it never hits 1 exactly. thus the -0.5F
+	m_CrouchAmount = std::clamp(finalWalkPathYOffset / m_MaxWalkPathCrouchShift - 0.5F, 0.0F, 1.0F); // because it's lerped, it never hits 1 exactly. thus the -0.5F
 	m_WalkPathOffset.m_Y = -finalWalkPathYOffset;
 
 	// Adjust our X offset to try to keep our legs under our centre-of-mass
