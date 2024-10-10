@@ -41,6 +41,7 @@
 #include "FrameMan.h"
 #include "MetaMan.h"
 #include "WindowMan.h"
+#include "GLResourceMan.h"
 #include "NetworkServer.h"
 #include "NetworkClient.h"
 #include "CameraMan.h"
@@ -68,6 +69,7 @@ void InitializeManagers() {
 	PresetMan::Construct();
 	SettingsMan::Construct();
 	WindowMan::Construct();
+	GLResourceMan::Construct();
 	LuaMan::Construct();
 	NetworkServer::Construct();
 	NetworkClient::Construct();
@@ -91,6 +93,7 @@ void InitializeManagers() {
 	g_ThreadMan.Initialize();
 	g_SettingsMan.Initialize();
 	g_WindowMan.Initialize();
+	g_GLResourceMan.Initialize();
 
 	g_LuaMan.Initialize();
 	g_NetworkServer.Initialize();
@@ -141,6 +144,7 @@ void DestroyManagers() {
 	g_LuaMan.Destroy();
 	ContentFile::FreeAllLoaded();
 	g_ConsoleMan.Destroy();
+	g_GLResourceMan.Destroy();
 	g_WindowMan.Destroy();
 
 #ifdef DEBUG_BUILD

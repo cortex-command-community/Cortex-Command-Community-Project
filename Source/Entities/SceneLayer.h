@@ -7,6 +7,7 @@
 #include <future>
 
 namespace RTE {
+	class SpriteRenderer;
 
 	/// A scrolling layer of the Scene.
 	template <bool TRACK_DRAWINGS>
@@ -133,6 +134,8 @@ namespace RTE {
 		/// @param materialID The color index to set the pixel to.
 		void SetPixel(int pixelX, int pixelY, int materialID);
 
+		void SetUpdated() { m_MainBitmapUpdated = true; }
+
 		/// Returns whether the integer coordinates passed in are within the bounds of this SceneLayer.
 		/// @param pixelX The X coordinates of the pixel.
 		/// @param pixelY The Y coordinates of the pixel.
@@ -193,7 +196,7 @@ namespace RTE {
 		/// @param targetBitmap The bitmap to draw to.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param offsetNeedsScrollRatioAdjustment Whether the offset of this SceneLayer or the passed in offset override need to be adjusted to scroll ratio.
-		virtual void Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false);
+		virtual void Draw(SpriteRenderer* renderer, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false);
 #pragma endregion
 
 	protected:
@@ -208,6 +211,7 @@ namespace RTE {
 		std::vector<IntRect> m_Drawings; //!< All the areas drawn within on this SceneLayer since the last clear.
 
 		bool m_MainBitmapOwned; //!< Whether the main bitmap is owned by this.
+		bool m_MainBitmapUpdated;
 		bool m_DrawMasked; //!< Whether pixels marked as transparent (index 0, magenta) are skipped when drawing or not (masked drawing).
 
 		bool m_WrapX; //!< Whether wrapping is enabled on the X axis.
@@ -237,13 +241,13 @@ namespace RTE {
 		/// @param targetBitmap The bitmap to draw to.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param drawScaled Whether to use scaled drawing routines or not.
-		void DrawWrapped(BITMAP* targetBitmap, const Box& targetBox, bool drawScaled) const;
+		void DrawWrapped(SpriteRenderer* renderer, const Box& targetBox, bool drawScaled) const;
 
 		/// Performs tiled drawing of this SceneLayer's bitmap to the screen in cases where the target bitmap is larger in some dimension.
 		/// @param targetBitmap The bitmap to draw to.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param drawScaled Whether to use scaled drawing routines or not.
-		void DrawTiled(BITMAP* targetBitmap, const Box& targetBox, bool drawScaled) const;
+		void DrawTiled(SpriteRenderer* renderer, const Box& targetBox, bool drawScaled) const;
 #pragma endregion
 
 	private:
@@ -292,7 +296,9 @@ namespace RTE {
 
 		/// Gets the BITMAP that this SceneLayer uses.
 		/// @return A pointer to the BITMAP of this SceneLayer. Ownership is NOT transferred!
-		BITMAP* GetBitmap() const { return m_MainBitmap; }
+		BITMAP* GetBitmap() const {
+			return m_MainBitmap;
+		}
 
 	protected:
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.

@@ -88,11 +88,11 @@ namespace RTE {
 
 		/// Gets the foreground color bitmap of this SLTerrain.
 		/// @return A pointer to the foreground color bitmap.
-		BITMAP* GetFGColorBitmap() { return m_FGColorLayer->GetBitmap(); }
+		BITMAP* GetFGColorBitmap() { return m_FGColorLayer->GetBitmap(); m_FGColorLayer->SetUpdated(); }
 
 		/// Gets the background color bitmap of this SLTerrain.
 		/// @return A pointer to the background color bitmap.
-		BITMAP* GetBGColorBitmap() { return m_BGColorLayer->GetBitmap(); }
+		BITMAP* GetBGColorBitmap() { return m_BGColorLayer->GetBitmap(); m_BGColorLayer->SetUpdated(); }
 
 		/// Gets the material bitmap of this SLTerrain.
 		/// @return A pointer to the material bitmap.
@@ -189,7 +189,7 @@ namespace RTE {
 		/// @param targetBitmap The bitmap to draw to.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param offsetNeedsScrollRatioAdjustment Whether the offset of this SceneLayer or the passed in offset override need to be adjusted to scroll ratio.
-		void Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false) override;
+		void Draw(SpriteRenderer* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false) override;
 #pragma endregion
 
 	private:

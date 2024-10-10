@@ -9,6 +9,7 @@
 
 #include "PresetMan.h"
 #include "GLResourceMan.h"
+#include "RenderTarget.h"
 
 #include "GLCheck.h"
 #include "glad/gl.h"
@@ -37,10 +38,8 @@ void PostProcessMan::Clear() {
 	m_BlueGlowHash = 0;
 	m_TempEffectBitmaps.clear();
 	m_BackBuffer8 = 0;
-	m_BackBuffer32 = 0;
 	m_Palette8Texture = 0;
 	m_PostProcessFramebuffer = 0;
-	m_PostProcessDepthBuffer = 0;
 	m_VertexBuffer = 0;
 	m_VertexArray = 0;
 	for (int i = 0; i < c_MaxScreenCount; ++i) {
@@ -79,11 +78,7 @@ int PostProcessMan::Initialize() {
 
 void PostProcessMan::InitializeGLPointers() {
 	GL_CHECK(glGenTextures(1, &m_BackBuffer8));
-	GL_CHECK(glGenTextures(1, &m_BackBuffer32));
 	GL_CHECK(glGenTextures(1, &m_Palette8Texture));
-	GL_CHECK(glGenFramebuffers(1, &m_BlitFramebuffer));
-	GL_CHECK(glGenFramebuffers(1, &m_PostProcessFramebuffer));
-	GL_CHECK(glGenTextures(1, &m_PostProcessDepthBuffer));
 	GL_CHECK(glGenVertexArrays(1, &m_VertexArray));
 	GL_CHECK(glGenBuffers(1, &m_VertexBuffer));
 
@@ -99,11 +94,7 @@ void PostProcessMan::InitializeGLPointers() {
 
 void PostProcessMan::DestroyGLPointers() {
 	GL_CHECK(glDeleteTextures(1, &m_BackBuffer8));
-	GL_CHECK(glDeleteTextures(1, &m_BackBuffer32));
 	GL_CHECK(glDeleteTextures(1, &m_Palette8Texture));
-	GL_CHECK(glDeleteFramebuffers(1, &m_BlitFramebuffer));
-	GL_CHECK(glDeleteFramebuffers(1, &m_PostProcessFramebuffer));
-	GL_CHECK(glDeleteTextures(1, &m_PostProcessDepthBuffer));
 	GL_CHECK(glDeleteVertexArrays(1, &m_VertexArray));
 	GL_CHECK(glDeleteBuffers(1, &m_VertexBuffer));
 }
@@ -113,11 +104,6 @@ void PostProcessMan::CreateGLBackBuffers() {
 	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, g_FrameMan.GetBackBuffer8()->w, g_FrameMan.GetBackBuffer8()->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer32));
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, g_FrameMan.GetBackBuffer8()->w, g_FrameMan.GetBackBuffer8()->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_Palette8Texture));
 	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, c_PaletteEntriesNumber, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
@@ -125,6 +111,10 @@ void PostProcessMan::CreateGLBackBuffers() {
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 	UpdatePalette();
+
+	m_BlitFramebuffer = std::make_unique<RenderTarget>(FloatRect(0, 0 ,g_FrameMan.GetBackBuffer32()->w, g_FrameMan.GetBackBuffer32()->h), FloatRect(0, 0 ,g_FrameMan.GetBackBuffer32()->w, g_FrameMan.GetBackBuffer32()->h));
+	m_PostProcessFramebuffer = std::make_unique<RenderTarget>(FloatRect(0, 0 ,g_FrameMan.GetBackBuffer32()->w, g_FrameMan.GetBackBuffer32()->h), FloatRect(0, 0 ,g_FrameMan.GetBackBuffer32()->w, g_FrameMan.GetBackBuffer32()->h));
+
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	m_ProjectionMatrix = std::make_unique<glm::mat4>(glm::ortho(0.0F, static_cast<float>(g_WindowMan.GetResX()), 0.0F, static_cast<float>(g_WindowMan.GetResY()), -1.0F, 1.0F));
 }
@@ -365,14 +355,10 @@ void PostProcessMan::PostProcess() {
 	// First copy the current 8bpp backbuffer to the 32bpp buffer; we'll add effects to it
 	GL_CHECK(glDisable(GL_BLEND));
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer8));
-	GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, g_FrameMan.GetBackBuffer8()->w, g_FrameMan.GetBackBuffer8()->h, 0, GL_RED, GL_UNSIGNED_BYTE, g_FrameMan.GetBackBuffer8()->line[0]));
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_FrameMan.GetBackBuffer()->GetColorTexture()));
 	GL_CHECK(glActiveTexture(GL_TEXTURE1));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_Palette8Texture));
-	GL_CHECK(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_BlitFramebuffer));
-	GL_CHECK(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_BackBuffer32, 0));
-	GL_CHECK(glViewport(0, 0, g_WindowMan.GetResX(), g_WindowMan.GetResY()));
+	m_PostProcessFramebuffer->Begin(false);
 	m_Blit8->Use();
 	m_Blit8->SetInt(m_Blit8->GetTextureUniform(), 0);
 	int paletteUniform = m_Blit8->GetUniformLocation("rtePalette");
@@ -389,9 +375,6 @@ void PostProcessMan::PostProcess() {
 	GL_CHECK(glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD));
 	GL_CHECK(glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_COLOR, GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
 	GL_CHECK(glBlendColor(0.5F, 0.5F, 0.5F, 0.5F));
-	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, m_PostProcessFramebuffer));
-	GL_CHECK(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_BackBuffer32, 0));
-	GL_CHECK(glViewport(0, 0, g_WindowMan.GetResX(), g_WindowMan.GetResY()));
 
 	m_PostProcessShader->Use();
 
@@ -400,6 +383,7 @@ void PostProcessMan::PostProcess() {
 
 	// Clear the effects list for this frame
 	m_PostScreenEffects.clear();
+	m_PostProcessFramebuffer->End();
 }
 
 void PostProcessMan::DrawDotGlowEffects() {

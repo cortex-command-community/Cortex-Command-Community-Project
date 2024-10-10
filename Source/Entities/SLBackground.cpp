@@ -2,6 +2,8 @@
 #include "FrameMan.h"
 #include "SceneMan.h"
 #include "SettingsMan.h"
+#include "SpriteRenderer.h"
+#include <algorithm>
 
 using namespace RTE;
 
@@ -208,8 +210,8 @@ void SLBackground::Update() {
 	}
 }
 
-void SLBackground::Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
-	SceneLayer::Draw(targetBitmap, targetBox, !IsAutoScrolling());
+void SLBackground::Draw(SpriteRenderer* renderer, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
+	SceneLayer::Draw(renderer, targetBox, !IsAutoScrolling());
 
 	int bitmapWidth = m_ScaledDimensions.GetFloorIntX();
 	int bitmapHeight = m_ScaledDimensions.GetFloorIntY();
@@ -218,24 +220,24 @@ void SLBackground::Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsSc
 	int targetBoxWidth = static_cast<int>(targetBox.GetWidth());
 	int targetBoxHeight = static_cast<int>(targetBox.GetHeight());
 
-	set_clip_rect(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX + targetBoxWidth - 1, targetBoxCornerY + targetBoxHeight - 1);
+	renderer->BeginScissor({targetBoxCornerX, targetBoxCornerY, targetBoxCornerX + targetBoxWidth - 1, targetBoxCornerY + targetBoxHeight - 1});
 
 	// Detect if non-wrapping layer dimensions can't cover the whole target area with its main bitmap. If so, fill in the gap with appropriate solid color sampled from the hanging edge.
 	if (!m_WrapX && bitmapWidth <= targetBoxWidth) {
 		if (m_FillColorLeft != ColorKeys::g_MaskColor && m_Offset.GetFloorIntX() != 0) {
-			rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX - m_Offset.GetFloorIntX(), targetBoxCornerY + targetBoxHeight, m_FillColorLeft);
+			// rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX - m_Offset.GetFloorIntX(), targetBoxCornerY + targetBoxHeight, m_FillColorLeft);
 		}
 		if (m_FillColorRight != ColorKeys::g_MaskColor) {
-			rectfill(targetBitmap, targetBoxCornerX + bitmapWidth - m_Offset.GetFloorIntX(), targetBoxCornerY, targetBoxCornerX + targetBoxWidth, targetBoxCornerY + targetBoxHeight, m_FillColorRight);
+			// rectfill(targetBitmap, targetBoxCornerX + bitmapWidth - m_Offset.GetFloorIntX(), targetBoxCornerY, targetBoxCornerX + targetBoxWidth, targetBoxCornerY + targetBoxHeight, m_FillColorRight);
 		}
 	}
 	if (!m_WrapY && bitmapHeight <= targetBoxHeight) {
 		if (m_FillColorUp != ColorKeys::g_MaskColor && m_Offset.GetFloorIntY() != 0) {
-			rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX + targetBoxWidth, targetBoxCornerY - m_Offset.GetFloorIntY(), m_FillColorUp);
+			// rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX + targetBoxWidth, targetBoxCornerY - m_Offset.GetFloorIntY(), m_FillColorUp);
 		}
 		if (m_FillColorDown != ColorKeys::g_MaskColor) {
-			rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY + bitmapHeight - m_Offset.GetFloorIntY(), targetBoxCornerX + targetBoxWidth, targetBoxCornerY + targetBoxHeight, m_FillColorDown);
+			// rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY + bitmapHeight - m_Offset.GetFloorIntY(), targetBoxCornerX + targetBoxWidth, targetBoxCornerY + targetBoxHeight, m_FillColorDown);
 		}
 	}
-	set_clip_rect(targetBitmap, 0, 0, targetBitmap->w - 1, targetBitmap->h - 1);
+	renderer->EndScissor();
 }

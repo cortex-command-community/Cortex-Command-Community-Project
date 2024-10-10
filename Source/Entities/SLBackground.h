@@ -2,6 +2,7 @@
 
 #include "SceneLayer.h"
 #include "Timer.h"
+#include "SpriteRenderer.h"
 
 namespace RTE {
 
@@ -142,9 +143,8 @@ namespace RTE {
 		/// @param targetBitmap The bitmap to draw to.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param offsetNeedsScrollRatioAdjustment Whether the offset of this SceneLayer or the passed in offset override need to be adjusted to scroll ratio.
-		void Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false) override;
+		void Draw(SpriteRenderer* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false);
 #pragma endregion
-
 	private:
 		/// Enumeration for the different modes of SLBackground auto-scaling.
 		enum LayerAutoScaleMode {

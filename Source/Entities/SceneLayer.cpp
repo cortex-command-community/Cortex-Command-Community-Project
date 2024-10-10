@@ -5,6 +5,8 @@
 #include "SettingsMan.h"
 #include "ActivityMan.h"
 #include "ThreadMan.h"
+#include "GLResourceMan.h"
+#include "SpriteRenderer.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -384,6 +386,7 @@ bool SceneLayerImpl<TRACK_DRAWINGS>::ForceBoundsOrWrapPosition(Vector& pos, bool
 
 template <bool TRACK_DRAWINGS>
 void SceneLayerImpl<TRACK_DRAWINGS>::RegisterDrawing(int left, int top, int right, int bottom) {
+	m_MainBitmapUpdated = true;
 	if constexpr (TRACK_DRAWINGS) {
 		m_Drawings.emplace_back(left, top, right, bottom);
 	}
@@ -397,38 +400,44 @@ void SceneLayerImpl<TRACK_DRAWINGS>::RegisterDrawing(const Vector& center, float
 }
 
 template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
+void SceneLayerImpl<TRACK_DRAWINGS>::Draw(SpriteRenderer* renderer, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 	RTEAssert(m_MainBitmap, "Data of this SceneLayerImpl has not been loaded before trying to draw!");
-
+	if (m_MainBitmapUpdated) {
+		if constexpr (!TRACK_DRAWINGS) {
+			g_GLResourceMan.GetDynamicTextureFromBitmap(m_MainBitmap, true);
+		} else {
+			g_GLResourceMan.GetDynamicTextureFromBitmap(m_MainBitmap, true);//, m_Drawings);
+		}
+	}
 	if (offsetNeedsScrollRatioAdjustment) {
 		m_Offset.SetXY(std::floor(m_Offset.GetX() * m_ScrollRatio.GetX()), std::floor(m_Offset.GetY() * m_ScrollRatio.GetY()));
 	}
 	if (targetBox.IsEmpty()) {
-		targetBox = Box(Vector(), static_cast<float>(targetBitmap->w), static_cast<float>(targetBitmap->h));
+		targetBox = Box(Vector(), static_cast<float>(renderer->GetSize().w), static_cast<float>(renderer->GetSize().h));
 	}
-	if (!m_WrapX && static_cast<float>(targetBitmap->w) > targetBox.GetWidth()) {
+	if (!m_WrapX && static_cast<float>(renderer->GetSize().w) > targetBox.GetWidth()) {
 		m_Offset.SetX(0);
 	}
-	if (!m_WrapY && static_cast<float>(targetBitmap->h) > targetBox.GetHeight()) {
+	if (!m_WrapY && static_cast<float>(renderer->GetSize().h) > targetBox.GetHeight()) {
 		m_Offset.SetY(0);
 	}
 
 	m_Offset -= m_OriginOffset;
 	WrapPosition(m_Offset);
 
-	set_clip_rect(targetBitmap, targetBox.GetCorner().GetFloorIntX(), targetBox.GetCorner().GetFloorIntY(), static_cast<int>(targetBox.GetCorner().GetX() + targetBox.GetWidth()) - 1, static_cast<int>(targetBox.GetCorner().GetY() + targetBox.GetHeight()) - 1);
+	renderer->BeginScissor({targetBox.GetCorner().GetFloorIntX(), targetBox.GetCorner().GetFloorIntY(), static_cast<int>(targetBox.GetCorner().GetX() + targetBox.GetWidth()) - 1, static_cast<int>(targetBox.GetCorner().GetY() + targetBox.GetHeight()) - 1});
 	bool drawScaled = m_ScaleFactor.GetX() > 1.0F || m_ScaleFactor.GetY() > 1.0F;
 
-	if (m_MainBitmap->w > targetBitmap->w && m_MainBitmap->h > targetBitmap->h) {
-		DrawWrapped(targetBitmap, targetBox, drawScaled);
+	if (m_MainBitmap->w > renderer->GetSize().w && m_MainBitmap->h > renderer->GetSize().h) {
+		DrawWrapped(renderer, targetBox, drawScaled);
 	} else {
-		DrawTiled(targetBitmap, targetBox, drawScaled);
+		DrawTiled(renderer, targetBox, drawScaled);
 	}
-	set_clip_rect(targetBitmap, 0, 0, targetBitmap->w - 1, targetBitmap->h - 1);
+	renderer->EndScissor();
 }
 
 template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::DrawWrapped(BITMAP* targetBitmap, const Box& targetBox, bool drawScaled) const {
+void SceneLayerImpl<TRACK_DRAWINGS>::DrawWrapped(SpriteRenderer* renderer, const Box& targetBox, bool drawScaled) const {
 	if (!drawScaled) {
 		std::array<int, 2> sourcePosX = {m_Offset.GetFloorIntX(), 0};
 		std::array<int, 2> sourcePosY = {m_Offset.GetFloorIntY(), 0};
@@ -440,9 +449,11 @@ void SceneLayerImpl<TRACK_DRAWINGS>::DrawWrapped(BITMAP* targetBitmap, const Box
 		for (int i = 0; i < 2; ++i) {
 			for (int j = 0; j < 2; ++j) {
 				if (m_DrawMasked) {
-					masked_blit(m_MainBitmap, targetBitmap, sourcePosX[j], sourcePosY[i], destPosX[j], destPosY[i], sourceWidth[j], sourceHeight[i]);
+					renderer->Draw(m_MainBitmap, {sourcePosX[j], sourcePosY[i], sourceWidth[j], sourceHeight[i]}, {destPosX[j], destPosY[i]});
+					//masked_blit(m_MainBitmap, targetBitmap, sourcePosX[j], sourcePosY[i], destPosX[j], destPosY[i], sourceWidth[j], sourceHeight[i]);
 				} else {
-					blit(m_MainBitmap, targetBitmap, sourcePosX[j], sourcePosY[i], destPosX[j], destPosY[i], sourceWidth[j], sourceHeight[i]);
+					renderer->Draw(m_MainBitmap, {sourcePosX[j], sourcePosY[i], sourceWidth[j], sourceHeight[i]}, {destPosX[j], destPosY[i]});
+					//blit(m_MainBitmap, targetBitmap, sourcePosX[j], sourcePosY[i], destPosX[j], destPosY[i], sourceWidth[j], sourceHeight[i]);
 				}
 			}
 		}
@@ -455,9 +466,11 @@ void SceneLayerImpl<TRACK_DRAWINGS>::DrawWrapped(BITMAP* targetBitmap, const Box
 		for (int i = 0; i < 2; ++i) {
 			for (int j = 0; j < 2; ++j) {
 				if (m_DrawMasked) {
-					masked_stretch_blit(m_MainBitmap, targetBitmap, 0, 0, sourceWidth[j], sourceHeight[i], destPosX[j], destPosY[i], sourceWidth[j] * m_ScaleFactor.GetFloorIntX() + 1, sourceHeight[i] * m_ScaleFactor.GetFloorIntY() + 1);
+					renderer->Draw(m_MainBitmap, {destPosX[j], destPosY[i]}, 0.0f, m_ScaleFactor);
+					//masked_stretch_blit(m_MainBitmap, targetBitmap, 0, 0, sourceWidth[j], sourceHeight[i], destPosX[j], destPosY[i], sourceWidth[j] * m_ScaleFactor.GetFloorIntX() + 1, sourceHeight[i] * m_ScaleFactor.GetFloorIntY() + 1);
 				} else {
-					stretch_blit(m_MainBitmap, targetBitmap, 0, 0, sourceWidth[j], sourceHeight[i], destPosX[j], destPosY[i], sourceWidth[j] * m_ScaleFactor.GetFloorIntX() + 1, sourceHeight[i] * m_ScaleFactor.GetFloorIntY() + 1);
+					renderer->Draw(m_MainBitmap, {destPosX[j], destPosY[i]}, 0.0f, m_ScaleFactor);
+					//stretch_blit(m_MainBitmap, targetBitmap, 0, 0, sourceWidth[j], sourceHeight[i], destPosX[j], destPosY[i], sourceWidth[j] * m_ScaleFactor.GetFloorIntX() + 1, sourceHeight[i] * m_ScaleFactor.GetFloorIntY() + 1);
 				}
 			}
 		}
@@ -465,11 +478,11 @@ void SceneLayerImpl<TRACK_DRAWINGS>::DrawWrapped(BITMAP* targetBitmap, const Box
 }
 
 template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::DrawTiled(BITMAP* targetBitmap, const Box& targetBox, bool drawScaled) const {
+void SceneLayerImpl<TRACK_DRAWINGS>::DrawTiled(SpriteRenderer* renderer, const Box& targetBox, bool drawScaled) const {
 	int bitmapWidth = m_ScaledDimensions.GetFloorIntX();
 	int bitmapHeight = m_ScaledDimensions.GetFloorIntY();
-	int areaToCoverX = m_Offset.GetFloorIntX() + targetBox.GetCorner().GetFloorIntX() + std::min(targetBitmap->w, static_cast<int>(targetBox.GetWidth()));
-	int areaToCoverY = m_Offset.GetFloorIntY() + targetBox.GetCorner().GetFloorIntY() + std::min(targetBitmap->h, static_cast<int>(targetBox.GetHeight()));
+	int areaToCoverX = m_Offset.GetFloorIntX() + targetBox.GetCorner().GetFloorIntX() + std::min(renderer->GetSize().w, targetBox.GetWidth());
+	int areaToCoverY = m_Offset.GetFloorIntY() + targetBox.GetCorner().GetFloorIntY() + std::min(renderer->GetSize().h, targetBox.GetHeight());
 
 	for (int tiledOffsetX = 0; tiledOffsetX < areaToCoverX;) {
 		int destX = targetBox.GetCorner().GetFloorIntX() + tiledOffsetX - m_Offset.GetFloorIntX();
@@ -479,15 +492,19 @@ void SceneLayerImpl<TRACK_DRAWINGS>::DrawTiled(BITMAP* targetBitmap, const Box& 
 
 			if (!drawScaled) {
 				if (m_DrawMasked) {
-					masked_blit(m_MainBitmap, targetBitmap, 0, 0, destX, destY, bitmapWidth, bitmapHeight);
+					renderer->Draw(m_MainBitmap, destX, destY);
+					//masked_blit(m_MainBitmap, targetBitmap, 0, 0, destX, destY, bitmapWidth, bitmapHeight);
 				} else {
-					blit(m_MainBitmap, targetBitmap, 0, 0, destX, destY, bitmapWidth, bitmapHeight);
+					renderer->Draw(m_MainBitmap, destX, destY);
+					//blit(m_MainBitmap, targetBitmap, 0, 0, destX, destY, bitmapWidth, bitmapHeight);
 				}
 			} else {
 				if (m_DrawMasked) {
-					masked_stretch_blit(m_MainBitmap, targetBitmap, 0, 0, m_MainBitmap->w, m_MainBitmap->h, destX, destY, bitmapWidth, bitmapHeight);
+					renderer->Draw(m_MainBitmap, {destX, destY}, 0.0f, m_ScaleFactor);
+					//masked_stretch_blit(m_MainBitmap, targetBitmap, 0, 0, m_MainBitmap->w, m_MainBitmap->h, destX, destY, bitmapWidth, bitmapHeight);
 				} else {
-					stretch_blit(m_MainBitmap, targetBitmap, 0, 0, m_MainBitmap->w, m_MainBitmap->h, destX, destY, bitmapWidth, bitmapHeight);
+					renderer->Draw(m_MainBitmap, {destX, destY}, 0.0f, m_ScaleFactor);
+					//stretch_blit(m_MainBitmap, targetBitmap, 0, 0, m_MainBitmap->w, m_MainBitmap->h, destX, destY, bitmapWidth, bitmapHeight);
 				}
 			}
 			if (!m_WrapY) {
@@ -541,8 +558,10 @@ void SceneLayerImpl<TRACK_DRAWINGS>::ClearDrawings(BITMAP* bitmap, const std::ve
 				}
 			}
 		}
+		g_GLResourceMan.GetDynamicTextureFromBitmap(bitmap, true, m_Drawings);
 	} else {
 		clear_to_color(bitmap, clearTo);
+		g_GLResourceMan.GetDynamicTextureFromBitmap(bitmap, true);
 	}
 }
 

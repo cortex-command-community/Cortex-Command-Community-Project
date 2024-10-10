@@ -10,11 +10,15 @@
 #include "ConsoleMan.h"
 #include "SettingsMan.h"
 #include "UInputMan.h"
+#include "GLResourceMan.h"
 
 #include "SLTerrain.h"
 #include "SLBackground.h"
 #include "Scene.h"
 #include "System.h"
+
+#include "RenderTarget.h"
+#include "SpriteRenderer.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
@@ -137,6 +141,8 @@ int FrameMan::CreateBackBuffers() {
 	m_BackBuffer32 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(c_BPP, resX, resY));
 	ClearBackBuffer32();
 
+	m_BackBuffer = std::make_unique<RenderTarget>(FloatRect(0, 0, resX, resY), FloatRect(0, 0, resX, resY));
+
 	m_OverlayBitmap32 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(c_BPP, resX, resY));
 	clear_to_color(m_OverlayBitmap32.get(), 0);
 
@@ -163,7 +169,7 @@ int FrameMan::CreateBackBuffers() {
 	// Create the splitscreen buffer
 	if (m_HSplit || m_VSplit) {
 		m_PlayerScreen = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)));
-		clear_to_color(m_PlayerScreen.get(), m_BlackColor);
+		clear_to_color(m_PlayerScreen.get(), 0);
 		set_clip_state(m_PlayerScreen.get(), 1);
 
 		// Update these to represent the split screens
@@ -254,7 +260,7 @@ void FrameMan::ResetSplitScreens(bool hSplit, bool vSplit) {
 	// Create the splitscreen buffer
 	if (m_HSplit || m_VSplit) {
 		m_PlayerScreen = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)));
-		clear_to_color(m_PlayerScreen.get(), m_BlackColor);
+		clear_to_color(m_PlayerScreen.get(), 0);
 		set_clip_state(m_PlayerScreen.get(), 1);
 
 		m_PlayerScreenWidth = m_PlayerScreen->w;
@@ -776,6 +782,15 @@ void FrameMan::UpdateScreenOffsetForSplitScreen(int playerScreen, Vector& screen
 
 void FrameMan::Draw() {
 	ZoneScopedN("Draw");
+	m_Renderer = std::make_unique<SpriteRenderer>(dynamic_cast<const Shader*>(g_PresetMan.GetEntityPreset("Shader", "Background")), FloatRect{0,0,m_BackBuffer8->w, m_BackBuffer8->h});
+	clear_to_color(m_BackBuffer8.get(), 0);
+	glClearColor(m_BlackColor / 255.0f, .0f, .0f, 1.0f);
+	glEnable(GL_BLEND);
+	GL_CHECK(glEnable(GL_BLEND));
+	GL_CHECK(glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD));
+	GL_CHECK(glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+	GL_CHECK(glBlendColor(0.5F, 0.5F, 0.5F, 0.5F));
+	m_BackBuffer->Begin(true);
 
 	// Count how many split screens we'll need
 	int screenCount = (m_HSplit ? 2 : 1) * (m_VSplit ? 2 : 1);
@@ -802,7 +817,7 @@ void FrameMan::Draw() {
 		// Need to clear the backbuffers because Scene background layers can be too small to fill the whole backbuffer or drawn masked resulting in artifacts from the previous frame.
 		clear_to_color(drawScreenGUI, ColorKeys::g_MaskColor);
 		// If in online multiplayer mode clear to mask color otherwise the scene background layers will get drawn over.
-		clear_to_color(drawScreen, IsInMultiplayerMode() ? ColorKeys::g_MaskColor : m_BlackColor);
+		clear_to_color(drawScreen, 0);
 
 		AllegroBitmap playerGUIBitmap(drawScreenGUI);
 
@@ -839,9 +854,9 @@ void FrameMan::Draw() {
 
 		// Draw the scene
 		if (!IsInMultiplayerMode()) {
-			g_SceneMan.Draw(drawScreen, drawScreenGUI, targetPos);
+			g_SceneMan.Draw(drawScreen, drawScreenGUI, m_Renderer.get(), targetPos);
 		} else {
-			g_SceneMan.Draw(drawScreen, drawScreenGUI, targetPos, true, true);
+			g_SceneMan.Draw(drawScreen, drawScreenGUI, m_Renderer.get(), targetPos, true, true);
 		}
 
 		// Get only the scene-relative post effects that affect this player's screen
@@ -910,7 +925,9 @@ void FrameMan::Draw() {
 	if (IsInMultiplayerMode()) {
 		PrepareFrameForNetwork();
 	}
-
+	g_GLResourceMan.GetDynamicTextureFromBitmap(m_BackBuffer8.get(), true);
+	m_Renderer->Draw(m_BackBuffer8.get(), 0.0f, 0.0f);
+	m_BackBuffer->End();
 	if (g_ActivityMan.IsInActivity()) {
 		g_PostProcessMan.PostProcess();
 	}

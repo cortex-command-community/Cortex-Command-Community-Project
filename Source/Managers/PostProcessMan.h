@@ -16,6 +16,7 @@
 #define g_PostProcessMan PostProcessMan::Instance()
 
 namespace RTE {
+	class RenderTarget;
 	/// Struct for storing GL information in the BITMAP->extra field.
 
 	/// Structure for storing a post-process screen effect to be applied at the last stage of 32bpp rendering.
@@ -152,7 +153,7 @@ namespace RTE {
 
 		/// Gets the backbuffer texture for indexed drawings.
 		/// @return The opengl backbuffer texture for indexed drawings.
-		GLuint GetPostProcessColorBuffer() { return m_BackBuffer32; }
+		std::shared_ptr<RenderTarget> GetPostProcessColorBuffer() { return m_PostProcessFramebuffer; }
 
 	protected:
 		std::list<PostEffect> m_PostScreenEffects; //!< List of effects to apply at the end of each frame. This list gets cleared out and re-filled each frame.
@@ -176,11 +177,9 @@ namespace RTE {
 
 	private:
 		GLuint m_BackBuffer8; //!< Backbuffer texture for incoming indexed drawings.
-		GLuint m_BackBuffer32; //!< Backbuffer texture for the final 32bpp frame.
 		GLuint m_Palette8Texture; //!< Palette texture for incoming indexed drawings.
-		GLuint m_BlitFramebuffer; //!< Framebuffer for blitting the 8bpp backbuffer to the 32bpp backbuffer.
-		GLuint m_PostProcessFramebuffer; //!< Framebuffer for post-processing effects.
-		GLuint m_PostProcessDepthBuffer; //!< Depth buffer for post-processing effects.
+		std::shared_ptr<RenderTarget> m_BlitFramebuffer; //!< Framebuffer for blitting the 8bpp backbuffer to the 32bpp backbuffer.
+		std::shared_ptr<RenderTarget> m_PostProcessFramebuffer; //!< Framebuffer for post-processing effects.
 		std::unique_ptr<glm::mat4> m_ProjectionMatrix; //!< Projection matrix for post-processing effects.
 		GLuint m_VertexBuffer; //!< Vertex buffer for post-processing effects.
 		GLuint m_VertexArray; //!< Vertex array for post-processing effects.

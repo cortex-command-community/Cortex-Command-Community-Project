@@ -71,7 +71,7 @@ void LoadingScreen::CreateLoadingSplash(int xOffset) {
 	loadingSplash.SetOffset(Vector(static_cast<float>(((loadingSplash.GetBitmap()->w - g_WindowMan.GetResX()) / 2) + xOffset), 0));
 
 	Box loadingSplashTargetBox(Vector(0, static_cast<float>((g_WindowMan.GetResY() - loadingSplash.GetBitmap()->h) / 2)), static_cast<float>(g_WindowMan.GetResX()), static_cast<float>(loadingSplash.GetBitmap()->h));
-	loadingSplash.Draw(m_LoadingSplashBitmap, loadingSplashTargetBox);
+	//loadingSplash.Draw(m_LoadingSplashBitmap, loadingSplashTargetBox);
 }
 
 void LoadingScreen::CreateProgressReportListbox(GUIControlManager* parentControlManager) {

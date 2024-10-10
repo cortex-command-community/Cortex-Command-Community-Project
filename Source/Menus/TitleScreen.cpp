@@ -585,7 +585,7 @@ void TitleScreen::DrawTitleScreenScene() {
 
 	Box nebulaTargetBox;
 	m_Nebula.SetOffset(Vector(static_cast<float>((m_TitleScreenMaxWidth - m_Nebula.GetBitmap()->w) / 2), m_ScrollOffset.GetY()));
-	m_Nebula.Draw(g_FrameMan.GetBackBuffer32(), nebulaTargetBox, true);
+	//m_Nebula.Draw(g_FrameMan.GetBackBuffer32(), nebulaTargetBox, true);
 
 	for (const Star& star: m_BackdropStars) {
 		int intensity = star.Intensity + RandomNum(0, (star.Size == Star::StarSize::StarSmall) ? 35 : 70);

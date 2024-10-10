@@ -26,6 +26,7 @@
 #include "Controller.h"
 
 #include "tracy/Tracy.hpp"
+#include "SpriteRenderer.h"
 
 using namespace RTE;
 
@@ -2585,7 +2586,7 @@ void SceneMan::Update(int screenId) {
 	}
 }
 
-void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector& targetPos, bool skipBackgroundLayers, bool skipTerrain) {
+void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, SpriteRenderer* renderer, const Vector& targetPos, bool skipBackgroundLayers, bool skipTerrain) {
 	ZoneScoped;
 
 	if (!m_pCurrentScene) {
@@ -2606,31 +2607,32 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 		targetBox.SetHeight(static_cast<float>(GetSceneHeight()));
 	}
 
+	//SpriteRenderer test(const_cast<Shader*>(dynamic_cast<const Shader*>(g_PresetMan.GetEntityPreset("Shader", "Background"))), {0,0,targetBitmap->w, targetBitmap->h});
 	switch (m_LayerDrawMode) {
 		case LayerDrawMode::g_LayerTerrainMatter:
 			terrain->SetLayerToDraw(SLTerrain::LayerType::MaterialLayer);
-			terrain->Draw(targetBitmap, targetBox);
+			terrain->Draw(renderer, targetBox);
 			break;
 		default:
 			if (!skipBackgroundLayers) {
 				for (std::list<SLBackground*>::reverse_iterator backgroundLayer = m_pCurrentScene->GetBackLayers().rbegin(); backgroundLayer != m_pCurrentScene->GetBackLayers().rend(); ++backgroundLayer) {
-					(*backgroundLayer)->Draw(targetBitmap, targetBox);
+					(*backgroundLayer)->Draw(renderer, targetBox);
 				}
 			}
 			if (!skipTerrain) {
 				terrain->SetLayerToDraw(SLTerrain::LayerType::BackgroundLayer);
-				terrain->Draw(targetBitmap, targetBox);
+				terrain->Draw(renderer, targetBox);
 			}
-			m_pMOColorLayer->Draw(targetBitmap, targetBox);
+			m_pMOColorLayer->Draw(renderer, targetBox);
 
 			if (!skipTerrain) {
 				terrain->SetLayerToDraw(SLTerrain::LayerType::ForegroundLayer);
-				terrain->Draw(targetBitmap, targetBox);
+				terrain->Draw(renderer, targetBox);
 			}
 			if (!g_FrameMan.IsInMultiplayerMode()) {
 				int teamId = g_CameraMan.GetScreenTeam(m_LastUpdatedScreen);
 				if (SceneLayer* unseenLayer = (teamId != Activity::NoTeam) ? m_pCurrentScene->GetUnseenLayer(teamId) : nullptr) {
-					unseenLayer->Draw(targetBitmap, targetBox);
+					unseenLayer->Draw(renderer, targetBox);
 				}
 			}
 
@@ -2671,7 +2673,7 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 			}
 
 			if (m_pDebugLayer) {
-				m_pDebugLayer->Draw(targetBitmap, targetBox);
+				m_pDebugLayer->Draw(renderer, targetBox);
 			}
 
 			break;

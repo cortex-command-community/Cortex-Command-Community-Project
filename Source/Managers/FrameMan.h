@@ -7,6 +7,7 @@
 
 #include <array>
 #include <unordered_map>
+#include "glad/gl.h"
 
 #define g_FrameMan FrameMan::Instance()
 
@@ -15,7 +16,9 @@ namespace RTE {
 	class AllegroScreen;
 	class AllegroBitmap;
 	class GUIFont;
-	class ScreenShader;
+	class Shader;
+	class RenderTarget;
+	class SpriteRenderer;
 
 	struct BitmapDeleter {
 		void operator()(BITMAP* bitmap) const;
@@ -68,6 +71,9 @@ namespace RTE {
 		/// Gets the 32bpp bitmap that is used for overlaying the screen.
 		/// @return A pointer to the overlay BITMAP. OWNERSHIP IS NOT TRANSFERRED!
 		BITMAP* GetOverlayBitmap32() const { return m_OverlayBitmap32.get(); }
+
+		std::shared_ptr<SpriteRenderer> GetRenderer() const { return m_Renderer; }
+		std::shared_ptr<RenderTarget> GetBackBuffer() const { return m_BackBuffer; }
 #pragma endregion
 
 #pragma region Split - Screen Handling
@@ -182,7 +188,7 @@ namespace RTE {
 
 #pragma region Drawing
 		/// Clears the 8bpp backbuffer with black.
-		void ClearBackBuffer8() { clear_to_color(m_BackBuffer8.get(), m_BlackColor); }
+		void ClearBackBuffer8() { clear_to_color(m_BackBuffer8.get(), 0); }
 
 		/// Clears the 32bpp backbuffer with black.
 		void ClearBackBuffer32() { clear_to_color(m_BackBuffer32.get(), 0); }
@@ -426,6 +432,9 @@ namespace RTE {
 		std::unique_ptr<BITMAP, BitmapDeleter> m_NetworkBackBufferIntermediateGUI8[2][c_MaxScreenCount]; //!< Per-player allocated frame buffer to draw upon during FrameMan draw. Used to draw UI only.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_NetworkBackBufferFinal8[2][c_MaxScreenCount]; //!< Per-player allocated frame buffer to copy Intermediate before sending.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_NetworkBackBufferFinalGUI8[2][c_MaxScreenCount]; //!< Per-player allocated frame buffer to copy Intermediate before sending. Used to draw UI only.
+
+		std::shared_ptr<RenderTarget> m_BackBuffer;
+		std::shared_ptr<SpriteRenderer> m_Renderer;
 
 		Vector m_TargetPos[2][c_MaxScreenCount]; //!< Frame target position for network players.
 

@@ -6,6 +6,7 @@
 #include "ConsoleMan.h"
 #include "PresetMan.h"
 #include "PostProcessMan.h"
+#include "RenderTarget.h"
 
 #include "GLCheck.h"
 #include "SDL.h"
@@ -706,7 +707,7 @@ void WindowMan::UploadFrame() {
 
 	GL_CHECK(glEnable(GL_BLEND));
 	if (m_DrawPostProcessBuffer) {
-		GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_PostProcessMan.GetPostProcessColorBuffer()));
+		GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_PostProcessMan.GetPostProcessColorBuffer()->GetColorTexture()));
 		GL_CHECK(glActiveTexture(GL_TEXTURE1));
 		GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer32Texture));
 		GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 4));
