@@ -403,6 +403,7 @@ template <bool TRACK_DRAWINGS>
 void SceneLayerImpl<TRACK_DRAWINGS>::Draw(SpriteRenderer* renderer, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 	RTEAssert(m_MainBitmap, "Data of this SceneLayerImpl has not been loaded before trying to draw!");
 	if (m_MainBitmapUpdated) {
+	if (m_MainBitmapUpdated && m_MainBitmapOwned) {
 		if constexpr (!TRACK_DRAWINGS) {
 			g_GLResourceMan.GetDynamicTextureFromBitmap(m_MainBitmap, true);
 		} else {
