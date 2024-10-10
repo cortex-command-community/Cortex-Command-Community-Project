@@ -14,6 +14,8 @@ namespace RTE {
 		GLuint GetFramebuffer() { return m_FBO; }
 		GLuint GetColorTexture() { return m_ColorTexture; }
 
+		const FloatRect& GetSize() { return m_Size; }
+
 	protected:
 		FloatRect m_Viewport{};
 		FloatRect m_Size{};

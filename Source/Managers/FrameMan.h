@@ -398,7 +398,8 @@ namespace RTE {
 		std::array<std::unordered_map<std::array<int, 4>, std::pair<COLOR_MAP, long long>>, DrawBlendMode::BlendModeCount> m_ColorTables;
 		Timer m_ColorTablePruneTimer; //!< Timer for pruning unused color tables to prevent ridiculous memory usage.
 
-		std::unique_ptr<BITMAP, BitmapDeleter> m_PlayerScreen; //!< Intermediary split screen bitmap.
+		std::shared_ptr<BITMAP> m_PlayerScreen8; //!< Intermediary split screen bitmap.
+		std::shared_ptr<RenderTarget> m_PlayerScreen; //!< Intermediary split screen bitmap.
 		int m_PlayerScreenWidth; //!< Width of the screen of each player. Will be smaller than resolution only if the screen is split.
 		int m_PlayerScreenHeight; //!< Height of the screen of each player. Will be smaller than resolution only if the screen is split.
 
@@ -420,7 +421,7 @@ namespace RTE {
 		Timer m_FlashTimer[c_MaxScreenCount]; //!< Flash screen timer.
 
 		std::string m_ScreenDumpName; //!< The filename of the screenshot to save.
-		std::unique_ptr<BITMAP, BitmapDeleter> m_BackBuffer8; //!< Screen backbuffer, always 8bpp, gets copied to the 32bpp buffer for post-processing.
+		std::shared_ptr<BITMAP> m_BackBuffer8; //!< Screen backbuffer, always 8bpp, gets copied to the 32bpp buffer for post-processing.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_BackBuffer32; //!< 32bpp backbuffer, only used for post-processing.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_OverlayBitmap32; //!< 32bpp bitmap used for overlaying (fading in/out or darkening) the screen.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_ScreenDumpBuffer; //!< Temporary buffer for making quick screencaps. This is used for color conversion between 32bpp and 24bpp so we can save the file.

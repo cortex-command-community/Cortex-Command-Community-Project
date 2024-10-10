@@ -168,13 +168,18 @@ int FrameMan::CreateBackBuffers() {
 
 	// Create the splitscreen buffer
 	if (m_HSplit || m_VSplit) {
-		m_PlayerScreen = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)));
-		clear_to_color(m_PlayerScreen.get(), 0);
-		set_clip_state(m_PlayerScreen.get(), 1);
+		m_PlayerScreen8 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)));
+		clear_to_color(m_PlayerScreen8.get(), 0);
+		set_clip_state(m_PlayerScreen8.get(), 1);
+
+		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)), FloatRect(0, 0, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)), g_GLResourceMan.GetStaticTextureFromBitmap(m_PlayerScreen8.get()));
 
 		// Update these to represent the split screens
-		m_PlayerScreenWidth = m_PlayerScreen->w;
-		m_PlayerScreenHeight = m_PlayerScreen->h;
+		m_PlayerScreenWidth = m_PlayerScreen->GetSize().w;
+		m_PlayerScreenHeight = m_PlayerScreen->GetSize().h;
+	} else {
+		m_PlayerScreen8 = m_BackBuffer8;
+		m_PlayerScreen = m_BackBuffer;
 	}
 
 	m_ScreenDumpBuffer = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(24, m_BackBuffer32->w, m_BackBuffer32->h));
@@ -259,13 +264,18 @@ void FrameMan::ResetSplitScreens(bool hSplit, bool vSplit) {
 
 	// Create the splitscreen buffer
 	if (m_HSplit || m_VSplit) {
-		m_PlayerScreen = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)));
-		clear_to_color(m_PlayerScreen.get(), 0);
-		set_clip_state(m_PlayerScreen.get(), 1);
+		m_PlayerScreen8 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)));
+		clear_to_color(m_PlayerScreen8.get(), 0);
+		set_clip_state(m_PlayerScreen8.get(), 1);
 
-		m_PlayerScreenWidth = m_PlayerScreen->w;
-		m_PlayerScreenHeight = m_PlayerScreen->h;
+		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)), FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)), g_GLResourceMan.GetStaticTextureFromBitmap(m_PlayerScreen8.get()));
+
+		// Update these to represent the split screens
+		m_PlayerScreenWidth = m_PlayerScreen->GetSize().w;
+		m_PlayerScreenHeight = m_PlayerScreen->GetSize().h;
 	} else {
+		m_PlayerScreen8 = m_BackBuffer8;
+		m_PlayerScreen = m_BackBuffer;
 		// No splits, so set the screen dimensions equal to the back buffer
 		m_PlayerScreenWidth = m_BackBuffer8->w;
 		m_PlayerScreenHeight = m_BackBuffer8->h;
@@ -782,9 +792,9 @@ void FrameMan::UpdateScreenOffsetForSplitScreen(int playerScreen, Vector& screen
 
 void FrameMan::Draw() {
 	ZoneScopedN("Draw");
-	m_Renderer = std::make_unique<SpriteRenderer>(dynamic_cast<const Shader*>(g_PresetMan.GetEntityPreset("Shader", "Background")), FloatRect{0,0,m_BackBuffer8->w, m_BackBuffer8->h});
+	m_Renderer = std::make_unique<SpriteRenderer>(dynamic_cast<const Shader*>(g_PresetMan.GetEntityPreset("Shader", "Background")), m_PlayerScreen->GetSize());
 	clear_to_color(m_BackBuffer8.get(), 0);
-	glClearColor(m_BlackColor / 255.0f, .0f, .0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glEnable(GL_BLEND);
 	GL_CHECK(glEnable(GL_BLEND));
 	GL_CHECK(glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD));
@@ -808,8 +818,10 @@ void FrameMan::Draw() {
 		screenRelativeEffects.clear();
 		screenRelativeGlowBoxes.clear();
 
-		BITMAP* drawScreen = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen.get();
-		BITMAP* drawScreenGUI = drawScreen;
+		m_PlayerScreen->Begin(true);
+		m_Renderer->SetSize(m_PlayerScreen->GetSize());
+		BITMAP* drawScreen = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
+		BITMAP* drawScreenGUI = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
 		if (IsInMultiplayerMode()) {
 			drawScreen = m_NetworkBackBufferIntermediate8[m_NetworkFrameCurrent][playerScreen].get();
 			drawScreenGUI = m_NetworkBackBufferIntermediateGUI8[m_NetworkFrameCurrent][playerScreen].get();
@@ -888,7 +900,10 @@ void FrameMan::Draw() {
 		if (!IsInMultiplayerMode()) {
 			// Draw the intermediate draw splitscreen to the appropriate spot on the back buffer
 			blit(drawScreen, m_BackBuffer8.get(), 0, 0, screenOffset.GetFloorIntX(), screenOffset.GetFloorIntY(), drawScreen->w, drawScreen->h);
-
+			m_PlayerScreen->End();
+			m_BackBuffer->Begin(false);
+			m_Renderer->SetSize(m_BackBuffer->GetSize());
+			m_Renderer->Draw(m_PlayerScreen8.get(), screenOffset);
 			g_PostProcessMan.AdjustEffectsPosToPlayerScreen(playerScreen, drawScreen, screenOffset, screenRelativeEffects, screenRelativeGlowBoxes);
 		}
 	}
