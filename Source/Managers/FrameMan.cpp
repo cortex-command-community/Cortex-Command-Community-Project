@@ -28,6 +28,7 @@
 #include "glad/gl.h"
 
 #include "tracy/Tracy.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 using namespace RTE;
 
@@ -792,6 +793,8 @@ void FrameMan::UpdateScreenOffsetForSplitScreen(int playerScreen, Vector& screen
 
 void FrameMan::Draw() {
 	ZoneScopedN("Draw");
+	TracyGpuZone("FrameMan::Draw");
+	
 	m_Renderer = std::make_unique<SpriteRenderer>(dynamic_cast<const Shader*>(g_PresetMan.GetEntityPreset("Shader", "Background")), m_PlayerScreen->GetSize());
 	clear_to_color(m_BackBuffer8.get(), 0);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);

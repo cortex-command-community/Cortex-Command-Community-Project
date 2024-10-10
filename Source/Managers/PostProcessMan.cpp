@@ -17,6 +17,9 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyOpenGL.hpp"
+
 using namespace RTE;
 
 PostProcessMan::PostProcessMan() {
@@ -350,6 +353,8 @@ size_t PostProcessMan::GetDotGlowEffectHash(DotGlowColor whichColor) const {
 }
 
 void PostProcessMan::PostProcess() {
+	ZoneScoped;
+	TracyGpuZone("PostProcess");
 	UpdatePalette();
 
 	// First copy the current 8bpp backbuffer to the 32bpp buffer; we'll add effects to it

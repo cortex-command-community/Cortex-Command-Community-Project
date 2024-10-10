@@ -9,6 +9,7 @@
 #include "SpriteRenderer.h"
 
 #include "tracy/Tracy.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 #include <array>
 
@@ -402,7 +403,8 @@ void SceneLayerImpl<TRACK_DRAWINGS>::RegisterDrawing(const Vector& center, float
 template <bool TRACK_DRAWINGS>
 void SceneLayerImpl<TRACK_DRAWINGS>::Draw(SpriteRenderer* renderer, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 	RTEAssert(m_MainBitmap, "Data of this SceneLayerImpl has not been loaded before trying to draw!");
-	if (m_MainBitmapUpdated) {
+	ZoneScoped;
+	TracyGpuZone("SceneLayer::Draw");
 	if (m_MainBitmapUpdated && m_MainBitmapOwned) {
 		if constexpr (!TRACK_DRAWINGS) {
 			g_GLResourceMan.GetDynamicTextureFromBitmap(m_MainBitmap, true);
@@ -439,6 +441,8 @@ void SceneLayerImpl<TRACK_DRAWINGS>::Draw(SpriteRenderer* renderer, Box& targetB
 
 template <bool TRACK_DRAWINGS>
 void SceneLayerImpl<TRACK_DRAWINGS>::DrawWrapped(SpriteRenderer* renderer, const Box& targetBox, bool drawScaled) const {
+	ZoneScoped;
+	TracyGpuZone("SceneLayer::DrawWrapped");
 	if (!drawScaled) {
 		std::array<int, 2> sourcePosX = {m_Offset.GetFloorIntX(), 0};
 		std::array<int, 2> sourcePosY = {m_Offset.GetFloorIntY(), 0};
@@ -480,6 +484,8 @@ void SceneLayerImpl<TRACK_DRAWINGS>::DrawWrapped(SpriteRenderer* renderer, const
 
 template <bool TRACK_DRAWINGS>
 void SceneLayerImpl<TRACK_DRAWINGS>::DrawTiled(SpriteRenderer* renderer, const Box& targetBox, bool drawScaled) const {
+	ZoneScoped;
+	TracyGpuZone("SceneLayer::DrawTiled");
 	int bitmapWidth = m_ScaledDimensions.GetFloorIntX();
 	int bitmapHeight = m_ScaledDimensions.GetFloorIntY();
 	int areaToCoverX = m_Offset.GetFloorIntX() + targetBox.GetCorner().GetFloorIntX() + std::min(renderer->GetSize().w, targetBox.GetWidth());

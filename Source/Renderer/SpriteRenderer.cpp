@@ -4,6 +4,8 @@
 #include "Shader.h"
 #include "GLCheck.h"
 #include "glm/gtc/matrix_transform.hpp"
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 using namespace RTE;
 
@@ -43,6 +45,8 @@ void SpriteRenderer::InitGLPointers() {
 }
 
 void SpriteRenderer::Draw(BITMAP* image, glm::vec2 pos, float angle, glm::vec2 scale) {
+	ZoneScoped;
+	TracyGpuZone("SpriteRenderer::Draw");
 	glDisable(GL_DEPTH_TEST);
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, glm::vec3(pos, 0.0f));
@@ -69,6 +73,8 @@ void SpriteRenderer::Draw(BITMAP* image, FloatRect fromRegion, glm::vec2 pos) {
 	Draw(image, fromRegion, {fromRegion.w, fromRegion.h}, pos);
 }
 void SpriteRenderer::Draw(BITMAP* image, FloatRect fromRegion, glm::vec2 toSize, glm::vec2 pos, float angle, glm::vec2 pivot, glm::vec2 scale) {
+	ZoneScoped;
+	TracyGpuZone("SpriteRenderer::DrawRegion");
 	glDisable(GL_DEPTH_TEST);
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, glm::vec3(pos, 0.0f));

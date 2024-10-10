@@ -16,6 +16,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/epsilon.hpp"
 #include "tracy/Tracy.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 #ifdef __linux__
 #include "Resources/cccp.xpm"
@@ -206,6 +207,7 @@ void WindowMan::InitializeOpenGL() {
 	GL_CHECK(glGenTextures(1, &m_BackBuffer32Texture));
 	GL_CHECK(glGenTextures(1, &m_ScreenBufferTexture));
 	GL_CHECK(glGenFramebuffers(1, &m_ScreenBufferFBO));
+	TracyGpuContext;
 }
 
 void WindowMan::CreateBackBufferTexture() {
@@ -750,5 +752,6 @@ void WindowMan::UploadFrame() {
 			SDL_GL_SwapWindow(m_MultiDisplayWindows.at(i).get());
 		}
 	}
+	TracyGpuCollect;
 	FrameMark;
 }
