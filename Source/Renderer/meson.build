@@ -1,4 +1,5 @@
 sources += files(
-'GLDraw.cpp',
+'RenderTarget.cpp',
+'SpriteRenderer.cpp',
 'Shader.cpp',
 )

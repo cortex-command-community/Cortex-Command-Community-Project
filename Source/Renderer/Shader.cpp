@@ -3,9 +3,10 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "GLCheck.h"
-#include "Managers/PresetMan.h"
-#include "Managers/ConsoleMan.h"
-#include "System/System.h"
+#include "GLResourceMan.h"
+#include "PresetMan.h"
+#include "ConsoleMan.h"
+#include "System.h"
 #include "RTEError.h"
 
 #include <fstream>
@@ -18,15 +19,11 @@ Shader::Shader() :
     m_ProgramID(0), m_TextureUniform(-1), m_ColorUniform(-1), m_TransformUniform(-1), m_ProjectionUniform(-1) {}
 
 Shader::Shader(const std::string& vertexFilename, const std::string& fragPath) :
-    m_ProgramID(glCreateProgram()), m_TextureUniform(-1), m_ColorUniform(-1), m_TransformUniform(-1), m_ProjectionUniform(-1) {
+    m_ProgramID(g_GLResourceMan.MakeGLProgram()), m_TextureUniform(-1), m_ColorUniform(-1), m_TransformUniform(-1), m_ProjectionUniform(-1) {
 	Compile(vertexFilename, fragPath);
 }
 
-Shader::~Shader() {
-	if (m_ProgramID) {
-		GL_CHECK(glDeleteProgram(m_ProgramID));
-	}
-}
+Shader::~Shader() = default;
 
 int Shader::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
@@ -46,16 +43,22 @@ int Shader::Create() {
 	if (m_FragmentPath.empty() || m_VertexPath.empty()) {
 		return -1;
 	}
-	m_ProgramID = glCreateProgram();
+	m_ProgramID = g_GLResourceMan.MakeGLProgram();
 	Compile(m_VertexPath, m_FragmentPath);
 	return 0;
 }
 
-int Shader::Create(const Shader& shader) {
-	Entity::Create(shader);
-	m_VertexPath = shader.m_VertexPath;
-	m_FragmentPath = shader.m_FragmentPath;
-	return Create();
+int Shader::Create(const Shader& ref) {
+	Entity::Create(ref);
+	m_VertexPath = ref.m_VertexPath;
+	m_FragmentPath = ref.m_FragmentPath;
+	m_ProgramID = ref.m_ProgramID;
+	m_TextureUniform = ref.m_TextureUniform;
+	m_ColorUniform = ref.m_ColorUniform;
+	m_TransformUniform = ref.m_TransformUniform;
+	m_UVTransformUniform = ref.m_UVTransformUniform;
+	m_ProjectionUniform = ref.m_ProjectionUniform;
+	return 0;
 }
 
 bool Shader::Compile(const std::string& vertexPath, const std::string& fragPath) {
@@ -91,37 +94,37 @@ bool Shader::Compile(const std::string& vertexPath, const std::string& fragPath)
 	return true;
 }
 
-void Shader::Use() { GL_CHECK(glUseProgram(m_ProgramID)); }
+void Shader::Use() const { GL_CHECK(glUseProgram(m_ProgramID)); }
 
-GLint Shader::GetUniformLocation(const std::string& name) { return glGetUniformLocation(m_ProgramID, name.c_str()); }
+GLint Shader::GetUniformLocation(const std::string& name) const { return glGetUniformLocation(m_ProgramID, name.c_str()); }
 
-void Shader::SetBool(const std::string& name, bool value) { GL_CHECK(glUniform1i(glGetUniformLocation(m_ProgramID, name.c_str()), static_cast<int>(value))); }
+void Shader::SetBool(const std::string& name, bool value) const { GL_CHECK(glUniform1i(glGetUniformLocation(m_ProgramID, name.c_str()), static_cast<int>(value))); }
 
-void Shader::SetInt(const std::string& name, int value) { GL_CHECK(glUniform1i(glGetUniformLocation(m_ProgramID, name.c_str()), value)); }
+void Shader::SetInt(const std::string& name, int value) const { GL_CHECK(glUniform1i(glGetUniformLocation(m_ProgramID, name.c_str()), value)); }
 
-void Shader::SetFloat(const std::string& name, float value) { GL_CHECK(glUniform1f(glGetUniformLocation(m_ProgramID, name.c_str()), value)); }
+void Shader::SetFloat(const std::string& name, float value) const { GL_CHECK(glUniform1f(glGetUniformLocation(m_ProgramID, name.c_str()), value)); }
 
-void Shader::SetMatrix4f(const std::string& name, const glm::mat4& value) { GL_CHECK(glUniformMatrix4fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value))); }
+void Shader::SetMatrix4f(const std::string& name, const glm::mat4& value) const { GL_CHECK(glUniformMatrix4fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value))); }
 
-void Shader::SetVector2f(const std::string& name, const glm::vec2& value) { GL_CHECK(glUniform2fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, glm::value_ptr(value))); }
+void Shader::SetVector2f(const std::string& name, const glm::vec2& value) const { GL_CHECK(glUniform2fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, glm::value_ptr(value))); }
 
-void Shader::SetVector3f(const std::string& name, const glm::vec3& value) { GL_CHECK(glUniform3fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, glm::value_ptr(value))); }
+void Shader::SetVector3f(const std::string& name, const glm::vec3& value) const { GL_CHECK(glUniform3fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, glm::value_ptr(value))); }
 
-void Shader::SetVector4f(const std::string& name, const glm::vec4& value) { GL_CHECK(glUniform4fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, glm::value_ptr(value))); }
+void Shader::SetVector4f(const std::string& name, const glm::vec4& value) const { GL_CHECK(glUniform4fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, glm::value_ptr(value))); }
 
-void Shader::SetBool(int32_t uniformLoc, bool value) { GL_CHECK(glUniform1i(uniformLoc, value)); }
+void Shader::SetBool(int32_t uniformLoc, bool value) const { GL_CHECK(glUniform1i(uniformLoc, value)); }
 
-void Shader::SetInt(int32_t uniformLoc, int value) { GL_CHECK(glUniform1i(uniformLoc, value)); }
+void Shader::SetInt(int32_t uniformLoc, int value) const { GL_CHECK(glUniform1i(uniformLoc, value)); }
 
-void Shader::SetFloat(int32_t uniformLoc, float value) { GL_CHECK(glUniform1f(uniformLoc, value)); }
+void Shader::SetFloat(int32_t uniformLoc, float value) const { GL_CHECK(glUniform1f(uniformLoc, value)); }
 
-void Shader::SetMatrix4f(int32_t uniformLoc, const glm::mat4& value) { GL_CHECK(glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(value))); }
+void Shader::SetMatrix4f(int32_t uniformLoc, const glm::mat4& value) const { GL_CHECK(glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(value))); }
 
-void Shader::SetVector2f(int32_t uniformLoc, const glm::vec2& value) { GL_CHECK(glUniform2fv(uniformLoc, 1, glm::value_ptr(value))); }
+void Shader::SetVector2f(int32_t uniformLoc, const glm::vec2& value) const { GL_CHECK(glUniform2fv(uniformLoc, 1, glm::value_ptr(value))); }
 
-void Shader::SetVector3f(int32_t uniformLoc, const glm::vec3& value) { GL_CHECK(glUniform3fv(uniformLoc, 1, glm::value_ptr(value))); }
+void Shader::SetVector3f(int32_t uniformLoc, const glm::vec3& value) const { GL_CHECK(glUniform3fv(uniformLoc, 1, glm::value_ptr(value))); }
 
-void Shader::SetVector4f(int32_t uniformLoc, const glm::vec4& value) { GL_CHECK(glUniform4fv(uniformLoc, 1, glm::value_ptr(value))); }
+void Shader::SetVector4f(int32_t uniformLoc, const glm::vec4& value) const { GL_CHECK(glUniform4fv(uniformLoc, 1, glm::value_ptr(value))); }
 
 bool Shader::CompileShader(GLuint shaderID, const std::string& filename, std::string& error) {
 	if (!System::PathExistsCaseSensitive(filename)) {
@@ -170,7 +173,7 @@ bool Shader::Link(GLuint vtxShader, GLuint fragShader) {
 	return true;
 }
 
-void Shader::ApplyDefaultUniforms() {
+void Shader::ApplyDefaultUniforms() const {
 	Use();
 	SetInt("rteTexture", 0);
 	SetInt("rtePalette", 1);

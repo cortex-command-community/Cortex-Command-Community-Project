@@ -34,112 +34,112 @@ namespace RTE {
 		/// Filepath to the fragment shader
 		bool Compile(const std::string& vertexFilename, const std::string& fragPath);
 
-		void Use();
+		void Use() const;
 #pragma region Uniform handling
 		/// Returns the location of a uniform given by name.
 		/// @param name
 		/// String containing the name of a uniform in this shader program.
 		/// @return
 		/// A GLint containing the location of the requested uniform.
-		int32_t GetUniformLocation(const std::string& name);
+		int32_t GetUniformLocation(const std::string& name) const;
 
 		/// Set a boolean uniform value in the active program by name.
 		/// @param name
 		/// The name of the uniform to set.
 		/// @param value
 		/// The boolean value to set the uniform to.
-		void SetBool(const std::string& name, bool value);
+		void SetBool(const std::string& name, bool value) const;
 
 		/// Set an integer uniform value in the active program by name.
 		/// @param name
 		/// The name of the uniform to set.
 		/// @param value
 		/// The integer value to set the uniform to.
-		void SetInt(const std::string& name, int value);
+		void SetInt(const std::string& name, int value) const;
 
 		/// Set a float uniform value in the active program by name.
 		/// @param name
 		/// The name of the uniform to set.
 		/// @param value
 		/// The float value to set the uniform to.
-		void SetFloat(const std::string& name, float value);
+		void SetFloat(const std::string& name, float value) const;
 
 		/// Set a float mat4 uniform value in the active program by name.
 		/// @param name
 		/// The name of the uniform to set.
 		/// @param value
 		/// The float mat4 value to set the uniform to.
-		void SetMatrix4f(const std::string& name, const glm::mat4& value);
+		void SetMatrix4f(const std::string& name, const glm::mat4& value) const;
 
 		/// Set a float vec2 uniform value in the active program by name.
 		/// @param name
 		/// The name of the uniform to set.
 		/// @param value
 		/// The float vec2 value to set the uniform to.
-		void SetVector2f(const std::string& name, const glm::vec2& value);
+		void SetVector2f(const std::string& name, const glm::vec2& value) const;
 
 		/// Set a float vec3 uniform value in the active program by name.
 		/// @param name
 		/// The name of the uniform to set.
 		/// @param value
 		/// The float vec3 value to set the uniform to.
-		void SetVector3f(const std::string& name, const glm::vec3& value);
+		void SetVector3f(const std::string& name, const glm::vec3& value) const;
 
 		/// Set a float vec4 uniform value in the active program by name.
 		/// @param name
 		/// The name of the uniform to set.
 		/// @param value
 		/// The float vec4 value to set the uniform to.
-		void SetVector4f(const std::string& name, const glm::vec4& value);
+		void SetVector4f(const std::string& name, const glm::vec4& value) const;
 
 		/// Set a boolean uniform value in the active program by location.
 		/// @param uniformLoc
 		/// The location of the uniform to set.
 		/// @param value
 		/// The boolean value to set the uniform to.
-		static void SetBool(int32_t uniformLoc, bool value);
+		void SetBool(int32_t uniformLoc, bool value) const;
 
 		/// Set an integer uniform value in the active program by location.
 		/// @param uniformLoc
 		/// The location of the uniform to set.
 		/// @param value
 		/// The integer value to set the uniform to.
-		static void SetInt(int32_t uniformLoc, int value);
+		void SetInt(int32_t uniformLoc, int value) const;
 
 		/// Set a float uniform value in the active program by location.
 		/// @param uniformLoc
 		/// The location of the uniform to set.
 		/// @param value
 		/// The float value to set the uniform to.
-		static void SetFloat(int32_t uniformLoc, float value);
+		void SetFloat(int32_t uniformLoc, float value) const;
 
 		/// Set a float mat4 uniform value in the active program by location.
 		/// @param uniformLoc
 		/// The location of the uniform to set.
 		/// @param value
 		/// The float mat4 value to set the uniform to.
-		static void SetMatrix4f(int32_t uniformLoc, const glm::mat4& value);
+		void SetMatrix4f(int32_t uniformLoc, const glm::mat4& value) const;
 
 		/// Set a float vec2 uniform value in the active program by location.
 		/// @param uniformLoc
 		/// The location of the uniform to set.
 		/// @param value
 		/// The float vec2 value to set the uniform to.
-		static void SetVector2f(int32_t uniformLoc, const glm::vec2& value);
+		void SetVector2f(int32_t uniformLoc, const glm::vec2& value) const;
 
 		/// Set a float vec3 uniform value in the active program by location.
 		/// @param uniformLoc
 		/// The location of the uniform to set.
 		/// @param value
 		/// The float vec3 value to set the uniform to.
-		static void SetVector3f(int32_t uniformLoc, const glm::vec3& value);
+		void SetVector3f(int32_t uniformLoc, const glm::vec3& value) const;
 
 		/// Set a float vec4 uniform value in the active program by location.
 		/// @param uniformLoc
 		/// The location of the uniform to set.
 		/// @param value
 		/// The float vec4 value to set the uniform to.
-		static void SetVector4f(int32_t uniformLoc, const glm::vec4& value);
+		void SetVector4f(int32_t uniformLoc, const glm::vec4& value) const;
 #pragma endregion
 
 #pragma region Engine Defined Uniforms
@@ -147,27 +147,27 @@ namespace RTE {
 		/// Get the location of the texture sampler uniform.
 		/// @return
 		/// The location of the texture uniform. This may be -1 if the shader doesn't use textures, in which case the value will be ignored.
-		int GetTextureUniform() { return m_TextureUniform; }
+		int GetTextureUniform() const { return m_TextureUniform; }
 
 		/// Get the location of the color modifier uniform.
 		/// @return
 		/// The location of the color modifier uniform. This may be -1 if the shader doesn't use the color mod, in which case the value will  be ignored.
-		int GetColorUniform() { return m_ColorUniform; }
+		int GetColorUniform() const { return m_ColorUniform; }
 
 		/// Get the location of the transformation matrix uniform.
 		/// @return
 		/// The location of the transformation matrix uniform. This may be -1 if the shader doesn't use transforms, in which case the value will be ignored.
-		int GetTransformUniform() { return m_TransformUniform; }
+		int GetTransformUniform() const { return m_TransformUniform; }
 
 		/// Get the location of the transformation matrix uniform.
 		/// @return
 		/// The location of the UV transformation matrix uniform. This may be -1 if the shader doesn't use UV transforms, in which case the value will be ignored.
-		int GetUVTransformUniform() { return m_UVTransformUniform; }
+		int GetUVTransformUniform() const { return m_UVTransformUniform; }
 
 		/// Get the location of the projection matrix uniform.
 		/// @return
 		/// The location of the color modifier uniform. This may be -1 if the shader doesn't apply projection, in which case the value will be ignored.
-		int GetProjectionUniform() { return m_ProjectionUniform; }
+		int GetProjectionUniform() const { return m_ProjectionUniform; }
 
 #pragma endregion
 	protected:
@@ -197,7 +197,7 @@ namespace RTE {
 		bool Link(uint32_t vtxShader, uint32_t fragShader);
 
 		/// Sets default values for the shader uniforms (may not persist across frames!)
-		void ApplyDefaultUniforms();
+		void ApplyDefaultUniforms() const;
 
 		GLint m_TextureUniform{0}; //!< Location of the texture uniform (sampler2d rteTexture).
 		GLint m_ColorUniform{0}; //!< Location of the colormod uniform (vec4 rteColor).
