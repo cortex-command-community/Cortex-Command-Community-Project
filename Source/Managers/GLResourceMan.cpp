@@ -77,7 +77,6 @@ GLuint GLResourceMan::GetDynamicTextureFromBitmap(BITMAP* bitmap, bool updated, 
 	ZoneScopedN("Bitmap Upload");
 	GLuint texture = GetStaticTextureFromBitmap(bitmap);
 	if (updated) {
-		TracyGpuZone("Atrocities (Bitmap Upload)");
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, bitmap_color_depth(bitmap) == 8 ? 1 : 4);
 		if (updateRegions.size() == 0) {
