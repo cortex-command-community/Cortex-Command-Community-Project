@@ -51,7 +51,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - New `AEmitter` and `PEmitter` INI and Lua (R/W) property `PlayBurstSound` which denotes whether the BurstSound should play when appropriate. This should not be confused for a trigger - it's just a enable/disable toggle to avoid having to remove and add BurstSound altogether.
 
 - Allow lua scripts to use LuaJIT's BitOp module (see https://bitop.luajit.org/api.html)
-  
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -80,6 +80,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`SetLimbPathPushForce(Actor.MovementState, float newValue)` sets the push force for all layers and sides of any particular movement state's limb paths, instead of being hardcoded to walking only.
 	
 - The `LimbPath` property `NormalTravelSpeed` has been renamed to just `TravelSpeed`.
+
+- Almost all ctrl+* special inputs functionality (i.e restarting activity, world dumps, showing performance stats) are now mapped to right alt, to not interfere with default crouching inputs. The only exception is ctrl+arrow keys for changing console size.
 
 </details>
 

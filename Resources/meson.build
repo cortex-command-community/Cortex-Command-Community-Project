@@ -1,10 +1,13 @@
 # User frontend
 source_inc_dirs += [include_directories('.')]
 if host_machine.system() == 'linux'
+    app_id = 'io.github.cortex_command_community.Cortex-Command-Community-Project'
     desktop_file = files('cccp.desktop')
     icon_file = files('cccp.xpm')
     configure_file(input: 'cccp.desktop', output: 'CortexCommand.desktop', install: true, install_dir:get_option('datadir')/'applications', install_mode: 'rw-r--r--', configuration: conf_data)
     install_data('cccp.xpm', install_dir: get_option('datadir')/'icons/hicolor/32x32/apps', install_mode:'rw-r--r--')
+    install_data(app_id+'.svg', install_dir: get_option('datadir')/'icons/hicolor/scalable/apps', install_mode: 'rw-r--r--')
+    install_data(app_id+'.metainfo.xml', install_dir: get_option('datadir')/'share/metainfo', install_mode: 'rw-r--r--')
     configure_file(input: 'cccp.sh', output:'CortexCommand', install: get_option('install_runner'), install_dir: get_option('bindir'), install_mode:'rwxr-xr-x', configuration: conf_data)
 elif host_machine.system() == 'windows'
     windows = import('windows')

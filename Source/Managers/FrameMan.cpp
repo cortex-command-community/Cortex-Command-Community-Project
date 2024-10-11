@@ -899,7 +899,7 @@ void FrameMan::Draw() {
 			blit(m_NetworkBackBufferFinal8[m_NetworkFrameReady][0].get(), m_BackBuffer8.get(), 0, 0, 0, 0, m_BackBuffer8->w, m_BackBuffer8->h);
 			masked_blit(m_NetworkBackBufferFinalGUI8[m_NetworkFrameReady][0].get(), m_BackBuffer8.get(), 0, 0, 0, 0, m_BackBuffer8->w, m_BackBuffer8->h);
 
-			if (g_UInputMan.FlagAltState() || g_UInputMan.FlagCtrlState() || g_UInputMan.FlagShiftState()) {
+			if (g_UInputMan.FlagAltState() || g_UInputMan.FlagRCtrlState()) {
 				g_PerformanceMan.DrawCurrentPing();
 			}
 
