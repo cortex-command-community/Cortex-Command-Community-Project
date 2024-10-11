@@ -43,7 +43,7 @@ SettingsInputMappingWizardGUI::SettingsInputMappingWizardGUI(GUIControlManager* 
 	int dpadDiagramBitampCount = 13;
 	ContentFile("Base.rte/GUIs/Controllers/D-Pad.png").GetAsAnimation(m_DPadDiagramBitmaps, dpadDiagramBitampCount, COLORCONV_8_TO_32);
 
-	int analogDiagramBitmapCount = 21;
+	int analogDiagramBitmapCount = 23;
 	ContentFile("Base.rte/GUIs/Controllers/DualAnalogDS.png").GetAsAnimation(m_DualAnalogDSDiagramBitmaps, analogDiagramBitmapCount, COLORCONV_8_TO_32);
 	ContentFile("Base.rte/GUIs/Controllers/DualAnalogXB.png").GetAsAnimation(m_DualAnalogXBDiagramBitmaps, analogDiagramBitmapCount, COLORCONV_8_TO_32);
 
