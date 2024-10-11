@@ -1055,7 +1055,7 @@ void GameActivity::UpdateEditing() {
 			DisableAIs(false);
 			InitAIs();
 			// Reset the mouse value and pathfinding so it'll know about the newly placed stuff
-			g_UInputMan.SetMouseValueMagnitude(0, g_UInputMan.MouseUsedByPlayer());
+			g_UInputMan.SetMouseValueMagnitude(0);
 			g_SceneMan.GetScene()->ResetPathFinding();
 			// Start the in-game track
 			// g_AudioMan.ClearMusicQueue();
@@ -1235,7 +1235,7 @@ void GameActivity::Update() {
 			if (m_PlayerController[player].IsState(PRESS_SECONDARY)) {
 				// Reset the mouse so the actor doesn't change aim because mouse has been moved
 				if (m_PlayerController[player].IsMouseControlled()) {
-					g_UInputMan.SetMouseValueMagnitude(0, player);
+					g_UInputMan.SetMouseValueMagnitude(0);
 				}
 
 				m_ViewState[player] = ViewState::Normal;
@@ -1254,7 +1254,7 @@ void GameActivity::Update() {
 			else if (m_PlayerController[player].IsState(ACTOR_NEXT) || m_PlayerController[player].IsState(ACTOR_PREV) || m_PlayerController[player].IsState(PRESS_FACEBUTTON) || m_PlayerController[player].IsState(PRESS_PRIMARY)) {
 				// Reset the mouse so the actor doesn't change aim because mouse has been moved
 				if (m_PlayerController[player].IsMouseControlled()) {
-					g_UInputMan.SetMouseValueMagnitude(0, player);
+					g_UInputMan.SetMouseValueMagnitude(0);
 				}
 
 				if (pMarkedActor) {
