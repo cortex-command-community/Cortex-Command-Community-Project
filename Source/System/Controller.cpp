@@ -419,7 +419,7 @@ void Controller::UpdatePlayerAnalogInput() {
 	// Disable sharp aim while moving - this also helps with keyboard vs mouse fighting when moving and aiming in opposite directions
 	if (m_ControlStates[ControlState::BODY_JUMP] && !pieMenuActive) {
 		if (IsMouseControlled()) {
-			g_UInputMan.SetMouseValueMagnitude(0.3F);
+			g_UInputMan.SetMouseValueMagnitude(0.3F, m_Player);
 		}
 		m_ControlStates[ControlState::AIM_SHARP] = false;
 	}
