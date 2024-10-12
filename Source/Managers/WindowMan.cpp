@@ -684,7 +684,7 @@ void WindowMan::Update() {
 	m_EventQueue.clear();
 }
 
-void WindowMan::ClearRenderer(bool clearFrameMan) {
+void WindowMan::ClearBackbuffer(bool clearFrameMan) {
 	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 	if (clearFrameMan) {
@@ -739,7 +739,6 @@ void WindowMan::UploadFrame() {
 		GL_CHECK(glViewport(m_PrimaryWindowViewport->x, m_PrimaryWindowViewport->y, m_PrimaryWindowViewport->w, m_PrimaryWindowViewport->h));
 		m_ScreenBlitShader->SetMatrix4f(m_ScreenBlitShader->GetTransformUniform(), glm::mat4(1.0f));
 		GL_CHECK(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));
-		SDL_GL_SwapWindow(m_PrimaryWindow.get());
 	} else {
 		for (size_t i = 0; i < m_MultiDisplayWindows.size(); ++i) {
 			SDL_GL_MakeCurrent(m_MultiDisplayWindows.at(i).get(), m_GLContext.get());
@@ -749,9 +748,20 @@ void WindowMan::UploadFrame() {
 			m_ScreenBlitShader->SetMatrix4f(m_ScreenBlitShader->GetProjectionUniform(), m_MultiDisplayProjections.at(i));
 			m_ScreenBlitShader->SetMatrix4f(m_ScreenBlitShader->GetTransformUniform(), m_MultiDisplayTextureOffsets.at(i));
 			GL_CHECK(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));
+		}
+	}
+	Present();
+	TracyGpuCollect;
+	FrameMark;
+}
+
+void WindowMan::Present() {
+	if (m_MultiDisplayWindows.empty()) {
+		SDL_GL_SwapWindow(m_PrimaryWindow.get());
+	} else {
+		for (size_t i = 0; i < m_MultiDisplayWindows.size(); ++i) {
+			SDL_GL_MakeCurrent(m_MultiDisplayWindows.at(i).get(), m_GLContext.get());
 			SDL_GL_SwapWindow(m_MultiDisplayWindows.at(i).get());
 		}
 	}
-	TracyGpuCollect;
-	FrameMark;
 }

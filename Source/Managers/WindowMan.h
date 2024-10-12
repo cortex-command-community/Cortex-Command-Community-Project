@@ -171,14 +171,16 @@ namespace RTE {
 		/// Updates the state of this WindowMan.
 		void Update();
 
-		/// Clears the primary renderer, or all the renderers if in multi-display fullscreen.
-		void ClearRenderer(bool clearFrameMan = true);
+		/// Clears the window framebuffer (FBO0).
+		void ClearBackbuffer(bool clearFrameMan = true);
 
-		/// Set this Frame to draw the game. To be set before UploadFrame. Resets on ClearRenderer.
+		/// Set this Frame to draw the game. To be set before UploadFrame. Resets on ClearBackbuffer.
 		void DrawPostProcessBuffer() { m_DrawPostProcessBuffer = true; }
 
 		/// Copies the BackBuffer32 content to GPU and shows it on screen.
 		void UploadFrame();
+
+		void Present();
 #pragma endregion
 
 	private:

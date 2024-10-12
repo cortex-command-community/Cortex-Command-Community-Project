@@ -28,7 +28,7 @@ void LoadingScreen::Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, 
 	RTEAssert(loadingScreenManager.Create(guiScreen, guiInput, "Base.rte/GUIs/Skins/Menus", "LoadingScreenSkin.ini"), "Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/Menus/LoadingScreenSkin.ini");
 	loadingScreenManager.Load("Base.rte/GUIs/LoadingGUI.ini");
 
-	g_WindowMan.ClearRenderer();
+	g_WindowMan.ClearBackbuffer();
 
 	int loadingSplashOffset = 0;
 	if (!progressReportDisabled) {
@@ -134,7 +134,7 @@ void LoadingScreen::LoadingSplashProgressReport(const std::string& reportString,
 
 		blit(g_LoadingScreen.m_ProgressListboxBitmap, g_FrameMan.GetBackBuffer32(), 0, 0, g_LoadingScreen.m_ProgressListboxPosX, g_LoadingScreen.m_ProgressListboxPosY, g_LoadingScreen.m_ProgressListboxBitmap->w, g_LoadingScreen.m_ProgressListboxBitmap->h);
 
-		g_WindowMan.ClearRenderer(false);
+		g_WindowMan.ClearBackbuffer(false);
 		g_WindowMan.UploadFrame();
 	}
 }
