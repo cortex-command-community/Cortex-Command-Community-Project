@@ -55,8 +55,6 @@ void SpriteRenderer::Draw(BITMAP* image, glm::vec2 pos, float angle, glm::vec2 s
 	model = glm::translate(model, glm::vec3(-0.5f, -0.5f, 0.0f));
 	model = glm::scale(model, glm::vec3(image->w * scale.x, image->h * scale.y, 1.0f));
 	glm::mat4 proj = glm::ortho(m_Size.x, m_Size.x + m_Size.w, m_Size.y, m_Size.y+m_Size.h, -1.0f, 1.0f);
-	std::cout << pos.x << " " << pos.y << "\n" << std::endl;
-	std::cout << image->w << " " << image->h << " " << m_Size.w << " " << m_Size.h << " " << m_Size.x << " " << m_Size.y << "\n---" << std::endl;
 
 	m_Shader->Use();
 	glBindVertexArray(m_VAO);
