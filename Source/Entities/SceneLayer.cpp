@@ -411,6 +411,7 @@ void SceneLayerImpl<TRACK_DRAWINGS>::Draw(SpriteRenderer* renderer, Box& targetB
 			g_GLResourceMan.GetDynamicTextureFromBitmap(m_MainBitmap, true);//, m_Drawings);
 		}
 	}
+	m_MainBitmapUpdated = false;
 	if (offsetNeedsScrollRatioAdjustment) {
 		m_Offset.SetXY(std::floor(m_Offset.GetX() * m_ScrollRatio.GetX()), std::floor(m_Offset.GetY() * m_ScrollRatio.GetY()));
 	}
