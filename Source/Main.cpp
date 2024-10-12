@@ -251,7 +251,7 @@ void RunMenuLoop() {
 	g_UInputMan.TrapMousePos(false);
 
 	while (!System::IsSetToQuit()) {
-		g_WindowMan.ClearRenderer();
+		g_WindowMan.ClearBackbuffer();
 		PollSDLEvents();
 
 		g_WindowMan.Update();
@@ -313,7 +313,7 @@ void RunGameLoop() {
 
 		PollSDLEvents();
 		g_WindowMan.Update();
-		g_WindowMan.ClearRenderer();
+		g_WindowMan.ClearBackbuffer();
 
 		g_TimerMan.Update();
 
