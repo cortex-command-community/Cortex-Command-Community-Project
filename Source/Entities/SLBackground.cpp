@@ -4,6 +4,8 @@
 #include "SettingsMan.h"
 #include "SpriteRenderer.h"
 #include <algorithm>
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 using namespace RTE;
 
@@ -211,7 +213,33 @@ void SLBackground::Update() {
 }
 
 void SLBackground::Draw(SpriteRenderer* renderer, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
-	SceneLayer::Draw(renderer, targetBox, !IsAutoScrolling());
+	ZoneScoped;
+	TracyGpuZone("SceneLayer::Draw");
+	if (offsetNeedsScrollRatioAdjustment) {
+		m_Offset.SetXY(std::floor(m_Offset.GetX() * m_ScrollRatio.GetX()), std::floor(m_Offset.GetY() * m_ScrollRatio.GetY()));
+	}
+	if (targetBox.IsEmpty()) {
+		targetBox = Box(Vector(), static_cast<float>(renderer->GetSize().w), static_cast<float>(renderer->GetSize().h));
+	}
+	if (!m_WrapX && static_cast<float>(renderer->GetSize().w) > targetBox.GetWidth()) {
+		m_Offset.SetX(0);
+	}
+	if (!m_WrapY && static_cast<float>(renderer->GetSize().h) > targetBox.GetHeight()) {
+		m_Offset.SetY(0);
+	}
+
+	m_Offset -= m_OriginOffset;
+	WrapPosition(m_Offset);
+
+	renderer->BeginScissor({targetBox.GetCorner().GetFloorIntX(), targetBox.GetCorner().GetFloorIntY(), static_cast<int>(targetBox.GetCorner().GetX() + targetBox.GetWidth()) - 1, static_cast<int>(targetBox.GetCorner().GetY() + targetBox.GetHeight()) - 1});
+	bool drawScaled = m_ScaleFactor.GetX() > 1.0F || m_ScaleFactor.GetY() > 1.0F;
+
+	if (m_MainBitmap->w > renderer->GetSize().w && m_MainBitmap->h > renderer->GetSize().h) {
+		DrawWrapped(renderer, targetBox, drawScaled);
+	} else {
+		DrawTiled(renderer, targetBox, drawScaled);
+	}
+	renderer->EndScissor();
 
 	int bitmapWidth = m_ScaledDimensions.GetFloorIntX();
 	int bitmapHeight = m_ScaledDimensions.GetFloorIntY();
@@ -240,4 +268,89 @@ void SLBackground::Draw(SpriteRenderer* renderer, Box& targetBox, bool offsetNee
 		}
 	}
 	renderer->EndScissor();
+}
+
+void SLBackground::DrawWrapped(SpriteRenderer* renderer, const Box& targetBox, bool drawScaled) const {
+	ZoneScoped;
+	TracyGpuZone("SceneLayer::DrawWrapped");
+	if (!drawScaled) {
+		std::array<int, 2> sourcePosX = {m_Offset.GetFloorIntX(), 0};
+		std::array<int, 2> sourcePosY = {m_Offset.GetFloorIntY(), 0};
+		std::array<int, 2> sourceWidth = {m_MainBitmap->w - m_Offset.GetFloorIntX(), m_Offset.GetFloorIntX()};
+		std::array<int, 2> sourceHeight = {m_MainBitmap->h - m_Offset.GetFloorIntY(), m_Offset.GetFloorIntY()};
+		std::array<int, 2> destPosX = {targetBox.GetCorner().GetFloorIntX(), targetBox.GetCorner().GetFloorIntX() + m_MainBitmap->w - m_Offset.GetFloorIntX()};
+		std::array<int, 2> destPosY = {targetBox.GetCorner().GetFloorIntY(), targetBox.GetCorner().GetFloorIntY() + m_MainBitmap->h - m_Offset.GetFloorIntY()};
+
+		for (int i = 0; i < 2; ++i) {
+			for (int j = 0; j < 2; ++j) {
+				if (m_DrawMasked) {
+					renderer->Draw(m_MainBitmap, {sourcePosX[j], sourcePosY[i], sourceWidth[j], sourceHeight[i]}, {destPosX[j], destPosY[i]});
+					//masked_blit(m_MainBitmap, targetBitmap, sourcePosX[j], sourcePosY[i], destPosX[j], destPosY[i], sourceWidth[j], sourceHeight[i]);
+				} else {
+					renderer->Draw(m_MainBitmap, {sourcePosX[j], sourcePosY[i], sourceWidth[j], sourceHeight[i]}, {destPosX[j], destPosY[i]});
+					//blit(m_MainBitmap, targetBitmap, sourcePosX[j], sourcePosY[i], destPosX[j], destPosY[i], sourceWidth[j], sourceHeight[i]);
+				}
+			}
+		}
+	} else {
+		std::array<int, 2> sourceWidth = {m_MainBitmap->w, m_Offset.GetFloorIntX() / m_ScaleFactor.GetFloorIntX()};
+		std::array<int, 2> sourceHeight = {m_MainBitmap->h, m_Offset.GetFloorIntY() / m_ScaleFactor.GetFloorIntY()};
+		std::array<int, 2> destPosX = {targetBox.GetCorner().GetFloorIntX() - m_Offset.GetFloorIntX(), targetBox.GetCorner().GetFloorIntX() + m_ScaledDimensions.GetFloorIntX() - m_Offset.GetFloorIntX()};
+		std::array<int, 2> destPosY = {targetBox.GetCorner().GetFloorIntY() - m_Offset.GetFloorIntY(), targetBox.GetCorner().GetFloorIntY() + m_ScaledDimensions.GetFloorIntY() - m_Offset.GetFloorIntY()};
+
+		for (int i = 0; i < 2; ++i) {
+			for (int j = 0; j < 2; ++j) {
+				if (m_DrawMasked) {
+					renderer->Draw(m_MainBitmap, {destPosX[j], destPosY[i]}, 0.0f, m_ScaleFactor);
+					//masked_stretch_blit(m_MainBitmap, targetBitmap, 0, 0, sourceWidth[j], sourceHeight[i], destPosX[j], destPosY[i], sourceWidth[j] * m_ScaleFactor.GetFloorIntX() + 1, sourceHeight[i] * m_ScaleFactor.GetFloorIntY() + 1);
+				} else {
+					renderer->Draw(m_MainBitmap, {destPosX[j], destPosY[i]}, 0.0f, m_ScaleFactor);
+					//stretch_blit(m_MainBitmap, targetBitmap, 0, 0, sourceWidth[j], sourceHeight[i], destPosX[j], destPosY[i], sourceWidth[j] * m_ScaleFactor.GetFloorIntX() + 1, sourceHeight[i] * m_ScaleFactor.GetFloorIntY() + 1);
+				}
+			}
+		}
+	}
+}
+
+void SLBackground::DrawTiled(SpriteRenderer* renderer, const Box& targetBox, bool drawScaled) const {
+	ZoneScoped;
+	TracyGpuZone("SceneLayer::DrawTiled");
+	int bitmapWidth = m_ScaledDimensions.GetFloorIntX();
+	int bitmapHeight = m_ScaledDimensions.GetFloorIntY();
+	int areaToCoverX = m_Offset.GetFloorIntX() + targetBox.GetCorner().GetFloorIntX() + std::min(renderer->GetSize().w, targetBox.GetWidth());
+	int areaToCoverY = m_Offset.GetFloorIntY() + targetBox.GetCorner().GetFloorIntY() + std::min(renderer->GetSize().h, targetBox.GetHeight());
+
+	for (int tiledOffsetX = 0; tiledOffsetX < areaToCoverX;) {
+		int destX = targetBox.GetCorner().GetFloorIntX() + tiledOffsetX - m_Offset.GetFloorIntX();
+
+		for (int tiledOffsetY = 0; tiledOffsetY < areaToCoverY;) {
+			int destY = targetBox.GetCorner().GetFloorIntY() + tiledOffsetY - m_Offset.GetFloorIntY();
+
+			if (!drawScaled) {
+				if (m_DrawMasked) {
+					renderer->Draw(m_MainBitmap, destX, destY);
+					//masked_blit(m_MainBitmap, targetBitmap, 0, 0, destX, destY, bitmapWidth, bitmapHeight);
+				} else {
+					renderer->Draw(m_MainBitmap, destX, destY);
+					//blit(m_MainBitmap, targetBitmap, 0, 0, destX, destY, bitmapWidth, bitmapHeight);
+				}
+			} else {
+				if (m_DrawMasked) {
+					renderer->Draw(m_MainBitmap, {destX, destY}, 0.0f, m_ScaleFactor);
+					//masked_stretch_blit(m_MainBitmap, targetBitmap, 0, 0, m_MainBitmap->w, m_MainBitmap->h, destX, destY, bitmapWidth, bitmapHeight);
+				} else {
+					renderer->Draw(m_MainBitmap, {destX, destY}, 0.0f, m_ScaleFactor);
+					//stretch_blit(m_MainBitmap, targetBitmap, 0, 0, m_MainBitmap->w, m_MainBitmap->h, destX, destY, bitmapWidth, bitmapHeight);
+				}
+			}
+			if (!m_WrapY) {
+				break;
+			}
+			tiledOffsetY += bitmapHeight;
+		}
+		if (!m_WrapX) {
+			break;
+		}
+		tiledOffsetX += bitmapWidth;
+	}
 }
