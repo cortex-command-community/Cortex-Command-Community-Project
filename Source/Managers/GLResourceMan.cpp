@@ -73,17 +73,17 @@ GLuint GLResourceMan::GetStaticTextureFromBitmap(BITMAP* bitmap) {
 	return 0;
 }
 
-GLuint GLResourceMan::GetDynamicTextureFromBitmap(BITMAP* bitmap, bool updated, const std::vector<IntRect>& updateRegions) {
+GLuint GLResourceMan::UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const std::vector<IntRect>& updateRegions) {
 	ZoneScopedN("Bitmap Upload");
 	GLuint texture = GetStaticTextureFromBitmap(bitmap);
 	if (updated) {
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, bitmap_color_depth(bitmap) == 8 ? 1 : 4);
 		if (updateRegions.size() == 0) {
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, bitmap->w, bitmap->h, bitmap_color_depth(bitmap) == 8 ? GL_RED: GL_RGBA, GL_UNSIGNED_BYTE, bitmap->line[0]);
+			GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, bitmap->w, bitmap->h, bitmap_color_depth(bitmap) == 8 ? GL_RED: GL_RGBA, GL_UNSIGNED_BYTE, bitmap->line[0]));
 		} else {
 			for (auto& region: updateRegions) {
-				glTexSubImage2D(GL_TEXTURE_2D, 0, region.m_Left, region.m_Top, region.m_Right - region.m_Left, region.m_Bottom - region.m_Top, bitmap_color_depth(bitmap) == 8 ? GL_RED : GL_RGBA, GL_UNSIGNED_BYTE, bitmap->line[region.m_Top] + (region.m_Left));
+				GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0, region.m_Left, region.m_Top, region.m_Right - region.m_Left, region.m_Bottom - region.m_Top, bitmap_color_depth(bitmap) == 8 ? GL_RED : GL_RGBA, GL_UNSIGNED_BYTE, bitmap->line[region.m_Top] + (region.m_Left)));
 			}
 		}
 	}

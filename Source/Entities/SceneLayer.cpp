@@ -406,9 +406,9 @@ void SceneLayerImpl<TRACK_DRAWINGS>::Draw(SpriteRenderer* renderer, Box& targetB
 	TracyGpuZone("SceneLayer::Draw");
 	if (m_MainBitmapUpdated && m_MainBitmapOwned) {
 		if constexpr (!TRACK_DRAWINGS) {
-			g_GLResourceMan.GetDynamicTextureFromBitmap(m_MainBitmap, true);
+			g_GLResourceMan.UpdateDynamicBitmap(m_MainBitmap, true);
 		} else {
-			g_GLResourceMan.GetDynamicTextureFromBitmap(m_MainBitmap, true);//, m_Drawings);
+			g_GLResourceMan.UpdateDynamicBitmap(m_MainBitmap, true);//, m_Drawings);
 		}
 	}
 	m_MainBitmapUpdated = false;

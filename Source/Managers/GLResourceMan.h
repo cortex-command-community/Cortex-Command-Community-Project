@@ -38,7 +38,7 @@ namespace RTE {
 		GLuint GetStaticTextureFromFile(const std::string& filename);
 		GLuint GetStaticTextureFromBitmap(BITMAP* bitmap);
 
-		GLuint GetDynamicTextureFromBitmap(BITMAP* bitmap, bool updated, const std::vector<IntRect>& = {});
+		GLuint UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const std::vector<IntRect>& = {});
 
 
 	private:

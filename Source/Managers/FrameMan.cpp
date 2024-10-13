@@ -943,7 +943,7 @@ void FrameMan::Draw() {
 	if (IsInMultiplayerMode()) {
 		PrepareFrameForNetwork();
 	}
-	g_GLResourceMan.GetDynamicTextureFromBitmap(m_BackBuffer8.get(), true);
+	g_GLResourceMan.UpdateDynamicBitmap(m_BackBuffer8.get(), true);
 	m_Renderer->Draw(m_BackBuffer8.get(), 0.0f, 0.0f);
 	m_BackBuffer->End();
 	if (g_ActivityMan.IsInActivity()) {
