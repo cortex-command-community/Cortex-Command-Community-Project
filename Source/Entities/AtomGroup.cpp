@@ -1211,7 +1211,7 @@ Vector AtomGroup::PushTravel(Vector& position, const Vector& velocity, float pus
 	return returnPush;
 }
 
-bool AtomGroup::PushAsLimb(const Vector& jointPos, const Vector& velocity, const Matrix& rotation, LimbPath& limbPath, const float travelTime, bool* restarted, bool affectRotation, Vector rotationOffset, Vector positionOffset) {
+bool AtomGroup::PushAsLimb(const Vector& jointPos, const float limbRadius, const Vector& velocity, const Matrix& rotation, LimbPath& limbPath, const float travelTime, bool* restarted, bool affectRotation, Vector rotationOffset, Vector positionOffset) {
 	RTEAssert(m_OwnerMOSR, "Tried to push-as-limb an AtomGroup that has no parent!");
 
 	bool didWrap = false;
@@ -1255,24 +1255,33 @@ bool AtomGroup::PushAsLimb(const Vector& jointPos, const Vector& velocity, const
 				return false;
 			}
 		}
-		pushImpulse = PushTravel(m_LimbPos, limbPath.GetCurrentVel(m_LimbPos), limbPath.GetPushForce(), didWrap, limbPath.GetNextTimeChunk(m_LimbPos), false, false);
+		pushImpulse = PushTravel(m_LimbPos, limbPath.GetCurrentVel(m_LimbPos), limbPath.GetEffectivePushForce(), didWrap, limbPath.GetNextTimeChunk(m_LimbPos), false, false);
 		limbPath.ReportProgress(m_LimbPos);
 	} while (!limbPath.FrameDone() && !limbPath.PathEnded());
+
+	// Todo, right now this doesn't really work well. Need to investigate
+	/*Vector limbRange = m_LimbPos - adjustedJointPos;
+	if (limbRange.MagnitudeIsGreaterThan(limbRadius)) {
+		limbRange.SetMagnitude(limbRadius);
+		m_LimbPos = jointPos + limbRange;
+	}*/
 
 	if (pushImpulse.GetLargest() > 10000.0F) {
 		pushImpulse.Reset();
 	}
 
 	if (Actor* owner = dynamic_cast<Actor*>(m_OwnerMOSR)) {
-		bool againstTravelDirection = owner->GetController()->IsState(MOVE_LEFT) && pushImpulse.m_X > 0.0F ||
-		                              owner->GetController()->IsState(MOVE_RIGHT) && pushImpulse.m_X < 0.0F;
+		bool againstTravelDirection = !owner->GetController()->IsState(BODY_JUMP) && /*owner->EstimateJumpHeight() > 0.0F && // little inefficient for now*/
+		                              ((owner->GetController()->IsState(MOVE_LEFT)  && pushImpulse.m_X > 0.0F) ||
+		                               (owner->GetController()->IsState(MOVE_RIGHT) && pushImpulse.m_X < 0.0F));
 		if (againstTravelDirection) {
 			// Filter some of our impulse out. We're pushing against an obstacle, but we don't want to kick backwards!
-			const float againstIntendedDirectionMultiplier = 0.5F;
+			const float againstIntendedDirectionMultiplier = 0.3F;
 
-			if (!owner->GetController()->IsState(BODY_CROUCH) && !owner->GetController()->IsState(MOVE_DOWN)) {
+			if (!owner->GetController()->IsState(BODY_PRONE) && !owner->GetController()->IsState(MOVE_DOWN)) {
 				// Translate it into to upwards motion to step over what we're walking into instead ;)
-				pushImpulse.m_Y -= std::abs(pushImpulse.m_X * (1.0F - againstIntendedDirectionMultiplier));
+				// Disabled just now.. causes us to jump up at high speeds
+				//pushImpulse.m_Y -= std::abs(pushImpulse.m_X * (1.0F - againstIntendedDirectionMultiplier));
 			}
 
 			pushImpulse.m_X *= againstIntendedDirectionMultiplier;
@@ -1296,11 +1305,11 @@ void AtomGroup::FlailAsLimb(const Vector& ownerPos, const Vector& jointOffset, c
 	Vector pushImpulse = PushTravel(m_LimbPos, totalVel, 100, didWrap, travelTime, false, false);
 
 	Vector limbRange = m_LimbPos - jointPos;
-
 	if (limbRange.MagnitudeIsGreaterThan(limbRadius)) {
 		limbRange.SetMagnitude(limbRadius);
 		m_LimbPos = jointPos + limbRange;
 	}
+
 	return;
 }
 

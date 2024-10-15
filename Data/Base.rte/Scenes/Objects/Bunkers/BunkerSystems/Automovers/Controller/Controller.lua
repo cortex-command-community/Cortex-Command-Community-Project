@@ -914,8 +914,8 @@ automoverActorFunctions.addActorToAutomoverTable = function(self, actor)
 		actor:SetNumberValue("Automover_OldMoveProximityLimit", actor.MoveProximityLimit);
 	end
 
-	-- Make move proximity much lower so we don't get caught on corners
-	actor.MoveProximityLimit = 2;
+	-- Make move proximity much higher so we don't zigzag back and forth
+	actor.MoveProximityLimit = 5;
 
 	self.affectedActorsCount = self.affectedActorsCount + 1;
 
@@ -1127,19 +1127,33 @@ automoverActorFunctions.updateDirectionsFromActorControllerInput = function(self
 
 		analogMove = wptPos - actor.Pos;
 
-		-- the ai only removes points if it's not flying and moving, so let's remove the point if needed
-		if analogMove:MagnitudeIsLessThan(3) then
-			actor:RemoveMovePathBeginning();
+		-- zero out the axis we're being centred on, if we're only being centred on one
+		if actorData.centeringAxes ~= nil and #actorData.centeringAxes == 1 then
+			analogMove[actorData.centeringAxes[1]] = 0;
+		end
+
+		if actor:NumberValueExists("AI_StuckForTime") and actorData.lastAnalogMove ~= nil then
+			-- Sometimes give no input to let things reset
+			local stuckForMS = actor:GetNumberValue("AI_StuckForTime");
+			if math.fmod(stuckForMS, 5000) < 500 then
+				analogMove = Vector();
+			else
+				if actorData.lastAnalogMove:IsZero() then
+					-- We tried a random direction and failed to get unstuck in 5 secs
+					-- so try the opposite direction as our waypoint
+					actorData.lastAnalogMove = analogMove * -1;
+				end
+
+				-- add a random deviation to get unstuck
+				actorData.lastAnalogMove:RadRotate(RangeRand(-0.15,0.15));
+				analogMove = actorData.lastAnalogMove;
+			end
 		end
 
 		analogMove:Normalize();
-
-		if (actor.Pos - actor.PrevPos):MagnitudeIsLessThan(0.05) then
-			-- choose a random direction to get unstuck
-			-- TODO, it'd be better if the AI logic can communicate this to us instead!
-			analogMove:RadRotate(RangeRand(-math.pi,math.pi));
-		end
 	end
+
+	actorData.lastAnalogMove = analogMove;
 
 	local deadZone = 0.1;
 	if analogMove:MagnitudeIsGreaterThan(deadZone) then
@@ -1540,6 +1554,8 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 	local actor = actorData.actor;
 	local actorDirection = actorData.direction;
 
+	actorData.centeringAxes = {};
+
 	local oldClosestNode = actorData.currentClosestNode;
 	local closestNode = self:findClosestNode(actor.Pos, actorData.currentClosestNode, true, true) or actorData.currentClosestNode;
 	actorData.currentClosestNode = closestNode;
@@ -1577,6 +1593,8 @@ automoverActorFunctions.centreActorToClosestNodeIfMovingInAppropriateDirection =
 		else
 			centeringAxes = { (directionToUseForCentering == Directions.Up or directionToUseForCentering == Directions.Down) and "X" or "Y"; }
 		end
+		actorData.centeringAxes = centeringAxes;
+
 		local gravityAdjustment = SceneMan.GlobalAcc * TimerMan.DeltaTimeSecs * -1;
 		local centeringSpeedAndDistance = self.movementAcceleration * 5;
 
@@ -1640,7 +1658,7 @@ automoverActorFunctions.updateFrozenActor = function(self, actorData)
 			actor.Vel[axis] = gravityAdjustment[axis];
 			if IsAHuman(actor) then
 				ToAHuman(actor).ProneState = AHuman.NOTPRONE;
-				actor:GetController():SetState(Controller.BODY_CROUCH, false);
+				actor:GetController():SetState(Controller.BODY_PRONE, false);
 			end
 		end
 	end
@@ -1688,7 +1706,7 @@ automoverActorFunctions.updateMovingActor = function(self, actorData, anyCenteri
 					verticalRotationAdjustment = direction == Directions.Down and -actor.FlipFactor or 1;
 					ToAHuman(actor).ProneState = movementTable.aHumanProneState;
 				end
-				actorController:SetState(Controller.BODY_CROUCH, movementTable.aHumanCrouchState);
+				actorController:SetState(Controller.BODY_PRONE, movementTable.aHumanCrouchState);
 			end
 			if actor.RotAngle > rotAngleGoal + self.movementAcceleration then
 				actor.RotAngle = actor.RotAngle - (self.movementAcceleration * 0.25 * verticalRotationAdjustment);

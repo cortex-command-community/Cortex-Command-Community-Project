@@ -54,6 +54,7 @@ void MOSRotating::Clear() {
 	m_RecoilForce.Reset();
 	m_RecoilOffset.Reset();
 	m_Wounds.clear();
+	m_WoundBurstSoundPlayedThisFrame = false;
 	m_Attachables.clear();
 	m_ReferenceHardcodedAttachableUniqueIDs.clear();
 	m_HardcodedAttachableUniqueIDsAndSetters.clear();
@@ -458,6 +459,12 @@ void MOSRotating::AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet
 		woundToAdd->SetParentOffset(parentOffsetToSet);
 		woundToAdd->SetParent(this);
 		woundToAdd->SetIsWound(true);
+		if (woundToAdd->GetBurstSound()) {
+			if (m_WoundBurstSoundPlayedThisFrame) {
+				woundToAdd->SetPlayBurstSound(false);
+			}
+			m_WoundBurstSoundPlayedThisFrame = true;
+		}
 		if (woundToAdd->HasNoSetDamageMultiplier()) {
 			woundToAdd->SetDamageMultiplier(1.0F);
 		}
@@ -1033,7 +1040,7 @@ void MOSRotating::RemoveAttachablesWhenGibbing(const Vector& impactImpulse, Mova
 }
 
 bool MOSRotating::MoveOutOfTerrain(unsigned char strongerThan) {
-	return m_pAtomGroup->ResolveTerrainIntersection(m_Pos, strongerThan);
+	return (m_PinStrength <= 0) ? m_pAtomGroup->ResolveTerrainIntersection(m_Pos, strongerThan) : true;
 }
 
 void MOSRotating::ApplyForces() {
@@ -1340,6 +1347,8 @@ void MOSRotating::Update() {
 		m_Rotation += radsToGo * m_OrientToVel * velInfluence;
 	}
 
+	m_WoundBurstSoundPlayedThisFrame = false;
+	
 	for (auto woundItr = m_Wounds.begin(); woundItr != m_Wounds.end();) {
 		AEmitter* wound = *woundItr;
 		RTEAssert(wound && wound->IsAttachedTo(this), "Broken wound AEmitter in Update");

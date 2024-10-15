@@ -22,7 +22,7 @@ void AEJetpack::Clear() {
 	m_JetThrustBonusMultiplier = 1.0F;
 	m_JetReplenishRate = 1.0F;
 	m_MinimumFuelRatio = 0.0F;
-	m_JetAngleRange = 0.25F;
+	m_JetAngleRange = 0.16F;
 	m_CanAdjustAngleWhileFiring = true;
 	m_AdjustsThrottleForWeight = true;
 }

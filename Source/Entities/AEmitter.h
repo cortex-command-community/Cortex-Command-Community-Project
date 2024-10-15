@@ -292,6 +292,14 @@ namespace RTE {
 		/// @param newValue Emit damage of emitter.
 		void SetEmitDamage(float newValue) { m_EmitDamage = newValue; }
 
+		/// Returns whether this emitter will play its burst sound when appropriate or not.
+		/// @return Whether this emitter will play its burst sound when appropriate or not.
+		bool GetPlayBurstSound() const { return m_PlayBurstSound; }
+
+		/// Sets whether this emitter will play its burst sound when appropriate or not.
+		/// @param playBurstSound Whether this emitter should play its burst sound when appropriate or not.
+		void SetPlayBurstSound(bool playBurstSound) { m_PlayBurstSound = playBurstSound; }
+
 		/// Returns damage multiplier of this emitter.
 		/// @return Damage multiplier of emitter.
 		float GetEmitterDamageMultiplier() const { return m_EmitterDamageMultiplier; }
@@ -390,6 +398,8 @@ namespace RTE {
 		float m_BurstSpacing;
 		// Measures the shortest possible time between bursts
 		Timer m_BurstTimer;
+		// Whether to play the BurstSound when a burst is triggered or not.
+		bool m_PlayBurstSound;
 		// The angle of the direction the emitted particles will head in.
 		// The m_Roataion of this AEmitter will be added to this angle.
 		Matrix m_EmitAngle;

@@ -38,6 +38,7 @@ void AEmitter::Clear() {
 	// Set this to really long so an initial burst will be possible
 	m_BurstTimer.SetElapsedSimTimeS(50000);
 	m_BurstTimer.SetElapsedRealTimeS(50000);
+	m_PlayBurstSound = true;
 	m_EmitAngle.Reset();
 	m_EmissionOffset.Reset();
 	m_EmitDamage = 0;
@@ -87,6 +88,7 @@ int AEmitter::Create(const AEmitter& reference) {
 	m_EmitterDamageMultiplier = reference.m_EmitterDamageMultiplier;
 	m_BurstSpacing = reference.m_BurstSpacing;
 	m_BurstTriggered = reference.m_BurstTriggered;
+	m_PlayBurstSound = reference.m_PlayBurstSound;
 	m_EmitAngle = reference.m_EmitAngle;
 	m_EmissionOffset = reference.m_EmissionOffset;
 	m_EmitDamage = reference.m_EmitDamage;
@@ -147,6 +149,7 @@ int AEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("EmitterDamageMultiplier", { reader >> m_EmitterDamageMultiplier; });
 	MatchProperty("BurstSpacing", { reader >> m_BurstSpacing; });
 	MatchProperty("BurstTriggered", { reader >> m_BurstTriggered; });
+	MatchProperty("PlayBurstSound", { reader >> m_PlayBurstSound; });
 	MatchProperty("EmissionAngle", { reader >> m_EmitAngle; });
 	MatchProperty("EmissionOffset", { reader >> m_EmissionOffset; });
 	MatchProperty("EmissionDamage", { reader >> m_EmitDamage; });
@@ -197,6 +200,8 @@ int AEmitter::Save(Writer& writer) const {
 	writer << m_BurstSpacing;
 	writer.NewProperty("BurstTriggered");
 	writer << m_BurstTriggered;
+	writer.NewProperty("PlayBurstSound");
+	writer << m_PlayBurstSound;
 	writer.NewProperty("EmissionAngle");
 	writer << m_EmitAngle;
 	writer.NewProperty("EmissionOffset");
@@ -392,7 +397,7 @@ void AEmitter::Update() {
 		float throttleFactor = GetThrottleFactor();
 		m_FlashScale = throttleFactor;
 		// Check burst triggering against whether the spacing is fulfilled
-		if (m_BurstTriggered && CanTriggerBurst()) {
+		if (m_PlayBurstSound && m_BurstTriggered && CanTriggerBurst()) {
 			// Play burst sound
 			if (m_BurstSound) {
 				m_BurstSound->Play(m_Pos);

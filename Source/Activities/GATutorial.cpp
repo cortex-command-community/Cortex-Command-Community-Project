@@ -723,13 +723,8 @@ void GATutorial::SetupAreas() {
 	int device = g_UInputMan.GetControlScheme(m_TutorialPlayer)->GetDevice();
 	int preset = g_UInputMan.GetControlScheme(m_TutorialPlayer)->GetPreset();
 
-	// Adjust for special commands when using the keyboard-only setup
-	std::string JumpName = MAPNAME(INPUT_L_UP);
-	std::string CrouchName = MAPNAME(INPUT_L_DOWN);
-	if (device == DEVICE_KEYB_ONLY) {
-		JumpName = MAPNAME(INPUT_JUMP);
-		CrouchName = MAPNAME(INPUT_CROUCH);
-	}
+	std::string JumpName = MAPNAME(INPUT_JUMP);
+	std::string ProneName = MAPNAME(INPUT_PRONE);
 
 	// If no preset, adjust the pie menu and fire names when using the defaults on a gamepad.. otherwise it'll show up as an unhelpful "Joystick"
 	std::string PieName = MAPNAME(INPUT_PIEMENU_ANALOG);
@@ -807,7 +802,7 @@ void GATutorial::SetupAreas() {
 	m_TutAreaSteps[OBSTACLECOURSE].push_back(TutStep("Obstacle course", 2000, "Missions.rte/Objects/Tutorial/BodyHop.png", 2));
 	m_TutAreaSteps[OBSTACLECOURSE].push_back(TutStep("Climb obstacles by holding [" + MAPNAME(INPUT_L_RIGHT) + "]", 4000, "Missions.rte/Objects/Tutorial/ArrowRight.png", 2));
 	m_TutAreaSteps[OBSTACLECOURSE].push_back(TutStep("Even climb ladders by simply moving toward them", 8000, "Missions.rte/Objects/Tutorial/BodyClimb.png", 2));
-	m_TutAreaSteps[OBSTACLECOURSE].push_back(TutStep("You can also crouch and crawl with [" + CrouchName + "]", 6000, "Missions.rte/Objects/Tutorial/BodyCrawl.png", 2));
+	m_TutAreaSteps[OBSTACLECOURSE].push_back(TutStep("You can also go prone and crawl with [" + ProneName + "]", 6000, "Missions.rte/Objects/Tutorial/BodyCrawl.png", 2));
 	m_TutAreaSteps[OBSTACLECOURSE].push_back(TutStep("In tight spaces, you may need to angle your head down to get through", 8000, "Missions.rte/Objects/Tutorial/BodyCrawl.png", 2));
 
 	// FIRINGRANGE

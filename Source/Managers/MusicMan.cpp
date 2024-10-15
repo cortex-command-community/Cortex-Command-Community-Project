@@ -54,19 +54,16 @@ void MusicMan::Update() {
 		if (m_PreviousSoundContainerSetToFade && m_MusicFadeTimer.IsPastRealTimeLimit()) {
 			m_PreviousSoundContainerSetToFade = false;
 			if (m_PreviousSoundContainer) {
-				g_ConsoleMan.PrintString("MusicMan: Faded PreviousSoundContainer due to SetToFade.");
 				const int musicFadeOutTimeMs = 250;
 				m_PreviousSoundContainer->FadeOut(musicFadeOutTimeMs);
 			}
 		}
 	} else if (!m_ReturnToDynamicMusic) {
 		if (m_CurrentSoundContainer && m_CurrentSoundContainer->GetAudibleVolume() == 0.0F) {
-			g_ConsoleMan.PrintString("MusicMan: Inaudible CurrentSoundContainer is about to be deleted: " + m_CurrentSoundContainer->GetPresetName());
 			m_CurrentSoundContainer = nullptr;
 		}
 	}
 	if (m_PreviousSoundContainer && m_PreviousSoundContainer->GetAudibleVolume() == 0.0F) {
-		g_ConsoleMan.PrintString("MusicMan: Inaudible PreviousSoundContainer is about to be deleted: " + m_PreviousSoundContainer->GetPresetName());
 		m_PreviousSoundContainer = nullptr;
 	}
 }
@@ -110,7 +107,6 @@ bool MusicMan::PlayDynamicSong(const std::string& songName, const std::string& s
 		// If this isn't the case, then the MusicTimer's existing setup should make it play properly anyway, even if it's just instant
 		if (playImmediately) {
 			if (m_IsPlayingDynamicMusic) {
-				g_ConsoleMan.PrintString("MusicMan: Immediately played DynamicSong has stopped PreviousSoundContainer.");
 				if (m_PreviousSoundContainer) {
 					m_PreviousSoundContainer->Stop();
 					m_PreviousSoundContainer = nullptr;
@@ -127,13 +123,10 @@ bool MusicMan::PlayDynamicSong(const std::string& songName, const std::string& s
 }
 
 bool MusicMan::SetNextDynamicSongSection(const std::string& newSongSectionType, bool playImmediately, bool playTransition, bool smoothFade) {
-	g_ConsoleMan.PrintString("MusicMan: Attempting to set next DynamicSongSection...");
 	std::string currentDynamicSongSection = "None";
 	if (m_NextSongSection) {
 		currentDynamicSongSection = m_NextSongSection->GetPresetName();
 	}
-	g_ConsoleMan.PrintString("Current DynamicSongSection: " + currentDynamicSongSection);
-	g_ConsoleMan.PrintString("Desired new DynamicSongSection: " + newSongSectionType);
 	
 	if (!m_IsPlayingDynamicMusic) {
 		return false;
@@ -142,9 +135,7 @@ bool MusicMan::SetNextDynamicSongSection(const std::string& newSongSectionType, 
 	SelectNextSongSection();
 	SelectNextSoundContainer(playTransition);
 	if (playImmediately) {
-		g_ConsoleMan.PrintString("Playing new song section immediately!");
 		if (m_PreviousSoundContainerSetToFade) {
-			g_ConsoleMan.PrintString("MusicMan: Immediately played new song section has stopped PreviousSoundContainer.");
 			m_PreviousSoundContainerSetToFade = false;
 			if (m_PreviousSoundContainer) {
 				m_PreviousSoundContainer->Stop();
@@ -157,44 +148,41 @@ bool MusicMan::SetNextDynamicSongSection(const std::string& newSongSectionType, 
 }
 
 bool MusicMan::CyclePlayingSoundContainers(bool smoothFade) {
-	g_ConsoleMan.PrintString("MusicMan: Cycling SoundContainers...");
 	std::string currentSoundContainer = "None";
 	if (m_CurrentSoundContainer) {
 		currentSoundContainer = m_CurrentSoundContainer->GetPresetName();
 	}
-	g_ConsoleMan.PrintString("Current sound container: " + currentSoundContainer);
-	g_ConsoleMan.PrintString("Next sound container: " + m_NextSoundContainer->GetPresetName());
+
 	std::string previousSoundContainer = "None";
 	if (m_PreviousSoundContainer) {
 		previousSoundContainer = m_PreviousSoundContainer->GetPresetName();
 	}
-	g_ConsoleMan.PrintString("Previous sound container: " + previousSoundContainer);
 	
 	if (m_CurrentSoundContainer && m_CurrentSoundContainer->IsBeingPlayed()) {
 		if (smoothFade) {
 			m_CurrentSoundContainer->FadeOut(static_cast<int>(m_NextSoundContainer->GetMusicPreEntryTime()));
 		} else if (!m_MusicTimer.IsPastRealTimeLimit()) {
-			g_ConsoleMan.PrintString("No smoothFade and premature cycling means upcoming PreviousSoundContainer will be faded out at entry point.");
 			m_PreviousSoundContainerSetToFade = true;
 			m_MusicFadeTimer.Reset();
 			m_MusicFadeTimer.SetRealTimeLimitMS(static_cast<int>(m_NextSoundContainer->GetMusicPreEntryTime()));
 		}
 		if (m_PreviousSoundContainer) {
-			g_ConsoleMan.PrintString("Found unfaded PreviousSoundContainer. Stopping: " + m_PreviousSoundContainer->GetPresetName());
 			m_PreviousSoundContainerSetToFade = false;
 			m_PreviousSoundContainer->Stop();
 			m_PreviousSoundContainer = nullptr;
 		}
 		m_PreviousSoundContainer = std::unique_ptr<SoundContainer>(m_CurrentSoundContainer.release());
-		g_ConsoleMan.PrintString("Moved CurrentSoundContainer to PreviousSoundContainer while cycling, it is now: " + m_PreviousSoundContainer->GetPresetName());
 	}
 
 	// Clone instead of just point to because we might wanna keep this around even if the DynamicSong is gone
 	m_CurrentSoundContainer = std::unique_ptr<SoundContainer>(dynamic_cast<SoundContainer*>(m_NextSoundContainer->Clone()));
 	SelectNextSoundContainer();
 	m_MusicTimer.Reset();
-	double timeUntilNextShouldBePlayed = std::max(0.0F, m_CurrentSoundContainer->GetMusicExitTime() - m_NextSoundContainer->GetMusicPreEntryTime());
-	g_ConsoleMan.PrintString("Time until next should be played:" + std::to_string(timeUntilNextShouldBePlayed));
+	float exitTime = m_CurrentSoundContainer->GetMusicExitTime();
+	if (exitTime == 0.0F) {
+		exitTime = m_CurrentSoundContainer->GetLength(SoundContainer::LengthOfSoundType::NextPlayed);
+	}
+	double timeUntilNextShouldBePlayed = std::max(0.0F, exitTime - m_NextSoundContainer->GetMusicPreEntryTime());
 	m_MusicTimer.SetRealTimeLimitMS(timeUntilNextShouldBePlayed);
 	m_CurrentSoundContainer->Play();
 	m_CurrentSongSectionType = m_NextSongSectionType;
@@ -254,7 +242,6 @@ void MusicMan::PlayInterruptingMusic(const SoundContainer* soundContainer) {
 }
 
 void MusicMan::EndInterruptingMusic() {
-	g_ConsoleMan.PrintString("MusicMan: Ending interrupting music.");
 	if (m_InterruptingMusicSoundContainer && m_InterruptingMusicSoundContainer->IsBeingPlayed()) {
 		m_InterruptingMusicSoundContainer->Stop();
 
@@ -263,7 +250,6 @@ void MusicMan::EndInterruptingMusic() {
 		}
 
 		if (m_CurrentSoundContainer != nullptr) {
-			g_ConsoleMan.PrintString("Unpausing CurrentSoundContainer.");
 			m_CurrentSoundContainer->SetPaused(false);
 		}
 

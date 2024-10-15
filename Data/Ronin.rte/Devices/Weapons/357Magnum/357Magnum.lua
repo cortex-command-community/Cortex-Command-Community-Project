@@ -20,7 +20,7 @@ function Update(self)
 			actor = ToActor(MovableMan:GetMOFromID(self.RootID));
 
 			ToActor(actor):GetController():SetState(Controller.AIM_SHARP, false);
-			ToActor(actor):GetController():SetState(Controller.BODY_CROUCH, false);
+			ToActor(actor):GetController():SetState(Controller.BODY_PRONE, false);
 			if ToActor(actor):GetController():IsState(Controller.WEAPON_FIRE) then
 
 				if self:GetNumberValue("CowboyMode") < 3 then

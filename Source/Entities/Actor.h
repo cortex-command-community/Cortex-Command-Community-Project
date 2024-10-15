@@ -39,11 +39,13 @@ namespace RTE {
 		// TODO - move into ALocomotable intermediate class under ACrab/AHuman
 		enum MovementState {
 			NOMOVE = 0,
+			CROUCH,
 			STAND,
 			WALK,
+			RUN,
 			JUMP,
 			DISLODGE,
-			CROUCH,
+			PRONE,
 			CRAWL,
 			ARMCRAWL,
 			CLIMB,
@@ -278,11 +280,11 @@ namespace RTE {
 
 		/// Gets this Actor's MovementState.
 		/// @return This Actor's MovementState.
-		MovementState GetMovementState() const { return m_MoveState; }
+		MovementState GetMovementState() const { return m_MovementState; }
 
 		/// Sets this Actor's MovementState to the new state.
 		/// @param newMovementState This Actor's new MovementState.
-		void SetMovementState(MovementState newMovementState) { m_MoveState = newMovementState; }
+		void SetMovementState(MovementState newMovementState) { m_MovementState = newMovementState; }
 
 		/// Sets which team this Actor belongs to.
 		/// @param team The assigned team number.
@@ -767,6 +769,22 @@ namespace RTE {
 		/// @param newRecoverDelay The recovery delay, in MS.
 		void SetStableRecoverDelay(int newRecoverDelay) { m_StableRecoverDelay = newRecoverDelay; }
 
+		/// Gets whether this can run or not.
+		/// @return Whether this can run or not.
+		int GetCanRun() const { return m_CanRun; }
+
+		/// Sets whether this can run or not.
+		/// @param newCanRun The new value for whether this can run or not.
+		void SetCanRun(bool newCanRun) { m_CanRun = newCanRun; }
+
+		/// Gets the crouch walk speed multiplier.
+		/// @return The crouch walk speed multiplier.
+		float GetCrouchWalkSpeedMultiplier() const { return m_CrouchWalkSpeedMultiplier; }
+
+		/// Sets the crouch walk speed multiplier.
+		/// @param newSpeed The new value for the crouch walk speed multiplier.
+		void SetCrouchWalkSpeedMultiplier(float newSpeed) { m_CrouchWalkSpeedMultiplier = newSpeed; }
+
 		/// Gets the distance in which the Actor will have considered itself to have reached it's waypoint.
 		/// @return The move proximity limit.
 		float GetMoveProximityLimit() const { return m_MoveProximityLimit; }
@@ -873,6 +891,10 @@ namespace RTE {
 		float m_GoldCarried;
 		// Whether or not any gold was picked up this frame.
 		bool m_GoldPicked;
+		// Whether this can engage RUN state or not
+		bool m_CanRun;
+		// Multiplier applied to walking speed at maximum crouch.
+		float m_CrouchWalkSpeedMultiplier;
 		// Aiming state
 		char m_AimState;
 		// The arc range of the aiming angle, in each direction, in radians. Eg if HalfPI, it means full 180 degree range
@@ -993,7 +1015,7 @@ namespace RTE {
 		// The minimum range to consider having reached a move target is considered
 		float m_MoveProximityLimit;
 		// Current movement state.
-		MovementState m_MoveState;
+		MovementState m_MovementState;
 
 		bool m_Organic; //!< Flag for whether or not this Actor is organic. Useful for lua purposes and mod support.
 		bool m_Mechanical; //!< Flag for whether or not this Actor is robotic. Useful for lua purposes and mod support.

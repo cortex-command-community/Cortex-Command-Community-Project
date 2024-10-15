@@ -62,6 +62,12 @@ function Create(self)
 	self.abilityShockwaveWhooshSound = CreateSoundContainer("Browncoat Boss Ability Shockwave Whoosh", "Browncoats.rte");	
 	self.abilityShockwaveLandSound = CreateSoundContainer("Browncoat Boss Ability Shockwave Land", "Browncoats.rte");	
 	
+	self.abilityShockwaveTerrainSounds = {};
+	
+	self.abilityShockwaveTerrainSounds.Concrete = CreateSoundContainer("Browncoat Boss Ability Shockwave Concrete Add", "Browncoats.rte");	
+	self.abilityShockwaveTerrainSounds.Dirt = CreateSoundContainer("Browncoat Boss Ability Shockwave Dirt Add", "Browncoats.rte");	
+	self.abilityShockwaveTerrainSounds.Metal = CreateSoundContainer("Browncoat Boss Ability Shockwave Metal Add", "Browncoats.rte");	
+	
 	self.abilityShockwaveTimer = Timer();
 	self.abilityShockwaveJumpPackDelay = 300;
 	
