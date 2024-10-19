@@ -558,14 +558,6 @@ function RefineryAssault:UpdateActivity()
 			self:ChangeAIFunds(1, 200);
 		end
 		
-		-- Brain teleport to cursor
-		if UInputMan:KeyPressed(Key.SPACE) then
-			for k, brain in pairs(self.saveTable.playerBrains) do
-				local pos = CameraMan:GetScrollTarget(0);
-				brain.Pos = pos;
-			end
-		end
-		
 		-- Invincible brain and infinite gun
 		if not self.saveTable.debugInvincibleBrain and UInputMan:KeyPressed(Key.KP_6) then
 			self.saveTable.debugInvincibleBrain = true;
