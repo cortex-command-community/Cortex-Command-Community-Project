@@ -26,8 +26,21 @@ function DebugFunctionsScript:UpdateScript()
 		end
 	end
 	
+	for act in MovableMan.Actors do
+		if act:IsPlayerControlled() then
+			self.lastControlledActor = act;
+		end
+	end
+	
 	-- Hold Alt to do any of these
 	if UInputMan.FlagAltState then
+	
+		-- Space to teleport last controlled actor to cursor
+		if UInputMan:KeyPressed(Key.SPACE) then
+			if self.lastControlledActor then
+				self.lastControlledActor.Pos = CameraMan:GetScrollTarget(0);
+			end
+		end
 
 		-- Keypad 9 for HUD Toggle
 		if UInputMan:KeyPressed(Key.KP_9) then
