@@ -1371,7 +1371,7 @@ void MovableMan::Update() {
 		                                                                            [&](int start, int end) {
 			                                                                            ZoneScopedN("Actors See");
 			                                                                            for (int i = start; i < end; ++i) {
-				                                                                            m_Actors[i]->CastSeeRays();
+				                                                                            if (m_Actors[i]) m_Actors[i]->CastSeeRays();
 			                                                                            }
 		                                                                            });
 
