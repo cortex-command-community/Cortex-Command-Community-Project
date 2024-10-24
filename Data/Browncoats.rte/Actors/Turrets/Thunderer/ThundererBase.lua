@@ -1,10 +1,4 @@
 function Create(self)
-	if self:GetNumberValue("KeepUnflipped") == -1 then
-		self.keepFlipped = true;
-	else
-		self.keepFlipped = false;
-	end
-	
 	-- saving and loading can mess this up, so handle it:
 	
 	self.pinPos = Vector(self.Pos.X, self.Pos.Y);
@@ -18,6 +12,18 @@ function Create(self)
 	end
 
 	self.AIMode = Actor.AIMODE_SENTRY;
+	
+	if self:GetNumberValue("KeepUnflipped") == -1 then
+		self.keepFlipped = true;
+	else
+		self.keepFlipped = false;
+	end
+	
+	if self.Turret then
+		if self.Turret.MountedDevice then
+			self.Turret.MountedDevice:SendMessage("SetKeepUnflipped", self:GetNumberValue("KeepUnflipped"));
+		end
+	end
 end
 
 function Update(self)

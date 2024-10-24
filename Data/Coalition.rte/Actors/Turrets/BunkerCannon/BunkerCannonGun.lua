@@ -1,7 +1,11 @@
 -- This script incorporates Filipawn Industries code and the vanilla burstfire script together
 -- There is likely better ways of doing a lot of this, potentially even standardizing it so it can be easily used more widely
 
--- Last worked on 29/08/2023
+function OnMessage(self, message, context)
+	if message == "SetKeepUnflipped" then
+		self.keepFlipped = context == -1 and true or false;
+	end
+end
 
 function OnFire(self)
 
@@ -18,7 +22,6 @@ function OnReload(self)
 end
 
 function Create(self)
-
 	self.servoLoopSound = CreateSoundContainer("Coalition Bunker Cannon Servo Loop", "Coalition.rte");
 	self.servoLoopSound.Volume = 0;
 	self.servoLoopSound.Pitch = 1;
@@ -46,15 +49,9 @@ function Create(self)
 	self.InheritedRotAngleTarget = 0;
 
 	self.shotsPerBurst = self:NumberValueExists("ShotsPerBurst") and self:GetNumberValue("ShotsPerBurst") or 3;
-	self.coolDownDelay = 500;	
+	self.coolDownDelay = 500;
 	
-	if self:NumberValueExists("KeepUnflipped") then
-		self.keepFlipped = true;
-	else
-		self.keepFlipped = false;
-	end
-	
-
+	self.keepFlipped = false;
 end
 
 function Update(self)

@@ -1,5 +1,8 @@
--- This script incorporates Filipawn Industries code and the vanilla burstfire script together
--- There is likely better ways of doing a lot of this, potentially even standardizing it so it can be easily used more widely
+function OnMessage(self, message, context)
+	if message == "SetKeepUnflipped" then
+		self.keepFlipped = context == -1 and true or false;
+	end
+end
 
 function OnFire(self)
 	CameraMan:AddScreenShake(7, self.Pos);
@@ -58,10 +61,14 @@ function Create(self)
 	self.rotationSpeed = 0.10;
 	self.smoothedRotAngle = self.RotAngle;
 	self.InheritedRotAngleTarget = 0;
+	
+	self.keepFlipped = false;
 end
 
 function Update(self)
 	--self.servoLoopSound.Pos = self.Pos;
+	
+	self.HFlipped = self.keepFlipped;
 
 	self.parent = IsActor(self:GetRootParent()) and ToActor(self:GetRootParent()) or nil;
 	
@@ -102,7 +109,7 @@ function Update(self)
 		local frameNum = math.floor(4 * progress);
 		self.Frame = self.currentBaseFrame + frameNum;
 		
-		local barrel = self.currentBarrel == 0 and self.topBarrel or self.bottomBarrel;
+		local barrel = self.currentBarrel == 0 and self.bottomBarrel or self.topBarrel;
 		local jointOffsetX = 10 * math.sin(progress * math.pi);
 		barrel.JointOffset = Vector(jointOffsetX, 0);
 		
