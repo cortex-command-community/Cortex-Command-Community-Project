@@ -44,7 +44,7 @@ function Create(self)
 	
 	self.reloadSmokeTimer = Timer();
 	
-	self.rotationSpeed = 0.10;
+	self.rotationSpeed = 0.04;
 	self.smoothedRotAngle = self.RotAngle;
 	self.InheritedRotAngleTarget = 0;
 
@@ -66,26 +66,28 @@ function Update(self)
 	
 	-- reticule of actual aim line so the gun feels cannon-y rather than unresponsive
 	
+	local actingRotAngle = self.RotAngle - self.InheritedRotAngleOffset;
+	
 	if self.playerControlled and self.parent.SharpAimProgress > 0.13 then
 		for i = 1, 24 do
 			if i % 3 == 0 then
-				local dotVec = Vector(i*self.FlipFactor, 0):RadRotate(self.RotAngle) + self.Pos + Vector((self.SharpLength + 15) * self.FlipFactor, 0):RadRotate(self.RotAngle)*self.parent.SharpAimProgress;
+				local dotVec = Vector(i*self.FlipFactor, 0):RadRotate(actingRotAngle) + self.Pos + Vector((self.SharpLength + 15) * self.FlipFactor, 0):RadRotate(actingRotAngle)*self.parent.SharpAimProgress;
 				PrimitiveMan:DrawLinePrimitive(dotVec, dotVec, 116, 2);
 			end
 		end
 	end
 	-- rotation smoothing, for a cannon-y feel:
 	
-	if self.smoothedRotAngle ~= self.RotAngle then
-		self.smoothedRotAngle = self.smoothedRotAngle - (self.rotationSpeed * (self.smoothedRotAngle - self.RotAngle));
+	if self.smoothedRotAngle ~= actingRotAngle then
+		self.smoothedRotAngle = self.smoothedRotAngle - (self.rotationSpeed * (self.smoothedRotAngle - (actingRotAngle)));
 	end
 	
-	self.servoLoopSoundVolumeTarget = 0 + math.abs(self.smoothedRotAngle - self.RotAngle)
+	self.servoLoopSoundVolumeTarget = 0 + math.abs(self.smoothedRotAngle - actingRotAngle)
 	self.servoLoopSound.Volume = self.servoLoopSound.Volume - (0.5 * (self.servoLoopSound.Volume - self.servoLoopSoundVolumeTarget));
-	self.servoLoopSoundPitchTarget = 1 + math.abs(self.smoothedRotAngle - self.RotAngle)
+	self.servoLoopSoundPitchTarget = 1 + math.abs(self.smoothedRotAngle - actingRotAngle)
 	self.servoLoopSound.Pitch = self.servoLoopSound.Pitch - (0.1 * (self.servoLoopSound.Pitch - self.servoLoopSoundPitchTarget));
 	
-	self.InheritedRotAngleOffset = self.smoothedRotAngle - self.RotAngle;
+	self.InheritedRotAngleOffset = self.smoothedRotAngle - actingRotAngle;
 	
 	-- Mathemagical firing anim by filipex
 	local f = math.max(1 - math.min((self.FireTimer.ElapsedSimTimeMS) / 200, 1), 0)

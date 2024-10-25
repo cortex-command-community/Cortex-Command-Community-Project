@@ -261,6 +261,14 @@ namespace RTE {
 		/// @param inheritedRotAngleOffset Thee new rotation angle offset for this Attachable.
 		void SetInheritedRotAngleOffset(float inheritedRotAngleOffset) { m_InheritedRotAngleOffset = inheritedRotAngleOffset; }
 
+		/// Gets the Turret-specific offset in radians for this HeldDevice's rotation.
+		/// @return The rotation void Update() override;ooffset in radians.
+		float GetMountedRotAngleOffset() const { return m_MountedRotAngleOffset; }
+
+		/// Sets the Turret-specific offset in radians for this HeldDevice's rotation.
+		/// @param mountedRotationOffset The new rotation offset in radians.
+		void SetMountedRotAngleOffset(float mountedRotationOffset) { m_MountedRotAngleOffset = mountedRotationOffset; }
+		
 		/// Gets whether or not this Attachable inherits its Frame from its parent, if attached.
 		/// @return Whether or not this Attachable inherits its parent's Frame.
 		bool InheritsFrame() const { return m_InheritsFrame; }
@@ -435,6 +443,8 @@ namespace RTE {
 		int m_InheritsHFlipped; //!< Whether this Attachable should inherit its parent's HFlipped. Defaults to 1 (normal inheritance).
 		bool m_InheritsRotAngle; //!< Whether this Attachable should inherit its parent's RotAngle. Defaults to true.
 		float m_InheritedRotAngleOffset; //!< The offset by which this Attachable should be rotated when it's set to inherit its parent's rotation angle. Defaults to 0.
+		// TODO: It really sucks this has to be here just because Turrets are Speshul, we should figure out something better.
+		float m_MountedRotAngleOffset; //!< A relative offset angle (in radians) of this Attachable's rotation that should only be set by Turrets. Defaults to 0.
 		bool m_InheritsFrame; //!< Whether this Attachable should inherit its parent's Frame. Defaults to false.
 
 		long m_AtomSubgroupID; //!< The Atom IDs this' atoms will have when attached and added to a parent's AtomGroup.
