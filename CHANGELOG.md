@@ -99,6 +99,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue where an `Actor`'s MovementState wasn't correctly accessible from script.
 
+- Fixed mounted HeldDevices not respecting InheritedRotAngleOffset by shuffling around some internal properties.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
