@@ -75,6 +75,7 @@ void HDFirearm::Clear() {
 	m_AlreadyClicked = false;
 	m_RoundsFired = 0;
 	m_IsAnimatedManually = false;
+	m_RecoilTransmission = 1.0F;
 
 	m_LegacyCompatibilityRoundsAlwaysFireUnflipped = false;
 }
@@ -161,6 +162,7 @@ int HDFirearm::Create(const HDFirearm& reference) {
 	m_MagOff = reference.m_MagOff;
 	m_RoundsFired = reference.m_RoundsFired;
 	m_IsAnimatedManually = reference.m_IsAnimatedManually;
+	m_RecoilTransmission = reference.m_RecoilTransmission;
 
 	m_LegacyCompatibilityRoundsAlwaysFireUnflipped = reference.m_LegacyCompatibilityRoundsAlwaysFireUnflipped;
 
@@ -217,7 +219,6 @@ int HDFirearm::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("OneHandedReloadTimeMultiplier", { reader >> m_OneHandedReloadTimeMultiplier; });
 	MatchProperty("ReloadAngle", { reader >> m_ReloadAngle; });
 	MatchProperty("OneHandedReloadAngle", { reader >> m_OneHandedReloadAngle; });
-	MatchProperty("RecoilTransmission", { reader >> m_JointStiffness; });
 	MatchProperty("IsAnimatedManually", { reader >> m_IsAnimatedManually; });
 	MatchProperty("ShakeRange", {
 		reader >> m_ShakeRange;
@@ -246,6 +247,7 @@ int HDFirearm::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("MuzzleOffset", { reader >> m_MuzzleOff; });
 	MatchProperty("EjectionOffset", { reader >> m_EjectOff; });
 	MatchProperty("LegacyCompatibilityRoundsAlwaysFireUnflipped", { reader >> m_LegacyCompatibilityRoundsAlwaysFireUnflipped; });
+	MatchProperty("RecoilTransmission", { reader >> m_RecoilTransmission; });
 
 	EndPropertyList;
 }
@@ -292,8 +294,6 @@ int HDFirearm::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("ReloadAngle", m_ReloadAngle);
 	writer.NewPropertyWithValue("OneHandedReloadAngle", m_OneHandedReloadAngle);
 	writer << m_Reloadable;
-	writer.NewProperty("RecoilTransmission");
-	writer << m_JointStiffness;
 	writer.NewProperty("IsAnimatedManually");
 	writer << m_IsAnimatedManually;
 	writer.NewProperty("ShakeRange");
@@ -318,6 +318,8 @@ int HDFirearm::Save(Writer& writer) const {
 	writer << m_MuzzleOff;
 	writer.NewProperty("EjectionOffset");
 	writer << m_EjectOff;
+	writer.NewProperty("RecoilTransmission");
+	writer << m_RecoilTransmission;
 
 	writer.NewPropertyWithValue("LegacyCompatibilityRoundsAlwaysFireUnflipped", m_LegacyCompatibilityRoundsAlwaysFireUnflipped);
 
@@ -897,7 +899,7 @@ void HDFirearm::Update() {
 
 		// Set up the recoil force and shake offsets
 		if (m_Recoiled) {
-			m_RecoilForce.SetXY(totalFireForce * m_JointStiffness, 0);
+			m_RecoilForce.SetXY(totalFireForce * m_RecoilTransmission, 0);
 			m_RecoilForce = RotateOffset(m_RecoilForce);
 			m_RecoilForce = -m_RecoilForce;
 
@@ -913,7 +915,7 @@ void HDFirearm::Update() {
 			if (screenId != -1) {
 				const float shakiness = g_CameraMan.GetDefaultShakePerUnitOfRecoilEnergy();
 				const float maxShakiness = g_CameraMan.GetDefaultShakeFromRecoilMaximum(); // Some weapons fire huge rounds, so restrict the amount
-				float screenShakeAmount = m_RecoilScreenShakeAmount == -1.0F ? std::min(totalFireForce * m_JointStiffness * shakiness, maxShakiness) : m_RecoilScreenShakeAmount;
+				float screenShakeAmount = m_RecoilScreenShakeAmount == -1.0F ? std::min(totalFireForce * m_RecoilTransmission * shakiness, maxShakiness) : m_RecoilScreenShakeAmount;
 				g_CameraMan.ApplyScreenShake(screenShakeAmount, screenId);
 			}
 		}

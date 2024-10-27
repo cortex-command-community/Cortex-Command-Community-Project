@@ -229,7 +229,7 @@ bool Attachable::TransferJointImpulses(Vector& jointImpulses, float jointStiffne
 
 	if (gibImpulseLimitValueToUse > 0.0F && totalImpulseForce.MagnitudeIsGreaterThan(gibImpulseLimitValueToUse)) {
 		Vector gibImpulse = totalImpulseForce;
-		jointImpulses += totalImpulseForce.SetMagnitude(gibImpulseLimitValueToUse * jointStiffnessValueToUse);
+		jointImpulses += totalImpulseForce.SetMagnitude(std::min(gibImpulseLimitValueToUse, jointStrengthValueToUse) * jointStiffnessValueToUse);
 		GibThis(gibImpulse);
 		return false;
 	} else if (jointStrengthValueToUse > 0.0F && totalImpulseForce.MagnitudeIsGreaterThan(jointStrengthValueToUse)) {

@@ -574,6 +574,8 @@ namespace RTE {
 		unsigned long m_AIBulletLifeTime;
 		// The bullet acc scalar the AI use when aiming this weapon
 		float m_AIBulletAccScalar;
+		// Factor for the amount of recoil that the gun will cause
+		float m_RecoilTransmission;
 
 		// Whether at least one round has already been
 		// fired during the current activation.
