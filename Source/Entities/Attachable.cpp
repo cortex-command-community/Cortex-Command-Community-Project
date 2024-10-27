@@ -215,7 +215,6 @@ bool Attachable::TransferJointImpulses(Vector& jointImpulses, float jointStiffne
 	for (const auto& [impulseForce, impulseForceOffset]: m_ImpulseForces) {
 		totalImpulseForce += impulseForce;
 	}
-	totalImpulseForce *= jointStiffnessValueToUse;
 
 	// Rough explanation of what this is doing:
 	// The first part is getting the Dot/Scalar product of the perpendicular of the offset vector for the force onto the force vector itself (dot product is the amount two vectors are pointing in the same direction).
@@ -230,18 +229,18 @@ bool Attachable::TransferJointImpulses(Vector& jointImpulses, float jointStiffne
 
 	if (gibImpulseLimitValueToUse > 0.0F && totalImpulseForce.MagnitudeIsGreaterThan(gibImpulseLimitValueToUse)) {
 		Vector gibImpulse = totalImpulseForce;
-		jointImpulses += totalImpulseForce.SetMagnitude(gibImpulseLimitValueToUse);
+		jointImpulses += totalImpulseForce.SetMagnitude(gibImpulseLimitValueToUse * jointStiffnessValueToUse);
 		GibThis(gibImpulse);
 		return false;
 	} else if (jointStrengthValueToUse > 0.0F && totalImpulseForce.MagnitudeIsGreaterThan(jointStrengthValueToUse)) {
-		jointImpulses += totalImpulseForce.SetMagnitude(jointStrengthValueToUse);
-		m_ImpulseForces.emplace_back(-totalImpulseForce, Vector());
+		jointImpulses += totalImpulseForce.SetMagnitude(jointStrengthValueToUse * jointStiffnessValueToUse);
+		m_ImpulseForces.emplace_back(-totalImpulseForce, (m_JointPos - m_Pos) / c_PPM);
 		m_Parent->RemoveAttachable(this, true, true);
 		return false;
 	}
 
 	m_ImpulseForces.clear();
-	jointImpulses += totalImpulseForce;
+	jointImpulses += totalImpulseForce * jointStiffnessValueToUse;
 	return true;
 }
 
