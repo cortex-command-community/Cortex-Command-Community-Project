@@ -942,6 +942,13 @@ void MOSRotating::CreateGibsWhenGibbing(const Vector& impactImpulse, MovableObje
 				gibParticleClone->SetHFlipped(m_HFlipped);
 				Vector gibVelocity(radius * scale + minVelocity, 0);
 				gibVelocity.RadRotate(randAngle + RandomNum(0.0F, spread) + static_cast<float>(i) * goldenAngle);
+
+				if (gibSettingsObject.InheritsVelocity() > 0 && !rotatedGibOffset.IsZero()) {
+					Vector rotationalVelocity = (rotatedGibOffset.GetPerpendicular() * m_AngularVel * gibSettingsObject.InheritsVelocity()) / c_PPM;
+					gibVelocity += rotationalVelocity;
+					gibParticleClone->SetAngularVel(gibParticleClone->GetAngularVel() + m_AngularVel * gibSettingsObject.InheritsVelocity());
+				}
+
 				if (lifetime != 0) {
 					gibParticleClone->SetLifetime(std::max(static_cast<int>(static_cast<float>(lifetime) * (1.0F - lifeVariation * ((radius / maxRadius) * 0.75F + RandomNormalNum() * 0.25F))), 1));
 				}
@@ -998,7 +1005,15 @@ void MOSRotating::CreateGibsWhenGibbing(const Vector& impactImpulse, MovableObje
 				} else {
 					gibVelocity.RadRotate(gibSpread * RandomNormalNum());
 				}
+
+				if (gibSettingsObject.InheritsVelocity() > 0 && !rotatedGibOffset.IsZero()) {
+					Vector rotationalVelocity = (rotatedGibOffset.GetPerpendicular() * m_AngularVel * gibSettingsObject.InheritsVelocity()) / c_PPM;
+					gibVelocity += rotationalVelocity;
+					gibParticleClone->SetAngularVel(gibParticleClone->GetAngularVel() + m_AngularVel * gibSettingsObject.InheritsVelocity());
+				}
+
 				gibParticleClone->SetVel(gibVelocity + ((m_PrevVel + m_Vel) / 2) * gibSettingsObject.InheritsVelocity());
+
 				if (movableObjectToIgnore) {
 					gibParticleClone->SetWhichMOToNotHit(movableObjectToIgnore);
 				}
