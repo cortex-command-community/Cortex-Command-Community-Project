@@ -83,7 +83,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Almost all ctrl+* special inputs functionality (i.e restarting activity, world dumps, showing performance stats) are now mapped to right alt, to not interfere with default crouching inputs. The only exception is ctrl+arrow keys for changing console size.
 
-- Gibs now inherit velocity derived from the angular velocity of an MO. This only affects gibs with an offset, and is scaled by `InheritsVel`.
+- Gibs and Attachables detached due to gibbing now inherit velocity derived from the angular velocity of the parent MO. This only has an effect when the gib/attachable is offset, and gibs are further scaled by `InheritsVel`.
 
 </details>
 

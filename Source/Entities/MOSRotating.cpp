@@ -943,9 +943,11 @@ void MOSRotating::CreateGibsWhenGibbing(const Vector& impactImpulse, MovableObje
 				Vector gibVelocity(radius * scale + minVelocity, 0);
 				gibVelocity.RadRotate(randAngle + RandomNum(0.0F, spread) + static_cast<float>(i) * goldenAngle);
 
-				if (gibSettingsObject.InheritsVelocity() > 0 && !rotatedGibOffset.IsZero()) {
-					Vector rotationalVelocity = (rotatedGibOffset.GetPerpendicular() * m_AngularVel * gibSettingsObject.InheritsVelocity()) / c_PPM;
-					gibVelocity += rotationalVelocity;
+				if (gibSettingsObject.InheritsVelocity() > 0) {
+					if (!rotatedGibOffset.IsZero()) {
+						Vector rotationalVelocity = (rotatedGibOffset.GetPerpendicular() * m_AngularVel * gibSettingsObject.InheritsVelocity()) / c_PPM;
+						gibVelocity += rotationalVelocity;
+					}
 					gibParticleClone->SetAngularVel(gibParticleClone->GetAngularVel() + m_AngularVel * gibSettingsObject.InheritsVelocity());
 				}
 
@@ -1006,9 +1008,11 @@ void MOSRotating::CreateGibsWhenGibbing(const Vector& impactImpulse, MovableObje
 					gibVelocity.RadRotate(gibSpread * RandomNormalNum());
 				}
 
-				if (gibSettingsObject.InheritsVelocity() > 0 && !rotatedGibOffset.IsZero()) {
-					Vector rotationalVelocity = (rotatedGibOffset.GetPerpendicular() * m_AngularVel * gibSettingsObject.InheritsVelocity()) / c_PPM;
-					gibVelocity += rotationalVelocity;
+				if (gibSettingsObject.InheritsVelocity() > 0) {
+					if (!rotatedGibOffset.IsZero()) {
+						Vector rotationalVelocity = (rotatedGibOffset.GetPerpendicular() * m_AngularVel * gibSettingsObject.InheritsVelocity()) / c_PPM;
+						gibVelocity += rotationalVelocity;
+					}
 					gibParticleClone->SetAngularVel(gibParticleClone->GetAngularVel() + m_AngularVel * gibSettingsObject.InheritsVelocity());
 				}
 
@@ -1034,6 +1038,12 @@ void MOSRotating::RemoveAttachablesWhenGibbing(const Vector& impactImpulse, Mova
 		RTEAssert(attachable, "Broken Attachable when Gibbing!");
 
 		if (RandomNum() < attachable->GetGibWithParentChance() || attachable->GetGibWhenRemovedFromParent()) {
+			float attachableGibBlastStrength = (attachable->GetParentGibBlastStrengthMultiplier() * m_GibBlastStrength) / (1 + attachable->GetMass());
+			attachable->SetAngularVel((attachable->GetAngularVel() * 0.5F) + (attachable->GetAngularVel() * 0.5F * attachableGibBlastStrength * RandomNormalNum()));
+			Vector gibBlastVel = Vector(attachable->GetParentOffset()).SetMagnitude(attachableGibBlastStrength * 0.5F + (attachableGibBlastStrength * RandomNum()));
+			Vector rotationalVelocity = ((attachable->GetPos() - m_Pos).GetPerpendicular() * m_AngularVel) / c_PPM;
+			attachable->SetAngularVel(attachable->GetAngularVel() + m_AngularVel);
+			attachable->SetVel(m_Vel + gibBlastVel + rotationalVelocity); // Attachables have already had their velocity updated by ApplyImpulses(), no need to add impactImpulse again
 			attachable->GibThis();
 			continue;
 		}
@@ -1042,7 +1052,9 @@ void MOSRotating::RemoveAttachablesWhenGibbing(const Vector& impactImpulse, Mova
 			float attachableGibBlastStrength = (attachable->GetParentGibBlastStrengthMultiplier() * m_GibBlastStrength) / (1 + attachable->GetMass());
 			attachable->SetAngularVel((attachable->GetAngularVel() * 0.5F) + (attachable->GetAngularVel() * 0.5F * attachableGibBlastStrength * RandomNormalNum()));
 			Vector gibBlastVel = Vector(attachable->GetParentOffset()).SetMagnitude(attachableGibBlastStrength * 0.5F + (attachableGibBlastStrength * RandomNum()));
-			attachable->SetVel(m_Vel + gibBlastVel); // Attachables have already had their velocity updated by ApplyImpulses(), no need to add impactImpulse again
+			Vector rotationalVelocity = ((attachable->GetPos() - m_Pos).GetPerpendicular() * m_AngularVel) / c_PPM;
+			attachable->SetAngularVel(attachable->GetAngularVel() + m_AngularVel);
+			attachable->SetVel(m_Vel + gibBlastVel + rotationalVelocity); // Attachables have already had their velocity updated by ApplyImpulses(), no need to add impactImpulse again
 
 			if (movableObjectToIgnore) {
 				attachable->SetWhichMOToNotHit(movableObjectToIgnore);
