@@ -145,20 +145,6 @@ namespace RTE {
 		/// @param offsetNeedsScrollRatioAdjustment Whether the offset of this SceneLayer or the passed in offset override need to be adjusted to scroll ratio.
 		void Draw(SpriteRenderer* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false);
 #pragma endregion
-	protected:
-#pragma region Draw Breakdown
-		/// Performs wrapped drawing of this SceneLayer's bitmap to the screen in cases where it is both wider and taller than the target bitmap.
-		/// @param targetBitmap The bitmap to draw to.
-		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
-		/// @param drawScaled Whether to use scaled drawing routines or not.
-		void DrawWrapped(SpriteRenderer* renderer, const Box& targetBox, bool drawScaled) const;
-
-		/// Performs tiled drawing of this SceneLayer's bitmap to the screen in cases where the target bitmap is larger in some dimension.
-		/// @param targetBitmap The bitmap to draw to.
-		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
-		/// @param drawScaled Whether to use scaled drawing routines or not.
-		void DrawTiled(SpriteRenderer* renderer, const Box& targetBox, bool drawScaled) const;
-#pragma endregion
 	private:
 		/// Enumeration for the different modes of SLBackground auto-scaling.
 		enum LayerAutoScaleMode {
