@@ -23,6 +23,7 @@ void Emission::Clear() {
 	m_StopTimer.SetSimTimeLimitMS(1000000);
 	m_StopTimer.Reset();
 	m_Offset.Reset();
+	m_ParticleCount = 1;
 }
 
 /*
@@ -49,6 +50,7 @@ int Emission::Create(const Emission& reference) {
 	m_StartTimer = reference.m_StartTimer;
 	m_StopTimer = reference.m_StopTimer;
 	m_Offset = reference.m_Offset;
+	m_ParticleCount = reference.m_ParticleCount;
 
 	return 0;
 }
@@ -69,6 +71,7 @@ int Emission::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("LifeVariation", { reader >> m_LifeVariation; });
 	MatchProperty("PushesEmitter", { reader >> m_PushesEmitter; });
 	MatchProperty("Offset", { reader >> m_Offset; });
+	MatchProperty("ParticleCount", { reader >> m_ParticleCount; });
 	MatchProperty("InheritsVel",
 	              {
 		              reader >> m_InheritsVel;
@@ -117,6 +120,8 @@ int Emission::Save(Writer& writer) const {
 	writer << m_StartTimer.GetSimTimeLimitMS();
 	writer.NewProperty("StopTimeMS");
 	writer << m_StopTimer.GetSimTimeLimitMS();
+	writer.NewProperty("ParticleCount");
+	writer << m_ParticleCount;
 
 	return 0;
 }

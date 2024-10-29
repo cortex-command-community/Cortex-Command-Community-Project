@@ -126,6 +126,14 @@ namespace RTE {
 		/// @param offset New offset value.
 		void SetOffset(Vector offset) { m_Offset = offset; }
 
+		/// Returns number of particles emitted per emission.
+		/// @return Number of particles emitted per emission.
+		int GetParticleCount() const { return m_ParticleCount; }
+
+		/// Sets number of particles emitted per emission.
+		/// @param newParticleCount The new number of particles emitted per emission.
+		void SetParticleCount(int newParticleCount) { m_ParticleCount = newParticleCount; }
+
 		/// Protected member variable and method declarations
 	protected:
 		// Member variables
@@ -162,6 +170,8 @@ namespace RTE {
 		Timer m_StopTimer;
 		// Offset of the emission point from Emitter's sprite center, which gets rotated with owner Emitter
 		Vector m_Offset;
+		// The number of particles emitted per emission
+		int m_ParticleCount;
 
 		/// Private member variable and method declarations
 	private:

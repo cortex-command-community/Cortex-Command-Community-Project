@@ -580,6 +580,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Emission) {
 	    .property("BurstSize", &Emission::GetBurstSize, &Emission::SetBurstSize)
 	    .property("Spread", &Emission::GetSpread, &Emission::SetSpread)
 	    .property("Offset", &Emission::GetOffset, &Emission::SetOffset)
+	    .property("ParticleCount", &Emission::GetParticleCount, &Emission::SetParticleCount)
 
 	    .def("ResetEmissionTimers", &Emission::ResetEmissionTimers);
 }
