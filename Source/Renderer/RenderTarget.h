@@ -3,16 +3,18 @@
 #include <string>
 #include "Rectangles.h"
 #include "glad/gl.h"
+#include "raylib/raylib.h"
 namespace RTE {
 	class Shader;
 	class RenderTarget {
 	public:
-		RenderTarget(const FloatRect& size, const FloatRect& defaultViewport, GLuint colorTexture = 0, bool defaultFB0 = false);
+		RenderTarget(const FloatRect& size, const FloatRect& defaultViewport, Texture2D colorTexture = {0, 0, 0, 0, -1}, bool defaultFB0 = false);
 		virtual ~RenderTarget();
 		void Begin(bool clear = true);
-		void End(bool blit = false, RenderTarget* target = nullptr);
+		void End();
 		GLuint GetFramebuffer() { return m_FBO; }
-		GLuint GetColorTexture() { return m_ColorTexture; }
+		Texture2D GetColorTexture() { return m_Texture; }
+		Texture2D GetDepthTexture() { return m_Depth; }
 
 		const FloatRect& GetSize() { return m_Size; }
 
@@ -22,20 +24,8 @@ namespace RTE {
 		GLuint m_FBO{0};
 
 	private:
-		GLuint m_ColorTexture{0};
+		Texture2D m_Texture{};
+		Texture2D m_Depth{};
 		bool m_ColorTextureOwned{true};
-	};
-
-	class DepthTarget : public RenderTarget {
-	public:
-		DepthTarget(FloatRect size, FloatRect defaultViewport, GLuint colorTexture = 0, GLuint depthTexture = 0, bool defaultFB0 = false);
-		virtual ~DepthTarget();
-		void Begin(bool clear = true);
-		void End(bool blit = false, DepthTarget* target = nullptr);
-		GLuint GetDepthTexture() { return m_DepthTexture; }
-
-	private:
-		GLuint m_DepthTexture;
-		GLuint m_DepthTextureOwned{true};
 	};
 } // namespace RTE
