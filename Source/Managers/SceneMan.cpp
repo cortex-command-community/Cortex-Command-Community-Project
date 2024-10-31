@@ -26,7 +26,6 @@
 #include "Controller.h"
 
 #include "tracy/Tracy.hpp"
-#include "SpriteRenderer.h"
 
 using namespace RTE;
 
@@ -2586,7 +2585,7 @@ void SceneMan::Update(int screenId) {
 	}
 }
 
-void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, SpriteRenderer* renderer, const Vector& targetPos, bool skipBackgroundLayers, bool skipTerrain) {
+void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector& targetPos, bool skipBackgroundLayers, bool skipTerrain) {
 	ZoneScoped;
 
 	if (!m_pCurrentScene) {
@@ -2597,6 +2596,7 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, SpriteRendere
 
 	// Set up the target box to draw to on the target bitmap, if it is larger than the scene in either dimension.
 	Box targetBox(Vector(), static_cast<float>(targetBitmap->w), static_cast<float>(targetBitmap->h));
+	Box targetDimensions(Vector(), targetBitmap->w, targetBitmap->h);
 
 	if (!terrain->WrapsX() && targetBitmap->w > GetSceneWidth()) {
 		targetBox.SetCorner(Vector(static_cast<float>((targetBitmap->w - GetSceneWidth()) / 2), targetBox.GetCorner().GetY()));
@@ -2607,32 +2607,31 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, SpriteRendere
 		targetBox.SetHeight(static_cast<float>(GetSceneHeight()));
 	}
 
-	//SpriteRenderer test(const_cast<Shader*>(dynamic_cast<const Shader*>(g_PresetMan.GetEntityPreset("Shader", "Background"))), {0,0,targetBitmap->w, targetBitmap->h});
 	switch (m_LayerDrawMode) {
 		case LayerDrawMode::g_LayerTerrainMatter:
 			terrain->SetLayerToDraw(SLTerrain::LayerType::MaterialLayer);
-			terrain->Draw(renderer, targetBox);
+			terrain->Draw(targetDimensions, targetBox);
 			break;
 		default:
 			if (!skipBackgroundLayers) {
 				for (std::list<SLBackground*>::reverse_iterator backgroundLayer = m_pCurrentScene->GetBackLayers().rbegin(); backgroundLayer != m_pCurrentScene->GetBackLayers().rend(); ++backgroundLayer) {
-					(*backgroundLayer)->Draw(renderer, targetBox);
+					(*backgroundLayer)->Draw(targetDimensions, targetBox);
 				}
 			}
 			if (!skipTerrain) {
 				terrain->SetLayerToDraw(SLTerrain::LayerType::BackgroundLayer);
-				terrain->Draw(renderer, targetBox);
+				terrain->Draw(targetDimensions, targetBox);
 			}
-			m_pMOColorLayer->Draw(renderer, targetBox);
+			m_pMOColorLayer->Draw(targetDimensions, targetBox);
 
 			if (!skipTerrain) {
 				terrain->SetLayerToDraw(SLTerrain::LayerType::ForegroundLayer);
-				terrain->Draw(renderer, targetBox);
+				terrain->Draw(targetDimensions, targetBox);
 			}
 			if (!g_FrameMan.IsInMultiplayerMode()) {
 				int teamId = g_CameraMan.GetScreenTeam(m_LastUpdatedScreen);
 				if (SceneLayer* unseenLayer = (teamId != Activity::NoTeam) ? m_pCurrentScene->GetUnseenLayer(teamId) : nullptr) {
-					unseenLayer->Draw(renderer, targetBox);
+					unseenLayer->Draw(targetDimensions, targetBox);
 				}
 			}
 
@@ -2673,7 +2672,7 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, SpriteRendere
 			}
 
 			if (m_pDebugLayer) {
-				m_pDebugLayer->Draw(renderer, targetBox);
+				m_pDebugLayer->Draw(targetDimensions, targetBox);
 			}
 
 			break;
