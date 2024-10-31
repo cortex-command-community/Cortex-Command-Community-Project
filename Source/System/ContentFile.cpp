@@ -5,10 +5,12 @@
 #include "ConsoleMan.h"
 #include "RTETools.h"
 #include "System.h"
+#include "FrameMan.h"
 
 #include "png.h"
 #include "fmod/fmod.hpp"
 #include "fmod/fmod_errors.h"
+#include "SDL2/SDL_image.h"
 
 #include <cstring>
 
@@ -262,15 +264,62 @@ BITMAP* ContentFile::LoadAndReleaseBitmap(int conversionMode, const std::string&
 	}
 	const std::string dataPathToLoad = dataPathToSpecificFrame.empty() ? m_DataPath : dataPathToSpecificFrame;
 
-	BITMAP* returnBitmap = nullptr;
+	SDL_Surface* image = IMG_Load(dataPathToLoad.c_str());
+	std::cout << SDL_GetPixelFormatName(image->format->format) << " " << (int)image->format->padding[0] << " " << image->w << " " << image->pitch << std::endl;
+	bool convert8To32 = conversionMode & COLORCONV_8_TO_32;
+	bool convertTo8 = conversionMode & COLORCONV_REDUCE_TO_256;
+	int bitDepth = image->format->BitsPerPixel;
+	if (convertTo8 && image->format->BitsPerPixel != 8) {
+		SDL_Palette* palette = SDL_AllocPalette(256);
+		std::array<SDL_Color, 256> paletteColor;
+		PALETTE currentPalette;
+		get_palette(currentPalette);
+		paletteColor[0] = {.r = 0, .g = 0, .b = 0, .a = 0};
+		for (size_t i = 1; i < paletteColor.size(); ++i) {
+			paletteColor[i].r = _rgb_scale_6[currentPalette[i].r];
+			paletteColor[i].g = _rgb_scale_6[currentPalette[i].g];
+			paletteColor[i].b = _rgb_scale_6[currentPalette[i].b];
+			paletteColor[i].a = 255;
+		}
+		SDL_SetPaletteColors(palette, paletteColor.data(), 0, 256);
+		SDL_PixelFormat* format = SDL_AllocFormat(SDL_PIXELFORMAT_INDEX8);
+		SDL_SetPixelFormatPalette(format, palette);
+		SDL_Surface* newImage = SDL_ConvertSurface(image, format, 0);
+		SDL_FreeSurface(image);
+		SDL_FreeFormat(format);
+		SDL_FreePalette(palette);
+		image = newImage;
+		bitDepth = 8;
+	} else if (image->format->BitsPerPixel != 8 || convert8To32) {
+		
+		SDL_Palette* palette = SDL_AllocPalette(256);
+		std::array<SDL_Color, 256> paletteColor;
+		const PALETTE& currentPalette = g_FrameMan.GetDefaultPalette();
+		paletteColor[0] = {.r = 0, .g = 0, .b = 0, .a = 0};
+		for (size_t i = 1; i < paletteColor.size(); ++i) {
+			paletteColor[i].r = _rgb_scale_6[currentPalette[i].r];
+			paletteColor[i].g = _rgb_scale_6[currentPalette[i].g];
+			paletteColor[i].b = _rgb_scale_6[currentPalette[i].b];
+			paletteColor[i].a = 255;
+		}
+		SDL_SetPaletteColors(palette, paletteColor.data(), 0, 256);
+		if (image->format->BitsPerPixel == 8) {
+			SDL_SetSurfacePalette(image, palette);
+			SDL_SetColorKey(image, SDL_TRUE, 0);
+		}
+		SDL_Surface* newImage = SDL_ConvertSurfaceFormat(image, SDL_PIXELFORMAT_RGBA32, 0);
+		SDL_FreeSurface(image);
+		image = newImage;
+		bitDepth = 32;
+	}
 
-	PALETTE currentPalette;
-	get_palette(currentPalette);
+	BITMAP* returnBitmap = create_bitmap_ex(bitDepth, image->w, image->h);
+	
+	for (int y = 0; y < image->h; ++y) {
+		memcpy(returnBitmap->line[y], static_cast<unsigned char*>(image->pixels) + image->pitch * y, image->w * image->format->BytesPerPixel);
+	}
 
-	set_color_conversion((conversionMode == COLORCONV_NONE) ? COLORCONV_MOST : conversionMode);
-	returnBitmap = load_bitmap(dataPathToLoad.c_str(), currentPalette);
 	RTEAssert(returnBitmap, "Failed to load image file with following path and name:\n\n" + m_DataPathAndReaderPosition + "\nThe file may be corrupt, incorrectly converted or saved with unsupported parameters.");
-	AddAlphaChannel(returnBitmap);
 
 	return returnBitmap;
 }
@@ -345,11 +394,11 @@ void ContentFile::ReloadBitmap(const std::string& filePath, int conversionMode) 
 
 	PALETTE currentPalette;
 	get_palette(currentPalette);
-	set_color_conversion((conversionMode == COLORCONV_NONE) ? COLORCONV_MOST : conversionMode);
+	set_color_conversion((conversionMode == COLORCONV_NONE) ? COLORCONV_NONE : conversionMode);
 
 	BITMAP* loadedBitmap = (*bmpItr).second;
 	BITMAP* newBitmap = load_bitmap(filePath.c_str(), currentPalette);
-	AddAlphaChannel(newBitmap);
+	//AddAlphaChannel(newBitmap);
 	BITMAP swap;
 
 	std::memcpy(&swap, loadedBitmap, sizeof(BITMAP));
@@ -370,7 +419,7 @@ void ContentFile::AddAlphaChannel(BITMAP* bitmap) {
 		for (int x = 0; x < bitmap->w; ++x) {
 			unsigned long color = _getpixel32(bitmap, x, y);
 			if (color != MASK_COLOR_32) {
-				_putpixel32(bitmap, x, y, color | (0xFF << 24));
+				_putpixel32(bitmap, x, y, color | (0xFF << _rgb_a_shift_32));
 			}
 		}
 	}

@@ -19,7 +19,8 @@
 /// </summary>
 
 #include "allegro.h"
-#include "SDL.h"
+#include "SDL2/SDL.h"
+#include "SDL2/SDL_image.h"
 
 #include "GUI.h"
 #include "GUIInputWrapper.h"
@@ -52,6 +53,7 @@
 #include "MusicMan.h"
 #include "System.h"
 
+#include "RenderTarget.h"
 #include "tracy/Tracy.hpp"
 
 extern "C" {
@@ -275,8 +277,10 @@ void RunMenuLoop() {
 		}
 		g_ConsoleMan.Update();
 
+		g_WindowMan.GetScreenBuffer()->Begin();
 		g_MenuMan.Draw();
 		g_ConsoleMan.Draw(g_FrameMan.GetBackBuffer32());
+		g_WindowMan.GetScreenBuffer()->End();
 		g_WindowMan.UploadFrame();
 	}
 }
@@ -433,6 +437,7 @@ int main(int argc, char** argv) {
 	loadpng_init();
 
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER);
+	IMG_Init(IMG_INIT_PNG);
 
 #if SDL_MINOR_VERSION > 22
 	SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
