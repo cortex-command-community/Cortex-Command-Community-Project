@@ -9,6 +9,8 @@
 #include "System.h"
 #include "RTEError.h"
 
+#include "raylib/rlgl.h"
+
 #include <fstream>
 
 using namespace RTE;
@@ -58,6 +60,7 @@ int Shader::Create(const Shader& ref) {
 	m_TransformUniform = ref.m_TransformUniform;
 	m_UVTransformUniform = ref.m_UVTransformUniform;
 	m_ProjectionUniform = ref.m_ProjectionUniform;
+	std::copy(ref.m_Locations.begin(), ref.m_Locations.end(), m_Locations.begin());
 	return 0;
 }
 
@@ -72,7 +75,7 @@ bool Shader::Compile(const std::string& vertexPath, const std::string& fragPath)
 	if (result) {
 		GL_CHECK(glBindAttribLocation(m_ProgramID, 0, "rteVertexPosition"));
 		GL_CHECK(glBindAttribLocation(m_ProgramID, 1, "rteVertexTexUV"));
-		GL_CHECK(glBindAttribLocation(m_ProgramID, 2, "rteVertexColor"));
+		GL_CHECK(glBindAttribLocation(m_ProgramID, 3, "rteVertexColor"));
 		if (Link(vertexShader, fragmentShader)) {
 			m_TextureUniform = GetUniformLocation("rteTexture");
 			m_ColorUniform = GetUniformLocation("rteColor");
@@ -94,7 +97,17 @@ bool Shader::Compile(const std::string& vertexPath, const std::string& fragPath)
 	return true;
 }
 
-void Shader::Use() const { GL_CHECK(glUseProgram(m_ProgramID)); }
+void Shader::Enable() {
+	rlEnableShader(m_ProgramID);
+}
+void Shader::Begin() {
+	rlSetShader(m_ProgramID, m_Locations.data());
+	glUseProgram(m_ProgramID);
+}
+void Shader::End() const {
+	rlSetShader(rlGetShaderIdDefault(), rlGetShaderLocsDefault());
+	rlDisableShader();
+}
 
 GLint Shader::GetUniformLocation(const std::string& name) const { return glGetUniformLocation(m_ProgramID, name.c_str()); }
 
@@ -173,11 +186,18 @@ bool Shader::Link(GLuint vtxShader, GLuint fragShader) {
 	return true;
 }
 
-void Shader::ApplyDefaultUniforms() const {
-	Use();
-	SetInt("rteTexture", 0);
-	SetInt("rtePalette", 1);
-	SetVector4f("rteColor", glm::vec4(1));
-	SetMatrix4f("rteTransform", glm::mat4(1));
-	SetMatrix4f("rteProjection", glm::mat4(1));
+void Shader::ApplyDefaultUniforms() {
+	for (int location = 0; location < RL_SHADER_LOC_COUNT; ++location) {
+		m_Locations[location] = -1;
+	}
+	m_Locations[RL_SHADER_LOC_VERTEX_POSITION] = 0;
+	m_Locations[RL_SHADER_LOC_VERTEX_TEXCOORD01] = 1;
+	m_Locations[RL_SHADER_LOC_VERTEX_COLOR] = 2;
+	m_Locations[RL_SHADER_LOC_MATRIX_MVP] = GetUniformLocation("rteModelViewProjection");
+	m_Locations[RL_SHADER_LOC_MATRIX_VIEW] = GetUniformLocation("rteView");
+	m_Locations[RL_SHADER_LOC_MATRIX_PROJECTION] = GetUniformLocation("rteProjection");
+	m_Locations[RL_SHADER_LOC_MATRIX_MODEL] = GetUniformLocation("rteModel");
+	m_Locations[RL_SHADER_LOC_COLOR_DIFFUSE] = GetUniformLocation("rteColor");
+	m_Locations[RL_SHADER_LOC_MAP_DIFFUSE] = GetUniformLocation("rteTexture");
+
 }

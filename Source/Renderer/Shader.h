@@ -3,6 +3,8 @@
 #include "Entity.h"
 #include "glm/fwd.hpp"
 #include "glad/gl.h"
+#include "raylib/raylib.h"
+#include "raylib/rlgl.h"
 
 namespace RTE {
 	class Shader: public Entity {
@@ -34,7 +36,9 @@ namespace RTE {
 		/// Filepath to the fragment shader
 		bool Compile(const std::string& vertexFilename, const std::string& fragPath);
 
-		void Use() const;
+		void Enable();
+		void Begin();
+		void End() const;
 #pragma region Uniform handling
 		/// Returns the location of a uniform given by name.
 		/// @param name
@@ -197,7 +201,9 @@ namespace RTE {
 		bool Link(uint32_t vtxShader, uint32_t fragShader);
 
 		/// Sets default values for the shader uniforms (may not persist across frames!)
-		void ApplyDefaultUniforms() const;
+		void ApplyDefaultUniforms();
+
+		std::array<int, RL_SHADER_LOC_COUNT> m_Locations{};
 
 		GLint m_TextureUniform{0}; //!< Location of the texture uniform (sampler2d rteTexture).
 		GLint m_ColorUniform{0}; //!< Location of the colormod uniform (vec4 rteColor).

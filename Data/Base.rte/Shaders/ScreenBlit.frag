@@ -17,8 +17,8 @@ vec4 texture2DAA(sampler2D tex, vec2 uv) {
 }
 
 void main() {
-	vec4 guiColor = texture2DAA(rteGUITexture, textureUV);
-	float guiSolid = step(0.000001, guiColor.r + guiColor.g + guiColor.b);
+	vec4 guiColor = texture2DAA(rteGUITexture, vec2(textureUV.x, -textureUV.y));
+	float guiSolid = float((guiColor.r + guiColor.g + guiColor.b) > 0.0);
 	float blendRatio = max(guiColor.a, guiSolid);
 	FragColor = (texture2DAA(rteTexture, textureUV) * (1.0F - blendRatio)) + guiColor * blendRatio;
 }
