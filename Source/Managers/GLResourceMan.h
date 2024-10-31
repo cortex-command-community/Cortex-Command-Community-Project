@@ -11,6 +11,7 @@
 #include "Shader.h"
 #include "Rectangles.h"
 
+#include "raylib/raylib.h"
 namespace RTE {
 #define g_GLResourceMan GLResourceMan::Instance()
 	enum class ShaderType {
@@ -35,8 +36,8 @@ namespace RTE {
 
 		// std::shared_ptr<Shader> MakeShaderProgram(const std::string& name, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 		// std::shared_ptr<Shader> GetShaderByName(const std::string& name);
-		GLuint GetStaticTextureFromFile(const std::string& filename);
-		GLuint GetStaticTextureFromBitmap(BITMAP* bitmap);
+		Texture2D GetStaticTextureFromFile(const std::string& filename);
+		Texture2D GetStaticTextureFromBitmap(BITMAP* bitmap);
 
 		GLuint UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const std::vector<IntRect>& = {});
 
