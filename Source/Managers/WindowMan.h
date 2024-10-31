@@ -20,6 +20,7 @@ union SDL_Event;
 namespace RTE {
 
 	class Shader;
+	class RenderTarget;
 
 	struct SDLWindowDeleter {
 		void operator()(SDL_Window* window) const;
@@ -129,7 +130,7 @@ namespace RTE {
 
 		/// Get the screen buffer texture.
 		/// @return The screen buffer texture.
-		GLuint GetScreenBufferTexture() const { return m_ScreenBufferTexture; }
+		std::shared_ptr<RenderTarget> GetScreenBuffer() const { return m_ScreenBuffer; }
 #pragma endregion
 
 #pragma region Resolution Change Handling
@@ -191,8 +192,8 @@ namespace RTE {
 
 		std::shared_ptr<SDL_Window> m_PrimaryWindow; //!< The main window.
 		GLuint m_BackBuffer32Texture; //!< Streaming texture for the software rendered stuff.
-		GLuint m_ScreenBufferTexture; //!< Internal backbuffer for the final blit and sceenshots, only clear immediately before drawing.
-		GLuint m_ScreenBufferFBO; //!< Framebuffer object for the screen buffer texture.
+		
+		std::shared_ptr<RenderTarget> m_ScreenBuffer{};
 		std::unique_ptr<SDL_Rect> m_PrimaryWindowViewport; //!< Viewport for the main window.
 
 		std::vector<std::shared_ptr<SDL_Window>> m_MultiDisplayWindows; //!< Additional windows for multi-display fullscreen.
