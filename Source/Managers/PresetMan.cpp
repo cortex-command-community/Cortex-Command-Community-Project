@@ -332,9 +332,6 @@ const Entity* PresetMan::GetEntityPreset(std::string type, std::string preset, i
 			}
 		}
 	}
-	if (!pRetEntity) {
-		std::cout << preset << " not found" << std::endl;
-	}
 
 	return pRetEntity;
 }
