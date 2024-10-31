@@ -18,7 +18,6 @@
 #include "System.h"
 
 #include "RenderTarget.h"
-#include "SpriteRenderer.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
@@ -605,7 +604,7 @@ void FrameMan::SaveScreenToBitmap() {
 		return;
 	}
 
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_WindowMan.GetScreenBufferTexture()));
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_WindowMan.GetScreenBuffer()->GetColorTexture().id));
 	GL_CHECK(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, m_ScreenDumpBuffer->line[0]));
 }
 
@@ -795,14 +794,13 @@ void FrameMan::Draw() {
 	ZoneScopedN("Draw");
 	TracyGpuZone("FrameMan::Draw");
 	
-	m_Renderer = std::make_unique<SpriteRenderer>(dynamic_cast<const Shader*>(g_PresetMan.GetEntityPreset("Shader", "Background")), m_PlayerScreen->GetSize());
-	clear_to_color(m_BackBuffer8.get(), 0);
+	//rlSetShader(rlGetShaderIdDefault(), rlGetShaderLocsDefault());
+	Shader backgroundShader;
+	g_PresetMan.GetEntityPreset("Shader", "Background")->Clone(&backgroundShader);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glEnable(GL_BLEND);
-	GL_CHECK(glEnable(GL_BLEND));
-	GL_CHECK(glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD));
-	GL_CHECK(glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
-	GL_CHECK(glBlendColor(0.5F, 0.5F, 0.5F, 0.5F));
+	clear_to_color(m_BackBuffer8.get(), 0);
+	rlDisableColorBlend();
+	rlDisableDepthTest();
 	m_BackBuffer->Begin(true);
 
 	// Count how many split screens we'll need
@@ -822,7 +820,8 @@ void FrameMan::Draw() {
 		screenRelativeGlowBoxes.clear();
 
 		m_PlayerScreen->Begin(true);
-		m_Renderer->SetSize(m_PlayerScreen->GetSize());
+		backgroundShader.Begin();
+		//rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
 		BITMAP* drawScreen = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
 		BITMAP* drawScreenGUI = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
 		if (IsInMultiplayerMode()) {
@@ -869,9 +868,9 @@ void FrameMan::Draw() {
 
 		// Draw the scene
 		if (!IsInMultiplayerMode()) {
-			g_SceneMan.Draw(drawScreen, drawScreenGUI, m_Renderer.get(), targetPos);
+			g_SceneMan.Draw(drawScreen, drawScreenGUI, targetPos);
 		} else {
-			g_SceneMan.Draw(drawScreen, drawScreenGUI, m_Renderer.get(), targetPos, true, true);
+			g_SceneMan.Draw(drawScreen, drawScreenGUI, targetPos, true, true);
 		}
 
 		// Get only the scene-relative post effects that affect this player's screen
@@ -905,8 +904,7 @@ void FrameMan::Draw() {
 			blit(drawScreen, m_BackBuffer8.get(), 0, 0, screenOffset.GetFloorIntX(), screenOffset.GetFloorIntY(), drawScreen->w, drawScreen->h);
 			m_PlayerScreen->End();
 			m_BackBuffer->Begin(false);
-			m_Renderer->SetSize(m_BackBuffer->GetSize());
-			m_Renderer->Draw(m_PlayerScreen8.get(), screenOffset);
+			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_PlayerScreen8.get()), screenOffset.m_X, screenOffset.m_Y, {255, 255, 255, 255});
 			g_PostProcessMan.AdjustEffectsPosToPlayerScreen(playerScreen, drawScreen, screenOffset, screenRelativeEffects, screenRelativeGlowBoxes);
 		}
 	}
@@ -944,7 +942,7 @@ void FrameMan::Draw() {
 		PrepareFrameForNetwork();
 	}
 	g_GLResourceMan.UpdateDynamicBitmap(m_BackBuffer8.get(), true);
-	m_Renderer->Draw(m_BackBuffer8.get(), 0.0f, 0.0f);
+	DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_BackBuffer8.get()), 0.0f, 0.0f, {255, 255, 255, 255});
 	m_BackBuffer->End();
 	if (g_ActivityMan.IsInActivity()) {
 		g_PostProcessMan.PostProcess();

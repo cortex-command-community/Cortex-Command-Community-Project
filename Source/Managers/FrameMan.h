@@ -18,8 +18,6 @@ namespace RTE {
 	class GUIFont;
 	class Shader;
 	class RenderTarget;
-	class SpriteRenderer;
-
 	struct BitmapDeleter {
 		void operator()(BITMAP* bitmap) const;
 	};
@@ -72,7 +70,6 @@ namespace RTE {
 		/// @return A pointer to the overlay BITMAP. OWNERSHIP IS NOT TRANSFERRED!
 		BITMAP* GetOverlayBitmap32() const { return m_OverlayBitmap32.get(); }
 
-		std::shared_ptr<SpriteRenderer> GetRenderer() const { return m_Renderer; }
 		std::shared_ptr<RenderTarget> GetBackBuffer() const { return m_BackBuffer; }
 #pragma endregion
 
@@ -334,6 +331,8 @@ namespace RTE {
 		/// @return An reference to a ContentFile which described the palette location.
 		const ContentFile& GetPaletteFile() const { return m_PaletteFile; }
 
+		const PALETTE& GetDefaultPalette() const { return m_DefaultPalette; }
+
 		/// Fades the palette in from black at a specified speed.
 		/// @param fadeSpeed Speed specified from (slowest) 1 - 64 (fastest).
 		void FadeInPalette(int fadeSpeed = 1) {
@@ -435,7 +434,6 @@ namespace RTE {
 		std::unique_ptr<BITMAP, BitmapDeleter> m_NetworkBackBufferFinalGUI8[2][c_MaxScreenCount]; //!< Per-player allocated frame buffer to copy Intermediate before sending. Used to draw UI only.
 
 		std::shared_ptr<RenderTarget> m_BackBuffer;
-		std::shared_ptr<SpriteRenderer> m_Renderer;
 
 		Vector m_TargetPos[2][c_MaxScreenCount]; //!< Frame target position for network players.
 
