@@ -13,6 +13,9 @@
 #include "GUIListBox.h"
 #include "System.h"
 
+#include "raylib/raylib.h"
+#include "raylib/rlgl.h"
+
 using namespace RTE;
 
 void LoadingScreen::Clear() {
@@ -71,7 +74,10 @@ void LoadingScreen::CreateLoadingSplash(int xOffset) {
 	loadingSplash.SetOffset(Vector(static_cast<float>(((loadingSplash.GetBitmap()->w - g_WindowMan.GetResX()) / 2) + xOffset), 0));
 
 	Box loadingSplashTargetBox(Vector(0, static_cast<float>((g_WindowMan.GetResY() - loadingSplash.GetBitmap()->h) / 2)), static_cast<float>(g_WindowMan.GetResX()), static_cast<float>(loadingSplash.GetBitmap()->h));
-	//loadingSplash.Draw(m_LoadingSplashBitmap, loadingSplashTargetBox);
+	g_WindowMan.ClearBackbuffer();
+	loadingSplash.Draw(loadingSplashTargetBox, loadingSplashTargetBox);
+	rlDrawRenderBatchActive();
+	g_WindowMan.Present();
 }
 
 void LoadingScreen::CreateProgressReportListbox(GUIControlManager* parentControlManager) {
