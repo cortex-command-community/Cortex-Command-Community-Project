@@ -2,8 +2,10 @@
 #include "FrameMan.h"
 #include "SceneMan.h"
 #include "SettingsMan.h"
-#include "SpriteRenderer.h"
 #include <algorithm>
+
+#include "raylib/raylib.h"
+#include "raylib/rlgl.h"
 
 using namespace RTE;
 
@@ -210,8 +212,8 @@ void SLBackground::Update() {
 	}
 }
 
-void SLBackground::Draw(SpriteRenderer* renderer, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
-	SceneLayer::Draw(renderer, targetBox, !IsAutoScrolling());
+void SLBackground::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
+	SceneLayer::Draw(targetDimensions, targetBox, !IsAutoScrolling());
 
 	int bitmapWidth = m_ScaledDimensions.GetFloorIntX();
 	int bitmapHeight = m_ScaledDimensions.GetFloorIntY();
@@ -220,24 +222,31 @@ void SLBackground::Draw(SpriteRenderer* renderer, Box& targetBox, bool offsetNee
 	int targetBoxWidth = static_cast<int>(targetBox.GetWidth());
 	int targetBoxHeight = static_cast<int>(targetBox.GetHeight());
 
-	renderer->BeginScissor({targetBoxCornerX, targetBoxCornerY, targetBoxCornerX + targetBoxWidth - 1, targetBoxCornerY + targetBoxHeight - 1});
+	//rlDrawRenderBatchActive();
+	//rlEnableScissorTest();
+	//glScissor(targetBoxCornerX, targetBoxCornerY, targetBoxCornerX + targetBoxWidth - 1, targetBoxCornerY + targetBoxHeight - 1);
 
 	// Detect if non-wrapping layer dimensions can't cover the whole target area with its main bitmap. If so, fill in the gap with appropriate solid color sampled from the hanging edge.
 	if (!m_WrapX && bitmapWidth <= targetBoxWidth) {
 		if (m_FillColorLeft != ColorKeys::g_MaskColor && m_Offset.GetFloorIntX() != 0) {
+			DrawRectangle(targetBoxCornerX, targetBoxCornerY, targetBoxWidth, targetBoxHeight, {static_cast<unsigned char>(m_FillColorLeft), 0, 0, 0});
 			// rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX - m_Offset.GetFloorIntX(), targetBoxCornerY + targetBoxHeight, m_FillColorLeft);
 		}
 		if (m_FillColorRight != ColorKeys::g_MaskColor) {
+			DrawRectangle(targetBoxCornerX, targetBoxCornerY, targetBoxWidth, targetBoxHeight, {static_cast<unsigned char>(m_FillColorRight), 0, 0, 0});
 			// rectfill(targetBitmap, targetBoxCornerX + bitmapWidth - m_Offset.GetFloorIntX(), targetBoxCornerY, targetBoxCornerX + targetBoxWidth, targetBoxCornerY + targetBoxHeight, m_FillColorRight);
 		}
 	}
 	if (!m_WrapY && bitmapHeight <= targetBoxHeight) {
 		if (m_FillColorUp != ColorKeys::g_MaskColor && m_Offset.GetFloorIntY() != 0) {
+			DrawRectangle(targetBoxCornerX, targetBoxCornerY, targetBoxWidth, targetBoxHeight, {static_cast<unsigned char>(m_FillColorUp), 0, 0, 0});
 			// rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX + targetBoxWidth, targetBoxCornerY - m_Offset.GetFloorIntY(), m_FillColorUp);
 		}
 		if (m_FillColorDown != ColorKeys::g_MaskColor) {
+			DrawRectangle(targetBoxCornerX, targetBoxCornerY, targetBoxWidth, targetBoxHeight, {static_cast<unsigned char>(m_FillColorDown), 0, 0, 0});
 			// rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY + bitmapHeight - m_Offset.GetFloorIntY(), targetBoxCornerX + targetBoxWidth, targetBoxCornerY + targetBoxHeight, m_FillColorDown);
 		}
 	}
-	renderer->EndScissor();
+	//rlDrawRenderBatchActive();
+	//rlDisableScissorTest();
 }

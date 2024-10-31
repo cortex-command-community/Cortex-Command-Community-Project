@@ -7,7 +7,6 @@
 #include <future>
 
 namespace RTE {
-	class SpriteRenderer;
 
 	/// A scrolling layer of the Scene.
 	template <bool TRACK_DRAWINGS>
@@ -196,7 +195,7 @@ namespace RTE {
 		/// @param targetBitmap The bitmap to draw to.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param offsetNeedsScrollRatioAdjustment Whether the offset of this SceneLayer or the passed in offset override need to be adjusted to scroll ratio.
-		virtual void Draw(SpriteRenderer* renderer, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false);
+		virtual void Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false);
 #pragma endregion
 
 	protected:
@@ -241,13 +240,13 @@ namespace RTE {
 		/// @param targetBitmap The bitmap to draw to.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param drawScaled Whether to use scaled drawing routines or not.
-		void DrawWrapped(SpriteRenderer* renderer, const Box& targetBox, bool drawScaled) const;
+		void DrawWrapped(const Box& targetDim, const Box& targetBox, bool drawScaled) const;
 
 		/// Performs tiled drawing of this SceneLayer's bitmap to the screen in cases where the target bitmap is larger in some dimension.
 		/// @param targetBitmap The bitmap to draw to.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param drawScaled Whether to use scaled drawing routines or not.
-		void DrawTiled(SpriteRenderer* renderer, const Box& targetBox, bool drawScaled) const;
+		void DrawTiled(const Box& targetDim, const Box& targetBox, bool drawScaled) const;
 #pragma endregion
 
 	private:

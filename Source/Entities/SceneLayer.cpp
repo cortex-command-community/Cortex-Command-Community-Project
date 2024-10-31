@@ -6,7 +6,6 @@
 #include "ActivityMan.h"
 #include "ThreadMan.h"
 #include "GLResourceMan.h"
-#include "SpriteRenderer.h"
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
@@ -400,7 +399,7 @@ void SceneLayerImpl<TRACK_DRAWINGS>::RegisterDrawing(const Vector& center, float
 }
 
 template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::Draw(SpriteRenderer* renderer, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
+void SceneLayerImpl<TRACK_DRAWINGS>::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 	RTEAssert(m_MainBitmap, "Data of this SceneLayerImpl has not been loaded before trying to draw!");
 	ZoneScoped;
 	TracyGpuZone("SceneLayer::Draw");
@@ -416,65 +415,78 @@ void SceneLayerImpl<TRACK_DRAWINGS>::Draw(SpriteRenderer* renderer, Box& targetB
 		m_Offset.SetXY(std::floor(m_Offset.GetX() * m_ScrollRatio.GetX()), std::floor(m_Offset.GetY() * m_ScrollRatio.GetY()));
 	}
 	if (targetBox.IsEmpty()) {
-		targetBox = Box(Vector(), static_cast<float>(renderer->GetSize().w), static_cast<float>(renderer->GetSize().h));
+		targetBox = targetDimensions;
 	}
-	if (!m_WrapX && static_cast<float>(renderer->GetSize().w) > targetBox.GetWidth()) {
+	if (!m_WrapX && targetDimensions.GetWidth() > targetBox.GetWidth()) {
 		m_Offset.SetX(0);
 	}
-	if (!m_WrapY && static_cast<float>(renderer->GetSize().h) > targetBox.GetHeight()) {
+	if (!m_WrapY && targetDimensions.GetHeight() > targetBox.GetHeight()) {
 		m_Offset.SetY(0);
 	}
 
 	m_Offset -= m_OriginOffset;
 	WrapPosition(m_Offset);
 
-	renderer->BeginScissor({targetBox.GetCorner().GetFloorIntX(), targetBox.GetCorner().GetFloorIntY(), static_cast<int>(targetBox.GetCorner().GetX() + targetBox.GetWidth()) - 1, static_cast<int>(targetBox.GetCorner().GetY() + targetBox.GetHeight()) - 1});
+	//rlDrawRenderBatchActive();
+	//rlEnableScissorTest();
+	//rlScissor(targetBox.GetCorner().GetFloorIntX(), targetBox.GetCorner().GetFloorIntY(), static_cast<int>(targetBox.GetCorner().GetX() + targetBox.GetWidth()) - 1, static_cast<int>(targetBox.GetCorner().GetY() + targetBox.GetHeight()) - 1);
 	bool drawScaled = m_ScaleFactor.GetX() > 1.0F || m_ScaleFactor.GetY() > 1.0F;
 
-	if (m_MainBitmap->w > renderer->GetSize().w && m_MainBitmap->h > renderer->GetSize().h) {
-		DrawWrapped(renderer, targetBox, drawScaled);
+	if (m_MainBitmap->w > targetDimensions.GetWidth() && m_MainBitmap->h > targetDimensions.GetHeight()) {
+		DrawWrapped(targetDimensions, targetBox, drawScaled);
 	} else {
-		DrawTiled(renderer, targetBox, drawScaled);
+		DrawTiled(targetDimensions, targetBox, drawScaled);
 	}
-	renderer->EndScissor();
+	//rlDrawRenderBatchActive();
+	//rlDisableScissorTest();
 }
 
 template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::DrawWrapped(SpriteRenderer* renderer, const Box& targetBox, bool drawScaled) const {
+void SceneLayerImpl<TRACK_DRAWINGS>::DrawWrapped(const Box& targetDimensions, const Box& targetBox, bool drawScaled) const {
 	ZoneScoped;
 	TracyGpuZone("SceneLayer::DrawWrapped");
 	if (!drawScaled) {
-		std::array<int, 2> sourcePosX = {m_Offset.GetFloorIntX(), 0};
-		std::array<int, 2> sourcePosY = {m_Offset.GetFloorIntY(), 0};
-		std::array<int, 2> sourceWidth = {m_MainBitmap->w - m_Offset.GetFloorIntX(), m_Offset.GetFloorIntX()};
-		std::array<int, 2> sourceHeight = {m_MainBitmap->h - m_Offset.GetFloorIntY(), m_Offset.GetFloorIntY()};
-		std::array<int, 2> destPosX = {targetBox.GetCorner().GetFloorIntX(), targetBox.GetCorner().GetFloorIntX() + m_MainBitmap->w - m_Offset.GetFloorIntX()};
-		std::array<int, 2> destPosY = {targetBox.GetCorner().GetFloorIntY(), targetBox.GetCorner().GetFloorIntY() + m_MainBitmap->h - m_Offset.GetFloorIntY()};
+		std::array<float, 2> sourcePosX = {m_Offset.m_X, 0};
+		std::array<float, 2> sourcePosY = {m_Offset.m_Y, 0};
+		std::array<float, 2> sourceWidth = {m_MainBitmap->w - m_Offset.m_X, m_Offset.m_X};
+		std::array<float, 2> sourceHeight = {m_MainBitmap->h - m_Offset.m_Y, m_Offset.m_Y};
+		std::array<float, 2> destPosX = {targetBox.GetCorner().m_X, targetBox.GetCorner().m_X + m_MainBitmap->w - m_Offset.m_X};
+		std::array<float, 2> destPosY = {targetBox.GetCorner().m_Y, targetBox.GetCorner().m_Y + m_MainBitmap->h - m_Offset.m_Y};
 
 		for (int i = 0; i < 2; ++i) {
 			for (int j = 0; j < 2; ++j) {
 				if (m_DrawMasked) {
-					renderer->Draw(m_MainBitmap, {sourcePosX[j], sourcePosY[i], sourceWidth[j], sourceHeight[i]}, {destPosX[j], destPosY[i]});
+					DrawTextureRec(g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap), {sourcePosX[j], sourcePosY[i], sourceWidth[j], sourceHeight[i]}, {destPosX[j], destPosY[i]}, {255, 255, 255, 255});
 					//masked_blit(m_MainBitmap, targetBitmap, sourcePosX[j], sourcePosY[i], destPosX[j], destPosY[i], sourceWidth[j], sourceHeight[i]);
 				} else {
-					renderer->Draw(m_MainBitmap, {sourcePosX[j], sourcePosY[i], sourceWidth[j], sourceHeight[i]}, {destPosX[j], destPosY[i]});
+					DrawTextureRec(g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap), {sourcePosX[j], sourcePosY[i], sourceWidth[j], sourceHeight[i]}, {destPosX[j], destPosY[i]}, {255, 255, 255, 255});
 					//blit(m_MainBitmap, targetBitmap, sourcePosX[j], sourcePosY[i], destPosX[j], destPosY[i], sourceWidth[j], sourceHeight[i]);
 				}
 			}
 		}
 	} else {
-		std::array<int, 2> sourceWidth = {m_MainBitmap->w, m_Offset.GetFloorIntX() / m_ScaleFactor.GetFloorIntX()};
-		std::array<int, 2> sourceHeight = {m_MainBitmap->h, m_Offset.GetFloorIntY() / m_ScaleFactor.GetFloorIntY()};
-		std::array<int, 2> destPosX = {targetBox.GetCorner().GetFloorIntX() - m_Offset.GetFloorIntX(), targetBox.GetCorner().GetFloorIntX() + m_ScaledDimensions.GetFloorIntX() - m_Offset.GetFloorIntX()};
-		std::array<int, 2> destPosY = {targetBox.GetCorner().GetFloorIntY() - m_Offset.GetFloorIntY(), targetBox.GetCorner().GetFloorIntY() + m_ScaledDimensions.GetFloorIntY() - m_Offset.GetFloorIntY()};
+		std::array<float, 2> sourceWidth = {static_cast<float>(m_MainBitmap->w), m_Offset.m_X / m_ScaleFactor.m_X};
+		std::array<float, 2> sourceHeight = {static_cast<float>(m_MainBitmap->h), m_Offset.m_Y / m_ScaleFactor.m_Y};
+		std::array<float, 2> destPosX = {targetBox.GetCorner().m_X - m_Offset.m_X, targetBox.GetCorner().m_X + m_ScaledDimensions.m_X - m_Offset.m_X};
+		std::array<float, 2> destPosY = {targetBox.GetCorner().m_Y - m_Offset.m_Y, targetBox.GetCorner().m_Y + m_ScaledDimensions.m_Y - m_Offset.m_Y};
 
 		for (int i = 0; i < 2; ++i) {
 			for (int j = 0; j < 2; ++j) {
 				if (m_DrawMasked) {
-					renderer->Draw(m_MainBitmap, {destPosX[j], destPosY[i]}, 0.0f, m_ScaleFactor);
+					DrawTexturePro(g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap),
+					               {0.0f, 0.0f, sourceWidth[j], sourceHeight[i]},
+					               {destPosX[j], destPosY[i], sourceWidth[j] * m_ScaleFactor.m_X + 1.0f, sourceHeight[i] * m_ScaleFactor.m_Y + 1.0f},
+					               {0.0f, 0.0f},
+					               0.0f,
+					               {255, 255, 255, 255});
 					//masked_stretch_blit(m_MainBitmap, targetBitmap, 0, 0, sourceWidth[j], sourceHeight[i], destPosX[j], destPosY[i], sourceWidth[j] * m_ScaleFactor.GetFloorIntX() + 1, sourceHeight[i] * m_ScaleFactor.GetFloorIntY() + 1);
 				} else {
-					renderer->Draw(m_MainBitmap, {destPosX[j], destPosY[i]}, 0.0f, m_ScaleFactor);
+					DrawTexturePro(g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap),
+					               {0.0f, 0.0f, sourceWidth[j], sourceHeight[i]},
+					               {destPosX[j], destPosY[i], sourceWidth[j] * m_ScaleFactor.m_X + 1.0f, sourceHeight[i] * m_ScaleFactor.m_Y + 1.0f},
+					               {0.0f, 0.0f},
+					               0.0f,
+					               {255, 255, 255, 255});
 					//stretch_blit(m_MainBitmap, targetBitmap, 0, 0, sourceWidth[j], sourceHeight[i], destPosX[j], destPosY[i], sourceWidth[j] * m_ScaleFactor.GetFloorIntX() + 1, sourceHeight[i] * m_ScaleFactor.GetFloorIntY() + 1);
 				}
 			}
@@ -483,34 +495,44 @@ void SceneLayerImpl<TRACK_DRAWINGS>::DrawWrapped(SpriteRenderer* renderer, const
 }
 
 template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::DrawTiled(SpriteRenderer* renderer, const Box& targetBox, bool drawScaled) const {
+void SceneLayerImpl<TRACK_DRAWINGS>::DrawTiled(const Box& targetDimensions, const Box& targetBox, bool drawScaled) const {
 	ZoneScoped;
 	TracyGpuZone("SceneLayer::DrawTiled");
-	int bitmapWidth = m_ScaledDimensions.GetFloorIntX();
-	int bitmapHeight = m_ScaledDimensions.GetFloorIntY();
-	int areaToCoverX = m_Offset.GetFloorIntX() + targetBox.GetCorner().GetFloorIntX() + std::min(renderer->GetSize().w, targetBox.GetWidth());
-	int areaToCoverY = m_Offset.GetFloorIntY() + targetBox.GetCorner().GetFloorIntY() + std::min(renderer->GetSize().h, targetBox.GetHeight());
+	float bitmapWidth = m_ScaledDimensions.m_X;
+	float bitmapHeight = m_ScaledDimensions.m_Y;
+	int areaToCoverX = m_Offset.GetFloorIntX() + targetBox.GetCorner().GetFloorIntX() + std::min(targetDimensions.GetWidth(), targetBox.GetWidth());
+	int areaToCoverY = m_Offset.GetFloorIntY() + targetBox.GetCorner().GetFloorIntY() + std::min(targetDimensions.GetHeight(), targetBox.GetHeight());
 
 	for (int tiledOffsetX = 0; tiledOffsetX < areaToCoverX;) {
-		int destX = targetBox.GetCorner().GetFloorIntX() + tiledOffsetX - m_Offset.GetFloorIntX();
+		float destX = targetBox.GetCorner().GetFloorIntX() + tiledOffsetX - m_Offset.GetFloorIntX();
 
 		for (int tiledOffsetY = 0; tiledOffsetY < areaToCoverY;) {
-			int destY = targetBox.GetCorner().GetFloorIntY() + tiledOffsetY - m_Offset.GetFloorIntY();
+			float destY = targetBox.GetCorner().GetFloorIntY() + tiledOffsetY - m_Offset.GetFloorIntY();
 
 			if (!drawScaled) {
 				if (m_DrawMasked) {
-					renderer->Draw(m_MainBitmap, destX, destY);
+					DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap), destX, destY, {255, 255, 255, 255});
 					//masked_blit(m_MainBitmap, targetBitmap, 0, 0, destX, destY, bitmapWidth, bitmapHeight);
 				} else {
-					renderer->Draw(m_MainBitmap, destX, destY);
+					DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap), destX, destY, {255, 255, 255, 255});
 					//blit(m_MainBitmap, targetBitmap, 0, 0, destX, destY, bitmapWidth, bitmapHeight);
 				}
 			} else {
 				if (m_DrawMasked) {
-					renderer->Draw(m_MainBitmap, {destX, destY}, 0.0f, m_ScaleFactor);
+					DrawTexturePro(g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap),
+					               {0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
+					               {destX, destY, bitmapWidth, bitmapHeight},
+					               {0.0f, 0.0f},
+					               0.0f,
+					               {255, 255, 255, 255});
 					//masked_stretch_blit(m_MainBitmap, targetBitmap, 0, 0, m_MainBitmap->w, m_MainBitmap->h, destX, destY, bitmapWidth, bitmapHeight);
 				} else {
-					renderer->Draw(m_MainBitmap, {destX, destY}, 0.0f, m_ScaleFactor);
+					DrawTexturePro(g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap),
+					               {0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
+					               {destX, destY, bitmapWidth, bitmapHeight},
+					               {0.0f, 0.0f},
+					               0.0f,
+					               {255, 255, 255, 255});
 					//stretch_blit(m_MainBitmap, targetBitmap, 0, 0, m_MainBitmap->w, m_MainBitmap->h, destX, destY, bitmapWidth, bitmapHeight);
 				}
 			}

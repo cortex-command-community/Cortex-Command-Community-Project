@@ -479,16 +479,16 @@ void SLTerrain::Update() {
 	m_BGColorLayer->SetOffset(m_Offset);
 }
 
-void SLTerrain::Draw(SpriteRenderer* renderer, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
+void SLTerrain::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 	switch (m_LayerToDraw) {
 		case LayerType::MaterialLayer:
-			SceneLayer::Draw(renderer, targetBox);
+			SceneLayer::Draw(targetDimensions, targetBox);
 			break;
 		case LayerType::ForegroundLayer:
-			m_FGColorLayer->Draw(renderer, targetBox);
+			m_FGColorLayer->Draw(targetDimensions, targetBox);
 			break;
 		case LayerType::BackgroundLayer:
-			m_BGColorLayer->Draw(renderer, targetBox);
+			m_BGColorLayer->Draw(targetDimensions, targetBox);
 			break;
 		default:
 			RTEAbort("Invalid LayerType was set to draw in SLTerrain::Draw!");
