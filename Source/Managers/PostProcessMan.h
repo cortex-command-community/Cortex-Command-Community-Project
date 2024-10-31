@@ -155,6 +155,8 @@ namespace RTE {
 		/// @return The opengl backbuffer texture for indexed drawings.
 		std::shared_ptr<RenderTarget> GetPostProcessColorBuffer() { return m_PostProcessFramebuffer; }
 
+		GLuint GetPaletteTexture() { return m_Palette8Texture; }
+
 	protected:
 		std::list<PostEffect> m_PostScreenEffects; //!< List of effects to apply at the end of each frame. This list gets cleared out and re-filled each frame.
 		std::list<PostEffect> m_PostSceneEffects; //!< All post-processing effects registered for this draw frame in the scene.

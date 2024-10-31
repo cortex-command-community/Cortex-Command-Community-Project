@@ -84,15 +84,6 @@ void PostProcessMan::InitializeGLPointers() {
 	GL_CHECK(glGenTextures(1, &m_Palette8Texture));
 	GL_CHECK(glGenVertexArrays(1, &m_VertexArray));
 	GL_CHECK(glGenBuffers(1, &m_VertexBuffer));
-
-	GL_CHECK(glBindVertexArray(m_VertexArray));
-	GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer));
-	GL_CHECK(glBufferData(GL_ARRAY_BUFFER, sizeof(c_Quad), c_Quad.data(), GL_STATIC_DRAW));
-	GL_CHECK(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr));
-	GL_CHECK(glEnableVertexAttribArray(0));
-	GL_CHECK(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float))));
-	GL_CHECK(glEnableVertexAttribArray(1));
-	GL_CHECK(glBindVertexArray(0));
 }
 
 void PostProcessMan::DestroyGLPointers() {
@@ -360,34 +351,30 @@ void PostProcessMan::PostProcess() {
 	// First copy the current 8bpp backbuffer to the 32bpp buffer; we'll add effects to it
 	GL_CHECK(glDisable(GL_BLEND));
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_FrameMan.GetBackBuffer()->GetColorTexture()));
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_FrameMan.GetBackBuffer()->GetColorTexture().id));
 	GL_CHECK(glActiveTexture(GL_TEXTURE1));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_Palette8Texture));
 	m_PostProcessFramebuffer->Begin(false);
-	m_Blit8->Use();
-	m_Blit8->SetInt(m_Blit8->GetTextureUniform(), 0);
+	m_Blit8->Begin();
 	int paletteUniform = m_Blit8->GetUniformLocation("rtePalette");
-	m_Blit8->SetInt(paletteUniform, 1);
-	m_Blit8->SetMatrix4f(m_Blit8->GetProjectionUniform(), glm::mat4(1));
-	m_Blit8->SetMatrix4f(m_Blit8->GetUVTransformUniform(), glm::mat4(1));
-	m_Blit8->SetMatrix4f(m_Blit8->GetTransformUniform(), glm::mat4(1));
-	GL_CHECK(glBindVertexArray(m_VertexArray));
-	GL_CHECK(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));
+	rlSetUniformSampler(paletteUniform, m_Palette8Texture);
+	DrawTexture(g_FrameMan.GetBackBuffer()->GetColorTexture(), 0, 0, {255, 255, 255, 255});
+	m_Blit8->End();
 
 	// Set the screen blender mode for glows
 	set_screen_blender(128, 128, 128, 128);
-	GL_CHECK(glEnable(GL_BLEND));
-	GL_CHECK(glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD));
-	GL_CHECK(glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_COLOR, GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
-	GL_CHECK(glBlendColor(0.5F, 0.5F, 0.5F, 0.5F));
+	rlEnableColorBlend();
+	rlSetBlendFactorsSeparate(GL_ONE, GL_ONE_MINUS_SRC_COLOR, GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_FUNC_ADD, GL_FUNC_ADD);
+	rlSetBlendMode(RL_BLEND_CUSTOM_SEPARATE);
 
-	m_PostProcessShader->Use();
+	m_PostProcessShader->Begin();
 
 	DrawDotGlowEffects();
 	DrawPostScreenEffects();
 
 	// Clear the effects list for this frame
 	m_PostScreenEffects.clear();
+	m_PostProcessShader->End();
 	m_PostProcessFramebuffer->End();
 }
 
@@ -398,9 +385,7 @@ void PostProcessMan::DrawDotGlowEffects() {
 	int endY = 0;
 	int testpixel = 0;
 
-	GL_CHECK(glBindVertexArray(m_VertexArray));
-	GL_CHECK(glActiveTexture(GL_TEXTURE0));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_GLResourceMan.GetStaticTextureFromBitmap(m_YellowGlow)));
+	Texture2D yellowGlow = g_GLResourceMan.GetStaticTextureFromBitmap(m_YellowGlow);
 
 	// Randomly sample the entire backbuffer, looking for pixels to put a glow on.
 	for (const Box& glowBox: m_PostScreenGlowBoxes) {
@@ -426,13 +411,7 @@ void PostProcessMan::DrawDotGlowEffects() {
 
 				// YELLOW
 				if ((testpixel == g_YellowGlowColor && RandomNum() < 0.9F) || testpixel == 98 || (testpixel == 120 && RandomNum() < 0.7F)) {
-					glm::mat4 transformMatrix(1);
-					transformMatrix = glm::translate(transformMatrix, glm::vec3(x + 0.5f, y + 0.5f, 0));
-					transformMatrix = glm::scale(transformMatrix, glm::vec3(m_YellowGlow->w * 0.5f, m_YellowGlow->h * 0.5f, 1.0));
-					m_PostProcessShader->SetInt(m_PostProcessShader->GetTextureUniform(), 0);
-					m_PostProcessShader->SetMatrix4f(m_PostProcessShader->GetProjectionUniform(), *m_ProjectionMatrix);
-					m_PostProcessShader->SetMatrix4f(m_PostProcessShader->GetTransformUniform(), transformMatrix);
-					GL_CHECK(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));
+					DrawTexture(yellowGlow, x - yellowGlow.width / 2, y - yellowGlow.height / 2, {255, 255, 255, 255});
 				}
 				// TODO: Enable and add more colors once we actually have something that needs these.
 				// RED
@@ -454,31 +433,20 @@ void PostProcessMan::DrawPostScreenEffects() {
 	BITMAP* effectBitmap = nullptr;
 	float effectPosX = 0;
 	float effectPosY = 0;
-	float effectStrength = 0;
+	unsigned char effectStrength = 0;
 
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	GL_CHECK(glBindVertexArray(m_VertexArray));
-	m_PostProcessShader->Use();
 	m_PostProcessShader->SetInt(m_PostProcessShader->GetTextureUniform(), 0);
 	m_PostProcessShader->SetMatrix4f(m_PostProcessShader->GetProjectionUniform(), *m_ProjectionMatrix);
 
 	for (const PostEffect& postEffect: m_PostScreenEffects) {
 		if (postEffect.m_Bitmap) {
 			effectBitmap = postEffect.m_Bitmap;
-			effectStrength = postEffect.m_Strength / 255.f;
-			effectPosX = postEffect.m_Pos.m_X;
-			effectPosY = postEffect.m_Pos.m_Y;
-			m_PostProcessShader->SetVector4f(m_PostProcessShader->GetColorUniform(), glm::vec4(effectStrength, effectStrength, effectStrength, 1.0f));
-
-			glm::mat4 transformMatrix(1);
-			transformMatrix = glm::translate(transformMatrix, glm::vec3(effectPosX, effectPosY, 0));
-			transformMatrix = glm::rotate(transformMatrix, -postEffect.m_Angle, glm::vec3(0, 0, 1));
-			transformMatrix = glm::scale(transformMatrix, glm::vec3(static_cast<float>(effectBitmap->w) * 0.5f, static_cast<float>(effectBitmap->h) * 0.5f, 1.0f));
-
-			GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_GLResourceMan.GetStaticTextureFromBitmap(postEffect.m_Bitmap)));
-			m_PostProcessShader->SetMatrix4f(m_PostProcessShader->GetTransformUniform(), transformMatrix);
-
-			GL_CHECK(glDrawArrays(GL_TRIANGLE_STRIP, 0, 4));
+			effectStrength = postEffect.m_Strength;
+			effectPosX = postEffect.m_Pos.m_X - postEffect.m_Bitmap->w / 2;
+			effectPosY = postEffect.m_Pos.m_Y - postEffect.m_Bitmap->h / 2;
+			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(postEffect.m_Bitmap), effectPosX, effectPosY, {.r=effectStrength, .g=effectStrength, .b=effectStrength, .a=255});
 		}
 	}
 }
