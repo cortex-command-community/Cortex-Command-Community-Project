@@ -792,6 +792,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSprite) {
 	    .property("FrameCount", &MOSprite::GetFrameCount)
 	    .property("SpriteOffset", &MOSprite::GetSpriteOffset, &MOSprite::SetSpriteOffset)
 	    .property("HFlipped", &MOSprite::IsHFlipped, &MOSprite::SetHFlipped)
+	    .property("ForcedHFlip", &MOSprite::GetForcedHFlip, &MOSprite::SetForcedHFlip)
 	    .property("FlipFactor", &MOSprite::GetFlipFactor)
 	    .property("RotAngle", &MOSprite::GetRotAngle, &MOSprite::SetRotAngle)
 	    .property("PrevRotAngle", &MOSprite::GetPrevRotAngle)

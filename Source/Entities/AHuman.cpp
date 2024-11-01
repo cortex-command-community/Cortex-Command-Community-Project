@@ -1532,7 +1532,7 @@ void AHuman::PreControllerUpdate() {
 				m_Paths[FGROUND][m_MovementState].SetHFlip(m_Controller.IsState(MOVE_LEFT));
 				m_Paths[BGROUND][m_MovementState].SetHFlip(m_Controller.IsState(MOVE_LEFT));
 			} else if ((m_Controller.IsState(MOVE_RIGHT) && m_HFlipped) || (m_Controller.IsState(MOVE_LEFT) && !m_HFlipped)) {
-				m_HFlipped = !m_HFlipped;
+				SetHFlipped(!m_HFlipped);
 				m_CheckTerrIntersection = true;
 				if (m_ProneState == NOTPRONE) {
 					MoveOutOfTerrain(g_MaterialGrass);
@@ -1656,7 +1656,7 @@ void AHuman::PreControllerUpdate() {
 		m_AimAngle = analogAim.GetAbsRadAngle();
 
 		if ((analogAim.m_X > 0 && m_HFlipped) || (analogAim.m_X < 0 && !m_HFlipped)) {
-			m_HFlipped = !m_HFlipped;
+			SetHFlipped(!m_HFlipped);
 			m_CheckTerrIntersection = true;
 			if (m_ProneState == NOTPRONE) {
 				MoveOutOfTerrain(g_MaterialGrass);

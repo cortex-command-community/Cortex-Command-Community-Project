@@ -169,9 +169,30 @@ namespace RTE {
 		int GetSpriteAnimMode() const { return m_SpriteAnimMode; }
 
 		/// Sets whether this MOSprite should be drawn flipped horizontally
-		/// (along the vertical axis).
+		/// (along the vertical axis). Will silently fail if a forced flip prevents a change.
 		/// @param flipped A bool with the new value.
-		void SetHFlipped(const bool flipped) override { m_HFlipped = flipped; }
+		void SetHFlipped(const bool flipped) override {
+			if (m_ForcedHFlip == -1) {
+				m_HFlipped = flipped;
+			}
+		}
+
+		/// Sets forced flipped drawing along the vertical axis, preventing changing HFlipped elsewhere.
+		/// @param forceFlip A bool with the new value, int -1, 0, or 1.
+		void SetForcedHFlip(const int forceFlip) {
+			if (forceFlip == -1 || forceFlip == 0 || forceFlip == 1) {
+				m_ForcedHFlip = forceFlip;
+				if (forceFlip == 0) {
+					m_HFlipped = false;
+				} else 	if (forceFlip == 1) {
+					m_HFlipped = true;
+				}
+			}
+		}
+
+		/// Gets the current value of forced flipped drawing along the vertical axis.
+		/// @return An integer with the current forced flipped drawing value.
+		int GetForcedHFlip() const { return m_ForcedHFlip; }
 
 		/// Sets the current absolute angle of rotation of this MovableObject.
 		/// @param m_Rotation.SetRadAngle(newAngle The new absolute angle in radians.
@@ -308,6 +329,8 @@ namespace RTE {
 		bool m_SpriteAnimIsReversingFrames;
 		// Whether flipped horizontally or not.
 		bool m_HFlipped;
+		// A forced flippedness. -1 is no force, 0 is force not flipped, 1 is force flipped.
+		int m_ForcedHFlip;
 		// The precalculated maximum possible radius and diameter of this, in pixels
 		float m_SpriteRadius;
 		float m_SpriteDiameter;

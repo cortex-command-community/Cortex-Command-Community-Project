@@ -1,12 +1,6 @@
 -- This script incorporates Filipawn Industries code and the vanilla burstfire script together
 -- There is likely better ways of doing a lot of this, potentially even standardizing it so it can be easily used more widely
 
-function OnMessage(self, message, context)
-	if message == "SetKeepUnflipped" then
-		self.keepFlipped = context == -1 and true or false;
-	end
-end
-
 function OnFire(self)
 
 	self.FireTimer:Reset();
@@ -44,51 +38,67 @@ function Create(self)
 	
 	self.reloadSmokeTimer = Timer();
 	
-	self.rotationSpeed = 0.04;
-	self.smoothedRotAngle = self.RotAngle;
-	self.InheritedRotAngleTarget = 0;
+	self.rotationSpeed = 0.05;
+	self.rotAngleDeviation = 0;
 
 	self.shotsPerBurst = self:NumberValueExists("ShotsPerBurst") and self:GetNumberValue("ShotsPerBurst") or 3;
 	self.coolDownDelay = 500;
 	
-	self.keepFlipped = false;
+	if self.HFlipped then
+		self.RotAngle = math.pi;
+	end
+	
+	self.LastHFlipped = self.HFlipped;
+	self.LastRotAngle = self.RotAngle;
 end
 
 function Update(self)
 
 	self.servoLoopSound.Pos = self.Pos;
-
-	self.HFlipped = self.keepFlipped;
+	
+    if self.LastHFlipped ~= nil then
+        if self.LastHFlipped ~= self.HFlipped then
+            self.LastHFlipped = self.HFlipped
+            self.rotAngleDeviation = 0;
+        end
+    end
 	
 	self.parent = IsActor(self:GetRootParent()) and ToActor(self:GetRootParent()) or nil;
-	
 	self.playerControlled = (self.parent and self.parent:IsPlayerControlled()) and true or false;
 	
-	-- reticule of actual aim line so the gun feels cannon-y rather than unresponsive
-	
-	local actingRotAngle = self.RotAngle - self.InheritedRotAngleOffset;
-	
-	if self.playerControlled and self.parent.SharpAimProgress > 0.13 then
-		for i = 1, 24 do
-			if i % 3 == 0 then
-				local dotVec = Vector(i*self.FlipFactor, 0):RadRotate(actingRotAngle) + self.Pos + Vector((self.SharpLength + 15) * self.FlipFactor, 0):RadRotate(actingRotAngle)*self.parent.SharpAimProgress;
-				PrimitiveMan:DrawLinePrimitive(dotVec, dotVec, 116, 2);
+	-- Rotation smoothing related stuff
+	if self.parent then	
+		local actingRotAngle = self.parent:GetAimAngle(true)
+		local aimAngle = self.parent:GetAimAngle(false) * self.FlipFactor;
+		
+		-- Reticule
+		if self.playerControlled and self.parent.SharpAimProgress > 0.13 then
+			for i = 1, 24 do
+				if i % 3 == 0 then
+					local dotVec = Vector(i*self.FlipFactor, 0):RadRotate(aimAngle) + self.Pos + Vector((self.SharpLength + 15) * self.FlipFactor, 0):RadRotate(aimAngle)*self.parent.SharpAimProgress;
+					PrimitiveMan:DrawLinePrimitive(dotVec, dotVec, 116, 2);
+				end
 			end
 		end
+		
+		self.rotAngleDeviation = self.rotAngleDeviation + (self.LastRotAngle - actingRotAngle);
+
+		if self.rotAngleDeviation ~= 0 then
+			self.rotAngleDeviation = self.rotAngleDeviation - (self.rotAngleDeviation * self.rotationSpeed);
+			if math.abs(self.rotAngleDeviation) < 0.001 then
+				self.rotAngleDeviation = 0;
+			end
+		end
+		
+		self.InheritedRotAngleOffset = self.rotAngleDeviation * self.FlipFactor;
+		self.LastRotAngle = actingRotAngle;
+		
+		self.servoLoopSoundVolumeTarget = 0 + math.abs(self.rotAngleDeviation)
+		self.servoLoopSound.Volume = self.servoLoopSound.Volume - (0.5 * (self.servoLoopSound.Volume - self.servoLoopSoundVolumeTarget));
+		self.servoLoopSoundPitchTarget = 1 + math.abs(self.rotAngleDeviation)
+		self.servoLoopSound.Pitch = self.servoLoopSound.Pitch - (0.1 * (self.servoLoopSound.Pitch - self.servoLoopSoundPitchTarget));
 	end
-	-- rotation smoothing, for a cannon-y feel:
-	
-	if self.smoothedRotAngle ~= actingRotAngle then
-		self.smoothedRotAngle = self.smoothedRotAngle - (self.rotationSpeed * (self.smoothedRotAngle - (actingRotAngle)));
-	end
-	
-	self.servoLoopSoundVolumeTarget = 0 + math.abs(self.smoothedRotAngle - actingRotAngle)
-	self.servoLoopSound.Volume = self.servoLoopSound.Volume - (0.5 * (self.servoLoopSound.Volume - self.servoLoopSoundVolumeTarget));
-	self.servoLoopSoundPitchTarget = 1 + math.abs(self.smoothedRotAngle - actingRotAngle)
-	self.servoLoopSound.Pitch = self.servoLoopSound.Pitch - (0.1 * (self.servoLoopSound.Pitch - self.servoLoopSoundPitchTarget));
-	
-	self.InheritedRotAngleOffset = self.smoothedRotAngle - actingRotAngle;
-	
+
 	-- Mathemagical firing anim by filipex
 	local f = math.max(1 - math.min((self.FireTimer.ElapsedSimTimeMS) / 200, 1), 0)
 	self.Frame = math.floor(f * 8 + 0.55);
