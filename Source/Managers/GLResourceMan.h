@@ -9,7 +9,7 @@
 #include <memory>
 #include <optional>
 #include "Shader.h"
-#include "Rectangles.h"
+#include "Box.h"
 
 #include "raylib/raylib.h"
 namespace RTE {
@@ -19,8 +19,9 @@ namespace RTE {
 		Vertex
 	};
 	struct GLBitmapInfo {
-		GLuint m_Texture;
-		size_t m_ID;
+		GLuint m_Texture{0};
+		size_t m_ID{0};
+		GLuint m_UpdateBuffer{0};
 	};
 	class GLResourceMan : public Singleton<GLResourceMan> {
 	public:
@@ -39,11 +40,14 @@ namespace RTE {
 		Texture2D GetStaticTextureFromFile(const std::string& filename);
 		Texture2D GetStaticTextureFromBitmap(BITMAP* bitmap);
 
-		GLuint UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const std::vector<IntRect>& = {});
+		GLBitmapInfo* GetBitmapInfo(BITMAP* bitmap);
+		GLuint UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const std::vector<Box>& = {});
 
 
 	private:
+		GLuint GetDynamicUploadBuffer(BITMAP* bitmap);
 		std::vector<std::unique_ptr<GLBitmapInfo>> m_StaticTextures;
+		std::vector<GLuint> m_DynamicBitmapUploadBuffers;
 		std::unordered_map<std::string, std::pair<ShaderType, GLuint>> m_ShaderCache;
 		std::vector<GLuint> m_Shaders;
 	};

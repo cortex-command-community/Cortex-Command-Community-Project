@@ -51,6 +51,11 @@ GLuint GLResourceMan::MakeGLProgram() {
 // 	}
 // 	return nullptr;
 // }
+
+GLBitmapInfo* GLResourceMan::GetBitmapInfo(BITMAP* bitmap) {
+	return reinterpret_cast<GLBitmapInfo*>(bitmap->extra);
+}
+
 Texture2D GLResourceMan::GetStaticTextureFromFile(const std::string& filename) {
 	BITMAP* bitmap = ContentFile(filename.c_str()).GetAsBitmap();
 	return GetStaticTextureFromBitmap(bitmap);
@@ -63,7 +68,7 @@ Texture2D GLResourceMan::GetStaticTextureFromBitmap(BITMAP* bitmap) {
 		bitmap->extra = reinterpret_cast<void*>(m_StaticTextures.back().get());
 		GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, bitmap_color_depth(bitmap) == 8 ? 1 : 4));
 		GL_CHECK(glActiveTexture(GL_TEXTURE0));
-		GL_CHECK(glBindTexture(GL_TEXTURE_2D, reinterpret_cast<GLBitmapInfo*>(bitmap->extra)->m_Texture));
+		GL_CHECK(glBindTexture(GL_TEXTURE_2D, GetBitmapInfo(bitmap)->m_Texture));
 		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, bitmap_color_depth(bitmap) == 8 ? GL_R8 : GL_RGBA, bitmap->w, bitmap->h, 0, bitmap_color_depth(bitmap) == 8 ? GL_RED : GL_RGBA, GL_UNSIGNED_BYTE, bitmap->line[0]));
 		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
@@ -76,7 +81,7 @@ Texture2D GLResourceMan::GetStaticTextureFromBitmap(BITMAP* bitmap) {
 		    .format = bitmap_color_depth(bitmap) == 8 ? PIXELFORMAT_UNCOMPRESSED_GRAYSCALE : PIXELFORMAT_UNCOMPRESSED_R8G8B8A8};
 	} else {
 		return {
-		    .id = reinterpret_cast<GLBitmapInfo*>(bitmap->extra)->m_Texture,
+		    .id = GetBitmapInfo(bitmap)->m_Texture,
 		    .width = bitmap->w,
 		    .height = bitmap->h,
 		    .mipmaps = 0,
@@ -85,7 +90,25 @@ Texture2D GLResourceMan::GetStaticTextureFromBitmap(BITMAP* bitmap) {
 	return {0, 0, 0, 0, -1};
 }
 
-GLuint GLResourceMan::UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const std::vector<IntRect>& updateRegions) {
+
+GLuint GLResourceMan::GetDynamicUploadBuffer(BITMAP* bitmap) {
+	if (!bitmap->extra) {
+		GetStaticTextureFromBitmap(bitmap);
+	}
+	GLBitmapInfo* info = GetBitmapInfo(bitmap);
+
+	if (!info->m_UpdateBuffer) {
+		GLuint updateBuffer;
+		glGenBuffers(1, &updateBuffer);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, updateBuffer);
+		glBufferData(GL_PIXEL_UNPACK_BUFFER, bitmap->w * bitmap->h * bitmap_color_depth(bitmap) / 8, nullptr, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+		info->m_UpdateBuffer = updateBuffer;
+	}
+	return info->m_UpdateBuffer;
+}
+
+GLuint GLResourceMan::UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const std::vector<Box>& updateRegions) {
 	ZoneScopedN("Bitmap Upload");
 	GLuint texture = GetStaticTextureFromBitmap(bitmap).id;
 	if (updated) {
@@ -94,9 +117,31 @@ GLuint GLResourceMan::UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const st
 		if (updateRegions.size() == 0) {
 			GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, bitmap->w, bitmap->h, bitmap_color_depth(bitmap) == 8 ? GL_RED : GL_RGBA, GL_UNSIGNED_BYTE, bitmap->line[0]));
 		} else {
-			for (auto& region: updateRegions) {
-				GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0, region.m_Left, region.m_Top, region.m_Right - region.m_Left, region.m_Bottom - region.m_Top, bitmap_color_depth(bitmap) == 8 ? GL_RED : GL_RGBA, GL_UNSIGNED_BYTE, bitmap->line[region.m_Top] + (region.m_Left)));
+			int bytesPerPixel = bitmap_color_depth(bitmap) / 8;
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, GetDynamicUploadBuffer(bitmap));
+			std::vector<size_t> offsets = {0};
+			for (size_t i = 0; i < updateRegions.size(); ++i) {
+				std::vector<unsigned char> pixels(updateRegions[i].m_Width * updateRegions[i].m_Height * bytesPerPixel);
+				for (size_t y = 0; y < updateRegions[i].m_Height; y++) {
+					memcpy(pixels.data() + y * static_cast<int>(updateRegions[i].m_Width), bitmap->line[y + updateRegions[i].m_Corner.GetFloorIntY()] + updateRegions[i].m_Corner.GetFloorIntX(), updateRegions[i].m_Width * bytesPerPixel);
+				}
+				glBufferSubData(GL_PIXEL_UNPACK_BUFFER, offsets[i], updateRegions[i].m_Width * updateRegions[i].m_Height * bytesPerPixel, pixels.data());
+				offsets.emplace_back(updateRegions[i].m_Width * updateRegions[i].m_Height * bytesPerPixel);
 			}
+			for (size_t i = 0; i < updateRegions.size(); ++i) {
+				GL_CHECK(glTexSubImage2D(
+					GL_TEXTURE_2D,
+					0,
+					updateRegions[i].m_Corner.GetFloorIntX(),
+					updateRegions[i].m_Corner.GetFloorIntY(),
+					updateRegions[i].m_Width,
+					updateRegions[i].m_Height,
+					bytesPerPixel == 1 ? GL_RED : GL_RGBA,
+					GL_UNSIGNED_BYTE,
+					(void*)offsets[i]
+				));
+			}
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 		}
 	}
 	return texture;

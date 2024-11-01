@@ -402,47 +402,51 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::RegisterDrawing(const Vecto
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::UpdateTargetRegion(const Box& targetBox) {
 	if constexpr (!STATIC_TEXTURE) {
-		std::vector<Box> updateRegions;
+		RTEAssert(bitmap_color_depth(m_MainBitmap) == 8, "Truecolor scenelayer used for non gpu drawing!");
+		std::vector<Box> updateRegions{};
 
-		int targetBoxRight = targetBox.m_Corner.m_X + targetBox.m_Width;
-		int targetBoxBottom = targetBox.m_Corner.m_Y + targetBox.m_Height;
+		if (m_MainBitmap->w < targetBox.m_Width && m_MainBitmap->h < targetBox.m_Height) {
+			// Bitmap will be in frame entirely, upload all.
+			updateRegions.emplace_back(
+				Vector(),
+				m_MainBitmap->w,
+				m_MainBitmap->h
+			);
+		} else {
+			// Upload wrapped region
 
-		updateRegions.emplace_back(
-			Box(
+			Box cornerWrapEither(
 				m_Offset,
-				m_Offset.m_X + targetBoxRight < m_MainBitmap->w ? targetBox.m_Width : m_MainBitmap->w - m_Offset.GetFloorIntX(),
-				m_Offset.m_Y + targetBoxBottom < m_MainBitmap->w ? targetBox.m_Height : m_MainBitmap->h - m_Offset.GetFloorIntY()
-			)
-		);
-
-		if (m_WrapX && m_Offset.m_X + targetBoxRight > m_MainBitmap->w) {
-			updateRegions.emplace_back(
-				Box(
+				std::min(m_MainBitmap->w - m_Offset.m_X,targetBox.m_Width),
+				std::min(m_MainBitmap->h - m_Offset.m_Y, targetBox.m_Height)
+			);
+			updateRegions.push_back(cornerWrapEither);
+			
+			if (m_WrapX && cornerWrapEither.m_Width < targetBox.m_Width) {
+				updateRegions.emplace_back(
 					Vector(0, m_Offset.m_Y),
-					m_Offset.m_X + targetBoxRight - m_MainBitmap->w,
-					m_Offset.m_Y + targetBoxBottom < m_MainBitmap->w ? targetBox.m_Height : m_MainBitmap->h - m_Offset.GetFloorIntY()
-				)
-			);
-		}
-		if (m_WrapY && (m_Offset.m_Y + targetBoxBottom > m_MainBitmap->h)) {
-			updateRegions.emplace_back(
-				Box(
+					targetBox.m_Width + m_Offset.m_X - m_MainBitmap->w,
+					std::min(m_MainBitmap->h - m_Offset.m_Y, targetBox.m_Height)
+				);
+			}
+			if (m_WrapY && cornerWrapEither.m_Height < targetBox.m_Width) {
+				updateRegions.emplace_back(
 					Vector(m_Offset.m_X, 0),
-					m_Offset.m_X + targetBoxRight < m_MainBitmap->w ? targetBox.m_Width : m_MainBitmap->w - m_Offset.GetFloorIntX(),
-					m_Offset.m_Y + targetBoxBottom - (m_MainBitmap->h)
-				)
-			);
+					std::min(m_MainBitmap->w - m_Offset.m_X, targetBox.m_Width),
+					targetBox.m_Height + m_Offset.m_Y - m_MainBitmap->h
+				);
+			}
+
+			if (m_WrapX && m_WrapY && cornerWrapEither.m_Height < targetBox.m_Height && cornerWrapEither.m_Width < targetBox.m_Width) {
+				updateRegions.emplace_back(
+					Vector(),
+					targetBox.m_Width + m_Offset.m_X - m_MainBitmap->w,
+					targetBox.m_Height + m_Offset.m_Y - m_MainBitmap->h
+				);
+			}
 		}
 
-		if (m_WrapX && m_WrapY && m_Offset.m_X + targetBoxRight > m_MainBitmap->w && m_Offset.m_Y + targetBoxBottom > m_MainBitmap->h) {
-			updateRegions.emplace_back(
-				Vector(0.0f, 0.0f),
-				m_Offset.m_X + targetBoxRight - m_MainBitmap->w,
-				m_Offset.m_Y + targetBoxBottom - m_MainBitmap->h
-			);
-		}
-
-		g_GLResourceMan.UpdateDynamicBitmap(m_MainBitmap, true);//, updateRegions);
+		g_GLResourceMan.UpdateDynamicBitmap(m_MainBitmap, true, updateRegions);
 
 	} else {}
 }
