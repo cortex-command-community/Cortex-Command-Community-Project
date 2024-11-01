@@ -9,7 +9,7 @@
 namespace RTE {
 
 	/// A scrolling layer of the Scene.
-	template <bool TRACK_DRAWINGS>
+	template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE = false>
 	class SceneLayerImpl : public Entity {
 		friend class NetworkServer;
 
@@ -236,6 +236,8 @@ namespace RTE {
 		bool ForceBoundsOrWrapPosition(Vector& pos, bool forceBounds) const;
 
 #pragma region Draw Breakdown
+		void UpdateTargetRegion(const Box& targetBox);
+
 		/// Performs wrapped drawing of this SceneLayer's bitmap to the screen in cases where it is both wider and taller than the target bitmap.
 		/// @param targetBitmap The bitmap to draw to.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
@@ -298,6 +300,22 @@ namespace RTE {
 		BITMAP* GetBitmap() const {
 			return m_MainBitmap;
 		}
+
+	protected:
+		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
+	};
+
+	class StaticSceneLayer : public SceneLayerImpl<false, true> {
+	public:
+		EntityAllocation(StaticSceneLayer);
+		ClassInfoGetters;
+
+		/// Constructor method used to instantiate a SceneLayer object in system memory. Create() should be called before using the object.
+		StaticSceneLayer(): SceneLayerImpl<false, true>() {}
+
+		/// Gets the BITMAP that this StaticSceneLayer uses.
+		/// The bitmap will only be uploaded to GPU once on the first draw. So any modifcations after that will not be drawn.
+		BITMAP* GetBitmap() const { return m_MainBitmap; }
 
 	protected:
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.

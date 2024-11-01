@@ -852,7 +852,7 @@ void FrameMan::Draw() {
 		if (IsInMultiplayerMode()) {
 			int layerCount = 0;
 
-			for (const SceneLayer* sceneLayer: g_SceneMan.GetScene()->GetBackLayers()) {
+			for (const SLBackground* sceneLayer: g_SceneMan.GetScene()->GetBackLayers()) {
 				SLOffset[playerScreen][layerCount] = sceneLayer->GetOffset();
 				layerCount++;
 

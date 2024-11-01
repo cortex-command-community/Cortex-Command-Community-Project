@@ -48,7 +48,7 @@ void LoadingScreen::Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, 
 		CreateLoadingSplash();
 	}
 
-	g_WindowMan.UploadFrame();
+	//g_WindowMan.UploadFrame();
 
 	if (!m_LoadingLogWriter) {
 		m_LoadingLogWriter = std::make_unique<Writer>("LogLoading.txt");
@@ -69,7 +69,7 @@ void LoadingScreen::CreateLoadingSplash(int xOffset) {
 	m_LoadingSplashBitmap = create_bitmap_ex(FrameMan::c_BPP, backbuffer->w, backbuffer->h);
 	clear_bitmap(m_LoadingSplashBitmap);
 
-	SceneLayer loadingSplash;
+	StaticSceneLayer loadingSplash;
 	loadingSplash.Create(ContentFile("Base.rte/GUIs/Title/LoadingSplash.png").GetAsBitmap(COLORCONV_NONE, false), false, Vector(), true, false, Vector(1.0F, 0));
 	loadingSplash.SetOffset(Vector(static_cast<float>(((loadingSplash.GetBitmap()->w - g_WindowMan.GetResX()) / 2) + xOffset), 0));
 

@@ -9,7 +9,7 @@
 
 using namespace RTE;
 
-ConcreteClassInfo(SLBackground, SceneLayer, 0);
+ConcreteClassInfo(SLBackground, StaticSceneLayer, 0);
 
 SLBackground::SLBackground() {
 	Clear();
@@ -43,7 +43,7 @@ void SLBackground::Clear() {
 }
 
 int SLBackground::Create() {
-	SceneLayer::Create();
+	StaticSceneLayer::Create();
 
 	m_Bitmaps.clear();
 	m_BitmapFile.GetAsAnimation(m_Bitmaps, m_FrameCount);
@@ -67,7 +67,7 @@ int SLBackground::Create() {
 }
 
 int SLBackground::Create(const SLBackground& reference) {
-	SceneLayer::Create(reference);
+	StaticSceneLayer::Create(reference);
 
 	// The main bitmap is created and owned by SceneLayer because it can be modified. We need to destroy it to avoid a leak because the bitmaps we'll be using here are owned by ContentFile static maps and are unmodifiable.
 	destroy_bitmap(m_MainBitmap);
@@ -97,7 +97,7 @@ int SLBackground::Create(const SLBackground& reference) {
 }
 
 int SLBackground::ReadProperty(const std::string_view& propName, Reader& reader) {
-	StartPropertyList(return SceneLayer::ReadProperty(propName, reader));
+	StartPropertyList(return StaticSceneLayer::ReadProperty(propName, reader));
 
 	MatchProperty("FrameCount", { reader >> m_FrameCount; });
 	MatchProperty("SpriteAnimMode", {
@@ -128,7 +128,7 @@ int SLBackground::ReadProperty(const std::string_view& propName, Reader& reader)
 }
 
 int SLBackground::Save(Writer& writer) const {
-	SceneLayer::Save(writer);
+	StaticSceneLayer::Save(writer);
 
 	writer.NewPropertyWithValue("FrameCount", m_FrameCount);
 	writer.NewPropertyWithValue("SpriteAnimMode", m_SpriteAnimMode);
@@ -213,7 +213,7 @@ void SLBackground::Update() {
 }
 
 void SLBackground::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
-	SceneLayer::Draw(targetDimensions, targetBox, !IsAutoScrolling());
+	StaticSceneLayer::Draw(targetDimensions, targetBox, !IsAutoScrolling());
 
 	int bitmapWidth = m_ScaledDimensions.GetFloorIntX();
 	int bitmapHeight = m_ScaledDimensions.GetFloorIntY();

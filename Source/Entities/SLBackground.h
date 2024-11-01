@@ -6,7 +6,7 @@
 namespace RTE {
 
 	/// A scrolling background layer of the Scene, placed behind the terrain.
-	class SLBackground : public SceneLayer {
+	class SLBackground : public StaticSceneLayer {
 		friend class NetworkServer;
 
 	public:
@@ -36,7 +36,7 @@ namespace RTE {
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override {
 			if (!notInherited) {
-				SceneLayer::Destroy();
+				StaticSceneLayer::Destroy();
 			}
 			Clear();
 		}
@@ -142,7 +142,7 @@ namespace RTE {
 		/// @param targetBitmap The bitmap to draw to.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param offsetNeedsScrollRatioAdjustment Whether the offset of this SceneLayer or the passed in offset override need to be adjusted to scroll ratio.
-		void Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false);
+		void Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false) override;
 #pragma endregion
 	private:
 		/// Enumeration for the different modes of SLBackground auto-scaling.
