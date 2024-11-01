@@ -257,19 +257,7 @@ void ContentFile::GetAsAnimation(std::vector<BITMAP*>& vectorToFill, int frameCo
 		}
 	}
 }
-
-BITMAP* ContentFile::LoadAndReleaseBitmap(int conversionMode, const std::string& dataPathToSpecificFrame) {
-	if (m_DataPath.empty()) {
-		return nullptr;
-	}
-	const std::string dataPathToLoad = dataPathToSpecificFrame.empty() ? m_DataPath : dataPathToSpecificFrame;
-
-	SDL_Surface* image = IMG_Load(dataPathToLoad.c_str());
-	std::cout << SDL_GetPixelFormatName(image->format->format) << " " << (int)image->format->padding[0] << " " << image->w << " " << image->pitch << std::endl;
-	bool convert8To32 = conversionMode & COLORCONV_8_TO_32;
-	bool convertTo8 = conversionMode & COLORCONV_REDUCE_TO_256;
-	int bitDepth = image->format->BitsPerPixel;
-	if (convertTo8 && image->format->BitsPerPixel != 8) {
+SDL_Palette* ContentFile::DefaultPaletteToSDL() {
 		SDL_Palette* palette = SDL_AllocPalette(256);
 		std::array<SDL_Color, 256> paletteColor;
 		PALETTE currentPalette;
@@ -282,42 +270,57 @@ BITMAP* ContentFile::LoadAndReleaseBitmap(int conversionMode, const std::string&
 			paletteColor[i].a = 255;
 		}
 		SDL_SetPaletteColors(palette, paletteColor.data(), 0, 256);
+		return palette;
+}
+
+SDL_Surface* ContentFile::LoadImageAsSurface(int conversionMode, const std::string& dataPathToLoad) {
+	SDL_Surface* image = IMG_Load(dataPathToLoad.c_str());
+	bool convert8To32 = conversionMode & COLORCONV_8_TO_32;
+	bool convertTo8 = conversionMode & COLORCONV_REDUCE_TO_256;
+	int bitDepth = image->format->BitsPerPixel;
+	if (convertTo8 && bitDepth != 8) {
+		SDL_Palette* palette = DefaultPaletteToSDL();
 		SDL_PixelFormat* format = SDL_AllocFormat(SDL_PIXELFORMAT_INDEX8);
 		SDL_SetPixelFormatPalette(format, palette);
 		SDL_Surface* newImage = SDL_ConvertSurface(image, format, 0);
-		SDL_FreeSurface(image);
 		SDL_FreeFormat(format);
 		SDL_FreePalette(palette);
+		SDL_FreeSurface(image);
 		image = newImage;
 		bitDepth = 8;
-	} else if (image->format->BitsPerPixel != 8 || convert8To32) {
+	} else if (bitDepth != 8 || convert8To32) {
 		
-		SDL_Palette* palette = SDL_AllocPalette(256);
-		std::array<SDL_Color, 256> paletteColor;
-		const PALETTE& currentPalette = g_FrameMan.GetDefaultPalette();
-		paletteColor[0] = {.r = 0, .g = 0, .b = 0, .a = 0};
-		for (size_t i = 1; i < paletteColor.size(); ++i) {
-			paletteColor[i].r = currentPalette[i].r;
-			paletteColor[i].g = currentPalette[i].g;
-			paletteColor[i].b = currentPalette[i].b;
-			paletteColor[i].a = 255;
-		}
-		SDL_SetPaletteColors(palette, paletteColor.data(), 0, 256);
+		SDL_Palette* palette = DefaultPaletteToSDL();
 		if (image->format->BitsPerPixel == 8) {
 			SDL_SetSurfacePalette(image, palette);
 			SDL_SetColorKey(image, SDL_TRUE, 0);
 		}
+		SDL_FreePalette(palette);
 		SDL_Surface* newImage = SDL_ConvertSurfaceFormat(image, SDL_PIXELFORMAT_RGBA32, 0);
 		SDL_FreeSurface(image);
 		image = newImage;
 		bitDepth = 32;
 	}
 
+	return image;
+}
+
+BITMAP* ContentFile::LoadAndReleaseBitmap(int conversionMode, const std::string& dataPathToSpecificFrame) {
+	if (m_DataPath.empty()) {
+		return nullptr;
+	}
+	const std::string dataPathToLoad = dataPathToSpecificFrame.empty() ? m_DataPath : dataPathToSpecificFrame;
+
+	SDL_Surface* image = LoadImageAsSurface(conversionMode, dataPathToLoad);
+	int bitDepth = image->format->BitsPerPixel;
+
 	BITMAP* returnBitmap = create_bitmap_ex(bitDepth, image->w, image->h);
 	
+	// allegro doesn't (always) align lines to 4byte, so copy line by line. SDL_Surface.pitch is the size in bytes per line + alignment padding.
 	for (int y = 0; y < image->h; ++y) {
 		memcpy(returnBitmap->line[y], static_cast<unsigned char*>(image->pixels) + image->pitch * y, image->w * image->format->BytesPerPixel);
 	}
+	SDL_FreeSurface(image);
 
 	RTEAssert(returnBitmap, "Failed to load image file with following path and name:\n\n" + m_DataPathAndReaderPosition + "\nThe file may be corrupt, incorrectly converted or saved with unsupported parameters.");
 
@@ -397,7 +400,17 @@ void ContentFile::ReloadBitmap(const std::string& filePath, int conversionMode) 
 	set_color_conversion((conversionMode == COLORCONV_NONE) ? COLORCONV_NONE : conversionMode);
 
 	BITMAP* loadedBitmap = (*bmpItr).second;
-	BITMAP* newBitmap = load_bitmap(filePath.c_str(), currentPalette);
+
+	SDL_Surface* newImage = LoadImageAsSurface(conversionMode, filePath);
+
+
+	BITMAP* newBitmap = create_bitmap_ex(newImage->format->BitsPerPixel, newImage->w, newImage->h);
+
+	// allegro doesn't (always) align lines to 4byte, so copy line by line. SDL_Surface.pitch is the size in bytes per line + alignment padding.
+	for (int y = 0; y < newImage->h; y++) {
+		memcpy(newBitmap->line[y], static_cast<unsigned char*>(newImage->pixels) + y * newImage->pitch, newImage->w * newImage->format->BytesPerPixel); 
+	}
+
 	//AddAlphaChannel(newBitmap);
 	BITMAP swap;
 
