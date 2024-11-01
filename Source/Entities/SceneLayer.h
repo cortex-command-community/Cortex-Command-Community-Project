@@ -238,12 +238,6 @@ namespace RTE {
 #pragma region Draw Breakdown
 		void UpdateTargetRegion(const Box& targetBox);
 
-		/// Performs wrapped drawing of this SceneLayer's bitmap to the screen in cases where it is both wider and taller than the target bitmap.
-		/// @param targetBitmap The bitmap to draw to.
-		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
-		/// @param drawScaled Whether to use scaled drawing routines or not.
-		void DrawWrapped(const Box& targetDim, const Box& targetBox, bool drawScaled) const;
-
 		/// Performs tiled drawing of this SceneLayer's bitmap to the screen in cases where the target bitmap is larger in some dimension.
 		/// @param targetBitmap The bitmap to draw to.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
