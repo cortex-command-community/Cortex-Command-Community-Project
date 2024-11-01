@@ -40,7 +40,7 @@ typedef struct {
    unsigned char data[PAL_SIZE][PAL_SIZE];
 } COLOR_MAP;
 
-AL_VAR(RGB_MAP *, rgb_map);
+//AL_VAR(RGB_MAP *, rgb_map);
 AL_VAR(COLOR_MAP *, color_map);
 
 AL_VAR(PALETTE, _current_palette);

@@ -276,9 +276,9 @@ BITMAP* ContentFile::LoadAndReleaseBitmap(int conversionMode, const std::string&
 		get_palette(currentPalette);
 		paletteColor[0] = {.r = 0, .g = 0, .b = 0, .a = 0};
 		for (size_t i = 1; i < paletteColor.size(); ++i) {
-			paletteColor[i].r = _rgb_scale_6[currentPalette[i].r];
-			paletteColor[i].g = _rgb_scale_6[currentPalette[i].g];
-			paletteColor[i].b = _rgb_scale_6[currentPalette[i].b];
+			paletteColor[i].r = currentPalette[i].r;
+			paletteColor[i].g = currentPalette[i].g;
+			paletteColor[i].b = currentPalette[i].b;
 			paletteColor[i].a = 255;
 		}
 		SDL_SetPaletteColors(palette, paletteColor.data(), 0, 256);
@@ -297,9 +297,9 @@ BITMAP* ContentFile::LoadAndReleaseBitmap(int conversionMode, const std::string&
 		const PALETTE& currentPalette = g_FrameMan.GetDefaultPalette();
 		paletteColor[0] = {.r = 0, .g = 0, .b = 0, .a = 0};
 		for (size_t i = 1; i < paletteColor.size(); ++i) {
-			paletteColor[i].r = _rgb_scale_6[currentPalette[i].r];
-			paletteColor[i].g = _rgb_scale_6[currentPalette[i].g];
-			paletteColor[i].b = _rgb_scale_6[currentPalette[i].b];
+			paletteColor[i].r = currentPalette[i].r;
+			paletteColor[i].g = currentPalette[i].g;
+			paletteColor[i].b = currentPalette[i].b;
 			paletteColor[i].a = 255;
 		}
 		SDL_SetPaletteColors(palette, paletteColor.data(), 0, 256);

@@ -189,8 +189,8 @@ int FrameMan::CreateBackBuffers() {
 
 void FrameMan::CreatePresetColorTables() {
 	// Create RGB lookup table that supposedly speeds up calculation of other color tables.
-	create_rgb_table(&m_RGBTable, m_DefaultPalette, nullptr);
-	rgb_map = &m_RGBTable;
+	//create_rgb_table(&m_RGBTable, m_DefaultPalette, nullptr);
+	//rgb_map = &m_RGBTable;
 
 	// Create transparency color tables. Tables for other blend modes will be created on demand.
 	int transparencyPresetCount = BlendAmountLimits::MaxBlend / c_BlendAmountStep;

@@ -49,9 +49,9 @@ void Color::SetRGBWithIndex(int index) {
 	get_color(m_Index, &rgbColor);
 
 	// Multiply by 4 because the Allegro RGB struct elements are in range 0-63, and proper RGB needs 0-255.
-	m_R = rgbColor.r * 4;
-	m_G = rgbColor.g * 4;
-	m_B = rgbColor.b * 4;
+	m_R = rgbColor.r;
+	m_G = rgbColor.g;
+	m_B = rgbColor.b;
 }
 
 int Color::RecalculateIndex() {

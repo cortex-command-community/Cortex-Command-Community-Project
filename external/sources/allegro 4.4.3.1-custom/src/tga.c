@@ -535,9 +535,9 @@ int save_tga_pf(PACKFILE *f, BITMAP *bmp, AL_CONST RGB *pal)
 
    if (depth == 8) {
       for (y=0; y<256; y++) {
-	 image_palette[y][2] = _rgb_scale_6[pal[y].r];
-	 image_palette[y][1] = _rgb_scale_6[pal[y].g];
-	 image_palette[y][0] = _rgb_scale_6[pal[y].b];
+	 image_palette[y][2] = pal[y].r;
+	 image_palette[y][1] = pal[y].g;
+	 image_palette[y][0] = pal[y].b;
       }
 
       pack_fwrite(image_palette, 768, f);
