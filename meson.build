@@ -57,7 +57,6 @@ if compiler.get_argument_syntax()== 'gcc' # used for gcc compatible compilers
   buildtype_debug = get_option('debug')
   if buildtype_debug
 
-    elfname += '_debug' # add _debug suffix for debug builds
     extra_args += ['-Wno-unknown-pragmas', '-Wno-deprecated-declarations', '-Wno-misleading-indentation'] # Disable #pragma region complaints and luabind auto_ptr warning
 
     if get_option('sane_warnings')
