@@ -28,6 +28,7 @@
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
+#include "SDL2/SDL_image.h"
 
 using namespace RTE;
 
@@ -486,16 +487,25 @@ void FrameMan::CreateNewNetworkPlayerBackBuffer(int player, int width, int heigh
 
 bool FrameMan::LoadPalette(const std::string& palettePath) {
 	const std::string fullPalettePath = g_PresetMan.GetFullModulePath(palettePath);
-	BITMAP* tempBitmap = load_bitmap(fullPalettePath.c_str(), m_Palette);
-	RTEAssert(tempBitmap, ("Failed to load palette from bitmap with following path:\n\n" + fullPalettePath).c_str());
+	SDL_Surface* paletteImage = IMG_Load(palettePath.c_str());
+	RTEAssert(paletteImage && paletteImage->format->palette, ("Failed to load palette from bitmap with following path:\n\n" + fullPalettePath).c_str());
+
+	SDL_Palette* palette = paletteImage->format->palette;
+	for (size_t i = 0; i < 256; i++) {
+		m_Palette[i] = {
+			palette->colors[i].r,
+			palette->colors[i].g,
+			palette->colors[i].b,
+			0
+		};
+	}
+	SDL_FreeSurface(paletteImage);
 
 	set_palette(m_Palette);
 
 	// Update what black is now with the loaded palette
 	m_BlackColor = bestfit_color(m_Palette, 0, 0, 0);
 	m_AlmostBlackColor = bestfit_color(m_Palette, 5, 5, 5);
-
-	destroy_bitmap(tempBitmap);
 
 	return true;
 }
