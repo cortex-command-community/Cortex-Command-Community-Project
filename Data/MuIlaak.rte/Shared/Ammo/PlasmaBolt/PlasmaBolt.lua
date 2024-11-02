@@ -1,8 +1,8 @@
 function Create(self)
-	self.speed = 35;
+	self.speed = 45;
 	self.TraceValue = 120
 
-	local raylength = 100;
+	local raylength = 25;
 	local rayPixSpace = 15;
 
 	local dots = math.floor(raylength/rayPixSpace);
