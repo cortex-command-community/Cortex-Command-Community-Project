@@ -221,7 +221,7 @@
     #define RL_DEFAULT_BATCH_DRAWCALLS             256      // Default number of batch draw calls (by state changes: mode, texture)
 #endif
 #ifndef RL_DEFAULT_BATCH_MAX_TEXTURE_UNITS
-    #define RL_DEFAULT_BATCH_MAX_TEXTURE_UNITS       4      // Maximum number of textures units that can be activated on batch drawing (SetShaderValueTexture())
+    #define RL_DEFAULT_BATCH_MAX_TEXTURE_UNITS       16      // Maximum number of textures units that can be activated on batch drawing (SetShaderValueTexture())
 #endif
 
 // Internal RLMatrix stack

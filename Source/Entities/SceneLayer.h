@@ -5,8 +5,11 @@
 #include "Box.h"
 
 #include <future>
+#include <memory>
 
 namespace RTE {
+
+	struct BigTexture;
 
 	/// A scrolling layer of the Scene.
 	template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE = false>
@@ -201,6 +204,7 @@ namespace RTE {
 	protected:
 		ContentFile m_BitmapFile; //!< ContentFile containing the path to this SceneLayer's sprite file.
 
+		std::unique_ptr<BigTexture> m_MainTexture;
 		BITMAP* m_MainBitmap; //!< The main BITMAP of this SceneLayer.
 		BITMAP* m_BackBitmap; //!< The backbuffer BITMAP of this SceneLayer.
 

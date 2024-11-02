@@ -3,6 +3,7 @@
 #include "Serializable.h"
 #include "Vector.h"
 #include "Rectangles.h"
+#include "raylib/raylib.h"
 
 namespace RTE {
 
@@ -126,13 +127,19 @@ namespace RTE {
 		/// Gets a random point within this box.
 		/// @return The random point within the box.
 		Vector GetRandomPoint() const { return Vector(m_Corner.m_X + RandomNum(0.0F, m_Width), m_Corner.m_Y + RandomNum(0.0F, m_Height)); }
+
+		/// @brief Gets the intersection of this Box with another Box
+		/// @param rhs The other Box.
+		/// @return the intersecion Box of this and rhs.
+		Box GetIntersection(const Box& rhs) const;
 #pragma endregion
 
 #pragma region Detection
 		/// Tells whether another box intersects this one.
 		/// @param rhs The other Box to check for intersection with.
 		/// @return Intersecting the other box or not.
-		bool IntersectsBox(const Box& rhs);
+		bool IntersectsBox(const Box& rhs) const;
+
 
 		/// Tells whether a point is within the Box or not, taking potential flipping into account.
 		/// @param point The Vector describing the point to test for within box bounds.
@@ -187,6 +194,8 @@ namespace RTE {
 		/// @param rhs A Box reference as the right hand side operand.
 		/// @return A boolean indicating whether the two operands are unequal or not.
 		friend bool operator!=(const Box& lhs, const Box& rhs) { return lhs.m_Corner != rhs.m_Corner || lhs.m_Width != rhs.m_Width || lhs.m_Height != rhs.m_Height; }
+
+		operator Rectangle() { return {m_Corner.m_X, m_Corner.m_Y, m_Width, m_Height}; }
 #pragma endregion
 
 	private:

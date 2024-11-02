@@ -61,9 +61,16 @@ Texture2D GLResourceMan::GetStaticTextureFromFile(const std::string& filename) {
 	return GetStaticTextureFromBitmap(bitmap);
 }
 
+GLBitmapInfo* GLResourceMan::MakeBitmapInfo() {
+	m_StaticTextures.emplace_back(new GLBitmapInfo);
+	m_StaticTextures.back()->m_ID = m_StaticTextures.size();
+	return m_StaticTextures.back().get();
+}
+
 Texture2D GLResourceMan::GetStaticTextureFromBitmap(BITMAP* bitmap) {
 	if (!bitmap->extra) {
 		m_StaticTextures.emplace_back(new GLBitmapInfo);
+		m_StaticTextures.back()->m_ID = m_StaticTextures.size();
 		GL_CHECK(glGenTextures(1, &m_StaticTextures.back()->m_Texture));
 		bitmap->extra = reinterpret_cast<void*>(m_StaticTextures.back().get());
 		GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, bitmap_color_depth(bitmap) == 8 ? 1 : 4));
@@ -123,7 +130,10 @@ GLuint GLResourceMan::UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const st
 			for (size_t i = 0; i < updateRegions.size(); ++i) {
 				std::vector<unsigned char> pixels(updateRegions[i].m_Width * updateRegions[i].m_Height * bytesPerPixel);
 				for (size_t y = 0; y < updateRegions[i].m_Height; y++) {
-					memcpy(pixels.data() + y * static_cast<int>(updateRegions[i].m_Width), bitmap->line[y + updateRegions[i].m_Corner.GetFloorIntY()] + updateRegions[i].m_Corner.GetFloorIntX(), updateRegions[i].m_Width * bytesPerPixel);
+					memcpy(
+						pixels.data() + y * static_cast<int>(updateRegions[i].m_Width) * bytesPerPixel,
+						bitmap->line[y + updateRegions[i].m_Corner.GetFloorIntY()] + updateRegions[i].m_Corner.GetFloorIntX(),
+						updateRegions[i].m_Width * bytesPerPixel);
 				}
 				glBufferSubData(GL_PIXEL_UNPACK_BUFFER, offsets[i], updateRegions[i].m_Width * updateRegions[i].m_Height * bytesPerPixel, pixels.data());
 				offsets.emplace_back(updateRegions[i].m_Width * updateRegions[i].m_Height * bytesPerPixel);

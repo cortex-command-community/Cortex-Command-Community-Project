@@ -6,6 +6,7 @@
 #include "ActivityMan.h"
 #include "ThreadMan.h"
 #include "GLResourceMan.h"
+#include "BigTexture.h"
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
@@ -67,6 +68,9 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Create(BITMAP* bitmap, bool 
 
 	m_BackBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
 	m_LastClearColor = ColorKeys::g_InvalidColor;
+	if constexpr (!STATIC_TEXTURE) {
+		m_MainTexture = std::make_unique<BigTexture>(m_MainBitmap);
+	}
 
 	m_DrawMasked = drawMasked;
 	m_Offset = offset;
@@ -104,6 +108,10 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Create(const SceneLayerImpl&
 
 		m_BackBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
 		m_LastClearColor = ColorKeys::g_InvalidColor;
+
+		if constexpr (!STATIC_TEXTURE) {
+			m_MainTexture = std::make_unique<BigTexture>(m_MainBitmap);
+		}
 
 		InitScrollRatios();
 
@@ -194,6 +202,9 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::LoadData() {
 	m_MainBitmapOwned = true;
 
 	m_BackBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
+	if constexpr (!STATIC_TEXTURE) {
+		m_MainTexture = std::make_unique<BigTexture>(m_MainBitmap);
+	}
 	m_LastClearColor = ColorKeys::g_InvalidColor;
 
 	InitScrollRatios();
@@ -236,6 +247,7 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::ClearData() {
 		destroy_bitmap(m_MainBitmap);
 	}
 	m_MainBitmap = nullptr;
+	m_MainTexture.reset();
 	m_MainBitmapOwned = false;
 
 	if (m_BackBitmap) {
@@ -404,6 +416,7 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::UpdateTargetRegion(const Bo
 	if constexpr (!STATIC_TEXTURE) {
 		RTEAssert(bitmap_color_depth(m_MainBitmap) == 8, "Truecolor scenelayer used for non gpu drawing!");
 		std::vector<Box> updateRegions{};
+		m_MainTexture->m_Bitmap = m_MainBitmap;
 
 		if (m_MainBitmap->w < targetBox.m_Width && m_MainBitmap->h < targetBox.m_Height) {
 			// Bitmap will be in frame entirely, upload all.
@@ -446,7 +459,10 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::UpdateTargetRegion(const Bo
 			}
 		}
 
-		g_GLResourceMan.UpdateDynamicBitmap(m_MainBitmap, true, updateRegions);
+		for (auto& region: updateRegions) {
+			m_MainTexture->Update(region);
+		}
+		// g_GLResourceMan.UpdateDynamicBitmap(m_MainBitmap, true, updateRegions);
 
 	} else {}
 }
@@ -454,6 +470,9 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::UpdateTargetRegion(const Bo
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 	RTEAssert(m_MainBitmap, "Data of this SceneLayerImpl has not been loaded before trying to draw!");
+	if constexpr(!STATIC_TEXTURE) {
+		RTEAssert(m_MainTexture, "Texture of this SceneLayerImpl has not bee created before trying to draw!");
+	}
 	ZoneScoped;
 	TracyGpuZone("SceneLayer::Draw");
 	if (offsetNeedsScrollRatioAdjustment) {
@@ -471,10 +490,9 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Draw(const Box& targetDimen
 
 	m_Offset -= m_OriginOffset;
 	WrapPosition(m_Offset);
-	if (m_MainBitmapUpdated && m_MainBitmapOwned) {
-		if constexpr (!STATIC_TEXTURE) {
+	if constexpr (!STATIC_TEXTURE) {
+		if (m_MainBitmapOwned) {
 			UpdateTargetRegion(targetBox);
-			//g_GLResourceMan.UpdateDynamicBitmap(m_MainBitmap, true);
 		}
 	}
 	m_MainBitmapUpdated = false;
@@ -500,30 +518,26 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::DrawTiled(const Box& target
 			float destY = targetBox.GetCorner().GetFloorIntY() + tiledOffsetY - m_Offset.GetFloorIntY();
 
 			if (!drawScaled) {
-				if (m_DrawMasked) {
+				if constexpr (STATIC_TEXTURE) {
 					DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap), destX, destY, {255, 255, 255, 255});
-					//masked_blit(m_MainBitmap, targetBitmap, 0, 0, destX, destY, bitmapWidth, bitmapHeight);
 				} else {
-					DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap), destX, destY, {255, 255, 255, 255});
-					//blit(m_MainBitmap, targetBitmap, 0, 0, destX, destY, bitmapWidth, bitmapHeight);
+					m_MainTexture->Draw(
+						{0.f, 0.f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
+						{destX, destY, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)}
+					);
 				}
 			} else {
-				if (m_DrawMasked) {
-					DrawTexturePro(g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap),
-					               {0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
-					               {destX, destY, bitmapWidth, bitmapHeight},
-					               {0.0f, 0.0f},
-					               0.0f,
-					               {255, 255, 255, 255});
-					//masked_stretch_blit(m_MainBitmap, targetBitmap, 0, 0, m_MainBitmap->w, m_MainBitmap->h, destX, destY, bitmapWidth, bitmapHeight);
+				if constexpr (STATIC_TEXTURE) {
+					DrawTexturePro(
+						g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap),
+						{0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
+						{destX, destY, bitmapWidth, bitmapHeight},
+						{0.0f, 0.0f}, 0.0f, {255, 255, 255, 255});
 				} else {
-					DrawTexturePro(g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap),
-					               {0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
-					               {destX, destY, bitmapWidth, bitmapHeight},
-					               {0.0f, 0.0f},
-					               0.0f,
-					               {255, 255, 255, 255});
-					//stretch_blit(m_MainBitmap, targetBitmap, 0, 0, m_MainBitmap->w, m_MainBitmap->h, destX, destY, bitmapWidth, bitmapHeight);
+					m_MainTexture->Draw(
+						{0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
+						{destX, destY, bitmapWidth, bitmapHeight}
+					);
 				}
 			}
 			if (!m_WrapY) {

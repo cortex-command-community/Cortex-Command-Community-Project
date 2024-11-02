@@ -20,6 +20,7 @@ namespace RTE {
 	};
 	struct GLBitmapInfo {
 		GLuint m_Texture{0};
+		GLuint* m_Textures{nullptr};
 		size_t m_ID{0};
 		GLuint m_UpdateBuffer{0};
 	};
@@ -41,11 +42,13 @@ namespace RTE {
 		Texture2D GetStaticTextureFromBitmap(BITMAP* bitmap);
 
 		GLBitmapInfo* GetBitmapInfo(BITMAP* bitmap);
+		GLuint GetDynamicUploadBuffer(BITMAP* bitmap);
 		GLuint UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const std::vector<Box>& = {});
+
+		GLBitmapInfo* MakeBitmapInfo();
 
 
 	private:
-		GLuint GetDynamicUploadBuffer(BITMAP* bitmap);
 		std::vector<std::unique_ptr<GLBitmapInfo>> m_StaticTextures;
 		std::vector<GLuint> m_DynamicBitmapUploadBuffers;
 		std::unordered_map<std::string, std::pair<ShaderType, GLuint>> m_ShaderCache;
