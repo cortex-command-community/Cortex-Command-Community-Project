@@ -830,6 +830,10 @@
     <ClInclude Include="Source\System\Vector.h" />
     <ClInclude Include="Source\System\Writer.h" />
     <ClInclude Include="Source\System\MicroPather\micropather.h" />
+    <ClInclude Include="Source\System\raylib\raylib.h" />
+    <ClInclude Include="Source\System\raylib\rlconfig.h" />
+    <ClInclude Include="Source\System\raylib\rlgl.h" />
+    <ClInclude Include="Source\System\raylib\rlutil.h" />
     <ClInclude Include="Source\Managers\AchievementMan.h" />
     <ClInclude Include="Source\Managers\ActivityMan.h" />
     <ClInclude Include="Source\Managers\AudioMan.h" />
@@ -1048,26 +1052,24 @@
     <ClCompile Include="Source\System\Entity.cpp" />
     <ClCompile Include="Source\System\GenericSavedData.cpp" />
     <ClCompile Include="Source\System\glad\gl.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug Minimal|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Profiling|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug Minimal|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug Full|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Profiling|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Final|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug Full|x64'">NotUsing</PrecompiledHeader>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug Release|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profiling|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug Minimal|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug Full|Win32'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug Release|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profiling|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Final|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug Minimal|x64'">CompileAsCpp</CompileAs>
-      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug Full|x64'">CompileAsCpp</CompileAs>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="Source\System\raylib\rlgl.c" >
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="Source\System\raylib\rlutils.c" >
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="Source\System\raylib\rtextures.c" >
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="Source\System\raylib\rshapes.c" >
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="Source\System\GLCheck.cpp" />
     <ClCompile Include="Source\System\InputMapping.cpp" />

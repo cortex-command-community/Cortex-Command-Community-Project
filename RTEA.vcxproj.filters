@@ -96,6 +96,18 @@
     <ClInclude Include="Source\System\MicroPather\micropather.h">
       <Filter>System\MicroPather</Filter>
     </ClInclude>
+    <ClInclude Include="Source\System\raylib\raylib.h">
+      <Filter>System\raylib</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\System\raylib\rlgl.h">
+      <Filter>System\raylib</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\System\raylib\rlutils.h">
+      <Filter>System\raylib</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\System\raylib\rlconfig.h">
+      <Filter>System\raylib</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Managers\AchievementMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
@@ -685,6 +697,18 @@
     <ClCompile Include="Source\System\MicroPather\micropather.cpp">
       <Filter>System\MicroPather</Filter>
     </ClCompile>
+    <ClInclude Include="Source\System\raylib\rlgl.c">
+      <Filter>System\raylib</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\System\raylib\rlutils.c">
+      <Filter>System\raylib</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\System\raylib\rtextures.c">
+      <Filter>System\raylib</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\System\raylib\rshapes.c">
+      <Filter>System\raylib</Filter>
+    </ClInclude>
     <ClCompile Include="Source\Managers\AchievementMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
