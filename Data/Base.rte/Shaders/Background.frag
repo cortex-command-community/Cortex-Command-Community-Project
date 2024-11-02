@@ -7,6 +7,7 @@ out vec4 FragColor;
 
 uniform sampler2D rteTexture;
 uniform vec4 rteColor;
+uniform bool drawMasked;
 
 
 vec4 texture2DAA(sampler2D tex, vec2 uv) {
@@ -20,8 +21,8 @@ vec4 texture2DAA(sampler2D tex, vec2 uv) {
 
 void main() {
 	float red = texture2D(rteTexture, textureUV).r;
-	if (red==0) {
+	if (red==0 && drawMasked) {
 		discard;
 	}
-	FragColor = vec4(red, 0.0, 0.0, float(red > 0.00001)) * vertexColor.r;
+	FragColor = vec4(red, 0.0, 0.0, 0) * vertexColor.r;
 }
