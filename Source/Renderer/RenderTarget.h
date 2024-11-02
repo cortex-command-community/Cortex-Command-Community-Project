@@ -8,7 +8,7 @@ namespace RTE {
 	class Shader;
 	class RenderTarget {
 	public:
-		RenderTarget(const FloatRect& size, const FloatRect& defaultViewport, Texture2D colorTexture = {0, 0, 0, 0, -1}, bool defaultFB0 = false);
+		RenderTarget(const FloatRect& size, const FloatRect& defaultViewport, int bitDepth = 32, Texture2D colorTexture = {0, 0, 0, 0, -1}, bool defaultFB0 = false);
 		virtual ~RenderTarget();
 		void Begin(bool clear = true);
 		void End();

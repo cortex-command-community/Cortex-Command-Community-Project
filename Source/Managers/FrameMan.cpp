@@ -142,7 +142,7 @@ int FrameMan::CreateBackBuffers() {
 	m_BackBuffer32 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(c_BPP, resX, resY));
 	ClearBackBuffer32();
 
-	m_BackBuffer = std::make_unique<RenderTarget>(FloatRect(0, 0, resX, resY), FloatRect(0, 0, resX, resY));
+	m_BackBuffer = std::make_unique<RenderTarget>(FloatRect(0, 0, resX, resY), FloatRect(0, 0, resX, resY), 8);
 
 	m_OverlayBitmap32 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(c_BPP, resX, resY));
 	clear_to_color(m_OverlayBitmap32.get(), 0);
@@ -173,7 +173,7 @@ int FrameMan::CreateBackBuffers() {
 		clear_to_color(m_PlayerScreen8.get(), 0);
 		set_clip_state(m_PlayerScreen8.get(), 1);
 
-		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)), FloatRect(0, 0, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)), g_GLResourceMan.GetStaticTextureFromBitmap(m_PlayerScreen8.get()));
+		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)), FloatRect(0, 0, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)), 8, g_GLResourceMan.GetStaticTextureFromBitmap(m_PlayerScreen8.get()));
 
 		// Update these to represent the split screens
 		m_PlayerScreenWidth = m_PlayerScreen->GetSize().w;
@@ -269,7 +269,7 @@ void FrameMan::ResetSplitScreens(bool hSplit, bool vSplit) {
 		clear_to_color(m_PlayerScreen8.get(), 0);
 		set_clip_state(m_PlayerScreen8.get(), 1);
 
-		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)), FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)), g_GLResourceMan.GetStaticTextureFromBitmap(m_PlayerScreen8.get()));
+		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)), FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)), 8, g_GLResourceMan.GetStaticTextureFromBitmap(m_PlayerScreen8.get()));
 
 		// Update these to represent the split screens
 		m_PlayerScreenWidth = m_PlayerScreen->GetSize().w;
@@ -831,6 +831,9 @@ void FrameMan::Draw() {
 
 		m_PlayerScreen->Begin(true);
 		backgroundShader.Begin();
+		backgroundShader.Enable();
+		backgroundShader.SetInt("drawMasked", 1);
+		
 		//rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
 		BITMAP* drawScreen = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
 		BITMAP* drawScreenGUI = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();

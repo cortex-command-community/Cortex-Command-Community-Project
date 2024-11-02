@@ -10,7 +10,7 @@
 
 using namespace RTE;
 
-RenderTarget::RenderTarget(const FloatRect& size, const FloatRect& defaultViewport, Texture2D colorTexture, bool defaultFB0) {
+RenderTarget::RenderTarget(const FloatRect& size, const FloatRect& defaultViewport, int bitDepth, Texture2D colorTexture, bool defaultFB0) {
 	m_Size = size;
 	m_Viewport = defaultViewport;
 	if (colorTexture.id != 0) {
@@ -18,11 +18,11 @@ RenderTarget::RenderTarget(const FloatRect& size, const FloatRect& defaultViewpo
 		m_ColorTextureOwned = false;
 	} else {
 		m_Texture = {
-		    .id = rlLoadTexture(nullptr, size.w, size.h, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1),
+		    .id = rlLoadTexture(nullptr, size.w, size.h, bitDepth == 8 ? PIXELFORMAT_UNCOMPRESSED_GRAYSCALE : PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1),
 		    .width = static_cast<int>(size.w),
 		    .height = static_cast<int>(size.h),
 		    .mipmaps = 0,
-		    .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
+		    .format = bitDepth == 8 ? PIXELFORMAT_UNCOMPRESSED_GRAYSCALE : PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
 		};
 	}
 	m_Depth = {

@@ -71,15 +71,10 @@ Texture2D GLResourceMan::GetStaticTextureFromBitmap(BITMAP* bitmap) {
 	if (!bitmap->extra) {
 		m_StaticTextures.emplace_back(new GLBitmapInfo);
 		m_StaticTextures.back()->m_ID = m_StaticTextures.size();
-		GL_CHECK(glGenTextures(1, &m_StaticTextures.back()->m_Texture));
 		bitmap->extra = reinterpret_cast<void*>(m_StaticTextures.back().get());
 		GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, bitmap_color_depth(bitmap) == 8 ? 1 : 4));
-		GL_CHECK(glActiveTexture(GL_TEXTURE0));
-		GL_CHECK(glBindTexture(GL_TEXTURE_2D, GetBitmapInfo(bitmap)->m_Texture));
-		GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, bitmap_color_depth(bitmap) == 8 ? GL_R8 : GL_RGBA, bitmap->w, bitmap->h, 0, bitmap_color_depth(bitmap) == 8 ? GL_RED : GL_RGBA, GL_UNSIGNED_BYTE, bitmap->line[0]));
-		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-		GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-		// GL_CHECK(glGenerateMipmap(GL_TEXTURE_2D));
+		m_StaticTextures.back()->m_Texture = rlLoadTexture(bitmap->line[0], bitmap->w, bitmap->h, bitmap_color_depth(bitmap) == 8 ? PIXELFORMAT_UNCOMPRESSED_GRAYSCALE : PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1);
+
 		return {
 		    .id = m_StaticTextures.back()->m_Texture,
 		    .width = bitmap->w,
