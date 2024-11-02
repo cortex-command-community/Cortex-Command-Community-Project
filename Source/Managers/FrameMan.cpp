@@ -28,7 +28,7 @@
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
-#include "SDL2/SDL_image.h"
+#include "SDL_image.h"
 
 using namespace RTE;
 

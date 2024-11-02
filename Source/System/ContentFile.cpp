@@ -10,7 +10,7 @@
 #include "png.h"
 #include "fmod/fmod.hpp"
 #include "fmod/fmod_errors.h"
-#include "SDL2/SDL_image.h"
+#include "SDL_image.h"
 
 #include <cstring>
 

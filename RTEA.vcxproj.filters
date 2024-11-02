@@ -656,6 +656,9 @@
     <ClInclude Include="Source\Renderer\raylib\rlutil.h">
       <Filter>Renderer\raylib</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Renderer\raylib\rlutils.h">
+      <Filter>Renderer\raylib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\System\Box.cpp">
