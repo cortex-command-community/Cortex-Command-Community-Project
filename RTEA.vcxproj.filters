@@ -46,7 +46,7 @@
     <Filter Include="System\Base64">
       <UniqueIdentifier>{6f517ec6-8c53-4d34-b320-c408e1fd374d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="System\glad">
+    <Filter Include="Renderer\glad">
       <UniqueIdentifier>{a92cf676-7096-4641-ae98-d02861c1acde}</UniqueIdentifier>
     </Filter>
     <Filter Include="Renderer">
@@ -96,17 +96,17 @@
     <ClInclude Include="Source\System\MicroPather\micropather.h">
       <Filter>System\MicroPather</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\raylib\raylib.h">
-      <Filter>System\raylib</Filter>
+    <ClInclude Include="Source\Renderer\raylib\raylib.h">
+      <Filter>Renderer\raylib</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\raylib\rlgl.h">
-      <Filter>System\raylib</Filter>
+    <ClInclude Include="Source\Renderer\raylib\rlgl.h">
+      <Filter>Renderer\raylib</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\raylib\rlutils.h">
-      <Filter>System\raylib</Filter>
+    <ClInclude Include="Source\Renderer\raylib\rlutils.h">
+      <Filter>Renderer\raylib</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\raylib\rlconfig.h">
-      <Filter>System\raylib</Filter>
+    <ClInclude Include="Source\Renderer\raylib\rlconfig.h">
+      <Filter>Renderer\raylib</Filter>
     </ClInclude>
     <ClInclude Include="Source\Managers\AchievementMan.h">
       <Filter>Managers</Filter>
@@ -621,7 +621,7 @@
     <ClInclude Include="Source\Entities\AEJetpack.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\GLCheck.h">
+    <ClInclude Include="Source\Renderer\GLCheck.h">
       <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="Source\Menus\SaveLoadMenuGUI.h">
@@ -697,17 +697,17 @@
     <ClCompile Include="Source\System\MicroPather\micropather.cpp">
       <Filter>System\MicroPather</Filter>
     </ClCompile>
-    <ClInclude Include="Source\System\raylib\rlgl.c">
-      <Filter>System\raylib</Filter>
+    <ClInclude Include="Source\Renderer\raylib\rlgl.c">
+      <Filter>Renderer\raylib</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\raylib\rlutils.c">
-      <Filter>System\raylib</Filter>
+    <ClInclude Include="Source\Renderer\raylib\rlutils.c">
+      <Filter>Renderer\raylib</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\raylib\rtextures.c">
-      <Filter>System\raylib</Filter>
+    <ClInclude Include="Source\Renderer\raylib\rtextures.c">
+      <Filter>Renderer\raylib</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\raylib\rshapes.c">
-      <Filter>System\raylib</Filter>
+    <ClInclude Include="Source\Renderer\raylib\rshapes.c">
+      <Filter>Renderer\raylib</Filter>
     </ClInclude>
     <ClCompile Include="Source\Managers\AchievementMan.cpp">
       <Filter>Managers</Filter>
@@ -1220,10 +1220,10 @@
     <ClCompile Include="Source\System\RTEStackTrace.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="Source\System\glad\gl.c">
-      <Filter>System\glad</Filter>
+    <ClCompile Include="Source\Renderer\glad\gl.c">
+      <Filter>Renderer\glad</Filter>
     </ClCompile>
-    <ClCompile Include="Source\System\GLCheck.cpp">
+    <ClCompile Include="Source\Renderer\GLCheck.cpp">
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="external\sources\tracy\public\TracyClient.cpp">

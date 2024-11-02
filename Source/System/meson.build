@@ -1,11 +1,6 @@
 sources += files(
 'Base64/base64.cpp',
 'MicroPather/micropather.cpp',
-'glad/gl.c',
-'raylib/rlgl.c',
-'raylib/rshapes.c',
-'raylib/rtextures.c',
-'raylib/rlutils.c',
 'Semver200/Semver200_comparator.cpp',
 'Semver200/Semver200_modifier.cpp',
 'Semver200/Semver200_parser.cpp',
@@ -33,7 +28,6 @@ sources += files(
 'Matrix.cpp',
 'Serializable.cpp',
 'PieQuadrant.cpp',
-'GLCheck.cpp',
 'SpatialPartitionGrid.cpp',
 )
 

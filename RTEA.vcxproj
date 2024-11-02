@@ -787,11 +787,9 @@
     <ClInclude Include="Resources\Credits.h" />
     <ClInclude Include="Resources\resource.h" />
     <ClInclude Include="Source\Renderer\Draw.h" />
-    <ClInclude Include="Source\Renderer\Image.h" />
     <ClInclude Include="Source\Renderer\RenderTarget.h" />
     <ClInclude Include="Source\Renderer\Shader.h" />
-    <ClInclude Include="Source\Renderer\SpriteRenderer.h" />
-    <ClInclude Include="Source\Renderer\VertexArray.h" />
+    <ClInclude Include="Source\Renderer\BigTexture.h" />
     <ClInclude Include="Source\System\AllegroTools.h" />
     <ClInclude Include="Source\System\Atom.h" />
     <ClInclude Include="Source\System\Base64\base64.h" />
@@ -800,7 +798,7 @@
     <ClInclude Include="Source\System\Entity.h" />
     <ClInclude Include="Source\System\GameVersion.h" />
     <ClInclude Include="Source\System\GenericSavedData.h" />
-    <ClInclude Include="Source\System\GLCheck.h" />
+    <ClInclude Include="Source\Renderer\GLCheck.h" />
     <ClInclude Include="Source\System\InputMapping.h" />
     <ClInclude Include="Source\System\InputScheme.h" />
     <ClInclude Include="Source\System\NetworkMessages.h" />
@@ -830,10 +828,10 @@
     <ClInclude Include="Source\System\Vector.h" />
     <ClInclude Include="Source\System\Writer.h" />
     <ClInclude Include="Source\System\MicroPather\micropather.h" />
-    <ClInclude Include="Source\System\raylib\raylib.h" />
-    <ClInclude Include="Source\System\raylib\rlconfig.h" />
-    <ClInclude Include="Source\System\raylib\rlgl.h" />
-    <ClInclude Include="Source\System\raylib\rlutil.h" />
+    <ClInclude Include="Source\Renderer\raylib\raylib.h" />
+    <ClInclude Include="Source\Renderer\raylib\rlconfig.h" />
+    <ClInclude Include="Source\Renderer\raylib\rlgl.h" />
+    <ClInclude Include="Source\Renderer\raylib\rlutil.h" />
     <ClInclude Include="Source\Managers\AchievementMan.h" />
     <ClInclude Include="Source\Managers\ActivityMan.h" />
     <ClInclude Include="Source\Managers\AudioMan.h" />
@@ -1043,35 +1041,34 @@
     <ClCompile Include="Source\Menus\InventoryMenuGUI.cpp" />
     <ClCompile Include="Source\Renderer\RenderTarget.cpp" />
     <ClCompile Include="Source\Renderer\Shader.cpp" />
-    <ClCompile Include="Source\Renderer\SpriteRenderer.cpp" />
-    <ClCompile Include="Source\Renderer\VertexArray.cpp" />
+    <ClCompile Include="Source\Renderer\BigTexture.cpp" />
     <ClCompile Include="Source\System\AllegroTools.cpp" />
     <ClCompile Include="Source\System\Atom.cpp" />
     <ClCompile Include="Source\System\Base64\base64.cpp" />
     <ClCompile Include="Source\System\Controller.cpp" />
     <ClCompile Include="Source\System\Entity.cpp" />
     <ClCompile Include="Source\System\GenericSavedData.cpp" />
-    <ClCompile Include="Source\System\glad\gl.c">
+    <ClCompile Include="Source\Renderer\glad\gl.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="Source\System\raylib\rlgl.c" >
+    <ClCompile Include="Source\Renderer\raylib\rlgl.c" >
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="Source\System\raylib\rlutils.c" >
+    <ClCompile Include="Source\Renderer\raylib\rlutils.c" >
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="Source\System\raylib\rtextures.c" >
+    <ClCompile Include="Source\Renderer\raylib\rtextures.c" >
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="Source\System\raylib\rshapes.c" >
+    <ClCompile Include="Source\Renderer\raylib\rshapes.c" >
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="Source\System\GLCheck.cpp" />
+    <ClCompile Include="Source\Renderer\GLCheck.cpp" />
     <ClCompile Include="Source\System\InputMapping.cpp" />
     <ClCompile Include="Source\System\InputScheme.cpp" />
     <ClCompile Include="Source\System\GraphicalPrimitive.cpp" />
