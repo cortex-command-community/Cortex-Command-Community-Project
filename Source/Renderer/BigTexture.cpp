@@ -53,6 +53,7 @@ void BigTexture::Draw(Rectangle source, Rectangle dest) {
 	for (int i = 0; i < m_Regions.size(); ++i){
 		Box sourceIntersect = sourceBox.GetIntersection(m_Regions[i]);
 		if (!sourceIntersect.IsEmpty()) {
+#ifdef DEBUG_BUILD
 			DrawRectangleLines(dest.x + sourceIntersect.m_Corner.m_X * scaleX,
 				dest.y + sourceIntersect.m_Corner.m_Y * scaleY,
 				sourceIntersect.m_Width * scaleX,
@@ -66,6 +67,7 @@ void BigTexture::Draw(Rectangle source, Rectangle dest) {
 				sourceIntersect.m_Height * scaleY - 20,
 				{5, 0, 0, 255}
 			);
+#endif
 			DrawTexturePro(
 			    m_Textures[i],
 			    sourceIntersect,
