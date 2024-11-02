@@ -1,6 +1,7 @@
 #version 130
 
 in vec2 textureUV;
+in vec4 vertexColor;
 
 out vec4 FragColor;
 
@@ -22,5 +23,5 @@ void main() {
 	if (red==0) {
 		discard;
 	}
-	FragColor = vec4(red, 0.0, 0.0, float(red > 0.00001));
+	FragColor = vec4(red, 0.0, 0.0, float(red > 0.00001)) * vertexColor.r;
 }
