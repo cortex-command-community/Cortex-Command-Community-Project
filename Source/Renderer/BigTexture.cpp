@@ -47,8 +47,8 @@ BigTexture::~BigTexture() {
 }
 
 void BigTexture::Draw(Rectangle source, Rectangle dest) {
-	float scaleX = source.width / dest.width;
-	float scaleY = source.height / dest.height;
+	float scaleX = dest.width / source.width;
+	float scaleY = dest.height / source.height;
 	Box sourceBox(Vector(source.x, source.y), source.width, source.height);
 	for (int i = 0; i < m_Regions.size(); ++i){
 		Box sourceIntersect = sourceBox.GetIntersection(m_Regions[i]);
