@@ -407,6 +407,7 @@ typedef struct rlDrawCall {
     int vertexAlignment;        // Number of vertex required for index alignment (LINES, TRIANGLES)
     //unsigned int vaoId;       // Vertex array id to be used on the draw -> Using RLGL.currentBatch->vertexBuffer.vaoId
     //unsigned int shaderId;    // Shader id to be used on the draw -> Using RLGL.currentShaderId
+	//rlUniformValue* shaderUniforms;
     unsigned int textureId;     // Texture id to be used on the draw -> Use to create new draw call if changes
 
     //Matrix projection;        // Projection matrix for this draw -> Using RLGL.projection by default
@@ -779,6 +780,7 @@ RLAPI void rlSetUniformMatrix(int locIndex, RLMatrix mat);                      
 RLAPI void rlSetUniformMatrices(int locIndex, const RLMatrix *mat, int count);    // Set shader value matrices
 RLAPI void rlSetUniformSampler(int locIndex, unsigned int textureId);           // Set shader value sampler
 RLAPI void rlSetShader(unsigned int id, int *locs);                             // Set shader currently active (id and locations)
+RLAPI unsigned int rlGetShaderCurrent();
 
 // Compute shader management
 RLAPI unsigned int rlLoadComputeShaderProgram(unsigned int shaderId);           // Load compute shader program
@@ -3224,7 +3226,7 @@ unsigned int rlLoadTexture(const void *data, int width, int height, int format, 
 #endif
 #endif  // GRAPHICS_API_OPENGL_11
 
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     glGenTextures(1, &id);              // Generate texture id
 
@@ -4410,6 +4412,10 @@ void rlSetShader(unsigned int id, int *locs)
         RLGL.State.currentShaderLocs = locs;
     }
 #endif
+}
+
+unsigned int rlGetShaderCurrent() {
+    return RLGL.State.currentShaderId;
 }
 
 // Load compute shader program

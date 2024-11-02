@@ -8,6 +8,7 @@
 #include "GLResourceMan.h"
 #include "BigTexture.h"
 
+#include "Draw.h"
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
 
@@ -418,7 +419,7 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::UpdateTargetRegion(const Bo
 		std::vector<Box> updateRegions{};
 		m_MainTexture->m_Bitmap = m_MainBitmap;
 
-		if (m_MainBitmap->w < targetBox.m_Width && m_MainBitmap->h < targetBox.m_Height) {
+		if (m_ScaledDimensions.m_X < targetBox.m_Width && m_ScaledDimensions.m_Y < targetBox.m_Height) {
 			// Bitmap will be in frame entirely, upload all.
 			updateRegions.emplace_back(
 				Vector(),
@@ -429,32 +430,32 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::UpdateTargetRegion(const Bo
 			// Upload wrapped region
 
 			Box cornerWrapEither(
-				m_Offset,
-				std::min(m_MainBitmap->w - m_Offset.m_X,targetBox.m_Width),
-				std::min(m_MainBitmap->h - m_Offset.m_Y, targetBox.m_Height)
+				m_Offset / m_ScaleFactor,
+				std::min((m_ScaledDimensions.m_X - m_Offset.m_X) / m_ScaleFactor.m_X,targetBox.m_Width / m_ScaleFactor.m_X),
+				std::min((m_ScaledDimensions.m_Y - m_Offset.m_Y) / m_ScaleFactor.m_Y, targetBox.m_Height / m_ScaleFactor.m_Y)
 			);
 			updateRegions.push_back(cornerWrapEither);
 			
 			if (m_WrapX && cornerWrapEither.m_Width < targetBox.m_Width) {
 				updateRegions.emplace_back(
-					Vector(0, m_Offset.m_Y),
-					targetBox.m_Width + m_Offset.m_X - m_MainBitmap->w,
-					std::min(m_MainBitmap->h - m_Offset.m_Y, targetBox.m_Height)
+					Vector(0, m_Offset.m_Y) / m_ScaleFactor,
+					(targetBox.m_Width + m_Offset.m_X - m_ScaledDimensions.m_X) / m_ScaleFactor.m_X,
+					std::min(m_ScaledDimensions.m_Y - m_Offset.m_Y, targetBox.m_Height) / m_ScaleFactor.m_Y
 				);
 			}
 			if (m_WrapY && cornerWrapEither.m_Height < targetBox.m_Width) {
 				updateRegions.emplace_back(
-					Vector(m_Offset.m_X, 0),
-					std::min(m_MainBitmap->w - m_Offset.m_X, targetBox.m_Width),
-					targetBox.m_Height + m_Offset.m_Y - m_MainBitmap->h
+					Vector(m_Offset.m_X, 0) / m_ScaleFactor,
+					std::min(m_ScaledDimensions.m_X - m_Offset.m_X, targetBox.m_Width) / m_ScaleFactor.m_X,
+					(targetBox.m_Height + m_Offset.m_Y - m_ScaledDimensions.m_Y) / m_ScaleFactor.m_Y
 				);
 			}
 
 			if (m_WrapX && m_WrapY && cornerWrapEither.m_Height < targetBox.m_Height && cornerWrapEither.m_Width < targetBox.m_Width) {
 				updateRegions.emplace_back(
 					Vector(),
-					targetBox.m_Width + m_Offset.m_X - m_MainBitmap->w,
-					targetBox.m_Height + m_Offset.m_Y - m_MainBitmap->h
+					(targetBox.m_Width + m_Offset.m_X - m_ScaledDimensions.m_X) / m_ScaleFactor.m_X,
+					(targetBox.m_Height + m_Offset.m_Y - m_ScaledDimensions.m_Y) / m_ScaleFactor.m_Y
 				);
 			}
 		}
@@ -511,34 +512,28 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::DrawTiled(const Box& target
 	int areaToCoverX = m_Offset.GetFloorIntX() + targetBox.GetCorner().GetFloorIntX() + std::min(targetDimensions.GetWidth(), targetBox.GetWidth());
 	int areaToCoverY = m_Offset.GetFloorIntY() + targetBox.GetCorner().GetFloorIntY() + std::min(targetDimensions.GetHeight(), targetBox.GetHeight());
 
+	if (!m_DrawMasked) {
+		rlDrawRenderBatchActive();
+		int maskedUniformLocation = rlGetLocationUniform(rlGetShaderCurrent(), "drawMasked");
+		rlEnableShader(rlGetShaderCurrent());
+		glUniform1i(maskedUniformLocation, 0);
+	}
+
 	for (int tiledOffsetX = 0; tiledOffsetX < areaToCoverX;) {
 		float destX = targetBox.GetCorner().GetFloorIntX() + tiledOffsetX - m_Offset.GetFloorIntX();
 
 		for (int tiledOffsetY = 0; tiledOffsetY < areaToCoverY;) {
 			float destY = targetBox.GetCorner().GetFloorIntY() + tiledOffsetY - m_Offset.GetFloorIntY();
-
-			if (!drawScaled) {
-				if constexpr (STATIC_TEXTURE) {
-					DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap), destX, destY, {255, 255, 255, 255});
-				} else {
-					m_MainTexture->Draw(
-						{0.f, 0.f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
-						{destX, destY, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)}
-					);
-				}
+			if constexpr (STATIC_TEXTURE) {
+				DrawTexturePro(
+				    g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap),
+				    {0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
+				    {destX, destY, bitmapWidth, bitmapHeight},
+				    {0.0f, 0.0f}, 0.0f, {255, 255, 255, 255});
 			} else {
-				if constexpr (STATIC_TEXTURE) {
-					DrawTexturePro(
-						g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap),
-						{0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
-						{destX, destY, bitmapWidth, bitmapHeight},
-						{0.0f, 0.0f}, 0.0f, {255, 255, 255, 255});
-				} else {
-					m_MainTexture->Draw(
-						{0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
-						{destX, destY, bitmapWidth, bitmapHeight}
-					);
-				}
+				m_MainTexture->Draw(
+				    {0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
+				    {destX, destY, bitmapWidth, bitmapHeight});
 			}
 			if (!m_WrapY) {
 				break;
@@ -549,6 +544,13 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::DrawTiled(const Box& target
 			break;
 		}
 		tiledOffsetX += bitmapWidth;
+	}
+
+	if (!m_DrawMasked) {
+		rlDrawRenderBatchActive();
+		int drawMaskedUniform = rlGetLocationUniform(rlGetShaderCurrent(), "drawMasked");
+		rlEnableShader(rlGetShaderCurrent());
+		glUniform1i(drawMaskedUniform, 1);
 	}
 }
 
