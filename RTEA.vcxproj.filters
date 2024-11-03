@@ -653,9 +653,6 @@
     <ClInclude Include="Source\Managers\GLResourceMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Renderer\raylib\rlutil.h">
-      <Filter>Renderer\raylib</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Renderer\raylib\rlutils.h">
       <Filter>Renderer\raylib</Filter>
     </ClInclude>
@@ -1238,6 +1235,9 @@
       <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Source\Renderer\Shader.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\Draw.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Source\Renderer\BigTexture.cpp">

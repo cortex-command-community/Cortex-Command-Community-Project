@@ -1042,6 +1042,7 @@
     <ClCompile Include="Source\Menus\InventoryMenuGUI.cpp" />
     <ClCompile Include="Source\Renderer\RenderTarget.cpp" />
     <ClCompile Include="Source\Renderer\Shader.cpp" />
+    <ClCompile Include="Source\Renderer\Draw.cpp" />
     <ClCompile Include="Source\Renderer\BigTexture.cpp" />
     <ClCompile Include="Source\System\AllegroTools.cpp" />
     <ClCompile Include="Source\System\Atom.cpp" />
