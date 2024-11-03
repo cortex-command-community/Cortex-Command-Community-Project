@@ -12,6 +12,10 @@ function Create(self)
 	end
 
 	self.AIMode = Actor.AIMODE_SENTRY;
+	
+	for att in self.Attachables do
+		att.ForcedHFlip = self.ForcedHFlip;
+	end
 end
 
 function Update(self)

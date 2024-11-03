@@ -23,10 +23,16 @@ function OnReload(self)
 end
 
 function Create(self)
-	-- self.servoLoopSound = CreateSoundContainer("Coalition Bunker Cannon Servo Loop", "Coalition.rte");
-	-- self.servoLoopSound.Volume = 0;
-	-- self.servoLoopSound.Pitch = 1;
-	-- self.servoLoopSound:Play(self.Pos);
+	self.servoStartSound = CreateSoundContainer("Large Generic Servo Start", "Base.rte");
+	self.servoStartSound.Volume = 0.25;
+	self.servoLoopSound = CreateSoundContainer("Large Generic Servo Loop", "Base.rte");
+	self.servoLoopSound.Volume = 0;
+	self.servoLoopSound.Pitch = 1;
+	self.servoLoopSound:Play(self.Pos);
+	self.servoEndSound = CreateSoundContainer("Large Generic Servo End", "Base.rte");
+	self.servoEndSound.Volume = 0.125;
+	
+	self.servoMoving = false;
 	
 	self.Shot = CreateAEmitter("Browncoat AA-50 Shot", "Browncoats.rte");
 
@@ -64,7 +70,7 @@ function Create(self)
 end
 
 function Update(self)
-	--self.servoLoopSound.Pos = self.Pos;
+	self.servoLoopSound.Pos = self.Pos;
 	
     if self.LastHFlipped ~= nil then
         if self.LastHFlipped ~= self.HFlipped then
@@ -103,10 +109,24 @@ function Update(self)
 		self.InheritedRotAngleOffset = self.rotAngleDeviation * self.FlipFactor;
 		self.LastRotAngle = actingRotAngle;
 		
-		--self.servoLoopSoundVolumeTarget = 0 + math.abs(self.rotAngleDeviation)
-		--self.servoLoopSound.Volume = self.servoLoopSound.Volume - (0.5 * (self.servoLoopSound.Volume - self.servoLoopSoundVolumeTarget));
-		--self.servoLoopSoundPitchTarget = 1 + math.abs(self.rotAngleDeviation)
-		--self.servoLoopSound.Pitch = self.servoLoopSound.Pitch - (0.1 * (self.servoLoopSound.Pitch - self.servoLoopSoundPitchTarget));
+		self.servoLoopSoundVolumeTarget = 0 + math.abs(self.rotAngleDeviation)
+		self.servoLoopSound.Volume = self.servoLoopSound.Volume - (0.5 * (self.servoLoopSound.Volume - self.servoLoopSoundVolumeTarget));
+		self.servoLoopSoundPitchTarget = 1 + math.abs(self.rotAngleDeviation)
+		self.servoLoopSound.Pitch = self.servoLoopSound.Pitch - (0.1 * (self.servoLoopSound.Pitch - self.servoLoopSoundPitchTarget));
+		
+		if self.servoMoving then
+			if self.servoLoopSoundVolumeTarget < 0.10 then
+				self.servoStartSound:Stop(-1);
+				self.servoEndSound:Play(self.Pos);
+				self.servoMoving = false;
+			end
+		else
+			if self.servoLoopSoundVolumeTarget > 0.20 then
+				self.servoEndSound:Stop(-1);
+				self.servoStartSound:Play(self.Pos);
+				self.servoMoving = true;
+			end
+		end
 	end
 	
 	if self:DoneReloading() then

@@ -16,10 +16,18 @@ function OnReload(self)
 end
 
 function Create(self)
+	self.servoStartSound = CreateSoundContainer("Large Generic Servo Start", "Base.rte");
+	self.servoStartSound.Volume = 0.25;
+	self.servoStartSound.Pitch = 1.5;
 	self.servoLoopSound = CreateSoundContainer("Coalition Bunker Cannon Servo Loop", "Coalition.rte");
 	self.servoLoopSound.Volume = 0;
 	self.servoLoopSound.Pitch = 1;
 	self.servoLoopSound:Play(self.Pos);
+	self.servoEndSound = CreateSoundContainer("Large Generic Servo End", "Base.rte");
+	self.servoEndSound.Volume = 0.125;
+	self.servoEndSound.Pitch = 1.5;
+	
+	self.servoMoving = false;
 
 	self.preSound = CreateSoundContainer("Coalition Bunker Cannon Pre", "Coalition.rte");
 	
@@ -97,6 +105,20 @@ function Update(self)
 		self.servoLoopSound.Volume = self.servoLoopSound.Volume - (0.5 * (self.servoLoopSound.Volume - self.servoLoopSoundVolumeTarget));
 		self.servoLoopSoundPitchTarget = 1 + math.abs(self.rotAngleDeviation)
 		self.servoLoopSound.Pitch = self.servoLoopSound.Pitch - (0.1 * (self.servoLoopSound.Pitch - self.servoLoopSoundPitchTarget));
+		
+		if self.servoMoving then
+			if self.servoLoopSoundVolumeTarget < 0.15 then
+				self.servoStartSound:Stop(-1);
+				self.servoEndSound:Play(self.Pos);
+				self.servoMoving = false;
+			end
+		else
+			if self.servoLoopSoundVolumeTarget > 0.25 then
+				self.servoEndSound:Stop(-1);
+				self.servoStartSound:Play(self.Pos);
+				self.servoMoving = true;
+			end
+		end
 	end
 
 	-- Mathemagical firing anim by filipex
