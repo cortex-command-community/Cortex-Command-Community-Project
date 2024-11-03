@@ -53,6 +53,7 @@ RenderTarget::~RenderTarget() {
 
 void RenderTarget::Begin(bool clear) {
 	rlDrawRenderBatchActive();
+	rlResetDrawDepth();
 	rlEnableFramebuffer(m_FBO);
 
 	glViewport(m_Viewport.x, m_Viewport.y, m_Viewport.w, m_Viewport.h);
@@ -76,4 +77,5 @@ void RenderTarget::End() {
 
 	rlDisableFramebuffer();
 	glViewport(0, 0, g_WindowMan.GetResX(), g_WindowMan.GetResY());
+	rlResetDrawDepth();
 }

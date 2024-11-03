@@ -107,6 +107,7 @@ void Shader::Begin() {
 void Shader::End() const {
 	rlSetShader(rlGetShaderIdDefault(), rlGetShaderLocsDefault());
 	rlDisableShader();
+	rlClearActiveTextures();
 }
 
 GLint Shader::GetUniformLocation(const std::string& name) const { return glGetUniformLocation(m_ProgramID, name.c_str()); }

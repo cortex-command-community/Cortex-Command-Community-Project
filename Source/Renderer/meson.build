@@ -8,4 +8,5 @@ sources += files(
 'raylib/rtextures.c',
 'raylib/rlutils.c',
 'GLCheck.cpp',
+'Draw.cpp',
 )
