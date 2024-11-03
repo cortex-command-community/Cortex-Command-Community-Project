@@ -335,6 +335,8 @@ namespace RTE {
 		/// @return An reference to a ContentFile which described the palette location.
 		const ContentFile& GetPaletteFile() const { return m_PaletteFile; }
 
+		/// Getter for the default palette for image loading purposes, etc.
+		/// @return Const reference to the default palette.
 		const PALETTE& GetDefaultPalette() const { return m_DefaultPalette; }
 
 		/// Fades the palette in from black at a specified speed.
@@ -400,7 +402,7 @@ namespace RTE {
 		/// The key is an array of the RGBA values. The value is a pair of the color table itself and a time stamp of when it was last accessed for use during color table pruning.
 		std::array<std::unordered_map<std::array<int, 4>, std::pair<COLOR_MAP, long long>>, DrawBlendMode::BlendModeCount> m_ColorTables;
 		Timer m_ColorTablePruneTimer; //!< Timer for pruning unused color tables to prevent ridiculous memory usage.
-		int m_CurrentAlpha;
+		int m_CurrentAlpha; //!< Current alpha level for emulating trans colortables.
 
 		std::shared_ptr<BITMAP> m_PlayerScreen8; //!< Intermediary split screen bitmap.
 		std::shared_ptr<RenderTarget> m_PlayerScreen; //!< Intermediary split screen bitmap.
@@ -438,7 +440,7 @@ namespace RTE {
 		std::unique_ptr<BITMAP, BitmapDeleter> m_NetworkBackBufferFinal8[2][c_MaxScreenCount]; //!< Per-player allocated frame buffer to copy Intermediate before sending.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_NetworkBackBufferFinalGUI8[2][c_MaxScreenCount]; //!< Per-player allocated frame buffer to copy Intermediate before sending. Used to draw UI only.
 
-		std::shared_ptr<RenderTarget> m_BackBuffer;
+		std::shared_ptr<RenderTarget> m_BackBuffer; //!< Main render backbuffer.
 
 		Vector m_TargetPos[2][c_MaxScreenCount]; //!< Frame target position for network players.
 

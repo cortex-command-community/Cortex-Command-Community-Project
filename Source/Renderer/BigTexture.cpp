@@ -91,14 +91,13 @@ void BigTexture::Update(const Box& updateRegion) {
 	glPixelStorei(GL_UNPACK_ALIGNMENT, bitmap_color_depth(m_Bitmap) == 8 ? 1 : 4);
 	for (int i = 0; i < m_Regions.size(); ++i) {
 		Box intersect = updateRegion.GetIntersection(m_Regions[i]);
-		RTEAssert(intersect.m_Width <= updateRegion.m_Width && intersect.m_Height <= updateRegion.m_Height, "Intersect brokey");
 		if (!intersect.IsEmpty()) {
-			std::vector<unsigned char> pixels(intersect.m_Width * intersect.m_Height * bytesPerPixel);
-			for (size_t y = 0; y < intersect.m_Height; y++) {
+			std::vector<unsigned char> pixels(std::ceilf(intersect.m_Width) * std::ceilf(intersect.m_Height) * bytesPerPixel);
+			for (size_t y = 0; y < static_cast<int>(intersect.m_Height); y++) {
 				memcpy(
 					pixels.data() + y * static_cast<int>(intersect.m_Width) * bytesPerPixel,
 					m_Bitmap->line[y + intersect.m_Corner.GetFloorIntY()] + intersect.m_Corner.GetFloorIntX(),
-					intersect.m_Width * bytesPerPixel
+					std::ceilf(intersect.m_Width) * bytesPerPixel
 				);
 			}
 
@@ -108,8 +107,8 @@ void BigTexture::Update(const Box& updateRegion) {
 				0, 
 				intersect.m_Corner.GetFloorIntX() % s_MaxGLTextureSize, 
 				intersect.m_Corner.GetFloorIntY() % s_MaxGLTextureSize, 
-				intersect.m_Width, 
-				intersect.m_Height, 
+				std::ceilf(intersect.m_Width), 
+				std::ceilf(intersect.m_Height), 
 				bytesPerPixel == 1 ? GL_RED : GL_RGBA, 
 				GL_UNSIGNED_BYTE,
 				pixels.data()

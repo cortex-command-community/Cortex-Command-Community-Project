@@ -195,7 +195,7 @@ namespace RTE {
 		virtual void Update() {}
 
 		/// Draws this SceneLayer's current scrolled position to a bitmap.
-		/// @param targetBitmap The bitmap to draw to.
+		/// @param targetDimensions Dimensions of the draw target.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param offsetNeedsScrollRatioAdjustment Whether the offset of this SceneLayer or the passed in offset override need to be adjusted to scroll ratio.
 		virtual void Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false);
@@ -204,7 +204,7 @@ namespace RTE {
 	protected:
 		ContentFile m_BitmapFile; //!< ContentFile containing the path to this SceneLayer's sprite file.
 
-		std::unique_ptr<BigTexture> m_MainTexture;
+		std::unique_ptr<BigTexture> m_MainTexture; //!< The Main texture of this SceneLayer, may be tiled for very large scenes.
 		BITMAP* m_MainBitmap; //!< The main BITMAP of this SceneLayer.
 		BITMAP* m_BackBitmap; //!< The backbuffer BITMAP of this SceneLayer.
 
@@ -214,7 +214,7 @@ namespace RTE {
 		std::vector<IntRect> m_Drawings; //!< All the areas drawn within on this SceneLayer since the last clear.
 
 		bool m_MainBitmapOwned; //!< Whether the main bitmap is owned by this.
-		bool m_MainBitmapUpdated;
+		bool m_MainBitmapUpdated; //!< Whether the main bitmap was updated since the last draw.
 		bool m_DrawMasked; //!< Whether pixels marked as transparent (index 0, magenta) are skipped when drawing or not (masked drawing).
 
 		bool m_WrapX; //!< Whether wrapping is enabled on the X axis.
@@ -240,6 +240,9 @@ namespace RTE {
 		bool ForceBoundsOrWrapPosition(Vector& pos, bool forceBounds) const;
 
 #pragma region Draw Breakdown
+
+		/// @brief Update the target region of the current frontbuffer texture.
+		/// @param targetBox The region to update (will be wrapped if neccessary)
 		void UpdateTargetRegion(const Box& targetBox);
 
 		/// Performs tiled drawing of this SceneLayer's bitmap to the screen in cases where the target bitmap is larger in some dimension.
@@ -303,6 +306,7 @@ namespace RTE {
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 	};
 
+	/// SceneLayer that promises to never update its MainBitmap.
 	class StaticSceneLayer : public SceneLayerImpl<false, true> {
 	public:
 		EntityAllocation(StaticSceneLayer);

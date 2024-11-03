@@ -186,7 +186,7 @@ namespace RTE {
 		void Update() override;
 
 		/// Draws this SLTerrain's current scrolled position to a bitmap.
-		/// @param targetBitmap The bitmap to draw to.
+		/// @param targetDimensions Dimensions of the draw target.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param offsetNeedsScrollRatioAdjustment Whether the offset of this SceneLayer or the passed in offset override need to be adjusted to scroll ratio.
 		void Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false) override;

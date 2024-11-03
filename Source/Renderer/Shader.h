@@ -36,8 +36,13 @@ namespace RTE {
 		/// Filepath to the fragment shader
 		bool Compile(const std::string& vertexFilename, const std::string& fragPath);
 
+		/// Enables the shader program for use. Always enable before setting uniforms.
 		void Enable();
+
+		/// Begin shader draw mode. Flushes the active batch and enables this shader.
 		void Begin();
+
+		/// Disables this shader and sets up the default raylib shader. Flushes the active batch and clears bound textures.
 		void End() const;
 #pragma region Uniform handling
 		/// Returns the location of a uniform given by name.

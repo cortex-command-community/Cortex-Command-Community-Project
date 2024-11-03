@@ -269,7 +269,7 @@ void FrameMan::ResetSplitScreens(bool hSplit, bool vSplit) {
 		clear_to_color(m_PlayerScreen8.get(), 0);
 		set_clip_state(m_PlayerScreen8.get(), 1);
 
-		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)), FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)), 8, g_GLResourceMan.GetStaticTextureFromBitmap(m_PlayerScreen8.get()));
+		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)), FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)), 32, g_GLResourceMan.GetStaticTextureFromBitmap(m_PlayerScreen8.get()));
 
 		// Update these to represent the split screens
 		m_PlayerScreenWidth = m_PlayerScreen->GetSize().w;
@@ -811,14 +811,7 @@ void FrameMan::Draw() {
 	g_PresetMan.GetEntityPreset("Shader", "Background")->Clone(&backgroundShader);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	clear_to_color(m_BackBuffer8.get(), 0);
-	rlEnableColorBlend();
-	rlSetBlendMode(RL_BLEND_ALPHA);
-	rlEnableDepthTest();
 	m_BackBuffer->Begin(true);
-	backgroundShader.Begin();
-	backgroundShader.Enable();
-	rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
-	backgroundShader.SetInt("drawMasked", 1);
 
 	// Count how many split screens we'll need
 	int screenCount = (m_HSplit ? 2 : 1) * (m_VSplit ? 2 : 1);
@@ -835,9 +828,16 @@ void FrameMan::Draw() {
 	for (int playerScreen = 0; playerScreen < screenCount; ++playerScreen) {
 		screenRelativeEffects.clear();
 		screenRelativeGlowBoxes.clear();
+		rlEnableColorBlend();
+		rlSetBlendMode(RL_BLEND_ALPHA);
+		rlEnableDepthTest();
 
 		m_PlayerScreen->Begin(true);
-		
+		backgroundShader.Begin();
+		backgroundShader.Enable();
+		rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
+		backgroundShader.SetInt("drawMasked", 1);
+
 		//rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
 		BITMAP* drawScreen = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
 		BITMAP* drawScreenGUI = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
@@ -920,8 +920,12 @@ void FrameMan::Draw() {
 			// Draw the intermediate draw splitscreen to the appropriate spot on the back buffer
 			blit(drawScreen, m_BackBuffer8.get(), 0, 0, screenOffset.GetFloorIntX(), screenOffset.GetFloorIntY(), drawScreen->w, drawScreen->h);
 			m_PlayerScreen->End();
-			m_BackBuffer->Begin(false);
-			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_PlayerScreen8.get()), screenOffset.m_X, screenOffset.m_Y, {255, 255, 255, 255});
+			backgroundShader.End();
+			if (screenCount > 1) {
+				m_BackBuffer->Begin(false);
+				DrawTextureRec(g_GLResourceMan.GetStaticTextureFromBitmap(m_PlayerScreen8.get()), {0, 0, static_cast<float>(m_PlayerScreen8->w), -static_cast<float>(m_PlayerScreen8->h)}, {screenOffset.m_X, screenOffset.m_Y}, {255, 255, 255, 255});
+				m_BackBuffer->End();
+			}
 			g_PostProcessMan.AdjustEffectsPosToPlayerScreen(playerScreen, drawScreen, screenOffset, screenRelativeEffects, screenRelativeGlowBoxes);
 		}
 	}
@@ -960,9 +964,14 @@ void FrameMan::Draw() {
 	}
 	rlDisableDepthTest();
 	g_GLResourceMan.UpdateDynamicBitmap(m_BackBuffer8.get(), true);
+	backgroundShader.Begin();
+	backgroundShader.Enable();
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
+	backgroundShader.SetInt("drawMasked", 1);
+	m_BackBuffer->Begin(false);
 	DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_BackBuffer8.get()), 0.0f, 0.0f, {255, 255, 255, 255});
-	backgroundShader.End();
 	m_BackBuffer->End();
+	backgroundShader.End();
 	if (g_ActivityMan.IsInActivity()) {
 		g_PostProcessMan.PostProcess();
 	}

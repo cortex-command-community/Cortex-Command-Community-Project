@@ -203,12 +203,9 @@ void MOSParticle::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode m
 				break;
 			case g_DrawTrans:
 				DrawTexture(m_aSprite[m_Frame], spriteX, spriteY, {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
-				// draw_trans_sprite(targetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
 				break;
 			case g_DrawAlpha:
 				DrawTexture(m_aSprite[m_Frame], spriteX, spriteY, {255, 255, 255, 255});
-				// set_alpha_blender();
-				// draw_trans_sprite(targetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
 				break;
 			case g_DrawMOID:
 				break;

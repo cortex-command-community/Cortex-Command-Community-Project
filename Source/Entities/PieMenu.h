@@ -404,8 +404,6 @@ namespace RTE {
 		/// @param drawPos Out parameter, a Vector to be filled in with the position at which the PieMenu should be drawn.
 		void CalculateDrawPosition(const BITMAP* targetBitmap, const Vector& targetPos, Vector& drawPos) const;
 
-
-		void DrawMenuBackground();
 		/// Handles drawing icons for PieSlices' visual representation in the PieMenu.
 		/// @param targetBitmap A pointer to the BITMAP to draw on. Generally a screen BITMAP.
 		/// @param drawPos The seam corrected position at which the PieMenu is being drawn.
