@@ -173,7 +173,7 @@ int FrameMan::CreateBackBuffers() {
 		clear_to_color(m_PlayerScreen8.get(), 0);
 		set_clip_state(m_PlayerScreen8.get(), 1);
 
-		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)), FloatRect(0, 0, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)), 8, g_GLResourceMan.GetStaticTextureFromBitmap(m_PlayerScreen8.get()));
+		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)), FloatRect(0, 0, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)));
 
 		// Update these to represent the split screens
 		m_PlayerScreenWidth = m_PlayerScreen->GetSize().w;
@@ -269,7 +269,7 @@ void FrameMan::ResetSplitScreens(bool hSplit, bool vSplit) {
 		clear_to_color(m_PlayerScreen8.get(), 0);
 		set_clip_state(m_PlayerScreen8.get(), 1);
 
-		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)), FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)), 32, g_GLResourceMan.GetStaticTextureFromBitmap(m_PlayerScreen8.get()));
+		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)), FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)));
 
 		// Update these to represent the split screens
 		m_PlayerScreenWidth = m_PlayerScreen->GetSize().w;
@@ -923,7 +923,7 @@ void FrameMan::Draw() {
 			backgroundShader.End();
 			if (screenCount > 1) {
 				m_BackBuffer->Begin(false);
-				DrawTextureRec(g_GLResourceMan.GetStaticTextureFromBitmap(m_PlayerScreen8.get()), {0, 0, static_cast<float>(m_PlayerScreen8->w), -static_cast<float>(m_PlayerScreen8->h)}, {screenOffset.m_X, screenOffset.m_Y}, {255, 255, 255, 255});
+				DrawTextureRec(m_PlayerScreen->GetColorTexture(), {0, 0, static_cast<float>(m_PlayerScreen8->w), -static_cast<float>(m_PlayerScreen8->h)}, {screenOffset.m_X, screenOffset.m_Y}, {255, 255, 255, 255});
 				m_BackBuffer->End();
 			}
 			g_PostProcessMan.AdjustEffectsPosToPlayerScreen(playerScreen, drawScreen, screenOffset, screenRelativeEffects, screenRelativeGlowBoxes);
