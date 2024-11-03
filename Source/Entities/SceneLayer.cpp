@@ -13,6 +13,7 @@
 #include "tracy/TracyOpenGL.hpp"
 
 #include <array>
+#include <cmath>
 
 using namespace RTE;
 
@@ -415,50 +416,39 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::RegisterDrawing(const Vecto
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::UpdateTargetRegion(const Box& targetBox) {
+	if constexpr (TRACK_DRAWINGS) {
+		m_MainTexture->m_Bitmap = m_MainBitmap;
+	}
 	if constexpr (!STATIC_TEXTURE) {
 		RTEAssert(bitmap_color_depth(m_MainBitmap) == 8, "Truecolor scenelayer used for non gpu drawing!");
 		std::vector<Box> updateRegions{};
-		m_MainTexture->m_Bitmap = m_MainBitmap;
+		float bitmapWidth = m_MainBitmap->w;
+		float bitmapHeight = m_MainBitmap->h;
+		int areaToCoverX = (m_Offset.GetFloorIntX() + targetBox.GetCorner().GetFloorIntX() + targetBox.GetWidth()) / m_ScaleFactor.m_X;
+		int areaToCoverY = (m_Offset.GetFloorIntY() + targetBox.GetCorner().GetFloorIntY() + targetBox.GetHeight()) / m_ScaleFactor.m_Y;
+		Box scaledTarget(targetBox.m_Corner / m_ScaleFactor, targetBox.m_Width / m_ScaleFactor.m_X, targetBox.m_Height / m_ScaleFactor.m_Y);
+		Vector scaledOffset(m_Offset/m_ScaleFactor);
+		Box bitmapDimensions(Vector(), bitmapWidth, bitmapHeight);
 
-		if (m_ScaledDimensions.m_X < targetBox.m_Width && m_ScaledDimensions.m_Y < targetBox.m_Height) {
-			// Bitmap will be in frame entirely, upload all.
-			updateRegions.emplace_back(
-				Vector(),
-				m_MainBitmap->w,
-				m_MainBitmap->h
-			);
-		} else {
-			// Upload wrapped region
+		for (int tiledOffsetX = 0; tiledOffsetX < areaToCoverX;) {
+			float destX = scaledTarget.GetCorner().GetFloorIntX() + tiledOffsetX - scaledOffset.GetFloorIntX();
 
-			Box cornerWrapEither(
-				m_Offset / m_ScaleFactor,
-				std::min((m_ScaledDimensions.m_X - m_Offset.m_X) / m_ScaleFactor.m_X,targetBox.m_Width / m_ScaleFactor.m_X),
-				std::min((m_ScaledDimensions.m_Y - m_Offset.m_Y) / m_ScaleFactor.m_Y, targetBox.m_Height / m_ScaleFactor.m_Y)
-			);
-			updateRegions.push_back(cornerWrapEither);
-			
-			if (m_WrapX && cornerWrapEither.m_Width < targetBox.m_Width) {
-				updateRegions.emplace_back(
-					Vector(0, m_Offset.m_Y) / m_ScaleFactor,
-					(targetBox.m_Width + m_Offset.m_X - m_ScaledDimensions.m_X) / m_ScaleFactor.m_X,
-					std::min(m_ScaledDimensions.m_Y - m_Offset.m_Y, targetBox.m_Height) / m_ScaleFactor.m_Y
-				);
+			for (int tiledOffsetY = 0; tiledOffsetY < areaToCoverY;) {
+				float destY = scaledTarget.GetCorner().GetFloorIntY() + tiledOffsetY - scaledOffset.GetFloorIntY();
+				Box update = bitmapDimensions.GetIntersection({-Vector(destX, destY), scaledTarget.m_Width, scaledTarget.m_Height});
+				update.m_Corner = update.m_Corner.GetFloored();
+				update.m_Width = std::ceilf(update.m_Width) + 1;
+				update.m_Height = std::ceilf(update.m_Height) + 1;
+				updateRegions.emplace_back(update);
+				if (!m_WrapY) {
+					break;
+				}
+				tiledOffsetY += bitmapHeight;
 			}
-			if (m_WrapY && cornerWrapEither.m_Height < targetBox.m_Width) {
-				updateRegions.emplace_back(
-					Vector(m_Offset.m_X, 0) / m_ScaleFactor,
-					std::min(m_ScaledDimensions.m_X - m_Offset.m_X, targetBox.m_Width) / m_ScaleFactor.m_X,
-					(targetBox.m_Height + m_Offset.m_Y - m_ScaledDimensions.m_Y) / m_ScaleFactor.m_Y
-				);
+			if (!m_WrapX) {
+				break;
 			}
-
-			if (m_WrapX && m_WrapY && cornerWrapEither.m_Height < targetBox.m_Height && cornerWrapEither.m_Width < targetBox.m_Width) {
-				updateRegions.emplace_back(
-					Vector(),
-					(targetBox.m_Width + m_Offset.m_X - m_ScaledDimensions.m_X) / m_ScaleFactor.m_X,
-					(targetBox.m_Height + m_Offset.m_Y - m_ScaledDimensions.m_Y) / m_ScaleFactor.m_Y
-				);
-			}
+			tiledOffsetX += bitmapWidth;
 		}
 
 		for (auto& region: updateRegions) {
