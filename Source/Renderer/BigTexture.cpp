@@ -94,7 +94,7 @@ void BigTexture::Update(const Box& updateRegion) {
 		Box intersect = updateRegion.GetIntersection(m_Regions[i]);
 		if (!intersect.IsEmpty()) {
 			std::vector<unsigned char> pixels(std::ceilf(intersect.m_Width) * std::ceilf(intersect.m_Height) * bytesPerPixel);
-			for (size_t y = 0; y < static_cast<int>(intersect.m_Height); y++) {
+			for (size_t y = 0; y < static_cast<int>(std::ceilf(intersect.m_Height)); y++) {
 				memcpy(
 					pixels.data() + y * static_cast<int>(intersect.m_Width) * bytesPerPixel,
 					m_Bitmap->line[y + intersect.m_Corner.GetFloorIntY()] + intersect.m_Corner.GetFloorIntX(),
