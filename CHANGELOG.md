@@ -16,6 +16,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	New `Actor` Lua property `JumpHeight` (R) to estimate the jump height of the actor (in metres), based on the actor's jetpack and weight. Actors without a jetpack return 0.  
 	The new function `GetPathFindingFlyingJumpHeight()` can be used to get a jumpHeight that allows flying (i.e infinite jump height). This is also the value that `ACRocket`s and `ACDropships` return for `JumpHeight`.
 
+- Improved locomotion.
+	Added the ability to run. When running, you cannot sharpaim whatsoever.
+	Added the ability to manually crouch. When crouching, your sharpaim distance is slightly increased.
+	Players on PC can enable running by holding the shift key, or crouch by holding control. Players using the arrow keys can use right ctrl/shift. Controllers can run by clicking in the left stick, or crouch by holding the left stick down. Prone on controllers is now performed by clicking in the right stick. SNES/d-pad controllers run using the right bumper.
+	Prone input now immediately throws you to the ground instead of crouching first.
+	Added new `MovementState` type `RUN` for scripts.
+	Added new `Controller` state `WALKCROUCH` for crouching, and `PRONE` for prone. The existing `CROUCH` state has been deprecated, as it referred to PRONE.
+	Added new `Actor` INI and Lua (R/W) property `CanRun` which denotes whether the Actor can run or not.
+	Added new `Actor` INI and Lua (R/W) property `CrouchWalkSpeedMultiplier` which is a walking speed multiplier when at max crouch amount.
+
 - New music system, including a dynamic horizontal sequencing system, under the new music manager `MusicMan`.  
 	`PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to play a new DynamicSong.
 	`SetNextDynamicSongSection(string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to queue a new DynamicSongSection for the currently playing song.  
@@ -31,19 +41,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - New `SoundContainer` features.  
 	Lua property `Paused` (R/W) to pause or unpause all sounds of a SoundContainer. Newly played sounds will not begin playback until unpaused.  
 	Lua function `GetAudibleVolume` to get the real audible volume of a SoundContainer's sounds as a float from 0 to 1. This accounts for literally everything, including game volume.
-	
+
+- New `LimbPath` features.
+	New `LimbPath` INI and Lua (R/W) property `BaseTravelSpeedMultiplier` which is a multiplier on the TravelSpeed of that LimbPath, on top of any other gameplay multipliers like from crouching.
+	New `LimbPath` INI and Lua (R/W) property `BaseScaleMultiplier`, which is a vector. This will scale the X/Y axes of the limbpath accordingly, allowing for easily adjusting limbpaths to differently sized actors, on top of any other gameplay multipliers like from running.
+	New `LimbPath` INI property `SegmentEndedThreshold`, which defines the distance the limb must be from the end of the segment before it's considered complete. This defaults to 2.5.  
+	Exposed `LimbPath` properties `TravelSpeed` and `PushForce` to Lua (R/W).
+
 - New `AEmitter` and `PEmitter` INI and Lua (R/W) property `PlayBurstSound` which denotes whether the BurstSound should play when appropriate. This should not be confused for a trigger - it's just a enable/disable toggle to avoid having to remove and add BurstSound altogether.
 
 - Allow lua scripts to use LuaJIT's BitOp module (see https://bitop.luajit.org/api.html)
-  
+
 </details>
 
 <details><summary><b>Changed</b></summary>
 
-- Conquest activities will once again fall-back to using base dropships and rockets if a random selection of the selected tech's craft can't find one capable of carrying passengers and/or cargo.
-
-- All music-related functionality from AudioMan has been removed due to the addition of the MusicMan. Generic DynamicSongs have been put in to use instead.
-	Mod activities that used to queue up all the vanilla music should now instead call, for example, `MusicMan:PlayDynamicSong("Generic Battle Music")`
+- Improved navigation, making running and fast walkpaths much more consistent.
 
 - Increased fog-of-war resolution in all vanilla activities, and conquest, from 20x20 to 4x4.
 	The Ronin Scrambler, the basic scanner, and `SceneMan:CastUnseenRay` have been changed to accomodate fog-of-war resolutions as fine as 1x1 and as course as 20x20.
@@ -52,11 +65,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - All vanilla scenario activities have had their settings polished, respecting settings which make sense and disabling settings which don't.
 	You can now have fog of war in the test scene, and can no longer require path to orbit in Zero-G Diggers-Only One Man Army.
 
-- The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
+- Conquest activities will once again fall-back to using base dropships and rockets if a random selection of the selected tech's craft can't find one capable of carrying passengers and/or cargo.
 
 - `MovableMan:OpenAllDoors()`, when passed `NOTEAM`, will now open/close doors specifically for `NOTEAM` (instead of all doors).
 
 - MOs now only play the BurstSound of the first Wound they receive in a frame, which not only solves audio spam during e.g. explosions but also preserves intended audio when firing guns with a high ParticleCount at them.
+
+- Changed how Get and SetLimbPathSpeed/PushForce work for `AHuman` and `ACrab`. The functions are as following:
+	`GetLimbPathSpeed` has been renamed to `GetLimbPathTravelSpeed`.
+	`SetLimbPathSpeed` has been renamed to `SetLimbPathTravelSpeed`.
+	`GetLimbPathTravelSpeed(Actor.MovementState)` returns the FG/left side (for crabs) limb path travel speed for that specific movement state, instead of being hardcoded to walking only.
+	`SetLimbPathTravelSpeed(Actor.MovementState, float newValue)` sets the travel speed for all layers and sides of any particular movement state's limb paths, instead of being hardcoded to walking only.
+	`GetLimbPathPushForce(Actor.MovementState)` returns the FG/left side (for crabs) limb path push force for that specific movement state, instead of being hardcoded to walking only.
+	`SetLimbPathPushForce(Actor.MovementState, float newValue)` sets the push force for all layers and sides of any particular movement state's limb paths, instead of being hardcoded to walking only.
+	
+- The `LimbPath` property `NormalTravelSpeed` has been renamed to just `TravelSpeed`.
+
+- Almost all ctrl+* special inputs functionality (i.e restarting activity, world dumps, showing performance stats) are now mapped to right alt, to not interfere with default crouching inputs. The only exception is ctrl+arrow keys for changing console size.
 
 </details>
 
@@ -71,6 +96,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed a bug in Decision Day that could cause an error when trying to set the camera's scroll target, in addition to the previous issue.
 
 - Fixed a bug in Harvester and Massacre where setting deploy units would auto-assign units of the wrong tech.
+
+- Fixed an issue where an `Actor`'s MovementState wasn't correctly accessible from script.
+
+</details>
+
+<details><summary><b>Removed</b></summary>
+
+- All music-related functionality from AudioMan has been removed due to the addition of the MusicMan. Generic DynamicSongs have been put in to use instead.
+	Mod activities that used to queue up all the vanilla music should now instead call, for example, `MusicMan:PlayDynamicSong("Generic Battle Music")`
+
+- The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
+
+- Removed `AHuman` property `MaxCrouchRotation`. `CrouchRotAngleTarget` is now used instead.
+
+- Deprecated `LimbPath` properties `SlowTravelSpeed`, `NormalTravelSpeed` and `FastTravelSpeed`. For the sake of backwards compatibility they will not crash the game and `NormalTravelSpeed` is a valid synonym for the new `TravelSpeed`.
 
 </details>
 

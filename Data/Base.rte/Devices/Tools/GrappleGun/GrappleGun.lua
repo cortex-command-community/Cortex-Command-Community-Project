@@ -37,9 +37,9 @@ function Update(self)
 				if self.Magazine.Scale == 1 then
 					self.StanceOffset = Vector(ToMOSprite(self:GetParent()):GetSpriteWidth(), 1);
 					self.SharpStanceOffset = Vector(ToMOSprite(self:GetParent()):GetSpriteWidth(), 1);
-					if controller and controller:IsState(Controller.BODY_CROUCH) then
+					if controller and controller:IsState(Controller.BODY_PRONE) then
 						if self.canTap then
-							controller:SetState(Controller.BODY_CROUCH, false);
+							controller:SetState(Controller.BODY_PRONE, false);
 							self.tapTimerJump:Reset();
 							self.didTap = true;
 							self.canTap = false;

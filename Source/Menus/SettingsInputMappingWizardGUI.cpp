@@ -420,9 +420,11 @@ bool SettingsInputMappingWizardGUI::UpdateKeyboardConfigSequence() {
 			}
 			break;
 		case 3:
-			m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("MOVE RIGHT");
-			m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[D] or [Right Arrow]");
-			m_ConfigStepChange = false;
+			if (m_ConfigStepChange) {
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("MOVE RIGHT");
+				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[D] or [Right Arrow]");
+				m_ConfigStepChange = false;
+			}
 			if (m_NewInputScheme.CaptureKeyMapping(InputElements::INPUT_L_RIGHT)) {
 				return true;
 			}
@@ -459,6 +461,16 @@ bool SettingsInputMappingWizardGUI::UpdateKeyboardConfigSequence() {
 			break;
 		case 7:
 			if (m_ConfigStepChange) {
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("RUN");
+				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[Left Shift] or [Right Shift]");
+				m_ConfigStepChange = false;
+			}
+			if (m_NewInputScheme.CaptureKeyMapping(InputElements::INPUT_MOVE_FAST)) {
+				return true;
+			}
+			break;
+		case 8:
+			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("JUMP");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[L] or [Num Enter]");
 				m_ConfigStepChange = false;
@@ -467,17 +479,27 @@ bool SettingsInputMappingWizardGUI::UpdateKeyboardConfigSequence() {
 				return true;
 			}
 			break;
-		case 8:
+		case 9:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("CROUCH");
-				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[C] or [Num 0]");
+				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[Left Ctrl] or [Right Ctrl]");
 				m_ConfigStepChange = false;
 			}
 			if (m_NewInputScheme.CaptureKeyMapping(InputElements::INPUT_CROUCH)) {
 				return true;
 			}
 			break;
-		case 9:
+		case 10:
+			if (m_ConfigStepChange) {
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PRONE");
+				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[C] or [Num 0]");
+				m_ConfigStepChange = false;
+			}
+			if (m_NewInputScheme.CaptureKeyMapping(InputElements::INPUT_PRONE)) {
+				return true;
+			}
+			break;
+		case 11:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PREVIOUS BODY");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[U] or [Num 4]");
@@ -487,7 +509,7 @@ bool SettingsInputMappingWizardGUI::UpdateKeyboardConfigSequence() {
 				return true;
 			}
 			break;
-		case 10:
+		case 12:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("NEXT BODY");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[Y] or [Num 5]");
@@ -497,7 +519,7 @@ bool SettingsInputMappingWizardGUI::UpdateKeyboardConfigSequence() {
 				return true;
 			}
 			break;
-		case 11:
+		case 13:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("RELOAD WEAPON");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[R] or [Num Del.]");
@@ -507,7 +529,7 @@ bool SettingsInputMappingWizardGUI::UpdateKeyboardConfigSequence() {
 				return true;
 			}
 			break;
-		case 12:
+		case 14:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PICK UP DEVICE");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[F] or [Num 6]");
@@ -517,7 +539,7 @@ bool SettingsInputMappingWizardGUI::UpdateKeyboardConfigSequence() {
 				return true;
 			}
 			break;
-		case 13:
+		case 15:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("DROP DEVICE");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[B] or [Num 9]");
@@ -527,7 +549,7 @@ bool SettingsInputMappingWizardGUI::UpdateKeyboardConfigSequence() {
 				return true;
 			}
 			break;
-		case 14:
+		case 16:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PREVIOUS DEVICE");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[Q] or [Num 7]");
@@ -537,7 +559,7 @@ bool SettingsInputMappingWizardGUI::UpdateKeyboardConfigSequence() {
 				return true;
 			}
 			break;
-		case 15:
+		case 17:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("NEXT DEVICE");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[E] or [Num 8]");
@@ -570,12 +592,12 @@ bool SettingsInputMappingWizardGUI::UpdateMouseAndKeyboardConfigSequence() {
 			break;
 		case 1:
 			if (m_ConfigStepChange) {
-				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("MOVE DOWN or CROUCH");
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("MOVE DOWN or PRONE");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[S]");
 				m_ConfigStepChange = false;
 			}
 			if (m_NewInputScheme.CaptureKeyMapping(InputElements::INPUT_L_DOWN)) {
-				m_NewInputScheme.CaptureKeyMapping(InputElements::INPUT_CROUCH);
+				m_NewInputScheme.CaptureKeyMapping(InputElements::INPUT_PRONE);
 				return true;
 			}
 			break;
@@ -601,6 +623,26 @@ bool SettingsInputMappingWizardGUI::UpdateMouseAndKeyboardConfigSequence() {
 			break;
 		case 4:
 			if (m_ConfigStepChange) {
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("RUN");
+				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[Left Shift]");
+				m_ConfigStepChange = false;
+			}
+			if (m_NewInputScheme.CaptureKeyMapping(InputElements::INPUT_MOVE_FAST)) {
+				return true;
+			}
+			break;
+		case 5:
+			if (m_ConfigStepChange) {
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("CROUCH");
+				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[Left Ctrl]");
+				m_ConfigStepChange = false;
+			}
+			if (m_NewInputScheme.CaptureKeyMapping(InputElements::INPUT_CROUCH)) {
+				return true;
+			}
+			break;
+		case 6:
+			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PREVIOUS BODY");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[Q]");
 				m_ConfigStepChange = false;
@@ -609,7 +651,7 @@ bool SettingsInputMappingWizardGUI::UpdateMouseAndKeyboardConfigSequence() {
 				return true;
 			}
 			break;
-		case 5:
+		case 7:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("NEXT BODY");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[E]");
@@ -619,7 +661,7 @@ bool SettingsInputMappingWizardGUI::UpdateMouseAndKeyboardConfigSequence() {
 				return true;
 			}
 			break;
-		case 6:
+		case 8:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("RELOAD WEAPON");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[R]");
@@ -629,7 +671,7 @@ bool SettingsInputMappingWizardGUI::UpdateMouseAndKeyboardConfigSequence() {
 				return true;
 			}
 			break;
-		case 7:
+		case 9:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PICK UP DEVICE");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[F]");
@@ -639,7 +681,7 @@ bool SettingsInputMappingWizardGUI::UpdateMouseAndKeyboardConfigSequence() {
 				return true;
 			}
 			break;
-		case 8:
+		case 10:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("DROP DEVICE");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[G]");
@@ -649,7 +691,7 @@ bool SettingsInputMappingWizardGUI::UpdateMouseAndKeyboardConfigSequence() {
 				return true;
 			}
 			break;
-		case 9:
+		case 11:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PREVIOUS DEVICE");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[1]");
@@ -659,7 +701,7 @@ bool SettingsInputMappingWizardGUI::UpdateMouseAndKeyboardConfigSequence() {
 				return true;
 			}
 			break;
-		case 10:
+		case 12:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("NEXT DEVICE");
 				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[2]");
@@ -753,6 +795,16 @@ bool SettingsInputMappingWizardGUI::UpdateGamepadDPadConfigSequence() {
 			break;
 		case 7:
 			if (m_ConfigStepChange) {
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("RUN");
+				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[R. Bumper Button]");
+				m_ConfigStepChange = false;
+			}
+			if (m_NewInputScheme.CaptureKeyMapping(InputElements::INPUT_MOVE_FAST)) {
+				return true;
+			}
+			break;
+		case 8:
+			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("JUMP");
 				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[A Button]");
 				m_ConfigStepChange = false;
@@ -761,19 +813,9 @@ bool SettingsInputMappingWizardGUI::UpdateGamepadDPadConfigSequence() {
 				return true;
 			}
 			break;
-		case 8:
-			if (m_ConfigStepChange) {
-				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("NEXT BODY");
-				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[R. Bumper Button]");
-				m_ConfigStepChange = false;
-			}
-			if (m_NewInputScheme.CaptureJoystickMapping(m_ConfiguringGamepadIndex, InputElements::INPUT_NEXT)) {
-				return true;
-			}
-			break;
 		case 9:
 			if (m_ConfigStepChange) {
-				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PREVIOUS BODY");
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("SELECT BODY");
 				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[L. Bumper Button]");
 				m_ConfigStepChange = false;
 			}
@@ -927,6 +969,27 @@ bool SettingsInputMappingWizardGUI::UpdateGamepadAnalogConfigSequence() {
 			break;
 		case 11:
 			if (m_ConfigStepChange) {
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("RUN");
+				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[L. Stick (Click)]");
+				m_ConfigStepChange = false;
+			}
+			if (m_NewInputScheme.CaptureJoystickMapping(m_ConfiguringGamepadIndex, InputElements::INPUT_MOVE_FAST_TOGGLE)) {
+				return true;
+			}
+			break;
+		case 12:
+			if (m_ConfigStepChange) {
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PRONE");
+				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[R. Stick (Click)]");
+				m_ConfigStepChange = false;
+			}
+			if (m_NewInputScheme.CaptureJoystickMapping(m_ConfiguringGamepadIndex, InputElements::INPUT_L_DOWN)) {
+				m_NewInputScheme.CaptureJoystickMapping(m_ConfiguringGamepadIndex, InputElements::INPUT_CROUCH);
+				return true;
+			}
+			break;
+		case 13:
+			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("NEXT BODY");
 				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[R. Bumper Button]");
 				m_ConfigStepChange = false;
@@ -935,7 +998,7 @@ bool SettingsInputMappingWizardGUI::UpdateGamepadAnalogConfigSequence() {
 				return true;
 			}
 			break;
-		case 12:
+		case 14:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PREVIOUS BODY");
 				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[L. Bumper Button]");
@@ -945,7 +1008,7 @@ bool SettingsInputMappingWizardGUI::UpdateGamepadAnalogConfigSequence() {
 				return true;
 			}
 			break;
-		case 13:
+		case 15:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("RELOAD WEAPON");
 				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText((m_ConfiguringGamepadType == GamepadType::AnalogDualShock) ? "[Triangle Button]" : "[Y Button]");
@@ -955,7 +1018,7 @@ bool SettingsInputMappingWizardGUI::UpdateGamepadAnalogConfigSequence() {
 				return true;
 			}
 			break;
-		case 14:
+		case 16:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PICK UP DEVICE");
 				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[D-Pad Up]");
@@ -965,7 +1028,7 @@ bool SettingsInputMappingWizardGUI::UpdateGamepadAnalogConfigSequence() {
 				return true;
 			}
 			break;
-		case 15:
+		case 17:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("DROP DEVICE");
 				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[D-Pad Down]");
@@ -975,7 +1038,7 @@ bool SettingsInputMappingWizardGUI::UpdateGamepadAnalogConfigSequence() {
 				return true;
 			}
 			break;
-		case 16:
+		case 18:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("NEXT DEVICE");
 				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[D-Pad Right]");
@@ -985,7 +1048,7 @@ bool SettingsInputMappingWizardGUI::UpdateGamepadAnalogConfigSequence() {
 				return true;
 			}
 			break;
-		case 17:
+		case 19:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PREVIOUS DEVICE");
 				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[D-Pad Left]");
@@ -995,7 +1058,7 @@ bool SettingsInputMappingWizardGUI::UpdateGamepadAnalogConfigSequence() {
 				return true;
 			}
 			break;
-		case 18:
+		case 20:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("START / PAUSE");
 				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText((m_ConfiguringGamepadType == GamepadType::AnalogDualShock) ? "[Options Button]" : "[Start Button]");
@@ -1005,7 +1068,7 @@ bool SettingsInputMappingWizardGUI::UpdateGamepadAnalogConfigSequence() {
 				return true;
 			}
 			break;
-		case 19:
+		case 21:
 			if (m_ConfigStepChange) {
 				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("RESET ACTIVITY");
 				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText((m_ConfiguringGamepadType == GamepadType::AnalogDualShock) ? "[Share Button]" : "[Back Button]");

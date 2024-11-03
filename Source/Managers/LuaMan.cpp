@@ -740,8 +740,10 @@ int LuaStateWrapper::RunScriptFileAndRetrieveFunctions(const std::string& filePa
 	auto cachedScript = m_ScriptCache.find(filePath);
 	if (!forceReload && cachedScript != m_ScriptCache.end()) {
 		for (auto& pair: cachedScript->second.functionNamesAndObjects) {
-			luabind::object* functionObjectCopyForStoring = new luabind::object(*pair.second->GetLuabindObject());
-			outFunctionNamesAndObjects.try_emplace(pair.first, new LuabindObjectWrapper(functionObjectCopyForStoring, filePath));
+			if (std::find(functionNamesToLookFor.begin(), functionNamesToLookFor.end(), pair.first) != functionNamesToLookFor.end()) {
+				luabind::object* functionObjectCopyForStoring = new luabind::object(*pair.second->GetLuabindObject());
+				outFunctionNamesAndObjects.try_emplace(pair.first, new LuabindObjectWrapper(functionObjectCopyForStoring, filePath));
+			}
 		}
 
 		return 0;
