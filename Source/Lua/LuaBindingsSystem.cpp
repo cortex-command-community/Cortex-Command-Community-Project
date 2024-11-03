@@ -80,6 +80,7 @@ LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Controller) {
 	                           luabind::value("WEAPON_CHANGE_PREV", ControlState::WEAPON_CHANGE_PREV),
 	                           luabind::value("WEAPON_PICKUP", ControlState::WEAPON_PICKUP),
 	                           luabind::value("WEAPON_DROP", ControlState::WEAPON_DROP),
+	                           luabind::value("WEAPON_PRIMARY_HOTKEY", ControlState::WEAPON_PRIMARY_HOTKEY),
 	                           luabind::value("ACTOR_NEXT", ControlState::ACTOR_NEXT),
 	                           luabind::value("ACTOR_PREV", ControlState::ACTOR_PREV),
 	                           luabind::value("ACTOR_BRAIN", ControlState::ACTOR_BRAIN),

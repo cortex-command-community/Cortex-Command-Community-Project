@@ -59,6 +59,7 @@ int InputScheme::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("WeaponPickup", { reader >> m_InputMappings[InputElements::INPUT_WEAPON_PICKUP]; });
 	MatchProperty("WeaponDrop", { reader >> m_InputMappings[InputElements::INPUT_WEAPON_DROP]; });
 	MatchProperty("WeaponReload", { reader >> m_InputMappings[InputElements::INPUT_WEAPON_RELOAD]; });
+	MatchProperty("WeaponPrimaryHotkey", { reader >> m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY]; });
 	MatchProperty("Start", { reader >> m_InputMappings[InputElements::INPUT_START]; });
 	MatchProperty("Back", { reader >> m_InputMappings[InputElements::INPUT_BACK]; });
 	MatchProperty("RightUp", { reader >> m_InputMappings[InputElements::INPUT_R_UP]; });
@@ -222,6 +223,7 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			m_InputMappings[InputElements::INPUT_WEAPON_DROP].SetKey(SDL_SCANCODE_G);
 			m_InputMappings[InputElements::INPUT_WEAPON_CHANGE_PREV].SetKey(SDL_SCANCODE_1);
 			m_InputMappings[InputElements::INPUT_WEAPON_CHANGE_NEXT].SetKey(SDL_SCANCODE_2);
+			m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY].SetMouseButton(MOUSE_MIDDLE);
 			break;
 		case InputPreset::PresetGenericDPad:
 			// TODO: Don't have any SNES style controllers to test with so no idea what would work or make sense here.

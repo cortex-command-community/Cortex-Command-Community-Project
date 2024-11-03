@@ -26,6 +26,7 @@ void Controller::Clear() {
 	m_WeaponPickupIgnore = false;
 	m_WeaponDropIgnore = false;
 	m_WeaponReloadIgnore = false;
+	m_WeaponPrimaryHotkeyIgnore = false;
 	m_MouseMovement.Reset();
 	m_AnalogCursorAngleLimits = {{0, 0}, false};
 	m_ReleaseTimer.Reset();
@@ -251,6 +252,8 @@ void Controller::UpdatePlayerInput(std::array<bool, ControlState::CONTROLSTATECO
 		m_WeaponDropIgnore = false;
 	} else if (g_UInputMan.ElementReleased(m_Player, InputElements::INPUT_WEAPON_RELOAD)) {
 		m_WeaponReloadIgnore = false;
+	} else if (g_UInputMan.ElementReleased(m_Player, InputElements::INPUT_WEAPON_PRIMARY_HOTKEY)) {
+		m_WeaponPrimaryHotkeyIgnore = false;
 	}
 
 	m_ControlStates[ControlState::HOLD_RIGHT] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_L_RIGHT) || g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_AIM_RIGHT);
@@ -350,6 +353,10 @@ void Controller::UpdatePlayerPieMenuInput(std::array<bool, ControlState::CONTROL
 		if (!m_WeaponReloadIgnore && g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_WEAPON_RELOAD)) {
 			m_ControlStates[ControlState::WEAPON_RELOAD] = true;
 			m_WeaponReloadIgnore = true;
+		}
+		if (!m_WeaponPrimaryHotkeyIgnore && g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_WEAPON_PRIMARY_HOTKEY)) {
+			m_ControlStates[ControlState::WEAPON_PRIMARY_HOTKEY] = true;
+			m_WeaponPrimaryHotkeyIgnore = true;
 		}
 	}
 
