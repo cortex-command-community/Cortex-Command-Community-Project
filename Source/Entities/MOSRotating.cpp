@@ -12,6 +12,8 @@
 #include "HDFirearm.h"
 #include "SoundContainer.h"
 #include "PostProcessMan.h"
+#include "FrameMan.h"
+#include "Draw.h"
 
 #include "RTEError.h"
 
@@ -1679,8 +1681,12 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 			for (int i = 0; i < passes; ++i) {
 				int spriteX = aDrawPos[i].GetFloorIntX() - (pTempBitmap->w / 2);
 				int spriteY = aDrawPos[i].GetFloorIntY() - (pTempBitmap->h / 2);
+				DrawTexturePro(m_aSprite[m_Frame],
+					{0.0f, 0.0f, -1.0f * m_aSprite[m_Frame]->w, static_cast<float>(m_aSprite[m_Frame]->h)},
+					{aDrawPos[i].m_X, aDrawPos[i].m_Y, static_cast<float>(m_aSprite[m_Frame]->w), static_cast<float>(m_aSprite[m_Frame]->h)},
+					{m_aSprite[m_Frame]->w + m_SpriteOffset.m_X , -m_SpriteOffset.m_Y}, m_Rotation.GetRadAngle(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 				g_SceneMan.RegisterDrawing(pTargetBitmap, g_NoMOID, spriteX, spriteY, spriteX + pTempBitmap->w, spriteY + pTempBitmap->h);
-				draw_trans_sprite(pTargetBitmap, pTempBitmap, spriteX, spriteY);
+				//draw_trans_sprite(pTargetBitmap, pTempBitmap, spriteX, spriteY);
 			}
 		} else {
 			// Do the passes loop in here so the flipping operation doesn't get done multiple times
@@ -1708,10 +1714,14 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 			// Draw the now rotated object's temporary bitmap onto the final drawing bitmap with transperency
 			// Do the passes loop in here so the intermediate drawing doesn't get done multiple times
 			for (int i = 0; i < passes; ++i) {
+				DrawTexturePro(m_aSprite[m_Frame],
+					{0.0f, 0.0f, static_cast<float>(m_aSprite[m_Frame]->w), static_cast<float>(m_aSprite[m_Frame]->h)},
+					{aDrawPos[i].m_X, aDrawPos[i].m_Y, static_cast<float>(m_aSprite[m_Frame]->w), static_cast<float>(m_aSprite[m_Frame]->h)},
+					-m_SpriteOffset, m_Rotation.GetRadAngle(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 				int spriteX = aDrawPos[i].GetFloorIntX() - (pTempBitmap->w / 2);
 				int spriteY = aDrawPos[i].GetFloorIntY() - (pTempBitmap->h / 2);
 				g_SceneMan.RegisterDrawing(pTargetBitmap, g_NoMOID, spriteX, spriteY, spriteX + pTempBitmap->w, spriteY + pTempBitmap->h);
-				draw_trans_sprite(pTargetBitmap, pTempBitmap, spriteX, spriteY);
+				// draw_trans_sprite(pTargetBitmap, pTempBitmap, spriteX, spriteY);
 			}
 		} else {
 			for (int i = 0; i < passes; ++i) {

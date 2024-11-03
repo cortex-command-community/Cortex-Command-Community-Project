@@ -4511,8 +4511,8 @@ void DrawTexturePro(Texture2D texture, Rectangle source, Rectangle dest, Vector2
         }
         else
         {
-            float sinRotation = sinf(rotation);
-            float cosRotation = cosf(rotation);
+            float sinRotation = sinf(-rotation);
+            float cosRotation = cosf(-rotation);
             float x = dest.x;
             float y = dest.y;
             float dx = -origin.x;

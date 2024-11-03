@@ -1,8 +1,7 @@
 #include "Draw.h"
 #include "GLResourceMan.h"
 
-using namespace RTE;
-
+namespace RTE {
 	void DrawTexture(BITMAP* bitmap, int posX, int posY, RLColor tint) {
 		DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(bitmap), posX, posY, tint);
 	}
@@ -20,3 +19,4 @@ using namespace RTE;
 	void DrawTexturePro(BITMAP* bitmap, Rectangle source, Rectangle dest, Vector2 origin, float rotation, RLColor tint) {
 		DrawTexturePro(g_GLResourceMan.GetStaticTextureFromBitmap(bitmap), source, dest, origin, rotation, tint);
 	}
+}
