@@ -619,7 +619,7 @@ void TitleScreen::DrawTitleScreenScene() {
 	m_Station.SetPos(m_PlanetPos + m_StationOffset);
 	m_Station.SetRotAngle(-c_HalfPI + m_StationOrbitRotation);
 	//m_Station.Draw(g_FrameMan.GetBackBuffer32());
-	DrawTextureEx(g_GLResourceMan.GetStaticTextureFromBitmap(m_Station.GetSpriteFrame(0)), m_Station.GetPos() + m_Station.GetSpriteOffset(), -m_StationOrbitRotation + PI/2.0f, 1.0f, {255, 255, 255, 255});
+	DrawTextureEx(g_GLResourceMan.GetStaticTextureFromBitmap(m_Station.GetSpriteFrame(0)), m_Station.GetPos() + m_Station.GetSpriteOffset() + Vector(m_Station.GetSpriteFrame(0)->w / 2, m_Station.GetSpriteFrame(0)->h / 2), m_StationOrbitRotation - c_HalfPI, 1.0f, {255, 255, 255, 255});
 }
 
 void TitleScreen::DrawGameLogo() {

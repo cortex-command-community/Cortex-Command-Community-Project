@@ -1,6 +1,7 @@
 #include "BigTexture.h"
 #include "glad/gl.h"
 #include <algorithm>
+#include <cmath>
 #include "Draw.h"
 #include "GLResourceMan.h"
 
