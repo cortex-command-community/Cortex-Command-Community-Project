@@ -731,6 +731,8 @@ RLAPI void rlDrawRenderBatchActive(void);               // Update and draw inter
 RLAPI bool rlCheckRenderBatchLimit(int vCount);         // Check internal buffer overflow for a given number of vertex
 
 RLAPI void rlSetTexture(unsigned int id);               // Set current texture for render batch and check buffers limits
+RLAPI void rlClearActiveTextures();
+RLAPI void rlResetDrawDepth();
 
 //------------------------------------------------------------------------------------------------------------------------
 
@@ -781,7 +783,6 @@ RLAPI void rlSetUniformMatrices(int locIndex, const RLMatrix *mat, int count);  
 RLAPI void rlSetUniformSampler(int locIndex, unsigned int textureId);           // Set shader value sampler
 RLAPI void rlSetShader(unsigned int id, int *locs);                             // Set shader currently active (id and locations)
 RLAPI unsigned int rlGetShaderCurrent();
-
 // Compute shader management
 RLAPI unsigned int rlLoadComputeShaderProgram(unsigned int shaderId);           // Load compute shader program
 RLAPI void rlComputeShaderDispatch(unsigned int groupX, unsigned int groupY, unsigned int groupZ); // Dispatch compute shader (equivalent to *draw* for graphics pipeline)
@@ -1489,7 +1490,7 @@ void rlEnd(void)
     // NOTE: Depth increment is dependant on rlOrtho(): z-near and z-far values,
     // as well as depth buffer bit-depth (16bit or 24bit or 32bit)
     // Correct increment formula would be: depthInc = (zfar - znear)/pow(2, bits)
-    RLGL.currentBatch->currentDepth += (1.0f/20000.0f);
+    RLGL.currentBatch->currentDepth += (1.0f/200000.0f);
 }
 
 // Define one vertex (position)
@@ -3102,8 +3103,6 @@ void rlDrawRenderBatch(rlRenderBatch *batch)
     // Reset vertex counter for next frame
     RLGL.State.vertexCounter = 0;
 
-    // Reset depth for next draw
-    batch->currentDepth = -1.0f;
 
     // Restore projection/modelview matrices
     RLGL.State.projection = matProjection;
@@ -3116,9 +3115,6 @@ void rlDrawRenderBatch(rlRenderBatch *batch)
         batch->draws[i].vertexCount = 0;
         batch->draws[i].textureId = RLGL.State.defaultTextureId;
     }
-
-    // Reset active texture units for next batch
-    for (int i = 0; i < RL_DEFAULT_BATCH_MAX_TEXTURE_UNITS; i++) RLGL.State.activeTextureId[i] = 0;
 
     // Reset draws counter to one draw for the batch
     batch->drawCounter = 1;
@@ -4399,6 +4395,19 @@ void rlSetUniformSampler(int locIndex, unsigned int textureId)
         }
     }
 #endif
+}
+
+
+// Reset depth for next draw
+void rlResetDrawDepth()
+{
+    RLGL.currentBatch->currentDepth = -1.0f;
+}
+
+// Reset active texture units for next batch
+void rlClearActiveTextures()
+{
+    for (int i = 0; i < RL_DEFAULT_BATCH_MAX_TEXTURE_UNITS; i++) RLGL.State.activeTextureId[i] = 0;
 }
 
 // Set shader currently active (id and locations)
