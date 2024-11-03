@@ -229,21 +229,21 @@ void SLBackground::Draw(const Box& targetDimensions, Box& targetBox, bool offset
 	// Detect if non-wrapping layer dimensions can't cover the whole target area with its main bitmap. If so, fill in the gap with appropriate solid color sampled from the hanging edge.
 	if (!m_WrapX && bitmapWidth <= targetBoxWidth) {
 		if (m_FillColorLeft != ColorKeys::g_MaskColor && m_Offset.GetFloorIntX() != 0) {
-			DrawRectangle(targetBoxCornerX, targetBoxCornerY, targetBoxWidth, targetBoxHeight, {static_cast<unsigned char>(m_FillColorLeft), 0, 0, 0});
+			DrawRectangle(targetBoxCornerX, targetBoxCornerY, -m_Offset.m_X, targetBoxHeight, {static_cast<unsigned char>(m_FillColorLeft), 0, 0, 255});
 			// rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX - m_Offset.GetFloorIntX(), targetBoxCornerY + targetBoxHeight, m_FillColorLeft);
 		}
 		if (m_FillColorRight != ColorKeys::g_MaskColor) {
-			DrawRectangle(targetBoxCornerX, targetBoxCornerY, targetBoxWidth, targetBoxHeight, {static_cast<unsigned char>(m_FillColorRight), 0, 0, 0});
+			DrawRectangle(targetBoxCornerX + bitmapWidth - m_Offset.m_X, targetBoxCornerY, targetBoxWidth - bitmapWidth + m_Offset.m_X, targetBoxHeight, {static_cast<unsigned char>(m_FillColorRight), 0, 0, 255});
 			// rectfill(targetBitmap, targetBoxCornerX + bitmapWidth - m_Offset.GetFloorIntX(), targetBoxCornerY, targetBoxCornerX + targetBoxWidth, targetBoxCornerY + targetBoxHeight, m_FillColorRight);
 		}
 	}
 	if (!m_WrapY && bitmapHeight <= targetBoxHeight) {
 		if (m_FillColorUp != ColorKeys::g_MaskColor && m_Offset.GetFloorIntY() != 0) {
-			DrawRectangle(targetBoxCornerX, targetBoxCornerY, targetBoxWidth, targetBoxHeight, {static_cast<unsigned char>(m_FillColorUp), 0, 0, 0});
+			DrawRectangle(targetBoxCornerX, targetBoxCornerY, targetBoxWidth, - m_Offset.m_Y, {static_cast<unsigned char>(m_FillColorUp), 0, 0, 255});
 			// rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX + targetBoxWidth, targetBoxCornerY - m_Offset.GetFloorIntY(), m_FillColorUp);
 		}
 		if (m_FillColorDown != ColorKeys::g_MaskColor) {
-			DrawRectangle(targetBoxCornerX, targetBoxCornerY, targetBoxWidth, targetBoxHeight, {static_cast<unsigned char>(m_FillColorDown), 0, 0, 0});
+			DrawRectangle(targetBoxCornerX, targetBoxCornerY + bitmapHeight - m_Offset.m_Y, targetBoxWidth, targetBoxHeight - bitmapHeight + m_Offset.m_Y, {static_cast<unsigned char>(m_FillColorDown), 0, 0, 255});
 			// rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY + bitmapHeight - m_Offset.GetFloorIntY(), targetBoxCornerX + targetBoxWidth, targetBoxCornerY + targetBoxHeight, m_FillColorDown);
 		}
 	}
