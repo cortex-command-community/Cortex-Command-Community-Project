@@ -35,6 +35,7 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Clear() {
 	m_BitmapFile.Reset();
 	m_MainBitmap = nullptr;
 	m_BackBitmap = nullptr;
+	m_MainTexture.reset();
 	m_LastClearColor = ColorKeys::g_InvalidColor;
 	m_Drawings.clear();
 	m_MainBitmapOwned = false;
