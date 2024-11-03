@@ -443,7 +443,7 @@ void PostProcessMan::DrawPostScreenEffects() {
 			effectStrength = postEffect.m_Strength;
 			effectPosX = postEffect.m_Pos.m_X - postEffect.m_Bitmap->w / 2;
 			effectPosY = postEffect.m_Pos.m_Y - postEffect.m_Bitmap->h / 2;
-			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(postEffect.m_Bitmap), effectPosX, effectPosY, {.r=effectStrength, .g=effectStrength, .b=effectStrength, .a=255});
+			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(postEffect.m_Bitmap), effectPosX, effectPosY, {.r=effectStrength, .g=effectStrength, .b=effectStrength, .a=effectStrength});
 		}
 	}
 }
