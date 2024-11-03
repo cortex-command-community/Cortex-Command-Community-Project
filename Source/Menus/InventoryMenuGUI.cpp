@@ -5,6 +5,7 @@
 #include "UInputMan.h"
 #include "MovableMan.h"
 #include "PresetMan.h"
+#include "GLResourceMan.h"
 
 #include "Controller.h"
 #include "AHuman.h"
@@ -1353,15 +1354,18 @@ void InventoryMenuGUI::DrawCarouselMode(BITMAP* targetBitmap, const Vector& draw
 	std::list<IntRect> wrappedRectangles;
 	g_SceneMan.WrapRect(IntRect(drawPos.GetFloorIntX(), drawPos.GetFloorIntY(), drawPos.GetFloorIntX() + m_CarouselBitmap->w, drawPos.GetFloorIntY() + m_CarouselBitmap->h), wrappedRectangles);
 	for (const IntRect& wrappedRectangle: wrappedRectangles) {
+		g_GLResourceMan.UpdateDynamicBitmap(m_CarouselBGBitmap.get(), true);
+		g_GLResourceMan.UpdateDynamicBitmap(m_CarouselBitmap.get(), true);
 		if (m_CarouselBackgroundTransparent && !g_FrameMan.IsInMultiplayerMode()) {
 			g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
-			draw_trans_sprite(targetBitmap, m_CarouselBGBitmap.get(), wrappedRectangle.m_Left - m_CarouselBGBitmap->w / 2, wrappedRectangle.m_Top - m_CarouselBGBitmap->h / 2);
-			draw_sprite(targetBitmap, m_CarouselBitmap.get(), wrappedRectangle.m_Left - m_CarouselBitmap->w / 2, wrappedRectangle.m_Top - m_CarouselBitmap->h / 2);
+			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_CarouselBGBitmap.get()), wrappedRectangle.m_Left - m_CarouselBGBitmap->w / 2, wrappedRectangle.m_Top - m_CarouselBGBitmap->h / 2, {255, 255, 255, 75});
+			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_CarouselBitmap.get()), wrappedRectangle.m_Left - m_CarouselBitmap->w / 2, wrappedRectangle.m_Top - m_CarouselBitmap->h / 2, {255, 255, 255, 255});
 		} else {
 			if (!hasDrawnAtLeastOnce) {
+				
 				draw_sprite(m_CarouselBGBitmap.get(), m_CarouselBitmap.get(), 0, 0);
 			}
-			draw_sprite(targetBitmap, m_CarouselBGBitmap.get(), wrappedRectangle.m_Left - m_CarouselBGBitmap->w / 2, wrappedRectangle.m_Top - m_CarouselBGBitmap->h / 2);
+			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_CarouselBGBitmap.get()), wrappedRectangle.m_Left - m_CarouselBGBitmap->w / 2, wrappedRectangle.m_Top - m_CarouselBGBitmap->h / 2, {255, 255, 255, 255});
 		}
 		hasDrawnAtLeastOnce = true;
 	}

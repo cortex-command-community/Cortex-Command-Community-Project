@@ -5,6 +5,7 @@
 #include "PresetMan.h"
 #include "SettingsMan.h"
 #include "LuaMan.h"
+#include "GLResourceMan.h"
 
 #include "AHuman.h"
 #include "ContentFile.h"
@@ -637,9 +638,13 @@ void PieMenu::Draw(BITMAP* targetBitmap, const Vector& targetPos) const {
 	if (m_EnabledState != EnabledState::Disabled) {
 		if (m_DrawBackgroundTransparent && !g_FrameMan.IsInMultiplayerMode()) {
 			g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
-			draw_trans_sprite(targetBitmap, m_BGBitmap, drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2);
+			//draw_trans_sprite(targetBitmap, m_BGBitmap, drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2);
+			g_GLResourceMan.UpdateDynamicBitmap(m_BGBitmap, true);
+			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_BGBitmap), drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2, {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 		} else {
-			draw_sprite(targetBitmap, m_BGBitmap, drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2);
+			//draw_sprite(targetBitmap, m_BGBitmap, drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2);
+			g_GLResourceMan.UpdateDynamicBitmap(m_BGBitmap, true);
+			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_BGBitmap), drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2, {255, 255, 255, 255});
 		}
 	}
 
@@ -954,6 +959,59 @@ void PieMenu::CalculateDrawPosition(const BITMAP* targetBitmap, const Vector& ta
 	}
 }
 
+void PieMenu::DrawMenuBackground() {
+	int centerX = IsSubPieMenu() ? 0 : m_BGBitmap->w / 2;
+	int centerY = IsSubPieMenu() ? 0 : m_BGBitmap->h / 2;
+	if (m_DirectionIfSubPieMenu == Directions::Up || m_DirectionIfSubPieMenu == Directions::Left) {
+		centerX = m_BGBitmap->w;
+	}
+	if (m_DirectionIfSubPieMenu == Directions::Up || m_DirectionIfSubPieMenu == Directions::Right) {
+		centerY = m_BGBitmap->h;
+	}
+	if (m_DirectionIfSubPieMenu == Directions::Down) {
+		centerX = -2;
+		centerY = -2;
+	}
+	if (m_DirectionIfSubPieMenu == Directions::Left) {
+		centerY = -2;
+	}
+	float subPieMenuRotationOffset = IsSubPieMenu() ? c_QuarterPI : 0;
+
+	bool pieMenuNeedsToBeDrawnRotated = GetRotAngle() - subPieMenuRotationOffset != 0;
+	BITMAP* bitmapToDrawTo = pieMenuNeedsToBeDrawnRotated ? m_BGRotationBitmap : m_BGBitmap;
+
+	bool hasPieSliceWithSubPieMenu = false;
+	for (const PieSlice* pieSlice: m_CurrentPieSlices) {
+		if (pieSlice->GetSubPieMenu()) {
+			hasPieSliceWithSubPieMenu = true;
+			break;
+		}
+	}
+
+	DrawRing(Vector2(centerX, centerY), m_CurrentInnerRadius, m_CurrentInnerRadius + m_BackgroundThickness, 0, 2*PI, 36, {255, 255, 255, 75});
+
+	if (m_EnabledState == EnabledState::Enabled) {
+		if (hasPieSliceWithSubPieMenu) {
+			clear_to_color(m_BGPieSlicesWithSubPieMenuBitmap, ColorKeys::g_MaskColor);
+			circlefill(m_BGPieSlicesWithSubPieMenuBitmap, centerX, centerY, m_CurrentInnerRadius + m_BackgroundThickness + c_PieSliceWithSubPieMenuExtraThickness, m_BackgroundColor);
+		}
+		DrawBackgroundPieSliceSeparators(bitmapToDrawTo, centerX, centerY, subPieMenuRotationOffset);
+		if (hasPieSliceWithSubPieMenu) {
+			circlefill(m_BGPieSlicesWithSubPieMenuBitmap, centerX, centerY, m_CurrentInnerRadius + m_BackgroundThickness, ColorKeys::g_MaskColor);
+			draw_sprite(m_BGPieSlicesWithSubPieMenuBitmap, bitmapToDrawTo, 0, 0);
+			clear_to_color(bitmapToDrawTo, ColorKeys::g_MaskColor);
+			draw_sprite(bitmapToDrawTo, m_BGPieSlicesWithSubPieMenuBitmap, 0, 0);
+		}
+	}
+
+	if (bitmapToDrawTo != m_BGBitmap) {
+		clear_to_color(m_BGBitmap, ColorKeys::g_MaskColor);
+		float rotationAsAllegroAngle = ((GetRotAngle() - subPieMenuRotationOffset) / c_PI) * -128.0F;
+		pivot_sprite(m_BGBitmap, bitmapToDrawTo, m_BGBitmap->w / 2, m_BGBitmap->h / 2, centerX, centerY, ftofix(rotationAsAllegroAngle));
+	}
+	m_BGBitmapNeedsRedrawing = false;
+	m_BGPieSlicesWithSubPieMenuBitmapNeedsRedrawing = false;
+}
 void PieMenu::DrawPieIcons(BITMAP* targetBitmap, const Vector& drawPos) const {
 	for (const PieSlice* pieSlice: m_CurrentPieSlices) {
 		BITMAP* pieSliceIcon = pieSlice->GetAppropriateIcon(pieSlice == m_HoveredPieSlice);
