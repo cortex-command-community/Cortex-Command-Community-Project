@@ -349,17 +349,14 @@ void PostProcessMan::PostProcess() {
 	UpdatePalette();
 
 	// First copy the current 8bpp backbuffer to the 32bpp buffer; we'll add effects to it
-	GL_CHECK(glDisable(GL_BLEND));
-	GL_CHECK(glActiveTexture(GL_TEXTURE0));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_FrameMan.GetBackBuffer()->GetColorTexture().id));
-	GL_CHECK(glActiveTexture(GL_TEXTURE1));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_Palette8Texture));
 	m_PostProcessFramebuffer->Begin(false);
-	m_Blit8->Begin();
-	int paletteUniform = m_Blit8->GetUniformLocation("rtePalette");
-	rlSetUniformSampler(paletteUniform, m_Palette8Texture);
-	DrawTexture(g_FrameMan.GetBackBuffer()->GetColorTexture(), 0, 0, {255, 255, 255, 255});
-	m_Blit8->End();
+	//m_Blit8->Begin();
+	//int paletteUniform = m_Blit8->GetUniformLocation("rtePalette");
+	//rlSetUniformSampler(paletteUniform, m_Palette8Texture);
+	rlDisableColorBlend();
+	rlDisableDepthTest();
+	DrawTextureRec(g_FrameMan.GetBackBuffer()->GetColorTexture(), {0, 0, g_FrameMan.GetBackBuffer()->GetSize().w, -g_FrameMan.GetBackBuffer()->GetSize().h}, {0.0f, 0.0f}, {255, 255, 255, 255});
+	//m_Blit8->End();
 
 	// Set the screen blender mode for glows
 	set_screen_blender(128, 128, 128, 128);

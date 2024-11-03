@@ -6,6 +6,7 @@ in vec4 vertexColor;
 out vec4 FragColor;
 
 uniform sampler2D rteTexture;
+uniform sampler2D rtePalette;
 uniform vec4 rteColor;
 uniform bool drawMasked;
 
@@ -24,5 +25,5 @@ void main() {
 	if (red==0 && drawMasked) {
 		discard;
 	}
-	FragColor = vec4(red, 0.0, 0.0, 0) * vertexColor.r;
+	FragColor = texture2DAA(rtePalette, vec2(red * rteColor.r * vertexColor.r, 0.0)) * vec4(vec3(1.0), rteColor.a * vertexColor.a);
 }

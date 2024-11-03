@@ -199,6 +199,10 @@ namespace RTE {
 		/// @param transValue The transparency preset value. See the TransparencyPreset enumeration for values.
 		void SetTransTableFromPreset(TransparencyPreset transValue);
 
+		/// @brief Get the current alpha level for transparent draws.
+		/// @return Integer between 0-255 of alpha value.
+		unsigned char GetCurrentAlpha() {return m_CurrentAlpha;}
+
 		/// Flashes any of the players' screen with the specified color for this frame.
 		/// @param screen Which screen to flash.
 		/// @param color What color to flash it. -1 means no color or flash.
@@ -396,6 +400,7 @@ namespace RTE {
 		/// The key is an array of the RGBA values. The value is a pair of the color table itself and a time stamp of when it was last accessed for use during color table pruning.
 		std::array<std::unordered_map<std::array<int, 4>, std::pair<COLOR_MAP, long long>>, DrawBlendMode::BlendModeCount> m_ColorTables;
 		Timer m_ColorTablePruneTimer; //!< Timer for pruning unused color tables to prevent ridiculous memory usage.
+		int m_CurrentAlpha;
 
 		std::shared_ptr<BITMAP> m_PlayerScreen8; //!< Intermediary split screen bitmap.
 		std::shared_ptr<RenderTarget> m_PlayerScreen; //!< Intermediary split screen bitmap.

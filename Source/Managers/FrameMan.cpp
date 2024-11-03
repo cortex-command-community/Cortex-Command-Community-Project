@@ -142,7 +142,7 @@ int FrameMan::CreateBackBuffers() {
 	m_BackBuffer32 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(c_BPP, resX, resY));
 	ClearBackBuffer32();
 
-	m_BackBuffer = std::make_unique<RenderTarget>(FloatRect(0, 0, resX, resY), FloatRect(0, 0, resX, resY), 8);
+	m_BackBuffer = std::make_unique<RenderTarget>(FloatRect(0, 0, resX, resY), FloatRect(0, 0, resX, resY));
 
 	m_OverlayBitmap32 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(c_BPP, resX, resY));
 	clear_to_color(m_OverlayBitmap32.get(), 0);
@@ -472,6 +472,7 @@ void FrameMan::SetTransTableFromPreset(TransparencyPreset transPreset) {
 		color_map = &m_ColorTables[DrawBlendMode::BlendTransparency].at(colorChannelBlendAmounts).first;
 		m_ColorTables[DrawBlendMode::BlendTransparency].at(colorChannelBlendAmounts).second = -1;
 	}
+	m_CurrentAlpha = 255 - transPreset;
 }
 
 void FrameMan::CreateNewNetworkPlayerBackBuffer(int player, int width, int height) {
@@ -809,9 +810,14 @@ void FrameMan::Draw() {
 	g_PresetMan.GetEntityPreset("Shader", "Background")->Clone(&backgroundShader);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	clear_to_color(m_BackBuffer8.get(), 0);
-	rlDisableColorBlend();
-	rlDisableDepthTest();
+	rlEnableColorBlend();
+	rlSetBlendMode(RL_BLEND_ALPHA);
+	rlEnableDepthTest();
 	m_BackBuffer->Begin(true);
+	backgroundShader.Begin();
+	backgroundShader.Enable();
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
+	backgroundShader.SetInt("drawMasked", 1);
 
 	// Count how many split screens we'll need
 	int screenCount = (m_HSplit ? 2 : 1) * (m_VSplit ? 2 : 1);
@@ -830,9 +836,6 @@ void FrameMan::Draw() {
 		screenRelativeGlowBoxes.clear();
 
 		m_PlayerScreen->Begin(true);
-		backgroundShader.Begin();
-		backgroundShader.Enable();
-		backgroundShader.SetInt("drawMasked", 1);
 		
 		//rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
 		BITMAP* drawScreen = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
@@ -954,8 +957,10 @@ void FrameMan::Draw() {
 	if (IsInMultiplayerMode()) {
 		PrepareFrameForNetwork();
 	}
+	rlDisableDepthTest();
 	g_GLResourceMan.UpdateDynamicBitmap(m_BackBuffer8.get(), true);
 	DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_BackBuffer8.get()), 0.0f, 0.0f, {255, 255, 255, 255});
+	backgroundShader.End();
 	m_BackBuffer->End();
 	if (g_ActivityMan.IsInActivity()) {
 		g_PostProcessMan.PostProcess();
