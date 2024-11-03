@@ -472,7 +472,8 @@ void FrameMan::SetTransTableFromPreset(TransparencyPreset transPreset) {
 		color_map = &m_ColorTables[DrawBlendMode::BlendTransparency].at(colorChannelBlendAmounts).first;
 		m_ColorTables[DrawBlendMode::BlendTransparency].at(colorChannelBlendAmounts).second = -1;
 	}
-	m_CurrentAlpha = 255 - transPreset;
+	constexpr int transparencyPresetCount = BlendAmountLimits::MaxBlend / c_BlendAmountStep;
+	m_CurrentAlpha = 255 - (static_cast<int>(255.0F * ((1.0F / static_cast<float>(transparencyPresetCount)) * static_cast<float>(transPreset / c_BlendAmountStep))));
 }
 
 void FrameMan::CreateNewNetworkPlayerBackBuffer(int player, int width, int height) {
