@@ -437,8 +437,8 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::UpdateTargetRegion(const Bo
 				float destY = scaledTarget.GetCorner().GetFloorIntY() + tiledOffsetY - scaledOffset.GetFloorIntY();
 				Box update = bitmapDimensions.GetIntersection({-Vector(destX, destY), scaledTarget.m_Width, scaledTarget.m_Height});
 				update.m_Corner = update.m_Corner.GetFloored();
-				update.m_Width = std::ceilf(update.m_Width) + 1;
-				update.m_Height = std::ceilf(update.m_Height) + 1;
+				update.m_Width = std::ceil(update.m_Width) + 1;
+				update.m_Height = std::ceil(update.m_Height) + 1;
 				updateRegions.emplace_back(update);
 				if (!m_WrapY) {
 					break;

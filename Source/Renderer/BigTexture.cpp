@@ -93,12 +93,12 @@ void BigTexture::Update(const Box& updateRegion) {
 	for (int i = 0; i < m_Regions.size(); ++i) {
 		Box intersect = updateRegion.GetIntersection(m_Regions[i]);
 		if (!intersect.IsEmpty()) {
-			std::vector<unsigned char> pixels(std::ceilf(intersect.m_Width) * std::ceilf(intersect.m_Height) * bytesPerPixel);
-			for (size_t y = 0; y < static_cast<int>(std::ceilf(intersect.m_Height)); y++) {
+			std::vector<unsigned char> pixels(std::ceil(intersect.m_Width) * std::ceil(intersect.m_Height) * bytesPerPixel);
+			for (size_t y = 0; y < static_cast<int>(std::ceil(intersect.m_Height)); y++) {
 				memcpy(
 					pixels.data() + y * static_cast<int>(intersect.m_Width) * bytesPerPixel,
 					m_Bitmap->line[y + intersect.m_Corner.GetFloorIntY()] + intersect.m_Corner.GetFloorIntX(),
-					std::ceilf(intersect.m_Width) * bytesPerPixel
+					std::ceil(intersect.m_Width) * bytesPerPixel
 				);
 			}
 
@@ -108,8 +108,8 @@ void BigTexture::Update(const Box& updateRegion) {
 				0, 
 				intersect.m_Corner.GetFloorIntX() % s_MaxGLTextureSize, 
 				intersect.m_Corner.GetFloorIntY() % s_MaxGLTextureSize, 
-				std::ceilf(intersect.m_Width), 
-				std::ceilf(intersect.m_Height), 
+				std::ceil(intersect.m_Width), 
+				std::ceil(intersect.m_Height), 
 				bytesPerPixel == 1 ? GL_RED : GL_RGBA, 
 				GL_UNSIGNED_BYTE,
 				pixels.data()
