@@ -354,10 +354,16 @@ void Controller::UpdatePlayerPieMenuInput(std::array<bool, ControlState::CONTROL
 			m_ControlStates[ControlState::WEAPON_RELOAD] = true;
 			m_WeaponReloadIgnore = true;
 		}
-		if (!m_WeaponPrimaryHotkeyIgnore && g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_WEAPON_PRIMARY_HOTKEY)) {
-			m_ControlStates[ControlState::WEAPON_PRIMARY_HOTKEY] = true;
-			m_WeaponPrimaryHotkeyIgnore = true;
-		}
+
+		m_ControlStates[ControlState::WEAPON_PRIMARY_HOTKEYSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_WEAPON_PRIMARY_HOTKEY);
+		m_ControlStates[ControlState::WEAPON_AUXILIARY_HOTKEYSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY);
+		m_ControlStates[ControlState::ACTOR_PRIMARY_HOTKEYSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_ACTOR_PRIMARY_HOTKEY);
+		m_ControlStates[ControlState::ACTOR_AUXILIARY_HOTKEYSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY);
+		
+		m_ControlStates[ControlState::WEAPON_PRIMARY_HOTKEY] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_WEAPON_PRIMARY_HOTKEY);
+		m_ControlStates[ControlState::WEAPON_AUXILIARY_HOTKEY] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY);
+		m_ControlStates[ControlState::ACTOR_PRIMARY_HOTKEY] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_ACTOR_PRIMARY_HOTKEY);
+		m_ControlStates[ControlState::ACTOR_AUXILIARY_HOTKEY] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY);
 	}
 
 	// PIE MENU ACTIVE

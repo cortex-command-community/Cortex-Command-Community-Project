@@ -99,6 +99,7 @@ void Actor::Clear() {
 	m_Inventory.clear();
 	m_MaxInventoryMass = -1.0F;
 	m_pItemInReach = nullptr;
+	m_HotkeyActivated.fill(false);
 	m_HUDStack = 0;
 	m_DeploymentID = 0;
 	m_PassengerSlots = 1;
@@ -258,6 +259,7 @@ int Actor::Create(const Actor& reference) {
 
 		m_sIconsLoaded = true;
 	}
+	m_HotkeyActivated = reference.m_HotkeyActivated;
 	m_DeploymentID = reference.m_DeploymentID;
 	m_PassengerSlots = reference.m_PassengerSlots;
 
@@ -1277,6 +1279,18 @@ void Actor::Update() {
 		if ((m_ToDelete || m_Status == DEAD) && g_SettingsMan.FlashOnBrainDamage()) {
 			g_FrameMan.FlashScreen(g_ActivityMan.GetActivity()->ScreenOfPlayer(brainOfPlayer), g_WhiteColor, 500);
 		}
+	}
+
+	if (m_Controller.IsState(ACTOR_PRIMARY_HOTKEY)) {
+		ActivateHotkeyAction(PRIMARYHOTKEY);
+	} else {
+		DeactivateHotkeyAction(PRIMARYHOTKEY);
+	}
+
+	if (m_Controller.IsState(ACTOR_AUXILIARY_HOTKEY)) {
+		ActivateHotkeyAction(AUXILIARYHOTKEY);
+	} else {
+		DeactivateHotkeyAction(AUXILIARYHOTKEY);
 	}
 }
 

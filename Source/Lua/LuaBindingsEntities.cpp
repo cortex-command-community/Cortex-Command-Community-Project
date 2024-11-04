@@ -256,6 +256,9 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 	    .def("DropAllInventory", &Actor::DropAllInventory)
 	    .def("DropAllGold", &Actor::DropAllGold)
 	    .def("IsInventoryEmpty", &Actor::IsInventoryEmpty)
+	    .def("ActivateHotkeyAction", &Actor::ActivateHotkeyAction)
+	    .def("DeactivateHotkeyAction", &Actor::DeactivateHotkeyAction)
+	    .def("HotkeyActionIsActivated", &Actor::HotkeyActionIsActivated)
 	    .def("DrawWaypoints", &Actor::DrawWaypoints)
 	    .def("SetMovePathToUpdate", &Actor::SetMovePathToUpdate)
 	    .def("UpdateMovePath", &Actor::UpdateMovePath)
@@ -313,7 +316,10 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 	    .enum_("TeamBlockState")[luabind::value("NOTBLOCKED", Actor::TeamBlockState::NOTBLOCKED),
 	                             luabind::value("BLOCKED", Actor::TeamBlockState::BLOCKED),
 	                             luabind::value("IGNORINGBLOCK", Actor::TeamBlockState::IGNORINGBLOCK),
-	                             luabind::value("FOLLOWWAIT", Actor::TeamBlockState::FOLLOWWAIT)];
+	                             luabind::value("FOLLOWWAIT", Actor::TeamBlockState::FOLLOWWAIT)]
+	    .enum_("ActorHotkeyType")[luabind::value("PRIMARYHOTKEY", Actor::ActorHotkeyType::PRIMARYHOTKEY),
+	                              luabind::value("AUXILIARYHOTKEY", Actor::ActorHotkeyType::AUXILIARYHOTKEY),
+	                              luabind::value("ACTORHOTKEYTYPECOUNT", Actor::ActorHotkeyType::ACTORHOTKEYTYPECOUNT)];
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ADoor) {
@@ -695,8 +701,11 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HeldDevice) {
 	    .def("SetOneHanded", &HeldDevice::SetOneHanded)
 	    .def("Activate", &HeldDevice::Activate)
 	    .def("Deactivate", &HeldDevice::Deactivate)
-	    .def("Reload", &HeldDevice::Reload)
 	    .def("IsActivated", &HeldDevice::IsActivated)
+	    .def("ActivateHotkeyAction", &HeldDevice::ActivateHotkeyAction)
+	    .def("DeactivateHotkeyAction", &HeldDevice::DeactivateHotkeyAction)
+	    .def("HotkeyActionIsActivated", &HeldDevice::HotkeyActionIsActivated)
+	    .def("Reload", &HeldDevice::Reload)
 	    .def("IsReloading", &HeldDevice::IsReloading)
 	    .def("DoneReloading", &HeldDevice::DoneReloading)
 	    .def("NeedsReloading", &HeldDevice::NeedsReloading)
@@ -704,7 +713,12 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HeldDevice) {
 	    .def("IsEmpty", &HeldDevice::IsEmpty)
 	    .def("IsPickupableBy", &HeldDevice::IsPickupableBy)
 	    .def("AddPickupableByPresetName", &HeldDevice::AddPickupableByPresetName)
-	    .def("RemovePickupableByPresetName", &HeldDevice::RemovePickupableByPresetName);
+	    .def("RemovePickupableByPresetName", &HeldDevice::RemovePickupableByPresetName)
+
+	    .enum_("HeldDeviceHotkeyType")[luabind::value("PRIMARYHOTKEY", HeldDeviceHotkeyType::PRIMARYHOTKEY),
+	                         luabind::value("AUXILIARYHOTKEY", HeldDeviceHotkeyType::AUXILIARYHOTKEY),
+	                         luabind::value("HELDDEVICEHOTKEYTYPECOUNT", HeldDeviceHotkeyType::HELDDEVICEHOTKEYTYPECOUNT)];
+	
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Leg) {

@@ -52,6 +52,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `MOSprite` INI and Lua (R/W) integer property `ForcedHFlip` which forces a certain flippedness and disallows anything else from ever changing it without clearing the forced value first. 0 is forced not flipped, 1 forced flipped, and -1 is no force.
 
+- New hotkey bindings.
+	On Mouse+KB PC the defaults are: Weapon Primary Hotkey on V, Weapon Auxiliary Hotkey on H, Actor Primary Hotkey on X, Actor Auxiliary Hotkey on O.
+	Added new `Controller` states `WEAPON_PRIMARY_HOTKEYSTART`, `WEAPON_AUXILIARY_HOTKEYSTART`, `ACTOR_PRIMARY_HOTKEYSTART`, `ACTOR_AUXILIARY_HOTKEYSTART`, `WEAPON_PRIMARY_HOTKEY`, `WEAPON_AUXILIARY_HOTKEY`, `ACTOR_PRIMARY_HOTKEY`, `ACTOR_AUXILIARY_HOTKEY`
+
+- New hotkey system for `Actor` and `HeldDevice`.
+	Pressing a certain new hotkey will mark it as activated on `Actor` and `HeldDevice`, letting scripts make use of the new bindings easily.
+	`Enum` binding for `HeldDevice.HeldDeviceHotkeyType`: `PRIMARY = 0, AUXILIARY = 1, HELDDEVICEHOTKEYTYPECOUNT = 2`.  
+	`Enum` binding for `Actor.ActorHotkeyType`: `PRIMARY = 0, AUXILIARY = 1, ACTORHOTKEYTYPECOUNT = 2`. 
+	Both `Actor` and `HeldDevice` have the following functions:
+	`HotkeyActionIsActivated(hotkeyType)` returns whether a certain hotkey action is being activated or not.
+	`ActivateHotkeyAction(hotkeyType)` activates a certain hotkey action.
+	`DeactivateHotkeyAction(hotkeyType)` deactivates a certain hotkey action.
+
 - Allow lua scripts to use LuaJIT's BitOp module (see https://bitop.luajit.org/api.html)
 
 </details>
@@ -61,7 +74,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Improved navigation, making running and fast walkpaths much more consistent.
 
 - Increased fog-of-war resolution in all vanilla activities, and conquest, from 20x20 to 4x4.
-	The Ronin Scrambler, the basic scanner, and `SceneMan:CastUnseenRay` have been changed to accomodate fog-of-war resolutions as fine as 1x1 and as course as 20x20.
+	The Ronin Scrambler, the basic scanner, and `SceneMan:CastUnseenRay` have been changed to accomodate fog-of-war resolutions as fine as 1x1 and as coarse as 20x20.
 	The fog-of-war revealing code is now multithreaded to increase performance.
 
 - All vanilla scenario activities have had their settings polished, respecting settings which make sense and disabling settings which don't.

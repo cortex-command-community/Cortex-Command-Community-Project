@@ -1824,6 +1824,17 @@ void AHuman::PreControllerUpdate() {
 				m_pFGArm->AddHandTarget("Adjusted Aim Angle", m_Pos + Vector(m_pFGArm->GetMaxLength() * GetFlipFactor(), -m_pFGArm->GetMaxLength() * 0.5F).RadRotate(adjustedAimAngle));
 			}
 		}
+		// Hotkey activations
+		if (m_Controller.IsState(WEAPON_PRIMARY_HOTKEY)) {
+			device->ActivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+		} else {
+			device->DeactivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+		}
+		if (m_Controller.IsState(WEAPON_AUXILIARY_HOTKEY)) {
+			device->ActivateHotkeyAction(HeldDeviceHotkeyType::AUXILIARYHOTKEY);
+		} else {
+			device->DeactivateHotkeyAction(HeldDeviceHotkeyType::AUXILIARYHOTKEY);
+		}
 	} else if (m_ArmsState == THROWING_RELEASE && m_ThrowTmr.GetElapsedSimTimeMS() > 100) {
 		if (m_pFGArm) {
 			m_pFGArm->SetHeldDevice(dynamic_cast<HeldDevice*>(SwapNextInventory()));
@@ -1872,6 +1883,17 @@ void AHuman::PreControllerUpdate() {
 			m_SharpAimTimer.Reset();
 			m_SharpAimProgress = 0;
 			device->SetSharpAim(m_SharpAimProgress);
+		}
+		// Hotkey activations
+		if (m_Controller.IsState(WEAPON_PRIMARY_HOTKEY)) {
+			device->ActivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+		} else {
+			device->DeactivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+		}
+		if (m_Controller.IsState(WEAPON_AUXILIARY_HOTKEY)) {
+			device->ActivateHotkeyAction(HeldDeviceHotkeyType::AUXILIARYHOTKEY);
+		} else {
+			device->DeactivateHotkeyAction(HeldDeviceHotkeyType::AUXILIARYHOTKEY);
 		}
 	} else {
 		m_CanActivateBGItem = false;
