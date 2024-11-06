@@ -49,9 +49,9 @@ function Create(self)
 	self.MuzzleOffset = self.topMuzzleOffset;
 	
 	for att in self.Attachables do
-		if string.find(att.PresetName, "Top") then	
+		if string.find(att.PresetName, "Barrel Top") then	
 			self.topBarrel = ToAttachable(att);
-		elseif string.find(att.PresetName, "Bottom") then
+		elseif string.find(att.PresetName, "Barrel Bottom") then
 			self.bottomBarrel = ToAttachable(att);
 		end
 	end
@@ -144,7 +144,6 @@ function Update(self)
 		local barrel = self.currentBarrel == 0 and self.bottomBarrel or self.topBarrel;
 		local jointOffsetX = 10 * math.sin(progress * math.pi);
 		barrel.JointOffset = Vector(jointOffsetX, 0);
-		
 		if progress == 1 then
 			self.MuzzleOffset = self.currentBarrel == 0 and self.bottomMuzzleOffset or self.topMuzzleOffset;
 			barrel.JointOffset = Vector();
