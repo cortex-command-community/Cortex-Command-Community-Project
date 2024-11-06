@@ -219,6 +219,10 @@ namespace RTE {
 		INPUT_WEAPON_PICKUP,
 		INPUT_WEAPON_DROP,
 		INPUT_WEAPON_RELOAD,
+		INPUT_WEAPON_PRIMARY_HOTKEY,
+		INPUT_WEAPON_AUXILIARY_HOTKEY,
+		INPUT_ACTOR_PRIMARY_HOTKEY,
+		INPUT_ACTOR_AUXILIARY_HOTKEY,
 		INPUT_START,
 		INPUT_BACK,
 		INPUT_R_UP,
@@ -253,6 +257,10 @@ namespace RTE {
 	    "Pick Up Device", // INPUT_WEAPON_PICKUP
 	    "Drop Device", // INPUT_WEAPON_DROP
 	    "Reload Weapon", // INPUT_WEAPON_RELOAD
+	    "Primary Weapon Hotkey", // INPUT_WEAPON_PRIMARY_HOTKEY
+	    "Auxiliary Weapon Hotkey", // INPUT_WEAPON_AUXILIARY_HOTKEY
+		"Primary Actor Hotkey", // INPUT_ACTOR_PRIMARY_HOTKEY
+		"Auxiliary Actor Hotkey", // INPUT_ACTOR_AUXILIARY_HOTKEY
 	    "Start", // INPUT_START
 	    "Back", // INPUT_BACK
 	    "Analog Aim Up", // INPUT_R_UP

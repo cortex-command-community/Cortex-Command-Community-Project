@@ -41,6 +41,14 @@ namespace RTE {
 		WEAPON_CHANGE_PREV,
 		WEAPON_PICKUP,
 		WEAPON_DROP,
+		WEAPON_PRIMARY_HOTKEYSTART,
+		WEAPON_AUXILIARY_HOTKEYSTART,
+		ACTOR_PRIMARY_HOTKEYSTART,
+		ACTOR_AUXILIARY_HOTKEYSTART,
+		WEAPON_PRIMARY_HOTKEY,
+		WEAPON_AUXILIARY_HOTKEY,
+		ACTOR_PRIMARY_HOTKEY,
+		ACTOR_AUXILIARY_HOTKEY,
 		ACTOR_NEXT,
 		ACTOR_PREV,
 		ACTOR_BRAIN,
@@ -329,6 +337,7 @@ namespace RTE {
 		bool m_WeaponPickupIgnore;
 		bool m_WeaponDropIgnore;
 		bool m_WeaponReloadIgnore;
+		bool m_WeaponPrimaryHotkeyIgnore;
 
 		Timer m_ReleaseTimer; //!< Timer for measuring release delays.
 		Timer m_JoyAccelTimer; //!< Timer for measuring analog joystick-controlled cursor acceleration.

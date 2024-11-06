@@ -963,6 +963,11 @@ void ACrab::PreControllerUpdate() {
 			} else {
 				mountedDevice->Deactivate();
 			}
+			if (m_Controller.IsState(WEAPON_PRIMARY_HOTKEY)) {
+				mountedDevice->ActivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+			} else {
+				mountedDevice->DeactivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+			}
 		}
 	}
 

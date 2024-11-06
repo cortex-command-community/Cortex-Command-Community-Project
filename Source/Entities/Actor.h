@@ -68,6 +68,12 @@ namespace RTE {
 			AIMODE_COUNT
 		};
 
+		enum ActorHotkeyType {
+			PRIMARYHOTKEY = 0,
+			AUXILIARYHOTKEY,
+			ACTORHOTKEYTYPECOUNT
+		};
+
 		// Concrete allocation and cloning definitions
 		EntityAllocation(Actor);
 		AddScriptFunctionNames(MOSRotating, "ThreadedUpdateAI", "UpdateAI", "OnControllerInputModeChange");
@@ -673,6 +679,19 @@ namespace RTE {
 		/// Updates the full state of this object in one call. (PreControllerUpdate(), Controller::Update(), and Update())
 		virtual void FullUpdate() override;
 
+		/// Activates one of this Actor's hotkey features.
+		/// /// @param hotkeyType Which hotkey type to activate.
+		void ActivateHotkeyAction(ActorHotkeyType hotkeyType) { m_HotkeyActivated[hotkeyType] = true; }
+
+		/// Deactivates one of this Actor's hotkey features.
+		/// @param hotkeyType Which hotkey type to deactivate.
+		void DeactivateHotkeyAction(ActorHotkeyType hotkeyType) { m_HotkeyActivated[hotkeyType] = false; }
+
+		/// Tells whether a hotkey action of the actor is currently being activated.
+		/// @param hotkeyType Which hotkey type to check for activation.
+		/// @return Whether hotkey is being activated.
+		bool HotkeyActionIsActivated(ActorHotkeyType hotkeyType) const { return m_HotkeyActivated[hotkeyType]; }
+
 		/// Description:		Sets deployment ID for this actor
 		/// @param newID New deployment id.
 		void SetDeploymentID(unsigned int newID) { m_DeploymentID = newID; }
@@ -947,6 +966,8 @@ namespace RTE {
 		float m_MaxInventoryMass; //!< The mass limit for this Actor's inventory. -1 means there's no limit.
 		// The device that can/will be picked up
 		HeldDevice* m_pItemInReach;
+		// An array that holds activation states for the various hotkey actions of this Actor.
+		std::array<bool, ACTORHOTKEYTYPECOUNT> m_HotkeyActivated;
 		// HUD positioning aid
 		int m_HUDStack;
 		// ID of deployment which spawned this actor

@@ -1,5 +1,5 @@
 function OnFire(self)
-	CameraMan:AddScreenShake(7, self.Pos);
+	CameraMan:AddScreenShake(12, self.Pos);
 	
 	local shot = self.Shot:Clone();
 	shot.Pos = self.MuzzlePos;
