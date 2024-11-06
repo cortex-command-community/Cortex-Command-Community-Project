@@ -119,6 +119,8 @@ function Update(self)
 				self.servoMoving = true;
 			end
 		end
+	else
+		self.servoLoopSound.Volume = 0;
 	end
 
 	-- Mathemagical firing anim by filipex
