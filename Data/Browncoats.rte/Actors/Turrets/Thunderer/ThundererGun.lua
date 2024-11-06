@@ -67,10 +67,9 @@ function Create(self)
 		elseif string.find(att.PresetName, "Barrel Bottom") then
 			self.bottomBarrel = ToAttachable(att);
 		end
-		-- TODO undo this reversing after theyre fixed in ini
-		if string.find(att.PresetName, "Ejector Bottom") then	
+		if string.find(att.PresetName, "Ejector Top") then	
 			self.topEjector = ToAttachable(att);
-		elseif string.find(att.PresetName, "Ejector Top") then
+		elseif string.find(att.PresetName, "Ejector Bottom") then
 			self.bottomEjector = ToAttachable(att);
 		end
 	end
