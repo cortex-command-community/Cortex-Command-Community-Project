@@ -11,6 +11,15 @@ function OnFire(self)
 	
 	self.animTimer:Reset();
 	self.firingAnim = true;
+	
+	local casing = self.Casing:Clone();
+	casing.Pos = self.Pos + (self.currentBarrel == 1 and self.bottomEjectorOffset or self.topEjectorOffset);
+	casing.Vel = self.Vel + Vector(0, self.currentBarrel == 1 and 5 or -5):RadRotate(self.RotAngle);
+	casing.Team = self.Team;
+	casing.RotAngle = self.RotAngle;
+	casing.HFlipped = self.HFlipped;
+	casing.AngularVel = self.currentBarrel == 1 and math.random(-3, -5) or math.random(3, 5);
+	MovableMan:AddParticle(casing);
 end
 
 function OnReload(self)
@@ -34,6 +43,7 @@ function Create(self)
 	
 	self.servoMoving = false;
 	
+	self.Casing= CreateAEmitter("Casing Browncoat AA-50", "Browncoats.rte");
 	self.Shot = CreateAEmitter("Browncoat AA-50 Shot", "Browncoats.rte");
 
 	self.firingAnim = false;
@@ -46,6 +56,9 @@ function Create(self)
 	self.topMuzzleOffset = Vector(55, -8);
 	self.bottomMuzzleOffset = Vector(55, 6);
 	
+	self.topEjectorOffset = Vector(12, -10);
+	self.bottomEjectorOffset = Vector(12, 13);
+	
 	self.MuzzleOffset = self.topMuzzleOffset;
 	
 	for att in self.Attachables do
@@ -53,6 +66,12 @@ function Create(self)
 			self.topBarrel = ToAttachable(att);
 		elseif string.find(att.PresetName, "Barrel Bottom") then
 			self.bottomBarrel = ToAttachable(att);
+		end
+		-- TODO undo this reversing after theyre fixed in ini
+		if string.find(att.PresetName, "Ejector Bottom") then	
+			self.topEjector = ToAttachable(att);
+		elseif string.find(att.PresetName, "Ejector Top") then
+			self.bottomEjector = ToAttachable(att);
 		end
 	end
 	
@@ -142,8 +161,10 @@ function Update(self)
 		self.Frame = self.currentBaseFrame + frameNum;
 		
 		local barrel = self.currentBarrel == 0 and self.bottomBarrel or self.topBarrel;
+		local ejector = self.currentBarrel == 0 and self.bottomEjector or self.topEjector;
 		local jointOffsetX = 10 * math.sin(progress * math.pi);
 		barrel.JointOffset = Vector(jointOffsetX, 0);
+		ejector.JointOffset = Vector(jointOffsetX, 0);
 		if progress == 1 then
 			self.MuzzleOffset = self.currentBarrel == 0 and self.bottomMuzzleOffset or self.topMuzzleOffset;
 			barrel.JointOffset = Vector();
