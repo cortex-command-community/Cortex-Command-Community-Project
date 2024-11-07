@@ -896,6 +896,8 @@ end
 function RefineryAssault:TryDockConsoleOrder(desiredDock, itemTable)
 	local craft, goldCost = self.deliveryCreationHandler:CreateCraft(self.humanTeam, false);
 	craft.PlayerControllable = self.humansAreControllingAlliedActors;
+	craft.HUDVisible = self.humansAreControllingAlliedActors;
+	craft:SetGoldValue(0);
 	
 	for i = 1, #itemTable do
 		local item = MovableMan:FindObjectByUniqueID(itemTable[i])
