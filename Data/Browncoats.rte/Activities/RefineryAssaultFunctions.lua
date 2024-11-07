@@ -15,6 +15,17 @@ function RefineryAssault:HandleMessage(message, object)
 	
 	-- this is ugly, but there's no way to avoid this stuff except hiding it away even harder than in this separate script...
 	
+	-- Dock console ordering message
+	if message == "Refinery_DockConsoleOrder" then
+	
+		-- object is a table with the UniqueID of the ordering console, with the dock it wants, then with a table of the ordered items in UniqueID form
+		
+		local success = self:TryDockConsoleOrder(object[2], object[3]);
+		
+		local console = MovableMan:FindObjectByUniqueID(object[1]);
+		console:SendMessage("Refinery_DockConsoleOrderSuccess", success);
+	end
+	
 	if message == "ActorSpawner_ReturnedActor" then
 	
 		if self.verboseLogging then
@@ -882,6 +893,25 @@ function RefineryAssault:RemoveStringFromTable(str, tab)
 	
 end
 
+function RefineryAssault:TryDockConsoleOrder(desiredDock, itemTable)
+	local craft, goldCost = self.deliveryCreationHandler:CreateCraft(self.humanTeam, false);
+	craft.PlayerControllable = self.humansAreControllingAlliedActors;
+	
+	for i = 1, #itemTable do
+		local item = MovableMan:FindObjectByUniqueID(itemTable[i])
+		if item then
+			-- it's utterly ridiculous we have to do this...
+			local class = item.ClassName;
+			local typeCast = "To" .. class
+			local clonedItem = _G[typeCast](item):Clone();
+			craft:AddInventoryItem(clonedItem);
+		end
+	end		
+	
+	local success = self.dockingHandler:SpawnDockingCraft(craft, desiredDock);
+	return success;
+end
+
 function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadType)
 
 	local squadCount = math.random(3, 4);
@@ -1199,11 +1229,11 @@ function RefineryAssault:SetupFirstStage()
 	taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
 	local task = self.tacticsHandler:AddTask("Search And Destroy", self.humanTeam, taskArea, "PatrolArea", 10);
 	
-	local squad = self:SendDockDelivery(self.humanTeam, task, true, "Elite");
+	local squad = self:SendDockDelivery(self.humanTeam, task, false, "Elite");
 	
 	self.tacticsHandler:AddSquad(self.humanTeam, squad, task.Name, true);
 	
-	squad = self:SendDockDelivery(self.humanTeam, task, true, "Elite");
+	squad = self:SendDockDelivery(self.humanTeam, task, false, "Elite");
 	
 	self.tacticsHandler:AddSquad(self.humanTeam, squad, task.Name, true);
 	

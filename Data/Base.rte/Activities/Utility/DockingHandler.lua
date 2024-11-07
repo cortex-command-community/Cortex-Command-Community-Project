@@ -232,7 +232,8 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 			SceneMan:ForceBounds(pos);				
 			craft:AddAISceneWaypoint(pos);
 			craft:AddAISceneWaypoint(dockTable.dockPosition);
-			local direction = dockToDockAt % 2 == 0 and 1 or -1;	
+			local direction = dockToDockAt % 2 == 0 and 1 or -1;
+			print("direction: " .. direction);
 			craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(275 * direction, 0))
 			
 			dockTable.activeCraft = craft;
