@@ -39,7 +39,7 @@ function DockConsoleSetupOrder(self, orderList)
 				table.insert(preActorItemList, item);
 			end
 		else
-			print("Buy Door was given an order item with a class it couldn't handle: " .. item);
+			print("Dock Console was given an order item with a class it couldn't handle: " .. item);
 		end
 	end
 	

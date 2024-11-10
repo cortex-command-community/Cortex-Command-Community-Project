@@ -13,22 +13,21 @@ function OnFire(self)
 	self.firingAnim = true;
 	
 	local casing = self.Casing:Clone();
-	casing.Pos = self.Pos + (self.currentBarrel == 1 and self.bottomEjectorOffset or self.topEjectorOffset);
-	casing.Vel = self.Vel + Vector(0, self.currentBarrel == 1 and 5 or -5):RadRotate(self.RotAngle);
+	casing.Pos = self.Pos + (self.currentBarrel == 0 and self.bottomEjectorOffset or self.topEjectorOffset);
+	casing.Vel = self.Vel + Vector(0, self.currentBarrel == 0 and 5 or -5):RadRotate(self.RotAngle);
 	casing.Team = self.Team;
 	casing.RotAngle = self.RotAngle;
 	casing.HFlipped = self.HFlipped;
-	casing.AngularVel = self.currentBarrel == 1 and math.random(-3, -5) or math.random(3, 5);
+	casing.AngularVel = self.currentBarrel == 0 and math.random(-3, -5) or math.random(3, 5);
 	MovableMan:AddParticle(casing);
+	
+	-- Set it up for next time, so we're sitting on the right MuzzleOffset rather than the wrong one up until the point of fire
+	self.MuzzleOffset = self.currentBarrel == 1 and self.bottomMuzzleOffset or self.topMuzzleOffset;
 end
 
 function OnReload(self)
 	self.reloadToSmoke = true;
 	self.animTimer:Reset();
-	
-	if self.currentBaseFrame ~= 20 then
-		self.oldFrame = self.Frame;
-	end
 end
 
 function Create(self)
@@ -44,7 +43,7 @@ function Create(self)
 	self.servoMoving = false;
 	
 	self.Casing= CreateAEmitter("Casing Browncoat AA-50", "Browncoats.rte");
-	self.Shot = CreateAEmitter("Browncoat AA-50 Shot", "Browncoats.rte");
+	self.Shot = CreateAEmitter("Shot Browncoat AA-50", "Browncoats.rte");
 
 	self.firingAnim = false;
 	self.animTimer = Timer();
@@ -53,13 +52,13 @@ function Create(self)
 	
 	self.currentBarrel = 0;
 	
-	self.topMuzzleOffset = Vector(55, -8);
-	self.bottomMuzzleOffset = Vector(55, 6);
+	self.topMuzzleOffset = Vector(42, -4);
+	self.bottomMuzzleOffset = Vector(42, 10);
 	
-	self.topEjectorOffset = Vector(12, -10);
-	self.bottomEjectorOffset = Vector(12, 13);
+	self.topEjectorOffset = Vector(-5, -4);
+	self.bottomEjectorOffset = Vector(-5, 10);
 	
-	self.MuzzleOffset = self.topMuzzleOffset;
+	self.MuzzleOffset = self.bottomMuzzleOffset;
 	
 	for att in self.Attachables do
 		if string.find(att.PresetName, "Barrel Top") then	
@@ -152,62 +151,25 @@ function Update(self)
 	if self:DoneReloading() then
 		self.currentBaseFrame = 0;
 		self.Frame = 0;
-	end
-	
-	if self.firingAnim then
-		self:Deactivate();
-	
-		local progress = math.min(1, self.animTimer.ElapsedSimTimeMS / self.firingAnimTime);
-		local frameNum = math.floor(4 * progress);
-		self.Frame = self.currentBaseFrame + frameNum;
-		
-		local barrel = self.currentBarrel == 0 and self.bottomBarrel or self.topBarrel;
-		local ejector = self.currentBarrel == 0 and self.bottomEjector or self.topEjector;
-		local jointOffsetX = 10 * math.sin(progress * math.pi);
-		barrel.JointOffset = Vector(jointOffsetX, 0);
-		ejector.JointOffset = Vector(jointOffsetX, 0);
-		if progress == 1 then
-			self.MuzzleOffset = self.currentBarrel == 0 and self.bottomMuzzleOffset or self.topMuzzleOffset;
-			barrel.JointOffset = Vector();
-			self.currentBarrel = (self.currentBarrel + 1) % 2;
-			self.firingAnim = false;
-			
-			-- surely this can be done better...
-			if not self:IsReloading() then
-				if self.RoundInMagCount == 1 then
-					self.currentBaseFrame = 20;
-				elseif self.RoundInMagCount == 2 then
-					self.currentBaseFrame = 16;
-				elseif self.RoundInMagCount == 3 then
-					self.currentBaseFrame = 12;
-				elseif self.RoundInMagCount == 4 then
-					self.currentBaseFrame = 8;
-				elseif self.RoundInMagCount == 5 then
-					self.currentBaseFrame = 4;
-				end
-				
-				self.Frame = self.currentBaseFrame;
-			end
-		end
+		self.currentBarrel = 0;
+		self.MuzzleOffset = self.bottomMuzzleOffset;
 	end
 				
 	if self:IsReloading() then
 		-- manually timed
 		
-		if self.currentBaseFrame ~= 20 then
+		if self.currentBaseFrame ~= 22 then
 			local progress = math.min(1, self.animTimer.ElapsedSimTimeMS / (self.firingAnimTime*3));
-			local frameNum = math.floor((20 - self.oldFrame) * progress);
-			self.Frame = self.oldFrame + frameNum;
-			if self.Frame == 20 then
-				self.currentBaseFrame = 20;
-				self.oldFrame = nil;
-				self.Frame = 20;
+			local frameNum = self.currentBaseFrame + math.floor((22 - self.currentBaseFrame) * progress);
+			self.Frame = frameNum;
+			if self.Frame == 22 then
+				self.currentBaseFrame = 22;
 			end
 		end
 		
 		if self.animTimer:IsPastSimMS(self.ReloadTime - 1000) then
 			local progress = math.min(1, (self.animTimer.ElapsedSimTimeMS - (self.ReloadTime - 1000)) / 1000);
-			local frameNum = math.floor(17 * progress);
+			local frameNum = math.floor(21 * progress);
 			self.Frame = self.currentBaseFrame + frameNum;
 		end
 		
@@ -232,9 +194,45 @@ function Update(self)
 				MovableMan:AddParticle(particle);
 			end	
 		end
-	end
-				
+	elseif self.firingAnim then
+		self:Deactivate();
 	
+		local progress = math.min(1, self.animTimer.ElapsedSimTimeMS / self.firingAnimTime);
+		local frameNum = math.floor(4 * progress);
+		self.Frame = self.currentBaseFrame + frameNum;
+		
+		local barrel = self.currentBarrel == 0 and self.bottomBarrel or self.topBarrel;
+		local ejector = self.currentBarrel == 0 and self.bottomEjector or self.topEjector;
+		local jointOffsetX = 10 * math.sin(progress * math.pi);
+		barrel.JointOffset = Vector(jointOffsetX, 0);
+		ejector.JointOffset = Vector(jointOffsetX, 0);
+		if progress == 1 then
+			-- surely this can be done better...
+			if not self:IsReloading() then
+				if self.currentBarrel == 0 then
+					self.currentBaseFrame = 4;
+				else
+					self.currentBaseFrame = 0;
+				end
+				if self.RoundInMagCount == 1 then
+					self.currentBaseFrame = 24;
+				elseif self.RoundInMagCount == 2 then
+					self.currentBaseFrame = 20;
+				elseif self.RoundInMagCount == 3 then
+					self.currentBaseFrame = 16;
+				elseif self.RoundInMagCount == 4 then
+					self.currentBaseFrame = 12;
+				elseif self.RoundInMagCount == 4 then
+					self.currentBaseFrame = 8;
+				end			
+				self.Frame = self.currentBaseFrame;
+			end
+			barrel.JointOffset = Vector();
+			self.currentBarrel = (self.currentBarrel + 1) % 2;
+			self.firingAnim = false;			
+		end
+		print(self.Frame)
+	end
 end
 
 function Destroy(self)
