@@ -231,7 +231,6 @@ function Update(self)
 			self.currentBarrel = (self.currentBarrel + 1) % 2;
 			self.firingAnim = false;			
 		end
-		print(self.Frame)
 	end
 end
 
