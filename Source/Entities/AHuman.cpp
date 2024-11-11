@@ -2329,6 +2329,8 @@ void AHuman::PreControllerUpdate() {
 							heldDevice->SetSupported(m_MovementState == PRONE || m_ProneState == LAYINGPRONE);
 							m_pBGArm->SetRecoil(Vector(), Vector(), false);
 						}
+					} else {
+						heldDevice->SetSupported(false);
 					}
 				}
 			}
