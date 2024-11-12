@@ -1371,7 +1371,11 @@ void MovableMan::Update() {
 		                                                                            [&](int start, int end) {
 			                                                                            ZoneScopedN("Actors See");
 			                                                                            for (int i = start; i < end; ++i) {
-				                                                                            if (m_Actors[i]) m_Actors[i]->CastSeeRays();
+													    // TODO - this null check really shouldn't be required. There's almost definitely an issue where the actor update can somehow fuck with this mid-update
+													    // this is VERY bad, and needs investigation!
+				                                                                            if (m_Actors[i]) { 
+														    m_Actors[i]->CastSeeRays();
+													    }
 			                                                                            }
 		                                                                            });
 
