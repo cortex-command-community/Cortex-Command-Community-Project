@@ -1176,7 +1176,6 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Scene) {
 	    .def("SetArea", &Scene::SetArea)
 	    .def("HasArea", &Scene::HasArea)
 	    .def("GetArea", (Scene::Area * (Scene::*)(const std::string& areaName)) & Scene::GetArea)
-	    .def("GetOptionalArea", &Scene::GetOptionalArea)
 	    .def("WithinArea", &Scene::WithinArea)
 	    .def("AddNavigatableArea", &Scene::AddNavigatableArea)
 	    .def("ClearNavigatableAreas", &Scene::ClearNavigatableAreas)

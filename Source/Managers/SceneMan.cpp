@@ -2240,7 +2240,7 @@ bool SceneMan::OverAltitude(const Vector& point, int threshold, int accuracy) {
 bool SceneMan::IsPointInNoGravArea(const Vector& point) const {
 	// Todo, instead of a nograv area maybe best to tag certain areas as NoGrav. As otherwise it's tricky to keep track of when things are removed
 	if (m_pCurrentScene) {
-		Scene::Area* noGravArea = m_pCurrentScene->GetOptionalArea("NoGravityArea");
+		Scene::Area* noGravArea = m_pCurrentScene->GetArea("NoGravityArea");
 		if (noGravArea && noGravArea->IsInside(point)) {
 			return true;
 		}
