@@ -61,9 +61,6 @@ int GAScripted::Create() {
 		return -1;
 	}
 
-	// Scan the script file for any mentions/uses of Areas.
-	CollectRequiredAreas();
-
 	// If the GAScripted has a OnSave() function, we assume it can be saved by default
 	ReloadScripts();
 	m_AllowsUserSaving = HasSaveFunction();
@@ -100,6 +97,11 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("AddPieSlice", {
 		m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader))));
 	});
+	MatchProperty("AddRequiredArea", {
+		std::string requiredArea;
+		reader >> requiredArea;
+		m_RequiredAreas.insert(requiredArea);
+	});
 
 	EndPropertyList;
 }
@@ -115,6 +117,10 @@ int GAScripted::Save(Writer& writer) const {
 
 	for (const std::unique_ptr<PieSlice>& pieSliceToAdd: m_PieSlicesToAdd) {
 		writer.NewPropertyWithValue("AddPieSlice", pieSliceToAdd.get());
+	}
+
+	for (const std::string& requiredArea: m_RequiredAreas) {
+		writer.NewPropertyWithValue("AddRequiredArea", requiredArea);
 	}
 
 	return 0;
@@ -141,7 +147,6 @@ int GAScripted::ReloadScripts() {
 	}
 
 	int error = 0;
-	CollectRequiredAreas();
 
 	// If it hasn't been yet, run the file that specifies the Lua functions for this' operating logic (including the scene test function)
 	if (!g_LuaMan.GetMasterScriptState().GlobalIsDefined(m_LuaClassName)) {
@@ -187,21 +192,6 @@ bool GAScripted::SceneIsCompatible(Scene* pScene, int teams) {
 		return false;
 	}
 
-	// Check if all Areas required by this are defined in the Scene
-	for (std::set<std::string>::iterator itr = m_RequiredAreas.begin(); itr != m_RequiredAreas.end(); ++itr) {
-		// If Area is missing, this Scene is not up to par
-		if (!pScene->HasArea(*itr)) {
-			return false;
-		}
-	}
-
-	// Temporarily store the scene so the Lua state can access it and check for the necessary Areas etc.
-	g_LuaMan.GetMasterScriptState().SetTempEntity(pScene);
-	// Cast the test scene it to a Scene object in Lua
-	if (g_LuaMan.GetMasterScriptState().RunScriptString("TestScene = ToScene(LuaMan.TempEntity);") < 0) {
-		return false;
-	}
-
 	// If it hasn't been yet, run the file that specifies the Lua functions for this' operating logic (including the scene test function)
 	if (!g_LuaMan.GetMasterScriptState().GlobalIsDefined(m_LuaClassName)) {
 		// Temporarily store this Activity so the Lua state can access it
@@ -218,10 +208,31 @@ bool GAScripted::SceneIsCompatible(Scene* pScene, int teams) {
 	}
 
 	// Call the defined function, but only after first checking if it exists
-	g_LuaMan.GetMasterScriptState().RunScriptString("if " + m_LuaClassName + ".SceneTest then " + m_LuaClassName + ":SceneTest(); end");
+	bool conditionMet = false;
+	int error = RunLuaConditionalTest("IsCompatibleScene", conditionMet, {pScene}, {}, {});
+	if (error < 0) {
+		RTEAbort("Error")
+		return false;
+	} else if (error == 0) {
+		//RTEAbort("Missing")
+		conditionMet = true;
+	} else {
+		RTEAbort("Passed")
+	}
 
-	// If the test left the Scene pointer still set, it means it passed the test
-	return g_LuaMan.GetMasterScriptState().GlobalIsDefined("TestScene");
+	if (!conditionMet) {
+		return false;
+	}
+
+	// Check if all Areas required by this are defined in the Scene
+	for (std::set<std::string>::iterator itr = m_RequiredAreas.begin(); itr != m_RequiredAreas.end(); ++itr) {
+		// If Area is missing, this Scene is not up to par
+		if (!pScene->HasArea(*itr)) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 void GAScripted::HandleCraftEnteringOrbit(ACraft* orbitedCraft) {
@@ -378,60 +389,16 @@ int GAScripted::RunLuaFunction(const std::string& functionName, const std::vecto
 	return error;
 }
 
-void GAScripted::CollectRequiredAreas() {
-	// Open the script file so we can check it out
-	std::ifstream scriptFile = std::ifstream(g_PresetMan.GetFullModulePath(m_ScriptPath.c_str()));
-	if (!scriptFile.good()) {
-		return;
+int GAScripted::RunLuaConditionalTest(const std::string& functionName, bool& returnParam, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
+	// Call the defined function, but only after first checking if it exists
+	auto funcItr = m_ScriptFunctions.find(functionName);
+	if (funcItr == m_ScriptFunctions.end()) {
+		return 0;
 	}
 
-	// Harvest the required Area:s from the file
-	m_RequiredAreas.clear();
+	int error = g_LuaMan.GetMasterScriptState().RunScriptConditionalTestFunctionObject(funcItr->second.get(), "_G", m_LuaClassName, returnParam, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
 
-	bool blockCommented = false;
-
-	while (!scriptFile.eof()) {
-		// Go through the script file, line by line
-		char rawLine[512];
-		scriptFile.getline(rawLine, 512);
-		std::string line = rawLine;
-		std::string::size_type pos = 0;
-		std::string::size_type endPos = 0;
-		std::string::size_type commentPos = std::string::npos;
-
-		// Check for block comments
-		if (!blockCommented && (commentPos = line.find("--[[", 0)) != std::string::npos) {
-			blockCommented = true;
-		}
-
-		// Find the end of the block comment
-		if (blockCommented) {
-			if ((commentPos = line.find("]]", commentPos == std::string::npos ? 0 : commentPos)) != std::string::npos) {
-				blockCommented = false;
-				pos = commentPos;
-			}
-		}
-
-		// Process the line as usual
-		if (!blockCommented) {
-			// See if this line is commented out anywhere
-			commentPos = line.find("--", 0);
-			do {
-				// Find the beginning of a mentioned Area name
-				pos = line.find(":GetArea(\"", pos);
-				if (pos != std::string::npos && pos < commentPos) {
-					// Move position forward to the actual Area name
-					pos += 10;
-					// Find the end of the Area name
-					endPos = line.find_first_of('"', pos);
-					// Copy it out and put into the list
-					if (endPos != std::string::npos) {
-						m_RequiredAreas.insert(line.substr(pos, endPos - pos));
-					}
-				}
-			} while (pos != std::string::npos && pos < commentPos);
-		}
-	}
+	return error;
 }
 
 void GAScripted::AddPieSlicesToActiveActorPieMenus() {
