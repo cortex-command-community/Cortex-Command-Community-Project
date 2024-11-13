@@ -193,34 +193,12 @@ bool GAScripted::SceneIsCompatible(Scene* pScene, int teams) {
 	}
 
 	// If it hasn't been yet, run the file that specifies the Lua functions for this' operating logic (including the scene test function)
-	if (!g_LuaMan.GetMasterScriptState().GlobalIsDefined(m_LuaClassName)) {
-		// Temporarily store this Activity so the Lua state can access it
-		g_LuaMan.GetMasterScriptState().SetTempEntity(this);
-		// Define the var that will hold the script file definitions..
-		// it's OK if the script fails, then the scene is still deemed compatible
-		if (g_LuaMan.GetMasterScriptState().RunScriptString(m_LuaClassName + " = ToGameActivity(LuaMan.TempEntity);") < 0) {
-			return true;
-		}
-		// Load and run the file, defining all the scripted functions of this Activity
-		if (g_LuaMan.GetMasterScriptState().RunScriptFile(m_ScriptPath) < 0) {
-			return true;
-		}
-	}
+	RefreshActivityFunctions();
 
 	// Call the defined function, but only after first checking if it exists
-	bool conditionMet = false;
+	bool conditionMet = true;
 	int error = RunLuaConditionalTest("IsCompatibleScene", conditionMet, {pScene}, {}, {});
-	if (error < 0) {
-		RTEAbort("Error")
-		return false;
-	} else if (error == 0) {
-		//RTEAbort("Missing")
-		conditionMet = true;
-	} else {
-		RTEAbort("Passed")
-	}
-
-	if (!conditionMet) {
+	if (error < 0 || !conditionMet) {
 		return false;
 	}
 
