@@ -207,10 +207,7 @@ void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 			m_TeamTechComboBoxes.at(team)->SetSelectedIndex(0);
 		}
 
-		if (!m_SelectedActivity->GetTeamTechSwitchEnabled(team)) {
-			m_TeamTechComboBoxes.at(team)->SetEnabled(false);
-			m_TeamTechComboBoxes.at(team)->SetEnabled(false);
-		}
+		m_TeamTechComboBoxes.at(team)->SetEnabled(m_SelectedActivity->GetTeamTechSwitchEnabled(team));
 
 		m_TeamAISkillSliders.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
 		m_TeamAISkillLabels.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
