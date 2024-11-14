@@ -684,6 +684,7 @@ int LuaStateWrapper::RunScriptConditionalTestFunctionObject(const LuabindObjectW
 			status = -1;
 		} else {
 			returnParam = 1 == lua_toboolean(m_State, -1);
+			lua_pop(m_State, 1);
 		}
 	}
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
