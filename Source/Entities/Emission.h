@@ -118,6 +118,10 @@ namespace RTE {
 		/// @return The proportion of the velocity inherited. 0.1 = 10% inheritance.
 		float InheritsVelocity() { return m_InheritsVel; }
 
+		/// How much of the root parent's angular velocity this emission inherit
+		/// @return The proportion of the angular velocity inherited. 0.1 = 10% inheritance.
+		float InheritsAngularVelocity() { return m_InheritsAngularVel; }
+
 		/// Gets offset of the emission point from Emitter's sprite center, which gets rotated with owner Emitter
 		/// @return Returns emission offset.
 		Vector GetOffset() const { return m_Offset; }
@@ -165,6 +169,8 @@ namespace RTE {
 		bool m_PushesEmitter;
 		// How much of the parents velocity this emission inherits
 		float m_InheritsVel;
+		// How much of the parents angular velocity this emission inherits
+		float m_InheritsAngularVel;
 		// Timers for measuring when to start and stop this emission the actual times are the set time limits of these
 		Timer m_StartTimer;
 		Timer m_StopTimer;

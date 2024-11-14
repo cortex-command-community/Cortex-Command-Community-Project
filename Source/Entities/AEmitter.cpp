@@ -479,7 +479,7 @@ void AEmitter::Update() {
 					emitVel = RotateOffset(emitVel);
 					pParticle->SetVel(parentVel + rotationalVel + emitVel);
 					pParticle->SetRotAngle(emitVel.GetAbsRadAngle() + (m_HFlipped ? -c_PI : 0));
-					pParticle->SetAngularVel(pRootParent->GetAngularVel() * emission.InheritsVelocity());
+					pParticle->SetAngularVel(pRootParent->GetAngularVel() * emission.InheritsAngularVelocity());
 					pParticle->SetHFlipped(m_HFlipped);
 
 					// Scale the particle's lifetime based on life variation and throttle, as long as it's not 0
