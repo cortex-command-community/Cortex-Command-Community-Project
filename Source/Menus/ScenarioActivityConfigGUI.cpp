@@ -191,6 +191,27 @@ void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 		}
 
 		m_TeamTechComboBoxes.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
+
+		std::string teamModule = m_SelectedActivity->GetTeamTech(team);
+		int teamModuleID = g_PresetMan.GetModuleID(teamModule);
+
+		if (teamModuleID != -1) {
+			auto items = m_TeamTechComboBoxes.at(team)->GetListPanel()->GetItemList();
+			for (int i = 0; i < items->size(); i++) {
+				if (teamModuleID == items->at(i)->m_ExtraIndex) {
+					teamModuleID = i;
+				}
+			}
+			m_TeamTechComboBoxes.at(team)->SetSelectedIndex(teamModuleID);
+		} else {
+			m_TeamTechComboBoxes.at(team)->SetSelectedIndex(0);
+		}
+
+		if (!m_SelectedActivity->GetTeamTechSwitchEnabled(team)) {
+			m_TeamTechComboBoxes.at(team)->SetEnabled(false);
+			m_TeamTechComboBoxes.at(team)->SetEnabled(false);
+		}
+
 		m_TeamAISkillSliders.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
 		m_TeamAISkillLabels.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
 	}
