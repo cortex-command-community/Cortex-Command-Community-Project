@@ -676,15 +676,15 @@ int LuaStateWrapper::RunScriptConditionalTestFunctionObject(const LuabindObjectW
 		ZoneScoped;
 		ZoneName(path.c_str(), path.length());
 
-		if (lua_pcall(m_State, argumentCount, LUA_MULTRET, -argumentCount - 2) > 0) {
+		if (lua_pcall(m_State, argumentCount, 1, -argumentCount - 2) > 0) {
 			m_LastError = lua_tostring(m_State, -1);
 			lua_pop(m_State, 1);
 			g_ConsoleMan.PrintString("ERROR: " + m_LastError);
 			ClearErrors();
 			status = -1;
+		} else {
+			returnParam = 1 == lua_toboolean(m_State, -1);
 		}
-		
-		returnParam = 1 == lua_toboolean(m_State, -1);
 	}
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
