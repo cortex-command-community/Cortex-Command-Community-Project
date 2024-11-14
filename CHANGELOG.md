@@ -81,6 +81,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	
 - The `LimbPath` property `NormalTravelSpeed` has been renamed to just `TravelSpeed`.
 
+- Lua functions OriginalDoFile, OriginalLoadFile, and OriginalRequire, which are what they sound like, made inaccessible.
+
 - Almost all ctrl+* special inputs functionality (i.e restarting activity, world dumps, showing performance stats) are now mapped to right alt, to not interfere with default crouching inputs. The only exception is ctrl+arrow keys for changing console size.
 
 - Gibs and detached Attachables now inherit the parent's angular velocity, as well as velocity derived from the angular velocity of the parent MO and their offset from the parent's centre. On gibs, this is scaled by `InheritsVel`.
