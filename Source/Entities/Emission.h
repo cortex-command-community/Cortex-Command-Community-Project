@@ -114,13 +114,21 @@ namespace RTE {
 			m_StopTimer.Reset();
 		}
 
-		/// How much of the root parent's velocity this emission inherit
+		/// How much of the root parent's velocity this emission inherits
 		/// @return The proportion of the velocity inherited. 0.1 = 10% inheritance.
-		float InheritsVelocity() { return m_InheritsVel; }
+		float InheritsVelocity() const { return m_InheritsVel; }
 
-		/// How much of the root parent's angular velocity this emission inherit
+		/// How much of the root parent's angular velocity this emission inherits
 		/// @return The proportion of the angular velocity inherited. 0.1 = 10% inheritance.
-		float InheritsAngularVelocity() { return m_InheritsAngularVel; }
+		float InheritsAngularVelocity() const { return m_InheritsAngularVel; }
+
+		/// Sets how much of the root parent's velocity this emission inherits
+		/// @param The proportion of the velocity inherited. 0.1 = 10% inheritance.
+		void SetInheritsVelocity(float newValue) { m_InheritsVel = newValue; }
+
+		/// Sets how much of the root parent's angular velocity this emission inherits
+		/// @param The proportion of the angular velocity inherited. 0.1 = 10% inheritance.
+		void SetInheritsAngularVelocity(float newValue) { m_InheritsAngularVel = newValue; }
 
 		/// Gets offset of the emission point from Emitter's sprite center, which gets rotated with owner Emitter
 		/// @return Returns emission offset.

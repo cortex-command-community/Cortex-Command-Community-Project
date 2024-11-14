@@ -549,6 +549,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Attachable) {
 	    .property("CanCollideWithTerrain", &Attachable::CanCollideWithTerrain)
 	    .property("DrawnAfterParent", &Attachable::IsDrawnAfterParent, &Attachable::SetDrawnAfterParent)
 	    .property("InheritsFrame", &Attachable::InheritsFrame, &Attachable::SetInheritsFrame)
+	    .property("InheritsVelWhenDetached", &Attachable::InheritsVelocityWhenDetached, &Attachable::SetInheritsVelocityWhenDetached)
+	    .property("InheritsAngularVelWhenDetached", &Attachable::InheritsAngularVelocityWhenDetached, &Attachable::SetInheritsAngularVelocityWhenDetached)
 
 	    .def("IsAttached", &Attachable::IsAttached)
 	    .def("IsAttachedTo", &Attachable::IsAttachedTo)
@@ -581,6 +583,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Emission) {
 	    .property("Spread", &Emission::GetSpread, &Emission::SetSpread)
 	    .property("Offset", &Emission::GetOffset, &Emission::SetOffset)
 	    .property("ParticleCount", &Emission::GetParticleCount, &Emission::SetParticleCount)
+	    .property("InheritsVel", &Emission::InheritsVelocity, &Emission::SetInheritsVelocity)
+	    .property("InheritsAngularVel", &Emission::InheritsAngularVelocity, &Emission::SetInheritsAngularVelocity)
 
 	    .def("ResetEmissionTimers", &Emission::ResetEmissionTimers);
 }
@@ -598,6 +602,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Gib) {
 	    .def_readwrite("Spread", &Gib::m_Spread)
 	    .def_readwrite("LifeVariation", &Gib::m_LifeVariation)
 	    .def_readwrite("InheritsVel", &Gib::m_InheritsVel)
+	    .def_readwrite("InheritsAngularVel", &Gib::m_InheritsAngularVel)
 	    .def_readwrite("IgnoresTeamHits", &Gib::m_IgnoresTeamHits)
 
 	    .enum_("SpreadMode")[luabind::value("SpreadRandom", Gib::SpreadMode::SpreadRandom),

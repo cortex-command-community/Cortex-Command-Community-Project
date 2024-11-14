@@ -47,8 +47,8 @@ void Attachable::Clear() {
 	m_InheritsRotAngle = true;
 	m_InheritedRotAngleOffset = 0;
 	m_InheritsFrame = false;
-	m_InheritsVelWhenDetached = 0.0F;
-	m_InheritsAngularVelWhenDetached = 0.0F;
+	m_InheritsVelWhenDetached = 1.0F;
+	m_InheritsAngularVelWhenDetached = 1.0F;
 
 	m_AtomSubgroupID = -1L;
 	m_CollidesWithTerrainWhileAttached = true;

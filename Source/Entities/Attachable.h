@@ -271,11 +271,20 @@ namespace RTE {
 
 		/// How much of the root parent's velocity this attachable inherits when detached
 		/// @return The proportion of the velocity inherited. 0.1 = 10% inheritance.
-		float InheritsVelocityWhenDetached() { return m_InheritsVelWhenDetached; }
+		float InheritsVelocityWhenDetached() const { return m_InheritsVelWhenDetached; }
 
 		/// How much of the root parent's angular velocity this attachable inherits when detached
 		/// @return The proportion of the angular velocity inherited. 0.1 = 10% inheritance.
-		float InheritsAngularVelocityWhenDetached() { return m_InheritsAngularVelWhenDetached; }
+		float InheritsAngularVelocityWhenDetached() const { return m_InheritsAngularVelWhenDetached; }
+
+		/// Sets how much of the root parent's velocity this attachable inherits when detached
+		/// @param The proportion of the velocity inherited. 0.1 = 10% inheritance.
+		void SetInheritsVelocityWhenDetached(float newValue) { m_InheritsVelWhenDetached = newValue; }
+
+		/// Sets how much of the root parent's angular velocity this attachable inherits when detached
+		/// @param The proportion of the angular velocity inherited. 0.1 = 10% inheritance.
+		void SetInheritsAngularVelocityWhenDetached(float newValue) { m_InheritsAngularVelWhenDetached = newValue; }
+
 #pragma endregion
 
 #pragma region Collision Management
