@@ -65,7 +65,7 @@ function Siege:StartActivity()
 	--end
 
 	if SceneMan.Scene:HasArea("Brain") then
-		playerBrainsLocation = SceneMan.Scene:GetOptionalArea("Brain"):GetCenterPoint();
+		playerBrainsLocation = SceneMan.Scene:GetArea("Brain"):GetCenterPoint();
 	else
 		-- Look for a brain among actors created by the deployments
 		for actor in MovableMan.AddedActors do
@@ -98,7 +98,7 @@ function Siege:StartActivity()
 	end
 
 	if SceneMan.Scene:HasArea("Brain Chamber") then
-		self.BrainChamber = SceneMan.Scene:GetOptionalArea("Brain Chamber");
+		self.BrainChamber = SceneMan.Scene:GetArea("Brain Chamber");
 
 		-- Set all useless actors, i.e. those who should guard brain in the brain chamber but their brain is in another castle
 		-- to delete themselves, because otherwise they are most likely to stand there for the whole battle and waste MOs
@@ -112,7 +112,7 @@ function Siege:StartActivity()
 	end
 
 	if SceneMan.Scene:HasArea("Perimeter") then
-		self.Perimeter = SceneMan.Scene:GetOptionalArea("Perimeter");
+		self.Perimeter = SceneMan.Scene:GetArea("Perimeter");
 		--print ("Perimeter defined");
 	end
 
