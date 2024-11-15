@@ -50,9 +50,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `AEmitter` and `PEmitter` INI and Lua (R/W) property `PlayBurstSound` which denotes whether the BurstSound should play when appropriate. This should not be confused for a trigger - it's just a enable/disable toggle to avoid having to remove and add BurstSound altogether.
 
-- New `GAScripted` Lua script method `IsCompatibleScene(scene)` recognition by C++, replacing `SceneTest()`, to allow Activities to arbitrarily decide which Scenes are eligible by returning a Boolean value.
+- New `GAScripted` Lua script method `IsCompatibleScene(scene)` to allow Activities to generically decide which Scenes are eligible by returning a boolean value.
 	New `GAScripted` INI enumerating property `AddRequiredArea`, replacing Lua file scanning, to allow Activities to explicitly state which areas are strictly required.
-	As before, these work in tandem, both required areas, if defined, and script conditional method, if defined, must pass for the Scene to qualify.
+	As before, these work in tandem. Both the required areas, if defined, and script conditional method, if defined, must pass for the scene to qualify.
 
 - Allow lua scripts to use LuaJIT's BitOp module (see https://bitop.luajit.org/api.html)
 
@@ -114,9 +114,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
 
-- Removed `GAScripted` Lua script method `SceneTest()` recognition by C++, which allowed Activities to arbitrarily decide which scenes are eligible by reading the Scene as a global and then invalidating or not invalidating that same global.
-	Removed `GAScripted` C++ functionality of scanning Lua script file to determine which areas are strictly required.
-	Removed `Scene` Lua function `GetOptionalArea`, as it functioned identically to `GetArea` save for lacking side effects in the aforementioned Lua script file scanning, which no longer occurs.
+- Removed `GAScripted` Lua script method `SceneTest()` as the new Lua function `IsCompatibleScene(scene)` is more capable.
+	Removed `GAScripted` C++ functionality that would scan the  Lua script file to determine which areas are required. `AddRequiredArea` in the INI should be used instead.
+	Removed `Scene` Lua function `GetOptionalArea` as it functioned identically to `GetArea` aside from triggering the aforementioned (and now removed) Lua script file scanning.
 
 - Removed `AHuman` property `MaxCrouchRotation`. `CrouchRotAngleTarget` is now used instead.
 
