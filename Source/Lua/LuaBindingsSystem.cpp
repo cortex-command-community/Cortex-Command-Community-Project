@@ -129,7 +129,7 @@ LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, DataModule) {
 	    .property("IsFaction", &DataModule::IsFaction)
 	    .property("IsMerchant", &DataModule::IsMerchant)
 
-	    .def_readwrite("Presets", &DataModule::m_EntityList, luabind::return_stl_iterator);
+	    .def_readonly("Presets", &DataModule::m_EntityList, luabind::return_stl_iterator);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Timer) {

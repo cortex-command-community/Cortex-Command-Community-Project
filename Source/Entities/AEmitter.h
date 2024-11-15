@@ -77,6 +77,10 @@ namespace RTE {
 		/// @return The combined burst size of all Emissions in this AEmitter.
 		int GetTotalBurstSize() const;
 
+		/// Gets the list of Emissions of this AEmitter.
+		/// @return The list of Emissions of this AEmitter.
+		const std::vector<Emission*>& GetEmissionList() const { return m_EmissionList; }
+
 		/// Gets the scale factor that will be applied to the regular spread and
 		/// emission velocity to get the burst particle parameters.
 		/// @return The scale factor.
@@ -366,8 +370,8 @@ namespace RTE {
 		// Member variables
 		static Entity::ClassInfo m_sClass;
 
-		// The list of MO instances that get emitted
-		std::vector<Emission> m_EmissionList;
+		// The list of pointers to MO emission objects
+		std::vector<Emission*> m_EmissionList;
 		// Sounds
 		SoundContainer* m_EmissionSound;
 		SoundContainer* m_BurstSound;

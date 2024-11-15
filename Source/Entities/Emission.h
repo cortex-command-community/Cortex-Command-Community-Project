@@ -146,6 +146,14 @@ namespace RTE {
 		/// @param newParticleCount The new number of particles emitted per emission.
 		void SetParticleCount(int newParticleCount) { m_ParticleCount = newParticleCount; }
 
+		/// Returns the current time accumulation of this emitter.
+		/// @return the current time accumulation of this emitter.
+		double GetAccumulator() const { return m_Accumulator; }
+
+		/// Changes time accumulation of this emitter.
+		/// @param increment The time to be added to the accumulation.
+		void SetAccumulator(double increment) { m_Accumulator += increment; }
+
 		/// Protected member variable and method declarations
 	protected:
 		// Member variables

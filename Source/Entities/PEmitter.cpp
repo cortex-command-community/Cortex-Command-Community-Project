@@ -58,8 +58,8 @@ int PEmitter::Create() {
 int PEmitter::Create(const PEmitter& reference) {
 	MOSParticle::Create(reference);
 
-	for (auto itr = reference.m_EmissionList.begin(); itr != reference.m_EmissionList.end(); ++itr) {
-		m_EmissionList.push_back(*itr);
+	for (const Emission* emission: reference.m_EmissionList) {
+		m_EmissionList.push_back(dynamic_cast<Emission*>(emission->Clone()));
 	}
 	m_EmissionSound = reference.m_EmissionSound;
 	m_BurstSound = reference.m_BurstSound;
@@ -89,38 +89,38 @@ int PEmitter::Create(const PEmitter& reference) {
 int PEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return MOSParticle::ReadProperty(propName, reader));
 
-	MatchProperty("AddEmission",
-	              {
-		              Emission emission;
-		              reader >> emission;
-		              m_EmissionList.push_back(emission);
-	              });
+	MatchProperty("AddEmission", {
+		Entity* readerEntity = g_PresetMan.ReadReflectedPreset(reader);
+		if (Emission* readerEmission = dynamic_cast<Emission*>(readerEntity)) {
+			m_EmissionList.push_back(readerEmission);
+		} else {
+			reader.ReportError("Tried to AddEmission a non-Emission type!");
+		}
+	 });
 	MatchProperty("EmissionSound", { reader >> m_EmissionSound; });
 	MatchProperty("BurstSound", { reader >> m_BurstSound; });
 	MatchProperty("EndSound", { reader >> m_EndSound; });
 	MatchProperty("EmissionEnabled", { reader >> m_EmitEnabled; });
 	MatchProperty("EmissionCount", { reader >> m_EmitCount; });
 	MatchProperty("EmissionCountLimit", { reader >> m_EmitCountLimit; });
-	MatchProperty("ParticlesPerMinute",
-	              {
-		              float ppm;
-		              reader >> ppm;
-		              // Go through all emissions and set the rate so that it emulates the way it used to work, for mod backwards compatibility
-		              for (auto eItr = m_EmissionList.begin(); eItr != m_EmissionList.end(); ++eItr)
-			              (*eItr).m_PPM = ppm / m_EmissionList.size();
-	              });
+	MatchProperty("ParticlesPerMinute", {
+		float ppm;
+		reader >> ppm;
+		// Go through all emissions and set the rate so that it emulates the way it used to work, for mod backwards compatibility
+		for (Emission* emission: m_EmissionList)
+			emission->m_PPM = ppm / m_EmissionList.size();
+	});
 	MatchProperty("NegativeThrottleMultiplier", { reader >> m_NegativeThrottleMultiplier; });
 	MatchProperty("PositiveThrottleMultiplier", { reader >> m_PositiveThrottleMultiplier; });
 	MatchProperty("Throttle", { reader >> m_Throttle; });
 	MatchProperty("EmissionsIgnoreThis", { reader >> m_EmissionsIgnoreThis; });
-	MatchProperty("BurstSize",
-	              {
-		              int burstSize;
-		              reader >> burstSize;
-		              // Go through all emissions and set the rate so that it emulates the way it used to work, for mod backwards compatibility
-		              for (auto eItr = m_EmissionList.begin(); eItr != m_EmissionList.end(); ++eItr)
-			              (*eItr).m_BurstSize = std::ceil((float)burstSize / (float)m_EmissionList.size());
-	              });
+	MatchProperty("BurstSize", {
+		int burstSize;
+		reader >> burstSize;
+		// Go through all emissions and set the rate so that it emulates the way it used to work, for mod backwards compatibility
+		for (Emission* emission: m_EmissionList)
+			emission->m_BurstSize = std::ceil((float)burstSize / (float)m_EmissionList.size());
+	});
 	MatchProperty("BurstScale", { reader >> m_BurstScale; });
 	MatchProperty("BurstSpacing", { reader >> m_BurstSpacing; });
 	MatchProperty("BurstTriggered", { reader >> m_BurstTriggered; });
@@ -196,6 +196,10 @@ void PEmitter::Destroy(bool notInherited) {
 	else
 		m_EndSound.Stop();
 
+	for (Emission* emission: m_EmissionList) {
+		delete emission;
+	}
+
 	m_EmissionSound.Stop();
 	//    m_BurstSound.Stop();
 
@@ -206,8 +210,8 @@ void PEmitter::Destroy(bool notInherited) {
 
 void PEmitter::ResetEmissionTimers() {
 	m_LastEmitTmr.Reset();
-	for (auto eItr = m_EmissionList.begin(); eItr != m_EmissionList.end(); ++eItr)
-		(*eItr).ResetEmissionTimers();
+	for (Emission* emission: m_EmissionList)
+		emission->ResetEmissionTimers();
 }
 
 void PEmitter::EnableEmission(bool enable) {
@@ -228,22 +232,22 @@ float PEmitter::EstimateImpulse(bool burst) {
 		float velMin, velMax, velRange, spread;
 
 		// Go through all emissions and emit them according to their respective rates
-		for (auto eItr = m_EmissionList.begin(); eItr != m_EmissionList.end(); ++eItr) {
+		for (Emission* emission: m_EmissionList) {
 			// Only check emissions that push the emitter
-			if ((*eItr).PushesEmitter()) {
-				float emissions = ((*eItr).GetRate() / 60.0f) * g_TimerMan.GetDeltaTimeSecs();
+			if (emission->PushesEmitter()) {
+				float emissions = (emission->GetRate() / 60.0f) * g_TimerMan.GetDeltaTimeSecs();
 				float scale = 1.0F;
 				if (burst) {
-					emissions *= (*eItr).GetBurstSize();
+					emissions *= emission->GetBurstSize();
 					scale = m_BurstScale;
 				}
 
-				velMin = (*eItr).GetMinVelocity() * scale;
-				velRange = ((*eItr).GetMaxVelocity() - (*eItr).GetMinVelocity()) * 0.5F * scale;
-				spread = (std::max(static_cast<float>(c_PI) - (*eItr).GetSpread(), 0.0F) / c_PI) * scale; // A large spread will cause the forces to cancel eachother out
+				velMin = emission->GetMinVelocity() * scale;
+				velRange = (emission->GetMaxVelocity() - emission->GetMinVelocity()) * 0.5F * scale;
+				spread = (std::max(static_cast<float>(c_PI) - emission->GetSpread(), 0.0F) / c_PI) * scale; // A large spread will cause the forces to cancel eachother out
 
 				// Add to accumulative recoil impulse generated, F = m * a.
-				impulse += (velMin + velRange) * spread * (*eItr).m_pEmission->GetMass() * emissions;
+				impulse += (velMin + velRange) * spread * emission->m_pEmission->GetMass() * emissions;
 			}
 		}
 
@@ -284,8 +288,8 @@ void PEmitter::Update() {
 			m_EmissionSound.Play(m_Pos);
 
 			// Reset the timers of all emissions so they will start/stop at the correct relative offsets from now
-			for (Emission& emission: m_EmissionList) {
-				emission.ResetEmissionTimers();
+			for (Emission* emission: m_EmissionList) {
+				emission->ResetEmissionTimers();
 			}
 		}
 		// Update the distance attenuation
@@ -316,11 +320,11 @@ void PEmitter::Update() {
 		MovableObject* pParticle = 0;
 		Vector parentVel, emitVel, pushImpulses;
 		// Go through all emissions and emit them according to their respective rates
-		for (Emission& emission: m_EmissionList) {
+		for (Emission* emission: m_EmissionList) {
 			// Make sure the emissions only happen between the start time and end time
-			if (emission.IsEmissionTime()) {
+			if (emission->IsEmissionTime()) {
 				// Apply the throttle factor to the emission rate
-				currentPPM = emission.GetRate() * throttleFactor;
+				currentPPM = emission->GetRate() * throttleFactor;
 				emissions = 0;
 
 				// Only do all this if the PPM is acutally above zero
@@ -329,30 +333,30 @@ void PEmitter::Update() {
 					SPE = 60.0 / currentPPM;
 
 					// Add the last elapsed time to the accumulator
-					emission.m_Accumulator += m_LastEmitTmr.GetElapsedSimTimeS();
+					emission->m_Accumulator += m_LastEmitTmr.GetElapsedSimTimeS();
 
 					// Now figure how many full emissions can fit in the current accumulator
-					emissions = std::floor(emission.m_Accumulator / SPE);
+					emissions = std::floor(emission->m_Accumulator / SPE);
 					// Deduct the about to be emitted emissions from the accumulator
-					emission.m_Accumulator -= emissions * SPE;
+					emission->m_Accumulator -= emissions * SPE;
 
-					RTEAssert(emission.m_Accumulator >= 0, "Emission accumulator negative!");
+					RTEAssert(emission->m_Accumulator >= 0, "Emission accumulator negative!");
 				}
 
 				// Add extra emissions if bursting.
 				if (m_BurstTriggered)
-					emissions += emission.GetBurstSize() * std::floor(throttleFactor);
+					emissions += emission->GetBurstSize() * std::floor(throttleFactor);
 
 				pParticle = 0;
 				emitVel.Reset();
-				parentVel = pRootParent->GetVel() * emission.InheritsVelocity();
+				parentVel = pRootParent->GetVel() * emission->InheritsVelocity();
 
 				for (int i = 0; i < emissions; ++i) {
-					velMin = emission.GetMinVelocity() * (m_BurstTriggered ? m_BurstScale : 1.0);
-					velRange = emission.GetMaxVelocity() - emission.GetMinVelocity() * (m_BurstTriggered ? m_BurstScale : 1.0);
-					spread = emission.GetSpread() * (m_BurstTriggered ? m_BurstScale : 1.0);
+					velMin = emission->GetMinVelocity() * (m_BurstTriggered ? m_BurstScale : 1.0);
+					velRange = emission->GetMaxVelocity() - emission->GetMinVelocity() * (m_BurstTriggered ? m_BurstScale : 1.0);
+					spread = emission->GetSpread() * (m_BurstTriggered ? m_BurstScale : 1.0);
 					// Make a copy after the reference particle
-					pParticle = dynamic_cast<MovableObject*>(emission.GetEmissionParticlePreset()->Clone());
+					pParticle = dynamic_cast<MovableObject*>(emission->GetEmissionParticlePreset()->Clone());
 					// Set up its position and velocity according to the parameters of this.
 					// Emission point offset not set
 					if (m_EmissionOffset.IsZero())
@@ -366,14 +370,14 @@ void PEmitter::Update() {
 					pParticle->SetVel(parentVel + emitVel);
 
 					if (pParticle->GetLifetime() != 0) {
-						pParticle->SetLifetime(std::max(static_cast<int>(pParticle->GetLifetime() * (1.0F + (emission.GetLifeVariation() * RandomNormalNum()))), 1));
+						pParticle->SetLifetime(std::max(static_cast<int>(pParticle->GetLifetime() * (1.0F + (emission->GetLifeVariation() * RandomNormalNum()))), 1));
 					}
 					pParticle->SetTeam(m_Team);
 					pParticle->SetIgnoresTeamHits(true);
 
 					// Add to accumulative recoil impulse generated, F = m * a
 					// If enabled, that is
-					if (emission.PushesEmitter())
+					if (emission->PushesEmitter())
 						pushImpulses -= emitVel * pParticle->GetMass();
 
 					// Set the emitted particle to not hit this emitter's parent, if applicable
