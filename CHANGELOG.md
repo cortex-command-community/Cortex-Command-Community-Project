@@ -50,7 +50,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `AEmitter` and `PEmitter` INI and Lua (R/W) property `PlayBurstSound` which denotes whether the BurstSound should play when appropriate. This should not be confused for a trigger - it's just a enable/disable toggle to avoid having to remove and add BurstSound altogether.
 
+- New `MOSprite` INI and Lua (R/W) integer property `ForcedHFlip` which forces a certain flippedness and disallows anything else from ever changing it without clearing the forced value first. 0 is forced not flipped, 1 forced flipped, and -1 is no force.
+
+- New hotkey bindings.
+	On Mouse+KB PC the defaults are: Weapon Primary Hotkey on V, Weapon Auxiliary Hotkey on H, Actor Primary Hotkey on X, Actor Auxiliary Hotkey on O.
+	Added new `Controller` states `WEAPON_PRIMARY_HOTKEYSTART`, `WEAPON_AUXILIARY_HOTKEYSTART`, `ACTOR_PRIMARY_HOTKEYSTART`, `ACTOR_AUXILIARY_HOTKEYSTART`, `WEAPON_PRIMARY_HOTKEY`, `WEAPON_AUXILIARY_HOTKEY`, `ACTOR_PRIMARY_HOTKEY`, `ACTOR_AUXILIARY_HOTKEY`
+
+- New hotkey system for `Actor` and `HeldDevice`.
+	Pressing a certain new hotkey will mark it as activated on `Actor` and `HeldDevice`, letting scripts make use of the new bindings easily.
+	`Enum` binding for `HeldDevice.HeldDeviceHotkeyType`: `PRIMARY = 0, AUXILIARY = 1, HELDDEVICEHOTKEYTYPECOUNT = 2`.  
+	`Enum` binding for `Actor.ActorHotkeyType`: `PRIMARY = 0, AUXILIARY = 1, ACTORHOTKEYTYPECOUNT = 2`. 
+	Both `Actor` and `HeldDevice` have the following functions:
+	`HotkeyActionIsActivated(hotkeyType)` returns whether a certain hotkey action is being activated or not.
+	`ActivateHotkeyAction(hotkeyType)` activates a certain hotkey action.
+	`DeactivateHotkeyAction(hotkeyType)` deactivates a certain hotkey action.
+
+- New `GAScripted` Lua script method `IsCompatibleScene(scene)` to allow Activities to generically decide which Scenes are eligible by returning a boolean value.
+	New `GAScripted` INI enumerating property `AddRequiredArea`, replacing Lua file scanning, to allow Activities to explicitly state which areas are strictly required.
+	As before, these work in tandem. Both the required areas, if defined, and script conditional method, if defined, must pass for the scene to qualify.
+
+- New `GameActivity` INI properties `TeamNTechSwitchEnabled` which determine whether activity team factions are configurable by the user. This is most useful for communicating what the player is not intended to change, or what inputs would be ignored otherwise.
+
 - Allow lua scripts to use LuaJIT's BitOp module (see https://bitop.luajit.org/api.html)
+
+- New `Emission` INI and Lua (R/W) property `ParticleCount` which sets how many particles the Emission spawns per emission. Defaults to 1.
+
+- New `Gib` and `Emission` INI and Lua (R/W) property `InheritsAngularVel`, which determines how much of the parent MO's angular velocity they inherit. Defaults to 1 for gibs, 0 for emissions.
+
+- New `Attachable` INI and Lua (R/W) properties `InheritsVelWhenDetached` and `InheritsAngularVelWhenDetached`, which determine how much of these velocities an attachable inherits from its parent when detached. Defaults to 1.
 
 </details>
 
@@ -59,7 +86,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Improved navigation, making running and fast walkpaths much more consistent.
 
 - Increased fog-of-war resolution in all vanilla activities, and conquest, from 20x20 to 4x4.
-	The Ronin Scrambler, the basic scanner, and `SceneMan:CastUnseenRay` have been changed to accomodate fog-of-war resolutions as fine as 1x1 and as course as 20x20.
+	The Ronin Scrambler, the basic scanner, and `SceneMan:CastUnseenRay` have been changed to accomodate fog-of-war resolutions as fine as 1x1 and as coarse as 20x20.
 	The fog-of-war revealing code is now multithreaded to increase performance.
 
 - All vanilla scenario activities have had their settings polished, respecting settings which make sense and disabling settings which don't.
@@ -81,9 +108,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	
 - The `LimbPath` property `NormalTravelSpeed` has been renamed to just `TravelSpeed`.
 
+- `GameActivity` INI properties `TeamNTech` values switched to lazy eval, allowing them to be validated once all modules are loaded.
+	As well, the scenario menu activity configuration screen now respects defaults set in INI, where possible.
+
+- Internal GUI element `ComboBox` no longer displays dropdown combobutton when disabled, to communicate visually that it's setting is not modifiable.
+
 - Almost all ctrl+* special inputs functionality (i.e restarting activity, world dumps, showing performance stats) are now mapped to right alt, to not interfere with default crouching inputs. The only exception is ctrl+arrow keys for changing console size.
 
-- Gibs and detached Attachables now inherit the parent's angular velocity, as well as velocity derived from the angular velocity of the parent MO and their offset from the parent's centre. On gibs, this is scaled by `InheritsVel`.
+- `Gib`s and detached `Attachable`s now inherit the parent's angular velocity by default.
+
+- `InheritsVel` now accounts for the angular velocity of the parent MO, resulting in offset gibs and emissions being flung further away.
+
+- `InheritsVel` and its ilk have been uncapped, allowing users to set them outside of 0-1.
 
 </details>
 
@@ -101,6 +137,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue where an `Actor`'s MovementState wasn't correctly accessible from script.
 
+- Fixed mounted HeldDevices not respecting InheritedRotAngleOffset.
+
+- Fixed an issue where internal Lua functions OriginalDoFile, OriginalLoadFile, and OriginalRequire were polluting the global namespace. They have now been made inaccessible.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
@@ -109,6 +149,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	Mod activities that used to queue up all the vanilla music should now instead call, for example, `MusicMan:PlayDynamicSong("Generic Battle Music")`
 
 - The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
+
+- Removed `GAScripted` Lua script method `SceneTest()` as the new Lua function `IsCompatibleScene(scene)` is more capable.
+	Removed `GAScripted` C++ functionality that would scan the  Lua script file to determine which areas are required. `AddRequiredArea` in the INI should be used instead.
+	Removed `Scene` Lua function `GetOptionalArea` as it functioned identically to `GetArea` aside from triggering the aforementioned (and now removed) Lua script file scanning.
 
 - Removed `AHuman` property `MaxCrouchRotation`. `CrouchRotAngleTarget` is now used instead.
 

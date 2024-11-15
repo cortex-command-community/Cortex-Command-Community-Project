@@ -446,9 +446,14 @@ void AEmitter::Update() {
 					scale = m_BurstScale;
 				}
 				emissionCountTotal += emissionCount;
+				if (emissionCount > 0) {
+					int extraEmissions = emission.GetParticleCount() - 1;
+					emissionCount += extraEmissions;
+				}
 				pParticle = 0;
 				emitVel.Reset();
 				parentVel = pRootParent->GetVel() * emission.InheritsVelocity();
+				Vector rotationalVel = (((RotateOffset(emission.GetOffset()) + (m_Pos - pRootParent->GetPos())) * pRootParent->GetAngularVel()).GetPerpendicular() / c_PPM) * emission.InheritsVelocity();
 
 				for (int i = 0; i < emissionCount; ++i) {
 					velMin = emission.GetMinVelocity() * scale;
@@ -472,8 +477,9 @@ void AEmitter::Update() {
 					emitVel.SetXY(velMin + RandomNum(0.0F, velRange), 0.0F);
 					emitVel.RadRotate(m_EmitAngle.GetRadAngle() + spread * RandomNormalNum());
 					emitVel = RotateOffset(emitVel);
-					pParticle->SetVel(parentVel + emitVel);
+					pParticle->SetVel(parentVel + rotationalVel + emitVel);
 					pParticle->SetRotAngle(emitVel.GetAbsRadAngle() + (m_HFlipped ? -c_PI : 0));
+					pParticle->SetAngularVel(pRootParent->GetAngularVel() * emission.InheritsAngularVelocity());
 					pParticle->SetHFlipped(m_HFlipped);
 
 					// Scale the particle's lifetime based on life variation and throttle, as long as it's not 0

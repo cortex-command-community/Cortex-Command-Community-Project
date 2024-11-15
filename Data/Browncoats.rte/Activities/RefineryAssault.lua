@@ -231,37 +231,37 @@ function RefineryAssault:StartActivity(newGame)
 		self.saveTable.buyDoorTables = {};
 		self.saveTable.buyDoorTables.All = {};
 		
-		local area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_LC1");
+		local area = SceneMan.Scene:GetArea("BuyDoorArea_LC1");
 		self:SetupBuyDoorAreaTable(self, area);
 		
-		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_LC2");
+		area = SceneMan.Scene:GetArea("BuyDoorArea_LC2");
 		self:SetupBuyDoorAreaTable(self, area);
 		
-		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S3_1");
+		area = SceneMan.Scene:GetArea("BuyDoorArea_S3_1");
 		self:SetupBuyDoorAreaTable(self, area);
 
-		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S3_2");
+		area = SceneMan.Scene:GetArea("BuyDoorArea_S3_2");
 		self:SetupBuyDoorAreaTable(self, area);
 
-		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S3_3");
+		area = SceneMan.Scene:GetArea("BuyDoorArea_S3_3");
 		self:SetupBuyDoorAreaTable(self, area);	
 
-		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_1");
+		area = SceneMan.Scene:GetArea("BuyDoorArea_S4_1");
 		self:SetupBuyDoorAreaTable(self, area);
 		
-		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_2");
+		area = SceneMan.Scene:GetArea("BuyDoorArea_S4_2");
 		self:SetupBuyDoorAreaTable(self, area);
 		
-		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_3");
+		area = SceneMan.Scene:GetArea("BuyDoorArea_S4_3");
 		self:SetupBuyDoorAreaTable(self, area);
 		
-		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_4");
+		area = SceneMan.Scene:GetArea("BuyDoorArea_S4_4");
 		self:SetupBuyDoorAreaTable(self, area);
 		
-		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_5");
+		area = SceneMan.Scene:GetArea("BuyDoorArea_S4_5");
 		self:SetupBuyDoorAreaTable(self, area);
 
-		area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_S4_6");
+		area = SceneMan.Scene:GetArea("BuyDoorArea_S4_6");
 		self:SetupBuyDoorAreaTable(self, area);
 
 		self.buyDoorHandler:ReplaceBuyDoorTable(self.saveTable.buyDoorTables.All);
@@ -556,14 +556,6 @@ function RefineryAssault:UpdateActivity()
 		if UInputMan:KeyPressed(Key.KP_7) then
 			self:ChangeAIFunds(0, 200);
 			self:ChangeAIFunds(1, 200);
-		end
-		
-		-- Brain teleport to cursor
-		if UInputMan:KeyPressed(Key.SPACE) then
-			for k, brain in pairs(self.saveTable.playerBrains) do
-				local pos = CameraMan:GetScrollTarget(0);
-				brain.Pos = pos;
-			end
 		end
 		
 		-- Invincible brain and infinite gun

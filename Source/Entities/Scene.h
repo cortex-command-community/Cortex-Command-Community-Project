@@ -514,12 +514,6 @@ namespace RTE {
 		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
 		Area* GetArea(const std::string& areaName) { return GetArea(areaName, true); }
 
-		/// Gets a specified Area identified by name, showing a Lua warning if it's not found. Ownership is NOT transferred!
-		/// Using this function will not add the area to the list of required areas which Scenario GUI uses to show compatible areas.
-		/// @param areaName The name of the Area to try to get.
-		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
-		Area* GetOptionalArea(const std::string& areaName) { return GetArea(areaName, false); }
-
 		void AddNavigatableArea(const std::string& areaName) {
 			m_NavigatableAreas.push_back(areaName);
 			m_NavigatableAreasUpToDate = false;

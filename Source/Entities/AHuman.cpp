@@ -1532,7 +1532,7 @@ void AHuman::PreControllerUpdate() {
 				m_Paths[FGROUND][m_MovementState].SetHFlip(m_Controller.IsState(MOVE_LEFT));
 				m_Paths[BGROUND][m_MovementState].SetHFlip(m_Controller.IsState(MOVE_LEFT));
 			} else if ((m_Controller.IsState(MOVE_RIGHT) && m_HFlipped) || (m_Controller.IsState(MOVE_LEFT) && !m_HFlipped)) {
-				m_HFlipped = !m_HFlipped;
+				SetHFlipped(!m_HFlipped);
 				m_CheckTerrIntersection = true;
 				if (m_ProneState == NOTPRONE) {
 					MoveOutOfTerrain(g_MaterialGrass);
@@ -1656,7 +1656,7 @@ void AHuman::PreControllerUpdate() {
 		m_AimAngle = analogAim.GetAbsRadAngle();
 
 		if ((analogAim.m_X > 0 && m_HFlipped) || (analogAim.m_X < 0 && !m_HFlipped)) {
-			m_HFlipped = !m_HFlipped;
+			SetHFlipped(!m_HFlipped);
 			m_CheckTerrIntersection = true;
 			if (m_ProneState == NOTPRONE) {
 				MoveOutOfTerrain(g_MaterialGrass);
@@ -1824,6 +1824,17 @@ void AHuman::PreControllerUpdate() {
 				m_pFGArm->AddHandTarget("Adjusted Aim Angle", m_Pos + Vector(m_pFGArm->GetMaxLength() * GetFlipFactor(), -m_pFGArm->GetMaxLength() * 0.5F).RadRotate(adjustedAimAngle));
 			}
 		}
+		// Hotkey activations
+		if (m_Controller.IsState(WEAPON_PRIMARY_HOTKEY)) {
+			device->ActivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+		} else {
+			device->DeactivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+		}
+		if (m_Controller.IsState(WEAPON_AUXILIARY_HOTKEY)) {
+			device->ActivateHotkeyAction(HeldDeviceHotkeyType::AUXILIARYHOTKEY);
+		} else {
+			device->DeactivateHotkeyAction(HeldDeviceHotkeyType::AUXILIARYHOTKEY);
+		}
 	} else if (m_ArmsState == THROWING_RELEASE && m_ThrowTmr.GetElapsedSimTimeMS() > 100) {
 		if (m_pFGArm) {
 			m_pFGArm->SetHeldDevice(dynamic_cast<HeldDevice*>(SwapNextInventory()));
@@ -1872,6 +1883,17 @@ void AHuman::PreControllerUpdate() {
 			m_SharpAimTimer.Reset();
 			m_SharpAimProgress = 0;
 			device->SetSharpAim(m_SharpAimProgress);
+		}
+		// Hotkey activations
+		if (m_Controller.IsState(WEAPON_PRIMARY_HOTKEY)) {
+			device->ActivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+		} else {
+			device->DeactivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+		}
+		if (m_Controller.IsState(WEAPON_AUXILIARY_HOTKEY)) {
+			device->ActivateHotkeyAction(HeldDeviceHotkeyType::AUXILIARYHOTKEY);
+		} else {
+			device->DeactivateHotkeyAction(HeldDeviceHotkeyType::AUXILIARYHOTKEY);
 		}
 	} else {
 		m_CanActivateBGItem = false;
@@ -2307,6 +2329,8 @@ void AHuman::PreControllerUpdate() {
 							heldDevice->SetSupported(m_MovementState == PRONE || m_ProneState == LAYINGPRONE);
 							m_pBGArm->SetRecoil(Vector(), Vector(), false);
 						}
+					} else {
+						heldDevice->SetSupported(false);
 					}
 				}
 			}

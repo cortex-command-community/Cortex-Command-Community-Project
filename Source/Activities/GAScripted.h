@@ -23,7 +23,7 @@ namespace RTE {
 
 		/// Public member variable, method and friend function declarations
 	public:
-		ScriptFunctionNames("StartActivity", "UpdateActivity", "PauseActivity", "EndActivity", "OnSave", "CraftEnteredOrbit", "OnMessage", "OnGlobalMessage");
+		ScriptFunctionNames("StartActivity", "UpdateActivity", "PauseActivity", "EndActivity", "OnSave", "CraftEnteredOrbit", "OnMessage", "IsCompatibleScene", "OnGlobalMessage");
 
 		// Concrete allocation and cloning definitions
 		EntityAllocation(GAScripted);
@@ -132,13 +132,10 @@ namespace RTE {
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) override;
 
 		int RunLuaFunction(const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
+		int RunLuaConditionalTest(const std::string& functionName, bool& returnParam, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
 
 		/// Protected member variable and method declarations
 	protected:
-		/// Goes through the script file and checks for any mentions and uses of
-		/// Area:s that are required for this Activity to run in a Scene.
-		void CollectRequiredAreas();
-
 		/// Does nothing - we do this in script! Just overrides the base behaviour.
 		void InitAIs() override{};
 
