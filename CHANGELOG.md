@@ -108,6 +108,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue where an `Actor`'s MovementState wasn't correctly accessible from script.
 
+- Fixed an issue where internal Lua functions OriginalDoFile, OriginalLoadFile, and OriginalRequire were polluting the global namespace. They have now been made inaccessible.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
