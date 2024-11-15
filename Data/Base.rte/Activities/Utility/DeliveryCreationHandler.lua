@@ -1026,6 +1026,23 @@ function DeliveryCreationHandler:CreateEliteSquad(team, squadCountOrTypeTable, s
 	
 end
 
+function DeliveryCreationHandler:CreateCraft(team, forceRocketUsage)
+
+	local craftGroup = "Craft - Dropships";
+	if forceRocketUsage then
+		craftGroup = "Craft - Rockets";
+	end
+	presetName, createFunc, techName = self:SelectPresetByGroupPair(team, craftGroup, craftGroup, craftGroup, craftGroup);
+	
+	local craft = _G[createFunc](presetName, techName);
+	craft.Team = team;
+	--print(craft)
+	
+	local goldCost = ToSceneObject(craft):GetTotalValue(self.teamTechIDTable[team], 1);
+	
+	return craft, goldCost
+end
+
 function DeliveryCreationHandler:CreateSquadWithCraft(team, forceRocketUsage, squadCountOrTypeTable, squadType)
 
 	local craftGroup = "Craft - Dropships";

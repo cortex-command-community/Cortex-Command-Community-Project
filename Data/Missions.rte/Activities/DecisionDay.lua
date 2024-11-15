@@ -176,7 +176,7 @@ function DecisionDay:StartActivity(isNewGame)
 			captureArea = scene:GetArea(bunkerRegionName .. " Capture"),
 			captureDisplayArea = scene:GetArea(bunkerRegionName .. " Capture Display"),
 			captureDisplayScreens = {},
-			internalReinforcementsArea = scene:HasArea(bunkerRegionName .. " Internal Reinforcements") and scene:GetOptionalArea(bunkerRegionName .. " Internal Reinforcements") or nil,
+			internalReinforcementsArea = scene:HasArea(bunkerRegionName .. " Internal Reinforcements") and scene:GetArea(bunkerRegionName .. " Internal Reinforcements") or nil,
 			defenderArea = scene:GetArea(bunkerRegionName .. " Defenders"),
 			ownerTeam = self.aiTeam,
 			hasBeenCapturedAtLeastOnceByHumanTeam = false,
@@ -185,11 +185,11 @@ function DecisionDay:StartActivity(isNewGame)
 			aiRegionDefenseTimer = Timer(60000 / self.difficultyRatio, 60000 / self.difficultyRatio),
 			aiRegionAttackTimer = Timer(90000 / self.difficultyRatio),
 			aiRecaptureWeight = bunkerRegionRecaptureWeights[bunkerRegionName] or 0,
-			fauxdanDisplayArea = scene:HasArea(bunkerRegionName .. " Fauxdan Display") and scene:GetOptionalArea(bunkerRegionName .. " Fauxdan Display") or nil,
+			fauxdanDisplayArea = scene:HasArea(bunkerRegionName .. " Fauxdan Display") and scene:GetArea(bunkerRegionName .. " Fauxdan Display") or nil,
 			fauxdanDisplayScreens = {},
-			shieldedArea = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetOptionalArea(bunkerRegionName .. " Shield") or nil,
-			brainDoor = scene:HasArea(bunkerRegionName .. " Brain Door") and scene:GetOptionalArea(bunkerRegionName .. " Brain Door") or nil,
-			brain = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetOptionalArea(bunkerRegionName .. " Brain") or nil,
+			shieldedArea = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetArea(bunkerRegionName .. " Shield") or nil,
+			brainDoor = scene:HasArea(bunkerRegionName .. " Brain Door") and scene:GetArea(bunkerRegionName .. " Brain Door") or nil,
+			brain = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetArea(bunkerRegionName .. " Brain") or nil,
 		};
 		if bunkerRegionName:find("Vault") then
 			self.bunkerRegions[bunkerRegionName].incomeMultiplier = bunkerRegionName:find("Large") and 2 or (bunkerRegionName:find("Medium") and 1.5 or 1);

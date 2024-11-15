@@ -46,6 +46,7 @@ void Attachable::Clear() {
 	m_InheritsHFlipped = 1;
 	m_InheritsRotAngle = true;
 	m_InheritedRotAngleOffset = 0;
+	m_MountedRotAngleOffset = 0.0F;
 	m_InheritsFrame = false;
 	m_InheritsVelWhenDetached = 1.0F;
 	m_InheritsAngularVelWhenDetached = 1.0F;
@@ -97,6 +98,7 @@ int Attachable::Create(const Attachable& reference) {
 	m_InheritsHFlipped = reference.m_InheritsHFlipped;
 	m_InheritsRotAngle = reference.m_InheritsRotAngle;
 	m_InheritedRotAngleOffset = reference.m_InheritedRotAngleOffset;
+	m_MountedRotAngleOffset = reference.m_MountedRotAngleOffset;
 	m_InheritsFrame = reference.m_InheritsFrame;
 	m_InheritsVelWhenDetached = reference.m_InheritsVelWhenDetached;
 	m_InheritsAngularVelWhenDetached = reference.m_InheritsAngularVelWhenDetached;
@@ -147,6 +149,7 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("InheritsRotAngle", { reader >> m_InheritsRotAngle; });
 	MatchForwards("InheritedRotAngleRadOffset") MatchProperty("InheritedRotAngleOffset", { reader >> m_InheritedRotAngleOffset; });
 	MatchProperty("InheritedRotAngleDegOffset", { m_InheritedRotAngleOffset = DegreesToRadians(std::stof(reader.ReadPropValue())); });
+	MatchProperty("MountedRotAngleOffset", { reader >> m_MountedRotAngleOffset; });
 	MatchProperty("InheritsFrame", { reader >> m_InheritsFrame; });
 	MatchProperty("InheritsVelWhenDetached", { reader >> m_InheritsVelWhenDetached; });
 	MatchProperty("InheritsAngularVelWhenDetached", { reader >> m_InheritsAngularVelWhenDetached; });
@@ -176,6 +179,7 @@ int Attachable::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("InheritsHFlipped", ((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2));
 	writer.NewPropertyWithValue("InheritsRotAngle", m_InheritsRotAngle);
 	writer.NewPropertyWithValue("InheritedRotAngleOffset", m_InheritedRotAngleOffset);
+  writer.NewPropertyWithValue("MountedRotAngleOffset", m_MountedRotAngleOffset);
 	writer.NewPropertyWithValue("InheritsVelWhenDetached", m_InheritsVelWhenDetached);
 	writer.NewPropertyWithValue("InheritsAngularVelWhenDetached", m_InheritsAngularVelWhenDetached);
 
@@ -422,7 +426,7 @@ void Attachable::PreUpdate() {
 				m_HFlipped = m_InheritsHFlipped == 1 ? m_Parent->IsHFlipped() : !m_Parent->IsHFlipped();
 			}
 			if (InheritsRotAngle()) {
-				SetRotAngle(m_Parent->GetRotAngle() + m_InheritedRotAngleOffset * m_Parent->GetFlipFactor());
+				SetRotAngle(m_Parent->GetRotAngle() + m_MountedRotAngleOffset + m_InheritedRotAngleOffset * m_Parent->GetFlipFactor());
 				m_AngularVel = 0.0F;
 			}
 		}
@@ -489,6 +493,8 @@ void Attachable::SetParent(MOSRotating* newParent) {
 	}
 	RTEAssert(!(m_Parent && newParent), "Tried to set an Attachable's " + GetModuleAndPresetName() + " parent without first unsetting its old parent, " + (IsAttached() ? GetParent()->GetModuleAndPresetName() : "ERROR") + ".");
 	MOSRotating* parentToUseForScriptCall = newParent ? newParent : m_Parent;
+
+	m_MountedRotAngleOffset = 0.0F;
 
 	// TODO Get rid of the need for calling ResetAllTimers, if something like inventory swapping needs timers reset it should do it itself! This blanket handling probably has side-effects.
 	//  Timers are reset here as a precaution, so that if something was sitting in an inventory, it doesn't cause backed up emissions.

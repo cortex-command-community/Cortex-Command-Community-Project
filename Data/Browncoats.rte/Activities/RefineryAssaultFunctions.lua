@@ -15,6 +15,17 @@ function RefineryAssault:HandleMessage(message, object)
 	
 	-- this is ugly, but there's no way to avoid this stuff except hiding it away even harder than in this separate script...
 	
+	-- Dock console ordering message
+	if message == "Refinery_DockConsoleOrder" then
+	
+		-- object is a table with the UniqueID of the ordering console, with the dock it wants, then with a table of the ordered items in UniqueID form
+		
+		local success = self:TryDockConsoleOrder(object[2], object[3]);
+		
+		local console = MovableMan:FindObjectByUniqueID(object[1]);
+		console:SendMessage("Refinery_DockConsoleOrderSuccess", success);
+	end
+	
 	if message == "ActorSpawner_ReturnedActor" then
 	
 		if self.verboseLogging then
@@ -266,7 +277,7 @@ function RefineryAssault:HandleMessage(message, object)
 			self.HUDHandler:SetCameraMinimumAndMaximumX(self.humanTeam, 0, SceneMan.SceneWidth + 9999);
 			self.HUDHandler:RemoveAllObjectives(self.humanTeam);
 			
-			local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
+			local pos = SceneMan.Scene:GetArea("RefineryAssault_S3DoorSequenceArea").Center;
 			self.stage4DoorExploSoundContainer = CreateSoundContainer("Yskely Refinery S4 Doors Explo");
 			self.stage4DoorExploSoundContainer:Play(pos);
 			self.stage4DoorExploDistSoundContainer = CreateSoundContainer("Yskely Refinery S4 Doors Explo Distant");
@@ -310,7 +321,7 @@ function RefineryAssault:HandleMessage(message, object)
 			true,
 			true);
 			
-			local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage4");
+			local taskArea = SceneMan.Scene:GetArea("TacticsPatrolArea_MissionStage4");
 			local task = self.tacticsHandler:AddTask("Patrol Stage 4", self.humanTeam, taskArea, "PatrolArea", 10);
 			local task = self.tacticsHandler:AddTask("Patrol Stage 4", self.aiTeam, taskArea, "PatrolArea", 10);
 			
@@ -366,7 +377,7 @@ function RefineryAssault:HandleMessage(message, object)
 			
 			self.saveTable.roninPrisoners = self.deliveryCreationHandler:CreateEliteSquad(5, 5);
 			self.saveTable.roninPrisonerLeader = self.saveTable.roninPrisoners[1];
-			local area = SceneMan.Scene:GetOptionalArea("RefineryAssault_RoninPrisonersSpawn");
+			local area = SceneMan.Scene:GetArea("RefineryAssault_RoninPrisonersSpawn");
 			for k, actor in pairs(self.saveTable.roninPrisoners) do
 				actor.HFlipped = true;
 				if self.saveTable.roninPrisonerDoorBroken then
@@ -720,19 +731,19 @@ function RefineryAssault:HandleMessage(message, object)
 		
 		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10BossPostDeath", self.saveTable.finalBossPosition, 1, 3000, true, true, true);
 		
-		local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_FinalCameraPan1").Center;
+		local cameraPos = SceneMan.Scene:GetArea("RefineryAssault_FinalCameraPan1").Center;
 		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10FinalPan1", cameraPos, 0.0015, 10000, true, true, true);
 		
-		local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_FinalCameraPan2").Center;
+		local cameraPos = SceneMan.Scene:GetArea("RefineryAssault_FinalCameraPan2").Center;
 		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10FinalPan2", cameraPos, 0.001, 10000, true, true, true);
 		
-		local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_FinalCameraPan3").Center;
+		local cameraPos = SceneMan.Scene:GetArea("RefineryAssault_FinalCameraPan3").Center;
 		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10FinalPan3", cameraPos, 0.001, 10000, true, true, true);
 		
-		local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_FinalCameraPan4").Center;
+		local cameraPos = SceneMan.Scene:GetArea("RefineryAssault_FinalCameraPan4").Center;
 		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10FinalPan4", cameraPos, 0.001, 15000, true, true, true);
 		
-		local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_FinalCameraPan5").Center;
+		local cameraPos = SceneMan.Scene:GetArea("RefineryAssault_FinalCameraPan5").Center;
 		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S10FinalPan5", cameraPos, 0.0015, 999999, true, true, true);
 		
 	end
@@ -882,6 +893,27 @@ function RefineryAssault:RemoveStringFromTable(str, tab)
 	
 end
 
+function RefineryAssault:TryDockConsoleOrder(desiredDock, itemTable)
+	local craft, goldCost = self.deliveryCreationHandler:CreateCraft(self.humanTeam, false);
+	craft.PlayerControllable = self.humansAreControllingAlliedActors;
+	craft.HUDVisible = self.humansAreControllingAlliedActors;
+	craft:SetGoldValue(0);
+	
+	for i = 1, #itemTable do
+		local item = MovableMan:FindObjectByUniqueID(itemTable[i])
+		if item then
+			-- it's utterly ridiculous we have to do this...
+			local class = item.ClassName;
+			local typeCast = "To" .. class
+			local clonedItem = _G[typeCast](item):Clone();
+			craft:AddInventoryItem(clonedItem);
+		end
+	end		
+	
+	local success = self.dockingHandler:SpawnDockingCraft(craft, desiredDock);
+	return success;
+end
+
 function RefineryAssault:SendDockDelivery(team, task, forceRocketUsage, squadType)
 
 	local squadCount = math.random(3, 4);
@@ -983,7 +1015,7 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 			-- check if it's in an area this team owns
 			local areaThisIsIn
 			for i = 1, #self.saveTable.buyDoorTables.teamAreas[team] do
-				local area = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. self.saveTable.buyDoorTables.teamAreas[team][i]);
+				local area = SceneMan.Scene:GetArea("BuyDoorArea_" .. self.saveTable.buyDoorTables.teamAreas[team][i]);
 				if area:IsInside(taskPos) then
 					areaThisIsIn = area;
 					--print("is inside teamowned area: " .. area.Name);
@@ -1018,7 +1050,7 @@ function RefineryAssault:SendBuyDoorDelivery(team, task, squadType, specificInde
 				--print("found closest area to task:");
 				--print(area);
 				-- actually get the Area
-				areaThisIsIn = SceneMan.Scene:GetOptionalArea("BuyDoorArea_" .. areaThisIsIn);
+				areaThisIsIn = SceneMan.Scene:GetArea("BuyDoorArea_" .. areaThisIsIn);
 			else
 				--print("team " .. team .. " doesn't have a backup area");
 			end
@@ -1157,16 +1189,16 @@ function RefineryAssault:SetupFirstStage()
 	self.saveTable.introTimer = Timer();
 	self.saveTable.introLastRocketSpawnTime = 0;
 	
-	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan1").Center;
+	local cameraPos = SceneMan.Scene:GetArea("RefineryAssault_IntroCameraPan1").Center;
 	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan1", cameraPos, 1, 500, true, true, true);
 	
-	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan2").Center;
+	local cameraPos = SceneMan.Scene:GetArea("RefineryAssault_IntroCameraPan2").Center;
 	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan2", cameraPos, 0.01, 6000, true, true, true);
 	
-	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan3").Center;
+	local cameraPos = SceneMan.Scene:GetArea("RefineryAssault_IntroCameraPan3").Center;
 	self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan3", cameraPos, 0.01, 3500, true, true, true);
 	
-	local cameraPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroCameraPan4").Center;
+	local cameraPos = SceneMan.Scene:GetArea("RefineryAssault_IntroCameraPan4").Center;
 	
 	local introEndFunction = function() 
 		local activity = ToGameActivity(ActivityMan:GetActivity());
@@ -1189,28 +1221,28 @@ function RefineryAssault:SetupFirstStage()
 	-- Set up stage 1 enemy actors
 	
 	self.tacticsHandler:AddTask("Sentry", self.aiTeam, Vector(0, 0), "Sentry", 10);
-	local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
+	local taskArea = SceneMan.Scene:GetArea("TacticsPatrolArea_MissionStage1");
 	self.tacticsHandler:AddTask("Patrol Stage 1", self.aiTeam, taskArea, "PatrolArea", 5);
 	
 	self:SetupStartingActors();
 	
 	-- Set up the 2 dock squads
 	
-	taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
+	taskArea = SceneMan.Scene:GetArea("TacticsPatrolArea_MissionStage1");
 	local task = self.tacticsHandler:AddTask("Search And Destroy", self.humanTeam, taskArea, "PatrolArea", 10);
 	
-	local squad = self:SendDockDelivery(self.humanTeam, task, true, "Elite");
+	local squad = self:SendDockDelivery(self.humanTeam, task, false, "Elite");
 	
 	self.tacticsHandler:AddSquad(self.humanTeam, squad, task.Name, true);
 	
-	squad = self:SendDockDelivery(self.humanTeam, task, true, "Elite");
+	squad = self:SendDockDelivery(self.humanTeam, task, false, "Elite");
 	
 	self.tacticsHandler:AddSquad(self.humanTeam, squad, task.Name, true);
 	
 	-- Set up player squad and dropship
 	
 	local dropShip, squad = self.deliveryCreationHandler:CreateEliteSquadWithCraft(self.humanTeam, false, 5);
-	local dropShipPos = SceneMan.Scene:GetOptionalArea("RefineryAssault_HumanBrainSpawn").Center;
+	local dropShipPos = SceneMan.Scene:GetArea("RefineryAssault_HumanBrainSpawn").Center;
 	dropShip.Team = self.humanTeam;
 	dropShip.Pos = dropShipPos;
 	dropShip.AIMode = Actor.AIMODE_SENTRY;
@@ -1290,7 +1322,7 @@ function RefineryAssault:MonitorStage1()
 		if self.saveTable.introTimer:IsPastSimMS(self.saveTable.introLastRocketSpawnTime + 100) then
 			self.saveTable.introLastRocketSpawnTime = self.saveTable.introTimer.ElapsedSimTimeMS;
 			local particle = CreateAEmitter("Particle Rocket Launcher", "Base.rte");
-			particle.Pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_IntroRocketSpawns").RandomPoint;
+			particle.Pos = SceneMan.Scene:GetArea("RefineryAssault_IntroRocketSpawns").RandomPoint;
 			particle.Vel = Vector(math.random(-5, 5), -70);
 			particle.RotAngle = math.pi/2;
 			particle.Team = self.humanTeam;
@@ -1314,7 +1346,7 @@ function RefineryAssault:MonitorStage1()
 					self.saveTable.stage1InitialDropshipToReturn = nil;
 				end
 			elseif craft:IsInventoryEmpty() then
-				local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_HumanBrainSpawn").Center;
+				local pos = SceneMan.Scene:GetArea("RefineryAssault_HumanBrainSpawn").Center;
 				craft:ClearAIWaypoints();
 				craft:AddAISceneWaypoint(Vector(pos.X - 300, pos.Y));
 				craft.DeliveryState = ACraft.LAUNCH;
@@ -1370,17 +1402,17 @@ function RefineryAssault:MonitorStage1()
 		
 		-- Task setup
 		
-		local taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryLCHackConsole1").Center;
+		local taskPos = SceneMan.Scene:GetArea("CaptureArea_RefineryLCHackConsole1").Center;
 		
 		self.tacticsHandler:AddTask("Attack Hack Console 1", self.humanTeam, taskPos, "Attack", 10);
 		self.tacticsHandler:AddTask("Defend Hack Console 1", self.aiTeam, taskPos, "Defend", 10);
 		
-		taskPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryLCHackConsole2").Center;
+		taskPos = SceneMan.Scene:GetArea("CaptureArea_RefineryLCHackConsole2").Center;
 		
 		self.tacticsHandler:AddTask("Attack Hack Console 2", self.humanTeam, taskPos, "Attack", 10);
 		self.tacticsHandler:AddTask("Defend Hack Console 2", self.aiTeam, taskPos, "Defend", 10);
 		
-		local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage2");
+		local taskArea = SceneMan.Scene:GetArea("TacticsPatrolArea_MissionStage2");
 		local task = self.tacticsHandler:AddTask("Patrol Stage 2", self.humanTeam, taskArea, "PatrolArea", 2);
 		local task = self.tacticsHandler:AddTask("Patrol Stage 2", self.aiTeam, taskArea, "PatrolArea", 4);
 		
@@ -1399,7 +1431,7 @@ function RefineryAssault:MonitorStage1()
 		
 		if #self.actorSpawnerReturnedActors > 0 then
 		
-			local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage1");
+			local taskArea = SceneMan.Scene:GetArea("TacticsPatrolArea_MissionStage1");
 			local task = self.tacticsHandler:AddTask("Counterattack", self.aiTeam, taskArea, "PatrolArea", 10);
 			
 			self.tacticsHandler:AddSquad(self.aiTeam, self.actorSpawnerReturnedActors, task.Name, true);
@@ -1427,7 +1459,7 @@ function RefineryAssault:MonitorStage1()
 		false,
 		true);
 		
-		local objPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryLCHackConsole1").Center;
+		local objPos = SceneMan.Scene:GetArea("CaptureArea_RefineryLCHackConsole1").Center;
 		
 		self.HUDHandler:AddObjective(self.humanTeam,
 		"S2HackConsole1",
@@ -1439,7 +1471,7 @@ function RefineryAssault:MonitorStage1()
 		true,
 		true);
 		
-		local objPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryLCHackConsole2").Center;
+		local objPos = SceneMan.Scene:GetArea("CaptureArea_RefineryLCHackConsole2").Center;
 		
 		self.HUDHandler:AddObjective(self.humanTeam,
 		"S2HackConsole2",
@@ -1510,7 +1542,7 @@ function RefineryAssault:MonitorStage2()
 		-- note index access, we get a table back
 		self.saveTable.stage3FacilityOperator = self.deliveryCreationHandler:CreateEliteSquad(self.aiTeam, 1, "Heavy")[1];
 		self.saveTable.stage3FacilityOperator.Head = CreateAttachable("Browncoat Heavy Alt Head B", "Browncoats.rte");
-		local area = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3FacilityOperator");
+		local area = SceneMan.Scene:GetArea("RefineryAssault_S3FacilityOperator");
 		local pos = SceneMan:MovePointToGround(area.Center, 50, 3);
 		
 		self.saveTable.stage3FacilityOperator.Pos = pos;
@@ -1526,7 +1558,7 @@ function RefineryAssault:MonitorStage2()
 		
 		-- Task stuff
 		
-		local taskArea = SceneMan.Scene:GetOptionalArea("TacticsPatrolArea_MissionStage3");
+		local taskArea = SceneMan.Scene:GetArea("TacticsPatrolArea_MissionStage3");
 		local task = self.tacticsHandler:AddTask("Patrol Stage 3", self.humanTeam, taskArea, "PatrolArea", 10);
 		local task = self.tacticsHandler:AddTask("Patrol Stage 3", self.aiTeam, taskArea, "PatrolArea", 10);
 		
@@ -1572,7 +1604,7 @@ function RefineryAssault:MonitorStage2()
 		true,
 		true);
 		
-		local objPos = SceneMan.Scene:GetOptionalArea("CaptureArea_RefineryS3DrillOverloadConsole").Center;
+		local objPos = SceneMan.Scene:GetArea("CaptureArea_RefineryS3DrillOverloadConsole").Center;
 		
 		self.HUDHandler:AddObjective(self.humanTeam,
 		"S3OverloadDrill",
@@ -1662,10 +1694,10 @@ function RefineryAssault:MonitorStage3()
 		self.HUDHandler:RemoveObjective(self.humanTeam, "S3OpenDoors");
 		
 		-- Reveal fog
-		local box = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceFogRevealArea").FirstBox;
+		local box = SceneMan.Scene:GetArea("RefineryAssault_S3DoorSequenceFogRevealArea").FirstBox;
 		SceneMan:RevealUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.humanTeam);
 		
-		local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
+		local pos = SceneMan.Scene:GetArea("RefineryAssault_S3DoorSequenceArea").Center;
 		
 		local soundContainer = CreateSoundContainer("Yskely Refinery Blast Door Alarm", "Browncoats.rte");
 		soundContainer:Play(pos);
@@ -1676,7 +1708,7 @@ function RefineryAssault:MonitorStage3()
 	
 		if not self.stage3ScreenShake then
 			self.stage3ScreenShake = true;
-			local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
+			local pos = SceneMan.Scene:GetArea("RefineryAssault_S3DoorSequenceArea").Center;
 			CameraMan:AddScreenShake(10, pos);
 		end
 		
@@ -1690,7 +1722,7 @@ function RefineryAssault:MonitorStage3()
 				ToADoor(self.saveTable.stage3Doors[2]):OpenDoor();
 				if not self.stage3ScreenShake2 then
 					self.stage3ScreenShake2 = true;
-					local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
+					local pos = SceneMan.Scene:GetArea("RefineryAssault_S3DoorSequenceArea").Center;
 					CameraMan:AddScreenShake(10, pos);
 				end
 			end
@@ -1701,7 +1733,7 @@ function RefineryAssault:MonitorStage3()
 				ToADoor(self.saveTable.stage4Door[1]):OpenDoor();
 				if not self.stage3ScreenShake3 then
 					self.stage3ScreenShake3 = true;
-					local pos = SceneMan.Scene:GetOptionalArea("RefineryAssault_S3DoorSequenceArea").Center;
+					local pos = SceneMan.Scene:GetArea("RefineryAssault_S3DoorSequenceArea").Center;
 					CameraMan:AddScreenShake(10, pos);
 				end
 			end
@@ -1827,7 +1859,7 @@ function RefineryAssault:MonitorStage5()
 		self.stage6SubcommanderDoor:SendMessage("BuyDoor_CustomTableOrder");
 		
 		-- Reveal fog
-		local box = SceneMan.Scene:GetOptionalArea("RefineryAssault_S6SubcommanderViewFogRevealArea").FirstBox;
+		local box = SceneMan.Scene:GetArea("RefineryAssault_S6SubcommanderViewFogRevealArea").FirstBox;
 		SceneMan:RevealUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.humanTeam);
 		
 		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S6SubcommanderView", self.stage6SubcommanderDoor.Pos, 0.05, 5000, true);
