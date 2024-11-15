@@ -10,11 +10,9 @@ function Create(self)
 end
 
 function ThreadedUpdate(self)
-	if self.ID ~= self.RootID then
-		local actor = MovableMan:GetMOFromID(self.RootID);
-		if MovableMan:IsActor(actor) then
-			self.alliedTeam = ToActor(actor).Team;
-		end
+	local parent = self:GetRootParent();
+	if MovableMan:IsActor(parent) then
+		self.alliedTeam = ToActor(parent).Team;
 	end
 	if self.Magazine then
 		if self:IsActivated() then

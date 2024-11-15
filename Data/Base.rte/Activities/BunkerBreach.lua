@@ -84,7 +84,7 @@ function BunkerBreach:SetupDefenderBrains()
 		end
 
 		defenderBrain = self:CreateBrainBot(self.defenderTeam);
-		defenderBrain.Pos = SceneMan.Scene:GetOptionalArea("Brain"):GetCenterPoint();
+		defenderBrain.Pos = SceneMan.Scene:GetArea("Brain"):GetCenterPoint();
 		MovableMan:AddActor(defenderBrain);
 	else
 		-- Pick the defender brain randomly from among those created by deployments, then delete the others and clean up most of their guards.
@@ -99,7 +99,7 @@ function BunkerBreach:SetupDefenderBrains()
 		table.remove(deploymentBrains, brainIndexToChoose);
 
 		if SceneMan.Scene:HasArea("Brain Chamber") then
-			self.brainChamber = SceneMan.Scene:GetOptionalArea("Brain Chamber");
+			self.brainChamber = SceneMan.Scene:GetArea("Brain Chamber");
 		end
 		for _, unchosenDeploymentBrain in pairs(deploymentBrains) do
 			unchosenDeploymentBrain.ToDelete = true;
@@ -167,7 +167,7 @@ function BunkerBreach:SetupDefenderActors()
 		for _, loadoutName in pairs({"Light", "Heavy", "Sniper", "Engineer", "Mecha", "Turret"}) do
 			if SceneMan.Scene:HasArea(loadoutName .. " Defenders") then
 				hasSpawnAreas = true;
-				local defenderArea = SceneMan.Scene:GetOptionalArea(loadoutName .. " Defenders");
+				local defenderArea = SceneMan.Scene:GetArea(loadoutName .. " Defenders");
 				if defenderArea ~= nil then
 					for defenderBox in defenderArea.Boxes do
 						local guard;
@@ -226,7 +226,7 @@ end
 
 function BunkerBreach:SetupDefenderInternalReinforcementAreas()
 	if self.AI.isDefenderTeam then
-		local internalReinforcementsArea = SceneMan.Scene:GetOptionalArea("Internal Reinforcements");
+		local internalReinforcementsArea = SceneMan.Scene:GetArea("Internal Reinforcements");
 		if internalReinforcementsArea ~= nil then
 			self.AI.internalReinforcementsDoorParticle = CreateMOSRotating("Background Door", "Base.rte");
 			self.AI.internalReinforcementPositions = {};
@@ -248,7 +248,7 @@ function BunkerBreach:StartActivity(isNewGame)
 	local attackerLZ = SceneMan.Scene:GetArea("LZ Attacker");
 	self:SetLZArea(self.attackerTeam, attackerLZ);
 	if SceneMan.Scene:HasArea("LZ Defender") then
-		self:SetLZArea(self.defenderTeam, SceneMan.Scene:GetOptionalArea("LZ Defender"));
+		self:SetLZArea(self.defenderTeam, SceneMan.Scene:GetArea("LZ Defender"));
 	end
 	self.mainBunkerArea = SceneMan.Scene:GetArea("Main Bunker");
 

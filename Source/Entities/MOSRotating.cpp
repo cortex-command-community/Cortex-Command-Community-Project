@@ -54,6 +54,7 @@ void MOSRotating::Clear() {
 	m_RecoilForce.Reset();
 	m_RecoilOffset.Reset();
 	m_Wounds.clear();
+	m_WoundBurstSoundPlayedThisFrame = false;
 	m_Attachables.clear();
 	m_ReferenceHardcodedAttachableUniqueIDs.clear();
 	m_HardcodedAttachableUniqueIDsAndSetters.clear();
@@ -458,6 +459,12 @@ void MOSRotating::AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet
 		woundToAdd->SetParentOffset(parentOffsetToSet);
 		woundToAdd->SetParent(this);
 		woundToAdd->SetIsWound(true);
+		if (woundToAdd->GetBurstSound()) {
+			if (m_WoundBurstSoundPlayedThisFrame) {
+				woundToAdd->SetPlayBurstSound(false);
+			}
+			m_WoundBurstSoundPlayedThisFrame = true;
+		}
 		if (woundToAdd->HasNoSetDamageMultiplier()) {
 			woundToAdd->SetDamageMultiplier(1.0F);
 		}
@@ -935,6 +942,12 @@ void MOSRotating::CreateGibsWhenGibbing(const Vector& impactImpulse, MovableObje
 				gibParticleClone->SetHFlipped(m_HFlipped);
 				Vector gibVelocity(radius * scale + minVelocity, 0);
 				gibVelocity.RadRotate(randAngle + RandomNum(0.0F, spread) + static_cast<float>(i) * goldenAngle);
+
+				Vector offsetFromRootParent = m_Pos - GetRootParent()->GetPos() + rotatedGibOffset;
+				Vector rotationalVelocity = (offsetFromRootParent.GetPerpendicular() * GetRootParent()->GetAngularVel() * gibSettingsObject.InheritsVelocity()) / c_PPM;
+				gibVelocity += rotationalVelocity;
+				gibParticleClone->SetAngularVel(gibParticleClone->GetAngularVel() + GetRootParent()->GetAngularVel() * gibSettingsObject.InheritsAngularVelocity());
+
 				if (lifetime != 0) {
 					gibParticleClone->SetLifetime(std::max(static_cast<int>(static_cast<float>(lifetime) * (1.0F - lifeVariation * ((radius / maxRadius) * 0.75F + RandomNormalNum() * 0.25F))), 1));
 				}
@@ -991,7 +1004,14 @@ void MOSRotating::CreateGibsWhenGibbing(const Vector& impactImpulse, MovableObje
 				} else {
 					gibVelocity.RadRotate(gibSpread * RandomNormalNum());
 				}
+
+				Vector offsetFromRootParent = m_Pos - GetRootParent()->GetPos() + rotatedGibOffset;
+				Vector rotationalVelocity = (offsetFromRootParent.GetPerpendicular() * GetRootParent()->GetAngularVel() * gibSettingsObject.InheritsVelocity()) / c_PPM;
+				gibVelocity += rotationalVelocity;
+				gibParticleClone->SetAngularVel(gibParticleClone->GetAngularVel() + GetRootParent()->GetAngularVel() * gibSettingsObject.InheritsAngularVelocity());
+
 				gibParticleClone->SetVel(gibVelocity + ((m_PrevVel + m_Vel) / 2) * gibSettingsObject.InheritsVelocity());
+
 				if (movableObjectToIgnore) {
 					gibParticleClone->SetWhichMOToNotHit(movableObjectToIgnore);
 				}
@@ -1012,6 +1032,10 @@ void MOSRotating::RemoveAttachablesWhenGibbing(const Vector& impactImpulse, Mova
 		RTEAssert(attachable, "Broken Attachable when Gibbing!");
 
 		if (RandomNum() < attachable->GetGibWithParentChance() || attachable->GetGibWhenRemovedFromParent()) {
+			float attachableGibBlastStrength = (attachable->GetParentGibBlastStrengthMultiplier() * m_GibBlastStrength) / (1 + attachable->GetMass());
+			attachable->SetAngularVel((attachable->GetAngularVel() * 0.5F) + (attachable->GetAngularVel() * 0.5F * attachableGibBlastStrength * RandomNormalNum()));
+			Vector gibBlastVel = Vector(attachable->GetParentOffset()).SetMagnitude(attachableGibBlastStrength * 0.5F + (attachableGibBlastStrength * RandomNum()));
+			attachable->SetVel(attachable->GetVel() + gibBlastVel); // Attachables have already had their velocity updated by ApplyImpulses(), no need to add impactImpulse again
 			attachable->GibThis();
 			continue;
 		}
@@ -1020,7 +1044,7 @@ void MOSRotating::RemoveAttachablesWhenGibbing(const Vector& impactImpulse, Mova
 			float attachableGibBlastStrength = (attachable->GetParentGibBlastStrengthMultiplier() * m_GibBlastStrength) / (1 + attachable->GetMass());
 			attachable->SetAngularVel((attachable->GetAngularVel() * 0.5F) + (attachable->GetAngularVel() * 0.5F * attachableGibBlastStrength * RandomNormalNum()));
 			Vector gibBlastVel = Vector(attachable->GetParentOffset()).SetMagnitude(attachableGibBlastStrength * 0.5F + (attachableGibBlastStrength * RandomNum()));
-			attachable->SetVel(m_Vel + gibBlastVel); // Attachables have already had their velocity updated by ApplyImpulses(), no need to add impactImpulse again
+			attachable->SetVel(attachable->GetVel() + gibBlastVel); // Attachables have already had their velocity updated by ApplyImpulses(), no need to add impactImpulse again
 
 			if (movableObjectToIgnore) {
 				attachable->SetWhichMOToNotHit(movableObjectToIgnore);
@@ -1033,7 +1057,7 @@ void MOSRotating::RemoveAttachablesWhenGibbing(const Vector& impactImpulse, Mova
 }
 
 bool MOSRotating::MoveOutOfTerrain(unsigned char strongerThan) {
-	return m_pAtomGroup->ResolveTerrainIntersection(m_Pos, strongerThan);
+	return (m_PinStrength <= 0) ? m_pAtomGroup->ResolveTerrainIntersection(m_Pos, strongerThan) : true;
 }
 
 void MOSRotating::ApplyForces() {
@@ -1340,6 +1364,8 @@ void MOSRotating::Update() {
 		m_Rotation += radsToGo * m_OrientToVel * velInfluence;
 	}
 
+	m_WoundBurstSoundPlayedThisFrame = false;
+	
 	for (auto woundItr = m_Wounds.begin(); woundItr != m_Wounds.end();) {
 		AEmitter* wound = *woundItr;
 		RTEAssert(wound && wound->IsAttachedTo(this), "Broken wound AEmitter in Update");
@@ -1447,6 +1473,10 @@ Attachable* MOSRotating::RemoveAttachable(Attachable* attachable, bool addToMova
 		return attachable;
 	}
 	RTEAssert(attachable->IsAttachedTo(this), "Tried to remove Attachable " + attachable->GetPresetNameAndUniqueID() + " from presumed parent " + GetPresetNameAndUniqueID() + ", but it had a different parent (" + (attachable->GetParent() ? attachable->GetParent()->GetPresetNameAndUniqueID() : "ERROR") + "). This should never happen!");
+
+	Vector rotationalVelocity = ((attachable->GetPos() - GetRootParent()->GetPos()).GetPerpendicular() * GetRootParent()->GetAngularVel() * attachable->InheritsVelocityWhenDetached()) / c_PPM;
+	attachable->SetAngularVel(attachable->GetAngularVel() + GetRootParent()->GetAngularVel() * attachable->InheritsAngularVelocityWhenDetached());
+	attachable->SetVel(attachable->GetVel() * attachable->InheritsVelocityWhenDetached() + rotationalVelocity); // Attachables have already had their velocity updated by ApplyImpulses(), no need to add impactImpulse again
 
 	if (!m_Attachables.empty()) {
 		m_Attachables.remove(attachable);

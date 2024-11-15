@@ -19,9 +19,6 @@ concurrency:
 jobs:
   meson:
     uses: ./.github/workflows/meson.yml
-    
+
   msbuild:
     uses: ./.github/workflows/msbuild.yml
-
-  format:
-    uses: ./.github/workflows/clang-format.yml

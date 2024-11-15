@@ -77,7 +77,7 @@ function Update(self)
 	self.Frame = (self.face == 2 and self.Vel.Y > (SceneMan.GlobalAcc.Y * 0.15)) and 3 or self.face;
 	local crouching = false;
 	if self:IsPlayerControlled() and self.Status < Actor.INACTIVE and self.FGLeg and self.BGLeg then
-		crouching = self.controller:IsState(Controller.BODY_CROUCH);
+		crouching = self.controller:IsState(Controller.BODY_PRONE);
 		if self.Status == Actor.UNSTABLE then
 			if self.dir == self.FlipFactor then
 				local motion = (self.Vel.Magnitude * 0.5 + math.abs(self.AngularVel));
@@ -96,7 +96,7 @@ function Update(self)
 					self.dir = self.lunge(self.lungePower);
 				end
 				self.tapTimer:Reset();
-				self.controller:SetState(Controller.BODY_CROUCH, false);
+				self.controller:SetState(Controller.BODY_PRONE, false);
 			end
 		end
 

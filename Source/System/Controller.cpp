@@ -26,6 +26,7 @@ void Controller::Clear() {
 	m_WeaponPickupIgnore = false;
 	m_WeaponDropIgnore = false;
 	m_WeaponReloadIgnore = false;
+	m_WeaponPrimaryHotkeyIgnore = false;
 	m_MouseMovement.Reset();
 	m_AnalogCursorAngleLimits = {{0, 0}, false};
 	m_ReleaseTimer.Reset();
@@ -180,13 +181,14 @@ void Controller::ResetCommandState() {
 }
 
 void Controller::GetInputFromPlayer() {
+	std::array<bool, ControlState::CONTROLSTATECOUNT> lastControlStates = m_ControlStates;
 	ResetCommandState();
 
 	if ((g_ConsoleMan.IsEnabled() && !g_ConsoleMan.IsReadOnly()) || m_Player < 0) {
 		return;
 	}
 
-	UpdatePlayerInput();
+	UpdatePlayerInput(lastControlStates);
 }
 
 bool Controller::ShouldUpdateAIThisFrame() const {
@@ -218,8 +220,8 @@ void Controller::Override(const Controller& otherController) {
 	*this = otherController;
 }
 
-void Controller::UpdatePlayerInput() {
-	UpdatePlayerPieMenuInput();
+void Controller::UpdatePlayerInput(std::array<bool, ControlState::CONTROLSTATECOUNT> lastControlStates) {
+	UpdatePlayerPieMenuInput(lastControlStates);
 
 	// Only actually switch when the change button(s) are released
 	// BRAIN ACTOR
@@ -250,6 +252,8 @@ void Controller::UpdatePlayerInput() {
 		m_WeaponDropIgnore = false;
 	} else if (g_UInputMan.ElementReleased(m_Player, InputElements::INPUT_WEAPON_RELOAD)) {
 		m_WeaponReloadIgnore = false;
+	} else if (g_UInputMan.ElementReleased(m_Player, InputElements::INPUT_WEAPON_PRIMARY_HOTKEY)) {
+		m_WeaponPrimaryHotkeyIgnore = false;
 	}
 
 	m_ControlStates[ControlState::HOLD_RIGHT] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_L_RIGHT) || g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_AIM_RIGHT);
@@ -271,7 +275,7 @@ void Controller::UpdatePlayerInput() {
 	UpdatePlayerAnalogInput();
 }
 
-void Controller::UpdatePlayerPieMenuInput() {
+void Controller::UpdatePlayerPieMenuInput(std::array<bool, ControlState::CONTROLSTATECOUNT> lastControlStates) {
 	// Holding of the switch buttons disables aiming later
 	if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_NEXT)) {
 		m_ControlStates[ControlState::ACTOR_NEXT_PREP] = true;
@@ -286,6 +290,7 @@ void Controller::UpdatePlayerPieMenuInput() {
 		m_ControlStates[ControlState::BODY_JUMPSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_JUMP);
 		m_ControlStates[ControlState::BODY_JUMP] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_JUMP);
 		m_ControlStates[ControlState::BODY_CROUCH] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_CROUCH);
+		m_ControlStates[ControlState::BODY_PRONE] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PRONE);
 
 		// MOVEMENT LEFT/RIGHT
 		if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_L_RIGHT)) {
@@ -294,6 +299,15 @@ void Controller::UpdatePlayerPieMenuInput() {
 			m_ControlStates[ControlState::MOVE_LEFT] = true;
 		} else {
 			m_ControlStates[ControlState::MOVE_IDLE] = true;
+		}
+
+		// RUNNING
+		if (g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_MOVE_FAST_TOGGLE) || lastControlStates[ControlState::MOVE_FAST_TOGGLE]) {
+			// If our toggle is on, keep it on until we stop moving
+			m_ControlStates[ControlState::MOVE_FAST_TOGGLE] = m_ControlStates[ControlState::MOVE_LEFT] || m_ControlStates[ControlState::MOVE_RIGHT];
+			m_ControlStates[ControlState::MOVE_FAST] = m_ControlStates[ControlState::MOVE_FAST_TOGGLE];
+		} else if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_MOVE_FAST)) {
+			m_ControlStates[ControlState::MOVE_FAST] = true;
 		}
 
 		// AIM LEFT AND RIGHT DIGITALLY - not really used as aiming, so convert into movement input
@@ -340,6 +354,16 @@ void Controller::UpdatePlayerPieMenuInput() {
 			m_ControlStates[ControlState::WEAPON_RELOAD] = true;
 			m_WeaponReloadIgnore = true;
 		}
+
+		m_ControlStates[ControlState::WEAPON_PRIMARY_HOTKEYSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_WEAPON_PRIMARY_HOTKEY);
+		m_ControlStates[ControlState::WEAPON_AUXILIARY_HOTKEYSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY);
+		m_ControlStates[ControlState::ACTOR_PRIMARY_HOTKEYSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_ACTOR_PRIMARY_HOTKEY);
+		m_ControlStates[ControlState::ACTOR_AUXILIARY_HOTKEYSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY);
+		
+		m_ControlStates[ControlState::WEAPON_PRIMARY_HOTKEY] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_WEAPON_PRIMARY_HOTKEY);
+		m_ControlStates[ControlState::WEAPON_AUXILIARY_HOTKEY] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY);
+		m_ControlStates[ControlState::ACTOR_PRIMARY_HOTKEY] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_ACTOR_PRIMARY_HOTKEY);
+		m_ControlStates[ControlState::ACTOR_AUXILIARY_HOTKEY] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY);
 	}
 
 	// PIE MENU ACTIVE
@@ -364,6 +388,7 @@ void Controller::UpdatePlayerPieMenuInput() {
 			m_ControlStates[ControlState::BODY_JUMP] = false;
 			m_ControlStates[ControlState::BODY_JUMPSTART] = false;
 			m_ControlStates[ControlState::BODY_CROUCH] = false;
+			m_ControlStates[ControlState::BODY_PRONE] = false;
 		}
 	}
 }

@@ -53,7 +53,7 @@ void GUIComboBox::Create(const std::string& Name, int X, int Y, int Width, int H
 	m_Width = std::max(m_Width, m_MinWidth);
 	m_Height = std::max(m_Height, m_MinHeight);
 
-	m_TextPanel->Create(0, 0, m_Width - 12, m_Height);
+	m_TextPanel->Create(0, 0, m_Width - 4, m_Height);
 	m_TextPanel->_SetVisible(true);
 	m_TextPanel->SetLocked((m_DropDownStyle == DropDownList));
 	m_TextPanel->SetSignalTarget(this);
@@ -89,7 +89,7 @@ void GUIComboBox::Create(GUIProperties* Props) {
 	m_Width = std::max(m_Width, m_MinWidth);
 	m_Height = std::max(m_Height, m_MinHeight);
 
-	m_TextPanel->Create(0, 0, m_Width - 12, m_Height);
+	m_TextPanel->Create(0, 0, m_Width - 4, m_Height);
 	m_TextPanel->_SetVisible(true);
 	m_TextPanel->SetSignalTarget(this);
 	GUIPanel::AddChild(m_TextPanel);
@@ -331,7 +331,7 @@ void GUIComboBox::Resize(int Width, int Height) {
 
 	GUIPanel::SetSize(Width, Height);
 
-	m_TextPanel->SetSize(m_Width - 12, m_Height);
+	m_TextPanel->SetSize(m_Width - 4, m_Height);
 	m_TextPanel->SetPositionAbs(m_X, m_Y);
 
 	m_Button->SetPositionAbs(m_X + m_Width - 13, m_Y + 1);
@@ -442,6 +442,13 @@ bool GUIComboBox::GetVisible() {
 
 void GUIComboBox::SetEnabled(bool Enabled) {
 	_SetEnabled(Enabled);
+	if (m_Button) {
+		if (Enabled) {
+			m_Button->_SetVisible(Enabled);
+		} else {
+			m_Button->_SetVisible(Enabled && _GetVisible());
+		}
+	}
 	if (m_ListPanel) {
 		m_ListPanel->_SetEnabled(Enabled);
 	}

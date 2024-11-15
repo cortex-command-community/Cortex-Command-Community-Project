@@ -25,10 +25,13 @@ void LimbPath::Clear() {
 	m_FootCollisionsDisabledSegment = -1;
 	m_SegProgress = 0.0;
 	for (int i = 0; i < SPEEDCOUNT; ++i) {
-		m_TravelSpeed[i] = 0.0;
+		m_TravelSpeed = 0.0;
 	}
-	m_TravelSpeedMultiplier = 1.0F;
-	m_WhichSpeed = NORMAL;
+	m_SegmentEndedThreshold = 2.5F;
+	m_BaseTravelSpeedMultiplier = 1.0F;
+	m_CurrentTravelSpeedMultiplier = 1.0F;
+	m_BaseScaleMultiplier = Vector(1.0F, 1.0F);
+	m_CurrentScaleMultiplier = Vector(1.0F, 1.0F);
 	m_PushForce = 0.0;
 	m_JointPos.Reset();
 	m_JointVel.Reset();
@@ -101,9 +104,13 @@ int LimbPath::Create(const LimbPath& reference) {
 
 	m_SegProgress = reference.m_SegProgress;
 	for (int i = 0; i < SPEEDCOUNT; ++i) {
-		m_TravelSpeed[i] = reference.m_TravelSpeed[i];
+		m_TravelSpeed = reference.m_TravelSpeed;
 	}
-	m_TravelSpeedMultiplier = reference.m_TravelSpeedMultiplier;
+	m_SegmentEndedThreshold = reference.m_SegmentEndedThreshold;
+	m_BaseTravelSpeedMultiplier = reference.m_BaseTravelSpeedMultiplier;
+	m_CurrentTravelSpeedMultiplier = reference.m_CurrentTravelSpeedMultiplier;
+	m_BaseScaleMultiplier = reference.m_BaseScaleMultiplier;
+	m_CurrentScaleMultiplier = reference.m_CurrentScaleMultiplier;
 	m_PushForce = reference.m_PushForce;
 	m_TimeLeft = reference.m_TimeLeft;
 	m_TotalLength = reference.m_TotalLength;
@@ -132,20 +139,26 @@ int LimbPath::ReadProperty(const std::string_view& propName, Reader& reader) {
 		              }
 	              });
 	MatchProperty("EndSegCount", { reader >> m_FootCollisionsDisabledSegment; });
+	MatchProperty("SegmentEndedThreshold", { reader >> m_SegmentEndedThreshold; });
 
+	// Deprecated, here for backwards compat to avoid crashes
 	MatchProperty("SlowTravelSpeed", {
-		reader >> m_TravelSpeed[SLOW];
-		// m_TravelSpeed[SLOW] = m_TravelSpeed[SLOW] * 2;
+		// We have to put it somewhere or the reader goes wonky
+		float discard;
+		reader >> discard;
 	});
 	MatchProperty("NormalTravelSpeed", {
-		reader >> m_TravelSpeed[NORMAL];
-		// m_TravelSpeed[NORMAL] = m_TravelSpeed[NORMAL] * 2;
+		reader >> m_TravelSpeed;
 	});
 	MatchProperty("FastTravelSpeed", {
-		reader >> m_TravelSpeed[FAST];
-		// m_TravelSpeed[FAST] = m_TravelSpeed[FAST] * 2;
+		float discard;
+		reader >> discard;
 	});
-	MatchProperty("TravelSpeedMultiplier", { reader >> m_TravelSpeedMultiplier; });
+	MatchProperty("TravelSpeed", {
+		reader >> m_TravelSpeed;
+	});
+	MatchProperty("BaseTravelSpeedMultiplier", { reader >> m_BaseTravelSpeedMultiplier; });
+	MatchProperty("BaseScaleMultiplier", { reader >> m_BaseScaleMultiplier; });
 	MatchProperty("PushForce", {
 		reader >> m_PushForce;
 		// m_PushForce = m_PushForce / 1.5;
@@ -162,24 +175,19 @@ Vector LimbPath::RotatePoint(const Vector& point) const {
 int LimbPath::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewProperty("StartOffset");
-	writer << m_Start;
-	writer.NewProperty("StartSegCount");
-	writer << m_StartSegCount;
+	writer.NewPropertyWithValue("StartOffset", m_Start);
+	writer.NewPropertyWithValue("StartSegCount", m_StartSegCount);
 	for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr) {
 		writer.NewProperty("AddSegment");
 		writer << *itr;
 	}
-	writer.NewProperty("SlowTravelSpeed");
-	writer << m_TravelSpeed[SLOW];
-	writer.NewProperty("NormalTravelSpeed");
-	writer << m_TravelSpeed[NORMAL];
-	writer.NewProperty("FastTravelSpeed");
-	writer << m_TravelSpeed[FAST];
-	writer.NewProperty("TravelSpeedMultiplier");
-	writer << m_TravelSpeedMultiplier;
-	writer.NewProperty("PushForce");
-	writer << m_PushForce;
+	writer.NewPropertyWithValue("EndSegCount", m_FootCollisionsDisabledSegment);
+	writer.NewPropertyWithValue("SegmentEndedThreshold", m_SegmentEndedThreshold);
+	
+	writer.NewPropertyWithValue("TravelSpeed", m_TravelSpeed);
+	writer.NewPropertyWithValue("BaseTravelSpeedMultiplier", m_BaseTravelSpeedMultiplier);
+	writer.NewPropertyWithValue("BaseScaleMultiplier", m_BaseScaleMultiplier);
+	writer.NewPropertyWithValue("PushForce", m_PushForce);
 
 	return 0;
 }
@@ -194,7 +202,7 @@ void LimbPath::Destroy(bool notInherited) {
 Vector LimbPath::GetProgressPos() {
 	Vector returnVec(m_Start);
 	if (IsStaticPoint()) {
-		return m_JointPos + RotatePoint(returnVec);
+		return m_JointPos + (RotatePoint(returnVec * GetTotalScaleMultiplier()));
 	}
 
 	// Add all the segments before the current one
@@ -208,13 +216,13 @@ Vector LimbPath::GetProgressPos() {
 		returnVec += *m_CurrentSegment * m_SegProgress;
 	}
 
-	return m_JointPos + RotatePoint(returnVec);
+	return m_JointPos + (RotatePoint(returnVec * GetTotalScaleMultiplier()));
 }
 
 Vector LimbPath::GetCurrentSegTarget() {
 	Vector returnVec(m_Start);
 	if (IsStaticPoint()) {
-		return m_JointPos + RotatePoint(returnVec);
+		return m_JointPos + (RotatePoint(returnVec * GetTotalScaleMultiplier()));
 	}
 
 	std::deque<Vector>::const_iterator itr;
@@ -227,13 +235,13 @@ Vector LimbPath::GetCurrentSegTarget() {
 		returnVec += *m_CurrentSegment;
 	}
 
-	return m_JointPos + RotatePoint(returnVec);
+	return m_JointPos + (RotatePoint(returnVec * GetTotalScaleMultiplier()));
 }
 
 Vector LimbPath::GetCurrentVel(const Vector& limbPos) {
 	Vector returnVel;
 	Vector distVect = g_SceneMan.ShortestDistance(limbPos, GetCurrentSegTarget());
-	float adjustedTravelSpeed = (m_TravelSpeed[m_WhichSpeed] / (1.0F + std::abs(m_JointVel.GetY()) * 0.1F)) * m_TravelSpeedMultiplier;
+	float adjustedTravelSpeed = (m_TravelSpeed / (1.0F + std::abs(m_JointVel.GetY()) * 0.1F)) * GetTotalTravelSpeedMultiplier();
 
 	if (IsStaticPoint()) {
 		returnVel = distVect * c_MPP / 0.020 /* + m_JointVel*/;
@@ -270,7 +278,7 @@ float LimbPath::GetNextTimeChunk(const Vector& limbPos) {
 
 		// Figure out the time needed to get to the target at the current speed, if
 		// there are no obstacles.
-		timeChunk = distance.GetMagnitude() / (GetSpeed() + m_JointVel.GetMagnitude());
+		timeChunk = distance.GetMagnitude() / (GetEffectiveTravelSpeed() + m_JointVel.GetMagnitude());
 		// Cap the time segment off to what we have left, if needed.
 		timeChunk = timeChunk > m_TimeLeft ? m_TimeLeft : timeChunk;
 		// Deduct the time used to pushtravel from the total time left.
@@ -288,11 +296,9 @@ void LimbPath::ReportProgress(const Vector& limbPos) {
 		// Check if we are sufficiently close to the target to start going after the next one.
 		Vector distVec = g_SceneMan.ShortestDistance(limbPos, GetCurrentSegTarget());
 		float distance = distVec.GetMagnitude();
-		float segMag = (*(m_CurrentSegment)).GetMagnitude();
+		float segMag = (*m_CurrentSegment * GetTotalScaleMultiplier()).GetMagnitude();
 
-		// TODO: Don't hardcode this!")
-		const float segmentEndedThreshold = 1.5F;
-		if (distance < segmentEndedThreshold) {
+		if (distance < m_SegmentEndedThreshold) {
 			if (++(m_CurrentSegment) == m_Segments.end()) {
 				--(m_CurrentSegment);
 				// Get normalized progress measure toward the target.
@@ -301,7 +307,7 @@ void LimbPath::ReportProgress(const Vector& limbPos) {
 			}
 			// Next segment!
 			else {
-				m_SegProgress = 0.0;
+				m_SegProgress = 0.0F;
 				m_SegTimer.Reset();
 				m_Ended = false;
 			}
@@ -346,21 +352,6 @@ int LimbPath::GetCurrentSegmentNumber() const {
 	return progress;
 }
 
-void LimbPath::SetSpeed(int newSpeed) {
-	if (newSpeed <= SLOW)
-		m_WhichSpeed = SLOW;
-	else if (newSpeed >= FAST)
-		m_WhichSpeed = FAST;
-	else
-		m_WhichSpeed = NORMAL;
-}
-
-void LimbPath::OverrideSpeed(int speedPreset, float newSpeed) {
-	if (speedPreset == SLOW || speedPreset == FAST || speedPreset == NORMAL) {
-		m_TravelSpeed[m_WhichSpeed] = newSpeed;
-	}
-}
-
 void LimbPath::Terminate() {
 	if (IsStaticPoint()) {
 		m_Ended = true;
@@ -382,13 +373,13 @@ void LimbPath::Restart() {
 bool LimbPath::RestartFree(Vector& limbPos, MOID MOIDToIgnore, int ignoreTeam) {
 	std::deque<Vector>::iterator prevSeg = m_CurrentSegment;
 	float prevProg = m_SegProgress;
-	m_SegProgress = 0;
+	m_SegProgress = 0.0F;
 	bool found = false;
 	float result = 0;
 
 	if (IsStaticPoint()) {
 		Vector notUsed;
-		Vector targetPos = m_JointPos + RotatePoint(m_Start);
+		Vector targetPos = m_JointPos + (RotatePoint(m_Start * GetTotalScaleMultiplier()));
 		Vector beginPos = targetPos;
 		// TODO: don't hardcode the beginpos
 		beginPos.m_Y -= 24;
@@ -396,8 +387,9 @@ bool LimbPath::RestartFree(Vector& limbPos, MOID MOIDToIgnore, int ignoreTeam) {
 		result = g_SceneMan.CastObstacleRay(beginPos, targetPos - beginPos, notUsed, limbPos, MOIDToIgnore, ignoreTeam, g_MaterialGrass);
 
 		// Only indicate that we found free position if there were any free pixels encountered
-		if (result < 0 || result > 0)
+		if (result < 0 || result > 0) {
 			found = true;
+		}
 	} else {
 		Vector notUsed;
 
@@ -407,14 +399,18 @@ bool LimbPath::RestartFree(Vector& limbPos, MOID MOIDToIgnore, int ignoreTeam) {
 		// Find the first start segment that has an obstacle on it
 		int i = 0;
 		for (; i < m_StartSegCount; ++i) {
-			Vector offsetSegment = (*m_CurrentSegment);
-			result = g_SceneMan.CastObstacleRay(GetProgressPos(), RotatePoint(offsetSegment), notUsed, limbPos, MOIDToIgnore, ignoreTeam, g_MaterialGrass);
+			Vector segmentStart = GetProgressPos();
+			++m_CurrentSegment;
+			Vector segmentEnd = GetProgressPos();
+			--m_CurrentSegment;
+			Vector currentSegment = segmentEnd - segmentStart;
+			result = g_SceneMan.CastObstacleRay(segmentStart, currentSegment, notUsed, limbPos, MOIDToIgnore, ignoreTeam, g_MaterialGrass);
 
 			// If we found an obstacle after the first pixel, report the current segment as the starting one and that there is free space here
 			if (result > 0) {
 				// Set accurate segment progress
 				// TODO: See if this is a good idea, or if we should just set it to 0 and set limbPos to the start of current segment
-				m_SegProgress = g_SceneMan.ShortestDistance(GetProgressPos(), limbPos).GetMagnitude() / offsetSegment.GetMagnitude();
+				m_SegProgress = g_SceneMan.ShortestDistance(GetProgressPos(), limbPos).GetMagnitude() / currentSegment.GetMagnitude();
 				limbPos = GetProgressPos();
 				//                m_SegProgress = 0;
 				m_Ended = false;
@@ -486,6 +482,33 @@ float LimbPath::GetMiddleX() const {
 	return m_HFlipped ? -result : result;
 }
 
+// TODO -  these implementations should be more accurate (segments are additive), but they don't seem to work as well
+// Investigate!
+/*float LimbPath::GetLowestY() const {
+	float currentY = m_Start.GetY();
+	float lowestY = currentY;
+	for (auto itr = m_Segments.begin() + m_StartSegCount; itr != m_Segments.end(); ++itr) {
+		currentY += itr->GetY();
+		lowestY = std::min(currentY, lowestY);
+	}
+	return lowestY * GetTotalScaleMultiplier().GetY();
+}
+
+float LimbPath::GetMiddleX() const {
+	float currentX = m_Start.GetX();
+	float lowestX = currentX;
+	float highestX = currentX;
+	for (auto itr = m_Segments.begin() + m_StartSegCount; itr != m_Segments.end(); ++itr) {
+		currentX += itr->GetX();
+		lowestX = std::min(currentX, lowestX);
+		highestX = std::max(currentX, highestX);
+	}
+	lowestX  *= GetTotalScaleMultiplier().GetX();
+	highestX *= GetTotalScaleMultiplier().GetX();
+	float result = (lowestX + highestX) * 0.5F;
+	return m_HFlipped ? -result : result;
+}*/
+
 void LimbPath::Draw(BITMAP* pTargetBitmap,
                     const Vector& targetPos,
                     unsigned char color) const {
@@ -494,8 +517,8 @@ void LimbPath::Draw(BITMAP* pTargetBitmap,
 	for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr) {
 		nextPoint += *itr;
 
-		Vector prevWorldPosition = m_JointPos + RotatePoint(prevPoint);
-		Vector nextWorldPosition = m_JointPos + RotatePoint(nextPoint);
+		Vector prevWorldPosition = m_JointPos + (RotatePoint(prevPoint * GetTotalScaleMultiplier()));
+		Vector nextWorldPosition = m_JointPos + (RotatePoint(nextPoint * GetTotalScaleMultiplier()));
 		line(pTargetBitmap, prevWorldPosition.m_X, prevWorldPosition.m_Y, nextWorldPosition.m_X, nextWorldPosition.m_Y, color);
 
 		Vector min(std::min(prevWorldPosition.m_X, nextWorldPosition.m_X), std::min(prevWorldPosition.m_Y, nextWorldPosition.m_Y));

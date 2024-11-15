@@ -73,6 +73,10 @@ function ThreadedUpdate(self)
 	
 	if not self.cooldownTimer:IsPastSimMS(self.cooldownTime) then
 		PrimitiveMan:DrawTextPrimitive(self.Pos + Vector(0, -20), tostring(self.cooldownTime - self.cooldownTimer.ElapsedSimTimeMS), true, 1);
+		self.onCooldown = true;
+	elseif self.onCooldown then
+		self.onCooldown = false;
+		self.FXReloaded = true;
 	end
 	
 	if not self.messageTimer:IsPastSimMS(self.messageTime) then
@@ -115,6 +119,7 @@ function SyncedUpdate(self)
 							end
 							
 							self.cooldownTimer:Reset();
+							self.FXDispensed = true;
 							
 						else
 						

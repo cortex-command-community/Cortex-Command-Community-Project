@@ -199,6 +199,8 @@ namespace RTE {
 		INPUT_L_DOWN,
 		INPUT_L_LEFT,
 		INPUT_L_RIGHT,
+		INPUT_MOVE_FAST,
+		INPUT_MOVE_FAST_TOGGLE,
 		INPUT_AIM_UP,
 		INPUT_AIM_DOWN,
 		INPUT_AIM_LEFT,
@@ -209,6 +211,7 @@ namespace RTE {
 		INPUT_PIEMENU_DIGITAL,
 		INPUT_JUMP,
 		INPUT_CROUCH,
+		INPUT_PRONE,
 		INPUT_NEXT,
 		INPUT_PREV,
 		INPUT_WEAPON_CHANGE_NEXT,
@@ -216,6 +219,10 @@ namespace RTE {
 		INPUT_WEAPON_PICKUP,
 		INPUT_WEAPON_DROP,
 		INPUT_WEAPON_RELOAD,
+		INPUT_WEAPON_PRIMARY_HOTKEY,
+		INPUT_WEAPON_AUXILIARY_HOTKEY,
+		INPUT_ACTOR_PRIMARY_HOTKEY,
+		INPUT_ACTOR_AUXILIARY_HOTKEY,
 		INPUT_START,
 		INPUT_BACK,
 		INPUT_R_UP,
@@ -230,16 +237,19 @@ namespace RTE {
 	    "Move Down", // INPUT_L_DOWN
 	    "Move Left", // INPUT_L_LEFT
 	    "Move Right", // INPUT_L_RIGHT
+	    "Run", // INPUT_MOVE_FAST
+	    "Run (Toggle)", // INPUT_MOVE_FAST_TOGGLE
 	    "Aim Up", // INPUT_AIM_UP
 	    "Aim Down", // INPUT_AIM_DOWN
 	    "Aim Left", // INPUT_AIM_LEFT
 	    "Aim Right", // INPUT_AIM_RIGHT
 	    "Fire/Activate", // INPUT_FIRE
 	    "Sharp Aim", // INPUT_AIM
-	    "Pie Menu Analog", // INPUT_PIEMENU_ANALOG
-	    "Pie Menu Digital", // INPUT_PIEMENU_DIGITAL
+	    "Pie Menu (Analog)", // INPUT_PIEMENU_ANALOG
+	    "Pie Menu (Digital)", // INPUT_PIEMENU_DIGITAL
 	    "Jump", // INPUT_JUMP
 	    "Crouch", // INPUT_CROUCH
+	    "Prone", // INPUT_PRONE
 	    "Next Body", // INPUT_NEXT
 	    "Prev. Body", // INPUT_PREV
 	    "Next Device", // INPUT_WEAPON_CHANGE_NEXT
@@ -247,6 +257,10 @@ namespace RTE {
 	    "Pick Up Device", // INPUT_WEAPON_PICKUP
 	    "Drop Device", // INPUT_WEAPON_DROP
 	    "Reload Weapon", // INPUT_WEAPON_RELOAD
+	    "Primary Weapon Hotkey", // INPUT_WEAPON_PRIMARY_HOTKEY
+	    "Auxiliary Weapon Hotkey", // INPUT_WEAPON_AUXILIARY_HOTKEY
+		"Primary Actor Hotkey", // INPUT_ACTOR_PRIMARY_HOTKEY
+		"Auxiliary Actor Hotkey", // INPUT_ACTOR_AUXILIARY_HOTKEY
 	    "Start", // INPUT_START
 	    "Back", // INPUT_BACK
 	    "Analog Aim Up", // INPUT_R_UP

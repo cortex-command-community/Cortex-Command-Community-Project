@@ -323,8 +323,6 @@ namespace RTE {
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
-		// Current movement state.
-		unsigned int m_MoveState;
 		// Current hatch action state.
 		unsigned int m_HatchState;
 		// Timer for opening and closing hatches
