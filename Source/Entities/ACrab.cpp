@@ -825,7 +825,7 @@ void ACrab::PreControllerUpdate() {
 					m_Paths[side][BGROUND][m_MovementState].SetHFlip(m_Controller.IsState(MOVE_LEFT));
 				}
 			} else if ((m_Controller.IsState(MOVE_RIGHT) && m_HFlipped) || (m_Controller.IsState(MOVE_LEFT) && !m_HFlipped)) {
-				m_HFlipped = !m_HFlipped;
+				SetHFlipped(!m_HFlipped);
 				m_CheckTerrIntersection = true;
 				MoveOutOfTerrain(g_MaterialGrass);
 				for (int side = 0; side < SIDECOUNT; ++side) {
@@ -892,7 +892,7 @@ void ACrab::PreControllerUpdate() {
 
 		// Check for flip change
 		if ((analogAim.m_X > 0 && m_HFlipped) || (analogAim.m_X < 0 && !m_HFlipped)) {
-			m_HFlipped = !m_HFlipped;
+			SetHFlipped(!m_HFlipped);
 			// Instead of simply carving out a silhouette of the now flipped actor, isntead disable any atoms which are embedded int eh terrain until they emerge again
 			// m_ForceDeepCheck = true;
 			m_CheckTerrIntersection = true;
@@ -962,6 +962,11 @@ void ACrab::PreControllerUpdate() {
 				}
 			} else {
 				mountedDevice->Deactivate();
+			}
+			if (m_Controller.IsState(WEAPON_PRIMARY_HOTKEY)) {
+				mountedDevice->ActivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+			} else {
+				mountedDevice->DeactivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
 			}
 		}
 	}

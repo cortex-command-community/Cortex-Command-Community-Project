@@ -50,6 +50,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `AEmitter` and `PEmitter` INI and Lua (R/W) property `PlayBurstSound` which denotes whether the BurstSound should play when appropriate. This should not be confused for a trigger - it's just a enable/disable toggle to avoid having to remove and add BurstSound altogether.
 
+- New `MOSprite` INI and Lua (R/W) integer property `ForcedHFlip` which forces a certain flippedness and disallows anything else from ever changing it without clearing the forced value first. 0 is forced not flipped, 1 forced flipped, and -1 is no force.
+
+- New hotkey bindings.
+	On Mouse+KB PC the defaults are: Weapon Primary Hotkey on V, Weapon Auxiliary Hotkey on H, Actor Primary Hotkey on X, Actor Auxiliary Hotkey on O.
+	Added new `Controller` states `WEAPON_PRIMARY_HOTKEYSTART`, `WEAPON_AUXILIARY_HOTKEYSTART`, `ACTOR_PRIMARY_HOTKEYSTART`, `ACTOR_AUXILIARY_HOTKEYSTART`, `WEAPON_PRIMARY_HOTKEY`, `WEAPON_AUXILIARY_HOTKEY`, `ACTOR_PRIMARY_HOTKEY`, `ACTOR_AUXILIARY_HOTKEY`
+
+- New hotkey system for `Actor` and `HeldDevice`.
+	Pressing a certain new hotkey will mark it as activated on `Actor` and `HeldDevice`, letting scripts make use of the new bindings easily.
+	`Enum` binding for `HeldDevice.HeldDeviceHotkeyType`: `PRIMARY = 0, AUXILIARY = 1, HELDDEVICEHOTKEYTYPECOUNT = 2`.  
+	`Enum` binding for `Actor.ActorHotkeyType`: `PRIMARY = 0, AUXILIARY = 1, ACTORHOTKEYTYPECOUNT = 2`. 
+	Both `Actor` and `HeldDevice` have the following functions:
+	`HotkeyActionIsActivated(hotkeyType)` returns whether a certain hotkey action is being activated or not.
+	`ActivateHotkeyAction(hotkeyType)` activates a certain hotkey action.
+	`DeactivateHotkeyAction(hotkeyType)` deactivates a certain hotkey action.
+
 - New `GAScripted` Lua script method `IsCompatibleScene(scene)` to allow Activities to generically decide which Scenes are eligible by returning a boolean value.
 	New `GAScripted` INI enumerating property `AddRequiredArea`, replacing Lua file scanning, to allow Activities to explicitly state which areas are strictly required.
 	As before, these work in tandem. Both the required areas, if defined, and script conditional method, if defined, must pass for the scene to qualify.
@@ -65,7 +80,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Improved navigation, making running and fast walkpaths much more consistent.
 
 - Increased fog-of-war resolution in all vanilla activities, and conquest, from 20x20 to 4x4.
-	The Ronin Scrambler, the basic scanner, and `SceneMan:CastUnseenRay` have been changed to accomodate fog-of-war resolutions as fine as 1x1 and as course as 20x20.
+	The Ronin Scrambler, the basic scanner, and `SceneMan:CastUnseenRay` have been changed to accomodate fog-of-war resolutions as fine as 1x1 and as coarse as 20x20.
 	The fog-of-war revealing code is now multithreaded to increase performance.
 
 - All vanilla scenario activities have had their settings polished, respecting settings which make sense and disabling settings which don't.
@@ -111,6 +126,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed a bug in Harvester and Massacre where setting deploy units would auto-assign units of the wrong tech.
 
 - Fixed an issue where an `Actor`'s MovementState wasn't correctly accessible from script.
+
+- Fixed mounted HeldDevices not respecting InheritedRotAngleOffset.
 
 - Fixed an issue where internal Lua functions OriginalDoFile, OriginalLoadFile, and OriginalRequire were polluting the global namespace. They have now been made inaccessible.
 

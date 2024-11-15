@@ -232,8 +232,9 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 			SceneMan:ForceBounds(pos);				
 			craft:AddAISceneWaypoint(pos);
 			craft:AddAISceneWaypoint(dockTable.dockPosition);
-			local direction = dockToDockAt % 2 == 0 and 1 or -1;	
-			craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(275 * direction, 0))
+			local direction = dockToDockAt % 2 == 0 and 1 or -1;
+			print("direction: " .. direction);
+			craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(-275 * direction, 0))
 			
 			dockTable.activeCraft = craft;
 			dockTable.dockingStage = 1;
@@ -341,7 +342,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 							craft:AddAISceneWaypoint(pos);
 							craft:AddAISceneWaypoint(dockTable.dockPosition);
 							local direction = i % 2 == 0 and 1 or -1;	
-							craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(275 * direction, 0))
+							craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(-275 * direction, 0))
 							
 							dockTable.activeCraft = craft;
 							dockTable.dockingStage = 1;
@@ -443,7 +444,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 				
 					--print(SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition + Vector(200 * direction, 0), true))
 				
-					local distFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition + Vector(275 * direction, 0), true).Magnitude
+					local distFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition + Vector(-275 * direction, 0), true).Magnitude
 					--print(distFromDockArea)
 					if distFromDockArea < 20 then
 						craft:OpenHatch();

@@ -66,7 +66,7 @@ function SaveLoadHandler:SerializeTable(val, name, skipnewlines, depth)
 		if type(name) == "number" then
 			tmp = tmp .. "[" .. name .. "]" .. " = "
 		else
-			tmp = tmp .. name .. " = "
+			tmp = tmp .. "['" .. name .. "']" .. " = "
 		end
 	end
 
@@ -92,6 +92,8 @@ function SaveLoadHandler:SerializeTable(val, name, skipnewlines, depth)
 		print("ERROR: SaveLoadHandler tried to save a function. This cannot currently be done and the table will not be as expected when loaded.");
 	elseif val.Magnitude then -- ghetto vector check
 		tmp = tmp .. string.format("%q", "Vector(" .. val.X .. "," .. val.Y .. ")")
+	elseif val.Area then -- ghetto box check
+		tmp = tmp .. string.format("%q", "Box(" .. val.Corner.X .. "," .. val.Corner.Y .. "," .. val.Corner.X + val.Width .. "," .. val.Corner.Y + val.Height .. ")")
 	elseif val.PresetName and IsMOSRotating(val) then -- IsMOSRotating freaks out if we give it something that isn't a preset at all... ghetto here too
 		val:SetNumberValue("saveLoadHandlerUniqueID", val.UniqueID);
 		tmp = tmp .. string.format("%q", "SAVELOADHANDLERUNIQUEID_" .. tostring(val.UniqueID))
@@ -243,6 +245,18 @@ function SaveLoadHandler:ParseTableForVectors(tab)
 		
 end
 
+function SaveLoadHandler:ParseTableForBoxes(tab)
+	for k, v in pairs(tab) do
+		if type(v) == "string" and string.find(v, "Box%(") then
+			local vector = loadstring("return " .. v)();
+			tab[k] = vector;	
+		elseif type(v) == "table" then
+			self:ParseTableForBoxes(v);
+		end
+	end
+		
+end
+
 function SaveLoadHandler:ParseTableForAreas(tab)
 	for k, v in pairs(tab) do
 		if type(v) == "string" and string.find(v, "SAVELOADHANDLERAREA_") then
@@ -289,6 +303,10 @@ function SaveLoadHandler:DeserializeTable(serializedTable, name)
 		print("INFO: SaveLoadHandler is parsing this table for Vectors: " .. name);
 	end
 	self:ParseTableForVectors(tab);
+	if name and SaveLoadHandler.verboseLogging then
+		print("INFO: SaveLoadHandler is parsing this table for Boxes: " .. name);
+	end
+	self:ParseTableForBoxes(tab);
 	if name and SaveLoadHandler.verboseLogging then
 		print("INFO: SaveLoadHandler is parsing this table for Areas: " .. name);
 	end

@@ -99,6 +99,7 @@ void Actor::Clear() {
 	m_Inventory.clear();
 	m_MaxInventoryMass = -1.0F;
 	m_pItemInReach = nullptr;
+	m_HotkeyActivated.fill(false);
 	m_HUDStack = 0;
 	m_DeploymentID = 0;
 	m_PassengerSlots = 1;
@@ -258,6 +259,7 @@ int Actor::Create(const Actor& reference) {
 
 		m_sIconsLoaded = true;
 	}
+	m_HotkeyActivated = reference.m_HotkeyActivated;
 	m_DeploymentID = reference.m_DeploymentID;
 	m_PassengerSlots = reference.m_PassengerSlots;
 
@@ -1278,6 +1280,18 @@ void Actor::Update() {
 			g_FrameMan.FlashScreen(g_ActivityMan.GetActivity()->ScreenOfPlayer(brainOfPlayer), g_WhiteColor, 500);
 		}
 	}
+
+	if (m_Controller.IsState(ACTOR_PRIMARY_HOTKEY)) {
+		ActivateHotkeyAction(PRIMARYHOTKEY);
+	} else {
+		DeactivateHotkeyAction(PRIMARYHOTKEY);
+	}
+
+	if (m_Controller.IsState(ACTOR_AUXILIARY_HOTKEY)) {
+		ActivateHotkeyAction(AUXILIARYHOTKEY);
+	} else {
+		DeactivateHotkeyAction(AUXILIARYHOTKEY);
+	}
 }
 
 void RTE::Actor::CastSeeRays() {
@@ -1404,7 +1418,7 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 				// Now draw the Icon if we can
 				if (!apIconBitmaps.empty() && m_pTeamIcon && m_pTeamIcon->GetFrameCount() > 0) {
 					// Make team icon blink faster as the health goes down
-					int f = m_HeartBeat.AlternateReal(200 + 800 * (m_Health / 100)) ? 0 : 1;
+					int f = m_HeartBeat.AlternateReal(200 + 800 * (MAX(m_Health, 0) / 100)) ? 0 : 1;
 					f = MIN(f, m_pTeamIcon ? m_pTeamIcon->GetFrameCount() - 1 : 1);
 					masked_blit(apIconBitmaps.at(f), pTargetBitmap, 0, 0, drawPos.m_X - apIconBitmaps.at(f)->w - 2, drawPos.m_Y + m_HUDStack - (apIconBitmaps.at(f)->h / 2) + 8, apIconBitmaps.at(f)->w, apIconBitmaps.at(f)->h);
 				}
