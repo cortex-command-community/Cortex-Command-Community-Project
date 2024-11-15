@@ -71,14 +71,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `GameActivity` INI properties `TeamNTechSwitchEnabled` which determine whether activity team factions are configurable by the user. This is most useful for communicating what the player is not intended to change, or what inputs would be ignored otherwise.
 
-- Allow lua scripts to use LuaJIT's BitOp module (see https://bitop.luajit.org/api.html)
-
 - New `Emission` INI and Lua (R/W) property `ParticleCount` which sets how many particles the Emission spawns per emission. Defaults to 1.
 
 - New `Gib` and `Emission` INI and Lua (R/W) property `InheritsAngularVel`, which determines how much of the parent MO's angular velocity they inherit. Defaults to 1 for gibs, 0 for emissions.
 
 - New `Attachable` INI and Lua (R/W) properties `InheritsVelWhenDetached` and `InheritsAngularVelWhenDetached`, which determine how much of these velocities an attachable inherits from its parent when detached. Defaults to 1.
 
+- New `ModuleMan` to handle module management, and allow global scripts and mod modules can now be dynamically enabled or disabled mid-game.
+	Moved the `PresetMan` lua parameters/functions `Modules`, `GetDataModule`, `GetModuleID`, `GetModuleIDFromPath`, `GetTotalModuleCount`, `IsModuleOfficial`, `IsModuleUserdata` and `GetFullModulePath` into `ModuleMan`
+
+- Allow lua scripts to use LuaJIT's BitOp module (see https://bitop.luajit.org/api.html)
+  
 </details>
 
 <details><summary><b>Changed</b></summary>

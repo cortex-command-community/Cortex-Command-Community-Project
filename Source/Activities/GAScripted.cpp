@@ -1,6 +1,7 @@
 #include "GAScripted.h"
 
 #include "SceneMan.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "MovableMan.h"
 #include "UInputMan.h"
@@ -89,7 +90,7 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return GameActivity::ReadProperty(propName, reader));
 
 	MatchProperty("ScriptPath", {
-		m_ScriptPath = g_PresetMan.GetFullModulePath(reader.ReadPropValue());
+		m_ScriptPath = g_ModuleMan.GetFullModulePath(reader.ReadPropValue());
 	});
 	MatchProperty("LuaClassName", {
 		reader >> m_LuaClassName;

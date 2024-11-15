@@ -8,6 +8,7 @@ sources += files(
 #'LuaMan.cpp',
 'MenuMan.cpp',
 'MetaMan.cpp',
+'ModuleMan.cpp',
 'MovableMan.cpp',
 'MusicMan.cpp',
 'NetworkClient.cpp',

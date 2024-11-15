@@ -1,6 +1,6 @@
 #include "GUI.h"
 #include "GUIReader.h"
-#include "PresetMan.h"
+#include "ModuleMan.h"
 
 #include <cassert>
 
@@ -31,11 +31,11 @@ bool GUISkin::Load(const std::string& directory, const std::string& fileName) {
 	std::string dirTemp;
 
 	if (!directory.empty()) {
-		m_Directory = g_PresetMan.GetFullModulePath(directory) + "/";
+		m_Directory = g_ModuleMan.GetFullModulePath(directory) + "/";
 		dirTemp = m_Directory;
 	} else {
 		// Empty directory means file can be loaded from anywhere in the working directory so need to figure out in what data directory the file actually is from fileName.
-		std::string fileFullPath = g_PresetMan.GetFullModulePath(fileName);
+		std::string fileFullPath = g_ModuleMan.GetFullModulePath(fileName);
 		dirTemp = fileFullPath.substr(0, fileFullPath.find_first_of("/\\") + 1);
 		// Make sure to clear any existing top level directory and not store the new one we got from fileName otherwise everything will be on fire when trying to load assets from Data/ while the skin file exists in Mods/.
 		m_Directory = "";

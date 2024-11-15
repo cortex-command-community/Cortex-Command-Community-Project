@@ -35,6 +35,7 @@
 #include "MenuMan.h"
 #include "ConsoleMan.h"
 #include "SettingsMan.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "UInputMan.h"
 #include "PerformanceMan.h"
@@ -66,6 +67,7 @@ void InitializeManagers() {
 	ThreadMan::Construct();
 	TimerMan::Construct();
 	PresetMan::Construct();
+	ModuleMan::Construct();
 	SettingsMan::Construct();
 	WindowMan::Construct();
 	LuaMan::Construct();
@@ -133,7 +135,7 @@ void DestroyManagers() {
 	g_GUISound.Destroy();
 	g_AudioMan.Destroy();
 	g_MusicMan.Destroy();
-	g_PresetMan.Destroy();
+	g_ModuleMan.Destroy();
 	g_UInputMan.Destroy();
 	g_PostProcessMan.Destroy();
 	g_FrameMan.Destroy();
@@ -164,21 +166,20 @@ void HandleMainArgs(int argCount, char** argValue) {
 	bool singleModuleSet = false;
 
 	for (int i = 0; i < argCount;) {
-		std::string currentArg = argValue[i];
+		std::string_view currentArg = argValue[i];
 		bool lastArg = i + 1 == argCount;
 
 		if (currentArg == "-cout") {
 			System::EnableLoggingToCLI();
 		}
-
 		if (currentArg == "-ext-validate") {
 			System::EnableExternalModuleValidationMode();
 		}
 
 		if (!lastArg && !singleModuleSet && currentArg == "-module") {
-			std::string moduleToLoad = argValue[++i];
-			if (moduleToLoad.find(System::GetModulePackageExtension()) == moduleToLoad.length() - System::GetModulePackageExtension().length()) {
-				g_PresetMan.SetSingleModuleToLoad(moduleToLoad);
+			std::string_view moduleToLoad = argValue[++i];
+			if (moduleToLoad.ends_with(System::GetModulePackageExtension())) {
+				g_ModuleMan.SetSingleModuleToLoad(moduleToLoad);
 				singleModuleSet = true;
 			}
 		}
@@ -462,7 +463,11 @@ int main(int argc, char** argv) {
 		SDL_ShowCursor(SDL_ENABLE);
 	}
 
-	g_PresetMan.LoadAllDataModules();
+	int64_t moduleLoadStartTime = g_TimerMan.GetAbsoluteTime();
+	g_ModuleMan.LoadAllDataModules();
+	if (g_SettingsMan.IsMeasuringModuleLoadTime()) {
+		g_ConsoleMan.PrintString("SYSTEM: Module load duration is: " + std::to_string((g_TimerMan.GetAbsoluteTime() - moduleLoadStartTime) / 1000) + "ms");
+	}
 
 	if (!System::IsInExternalModuleValidationMode()) {
 		// Load the different input device icons. This can't be done during UInputMan::Create() because the icon presets don't exist so we need to do this after modules are loaded.

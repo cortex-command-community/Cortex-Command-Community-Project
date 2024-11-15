@@ -70,7 +70,7 @@ namespace RTE {
 		BITMAP* GetOverlayBitmap32() const { return m_OverlayBitmap32.get(); }
 #pragma endregion
 
-#pragma region Split - Screen Handling
+#pragma region Split-Screen Handling
 		/// Gets whether the screen is split horizontally across the screen, ie as two splitscreens one above the other.
 		/// @return Whether or not screen has a horizontal split.
 		bool GetHSplit() const { return m_HSplit; }

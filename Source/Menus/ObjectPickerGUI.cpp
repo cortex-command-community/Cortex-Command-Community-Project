@@ -4,6 +4,7 @@
 #include "WindowMan.h"
 #include "FrameMan.h"
 #include "PresetMan.h"
+#include "ModuleMan.h"
 #include "ActivityMan.h"
 #include "UInputMan.h"
 #include "SettingsMan.h"
@@ -17,7 +18,6 @@
 #include "GUIListBox.h"
 #include "GUILabel.h"
 
-#include "DataModule.h"
 #include "SceneObject.h"
 #include "EditorActivity.h"
 #include "BunkerAssembly.h"
@@ -51,7 +51,7 @@ void ObjectPickerGUI::Clear() {
 	m_RepeatStartTimer.Reset();
 	m_RepeatTimer.Reset();
 
-	m_ExpandedModules.resize(g_PresetMan.GetTotalModuleCount());
+	m_ExpandedModules.resize(g_ModuleMan.GetTotalModuleCount());
 	std::fill(m_ExpandedModules.begin(), m_ExpandedModules.end(), false);
 	m_ExpandedModules[0] = true; // Base.rte is always expanded
 }
@@ -146,13 +146,13 @@ void ObjectPickerGUI::SetEnabled(bool enable) {
 }
 
 void ObjectPickerGUI::SetNativeTechModule(int whichModule) {
-	if (whichModule >= 0 && whichModule < g_PresetMan.GetTotalModuleCount()) {
+	if (whichModule >= 0 && whichModule < g_ModuleMan.GetTotalModuleCount()) {
 		m_NativeTechModuleID = whichModule;
 		if (m_NativeTechModuleID > 0) {
 			SetObjectsListModuleGroupExpanded(m_NativeTechModuleID);
 
 			if (!g_SettingsMan.FactionBuyMenuThemesDisabled()) {
-				if (const DataModule* techModule = g_PresetMan.GetDataModule(whichModule); techModule->IsFaction()) {
+				if (const DataModule* techModule = g_ModuleMan.GetDataModule(whichModule); techModule->IsFaction()) {
 					const DataModule::BuyMenuTheme& techBuyMenuTheme = techModule->GetFactionBuyMenuTheme();
 
 					if (!techBuyMenuTheme.SkinFilePath.empty()) {
@@ -314,7 +314,7 @@ void ObjectPickerGUI::SelectNextOrPrevObject(bool getPrev) {
 }
 
 void ObjectPickerGUI::AddObjectsListModuleGroup(int moduleID) {
-	const DataModule* dataModule = g_PresetMan.GetDataModule(moduleID);
+	const DataModule* dataModule = g_ModuleMan.GetDataModule(moduleID);
 	std::string moduleName = dataModule->GetFriendlyName();
 	std::transform(moduleName.begin(), moduleName.end(), moduleName.begin(), ::toupper);
 	GUIBitmap* dataModuleIcon = dataModule->GetIcon() ? new AllegroBitmap(dataModule->GetIcon()) : nullptr;
@@ -344,7 +344,7 @@ void ObjectPickerGUI::ShowDescriptionPopupBox() {
 	if (objectListItem && objectListItem->m_pEntity && !objectListItem->m_pEntity->GetDescription().empty()) {
 		description = objectListItem->m_pEntity->GetDescription();
 	} else if (objectListItem && objectListItem->m_ExtraIndex >= 0) {
-		const DataModule* dataModule = g_PresetMan.GetDataModule(objectListItem->m_ExtraIndex);
+		const DataModule* dataModule = g_ModuleMan.GetDataModule(objectListItem->m_ExtraIndex);
 		if (dataModule && !dataModule->GetDescription().empty()) {
 			description = dataModule->GetDescription();
 		}
@@ -365,7 +365,7 @@ void ObjectPickerGUI::ShowDescriptionPopupBox() {
 
 void ObjectPickerGUI::UpdateObjectsList(bool selectTop) {
 	m_ObjectsList->ClearList();
-	std::vector<std::list<Entity*>> moduleList(g_PresetMan.GetTotalModuleCount(), std::list<Entity*>());
+	std::vector<std::list<Entity*>> moduleList(g_ModuleMan.GetTotalModuleCount(), std::list<Entity*>());
 
 	if (const GUIListPanel::Item* groupListItem = m_GroupsList->GetSelected()) {
 		if (m_ModuleSpaceID < 0) {
@@ -375,16 +375,13 @@ void ObjectPickerGUI::UpdateObjectsList(bool selectTop) {
 				}
 			} else {
 				for (int moduleID = 0; moduleID < moduleList.size(); ++moduleID) {
-					if (moduleID == 0 || moduleID == m_NativeTechModuleID || g_PresetMan.GetDataModule(moduleID)->IsMerchant()) {
+					if (moduleID == 0 || moduleID == m_NativeTechModuleID || g_ModuleMan.GetDataModule(moduleID)->IsMerchant()) {
 						g_PresetMan.GetAllOfGroup(moduleList.at(moduleID), groupListItem->m_Name, m_ShowType, moduleID);
 					}
 				}
 			}
 		} else {
-			for (int moduleID = 0; moduleID < g_PresetMan.GetOfficialModuleCount() && moduleID < m_ModuleSpaceID; ++moduleID) {
-				g_PresetMan.GetAllOfGroup(moduleList.at(moduleID), groupListItem->m_Name, m_ShowType, moduleID);
-			}
-			g_PresetMan.GetAllOfGroup(moduleList.at(m_ModuleSpaceID), groupListItem->m_Name, m_ShowType, m_ModuleSpaceID);
+			g_PresetMan.GetAllOfGroupInModuleSpace(moduleList.at(m_ModuleSpaceID), groupListItem->m_Name, m_ShowType, m_ModuleSpaceID);
 		}
 	}
 

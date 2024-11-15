@@ -2,7 +2,7 @@
 
 #include "WindowMan.h"
 #include "PostProcessMan.h"
-#include "PresetMan.h"
+#include "ModuleMan.h"
 #include "PrimitiveMan.h"
 #include "PerformanceMan.h"
 #include "ActivityMan.h"
@@ -469,7 +469,7 @@ void FrameMan::CreateNewNetworkPlayerBackBuffer(int player, int width, int heigh
 }
 
 bool FrameMan::LoadPalette(const std::string& palettePath) {
-	const std::string fullPalettePath = g_PresetMan.GetFullModulePath(palettePath);
+	const std::string fullPalettePath = g_ModuleMan.GetFullModulePath(palettePath);
 	BITMAP* tempBitmap = load_bitmap(fullPalettePath.c_str(), m_Palette);
 	RTEAssert(tempBitmap, ("Failed to load palette from bitmap with following path:\n\n" + fullPalettePath).c_str());
 

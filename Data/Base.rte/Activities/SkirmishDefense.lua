@@ -57,7 +57,7 @@ function SkirmishDefense:StartActivity(isNewGame)
 			end
 		end
 
-		self.AI[team].TechID = PresetMan:GetModuleID(self:GetTeamTech(team));
+		self.AI[team].TechID = ModuleMan:GetModuleID(self:GetTeamTech(team));
 	end
 
 	if isNewGame then

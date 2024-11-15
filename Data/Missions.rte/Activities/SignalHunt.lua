@@ -193,7 +193,7 @@ function SignalHunt:SetupHumanPlayerBrains()
 			if not self:GetPlayerBrain(player) then
 				self.brainDead[player] = false;
 
-				local humanTeamTechId = PresetMan:GetModuleID(self.humanTeamTechName);
+				local humanTeamTechId = ModuleMan:GetModuleID(self.humanTeamTechName);
 				local actor;
 				if humanTeamTechId ~= -1 and team == self.attackerTeam then
 					actor = PresetMan:GetLoadout("Infantry Brain", humanTeamTechId, false);

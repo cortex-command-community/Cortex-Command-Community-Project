@@ -1,5 +1,6 @@
 #include "MetaMan.h"
 #include "MetaSave.h"
+#include "ModuleMan.h"
 #include "PresetMan.h"
 #include "UInputMan.h"
 #include "ConsoleMan.h"
@@ -115,7 +116,7 @@ int MetaMan::NewGame(int gameSize) {
 		// Make sure they are all hidden at game start
 		m_Scenes.back()->SetRevealed(false);
 		// Make them unique presets in their own Data Module so they don't get referenced from the original presets they were made from
-		m_Scenes.back()->MigrateToModule(g_PresetMan.GetModuleID(METASAVEMODULENAME));
+		m_Scenes.back()->MigrateToModule(g_ModuleMan.GetModuleID(METASAVEMODULENAME));
 		// Make them unexplored by all teams
 		for (int team = Activity::TeamOne; team < m_TeamCount; ++team)
 			m_Scenes.back()->FillUnseenLayer(Vector(4, 4), team, false);

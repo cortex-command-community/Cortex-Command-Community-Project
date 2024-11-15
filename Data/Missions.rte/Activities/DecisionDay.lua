@@ -136,8 +136,8 @@ function DecisionDay:StartActivity(isNewGame)
 
 	self.humanTeam = Activity.TEAM_1;
 	self.aiTeam = Activity.TEAM_2;
-	self.humanTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.humanTeam));
-	self.aiTeamTech = PresetMan:GetModuleID(self:GetTeamTech(self.aiTeam));
+	self.humanTeamTech = ModuleMan:GetModuleID(self:GetTeamTech(self.humanTeam));
+	self.aiTeamTech = ModuleMan:GetModuleID(self:GetTeamTech(self.aiTeam));
 
 	local bunkerRegionNames = {
 		"Front Bunker Operations",
