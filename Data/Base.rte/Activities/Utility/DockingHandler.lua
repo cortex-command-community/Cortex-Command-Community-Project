@@ -93,14 +93,14 @@ function DockingHandler:Initialize(activity, newGame, autoAssignUnknownDropships
 		
 		local i = 1;
 		
-		while SceneMan.Scene:GetOptionalArea("Dropship Dock " .. i) do	
+		while SceneMan.Scene:GetArea("Dropship Dock " .. i) do	
 			self.mainTable.activeDSDockTable[i] = {["dockPosition"] = SceneMan.Scene:GetArea("Dropship Dock " .. i).Center,
 			["activeCraft"] =  nil,
 			["dockingStage"] =  nil};			
 			i = i + 1;
 			-- Jump two if needed, the player may want to avoid overlap as per above instructions
-			if SceneMan.Scene:GetOptionalArea("Dropship Dock " .. i) then
-			elseif SceneMan.Scene:GetOptionalArea("Dropship Dock " .. i + 1) then
+			if SceneMan.Scene:GetArea("Dropship Dock " .. i) then
+			elseif SceneMan.Scene:GetArea("Dropship Dock " .. i + 1) then
 				i = i + 1;
 			end
 				
@@ -111,13 +111,13 @@ function DockingHandler:Initialize(activity, newGame, autoAssignUnknownDropships
 		
 		i = 1;
 		
-		while SceneMan.Scene:GetOptionalArea("Rocket Dock " .. i) do	
+		while SceneMan.Scene:GetArea("Rocket Dock " .. i) do	
 			self.mainTable.activeRocketDockTable[i] = {["dockPosition"] = SceneMan.Scene:GetArea("Rocket Dock " .. i).Center,
 			["activeCraft"] =  nil,
 			["dockingStage"] =  nil};
 			i = i + 1;
-			if SceneMan.Scene:GetOptionalArea("Rocket Dock " .. i) then
-			elseif SceneMan.Scene:GetOptionalArea("Rocket Dock " .. i + 1) then
+			if SceneMan.Scene:GetArea("Rocket Dock " .. i) then
+			elseif SceneMan.Scene:GetArea("Rocket Dock " .. i + 1) then
 				i = i + 1;
 			end
 		end

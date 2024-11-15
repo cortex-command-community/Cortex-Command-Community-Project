@@ -625,6 +625,82 @@ int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functio
 	return status;
 }
 
+int LuaStateWrapper::RunScriptConditionalTestFunctionObject(const LuabindObjectWrapper* functionObject, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, bool& returnParam, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
+	int status = 0;
+
+	std::lock_guard<std::recursive_mutex> lock(m_Mutex);
+	s_currentLuaState = this;
+	m_CurrentlyRunningScriptPath = functionObject->GetFilePath();
+
+	lua_pushcfunction(m_State, &AddFileAndLineToError);
+	functionObject->GetLuabindObject()->push(m_State);
+
+	int argumentCount = functionEntityArguments.size() + functionLiteralArguments.size() + functionObjectArguments.size();
+	if (!selfGlobalTableName.empty() && TableEntryIsDefined(selfGlobalTableName, selfGlobalTableKey)) {
+		lua_getglobal(m_State, selfGlobalTableName.c_str());
+		lua_getfield(m_State, -1, selfGlobalTableKey.c_str());
+		lua_remove(m_State, -2);
+		argumentCount++;
+	}
+
+	for (const Entity* functionEntityArgument: functionEntityArguments) {
+		std::unique_ptr<LuabindObjectWrapper> downCastEntityAsLuabindObjectWrapper(LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions.at(functionEntityArgument->GetClassName())(const_cast<Entity*>(functionEntityArgument), m_State));
+		downCastEntityAsLuabindObjectWrapper->GetLuabindObject()->push(m_State);
+	}
+
+	for (const std::string_view& functionLiteralArgument: functionLiteralArguments) {
+		char* stringToDoubleConversionFailed = nullptr;
+		if (functionLiteralArgument == "nil") {
+			lua_pushnil(m_State);
+		} else if (functionLiteralArgument == "true" || functionLiteralArgument == "false") {
+			lua_pushboolean(m_State, functionLiteralArgument == "true" ? 1 : 0);
+		} else if (double argumentAsNumber = std::strtod(functionLiteralArgument.data(), &stringToDoubleConversionFailed); !*stringToDoubleConversionFailed) {
+			lua_pushnumber(m_State, argumentAsNumber);
+		} else {
+			lua_pushlstring(m_State, functionLiteralArgument.data(), functionLiteralArgument.size());
+		}
+	}
+
+	for (const LuabindObjectWrapper* functionObjectArgument: functionObjectArguments) {
+		if (functionObjectArgument->GetLuabindObject()->interpreter() != m_State) {
+			LuabindObjectWrapper copy = functionObjectArgument->GetCopyForState(*m_State);
+			copy.GetLuabindObject()->push(m_State);
+		} else {
+			functionObjectArgument->GetLuabindObject()->push(m_State);
+		}
+	}
+
+	const std::string& path = functionObject->GetFilePath();
+	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+	{
+		ZoneScoped;
+		ZoneName(path.c_str(), path.length());
+
+		if (lua_pcall(m_State, argumentCount, 1, -argumentCount - 2) > 0) {
+			m_LastError = lua_tostring(m_State, -1);
+			lua_pop(m_State, 1);
+			g_ConsoleMan.PrintString("ERROR: " + m_LastError);
+			ClearErrors();
+			status = -1;
+		} else {
+			returnParam = 1 == lua_toboolean(m_State, -1);
+			lua_pop(m_State, 1);
+		}
+	}
+	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+	// only track time in non-MT scripts, for now
+	if (&g_LuaMan.GetMasterScriptState() == this) {
+		m_ScriptTimings[path].m_Time += std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+		m_ScriptTimings[path].m_CallCount++;
+	}
+
+	lua_pop(m_State, 1);
+
+	m_CurrentlyRunningScriptPath = "";
+	return status;
+}
+
 int LuaStateWrapper::RunScriptFile(const std::string& filePath, bool consoleErrors, bool doInSandboxedEnvironment) {
 	const std::string fullScriptPath = g_PresetMan.GetFullModulePath(filePath);
 	if (fullScriptPath.empty()) {
