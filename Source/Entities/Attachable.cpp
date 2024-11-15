@@ -48,6 +48,8 @@ void Attachable::Clear() {
 	m_InheritedRotAngleOffset = 0;
 	m_MountedRotAngleOffset = 0.0F;
 	m_InheritsFrame = false;
+	m_InheritsVelWhenDetached = 1.0F;
+	m_InheritsAngularVelWhenDetached = 1.0F;
 
 	m_AtomSubgroupID = -1L;
 	m_CollidesWithTerrainWhileAttached = true;
@@ -98,6 +100,8 @@ int Attachable::Create(const Attachable& reference) {
 	m_InheritedRotAngleOffset = reference.m_InheritedRotAngleOffset;
 	m_MountedRotAngleOffset = reference.m_MountedRotAngleOffset;
 	m_InheritsFrame = reference.m_InheritsFrame;
+	m_InheritsVelWhenDetached = reference.m_InheritsVelWhenDetached;
+	m_InheritsAngularVelWhenDetached = reference.m_InheritsAngularVelWhenDetached;
 
 	m_AtomSubgroupID = GetUniqueID();
 	m_CollidesWithTerrainWhileAttached = reference.m_CollidesWithTerrainWhileAttached;
@@ -147,6 +151,8 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("InheritedRotAngleDegOffset", { m_InheritedRotAngleOffset = DegreesToRadians(std::stof(reader.ReadPropValue())); });
 	MatchProperty("MountedRotAngleOffset", { reader >> m_MountedRotAngleOffset; });
 	MatchProperty("InheritsFrame", { reader >> m_InheritsFrame; });
+	MatchProperty("InheritsVelWhenDetached", { reader >> m_InheritsVelWhenDetached; });
+	MatchProperty("InheritsAngularVelWhenDetached", { reader >> m_InheritsAngularVelWhenDetached; });
 	MatchProperty("CollidesWithTerrainWhileAttached", { reader >> m_CollidesWithTerrainWhileAttached; });
 	MatchProperty("IgnoresParticlesWhileAttached", { reader >> m_IgnoresParticlesWhileAttached; });
 	MatchProperty("AddPieSlice", { m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader)))); });
@@ -173,7 +179,9 @@ int Attachable::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("InheritsHFlipped", ((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2));
 	writer.NewPropertyWithValue("InheritsRotAngle", m_InheritsRotAngle);
 	writer.NewPropertyWithValue("InheritedRotAngleOffset", m_InheritedRotAngleOffset);
-	writer.NewPropertyWithValue("MountedRotAngleOffset", m_MountedRotAngleOffset);
+  writer.NewPropertyWithValue("MountedRotAngleOffset", m_MountedRotAngleOffset);
+	writer.NewPropertyWithValue("InheritsVelWhenDetached", m_InheritsVelWhenDetached);
+	writer.NewPropertyWithValue("InheritsAngularVelWhenDetached", m_InheritsAngularVelWhenDetached);
 
 	writer.NewPropertyWithValue("CollidesWithTerrainWhileAttached", m_CollidesWithTerrainWhileAttached);
 	writer.NewPropertyWithValue("IgnoresParticlesWhileAttached", m_IgnoresParticlesWhileAttached);

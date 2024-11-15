@@ -17,12 +17,14 @@ void Emission::Clear() {
 	m_MaxVelocity = 0;
 	m_LifeVariation = 0.1;
 	m_PushesEmitter = true;
-	m_InheritsVel = 0;
+	m_InheritsVel = 0.0F;
+	m_InheritsAngularVel = 0.0F;
 	m_StartTimer.SetSimTimeLimitMS(0);
 	m_StartTimer.Reset();
 	m_StopTimer.SetSimTimeLimitMS(1000000);
 	m_StopTimer.Reset();
 	m_Offset.Reset();
+	m_ParticleCount = 1;
 }
 
 /*
@@ -46,9 +48,11 @@ int Emission::Create(const Emission& reference) {
 	m_LifeVariation = reference.m_LifeVariation;
 	m_PushesEmitter = reference.m_PushesEmitter;
 	m_InheritsVel = reference.m_InheritsVel;
+	m_InheritsAngularVel = reference.m_InheritsAngularVel;
 	m_StartTimer = reference.m_StartTimer;
 	m_StopTimer = reference.m_StopTimer;
 	m_Offset = reference.m_Offset;
+	m_ParticleCount = reference.m_ParticleCount;
 
 	return 0;
 }
@@ -69,11 +73,9 @@ int Emission::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("LifeVariation", { reader >> m_LifeVariation; });
 	MatchProperty("PushesEmitter", { reader >> m_PushesEmitter; });
 	MatchProperty("Offset", { reader >> m_Offset; });
-	MatchProperty("InheritsVel",
-	              {
-		              reader >> m_InheritsVel;
-		              Clamp(m_InheritsVel, 1, 0);
-	              });
+	MatchProperty("ParticleCount", { reader >> m_ParticleCount; });
+	MatchProperty("InheritsVel", { reader >> m_InheritsVel; });
+	MatchProperty("InheritsAngularVel", { reader >> m_InheritsAngularVel; });
 	MatchProperty("StartTimeMS",
 	              {
 		              double startTime;
@@ -111,12 +113,16 @@ int Emission::Save(Writer& writer) const {
 	writer << m_PushesEmitter;
 	writer.NewProperty("InheritsVel");
 	writer << m_InheritsVel;
+	writer.NewProperty("InheritsAngularVel");
+	writer << m_InheritsAngularVel;
 	writer.NewProperty("Offset");
 	writer << m_Offset;
 	writer.NewProperty("StartTimeMS");
 	writer << m_StartTimer.GetSimTimeLimitMS();
 	writer.NewProperty("StopTimeMS");
 	writer << m_StopTimer.GetSimTimeLimitMS();
+	writer.NewProperty("ParticleCount");
+	writer << m_ParticleCount;
 
 	return 0;
 }

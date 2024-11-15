@@ -276,6 +276,23 @@ namespace RTE {
 		/// Sets whether or not this Attachable inherits its Frame from its parent, if attached.
 		/// @param inheritsFrame Whether or not to inherit its parent's Frame.
 		void SetInheritsFrame(bool inheritsFrame) { m_InheritsFrame = inheritsFrame; }
+
+		/// How much of the root parent's velocity this attachable inherits when detached
+		/// @return The proportion of the velocity inherited. 0.1 = 10% inheritance.
+		float InheritsVelocityWhenDetached() const { return m_InheritsVelWhenDetached; }
+
+		/// How much of the root parent's angular velocity this attachable inherits when detached
+		/// @return The proportion of the angular velocity inherited. 0.1 = 10% inheritance.
+		float InheritsAngularVelocityWhenDetached() const { return m_InheritsAngularVelWhenDetached; }
+
+		/// Sets how much of the root parent's velocity this attachable inherits when detached
+		/// @param The proportion of the velocity inherited. 0.1 = 10% inheritance.
+		void SetInheritsVelocityWhenDetached(float newValue) { m_InheritsVelWhenDetached = newValue; }
+
+		/// Sets how much of the root parent's angular velocity this attachable inherits when detached
+		/// @param The proportion of the angular velocity inherited. 0.1 = 10% inheritance.
+		void SetInheritsAngularVelocityWhenDetached(float newValue) { m_InheritsAngularVelWhenDetached = newValue; }
+
 #pragma endregion
 
 #pragma region Collision Management
@@ -446,6 +463,9 @@ namespace RTE {
 		// TODO: It really sucks this has to be here just because Turrets are Speshul, we should figure out something better.
 		float m_MountedRotAngleOffset; //!< A relative offset angle (in radians) of this Attachable's rotation that should only be set by Turrets. Defaults to 0.
 		bool m_InheritsFrame; //!< Whether this Attachable should inherit its parent's Frame. Defaults to false.
+
+		float m_InheritsVelWhenDetached; //!< How much of the parents velocity this attachable inherits when detached
+		float m_InheritsAngularVelWhenDetached; //!< How much of the parents angular velocity this attachable inherits when detached
 
 		long m_AtomSubgroupID; //!< The Atom IDs this' atoms will have when attached and added to a parent's AtomGroup.
 		bool m_CollidesWithTerrainWhileAttached; //!< Whether this attachable currently has terrain collisions enabled while it's attached to a parent.
