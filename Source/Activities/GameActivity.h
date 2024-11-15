@@ -423,6 +423,8 @@ namespace RTE {
 
 		bool GetRequireClearPathToOrbitSwitchEnabled() const { return m_RequireClearPathToOrbitSwitchEnabled; }
 
+		bool GetTeamTechSwitchEnabled(int team) const { return m_TeamTechSwitchEnabled[team]; }
+
 		/// Returns CrabToHumanSpawnRatio for specified module
 		/// @return Crab-To-Human spawn ratio value set for specified module, 0.25 is default.
 		float GetCrabToHumanSpawnRatio(int moduleid);
@@ -583,6 +585,7 @@ namespace RTE {
 
 		// Tech of player
 		std::string m_TeamTech[Teams::MaxTeamCount];
+		bool m_TeamTechSwitchEnabled[Teams::MaxTeamCount];
 
 		// Initial gold amount selected by player in scenario setup dialog
 		int m_StartingGold;
