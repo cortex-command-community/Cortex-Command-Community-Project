@@ -216,8 +216,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 	    .property("MoveProximityLimit", &Actor::GetMoveProximityLimit, &Actor::SetMoveProximityLimit)
 
 	    .def_readwrite("MOMoveTarget", &Actor::m_pMOMoveTarget)
-	    .def_readonly("MovePath", &Actor::m_MovePath, luabind::return_stl_iterator)
-	    .def_readonly("Inventory", &Actor::m_Inventory, luabind::return_stl_iterator)
+	    .def_readwrite("MovePath", &Actor::m_MovePath, luabind::return_stl_iterator)
+	    .def_readwrite("Inventory", &Actor::m_Inventory, luabind::return_stl_iterator)
 
 	    .def("GetController", &Actor::GetController)
 	    .def("IsPlayerControlled", &Actor::IsPlayerControlled)
@@ -370,8 +370,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AEmitter) {
 	    .property("FlashScale", &AEmitter::GetFlashScale, &AEmitter::SetFlashScale)
 	    .property("TotalParticlesPerMinute", &AEmitter::GetTotalParticlesPerMinute)
 	    .property("TotalBurstSize", &AEmitter::GetTotalBurstSize)
-	    
-		.def_readonly("Emissions", &AEmitter::m_EmissionList, luabind::return_stl_iterator)
+
+	    .def_readwrite("Emissions", &AEmitter::m_EmissionList, luabind::return_stl_iterator)
 
 	    .def("IsEmitting", &AEmitter::IsEmitting)
 	    .def("WasEmitting", &AEmitter::WasEmitting)
@@ -1040,7 +1040,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PEmitter) {
 	    .property("EmitCountLimit", &PEmitter::GetEmitCountLimit, &PEmitter::SetEmitCountLimit)
 	    .property("FlashScale", &PEmitter::GetFlashScale, &PEmitter::SetFlashScale)
 
-	    .def_readonly("Emissions", &PEmitter::m_EmissionList, luabind::return_stl_iterator)
+	    .def_readwrite("Emissions", &PEmitter::m_EmissionList, luabind::return_stl_iterator)
 
 	    .def("IsEmitting", &PEmitter::IsEmitting)
 	    .def("WasEmitting", &PEmitter::WasEmitting)
@@ -1178,9 +1178,9 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Scene) {
 	    .property("GlobalAcc", &Scene::GetGlobalAcc, &Scene::SetGlobalAcc)
 	    .property("ScenePathSize", &Scene::GetScenePathSize)
 
-	    .def_readonly("Deployments", &Scene::m_Deployments, luabind::return_stl_iterator)
+	    .def_readwrite("Deployments", &Scene::m_Deployments, luabind::return_stl_iterator)
+
 	    .def_readonly("BackgroundLayers", &Scene::m_BackLayerList, luabind::return_stl_iterator)
-	    .def_readonly("Areas", &Scene::m_AreaList, luabind::return_stl_iterator)
 
 	    .def("GetScenePath", &Scene::GetScenePath, luabind::return_stl_iterator)
 	    .def("GetBuildBudget", &Scene::GetBuildBudget)
@@ -1193,6 +1193,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Scene) {
 	    .def("RetrieveResidentBrains", &Scene::RetrieveResidentBrains)
 	    .def("GetResidentBrain", &Scene::GetResidentBrain)
 	    .def("SetResidentBrain", &Scene::SetResidentBrain)
+	    .def_readwrite("Areas", &Scene::m_AreaList, luabind::return_stl_iterator)
 	    .def("SetArea", &Scene::SetArea)
 	    .def("HasArea", &Scene::HasArea)
 	    .def("GetArea", (Scene::Area * (Scene::*)(const std::string& areaName)) & Scene::GetArea)
@@ -1226,9 +1227,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneArea) {
 	    .property("Center", &Scene::Area::GetCenterPoint)
 	    .property("RandomPoint", &Scene::Area::GetRandomPoint)
 
-		.def_readonly("Boxes", &Scene::Area::m_BoxList, luabind::return_stl_iterator)
-	    
 	    .def("Reset", &Scene::Area::Reset)
+	    .def_readwrite("Boxes", &Scene::Area::m_BoxList, luabind::return_stl_iterator)
 	    .def("AddBox", &Scene::Area::AddBox)
 	    .def("RemoveBox", &Scene::Area::RemoveBox)
 	    .def("HasNoArea", &Scene::Area::HasNoArea)

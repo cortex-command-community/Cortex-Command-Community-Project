@@ -2648,14 +2648,14 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 			static bool s_drawNoGravBoxes = false;
 			if (s_drawNoGravBoxes) {
 				if (Scene::Area* noGravArea = m_pCurrentScene->GetArea("NoGravityArea")) {
-					const std::vector<Box>& boxList = noGravArea->GetBoxes();
+					const std::vector<Box*>& boxList = noGravArea->GetBoxes();
 					g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
 					drawing_mode(DRAW_MODE_TRANS, 0, 0, 0);
 
 					std::list<Box> wrappedBoxes;
-					for (std::vector<Box>::const_iterator bItr = boxList.begin(); bItr != boxList.end(); ++bItr) {
+					for (Box* box: boxList) {
 						wrappedBoxes.clear();
-						g_SceneMan.WrapBox(*bItr, wrappedBoxes);
+						g_SceneMan.WrapBox(*box, wrappedBoxes);
 
 						for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
 							Vector adjCorner = (*wItr).GetCorner() - targetPos;

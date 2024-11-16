@@ -58,8 +58,8 @@ int PEmitter::Create() {
 int PEmitter::Create(const PEmitter& reference) {
 	MOSParticle::Create(reference);
 
-	for (const Emission* emission: reference.m_EmissionList) {
-		m_EmissionList.push_back(dynamic_cast<Emission*>(emission->Clone()));
+	for (Emission* emission: reference.m_EmissionList) {
+		m_EmissionList.push_back(static_cast<Emission*>(emission->Clone()));
 	}
 	m_EmissionSound = reference.m_EmissionSound;
 	m_BurstSound = reference.m_BurstSound;
@@ -91,12 +91,12 @@ int PEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 	MatchProperty("AddEmission", {
 		Entity* readerEntity = g_PresetMan.ReadReflectedPreset(reader);
-		if (Emission* readerEmission = dynamic_cast<Emission*>(readerEntity)) {
-			m_EmissionList.push_back(readerEmission);
+		if (Emission* readerAttachable = dynamic_cast<Emission*>(readerEntity)) {
+			m_EmissionList.push_back(readerAttachable);
 		} else {
-			reader.ReportError("Tried to AddEmission a non-Emission type!");
+			reader.ReportError("Tried to AddAttachable a non-Attachable type!");
 		}
-	 });
+	});
 	MatchProperty("EmissionSound", { reader >> m_EmissionSound; });
 	MatchProperty("BurstSound", { reader >> m_BurstSound; });
 	MatchProperty("EndSound", { reader >> m_EndSound; });
@@ -139,9 +139,9 @@ int PEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 int PEmitter::Save(Writer& writer) const {
 	MOSParticle::Save(writer);
 
-	for (auto itr = m_EmissionList.begin(); itr != m_EmissionList.end(); ++itr) {
+	for (Emission* emission: m_EmissionList) {
 		writer.NewProperty("AddEmission");
-		writer << *itr;
+		writer << *emission;
 	}
 	writer.NewProperty("EmissionSound");
 	writer << m_EmissionSound;
@@ -191,10 +191,11 @@ int PEmitter::Save(Writer& writer) const {
 
 void PEmitter::Destroy(bool notInherited) {
 	// Stop playback of sounds gracefully
-	if (m_EmissionSound.IsBeingPlayed())
+	if (m_EmissionSound.IsBeingPlayed()) {
 		m_EndSound.Play(m_Pos);
-	else
+	} else {
 		m_EndSound.Stop();
+	}
 
 	for (Emission* emission: m_EmissionList) {
 		delete emission;

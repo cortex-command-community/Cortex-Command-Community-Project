@@ -163,7 +163,7 @@ namespace RTE {
 
 		/// Returns whether this MOSprite is currently under the effects of
 		/// recoil.
-		bool IsRecoiled() const { return m_Recoiled; }
+		bool IsRecoiled() { return m_Recoiled; }
 
 		/// Sets whether or not this MOSRotating should check for deep penetrations
 		/// the terrain or not.

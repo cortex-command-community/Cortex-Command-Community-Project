@@ -85,6 +85,10 @@ namespace RTE {
 			/// Anything below 0 is an error signal.
 			int Create(const Area& reference);
 
+			/// Destroys and resets (through Clear()) the Area object.
+			/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
+			void Destroy(bool notInherited);
+
 			/// Resets the entire Serializable, including its inherited members, to their
 			/// default settings or values.
 			void Reset() override { Clear(); }
@@ -101,11 +105,11 @@ namespace RTE {
 
 			/// Gets the first Box in this Area.
 			/// @return The first Box in this Area.
-			const Box* GetFirstBox() const { return m_BoxList.empty() ? nullptr : &m_BoxList[0]; }
+			const Box* GetFirstBox() const { return m_BoxList.empty() ? nullptr : m_BoxList[0]; }
 
 			/// Gets the boxes for this area.
 			/// @return The boxes in this Area.
-			const std::vector<Box>& GetBoxes() const { return m_BoxList; }
+			const std::vector<Box*>& GetBoxes() const { return m_BoxList; }
 
 			/// Shows whether this really has no Area at all, ie it doesn't have any
 			/// Box:es with both width and height.
@@ -164,7 +168,7 @@ namespace RTE {
 			/// Protected member variable and method declarations
 		protected:
 			// The list of Box:es defining the Area in the owner Scene
-			std::vector<Box> m_BoxList;
+			std::vector<Box*> m_BoxList;
 			// The name tag of this Area
 			std::string m_Name;
 

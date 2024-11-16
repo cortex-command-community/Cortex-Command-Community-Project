@@ -58,8 +58,7 @@ void Scene::Area::Clear() {
 }
 
 int Scene::Area::Create(const Area& reference) {
-	for (std::vector<Box>::const_iterator itr = reference.m_BoxList.begin(); itr != reference.m_BoxList.end(); ++itr)
-		m_BoxList.push_back(*itr);
+	for (Box* box: reference.m_BoxList) m_BoxList.push_back(new Box(*box));
 
 	m_Name = reference.m_Name;
 
@@ -77,8 +76,8 @@ int Scene::Area::ReadProperty(const std::string_view& propName, Reader& reader) 
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
 	MatchProperty("AddBox",
-	              Box box;
-	              reader >> box;
+	              Box* box = new Box;
+	              reader >> *box;
 	              m_BoxList.push_back(box););
 	MatchProperty("Name", { reader >> m_Name; });
 
@@ -88,14 +87,22 @@ int Scene::Area::ReadProperty(const std::string_view& propName, Reader& reader) 
 int Scene::Area::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	for (std::vector<Box>::const_iterator itr = m_BoxList.begin(); itr != m_BoxList.end(); ++itr) {
+	for (Box* box: m_BoxList) {
 		writer.NewProperty("AddBox");
-		writer << *itr;
+		writer << *box;
 	}
 	writer.NewProperty("Name");
 	writer << m_Name;
 
 	return 0;
+}
+
+void Scene::Area::Destroy(bool notInherited) {
+	for (Box* box: m_BoxList) {
+		delete box;
+	}
+
+	Clear();
 }
 
 // Having a mutex on all areas is fugly, but this is only really useful to stop async pathfinding getting fucked by the list changing underneath us
@@ -108,14 +115,14 @@ bool Scene::Area::AddBox(const Box& newBox) {
 	}
 
 	std::unique_lock<std::shared_mutex> guard(g_sceneAreaMutex);
-	m_BoxList.push_back(newBox);
+	m_BoxList.push_back(new Box(newBox));
 	return true;
 }
 
 bool Scene::Area::RemoveBox(const Box& boxToRemove) {
 	std::unique_lock<std::shared_mutex> guard(g_sceneAreaMutex);
 
-	std::vector<Box>::iterator boxToRemoveIterator = std::find(m_BoxList.begin(), m_BoxList.end(), boxToRemove);
+	std::vector<Box*>::iterator boxToRemoveIterator = std::find(m_BoxList.begin(), m_BoxList.end(), &boxToRemove);
 	if (boxToRemoveIterator != m_BoxList.end()) {
 		m_BoxList.erase(boxToRemoveIterator);
 		return true;
@@ -131,8 +138,8 @@ bool Scene::Area::HasNoArea() const {
 
 	// Search through the boxes to see if we find any with both width and height
 	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
-	for (std::vector<Box>::const_iterator itr = m_BoxList.begin(); itr != m_BoxList.end(); ++itr) {
-		if (!itr->IsEmpty())
+	for (Box* box: m_BoxList) {
+		if (!box->IsEmpty())
 			return false;
 	}
 
@@ -143,10 +150,10 @@ bool Scene::Area::IsInside(const Vector& point) const {
 	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
 
 	std::list<Box> wrappedBoxes;
-	for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
+	for (Box* box: m_BoxList) {
 		// Handle wrapped boxes properly
 		wrappedBoxes.clear();
-		g_SceneMan.WrapBox(*aItr, wrappedBoxes);
+		g_SceneMan.WrapBox(*box, wrappedBoxes);
 
 		// Iterate through the wrapped boxes - will only be one if there's no wrapping
 		for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
@@ -161,10 +168,10 @@ bool Scene::Area::IsInsideX(float pointX) const {
 	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
 
 	std::list<Box> wrappedBoxes;
-	for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
+	for (Box* box: m_BoxList) {
 		// Handle wrapped boxes properly
 		wrappedBoxes.clear();
-		g_SceneMan.WrapBox(*aItr, wrappedBoxes);
+		g_SceneMan.WrapBox(*box, wrappedBoxes);
 
 		// Iterate through the wrapped boxes - will only be one if there's no wrapping
 		for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
@@ -179,10 +186,10 @@ bool Scene::Area::IsInsideY(float pointY) const {
 	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
 
 	std::list<Box> wrappedBoxes;
-	for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
+	for (Box* box: m_BoxList) {
 		// Handle wrapped boxes properly
 		wrappedBoxes.clear();
-		g_SceneMan.WrapBox(*aItr, wrappedBoxes);
+		g_SceneMan.WrapBox(*box, wrappedBoxes);
 
 		// Iterate through the wrapped boxes - will only be one if there's no wrapping
 		for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
@@ -205,10 +212,10 @@ bool Scene::Area::MovePointInsideX(float& pointX, int direction) const {
 	float shortestConstrained = notFoundValue;
 	float testDistance = 0;
 	std::list<Box> wrappedBoxes;
-	for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
+	for (Box* box: m_BoxList) {
 		// Handle wrapped boxes properly
 		wrappedBoxes.clear();
-		g_SceneMan.WrapBox(*aItr, wrappedBoxes);
+		g_SceneMan.WrapBox(*box, wrappedBoxes);
 
 		// Iterate through the wrapped boxes - will only be one if there's no wrapping
 		for (std::list<Box>::const_iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
@@ -251,16 +258,16 @@ Box* Scene::Area::GetBoxInside(const Vector& point) {
 	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
 
 	std::list<Box> wrappedBoxes;
-	for (std::vector<Box>::iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
+	for (Box* box: m_BoxList) {
 		// Handle wrapped boxes properly
 		wrappedBoxes.clear();
-		g_SceneMan.WrapBox(*aItr, wrappedBoxes);
+		g_SceneMan.WrapBox(*box, wrappedBoxes);
 
 		// Iterate through the wrapped boxes - will only be one if there's no wrapping
 		for (std::list<Box>::const_iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
 			// Return the BoxList box, not the inconsequential wrapped copy
 			if (wItr->IsWithinBox(point))
-				return &(*aItr);
+				return &(*box);
 		}
 	}
 	return 0;
@@ -272,16 +279,16 @@ Box Scene::Area::RemoveBoxInside(const Vector& point) {
 	Box returnBox;
 
 	std::list<Box> wrappedBoxes;
-	for (std::vector<Box>::iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
+	for (std::vector<Box*>::iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
 		// Handle wrapped boxes properly
 		wrappedBoxes.clear();
-		g_SceneMan.WrapBox(*aItr, wrappedBoxes);
+		g_SceneMan.WrapBox(**aItr, wrappedBoxes);
 
 		// Iterate through the wrapped boxes - will only be one if there's no wrapping
 		for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
 			if (wItr->IsWithinBox(point)) {
 				// Remove the BoxList box, not the inconsequential wrapped copy
-				returnBox = (*aItr);
+				returnBox = (**aItr);
 				m_BoxList.erase(aItr);
 				return returnBox;
 			}
@@ -296,14 +303,14 @@ Vector Scene::Area::GetCenterPoint() const {
 	Vector areaCenter;
 	if (!m_BoxList.empty()) {
 		if (m_BoxList.size() == 1) {
-			return m_BoxList[0].GetCenter();
+			return m_BoxList[0]->GetCenter();
 		}
 
 		float totalWeight = 0;
-		for (std::vector<Box>::const_iterator itr = m_BoxList.begin(); itr != m_BoxList.end(); ++itr) {
+		for (Box* box: m_BoxList) {
 			// Doubly weighted
-			areaCenter += (*itr).GetCenter() * (*itr).GetArea() * 2;
-			totalWeight += (*itr).GetArea() * 2;
+			areaCenter += box->GetCenter() * box->GetArea() * 2;
+			totalWeight += box->GetArea() * 2;
 		}
 		// Average center of the all the boxes, weighted by their respective areas
 		areaCenter /= totalWeight;
@@ -320,7 +327,7 @@ Vector Scene::Area::GetRandomPoint() const {
 
 	// Randomly choose a box, and a point within it
 	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
-	return m_BoxList[RandomNum<int>(0, m_BoxList.size() - 1)].GetRandomPoint();
+	return m_BoxList[RandomNum<int>(0, m_BoxList.size() - 1)]->GetRandomPoint();
 }
 
 void Scene::Clear() {
@@ -2451,8 +2458,8 @@ void Scene::Update() {
 
 			for (const std::string& navigatableArea: m_NavigatableAreas) {
 				if (HasArea(navigatableArea)) {
-					for (const Box& navigatableBox: GetArea(navigatableArea)->GetBoxes()) {
-						pathFinder.MarkBoxNavigatable(navigatableBox, true);
+					for (const Box* navigatableBox: GetArea(navigatableArea)->GetBoxes()) {
+						pathFinder.MarkBoxNavigatable(*navigatableBox, true);
 					}
 				}
 			}
