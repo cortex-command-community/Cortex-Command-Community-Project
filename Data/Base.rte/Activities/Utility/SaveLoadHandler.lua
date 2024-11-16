@@ -261,7 +261,7 @@ function SaveLoadHandler:ParseTableForAreas(tab)
 	for k, v in pairs(tab) do
 		if type(v) == "string" and string.find(v, "SAVELOADHANDLERAREA_") then
 			local areaName = string.sub(v, 21, -1);
-			local area = SceneMan.Scene:GetOptionalArea(areaName);
+			local area = SceneMan.Scene:GetArea(areaName);
 			tab[k] = area;	
 		elseif type(v) == "table" then
 			self:ParseTableForAreas(v);

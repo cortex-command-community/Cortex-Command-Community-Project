@@ -848,7 +848,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 										end
 									else
 										-- do we have a target we want to shoot at?
-										if (AI.Target and AI.canHitTarget and AI.BehaviorName ~= "AttackTarget") then
+										if Owner.Head and AI.Target and AI.canHitTarget and AI.BehaviorName ~= "AttackTarget" then
 											-- are we also flying
 											if AI.flying and Owner.Jetpack.JetpackType == AEJetpack.Standard then
 												-- predict jetpack movement when jumping and there is a target (check one direction)

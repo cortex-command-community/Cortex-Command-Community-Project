@@ -65,6 +65,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`ActivateHotkeyAction(hotkeyType)` activates a certain hotkey action.
 	`DeactivateHotkeyAction(hotkeyType)` deactivates a certain hotkey action.
 
+- New `GAScripted` Lua script method `IsCompatibleScene(scene)` to allow Activities to generically decide which Scenes are eligible by returning a boolean value.
+	New `GAScripted` INI enumerating property `AddRequiredArea`, replacing Lua file scanning, to allow Activities to explicitly state which areas are strictly required.
+	As before, these work in tandem. Both the required areas, if defined, and script conditional method, if defined, must pass for the scene to qualify.
+
+- New `GameActivity` INI properties `TeamNTechSwitchEnabled` which determine whether activity team factions are configurable by the user. This is most useful for communicating what the player is not intended to change, or what inputs would be ignored otherwise.
+
 - Allow lua scripts to use LuaJIT's BitOp module (see https://bitop.luajit.org/api.html)
 
 </details>
@@ -96,7 +102,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	
 - The `LimbPath` property `NormalTravelSpeed` has been renamed to just `TravelSpeed`.
 
+- `GameActivity` INI properties `TeamNTech` values switched to lazy eval, allowing them to be validated once all modules are loaded.
+	As well, the scenario menu activity configuration screen now respects defaults set in INI, where possible.
+
+- Internal GUI element `ComboBox` no longer displays dropdown combobutton when disabled, to communicate visually that it's setting is not modifiable.
+
 - Almost all ctrl+* special inputs functionality (i.e restarting activity, world dumps, showing performance stats) are now mapped to right alt, to not interfere with default crouching inputs. The only exception is ctrl+arrow keys for changing console size.
+
+- Gibs and detached Attachables now inherit the parent's angular velocity, as well as velocity derived from the angular velocity of the parent MO and their offset from the parent's centre. On gibs, this is scaled by `InheritsVel`.
 
 </details>
 
@@ -114,7 +127,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue where an `Actor`'s MovementState wasn't correctly accessible from script.
 
-- Fixed mounted HeldDevices not respecting InheritedRotAngleOffset by shuffling around some internal properties.
+- Fixed mounted HeldDevices not respecting InheritedRotAngleOffset.
+
+- Fixed an issue where internal Lua functions OriginalDoFile, OriginalLoadFile, and OriginalRequire were polluting the global namespace. They have now been made inaccessible.
 
 </details>
 
@@ -124,6 +139,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	Mod activities that used to queue up all the vanilla music should now instead call, for example, `MusicMan:PlayDynamicSong("Generic Battle Music")`
 
 - The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
+
+- Removed `GAScripted` Lua script method `SceneTest()` as the new Lua function `IsCompatibleScene(scene)` is more capable.
+	Removed `GAScripted` C++ functionality that would scan the  Lua script file to determine which areas are required. `AddRequiredArea` in the INI should be used instead.
+	Removed `Scene` Lua function `GetOptionalArea` as it functioned identically to `GetArea` aside from triggering the aforementioned (and now removed) Lua script file scanning.
 
 - Removed `AHuman` property `MaxCrouchRotation`. `CrouchRotAngleTarget` is now used instead.
 
