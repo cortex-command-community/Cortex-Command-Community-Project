@@ -230,6 +230,10 @@ namespace RTE {
 		/// Gathers, clears and applies this MOSRotating's accumulated impulse forces, gibbing if appropriate.
 		void ApplyImpulses() override;
 
+		/// Gets the list of Attachables on this MOSRotating.
+		/// @return The list of Attachables on this MOSRotating.
+		const std::list<Attachable*>& GetAttachables() const { return m_Attachables; }
+
 		/// Gets whether or not the given Attachable is a hardcoded Attachable (e.g. an Arm, Leg, Turret, etc.)
 		/// @param attachableToCheck The Attachable to check.
 		/// @return Whether or not the Attachable is hardcoded.
