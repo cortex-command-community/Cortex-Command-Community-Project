@@ -5,6 +5,7 @@
 #include "PresetMan.h"
 #include "SettingsMan.h"
 #include "LuaMan.h"
+#include "GLResourceMan.h"
 
 #include "AHuman.h"
 #include "ContentFile.h"
@@ -637,9 +638,11 @@ void PieMenu::Draw(BITMAP* targetBitmap, const Vector& targetPos) const {
 	if (m_EnabledState != EnabledState::Disabled) {
 		if (m_DrawBackgroundTransparent && !g_FrameMan.IsInMultiplayerMode()) {
 			g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
-			draw_trans_sprite(targetBitmap, m_BGBitmap, drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2);
+			g_GLResourceMan.UpdateDynamicBitmap(m_BGBitmap, true);
+			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_BGBitmap), drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2, {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 		} else {
-			draw_sprite(targetBitmap, m_BGBitmap, drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2);
+			g_GLResourceMan.UpdateDynamicBitmap(m_BGBitmap, true);
+			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_BGBitmap), drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2, {255, 255, 255, 255});
 		}
 	}
 

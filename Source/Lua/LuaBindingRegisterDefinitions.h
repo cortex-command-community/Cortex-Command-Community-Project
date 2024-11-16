@@ -87,7 +87,7 @@ namespace RTE {
 	/* Base Classes */ \
 	PER_LUA_BINDING(SoundSet) \
 	PER_LUA_BINDING(Gib) \
-	PER_LUA_BINDING(SceneLayer) \
+	PER_LUA_BINDING(StaticSceneLayer) \
 	PER_LUA_BINDING(Entity) \
 	/* ActivityLuaBindings */ \
 	PER_LUA_BINDING(GameActivity) \
@@ -240,7 +240,7 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(Round);
 		LuaBindingRegisterFunctionDeclarationForType(Scene);
 		LuaBindingRegisterFunctionDeclarationForType(SceneArea);
-		LuaBindingRegisterFunctionDeclarationForType(SceneLayer);
+		LuaBindingRegisterFunctionDeclarationForType(StaticSceneLayer);
 		LuaBindingRegisterFunctionDeclarationForType(SceneObject);
 		LuaBindingRegisterFunctionDeclarationForType(SLBackground);
 		LuaBindingRegisterFunctionDeclarationForType(SoundContainer);

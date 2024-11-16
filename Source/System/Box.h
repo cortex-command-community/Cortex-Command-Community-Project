@@ -2,36 +2,11 @@
 
 #include "Serializable.h"
 #include "Vector.h"
+#include "Rectangles.h"
+#include "raylib/raylib.h"
 
 namespace RTE {
 
-	/// A simple rectangle with integer coordinates.
-	struct IntRect {
-
-		int m_Left = 0; //!< X position of the IntRect top left corner.
-		int m_Top = 0; //!< Y position of the IntRect top left corner.
-		int m_Right = 0; //!< X position of the IntRect bottom right corner.
-		int m_Bottom = 0; //!< Y position of the IntRect bottom right corner.
-
-		/// Constructor method used to instantiate an IntRect object from four int values defining the initial corners of this IntRect.
-		/// @param left X position of the IntRect top left corner.
-		/// @param top Y position of the IntRect top left corner.
-		/// @param right X position of the IntRect bottom right corner.
-		/// @param bottom Y position of the IntRect bottom right corner.
-		IntRect(int left, int top, int right, int bottom) :
-		    m_Left(left), m_Top(top), m_Right(right), m_Bottom(bottom) {}
-
-		/// Checks whether this IntRect is intersecting another one.
-		/// @param rhs The other IntRect to check for intersection with.
-		/// @return Whether this IntRect is intersecting another one.
-		bool Intersects(const IntRect& rhs) const { return m_Left < rhs.m_Right && m_Right > rhs.m_Left && m_Top < rhs.m_Bottom && m_Bottom > rhs.m_Top; }
-
-		/// If this and the passed in IntRect intersect, this will be modified to represent the boolean AND of the two.
-		/// If they don't intersect, nothing happens and false is returned.
-		/// @param rhs THe other IntRect to cut against.
-		/// @return Whether an intersection was detected and this was cut down to the AND of the two IntRects.
-		bool IntersectionCut(const IntRect& rhs);
-	};
 
 	/// A useful 2D axis-aligned rectangle class.
 	class Box : public Serializable {
@@ -152,13 +127,19 @@ namespace RTE {
 		/// Gets a random point within this box.
 		/// @return The random point within the box.
 		Vector GetRandomPoint() const { return Vector(m_Corner.m_X + RandomNum(0.0F, m_Width), m_Corner.m_Y + RandomNum(0.0F, m_Height)); }
+
+		/// @brief Gets the intersection of this Box with another Box
+		/// @param rhs The other Box.
+		/// @return the intersecion Box of this and rhs.
+		Box GetIntersection(const Box& rhs) const;
 #pragma endregion
 
 #pragma region Detection
 		/// Tells whether another box intersects this one.
 		/// @param rhs The other Box to check for intersection with.
 		/// @return Intersecting the other box or not.
-		bool IntersectsBox(const Box& rhs);
+		bool IntersectsBox(const Box& rhs) const;
+
 
 		/// Tells whether a point is within the Box or not, taking potential flipping into account.
 		/// @param point The Vector describing the point to test for within box bounds.
@@ -213,6 +194,8 @@ namespace RTE {
 		/// @param rhs A Box reference as the right hand side operand.
 		/// @return A boolean indicating whether the two operands are unequal or not.
 		friend bool operator!=(const Box& lhs, const Box& rhs) { return lhs.m_Corner != rhs.m_Corner || lhs.m_Width != rhs.m_Width || lhs.m_Height != rhs.m_Height; }
+
+		operator Rectangle() { return {m_Corner.m_X, m_Corner.m_Y, m_Width, m_Height}; }
 #pragma endregion
 
 	private:

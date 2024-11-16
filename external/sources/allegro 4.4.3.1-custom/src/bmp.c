@@ -152,28 +152,25 @@ static int read_os2_bminfoheader(PACKFILE *f, BITMAPINFOHEADER *infoheader)
 /* read_bmicolors:
  *  Loads the color palette for 1,4,8 bit formats.
  */
-static void read_bmicolors(int bytes, RGB *pal, PACKFILE *f, int win_flag)
-{
-   int i, j;
+static void read_bmicolors(int bytes, RGB* pal, PACKFILE* f, int win_flag) {
+	int i, j;
 
-   for (i=j=0; (i+3 <= bytes && j < PAL_SIZE); j++) {
-      pal[j].b = pack_getc(f) / 4;
-      pal[j].g = pack_getc(f) / 4;
-      pal[j].r = pack_getc(f) / 4;
+	for (i = j = 0; (i + 3 <= bytes && j < PAL_SIZE); j++) {
+		pal[j].b = pack_getc(f);
+		pal[j].g = pack_getc(f);
+		pal[j].r = pack_getc(f);
 
-      i += 3;
+		i += 3;
 
-      if (win_flag && i < bytes) {
-	 pack_getc(f);
-	 i++;
-      }
-   }
+		if (win_flag && i < bytes) {
+			pack_getc(f);
+			i++;
+		}
+	}
 
-   for (; i<bytes; i++)
-      pack_getc(f);
+	for (; i < bytes; i++)
+		pack_getc(f);
 }
-
-
 
 /* read_1bit_line:
  *  Support function for reading the 1 bit bitmap file format.
@@ -624,126 +621,120 @@ BITMAP *load_bmp(AL_CONST char *filename, RGB *pal)
  *  i.e. you must either reset the offset to some known place or close the
  *  packfile. The packfile is not closed by this function.
  */
-BITMAP *load_bmp_pf(PACKFILE *f, RGB *pal)
-{
-   BITMAPFILEHEADER fileheader;
-   BITMAPINFOHEADER infoheader;
-   BITMAP *bmp;
-   PALETTE tmppal;
-   int want_palette = TRUE;
-   unsigned long biSize;
-   int bpp, dest_depth;
-   ASSERT(f);
+BITMAP* load_bmp_pf(PACKFILE* f, RGB* pal) {
+	BITMAPFILEHEADER fileheader;
+	BITMAPINFOHEADER infoheader;
+	BITMAP* bmp;
+	PALETTE tmppal;
+	int want_palette = TRUE;
+	unsigned long biSize;
+	int bpp, dest_depth;
+	ASSERT(f);
 
-   /* we really need a palette */
-   if (!pal) {
-      want_palette = FALSE;
-      pal = tmppal;
-   }
+	/* we really need a palette */
+	if (!pal) {
+		want_palette = FALSE;
+		pal = tmppal;
+	}
 
-   if (read_bmfileheader(f, &fileheader) != 0) {
-      return NULL;
-   }
+	if (read_bmfileheader(f, &fileheader) != 0) {
+		return NULL;
+	}
 
-   biSize = pack_igetl(f);
+	biSize = pack_igetl(f);
 
-   if (biSize == WININFOHEADERSIZE) {
-      if (read_win_bminfoheader(f, &infoheader) != 0) {
-	 return NULL;
-      }
-      if (infoheader.biCompression != BI_BITFIELDS)
-	 read_bmicolors(fileheader.bfOffBits - 54, pal, f, 1);
-   }
-   else if (biSize == OS2INFOHEADERSIZE) {
-      if (read_os2_bminfoheader(f, &infoheader) != 0) {
-	 return NULL;
-      }
-      if (infoheader.biCompression != BI_BITFIELDS)
-	 read_bmicolors(fileheader.bfOffBits - 26, pal, f, 0);
-   }
-   else {
-      return NULL;
-   }
+	if (biSize == WININFOHEADERSIZE) {
+		if (read_win_bminfoheader(f, &infoheader) != 0) {
+			return NULL;
+		}
+		if (infoheader.biCompression != BI_BITFIELDS)
+			read_bmicolors(fileheader.bfOffBits - 54, pal, f, 1);
+	} else if (biSize == OS2INFOHEADERSIZE) {
+		if (read_os2_bminfoheader(f, &infoheader) != 0) {
+			return NULL;
+		}
+		if (infoheader.biCompression != BI_BITFIELDS)
+			read_bmicolors(fileheader.bfOffBits - 26, pal, f, 0);
+	} else {
+		return NULL;
+	}
 
-   if (infoheader.biBitCount == 24)
-      bpp = 24;
-   else if (infoheader.biBitCount == 16)
-      bpp = 16;
-   else if (infoheader.biBitCount == 32)
-      bpp = 32;
-   else
-      bpp = 8;
+	if (infoheader.biBitCount == 24)
+		bpp = 24;
+	else if (infoheader.biBitCount == 16)
+		bpp = 16;
+	else if (infoheader.biBitCount == 32)
+		bpp = 32;
+	else
+		bpp = 8;
 
-   if (infoheader.biCompression == BI_BITFIELDS) {
-      unsigned long redMask = pack_igetl(f);
-      unsigned long grnMask = pack_igetl(f);
-      unsigned long bluMask = pack_igetl(f);
+	if (infoheader.biCompression == BI_BITFIELDS) {
+		unsigned long redMask = pack_igetl(f);
+		unsigned long grnMask = pack_igetl(f);
+		unsigned long bluMask = pack_igetl(f);
 
-      (void)grnMask;
+		(void)grnMask;
 
-      if ((bluMask == 0x001f) && (redMask == 0x7C00))
-	 bpp = 15;
-      else if ((bluMask == 0x001f) && (redMask == 0xF800))
-	 bpp = 16;
-      else if ((bluMask == 0x0000FF) && (redMask == 0xFF0000))
-	 bpp = 32;
-      else {
-	 /* Unrecognised bit masks/depth, refuse to load. */
-	 return NULL;
-      }
-   }
+		if ((bluMask == 0x001f) && (redMask == 0x7C00))
+			bpp = 15;
+		else if ((bluMask == 0x001f) && (redMask == 0xF800))
+			bpp = 16;
+		else if ((bluMask == 0x0000FF) && (redMask == 0xFF0000))
+			bpp = 32;
+		else {
+			/* Unrecognised bit masks/depth, refuse to load. */
+			return NULL;
+		}
+	}
 
+	dest_depth = _color_load_depth(bpp, FALSE);
 
-   dest_depth = _color_load_depth(bpp, FALSE);
+	bmp = create_bitmap_ex(bpp, infoheader.biWidth, ABS(infoheader.biHeight));
+	if (!bmp) {
+		return NULL;
+	}
 
-   bmp = create_bitmap_ex(bpp, infoheader.biWidth, ABS(infoheader.biHeight));
-   if (!bmp) {
-      return NULL;
-   }
+	clear_bitmap(bmp);
 
-   clear_bitmap(bmp);
+	switch (infoheader.biCompression) {
 
-   switch (infoheader.biCompression) {
+		case BI_RGB:
+			read_image(f, bmp, &infoheader);
+			break;
 
-      case BI_RGB:
-	 read_image(f, bmp, &infoheader);
-	 break;
+		case BI_RLE8:
+			read_RLE8_compressed_image(f, bmp, &infoheader);
+			break;
 
-      case BI_RLE8:
-	 read_RLE8_compressed_image(f, bmp, &infoheader);
-	 break;
+		case BI_RLE4:
+			read_RLE4_compressed_image(f, bmp, &infoheader);
+			break;
 
-      case BI_RLE4:
-	 read_RLE4_compressed_image(f, bmp, &infoheader);
-	 break;
+		case BI_BITFIELDS:
+			read_bitfields_image(f, bmp, &infoheader);
+			break;
 
-      case BI_BITFIELDS:
-	 read_bitfields_image(f, bmp, &infoheader);
-	 break;
+		default:
+			destroy_bitmap(bmp);
+			bmp = NULL;
+	}
 
-      default:
-	 destroy_bitmap(bmp);
-	 bmp = NULL;
-   }
+	if (dest_depth != bpp) {
+		/* restore original palette except if it comes from the bitmap */
+		if ((bpp != 8) && (!want_palette))
+			pal = NULL;
 
-   if (dest_depth != bpp) {
-      /* restore original palette except if it comes from the bitmap */
-      if ((bpp != 8) && (!want_palette))
-	 pal = NULL;
+		if (bmp) {
+			bmp = _fixup_loaded_bitmap(bmp, pal, dest_depth);
+		}
+	}
 
-      if (bmp) {
-	 bmp = _fixup_loaded_bitmap(bmp, pal, dest_depth);
-      }
-   }
-   
-   /* construct a fake palette if 8-bit mode is not involved */
-   if ((bpp != 8) && (dest_depth != 8) && want_palette)
-      generate_332_palette(pal);
+	/* construct a fake palette if 8-bit mode is not involved */
+	if ((bpp != 8) && (dest_depth != 8) && want_palette)
+		generate_332_palette(pal);
 
-   return bmp;
+	return bmp;
 }
-
-
 
 /* save_bmp:
  *  Writes a bitmap into a BMP file, using the specified palette (this

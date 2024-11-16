@@ -1241,8 +1241,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneArea) {
 	    .def("GetRandomPoint", &Scene::Area::GetRandomPoint);
 }
 
-LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneLayer) {
-	return luabind::class_<SceneLayer, Entity>("SceneLayer");
+LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, StaticSceneLayer) {
+	return luabind::class_<StaticSceneLayer, Entity>("StaticSceneLayer");
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneObject) {
@@ -1273,7 +1273,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneObject) {
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SLBackground) {
-	return luabind::class_<SLBackground, SceneLayer>("SLBackground")
+	return luabind::class_<SLBackground, StaticSceneLayer>("SLBackground")
 
 	    .property("Frame", &SLBackground::GetFrame, &SLBackground::SetFrame)
 	    .property("SpriteAnimMode", &SLBackground::GetSpriteAnimMode, &SLBackground::SetSpriteAnimMode)
