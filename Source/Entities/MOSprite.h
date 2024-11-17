@@ -90,6 +90,10 @@ namespace RTE {
 		/// Ownership is NOT transferred!
 		BITMAP* GetSpriteFrame(unsigned int whichFrame = 0) const { return (whichFrame < m_FrameCount) ? m_aSprite[whichFrame] : 0; }
 
+		int GetPixelIndex(int x, int y, unsigned int whichFrame = 0) const { return getpixel(m_aSprite[CLAMP(m_FrameCount - 1, 0, whichFrame)], x, y); }
+
+		std::vector<Vector>* GetAllPixelPositions(const Vector& origin, float angle, bool hflipped, bool includeTransparency, unsigned int whichFrame);
+
 		/// Gets the width of the bitmap of this MOSprite
 		/// @return Sprite width if loaded.
 		int GetSpriteWidth() const { return m_aSprite[0] ? m_aSprite[0]->w : 0; }

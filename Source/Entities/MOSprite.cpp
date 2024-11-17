@@ -351,6 +351,23 @@ Vector MOSprite::UnRotateOffset(const Vector& offset) const {
 	return rotOff;
 }
 
+std::vector<Vector>* MOSprite::GetAllPixelPositions(const Vector& origin, float angle, bool hflipped, bool includeTransparency, unsigned int whichFrame) {
+	std::vector<Vector>* posList = new std::vector<Vector>();
+	CLAMP(m_FrameCount - 1, 0, whichFrame);
+	BITMAP* sprite = m_aSprite[whichFrame];
+	for (int y = 0; y < GetSpriteHeight(); y++) {
+		for (int x = 0; x < GetSpriteWidth(); x++) {
+			int pixelIndex = GetPixelIndex(x, y, whichFrame);
+			if (includeTransparency || pixelIndex > 0) {
+				Vector pixelPos = (Vector(x, y) + m_SpriteOffset).FlipX(hflipped).RadRotate(angle) + origin;
+				posList->push_back(pixelPos.GetRounded());
+			}
+		}
+	}
+
+	return posList;
+}
+
 void MOSprite::Update() {
 	MovableObject::Update();
 
