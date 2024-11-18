@@ -740,16 +740,20 @@ void rlVertex3f(float x, float y, float z)
     RLGL.currentBatch->draws[RLGL.currentBatch->drawCounter - 1].vertexCount++;
 }
 
+void rlZDepth(float z) {
+    RLGL.currentBatch->currentZ = z;
+}
+
 // Define one vertex (position)
 void rlVertex2f(float x, float y)
 {
-    rlVertex3f(x, y, RLGL.currentBatch->currentDepth);
+    rlVertex3f(x, y, RLGL.currentBatch->currentDepth - RLGL.currentBatch->currentZ);
 }
 
 // Define one vertex (position)
 void rlVertex2i(int x, int y)
 {
-    rlVertex3f((float)x, (float)y, RLGL.currentBatch->currentDepth);
+    rlVertex3f((float)x, (float)y, RLGL.currentBatch->currentDepth - RLGL.currentBatch->currentZ);
 }
 
 // Define one vertex (texture coordinate)

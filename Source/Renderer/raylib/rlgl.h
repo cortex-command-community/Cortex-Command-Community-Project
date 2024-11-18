@@ -423,6 +423,7 @@ typedef struct rlRenderBatch {
     rlDrawCall *draws;          // Draw calls array, depends on textureId
     int drawCounter;            // Draw calls counter
     float currentDepth;         // Current depth value for next draw
+    float currentZ;             // Current z order added to depth.
 } rlRenderBatch;
 
 // OpenGL version
@@ -629,6 +630,7 @@ RLAPI void rlNormal3f(float x, float y, float z);       // Define one vertex (no
 RLAPI void rlColor4ub(unsigned char r, unsigned char g, unsigned char b, unsigned char a); // Define one vertex (color) - 4 byte
 RLAPI void rlColor3f(float x, float y, float z);        // Define one vertex (color) - 3 float
 RLAPI void rlColor4f(float x, float y, float z, float w); // Define one vertex (color) - 4 float
+RLAPI void rlZDepth(float z);                           // Set current draw depth for Vertex2(i,f).
 
 //------------------------------------------------------------------------------------
 // Functions Declaration - OpenGL style functions (common to 1.1, 3.3+, ES2)
