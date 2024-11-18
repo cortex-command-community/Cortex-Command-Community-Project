@@ -117,6 +117,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACraft) {
 	    .property("HatchOpenSound", &ACraft::GetHatchOpenSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetHatchOpenSound)
 	    .property("HatchCloseSound", &ACraft::GetHatchCloseSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetHatchCloseSound)
 	    .property("CrashSound", &ACraft::GetCrashSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetCrashSound)
+	    .property("CanEnterOrbit", &ACraft::GetCanEnterOrbit, &ACraft::SetCanEnterOrbit)
 	    .property("MaxPassengers", &ACraft::GetMaxPassengers)
 	    .property("DeliveryDelayMultiplier", &ACraft::GetDeliveryDelayMultiplier)
 	    .property("ScuttleOnDeath", &ACraft::GetScuttleOnDeath, &ACraft::SetScuttleOnDeath)
