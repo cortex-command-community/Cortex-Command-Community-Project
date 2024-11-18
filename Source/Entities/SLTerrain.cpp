@@ -46,9 +46,11 @@ int SLTerrain::Create() {
 
 	if (!m_FGColorLayer.get()) {
 		m_FGColorLayer = std::make_unique<SceneLayer>();
+		m_FGColorLayer->SetZOrder(c_DefaultDrawDepth);
 	}
 	if (!m_BGColorLayer.get()) {
 		m_BGColorLayer = std::make_unique<SceneLayer>();
+		m_BGColorLayer->SetZOrder(c_TerrainBGDepth);
 	}
 
 	return 0;
@@ -90,10 +92,12 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("BackgroundTexture", { reader >> m_DefaultBGTextureFile; });
 	MatchProperty("FGColorLayer", {
 		m_FGColorLayer = std::make_unique<SceneLayer>();
+		m_FGColorLayer->SetZOrder(c_DefaultDrawDepth);
 		reader >> m_FGColorLayer.get();
 	});
 	MatchProperty("BGColorLayer", {
 		m_BGColorLayer = std::make_unique<SceneLayer>();
+		m_BGColorLayer->SetZOrder(c_TerrainBGDepth);
 		reader >> m_BGColorLayer.get();
 	});
 	MatchProperty("AddTerrainFrosting", {

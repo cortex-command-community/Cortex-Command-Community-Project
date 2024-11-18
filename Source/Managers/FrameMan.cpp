@@ -962,7 +962,8 @@ void FrameMan::Draw() {
 	if (IsInMultiplayerMode()) {
 		PrepareFrameForNetwork();
 	}
-	rlDisableDepthTest();
+	rlEnableDepthTest();
+	rlZDepth(c_GuiDepth-1.0f);
 	g_GLResourceMan.UpdateDynamicBitmap(m_BackBuffer8.get(), true);
 	backgroundShader.Begin();
 	backgroundShader.Enable();
@@ -972,6 +973,7 @@ void FrameMan::Draw() {
 	DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_BackBuffer8.get()), 0.0f, 0.0f, {255, 255, 255, 255});
 	m_BackBuffer->End();
 	backgroundShader.End();
+	rlZDepth(0);
 	if (g_ActivityMan.IsInActivity()) {
 		g_PostProcessMan.PostProcess();
 	}
