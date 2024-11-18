@@ -79,7 +79,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `Attachable` INI and Lua (R/W) properties `InheritsVelWhenDetached` and `InheritsAngularVelWhenDetached`, which determine how much of these velocities an attachable inherits from its parent when detached. Defaults to 1.
 
-- New `ACraft` INI and Lua (R/W) property `CanEnterOrbit`, which determine whether a craft can enter orbit (and refund gold appropriately) or not. If false, default out-of-bounds deletion logic applies.
+- New `ACraft` INI and Lua (R/W) property `CanEnterOrbit`, which determines whether a craft can enter orbit (and refund gold appropriately) or not. If false, default out-of-bounds deletion logic applies.
 
 </details>
 
