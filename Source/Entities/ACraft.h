@@ -254,6 +254,16 @@ namespace RTE {
 		/// get drawn etc.
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
 
+		/// Gets whether this craft can enter orbit and refund the owning team when out of the map. If false,
+		/// only default out-of-bounds deletion logic applies.
+		/// @return Whether this craft can enter orbit or not.
+		bool GetCanEnterOrbit() const { return m_CanEnterOrbit; }
+
+		/// Sets whether this craft can enter orbit and refund the owning team when out of the map. If false,
+		/// only default out-of-bounds deletion logic applies.
+		/// @param canEnterOrbit Whether this craft can enter orbit or not.
+		void SetCanEnterOrbit(bool canEnterOrbit) { m_CanEnterOrbit = canEnterOrbit; }
+
 		/// The recomended, not absolute, maximum number of actors that fit in the
 		/// invetory. Used by the activity AI.
 		/// @return An integer with the recomended number of actors that fit in the craft.
@@ -354,6 +364,8 @@ namespace RTE {
 		Timer m_CrashTimer;
 		// Crash sound
 		SoundContainer* m_CrashSound;
+		// Whether this can enter orbit and refund the owning team. If false, will use default out-of-bounds deletion behavior.
+		bool m_CanEnterOrbit;
 		// The maximum number of actors that fit in the inventory
 		int m_MaxPassengers;
 		int m_ScuttleIfFlippedTime; //!< The time after which the craft will scuttle automatically, if tipped over.

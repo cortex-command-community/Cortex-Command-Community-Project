@@ -864,7 +864,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 
 												-- test jumping
 												local JetAccel = Accel + Vector(-jetStrength, 0):RadRotate(Owner.RotAngle+1.375*math.pi+Owner:GetAimAngle(false)*0.25);
-												local JumpPos = Owner.Head.Pos + PixelVel + JetAccel * (t*t*0.5);
+												local JumpPos = (Owner.Head and Owner.Head.Pos or Owner.Pos) + PixelVel + JetAccel * (t*t*0.5);
 
 												-- a burst add a one time boost to acceleration
 												if Owner.Jetpack:CanTriggerBurst() then
@@ -872,8 +872,8 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 												end
 
 												-- check for obstacles from the head
-												Trace = SceneMan:ShortestDistance(Owner.Head.Pos, JumpPos, false);
-												local jumpScore = SceneMan:CastObstacleRay(Owner.Head.Pos, Trace, JumpPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
+												Trace = SceneMan:ShortestDistance((Owner.Head and Owner.Head.Pos or Owner.Pos), JumpPos, false);
+												local jumpScore = SceneMan:CastObstacleRay((Owner.Head and Owner.Head.Pos or Owner.Pos), Trace, JumpPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
 												if jumpScore < 0 then	-- no obstacles: calculate the distance from the future pos to the wpt
 													jumpScore = SceneMan:ShortestDistance(Waypoint.Pos, JumpPos, false).Magnitude;
 												else -- the ray hit terrain or start inside terrain: avoid
@@ -881,11 +881,11 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 												end
 
 												-- test falling
-												local FallPos = Owner.Head.Pos + PixelVel + Accel * (t*t*0.5);
+												local FallPos = (Owner.Head and Owner.Head.Pos or Owner.Pos) + PixelVel + Accel * (t*t*0.5);
 
 												-- check for obstacles when falling/walking
-												local Trace = SceneMan:ShortestDistance(Owner.Head.Pos, FallPos, false);
-												SceneMan:CastObstacleRay(Owner.Head.Pos, Trace, FallPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
+												local Trace = SceneMan:ShortestDistance((Owner.Head and Owner.Head.Pos or Owner.Pos), FallPos, false);
+												SceneMan:CastObstacleRay((Owner.Head and Owner.Head.Pos or Owner.Pos), Trace, FallPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
 
 												if SceneMan:ShortestDistance(Waypoint.Pos, FallPos, false):MagnitudeIsLessThan(jumpScore) then
 													AI.jump = false;
