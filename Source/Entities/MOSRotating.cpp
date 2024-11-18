@@ -12,6 +12,8 @@
 #include "HDFirearm.h"
 #include "SoundContainer.h"
 #include "PostProcessMan.h"
+#include "FrameMan.h"
+#include "Draw.h"
 
 #include "RTEError.h"
 
@@ -943,12 +945,10 @@ void MOSRotating::CreateGibsWhenGibbing(const Vector& impactImpulse, MovableObje
 				Vector gibVelocity(radius * scale + minVelocity, 0);
 				gibVelocity.RadRotate(randAngle + RandomNum(0.0F, spread) + static_cast<float>(i) * goldenAngle);
 
-				if (gibSettingsObject.InheritsVelocity() > 0) {
-					Vector offsetFromRootParent = m_Pos - GetRootParent()->GetPos() + rotatedGibOffset;
-					Vector rotationalVelocity = (offsetFromRootParent.GetPerpendicular() * GetRootParent()->GetAngularVel() * gibSettingsObject.InheritsVelocity()) / c_PPM;
-					gibVelocity += rotationalVelocity;
-					gibParticleClone->SetAngularVel(gibParticleClone->GetAngularVel() + GetRootParent()->GetAngularVel() * gibSettingsObject.InheritsVelocity());
-				}
+				Vector offsetFromRootParent = m_Pos - GetRootParent()->GetPos() + rotatedGibOffset;
+				Vector rotationalVelocity = (offsetFromRootParent.GetPerpendicular() * GetRootParent()->GetAngularVel() * gibSettingsObject.InheritsVelocity()) / c_PPM;
+				gibVelocity += rotationalVelocity;
+				gibParticleClone->SetAngularVel(gibParticleClone->GetAngularVel() + GetRootParent()->GetAngularVel() * gibSettingsObject.InheritsAngularVelocity());
 
 				if (lifetime != 0) {
 					gibParticleClone->SetLifetime(std::max(static_cast<int>(static_cast<float>(lifetime) * (1.0F - lifeVariation * ((radius / maxRadius) * 0.75F + RandomNormalNum() * 0.25F))), 1));
@@ -1007,12 +1007,10 @@ void MOSRotating::CreateGibsWhenGibbing(const Vector& impactImpulse, MovableObje
 					gibVelocity.RadRotate(gibSpread * RandomNormalNum());
 				}
 
-				if (gibSettingsObject.InheritsVelocity() > 0) {
-					Vector offsetFromRootParent = m_Pos - GetRootParent()->GetPos() + rotatedGibOffset;
-					Vector rotationalVelocity = (offsetFromRootParent.GetPerpendicular() * GetRootParent()->GetAngularVel() * gibSettingsObject.InheritsVelocity()) / c_PPM;
-					gibVelocity += rotationalVelocity;
-					gibParticleClone->SetAngularVel(gibParticleClone->GetAngularVel() + GetRootParent()->GetAngularVel() * gibSettingsObject.InheritsVelocity());
-				}
+				Vector offsetFromRootParent = m_Pos - GetRootParent()->GetPos() + rotatedGibOffset;
+				Vector rotationalVelocity = (offsetFromRootParent.GetPerpendicular() * GetRootParent()->GetAngularVel() * gibSettingsObject.InheritsVelocity()) / c_PPM;
+				gibVelocity += rotationalVelocity;
+				gibParticleClone->SetAngularVel(gibParticleClone->GetAngularVel() + GetRootParent()->GetAngularVel() * gibSettingsObject.InheritsAngularVelocity());
 
 				gibParticleClone->SetVel(gibVelocity + ((m_PrevVel + m_Vel) / 2) * gibSettingsObject.InheritsVelocity());
 
@@ -1478,9 +1476,9 @@ Attachable* MOSRotating::RemoveAttachable(Attachable* attachable, bool addToMova
 	}
 	RTEAssert(attachable->IsAttachedTo(this), "Tried to remove Attachable " + attachable->GetPresetNameAndUniqueID() + " from presumed parent " + GetPresetNameAndUniqueID() + ", but it had a different parent (" + (attachable->GetParent() ? attachable->GetParent()->GetPresetNameAndUniqueID() : "ERROR") + "). This should never happen!");
 
-	Vector rotationalVelocity = ((attachable->GetPos() - GetRootParent()->GetPos()).GetPerpendicular() * GetRootParent()->GetAngularVel()) / c_PPM;
-	attachable->SetAngularVel(attachable->GetAngularVel() + GetRootParent()->GetAngularVel());
-	attachable->SetVel(attachable->GetVel() + rotationalVelocity); // Attachables have already had their velocity updated by ApplyImpulses(), no need to add impactImpulse again
+	Vector rotationalVelocity = ((attachable->GetPos() - GetRootParent()->GetPos()).GetPerpendicular() * GetRootParent()->GetAngularVel() * attachable->InheritsVelocityWhenDetached()) / c_PPM;
+	attachable->SetAngularVel(attachable->GetAngularVel() + GetRootParent()->GetAngularVel() * attachable->InheritsAngularVelocityWhenDetached());
+	attachable->SetVel(attachable->GetVel() * attachable->InheritsVelocityWhenDetached() + rotationalVelocity); // Attachables have already had their velocity updated by ApplyImpulses(), no need to add impactImpulse again
 
 	if (!m_Attachables.empty()) {
 		m_Attachables.remove(attachable);
@@ -1692,20 +1690,16 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 		}
 
 		if (mode == g_DrawTrans) {
-			clear_to_color(pTempBitmap, keyColor);
-
-			// Draw the rotated thing onto the intermediate bitmap so its COM position aligns with the middle of the temp bitmap.
-			// The temp bitmap should be able to hold the full size since it is larger than the max diameter.
-			// Take into account the h-flipped pivot point
-			pivot_scaled_sprite(pTempBitmap, pFlipBitmap, pTempBitmap->w / 2, pTempBitmap->h / 2, pFlipBitmap->w + m_SpriteOffset.m_X, -(m_SpriteOffset.m_Y), ftofix(m_Rotation.GetAllegroAngle()), ftofix(m_Scale));
-
 			// Draw the now rotated object's temporary bitmap onto the final drawing bitmap with transperency
 			// Do the passes loop in here so the intermediate drawing doesn't get done multiple times
 			for (int i = 0; i < passes; ++i) {
 				int spriteX = aDrawPos[i].GetFloorIntX() - (pTempBitmap->w / 2);
 				int spriteY = aDrawPos[i].GetFloorIntY() - (pTempBitmap->h / 2);
+				DrawTexturePro(m_aSprite[m_Frame],
+					{0.0f, 0.0f, -1.0f * m_aSprite[m_Frame]->w, static_cast<float>(m_aSprite[m_Frame]->h)},
+					{aDrawPos[i].m_X, aDrawPos[i].m_Y, static_cast<float>(m_aSprite[m_Frame]->w), static_cast<float>(m_aSprite[m_Frame]->h)},
+					{m_aSprite[m_Frame]->w + m_SpriteOffset.m_X , -m_SpriteOffset.m_Y}, m_Rotation.GetRadAngle(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 				g_SceneMan.RegisterDrawing(pTargetBitmap, g_NoMOID, spriteX, spriteY, spriteX + pTempBitmap->w, spriteY + pTempBitmap->h);
-				draw_trans_sprite(pTargetBitmap, pTempBitmap, spriteX, spriteY);
 			}
 		} else {
 			// Do the passes loop in here so the flipping operation doesn't get done multiple times
@@ -1723,20 +1717,16 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 		}
 	} else {
 		if (mode == g_DrawTrans) {
-			clear_to_color(pTempBitmap, keyColor);
-
-			// Draw the rotated thing onto the intermediate bitmap so its COM position aligns with the middle of the temp bitmap.
-			// The temp bitmap should be able to hold the full size since it is larger than the max diameter.
-			// Take into account the h-flipped pivot point
-			pivot_scaled_sprite(pTempBitmap, m_aSprite[m_Frame], pTempBitmap->w / 2, pTempBitmap->h / 2, -m_SpriteOffset.GetFloorIntX(), -m_SpriteOffset.GetFloorIntY(), ftofix(m_Rotation.GetAllegroAngle()), ftofix(m_Scale));
-
 			// Draw the now rotated object's temporary bitmap onto the final drawing bitmap with transperency
 			// Do the passes loop in here so the intermediate drawing doesn't get done multiple times
 			for (int i = 0; i < passes; ++i) {
+				DrawTexturePro(m_aSprite[m_Frame],
+					{0.0f, 0.0f, static_cast<float>(m_aSprite[m_Frame]->w), static_cast<float>(m_aSprite[m_Frame]->h)},
+					{aDrawPos[i].m_X, aDrawPos[i].m_Y, static_cast<float>(m_aSprite[m_Frame]->w), static_cast<float>(m_aSprite[m_Frame]->h)},
+					-m_SpriteOffset, m_Rotation.GetRadAngle(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 				int spriteX = aDrawPos[i].GetFloorIntX() - (pTempBitmap->w / 2);
 				int spriteY = aDrawPos[i].GetFloorIntY() - (pTempBitmap->h / 2);
 				g_SceneMan.RegisterDrawing(pTargetBitmap, g_NoMOID, spriteX, spriteY, spriteX + pTempBitmap->w, spriteY + pTempBitmap->h);
-				draw_trans_sprite(pTargetBitmap, pTempBitmap, spriteX, spriteY);
 			}
 		} else {
 			for (int i = 0; i < passes; ++i) {

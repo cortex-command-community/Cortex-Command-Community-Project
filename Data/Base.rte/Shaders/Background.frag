@@ -1,0 +1,29 @@
+#version 130
+
+in vec2 textureUV;
+in vec4 vertexColor;
+
+out vec4 FragColor;
+
+uniform sampler2D rteTexture;
+uniform sampler2D rtePalette;
+uniform vec4 rteColor;
+uniform bool drawMasked;
+
+
+vec4 texture2DAA(sampler2D tex, vec2 uv) {
+	vec2 texsize = vec2(textureSize(tex, 0));
+	vec2 uv_texspace = uv * texsize;
+	vec2 seam = floor(uv_texspace + .5);
+	uv_texspace = (uv_texspace - seam) / fwidth(uv_texspace) + seam;
+	uv_texspace = clamp(uv_texspace, seam - .5, seam + .5);
+	return texture(tex, uv_texspace / texsize);
+}
+
+void main() {
+	float red = texture2D(rteTexture, textureUV).r;
+	if (red==0 && drawMasked) {
+		discard;
+	}
+	FragColor = texture2DAA(rtePalette, vec2(red * rteColor.r * vertexColor.r, 0.0)) * vec4(vec3(1.0), rteColor.a * vertexColor.a);
+}

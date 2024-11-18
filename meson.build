@@ -57,7 +57,6 @@ if compiler.get_argument_syntax()== 'gcc' # used for gcc compatible compilers
   buildtype_debug = get_option('debug')
   if buildtype_debug
 
-    elfname += '_debug' # add _debug suffix for debug builds
     extra_args += ['-Wno-unknown-pragmas', '-Wno-deprecated-declarations', '-Wno-misleading-indentation'] # Disable #pragma region complaints and luabind auto_ptr warning
 
     if get_option('sane_warnings')
@@ -193,6 +192,7 @@ endif
 if host_machine.system() in ['linux','darwin']
   deps += [
     dependency(['sdl2']),
+    dependency('SDL2_image'),
     dependency('flac'),
     dependency('minizip'),
     dependency('threads'),
@@ -201,15 +201,14 @@ if host_machine.system() in ['linux','darwin']
     dependency('tbb'),
     dependency('gl')
   ]
-  if host_machine.system() == 'linux'
-    deps += dependency('SDL2_image')
-  endif
   if host_machine.system()=='darwin'
     deps += dependency('appleframeworks', modules: ['Foundation'])  
   endif
 elif host_machine.system() == 'windows'
   sdl2 = subproject('SDL2-2.26.3')
   sdl2_dep = dependency('sdl2')
+  sdl2_image = subproject('SDL2_image-2.8.2')
+  sdl2_image_dep = dependency('SDL2_image')
   zlib = subproject('zlib-ng-2.1.3')
   zlib_dep = dependency('zlib')
   minizip = subproject('minizip-ng-4.0.0')
@@ -218,7 +217,7 @@ elif host_machine.system() == 'windows'
   libpng_dep = dependency('libpng')
   # Windows Libraries
   opengl = compiler.find_library('opengl32')
-  deps += [sdl2_dep, zlib_dep, minizip_dep, libpng_dep, opengl]
+  deps += [sdl2_dep, sdl2_image_dep, zlib_dep, minizip_dep, libpng_dep, opengl]
 endif
 
 

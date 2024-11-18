@@ -2,10 +2,14 @@
 #include "FrameMan.h"
 #include "SceneMan.h"
 #include "SettingsMan.h"
+#include <algorithm>
+
+#include "raylib/raylib.h"
+#include "raylib/rlgl.h"
 
 using namespace RTE;
 
-ConcreteClassInfo(SLBackground, SceneLayer, 0);
+ConcreteClassInfo(SLBackground, StaticSceneLayer, 0);
 
 SLBackground::SLBackground() {
 	Clear();
@@ -39,7 +43,7 @@ void SLBackground::Clear() {
 }
 
 int SLBackground::Create() {
-	SceneLayer::Create();
+	StaticSceneLayer::Create();
 
 	m_Bitmaps.clear();
 	m_BitmapFile.GetAsAnimation(m_Bitmaps, m_FrameCount);
@@ -63,7 +67,7 @@ int SLBackground::Create() {
 }
 
 int SLBackground::Create(const SLBackground& reference) {
-	SceneLayer::Create(reference);
+	StaticSceneLayer::Create(reference);
 
 	// The main bitmap is created and owned by SceneLayer because it can be modified. We need to destroy it to avoid a leak because the bitmaps we'll be using here are owned by ContentFile static maps and are unmodifiable.
 	destroy_bitmap(m_MainBitmap);
@@ -93,7 +97,7 @@ int SLBackground::Create(const SLBackground& reference) {
 }
 
 int SLBackground::ReadProperty(const std::string_view& propName, Reader& reader) {
-	StartPropertyList(return SceneLayer::ReadProperty(propName, reader));
+	StartPropertyList(return StaticSceneLayer::ReadProperty(propName, reader));
 
 	MatchProperty("FrameCount", { reader >> m_FrameCount; });
 	MatchProperty("SpriteAnimMode", {
@@ -124,7 +128,7 @@ int SLBackground::ReadProperty(const std::string_view& propName, Reader& reader)
 }
 
 int SLBackground::Save(Writer& writer) const {
-	SceneLayer::Save(writer);
+	StaticSceneLayer::Save(writer);
 
 	writer.NewPropertyWithValue("FrameCount", m_FrameCount);
 	writer.NewPropertyWithValue("SpriteAnimMode", m_SpriteAnimMode);
@@ -208,8 +212,8 @@ void SLBackground::Update() {
 	}
 }
 
-void SLBackground::Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
-	SceneLayer::Draw(targetBitmap, targetBox, !IsAutoScrolling());
+void SLBackground::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
+	StaticSceneLayer::Draw(targetDimensions, targetBox, !IsAutoScrolling());
 
 	int bitmapWidth = m_ScaledDimensions.GetFloorIntX();
 	int bitmapHeight = m_ScaledDimensions.GetFloorIntY();
@@ -218,24 +222,21 @@ void SLBackground::Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsSc
 	int targetBoxWidth = static_cast<int>(targetBox.GetWidth());
 	int targetBoxHeight = static_cast<int>(targetBox.GetHeight());
 
-	set_clip_rect(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX + targetBoxWidth - 1, targetBoxCornerY + targetBoxHeight - 1);
-
 	// Detect if non-wrapping layer dimensions can't cover the whole target area with its main bitmap. If so, fill in the gap with appropriate solid color sampled from the hanging edge.
 	if (!m_WrapX && bitmapWidth <= targetBoxWidth) {
 		if (m_FillColorLeft != ColorKeys::g_MaskColor && m_Offset.GetFloorIntX() != 0) {
-			rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX - m_Offset.GetFloorIntX(), targetBoxCornerY + targetBoxHeight, m_FillColorLeft);
+			DrawRectangle(targetBoxCornerX, targetBoxCornerY, -m_Offset.m_X, targetBoxHeight, {static_cast<unsigned char>(m_FillColorLeft), 0, 0, 255});
 		}
 		if (m_FillColorRight != ColorKeys::g_MaskColor) {
-			rectfill(targetBitmap, targetBoxCornerX + bitmapWidth - m_Offset.GetFloorIntX(), targetBoxCornerY, targetBoxCornerX + targetBoxWidth, targetBoxCornerY + targetBoxHeight, m_FillColorRight);
+			DrawRectangle(targetBoxCornerX + bitmapWidth - m_Offset.m_X, targetBoxCornerY, targetBoxWidth - bitmapWidth + m_Offset.m_X, targetBoxHeight, {static_cast<unsigned char>(m_FillColorRight), 0, 0, 255});
 		}
 	}
 	if (!m_WrapY && bitmapHeight <= targetBoxHeight) {
 		if (m_FillColorUp != ColorKeys::g_MaskColor && m_Offset.GetFloorIntY() != 0) {
-			rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY, targetBoxCornerX + targetBoxWidth, targetBoxCornerY - m_Offset.GetFloorIntY(), m_FillColorUp);
+			DrawRectangle(targetBoxCornerX, targetBoxCornerY, targetBoxWidth, - m_Offset.m_Y, {static_cast<unsigned char>(m_FillColorUp), 0, 0, 255});
 		}
 		if (m_FillColorDown != ColorKeys::g_MaskColor) {
-			rectfill(targetBitmap, targetBoxCornerX, targetBoxCornerY + bitmapHeight - m_Offset.GetFloorIntY(), targetBoxCornerX + targetBoxWidth, targetBoxCornerY + targetBoxHeight, m_FillColorDown);
+			DrawRectangle(targetBoxCornerX, targetBoxCornerY + bitmapHeight - m_Offset.m_Y, targetBoxWidth, targetBoxHeight - bitmapHeight + m_Offset.m_Y, {static_cast<unsigned char>(m_FillColorDown), 0, 0, 255});
 		}
 	}
-	set_clip_rect(targetBitmap, 0, 0, targetBitmap->w - 1, targetBitmap->h - 1);
 }

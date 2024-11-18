@@ -5,31 +5,38 @@
 #include "SettingsMan.h"
 #include "ActivityMan.h"
 #include "ThreadMan.h"
+#include "GLResourceMan.h"
+#include "BigTexture.h"
 
+#include "Draw.h"
 #include "tracy/Tracy.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 #include <array>
+#include <cmath>
 
 using namespace RTE;
 
 ConcreteClassInfo(SceneLayerTracked, Entity, 0);
 ConcreteClassInfo(SceneLayer, Entity, 0);
+ConcreteClassInfo(StaticSceneLayer, Entity, 0);
 
-template <bool TRACK_DRAWINGS>
-SceneLayerImpl<TRACK_DRAWINGS>::SceneLayerImpl() {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::SceneLayerImpl() {
 	Clear();
 }
 
-template <bool TRACK_DRAWINGS>
-SceneLayerImpl<TRACK_DRAWINGS>::~SceneLayerImpl() {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::~SceneLayerImpl() {
 	Destroy(true);
 }
 
-template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::Clear() {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Clear() {
 	m_BitmapFile.Reset();
 	m_MainBitmap = nullptr;
 	m_BackBitmap = nullptr;
+	m_MainTexture.reset();
 	m_LastClearColor = ColorKeys::g_InvalidColor;
 	m_Drawings.clear();
 	m_MainBitmapOwned = false;
@@ -44,8 +51,8 @@ void SceneLayerImpl<TRACK_DRAWINGS>::Clear() {
 	m_ScaledDimensions.SetXY(1.0F, 1.0F);
 }
 
-template <bool TRACK_DRAWINGS>
-int SceneLayerImpl<TRACK_DRAWINGS>::Create(const ContentFile& bitmapFile, bool drawMasked, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo) {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Create(const ContentFile& bitmapFile, bool drawMasked, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo) {
 	m_BitmapFile = bitmapFile;
 	m_MainBitmap = m_BitmapFile.GetAsBitmap();
 	Create(m_MainBitmap, drawMasked, offset, wrapX, wrapY, scrollInfo);
@@ -55,8 +62,8 @@ int SceneLayerImpl<TRACK_DRAWINGS>::Create(const ContentFile& bitmapFile, bool d
 	return 0;
 }
 
-template <bool TRACK_DRAWINGS>
-int SceneLayerImpl<TRACK_DRAWINGS>::Create(BITMAP* bitmap, bool drawMasked, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo) {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Create(BITMAP* bitmap, bool drawMasked, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo) {
 	m_MainBitmap = bitmap;
 	RTEAssert(m_MainBitmap, "Null bitmap passed in when creating SceneLayerImpl!");
 
@@ -64,6 +71,9 @@ int SceneLayerImpl<TRACK_DRAWINGS>::Create(BITMAP* bitmap, bool drawMasked, cons
 
 	m_BackBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
 	m_LastClearColor = ColorKeys::g_InvalidColor;
+	if constexpr (!STATIC_TEXTURE) {
+		m_MainTexture = std::make_unique<BigTexture>(m_MainBitmap);
+	}
 
 	m_DrawMasked = drawMasked;
 	m_Offset = offset;
@@ -76,8 +86,8 @@ int SceneLayerImpl<TRACK_DRAWINGS>::Create(BITMAP* bitmap, bool drawMasked, cons
 	return 0;
 }
 
-template <bool TRACK_DRAWINGS>
-int SceneLayerImpl<TRACK_DRAWINGS>::Create(const SceneLayerImpl& reference) {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Create(const SceneLayerImpl& reference) {
 	Entity::Create(reference);
 
 	m_BitmapFile = reference.m_BitmapFile;
@@ -102,6 +112,10 @@ int SceneLayerImpl<TRACK_DRAWINGS>::Create(const SceneLayerImpl& reference) {
 		m_BackBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
 		m_LastClearColor = ColorKeys::g_InvalidColor;
 
+		if constexpr (!STATIC_TEXTURE) {
+			m_MainTexture = std::make_unique<BigTexture>(m_MainBitmap);
+		}
+
 		InitScrollRatios();
 
 		m_MainBitmapOwned = true;
@@ -112,8 +126,8 @@ int SceneLayerImpl<TRACK_DRAWINGS>::Create(const SceneLayerImpl& reference) {
 	return 0;
 }
 
-template <bool TRACK_DRAWINGS>
-int SceneLayerImpl<TRACK_DRAWINGS>::ReadProperty(const std::string_view& propName, Reader& reader) {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 	MatchProperty("WrapX", { reader >> m_WrapX; });
@@ -123,8 +137,8 @@ int SceneLayerImpl<TRACK_DRAWINGS>::ReadProperty(const std::string_view& propNam
 	EndPropertyList;
 }
 
-template <bool TRACK_DRAWINGS>
-int SceneLayerImpl<TRACK_DRAWINGS>::Save(Writer& writer) const {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Save(Writer& writer) const {
 	Entity::Save(writer);
 
 	writer.NewPropertyWithValue("WrapX", m_WrapX);
@@ -134,8 +148,8 @@ int SceneLayerImpl<TRACK_DRAWINGS>::Save(Writer& writer) const {
 	return 0;
 }
 
-template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::Destroy(bool notInherited) {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Destroy(bool notInherited) {
 	if (m_MainBitmapOwned) {
 		destroy_bitmap(m_MainBitmap);
 	}
@@ -148,8 +162,8 @@ void SceneLayerImpl<TRACK_DRAWINGS>::Destroy(bool notInherited) {
 	Clear();
 }
 
-template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::InitScrollRatios(bool initForNetworkPlayer, int player) {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::InitScrollRatios(bool initForNetworkPlayer, int player) {
 	float mainBitmapWidth = static_cast<float>(m_MainBitmap->w);
 	float mainBitmapHeight = static_cast<float>(m_MainBitmap->h);
 	float playerScreenWidth = static_cast<float>(initForNetworkPlayer ? g_FrameMan.GetPlayerFrameBufferWidth(player) : g_FrameMan.GetPlayerScreenWidth());
@@ -184,21 +198,24 @@ void SceneLayerImpl<TRACK_DRAWINGS>::InitScrollRatios(bool initForNetworkPlayer,
 	m_ScaledDimensions.SetXY(mainBitmapWidth * m_ScaleFactor.GetX(), mainBitmapHeight * m_ScaleFactor.GetY());
 }
 
-template <bool TRACK_DRAWINGS>
-int SceneLayerImpl<TRACK_DRAWINGS>::LoadData() {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::LoadData() {
 	// Load from disk and take ownership. Don't cache because the bitmap will be modified.
 	m_MainBitmap = m_BitmapFile.GetAsBitmap(COLORCONV_NONE, false);
 	m_MainBitmapOwned = true;
 
 	m_BackBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
+	if constexpr (!STATIC_TEXTURE) {
+		m_MainTexture = std::make_unique<BigTexture>(m_MainBitmap);
+	}
 	m_LastClearColor = ColorKeys::g_InvalidColor;
 
 	InitScrollRatios();
 	return 0;
 }
 
-template <bool TRACK_DRAWINGS>
-int SceneLayerImpl<TRACK_DRAWINGS>::SaveData(const std::string& bitmapPath, bool doAsyncSaves) {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::SaveData(const std::string& bitmapPath, bool doAsyncSaves) {
 	if (bitmapPath.empty()) {
 		return -1;
 	}
@@ -227,12 +244,13 @@ int SceneLayerImpl<TRACK_DRAWINGS>::SaveData(const std::string& bitmapPath, bool
 	return 0;
 }
 
-template <bool TRACK_DRAWINGS>
-int SceneLayerImpl<TRACK_DRAWINGS>::ClearData() {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::ClearData() {
 	if (m_MainBitmap && m_MainBitmapOwned) {
 		destroy_bitmap(m_MainBitmap);
 	}
 	m_MainBitmap = nullptr;
+	m_MainTexture.reset();
 	m_MainBitmapOwned = false;
 
 	if (m_BackBitmap) {
@@ -244,22 +262,22 @@ int SceneLayerImpl<TRACK_DRAWINGS>::ClearData() {
 	return 0;
 }
 
-template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::SetScaleFactor(const Vector& newScale) {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::SetScaleFactor(const Vector& newScale) {
 	m_ScaleFactor = newScale;
 	if (m_MainBitmap) {
 		m_ScaledDimensions.SetXY(static_cast<float>(m_MainBitmap->w) * newScale.GetX(), static_cast<float>(m_MainBitmap->h) * newScale.GetY());
 	}
 }
 
-template <bool TRACK_DRAWINGS>
-int SceneLayerImpl<TRACK_DRAWINGS>::GetPixel(int pixelX, int pixelY) const {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::GetPixel(int pixelX, int pixelY) const {
 	WrapPosition(pixelX, pixelY);
 	return (pixelX < 0 || pixelX >= m_MainBitmap->w || pixelY < 0 || pixelY >= m_MainBitmap->h) ? MaterialColorKeys::g_MaterialAir : _getpixel(m_MainBitmap, pixelX, pixelY);
 }
 
-template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::SetPixel(int pixelX, int pixelY, int materialID) {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::SetPixel(int pixelX, int pixelY, int materialID) {
 	RTEAssert(m_MainBitmapOwned, "Trying to set a pixel of a SceneLayer's bitmap which isn't owned!");
 
 	WrapPosition(pixelX, pixelY);
@@ -272,13 +290,13 @@ void SceneLayerImpl<TRACK_DRAWINGS>::SetPixel(int pixelX, int pixelY, int materi
 	RegisterDrawing(pixelX, pixelY, pixelX, pixelY);
 }
 
-template <bool TRACK_DRAWINGS>
-bool SceneLayerImpl<TRACK_DRAWINGS>::IsWithinBounds(const int pixelX, const int pixelY, const int margin) const {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+bool SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::IsWithinBounds(const int pixelX, const int pixelY, const int margin) const {
 	return (m_WrapX || (pixelX >= -margin && pixelX < m_MainBitmap->w + margin)) && (m_WrapY || (pixelY >= -margin && pixelY < m_MainBitmap->h + margin));
 }
 
-template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::ClearBitmap(ColorKeys clearTo) {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::ClearBitmap(ColorKeys clearTo) {
 	RTEAssert(m_MainBitmapOwned, "Bitmap not owned! We shouldn't be clearing this!");
 
 	if (m_BitmapClearTask.valid()) {
@@ -297,14 +315,13 @@ void SceneLayerImpl<TRACK_DRAWINGS>::ClearBitmap(ColorKeys clearTo) {
 	m_BitmapClearTask = g_ThreadMan.GetPriorityThreadPool().submit([this, clearTo](BITMAP* bitmap, std::vector<IntRect> drawings) {
 		ZoneScopedN("Clear Tracked Backbuffer");
 		ClearDrawings(bitmap, drawings, clearTo);
-	},
-	                                                               m_BackBitmap, m_Drawings);
+	}, m_BackBitmap, m_Drawings);
 
 	m_Drawings.clear(); // This was copied into the new thread, so can be safely deleted.
 }
 
-template <bool TRACK_DRAWINGS>
-bool SceneLayerImpl<TRACK_DRAWINGS>::WrapPosition(int& posX, int& posY) const {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+bool SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::WrapPosition(int& posX, int& posY) const {
 	int oldX = posX;
 	int oldY = posY;
 
@@ -327,8 +344,8 @@ bool SceneLayerImpl<TRACK_DRAWINGS>::WrapPosition(int& posX, int& posY) const {
 	return oldX != posX || oldY != posY;
 }
 
-template <bool TRACK_DRAWINGS>
-bool SceneLayerImpl<TRACK_DRAWINGS>::ForceBounds(int& posX, int& posY) const {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+bool SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::ForceBounds(int& posX, int& posY) const {
 	bool wrapped = false;
 	int width = m_ScaledDimensions.GetFloorIntX();
 	int height = m_ScaledDimensions.GetFloorIntY();
@@ -372,8 +389,8 @@ bool SceneLayerImpl<TRACK_DRAWINGS>::ForceBounds(int& posX, int& posY) const {
 	return wrapped;
 }
 
-template <bool TRACK_DRAWINGS>
-bool SceneLayerImpl<TRACK_DRAWINGS>::ForceBoundsOrWrapPosition(Vector& pos, bool forceBounds) const {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+bool SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::ForceBoundsOrWrapPosition(Vector& pos, bool forceBounds) const {
 	int posX = pos.GetFloorIntX();
 	int posY = pos.GetFloorIntY();
 	bool wrapped = forceBounds ? ForceBounds(posX, posY) : WrapPosition(posX, posY);
@@ -382,113 +399,132 @@ bool SceneLayerImpl<TRACK_DRAWINGS>::ForceBoundsOrWrapPosition(Vector& pos, bool
 	return wrapped;
 }
 
-template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::RegisterDrawing(int left, int top, int right, int bottom) {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::RegisterDrawing(int left, int top, int right, int bottom) {
+	m_MainBitmapUpdated = true;
 	if constexpr (TRACK_DRAWINGS) {
 		m_Drawings.emplace_back(left, top, right, bottom);
 	}
 }
 
-template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::RegisterDrawing(const Vector& center, float radius) {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::RegisterDrawing(const Vector& center, float radius) {
 	if (radius != 0.0F) {
 		RegisterDrawing(static_cast<int>(center.GetX() - radius), static_cast<int>(center.GetY() - radius), static_cast<int>(center.GetX() + radius), static_cast<int>(center.GetY() + radius));
 	}
 }
 
-template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
-	RTEAssert(m_MainBitmap, "Data of this SceneLayerImpl has not been loaded before trying to draw!");
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::UpdateTargetRegion(const Box& targetBox) {
+	if constexpr (TRACK_DRAWINGS) {
+		m_MainTexture->m_Bitmap = m_MainBitmap;
+	}
+	if constexpr (!STATIC_TEXTURE) {
+		RTEAssert(bitmap_color_depth(m_MainBitmap) == 8, "Truecolor scenelayer used for non gpu drawing!");
+		std::vector<Box> updateRegions{};
+		float bitmapWidth = m_MainBitmap->w;
+		float bitmapHeight = m_MainBitmap->h;
+		int areaToCoverX = (m_Offset.GetFloorIntX() + targetBox.GetCorner().GetFloorIntX() + targetBox.GetWidth()) / m_ScaleFactor.m_X;
+		int areaToCoverY = (m_Offset.GetFloorIntY() + targetBox.GetCorner().GetFloorIntY() + targetBox.GetHeight()) / m_ScaleFactor.m_Y;
+		Box scaledTarget(targetBox.m_Corner / m_ScaleFactor, targetBox.m_Width / m_ScaleFactor.m_X, targetBox.m_Height / m_ScaleFactor.m_Y);
+		Vector scaledOffset(m_Offset/m_ScaleFactor);
+		Box bitmapDimensions(Vector(), bitmapWidth, bitmapHeight);
 
+		for (int tiledOffsetX = 0; tiledOffsetX < areaToCoverX;) {
+			float destX = scaledTarget.GetCorner().GetFloorIntX() + tiledOffsetX - scaledOffset.GetFloorIntX();
+
+			for (int tiledOffsetY = 0; tiledOffsetY < areaToCoverY;) {
+				float destY = scaledTarget.GetCorner().GetFloorIntY() + tiledOffsetY - scaledOffset.GetFloorIntY();
+				Box update = bitmapDimensions.GetIntersection({-Vector(destX, destY), scaledTarget.m_Width, scaledTarget.m_Height});
+				update.m_Corner = update.m_Corner.GetFloored();
+				update.m_Width = std::ceil(update.m_Width) + 1;
+				update.m_Height = std::ceil(update.m_Height) + 1;
+				updateRegions.emplace_back(update);
+				if (!m_WrapY) {
+					break;
+				}
+				tiledOffsetY += bitmapHeight;
+			}
+			if (!m_WrapX) {
+				break;
+			}
+			tiledOffsetX += bitmapWidth;
+		}
+
+		for (auto& region: updateRegions) {
+			m_MainTexture->Update(region);
+		}
+		// g_GLResourceMan.UpdateDynamicBitmap(m_MainBitmap, true, updateRegions);
+
+	} else {}
+}
+
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
+	RTEAssert(m_MainBitmap, "Data of this SceneLayerImpl has not been loaded before trying to draw!");
+	if constexpr(!STATIC_TEXTURE) {
+		RTEAssert(m_MainTexture, "Texture of this SceneLayerImpl has not bee created before trying to draw!");
+	}
+	ZoneScoped;
+	TracyGpuZone("SceneLayer::Draw");
 	if (offsetNeedsScrollRatioAdjustment) {
 		m_Offset.SetXY(std::floor(m_Offset.GetX() * m_ScrollRatio.GetX()), std::floor(m_Offset.GetY() * m_ScrollRatio.GetY()));
 	}
 	if (targetBox.IsEmpty()) {
-		targetBox = Box(Vector(), static_cast<float>(targetBitmap->w), static_cast<float>(targetBitmap->h));
+		targetBox = targetDimensions;
 	}
-	if (!m_WrapX && static_cast<float>(targetBitmap->w) > targetBox.GetWidth()) {
+	if (!m_WrapX && targetDimensions.GetWidth() > targetBox.GetWidth()) {
 		m_Offset.SetX(0);
 	}
-	if (!m_WrapY && static_cast<float>(targetBitmap->h) > targetBox.GetHeight()) {
+	if (!m_WrapY && targetDimensions.GetHeight() > targetBox.GetHeight()) {
 		m_Offset.SetY(0);
 	}
 
 	m_Offset -= m_OriginOffset;
 	WrapPosition(m_Offset);
+	if constexpr (!STATIC_TEXTURE) {
+		if (m_MainBitmapOwned) {
+			UpdateTargetRegion(targetBox);
+		}
+	}
+	m_MainBitmapUpdated = false;
 
-	set_clip_rect(targetBitmap, targetBox.GetCorner().GetFloorIntX(), targetBox.GetCorner().GetFloorIntY(), static_cast<int>(targetBox.GetCorner().GetX() + targetBox.GetWidth()) - 1, static_cast<int>(targetBox.GetCorner().GetY() + targetBox.GetHeight()) - 1);
 	bool drawScaled = m_ScaleFactor.GetX() > 1.0F || m_ScaleFactor.GetY() > 1.0F;
 
-	if (m_MainBitmap->w > targetBitmap->w && m_MainBitmap->h > targetBitmap->h) {
-		DrawWrapped(targetBitmap, targetBox, drawScaled);
-	} else {
-		DrawTiled(targetBitmap, targetBox, drawScaled);
-	}
-	set_clip_rect(targetBitmap, 0, 0, targetBitmap->w - 1, targetBitmap->h - 1);
+	DrawTiled(targetDimensions, targetBox, drawScaled);
 }
 
-template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::DrawWrapped(BITMAP* targetBitmap, const Box& targetBox, bool drawScaled) const {
-	if (!drawScaled) {
-		std::array<int, 2> sourcePosX = {m_Offset.GetFloorIntX(), 0};
-		std::array<int, 2> sourcePosY = {m_Offset.GetFloorIntY(), 0};
-		std::array<int, 2> sourceWidth = {m_MainBitmap->w - m_Offset.GetFloorIntX(), m_Offset.GetFloorIntX()};
-		std::array<int, 2> sourceHeight = {m_MainBitmap->h - m_Offset.GetFloorIntY(), m_Offset.GetFloorIntY()};
-		std::array<int, 2> destPosX = {targetBox.GetCorner().GetFloorIntX(), targetBox.GetCorner().GetFloorIntX() + m_MainBitmap->w - m_Offset.GetFloorIntX()};
-		std::array<int, 2> destPosY = {targetBox.GetCorner().GetFloorIntY(), targetBox.GetCorner().GetFloorIntY() + m_MainBitmap->h - m_Offset.GetFloorIntY()};
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::DrawTiled(const Box& targetDimensions, const Box& targetBox, bool drawScaled) const {
+	ZoneScoped;
+	TracyGpuZone("SceneLayer::DrawTiled");
+	float bitmapWidth = m_ScaledDimensions.m_X;
+	float bitmapHeight = m_ScaledDimensions.m_Y;
+	int areaToCoverX = m_Offset.GetFloorIntX() + targetBox.GetCorner().GetFloorIntX() + std::min(targetDimensions.GetWidth(), targetBox.GetWidth());
+	int areaToCoverY = m_Offset.GetFloorIntY() + targetBox.GetCorner().GetFloorIntY() + std::min(targetDimensions.GetHeight(), targetBox.GetHeight());
 
-		for (int i = 0; i < 2; ++i) {
-			for (int j = 0; j < 2; ++j) {
-				if (m_DrawMasked) {
-					masked_blit(m_MainBitmap, targetBitmap, sourcePosX[j], sourcePosY[i], destPosX[j], destPosY[i], sourceWidth[j], sourceHeight[i]);
-				} else {
-					blit(m_MainBitmap, targetBitmap, sourcePosX[j], sourcePosY[i], destPosX[j], destPosY[i], sourceWidth[j], sourceHeight[i]);
-				}
-			}
-		}
-	} else {
-		std::array<int, 2> sourceWidth = {m_MainBitmap->w, m_Offset.GetFloorIntX() / m_ScaleFactor.GetFloorIntX()};
-		std::array<int, 2> sourceHeight = {m_MainBitmap->h, m_Offset.GetFloorIntY() / m_ScaleFactor.GetFloorIntY()};
-		std::array<int, 2> destPosX = {targetBox.GetCorner().GetFloorIntX() - m_Offset.GetFloorIntX(), targetBox.GetCorner().GetFloorIntX() + m_ScaledDimensions.GetFloorIntX() - m_Offset.GetFloorIntX()};
-		std::array<int, 2> destPosY = {targetBox.GetCorner().GetFloorIntY() - m_Offset.GetFloorIntY(), targetBox.GetCorner().GetFloorIntY() + m_ScaledDimensions.GetFloorIntY() - m_Offset.GetFloorIntY()};
-
-		for (int i = 0; i < 2; ++i) {
-			for (int j = 0; j < 2; ++j) {
-				if (m_DrawMasked) {
-					masked_stretch_blit(m_MainBitmap, targetBitmap, 0, 0, sourceWidth[j], sourceHeight[i], destPosX[j], destPosY[i], sourceWidth[j] * m_ScaleFactor.GetFloorIntX() + 1, sourceHeight[i] * m_ScaleFactor.GetFloorIntY() + 1);
-				} else {
-					stretch_blit(m_MainBitmap, targetBitmap, 0, 0, sourceWidth[j], sourceHeight[i], destPosX[j], destPosY[i], sourceWidth[j] * m_ScaleFactor.GetFloorIntX() + 1, sourceHeight[i] * m_ScaleFactor.GetFloorIntY() + 1);
-				}
-			}
-		}
+	if (!m_DrawMasked) {
+		rlDrawRenderBatchActive();
+		int maskedUniformLocation = rlGetLocationUniform(rlGetShaderCurrent(), "drawMasked");
+		rlEnableShader(rlGetShaderCurrent());
+		glUniform1i(maskedUniformLocation, 0);
 	}
-}
-
-template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::DrawTiled(BITMAP* targetBitmap, const Box& targetBox, bool drawScaled) const {
-	int bitmapWidth = m_ScaledDimensions.GetFloorIntX();
-	int bitmapHeight = m_ScaledDimensions.GetFloorIntY();
-	int areaToCoverX = m_Offset.GetFloorIntX() + targetBox.GetCorner().GetFloorIntX() + std::min(targetBitmap->w, static_cast<int>(targetBox.GetWidth()));
-	int areaToCoverY = m_Offset.GetFloorIntY() + targetBox.GetCorner().GetFloorIntY() + std::min(targetBitmap->h, static_cast<int>(targetBox.GetHeight()));
 
 	for (int tiledOffsetX = 0; tiledOffsetX < areaToCoverX;) {
-		int destX = targetBox.GetCorner().GetFloorIntX() + tiledOffsetX - m_Offset.GetFloorIntX();
+		float destX = targetBox.GetCorner().GetFloorIntX() + tiledOffsetX - m_Offset.GetFloorIntX();
 
 		for (int tiledOffsetY = 0; tiledOffsetY < areaToCoverY;) {
-			int destY = targetBox.GetCorner().GetFloorIntY() + tiledOffsetY - m_Offset.GetFloorIntY();
-
-			if (!drawScaled) {
-				if (m_DrawMasked) {
-					masked_blit(m_MainBitmap, targetBitmap, 0, 0, destX, destY, bitmapWidth, bitmapHeight);
-				} else {
-					blit(m_MainBitmap, targetBitmap, 0, 0, destX, destY, bitmapWidth, bitmapHeight);
-				}
+			float destY = targetBox.GetCorner().GetFloorIntY() + tiledOffsetY - m_Offset.GetFloorIntY();
+			if constexpr (STATIC_TEXTURE) {
+				DrawTexturePro(
+				    g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap),
+				    {0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
+				    {destX, destY, bitmapWidth, bitmapHeight},
+				    {0.0f, 0.0f}, 0.0f, {255, 255, 255, 255});
 			} else {
-				if (m_DrawMasked) {
-					masked_stretch_blit(m_MainBitmap, targetBitmap, 0, 0, m_MainBitmap->w, m_MainBitmap->h, destX, destY, bitmapWidth, bitmapHeight);
-				} else {
-					stretch_blit(m_MainBitmap, targetBitmap, 0, 0, m_MainBitmap->w, m_MainBitmap->h, destX, destY, bitmapWidth, bitmapHeight);
-				}
+				m_MainTexture->Draw(
+				    {0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
+				    {destX, destY, bitmapWidth, bitmapHeight});
 			}
 			if (!m_WrapY) {
 				break;
@@ -500,10 +536,17 @@ void SceneLayerImpl<TRACK_DRAWINGS>::DrawTiled(BITMAP* targetBitmap, const Box& 
 		}
 		tiledOffsetX += bitmapWidth;
 	}
+
+	if (!m_DrawMasked) {
+		rlDrawRenderBatchActive();
+		int drawMaskedUniform = rlGetLocationUniform(rlGetShaderCurrent(), "drawMasked");
+		rlEnableShader(rlGetShaderCurrent());
+		glUniform1i(drawMaskedUniform, 1);
+	}
 }
 
-template <bool TRACK_DRAWINGS>
-void SceneLayerImpl<TRACK_DRAWINGS>::ClearDrawings(BITMAP* bitmap, const std::vector<IntRect>& drawings, ColorKeys clearTo) const {
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::ClearDrawings(BITMAP* bitmap, const std::vector<IntRect>& drawings, ColorKeys clearTo) const {
 	if constexpr (TRACK_DRAWINGS) {
 		for (const IntRect& rect: drawings) {
 			int left = rect.m_Left;
@@ -548,4 +591,5 @@ void SceneLayerImpl<TRACK_DRAWINGS>::ClearDrawings(BITMAP* bitmap, const std::ve
 
 // Force instantiation
 template class RTE::SceneLayerImpl<false>;
+template class RTE::SceneLayerImpl<false, true>;
 template class RTE::SceneLayerImpl<true>;

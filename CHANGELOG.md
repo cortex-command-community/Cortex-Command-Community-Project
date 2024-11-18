@@ -73,6 +73,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Allow lua scripts to use LuaJIT's BitOp module (see https://bitop.luajit.org/api.html)
 
+- New `Emission` INI and Lua (R/W) property `ParticleCount` which sets how many particles the Emission spawns per emission. Defaults to 1.
+
+- New `Gib` and `Emission` INI and Lua (R/W) property `InheritsAngularVel`, which determines how much of the parent MO's angular velocity they inherit. Defaults to 1 for gibs, 0 for emissions.
+
+- New `Attachable` INI and Lua (R/W) properties `InheritsVelWhenDetached` and `InheritsAngularVelWhenDetached`, which determine how much of these velocities an attachable inherits from its parent when detached. Defaults to 1.
+
+- New `ACraft` INI and Lua (R/W) property `CanEnterOrbit`, which determines whether a craft can enter orbit (and refund gold appropriately) or not. If false, default out-of-bounds deletion logic applies.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -107,9 +115,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Internal GUI element `ComboBox` no longer displays dropdown combobutton when disabled, to communicate visually that it's setting is not modifiable.
 
-- Almost all ctrl+* special inputs functionality (i.e restarting activity, world dumps, showing performance stats) are now mapped to right alt, to not interfere with default crouching inputs. The only exception is ctrl+arrow keys for changing console size.
+- Almost all ctrl+\* special inputs functionality (i.e restarting activity, world dumps, showing performance stats) are now mapped to right alt, to not interfere with default crouching inputs. The only exception is ctrl+arrow keys for changing console size.
 
-- Gibs and detached Attachables now inherit the parent's angular velocity, as well as velocity derived from the angular velocity of the parent MO and their offset from the parent's centre. On gibs, this is scaled by `InheritsVel`.
+- `Gib`s and detached `Attachable`s now inherit the parent's angular velocity by default.
+
+- `InheritsVel` now accounts for the angular velocity of the parent MO, resulting in offset gibs and emissions being flung further away.
+
+- `InheritsVel` and its ilk have been uncapped, allowing users to set them outside of 0-1.
+
+- `Scene` Lua functions `AddNavigatableArea(areaName)` and `ClearNavigatableAreas()` have been renamed/corrected to `AddNavigableArea(areaName)` and `ClearNavigableAreas()`, respectively.
 
 </details>
 

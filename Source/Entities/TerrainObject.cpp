@@ -1,6 +1,8 @@
 #include "TerrainObject.h"
 #include "SLTerrain.h"
 #include "SceneMan.h"
+#include "Draw.h"
+#include "FrameMan.h"
 
 using namespace RTE;
 
@@ -220,10 +222,10 @@ void TerrainObject::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode
 				break;
 			case DrawMode::g_DrawTrans:
 				if (HasFGColorBitmap()) {
-					draw_trans_sprite(targetBitmap, m_FGColorBitmap, drawPos.at(i).GetFloorIntX(), drawPos.at(i).GetFloorIntY());
+					DrawTexture(m_FGColorBitmap, drawPos.at(i).GetFloorIntX(), drawPos.at(i).GetFloorIntY(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 				}
 				if (HasBGColorBitmap()) {
-					draw_trans_sprite(targetBitmap, m_BGColorBitmap, drawPos.at(i).GetFloorIntX(), drawPos.at(i).GetFloorIntY());
+					DrawTexture(m_BGColorBitmap, drawPos.at(i).GetFloorIntX(), drawPos.at(i).GetFloorIntY(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 				}
 				break;
 			default:

@@ -335,6 +335,7 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("StableRecoveryDelay", { reader >> m_StableRecoverDelay; });
 	MatchProperty("CanRun", { reader >> m_CanRun; });
 	MatchProperty("CrouchWalkSpeedMultiplier", { reader >> m_CrouchWalkSpeedMultiplier; });
+	MatchProperty("GoldCarried", { reader >> m_GoldCarried; });
 	MatchProperty("AimAngle", { reader >> m_AimAngle; });
 	MatchProperty("AimRange", { reader >> m_AimRange; });
 	MatchProperty("AimDistance", { reader >> m_AimDistance; });
@@ -413,6 +414,8 @@ int Actor::Save(Writer& writer) const {
 	writer << m_CanRun;
 	writer.NewProperty("CrouchWalkSpeedMultiplier");
 	writer << m_CrouchWalkSpeedMultiplier;
+	writer.NewProperty("GoldCarried");
+	writer << m_GoldCarried;
 	writer.NewProperty("AimAngle");
 	writer << m_AimAngle;
 	writer.NewProperty("AimRange");
