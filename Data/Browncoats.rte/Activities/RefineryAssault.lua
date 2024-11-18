@@ -178,10 +178,10 @@ function RefineryAssault:StartActivity(newGame)
 		end
 	end
 
-	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 1");
-	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 2");
-	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 3");
-	SceneMan.Scene:AddNavigatableArea("Mission Stage Area 4");
+	SceneMan.Scene:AddNavigableArea("Mission Stage Area 1");
+	SceneMan.Scene:AddNavigableArea("Mission Stage Area 2");
+	SceneMan.Scene:AddNavigableArea("Mission Stage Area 3");
+	SceneMan.Scene:AddNavigableArea("Mission Stage Area 4");
 	
 	self.musicGraceTimer = Timer();
 	self.musicGraceTime = 4000;
