@@ -439,13 +439,36 @@ void MOSprite::SetAllSpritePixelIndexes(int whichFrame, int colorIndex, int igno
 	}
 }
 
-std::vector<Vector>* MOSprite::GetAllPixelPositions(const Vector& origin, float angle, bool hflipped, bool includeTransparency, unsigned int whichFrame) {
+void MOSprite::SetPixelIndex(int x, int y, unsigned int whichFrame, int colorIndex, int ignoreIndex, bool invert) {
+	if (!m_SpriteModified) {
+		std::vector<BITMAP*> spriteList;
+
+		for (BITMAP* sprite: m_aSprite) {
+			BITMAP* spriteCopy = create_bitmap_ex(8, sprite->w, sprite->h);
+			rectfill(spriteCopy, 0, 0, spriteCopy->w - 1, spriteCopy->h - 1, 0);
+			draw_sprite(spriteCopy, sprite, 0, 0);
+			spriteList.push_back(spriteCopy);
+		}
+
+		m_aSprite = spriteList;
+		m_SpriteModified = true;
+	}
+
+	BITMAP* targetSprite = m_aSprite[CLAMP(m_FrameCount - 1, 0, whichFrame)];
+	if (ignoreIndex < 0 || (getpixel(targetSprite, x, y) == ignoreIndex) != invert) {
+		putpixel(targetSprite, x, y, colorIndex);
+	}
+}
+
+std::vector<Vector>* MOSprite::GetAllPixelPositions(const Vector& origin, float angle, bool hflipped, unsigned int whichFrame, int ignoreIndex, bool invert) {
 	std::vector<Vector>* posList = new std::vector<Vector>();
 	CLAMP(m_FrameCount - 1, 0, whichFrame);
 	BITMAP* sprite = m_aSprite[whichFrame];
-	BITMAP* temp = create_bitmap_ex(8, m_SpriteDiameter * m_Scale, m_SpriteDiameter * m_Scale);
+	BITMAP* temp = create_bitmap_ex(8, m_SpriteDiameter, m_SpriteDiameter);
 	rectfill(temp, 0, 0, temp->w - 1, temp->h - 1, 0);
-	Vector offset = Vector(temp->w / 2 + m_SpriteOffset.m_X, temp->h / 2 + m_SpriteOffset.m_Y);
+	Vector tempCentre = Vector(temp->w / 2, temp->h / 2);
+	Vector spriteCentre = Vector(sprite->w / 2, sprite->h / 2);
+	Vector offset = (tempCentre + (m_SpriteOffset + spriteCentre).GetXFlipped(m_HFlipped).RadRotate(m_Rotation.GetRadAngle()) - spriteCentre);
 
 	if (!hflipped) {
 		rotate_scaled_sprite(temp, sprite, offset.m_X, offset.m_Y, ftofix(GetAllegroAngle(-m_Rotation.GetDegAngle())), ftofix(m_Scale));
@@ -456,15 +479,14 @@ std::vector<Vector>* MOSprite::GetAllPixelPositions(const Vector& origin, float 
 	for (int y = 0; y < temp->h; y++) {
 		for (int x = 0; x < temp->w; x++) {
 			int pixelIndex = getpixel(temp, x, y);
-			if (includeTransparency || pixelIndex > 0) {
-				Vector pixelPos = (Vector(x - temp->w / 2, y - temp->h / 2)) + origin;
-				posList->push_back(pixelPos.GetRounded());
+			if (pixelIndex >= 0 && (pixelIndex != ignoreIndex) != invert) {
+				Vector pixelPos = (Vector(x, y) - tempCentre) + origin;
+				posList->push_back(pixelPos);
 			}
 		}
 	}
 
 	destroy_bitmap(temp);
-	temp = NULL;
 	return posList;
 }
 
