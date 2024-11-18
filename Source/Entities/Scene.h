@@ -501,17 +501,12 @@ namespace RTE {
 		/// This won't throw any errors to the console if the Area isn't found.
 		/// @param areaName The name of the Area to try to find in this Scene.
 		/// @return Whether the specified area is defined in this Scene.
-		bool HasArea(std::string areaName);
+		bool HasArea(const std::string& areaName);
 
 		/// Gets a specified Area identified by name. Ownership is NOT transferred!
 		/// @param areaName The name of the Area to try to get.
 		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
-		Area* GetArea1(const std::string_view& areaName);
-
-		/// Gets a specified Area identified by name. Ownership is NOT transferred!
-		/// @param areaName The name of the Area to try to get.
-		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
-		Area* GetArea2(const std::string& areaName) { return GetArea1(areaName); }
+		Area* GetArea(const std::string& areaName);
 
 		void AddNavigableArea(const std::string& areaName) {
 			m_NavigableAreas.push_back(areaName);
@@ -525,14 +520,14 @@ namespace RTE {
 		/// Removes a specific Area identified by a name.
 		/// @param areaName The name of the Area to try to remove.
 		/// @return Whether an Area of that name was found, and subsequently removed.
-		bool RemoveArea(std::string areaName);
+		bool RemoveArea(const std::string& areaName);
 
 		/// Checks if a point is within a specific named Area of this Scene. If
 		/// no Area of the name is found, this just returns false without error.
 		/// @param areaName The name of the Area to try to check against.
 		/// @param point The point to see if it's within the specified Area.
 		/// @return Whether any Area of that name was found, AND the point falls within it.
-		bool WithinArea(std::string areaName, const Vector& point) const;
+		bool WithinArea(const std::string& areaName, const Vector& point) const;
 
 		/// Gets the global acceleration (in m/s^2) that is applied to all movable
 		/// objects' velocities during every frame. Typically models gravity.

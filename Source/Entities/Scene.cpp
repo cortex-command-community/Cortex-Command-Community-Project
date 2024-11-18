@@ -1848,7 +1848,7 @@ bool Scene::SetArea(Area& newArea) {
 	return false;
 }
 
-bool Scene::HasArea(std::string areaName) {
+bool Scene::HasArea(const std::string& areaName) {
 	for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
 		if ((*aItr).GetName() == areaName)
 			return true;
@@ -1856,7 +1856,7 @@ bool Scene::HasArea(std::string areaName) {
 	return false;
 }
 
-Scene::Area* Scene::GetArea1(const std::string_view& areaName) {
+Scene::Area* Scene::GetArea(const std::string& areaName) {
 	for (Scene::Area& area: m_AreaList) {
 		if (area.GetName() == areaName) {
 			return &area;
@@ -1866,7 +1866,7 @@ Scene::Area* Scene::GetArea1(const std::string_view& areaName) {
 	return nullptr;
 }
 
-bool Scene::RemoveArea(std::string areaName) {
+bool Scene::RemoveArea(const std::string& areaName) {
 	for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
 		if ((*aItr).GetName() == areaName) {
 			m_AreaList.erase(aItr);
@@ -1876,7 +1876,7 @@ bool Scene::RemoveArea(std::string areaName) {
 	return false;
 }
 
-bool Scene::WithinArea(std::string areaName, const Vector& point) const {
+bool Scene::WithinArea(const std::string& areaName, const Vector& point) const {
 	if (areaName.empty())
 		return false;
 
@@ -2219,7 +2219,7 @@ float Scene::ApplyBuildBudget(int player, int* pObjectsBuilt) {
 					TerrainObject* pTO = dynamic_cast<TerrainObject*>(pObjectToPlace);
 					if (pTO) {
 						if (HasArea(METABASE_AREA_NAME)) {
-							Scene::Area* metaBase = GetArea1(METABASE_AREA_NAME);
+							Scene::Area* metaBase = GetArea(METABASE_AREA_NAME);
 							if (metaBase) {
 								float x1 = pTO->GetPos().m_X + pTO->GetBitmapOffset().m_X;
 								float y1 = pTO->GetPos().m_Y + pTO->GetBitmapOffset().m_Y;
@@ -2447,7 +2447,7 @@ void Scene::Update() {
 
 			for (const std::string& navigableArea: m_NavigableAreas) {
 				if (HasArea(navigableArea)) {
-					for (const Box& navigableBox: GetArea2(navigableArea)->GetBoxes()) {
+					for (const Box& navigableBox: GetArea(navigableArea)->GetBoxes()) {
 						pathFinder.MarkBoxNavigable(navigableBox, true);
 					}
 				}
