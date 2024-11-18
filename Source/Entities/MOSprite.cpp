@@ -355,16 +355,28 @@ std::vector<Vector>* MOSprite::GetAllPixelPositions(const Vector& origin, float 
 	std::vector<Vector>* posList = new std::vector<Vector>();
 	CLAMP(m_FrameCount - 1, 0, whichFrame);
 	BITMAP* sprite = m_aSprite[whichFrame];
-	for (int y = 0; y < GetSpriteHeight(); y++) {
-		for (int x = 0; x < GetSpriteWidth(); x++) {
-			int pixelIndex = GetPixelIndex(x, y, whichFrame);
+	BITMAP* temp = create_bitmap_ex(8, m_SpriteDiameter * m_Scale, m_SpriteDiameter * m_Scale);
+	rectfill(temp, 0, 0, temp->w - 1, temp->h - 1, 0);
+	Vector offset = Vector(temp->w / 2 + m_SpriteOffset.m_X, temp->h / 2 + m_SpriteOffset.m_Y);
+
+	if (!hflipped) {
+		rotate_scaled_sprite(temp, sprite, offset.m_X, offset.m_Y, ftofix(GetAllegroAngle(-m_Rotation.GetDegAngle())), ftofix(m_Scale));
+	} else {
+		rotate_scaled_sprite_v_flip(temp, sprite, offset.m_X, offset.m_Y, ftofix(GetAllegroAngle(-m_Rotation.GetDegAngle())) + itofix(128), ftofix(m_Scale));
+	}
+
+	for (int y = 0; y < temp->h; y++) {
+		for (int x = 0; x < temp->w; x++) {
+			int pixelIndex = getpixel(temp, x, y);
 			if (includeTransparency || pixelIndex > 0) {
-				Vector pixelPos = (Vector(x, y) + m_SpriteOffset).FlipX(hflipped).RadRotate(angle) + origin;
+				Vector pixelPos = (Vector(x - temp->w / 2, y - temp->h / 2)) + origin;
 				posList->push_back(pixelPos.GetRounded());
 			}
 		}
 	}
 
+	destroy_bitmap(temp);
+	temp = NULL;
 	return posList;
 }
 
