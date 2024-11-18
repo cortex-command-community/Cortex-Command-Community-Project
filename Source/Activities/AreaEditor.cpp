@@ -289,7 +289,7 @@ void AreaEditor::Update() {
 				// Make sure we're not trying to create a noname area
 				if (!m_pNewAreaName->GetText().empty()) {
 					// Check if name is already taken, and if so, select the taken one instead of creating a new
-					if (Scene::Area* pArea = pCurrentScene->GetArea(m_pNewAreaName->GetText())) {
+					if (Scene::Area* pArea = pCurrentScene->GetArea2(m_pNewAreaName->GetText())) {
 						m_pEditorGUI->SetCurrentArea(pArea);
 						m_pEditorGUI->SetEditorGUIMode(AreaEditorGUI::PREADDMOVEBOX);
 					} else {
@@ -297,7 +297,7 @@ void AreaEditor::Update() {
 						Scene::Area newArea(m_pNewAreaName->GetText());
 						pCurrentScene->m_AreaList.push_back(newArea);
 						// Set the new area as the active one in the GUI, note we're getting the correct one from the scene, it's a copy of the one passed in
-						m_pEditorGUI->SetCurrentArea(pCurrentScene->GetArea(newArea.GetName()));
+						m_pEditorGUI->SetCurrentArea(pCurrentScene->GetArea2(newArea.GetName()));
 						// Update teh picker list of the GUI so we can mousewheel between all the Areas, incl the new one
 						m_pEditorGUI->UpdatePickerList(newArea.GetName());
 					}

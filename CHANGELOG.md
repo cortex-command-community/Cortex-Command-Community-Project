@@ -113,13 +113,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Internal GUI element `ComboBox` no longer displays dropdown combobutton when disabled, to communicate visually that it's setting is not modifiable.
 
-- Almost all ctrl+* special inputs functionality (i.e restarting activity, world dumps, showing performance stats) are now mapped to right alt, to not interfere with default crouching inputs. The only exception is ctrl+arrow keys for changing console size.
+- Almost all ctrl+\* special inputs functionality (i.e restarting activity, world dumps, showing performance stats) are now mapped to right alt, to not interfere with default crouching inputs. The only exception is ctrl+arrow keys for changing console size.
 
 - `Gib`s and detached `Attachable`s now inherit the parent's angular velocity by default.
 
 - `InheritsVel` now accounts for the angular velocity of the parent MO, resulting in offset gibs and emissions being flung further away.
 
 - `InheritsVel` and its ilk have been uncapped, allowing users to set them outside of 0-1.
+
+- `Scene` Lua functions `AddNavigatableArea(areaName)` and `ClearNavigatableAreas()` have been renamed/corrected to `AddNavigableArea(areaName)` and `ClearNavigableAreas()`, respectively.
 
 </details>
 

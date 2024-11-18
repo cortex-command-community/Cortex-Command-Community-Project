@@ -356,8 +356,8 @@ void Scene::Clear() {
 		m_ScanScheduled[team] = false;
 	}
 	m_AreaList.clear();
-	m_NavigatableAreas.clear();
-	m_NavigatableAreasUpToDate = false;
+	m_NavigableAreas.clear();
+	m_NavigableAreasUpToDate = false;
 	m_GlobalAcc.Reset();
 	m_SelectedAssemblies.clear();
 	m_AssembliesCounts.clear();
@@ -1856,15 +1856,11 @@ bool Scene::HasArea(std::string areaName) {
 	return false;
 }
 
-Scene::Area* Scene::GetArea(const std::string_view& areaName, bool required) {
+Scene::Area* Scene::GetArea1(const std::string_view& areaName) {
 	for (Scene::Area& area: m_AreaList) {
 		if (area.GetName() == areaName) {
 			return &area;
 		}
-	}
-
-	if (required) {
-		g_ConsoleMan.PrintString("WARNING: Could not find the requested Scene Area named : " + std::string(areaName));
 	}
 
 	return nullptr;
@@ -2223,7 +2219,7 @@ float Scene::ApplyBuildBudget(int player, int* pObjectsBuilt) {
 					TerrainObject* pTO = dynamic_cast<TerrainObject*>(pObjectToPlace);
 					if (pTO) {
 						if (HasArea(METABASE_AREA_NAME)) {
-							Scene::Area* metaBase = GetArea(METABASE_AREA_NAME);
+							Scene::Area* metaBase = GetArea1(METABASE_AREA_NAME);
 							if (metaBase) {
 								float x1 = pTO->GetPos().m_X + pTO->GetBitmapOffset().m_X;
 								float y1 = pTO->GetPos().m_Y + pTO->GetBitmapOffset().m_Y;
@@ -2438,21 +2434,21 @@ void Scene::Update() {
 		}
 	}
 
-	if (m_NavigatableAreasUpToDate == false) {
+	if (m_NavigableAreasUpToDate == false) {
 		// Need to block until all current pathfinding requests are finished. Ugh, if only we had a better way (interrupt/cancel a path request to start a new one?)
 		// TODO: Make the PathRequest struct more capable and maybe we can delay starting or cancel mid-request?
 		BlockUntilAllPathingRequestsComplete();
 
-		m_NavigatableAreasUpToDate = true;
+		m_NavigableAreasUpToDate = true;
 		for (int team = Activity::Teams::NoTeam; team < Activity::Teams::MaxTeamCount; ++team) {
 			PathFinder& pathFinder = GetPathFinder(static_cast<Activity::Teams>(team));
 
-			pathFinder.MarkAllNodesNavigatable(m_NavigatableAreas.empty());
+			pathFinder.MarkAllNodesNavigable(m_NavigableAreas.empty());
 
-			for (const std::string& navigatableArea: m_NavigatableAreas) {
-				if (HasArea(navigatableArea)) {
-					for (const Box& navigatableBox: GetArea(navigatableArea)->GetBoxes()) {
-						pathFinder.MarkBoxNavigatable(navigatableBox, true);
+			for (const std::string& navigableArea: m_NavigableAreas) {
+				if (HasArea(navigableArea)) {
+					for (const Box& navigableBox: GetArea2(navigableArea)->GetBoxes()) {
+						pathFinder.MarkBoxNavigable(navigableBox, true);
 					}
 				}
 			}

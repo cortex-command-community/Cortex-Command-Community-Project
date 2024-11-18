@@ -938,7 +938,7 @@ void HDFirearm::Update() {
 				m_FireSound->Play(m_Pos);
 			}
 			if (m_FireEchoSound) {
-				Scene::Area* noEchoArea = g_SceneMan.GetScene()->GetArea("IndoorArea");
+				Scene::Area* noEchoArea = g_SceneMan.GetScene()->GetArea1("IndoorArea");
 				if (noEchoArea == nullptr || !noEchoArea->IsInside(m_Pos)) {
 					m_FireEchoSound->Play(m_Pos);
 				}

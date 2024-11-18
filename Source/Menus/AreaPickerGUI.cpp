@@ -173,7 +173,7 @@ Scene::Area* AreaPickerGUI::GetNextArea() {
 	GUIListPanel::Item* pItem = m_pAreasList->GetSelected();
 	if (pItem) {
 		g_GUISound.SelectionChangeSound()->Play();
-		return g_SceneMan.GetScene()->GetArea(pItem->m_Name);
+		return g_SceneMan.GetScene()->GetArea2(pItem->m_Name);
 	}
 	return 0;
 }
@@ -189,7 +189,7 @@ Scene::Area* AreaPickerGUI::GetPrevArea() {
 	GUIListPanel::Item* pItem = m_pAreasList->GetSelected();
 	if (pItem) {
 		g_GUISound.SelectionChangeSound()->Play();
-		return g_SceneMan.GetScene()->GetArea(pItem->m_Name);
+		return g_SceneMan.GetScene()->GetArea2(pItem->m_Name);
 	}
 	return 0;
 }
@@ -215,7 +215,7 @@ void AreaPickerGUI::UpdateAreasList(std::string selectAreaName) {
 		// Set the picked area to be the one now selected at the top
 		GUIListPanel::Item* pItem = m_pAreasList->GetSelected();
 		if (pItem)
-			m_pPickedArea = pScene->GetArea(pItem->m_Name);
+			m_pPickedArea = pScene->GetArea2(pItem->m_Name);
 	}
 }
 
@@ -329,7 +329,7 @@ void AreaPickerGUI::Update() {
 		// Report the newly selected item as being 'picked', but don't close the picker
 		GUIListPanel::Item* pItem = m_pAreasList->GetSelected();
 		if (pItem)
-			m_pPickedArea = g_SceneMan.GetScene()->GetArea(pItem->m_Name);
+			m_pPickedArea = g_SceneMan.GetScene()->GetArea2(pItem->m_Name);
 		g_GUISound.SelectionChangeSound()->Play();
 	} else if (pressUp) {
 		m_SelectedAreaIndex--;
@@ -341,7 +341,7 @@ void AreaPickerGUI::Update() {
 		// Report the newly selected item as being 'picked', but don't close the picker
 		GUIListPanel::Item* pItem = m_pAreasList->GetSelected();
 		if (pItem)
-			m_pPickedArea = g_SceneMan.GetScene()->GetArea(pItem->m_Name);
+			m_pPickedArea = g_SceneMan.GetScene()->GetArea2(pItem->m_Name);
 
 		g_GUISound.SelectionChangeSound()->Play();
 	}
@@ -351,7 +351,7 @@ void AreaPickerGUI::Update() {
 		GUIListPanel::Item* pItem = m_pAreasList->GetSelected();
 		if (pItem) {
 			// User has made final selection, so close the Picker
-			if (m_pPickedArea = g_SceneMan.GetScene()->GetArea(pItem->m_Name)) {
+			if (m_pPickedArea = g_SceneMan.GetScene()->GetArea2(pItem->m_Name)) {
 				g_GUISound.AreaPickedSound()->Play();
 				SetEnabled(false);
 			}
@@ -363,7 +363,7 @@ void AreaPickerGUI::Update() {
 		GUIListPanel::Item* pItem = m_pAreasList->GetSelected();
 		if (pItem) {
 			// User has made final selection, so close the Picker
-			if (m_pPickedArea = g_SceneMan.GetScene()->GetArea(pItem->m_Name)) {
+			if (m_pPickedArea = g_SceneMan.GetScene()->GetArea2(pItem->m_Name)) {
 				g_GUISound.AreaPickedSound()->Play();
 				SetEnabled(false);
 			}
@@ -412,7 +412,7 @@ void AreaPickerGUI::Update() {
 					if (pItem) {
 						m_SelectedAreaIndex = m_pAreasList->GetSelectedIndex();
 						// User has made final selection, so close the Picker
-						if (m_pPickedArea = g_SceneMan.GetScene()->GetArea(pItem->m_Name)) {
+						if (m_pPickedArea = g_SceneMan.GetScene()->GetArea2(pItem->m_Name)) {
 							g_GUISound.AreaPickedSound()->Play();
 							SetEnabled(false);
 						}
@@ -429,7 +429,7 @@ void AreaPickerGUI::Update() {
 			GUIListPanel::Item* pItem = m_pAreasList->GetSelected();
 			if (pItem) {
 				// User has made final selection, so close the Picker
-				if (m_pPickedArea = g_SceneMan.GetScene()->GetArea(pItem->m_Name)) {
+				if (m_pPickedArea = g_SceneMan.GetScene()->GetArea2(pItem->m_Name)) {
 					g_GUISound.AreaPickedSound()->Play();
 					SetEnabled(false);
 				}

@@ -505,22 +505,21 @@ namespace RTE {
 
 		/// Gets a specified Area identified by name. Ownership is NOT transferred!
 		/// @param areaName The name of the Area to try to get.
-		/// @param required Whether the area is required, and should throw an error if not found.
 		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
-		Area* GetArea(const std::string_view& areaName, bool required);
+		Area* GetArea1(const std::string_view& areaName);
 
 		/// Gets a specified Area identified by name. Ownership is NOT transferred!
 		/// @param areaName The name of the Area to try to get.
 		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
-		Area* GetArea(const std::string& areaName) { return GetArea(areaName, true); }
+		Area* GetArea2(const std::string& areaName) { return GetArea1(areaName); }
 
-		void AddNavigatableArea(const std::string& areaName) {
-			m_NavigatableAreas.push_back(areaName);
-			m_NavigatableAreasUpToDate = false;
+		void AddNavigableArea(const std::string& areaName) {
+			m_NavigableAreas.push_back(areaName);
+			m_NavigableAreasUpToDate = false;
 		}
-		void ClearNavigatableAreas(const std::string& areaName) {
-			m_NavigatableAreas.clear();
-			m_NavigatableAreasUpToDate = false;
+		void ClearNavigableAreas() {
+			m_NavigableAreas.clear();
+			m_NavigableAreasUpToDate = false;
 		}
 
 		/// Removes a specific Area identified by a name.
@@ -765,9 +764,9 @@ namespace RTE {
 		// List of all the specified Area's of the scene
 		std::list<Area> m_AreaList;
 
-		// List of navigatable areas in the scene. If this list is empty, the entire scene is assumed to be navigatable
-		std::vector<std::string> m_NavigatableAreas;
-		bool m_NavigatableAreasUpToDate;
+		// List of navigable areas in the scene. If this list is empty, the entire scene is assumed to be navigable
+		std::vector<std::string> m_NavigableAreas;
+		bool m_NavigableAreasUpToDate;
 
 		// The global acceleration vector in m/s^2. (think gravity/wind)
 		Vector m_GlobalAcc;
