@@ -837,6 +837,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSprite) {
 	    .def("GetEntryWoundPresetName", &MOSprite::GetEntryWoundPresetName)
 	    .def("GetExitWoundPresetName", &MOSprite::GetExitWoundPresetName)
 	    .def("GetPixelIndex", &MOSprite::GetPixelIndex)
+	    .def("SetPixelIndex", &MOSprite::SetPixelIndex)
+	    .def("GetAllVisiblePixelPositions", &MOSprite::GetAllVisiblePixelPositions, luabind::return_stl_iterator)
 	    .def("GetAllPixelPositions", &MOSprite::GetAllPixelPositions, luabind::return_stl_iterator)
 
 	    .enum_("SpriteAnimMode")[luabind::value("NOANIM", SpriteAnimMode::NOANIM),
