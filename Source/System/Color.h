@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Serializable.h"
+#include <algorithm>
 
 namespace RTE {
 

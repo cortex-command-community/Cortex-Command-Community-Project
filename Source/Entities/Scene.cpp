@@ -356,8 +356,8 @@ void Scene::Clear() {
 		m_ScanScheduled[team] = false;
 	}
 	m_AreaList.clear();
-	m_NavigatableAreas.clear();
-	m_NavigatableAreasUpToDate = false;
+	m_NavigableAreas.clear();
+	m_NavigableAreasUpToDate = false;
 	m_GlobalAcc.Reset();
 	m_SelectedAssemblies.clear();
 	m_AssembliesCounts.clear();
@@ -1848,7 +1848,7 @@ bool Scene::SetArea(Area& newArea) {
 	return false;
 }
 
-bool Scene::HasArea(std::string areaName) {
+bool Scene::HasArea(const std::string& areaName) {
 	for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
 		if ((*aItr).GetName() == areaName)
 			return true;
@@ -1856,21 +1856,17 @@ bool Scene::HasArea(std::string areaName) {
 	return false;
 }
 
-Scene::Area* Scene::GetArea(const std::string_view& areaName, bool required) {
+Scene::Area* Scene::GetArea(const std::string& areaName) {
 	for (Scene::Area& area: m_AreaList) {
 		if (area.GetName() == areaName) {
 			return &area;
 		}
 	}
 
-	if (required) {
-		g_ConsoleMan.PrintString("WARNING: Could not find the requested Scene Area named : " + std::string(areaName));
-	}
-
 	return nullptr;
 }
 
-bool Scene::RemoveArea(std::string areaName) {
+bool Scene::RemoveArea(const std::string& areaName) {
 	for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
 		if ((*aItr).GetName() == areaName) {
 			m_AreaList.erase(aItr);
@@ -1880,7 +1876,7 @@ bool Scene::RemoveArea(std::string areaName) {
 	return false;
 }
 
-bool Scene::WithinArea(std::string areaName, const Vector& point) const {
+bool Scene::WithinArea(const std::string& areaName, const Vector& point) const {
 	if (areaName.empty())
 		return false;
 
@@ -2438,21 +2434,21 @@ void Scene::Update() {
 		}
 	}
 
-	if (m_NavigatableAreasUpToDate == false) {
+	if (m_NavigableAreasUpToDate == false) {
 		// Need to block until all current pathfinding requests are finished. Ugh, if only we had a better way (interrupt/cancel a path request to start a new one?)
 		// TODO: Make the PathRequest struct more capable and maybe we can delay starting or cancel mid-request?
 		BlockUntilAllPathingRequestsComplete();
 
-		m_NavigatableAreasUpToDate = true;
+		m_NavigableAreasUpToDate = true;
 		for (int team = Activity::Teams::NoTeam; team < Activity::Teams::MaxTeamCount; ++team) {
 			PathFinder& pathFinder = GetPathFinder(static_cast<Activity::Teams>(team));
 
-			pathFinder.MarkAllNodesNavigatable(m_NavigatableAreas.empty());
+			pathFinder.MarkAllNodesNavigable(m_NavigableAreas.empty());
 
-			for (const std::string& navigatableArea: m_NavigatableAreas) {
-				if (HasArea(navigatableArea)) {
-					for (const Box& navigatableBox: GetArea(navigatableArea)->GetBoxes()) {
-						pathFinder.MarkBoxNavigatable(navigatableBox, true);
+			for (const std::string& navigableArea: m_NavigableAreas) {
+				if (HasArea(navigableArea)) {
+					for (const Box& navigableBox: GetArea(navigableArea)->GetBoxes()) {
+						pathFinder.MarkBoxNavigable(navigableBox, true);
 					}
 				}
 			}

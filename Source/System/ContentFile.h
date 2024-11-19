@@ -11,6 +11,8 @@ namespace FMOD {
 	class Sound;
 }
 struct BITMAP;
+struct SDL_Palette;
+struct SDL_Surface;
 
 namespace RTE {
 
@@ -198,6 +200,18 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Data Handling
+		/// Copies the default palette to an sdl palette.
+		static SDL_Palette* DefaultPaletteToSDL();
+
+		/// Loads the data from dataPahtToLoad as an SDL_Surface.
+		/// This prevents allegro from doing anything to the image colors it'd otherwise be doing, like breaking the palette or removing alpha values.
+		/// Ownership of the SDL_Surface IS transferred!
+		/// Note that this is relatively slow since it reads the data from disk each time.
+		/// @param conversionMode The Allegro color conversion mode to use when loading this bitmap. Only applies the first time a bitmap is loaded from the disk.
+		/// @param dataPathToSpecificFrame Path to a specific frame when loading an animation to avoid overwriting the original preset DataPath when loading each frame.
+		/// @return Pointer to the SDL_Surface loaded from disk.
+		static SDL_Surface* LoadImageAsSurface(int conversionMode, const std::string& dataPathToLoad);
+
 		/// Loads and transfers the data represented by this ContentFile object as an Allegro BITMAP. Ownership of the BITMAP IS transferred!
 		/// Note that this is relatively slow since it reads the data from disk each time.
 		/// @param conversionMode The Allegro color conversion mode to use when loading this bitmap. Only applies the first time a bitmap is loaded from the disk.

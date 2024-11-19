@@ -20,6 +20,7 @@
 
 #include "allegro.h"
 #include "SDL.h"
+#include "SDL_image.h"
 
 #include "GUI.h"
 #include "GUIInputWrapper.h"
@@ -41,6 +42,7 @@
 #include "FrameMan.h"
 #include "MetaMan.h"
 #include "WindowMan.h"
+#include "GLResourceMan.h"
 #include "NetworkServer.h"
 #include "NetworkClient.h"
 #include "CameraMan.h"
@@ -51,6 +53,7 @@
 #include "MusicMan.h"
 #include "System.h"
 
+#include "RenderTarget.h"
 #include "tracy/Tracy.hpp"
 
 extern "C" {
@@ -68,6 +71,7 @@ void InitializeManagers() {
 	PresetMan::Construct();
 	SettingsMan::Construct();
 	WindowMan::Construct();
+	GLResourceMan::Construct();
 	LuaMan::Construct();
 	NetworkServer::Construct();
 	NetworkClient::Construct();
@@ -91,6 +95,7 @@ void InitializeManagers() {
 	g_ThreadMan.Initialize();
 	g_SettingsMan.Initialize();
 	g_WindowMan.Initialize();
+	g_GLResourceMan.Initialize();
 
 	g_LuaMan.Initialize();
 	g_NetworkServer.Initialize();
@@ -141,6 +146,7 @@ void DestroyManagers() {
 	g_LuaMan.Destroy();
 	ContentFile::FreeAllLoaded();
 	g_ConsoleMan.Destroy();
+	g_GLResourceMan.Destroy();
 	g_WindowMan.Destroy();
 
 #ifdef DEBUG_BUILD
@@ -247,7 +253,7 @@ void RunMenuLoop() {
 	g_UInputMan.TrapMousePos(false);
 
 	while (!System::IsSetToQuit()) {
-		g_WindowMan.ClearRenderer();
+		g_WindowMan.ClearBackbuffer();
 		PollSDLEvents();
 
 		g_WindowMan.Update();
@@ -271,8 +277,10 @@ void RunMenuLoop() {
 		}
 		g_ConsoleMan.Update();
 
+		g_WindowMan.GetScreenBuffer()->Begin();
 		g_MenuMan.Draw();
 		g_ConsoleMan.Draw(g_FrameMan.GetBackBuffer32());
+		g_WindowMan.GetScreenBuffer()->End();
 		g_WindowMan.UploadFrame();
 	}
 }
@@ -309,7 +317,7 @@ void RunGameLoop() {
 
 		PollSDLEvents();
 		g_WindowMan.Update();
-		g_WindowMan.ClearRenderer();
+		g_WindowMan.ClearBackbuffer();
 
 		g_TimerMan.Update();
 
@@ -429,6 +437,7 @@ int main(int argc, char** argv) {
 	loadpng_init();
 
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER);
+	IMG_Init(IMG_INIT_PNG);
 
 #if SDL_MINOR_VERSION > 22
 	SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, "0");

@@ -158,7 +158,7 @@ void LuaStateWrapper::Initialize() {
 	                         RegisterLuaBindingsOfType(SystemLuaBindings, PathRequest),
 	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Scene),
 	                         RegisterLuaBindingsOfType(EntityLuaBindings, SceneArea),
-	                         RegisterLuaBindingsOfType(EntityLuaBindings, SceneLayer),
+	                         RegisterLuaBindingsOfType(EntityLuaBindings, StaticSceneLayer),
 	                         RegisterLuaBindingsOfType(EntityLuaBindings, SLBackground),
 	                         RegisterLuaBindingsOfAbstractType(EntityLuaBindings, Deployment),
 	                         RegisterLuaBindingsOfType(SystemLuaBindings, DataModule),
