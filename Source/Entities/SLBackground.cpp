@@ -38,6 +38,7 @@ void SLBackground::Clear() {
 	m_FillColorRight = ColorKeys::g_MaskColor;
 	m_FillColorUp = ColorKeys::g_MaskColor;
 	m_FillColorDown = ColorKeys::g_MaskColor;
+	m_ZOrder = c_BackgroundDepth;
 
 	m_IgnoreAutoScale = false;
 }
@@ -222,6 +223,7 @@ void SLBackground::Draw(const Box& targetDimensions, Box& targetBox, bool offset
 	int targetBoxWidth = static_cast<int>(targetBox.GetWidth());
 	int targetBoxHeight = static_cast<int>(targetBox.GetHeight());
 
+	rlZDepth(m_ZOrder);
 	// Detect if non-wrapping layer dimensions can't cover the whole target area with its main bitmap. If so, fill in the gap with appropriate solid color sampled from the hanging edge.
 	if (!m_WrapX && bitmapWidth <= targetBoxWidth) {
 		if (m_FillColorLeft != ColorKeys::g_MaskColor && m_Offset.GetFloorIntX() != 0) {
@@ -239,4 +241,5 @@ void SLBackground::Draw(const Box& targetDimensions, Box& targetBox, bool offset
 			DrawRectangle(targetBoxCornerX, targetBoxCornerY + bitmapHeight - m_Offset.m_Y, targetBoxWidth, targetBoxHeight - bitmapHeight + m_Offset.m_Y, {static_cast<unsigned char>(m_FillColorDown), 0, 0, 255});
 		}
 	}
+	rlZDepth(c_DefaultDrawDepth);
 }

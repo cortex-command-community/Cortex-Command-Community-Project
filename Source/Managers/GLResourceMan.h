@@ -45,6 +45,8 @@ namespace RTE {
 		GLuint GetDynamicUploadBuffer(BITMAP* bitmap);
 		GLuint UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const std::vector<Box>& = {});
 
+		void DestroyBitmapInfo(BITMAP* bitmap);
+
 		GLBitmapInfo* MakeBitmapInfo();
 
 
