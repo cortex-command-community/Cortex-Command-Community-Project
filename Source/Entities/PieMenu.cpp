@@ -632,6 +632,7 @@ void PieMenu::Update() {
 }
 
 void PieMenu::Draw(BITMAP* targetBitmap, const Vector& targetPos) const {
+	rlZDepth(c_GuiDepth);
 	Vector drawPos;
 	CalculateDrawPosition(targetBitmap, targetPos, drawPos);
 
@@ -656,6 +657,7 @@ void PieMenu::Draw(BITMAP* targetBitmap, const Vector& targetPos) const {
 	if (m_ActiveSubPieMenu) {
 		m_ActiveSubPieMenu->Draw(targetBitmap, targetPos);
 	}
+	rlZDepth(c_DefaultDrawDepth);
 }
 
 void PieMenu::UpdateWobbling() {

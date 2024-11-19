@@ -100,6 +100,10 @@ namespace RTE {
 		/// @param newOffset The new offset Vector.
 		void SetOffset(const Vector& newOffset) { m_Offset = newOffset; }
 
+		/// Set the depth this scenelayer will be drawn at.
+		/// @param z The depth to draw at, negative values are further to the front in the range c_NearDepth to c_FarDepth.
+		void SetZOrder(float z) { m_ZOrder = z; }
+
 		/// Gets the scroll ratio that modifies the offset.
 		/// @return A copy of the ratio.
 		Vector GetScrollRatio() const { return m_ScrollRatio; }
@@ -222,6 +226,7 @@ namespace RTE {
 
 		Vector m_OriginOffset; //!< Offset of this SceneLayer off the top left edge of the screen.
 		Vector m_Offset; //!< The current scrolled offset of this SceneLayer, before being adjusted with the origin offset.
+		float m_ZOrder{0.0F}; //!< The depth this SceneLayer should be drawn at.
 
 		Vector m_ScrollInfo; //!< The initial scrolling ratio of this SceneLayer as set in INI. Used to calculate the actual scrolling ratios.
 		Vector m_ScrollRatio; //!< The scrolling ratios of this SceneLayer, adjusted to the Scene, player screen dimensions and scaling factor as necessary.
