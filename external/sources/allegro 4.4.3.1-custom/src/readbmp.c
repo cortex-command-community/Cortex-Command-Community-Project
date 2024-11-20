@@ -122,50 +122,48 @@ int save_bitmap(AL_CONST char *filename, BITMAP *bmp, AL_CONST RGB *pal)
  *  filled in with this palette) or by using the current palette if PAL
  *  is NULL. In any other cases, PAL is unused.
  */
-BITMAP *_fixup_loaded_bitmap(BITMAP *bmp, PALETTE pal, int bpp)
-{
-   BITMAP *b2;
-   ASSERT(bmp);
+BITMAP* _fixup_loaded_bitmap(BITMAP* bmp, PALETTE pal, int bpp) {
+	BITMAP* b2;
+	ASSERT(bmp);
 
-   b2 = create_bitmap_ex(bpp, bmp->w, bmp->h);
-   if (!b2) {
-      destroy_bitmap(bmp);
-      return NULL;
-   }
+	b2 = create_bitmap_ex(bpp, bmp->w, bmp->h);
+	if (!b2) {
+		destroy_bitmap(bmp);
+		return NULL;
+	}
 
-   if (bpp == 8) {
-      RGB_MAP *old_map = rgb_map;
+	if (bpp == 8) {
+		// RGB_MAP *old_map = rgb_map;
 
-      if (pal)
-	 generate_optimized_palette(bmp, pal, NULL);
-      else
-	 pal = _current_palette;
+		if (!pal) {
+			pal = _current_palette;
+		}
 
+#if 0
       rgb_map = _AL_MALLOC(sizeof(RGB_MAP));
       if (rgb_map != NULL)
 	 create_rgb_table(rgb_map, pal, NULL);
+#endif
 
-      blit(bmp, b2, 0, 0, 0, 0, bmp->w, bmp->h);
+		blit(bmp, b2, 0, 0, 0, 0, bmp->w, bmp->h);
 
-      if (rgb_map != NULL)
-	 _AL_FREE(rgb_map);
-      rgb_map = old_map;
-   }
-   else if (bitmap_color_depth(bmp) == 8) {
-      select_palette(pal);
-      blit(bmp, b2, 0, 0, 0, 0, bmp->w, bmp->h);
-      unselect_palette();
-   }
-   else {
-      blit(bmp, b2, 0, 0, 0, 0, bmp->w, bmp->h);
-   }
+#if 0
+		if (rgb_map != NULL)
+			_AL_FREE(rgb_map);
+		rgb_map = old_map;
+#endif
+	} else if (bitmap_color_depth(bmp) == 8) {
+		select_palette(pal);
+		blit(bmp, b2, 0, 0, 0, 0, bmp->w, bmp->h);
+		unselect_palette();
+	} else {
+		blit(bmp, b2, 0, 0, 0, 0, bmp->w, bmp->h);
+	}
 
-   destroy_bitmap(bmp);
+	destroy_bitmap(bmp);
 
-   return b2;
+	return b2;
 }
-
-
 
 /* register_bitmap_file_type_exit:
  *  Free list of registered bitmap file types.

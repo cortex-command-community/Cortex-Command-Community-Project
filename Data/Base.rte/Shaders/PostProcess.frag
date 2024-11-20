@@ -1,6 +1,7 @@
 #version 130
 
 in vec2 textureUV;
+in vec4 vertexColor;
 
 out vec4 FragColor;
 
@@ -18,5 +19,5 @@ vec4 texture2DAA(sampler2D tex, vec2 uv) {
 }
 
 void main() {
-	FragColor = texture2DAA(rteTexture, textureUV) * rteColor;
+	FragColor = texture2DAA(rteTexture, textureUV) * rteColor * vertexColor;
 }

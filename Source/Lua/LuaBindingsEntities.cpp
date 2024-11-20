@@ -117,6 +117,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACraft) {
 	    .property("HatchOpenSound", &ACraft::GetHatchOpenSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetHatchOpenSound)
 	    .property("HatchCloseSound", &ACraft::GetHatchCloseSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetHatchCloseSound)
 	    .property("CrashSound", &ACraft::GetCrashSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetCrashSound)
+	    .property("CanEnterOrbit", &ACraft::GetCanEnterOrbit, &ACraft::SetCanEnterOrbit)
 	    .property("MaxPassengers", &ACraft::GetMaxPassengers)
 	    .property("DeliveryDelayMultiplier", &ACraft::GetDeliveryDelayMultiplier)
 	    .property("ScuttleOnDeath", &ACraft::GetScuttleOnDeath, &ACraft::SetScuttleOnDeath)
@@ -1195,10 +1196,10 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Scene) {
 	    .def("SetResidentBrain", &Scene::SetResidentBrain)
 	    .def("SetArea", &Scene::SetArea)
 	    .def("HasArea", &Scene::HasArea)
-	    .def("GetArea", (Scene::Area * (Scene::*)(const std::string& areaName)) & Scene::GetArea)
+	    .def("GetArea", &Scene::GetArea)
 	    .def("WithinArea", &Scene::WithinArea)
-	    .def("AddNavigatableArea", &Scene::AddNavigatableArea)
-	    .def("ClearNavigatableAreas", &Scene::ClearNavigatableAreas)
+	    .def("AddNavigableArea", &Scene::AddNavigableArea)
+	    .def("ClearNavigableAreas", &Scene::ClearNavigableAreas)
 	    .def("ResetPathFinding", &Scene::ResetPathFinding)
 	    .def("UpdatePathFinding", &Scene::UpdatePathFinding)
 	    .def("PathFindingUpdated", &Scene::PathFindingUpdated)
@@ -1241,8 +1242,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneArea) {
 	    .def("GetRandomPoint", &Scene::Area::GetRandomPoint);
 }
 
-LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneLayer) {
-	return luabind::class_<SceneLayer, Entity>("SceneLayer");
+LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, StaticSceneLayer) {
+	return luabind::class_<StaticSceneLayer, Entity>("StaticSceneLayer");
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneObject) {
@@ -1273,7 +1274,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneObject) {
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SLBackground) {
-	return luabind::class_<SLBackground, SceneLayer>("SLBackground")
+	return luabind::class_<SLBackground, StaticSceneLayer>("SLBackground")
 
 	    .property("Frame", &SLBackground::GetFrame, &SLBackground::SetFrame)
 	    .property("SpriteAnimMode", &SLBackground::GetSpriteAnimMode, &SLBackground::SetSpriteAnimMode)

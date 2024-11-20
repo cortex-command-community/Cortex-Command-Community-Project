@@ -4,6 +4,8 @@
 #include "TerrainObject.h"
 #include "BunkerAssemblyScheme.h"
 #include "Deployment.h"
+#include "Draw.h"
+#include "FrameMan.h"
 
 using namespace RTE;
 
@@ -391,7 +393,7 @@ void BunkerAssembly::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMo
 		} else if (mode == g_DrawMaterial) {
 			masked_blit(m_MaterialBitmap, pTargetBitmap, 0, 0, aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY(), m_MaterialBitmap->w, m_MaterialBitmap->h);
 		} else if (mode == g_DrawTrans) {
-			draw_trans_sprite(pTargetBitmap, m_pPresentationBitmap, aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY());
+			DrawTexture(m_pPresentationBitmap, aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 		}
 	}
 }

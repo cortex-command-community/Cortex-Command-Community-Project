@@ -3,6 +3,8 @@
 #include "AEmitter.h"
 #include "PresetMan.h"
 #include "SceneMan.h"
+#include "FrameMan.h"
+#include "Draw.h"
 
 using namespace RTE;
 
@@ -466,7 +468,7 @@ void MOSprite::Draw(BITMAP* pTargetBitmap,
 				draw_character_ex(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY, g_WhiteColor, -1);
 				break;
 			case g_DrawTrans:
-				draw_trans_sprite(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
+				DrawTexture(m_aSprite[m_Frame], spriteX, spriteY, {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 				break;
 			case g_DrawAlpha:
 				set_alpha_blender();
