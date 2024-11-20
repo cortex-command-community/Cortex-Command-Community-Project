@@ -90,12 +90,9 @@ int PEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return MOSParticle::ReadProperty(propName, reader));
 
 	MatchProperty("AddEmission", {
-		Entity* readerEntity = g_PresetMan.ReadReflectedPreset(reader);
-		if (Emission* readerAttachable = dynamic_cast<Emission*>(readerEntity)) {
-			m_EmissionList.push_back(readerAttachable);
-		} else {
-			reader.ReportError("Tried to AddAttachable a non-Attachable type!");
-		}
+		Emission* emission = new Emission();
+		reader >> *emission;
+		m_EmissionList.push_back(emission);
 	});
 	MatchProperty("EmissionSound", { reader >> m_EmissionSound; });
 	MatchProperty("BurstSound", { reader >> m_BurstSound; });

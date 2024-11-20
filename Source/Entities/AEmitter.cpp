@@ -105,12 +105,9 @@ int AEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Attachable::ReadProperty(propName, reader));
 
 	MatchProperty("AddEmission", {
-		Entity* readerEntity = g_PresetMan.ReadReflectedPreset(reader);
-		if (Emission* readerAttachable = dynamic_cast<Emission*>(readerEntity)) {
-			m_EmissionList.push_back(readerAttachable);
-		} else {
-			reader.ReportError("Tried to AddAttachable a non-Attachable type!");
-		}
+		Emission* emission = new Emission();
+		reader >> *emission;
+		m_EmissionList.push_back(emission);
 	});
 	MatchProperty("EmissionSound", {
 		m_EmissionSound = new SoundContainer;
