@@ -2459,7 +2459,7 @@ void Scene::Update() {
 			for (const std::string& navigableArea: m_NavigableAreas) {
 				if (HasArea(navigableArea)) {
 					for (const Box* navigableBox: GetArea(navigableArea)->GetBoxes()) {
-						pathFinder.MarkBoxNavigable(navigableBox, true);
+						pathFinder.MarkBoxNavigable(*navigableBox, true);
 					}
 				}
 			}
