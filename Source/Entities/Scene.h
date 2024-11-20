@@ -345,7 +345,7 @@ namespace RTE {
 
 		/// Adds area to the list if this scene's areas.
 		/// @param m_AreaList.push_back(newArea Area to add.
-		void AddArea(Scene::Area& newArea) { m_AreaList.push_back(newArea); }
+		void AddArea(Scene::Area& newArea) { m_AreaList.push_back(new Scene::Area(newArea)); }
 
 		/// Creates a new SceneLayer for a specific team and fills it with black
 		/// pixels that end up being a specific size on the screen.
@@ -767,7 +767,7 @@ namespace RTE {
 		bool m_ScanScheduled[Activity::MaxTeamCount];
 
 		// List of all the specified Area's of the scene
-		std::list<Area> m_AreaList;
+		std::list<Area*> m_AreaList;
 
 		// List of navigatable areas in the scene. If this list is empty, the entire scene is assumed to be navigatable
 		std::vector<std::string> m_NavigatableAreas;

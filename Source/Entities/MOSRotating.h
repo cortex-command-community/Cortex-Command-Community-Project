@@ -146,7 +146,7 @@ namespace RTE {
 
 		/// Gets direct access to the list of object this is to generate upon gibbing.
 		/// @return A pointer to the list of gibs. Ownership is NOT transferred!
-		std::list<Gib>* GetGibList() { return &m_Gibs; }
+		std::list<Gib*>* GetGibList() { return &m_Gibs; }
 
 		/// Adds graphical recoil offset to this MOSprite according to its angle.
 		void AddRecoil();
@@ -551,7 +551,7 @@ namespace RTE {
 		float m_FarthestAttachableDistanceAndRadius; //!< The distance + radius of the radius affecting Attachable.
 		float m_AttachableAndWoundMass; //!< The mass of all Attachables and wounds on this MOSRotating. Used in combination with its actual mass and any other affecting factors to get its total mass.
 		// The list of Gib:s this will create when gibbed
-		std::list<Gib> m_Gibs;
+		std::list<Gib*> m_Gibs;
 		// The amount of impulse force required to gib this, in kg * (m/s). 0 means no limit
 		float m_GibImpulseLimit;
 		int m_GibWoundLimit; //!< The number of wounds that will gib this MOSRotating. 0 means that it can't be gibbed via wounds.

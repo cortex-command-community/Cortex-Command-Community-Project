@@ -431,8 +431,8 @@ int Scene::Create(const Scene& reference) {
 	}
 
 	// Copy areas
-	for (std::list<Area>::const_iterator aItr = reference.m_AreaList.begin(); aItr != reference.m_AreaList.end(); ++aItr)
-		m_AreaList.push_back(*aItr);
+	for (Area* area: reference.m_AreaList)
+		m_AreaList.push_back(new Area(*area));
 
 	m_GlobalAcc = reference.m_GlobalAcc;
 
@@ -1156,11 +1156,11 @@ int Scene::Save(Writer& writer) const {
 		writer.NewProperty("ScanScheduledTeam4");
 		writer << m_ScanScheduled[Activity::TeamFour];
 	}
-	for (std::list<Area>::const_iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
+	for (Area* area: m_AreaList) {
 		// Only write the area if it has any boxes/area at all
-		if (doFullGameSave || !(*aItr).HasNoArea()) {
+		if (doFullGameSave || !(*area).HasNoArea()) {
 			writer.NewProperty("AddArea");
-			writer << *aItr;
+			writer << *area;
 		}
 	}
 	writer.NewProperty("GlobalAcceleration");
@@ -1442,6 +1442,9 @@ void Scene::Destroy(bool notInherited) {
 		delete (*slItr);
 		*slItr = 0;
 	}
+
+	for (Area* area: m_AreaList)
+		delete area;
 
 	delete m_apUnseenLayer[Activity::TeamOne];
 	delete m_apUnseenLayer[Activity::TeamTwo];
@@ -1840,33 +1843,33 @@ int Scene::GetResidentBrainCount() const {
 }
 
 bool Scene::SetArea(Area& newArea) {
-	for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
+	for (Area* area: m_AreaList) {
 		// Try to find an existing area of the same name
-		if ((*aItr).GetName() == newArea.GetName()) {
+		if (area->GetName() == newArea.GetName()) {
 			// Deep copy into the existing area
-			(*aItr).Reset();
-			(*aItr).Create(newArea);
+			area->Reset();
+			area->Create(newArea);
 			return true;
 		}
 	}
 	// Couldn't find one, so just add the new Area
-	m_AreaList.push_back(newArea);
+	m_AreaList.push_back(new Area(newArea));
 
 	return false;
 }
 
 bool Scene::HasArea(std::string areaName) {
-	for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
-		if ((*aItr).GetName() == areaName)
+	for (Area* area: m_AreaList) {
+		if (area->GetName() == areaName)
 			return true;
 	}
 	return false;
 }
 
 Scene::Area* Scene::GetArea(const std::string_view& areaName, bool required) {
-	for (Scene::Area& area: m_AreaList) {
-		if (area.GetName() == areaName) {
-			return &area;
+	for (Scene::Area*& area: m_AreaList) {
+		if (area->GetName() == areaName) {
+			return area;
 		}
 	}
 
@@ -1878,8 +1881,8 @@ Scene::Area* Scene::GetArea(const std::string_view& areaName, bool required) {
 }
 
 bool Scene::RemoveArea(std::string areaName) {
-	for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
-		if ((*aItr).GetName() == areaName) {
+	for (std::list<Area*>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
+		if ((*aItr)->GetName() == areaName) {
 			m_AreaList.erase(aItr);
 			return true;
 		}
@@ -1891,8 +1894,8 @@ bool Scene::WithinArea(std::string areaName, const Vector& point) const {
 	if (areaName.empty())
 		return false;
 
-	for (std::list<Area>::const_iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
-		if ((*aItr).GetName() == areaName && (*aItr).IsInside(point))
+	for (std::list<Area*>::const_iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
+		if ((*aItr)->GetName() == areaName && (*aItr)->IsInside(point))
 			return true;
 	}
 

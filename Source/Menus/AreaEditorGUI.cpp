@@ -133,7 +133,7 @@ void AreaEditorGUI::Update() {
 
 	// If no Area is selected yet, and there are Areas in the current scene, then select the first one automatically
 	if (!m_pCurrentArea && !g_SceneMan.GetScene()->m_AreaList.empty())
-		m_pCurrentArea = &(g_SceneMan.GetScene()->m_AreaList.front());
+		m_pCurrentArea = g_SceneMan.GetScene()->m_AreaList.front();
 
 	m_EditMade = false;
 	m_pBoxToBlink = 0;
@@ -271,7 +271,7 @@ void AreaEditorGUI::Update() {
 
 	// Make sure we have a picked area if there are any areas at all!
 	if (!m_pCurrentArea && !g_SceneMan.GetScene()->m_AreaList.empty())
-		m_pCurrentArea = &(g_SceneMan.GetScene()->m_AreaList.front());
+		m_pCurrentArea = g_SceneMan.GetScene()->m_AreaList.front();
 	// If there are no Area:s, AreaEditor should detect it and force user to create a new one with a dialog
 	//    else
 	//        m_EditorGUIMode = PREADDMOVEBOX;
