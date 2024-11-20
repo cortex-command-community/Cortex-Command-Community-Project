@@ -4,6 +4,7 @@
 #include "GLCheck.h"
 #include "raylib/rlgl.h"
 #include "WindowMan.h"
+#include "Constants.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -63,7 +64,7 @@ void RenderTarget::Begin(bool clear) {
 
 	rlMatrixMode(RL_PROJECTION);
 	rlLoadIdentity();
-	rlOrtho(0.0f, m_Size.w, m_Size.h, 0.0f, -1.0f, 1.0f);
+	rlOrtho(0.0f, m_Size.w, m_Size.h, 0.0f, c_NearDepth, c_FarDepth);
 	rlMatrixMode(RL_MODELVIEW);
 	rlLoadIdentity();
 

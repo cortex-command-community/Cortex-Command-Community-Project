@@ -151,3 +151,8 @@ GLuint GLResourceMan::UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const st
 	}
 	return texture;
 }
+
+void GLResourceMan::DestroyBitmapInfo(BITMAP* bitmap) {
+	GLBitmapInfo* info = GetBitmapInfo(bitmap);
+	glDeleteTextures(1, &info->m_Texture);
+}
