@@ -79,6 +79,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `Attachable` INI and Lua (R/W) properties `InheritsVelWhenDetached` and `InheritsAngularVelWhenDetached`, which determine how much of these velocities an attachable inherits from its parent when detached. Defaults to 1.
 
+- New GPU Renderer using OpenGL+Raylib, draw now takes 0ms in pretty much every instance.
+
+- New Z Order for scene layers and primitives: Background layer sits at z=100, Terrain Background at z=50, Terrain color and MO color at z=0, GUIs sit at z=-100, allowed z range is [-200, +200], in the future this'll be expanded to MO draw as well.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -121,6 +125,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `InheritsVel` and its ilk have been uncapped, allowing users to set them outside of 0-1.
 
+- Lua renamed `SceneLayer`->`StaticSceneLayer` due to changed SLBackground base class.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
@@ -140,6 +146,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed mounted HeldDevices not respecting InheritedRotAngleOffset.
 
 - Fixed an issue where internal Lua functions OriginalDoFile, OriginalLoadFile, and OriginalRequire were polluting the global namespace. They have now been made inaccessible.
+
+- Fixed the palette being mangled to 6bit/color on load.
+
+- Fixed allegro not loading alpha of image with alpha by using SDL_image instead.
 
 </details>
 
