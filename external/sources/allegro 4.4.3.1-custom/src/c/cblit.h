@@ -33,6 +33,7 @@
    #include <string.h>
 #endif
 
+#include "tracy/TracyC.h"
 
 
 /* _linear_clear_to_color:
@@ -40,12 +41,21 @@
  */
 void FUNC_LINEAR_CLEAR_TO_COLOR(BITMAP *dst, int color)
 {
+   TracyCZone(clear, 1);
    int x, y;
-   int w;
+   int w, h;
 
    ASSERT(dst);
 
+
    w = dst->cr - dst->cl;
+   h = dst->cb - dst->ct;
+
+   if (!is_sub_bitmap(dst) && (color == 0 || PP_DEPTH == 8) && w == dst->w && h == dst->h) {
+      memset(dst->dat, color, dst->w * dst->h * PP_DEPTH / 8);
+      TracyCZoneEnd(clear);
+      return;
+   }
 
    bmp_select(dst);
 
@@ -53,11 +63,12 @@ void FUNC_LINEAR_CLEAR_TO_COLOR(BITMAP *dst, int color)
       PIXEL_PTR d = OFFSET_PIXEL_PTR(bmp_write_line(dst, y), dst->cl);
 
       for (x = w - 1; x >= 0; INC_PIXEL_PTR(d), x--) {
-	 PUT_PIXEL(d, color);
+         PUT_PIXEL(d, color);
       }
    }
 
    bmp_unwrite_line(dst);
+   TracyCZoneEnd(clear);
 }
 
 
