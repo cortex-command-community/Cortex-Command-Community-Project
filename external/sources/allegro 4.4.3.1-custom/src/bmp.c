@@ -827,9 +827,9 @@ int save_bmp_pf(PACKFILE *f, BITMAP *bmp, AL_CONST RGB *pal)
 
       /* palette */
       for (i=0; i<256; i++) {
-	 pack_putc(_rgb_scale_6[pal[i].b], f);
-	 pack_putc(_rgb_scale_6[pal[i].g], f);
-	 pack_putc(_rgb_scale_6[pal[i].r], f);
+	 pack_putc(pal[i].b, f);
+	 pack_putc(pal[i].g, f);
+	 pack_putc(pal[i].r, f);
 	 pack_putc(0, f);
       }
    }
