@@ -1200,12 +1200,7 @@ void SceneEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 		m_DrawBitmap = std::unique_ptr<BITMAP, BitmapDeleter>(temp);
 		m_DrawTexture = std::make_unique<BigTexture>(m_DrawBitmap.get());
 	}
-	{
-	ZoneScopedN("SceneEditor::Draw!clear");
 	clear_to_color(m_DrawBitmap.get(), 0);
-	}
-	{
-		ZoneScopedN("SceneEditor::Draw!Draw");
 	// The get a std::list of the currently edited set of placed objects in the Scene
 	const std::list<SceneObject*>* pSceneObjectList = 0;
 	if (m_FeatureSet == ONLOADEDIT)
@@ -1336,21 +1331,24 @@ void SceneEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 	}
 	// If the held object will be placed at the end of the std::list, draw it last to the scene, transperent blinking
 	else if (m_pCurrentObject && (m_ObjectListOrder < 0 || (pSceneObjectList && m_ObjectListOrder == pSceneObjectList->size()))) {
+		rlZDepth(c_GuiDepth);
 		g_FrameMan.SetTransTableFromPreset(m_BlinkTimer.AlternateReal(333) || m_EditorGUIMode == PLACINGOBJECT ? TransparencyPreset::LessTrans : TransparencyPreset::HalfTrans);
 		m_pCurrentObject->Draw(m_DrawBitmap.get(), targetPos, g_DrawTrans);
 		Actor* pActor = dynamic_cast<Actor*>(m_pCurrentObject);
 		if (pActor && m_FeatureSet != BLUEPRINTEDIT && m_FeatureSet != AIPLANEDIT)
 			pActor->DrawHUD(pTargetBitmap, targetPos);
-	}
+		rlZDepth(c_DefaultDrawDepth);
 	}
 
 	m_pPicker->Draw(pTargetBitmap);
 
+	m_DrawTexture->Update(Box(Vector(), m_DrawTexture->m_Width, m_DrawTexture->m_Height));
+	rlZDepth(-1);
+	m_DrawTexture->Draw(Box(Vector(), m_DrawTexture->m_Width, m_DrawTexture->m_Height), Box(Vector(), m_DrawTexture->m_Width, m_DrawTexture->m_Height));
+	rlZDepth(0);
+
 	// Draw the pie menu
 	m_PieMenu->Draw(pTargetBitmap, targetPos);
-
-	m_DrawTexture->Update(Box(Vector(), m_DrawTexture->m_Width, m_DrawTexture->m_Height));
-	m_DrawTexture->Draw(Box(Vector(), m_DrawTexture->m_Width, m_DrawTexture->m_Height), Box(Vector(), m_DrawTexture->m_Width, m_DrawTexture->m_Height));
 }
 
 void SceneEditorGUI::UpdateBrainSkyPathAndCost(Vector brainPos) {
