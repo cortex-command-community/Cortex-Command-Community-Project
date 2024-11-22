@@ -349,7 +349,7 @@ void PostProcessMan::PostProcess() {
 	UpdatePalette();
 
 	// First copy the current 8bpp backbuffer to the 32bpp buffer; we'll add effects to it
-	m_PostProcessFramebuffer->Begin(false);
+	m_PostProcessFramebuffer->Begin(true);
 	//m_Blit8->Begin();
 	//int paletteUniform = m_Blit8->GetUniformLocation("rtePalette");
 	//rlSetUniformSampler(paletteUniform, m_Palette8Texture);
