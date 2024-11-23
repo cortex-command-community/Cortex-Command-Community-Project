@@ -51,19 +51,10 @@ namespace RTE {
 		/// Destructor method used to clean up a GraphicalPrimitive object before deletion from system memory.
 		virtual ~GraphicalPrimitive() = default;
 
-		/// Translates coordinates from scene to this bitmap offset producing two coordinates.
+		/// Wraps coordinates if current Scene is wrapped.
 		/// @param targetPos Target position.
 		/// @param scenePos Position on scene.
-		/// @param drawLeftPos 'Left' position of bitmap on scene with negative values as if scene seam is 0,0.
-		/// @param drawRightPos 'Right' position of bitmap on scene with positive values.
-		/// @remark
-		/// Unfortunately it's hard to explain how this works. It tries to represent scene bitmap as two parts with center in 0,0.
-		/// Right part is just plain visible part with coordinates from [0, scenewidth] and left part is imaginary bitmap as if we traversed it across the seam right-to-left with coordinates [0, -scenewidth].
-		/// So in order to be drawn each screen coordinates calculated twice for left and right 'bitmaps' and then one of them either flies away off-screen or gets drawn on the screen.
-		/// When we cross the seam either left or right part is actually drawn in the bitmap, and negative coordinates of right part are compensated by view point offset coordinates when we cross the seam right to left.
-		/// I really don't know how to make it simpler, because it has so many special cases and simply wrapping all out-of-the scene coordinates don't work because this way nothing will be ever draw across the seam.
-		/// You're welcome to rewrite this nightmare if you can, I wasted a whole week on this (I can admit that I'm just too dumb for this) )))
-		void TranslateCoordinates(Vector targetPos, const Vector& scenePos, Vector& drawLeftPos, Vector& drawRightPos) const;
+		Vector WrapCoordinates(Vector targetPos, const Vector& scenePos) const;
 
 		/// Draws this primitive on provided bitmap.
 		/// @param drawScreen Bitmap to draw on.
