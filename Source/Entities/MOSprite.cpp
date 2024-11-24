@@ -439,11 +439,58 @@ void MOSprite::SetAllSpritePixelIndexes(int whichFrame, int colorIndex, int igno
 	}
 }
 
-void MOSprite::SetPixelIndex(int x, int y, unsigned int whichFrame, int colorIndex, int ignoreIndex, bool invert) {
+int MOSprite::GetSpritePixelIndex(int x, int y, int whichFrame) const {
+	unsigned int clampedFrame = std::max(std::min(whichFrame, static_cast<int>(m_FrameCount) - 1), 0);
+	BITMAP* targetSprite = m_aSprite[clampedFrame];
+	if (is_inside_bitmap(targetSprite, x, y, 0)) {
+		return _getpixel(targetSprite, x, y);
+	}
+	return -1;
+}
+
+std::vector<Vector>* MOSprite::GetAllSpritePixelPositions(const Vector& origin, float angle, bool hflipped, int whichFrame, int ignoreIndex, bool invert, bool includeChildren) {
+	std::vector<Vector>* posList = new std::vector<Vector>();
+	unsigned int clampedFrame = std::max(std::min(whichFrame, static_cast<int>(m_FrameCount) - 1), 0);
+	int spriteSize = m_SpriteDiameter;
+	if (includeChildren && dynamic_cast<MOSRotating*>(this)) {
+		spriteSize = dynamic_cast<MOSRotating*>(this)->GetDiameter();
+	}
+	BITMAP* sprite = m_aSprite[clampedFrame];
+	BITMAP* temp = create_bitmap_ex(8, spriteSize, spriteSize);
+	rectfill(temp, 0, 0, temp->w - 1, temp->h - 1, 0);
+	Vector tempCentre = Vector(temp->w / 2, temp->h / 2);
+	Vector spriteCentre = Vector(sprite->w / 2, sprite->h / 2);
+
+	if (includeChildren) {
+		Draw(temp, m_Pos - tempCentre);
+	} else {
+		Vector offset = (tempCentre + (m_SpriteOffset + spriteCentre).GetXFlipped(m_HFlipped).RadRotate(m_Rotation.GetRadAngle()) - spriteCentre);
+		if (!hflipped) {
+			rotate_scaled_sprite(temp, sprite, offset.m_X, offset.m_Y, ftofix(GetAllegroAngle(-m_Rotation.GetDegAngle())), ftofix(m_Scale));
+		} else {
+			rotate_scaled_sprite_v_flip(temp, sprite, offset.m_X, offset.m_Y, ftofix(GetAllegroAngle(-m_Rotation.GetDegAngle())) + itofix(128), ftofix(m_Scale));
+		}
+	}
+
+	for (int y = 0; y < temp->h; y++) {
+		for (int x = 0; x < temp->w; x++) {
+			int pixelIndex = _getpixel(temp, x, y);
+			if (pixelIndex >= 0 && (pixelIndex != ignoreIndex) != invert) {
+				Vector pixelPos = (Vector(x, y) - tempCentre) + origin;
+				posList->push_back(pixelPos);
+			}
+		}
+	}
+
+	destroy_bitmap(temp);
+	return posList;
+}
+
+bool MOSprite::SetSpritePixelIndex(int x, int y, int whichFrame, int colorIndex, int ignoreIndex, bool invert) {
 	if (!m_SpriteModified) {
 		std::vector<BITMAP*> spriteList;
 
-		for (BITMAP* sprite: m_aSprite) {
+		for (BITMAP* sprite : m_aSprite) {
 			BITMAP* spriteCopy = create_bitmap_ex(8, sprite->w, sprite->h);
 			rectfill(spriteCopy, 0, 0, spriteCopy->w - 1, spriteCopy->h - 1, 0);
 			draw_sprite(spriteCopy, sprite, 0, 0);
@@ -454,40 +501,23 @@ void MOSprite::SetPixelIndex(int x, int y, unsigned int whichFrame, int colorInd
 		m_SpriteModified = true;
 	}
 
-	BITMAP* targetSprite = m_aSprite[CLAMP(m_FrameCount - 1, 0, whichFrame)];
-	if (ignoreIndex < 0 || (getpixel(targetSprite, x, y) == ignoreIndex) != invert) {
-		putpixel(targetSprite, x, y, colorIndex);
+	unsigned int clampedFrame = std::max(std::min(whichFrame, static_cast<int>(m_FrameCount) - 1), 0);
+	BITMAP* targetSprite = m_aSprite[clampedFrame];
+	if (is_inside_bitmap(targetSprite, x, y, 0) && (ignoreIndex < 0 || (_getpixel(targetSprite, x, y) != ignoreIndex) != invert)) {
+		_putpixel(targetSprite, x, y, colorIndex);
+		return true;
 	}
+	return false;
 }
 
-std::vector<Vector>* MOSprite::GetAllPixelPositions(const Vector& origin, float angle, bool hflipped, unsigned int whichFrame, int ignoreIndex, bool invert) {
-	std::vector<Vector>* posList = new std::vector<Vector>();
-	CLAMP(m_FrameCount - 1, 0, whichFrame);
-	BITMAP* sprite = m_aSprite[whichFrame];
-	BITMAP* temp = create_bitmap_ex(8, m_SpriteDiameter, m_SpriteDiameter);
-	rectfill(temp, 0, 0, temp->w - 1, temp->h - 1, 0);
-	Vector tempCentre = Vector(temp->w / 2, temp->h / 2);
-	Vector spriteCentre = Vector(sprite->w / 2, sprite->h / 2);
-	Vector offset = (tempCentre + (m_SpriteOffset + spriteCentre).GetXFlipped(m_HFlipped).RadRotate(m_Rotation.GetRadAngle()) - spriteCentre);
-
-	if (!hflipped) {
-		rotate_scaled_sprite(temp, sprite, offset.m_X, offset.m_Y, ftofix(GetAllegroAngle(-m_Rotation.GetDegAngle())), ftofix(m_Scale));
-	} else {
-		rotate_scaled_sprite_v_flip(temp, sprite, offset.m_X, offset.m_Y, ftofix(GetAllegroAngle(-m_Rotation.GetDegAngle())) + itofix(128), ftofix(m_Scale));
-	}
-
-	for (int y = 0; y < temp->h; y++) {
-		for (int x = 0; x < temp->w; x++) {
-			int pixelIndex = getpixel(temp, x, y);
-			if (pixelIndex >= 0 && (pixelIndex != ignoreIndex) != invert) {
-				Vector pixelPos = (Vector(x, y) - tempCentre) + origin;
-				posList->push_back(pixelPos);
-			}
+void MOSprite::SetAllSpritePixelIndexes(int whichFrame, int colorIndex, int ignoreIndex, bool invert) {
+	unsigned int clampedFrame = std::max(std::min(whichFrame, static_cast<int>(m_FrameCount) - 1), 0);
+	BITMAP* targetSprite = m_aSprite[clampedFrame];
+	for (int y = 0; y < targetSprite->h; y++) {
+		for (int x = 0; x < targetSprite->w; x++) {
+			SetSpritePixelIndex(x, y, clampedFrame, colorIndex, ignoreIndex, invert);
 		}
 	}
-
-	destroy_bitmap(temp);
-	return posList;
 }
 
 void MOSprite::Update() {
