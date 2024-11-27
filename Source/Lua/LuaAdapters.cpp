@@ -612,6 +612,34 @@ std::list<Entity*>* LuaAdaptersPresetMan::GetAllEntitiesOfGroup(PresetMan& prese
 	return entityList;
 }
 
+MOID LuaAdaptersSceneMan::CastMORay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
+	std::vector<MOID*> ptrVec = ConvertLuaTableToVectorOfType<MOID*>(ignoreMOIDs);
+	std::vector<MOID> ignoreMOIDsVec;
+	for (auto ptr : ptrVec) {
+		ignoreMOIDsVec.push_back(*ptr);
+	}
+	return sceneMan.CastMORay(start, ray, ignoreMOIDsVec, ignoreTeam, ignoreMaterial, ignoreAllTerrain, skip);
+}
+
+MOID LuaAdaptersSceneMan::CastMORay2(SceneMan& sceneMan, const Vector& start, const Vector& ray, MOID ignoreMOID, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
+	std::vector<MOID> ignoreMOIDs = {ignoreMOID};
+	return sceneMan.CastMORay(start, ray, ignoreMOIDs, ignoreTeam, ignoreMaterial, ignoreAllTerrain, skip);
+}
+
+float LuaAdaptersSceneMan::CastObstacleRay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, const luabind::object& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
+	std::vector<MOID*> ptrVec = ConvertLuaTableToVectorOfType<MOID*>(ignoreMOIDs);
+	std::vector<MOID> ignoreMOIDsVec;
+	for (auto ptr : ptrVec) {
+		ignoreMOIDsVec.push_back(*ptr);
+	}
+	return sceneMan.CastObstacleRay(start, ray, obstaclePos, freePos, ignoreMOIDsVec, ignoreTeam, ignoreMaterial, skip);
+}
+
+float LuaAdaptersSceneMan::CastObstacleRay2(SceneMan& sceneMan, const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, MOID ignoreMOID, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
+	std::vector<MOID> ignoreMOIDs = {ignoreMOID};
+	return sceneMan.CastObstacleRay(start, ray, obstaclePos, freePos, ignoreMOIDs, ignoreTeam, ignoreMaterial, skip);
+}
+
 const std::list<Box>* LuaAdaptersSceneMan::WrapBoxes(SceneMan& sceneMan, const Box& boxToWrap) {
 	std::list<Box>* wrappedBoxes = new std::list<Box>();
 	sceneMan.WrapBox(boxToWrap, *wrappedBoxes);

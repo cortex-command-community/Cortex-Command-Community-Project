@@ -1902,7 +1902,7 @@ bool SceneMan::CastWeaknessRay(const Vector& start, const Vector& ray, float str
 	return foundPixel;
 }
 
-MOID SceneMan::CastMORay(const Vector& start, const Vector& ray, MOID ignoreMOID, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
+MOID SceneMan::CastMORay(const Vector& start, const Vector& ray, const std::vector<MOID>& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
 	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	MOID hitMOID = g_NoMOID;
@@ -1965,7 +1965,17 @@ MOID SceneMan::CastMORay(const Vector& start, const Vector& ray, MOID ignoreMOID
 
 			// Detect MOIDs
 			hitMOID = GetMOIDPixel(intPos[X], intPos[Y], ignoreTeam);
-			if (hitMOID != g_NoMOID && hitMOID != ignoreMOID && g_MovableMan.GetRootMOID(hitMOID) != ignoreMOID) {
+
+			// Loop through ignored MOIDs to see if the one we found is ignored
+			bool ignoredMOIDHit = false;
+			for (auto ignoredMOID : ignoreMOIDs) {
+				if (hitMOID == ignoredMOID || g_MovableMan.GetRootMOID(hitMOID) == ignoredMOID) {
+					ignoredMOIDHit = true;
+					break;
+				}
+			}
+			
+			if (hitMOID != g_NoMOID && !ignoredMOIDHit) {
 				// Save last ray pos
 				s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
 				return hitMOID;
@@ -2085,7 +2095,7 @@ bool SceneMan::CastFindMORay(const Vector& start, const Vector& ray, MOID target
 	return false;
 }
 
-float SceneMan::CastObstacleRay(const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, MOID ignoreMOID, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
+float SceneMan::CastObstacleRay(const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, const std::vector<MOID>& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
 	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	bool hitObstacle = false;
@@ -2152,17 +2162,18 @@ float SceneMan::CastObstacleRay(const Vector& start, const Vector& ray, Vector& 
 			unsigned char checkMat = GetTerrMatter(intPos[X], intPos[Y]);
 			MOID checkMOID = GetMOIDPixel(intPos[X], intPos[Y], ignoreTeam);
 
-			// Translate any found MOID into the root MOID of that hit MO
-			if (checkMOID != g_NoMOID) {
-				MovableObject* pHitMO = g_MovableMan.GetMOFromID(checkMOID);
-				if (pHitMO) {
-					checkMOID = pHitMO->GetRootID();
+			// Loop through ignored MOIDs to see if the one we found is ignored
+			bool ignoredMOIDHit = false;
+			for (auto ignoredMOID : ignoreMOIDs) {
+				if (checkMOID == ignoredMOID || g_MovableMan.GetRootMOID(checkMOID) == ignoredMOID) {
+					ignoredMOIDHit = true;
+					break;
 				}
 			}
 
 			// See if we found the looked-for pixel of the correct material,
 			// Or an MO is blocking the way
-			if ((checkMat != g_MaterialAir && checkMat != ignoreMaterial) || (checkMOID != g_NoMOID && checkMOID != ignoreMOID)) {
+			if ((checkMat != g_MaterialAir && checkMat != ignoreMaterial) || (checkMOID != g_NoMOID && !ignoredMOIDHit)) {
 				hitObstacle = true;
 				obstaclePos.SetXY(intPos[X], intPos[Y]);
 				// Save last ray pos
