@@ -56,7 +56,7 @@ void MOSRotating::Clear() {
 	m_RecoilForce.Reset();
 	m_RecoilOffset.Reset();
 	m_Wounds.clear();
-	m_WoundBurstSoundPlayedThisFrame = false;
+	m_WoundBurstSoundsPlayedThisFrame = {};
 	m_Attachables.clear();
 	m_ReferenceHardcodedAttachableUniqueIDs.clear();
 	m_HardcodedAttachableUniqueIDsAndSetters.clear();
@@ -462,10 +462,14 @@ void MOSRotating::AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet
 		woundToAdd->SetParent(this);
 		woundToAdd->SetIsWound(true);
 		if (woundToAdd->GetBurstSound()) {
-			if (m_WoundBurstSoundPlayedThisFrame) {
-				woundToAdd->SetPlayBurstSound(false);
+			std::string burstSound = woundToAdd->GetBurstSound()->GetPresetName();
+			for (int i = 0; i < m_WoundBurstSoundsPlayedThisFrame.size(); i++) {
+				if (burstSound == m_WoundBurstSoundsPlayedThisFrame[i]) {
+					woundToAdd->SetPlayBurstSound(false);
+					break;
+				}
 			}
-			m_WoundBurstSoundPlayedThisFrame = true;
+			m_WoundBurstSoundsPlayedThisFrame.push_back(burstSound);
 		}
 		if (woundToAdd->HasNoSetDamageMultiplier()) {
 			woundToAdd->SetDamageMultiplier(1.0F);
@@ -1366,7 +1370,7 @@ void MOSRotating::Update() {
 		m_Rotation += radsToGo * m_OrientToVel * velInfluence;
 	}
 
-	m_WoundBurstSoundPlayedThisFrame = false;
+	m_WoundBurstSoundsPlayedThisFrame = {};
 	
 	for (auto woundItr = m_Wounds.begin(); woundItr != m_Wounds.end();) {
 		AEmitter* wound = *woundItr;
