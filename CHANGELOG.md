@@ -58,12 +58,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New hotkey system for `Actor` and `HeldDevice`.
 	Pressing a certain new hotkey will mark it as activated on `Actor` and `HeldDevice`, letting scripts make use of the new bindings easily.
-	`Enum` binding for `HeldDevice.HeldDeviceHotkeyType`: `PRIMARY = 0, AUXILIARY = 1, HELDDEVICEHOTKEYTYPECOUNT = 2`.  
-	`Enum` binding for `Actor.ActorHotkeyType`: `PRIMARY = 0, AUXILIARY = 1, ACTORHOTKEYTYPECOUNT = 2`. 
+	`Enum` binding for `HeldDevice.HeldDeviceHotkeyType`: `PRIMARYHOTKEY = 0, AUXILIARYHOTKEY = 1, HELDDEVICEHOTKEYTYPECOUNT = 2`.  
+	`Enum` binding for `Actor.ActorHotkeyType`: `PRIMARYHOTKEY = 0, AUXILIARYHOTKEY = 1, ACTORHOTKEYTYPECOUNT = 2`. 
 	Both `Actor` and `HeldDevice` have the following functions:
 	`HotkeyActionIsActivated(hotkeyType)` returns whether a certain hotkey action is being activated or not.
 	`ActivateHotkeyAction(hotkeyType)` activates a certain hotkey action.
 	`DeactivateHotkeyAction(hotkeyType)` deactivates a certain hotkey action.
+	
+- New `Controller` state `WEAPON_RELOADHELD`, which is true every frame reload input is held (as opposed to `WEAPON_RELOAD` which is only true once when pressed).
 
 - New `GAScripted` Lua script method `IsCompatibleScene(scene)` to allow Activities to generically decide which Scenes are eligible by returning a boolean value.
 	New `GAScripted` INI enumerating property `AddRequiredArea`, replacing Lua file scanning, to allow Activities to explicitly state which areas are strictly required.

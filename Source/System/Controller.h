@@ -30,6 +30,7 @@ namespace RTE {
 		AIM_SHARP,
 		WEAPON_FIRE,
 		WEAPON_RELOAD,
+		WEAPON_RELOADHELD,
 		PIE_MENU_OPENED,
 		PIE_MENU_ACTIVE,
 		// When using a gamepad, the pie menu can be opened either by left trigger or the right secondary button
