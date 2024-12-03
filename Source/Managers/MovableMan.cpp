@@ -193,6 +193,12 @@ const std::vector<MovableObject*>* MovableMan::GetMOsInRadius(const Vector& cent
 	return vectorForLua;
 }
 
+const std::vector<MovableObject*>* MovableMan::GetMOsAtPosition(int pixelX, int pixelY, int ignoreTeam, bool getsHitByMOsOnly) const {
+	std::vector<MovableObject*>* vectorForLua = new std::vector<MovableObject*>();
+	*vectorForLua = std::move(g_SceneMan.GetMOIDGrid().GetMOsAtPosition(pixelX, pixelY, ignoreTeam, getsHitByMOsOnly));
+	return vectorForLua;
+}
+
 void MovableMan::PurgeAllMOs() {
 	for (std::deque<Actor*>::iterator itr = m_Actors.begin(); itr != m_Actors.end(); ++itr) {
 		(*itr)->DestroyScriptState();

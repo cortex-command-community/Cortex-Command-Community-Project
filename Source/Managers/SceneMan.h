@@ -703,6 +703,18 @@ namespace RTE {
 		/// @return Whether the target MOID was found along the ray or not.
 		bool CastFindMORay(const Vector& start, const Vector& ray, MOID targetMOID, Vector& resultPos, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
 
+		/// Traces along a vector and returns a vector of all MOs encountered.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param ignoreMOIDs A vector of MOIDs to ignore. Any child MOs of an MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific team (default: Activity::NoTeam)
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param ignoreAllTerrain Whether to ignore all terrain hits or not. (default: false)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return A vector of pointers to all MovableObjects met along the ray, who aren't ignored.
+		const std::vector<MovableObject*>* CastAllMOsRay(const Vector& start, const Vector& ray, const std::vector<MOID>& ignoreMOIDs = {g_NoMOID}, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0) const;
+		
 		/// Traces along a vector and returns the length of how far the trace went
 		/// without hitting any non-ignored terrain material or MOID at all.
 		/// @param start The starting position.

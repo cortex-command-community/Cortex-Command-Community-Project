@@ -83,6 +83,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `ACraft` INI and Lua (R/W) property `CanEnterOrbit`, which determines whether a craft can enter orbit (and refund gold appropriately) or not. If false, default out-of-bounds deletion logic applies.
 
+- New `MovableMan` function `GetMOsAtPosition(posX, posY, ignoreTeam, getsHitByMOsOnly)` that will return an iterator with all the `MovableObject`s that intersect that exact position with their sprite.
+
 </details>
 
 <details><summary><b>Changed</b></summary>

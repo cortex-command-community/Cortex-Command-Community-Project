@@ -517,7 +517,7 @@ namespace RTE {
 		/// first, g_NoMOID will be returned.
 		/// @param start The starting position.
 		/// @param ray The vector to trace along.
-		/// @param ignoredMOIDs A vector of MOIDs to ignore. Any child MO's of this MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreMOIDs A vector of MOIDs to ignore. Any child MO's of this MOID will also be ignored. (default: g_NoMOID)
 		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
 		/// team which also has team ignoring enabled itself.
 		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
@@ -525,14 +525,14 @@ namespace RTE {
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @return The MOID of the hit non-ignored MO, or g_NoMOID if terrain or no MO was hit.
-		static MOID CastMORay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoredMOIDs, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
+		static MOID CastMORay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoreMOIDs, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
 
 		/// Traces along a vector and returns MOID of the first non-ignored
 		/// non-NoMOID MO encountered. If a non-air terrain pixel is encountered
 		/// first, g_NoMOID will be returned.
 		/// @param start The starting position.
 		/// @param ray The vector to trace along.
-		/// @param ignoredMOID An MOID to ignore. Any child MO's of this MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreMOID An MOID to ignore. Any child MO's of this MOID will also be ignored. (default: g_NoMOID)
 		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
 		/// team which also has team ignoring enabled itself.
 		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
@@ -540,8 +540,20 @@ namespace RTE {
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @return The MOID of the hit non-ignored MO, or g_NoMOID if terrain or no MO was hit.
-		static MOID CastMORay2(SceneMan& sceneMan, const Vector& start, const Vector& ray, MOID ignoredMOID = g_NoMOID, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
+		static MOID CastMORay2(SceneMan& sceneMan, const Vector& start, const Vector& ray, MOID ignoreMOID = g_NoMOID, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
 
+		/// Traces along a vector and returns a vector of all MOs encountered.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param ignoreMOIDs A vector of MOIDs to ignore. Any child MOs of an MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific team (default: Activity::NoTeam)
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param ignoreAllTerrain Whether to ignore all terrain hits or not. (default: false)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return A vector of pointers to all MovableObjects met along the ray, who aren't ignored.
+		static const std::vector<MovableObject*>* CastAllMOsRay(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoreMOIDs, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
+		
 		/// Traces along a vector and returns the length of how far the trace went
 		/// without hitting any non-ignored terrain material or MOID at all.
 		/// @param start The starting position.

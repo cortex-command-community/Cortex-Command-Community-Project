@@ -168,6 +168,9 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MovableMan) {
 	    .def("GetMOsInRadius", (const std::vector<MovableObject*>* (MovableMan::*)(const Vector& centre, float radius) const) & MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	    .def("GetMOsInRadius", (const std::vector<MovableObject*>* (MovableMan::*)(const Vector& centre, float radius, int ignoreTeam) const) & MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	    .def("GetMOsInRadius", (const std::vector<MovableObject*>* (MovableMan::*)(const Vector& centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const) & MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+	    .def("GetMOsAtPosition", (const std::vector<MovableObject*>* (MovableMan::*)(int pixelX, int pixelY) const) & MovableMan::GetMOsAtPosition, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+	    .def("GetMOsAtPosition", (const std::vector<MovableObject*>* (MovableMan::*)(int pixelX, int pixelY, int ignoreTeam) const) & MovableMan::GetMOsAtPosition, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+	    .def("GetMOsAtPosition", (const std::vector<MovableObject*>* (MovableMan::*)(int pixelX, int pixelY, int ignoreTeam, bool getsHitByMOsOnly) const) & MovableMan::GetMOsAtPosition, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 
 	    .def("SendGlobalMessage", &LuaAdaptersMovableMan::SendGlobalMessage1)
 	    .def("SendGlobalMessage", &LuaAdaptersMovableMan::SendGlobalMessage2)
