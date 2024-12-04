@@ -5,7 +5,7 @@ function Create(self)
 	self.boltPullSound = CreateSoundContainer("Ronin Kar98 Bolt Pull Sound", "Ronin.rte");
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	local parent;
 	local actor = self:GetRootParent();
 	if actor and IsAHuman(actor) then
@@ -30,8 +30,7 @@ function Update(self)
 				self.shell.Pos = self.Pos;
 				self.shell.Vel = self.Vel + Vector(-6 * self.FlipFactor, -4):RadRotate(self.RotAngle);
 				self.shell.Team = self.Team;
-				MovableMan:AddParticle(self.shell);
-				self.shell = nil;
+				self.RequestSyncedUpdate();
 			end
 
 			--Animate the gun to signify the bolt being pulled
@@ -55,4 +54,11 @@ function Update(self)
 	else
 		self.pullTimer:Reset();
 	end
+end
+
+function SyncedUpdate(self)
+	if self.shell then
+		MovableMan:AddParticle(self.shell);
+		self.shell = nil;
+	end;
 end
