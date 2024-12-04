@@ -411,11 +411,13 @@ function DecisionDay:StartNewGame()
 
 	self:SetupStorageCrateInventories();
 
+	--[[
 	local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 	automoverController.Pos = Vector();
 	automoverController.Team = self.aiTeam;
 	--automoverController:SetNumberValue("HumansRemainUpright", 1);
 	MovableMan:AddActor(automoverController);
+	--]]
 
 	for box in self.initialDeadBodiesArea.Boxes do
 		local deadBody = RandomAHuman("Actors", self.aiTeamTech);

@@ -88,12 +88,14 @@ function OneManArmyZeroG:StartNewGame()
 	
 	MusicMan:PlayDynamicSong("Generic Battle Music");
 	
+	--[[
 	local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 	automoverController.Team = -1;
 	automoverController:SetNumberValue("MovementSpeed", 16);
 	automoverController:SetNumberValue("ActorUnstickingDisabled", 1);
 	automoverController:SetNumberValue("SlowActorVelInNoneMovementDirectionsWhenInZoneBoxDisabled", 1);
 	MovableMan:AddActor(automoverController);
+	--]]
 
 	local superNode = CreateMOSRotating("Automover Node 1x1", "Base.rte");
 	superNode.Pos = Vector(SceneMan.SceneWidth * 0.5, SceneMan.SceneHeight * 0.5);
@@ -251,12 +253,14 @@ function OneManArmyZeroG:ResumeLoadedGame()
 		end
 	end
 	
+	--[[
 	for particle in MovableMan.AddedParticles do
 		if particle.PresetName == "Automover Node 1x1" then
 			particle.Scale = 0;
 			break;
 		end
 	end
+	--]]
 	
 	for actor in MovableMan.AddedActors do
 		if actor.Team ~= Activity.TEAM_1 then

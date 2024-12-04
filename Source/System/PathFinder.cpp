@@ -173,7 +173,7 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 	s_JumpHeight = jumpHeight;
 
 	// How high up we can jump from this node
-	s_JumpHeightVertical = std::max(1, static_cast<int>(jumpHeight / (m_NodeDimension * c_MPP))); // min of 1 so automovers work a bit better
+	s_JumpHeightVertical = static_cast<int>(jumpHeight / (m_NodeDimension * c_MPP)); // OLD: min of 1 so automovers work a bit better
 	s_JumpHeightDiagonal = static_cast<int>((jumpHeight * 0.7F) / (m_NodeDimension * c_MPP));
 
 	// Actors capable of digging can use s_DigStrength to modify the node adjacency cost.
@@ -313,7 +313,7 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 	float radiatedCost = 0.0F; // GetNodeAverageTransitionCost(*node) * costRadiationMultiplier;
 
 	bool isInNoGrav = g_SceneMan.IsPointInNoGravArea(node->Pos);
-	bool allowDiagonal = !isInNoGrav; // We don't allow diagonals in nograv to improve automover behaviour
+	bool allowDiagonal = true || !isInNoGrav; // We don't allow diagonals in nograv to improve automover behaviour
 
 	if (node->Down && node->Down->m_Navigable) {
 		adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->DownMaterial) + radiatedCost;
