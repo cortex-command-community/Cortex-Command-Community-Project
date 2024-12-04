@@ -998,7 +998,7 @@ bool AHuman::EquipShield() {
 	return false;
 }
 
-bool AHuman::EquipShieldInBGArm() {
+bool AHuman::EquipShieldInBGArm(bool depositToFront) {
 	if (!(m_pBGArm && m_pBGArm->IsAttached())) {
 		return false;
 	}
@@ -1007,7 +1007,11 @@ bool AHuman::EquipShieldInBGArm() {
 		// If we're holding a shield, but aren't supposed to, because we need to support the FG hand's two-handed device, then let go of the shield and put it back in inventory.
 		if (m_pFGArm && m_pFGArm->IsAttached() && m_pFGArm->GetHeldDevice() && !m_pFGArm->GetHeldDevice()->IsOneHanded()) {
 			m_pBGArm->GetHeldDevice()->Deactivate();
-			AddToInventoryBack(m_pBGArm->RemoveAttachable(heldDevice));
+			if (depositToFront) {
+				AddToInventoryFront(m_pBGArm->RemoveAttachable(heldDevice));
+			} else {
+				AddToInventoryBack(m_pBGArm->RemoveAttachable(heldDevice));
+			}
 			return false;
 		}
 		return true;
@@ -1030,7 +1034,11 @@ bool AHuman::EquipShieldInBGArm() {
 			// Put back into the inventory what we had in our hands, if anything
 			if (HeldDevice* heldDevice = m_pBGArm->GetHeldDevice()) {
 				heldDevice->Deactivate();
-				AddToInventoryBack(m_pBGArm->RemoveAttachable(heldDevice));
+				if (depositToFront) {
+					AddToInventoryFront(m_pBGArm->RemoveAttachable(heldDevice));
+				} else {
+					AddToInventoryBack(m_pBGArm->RemoveAttachable(heldDevice));
+				}
 			}
 
 			// Now put the device we were looking for and found into the hand
@@ -1565,7 +1573,6 @@ void AHuman::PreControllerUpdate() {
 		}
 		// Disengage the prone state as soon as prone is released.
 		if (!prone && m_ProneState != NOTPRONE) {
-			EquipShieldInBGArm();
 			m_ProneState = NOTPRONE;
 		}
 	}
@@ -1613,7 +1620,7 @@ void AHuman::PreControllerUpdate() {
 				} else {
 					m_pFGArm->SetHeldDevice(dynamic_cast<HeldDevice*>(SwapPrevInventory(m_pFGArm->RemoveAttachable(m_pFGArm->GetHeldDevice()))));
 				}
-				EquipShieldInBGArm();
+				EquipShieldInBGArm(!changeNext);
 				m_pFGArm->SetHandPos(m_Pos + RotateOffset(m_HolsterOffset));
 			}
 			m_EquipHUDTimer.Reset();
@@ -2306,9 +2313,9 @@ void AHuman::PreControllerUpdate() {
 		if (m_Status == STABLE) {
 			if (m_ArmClimbing[BGROUND]) {
 				// Can't climb or crawl with the shield
-				if (m_MovementState != CRAWL || m_ProneState == LAYINGPRONE) {
-					UnequipBGArm();
-				}
+				// if (m_MovementState != CRAWL || m_ProneState == LAYINGPRONE) {
+				//	UnequipBGArm();
+				//}
 				m_pBGArm->AddHandTarget("Hand AtomGroup Limb Pos", m_pBGHandGroup->GetLimbPos(m_HFlipped));
 			} else {
 				HeldDevice* heldDevice = GetEquippedItem();

@@ -442,7 +442,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AHuman) {
 	    .def("EquipThrowable", &AHuman::EquipThrowable)
 	    .def("EquipDiggingTool", &AHuman::EquipDiggingTool)
 	    .def("EquipShield", &AHuman::EquipShield)
-	    .def("EquipShieldInBGArm", &AHuman::EquipShieldInBGArm)
+	    .def("EquipShieldInBGArm", (bool(AHuman::*)()) & AHuman::EquipShieldInBGArm)
 	    .def("EquipDeviceInGroup", &AHuman::EquipDeviceInGroup)
 	    .def("EquipNamedDevice", (bool(AHuman::*)(const std::string&, bool)) & AHuman::EquipNamedDevice)
 	    .def("EquipNamedDevice", (bool(AHuman::*)(const std::string&, const std::string&, bool)) & AHuman::EquipNamedDevice)
