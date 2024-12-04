@@ -4,18 +4,27 @@ function Create(self)
 	self.shellMOSRotating = self:StringValueExists("CylinderShellMOSRotating") and self:GetStringValue("CylinderShellMOSRotating") or nil;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if self.Magazine then
 		self.shellsToEject = self.Magazine.Capacity - self.Magazine.RoundCount;
 	elseif self.shellsToEject > 0 then
+		self.ejectingShells = {};
 		for i = 1, self.shellsToEject do
 			local shell = self.shellMOSRotating and CreateMOSRotating(self.shellMOSRotating) or CreateMOSParticle(self.shellMOSParticle);
 			shell.Pos = self.Pos;
 			shell.Vel = self.Vel + Vector(RangeRand(-3, 0) * self.FlipFactor, 0):RadRotate(self.RotAngle + RangeRand(-0.3, 0.3));
 			shell.AngularVel = RangeRand(-1, 1);
-			MovableMan:AddParticle(shell);
+			table.insert(self.ejectingShells, shell);
 		end
 		
 		self.shellsToEject = 0;
+		self:RequestSyncedUpdate();
+	end
+end
+
+function SyncedUpdate(self)
+	if self.ejectingShells then
+		MovableMan:AddParticle(shell);
+		self.ejectingShells = nil;
 	end
 end
