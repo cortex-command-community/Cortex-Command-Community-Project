@@ -24,7 +24,9 @@ end
 
 function SyncedUpdate(self)
 	if self.ejectingShells then
-		MovableMan:AddParticle(shell);
+		for i = 1, #self.ejectingShells do 
+			MovableMan:AddParticle(self.ejectingShells[i]);
+		end
 		self.ejectingShells = nil;
 	end
 end

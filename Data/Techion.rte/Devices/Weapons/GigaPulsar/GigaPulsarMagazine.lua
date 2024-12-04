@@ -18,7 +18,7 @@ end
 
 function SyncedUpdate(self)
 	if self.smoke then
-		MovableMan:AddParticle(smoke);
+		MovableMan:AddParticle(self.smoke);
 		self.smoke = nil;
 	end
 end
