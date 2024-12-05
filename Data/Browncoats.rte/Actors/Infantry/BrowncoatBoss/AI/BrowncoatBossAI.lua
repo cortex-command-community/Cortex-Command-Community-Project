@@ -92,7 +92,7 @@ function Create(self)
 	BrowncoatBossFunctions.createVoiceSoundEffect(self, self.voiceSounds.MonologueOutro, 11, true);
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	self.abilityShockwaveWhooshSound.Pos = self.Pos;
 	self.jumpPackSound.Pos = self.Pos;
 	
@@ -243,7 +243,7 @@ function Update(self)
 	end
 end
 
-function UpdateAI(self)
+function ThreadedUpdateAI(self)
 	-- Quick throw AI trigger on a timer
 	if not self:IsPlayerControlled() then -- just in case
 		if self.quickThrowTimer:IsPastSimMS(self.quickThrowDelay) then
