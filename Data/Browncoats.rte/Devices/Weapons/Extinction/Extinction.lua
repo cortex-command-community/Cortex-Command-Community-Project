@@ -22,8 +22,6 @@ function Create(self)
 	
 	-- for some reason if this is added to sim while facing leftwards, StanceOffset will actually be flipped.
 	-- but not sharpstanceoffset...............
-
-	
 	self.origStanceOffset = Vector(self.StanceOffset.X*self.FlipFactor, self.StanceOffset.Y);
 	self.origSharpStanceOffset = Vector(self.SharpStanceOffset.X, self.SharpStanceOffset.Y);
 	

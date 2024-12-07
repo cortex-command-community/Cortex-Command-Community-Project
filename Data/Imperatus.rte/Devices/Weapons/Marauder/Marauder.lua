@@ -3,7 +3,7 @@ function Create(self)
 	self.fireTimer = Timer();
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if self.FiredFrame or self:IsReloading() then
 		self.fireTimer:Reset();
 	end
