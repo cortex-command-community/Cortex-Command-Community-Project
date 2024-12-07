@@ -886,6 +886,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSRotating) {
 	    .def("GetWounds", &LuaAdaptersMOSRotating::GetWounds1, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	    .def("GetWounds", &LuaAdaptersMOSRotating::GetWounds2, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	    .def("AddWound", &MOSRotating::AddWound, luabind::adopt(_2))
+	    .def("AddWound", &MOSRotating::AddWoundExt, luabind::adopt(_2))
 	    .def("RemoveWounds", (float(MOSRotating::*)(int numberOfWoundsToRemove)) & MOSRotating::RemoveWounds)
 	    .def("RemoveWounds", (float(MOSRotating::*)(int numberOfWoundsToRemove, bool positiveDamage, bool negativeDamage, bool noDamage)) & MOSRotating::RemoveWounds)
 	    .def("IsOnScenePoint", &MOSRotating::IsOnScenePoint)
