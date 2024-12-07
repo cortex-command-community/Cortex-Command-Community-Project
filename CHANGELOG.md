@@ -149,6 +149,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue where internal Lua functions OriginalDoFile, OriginalLoadFile, and OriginalRequire were polluting the global namespace. They have now been made inaccessible.
 
+- Various fixes and improvements to inventory management when dual-wielding or carrying a shield, to stop situations where the actor unexpectedly puts their items away.
+
 - Fixed issue where MOSR `Gib`s, `AEmitter` or `PEmitter` `Emission`s, and MetaMan `Player`s were not correctly accessible from script.
 
 - Fixed a crash on launch when the `SupportedGameVersion` INI property was not set.
