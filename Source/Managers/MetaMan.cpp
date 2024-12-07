@@ -210,8 +210,8 @@ int MetaMan::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("GameName", { reader >> m_GameName; });
 	MatchProperty("AddPlayer",
 	              {
-		              MetaPlayer player;
-		              reader >> player;
+		              MetaPlayer* player = new MetaPlayer();
+		              reader >> *player;
 		              m_Players.push_back(player);
 	              });
 	MatchProperty("TeamCount", { reader >> m_TeamCount; });
@@ -255,8 +255,8 @@ int MetaMan::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("Team3AISkill", m_TeamAISkill[Activity::TeamThree]);
 	writer.NewPropertyWithValue("Team4AISkill", m_TeamAISkill[Activity::TeamFour]);
 
-	for (const MetaPlayer& metaPlayer: m_Players) {
-		writer.NewPropertyWithValue("AddPlayer", metaPlayer);
+	for (const MetaPlayer* metaPlayer: m_Players) {
+		writer.NewPropertyWithValue("AddPlayer", *metaPlayer);
 	}
 
 	writer.NewPropertyWithValue("TeamCount", m_TeamCount);
@@ -301,6 +301,19 @@ int MetaMan::Save(Writer& writer) const {
 	return 0;
 }
 
+void MetaMan::Destroy() {
+	delete m_pMetaGUI;
+
+	for (std::vector<Scene*>::iterator sItr = m_Scenes.begin(); sItr != m_Scenes.end(); ++sItr)
+		delete (*sItr);
+	for (std::vector<GAScripted*>::iterator aItr = m_RoundOffensives.begin(); aItr != m_RoundOffensives.end(); ++aItr)
+		delete (*aItr);
+	for (std::vector<MetaPlayer*>::iterator pItr = m_Players.begin(); pItr != m_Players.end(); ++pItr)
+		delete (*pItr);
+
+	Clear();
+}
+
 int MetaMan::SaveSceneData(std::string pathBase) {
 	for (std::vector<Scene*>::const_iterator sItr = m_Scenes.begin(); sItr != m_Scenes.end(); ++sItr) {
 		// Only save the data of revealed scenes that have already had their layers built and saved into files
@@ -333,17 +346,6 @@ int MetaMan::ClearSceneData() {
 	return 0;
 }
 
-void MetaMan::Destroy() {
-	delete m_pMetaGUI;
-
-	for (std::vector<Scene*>::iterator sItr = m_Scenes.begin(); sItr != m_Scenes.end(); ++sItr)
-		delete (*sItr);
-	for (std::vector<GAScripted*>::iterator aItr = m_RoundOffensives.begin(); aItr != m_RoundOffensives.end(); ++aItr)
-		delete (*aItr);
-
-	Clear();
-}
-
 int MetaMan::GetPlayerTurn() const {
 	// Player 1's turn is coming up on this round
 	if (g_MetaMan.m_GameState <= PLAYER1TURN)
@@ -357,9 +359,9 @@ int MetaMan::GetPlayerTurn() const {
 }
 
 MetaPlayer* MetaMan::GetMetaPlayerOfInGamePlayer(int inGamePlayer) {
-	for (std::vector<MetaPlayer>::iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr) {
-		if ((*itr).GetInGamePlayer() == inGamePlayer)
-			return &(*itr);
+	for (std::vector<MetaPlayer*>::iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr) {
+		if ((*itr)->GetInGamePlayer() == inGamePlayer)
+			return &(**itr);
 	}
 
 	// Didn't find any metaplayer that is using that in-game player
@@ -404,14 +406,14 @@ int MetaMan::GetTotalBrainCountOfPlayer(int metaPlayer, bool countPoolsOnly) con
 		return 0;
 
 	// Count the pool first
-	int brainCount = m_Players[metaPlayer].GetBrainPoolCount();
+	int brainCount = m_Players[metaPlayer]->GetBrainPoolCount();
 	// Plus any that are out travelling between sites
-	brainCount += m_Players[metaPlayer].GetBrainsInTransit();
+	brainCount += m_Players[metaPlayer]->GetBrainsInTransit();
 
 	if (!countPoolsOnly) {
 		for (std::vector<Scene*>::const_iterator sItr = m_Scenes.begin(); sItr != m_Scenes.end(); ++sItr) {
 			// Add up any brains installed as resident on any sites
-			if ((*sItr)->IsRevealed() && (*sItr)->GetTeamOwnership() == GetTeamOfPlayer(metaPlayer) && (*sItr)->GetResidentBrain(m_Players[metaPlayer].GetInGamePlayer()))
+			if ((*sItr)->IsRevealed() && (*sItr)->GetTeamOwnership() == GetTeamOfPlayer(metaPlayer) && (*sItr)->GetResidentBrain(m_Players[metaPlayer]->GetInGamePlayer()))
 				brainCount += 1;
 		}
 	}
@@ -426,8 +428,8 @@ int MetaMan::GetGoldCountOfTeam(int team) const {
 	float goldTotal = 0;
 	// Go through all players and add up the funds of all who belong to this team
 	for (int metaPlayer = Players::PlayerOne; metaPlayer < m_Players.size(); ++metaPlayer) {
-		if (m_Players[metaPlayer].GetTeam() == team)
-			goldTotal += m_Players[metaPlayer].GetFunds();
+		if (m_Players[metaPlayer]->GetTeam() == team)
+			goldTotal += m_Players[metaPlayer]->GetFunds();
 	}
 
 	return goldTotal;
@@ -456,7 +458,7 @@ int MetaMan::GetTotalBrainCountOfTeam(int team, bool countPoolsOnly) const {
 	int brainCount = 0;
 
 	for (int metaPlayer = Players::PlayerOne; metaPlayer < m_Players.size(); ++metaPlayer) {
-		if (m_Players[metaPlayer].GetTeam() == team)
+		if (m_Players[metaPlayer]->GetTeam() == team)
 			brainCount += GetTotalBrainCountOfPlayer(metaPlayer, countPoolsOnly);
 	}
 
@@ -535,8 +537,8 @@ int MetaMan::WhichTeamLeft()
 
 bool MetaMan::NoBrainsLeftInAnyPool() {
 	// Go through all players and check each for any brains in any pool
-	for (std::vector<MetaPlayer>::iterator mpItr = m_Players.begin(); mpItr != m_Players.end(); ++mpItr) {
-		if ((*mpItr).GetBrainPoolCount() > 0)
+	for (std::vector<MetaPlayer*>::iterator mpItr = m_Players.begin(); mpItr != m_Players.end(); ++mpItr) {
+		if ((*mpItr)->GetBrainPoolCount() > 0)
 			return false;
 	}
 	return true;
@@ -616,15 +618,15 @@ float MetaMan::GetBudgetedRatioOfPlayer(int metaPlayer, const Scene* pException,
 		for (std::vector<Scene*>::const_iterator sItr = g_MetaMan.m_Scenes.begin(); sItr != g_MetaMan.m_Scenes.end(); ++sItr) {
 			// Add up all the allocated funds so far this round, first of bases we're building
 			if ((*sItr)->GetTeamOwnership() == g_MetaMan.GetTeamOfPlayer(metaPlayer) && *sItr != pException)
-				totalAllocated += (*sItr)->GetBuildBudget(m_Players[metaPlayer].GetInGamePlayer());
+				totalAllocated += (*sItr)->GetBuildBudget(m_Players[metaPlayer]->GetInGamePlayer());
 		}
 	}
 
 	// Also the money allocated for offensive action
-	if (includeOffensive && !m_Players[metaPlayer].GetOffensiveTargetName().empty() && (!pException || (pException && pException->GetPresetName() != m_Players[metaPlayer].GetOffensiveTargetName())))
-		totalAllocated += m_Players[metaPlayer].GetOffensiveBudget();
+	if (includeOffensive && !m_Players[metaPlayer]->GetOffensiveTargetName().empty() && (!pException || (pException && pException->GetPresetName() != m_Players[metaPlayer]->GetOffensiveTargetName())))
+		totalAllocated += m_Players[metaPlayer]->GetOffensiveBudget();
 
-	return totalAllocated / m_Players[metaPlayer].GetFunds();
+	return totalAllocated / m_Players[metaPlayer]->GetFunds();
 }
 
 void MetaMan::SetSuspend(bool suspend) {
@@ -761,7 +763,7 @@ void MetaMan::AIPlayerTurn(int metaPlayer) {
 	if (metaPlayer < 0 || metaPlayer >= m_Players.size())
 		return;
 
-	MetaPlayer* pThisPlayer = &(m_Players[metaPlayer]);
+	MetaPlayer* pThisPlayer = m_Players[metaPlayer];
 
 	// If this player has no brains at all left, then do nothing
 	if (GetTotalBrainCountOfPlayer(metaPlayer) <= 0) {
@@ -1009,21 +1011,21 @@ void MetaMan::Update() {
 		int metaPlayer = m_GameState - PLAYER1TURN;
 
 		// If an AI player, do the AI player's logic now and go to next player immediately afterward
-		if (!m_Players[metaPlayer].IsHuman())
+		if (!m_Players[metaPlayer]->IsHuman())
 			AIPlayerTurn(metaPlayer);
 
 		// State end - skip A.I. metaplayer turns in the GUI; also skip human player who have been knocked out of the game in previous rounds
-		if (m_pMetaGUI->ContinuePhase() || !m_Players[metaPlayer].IsHuman() || m_Players[metaPlayer].IsGameOverByRound(m_CurrentRound)) {
+		if (m_pMetaGUI->ContinuePhase() || !m_Players[metaPlayer]->IsHuman() || m_Players[metaPlayer]->IsGameOverByRound(m_CurrentRound)) {
 			// If this player is now done for, mark him as such so he'll be completely skipped in future rounds
-			if (GetTotalBrainCountOfPlayer(metaPlayer) <= 0 && !m_Players[metaPlayer].IsGameOverByRound(m_CurrentRound))
-				m_Players[metaPlayer].SetGameOverRound(m_CurrentRound);
+			if (GetTotalBrainCountOfPlayer(metaPlayer) <= 0 && !m_Players[metaPlayer]->IsGameOverByRound(m_CurrentRound))
+				m_Players[metaPlayer]->SetGameOverRound(m_CurrentRound);
 
 			// Find the next player which is not out of the game yet
 			do {
 				// Next player, if any left
 				m_GameState++;
 				metaPlayer = m_GameState - PLAYER1TURN;
-			} while (m_GameState <= PLAYER4TURN && metaPlayer < m_Players.size() && m_Players[metaPlayer].IsGameOverByRound(m_CurrentRound));
+			} while (m_GameState <= PLAYER4TURN && metaPlayer < m_Players.size() && m_Players[metaPlayer]->IsGameOverByRound(m_CurrentRound));
 
 			// If not, jump to building bases
 			if (m_GameState > PLAYER4TURN || metaPlayer >= m_Players.size())
