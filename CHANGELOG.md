@@ -125,6 +125,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `Scene` Lua functions `AddNavigatableArea(areaName)` and `ClearNavigatableAreas()` have been renamed/corrected to `AddNavigableArea(areaName)` and `ClearNavigableAreas()`, respectively.
 
+- Various performance improvements.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
@@ -144,6 +146,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed mounted HeldDevices not respecting InheritedRotAngleOffset.
 
 - Fixed an issue where internal Lua functions OriginalDoFile, OriginalLoadFile, and OriginalRequire were polluting the global namespace. They have now been made inaccessible.
+
+- Fixed issue where MOSR `Gib`s, `AEmitter` or `PEmitter` `Emission`s, and MetaMan `Player`s were not correctly accessible from script.
+
+- Fixed a crash on launch when the `SupportedGameVersion` INI property was not set.
 
 </details>
 
@@ -2675,7 +2681,7 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 - `TDExplosive.ActivatesWhenReleased` now works properly.
 
-- Various bug fixed related to all the Attachable and Emitter changes, so they can now me affected reliably and safely with lua.
+- Various bugs fixed related to all the Attachable and Emitter changes, so they can again be affected reliably and safely with lua.
 
 - Various minor other things that have gotten lost in the shuffle.
 
