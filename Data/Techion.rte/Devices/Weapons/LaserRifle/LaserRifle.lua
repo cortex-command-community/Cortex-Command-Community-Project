@@ -16,11 +16,23 @@ local function emitSmoke(self, particleCount)
 	self:RequestSyncedUpdate();
 end
 
+local function drawThiccWobblyLine(screen, startPos, endPos, thiccness, color)
+	local dirVector = SceneMan:ShortestDistance(startPos, endPos, true):Perpendicularize()
+	local pos1 = startPos + dirVector:SetMagnitude((thiccness - 1) / 2 + math.random(-1, 0))
+	local pos2 = startPos - dirVector:SetMagnitude((thiccness - 1) / 2 + math.random(-1, 0))
+	local pos3 = endPos + dirVector:SetMagnitude((thiccness - 1) / 2 + math.random(-1, 0))
+	local pos4 = endPos - dirVector:SetMagnitude((thiccness - 1) / 2 + math.random(-1, 0))
+
+	PrimitiveMan:DrawTriangleFillPrimitive(screen, pos1, pos2, pos3, color)
+	PrimitiveMan:DrawTriangleFillPrimitive(screen, pos3, pos4, pos2, color)
+end
+
 function Create(self)
 	-- Create local table to store variables for performance
 	local var = {};
 
-	var.range = math.sqrt(FrameMan.PlayerScreenWidth^2 + FrameMan.PlayerScreenHeight^2)/2;
+	-- var.range = math.sqrt(FrameMan.PlayerScreenWidth^2 + FrameMan.PlayerScreenHeight^2)/2;
+	var.range = 1000;
 	var.penetrationStrength = 170;
 	var.strengthVariation = 5;
 	--This value tracks the shots and varies the penetration strength to create a "resistance" effect on tougher materials
@@ -109,15 +121,9 @@ function ThreadedUpdate(self)
 				local team = var.activity:GetTeamOfPlayer(player);
 				local screen = var.activity:ScreenOfPlayer(player);
 				if screen ~= -1 and not (SceneMan:IsUnseen(startPos.X, startPos.Y, team) or SceneMan:IsUnseen(hitPos.X, hitPos.Y, team)) then
+					drawThiccWobblyLine(screen, startPos, startPos + trace, 3, 198);
 					PrimitiveMan:DrawLinePrimitive(screen, startPos, startPos + trace, 254);
 				end
-			end
-			local particleCount = trace.Magnitude * RangeRand(0.4, 0.8);
-			for i = 0, particleCount do
-				local pix = CreateMOPixel("Laser Rifle Glow 0", "Techion.rte");
-				pix.Pos = startPos + trace * i/particleCount;
-				pix.Vel = var.Vel;
-				InsertParticle(var, pix);
 			end
 		end
 		var.shotCounter = (var.shotCounter + 1) % var.strengthVariation;
