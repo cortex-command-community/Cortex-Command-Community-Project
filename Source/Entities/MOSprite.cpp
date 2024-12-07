@@ -3,6 +3,8 @@
 #include "AEmitter.h"
 #include "PresetMan.h"
 #include "SceneMan.h"
+#include "FrameMan.h"
+#include "Draw.h"
 
 using namespace RTE;
 
@@ -29,6 +31,7 @@ void MOSprite::Clear() {
 	m_SpriteAnimTimer.Reset();
 	m_SpriteAnimIsReversingFrames = false;
 	m_HFlipped = false;
+	m_ForcedHFlip = -1;
 	m_SpriteRadius = 1.0F;
 	m_SpriteDiameter = 2.0F;
 	m_Rotation.Reset();
@@ -44,7 +47,7 @@ void MOSprite::Clear() {
 int MOSprite::Create() {
 	if (MovableObject::Create() < 0)
 		return -1;
-
+	
 	// Post-process reading
 	m_aSprite.clear();
 	m_SpriteFile.GetAsAnimation(m_aSprite, m_FrameCount);
@@ -81,6 +84,9 @@ int MOSprite::Create(ContentFile spriteFile,
 	m_SpriteOffset.SetXY(static_cast<float>(-m_aSprite[0]->w) / 2.0F, static_cast<float>(-m_aSprite[0]->h) / 2.0F);
 
 	m_HFlipped = false;
+	if (m_ForcedHFlip == 1) {
+		m_HFlipped = true;
+	}
 
 	// Calc maximum dimensions from the Pos, based on the sprite
 	float maxX = std::max(std::fabs(m_SpriteOffset.GetX()), std::fabs(static_cast<float>(m_aSprite[0]->w) + m_SpriteOffset.GetX()));
@@ -108,6 +114,12 @@ int MOSprite::Create(const MOSprite& reference) {
 	m_SpriteAnimMode = reference.m_SpriteAnimMode;
 	m_SpriteAnimDuration = reference.m_SpriteAnimDuration;
 	m_HFlipped = reference.m_HFlipped;
+	m_ForcedHFlip = reference.m_ForcedHFlip;
+	if (m_ForcedHFlip == 0) {
+		m_HFlipped = false;
+	} else if (m_ForcedHFlip == 1) {
+		m_HFlipped = true;
+	}
 	m_SpriteRadius = reference.m_SpriteRadius;
 	m_SpriteDiameter = reference.m_SpriteDiameter;
 
@@ -157,6 +169,7 @@ int MOSprite::ReadProperty(const std::string_view& propName, Reader& reader) {
 	              });
 	MatchProperty("SpriteAnimDuration", { reader >> m_SpriteAnimDuration; });
 	MatchProperty("HFlipped", { reader >> m_HFlipped; });
+	MatchProperty("ForcedHFlip", { reader >> m_ForcedHFlip; });
 	MatchProperty("Rotation", { reader >> m_Rotation; });
 	MatchProperty("AngularVel", { reader >> m_AngularVel; });
 	MatchProperty("SettleMaterialDisabled", { reader >> m_SettleMaterialDisabled; });
@@ -455,7 +468,7 @@ void MOSprite::Draw(BITMAP* pTargetBitmap,
 				draw_character_ex(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY, g_WhiteColor, -1);
 				break;
 			case g_DrawTrans:
-				draw_trans_sprite(pTargetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
+				DrawTexture(m_aSprite[m_Frame], spriteX, spriteY, {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 				break;
 			case g_DrawAlpha:
 				set_alpha_blender();

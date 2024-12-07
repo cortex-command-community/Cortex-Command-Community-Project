@@ -274,7 +274,7 @@ function WaveDefense:UpdateActivity()
 				end
 
 				-- Reveal the main bunker area for the defender.
-				local mainBunkerArea = SceneMan.Scene:GetOptionalArea("Main Bunker");
+				local mainBunkerArea = SceneMan.Scene:GetArea("Main Bunker");
 				if mainBunkerArea ~= nil then
 					for mainBunkerBox in mainBunkerArea.Boxes do
 						SceneMan:RevealUnseenBox(mainBunkerBox.Corner.X, mainBunkerBox.Corner.Y, mainBunkerBox.Width, mainBunkerBox.Height, self.playerTeam);

@@ -102,12 +102,14 @@ function HUDHandler:Initialize(activity, newGame, verboseLogging)
 	
 	self.descriptionSpacing = 15;
 	
-	-- reinit camera timers always
+	-- reinit timers always
 	
 	self.teamCameraTimers = {};
+	self.teamScreenTextTimers = {};
 	
 	for team = 0, self.Activity.TeamCount do
 		self.teamCameraTimers[team] = Timer();
+		self.teamScreenTextTimers[team] = Timer();
 	end
 	
 	if newGame then
@@ -123,6 +125,7 @@ function HUDHandler:Initialize(activity, newGame, verboseLogging)
 			self.saveTable.teamTables[team].Objectives = {};
 			
 			self.saveTable.teamTables[team].cameraQueue = {};
+			self.saveTable.teamTables[team].screenTextQueue = {};
 			self.saveTable.teamTables[team].cinematicBars = false;
 			self.saveTable.teamTables[team].cinematicBarThickness = 50;
 			self.saveTable.teamTables[team].cinematicBarAnimationTimer = Timer();
@@ -176,7 +179,7 @@ function HUDHandler:OnSave(saveLoadHandler)
 	saveLoadHandler:SaveTableAsString("HUDHandlerMainTable", self.saveTable);	
 	print("INFO: HUDHandler saved!");
 	
-	-- camera timers deliberately not saved, might as well reset them all
+	-- timers deliberately not saved, might as well reset them all
 	
 end
 
@@ -254,6 +257,41 @@ function HUDHandler:DrawCinematicBars(team)
 
 end
 
+function HUDHandler:QueueScreenText(team, text, textTime, blinkInterval, centered)
+	local screenTextTable = {};
+	
+	textTime = textTime and textTime or 5000;
+	blinkInterval = blinkInterval and blinkInterval or -1;
+	centered = centered and centered or false;
+	
+	if team and text then
+		screenTextTable.Text = text;
+		screenTextTable.textTime = textTime;
+		screenTextTable.blinkInterval = blinkInterval;
+		screenTextTable.Centered = centered;
+	else
+		print("ERROR: HUDHandler tried to queue ScreenText with no team or no text!");
+		return false;
+	end
+		
+	if #self.saveTable.teamTables[team].screenTextQueue == 0 then
+		self.teamScreenTextTimers[team]:Reset();
+	end
+
+	table.insert(self.saveTable.teamTables[team].screenTextQueue, screenTextTable);
+	
+	return self.saveTable.teamTables[team].screenTextQueue[#self.saveTable.teamTables[team].screenTextQueue];
+end
+
+function HUDHandler:RemoveAllScreenTexts(team)
+	if team then
+		self.saveTable.teamTables[team].screenTextQueue = {};
+	else
+		print("ERROR: HUDHandlier tried to remove all ScreenTexts but wasn't given a team!");
+		return false;	
+	end
+end	
+
 function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCancellable, cinematicBars, disableHUDFully, callback)
 	local cameraTable = {};
 	
@@ -291,38 +329,43 @@ function HUDHandler:QueueCameraPanEvent(team, name, pos, speed, holdTime, notCan
 end
 
 function HUDHandler:GetCameraPanEventCount(team)
-
 	if team then
 		return #self.saveTable.teamTables[team].cameraQueue;
 	else
 		print("ERROR: HUDHandlier tried to get a camera pan event count but wasn't given a team!");
 		return false;
 	end
-	
 end
 
 function HUDHandler:RemoveCameraPanEvent(team, name)
-
-	for i, cameraTable in ipairs(self.saveTable.teamTables[team].cameraQueue) do
-		if cameraTable.Name == name then
-			table.remove(self.saveTable.teamTables[team].cameraQueue, i);
-			break;
+	if team and name then
+		for i, cameraTable in ipairs(self.saveTable.teamTables[team].cameraQueue) do
+			if cameraTable.Name == name then
+				table.remove(self.saveTable.teamTables[team].cameraQueue, i);
+				break;
+			end
 		end
+	else
+		print("ERROR: HUDHandlier tried to remove a camera pan event but wasn't given a team or a name!");
+		return false;	
 	end
-	
 end
 
 function HUDHandler:RemoveAllCameraPanEvents(team, doNotResetHUD)
-
-	self.saveTable.teamTables[team].cameraQueue = {};
-	
-	if not doNotResetHUD then
-		for team = 0, #self.saveTable.teamTables do
-			FrameMan:SetHudDisabled(false);
+	if team then
+		self.saveTable.teamTables[team].cameraQueue = {};
+		
+		if not doNotResetHUD then
+			for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
+				self.Activity:SetViewState(Activity.ACTORSELECT, player);
+				FrameMan:SetHudDisabled(false, self.Activity:ScreenOfPlayer(player));
+			end
 			self:SetCinematicBars(team, false, false);
 		end
+	else
+		print("ERROR: HUDHandlier tried to remove all camera pan events but wasn't given a team!");
+		return false;	
 	end
-	
 end
 
 function HUDHandler:SetCameraMinimumAndMaximumX(team, minimumX, maximumX)
@@ -498,6 +541,24 @@ function HUDHandler:UpdateHUDHandler()
 				end
 			end
 		end
+		
+		-- screen texts
+		local screenTextTable = self.saveTable.teamTables[team].screenTextQueue[1];
+
+		if screenTextTable then
+			for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
+				FrameMan:SetScreenText(screenTextTable.Text, self.Activity:ScreenOfPlayer(player), screenTextTable.blinkInterval, -1, screenTextTable.Centered);
+			end
+			if self.teamScreenTextTimers[team]:IsPastSimMS(screenTextTable.textTime) then
+				self.teamScreenTextTimers[team]:Reset();
+				table.remove(self.saveTable.teamTables[team].screenTextQueue, 1);
+				if not self.saveTable.teamTables[team].screenTextQueue[1] then
+					for k, player in pairs(self.saveTable.playersInTeamTables[team]) do
+						FrameMan:ClearScreenText(self.Activity:ScreenOfPlayer(player));
+					end
+				end
+			end
+		end
 
 		-- Objectives
 		if not PerformanceMan.ShowPerformanceStats == true and not disableDrawingObjectives then
@@ -535,8 +596,15 @@ function HUDHandler:UpdateHUDHandler()
 				
 				-- c++ objectives are per team, not per player, so we can't do it per player yet...
 				if objTable.Position and spectatorView then
-					local pos = not objTable.Position.PresetName and objTable.Position or objTable.Position.Pos; -- severely ghetto mo check
-					self.Activity:AddObjectivePoint(objTable.shortName, pos, team, GameActivity.ARROWDOWN);
+					local pos;
+					if objTable.Position.PresetName then -- severely ghetto mo check
+						pos = objTable.Position.Pos;
+					else
+						pos = objTable.Position;
+					end
+					if not (pos.Magnitude == 0) then -- if it's 0, 0 something probably went wrong, don't display it
+						self.Activity:AddObjectivePoint(objTable.shortName, pos, team, GameActivity.ARROWDOWN);
+					end
 				end
 			end
 		end

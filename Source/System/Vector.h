@@ -2,6 +2,8 @@
 
 #include "Serializable.h"
 #include "RTETools.h"
+#include "glm/vec2.hpp"
+#include "raylib/raylib.h"
 
 namespace RTE {
 
@@ -486,6 +488,8 @@ namespace RTE {
 		/// @param rhs An int index indicating which element is requested (X = 0, Y = 1).
 		/// @return The requested element.
 		inline float& operator[](const int& rhs) { return (rhs == 0) ? m_X : m_Y; }
+		inline operator glm::vec2() const { return {m_X, m_Y}; }
+		inline operator Vector2() const { return {m_X, m_Y}; }
 #pragma endregion
 
 	private:

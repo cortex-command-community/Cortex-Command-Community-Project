@@ -114,9 +114,21 @@ namespace RTE {
 			m_StopTimer.Reset();
 		}
 
-		/// How much of the root parent's velocity this emission inherit
+		/// How much of the root parent's velocity this emission inherits
 		/// @return The proportion of the velocity inherited. 0.1 = 10% inheritance.
-		float InheritsVelocity() { return m_InheritsVel; }
+		float InheritsVelocity() const { return m_InheritsVel; }
+
+		/// How much of the root parent's angular velocity this emission inherits
+		/// @return The proportion of the angular velocity inherited. 0.1 = 10% inheritance.
+		float InheritsAngularVelocity() const { return m_InheritsAngularVel; }
+
+		/// Sets how much of the root parent's velocity this emission inherits
+		/// @param The proportion of the velocity inherited. 0.1 = 10% inheritance.
+		void SetInheritsVelocity(float newValue) { m_InheritsVel = newValue; }
+
+		/// Sets how much of the root parent's angular velocity this emission inherits
+		/// @param The proportion of the angular velocity inherited. 0.1 = 10% inheritance.
+		void SetInheritsAngularVelocity(float newValue) { m_InheritsAngularVel = newValue; }
 
 		/// Gets offset of the emission point from Emitter's sprite center, which gets rotated with owner Emitter
 		/// @return Returns emission offset.
@@ -125,6 +137,14 @@ namespace RTE {
 		/// Sets offset of the emission point from Emitter's sprite center, which gets rotated with owner Emitter
 		/// @param offset New offset value.
 		void SetOffset(Vector offset) { m_Offset = offset; }
+
+		/// Returns number of particles emitted per emission.
+		/// @return Number of particles emitted per emission.
+		int GetParticleCount() const { return m_ParticleCount; }
+
+		/// Sets number of particles emitted per emission.
+		/// @param newParticleCount The new number of particles emitted per emission.
+		void SetParticleCount(int newParticleCount) { m_ParticleCount = newParticleCount; }
 
 		/// Protected member variable and method declarations
 	protected:
@@ -157,11 +177,15 @@ namespace RTE {
 		bool m_PushesEmitter;
 		// How much of the parents velocity this emission inherits
 		float m_InheritsVel;
+		// How much of the parents angular velocity this emission inherits
+		float m_InheritsAngularVel;
 		// Timers for measuring when to start and stop this emission the actual times are the set time limits of these
 		Timer m_StartTimer;
 		Timer m_StopTimer;
 		// Offset of the emission point from Emitter's sprite center, which gets rotated with owner Emitter
 		Vector m_Offset;
+		// The number of particles emitted per emission
+		int m_ParticleCount;
 
 		/// Private member variable and method declarations
 	private:

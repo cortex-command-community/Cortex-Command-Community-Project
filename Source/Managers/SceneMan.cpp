@@ -2240,7 +2240,7 @@ bool SceneMan::OverAltitude(const Vector& point, int threshold, int accuracy) {
 bool SceneMan::IsPointInNoGravArea(const Vector& point) const {
 	// Todo, instead of a nograv area maybe best to tag certain areas as NoGrav. As otherwise it's tricky to keep track of when things are removed
 	if (m_pCurrentScene) {
-		Scene::Area* noGravArea = m_pCurrentScene->GetOptionalArea("NoGravityArea");
+		Scene::Area* noGravArea = m_pCurrentScene->GetArea("NoGravityArea");
 		if (noGravArea && noGravArea->IsInside(point)) {
 			return true;
 		}
@@ -2596,6 +2596,7 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 
 	// Set up the target box to draw to on the target bitmap, if it is larger than the scene in either dimension.
 	Box targetBox(Vector(), static_cast<float>(targetBitmap->w), static_cast<float>(targetBitmap->h));
+	Box targetDimensions(Vector(), targetBitmap->w, targetBitmap->h);
 
 	if (!terrain->WrapsX() && targetBitmap->w > GetSceneWidth()) {
 		targetBox.SetCorner(Vector(static_cast<float>((targetBitmap->w - GetSceneWidth()) / 2), targetBox.GetCorner().GetY()));
@@ -2609,28 +2610,28 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 	switch (m_LayerDrawMode) {
 		case LayerDrawMode::g_LayerTerrainMatter:
 			terrain->SetLayerToDraw(SLTerrain::LayerType::MaterialLayer);
-			terrain->Draw(targetBitmap, targetBox);
+			terrain->Draw(targetDimensions, targetBox);
 			break;
 		default:
 			if (!skipBackgroundLayers) {
 				for (std::list<SLBackground*>::reverse_iterator backgroundLayer = m_pCurrentScene->GetBackLayers().rbegin(); backgroundLayer != m_pCurrentScene->GetBackLayers().rend(); ++backgroundLayer) {
-					(*backgroundLayer)->Draw(targetBitmap, targetBox);
+					(*backgroundLayer)->Draw(targetDimensions, targetBox);
 				}
 			}
 			if (!skipTerrain) {
 				terrain->SetLayerToDraw(SLTerrain::LayerType::BackgroundLayer);
-				terrain->Draw(targetBitmap, targetBox);
+				terrain->Draw(targetDimensions, targetBox);
 			}
-			m_pMOColorLayer->Draw(targetBitmap, targetBox);
+			m_pMOColorLayer->Draw(targetDimensions, targetBox);
 
 			if (!skipTerrain) {
 				terrain->SetLayerToDraw(SLTerrain::LayerType::ForegroundLayer);
-				terrain->Draw(targetBitmap, targetBox);
+				terrain->Draw(targetDimensions, targetBox);
 			}
 			if (!g_FrameMan.IsInMultiplayerMode()) {
 				int teamId = g_CameraMan.GetScreenTeam(m_LastUpdatedScreen);
 				if (SceneLayer* unseenLayer = (teamId != Activity::NoTeam) ? m_pCurrentScene->GetUnseenLayer(teamId) : nullptr) {
-					unseenLayer->Draw(targetBitmap, targetBox);
+					unseenLayer->Draw(targetDimensions, targetBox);
 				}
 			}
 
@@ -2671,7 +2672,7 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 			}
 
 			if (m_pDebugLayer) {
-				m_pDebugLayer->Draw(targetBitmap, targetBox);
+				m_pDebugLayer->Draw(targetDimensions, targetBox);
 			}
 
 			break;

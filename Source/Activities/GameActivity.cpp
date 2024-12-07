@@ -70,7 +70,6 @@ void GameActivity::Clear() {
 		m_ReadyToStart[player] = false;
 		m_PurchaseOverride[player].clear();
 		m_BrainLZWidth[player] = BRAINLZWIDTHDEFAULT;
-		m_TeamTech[player] = "";
 		m_NetworkPlayerNames[player] = "";
 	}
 
@@ -95,6 +94,8 @@ void GameActivity::Clear() {
 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
 		m_Deliveries[team].clear();
+		m_TeamTech[team] = "";
+		m_TeamTechSwitchEnabled[team] = true;
 		m_LandingZoneArea[team].Reset();
 		m_aLZCursor[team].clear();
 		m_aObjCursor[team].clear();
@@ -158,6 +159,7 @@ int GameActivity::Create(const GameActivity& reference) {
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
 		m_LandingZoneArea[team] = reference.m_LandingZoneArea[team];
 		m_TeamTech[team] = reference.m_TeamTech[team];
+		m_TeamTechSwitchEnabled[team] = reference.m_TeamTechSwitchEnabled[team];
 		m_TeamIsCPU[team] = reference.m_TeamIsCPU[team];
 	}
 
@@ -220,7 +222,19 @@ int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader)
 		                if (propName == "Team" + std::to_string(team + 1) + "Tech") {
 			                std::string techName;
 			                reader >> techName;
-			                SetTeamTech(team, techName);
+			                m_TeamTech[team] = techName;
+		                }
+	                });
+	MatchForwards("Team1TechSwitchEnabled")
+	    MatchForwards("Team2TechSwitchEnabled")
+	        MatchForwards("Team3TechSwitchEnabled")
+	            MatchProperty(
+	                "Team4TechSwitchEnabled",
+	                for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
+		                if (propName == "Team" + std::to_string(team + 1) + "TechSwitchEnabled") {
+			                bool switchEnabled;
+			                reader >> switchEnabled;
+			                m_TeamTechSwitchEnabled[team] = switchEnabled;
 		                }
 	                });
 	MatchProperty("SpecialBehaviour_StartingGold", { reader >> m_StartingGold; });

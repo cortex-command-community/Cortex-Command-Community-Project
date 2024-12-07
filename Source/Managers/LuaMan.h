@@ -112,6 +112,16 @@ namespace RTE {
 		/// @param functionLiteralArguments Optional vector of strings that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int RunScriptFunctionObject(const LuabindObjectWrapper* functionObjectWrapper, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
+		
+		/// Runs the given Lua function object. The first argument to the function will always be the self object.
+		/// If either argument list has entries, they will be passed into the function in order, with entity arguments first.
+		/// @param functionObjectWrapper The LuabindObjectWrapper containing the Lua function to be run.
+		/// @param selfGlobalTableName The name of the global Lua table that gives access to the self object.
+		/// @param selfGlobalTableKey The key for this object in the respective global Lua table.
+		/// @param functionEntityArguments Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.
+		/// @param functionLiteralArguments Optional vector of strings that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		int RunScriptConditionalTestFunctionObject(const LuabindObjectWrapper* functionObjectWrapper, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, bool& returnParam, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
 
 		/// Opens and loads a file containing a script and runs it on the state.
 		/// @param filePath The path to the file to load and run.

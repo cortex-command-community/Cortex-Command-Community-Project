@@ -1,5 +1,5 @@
 function Update(self)
-	if self:IsActivated() and self.ID == self.RootID then
+	if self:IsActivated() and not self:IsAttached() then
 		local explosive = CreateMOSRotating("Timed Explosive Active");
 		explosive.Pos = self.Pos;
 		explosive.Vel = self.Vel;

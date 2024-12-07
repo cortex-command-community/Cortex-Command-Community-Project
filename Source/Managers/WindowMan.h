@@ -20,6 +20,7 @@ union SDL_Event;
 namespace RTE {
 
 	class Shader;
+	class RenderTarget;
 
 	struct SDLWindowDeleter {
 		void operator()(SDL_Window* window) const;
@@ -129,7 +130,7 @@ namespace RTE {
 
 		/// Get the screen buffer texture.
 		/// @return The screen buffer texture.
-		GLuint GetScreenBufferTexture() const { return m_ScreenBufferTexture; }
+		std::shared_ptr<RenderTarget> GetScreenBuffer() const { return m_ScreenBuffer; }
 #pragma endregion
 
 #pragma region Resolution Change Handling
@@ -171,14 +172,16 @@ namespace RTE {
 		/// Updates the state of this WindowMan.
 		void Update();
 
-		/// Clears the primary renderer, or all the renderers if in multi-display fullscreen.
-		void ClearRenderer(bool clearFrameMan = true);
+		/// Clears the window framebuffer (FBO0).
+		void ClearBackbuffer(bool clearFrameMan = true);
 
-		/// Set this Frame to draw the game. To be set before UploadFrame. Resets on ClearRenderer.
+		/// Set this Frame to draw the game. To be set before UploadFrame. Resets on ClearBackbuffer.
 		void DrawPostProcessBuffer() { m_DrawPostProcessBuffer = true; }
 
 		/// Copies the BackBuffer32 content to GPU and shows it on screen.
 		void UploadFrame();
+
+		void Present();
 #pragma endregion
 
 	private:
@@ -189,8 +192,8 @@ namespace RTE {
 
 		std::shared_ptr<SDL_Window> m_PrimaryWindow; //!< The main window.
 		GLuint m_BackBuffer32Texture; //!< Streaming texture for the software rendered stuff.
-		GLuint m_ScreenBufferTexture; //!< Internal backbuffer for the final blit and sceenshots, only clear immediately before drawing.
-		GLuint m_ScreenBufferFBO; //!< Framebuffer object for the screen buffer texture.
+		
+		std::shared_ptr<RenderTarget> m_ScreenBuffer{};
 		std::unique_ptr<SDL_Rect> m_PrimaryWindowViewport; //!< Viewport for the main window.
 
 		std::vector<std::shared_ptr<SDL_Window>> m_MultiDisplayWindows; //!< Additional windows for multi-display fullscreen.

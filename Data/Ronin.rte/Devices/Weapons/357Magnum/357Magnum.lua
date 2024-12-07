@@ -7,7 +7,7 @@ function Create(self)
 	self.drawGun = false;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	--Read RateOfFire on Update() to take Global Scripts to account
 	if self.rof == nil then
 		self.rof = self.RateOfFire;
@@ -17,12 +17,9 @@ function Update(self)
 		self:SetOneHanded(false);
 		self:SetDualWieldable(false);
 		if MovableMan:IsOfActor(self.ID) then
-			actor = ToActor(MovableMan:GetMOFromID(self.RootID));
+			local actor = ToActor(MovableMan:GetMOFromID(self.RootID));
 
-			ToActor(actor):GetController():SetState(Controller.AIM_SHARP, false);
-			ToActor(actor):GetController():SetState(Controller.BODY_CROUCH, false);
 			if ToActor(actor):GetController():IsState(Controller.WEAPON_FIRE) then
-
 				if self:GetNumberValue("CowboyMode") < 3 then
 					self:Deactivate();
 					self.triggerPulled = true;
@@ -93,5 +90,15 @@ function Update(self)
 		self.JointOffset = Vector(-2, 3);
 		self.StanceOffset = Vector(12, 0);
 		self.drawGunAngle = 0;
+	end
+end
+
+function SyncedUpdate(self)
+	if self:NumberValueExists("CowboyMode") then
+		if MovableMan:IsOfActor(self.ID) then
+			local actor = ToActor(MovableMan:GetMOFromID(self.RootID));
+			ToActor(actor):GetController():SetState(Controller.AIM_SHARP, false);
+			ToActor(actor):GetController():SetState(Controller.BODY_PRONE, false);
+		end
 	end
 end

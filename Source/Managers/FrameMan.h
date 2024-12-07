@@ -7,6 +7,7 @@
 
 #include <array>
 #include <unordered_map>
+#include "glad/gl.h"
 
 #define g_FrameMan FrameMan::Instance()
 
@@ -15,8 +16,8 @@ namespace RTE {
 	class AllegroScreen;
 	class AllegroBitmap;
 	class GUIFont;
-	class ScreenShader;
-
+	class Shader;
+	class RenderTarget;
 	struct BitmapDeleter {
 		void operator()(BITMAP* bitmap) const;
 	};
@@ -68,6 +69,8 @@ namespace RTE {
 		/// Gets the 32bpp bitmap that is used for overlaying the screen.
 		/// @return A pointer to the overlay BITMAP. OWNERSHIP IS NOT TRANSFERRED!
 		BITMAP* GetOverlayBitmap32() const { return m_OverlayBitmap32.get(); }
+
+		std::shared_ptr<RenderTarget> GetBackBuffer() const { return m_BackBuffer; }
 #pragma endregion
 
 #pragma region Split-Screen Handling
@@ -182,7 +185,7 @@ namespace RTE {
 
 #pragma region Drawing
 		/// Clears the 8bpp backbuffer with black.
-		void ClearBackBuffer8() { clear_to_color(m_BackBuffer8.get(), m_BlackColor); }
+		void ClearBackBuffer8() { clear_to_color(m_BackBuffer8.get(), 0); }
 
 		/// Clears the 32bpp backbuffer with black.
 		void ClearBackBuffer32() { clear_to_color(m_BackBuffer32.get(), 0); }
@@ -195,6 +198,10 @@ namespace RTE {
 		/// Sets a specific pre-calculated transparency table which is used for any subsequent transparency drawing in indexed color modes.
 		/// @param transValue The transparency preset value. See the TransparencyPreset enumeration for values.
 		void SetTransTableFromPreset(TransparencyPreset transValue);
+
+		/// @brief Get the current alpha level for transparent draws.
+		/// @return Integer between 0-255 of alpha value.
+		unsigned char GetCurrentAlpha() {return m_CurrentAlpha;}
 
 		/// Flashes any of the players' screen with the specified color for this frame.
 		/// @param screen Which screen to flash.
@@ -328,6 +335,10 @@ namespace RTE {
 		/// @return An reference to a ContentFile which described the palette location.
 		const ContentFile& GetPaletteFile() const { return m_PaletteFile; }
 
+		/// Getter for the default palette for image loading purposes, etc.
+		/// @return Const reference to the default palette.
+		const PALETTE& GetDefaultPalette() const { return m_DefaultPalette; }
+
 		/// Fades the palette in from black at a specified speed.
 		/// @param fadeSpeed Speed specified from (slowest) 1 - 64 (fastest).
 		void FadeInPalette(int fadeSpeed = 1) {
@@ -391,8 +402,10 @@ namespace RTE {
 		/// The key is an array of the RGBA values. The value is a pair of the color table itself and a time stamp of when it was last accessed for use during color table pruning.
 		std::array<std::unordered_map<std::array<int, 4>, std::pair<COLOR_MAP, long long>>, DrawBlendMode::BlendModeCount> m_ColorTables;
 		Timer m_ColorTablePruneTimer; //!< Timer for pruning unused color tables to prevent ridiculous memory usage.
+		int m_CurrentAlpha; //!< Current alpha level for emulating trans colortables.
 
-		std::unique_ptr<BITMAP, BitmapDeleter> m_PlayerScreen; //!< Intermediary split screen bitmap.
+		std::shared_ptr<BITMAP> m_PlayerScreen8; //!< Intermediary split screen bitmap.
+		std::shared_ptr<RenderTarget> m_PlayerScreen; //!< Intermediary split screen bitmap.
 		int m_PlayerScreenWidth; //!< Width of the screen of each player. Will be smaller than resolution only if the screen is split.
 		int m_PlayerScreenHeight; //!< Height of the screen of each player. Will be smaller than resolution only if the screen is split.
 
@@ -414,7 +427,7 @@ namespace RTE {
 		Timer m_FlashTimer[c_MaxScreenCount]; //!< Flash screen timer.
 
 		std::string m_ScreenDumpName; //!< The filename of the screenshot to save.
-		std::unique_ptr<BITMAP, BitmapDeleter> m_BackBuffer8; //!< Screen backbuffer, always 8bpp, gets copied to the 32bpp buffer for post-processing.
+		std::shared_ptr<BITMAP> m_BackBuffer8; //!< Screen backbuffer, always 8bpp, gets copied to the 32bpp buffer for post-processing.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_BackBuffer32; //!< 32bpp backbuffer, only used for post-processing.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_OverlayBitmap32; //!< 32bpp bitmap used for overlaying (fading in/out or darkening) the screen.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_ScreenDumpBuffer; //!< Temporary buffer for making quick screencaps. This is used for color conversion between 32bpp and 24bpp so we can save the file.
@@ -426,6 +439,8 @@ namespace RTE {
 		std::unique_ptr<BITMAP, BitmapDeleter> m_NetworkBackBufferIntermediateGUI8[2][c_MaxScreenCount]; //!< Per-player allocated frame buffer to draw upon during FrameMan draw. Used to draw UI only.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_NetworkBackBufferFinal8[2][c_MaxScreenCount]; //!< Per-player allocated frame buffer to copy Intermediate before sending.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_NetworkBackBufferFinalGUI8[2][c_MaxScreenCount]; //!< Per-player allocated frame buffer to copy Intermediate before sending. Used to draw UI only.
+
+		std::shared_ptr<RenderTarget> m_BackBuffer; //!< Main render backbuffer.
 
 		Vector m_TargetPos[2][c_MaxScreenCount]; //!< Frame target position for network players.
 

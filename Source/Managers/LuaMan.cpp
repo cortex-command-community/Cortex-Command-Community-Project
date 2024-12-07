@@ -158,7 +158,7 @@ void LuaStateWrapper::Initialize() {
 	                         RegisterLuaBindingsOfType(SystemLuaBindings, PathRequest),
 	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Scene),
 	                         RegisterLuaBindingsOfType(EntityLuaBindings, SceneArea),
-	                         RegisterLuaBindingsOfType(EntityLuaBindings, SceneLayer),
+	                         RegisterLuaBindingsOfType(EntityLuaBindings, StaticSceneLayer),
 	                         RegisterLuaBindingsOfType(EntityLuaBindings, SLBackground),
 	                         RegisterLuaBindingsOfAbstractType(EntityLuaBindings, Deployment),
 	                         RegisterLuaBindingsOfType(SystemLuaBindings, DataModule),
@@ -249,11 +249,11 @@ void LuaStateWrapper::Initialize() {
 	              // Override "math.random" in the lua state to use RTETools MT19937 implementation. Preserve return types of original to not break all the things.
 	              "math.random = function(lower, upper) if lower ~= nil and upper ~= nil then return LuaMan:SelectRand(lower, upper); elseif lower ~= nil then return LuaMan:SelectRand(1, lower); else return LuaMan:PosRand(); end end\n"
 	              // Override "dofile"/"loadfile" to be able to account for Data/ or Mods/ directory.
-	              "OriginalDoFile = dofile; dofile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end;\n"
-	              "OriginalLoadFile = loadfile; loadfile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalLoadFile(filePath); end end;\n"
+	              "do local OriginalDoFile = dofile; dofile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalDoFile(filePath); end end; end\n"
+	              "do local OriginalLoadFile = loadfile; loadfile = function(filePath) filePath = PresetMan:GetFullModulePath(filePath); if filePath ~= '' then return OriginalLoadFile(filePath); end end; end\n"
 	              // Override "require" to be able to track loaded packages so we can clear them when scripts are reloaded.
 	              "_RequiredPackages = {};\n"
-	              "OriginalRequire = require; require = function(filePath) _RequiredPackages[filePath] = true; return OriginalRequire(filePath); end;\n"
+	              "do local OriginalRequire = require; require = function(filePath) _RequiredPackages[filePath] = true; return OriginalRequire(filePath); end; end\n"
 	              "_ClearRequiredPackages = function() for k, v in pairs(_RequiredPackages) do package.loaded[k] = nil; end; _RequiredPackages = {}; end;\n"
 	              // Internal helper functions to add callbacks for async pathing requests
 	              "_AsyncPathCallbacks = {};\n"
@@ -625,6 +625,82 @@ int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functio
 	return status;
 }
 
+int LuaStateWrapper::RunScriptConditionalTestFunctionObject(const LuabindObjectWrapper* functionObject, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, bool& returnParam, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
+	int status = 0;
+
+	std::lock_guard<std::recursive_mutex> lock(m_Mutex);
+	s_currentLuaState = this;
+	m_CurrentlyRunningScriptPath = functionObject->GetFilePath();
+
+	lua_pushcfunction(m_State, &AddFileAndLineToError);
+	functionObject->GetLuabindObject()->push(m_State);
+
+	int argumentCount = functionEntityArguments.size() + functionLiteralArguments.size() + functionObjectArguments.size();
+	if (!selfGlobalTableName.empty() && TableEntryIsDefined(selfGlobalTableName, selfGlobalTableKey)) {
+		lua_getglobal(m_State, selfGlobalTableName.c_str());
+		lua_getfield(m_State, -1, selfGlobalTableKey.c_str());
+		lua_remove(m_State, -2);
+		argumentCount++;
+	}
+
+	for (const Entity* functionEntityArgument: functionEntityArguments) {
+		std::unique_ptr<LuabindObjectWrapper> downCastEntityAsLuabindObjectWrapper(LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions.at(functionEntityArgument->GetClassName())(const_cast<Entity*>(functionEntityArgument), m_State));
+		downCastEntityAsLuabindObjectWrapper->GetLuabindObject()->push(m_State);
+	}
+
+	for (const std::string_view& functionLiteralArgument: functionLiteralArguments) {
+		char* stringToDoubleConversionFailed = nullptr;
+		if (functionLiteralArgument == "nil") {
+			lua_pushnil(m_State);
+		} else if (functionLiteralArgument == "true" || functionLiteralArgument == "false") {
+			lua_pushboolean(m_State, functionLiteralArgument == "true" ? 1 : 0);
+		} else if (double argumentAsNumber = std::strtod(functionLiteralArgument.data(), &stringToDoubleConversionFailed); !*stringToDoubleConversionFailed) {
+			lua_pushnumber(m_State, argumentAsNumber);
+		} else {
+			lua_pushlstring(m_State, functionLiteralArgument.data(), functionLiteralArgument.size());
+		}
+	}
+
+	for (const LuabindObjectWrapper* functionObjectArgument: functionObjectArguments) {
+		if (functionObjectArgument->GetLuabindObject()->interpreter() != m_State) {
+			LuabindObjectWrapper copy = functionObjectArgument->GetCopyForState(*m_State);
+			copy.GetLuabindObject()->push(m_State);
+		} else {
+			functionObjectArgument->GetLuabindObject()->push(m_State);
+		}
+	}
+
+	const std::string& path = functionObject->GetFilePath();
+	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+	{
+		ZoneScoped;
+		ZoneName(path.c_str(), path.length());
+
+		if (lua_pcall(m_State, argumentCount, 1, -argumentCount - 2) > 0) {
+			m_LastError = lua_tostring(m_State, -1);
+			lua_pop(m_State, 1);
+			g_ConsoleMan.PrintString("ERROR: " + m_LastError);
+			ClearErrors();
+			status = -1;
+		} else {
+			returnParam = 1 == lua_toboolean(m_State, -1);
+			lua_pop(m_State, 1);
+		}
+	}
+	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+	// only track time in non-MT scripts, for now
+	if (&g_LuaMan.GetMasterScriptState() == this) {
+		m_ScriptTimings[path].m_Time += std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+		m_ScriptTimings[path].m_CallCount++;
+	}
+
+	lua_pop(m_State, 1);
+
+	m_CurrentlyRunningScriptPath = "";
+	return status;
+}
+
 int LuaStateWrapper::RunScriptFile(const std::string& filePath, bool consoleErrors, bool doInSandboxedEnvironment) {
 	const std::string fullScriptPath = g_PresetMan.GetFullModulePath(filePath);
 	if (fullScriptPath.empty()) {
@@ -740,8 +816,10 @@ int LuaStateWrapper::RunScriptFileAndRetrieveFunctions(const std::string& filePa
 	auto cachedScript = m_ScriptCache.find(filePath);
 	if (!forceReload && cachedScript != m_ScriptCache.end()) {
 		for (auto& pair: cachedScript->second.functionNamesAndObjects) {
-			luabind::object* functionObjectCopyForStoring = new luabind::object(*pair.second->GetLuabindObject());
-			outFunctionNamesAndObjects.try_emplace(pair.first, new LuabindObjectWrapper(functionObjectCopyForStoring, filePath));
+			if (std::find(functionNamesToLookFor.begin(), functionNamesToLookFor.end(), pair.first) != functionNamesToLookFor.end()) {
+				luabind::object* functionObjectCopyForStoring = new luabind::object(*pair.second->GetLuabindObject());
+				outFunctionNamesAndObjects.try_emplace(pair.first, new LuabindObjectWrapper(functionObjectCopyForStoring, filePath));
+			}
 		}
 
 		return 0;

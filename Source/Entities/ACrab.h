@@ -224,24 +224,24 @@ namespace RTE {
 		/// @return The LimbPath corresponding to the passed in Layer and MovementState values.
 		LimbPath* GetLimbPath(Side side, Layer layer, MovementState movementState) { return &m_Paths[side][layer][movementState]; }
 
-		/// Get walking limb path speed for the specified preset.
-		/// @param speedPreset Speed preset to set 0 = LimbPath::SLOW, 1 = Limbpath::NORMAL, 2 = LimbPath::FAST
-		/// @return Limb path speed for the specified preset in m/s.
-		float GetLimbPathSpeed(int speedPreset) const;
+		/// Shortcut to get the speed of a particular move state's FG (and left side if relevant) limb path.
+		/// @param movementState Which movement state to get the limb path speed for.
+		/// @return Limb path speed for the specified movement state in m/s.
+		float GetLimbPathTravelSpeed(MovementState movementState);
 
-		/// Set walking limb path speed for the specified preset.
-		/// @param speedPreset Speed preset to set 0 = LimbPath::SLOW, 1 = Limbpath::NORMAL, 2 = LimbPath::FAST. New speed value in m/s.
-		void SetLimbPathSpeed(int speedPreset, float speed);
+		/// Shortcut to set the speed of a particular move state's limb path, including all layers (and sides if relevant)
+		/// @param movementState Which movement state to set the limb path speed for.
+		/// @param newSpeed New speed value in m/s.
+		void SetLimbPathTravelSpeed(MovementState movementStateourmaxmovement, float newSpeed);
 
-		/// Gets the default force that a limb traveling walking LimbPath can push against
-		/// stuff in the scene with.
-		/// @return The default set force maximum, in kg * m/s^2.
-		float GetLimbPathPushForce() const;
+		/// Shortcut to get the push force of a particular move state's FG (and left side if relevant) limb path.
+		/// @return The push force, in kg * m/s^2.
+		float GetLimbPathPushForce(MovementState movementState);
 
-		/// Sets the default force that a limb traveling walking LimbPath can push against
-		/// stuff in the scene with.
-		/// @param force The default set force maximum, in kg * m/s^2.
-		void SetLimbPathPushForce(float force);
+		/// Shortcut to set the push force of a particular move state's limb path, including all layers (and sides if relevant)
+		/// @param movementState Which movement state to set the limb path speed for.
+		/// @param newForce New push force value in kg * m/s^2.
+		void SetLimbPathPushForce(MovementState movementState, float newForce);
 
 		/// Gets this ACrab's stride sound. Ownership is NOT transferred!
 		/// @return The SoundContainer for this ACrab's stride sound.
@@ -321,10 +321,10 @@ namespace RTE {
 		float m_AimRangeUpperLimit;
 		// The maximum angle MountedMO can be aimed down, positive values only, in radians
 		float m_AimRangeLowerLimit;
+		// Whether mouse input should be locked to the aim range, or whether we can "wander" out. For static emplacements like turrets, this is good, but for moving things it's a bit sticky.
+		bool m_LockMouseAimInput;
 
-		////////////////
 		// AI States
-
 		enum DeviceHandlingState {
 			STILL = 0,
 			POINTING,
@@ -360,37 +360,6 @@ namespace RTE {
 			APEXJUMP,
 			LANDJUMP
 		};
-
-		// What the AI is doing with its held devices
-		DeviceHandlingState m_DeviceState;
-		// What we are doing with a device sweeping
-		SweepState m_SweepState;
-		// The current digging state
-		DigState m_DigState;
-		// The current jumping state
-		JumpState m_JumpState;
-		// Jumping target, overshoot this and the jump is completed
-		Vector m_JumpTarget;
-		// Jumping left or right
-		bool m_JumpingRight;
-		// The position of the end of the current tunnel being dug. When it is reached, digging can stop.
-		Vector m_DigTunnelEndPos;
-		// The center angle (in rads) for the sweeping motion done duing scannign and digging
-		float m_SweepCenterAimAngle;
-		// The range to each direction of the center that the sweeping motion will be done in
-		float m_SweepRange;
-		// The absolute coordinates of the last detected gold deposits
-		Vector m_DigTarget;
-		// Timer for how long to be shooting at a seen enemy target
-		Timer m_FireTimer;
-		// Timer for how long to be shooting at a seen enemy target
-		Timer m_SweepTimer;
-		// Timer for how long to be patrolling in a direction
-		Timer m_PatrolTimer;
-		// Timer for how long to be firing the jetpack in a direction
-		Timer m_JumpTimer;
-		// Whether mouse input should be locked to the aim range, or whether we can "wander" out. For static emplacements like turrets, this is good, but for moving things it's a bit sticky.
-		bool m_LockMouseAimInput;
 
 #pragma region Event Handling
 		/// Event listener to be run while this ACrab's PieMenu is opened.

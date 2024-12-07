@@ -10,11 +10,14 @@
 #include "ConsoleMan.h"
 #include "SettingsMan.h"
 #include "UInputMan.h"
+#include "GLResourceMan.h"
 
 #include "SLTerrain.h"
 #include "SLBackground.h"
 #include "Scene.h"
 #include "System.h"
+
+#include "RenderTarget.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
@@ -24,6 +27,8 @@
 #include "glad/gl.h"
 
 #include "tracy/Tracy.hpp"
+#include "tracy/TracyOpenGL.hpp"
+#include "SDL_image.h"
 
 using namespace RTE;
 
@@ -137,6 +142,8 @@ int FrameMan::CreateBackBuffers() {
 	m_BackBuffer32 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(c_BPP, resX, resY));
 	ClearBackBuffer32();
 
+	m_BackBuffer = std::make_unique<RenderTarget>(FloatRect(0, 0, resX, resY), FloatRect(0, 0, resX, resY));
+
 	m_OverlayBitmap32 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(c_BPP, resX, resY));
 	clear_to_color(m_OverlayBitmap32.get(), 0);
 
@@ -162,13 +169,18 @@ int FrameMan::CreateBackBuffers() {
 
 	// Create the splitscreen buffer
 	if (m_HSplit || m_VSplit) {
-		m_PlayerScreen = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)));
-		clear_to_color(m_PlayerScreen.get(), m_BlackColor);
-		set_clip_state(m_PlayerScreen.get(), 1);
+		m_PlayerScreen8 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)));
+		clear_to_color(m_PlayerScreen8.get(), 0);
+		set_clip_state(m_PlayerScreen8.get(), 1);
+
+		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)), FloatRect(0, 0, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)));
 
 		// Update these to represent the split screens
-		m_PlayerScreenWidth = m_PlayerScreen->w;
-		m_PlayerScreenHeight = m_PlayerScreen->h;
+		m_PlayerScreenWidth = m_PlayerScreen->GetSize().w;
+		m_PlayerScreenHeight = m_PlayerScreen->GetSize().h;
+	} else {
+		m_PlayerScreen8 = m_BackBuffer8;
+		m_PlayerScreen = m_BackBuffer;
 	}
 
 	m_ScreenDumpBuffer = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(24, m_BackBuffer32->w, m_BackBuffer32->h));
@@ -178,8 +190,8 @@ int FrameMan::CreateBackBuffers() {
 
 void FrameMan::CreatePresetColorTables() {
 	// Create RGB lookup table that supposedly speeds up calculation of other color tables.
-	create_rgb_table(&m_RGBTable, m_DefaultPalette, nullptr);
-	rgb_map = &m_RGBTable;
+	//create_rgb_table(&m_RGBTable, m_DefaultPalette, nullptr);
+	//rgb_map = &m_RGBTable;
 
 	// Create transparency color tables. Tables for other blend modes will be created on demand.
 	int transparencyPresetCount = BlendAmountLimits::MaxBlend / c_BlendAmountStep;
@@ -253,13 +265,18 @@ void FrameMan::ResetSplitScreens(bool hSplit, bool vSplit) {
 
 	// Create the splitscreen buffer
 	if (m_HSplit || m_VSplit) {
-		m_PlayerScreen = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)));
-		clear_to_color(m_PlayerScreen.get(), m_BlackColor);
-		set_clip_state(m_PlayerScreen.get(), 1);
+		m_PlayerScreen8 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)));
+		clear_to_color(m_PlayerScreen8.get(), 0);
+		set_clip_state(m_PlayerScreen8.get(), 1);
 
-		m_PlayerScreenWidth = m_PlayerScreen->w;
-		m_PlayerScreenHeight = m_PlayerScreen->h;
+		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)), FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)));
+
+		// Update these to represent the split screens
+		m_PlayerScreenWidth = m_PlayerScreen->GetSize().w;
+		m_PlayerScreenHeight = m_PlayerScreen->GetSize().h;
 	} else {
+		m_PlayerScreen8 = m_BackBuffer8;
+		m_PlayerScreen = m_BackBuffer;
 		// No splits, so set the screen dimensions equal to the back buffer
 		m_PlayerScreenWidth = m_BackBuffer8->w;
 		m_PlayerScreenHeight = m_BackBuffer8->h;
@@ -455,6 +472,8 @@ void FrameMan::SetTransTableFromPreset(TransparencyPreset transPreset) {
 		color_map = &m_ColorTables[DrawBlendMode::BlendTransparency].at(colorChannelBlendAmounts).first;
 		m_ColorTables[DrawBlendMode::BlendTransparency].at(colorChannelBlendAmounts).second = -1;
 	}
+	constexpr int transparencyPresetCount = BlendAmountLimits::MaxBlend / c_BlendAmountStep;
+	m_CurrentAlpha = 255 - (static_cast<int>(255.0F * ((1.0F / static_cast<float>(transparencyPresetCount)) * static_cast<float>(transPreset / c_BlendAmountStep))));
 }
 
 void FrameMan::CreateNewNetworkPlayerBackBuffer(int player, int width, int height) {
@@ -470,16 +489,25 @@ void FrameMan::CreateNewNetworkPlayerBackBuffer(int player, int width, int heigh
 
 bool FrameMan::LoadPalette(const std::string& palettePath) {
 	const std::string fullPalettePath = g_PresetMan.GetFullModulePath(palettePath);
-	BITMAP* tempBitmap = load_bitmap(fullPalettePath.c_str(), m_Palette);
-	RTEAssert(tempBitmap, ("Failed to load palette from bitmap with following path:\n\n" + fullPalettePath).c_str());
+	SDL_Surface* paletteImage = IMG_Load(palettePath.c_str());
+	RTEAssert(paletteImage && paletteImage->format->palette, ("Failed to load palette from bitmap with following path:\n\n" + fullPalettePath).c_str());
+
+	SDL_Palette* palette = paletteImage->format->palette;
+	for (size_t i = 0; i < 256; i++) {
+		m_Palette[i] = {
+			palette->colors[i].r,
+			palette->colors[i].g,
+			palette->colors[i].b,
+			0
+		};
+	}
+	SDL_FreeSurface(paletteImage);
 
 	set_palette(m_Palette);
 
 	// Update what black is now with the loaded palette
 	m_BlackColor = bestfit_color(m_Palette, 0, 0, 0);
 	m_AlmostBlackColor = bestfit_color(m_Palette, 5, 5, 5);
-
-	destroy_bitmap(tempBitmap);
 
 	return true;
 }
@@ -588,7 +616,7 @@ void FrameMan::SaveScreenToBitmap() {
 		return;
 	}
 
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_WindowMan.GetScreenBufferTexture()));
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_WindowMan.GetScreenBuffer()->GetColorTexture().id));
 	GL_CHECK(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, m_ScreenDumpBuffer->line[0]));
 }
 
@@ -776,6 +804,14 @@ void FrameMan::UpdateScreenOffsetForSplitScreen(int playerScreen, Vector& screen
 
 void FrameMan::Draw() {
 	ZoneScopedN("Draw");
+	TracyGpuZone("FrameMan::Draw");
+	
+	//rlSetShader(rlGetShaderIdDefault(), rlGetShaderLocsDefault());
+	Shader backgroundShader;
+	g_PresetMan.GetEntityPreset("Shader", "Background")->Clone(&backgroundShader);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	clear_to_color(m_BackBuffer8.get(), 0);
+	m_BackBuffer->Begin(true);
 
 	// Count how many split screens we'll need
 	int screenCount = (m_HSplit ? 2 : 1) * (m_VSplit ? 2 : 1);
@@ -792,9 +828,19 @@ void FrameMan::Draw() {
 	for (int playerScreen = 0; playerScreen < screenCount; ++playerScreen) {
 		screenRelativeEffects.clear();
 		screenRelativeGlowBoxes.clear();
+		rlEnableColorBlend();
+		rlSetBlendMode(RL_BLEND_ALPHA);
+		rlEnableDepthTest();
 
-		BITMAP* drawScreen = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen.get();
-		BITMAP* drawScreenGUI = drawScreen;
+		m_PlayerScreen->Begin(true);
+		backgroundShader.Begin();
+		backgroundShader.Enable();
+		rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
+		backgroundShader.SetInt("drawMasked", 1);
+
+		//rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
+		BITMAP* drawScreen = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
+		BITMAP* drawScreenGUI = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
 		if (IsInMultiplayerMode()) {
 			drawScreen = m_NetworkBackBufferIntermediate8[m_NetworkFrameCurrent][playerScreen].get();
 			drawScreenGUI = m_NetworkBackBufferIntermediateGUI8[m_NetworkFrameCurrent][playerScreen].get();
@@ -802,7 +848,7 @@ void FrameMan::Draw() {
 		// Need to clear the backbuffers because Scene background layers can be too small to fill the whole backbuffer or drawn masked resulting in artifacts from the previous frame.
 		clear_to_color(drawScreenGUI, ColorKeys::g_MaskColor);
 		// If in online multiplayer mode clear to mask color otherwise the scene background layers will get drawn over.
-		clear_to_color(drawScreen, IsInMultiplayerMode() ? ColorKeys::g_MaskColor : m_BlackColor);
+		clear_to_color(drawScreen, 0);
 
 		AllegroBitmap playerGUIBitmap(drawScreenGUI);
 
@@ -813,7 +859,7 @@ void FrameMan::Draw() {
 		if (IsInMultiplayerMode()) {
 			int layerCount = 0;
 
-			for (const SceneLayer* sceneLayer: g_SceneMan.GetScene()->GetBackLayers()) {
+			for (const SLBackground* sceneLayer: g_SceneMan.GetScene()->GetBackLayers()) {
 				SLOffset[playerScreen][layerCount] = sceneLayer->GetOffset();
 				layerCount++;
 
@@ -873,7 +919,13 @@ void FrameMan::Draw() {
 		if (!IsInMultiplayerMode()) {
 			// Draw the intermediate draw splitscreen to the appropriate spot on the back buffer
 			blit(drawScreen, m_BackBuffer8.get(), 0, 0, screenOffset.GetFloorIntX(), screenOffset.GetFloorIntY(), drawScreen->w, drawScreen->h);
-
+			m_PlayerScreen->End();
+			backgroundShader.End();
+			if (screenCount > 1) {
+				m_BackBuffer->Begin(false);
+				DrawTextureRec(m_PlayerScreen->GetColorTexture(), {0, 0, static_cast<float>(m_PlayerScreen8->w), -static_cast<float>(m_PlayerScreen8->h)}, {screenOffset.m_X, screenOffset.m_Y}, {255, 255, 255, 255});
+				m_BackBuffer->End();
+			}
 			g_PostProcessMan.AdjustEffectsPosToPlayerScreen(playerScreen, drawScreen, screenOffset, screenRelativeEffects, screenRelativeGlowBoxes);
 		}
 	}
@@ -899,7 +951,7 @@ void FrameMan::Draw() {
 			blit(m_NetworkBackBufferFinal8[m_NetworkFrameReady][0].get(), m_BackBuffer8.get(), 0, 0, 0, 0, m_BackBuffer8->w, m_BackBuffer8->h);
 			masked_blit(m_NetworkBackBufferFinalGUI8[m_NetworkFrameReady][0].get(), m_BackBuffer8.get(), 0, 0, 0, 0, m_BackBuffer8->w, m_BackBuffer8->h);
 
-			if (g_UInputMan.FlagAltState() || g_UInputMan.FlagCtrlState() || g_UInputMan.FlagShiftState()) {
+			if (g_UInputMan.FlagAltState() || g_UInputMan.FlagRCtrlState()) {
 				g_PerformanceMan.DrawCurrentPing();
 			}
 
@@ -910,7 +962,18 @@ void FrameMan::Draw() {
 	if (IsInMultiplayerMode()) {
 		PrepareFrameForNetwork();
 	}
-
+	rlEnableDepthTest();
+	rlZDepth(c_GuiDepth-1.0f);
+	g_GLResourceMan.UpdateDynamicBitmap(m_BackBuffer8.get(), true);
+	backgroundShader.Begin();
+	backgroundShader.Enable();
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
+	backgroundShader.SetInt("drawMasked", 1);
+	m_BackBuffer->Begin(false);
+	DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_BackBuffer8.get()), 0.0f, 0.0f, {255, 255, 255, 255});
+	m_BackBuffer->End();
+	backgroundShader.End();
+	rlZDepth(0);
 	if (g_ActivityMan.IsInActivity()) {
 		g_PostProcessMan.PostProcess();
 	}

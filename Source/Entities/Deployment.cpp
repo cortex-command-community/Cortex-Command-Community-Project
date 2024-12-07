@@ -8,6 +8,8 @@
 #include "ACraft.h"
 #include "ActivityMan.h"
 #include "DataModule.h"
+#include "Draw.h"
+#include "FrameMan.h"
 
 using namespace RTE;
 
@@ -550,9 +552,10 @@ void Deployment::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode m
 				// Draw the spawn radius circle too
 				circle(pTargetBitmap, aDrawPos[i].GetFloorIntX() + (pBitmap->w / 2), aDrawPos[i].GetFloorIntY() + (pBitmap->h / 2), m_SpawnRadius, c_GUIColorGray);
 			} else if (mode == g_DrawTrans) {
+				DrawTextureV(pBitmap, aDrawPos[i], {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 				draw_trans_sprite(pTargetBitmap, pBitmap, aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY());
 				// Draw the spawn radius circle too
-				circle(pTargetBitmap, aDrawPos[i].GetFloorIntX() + (pBitmap->w / 2), aDrawPos[i].GetFloorIntY() + (pBitmap->h / 2), m_SpawnRadius, c_GUIColorGray);
+				DrawCircleLines(aDrawPos[i].GetFloorIntX() + (pBitmap->w / 2), aDrawPos[i].GetFloorIntY() + (pBitmap->h / 2), m_SpawnRadius, {static_cast<unsigned char>(c_GUIColorGray), 0, 0, g_FrameMan.GetCurrentAlpha()});
 			}
 		}
 	}
@@ -608,7 +611,7 @@ void Deployment::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode m
 			if (mode == g_DrawColor) {
 				masked_blit(pBitmap, pTargetBitmap, 0, 0, aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY(), pBitmap->w, pBitmap->h);
 			} else if (mode == g_DrawTrans) {
-				draw_trans_sprite(pTargetBitmap, pBitmap, aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY());
+				DrawTexture(pBitmap, aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 			}
 		}
 	}

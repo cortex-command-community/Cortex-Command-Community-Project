@@ -17,6 +17,7 @@ function NativeHumanAI:Create(Owner)
 	Members.fire = false;
 	Members.groundContact = 5;
 	Members.flying = false;
+	Members.running = false;
 
 	Members.squadShoot = false;
 	Members.useMedikit = false;
@@ -28,6 +29,9 @@ function NativeHumanAI:Create(Owner)
 	Members.BlockedTimer = Timer();
 	Members.SquadShootTimer = Timer();
 	Members.SquadShootDelay = math.random(50,100);
+
+	Members.RunStateTimer = Timer();
+	Members.RunStateTimer:SetSimTimeLimitMS(math.random(2000,5000));
 
 	Members.AlarmTimer = Timer();
 	Members.AlarmTimer:SetSimTimeLimitMS(400);
@@ -336,6 +340,18 @@ function NativeHumanAI:Update(Owner)
 		end
 	end
 
+	local AlarmPoint = Owner:GetAlarmPoint();
+
+	-- If we currently have a target or are alerted, we walk. Otherwise we run
+	-- We also have a small random chance to walk for a lil bit
+	local wasAlarmed = AlarmPoint.Largest > 0;
+	if wasAlarmed or self.RunStateTimer:IsPastSimTimeLimit() then
+		self.running = self.Target == nil and not wasAlarmed and math.random() < 0.6;
+		self.RunStateTimer:Reset();
+	end
+
+	self.Ctrl:SetState(Controller.MOVE_FAST, self.running);
+
 	self.squadShoot = false;
 	if Owner.MOMoveTarget then
 		-- make the last waypoint marker stick to the MO we are following
@@ -361,7 +377,7 @@ function NativeHumanAI:Update(Owner)
 						local dist = SceneMan:ShortestDistance(Owner.Pos, Leader.Pos, false).Largest;
 						local radius = (Leader.Height + Owner.Height) * 0.5;
 						if dist < radius then
-							local copyControls = {Controller.MOVE_LEFT, Controller.MOVE_RIGHT, Controller.BODY_JUMPSTART, Controller.BODY_JUMP, Controller.BODY_CROUCH};
+							local copyControls = {Controller.MOVE_LEFT, Controller.MOVE_RIGHT, Controller.BODY_JUMPSTART, Controller.BODY_JUMP, Controller.BODY_PRONE};
 							for _, control in pairs(copyControls) do
 								local state = Leader:GetController():IsState(control);
 								self.Ctrl:SetState(control, state);
@@ -547,7 +563,6 @@ function NativeHumanAI:Update(Owner)
 		end
 
 		-- listen and react to AlarmEvents and AlarmPoints
-		local AlarmPoint = Owner:GetAlarmPoint();
 		if AlarmPoint.Largest > 0 then
 			if not self.Target and not self.UnseenTarget then
 				self.AlarmPos = Vector(AlarmPoint.X, AlarmPoint.Y);
@@ -634,7 +649,7 @@ function NativeHumanAI:Update(Owner)
 	if self.proneState == AHuman.GOPRONE then
 		self.proneState = AHuman.PRONE;
 	elseif self.proneState == AHuman.PRONE then
-		self.Ctrl:SetState(Controller.BODY_CROUCH, true);
+		self.Ctrl:SetState(Controller.BODY_PRONE, true);
 	end
 
 	if self.lateralMoveState == Actor.LAT_LEFT then

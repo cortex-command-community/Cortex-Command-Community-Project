@@ -2,6 +2,7 @@
 
 #include "NetworkClient.h"
 #include "AudioMan.h"
+#include "ConsoleMan.h"
 #include "PresetMan.h"
 
 using namespace RTE;
@@ -20,8 +21,8 @@ void MusicMan::Clear() {
 	m_InterruptingMusicSoundContainer = nullptr;
 
 	m_CurrentSong = nullptr;
-	m_CurrentSongSectionType = "Default";
-	m_CurrentSongSection = nullptr;
+	m_NextSongSectionType = "Default";
+	m_NextSongSection = nullptr;
 
 	m_PreviousSoundContainer = nullptr;
 	m_CurrentSoundContainer = nullptr;
@@ -51,17 +52,19 @@ void MusicMan::Update() {
 			CyclePlayingSoundContainers(false);
 		}
 		if (m_PreviousSoundContainerSetToFade && m_MusicFadeTimer.IsPastRealTimeLimit()) {
-			const int musicFadeOutTimeMs = 250;
-			m_PreviousSoundContainer->FadeOut(musicFadeOutTimeMs);
 			m_PreviousSoundContainerSetToFade = false;
+			if (m_PreviousSoundContainer) {
+				const int musicFadeOutTimeMs = 250;
+				m_PreviousSoundContainer->FadeOut(musicFadeOutTimeMs);
+			}
 		}
-	} else {
-		if (m_PreviousSoundContainer && m_PreviousSoundContainer->GetAudibleVolume() == 0.0F) {
-			m_PreviousSoundContainer = nullptr;
-		}
+	} else if (!m_ReturnToDynamicMusic) {
 		if (m_CurrentSoundContainer && m_CurrentSoundContainer->GetAudibleVolume() == 0.0F) {
 			m_CurrentSoundContainer = nullptr;
 		}
+	}
+	if (m_PreviousSoundContainer && m_PreviousSoundContainer->GetAudibleVolume() == 0.0F) {
+		m_PreviousSoundContainer = nullptr;
 	}
 }
 
@@ -98,7 +101,7 @@ void MusicMan::ResetMusicState() {
 bool MusicMan::PlayDynamicSong(const std::string& songName, const std::string& songSectionType, bool playImmediately, bool playTransition, bool smoothFade) {
 	if (const DynamicSong* dynamicSongToPlay = dynamic_cast<const DynamicSong*>(g_PresetMan.GetEntityPreset("DynamicSong", songName))) {
 		m_CurrentSong = std::unique_ptr<DynamicSong>(dynamic_cast<DynamicSong*>(dynamicSongToPlay->Clone()));
-		SetCurrentSongSectionType(songSectionType);
+		SetNextSongSectionType(songSectionType);
 		SelectNextSongSection();
 		SelectNextSoundContainer(playTransition);
 		// If this isn't the case, then the MusicTimer's existing setup should make it play properly anyway, even if it's just instant
@@ -120,17 +123,24 @@ bool MusicMan::PlayDynamicSong(const std::string& songName, const std::string& s
 }
 
 bool MusicMan::SetNextDynamicSongSection(const std::string& newSongSectionType, bool playImmediately, bool playTransition, bool smoothFade) {
+	std::string currentDynamicSongSection = "None";
+	if (m_NextSongSection) {
+		currentDynamicSongSection = m_NextSongSection->GetPresetName();
+	}
+	
 	if (!m_IsPlayingDynamicMusic) {
 		return false;
 	}
-	SetCurrentSongSectionType(newSongSectionType);
+	SetNextSongSectionType(newSongSectionType);
 	SelectNextSongSection();
 	SelectNextSoundContainer(playTransition);
 	if (playImmediately) {
 		if (m_PreviousSoundContainerSetToFade) {
 			m_PreviousSoundContainerSetToFade = false;
-			m_PreviousSoundContainer->Stop();
-			m_PreviousSoundContainer = nullptr;
+			if (m_PreviousSoundContainer) {
+				m_PreviousSoundContainer->Stop();
+				m_PreviousSoundContainer = nullptr;				
+			}
 		}
 		CyclePlayingSoundContainers(smoothFade);
 	}
@@ -138,13 +148,28 @@ bool MusicMan::SetNextDynamicSongSection(const std::string& newSongSectionType, 
 }
 
 bool MusicMan::CyclePlayingSoundContainers(bool smoothFade) {
+	std::string currentSoundContainer = "None";
+	if (m_CurrentSoundContainer) {
+		currentSoundContainer = m_CurrentSoundContainer->GetPresetName();
+	}
+
+	std::string previousSoundContainer = "None";
+	if (m_PreviousSoundContainer) {
+		previousSoundContainer = m_PreviousSoundContainer->GetPresetName();
+	}
+	
 	if (m_CurrentSoundContainer && m_CurrentSoundContainer->IsBeingPlayed()) {
 		if (smoothFade) {
 			m_CurrentSoundContainer->FadeOut(static_cast<int>(m_NextSoundContainer->GetMusicPreEntryTime()));
-		} else {
+		} else if (!m_MusicTimer.IsPastRealTimeLimit()) {
 			m_PreviousSoundContainerSetToFade = true;
 			m_MusicFadeTimer.Reset();
 			m_MusicFadeTimer.SetRealTimeLimitMS(static_cast<int>(m_NextSoundContainer->GetMusicPreEntryTime()));
+		}
+		if (m_PreviousSoundContainer) {
+			m_PreviousSoundContainerSetToFade = false;
+			m_PreviousSoundContainer->Stop();
+			m_PreviousSoundContainer = nullptr;
 		}
 		m_PreviousSoundContainer = std::unique_ptr<SoundContainer>(m_CurrentSoundContainer.release());
 	}
@@ -153,9 +178,14 @@ bool MusicMan::CyclePlayingSoundContainers(bool smoothFade) {
 	m_CurrentSoundContainer = std::unique_ptr<SoundContainer>(dynamic_cast<SoundContainer*>(m_NextSoundContainer->Clone()));
 	SelectNextSoundContainer();
 	m_MusicTimer.Reset();
-	double timeUntilNextShouldBePlayed = m_CurrentSoundContainer->GetLength(SoundContainer::LengthOfSoundType::NextPlayed) - m_CurrentSoundContainer->GetMusicPostExitTime() - m_NextSoundContainer->GetMusicPreEntryTime();
+	float exitTime = m_CurrentSoundContainer->GetMusicExitTime();
+	if (exitTime == 0.0F) {
+		exitTime = m_CurrentSoundContainer->GetLength(SoundContainer::LengthOfSoundType::NextPlayed);
+	}
+	double timeUntilNextShouldBePlayed = std::max(0.0F, exitTime - m_NextSoundContainer->GetMusicPreEntryTime());
 	m_MusicTimer.SetRealTimeLimitMS(timeUntilNextShouldBePlayed);
 	m_CurrentSoundContainer->Play();
+	m_CurrentSongSectionType = m_NextSongSectionType;
 
 	return true;
 }
@@ -174,6 +204,8 @@ bool MusicMan::EndDynamicMusic(bool fadeOutCurrent) {
 	if (fadeOutCurrent && m_CurrentSoundContainer && m_CurrentSoundContainer->IsBeingPlayed()) {
 		m_CurrentSoundContainer->FadeOut(2000);
 	}
+
+	m_NextSoundContainer = nullptr;
 
 	m_MusicTimer.Reset();
 	m_MusicTimer.SetRealTimeLimitMS(0);
@@ -235,25 +267,25 @@ void MusicMan::EndInterruptingMusic() {
 }
 
 void MusicMan::SelectNextSongSection() {
-	if (m_CurrentSongSection && m_CurrentSongSection->GetSectionType() == m_CurrentSongSectionType) {
+	if (m_NextSongSection && m_NextSongSection->GetSectionType() == m_NextSongSectionType) {
 		// Our current song section is already suitable
 		return;
 	}
 
 	for (DynamicSongSection& dynamicSongSection: m_CurrentSong->GetSongSections()) {
-		if (dynamicSongSection.GetSectionType() == m_CurrentSongSectionType) {
-			m_CurrentSongSection = &dynamicSongSection;
+		if (dynamicSongSection.GetSectionType() == m_NextSongSectionType) {
+			m_NextSongSection = &dynamicSongSection;
 			return;
 		}
 	}
 
-	m_CurrentSongSection = &m_CurrentSong->GetDefaultSongSection();
+	m_NextSongSection = &m_CurrentSong->GetDefaultSongSection();
 }
 
 void MusicMan::SelectNextSoundContainer(bool playTransition) {
 	if (playTransition) {
-		m_NextSoundContainer = &m_CurrentSongSection->SelectTransitionSoundContainer();
+		m_NextSoundContainer = &m_NextSongSection->SelectTransitionSoundContainer();
 	} else {
-		m_NextSoundContainer = &m_CurrentSongSection->SelectSoundContainer();
+		m_NextSoundContainer = &m_NextSongSection->SelectSoundContainer();
 	}
 }
