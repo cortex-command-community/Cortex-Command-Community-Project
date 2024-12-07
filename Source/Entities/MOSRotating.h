@@ -416,6 +416,12 @@ namespace RTE {
 		/// @param checkGibWoundLimit Whether to gib this MOSRotating if adding this wound raises its wound count past its gib wound limit. Defaults to true.
 		virtual void AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit = true);
 
+		/// Adds the passed in wound AEmitter to the list of wounds and changes its parent offset to the passed in Vector.
+		/// @param woundToAdd The wound AEmitter to add.
+		/// @param parentOffsetToSet The vector to set as the wound AEmitter's parent offset.
+		/// @param checkGibWoundLimit Whether to gib this MOSRotating if adding this wound raises its wound count past its gib wound limit. Defaults to true.
+		virtual void AddWoundExt(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit = true, bool isEntryWound = false, bool isExitWound = false);
+
 		/// Removes the specified number of wounds from this MOSRotating, and returns damage caused by these removed wounds.
 		/// Includes any Attachables (and their Attachables, etc.) that have a positive damage multiplier.
 		/// @param numberOfWoundsToRemove The number of wounds that should be removed.
@@ -540,8 +546,10 @@ namespace RTE {
 		Vector m_RecoilOffset;
 		// The list of wound AEmitters currently attached to this MOSRotating, and owned here as well.
 		std::vector<AEmitter*> m_Wounds;
-		// Whether we added a wound with a BurstSound this frame or not, so we can disable further ones to avoid audio spam.
-		std::vector<std::string> m_WoundBurstSoundsPlayedThisFrame;
+		// Whether we added an entry wound with a BurstSound this frame or not, so we can disable further ones to avoid audio spam.
+		bool m_EntryWoundBurstSoundPlayedThisFrame;
+		// Whether we added an exit wound with a BurstSound this frame or not.
+		bool m_ExitWoundBurstSoundPlayedThisFrame;
 		// The list of Attachables currently attached and Owned by this.
 		std::list<Attachable*> m_Attachables;
 		std::unordered_set<unsigned long> m_ReferenceHardcodedAttachableUniqueIDs; //!< An unordered set is filled with the Unique IDs of all of the reference object's hardcoded Attachables when using the copy Create.

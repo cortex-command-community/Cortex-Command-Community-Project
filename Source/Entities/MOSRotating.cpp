@@ -56,7 +56,8 @@ void MOSRotating::Clear() {
 	m_RecoilForce.Reset();
 	m_RecoilOffset.Reset();
 	m_Wounds.clear();
-	m_WoundBurstSoundsPlayedThisFrame = {};
+	m_EntryWoundBurstSoundPlayedThisFrame = false;
+	m_ExitWoundBurstSoundPlayedThisFrame = false;
 	m_Attachables.clear();
 	m_ReferenceHardcodedAttachableUniqueIDs.clear();
 	m_HardcodedAttachableUniqueIDsAndSetters.clear();
@@ -443,7 +444,7 @@ void MOSRotating::DetachAttachablesFromImpulse(Vector& impulseVector) {
 	impulseVector.SetMagnitude(impulseRemainder);
 }
 
-void MOSRotating::AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit) {
+void MOSRotating::AddWoundExt(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit, bool isEntryWound, bool isExitWound) {
 	if (woundToAdd && !m_ToDelete) {
 		if (checkGibWoundLimit && m_GibWoundLimit > 0 && m_Wounds.size() + 1 >= m_GibWoundLimit) {
 			// Find and detach an attachable near the new wound before gibbing the object itself. TODO: Perhaps move this to Actor, since it's more relevant there?
@@ -462,14 +463,21 @@ void MOSRotating::AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet
 		woundToAdd->SetParent(this);
 		woundToAdd->SetIsWound(true);
 		if (woundToAdd->GetBurstSound()) {
-			std::string burstSound = woundToAdd->GetBurstSound()->GetPresetName();
-			for (int i = 0; i < m_WoundBurstSoundsPlayedThisFrame.size(); i++) {
-				if (burstSound == m_WoundBurstSoundsPlayedThisFrame[i]) {
+			if (isEntryWound) {
+				if (m_EntryWoundBurstSoundPlayedThisFrame) {
 					woundToAdd->SetPlayBurstSound(false);
-					break;
+				} else {
+					m_EntryWoundBurstSoundPlayedThisFrame = true;
 				}
 			}
-			m_WoundBurstSoundsPlayedThisFrame.push_back(burstSound);
+
+			if (isExitWound) {
+				if (m_ExitWoundBurstSoundPlayedThisFrame) {
+					woundToAdd->SetPlayBurstSound(false);
+				} else {
+					m_ExitWoundBurstSoundPlayedThisFrame = true;
+				}
+			}
 		}
 		if (woundToAdd->HasNoSetDamageMultiplier()) {
 			woundToAdd->SetDamageMultiplier(1.0F);
@@ -477,6 +485,10 @@ void MOSRotating::AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet
 		m_AttachableAndWoundMass += woundToAdd->GetMass();
 		m_Wounds.push_back(woundToAdd);
 	}
+}
+
+void MOSRotating::AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit) {
+	AddWoundExt(woundToAdd, parentOffsetToSet, checkGibWoundLimit, false, false);
 }
 
 float MOSRotating::RemoveWounds(int numberOfWoundsToRemove, bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) {
@@ -816,7 +828,7 @@ bool MOSRotating::ParticlePenetration(HitData& hd) {
 			pEntryWound->SetDamageMultiplier(damageMultiplier * hd.Body[HITOR]->WoundDamageMultiplier());
 			// Adjust position so that it looks like the hole is actually *on* the Hitee.
 			entryPos[dom] += increment[dom] * (pEntryWound->GetSpriteWidth() / 2);
-			AddWound(pEntryWound, entryPos + m_SpriteOffset);
+			AddWoundExt(pEntryWound, entryPos + m_SpriteOffset, true, true, false);
 			pEntryWound = 0;
 		}
 
@@ -832,7 +844,7 @@ bool MOSRotating::ParticlePenetration(HitData& hd) {
 				pExitWound->SetInheritedRotAngleOffset(dir.GetAbsRadAngle());
 				float damageMultiplier = pExitWound->HasNoSetDamageMultiplier() ? 1.0F : pExitWound->GetDamageMultiplier();
 				pExitWound->SetDamageMultiplier(damageMultiplier * hd.Body[HITOR]->WoundDamageMultiplier());
-				AddWound(pExitWound, exitPos + m_SpriteOffset);
+				AddWoundExt(pExitWound, exitPos + m_SpriteOffset, true, false, true);
 				pExitWound = 0;
 			}
 
@@ -1370,7 +1382,8 @@ void MOSRotating::Update() {
 		m_Rotation += radsToGo * m_OrientToVel * velInfluence;
 	}
 
-	m_WoundBurstSoundsPlayedThisFrame = {};
+	m_EntryWoundBurstSoundPlayedThisFrame = false;
+	m_ExitWoundBurstSoundPlayedThisFrame = false;
 	
 	for (auto woundItr = m_Wounds.begin(); woundItr != m_Wounds.end();) {
 		AEmitter* wound = *woundItr;
