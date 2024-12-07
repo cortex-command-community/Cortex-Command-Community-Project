@@ -127,6 +127,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `MOSRotating` Lua function `AddWound` now additionally accepts the format `MOSRotating:AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit, bool isEntryWound, bool isExitWound)`, allowing modders to specify added wounds as entry- or exit wounds, for the purpose of not playing multiple burst sounds on the same frame. These new arguments are optional.
 
+- Techion Laser Rifle now has a constant range rather than being dependent on game resolution.
+
 - Various performance improvements.
 
 </details>
