@@ -147,6 +147,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue where internal Lua functions OriginalDoFile, OriginalLoadFile, and OriginalRequire were polluting the global namespace. They have now been made inaccessible.
 
+- Various fixes and improvements to inventory management when dual-wielding or carrying a shield, to stop situations where the actor unexpectedly puts their items away.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
