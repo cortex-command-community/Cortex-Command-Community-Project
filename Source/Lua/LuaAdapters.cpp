@@ -613,11 +613,7 @@ std::list<Entity*>* LuaAdaptersPresetMan::GetAllEntitiesOfGroup(PresetMan& prese
 }
 
 MOID LuaAdaptersSceneMan::CastMORay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
-	std::vector<MOID*> ptrVec = ConvertLuaTableToVectorOfType<MOID*>(ignoreMOIDs);
-	std::vector<MOID> ignoreMOIDsVec;
-	for (auto ptr : ptrVec) {
-		ignoreMOIDsVec.push_back(*ptr);
-	}
+	std::vector<MOID> ignoreMOIDsVec = ConvertLuaTableToVectorOfType<MOID>(ignoreMOIDs);
 	return sceneMan.CastMORay(start, ray, ignoreMOIDsVec, ignoreTeam, ignoreMaterial, ignoreAllTerrain, skip);
 }
 
@@ -627,20 +623,12 @@ MOID LuaAdaptersSceneMan::CastMORay2(SceneMan& sceneMan, const Vector& start, co
 }
 
 const std::vector<MovableObject*>* LuaAdaptersSceneMan::CastAllMOsRay(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
-	std::vector<MOID*> ptrVec = ConvertLuaTableToVectorOfType<MOID*>(ignoreMOIDs);
-	std::vector<MOID> ignoreMOIDsVec;
-	for (auto ptr : ptrVec) {
-		ignoreMOIDsVec.push_back(*ptr);
-	}
+	std::vector<MOID> ignoreMOIDsVec = ConvertLuaTableToVectorOfType<MOID>(ignoreMOIDs);
 	return sceneMan.CastAllMOsRay(start, ray, ignoreMOIDsVec, ignoreTeam, ignoreMaterial, ignoreAllTerrain, skip);
 }
 
 float LuaAdaptersSceneMan::CastObstacleRay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, const luabind::object& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
-	std::vector<MOID*> ptrVec = ConvertLuaTableToVectorOfType<MOID*>(ignoreMOIDs);
-	std::vector<MOID> ignoreMOIDsVec;
-	for (auto ptr : ptrVec) {
-		ignoreMOIDsVec.push_back(*ptr);
-	}
+	std::vector<MOID> ignoreMOIDsVec = ConvertLuaTableToVectorOfType<MOID>(ignoreMOIDs);
 	return sceneMan.CastObstacleRay(start, ray, obstaclePos, freePos, ignoreMOIDsVec, ignoreTeam, ignoreMaterial, skip);
 }
 
