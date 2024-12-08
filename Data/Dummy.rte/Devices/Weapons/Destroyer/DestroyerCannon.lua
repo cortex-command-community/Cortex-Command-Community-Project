@@ -15,7 +15,7 @@ function Create(self)
 	self.activeSound = CreateSoundContainer("Destroyer Emission Sound", "Dummy.rte");
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if self.Magazine then
 		if self.inventorySwapTimer:IsPastSimTimeLimit() then
 			self.activeSound:Stop();
@@ -28,18 +28,18 @@ function Update(self)
 				self.animTimer:Reset();
 				self.Frame = self.Frame < (self.FrameCount - 1) and self.Frame + 1 or 0;
 				if self.Frame == 1 then
-					local effect = CreateMOPixel("Destroyer Muzzle Glow");
-					effect.Pos = self.MuzzlePos;
-					effect.Vel = self.Vel * 0.5;
-					MovableMan:AddParticle(effect);
+					self.effect = CreateMOPixel("Destroyer Muzzle Glow");
+					self.effect.Pos = self.MuzzlePos;
+					self.effect.Vel = self.Vel * 0.5;
 
-					local damagePar = CreateMOPixel("Dummy.rte/Destroyer Emission Particle 2");
-					damagePar.Pos = self.MuzzlePos;
-					damagePar.Vel = self.Vel * 0.5 + Vector(math.random(5) * (1 + self.charge), 0):RadRotate(6.28 * math.random());
-					damagePar.Team = self.Team;
-					damagePar.IgnoresTeamHits = true;
-					damagePar.Lifetime = 100 * (1 + self.charge);
-					MovableMan:AddParticle(damagePar);
+					self.damagePar = CreateMOPixel("Dummy.rte/Destroyer Emission Particle 2");
+					self.damagePar.Pos = self.MuzzlePos;
+					self.damagePar.Vel = self.Vel * 0.5 + Vector(math.random(5) * (1 + self.charge), 0):RadRotate(6.28 * math.random());
+					self.damagePar.Team = self.Team;
+					self.damagePar.IgnoresTeamHits = true;
+					self.damagePar.Lifetime = 100 * (1 + self.charge);
+					
+					self:RequestSyncedUpdate();
 				end
 			end
 
@@ -83,18 +83,36 @@ function Update(self)
 	else
 		self.Frame = 0;
 	end
+
 	if self.FiredFrame then
-		local par = CreateAEmitter("Destroyer Cannon Shot");
-		par.Team = self.Team;
-		par.IgnoresTeamHits = true;
-		par.Pos = self.MuzzlePos;
-		par.Vel = Vector((self.minFireVel + (self.maxFireVel - self.minFireVel) * self.charge) * self.FlipFactor, 0):RadRotate(self.RotAngle);
-		MovableMan:AddParticle(par);
+		self.par = CreateAEmitter("Destroyer Cannon Shot");
+		self.par.Team = self.Team;
+		self.par.IgnoresTeamHits = true;
+		self.par.Pos = self.MuzzlePos;
+		self.par.Vel = Vector((self.minFireVel + (self.maxFireVel - self.minFireVel) * self.charge) * self.FlipFactor, 0):RadRotate(self.RotAngle);
+		self:RequestSyncedUpdate();
 
 		self.charge = 0;
 		self.activeSound:Stop();
 
 		self.forceFire = false;
+	end
+end
+
+function SyncedUpdate(self)
+	if self.effect then
+		MovableMan:AddParticle(self.effect);
+		self.effect = nil;
+	end
+
+	if self.damagePar then
+		MovableMan:AddParticle(self.par);
+		self.damagePar = nil;
+	end
+
+	if self.par then
+		MovableMan:AddParticle(self.par);
+		self.par = nil;
 	end
 end
 
