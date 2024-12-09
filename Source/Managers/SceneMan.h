@@ -693,7 +693,7 @@ namespace RTE {
 		/// Traces along a vector and shows where a specific MOID has been found.
 		/// @param start The starting position.
 		/// @param ray The vector to trace along.
-		/// @param targetMOID An MOID to find. Any child MO's of this MOID will also be found. ------------ ???
+		/// @param targetMOID An MOID to find.
 		/// @param resultPos A reference to the vector screen will be filled out with the absolute
 		/// location of the found MO pixel of the above MOID.
 		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)

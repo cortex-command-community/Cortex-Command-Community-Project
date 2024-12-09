@@ -2065,7 +2065,7 @@ bool SceneMan::CastFindMORay(const Vector& start, const Vector& ray, MOID target
 
 			// Detect MOIDs
 			hitMOID = GetMOIDPixel(intPos[X], intPos[Y], Activity::NoTeam);
-			if (hitMOID == targetMOID || g_MovableMan.GetRootMOID(hitMOID) == targetMOID) {
+			if (hitMOID == targetMOID) {
 				// Found target MOID, so save result and report success
 				resultPos.SetXY(intPos[X], intPos[Y]);
 				// Save last ray pos
