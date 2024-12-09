@@ -117,6 +117,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ACraft) {
 	    .property("HatchOpenSound", &ACraft::GetHatchOpenSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetHatchOpenSound)
 	    .property("HatchCloseSound", &ACraft::GetHatchCloseSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetHatchCloseSound)
 	    .property("CrashSound", &ACraft::GetCrashSound, &LuaAdaptersPropertyOwnershipSafetyFaker::ACraftSetCrashSound)
+	    .property("CanEnterOrbit", &ACraft::GetCanEnterOrbit, &ACraft::SetCanEnterOrbit)
 	    .property("MaxPassengers", &ACraft::GetMaxPassengers)
 	    .property("DeliveryDelayMultiplier", &ACraft::GetDeliveryDelayMultiplier)
 	    .property("ScuttleOnDeath", &ACraft::GetScuttleOnDeath, &ACraft::SetScuttleOnDeath)
@@ -216,8 +217,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 	    .property("MoveProximityLimit", &Actor::GetMoveProximityLimit, &Actor::SetMoveProximityLimit)
 
 	    .def_readwrite("MOMoveTarget", &Actor::m_pMOMoveTarget)
-	    .def_readwrite("MovePath", &Actor::m_MovePath, luabind::return_stl_iterator)
-	    .def_readwrite("Inventory", &Actor::m_Inventory, luabind::return_stl_iterator)
+	    .def_readonly("MovePath", &Actor::m_MovePath, luabind::return_stl_iterator)
+	    .def_readonly("Inventory", &Actor::m_Inventory, luabind::return_stl_iterator)
 
 	    .def("GetController", &Actor::GetController)
 	    .def("IsPlayerControlled", &Actor::IsPlayerControlled)
@@ -256,6 +257,9 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 	    .def("DropAllInventory", &Actor::DropAllInventory)
 	    .def("DropAllGold", &Actor::DropAllGold)
 	    .def("IsInventoryEmpty", &Actor::IsInventoryEmpty)
+	    .def("ActivateHotkeyAction", &Actor::ActivateHotkeyAction)
+	    .def("DeactivateHotkeyAction", &Actor::DeactivateHotkeyAction)
+	    .def("HotkeyActionIsActivated", &Actor::HotkeyActionIsActivated)
 	    .def("DrawWaypoints", &Actor::DrawWaypoints)
 	    .def("SetMovePathToUpdate", &Actor::SetMovePathToUpdate)
 	    .def("UpdateMovePath", &Actor::UpdateMovePath)
@@ -313,7 +317,10 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 	    .enum_("TeamBlockState")[luabind::value("NOTBLOCKED", Actor::TeamBlockState::NOTBLOCKED),
 	                             luabind::value("BLOCKED", Actor::TeamBlockState::BLOCKED),
 	                             luabind::value("IGNORINGBLOCK", Actor::TeamBlockState::IGNORINGBLOCK),
-	                             luabind::value("FOLLOWWAIT", Actor::TeamBlockState::FOLLOWWAIT)];
+	                             luabind::value("FOLLOWWAIT", Actor::TeamBlockState::FOLLOWWAIT)]
+	    .enum_("ActorHotkeyType")[luabind::value("PRIMARYHOTKEY", Actor::ActorHotkeyType::PRIMARYHOTKEY),
+	                              luabind::value("AUXILIARYHOTKEY", Actor::ActorHotkeyType::AUXILIARYHOTKEY),
+	                              luabind::value("ACTORHOTKEYTYPECOUNT", Actor::ActorHotkeyType::ACTORHOTKEYTYPECOUNT)];
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, ADoor) {
@@ -365,7 +372,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AEmitter) {
 	    .property("TotalParticlesPerMinute", &AEmitter::GetTotalParticlesPerMinute)
 	    .property("TotalBurstSize", &AEmitter::GetTotalBurstSize)
 
-	    .def_readwrite("Emissions", &AEmitter::m_EmissionList, luabind::return_stl_iterator)
+	    .def_readonly("Emissions", &AEmitter::m_EmissionList, luabind::return_stl_iterator)
 
 	    .def("IsEmitting", &AEmitter::IsEmitting)
 	    .def("WasEmitting", &AEmitter::WasEmitting)
@@ -435,7 +442,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AHuman) {
 	    .def("EquipThrowable", &AHuman::EquipThrowable)
 	    .def("EquipDiggingTool", &AHuman::EquipDiggingTool)
 	    .def("EquipShield", &AHuman::EquipShield)
-	    .def("EquipShieldInBGArm", &AHuman::EquipShieldInBGArm)
+	    .def("EquipShieldInBGArm", (bool(AHuman::*)()) & AHuman::EquipShieldInBGArm)
 	    .def("EquipDeviceInGroup", &AHuman::EquipDeviceInGroup)
 	    .def("EquipNamedDevice", (bool(AHuman::*)(const std::string&, bool)) & AHuman::EquipNamedDevice)
 	    .def("EquipNamedDevice", (bool(AHuman::*)(const std::string&, const std::string&, bool)) & AHuman::EquipNamedDevice)
@@ -549,6 +556,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Attachable) {
 	    .property("CanCollideWithTerrain", &Attachable::CanCollideWithTerrain)
 	    .property("DrawnAfterParent", &Attachable::IsDrawnAfterParent, &Attachable::SetDrawnAfterParent)
 	    .property("InheritsFrame", &Attachable::InheritsFrame, &Attachable::SetInheritsFrame)
+	    .property("InheritsVelWhenDetached", &Attachable::InheritsVelocityWhenDetached, &Attachable::SetInheritsVelocityWhenDetached)
+	    .property("InheritsAngularVelWhenDetached", &Attachable::InheritsAngularVelocityWhenDetached, &Attachable::SetInheritsAngularVelocityWhenDetached)
 
 	    .def("IsAttached", &Attachable::IsAttached)
 	    .def("IsAttachedTo", &Attachable::IsAttachedTo)
@@ -580,6 +589,9 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Emission) {
 	    .property("BurstSize", &Emission::GetBurstSize, &Emission::SetBurstSize)
 	    .property("Spread", &Emission::GetSpread, &Emission::SetSpread)
 	    .property("Offset", &Emission::GetOffset, &Emission::SetOffset)
+	    .property("ParticleCount", &Emission::GetParticleCount, &Emission::SetParticleCount)
+	    .property("InheritsVel", &Emission::InheritsVelocity, &Emission::SetInheritsVelocity)
+	    .property("InheritsAngularVel", &Emission::InheritsAngularVelocity, &Emission::SetInheritsAngularVelocity)
 
 	    .def("ResetEmissionTimers", &Emission::ResetEmissionTimers);
 }
@@ -597,6 +609,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Gib) {
 	    .def_readwrite("Spread", &Gib::m_Spread)
 	    .def_readwrite("LifeVariation", &Gib::m_LifeVariation)
 	    .def_readwrite("InheritsVel", &Gib::m_InheritsVel)
+	    .def_readwrite("InheritsAngularVel", &Gib::m_InheritsAngularVel)
 	    .def_readwrite("IgnoresTeamHits", &Gib::m_IgnoresTeamHits)
 
 	    .enum_("SpreadMode")[luabind::value("SpreadRandom", Gib::SpreadMode::SpreadRandom),
@@ -695,8 +708,11 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HeldDevice) {
 	    .def("SetOneHanded", &HeldDevice::SetOneHanded)
 	    .def("Activate", &HeldDevice::Activate)
 	    .def("Deactivate", &HeldDevice::Deactivate)
-	    .def("Reload", &HeldDevice::Reload)
 	    .def("IsActivated", &HeldDevice::IsActivated)
+	    .def("ActivateHotkeyAction", &HeldDevice::ActivateHotkeyAction)
+	    .def("DeactivateHotkeyAction", &HeldDevice::DeactivateHotkeyAction)
+	    .def("HotkeyActionIsActivated", &HeldDevice::HotkeyActionIsActivated)
+	    .def("Reload", &HeldDevice::Reload)
 	    .def("IsReloading", &HeldDevice::IsReloading)
 	    .def("DoneReloading", &HeldDevice::DoneReloading)
 	    .def("NeedsReloading", &HeldDevice::NeedsReloading)
@@ -704,7 +720,12 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HeldDevice) {
 	    .def("IsEmpty", &HeldDevice::IsEmpty)
 	    .def("IsPickupableBy", &HeldDevice::IsPickupableBy)
 	    .def("AddPickupableByPresetName", &HeldDevice::AddPickupableByPresetName)
-	    .def("RemovePickupableByPresetName", &HeldDevice::RemovePickupableByPresetName);
+	    .def("RemovePickupableByPresetName", &HeldDevice::RemovePickupableByPresetName)
+
+	    .enum_("HeldDeviceHotkeyType")[luabind::value("PRIMARYHOTKEY", HeldDeviceHotkeyType::PRIMARYHOTKEY),
+	                         luabind::value("AUXILIARYHOTKEY", HeldDeviceHotkeyType::AUXILIARYHOTKEY),
+	                         luabind::value("HELDDEVICEHOTKEYTYPECOUNT", HeldDeviceHotkeyType::HELDDEVICEHOTKEYTYPECOUNT)];
+	
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Leg) {
@@ -792,6 +813,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSprite) {
 	    .property("FrameCount", &MOSprite::GetFrameCount)
 	    .property("SpriteOffset", &MOSprite::GetSpriteOffset, &MOSprite::SetSpriteOffset)
 	    .property("HFlipped", &MOSprite::IsHFlipped, &MOSprite::SetHFlipped)
+	    .property("ForcedHFlip", &MOSprite::GetForcedHFlip, &MOSprite::SetForcedHFlip)
 	    .property("FlipFactor", &MOSprite::GetFlipFactor)
 	    .property("RotAngle", &MOSprite::GetRotAngle, &MOSprite::SetRotAngle)
 	    .property("PrevRotAngle", &MOSprite::GetPrevRotAngle)
@@ -864,6 +886,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSRotating) {
 	    .def("GetWounds", &LuaAdaptersMOSRotating::GetWounds1, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	    .def("GetWounds", &LuaAdaptersMOSRotating::GetWounds2, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	    .def("AddWound", &MOSRotating::AddWound, luabind::adopt(_2))
+	    .def("AddWound", &MOSRotating::AddWoundExt, luabind::adopt(_2))
 	    .def("RemoveWounds", (float(MOSRotating::*)(int numberOfWoundsToRemove)) & MOSRotating::RemoveWounds)
 	    .def("RemoveWounds", (float(MOSRotating::*)(int numberOfWoundsToRemove, bool positiveDamage, bool negativeDamage, bool noDamage)) & MOSRotating::RemoveWounds)
 	    .def("IsOnScenePoint", &MOSRotating::IsOnScenePoint)
@@ -1019,7 +1042,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PEmitter) {
 	    .property("EmitCountLimit", &PEmitter::GetEmitCountLimit, &PEmitter::SetEmitCountLimit)
 	    .property("FlashScale", &PEmitter::GetFlashScale, &PEmitter::SetFlashScale)
 
-	    .def_readwrite("Emissions", &PEmitter::m_EmissionList, luabind::return_stl_iterator)
+	    .def_readonly("Emissions", &PEmitter::m_EmissionList, luabind::return_stl_iterator)
 
 	    .def("IsEmitting", &PEmitter::IsEmitting)
 	    .def("WasEmitting", &PEmitter::WasEmitting)
@@ -1157,8 +1180,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Scene) {
 	    .property("GlobalAcc", &Scene::GetGlobalAcc, &Scene::SetGlobalAcc)
 	    .property("ScenePathSize", &Scene::GetScenePathSize)
 
-	    .def_readwrite("Deployments", &Scene::m_Deployments, luabind::return_stl_iterator)
-
+	    .def_readonly("Deployments", &Scene::m_Deployments, luabind::return_stl_iterator)
+	    .def_readonly("Areas", &Scene::m_AreaList, luabind::return_stl_iterator)
 	    .def_readonly("BackgroundLayers", &Scene::m_BackLayerList, luabind::return_stl_iterator)
 
 	    .def("GetScenePath", &Scene::GetScenePath, luabind::return_stl_iterator)
@@ -1172,14 +1195,12 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Scene) {
 	    .def("RetrieveResidentBrains", &Scene::RetrieveResidentBrains)
 	    .def("GetResidentBrain", &Scene::GetResidentBrain)
 	    .def("SetResidentBrain", &Scene::SetResidentBrain)
-	    .def_readwrite("Areas", &Scene::m_AreaList, luabind::return_stl_iterator)
 	    .def("SetArea", &Scene::SetArea)
 	    .def("HasArea", &Scene::HasArea)
-	    .def("GetArea", (Scene::Area * (Scene::*)(const std::string& areaName)) & Scene::GetArea)
-	    .def("GetOptionalArea", &Scene::GetOptionalArea)
+	    .def("GetArea", &Scene::GetArea)
 	    .def("WithinArea", &Scene::WithinArea)
-	    .def("AddNavigatableArea", &Scene::AddNavigatableArea)
-	    .def("ClearNavigatableAreas", &Scene::ClearNavigatableAreas)
+	    .def("AddNavigableArea", &Scene::AddNavigableArea)
+	    .def("ClearNavigableAreas", &Scene::ClearNavigableAreas)
 	    .def("ResetPathFinding", &Scene::ResetPathFinding)
 	    .def("UpdatePathFinding", &Scene::UpdatePathFinding)
 	    .def("PathFindingUpdated", &Scene::PathFindingUpdated)
@@ -1207,8 +1228,9 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneArea) {
 	    .property("Center", &Scene::Area::GetCenterPoint)
 	    .property("RandomPoint", &Scene::Area::GetRandomPoint)
 
+	    .def_readonly("Boxes", &Scene::Area::m_BoxList, luabind::return_stl_iterator)
+
 	    .def("Reset", &Scene::Area::Reset)
-	    .def_readwrite("Boxes", &Scene::Area::m_BoxList, luabind::return_stl_iterator)
 	    .def("AddBox", &Scene::Area::AddBox)
 	    .def("RemoveBox", &Scene::Area::RemoveBox)
 	    .def("HasNoArea", &Scene::Area::HasNoArea)
@@ -1221,8 +1243,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneArea) {
 	    .def("GetRandomPoint", &Scene::Area::GetRandomPoint);
 }
 
-LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneLayer) {
-	return luabind::class_<SceneLayer, Entity>("SceneLayer");
+LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, StaticSceneLayer) {
+	return luabind::class_<StaticSceneLayer, Entity>("StaticSceneLayer");
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneObject) {
@@ -1253,7 +1275,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneObject) {
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SLBackground) {
-	return luabind::class_<SLBackground, SceneLayer>("SLBackground")
+	return luabind::class_<SLBackground, StaticSceneLayer>("SLBackground")
 
 	    .property("Frame", &SLBackground::GetFrame, &SLBackground::SetFrame)
 	    .property("SpriteAnimMode", &SLBackground::GetSpriteAnimMode, &SLBackground::SetSpriteAnimMode)

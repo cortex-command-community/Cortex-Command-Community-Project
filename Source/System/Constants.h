@@ -142,6 +142,14 @@ namespace RTE {
 	    1.0f, -1.0f, 1.0f, 1.0f,
 	    -1.0f, 1.0f, 0.0f, 0.0f,
 	    -1.0f, -1.0f, 0.0f, 1.0f};
+
+	static constexpr float c_GuiDepth = -100.0f;
+	static constexpr float c_DefaultDrawDepth = 0.0f;
+	static constexpr float c_TerrainBGDepth = 50.0f;
+	static constexpr float c_BackgroundDepth = 100.0f;
+
+	static constexpr float c_FarDepth = 200.0f;
+	static constexpr float c_NearDepth = -200.0f;
 #pragma endregion
 
 #pragma region Math Constants
@@ -219,6 +227,10 @@ namespace RTE {
 		INPUT_WEAPON_PICKUP,
 		INPUT_WEAPON_DROP,
 		INPUT_WEAPON_RELOAD,
+		INPUT_WEAPON_PRIMARY_HOTKEY,
+		INPUT_WEAPON_AUXILIARY_HOTKEY,
+		INPUT_ACTOR_PRIMARY_HOTKEY,
+		INPUT_ACTOR_AUXILIARY_HOTKEY,
 		INPUT_START,
 		INPUT_BACK,
 		INPUT_R_UP,
@@ -253,6 +265,10 @@ namespace RTE {
 	    "Pick Up Device", // INPUT_WEAPON_PICKUP
 	    "Drop Device", // INPUT_WEAPON_DROP
 	    "Reload Weapon", // INPUT_WEAPON_RELOAD
+	    "Primary Weapon Hotkey", // INPUT_WEAPON_PRIMARY_HOTKEY
+	    "Auxiliary Weapon Hotkey", // INPUT_WEAPON_AUXILIARY_HOTKEY
+		"Primary Actor Hotkey", // INPUT_ACTOR_PRIMARY_HOTKEY
+		"Auxiliary Actor Hotkey", // INPUT_ACTOR_AUXILIARY_HOTKEY
 	    "Start", // INPUT_START
 	    "Back", // INPUT_BACK
 	    "Analog Aim Up", // INPUT_R_UP

@@ -46,9 +46,11 @@ int SLTerrain::Create() {
 
 	if (!m_FGColorLayer.get()) {
 		m_FGColorLayer = std::make_unique<SceneLayer>();
+		m_FGColorLayer->SetZOrder(c_DefaultDrawDepth);
 	}
 	if (!m_BGColorLayer.get()) {
 		m_BGColorLayer = std::make_unique<SceneLayer>();
+		m_BGColorLayer->SetZOrder(c_TerrainBGDepth);
 	}
 
 	return 0;
@@ -90,10 +92,12 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("BackgroundTexture", { reader >> m_DefaultBGTextureFile; });
 	MatchProperty("FGColorLayer", {
 		m_FGColorLayer = std::make_unique<SceneLayer>();
+		m_FGColorLayer->SetZOrder(c_DefaultDrawDepth);
 		reader >> m_FGColorLayer.get();
 	});
 	MatchProperty("BGColorLayer", {
 		m_BGColorLayer = std::make_unique<SceneLayer>();
+		m_BGColorLayer->SetZOrder(c_TerrainBGDepth);
 		reader >> m_BGColorLayer.get();
 	});
 	MatchProperty("AddTerrainFrosting", {
@@ -479,16 +483,16 @@ void SLTerrain::Update() {
 	m_BGColorLayer->SetOffset(m_Offset);
 }
 
-void SLTerrain::Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
+void SLTerrain::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 	switch (m_LayerToDraw) {
 		case LayerType::MaterialLayer:
-			SceneLayer::Draw(targetBitmap, targetBox);
+			SceneLayer::Draw(targetDimensions, targetBox);
 			break;
 		case LayerType::ForegroundLayer:
-			m_FGColorLayer->Draw(targetBitmap, targetBox);
+			m_FGColorLayer->Draw(targetDimensions, targetBox);
 			break;
 		case LayerType::BackgroundLayer:
-			m_BGColorLayer->Draw(targetBitmap, targetBox);
+			m_BGColorLayer->Draw(targetDimensions, targetBox);
 			break;
 		default:
 			RTEAbort("Invalid LayerType was set to draw in SLTerrain::Draw!");

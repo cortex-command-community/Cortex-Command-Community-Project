@@ -29,7 +29,11 @@ HeldDevice::~HeldDevice() {
 void HeldDevice::Clear() {
 	m_HeldDeviceType = WEAPON;
 	m_Activated = false;
+	m_HotkeyActivated.fill(false);
 	m_ActivationTimer.Reset();
+	for (Timer timer : m_HotkeyActivationTimer) {
+		timer.Reset();
+	}
 	m_OneHanded = false;
 	m_DualWieldable = false;
 	m_StanceOffset.Reset();
@@ -116,7 +120,9 @@ int HeldDevice::Create(const HeldDevice& reference) {
 	m_HeldDeviceType = reference.m_HeldDeviceType;
 
 	m_Activated = reference.m_Activated;
+	m_HotkeyActivated = reference.m_HotkeyActivated;
 	m_ActivationTimer = reference.m_ActivationTimer;
+	m_HotkeyActivationTimer = reference.m_HotkeyActivationTimer;
 
 	m_OneHanded = reference.m_OneHanded;
 	m_DualWieldable = reference.m_DualWieldable;
@@ -281,6 +287,18 @@ void HeldDevice::Activate() {
 
 void HeldDevice::Deactivate() {
 	m_Activated = false;
+}
+
+void HeldDevice::ActivateHotkeyAction(HeldDeviceHotkeyType hotkeyType) {
+	if (!m_HotkeyActivated[hotkeyType]) {
+		m_HotkeyActivationTimer[hotkeyType].Reset();
+	}
+
+	m_HotkeyActivated[hotkeyType] = true;
+}
+
+void HeldDevice::DeactivateHotkeyAction(HeldDeviceHotkeyType hotkeyType) {
+	m_HotkeyActivated[hotkeyType] = false;
 }
 
 bool HeldDevice::TransferJointImpulses(Vector& jointImpulses, float jointStiffnessValueToUse, float jointStrengthValueToUse, float gibImpulseLimitValueToUse) {

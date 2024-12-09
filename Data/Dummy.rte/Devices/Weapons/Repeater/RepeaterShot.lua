@@ -20,8 +20,9 @@ function Create(self)
 	self.endPar = CreateMOSParticle("Tiny Smoke Ball 1 Glow Yellow");
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if not self.ToDelete then
+		-- Touching other things in non-synced update is bad, but because we know that nothing else is gonna be running scripts on it, we can get away with this
 		for i = 1, self.trailParCount do
 			if self.trailPar[i] and MovableMan:IsParticle(self.trailPar[i]) then
 				self.trailPar[i].Pos = self.Pos + Vector(RangeRand(-0.5, 0.5), RangeRand(-0.5, 0.5)) - Vector(self.PrevVel.X, self.PrevVel.Y):SetMagnitude(math.min(self.PrevVel.Magnitude, self.trailLength + 1) * i/self.trailParCount);

@@ -286,48 +286,42 @@ static void bestfit_init(void)
 /* bestfit_color:
  *  Searches a palette for the color closest to the requested R, G, B value.
  */
-int bestfit_color(AL_CONST PALETTE pal, int r, int g, int b)
-{
-   int i, coldiff, lowest, bestfit;
+int bestfit_color(AL_CONST PALETTE pal, int r, int g, int b) {
+	int i, coldiff, lowest, bestfit;
+	int rdiff,gdiff,bdiff;
 
-   ASSERT(r >= 0 && r <= 63);
-   ASSERT(g >= 0 && g <= 63);
-   ASSERT(b >= 0 && b <= 63);
+	ASSERT(r >= 0 && r <= 255);
+	ASSERT(g >= 0 && g <= 255);
+	ASSERT(b >= 0 && b <= 255);
 
-   if (col_diff[1] == 0)
-      bestfit_init();
+	bestfit = 0;
+	lowest = INT_MAX;
 
-   bestfit = 0;
-   lowest = INT_MAX;
+	/* only the transparent (pink) color can be mapped to index 0 */
+	if ((r == 255) && (g == 0) && (b == 255))
+		i = 0;
+	else
+		i = 1;
 
-   /* only the transparent (pink) color can be mapped to index 0 */
-   if ((r == 63) && (g == 0) && (b == 63))
-      i = 0;
-   else
-      i = 1;
+	while (i < PAL_SIZE) {
+		AL_CONST RGB* rgb = &pal[i];
+		rdiff = (rgb->r - r);
+		gdiff = (rgb->g - g);
+		bdiff = (rgb->b - b);
+		
+		coldiff = rdiff * rdiff + gdiff * gdiff + bdiff*bdiff;
+		if (coldiff < lowest) {
+			bestfit = rgb - pal;
+			if (coldiff == 0) {
+				return bestfit;
+			}
+			lowest = coldiff;
+		}
+		i++;
+	}
 
-   while (i<PAL_SIZE) {
-      AL_CONST RGB *rgb = &pal[i];
-      coldiff = (col_diff + 0) [ (rgb->g - g) & 0x7F ];
-      if (coldiff < lowest) {
-	 coldiff += (col_diff + 128) [ (rgb->r - r) & 0x7F ];
-	 if (coldiff < lowest) {
-	    coldiff += (col_diff + 256) [ (rgb->b - b) & 0x7F ];
-	    if (coldiff < lowest) {
-	       bestfit = rgb - pal;    /* faster than `bestfit = i;' */
-	       if (coldiff == 0)
-		  return bestfit;
-	       lowest = coldiff;
-	    }
-	 }
-      }
-      i++;
-   }
-
-   return bestfit;
+	return bestfit;
 }
-
-
 
 /* makecol8: 
  *  Converts R, G, and B values (ranging 0-255) to an 8 bit paletted color.
@@ -336,10 +330,7 @@ int bestfit_color(AL_CONST PALETTE pal, int r, int g, int b)
  */
 int makecol8(int r, int g, int b)
 {
-   if (rgb_map)
-      return rgb_map->data[r>>3][g>>3][b>>3];
-   else
-      return bestfit_color(_current_palette, r>>2, g>>2, b>>2);
+   return bestfit_color(_current_palette, r, g, b);
 }
 
 
@@ -679,10 +670,11 @@ void create_light_table(COLOR_MAP *table, AL_CONST PALETTE pal, int r, int g, in
    unsigned int t1, t2;
 
    ASSERT(table);
-   ASSERT(r >= 0 && r <= 63);
-   ASSERT(g >= 0 && g <= 63);
-   ASSERT(b >= 0 && b <= 63);
+   ASSERT(r >= 0 && r <= 255);
+   ASSERT(g >= 0 && g <= 255);
+   ASSERT(b >= 0 && b <= 255);
 
+#if 0
    if (rgb_map) {
       for (x=0; x<PAL_SIZE-1; x++) {
 	 t1 = x * 0x010101;
@@ -703,7 +695,9 @@ void create_light_table(COLOR_MAP *table, AL_CONST PALETTE pal, int r, int g, in
       if (callback)
 	 (*callback)(x);
    }
-   else {
+   else
+#endif
+   {
       for (x=0; x<PAL_SIZE-1; x++) {
 	 t1 = x * 0x010101;
 	 t2 = 0xFFFFFF - t1;
@@ -753,6 +747,7 @@ void create_trans_table(COLOR_MAP *table, AL_CONST PALETTE pal, int r, int g, in
    ASSERT(g >= 0 && g <= 255);
    ASSERT(b >= 0 && b <= 255);
 
+#if 0
    /* This is a bit ugly, but accounts for the solidity parameters
       being in the range 0-255 rather than 0-256. Given that the
       precision of r,g,b components is only 6 bits it shouldn't do any
@@ -763,10 +758,14 @@ void create_trans_table(COLOR_MAP *table, AL_CONST PALETTE pal, int r, int g, in
       g++;
    if (b > 128)
       b++;
+#endif
 
+#if 0
    if (rgb_map)
       add = 255;
    else
+#endif
+
       add = 127;
 
    for (x=0; x<256; x++) {
@@ -783,24 +782,26 @@ void create_trans_table(COLOR_MAP *table, AL_CONST PALETTE pal, int r, int g, in
       p = table->data[x];
       q = tmp;
 
-      if (rgb_map) {
-	 for (y=0; y<PAL_SIZE; y++) {
-	    tr = (i + *(q++)) >> 9;
-	    tg = (j + *(q++)) >> 9;
-	    tb = (k + *(q++)) >> 9;
-	    p[y] = rgb_map->data[tr][tg][tb];
-	 }
-      }
-      else {
-	 for (y=0; y<PAL_SIZE; y++) {
-	    tr = (i + *(q++)) >> 8;
-	    tg = (j + *(q++)) >> 8;
-	    tb = (k + *(q++)) >> 8;
-	    p[y] = bestfit_color(pal, tr, tg, tb);
-	 }
-      }
+#if 0
+	  if (rgb_map) {
+		  for (y = 0; y < PAL_SIZE; y++) {
+			  tr = (i + *(q++)) >> 9;
+			  tg = (j + *(q++)) >> 9;
+			  tb = (k + *(q++)) >> 9;
+			  p[y] = rgb_map->data[tr][tg][tb];
+		  }
+	  } else
+#endif
+	  {
+		  for (y = 0; y < PAL_SIZE; y++) {
+			  tr = (i + *(q++)) >> 8;
+			  tg = (j + *(q++)) >> 8;
+			  tb = (k + *(q++)) >> 8;
+			  p[y] = bestfit_color(pal, tr, tg, tb);
+		  }
+	  }
 
-      if (callback)
+	  if (callback)
 	 (*callback)(x-1);
    }
 
@@ -829,18 +830,20 @@ void create_color_table(COLOR_MAP *table, AL_CONST PALETTE pal, void (*blend)(AL
    int x, y;
    RGB c;
 
-   for (x=0; x<PAL_SIZE; x++) {
-      for (y=0; y<PAL_SIZE; y++) {
-	 blend(pal, x, y, &c);
+   for (x = 0; x < PAL_SIZE; x++) {
+	   for (y = 0; y < PAL_SIZE; y++) {
+		   blend(pal, x, y, &c);
 
+#if 0
 	 if (rgb_map)
 	    table->data[x][y] = rgb_map->data[c.r>>1][c.g>>1][c.b>>1];
 	 else
-	    table->data[x][y] = bestfit_color(pal, c.r, c.g, c.b);
-      }
+#endif
+		   table->data[x][y] = bestfit_color(pal, c.r, c.g, c.b);
+	   }
 
-      if (callback)
-	 (*callback)(x);
+	   if (callback)
+		   (*callback)(x);
    }
 }
 
@@ -851,39 +854,39 @@ void create_color_table(COLOR_MAP *table, AL_CONST PALETTE pal, void (*blend)(AL
  *  paletted equivalent of whatever truecolor blender mode is currently 
  *  selected.
  */
-void create_blender_table(COLOR_MAP *table, AL_CONST PALETTE pal, void (*callback)(int pos))
-{
-   int x, y, c;
-   int r, g, b;
-   int r1, g1, b1;
-   int r2, g2, b2;
+void create_blender_table(COLOR_MAP* table, AL_CONST PALETTE pal, void (*callback)(int pos)) {
+	int x, y, c;
+	int r, g, b;
+	int r1, g1, b1;
+	int r2, g2, b2;
 
-   ASSERT(_blender_func24);
+	ASSERT(_blender_func24);
 
-   for (x=0; x<PAL_SIZE; x++) {
-      for (y=0; y<PAL_SIZE; y++) {
-	 r1 = (pal[x].r << 2) | ((pal[x].r & 0x30) >> 4);
-	 g1 = (pal[x].g << 2) | ((pal[x].g & 0x30) >> 4);
-	 b1 = (pal[x].b << 2) | ((pal[x].b & 0x30) >> 4);
+	for (x = 0; x < PAL_SIZE; x++) {
+		for (y = 0; y < PAL_SIZE; y++) {
+			r1 = pal[x].r; //(pal[x].r << 2) | ((pal[x].r & 0x30) >> 4);
+			g1 = pal[x].g; //(pal[x].g << 2) | ((pal[x].g & 0x30) >> 4);
+			b1 = pal[x].b; //(pal[x].b << 2) | ((pal[x].b & 0x30) >> 4);
 
-	 r2 = (pal[y].r << 2) | ((pal[y].r & 0x30) >> 4);
-	 g2 = (pal[y].g << 2) | ((pal[y].g & 0x30) >> 4);
-	 b2 = (pal[y].b << 2) | ((pal[y].b & 0x30) >> 4);
+			r2 = pal[y].r; // (pal[y].r << 2) | ((pal[y].r & 0x30) >> 4);
+			g2 = pal[y].g; // (pal[y].g << 2) | ((pal[y].g & 0x30) >> 4);
+			b2 = pal[y].b; // (pal[y].b << 2) | ((pal[y].b & 0x30) >> 4);
 
-	 c = _blender_func24(makecol24(r1, g1, b1), makecol24(r2, g2, b2), _blender_alpha);
+			c = _blender_func24(makecol24(r1, g1, b1), makecol24(r2, g2, b2), _blender_alpha);
 
-	 r = getr24(c);
-	 g = getg24(c);
-	 b = getb24(c);
+			r = getr24(c);
+			g = getg24(c);
+			b = getb24(c);
 
+#if 0
 	 if (rgb_map)
 	    table->data[x][y] = rgb_map->data[r>>3][g>>3][b>>3];
 	 else
-	    table->data[x][y] = bestfit_color(pal, r>>2, g>>2, b>>2);
-      }
+#endif
+			table->data[x][y] = bestfit_color(pal, r , g , b);
+		}
 
-      if (callback)
-	 (*callback)(x);
-   }
+		if (callback)
+			(*callback)(x);
+	}
 }
-

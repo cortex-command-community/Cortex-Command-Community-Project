@@ -998,7 +998,7 @@ bool AHuman::EquipShield() {
 	return false;
 }
 
-bool AHuman::EquipShieldInBGArm() {
+bool AHuman::EquipShieldInBGArm(bool depositToFront) {
 	if (!(m_pBGArm && m_pBGArm->IsAttached())) {
 		return false;
 	}
@@ -1007,7 +1007,11 @@ bool AHuman::EquipShieldInBGArm() {
 		// If we're holding a shield, but aren't supposed to, because we need to support the FG hand's two-handed device, then let go of the shield and put it back in inventory.
 		if (m_pFGArm && m_pFGArm->IsAttached() && m_pFGArm->GetHeldDevice() && !m_pFGArm->GetHeldDevice()->IsOneHanded()) {
 			m_pBGArm->GetHeldDevice()->Deactivate();
-			AddToInventoryBack(m_pBGArm->RemoveAttachable(heldDevice));
+			if (depositToFront) {
+				AddToInventoryFront(m_pBGArm->RemoveAttachable(heldDevice));
+			} else {
+				AddToInventoryBack(m_pBGArm->RemoveAttachable(heldDevice));
+			}
 			return false;
 		}
 		return true;
@@ -1030,7 +1034,11 @@ bool AHuman::EquipShieldInBGArm() {
 			// Put back into the inventory what we had in our hands, if anything
 			if (HeldDevice* heldDevice = m_pBGArm->GetHeldDevice()) {
 				heldDevice->Deactivate();
-				AddToInventoryBack(m_pBGArm->RemoveAttachable(heldDevice));
+				if (depositToFront) {
+					AddToInventoryFront(m_pBGArm->RemoveAttachable(heldDevice));
+				} else {
+					AddToInventoryBack(m_pBGArm->RemoveAttachable(heldDevice));
+				}
 			}
 
 			// Now put the device we were looking for and found into the hand
@@ -1420,7 +1428,7 @@ void AHuman::UpdateCrouching() {
 	}
 
 	float finalWalkPathYOffset = std::clamp(Lerp(0.0F, 1.0F, -m_WalkPathOffset.m_Y, desiredWalkPathYOffset, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
-	m_CrouchAmount = std::clamp(0.0F, 1.0F, finalWalkPathYOffset / m_MaxWalkPathCrouchShift - 0.5F); // because it's lerped, it never hits 1 exactly. thus the -0.5F
+	m_CrouchAmount = std::clamp(finalWalkPathYOffset / (m_MaxWalkPathCrouchShift - 0.1f), 0.0F, 1.0F); // because it's lerped, it never hits 1 exactly. thus the -0.1F
 	m_WalkPathOffset.m_Y = -finalWalkPathYOffset;
 
 	// Adjust our X offset to try to keep our legs under our centre-of-mass
@@ -1532,7 +1540,7 @@ void AHuman::PreControllerUpdate() {
 				m_Paths[FGROUND][m_MovementState].SetHFlip(m_Controller.IsState(MOVE_LEFT));
 				m_Paths[BGROUND][m_MovementState].SetHFlip(m_Controller.IsState(MOVE_LEFT));
 			} else if ((m_Controller.IsState(MOVE_RIGHT) && m_HFlipped) || (m_Controller.IsState(MOVE_LEFT) && !m_HFlipped)) {
-				m_HFlipped = !m_HFlipped;
+				SetHFlipped(!m_HFlipped);
 				m_CheckTerrIntersection = true;
 				if (m_ProneState == NOTPRONE) {
 					MoveOutOfTerrain(g_MaterialGrass);
@@ -1565,7 +1573,6 @@ void AHuman::PreControllerUpdate() {
 		}
 		// Disengage the prone state as soon as prone is released.
 		if (!prone && m_ProneState != NOTPRONE) {
-			EquipShieldInBGArm();
 			m_ProneState = NOTPRONE;
 		}
 	}
@@ -1613,7 +1620,7 @@ void AHuman::PreControllerUpdate() {
 				} else {
 					m_pFGArm->SetHeldDevice(dynamic_cast<HeldDevice*>(SwapPrevInventory(m_pFGArm->RemoveAttachable(m_pFGArm->GetHeldDevice()))));
 				}
-				EquipShieldInBGArm();
+				EquipShieldInBGArm(!changeNext);
 				m_pFGArm->SetHandPos(m_Pos + RotateOffset(m_HolsterOffset));
 			}
 			m_EquipHUDTimer.Reset();
@@ -1656,7 +1663,7 @@ void AHuman::PreControllerUpdate() {
 		m_AimAngle = analogAim.GetAbsRadAngle();
 
 		if ((analogAim.m_X > 0 && m_HFlipped) || (analogAim.m_X < 0 && !m_HFlipped)) {
-			m_HFlipped = !m_HFlipped;
+			SetHFlipped(!m_HFlipped);
 			m_CheckTerrIntersection = true;
 			if (m_ProneState == NOTPRONE) {
 				MoveOutOfTerrain(g_MaterialGrass);
@@ -1824,6 +1831,17 @@ void AHuman::PreControllerUpdate() {
 				m_pFGArm->AddHandTarget("Adjusted Aim Angle", m_Pos + Vector(m_pFGArm->GetMaxLength() * GetFlipFactor(), -m_pFGArm->GetMaxLength() * 0.5F).RadRotate(adjustedAimAngle));
 			}
 		}
+		// Hotkey activations
+		if (m_Controller.IsState(WEAPON_PRIMARY_HOTKEY)) {
+			device->ActivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+		} else {
+			device->DeactivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+		}
+		if (m_Controller.IsState(WEAPON_AUXILIARY_HOTKEY)) {
+			device->ActivateHotkeyAction(HeldDeviceHotkeyType::AUXILIARYHOTKEY);
+		} else {
+			device->DeactivateHotkeyAction(HeldDeviceHotkeyType::AUXILIARYHOTKEY);
+		}
 	} else if (m_ArmsState == THROWING_RELEASE && m_ThrowTmr.GetElapsedSimTimeMS() > 100) {
 		if (m_pFGArm) {
 			m_pFGArm->SetHeldDevice(dynamic_cast<HeldDevice*>(SwapNextInventory()));
@@ -1872,6 +1890,17 @@ void AHuman::PreControllerUpdate() {
 			m_SharpAimTimer.Reset();
 			m_SharpAimProgress = 0;
 			device->SetSharpAim(m_SharpAimProgress);
+		}
+		// Hotkey activations
+		if (m_Controller.IsState(WEAPON_PRIMARY_HOTKEY)) {
+			device->ActivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+		} else {
+			device->DeactivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+		}
+		if (m_Controller.IsState(WEAPON_AUXILIARY_HOTKEY)) {
+			device->ActivateHotkeyAction(HeldDeviceHotkeyType::AUXILIARYHOTKEY);
+		} else {
+			device->DeactivateHotkeyAction(HeldDeviceHotkeyType::AUXILIARYHOTKEY);
 		}
 	} else {
 		m_CanActivateBGItem = false;
@@ -2284,9 +2313,9 @@ void AHuman::PreControllerUpdate() {
 		if (m_Status == STABLE) {
 			if (m_ArmClimbing[BGROUND]) {
 				// Can't climb or crawl with the shield
-				if (m_MovementState != CRAWL || m_ProneState == LAYINGPRONE) {
-					UnequipBGArm();
-				}
+				// if (m_MovementState != CRAWL || m_ProneState == LAYINGPRONE) {
+				//	UnequipBGArm();
+				//}
 				m_pBGArm->AddHandTarget("Hand AtomGroup Limb Pos", m_pBGHandGroup->GetLimbPos(m_HFlipped));
 			} else {
 				HeldDevice* heldDevice = GetEquippedItem();
@@ -2307,6 +2336,8 @@ void AHuman::PreControllerUpdate() {
 							heldDevice->SetSupported(m_MovementState == PRONE || m_ProneState == LAYINGPRONE);
 							m_pBGArm->SetRecoil(Vector(), Vector(), false);
 						}
+					} else {
+						heldDevice->SetSupported(false);
 					}
 				}
 			}
