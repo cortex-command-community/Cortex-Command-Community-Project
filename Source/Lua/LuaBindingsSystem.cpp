@@ -74,6 +74,7 @@ LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Controller) {
 	                           luabind::value("AIM_SHARP", ControlState::AIM_SHARP),
 	                           luabind::value("WEAPON_FIRE", ControlState::WEAPON_FIRE),
 	                           luabind::value("WEAPON_RELOAD", ControlState::WEAPON_RELOAD),
+	                           luabind::value("WEAPON_RELOADHELD", ControlState::WEAPON_RELOADHELD),
 	                           luabind::value("PIE_MENU_OPENED", ControlState::PIE_MENU_OPENED),
 	                           luabind::value("PIE_MENU_ACTIVE", ControlState::PIE_MENU_ACTIVE),
 	                           luabind::value("WEAPON_CHANGE_NEXT", ControlState::WEAPON_CHANGE_NEXT),
