@@ -102,7 +102,7 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MetaMan) {
 	    .property("PlayerTurn", &MetaMan::GetPlayerTurn)
 	    .property("PlayerCount", &MetaMan::GetPlayerCount)
 
-	    .def_readwrite("Players", &MetaMan::m_Players, luabind::return_stl_iterator)
+	    .def_readonly("Players", &MetaMan::m_Players, luabind::return_stl_iterator)
 
 	    .def("GetTeamOfPlayer", &MetaMan::GetTeamOfPlayer)
 	    .def("GetPlayer", &MetaMan::GetPlayer)
@@ -114,14 +114,14 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MovableMan) {
 
 	    .property("MaxDroppedItems", &MovableMan::GetMaxDroppedItems, &MovableMan::SetMaxDroppedItems)
 
-	    .def_readwrite("Actors", &MovableMan::m_Actors, luabind::return_stl_iterator)
-	    .def_readwrite("Items", &MovableMan::m_Items, luabind::return_stl_iterator)
-	    .def_readwrite("Particles", &MovableMan::m_Particles, luabind::return_stl_iterator)
-	    .def_readwrite("AddedActors", &MovableMan::m_AddedActors, luabind::return_stl_iterator)
-	    .def_readwrite("AddedItems", &MovableMan::m_AddedItems, luabind::return_stl_iterator)
-	    .def_readwrite("AddedParticles", &MovableMan::m_AddedParticles, luabind::return_stl_iterator)
-	    .def_readwrite("AlarmEvents", &MovableMan::m_AlarmEvents, luabind::return_stl_iterator)
-	    .def_readwrite("AddedAlarmEvents", &MovableMan::m_AddedAlarmEvents, luabind::return_stl_iterator)
+	    .def_readonly("Actors", &MovableMan::m_Actors, luabind::return_stl_iterator)
+	    .def_readonly("Items", &MovableMan::m_Items, luabind::return_stl_iterator)
+	    .def_readonly("Particles", &MovableMan::m_Particles, luabind::return_stl_iterator)
+	    .def_readonly("AddedActors", &MovableMan::m_AddedActors, luabind::return_stl_iterator)
+	    .def_readonly("AddedItems", &MovableMan::m_AddedItems, luabind::return_stl_iterator)
+	    .def_readonly("AddedParticles", &MovableMan::m_AddedParticles, luabind::return_stl_iterator)
+	    .def_readonly("AlarmEvents", &MovableMan::m_AlarmEvents, luabind::return_stl_iterator)
+	    .def_readonly("AddedAlarmEvents", &MovableMan::m_AddedAlarmEvents, luabind::return_stl_iterator)
 
 	    .def("GetMOFromID", &MovableMan::GetMOFromID)
 	    .def("FindObjectByUniqueID", &MovableMan::FindObjectByUniqueID)
@@ -195,7 +195,7 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PostProcessMan) 
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PresetMan) {
 	return luabind::class_<PresetMan>("PresetManager")
 
-	    .def_readwrite("Modules", &PresetMan::m_pDataModules, luabind::return_stl_iterator)
+	    .def_readonly("Modules", &PresetMan::m_pDataModules, luabind::return_stl_iterator)
 
 	    .def("LoadDataModule", (bool(PresetMan::*)(const std::string&)) & PresetMan::LoadDataModule)
 	    .def("GetDataModule", &PresetMan::GetDataModule)

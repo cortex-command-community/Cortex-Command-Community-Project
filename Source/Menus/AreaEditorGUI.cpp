@@ -133,7 +133,7 @@ void AreaEditorGUI::Update() {
 
 	// If no Area is selected yet, and there are Areas in the current scene, then select the first one automatically
 	if (!m_pCurrentArea && !g_SceneMan.GetScene()->m_AreaList.empty())
-		m_pCurrentArea = &(g_SceneMan.GetScene()->m_AreaList.front());
+		m_pCurrentArea = g_SceneMan.GetScene()->m_AreaList.front();
 
 	m_EditMade = false;
 	m_pBoxToBlink = 0;
@@ -271,7 +271,7 @@ void AreaEditorGUI::Update() {
 
 	// Make sure we have a picked area if there are any areas at all!
 	if (!m_pCurrentArea && !g_SceneMan.GetScene()->m_AreaList.empty())
-		m_pCurrentArea = &(g_SceneMan.GetScene()->m_AreaList.front());
+		m_pCurrentArea = g_SceneMan.GetScene()->m_AreaList.front();
 	// If there are no Area:s, AreaEditor should detect it and force user to create a new one with a dialog
 	//    else
 	//        m_EditorGUIMode = PREADDMOVEBOX;
@@ -494,7 +494,7 @@ void AreaEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const {
 
 	// Draw the Box:es defined for the currently selected Area
 	Vector adjCorner;
-	const std::vector<Box>* pBoxList = &(m_pCurrentArea->m_BoxList);
+	const std::vector<Box*>* pBoxList = &(m_pCurrentArea->m_BoxList);
 	if (m_FullFeatured) {
 		// Set the drawin mode to be transparent and use the
 		//        g_FrameMan.SetTransTableFromPreset(m_BlinkTimer.AlternateReal(333) || m_EditorGUIMode == PLACINGOBJECT ? TransparencyPreset::LessTrans : TransparencyPreset::HalfTrans);
@@ -502,10 +502,10 @@ void AreaEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const {
 		drawing_mode(DRAW_MODE_TRANS, 0, 0, 0);
 
 		// Draw all already placed Box:es, and the currently edited one
-		for (std::vector<Box>::const_iterator bItr = pBoxList->begin(); bItr != pBoxList->end(); ++bItr) {
+		for (const Box* box: *pBoxList) {
 			// Handle wrapped boxes properly
 			wrappedBoxes.clear();
-			g_SceneMan.WrapBox(*bItr, wrappedBoxes);
+			g_SceneMan.WrapBox(*box, wrappedBoxes);
 
 			// Iterate through the wrapped boxes - will only be one if there's no wrapping
 			for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
