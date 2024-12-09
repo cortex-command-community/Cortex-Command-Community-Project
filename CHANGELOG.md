@@ -85,6 +85,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `MovableMan` function `GetMOsAtPosition(posX, posY, ignoreTeam, getsHitByMOsOnly)` that will return an iterator with all the `MovableObject`s that intersect that exact position with their sprite.
 
+- New `SceneMan` function `CastAllMOsRay(startVector, rayVector, table ignoreMOIDs, ignoreTeam, ignoreMaterial, bool ignoreAllTerrain, int skip)` which returns an iterator with pointers to all the non-ignored MOs met along the ray.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -130,6 +132,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `Scene` Lua functions `AddNavigatableArea(areaName)` and `ClearNavigatableAreas()` have been renamed/corrected to `AddNavigableArea(areaName)` and `ClearNavigableAreas()`, respectively.
 
 - `MOSRotating` Lua function `AddWound` now additionally accepts the format `MOSRotating:AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit, bool isEntryWound, bool isExitWound)`, allowing modders to specify added wounds as entry- or exit wounds, for the purpose of not playing multiple burst sounds on the same frame. These new arguments are optional.
+
+- `SceneMan` function `CastFindMORay` now only intersects with and finds the exact MOID specified and not any child MOIDs of that MOID.
+
+- `SceneMan` function `CastMORay` now can also accept a table of MOIDs instead of a single MOID, letting you ignore any arbitrary set of MOIDs.
 
 </details>
 
