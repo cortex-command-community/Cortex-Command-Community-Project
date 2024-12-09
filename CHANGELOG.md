@@ -133,7 +133,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `MOSRotating` Lua function `AddWound` now additionally accepts the format `MOSRotating:AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit, bool isEntryWound, bool isExitWound)`, allowing modders to specify added wounds as entry- or exit wounds, for the purpose of not playing multiple burst sounds on the same frame. These new arguments are optional.
 
-- `SceneMan` function `CastFindMORay` now only intersects with and finds the exact MOID specified and not any child MOIDs of that MOID.
+- `SceneMan` function `CastFindMORay` now has an extra bool parameter `findChildMOIDs` that denotes whether it also triggers on child MOIDs or not, which defaults to true for the same default behavior as before.
 
 - `SceneMan` function `CastMORay` now can also accept a table of MOIDs instead of a single MOID, letting you ignore any arbitrary set of MOIDs.
 

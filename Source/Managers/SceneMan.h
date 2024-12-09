@@ -699,9 +699,10 @@ namespace RTE {
 		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
 		/// @param ignoreAllTerrain Whether to ignore all terrain hits or not. (default: false)
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// @param findChildMOIDs Whether to also find children of the target MOID.
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @return Whether the target MOID was found along the ray or not.
-		bool CastFindMORay(const Vector& start, const Vector& ray, MOID targetMOID, Vector& resultPos, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
+		bool CastFindMORay(const Vector& start, const Vector& ray, MOID targetMOID, Vector& resultPos, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0, bool findChildMOIDs = true);
 
 		/// Traces along a vector and returns a vector of all MOs encountered.
 		/// @param start The starting position.

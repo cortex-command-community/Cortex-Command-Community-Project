@@ -331,6 +331,7 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SceneMan) {
 	    .def("CastMORay", &LuaAdaptersSceneMan::CastMORay1)
 	    .def("CastMORay", &LuaAdaptersSceneMan::CastMORay2)
 	    .def("CastAllMOsRay", &LuaAdaptersSceneMan::CastAllMOsRay, luabind::return_stl_iterator)
+	    .def("CastFindMORay", (bool(SceneMan::*)(const Vector&, const Vector&, MOID, const Vector&, unsigned char, bool, int)) & SceneMan::CastFindMORay)
 	    .def("CastFindMORay", &SceneMan::CastFindMORay)
 	    .def("CastObstacleRay", &LuaAdaptersSceneMan::CastObstacleRay1)
 	    .def("CastObstacleRay", &LuaAdaptersSceneMan::CastObstacleRay2)

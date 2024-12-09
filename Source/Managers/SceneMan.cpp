@@ -2003,7 +2003,7 @@ MOID SceneMan::CastMORay(const Vector& start, const Vector& ray, const std::vect
 	return g_NoMOID;
 }
 
-bool SceneMan::CastFindMORay(const Vector& start, const Vector& ray, MOID targetMOID, Vector& resultPos, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
+bool SceneMan::CastFindMORay(const Vector& start, const Vector& ray, MOID targetMOID, Vector& resultPos, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip, bool findChildMOIDs) {
 	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	MOID hitMOID = g_NoMOID;
@@ -2065,7 +2065,7 @@ bool SceneMan::CastFindMORay(const Vector& start, const Vector& ray, MOID target
 
 			// Detect MOIDs
 			hitMOID = GetMOIDPixel(intPos[X], intPos[Y], Activity::NoTeam);
-			if (hitMOID == targetMOID) {
+			if (hitMOID == targetMOID || (findChildMOIDs && hitMOID == g_MovableMan.GetRootMOID(targetMOID))) {
 				// Found target MOID, so save result and report success
 				resultPos.SetXY(intPos[X], intPos[Y]);
 				// Save last ray pos
