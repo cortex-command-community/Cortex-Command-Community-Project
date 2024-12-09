@@ -355,6 +355,9 @@ void Controller::UpdatePlayerPieMenuInput(std::array<bool, ControlState::CONTROL
 			m_WeaponReloadIgnore = true;
 		}
 
+		// RELOAD and RELOADHELD instead of RELOADSTART and RELOAD for mod lua compatibility reasons.
+		m_ControlStates[ControlState::WEAPON_RELOADHELD] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_WEAPON_RELOAD);
+
 		m_ControlStates[ControlState::WEAPON_PRIMARY_HOTKEYSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_WEAPON_PRIMARY_HOTKEY);
 		m_ControlStates[ControlState::WEAPON_AUXILIARY_HOTKEYSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY);
 		m_ControlStates[ControlState::ACTOR_PRIMARY_HOTKEYSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_ACTOR_PRIMARY_HOTKEY);

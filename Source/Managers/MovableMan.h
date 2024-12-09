@@ -539,6 +539,14 @@ namespace RTE {
 		/// @return Pointers to the MOs that are within the specified radius of the given centre position.
 		const std::vector<MovableObject*>* GetMOsInRadius(const Vector& centre, float radius) const { return GetMOsInRadius(centre, radius, Activity::NoTeam); }
 
+		/// Gets pointers to the MOs that are at a particular position in the Scene.
+		/// @param pixelX The X coordinate of the Scene pixel to test.
+		/// @param pixelY The Y coordinate of the Scene pixel to test.
+		/// @param ignoreTeam The team to ignore.
+		/// @param getsHitByMOsOnly Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.
+		/// @return Pointers to the MOs that are within the specified radius of the given centre position.
+		const std::vector<MovableObject*>* GetMOsAtPosition(int pixelX, int pixelY, int ignoreTeam, bool getsHitByMOsOnly) const;
+		
 		/// Runs a lua function on all MOs in the simulation, including owned child MOs.
 		void RunLuaFunctionOnAllMOs(const std::string& functionName, bool includeAdded, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
 

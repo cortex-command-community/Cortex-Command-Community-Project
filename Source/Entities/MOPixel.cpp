@@ -140,8 +140,8 @@ void MOPixel::SetTrailLength(int trailLength) {
 	m_Atom->SetTrailLength(trailLength);
 }
 
-bool MOPixel::HitTestAtPixel(int pixelX, int pixelY) const {
-	if (!GetsHitByMOs() || GetRootParent()->GetTraveling()) {
+bool MOPixel::HitTestAtPixel(int pixelX, int pixelY, bool validOnly) const {
+	if (validOnly && (!GetsHitByMOs() || GetRootParent()->GetTraveling())) {
 		return false;
 	}
 

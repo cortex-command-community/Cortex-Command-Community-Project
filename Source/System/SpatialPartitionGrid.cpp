@@ -176,6 +176,32 @@ const std::vector<MOID>& SpatialPartitionGrid::GetMOIDsAtPosition(int x, int y, 
 	return cells[ignoreTeam + 1][GetCellIdForCellCoords(cellX, cellY)];
 }
 
+std::vector<MovableObject*> SpatialPartitionGrid::GetMOsAtPosition(int x, int y, int ignoreTeam, bool getsHitByMOsOnly) const {
+	RTEAssert(ignoreTeam >= Activity::NoTeam && ignoreTeam < Activity::MaxTeamCount, "Invalid ignoreTeam given to SpatialPartitioningGrid::GetMOsAtPosition()!");
+
+	std::unordered_set<MOID> potentialMOIDs;
+
+	int cellX = x / m_CellSize;
+	int cellY = y / m_CellSize;
+
+	// Note - GetCellIdForCellCoords accounts for wrapping automatically, so we don't have to deal with it here.
+	auto& cells = getsHitByMOsOnly ? m_PhysicsCells : m_Cells;
+	const std::vector<MOID>& moidsInCell = cells[ignoreTeam + 1][GetCellIdForCellCoords(cellX, cellY)];
+	for (MOID moid: moidsInCell) {
+		potentialMOIDs.insert(moid);
+	}
+
+	std::vector<MovableObject*> MOList;
+	for (MOID moid: potentialMOIDs) {
+		MovableObject* mo = g_MovableMan.GetMOFromID(moid);
+		if (mo && mo->HitTestAtPixel(x, y, false)) {
+			MOList.push_back(mo);
+		}
+	}
+
+	return MOList;
+}
+
 int SpatialPartitionGrid::GetCellIdForCellCoords(int cellX, int cellY) const {
 	// We act like we wrap, even if the Scene doesn't. The only cost is some duplicate collision checks, but that's a minor cost to pay :)
 	int wrappedX = cellX % m_Width;
