@@ -167,6 +167,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed a crash on launch when the `SupportedGameVersion` INI property was not set.
 
+- Fixed several issues with the way pie menus and aiming interacts between players, such as opening the pie menu always resetting the M&KB player's aim and pie selection, as well as another issue where the pie menu would fail to appear entirely for some players.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
