@@ -548,6 +548,10 @@ namespace RTE {
 		/// @param value The string to save.
 		void SaveString(const std::string& key, const std::string& value) { m_SavedValues.SaveString(key, value); };
 
+		/// Erases a string which might've otherwise been stored in our ini.
+		/// @param key The key of the saved string.
+		void EraseString(const std::string& key) { m_SavedValues.EraseString(key); }
+
 		/// Loads and returns a previously saved string.
 		/// @param key The key of the string to load.
 		const std::string& LoadString(const std::string& key) { return m_SavedValues.LoadString(key); };
@@ -556,6 +560,10 @@ namespace RTE {
 		/// @param key The key of the saved number.
 		/// @param value The number to save.
 		void SaveNumber(const std::string& key, float value) { m_SavedValues.SaveNumber(key, value); };
+
+		/// Erases a number which might've otherwise been stored in our ini.
+		/// @param key The key of the saved number.
+		void EraseNumber(const std::string& key) { m_SavedValues.EraseNumber(key); }
 
 		/// Loads and returns a previously saved number.
 		/// @param key The key of the string to load.

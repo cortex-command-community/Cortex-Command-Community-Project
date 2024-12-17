@@ -79,9 +79,11 @@ namespace RTE {
 		GenericSavedData(const GenericSavedData& reference) = default;
 
 		void SaveString(const std::string& key, const std::string& value);
+		void EraseString(const std::string& key);
 		const std::string& LoadString(const std::string& key);
 
 		void SaveNumber(const std::string& key, float value) { m_SavedNumbers.m_Data[key] = value; };
+		void EraseNumber(const std::string& key) { m_SavedNumbers.m_Data.erase(key); };
 		float LoadNumber(const std::string& key) { return m_SavedNumbers.m_Data[key]; };
 
 		GenericSavedEncodedStrings m_SavedEncodedStrings; //!< Stored encoded string data.

@@ -63,6 +63,11 @@ void GenericSavedData::SaveString(const std::string& key, const std::string& val
 	}
 }
 
+void GenericSavedData::EraseString(const std::string& key) {
+	m_SavedStrings.m_Data.erase(key);
+	m_SavedEncodedStrings.m_Data.erase(key);
+}
+
 const std::string& GenericSavedData::LoadString(const std::string& key) {
 	const std::string* loadString = &m_SavedStrings.m_Data[key];
 	if (*loadString == "") {
