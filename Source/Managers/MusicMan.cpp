@@ -101,6 +101,7 @@ void MusicMan::ResetMusicState() {
 bool MusicMan::PlayDynamicSong(const std::string& songName, const std::string& songSectionType, bool playImmediately, bool playTransition, bool smoothFade) {
 	if (const DynamicSong* dynamicSongToPlay = dynamic_cast<const DynamicSong*>(g_PresetMan.GetEntityPreset("DynamicSong", songName))) {
 		m_CurrentSong = std::unique_ptr<DynamicSong>(dynamic_cast<DynamicSong*>(dynamicSongToPlay->Clone()));
+		m_NextSongSection = nullptr;
 		SetNextSongSectionType(songSectionType);
 		SelectNextSongSection();
 		SelectNextSoundContainer(playTransition);
