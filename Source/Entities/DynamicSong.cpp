@@ -166,6 +166,8 @@ SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
 }
 
 SoundContainer& DynamicSongSection::SelectSoundContainer() {
+	RTEAssert(!m_SoundContainers.empty(), "Tried to get a SoundContainer from a DynamicSongSection with none to choose from!");
+	
 	// Shuffle between our options if we have multiple
 	if (m_SoundContainers.size() != 1) {
 		if (m_ShuffleUnplayedIndices.empty()) {
@@ -198,8 +200,7 @@ SoundContainer& DynamicSongSection::SelectSoundContainer() {
 			}
 		}
 	}
-
-	RTEAssert(!m_SoundContainers.empty(), "Tried to get a SoundContainer from a DynamicSongSection with none to choose from!");
+	
 	return m_SoundContainers[0];
 }
 
