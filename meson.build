@@ -199,10 +199,11 @@ if host_machine.system() in ['linux','darwin']
     dependency('liblz4'),
     dependency('libpng'),
     dependency('tbb'),
-    dependency('gl')
   ]
-  if host_machine.system()=='darwin'
-    deps += dependency('appleframeworks', modules: ['Foundation'])  
+  if host_machine.system() == 'linux'
+    deps += dependency('gl')
+  elif host_machine.system()=='darwin'
+    deps += dependency('appleframeworks', modules: ['Foundation', 'OpenGL'])  
   endif
 elif host_machine.system() == 'windows'
   sdl2 = subproject('SDL2-2.26.3')

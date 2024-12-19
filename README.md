@@ -123,7 +123,7 @@ If you want to change the buildtype afterwards, you can use `meson configure --b
 - `Xcode` or `Command Line Tools for Xcode` (if you need to, you can also generate an xcode project from meson using the `--backend=xcode` option on setup)
 
 **Homebrew (macOS):**  
-`brew install pkg-config sdl2 minizip lz4 flac luajit lua libpng tbb gcc@13 ninja meson dylibbundler`
+`brew install pkg-config sdl2 sdl2_image minizip lz4 flac luajit lua libpng tbb gcc@13 ninja meson dylibbundler`
 
 **Arch Linux:**  
 `sudo pacman -S sdl2 sdl2_image tbb flac luajit lua minizip lz4 libpng meson ninja base-devel`  
