@@ -30,9 +30,12 @@
 #include <sys/utsname.h>
 #include <fstream>
 #include <filesystem>
+#include "backward/backward.hpp"
 #elif defined(__APPLE__) && defined(__MACH__)
 #include <sys/sysctl.h>
+#include "backward/backward.hpp"
 #endif
+
 
 using namespace RTE;
 
@@ -41,6 +44,9 @@ bool RTEError::s_IgnoreAllAsserts = false;
 std::string RTEError::s_LastIgnoredAssertDescription = "";
 std::source_location RTEError::s_LastIgnoredAssertLocation = {};
 
+#if (defined(__linux__) || (defined(__APPLE__) && defined(__MACH__)))
+backward::SignalHandling sh;
+#endif
 #ifdef _WIN32
 /// <summary>
 /// Custom exception handler for Windows SEH.
@@ -347,6 +353,13 @@ void RTEError::AbortFunc(const std::string& description, const std::source_locat
 #ifdef _WIN32
 		RTEStackTrace stackTrace;
 		callstack += ("\n\n" + stackTrace.GetCallStackAsString());
+#else
+		backward::StackTrace st;
+		st.load_here();
+		backward::Printer printer;
+		std::ostringstream stack;
+		printer.print(st, stack);
+		callstack = stack.str();
 #endif
 
 		std::string consoleSaveMsg;
