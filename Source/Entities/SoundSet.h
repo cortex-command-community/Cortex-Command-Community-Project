@@ -44,7 +44,7 @@ namespace RTE {
 		~SoundSet();
 
 		/// Destroys and resets (through Clear()) the SoundSet object.
-		void Destroy() { Clear(); }
+		void Destroy();
 #pragma endregion
 
 #pragma region INI Handling
@@ -107,7 +107,7 @@ namespace RTE {
 
 		/// Adds a copy of the passed in SoundSet as a sub SoundSet of this SoundSet. Ownership IS transferred!
 		/// @param soundSetToAdd A reference to the SoundSet to be copied in as a sub SoundSet of this SoundSet. Ownership IS transferred!
-		void AddSoundSet(const SoundSet& soundSetToAdd) { m_SubSoundSets.push_back(soundSetToAdd); }
+		void AddSoundSet(const SoundSet& soundSetToAdd) { m_SubSoundSets.push_back(new SoundSet(soundSetToAdd)); }
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -140,7 +140,7 @@ namespace RTE {
 
 		/// Gets the vector of SubSoundSets for this SoundSet.
 		/// @return The vector of SubSoundSets for this SoundSet.
-		std::vector<SoundSet>& GetSubSoundSets() { return m_SubSoundSets; }
+		std::vector<SoundSet*>& GetSubSoundSets() { return m_SubSoundSets; }
 #pragma endregion
 
 #pragma region Miscellaneous
@@ -163,7 +163,7 @@ namespace RTE {
 		std::pair<bool, int> m_CurrentSelection; //!< Whether the current selection is in the SoundData (false) or SoundSet (true) vector, and its index in the appropriate vector.
 
 		std::vector<SoundData> m_SoundData; //!< The SoundData available for selection in this SoundSet.
-		std::vector<SoundSet> m_SubSoundSets; //!< The sub SoundSets available for selection in this SoundSet.
+		std::vector<SoundSet*> m_SubSoundSets; //!< The sub SoundSets available for selection in this SoundSet.
 
 		/// Clears all the member variables of this SoundSet, effectively resetting the members of this abstraction level only.
 		void Clear();

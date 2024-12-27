@@ -430,7 +430,7 @@ namespace RTE {
 
 		/// Gets the list of AlarmEvent:s from last frame's update.
 		/// @return The const list of AlarmEvent:s.
-		const std::vector<AlarmEvent>& GetAlarmEvents() const { return m_AlarmEvents; }
+		const std::vector<AlarmEvent*>& GetAlarmEvents() const { return m_AlarmEvents; }
 
 		/// Shows whetehr particles are set to get copied to the terrain upon
 		/// settling
@@ -539,6 +539,14 @@ namespace RTE {
 		/// @return Pointers to the MOs that are within the specified radius of the given centre position.
 		const std::vector<MovableObject*>* GetMOsInRadius(const Vector& centre, float radius) const { return GetMOsInRadius(centre, radius, Activity::NoTeam); }
 
+		/// Gets pointers to the MOs that are at a particular position in the Scene.
+		/// @param pixelX The X coordinate of the Scene pixel to test.
+		/// @param pixelY The Y coordinate of the Scene pixel to test.
+		/// @param ignoreTeam The team to ignore.
+		/// @param getsHitByMOsOnly Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.
+		/// @return Pointers to the MOs that are within the specified radius of the given centre position.
+		const std::vector<MovableObject*>* GetMOsAtPosition(int pixelX, int pixelY, int ignoreTeam, bool getsHitByMOsOnly) const;
+		
 		/// Runs a lua function on all MOs in the simulation, including owned child MOs.
 		void RunLuaFunctionOnAllMOs(const std::string& functionName, bool includeAdded, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
 
@@ -597,10 +605,10 @@ namespace RTE {
 
 		// The alarm events on the scene where something alarming happened, for use with AI firings awareness os they react to shots fired etc.
 		// This is the last frame's events, is the one for Actors to poll for events, should be cleaned out and refilled each frame.
-		std::vector<AlarmEvent> m_AlarmEvents;
+		std::vector<AlarmEvent*> m_AlarmEvents;
 		// The alarm events on the scene where something alarming happened, for use with AI firings awareness os they react to shots fired etc.
 		// This is the current frame's events, will be filled up during MovableMan Updates, should be transferred to Last Frame at end of update.
-		std::vector<AlarmEvent> m_AddedAlarmEvents;
+		std::vector<AlarmEvent*> m_AddedAlarmEvents;
 
 		// Mutexes to ensure alarm events aren't being added from separate threads at the same time
 		std::mutex m_AddedAlarmEventsMutex;

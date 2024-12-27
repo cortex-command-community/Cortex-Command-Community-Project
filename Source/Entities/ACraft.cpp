@@ -201,6 +201,7 @@ void ACraft::Clear() {
 	m_DeliveryState = FALL;
 	m_AltitudeMoveState = HOVER;
 	m_AltitudeControl = 0;
+	m_CanEnterOrbit = true;
 	m_MaxPassengers = -1;
 
 	m_DeliveryDelayMultiplier = 1.0;
@@ -251,6 +252,7 @@ int ACraft::Create(const ACraft& reference) {
 	m_DeliveryState = reference.m_DeliveryState;
 	m_AltitudeMoveState = reference.m_AltitudeMoveState;
 	m_AltitudeControl = reference.m_AltitudeControl;
+	m_CanEnterOrbit = reference.m_CanEnterOrbit;
 	m_MaxPassengers = reference.m_MaxPassengers;
 
 	m_DeliveryDelayMultiplier = reference.m_DeliveryDelayMultiplier;
@@ -285,6 +287,7 @@ int ACraft::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("DeliveryDelayMultiplier", { reader >> m_DeliveryDelayMultiplier; });
 	MatchProperty("ExitInterval", { reader >> m_ExitInterval; });
 	MatchProperty("CanLand", { reader >> m_LandingCraft; });
+	MatchProperty("CanEnterOrbit", { reader >> m_CanEnterOrbit; });
 	MatchProperty("MaxPassengers", { reader >> m_MaxPassengers; });
 	MatchProperty("ScuttleIfFlippedTime", { reader >> m_ScuttleIfFlippedTime; });
 	MatchProperty("ScuttleOnDeath", { reader >> m_ScuttleOnDeath; });
@@ -314,7 +317,10 @@ int ACraft::Save(Writer& writer) const {
 
 	writer.NewProperty("CrashSound");
 	writer << m_CrashSound;
-
+	
+	writer.NewProperty("CanEnterOrbit");
+	writer << m_CanEnterOrbit;
+	
 	writer.NewProperty("MaxPassengers");
 	writer << m_MaxPassengers;
 	writer.NewProperty("ScuttleIfFlippedTime");
@@ -698,23 +704,26 @@ void ACraft::Update() {
 	/////////////////////////////////////////
 	// Check for having gone into orbit
 
-	if (m_Pos.m_Y < -m_CharHeight || m_Pos.m_Y > g_SceneMan.GetSceneHeight() + m_CharHeight) {
-		g_ActivityMan.GetActivity()->HandleCraftEnteringOrbit(this);
-		// Play fading away thruster sound
-		//        if (m_pMThruster && m_pMThruster->IsEmitting())
-		//            m_pMThruster->(pTargetBitmap, targetPos, mode, onlyPhysical);
-		m_ToDelete = true;
-	}
-
-	if (g_ActivityMan.GetActivity()->GetCraftOrbitAtTheEdge()) {
-		if (g_SceneMan.GetScene() && !g_SceneMan.GetScene()->WrapsX()) {
-			if (m_Pos.m_X < -GetSpriteWidth() || m_Pos.m_X > g_SceneMan.GetSceneWidth() + GetSpriteWidth()) {
-				g_ActivityMan.GetActivity()->HandleCraftEnteringOrbit(this);
-				m_ToDelete = true;
-			}
+	if (m_CanEnterOrbit) {
+		if (m_Pos.m_Y < -m_CharHeight || m_Pos.m_Y > g_SceneMan.GetSceneHeight() + m_CharHeight) {
+			g_ActivityMan.GetActivity()->HandleCraftEnteringOrbit(this);
+			// Play fading away thruster sound
+			//        if (m_pMThruster && m_pMThruster->IsEmitting())
+			//            m_pMThruster->(pTargetBitmap, targetPos, mode, onlyPhysical);
+			m_ToDelete = true;
 		}
-	}
 
+		// Horizontal orbiting, if scene doesn't wrap
+		if (g_ActivityMan.GetActivity()->GetCraftOrbitAtTheEdge()) {
+			if (g_SceneMan.GetScene() && !g_SceneMan.GetScene()->WrapsX()) {
+				if (m_Pos.m_X < -GetSpriteWidth() || m_Pos.m_X > g_SceneMan.GetSceneWidth() + GetSpriteWidth()) {
+					g_ActivityMan.GetActivity()->HandleCraftEnteringOrbit(this);
+					m_ToDelete = true;
+				}
+			}
+		}		
+	}
+	
 	if (m_Status == DEAD) {
 		if (m_ScuttleOnDeath || m_AIMode == AIMODE_SCUTTLE) {
 			GibThis();

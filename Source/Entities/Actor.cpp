@@ -335,6 +335,7 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("StableRecoveryDelay", { reader >> m_StableRecoverDelay; });
 	MatchProperty("CanRun", { reader >> m_CanRun; });
 	MatchProperty("CrouchWalkSpeedMultiplier", { reader >> m_CrouchWalkSpeedMultiplier; });
+	MatchProperty("GoldCarried", { reader >> m_GoldCarried; });
 	MatchProperty("AimAngle", { reader >> m_AimAngle; });
 	MatchProperty("AimRange", { reader >> m_AimRange; });
 	MatchProperty("AimDistance", { reader >> m_AimDistance; });
@@ -413,6 +414,8 @@ int Actor::Save(Writer& writer) const {
 	writer << m_CanRun;
 	writer.NewProperty("CrouchWalkSpeedMultiplier");
 	writer << m_CrouchWalkSpeedMultiplier;
+	writer.NewProperty("GoldCarried");
+	writer << m_GoldCarried;
 	writer.NewProperty("AimAngle");
 	writer << m_AimAngle;
 	writer.NewProperty("AimRange");
@@ -1361,8 +1364,8 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 	}
 
 	int actorScreen = g_ActivityMan.GetActivity() ? g_ActivityMan.GetActivity()->ScreenOfPlayer(m_Controller.GetPlayer()) : -1;
-	bool screenTeamIsSameAsActorTeam = g_ActivityMan.GetActivity() ? g_ActivityMan.GetActivity()->GetTeamOfPlayer(whichScreen) == m_Team : true;
-	if (m_PieMenu->IsVisible() && screenTeamIsSameAsActorTeam && (!m_PieMenu->IsInNormalAnimationMode() || (m_Controller.IsPlayerControlled() && actorScreen == whichScreen))) {
+	bool screenTeamIsSameAsActorTeam = g_ActivityMan.GetActivity() ? g_ActivityMan.GetActivity()->GetTeamOfPlayer(g_ActivityMan.GetActivity()->PlayerOfScreen(whichScreen)) == m_Team : true;
+	if (m_PieMenu->IsVisible() && screenTeamIsSameAsActorTeam && (!m_PieMenu->IsInNormalAnimationMode() || (actorScreen == whichScreen))) {
 		m_PieMenu->Draw(pTargetBitmap, targetPos);
 	}
 

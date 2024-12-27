@@ -123,7 +123,7 @@ void SettingsInputMappingGUI::UpdateMappingButtonLabels() {
 		m_InputMapButton[i]->SetText(!inputDescription.empty() ? "[" + inputDescription + "]" : "[Undefined]");
 	}
 	// Adjust the scrolling box scroll range to hide mappings that are only relevant to gamepads.
-	m_InputMapScrollingBoxScrollbar->SetMaximum(m_InputMapScrollingBox->GetHeight() - ((m_ConfiguringPlayerInputScheme->GetDevice() < InputDevice::DEVICE_GAMEPAD_1) ? 141 : -8));
+	m_InputMapScrollingBoxScrollbar->SetMaximum(m_InputMapScrollingBox->GetHeight());
 	m_InputMapScrollingBoxScrollbar->SetPageSize(m_InputMapScrollingBoxScrollbar->GetMaximum() / 2);
 }
 

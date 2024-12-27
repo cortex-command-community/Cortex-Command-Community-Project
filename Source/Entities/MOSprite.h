@@ -127,8 +127,9 @@ namespace RTE {
 		/// Whether a set of X, Y coordinates overlap us (in world space).
 		/// @param pixelX The given X coordinate, in world space.
 		/// @param pixelY The given Y coordinate, in world space.
+		/// @param validOnly Whether to return false if this MO isn't validly owned by MovableMan or not.
 		/// @return Whether the given coordinate overlap us.
-		bool HitTestAtPixel(int pixelX, int pixelY) const override;
+		bool HitTestAtPixel(int pixelX, int pixelY, bool validOnly = true) const override;
 
 		/// Gets the current angular velocity of this MovableObject. Positive is
 		/// a counter-clockwise rotation.

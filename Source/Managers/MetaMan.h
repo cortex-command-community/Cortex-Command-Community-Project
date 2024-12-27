@@ -146,12 +146,12 @@ namespace RTE {
 		/// Gets the designated team of a specific player
 		/// @param metaPlayer Which player.
 		/// @return The team of that player.
-		int GetTeamOfPlayer(int metaPlayer) const { return metaPlayer >= Players::PlayerOne && metaPlayer < static_cast<int>(m_Players.size()) ? m_Players[metaPlayer].GetTeam() : Activity::NoTeam; }
+		int GetTeamOfPlayer(int metaPlayer) const { return metaPlayer >= Players::PlayerOne && metaPlayer < static_cast<int>(m_Players.size()) ? m_Players[metaPlayer]->GetTeam() : Activity::NoTeam; }
 
 		/// Gets the specified MetaPlayer
 		/// @param metaPlayer Which player.
 		/// @return The requested MetaPlayer
-		MetaPlayer* GetPlayer(int metaPlayer) { return (metaPlayer >= Players::PlayerOne && metaPlayer < static_cast<int>(m_Players.size())) ? &(m_Players[metaPlayer]) : nullptr; }
+		MetaPlayer* GetPlayer(int metaPlayer) { return (metaPlayer >= Players::PlayerOne && metaPlayer < static_cast<int>(m_Players.size())) ? &*m_Players[metaPlayer] : nullptr; }
 
 		/// Gets the MetaPlayer playing a specific in-game player, if any.
 		/// @param inGamePlayer Which in-game player to translate into a metaplayer.
@@ -231,7 +231,7 @@ namespace RTE {
 		/// @param deductOffensive Whether to count the money allocated for offensive action as remaining. (default: false)
 		/// @param deductDefensive Whether to count the money allocated for defensive action as remaining. (default: false) const { return m_Players[metaPlayer].GetFunds() - m_Players[metaPlayer].GetFunds() * GetBudgetedRatioOfPlayer(metaPlayer)
 		/// @return The amount, in oz, that this player unallocated and unused this turn.
-		float GetRemainingFundsOfPlayer(int metaPlayer, const Scene* pException = 0, bool deductOffensive = false, bool deductDefensive = false) const { return m_Players[metaPlayer].GetFunds() - m_Players[metaPlayer].GetFunds() * GetBudgetedRatioOfPlayer(metaPlayer, pException, !deductOffensive, !deductDefensive); }
+		float GetRemainingFundsOfPlayer(int metaPlayer, const Scene* pException = 0, bool deductOffensive = false, bool deductDefensive = false) const { return m_Players[metaPlayer]->GetFunds() - m_Players[metaPlayer]->GetFunds() * GetBudgetedRatioOfPlayer(metaPlayer, pException, !deductOffensive, !deductDefensive); }
 
 		/// Shows whether a game is currently in progress
 		/// @return Whether a game is going or not.
@@ -314,7 +314,7 @@ namespace RTE {
 		// The save name of the currently played metagame
 		std::string m_GameName;
 		// The players of the metagame
-		std::vector<MetaPlayer> m_Players;
+		std::vector<MetaPlayer*> m_Players;
 		// The number of Team:s in play this game
 		int m_TeamCount;
 		// The flag icons of all teams
