@@ -77,6 +77,8 @@ namespace RTE {
 	public:
 		GraphicalPrimitiveOverrideMethods;
 
+		float m_Thickness{1.0f};
+
 		/// Constructor method for LinePrimitive object.
 		/// @param player Player screen to draw this primitive on.
 		/// @param startPos Start position of the primitive.
@@ -87,6 +89,20 @@ namespace RTE {
 			m_EndPos = endPos;
 			m_Color = color;
 			m_Player = player;
+			m_Thickness = 1;
+		}
+		/// Constructor method for LinePrimitive object.
+		/// @param player Player screen to draw this primitive on.
+		/// @param startPos Start position of the primitive.
+		/// @param end End position of the primitive.
+		/// @param thickness Thickness of the line.
+		/// @param color Color to draw this primitive with.
+		LinePrimitive(int player, const Vector& startPos, const Vector& endPos, float thickness, unsigned char color) {
+			m_StartPos = startPos;
+			m_EndPos = endPos;
+			m_Color = color;
+			m_Player = player;
+			m_Thickness = thickness;
 		}
 
 	private:

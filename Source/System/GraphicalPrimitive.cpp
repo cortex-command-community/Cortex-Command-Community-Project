@@ -51,9 +51,11 @@ Vector GraphicalPrimitive::WrapCoordinates(Vector targetPos, const Vector& scene
 }
 
 void LinePrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
+	DrawLineV(targetPos + Vector(-30, -30), targetPos + Vector(30,30), {53, 0, 0, 255});
+	DrawLineV(targetPos + Vector(30, -30), targetPos + Vector(-30,30), {53, 0, 0, 255});
 	Vector drawStart = WrapCoordinates(targetPos, m_StartPos);
 	Vector drawEnd = WrapCoordinates(targetPos, m_EndPos);
-	DrawLine(drawStart.GetFloorIntX(), drawStart.GetFloorIntY(), drawEnd.GetFloorIntX(), drawEnd.GetFloorIntY(), {m_Color, 0, 0, 255});
+	DrawLineEx(drawStart, drawEnd, m_Thickness, {m_Color, 0, 0, 255});
 }
 
 void ArcPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {

@@ -71,18 +71,7 @@ void PrimitiveMan::SchedulePrimitivesForBlendedDrawing(DrawBlendMode blendMode, 
 }
 
 void PrimitiveMan::DrawLinePrimitive(int player, const Vector& startPos, const Vector& endPos, unsigned char color, int thickness) {
-	if (thickness > 1) {
-		Vector dirVector = g_SceneMan.ShortestDistance(startPos, endPos, g_SceneMan.SceneWrapsX()).SetMagnitude(static_cast<float>(thickness - 1) / 2.0F).Perpendicularize();
-		Vector pointA = startPos + dirVector;
-		Vector pointB = startPos - dirVector;
-		Vector pointC = endPos + dirVector;
-		Vector pointD = endPos - dirVector;
-
-		DrawTriangleFillPrimitive(player, pointA, pointB, pointC, color);
-		DrawTriangleFillPrimitive(player, pointC, pointD, pointB, color);
-	} else {
-		SchedulePrimitive(std::make_unique<LinePrimitive>(player, startPos, endPos, color));
-	}
+	SchedulePrimitive(std::make_unique<LinePrimitive>(player, startPos, endPos, thickness, color));
 }
 
 void PrimitiveMan::DrawArcPrimitive(const Vector& centerPos, float startAngle, float endAngle, int radius, unsigned char color) {

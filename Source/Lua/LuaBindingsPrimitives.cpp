@@ -11,7 +11,8 @@ LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, GraphicalPrimi
 LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, LinePrimitive) {
 	return luabind::class_<LinePrimitive, GraphicalPrimitive>("LinePrimitive")
 
-	    .def(luabind::constructor<int, const Vector&, const Vector&, unsigned char>());
+	    .def(luabind::constructor<int, const Vector&, const Vector&, unsigned char>())
+	    .def(luabind::constructor<int, const Vector&, const Vector&, float, unsigned char>());
 }
 
 LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, ArcPrimitive) {
