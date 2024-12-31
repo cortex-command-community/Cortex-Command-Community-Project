@@ -61,9 +61,9 @@ void LinePrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 void ArcPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 	Vector drawStart = WrapCoordinates(targetPos, m_StartPos);
 	if (m_Thickness > 1) {
-		DrawRing(drawStart, m_Radius - (m_Thickness / 2), m_Radius + (m_Thickness / 2), m_StartAngle, m_EndAngle, std::abs(m_EndAngle - m_StartAngle), {m_Color, 0, 0, 255});
+		DrawRing(drawStart, m_Radius - (m_Thickness / 2.0f), m_Radius + (m_Thickness / 2.0f), m_StartAngle, m_EndAngle, std::abs(m_EndAngle - m_StartAngle), {m_Color, 0, 0, 255});
 	} else {
-		DrawCircleSector(drawStart, m_Radius, m_StartAngle, m_EndAngle, 0, {m_Color, 0, 0, 255});
+		DrawRing(drawStart, m_Radius - 0.5f, m_Radius + 0.5f, m_StartAngle, m_EndAngle, std::abs(m_EndAngle - m_StartAngle), {m_Color, 0, 0, 255});
 	}
 }
 
@@ -98,6 +98,7 @@ void RoundedBoxPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 	if (m_StartPos.m_Y > m_EndPos.m_Y) {
 		std::swap(m_StartPos.m_Y, m_EndPos.m_Y);
 	}
+
 	Vector drawStart = WrapCoordinates(targetPos, m_StartPos);
 	Vector drawEnd = WrapCoordinates(targetPos, m_EndPos);
 	Vector ringCornerTopLeft(drawStart.GetFloorIntX() + m_CornerRadius, drawStart.GetFloorIntY() + m_CornerRadius);
