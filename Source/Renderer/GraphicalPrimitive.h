@@ -5,6 +5,7 @@
 #include <array>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 namespace RTE {
 
@@ -43,6 +44,7 @@ namespace RTE {
 
 		Vector m_StartPos; //!< Start position of the primitive.
 		Vector m_EndPos; //!< End position of the primitive.
+		float m_DrawRadiusSquared{0.0f};
 		unsigned char m_Color = 0; //!< Color to draw this primitive with.
 		int m_Player = -1; //!< Player screen to draw this primitive on.
 		DrawBlendMode m_BlendMode = DrawBlendMode::NoBlend; //!< The blending mode that will be used when drawing this primitive.
@@ -55,6 +57,8 @@ namespace RTE {
 		/// @param targetPos Target position.
 		/// @param scenePos Position on scene.
 		Vector WrapCoordinates(Vector targetPos, const Vector& scenePos) const;
+
+		void DrawTiled(BITMAP* drawScreen, const Vector& targetPos);
 
 		/// Draws this primitive on provided bitmap.
 		/// @param drawScreen Bitmap to draw on.
@@ -87,6 +91,7 @@ namespace RTE {
 		LinePrimitive(int player, const Vector& startPos, const Vector& endPos, unsigned char color) {
 			m_StartPos = startPos;
 			m_EndPos = endPos;
+			m_DrawRadiusSquared = std::abs((m_StartPos - m_EndPos).GetSqrMagnitude());
 			m_Color = color;
 			m_Player = player;
 			m_Thickness = 1;
@@ -100,6 +105,7 @@ namespace RTE {
 		LinePrimitive(int player, const Vector& startPos, const Vector& endPos, float thickness, unsigned char color) {
 			m_StartPos = startPos;
 			m_EndPos = endPos;
+			m_DrawRadiusSquared = std::abs((m_StartPos - m_EndPos).GetSqrMagnitude());
 			m_Color = color;
 			m_Player = player;
 			m_Thickness = thickness;
@@ -135,6 +141,7 @@ namespace RTE {
 			m_StartPos = centerPos;
 			m_Color = color;
 			m_Player = player;
+			m_DrawRadiusSquared = (m_Radius + m_Thickness) * (m_Radius + m_Thickness);
 		}
 
 	private:
@@ -166,6 +173,7 @@ namespace RTE {
 			m_EndPos = endPos;
 			m_Color = color;
 			m_Player = player;
+			m_DrawRadiusSquared = std::max<float>({(startPos - guideA).GetSqrMagnitude(), (startPos - guideB).GetSqrMagnitude(), (startPos - endPos).GetSqrMagnitude()});
 		}
 
 	private:
@@ -190,6 +198,7 @@ namespace RTE {
 			m_EndPos = bottomRightPos;
 			m_Color = color;
 			m_Player = player;
+			m_DrawRadiusSquared = (m_EndPos - m_StartPos).GetSqrMagnitude();
 		}
 
 	private:
@@ -214,6 +223,7 @@ namespace RTE {
 			m_EndPos = bottomRightPos;
 			m_Color = color;
 			m_Player = player;
+			m_DrawRadiusSquared = (m_StartPos - m_EndPos).GetSqrMagnitude();
 		}
 
 	private:
@@ -243,6 +253,7 @@ namespace RTE {
 			m_EndPos = bottomRightPos;
 			m_Color = color;
 			m_Player = player;
+			m_DrawRadiusSquared = (m_EndPos - m_StartPos).GetSqrMagnitude();
 		}
 
 	private:

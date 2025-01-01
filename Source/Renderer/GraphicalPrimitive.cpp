@@ -30,29 +30,48 @@ const GraphicalPrimitive::PrimitiveType TextPrimitive::c_PrimitiveType = Primiti
 const GraphicalPrimitive::PrimitiveType BitmapPrimitive::c_PrimitiveType = PrimitiveType::Bitmap;
 
 Vector GraphicalPrimitive::WrapCoordinates(Vector targetPos, const Vector& scenePos) const {
-	Vector drawPos = scenePos;
+	return targetPos + scenePos;
+}
 
+void GraphicalPrimitive::DrawTiled(BITMAP* drawScreen, const Vector& targetPos) {
+	DrawLineV(-targetPos + Vector(-30, -30), -targetPos + Vector(30, 30), {53, 0, 0, 255});
+	DrawLineV(-targetPos + Vector(30, -30), -targetPos + Vector(-30, 30), {53, 0, 0, 255});
+
+	Vector tiledTarget{targetPos};
 	if (g_SceneMan.SceneWrapsX()) {
-		float sceneWidth = static_cast<float>(g_SceneMan.GetSceneWidth());
-		if (targetPos.m_X <= sceneWidth && targetPos.m_X > sceneWidth / 2) {
-			targetPos.m_X -= sceneWidth;
-		}
+		tiledTarget.m_X = std::fmodf(targetPos.m_X, g_SceneMan.GetSceneWidth());
 	}
-	drawPos.m_X -= targetPos.m_X;
-
 	if (g_SceneMan.SceneWrapsY()) {
-		float sceneHeight = static_cast<float>(g_SceneMan.GetSceneHeight());
-		if (targetPos.m_Y <= sceneHeight && targetPos.m_Y > sceneHeight / 2) {
-			targetPos.m_Y -= sceneHeight;
-		}
+		tiledTarget.m_Y = std::fmodf(targetPos.m_Y, g_SceneMan.GetSceneHeight());
 	}
-	drawPos.m_Y -= targetPos.m_Y;
-	return drawPos;
+	DrawLineV(-tiledTarget + Vector(-30, -30), -tiledTarget + Vector(30, 30), {53, 0, 0, 255});
+	DrawLineV(-tiledTarget + Vector(30, -30), -tiledTarget + Vector(-30, 30), {53, 0, 0, 255});
+
+	float bitmapWidth = g_SceneMan.GetSceneWidth();
+	float bitmapHeight = g_SceneMan.GetSceneHeight();
+	int areaToCoverX = drawScreen->w;
+	int areaToCoverY = drawScreen->h;
+
+	for (int tiledOffsetX = 0; tiledOffsetX < areaToCoverX;) {
+		float destX = tiledOffsetX - tiledTarget.m_X;
+
+		for (int tiledOffsetY = 0; tiledOffsetY < areaToCoverY;) {
+			float destY = tiledOffsetY - tiledTarget.m_Y;
+			Draw(drawScreen, Vector(destX, destY));
+			if (!g_SceneMan.SceneWrapsY()) {
+				break;
+			}
+			tiledOffsetY += bitmapHeight;
+		}
+		if (!g_SceneMan.SceneWrapsX()) {
+			break;
+		}
+		tiledOffsetX += bitmapWidth;
+	}
+	// Draw(drawScreen, targetPos);
 }
 
 void LinePrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
-	DrawLineV(targetPos + Vector(-30, -30), targetPos + Vector(30,30), {53, 0, 0, 255});
-	DrawLineV(targetPos + Vector(30, -30), targetPos + Vector(-30,30), {53, 0, 0, 255});
 	Vector drawStart = WrapCoordinates(targetPos, m_StartPos);
 	Vector drawEnd = WrapCoordinates(targetPos, m_EndPos);
 	DrawLineEx(drawStart, drawEnd, m_Thickness, {m_Color, 0, 0, 255});
