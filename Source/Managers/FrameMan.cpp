@@ -1040,7 +1040,39 @@ void FrameMan::DrawScreenFlash(int playerScreen, BITMAP* playerGUIBitmap) {
 			if (m_FlashedLastFrame[playerScreen]) {
 				m_FlashedLastFrame[playerScreen] = false;
 			} else {
-				rectfill(playerGUIBitmap, 0, 0, playerGUIBitmap->w, playerGUIBitmap->h, m_FlashScreenColor[playerScreen]);
+				rlZDepth(c_GuiDepth);
+				rlBegin(RL_QUADS);
+
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 50);
+				rlVertex2f(playerGUIBitmap->w * .25f, playerGUIBitmap->h * .25f);
+				rlVertex2f(playerGUIBitmap->w - playerGUIBitmap->w * .25f, playerGUIBitmap->h *0.25f);
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 255);
+				rlVertex2f(playerGUIBitmap->w, 0.0f);
+				rlVertex2f(0.0f, 0.0f);
+
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 50);
+				rlVertex2f(playerGUIBitmap->w * .25f, playerGUIBitmap->h - playerGUIBitmap->h * .25f);
+				rlVertex2f(playerGUIBitmap->w * .25f, playerGUIBitmap->h *0.25f);
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 255);
+				rlVertex2f(0.0f, 0.0f);
+				rlVertex2f(0.0f, playerGUIBitmap->h);
+
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 50);
+				rlVertex2f(playerGUIBitmap->w - playerGUIBitmap->w * .25f, playerGUIBitmap->h - playerGUIBitmap->h * .25f);
+				rlVertex2f(playerGUIBitmap->w * .25f, playerGUIBitmap->h - playerGUIBitmap->h * .25f);
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 255);
+				rlVertex2f(0.0f, playerGUIBitmap->h);
+				rlVertex2f(playerGUIBitmap->w, playerGUIBitmap->h);
+
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 50);
+				rlVertex2f(playerGUIBitmap->w - playerGUIBitmap->w * .25f, playerGUIBitmap->h * .25f);
+				rlVertex2f(playerGUIBitmap->w - playerGUIBitmap->w * .25f, playerGUIBitmap->h - playerGUIBitmap->h * .25f);
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 255);
+				rlVertex2f(playerGUIBitmap->w, playerGUIBitmap->h);
+				rlVertex2f(playerGUIBitmap->w, 0.0f);
+
+				rlEnd();
+				rlZDepth(c_DefaultDrawDepth);
 				m_FlashedLastFrame[playerScreen] = true;
 			}
 		}
