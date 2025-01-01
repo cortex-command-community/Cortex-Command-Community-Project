@@ -10,7 +10,6 @@ sources += files(
 'ContentFile.cpp',
 'Controller.cpp',
 'GenericSavedData.cpp',
-'GraphicalPrimitive.cpp',
 'Writer.cpp',
 'Box.cpp',
 'Entity.cpp',
