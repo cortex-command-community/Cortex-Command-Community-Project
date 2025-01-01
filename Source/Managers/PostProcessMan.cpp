@@ -363,6 +363,8 @@ void PostProcessMan::PostProcess() {
 	rlEnableColorBlend();
 	rlSetBlendFactorsSeparate(GL_ONE, GL_ONE_MINUS_SRC_COLOR, GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_FUNC_ADD, GL_FUNC_ADD);
 	rlSetBlendMode(RL_BLEND_CUSTOM_SEPARATE);
+	m_PostProcessFramebuffer->End();
+	m_PostProcessFramebuffer->Begin(false, g_FrameMan.GetZoom());
 
 	m_PostProcessShader->Begin();
 

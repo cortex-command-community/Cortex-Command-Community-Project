@@ -251,6 +251,9 @@ namespace RTE {
 		/// @param screenId The screen to set for.
 		void SetHudDisabled(bool value, int screenId = 0) { m_HUDDisabled[screenId] = value; }
 
+		float GetZoom() {return m_Zoom;}
+		void SetZoom(float zoom) {m_Zoom = zoom;}
+
 #pragma region Network Handling
 		/// Returns true if this manager is in multiplayer mode, storing the 8bpp backbuffer for network transmission.
 		/// @return True if in multiplayer mode.
@@ -441,6 +444,7 @@ namespace RTE {
 		std::unique_ptr<BITMAP, BitmapDeleter> m_NetworkBackBufferFinalGUI8[2][c_MaxScreenCount]; //!< Per-player allocated frame buffer to copy Intermediate before sending. Used to draw UI only.
 
 		std::shared_ptr<RenderTarget> m_BackBuffer; //!< Main render backbuffer.
+		float m_Zoom{1.0f};
 
 		Vector m_TargetPos[2][c_MaxScreenCount]; //!< Frame target position for network players.
 

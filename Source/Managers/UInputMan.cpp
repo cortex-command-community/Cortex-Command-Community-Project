@@ -914,6 +914,12 @@ void UInputMan::HandleSpecialInput() {
 			if (KeyPressed(SDLK_p)) {
 				g_PerformanceMan.ShowAdvancedPerformanceStats(!g_PerformanceMan.AdvancedPerformanceStatsEnabled());
 			}
+		} else if (KeyPressed(SDLK_PLUS)) {
+			g_FrameMan.SetZoom(g_FrameMan.GetZoom() + 0.1f);
+		} else if (KeyPressed(SDLK_MINUS)) {
+			g_FrameMan.SetZoom(g_FrameMan.GetZoom() - 0.1f);
+		} else if (KeyPressed(SDLK_EQUALS)) {
+			g_FrameMan.SetZoom(1.0f);
 		}
 	} else {
 		if (KeyPressed(SDLK_F1)) {
