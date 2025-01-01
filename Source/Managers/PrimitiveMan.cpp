@@ -251,7 +251,7 @@ void PrimitiveMan::DrawPrimitives(int player, BITMAP* targetBitmap, const Vector
 				}
 				lastBlendMode = DrawBlendMode::NoBlend;
 			}
-			primitive->Draw(targetBitmap, targetPos);
+			primitive->DrawTiled(targetBitmap, targetPos);
 		}
 	}
 	drawing_mode(DRAW_MODE_SOLID, nullptr, 0, 0);
