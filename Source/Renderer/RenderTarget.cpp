@@ -65,12 +65,11 @@ void RenderTarget::Begin(bool clear, float zoom) {
 	rlMatrixMode(RL_PROJECTION);
 	rlLoadIdentity();
 	rlOrtho(0.0f, m_Size.w, m_Size.h, 0.0f, c_NearDepth, c_FarDepth);
+	rlMatrixMode(RL_MODELVIEW);
+	rlLoadIdentity();
 	rlTranslatef(m_Size.w / 2, m_Size.h / 2, 0.0f);
 	rlScalef(zoom, zoom, 1.0f);
 	rlTranslatef(-m_Size.w / 2, -m_Size.h / 2, 0.0f);
-	rlMatrixMode(RL_MODELVIEW);
-	rlMatrixMode(RL_MODELVIEW);
-	rlLoadIdentity();
 
 	if (clear) {
 		rlClearScreenBuffers();
