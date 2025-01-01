@@ -751,6 +751,9 @@ void DrawRectangleGradientEx(Rectangle rec, RLColor topLeft, RLColor bottomLeft,
 // it implies flushing the current batch and changing draw mode to RL_LINES
 // but it solves another issue: https://github.com/raysan5/raylib/issues/3884
 void DrawRectangleLines(int posX, int posY, int width, int height, RLColor color) {
+	DrawRectangleLinesEx((Rectangle){(float)posX, (float)posY, (float)width, (float)height}, 1.0f, color);
+	/*
+	// DO NOT USE LINES MODE.
 	RLMatrix mat = rlGetMatrixModelview();
 	float zoomFactor = 0.5f / mat.m0;
 	rlBegin(RL_LINES);
@@ -767,7 +770,6 @@ void DrawRectangleLines(int posX, int posY, int width, int height, RLColor color
 	rlVertex2f((float)posX, (float)posY + (float)height + zoomFactor);
 	rlVertex2f((float)posX, (float)posY - zoomFactor);
 	rlEnd();
-	/*
 	// Previous implementation, it has issues... but it does not require view matrix...
 	#if defined(SUPPORT_QUADS_DRAW_MODE)
 	    DrawRectangle(posX, posY, width, 1, color);
