@@ -588,8 +588,9 @@ namespace RTE {
 		/// Whether a set of X, Y coordinates overlap us (in world space).
 		/// @param pixelX The given X coordinate, in world space.
 		/// @param pixelY The given Y coordinate, in world space.
+		/// @param validOnly Whether to return false if this MO isn't validly owned by MovableMan or not.
 		/// @return Whether the given coordinate overlap us.
-		virtual bool HitTestAtPixel(int pixelX, int pixelY) const { return false; }
+		virtual bool HitTestAtPixel(int pixelX, int pixelY, bool validOnly = true) const { return false; }
 
 		/// Shows whether this is or carries a specifically named object in its
 		/// inventory. Also looks through the inventories of potential passengers,

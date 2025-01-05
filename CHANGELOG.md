@@ -58,12 +58,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New hotkey system for `Actor` and `HeldDevice`.
 	Pressing a certain new hotkey will mark it as activated on `Actor` and `HeldDevice`, letting scripts make use of the new bindings easily.
-	`Enum` binding for `HeldDevice.HeldDeviceHotkeyType`: `PRIMARY = 0, AUXILIARY = 1, HELDDEVICEHOTKEYTYPECOUNT = 2`.  
-	`Enum` binding for `Actor.ActorHotkeyType`: `PRIMARY = 0, AUXILIARY = 1, ACTORHOTKEYTYPECOUNT = 2`. 
+	`Enum` binding for `HeldDevice.HeldDeviceHotkeyType`: `PRIMARYHOTKEY = 0, AUXILIARYHOTKEY = 1, HELDDEVICEHOTKEYTYPECOUNT = 2`.  
+	`Enum` binding for `Actor.ActorHotkeyType`: `PRIMARYHOTKEY = 0, AUXILIARYHOTKEY = 1, ACTORHOTKEYTYPECOUNT = 2`. 
 	Both `Actor` and `HeldDevice` have the following functions:
 	`HotkeyActionIsActivated(hotkeyType)` returns whether a certain hotkey action is being activated or not.
 	`ActivateHotkeyAction(hotkeyType)` activates a certain hotkey action.
 	`DeactivateHotkeyAction(hotkeyType)` deactivates a certain hotkey action.
+	
+- New `Controller` state `WEAPON_RELOADHELD`, which is true every frame reload input is held (as opposed to `WEAPON_RELOAD` which is only true once when pressed).
 
 - New `GAScripted` Lua script method `IsCompatibleScene(scene)` to allow Activities to generically decide which Scenes are eligible by returning a boolean value.
 	New `GAScripted` INI enumerating property `AddRequiredArea`, replacing Lua file scanning, to allow Activities to explicitly state which areas are strictly required.
@@ -96,6 +98,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Added `Material` Lua function `GetColorIndex()`, which returns the color index of the calling material.
 
 - New `ACraft` INI and Lua (R/W) property `CanEnterOrbit`, which determines whether a craft can enter orbit (and refund gold appropriately) or not. If false, default out-of-bounds deletion logic applies.
+
+- New `MovableMan` function `GetMOsAtPosition(posX, posY, ignoreTeam, getsHitByMOsOnly)` that will return an iterator with all the `MovableObject`s that intersect that exact position with their sprite.
+
+- New `SceneMan` function `CastAllMOsRay(startVector, rayVector, table ignoreMOIDs, ignoreTeam, ignoreMaterial, bool ignoreAllTerrain, int skip)` which returns an iterator with pointers to all the non-ignored MOs met along the ray.
 
 </details>
 
@@ -143,6 +149,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `MOSRotating` Lua function `AddWound` now additionally accepts the format `MOSRotating:AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit, bool isEntryWound, bool isExitWound)`, allowing modders to specify added wounds as entry- or exit wounds, for the purpose of not playing multiple burst sounds on the same frame. These new arguments are optional.
 
+- `SceneMan` function `CastFindMORay` now has an extra bool parameter `findChildMOIDs` that denotes whether it also triggers on child MOIDs or not, which defaults to true for the same default behavior as before.
+
+- `SceneMan` function `CastMORay` now can also accept a table of MOIDs instead of a single MOID, letting you ignore any arbitrary set of MOIDs.
+
+- Techion Laser Rifle now has a constant range rather than being dependent on game resolution.
+
 - Various performance improvements.
 
 </details>
@@ -172,6 +184,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed issue where MOSR `Gib`s, `AEmitter` or `PEmitter` `Emission`s, and MetaMan `Player`s were not correctly accessible from script.
 
 - Fixed a crash on launch when the `SupportedGameVersion` INI property was not set.
+
+- Fixed several issues with the way pie menus and aiming interacts between players, such as opening the pie menu always resetting the M&KB player's aim and pie selection, as well as another issue where the pie menu would fail to appear entirely for some players.
 
 </details>
 

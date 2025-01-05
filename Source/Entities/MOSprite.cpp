@@ -247,8 +247,8 @@ void MOSprite::Destroy(bool notInherited) {
 	Clear();
 }
 
-bool MOSprite::HitTestAtPixel(int pixelX, int pixelY) const {
-	if (!GetsHitByMOs() || GetRootParent()->GetTraveling()) {
+bool MOSprite::HitTestAtPixel(int pixelX, int pixelY, bool validOnly) const {
+	if (validOnly && (!GetsHitByMOs() || GetRootParent()->GetTraveling())) {
 		return false;
 	}
 
