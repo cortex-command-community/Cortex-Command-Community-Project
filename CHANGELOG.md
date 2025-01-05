@@ -85,9 +85,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	```
 	GetSpritePixelIndex(int x, int y, int whichFrame) - Returns the color index of the pixel at the given coordinate on the given frame of the sprite ((0, 0) is the upper left corner!)
 
-	SetSpritePixelIndex(int x, int y, int whichFrame, int colorIndex, int ignoreIndex, bool invert) - Sets the color of the pixel at the given coordinate on thegiven frame of the sprite, skipping if the pixel has same color index as given in ignoreIndex. If invert is set to true, only pixels of that color index are set.
+	SetSpritePixelIndex(int x, int y, int whichFrame, int colorIndex, int ignoreIndex, bool invert) - Sets the color of the pixel at the given coordinate on the given frame of the sprite, skipping if the pixel has same color index as given in "ignoreIndex". If "invert" is set to true, only pixels of that color index are set.
 
-	GetAllSpritePixelPositions(const Vector& origin, float angle, bool hflipped, int whichFrame, int ignoreIndex, bool invert, bool includeChildren) - Returns a list of vectors pointing to the absolute positions of all pixels in the given frame of the sprite, rotated to match angle, flipped to match hflipped and positioned around origin, providing a full silhouette of the MOSprite. IgnoreIndex and invert are like above, include children denotes whether or not to include all children of the MOSprite (no effect if not at least an MOSRotating).
+	GetAllSpritePixelPositions(const Vector& origin, float angle, bool hflipped, int whichFrame, int ignoreIndex, bool invert, bool includeChildren) - Returns a list of vectors pointing to the absolute positions of all pixels in the given frame of the sprite, rotated to match "angle", flipped to match "hflipped" and positioned around "origin", providing a full silhouette of the MOSprite. "IgnoreIndex" and "invert" are like above, "includeChildren" denotes whether or not to include all children of the MOSprite (no effect if not at least an MOSRotating).
 
 	GetAllVisibleSpritePixelPositions(bool includeChildren) - Simplified version of the above, returning a list of absolute positions of the visible pixels of the current frame of the sprite as it is currently drawn.
 
