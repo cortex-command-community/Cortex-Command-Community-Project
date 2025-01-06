@@ -33,6 +33,7 @@
 using namespace RTE;
 
 void BitmapDeleter::operator()(BITMAP* bitmap) const { destroy_bitmap(bitmap); }
+void SurfaceDeleter::operator()(SDL_Surface* surface) const { SDL_FreeSurface(surface); }
 
 const std::array<std::function<void(int r, int g, int b, int a)>, DrawBlendMode::BlendModeCount> FrameMan::c_BlenderSetterFunctions = {
     nullptr, // NoBlend obviously has no blender, but we want to keep the indices matching with the enum.
@@ -183,7 +184,9 @@ int FrameMan::CreateBackBuffers() {
 		m_PlayerScreen = m_BackBuffer;
 	}
 
-	m_ScreenDumpBuffer = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(24, m_BackBuffer32->w, m_BackBuffer32->h));
+	m_ScreenDumpBuffer = std::unique_ptr<SDL_Surface, SurfaceDeleter>(
+		SDL_CreateRGBSurfaceWithFormat(0, m_BackBuffer8->w, m_BackBuffer8->h, 24, SDL_PIXELFORMAT_RGB24)
+	);
 
 	return 0;
 }
@@ -519,6 +522,7 @@ int FrameMan::SaveBitmap(SaveBitmapMode modeToSave, const std::string& nameBase,
 	if (nameBase.empty() || nameBase.size() <= 0) {
 		return -1;
 	}
+	set_palette(m_DefaultPalette);
 
 	// TODO: Remove this once GCC13 is released and switched to. std::format and std::chrono::time_zone are not part of latest libstdc++.
 #if defined(__GNUC__) && __GNUC__ < 13
@@ -530,7 +534,7 @@ int FrameMan::SaveBitmap(SaveBitmapMode modeToSave, const std::string& nameBase,
 
 	std::array<char, 128> fullFileNameBuffer = {};
 	// We can't get sub-second precision from timeBuffer so we'll append absolute time to not overwrite the same file when dumping multiple times per second.
-	std::snprintf(fullFileNameBuffer.data(), sizeof(fullFileNameBuffer), "%s/%s_%s.%zi.png", System::GetScreenshotDirectory().c_str(), nameBase.c_str(), formattedTimeAndDate.data(), g_TimerMan.GetAbsoluteTime());
+	std::snprintf(fullFileNameBuffer.data(), sizeof(fullFileNameBuffer), "%s/%s_%s.%lli.png", System::GetScreenshotDirectory().c_str(), nameBase.c_str(), formattedTimeAndDate.data(), g_TimerMan.GetAbsoluteTime());
 
 	std::string fullFileName(fullFileNameBuffer.data());
 #else
@@ -547,23 +551,21 @@ int FrameMan::SaveBitmap(SaveBitmapMode modeToSave, const std::string& nameBase,
 			}
 			break;
 		case ScreenDump:
-			if (m_BackBuffer32 && m_ScreenDumpBuffer) {
+			if (m_ScreenDumpBuffer) {
 				SaveScreenToBitmap();
 
 				// Make a copy of the buffer because it may be overwritten mid thread and everything will be on fire.
-				BITMAP* outputBitmap = create_bitmap_ex(bitmap_color_depth(m_ScreenDumpBuffer.get()), m_ScreenDumpBuffer->w, m_ScreenDumpBuffer->h);
-				stretch_blit(m_ScreenDumpBuffer.get(), outputBitmap, 0, 0, m_ScreenDumpBuffer->w, m_ScreenDumpBuffer->h, 0, 0, outputBitmap->w, outputBitmap->h);
-
-				auto saveScreenDump = [fullFileName](BITMAP* bitmapToSaveCopy) {
+				SDL_Surface* saveSurface = SDL_ConvertSurfaceFormat(m_ScreenDumpBuffer.get(), m_ScreenDumpBuffer->format->format, 0);
+				auto saveScreenDump = [fullFileName](SDL_Surface* bitmapToSaveCopy) {
 					// nullptr for the PALETTE parameter here because we're saving a 24bpp file and it's irrelevant.
-					if (save_png(fullFileName.c_str(), bitmapToSaveCopy, nullptr) == 0) {
+					if (IMG_SavePNG(bitmapToSaveCopy, fullFileName.c_str()) == 0) {
 						g_ConsoleMan.PrintString("SYSTEM: Screen was dumped to: " + fullFileName);
 					} else {
 						g_ConsoleMan.PrintString("ERROR: Unable to save bitmap to: " + fullFileName);
 					}
-					destroy_bitmap(bitmapToSaveCopy);
+					//SDL_FreeSurface(bitmapToSaveCopy);
 				};
-				std::thread saveThread(saveScreenDump, outputBitmap);
+				std::thread saveThread(saveScreenDump, saveSurface);
 				saveThread.detach();
 
 				saveSuccess = true;
@@ -591,12 +593,21 @@ int FrameMan::SaveBitmap(SaveBitmapMode modeToSave, const std::string& nameBase,
 
 				BITMAP* depthConvertBitmap = create_bitmap_ex(24, m_WorldDumpBuffer->w, m_WorldDumpBuffer->h);
 				blit(m_WorldDumpBuffer.get(), depthConvertBitmap, 0, 0, 0, 0, m_WorldDumpBuffer->w, m_WorldDumpBuffer->h);
+				SDL_Surface* saveSurface = SDL_CreateRGBSurfaceWithFormatFrom(
+					depthConvertBitmap->dat,
+					depthConvertBitmap->w,
+					depthConvertBitmap->h,
+					24,
+					3,
+					SDL_PIXELFORMAT_RGB24
+				);
 
-				if (save_png(fullFileName.c_str(), depthConvertBitmap, nullptr) == 0) {
+				if (IMG_SavePNG(saveSurface, fullFileName.c_str()) == 0) {
 					g_ConsoleMan.PrintString("SYSTEM: World was dumped to: " + fullFileName);
 					saveSuccess = true;
 				}
 				destroy_bitmap(depthConvertBitmap);
+				//SDL_FreeSurface(saveSurface);
 			}
 			break;
 		default:
@@ -616,28 +627,27 @@ void FrameMan::SaveScreenToBitmap() {
 		return;
 	}
 
+	glPixelStorei(GL_PACK_ALIGNMENT, 4);
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_WindowMan.GetScreenBuffer()->GetColorTexture().id));
-	GL_CHECK(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, m_ScreenDumpBuffer->line[0]));
+	GL_CHECK(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, m_ScreenDumpBuffer->pixels));
+
+	// Flip the pixels
+	std::vector<char*> temp(m_ScreenDumpBuffer->pitch);
+	char* pixels = reinterpret_cast<char*>(m_ScreenDumpBuffer->pixels);
+	ssize_t pitch = m_ScreenDumpBuffer->pitch;
+	for (ssize_t y = 0; y < m_ScreenDumpBuffer->h / 2; ++y) {
+		std::swap_ranges(pixels + y * pitch, pixels + (y + 1) * pitch, pixels + (m_ScreenDumpBuffer->h - y - 1) * pitch);
+	}
 }
 
 int FrameMan::SaveIndexedPNG(const char* fileName, BITMAP* bitmapToSave) const {
-	// nullptr for the PALETTE parameter here because the bitmap is 32bpp and whatever we index it with will end up wrong anyway.
-	save_png(fileName, bitmapToSave, nullptr);
-
-	int lastColorConversionMode = get_color_conversion();
-	set_color_conversion(COLORCONV_REDUCE_TO_256);
-	// nullptr for the PALETTE parameter here because we don't need the bad palette from it and don't want it to overwrite anything.
-	BITMAP* tempLoadBitmap = load_bitmap(fileName, nullptr);
-	std::remove(fileName);
-
-	BITMAP* tempConvertingBitmap = create_bitmap_ex(8, bitmapToSave->w, bitmapToSave->h);
-	blit(tempLoadBitmap, tempConvertingBitmap, 0, 0, 0, 0, tempConvertingBitmap->w, tempConvertingBitmap->h);
-
-	int saveResult = save_png(fileName, tempConvertingBitmap, m_Palette);
-
-	set_color_conversion(lastColorConversionMode);
-	destroy_bitmap(tempLoadBitmap);
-	destroy_bitmap(tempConvertingBitmap);
+	set_palette(m_DefaultPalette);
+	SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom(bitmapToSave->dat, bitmapToSave->w, bitmapToSave->h, bitmap_color_depth(bitmapToSave), bitmap_color_depth(bitmapToSave)/8, SDL_PIXELFORMAT_INDEX8);
+	SDL_Palette* pal = ContentFile::DefaultPaletteToSDL();
+	SDL_SetSurfacePalette(surface, pal);
+	int saveResult = IMG_SavePNG(surface, fileName);
+	SDL_FreePalette(pal);
+	SDL_FreeSurface(surface);
 
 	return saveResult;
 }

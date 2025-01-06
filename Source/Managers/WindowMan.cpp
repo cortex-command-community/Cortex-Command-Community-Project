@@ -685,8 +685,6 @@ void WindowMan::ClearBackbuffer(bool clearFrameMan) {
 	if (clearFrameMan) {
 		g_FrameMan.ClearBackBuffer32();
 	}
-	m_ScreenBuffer->Begin(true);
-	m_ScreenBuffer->End();
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
 	GL_CHECK(glActiveTexture(GL_TEXTURE1));
@@ -696,7 +694,7 @@ void WindowMan::ClearBackbuffer(bool clearFrameMan) {
 
 void WindowMan::UploadFrame() {
 
-	m_ScreenBuffer->Begin(false);
+	m_ScreenBuffer->Begin(true);
 
 	rlDisableDepthTest();
 	rlDisableColorBlend();
