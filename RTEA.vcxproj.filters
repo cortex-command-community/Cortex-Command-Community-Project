@@ -417,18 +417,6 @@
     <ClInclude Include="Source\Entities\PEmitter.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Managers\NetworkClient.h">
-      <Filter>Managers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Managers\NetworkServer.h">
-      <Filter>Managers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Activities\MultiplayerGame.h">
-      <Filter>Activities</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Activities\MultiplayerServerLobby.h">
-      <Filter>Activities</Filter>
-    </ClInclude>
     <ClInclude Include="Source\System\StandardIncludes.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -1000,18 +988,6 @@
     </ClCompile>
     <ClCompile Include="Source\Entities\PEmitter.cpp">
       <Filter>Entities</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Managers\NetworkClient.cpp">
-      <Filter>Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Managers\NetworkServer.cpp">
-      <Filter>Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Activities\MultiplayerGame.cpp">
-      <Filter>Activities</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Activities\MultiplayerServerLobby.cpp">
-      <Filter>Activities</Filter>
     </ClCompile>
     <ClCompile Include="Source\System\StandardIncludes.cpp">
       <Filter>System</Filter>

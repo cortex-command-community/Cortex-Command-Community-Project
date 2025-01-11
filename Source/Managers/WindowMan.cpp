@@ -620,9 +620,6 @@ void WindowMan::DisplaySwitchOut() const {
 }
 
 void WindowMan::QueueWindowEvent(const SDL_Event& windowEvent) {
-	if (g_UInputMan.IsInMultiplayerMode()) {
-		return;
-	}
 	m_EventQueue.emplace_back(windowEvent);
 }
 

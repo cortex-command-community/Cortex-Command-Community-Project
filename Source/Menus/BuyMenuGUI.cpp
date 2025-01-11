@@ -145,11 +145,7 @@ int BuyMenuGUI::Create(Controller* pController) {
 	}
 
 	// Stretch the invisible root box to fill the screen
-	if (g_FrameMan.IsInMultiplayerMode()) {
-		dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("base"))->SetSize(g_FrameMan.GetPlayerFrameBufferWidth(pController->GetPlayer()), g_FrameMan.GetPlayerFrameBufferHeight(pController->GetPlayer()));
-	} else {
-		dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("base"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
-	}
+	dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("base"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
 
 	// Make sure we have convenient points to teh containing GUI colleciton boxes that we will manipulate the positions of
 	if (!m_pParentBox) {
@@ -211,10 +207,10 @@ int BuyMenuGUI::Create(Controller* pController) {
 	m_pSaveButton->SetVisible(false);
 	m_pClearButton->SetVisible(false);
 
-	// Stretch buy menu if in multiplayer mode
-	if (g_FrameMan.IsInMultiplayerMode()) {
-		int stretchAmount = g_FrameMan.GetPlayerFrameBufferHeight(pController->GetPlayer()) / 2;
+	// If we're not split screen horizontally, then stretch out the layout for all the relevant controls
+	int stretchAmount = g_WindowMan.GetResY() / 2;
 
+	if (!g_FrameMan.GetHSplit()) {
 		m_pParentBox->SetSize(m_pParentBox->GetWidth(), m_pParentBox->GetHeight() + stretchAmount);
 		m_pShopList->SetSize(m_pShopList->GetWidth(), m_pShopList->GetHeight() + stretchAmount);
 		m_pCartList->SetSize(m_pCartList->GetWidth(), m_pCartList->GetHeight() + stretchAmount);
@@ -225,22 +221,6 @@ int BuyMenuGUI::Create(Controller* pController) {
 
 		m_pCostLabel->SetPositionAbs(m_pCostLabel->GetXPos(), m_pCostLabel->GetYPos() + stretchAmount);
 		m_pBuyButton->SetPositionAbs(m_pBuyButton->GetXPos(), m_pBuyButton->GetYPos() + stretchAmount);
-	} else {
-		// If we're not split screen horizontally, then stretch out the layout for all the relevant controls
-		int stretchAmount = g_WindowMan.GetResY() / 2;
-
-		if (!g_FrameMan.GetHSplit()) {
-			m_pParentBox->SetSize(m_pParentBox->GetWidth(), m_pParentBox->GetHeight() + stretchAmount);
-			m_pShopList->SetSize(m_pShopList->GetWidth(), m_pShopList->GetHeight() + stretchAmount);
-			m_pCartList->SetSize(m_pCartList->GetWidth(), m_pCartList->GetHeight() + stretchAmount);
-			m_pCraftLabel->SetPositionAbs(m_pCraftLabel->GetXPos(), m_pCraftLabel->GetYPos() + stretchAmount);
-			m_pCraftBox->SetPositionAbs(m_pCraftBox->GetXPos(), m_pCraftBox->GetYPos() + stretchAmount);
-
-			m_pCraftCollectionBox->SetPositionAbs(m_pCraftCollectionBox->GetXPos(), m_pCraftCollectionBox->GetYPos() + stretchAmount);
-
-			m_pCostLabel->SetPositionAbs(m_pCostLabel->GetXPos(), m_pCostLabel->GetYPos() + stretchAmount);
-			m_pBuyButton->SetPositionAbs(m_pBuyButton->GetXPos(), m_pBuyButton->GetYPos() + stretchAmount);
-		}
 	}
 
 	m_pShopList->SetAlternateDrawMode(true);
@@ -477,36 +457,19 @@ bool BuyMenuGUI::SaveAllLoadoutsToFile() {
 
 void BuyMenuGUI::SetEnabled(bool enable) {
 	if (enable && m_MenuEnabled != ENABLED && m_MenuEnabled != ENABLING) {
-		if (g_FrameMan.IsInMultiplayerMode()) {
-			// If we're not split screen horizontally, then stretch out the layout for all the relevant controls
-			int stretchAmount = g_FrameMan.GetPlayerFrameBufferHeight(m_pController->GetPlayer()) - m_pParentBox->GetHeight();
-			if (stretchAmount != 0) {
-				m_pParentBox->SetSize(m_pParentBox->GetWidth(), m_pParentBox->GetHeight() + stretchAmount);
-				m_pShopList->SetSize(m_pShopList->GetWidth(), m_pShopList->GetHeight() + stretchAmount);
-				m_pCartList->SetSize(m_pCartList->GetWidth(), m_pCartList->GetHeight() + stretchAmount);
-				m_pCraftLabel->SetPositionAbs(m_pCraftLabel->GetXPos(), m_pCraftLabel->GetYPos() + stretchAmount);
-				m_pCraftBox->SetPositionAbs(m_pCraftBox->GetXPos(), m_pCraftBox->GetYPos() + stretchAmount);
+		// If we're not split screen horizontally, then stretch out the layout for all the relevant controls
+		int stretchAmount = g_FrameMan.GetPlayerScreenHeight() - m_pParentBox->GetHeight();
+		if (stretchAmount != 0) {
+			m_pParentBox->SetSize(m_pParentBox->GetWidth(), m_pParentBox->GetHeight() + stretchAmount);
+			m_pShopList->SetSize(m_pShopList->GetWidth(), m_pShopList->GetHeight() + stretchAmount);
+			m_pCartList->SetSize(m_pCartList->GetWidth(), m_pCartList->GetHeight() + stretchAmount);
+			m_pCraftLabel->SetPositionAbs(m_pCraftLabel->GetXPos(), m_pCraftLabel->GetYPos() + stretchAmount);
+			m_pCraftBox->SetPositionAbs(m_pCraftBox->GetXPos(), m_pCraftBox->GetYPos() + stretchAmount);
 
-				m_pCraftCollectionBox->SetPositionAbs(m_pCraftCollectionBox->GetXPos(), m_pCraftCollectionBox->GetYPos() + stretchAmount);
+			m_pCraftCollectionBox->SetPositionAbs(m_pCraftCollectionBox->GetXPos(), m_pCraftCollectionBox->GetYPos() + stretchAmount);
 
-				m_pCostLabel->SetPositionAbs(m_pCostLabel->GetXPos(), m_pCostLabel->GetYPos() + stretchAmount);
-				m_pBuyButton->SetPositionAbs(m_pBuyButton->GetXPos(), m_pBuyButton->GetYPos() + stretchAmount);
-			}
-		} else {
-			// If we're not split screen horizontally, then stretch out the layout for all the relevant controls
-			int stretchAmount = g_FrameMan.GetPlayerScreenHeight() - m_pParentBox->GetHeight();
-			if (stretchAmount != 0) {
-				m_pParentBox->SetSize(m_pParentBox->GetWidth(), m_pParentBox->GetHeight() + stretchAmount);
-				m_pShopList->SetSize(m_pShopList->GetWidth(), m_pShopList->GetHeight() + stretchAmount);
-				m_pCartList->SetSize(m_pCartList->GetWidth(), m_pCartList->GetHeight() + stretchAmount);
-				m_pCraftLabel->SetPositionAbs(m_pCraftLabel->GetXPos(), m_pCraftLabel->GetYPos() + stretchAmount);
-				m_pCraftBox->SetPositionAbs(m_pCraftBox->GetXPos(), m_pCraftBox->GetYPos() + stretchAmount);
-
-				m_pCraftCollectionBox->SetPositionAbs(m_pCraftCollectionBox->GetXPos(), m_pCraftCollectionBox->GetYPos() + stretchAmount);
-
-				m_pCostLabel->SetPositionAbs(m_pCostLabel->GetXPos(), m_pCostLabel->GetYPos() + stretchAmount);
-				m_pBuyButton->SetPositionAbs(m_pBuyButton->GetXPos(), m_pBuyButton->GetYPos() + stretchAmount);
-			}
+			m_pCostLabel->SetPositionAbs(m_pCostLabel->GetXPos(), m_pCostLabel->GetYPos() + stretchAmount);
+			m_pBuyButton->SetPositionAbs(m_pBuyButton->GetXPos(), m_pBuyButton->GetYPos() + stretchAmount);
 		}
 
 		m_MenuEnabled = ENABLING;
