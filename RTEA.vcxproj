@@ -810,8 +810,6 @@
     <ClInclude Include="Source\System\Semver200\semver200.h" />
     <ClInclude Include="Source\System\Semver200\version.h" />
     <ClInclude Include="Source\System\SpatialPartitionGrid.h" />
-    <ClInclude Include="Source\System\RTEStackTrace.h" />
-    <ClInclude Include="Source\System\StackWalker\StackWalker.h" />
     <ClInclude Include="Source\System\StandardIncludes.h" />
     <ClInclude Include="Source\System\Box.h" />
     <ClInclude Include="Source\System\Color.h" />
@@ -1330,8 +1328,6 @@
     <ClCompile Include="Source\System\Semver200\Semver200_parser.cpp" />
     <ClCompile Include="Source\System\Serializable.cpp" />
     <ClCompile Include="Source\System\SpatialPartitionGrid.cpp" />
-    <ClCompile Include="Source\System\RTEStackTrace.cpp" />
-    <ClCompile Include="Source\System\StackWalker\StackWalker.cpp" />
     <ClCompile Include="Source\System\StandardIncludes.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>StandardIncludes.h</PrecompiledHeaderFile>

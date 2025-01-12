@@ -11,7 +11,6 @@
 #ifdef _WIN32
 #include "Windows.h"
 #include "DbgHelp.h"
-#include "RTEStackTrace.h"
 #endif
 
 #include <array>
@@ -30,11 +29,11 @@
 #include <sys/utsname.h>
 #include <fstream>
 #include <filesystem>
-#include "backward/backward.hpp"
 #elif defined(__APPLE__) && defined(__MACH__)
 #include <sys/sysctl.h>
-#include "backward/backward.hpp"
 #endif
+
+#include "backward/backward.hpp"
 
 
 using namespace RTE;
@@ -163,9 +162,13 @@ static LONG WINAPI RTEWindowsExceptionHandler([[maybe_unused]] EXCEPTION_POINTER
 	exceptionDescription << getExceptionDescriptionFromCode(exceptionCode) << " at address 0x" << std::uppercase << std::hex << exceptionAddress << ".\n\n"
 	                     << symbolNameAtAddress << std::endl;
 
-	RTEStackTrace stackTrace;
+	backward::StackTrace st;
+	st.load_here(32, exceptPtr->ContextRecord);
+	backward::Printer printer;
+	std::ostringstream stack;
+	printer.print(st, stack);
 
-	RTEError::UnhandledExceptionFunc(exceptionDescription.str(), stackTrace.GetCallStackAsString(processHandle, exceptPtr->ContextRecord));
+	RTEError::UnhandledExceptionFunc(exceptionDescription.str(), stack.str());
 	return EXCEPTION_EXECUTE_HANDLER;
 #endif
 }
@@ -350,17 +353,12 @@ void RTEError::AbortFunc(const std::string& description, const std::source_locat
 
 		std::string callstack = "";
 
-#ifdef _WIN32
-		RTEStackTrace stackTrace;
-		callstack += ("\n\n" + stackTrace.GetCallStackAsString());
-#else
 		backward::StackTrace st;
 		st.load_here();
 		backward::Printer printer;
 		std::ostringstream stack;
 		printer.print(st, stack);
 		callstack = stack.str();
-#endif
 
 		std::string consoleSaveMsg;
 		if (!callstack.empty()) {
