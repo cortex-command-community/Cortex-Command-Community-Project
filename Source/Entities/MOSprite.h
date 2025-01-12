@@ -90,6 +90,48 @@ namespace RTE {
 		/// Ownership is NOT transferred!
 		BITMAP* GetSpriteFrame(unsigned int whichFrame = 0) const { return (whichFrame < m_FrameCount) ? m_aSprite[whichFrame] : 0; }
 
+		/// Gets the color index of the pixel at position (X, Y) in the sprite bitmap
+		/// @param x X coordinate on the bitmap of the pixel to get.
+		/// @param y Y coordinate on the bitmap of the pixel to get.
+		/// @param whichFrame Which frame of the sprite sequence to check.
+		/// @return Color index of the indicated pixel.
+		int GetSpritePixelIndex(int x, int y, int whichFrame = 0) const;
+
+		/// Returns a list of vectors pointing to all matching pixels of the given frame in the sprite, accounting for flipping, rotation and scale.
+		/// @param origin The absolute position around which the vectors are centered.
+		/// @param angle The angle at which the sprite is rotated.
+		/// @param hflipped Whether or not the sprite is flipped horizontally.
+		/// @param whichFrame Which frame of the sprite sequence to check.
+		/// @param ignoreIndex Which color index to ignore when checking; set below 0 to include everything.
+		/// @param invert Whether or not to invert the above check so it ONLY counts that index.
+		/// @return List of vectors pointing to all visible pixels of the given frame in the sprite.
+		std::vector<Vector>* GetAllSpritePixelPositions(const Vector& origin, float angle, bool hflipped, int whichFrame, int ignoreIndex, bool invert, bool includeChildren);
+
+		/// Returns a list of vectors pointing to all visible pixels of the given frame in the sprite, accounting for flipping, rotation and scale.
+		/// @return List of vectors pointing to all visible pixels of the given frame in the sprite.
+		std::vector<Vector>* GetAllVisibleSpritePixelPositions(bool includeChildren) { return GetAllSpritePixelPositions(m_Pos, m_Rotation.GetRadAngle(), m_HFlipped, m_Frame, 0, false, includeChildren); };
+
+		/// Sets the color index of the pixel at position (X, Y) in the sprite bitmap
+		/// @param x X coordinate on the bitmap of the pixel to set.
+		/// @param y Y coordinate on the bitmap of the pixel to set.
+		/// @param whichFrame Which frame of the sprite sequence to affect.
+		/// @param colorIndex Desired color index of the indicated pixel.
+		/// @param ignoreIndex Avoid setting pixel colour if it has this color index; set below 0 to disable.
+		/// @param invert Whether or not to invert the ignoreIndex so it ONLY colors that index.
+		/// @return Whether or not the pixel index was successfully set.
+		bool SetSpritePixelIndex(int x, int y, int whichFrame, int colorIndex, int ignoreIndex, bool invert);
+
+		/// Sets the color index of all matching pixels in the sprite bitmap.
+		/// @param whichFrame Which frame of the sprite sequence to affect.
+		/// @param colorIndex Desired color index of the pixels.
+		/// @param ignoreIndex Avoid setting pixel colour if it has this color index; set below 0 to disable.
+		/// @param invert Whether or not to invert the ignoreIndex so it ONLY colors that index.
+		void SetAllSpritePixelIndexes(int whichFrame, int colorIndex, int ignoreIndex, bool invert);
+
+		/// Sets the color index of all visible pixels in the sprite bitmap.
+		/// @param colorIndex Desired color index of the pixels.
+		void SetAllVisibleSpritePixelIndexes(int colorIndex) { SetAllSpritePixelIndexes(m_Frame, colorIndex, 0, false); };
+
 		/// Gets the width of the bitmap of this MOSprite
 		/// @return Sprite width if loaded.
 		int GetSpriteWidth() const { return m_aSprite[0] ? m_aSprite[0]->w : 0; }
@@ -342,6 +384,8 @@ namespace RTE {
 		const AEmitter* m_pEntryWound;
 		// Exit wound template
 		const AEmitter* m_pExitWound;
+		// Whether or not the sprite has been modified
+		bool m_SpriteModified;
 
 		/// Private member variable and method declarations
 	private:
