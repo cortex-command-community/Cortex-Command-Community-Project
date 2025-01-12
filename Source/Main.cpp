@@ -56,6 +56,10 @@
 #include "RenderTarget.h"
 #include "tracy/Tracy.hpp"
 
+#ifdef _WIN32
+#include "windows.h"
+#endif
+
 extern "C" {
 FILE __iob_func[3] = {*stdin, *stdout, *stderr};
 }
