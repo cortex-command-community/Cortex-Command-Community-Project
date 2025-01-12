@@ -794,6 +794,7 @@
     <ClInclude Include="Source\System\AllegroTools.h" />
     <ClInclude Include="Source\System\Atom.h" />
     <ClInclude Include="Source\System\Base64\base64.h" />
+    <ClInclude Include="Source\System\backward\backward.hpp" />
     <ClInclude Include="Source\System\Constants.h" />
     <ClInclude Include="Source\System\Controller.h" />
     <ClInclude Include="Source\System\Entity.h" />
