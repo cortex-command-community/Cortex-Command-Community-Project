@@ -774,7 +774,9 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Material) {
 	    .property("SettleMaterial", &Material::GetSettleMaterial)
 	    .property("SpawnMaterial", &Material::GetSpawnMaterial)
 	    .property("TransformsInto", &Material::GetSpawnMaterial)
-	    .property("IsScrap", &Material::IsScrap);
+	    .property("IsScrap", &Material::IsScrap)
+
+	    .def("GetColorIndex", &Material::GetColorIndex);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MetaPlayer) {
@@ -836,6 +838,12 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSprite) {
 	    .def("SetExitWound", &MOSprite::SetExitWound)
 	    .def("GetEntryWoundPresetName", &MOSprite::GetEntryWoundPresetName)
 	    .def("GetExitWoundPresetName", &MOSprite::GetExitWoundPresetName)
+	    .def("GetSpritePixelIndex", &MOSprite::GetSpritePixelIndex)
+	    .def("SetSpritePixelIndex", &MOSprite::SetSpritePixelIndex)
+	    .def("GetAllSpritePixelPositions", &MOSprite::GetAllSpritePixelPositions, luabind::return_stl_iterator)
+	    .def("GetAllVisibleSpritePixelPositions", &MOSprite::GetAllVisibleSpritePixelPositions, luabind::return_stl_iterator)
+	    .def("SetAllSpritePixelIndexes", &MOSprite::SetAllSpritePixelIndexes)
+	    .def("SetAllVisibleSpritePixelIndexes", &MOSprite::SetAllVisibleSpritePixelIndexes)
 
 	    .enum_("SpriteAnimMode")[luabind::value("NOANIM", SpriteAnimMode::NOANIM),
 	                             luabind::value("ALWAYSLOOP", SpriteAnimMode::ALWAYSLOOP),
