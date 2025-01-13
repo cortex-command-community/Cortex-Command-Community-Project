@@ -776,6 +776,9 @@ void HDFirearm::Update() {
 						}
 					}
 
+					// Assign the HDFIrearm as this particle's ParentEmitter
+					pParticle->SetParentEmitterId(this->m_MOID);
+
 					// Set the fired particle to not hit this HeldDevice's parent, if applicable
 					if (m_FireIgnoresThis)
 						pParticle->SetWhichMOToNotHit(this, 1.0f);

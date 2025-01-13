@@ -77,6 +77,7 @@ void MovableObject::Clear() {
 	m_ToSettle = false;
 	m_ToDelete = false;
 	m_HUDVisible = true;
+	m_ParentEmitterId = g_NoMOID;
 	m_IsTraveling = false;
 	m_AllLoadedScripts.clear();
 	m_FunctionsAndScripts.clear();
@@ -222,6 +223,7 @@ int MovableObject::Create(const MovableObject& reference) {
 	m_MissionCritical = reference.m_MissionCritical;
 	m_CanBeSquished = reference.m_CanBeSquished;
 	m_HUDVisible = reference.m_HUDVisible;
+	m_ParentEmitterId = reference.m_ParentEmitterId;
 	m_PostEffectEnabled = reference.m_PostEffectEnabled;
 
 	m_ForceIntoMasterLuaState = reference.m_ForceIntoMasterLuaState;

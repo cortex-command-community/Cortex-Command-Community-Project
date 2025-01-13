@@ -723,9 +723,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HeldDevice) {
 	    .def("RemovePickupableByPresetName", &HeldDevice::RemovePickupableByPresetName)
 
 	    .enum_("HeldDeviceHotkeyType")[luabind::value("PRIMARYHOTKEY", HeldDeviceHotkeyType::PRIMARYHOTKEY),
-	                         luabind::value("AUXILIARYHOTKEY", HeldDeviceHotkeyType::AUXILIARYHOTKEY),
-	                         luabind::value("HELDDEVICEHOTKEYTYPECOUNT", HeldDeviceHotkeyType::HELDDEVICEHOTKEYTYPECOUNT)];
-	
+	                                   luabind::value("AUXILIARYHOTKEY", HeldDeviceHotkeyType::AUXILIARYHOTKEY),
+	                                   luabind::value("HELDDEVICEHOTKEYTYPECOUNT", HeldDeviceHotkeyType::HELDDEVICEHOTKEYTYPECOUNT)];
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Leg) {
@@ -955,6 +954,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	    .property("ToDelete", &MovableObject::ToDelete, &MovableObject::SetToDelete)
 	    .property("MissionCritical", &MovableObject::IsMissionCritical, &MovableObject::SetMissionCritical)
 	    .property("HUDVisible", &MovableObject::GetHUDVisible, &MovableObject::SetHUDVisible)
+	    .property("ParentEmitterId", &MovableObject::GetParentEmitterId, &MovableObject::SetParentEmitterId)
 	    .property("PinStrength", &MovableObject::GetPinStrength, &MovableObject::SetPinStrength)
 	    .property("RestThreshold", &MovableObject::GetRestThreshold, &MovableObject::SetRestThreshold)
 	    .property("DamageOnCollision", &MovableObject::DamageOnCollision, &MovableObject::SetDamageOnCollision)

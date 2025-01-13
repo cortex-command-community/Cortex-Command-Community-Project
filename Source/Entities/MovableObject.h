@@ -535,12 +535,20 @@ namespace RTE {
 		bool CanBeSquished() const { return m_CanBeSquished; }
 
 		/// Tells whether this Actor's HUD is drawn or not.
-		/// @return Whether this' HUD gets drawn or not.
+		/// @param A boolean value indicating if this Actor's HUD should be visible or not
 		void SetHUDVisible(bool visible) { m_HUDVisible = visible; }
 
 		/// Tells whether this Actor's HUD is drawn or not.
 		/// @return Whether this' HUD gets drawn or not.
 		bool GetHUDVisible() const { return m_HUDVisible; }
+
+		/// Assign this MO a parent MO that created it.
+		/// @param A MOID of the MO said to have created/emitted this MO
+		void SetParentEmitterId(MOID parentMOID) { m_ParentEmitterId = parentMOID; }
+
+		/// Returns the parent MO that created this MO.
+		/// @return The MOID of a MO that created this MO, or nullptr
+		MOID GetParentEmitterId() const { return m_ParentEmitterId; }
 
 		/// Indicates whether this MO is moving or rotating stupidly fast in a way
 		/// that will screw up the simulation.
@@ -867,7 +875,7 @@ namespace RTE {
 		virtual void PostTravel();
 
 		/// Update called prior to controller update. Ugly hack. Supposed to be done every frame.
-		virtual void PreControllerUpdate(){};
+		virtual void PreControllerUpdate() {};
 
 		/// Updates this MovableObject. Supposed to be done every frame. This also
 		/// applies and clear the accumulated impulse forces (impulses), and the
@@ -1223,6 +1231,8 @@ namespace RTE {
 		bool m_ToDelete;
 		// To draw this guy's HUD or not
 		bool m_HUDVisible;
+		/// The MOID of the MO that cmitted or created this MO, eg: HDFirearm that emitted the particle.
+		MOID m_ParentEmitterId;
 
 		bool m_IsTraveling; //!< Prevents self-intersection while traveling.
 
