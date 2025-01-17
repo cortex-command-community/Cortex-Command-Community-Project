@@ -75,7 +75,7 @@ function MaginotMission:StartNewGame()
 end
 
 function MaginotMission:SetupFogOfWar()
-	if self:GetFogOfWarEnabled() then
+	if self.FogOfWarEnabled then
 		local fogResolution = 4;
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.defenderTeam);
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.attackerTeam);

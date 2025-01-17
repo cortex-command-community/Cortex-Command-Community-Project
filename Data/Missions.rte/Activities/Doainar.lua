@@ -87,7 +87,7 @@ function DoainarMission:StartNewGame()
 end
 
 function DoainarMission:SetupFogOfWar()
-	if self:GetFogOfWarEnabled() then
+	if self.FogOfWarEnabled then
 		local fogResolution = 4;
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.PlayerTeam);
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);

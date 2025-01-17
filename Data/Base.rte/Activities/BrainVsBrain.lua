@@ -332,7 +332,7 @@ function BrainvsBrain:UpdateActivity()
 			self.first_update = nil;
 
 			-- Add fog
-			if self:GetFogOfWarEnabled() then
+			if self.FogOfWarEnabled then
 				local fogResolution = 4;
 				SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
 				SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_2);

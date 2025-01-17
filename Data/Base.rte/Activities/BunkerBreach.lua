@@ -193,7 +193,7 @@ function BunkerBreach:SetupDefenderActors()
 end
 
 function BunkerBreach:SetupFogOfWar()
-	if self:GetFogOfWarEnabled() then
+	if self.FogOfWarEnabled then
 		local fogResolution = 4;
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.attackerTeam);
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.defenderTeam);

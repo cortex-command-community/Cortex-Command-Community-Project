@@ -37,7 +37,7 @@ function RefineryAssault:HandleMessage(message, object)
 	
 		self.saveTable.introCinematicDone = true;
 	
-		if self:GetFogOfWarEnabled() then
+		if self.FogOfWarEnabled then
 			local fogResolution = 4;
 			SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.humanTeam);
 		end
@@ -1206,7 +1206,7 @@ function RefineryAssault:SetupFirstStage()
 	end
 
 	-- Fog of war-causing callback if it's enabled, but none if it's not
-	if self:GetFogOfWarEnabled() then
+	if self.FogOfWarEnabled then
 		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan4", cameraPos, 0.01, 5000, true, true, true, introEndFunction);
 	else
 		self.HUDHandler:QueueCameraPanEvent(self.humanTeam, "S1IntroPan4", cameraPos, 0.01, 5000, true, true, true);

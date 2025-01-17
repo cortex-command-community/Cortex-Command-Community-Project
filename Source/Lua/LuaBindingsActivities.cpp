@@ -118,6 +118,7 @@ LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, GameActivity) {
 	    .property("CPUTeam", &GameActivity::GetCPUTeam, &GameActivity::SetCPUTeam)
 	    .property("DeliveryDelay", &GameActivity::GetDeliveryDelay, &GameActivity::SetDeliveryDelay)
 	    .property("BuyMenuEnabled", &GameActivity::GetBuyMenuEnabled, &GameActivity::SetBuyMenuEnabled)
+	    .property("FogOfWarEnabled", &GameActivity::GetFogOfWarEnabled, &GameActivity::SetFogOfWarEnabled)
 	    .property("CraftsOrbitAtTheEdge", &GameActivity::GetCraftOrbitAtTheEdge, &GameActivity::SetCraftOrbitAtTheEdge)
 
 	    //.def_readwrite("ActorCursor", &GameActivity::m_ActorCursor)
@@ -165,6 +166,7 @@ LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, GameActivity) {
 	    .def("TeamIsCPU", &GameActivity::TeamIsCPU)
 	    .def("GetStartingGold", &GameActivity::GetStartingGold)
 	    .def("GetFogOfWarEnabled", &GameActivity::GetFogOfWarEnabled)
+	    .def("SetFogOfWarEnabled", &GameActivity::SetFogOfWarEnabled)
 	    .def("UpdateEditing", &GameActivity::UpdateEditing)
 	    .def("DisableAIs", &GameActivity::DisableAIs)
 	    .def("InitAIs", &GameActivity::InitAIs)

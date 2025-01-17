@@ -35,7 +35,7 @@ function Harvester:StartNewGame()
 	self:SetTeamFunds(self:GetStartingGold(), self.humanTeam);
 	self.humanTeamFundsAfterInitialEditingPhase = -1;
 
-	self.addFogOfWar = self:GetFogOfWarEnabled();
+	self.addFogOfWar = self.FogOfWarEnabled;
 
 	for actor in MovableMan.AddedActors do
 		if IsADoor(actor) then

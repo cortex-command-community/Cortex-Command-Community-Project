@@ -384,7 +384,7 @@ namespace RTE {
 		/// Returns whether fog of war must be enabled for this activity or not.
 		/// Call it to determine whether you should call MakeAllUnseen or not at the start of activity.
 		/// @return Whether Fog of war flag was checked during scenario setup dialog.
-		bool GetFogOfWarEnabled() { return m_FogOfWarEnabled; }
+		bool GetFogOfWarEnabled() const { return m_FogOfWarEnabled; }
 
 		/// Tells whether player activity requires a cleat path to orbit to place brain
 		/// Return value:	Whether we need a clear path to orbit to place brains.

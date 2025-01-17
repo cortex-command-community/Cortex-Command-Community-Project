@@ -93,7 +93,7 @@ function SkirmishDefense:OnSave()
 end
 
 function SkirmishDefense:StartNewGame(aiTeams)
-	self.addFogOfWar = self:GetFogOfWarEnabled();
+	self.addFogOfWar = self.FogOfWarEnabled;
 
 	-- Set all actors defined in the ini-file to sentry mode
 	for actor in MovableMan.AddedActors do

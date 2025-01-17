@@ -40,7 +40,7 @@ function WaveDefense:StartActivity(isNewGame)
 	self.PrepareForNextWaveTimer:SetRealTimeLimitMS(30000);
 	self.prepareForNextWave = false;
 
-	self.Fog = self:GetFogOfWarEnabled();
+	self.Fog = self.FogOfWarEnabled;
 
 	-- Initialize the AI
 	if self.CPUTeam ~= Activity.NOTEAM then

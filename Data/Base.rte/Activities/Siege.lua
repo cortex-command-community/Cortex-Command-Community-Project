@@ -215,7 +215,7 @@ function Siege:StartActivity()
 	end
 
 	-- Add fog
-	if self:GetFogOfWarEnabled() then
+	if self.FogOfWarEnabled then
 		local fogResolution = 4;
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.PlayerTeam);

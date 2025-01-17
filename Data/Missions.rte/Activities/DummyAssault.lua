@@ -69,7 +69,7 @@ function DummyAssault:StartNewGame()
 end
 
 function DummyAssault:SetupFogOfWar()
-	if self:GetFogOfWarEnabled() then
+	if self.FogOfWarEnabled then
 		local fogResolution = 4;
 
 		-- Make the scene unseen for the player team

@@ -34,7 +34,7 @@ function Survival:StartNewGame()
 	self:SetTeamFunds(1000000, self.CPUTeam);
 	self:SetTeamFunds(self:GetStartingGold(), self.humanTeam);
 
-	self.addFogOfWar = self:GetFogOfWarEnabled();
+	self.addFogOfWar = self.FogOfWarEnabled;
 
 	for actor in MovableMan.AddedActors do
 		if IsADoor(actor) then
