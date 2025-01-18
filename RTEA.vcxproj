@@ -803,7 +803,7 @@
     <ClInclude Include="Source\System\InputMapping.h" />
     <ClInclude Include="Source\System\InputScheme.h" />
     <ClInclude Include="Source\System\NetworkMessages.h" />
-    <ClInclude Include="Source\System\GraphicalPrimitive.h" />
+    <ClInclude Include="Source\Renderer\GraphicalPrimitive.h" />
     <ClInclude Include="Source\System\Gamepad.h" />
     <ClInclude Include="Source\Menus\InventoryMenuGUI.h" />
     <ClInclude Include="Source\System\PieQuadrant.h" />
@@ -1323,7 +1323,7 @@
     <ClCompile Include="Source\Renderer\GLCheck.cpp" />
     <ClCompile Include="Source\System\InputMapping.cpp" />
     <ClCompile Include="Source\System\InputScheme.cpp" />
-    <ClCompile Include="Source\System\GraphicalPrimitive.cpp" />
+    <ClCompile Include="Source\Renderer\GraphicalPrimitive.cpp" />
     <ClCompile Include="Source\System\PieQuadrant.cpp" />
     <ClCompile Include="Source\System\Semver200\Semver200_comparator.cpp" />
     <ClCompile Include="Source\System\Semver200\Semver200_modifier.cpp" />

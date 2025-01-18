@@ -495,8 +495,8 @@
     <ClInclude Include="Source\Entities\Activity.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\GraphicalPrimitive.h">
-      <Filter>System</Filter>
+    <ClInclude Include="Source\Renderer\GraphicalPrimitive.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Source\Menus\TitleScreen.h">
       <Filter>Menus</Filter>
@@ -1070,8 +1070,8 @@
     <ClCompile Include="Source\Entities\Activity.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Source\System\GraphicalPrimitive.cpp">
-      <Filter>System</Filter>
+    <ClCompile Include="Source\Renderer\GraphicalPrimitive.cpp">
+      <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Source\Menus\TitleScreen.cpp">
       <Filter>Menus</Filter>
