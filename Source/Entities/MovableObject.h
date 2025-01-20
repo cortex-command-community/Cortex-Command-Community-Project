@@ -1235,7 +1235,7 @@ namespace RTE {
 		};
 
 		std::string m_ScriptObjectName; //!< The name of this object for script usage.
-		std::vector<std::string> m_AllLoadedScripts; //!< A map of script paths to the enabled state of the given script.
+		std::vector<std::string> m_AllLoadedScripts; //!< A vector of script for scripts applied to this object, in order of insertion.
 		std::unordered_map<std::string, bool> m_EnabledScripts; //!< A map of script paths to the enabled state of the given script.
 		std::unordered_map<std::string, std::vector<LuaFunction>> m_FunctionsAndScripts; //!< A map of function names to vectors of Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
 

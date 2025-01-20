@@ -187,6 +187,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed several issues with the way pie menus and aiming interacts between players, such as opening the pie menu always resetting the M&KB player's aim and pie selection, as well as another issue where the pie menu would fail to appear entirely for some players.
 
+- Fixed issue where scripts applied to `MovableObject`s could become disordered in certain circumstances.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
