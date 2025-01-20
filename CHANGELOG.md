@@ -155,6 +155,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Techion Laser Rifle now has a constant range rather than being dependent on game resolution.
 
+- Digital axis thresholds are now higher.
+
 - Various performance improvements.
 
 </details>
