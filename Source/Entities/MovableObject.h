@@ -112,14 +112,14 @@ namespace RTE {
 		/// Checks if the script at the given path is one of the scripts on this MO.
 		/// @param scriptPath The path to the script to check.
 		/// @return Whether or not the script is on this MO.
-		bool HasScript(const std::string& scriptPath) const { return m_AllLoadedScripts.find(scriptPath) != m_AllLoadedScripts.end(); }
+		bool HasScript(const std::string& scriptPath) const { return std::find(m_AllLoadedScripts.begin(), m_AllLoadedScripts.end(), scriptPath) != m_AllLoadedScripts.end(); }
 
 		/// Checks if the script at the given path is one of the enabled scripts on this MO.
 		/// @param scriptPath The path to the script to check.
 		/// @return Whether or not the script is enabled on this MO.
 		bool ScriptEnabled(const std::string& scriptPath) const {
-			auto scriptPathIterator = m_AllLoadedScripts.find(scriptPath);
-			return scriptPathIterator != m_AllLoadedScripts.end() && scriptPathIterator->second == true;
+			auto scriptPathIterator = m_EnabledScripts.find(scriptPath);
+			return scriptPathIterator != m_EnabledScripts.end() && scriptPathIterator->second == true;
 		}
 
 		/// Enables or dsiableds the script at the given path on this MO.
@@ -1235,7 +1235,8 @@ namespace RTE {
 		};
 
 		std::string m_ScriptObjectName; //!< The name of this object for script usage.
-		std::unordered_map<std::string, bool> m_AllLoadedScripts; //!< A map of script paths to the enabled state of the given script.
+		std::vector<std::string> m_AllLoadedScripts; //!< A map of script paths to the enabled state of the given script.
+		std::unordered_map<std::string, bool> m_EnabledScripts; //!< A map of script paths to the enabled state of the given script.
 		std::unordered_map<std::string, std::vector<LuaFunction>> m_FunctionsAndScripts; //!< A map of function names to vectors of Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
 
 		volatile bool m_RequestedSyncedUpdate; //!< For optimisation purposes, scripts explicitly request a synced update if they want one.
