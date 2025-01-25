@@ -217,8 +217,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Actor) {
 	    .property("MoveProximityLimit", &Actor::GetMoveProximityLimit, &Actor::SetMoveProximityLimit)
 
 	    .def_readwrite("MOMoveTarget", &Actor::m_pMOMoveTarget)
-	    .def_readwrite("MovePath", &Actor::m_MovePath, luabind::return_stl_iterator)
-	    .def_readwrite("Inventory", &Actor::m_Inventory, luabind::return_stl_iterator)
+	    .def_readonly("MovePath", &Actor::m_MovePath, luabind::return_stl_iterator)
+	    .def_readonly("Inventory", &Actor::m_Inventory, luabind::return_stl_iterator)
 
 	    .def("GetController", &Actor::GetController)
 	    .def("IsPlayerControlled", &Actor::IsPlayerControlled)
@@ -372,7 +372,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AEmitter) {
 	    .property("TotalParticlesPerMinute", &AEmitter::GetTotalParticlesPerMinute)
 	    .property("TotalBurstSize", &AEmitter::GetTotalBurstSize)
 
-	    .def_readwrite("Emissions", &AEmitter::m_EmissionList, luabind::return_stl_iterator)
+	    .def_readonly("Emissions", &AEmitter::m_EmissionList, luabind::return_stl_iterator)
 
 	    .def("IsEmitting", &AEmitter::IsEmitting)
 	    .def("WasEmitting", &AEmitter::WasEmitting)
@@ -442,7 +442,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, AHuman) {
 	    .def("EquipThrowable", &AHuman::EquipThrowable)
 	    .def("EquipDiggingTool", &AHuman::EquipDiggingTool)
 	    .def("EquipShield", &AHuman::EquipShield)
-	    .def("EquipShieldInBGArm", &AHuman::EquipShieldInBGArm)
+	    .def("EquipShieldInBGArm", (bool(AHuman::*)()) & AHuman::EquipShieldInBGArm)
 	    .def("EquipDeviceInGroup", &AHuman::EquipDeviceInGroup)
 	    .def("EquipNamedDevice", (bool(AHuman::*)(const std::string&, bool)) & AHuman::EquipNamedDevice)
 	    .def("EquipNamedDevice", (bool(AHuman::*)(const std::string&, const std::string&, bool)) & AHuman::EquipNamedDevice)
@@ -774,7 +774,9 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Material) {
 	    .property("SettleMaterial", &Material::GetSettleMaterial)
 	    .property("SpawnMaterial", &Material::GetSpawnMaterial)
 	    .property("TransformsInto", &Material::GetSpawnMaterial)
-	    .property("IsScrap", &Material::IsScrap);
+	    .property("IsScrap", &Material::IsScrap)
+
+	    .def("GetColorIndex", &Material::GetColorIndex);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MetaPlayer) {
@@ -836,6 +838,12 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSprite) {
 	    .def("SetExitWound", &MOSprite::SetExitWound)
 	    .def("GetEntryWoundPresetName", &MOSprite::GetEntryWoundPresetName)
 	    .def("GetExitWoundPresetName", &MOSprite::GetExitWoundPresetName)
+	    .def("GetSpritePixelIndex", &MOSprite::GetSpritePixelIndex)
+	    .def("SetSpritePixelIndex", &MOSprite::SetSpritePixelIndex)
+	    .def("GetAllSpritePixelPositions", &MOSprite::GetAllSpritePixelPositions, luabind::return_stl_iterator)
+	    .def("GetAllVisibleSpritePixelPositions", &MOSprite::GetAllVisibleSpritePixelPositions, luabind::return_stl_iterator)
+	    .def("SetAllSpritePixelIndexes", &MOSprite::SetAllSpritePixelIndexes)
+	    .def("SetAllVisibleSpritePixelIndexes", &MOSprite::SetAllVisibleSpritePixelIndexes)
 
 	    .enum_("SpriteAnimMode")[luabind::value("NOANIM", SpriteAnimMode::NOANIM),
 	                             luabind::value("ALWAYSLOOP", SpriteAnimMode::ALWAYSLOOP),
@@ -886,6 +894,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSRotating) {
 	    .def("GetWounds", &LuaAdaptersMOSRotating::GetWounds1, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	    .def("GetWounds", &LuaAdaptersMOSRotating::GetWounds2, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	    .def("AddWound", &MOSRotating::AddWound, luabind::adopt(_2))
+	    .def("AddWound", &MOSRotating::AddWoundExt, luabind::adopt(_2))
 	    .def("RemoveWounds", (float(MOSRotating::*)(int numberOfWoundsToRemove)) & MOSRotating::RemoveWounds)
 	    .def("RemoveWounds", (float(MOSRotating::*)(int numberOfWoundsToRemove, bool positiveDamage, bool negativeDamage, bool noDamage)) & MOSRotating::RemoveWounds)
 	    .def("IsOnScenePoint", &MOSRotating::IsOnScenePoint)
@@ -1041,7 +1050,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, PEmitter) {
 	    .property("EmitCountLimit", &PEmitter::GetEmitCountLimit, &PEmitter::SetEmitCountLimit)
 	    .property("FlashScale", &PEmitter::GetFlashScale, &PEmitter::SetFlashScale)
 
-	    .def_readwrite("Emissions", &PEmitter::m_EmissionList, luabind::return_stl_iterator)
+	    .def_readonly("Emissions", &PEmitter::m_EmissionList, luabind::return_stl_iterator)
 
 	    .def("IsEmitting", &PEmitter::IsEmitting)
 	    .def("WasEmitting", &PEmitter::WasEmitting)
@@ -1179,8 +1188,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Scene) {
 	    .property("GlobalAcc", &Scene::GetGlobalAcc, &Scene::SetGlobalAcc)
 	    .property("ScenePathSize", &Scene::GetScenePathSize)
 
-	    .def_readwrite("Deployments", &Scene::m_Deployments, luabind::return_stl_iterator)
-
+	    .def_readonly("Deployments", &Scene::m_Deployments, luabind::return_stl_iterator)
+	    .def_readonly("Areas", &Scene::m_AreaList, luabind::return_stl_iterator)
 	    .def_readonly("BackgroundLayers", &Scene::m_BackLayerList, luabind::return_stl_iterator)
 
 	    .def("GetScenePath", &Scene::GetScenePath, luabind::return_stl_iterator)
@@ -1194,7 +1203,6 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Scene) {
 	    .def("RetrieveResidentBrains", &Scene::RetrieveResidentBrains)
 	    .def("GetResidentBrain", &Scene::GetResidentBrain)
 	    .def("SetResidentBrain", &Scene::SetResidentBrain)
-	    .def_readwrite("Areas", &Scene::m_AreaList, luabind::return_stl_iterator)
 	    .def("SetArea", &Scene::SetArea)
 	    .def("HasArea", &Scene::HasArea)
 	    .def("GetArea", &Scene::GetArea)
@@ -1228,8 +1236,9 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneArea) {
 	    .property("Center", &Scene::Area::GetCenterPoint)
 	    .property("RandomPoint", &Scene::Area::GetRandomPoint)
 
+	    .def_readonly("Boxes", &Scene::Area::m_BoxList, luabind::return_stl_iterator)
+
 	    .def("Reset", &Scene::Area::Reset)
-	    .def_readwrite("Boxes", &Scene::Area::m_BoxList, luabind::return_stl_iterator)
 	    .def("AddBox", &Scene::Area::AddBox)
 	    .def("RemoveBox", &Scene::Area::RemoveBox)
 	    .def("HasNoArea", &Scene::Area::HasNoArea)

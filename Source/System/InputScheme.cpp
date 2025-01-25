@@ -231,7 +231,7 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			m_InputMappings[InputElements::INPUT_WEAPON_CHANGE_PREV].SetKey(SDL_SCANCODE_1);
 			m_InputMappings[InputElements::INPUT_WEAPON_CHANGE_NEXT].SetKey(SDL_SCANCODE_2);
 			m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY].SetKey(SDL_SCANCODE_V);
-			m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY].SetKey(SDL_SCANCODE_H);
+			m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY].SetKey(SDL_SCANCODE_B);
 			m_InputMappings[InputElements::INPUT_ACTOR_PRIMARY_HOTKEY].SetKey(SDL_SCANCODE_X);
 			m_InputMappings[InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY].SetKey(SDL_SCANCODE_O);
 			break;

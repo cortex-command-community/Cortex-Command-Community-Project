@@ -72,7 +72,11 @@ namespace RTE {
 		std::vector<Type> outVector = {};
 		if (luaObject.is_valid() && luabind::type(luaObject) == LUA_TTABLE) {
 			for (luabind::iterator tableItr(luaObject), tableEnd; tableItr != tableEnd; ++tableItr) {
-				outVector.emplace_back(luabind::object_cast<Type>(*tableItr, luabind::adopt(luabind::result)));
+				if constexpr (std::is_pointer_v<Type>) {
+					outVector.emplace_back(luabind::object_cast<Type>(*tableItr, luabind::adopt(luabind::result)));
+				} else {
+					outVector.emplace_back(luabind::object_cast<Type>(*tableItr));
+				}
 			}
 		}
 		return outVector;

@@ -324,15 +324,17 @@ Vector UInputMan::GetMouseMovement(int whichPlayer) const {
 void UInputMan::SetMouseValueMagnitude(float magCap, int whichPlayer) {
 	if (IsInMultiplayerMode() && whichPlayer >= Players::PlayerOne && whichPlayer < Players::MaxPlayerCount) {
 		m_NetworkAnalogMoveData[whichPlayer].CapMagnitude(m_MouseTrapRadius * magCap);
+	} else if (whichPlayer != Players::NoPlayer && m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+		m_AnalogMouseData.SetMagnitude(m_MouseTrapRadius * magCap);
 	}
-	m_AnalogMouseData.SetMagnitude(m_MouseTrapRadius * magCap);
 }
 
 void UInputMan::SetMouseValueAngle(float angle, int whichPlayer) {
 	if (IsInMultiplayerMode() && whichPlayer >= Players::PlayerOne && whichPlayer < Players::MaxPlayerCount) {
 		m_NetworkAnalogMoveData[whichPlayer].SetAbsRadAngle(angle);
+	} else if (whichPlayer != Players::NoPlayer && m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+		m_AnalogMouseData.SetAbsRadAngle(angle);
 	}
-	m_AnalogMouseData.SetAbsRadAngle(angle);
 }
 
 void UInputMan::SetMousePos(const Vector& newPos, int whichPlayer) const {

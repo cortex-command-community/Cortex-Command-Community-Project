@@ -1,5 +1,4 @@
 function Create(self)
-
 	if self.Magazine then
 		local particleCount = self.Magazine.NextRound.ParticleCount;
 		local particleMass = self.Magazine.NextRound.NextParticle.Mass;
@@ -30,16 +29,13 @@ function Create(self)
 	self.fireSmokeEffect.GravMult = 1;
 	
 	self.particleUtility = require("Scripts/Utility/ParticleUtility");	
-	
 end
 
 function OnFire(self)
-
 	local flip = self.HFlipped and math.pi or 0;
 	local angle = self.RotAngle + flip;
 	self.fireSmokeEffect.Position = self.MuzzlePos;
 	self.fireSmokeEffect.RadAngle = angle;
 	
 	self.particleUtility:CreateDirectionalSmokeEffect(self.fireSmokeEffect);
-
 end
