@@ -126,12 +126,6 @@ void MOSParticle::Travel() {
 	m_Atom->ClearMOIDIgnoreList();
 
 	if (m_SpriteAnimMode == ONCOLLIDE) {
-		// Change angular velocity after collision.
-		if (hitCount >= 1) {
-			m_AngularVel *= 0.5F * velMag * RandomNormalNum();
-			m_AngularVel = -m_AngularVel;
-		}
-
 		// TODO: Rework this so it's less incomprehensible black magic math and not driven by AngularVel.
 		double newFrame = m_Rotation.GetRadAngle();
 

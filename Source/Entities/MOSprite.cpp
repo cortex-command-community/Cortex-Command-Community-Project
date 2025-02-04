@@ -269,8 +269,6 @@ bool MOSprite::HitTestAtPixel(int pixelX, int pixelY, bool validOnly) const {
 }
 
 void MOSprite::SetFrame(unsigned int newFrame) {
-	if (newFrame < 0)
-		newFrame = 0;
 	if (newFrame >= m_FrameCount)
 		newFrame = m_FrameCount - 1;
 

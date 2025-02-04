@@ -1048,11 +1048,8 @@ void MultiplayerServerLobby::DrawGUI(BITMAP* pTargetBitmap, const Vector& target
 	m_pRootBox->SetPositionAbs(0, 0);
 
 	// We need to manually draw UI's to intermediate buffer first, then to the player's backbuffer to make it centered on each player's screen.
-	for (int i = 0; i < 4; i++) {
-		if (i < c_MaxClients)
-			finalDestBitmap = g_FrameMan.GetNetworkBackBufferIntermediateGUI8Current(i);
-		else
-			finalDestBitmap = pTargetBitmap;
+	for (int i = 0; i < c_MaxClients; i++) {
+		finalDestBitmap = g_FrameMan.GetNetworkBackBufferIntermediateGUI8Current(i);
 
 		AllegroScreen drawScreen(drawBitmap);
 		m_pGUIController->Draw(&drawScreen);
