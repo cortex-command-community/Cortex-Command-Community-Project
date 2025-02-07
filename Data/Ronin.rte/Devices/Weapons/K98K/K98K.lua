@@ -254,7 +254,7 @@ function ThreadedUpdate(self)
 			self:Deactivate()
 		end
 		
-		if fire and not self:IsReloading() then
+		if fire and self.CanFire and not self:IsReloading() then
 			if not self.Magazine or self.RoundInMagCount < 1 then
 				--self:Activate()
 			elseif not self.activated and not self.delayedFire and self.fireDelayTimer:IsPastSimMS(1 / (self.RateOfFire / 60) * 1000) then
