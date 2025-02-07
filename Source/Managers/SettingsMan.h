@@ -5,6 +5,7 @@
 
 #include <list>
 #include <cmath>
+#include <algorithm>
 
 #define g_SettingsMan SettingsMan::Instance()
 

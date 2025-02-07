@@ -1,0 +1,15 @@
+[constants]
+arch = 'x86_64-apple-darwin20.2'
+[binaries]
+c = ['ccache', arch + '-gcc']
+cpp = ['ccache', arch + '-g++']
+strip = arch + '-strip'
+pkg-config = arch  + '-pkg-config'
+ranlib = arch + '-gcc-ranlib'
+ar = arch + '-gcc-ar'
+
+[host_machine]
+system = 'darwin'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'

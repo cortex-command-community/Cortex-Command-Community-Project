@@ -85,6 +85,10 @@ namespace RTE {
 			/// Anything below 0 is an error signal.
 			int Create(const Area& reference);
 
+			/// Destroys and resets (through Clear()) the Area object.
+			/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
+			void Destroy(bool notInherited);
+
 			/// Resets the entire Serializable, including its inherited members, to their
 			/// default settings or values.
 			void Reset() override { Clear(); }
@@ -101,11 +105,11 @@ namespace RTE {
 
 			/// Gets the first Box in this Area.
 			/// @return The first Box in this Area.
-			const Box* GetFirstBox() const { return m_BoxList.empty() ? nullptr : &m_BoxList[0]; }
+			const Box* GetFirstBox() const { return m_BoxList.empty() ? nullptr : m_BoxList[0]; }
 
 			/// Gets the boxes for this area.
 			/// @return The boxes in this Area.
-			const std::vector<Box>& GetBoxes() const { return m_BoxList; }
+			const std::vector<Box*>& GetBoxes() const { return m_BoxList; }
 
 			/// Shows whether this really has no Area at all, ie it doesn't have any
 			/// Box:es with both width and height.
@@ -164,7 +168,7 @@ namespace RTE {
 			/// Protected member variable and method declarations
 		protected:
 			// The list of Box:es defining the Area in the owner Scene
-			std::vector<Box> m_BoxList;
+			std::vector<Box*> m_BoxList;
 			// The name tag of this Area
 			std::string m_Name;
 
@@ -341,7 +345,7 @@ namespace RTE {
 
 		/// Adds area to the list if this scene's areas.
 		/// @param m_AreaList.push_back(newArea Area to add.
-		void AddArea(Scene::Area& newArea) { m_AreaList.push_back(newArea); }
+		void AddArea(Scene::Area& newArea) { m_AreaList.push_back(new Scene::Area(newArea)); }
 
 		/// Creates a new SceneLayer for a specific team and fills it with black
 		/// pixels that end up being a specific size on the screen.
@@ -501,45 +505,33 @@ namespace RTE {
 		/// This won't throw any errors to the console if the Area isn't found.
 		/// @param areaName The name of the Area to try to find in this Scene.
 		/// @return Whether the specified area is defined in this Scene.
-		bool HasArea(std::string areaName);
-
-		/// Gets a specified Area identified by name. Ownership is NOT transferred!
-		/// @param areaName The name of the Area to try to get.
-		/// @param required Whether the area is required, and should throw an error if not found.
-		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
-		Area* GetArea(const std::string_view& areaName, bool required);
+		bool HasArea(const std::string& areaName);
 
 		/// Gets a specified Area identified by name. Ownership is NOT transferred!
 		/// @param areaName The name of the Area to try to get.
 		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
-		Area* GetArea(const std::string& areaName) { return GetArea(areaName, true); }
+		Area* GetArea(const std::string& areaName);
 
-		/// Gets a specified Area identified by name, showing a Lua warning if it's not found. Ownership is NOT transferred!
-		/// Using this function will not add the area to the list of required areas which Scenario GUI uses to show compatible areas.
-		/// @param areaName The name of the Area to try to get.
-		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
-		Area* GetOptionalArea(const std::string& areaName) { return GetArea(areaName, false); }
-
-		void AddNavigatableArea(const std::string& areaName) {
-			m_NavigatableAreas.push_back(areaName);
-			m_NavigatableAreasUpToDate = false;
+		void AddNavigableArea(const std::string& areaName) {
+			m_NavigableAreas.push_back(areaName);
+			m_NavigableAreasUpToDate = false;
 		}
-		void ClearNavigatableAreas(const std::string& areaName) {
-			m_NavigatableAreas.clear();
-			m_NavigatableAreasUpToDate = false;
+		void ClearNavigableAreas() {
+			m_NavigableAreas.clear();
+			m_NavigableAreasUpToDate = false;
 		}
 
 		/// Removes a specific Area identified by a name.
 		/// @param areaName The name of the Area to try to remove.
 		/// @return Whether an Area of that name was found, and subsequently removed.
-		bool RemoveArea(std::string areaName);
+		bool RemoveArea(const std::string& areaName);
 
 		/// Checks if a point is within a specific named Area of this Scene. If
 		/// no Area of the name is found, this just returns false without error.
 		/// @param areaName The name of the Area to try to check against.
 		/// @param point The point to see if it's within the specified Area.
 		/// @return Whether any Area of that name was found, AND the point falls within it.
-		bool WithinArea(std::string areaName, const Vector& point) const;
+		bool WithinArea(const std::string& areaName, const Vector& point) const;
 
 		/// Gets the global acceleration (in m/s^2) that is applied to all movable
 		/// objects' velocities during every frame. Typically models gravity.
@@ -652,20 +644,24 @@ namespace RTE {
 		/// When pathing using the NoTeam pathFinder, no doors are considered passable.
 		/// @param start Start and end positions on the scene to find the path between.
 		/// @param end A list which will be filled out with waypoints between the start and end.
-		/// @param pathResult The maximum material strength any actor traveling along the path can dig through.
-		/// @param digStrength The team we're pathing for (doors for this team will be considered passable) (default: c_PathFindingDefaultDigStrength)
+		/// @param pathResult The generated path.
+		/// @param jumpHeight How high, in metres, the search can jump vertically.
+		/// @param digStrength The maximum material strength any actor traveling along the path can dig through.
+		/// @param team The team we're pathing for (doors for this team will be considered passable).
 		/// @return The total minimum difficulty cost calculated between the two points on
 		/// the scene.
-		float CalculatePath(const Vector& start, const Vector& end, std::list<Vector>& pathResult, float digStrength = c_PathFindingDefaultDigStrength, Activity::Teams team = Activity::Teams::NoTeam);
+		float CalculatePath(const Vector& start, const Vector& end, std::list<Vector>& pathResult, float jumpHeight = FLT_MAX, float digStrength = c_PathFindingDefaultDigStrength, Activity::Teams team = Activity::Teams::NoTeam);
 
 		/// Asynchronously calculates the least difficult path between two points on the current Scene. Takes both distance and materials into account.
 		/// When pathing using the NoTeam pathFinder, no doors are considered passable.
 		/// @param start Start position of the pathfinding request.
 		/// @param end End position of the pathfinding request.
+		/// @param jumpHeight How high, in metres, the search can jump vertically.
 		/// @param digStrength The maximum material strength any actor traveling along the path can dig through.
-		/// @param team The team we're pathing for (doors for this team will be considered passable)
+		/// @param team The team we're pathing for (doors for this team will be considered passable).
+		/// @param callback The callback function we'll call after our pathfind request has finished calculating.
 		/// @return A shared pointer to the volatile PathRequest to be used to track whehter the asynchrnous path calculation has been completed, and check its results.
-		std::shared_ptr<volatile PathRequest> CalculatePathAsync(const Vector& start, const Vector& end, float digStrength = c_PathFindingDefaultDigStrength, Activity::Teams team = Activity::Teams::NoTeam, PathCompleteCallback callback = nullptr);
+		std::shared_ptr<volatile PathRequest> CalculatePathAsync(const Vector& start, const Vector& end, float jumpHeight = FLT_MAX, float digStrength = c_PathFindingDefaultDigStrength, Activity::Teams team = Activity::Teams::NoTeam, PathCompleteCallback callback = nullptr);
 
 		/// Gets how many waypoints there are in the ScenePath currently
 		/// @return The number of waypoints in the ScenePath.
@@ -704,6 +700,11 @@ namespace RTE {
 		/// Returns preview bitmap pointer for this scene.
 		/// @return Pointer to preview bitmap.
 		BITMAP* GetPreviewBitmap() const { return m_pPreviewBitmap; };
+
+		/// Gets the pathfinder for a given team.
+		/// @param team The team to get the pathfinder for. NoTeam is valid, and will give a shared pathfinder.
+		/// @return A reference to the pathfinder for the given team.
+		PathFinder& GetPathFinder(Activity::Teams team);
 
 		/// Protected member variable and method declarations
 	protected:
@@ -760,11 +761,11 @@ namespace RTE {
 		bool m_ScanScheduled[Activity::MaxTeamCount];
 
 		// List of all the specified Area's of the scene
-		std::list<Area> m_AreaList;
+		std::list<Area*> m_AreaList;
 
-		// List of navigatable areas in the scene. If this list is empty, the entire scene is assumed to be navigatable
-		std::vector<std::string> m_NavigatableAreas;
-		bool m_NavigatableAreasUpToDate;
+		// List of navigable areas in the scene. If this list is empty, the entire scene is assumed to be navigable
+		std::vector<std::string> m_NavigableAreas;
+		bool m_NavigableAreasUpToDate;
 
 		// The global acceleration vector in m/s^2. (think gravity/wind)
 		Vector m_GlobalAcc;
@@ -789,11 +790,6 @@ namespace RTE {
 
 		/// Private member variable and method declarations
 	private:
-		/// Gets the pathfinder for a given team.
-		/// @param team The team to get the pathfinder for. NoTeam is valid, and will give a shared pathfinder.
-		/// @return A reference to the pathfinder for the given team.
-		PathFinder& GetPathFinder(Activity::Teams team);
-
 		/// Serializes the SceneObject via the Writer. Necessary because full serialization doesn't know how to deal with duplicate properties.
 		/// @param writer The Writer being used for serialization.
 		/// @param sceneObjectToSave The SceneObject to save.

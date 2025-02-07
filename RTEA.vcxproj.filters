@@ -46,8 +46,14 @@
     <Filter Include="System\Base64">
       <UniqueIdentifier>{6f517ec6-8c53-4d34-b320-c408e1fd374d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="System\glad">
+    <Filter Include="Renderer\glad">
       <UniqueIdentifier>{a92cf676-7096-4641-ae98-d02861c1acde}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{456e743f-249a-4e29-91e2-348668548158}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\raylib">
+      <UniqueIdentifier>{5aa83e16-d772-476c-b51a-72480c976207}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -92,6 +98,15 @@
     </ClInclude>
     <ClInclude Include="Source\System\MicroPather\micropather.h">
       <Filter>System\MicroPather</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\raylib\raylib.h">
+      <Filter>Renderer\raylib</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\raylib\rlgl.h">
+      <Filter>Renderer\raylib</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\raylib\rlconfig.h">
+      <Filter>Renderer\raylib</Filter>
     </ClInclude>
     <ClInclude Include="Source\Managers\AchievementMan.h">
       <Filter>Managers</Filter>
@@ -606,10 +621,7 @@
     <ClInclude Include="Source\Entities\AEJetpack.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\Shader.h">
-      <Filter>System</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\System\GLCheck.h">
+    <ClInclude Include="Source\Renderer\GLCheck.h">
       <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="Source\Menus\SaveLoadMenuGUI.h">
@@ -623,6 +635,26 @@
     </ClInclude>
     <ClInclude Include="Source\Managers\ThreadMan.h">
       <Filter>Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Entities\DynamicSong.h" />
+    <ClInclude Include="Source\Managers\MusicMan.h" />
+    <ClInclude Include="Source\Renderer\Draw.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\RenderTarget.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\Shader.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\BigTexture.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Managers\GLResourceMan.h">
+      <Filter>Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\raylib\rlutils.h">
+      <Filter>Renderer\raylib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1173,13 +1205,10 @@
     <ClCompile Include="Source\System\RTEStackTrace.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="Source\System\Shader.cpp">
-      <Filter>System</Filter>
+    <ClCompile Include="Source\Renderer\glad\gl.c">
+      <Filter>Renderer\glad</Filter>
     </ClCompile>
-    <ClCompile Include="Source\System\glad\gl.c">
-      <Filter>System\glad</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\System\GLCheck.cpp">
+    <ClCompile Include="Source\Renderer\GLCheck.cpp">
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="external\sources\tracy\public\TracyClient.cpp">
@@ -1199,6 +1228,35 @@
     </ClCompile>
     <ClCompile Include="Source\Managers\ThreadMan.cpp">
       <Filter>Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Entities\DynamicSong.cpp" />
+    <ClCompile Include="Source\Managers\MusicMan.cpp" />
+    <ClCompile Include="Source\Renderer\RenderTarget.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\Shader.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\Draw.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\BigTexture.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Managers\GLResourceMan.cpp">
+      <Filter>Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\raylib\rlgl.c">
+      <Filter>Renderer\raylib</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\raylib\rlutils.c">
+      <Filter>Renderer\raylib</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\raylib\rshapes.c">
+      <Filter>Renderer\raylib</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\raylib\rtextures.c">
+      <Filter>Renderer\raylib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

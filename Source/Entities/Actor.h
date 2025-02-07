@@ -39,11 +39,13 @@ namespace RTE {
 		// TODO - move into ALocomotable intermediate class under ACrab/AHuman
 		enum MovementState {
 			NOMOVE = 0,
+			CROUCH,
 			STAND,
 			WALK,
+			RUN,
 			JUMP,
 			DISLODGE,
-			CROUCH,
+			PRONE,
 			CRAWL,
 			ARMCRAWL,
 			CLIMB,
@@ -64,6 +66,12 @@ namespace RTE {
 			AIMODE_BOMB,
 			AIMODE_SQUAD,
 			AIMODE_COUNT
+		};
+
+		enum ActorHotkeyType {
+			PRIMARYHOTKEY = 0,
+			AUXILIARYHOTKEY,
+			ACTORHOTKEYTYPECOUNT
 		};
 
 		// Concrete allocation and cloning definitions
@@ -278,11 +286,11 @@ namespace RTE {
 
 		/// Gets this Actor's MovementState.
 		/// @return This Actor's MovementState.
-		MovementState GetMovementState() const { return m_MoveState; }
+		MovementState GetMovementState() const { return m_MovementState; }
 
 		/// Sets this Actor's MovementState to the new state.
 		/// @param newMovementState This Actor's new MovementState.
-		void SetMovementState(MovementState newMovementState) { m_MoveState = newMovementState; }
+		void SetMovementState(MovementState newMovementState) { m_MovementState = newMovementState; }
 
 		/// Sets which team this Actor belongs to.
 		/// @param team The assigned team number.
@@ -639,9 +647,6 @@ namespace RTE {
 		/// @return The number of waypoints in the MovePath.
 		int GetMovePathSize() const { return m_MovePath.size(); }
 
-		/// Starts updating this Actor's movepath.
-		virtual void UpdateMovePath();
-
 		/// Returns whether we're waiting on a new pending movepath.
 		/// @return Whether we're waiting on a new pending movepath.
 		bool IsWaitingOnNewMovePath() const { return m_PathRequest != nullptr || m_UpdateMovePath; }
@@ -649,6 +654,10 @@ namespace RTE {
 		/// Estimates what material strength this actor can penetrate.
 		/// @return The actor's dig strength.
 		virtual float EstimateDigStrength() const;
+
+		/// Estimates how high this actor can jump.
+		/// @return The actor's jump height.
+		virtual float EstimateJumpHeight() const;
 
 		/// Gets this Actor's base dig strength, or the strength of terrain they can expect to walk through without tools.
 		/// @return The actors base dig strength.
@@ -664,8 +673,24 @@ namespace RTE {
 		/// Updates this MovableObject. Supposed to be done every frame.
 		void Update() override;
 
+		/// Cast see rays for this actor.
+		void CastSeeRays();
+
 		/// Updates the full state of this object in one call. (PreControllerUpdate(), Controller::Update(), and Update())
 		virtual void FullUpdate() override;
+
+		/// Activates one of this Actor's hotkey features.
+		/// /// @param hotkeyType Which hotkey type to activate.
+		void ActivateHotkeyAction(ActorHotkeyType hotkeyType) { m_HotkeyActivated[hotkeyType] = true; }
+
+		/// Deactivates one of this Actor's hotkey features.
+		/// @param hotkeyType Which hotkey type to deactivate.
+		void DeactivateHotkeyAction(ActorHotkeyType hotkeyType) { m_HotkeyActivated[hotkeyType] = false; }
+
+		/// Tells whether a hotkey action of the actor is currently being activated.
+		/// @param hotkeyType Which hotkey type to check for activation.
+		/// @return Whether hotkey is being activated.
+		bool HotkeyActionIsActivated(ActorHotkeyType hotkeyType) const { return m_HotkeyActivated[hotkeyType]; }
 
 		/// Description:		Sets deployment ID for this actor
 		/// @param newID New deployment id.
@@ -763,6 +788,22 @@ namespace RTE {
 		/// @param newRecoverDelay The recovery delay, in MS.
 		void SetStableRecoverDelay(int newRecoverDelay) { m_StableRecoverDelay = newRecoverDelay; }
 
+		/// Gets whether this can run or not.
+		/// @return Whether this can run or not.
+		int GetCanRun() const { return m_CanRun; }
+
+		/// Sets whether this can run or not.
+		/// @param newCanRun The new value for whether this can run or not.
+		void SetCanRun(bool newCanRun) { m_CanRun = newCanRun; }
+
+		/// Gets the crouch walk speed multiplier.
+		/// @return The crouch walk speed multiplier.
+		float GetCrouchWalkSpeedMultiplier() const { return m_CrouchWalkSpeedMultiplier; }
+
+		/// Sets the crouch walk speed multiplier.
+		/// @param newSpeed The new value for the crouch walk speed multiplier.
+		void SetCrouchWalkSpeedMultiplier(float newSpeed) { m_CrouchWalkSpeedMultiplier = newSpeed; }
+
 		/// Gets the distance in which the Actor will have considered itself to have reached it's waypoint.
 		/// @return The move proximity limit.
 		float GetMoveProximityLimit() const { return m_MoveProximityLimit; }
@@ -804,6 +845,9 @@ namespace RTE {
 		/// Function that is called when we get a new movepath.
 		/// This processes and cleans up the movepath.
 		virtual void OnNewMovePath();
+
+		/// Starts updating this Actor's movepath.
+		virtual void UpdateMovePath();
 
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -866,6 +910,10 @@ namespace RTE {
 		float m_GoldCarried;
 		// Whether or not any gold was picked up this frame.
 		bool m_GoldPicked;
+		// Whether this can engage RUN state or not
+		bool m_CanRun;
+		// Multiplier applied to walking speed at maximum crouch.
+		float m_CrouchWalkSpeedMultiplier;
 		// Aiming state
 		char m_AimState;
 		// The arc range of the aiming angle, in each direction, in radians. Eg if HalfPI, it means full 180 degree range
@@ -918,6 +966,8 @@ namespace RTE {
 		float m_MaxInventoryMass; //!< The mass limit for this Actor's inventory. -1 means there's no limit.
 		// The device that can/will be picked up
 		HeldDevice* m_pItemInReach;
+		// An array that holds activation states for the various hotkey actions of this Actor.
+		std::array<bool, ACTORHOTKEYTYPECOUNT> m_HotkeyActivated;
 		// HUD positioning aid
 		int m_HUDStack;
 		// ID of deployment which spawned this actor
@@ -986,7 +1036,7 @@ namespace RTE {
 		// The minimum range to consider having reached a move target is considered
 		float m_MoveProximityLimit;
 		// Current movement state.
-		MovementState m_MoveState;
+		MovementState m_MovementState;
 
 		bool m_Organic; //!< Flag for whether or not this Actor is organic. Useful for lua purposes and mod support.
 		bool m_Mechanical; //!< Flag for whether or not this Actor is robotic. Useful for lua purposes and mod support.

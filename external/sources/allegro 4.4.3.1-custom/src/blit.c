@@ -29,28 +29,21 @@
 /* get_replacement_mask_color:
  *  Helper function to get a replacement color for the bitmap's mask color.
  */
-static int get_replacement_mask_color(BITMAP *bmp)
-{
-   int depth, c, g = 0;
+static int get_replacement_mask_color(BITMAP* bmp) {
+	int depth, c, g = 0;
 
-   depth = bitmap_color_depth(bmp);
+	depth = bitmap_color_depth(bmp);
 
-   if (depth == 8) {
-      if (rgb_map)
-         return rgb_map->data[31][1][31];
-      else
-         return bestfit_color(_current_palette, 63, 1, 63);
-   }
-   else {
-      do
-         c = makecol_depth(depth, 255, ++g, 255);
-      while (c == bitmap_mask_color(bmp));
+	if (depth == 8) {
+		return bestfit_color(_current_palette, 255, 0, 255);
+	} else {
+		do
+			c = makecol_depth(depth, 255, ++g, 255);
+		while (c == bitmap_mask_color(bmp));
 
-      return c;
-   }
+		return c;
+	}
 }
-
-
 
 /* blit_from_256:
  *  Expands 256 color images onto a truecolor destination.

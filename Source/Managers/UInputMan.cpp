@@ -324,15 +324,17 @@ Vector UInputMan::GetMouseMovement(int whichPlayer) const {
 void UInputMan::SetMouseValueMagnitude(float magCap, int whichPlayer) {
 	if (IsInMultiplayerMode() && whichPlayer >= Players::PlayerOne && whichPlayer < Players::MaxPlayerCount) {
 		m_NetworkAnalogMoveData[whichPlayer].CapMagnitude(m_MouseTrapRadius * magCap);
+	} else if (whichPlayer != Players::NoPlayer && m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+		m_AnalogMouseData.SetMagnitude(m_MouseTrapRadius * magCap);
 	}
-	m_AnalogMouseData.SetMagnitude(m_MouseTrapRadius * magCap);
 }
 
 void UInputMan::SetMouseValueAngle(float angle, int whichPlayer) {
 	if (IsInMultiplayerMode() && whichPlayer >= Players::PlayerOne && whichPlayer < Players::MaxPlayerCount) {
 		m_NetworkAnalogMoveData[whichPlayer].SetAbsRadAngle(angle);
+	} else if (whichPlayer != Players::NoPlayer && m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+		m_AnalogMouseData.SetAbsRadAngle(angle);
 	}
-	m_AnalogMouseData.SetAbsRadAngle(angle);
 }
 
 void UInputMan::SetMousePos(const Vector& newPos, int whichPlayer) const {
@@ -864,7 +866,7 @@ void UInputMan::HandleSpecialInput() {
 		}
 		// Ctrl+R or Back button for controllers to reset activity.
 		if (!g_MetaMan.GameInProgress() && !g_ActivityMan.ActivitySetToRestart()) {
-			g_ActivityMan.SetRestartActivity((FlagCtrlState() && KeyPressed(SDLK_r)) || AnyBackPress());
+			g_ActivityMan.SetRestartActivity((FlagRAltState() && KeyPressed(SDLK_r)) || AnyBackPress());
 		}
 		if (g_ActivityMan.ActivitySetToRestart()) {
 			return;
@@ -875,17 +877,17 @@ void UInputMan::HandleSpecialInput() {
 		return;
 	}
 
-	if (FlagCtrlState() && !FlagAltState()) {
-		// Ctrl+S to save continuous ScreenDumps
+	if (FlagRAltState()) {
+		// RAlt+S to save continuous ScreenDumps
 		if (KeyHeld(SDLK_s)) {
 			g_FrameMan.SaveScreenToPNG("ScreenDump");
-			// Ctrl+W to save a WorldDump
+			// RAlt+W to save a WorldDump
 		} else if (KeyPressed(SDLK_w)) {
 			g_FrameMan.SaveWorldToPNG("WorldDump");
-			// Ctrl+M to cycle draw modes
+			// RAlt+M to cycle draw modes
 		} else if (KeyPressed(SDLK_m)) {
 			g_SceneMan.SetLayerDrawMode((g_SceneMan.GetLayerDrawMode() + 1) % 3);
-			// Ctrl+P to toggle performance stats
+			// RAlt+P to toggle performance stats
 		} else if (KeyPressed(SDLK_p)) {
 			g_PerformanceMan.ShowPerformanceStats(!g_PerformanceMan.IsShowingPerformanceStats());
 		} else if (KeyPressed(SDLK_F2)) {
@@ -899,7 +901,7 @@ void UInputMan::HandleSpecialInput() {
 				g_TimerMan.SetDeltaTimeSecs(c_DefaultDeltaTimeS);
 			}
 		}
-	} else if (!FlagCtrlState() && FlagAltState()) {
+	} else if (FlagLAltState()) {
 		if (KeyPressed(SDLK_F2)) {
 			ContentFile::ReloadAllBitmaps();
 			// Alt+Enter to switch resolution multiplier

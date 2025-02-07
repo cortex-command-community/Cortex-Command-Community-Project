@@ -13,7 +13,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/${config:mesonbuild.buildFolder}/CortexCommand",
       "cwd": "${workspaceFolder}",
-      "preLaunchTask": "meson Build Release",
+      "preLaunchTask": "Meson: Build all targets",
       "envFile": "${workspaceFolder}/${config:mesonbuild.buildFolder}/meson-vscode.env",
       "presentation": {
         "group": "unix"

@@ -275,7 +275,7 @@ function Update(self)
 				end
 
 				-- Hold crouch to control rope manually
-				if controller:IsState(Controller.BODY_CROUCH) then
+				if controller:IsState(Controller.BODY_PRONE) then
 					if self.climb == 1 or self.climb == 2 then
 						if self.climbTimer:IsPastSimMS(self.climbDelay) then
 							self.climbTimer:Reset();
@@ -433,10 +433,10 @@ function Update(self)
 		end
 
 		-- Double tapping crouch retrieves the hook
-		if controller and controller:IsState(Controller.BODY_CROUCH) then
+		if controller and controller:IsState(Controller.BODY_PRONE) then
 			self.pieSelection = 0;
 			if self.canTap == true then
-				controller:SetState(Controller.BODY_CROUCH, false);
+				controller:SetState(Controller.BODY_PRONE, false);
 				self.climb = 0;
 				if self.parentGun ~= nil and self.parentGun.ID ~= rte.NoMOID then
 					self.parentGun:RemoveNumberValue("GrappleMode");

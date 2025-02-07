@@ -1,7 +1,6 @@
 require("AI/NativeTurretAI");
 
 function Create(self)
-
 	self.AI = NativeTurretAI:Create(self);
 end
 

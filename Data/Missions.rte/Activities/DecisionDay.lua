@@ -176,7 +176,7 @@ function DecisionDay:StartActivity(isNewGame)
 			captureArea = scene:GetArea(bunkerRegionName .. " Capture"),
 			captureDisplayArea = scene:GetArea(bunkerRegionName .. " Capture Display"),
 			captureDisplayScreens = {},
-			internalReinforcementsArea = scene:HasArea(bunkerRegionName .. " Internal Reinforcements") and scene:GetOptionalArea(bunkerRegionName .. " Internal Reinforcements") or nil,
+			internalReinforcementsArea = scene:HasArea(bunkerRegionName .. " Internal Reinforcements") and scene:GetArea(bunkerRegionName .. " Internal Reinforcements") or nil,
 			defenderArea = scene:GetArea(bunkerRegionName .. " Defenders"),
 			ownerTeam = self.aiTeam,
 			hasBeenCapturedAtLeastOnceByHumanTeam = false,
@@ -185,11 +185,11 @@ function DecisionDay:StartActivity(isNewGame)
 			aiRegionDefenseTimer = Timer(60000 / self.difficultyRatio, 60000 / self.difficultyRatio),
 			aiRegionAttackTimer = Timer(90000 / self.difficultyRatio),
 			aiRecaptureWeight = bunkerRegionRecaptureWeights[bunkerRegionName] or 0,
-			fauxdanDisplayArea = scene:HasArea(bunkerRegionName .. " Fauxdan Display") and scene:GetOptionalArea(bunkerRegionName .. " Fauxdan Display") or nil,
+			fauxdanDisplayArea = scene:HasArea(bunkerRegionName .. " Fauxdan Display") and scene:GetArea(bunkerRegionName .. " Fauxdan Display") or nil,
 			fauxdanDisplayScreens = {},
-			shieldedArea = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetOptionalArea(bunkerRegionName .. " Shield") or nil,
-			brainDoor = scene:HasArea(bunkerRegionName .. " Brain Door") and scene:GetOptionalArea(bunkerRegionName .. " Brain Door") or nil,
-			brain = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetOptionalArea(bunkerRegionName .. " Brain") or nil,
+			shieldedArea = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetArea(bunkerRegionName .. " Shield") or nil,
+			brainDoor = scene:HasArea(bunkerRegionName .. " Brain Door") and scene:GetArea(bunkerRegionName .. " Brain Door") or nil,
+			brain = scene:HasArea(bunkerRegionName .. " Shield") and scene:GetArea(bunkerRegionName .. " Brain") or nil,
 		};
 		if bunkerRegionName:find("Vault") then
 			self.bunkerRegions[bunkerRegionName].incomeMultiplier = bunkerRegionName:find("Large") and 2 or (bunkerRegionName:find("Medium") and 1.5 or 1);
@@ -452,18 +452,23 @@ end
 
 function DecisionDay:SetupFogOfWar()
 	if self:GetFogOfWarEnabled() then
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.humanTeam);
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.aiTeam);
+		local fogResolution = 4;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.humanTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.aiTeam);
 
 		-- Reveal above ground for everyone.
-		for x = 0, SceneMan.SceneWidth - 1, 20 do
-			SceneMan:CastSeeRay(self.humanTeam, Vector(x, 0), Vector(0, SceneMan.SceneHeight), Vector(), 1, 9);
-			SceneMan:CastSeeRay(self.aiTeam, Vector(x, 0), Vector(0, SceneMan.SceneHeight), Vector(), 1, 9);
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.humanTeam);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.aiTeam);
+			end
 		end
 
 		-- Reveal extra areas - roofs and such that don't get handled by the vertical rays.
 		for box in self.initialExtraFOWReveal.Boxes do
-			SceneMan:RevealUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.humanTeam);
+			SceneMan:RevealUnseenBox(box.Corner.X - 10, box.Corner.Y - 10, box.Width + 20, box.Height + 20, self.humanTeam);
 			SceneMan:RevealUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.aiTeam);
 		end
 
@@ -474,20 +479,23 @@ function DecisionDay:SetupFogOfWar()
 		end
 
 		-- Reveal the dead bodies for the human team.
-		SceneMan:RevealUnseenBox(self.initialDeadBodiesArea.FirstBox.Center.X - 150, self.initialDeadBodiesArea.FirstBox.Center.Y - 150, 200, 420, self.humanTeam);
+		SceneMan:RevealUnseenBox(self.initialDeadBodiesArea.FirstBox.Center.X - 150, self.initialDeadBodiesArea.FirstBox.Center.Y - 150, SceneMan.SceneWidth - (self.initialDeadBodiesArea.FirstBox.Center.X - 150), 420, self.humanTeam);
 
-		-- Reveal the bunkers for the AI and hide them for the player.
+		-- Reveal the bunkers for the AI.
+		-- These areas are hidden with inset for the player, so that the outter surface is visible.
 		for _, bunkerArea in ipairs(self.bunkerAreas) do
 			for box in bunkerArea.totalArea.Boxes do
 				SceneMan:RevealUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.aiTeam);
-				SceneMan:RestoreUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.humanTeam);
+				SceneMan:RestoreUnseenBox(box.Corner.X + 10, box.Corner.Y + 10, box.Width - 20, box.Height - 20, self.humanTeam);
 			end
 		end
 
 		-- Reveal a circle around actors.
-		for actor in MovableMan.AddedActors do
-			for angle = 0, math.pi * 2, 0.05 do
-				SceneMan:CastSeeRay(actor.Team, actor.EyePos, Vector(150 + FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 1, 4);
+		for Act in MovableMan.AddedActors do
+			if not IsADoor(Act) then
+				for angle = 0, math.pi * 2, 0.05 do
+					SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+				end
 			end
 		end
 	end
@@ -1665,7 +1673,7 @@ function DecisionDay:UpdateAIDecisions()
 					for movableObject in MovableMan:GetMOsInRadius(captureAreaCenter, self.aiData.bunkerRegionDefenseRange, self.humanTeam, true) do
 						if (IsAHuman(movableObject) or IsACrab(movableObject)) and (not movableObject:IsInGroup("AI Region Defenders") or movableObject:IsInGroup("AI Region Defenders - " .. bunkerRegionName)) and movableObject.PinStrength == 0 and not movableObject:IsInGroup("Actors - Turrets")  then
 							--TODO when we have calculate path async with limited max path length, use it here. Will have to do coroutine, etc.
-							--local pathLengthToCaptureArea = SceneMan.Scene:CalculatePath(movableObject.Pos, captureAreaCenter, false, GetPathFindingDefaultDigStrength(), self.aiTeam) * 20;
+							--local pathLengthToCaptureArea = SceneMan.Scene:CalculatePath(movableObject.Pos, captureAreaCenter, GetPathFindingFlyingJumpHeight(), GetPathFindingDefaultDigStrength(), self.aiTeam) * 20;
 							--if pathLengthToCaptureArea < self.aiData.bunkerRegionDefenseRange then
 								local actor = ToActor(movableObject);
 								actor.AIMode = Actor.AIMODE_GOTO;
@@ -2196,7 +2204,7 @@ function DecisionDay:UpdateActivity()
 		if self.currentStage >= self.stages.middleBunkerCaptured then
 			if self.bunkerRegions["Main Bunker Shield Generator"].ownerTeam == self.aiTeam and self.mainBunkerShieldedAreaFOWTimer:IsPastSimTimeLimit() then
 				for box in self.bunkerRegions["Main Bunker Command Center"].shieldedArea.Boxes do
-					SceneMan:RestoreUnseenBox(box.Corner.X, box.Corner.Y, box.Width, box.Height, self.humanTeam);
+					SceneMan:RestoreUnseenBox(box.Corner.X + 10, box.Corner.Y + 10, box.Width - 20, box.Height - 20, self.humanTeam);
 				end
 				self.mainBunkerShieldedAreaFOWTimer:Reset();
 			end

@@ -66,6 +66,15 @@ namespace RTE {
 		/// @return Whether to abort, or ignore the assert and continue execution.
 		static bool ShowAssertMessageBox(const std::string& message);
 
+		/// Prints details on the user hardware to the abort log.
+		/// @remark
+		/// Included details:
+		/// OpenGL version string, OpenGL GPU vendor string, OpenGL Renderer string.
+		/// CPU vendor and brand string (as reported by cpuid on windows and linux or sysctl on macos).
+		/// linux: uname sysname, release, version.
+		/// macos: sysctl kern.osrelease, kern.ostype, kern.osversion.
+		static void DumpHardwareInfo();
+
 		/// Saves the current frame to a file.
 		/// @return Whether the file was saved successfully.@return
 		static bool DumpAbortScreen();

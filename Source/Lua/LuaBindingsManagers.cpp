@@ -56,6 +56,7 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MusicMan) {
 	    .def("SetNextDynamicSongSection", &LuaAdaptersMusicMan::SetNextDynamicSongSection4)
 	    .def("CyclePlayingSoundContainers", &LuaAdaptersMusicMan::CyclePlayingSoundContainers1)
 	    .def("CyclePlayingSoundContainers", &LuaAdaptersMusicMan::CyclePlayingSoundContainers2)
+	    .def("GetCurrentDynamicSongSectionType", &MusicMan::GetCurrentSongSectionType)
 	    .def("EndDynamicMusic", &LuaAdaptersMusicMan::EndDynamicMusic1)
 	    .def("EndDynamicMusic", &LuaAdaptersMusicMan::EndDynamicMusic2)
 	    .def("PlayInterruptingMusic", &MusicMan::PlayInterruptingMusic)
@@ -101,7 +102,7 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MetaMan) {
 	    .property("PlayerTurn", &MetaMan::GetPlayerTurn)
 	    .property("PlayerCount", &MetaMan::GetPlayerCount)
 
-	    .def_readwrite("Players", &MetaMan::m_Players, luabind::return_stl_iterator)
+	    .def_readonly("Players", &MetaMan::m_Players, luabind::return_stl_iterator)
 
 	    .def("GetTeamOfPlayer", &MetaMan::GetTeamOfPlayer)
 	    .def("GetPlayer", &MetaMan::GetPlayer)
@@ -113,14 +114,14 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MovableMan) {
 
 	    .property("MaxDroppedItems", &MovableMan::GetMaxDroppedItems, &MovableMan::SetMaxDroppedItems)
 
-	    .def_readwrite("Actors", &MovableMan::m_Actors, luabind::return_stl_iterator)
-	    .def_readwrite("Items", &MovableMan::m_Items, luabind::return_stl_iterator)
-	    .def_readwrite("Particles", &MovableMan::m_Particles, luabind::return_stl_iterator)
-	    .def_readwrite("AddedActors", &MovableMan::m_AddedActors, luabind::return_stl_iterator)
-	    .def_readwrite("AddedItems", &MovableMan::m_AddedItems, luabind::return_stl_iterator)
-	    .def_readwrite("AddedParticles", &MovableMan::m_AddedParticles, luabind::return_stl_iterator)
-	    .def_readwrite("AlarmEvents", &MovableMan::m_AlarmEvents, luabind::return_stl_iterator)
-	    .def_readwrite("AddedAlarmEvents", &MovableMan::m_AddedAlarmEvents, luabind::return_stl_iterator)
+	    .def_readonly("Actors", &MovableMan::m_Actors, luabind::return_stl_iterator)
+	    .def_readonly("Items", &MovableMan::m_Items, luabind::return_stl_iterator)
+	    .def_readonly("Particles", &MovableMan::m_Particles, luabind::return_stl_iterator)
+	    .def_readonly("AddedActors", &MovableMan::m_AddedActors, luabind::return_stl_iterator)
+	    .def_readonly("AddedItems", &MovableMan::m_AddedItems, luabind::return_stl_iterator)
+	    .def_readonly("AddedParticles", &MovableMan::m_AddedParticles, luabind::return_stl_iterator)
+	    .def_readonly("AlarmEvents", &MovableMan::m_AlarmEvents, luabind::return_stl_iterator)
+	    .def_readonly("AddedAlarmEvents", &MovableMan::m_AddedAlarmEvents, luabind::return_stl_iterator)
 
 	    .def("GetMOFromID", &MovableMan::GetMOFromID)
 	    .def("FindObjectByUniqueID", &MovableMan::FindObjectByUniqueID)
@@ -167,6 +168,9 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MovableMan) {
 	    .def("GetMOsInRadius", (const std::vector<MovableObject*>* (MovableMan::*)(const Vector& centre, float radius) const) & MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	    .def("GetMOsInRadius", (const std::vector<MovableObject*>* (MovableMan::*)(const Vector& centre, float radius, int ignoreTeam) const) & MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 	    .def("GetMOsInRadius", (const std::vector<MovableObject*>* (MovableMan::*)(const Vector& centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const) & MovableMan::GetMOsInRadius, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+	    .def("GetMOsAtPosition", (const std::vector<MovableObject*>* (MovableMan::*)(int pixelX, int pixelY) const) & MovableMan::GetMOsAtPosition, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+	    .def("GetMOsAtPosition", (const std::vector<MovableObject*>* (MovableMan::*)(int pixelX, int pixelY, int ignoreTeam) const) & MovableMan::GetMOsAtPosition, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
+	    .def("GetMOsAtPosition", (const std::vector<MovableObject*>* (MovableMan::*)(int pixelX, int pixelY, int ignoreTeam, bool getsHitByMOsOnly) const) & MovableMan::GetMOsAtPosition, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
 
 	    .def("SendGlobalMessage", &LuaAdaptersMovableMan::SendGlobalMessage1)
 	    .def("SendGlobalMessage", &LuaAdaptersMovableMan::SendGlobalMessage2)
@@ -191,7 +195,7 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PostProcessMan) 
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PresetMan) {
 	return luabind::class_<PresetMan>("PresetManager")
 
-	    .def_readwrite("Modules", &PresetMan::m_pDataModules, luabind::return_stl_iterator)
+	    .def_readonly("Modules", &PresetMan::m_pDataModules, luabind::return_stl_iterator)
 
 	    .def("LoadDataModule", (bool(PresetMan::*)(const std::string&)) & PresetMan::LoadDataModule)
 	    .def("GetDataModule", &PresetMan::GetDataModule)
@@ -324,9 +328,13 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SceneMan) {
 	    .def("CastMaxStrengthRay", (float(SceneMan::*)(const Vector&, const Vector&, int)) & SceneMan::CastMaxStrengthRay)
 	    .def("CastStrengthRay", &SceneMan::CastStrengthRay)
 	    .def("CastWeaknessRay", &SceneMan::CastWeaknessRay)
-	    .def("CastMORay", &SceneMan::CastMORay)
+	    .def("CastMORay", &LuaAdaptersSceneMan::CastMORay1)
+	    .def("CastMORay", &LuaAdaptersSceneMan::CastMORay2)
+	    .def("CastAllMOsRay", &LuaAdaptersSceneMan::CastAllMOsRay, luabind::return_stl_iterator)
+	    .def("CastFindMORay", (bool(SceneMan::*)(const Vector&, const Vector&, MOID, const Vector&, unsigned char, bool, int)) & SceneMan::CastFindMORay)
 	    .def("CastFindMORay", &SceneMan::CastFindMORay)
-	    .def("CastObstacleRay", &SceneMan::CastObstacleRay)
+	    .def("CastObstacleRay", &LuaAdaptersSceneMan::CastObstacleRay1)
+	    .def("CastObstacleRay", &LuaAdaptersSceneMan::CastObstacleRay2)
 	    .def("CastTerrainPenetrationRay", &SceneMan::CastTerrainPenetrationRay)
 	    .def("GetLastRayHitPos", &SceneMan::GetLastRayHitPos)
 	    .def("FindAltitude", (float(SceneMan::*)(const Vector&, int, int)) & SceneMan::FindAltitude)
@@ -400,8 +408,14 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, TimerMan) {
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, UInputMan) {
 	return luabind::class_<UInputMan>("UInputManager")
 
+	    .property("FlagLAltState", &UInputMan::FlagLAltState)
+	    .property("FlagRAltState", &UInputMan::FlagRAltState)
 	    .property("FlagAltState", &UInputMan::FlagAltState)
+	    .property("FlagLCtrlState", &UInputMan::FlagLCtrlState)
+	    .property("FlagRCtrlState", &UInputMan::FlagRCtrlState)
 	    .property("FlagCtrlState", &UInputMan::FlagCtrlState)
+	    .property("FlagLShiftState", &UInputMan::FlagLShiftState)
+	    .property("FlagRShiftState", &UInputMan::FlagRShiftState)
 	    .property("FlagShiftState", &UInputMan::FlagShiftState)
 
 	    .def("GetInputDevice", &UInputMan::GetInputDevice)

@@ -70,7 +70,6 @@ void GameActivity::Clear() {
 		m_ReadyToStart[player] = false;
 		m_PurchaseOverride[player].clear();
 		m_BrainLZWidth[player] = BRAINLZWIDTHDEFAULT;
-		m_TeamTech[player] = "";
 		m_NetworkPlayerNames[player] = "";
 	}
 
@@ -95,6 +94,8 @@ void GameActivity::Clear() {
 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
 		m_Deliveries[team].clear();
+		m_TeamTech[team] = "";
+		m_TeamTechSwitchEnabled[team] = true;
 		m_LandingZoneArea[team].Reset();
 		m_aLZCursor[team].clear();
 		m_aObjCursor[team].clear();
@@ -158,6 +159,7 @@ int GameActivity::Create(const GameActivity& reference) {
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
 		m_LandingZoneArea[team] = reference.m_LandingZoneArea[team];
 		m_TeamTech[team] = reference.m_TeamTech[team];
+		m_TeamTechSwitchEnabled[team] = reference.m_TeamTechSwitchEnabled[team];
 		m_TeamIsCPU[team] = reference.m_TeamIsCPU[team];
 	}
 
@@ -220,7 +222,19 @@ int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader)
 		                if (propName == "Team" + std::to_string(team + 1) + "Tech") {
 			                std::string techName;
 			                reader >> techName;
-			                SetTeamTech(team, techName);
+			                m_TeamTech[team] = techName;
+		                }
+	                });
+	MatchForwards("Team1TechSwitchEnabled")
+	    MatchForwards("Team2TechSwitchEnabled")
+	        MatchForwards("Team3TechSwitchEnabled")
+	            MatchProperty(
+	                "Team4TechSwitchEnabled",
+	                for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
+		                if (propName == "Team" + std::to_string(team + 1) + "TechSwitchEnabled") {
+			                bool switchEnabled;
+			                reader >> switchEnabled;
+			                m_TeamTechSwitchEnabled[team] = switchEnabled;
 		                }
 	                });
 	MatchProperty("SpecialBehaviour_StartingGold", { reader >> m_StartingGold; });
@@ -1055,7 +1069,7 @@ void GameActivity::UpdateEditing() {
 			DisableAIs(false);
 			InitAIs();
 			// Reset the mouse value and pathfinding so it'll know about the newly placed stuff
-			g_UInputMan.SetMouseValueMagnitude(0);
+			g_UInputMan.SetMouseValueMagnitude(0, g_UInputMan.MouseUsedByPlayer());
 			g_SceneMan.GetScene()->ResetPathFinding();
 			// Start the in-game track
 			// g_AudioMan.ClearMusicQueue();
@@ -1235,7 +1249,7 @@ void GameActivity::Update() {
 			if (m_PlayerController[player].IsState(PRESS_SECONDARY)) {
 				// Reset the mouse so the actor doesn't change aim because mouse has been moved
 				if (m_PlayerController[player].IsMouseControlled()) {
-					g_UInputMan.SetMouseValueMagnitude(0);
+					g_UInputMan.SetMouseValueMagnitude(0, player);
 				}
 
 				m_ViewState[player] = ViewState::Normal;
@@ -1254,7 +1268,7 @@ void GameActivity::Update() {
 			else if (m_PlayerController[player].IsState(ACTOR_NEXT) || m_PlayerController[player].IsState(ACTOR_PREV) || m_PlayerController[player].IsState(PRESS_FACEBUTTON) || m_PlayerController[player].IsState(PRESS_PRIMARY)) {
 				// Reset the mouse so the actor doesn't change aim because mouse has been moved
 				if (m_PlayerController[player].IsMouseControlled()) {
-					g_UInputMan.SetMouseValueMagnitude(0);
+					g_UInputMan.SetMouseValueMagnitude(0, player);
 				}
 
 				if (pMarkedActor) {
@@ -1330,8 +1344,6 @@ void GameActivity::Update() {
 			if (m_PlayerController[player].IsState(PRESS_SECONDARY) || m_PlayerController[player].IsState(ACTOR_NEXT_PREP) || m_PlayerController[player].IsState(ACTOR_PREV_PREP)) {
 				// Stop drawing the waypoints
 				//                m_ControlledActor[player]->DrawWaypoints(false);
-				// Update the player's move path now to the first waypoint set
-				m_ControlledActor[player]->UpdateMovePath();
 				// Give player control back to actor
 				m_ControlledActor[player]->GetController()->SetDisabled(false);
 				// Switch back to normal view
@@ -1351,8 +1363,7 @@ void GameActivity::Update() {
 				// Just pointing into somewhere in the scene, so give that command
 				else
 					m_ControlledActor[player]->AddAISceneWaypoint(m_ActorCursor[player]);
-				// Update the player's move path now to the first waypoint set
-				m_ControlledActor[player]->UpdateMovePath();
+
 				if (m_pLastMarkedActor[player] && m_pLastMarkedActor[player]->GetPieMenu()) {
 					m_pLastMarkedActor[player]->GetPieMenu()->SetAnimationModeToNormal();
 				}
@@ -1439,7 +1450,7 @@ void GameActivity::Update() {
 								pActor->ClearAIWaypoints();
 								pActor->SetAIMode(Actor::AIMODE_SQUAD);
 								pActor->AddAIMOWaypoint(m_ControlledActor[player]);
-								pActor->UpdateMovePath(); // Make sure pActor has m_ControlledActor registered as an AIMOWaypoint
+								pActor->SetMovePathToUpdate();
 							}
 					}
 

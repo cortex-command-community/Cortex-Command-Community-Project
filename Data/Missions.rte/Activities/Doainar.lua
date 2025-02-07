@@ -80,10 +80,37 @@ function DoainarMission:StartNewGame()
 			actor.DoorDirectionChangeSound.Volume = 0;
 		end
 	end
-
-	SceneMan:MakeAllUnseen(Vector(24, 24), self.PlayerTeam);
+	
+	self:SetupFogOfWar();
 
 	self:SetupHumanPlayerBrains();
+end
+
+function DoainarMission:SetupFogOfWar()
+	if self:GetFogOfWarEnabled() then
+		local fogResolution = 4;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.PlayerTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
+
+		-- Reveal above ground for everyone.
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.PlayerTeam);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
+			end
+		end
+
+		-- Reveal a circle around actors.
+		for Act in MovableMan.AddedActors do
+			if not IsADoor(Act) then
+				for angle = 0, math.pi * 2, 0.05 do
+					SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+				end
+			end
+		end
+	end
 end
 
 function DoainarMission:SetupHumanPlayerBrains()
@@ -346,6 +373,7 @@ function DoainarMission:UpdateActivity()
 			local textTime = 5000;
 			for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 				if self:PlayerActive(player) and self:PlayerHuman(player) then
+					local screen = self:ScreenOfPlayer(player);
 					FrameMan:SetScreenText("These are cartesian coordinates...  Where could they possibly lead to?", screen, 0, textTime, true);
 				end
 			end

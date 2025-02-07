@@ -1114,17 +1114,12 @@ bool SceneMan::RestoreUnseen(const int posX, const int posY, const int team) {
 		int scaledX = posX / scale.m_X;
 		int scaledY = posY / scale.m_Y;
 
-		// Make sure we're actually revealing an unseen pixel that is ON the bitmap!
+		// Make sure we're actually hiding a seen pixel that is ON the bitmap!
 		int pixel = getpixel(pUnseenLayer->GetBitmap(), scaledX, scaledY);
 		if (pixel != g_BlackColor && pixel != -1) {
-			// Add the pixel to the list of now seen pixels so it can be visually flashed
-			m_pCurrentScene->GetSeenPixels(team).push_back(Vector(scaledX, scaledY));
-			// Clear to key color that pixel on the map so it won't be detected as unseen again
+			// Restore that pixel on the map so it won't be detected as seen again
 			putpixel(pUnseenLayer->GetBitmap(), scaledX, scaledY, g_BlackColor);
-			// Play the reveal sound, if there's not too many already revealed this frame
-			// if (g_SettingsMan.BlipOnRevealUnseen() && m_pUnseenRevealSound && m_pCurrentScene->GetSeenPixels(team).size() < 5)
-			//    m_pUnseenRevealSound->Play(g_SceneMan.TargetDistanceScalar(Vector(posX, posY)));
-			// Show that we actually cleared an unseen pixel
+			// Show that we actually restored a seen pixel
 			return true;
 		}
 	}
@@ -1264,6 +1259,7 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 		return false;
 
 	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
+	int size = 40 - GetUnseenResolution(team).GetLargest();
 	int intPos[2], delta[2], delta2[2], increment[2];
 	bool affectedAny = false;
 	unsigned char materialID;
@@ -1321,15 +1317,21 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 		}
 		error += delta2[sub];
 
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
+		// Only check space if we're not due to skip any, or if this is the last step
 		if (++skipped > skip || domSteps + 1 == delta[dom]) {
 			// Scene wrapping
-			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
+			WrapPosition(intPos[X], intPos[Y]);
+
 			// Reveal if we can, save the result
-			if (reveal)
-				affectedAny = RevealUnseen(intPos[X], intPos[Y], team) || affectedAny;
-			else
-				affectedAny = RestoreUnseen(intPos[X], intPos[Y], team) || affectedAny;
+			if (reveal) {
+				if (affectedAny = IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y], team) || IsUnseen(intPos[X] + size, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - size, team) || IsUnseen(intPos[X], intPos[Y] + size, team)) {
+					RevealUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
+				}
+			} else {
+				if (affectedAny = !(IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y], team) || IsUnseen(intPos[X] + size, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - size, team) || IsUnseen(intPos[X], intPos[Y] + size, team))) {
+					RestoreUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
+				}
+			}
 
 			// Check the strength of the terrain to see if we can penetrate further
 			materialID = GetTerrMatter(intPos[X], intPos[Y]);
@@ -1900,7 +1902,7 @@ bool SceneMan::CastWeaknessRay(const Vector& start, const Vector& ray, float str
 	return foundPixel;
 }
 
-MOID SceneMan::CastMORay(const Vector& start, const Vector& ray, MOID ignoreMOID, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
+MOID SceneMan::CastMORay(const Vector& start, const Vector& ray, const std::vector<MOID>& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
 	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	MOID hitMOID = g_NoMOID;
@@ -1963,7 +1965,17 @@ MOID SceneMan::CastMORay(const Vector& start, const Vector& ray, MOID ignoreMOID
 
 			// Detect MOIDs
 			hitMOID = GetMOIDPixel(intPos[X], intPos[Y], ignoreTeam);
-			if (hitMOID != g_NoMOID && hitMOID != ignoreMOID && g_MovableMan.GetRootMOID(hitMOID) != ignoreMOID) {
+
+			// Loop through ignored MOIDs to see if the one we found is ignored
+			bool ignoredMOIDHit = false;
+			for (auto ignoredMOID : ignoreMOIDs) {
+				if (hitMOID == ignoredMOID || g_MovableMan.GetRootMOID(hitMOID) == ignoredMOID) {
+					ignoredMOIDHit = true;
+					break;
+				}
+			}
+			
+			if (hitMOID != g_NoMOID && !ignoredMOIDHit) {
 				// Save last ray pos
 				s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
 				return hitMOID;
@@ -1991,7 +2003,7 @@ MOID SceneMan::CastMORay(const Vector& start, const Vector& ray, MOID ignoreMOID
 	return g_NoMOID;
 }
 
-bool SceneMan::CastFindMORay(const Vector& start, const Vector& ray, MOID targetMOID, Vector& resultPos, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
+bool SceneMan::CastFindMORay(const Vector& start, const Vector& ray, MOID targetMOID, Vector& resultPos, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip, bool findChildMOIDs) {
 	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	MOID hitMOID = g_NoMOID;
@@ -2053,7 +2065,7 @@ bool SceneMan::CastFindMORay(const Vector& start, const Vector& ray, MOID target
 
 			// Detect MOIDs
 			hitMOID = GetMOIDPixel(intPos[X], intPos[Y], Activity::NoTeam);
-			if (hitMOID == targetMOID || g_MovableMan.GetRootMOID(hitMOID) == targetMOID) {
+			if (hitMOID == targetMOID || (findChildMOIDs && hitMOID == g_MovableMan.GetRootMOID(targetMOID))) {
 				// Found target MOID, so save result and report success
 				resultPos.SetXY(intPos[X], intPos[Y]);
 				// Save last ray pos
@@ -2083,7 +2095,109 @@ bool SceneMan::CastFindMORay(const Vector& start, const Vector& ray, MOID target
 	return false;
 }
 
-float SceneMan::CastObstacleRay(const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, MOID ignoreMOID, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
+const std::vector<MovableObject*>*  SceneMan::CastAllMOsRay(const Vector& start, const Vector& ray, const std::vector<MOID>& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) const {
+	std::vector<MovableObject*>* vectorForLua = new std::vector<MovableObject*>();
+
+	const SpatialPartitionGrid& partitionGrid = GetMOIDGrid();
+
+	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
+	int intPos[2], delta[2], delta2[2], increment[2];
+	unsigned char hitTerrain = 0;
+
+	intPos[X] = std::floor(start.m_X);
+	intPos[Y] = std::floor(start.m_Y);
+	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
+	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
+
+	if (delta[X] == 0 && delta[Y] == 0)
+		return vectorForLua;
+
+	/////////////////////////////////////////////////////
+	// Bresenham's line drawing algorithm preparation
+
+	if (delta[X] < 0) {
+		increment[X] = -1;
+		delta[X] = -delta[X];
+	} else
+		increment[X] = 1;
+
+	if (delta[Y] < 0) {
+		increment[Y] = -1;
+		delta[Y] = -delta[Y];
+	} else
+		increment[Y] = 1;
+
+	// Scale by 2, for better accuracy of the error at the first pixel
+	delta2[X] = delta[X] << 1;
+	delta2[Y] = delta[Y] << 1;
+
+	// If X is dominant, Y is submissive, and vice versa.
+	if (delta[X] > delta[Y]) {
+		dom = X;
+		sub = Y;
+	} else {
+		dom = Y;
+		sub = X;
+	}
+
+	error = delta2[sub] - delta[dom];
+
+	/////////////////////////////////////////////////////
+	// Bresenham's line drawing algorithm execution
+
+	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
+		intPos[dom] += increment[dom];
+		if (error >= 0) {
+			intPos[sub] += increment[sub];
+			error -= delta2[dom];
+		}
+		error += delta2[sub];
+
+		// Only check pixel if we're not due to skip any, or if this is the last pixel
+		if (++skipped > skip || domSteps + 1 == delta[dom]) {
+
+			// Scene wrapping, if necessary
+			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
+				
+			// Detect MOs
+			std::vector<MovableObject*> hitMOs;
+			hitMOs = std::move(partitionGrid.GetMOsAtPosition(intPos[X], intPos[Y], ignoreTeam, false));
+
+			// Loop through the gotten MOs and check if we're ignoring their IDs - if not, put them onto our return vector
+			for (MovableObject* mo : hitMOs) {
+				MOID moid = mo->GetID();
+				for (auto ignoredMOID : ignoreMOIDs) {
+					if (moid != ignoredMOID && g_MovableMan.GetRootMOID(moid) != ignoredMOID) {
+						// Save last ray pos
+						s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
+						vectorForLua->push_back(mo);
+					}
+				}
+			}
+
+			// Detect terrain hits
+			if (!ignoreAllTerrain) {
+				hitTerrain = g_SceneMan.GetTerrMatter(intPos[X], intPos[Y]);
+				if (hitTerrain != g_MaterialAir && hitTerrain != ignoreMaterial) {
+					// Save last ray pos
+					s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
+					return vectorForLua;
+				}
+			}
+
+			skipped = 0;
+
+			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
+				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
+			}
+		}
+	}
+
+	// Didn't hit anything but air
+	return vectorForLua;
+}
+
+float SceneMan::CastObstacleRay(const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, const std::vector<MOID>& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
 	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	bool hitObstacle = false;
@@ -2150,17 +2264,18 @@ float SceneMan::CastObstacleRay(const Vector& start, const Vector& ray, Vector& 
 			unsigned char checkMat = GetTerrMatter(intPos[X], intPos[Y]);
 			MOID checkMOID = GetMOIDPixel(intPos[X], intPos[Y], ignoreTeam);
 
-			// Translate any found MOID into the root MOID of that hit MO
-			if (checkMOID != g_NoMOID) {
-				MovableObject* pHitMO = g_MovableMan.GetMOFromID(checkMOID);
-				if (pHitMO) {
-					checkMOID = pHitMO->GetRootID();
+			// Loop through ignored MOIDs to see if the one we found is ignored
+			bool ignoredMOIDHit = false;
+			for (auto ignoredMOID : ignoreMOIDs) {
+				if (checkMOID == ignoredMOID || g_MovableMan.GetRootMOID(checkMOID) == ignoredMOID) {
+					ignoredMOIDHit = true;
+					break;
 				}
 			}
 
 			// See if we found the looked-for pixel of the correct material,
 			// Or an MO is blocking the way
-			if ((checkMat != g_MaterialAir && checkMat != ignoreMaterial) || (checkMOID != g_NoMOID && checkMOID != ignoreMOID)) {
+			if ((checkMat != g_MaterialAir && checkMat != ignoreMaterial) || (checkMOID != g_NoMOID && !ignoredMOIDHit)) {
 				hitObstacle = true;
 				obstaclePos.SetXY(intPos[X], intPos[Y]);
 				// Save last ray pos
@@ -2235,13 +2350,21 @@ bool SceneMan::OverAltitude(const Vector& point, int threshold, int accuracy) {
 	return g_SceneMan.CastNotMaterialRay(temp, Vector(0, threshold), g_MaterialAir, accuracy) < 0;
 }
 
-Vector SceneMan::MovePointToGround(const Vector& from, int maxAltitude, int accuracy) {
+bool SceneMan::IsPointInNoGravArea(const Vector& point) const {
 	// Todo, instead of a nograv area maybe best to tag certain areas as NoGrav. As otherwise it's tricky to keep track of when things are removed
 	if (m_pCurrentScene) {
-		Scene::Area* noGravArea = m_pCurrentScene->GetOptionalArea("NoGravityArea");
-		if (noGravArea && noGravArea->IsInside(from)) {
-			return from;
+		Scene::Area* noGravArea = m_pCurrentScene->GetArea("NoGravityArea");
+		if (noGravArea && noGravArea->IsInside(point)) {
+			return true;
 		}
+	}
+
+	return false;
+}
+
+Vector SceneMan::MovePointToGround(const Vector& from, int maxAltitude, int accuracy) {
+	if (IsPointInNoGravArea(from)) {
+		return from;
 	}
 
 	Vector temp(from);
@@ -2581,9 +2704,12 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 	if (!m_pCurrentScene) {
 		return;
 	}
+
 	SLTerrain* terrain = m_pCurrentScene->GetTerrain();
+
 	// Set up the target box to draw to on the target bitmap, if it is larger than the scene in either dimension.
 	Box targetBox(Vector(), static_cast<float>(targetBitmap->w), static_cast<float>(targetBitmap->h));
+	Box targetDimensions(Vector(), targetBitmap->w, targetBitmap->h);
 
 	if (!terrain->WrapsX() && targetBitmap->w > GetSceneWidth()) {
 		targetBox.SetCorner(Vector(static_cast<float>((targetBitmap->w - GetSceneWidth()) / 2), targetBox.GetCorner().GetY()));
@@ -2597,28 +2723,28 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 	switch (m_LayerDrawMode) {
 		case LayerDrawMode::g_LayerTerrainMatter:
 			terrain->SetLayerToDraw(SLTerrain::LayerType::MaterialLayer);
-			terrain->Draw(targetBitmap, targetBox);
+			terrain->Draw(targetDimensions, targetBox);
 			break;
 		default:
 			if (!skipBackgroundLayers) {
 				for (std::list<SLBackground*>::reverse_iterator backgroundLayer = m_pCurrentScene->GetBackLayers().rbegin(); backgroundLayer != m_pCurrentScene->GetBackLayers().rend(); ++backgroundLayer) {
-					(*backgroundLayer)->Draw(targetBitmap, targetBox);
+					(*backgroundLayer)->Draw(targetDimensions, targetBox);
 				}
 			}
 			if (!skipTerrain) {
 				terrain->SetLayerToDraw(SLTerrain::LayerType::BackgroundLayer);
-				terrain->Draw(targetBitmap, targetBox);
+				terrain->Draw(targetDimensions, targetBox);
 			}
-			m_pMOColorLayer->Draw(targetBitmap, targetBox);
+			m_pMOColorLayer->Draw(targetDimensions, targetBox);
 
 			if (!skipTerrain) {
 				terrain->SetLayerToDraw(SLTerrain::LayerType::ForegroundLayer);
-				terrain->Draw(targetBitmap, targetBox);
+				terrain->Draw(targetDimensions, targetBox);
 			}
 			if (!g_FrameMan.IsInMultiplayerMode()) {
 				int teamId = g_CameraMan.GetScreenTeam(m_LastUpdatedScreen);
 				if (SceneLayer* unseenLayer = (teamId != Activity::NoTeam) ? m_pCurrentScene->GetUnseenLayer(teamId) : nullptr) {
-					unseenLayer->Draw(targetBitmap, targetBox);
+					unseenLayer->Draw(targetDimensions, targetBox);
 				}
 			}
 
@@ -2633,27 +2759,33 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 				g_ActivityMan.GetActivity()->DrawGUI(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
 			}
 
-#ifdef DRAW_NOGRAV_BOXES
-			if (Scene::Area* noGravArea = m_pCurrentScene->GetArea("NoGravityArea")) {
-				const std::vector<Box>& boxList = noGravArea->GetBoxes();
-				g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
-				drawing_mode(DRAW_MODE_TRANS, 0, 0, 0);
+			static bool s_drawNoGravBoxes = false;
+			if (s_drawNoGravBoxes) {
+				if (Scene::Area* noGravArea = m_pCurrentScene->GetArea("NoGravityArea")) {
+					const std::vector<Box*>& boxList = noGravArea->GetBoxes();
+					g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
+					drawing_mode(DRAW_MODE_TRANS, 0, 0, 0);
 
-				std::list<Box> wrappedBoxes;
-				for (std::vector<Box>::const_iterator bItr = boxList.begin(); bItr != boxList.end(); ++bItr) {
-					wrappedBoxes.clear();
-					g_SceneMan.WrapBox(*bItr, wrappedBoxes);
+					std::list<Box> wrappedBoxes;
+					for (Box* box: boxList) {
+						wrappedBoxes.clear();
+						g_SceneMan.WrapBox(*box, wrappedBoxes);
 
-					for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
-						Vector adjCorner = (*wItr).GetCorner() - targetPos;
-						rectfill(targetBitmap, adjCorner.m_X, adjCorner.m_Y, adjCorner.m_X + (*wItr).GetWidth(), adjCorner.m_Y + (*wItr).GetHeight(), g_RedColor);
+						for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
+							Vector adjCorner = (*wItr).GetCorner() - targetPos;
+							rectfill(targetBitmap, adjCorner.m_X, adjCorner.m_Y, adjCorner.m_X + (*wItr).GetWidth(), adjCorner.m_Y + (*wItr).GetHeight(), g_RedColor);
+						}
 					}
 				}
 			}
-#endif
+
+			static int s_drawPathfinderDebugForTeam = -2;
+			if (s_drawPathfinderDebugForTeam > -2) {
+				m_pCurrentScene->GetPathFinder(static_cast<Activity::Teams>(s_drawPathfinderDebugForTeam)).DebugRender(targetBitmap, targetPos, m_LastUpdatedScreen);
+			}
 
 			if (m_pDebugLayer) {
-				m_pDebugLayer->Draw(targetBitmap, targetBox);
+				m_pDebugLayer->Draw(targetDimensions, targetBox);
 			}
 
 			break;

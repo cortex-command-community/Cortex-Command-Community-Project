@@ -400,14 +400,14 @@ void GibEditor::Update() {
 					m_pEditedObject->Update();
 
 					// Make proxy copies of the loaded objects' gib reference instances and place them in the list to be edited
-					std::list<Gib>* pLoadedGibList = m_pEditedObject->GetGibList();
+					std::list<Gib*>* pLoadedGibList = m_pEditedObject->GetGibList();
 					std::list<MovableObject*>* pEditedGibList = m_pEditorGUI->GetPlacedGibs();
 					MovableObject* pGibCopy = 0;
 
 					for (auto gItr = pLoadedGibList->begin(); gItr != pLoadedGibList->end(); ++gItr) {
-						pGibCopy = dynamic_cast<MovableObject*>((*gItr).GetParticlePreset()->Clone());
+						pGibCopy = dynamic_cast<MovableObject*>((*gItr)->GetParticlePreset()->Clone());
 						if (pGibCopy) {
-							pGibCopy->SetPos(m_pEditedObject->GetPos() + (*gItr).GetOffset());
+							pGibCopy->SetPos(m_pEditedObject->GetPos() + (*gItr)->GetOffset());
 							pEditedGibList->push_back(pGibCopy);
 						}
 						pGibCopy = 0;
@@ -599,8 +599,8 @@ bool GibEditor::SaveObject(const std::string& saveAsName, bool forceOverwrite) {
 				}
 				objectWriter.NewProperty(addObjectType);
 				m_pEditedObject->Entity::Save(objectWriter);
-				for (const Gib& gib: *m_pEditedObject->GetGibList()) {
-					objectWriter.NewPropertyWithValue("AddGib", gib);
+				for (const Gib* gib: *m_pEditedObject->GetGibList()) {
+					objectWriter.NewPropertyWithValue("AddGib", *gib);
 				}
 				objectWriter.ObjectEnd();
 				objectWriter.EndWrite();
@@ -626,18 +626,18 @@ void GibEditor::StuffEditedGibs(MOSRotating* pEditedObject) {
 		return;
 
 	// Replace the gibs of the object with the proxies that have been edited in the gui
-	std::list<Gib>* pObjectGibList = pEditedObject->GetGibList();
+	std::list<Gib*>* pObjectGibList = pEditedObject->GetGibList();
 	pObjectGibList->clear();
 
 	// Take each proxy object and stuff it into a Gib instance which then gets stuffed into the object to be saved
 	std::list<MovableObject*>* pProxyGibList = m_pEditorGUI->GetPlacedGibs();
 	for (std::list<MovableObject*>::iterator gItr = pProxyGibList->begin(); gItr != pProxyGibList->end(); ++gItr) {
-		Gib newGib;
+		Gib* newGib;
 		// Only set the refernce instance directly from the isntanceman. OWNERSHIP IS NOT TRANSFERRED!
-		newGib.m_GibParticle = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset((*gItr)->GetClassName(), (*gItr)->GetPresetName(), m_ModuleSpaceID));
-		if (newGib.m_GibParticle) {
-			newGib.m_Count = 1;
-			newGib.m_Offset = (*gItr)->GetPos() - pEditedObject->GetPos();
+		newGib->m_GibParticle = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset((*gItr)->GetClassName(), (*gItr)->GetPresetName(), m_ModuleSpaceID));
+		if (newGib->m_GibParticle) {
+			newGib->m_Count = 1;
+			newGib->m_Offset = (*gItr)->GetPos() - pEditedObject->GetPos();
 			// TODO: do proper velocity calculations here!
 			// ... actually leave these as 0 and let them be calculated in GibThis
 			//            newGib.m_MinVelocity = (100.0f + 50.0f * NormalRand()) / (*gItr)->GetMass();

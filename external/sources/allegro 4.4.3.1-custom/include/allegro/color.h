@@ -40,7 +40,7 @@ typedef struct {
    unsigned char data[PAL_SIZE][PAL_SIZE];
 } COLOR_MAP;
 
-AL_VAR(RGB_MAP *, rgb_map);
+//AL_VAR(RGB_MAP *, rgb_map);
 AL_VAR(COLOR_MAP *, color_map);
 
 AL_VAR(PALETTE, _current_palette);
@@ -66,7 +66,7 @@ AL_ARRAY(int, _rgb_scale_6);
 #define MASK_COLOR_15      0x7C1F
 #define MASK_COLOR_16      0xF81F
 #define MASK_COLOR_24      0xFF00FF
-#define MASK_COLOR_32      0xFF00FF
+#define MASK_COLOR_32      0x00000000
 
 AL_VAR(int *, palette_color);
 

@@ -13,6 +13,9 @@
 #include "GUIListBox.h"
 #include "System.h"
 
+#include "raylib/raylib.h"
+#include "raylib/rlgl.h"
+
 using namespace RTE;
 
 void LoadingScreen::Clear() {
@@ -28,7 +31,7 @@ void LoadingScreen::Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, 
 	RTEAssert(loadingScreenManager.Create(guiScreen, guiInput, "Base.rte/GUIs/Skins/Menus", "LoadingScreenSkin.ini"), "Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/Menus/LoadingScreenSkin.ini");
 	loadingScreenManager.Load("Base.rte/GUIs/LoadingGUI.ini");
 
-	g_WindowMan.ClearRenderer();
+	g_WindowMan.ClearBackbuffer();
 
 	int loadingSplashOffset = 0;
 	if (!progressReportDisabled) {
@@ -45,7 +48,7 @@ void LoadingScreen::Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, 
 		CreateLoadingSplash();
 	}
 
-	g_WindowMan.UploadFrame();
+	//g_WindowMan.UploadFrame();
 
 	if (!m_LoadingLogWriter) {
 		m_LoadingLogWriter = std::make_unique<Writer>("LogLoading.txt");
@@ -66,12 +69,15 @@ void LoadingScreen::CreateLoadingSplash(int xOffset) {
 	m_LoadingSplashBitmap = create_bitmap_ex(FrameMan::c_BPP, backbuffer->w, backbuffer->h);
 	clear_bitmap(m_LoadingSplashBitmap);
 
-	SceneLayer loadingSplash;
+	StaticSceneLayer loadingSplash;
 	loadingSplash.Create(ContentFile("Base.rte/GUIs/Title/LoadingSplash.png").GetAsBitmap(COLORCONV_NONE, false), false, Vector(), true, false, Vector(1.0F, 0));
 	loadingSplash.SetOffset(Vector(static_cast<float>(((loadingSplash.GetBitmap()->w - g_WindowMan.GetResX()) / 2) + xOffset), 0));
 
 	Box loadingSplashTargetBox(Vector(0, static_cast<float>((g_WindowMan.GetResY() - loadingSplash.GetBitmap()->h) / 2)), static_cast<float>(g_WindowMan.GetResX()), static_cast<float>(loadingSplash.GetBitmap()->h));
-	loadingSplash.Draw(m_LoadingSplashBitmap, loadingSplashTargetBox);
+	g_WindowMan.ClearBackbuffer();
+	loadingSplash.Draw(loadingSplashTargetBox, loadingSplashTargetBox);
+	rlDrawRenderBatchActive();
+	g_WindowMan.Present();
 }
 
 void LoadingScreen::CreateProgressReportListbox(GUIControlManager* parentControlManager) {
@@ -134,7 +140,7 @@ void LoadingScreen::LoadingSplashProgressReport(const std::string& reportString,
 
 		blit(g_LoadingScreen.m_ProgressListboxBitmap, g_FrameMan.GetBackBuffer32(), 0, 0, g_LoadingScreen.m_ProgressListboxPosX, g_LoadingScreen.m_ProgressListboxPosY, g_LoadingScreen.m_ProgressListboxBitmap->w, g_LoadingScreen.m_ProgressListboxBitmap->h);
 
-		g_WindowMan.ClearRenderer(false);
+		g_WindowMan.ClearBackbuffer(false);
 		g_WindowMan.UploadFrame();
 	}
 }

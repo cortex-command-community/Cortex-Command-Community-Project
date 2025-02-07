@@ -1,8 +1,6 @@
 # Meson files from github.com/franko/luajit
 project('luajit', 'c', version : '2.0.5', default_options : ['c_winlibs='])
-if get_option('header_only')
-  luajit_source_dir = include_directories('src')
-else
+
 pkg = import('pkgconfig')
 
 cc = meson.get_compiler('c')
@@ -10,14 +8,19 @@ libm = cc.find_library('m', required : false)
 libdl = cc.find_library('dl', required : false)
 luajit_dependencies = [libm, libdl]
 
+
 luajit_source_dir = include_directories('src')
 luajit_abiver = '51'
+
+if not meson.can_run_host_binaries()
+    warning('Can\'t properly build in cross environment, using system library instead!')
+else
 
 dynasm = files('dynasm/dynasm.lua')
 
 subdir('src')
 
-if not get_option('use_prebuilt_libraries') or host_machine.system() in ['darwin', 'linux']
+if not get_option('use_prebuilt_libraries') or host_machine.system() in ['linux', 'darwin']
     libluajit = library(lj_libname, ljlib_sources + ljcore_sources + buildvm_headers,
         include_directories: luajit_source_dir,
         c_args: lj_defines,

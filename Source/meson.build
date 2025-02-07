@@ -15,6 +15,7 @@ source_inc_dirs += [include_directories(
   'Lua',
   'Managers',
   'Menus',
+  'Renderer',
   'System')]
 
 subdir('Activities')
@@ -23,4 +24,5 @@ subdir('GUI')
 subdir('Lua')
 subdir('Managers')
 subdir('Menus')
+subdir('Renderer')
 subdir('System')

@@ -84,7 +84,7 @@ function BunkerBreach:SetupDefenderBrains()
 		end
 
 		defenderBrain = self:CreateBrainBot(self.defenderTeam);
-		defenderBrain.Pos = SceneMan.Scene:GetOptionalArea("Brain"):GetCenterPoint();
+		defenderBrain.Pos = SceneMan.Scene:GetArea("Brain"):GetCenterPoint();
 		MovableMan:AddActor(defenderBrain);
 	else
 		-- Pick the defender brain randomly from among those created by deployments, then delete the others and clean up most of their guards.
@@ -99,7 +99,7 @@ function BunkerBreach:SetupDefenderBrains()
 		table.remove(deploymentBrains, brainIndexToChoose);
 
 		if SceneMan.Scene:HasArea("Brain Chamber") then
-			self.brainChamber = SceneMan.Scene:GetOptionalArea("Brain Chamber");
+			self.brainChamber = SceneMan.Scene:GetArea("Brain Chamber");
 		end
 		for _, unchosenDeploymentBrain in pairs(deploymentBrains) do
 			unchosenDeploymentBrain.ToDelete = true;
@@ -167,7 +167,7 @@ function BunkerBreach:SetupDefenderActors()
 		for _, loadoutName in pairs({"Light", "Heavy", "Sniper", "Engineer", "Mecha", "Turret"}) do
 			if SceneMan.Scene:HasArea(loadoutName .. " Defenders") then
 				hasSpawnAreas = true;
-				local defenderArea = SceneMan.Scene:GetOptionalArea(loadoutName .. " Defenders");
+				local defenderArea = SceneMan.Scene:GetArea(loadoutName .. " Defenders");
 				if defenderArea ~= nil then
 					for defenderBox in defenderArea.Boxes do
 						local guard;
@@ -194,12 +194,18 @@ end
 
 function BunkerBreach:SetupFogOfWar()
 	if self:GetFogOfWarEnabled() then
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.attackerTeam);
-		SceneMan:MakeAllUnseen(Vector(20, 20), self.defenderTeam);
+		local fogResolution = 4;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.attackerTeam);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.defenderTeam);
 
 		-- Reveal outside areas for the attacker.
-		for x = 0, SceneMan.SceneWidth - 1, 20 do
-			SceneMan:CastSeeRay(self.attackerTeam, Vector(x, 0), Vector(0, SceneMan.SceneHeight), Vector(), 1, 9);
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.attackerTeam);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.defenderTeam);
+			end
 		end
 
 		-- Reveal the main bunker area for the defender.
@@ -208,9 +214,11 @@ function BunkerBreach:SetupFogOfWar()
 		end
 
 		-- Reveal a circle around actors, so they're not standing in the dark.
-		for actor in MovableMan.AddedActors do
-			for angle = 0, math.pi * 2, 0.05 do
-				SceneMan:CastSeeRay(actor.Team, actor.EyePos, Vector(150 + FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 1, 4);
+		for Act in MovableMan.AddedActors do
+			if not IsADoor(Act) then
+				for angle = 0, math.pi * 2, 0.05 do
+					SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
+				end
 			end
 		end
 	end
@@ -218,7 +226,7 @@ end
 
 function BunkerBreach:SetupDefenderInternalReinforcementAreas()
 	if self.AI.isDefenderTeam then
-		local internalReinforcementsArea = SceneMan.Scene:GetOptionalArea("Internal Reinforcements");
+		local internalReinforcementsArea = SceneMan.Scene:GetArea("Internal Reinforcements");
 		if internalReinforcementsArea ~= nil then
 			self.AI.internalReinforcementsDoorParticle = CreateMOSRotating("Background Door", "Base.rte");
 			self.AI.internalReinforcementPositions = {};
@@ -240,7 +248,7 @@ function BunkerBreach:StartActivity(isNewGame)
 	local attackerLZ = SceneMan.Scene:GetArea("LZ Attacker");
 	self:SetLZArea(self.attackerTeam, attackerLZ);
 	if SceneMan.Scene:HasArea("LZ Defender") then
-		self:SetLZArea(self.defenderTeam, SceneMan.Scene:GetOptionalArea("LZ Defender"));
+		self:SetLZArea(self.defenderTeam, SceneMan.Scene:GetArea("LZ Defender"));
 	end
 	self.mainBunkerArea = SceneMan.Scene:GetArea("Main Bunker");
 
@@ -496,7 +504,7 @@ function BunkerBreach:SendDefenderGuardsAtEnemiesInsideBunker()
 			local closestFriendlyUnitData = {};
 			for _, friendlyUnitInsideBunker in pairs(self.AI.friendlyUnitsInsideBunker) do
 				if not friendlyUnitInsideBunker:IsInGroup("Brains") then
-					local pathLengthFromFriendlyUnitToEnemy = SceneMan.Scene:CalculatePath(friendlyUnitInsideBunker.Pos, enemyUnitInsideBunker.Pos, false, GetPathFindingDefaultDigStrength(), self.CPUTeam);
+					local pathLengthFromFriendlyUnitToEnemy = SceneMan.Scene:CalculatePath(friendlyUnitInsideBunker.Pos, enemyUnitInsideBunker.Pos, GetPathFindingFlyingJumpHeight(), GetPathFindingDefaultDigStrength(), self.CPUTeam);
 					if closestFriendlyUnitData.pathLengthToEnemy == nil or pathLengthFromFriendlyUnitToEnemy < closestFriendlyUnitData.pathLengthToEnemy then
 						closestFriendlyUnitData.pathLengthToEnemy = pathLengthFromFriendlyUnitToEnemy;
 						closestFriendlyUnitData.actor = friendlyUnitInsideBunker;
@@ -624,7 +632,7 @@ function BunkerBreach:CalculateInternalReinforcementPositionsToEnemyTargets(numb
 		local internalReinforcementPositionForEnemy;
 		local pathLengthFromClosestInternalReinforcementPositionToEnemy = SceneMan.SceneWidth * SceneMan.SceneHeight;
 		for _, internalReinforcementPosition in pairs(self.AI.internalReinforcementPositions) do
-			local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTarget.Pos, false, GetPathFindingDefaultDigStrength(), self.CPUTeam);
+			local pathLengthFromInternalReinforcementPositionToEnemy = SceneMan.Scene:CalculatePath(internalReinforcementPosition, enemyToTarget.Pos, GetPathFindingFlyingJumpHeight(), GetPathFindingDefaultDigStrength(), self.CPUTeam);
 			if pathLengthFromInternalReinforcementPositionToEnemy < pathLengthFromClosestInternalReinforcementPositionToEnemy then
 				internalReinforcementPositionForEnemy = internalReinforcementPosition;
 				pathLengthFromClosestInternalReinforcementPositionToEnemy = pathLengthFromInternalReinforcementPositionToEnemy;

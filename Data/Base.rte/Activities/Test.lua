@@ -6,6 +6,12 @@ package.loaded.Constants = nil; require("Constants");
 
 function Test:StartActivity()
 	print("START! -- Test:StartActivity()!");
+	
+	for actor in MovableMan.AddedActors do
+		if IsADoor(actor) then
+			actor.Team = Activity.NOTEAM;
+		end
+	end
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
@@ -27,6 +33,21 @@ function Test:StartActivity()
 					-- Set the observation target to the brain, so that if/when it dies, the view flies to it in observation mode
 					self:SetObservationTarget(self:GetPlayerBrain(player).Pos, player);
 				end
+			end
+		end
+	end
+
+	if self:GetFogOfWarEnabled() then
+		local fogResolution = 4;
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
+		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_2);
+
+		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+			local altitude = Vector(0, 0);
+			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+			if altitude.Y > 1 then
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_1);
+				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_2);
 			end
 		end
 	end

@@ -69,8 +69,7 @@ unsigned long AllegroScreen::ConvertColor(unsigned long color, int targetColorDe
 		if (color >= 0 && color <= 255) {
 			RGB rgbEntry;
 			get_color(color, &rgbEntry);
-			// Times 4 because RGB struct's elements are in range 0-63, and makecol needs 0-255.
-			color = makecol(rgbEntry.r * 4, rgbEntry.g * 4, rgbEntry.b * 4);
+			color = makecol(rgbEntry.r, rgbEntry.g, rgbEntry.b);
 		}
 	}
 	return color;

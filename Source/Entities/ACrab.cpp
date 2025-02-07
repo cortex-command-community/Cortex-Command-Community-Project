@@ -49,7 +49,7 @@ void ACrab::Clear() {
 	m_BackupRBGFootGroup = nullptr;
 	m_StrideSound = nullptr;
 	m_pJetpack = nullptr;
-	m_MoveState = STAND;
+	m_MovementState = STAND;
 	m_StrideFrame = false;
 	for (int side = 0; side < SIDECOUNT; ++side) {
 		for (int layer = 0; layer < LAYERCOUNT; ++layer) {
@@ -62,21 +62,6 @@ void ACrab::Clear() {
 		//        m_StrideTimer[side].Reset();
 	}
 	m_Aiming = false;
-
-	m_DeviceState = SCANNING;
-	m_SweepState = NOSWEEP;
-	m_DigState = NOTDIGGING;
-	m_JumpState = NOTJUMPING;
-	m_JumpTarget.Reset();
-	m_JumpingRight = true;
-	m_DigTunnelEndPos.Reset();
-	m_SweepCenterAimAngle = 0;
-	m_SweepRange = c_EighthPI;
-	m_DigTarget.Reset();
-	m_FireTimer.Reset();
-	m_SweepTimer.Reset();
-	m_PatrolTimer.Reset();
-	m_JumpTimer.Reset();
 	m_AimRangeUpperLimit = -1;
 	m_AimRangeLowerLimit = -1;
 	m_LockMouseAimInput = false;
@@ -220,7 +205,7 @@ int ACrab::Create(const ACrab& reference) {
 		m_StrideSound = dynamic_cast<SoundContainer*>(reference.m_StrideSound->Clone());
 	}
 
-	m_MoveState = reference.m_MoveState;
+	m_MovementState = reference.m_MovementState;
 
 	for (int side = 0; side < SIDECOUNT; ++side) {
 		for (int i = 0; i < MOVEMENTSTATECOUNT; ++i) {
@@ -229,15 +214,6 @@ int ACrab::Create(const ACrab& reference) {
 		}
 	}
 
-	m_DeviceState = reference.m_DeviceState;
-	m_SweepState = reference.m_SweepState;
-	m_DigState = reference.m_DigState;
-	m_JumpState = reference.m_JumpState;
-	m_JumpTarget = reference.m_JumpTarget;
-	m_JumpingRight = reference.m_JumpingRight;
-	m_DigTunnelEndPos = reference.m_DigTunnelEndPos;
-	m_SweepCenterAimAngle = reference.m_SweepCenterAimAngle;
-	m_SweepRange = reference.m_SweepRange;
 	m_AimRangeUpperLimit = reference.m_AimRangeUpperLimit;
 	m_AimRangeLowerLimit = reference.m_AimRangeLowerLimit;
 	m_LockMouseAimInput = reference.m_LockMouseAimInput;
@@ -581,7 +557,6 @@ bool ACrab::HandlePieCommand(PieSliceType pieSliceIndex) {
 		} else if (pieSliceIndex == PieSliceType::GoTo) {
 			m_AIMode = AIMODE_GOTO;
 			ClearAIWaypoints();
-			m_UpdateMovePath = true;
 		} else {
 			return Actor::HandlePieCommand(pieSliceIndex);
 		}
@@ -689,8 +664,9 @@ bool ACrab::IsWithinRange(Vector& point) const {
 }
 
 bool ACrab::Look(float FOVSpread, float range) {
-	if (!g_SceneMan.AnythingUnseen(m_Team))
+	if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false) {
 		return false;
+	}
 
 	// Set the length of the look vector
 	float aimDistance = m_AimDistance + range;
@@ -715,11 +691,13 @@ bool ACrab::Look(float FOVSpread, float range) {
 	// Add the spread
 	lookVector.DegRotate(FOVSpread * RandomNormalNum());
 
+	// The smallest dimension of the fog block, divided by two, but always at least one, as the step for the casts
+	int step = (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2;
+
 	// TODO: generate an alarm event if we spot an enemy actor?
 
-	Vector ignored;
-	// Cast the seeing ray, adjusting the skip to match the resolution of the unseen map
-	return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2);
+	Vector ignored(0, 0);
+	return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, step);
 }
 
 MovableObject* ACrab::LookForMOs(float FOVSpread, unsigned char ignoreMaterial, bool ignoreAllTerrain) {
@@ -756,36 +734,36 @@ MovableObject* ACrab::LookForMOs(float FOVSpread, unsigned char ignoreMaterial, 
 	return pSeenMO;
 }
 
+float ACrab::EstimateJumpHeight() const {
+	if (!m_pJetpack) {
+		return 0.0F;
+	}
+
+	float totalMass = GetMass();
+	float fuelTime = m_pJetpack->GetJetTimeTotal();
+	float fuelUseMultiplier = m_pJetpack->GetThrottleFactor();
+	float impulseBurst = m_pJetpack->EstimateImpulse(true) / totalMass;
+	float impulseThrust = m_pJetpack->EstimateImpulse(false) / totalMass;
+
+	Vector globalAcc = g_SceneMan.GetGlobalAcc() * g_TimerMan.GetDeltaTimeSecs();
+	Vector currentVelocity = Vector(0.0F, -impulseBurst);
+	float totalHeight = currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
+	do {
+		currentVelocity += globalAcc;
+		totalHeight += currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
+		if (fuelTime > 0.0F) {
+			currentVelocity.m_Y -= impulseThrust;
+			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplier;
+		}
+	} while (currentVelocity.GetY() < 0.0F);
+
+	float finalCalculatedHeight = totalHeight * -1.0F * c_MPP;
+	float finalHeightMultipler = 0.8f; // Make us think we can do a little less because AI path following is shit
+	return finalCalculatedHeight * finalHeightMultipler;
+}
+
 void ACrab::OnNewMovePath() {
 	Actor::OnNewMovePath();
-
-	// Process the new path we now have, if any
-	if (!m_MovePath.empty()) {
-		// Smash all airborne waypoints down to just above the ground, except for when it makes the path intersect terrain or it is the final destination
-		std::list<Vector>::iterator finalItr = m_MovePath.end();
-		finalItr--;
-		Vector smashedPoint;
-		Vector previousPoint = *(m_MovePath.begin());
-		std::list<Vector>::iterator nextItr = m_MovePath.begin();
-		for (std::list<Vector>::iterator lItr = m_MovePath.begin(); lItr != finalItr; ++lItr) {
-			nextItr++;
-			smashedPoint = g_SceneMan.MovePointToGround((*lItr), m_CharHeight * 0.2, 7);
-
-			// Only smash if the new location doesn't cause the path to intersect hard terrain ahead or behind of it
-			// Try three times to halve the height to see if that won't intersect
-			for (int i = 0; i < 3; i++) {
-				Vector notUsed;
-				if (!g_SceneMan.CastStrengthRay(previousPoint, smashedPoint - previousPoint, 5, notUsed, 3, g_MaterialDoor) &&
-				    nextItr != m_MovePath.end() && !g_SceneMan.CastStrengthRay(smashedPoint, (*nextItr) - smashedPoint, 5, notUsed, 3, g_MaterialDoor)) {
-					(*lItr) = smashedPoint;
-					break;
-				} else
-					smashedPoint.m_Y -= ((smashedPoint.m_Y - (*lItr).m_Y) / 2);
-			}
-
-			previousPoint = (*lItr);
-		}
-	}
 }
 
 void ACrab::PreControllerUpdate() {
@@ -822,36 +800,37 @@ void ACrab::PreControllerUpdate() {
 	bool keepOldState = m_Controller.IsKeyboardOnlyControlled() && m_Controller.IsState(PIE_MENU_ACTIVE);
 
 	if (!keepOldState) {
-		if (m_Controller.IsState(MOVE_RIGHT) || m_Controller.IsState(MOVE_LEFT) || m_MoveState == JUMP && m_Status != INACTIVE) {
-			if (m_MoveState != JUMP) {
+		if (m_Controller.IsState(MOVE_RIGHT) || m_Controller.IsState(MOVE_LEFT) || m_MovementState == JUMP && m_Status != INACTIVE) {
+			if (m_MovementState != JUMP) {
 				// Restart the stride if we're just starting to walk or crawl
-				if (m_MoveState != WALK) {
+				if (m_MovementState != WALK) {
 					m_StrideStart[LEFTSIDE] = true;
 					m_StrideStart[RIGHTSIDE] = true;
 					MoveOutOfTerrain(g_MaterialGrass);
 				}
 
-				m_MoveState = WALK;
+				m_MovementState = WALK;
 
-				for (int side = 0; side < SIDECOUNT; ++side) {
-					m_Paths[side][FGROUND][m_MoveState].SetSpeed(m_Controller.IsState(MOVE_FAST) ? FAST : NORMAL);
-					m_Paths[side][BGROUND][m_MoveState].SetSpeed(m_Controller.IsState(MOVE_FAST) ? FAST : NORMAL);
-				}
+				// Was never actually used
+				//for (int side = 0; side < SIDECOUNT; ++side) {
+				//	m_Paths[side][FGROUND][m_MovementState].SetSpeed(m_Controller.IsState(MOVE_FAST) ? FAST : NORMAL);
+				//	m_Paths[side][BGROUND][m_MovementState].SetSpeed(m_Controller.IsState(MOVE_FAST) ? FAST : NORMAL);
+				//}
 			}
 
 			// Walk backwards if the aiming is already focused in the opposite direction of travel.
 			if (std::abs(analogAim.m_X) > 0 || m_Controller.IsState(AIM_SHARP)) {
 				for (int side = 0; side < SIDECOUNT; ++side) {
-					m_Paths[side][FGROUND][m_MoveState].SetHFlip(m_Controller.IsState(MOVE_LEFT));
-					m_Paths[side][BGROUND][m_MoveState].SetHFlip(m_Controller.IsState(MOVE_LEFT));
+					m_Paths[side][FGROUND][m_MovementState].SetHFlip(m_Controller.IsState(MOVE_LEFT));
+					m_Paths[side][BGROUND][m_MovementState].SetHFlip(m_Controller.IsState(MOVE_LEFT));
 				}
 			} else if ((m_Controller.IsState(MOVE_RIGHT) && m_HFlipped) || (m_Controller.IsState(MOVE_LEFT) && !m_HFlipped)) {
-				m_HFlipped = !m_HFlipped;
+				SetHFlipped(!m_HFlipped);
 				m_CheckTerrIntersection = true;
 				MoveOutOfTerrain(g_MaterialGrass);
 				for (int side = 0; side < SIDECOUNT; ++side) {
 					for (int layer = 0; layer < LAYERCOUNT; ++layer) {
-						m_Paths[side][layer][m_MoveState].SetHFlip(m_HFlipped);
+						m_Paths[side][layer][m_MovementState].SetHFlip(m_HFlipped);
 						m_Paths[side][layer][WALK].Terminate();
 						m_Paths[side][layer][STAND].Terminate();
 					}
@@ -859,7 +838,7 @@ void ACrab::PreControllerUpdate() {
 				}
 			}
 		} else {
-			m_MoveState = STAND;
+			m_MovementState = STAND;
 		}
 	}
 
@@ -913,14 +892,14 @@ void ACrab::PreControllerUpdate() {
 
 		// Check for flip change
 		if ((analogAim.m_X > 0 && m_HFlipped) || (analogAim.m_X < 0 && !m_HFlipped)) {
-			m_HFlipped = !m_HFlipped;
+			SetHFlipped(!m_HFlipped);
 			// Instead of simply carving out a silhouette of the now flipped actor, isntead disable any atoms which are embedded int eh terrain until they emerge again
 			// m_ForceDeepCheck = true;
 			m_CheckTerrIntersection = true;
 			MoveOutOfTerrain(g_MaterialGrass);
 			for (int side = 0; side < SIDECOUNT; ++side) {
 				for (int layer = 0; layer < LAYERCOUNT; ++layer) {
-					m_Paths[side][layer][m_MoveState].SetHFlip(m_HFlipped);
+					m_Paths[side][layer][m_MovementState].SetHFlip(m_HFlipped);
 					m_Paths[side][layer][WALK].Terminate();
 					m_Paths[side][layer][STAND].Terminate();
 				}
@@ -952,7 +931,7 @@ void ACrab::PreControllerUpdate() {
 		if (aimMag < 0.1F) {
 			aimMag = 1.0F;
 		}
-		if (m_MoveState == WALK) {
+		if (m_MovementState == WALK) {
 			aimMag *= 0.3F;
 		}
 
@@ -984,12 +963,17 @@ void ACrab::PreControllerUpdate() {
 			} else {
 				mountedDevice->Deactivate();
 			}
+			if (m_Controller.IsState(WEAPON_PRIMARY_HOTKEY)) {
+				mountedDevice->ActivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+			} else {
+				mountedDevice->DeactivateHotkeyAction(HeldDeviceHotkeyType::PRIMARYHOTKEY);
+			}
 		}
 	}
 
 	// Controller disabled
 	if (m_Controller.IsDisabled()) {
-		m_MoveState = STAND;
+		m_MovementState = STAND;
 		if (m_pJetpack && m_pJetpack->IsAttached())
 			m_pJetpack->EnableEmission(false);
 	}
@@ -1004,25 +988,25 @@ void ACrab::PreControllerUpdate() {
 
 	if (m_Status == STABLE && !m_LimbPushForcesAndCollisionsDisabled) {
 		// This exists to support disabling foot collisions if the limbpath has that flag set.
-		if ((m_pLFGFootGroup->GetAtomCount() == 0 && m_BackupLFGFootGroup->GetAtomCount() > 0) != m_Paths[LEFTSIDE][FGROUND][m_MoveState].FootCollisionsShouldBeDisabled()) {
+		if ((m_pLFGFootGroup->GetAtomCount() == 0 && m_BackupLFGFootGroup->GetAtomCount() > 0) != m_Paths[LEFTSIDE][FGROUND][m_MovementState].FootCollisionsShouldBeDisabled()) {
 			m_BackupLFGFootGroup->SetLimbPos(m_pLFGFootGroup->GetLimbPos());
 			std::swap(m_pLFGFootGroup, m_BackupLFGFootGroup);
 		}
-		if ((m_pLBGFootGroup->GetAtomCount() == 0 && m_BackupLBGFootGroup->GetAtomCount() > 0) != m_Paths[LEFTSIDE][BGROUND][m_MoveState].FootCollisionsShouldBeDisabled()) {
+		if ((m_pLBGFootGroup->GetAtomCount() == 0 && m_BackupLBGFootGroup->GetAtomCount() > 0) != m_Paths[LEFTSIDE][BGROUND][m_MovementState].FootCollisionsShouldBeDisabled()) {
 			m_BackupLBGFootGroup->SetLimbPos(m_pLBGFootGroup->GetLimbPos());
 			std::swap(m_pLBGFootGroup, m_BackupLBGFootGroup);
 		}
-		if ((m_pRFGFootGroup->GetAtomCount() == 0 && m_BackupRFGFootGroup->GetAtomCount() > 0) != m_Paths[RIGHTSIDE][FGROUND][m_MoveState].FootCollisionsShouldBeDisabled()) {
+		if ((m_pRFGFootGroup->GetAtomCount() == 0 && m_BackupRFGFootGroup->GetAtomCount() > 0) != m_Paths[RIGHTSIDE][FGROUND][m_MovementState].FootCollisionsShouldBeDisabled()) {
 			m_BackupRFGFootGroup->SetLimbPos(m_pRFGFootGroup->GetLimbPos());
 			std::swap(m_pRFGFootGroup, m_BackupRFGFootGroup);
 		}
-		if ((m_pRBGFootGroup->GetAtomCount() == 0 && m_BackupRBGFootGroup->GetAtomCount() > 0) != m_Paths[RIGHTSIDE][BGROUND][m_MoveState].FootCollisionsShouldBeDisabled()) {
+		if ((m_pRBGFootGroup->GetAtomCount() == 0 && m_BackupRBGFootGroup->GetAtomCount() > 0) != m_Paths[RIGHTSIDE][BGROUND][m_MovementState].FootCollisionsShouldBeDisabled()) {
 			m_BackupRBGFootGroup->SetLimbPos(m_pRBGFootGroup->GetLimbPos());
 			std::swap(m_pRBGFootGroup, m_BackupRBGFootGroup);
 		}
 
 		// WALKING
-		if (m_MoveState == WALK) {
+		if (m_MovementState == WALK) {
 			for (int side = 0; side < SIDECOUNT; ++side)
 				for (int layer = 0; layer < LAYERCOUNT; ++layer)
 					m_Paths[side][layer][STAND].Terminate();
@@ -1045,14 +1029,14 @@ void ACrab::PreControllerUpdate() {
 
 			if (m_pLFGLeg && (!m_pLBGLeg || (!(m_Paths[LEFTSIDE][FGROUND][WALK].PathEnded() && LBGLegProg < 0.5F) || m_StrideStart[LEFTSIDE]))) {
 				m_StrideTimer[LEFTSIDE].Reset();
-				m_pLFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLFGLeg->GetParentOffset()), m_Vel, walkAngle, m_Paths[LEFTSIDE][FGROUND][WALK], deltaTime, &restarted);
+				m_pLFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLFGLeg->GetParentOffset()), m_pLFGLeg->GetMaxLength(), m_Vel, walkAngle, m_Paths[LEFTSIDE][FGROUND][WALK], deltaTime, &restarted);
 			}
 
 			if (m_pLBGLeg) {
 				if (!m_pLFGLeg || !(m_Paths[LEFTSIDE][BGROUND][WALK].PathEnded() && LFGLegProg < 0.5F)) {
 					m_StrideStart[LEFTSIDE] = false;
 					m_StrideTimer[LEFTSIDE].Reset();
-					m_pLBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLBGLeg->GetParentOffset()), m_Vel, walkAngle, m_Paths[LEFTSIDE][BGROUND][WALK], deltaTime);
+					m_pLBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLBGLeg->GetParentOffset()), m_pLBGLeg->GetMaxLength(), m_Vel, walkAngle, m_Paths[LEFTSIDE][BGROUND][WALK], deltaTime);
 				} else {
 					m_pLBGFootGroup->FlailAsLimb(m_Pos, RotateOffset(m_pLBGLeg->GetParentOffset()), m_pLBGLeg->GetMaxLength(), m_PrevVel, m_AngularVel, m_pLBGLeg->GetMass(), deltaTime);
 				}
@@ -1070,7 +1054,7 @@ void ACrab::PreControllerUpdate() {
 				if (!m_pRBGLeg || !(m_Paths[RIGHTSIDE][FGROUND][WALK].PathEnded() && RBGLegProg < 0.5F)) {
 					m_StrideStart[RIGHTSIDE] = false;
 					m_StrideTimer[RIGHTSIDE].Reset();
-					m_pRFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRFGLeg->GetParentOffset()), m_Vel, walkAngle, m_Paths[RIGHTSIDE][FGROUND][WALK], deltaTime, &restarted);
+					m_pRFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRFGLeg->GetParentOffset()), m_pRFGLeg->GetMaxLength(), m_Vel, walkAngle, m_Paths[RIGHTSIDE][FGROUND][WALK], deltaTime, &restarted);
 				} else {
 					m_pRFGFootGroup->FlailAsLimb(m_Pos, RotateOffset(m_pRFGLeg->GetParentOffset()), m_pRFGLeg->GetMaxLength(), m_PrevVel, m_AngularVel, m_pRFGLeg->GetMass(), deltaTime);
 				}
@@ -1078,7 +1062,7 @@ void ACrab::PreControllerUpdate() {
 
 			if (m_pRBGLeg && (!m_pRFGLeg || (!(m_Paths[RIGHTSIDE][BGROUND][WALK].PathEnded() && RFGLegProg < 0.5F) || m_StrideStart[RIGHTSIDE]))) {
 				m_StrideTimer[RIGHTSIDE].Reset();
-				m_pRBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRBGLeg->GetParentOffset()), m_Vel, walkAngle, m_Paths[RIGHTSIDE][BGROUND][WALK], deltaTime);
+				m_pRBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRBGLeg->GetParentOffset()), m_pRBGLeg->GetMaxLength(), m_Vel, walkAngle, m_Paths[RIGHTSIDE][BGROUND][WALK], deltaTime);
 			}
 
 			// Reset the right-side walking stride if it's taking longer than it should.
@@ -1102,7 +1086,7 @@ void ACrab::PreControllerUpdate() {
 				RunScriptedFunctionInAppropriateScripts("OnStride");
 			}
 		} else if (m_pLFGLeg || m_pLBGLeg || m_pRFGLeg || m_pRBGLeg) {
-			if (m_MoveState == JUMP) {
+			if (m_MovementState == JUMP) {
 				// TODO: Utilize jump paths in an intuitive way?
 				if (m_pLFGLeg) {
 					m_pLFGFootGroup->FlailAsLimb(m_Pos, RotateOffset(m_pLFGLeg->GetParentOffset()), m_pLFGLeg->GetMaxLength(), m_PrevVel, m_AngularVel, m_pLFGLeg->GetMass(), deltaTime);
@@ -1118,7 +1102,7 @@ void ACrab::PreControllerUpdate() {
 				}
 
 				if (m_pJetpack == nullptr || m_pJetpack->IsOutOfFuel()) {
-					m_MoveState = STAND;
+					m_MovementState = STAND;
 					m_Paths[LEFTSIDE][FGROUND][JUMP].Terminate();
 					m_Paths[LEFTSIDE][BGROUND][JUMP].Terminate();
 					m_Paths[LEFTSIDE][FGROUND][STAND].Terminate();
@@ -1139,19 +1123,19 @@ void ACrab::PreControllerUpdate() {
 					}
 				}
 				if (m_pLFGLeg) {
-					m_pLFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLFGLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[LEFTSIDE][FGROUND][STAND], deltaTime, nullptr, !m_pRFGLeg);
+					m_pLFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLFGLeg->GetParentOffset()), m_pLFGLeg->GetMaxLength(), m_Vel, m_Rotation, m_Paths[LEFTSIDE][FGROUND][STAND], deltaTime, nullptr, !m_pRFGLeg);
 				}
 
 				if (m_pLBGLeg) {
-					m_pLBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLBGLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[LEFTSIDE][BGROUND][STAND], deltaTime);
+					m_pLBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pLBGLeg->GetParentOffset()), m_pLBGLeg->GetMaxLength(), m_Vel, m_Rotation, m_Paths[LEFTSIDE][BGROUND][STAND], deltaTime);
 				}
 
 				if (m_pRFGLeg) {
-					m_pRFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRFGLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[RIGHTSIDE][FGROUND][STAND], deltaTime, nullptr, !m_pLFGLeg);
+					m_pRFGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRFGLeg->GetParentOffset()), m_pRFGLeg->GetMaxLength(), m_Vel, m_Rotation, m_Paths[RIGHTSIDE][FGROUND][STAND], deltaTime, nullptr, !m_pLFGLeg);
 				}
 
 				if (m_pRBGLeg) {
-					m_pRBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRBGLeg->GetParentOffset()), m_Vel, m_Rotation, m_Paths[RIGHTSIDE][BGROUND][STAND], deltaTime);
+					m_pRBGFootGroup->PushAsLimb(m_Pos + RotateOffset(m_pRBGLeg->GetParentOffset()), m_pRBGLeg->GetMaxLength(), m_Vel, m_Rotation, m_Paths[RIGHTSIDE][BGROUND][STAND], deltaTime);
 				}
 			}
 		}
@@ -1174,7 +1158,7 @@ void ACrab::PreControllerUpdate() {
 			m_pRBGFootGroup->FlailAsLimb(m_Pos, RotateOffset(m_pRBGLeg->GetParentOffset()), m_pRBGLeg->GetMaxLength(), m_PrevVel * m_pRBGLeg->GetJointStiffness(), m_AngularVel, m_pRBGLeg->GetMass(), deltaTime);
 		}
 	}
-	if (m_MoveState != WALK && m_StrideSound && m_StrideSound->GetLoopSetting() < 0) {
+	if (m_MovementState != WALK && m_StrideSound && m_StrideSound->GetLoopSetting() < 0) {
 		m_StrideSound->Stop();
 	}
 
@@ -1253,34 +1237,6 @@ void ACrab::Update() {
 	// Add velocity also so the viewpoint moves ahead at high speeds
 	if (m_Vel.MagnitudeIsGreaterThan(10.0F))
 		m_ViewPoint += m_Vel * std::sqrt(m_Vel.GetMagnitude() * 0.1F);
-
-	/* Done by pie menu now, see HandlePieCommand()
-	    ////////////////////////////////////////
-	    // AI mode setting
-
-	    if (m_Controller.IsState(AI_MODE_SET))
-	    {
-	        if (m_Controller.IsState(PRESS_RIGHT))
-	        {
-	            m_AIMode = AIMODE_BRAINHUNT;
-	            m_UpdateMovePath = true;
-	        }
-	        else if (m_Controller.IsState(PRESS_LEFT))
-	        {
-	            m_AIMode = AIMODE_PATROL;
-	        }
-	        else if (m_Controller.IsState(PRESS_UP))
-	        {
-	            m_AIMode = AIMODE_SENTRY;
-	        }
-	        else if (m_Controller.IsState(PRESS_DOWN))
-	        {
-	            m_AIMode = AIMODE_GOLDDIG;
-	        }
-
-	        m_DeviceState = SCANNING;
-	    }
-	*/
 
 	////////////////////////////////////////
 	// Balance stuff
@@ -1484,28 +1440,28 @@ void ACrab::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 	}
 }
 
-float ACrab::GetLimbPathSpeed(int speedPreset) const {
-	return m_Paths[LEFTSIDE][FGROUND][WALK].GetSpeed(speedPreset);
+float ACrab::GetLimbPathTravelSpeed(MovementState movementState) {
+	return m_Paths[LEFTSIDE][FGROUND][movementState].GetTravelSpeed();
 }
 
-void ACrab::SetLimbPathSpeed(int speedPreset, float speed) {
-	m_Paths[LEFTSIDE][FGROUND][WALK].OverrideSpeed(speedPreset, speed);
-	m_Paths[RIGHTSIDE][FGROUND][WALK].OverrideSpeed(speedPreset, speed);
+void ACrab::SetLimbPathTravelSpeed(MovementState movementState, float newSpeed) {
+	m_Paths[LEFTSIDE][FGROUND][movementState].SetTravelSpeed(newSpeed);
+	m_Paths[RIGHTSIDE][FGROUND][movementState].SetTravelSpeed(newSpeed);
 
-	m_Paths[LEFTSIDE][BGROUND][WALK].OverrideSpeed(speedPreset, speed);
-	m_Paths[RIGHTSIDE][BGROUND][WALK].OverrideSpeed(speedPreset, speed);
+	m_Paths[LEFTSIDE][BGROUND][movementState].SetTravelSpeed(newSpeed);
+	m_Paths[RIGHTSIDE][BGROUND][movementState].SetTravelSpeed(newSpeed);
 }
 
-float ACrab::GetLimbPathPushForce() const {
-	return m_Paths[LEFTSIDE][FGROUND][WALK].GetDefaultPushForce();
+float ACrab::GetLimbPathPushForce(MovementState movementState) {
+	return m_Paths[LEFTSIDE][FGROUND][movementState].GetPushForce();
 }
 
-void ACrab::SetLimbPathPushForce(float force) {
-	m_Paths[LEFTSIDE][FGROUND][WALK].OverridePushForce(force);
-	m_Paths[RIGHTSIDE][FGROUND][WALK].OverridePushForce(force);
+void ACrab::SetLimbPathPushForce(MovementState movementState, float newForce) {
+	m_Paths[LEFTSIDE][FGROUND][movementState].SetPushForce(newForce);
+	m_Paths[RIGHTSIDE][FGROUND][movementState].SetPushForce(newForce);
 
-	m_Paths[LEFTSIDE][BGROUND][WALK].OverridePushForce(force);
-	m_Paths[RIGHTSIDE][BGROUND][WALK].OverridePushForce(force);
+	m_Paths[LEFTSIDE][BGROUND][movementState].SetPushForce(newForce);
+	m_Paths[RIGHTSIDE][BGROUND][movementState].SetPushForce(newForce);
 }
 
 int ACrab::WhilePieMenuOpenListener(const PieMenu* pieMenu) {

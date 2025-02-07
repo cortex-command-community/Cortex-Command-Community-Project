@@ -775,20 +775,20 @@ void MetagameGUI::SelectScene(Scene* pScene) {
 
 			// If owned by this player's team, make the budget slider represent the currently set setting of this Scene
 			if (m_pSelectedScene->GetTeamOwnership() == g_MetaMan.GetTeamOfPlayer(metaPlayer)) {
-				m_pSceneBudgetSlider->SetValue(std::floor((m_pSelectedScene->GetBuildBudget(g_MetaMan.m_Players[metaPlayer].GetInGamePlayer()) / g_MetaMan.m_Players[metaPlayer].GetFunds()) * 100));
+				m_pSceneBudgetSlider->SetValue(std::floor((m_pSelectedScene->GetBuildBudget(g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer()) / g_MetaMan.m_Players[metaPlayer]->GetFunds()) * 100));
 			}
 			// Owned by enemy player, so show the attack budget set up for this scene
 			else if (g_MetaMan.IsActiveTeam(m_pSelectedScene->GetTeamOwnership())) {
-				if (m_pSelectedScene->GetPresetName() == g_MetaMan.m_Players[metaPlayer].GetOffensiveTargetName())
-					m_pSceneBudgetSlider->SetValue(std::floor((g_MetaMan.m_Players[metaPlayer].GetOffensiveBudget() / g_MetaMan.m_Players[metaPlayer].GetFunds()) * 100));
+				if (m_pSelectedScene->GetPresetName() == g_MetaMan.m_Players[metaPlayer]->GetOffensiveTargetName())
+					m_pSceneBudgetSlider->SetValue(std::floor((g_MetaMan.m_Players[metaPlayer]->GetOffensiveBudget() / g_MetaMan.m_Players[metaPlayer]->GetFunds()) * 100));
 				// Not the current target, so set slider to 0. It will set the new budget as
 				else
 					m_pSceneBudgetSlider->SetValue(0);
 			}
 			// Unowned site, so set up expedition budget (same so far)
 			else {
-				if (m_pSelectedScene->GetPresetName() == g_MetaMan.m_Players[metaPlayer].GetOffensiveTargetName())
-					m_pSceneBudgetSlider->SetValue(std::floor((g_MetaMan.m_Players[metaPlayer].GetOffensiveBudget() / g_MetaMan.m_Players[metaPlayer].GetFunds()) * 100));
+				if (m_pSelectedScene->GetPresetName() == g_MetaMan.m_Players[metaPlayer]->GetOffensiveTargetName())
+					m_pSceneBudgetSlider->SetValue(std::floor((g_MetaMan.m_Players[metaPlayer]->GetOffensiveBudget() / g_MetaMan.m_Players[metaPlayer]->GetFunds()) * 100));
 				// Not the current target, so set slider to 0. It will set the new budget as
 				else
 					m_pSceneBudgetSlider->SetValue(0);
@@ -903,27 +903,27 @@ bool MetagameGUI::StartNewGame() {
 			}
 
 			// Set up the new player and add it
-			MetaPlayer newPlayer;
-			newPlayer.SetName(m_apPlayerNameBox[player]->GetText());
+			MetaPlayer* newPlayer = new MetaPlayer;
+			newPlayer->SetName(m_apPlayerNameBox[player]->GetText());
 			// Set the in-game control mapping of this metagame player
-			newPlayer.m_InGamePlayer = player;
+			newPlayer->m_InGamePlayer = player;
 			// Whether this is a human or AI player
-			newPlayer.SetHuman(m_apPlayerControlButton[player]->GetText() == "Human");
+			newPlayer->SetHuman(m_apPlayerControlButton[player]->GetText() == "Human");
 
 			// Set native cost multypliiers according to difficulty
-			if (!newPlayer.IsHuman()) {
+			if (!newPlayer->IsHuman()) {
 				if (g_MetaMan.m_Difficulty < Activity::CakeDifficulty)
-					newPlayer.SetNativeCostMultiplier(1.2);
+					newPlayer->SetNativeCostMultiplier(1.2);
 				else if (g_MetaMan.m_Difficulty < Activity::EasyDifficulty)
-					newPlayer.SetNativeCostMultiplier(1.1);
+					newPlayer->SetNativeCostMultiplier(1.1);
 				else if (g_MetaMan.m_Difficulty < Activity::MediumDifficulty)
-					newPlayer.SetNativeCostMultiplier(1.0);
+					newPlayer->SetNativeCostMultiplier(1.0);
 				else if (g_MetaMan.m_Difficulty < Activity::HardDifficulty)
-					newPlayer.SetNativeCostMultiplier(0.80);
+					newPlayer->SetNativeCostMultiplier(0.80);
 				else if (g_MetaMan.m_Difficulty < Activity::NutsDifficulty)
-					newPlayer.SetNativeCostMultiplier(0.60);
+					newPlayer->SetNativeCostMultiplier(0.60);
 				else
-					newPlayer.SetNativeCostMultiplier(0.40);
+					newPlayer->SetNativeCostMultiplier(0.40);
 			}
 
 			// TODO: Add the control scheme icons to the newgame dialog for clarity
@@ -940,7 +940,7 @@ bool MetagameGUI::StartNewGame() {
 			for (int team = Activity::TeamOne; team < g_MetaMan.m_TeamCount; ++team) {
 				// Join existing team!
 				if (pTeamIcon->GetPresetName() == g_MetaMan.m_TeamIcons[team].GetPresetName()) {
-					newPlayer.SetTeam(team);
+					newPlayer->SetTeam(team);
 					newTeam = false;
 					break;
 				}
@@ -949,7 +949,7 @@ bool MetagameGUI::StartNewGame() {
 			// If we didn't find that the team we were designated already exists, then create it
 			if (newTeam) {
 				// Set the team of the new player
-				newPlayer.SetTeam(g_MetaMan.m_TeamCount);
+				newPlayer->SetTeam(g_MetaMan.m_TeamCount);
 				// Set AI Skill level
 				g_MetaMan.m_TeamAISkill[g_MetaMan.m_TeamCount] = m_apPlayerAISkillSlider[player]->GetValue();
 				// Set the new team icon
@@ -977,33 +977,33 @@ bool MetagameGUI::StartNewGame() {
 					selectedTech = m_apPlayerTechSelect[player]->GetItem(randomSelection);
 				}
 				if (selectedTech) {
-					newPlayer.m_NativeTechModule = selectedTech->m_ExtraIndex;
+					newPlayer->m_NativeTechModule = selectedTech->m_ExtraIndex;
 				}
 			}
 
 			// Set the starting brains for this player
 			// Start with the baseline setting
-			newPlayer.m_BrainPool = m_pLengthSlider->GetValue();
+			newPlayer->m_BrainPool = m_pLengthSlider->GetValue();
 			// Baseline can never be 0
-			newPlayer.m_BrainPool = MAX(newPlayer.m_BrainPool, 1);
+			newPlayer->m_BrainPool = MAX(newPlayer->m_BrainPool, 1);
 			// Apply the handicap!
 			if (m_apPlayerHandicap[player]->GetSelectedIndex() == 0)
-				newPlayer.m_BrainPool += 5;
+				newPlayer->m_BrainPool += 5;
 			else if (m_apPlayerHandicap[player]->GetSelectedIndex() == 1)
-				newPlayer.m_BrainPool += 3;
+				newPlayer->m_BrainPool += 3;
 			else if (m_apPlayerHandicap[player]->GetSelectedIndex() == 2)
-				newPlayer.m_BrainPool += 1;
+				newPlayer->m_BrainPool += 1;
 			else if (m_apPlayerHandicap[player]->GetSelectedIndex() == 4)
-				newPlayer.m_BrainPool -= 1;
+				newPlayer->m_BrainPool -= 1;
 			else if (m_apPlayerHandicap[player]->GetSelectedIndex() == 5)
-				newPlayer.m_BrainPool -= 3;
+				newPlayer->m_BrainPool -= 3;
 			else if (m_apPlayerHandicap[player]->GetSelectedIndex() == 6)
-				newPlayer.m_BrainPool -= 5;
+				newPlayer->m_BrainPool -= 5;
 			// Give at least ONE brain!
-			newPlayer.m_BrainPool = MAX(newPlayer.m_BrainPool, 1);
+			newPlayer->m_BrainPool = MAX(newPlayer->m_BrainPool, 1);
 
 			// Starting gold amount; common to all
-			newPlayer.m_Funds = startGold;
+			newPlayer->m_Funds = startGold;
 
 			g_MetaMan.m_Players.push_back(newPlayer);
 
@@ -1415,20 +1415,20 @@ void MetagameGUI::Update() {
 		int metaPlayer = g_MetaMan.m_GameState - MetaMan::PLAYER1TURN;
 
 		// Set up the pre-player-turn intermediate status IF this is a human player still in the game
-		if (g_MetaMan.m_Players[metaPlayer].IsHuman() && !g_MetaMan.m_Players[metaPlayer].IsGameOverByRound(g_MetaMan.m_CurrentRound)) {
+		if (g_MetaMan.m_Players[metaPlayer]->IsHuman() && !g_MetaMan.m_Players[metaPlayer]->IsGameOverByRound(g_MetaMan.m_CurrentRound)) {
 			if (g_MetaMan.m_StateChanged) {
 				// If this human player has no brains left anywhere, there's really nothing he can do, and it's game over for him
 				// Communicate it to the loser
 				if (g_MetaMan.GetTotalBrainCountOfPlayer(metaPlayer) <= 0) {
 					m_apMetaButton[CONTINUE]->SetText("Continue");
-					m_pPhaseLabel->SetText(g_MetaMan.m_Players[metaPlayer].GetName() + "'s Turn");
+					m_pPhaseLabel->SetText(g_MetaMan.m_Players[metaPlayer]->GetName() + "'s Turn");
 					m_pBannerRedTop->ShowText("Game Over", GUIBanner::FLYBYLEFTWARD, -1, Vector(m_RootBoxMaxWidth, g_WindowMan.GetResY()), 0.4, 3500, 0);
-					m_pBannerRedBottom->ShowText("for " + g_MetaMan.m_Players[metaPlayer].GetName() + "!", GUIBanner::FLYBYRIGHTWARD, -1, Vector(m_RootBoxMaxWidth, g_WindowMan.GetResY()), 0.6, 3500, 0);
+					m_pBannerRedBottom->ShowText("for " + g_MetaMan.m_Players[metaPlayer]->GetName() + "!", GUIBanner::FLYBYRIGHTWARD, -1, Vector(m_RootBoxMaxWidth, g_WindowMan.GetResY()), 0.6, 3500, 0);
 
 					// Show a lil descriptive message as to why the game ended
 					m_pGameMessageLabel->SetVisible(true);
 					m_pGameMessageLabel->SetPositionAbs(m_pGameMessageLabel->GetXPos(), (m_apScreenBox[ROOTBOX]->GetHeight() / 2) + 110 - 16);
-					m_pGameMessageLabel->SetText(g_MetaMan.m_Players[metaPlayer].GetName() + "'s brains are all gone, so he/she can do nothing more. Good effort, though!");
+					m_pGameMessageLabel->SetText(g_MetaMan.m_Players[metaPlayer]->GetName() + "'s brains are all gone, so he/she can do nothing more. Good effort, though!");
 
 					// Just skip this guy's turn completely
 					m_PreTurn = false;
@@ -1436,8 +1436,8 @@ void MetagameGUI::Update() {
 				// Normal player turn start
 				else {
 					m_apMetaButton[CONTINUE]->SetText("Start Turn");
-					m_pPhaseLabel->SetText(g_MetaMan.m_Players[metaPlayer].GetName() + "'s Turn");
-					m_pBannerRedTop->ShowText(g_MetaMan.m_Players[metaPlayer].GetName() + "'s", GUIBanner::FLYBYLEFTWARD, -1, Vector(m_RootBoxMaxWidth, g_WindowMan.GetResY()), 0.4, 3500, 0);
+					m_pPhaseLabel->SetText(g_MetaMan.m_Players[metaPlayer]->GetName() + "'s Turn");
+					m_pBannerRedTop->ShowText(g_MetaMan.m_Players[metaPlayer]->GetName() + "'s", GUIBanner::FLYBYLEFTWARD, -1, Vector(m_RootBoxMaxWidth, g_WindowMan.GetResY()), 0.4, 3500, 0);
 					m_pBannerRedBottom->ShowText("Turn", GUIBanner::FLYBYRIGHTWARD, -1, Vector(m_RootBoxMaxWidth, g_WindowMan.GetResY()), 0.6, 3500, 0);
 					m_pGameMessageLabel->SetVisible(false);
 					m_PreTurn = true;
@@ -1509,14 +1509,14 @@ void MetagameGUI::Update() {
 				// Find out who was on this winning team so we can name them by name
 				std::string winnerNames = "";
 				bool plural = false;
-				for (std::vector<MetaPlayer>::iterator pItr = g_MetaMan.m_Players.begin(); pItr != g_MetaMan.m_Players.end(); ++pItr) {
+				for (std::vector<MetaPlayer*>::iterator pItr = g_MetaMan.m_Players.begin(); pItr != g_MetaMan.m_Players.end(); ++pItr) {
 					// WINRAR
-					if ((*pItr).GetTeam() == winnerTeam) {
+					if ((*pItr)->GetTeam() == winnerTeam) {
 						// There's now more than one name in there
 						if (!winnerNames.empty())
 							plural = true;
 
-						winnerNames = winnerNames + (winnerNames.empty() ? "" : " and ") + (*pItr).GetName();
+						winnerNames = winnerNames + (winnerNames.empty() ? "" : " and ") + (*pItr)->GetName();
 					}
 				}
 				m_pBannerRedTop->ShowText(winnerNames, GUIBanner::FLYBYLEFTWARD, -1, Vector(m_RootBoxMaxWidth, g_WindowMan.GetResY()), 0.4, 3500, 0);
@@ -2118,7 +2118,7 @@ void MetagameGUI::UpdateInput() {
 			if (anEvent.GetControl() == m_apMetaButton[SCENEACTION] && m_pSelectedScene) {
 				// Set up site scan of it (for a price)
 				int metaPlayer = g_MetaMan.GetPlayerTurn();
-				int team = g_MetaMan.m_Players[metaPlayer].GetTeam();
+				int team = g_MetaMan.m_Players[metaPlayer]->GetTeam();
 				// Check if we have enough money for this!
 				if (g_MetaMan.GetRemainingFundsOfPlayer(metaPlayer, 0, false, false) < SCANCOST) {
 					m_apMetaButton[SCENEACTION]->SetText("NOT ENOUGH FUNDS!");
@@ -2152,10 +2152,10 @@ void MetagameGUI::UpdateInput() {
 					pNewEditor->ClearPlayers();
 					// Editing player
 					int metaPlayer = g_MetaMan.GetPlayerTurn();
-					int team = g_MetaMan.m_Players[metaPlayer].GetTeam();
+					int team = g_MetaMan.m_Players[metaPlayer]->GetTeam();
 					// TODO: add all other players of same team, for coop editing?? Whata bout resident brains of lazy teammates who hacen't placed yet
 					// NO, this is silly. Just make the objects placed by this player marked as placed by him
-					pNewEditor->AddPlayer(g_MetaMan.m_Players[metaPlayer].GetInGamePlayer(), true, team, 0, &(g_MetaMan.GetTeamIcon(team)));
+					pNewEditor->AddPlayer(g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer(), true, team, 0, &(g_MetaMan.GetTeamIcon(team)));
 
 					// Send in the Scene to load in later when the screen has faded out etc
 					m_pPlayingScene = m_pSelectedScene;
@@ -2170,9 +2170,9 @@ void MetagameGUI::UpdateInput() {
 			// Scan Now button pressed; time to start the scanning process immediately
 			if (anEvent.GetControl() == m_apMetaButton[SCANNOW] && m_pSelectedScene) {
 				int metaPlayer = g_MetaMan.GetPlayerTurn();
-				int team = g_MetaMan.m_Players[metaPlayer].GetTeam();
+				int team = g_MetaMan.m_Players[metaPlayer]->GetTeam();
 				// Actually change the player's funds
-				g_MetaMan.m_Players[metaPlayer].m_Funds -= SCANCOST;
+				g_MetaMan.m_Players[metaPlayer]->m_Funds -= SCANCOST;
 				// Set up and start the scripted activity for scanning the site for this' team
 				GAScripted* pScanActivity = new GAScripted;
 				pScanActivity->Create("Base.rte/Activities/SiteScan.lua", "SiteScan");
@@ -2183,15 +2183,15 @@ void MetagameGUI::UpdateInput() {
 				// Gotto deact all players since by default there is one in slot 1
 				pScanActivity->ClearPlayers();
 				// Add the player who ordered this snooping around
-				pScanActivity->AddPlayer(g_MetaMan.m_Players[metaPlayer].GetInGamePlayer(), true, team, SCANCOST, &(g_MetaMan.GetTeamIcon(team)));
+				pScanActivity->AddPlayer(g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer(), true, team, SCANCOST, &(g_MetaMan.GetTeamIcon(team)));
 				// Add the players who own this place, if any - their actors and brains are in the scene and should be shown
 				if (g_MetaMan.IsActiveTeam(m_pSelectedScene->GetTeamOwnership())) {
 					// Go through all players and add the ones of the defending team, based on who has resident brains here
 					for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 						// Got to remember to translate from metagame player index into the in-game player index and to flag them as not a human so they dont' get their own screens
-						//                            if (g_MetaMan.m_Players[mp].GetTeam() == m_pSelectedScene->GetTeamOwnership())
-						if (m_pSelectedScene->GetResidentBrain(g_MetaMan.m_Players[mp].GetInGamePlayer()))
-							pScanActivity->AddPlayer(g_MetaMan.m_Players[mp].GetInGamePlayer(), false, g_MetaMan.m_Players[mp].GetTeam(), 0, &(g_MetaMan.GetTeamIcon(g_MetaMan.m_Players[mp].GetTeam())));
+						//                            if (g_MetaMan.m_Players[mp]->GetTeam() == m_pSelectedScene->GetTeamOwnership())
+						if (m_pSelectedScene->GetResidentBrain(g_MetaMan.m_Players[mp]->GetInGamePlayer()))
+							pScanActivity->AddPlayer(g_MetaMan.m_Players[mp]->GetInGamePlayer(), false, g_MetaMan.m_Players[mp]->GetTeam(), 0, &(g_MetaMan.GetTeamIcon(g_MetaMan.m_Players[mp]->GetTeam())));
 					}
 				}
 				// Send in the Scene to load in later when the screen has faded out etc
@@ -2206,15 +2206,15 @@ void MetagameGUI::UpdateInput() {
 			// Scan Later button pressed; mark the Scene for scanning by this metaplayer's team
 			if (anEvent.GetControl() == m_apMetaButton[SCANLATER] && m_pSelectedScene) {
 				int metaPlayer = g_MetaMan.GetPlayerTurn();
-				int team = g_MetaMan.m_Players[metaPlayer].GetTeam();
+				int team = g_MetaMan.m_Players[metaPlayer]->GetTeam();
 				// Double-check to make sure we do have the funds to do this AND that the scan hasn't already been paid for
-				if (g_MetaMan.m_Players[metaPlayer].m_Funds < SCANCOST && !m_pSelectedScene->IsScanScheduled(team))
+				if (g_MetaMan.m_Players[metaPlayer]->m_Funds < SCANCOST && !m_pSelectedScene->IsScanScheduled(team))
 					g_GUISound.UserErrorSound()->Play();
 				else {
 					// Show the cost change the funds meter
 					FundsChangeIndication(metaPlayer, -SCANCOST, Vector(m_apPlayerBarLabel[metaPlayer]->GetXPos() + m_apPlayerBarLabel[metaPlayer]->GetWidth(), m_apPlayerBarLabel[metaPlayer]->GetYPos()), 2000);
 					// Actually change the player's funds
-					g_MetaMan.m_Players[metaPlayer].m_Funds -= SCANCOST;
+					g_MetaMan.m_Players[metaPlayer]->m_Funds -= SCANCOST;
 
 					// Mark the selected Scene to be scanned next time it is loaded by a player of this' team
 					m_pSelectedScene->SetScheduledScan(team, true);
@@ -2223,8 +2223,8 @@ void MetagameGUI::UpdateInput() {
 					UpdateScenesBox(true);
 
 					// Update the budget slider to reflect the scan cost being deducted from the funds
-					if (g_MetaMan.m_Players[metaPlayer].GetOffensiveTargetName() == m_pSelectedScene->GetPresetName())
-						m_pSceneBudgetSlider->SetValue(std::floor((g_MetaMan.m_Players[metaPlayer].GetOffensiveBudget() / g_MetaMan.m_Players[metaPlayer].GetFunds()) * 100));
+					if (g_MetaMan.m_Players[metaPlayer]->GetOffensiveTargetName() == m_pSelectedScene->GetPresetName())
+						m_pSceneBudgetSlider->SetValue(std::floor((g_MetaMan.m_Players[metaPlayer]->GetOffensiveBudget() / g_MetaMan.m_Players[metaPlayer]->GetFunds()) * 100));
 
 					// Play an appropriate sound to indicate that the scan is bought and scheduled
 					g_GUISound.ItemChangeSound()->Play();
@@ -2261,19 +2261,19 @@ void MetagameGUI::UpdateInput() {
 						UpdateScenesBox(true);
 
 						// If owned by this player, then set update base building budget for this Scene
-						float budget = ((float)m_pSceneBudgetSlider->GetValue() / 100.0f) * g_MetaMan.m_Players[metaPlayer].GetFunds();
+						float budget = ((float)m_pSceneBudgetSlider->GetValue() / 100.0f) * g_MetaMan.m_Players[metaPlayer]->GetFunds();
 						if (m_pSelectedScene->GetTeamOwnership() == g_MetaMan.GetTeamOfPlayer(metaPlayer)) {
-							m_pSelectedScene->SetBuildBudget(g_MetaMan.m_Players[metaPlayer].GetInGamePlayer(), budget);
+							m_pSelectedScene->SetBuildBudget(g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer(), budget);
 						}
 						// Site owned by enemy player, update the attack budget
 						else if (g_MetaMan.IsActiveTeam(m_pSelectedScene->GetTeamOwnership())) {
-							g_MetaMan.m_Players[metaPlayer].SetOffensiveBudget(budget);
-							g_MetaMan.m_Players[metaPlayer].SetOffensiveTargetName(m_pSelectedScene->GetPresetName());
+							g_MetaMan.m_Players[metaPlayer]->SetOffensiveBudget(budget);
+							g_MetaMan.m_Players[metaPlayer]->SetOffensiveTargetName(m_pSelectedScene->GetPresetName());
 						}
 						// Unowned site, update the expedition budget
 						else {
-							g_MetaMan.m_Players[metaPlayer].SetOffensiveBudget(budget);
-							g_MetaMan.m_Players[metaPlayer].SetOffensiveTargetName(m_pSelectedScene->GetPresetName());
+							g_MetaMan.m_Players[metaPlayer]->SetOffensiveBudget(budget);
+							g_MetaMan.m_Players[metaPlayer]->SetOffensiveTargetName(m_pSelectedScene->GetPresetName());
 						}
 					}
 				}
@@ -2573,18 +2573,18 @@ void MetagameGUI::CompletedActivity() {
 				                {
 				// ANIMATE THIS NICELY INSTEAD
 				                    // Deduct the player's original contribution to team funds
-				                    g_MetaMan.m_Players[metaPlayer].m_Funds -= pDoneActivity->GetPlayerFundsContribution(g_MetaMan.m_Players[metaPlayer].GetInGamePlayer());
+				                    g_MetaMan.m_Players[metaPlayer]->m_Funds -= pDoneActivity->GetPlayerFundsContribution(g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer());
 				                    // Add back whatever his share of whatever his team has left in the fight at its end
-				                    g_MetaMan.m_Players[metaPlayer].m_Funds += pDoneActivity->GetPlayerFundsShare(g_MetaMan.m_Players[metaPlayer].GetInGamePlayer());
+				                    g_MetaMan.m_Players[metaPlayer]->m_Funds += pDoneActivity->GetPlayerFundsShare(g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer());
 				                    // IF This guy was ATTACKING this turn, adjust his attack budget to match what just happened in the battle
 				                    // so in case he is defending in a upcoming battle this turn, his avaialbe funds will be accurately calculated
-				                    if (g_MetaMan.m_Players[metaPlayer].GetOffensiveTargetName() == m_pAnimScene->GetPresetName())
+				                    if (g_MetaMan.m_Players[metaPlayer]->GetOffensiveTargetName() == m_pAnimScene->GetPresetName())
 				                    {
-				                        g_MetaMan.m_Players[metaPlayer].SetOffensiveBudget(g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->GetPlayerFundsShare(g_MetaMan.m_Players[metaPlayer].GetInGamePlayer()));
-				//                        g_MetaMan.m_Players[metaPlayer].SetOffensiveTargetName("");
+				                        g_MetaMan.m_Players[metaPlayer]->SetOffensiveBudget(g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->GetPlayerFundsShare(g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer()));
+				//                        g_MetaMan.m_Players[metaPlayer]->SetOffensiveTargetName("");
 				                    }
 				                    // Update the ratios of the meter now that the funds have changed
-				                    UpdatePlayerLineRatios(m_ActionSiteLines[metaPlayer], metaPlayer, false, g_MetaMan.m_Players[metaPlayer].m_Funds);
+				                    UpdatePlayerLineRatios(m_ActionSiteLines[metaPlayer], metaPlayer, false, g_MetaMan.m_Players[metaPlayer]->m_Funds);
 				                }
 				*/
 			}
@@ -2952,8 +2952,8 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 	// First set up all the site lines we should be animating into view
 	if (g_MetaMan.m_StateChanged || initOverride) {
 		// Make note of all funds from previous round
-		for (std::vector<MetaPlayer>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr)
-			(*mpItr).m_PhaseStartFunds = (*mpItr).m_Funds;
+		for (std::vector<MetaPlayer*>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr)
+			(*mpItr)->m_PhaseStartFunds = (*mpItr)->m_Funds;
 
 		// If this is the very first round and no Scenes are owned yet, then we should just skip this
 		// Don't return out of this yet thuogh because there's some finalization going on in the end of this func
@@ -2972,7 +2972,7 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 		do {
 			// If this player is DONE FOR, skip income counting completely
 			if (g_MetaMan.GetTotalBrainCountOfPlayer(m_AnimMetaPlayer) <= 0 ||
-			    g_MetaMan.m_Players[m_AnimMetaPlayer].IsGameOverByRound(g_MetaMan.m_CurrentRound)) {
+			    g_MetaMan.m_Players[m_AnimMetaPlayer]->IsGameOverByRound(g_MetaMan.m_CurrentRound)) {
 				m_aBrainSaleIncomeLineIndices[m_AnimMetaPlayer] = -1;
 				UpdatePlayerLineRatios(m_IncomeSiteLines, m_AnimMetaPlayer, false);
 				continue;
@@ -2980,16 +2980,16 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 
 			// Only charge rent if there's any brains left in pool
 			// Make this rent variable somehow??
-			totalRent = initOverride ? 0 : g_MetaMan.m_Players[m_AnimMetaPlayer].GetBrainPoolCount() > 0 ? TRADESTARRENT
+			totalRent = initOverride ? 0 : g_MetaMan.m_Players[m_AnimMetaPlayer]->GetBrainPoolCount() > 0 ? TRADESTARRENT
 			                                                                                             : 0;
 			totalIncome = initOverride ? 0 : g_MetaMan.GetSceneIncomeOfPlayer(m_AnimMetaPlayer);
-			totalEndFunds = g_MetaMan.m_Players[m_AnimMetaPlayer].m_PhaseStartFunds + totalIncome - totalRent;
+			totalEndFunds = g_MetaMan.m_Players[m_AnimMetaPlayer]->m_PhaseStartFunds + totalIncome - totalRent;
 			channelHeight = 60;
 
 			// TRADESTAR BANK ACCOUNT AND RENT
 			// Add line to show existing funds stored in space station, and deduct rent from
 			m_IncomeSiteLines.push_back(SiteLine(m_AnimMetaPlayer, 0, 1.0, m_StationPosOnOrbit, "TradeStar Midas", 0, c_GUIColorYellow, -1, 0, channelHeight, 2.0f));
-			m_IncomeSiteLines.back().m_FundsAmount = g_MetaMan.m_Players[m_AnimMetaPlayer].m_PhaseStartFunds;
+			m_IncomeSiteLines.back().m_FundsAmount = g_MetaMan.m_Players[m_AnimMetaPlayer]->m_PhaseStartFunds;
 			m_IncomeSiteLines.back().m_FundsTarget = m_IncomeSiteLines.back().m_FundsAmount - totalRent;
 			// Save the index so we can update the line later
 			m_aStationIncomeLineIndices[m_AnimMetaPlayer] = m_IncomeSiteLines.size() - 1;
@@ -3199,7 +3199,7 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 					// This is the text label showing the brain going away
 					BrainsChangeIndication(m_AnimMetaPlayer, -1, Vector(m_apBrainPoolLabel[m_AnimMetaPlayer]->GetXPos(), m_apBrainPoolLabel[m_AnimMetaPlayer]->GetYPos()), m_apBrainPoolLabel[m_AnimMetaPlayer]->GetHAlignment(), m_AnimModeDuration);
 					// This is the display adjustment to the actual counter; the final actual change at the end of the animation
-					g_MetaMan.m_Players[m_AnimMetaPlayer].ChangeBrainsInTransit(1);
+					g_MetaMan.m_Players[m_AnimMetaPlayer]->ChangeBrainsInTransit(1);
 				}
 			}
 			// Show the site name over the site loc
@@ -3208,7 +3208,7 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 			if (!m_AnimTimer1.IsPastRealMS(m_AnimModeDuration)) {
 				// Make this animation correlate in duration with the funds change label that rises
 				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount = EaseOut(0, m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsTarget, m_AnimTimer1.GetElapsedRealTimeMS() / m_AnimModeDuration);
-				g_MetaMan.m_Players[m_AnimMetaPlayer].m_Funds = GetPlayerLineFunds(m_IncomeSiteLines, m_AnimMetaPlayer);
+				g_MetaMan.m_Players[m_AnimMetaPlayer]->m_Funds = GetPlayerLineFunds(m_IncomeSiteLines, m_AnimMetaPlayer);
 				UpdatePlayerLineRatios(m_IncomeSiteLines, m_AnimMetaPlayer);
 				m_AnimTimer2.Reset();
 			}
@@ -3216,7 +3216,7 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 			else {
 				UpdateSiteNameLabel(false);
 				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount = m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsTarget;
-				g_MetaMan.m_Players[m_AnimMetaPlayer].m_Funds = GetPlayerLineFunds(m_IncomeSiteLines, m_AnimMetaPlayer);
+				g_MetaMan.m_Players[m_AnimMetaPlayer]->m_Funds = GetPlayerLineFunds(m_IncomeSiteLines, m_AnimMetaPlayer);
 				UpdatePlayerLineRatios(m_IncomeSiteLines, m_AnimMetaPlayer);
 
 				// Check if there's more lines to draw, and if so, if the next one is of a different player
@@ -3253,7 +3253,7 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 
 				/* This is done above on init now
 				                // Only charge rent if we've still got brains at the tradestar
-				                if (g_MetaMan.m_Players[m_AnimMetaPlayer].GetBrainPoolCount() > 0)
+				                if (g_MetaMan.m_Players[m_AnimMetaPlayer]->GetBrainPoolCount() > 0)
 				                {
 				                    // Establish the after-rent target
 				                    m_AnimFundsMin = m_IncomeSiteLines[m_AnimIncomeLine].m_FundsAmount - TRADESTARRENT;
@@ -3272,16 +3272,16 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 			// Shrink for a certain amount of time
 			if (!m_AnimTimer1.IsPastRealMS(m_AnimModeDuration)) {
 				// Make this animation correlate in duration with the funds change label that rises
-				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount = EaseOut(g_MetaMan.m_Players[m_AnimMetaPlayer].m_PhaseStartFunds, m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsTarget, m_AnimTimer1.GetElapsedRealTimeMS() / m_AnimModeDuration);
+				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount = EaseOut(g_MetaMan.m_Players[m_AnimMetaPlayer]->m_PhaseStartFunds, m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsTarget, m_AnimTimer1.GetElapsedRealTimeMS() / m_AnimModeDuration);
 				UpdatePlayerLineRatios(m_IncomeSiteLines, m_AnimMetaPlayer);
-				g_MetaMan.m_Players[m_AnimMetaPlayer].m_Funds = GetPlayerLineFunds(m_IncomeSiteLines, m_AnimMetaPlayer);
+				g_MetaMan.m_Players[m_AnimMetaPlayer]->m_Funds = GetPlayerLineFunds(m_IncomeSiteLines, m_AnimMetaPlayer);
 				m_AnimTimer2.Reset();
 			}
 			// Finished shrinking the meter to the target size
 			else {
 				UpdateSiteNameLabel(false);
 				m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount = m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsTarget;
-				g_MetaMan.m_Players[m_AnimMetaPlayer].m_Funds = GetPlayerLineFunds(m_IncomeSiteLines, m_AnimMetaPlayer);
+				g_MetaMan.m_Players[m_AnimMetaPlayer]->m_Funds = GetPlayerLineFunds(m_IncomeSiteLines, m_AnimMetaPlayer);
 				UpdatePlayerLineRatios(m_IncomeSiteLines, m_AnimMetaPlayer);
 
 				// Check if there's more lines to draw, and if so, if the next one is of a different player
@@ -3347,8 +3347,8 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 			if ((*slItr).m_Player >= Players::PlayerOne && (*slItr).m_Player < Players::MaxPlayerCount &&
 			    m_aBrainSaleIncomeLineIndices[(*slItr).m_Player] == lineIndex) {
 				// Remove the display adjustment and APPLY the actual change to brains when one is liquidated
-				g_MetaMan.m_Players[(*slItr).m_Player].SetBrainsInTransit(0);
-				g_MetaMan.m_Players[(*slItr).m_Player].ChangeBrainPoolCount(-1);
+				g_MetaMan.m_Players[(*slItr).m_Player]->SetBrainsInTransit(0);
+				g_MetaMan.m_Players[(*slItr).m_Player]->ChangeBrainPoolCount(-1);
 			}
 			// Keep this synched with the iterator
 			lineIndex++;
@@ -3362,11 +3362,11 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 			m_apPlayerBarLabel[metaPlayer]->SetVisible(true);
 			// Set all funds to the final values, if not a gameover guy
 			if (g_MetaMan.GetTotalBrainCountOfPlayer(metaPlayer) > 0)
-				g_MetaMan.m_Players[metaPlayer].m_Funds = GetPlayerLineFunds(m_IncomeSiteLines, metaPlayer, false);
+				g_MetaMan.m_Players[metaPlayer]->m_Funds = GetPlayerLineFunds(m_IncomeSiteLines, metaPlayer, false);
 
 			if (g_SettingsMan.EndlessMetaGameMode()) {
-				g_MetaMan.m_Players[metaPlayer].ChangeBrainPoolCount(20 - g_MetaMan.m_Players[metaPlayer].GetBrainPoolCount());
-				g_MetaMan.m_Players[metaPlayer].ChangeFunds(10000 - g_MetaMan.m_Players[metaPlayer].GetFunds());
+				g_MetaMan.m_Players[metaPlayer]->ChangeBrainPoolCount(20 - g_MetaMan.m_Players[metaPlayer]->GetBrainPoolCount());
+				g_MetaMan.m_Players[metaPlayer]->ChangeFunds(10000 - g_MetaMan.m_Players[metaPlayer]->GetFunds());
 			}
 		}
 	}
@@ -3374,18 +3374,18 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 
 void MetagameGUI::UpdateHumanPlayerTurn(int metaPlayer) {
 	// In-game player - IMPORTANT to pass this to the Scenes, and not the metaplayer
-	int player = g_MetaMan.m_Players[metaPlayer].GetInGamePlayer();
+	int player = g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer();
 
 	// First do setup
 	if (g_MetaMan.m_StateChanged) {
 		// Reset the target so we don't put the player into autopilot (and also he might not have brains to deploy!)
-		g_MetaMan.m_Players[metaPlayer].SetOffensiveBudget(0);
-		g_MetaMan.m_Players[metaPlayer].SetOffensiveTargetName("");
+		g_MetaMan.m_Players[metaPlayer]->SetOffensiveBudget(0);
+		g_MetaMan.m_Players[metaPlayer]->SetOffensiveTargetName("");
 		// Re-set up all build budgets in oz to match what the player spent on this site last round, proportionally
 		for (std::vector<Scene*>::iterator sItr = g_MetaMan.m_Scenes.begin(); sItr != g_MetaMan.m_Scenes.end(); ++sItr) {
 			// Only mess with Scenes we can see and that are owned by this player, and he spent something on last turn
-			if ((*sItr)->IsRevealed() && (*sItr)->GetTeamOwnership() == g_MetaMan.m_Players[metaPlayer].GetTeam() && (*sItr)->GetBuildBudgetRatio(player) > 0)
-				(*sItr)->SetBuildBudget(player, g_MetaMan.m_Players[metaPlayer].GetFunds() * (*sItr)->GetBuildBudgetRatio(player));
+			if ((*sItr)->IsRevealed() && (*sItr)->GetTeamOwnership() == g_MetaMan.m_Players[metaPlayer]->GetTeam() && (*sItr)->GetBuildBudgetRatio(player) > 0)
+				(*sItr)->SetBuildBudget(player, g_MetaMan.m_Players[metaPlayer]->GetFunds() * (*sItr)->GetBuildBudgetRatio(player));
 		}
 	}
 
@@ -3394,8 +3394,8 @@ void MetagameGUI::UpdateHumanPlayerTurn(int metaPlayer) {
 		// Save all the base building budget ratios sowe can re-set the gold values next turn, for player convenience
 		for (std::vector<Scene*>::iterator sItr = g_MetaMan.m_Scenes.begin(); sItr != g_MetaMan.m_Scenes.end(); ++sItr) {
 			// Only mess with Scenes we can see and that are owned by this player, and he spent something on last turn
-			if ((*sItr)->IsRevealed() && (*sItr)->GetTeamOwnership() == g_MetaMan.m_Players[metaPlayer].GetTeam() && g_MetaMan.m_Players[metaPlayer].GetFunds() > 0)
-				(*sItr)->SetBuildBudgetRatio(player, (*sItr)->GetBuildBudget(player) / g_MetaMan.m_Players[metaPlayer].GetFunds());
+			if ((*sItr)->IsRevealed() && (*sItr)->GetTeamOwnership() == g_MetaMan.m_Players[metaPlayer]->GetTeam() && g_MetaMan.m_Players[metaPlayer]->GetFunds() > 0)
+				(*sItr)->SetBuildBudgetRatio(player, (*sItr)->GetBuildBudget(player) / g_MetaMan.m_Players[metaPlayer]->GetFunds());
 			else
 				(*sItr)->SetBuildBudgetRatio(player, 0);
 		}
@@ -3413,7 +3413,7 @@ void MetagameGUI::UpdateBaseBuilding() {
 		// Make sure all fund labels and line ratios are good
 		for (int metaPlayer = Players::PlayerOne; metaPlayer < static_cast<int>(g_MetaMan.m_Players.size()); ++metaPlayer) {
 			// Save the fund levels FROM THE START so we can calculate the after state if players skip the animation
-			g_MetaMan.m_Players[metaPlayer].m_PhaseStartFunds = g_MetaMan.m_Players[metaPlayer].m_Funds;
+			g_MetaMan.m_Players[metaPlayer]->m_PhaseStartFunds = g_MetaMan.m_Players[metaPlayer]->m_Funds;
 
 			// Update the player action lines for all players one last time; this will catch the AI ones as well and reflect their actions
 			UpdatePlayerActionLines(metaPlayer);
@@ -3423,15 +3423,15 @@ void MetagameGUI::UpdateBaseBuilding() {
 				(*slItr).m_OnlyFirstSegments = 1;
 				(*slItr).m_OnlyLastSegments = -1;
 			}
-			UpdatePlayerLineRatios(m_ActionSiteLines[metaPlayer], metaPlayer, false, g_MetaMan.m_Players[metaPlayer].m_Funds);
+			UpdatePlayerLineRatios(m_ActionSiteLines[metaPlayer], metaPlayer, false, g_MetaMan.m_Players[metaPlayer]->m_Funds);
 
 			// Also, for human players, auto design their blueprints if they have chosen to do so
-			if (g_MetaMan.m_Players[metaPlayer].IsHuman()) {
+			if (g_MetaMan.m_Players[metaPlayer]->IsHuman()) {
 				// Go through all scenes and check if they're owned by this, and if so, whether their defenses should be automatically designed by canned AI plan
 				for (std::vector<Scene*>::iterator sItr = g_MetaMan.m_Scenes.begin(); sItr != g_MetaMan.m_Scenes.end(); ++sItr) {
 					// Move building pieces from the Scene's AI plan queue to the actual blueprints, but only approximately as much as can afford, so the entire AI pre-built base plan isn't revealed
-					if ((*sItr)->GetTeamOwnership() == g_MetaMan.m_Players[metaPlayer].GetTeam() && (*sItr)->GetAutoDesigned())
-						(*sItr)->ApplyAIPlan(g_MetaMan.m_Players[metaPlayer].GetInGamePlayer());
+					if ((*sItr)->GetTeamOwnership() == g_MetaMan.m_Players[metaPlayer]->GetTeam() && (*sItr)->GetAutoDesigned())
+						(*sItr)->ApplyAIPlan(g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer());
 				}
 			}
 		}
@@ -3530,14 +3530,14 @@ void MetagameGUI::UpdateBaseBuilding() {
 				m_ActionSiteLines[m_AnimMetaPlayer][m_AnimActionLine].m_OnlyLastSegments = -1;
 				m_ActionSiteLines[m_AnimMetaPlayer][m_AnimActionLine].m_OnlyFirstSegments = -1;
 				// Save the total funds so we can make the proportional animation right
-				m_AnimTotalFunds = g_MetaMan.m_Players[m_AnimMetaPlayer].m_Funds;
+				m_AnimTotalFunds = g_MetaMan.m_Players[m_AnimMetaPlayer]->m_Funds;
 				// Get a handy pointer to the scene we're talking about
 				m_pAnimScene = m_ActionSiteLines[m_AnimMetaPlayer][m_AnimActionLine].m_pScene;
 				RTEAssert(m_pAnimScene, "Couldn't find the scene that we're building the base on!");
 				// Using the line target as the going-from point
 				m_AnimFundsMax = m_ActionSiteLines[m_AnimMetaPlayer][m_AnimActionLine].m_FundsAmount;
 				// The calculated budget use is the target value we're shrinking to
-				m_AnimFundsMin = m_AnimFundsMax - m_pAnimScene->CalcBuildBudgetUse(g_MetaMan.m_Players[m_AnimMetaPlayer].GetInGamePlayer(), &m_AnimBuildCount);
+				m_AnimFundsMin = m_AnimFundsMax - m_pAnimScene->CalcBuildBudgetUse(g_MetaMan.m_Players[m_AnimMetaPlayer]->GetInGamePlayer(), &m_AnimBuildCount);
 				// Show the negative change of funds, if any
 				if ((m_AnimFundsMin - m_AnimFundsMax) < 0)
 					FundsChangeIndication(m_AnimMetaPlayer, m_AnimFundsMin - m_AnimFundsMax, Vector(m_apPlayerBarLabel[m_AnimMetaPlayer]->GetXPos() + m_apPlayerBarLabel[m_AnimMetaPlayer]->GetWidth(), m_apPlayerBarLabel[m_AnimMetaPlayer]->GetYPos()), 2000);
@@ -3549,15 +3549,15 @@ void MetagameGUI::UpdateBaseBuilding() {
 				// Make this animation match in duration with the funds change label that is falling
 				m_ActionSiteLines[m_AnimMetaPlayer][m_AnimActionLine].m_FundsAmount = EaseOut(m_AnimFundsMax, m_AnimFundsMin, m_AnimTimer1.GetElapsedRealTimeMS() / 2000); //(m_AnimFundsMax * 2));
 				// Adjust the funds to show how much we subtracted this frame
-				g_MetaMan.m_Players[m_AnimMetaPlayer].m_Funds = m_AnimTotalFunds - (m_AnimFundsMax - m_ActionSiteLines[m_AnimMetaPlayer][m_AnimActionLine].m_FundsAmount);
-				UpdatePlayerLineRatios(m_ActionSiteLines[m_AnimMetaPlayer], m_AnimMetaPlayer, false, g_MetaMan.m_Players[m_AnimMetaPlayer].m_Funds);
+				g_MetaMan.m_Players[m_AnimMetaPlayer]->m_Funds = m_AnimTotalFunds - (m_AnimFundsMax - m_ActionSiteLines[m_AnimMetaPlayer][m_AnimActionLine].m_FundsAmount);
+				UpdatePlayerLineRatios(m_ActionSiteLines[m_AnimMetaPlayer], m_AnimMetaPlayer, false, g_MetaMan.m_Players[m_AnimMetaPlayer]->m_Funds);
 				m_AnimTimer2.Reset();
 			}
 			// Finished shrinking the meter to the target size, now start disconnecting it
 			else {
 				UpdateSiteNameLabel(false);
 				m_ActionSiteLines[m_AnimMetaPlayer][m_AnimActionLine].m_FundsAmount = m_AnimFundsMin;
-				UpdatePlayerLineRatios(m_ActionSiteLines[m_AnimMetaPlayer], m_AnimMetaPlayer, false, g_MetaMan.m_Players[m_AnimMetaPlayer].m_Funds);
+				UpdatePlayerLineRatios(m_ActionSiteLines[m_AnimMetaPlayer], m_AnimMetaPlayer, false, g_MetaMan.m_Players[m_AnimMetaPlayer]->m_Funds);
 
 				ChangeAnimMode(LINEDISCONNECTFW);
 			}
@@ -3615,7 +3615,7 @@ void MetagameGUI::UpdateBaseBuilding() {
 		Scene* pScene = 0;
 		for (int metaPlayer = Players::PlayerOne; metaPlayer < static_cast<int>(g_MetaMan.m_Players.size()); ++metaPlayer) {
 			// Reset the funds to the full value before we started messing with animating them
-			g_MetaMan.m_Players[metaPlayer].m_Funds = g_MetaMan.m_Players[metaPlayer].m_PhaseStartFunds;
+			g_MetaMan.m_Players[metaPlayer]->m_Funds = g_MetaMan.m_Players[metaPlayer]->m_PhaseStartFunds;
 
 			// Go through the sitelines and make sure all the things that need to be done are done before moving onto next phase
 			for (std::vector<SiteLine>::iterator slItr = m_ActionSiteLines[metaPlayer].begin(); slItr != m_ActionSiteLines[metaPlayer].end(); ++slItr) {
@@ -3627,9 +3627,9 @@ void MetagameGUI::UpdateBaseBuilding() {
 						// Acutally do the spending on these places that have this player's brain and has funds budgeted for them
 						// THIS IS WHAT GETS STUFF BUILT
 						// NOTE THE CAREFUL MAPPING BETWEEN METAPLAYERS AND IN-GAME PLAYERS
-						int player = g_MetaMan.m_Players[metaPlayer].GetInGamePlayer();
+						int player = g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer();
 						if (pScene->GetResidentBrain(player) && pScene->GetBuildBudget(player) > 0)
-							g_MetaMan.m_Players[metaPlayer].m_Funds -= pScene->ApplyBuildBudget(player);
+							g_MetaMan.m_Players[metaPlayer]->m_Funds -= pScene->ApplyBuildBudget(player);
 					}
 				}
 				// Reset all non-defensive lines' segment animations so we can see them
@@ -3642,8 +3642,8 @@ void MetagameGUI::UpdateBaseBuilding() {
 			// Make all scene build budgets set to 0; they will be re-set to their previous turns' budget ratios on the next player turns
 			for (std::vector<Scene*>::iterator sItr = g_MetaMan.m_Scenes.begin(); sItr != g_MetaMan.m_Scenes.end(); ++sItr) {
 				// Only mess with Scenes we can see and that are owned by this player's team
-				if ((*sItr)->IsRevealed() && (*sItr)->GetTeamOwnership() == g_MetaMan.m_Players[metaPlayer].GetTeam())
-					(*sItr)->SetBuildBudget(g_MetaMan.m_Players[metaPlayer].GetInGamePlayer(), 0);
+				if ((*sItr)->IsRevealed() && (*sItr)->GetTeamOwnership() == g_MetaMan.m_Players[metaPlayer]->GetTeam())
+					(*sItr)->SetBuildBudget(g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer(), 0);
 			}
 			// Refresh the aciton lines one last time before moving on, which will CLEAN OUT all defensive action lines!
 			UpdatePlayerActionLines(metaPlayer);
@@ -3663,10 +3663,10 @@ void MetagameGUI::SetupOffensives() {
 	int offensiveCount = 0;
 	for (int metaPlayer = Players::PlayerOne; metaPlayer < static_cast<int>(g_MetaMan.m_Players.size()); ++metaPlayer) {
 		playerDone = false;
-		team = g_MetaMan.m_Players[metaPlayer].GetTeam();
+		team = g_MetaMan.m_Players[metaPlayer]->GetTeam();
 		// If we have a selected offensive target, find its scene in the metagame
-		targetName = g_MetaMan.m_Players[metaPlayer].GetOffensiveTargetName();
-		offensiveBudget = g_MetaMan.m_Players[metaPlayer].GetOffensiveBudget();
+		targetName = g_MetaMan.m_Players[metaPlayer]->GetOffensiveTargetName();
+		offensiveBudget = g_MetaMan.m_Players[metaPlayer]->GetOffensiveBudget();
 		if (!targetName.empty() && offensiveBudget > 0) {
 			for (std::vector<Scene*>::iterator sItr = g_MetaMan.m_Scenes.begin(); !playerDone && sItr != g_MetaMan.m_Scenes.end(); ++sItr) {
 				if ((*sItr)->IsRevealed() && (*sItr)->GetPresetName() == targetName) {
@@ -3674,7 +3674,7 @@ void MetagameGUI::SetupOffensives() {
 					for (std::vector<GAScripted*>::iterator aItr = g_MetaMan.m_RoundOffensives.begin(); aItr != g_MetaMan.m_RoundOffensives.end(); ++aItr) {
 						if ((*aItr)->GetSceneName() == targetName) {
 							// Ok, activity at this site already exists, so add this player to the attacking forces
-							(*aItr)->AddPlayer(g_MetaMan.m_Players[metaPlayer].GetInGamePlayer(), g_MetaMan.m_Players[metaPlayer].IsHuman(), team, offensiveBudget, &(g_MetaMan.GetTeamIcon(team)));
+							(*aItr)->AddPlayer(g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer(), g_MetaMan.m_Players[metaPlayer]->IsHuman(), team, offensiveBudget, &(g_MetaMan.GetTeamIcon(team)));
 							// Move onto next player
 							playerDone = true;
 						}
@@ -3699,7 +3699,7 @@ void MetagameGUI::SetupOffensives() {
 							pOffensive->SetTeamAISkill(t, g_MetaMan.m_TeamAISkill[t]);
 
 						// Attacker
-						pOffensive->AddPlayer(g_MetaMan.m_Players[metaPlayer].GetInGamePlayer(), g_MetaMan.m_Players[metaPlayer].IsHuman(), team, offensiveBudget, &(g_MetaMan.GetTeamIcon(team)));
+						pOffensive->AddPlayer(g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer(), g_MetaMan.m_Players[metaPlayer]->IsHuman(), team, offensiveBudget, &(g_MetaMan.GetTeamIcon(team)));
 
 						// Unless exploring an unclaimed spot, there's going to be defenders
 						if ((*sItr)->GetTeamOwnership() != Activity::NoTeam) {
@@ -3707,9 +3707,9 @@ void MetagameGUI::SetupOffensives() {
 							for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 								// Got to remember to translate from metagame player index into the in-game player index
 								// TODO: Remove this requirement to have a brain resident to play? error-prone and not so fun for co-op player on sme team if they can't all play
-								//                                if (g_MetaMan.m_Players[mp].GetTeam() == (*sItr)->GetTeamOwnership())
-								if ((*sItr)->GetResidentBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
-									pOffensive->AddPlayer(g_MetaMan.m_Players[mp].GetInGamePlayer(), g_MetaMan.m_Players[mp].IsHuman(), g_MetaMan.m_Players[mp].GetTeam(), g_MetaMan.GetRemainingFundsOfPlayer(mp, *sItr, false, false), &(g_MetaMan.GetTeamIcon(g_MetaMan.m_Players[mp].GetTeam())));
+								//                                if (g_MetaMan.m_Players[mp]->GetTeam() == (*sItr)->GetTeamOwnership())
+								if ((*sItr)->GetResidentBrain(g_MetaMan.m_Players[mp]->GetInGamePlayer())) {
+									pOffensive->AddPlayer(g_MetaMan.m_Players[mp]->GetInGamePlayer(), g_MetaMan.m_Players[mp]->IsHuman(), g_MetaMan.m_Players[mp]->GetTeam(), g_MetaMan.GetRemainingFundsOfPlayer(mp, *sItr, false, false), &(g_MetaMan.GetTeamIcon(g_MetaMan.m_Players[mp]->GetTeam())));
 								}
 							}
 						}
@@ -3804,9 +3804,9 @@ void MetagameGUI::UpdateOffensives() {
 		// Set up all the offensive and defensive lines for each player involved in this site's battle
 		for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			// If this player is involved in this fight, show his lines etc
-			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
+			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp]->GetInGamePlayer())) {
 				// Save the fund levels FROM THE START of each battle so we can calculate the after state if players skip the animation
-				g_MetaMan.m_Players[mp].m_PhaseStartFunds = g_MetaMan.m_Players[mp].m_Funds;
+				g_MetaMan.m_Players[mp]->m_PhaseStartFunds = g_MetaMan.m_Players[mp]->m_Funds;
 
 				// Rebuild all the action site lines for the player
 				float meterStart = UpdatePlayerActionLines(mp);
@@ -3817,8 +3817,8 @@ void MetagameGUI::UpdateOffensives() {
 				m_aBrainIconPos[mp].Reset();
 
 				// What is this player attacking?
-				std::string targetName = g_MetaMan.m_Players[mp].GetOffensiveTargetName();
-				float offensiveBudget = g_MetaMan.m_Players[mp].GetOffensiveBudget();
+				std::string targetName = g_MetaMan.m_Players[mp]->GetOffensiveTargetName();
+				float offensiveBudget = g_MetaMan.m_Players[mp]->GetOffensiveBudget();
 				// If attacking anything, see if it's the current site that's getting hit
 				if (!targetName.empty() && offensiveBudget > 0) {
 					// Set the displayed battle funds for this player if it's attacking this site
@@ -3830,20 +3830,20 @@ void MetagameGUI::UpdateOffensives() {
 
 				// If this player owns and has a resident brain at this site, add his defending action line of unallocated funds,
 				// and also update the offensive activity itself to match teh defensive funds to what he has left after multiple completed offensives this turn
-				if (m_pAnimScene->GetTeamOwnership() == g_MetaMan.m_Players[mp].GetTeam() && m_pAnimScene->GetResidentBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
+				if (m_pAnimScene->GetTeamOwnership() == g_MetaMan.m_Players[mp]->GetTeam() && m_pAnimScene->GetResidentBrain(g_MetaMan.m_Players[mp]->GetInGamePlayer())) {
 					// Find out how much gold this player has left after all allocations and previous battles this turn
 					float remainingFunds = g_MetaMan.GetRemainingFundsOfPlayer(mp);
 					// UPDATE the contributed funds of the defending player to whatever gold he has left after all (if any) previous battles this turn!
-					bool updated = g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->UpdatePlayerFundsContribution(g_MetaMan.m_Players[mp].GetInGamePlayer(), remainingFunds);
+					bool updated = g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->UpdatePlayerFundsContribution(g_MetaMan.m_Players[mp]->GetInGamePlayer(), remainingFunds);
 					// Add the unused build budget FOR THIS SCENE to the battle funds display - doesn't do anyhting now because build budgets are set to 0 in UpdateBaseBuilding
-					m_aBattleFunds[mp] += m_pAnimScene->GetBuildBudget(g_MetaMan.m_Players[mp].GetInGamePlayer());
+					m_aBattleFunds[mp] += m_pAnimScene->GetBuildBudget(g_MetaMan.m_Players[mp]->GetInGamePlayer());
 					// Add the unallocated funds meter, even if there's 0 left.. it shows why there's 0, and also the meter can grow after battle if the defending player digs up gold
 					if (remainingFunds >= 0) {
 						// Tell the player why he has no defensive money... uh too early
 						//                        if (remainingFunds <= 0)
 						//                            PlayerTextIndication(mp, "No unallocated funds!", Vector(m_apPlayerBox[mp]->GetXPos(), m_apPlayerBox[mp]->GetYPos()), 1500);
 
-						m_ActionSiteLines[mp].push_back(SiteLine(mp, meterStart, remainingFunds / g_MetaMan.m_Players[mp].m_Funds, m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), m_pAnimScene->GetPresetName(), m_pAnimScene, c_GUIColorYellow, -1, -1, 60, 1.0f, g_MetaMan.IsActiveTeam(m_pAnimScene->GetTeamOwnership())));
+						m_ActionSiteLines[mp].push_back(SiteLine(mp, meterStart, remainingFunds / g_MetaMan.m_Players[mp]->m_Funds, m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), m_pAnimScene->GetPresetName(), m_pAnimScene, c_GUIColorYellow, -1, -1, 60, 1.0f, g_MetaMan.IsActiveTeam(m_pAnimScene->GetTeamOwnership())));
 						// This will actually affect the line meter
 						m_ActionSiteLines[mp].back().m_FundsAmount = remainingFunds;
 						// Add to the battle funds display too
@@ -3860,7 +3860,7 @@ void MetagameGUI::UpdateOffensives() {
 				}
 
 				// Update the ratios now that we've messed with them
-				UpdatePlayerLineRatios(m_ActionSiteLines[mp], mp, false, g_MetaMan.m_Players[mp].m_Funds);
+				UpdatePlayerLineRatios(m_ActionSiteLines[mp], mp, false, g_MetaMan.m_Players[mp]->m_Funds);
 			}
 			// If player not involved in the fight then hide all lines of this player
 			{
@@ -3920,10 +3920,10 @@ void MetagameGUI::UpdateOffensives() {
 			// Make sure all offensive action lines are set up for this phase
 			for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 				// Find all players that are active during this battle
-				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
+				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp]->GetInGamePlayer())) {
 					// If this player is attacking, indicate that we've got a brain in transit.. this just changes the display, not the actual brain pool count yet
-					if (m_pAnimScene->GetPresetName() == g_MetaMan.m_Players[mp].GetOffensiveTargetName())
-						g_MetaMan.m_Players[mp].ChangeBrainsInTransit(1);
+					if (m_pAnimScene->GetPresetName() == g_MetaMan.m_Players[mp]->GetOffensiveTargetName())
+						g_MetaMan.m_Players[mp]->ChangeBrainsInTransit(1);
 
 					// Find their offensive funds site lines
 					for (std::vector<SiteLine>::iterator slItr = m_ActionSiteLines[mp].begin(); slItr != m_ActionSiteLines[mp].end(); ++slItr) {
@@ -3950,8 +3950,8 @@ void MetagameGUI::UpdateOffensives() {
 			if (m_AnimTimer1.GetElapsedRealTimeMS() > 150) {
 				for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 					// Only care if this player is attacking this site
-					if (m_pAnimScene->GetPresetName() == g_MetaMan.m_Players[mp].GetOffensiveTargetName() && g_MetaMan.m_Players[mp].GetOffensiveBudget() > 0)
-					//                    if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer()))
+					if (m_pAnimScene->GetPresetName() == g_MetaMan.m_Players[mp]->GetOffensiveTargetName() && g_MetaMan.m_Players[mp]->GetOffensiveBudget() > 0)
+					//                    if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp]->GetInGamePlayer()))
 					{
 						// Find their offensive funds site lines
 						for (std::vector<SiteLine>::iterator slItr = m_ActionSiteLines[mp].begin(); slItr != m_ActionSiteLines[mp].end(); ++slItr) {
@@ -4027,9 +4027,9 @@ void MetagameGUI::UpdateOffensives() {
 			for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 				// Only care of this player is involved in this particular battle
 				// Only care about defending players of this site
-				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer()) &&
-				    m_pAnimScene->GetTeamOwnership() == g_MetaMan.m_Players[mp].GetTeam() &&
-				    m_pAnimScene->GetResidentBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
+				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp]->GetInGamePlayer()) &&
+				    m_pAnimScene->GetTeamOwnership() == g_MetaMan.m_Players[mp]->GetTeam() &&
+				    m_pAnimScene->GetResidentBrain(g_MetaMan.m_Players[mp]->GetInGamePlayer())) {
 					// Find their defensive funds site lines
 					for (std::vector<SiteLine>::iterator slItr = m_ActionSiteLines[mp].begin(); slItr != m_ActionSiteLines[mp].end(); ++slItr) {
 						// Offensive lines are green; unallocated funds are white - attach all of them
@@ -4055,12 +4055,12 @@ void MetagameGUI::UpdateOffensives() {
 			if (m_AnimTimer1.GetElapsedRealTimeMS() > 150) {
 				for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 					// Only care of this player is involved in this particular battle
-					if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
+					if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp]->GetInGamePlayer())) {
 						// Find their defensive-related funds site lines
 						for (std::vector<SiteLine>::iterator slItr = m_ActionSiteLines[mp].begin(); slItr != m_ActionSiteLines[mp].end(); ++slItr) {
 							// Offensive lines are red; grow the defensive ones relevant to this scene
 							if ((*slItr).m_Color != c_GUIColorRed && m_pAnimScene->GetPresetName() == (*slItr).m_SiteName &&
-							    (m_pAnimScene->GetTeamOwnership() == g_MetaMan.m_Players[mp].GetTeam() && m_pAnimScene->GetResidentBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())))
+							    (m_pAnimScene->GetTeamOwnership() == g_MetaMan.m_Players[mp]->GetTeam() && m_pAnimScene->GetResidentBrain(g_MetaMan.m_Players[mp]->GetInGamePlayer())))
 								(*slItr).m_OnlyLastSegments++;
 						}
 					}
@@ -4124,22 +4124,22 @@ void MetagameGUI::UpdateOffensives() {
 			// Make sure all offensive action-related lines are set up for this battle review animation
 			for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 				// Only the players of this battle
-				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
+				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp]->GetInGamePlayer())) {
 					// Find their site lines that are connected to the site
 					for (std::vector<SiteLine>::iterator slItr = m_ActionSiteLines[mp].begin(); slItr != m_ActionSiteLines[mp].end(); ++slItr) {
 						// Only lines that are connected are relevant
 						if ((*slItr).m_OnlyFirstSegments > 1 || (*slItr).m_OnlyLastSegments > 1) {
 							// Re-set the funds amount we're going from - actually, not necessary
-							(*slItr).m_FundsAmount = g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->GetPlayerFundsContribution(g_MetaMan.m_Players[mp].GetInGamePlayer());
+							(*slItr).m_FundsAmount = g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->GetPlayerFundsContribution(g_MetaMan.m_Players[mp]->GetInGamePlayer());
 							// Set the target we're going toward
-							(*slItr).m_FundsTarget = g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->GetPlayerFundsShare(g_MetaMan.m_Players[mp].GetInGamePlayer());
+							(*slItr).m_FundsTarget = g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->GetPlayerFundsShare(g_MetaMan.m_Players[mp]->GetInGamePlayer());
 							// Start the battle money display off at the right point too
 							m_aBattleFunds[mp] = (*slItr).m_FundsAmount;
 							// Display the change amount over/under the player bar
 							FundsChangeIndication(mp, (*slItr).m_FundsTarget - (*slItr).m_FundsAmount, Vector(m_apPlayerBarLabel[mp]->GetXPos() + m_apPlayerBarLabel[mp]->GetWidth(), m_apPlayerBarLabel[mp]->GetYPos()), m_AnimModeDuration);
 
 							// Update the ratios.. shouldn't do anyhitng, really
-							UpdatePlayerLineRatios(m_ActionSiteLines[mp], mp, false, g_MetaMan.m_Players[mp].m_Funds);
+							UpdatePlayerLineRatios(m_ActionSiteLines[mp], mp, false, g_MetaMan.m_Players[mp]->m_Funds);
 						}
 					}
 				}
@@ -4152,10 +4152,10 @@ void MetagameGUI::UpdateOffensives() {
 		// Find the players who are involved in this battle
 		for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			// Only the players of this battle
-			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
+			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp]->GetInGamePlayer())) {
 				// The brains who DID NOT MAKE IT - Show them blowing up at some random interval into the animation
-				if (!m_pAnimScene->GetResidentBrain(g_MetaMan.m_Players[mp].GetInGamePlayer()) &&
-				    !g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
+				if (!m_pAnimScene->GetResidentBrain(g_MetaMan.m_Players[mp]->GetInGamePlayer()) &&
+				    !g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated(g_MetaMan.m_Players[mp]->GetInGamePlayer())) {
 					// If not yet blown up, then see if we should yet
 					if (!m_aAnimDestroyed[mp] && m_AnimTimer2.GetElapsedRealTimeMS() > (m_AnimModeDuration * 0.5F) && RandomNum() < 0.05F) {
 						// Add circle explosion effect to where the brain icon used to be
@@ -4169,7 +4169,7 @@ void MetagameGUI::UpdateOffensives() {
 				for (std::vector<SiteLine>::iterator slItr = m_ActionSiteLines[mp].begin(); slItr != m_ActionSiteLines[mp].end(); ++slItr) {
 					// Only lines that are connected are relevant
 					if ((*slItr).m_OnlyFirstSegments > 1 || (*slItr).m_OnlyLastSegments > 1) {
-						float startFunds = g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->GetPlayerFundsContribution(g_MetaMan.m_Players[mp].GetInGamePlayer());
+						float startFunds = g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->GetPlayerFundsContribution(g_MetaMan.m_Players[mp]->GetInGamePlayer());
 
 						// Grow/shrink all the meters, showing how the funds changed during battle
 						if (m_AnimTimer1.GetElapsedRealTimeMS() < m_AnimModeDuration) {
@@ -4178,14 +4178,14 @@ void MetagameGUI::UpdateOffensives() {
 							// Update the battle funds display; it will be shown in the brian action label
 							m_aBattleFunds[mp] = (*slItr).m_FundsAmount;
 							// Adjust the funds to show how much we subtracted this frame - this will be reset in the end anyway, it's just for show during this battle review animation
-							g_MetaMan.m_Players[mp].m_Funds = g_MetaMan.m_Players[mp].m_PhaseStartFunds - (startFunds - (*slItr).m_FundsAmount);
-							UpdatePlayerLineRatios(m_ActionSiteLines[mp], mp, false, g_MetaMan.m_Players[mp].m_Funds);
+							g_MetaMan.m_Players[mp]->m_Funds = g_MetaMan.m_Players[mp]->m_PhaseStartFunds - (startFunds - (*slItr).m_FundsAmount);
+							UpdatePlayerLineRatios(m_ActionSiteLines[mp], mp, false, g_MetaMan.m_Players[mp]->m_Funds);
 						}
 						// Finished growing the meter to the target size
 						else {
 							m_aBattleFunds[mp] = (*slItr).m_FundsAmount = (*slItr).m_FundsTarget;
-							g_MetaMan.m_Players[mp].m_Funds = g_MetaMan.m_Players[mp].m_PhaseStartFunds - (startFunds - (*slItr).m_FundsAmount);
-							UpdatePlayerLineRatios(m_ActionSiteLines[mp], mp, false, g_MetaMan.m_Players[mp].m_Funds);
+							g_MetaMan.m_Players[mp]->m_Funds = g_MetaMan.m_Players[mp]->m_PhaseStartFunds - (startFunds - (*slItr).m_FundsAmount);
+							UpdatePlayerLineRatios(m_ActionSiteLines[mp], mp, false, g_MetaMan.m_Players[mp]->m_Funds);
 						}
 					}
 				}
@@ -4211,10 +4211,10 @@ void MetagameGUI::UpdateOffensives() {
 			// Find the players who are involved in this battle
 			for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 				// Only the players of this battle who didn't evacuate
-				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp].GetInGamePlayer()) &&
-				    !g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
+				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp]->GetInGamePlayer()) &&
+				    !g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated(g_MetaMan.m_Players[mp]->GetInGamePlayer())) {
 					// The brains who DID NOT MAKE IT - Show them blowing up
-					if (!m_pAnimScene->GetResidentBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
+					if (!m_pAnimScene->GetResidentBrain(g_MetaMan.m_Players[mp]->GetInGamePlayer())) {
 						// If not yet blown up, then we should be
 						if (!m_aAnimDestroyed[mp]) {
 							// Add circle explosion effect to where the brain icon used to be
@@ -4265,9 +4265,9 @@ void MetagameGUI::UpdateOffensives() {
 				// Find the players who are evacuated anything this battle
 				for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 					// Only the players of this battle who evac'd their brain
-					if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
+					if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated(g_MetaMan.m_Players[mp]->GetInGamePlayer())) {
 						// Both an Attacker aborting an attack, and a Defender abandoning his site has the same effect here on the brian pool display
-						g_MetaMan.m_Players[mp].ChangeBrainsInTransit(-1);
+						g_MetaMan.m_Players[mp]->ChangeBrainsInTransit(-1);
 					}
 				}
 			}
@@ -4305,9 +4305,9 @@ void MetagameGUI::UpdateOffensives() {
 		// Find the players who are involved in this battle
 		for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			// Only the players of this battle
-			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
+			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp]->GetInGamePlayer())) {
 				// The guys who died - remove their icons completely
-				if (!m_pAnimScene->GetResidentBrain(g_MetaMan.m_Players[mp].GetInGamePlayer()))
+				if (!m_pAnimScene->GetResidentBrain(g_MetaMan.m_Players[mp]->GetInGamePlayer()))
 					m_apPlayerBrainTravelLabel[mp]->SetVisible(false);
 			}
 		}
@@ -4333,7 +4333,7 @@ void MetagameGUI::UpdateOffensives() {
 		// Max out the offensive lines in case the player started the battle before the lines were fully animated as connected
 		for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 			// Only care of this player is involved in this particular battle
-			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
+			if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive(g_MetaMan.m_Players[mp]->GetInGamePlayer())) {
 				for (std::vector<SiteLine>::iterator slItr = m_ActionSiteLines[mp].begin(); slItr != m_ActionSiteLines[mp].end(); ++slItr) {
 					// Only show lines that are going to the site we're battling on
 					if ((*slItr).m_SiteName == m_pAnimScene->GetPresetName()) {
@@ -4341,7 +4341,7 @@ void MetagameGUI::UpdateOffensives() {
 						if ((*slItr).m_Color == c_GUIColorRed)
 							(*slItr).m_OnlyFirstSegments = 15;
 						// Defensive site
-						else if (m_pAnimScene->GetTeamOwnership() == g_MetaMan.m_Players[mp].GetTeam() && m_pAnimScene->GetResidentBrain(g_MetaMan.m_Players[mp].GetInGamePlayer()))
+						else if (m_pAnimScene->GetTeamOwnership() == g_MetaMan.m_Players[mp]->GetTeam() && m_pAnimScene->GetResidentBrain(g_MetaMan.m_Players[mp]->GetInGamePlayer()))
 							(*slItr).m_OnlyLastSegments = 15;
 					}
 					// Hide all other lines
@@ -4408,33 +4408,33 @@ bool MetagameGUI::FinalizeOffensive() {
 	// Deduct the original funds contribution of each player - less any unused funds of the team, taking original player contribution ratios into account
 	for (size_t mp = Players::PlayerOne; mp < g_MetaMan.m_Players.size(); ++mp) {
 		// Only the players who were battling this offensive
-		if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp].GetInGamePlayer())) {
+		if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain(g_MetaMan.m_Players[mp]->GetInGamePlayer())) {
 			// Re-set the funds level to where it was at the start of this offensive (NOT at the start of the phase, actually)
-			g_MetaMan.m_Players[mp].m_Funds = g_MetaMan.m_Players[mp].m_PhaseStartFunds;
+			g_MetaMan.m_Players[mp]->m_Funds = g_MetaMan.m_Players[mp]->m_PhaseStartFunds;
 			// Deduct the original contribution to team funds
-			g_MetaMan.m_Players[mp].m_Funds -= g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->GetPlayerFundsContribution(g_MetaMan.m_Players[mp].GetInGamePlayer());
+			g_MetaMan.m_Players[mp]->m_Funds -= g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->GetPlayerFundsContribution(g_MetaMan.m_Players[mp]->GetInGamePlayer());
 			// Add back whatever his share of whatever his team has left in the fight at its end
-			g_MetaMan.m_Players[mp].m_Funds += g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->GetPlayerFundsShare(g_MetaMan.m_Players[mp].GetInGamePlayer());
+			g_MetaMan.m_Players[mp]->m_Funds += g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->GetPlayerFundsShare(g_MetaMan.m_Players[mp]->GetInGamePlayer());
 			// IF This guy was ATTACKING this turn, adjust his attack budget to match what just happened in the battle
 			// so in case he is defending in a upcoming battle this turn, his avaialbe funds will be accurately calculated
-			if (g_MetaMan.m_Players[mp].GetOffensiveTargetName() == m_pAnimScene->GetPresetName()) {
-				g_MetaMan.m_Players[mp].SetOffensiveBudget(g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->GetPlayerFundsShare(g_MetaMan.m_Players[mp].GetInGamePlayer()));
-				//                g_MetaMan.m_Players[mp].SetOffensiveTargetName("");
+			if (g_MetaMan.m_Players[mp]->GetOffensiveTargetName() == m_pAnimScene->GetPresetName()) {
+				g_MetaMan.m_Players[mp]->SetOffensiveBudget(g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->GetPlayerFundsShare(g_MetaMan.m_Players[mp]->GetInGamePlayer()));
+				//                g_MetaMan.m_Players[mp]->SetOffensiveTargetName("");
 
 				// The only condition where this attacking player does NOT get a brain deducted from pool, is when he aborts the attack with an evacuation and the brain goes back to pool!
-				if (!g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated(g_MetaMan.m_Players[mp].GetInGamePlayer()))
-					g_MetaMan.m_Players[mp].ChangeBrainPoolCount(-1);
+				if (!g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated(g_MetaMan.m_Players[mp]->GetInGamePlayer()))
+					g_MetaMan.m_Players[mp]->ChangeBrainPoolCount(-1);
 			}
 			// Defending player
 			else {
 				// If this player evacuated his brain, WHILE DEFENDING, then add it back to his pool
-				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated(g_MetaMan.m_Players[mp].GetInGamePlayer()))
-					g_MetaMan.m_Players[mp].ChangeBrainPoolCount(1);
+				if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated(g_MetaMan.m_Players[mp]->GetInGamePlayer()))
+					g_MetaMan.m_Players[mp]->ChangeBrainPoolCount(1);
 			}
 			// Update the ratios of the meter now that the funds have changed
-			UpdatePlayerLineRatios(m_ActionSiteLines[mp], mp, false, g_MetaMan.m_Players[mp].m_Funds);
+			UpdatePlayerLineRatios(m_ActionSiteLines[mp], mp, false, g_MetaMan.m_Players[mp]->m_Funds);
 			// Clear out the brain transit display either way; nothing should be out flying now anyway
-			g_MetaMan.m_Players[mp].SetBrainsInTransit(0);
+			g_MetaMan.m_Players[mp]->SetBrainsInTransit(0);
 		}
 	}
 
@@ -4469,12 +4469,12 @@ bool MetagameGUI::FinalizeOffensive() {
 
 void MetagameGUI::ResetBattleInfo() {
 	int mp = 0;
-	for (std::vector<MetaPlayer>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr) {
+	for (std::vector<MetaPlayer*>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr) {
 		// Init and hide everything initially
 		if (!m_apPlayerTeamActionBox[mp]->GetDrawImage()) {
 			// Set the flag icons on the floating player bars
 			m_apPlayerTeamActionBox[mp]->SetDrawType(GUICollectionBox::Image);
-			m_apPlayerTeamActionBox[mp]->SetDrawImage(new AllegroBitmap(g_MetaMan.m_TeamIcons[(*mpItr).GetTeam()].GetBitmaps32()[0]));
+			m_apPlayerTeamActionBox[mp]->SetDrawImage(new AllegroBitmap(g_MetaMan.m_TeamIcons[(*mpItr)->GetTeam()].GetBitmaps32()[0]));
 		}
 		// Hide everything initially
 		m_apPlayerTeamActionBox[mp]->SetVisible(false);
@@ -4496,7 +4496,7 @@ void MetagameGUI::UpdateBattleQuads(Vector targetPos) {
 
 	// Go through all players, assigning the quads depending on how the player bars are positioned in relation to each other
 	int mp = 0;
-	for (std::vector<MetaPlayer>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr) {
+	for (std::vector<MetaPlayer*>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr) {
 		// Select which quadrant makes most sense for this player, based on his floating bar's position relative to the site
 		int initialQuad = 0;
 		if (m_apPlayerBox[mp]->GetXPos() < targetPos.m_X)
@@ -4551,10 +4551,10 @@ void MetagameGUI::UpdatePreBattleAttackers(float progress) {
 	UpdateBattleQuads(siteScreenPos);
 
 	// Go through all attacking players for this activity
-	for (std::vector<MetaPlayer>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr) {
+	for (std::vector<MetaPlayer*>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr) {
 		// Player active and ATTACKING in current battle, so display his team flag and place it according to the animation progress
-		if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive((*mpItr).GetInGamePlayer()) &&
-		    !m_pAnimScene->GetResidentBrain((*mpItr).GetInGamePlayer())) {
+		if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive((*mpItr)->GetInGamePlayer()) &&
+		    !m_pAnimScene->GetResidentBrain((*mpItr)->GetInGamePlayer())) {
 			// Show the active players' team flag icons around the site if the brains have arrived
 			m_apPlayerTeamActionBox[mp]->SetVisible(progress >= 1.0);
 			// Show the traveling brain if we're not at 0
@@ -4686,10 +4686,10 @@ void MetagameGUI::UpdatePreBattleDefenders(float progress) {
 	UpdateBattleQuads(siteScreenPos);
 
 	// Go through all players for this activity
-	for (std::vector<MetaPlayer>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr) {
+	for (std::vector<MetaPlayer*>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr) {
 		// Player active and DEFENDING in current battle, so display his team flag and place it according to the animation progress
-		if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive((*mpItr).GetInGamePlayer()) &&
-		    m_pAnimScene->GetResidentBrain((*mpItr).GetInGamePlayer())) {
+		if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerActive((*mpItr)->GetInGamePlayer()) &&
+		    m_pAnimScene->GetResidentBrain((*mpItr)->GetInGamePlayer())) {
 			// Show the active players' team flag icons around the site if the brains have arrived
 			m_apPlayerTeamActionBox[mp]->SetVisible(progress >= 1.0);
 			// Show the traveling brain if we're not at 0
@@ -4809,10 +4809,10 @@ void MetagameGUI::UpdatePostBattleRetreaters(float progress) {
 	UpdateBattleQuads(siteScreenPos);
 
 	// Go through all players for this activity
-	for (std::vector<MetaPlayer>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr) {
+	for (std::vector<MetaPlayer*>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr) {
 		// Player active and EVACUATION/RETREATING in current battle, so display his team flag and place it according to the animation progress
-		if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain((*mpItr).GetInGamePlayer()) &&
-		    g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated((*mpItr).GetInGamePlayer())) {
+		if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain((*mpItr)->GetInGamePlayer()) &&
+		    g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated((*mpItr)->GetInGamePlayer())) {
 			// Show the active players' team flag icons around the site if the brains have arrived
 			m_apPlayerTeamActionBox[mp]->SetVisible(progress <= 0);
 			// Show the traveling brain if we're not at destination yet
@@ -4945,11 +4945,11 @@ void MetagameGUI::UpdatePostBattleResidents(float progress) {
 	UpdateBattleQuads(siteScreenPos);
 
 	// Go through all players for this activity
-	for (std::vector<MetaPlayer>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr) {
+	for (std::vector<MetaPlayer*>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr) {
 		// Player active in the past battle, so display his team flag and place it according to the animation progress
 		// Also player who didn't evacuate - they are handled by UpdatePostBattleRetreaters
-		if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain((*mpItr).GetInGamePlayer()) &&
-		    !g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated((*mpItr).GetInGamePlayer())) {
+		if (g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->PlayerHadBrain((*mpItr)->GetInGamePlayer()) &&
+		    !g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->BrainWasEvacuated((*mpItr)->GetInGamePlayer())) {
 			// Figure out which quad this player is assigned to
 			for (int q = Players::PlayerOne; q < Players::MaxPlayerCount; ++q) {
 				if (m_aQuadTakenBy[q] == mp) {
@@ -4959,7 +4959,7 @@ void MetagameGUI::UpdatePostBattleResidents(float progress) {
 			}
 
 			// The brains who DID NOT MAKE IT - DEAD and did not evac
-			if (!m_pAnimScene->GetResidentBrain((*mpItr).GetInGamePlayer())) {
+			if (!m_pAnimScene->GetResidentBrain((*mpItr)->GetInGamePlayer())) {
 				// Hide the losers after the residents start moving in
 				m_apPlayerTeamActionBox[mp]->SetVisible(progress <= 0);
 				m_apPlayerBrainTravelLabel[mp]->SetVisible(progress <= 0);
@@ -5131,7 +5131,7 @@ float MetagameGUI::UpdatePlayerActionLines(int metaPlayer) //, bool addUnallocat
 	m_ActionSiteLines[metaPlayer].clear();
 
 	// Get the total funds we have to work with
-	float totalFunds = g_MetaMan.m_Players[metaPlayer].GetFunds();
+	float totalFunds = g_MetaMan.m_Players[metaPlayer]->GetFunds();
 
 	// Loop through the scenes owned by that player, setting up the building budget site line for each
 	const Scene* pScene = 0;
@@ -5139,17 +5139,17 @@ float MetagameGUI::UpdatePlayerActionLines(int metaPlayer) //, bool addUnallocat
 	float meterStart = 0;
 	while (pScene = g_MetaMan.GetNextSceneOfPlayer(metaPlayer, pScene)) {
 		// Add line for scenes which are owned and whose build budgets have been set to something
-		if (pScene->GetTeamOwnership() == g_MetaMan.GetTeamOfPlayer(metaPlayer) && std::floor(pScene->GetBuildBudget(g_MetaMan.m_Players[metaPlayer].GetInGamePlayer())) > 0) {
-			m_ActionSiteLines[metaPlayer].push_back(SiteLine(metaPlayer, meterStart, pScene->GetBuildBudget(g_MetaMan.m_Players[metaPlayer].GetInGamePlayer()) / totalFunds, pScene->GetLocation() + pScene->GetLocationOffset(), pScene->GetPresetName(), pScene, c_GUIColorGreen, -1, -1, channelHeight, 1.0f, g_MetaMan.IsActiveTeam(pScene->GetTeamOwnership())));
-			m_ActionSiteLines[metaPlayer].back().m_FundsAmount = pScene->GetBuildBudget(g_MetaMan.m_Players[metaPlayer].GetInGamePlayer());
+		if (pScene->GetTeamOwnership() == g_MetaMan.GetTeamOfPlayer(metaPlayer) && std::floor(pScene->GetBuildBudget(g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer())) > 0) {
+			m_ActionSiteLines[metaPlayer].push_back(SiteLine(metaPlayer, meterStart, pScene->GetBuildBudget(g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer()) / totalFunds, pScene->GetLocation() + pScene->GetLocationOffset(), pScene->GetPresetName(), pScene, c_GUIColorGreen, -1, -1, channelHeight, 1.0f, g_MetaMan.IsActiveTeam(pScene->GetTeamOwnership())));
+			m_ActionSiteLines[metaPlayer].back().m_FundsAmount = pScene->GetBuildBudget(g_MetaMan.m_Players[metaPlayer]->GetInGamePlayer());
 			meterStart += m_ActionSiteLines[metaPlayer].back().m_MeterAmount;
 			channelHeight += 10;
 		}
 	}
 
 	// If we have a selected offensive target, find it and create its line as well
-	std::string targetName = g_MetaMan.m_Players[metaPlayer].GetOffensiveTargetName();
-	float offensiveBudget = g_MetaMan.m_Players[metaPlayer].GetOffensiveBudget();
+	std::string targetName = g_MetaMan.m_Players[metaPlayer]->GetOffensiveTargetName();
+	float offensiveBudget = g_MetaMan.m_Players[metaPlayer]->GetOffensiveBudget();
 	if (!targetName.empty() && offensiveBudget > 0) {
 		for (std::vector<Scene*>::iterator sItr = g_MetaMan.m_Scenes.begin(); sItr != g_MetaMan.m_Scenes.end(); ++sItr) {
 			if ((*sItr)->IsRevealed() && (*sItr)->GetPresetName() == targetName) {
@@ -5209,7 +5209,7 @@ void MetagameGUI::UpdateScenesBox(bool sceneChanged) {
 		// If during a player's round phase, show the budget slider and edit button
 		if (g_MetaMan.m_GameState >= MetaMan::PLAYER1TURN && g_MetaMan.m_GameState <= MetaMan::PLAYER4TURN) {
 			int metaPlayer = g_MetaMan.m_GameState - MetaMan::PLAYER1TURN;
-			int team = g_MetaMan.m_Players[metaPlayer].GetTeam();
+			int team = g_MetaMan.m_Players[metaPlayer]->GetTeam();
 
 			// Resize the collection box to fit the extra controls
 			m_pSceneInfoPopup->Resize(m_pSceneInfoPopup->GetWidth(), newHeight + 96);
@@ -5238,7 +5238,7 @@ void MetagameGUI::UpdateScenesBox(bool sceneChanged) {
 			// If owned by this player, then set up base building controls
 			if (sceneOwnedByPlayer) {
 				// Set the budget label as per the slider
-				int budget = floorf(((float)m_pSceneBudgetSlider->GetValue() / 100.0f) * g_MetaMan.m_Players[metaPlayer].GetFunds());
+				int budget = floorf(((float)m_pSceneBudgetSlider->GetValue() / 100.0f) * g_MetaMan.m_Players[metaPlayer]->GetFunds());
 				std::snprintf(str, sizeof(str), "Build Budget: %d oz", budget);
 				m_pSceneBudgetLabel->SetText(str);
 				m_apMetaButton[SCANNOW]->SetVisible(false);
@@ -5257,7 +5257,7 @@ void MetagameGUI::UpdateScenesBox(bool sceneChanged) {
 				// Only update this if the scene has changed in any way - otherwise UI changes done elsewhere might be overridden
 				if (sceneChanged) {
 					// Set the budget label as per the slider
-					int budget = std::floor(((float)m_pSceneBudgetSlider->GetValue() / 100.0f) * g_MetaMan.m_Players[metaPlayer].GetFunds());
+					int budget = std::floor(((float)m_pSceneBudgetSlider->GetValue() / 100.0f) * g_MetaMan.m_Players[metaPlayer]->GetFunds());
 					// Set the appropriate action message, depending on whether this is enemy owned, or merely unexplored
 					if (g_MetaMan.IsActiveTeam(m_pSelectedScene->GetTeamOwnership())) {
 						std::snprintf(str, sizeof(str), "Attack Budget: %d oz", budget);
@@ -5308,7 +5308,7 @@ void MetagameGUI::UpdateScenesBox(bool sceneChanged) {
 				}
 
 				// If the player doesn't have any brains left to deploy, then disable these attack controls instead
-				if (g_MetaMan.m_Players[metaPlayer].GetBrainPoolCount() <= 0) {
+				if (g_MetaMan.m_Players[metaPlayer]->GetBrainPoolCount() <= 0) {
 					m_pSceneBudgetLabel->SetText("- NO BRAINS TO DEPLOY -");
 					m_pSceneBudgetLabel->SetToolTip("Since you do not have any more brains in your brain pool available for deployment, you can't attack this or any other site. Defend the sites you do own and hope you'll keep enough of them to win the game!");
 					m_pSceneBudgetBar->SetToolTip("Since you do not have any more brains in your brain pool available for deployment, you can't attack this or any other site. Defend the sites you do own and hope you'll keep enough of them to win the game!");
@@ -5479,7 +5479,7 @@ void MetagameGUI::UpdatePlayerBars() {
 	if (g_MetaMan.m_GameState >= MetaMan::NOGAME && g_MetaMan.m_GameState <= MetaMan::ENDROUND && !g_MetaMan.IsSuspended()) {
 		int metaPlayer = 0;
 		char str[256];
-		for (std::vector<MetaPlayer>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr) {
+		for (std::vector<MetaPlayer*>::iterator mpItr = g_MetaMan.m_Players.begin(); mpItr != g_MetaMan.m_Players.end(); ++mpItr) {
 			//            m_apPlayerBox[metaPlayer];
 			//            m_apPlayerTeamBox[metaPlayer];
 
@@ -5490,14 +5490,14 @@ void MetagameGUI::UpdatePlayerBars() {
 			if (!m_apPlayerTeamBox[metaPlayer]->GetDrawImage()) {
 				// Set the flag icons on the floating player bars
 				m_apPlayerTeamBox[metaPlayer]->SetDrawType(GUICollectionBox::Image);
-				m_apPlayerTeamBox[metaPlayer]->SetDrawImage(new AllegroBitmap(g_MetaMan.m_TeamIcons[(*mpItr).GetTeam()].GetBitmaps32()[0]));
+				m_apPlayerTeamBox[metaPlayer]->SetDrawImage(new AllegroBitmap(g_MetaMan.m_TeamIcons[(*mpItr)->GetTeam()].GetBitmaps32()[0]));
 			}
 
 			// Show funds of player if income lines are showing, or we are counting income/expenses somehow
 			if ((!m_PreTurn && metaPlayer == (g_MetaMan.m_GameState - MetaMan::PLAYER1TURN) && m_pSelectedScene) ||
 			    metaPlayer == m_ActivePlayerIncomeLines || g_MetaMan.m_GameState == MetaMan::COUNTINCOME || g_MetaMan.m_GameState == MetaMan::BUILDBASES || g_MetaMan.m_GameState == MetaMan::RUNACTIVITIES || g_MetaMan.m_GameState == MetaMan::ENDROUND) {
-				std::snprintf(str, sizeof(str), "%c %.0f oz", -58, (*mpItr).m_Funds);
-				//                std::snprintf(str, sizeof(str), "%cx%d %c %.0f oz", -48, (*mpItr).GetBrainPoolCount(), -58, (*mpItr).m_Funds);
+				std::snprintf(str, sizeof(str), "%c %.0f oz", -58, (*mpItr)->m_Funds);
+				//                std::snprintf(str, sizeof(str), "%cx%d %c %.0f oz", -48, (*mpItr)->GetBrainPoolCount(), -58, (*mpItr)->m_Funds);
 				m_apPlayerBarLabel[metaPlayer]->SetText(str);
 				m_apPlayerBarLabel[metaPlayer]->SetHAlignment(GUIFont::Right);
 				m_apPlayerBarLabel[metaPlayer]->SetToolTip("This player's total funds");
@@ -5510,7 +5510,7 @@ void MetagameGUI::UpdatePlayerBars() {
 				else
 					str[0] = 0;
 
-				m_apPlayerBarLabel[metaPlayer]->SetText(std::string(str) + (*mpItr).GetName());
+				m_apPlayerBarLabel[metaPlayer]->SetText(std::string(str) + (*mpItr)->GetName());
 				m_apPlayerBarLabel[metaPlayer]->SetHAlignment(GUIFont::Left);
 				m_apPlayerBarLabel[metaPlayer]->SetToolTip("");
 			}
@@ -5527,7 +5527,7 @@ void MetagameGUI::UpdatePlayerBars() {
 			}
 			// [Brain Icon] [X] Number
 			// The number to display is adjusted with whether any brains are out and about in the gui animations
-			int brainDisplayCount = (*mpItr).GetBrainPoolCount() - (*mpItr).GetBrainsInTransit();
+			int brainDisplayCount = (*mpItr)->GetBrainPoolCount() - (*mpItr)->GetBrainsInTransit();
 			std::snprintf(str, sizeof(str), "%c%c%d", brainDisplayCount > 0 ? -48 : -25, -36, brainDisplayCount);
 			m_apBrainPoolLabel[metaPlayer]->SetText(str);
 
@@ -5567,7 +5567,7 @@ void MetagameGUI::UpdatePlayerBars() {
 			            // Update the player name labels above each floating bar, IF we're not drawing lines
 			            if (metaPlayer != m_ActivePlayerIncomeLines)
 			            {
-			                m_apFundsChangeLabel[metaPlayer]->SetText((*mpItr).GetName());
+			                m_apFundsChangeLabel[metaPlayer]->SetText((*mpItr)->GetName());
 			                m_apFundsChangeLabel[metaPlayer]->SetPositionAbs(m_apPlayerBox[metaPlayer]->GetXPos() + 5, m_apPlayerBox[metaPlayer]->GetYPos() - 15);
 			                m_apFundsChangeLabel[metaPlayer]->SetVisible(true);
 			            }

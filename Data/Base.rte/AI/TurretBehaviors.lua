@@ -1,4 +1,3 @@
-
 TurretBehaviors = {};
 
 function TurretBehaviors.Patrol(AI, Owner, Abort)
@@ -20,7 +19,7 @@ function TurretBehaviors.Patrol(AI, Owner, Abort)
 	return true;
 end
 
--- stop the user fom inadvertently modifying the storage table
+-- stop the user from inadvertently modifying the storage table
 local Proxy = {};
 local Mt = {
 	__index = TurretBehaviors,

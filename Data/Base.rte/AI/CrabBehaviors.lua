@@ -31,7 +31,7 @@ function CrabBehaviors.LookForTargets(AI, Owner)
 				FoundMO = ToACRocket(FoundMO);
 			elseif FoundMO.ClassName == "ACDropShip" then
 				FoundMO = ToACDropShip(FoundMO);
-			elseif FoundMO.ClassName == "ADoor" and FoundMO.Team ~= Activity.NOTEAM and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached() and HumanBehaviors.GetProjectileData(Owner).pen * 0.9 > ToADoor(FoundMO).Door.Material.StructuralIntegrity then
+			elseif FoundMO.ClassName == "ADoor" and FoundMO.Team ~= Activity.NOTEAM and Owner.AIMode ~= Actor.AIMODE_SENTRY and ToADoor(FoundMO).Door and ToADoor(FoundMO).Door:IsAttached() and SharedBehaviors.GetProjectileData(Owner).pen * 0.9 > ToADoor(FoundMO).Door.Material.StructuralIntegrity then
 				FoundMO = ToADoor(FoundMO);
 			elseif FoundMO.ClassName == "Actor" then
 				FoundMO = ToActor(FoundMO);
@@ -42,7 +42,7 @@ function CrabBehaviors.LookForTargets(AI, Owner)
 			if FoundMO then
 				if AI.Target then
 					-- check if this MO should be targeted instead
-					if HumanBehaviors.CalculateThreatLevel(FoundMO, Owner) > HumanBehaviors.CalculateThreatLevel(AI.Target, Owner) + 0.2 then
+					if SharedBehaviors.CalculateThreatLevel(FoundMO, Owner) > SharedBehaviors.CalculateThreatLevel(AI.Target, Owner) + 0.2 then
 						AI.OldTargetPos = Vector(AI.Target.Pos.X, AI.Target.Pos.Y);
 						AI.Target = FoundMO;
 						AI.TargetOffset = SceneMan:ShortestDistance(AI.Target.Pos, HitPoint, false); -- this is the distance vector from the target center to the point we hit with our ray
@@ -256,182 +256,6 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 
 	return true;
 end
-
--- move to the next waypoint
-function CrabBehaviors.GoToWpt(AI, Owner, Abort)
-	if not Owner.MOMoveTarget then
-		if SceneMan:ShortestDistance(Owner:GetLastAIWaypoint(), Owner.Pos, false).Largest < Owner.Height * 0.15 then
-			Owner:ClearAIWaypoints();
-			Owner:ClearMovePath();
-
-			if Owner.AIMode == Actor.AIMODE_GOTO then
-				AI.SentryFacing = Owner.HFlipped; -- guard this direction
-				AI.SentryPos = Vector(Owner.Pos.X, Owner.Pos.Y); -- guard this point
-				Owner.AIMode = Actor.AIMODE_SENTRY;
-			end
-
-			AI:CreateSentryBehavior(Owner);
-
-			return true;
-		end
-	end
-
-	local UpdatePathTimer = Timer();
-	UpdatePathTimer:SetSimTimeLimitMS(5000);
-
-	local StuckTimer = Timer();
-	StuckTimer:SetSimTimeLimitMS(2000);
-
-	local WptList, Waypoint, Dist, CurrDist;
-
-	while true do
-		while AI.Target and Owner.FirearmIsReady do	-- don't move around if we have something to shoot at
-			local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-			if _abrt then return true end
-		end
-
-		if Owner.Vel:MagnitudeIsGreaterThan(2) then
-			StuckTimer:Reset();
-		end
-
-		if Owner.MOMoveTarget then	-- make the last waypoint marker stick to the MO we are following
-			if MovableMan:ValidMO(Owner.MOMoveTarget) then
-				Owner:RemoveMovePathEnd();
-				Owner:AddToMovePathEnd(Owner.MOMoveTarget.Pos);
-			else
-				Owner.MOMoveTarget = nil;
-			end
-		end
-
-		if UpdatePathTimer:IsPastSimTimeLimit() then
-			UpdatePathTimer:Reset();
-			AI.deviceState = AHuman.STILL;
-			AI.lateralMoveState = Actor.LAT_STILL;
-			Waypoint = nil;
-			WptList = nil;
-		elseif StuckTimer:IsPastSimTimeLimit() then	-- dislodge
-			StuckTimer:Reset();
-			if AI.lateralMoveState == Actor.LAT_LEFT then
-				AI.lateralMoveState = Actor.LAT_RIGHT;
-			elseif AI.lateralMoveState == Actor.LAT_LEFT then
-				AI.lateralMoveState = Actor.LAT_LEFT;
-			else
-				AI.lateralMoveState = math.random(Actor.LAT_LEFT, Actor.LAT_RIGHT);
-			end
-		elseif WptList then	-- we have a list of waypoints, folow it
-			if not WptList[1] and not Waypoint then	-- arrived
-				if Owner.MOMoveTarget then -- following actor
-					if MovableMan:ValidMO(Owner.MOMoveTarget) then
-						local Trace = SceneMan:ShortestDistance(Owner.Pos, Owner.MOMoveTarget.Pos, false);
-						-- stop here if the MOMoveTarget is close and in LOS
-						if Trace.Largest < Owner.Height * 0.5 + Owner.MOMoveTarget.Radius and SceneMan:CastStrengthRay(Owner.Pos, Trace, 5, Vector(), 4, rte.grassID, true) then
-							while true do
-								AI.lateralMoveState = Actor.LAT_STILL;
-								local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-								if _abrt then return true end
-
-								if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
-									Trace = SceneMan:ShortestDistance(Owner.Pos, Owner.MOMoveTarget.Pos, false);
-									if Trace.Largest > Owner.Height * 0.7 + Owner.MOMoveTarget.Radius then
-										Waypoint = {Pos = Owner.MOMoveTarget.Pos};
-										break;
-									end
-								end
-							end
-						else
-							WptList = nil; -- update the path
-							break;
-						end
-					end
-				else	-- moving towards a scene point
-					if SceneMan:ShortestDistance(Owner:GetLastAIWaypoint(), Owner.Pos, false).Largest < Owner.Height * 0.4 then
-						if Owner.AIMode == Actor.AIMODE_GOTO then
-							AI.SentryFacing = Owner.HFlipped; -- guard this direction
-							AI.SentryPos = Vector(Owner.Pos.X, Owner.Pos.Y); -- guard this point
-							AI:CreateSentryBehavior(Owner);
-						end
-
-						Owner:ClearAIWaypoints();
-						Owner:ClearMovePath();
-
-						break;
-					end
-				end
-			else
-				if not Waypoint then	-- get the next waypoint in the list
-					UpdatePathTimer:Reset();
-					Waypoint = table.remove(WptList, 1);
-					if WptList[1] then
-						Owner:RemoveMovePathBeginning();
-					elseif not Owner.MOMoveTarget and SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false):MagnitudeIsLessThan(Owner.MoveProximityLimit) then	-- the last waypoint
-						Owner:ClearMovePath();
-						WptList = nil;
-						Waypoint = nil;
-					end
-				end
-
-				if Waypoint then
-					CurrDist = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false);
-					if CurrDist.X < -3 then
-						AI.lateralMoveState = Actor.LAT_LEFT;
-					elseif CurrDist.X > 3 then
-						AI.lateralMoveState = Actor.LAT_RIGHT;
-					end
-
-					if CurrDist:MagnitudeIsLessThan(Owner.MoveProximityLimit) then
-						Waypoint = nil;
-					end
-				end
-			end
-		else	-- no waypoint list, create one
-			local TmpList = {};
-			table.insert(TmpList, {Pos=Owner.Pos});
-
-			Owner:UpdateMovePath();
-
-			-- wait until movepath is updated
-			while Owner.IsWaitingOnNewMovePath do
-				local _ai, _ownr, _abrt = coroutine.yield();
-				if _abrt then return true end
-			end
-
-			Owner:DrawWaypoints(true);
-
-			for WptPos in Owner.MovePath do	-- skip any waypoint too close to the previous one
-				if SceneMan:ShortestDistance(TmpList[#TmpList].Pos, WptPos, false):MagnitudeIsGreaterThan(10) then
-					table.insert(TmpList, {Pos=WptPos});
-				end
-			end
-
-			if #TmpList < 3 then
-				Dist = nil;
-				if TmpList[2] then
-					Dist = SceneMan:ShortestDistance(TmpList[2].Pos, Owner.Pos, false);
-				end
-
-				-- already at the target
-				if not Dist or Dist:MagnitudeIsLessThan(25) then
-					Owner:ClearMovePath();
-					break;
-				end
-			end
-
-			WptList = TmpList;
-
-			-- create the move path seen on the screen
-			Owner:ClearMovePath();
-			for _, Wpt in pairs(TmpList) do
-				Owner:AddToMovePathEnd(Wpt.Pos);
-			end
-		end
-
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
-	end
-
-	return true;
-end
-
 
 -- open fire on the selected target
 function CrabBehaviors.ShootTarget(AI, Owner, Abort)

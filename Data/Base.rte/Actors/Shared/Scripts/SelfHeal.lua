@@ -52,7 +52,7 @@ function Update(self)
 			for state = 1, 15 do
 				controller:SetState(state, false);
 			end
-			controller:SetState(Controller.BODY_CROUCH, true);
+			controller:SetState(Controller.BODY_PRONE, true);
 		end
 	elseif self:NumberValueExists("SelfHeal") then
 		self.healing = {};

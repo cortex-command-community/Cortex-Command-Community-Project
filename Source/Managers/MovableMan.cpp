@@ -117,6 +117,10 @@ void MovableMan::Destroy() {
 		delete (*it2);
 	for (std::deque<MovableObject*>::iterator it3 = m_Particles.begin(); it3 != m_Particles.end(); ++it3)
 		delete (*it3);
+	for (std::vector<AlarmEvent*>::iterator it4 = m_AlarmEvents.begin(); it4 != m_AlarmEvents.end(); ++it4)
+		delete (*it4);
+	for (std::vector<AlarmEvent*>::iterator it5 = m_AddedAlarmEvents.begin(); it5 != m_AddedAlarmEvents.end(); ++it5)
+		delete (*it5);
 
 	Clear();
 }
@@ -190,6 +194,12 @@ const std::vector<MovableObject*>* MovableMan::GetMOsInBox(const Box& box, int i
 const std::vector<MovableObject*>* MovableMan::GetMOsInRadius(const Vector& centre, float radius, int ignoreTeam, bool getsHitByMOsOnly) const {
 	std::vector<MovableObject*>* vectorForLua = new std::vector<MovableObject*>();
 	*vectorForLua = std::move(g_SceneMan.GetMOIDGrid().GetMOsInRadius(centre, radius, ignoreTeam, getsHitByMOsOnly));
+	return vectorForLua;
+}
+
+const std::vector<MovableObject*>* MovableMan::GetMOsAtPosition(int pixelX, int pixelY, int ignoreTeam, bool getsHitByMOsOnly) const {
+	std::vector<MovableObject*>* vectorForLua = new std::vector<MovableObject*>();
+	*vectorForLua = std::move(g_SceneMan.GetMOIDGrid().GetMOsAtPosition(pixelX, pixelY, ignoreTeam, getsHitByMOsOnly));
 	return vectorForLua;
 }
 
@@ -1126,7 +1136,7 @@ int MovableMan::GetTeamMOIDCount(int team) const {
 void MovableMan::OpenAllDoors(bool open, int team) const {
 	for (std::deque<Actor*> actorDeque: {m_Actors, m_AddedActors}) {
 		for (Actor* actor: actorDeque) {
-			if (ADoor* actorAsADoor = dynamic_cast<ADoor*>(actor); actorAsADoor && (team == Activity::NoTeam || actorAsADoor->GetTeam() == team)) {
+			if (ADoor* actorAsADoor = dynamic_cast<ADoor*>(actor); actorAsADoor && actorAsADoor->GetTeam() == team) {
 				if (actorAsADoor->GetDoorState() != (open ? ADoor::DoorState::OPEN : ADoor::DoorState::CLOSED)) {
 					actorAsADoor->Update();
 					actorAsADoor->SetClosedByDefault(!open);
@@ -1157,7 +1167,7 @@ void MovableMan::OverrideMaterialDoors(bool eraseDoorMaterial, int team) const {
 
 void MovableMan::RegisterAlarmEvent(const AlarmEvent& newEvent) {
 	std::lock_guard<std::mutex> lock(m_AddedAlarmEventsMutex);
-	m_AddedAlarmEvents.push_back(newEvent);
+	m_AddedAlarmEvents.push_back(new AlarmEvent(newEvent));
 }
 
 void callLuaFunctionOnMORecursive(MovableObject* mo, const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
@@ -1288,8 +1298,11 @@ void MovableMan::Update() {
 	m_SortTeamRoster[Activity::TeamFour] = false;
 
 	// Move all last frame's alarm events into the proper buffer, and clear out the new one to fill up with this frame's
+	for (AlarmEvent* alarmEvent: m_AlarmEvents) {
+		delete alarmEvent;
+	}
 	m_AlarmEvents.clear();
-	for (std::vector<AlarmEvent>::iterator aeItr = m_AddedAlarmEvents.begin(); aeItr != m_AddedAlarmEvents.end(); ++aeItr) {
+	for (std::vector<AlarmEvent*>::iterator aeItr = m_AddedAlarmEvents.begin(); aeItr != m_AddedAlarmEvents.end(); ++aeItr) {
 		m_AlarmEvents.push_back(*aeItr);
 	}
 	m_AddedAlarmEvents.clear();
@@ -1367,6 +1380,18 @@ void MovableMan::Update() {
 	g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
 
 	{
+		auto actorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
+		                                                                            [&](int start, int end) {
+			                                                                            ZoneScopedN("Actors See");
+			                                                                            for (int i = start; i < end; ++i) {
+													    // TODO - this null check really shouldn't be required. There's almost definitely an issue where the actor update can somehow fuck with this mid-update
+													    // this is VERY bad, and needs investigation!
+				                                                                            if (m_Actors[i]) { 
+														    m_Actors[i]->CastSeeRays();
+													    }
+			                                                                            }
+		                                                                            });
+
 		{
 			ZoneScopedN("Actors Update");
 
@@ -1438,6 +1463,8 @@ void MovableMan::Update() {
 				particle->PostUpdate();
 			}
 		}
+
+		actorsSeeFuture.wait();
 	} // namespace RTE
 
 	//////////////////////////////////////////////////////////////////////

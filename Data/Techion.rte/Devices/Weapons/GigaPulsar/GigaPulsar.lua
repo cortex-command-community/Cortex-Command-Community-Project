@@ -32,14 +32,21 @@ function Update(self)
 				self.lastMag.Sharpness = 1;
 				self.lastMag.Vel = self.lastMag.Vel + Vector(-10 * self.FlipFactor, 0):RadRotate(self.RotAngle);
 
-				local effect = self.ejectEffect:Clone();
-				effect.Pos = self.lastMag.Pos;
-				effect.RotAngle = self.RotAngle;
-				effect.HFlipped = self.HFlipped;
-				MovableMan:AddParticle(effect);
+				self.effect = self.ejectEffect:Clone();
+				self.effect.Pos = self.lastMag.Pos;
+				self.effect.RotAngle = self.RotAngle;
+				self.effect.HFlipped = self.HFlipped;
+				self:RequestSyncedUpdate();
 			end
 		end
 		
 		self.dingSound = true;
+	end
+end
+
+function SyncedUpdate(self)
+	if self.effect then
+		MovableMan:AddParticle(self.effect);
+		self.effect = nil;
 	end
 end

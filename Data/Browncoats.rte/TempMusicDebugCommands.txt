@@ -1,0 +1,16 @@
+PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)
+SetNextDynamicSongSection(string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)
+
+MusicMan:PlayDynamicSong("BC", "Tense", true, true, true)
+
+MusicMan:CyclePlayingSoundContainers(false)
+
+MusicMan:SetNextDynamicSongSection("Intense", true, true, false)
+
+
+MusicMan:SetNextDynamicSongSection("Intro", true, true, true)
+MusicMan:SetNextDynamicSongSection("Ambient", false, true, false)
+
+MusicMan:SetNextDynamicSongSection("Tense", true, true, true)
+
+MusicMan:ResetMusicState()

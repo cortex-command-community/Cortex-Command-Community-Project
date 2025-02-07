@@ -542,9 +542,9 @@ static RGB *read_palette(PACKFILE *f, int size)
    }
 
    for (c=0; c<size; c++) {
-      p[c].r = pack_getc(f) >> 2;
-      p[c].g = pack_getc(f) >> 2;
-      p[c].b = pack_getc(f) >> 2;
+      p[c].r = pack_getc(f);
+      p[c].g = pack_getc(f);
+      p[c].b = pack_getc(f);
    }
 
    x = 0;

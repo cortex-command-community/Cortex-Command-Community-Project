@@ -23,9 +23,9 @@ function FasterWalkingScript:BoostWalkSpeed(actor)
 	end
 	if walker then
 		actor:SetNumberValue("FasterWalkingScript", 1);
-		walker:SetLimbPathSpeed(0, walker:GetLimbPathSpeed(0) * self.multiplier);
-		walker:SetLimbPathSpeed(1, walker:GetLimbPathSpeed(1) * self.multiplier);
-		walker:SetLimbPathSpeed(2, walker:GetLimbPathSpeed(2) * self.multiplier);
-		walker.LimbPathPushForce = walker.LimbPathPushForce * self.pushForceDenominator;
+		walker:SetLimbPathTravelSpeed(Actor.WALK, walker:GetLimbPathTravelSpeed(Actor.WALK) * self.multiplier);
+		walker:SetLimbPathTravelSpeed(Actor.RUN, walker:GetLimbPathTravelSpeed(Actor.RUN) * self.multiplier);
+		walker:SetLimbPathPushForce(Actor.WALK, walker:GetLimbPathPushForce(Actor.WALK) * self.pushForceDenominator);
+		walker:SetLimbPathPushForce(Actor.RUN, walker:GetLimbPathPushForce(Actor.RUN) * self.pushForceDenominator);
 	end
 end

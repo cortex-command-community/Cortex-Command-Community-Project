@@ -90,6 +90,48 @@ namespace RTE {
 		/// Ownership is NOT transferred!
 		BITMAP* GetSpriteFrame(unsigned int whichFrame = 0) const { return (whichFrame < m_FrameCount) ? m_aSprite[whichFrame] : 0; }
 
+		/// Gets the color index of the pixel at position (X, Y) in the sprite bitmap
+		/// @param x X coordinate on the bitmap of the pixel to get.
+		/// @param y Y coordinate on the bitmap of the pixel to get.
+		/// @param whichFrame Which frame of the sprite sequence to check.
+		/// @return Color index of the indicated pixel.
+		int GetSpritePixelIndex(int x, int y, int whichFrame = 0) const;
+
+		/// Returns a list of vectors pointing to all matching pixels of the given frame in the sprite, accounting for flipping, rotation and scale.
+		/// @param origin The absolute position around which the vectors are centered.
+		/// @param angle The angle at which the sprite is rotated.
+		/// @param hflipped Whether or not the sprite is flipped horizontally.
+		/// @param whichFrame Which frame of the sprite sequence to check.
+		/// @param ignoreIndex Which color index to ignore when checking; set below 0 to include everything.
+		/// @param invert Whether or not to invert the above check so it ONLY counts that index.
+		/// @return List of vectors pointing to all visible pixels of the given frame in the sprite.
+		std::vector<Vector>* GetAllSpritePixelPositions(const Vector& origin, float angle, bool hflipped, int whichFrame, int ignoreIndex, bool invert, bool includeChildren);
+
+		/// Returns a list of vectors pointing to all visible pixels of the given frame in the sprite, accounting for flipping, rotation and scale.
+		/// @return List of vectors pointing to all visible pixels of the given frame in the sprite.
+		std::vector<Vector>* GetAllVisibleSpritePixelPositions(bool includeChildren) { return GetAllSpritePixelPositions(m_Pos, m_Rotation.GetRadAngle(), m_HFlipped, m_Frame, 0, false, includeChildren); };
+
+		/// Sets the color index of the pixel at position (X, Y) in the sprite bitmap
+		/// @param x X coordinate on the bitmap of the pixel to set.
+		/// @param y Y coordinate on the bitmap of the pixel to set.
+		/// @param whichFrame Which frame of the sprite sequence to affect.
+		/// @param colorIndex Desired color index of the indicated pixel.
+		/// @param ignoreIndex Avoid setting pixel colour if it has this color index; set below 0 to disable.
+		/// @param invert Whether or not to invert the ignoreIndex so it ONLY colors that index.
+		/// @return Whether or not the pixel index was successfully set.
+		bool SetSpritePixelIndex(int x, int y, int whichFrame, int colorIndex, int ignoreIndex, bool invert);
+
+		/// Sets the color index of all matching pixels in the sprite bitmap.
+		/// @param whichFrame Which frame of the sprite sequence to affect.
+		/// @param colorIndex Desired color index of the pixels.
+		/// @param ignoreIndex Avoid setting pixel colour if it has this color index; set below 0 to disable.
+		/// @param invert Whether or not to invert the ignoreIndex so it ONLY colors that index.
+		void SetAllSpritePixelIndexes(int whichFrame, int colorIndex, int ignoreIndex, bool invert);
+
+		/// Sets the color index of all visible pixels in the sprite bitmap.
+		/// @param colorIndex Desired color index of the pixels.
+		void SetAllVisibleSpritePixelIndexes(int colorIndex) { SetAllSpritePixelIndexes(m_Frame, colorIndex, 0, false); };
+
 		/// Gets the width of the bitmap of this MOSprite
 		/// @return Sprite width if loaded.
 		int GetSpriteWidth() const { return m_aSprite[0] ? m_aSprite[0]->w : 0; }
@@ -127,8 +169,9 @@ namespace RTE {
 		/// Whether a set of X, Y coordinates overlap us (in world space).
 		/// @param pixelX The given X coordinate, in world space.
 		/// @param pixelY The given Y coordinate, in world space.
+		/// @param validOnly Whether to return false if this MO isn't validly owned by MovableMan or not.
 		/// @return Whether the given coordinate overlap us.
-		bool HitTestAtPixel(int pixelX, int pixelY) const override;
+		bool HitTestAtPixel(int pixelX, int pixelY, bool validOnly = true) const override;
 
 		/// Gets the current angular velocity of this MovableObject. Positive is
 		/// a counter-clockwise rotation.
@@ -169,9 +212,30 @@ namespace RTE {
 		int GetSpriteAnimMode() const { return m_SpriteAnimMode; }
 
 		/// Sets whether this MOSprite should be drawn flipped horizontally
-		/// (along the vertical axis).
+		/// (along the vertical axis). Will silently fail if a forced flip prevents a change.
 		/// @param flipped A bool with the new value.
-		void SetHFlipped(const bool flipped) override { m_HFlipped = flipped; }
+		void SetHFlipped(const bool flipped) override {
+			if (m_ForcedHFlip == -1) {
+				m_HFlipped = flipped;
+			}
+		}
+
+		/// Sets forced flipped drawing along the vertical axis, preventing changing HFlipped elsewhere.
+		/// @param forceFlip A bool with the new value, int -1, 0, or 1.
+		void SetForcedHFlip(const int forceFlip) {
+			if (forceFlip == -1 || forceFlip == 0 || forceFlip == 1) {
+				m_ForcedHFlip = forceFlip;
+				if (forceFlip == 0) {
+					m_HFlipped = false;
+				} else 	if (forceFlip == 1) {
+					m_HFlipped = true;
+				}
+			}
+		}
+
+		/// Gets the current value of forced flipped drawing along the vertical axis.
+		/// @return An integer with the current forced flipped drawing value.
+		int GetForcedHFlip() const { return m_ForcedHFlip; }
 
 		/// Sets the current absolute angle of rotation of this MovableObject.
 		/// @param m_Rotation.SetRadAngle(newAngle The new absolute angle in radians.
@@ -308,6 +372,8 @@ namespace RTE {
 		bool m_SpriteAnimIsReversingFrames;
 		// Whether flipped horizontally or not.
 		bool m_HFlipped;
+		// A forced flippedness. -1 is no force, 0 is force not flipped, 1 is force flipped.
+		int m_ForcedHFlip;
 		// The precalculated maximum possible radius and diameter of this, in pixels
 		float m_SpriteRadius;
 		float m_SpriteDiameter;
@@ -318,6 +384,8 @@ namespace RTE {
 		const AEmitter* m_pEntryWound;
 		// Exit wound template
 		const AEmitter* m_pExitWound;
+		// Whether or not the sprite has been modified
+		bool m_SpriteModified;
 
 		/// Private member variable and method declarations
 	private:

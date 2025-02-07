@@ -454,7 +454,7 @@ function LandingZoneMap:FindLZ(team, Destination, digStrenght)
 end
 
 -- A coroutine that search for a LZ. Input is team and destination. Output is LZ x-pos and obstacle height for two LZs, one close and one with an easy path
-function LandingZoneMap.SearchForLZ(self, team, Destination, digStrenght)
+function LandingZoneMap.SearchForLZ(self, team, Destination, digStrength)
 	-- estimate how visible our descent is to the enemy
 	local LOSgrid = self.EnemyTeamLOS[team];
 	local GoodLZs = {};
@@ -493,7 +493,7 @@ function LandingZoneMap.SearchForLZ(self, team, Destination, digStrenght)
 				pathRequestsCompleted = pathRequestsCompleted + 1;
 				completedPathRequests[k] = pathRequest;
 			end, 
-			Vector(LZ.X, LZ.Y), Destination, false, digStrenght, team);
+			Vector(LZ.X, LZ.Y), Destination, GetPathFindingFlyingJumpHeight(), digStrength, team);
 	end
 
 	while pathRequestsCompleted < #GoodLZs do
@@ -650,7 +650,7 @@ function LandingZoneMap:FindStartLZ(team, OccupiedLZs)
 		distance = nil;
 		local PosLZ = Vector(LZ.X, LZ.Y);
 		for _, PosEnemy in pairs(EnemyLocations) do
-			local wpts = SceneMan.Scene:CalculatePath(PosEnemy, PosLZ, false, 1, team);
+			local wpts = SceneMan.Scene:CalculatePath(PosEnemy, PosLZ, GetPathFindingFlyingJumpHeight(), GetPathFindingDefaultDigStrength(), team);
 			if wpts > -1 then
 				if distance then
 					distance = math.min(wpts, distance);

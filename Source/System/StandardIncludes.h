@@ -4,6 +4,9 @@
 #define _HAS_AUTO_PTR_ETC 1
 #define _LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR
 
+// without this, BS threadpool can crash on launch in some builds
+#define _DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR
+
 // Inclusion of relevant C++ Standard Library headers.
 #include <cstdlib>
 #include <cstdarg>

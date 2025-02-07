@@ -41,7 +41,7 @@
 
 
 
-#define DEFAULT_PREC       4
+#define DEFAULT_PREC       8
 #define DEFAULT_FRACTION   5
 #define DEFAULT_MAXSWAPS   16
 #define DEFAULT_MINDIFF    9

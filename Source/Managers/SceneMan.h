@@ -495,7 +495,7 @@ namespace RTE {
 		/// @return Whether the ray was stopped prematurely or not.
 		bool CastTerrainPenetrationRay(const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip);
 
-		/// Traces along a vector and reveals or hides pixels on the unseen layer of a team
+		/// Traces a box along a vector and reveals or hides pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
 		/// don't exceed a specific value.
 		/// @param team The team to see for.
@@ -510,7 +510,7 @@ namespace RTE {
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal);
 
-		/// Traces along a vector and reveals pixels on the unseen layer of a team
+		/// Traces a box along a vector and reveals pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
 		/// don't exceed a specific value.
 		/// @param team The team to see for.
@@ -524,7 +524,7 @@ namespace RTE {
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0);
 
-		/// Traces along a vector and hides pixels on the unseen layer of a team
+		/// Traces a box along a vector and hides pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
 		/// don't exceed a specific value.
 		/// @param team The team to see for.
@@ -662,7 +662,7 @@ namespace RTE {
 		/// first, g_NoMOID will be returned.
 		/// @param start The starting position.
 		/// @param ray The vector to trace along.
-		/// @param ignoreMOID An MOID to ignore. Any child MO's of this MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreMOIDs A vector of MOIDs to ignore. Any child MOs of an MOID will also be ignored. (default: g_NoMOID)
 		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
 		/// team which also has team ignoring enabled itself.
 		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
@@ -670,20 +670,72 @@ namespace RTE {
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @return The MOID of the hit non-ignored MO, or g_NoMOID if terrain or no MO was hit.
-		MOID CastMORay(const Vector& start, const Vector& ray, MOID ignoreMOID = g_NoMOID, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
+		MOID CastMORay(const Vector& start, const Vector& ray, const std::vector<MOID>& ignoreMOIDs = {g_NoMOID}, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
 
+		/// Traces along a vector and returns MOID of the first non-ignored
+		/// non-NoMOID MO encountered. If a non-air terrain pixel is encountered
+		/// first, g_NoMOID will be returned.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param ignoreMOID An MOID to ignore. Any child MOs of this MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
+		/// team which also has team ignoring enabled itself.
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param ignoreAllTerrain Whether to ignore all terrain hits or not. (default: false)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return The MOID of the hit non-ignored MO, or g_NoMOID if terrain or no MO was hit.
+		MOID CastMORay(const Vector& start, const Vector& ray, MOID ignoreMOID = g_NoMOID, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0) {
+			std::vector<MOID> ignoreMOIDs = {ignoreMOID};
+			return CastMORay(start, ray, ignoreMOIDs, ignoreTeam, ignoreMaterial, ignoreAllTerrain, skip);
+		}
+		
 		/// Traces along a vector and shows where a specific MOID has been found.
 		/// @param start The starting position.
 		/// @param ray The vector to trace along.
-		/// @param targetMOID An MOID to find. Any child MO's of this MOID will also be found. ------------ ???
+		/// @param targetMOID An MOID to find.
 		/// @param resultPos A reference to the vector screen will be filled out with the absolute
 		/// location of the found MO pixel of the above MOID.
 		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
 		/// @param ignoreAllTerrain Whether to ignore all terrain hits or not. (default: false)
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// @param findChildMOIDs Whether to also find children of the target MOID.
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @return Whether the target MOID was found along the ray or not.
-		bool CastFindMORay(const Vector& start, const Vector& ray, MOID targetMOID, Vector& resultPos, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
+		bool CastFindMORay(const Vector& start, const Vector& ray, MOID targetMOID, Vector& resultPos, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0, bool findChildMOIDs = true);
+
+		/// Traces along a vector and returns a vector of all MOs encountered.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param ignoreMOIDs A vector of MOIDs to ignore. Any child MOs of an MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific team (default: Activity::NoTeam)
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param ignoreAllTerrain Whether to ignore all terrain hits or not. (default: false)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return A vector of pointers to all MovableObjects met along the ray, who aren't ignored.
+		const std::vector<MovableObject*>* CastAllMOsRay(const Vector& start, const Vector& ray, const std::vector<MOID>& ignoreMOIDs = {g_NoMOID}, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0) const;
+		
+		/// Traces along a vector and returns the length of how far the trace went
+		/// without hitting any non-ignored terrain material or MOID at all.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param obstaclePos A reference to the vector screen will be filled out with the absolute
+		/// location of the first obstacle, or the end of the ray if none was hit.
+		/// @param freePos A reference to the vector screen will be filled out with the absolute
+		/// location of the last free position before hitting an obstacle, or the
+		/// end of the ray if none was hit. This is only altered if thre are any
+		/// free pixels encountered.
+		/// @param ignoreMOIDs A vector of MOIDs to ignore. Any child MO's of an MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
+		/// team which also has team ignoring enabled itself.
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return How far along, in pixel units, the ray the pixel of any obstacle was
+		/// encountered. If no pixel of the right material was found, < 0 is returned.
+		/// If an obstacle on the starting position was encountered, 0 is returned.
+		float CastObstacleRay(const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, const std::vector<MOID>& ignoreMOIDs = {g_NoMOID}, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, int skip = 0);
 
 		/// Traces along a vector and returns the length of how far the trace went
 		/// without hitting any non-ignored terrain material or MOID at all.
@@ -695,7 +747,7 @@ namespace RTE {
 		/// location of the last free position before hitting an obstacle, or the
 		/// end of the ray if none was hit. This is only altered if thre are any
 		/// free pixels encountered.
-		/// @param ignoreMOID An MOID to ignore. Any child MO's of this MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreMOID An MOID to ignore. Any child MO of this MOID will also be ignored. (default: g_NoMOID)
 		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
 		/// team which also has team ignoring enabled itself.
 		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
@@ -704,28 +756,32 @@ namespace RTE {
 		/// @return How far along, in pixel units, the ray the pixel of any obstacle was
 		/// encountered. If no pixel of the right material was found, < 0 is returned.
 		/// If an obstacle on the starting position was encountered, 0 is returned.
-		float CastObstacleRay(const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, MOID ignoreMOID = g_NoMOID, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, int skip = 0);
-
+		float CastObstacleRay(const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, MOID ignoreMOID = g_NoMOID, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, int skip = 0) {
+			std::vector<MOID> ignoreMOIDs = {ignoreMOID};
+			return CastObstacleRay(start, ray, obstaclePos, freePos, ignoreMOIDs, ignoreTeam, ignoreMaterial, skip);
+		}
+		
 		/// Gets the abosulte pos of where the last cast ray hit somehting.
 		/// @return A vector with the absolute pos of where the last ray cast hit somehting.
 		const Vector& GetLastRayHitPos();
 
-		/// Calculates the altitide of a certain point above the terrain, measured
-		/// in pixels.
+		/// Calculates the altitude of a certain point above the terrain, measured in pixels.
 		/// @param from The max altitude you care to check for. 0 Means check the whole scene's height.
-		/// @param max The accuracy within screen measurement is acceptable. Higher number
-		/// here means less calculation.
+		/// @param max The accuracy within screen measurement is acceptable. Higher number here means less calculation.
 		/// @return The altitude over the terrain, in pixels.
 		float FindAltitude(const Vector& from, int max, int accuracy, bool fromSceneOrbitDirection);
 		float FindAltitude(const Vector& from, int max, int accuracy) { return FindAltitude(from, max, accuracy, false); }
 
-		/// Calculates the altitide of a certain point above the terrain, measured
-		/// in pixels, and then tells if that point is over a certain value.
+		/// Calculates the altitude of a certain point above the terrain, measured in pixels, and then tells if that point is over a certain value.
 		/// @param point The altitude threshold you want to check for.
-		/// @param threshold The accuracy within screen measurement is acceptable. Higher number
-		/// here means less costly.
+		/// @param threshold The accuracy within screen measurement is acceptable. Higher number here means less costly.
 		/// @return Whether the point is over the threshold altitude or not.
 		bool OverAltitude(const Vector& point, int threshold, int accuracy = 0);
+
+		/// Returns whether a given point is inside a no-grav area.
+		/// @param point The point you want to check.
+		/// @return Whether the point is inside a nograv area.
+		bool IsPointInNoGravArea(const Vector& point) const;
 
 		/// Takes an arbitrary point in the air and calculates it to be straight
 		/// down at a certain maximum distance from the ground.
@@ -873,12 +929,9 @@ namespace RTE {
 		/// @param screenId Which screen to update for. (default: 0)
 		void Update(int screenId = 0);
 
-		/// Draws this SceneMan's current graphical representation to a
-		/// BITMAP of choice.
-		/// @param targetBitmap A pointer to a BITMAP to draw on, appropriately sized for the split
-		/// screen segment.
-		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner
-		/// is located.
+		/// Draws this SceneMan's current graphical representation to a BITMAP of choice.
+		/// @param targetBitmap A pointer to a BITMAP to draw on, appropriately sized for the split screen segment.
+		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner is located.
 		void Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector& targetPos = Vector(), bool skipBackgroundLayers = false, bool skipTerrain = false);
 
 		/// Clears the color MO layer. Should be done every frame.

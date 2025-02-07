@@ -275,51 +275,39 @@ std::vector<Vector>* LuaAdaptersActor::GetSceneWaypoints(Actor* luaSelfObject) {
 	return sceneWaypoints;
 }
 
-int LuaAdaptersScene::CalculatePath2(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team) {
+int LuaAdaptersScene::CalculatePath(Scene* luaSelfObject, const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team) {
 	std::list<Vector>& threadScenePath = luaSelfObject->GetScenePath();
 	team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
-	luaSelfObject->CalculatePath(start, end, threadScenePath, digStrength, team);
+	luaSelfObject->CalculatePath(start, end, threadScenePath, jumpHeight, digStrength, team);
 	if (!threadScenePath.empty()) {
-		if (movePathToGround) {
-			for (Vector& scenePathPoint: threadScenePath) {
-				scenePathPoint = g_SceneMan.MovePointToGround(scenePathPoint, 20, 15);
-			}
-		}
-
 		return static_cast<int>(threadScenePath.size());
 	}
 	return -1;
 }
 
-void LuaAdaptersScene::CalculatePathAsync2(Scene* luaSelfObject, const luabind::object& callbackParam, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team) {
+void LuaAdaptersScene::CalculatePathAsync(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team) {
 	team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
 
 	// So, luabind::object is a weak reference, holding just a stack and a position in the stack
 	// This means it's unsafe to store on the C++ side if we do basically anything with the lua state before using it
 	// As such, we need to store this function somewhere safely within our Lua state for us to access later when we need it
-	lua_State* luaState = mainthread(G(callbackParam.interpreter())); // Get the main thread for the state, in case we're a temp lua thread
+	lua_State* luaState = mainthread(G(callback.interpreter())); // Get the main thread for the state, in case we're a temp lua thread
 
 	static int currentCallbackId = 0;
 	int thisCallbackId = currentCallbackId++;
-	if (luabind::type(callbackParam) == LUA_TFUNCTION && callbackParam.is_valid()) {
-		luabind::call_function<void>(luaState, "_AddAsyncPathCallback", thisCallbackId, callbackParam);
+	if (luabind::type(callback) == LUA_TFUNCTION && callback.is_valid()) {
+		luabind::call_function<void>(luaState, "_AddAsyncPathCallback", thisCallbackId, callback);
 	}
 
-	auto callLuaCallback = [luaState, thisCallbackId, movePathToGround](std::shared_ptr<volatile PathRequest> pathRequestVol) {
+	auto callLuaCallback = [luaState, thisCallbackId](std::shared_ptr<volatile PathRequest> pathRequestVol) {
 		// This callback is called from the async pathing thread, so we need to further delay this logic into the main thread (via AddLuaScriptCallback)
-		g_LuaMan.AddLuaScriptCallback([luaState, thisCallbackId, movePathToGround, pathRequestVol]() {
+		g_LuaMan.AddLuaScriptCallback([luaState, thisCallbackId, pathRequestVol]() {
 			PathRequest pathRequest = const_cast<PathRequest&>(*pathRequestVol); // erh, to work with luabind etc
-			if (movePathToGround) {
-				for (Vector& scenePathPoint: pathRequest.path) {
-					scenePathPoint = g_SceneMan.MovePointToGround(scenePathPoint, 20, 15);
-				}
-			}
-
 			luabind::call_function<void>(luaState, "_TriggerAsyncPathCallback", thisCallbackId, pathRequest);
 		});
 	};
 
-	luaSelfObject->CalculatePathAsync(start, end, digStrength, team, callLuaCallback);
+	luaSelfObject->CalculatePathAsync(start, end, jumpHeight, digStrength, team, callLuaCallback);
 }
 
 void LuaAdaptersAHuman::ReloadFirearms(AHuman* luaSelfObject) {
@@ -624,6 +612,31 @@ std::list<Entity*>* LuaAdaptersPresetMan::GetAllEntitiesOfGroup(PresetMan& prese
 	return entityList;
 }
 
+MOID LuaAdaptersSceneMan::CastMORay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
+	std::vector<MOID> ignoreMOIDsVec = ConvertLuaTableToVectorOfType<MOID>(ignoreMOIDs);
+	return sceneMan.CastMORay(start, ray, ignoreMOIDsVec, ignoreTeam, ignoreMaterial, ignoreAllTerrain, skip);
+}
+
+MOID LuaAdaptersSceneMan::CastMORay2(SceneMan& sceneMan, const Vector& start, const Vector& ray, MOID ignoreMOID, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
+	std::vector<MOID> ignoreMOIDs = {ignoreMOID};
+	return sceneMan.CastMORay(start, ray, ignoreMOIDs, ignoreTeam, ignoreMaterial, ignoreAllTerrain, skip);
+}
+
+const std::vector<MovableObject*>* LuaAdaptersSceneMan::CastAllMOsRay(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
+	std::vector<MOID> ignoreMOIDsVec = ConvertLuaTableToVectorOfType<MOID>(ignoreMOIDs);
+	return sceneMan.CastAllMOsRay(start, ray, ignoreMOIDsVec, ignoreTeam, ignoreMaterial, ignoreAllTerrain, skip);
+}
+
+float LuaAdaptersSceneMan::CastObstacleRay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, const luabind::object& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
+	std::vector<MOID> ignoreMOIDsVec = ConvertLuaTableToVectorOfType<MOID>(ignoreMOIDs);
+	return sceneMan.CastObstacleRay(start, ray, obstaclePos, freePos, ignoreMOIDsVec, ignoreTeam, ignoreMaterial, skip);
+}
+
+float LuaAdaptersSceneMan::CastObstacleRay2(SceneMan& sceneMan, const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, MOID ignoreMOID, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
+	std::vector<MOID> ignoreMOIDs = {ignoreMOID};
+	return sceneMan.CastObstacleRay(start, ray, obstaclePos, freePos, ignoreMOIDs, ignoreTeam, ignoreMaterial, skip);
+}
+
 const std::list<Box>* LuaAdaptersSceneMan::WrapBoxes(SceneMan& sceneMan, const Box& boxToWrap) {
 	std::list<Box>* wrappedBoxes = new std::list<Box>();
 	sceneMan.WrapBox(boxToWrap, *wrappedBoxes);
@@ -672,6 +685,10 @@ float LuaAdaptersUtility::GetLPP() {
 
 float LuaAdaptersUtility::GetPPL() {
 	return c_PPL;
+}
+
+float LuaAdaptersUtility::GetPathFindingFlyingJumpHeight() {
+	return FLT_MAX;
 }
 
 float LuaAdaptersUtility::GetPathFindingDefaultDigStrength() {

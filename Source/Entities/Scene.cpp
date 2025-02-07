@@ -34,6 +34,8 @@
 
 #include "tracy/Tracy.hpp"
 
+#include <shared_mutex>
+
 using namespace RTE;
 
 ConcreteClassInfo(Scene, Entity, 0);
@@ -56,8 +58,7 @@ void Scene::Area::Clear() {
 }
 
 int Scene::Area::Create(const Area& reference) {
-	for (std::vector<Box>::const_iterator itr = reference.m_BoxList.begin(); itr != reference.m_BoxList.end(); ++itr)
-		m_BoxList.push_back(*itr);
+	for (Box* box: reference.m_BoxList) m_BoxList.push_back(new Box(*box));
 
 	m_Name = reference.m_Name;
 
@@ -75,8 +76,8 @@ int Scene::Area::ReadProperty(const std::string_view& propName, Reader& reader) 
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
 	MatchProperty("AddBox",
-	              Box box;
-	              reader >> box;
+	              Box* box = new Box;
+	              reader >> *box;
 	              m_BoxList.push_back(box););
 	MatchProperty("Name", { reader >> m_Name; });
 
@@ -86,9 +87,9 @@ int Scene::Area::ReadProperty(const std::string_view& propName, Reader& reader) 
 int Scene::Area::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	for (std::vector<Box>::const_iterator itr = m_BoxList.begin(); itr != m_BoxList.end(); ++itr) {
+	for (Box* box: m_BoxList) {
 		writer.NewProperty("AddBox");
-		writer << *itr;
+		writer << *box;
 	}
 	writer.NewProperty("Name");
 	writer << m_Name;
@@ -96,16 +97,32 @@ int Scene::Area::Save(Writer& writer) const {
 	return 0;
 }
 
-bool Scene::Area::AddBox(const Box& newBox) {
-	if (newBox.IsEmpty())
-		return false;
+void Scene::Area::Destroy(bool notInherited) {
+	for (Box* box: m_BoxList) {
+		delete box;
+	}
 
-	m_BoxList.push_back(newBox);
+	Clear();
+}
+
+// Having a mutex on all areas is fugly, but this is only really useful to stop async pathfinding getting fucked by the list changing underneath us
+// TODO: Something much, much better
+static std::shared_mutex g_sceneAreaMutex;
+
+bool Scene::Area::AddBox(const Box& newBox) {
+	if (newBox.IsEmpty()) {
+		return false;
+	}
+
+	std::unique_lock<std::shared_mutex> guard(g_sceneAreaMutex);
+	m_BoxList.push_back(new Box(newBox));
 	return true;
 }
 
 bool Scene::Area::RemoveBox(const Box& boxToRemove) {
-	std::vector<Box>::iterator boxToRemoveIterator = std::find(m_BoxList.begin(), m_BoxList.end(), boxToRemove);
+	std::unique_lock<std::shared_mutex> guard(g_sceneAreaMutex);
+
+	std::vector<Box*>::iterator boxToRemoveIterator = std::find(m_BoxList.begin(), m_BoxList.end(), &boxToRemove);
 	if (boxToRemoveIterator != m_BoxList.end()) {
 		m_BoxList.erase(boxToRemoveIterator);
 		return true;
@@ -115,12 +132,14 @@ bool Scene::Area::RemoveBox(const Box& boxToRemove) {
 
 bool Scene::Area::HasNoArea() const {
 	// If no boxes, then yeah we don't have any area
-	if (m_BoxList.empty())
+	if (m_BoxList.empty()) {
 		return true;
+	}
 
 	// Search through the boxes to see if we find any with both width and height
-	for (std::vector<Box>::const_iterator itr = m_BoxList.begin(); itr != m_BoxList.end(); ++itr) {
-		if (!itr->IsEmpty())
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
+	for (Box* box: m_BoxList) {
+		if (!box->IsEmpty())
 			return false;
 	}
 
@@ -128,11 +147,13 @@ bool Scene::Area::HasNoArea() const {
 }
 
 bool Scene::Area::IsInside(const Vector& point) const {
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
+
 	std::list<Box> wrappedBoxes;
-	for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
+	for (Box* box: m_BoxList) {
 		// Handle wrapped boxes properly
 		wrappedBoxes.clear();
-		g_SceneMan.WrapBox(*aItr, wrappedBoxes);
+		g_SceneMan.WrapBox(*box, wrappedBoxes);
 
 		// Iterate through the wrapped boxes - will only be one if there's no wrapping
 		for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
@@ -144,11 +165,13 @@ bool Scene::Area::IsInside(const Vector& point) const {
 }
 
 bool Scene::Area::IsInsideX(float pointX) const {
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
+
 	std::list<Box> wrappedBoxes;
-	for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
+	for (Box* box: m_BoxList) {
 		// Handle wrapped boxes properly
 		wrappedBoxes.clear();
-		g_SceneMan.WrapBox(*aItr, wrappedBoxes);
+		g_SceneMan.WrapBox(*box, wrappedBoxes);
 
 		// Iterate through the wrapped boxes - will only be one if there's no wrapping
 		for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
@@ -160,11 +183,13 @@ bool Scene::Area::IsInsideX(float pointX) const {
 }
 
 bool Scene::Area::IsInsideY(float pointY) const {
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
+
 	std::list<Box> wrappedBoxes;
-	for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
+	for (Box* box: m_BoxList) {
 		// Handle wrapped boxes properly
 		wrappedBoxes.clear();
-		g_SceneMan.WrapBox(*aItr, wrappedBoxes);
+		g_SceneMan.WrapBox(*box, wrappedBoxes);
 
 		// Iterate through the wrapped boxes - will only be one if there's no wrapping
 		for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
@@ -176,18 +201,21 @@ bool Scene::Area::IsInsideY(float pointY) const {
 }
 
 bool Scene::Area::MovePointInsideX(float& pointX, int direction) const {
-	if (HasNoArea() || IsInsideX(pointX))
+	if (HasNoArea() || IsInsideX(pointX)) {
 		return false;
+	}
+
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
 
 	float notFoundValue = 10000000;
 	float shortest = notFoundValue;
 	float shortestConstrained = notFoundValue;
 	float testDistance = 0;
 	std::list<Box> wrappedBoxes;
-	for (std::vector<Box>::const_iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
+	for (Box* box: m_BoxList) {
 		// Handle wrapped boxes properly
 		wrappedBoxes.clear();
-		g_SceneMan.WrapBox(*aItr, wrappedBoxes);
+		g_SceneMan.WrapBox(*box, wrappedBoxes);
 
 		// Iterate through the wrapped boxes - will only be one if there's no wrapping
 		for (std::list<Box>::const_iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
@@ -227,36 +255,40 @@ bool Scene::Area::MovePointInsideX(float& pointX, int direction) const {
 }
 
 Box* Scene::Area::GetBoxInside(const Vector& point) {
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
+
 	std::list<Box> wrappedBoxes;
-	for (std::vector<Box>::iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
+	for (Box* box: m_BoxList) {
 		// Handle wrapped boxes properly
 		wrappedBoxes.clear();
-		g_SceneMan.WrapBox(*aItr, wrappedBoxes);
+		g_SceneMan.WrapBox(*box, wrappedBoxes);
 
 		// Iterate through the wrapped boxes - will only be one if there's no wrapping
 		for (std::list<Box>::const_iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
 			// Return the BoxList box, not the inconsequential wrapped copy
 			if (wItr->IsWithinBox(point))
-				return &(*aItr);
+				return &(*box);
 		}
 	}
 	return 0;
 }
 
 Box Scene::Area::RemoveBoxInside(const Vector& point) {
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
+
 	Box returnBox;
 
 	std::list<Box> wrappedBoxes;
-	for (std::vector<Box>::iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
+	for (std::vector<Box*>::iterator aItr = m_BoxList.begin(); aItr != m_BoxList.end(); ++aItr) {
 		// Handle wrapped boxes properly
 		wrappedBoxes.clear();
-		g_SceneMan.WrapBox(*aItr, wrappedBoxes);
+		g_SceneMan.WrapBox(**aItr, wrappedBoxes);
 
 		// Iterate through the wrapped boxes - will only be one if there's no wrapping
 		for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
 			if (wItr->IsWithinBox(point)) {
 				// Remove the BoxList box, not the inconsequential wrapped copy
-				returnBox = (*aItr);
+				returnBox = (**aItr);
 				m_BoxList.erase(aItr);
 				return returnBox;
 			}
@@ -266,18 +298,19 @@ Box Scene::Area::RemoveBoxInside(const Vector& point) {
 }
 
 Vector Scene::Area::GetCenterPoint() const {
-	Vector areaCenter;
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
 
+	Vector areaCenter;
 	if (!m_BoxList.empty()) {
 		if (m_BoxList.size() == 1) {
-			return m_BoxList[0].GetCenter();
+			return m_BoxList[0]->GetCenter();
 		}
 
 		float totalWeight = 0;
-		for (std::vector<Box>::const_iterator itr = m_BoxList.begin(); itr != m_BoxList.end(); ++itr) {
+		for (Box* box: m_BoxList) {
 			// Doubly weighted
-			areaCenter += (*itr).GetCenter() * (*itr).GetArea() * 2;
-			totalWeight += (*itr).GetArea() * 2;
+			areaCenter += box->GetCenter() * box->GetArea() * 2;
+			totalWeight += box->GetArea() * 2;
 		}
 		// Average center of the all the boxes, weighted by their respective areas
 		areaCenter /= totalWeight;
@@ -288,11 +321,13 @@ Vector Scene::Area::GetCenterPoint() const {
 
 Vector Scene::Area::GetRandomPoint() const {
 	// If no boxes, then can't return valid point
-	if (m_BoxList.empty())
+	if (m_BoxList.empty()) {
 		return Vector();
+	}
 
 	// Randomly choose a box, and a point within it
-	return m_BoxList[RandomNum<int>(0, m_BoxList.size() - 1)].GetRandomPoint();
+	std::shared_lock<std::shared_mutex> guard(g_sceneAreaMutex);
+	return m_BoxList[RandomNum<int>(0, m_BoxList.size() - 1)]->GetRandomPoint();
 }
 
 void Scene::Clear() {
@@ -328,8 +363,8 @@ void Scene::Clear() {
 		m_ScanScheduled[team] = false;
 	}
 	m_AreaList.clear();
-	m_NavigatableAreas.clear();
-	m_NavigatableAreasUpToDate = false;
+	m_NavigableAreas.clear();
+	m_NavigableAreasUpToDate = false;
 	m_GlobalAcc.Reset();
 	m_SelectedAssemblies.clear();
 	m_AssembliesCounts.clear();
@@ -396,8 +431,8 @@ int Scene::Create(const Scene& reference) {
 	}
 
 	// Copy areas
-	for (std::list<Area>::const_iterator aItr = reference.m_AreaList.begin(); aItr != reference.m_AreaList.end(); ++aItr)
-		m_AreaList.push_back(*aItr);
+	for (Area* area: reference.m_AreaList)
+		m_AreaList.push_back(new Area(*area));
 
 	m_GlobalAcc = reference.m_GlobalAcc;
 
@@ -1121,11 +1156,11 @@ int Scene::Save(Writer& writer) const {
 		writer.NewProperty("ScanScheduledTeam4");
 		writer << m_ScanScheduled[Activity::TeamFour];
 	}
-	for (std::list<Area>::const_iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
+	for (Area* area: m_AreaList) {
 		// Only write the area if it has any boxes/area at all
-		if (doFullGameSave || !(*aItr).HasNoArea()) {
+		if (doFullGameSave || !(*area).HasNoArea()) {
 			writer.NewProperty("AddArea");
-			writer << *aItr;
+			writer << *area;
 		}
 	}
 	writer.NewProperty("GlobalAcceleration");
@@ -1407,6 +1442,9 @@ void Scene::Destroy(bool notInherited) {
 		delete (*slItr);
 		*slItr = 0;
 	}
+
+	for (Area* area: m_AreaList)
+		delete area;
 
 	delete m_apUnseenLayer[Activity::TeamOne];
 	delete m_apUnseenLayer[Activity::TeamTwo];
@@ -1805,46 +1843,43 @@ int Scene::GetResidentBrainCount() const {
 }
 
 bool Scene::SetArea(Area& newArea) {
-	for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
+	for (Area* area: m_AreaList) {
 		// Try to find an existing area of the same name
-		if ((*aItr).GetName() == newArea.GetName()) {
+		if (area->GetName() == newArea.GetName()) {
 			// Deep copy into the existing area
-			(*aItr).Reset();
-			(*aItr).Create(newArea);
+			area->Reset();
+			area->Create(newArea);
 			return true;
 		}
 	}
 	// Couldn't find one, so just add the new Area
-	m_AreaList.push_back(newArea);
+	m_AreaList.push_back(new Area(newArea));
 
 	return false;
 }
 
-bool Scene::HasArea(std::string areaName) {
-	for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
-		if ((*aItr).GetName() == areaName)
+bool Scene::HasArea(const std::string& areaName) {
+	for (Area* area: m_AreaList) {
+		if (area->GetName() == areaName) {
 			return true;
+    }
 	}
 	return false;
 }
 
-Scene::Area* Scene::GetArea(const std::string_view& areaName, bool required) {
-	for (Scene::Area& area: m_AreaList) {
-		if (area.GetName() == areaName) {
-			return &area;
+Scene::Area* Scene::GetArea(const std::string& areaName) {
+	for (Scene::Area*& area: m_AreaList) {
+		if (area->GetName() == areaName) {
+			return area;
 		}
-	}
-
-	if (required) {
-		g_ConsoleMan.PrintString("WARNING: Could not find the requested Scene Area named : " + std::string(areaName));
 	}
 
 	return nullptr;
 }
 
-bool Scene::RemoveArea(std::string areaName) {
-	for (std::list<Area>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
-		if ((*aItr).GetName() == areaName) {
+bool Scene::RemoveArea(const std::string& areaName) {
+	for (std::list<Area*>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
+		if ((*aItr)->GetName() == areaName) {
 			m_AreaList.erase(aItr);
 			return true;
 		}
@@ -1852,12 +1887,12 @@ bool Scene::RemoveArea(std::string areaName) {
 	return false;
 }
 
-bool Scene::WithinArea(std::string areaName, const Vector& point) const {
+bool Scene::WithinArea(const std::string& areaName, const Vector& point) const {
 	if (areaName.empty())
 		return false;
 
-	for (std::list<Area>::const_iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
-		if ((*aItr).GetName() == areaName && (*aItr).IsInside(point))
+	for (std::list<Area*>::const_iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
+		if ((*aItr)->GetName() == areaName && (*aItr)->IsInside(point))
 			return true;
 	}
 
@@ -2370,16 +2405,16 @@ void Scene::UpdatePathFinding() {
 	m_PathfindingUpdated = true;
 }
 
-float Scene::CalculatePath(const Vector& start, const Vector& end, std::list<Vector>& pathResult, float digStrength, Activity::Teams team) {
+float Scene::CalculatePath(const Vector& start, const Vector& end, std::list<Vector>& pathResult, float jumpHeight, float digStrength, Activity::Teams team) {
 	float totalCostResult = -1;
-	int result = GetPathFinder(team).CalculatePath(start, end, pathResult, totalCostResult, digStrength);
+	int result = GetPathFinder(team).CalculatePath(start, end, pathResult, totalCostResult, jumpHeight, digStrength);
 
 	// It's ok if start and end nodes happen to be the same, the exact pixel locations are added at the front and end of the result regardless
 	return (result == micropather::MicroPather::SOLVED || result == micropather::MicroPather::START_END_SAME) ? totalCostResult : -1;
 }
 
-std::shared_ptr<volatile PathRequest> Scene::CalculatePathAsync(const Vector& start, const Vector& end, float digStrength, Activity::Teams team, PathCompleteCallback callback) {
-	return GetPathFinder(team).CalculatePathAsync(start, end, digStrength, callback);
+std::shared_ptr<volatile PathRequest> Scene::CalculatePathAsync(const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team, PathCompleteCallback callback) {
+	return GetPathFinder(team).CalculatePathAsync(start, end, jumpHeight, digStrength, callback);
 }
 
 int Scene::GetScenePathSize() const {
@@ -2410,21 +2445,21 @@ void Scene::Update() {
 		}
 	}
 
-	if (m_NavigatableAreasUpToDate == false) {
+	if (m_NavigableAreasUpToDate == false) {
 		// Need to block until all current pathfinding requests are finished. Ugh, if only we had a better way (interrupt/cancel a path request to start a new one?)
 		// TODO: Make the PathRequest struct more capable and maybe we can delay starting or cancel mid-request?
 		BlockUntilAllPathingRequestsComplete();
 
-		m_NavigatableAreasUpToDate = true;
+		m_NavigableAreasUpToDate = true;
 		for (int team = Activity::Teams::NoTeam; team < Activity::Teams::MaxTeamCount; ++team) {
 			PathFinder& pathFinder = GetPathFinder(static_cast<Activity::Teams>(team));
 
-			pathFinder.MarkAllNodesNavigatable(m_NavigatableAreas.empty());
+			pathFinder.MarkAllNodesNavigable(m_NavigableAreas.empty());
 
-			for (const std::string& navigatableArea: m_NavigatableAreas) {
-				if (HasArea(navigatableArea)) {
-					for (const Box& navigatableBox: GetArea(navigatableArea)->GetBoxes()) {
-						pathFinder.MarkBoxNavigatable(navigatableBox, true);
+			for (const std::string& navigableArea: m_NavigableAreas) {
+				if (HasArea(navigableArea)) {
+					for (const Box* navigableBox: GetArea(navigableArea)->GetBoxes()) {
+						pathFinder.MarkBoxNavigable(*navigableBox, true);
 					}
 				}
 			}

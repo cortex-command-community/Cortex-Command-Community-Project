@@ -301,11 +301,15 @@ namespace RTE {
 
 #pragma region Scene Lua Adapters
 	struct LuaAdaptersScene {
-		static int CalculatePath1(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength) { return CalculatePath2(luaSelfObject, start, end, movePathToGround, digStrength, Activity::Teams::NoTeam); }
-		static int CalculatePath2(Scene* luaSelfObject, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team);
+		static int CalculatePath1(Scene* luaSelfObject, const Vector& start, const Vector& end, float jumpHeight, float digStrength) {
+			return CalculatePath(luaSelfObject, start, end, jumpHeight, digStrength, Activity::Teams::NoTeam);
+		}
+		static int CalculatePath(Scene* luaSelfObject, const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team);
 
-		static void CalculatePathAsync1(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, bool movePathToGround, float digStrength) { return CalculatePathAsync2(luaSelfObject, callback, start, end, movePathToGround, digStrength, Activity::Teams::NoTeam); }
-		static void CalculatePathAsync2(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, bool movePathToGround, float digStrength, Activity::Teams team);
+		static void CalculatePathAsync1(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, float jumpHeight, float digStrength) {
+			return CalculatePathAsync(luaSelfObject, callback, start, end, jumpHeight, digStrength, Activity::Teams::NoTeam);
+		}
+		static void CalculatePathAsync(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team);
 	};
 #pragma endregion
 
@@ -508,6 +512,90 @@ namespace RTE {
 
 #pragma region SceneMan Lua Adapters
 	struct LuaAdaptersSceneMan {
+		/// Traces along a vector and returns MOID of the first non-ignored
+		/// non-NoMOID MO encountered. If a non-air terrain pixel is encountered
+		/// first, g_NoMOID will be returned.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param ignoreMOIDs A vector of MOIDs to ignore. Any child MO's of this MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
+		/// team which also has team ignoring enabled itself.
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param ignoreAllTerrain Whether to ignore all terrain hits or not. (default: false)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return The MOID of the hit non-ignored MO, or g_NoMOID if terrain or no MO was hit.
+		static MOID CastMORay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoreMOIDs, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
+
+		/// Traces along a vector and returns MOID of the first non-ignored
+		/// non-NoMOID MO encountered. If a non-air terrain pixel is encountered
+		/// first, g_NoMOID will be returned.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param ignoreMOID An MOID to ignore. Any child MO's of this MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
+		/// team which also has team ignoring enabled itself.
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param ignoreAllTerrain Whether to ignore all terrain hits or not. (default: false)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return The MOID of the hit non-ignored MO, or g_NoMOID if terrain or no MO was hit.
+		static MOID CastMORay2(SceneMan& sceneMan, const Vector& start, const Vector& ray, MOID ignoreMOID = g_NoMOID, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
+
+		/// Traces along a vector and returns a vector of all MOs encountered.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param ignoreMOIDs A vector of MOIDs to ignore. Any child MOs of an MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific team (default: Activity::NoTeam)
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param ignoreAllTerrain Whether to ignore all terrain hits or not. (default: false)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return A vector of pointers to all MovableObjects met along the ray, who aren't ignored.
+		static const std::vector<MovableObject*>* CastAllMOsRay(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoreMOIDs, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
+		
+		/// Traces along a vector and returns the length of how far the trace went
+		/// without hitting any non-ignored terrain material or MOID at all.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param obstaclePos A reference to the vector screen will be filled out with the absolute
+		/// location of the first obstacle, or the end of the ray if none was hit.
+		/// @param freePos A reference to the vector screen will be filled out with the absolute
+		/// location of the last free position before hitting an obstacle, or the
+		/// end of the ray if none was hit. This is only altered if thre are any
+		/// free pixels encountered.
+		/// @param ignoreMOIDs A vector of MOIDs to ignore. Any child MO's of an MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
+		/// team which also has team ignoring enabled itself.
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return How far along, in pixel units, the ray the pixel of any obstacle was
+		/// encountered. If no pixel of the right material was found, < 0 is returned.
+		/// If an obstacle on the starting position was encountered, 0 is returned.
+		static float CastObstacleRay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, const luabind::object& ignoreMOIDs, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, int skip = 0);
+
+		/// Traces along a vector and returns the length of how far the trace went
+		/// without hitting any non-ignored terrain material or MOID at all.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param obstaclePos A reference to the vector screen will be filled out with the absolute
+		/// location of the first obstacle, or the end of the ray if none was hit.
+		/// @param freePos A reference to the vector screen will be filled out with the absolute
+		/// location of the last free position before hitting an obstacle, or the
+		/// end of the ray if none was hit. This is only altered if thre are any
+		/// free pixels encountered.
+		/// @param ignoreMOID An MOID to ignore. Any child MOs of this MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
+		/// team which also has team ignoring enabled itself.
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return How far along, in pixel units, the ray the pixel of any obstacle was
+		/// encountered. If no pixel of the right material was found, < 0 is returned.
+		/// If an obstacle on the starting position was encountered, 0 is returned.
+		static float CastObstacleRay2(SceneMan& sceneMan, const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, MOID ignoreMOID = g_NoMOID, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, int skip = 0);
+		
 		/// Takes a Box and returns a list of Boxes that describe the Box, wrapped appropriately for the current Scene.
 		/// @param boxToWrap The Box to wrap.
 		/// @return A list of Boxes that make up the Box to wrap, wrapped appropriately for the current Scene.
@@ -589,6 +677,10 @@ namespace RTE {
 		/// Gets the ratio between the on-screen pixels and the physics engine's Liters.
 		/// @return A float describing the current PPL ratio.
 		static float GetPPL();
+
+		/// Gets the pathfinder jump-height value that represents flying.
+		/// @return A float describing the pathfinder jump-height value that represents flying.
+		static float GetPathFindingFlyingJumpHeight();
 
 		/// Gets the default pathfinder penetration value that'll allow pathing through corpses, debris, and such stuff.
 		/// @return A float describing the default pathfinder penetration value.

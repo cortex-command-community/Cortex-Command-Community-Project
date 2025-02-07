@@ -39,6 +39,8 @@ int InputScheme::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("LeftDown", { reader >> m_InputMappings[InputElements::INPUT_L_DOWN]; });
 	MatchProperty("LeftLeft", { reader >> m_InputMappings[InputElements::INPUT_L_LEFT]; });
 	MatchProperty("LeftRight", { reader >> m_InputMappings[InputElements::INPUT_L_RIGHT]; });
+	MatchProperty("MoveFast", { reader >> m_InputMappings[InputElements::INPUT_MOVE_FAST]; });
+	MatchProperty("MoveFastToggle", { reader >> m_InputMappings[InputElements::INPUT_MOVE_FAST_TOGGLE]; });
 	MatchProperty("Fire", { reader >> m_InputMappings[InputElements::INPUT_FIRE]; });
 	MatchProperty("Aim", { reader >> m_InputMappings[InputElements::INPUT_AIM]; });
 	MatchProperty("AimUp", { reader >> m_InputMappings[InputElements::INPUT_AIM_UP]; });
@@ -49,6 +51,7 @@ int InputScheme::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("PieMenuDigital", { reader >> m_InputMappings[InputElements::INPUT_PIEMENU_DIGITAL]; });
 	MatchProperty("Jump", { reader >> m_InputMappings[InputElements::INPUT_JUMP]; });
 	MatchProperty("Crouch", { reader >> m_InputMappings[InputElements::INPUT_CROUCH]; });
+	MatchProperty("Prone", { reader >> m_InputMappings[InputElements::INPUT_PRONE]; });
 	MatchProperty("Next", { reader >> m_InputMappings[InputElements::INPUT_NEXT]; });
 	MatchProperty("Prev", { reader >> m_InputMappings[InputElements::INPUT_PREV]; });
 	MatchProperty("WeaponChangeNext", { reader >> m_InputMappings[InputElements::INPUT_WEAPON_CHANGE_NEXT]; });
@@ -56,6 +59,10 @@ int InputScheme::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("WeaponPickup", { reader >> m_InputMappings[InputElements::INPUT_WEAPON_PICKUP]; });
 	MatchProperty("WeaponDrop", { reader >> m_InputMappings[InputElements::INPUT_WEAPON_DROP]; });
 	MatchProperty("WeaponReload", { reader >> m_InputMappings[InputElements::INPUT_WEAPON_RELOAD]; });
+	MatchProperty("WeaponPrimaryHotkey", { reader >> m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY]; });
+	MatchProperty("WeaponAuxiliaryHotkey", { reader >> m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY]; });
+	MatchProperty("ActorPrimaryHotkey", { reader >> m_InputMappings[InputElements::INPUT_ACTOR_PRIMARY_HOTKEY]; });
+	MatchProperty("ActorAuxiliaryHotkey", { reader >> m_InputMappings[InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY]; });
 	MatchProperty("Start", { reader >> m_InputMappings[InputElements::INPUT_START]; });
 	MatchProperty("Back", { reader >> m_InputMappings[InputElements::INPUT_BACK]; });
 	MatchProperty("RightUp", { reader >> m_InputMappings[InputElements::INPUT_R_UP]; });
@@ -80,6 +87,8 @@ int InputScheme::Save(Writer& writer) const {
 		writer.NewPropertyWithValue("LeftDown", m_InputMappings[InputElements::INPUT_L_DOWN]);
 		writer.NewPropertyWithValue("LeftLeft", m_InputMappings[InputElements::INPUT_L_LEFT]);
 		writer.NewPropertyWithValue("LeftRight", m_InputMappings[InputElements::INPUT_L_RIGHT]);
+		writer.NewPropertyWithValue("MoveFast", m_InputMappings[InputElements::INPUT_MOVE_FAST]);
+		writer.NewPropertyWithValue("MoveFastToggle", m_InputMappings[InputElements::INPUT_MOVE_FAST_TOGGLE]);
 		writer.NewPropertyWithValue("Fire", m_InputMappings[InputElements::INPUT_FIRE]);
 		writer.NewPropertyWithValue("Aim", m_InputMappings[InputElements::INPUT_AIM]);
 		writer.NewPropertyWithValue("AimUp", m_InputMappings[InputElements::INPUT_AIM_UP]);
@@ -90,6 +99,7 @@ int InputScheme::Save(Writer& writer) const {
 		writer.NewPropertyWithValue("PieMenuDigital", m_InputMappings[InputElements::INPUT_PIEMENU_DIGITAL]);
 		writer.NewPropertyWithValue("Jump", m_InputMappings[InputElements::INPUT_JUMP]);
 		writer.NewPropertyWithValue("Crouch", m_InputMappings[InputElements::INPUT_CROUCH]);
+		writer.NewPropertyWithValue("Prone", m_InputMappings[InputElements::INPUT_PRONE]);
 		writer.NewPropertyWithValue("Next", m_InputMappings[InputElements::INPUT_NEXT]);
 		writer.NewPropertyWithValue("Prev", m_InputMappings[InputElements::INPUT_PREV]);
 		writer.NewPropertyWithValue("WeaponChangeNext", m_InputMappings[InputElements::INPUT_WEAPON_CHANGE_NEXT]);
@@ -97,6 +107,10 @@ int InputScheme::Save(Writer& writer) const {
 		writer.NewPropertyWithValue("WeaponPickup", m_InputMappings[InputElements::INPUT_WEAPON_PICKUP]);
 		writer.NewPropertyWithValue("WeaponDrop", m_InputMappings[InputElements::INPUT_WEAPON_DROP]);
 		writer.NewPropertyWithValue("WeaponReload", m_InputMappings[InputElements::INPUT_WEAPON_RELOAD]);
+		writer.NewPropertyWithValue("WeaponPrimaryHotkey", m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY]);
+		writer.NewPropertyWithValue("WeaponAuxiliaryHotkey", m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY]);
+		writer.NewPropertyWithValue("ActorPrimaryHotkey", m_InputMappings[InputElements::INPUT_ACTOR_PRIMARY_HOTKEY]);
+		writer.NewPropertyWithValue("ActorAuxiliaryHotkey", m_InputMappings[InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY]);
 		writer.NewPropertyWithValue("Start", m_InputMappings[InputElements::INPUT_START]);
 		writer.NewPropertyWithValue("Back", m_InputMappings[InputElements::INPUT_BACK]);
 		writer.NewPropertyWithValue("RightUp", m_InputMappings[InputElements::INPUT_R_UP]);
@@ -154,13 +168,15 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			m_InputMappings[InputElements::INPUT_L_DOWN].SetKey(SDL_SCANCODE_DOWN);
 			m_InputMappings[InputElements::INPUT_L_LEFT].SetKey(SDL_SCANCODE_LEFT);
 			m_InputMappings[InputElements::INPUT_L_RIGHT].SetKey(SDL_SCANCODE_RIGHT);
+			m_InputMappings[InputElements::INPUT_MOVE_FAST].SetKey(SDL_SCANCODE_RCTRL);
 			m_InputMappings[InputElements::INPUT_FIRE].SetKey(SDL_SCANCODE_KP_1);
 			m_InputMappings[InputElements::INPUT_AIM].SetKey(SDL_SCANCODE_KP_2);
 			m_InputMappings[InputElements::INPUT_AIM_UP].SetKey(SDL_SCANCODE_UP);
 			m_InputMappings[InputElements::INPUT_AIM_DOWN].SetKey(SDL_SCANCODE_DOWN);
 			m_InputMappings[InputElements::INPUT_PIEMENU_DIGITAL].SetKey(SDL_SCANCODE_KP_3);
 			m_InputMappings[InputElements::INPUT_JUMP].SetKey(SDL_SCANCODE_KP_ENTER);
-			m_InputMappings[InputElements::INPUT_CROUCH].SetKey(SDL_SCANCODE_KP_0);
+			m_InputMappings[InputElements::INPUT_CROUCH].SetKey(SDL_SCANCODE_RSHIFT);
+			m_InputMappings[InputElements::INPUT_PRONE].SetKey(SDL_SCANCODE_KP_0);
 			m_InputMappings[InputElements::INPUT_NEXT].SetKey(SDL_SCANCODE_KP_5);
 			m_InputMappings[InputElements::INPUT_PREV].SetKey(SDL_SCANCODE_KP_4);
 			m_InputMappings[InputElements::INPUT_WEAPON_RELOAD].SetKey(SDL_SCANCODE_KP_DECIMAL);
@@ -174,13 +190,15 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			m_InputMappings[InputElements::INPUT_L_DOWN].SetKey(SDL_SCANCODE_S);
 			m_InputMappings[InputElements::INPUT_L_LEFT].SetKey(SDL_SCANCODE_A);
 			m_InputMappings[InputElements::INPUT_L_RIGHT].SetKey(SDL_SCANCODE_D);
+			m_InputMappings[InputElements::INPUT_MOVE_FAST].SetKey(SDL_SCANCODE_LSHIFT);
 			m_InputMappings[InputElements::INPUT_FIRE].SetKey(SDL_SCANCODE_H);
 			m_InputMappings[InputElements::INPUT_AIM].SetKey(SDL_SCANCODE_J);
 			m_InputMappings[InputElements::INPUT_AIM_UP].SetKey(SDL_SCANCODE_W);
 			m_InputMappings[InputElements::INPUT_AIM_DOWN].SetKey(SDL_SCANCODE_S);
 			m_InputMappings[InputElements::INPUT_PIEMENU_DIGITAL].SetKey(SDL_SCANCODE_K);
 			m_InputMappings[InputElements::INPUT_JUMP].SetKey(SDL_SCANCODE_L);
-			m_InputMappings[InputElements::INPUT_CROUCH].SetKey(SDL_SCANCODE_C);
+			m_InputMappings[InputElements::INPUT_CROUCH].SetKey(SDL_SCANCODE_LCTRL);
+			m_InputMappings[InputElements::INPUT_PRONE].SetKey(SDL_SCANCODE_C);
 			m_InputMappings[InputElements::INPUT_NEXT].SetKey(SDL_SCANCODE_U);
 			m_InputMappings[InputElements::INPUT_PREV].SetKey(SDL_SCANCODE_Y);
 			m_InputMappings[InputElements::INPUT_WEAPON_RELOAD].SetKey(SDL_SCANCODE_R);
@@ -194,6 +212,7 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			m_InputMappings[InputElements::INPUT_L_DOWN].SetKey(SDL_SCANCODE_S);
 			m_InputMappings[InputElements::INPUT_L_LEFT].SetKey(SDL_SCANCODE_A);
 			m_InputMappings[InputElements::INPUT_L_RIGHT].SetKey(SDL_SCANCODE_D);
+			m_InputMappings[InputElements::INPUT_MOVE_FAST].SetKey(SDL_SCANCODE_LSHIFT);
 			m_InputMappings[InputElements::INPUT_FIRE].SetMouseButton(MouseButtons::MOUSE_LEFT);
 			m_InputMappings[InputElements::INPUT_AIM].SetPresetDescription("Mouse Move");
 			m_InputMappings[InputElements::INPUT_AIM_UP].SetPresetDescription("Mouse Move");
@@ -202,7 +221,8 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			m_InputMappings[InputElements::INPUT_AIM_RIGHT].SetPresetDescription("Mouse Move");
 			m_InputMappings[InputElements::INPUT_PIEMENU_ANALOG].SetMouseButton(MouseButtons::MOUSE_RIGHT);
 			m_InputMappings[InputElements::INPUT_JUMP].SetKey(SDL_SCANCODE_W);
-			m_InputMappings[InputElements::INPUT_CROUCH].SetKey(SDL_SCANCODE_S);
+			m_InputMappings[InputElements::INPUT_CROUCH].SetKey(SDL_SCANCODE_LCTRL);
+			m_InputMappings[InputElements::INPUT_PRONE].SetKey(SDL_SCANCODE_S);
 			m_InputMappings[InputElements::INPUT_NEXT].SetKey(SDL_SCANCODE_E);
 			m_InputMappings[InputElements::INPUT_PREV].SetKey(SDL_SCANCODE_Q);
 			m_InputMappings[InputElements::INPUT_WEAPON_RELOAD].SetKey(SDL_SCANCODE_R);
@@ -210,6 +230,10 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			m_InputMappings[InputElements::INPUT_WEAPON_DROP].SetKey(SDL_SCANCODE_G);
 			m_InputMappings[InputElements::INPUT_WEAPON_CHANGE_PREV].SetKey(SDL_SCANCODE_1);
 			m_InputMappings[InputElements::INPUT_WEAPON_CHANGE_NEXT].SetKey(SDL_SCANCODE_2);
+			m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY].SetKey(SDL_SCANCODE_V);
+			m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY].SetKey(SDL_SCANCODE_B);
+			m_InputMappings[InputElements::INPUT_ACTOR_PRIMARY_HOTKEY].SetKey(SDL_SCANCODE_X);
+			m_InputMappings[InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY].SetKey(SDL_SCANCODE_O);
 			break;
 		case InputPreset::PresetGenericDPad:
 			// TODO: Don't have any SNES style controllers to test with so no idea what would work or make sense here.
@@ -223,7 +247,7 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			m_InputMappings[InputElements::INPUT_AIM].SetJoyButton(SDL_CONTROLLER_BUTTON_Y);
 			m_InputMappings[InputElements::INPUT_PIEMENU_DIGITAL].SetJoyButton(SDL_CONTROLLER_BUTTON_A);
 			m_InputMappings[InputElements::INPUT_JUMP].SetJoyButton(SDL_CONTROLLER_BUTTON_X);
-			m_InputMappings[InputElements::INPUT_NEXT].SetJoyButton(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
+			m_InputMappings[InputElements::INPUT_MOVE_FAST].SetJoyButton(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
 			m_InputMappings[InputElements::INPUT_PREV].SetJoyButton(SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
 			m_InputMappings[InputElements::INPUT_START].SetJoyButton(SDL_CONTROLLER_BUTTON_START);
 			m_InputMappings[InputElements::INPUT_BACK].SetJoyButton(SDL_CONTROLLER_BUTTON_BACK);
@@ -259,6 +283,10 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			m_InputMappings[InputElements::INPUT_START].SetPresetDescription("Start Button");
 			m_InputMappings[InputElements::INPUT_BACK].SetJoyButton(SDL_CONTROLLER_BUTTON_BACK);
 			m_InputMappings[InputElements::INPUT_BACK].SetPresetDescription("Select Button");
+			m_InputMappings[InputElements::INPUT_MOVE_FAST_TOGGLE].SetJoyButton(SDL_CONTROLLER_BUTTON_LEFTSTICK);
+			m_InputMappings[InputElements::INPUT_MOVE_FAST_TOGGLE].SetPresetDescription("Click L. Stick");
+			m_InputMappings[InputElements::INPUT_PRONE].SetJoyButton(SDL_CONTROLLER_BUTTON_RIGHTSTICK);
+			m_InputMappings[InputElements::INPUT_PRONE].SetPresetDescription("Click R. Stick");
 			// Set up the default xbox joy direction bindings.
 			m_InputMappings[InputElements::INPUT_L_UP].SetDirection(SDL_CONTROLLER_AXIS_LEFTY, JoyDirections::JOYDIR_ONE);
 			m_InputMappings[InputElements::INPUT_L_UP].SetPresetDescription("L. Stick Up");
@@ -293,6 +321,15 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			m_InputMappings[InputElements::INPUT_AIM_LEFT].SetPresetDescription("D-Pad Left");
 			m_InputMappings[InputElements::INPUT_AIM_RIGHT].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
 			m_InputMappings[InputElements::INPUT_AIM_RIGHT].SetPresetDescription("D-Pad Right");
+			// Hotkey buttons when not fine-aiming.
+			m_InputMappings[InputElements::INPUT_ACTOR_PRIMARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_UP);
+			m_InputMappings[InputElements::INPUT_ACTOR_PRIMARY_HOTKEY].SetPresetDescription("D-Pad Up");
+			m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+			m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY].SetPresetDescription("D-Pad Down");
+			m_InputMappings[InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+			m_InputMappings[InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY].SetPresetDescription("D-Pad Left");
+			m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+			m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY].SetPresetDescription("D-Pad Right");
 			break;
 		case InputPreset::PresetGamepadXbox360:
 			m_InputMappings[InputElements::INPUT_FIRE].SetJoyButton(SDL_CONTROLLER_BUTTON_A);
@@ -313,6 +350,10 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			m_InputMappings[InputElements::INPUT_START].SetPresetDescription("Start Button");
 			m_InputMappings[InputElements::INPUT_BACK].SetJoyButton(SDL_CONTROLLER_BUTTON_BACK);
 			m_InputMappings[InputElements::INPUT_BACK].SetPresetDescription("Back Button");
+			m_InputMappings[InputElements::INPUT_MOVE_FAST_TOGGLE].SetJoyButton(SDL_CONTROLLER_BUTTON_LEFTSTICK);
+			m_InputMappings[InputElements::INPUT_MOVE_FAST_TOGGLE].SetPresetDescription("Click L. Stick");
+			m_InputMappings[InputElements::INPUT_PRONE].SetJoyButton(SDL_CONTROLLER_BUTTON_RIGHTSTICK);
+			m_InputMappings[InputElements::INPUT_PRONE].SetPresetDescription("Click R. Stick");
 			// Set up the default xbox joy direction bindings.
 			m_InputMappings[InputElements::INPUT_L_UP].SetDirection(SDL_CONTROLLER_AXIS_LEFTY, JoyDirections::JOYDIR_ONE);
 			m_InputMappings[InputElements::INPUT_L_UP].SetPresetDescription("L. Stick Up");
@@ -347,6 +388,15 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			m_InputMappings[InputElements::INPUT_AIM_LEFT].SetPresetDescription("D-Pad Left");
 			m_InputMappings[InputElements::INPUT_AIM_RIGHT].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
 			m_InputMappings[InputElements::INPUT_AIM_RIGHT].SetPresetDescription("D-Pad Right");
+			// Hotkey buttons when not fine-aiming.
+			m_InputMappings[InputElements::INPUT_ACTOR_PRIMARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_UP);
+			m_InputMappings[InputElements::INPUT_ACTOR_PRIMARY_HOTKEY].SetPresetDescription("D-Pad Up");
+			m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+			m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY].SetPresetDescription("D-Pad Down");
+			m_InputMappings[InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+			m_InputMappings[InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY].SetPresetDescription("D-Pad Left");
+			m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+			m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY].SetPresetDescription("D-Pad Right");
 			break;
 		default:
 			break;

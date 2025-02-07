@@ -230,11 +230,11 @@ void set_palette_range(AL_CONST PALETTE p, int from, int to, int vsync)
    ASSERT(from >= 0 && from < PAL_SIZE);
    ASSERT(to >= 0 && to < PAL_SIZE)
 
-   for (c=from; c<=to; c++) {
-      _current_palette[c] = p[c];
+   for (c = from; c <= to; c++) {
+	   _current_palette[c] = p[c];
 
-      if (_color_depth != 8)
-	 palette_color[c] = makecol(_rgb_scale_6[p[c].r], _rgb_scale_6[p[c].g], _rgb_scale_6[p[c].b]);
+	   if (_color_depth != 8)
+		   palette_color[c] = makecol(p[c].r, p[c].g, p[c].b);
    }
 
    _current_palette_changed = 0xFFFFFFFF & ~(1<<(_color_depth-1));
@@ -274,7 +274,7 @@ void select_palette(AL_CONST PALETTE p)
    if (_color_depth != 8) {
       for (c=0; c<PAL_SIZE; c++) {
 	 prev_palette_color[c] = palette_color[c];
-	 palette_color[c] = makecol(_rgb_scale_6[p[c].r], _rgb_scale_6[p[c].g], _rgb_scale_6[p[c].b]);
+	 palette_color[c] = makecol(p[c].r, p[c].g, p[c].b);
       }
    }
 
@@ -327,9 +327,9 @@ static int *palette_expansion_table(int bpp)
    if (_current_palette_changed & (1<<(bpp-1))) {
       for (c=0; c<PAL_SIZE; c++) {
 	 table[c] = makecol_depth(bpp,
-				  _rgb_scale_6[_current_palette[c].r], 
-				  _rgb_scale_6[_current_palette[c].g], 
-				  _rgb_scale_6[_current_palette[c].b]);
+				  _current_palette[c].r, 
+				  _current_palette[c].g, 
+				  _current_palette[c].b);
       }
 
       _current_palette_changed &= ~(1<<(bpp-1));
@@ -620,7 +620,9 @@ void _normal_rectfill(BITMAP *bmp, int x1, int y1, int x2, int y2, int color)
       if (y2 < y1)
 	 return;
 
-      bmp->clip = FALSE;
+      // Don't mess with clip status as it fucks up multithreaded draws
+      // Todo - maybe we can add another flag for whether this should be thread-safe or not
+      //bmp->clip = FALSE;
       t = TRUE;
    }
    else
@@ -635,7 +637,7 @@ void _normal_rectfill(BITMAP *bmp, int x1, int y1, int x2, int y2, int color)
 
    release_bitmap(bmp);
 
-   bmp->clip = t;
+   //bmp->clip = t;
 }
 
 

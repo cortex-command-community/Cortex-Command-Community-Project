@@ -268,35 +268,30 @@ function SkirmishDefense:UpdateActivity()
 
 			-- Add fog of war once the game is no longer in editing mode.
 			if self.addFogOfWar then
-				self.addFogOfWar = false;
+				local fogResolution = 4;
 
-				for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
-					if self:PlayerActive(player) and self:PlayerHuman(player) then
-						SceneMan:MakeAllUnseen(Vector(20, 20), self:GetTeamOfPlayer(player));
-					end
-				end
-
-				for team = 0, Activity.MAXTEAMCOUNT - 1 do
-					if self:TeamActive(team) and self:TeamIsCPU(team) then
-						SceneMan:MakeAllUnseen(Vector(65, 65), team);
+				for team = Activity.TEAM_1, Activity.MAXTEAMCOUNT - 1 do
+					if self:TeamActive(team) then
+						SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), team);
+						for x = 0, SceneMan.SceneWidth - 1, fogResolution do
+							local altitude = Vector(0, 0);
+							SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
+							if altitude.Y > 1 then
+								SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, team);
+							end
+						end
 					end
 				end
 
 				for Act in MovableMan.AddedActors do
-					if Act.ClassName ~= "ADoor" then
-						for ang = 0, math.pi*2, 0.15 do
-							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(30+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 1, 5);
+					if not IsADoor(Act) then
+						for angle = 0, math.pi * 2, 0.05 do
+							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(150+FrameMan.PlayerScreenWidth * 0.5, 0):RadRotate(angle), Vector(), 25, fogResolution);
 						end
 					end
 				end
 
-				--[[for Act in MovableMan.Actors do
-					if Act.ClassName ~= "ADoor" then
-						for ang = 0, math.pi*2, 0.15 do
-							SceneMan:CastSeeRay(Act.Team, Act.EyePos, Vector(30+FrameMan.PlayerScreenWidth*0.5, 0):RadRotate(ang), Vector(), 1, 5);
-						end
-					end
-				end--]]
+				self.addFogOfWar = false;
 			end
 		end
 
