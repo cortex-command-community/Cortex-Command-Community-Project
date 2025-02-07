@@ -48,8 +48,9 @@ function Create(self)
 	self.origSharpLength = self.SharpLength;
 	
 	self.origReloadAngle = self.ReloadAngle
-
-	self.ammoCounter = self.RoundInMagCount;
+	
+	self.ammoCounter = self:NumberValueExists("ammoCounter") and self:GetNumberValue("ammoCounter") or self.RoundInMagCount;
+	self:RemoveNumberValue("ammoCounter");
 	self.maxAmmoCount = self.Magazine and self.Magazine.Capacity or 5; -- loading a game might mess this up, so... fall-back
 	
 	self.delayedFire = false
@@ -71,7 +72,7 @@ function Create(self)
 	self.chamberDelay = 300;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	self.chamberSound.Pos = self.Pos;
 	self.preSound.Pos = self.Pos;
 
@@ -283,4 +284,8 @@ function Update(self)
 	if self.InheritedRotAngleTarget > 0 then
 		self.InheritedRotAngleTarget = math.max(self.InheritedRotAngleTarget - TimerMan.DeltaTimeSecs, 0);
 	end
+end
+
+function OnSave(self)
+	self:SetNumberValue("ammoCounter", self.ammoCounter);
 end
