@@ -405,9 +405,6 @@ bool ACraft::HandlePieCommand(PieSliceType pieSliceIndex) {
 		} else if (pieSliceIndex == PieSliceType::Sentry) {
 			m_AIMode = AIMODE_SENTRY;
 			m_DeliveryState = FALL;
-		} else if (pieSliceIndex == PieSliceType::Return) {
-			m_AIMode = AIMODE_RETURN;
-			m_DeliveryState = LAUNCH;
 		} else if (pieSliceIndex == PieSliceType::GoTo) {
 			m_AIMode = AIMODE_GOTO;
 			m_DeliveryState = FALL;
