@@ -5634,7 +5634,7 @@ void MetagameGUI::PlayerTextIndication(int metaPlayer, std::string text, const V
 
 void MetagameGUI::FundsChangeIndication(int metaPlayer, float change, const Vector& screenPos, double animLengthMS) {
 	char str[256];
-	std::snprintf(str, sizeof(str), change >= 1.0 ? "%c +%.0f oz" : (change <= -1.0 ? "%c %.0f oz" : "%c %.0f oz"), -58, change);
+	std::snprintf(str, sizeof(str), change >= 1.0 ? "%c +%.0f oz" : "%c %.0f oz", -58, change);
 	m_apFundsChangeLabel[metaPlayer]->SetText(str);
 	m_apFundsChangeLabel[metaPlayer]->SetHAlignment(GUIFont::Right);
 	m_apFundsChangeLabel[metaPlayer]->SetVAlignment(GUIFont::Top);
