@@ -20,7 +20,6 @@ GUIBanner::GUIBanner() {
 	m_BannerPosY = 240;
 	m_FlySpeed = 1500;
 	m_FlySpacing = 100;
-	m_BannerChars.clear();
 	m_AnimMode = BLINKING;
 	m_AnimState = NOTSTARTED;
 	m_TotalAnimTimer.Reset();
