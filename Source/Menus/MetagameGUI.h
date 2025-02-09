@@ -93,6 +93,8 @@ namespace RTE {
 				m_ChannelHeight = channelHeight;
 				m_CircleSize = circleSize;
 				m_Square = squareSite;
+				m_FundsAmount = 0.f;
+				m_FundsTarget = 0.f;
 			}
 		};
 
