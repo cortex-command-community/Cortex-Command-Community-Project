@@ -157,7 +157,7 @@ void MetagameGUI::Clear() {
 	m_AnimMetaPlayer = Players::NoPlayer;
 	m_AnimDefenseTeam = Activity::NoTeam;
 	m_AnimActivityChange = false;
-	Scene* m_pAnimScene = 0;
+	m_pAnimScene = 0;
 	m_AnimRatio = 0;
 	m_AnimProgress = 0;
 	m_AnimTotalFunds = 0;
