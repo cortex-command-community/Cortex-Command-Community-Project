@@ -122,6 +122,21 @@ int TerrainObject::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t TerrainObject::Hash() const {
+	uint64_t hash = SceneObject::Hash();
+	hash ^= m_FGColorFile.Hash() << 1;
+	hash ^= m_BGColorFile.Hash() << 2;
+	hash ^= m_MaterialFile.Hash() << 3;
+	hash ^= m_BitmapOffset.Hash() << 4;
+	int i = 0;
+	
+	for (const SceneObject::SOPlacer& childObject: m_ChildObjects) {
+		hash ^= childObject.Hash() << (i++ % sizeof(uint64_t) * 8);
+	}
+
+	return hash;
+}
+
 BITMAP* TerrainObject::GetGraphicalIcon() const {
 	if (m_FGColorBitmap) {
 		// Check several spots on the FG bitmap, to be sure it has parts that aren't transparent. If not, show the background layer instead.

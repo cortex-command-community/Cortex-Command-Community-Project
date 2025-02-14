@@ -136,6 +136,11 @@ int GATutorial::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t GATutorial::Hash() const {
+	// If we don't save any distinguishing characteristics for saving, at all, then this may as well be
+	return GameActivity::Hash();
+}
+
 void GATutorial::Destroy(bool notInherited) {
 	if (!notInherited)
 		GameActivity::Destroy();

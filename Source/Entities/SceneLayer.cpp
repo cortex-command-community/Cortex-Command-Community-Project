@@ -150,6 +150,14 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Save(Writer& writer) const {
 }
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+uint64_t SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Hash() const {
+	uint64_t hash = m_BitmapFile.Hash();
+	hash ^= std::hash<bool>{}(m_WrapX) << 1;
+	hash ^= std::hash<bool>{}(m_WrapY) << 2;
+	return Entity::Hash() ^ (hash << 1);
+}
+
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Destroy(bool notInherited) {
 	if (m_MainBitmapOwned) {
 		destroy_bitmap(m_MainBitmap);

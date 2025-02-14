@@ -92,6 +92,15 @@ int SceneObject::SOPlacer::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t SceneObject::SOPlacer::Hash() const {
+	uint64_t hash = RTE::Hash(m_pObjectReference->GetEntityCharacteristic());
+	hash ^= m_Offset.Hash() << 1;
+	hash ^= std::hash<float>{}(m_RotAngle) << 2;
+	hash ^= std::hash<bool>{}(m_HFlipped) << 3;
+	hash ^= std::hash<int>{}(m_Team) << 4;
+	return hash;
+}
+
 SceneObject* SceneObject::SOPlacer::GetPlacedCopy(const SceneObject* pParent) const {
 	RTEAssert(m_pObjectReference, "No Object reference to make copy from!");
 
@@ -206,6 +215,17 @@ int SceneObject::Save(Writer& writer) const {
 	    writer << m_PlacedByPlayer;
 	*/
 	return 0;
+}
+
+uint64_t SceneObject::Hash() const {
+	uint64_t h_entity = Entity::Hash();
+	uint64_t h_pos = m_Pos.Hash();
+	uint64_t h_goldValue = std::hash<float>{}(m_OzValue);
+	uint64_t h_buyability = std::hash<bool>{}(m_Buyable);
+	uint64_t h_buyMode = std::hash<BuyableMode>{}(m_BuyableMode);
+	uint64_t h_team = std::hash<int>{}(m_Team);
+	uint64_t h_placedByPlayer = std::hash<int>{}(m_PlacedByPlayer);
+	return h_entity ^ (h_pos << 1) ^ (h_goldValue << 2) ^ (h_buyability << 3) ^ (h_buyMode << 4) ^ (h_team << 5) ^ (h_placedByPlayer << 6);
 }
 
 void SceneObject::Destroy(bool notInherited) {

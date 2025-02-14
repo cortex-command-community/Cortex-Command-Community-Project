@@ -493,6 +493,66 @@ int MovableObject::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t MovableObject::Hash() const {
+	uint64_t hash = SceneObject::Hash();
+	// TODO: These are all written under the assumption that the reading and writing functions are already approximately accurate
+	// If the write function doesn't save things correctly, this gets it's distinction criteria from that
+	hash ^= std::hash<float>{}(m_Mass) << 1;
+	hash ^= m_Vel.Hash() << 2;
+	hash ^= std::hash<float>{}(m_Scale) << 3;
+	hash ^= std::hash<float>{}(m_GlobalAccScalar) << 4;
+	hash ^= std::hash<float>{}(m_AirResistance) << 5;
+	hash ^= std::hash<float>{}(m_AirThreshold) << 6;
+	hash ^= std::hash<float>{}(m_PinStrength) << 7;
+	hash ^= std::hash<int>{}(m_RestThreshold) << 8;
+	hash ^= std::hash<unsigned long>{}(m_Lifetime) << 9;
+	hash ^= std::hash<float>{}(m_Sharpness) << 10;
+	hash ^= std::hash<bool>{}(m_HitsMOs) << 11;
+	hash ^= std::hash<bool>{}(m_GetsHitByMOs) << 12;
+	hash ^= std::hash<bool>{}(m_IgnoresTeamHits) << 13;
+	hash ^= std::hash<bool>{}(m_IgnoresAtomGroupHits) << 14;
+	hash ^= std::hash<float>{}(m_IgnoresAGHitsWhenSlowerThan) << 15;
+	hash ^= std::hash<bool>{}(m_IgnoresActorHits) << 0;
+	hash ^= std::hash<bool>{}(m_MissionCritical) << 1;
+	hash ^= std::hash<bool>{}(m_CanBeSquished) << 2;
+	hash ^= std::hash<bool>{}(m_HUDVisible) << 3;
+	int i = 0;
+
+	for (const auto& [scriptPath, scriptEnabled]: m_AllLoadedScripts) {
+		if (!scriptPath.empty()) {
+			hash ^= RTE::Hash(scriptPath) << (i++ % sizeof(uint64_t) * 8);
+		}
+	}
+
+	hash ^= m_ScreenEffectFile.Hash() << 4;
+	hash ^= std::hash<bool>{}(m_PostEffectEnabled) << 5;
+	hash ^= std::hash<int>{}(m_EffectStartTime) << 6;
+	hash ^= std::hash<int>{}(m_EffectStopTime) << 7;
+	hash ^= std::hash<float>{}(m_EffectStartStrength) << 8;
+	hash ^= std::hash<float>{}(m_EffectStopStrength) << 9;
+	hash ^= std::hash<bool>{}(m_EffectAlwaysShows) << 10;
+	hash ^= std::hash<float>{}(m_DamageOnCollision) << 11;
+	hash ^= std::hash<float>{}(m_DamageOnPenetration) << 12;
+	hash ^= std::hash<float>{}(m_WoundDamageMultiplier) << 13;
+	hash ^= std::hash<bool>{}(m_ApplyWoundDamageOnCollision) << 14;
+	hash ^= std::hash<bool>{}(m_ApplyWoundBurstDamageOnCollision) << 15;
+	hash ^= std::hash<bool>{}(m_IgnoreTerrain) << 0;
+	hash ^= std::hash<int>{}(m_SimUpdatesBetweenScriptedUpdates) << 1;
+
+	for (const auto& [key, value]: m_NumberValueMap) {
+		hash ^= RTE::Hash(key) << 16;
+		hash ^= std::hash<double>{}(value) << 17;
+	}
+
+	for (const auto& [key, value]: m_StringValueMap) {
+		hash ^= RTE::Hash(key) << 16;
+		hash ^= RTE::Hash(value) << 17;
+	}
+
+	hash ^= std::hash<bool>{}(m_ForceIntoMasterLuaState) << 2;
+	return hash;
+}
+
 void MovableObject::DestroyScriptState() {
 	if (m_ThreadedLuaState) {
 		std::lock_guard<std::recursive_mutex> lock(m_ThreadedLuaState->GetMutex());

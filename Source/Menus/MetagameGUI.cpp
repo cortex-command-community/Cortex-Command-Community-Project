@@ -693,6 +693,10 @@ int MetagameGUI::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t MetagameGUI::Hash() const {
+	return 0;
+}
+
 void MetagameGUI::Destroy() {
 	delete m_pGUIController;
 	delete m_pGUIInput;

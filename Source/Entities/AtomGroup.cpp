@@ -196,6 +196,27 @@ int AtomGroup::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t AtomGroup::Hash() const {
+	uint64_t hash = RTE::Hash(m_Material->GetEntityCharacteristic());
+	hash ^= std::hash<bool>{}(m_AutoGenerate) << 1;
+
+	if (m_AutoGenerate) {
+		hash ^= std::hash<int>{}(m_Resolution) << 2;
+		hash ^= std::hash<int>{}(m_Depth) << 3;
+	} else {
+		for (int i = 0; i < m_Atoms.size(); i++) {
+			const Atom* const& atom = m_Atoms.at(i);
+			hash ^= atom->Hash() << (i % sizeof(uint64_t) * 8);
+		}
+	}
+
+	hash ^= m_JointOffset.Hash() << 2;
+	hash ^= std::hash<AreaDistributionType>{}(m_AreaDistributionType) << 3;
+	hash ^= std::hash<float>{}(m_AreaDistributionSurfaceAreaMultiplier) << 4;
+
+	return Entity::Hash() ^ (hash << 1);
+}
+
 void AtomGroup::Destroy(bool notInherited) {
 	for (const Atom* atom: m_Atoms) {
 		delete atom;

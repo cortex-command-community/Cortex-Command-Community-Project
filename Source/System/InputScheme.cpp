@@ -126,6 +126,11 @@ int InputScheme::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t InputScheme::Hash() const {
+	// TODO: FINISH
+	return 0;
+}
+
 void InputScheme::ResetToPlayerDefaults(Players player) {
 	switch (player) {
 		case Players::PlayerOne:

@@ -91,6 +91,16 @@ int ACraft::Exit::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t ACraft::Exit::Hash() const {
+	uint64_t h_offset = m_Offset.Hash();
+	uint64_t h_velocity = m_Velocity.Hash();
+	uint64_t h_velSpread = std::hash<float>{}(m_VelSpread);
+	uint64_t h_radius = std::hash<float>{}(m_Radius);
+	uint64_t h_range = std::hash<float>{}(m_Range);
+
+	return h_offset ^ (h_velocity << 1) ^ (h_velSpread << 2) ^ (h_radius << 3) ^ (h_range << 4);
+}
+
 bool ACraft::Exit::CheckIfClear(const Vector& pos, Matrix& rot, float size) {
 	Vector notUsed;
 	Vector ray = m_Velocity;
@@ -329,6 +339,28 @@ int ACraft::Save(Writer& writer) const {
 	writer << m_ScuttleOnDeath;
 
 	return 0;
+}
+
+uint64_t ACraft::Hash() const {
+	uint64_t hash = Actor::Hash();
+	hash ^= std::hash<int>{}(m_HatchDelay) << 1;
+	hash ^= m_HatchOpenSound->Hash() << 2;
+	hash ^= m_HatchCloseSound->Hash() << 3;
+	int i = 0;
+
+	for (std::list<Exit>::const_iterator itr = m_Exits.begin(); itr != m_Exits.end(); ++itr) {
+		hash ^= itr->Hash() << (i++ % sizeof(uint64_t) * 8);
+	}
+
+	hash ^= std::hash<int>{}(m_DeliveryDelayMultiplier) << 4;
+	hash ^= std::hash<long>{}(m_ExitInterval) << 5;
+	hash ^= std::hash<bool>{}(m_LandingCraft) << 6;
+	hash ^= m_CrashSound->Hash() << 7;
+	hash ^= std::hash<bool>{}(m_CanEnterOrbit) << 8;
+	hash ^= std::hash<int>{}(m_MaxPassengers) << 9;
+	hash ^= std::hash<int>{}(m_ScuttleIfFlippedTime) << 10;
+	hash ^= std::hash<bool>{}(m_ScuttleOnDeath) << 11;
+	return hash;
 }
 
 void ACraft::Destroy(bool notInherited) {

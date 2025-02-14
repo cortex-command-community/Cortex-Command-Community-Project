@@ -29,6 +29,10 @@ int GenericSavedData::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t GenericSavedData::Hash() const {
+	return 0;
+}
+
 void GenericSavedData::SaveString(const std::string& key, const std::string& value) {
 	if (value.length() == 0) {
 		m_SavedEncodedStrings.m_Data[key] = value;
@@ -89,6 +93,10 @@ int GenericSavedData::GenericSavedEncodedStrings::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t GenericSavedData::GenericSavedEncodedStrings::Hash() const {
+	return 0;
+}
+
 int GenericSavedData::GenericSavedStrings::ReadProperty(const std::string_view& propName, Reader& reader) {
 	m_Data[std::string(propName)] = reader.ReadPropValue(); // until we get P0919R2.
 	return 0;
@@ -102,6 +110,10 @@ int GenericSavedData::GenericSavedStrings::Save(Writer& writer) const {
 			writer.NewPropertyWithValue(propName, value);
 		}
 	}
+	return 0;
+}
+
+uint64_t GenericSavedData::GenericSavedStrings::Hash() const {
 	return 0;
 }
 
@@ -119,5 +131,9 @@ int GenericSavedData::GenericSavedNumbers::Save(Writer& writer) const {
 		writer.NewPropertyWithValue(propName, value);
 	}
 
+	return 0;
+}
+
+uint64_t GenericSavedData::GenericSavedNumbers::Hash() const {
 	return 0;
 }

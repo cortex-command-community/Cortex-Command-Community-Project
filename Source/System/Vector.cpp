@@ -23,3 +23,9 @@ int Vector::Save(Writer& writer) const {
 
 	return 0;
 }
+
+uint64_t Vector::Hash() const {
+	uint64_t h_x = std::hash<float>{}(m_X);
+	uint64_t h_y = std::hash<float>{}(m_Y);
+	return h_x ^ (h_y << 1);
+}

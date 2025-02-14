@@ -41,6 +41,10 @@ int Shader::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t Shader::Hash() const {
+	return Entity::Hash() ^ (RTE::Hash(m_VertexPath) << 1) ^ (RTE::Hash(m_FragmentPath) << 2);
+}
+
 int Shader::Create() {
 	if (m_FragmentPath.empty() || m_VertexPath.empty()) {
 		return -1;

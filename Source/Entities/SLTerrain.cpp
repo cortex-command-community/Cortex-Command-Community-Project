@@ -184,6 +184,12 @@ int SLTerrain::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t SLTerrain::Hash() const {
+	uint64_t hash = SceneLayer::Hash();
+	// TODO: THIS
+	return hash;
+}
+
 // TODO: Break this down and refactor.
 void SLTerrain::TexturizeTerrain() {
 	BITMAP* defaultBGLayerTexture = m_DefaultBGTextureFile.GetAsBitmap();

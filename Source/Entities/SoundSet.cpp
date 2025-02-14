@@ -88,6 +88,31 @@ int SoundSet::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t SoundSet::Hash() const {
+	uint64_t h_soundSelectionCycleMode = std::hash<int>{}(m_SoundSelectionCycleMode);
+	uint64_t h_soundData = 0;
+
+	for (int i = 0; i < m_SoundData.size(); i++) {
+		const SoundData& data = m_SoundData.at(i);
+
+		uint64_t h_filePath = RTE::Hash(data.SoundFile.GetDataPath());
+		uint64_t h_offset = data.Offset.Hash();
+		uint64_t h_minAudibleDist = std::hash<float>{}(data.MinimumAudibleDistance);
+		uint64_t h_attenuationStartDist = std::hash<float>{}(data.AttenuationStartDistance);
+
+		h_soundData ^= ((h_filePath) ^ (h_offset << 1) ^ (h_minAudibleDist << 2) ^ (h_attenuationStartDist << 3)) << (i % sizeof(uint64_t) * 8);
+	}
+
+	uint64_t h_subSoundSets = 0;
+
+	for (int i = 0; i < m_SubSoundSets.size(); i++) {
+		SoundSet*const& subSet = m_SubSoundSets.at(i);
+		h_subSoundSets ^= subSet->Hash() << (i % sizeof(uint64_t) * 8);
+	}
+
+	return h_soundSelectionCycleMode ^ (h_soundData << 1) ^ (h_subSoundSets << 2);
+}
+
 void SoundSet::Destroy() {
 	for (const SoundSet* subSoundSet: m_SubSoundSets) {
 		delete subSoundSet;

@@ -148,6 +148,24 @@ int SLBackground::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t SLBackground::Hash() const {
+	uint64_t hash = StaticSceneLayer::Hash();
+	hash ^= std::hash<int>{}(m_FrameCount) << 1;
+	hash ^= std::hash<SpriteAnimMode>{}(m_SpriteAnimMode) << 2;
+	hash ^= std::hash<int>{}(m_SpriteAnimDuration) << 3;
+	hash ^= std::hash<bool>{}(m_IsAnimatedManually) << 4;
+	hash ^= std::hash<bool>{}(m_DrawMasked) << 5;
+	hash ^= m_ScrollInfo.Hash() << 6;
+	hash ^= m_ScaleFactor.Hash() << 7;
+	hash ^= std::hash<bool>{}(m_IgnoreAutoScale) << 8;
+	hash ^= m_OriginOffset.Hash() << 9;
+	hash ^= std::hash<bool>{}(m_CanAutoScrollX) << 10;
+	hash ^= std::hash<bool>{}(m_CanAutoScrollY) << 11;
+	hash ^= std::hash<int>{}(m_AutoScrollStepInterval) << 12;
+	hash ^= m_AutoScrollStep.Hash() << 13;
+	return hash;
+}
+
 void SLBackground::InitScaleFactors() {
 	if (!m_IgnoreAutoScale) {
 		float fitScreenScaleFactor = std::clamp(static_cast<float>(std::min(g_SceneMan.GetSceneHeight(), g_FrameMan.GetPlayerScreenHeight())) / static_cast<float>(m_MainBitmap->h), 1.0F, 2.0F);

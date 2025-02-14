@@ -70,6 +70,14 @@ int Matrix::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t Matrix::Hash() const {
+	// Today there are no apples rotating in my head
+	// TODO: Check if this is actually a proper mapping, since the whole point is to compare whether two orientations are functionally identical
+	uint64_t h_chirality = std::hash<bool>{}(m_Flipped[X] ^ m_Flipped[Y]);
+	uint64_t h_orient = std::hash<float>{}(std::fmod(m_Rotation + PI * m_Flipped[Y], 2 * PI));
+	return h_chirality ^ (h_orient << 1);
+}
+
 float Matrix::GetRadAngleTo(float otherAngle) const {
 	// Rotate this' angle with the other angle so that the sought after difference angle is between the resulting angle and the x-axis
 	float difference = otherAngle - GetRadAngle();

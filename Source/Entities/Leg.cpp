@@ -117,6 +117,17 @@ int Leg::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t Leg::Hash() const {
+	uint64_t hash = Attachable::Hash();
+	hash ^= m_Foot->Hash() << 1;
+	hash ^= m_ContractedOffset.Hash() << 2;
+	hash ^= m_ExtendedOffset.Hash() << 3;
+	hash ^= m_IdleOffset.Hash() << 4;
+	hash ^= std::hash<bool>{}(m_WillIdle) << 5;
+	hash ^= std::hash<float>{}(m_MoveSpeed) << 6;
+	return hash;
+}
+
 void Leg::SetFoot(Attachable* newFoot) {
 	if (m_Foot && m_Foot->IsAttached()) {
 		RemoveAndDeleteAttachable(m_Foot);

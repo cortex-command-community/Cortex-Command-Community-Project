@@ -108,6 +108,17 @@ int Magazine::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t Magazine::Hash() const {
+	uint64_t hash = Attachable::Hash();
+	hash ^= std::hash<int>{}(m_RoundCount) << 1;
+	hash ^= std::hash<int>{}(m_RTTRatio) << 2;
+	hash ^= RTE::Hash(m_pRegularRound->GetEntityCharacteristic()) << 3;
+	hash ^= RTE::Hash(m_pTracerRound->GetEntityCharacteristic()) << 4;
+	hash ^= std::hash<bool>{}(m_Discardable) << 5;
+	hash ^= std::hash<int>{}(m_AIBlastRadius) << 6;
+	return hash;
+}
+
 void Magazine::Destroy(bool notInherited) {
 
 	if (!notInherited)

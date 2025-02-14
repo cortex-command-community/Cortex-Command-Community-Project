@@ -16,10 +16,11 @@ namespace RTE {
 
 	public:
 #pragma region Global Macro Definitions
-/// Convenience macro to cut down on duplicate ReadProperty and Save methods in classes that extend Serializable.
+	/// Convenience macro to cut down on duplicate ReadProperty and Save methods in classes that extend Serializable.
 #define SerializableOverrideMethods \
 	int ReadProperty(const std::string_view& propName, Reader& reader) override; \
-	int Save(Writer& writer) const override;
+	int Save(Writer& writer) const override; \
+	uint64_t Hash() const override;
 
 /// Convenience macro to cut down on duplicate GetClassName methods in non-poolable classes that extend Serializable.
 #define SerializableClassNameGetter \
@@ -113,6 +114,12 @@ namespace RTE {
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		virtual int Save(Writer& writer) const {
 			writer.ObjectStart(GetClassName());
+			return 0;
+		}
+
+		/// Generates the hash value of this serializable.
+		/// @return A hash value.
+		virtual std::size_t Hash() const {
 			return 0;
 		}
 

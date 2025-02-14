@@ -232,6 +232,22 @@ int MOSprite::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t MOSprite::Hash() const {
+	uint64_t hash = MovableObject::Hash();
+	hash ^= m_SpriteFile.Hash() << 1;
+	hash ^= std::hash<int>{}(m_FrameCount) << 2;
+	hash ^= m_SpriteOffset.Hash() << 3;
+	hash ^= std::hash<SpriteAnimMode>{}(m_SpriteAnimMode) << 4;
+	hash ^= std::hash<int>{}(m_SpriteAnimDuration) << 5;
+	hash ^= std::hash<bool>{}(m_HFlipped) << 6;
+	hash ^= m_Rotation.Hash() << 7;
+	hash ^= std::hash<float>{}(m_AngularVel) << 8;
+	hash ^= std::hash<bool>{}(m_SettleMaterialDisabled) << 9;
+	hash ^= RTE::Hash(m_pEntryWound->GetEntityCharacteristic()) << 10;
+	hash ^= RTE::Hash(m_pExitWound->GetEntityCharacteristic()) << 11;
+	return hash;
+}
+
 void MOSprite::Destroy(bool notInherited) {
 	//    delete m_pEntryWound; Not doing this anymore since we're not owning
 	//    delete m_pExitWound;

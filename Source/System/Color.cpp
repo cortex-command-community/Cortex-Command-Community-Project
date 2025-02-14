@@ -42,6 +42,14 @@ int Color::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t Color::Hash() const {
+	uint64_t h_r = std::hash<int>{}(m_R);
+	uint64_t h_g = std::hash<int>{}(m_G);
+	uint64_t h_b = std::hash<int>{}(m_B);
+
+	return h_r ^ (h_g << 1) ^ (h_b << 2);
+}
+
 void Color::SetRGBWithIndex(int index) {
 	m_Index = std::clamp(index, 0, 255);
 

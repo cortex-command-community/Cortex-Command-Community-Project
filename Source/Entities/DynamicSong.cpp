@@ -124,6 +124,23 @@ int DynamicSongSection::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t DynamicSongSection::Hash() const {
+	uint64_t hash = std::hash<unsigned int>{}(m_LastTransitionSoundContainerIndex);
+	hash ^= std::hash<unsigned int>{}(m_LastSoundContainerIndex) << 1;
+	hash ^= std::hash<int>{}(m_SoundContainerSelectionCycleMode) << 2;
+	hash ^= RTE::Hash(m_SectionType) << 3;
+
+	for (int i = 0; i < m_TransitionSoundContainers.size(); i++) {
+		hash ^= m_TransitionSoundContainers.at(i).Hash() << (i % sizeof(uint64_t) * 8);
+	}
+
+	for (int i = 0; i < m_SoundContainers.size(); i++) {
+		hash ^= m_SoundContainers.at(i).Hash() << (i % sizeof(uint64_t) * 8);
+	}
+
+	return Entity::Hash() ^ (hash << 1);
+}
+
 SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
 	if (m_TransitionSoundContainers.empty()) {
 		return SelectSoundContainer();
@@ -276,4 +293,14 @@ int DynamicSong::Save(Writer& writer) const {
 	}
 
 	return 0;
+}
+
+uint64_t DynamicSong::Hash() const {
+	uint64_t hash = m_DefaultSongSection.Hash();
+
+	for (int i = 0; i < m_SongSections.size(); i++) {
+		hash ^= m_SongSections.at(i).Hash() << (i % sizeof(uint64_t) * 8);
+	}
+
+	return Entity::Hash() ^ (hash << 1);
 }

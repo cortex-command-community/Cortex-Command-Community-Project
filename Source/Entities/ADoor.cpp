@@ -201,6 +201,32 @@ int ADoor::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t ADoor::Hash() const {
+	uint64_t hash = Actor::Hash();
+	hash ^= m_Door->Hash() << 1;
+	hash ^= m_OpenOffset.Hash() << 2;
+	hash ^= m_ClosedOffset.Hash() << 3;
+	hash ^= std::hash<float>{}(m_OpenAngle) << 4;
+	hash ^= std::hash<float>{}(m_ClosedAngle) << 5;
+	hash ^= std::hash<int>{}(m_DoorMoveTime) << 6;
+	hash ^= std::hash<bool>{}(m_ClosedByDefault) << 7;
+	hash ^= std::hash<int>{}(m_ResetToDefaultStateDelay) << 8;
+	hash ^= std::hash<long>{}(m_SensorInterval) << 9;
+	int i = 0;
+
+	for (const ADSensor& sensor: m_Sensors) {
+		hash ^= sensor.Hash() << (i % sizeof(uint64_t) * 8);
+	}
+
+	hash ^= std::hash<bool>{}(m_DrawMaterialLayerWhenOpen) << 10;
+	hash ^= std::hash<bool>{}(m_DrawMaterialLayerWhenClosed) << 11;
+	hash ^= m_DoorMoveStartSound->Hash() << 12;
+	hash ^= m_DoorMoveSound->Hash() << 13;
+	hash ^= m_DoorDirectionChangeSound->Hash() << 14;
+	hash ^= m_DoorMoveEndSound->Hash() << 15;
+	return hash;
+}
+
 void ADoor::Destroy(bool notInherited) {
 	if (m_DoorMoveStartSound) {
 		m_DoorMoveStartSound->Stop();

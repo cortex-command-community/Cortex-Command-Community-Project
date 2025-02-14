@@ -69,6 +69,10 @@ int MOSParticle::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t MOSParticle::Hash() const {
+	return MOSprite::Hash() ^ (m_Atom->Hash() << 1);
+}
+
 void MOSParticle::Destroy(bool notInherited) {
 	delete m_Atom;
 

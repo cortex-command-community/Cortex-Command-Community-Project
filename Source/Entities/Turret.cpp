@@ -67,6 +67,18 @@ int Turret::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t Turret::Hash() const {
+	uint64_t hash = Attachable::Hash();
+	int i = 0;
+
+	for (const HeldDevice* mountedDevice: m_MountedDevices) {
+		hash ^= mountedDevice->Hash() << (i++ % sizeof(uint64_t) * 8);
+	}
+
+	hash ^= std::hash<float>{}(m_MountedDeviceRotationOffset) << 1;
+	return hash;
+}
+
 void Turret::SetFirstMountedDevice(HeldDevice* newMountedDevice) {
 	if (HasMountedDevice()) {
 		RemoveAndDeleteAttachable(m_MountedDevices[0]);

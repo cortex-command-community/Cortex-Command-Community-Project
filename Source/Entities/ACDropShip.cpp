@@ -150,6 +150,22 @@ int ACDropShip::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t ACDropShip::Hash() const {
+	uint64_t hash = ACraft::Hash();
+	hash ^= m_pRThruster->Hash() << 1;
+	hash ^= m_pLThruster->Hash() << 2;
+	hash ^= m_pURThruster->Hash() << 3;
+	hash ^= m_pULThruster->Hash() << 4;
+	hash ^= m_pRHatch->Hash() << 5;
+	hash ^= m_pLHatch->Hash() << 6;
+	hash ^= m_HatchSwingRange.Hash() << 7;
+	hash ^= std::hash<int>{}(m_AutoStabilize) << 8;
+	hash ^= std::hash<float>{}(m_MaxEngineAngle) << 9;
+	hash ^= std::hash<float>{}(m_LateralControlSpeed) << 10;
+	hash ^= std::hash<float>{}(m_HoverHeightModifier) << 11;
+	return hash;
+}
+
 void ACDropShip::Destroy(bool notInherited) {
 	delete m_pBodyAG;
 

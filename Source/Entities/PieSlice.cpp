@@ -146,6 +146,17 @@ int PieSlice::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t PieSlice::Hash() const {
+	uint64_t hash = std::hash<PieSliceType>{}(m_Type);
+	hash ^= std::hash<Directions>{}(m_Direction) << 1;
+	hash ^= std::hash<bool>{}(m_Enabled) << 2;
+	hash ^= m_Icon->Hash() << 3;
+	hash ^= m_LuabindFunctionObject ? (RTE::Hash(m_LuabindFunctionObject->GetFilePath()) << 4) : 0;
+	hash ^= RTE::Hash(m_FunctionName) << 5;
+	hash ^= m_SubPieMenu->Hash() << 6;
+	return Entity::Hash() ^ (hash << 1);
+}
+
 BITMAP* PieSlice::GetAppropriateIcon(bool sliceIsSelected) const {
 	if (int iconFrameCount = m_Icon->GetFrameCount(); iconFrameCount > 0) {
 		if (!IsEnabled() && iconFrameCount > 2) {

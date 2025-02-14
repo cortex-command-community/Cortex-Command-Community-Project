@@ -375,6 +375,38 @@ int MOSRotating::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t MOSRotating::Hash() const {
+	uint64_t hash = MOSprite::Hash();
+	hash ^= m_pAtomGroup->Hash() << 1;
+	hash ^= m_pDeepGroup->Hash() << 2;
+	hash ^= std::hash<bool>{}(m_DeepCheck) << 3;
+	hash ^= std::hash<float>{}(m_OrientToVel) << 4;
+	int i = 0;
+
+	for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr) {
+		hash ^= (*itr)->Hash() << (i++ % sizeof(uint64_t) * 8);
+	}
+
+	i = 0;
+
+	for (auto aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr) {
+		hash ^= (*aItr)->Hash() << (i++ % sizeof(uint64_t) * 8);
+	}
+
+	i = 0;
+
+	for (auto gItr = m_Gibs.begin(); gItr != m_Gibs.end(); ++gItr) {
+		hash ^= (*gItr)->Hash() << (i++ % sizeof(uint64_t) * 8);
+	}
+
+	hash ^= std::hash<float>{}(m_GibImpulseLimit) << 5;
+	hash ^= std::hash<int>{}(m_GibWoundLimit) << 6;
+	hash ^= std::hash<bool>{}(m_GibAtEndOfLifetime) << 7;
+	hash ^= m_GibSound->Hash() << 8;
+	hash ^= std::hash<bool>{}(m_EffectOnGib) << 9;
+	return hash;
+}
+
 int MOSRotating::GetGibWoundLimit(bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) const {
 	int gibWoundLimit = m_GibWoundLimit;
 	if (includePositiveDamageAttachables || includeNegativeDamageAttachables || includeNoDamageAttachables) {

@@ -51,6 +51,14 @@ int ADSensor::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t ADSensor::Hash() const {
+	uint64_t h_startOffset = m_StartOffset.Hash();
+	uint64_t h_sensorRay = m_SensorRay.Hash();
+	uint64_t h_skipPixels = std::hash<short>{}(m_Skip);
+
+	return h_startOffset ^ (h_sensorRay << 1) ^ (h_skipPixels << 2);
+}
+
 Actor* ADSensor::SenseActor(const Vector& doorPos, const Matrix& doorRot, bool doorHFlipped, MOID ignoreMOID) {
 	Actor* sensedActor = 0;
 	MOID foundMOID = g_SceneMan.CastMORay(doorPos + m_StartOffset.GetXFlipped(doorHFlipped) * doorRot, m_SensorRay.GetXFlipped(doorHFlipped) * doorRot, ignoreMOID, Activity::NoTeam, 0, true, m_Skip);

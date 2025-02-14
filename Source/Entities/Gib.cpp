@@ -98,3 +98,18 @@ int Gib::Save(Writer& writer) const {
 
 	return 0;
 }
+
+uint64_t Gib::Hash() const {
+	uint64_t hash = RTE::Hash(m_GibParticle->GetEntityCharacteristic());
+	hash ^= m_Offset.Hash() << 1;
+	hash ^= std::hash<int>{}(m_Count) << 2;
+	hash ^= std::hash<float>{}(m_Spread) << 3;
+	hash ^= std::hash<float>{}(m_MinVelocity) << 4;
+	hash ^= std::hash<float>{}(m_MaxVelocity) << 5;
+	hash ^= std::hash<float>{}(m_LifeVariation) << 6;
+	hash ^= std::hash<float>{}(m_InheritsVel) << 7;
+	hash ^= std::hash<float>{}(m_InheritsAngularVel) << 8;
+	hash ^= std::hash<bool>{}(m_IgnoresTeamHits) << 9;
+	hash ^= std::hash<int>{}(m_SpreadMode) << 10;
+	return hash;
+}

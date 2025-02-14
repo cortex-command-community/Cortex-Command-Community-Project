@@ -291,6 +291,10 @@ int SceneMan::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t SceneMan::Hash() const {
+	return 0;
+}
+
 void SceneMan::Destroy() {
 	for (int i = 0; i < c_PaletteEntriesNumber; ++i)
 		delete m_apMatPalette[i];

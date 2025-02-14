@@ -455,6 +455,50 @@ int Actor::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t Actor::Hash() const {
+	uint64_t hash = MOSRotating::Hash();
+	hash ^= std::hash<bool>{}(m_PlayerControllable) << 1;
+	hash ^= m_BodyHitSound->Hash() << 2;
+	hash ^= m_AlarmSound->Hash() << 3;
+	hash ^= m_PainSound->Hash() << 4;
+	hash ^= m_DeathSound->Hash() << 5;
+	hash ^= m_DeviceSwitchSound->Hash() << 6;
+	hash ^= std::hash<int>{}(m_Status) << 7;
+	hash ^= std::hash<float>{}(m_Health) << 8;
+	hash ^= std::hash<float>{}(m_MaxHealth) << 9;
+	hash ^= std::hash<unsigned int>{}(m_DeploymentID) << 10;
+	hash ^= std::hash<float>{}(m_TravelImpulseDamage) << 11;
+	hash ^= m_StableVel.Hash() << 12;
+	hash ^= std::hash<int>{}(m_StableRecoverDelay) << 13;
+	hash ^= std::hash<bool>{}(m_CanRun) << 14;
+	hash ^= std::hash<float>{}(m_CrouchWalkSpeedMultiplier) << 15;
+	hash ^= std::hash<float>{}(m_GoldCarried) << 0;
+	hash ^= std::hash<float>{}(m_AimAngle) << 1;
+	hash ^= std::hash<float>{}(m_AimRange) << 2;
+	hash ^= std::hash<float>{}(m_AimDistance) << 3;
+	hash ^= std::hash<int>{}(m_SharpAimDelay) << 4;
+	hash ^= std::hash<float>{}(m_SightDistance) << 5;
+	hash ^= std::hash<float>{}(m_Perceptiveness) << 6;
+	hash ^= std::hash<float>{}(m_PainThreshold) << 7;
+	hash ^= std::hash<bool>{}(m_CanRevealUnseen) << 8;
+	hash ^= std::hash<float>{}(m_CharHeight) << 9;
+	hash ^= m_HolsterOffset.Hash() << 10;
+	hash ^= m_ReloadOffset.Hash() << 11;
+	int i = 0;
+
+	for (std::deque<MovableObject*>::const_iterator itr = m_Inventory.begin(); itr != m_Inventory.end(); ++itr) {
+		hash ^= (*itr)->Hash() << (i++ % sizeof(uint64_t) * 8);
+	}
+
+	hash ^= std::hash<float>{}(m_MaxInventoryMass) << 12;
+	hash ^= std::hash<AIMode>{}(m_AIMode) << 13;
+	hash ^= m_PieMenu->Hash() << 14;
+	hash ^= std::hash<bool>{}(m_Organic) << 15;
+	hash ^= std::hash<bool>{}(m_Mechanical) << 0;
+	hash ^= std::hash<float>{}(m_AIBaseDigStrength) << 1;
+	return hash;
+}
+
 void Actor::DestroyScriptState() {
 	for (std::deque<MovableObject*>::const_iterator itr = m_Inventory.begin(); itr != m_Inventory.end(); ++itr) {
 		(*itr)->DestroyScriptState();

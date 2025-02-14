@@ -442,3 +442,7 @@ int SettingsMan::Save(Writer& writer) const {
 
 	return 0;
 }
+
+uint64_t SettingsMan::Hash() const {
+	return 0;
+}

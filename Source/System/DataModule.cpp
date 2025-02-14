@@ -242,6 +242,18 @@ int DataModule::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t DataModule::Hash() const {
+	/* I'm not even sure if this needs doing.
+	 * Only use that comes to mind is cross platform,
+	 * ensuring that two connected clients have functionally identical copies of each mod,
+	 * but they actually need to be literally identical as well, due to Lua access to file structures.
+	 * 
+	 * Probably necessary, though, TODO: figure this out (among others).
+	 */
+
+	return 0;
+}
+
 std::string DataModule::GetEntityDataLocation(const std::string& exactType, const std::string& instance) {
 	const Entity* foundEntity = GetEntityPreset(exactType, instance);
 	if (foundEntity == nullptr) {

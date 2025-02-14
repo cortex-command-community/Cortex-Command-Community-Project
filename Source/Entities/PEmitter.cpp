@@ -186,6 +186,38 @@ int PEmitter::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t PEmitter::Hash() const {
+	uint64_t hash = MOSParticle::Hash();
+	int i = 0;
+
+	for (Emission* emission: m_EmissionList) {
+		hash ^= emission->Hash() << (i++ % sizeof(uint64_t) * 8);
+	}
+
+	hash ^= m_EmissionSound.Hash() << 1;
+	hash ^= m_BurstSound.Hash() << 2;
+	hash ^= m_EndSound.Hash() << 3;
+	hash ^= std::hash<bool>{}(m_EmitEnabled) << 4;
+	hash ^= std::hash<long>{}(m_EmitCount) << 5;
+	hash ^= std::hash<long>{}(m_EmitCountLimit) << 6;
+	hash ^= std::hash<bool>{}(m_EmissionsIgnoreThis) << 7;
+	hash ^= std::hash<float>{}(m_NegativeThrottleMultiplier) << 8;
+	hash ^= std::hash<float>{}(m_PositiveThrottleMultiplier) << 9;
+	hash ^= std::hash<float>{}(m_Throttle) << 10;
+	hash ^= std::hash<float>{}(m_BurstScale) << 11;
+	hash ^= std::hash<float>{}(m_BurstSpacing) << 12;
+	hash ^= std::hash<bool>{}(m_BurstTriggered) << 13;
+	hash ^= std::hash<bool>{}(m_PlayBurstSound) << 14;
+	hash ^= m_EmitAngle.Hash() << 15;
+	hash ^= m_EmissionOffset.Hash() << 0;
+	hash ^= std::hash<float>{}(m_FlashScale) << 1;
+	hash ^= std::hash<bool>{}(m_FlashOnlyOnBurst) << 2;
+	hash ^= std::hash<bool>{}(m_SustainBurstSound) << 3;
+	hash ^= std::hash<bool>{}(m_BurstSoundFollowsEmitter) << 4;
+	hash ^= std::hash<float>{}(m_LoudnessOnEmit) << 5;
+	return hash;
+}
+
 void PEmitter::Destroy(bool notInherited) {
 	// Stop playback of sounds gracefully
 	if (m_EmissionSound.IsBeingPlayed()) {

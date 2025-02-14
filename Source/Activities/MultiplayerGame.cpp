@@ -88,6 +88,11 @@ int MultiplayerGame::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t MultiplayerGame::Hash() const {
+	// If we don't save any distinguishing characteristics, at all, then this may as well be
+	return Activity::Hash();
+}
+
 void MultiplayerGame::Destroy(bool notInherited) {
 	g_FrameMan.SetDrawNetworkBackBuffer(false);
 	g_NetworkClient.Disconnect();

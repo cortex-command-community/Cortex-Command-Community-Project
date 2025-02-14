@@ -362,6 +362,31 @@ int ACrab::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t ACrab::Hash() const {
+	uint64_t hash = Actor::Hash();
+	hash ^= m_pTurret->Hash() << 1;
+	hash ^= m_pJetpack->Hash() << 2;
+	hash ^= m_pLFGLeg->Hash() << 3;
+	hash ^= m_pLBGLeg->Hash() << 4;
+	hash ^= m_pRFGLeg->Hash() << 5;
+	hash ^= m_pRBGLeg->Hash() << 6;
+	hash ^= m_pLFGFootGroup->Hash() << 7;
+	hash ^= m_pLBGFootGroup->Hash() << 8;
+	hash ^= m_pRFGFootGroup->Hash() << 9;
+	hash ^= m_pRBGFootGroup->Hash() << 10;
+	hash ^= m_StrideSound->Hash() << 11;
+	hash ^= m_Paths[LEFTSIDE][FGROUND][STAND].Hash() << 12;
+	hash ^= m_Paths[LEFTSIDE][FGROUND][WALK].Hash() << 13;
+	hash ^= m_Paths[LEFTSIDE][FGROUND][DISLODGE].Hash() << 14;
+	hash ^= m_Paths[RIGHTSIDE][FGROUND][STAND].Hash() << 15;
+	hash ^= m_Paths[RIGHTSIDE][FGROUND][WALK].Hash() << 0;
+	hash ^= m_Paths[RIGHTSIDE][FGROUND][DISLODGE].Hash() << 1;
+	hash ^= std::hash<float>{}(m_AimRangeUpperLimit) << 2;
+	hash ^= std::hash<float>{}(m_AimRangeLowerLimit) << 3;
+	hash ^= std::hash<bool>{}(m_LockMouseAimInput) << 4;
+	return hash;
+}
+
 void ACrab::Destroy(bool notInherited) {
 	delete m_pLFGFootGroup;
 	delete m_pLBGFootGroup;

@@ -216,6 +216,28 @@ int SoundContainer::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t SoundContainer::Hash() const {
+	uint64_t hash = m_TopLevelSoundSet->Hash();
+	hash ^= std::hash<int>{}(m_SoundOverlapMode) << 1;
+	hash ^= std::hash<int>{}(m_BusRouting) << 2;
+	hash ^= std::hash<bool>{}(m_Immobile) << 3;
+	hash ^= std::hash<float>{}(m_AttenuationStartDistance) << 4;
+	hash ^= std::hash<float>{}(m_CustomPanValue) << 5;
+	hash ^= std::hash<float>{}(m_PanningStrengthMultiplier) << 6;
+	hash ^= std::hash<int>{}(m_Loops) << 7;
+	hash ^= std::hash<int>{}(m_Priority) << 8;
+	hash ^= std::hash<bool>{}(m_AffectedByGlobalPitch) << 9;
+	hash ^= m_Pos.Hash() << 10;
+	hash ^= std::hash<float>{}(m_Volume) << 11;
+	hash ^= std::hash<float>{}(m_Pitch) << 12;
+	hash ^= std::hash<float>{}(m_PitchVariation) << 13;
+	hash ^= std::hash<bool>{}(m_WasFadedOut) << 14;
+	hash ^= std::hash<bool>{}(m_Paused) << 15;
+	hash ^= std::hash<float>{}(m_MusicPreEntryTime) << 16;
+	hash ^= std::hash<float>{}(m_MusicExitTime) << 17;
+	return Entity::Hash() ^ (hash << 1);
+}
+
 bool SoundContainer::HasAnySounds() const {
 	return m_TopLevelSoundSet->HasAnySounds();
 }

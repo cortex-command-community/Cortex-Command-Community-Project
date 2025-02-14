@@ -80,6 +80,11 @@ int GibEditor::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t GibEditor::Hash() const {
+	// If we don't save any distinguishing characteristics, at all, then this may as well be
+	return EditorActivity::Hash();
+}
+
 void GibEditor::Destroy(bool notInherited) {
 	delete m_pEditedObject;
 	delete m_pTestingObject;

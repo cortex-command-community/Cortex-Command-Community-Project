@@ -133,3 +133,20 @@ int MetaPlayer::Save(Writer& writer) const {
 
 	return 0;
 }
+
+uint64_t MetaPlayer::Hash() const {
+	uint64_t hash = RTE::Hash(m_Name);
+	hash ^= std::hash<int>{}(m_Team) << 1;
+	hash ^= std::hash<bool>{}(m_Human) << 2;
+	hash ^= std::hash<int>{}(m_InGamePlayer) << 3;
+	hash ^= std::hash<float>{}(m_Aggressiveness) << 4;
+	hash ^= std::hash<int>{}(m_GameOverRound) << 5;
+	hash ^= RTE::Hash(g_PresetMan.GetDataModule(m_NativeTechModule)->GetFileName()) << 6;
+	hash ^= std::hash<float>{}(m_NativeCostMult) << 7;
+	hash ^= std::hash<float>{}(m_ForeignCostMult) << 8;
+	hash ^= std::hash<int>{}(m_BrainPool) << 9;
+	hash ^= std::hash<float>{}(m_Funds) << 10;
+	hash ^= std::hash<float>{}(m_OffensiveBudget) << 11;
+	hash ^= RTE::Hash(m_OffensiveTarget) << 12;
+	return Entity::Hash() ^ (hash << 1);
+}

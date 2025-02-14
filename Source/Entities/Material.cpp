@@ -123,3 +123,23 @@ int Material::Save(Writer& writer) const {
 	}
 	return 0;
 }
+
+uint64_t Material::Hash() const {
+	uint64_t hash = std::hash<int>{}(m_Priority);
+	hash ^= std::hash<int>{}(m_Piling) << 1;
+	hash ^= std::hash<float>{}(m_Integrity) << 2;
+	hash ^= std::hash<float>{}(m_Restitution) << 3;
+	hash ^= std::hash<float>{}(m_Friction) << 4;
+	hash ^= std::hash<float>{}(m_Stickiness) << 5;
+	hash ^= std::hash<float>{}(m_VolumeDensity) << 6;
+	hash ^= std::hash<float>{}(m_GibImpulseLimitPerLiter) << 7;
+	hash ^= std::hash<float>{}(m_GibWoundLimitPerLiter) << 8;
+	hash ^= std::hash<unsigned char>{}(m_SettleMaterialIndex) << 9;
+	hash ^= std::hash<unsigned char>{}(m_SpawnMaterialIndex) << 10;
+	hash ^= std::hash<bool>{}(m_IsScrap) << 11;
+	hash ^= m_Color.Hash() << 12;
+	hash ^= std::hash<bool>{}(m_UseOwnColor) << 13;
+	hash ^= m_FGTextureFile.Hash() << 14;
+	hash ^= m_BGTextureFile.Hash() << 15;
+	return Entity::Hash() ^ (hash << 1);
+}

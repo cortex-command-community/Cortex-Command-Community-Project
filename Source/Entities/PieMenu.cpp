@@ -230,6 +230,18 @@ int PieMenu::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t PieMenu::Hash() const {
+	uint64_t hash = std::hash<IconSeparatorMode>{}(m_IconSeparatorMode);
+	hash ^= std::hash<int>{}(m_FullInnerRadius) << 1;
+	hash ^= std::hash<int>{}(m_BackgroundThickness) << 2;
+	hash ^= std::hash<int>{}(m_BackgroundSeparatorSize) << 3;
+	hash ^= std::hash<bool>{}(m_DrawBackgroundTransparent) << 4;
+	hash ^= std::hash<int>{}(m_BackgroundColor) << 5;
+	hash ^= std::hash<int>{}(m_BackgroundBorderColor) << 6;
+	hash ^= std::hash<int>{}(m_SelectedItemBackgroundColor) << 7;
+	return Entity::Hash() ^ (hash << 1);
+}
+
 void PieMenu::SetOwner(Actor* newOwner) {
 	RTEAssert((newOwner == nullptr) ? true : (newOwner->GetPieMenu() == this || IsSubPieMenu()), "Tried to set Pie Menu owning Actor to Actor with different Pie Menu.");
 	if (m_Owner) {

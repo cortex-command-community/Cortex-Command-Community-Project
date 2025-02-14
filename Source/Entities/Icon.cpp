@@ -68,6 +68,11 @@ int Icon::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t Icon::Hash() const {
+	uint64_t hash = std::hash<int>{}(m_FrameCount) ^ m_BitmapFile.Hash();
+	return Entity::Hash() ^ (hash << 1);
+}
+
 void Icon::Destroy(bool notInherited) {
 	if (!notInherited) {
 		Entity::Destroy();

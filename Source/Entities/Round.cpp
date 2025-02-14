@@ -123,6 +123,22 @@ int Round::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t Round::Hash() const {
+	uint64_t hash = RTE::Hash(m_Particle->GetEntityCharacteristic());
+	hash ^= std::hash<int>{}(m_ParticleCount) << 1;
+	hash ^= std::hash<float>{}(m_FireVel) << 2;
+	hash ^= std::hash<bool>{}(m_InheritsFirerVelocity) << 3;
+	hash ^= std::hash<float>{}(m_Separation) << 4;
+	hash ^= std::hash<float>{}(m_LifeVariation) << 5;
+	hash ^= RTE::Hash(m_Shell->GetEntityCharacteristic()) << 6;
+	hash ^= std::hash<float>{}(m_ShellVel) << 7;
+	hash ^= m_FireSound.Hash() << 8;
+	hash ^= std::hash<unsigned long>{}(m_AILifeTime) << 9;
+	hash ^= std::hash<int>{}(m_AIFireVel) << 10;
+	hash ^= std::hash<int>{}(m_AIPenetration) << 11;
+	return Entity::Hash() ^ (hash << 1);
+}
+
 MovableObject* Round::PopNextParticle() {
 	MovableObject* tempParticle = (m_ParticleCount > 0) ? dynamic_cast<MovableObject*>(m_Particle->Clone()) : 0;
 	m_ParticleCount--;

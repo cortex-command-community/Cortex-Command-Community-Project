@@ -362,6 +362,43 @@ int AHuman::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t AHuman::Hash() const {
+	uint64_t hash = Actor::Hash();
+	hash ^= std::hash<long>{}(m_ThrowPrepTime) << 1;
+	hash ^= m_pHead->Hash() << 2;
+	hash ^= std::hash<float>{}(m_LookToAimRatio) << 3;
+	hash ^= m_pJetpack->Hash() << 4;
+	hash ^= std::hash<float>{}(m_FGArmFlailScalar) << 5;
+	hash ^= std::hash<float>{}(m_BGArmFlailScalar) << 6;
+	hash ^= std::hash<float>{}(m_ArmSwingRate) << 7;
+	hash ^= std::hash<float>{}(m_DeviceArmSwayRate) << 8;
+	hash ^= m_pFGArm->Hash() << 9;
+	hash ^= m_pBGArm->Hash() << 10;
+	hash ^= m_pFGLeg->Hash() << 11;
+	hash ^= m_pBGLeg->Hash() << 12;
+	hash ^= m_pFGHandGroup->Hash() << 13;
+	hash ^= m_pFGFootGroup->Hash() << 14;
+	hash ^= m_pBGFootGroup->Hash() << 15;
+	hash ^= std::hash<float>{}(m_MaxWalkPathCrouchShift) << 0;
+	hash ^= m_StrideSound->Hash() << 1;
+	hash ^= m_Paths[FGROUND][STAND].Hash() << 2;
+	hash ^= m_Paths[BGROUND][STAND].Hash() << 3;
+	hash ^= m_Paths[FGROUND][WALK].Hash() << 4;
+	hash ^= m_Paths[FGROUND][RUN].Hash() << 5;
+	hash ^= m_Paths[FGROUND][PRONE].Hash() << 6;
+	hash ^= m_Paths[FGROUND][CRAWL].Hash() << 7;
+	hash ^= m_Paths[FGROUND][ARMCRAWL].Hash() << 8;
+	hash ^= m_Paths[FGROUND][CLIMB].Hash() << 9;
+	hash ^= m_Paths[FGROUND][JUMP].Hash() << 10;
+	hash ^= m_Paths[FGROUND][DISLODGE].Hash() << 11;
+	hash ^= std::hash<float>{}(m_RotAngleTargets[STAND]) << 12;
+	hash ^= std::hash<float>{}(m_RotAngleTargets[WALK]) << 13;
+	hash ^= std::hash<float>{}(m_RotAngleTargets[RUN]) << 14;
+	hash ^= std::hash<float>{}(m_RotAngleTargets[PRONE]) << 15;
+	hash ^= std::hash<float>{}(m_RotAngleTargets[JUMP]) << 0;
+	return hash;
+}
+
 void AHuman::Destroy(bool notInherited) {
 	delete m_pFGHandGroup;
 	delete m_pBGHandGroup;

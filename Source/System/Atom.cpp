@@ -165,6 +165,17 @@ int Atom::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t Atom::Hash() const {
+	uint64_t h_offset = m_Offset.Hash();
+	uint64_t h_originalOffset = m_OriginalOffset.Hash();
+	uint64_t h_material = RTE::Hash(m_Material->GetEntityCharacteristic());
+	uint64_t h_trailColor = m_TrailColor.Hash();
+	uint64_t h_trailLength = std::hash<int>{}(m_TrailLength);
+	uint64_t h_trailLengthVariation = std::hash<float>{}(m_TrailLengthVariation);
+
+	return h_offset ^ (h_originalOffset << 1) ^ (h_material << 2) ^ (h_trailColor << 3) ^ (h_trailLength << 4) ^ (h_trailLengthVariation << 5);
+}
+
 void* Atom::GetPoolMemory() {
 	std::lock_guard<std::mutex> guard(s_MemoryPoolMutex);
 

@@ -110,6 +110,10 @@ int MovableMan::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t MovableMan::Hash() const {
+	return 0;
+}
+
 void MovableMan::Destroy() {
 	for (std::deque<Actor*>::iterator it1 = m_Actors.begin(); it1 != m_Actors.end(); ++it1)
 		delete (*it1);

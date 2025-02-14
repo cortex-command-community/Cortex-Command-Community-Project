@@ -214,6 +214,25 @@ int ACRocket::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t ACRocket::Hash() const {
+	uint64_t hash = ACraft::Hash();
+	hash ^= m_pRLeg->Hash() << 1;
+	hash ^= m_pLLeg->Hash() << 2;
+	hash ^= m_pRFootGroup->Hash() << 3;
+	hash ^= m_pLFootGroup->Hash() << 4;
+	hash ^= m_pMThruster->Hash() << 5;
+	hash ^= m_pRThruster->Hash() << 6;
+	hash ^= m_pLThruster->Hash() << 7;
+	hash ^= m_pURThruster->Hash() << 8;
+	hash ^= m_pULThruster->Hash() << 9;
+	hash ^= m_Paths[RIGHT][RAISED].Hash() << 10;
+	hash ^= m_Paths[RIGHT][LOWERED].Hash() << 11;
+	hash ^= m_Paths[RIGHT][LOWERING].Hash() << 12;
+	hash ^= m_Paths[RIGHT][RAISING].Hash() << 13;
+	hash ^= std::hash<float>{}(m_MaxGimbalAngle) << 14;
+	return hash;
+}
+
 void ACRocket::Destroy(bool notInherited) {
 	delete m_pBodyAG;
 	delete m_pRFootGroup;

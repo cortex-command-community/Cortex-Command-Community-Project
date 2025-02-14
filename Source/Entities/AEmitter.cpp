@@ -224,6 +224,42 @@ int AEmitter::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t AEmitter::Hash() const {
+	uint64_t hash = Attachable::Hash();
+	int i = 0;
+
+	for (Emission* emission: m_EmissionList) {
+		hash ^= emission->Hash() << (i++ % sizeof(uint64_t) * 8);
+	}
+
+	hash ^= m_EmissionSound->Hash() << 1;
+	hash ^= m_BurstSound->Hash() << 2;
+	hash ^= m_EndSound->Hash() << 3;
+	hash ^= std::hash<bool>{}(m_EmitEnabled) << 4;
+	hash ^= std::hash<int>{}(m_EmitCount) << 5;
+	hash ^= std::hash<long>{}(m_EmitCountLimit) << 6;
+	hash ^= std::hash<bool>{}(m_EmissionsIgnoreThis) << 7;
+	hash ^= std::hash<float>{}(m_NegativeThrottleMultiplier) << 8;
+	hash ^= std::hash<float>{}(m_PositiveThrottleMultiplier) << 9;
+	hash ^= std::hash<float>{}(m_Throttle) << 10;
+	hash ^= std::hash<float>{}(m_BurstScale) << 11;
+	hash ^= std::hash<float>{}(m_BurstDamage) << 12;
+	hash ^= std::hash<float>{}(m_EmitterDamageMultiplier) << 13;
+	hash ^= std::hash<float>{}(m_BurstSpacing) << 14;
+	hash ^= std::hash<bool>{}(m_BurstTriggered) << 15;
+	hash ^= std::hash<bool>{}(m_PlayBurstSound) << 0;
+	hash ^= m_EmitAngle.Hash() << 1;
+	hash ^= m_EmissionOffset.Hash() << 2;
+	hash ^= std::hash<float>{}(m_EmitDamage) << 3;
+	hash ^= m_pFlash->Hash() << 4;
+	hash ^= std::hash<float>{}(m_FlashScale) << 5;
+	hash ^= std::hash<bool>{}(m_FlashOnlyOnBurst) << 6;
+	hash ^= std::hash<bool>{}(m_SustainBurstSound) << 7;
+	hash ^= std::hash<bool>{}(m_BurstSoundFollowsEmitter) << 8;
+	hash ^= std::hash<float>{}(m_LoudnessOnEmit) << 9;
+	return hash;
+}
+
 void AEmitter::Destroy(bool notInherited) {
 	// Stop playback of sounds gracefully
 	if (m_EmissionSound) {

@@ -226,7 +226,7 @@ namespace RTE {
 		/// Is only applicable to objects that are not original presets and haven't been altered since they were copied from their original.
 		/// @param writer A Writer that the Entity will save itself to.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int SavePresetCopy(Writer& writer) const;
+		int SavePresetReference(Writer& writer) const;
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -263,6 +263,11 @@ namespace RTE {
 		/// Sets the plain text description of this Entity's data Preset. Shouldn't be more than a couple of sentences.
 		/// @param newDesc A string reference with the preset description.
 		void SetDescription(const std::string& newDesc) { m_PresetDescription = newDesc; }
+
+		/// Gets a complete description of the entity, first class name, then module name (if defined in module), finally preset name, each seperated with a '/'.
+		/// This is useful for saving written references to a preset in a short and distinct form.
+		/// @return A string with the module and instance name of this Entity.
+		std::string GetEntityCharacteristic() const;
 
 		/// Gets the name of this Entity's data Preset, preceded by the name of the Data Module it was defined in, separated with a '/'.
 		/// @return A string with the module and instance name of this Entity.

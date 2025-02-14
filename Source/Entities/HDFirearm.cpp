@@ -324,6 +324,47 @@ int HDFirearm::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t HDFirearm::Hash() const {
+	uint64_t hash = HeldDevice::Hash();
+	hash ^= m_pMagazine->Hash() << 1;
+	hash ^= m_pFlash->Hash() << 1;
+	hash ^= m_PreFireSound->Hash() << 1;
+	hash ^= m_FireSound->Hash() << 1;
+	hash ^= m_FireEchoSound->Hash() << 1;
+	hash ^= m_ActiveSound->Hash() << 1;
+	hash ^= m_DeactivationSound->Hash() << 1;
+	hash ^= m_EmptySound->Hash() << 1;
+	hash ^= m_ReloadStartSound->Hash() << 1;
+	hash ^= m_ReloadEndSound->Hash() << 1;
+	hash ^= std::hash<float>{}(m_ReloadEndOffset) << 1;
+	hash ^= std::hash<int>{}(m_RateOfFire) << 1;
+	hash ^= std::hash<int>{}(m_ActivationDelay) << 1;
+	hash ^= std::hash<int>{}(m_DeactivationDelay) << 1;
+	hash ^= std::hash<int>{}(m_BaseReloadTime) << 1;
+	hash ^= std::hash<bool>{}(m_FullAuto) << 1;
+	hash ^= std::hash<bool>{}(m_FireIgnoresThis) << 1;
+	hash ^= std::hash<bool>{}(m_Reloadable) << 1;
+	hash ^= std::hash<bool>{}(m_DualReloadable) << 1;
+	hash ^= std::hash<float>{}(m_OneHandedReloadTimeMultiplier) << 1;
+	hash ^= std::hash<float>{}(m_ReloadAngle) << 1;
+	hash ^= std::hash<float>{}(m_OneHandedReloadAngle) << 1;
+	hash ^= std::hash<float>{}(m_JointStiffness) << 1;
+	hash ^= std::hash<bool>{}(m_IsAnimatedManually) << 1;
+	hash ^= std::hash<float>{}(m_ShakeRange) << 1;
+	hash ^= std::hash<float>{}(m_SharpShakeRange) << 1;
+	hash ^= std::hash<float>{}(m_NoSupportFactor) << 1;
+	hash ^= std::hash<float>{}(m_ParticleSpreadRange) << 1;
+	hash ^= std::hash<float>{}(m_ShellEjectAngle) << 1;
+	hash ^= std::hash<float>{}(m_ShellSpreadRange) << 1;
+	hash ^= std::hash<float>{}(m_ShellAngVelRange) << 1;
+	hash ^= std::hash<float>{}(m_ShellVelVariation) << 1;
+	hash ^= std::hash<float>{}(m_RecoilScreenShakeAmount) << 1;
+	hash ^= m_MuzzleOff.Hash() << 1;
+	hash ^= m_EjectOff.Hash() << 1;
+	hash ^= std::hash<bool>{}(m_LegacyCompatibilityRoundsAlwaysFireUnflipped) << 1;
+	return hash;
+}
+
 void HDFirearm::Destroy(bool notInherited) {
 	if (m_PreFireSound) {
 		m_PreFireSound->Stop();

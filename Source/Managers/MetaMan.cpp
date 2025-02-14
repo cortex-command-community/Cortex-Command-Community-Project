@@ -263,19 +263,19 @@ int MetaMan::Save(Writer& writer) const {
 
 	if (m_TeamCount >= 1) {
 		writer.NewProperty("Team1Icon");
-		m_TeamIcons[Activity::TeamOne].SavePresetCopy(writer);
+		m_TeamIcons[Activity::TeamOne].SavePresetReference(writer);
 	}
 	if (m_TeamCount >= 2) {
 		writer.NewProperty("Team2Icon");
-		m_TeamIcons[Activity::TeamTwo].SavePresetCopy(writer);
+		m_TeamIcons[Activity::TeamTwo].SavePresetReference(writer);
 	}
 	if (m_TeamCount >= 3) {
 		writer.NewProperty("Team3Icon");
-		m_TeamIcons[Activity::TeamThree].SavePresetCopy(writer);
+		m_TeamIcons[Activity::TeamThree].SavePresetReference(writer);
 	}
 	if (m_TeamCount >= 4) {
 		writer.NewProperty("Team4Icon");
-		m_TeamIcons[Activity::TeamFour].SavePresetCopy(writer);
+		m_TeamIcons[Activity::TeamFour].SavePresetReference(writer);
 	}
 
 	writer.NewPropertyWithValue("CurrentRound", m_CurrentRound);
@@ -298,6 +298,10 @@ int MetaMan::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("CurrentOffensive", m_CurrentOffensive);
 	writer.NewPropertyWithValue("MetaGUI", m_pMetaGUI);
 
+	return 0;
+}
+
+uint64_t MetaMan::Hash() const {
 	return 0;
 }
 

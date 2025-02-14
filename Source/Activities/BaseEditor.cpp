@@ -70,6 +70,11 @@ int BaseEditor::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t BaseEditor::Hash() const {
+	// If we don't save any distinguishing characteristics, at all, then this may as well be
+	return Activity::Hash();
+}
+
 void BaseEditor::Destroy(bool notInherited) {
 	delete m_pEditorGUI;
 

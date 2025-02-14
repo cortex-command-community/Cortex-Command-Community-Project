@@ -265,6 +265,12 @@ int BunkerAssembly::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t BunkerAssembly::Hash() const {
+	uint64_t hash = TerrainObject::Hash();
+	// TODO: THIS
+	return hash;
+}
+
 void BunkerAssembly::Destroy(bool notInherited) {
 	for (std::list<SceneObject*>::iterator oItr = m_PlacedObjects.begin(); oItr != m_PlacedObjects.end(); ++oItr) {
 		delete (*oItr);

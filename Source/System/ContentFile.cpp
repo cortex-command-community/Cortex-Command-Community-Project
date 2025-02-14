@@ -75,6 +75,10 @@ int ContentFile::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t ContentFile::Hash() const {
+	return RTE::Hash(m_DataPath);
+}
+
 int ContentFile::GetDataModuleID() const {
 	return (m_DataModuleID < 0) ? g_PresetMan.GetModuleIDFromPath(m_DataPath) : m_DataModuleID;
 }
@@ -93,7 +97,7 @@ void ContentFile::SetDataPath(const std::string& newDataPath) {
 }
 
 size_t ContentFile::GetHash() const {
-	return Hash(m_DataPath);
+	return RTE::Hash(m_DataPath);
 }
 
 void ContentFile::SetFormattedReaderPosition(const std::string& newPosition) {

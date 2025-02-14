@@ -276,7 +276,7 @@ int Activity::Save(Writer& writer) const {
 			writer.NewProperty("Team" + teamNum + "Name");
 			writer << m_TeamNames[team];
 			writer.NewProperty("Team" + teamNum + "Icon");
-			m_TeamIcons[team].SavePresetCopy(writer);
+			m_TeamIcons[team].SavePresetReference(writer);
 		}
 	}
 
@@ -284,6 +284,38 @@ int Activity::Save(Writer& writer) const {
 	writer << m_SavedValues;
 
 	return 0;
+}
+
+uint64_t Activity::Hash() const {
+	uint64_t hash = RTE::Hash(m_Description);
+	hash ^= RTE::Hash(m_SceneName) << 1;
+	hash ^= std::hash<int>{}(m_MaxPlayerSupport) << 2;
+	hash ^= std::hash<int>{}(m_MinTeamsRequired) << 3;
+	hash ^= std::hash<int>{}(m_Difficulty) << 4;
+	hash ^= std::hash<bool>{}(m_CraftOrbitAtTheEdge) << 5;
+	hash ^= std::hash<int>{}(m_InCampaignStage) << 6;
+	hash ^= std::hash<ActivityState>{}(m_ActivityState) << 7;
+	hash ^= std::hash<bool>{}(m_AllowsUserSaving) << 8;
+
+	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
+		if (m_IsActive[player]) {
+			hash ^= std::hash<int>{}(m_Team[player]) << (4 * player);
+			hash ^= std::hash<float>{}(m_FundsContribution[player]) << (4 * player + 1);
+			hash ^= std::hash<float>{}(m_TeamFundsShare[player]) << (4 * player + 2);
+			hash ^= std::hash<bool>{}(m_IsHuman[player]) << (4 * player + 3);
+		}
+	}
+
+	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
+		if (m_TeamActive[team]) {
+			hash ^= std::hash<float>{}(m_TeamFunds[team]) << (4 * team);
+			hash ^= RTE::Hash(m_TeamNames[team]) << (4 * team + 1);
+			hash ^= RTE::Hash(m_TeamIcons[team].GetEntityCharacteristic()) << (4 * team + 2);
+		}
+	}
+
+	hash ^= m_SavedValues.Hash() << 9;
+	return Entity::Hash() ^ (hash << 1);
 }
 
 int Activity::Start() {

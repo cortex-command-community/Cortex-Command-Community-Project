@@ -64,3 +64,8 @@ int InputMapping::Save(Writer& writer) const {
 
 	return 0;
 }
+
+uint64_t InputMapping::Hash() const {
+	// TODO: FINISH
+	return 0;
+}

@@ -81,3 +81,12 @@ int MetaSave::Save(Writer& writer) const {
 
 	return 0;
 }
+
+uint64_t MetaSave::Hash() const {
+	uint64_t hash = RTE::Hash(m_SavePath);
+	hash ^= std::hash<int>{}(m_PlayerCount) << 1;
+	hash ^= std::hash<int>{}(m_Difficulty) << 2;
+	hash ^= std::hash<int>{}(m_RoundCount) << 3;
+	hash ^= std::hash<int>{}(m_SiteCount) << 4;
+	return Entity::Hash() ^ (hash << 1);
+}

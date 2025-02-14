@@ -126,21 +126,34 @@ namespace RTE {
 		return 0;
 	}
 
-	int Entity::SavePresetCopy(Writer& writer) const {
-		// Can only save out copies with this
-		if (m_IsOriginalPreset) {
-			RTEAbort("Tried to save out a pure Preset Copy Reference from an original Preset!");
-			return -1;
+	uint64_t Entity::Hash() const {
+		uint64_t h_presetName = RTE::Hash(m_PresetName);
+		uint64_t h_inModule = std::hash<int>{}(m_DefinedInModule);
+		uint64_t h_groups = 0;
+		for (auto& group: m_Groups) {
+			h_groups ^= RTE::Hash(group);
 		}
-		writer.ObjectStart(GetClassName());
-		writer.NewPropertyWithValue("CopyOf", GetModuleAndPresetName());
-		writer.ObjectEnd();
+		/* Not precisely sure what of an entity's properties are reasonable to include in a hash.
+		* Including preset originality immediately breaks hash parity (?) between preset and instance.
+		uint64_t h_original = std::hash<bool>{}(m_IsOriginalPreset);
+		uint64_t h_description = RTE::Hash(m_PresetDescription);
+		uint64_t h_randomWeight = std::hash<int>{}(m_RandomWeight);
+		*/
+		return h_presetName ^ (h_inModule << 1) ^ (h_groups << 2);
+	}
+
+	int Entity::SavePresetReference(Writer& writer) const {
+		writer << GetEntityCharacteristic();
 
 		return 0;
 	}
 
 	const Entity* Entity::GetPreset() const {
 		return g_PresetMan.GetEntityPreset(GetClassName(), GetPresetName(), m_DefinedInModule);
+	}
+
+	std::string Entity::GetEntityCharacteristic() const {
+		return GetClassName() + "/" + GetModuleAndPresetName();
 	}
 
 	std::string Entity::GetModuleAndPresetName() const {

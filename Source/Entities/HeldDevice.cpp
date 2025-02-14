@@ -229,6 +229,22 @@ int HeldDevice::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t HeldDevice::Hash() const {
+	uint64_t hash = Attachable::Hash();
+	hash ^= std::hash<bool>{}(m_OneHanded) << 1;
+	hash ^= m_StanceOffset.Hash() << 2;
+	hash ^= m_SharpStanceOffset.Hash() << 3;
+	hash ^= std::hash<bool>{}(m_Supportable) << 4;
+	hash ^= m_SupportOffset.Hash() << 5;
+	hash ^= std::hash<bool>{}(m_UseSupportOffsetWhileReloading) << 6;
+	hash ^= std::hash<float>{}(m_GripStrengthMultiplier) << 7;
+	hash ^= std::hash<float>{}(m_MaxSharpLength) << 8;
+	hash ^= std::hash<float>{}(m_Loudness) << 9;
+	hash ^= std::hash<bool>{}(m_GetsHitByMOsWhenHeld) << 10;
+	hash ^= std::hash<float>{}(m_VisualRecoilMultiplier) << 11;
+	return hash;
+}
+
 void HeldDevice::Destroy(bool notInherited) {
 
 	if (!notInherited)

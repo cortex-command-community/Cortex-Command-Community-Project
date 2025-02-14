@@ -67,6 +67,14 @@ int Box::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t Box::Hash() const {
+	uint64_t h_corner = m_Corner.Hash();
+	uint64_t h_width = std::hash<float>{}(m_Width);
+	uint64_t h_height = std::hash<float>{}(m_Height);
+
+	return h_corner ^ (h_width << 1) ^ (h_height << 2);
+}
+
 void Box::Unflip() {
 	if (m_Width < 0) {
 		m_Width = -m_Width;

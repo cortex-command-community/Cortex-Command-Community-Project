@@ -97,6 +97,16 @@ int Scene::Area::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t Scene::Area::Hash() const {
+	uint64_t h_boxes = 0;
+
+	for (int i = 0; i < m_BoxList.size(); i++) {
+		h_boxes ^= m_BoxList.at(i)->Hash() << (i % sizeof(uint64_t) * 8);
+	}
+
+	return RTE::Hash(m_Name) ^ (h_boxes << 1);
+}
+
 void Scene::Area::Destroy(bool notInherited) {
 	for (Box* box: m_BoxList) {
 		delete box;
@@ -1106,7 +1116,7 @@ int Scene::Save(Writer& writer) const {
 
 	for (std::list<SLBackground*>::const_iterator slItr = m_BackLayerList.begin(); slItr != m_BackLayerList.end(); ++slItr) {
 		writer.NewProperty("AddBackgroundLayer");
-		(*slItr)->SavePresetCopy(writer);
+		(*slItr)->SavePresetReference(writer);
 	}
 	if (!m_UnseenPixelSize[Activity::TeamOne].IsZero()) {
 		writer.NewProperty("AllUnseenPixelSizeTeam1");
@@ -1167,6 +1177,88 @@ int Scene::Save(Writer& writer) const {
 	writer << m_GlobalAcc;
 
 	return 0;
+}
+
+uint64_t Scene::Hash() const {
+	uint64_t hash = m_Location.Hash();
+	hash ^= std::hash<bool>{}(m_MetagamePlayable) << 1;
+
+	if (m_MetasceneParent.length() <= 0) {
+		hash ^= m_PreviewBitmapFile.Hash() << 2;
+	}
+
+	if (m_MetasceneParent.length() > 0) {
+		hash ^= RTE::Hash(m_MetasceneParent) << 3;
+	}
+
+	hash ^= std::hash<bool>{}(m_IsMetagameInternal) << 4;
+	hash ^= std::hash<bool>{}(m_IsSavedGameInternal) << 5;
+	hash ^= std::hash<bool>{}(m_Revealed) << 6;
+	hash ^= std::hash<int>{}(m_OwnedByTeam) << 7;
+	hash ^= std::hash<float>{}(m_RoundIncome) << 8;
+
+	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+		hash ^= std::hash<float>{}(m_BuildBudget[player]) << (9 + player * 4);
+		hash ^= std::hash<float>{}(m_BuildBudgetRatio[player]) << (10 + player * 4);
+		if (m_ResidentBrains[player]) {
+			hash ^= m_ResidentBrains[player]->Hash() << (11 + player * 4);
+		}
+	}
+
+	hash ^= std::hash<bool>{}(m_AutoDesigned) << 12;
+	hash ^= std::hash<bool>{}(m_TotalInvestment) << 13;
+	hash ^= std::hash<bool>{}(m_pTerrain) << 14;
+
+	for (int set = PlacedObjectSets::PLACEONLOAD; set < PlacedObjectSets::PLACEDSETSCOUNT; ++set) {
+		for (const SceneObject* placedObject: m_PlacedObjects[set]) {
+			/* Uhh, pass, I'll figure this out later */
+		}
+	}
+
+	for (std::list<SLBackground*>::const_iterator slItr = m_BackLayerList.begin(); slItr != m_BackLayerList.end(); ++slItr) {
+		hash ^= RTE::Hash((*slItr)->GetEntityCharacteristic()) << 15;
+	}
+	if (!m_UnseenPixelSize[Activity::TeamOne].IsZero()) {
+		hash ^= m_UnseenPixelSize[Activity::TeamOne].Hash() << 0;
+	}
+	if (!m_UnseenPixelSize[Activity::TeamTwo].IsZero()) {
+		hash ^= m_UnseenPixelSize[Activity::TeamTwo].Hash() << 1;
+	}
+	if (!m_UnseenPixelSize[Activity::TeamThree].IsZero()) {
+		hash ^= m_UnseenPixelSize[Activity::TeamThree].Hash() << 2;
+	}
+	if (!m_UnseenPixelSize[Activity::TeamFour].IsZero()) {
+		hash ^= m_UnseenPixelSize[Activity::TeamFour].Hash() << 3;
+	}
+	if (m_apUnseenLayer[Activity::TeamOne]) {
+		hash ^= m_apUnseenLayer[Activity::TeamOne]->Hash() << 4;
+	}
+	if (m_apUnseenLayer[Activity::TeamTwo]) {
+		hash ^= m_apUnseenLayer[Activity::TeamTwo]->Hash() << 5;
+	}
+	if (m_apUnseenLayer[Activity::TeamThree]) {
+		hash ^= m_apUnseenLayer[Activity::TeamThree]->Hash() << 6;
+	}
+	if (m_apUnseenLayer[Activity::TeamFour]) {
+		hash ^= m_apUnseenLayer[Activity::TeamFour]->Hash() << 7;
+	}
+	if (m_ScanScheduled[Activity::TeamOne]) {
+		hash ^= std::hash<bool>{}(m_ScanScheduled[Activity::TeamOne]) << 8;
+	}
+	if (m_ScanScheduled[Activity::TeamTwo]) {
+		hash ^= std::hash<bool>{}(m_ScanScheduled[Activity::TeamTwo]) << 9;
+	}
+	if (m_ScanScheduled[Activity::TeamThree]) {
+		hash ^= std::hash<bool>{}(m_ScanScheduled[Activity::TeamThree]) << 10;
+	}
+	if (m_ScanScheduled[Activity::TeamFour]) {
+		hash ^= std::hash<bool>{}(m_ScanScheduled[Activity::TeamFour]) << 11;
+	}
+	for (Area* area: m_AreaList) {
+		hash ^= area->Hash() << 12;
+	}
+	hash ^= m_GlobalAcc.Hash() << 13;
+	return Entity::Hash() ^ (hash << 1);
 }
 
 void Scene::SaveSceneObject(Writer& writer, const SceneObject* sceneObjectToSave, bool isChildAttachable, bool saveFullData) const {

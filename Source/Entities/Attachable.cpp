@@ -179,7 +179,7 @@ int Attachable::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("InheritsHFlipped", ((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2));
 	writer.NewPropertyWithValue("InheritsRotAngle", m_InheritsRotAngle);
 	writer.NewPropertyWithValue("InheritedRotAngleOffset", m_InheritedRotAngleOffset);
-  writer.NewPropertyWithValue("MountedRotAngleOffset", m_MountedRotAngleOffset);
+	writer.NewPropertyWithValue("MountedRotAngleOffset", m_MountedRotAngleOffset);
 	writer.NewPropertyWithValue("InheritsVelWhenDetached", m_InheritsVelWhenDetached);
 	writer.NewPropertyWithValue("InheritsAngularVelWhenDetached", m_InheritsAngularVelWhenDetached);
 
@@ -191,6 +191,35 @@ int Attachable::Save(Writer& writer) const {
 	}
 
 	return 0;
+}
+
+uint64_t Attachable::Hash() const {
+	uint64_t hash = MOSRotating::Hash();
+	hash ^= m_ParentOffset.Hash() << 1;
+	hash ^= std::hash<bool>{}(m_DrawAfterParent) << 2;
+	hash ^= std::hash<bool>{}(m_DeleteWhenRemovedFromParent) << 3;
+	hash ^= std::hash<bool>{}(m_GibWhenRemovedFromParent) << 4;
+	hash ^= std::hash<bool>{}(m_ApplyTransferredForcesAtOffset) << 5;
+	hash ^= std::hash<float>{}(m_JointStrength) << 6;
+	hash ^= std::hash<float>{}(m_JointStiffness) << 7;
+	hash ^= m_JointOffset.Hash() << 8;
+	hash ^= RTE::Hash(m_BreakWound->GetEntityCharacteristic()) << 9;
+	hash ^= RTE::Hash(m_ParentBreakWound->GetEntityCharacteristic()) << 10;
+	hash ^= std::hash<int>{}((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2) << 11;
+	hash ^= std::hash<bool>{}(m_InheritsRotAngle) << 12;
+	hash ^= std::hash<float>{}(m_InheritedRotAngleOffset) << 13;
+	hash ^= std::hash<float>{}(m_MountedRotAngleOffset) << 14;
+	hash ^= std::hash<bool>{}(m_InheritsVelWhenDetached) << 15;
+	hash ^= std::hash<bool>{}(m_InheritsAngularVelWhenDetached) << 0;
+	hash ^= std::hash<bool>{}(m_CollidesWithTerrainWhileAttached) << 1;
+	hash ^= std::hash<bool>{}(m_IgnoresParticlesWhileAttached) << 2;
+	int i = 0;
+
+	for (const std::unique_ptr<PieSlice>& pieSlice: m_PieSlices) {
+		hash ^= pieSlice->Hash() << (i++ % sizeof(uint64_t) * 8);
+	}
+
+	return hash;
 }
 
 bool Attachable::TransferJointForces(Vector& jointForces) {

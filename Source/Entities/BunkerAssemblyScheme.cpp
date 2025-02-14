@@ -209,6 +209,17 @@ int BunkerAssemblyScheme::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t BunkerAssemblyScheme::Hash() const {
+	uint64_t hash = m_BitmapFile.Hash();
+	int i = 0;
+
+	for (std::list<SOPlacer>::const_iterator itr = m_ChildObjects.begin(); itr != m_ChildObjects.end(); ++itr) {
+		hash ^= (*itr).Hash() << (i++ % sizeof(uint64_t) * 8);
+	}
+
+	return SceneObject::Hash() ^ (hash << 1);
+}
+
 void BunkerAssemblyScheme::Destroy(bool notInherited) {
 	// Probably no need to delete those, as bitmaps are only created when preset is read from file
 	// and then they just copy pointers in via Clone()

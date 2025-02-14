@@ -119,6 +119,18 @@ int Arm::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t Arm::Hash() const {
+	uint64_t hash = Attachable::Hash();
+	hash ^= std::hash<float>{}(m_MaxLength) << 1;
+	hash ^= std::hash<float>{}(m_MoveSpeed) << 2;
+	hash ^= m_HandIdleOffset.Hash() << 3;
+	hash ^= m_HandSpriteFile.Hash() << 4;
+	hash ^= std::hash<float>{}(m_GripStrength) << 5;
+	hash ^= std::hash<float>{}(m_ThrowStrength) << 6;
+	hash ^= m_HeldDevice->Hash() << 4;
+	return hash;
+}
+
 void Arm::SetHandPos(const Vector& newHandPos) {
 	SetHandCurrentOffset(g_SceneMan.ShortestDistance(m_JointPos, newHandPos, g_SceneMan.SceneWrapsX() || g_SceneMan.SceneWrapsY()));
 }

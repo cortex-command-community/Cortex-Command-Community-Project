@@ -80,6 +80,11 @@ int SceneEditor::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t SceneEditor::Hash() const {
+	// If we don't save any distinguishing characteristics, at all, then this may as well be
+	return EditorActivity::Hash();
+}
+
 void SceneEditor::Destroy(bool notInherited) {
 	delete m_pEditorGUI;
 

@@ -93,6 +93,19 @@ int ThrownDevice::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t ThrownDevice::Hash() const {
+	uint64_t hash = HeldDevice::Hash();
+	hash ^= m_ActivationSound->Hash() << 1;
+	hash ^= m_StartThrowOffset.Hash() << 2;
+	hash ^= m_EndThrowOffset.Hash() << 3;
+	hash ^= std::hash<float>{}(m_MinThrowVel) << 4;
+	hash ^= std::hash<float>{}(m_MaxThrowVel) << 5;
+	hash ^= std::hash<long>{}(m_TriggerDelay) << 6;
+	hash ^= std::hash<bool>{}(m_ActivatesWhenReleased) << 7;
+	hash ^= RTE::Hash(m_StrikerLever->GetEntityCharacteristic()) << 8;
+	return hash;
+}
+
 float ThrownDevice::GetCalculatedMaxThrowVelIncludingArmThrowStrength() {
 	if (m_MaxThrowVel > 0) {
 		return m_MaxThrowVel;

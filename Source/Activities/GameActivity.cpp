@@ -261,6 +261,19 @@ int GameActivity::Save(Writer& writer) const {
 	return 0;
 }
 
+uint64_t GameActivity::Hash() const {
+	uint64_t hash = std::hash<int>{}(m_CPUTeam);
+	hash ^= std::hash<long>{}(m_DeliveryDelay) << 1;
+	hash ^= std::hash<bool>{}(m_BuyMenuEnabled) << 2;
+
+	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
+		if (m_TeamActive[team]) {
+			hash ^= RTE::Hash(GetTeamTech(team)) << (team + 3);
+		}
+	}
+	return Activity::Hash() ^ (hash << 1);
+}
+
 void GameActivity::Destroy(bool notInherited) {
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 		delete m_InventoryMenuGUI[player];
