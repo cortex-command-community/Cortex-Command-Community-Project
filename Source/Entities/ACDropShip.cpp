@@ -152,12 +152,12 @@ int ACDropShip::Save(Writer& writer) const {
 
 uint64_t ACDropShip::Hash() const {
 	uint64_t hash = ACraft::Hash();
-	hash ^= m_pRThruster->Hash() << 1;
-	hash ^= m_pLThruster->Hash() << 2;
-	hash ^= m_pURThruster->Hash() << 3;
-	hash ^= m_pULThruster->Hash() << 4;
-	hash ^= m_pRHatch->Hash() << 5;
-	hash ^= m_pLHatch->Hash() << 6;
+	hash ^= (m_pRThruster ? m_pRThruster->Hash() : 0) << 1;
+	hash ^= (m_pLThruster ? m_pLThruster->Hash() : 0) << 2;
+	hash ^= (m_pURThruster ? m_pURThruster->Hash() : 0) << 3;
+	hash ^= (m_pULThruster ? m_pULThruster->Hash() : 0) << 4;
+	hash ^= (m_pRHatch ? m_pRHatch->Hash() : 0) << 5;
+	hash ^= (m_pLHatch ? m_pLHatch->Hash() : 0) << 6;
 	hash ^= m_HatchSwingRange.Hash() << 7;
 	hash ^= std::hash<int>{}(m_AutoStabilize) << 8;
 	hash ^= std::hash<float>{}(m_MaxEngineAngle) << 9;

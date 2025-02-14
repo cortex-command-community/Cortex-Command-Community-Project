@@ -232,9 +232,9 @@ uint64_t AEmitter::Hash() const {
 		hash ^= emission->Hash() << (i++ % sizeof(uint64_t) * 8);
 	}
 
-	hash ^= m_EmissionSound->Hash() << 1;
-	hash ^= m_BurstSound->Hash() << 2;
-	hash ^= m_EndSound->Hash() << 3;
+	hash ^= (m_EmissionSound ? m_EmissionSound->Hash() : 0) << 1;
+	hash ^= (m_BurstSound ? m_BurstSound->Hash() : 0) << 2;
+	hash ^= (m_EndSound ? m_EndSound->Hash() : 0) << 3;
 	hash ^= std::hash<bool>{}(m_EmitEnabled) << 4;
 	hash ^= std::hash<int>{}(m_EmitCount) << 5;
 	hash ^= std::hash<long>{}(m_EmitCountLimit) << 6;
@@ -251,7 +251,7 @@ uint64_t AEmitter::Hash() const {
 	hash ^= m_EmitAngle.Hash() << 1;
 	hash ^= m_EmissionOffset.Hash() << 2;
 	hash ^= std::hash<float>{}(m_EmitDamage) << 3;
-	hash ^= m_pFlash->Hash() << 4;
+	hash ^= (m_pFlash ? m_pFlash->Hash() : 0) << 4;
 	hash ^= std::hash<float>{}(m_FlashScale) << 5;
 	hash ^= std::hash<bool>{}(m_FlashOnlyOnBurst) << 6;
 	hash ^= std::hash<bool>{}(m_SustainBurstSound) << 7;

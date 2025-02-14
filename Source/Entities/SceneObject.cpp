@@ -93,7 +93,7 @@ int SceneObject::SOPlacer::Save(Writer& writer) const {
 }
 
 uint64_t SceneObject::SOPlacer::Hash() const {
-	uint64_t hash = RTE::Hash(m_pObjectReference->GetEntityCharacteristic());
+	uint64_t hash = (m_pObjectReference ? RTE::Hash(m_pObjectReference->GetEntityCharacteristic()) : 0);
 	hash ^= m_Offset.Hash() << 1;
 	hash ^= std::hash<float>{}(m_RotAngle) << 2;
 	hash ^= std::hash<bool>{}(m_HFlipped) << 3;

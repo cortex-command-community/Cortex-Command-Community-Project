@@ -364,17 +364,17 @@ int ACrab::Save(Writer& writer) const {
 
 uint64_t ACrab::Hash() const {
 	uint64_t hash = Actor::Hash();
-	hash ^= m_pTurret->Hash() << 1;
-	hash ^= m_pJetpack->Hash() << 2;
-	hash ^= m_pLFGLeg->Hash() << 3;
-	hash ^= m_pLBGLeg->Hash() << 4;
-	hash ^= m_pRFGLeg->Hash() << 5;
-	hash ^= m_pRBGLeg->Hash() << 6;
-	hash ^= m_pLFGFootGroup->Hash() << 7;
-	hash ^= m_pLBGFootGroup->Hash() << 8;
-	hash ^= m_pRFGFootGroup->Hash() << 9;
-	hash ^= m_pRBGFootGroup->Hash() << 10;
-	hash ^= m_StrideSound->Hash() << 11;
+	hash ^= (m_pTurret ? m_pTurret->Hash() : 0) << 1;
+	hash ^= (m_pJetpack ? m_pJetpack->Hash() : 0) << 2;
+	hash ^= (m_pLFGLeg ? m_pLFGLeg->Hash() : 0) << 3;
+	hash ^= (m_pLBGLeg ? m_pLBGLeg->Hash() : 0) << 4;
+	hash ^= (m_pRFGLeg ? m_pRFGLeg->Hash() : 0) << 5;
+	hash ^= (m_pRBGLeg ? m_pRBGLeg->Hash() : 0) << 6;
+	hash ^= (m_pLFGFootGroup ? m_pLFGFootGroup->Hash() : 0) << 7;
+	hash ^= (m_pLBGFootGroup ? m_pLBGFootGroup->Hash() : 0) << 8;
+	hash ^= (m_pRFGFootGroup ? m_pRFGFootGroup->Hash() : 0) << 9;
+	hash ^= (m_pRBGFootGroup ? m_pRBGFootGroup->Hash() : 0) << 10;
+	hash ^= (m_StrideSound ? m_StrideSound->Hash() : 0) << 11;
 	hash ^= m_Paths[LEFTSIDE][FGROUND][STAND].Hash() << 12;
 	hash ^= m_Paths[LEFTSIDE][FGROUND][WALK].Hash() << 13;
 	hash ^= m_Paths[LEFTSIDE][FGROUND][DISLODGE].Hash() << 14;

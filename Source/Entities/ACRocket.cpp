@@ -216,15 +216,15 @@ int ACRocket::Save(Writer& writer) const {
 
 uint64_t ACRocket::Hash() const {
 	uint64_t hash = ACraft::Hash();
-	hash ^= m_pRLeg->Hash() << 1;
-	hash ^= m_pLLeg->Hash() << 2;
-	hash ^= m_pRFootGroup->Hash() << 3;
-	hash ^= m_pLFootGroup->Hash() << 4;
-	hash ^= m_pMThruster->Hash() << 5;
-	hash ^= m_pRThruster->Hash() << 6;
-	hash ^= m_pLThruster->Hash() << 7;
-	hash ^= m_pURThruster->Hash() << 8;
-	hash ^= m_pULThruster->Hash() << 9;
+	hash ^= (m_pRLeg ? m_pRLeg->Hash() : 0) << 1;
+	hash ^= (m_pLLeg ? m_pLLeg->Hash() : 0) << 2;
+	hash ^= (m_pRFootGroup ? m_pRFootGroup->Hash() : 0) << 3;
+	hash ^= (m_pLFootGroup ? m_pLFootGroup->Hash() : 0) << 4;
+	hash ^= (m_pMThruster ? m_pMThruster->Hash() : 0) << 5;
+	hash ^= (m_pRThruster ? m_pRThruster->Hash() : 0) << 6;
+	hash ^= (m_pLThruster ? m_pLThruster->Hash() : 0) << 7;
+	hash ^= (m_pURThruster ? m_pURThruster->Hash() : 0) << 8;
+	hash ^= (m_pULThruster ? m_pULThruster->Hash() : 0) << 9;
 	hash ^= m_Paths[RIGHT][RAISED].Hash() << 10;
 	hash ^= m_Paths[RIGHT][LOWERED].Hash() << 11;
 	hash ^= m_Paths[RIGHT][LOWERING].Hash() << 12;

@@ -119,7 +119,7 @@ int Leg::Save(Writer& writer) const {
 
 uint64_t Leg::Hash() const {
 	uint64_t hash = Attachable::Hash();
-	hash ^= m_Foot->Hash() << 1;
+	hash ^= (m_Foot ? m_Foot->Hash() : 0) << 1;
 	hash ^= m_ContractedOffset.Hash() << 2;
 	hash ^= m_ExtendedOffset.Hash() << 3;
 	hash ^= m_IdleOffset.Hash() << 4;

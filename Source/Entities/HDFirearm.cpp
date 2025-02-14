@@ -326,16 +326,16 @@ int HDFirearm::Save(Writer& writer) const {
 
 uint64_t HDFirearm::Hash() const {
 	uint64_t hash = HeldDevice::Hash();
-	hash ^= m_pMagazine->Hash() << 1;
-	hash ^= m_pFlash->Hash() << 1;
-	hash ^= m_PreFireSound->Hash() << 1;
-	hash ^= m_FireSound->Hash() << 1;
-	hash ^= m_FireEchoSound->Hash() << 1;
-	hash ^= m_ActiveSound->Hash() << 1;
-	hash ^= m_DeactivationSound->Hash() << 1;
-	hash ^= m_EmptySound->Hash() << 1;
-	hash ^= m_ReloadStartSound->Hash() << 1;
-	hash ^= m_ReloadEndSound->Hash() << 1;
+	hash ^= (m_pMagazine ? m_pMagazine->Hash() : 0) << 1;
+	hash ^= (m_pFlash ? m_pFlash->Hash() : 0) << 1;
+	hash ^= (m_PreFireSound ? m_PreFireSound->Hash() : 0) << 1;
+	hash ^= (m_FireSound ? m_FireSound->Hash() : 0) << 1;
+	hash ^= (m_FireEchoSound ? m_FireEchoSound->Hash() : 0) << 1;
+	hash ^= (m_ActiveSound ? m_ActiveSound->Hash() : 0) << 1;
+	hash ^= (m_DeactivationSound ? m_DeactivationSound->Hash() : 0) << 1;
+	hash ^= (m_EmptySound ? m_EmptySound->Hash() : 0) << 1;
+	hash ^= (m_ReloadStartSound ? m_ReloadStartSound->Hash() : 0) << 1;
+	hash ^= (m_ReloadEndSound ? m_ReloadEndSound->Hash() : 0) << 1;
 	hash ^= std::hash<float>{}(m_ReloadEndOffset) << 1;
 	hash ^= std::hash<int>{}(m_RateOfFire) << 1;
 	hash ^= std::hash<int>{}(m_ActivationDelay) << 1;

@@ -124,13 +124,13 @@ int Round::Save(Writer& writer) const {
 }
 
 uint64_t Round::Hash() const {
-	uint64_t hash = RTE::Hash(m_Particle->GetEntityCharacteristic());
+	uint64_t hash = (m_Particle ? RTE::Hash(m_Particle->GetEntityCharacteristic()) : 0);
 	hash ^= std::hash<int>{}(m_ParticleCount) << 1;
 	hash ^= std::hash<float>{}(m_FireVel) << 2;
 	hash ^= std::hash<bool>{}(m_InheritsFirerVelocity) << 3;
 	hash ^= std::hash<float>{}(m_Separation) << 4;
 	hash ^= std::hash<float>{}(m_LifeVariation) << 5;
-	hash ^= RTE::Hash(m_Shell->GetEntityCharacteristic()) << 6;
+	hash ^= (m_Shell ? RTE::Hash(m_Shell->GetEntityCharacteristic()) : 0) << 6;
 	hash ^= std::hash<float>{}(m_ShellVel) << 7;
 	hash ^= m_FireSound.Hash() << 8;
 	hash ^= std::hash<unsigned long>{}(m_AILifeTime) << 9;

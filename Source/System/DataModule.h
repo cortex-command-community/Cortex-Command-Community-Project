@@ -235,10 +235,11 @@ namespace RTE {
 		struct PresetEntry {
 			/// Constructor method used to instantiate a PresetEntry object in system memory.
 			PresetEntry(Entity* preset, const std::string& file) :
-			    m_EntityPreset(preset), m_FileReadFrom(file) {}
+			    m_EntityPreset(preset), m_FileReadFrom(file), m_Hash(preset->Hash()) {}
 
 			Entity* m_EntityPreset; //!< Owned by this.
 			std::string m_FileReadFrom; //!< Where the instance was read from.
+			uint64_t m_Hash; //!< The hash of the preset for later comparison.
 		};
 
 		bool m_IsUserdata; //!< Whether this DataModule contains userdata written by the game (e.g saved games or editor scenes), meaning it is not an official nor a 3rd party module and is ignored anywhere where that is relevant.

@@ -203,8 +203,8 @@ uint64_t Attachable::Hash() const {
 	hash ^= std::hash<float>{}(m_JointStrength) << 6;
 	hash ^= std::hash<float>{}(m_JointStiffness) << 7;
 	hash ^= m_JointOffset.Hash() << 8;
-	hash ^= RTE::Hash(m_BreakWound->GetEntityCharacteristic()) << 9;
-	hash ^= RTE::Hash(m_ParentBreakWound->GetEntityCharacteristic()) << 10;
+	hash ^= (m_BreakWound ? RTE::Hash(m_BreakWound->GetEntityCharacteristic()) : 0) << 9;
+	hash ^= (m_ParentBreakWound ? RTE::Hash(m_ParentBreakWound->GetEntityCharacteristic()) : 0) << 10;
 	hash ^= std::hash<int>{}((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2) << 11;
 	hash ^= std::hash<bool>{}(m_InheritsRotAngle) << 12;
 	hash ^= std::hash<float>{}(m_InheritedRotAngleOffset) << 13;

@@ -217,7 +217,7 @@ int SoundContainer::Save(Writer& writer) const {
 }
 
 uint64_t SoundContainer::Hash() const {
-	uint64_t hash = m_TopLevelSoundSet->Hash();
+	uint64_t hash = (m_TopLevelSoundSet ? m_TopLevelSoundSet->Hash() : 0);
 	hash ^= std::hash<int>{}(m_SoundOverlapMode) << 1;
 	hash ^= std::hash<int>{}(m_BusRouting) << 2;
 	hash ^= std::hash<bool>{}(m_Immobile) << 3;

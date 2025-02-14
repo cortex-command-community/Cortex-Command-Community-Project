@@ -377,8 +377,8 @@ int MOSRotating::Save(Writer& writer) const {
 
 uint64_t MOSRotating::Hash() const {
 	uint64_t hash = MOSprite::Hash();
-	hash ^= m_pAtomGroup->Hash() << 1;
-	hash ^= m_pDeepGroup->Hash() << 2;
+	hash ^= (m_pAtomGroup ? m_pAtomGroup->Hash() : 0) << 1;
+	hash ^= (m_pDeepGroup ? m_pDeepGroup->Hash() : 0) << 2;
 	hash ^= std::hash<bool>{}(m_DeepCheck) << 3;
 	hash ^= std::hash<float>{}(m_OrientToVel) << 4;
 	int i = 0;
@@ -402,7 +402,7 @@ uint64_t MOSRotating::Hash() const {
 	hash ^= std::hash<float>{}(m_GibImpulseLimit) << 5;
 	hash ^= std::hash<int>{}(m_GibWoundLimit) << 6;
 	hash ^= std::hash<bool>{}(m_GibAtEndOfLifetime) << 7;
-	hash ^= m_GibSound->Hash() << 8;
+	hash ^= (m_GibSound ? m_GibSound->Hash() : 0) << 8;
 	hash ^= std::hash<bool>{}(m_EffectOnGib) << 9;
 	return hash;
 }

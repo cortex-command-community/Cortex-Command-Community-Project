@@ -344,8 +344,8 @@ int ACraft::Save(Writer& writer) const {
 uint64_t ACraft::Hash() const {
 	uint64_t hash = Actor::Hash();
 	hash ^= std::hash<int>{}(m_HatchDelay) << 1;
-	hash ^= m_HatchOpenSound->Hash() << 2;
-	hash ^= m_HatchCloseSound->Hash() << 3;
+	hash ^= (m_HatchOpenSound ? m_HatchOpenSound->Hash() : 0) << 2;
+	hash ^= (m_HatchCloseSound ? m_HatchCloseSound->Hash() : 0) << 3;
 	int i = 0;
 
 	for (std::list<Exit>::const_iterator itr = m_Exits.begin(); itr != m_Exits.end(); ++itr) {
@@ -355,7 +355,7 @@ uint64_t ACraft::Hash() const {
 	hash ^= std::hash<int>{}(m_DeliveryDelayMultiplier) << 4;
 	hash ^= std::hash<long>{}(m_ExitInterval) << 5;
 	hash ^= std::hash<bool>{}(m_LandingCraft) << 6;
-	hash ^= m_CrashSound->Hash() << 7;
+	hash ^= (m_CrashSound ? m_CrashSound->Hash() : 0) << 7;
 	hash ^= std::hash<bool>{}(m_CanEnterOrbit) << 8;
 	hash ^= std::hash<int>{}(m_MaxPassengers) << 9;
 	hash ^= std::hash<int>{}(m_ScuttleIfFlippedTime) << 10;

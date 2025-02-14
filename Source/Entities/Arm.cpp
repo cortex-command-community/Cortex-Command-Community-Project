@@ -127,7 +127,7 @@ uint64_t Arm::Hash() const {
 	hash ^= m_HandSpriteFile.Hash() << 4;
 	hash ^= std::hash<float>{}(m_GripStrength) << 5;
 	hash ^= std::hash<float>{}(m_ThrowStrength) << 6;
-	hash ^= m_HeldDevice->Hash() << 4;
+	hash ^= (m_HeldDevice ? m_HeldDevice->Hash() : 0) << 4;
 	return hash;
 }
 

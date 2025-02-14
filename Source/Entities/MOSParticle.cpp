@@ -70,7 +70,7 @@ int MOSParticle::Save(Writer& writer) const {
 }
 
 uint64_t MOSParticle::Hash() const {
-	return MOSprite::Hash() ^ (m_Atom->Hash() << 1);
+	return MOSprite::Hash() ^ ((m_Atom ? m_Atom->Hash() : 0) << 1);
 }
 
 void MOSParticle::Destroy(bool notInherited) {

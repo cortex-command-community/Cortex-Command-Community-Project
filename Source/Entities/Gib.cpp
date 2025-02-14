@@ -68,33 +68,15 @@ int Gib::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Gib::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewProperty("GibParticle");
-	// All of this is needed to make a preset look like not original and save as CopyOf instead of separate preset.
-	std::unique_ptr<Entity> gibEntity(m_GibParticle->Clone());
-	gibEntity->ResetOriginalPresetFlag();
-	gibEntity->Entity::Save(writer);
-	writer.ObjectEnd();
-
-	writer.NewProperty("Offset");
-	writer << m_Offset;
-
-	// These are disabled because we're writing CopyOfs. Might need these in the future if we need to write original presets.
-	/*
-	writer.NewProperty("Count");
-	writer << m_Count;
-	writer.NewProperty("Spread");
-	writer << m_Spread;
-	writer.NewProperty("MinVelocity");
-	writer << GetMinVelocity();
-	writer.NewProperty("MaxVelocity");
-	writer << GetMaxVelocity();
-	writer.NewProperty("LifeVariation");
-	writer << m_LifeVariation;
-	writer.NewProperty("InheritsVel");
-	writer << m_InheritsVel;
-	writer.NewProperty("InheritsAngularVel");
-	writer << m_InheritsAngularVel;
-	*/
+	writer.NewPropertyWithValue("GibParticle", m_GibParticle->GetEntityCharacteristic());
+	writer.NewPropertyWithValue("Offset", m_Offset);
+	writer.NewPropertyWithValue("Count", m_Count);
+	writer.NewPropertyWithValue("Spread", m_Spread);
+	writer.NewPropertyWithValue("MinVelocity", GetMinVelocity());
+	writer.NewPropertyWithValue("MaxVelocity", GetMaxVelocity());
+	writer.NewPropertyWithValue("LifeVariation", m_LifeVariation);
+	writer.NewPropertyWithValue("InheritsVel", m_InheritsVel);
+	writer.NewPropertyWithValue("InheritsAngularVel", m_InheritsAngularVel);
 
 	return 0;
 }

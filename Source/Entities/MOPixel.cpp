@@ -108,7 +108,7 @@ int MOPixel::Save(Writer& writer) const {
 
 uint64_t MOPixel::Hash() const {
 	uint64_t hash = MovableObject::Hash();
-	hash ^= m_Atom->Hash() << 1;
+	hash ^= (m_Atom ? m_Atom->Hash() : 0) << 1;
 	hash ^= m_Color.Hash() << 2;
 	hash ^= std::hash<float>{}(m_MinLethalRange) << 3;
 	hash ^= std::hash<float>{}(m_MaxLethalRange) << 4;

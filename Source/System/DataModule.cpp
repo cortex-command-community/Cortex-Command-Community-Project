@@ -303,17 +303,18 @@ bool DataModule::AddEntityPreset(Entity* entityToAdd, bool overwriteSame, const 
 			// Make sure the existing one is still marked as the Original Preset
 			existingEntity->m_IsOriginalPreset = true;
 			// Alter the instance entry to reflect the data file location of the new definition
-			if (readFromFile != "Same") {
-				std::list<PresetEntry>::iterator itr = m_PresetList.begin();
-				for (; itr != m_PresetList.end(); ++itr) {
-					// When we find the correct entry, alter its data file location
-					if ((*itr).m_EntityPreset == existingEntity) {
+			std::list<PresetEntry>::iterator itr = m_PresetList.begin();
+			for (; itr != m_PresetList.end(); ++itr) {
+				// When we find the correct entry, alter its data file location
+				if ((*itr).m_EntityPreset == existingEntity) {
+					if (readFromFile != "Same") {
 						(*itr).m_FileReadFrom = readFromFile;
-						break;
 					}
+					(*itr).m_Hash = existingEntity->Hash();
+					break;
 				}
-				RTEAssert(itr != m_PresetList.end(), "Tried to alter allegedly existing Entity Preset Entry: " + entityToAdd->GetPresetName() + ", but couldn't find it in the list!");
 			}
+			RTEAssert(itr != m_PresetList.end(), "Tried to alter allegedly existing Entity Preset Entry: " + entityToAdd->GetPresetName() + ", but couldn't find it in the list!");
 			return true;
 		} else {
 			return false;

@@ -458,11 +458,11 @@ int Actor::Save(Writer& writer) const {
 uint64_t Actor::Hash() const {
 	uint64_t hash = MOSRotating::Hash();
 	hash ^= std::hash<bool>{}(m_PlayerControllable) << 1;
-	hash ^= m_BodyHitSound->Hash() << 2;
-	hash ^= m_AlarmSound->Hash() << 3;
-	hash ^= m_PainSound->Hash() << 4;
-	hash ^= m_DeathSound->Hash() << 5;
-	hash ^= m_DeviceSwitchSound->Hash() << 6;
+	hash ^= (m_BodyHitSound ? m_BodyHitSound->Hash() : 0) << 2;
+	hash ^= (m_AlarmSound ? m_AlarmSound->Hash() : 0) << 3;
+	hash ^= (m_PainSound ? m_PainSound->Hash() : 0) << 4;
+	hash ^= (m_DeathSound ? m_DeathSound->Hash() : 0) << 5;
+	hash ^= (m_DeviceSwitchSound ? m_DeviceSwitchSound->Hash() : 0) << 6;
 	hash ^= std::hash<int>{}(m_Status) << 7;
 	hash ^= std::hash<float>{}(m_Health) << 8;
 	hash ^= std::hash<float>{}(m_MaxHealth) << 9;
@@ -492,7 +492,7 @@ uint64_t Actor::Hash() const {
 
 	hash ^= std::hash<float>{}(m_MaxInventoryMass) << 12;
 	hash ^= std::hash<AIMode>{}(m_AIMode) << 13;
-	hash ^= m_PieMenu->Hash() << 14;
+	hash ^= (m_PieMenu ? m_PieMenu->Hash() : 0) << 14;
 	hash ^= std::hash<bool>{}(m_Organic) << 15;
 	hash ^= std::hash<bool>{}(m_Mechanical) << 0;
 	hash ^= std::hash<float>{}(m_AIBaseDigStrength) << 1;

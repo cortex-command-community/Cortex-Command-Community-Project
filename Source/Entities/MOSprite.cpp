@@ -243,8 +243,8 @@ uint64_t MOSprite::Hash() const {
 	hash ^= m_Rotation.Hash() << 7;
 	hash ^= std::hash<float>{}(m_AngularVel) << 8;
 	hash ^= std::hash<bool>{}(m_SettleMaterialDisabled) << 9;
-	hash ^= RTE::Hash(m_pEntryWound->GetEntityCharacteristic()) << 10;
-	hash ^= RTE::Hash(m_pExitWound->GetEntityCharacteristic()) << 11;
+	hash ^= (m_pEntryWound ? RTE::Hash(m_pEntryWound->GetEntityCharacteristic()) : 0) << 10;
+	hash ^= (m_pExitWound ? RTE::Hash(m_pExitWound->GetEntityCharacteristic()) : 0) << 11;
 	return hash;
 }
 
