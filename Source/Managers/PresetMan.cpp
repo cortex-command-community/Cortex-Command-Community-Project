@@ -383,7 +383,7 @@ const Entity* PresetMan::GetEntityPreset(Reader& reader) {
 	return pReturnPreset;
 }
 
-const Entity* PresetMan::GetEntityPresetFromCharacteristic(Reader& reader) {
+const Entity* PresetMan::GetEntityPresetFromCharacteristic(Reader& reader, bool failureAcceptable) {
 	std::string Characteristic;
 	reader >> Characteristic;
 
@@ -414,19 +414,19 @@ const Entity* PresetMan::GetEntityPresetFromCharacteristic(Reader& reader) {
 				pReturnPreset = m_pDataModules[i]->GetEntityPreset(ClassName, PresetName);
 
 			if (pReturnPreset) {
-				RTEError::AssertFunc("Could not find preset \"" + PresetName + "\" of type \"" + ClassName + "\" in module \"" + ModuleName + "\", for constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine() + 
+				RTEAssert(!failureAcceptable, "Could not find preset \"" + PresetName + "\" of type \"" + ClassName + "\" in module \"" + ModuleName + "\", for constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine() + 
 					"\nA preset of this type and name was found in official module \"" + pReturnPreset->GetModuleName() + "\", which will be used if this assertion is ignored, though the reference should be corrected if this is acceptable.", std::source_location::current());
 				
 				return pReturnPreset;
 			}
 
-			RTEAbort("Could not find preset \"" + PresetName + "\" of type \"" + ClassName + "\" in ANY module, including presented \"" + ModuleName + "\", for constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine())
+			if (!failureAcceptable) RTEAbort("Could not find preset \"" + PresetName + "\" of type \"" + ClassName + "\" in ANY module, including presented \"" + ModuleName + "\", for constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine())
 		}
 
-		RTEAbort("Unrecognized module name \"" + ModuleName + "\" while reading constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
+		if (!failureAcceptable) RTEAbort("Unrecognized module name \"" + ModuleName + "\" while reading constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
 	}
 
-	RTEAbort("Reading of constant reference \"" + Characteristic + "\" failed in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
+	if (!failureAcceptable) RTEAbort("Reading of constant reference \"" + Characteristic + "\" failed in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
 	
 	return nullptr;
 }

@@ -80,9 +80,10 @@ int Magazine::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader >> m_RoundCount;
 		m_FullCapacity = m_RoundCount;
 	});
+	MatchProperty("FullCapacity", { reader >> m_FullCapacity; });
 	MatchProperty("RTTRatio", { reader >> m_RTTRatio; });
-	MatchProperty("RegularRound", { m_pRegularRound = dynamic_cast<const Round*>(g_PresetMan.GetEntityPreset(reader)); });
-	MatchProperty("TracerRound", { m_pTracerRound = dynamic_cast<const Round*>(g_PresetMan.GetEntityPreset(reader)); });
+	MatchProperty("RegularRound", { m_pRegularRound = dynamic_cast<const Round*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader)); });
+	MatchProperty("TracerRound", { m_pTracerRound = dynamic_cast<const Round*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader)); });
 	MatchProperty("Discardable", { reader >> m_Discardable; });
 	MatchProperty("AIBlastRadius", { reader >> m_AIBlastRadius; });
 
@@ -92,30 +93,28 @@ int Magazine::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Magazine::Save(Writer& writer) const {
 	Attachable::Save(writer);
 
-	writer.NewProperty("RoundCount");
-	writer << m_RoundCount;
-	writer.NewProperty("RTTRatio");
-	writer << m_RTTRatio;
-	writer.NewProperty("RegularRound");
-	writer << m_pRegularRound;
-	writer.NewProperty("TracerRound");
-	writer << m_pTracerRound;
-	writer.NewProperty("Discardable");
-	writer << m_Discardable;
-	writer.NewProperty("AIBlastRadius");
-	writer << m_AIBlastRadius;
+	writer.NewPropertyWithValue("RoundCount", m_RoundCount);
+	writer.NewPropertyWithValue("FullCapacity", m_FullCapacity);
+	writer.NewPropertyWithValue("RTTRatio", m_RTTRatio);
+	writer.NewPropertyWithValue("RegularRound", (m_pRegularRound ? m_pRegularRound->GetEntityCharacteristic() : "None"));
+	writer.NewPropertyWithValue("TracerRound", (m_pTracerRound ? m_pTracerRound->GetEntityCharacteristic() : "None"));
+	writer.NewPropertyWithValue("Discardable", m_Discardable);
+	writer.NewPropertyWithValue("AIBlastRadius", m_AIBlastRadius);
 
 	return 0;
 }
 
 uint64_t Magazine::Hash() const {
 	uint64_t hash = Attachable::Hash();
+
 	hash ^= std::hash<int>{}(m_RoundCount) << 1;
-	hash ^= std::hash<int>{}(m_RTTRatio) << 2;
-	hash ^= (m_pRegularRound ? RTE::Hash(m_pRegularRound->GetEntityCharacteristic()) : 0) << 3;
-	hash ^= (m_pTracerRound ? RTE::Hash(m_pTracerRound->GetEntityCharacteristic()) : 0) << 4;
-	hash ^= std::hash<bool>{}(m_Discardable) << 5;
-	hash ^= std::hash<int>{}(m_AIBlastRadius) << 6;
+	hash ^= std::hash<int>{}(m_FullCapacity) << 2;
+	hash ^= std::hash<int>{}(m_RTTRatio) << 3;
+	hash ^= (m_pRegularRound ? RTE::Hash(m_pRegularRound->GetEntityCharacteristic()) : 0) << 4;
+	hash ^= (m_pTracerRound ? RTE::Hash(m_pTracerRound->GetEntityCharacteristic()) : 0) << 5;
+	hash ^= std::hash<bool>{}(m_Discardable) << 6;
+	hash ^= std::hash<int>{}(m_AIBlastRadius) << 7;
+
 	return hash;
 }
 

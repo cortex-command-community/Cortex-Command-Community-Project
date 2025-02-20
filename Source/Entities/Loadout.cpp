@@ -38,48 +38,18 @@ int Loadout::Create(const Loadout& reference) {
 int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
-	// Need to load all this stuff without the assumption that it all is available. Mods might have changed etc so things might still not be around, and that's ok.
 	MatchProperty("DeliveryCraft",
 	              {
-		              std::string className;
-		              std::string presetName;
-		              // Load class name and then preset instance name
-		              reader >> className;
-		              // Ignore the property name, just interested in the value
-		              if (reader.ReadPropName() != "PresetName")
-			              reader.ReportError("Expected property \"PresetName\" not found when reading BuyMenu Loadout settings!");
-		              // Read the preset's name and try to find it
-		              presetName = reader.ReadPropValue();
-		              // It's OK if we can't find it.. just means we aren't a complete loadout
-		              m_pDeliveryCraft = dynamic_cast<const ACraft*>(g_PresetMan.GetEntityPreset(className, presetName, -1));
-		              if (!m_pDeliveryCraft)
-			              m_Complete = false;
-		              // Artificially end reading this property since we got all we needed
-		              reader.NextProperty();
+		              m_pDeliveryCraft = dynamic_cast<const ACraft*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader, true));
 	              });
 	MatchProperty("AddCargoItem",
 	              {
-		              std::string className;
-		              std::string presetName;
-		              // Load class name and then preset instance name
-		              reader >> className;
-		              // Ignore the property name, just interested in the value
-		              if (reader.ReadPropName() != "PresetName")
-			              reader.ReportError("Expected property \"PresetName\" not found when reading BuyMenu Loadout settings!");
-		              // Read the preset's name and try to find it
-		              presetName = reader.ReadPropValue();
-		              // It's OK if we can't find it.. just means we aren't a complete loadout
-		              const MovableObject* pCargo = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(className, presetName, -1));
-		              if (!pCargo)
+		              const MovableObject* pCargo = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader, true));
+		              if (!pCargo) {
 			              m_Complete = false;
-		              // Add the found cargo item to the list
-		              else
+		              } else {
 			              m_CargoItems.push_back(pCargo);
-
-		              // Artificially end reading this property since we got all we needed
-		              reader.NextProperty();
-
-		              pCargo = 0;
+		              }
 	              });
 
 	EndPropertyList;
@@ -89,32 +59,27 @@ int Loadout::Save(Writer& writer) const {
 	Entity::Save(writer);
 
 	if (m_pDeliveryCraft) {
-		writer.NewProperty("DeliveryCraft");
-		writer.ObjectStart(m_pDeliveryCraft->GetClassName());
-		writer.NewProperty("PresetName");
-		writer << m_pDeliveryCraft->GetModuleAndPresetName();
-		writer.ObjectEnd();
+		writer.NewPropertyWithValue("DeliveryCraft", m_pDeliveryCraft->GetEntityCharacteristic());
 	}
+
 	for (std::list<const SceneObject*>::const_iterator itr = m_CargoItems.begin(); itr != m_CargoItems.end(); ++itr) {
-		writer.NewProperty("AddCargoItem");
-		writer.ObjectStart((*itr)->GetClassName());
-		writer.NewProperty("PresetName");
-		writer << (*itr)->GetModuleAndPresetName();
-		writer.ObjectEnd();
+		writer.NewPropertyWithValue("DeliveryCraft", (*itr)->GetEntityCharacteristic());
 	}
 
 	return 0;
 }
 
 uint64_t Loadout::Hash() const {
-	uint64_t hash = m_pDeliveryCraft ? RTE::Hash(m_pDeliveryCraft->GetEntityCharacteristic()) : 0;
+	uint64_t hash = Entity::Hash();
+	
+	hash ^= m_pDeliveryCraft ? RTE::Hash(m_pDeliveryCraft->GetEntityCharacteristic()) : 0 << 1;
 
 	int i = 0;
 	for (const SceneObject* pCargo : m_CargoItems) {
 		hash ^= RTE::Hash(pCargo->GetEntityCharacteristic()) << (i++ % sizeof(uint64_t) * 8);
 	}
 
-	return Entity::Hash() ^ (hash << 1);
+	return hash;
 }
 
 /*

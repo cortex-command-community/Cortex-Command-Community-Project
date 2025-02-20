@@ -74,16 +74,13 @@ int Round::Create(const Round& reference) {
 int Round::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
-	MatchProperty("Particle", {
-		m_Particle = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(reader));
-		RTEAssert(m_Particle, "Stream suggests allocating an unallocable type in Round::Create!");
-	});
+	MatchProperty("Particle", { m_Particle = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader)); });
 	MatchProperty("ParticleCount", { reader >> m_ParticleCount; });
 	MatchProperty("FireVelocity", { reader >> m_FireVel; });
 	MatchProperty("InheritsFirerVelocity", { reader >> m_InheritsFirerVelocity; });
 	MatchProperty("Separation", { reader >> m_Separation; });
 	MatchProperty("LifeVariation", { reader >> m_LifeVariation; });
-	MatchProperty("Shell", { m_Shell = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(reader)); });
+	MatchProperty("Shell", { m_Shell = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader)); });
 	MatchProperty("ShellVelocity", { reader >> m_ShellVel; });
 	MatchProperty("FireSound", { reader >> m_FireSound; });
 	MatchProperty("AILifeTime", { reader >> m_AILifeTime; });
@@ -96,29 +93,18 @@ int Round::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Round::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewProperty("Particle");
-	writer << m_Particle;
-	writer.NewProperty("ParticleCount");
-	writer << m_ParticleCount;
-	writer.NewProperty("FireVelocity");
-	writer << m_FireVel;
+	writer.NewPropertyWithValue("Particle", (m_Particle ? m_Particle->GetEntityCharacteristic() : "None"));
+	writer.NewPropertyWithValue("ParticleCount", m_ParticleCount);
+	writer.NewPropertyWithValue("FireVelocity", m_FireVel);
 	writer.NewPropertyWithValue("InheritsFirerVelocity", m_InheritsFirerVelocity);
-	writer.NewProperty("Separation");
-	writer << m_Separation;
-	writer.NewProperty("LifeVariation");
-	writer << m_LifeVariation;
-	writer.NewProperty("Shell");
-	writer << m_Shell;
-	writer.NewProperty("ShellVelocity");
-	writer << m_ShellVel;
-	writer.NewProperty("FireSound");
-	writer << m_FireSound;
-	writer.NewProperty("AILifeTime");
-	writer << m_AILifeTime;
-	writer.NewProperty("AIFireVel");
-	writer << m_AIFireVel;
-	writer.NewProperty("AIPenetration");
-	writer << m_AIPenetration;
+	writer.NewPropertyWithValue("Separation", m_Separation);
+	writer.NewPropertyWithValue("LifeVariation", m_LifeVariation);
+	writer.NewPropertyWithValue("Shell", (m_Shell ? m_Shell->GetEntityCharacteristic() : "None"));
+	writer.NewPropertyWithValue("ShellVelocity", m_ShellVel);
+	writer.NewPropertyWithValue("FireSound", m_FireSound);
+	writer.NewPropertyWithValue("AILifeTime", m_AILifeTime);
+	writer.NewPropertyWithValue("AIFireVel", m_AIFireVel);
+	writer.NewPropertyWithValue("AIPenetration", m_AIPenetration);
 
 	return 0;
 }
