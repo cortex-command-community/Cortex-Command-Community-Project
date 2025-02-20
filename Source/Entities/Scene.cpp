@@ -1109,8 +1109,8 @@ int Scene::Save(Writer& writer) const {
 				writer.NewProperty("PlaceAIPlanObject");
 			}
 
-			// writer << placedObject;
-			SaveSceneObject(writer, placedObject, false, doFullGameSave);
+			writer << placedObject;
+			//SaveSceneObject(writer, placedObject, false, doFullGameSave);
 		}
 	}
 

@@ -62,7 +62,7 @@ int Emission::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 	MatchProperty("EmittedParticle",
 	              {
-		              m_pEmission = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(reader));
+		              m_pEmission = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader));
 		              RTEAssert(m_pEmission, "Stream suggests allocating an unallocatable type in AEmitter::Emission::Create!");
 	              });
 	MatchProperty("ParticlesPerMinute", { reader >> m_PPM; });
@@ -95,40 +95,26 @@ int Emission::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Emission::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewProperty("EmittedParticle");
-	writer << m_pEmission;
-	writer.NewProperty("ParticlesPerMinute");
-	writer << m_PPM;
-	writer.NewProperty("BurstSize");
-	writer << m_BurstSize;
-	writer.NewProperty("Spread");
-	writer << m_Spread;
-	writer.NewProperty("MinVelocity");
-	writer << m_MinVelocity;
-	writer.NewProperty("MaxVelocity");
-	writer << m_MaxVelocity;
-	writer.NewProperty("LifeVariation");
-	writer << m_LifeVariation;
-	writer.NewProperty("PushesEmitter");
-	writer << m_PushesEmitter;
-	writer.NewProperty("InheritsVel");
-	writer << m_InheritsVel;
-	writer.NewProperty("InheritsAngularVel");
-	writer << m_InheritsAngularVel;
-	writer.NewProperty("Offset");
-	writer << m_Offset;
-	writer.NewProperty("StartTimeMS");
-	writer << m_StartTimer.GetSimTimeLimitMS();
-	writer.NewProperty("StopTimeMS");
-	writer << m_StopTimer.GetSimTimeLimitMS();
-	writer.NewProperty("ParticleCount");
-	writer << m_ParticleCount;
+	writer.NewPropertyWithValue("EmittedParticle", m_pEmission->GetEntityCharacteristic());
+	writer.NewPropertyWithValue("ParticlesPerMinute", m_PPM);
+	writer.NewPropertyWithValue("BurstSize", m_BurstSize);
+	writer.NewPropertyWithValue("Spread", m_Spread);
+	writer.NewPropertyWithValue("MinVelocity", m_MinVelocity);
+	writer.NewPropertyWithValue("MaxVelocity", m_MaxVelocity);
+	writer.NewPropertyWithValue("LifeVariation", m_LifeVariation);
+	writer.NewPropertyWithValue("PushesEmitter", m_PushesEmitter);
+	writer.NewPropertyWithValue("InheritsVel", m_InheritsVel);
+	writer.NewPropertyWithValue("InheritsAngularVel", m_InheritsAngularVel);
+	writer.NewPropertyWithValue("Offset", m_Offset);
+	writer.NewPropertyWithValue("StartTimeMS", m_StartTimer.GetSimTimeLimitMS());
+	writer.NewPropertyWithValue("StopTimeMS", m_StopTimer.GetSimTimeLimitMS());
+	writer.NewPropertyWithValue("ParticleCount", m_ParticleCount);
 
 	return 0;
 }
 
 uint64_t Emission::Hash() const {
-	uint64_t hash = RTE::Hash(m_pEmission->GetEntityCharacteristic());
+	uint64_t hash = (m_pEmission ? RTE::Hash(m_pEmission->GetEntityCharacteristic()) : 0);
 	hash ^= std::hash<float>{}(m_PPM) << 1;
 	hash ^= std::hash<int>{}(m_BurstSize) << 2;
 	hash ^= std::hash<float>{}(m_Spread) << 3;

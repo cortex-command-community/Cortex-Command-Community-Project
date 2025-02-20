@@ -48,7 +48,7 @@ int Gib::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
 	MatchProperty("GibParticle", {
-		m_GibParticle = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(reader));
+		m_GibParticle = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader));
 		RTEAssert(m_GibParticle, "Stream suggests allocating an unallocable type in Gib::Create!");
 	});
 	MatchProperty("Offset", { reader >> m_Offset; });
@@ -77,12 +77,14 @@ int Gib::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("LifeVariation", m_LifeVariation);
 	writer.NewPropertyWithValue("InheritsVel", m_InheritsVel);
 	writer.NewPropertyWithValue("InheritsAngularVel", m_InheritsAngularVel);
+	writer.NewPropertyWithValue("IgnoresTeamHits", m_IgnoresTeamHits);
+	writer.NewPropertyWithValue("SpreadMode", m_SpreadMode);
 
 	return 0;
 }
 
 uint64_t Gib::Hash() const {
-	uint64_t hash = RTE::Hash(m_GibParticle->GetEntityCharacteristic());
+	uint64_t hash = (m_GibParticle ? RTE::Hash(m_GibParticle->GetEntityCharacteristic()) : 0);
 	hash ^= m_Offset.Hash() << 1;
 	hash ^= std::hash<int>{}(m_Count) << 2;
 	hash ^= std::hash<float>{}(m_Spread) << 3;
@@ -92,6 +94,6 @@ uint64_t Gib::Hash() const {
 	hash ^= std::hash<float>{}(m_InheritsVel) << 7;
 	hash ^= std::hash<float>{}(m_InheritsAngularVel) << 8;
 	hash ^= std::hash<bool>{}(m_IgnoresTeamHits) << 9;
-	hash ^= std::hash<int>{}(m_SpreadMode) << 10;
+	hash ^= std::hash<SpreadMode>{}(m_SpreadMode) << 10;
 	return hash;
 }

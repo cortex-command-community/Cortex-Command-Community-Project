@@ -77,28 +77,25 @@ int ACraft::Exit::ReadProperty(const std::string_view& propName, Reader& reader)
 int ACraft::Exit::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewProperty("Offset");
-	writer << m_Offset;
-	writer.NewProperty("Velocity");
-	writer << m_Velocity;
-	writer.NewProperty("VelocitySpread");
-	writer << m_VelSpread;
-	writer.NewProperty("Radius");
-	writer << m_Radius;
-	writer.NewProperty("Range");
-	writer << m_Range;
+	writer.NewPropertyWithValue("Offset", m_Offset);
+	writer.NewPropertyWithValue("Velocity", m_Velocity);
+	writer.NewPropertyWithValue("VelocitySpread", m_VelSpread);
+	writer.NewPropertyWithValue("Radius", m_Radius);
+	writer.NewPropertyWithValue("Range", m_Range);
 
 	return 0;
 }
 
 uint64_t ACraft::Exit::Hash() const {
-	uint64_t h_offset = m_Offset.Hash();
-	uint64_t h_velocity = m_Velocity.Hash();
-	uint64_t h_velSpread = std::hash<float>{}(m_VelSpread);
-	uint64_t h_radius = std::hash<float>{}(m_Radius);
-	uint64_t h_range = std::hash<float>{}(m_Range);
+	uint64_t hash = Serializable::Hash();
 
-	return h_offset ^ (h_velocity << 1) ^ (h_velSpread << 2) ^ (h_radius << 3) ^ (h_range << 4);
+	hash ^= m_Offset.Hash() << 1;
+	hash ^= m_Velocity.Hash() << 2;
+	hash ^= std::hash<float>{}(m_VelSpread) << 3;
+	hash ^= std::hash<float>{}(m_Radius) << 4;
+	hash ^= std::hash<float>{}(m_Range) << 5;
+
+	return hash;
 }
 
 bool ACraft::Exit::CheckIfClear(const Vector& pos, Matrix& rot, float size) {

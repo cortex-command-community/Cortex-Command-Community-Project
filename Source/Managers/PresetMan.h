@@ -159,6 +159,11 @@ namespace RTE {
 		/// error, or the instance name was 'None'. Ownership is NOT transferred!
 		const Entity* GetEntityPreset(Reader& reader);
 
+		/// Reads a three token description of a preset, searching known presets immediately.
+		/// @param reader The Reader will read in a constant reference in the form <class/module/preset name>
+		/// @return A const pointer to the Entity preset requested, if it was located.
+		const Entity* GetEntityPresetFromCharacteristic(Reader& reader);
+
 		/// Reads a preset of an Entity and tries to add it to the list of
 		/// read-in instances. Regardless of whether there is a name collision,
 		/// the read-in preset will be returned, ownership TRANSFERRED!

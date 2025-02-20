@@ -383,6 +383,54 @@ const Entity* PresetMan::GetEntityPreset(Reader& reader) {
 	return pReturnPreset;
 }
 
+const Entity* PresetMan::GetEntityPresetFromCharacteristic(Reader& reader) {
+	std::string Characteristic;
+	reader >> Characteristic;
+
+	// A reference can be null.
+	if (Characteristic == "None") {
+		return nullptr;
+	}
+
+	size_t firstBackslash = Characteristic.find_first_of('/');
+	size_t lastBackslash = Characteristic.find_last_of('/');
+
+	// If two distinct slashes can be located, the string is well formatted.
+	if (firstBackslash != lastBackslash && firstBackslash != std::string::npos && lastBackslash != std::string::npos) {
+		std::string ClassName = Characteristic.substr(0, firstBackslash);
+		std::string PresetName = Characteristic.substr(lastBackslash + 1);
+		std::string ModuleName = Characteristic.substr(firstBackslash + 1, lastBackslash - firstBackslash - 1);
+
+		int ModuleID = GetModuleID(ModuleName);
+
+		if (ModuleID >= 0 && ModuleID < (int)m_pDataModules.size()) {
+			const Entity* pReturnPreset = m_pDataModules[ModuleID]->GetEntityPreset(ClassName, PresetName);
+
+			if (pReturnPreset) {
+				return pReturnPreset;
+			}
+
+			for (int i = 0; i < m_OfficialModuleCount && !pReturnPreset; ++i)
+				pReturnPreset = m_pDataModules[i]->GetEntityPreset(ClassName, PresetName);
+
+			if (pReturnPreset) {
+				RTEError::AssertFunc("Could not find preset \"" + PresetName + "\" of type \"" + ClassName + "\" in module \"" + ModuleName + "\", for constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine() + 
+					"\nA preset of this type and name was found in official module \"" + pReturnPreset->GetModuleName() + "\", which will be used if this assertion is ignored, though the reference should be corrected if this is acceptable.", std::source_location::current());
+				
+				return pReturnPreset;
+			}
+
+			RTEAbort("Could not find preset \"" + PresetName + "\" of type \"" + ClassName + "\" in ANY module, including presented \"" + ModuleName + "\", for constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine())
+		}
+
+		RTEAbort("Unrecognized module name \"" + ModuleName + "\" while reading constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
+	}
+
+	RTEAbort("Reading of constant reference \"" + Characteristic + "\" failed in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
+	
+	return nullptr;
+}
+
 Entity* PresetMan::ReadReflectedPreset(Reader& reader) {
 	// The reader is aware of which DataModule it's reading within
 	int whichModule = reader.GetReadModuleID();
