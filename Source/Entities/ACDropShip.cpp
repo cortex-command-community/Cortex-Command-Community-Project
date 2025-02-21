@@ -125,26 +125,16 @@ int ACDropShip::ReadProperty(const std::string_view& propName, Reader& reader) {
 int ACDropShip::Save(Writer& writer) const {
 	ACraft::Save(writer);
 
-	writer.NewProperty("RThruster");
-	writer << m_pRThruster;
-	writer.NewProperty("LThruster");
-	writer << m_pLThruster;
-	writer.NewProperty("URThruster");
-	writer << m_pURThruster;
-	writer.NewProperty("ULThruster");
-	writer << m_pULThruster;
-	writer.NewProperty("RHatchDoor");
-	writer << m_pRHatch;
-	writer.NewProperty("LHatchDoor");
-	writer << m_pLHatch;
-	writer.NewProperty("HatchDoorSwingRange");
-	writer << m_HatchSwingRange;
-	writer.NewProperty("AutoStabilize");
-	writer << m_AutoStabilize;
-	writer.NewProperty("MaxEngineAngle");
-	writer << m_MaxEngineAngle;
-	writer.NewProperty("LateralControlSpeed");
-	writer << m_LateralControlSpeed;
+	writer.NewPropertyWithValue("RThruster", m_pRThruster);
+	writer.NewPropertyWithValue("LThruster", m_pLThruster);
+	writer.NewPropertyWithValue("URThruster", m_pURThruster);
+	writer.NewPropertyWithValue("ULThruster", m_pULThruster);
+	writer.NewPropertyWithValue("RHatchDoor", m_pRHatch);
+	writer.NewPropertyWithValue("LHatchDoor", m_pLHatch);
+	writer.NewPropertyWithValue("HatchDoorSwingRange", m_HatchSwingRange);
+	writer.NewPropertyWithValue("AutoStabilize", m_AutoStabilize);
+	writer.NewPropertyWithValue("MaxEngineAngle", m_MaxEngineAngle);
+	writer.NewPropertyWithValue("LateralControlSpeed", m_LateralControlSpeed);
 	writer.NewPropertyWithValue("HoverHeightModifier", m_HoverHeightModifier);
 
 	return 0;

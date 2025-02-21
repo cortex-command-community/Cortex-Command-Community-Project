@@ -205,26 +205,17 @@ int HeldDevice::Save(Writer& writer) const {
 	    writer.NewProperty("HeldDeviceType");
 	    writer << m_HeldDeviceType;
 	*/
-	writer.NewProperty("OneHanded");
-	writer << m_OneHanded;
-	writer.NewProperty("StanceOffset");
-	writer << m_StanceOffset;
-	writer.NewProperty("SharpStanceOffset");
-	writer << m_SharpStanceOffset;
+	writer.NewPropertyWithValue("OneHanded", m_OneHanded);
+	writer.NewPropertyWithValue("StanceOffset", m_StanceOffset);
+	writer.NewPropertyWithValue("SharpStanceOffset", m_SharpStanceOffset);
 	writer.NewPropertyWithValue("Supportable", m_Supportable);
-	writer.NewProperty("SupportOffset");
-	writer << m_SupportOffset;
+	writer.NewPropertyWithValue("SupportOffset", m_SupportOffset);
 	writer.NewPropertyWithValue("UseSupportOffsetWhileReloading", m_UseSupportOffsetWhileReloading);
-	writer.NewProperty("GripStrengthMultiplier");
-	writer << m_GripStrengthMultiplier;
-	writer.NewProperty("SharpLength");
-	writer << m_MaxSharpLength;
-	writer.NewProperty("Loudness");
-	writer << m_Loudness;
-	writer.NewProperty("GetsHitByMOsWhenHeld");
-	writer << m_GetsHitByMOsWhenHeld;
-	writer.NewProperty("VisualRecoilMultiplier");
-	writer << m_VisualRecoilMultiplier;
+	writer.NewPropertyWithValue("GripStrengthMultiplier", m_GripStrengthMultiplier);
+	writer.NewPropertyWithValue("SharpLength", m_MaxSharpLength);
+	writer.NewPropertyWithValue("Loudness", m_Loudness);
+	writer.NewPropertyWithValue("GetsHitByMOsWhenHeld", m_GetsHitByMOsWhenHeld);
+	writer.NewPropertyWithValue("VisualRecoilMultiplier", m_VisualRecoilMultiplier);
 
 	return 0;
 }

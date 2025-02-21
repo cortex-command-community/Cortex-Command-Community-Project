@@ -75,20 +75,13 @@ int ThrownDevice::Save(Writer& writer) const {
 
 	writer.NewProperty("ActivationSound");
 	writer << *m_ActivationSound;
-	writer.NewProperty("StartThrowOffset");
-	writer << m_StartThrowOffset;
-	writer.NewProperty("EndThrowOffset");
-	writer << m_EndThrowOffset;
-	writer.NewProperty("MinThrowVel");
-	writer << m_MinThrowVel;
-	writer.NewProperty("MaxThrowVel");
-	writer << m_MaxThrowVel;
-	writer.NewProperty("TriggerDelay");
-	writer << m_TriggerDelay;
-	writer.NewProperty("ActivatesWhenReleased");
-	writer << m_ActivatesWhenReleased;
-	writer.NewProperty("StrikerLever");
-	writer << m_StrikerLever;
+	writer.NewPropertyWithValue("StartThrowOffset", m_StartThrowOffset);
+	writer.NewPropertyWithValue("EndThrowOffset", m_EndThrowOffset);
+	writer.NewPropertyWithValue("MinThrowVel", m_MinThrowVel);
+	writer.NewPropertyWithValue("MaxThrowVel", m_MaxThrowVel);
+	writer.NewPropertyWithValue("TriggerDelay", m_TriggerDelay);
+	writer.NewPropertyWithValue("ActivatesWhenReleased", m_ActivatesWhenReleased);
+	writer.NewPropertyWithValue("StrikerLever", m_StrikerLever);
 
 	return 0;
 }

@@ -271,6 +271,23 @@ std::string DataModule::GetEntityDataLocation(const std::string& exactType, cons
 	return "";
 }
 
+uint64_t DataModule::GetEntityHash(const std::string& exactType, const std::string& instance) {
+	const Entity* foundEntity = GetEntityPreset(exactType, instance);
+	if (foundEntity == nullptr) {
+		return 0;
+	}
+
+	// Search for entity in instanceList
+	for (const PresetEntry& presetListEntry: m_PresetList) {
+		if (presetListEntry.m_EntityPreset == foundEntity) {
+			return presetListEntry.m_Hash;
+		}
+	}
+
+	RTEAbort("Tried to find allegedly existing Entity Preset Entry: " + foundEntity->GetPresetName() + ", but couldn't!");
+	return 0;
+}
+
 const Entity* DataModule::GetEntityPreset(const std::string& exactType, const std::string& instance) {
 	if (exactType.empty() || instance == "None" || instance.empty()) {
 		return nullptr;

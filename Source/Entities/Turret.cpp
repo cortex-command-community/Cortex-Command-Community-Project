@@ -58,11 +58,9 @@ int Turret::Save(Writer& writer) const {
 	Attachable::Save(writer);
 
 	for (const HeldDevice* mountedDevice: m_MountedDevices) {
-		writer.NewProperty("AddMountedDevice");
-		writer << mountedDevice;
+		writer.NewPropertyWithValue("AddMountedDevice", mountedDevice);
 	}
-	writer.NewProperty("MountedDeviceRotationOffset");
-	writer << m_MountedDeviceRotationOffset;
+	writer.NewPropertyWithValue("MountedDeviceRotationOffset", m_MountedDeviceRotationOffset);
 
 	return 0;
 }

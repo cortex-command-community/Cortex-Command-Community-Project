@@ -60,10 +60,8 @@ int Icon::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 int Icon::Save(Writer& writer) const {
 	Entity::Save(writer);
-	writer.NewProperty("BitmapFile");
-	writer << m_BitmapFile;
-	writer.NewProperty("FrameCount");
-	writer << m_FrameCount;
+	writer.NewPropertyWithValue("BitmapFile", m_BitmapFile);
+	writer.NewPropertyWithValue("FrameCount", m_FrameCount);
 
 	return 0;
 }

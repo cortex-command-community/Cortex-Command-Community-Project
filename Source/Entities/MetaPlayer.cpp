@@ -101,33 +101,20 @@ int MetaPlayer::ReadProperty(const std::string_view& propName, Reader& reader) {
 int MetaPlayer::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewProperty("Name");
-	writer << m_Name;
-	writer.NewProperty("Team");
-	writer << m_Team;
-	writer.NewProperty("Human");
-	writer << m_Human;
-	writer.NewProperty("InGamePlayer");
-	writer << m_InGamePlayer;
-	writer.NewProperty("Aggressiveness");
-	writer << m_Aggressiveness;
-	writer.NewProperty("GameOverRound");
-	writer << m_GameOverRound;
+	writer.NewPropertyWithValue("Name", m_Name);
+	writer.NewPropertyWithValue("Team", m_Team);
+	writer.NewPropertyWithValue("Human", m_Human);
+	writer.NewPropertyWithValue("InGamePlayer", m_InGamePlayer);
+	writer.NewPropertyWithValue("Aggressiveness", m_Aggressiveness);
+	writer.NewPropertyWithValue("GameOverRound", m_GameOverRound);
 
 	// Need to write out the name, and not just the index of the module. it might change
-	writer.NewProperty("NativeTechModule");
-
-	writer << g_PresetMan.GetDataModule(m_NativeTechModule)->GetFileName();
-	writer.NewProperty("NativeCostMultiplier");
-	writer << m_NativeCostMult;
-	writer.NewProperty("ForeignCostMultiplier");
-	writer << m_ForeignCostMult;
-	writer.NewProperty("BrainPool");
-	writer << m_BrainPool;
-	writer.NewProperty("Funds");
-	writer << m_Funds;
-	writer.NewProperty("OffensiveBudget");
-	writer << m_OffensiveBudget;
+	writer.NewPropertyWithValue("NativeTechModule", g_PresetMan.GetDataModule(m_NativeTechModule)->GetFileName());
+	writer.NewPropertyWithValue("NativeCostMultiplier", m_NativeCostMult);
+	writer.NewPropertyWithValue("ForeignCostMultiplier", m_ForeignCostMult);
+	writer.NewPropertyWithValue("BrainPool", m_BrainPool);
+	writer.NewPropertyWithValue("Funds", m_Funds);
+	writer.NewPropertyWithValue("OffensiveBudget", m_OffensiveBudget);
 	writer.NewProperty("OffensiveTarget");
 	writer << (m_OffensiveTarget.empty() ? "None" : m_OffensiveTarget);
 

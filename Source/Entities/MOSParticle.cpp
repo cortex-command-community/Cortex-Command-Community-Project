@@ -62,8 +62,7 @@ int MOSParticle::Save(Writer& writer) const {
 
 	// TODO: Make proper save system that knows not to save redundant data!
 	/*
-	writer.NewProperty("Atom");
-	writer << m_Atom;
+	writer.NewPropertyWithValue("Atom", m_Atom);
 	*/
 
 	return 0;

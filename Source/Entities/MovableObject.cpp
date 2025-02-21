@@ -404,78 +404,47 @@ int MovableObject::Save(Writer& writer) const {
 	// Note - this function isn't even called when saving a scene. Turns out that scene special-cases this stuff, see Scene::Save()
 	// In future, perhaps we ought to not do that. Who knows?
 
-	writer.NewProperty("Mass");
-	writer << m_Mass;
-	writer.NewProperty("Velocity");
-	writer << m_Vel;
-	writer.NewProperty("Scale");
-	writer << m_Scale;
-	writer.NewProperty("GlobalAccScalar");
-	writer << m_GlobalAccScalar;
+	writer.NewPropertyWithValue("Mass", m_Mass);
+	writer.NewPropertyWithValue("Velocity", m_Vel);
+	writer.NewPropertyWithValue("Scale", m_Scale);
+	writer.NewPropertyWithValue("GlobalAccScalar", m_GlobalAccScalar);
 	writer.NewProperty("AirResistance");
 	writer << (m_AirResistance * 0.01666F); // Backwards compatibility after we made this value scaled over time
-	writer.NewProperty("AirThreshold");
-	writer << m_AirThreshold;
-	writer.NewProperty("PinStrength");
-	writer << m_PinStrength;
-	writer.NewProperty("RestThreshold");
-	writer << m_RestThreshold;
-	writer.NewProperty("LifeTime");
-	writer << m_Lifetime;
-	writer.NewProperty("Sharpness");
-	writer << m_Sharpness;
-	writer.NewProperty("HitsMOs");
-	writer << m_HitsMOs;
-	writer.NewProperty("GetsHitByMOs");
-	writer << m_GetsHitByMOs;
-	writer.NewProperty("IgnoresTeamHits");
-	writer << m_IgnoresTeamHits;
-	writer.NewProperty("IgnoresAtomGroupHits");
-	writer << m_IgnoresAtomGroupHits;
-	writer.NewProperty("IgnoresAGHitsWhenSlowerThan");
-	writer << m_IgnoresAGHitsWhenSlowerThan;
-	writer.NewProperty("IgnoresActorHits");
-	writer << m_IgnoresActorHits;
-	writer.NewProperty("MissionCritical");
-	writer << m_MissionCritical;
-	writer.NewProperty("CanBeSquished");
-	writer << m_CanBeSquished;
-	writer.NewProperty("HUDVisible");
-	writer << m_HUDVisible;
+	writer.NewPropertyWithValue("AirThreshold", m_AirThreshold);
+	writer.NewPropertyWithValue("PinStrength", m_PinStrength);
+	writer.NewPropertyWithValue("RestThreshold", m_RestThreshold);
+	writer.NewPropertyWithValue("LifeTime", m_Lifetime);
+	writer.NewPropertyWithValue("Sharpness", m_Sharpness);
+	writer.NewPropertyWithValue("HitsMOs", m_HitsMOs);
+	writer.NewPropertyWithValue("GetsHitByMOs", m_GetsHitByMOs);
+	writer.NewPropertyWithValue("IgnoresTeamHits", m_IgnoresTeamHits);
+	writer.NewPropertyWithValue("IgnoresAtomGroupHits", m_IgnoresAtomGroupHits);
+	writer.NewPropertyWithValue("IgnoresAGHitsWhenSlowerThan", m_IgnoresAGHitsWhenSlowerThan);
+	writer.NewPropertyWithValue("IgnoresActorHits", m_IgnoresActorHits);
+	writer.NewPropertyWithValue("MissionCritical", m_MissionCritical);
+	writer.NewPropertyWithValue("CanBeSquished", m_CanBeSquished);
+	writer.NewPropertyWithValue("HUDVisible", m_HUDVisible);
 	for (const auto& [scriptPath, scriptEnabled]: m_AllLoadedScripts) {
 		if (!scriptPath.empty()) {
-			writer.NewProperty("ScriptPath");
-			writer << scriptPath;
+			writer.NewPropertyWithValue("ScriptPath", scriptPath);
 		}
 	}
-	writer.NewProperty("ScreenEffect");
-	writer << m_ScreenEffectFile;
-	writer.NewProperty("PostEffectEnabled");
-	writer << m_PostEffectEnabled;
-	writer.NewProperty("EffectStartTime");
-	writer << m_EffectStartTime;
-	writer.NewProperty("EffectStopTime");
-	writer << m_EffectStopTime;
+	writer.NewPropertyWithValue("ScreenEffect", m_ScreenEffectFile);
+	writer.NewPropertyWithValue("PostEffectEnabled", m_PostEffectEnabled);
+	writer.NewPropertyWithValue("EffectStartTime", m_EffectStartTime);
+	writer.NewPropertyWithValue("EffectStopTime", m_EffectStopTime);
 	writer.NewProperty("EffectStartStrength");
 	writer << (float)m_EffectStartStrength / 255.0f;
 	writer.NewProperty("EffectStopStrength");
 	writer << (float)m_EffectStopStrength / 255.0f;
-	writer.NewProperty("EffectAlwaysShows");
-	writer << m_EffectAlwaysShows;
-	writer.NewProperty("DamageOnCollision");
-	writer << m_DamageOnCollision;
-	writer.NewProperty("DamageOnPenetration");
-	writer << m_DamageOnPenetration;
-	writer.NewProperty("WoundDamageMultiplier");
-	writer << m_WoundDamageMultiplier;
-	writer.NewProperty("ApplyWoundDamageOnCollision");
-	writer << m_ApplyWoundDamageOnCollision;
-	writer.NewProperty("ApplyWoundBurstDamageOnCollision");
-	writer << m_ApplyWoundBurstDamageOnCollision;
-	writer.NewProperty("IgnoreTerrain");
-	writer << m_IgnoreTerrain;
-	writer.NewProperty("SimUpdatesBetweenScriptedUpdates");
-	writer << m_SimUpdatesBetweenScriptedUpdates;
+	writer.NewPropertyWithValue("EffectAlwaysShows", m_EffectAlwaysShows);
+	writer.NewPropertyWithValue("DamageOnCollision", m_DamageOnCollision);
+	writer.NewPropertyWithValue("DamageOnPenetration", m_DamageOnPenetration);
+	writer.NewPropertyWithValue("WoundDamageMultiplier", m_WoundDamageMultiplier);
+	writer.NewPropertyWithValue("ApplyWoundDamageOnCollision", m_ApplyWoundDamageOnCollision);
+	writer.NewPropertyWithValue("ApplyWoundBurstDamageOnCollision", m_ApplyWoundBurstDamageOnCollision);
+	writer.NewPropertyWithValue("IgnoreTerrain", m_IgnoreTerrain);
+	writer.NewPropertyWithValue("SimUpdatesBetweenScriptedUpdates", m_SimUpdatesBetweenScriptedUpdates);
 
 	for (const auto& [key, value]: m_NumberValueMap) {
 		writer.NewLine();
@@ -491,8 +460,7 @@ int MovableObject::Save(Writer& writer) const {
 		writer.ObjectEnd();
 	}
 
-	writer.NewProperty("ForceIntoMasterLuaState");
-	writer << m_ForceIntoMasterLuaState;
+	writer.NewPropertyWithValue("ForceIntoMasterLuaState", m_ForceIntoMasterLuaState);
 
 	return 0;
 }

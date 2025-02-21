@@ -66,14 +66,10 @@ int SoundSet::Save(Writer& writer) const {
 		writer.NewProperty("AddSound");
 		writer.ObjectStart("ContentFile");
 
-		writer.NewProperty("FilePath");
-		writer << soundData.SoundFile.GetDataPath();
-		writer.NewProperty("Offset");
-		writer << soundData.Offset;
-		writer.NewProperty("MinimumAudibleDistance");
-		writer << soundData.MinimumAudibleDistance;
-		writer.NewProperty("AttenuationStartDistance");
-		writer << soundData.AttenuationStartDistance;
+		writer.NewPropertyWithValue("FilePath", soundData.SoundFile.GetDataPath());
+		writer.NewPropertyWithValue("Offset", soundData.Offset);
+		writer.NewPropertyWithValue("MinimumAudibleDistance", soundData.MinimumAudibleDistance);
+		writer.NewPropertyWithValue("AttenuationStartDistance", soundData.AttenuationStartDistance);
 
 		writer.ObjectEnd();
 	}

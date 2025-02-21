@@ -199,8 +199,7 @@ int BunkerAssemblyScheme::ReadProperty(const std::string_view& propName, Reader&
 int BunkerAssemblyScheme::Save(Writer& writer) const {
 	SceneObject::Save(writer);
 
-	writer.NewProperty("BitmapFile");
-	writer << m_BitmapFile;
+	writer.NewPropertyWithValue("BitmapFile", m_BitmapFile);
 	for (std::list<SOPlacer>::const_iterator itr = m_ChildObjects.begin(); itr != m_ChildObjects.end(); ++itr) {
 		writer.NewProperty("AddChildObject");
 		writer << (*itr);

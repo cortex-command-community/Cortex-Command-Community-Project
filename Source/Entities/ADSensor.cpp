@@ -41,12 +41,9 @@ int ADSensor::ReadProperty(const std::string_view& propName, Reader& reader) {
 int ADSensor::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewProperty("StartOffset");
-	writer << m_StartOffset;
-	writer.NewProperty("SensorRay");
-	writer << m_SensorRay;
-	writer.NewProperty("SkipPixels");
-	writer << m_Skip;
+	writer.NewPropertyWithValue("StartOffset", m_StartOffset);
+	writer.NewPropertyWithValue("SensorRay", m_SensorRay);
+	writer.NewPropertyWithValue("SkipPixels", m_Skip);
 
 	return 0;
 }

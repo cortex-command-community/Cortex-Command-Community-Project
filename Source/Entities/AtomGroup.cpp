@@ -168,14 +168,10 @@ int AtomGroup::ReadProperty(const std::string_view& propName, Reader& reader) {
 int AtomGroup::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewProperty("Material");
-	writer << m_Material;
-	writer.NewProperty("AutoGenerate");
-	writer << m_AutoGenerate;
-	writer.NewProperty("Resolution");
-	writer << m_Resolution;
-	writer.NewProperty("Depth");
-	writer << m_Depth;
+	writer.NewPropertyWithValue("Material", m_Material);
+	writer.NewPropertyWithValue("AutoGenerate", m_AutoGenerate);
+	writer.NewPropertyWithValue("Resolution", m_Resolution);
+	writer.NewPropertyWithValue("Depth", m_Depth);
 
 	// Only write out Atoms if they were manually specified
 	if (!m_AutoGenerate) {
@@ -185,13 +181,10 @@ int AtomGroup::Save(Writer& writer) const {
 		}
 	}
 
-	writer.NewProperty("JointOffset");
-	writer << m_JointOffset;
+	writer.NewPropertyWithValue("JointOffset", m_JointOffset);
 
-	writer.NewProperty("AreaDistributionType");
-	writer << static_cast<std::underlying_type_t<AreaDistributionType>>(m_AreaDistributionType);
-	writer.NewProperty("AreaDistributionSurfaceAreaMultiplier");
-	writer << m_AreaDistributionSurfaceAreaMultiplier;
+	writer.NewPropertyWithValue("AreaDistributionType", static_cast<std::underlying_type_t<AreaDistributionType>>(m_AreaDistributionType));
+	writer.NewPropertyWithValue("AreaDistributionSurfaceAreaMultiplier", m_AreaDistributionSurfaceAreaMultiplier);
 
 	return 0;
 }

@@ -68,17 +68,17 @@ int Gib::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Gib::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewPropertyWithValue("GibParticle", m_GibParticle->GetEntityCharacteristic());
-	writer.NewPropertyWithValue("Offset", m_Offset);
-	writer.NewPropertyWithValue("Count", m_Count);
-	writer.NewPropertyWithValue("Spread", m_Spread);
-	writer.NewPropertyWithValue("MinVelocity", GetMinVelocity());
-	writer.NewPropertyWithValue("MaxVelocity", GetMaxVelocity());
-	writer.NewPropertyWithValue("LifeVariation", m_LifeVariation);
-	writer.NewPropertyWithValue("InheritsVel", m_InheritsVel);
-	writer.NewPropertyWithValue("InheritsAngularVel", m_InheritsAngularVel);
-	writer.NewPropertyWithValue("IgnoresTeamHits", m_IgnoresTeamHits);
-	writer.NewPropertyWithValue("SpreadMode", m_SpreadMode);
+	if (m_GibParticle != nullptr) writer.NewPropertyWithValue("GibParticle", m_GibParticle->GetEntityCharacteristic());
+	if (!m_Offset.IsZero()) writer.NewPropertyWithValue("Offset", m_Offset);
+	if (m_Count != 1) writer.NewPropertyWithValue("Count", m_Count);
+	if (m_Spread != 0.1f) writer.NewPropertyWithValue("Spread", m_Spread);
+	if (GetMinVelocity() != 0) writer.NewPropertyWithValue("MinVelocity", GetMinVelocity());
+	if (GetMaxVelocity() != 0) writer.NewPropertyWithValue("MaxVelocity", GetMaxVelocity());
+	if (m_LifeVariation != 0.1f) writer.NewPropertyWithValue("LifeVariation", m_LifeVariation);
+	if (m_InheritsVel != 1.0f) writer.NewPropertyWithValue("InheritsVel", m_InheritsVel);
+	if (m_InheritsAngularVel != 1.0f) writer.NewPropertyWithValue("InheritsAngularVel", m_InheritsAngularVel);
+	if (m_IgnoresTeamHits != false) writer.NewPropertyWithValue("IgnoresTeamHits", m_IgnoresTeamHits);
+	if (m_SpreadMode != SpreadMode::SpreadRandom) writer.NewPropertyWithValue("SpreadMode", m_SpreadMode);
 
 	return 0;
 }

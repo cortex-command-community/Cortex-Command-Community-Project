@@ -69,10 +69,8 @@ int SceneObject::SOPlacer::ReadProperty(const std::string_view& propName, Reader
 int SceneObject::SOPlacer::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewProperty("PlacedObject");
-	writer << m_pObjectReference;
-	writer.NewProperty("Offset");
-	writer << m_Offset;
+	writer.NewPropertyWithValue("PlacedObject", m_pObjectReference);
+	writer.NewPropertyWithValue("Offset", m_Offset);
 	// TODO: make generalized way of detecting defaults
 	if (m_RotAngle != 0) {
 		writer.NewProperty("Rotation");
@@ -81,12 +79,10 @@ int SceneObject::SOPlacer::Save(Writer& writer) const {
 		writer << rot;
 	}
 	if (m_HFlipped) {
-		writer.NewProperty("HFlipped");
-		writer << m_HFlipped;
+		writer.NewPropertyWithValue("HFlipped", m_HFlipped);
 	}
 	if (m_Team >= Activity::TeamOne) {
-		writer.NewProperty("Team");
-		writer << m_Team;
+		writer.NewPropertyWithValue("Team", m_Team);
 	}
 
 	return 0;

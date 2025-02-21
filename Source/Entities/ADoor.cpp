@@ -163,40 +163,24 @@ int ADoor::ReadProperty(const std::string_view& propName, Reader& reader) {
 int ADoor::Save(Writer& writer) const {
 	Actor::Save(writer);
 
-	writer.NewProperty("Door");
-	writer << m_Door;
-	writer.NewProperty("OpenOffset");
-	writer << m_OpenOffset;
-	writer.NewProperty("ClosedOffset");
-	writer << m_ClosedOffset;
-	writer.NewProperty("OpenAngle");
-	writer << Matrix(m_OpenAngle);
-	writer.NewProperty("ClosedAngle");
-	writer << Matrix(m_ClosedAngle);
-	writer.NewProperty("DoorDelay");
-	writer << m_DoorMoveTime;
-	writer.NewProperty("ClosedByDefault");
-	writer << m_ClosedByDefault;
-	writer.NewProperty("ResetDefaultDelay");
-	writer << m_ResetToDefaultStateDelay;
-	writer.NewProperty("SensorInterval");
-	writer << m_SensorInterval;
+	writer.NewPropertyWithValue("Door", m_Door);
+	writer.NewPropertyWithValue("OpenOffset", m_OpenOffset);
+	writer.NewPropertyWithValue("ClosedOffset", m_ClosedOffset);
+	writer.NewPropertyWithValue("OpenAngle", Matrix(m_OpenAngle));
+	writer.NewPropertyWithValue("ClosedAngle", Matrix(m_ClosedAngle));
+	writer.NewPropertyWithValue("DoorDelay", m_DoorMoveTime);
+	writer.NewPropertyWithValue("ClosedByDefault", m_ClosedByDefault);
+	writer.NewPropertyWithValue("ResetDefaultDelay", m_ResetToDefaultStateDelay);
+	writer.NewPropertyWithValue("SensorInterval", m_SensorInterval);
 	for (const ADSensor& sensor: m_Sensors) {
-		writer.NewProperty("AddSensor");
-		writer << sensor;
+		writer.NewPropertyWithValue("AddSensor", sensor);
 	}
-	writer.NewProperty("DrawMaterialLayerWhenOpen");
-	writer << m_DrawMaterialLayerWhenOpen;
-	writer.NewProperty("DrawMaterialLayerWhenClosed");
-	writer << m_DrawMaterialLayerWhenClosed;
-	writer.NewProperty("DoorMoveStartSound");
-	writer << m_DoorMoveStartSound.get();
-	writer.NewProperty("DoorMoveSound");
-	writer << m_DoorMoveSound.get();
-	writer.NewProperty("DoorDirectionChangeSound");
-	writer << m_DoorDirectionChangeSound.get();
-	writer.NewProperty("DoorMoveEndSound");
-	writer << m_DoorMoveEndSound.get();
+	writer.NewPropertyWithValue("DrawMaterialLayerWhenOpen", m_DrawMaterialLayerWhenOpen);
+	writer.NewPropertyWithValue("DrawMaterialLayerWhenClosed", m_DrawMaterialLayerWhenClosed);
+	writer.NewPropertyWithValue("DoorMoveStartSound", m_DoorMoveStartSound.get());
+	writer.NewPropertyWithValue("DoorMoveSound", m_DoorMoveSound.get());
+	writer.NewPropertyWithValue("DoorDirectionChangeSound", m_DoorDirectionChangeSound.get());
+	writer.NewPropertyWithValue("DoorMoveEndSound", m_DoorMoveEndSound.get());
 
 	return 0;
 }

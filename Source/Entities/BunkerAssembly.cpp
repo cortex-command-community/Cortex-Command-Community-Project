@@ -214,12 +214,10 @@ int BunkerAssembly::Save(Writer& writer) const {
 		}
 	}
 	if (m_SymmetricAssembly.size() > 0) {
-		writer.NewProperty("SymmetricAssembly");
-		writer << m_SymmetricAssembly;
+		writer.NewPropertyWithValue("SymmetricAssembly", m_SymmetricAssembly);
 	}
 	if (m_ParentAssemblyScheme.size() > 0) {
-		writer.NewProperty("ParentScheme");
-		writer << m_ParentAssemblyScheme;
+		writer.NewPropertyWithValue("ParentScheme", m_ParentAssemblyScheme);
 	}
 
 	for (std::list<SceneObject*>::const_iterator oItr = m_PlacedObjects.begin(); oItr != m_PlacedObjects.end(); ++oItr) {
@@ -234,29 +232,24 @@ int BunkerAssembly::Save(Writer& writer) const {
 		// Only write certain properties if they are applicable to the type of SceneObject being written
 		MOSRotating* pSpriteObj = dynamic_cast<MOSRotating*>(*oItr);
 		if (pSpriteObj) {
-			writer.NewProperty("HFlipped");
-			writer << pSpriteObj->IsHFlipped();
+			writer.NewPropertyWithValue("HFlipped", pSpriteObj->IsHFlipped());
 			Actor* pActor = dynamic_cast<Actor*>(pSpriteObj);
 			if (pActor) {
-				writer.NewProperty("Team");
-				writer << pActor->GetTeam();
+				writer.NewPropertyWithValue("Team", pActor->GetTeam());
 				// Rotation of doors is important
 				ADoor* pDoor = dynamic_cast<ADoor*>(pActor);
 				if (pDoor) {
-					writer.NewProperty("Rotation");
-					writer << pDoor->GetRotMatrix();
+					writer.NewPropertyWithValue("Rotation", pDoor->GetRotMatrix());
 				}
 			}
 		}
 		TerrainObject* pTObject = dynamic_cast<TerrainObject*>(*oItr);
 		if (pTObject && !pTObject->GetChildObjects().empty()) {
-			writer.NewProperty("Team");
-			writer << pTObject->GetTeam();
+			writer.NewPropertyWithValue("Team", pTObject->GetTeam());
 		}
 		Deployment* pDeployment = dynamic_cast<Deployment*>(*oItr);
 		if (pDeployment) {
-			writer.NewProperty("HFlipped");
-			writer << pDeployment->IsHFlipped();
+			writer.NewPropertyWithValue("HFlipped", pDeployment->IsHFlipped());
 		}
 
 		writer.ObjectEnd();

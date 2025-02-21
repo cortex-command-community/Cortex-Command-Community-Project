@@ -106,20 +106,17 @@ int DynamicSongSection::Save(Writer& writer) const {
 		writer << soundContainer;
 		writer.ObjectEnd();
 	}
-	writer.NewProperty("LastTransitionSoundContainerIndex");
-	writer << m_LastTransitionSoundContainerIndex;
+	writer.NewPropertyWithValue("LastTransitionSoundContainerIndex", m_LastTransitionSoundContainerIndex);
 	for (const SoundContainer& soundContainer: m_SoundContainers) {
 		writer.NewProperty("AddSoundContainer");
 		writer.ObjectStart("SoundContainer");
 		writer << soundContainer;
 		writer.ObjectEnd();
 	}
-	writer.NewProperty("LastSoundContainerIndex");
-	writer << m_LastSoundContainerIndex;
+	writer.NewPropertyWithValue("LastSoundContainerIndex", m_LastSoundContainerIndex);
 	writer.NewProperty("SoundContainerSelectionCycleMode");
 	SaveSoundContainerSelectionCycleMode(writer, m_SoundContainerSelectionCycleMode);
-	writer.NewProperty("SectionType");
-	writer << m_SectionType;
+	writer.NewPropertyWithValue("SectionType", m_SectionType);
 
 	return 0;
 }

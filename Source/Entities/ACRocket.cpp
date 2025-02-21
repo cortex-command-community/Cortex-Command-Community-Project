@@ -182,34 +182,20 @@ int ACRocket::ReadProperty(const std::string_view& propName, Reader& reader) {
 int ACRocket::Save(Writer& writer) const {
 	ACraft::Save(writer);
 
-	writer.NewProperty("RLeg");
-	writer << m_pRLeg;
-	writer.NewProperty("LLeg");
-	writer << m_pLLeg;
-	writer.NewProperty("RFootGroup");
-	writer << m_pRFootGroup;
-	writer.NewProperty("LFootGroup");
-	writer << m_pLFootGroup;
-	writer.NewProperty("MThruster");
-	writer << m_pMThruster;
-	writer.NewProperty("RThruster");
-	writer << m_pRThruster;
-	writer.NewProperty("LThruster");
-	writer << m_pLThruster;
-	writer.NewProperty("URThruster");
-	writer << m_pURThruster;
-	writer.NewProperty("ULThruster");
-	writer << m_pULThruster;
-	writer.NewProperty("RaisedGearLimbPath");
-	writer << m_Paths[RIGHT][RAISED];
-	writer.NewProperty("LoweredGearLimbPath");
-	writer << m_Paths[RIGHT][LOWERED];
-	writer.NewProperty("LoweringGearLimbPath");
-	writer << m_Paths[RIGHT][LOWERING];
-	writer.NewProperty("RaisingGearLimbPath");
-	writer << m_Paths[RIGHT][RAISING];
-	writer.NewProperty("MaxGimbalAngle");
-	writer << m_MaxGimbalAngle / (c_PI / 180.0F);
+	writer.NewPropertyWithValue("RLeg", m_pRLeg);
+	writer.NewPropertyWithValue("LLeg", m_pLLeg);
+	writer.NewPropertyWithValue("RFootGroup", m_pRFootGroup);
+	writer.NewPropertyWithValue("LFootGroup", m_pLFootGroup);
+	writer.NewPropertyWithValue("MThruster", m_pMThruster);
+	writer.NewPropertyWithValue("RThruster", m_pRThruster);
+	writer.NewPropertyWithValue("LThruster", m_pLThruster);
+	writer.NewPropertyWithValue("URThruster", m_pURThruster);
+	writer.NewPropertyWithValue("ULThruster", m_pULThruster);
+	writer.NewPropertyWithValue("RaisedGearLimbPath", m_Paths[RIGHT][RAISED]);
+	writer.NewPropertyWithValue("LoweredGearLimbPath", m_Paths[RIGHT][LOWERED]);
+	writer.NewPropertyWithValue("LoweringGearLimbPath", m_Paths[RIGHT][LOWERING]);
+	writer.NewPropertyWithValue("RaisingGearLimbPath", m_Paths[RIGHT][RAISING]);
+	writer.NewPropertyWithValue("MaxGimbalAngle", m_MaxGimbalAngle / (c_PI / 180.0F));
 
 	return 0;
 }

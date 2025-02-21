@@ -92,16 +92,11 @@ int MOPixel::ReadProperty(const std::string_view& propName, Reader& reader) {
 int MOPixel::Save(Writer& writer) const {
 	MovableObject::Save(writer);
 
-	writer.NewProperty("Atom");
-	writer << m_Atom;
-	writer.NewProperty("Color");
-	writer << m_Color;
-	writer.NewProperty("MinLethalRange");
-	writer << m_MinLethalRange;
-	writer.NewProperty("MaxLethalRange");
-	writer << m_MaxLethalRange;
-	writer.NewProperty("Staininess");
-	writer << m_Staininess;
+	writer.NewPropertyWithValue("Atom", m_Atom);
+	writer.NewPropertyWithValue("Color", m_Color);
+	writer.NewPropertyWithValue("MinLethalRange", m_MinLethalRange);
+	writer.NewPropertyWithValue("MaxLethalRange", m_MaxLethalRange);
+	writer.NewPropertyWithValue("Staininess", m_Staininess);
 
 	return 0;
 }

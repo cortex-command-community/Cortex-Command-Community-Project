@@ -101,18 +101,12 @@ int Leg::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Leg::Save(Writer& writer) const {
 	Attachable::Save(writer);
 
-	writer.NewProperty("Foot");
-	writer << m_Foot;
-	writer.NewProperty("ContractedOffset");
-	writer << m_ContractedOffset;
-	writer.NewProperty("ExtendedOffset");
-	writer << m_ExtendedOffset;
-	writer.NewProperty("IdleOffset");
-	writer << m_IdleOffset;
-	writer.NewProperty("WillIdle");
-	writer << m_WillIdle;
-	writer.NewProperty("MoveSpeed");
-	writer << m_MoveSpeed;
+	writer.NewPropertyWithValue("Foot", m_Foot);
+	writer.NewPropertyWithValue("ContractedOffset", m_ContractedOffset);
+	writer.NewPropertyWithValue("ExtendedOffset", m_ExtendedOffset);
+	writer.NewPropertyWithValue("IdleOffset", m_IdleOffset);
+	writer.NewPropertyWithValue("WillIdle", m_WillIdle);
+	writer.NewPropertyWithValue("MoveSpeed", m_MoveSpeed);
 
 	return 0;
 }

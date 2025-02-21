@@ -316,48 +316,28 @@ int ACrab::ReadProperty(const std::string_view& propName, Reader& reader) {
 int ACrab::Save(Writer& writer) const {
 	Actor::Save(writer);
 
-	writer.NewProperty("Turret");
-	writer << m_pTurret;
-	writer.NewProperty("Jetpack");
-	writer << m_pJetpack;
-	writer.NewProperty("LFGLeg");
-	writer << m_pLFGLeg;
-	writer.NewProperty("LBGLeg");
-	writer << m_pLBGLeg;
-	writer.NewProperty("RFGLeg");
-	writer << m_pRFGLeg;
-	writer.NewProperty("RBGLeg");
-	writer << m_pRBGLeg;
-	writer.NewProperty("LFGFootGroup");
-	writer << m_pLFGFootGroup;
-	writer.NewProperty("LBGFootGroup");
-	writer << m_pLBGFootGroup;
-	writer.NewProperty("RFGFootGroup");
-	writer << m_pRFGFootGroup;
-	writer.NewProperty("RBGFootGroup");
-	writer << m_pRBGFootGroup;
-	writer.NewProperty("StrideSound");
-	writer << m_StrideSound;
+	writer.NewPropertyWithValue("Turret", m_pTurret);
+	writer.NewPropertyWithValue("Jetpack", m_pJetpack);
+	writer.NewPropertyWithValue("LFGLeg", m_pLFGLeg);
+	writer.NewPropertyWithValue("LBGLeg", m_pLBGLeg);
+	writer.NewPropertyWithValue("RFGLeg", m_pRFGLeg);
+	writer.NewPropertyWithValue("RBGLeg", m_pRBGLeg);
+	writer.NewPropertyWithValue("LFGFootGroup", m_pLFGFootGroup);
+	writer.NewPropertyWithValue("LBGFootGroup", m_pLBGFootGroup);
+	writer.NewPropertyWithValue("RFGFootGroup", m_pRFGFootGroup);
+	writer.NewPropertyWithValue("RBGFootGroup", m_pRBGFootGroup);
+	writer.NewPropertyWithValue("StrideSound", m_StrideSound);
 
-	writer.NewProperty("LStandLimbPath");
-	writer << m_Paths[LEFTSIDE][FGROUND][STAND];
-	writer.NewProperty("LWalkLimbPath");
-	writer << m_Paths[LEFTSIDE][FGROUND][WALK];
-	writer.NewProperty("LDislodgeLimbPath");
-	writer << m_Paths[LEFTSIDE][FGROUND][DISLODGE];
-	writer.NewProperty("RStandLimbPath");
-	writer << m_Paths[RIGHTSIDE][FGROUND][STAND];
-	writer.NewProperty("RWalkLimbPath");
-	writer << m_Paths[RIGHTSIDE][FGROUND][WALK];
-	writer.NewProperty("RDislodgeLimbPath");
-	writer << m_Paths[RIGHTSIDE][FGROUND][DISLODGE];
+	writer.NewPropertyWithValue("LStandLimbPath", m_Paths[LEFTSIDE][FGROUND][STAND]);
+	writer.NewPropertyWithValue("LWalkLimbPath", m_Paths[LEFTSIDE][FGROUND][WALK]);
+	writer.NewPropertyWithValue("LDislodgeLimbPath", m_Paths[LEFTSIDE][FGROUND][DISLODGE]);
+	writer.NewPropertyWithValue("RStandLimbPath", m_Paths[RIGHTSIDE][FGROUND][STAND]);
+	writer.NewPropertyWithValue("RWalkLimbPath", m_Paths[RIGHTSIDE][FGROUND][WALK]);
+	writer.NewPropertyWithValue("RDislodgeLimbPath", m_Paths[RIGHTSIDE][FGROUND][DISLODGE]);
 
-	writer.NewProperty("AimRangeUpperLimit");
-	writer << m_AimRangeUpperLimit;
-	writer.NewProperty("AimRangeLowerLimit");
-	writer << m_AimRangeLowerLimit;
-	writer.NewProperty("LockMouseAimInput");
-	writer << m_LockMouseAimInput;
+	writer.NewPropertyWithValue("AimRangeUpperLimit", m_AimRangeUpperLimit);
+	writer.NewPropertyWithValue("AimRangeLowerLimit", m_AimRangeLowerLimit);
+	writer.NewPropertyWithValue("LockMouseAimInput", m_LockMouseAimInput);
 
 	return 0;
 }

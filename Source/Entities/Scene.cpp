@@ -91,8 +91,7 @@ int Scene::Area::Save(Writer& writer) const {
 		writer.NewProperty("AddBox");
 		writer << *box;
 	}
-	writer.NewProperty("Name");
-	writer << m_Name;
+	writer.NewPropertyWithValue("Name", m_Name);
 
 	return 0;
 }
@@ -1119,52 +1118,40 @@ int Scene::Save(Writer& writer) const {
 		(*slItr)->SavePresetReference(writer);
 	}
 	if (!m_UnseenPixelSize[Activity::TeamOne].IsZero()) {
-		writer.NewProperty("AllUnseenPixelSizeTeam1");
-		writer << m_UnseenPixelSize[Activity::TeamOne];
+		writer.NewPropertyWithValue("AllUnseenPixelSizeTeam1", m_UnseenPixelSize[Activity::TeamOne]);
 	}
 	if (!m_UnseenPixelSize[Activity::TeamTwo].IsZero()) {
-		writer.NewProperty("AllUnseenPixelSizeTeam2");
-		writer << m_UnseenPixelSize[Activity::TeamTwo];
+		writer.NewPropertyWithValue("AllUnseenPixelSizeTeam2", m_UnseenPixelSize[Activity::TeamTwo]);
 	}
 	if (!m_UnseenPixelSize[Activity::TeamThree].IsZero()) {
-		writer.NewProperty("AllUnseenPixelSizeTeam3");
-		writer << m_UnseenPixelSize[Activity::TeamThree];
+		writer.NewPropertyWithValue("AllUnseenPixelSizeTeam3", m_UnseenPixelSize[Activity::TeamThree]);
 	}
 	if (!m_UnseenPixelSize[Activity::TeamFour].IsZero()) {
-		writer.NewProperty("AllUnseenPixelSizeTeam4");
-		writer << m_UnseenPixelSize[Activity::TeamFour];
+		writer.NewPropertyWithValue("AllUnseenPixelSizeTeam4", m_UnseenPixelSize[Activity::TeamFour]);
 	}
 	if (m_apUnseenLayer[Activity::TeamOne]) {
-		writer.NewProperty("UnseenLayerTeam1");
-		writer << m_apUnseenLayer[Activity::TeamOne];
+		writer.NewPropertyWithValue("UnseenLayerTeam1", m_apUnseenLayer[Activity::TeamOne]);
 	}
 	if (m_apUnseenLayer[Activity::TeamTwo]) {
-		writer.NewProperty("UnseenLayerTeam2");
-		writer << m_apUnseenLayer[Activity::TeamTwo];
+		writer.NewPropertyWithValue("UnseenLayerTeam2", m_apUnseenLayer[Activity::TeamTwo]);
 	}
 	if (m_apUnseenLayer[Activity::TeamThree]) {
-		writer.NewProperty("UnseenLayerTeam3");
-		writer << m_apUnseenLayer[Activity::TeamThree];
+		writer.NewPropertyWithValue("UnseenLayerTeam3", m_apUnseenLayer[Activity::TeamThree]);
 	}
 	if (m_apUnseenLayer[Activity::TeamFour]) {
-		writer.NewProperty("UnseenLayerTeam4");
-		writer << m_apUnseenLayer[Activity::TeamFour];
+		writer.NewPropertyWithValue("UnseenLayerTeam4", m_apUnseenLayer[Activity::TeamFour]);
 	}
 	if (m_ScanScheduled[Activity::TeamOne]) {
-		writer.NewProperty("ScanScheduledTeam1");
-		writer << m_ScanScheduled[Activity::TeamOne];
+		writer.NewPropertyWithValue("ScanScheduledTeam1", m_ScanScheduled[Activity::TeamOne]);
 	}
 	if (m_ScanScheduled[Activity::TeamTwo]) {
-		writer.NewProperty("ScanScheduledTeam2");
-		writer << m_ScanScheduled[Activity::TeamTwo];
+		writer.NewPropertyWithValue("ScanScheduledTeam2", m_ScanScheduled[Activity::TeamTwo]);
 	}
 	if (m_ScanScheduled[Activity::TeamThree]) {
-		writer.NewProperty("ScanScheduledTeam3");
-		writer << m_ScanScheduled[Activity::TeamThree];
+		writer.NewPropertyWithValue("ScanScheduledTeam3", m_ScanScheduled[Activity::TeamThree]);
 	}
 	if (m_ScanScheduled[Activity::TeamFour]) {
-		writer.NewProperty("ScanScheduledTeam4");
-		writer << m_ScanScheduled[Activity::TeamFour];
+		writer.NewPropertyWithValue("ScanScheduledTeam4", m_ScanScheduled[Activity::TeamFour]);
 	}
 	for (Area* area: m_AreaList) {
 		// Only write the area if it has any boxes/area at all
@@ -1173,8 +1160,7 @@ int Scene::Save(Writer& writer) const {
 			writer << *area;
 		}
 	}
-	writer.NewProperty("GlobalAcceleration");
-	writer << m_GlobalAcc;
+	writer.NewPropertyWithValue("GlobalAcceleration", m_GlobalAcc);
 
 	return 0;
 }

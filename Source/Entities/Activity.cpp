@@ -232,24 +232,15 @@ int Activity::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Activity::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewProperty("Description");
-	writer << m_Description;
-	writer.NewProperty("SceneName");
-	writer << m_SceneName;
-	writer.NewProperty("MaxPlayerSupport");
-	writer << m_MaxPlayerSupport;
-	writer.NewProperty("MinTeamsRequired");
-	writer << m_MinTeamsRequired;
-	writer.NewProperty("Difficulty");
-	writer << m_Difficulty;
-	writer.NewProperty("CraftOrbitAtTheEdge");
-	writer << m_CraftOrbitAtTheEdge;
-	writer.NewProperty("InCampaignStage");
-	writer << m_InCampaignStage;
-	writer.NewProperty("ActivityState");
-	writer << m_ActivityState;
-	writer.NewProperty("AllowsUserSaving");
-	writer << m_AllowsUserSaving;
+	writer.NewPropertyWithValue("Description", m_Description);
+	writer.NewPropertyWithValue("SceneName", m_SceneName);
+	writer.NewPropertyWithValue("MaxPlayerSupport", m_MaxPlayerSupport);
+	writer.NewPropertyWithValue("MinTeamsRequired", m_MinTeamsRequired);
+	writer.NewPropertyWithValue("Difficulty", m_Difficulty);
+	writer.NewPropertyWithValue("CraftOrbitAtTheEdge", m_CraftOrbitAtTheEdge);
+	writer.NewPropertyWithValue("InCampaignStage", m_InCampaignStage);
+	writer.NewPropertyWithValue("ActivityState", m_ActivityState);
+	writer.NewPropertyWithValue("AllowsUserSaving", m_AllowsUserSaving);
 
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
 		std::string playerNum = std::to_string(player + 1);
@@ -280,8 +271,7 @@ int Activity::Save(Writer& writer) const {
 		}
 	}
 
-	writer.NewProperty("GenericSavedValues");
-	writer << m_SavedValues;
+	writer.NewPropertyWithValue("GenericSavedValues", m_SavedValues);
 
 	return 0;
 }

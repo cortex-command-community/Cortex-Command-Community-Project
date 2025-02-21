@@ -305,35 +305,24 @@ int ACraft::ReadProperty(const std::string_view& propName, Reader& reader) {
 int ACraft::Save(Writer& writer) const {
 	Actor::Save(writer);
 
-	writer.NewProperty("HatchDelay");
-	writer << m_HatchDelay;
-	writer.NewProperty("HatchOpenSound");
-	writer << m_HatchOpenSound;
-	writer.NewProperty("HatchCloseSound");
-	writer << m_HatchCloseSound;
+	writer.NewPropertyWithValue("HatchDelay", m_HatchDelay);
+	writer.NewPropertyWithValue("HatchOpenSound", m_HatchOpenSound);
+	writer.NewPropertyWithValue("HatchCloseSound", m_HatchCloseSound);
 	for (std::list<Exit>::const_iterator itr = m_Exits.begin(); itr != m_Exits.end(); ++itr) {
 		writer.NewProperty("AddExit");
 		writer << (*itr);
 	}
-	writer.NewProperty("DeliveryDelayMultiplier");
-	writer << m_DeliveryDelayMultiplier;
-	writer.NewProperty("ExitInterval");
-	writer << m_ExitInterval;
-	writer.NewProperty("CanLand");
-	writer << m_LandingCraft;
+	writer.NewPropertyWithValue("DeliveryDelayMultiplier", m_DeliveryDelayMultiplier);
+	writer.NewPropertyWithValue("ExitInterval", m_ExitInterval);
+	writer.NewPropertyWithValue("CanLand", m_LandingCraft);
 
-	writer.NewProperty("CrashSound");
-	writer << m_CrashSound;
+	writer.NewPropertyWithValue("CrashSound", m_CrashSound);
 	
-	writer.NewProperty("CanEnterOrbit");
-	writer << m_CanEnterOrbit;
+	writer.NewPropertyWithValue("CanEnterOrbit", m_CanEnterOrbit);
 	
-	writer.NewProperty("MaxPassengers");
-	writer << m_MaxPassengers;
-	writer.NewProperty("ScuttleIfFlippedTime");
-	writer << m_ScuttleIfFlippedTime;
-	writer.NewProperty("ScuttleOnDeath");
-	writer << m_ScuttleOnDeath;
+	writer.NewPropertyWithValue("MaxPassengers", m_MaxPassengers);
+	writer.NewPropertyWithValue("ScuttleIfFlippedTime", m_ScuttleIfFlippedTime);
+	writer.NewPropertyWithValue("ScuttleOnDeath", m_ScuttleOnDeath);
 
 	return 0;
 }

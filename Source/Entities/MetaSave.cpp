@@ -68,16 +68,11 @@ int MetaSave::ReadProperty(const std::string_view& propName, Reader& reader) {
 int MetaSave::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewProperty("SavePath");
-	writer << m_SavePath;
-	writer.NewProperty("PlayerCount");
-	writer << m_PlayerCount;
-	writer.NewProperty("Difficulty");
-	writer << m_Difficulty;
-	writer.NewProperty("RoundCount");
-	writer << m_RoundCount;
-	writer.NewProperty("SiteCount");
-	writer << m_SiteCount;
+	writer.NewPropertyWithValue("SavePath", m_SavePath);
+	writer.NewPropertyWithValue("PlayerCount", m_PlayerCount);
+	writer.NewPropertyWithValue("Difficulty", m_Difficulty);
+	writer.NewPropertyWithValue("RoundCount", m_RoundCount);
+	writer.NewPropertyWithValue("SiteCount", m_SiteCount);
 
 	return 0;
 }

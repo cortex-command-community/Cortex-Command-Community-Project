@@ -280,6 +280,15 @@ namespace RTE {
 		/// If no Entity of that description was found, "" is returned.
 		std::string GetEntityDataLocation(std::string type, std::string preset, int whichModule);
 
+		/// Gets the data file path of a previously read in (defined) Entity.
+		/// @param type The type name of the derived Entity. Ownership is NOT transferred!
+		/// @param preset The preset name of the derived Entity preset.
+		/// @param whichModule Which module to try to get the entity from. If it's not found there,
+		/// the official modules will be searched also.
+		/// @return The file path of the data file that the specified Entity was read from.
+		/// If no Entity of that description was found, "" is returned.
+		uint64_t GetEntityHash(std::string type, std::string preset, int whichModule);
+
 		/// Reloads all scripted Entity Presets with the latest version of their respective script files.
 		void ReloadAllScripts() const;
 
