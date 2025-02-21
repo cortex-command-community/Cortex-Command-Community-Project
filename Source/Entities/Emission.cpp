@@ -95,20 +95,20 @@ int Emission::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Emission::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewPropertyWithValue("EmittedParticle", m_pEmission->GetEntityCharacteristic());
-	writer.NewPropertyWithValue("ParticlesPerMinute", m_PPM);
-	writer.NewPropertyWithValue("BurstSize", m_BurstSize);
-	writer.NewPropertyWithValue("Spread", m_Spread);
-	writer.NewPropertyWithValue("MinVelocity", m_MinVelocity);
-	writer.NewPropertyWithValue("MaxVelocity", m_MaxVelocity);
-	writer.NewPropertyWithValue("LifeVariation", m_LifeVariation);
-	writer.NewPropertyWithValue("PushesEmitter", m_PushesEmitter);
-	writer.NewPropertyWithValue("InheritsVel", m_InheritsVel);
-	writer.NewPropertyWithValue("InheritsAngularVel", m_InheritsAngularVel);
-	writer.NewPropertyWithValue("Offset", m_Offset);
-	writer.NewPropertyWithValue("StartTimeMS", m_StartTimer.GetSimTimeLimitMS());
-	writer.NewPropertyWithValue("StopTimeMS", m_StopTimer.GetSimTimeLimitMS());
-	writer.NewPropertyWithValue("ParticleCount", m_ParticleCount);
+	if (m_pEmission != nullptr) writer.NewPropertyWithValue("EmittedParticle", m_pEmission->GetEntityCharacteristic());
+	if (m_PPM != 0.0F) writer.NewPropertyWithValue("ParticlesPerMinute", m_PPM);
+	if (m_BurstSize != 0) writer.NewPropertyWithValue("BurstSize", m_BurstSize);
+	if (m_Spread != 0.0F) writer.NewPropertyWithValue("Spread", m_Spread);
+	if (m_MinVelocity != 0.0F) writer.NewPropertyWithValue("MinVelocity", m_MinVelocity);
+	if (m_MaxVelocity != 0.0F) writer.NewPropertyWithValue("MaxVelocity", m_MaxVelocity);
+	if (m_LifeVariation != 0.1F) writer.NewPropertyWithValue("LifeVariation", m_LifeVariation);
+	if (m_PushesEmitter != true) writer.NewPropertyWithValue("PushesEmitter", m_PushesEmitter);
+	if (m_InheritsVel != 0.0F) writer.NewPropertyWithValue("InheritsVel", m_InheritsVel);
+	if (m_InheritsAngularVel != 0.0F) writer.NewPropertyWithValue("InheritsAngularVel", m_InheritsAngularVel);
+	if (!m_Offset.IsZero()) writer.NewPropertyWithValue("Offset", m_Offset);
+	if (m_StartTimer.GetSimTimeLimitMS() != 0.0) writer.NewPropertyWithValue("StartTimeMS", m_StartTimer.GetSimTimeLimitMS());
+	if (m_StopTimer.GetSimTimeLimitMS() != 0.0) writer.NewPropertyWithValue("StopTimeMS", m_StopTimer.GetSimTimeLimitMS());
+	if (m_ParticleCount != 1) writer.NewPropertyWithValue("ParticleCount", m_ParticleCount);
 
 	return 0;
 }

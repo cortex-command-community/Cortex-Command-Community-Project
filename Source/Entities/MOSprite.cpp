@@ -204,31 +204,19 @@ std::string MOSprite::GetExitWoundPresetName() const {
 
 int MOSprite::Save(Writer& writer) const {
 	MovableObject::Save(writer);
-	// TODO: Make proper save system that knows not to save redundant data!
-	/*
-	    writer.NewProperty("SpriteFile");
-	    writer << m_SpriteFile;
-	    writer.NewProperty("FrameCount");
-	    writer << m_FrameCount;
-	    writer.NewProperty("SpriteOffset");
-	    writer << m_SpriteOffset;
-	    writer.NewProperty("SpriteAnimMode");
-	    writer << m_SpriteAnimMode;
-	    writer.NewProperty("SpriteAnimDuration");
-	    writer << m_SpriteAnimDuration;
-	    writer.NewProperty("HFlipped");
-	    writer << m_HFlipped;
-	    writer.NewProperty("Rotation");
-	    writer << m_Rotation.GetRadAngle();
-	    writer.NewProperty("AngularVel");
-	    writer << m_AngularVel;
-	    writer.NewProperty("SettleMaterialDisabled");
-	    writer << m_SettleMaterialDisabled;
-	    writer.NewProperty("EntryWound");
-	    writer << m_pEntryWound;
-	    writer.NewProperty("ExitWound");
-	    writer << m_pExitWound;
-	*/
+
+	writer.NewPropertyWithValue("SpriteFile", m_SpriteFile);
+	writer.NewPropertyWithValue("FrameCount", m_FrameCount);
+	writer.NewPropertyWithValue("SpriteOffset", m_SpriteOffset);
+	writer.NewPropertyWithValue("SpriteAnimMode", m_SpriteAnimMode);
+	writer.NewPropertyWithValue("SpriteAnimDuration", m_SpriteAnimDuration);
+	writer.NewPropertyWithValue("HFlipped", m_HFlipped);
+	writer.NewPropertyWithValue("Rotation", m_Rotation.GetRadAngle());
+	writer.NewPropertyWithValue("AngularVel", m_AngularVel);
+	writer.NewPropertyWithValue("SettleMaterialDisabled", m_SettleMaterialDisabled);
+	writer.NewPropertyWithValue("EntryWound", m_pEntryWound);
+	writer.NewPropertyWithValue("ExitWound", m_pExitWound);
+
 	return 0;
 }
 
