@@ -58,7 +58,7 @@ int Emission::Create(const Emission& reference) {
 }
 
 int Emission::ReadProperty(const std::string_view& propName, Reader& reader) {
-	StartPropertyList(return Serializable::ReadProperty(propName, reader));
+	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 	MatchProperty("EmittedParticle",
 	              {
@@ -93,7 +93,7 @@ int Emission::ReadProperty(const std::string_view& propName, Reader& reader) {
 }
 
 int Emission::Save(Writer& writer) const {
-	Serializable::Save(writer);
+	Entity::Save(writer);
 
 	writer.NewPropertyWithValue("EmittedParticle", m_pEmission->GetEntityCharacteristic());
 	writer.NewPropertyWithValue("ParticlesPerMinute", m_PPM);
