@@ -478,13 +478,17 @@ int MovableObject::Save(Writer& writer) const {
 	writer << m_SimUpdatesBetweenScriptedUpdates;
 
 	for (const auto& [key, value]: m_NumberValueMap) {
+		writer.NewLine();
 		writer.ObjectStart("AddCustomValue = NumberValue");
 		writer.NewPropertyWithValue(key, value);
+		writer.ObjectEnd();
 	}
 
 	for (const auto& [key, value]: m_StringValueMap) {
+		writer.NewLine();
 		writer.ObjectStart("AddCustomValue = StringValue");
 		writer.NewPropertyWithValue(key, value);
+		writer.ObjectEnd();
 	}
 
 	writer.NewProperty("ForceIntoMasterLuaState");

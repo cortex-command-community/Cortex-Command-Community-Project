@@ -276,7 +276,7 @@ int Activity::Save(Writer& writer) const {
 			writer.NewProperty("Team" + teamNum + "Name");
 			writer << m_TeamNames[team];
 			writer.NewProperty("Team" + teamNum + "Icon");
-			m_TeamIcons[team].SavePresetReference(writer);
+			writer << m_TeamIcons[team];
 		}
 	}
 

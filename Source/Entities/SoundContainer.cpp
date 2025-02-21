@@ -177,65 +177,58 @@ int SoundContainer::Save(Writer& writer) const {
 	} else {
 		RTEAbort("Tried to write invalid SoundOverlapMode when saving SoundContainer.");
 	}
-	writer.NewProperty("BusRouting");
-	writer << m_BusRouting;
-	writer.NewProperty("Immobile");
-	writer << m_Immobile;
-	writer.NewProperty("AttenuationStartDistance");
-	writer << m_AttenuationStartDistance;
-	writer.NewProperty("CustomPanValue");
-	writer << m_CustomPanValue;
-	writer.NewProperty("PanningStrengthMultiplier");
-	writer << m_PanningStrengthMultiplier;
-	writer.NewProperty("LoopSetting");
-	writer << m_Loops;
 
-	writer.NewProperty("Priority");
-	writer << m_Priority;
-	writer.NewProperty("AffectedByGlobalPitch");
-	writer << m_AffectedByGlobalPitch;
+	writer.NewPropertyWithValue("BusRouting", m_BusRouting);
+	writer.NewPropertyWithValue("Immobile", m_Immobile);
+	writer.NewPropertyWithValue("AttenuationStartDistance", m_AttenuationStartDistance);
+	writer.NewPropertyWithValue("CustomPanValue", m_CustomPanValue);
+	writer.NewPropertyWithValue("PanningStrengthMultiplier", m_PanningStrengthMultiplier);
+	writer.NewPropertyWithValue("LoopSetting", m_Loops);
 
-	writer.NewProperty("Position");
-	writer << m_Pos;
-	writer.NewProperty("Volume");
-	writer << m_Volume;
-	writer.NewProperty("Pitch");
-	writer << m_Pitch;
-	writer.NewProperty("PitchVariation");
-	writer << m_PitchVariation;
+	writer.NewPropertyWithValue("Priority", m_Priority);
+	writer.NewPropertyWithValue("AffectedByGlobalPitch", m_AffectedByGlobalPitch);
 
-	writer.NewProperty("WasFadedOut");
-	writer << m_WasFadedOut;
-	writer.NewProperty("Paused");
-	writer << m_Paused;
-	writer.NewProperty("MusicPreEntryTime");
-	writer << m_MusicPreEntryTime;
-	writer.NewProperty("MusicExitTime");
-	writer << m_MusicExitTime;
+	writer.NewPropertyWithValue("Position", m_Pos);
+	writer.NewPropertyWithValue("Volume", m_Volume);
+	writer.NewPropertyWithValue("Pitch", m_Pitch);
+	writer.NewPropertyWithValue("PitchVariation", m_PitchVariation);
+
+	writer.NewPropertyWithValue("WasFadedOut", m_WasFadedOut);
+	writer.NewPropertyWithValue("Paused", m_Paused);
+	writer.NewPropertyWithValue("MusicPreEntryTime", m_MusicPreEntryTime);
+	writer.NewPropertyWithValue("MusicExitTime", m_MusicExitTime);
 
 	return 0;
 }
 
 uint64_t SoundContainer::Hash() const {
-	uint64_t hash = (m_TopLevelSoundSet ? m_TopLevelSoundSet->Hash() : 0);
+	uint64_t hash = Entity::Hash();
+	
+	hash ^= (m_TopLevelSoundSet ? m_TopLevelSoundSet->Hash() : 0) << 0;
+
 	hash ^= std::hash<int>{}(m_SoundOverlapMode) << 1;
+
 	hash ^= std::hash<int>{}(m_BusRouting) << 2;
 	hash ^= std::hash<bool>{}(m_Immobile) << 3;
 	hash ^= std::hash<float>{}(m_AttenuationStartDistance) << 4;
 	hash ^= std::hash<float>{}(m_CustomPanValue) << 5;
 	hash ^= std::hash<float>{}(m_PanningStrengthMultiplier) << 6;
 	hash ^= std::hash<int>{}(m_Loops) << 7;
+
 	hash ^= std::hash<int>{}(m_Priority) << 8;
 	hash ^= std::hash<bool>{}(m_AffectedByGlobalPitch) << 9;
+
 	hash ^= m_Pos.Hash() << 10;
 	hash ^= std::hash<float>{}(m_Volume) << 11;
 	hash ^= std::hash<float>{}(m_Pitch) << 12;
 	hash ^= std::hash<float>{}(m_PitchVariation) << 13;
+
 	hash ^= std::hash<bool>{}(m_WasFadedOut) << 14;
 	hash ^= std::hash<bool>{}(m_Paused) << 15;
-	hash ^= std::hash<float>{}(m_MusicPreEntryTime) << 16;
-	hash ^= std::hash<float>{}(m_MusicExitTime) << 17;
-	return Entity::Hash() ^ (hash << 1);
+	hash ^= std::hash<float>{}(m_MusicPreEntryTime) << 0;
+	hash ^= std::hash<float>{}(m_MusicExitTime) << 1;
+
+	return hash;
 }
 
 bool SoundContainer::HasAnySounds() const {
