@@ -193,16 +193,6 @@ namespace RTE {
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		virtual int Create(const Entity& reference);
 
-		/// Records an entity against the reference, expected to be a preset.
-		/// @param writer A Writer that the Entity will save itself to.
-		/// @param reference A reference to write properties against.
-		/// @param hashData A clump of hash data for cheap property comparisons.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		virtual int Write(Writer& writer, const Entity& reference, const HashingData& ) const {
-			writer.ObjectStart(GetClassName());
-			return 0;
-		}
-
 		/// Makes the Serializable ready for use.
 		/// @param reader A Reader that the Serializable will create itself from.
 		/// @param checkType Whether there is a class name in the stream to check against to make sure the correct type is being read from the stream.
@@ -237,6 +227,13 @@ namespace RTE {
 		/// @param writer A Writer that the Entity will save itself to.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int SavePresetReference(Writer& writer) const;
+
+		/// Records an entity against the reference, expected to be a preset.
+		/// @param writer A Writer that the Entity will save itself to.
+		/// @param reference A reference to write properties against.
+		/// @param hashData A clump of hash data for cheap property comparisons.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		int Write(Writer& writer, const Entity& reference, const HashingData&) const;
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -379,6 +376,7 @@ namespace RTE {
 		static Entity::ClassInfo m_sClass; //!< Type description of this Entity.
 
 		std::string m_PresetName; //!< The name of the Preset data this was cloned from, if any.
+		std::string m_DisplayName; //!< The name of the Preset data this was cloned from, if any.
 		std::string m_PresetDescription; //!< The description of the preset in user friendly plain text that will show up in menus etc.
 		std::string m_FormattedReaderPosition; //!< A string containing the file path and the line we were read from. Formatted to be used for logging.
 

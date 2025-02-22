@@ -170,8 +170,6 @@ int AtomGroup::Save(Writer& writer) const {
 
 	writer.NewPropertyWithValue("Material", m_Material);
 	writer.NewPropertyWithValue("AutoGenerate", m_AutoGenerate);
-	writer.NewPropertyWithValue("Resolution", m_Resolution);
-	writer.NewPropertyWithValue("Depth", m_Depth);
 
 	// Only write out Atoms if they were manually specified
 	if (!m_AutoGenerate) {
@@ -179,6 +177,9 @@ int AtomGroup::Save(Writer& writer) const {
 			writer.NewProperty("AddAtom");
 			writer << *atom;
 		}
+	} else {
+		writer.NewPropertyWithValue("Resolution", m_Resolution);
+		writer.NewPropertyWithValue("Depth", m_Depth);
 	}
 
 	writer.NewPropertyWithValue("JointOffset", m_JointOffset);
@@ -187,6 +188,11 @@ int AtomGroup::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("AreaDistributionSurfaceAreaMultiplier", m_AreaDistributionSurfaceAreaMultiplier);
 
 	return 0;
+}
+
+int AtomGroup::Write(Writer& writer, const AtomGroup& reference, const HashingData& hashData) const {
+	Entity::Write(writer, reference, hashData);
+
 }
 
 HashingData AtomGroup::Hash() const {

@@ -19,6 +19,7 @@ namespace RTE {
 
 	void Entity::Clear() {
 		m_PresetName = "None";
+		m_DisplayName = "";
 		m_IsOriginalPreset = false;
 		m_DefinedInModule = -1;
 		m_PresetDescription.clear();
@@ -32,6 +33,7 @@ namespace RTE {
 
 	int Entity::Create(const Entity& reference) {
 		m_PresetName = reference.m_PresetName;
+		m_DisplayName = reference.m_DisplayName;
 		// Note how m_IsOriginalPreset is NOT assigned, automatically indicating that the copy is not an original Preset!
 		m_DefinedInModule = reference.m_DefinedInModule;
 		m_PresetDescription = reference.m_PresetDescription;
@@ -61,15 +63,30 @@ namespace RTE {
 				}
 			}
 		});
-		MatchForwards("PresetName") MatchProperty("InstanceName", {
+		MatchProperty("PresetName", {
 			SetPresetName(reader.ReadPropValue());
-			// Preset name might have "[ModuleName]/" preceding it, detect it here and select proper module!
+
+			// Preset name might have "[ModuleName]/" preceding it, detect it here and IGNORE IT!
+			// TODO: don't ignore it
 			int slashPos = m_PresetName.find_first_of('/');
 			if (slashPos != std::string::npos) {
 				m_PresetName = m_PresetName.substr(slashPos + 1);
 			}
-			// Mark this so that the derived class knows it should be added to the PresetMan when it's done reading all properties.
-			m_IsOriginalPreset = true;
+
+			// Indicate where this was read from
+			m_DefinedInModule = reader.GetReadModuleID();
+		});
+		MatchProperty("InstanceName", {
+			// Set this directly so that SetPresetName doesn't confuse that we're an orignal preset
+			m_PresetName = reader.ReadPropValue();
+
+			// Preset name might have "[ModuleName]/" preceding it, detect it here and IGNORE IT!
+			// TODO: don't ignore it
+			int slashPos = m_PresetName.find_first_of('/');
+			if (slashPos != std::string::npos) {
+				m_PresetName = m_PresetName.substr(slashPos + 1);
+			}
+
 			// Indicate where this was read from
 			m_DefinedInModule = reader.GetReadModuleID();
 		});
@@ -87,16 +104,26 @@ namespace RTE {
 				m_PresetDescription = descriptionValue;
 			}
 		});
+		MatchProperty("DisplayName", { reader >> m_DisplayName; });
 		MatchProperty("RandomWeight", {
 			reader >> m_RandomWeight;
 			m_RandomWeight = Limit(m_RandomWeight, 100, 0);
 		});
-		MatchProperty("AddToGroup", {
+		MatchProperty("_ClearGroups", {
+			m_Groups.clear();
+		});
+		MatchForwards("AddToGroup") MatchProperty("_AddToGroup", {
 			std::string newGroup;
 			reader >> newGroup;
 			AddToGroup(newGroup);
 			// Do this in AddToGroup instead?
 			g_PresetMan.RegisterGroup(newGroup, reader.GetReadModuleID());
+		});
+		MatchProperty("_RemoveFromGroup", {
+			std::string oldGroup;
+			reader >> oldGroup;
+			RemoveFromGroup(oldGroup);
+			// Don't need to unregister group or anything.
 		});
 
 		EndPropertyList;
@@ -105,24 +132,51 @@ namespace RTE {
 	int Entity::Save(Writer& writer) const {
 		Serializable::Save(writer);
 
-		// Is an original preset definition
+		// Whether or not an entity is original, there is no way to be certain that every distinction is saved
+		// without simply saving every non-default characteristic. A more efficient manner of saving would take
+		// as arguments a reference for the entity to compare it's attributes against, as well hashing values,
+		// corresponding to attributes of the reference, so that the writing can determine the most efficient
+		// and accurate method of recording.
+		// 
+		// See int Entity::Write(Writer& writer, const Entity& reference, const HashingData& hashData) const
+
 		if (m_IsOriginalPreset) {
 			writer.NewPropertyWithValue("PresetName", m_PresetName);
-
-			if (!m_PresetDescription.empty()) {
-				writer.NewPropertyWithValue("Description", m_PresetDescription);
-			}
-			// Only write out a copy reference if there is one
-		} else if (!m_PresetName.empty() && m_PresetName != "None") {
-			writer.NewPropertyWithValue("CopyOf", GetModuleAndPresetName());
+		} else {
+			writer.NewPropertyWithValue("InstanceName", m_PresetName);
 		}
 
-		// TODO: Make proper save system that knows not to save redundant data!
-		/*
+		if (!m_PresetDescription.empty()) {
+			writer.NewPropertyWithValue("Description", m_PresetDescription);
+		}
+
+		if (!m_PresetDescription.empty()) {
+			writer.NewPropertyWithValue("DisplayName", m_DisplayName);
+		}
+
+		writer.NewProperty("_ClearGroups = 1");
+
 		for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {
-		    writer.NewPropertyWithValue("AddToGroup", *itr);
+		    writer.NewPropertyWithValue("_AddToGroup", *itr);
 		}
-		*/
+
+		return 0;
+	}
+
+	int Entity::Write(Writer& writer, const Entity& reference, const HashingData& hashData) const {
+		writer.ObjectStart(GetClassName());
+
+		writer.NewPropertyWithValue("CopyOf", reference.m_PresetName);
+		writer.NewPropertyWithValue("Description", m_PresetDescription);
+		writer.NewPropertyWithValue("DisplayName", m_DisplayName);
+		
+		// There are some specific circumstances where it would be more compact to remove a set rather than clear
+		writer.NewProperty("_ClearGroups = 1");
+
+		for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {
+			writer.NewPropertyWithValue("_AddToGroup", *itr);
+		}
+
 		return 0;
 	}
 
@@ -131,18 +185,15 @@ namespace RTE {
 		uint64_t& hash = hashData.m_Hash;
 
 		hash ^= RTE::Hash(m_PresetName) << 0;
-		hash ^= std::hash<int>{}(m_DefinedInModule) << 1;
+		hash ^= RTE::Hash(m_DisplayName) << 1;
+		hash ^= std::hash<int>{}(m_DefinedInModule) << 2;
+		hash ^= RTE::Hash(m_PresetDescription) << 3;
 
 		for (auto& group: m_Groups) {
-			hash ^= RTE::Hash(group);
+			hash ^= RTE::Hash(group) << 4;
 		}
 
-		/* Not precisely sure what of an entity's properties are reasonable to include in a hash.
-		* Including preset originality immediately breaks hash parity (?) between preset and instance.
-		uint64_t h_original = std::hash<bool>{}(m_IsOriginalPreset);
-		uint64_t h_description = RTE::Hash(m_PresetDescription);
-		uint64_t h_randomWeight = std::hash<int>{}(m_RandomWeight);
-		*/
+		hash ^= std::hash<int>{}(m_RandomWeight) << 5;
 
 		return hashData;
 	}

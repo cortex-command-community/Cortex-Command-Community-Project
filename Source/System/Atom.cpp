@@ -155,12 +155,12 @@ int Atom::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Atom::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewPropertyWithValue("Offset", m_Offset);
-	writer.NewPropertyWithValue("OriginalOffset", m_OriginalOffset);
-	writer.NewPropertyWithValue("Material", m_Material);
-	writer.NewPropertyWithValue("TrailColor", m_TrailColor);
-	writer.NewPropertyWithValue("TrailLength", m_TrailLength);
-	writer.NewPropertyWithValue("TrailLengthVariation", m_TrailLengthVariation);
+	if (!m_Offset.IsZero()) writer.NewPropertyWithValue("Offset", m_Offset);
+	if (!m_OriginalOffset.IsZero()) writer.NewPropertyWithValue("OriginalOffset", m_OriginalOffset);
+	if (m_Material != nullptr) writer.NewPropertyWithValue("Material", RTE::Hash(m_Material->GetEntityCharacteristic()));
+	writer.NewPropertyWithValue("TrailColor", m_TrailColor); // Dunno how to check these flatly
+	if (m_TrailLength != 0) writer.NewPropertyWithValue("TrailLength", m_TrailLength);
+	if (m_TrailLengthVariation != 0.0F) writer.NewPropertyWithValue("TrailLengthVariation", m_TrailLengthVariation);
 
 	return 0;
 }
