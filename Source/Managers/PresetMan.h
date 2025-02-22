@@ -287,7 +287,7 @@ namespace RTE {
 		/// the official modules will be searched also.
 		/// @return The file path of the data file that the specified Entity was read from.
 		/// If no Entity of that description was found, "" is returned.
-		HashingData GetEntityHash(std::string type, std::string preset, int whichModule);
+		const HashingData* GetEntityHash(std::string type, std::string preset, int whichModule);
 
 		/// Reloads all scripted Entity Presets with the latest version of their respective script files.
 		void ReloadAllScripts() const;

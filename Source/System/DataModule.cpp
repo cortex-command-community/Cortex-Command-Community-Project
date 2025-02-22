@@ -271,21 +271,21 @@ std::string DataModule::GetEntityDataLocation(const std::string& exactType, cons
 	return "";
 }
 
-HashingData DataModule::GetEntityHash(const std::string& exactType, const std::string& instance) {
+const HashingData* DataModule::GetEntityHash(const std::string& exactType, const std::string& instance) {
 	const Entity* foundEntity = GetEntityPreset(exactType, instance);
 	if (foundEntity == nullptr) {
-		return Serializable::Hash();
+		return nullptr;
 	}
 
 	// Search for entity in instanceList
 	for (const PresetEntry& presetListEntry: m_PresetList) {
 		if (presetListEntry.m_EntityPreset == foundEntity) {
-			return presetListEntry.m_Hash;
+			return &(presetListEntry.m_Hash);
 		}
 	}
 
 	RTEAbort("Tried to find allegedly existing Entity Preset Entry: " + foundEntity->GetPresetName() + ", but couldn't!");
-	return Serializable::Hash();
+	return nullptr;
 }
 
 const Entity* DataModule::GetEntityPreset(const std::string& exactType, const std::string& instance) {
