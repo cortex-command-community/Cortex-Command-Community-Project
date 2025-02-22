@@ -184,10 +184,12 @@ int SLTerrain::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t SLTerrain::Hash() const {
-	uint64_t hash = SceneLayer::Hash();
-	// TODO: THIS
-	return hash;
+HashingData SLTerrain::Hash() const {
+	HashingData hashData = SceneLayer::Hash();
+
+	// TODO: FINISH
+
+	return hashData;
 }
 
 // TODO: Break this down and refactor.

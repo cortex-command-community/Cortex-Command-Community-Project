@@ -37,14 +37,17 @@ int TerrainFrosting::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t TerrainFrosting::Hash() const {
-	uint64_t h_frostingMaterial = RTE::Hash(m_FrostingMaterial.GetEntityCharacteristic());
-	uint64_t h_targetMaterial = RTE::Hash(m_TargetMaterial.GetEntityCharacteristic());
-	uint64_t h_minThickness = std::hash<int>{}(m_MinThickness);
-	uint64_t h_maxThickness = std::hash<int>{}(m_MaxThickness);
-	uint64_t h_inAirOnly = std::hash<bool>{}(m_InAirOnly);
+HashingData TerrainFrosting::Hash() const {
+	HashingData hashData = Serializable::Hash();
+	uint64_t& hash = hashData.m_Hash;
 
-	return h_frostingMaterial ^ (h_targetMaterial << 1) ^ (h_minThickness << 2) ^ (h_maxThickness << 3) ^ (h_inAirOnly << 4);
+	hash ^= RTE::Hash(m_FrostingMaterial.GetEntityCharacteristic());
+	hash ^= RTE::Hash(m_TargetMaterial.GetEntityCharacteristic());
+	hash ^= std::hash<int>{}(m_MinThickness);
+	hash ^= std::hash<int>{}(m_MaxThickness);
+	hash ^= std::hash<bool>{}(m_InAirOnly);
+
+	return hashData;
 }
 
 void TerrainFrosting::FrostTerrain(SLTerrain* terrain) const {

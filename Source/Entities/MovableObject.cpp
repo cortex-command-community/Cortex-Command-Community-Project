@@ -464,12 +464,19 @@ int MovableObject::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t MovableObject::Hash() const {
-	uint64_t hash = SceneObject::Hash();
+HashingData MovableObject::Hash() const {
+	HashingData hashData = SceneObject::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
 	// TODO: These are all written under the assumption that the reading and writing functions are already approximately accurate
-	// If the write function doesn't save things correctly, this gets it's distinction criteria from that
+	// If the write function doesn't save things correctly, this gets it's distinction criteria from that, so it's wrong too
+
 	hash ^= std::hash<float>{}(m_Mass) << 1;
-	hash ^= m_Vel.Hash() << 2;
+
+	HashingData velHash = m_Vel.Hash();
+	hashData.m_Constituents.push_back(velHash);
+	hash ^= velHash.m_Hash << 2;
+
 	hash ^= std::hash<float>{}(m_Scale) << 3;
 	hash ^= std::hash<float>{}(m_GlobalAccScalar) << 4;
 	hash ^= std::hash<float>{}(m_AirResistance) << 5;
@@ -495,7 +502,10 @@ uint64_t MovableObject::Hash() const {
 		}
 	}
 
-	hash ^= m_ScreenEffectFile.Hash() << 4;
+	HashingData effectHash = m_ScreenEffectFile.Hash();
+	hashData.m_Constituents.push_back(effectHash);
+	hash ^= effectHash.m_Hash << 4;
+
 	hash ^= std::hash<bool>{}(m_PostEffectEnabled) << 5;
 	hash ^= std::hash<int>{}(m_EffectStartTime) << 6;
 	hash ^= std::hash<int>{}(m_EffectStopTime) << 7;
@@ -516,12 +526,13 @@ uint64_t MovableObject::Hash() const {
 	}
 
 	for (const auto& [key, value]: m_StringValueMap) {
-		hash ^= RTE::Hash(key) << 16;
-		hash ^= RTE::Hash(value) << 17;
+		hash ^= RTE::Hash(key) << 32;
+		hash ^= RTE::Hash(value) << 33;
 	}
 
 	hash ^= std::hash<bool>{}(m_ForceIntoMasterLuaState) << 2;
-	return hash;
+
+	return hashData;
 }
 
 void MovableObject::DestroyScriptState() {

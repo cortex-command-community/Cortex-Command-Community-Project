@@ -261,8 +261,11 @@ int GameActivity::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t GameActivity::Hash() const {
-	uint64_t hash = std::hash<int>{}(m_CPUTeam);
+HashingData GameActivity::Hash() const {
+	HashingData hashData = Activity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= std::hash<int>{}(m_CPUTeam) << 0;
 	hash ^= std::hash<long>{}(m_DeliveryDelay) << 1;
 	hash ^= std::hash<bool>{}(m_BuyMenuEnabled) << 2;
 
@@ -271,7 +274,7 @@ uint64_t GameActivity::Hash() const {
 			hash ^= RTE::Hash(GetTeamTech(team)) << (team + 3);
 		}
 	}
-	return Activity::Hash() ^ (hash << 1);
+	return hashData;
 }
 
 void GameActivity::Destroy(bool notInherited) {

@@ -67,12 +67,18 @@ int Box::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Box::Hash() const {
-	uint64_t h_corner = m_Corner.Hash();
-	uint64_t h_width = std::hash<float>{}(m_Width);
-	uint64_t h_height = std::hash<float>{}(m_Height);
+HashingData Box::Hash() const {
+	HashingData hashData = Serializable::Hash();
+	uint64_t& hash = hashData.m_Hash;
 
-	return h_corner ^ (h_width << 1) ^ (h_height << 2);
+	HashingData cornerHash = m_Corner.Hash();
+	hashData.m_Constituents.push_back(cornerHash);
+	hash ^= cornerHash.m_Hash << 0;
+
+	hash ^= std::hash<float>{}(m_Width) << 1;
+	hash ^= std::hash<float>{}(m_Height) << 2;
+
+	return hashData;
 }
 
 void Box::Unflip() {

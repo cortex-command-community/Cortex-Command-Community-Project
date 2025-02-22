@@ -291,8 +291,8 @@ int SceneMan::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t SceneMan::Hash() const {
-	return 0;
+HashingData SceneMan::Hash() const {
+	return Serializable::Hash();
 }
 
 void SceneMan::Destroy() {

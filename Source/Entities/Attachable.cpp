@@ -193,16 +193,25 @@ int Attachable::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Attachable::Hash() const {
-	uint64_t hash = MOSRotating::Hash();
-	hash ^= m_ParentOffset.Hash() << 1;
+HashingData Attachable::Hash() const {
+	HashingData hashData = MOSRotating::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	HashingData parentOffsetHash = m_ParentOffset.Hash();
+	hashData.m_Constituents.push_back(parentOffsetHash);
+	hash ^= parentOffsetHash.m_Hash << 1;
+
 	hash ^= std::hash<bool>{}(m_DrawAfterParent) << 2;
 	hash ^= std::hash<bool>{}(m_DeleteWhenRemovedFromParent) << 3;
 	hash ^= std::hash<bool>{}(m_GibWhenRemovedFromParent) << 4;
 	hash ^= std::hash<bool>{}(m_ApplyTransferredForcesAtOffset) << 5;
 	hash ^= std::hash<float>{}(m_JointStrength) << 6;
 	hash ^= std::hash<float>{}(m_JointStiffness) << 7;
-	hash ^= m_JointOffset.Hash() << 8;
+
+	HashingData jointOffsetHash = m_JointOffset.Hash();
+	hashData.m_Constituents.push_back(jointOffsetHash);
+	hash ^= jointOffsetHash.m_Hash << 8;
+
 	hash ^= (m_BreakWound ? RTE::Hash(m_BreakWound->GetEntityCharacteristic()) : 0) << 9;
 	hash ^= (m_ParentBreakWound ? RTE::Hash(m_ParentBreakWound->GetEntityCharacteristic()) : 0) << 10;
 	hash ^= std::hash<int>{}((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2) << 11;
@@ -213,13 +222,18 @@ uint64_t Attachable::Hash() const {
 	hash ^= std::hash<bool>{}(m_InheritsAngularVelWhenDetached) << 0;
 	hash ^= std::hash<bool>{}(m_CollidesWithTerrainWhileAttached) << 1;
 	hash ^= std::hash<bool>{}(m_IgnoresParticlesWhileAttached) << 2;
+
 	int i = 0;
 
 	for (const std::unique_ptr<PieSlice>& pieSlice: m_PieSlices) {
-		hash ^= pieSlice->Hash() << (i++ % sizeof(uint64_t) * 8);
+		HashingData sliceHash = pieSlice->Hash();
+		hashData.m_Constituents.push_back(sliceHash);
+		hash ^= sliceHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
 	}
 
-	return hash;
+	hashData.m_ParseValues.push_back(i);
+
+	return hashData;
 }
 
 bool Attachable::TransferJointForces(Vector& jointForces) {

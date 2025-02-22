@@ -189,8 +189,11 @@ int AtomGroup::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t AtomGroup::Hash() const {
-	uint64_t hash = RTE::Hash(m_Material->GetEntityCharacteristic());
+HashingData AtomGroup::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= RTE::Hash(m_Material->GetEntityCharacteristic()) << 0;
 	hash ^= std::hash<bool>{}(m_AutoGenerate) << 1;
 
 	if (m_AutoGenerate) {
@@ -198,16 +201,20 @@ uint64_t AtomGroup::Hash() const {
 		hash ^= std::hash<int>{}(m_Depth) << 3;
 	} else {
 		for (int i = 0; i < m_Atoms.size(); i++) {
-			const Atom* const& atom = m_Atoms.at(i);
-			hash ^= atom->Hash() << (i % sizeof(uint64_t) * 8);
+			HashingData atomHash = m_Atoms.at(i)->Hash();
+			hashData.m_Constituents.push_back(atomHash);
+			hash ^= atomHash.m_Hash << (i % sizeof(uint64_t) * 8);
 		}
 	}
 
-	hash ^= m_JointOffset.Hash() << 2;
+	HashingData jointHash = m_JointOffset.Hash();
+	hashData.m_Constituents.push_back(jointHash);
+	hash ^= jointHash.m_Hash << 2;
+
 	hash ^= std::hash<AreaDistributionType>{}(m_AreaDistributionType) << 3;
 	hash ^= std::hash<float>{}(m_AreaDistributionSurfaceAreaMultiplier) << 4;
 
-	return Entity::Hash() ^ (hash << 1);
+	return hashData;
 }
 
 void AtomGroup::Destroy(bool notInherited) {

@@ -200,23 +200,101 @@ int ACRocket::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t ACRocket::Hash() const {
-	uint64_t hash = ACraft::Hash();
-	hash ^= (m_pRLeg ? m_pRLeg->Hash() : 0) << 1;
-	hash ^= (m_pLLeg ? m_pLLeg->Hash() : 0) << 2;
-	hash ^= (m_pRFootGroup ? m_pRFootGroup->Hash() : 0) << 3;
-	hash ^= (m_pLFootGroup ? m_pLFootGroup->Hash() : 0) << 4;
-	hash ^= (m_pMThruster ? m_pMThruster->Hash() : 0) << 5;
-	hash ^= (m_pRThruster ? m_pRThruster->Hash() : 0) << 6;
-	hash ^= (m_pLThruster ? m_pLThruster->Hash() : 0) << 7;
-	hash ^= (m_pURThruster ? m_pURThruster->Hash() : 0) << 8;
-	hash ^= (m_pULThruster ? m_pULThruster->Hash() : 0) << 9;
-	hash ^= m_Paths[RIGHT][RAISED].Hash() << 10;
-	hash ^= m_Paths[RIGHT][LOWERED].Hash() << 11;
-	hash ^= m_Paths[RIGHT][LOWERING].Hash() << 12;
-	hash ^= m_Paths[RIGHT][RAISING].Hash() << 13;
+HashingData ACRocket::Hash() const {
+	HashingData hashData = ACraft::Hash();
+	uint64_t& hash = hashData.m_Hash;
+	
+	bool rLegDef = m_pRLeg != nullptr;
+	hashData.m_ParseValues.push_back(rLegDef);
+	if (rLegDef) {
+		HashingData rLegHash = m_pRLeg->Hash();
+		hashData.m_Constituents.push_back(rLegHash);
+		hash ^= rLegHash.m_Hash << 1;
+	}
+
+	bool lLegDef = m_pLLeg != nullptr;
+	hashData.m_ParseValues.push_back(lLegDef);
+	if (lLegDef) {
+		HashingData lLegHash = m_pLLeg->Hash();
+		hashData.m_Constituents.push_back(lLegHash);
+		hash ^= lLegHash.m_Hash << 2;
+	}
+
+	bool rFootGroupDef = m_pRFootGroup != nullptr;
+	hashData.m_ParseValues.push_back(rFootGroupDef);
+	if (rFootGroupDef) {
+		HashingData rFootGroupHash = m_pRFootGroup->Hash();
+		hashData.m_Constituents.push_back(rFootGroupHash);
+		hash ^= rFootGroupHash.m_Hash << 3;
+	}
+
+	bool lFootGroupDef = m_pLFootGroup != nullptr;
+	hashData.m_ParseValues.push_back(lFootGroupDef);
+	if (lFootGroupDef) {
+		HashingData lFootGroupHash = m_pLFootGroup->Hash();
+		hashData.m_Constituents.push_back(lFootGroupHash);
+		hash ^= lFootGroupHash.m_Hash << 4;
+	}
+
+	bool mThrusterDef = m_pMThruster != nullptr;
+	hashData.m_ParseValues.push_back(mThrusterDef);
+	if (mThrusterDef) {
+		HashingData mThrusterHash = m_pMThruster->Hash();
+		hashData.m_Constituents.push_back(mThrusterHash);
+		hash ^= mThrusterHash.m_Hash << 5;
+	}
+
+	bool rThrusterDef = m_pRThruster != nullptr;
+	hashData.m_ParseValues.push_back(rThrusterDef);
+	if (rThrusterDef) {
+		HashingData rThrusterHash = m_pRThruster->Hash();
+		hashData.m_Constituents.push_back(rThrusterHash);
+		hash ^= rThrusterHash.m_Hash << 6;
+	}
+
+	bool lThrusterDef = m_pLThruster != nullptr;
+	hashData.m_ParseValues.push_back(lThrusterDef);
+	if (lThrusterDef) {
+		HashingData lThrusterHash = m_pLThruster->Hash();
+		hashData.m_Constituents.push_back(lThrusterHash);
+		hash ^= lThrusterHash.m_Hash << 7;
+	}
+
+	bool urThrusterDef = m_pURThruster != nullptr;
+	hashData.m_ParseValues.push_back(urThrusterDef);
+	if (urThrusterDef) {
+		HashingData urFootGroupHash = m_pURThruster->Hash();
+		hashData.m_Constituents.push_back(urFootGroupHash);
+		hash ^= urFootGroupHash.m_Hash << 8;
+	}
+
+	bool ulThrusterDef = m_pULThruster != nullptr;
+	hashData.m_ParseValues.push_back(ulThrusterDef);
+	if (ulThrusterDef) {
+		HashingData ulFootGroupHash = m_pULThruster->Hash();
+		hashData.m_Constituents.push_back(ulFootGroupHash);
+		hash ^= ulFootGroupHash.m_Hash << 9;
+	}
+
+	HashingData rightRaisedPathHash = m_Paths[RIGHT][RAISED].Hash();
+	hashData.m_Constituents.push_back(rightRaisedPathHash);
+	hash ^= rightRaisedPathHash.m_Hash << 10;
+
+	HashingData rightLoweredPathHash = m_Paths[RIGHT][LOWERED].Hash();
+	hashData.m_Constituents.push_back(rightLoweredPathHash);
+	hash ^= rightLoweredPathHash.m_Hash << 11;
+
+	HashingData rightLoweringPathHash = m_Paths[RIGHT][LOWERING].Hash();
+	hashData.m_Constituents.push_back(rightLoweringPathHash);
+	hash ^= rightLoweringPathHash.m_Hash << 12;
+
+	HashingData rightRaisingHash = m_Paths[RIGHT][RAISING].Hash();
+	hashData.m_Constituents.push_back(rightRaisingHash);
+	hash ^= rightRaisingHash.m_Hash << 13;
+
 	hash ^= std::hash<float>{}(m_MaxGimbalAngle) << 14;
-	return hash;
+
+	return hashData;
 }
 
 void ACRocket::Destroy(bool notInherited) {

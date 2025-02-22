@@ -105,14 +105,21 @@ int Deployment::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Deployment::Hash() const {
-	uint64_t hash = SceneObject::Hash();
-	hash ^= RTE::Hash(m_LoadoutName) << 1;
-	hash ^= m_Icon.Hash() << 2;
-	hash ^= std::hash<float>{}(m_SpawnRadius) << 3;
-	hash ^= std::hash<float>{}(m_WalkRadius) << 4;
-	hash ^= std::hash<bool>{}(m_HFlipped) << 5;
-	return hash;
+HashingData Deployment::Hash() const {
+	HashingData hashData = SceneObject::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= RTE::Hash(m_LoadoutName) << 0;
+
+	HashingData iconHash = m_Icon.Hash();
+	hashData.m_Constituents.push_back(iconHash);
+	hash ^= iconHash.m_Hash << 1;
+
+	hash ^= std::hash<float>{}(m_SpawnRadius) << 2;
+	hash ^= std::hash<float>{}(m_WalkRadius) << 3;
+	hash ^= std::hash<bool>{}(m_HFlipped) << 4;
+
+	return hashData;
 }
 
 void Deployment::Destroy(bool notInherited) {

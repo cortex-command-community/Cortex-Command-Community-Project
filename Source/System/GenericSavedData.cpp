@@ -29,8 +29,8 @@ int GenericSavedData::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t GenericSavedData::Hash() const {
-	return 0;
+HashingData GenericSavedData::Hash() const {
+	return Serializable::Hash();
 }
 
 void GenericSavedData::SaveString(const std::string& key, const std::string& value) {
@@ -93,8 +93,8 @@ int GenericSavedData::GenericSavedEncodedStrings::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t GenericSavedData::GenericSavedEncodedStrings::Hash() const {
-	return 0;
+HashingData GenericSavedData::GenericSavedEncodedStrings::Hash() const {
+	return Serializable::Hash();
 }
 
 int GenericSavedData::GenericSavedStrings::ReadProperty(const std::string_view& propName, Reader& reader) {
@@ -113,8 +113,8 @@ int GenericSavedData::GenericSavedStrings::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t GenericSavedData::GenericSavedStrings::Hash() const {
-	return 0;
+HashingData GenericSavedData::GenericSavedStrings::Hash() const {
+	return Serializable::Hash();
 }
 
 int GenericSavedData::GenericSavedNumbers::ReadProperty(const std::string_view& propName, Reader& reader) {
@@ -134,6 +134,6 @@ int GenericSavedData::GenericSavedNumbers::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t GenericSavedData::GenericSavedNumbers::Hash() const {
-	return 0;
+HashingData GenericSavedData::GenericSavedNumbers::Hash() const {
+	return Serializable::Hash();
 }

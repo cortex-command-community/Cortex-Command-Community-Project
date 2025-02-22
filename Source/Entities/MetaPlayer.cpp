@@ -121,8 +121,11 @@ int MetaPlayer::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t MetaPlayer::Hash() const {
-	uint64_t hash = RTE::Hash(m_Name);
+HashingData MetaPlayer::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= RTE::Hash(m_Name) << 0;
 	hash ^= std::hash<int>{}(m_Team) << 1;
 	hash ^= std::hash<bool>{}(m_Human) << 2;
 	hash ^= std::hash<int>{}(m_InGamePlayer) << 3;
@@ -135,5 +138,6 @@ uint64_t MetaPlayer::Hash() const {
 	hash ^= std::hash<float>{}(m_Funds) << 10;
 	hash ^= std::hash<float>{}(m_OffensiveBudget) << 11;
 	hash ^= RTE::Hash(m_OffensiveTarget) << 12;
-	return Entity::Hash() ^ (hash << 1);
+
+	return hashData;
 }

@@ -122,7 +122,7 @@ int MultiplayerServerLobby::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t MultiplayerServerLobby::Hash() const {
+HashingData MultiplayerServerLobby::Hash() const {
 	// If we don't save any distinguishing characteristics for saving, at all, then this may as well be
 	return GameActivity::Hash();
 }

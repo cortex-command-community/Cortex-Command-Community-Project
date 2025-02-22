@@ -759,32 +759,34 @@ std::string PresetMan::GetEntityDataLocation(std::string type, std::string prese
 	return pRetPath;
 }
 
-uint64_t PresetMan::GetEntityHash(std::string type, std::string preset, int whichModule) {
+HashingData PresetMan::GetEntityHash(std::string type, std::string preset, int whichModule) {
 	RTEAssert(whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
 
-	uint64_t pHash = 0;
+	HashingData* pHash = new HashingData(0, std::vector<HashingData>());
 
 	// All modules
 	if (whichModule < 0) {
 		// Search all modules
 		for (int i = 0; i < m_pDataModules.size() && !pHash; ++i)
-			pHash = m_pDataModules[i]->GetEntityHash(type, preset);
+			*pHash = m_pDataModules[i]->GetEntityHash(type, preset);
 	}
 	// Specific module
 	else {
 		// Try to get it from the asked for module
-		pHash = m_pDataModules[whichModule]->GetEntityHash(type, preset);
+		*pHash = m_pDataModules[whichModule]->GetEntityHash(type, preset);
 
 		// If couldn't find it in there, then try all the official modules!
 		if (!pHash) {
 			RTEAssert(m_OfficialModuleCount <= m_pDataModules.size(), "More official modules than modules loaded?!");
 			for (int i = 0; i < m_OfficialModuleCount && !pHash; ++i) {
-				pHash = m_pDataModules[i]->GetEntityHash(type, preset);
+				*pHash = m_pDataModules[i]->GetEntityHash(type, preset);
 			}
 		}
 	}
 
-	return pHash;
+	HashingData returnHash = *pHash;
+	delete pHash;
+	return returnHash;
 }
 
 void PresetMan::ReloadAllScripts() const {

@@ -59,10 +59,13 @@ int TDExplosive::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t TDExplosive::Hash() const {
-	uint64_t hash = ThrownDevice::Hash();
+HashingData TDExplosive::Hash() const {
+	HashingData hashData = ThrownDevice::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
 	hash ^= std::hash<bool>{}(m_IsAnimatedManually) << 1;
-	return hash;
+
+	return hashData;
 }
 
 void TDExplosive::Update() {

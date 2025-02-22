@@ -73,8 +73,7 @@ int ThrownDevice::ReadProperty(const std::string_view& propName, Reader& reader)
 int ThrownDevice::Save(Writer& writer) const {
 	HeldDevice::Save(writer);
 
-	writer.NewProperty("ActivationSound");
-	writer << *m_ActivationSound;
+	writer.NewPropertyWithValue("ActivationSound", *m_ActivationSound);
 	writer.NewPropertyWithValue("StartThrowOffset", m_StartThrowOffset);
 	writer.NewPropertyWithValue("EndThrowOffset", m_EndThrowOffset);
 	writer.NewPropertyWithValue("MinThrowVel", m_MinThrowVel);
@@ -86,17 +85,33 @@ int ThrownDevice::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t ThrownDevice::Hash() const {
-	uint64_t hash = HeldDevice::Hash();
-	hash ^= (m_ActivationSound ? m_ActivationSound->Hash() : 0) << 1;
-	hash ^= m_StartThrowOffset.Hash() << 2;
-	hash ^= m_EndThrowOffset.Hash() << 3;
+HashingData ThrownDevice::Hash() const {
+	HashingData hashData = HeldDevice::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	bool activationSoundDef = m_ActivationSound != nullptr;
+	hashData.m_ParseValues.push_back(activationSoundDef);
+	if (activationSoundDef) {
+		HashingData activationSoundHash = m_ActivationSound->Hash();
+		hashData.m_Constituents.push_back(activationSoundHash);
+		hash ^= activationSoundHash.m_Hash << 1;
+	}
+
+	HashingData startThrowHash = m_StartThrowOffset.Hash();
+	hashData.m_Constituents.push_back(startThrowHash);
+	hash ^= startThrowHash.m_Hash << 2;
+
+	HashingData endThrowHash = m_EndThrowOffset.Hash();
+	hashData.m_Constituents.push_back(endThrowHash);
+	hash ^= endThrowHash.m_Hash << 3;
+
 	hash ^= std::hash<float>{}(m_MinThrowVel) << 4;
 	hash ^= std::hash<float>{}(m_MaxThrowVel) << 5;
 	hash ^= std::hash<long>{}(m_TriggerDelay) << 6;
 	hash ^= std::hash<bool>{}(m_ActivatesWhenReleased) << 7;
 	hash ^= (m_StrikerLever ? RTE::Hash(m_StrikerLever->GetEntityCharacteristic()) : 0) << 8;
-	return hash;
+
+	return hashData;
 }
 
 float ThrownDevice::GetCalculatedMaxThrowVelIncludingArmThrowStrength() {

@@ -258,10 +258,12 @@ int BunkerAssembly::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t BunkerAssembly::Hash() const {
-	uint64_t hash = TerrainObject::Hash();
-	// TODO: THIS
-	return hash;
+HashingData BunkerAssembly::Hash() const {
+	HashingData hashData = TerrainObject::Hash();
+
+	// TODO: FINISH
+
+	return hashData;
 }
 
 void BunkerAssembly::Destroy(bool notInherited) {

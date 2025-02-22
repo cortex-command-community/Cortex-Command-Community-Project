@@ -119,16 +119,31 @@ int Arm::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Arm::Hash() const {
-	uint64_t hash = Attachable::Hash();
+HashingData Arm::Hash() const {
+	HashingData hashData = Attachable::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
 	hash ^= std::hash<float>{}(m_MaxLength) << 1;
 	hash ^= std::hash<float>{}(m_MoveSpeed) << 2;
-	hash ^= m_HandIdleOffset.Hash() << 3;
-	hash ^= m_HandSpriteFile.Hash() << 4;
+
+	HashingData handIdleHash = m_HandIdleOffset.Hash();
+	hashData.m_Constituents.push_back(handIdleHash);
+	hash ^= handIdleHash.m_Hash << 3;
+
+	HashingData handSpriteHash = m_HandSpriteFile.Hash();
+	hashData.m_Constituents.push_back(handSpriteHash);
+	hash ^= handSpriteHash.m_Hash << 4;
+
 	hash ^= std::hash<float>{}(m_GripStrength) << 5;
 	hash ^= std::hash<float>{}(m_ThrowStrength) << 6;
-	hash ^= (m_HeldDevice ? m_HeldDevice->Hash() : 0) << 4;
-	return hash;
+
+	if (m_HeldDevice) {
+		HashingData heldDeviceHash = m_HeldDevice->Hash();
+		hashData.m_Constituents.push_back(heldDeviceHash);
+		hash ^= heldDeviceHash.m_Hash << 7;
+	}
+
+	return hashData;
 }
 
 void Arm::SetHandPos(const Vector& newHandPos) {

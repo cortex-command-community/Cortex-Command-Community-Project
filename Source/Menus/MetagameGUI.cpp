@@ -693,8 +693,9 @@ int MetagameGUI::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t MetagameGUI::Hash() const {
-	return 0;
+HashingData MetagameGUI::Hash() const {
+	// TODO: FINISH?
+	return Serializable::Hash();
 }
 
 void MetagameGUI::Destroy() {

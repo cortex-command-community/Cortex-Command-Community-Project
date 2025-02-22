@@ -124,8 +124,11 @@ int Material::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Material::Hash() const {
-	uint64_t hash = std::hash<int>{}(m_Priority);
+HashingData Material::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= std::hash<int>{}(m_Priority) << 0;
 	hash ^= std::hash<int>{}(m_Piling) << 1;
 	hash ^= std::hash<float>{}(m_Integrity) << 2;
 	hash ^= std::hash<float>{}(m_Restitution) << 3;
@@ -137,9 +140,20 @@ uint64_t Material::Hash() const {
 	hash ^= std::hash<unsigned char>{}(m_SettleMaterialIndex) << 9;
 	hash ^= std::hash<unsigned char>{}(m_SpawnMaterialIndex) << 10;
 	hash ^= std::hash<bool>{}(m_IsScrap) << 11;
-	hash ^= m_Color.Hash() << 12;
+
+	HashingData colorHash = m_Color.Hash();
+	hashData.m_Constituents.push_back(colorHash);
+	hash ^= colorHash.m_Hash << 12;
+
 	hash ^= std::hash<bool>{}(m_UseOwnColor) << 13;
-	hash ^= m_FGTextureFile.Hash() << 14;
-	hash ^= m_BGTextureFile.Hash() << 15;
-	return Entity::Hash() ^ (hash << 1);
+
+	HashingData fgTextureHash = m_FGTextureFile.Hash();
+	hashData.m_Constituents.push_back(fgTextureHash);
+	hash ^= fgTextureHash.m_Hash << 14;
+
+	HashingData bgTextureHash = m_BGTextureFile.Hash();
+	hashData.m_Constituents.push_back(bgTextureHash);
+	hash ^= bgTextureHash.m_Hash << 15;
+
+	return hashData;
 }

@@ -335,76 +335,111 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 int MOSRotating::Save(Writer& writer) const {
 	MOSprite::Save(writer);
 
-	// TODO: Make proper save system that knows not to save redundant data!
-	/*
-	    writer.NewProperty("AtomGroup");
-	    writer << m_pAtomGroup;
-	    writer.NewProperty("DeepGroup");
-	    writer << m_pDeepGroup;
-	    writer.NewProperty("DeepCheck");
-	    writer << m_DeepCheck;
-	    writer.NewProperty("OrientToVel");
-	    writer << m_OrientToVel;
+	writer.NewProperty("AtomGroup");
+	writer << m_pAtomGroup;
+	writer.NewProperty("DeepGroup");
+	writer << m_pDeepGroup;
+	writer.NewProperty("DeepCheck");
+	writer << m_DeepCheck;
+	writer.NewProperty("OrientToVel");
+	writer << m_OrientToVel;
 
-	    for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr)
-	    {
-	        writer.NewProperty("AddEmitter");
-	        writer << (*itr);
-	    }
-	    for (auto aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr)
-	    {
-	        writer.NewProperty("AddAttachable");
-	        writer << (*aItr);
-	    }
-	*/
+	for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr)
+	{
+	    writer.NewProperty("AddEmitter");
+	    writer << (*itr);
+	}
+
+	for (auto aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr)
+	{
+	    writer.NewProperty("AddAttachable");
+	    writer << (*aItr);
+	}
+	
 	for (auto gItr = m_Gibs.begin(); gItr != m_Gibs.end(); ++gItr) {
 		writer.NewProperty("AddGib");
 		writer << (**gItr);
 	}
-	/*
-	    writer.NewProperty("GibImpulseLimit");
-	    writer << m_GibImpulseLimit;
-	    writer.NewProperty("GibWoundLimit");
-	    writer << m_GibWoundLimit;
-	    writer.NewPropertyWithValue("GibAtEndOfLifetime", m_GibAtEndOfLifetime);
-	    writer.NewProperty("GibSound");
-	    writer << m_GibSound;
-	    writer.NewProperty("EffectOnGib");
-	    writer << m_EffectOnGib;
-	*/
+
+	writer.NewProperty("GibImpulseLimit");
+	writer << m_GibImpulseLimit;
+	writer.NewProperty("GibWoundLimit");
+	writer << m_GibWoundLimit;
+	writer.NewPropertyWithValue("GibAtEndOfLifetime", m_GibAtEndOfLifetime);
+	writer.NewProperty("GibSound");
+	writer << m_GibSound;
+	writer.NewProperty("EffectOnGib");
+	writer << m_EffectOnGib;
+
 	return 0;
 }
 
-uint64_t MOSRotating::Hash() const {
-	uint64_t hash = MOSprite::Hash();
-	hash ^= (m_pAtomGroup ? m_pAtomGroup->Hash() : 0) << 1;
-	hash ^= (m_pDeepGroup ? m_pDeepGroup->Hash() : 0) << 2;
+HashingData MOSRotating::Hash() const {
+	HashingData hashData = MOSprite::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	bool atomGroupDef = m_pAtomGroup != nullptr;
+	hashData.m_ParseValues.push_back(atomGroupDef);
+	if (atomGroupDef) {
+		HashingData atomGroupHash = m_pAtomGroup->Hash();
+		hashData.m_Constituents.push_back(atomGroupHash);
+		hash ^= atomGroupHash.m_Hash << 1;
+	}
+
+	bool deepGroupDef = m_pDeepGroup != nullptr;
+	hashData.m_ParseValues.push_back(deepGroupDef);
+	if (deepGroupDef) {
+		HashingData deepGroupHash = m_pDeepGroup->Hash();
+		hashData.m_Constituents.push_back(deepGroupHash);
+		hash ^= deepGroupHash.m_Hash << 2;
+	}
+
 	hash ^= std::hash<bool>{}(m_DeepCheck) << 3;
 	hash ^= std::hash<float>{}(m_OrientToVel) << 4;
+
 	int i = 0;
 
 	for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr) {
-		hash ^= (*itr)->Hash() << (i++ % sizeof(uint64_t) * 8);
+		HashingData woundHash = (*itr)->Hash();
+		hashData.m_Constituents.push_back(woundHash);
+		hash ^= woundHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
 	}
 
+	hashData.m_ParseValues.push_back(i);
 	i = 0;
 
 	for (auto aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr) {
-		hash ^= (*aItr)->Hash() << (i++ % sizeof(uint64_t) * 8);
+		HashingData attachableHash = (*aItr)->Hash();
+		hashData.m_Constituents.push_back(attachableHash);
+		hash ^= attachableHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
 	}
 
+	hashData.m_ParseValues.push_back(i);
 	i = 0;
 
 	for (auto gItr = m_Gibs.begin(); gItr != m_Gibs.end(); ++gItr) {
-		hash ^= (*gItr)->Hash() << (i++ % sizeof(uint64_t) * 8);
+		HashingData gibHash = (*gItr)->Hash();
+		hashData.m_Constituents.push_back(gibHash);
+		hash ^= gibHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
 	}
+
+	hashData.m_ParseValues.push_back(i);
 
 	hash ^= std::hash<float>{}(m_GibImpulseLimit) << 5;
 	hash ^= std::hash<int>{}(m_GibWoundLimit) << 6;
 	hash ^= std::hash<bool>{}(m_GibAtEndOfLifetime) << 7;
-	hash ^= (m_GibSound ? m_GibSound->Hash() : 0) << 8;
+
+	bool gibSoundDef = m_GibSound != nullptr;
+	hashData.m_ParseValues.push_back(gibSoundDef);
+	if (gibSoundDef) {
+		HashingData gibSoundHash = m_GibSound->Hash();
+		hashData.m_Constituents.push_back(gibSoundHash);
+		hash ^= gibSoundHash.m_Hash << 8;
+	}
+
 	hash ^= std::hash<bool>{}(m_EffectOnGib) << 9;
-	return hash;
+
+	return hashData;
 }
 
 int MOSRotating::GetGibWoundLimit(bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) const {

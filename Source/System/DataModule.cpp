@@ -242,7 +242,7 @@ int DataModule::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t DataModule::Hash() const {
+HashingData DataModule::Hash() const {
 	/* I'm not even sure if this needs doing.
 	 * Only use that comes to mind is cross platform,
 	 * ensuring that two connected clients have functionally identical copies of each mod,
@@ -251,7 +251,7 @@ uint64_t DataModule::Hash() const {
 	 * Probably necessary, though, TODO: figure this out (among others).
 	 */
 
-	return 0;
+	return HashingData(0, std::vector<HashingData>());
 }
 
 std::string DataModule::GetEntityDataLocation(const std::string& exactType, const std::string& instance) {
@@ -271,10 +271,10 @@ std::string DataModule::GetEntityDataLocation(const std::string& exactType, cons
 	return "";
 }
 
-uint64_t DataModule::GetEntityHash(const std::string& exactType, const std::string& instance) {
+HashingData DataModule::GetEntityHash(const std::string& exactType, const std::string& instance) {
 	const Entity* foundEntity = GetEntityPreset(exactType, instance);
 	if (foundEntity == nullptr) {
-		return 0;
+		return Serializable::Hash();
 	}
 
 	// Search for entity in instanceList
@@ -285,7 +285,7 @@ uint64_t DataModule::GetEntityHash(const std::string& exactType, const std::stri
 	}
 
 	RTEAbort("Tried to find allegedly existing Entity Preset Entry: " + foundEntity->GetPresetName() + ", but couldn't!");
-	return 0;
+	return Serializable::Hash();
 }
 
 const Entity* DataModule::GetEntityPreset(const std::string& exactType, const std::string& instance) {

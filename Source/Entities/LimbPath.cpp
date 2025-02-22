@@ -192,21 +192,27 @@ int LimbPath::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t LimbPath::Hash() const {
-	uint64_t hash = m_Start.Hash();
+HashingData LimbPath::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	// TODO: In theory, this should not short circuit the constituencies, but IDRCTBH
+
+	hash ^= m_Start.Hash().m_Hash << 0;
 	hash ^= std::hash<int>{}(m_StartSegCount) << 1;
 
 	for (int i = 0; i < m_Segments.size(); i++) {
-		hash ^= m_Segments.at(i).Hash() << (i % sizeof(uint64_t) * 8);
+		hash ^= m_Segments.at(i).Hash().m_Hash << (i % sizeof(uint64_t) * 8);
 	}
 
 	hash ^= std::hash<int>{}(m_FootCollisionsDisabledSegment) << 2;
 	hash ^= std::hash<float>{}(m_SegmentEndedThreshold) << 3;
 	hash ^= std::hash<float>{}(m_TravelSpeed) << 4;
 	hash ^= std::hash<float>{}(m_BaseTravelSpeedMultiplier) << 5;
-	hash ^= m_BaseScaleMultiplier.Hash() << 6;
+	hash ^= m_BaseScaleMultiplier.Hash().m_Hash << 6;
 	hash ^= std::hash<float>{}(m_PushForce) << 7;
-	return Entity::Hash() ^ (hash << 1);
+
+	return hashData;
 }
 
 void LimbPath::Destroy(bool notInherited) {

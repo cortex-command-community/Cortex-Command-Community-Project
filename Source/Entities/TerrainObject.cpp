@@ -122,19 +122,35 @@ int TerrainObject::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t TerrainObject::Hash() const {
-	uint64_t hash = SceneObject::Hash();
-	hash ^= m_FGColorFile.Hash() << 1;
-	hash ^= m_BGColorFile.Hash() << 2;
-	hash ^= m_MaterialFile.Hash() << 3;
-	hash ^= m_BitmapOffset.Hash() << 4;
+HashingData TerrainObject::Hash() const {
+	HashingData hashData = SceneObject::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	HashingData fgColorHash = m_FGColorFile.Hash();
+	hashData.m_Constituents.push_back(fgColorHash);
+	hash ^= fgColorHash.m_Hash << 0;
+
+	HashingData bgColorHash = m_BGColorFile.Hash();
+	hashData.m_Constituents.push_back(bgColorHash);
+	hash ^= bgColorHash.m_Hash << 1;
+
+	HashingData materialHash = m_MaterialFile.Hash();
+	hashData.m_Constituents.push_back(materialHash);
+	hash ^= materialHash.m_Hash << 2;
+
+	HashingData offsetHash = m_BitmapOffset.Hash();
+	hashData.m_Constituents.push_back(offsetHash);
+	hash ^= offsetHash.m_Hash << 3;
+
 	int i = 0;
 	
 	for (const SceneObject::SOPlacer& childObject: m_ChildObjects) {
-		hash ^= childObject.Hash() << (i++ % sizeof(uint64_t) * 8);
+		HashingData childHash = childObject.Hash();
+		hashData.m_Constituents.push_back(childHash);
+		hash ^= childHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
 	}
 
-	return hash;
+	return hashData;
 }
 
 BITMAP* TerrainObject::GetGraphicalIcon() const {

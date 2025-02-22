@@ -126,20 +126,25 @@ namespace RTE {
 		return 0;
 	}
 
-	uint64_t Entity::Hash() const {
-		uint64_t h_presetName = RTE::Hash(m_PresetName);
-		uint64_t h_inModule = std::hash<int>{}(m_DefinedInModule);
-		uint64_t h_groups = 0;
+	HashingData Entity::Hash() const {
+		HashingData hashData = Serializable::Hash();
+		uint64_t& hash = hashData.m_Hash;
+
+		hash ^= RTE::Hash(m_PresetName) << 0;
+		hash ^= std::hash<int>{}(m_DefinedInModule) << 1;
+
 		for (auto& group: m_Groups) {
-			h_groups ^= RTE::Hash(group);
+			hash ^= RTE::Hash(group);
 		}
+
 		/* Not precisely sure what of an entity's properties are reasonable to include in a hash.
 		* Including preset originality immediately breaks hash parity (?) between preset and instance.
 		uint64_t h_original = std::hash<bool>{}(m_IsOriginalPreset);
 		uint64_t h_description = RTE::Hash(m_PresetDescription);
 		uint64_t h_randomWeight = std::hash<int>{}(m_RandomWeight);
 		*/
-		return h_presetName ^ (h_inModule << 1) ^ (h_groups << 2);
+
+		return hashData;
 	}
 
 	int Entity::SavePresetReference(Writer& writer) const {

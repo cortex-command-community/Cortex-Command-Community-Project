@@ -146,15 +146,28 @@ int PieSlice::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t PieSlice::Hash() const {
-	uint64_t hash = std::hash<PieSliceType>{}(m_Type);
+HashingData PieSlice::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= std::hash<PieSliceType>{}(m_Type) << 1;
 	hash ^= std::hash<Directions>{}(m_Direction) << 1;
 	hash ^= std::hash<bool>{}(m_Enabled) << 2;
-	hash ^= (m_Icon ? m_Icon->Hash() : 0) << 3;
-	hash ^= m_LuabindFunctionObject ? (RTE::Hash(m_LuabindFunctionObject->GetFilePath()) << 4) : 0;
+
+	HashingData bitmapHash = m_Icon->Hash();
+	hashData.m_Constituents.push_back(bitmapHash);
+	hash ^= bitmapHash.m_Hash << 3;
+
+	hash ^= (m_LuabindFunctionObject ? RTE::Hash(m_LuabindFunctionObject->GetFilePath()) : 0) << 4;
 	hash ^= RTE::Hash(m_FunctionName) << 5;
-	hash ^= (m_SubPieMenu ? m_SubPieMenu->Hash() : 0) << 6;
-	return Entity::Hash() ^ (hash << 1);
+
+	if (m_SubPieMenu) {
+		HashingData subPieHash = m_SubPieMenu->Hash();
+		hashData.m_Constituents.push_back(subPieHash);
+		hash ^= subPieHash.m_Hash << 6;
+	}
+
+	return hashData;
 }
 
 BITMAP* PieSlice::GetAppropriateIcon(bool sliceIsSelected) const {

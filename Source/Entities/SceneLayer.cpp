@@ -150,11 +150,18 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Save(Writer& writer) const {
 }
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
-uint64_t SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Hash() const {
-	uint64_t hash = m_BitmapFile.Hash();
+HashingData SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	HashingData bitmapHash = m_BitmapFile.Hash();
+	hashData.m_Constituents.push_back(bitmapHash);
+	hash ^= bitmapHash.m_Hash << 0;
+	
 	hash ^= std::hash<bool>{}(m_WrapX) << 1;
 	hash ^= std::hash<bool>{}(m_WrapY) << 2;
-	return Entity::Hash() ^ (hash << 1);
+
+	return hashData;
 }
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>

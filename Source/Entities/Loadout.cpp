@@ -69,17 +69,19 @@ int Loadout::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Loadout::Hash() const {
-	uint64_t hash = Entity::Hash();
+HashingData Loadout::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
 	
-	hash ^= m_pDeliveryCraft ? RTE::Hash(m_pDeliveryCraft->GetEntityCharacteristic()) : 0 << 1;
+	hash ^= (m_pDeliveryCraft ? RTE::Hash(m_pDeliveryCraft->GetEntityCharacteristic()) : 0) << 0;
 
 	int i = 0;
+
 	for (const SceneObject* pCargo : m_CargoItems) {
 		hash ^= RTE::Hash(pCargo->GetEntityCharacteristic()) << (i++ % sizeof(uint64_t) * 8);
 	}
 
-	return hash;
+	return hashData;
 }
 
 /*

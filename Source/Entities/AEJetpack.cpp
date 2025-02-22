@@ -109,8 +109,10 @@ int AEJetpack::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t AEJetpack::Hash() const {
-	uint64_t hash = AEmitter::Hash();
+HashingData AEJetpack::Hash() const {
+	HashingData hashData = AEmitter::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
 	hash ^= std::hash<JetpackType>{}(m_JetpackType) << 1;
 	hash ^= std::hash<float>{}(m_JetTimeTotal) << 2;
 	hash ^= std::hash<float>{}(m_JetReplenishRate) << 3;
@@ -118,7 +120,8 @@ uint64_t AEJetpack::Hash() const {
 	hash ^= std::hash<float>{}(m_JetAngleRange) << 5;
 	hash ^= std::hash<bool>{}(m_CanAdjustAngleWhileFiring) << 6;
 	hash ^= std::hash<bool>{}(m_AdjustsThrottleForWeight) << 7;
-	return hash;
+
+	return hashData;
 }
 
 void AEJetpack::UpdateBurstState(Actor& parentActor) {

@@ -88,13 +88,21 @@ int SceneObject::SOPlacer::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t SceneObject::SOPlacer::Hash() const {
-	uint64_t hash = (m_pObjectReference ? RTE::Hash(m_pObjectReference->GetEntityCharacteristic()) : 0);
-	hash ^= m_Offset.Hash() << 1;
+HashingData SceneObject::SOPlacer::Hash() const {
+	HashingData hashData = Serializable::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= (m_pObjectReference ? RTE::Hash(m_pObjectReference->GetEntityCharacteristic()) : 0) << 0;
+
+	HashingData offsetHash = m_Offset.Hash();
+	hashData.m_Constituents.push_back(offsetHash);
+	hash ^= offsetHash.m_Hash << 1;
+
 	hash ^= std::hash<float>{}(m_RotAngle) << 2;
 	hash ^= std::hash<bool>{}(m_HFlipped) << 3;
 	hash ^= std::hash<int>{}(m_Team) << 4;
-	return hash;
+
+	return hashData;
 }
 
 SceneObject* SceneObject::SOPlacer::GetPlacedCopy(const SceneObject* pParent) const {
@@ -206,15 +214,21 @@ int SceneObject::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t SceneObject::Hash() const {
-	uint64_t h_entity = Entity::Hash();
-	uint64_t h_pos = m_Pos.Hash();
-	uint64_t h_goldValue = std::hash<float>{}(m_OzValue);
-	uint64_t h_buyability = std::hash<bool>{}(m_Buyable);
-	uint64_t h_buyMode = std::hash<BuyableMode>{}(m_BuyableMode);
-	uint64_t h_team = std::hash<int>{}(m_Team);
-	uint64_t h_placedByPlayer = std::hash<int>{}(m_PlacedByPlayer);
-	return h_entity ^ (h_pos << 1) ^ (h_goldValue << 2) ^ (h_buyability << 3) ^ (h_buyMode << 4) ^ (h_team << 5) ^ (h_placedByPlayer << 6);
+HashingData SceneObject::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	HashingData posHash = m_Pos.Hash();
+	hashData.m_Constituents.push_back(posHash);
+	hash ^= posHash.m_Hash << 0;
+
+	hash ^= std::hash<float>{}(m_OzValue) << 1;
+	hash ^= std::hash<bool>{}(m_Buyable) << 2;
+	hash ^= std::hash<BuyableMode>{}(m_BuyableMode) << 3;
+	hash ^= std::hash<int>{}(m_Team) << 4;
+	hash ^= std::hash<int>{}(m_PlacedByPlayer) << 5;
+
+	return hashData;
 }
 
 void SceneObject::Destroy(bool notInherited) {

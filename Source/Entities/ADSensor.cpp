@@ -48,12 +48,21 @@ int ADSensor::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t ADSensor::Hash() const {
-	uint64_t h_startOffset = m_StartOffset.Hash();
-	uint64_t h_sensorRay = m_SensorRay.Hash();
-	uint64_t h_skipPixels = std::hash<short>{}(m_Skip);
+HashingData ADSensor::Hash() const {
+	HashingData hashData = Serializable::Hash();
+	uint64_t& hash = hashData.m_Hash;
 
-	return h_startOffset ^ (h_sensorRay << 1) ^ (h_skipPixels << 2);
+	HashingData startOffsetHash = m_StartOffset.Hash();
+	hashData.m_Constituents.push_back(startOffsetHash);
+	hash ^= startOffsetHash.m_Hash << 0;
+
+	HashingData sensorRayHash = m_SensorRay.Hash();
+	hashData.m_Constituents.push_back(sensorRayHash);
+	hash ^= sensorRayHash.m_Hash << 1;
+
+	hash ^= std::hash<short>{}(m_Skip) << 2;
+
+	return hashData;
 }
 
 Actor* ADSensor::SenseActor(const Vector& doorPos, const Matrix& doorRot, bool doorHFlipped, MOID ignoreMOID) {

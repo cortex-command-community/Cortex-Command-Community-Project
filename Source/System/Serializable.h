@@ -2,6 +2,7 @@
 
 #include "Reader.h"
 #include "Writer.h"
+#include "Hash.h"
 
 #include <functional>
 #include <string>
@@ -20,7 +21,7 @@ namespace RTE {
 #define SerializableOverrideMethods \
 	int ReadProperty(const std::string_view& propName, Reader& reader) override; \
 	int Save(Writer& writer) const override; \
-	uint64_t Hash() const override;
+	HashingData Hash() const override;
 
 /// Convenience macro to cut down on duplicate GetClassName methods in non-poolable classes that extend Serializable.
 #define SerializableClassNameGetter \
@@ -119,8 +120,8 @@ namespace RTE {
 
 		/// Generates the hash value of this serializable.
 		/// @return A hash value.
-		virtual std::size_t Hash() const {
-			return 0;
+		virtual HashingData Hash() const {
+			return HashingData(0, std::vector<HashingData>());
 		}
 
 		/// Replaces backslashes with forward slashes in file paths to eliminate issues with cross-platform compatibility or invalid escape sequences.

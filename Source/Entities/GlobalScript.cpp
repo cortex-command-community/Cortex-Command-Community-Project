@@ -72,16 +72,21 @@ int GlobalScript::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t GlobalScript::Hash() const {
-	uint64_t hash = std::hash<bool>{}(m_LateUpdate);
-	hash ^= RTE::Hash(m_ScriptPath);
-	hash ^= RTE::Hash(m_LuaClassName);
+HashingData GlobalScript::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= std::hash<bool>{}(m_LateUpdate) << 0;
+	hash ^= RTE::Hash(m_ScriptPath) << 1;
+	hash ^= RTE::Hash(m_LuaClassName) << 2;
 
 	for (int i = 0; i < m_PieSlicesToAdd.size(); i++) {
-		hash ^= m_PieSlicesToAdd.at(i)->Hash() << (i % sizeof(uint64_t) * 8);
+		HashingData sliceHash = m_PieSlicesToAdd.at(i)->Hash();
+		hashData.m_Constituents.push_back(sliceHash);
+		hash ^= sliceHash.m_Hash << (i % sizeof(uint64_t) * 8);
 	}
 
-	return Entity::Hash() ^ (hash << 1);
+	return hashData;
 }
 
 const std::vector<std::unique_ptr<PieSlice>>& GlobalScript::GetPieSlicesToAdd() const {

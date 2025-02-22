@@ -336,41 +336,150 @@ int AHuman::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t AHuman::Hash() const {
-	uint64_t hash = Actor::Hash();
+HashingData AHuman::Hash() const {
+	HashingData hashData = Actor::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	// TODO: FINISH
+
 	hash ^= std::hash<long>{}(m_ThrowPrepTime) << 1;
-	hash ^= (m_pHead ? m_pHead->Hash() : 0) << 2;
+
+	bool headDef = m_pHead != nullptr;
+	hashData.m_ParseValues.push_back(headDef);
+	if (headDef) {
+		HashingData headHash = m_pHead->Hash();
+		hashData.m_Constituents.push_back(headHash);
+		hash ^= headHash.m_Hash << 2;
+	}
+
 	hash ^= std::hash<float>{}(m_LookToAimRatio) << 3;
-	hash ^= (m_pJetpack ? m_pJetpack->Hash() : 0) << 4;
+
+	bool jetpackDef = m_pJetpack != nullptr;
+	hashData.m_ParseValues.push_back(jetpackDef);
+	if (jetpackDef) {
+		HashingData jetpackHash = m_pJetpack->Hash();
+		hashData.m_Constituents.push_back(jetpackHash);
+		hash ^= jetpackHash.m_Hash << 4;
+	}
+
 	hash ^= std::hash<float>{}(m_FGArmFlailScalar) << 5;
 	hash ^= std::hash<float>{}(m_BGArmFlailScalar) << 6;
 	hash ^= std::hash<float>{}(m_ArmSwingRate) << 7;
 	hash ^= std::hash<float>{}(m_DeviceArmSwayRate) << 8;
-	hash ^= (m_pFGArm ? m_pFGArm->Hash() : 0) << 9;
-	hash ^= (m_pBGArm ? m_pBGArm->Hash() : 0) << 10;
-	hash ^= (m_pFGLeg ? m_pFGLeg->Hash() : 0) << 11;
-	hash ^= (m_pBGLeg ? m_pBGLeg->Hash() : 0) << 12;
-	hash ^= (m_pFGHandGroup ? m_pFGHandGroup->Hash() : 0) << 13;
-	hash ^= (m_pFGFootGroup ? m_pFGFootGroup->Hash() : 0) << 14;
-	hash ^= (m_pBGFootGroup ? m_pBGFootGroup->Hash() : 0) << 15;
+
+	bool fgArmDef = m_pFGArm != nullptr;
+	hashData.m_ParseValues.push_back(fgArmDef);
+	if (fgArmDef) {
+		HashingData fgArmHash = m_pFGArm->Hash();
+		hashData.m_Constituents.push_back(fgArmHash);
+		hash ^= fgArmHash.m_Hash << 9;
+	}
+
+	bool bgArmDef = m_pBGArm != nullptr;
+	hashData.m_ParseValues.push_back(bgArmDef);
+	if (bgArmDef) {
+		HashingData bgArmHash = m_pBGArm->Hash();
+		hashData.m_Constituents.push_back(bgArmHash);
+		hash ^= bgArmHash.m_Hash << 10;
+	}
+
+	bool fgLegDef = m_pFGLeg != nullptr;
+	hashData.m_ParseValues.push_back(fgLegDef);
+	if (fgLegDef) {
+		HashingData fgLegHash = m_pFGLeg->Hash();
+		hashData.m_Constituents.push_back(fgLegHash);
+		hash ^= fgLegHash.m_Hash << 11;
+	}
+
+	bool bgLegDef = m_pBGLeg != nullptr;
+	hashData.m_ParseValues.push_back(bgLegDef);
+	if (bgLegDef) {
+		HashingData bgLegHash = m_pBGLeg->Hash();
+		hashData.m_Constituents.push_back(bgLegHash);
+		hash ^= bgLegHash.m_Hash << 12;
+	}
+
+	bool fgHandGroupDef = m_pFGHandGroup != nullptr;
+	hashData.m_ParseValues.push_back(fgHandGroupDef);
+	if (fgHandGroupDef) {
+		HashingData fgHandGroupHash = m_pFGHandGroup->Hash();
+		hashData.m_Constituents.push_back(fgHandGroupHash);
+		hash ^= fgHandGroupHash.m_Hash << 13;
+	}
+
+	bool fgFootGroupDef = m_pFGFootGroup != nullptr;
+	hashData.m_ParseValues.push_back(fgFootGroupDef);
+	if (fgFootGroupDef) {
+		HashingData fgFootGroupHash = m_pFGFootGroup->Hash();
+		hashData.m_Constituents.push_back(fgFootGroupHash);
+		hash ^= fgFootGroupHash.m_Hash << 14;
+	}
+
+	bool bgFootGroupDef = m_pBGFootGroup != nullptr;
+	hashData.m_ParseValues.push_back(bgFootGroupDef);
+	if (bgFootGroupDef) {
+		HashingData bgFootGroupHash = m_pBGFootGroup->Hash();
+		hashData.m_Constituents.push_back(bgFootGroupHash);
+		hash ^= bgFootGroupHash.m_Hash << 15;
+	}
+
 	hash ^= std::hash<float>{}(m_MaxWalkPathCrouchShift) << 0;
-	hash ^= (m_StrideSound ? m_StrideSound->Hash() : 0) << 1;
-	hash ^= m_Paths[FGROUND][STAND].Hash() << 2;
-	hash ^= m_Paths[BGROUND][STAND].Hash() << 3;
-	hash ^= m_Paths[FGROUND][WALK].Hash() << 4;
-	hash ^= m_Paths[FGROUND][RUN].Hash() << 5;
-	hash ^= m_Paths[FGROUND][PRONE].Hash() << 6;
-	hash ^= m_Paths[FGROUND][CRAWL].Hash() << 7;
-	hash ^= m_Paths[FGROUND][ARMCRAWL].Hash() << 8;
-	hash ^= m_Paths[FGROUND][CLIMB].Hash() << 9;
-	hash ^= m_Paths[FGROUND][JUMP].Hash() << 10;
-	hash ^= m_Paths[FGROUND][DISLODGE].Hash() << 11;
+
+	bool strideSoundDef = m_StrideSound != nullptr;
+	hashData.m_ParseValues.push_back(strideSoundDef);
+	if (strideSoundDef) {
+		HashingData strideSoundHash = m_StrideSound->Hash();
+		hashData.m_Constituents.push_back(strideSoundHash);
+		hash ^= strideSoundHash.m_Hash << 1;
+	}
+
+	HashingData fgStandPathHash = m_Paths[FGROUND][STAND].Hash();
+	hashData.m_Constituents.push_back(fgStandPathHash);
+	hash ^= fgStandPathHash.m_Hash << 2;
+
+	HashingData bgStandPathHash = m_Paths[BGROUND][STAND].Hash();
+	hashData.m_Constituents.push_back(bgStandPathHash);
+	hash ^= bgStandPathHash.m_Hash << 3;
+
+	HashingData walkPathHash = m_Paths[FGROUND][WALK].Hash();
+	hashData.m_Constituents.push_back(walkPathHash);
+	hash ^= walkPathHash.m_Hash << 4;
+
+	HashingData runPathHash = m_Paths[FGROUND][RUN].Hash();
+	hashData.m_Constituents.push_back(runPathHash);
+	hash ^= runPathHash.m_Hash << 5;
+
+	HashingData pronePathHash = m_Paths[FGROUND][PRONE].Hash();
+	hashData.m_Constituents.push_back(pronePathHash);
+	hash ^= pronePathHash.m_Hash << 6;
+
+	HashingData crawlPathHash = m_Paths[FGROUND][CRAWL].Hash();
+	hashData.m_Constituents.push_back(crawlPathHash);
+	hash ^= crawlPathHash.m_Hash << 7;
+
+	HashingData armCrawlPathHash = m_Paths[FGROUND][ARMCRAWL].Hash();
+	hashData.m_Constituents.push_back(armCrawlPathHash);
+	hash ^= armCrawlPathHash.m_Hash << 8;
+
+	HashingData climbPathHash = m_Paths[FGROUND][CLIMB].Hash();
+	hashData.m_Constituents.push_back(climbPathHash);
+	hash ^= climbPathHash.m_Hash << 9;
+
+	HashingData jumpPathHash = m_Paths[FGROUND][JUMP].Hash();
+	hashData.m_Constituents.push_back(jumpPathHash);
+	hash ^= jumpPathHash.m_Hash << 10;
+
+	HashingData dislodgePathHash = m_Paths[FGROUND][DISLODGE].Hash();
+	hashData.m_Constituents.push_back(dislodgePathHash);
+	hash ^= dislodgePathHash.m_Hash << 11;
+
 	hash ^= std::hash<float>{}(m_RotAngleTargets[STAND]) << 12;
 	hash ^= std::hash<float>{}(m_RotAngleTargets[WALK]) << 13;
 	hash ^= std::hash<float>{}(m_RotAngleTargets[RUN]) << 14;
 	hash ^= std::hash<float>{}(m_RotAngleTargets[PRONE]) << 15;
 	hash ^= std::hash<float>{}(m_RotAngleTargets[JUMP]) << 0;
-	return hash;
+
+	return hashData;
 }
 
 void AHuman::Destroy(bool notInherited) {

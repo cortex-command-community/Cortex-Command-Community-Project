@@ -220,20 +220,34 @@ int HeldDevice::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t HeldDevice::Hash() const {
-	uint64_t hash = Attachable::Hash();
+HashingData HeldDevice::Hash() const {
+	HashingData hashData = Attachable::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
 	hash ^= std::hash<bool>{}(m_OneHanded) << 1;
-	hash ^= m_StanceOffset.Hash() << 2;
-	hash ^= m_SharpStanceOffset.Hash() << 3;
+
+	HashingData stanceOffsetHash = m_StanceOffset.Hash();
+	hashData.m_Constituents.push_back(stanceOffsetHash);
+	hash ^= stanceOffsetHash.m_Hash << 2;
+
+	HashingData sharpStanceOffsetHash = m_SharpStanceOffset.Hash();
+	hashData.m_Constituents.push_back(sharpStanceOffsetHash);
+	hash ^= sharpStanceOffsetHash.m_Hash << 3;
+
 	hash ^= std::hash<bool>{}(m_Supportable) << 4;
-	hash ^= m_SupportOffset.Hash() << 5;
+
+	HashingData supportOffsetHash = m_SupportOffset.Hash();
+	hashData.m_Constituents.push_back(supportOffsetHash);
+	hash ^= supportOffsetHash.m_Hash << 5;
+
 	hash ^= std::hash<bool>{}(m_UseSupportOffsetWhileReloading) << 6;
 	hash ^= std::hash<float>{}(m_GripStrengthMultiplier) << 7;
 	hash ^= std::hash<float>{}(m_MaxSharpLength) << 8;
 	hash ^= std::hash<float>{}(m_Loudness) << 9;
 	hash ^= std::hash<bool>{}(m_GetsHitByMOsWhenHeld) << 10;
 	hash ^= std::hash<float>{}(m_VisualRecoilMultiplier) << 11;
-	return hash;
+
+	return hashData;
 }
 
 void HeldDevice::Destroy(bool notInherited) {

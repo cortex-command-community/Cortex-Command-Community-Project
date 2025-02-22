@@ -101,14 +101,25 @@ int MOPixel::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t MOPixel::Hash() const {
-	uint64_t hash = MovableObject::Hash();
-	hash ^= (m_Atom ? m_Atom->Hash() : 0) << 1;
-	hash ^= m_Color.Hash() << 2;
+HashingData MOPixel::Hash() const {
+	HashingData hashData = MovableObject::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	if (m_Atom) {
+		HashingData atomHash = m_Atom->Hash();
+		hashData.m_Constituents.push_back(atomHash);
+		hash ^= atomHash.m_Hash << 1;
+	}
+
+	HashingData colorHash = m_Color.Hash();
+	hashData.m_Constituents.push_back(colorHash);
+	hash ^= colorHash.m_Hash << 2;
+
 	hash ^= std::hash<float>{}(m_MinLethalRange) << 3;
 	hash ^= std::hash<float>{}(m_MaxLethalRange) << 4;
 	hash ^= std::hash<float>{}(m_Staininess) << 5;
-	return hash;
+
+	return hashData;
 }
 
 void MOPixel::Destroy(bool notInherited) {

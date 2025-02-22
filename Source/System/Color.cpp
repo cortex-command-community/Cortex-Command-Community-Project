@@ -42,12 +42,15 @@ int Color::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Color::Hash() const {
-	uint64_t h_r = std::hash<int>{}(m_R);
-	uint64_t h_g = std::hash<int>{}(m_G);
-	uint64_t h_b = std::hash<int>{}(m_B);
+HashingData Color::Hash() const {
+	HashingData hashData = Serializable::Hash();
+	uint64_t& hash = hashData.m_Hash;
 
-	return h_r ^ (h_g << 1) ^ (h_b << 2);
+	hash ^= std::hash<int>{}(m_R) << 0;
+	hash ^= std::hash<int>{}(m_G) << 1;
+	hash ^= std::hash<int>{}(m_B) << 2;
+
+	return hashData;
 }
 
 void Color::SetRGBWithIndex(int index) {

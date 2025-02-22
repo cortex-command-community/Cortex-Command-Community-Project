@@ -80,7 +80,7 @@ int GibEditor::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t GibEditor::Hash() const {
+HashingData GibEditor::Hash() const {
 	// If we don't save any distinguishing characteristics, at all, then this may as well be
 	return EditorActivity::Hash();
 }

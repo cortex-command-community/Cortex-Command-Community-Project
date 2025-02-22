@@ -121,21 +121,30 @@ int DynamicSongSection::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t DynamicSongSection::Hash() const {
-	uint64_t hash = std::hash<unsigned int>{}(m_LastTransitionSoundContainerIndex);
+HashingData DynamicSongSection::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= std::hash<unsigned int>{}(m_LastTransitionSoundContainerIndex) << 0;
 	hash ^= std::hash<unsigned int>{}(m_LastSoundContainerIndex) << 1;
 	hash ^= std::hash<int>{}(m_SoundContainerSelectionCycleMode) << 2;
 	hash ^= RTE::Hash(m_SectionType) << 3;
 
+	hashData.m_ParseValues.push_back(m_TransitionSoundContainers.size());
+
 	for (int i = 0; i < m_TransitionSoundContainers.size(); i++) {
-		hash ^= m_TransitionSoundContainers.at(i).Hash() << (i % sizeof(uint64_t) * 8);
+		HashingData transitionHash = m_TransitionSoundContainers.at(i).Hash();
+		hashData.m_Constituents.push_back(transitionHash);
+		hash ^= transitionHash.m_Hash << (i % sizeof(uint64_t) * 8);
 	}
 
 	for (int i = 0; i < m_SoundContainers.size(); i++) {
-		hash ^= m_SoundContainers.at(i).Hash() << (i % sizeof(uint64_t) * 8);
+		HashingData soundHash = m_SoundContainers.at(i).Hash();
+		hashData.m_Constituents.push_back(soundHash);
+		hash ^= soundHash.m_Hash << (i % sizeof(uint64_t) * 8);
 	}
 
-	return Entity::Hash() ^ (hash << 1);
+	return hashData;
 }
 
 SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
@@ -292,12 +301,19 @@ int DynamicSong::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t DynamicSong::Hash() const {
-	uint64_t hash = m_DefaultSongSection.Hash();
+HashingData DynamicSong::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	HashingData defaultHash = m_DefaultSongSection.Hash();
+	hashData.m_Constituents.push_back(defaultHash);
+	hash ^= defaultHash.m_Hash << 0;
 
 	for (int i = 0; i < m_SongSections.size(); i++) {
-		hash ^= m_SongSections.at(i).Hash() << (i % sizeof(uint64_t) * 8);
+		HashingData sectionHash = m_SongSections.at(i).Hash();
+		hashData.m_Constituents.push_back(sectionHash);
+		hash ^= sectionHash.m_Hash << (i % sizeof(uint64_t) * 8);
 	}
 
-	return Entity::Hash() ^ (hash << 1);
+	return hashData;
 }

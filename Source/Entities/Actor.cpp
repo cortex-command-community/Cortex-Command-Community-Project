@@ -427,20 +427,62 @@ int Actor::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Actor::Hash() const {
-	uint64_t hash = MOSRotating::Hash();
+HashingData Actor::Hash() const {
+	HashingData hashData = MOSRotating::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
 	hash ^= std::hash<bool>{}(m_PlayerControllable) << 1;
-	hash ^= (m_BodyHitSound ? m_BodyHitSound->Hash() : 0) << 2;
-	hash ^= (m_AlarmSound ? m_AlarmSound->Hash() : 0) << 3;
-	hash ^= (m_PainSound ? m_PainSound->Hash() : 0) << 4;
-	hash ^= (m_DeathSound ? m_DeathSound->Hash() : 0) << 5;
-	hash ^= (m_DeviceSwitchSound ? m_DeviceSwitchSound->Hash() : 0) << 6;
+
+	bool bodyHitSoundDef = m_BodyHitSound != nullptr;
+	hashData.m_ParseValues.push_back(bodyHitSoundDef);
+	if (bodyHitSoundDef) {
+		HashingData bodyHitSoundHash = m_BodyHitSound->Hash();
+		hashData.m_Constituents.push_back(bodyHitSoundHash);
+		hash ^= bodyHitSoundHash.m_Hash << 2;
+	}
+
+	bool alarmSoundDef = m_AlarmSound != nullptr;
+	hashData.m_ParseValues.push_back(alarmSoundDef);
+	if (alarmSoundDef) {
+		HashingData alarmSoundHash = m_AlarmSound->Hash();
+		hashData.m_Constituents.push_back(alarmSoundHash);
+		hash ^= alarmSoundHash.m_Hash << 3;
+	}
+
+	bool painSoundDef = m_PainSound != nullptr;
+	hashData.m_ParseValues.push_back(painSoundDef);
+	if (painSoundDef) {
+		HashingData painSoundHash = m_PainSound->Hash();
+		hashData.m_Constituents.push_back(painSoundHash);
+		hash ^= painSoundHash.m_Hash << 4;
+	}
+
+	bool deathSoundDef = m_DeathSound != nullptr;
+	hashData.m_ParseValues.push_back(deathSoundDef);
+	if (deathSoundDef) {
+		HashingData deathSoundHash = m_DeathSound->Hash();
+		hashData.m_Constituents.push_back(deathSoundHash);
+		hash ^= deathSoundHash.m_Hash << 5;
+	}
+
+	bool deviceSwitchSoundDef = m_DeviceSwitchSound != nullptr;
+	hashData.m_ParseValues.push_back(deviceSwitchSoundDef);
+	if (deviceSwitchSoundDef) {
+		HashingData deviceSwitchSoundHash = m_DeviceSwitchSound->Hash();
+		hashData.m_Constituents.push_back(deviceSwitchSoundHash);
+		hash ^= deviceSwitchSoundHash.m_Hash << 6;
+	}
+
 	hash ^= std::hash<int>{}(m_Status) << 7;
 	hash ^= std::hash<float>{}(m_Health) << 8;
 	hash ^= std::hash<float>{}(m_MaxHealth) << 9;
 	hash ^= std::hash<unsigned int>{}(m_DeploymentID) << 10;
 	hash ^= std::hash<float>{}(m_TravelImpulseDamage) << 11;
-	hash ^= m_StableVel.Hash() << 12;
+
+	HashingData stableVelHash = m_StableVel.Hash();
+	hashData.m_Constituents.push_back(stableVelHash);
+	hash ^= stableVelHash.m_Hash << 12;
+
 	hash ^= std::hash<int>{}(m_StableRecoverDelay) << 13;
 	hash ^= std::hash<bool>{}(m_CanRun) << 14;
 	hash ^= std::hash<float>{}(m_CrouchWalkSpeedMultiplier) << 15;
@@ -454,21 +496,37 @@ uint64_t Actor::Hash() const {
 	hash ^= std::hash<float>{}(m_PainThreshold) << 7;
 	hash ^= std::hash<bool>{}(m_CanRevealUnseen) << 8;
 	hash ^= std::hash<float>{}(m_CharHeight) << 9;
-	hash ^= m_HolsterOffset.Hash() << 10;
-	hash ^= m_ReloadOffset.Hash() << 11;
+
+	HashingData holsterOffsetHash = m_HolsterOffset.Hash();
+	hashData.m_Constituents.push_back(holsterOffsetHash);
+	hash ^= holsterOffsetHash.m_Hash << 10;
+
+	HashingData reloadOffsetHash = m_ReloadOffset.Hash();
+	hashData.m_Constituents.push_back(reloadOffsetHash);
+	hash ^= reloadOffsetHash.m_Hash << 11;
+
 	int i = 0;
 
 	for (std::deque<MovableObject*>::const_iterator itr = m_Inventory.begin(); itr != m_Inventory.end(); ++itr) {
-		hash ^= (*itr)->Hash() << (i++ % sizeof(uint64_t) * 8);
+		HashingData inventoryItemHash = (*itr)->Hash();
+		hashData.m_Constituents.push_back(inventoryItemHash);
+		hash ^= inventoryItemHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
 	}
+
+	hashData.m_ParseValues.push_back(i);
 
 	hash ^= std::hash<float>{}(m_MaxInventoryMass) << 12;
 	hash ^= std::hash<AIMode>{}(m_AIMode) << 13;
-	hash ^= (m_PieMenu ? m_PieMenu->Hash() : 0) << 14;
+
+	HashingData pieHash = m_PieMenu->Hash();
+	hashData.m_Constituents.push_back(pieHash);
+	hash ^= pieHash.m_Hash << 14;
+
 	hash ^= std::hash<bool>{}(m_Organic) << 15;
 	hash ^= std::hash<bool>{}(m_Mechanical) << 0;
 	hash ^= std::hash<float>{}(m_AIBaseDigStrength) << 1;
-	return hash;
+
+	return hashData;
 }
 
 void Actor::DestroyScriptState() {

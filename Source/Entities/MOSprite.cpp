@@ -220,20 +220,34 @@ int MOSprite::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t MOSprite::Hash() const {
-	uint64_t hash = MovableObject::Hash();
-	hash ^= m_SpriteFile.Hash() << 1;
-	hash ^= std::hash<int>{}(m_FrameCount) << 2;
-	hash ^= m_SpriteOffset.Hash() << 3;
-	hash ^= std::hash<SpriteAnimMode>{}(m_SpriteAnimMode) << 4;
-	hash ^= std::hash<int>{}(m_SpriteAnimDuration) << 5;
-	hash ^= std::hash<bool>{}(m_HFlipped) << 6;
-	hash ^= m_Rotation.Hash() << 7;
-	hash ^= std::hash<float>{}(m_AngularVel) << 8;
-	hash ^= std::hash<bool>{}(m_SettleMaterialDisabled) << 9;
-	hash ^= (m_pEntryWound ? RTE::Hash(m_pEntryWound->GetEntityCharacteristic()) : 0) << 10;
-	hash ^= (m_pExitWound ? RTE::Hash(m_pExitWound->GetEntityCharacteristic()) : 0) << 11;
-	return hash;
+HashingData MOSprite::Hash() const {
+	HashingData hashData = MovableObject::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	HashingData spriteHash = m_SpriteFile.Hash();
+	hashData.m_Constituents.push_back(spriteHash);
+	hash ^= spriteHash.m_Hash << 0;
+
+	hash ^= std::hash<int>{}(m_FrameCount) << 1;
+
+	HashingData spriteOffsetHash = m_SpriteOffset.Hash();
+	hashData.m_Constituents.push_back(spriteOffsetHash);
+	hash ^= spriteOffsetHash.m_Hash << 2;
+
+	hash ^= std::hash<SpriteAnimMode>{}(m_SpriteAnimMode) << 3;
+	hash ^= std::hash<int>{}(m_SpriteAnimDuration) << 4;
+	hash ^= std::hash<bool>{}(m_HFlipped) << 5;
+
+	HashingData rotHash = m_Rotation.Hash();
+	hashData.m_Constituents.push_back(rotHash);
+	hash ^= rotHash.m_Hash << 6;
+
+	hash ^= std::hash<float>{}(m_AngularVel) << 7;
+	hash ^= std::hash<bool>{}(m_SettleMaterialDisabled) << 8;
+	hash ^= (m_pEntryWound ? RTE::Hash(m_pEntryWound->GetEntityCharacteristic()) : 0) << 9;
+	hash ^= (m_pExitWound ? RTE::Hash(m_pExitWound->GetEntityCharacteristic()) : 0) << 10;
+
+	return hashData;
 }
 
 void MOSprite::Destroy(bool notInherited) {

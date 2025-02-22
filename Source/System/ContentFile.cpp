@@ -75,8 +75,13 @@ int ContentFile::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t ContentFile::Hash() const {
-	return RTE::Hash(m_DataPath);
+HashingData ContentFile::Hash() const {
+	HashingData hashData = Serializable::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= RTE::Hash(m_DataPath) << 0;
+
+	return hashData;
 }
 
 int ContentFile::GetDataModuleID() const {

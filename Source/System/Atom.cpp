@@ -165,15 +165,28 @@ int Atom::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Atom::Hash() const {
-	uint64_t h_offset = m_Offset.Hash();
-	uint64_t h_originalOffset = m_OriginalOffset.Hash();
-	uint64_t h_material = (m_Material ? RTE::Hash(m_Material->GetEntityCharacteristic()) : 0);
-	uint64_t h_trailColor = m_TrailColor.Hash();
-	uint64_t h_trailLength = std::hash<int>{}(m_TrailLength);
-	uint64_t h_trailLengthVariation = std::hash<float>{}(m_TrailLengthVariation);
+HashingData Atom::Hash() const {
+	HashingData hashData = Serializable::Hash();
+	uint64_t& hash = hashData.m_Hash;
 
-	return h_offset ^ (h_originalOffset << 1) ^ (h_material << 2) ^ (h_trailColor << 3) ^ (h_trailLength << 4) ^ (h_trailLengthVariation << 5);
+	HashingData offsetHash = m_Offset.Hash();
+	hashData.m_Constituents.push_back(offsetHash);
+	hash ^= offsetHash.m_Hash << 0;
+
+	HashingData startOffsetHash = m_OriginalOffset.Hash();
+	hashData.m_Constituents.push_back(startOffsetHash);
+	hash ^= startOffsetHash.m_Hash << 1;
+
+	hash ^= (m_Material ? RTE::Hash(m_Material->GetEntityCharacteristic()) : 0) << 2;
+	
+	HashingData trailColorHash = m_TrailColor.Hash();
+	hashData.m_Constituents.push_back(trailColorHash);
+	hash ^= trailColorHash.m_Hash << 3;
+
+	hash ^= std::hash<int>{}(m_TrailLength) << 4;
+	hash ^= std::hash<float>{}(m_TrailLengthVariation) << 5;
+
+	return hashData;
 }
 
 void* Atom::GetPoolMemory() {

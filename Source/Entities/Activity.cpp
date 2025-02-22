@@ -276,8 +276,11 @@ int Activity::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Activity::Hash() const {
-	uint64_t hash = RTE::Hash(m_Description);
+HashingData Activity::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= RTE::Hash(m_Description) << 0;
 	hash ^= RTE::Hash(m_SceneName) << 1;
 	hash ^= std::hash<int>{}(m_MaxPlayerSupport) << 2;
 	hash ^= std::hash<int>{}(m_MinTeamsRequired) << 3;
@@ -304,8 +307,11 @@ uint64_t Activity::Hash() const {
 		}
 	}
 
-	hash ^= m_SavedValues.Hash() << 9;
-	return Entity::Hash() ^ (hash << 1);
+	HashingData savedValueHash = m_SavedValues.Hash();
+	hashData.m_Constituents.push_back(savedValueHash);
+	hash ^= savedValueHash.m_Hash << 9;
+
+	return hashData;
 }
 
 int Activity::Start() {

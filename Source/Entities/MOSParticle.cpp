@@ -60,16 +60,20 @@ int MOSParticle::ReadProperty(const std::string_view& propName, Reader& reader) 
 int MOSParticle::Save(Writer& writer) const {
 	MOSprite::Save(writer);
 
-	// TODO: Make proper save system that knows not to save redundant data!
-	/*
 	writer.NewPropertyWithValue("Atom", m_Atom);
-	*/
 
 	return 0;
 }
 
-uint64_t MOSParticle::Hash() const {
-	return MOSprite::Hash() ^ ((m_Atom ? m_Atom->Hash() : 0) << 1);
+HashingData MOSParticle::Hash() const {
+	HashingData hashData = MOSprite::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	HashingData atomHash = m_Atom->Hash();
+	hashData.m_Constituents.push_back(atomHash);
+	hash ^= atomHash.m_Hash << 0;
+
+	return hashData;
 }
 
 void MOSParticle::Destroy(bool notInherited) {

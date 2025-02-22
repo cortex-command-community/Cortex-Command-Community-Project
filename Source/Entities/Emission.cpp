@@ -113,8 +113,11 @@ int Emission::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Emission::Hash() const {
-	uint64_t hash = (m_pEmission ? RTE::Hash(m_pEmission->GetEntityCharacteristic()) : 0);
+HashingData Emission::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= (m_pEmission ? RTE::Hash(m_pEmission->GetEntityCharacteristic()) : 0) << 0;
 	hash ^= std::hash<float>{}(m_PPM) << 1;
 	hash ^= std::hash<int>{}(m_BurstSize) << 2;
 	hash ^= std::hash<float>{}(m_Spread) << 3;
@@ -124,9 +127,10 @@ uint64_t Emission::Hash() const {
 	hash ^= std::hash<bool>{}(m_PushesEmitter) << 7;
 	hash ^= std::hash<float>{}(m_InheritsVel) << 8;
 	hash ^= std::hash<float>{}(m_InheritsAngularVel) << 9;
-	hash ^= m_Offset.Hash() << 10;
+	hash ^= m_Offset.Hash().m_Hash << 10;
 	hash ^= std::hash<double>{}(m_StartTimer.GetSimTimeLimitMS()) << 11;
 	hash ^= std::hash<double>{}(m_StopTimer.GetSimTimeLimitMS()) << 12;
 	hash ^= std::hash<int>{}(m_ParticleCount) << 13;
-	return Entity::Hash() ^ (hash << 1);
+
+	return hashData;
 }

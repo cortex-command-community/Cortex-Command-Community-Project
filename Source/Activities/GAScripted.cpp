@@ -126,22 +126,29 @@ int GAScripted::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t GAScripted::Hash() const {
-	uint64_t hash = RTE::Hash(m_ScriptPath);
+HashingData GAScripted::Hash() const {
+	HashingData hashData = GameActivity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+	
+	hash ^= RTE::Hash(m_ScriptPath) << 0;
 	hash ^= RTE::Hash(m_LuaClassName) << 1;
+
 	int i = 0;
 
 	for (const std::unique_ptr<PieSlice>& pieSliceToAdd: m_PieSlicesToAdd) {
-		hash ^= pieSliceToAdd->Hash() << (i++ % sizeof(uint64_t) * 8);
+		HashingData sliceHash = pieSliceToAdd->Hash();
+		hashData.m_Constituents.push_back(sliceHash);
+		hash ^= sliceHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
 	}
 
+	hashData.m_ParseValues.push_back(i);
 	i = 0;
 
 	for (const std::string& requiredArea: m_RequiredAreas) {
 		hash ^= RTE::Hash(requiredArea) << (i++ % sizeof(uint64_t) * 8);
 	}
 
-	return GameActivity::Hash() ^ (hash << 1);
+	return hashData;
 }
 
 void GAScripted::Destroy(bool notInherited) {

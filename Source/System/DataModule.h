@@ -147,7 +147,7 @@ namespace RTE {
 		/// @param exactType The type name of the derived Entity. Ownership is NOT transferred!
 		/// @param instance The instance name of the derived Entity instance.
 		/// @return The file path of the data file that the specified Entity was read from. If no Entity of that description was found, "" is returned.
-		uint64_t GetEntityHash(const std::string& exactType, const std::string& instance);
+		HashingData GetEntityHash(const std::string& exactType, const std::string& instance);
 
 		/// Gets a previously read in (defined) Entity, by exact type and instance name. Ownership is NOT transferred!
 		/// @param exactType The exact type name of the derived Entity instance to get.
@@ -245,7 +245,7 @@ namespace RTE {
 
 			Entity* m_EntityPreset; //!< Owned by this.
 			std::string m_FileReadFrom; //!< Where the instance was read from.
-			uint64_t m_Hash; //!< The hash of the preset for later comparison.
+			HashingData m_Hash; //!< The hash of the preset for later comparison.
 		};
 
 		bool m_IsUserdata; //!< Whether this DataModule contains userdata written by the game (e.g saved games or editor scenes), meaning it is not an official nor a 3rd party module and is ignored anywhere where that is relevant.

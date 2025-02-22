@@ -65,16 +65,23 @@ int Turret::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Turret::Hash() const {
-	uint64_t hash = Attachable::Hash();
+HashingData Turret::Hash() const {
+	HashingData hashData = Attachable::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
 	int i = 0;
 
 	for (const HeldDevice* mountedDevice: m_MountedDevices) {
-		hash ^= mountedDevice->Hash() << (i++ % sizeof(uint64_t) * 8);
+		HashingData mountedDeviceHash = mountedDevice->Hash();
+		hashData.m_Constituents.push_back(mountedDeviceHash);
+		hash ^= mountedDeviceHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
 	}
 
+	hashData.m_ParseValues.push_back(i);
+
 	hash ^= std::hash<float>{}(m_MountedDeviceRotationOffset) << 1;
-	return hash;
+
+	return hashData;
 }
 
 void Turret::SetFirstMountedDevice(HeldDevice* newMountedDevice) {

@@ -342,29 +342,127 @@ int ACrab::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t ACrab::Hash() const {
-	uint64_t hash = Actor::Hash();
-	hash ^= (m_pTurret ? m_pTurret->Hash() : 0) << 1;
-	hash ^= (m_pJetpack ? m_pJetpack->Hash() : 0) << 2;
-	hash ^= (m_pLFGLeg ? m_pLFGLeg->Hash() : 0) << 3;
-	hash ^= (m_pLBGLeg ? m_pLBGLeg->Hash() : 0) << 4;
-	hash ^= (m_pRFGLeg ? m_pRFGLeg->Hash() : 0) << 5;
-	hash ^= (m_pRBGLeg ? m_pRBGLeg->Hash() : 0) << 6;
-	hash ^= (m_pLFGFootGroup ? m_pLFGFootGroup->Hash() : 0) << 7;
-	hash ^= (m_pLBGFootGroup ? m_pLBGFootGroup->Hash() : 0) << 8;
-	hash ^= (m_pRFGFootGroup ? m_pRFGFootGroup->Hash() : 0) << 9;
-	hash ^= (m_pRBGFootGroup ? m_pRBGFootGroup->Hash() : 0) << 10;
-	hash ^= (m_StrideSound ? m_StrideSound->Hash() : 0) << 11;
-	hash ^= m_Paths[LEFTSIDE][FGROUND][STAND].Hash() << 12;
-	hash ^= m_Paths[LEFTSIDE][FGROUND][WALK].Hash() << 13;
-	hash ^= m_Paths[LEFTSIDE][FGROUND][DISLODGE].Hash() << 14;
-	hash ^= m_Paths[RIGHTSIDE][FGROUND][STAND].Hash() << 15;
-	hash ^= m_Paths[RIGHTSIDE][FGROUND][WALK].Hash() << 0;
-	hash ^= m_Paths[RIGHTSIDE][FGROUND][DISLODGE].Hash() << 1;
+HashingData ACrab::Hash() const {
+	HashingData hashData = Actor::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	bool turretDef = m_pTurret != nullptr;
+	hashData.m_ParseValues.push_back(turretDef);
+	if (turretDef) {
+		HashingData turretHash = m_pTurret->Hash();
+		hashData.m_Constituents.push_back(turretHash);
+		hash ^= turretHash.m_Hash << 0;
+	}
+
+	bool jetpackDef = m_pJetpack != nullptr;
+	hashData.m_ParseValues.push_back(jetpackDef);
+	if (jetpackDef) {
+		HashingData jetpackHash = m_pJetpack->Hash();
+		hashData.m_Constituents.push_back(jetpackHash);
+		hash ^= jetpackHash.m_Hash << 1;
+	}
+
+	bool lfgLegDef = m_pLFGLeg != nullptr;
+	hashData.m_ParseValues.push_back(lfgLegDef);
+	if (lfgLegDef) {
+		HashingData lfgLegHash = m_pLFGLeg->Hash();
+		hashData.m_Constituents.push_back(lfgLegHash);
+		hash ^= lfgLegHash.m_Hash << 2;
+	}
+
+	bool lbgLegDef = m_pLBGLeg != nullptr;
+	hashData.m_ParseValues.push_back(lbgLegDef);
+	if (lbgLegDef) {
+		HashingData lbgLegHash = m_pLBGLeg->Hash();
+		hashData.m_Constituents.push_back(lbgLegHash);
+		hash ^= lbgLegHash.m_Hash << 3;
+	}
+
+	bool rfgLegDef = m_pRFGLeg != nullptr;
+	hashData.m_ParseValues.push_back(rfgLegDef);
+	if (rfgLegDef) {
+		HashingData rfgLegHash = m_pRFGLeg->Hash();
+		hashData.m_Constituents.push_back(rfgLegHash);
+		hash ^= rfgLegHash.m_Hash << 4;
+	}
+
+	bool rbgLegDef = m_pRBGLeg != nullptr;
+	hashData.m_ParseValues.push_back(rbgLegDef);
+	if (rbgLegDef) {
+		HashingData rbgLegHash = m_pRBGLeg->Hash();
+		hashData.m_Constituents.push_back(rbgLegHash);
+		hash ^= rbgLegHash.m_Hash << 5;
+	}
+
+	bool lfgFootGroupDef = m_pLFGFootGroup != nullptr;
+	hashData.m_ParseValues.push_back(lfgFootGroupDef);
+	if (lfgFootGroupDef) {
+		HashingData lfgFootGroupHash = m_pLFGFootGroup->Hash();
+		hashData.m_Constituents.push_back(lfgFootGroupHash);
+		hash ^= lfgFootGroupHash.m_Hash << 6;
+	}
+
+	bool lbgFootGroupDef = m_pLBGFootGroup != nullptr;
+	hashData.m_ParseValues.push_back(lbgFootGroupDef);
+	if (lbgFootGroupDef) {
+		HashingData lbgFootGroupHash = m_pLBGFootGroup->Hash();
+		hashData.m_Constituents.push_back(lbgFootGroupHash);
+		hash ^= lbgFootGroupHash.m_Hash << 7;
+	}
+
+	bool rfgFootGroupDef = m_pRFGFootGroup != nullptr;
+	hashData.m_ParseValues.push_back(rfgFootGroupDef);
+	if (rfgFootGroupDef) {
+		HashingData rfgFootGroupHash = m_pRFGFootGroup->Hash();
+		hashData.m_Constituents.push_back(rfgFootGroupHash);
+		hash ^= rfgFootGroupHash.m_Hash << 8;
+	}
+
+	bool rbgFootGroupDef = m_pRBGFootGroup != nullptr;
+	hashData.m_ParseValues.push_back(rbgFootGroupDef);
+	if (rbgFootGroupDef) {
+		HashingData rbgFootGroupHash = m_pRBGFootGroup->Hash();
+		hashData.m_Constituents.push_back(rbgFootGroupHash);
+		hash ^= rbgFootGroupHash.m_Hash << 9;
+	}
+
+	bool strideSoundDef = m_StrideSound != nullptr;
+	hashData.m_ParseValues.push_back(strideSoundDef);
+	if (strideSoundDef) {
+		HashingData strideSoundHash = m_StrideSound->Hash();
+		hashData.m_Constituents.push_back(strideSoundHash);
+		hash ^= strideSoundHash.m_Hash << 10;
+	}
+
+	HashingData leftStandPathHash = m_Paths[LEFTSIDE][FGROUND][STAND].Hash();
+	hashData.m_Constituents.push_back(leftStandPathHash);
+	hash ^= leftStandPathHash.m_Hash << 12;
+
+	HashingData leftWalkPathHash = m_Paths[LEFTSIDE][FGROUND][WALK].Hash();
+	hashData.m_Constituents.push_back(leftWalkPathHash);
+	hash ^= leftWalkPathHash.m_Hash << 13;
+
+	HashingData leftDislodgePathHash = m_Paths[LEFTSIDE][FGROUND][DISLODGE].Hash();
+	hashData.m_Constituents.push_back(leftDislodgePathHash);
+	hash ^= leftDislodgePathHash.m_Hash << 14;
+
+	HashingData rightStandPathHash = m_Paths[RIGHTSIDE][FGROUND][STAND].Hash();
+	hashData.m_Constituents.push_back(rightStandPathHash);
+	hash ^= rightStandPathHash.m_Hash << 15;
+
+	HashingData rightWalkPathHash = m_Paths[RIGHTSIDE][FGROUND][WALK].Hash();
+	hashData.m_Constituents.push_back(rightWalkPathHash);
+	hash ^= rightWalkPathHash.m_Hash << 0;
+
+	HashingData rightDislodgePathHash = m_Paths[RIGHTSIDE][FGROUND][DISLODGE].Hash();
+	hashData.m_Constituents.push_back(rightDislodgePathHash);
+	hash ^= rightDislodgePathHash.m_Hash << 1;
+
 	hash ^= std::hash<float>{}(m_AimRangeUpperLimit) << 2;
 	hash ^= std::hash<float>{}(m_AimRangeLowerLimit) << 3;
 	hash ^= std::hash<bool>{}(m_LockMouseAimInput) << 4;
-	return hash;
+
+	return hashData;
 }
 
 void ACrab::Destroy(bool notInherited) {

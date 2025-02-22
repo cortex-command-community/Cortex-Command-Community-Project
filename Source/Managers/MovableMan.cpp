@@ -110,8 +110,9 @@ int MovableMan::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t MovableMan::Hash() const {
-	return 0;
+HashingData MovableMan::Hash() const {
+	// TODO: FINISH?
+	return Serializable::Hash();
 }
 
 void MovableMan::Destroy() {

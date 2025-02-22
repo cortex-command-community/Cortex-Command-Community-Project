@@ -60,15 +60,24 @@ int Icon::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 int Icon::Save(Writer& writer) const {
 	Entity::Save(writer);
+
 	writer.NewPropertyWithValue("BitmapFile", m_BitmapFile);
 	writer.NewPropertyWithValue("FrameCount", m_FrameCount);
 
 	return 0;
 }
 
-uint64_t Icon::Hash() const {
-	uint64_t hash = std::hash<int>{}(m_FrameCount) ^ m_BitmapFile.Hash();
-	return Entity::Hash() ^ (hash << 1);
+HashingData Icon::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= std::hash<int>{}(m_FrameCount) << 0;
+
+	HashingData fileHash = m_BitmapFile.Hash();
+	hashData.m_Constituents.push_back(fileHash);
+	hash ^= fileHash.m_Hash << 1;
+
+	return hashData;
 }
 
 void Icon::Destroy(bool notInherited) {

@@ -294,45 +294,125 @@ int HDFirearm::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t HDFirearm::Hash() const {
-	uint64_t hash = HeldDevice::Hash();
-	hash ^= (m_pMagazine ? m_pMagazine->Hash() : 0) << 1;
-	hash ^= (m_pFlash ? m_pFlash->Hash() : 0) << 1;
-	hash ^= (m_PreFireSound ? m_PreFireSound->Hash() : 0) << 1;
-	hash ^= (m_FireSound ? m_FireSound->Hash() : 0) << 1;
-	hash ^= (m_FireEchoSound ? m_FireEchoSound->Hash() : 0) << 1;
-	hash ^= (m_ActiveSound ? m_ActiveSound->Hash() : 0) << 1;
-	hash ^= (m_DeactivationSound ? m_DeactivationSound->Hash() : 0) << 1;
-	hash ^= (m_EmptySound ? m_EmptySound->Hash() : 0) << 1;
-	hash ^= (m_ReloadStartSound ? m_ReloadStartSound->Hash() : 0) << 1;
-	hash ^= (m_ReloadEndSound ? m_ReloadEndSound->Hash() : 0) << 1;
-	hash ^= std::hash<float>{}(m_ReloadEndOffset) << 1;
-	hash ^= std::hash<int>{}(m_RateOfFire) << 1;
-	hash ^= std::hash<int>{}(m_ActivationDelay) << 1;
-	hash ^= std::hash<int>{}(m_DeactivationDelay) << 1;
-	hash ^= std::hash<int>{}(m_BaseReloadTime) << 1;
-	hash ^= std::hash<bool>{}(m_FullAuto) << 1;
-	hash ^= std::hash<bool>{}(m_FireIgnoresThis) << 1;
+HashingData HDFirearm::Hash() const {
+	HashingData hashData = HeldDevice::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	bool magazineDef = m_pMagazine != nullptr;
+	hashData.m_ParseValues.push_back(magazineDef);
+	if (magazineDef) {
+		HashingData magazineHash = m_pMagazine->Hash();
+		hashData.m_Constituents.push_back(magazineHash);
+		hash ^= magazineHash.m_Hash << 0;
+	}
+
+	bool flashDef = m_pFlash != nullptr;
+	hashData.m_ParseValues.push_back(flashDef);
+	if (flashDef) {
+		HashingData flashHash = m_pFlash->Hash();
+		hashData.m_Constituents.push_back(flashHash);
+		hash ^= flashHash.m_Hash << 1;
+	}
+
+	bool preFireSoundDef = m_PreFireSound != nullptr;
+	hashData.m_ParseValues.push_back(preFireSoundDef);
+	if (preFireSoundDef) {
+		HashingData preFireSoundHash = m_PreFireSound->Hash();
+		hashData.m_Constituents.push_back(preFireSoundHash);
+		hash ^= preFireSoundHash.m_Hash << 2;
+	}
+
+	bool fireSoundDef = m_FireSound != nullptr;
+	hashData.m_ParseValues.push_back(fireSoundDef);
+	if (fireSoundDef) {
+		HashingData fireSoundHash = m_FireSound->Hash();
+		hashData.m_Constituents.push_back(fireSoundHash);
+		hash ^= fireSoundHash.m_Hash << 3;
+	}
+
+	bool fireEchoSoundDef = m_FireEchoSound != nullptr;
+	hashData.m_ParseValues.push_back(fireEchoSoundDef);
+	if (fireEchoSoundDef) {
+		HashingData fireEchoSoundHash = m_FireEchoSound->Hash();
+		hashData.m_Constituents.push_back(fireEchoSoundHash);
+		hash ^= fireEchoSoundHash.m_Hash << 4;
+	}
+
+	bool activeSoundDef = m_ActiveSound != nullptr;
+	hashData.m_ParseValues.push_back(activeSoundDef);
+	if (activeSoundDef) {
+		HashingData activeSoundHash = m_ActiveSound->Hash();
+		hashData.m_Constituents.push_back(activeSoundHash);
+		hash ^= activeSoundHash.m_Hash << 5;
+	}
+
+	bool deactivationSoundDef = m_DeactivationSound != nullptr;
+	hashData.m_ParseValues.push_back(deactivationSoundDef);
+	if (deactivationSoundDef) {
+		HashingData deactivationSoundHash = m_DeactivationSound->Hash();
+		hashData.m_Constituents.push_back(deactivationSoundHash);
+		hash ^= deactivationSoundHash.m_Hash << 6;
+	}
+
+	bool emptySoundDef = m_EmptySound != nullptr;
+	hashData.m_ParseValues.push_back(emptySoundDef);
+	if (emptySoundDef) {
+		HashingData emptySoundHash = m_EmptySound->Hash();
+		hashData.m_Constituents.push_back(emptySoundHash);
+		hash ^= emptySoundHash.m_Hash << 7;
+	}
+
+	bool reloadStartSoundDef = m_ReloadStartSound != nullptr;
+	hashData.m_ParseValues.push_back(reloadStartSoundDef);
+	if (reloadStartSoundDef) {
+		HashingData reloadStartSoundHash = m_ReloadStartSound->Hash();
+		hashData.m_Constituents.push_back(reloadStartSoundHash);
+		hash ^= reloadStartSoundHash.m_Hash << 8;
+	}
+
+	bool reloadEndSoundDef = m_ReloadEndSound != nullptr;
+	hashData.m_ParseValues.push_back(reloadEndSoundDef);
+	if (reloadEndSoundDef) {
+		HashingData reloadEndSoundHash = m_ReloadEndSound->Hash();
+		hashData.m_Constituents.push_back(reloadEndSoundHash);
+		hash ^= reloadEndSoundHash.m_Hash << 9;
+	}
+
+	hash ^= std::hash<float>{}(m_ReloadEndOffset) << 10;
+	hash ^= std::hash<int>{}(m_RateOfFire) << 11;
+	hash ^= std::hash<int>{}(m_ActivationDelay) << 12;
+	hash ^= std::hash<int>{}(m_DeactivationDelay) << 13;
+	hash ^= std::hash<int>{}(m_BaseReloadTime) << 14;
+	hash ^= std::hash<bool>{}(m_FullAuto) << 15;
+	hash ^= std::hash<bool>{}(m_FireIgnoresThis) << 0;
 	hash ^= std::hash<bool>{}(m_Reloadable) << 1;
-	hash ^= std::hash<bool>{}(m_DualReloadable) << 1;
-	hash ^= std::hash<float>{}(m_OneHandedReloadTimeMultiplier) << 1;
-	hash ^= std::hash<float>{}(m_ReloadAngle) << 1;
-	hash ^= std::hash<float>{}(m_OneHandedReloadAngle) << 1;
-	hash ^= std::hash<float>{}(m_JointStiffness) << 1;
-	hash ^= std::hash<bool>{}(m_IsAnimatedManually) << 1;
-	hash ^= std::hash<float>{}(m_ShakeRange) << 1;
-	hash ^= std::hash<float>{}(m_SharpShakeRange) << 1;
-	hash ^= std::hash<float>{}(m_NoSupportFactor) << 1;
-	hash ^= std::hash<float>{}(m_ParticleSpreadRange) << 1;
-	hash ^= std::hash<float>{}(m_ShellEjectAngle) << 1;
-	hash ^= std::hash<float>{}(m_ShellSpreadRange) << 1;
-	hash ^= std::hash<float>{}(m_ShellAngVelRange) << 1;
-	hash ^= std::hash<float>{}(m_ShellVelVariation) << 1;
-	hash ^= std::hash<float>{}(m_RecoilScreenShakeAmount) << 1;
-	hash ^= m_MuzzleOff.Hash() << 1;
-	hash ^= m_EjectOff.Hash() << 1;
-	hash ^= std::hash<bool>{}(m_LegacyCompatibilityRoundsAlwaysFireUnflipped) << 1;
-	return hash;
+	hash ^= std::hash<bool>{}(m_DualReloadable) << 2;
+	hash ^= std::hash<float>{}(m_OneHandedReloadTimeMultiplier) << 3;
+	hash ^= std::hash<float>{}(m_ReloadAngle) << 4;
+	hash ^= std::hash<float>{}(m_OneHandedReloadAngle) << 5;
+	hash ^= std::hash<float>{}(m_JointStiffness) << 6;
+	hash ^= std::hash<bool>{}(m_IsAnimatedManually) << 7;
+	hash ^= std::hash<float>{}(m_ShakeRange) << 8;
+	hash ^= std::hash<float>{}(m_SharpShakeRange) << 9;
+	hash ^= std::hash<float>{}(m_NoSupportFactor) << 10;
+	hash ^= std::hash<float>{}(m_ParticleSpreadRange) << 11;
+	hash ^= std::hash<float>{}(m_ShellEjectAngle) << 12;
+	hash ^= std::hash<float>{}(m_ShellSpreadRange) << 13;
+	hash ^= std::hash<float>{}(m_ShellAngVelRange) << 14;
+	hash ^= std::hash<float>{}(m_ShellVelVariation) << 15;
+	hash ^= std::hash<float>{}(m_RecoilScreenShakeAmount) << 0;
+
+	HashingData muzzleOffsetHash = m_MuzzleOff.Hash();
+	hashData.m_Constituents.push_back(muzzleOffsetHash);
+	hash ^= muzzleOffsetHash.m_Hash << 1;
+
+	HashingData ejectionOffsetHash = m_EjectOff.Hash();
+	hashData.m_Constituents.push_back(ejectionOffsetHash);
+	hash ^= ejectionOffsetHash.m_Hash << 2;
+
+	hash ^= std::hash<bool>{}(m_LegacyCompatibilityRoundsAlwaysFireUnflipped) << 3;
+
+	return hashData;
 }
 
 void HDFirearm::Destroy(bool notInherited) {

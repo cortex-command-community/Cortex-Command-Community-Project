@@ -199,17 +199,36 @@ int AEmitter::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t AEmitter::Hash() const {
-	uint64_t hash = Attachable::Hash();
+HashingData AEmitter::Hash() const {
+	HashingData hashData = Attachable::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
 	int i = 0;
 
 	for (Emission* emission: m_EmissionList) {
-		hash ^= emission->Hash() << (i++ % sizeof(uint64_t) * 8);
+		HashingData emissionHash = emission->Hash();
+		hashData.m_Constituents.push_back(emissionHash);
+		hash ^= emissionHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
 	}
 
-	hash ^= (m_EmissionSound ? m_EmissionSound->Hash() : 0) << 1;
-	hash ^= (m_BurstSound ? m_BurstSound->Hash() : 0) << 2;
-	hash ^= (m_EndSound ? m_EndSound->Hash() : 0) << 3;
+	if (m_EmissionSound) {
+		HashingData emissionSoundHash = m_EmissionSound->Hash();
+		hashData.m_Constituents.push_back(emissionSoundHash);
+		hash ^= emissionSoundHash.m_Hash << 1;
+	}
+
+	if (m_BurstSound) {
+		HashingData burstSoundHash = m_BurstSound->Hash();
+		hashData.m_Constituents.push_back(burstSoundHash);
+		hash ^= burstSoundHash.m_Hash << 2;
+	}
+
+	if (m_EndSound) {
+		HashingData endSoundHash = m_EndSound->Hash();
+		hashData.m_Constituents.push_back(endSoundHash);
+		hash ^= endSoundHash.m_Hash << 3;
+	}
+
 	hash ^= std::hash<bool>{}(m_EmitEnabled) << 4;
 	hash ^= std::hash<int>{}(m_EmitCount) << 5;
 	hash ^= std::hash<long>{}(m_EmitCountLimit) << 6;
@@ -223,16 +242,30 @@ uint64_t AEmitter::Hash() const {
 	hash ^= std::hash<float>{}(m_BurstSpacing) << 14;
 	hash ^= std::hash<bool>{}(m_BurstTriggered) << 15;
 	hash ^= std::hash<bool>{}(m_PlayBurstSound) << 0;
-	hash ^= m_EmitAngle.Hash() << 1;
-	hash ^= m_EmissionOffset.Hash() << 2;
+
+	HashingData emissionAngleHash = m_EmitAngle.Hash();
+	hashData.m_Constituents.push_back(emissionAngleHash);
+	hash ^= emissionAngleHash.m_Hash << 1;
+
+	HashingData emissionOffsetHash = m_EmissionOffset.Hash();
+	hashData.m_Constituents.push_back(emissionOffsetHash);
+	hash ^= emissionOffsetHash.m_Hash << 2;
+
 	hash ^= std::hash<float>{}(m_EmitDamage) << 3;
-	hash ^= (m_pFlash ? m_pFlash->Hash() : 0) << 4;
+
+	if (m_pFlash) {
+		HashingData flashHash = m_pFlash->Hash();
+		hashData.m_Constituents.push_back(flashHash);
+		hash ^= flashHash.m_Hash << 4;
+	}
+
 	hash ^= std::hash<float>{}(m_FlashScale) << 5;
 	hash ^= std::hash<bool>{}(m_FlashOnlyOnBurst) << 6;
 	hash ^= std::hash<bool>{}(m_SustainBurstSound) << 7;
 	hash ^= std::hash<bool>{}(m_BurstSoundFollowsEmitter) << 8;
 	hash ^= std::hash<float>{}(m_LoudnessOnEmit) << 9;
-	return hash;
+
+	return hashData;
 }
 
 void AEmitter::Destroy(bool notInherited) {

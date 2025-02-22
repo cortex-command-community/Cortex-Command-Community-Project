@@ -111,15 +111,32 @@ int Leg::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Leg::Hash() const {
-	uint64_t hash = Attachable::Hash();
-	hash ^= (m_Foot ? m_Foot->Hash() : 0) << 1;
-	hash ^= m_ContractedOffset.Hash() << 2;
-	hash ^= m_ExtendedOffset.Hash() << 3;
-	hash ^= m_IdleOffset.Hash() << 4;
+HashingData Leg::Hash() const {
+	HashingData hashData = Attachable::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	if (m_Foot) {
+		HashingData footHash = m_Foot->Hash();
+		hashData.m_Constituents.push_back(footHash);
+		hash ^= footHash.m_Hash << 1;
+	}
+
+	HashingData contractedHash = m_ContractedOffset.Hash();
+	hashData.m_Constituents.push_back(contractedHash);
+	hash ^= contractedHash.m_Hash << 2;
+
+	HashingData extendedHash = m_ExtendedOffset.Hash();
+	hashData.m_Constituents.push_back(extendedHash);
+	hash ^= extendedHash.m_Hash << 3;
+
+	HashingData idleHash = m_IdleOffset.Hash();
+	hashData.m_Constituents.push_back(idleHash);
+	hash ^= idleHash.m_Hash << 4;
+
 	hash ^= std::hash<bool>{}(m_WillIdle) << 5;
 	hash ^= std::hash<float>{}(m_MoveSpeed) << 6;
-	return hash;
+
+	return hashData;
 }
 
 void Leg::SetFoot(Attachable* newFoot) {

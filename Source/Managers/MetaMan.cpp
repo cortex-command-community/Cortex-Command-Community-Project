@@ -301,8 +301,9 @@ int MetaMan::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t MetaMan::Hash() const {
-	return 0;
+HashingData MetaMan::Hash() const {
+	// TODO: FINISH?
+	return Serializable::Hash();
 }
 
 void MetaMan::Destroy() {

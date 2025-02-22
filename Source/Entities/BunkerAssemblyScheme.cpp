@@ -208,15 +208,23 @@ int BunkerAssemblyScheme::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t BunkerAssemblyScheme::Hash() const {
-	uint64_t hash = m_BitmapFile.Hash();
+HashingData BunkerAssemblyScheme::Hash() const {
+	HashingData hashData = SceneObject::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	HashingData bitmapHash = m_BitmapFile.Hash();
+	hashData.m_Constituents.push_back(bitmapHash);
+	hash ^= bitmapHash.m_Hash << 0;
+
 	int i = 0;
 
 	for (std::list<SOPlacer>::const_iterator itr = m_ChildObjects.begin(); itr != m_ChildObjects.end(); ++itr) {
-		hash ^= (*itr).Hash() << (i++ % sizeof(uint64_t) * 8);
+		HashingData childHash = (*itr).Hash();
+		hashData.m_Constituents.push_back(childHash);
+		hash ^= childHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
 	}
 
-	return SceneObject::Hash() ^ (hash << 1);
+	return hashData;
 }
 
 void BunkerAssemblyScheme::Destroy(bool notInherited) {

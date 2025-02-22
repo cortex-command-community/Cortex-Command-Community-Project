@@ -96,14 +96,21 @@ int Scene::Area::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Scene::Area::Hash() const {
-	uint64_t h_boxes = 0;
+HashingData Scene::Area::Hash() const {
+	HashingData hashData = Serializable::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= RTE::Hash(m_Name) << 0;
+
+	hashData.m_ParseValues.push_back(m_BoxList.size());
 
 	for (int i = 0; i < m_BoxList.size(); i++) {
-		h_boxes ^= m_BoxList.at(i)->Hash() << (i % sizeof(uint64_t) * 8);
+		HashingData boxHash = m_BoxList.at(i)->Hash();
+		hashData.m_Constituents.push_back(boxHash);
+		hash ^= boxHash.m_Hash << 0;
 	}
 
-	return RTE::Hash(m_Name) ^ (h_boxes << 1);
+	return hashData;
 }
 
 void Scene::Area::Destroy(bool notInherited) {
@@ -1165,16 +1172,24 @@ int Scene::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Scene::Hash() const {
-	uint64_t hash = m_Location.Hash();
+HashingData Scene::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	// TODO: FINISH
+
+	HashingData locationHash = m_Location.Hash();
+	hashData.m_Constituents.push_back(locationHash);
+	hash ^= locationHash.m_Hash << 0;
+
 	hash ^= std::hash<bool>{}(m_MetagamePlayable) << 1;
 
 	if (m_MetasceneParent.length() <= 0) {
-		hash ^= m_PreviewBitmapFile.Hash() << 2;
+		//hash ^= m_PreviewBitmapFile.Hash() << 2;
 	}
 
 	if (m_MetasceneParent.length() > 0) {
-		hash ^= RTE::Hash(m_MetasceneParent) << 3;
+		//hash ^= RTE::Hash(m_MetasceneParent) << 3;
 	}
 
 	hash ^= std::hash<bool>{}(m_IsMetagameInternal) << 4;
@@ -1187,13 +1202,13 @@ uint64_t Scene::Hash() const {
 		hash ^= std::hash<float>{}(m_BuildBudget[player]) << (9 + player * 4);
 		hash ^= std::hash<float>{}(m_BuildBudgetRatio[player]) << (10 + player * 4);
 		if (m_ResidentBrains[player]) {
-			hash ^= m_ResidentBrains[player]->Hash() << (11 + player * 4);
+			//hash ^= m_ResidentBrains[player]->Hash() << (11 + player * 4);
 		}
 	}
 
 	hash ^= std::hash<bool>{}(m_AutoDesigned) << 12;
-	hash ^= std::hash<bool>{}(m_TotalInvestment) << 13;
-	hash ^= std::hash<bool>{}(m_pTerrain) << 14;
+	hash ^= std::hash<float>{}(m_TotalInvestment) << 13;
+	// ???? hash ^= std::hash<bool>{}(m_pTerrain) << 14;
 
 	for (int set = PlacedObjectSets::PLACEONLOAD; set < PlacedObjectSets::PLACEDSETSCOUNT; ++set) {
 		for (const SceneObject* placedObject: m_PlacedObjects[set]) {
@@ -1205,28 +1220,28 @@ uint64_t Scene::Hash() const {
 		hash ^= RTE::Hash((*slItr)->GetEntityCharacteristic()) << 15;
 	}
 	if (!m_UnseenPixelSize[Activity::TeamOne].IsZero()) {
-		hash ^= m_UnseenPixelSize[Activity::TeamOne].Hash() << 0;
+		//hash ^= m_UnseenPixelSize[Activity::TeamOne].Hash() << 0;
 	}
 	if (!m_UnseenPixelSize[Activity::TeamTwo].IsZero()) {
-		hash ^= m_UnseenPixelSize[Activity::TeamTwo].Hash() << 1;
+		//hash ^= m_UnseenPixelSize[Activity::TeamTwo].Hash() << 1;
 	}
 	if (!m_UnseenPixelSize[Activity::TeamThree].IsZero()) {
-		hash ^= m_UnseenPixelSize[Activity::TeamThree].Hash() << 2;
+		//hash ^= m_UnseenPixelSize[Activity::TeamThree].Hash() << 2;
 	}
 	if (!m_UnseenPixelSize[Activity::TeamFour].IsZero()) {
-		hash ^= m_UnseenPixelSize[Activity::TeamFour].Hash() << 3;
+		//hash ^= m_UnseenPixelSize[Activity::TeamFour].Hash() << 3;
 	}
 	if (m_apUnseenLayer[Activity::TeamOne]) {
-		hash ^= m_apUnseenLayer[Activity::TeamOne]->Hash() << 4;
+		//hash ^= m_apUnseenLayer[Activity::TeamOne]->Hash() << 4;
 	}
 	if (m_apUnseenLayer[Activity::TeamTwo]) {
-		hash ^= m_apUnseenLayer[Activity::TeamTwo]->Hash() << 5;
+		//hash ^= m_apUnseenLayer[Activity::TeamTwo]->Hash() << 5;
 	}
 	if (m_apUnseenLayer[Activity::TeamThree]) {
-		hash ^= m_apUnseenLayer[Activity::TeamThree]->Hash() << 6;
+		//hash ^= m_apUnseenLayer[Activity::TeamThree]->Hash() << 6;
 	}
 	if (m_apUnseenLayer[Activity::TeamFour]) {
-		hash ^= m_apUnseenLayer[Activity::TeamFour]->Hash() << 7;
+		//hash ^= m_apUnseenLayer[Activity::TeamFour]->Hash() << 7;
 	}
 	if (m_ScanScheduled[Activity::TeamOne]) {
 		hash ^= std::hash<bool>{}(m_ScanScheduled[Activity::TeamOne]) << 8;
@@ -1240,11 +1255,22 @@ uint64_t Scene::Hash() const {
 	if (m_ScanScheduled[Activity::TeamFour]) {
 		hash ^= std::hash<bool>{}(m_ScanScheduled[Activity::TeamFour]) << 11;
 	}
+
+	int i = 0;
+
 	for (Area* area: m_AreaList) {
-		hash ^= area->Hash() << 12;
+		HashingData areaHash = area->Hash();
+		hashData.m_Constituents.push_back(areaHash);
+		hash ^= areaHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
 	}
-	hash ^= m_GlobalAcc.Hash() << 13;
-	return Entity::Hash() ^ (hash << 1);
+
+	hashData.m_ParseValues.push_back(i);
+
+	HashingData globalAccHash = m_GlobalAcc.Hash();
+	hashData.m_Constituents.push_back(globalAccHash);
+	hash ^= globalAccHash.m_Hash << 13;
+
+	return hashData;
 }
 
 void Scene::SaveSceneObject(Writer& writer, const SceneObject* sceneObjectToSave, bool isChildAttachable, bool saveFullData) const {

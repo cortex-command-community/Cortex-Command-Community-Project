@@ -104,8 +104,9 @@ int Magazine::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Magazine::Hash() const {
-	uint64_t hash = Attachable::Hash();
+HashingData Magazine::Hash() const {
+	HashingData hashData = Attachable::Hash();
+	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= std::hash<int>{}(m_RoundCount) << 1;
 	hash ^= std::hash<int>{}(m_FullCapacity) << 2;
@@ -115,7 +116,7 @@ uint64_t Magazine::Hash() const {
 	hash ^= std::hash<bool>{}(m_Discardable) << 6;
 	hash ^= std::hash<int>{}(m_AIBlastRadius) << 7;
 
-	return hash;
+	return hashData;
 }
 
 void Magazine::Destroy(bool notInherited) {

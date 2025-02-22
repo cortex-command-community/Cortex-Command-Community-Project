@@ -140,20 +140,68 @@ int ACDropShip::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t ACDropShip::Hash() const {
-	uint64_t hash = ACraft::Hash();
-	hash ^= (m_pRThruster ? m_pRThruster->Hash() : 0) << 1;
-	hash ^= (m_pLThruster ? m_pLThruster->Hash() : 0) << 2;
-	hash ^= (m_pURThruster ? m_pURThruster->Hash() : 0) << 3;
-	hash ^= (m_pULThruster ? m_pULThruster->Hash() : 0) << 4;
-	hash ^= (m_pRHatch ? m_pRHatch->Hash() : 0) << 5;
-	hash ^= (m_pLHatch ? m_pLHatch->Hash() : 0) << 6;
-	hash ^= m_HatchSwingRange.Hash() << 7;
-	hash ^= std::hash<int>{}(m_AutoStabilize) << 8;
-	hash ^= std::hash<float>{}(m_MaxEngineAngle) << 9;
-	hash ^= std::hash<float>{}(m_LateralControlSpeed) << 10;
-	hash ^= std::hash<float>{}(m_HoverHeightModifier) << 11;
-	return hash;
+HashingData ACDropShip::Hash() const {
+	HashingData hashData = ACraft::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	bool rThrusterDef = m_pRThruster != nullptr;
+	hashData.m_ParseValues.push_back(rThrusterDef);
+	if (rThrusterDef) {
+		HashingData rThrusterHash = m_pRThruster->Hash();
+		hashData.m_Constituents.push_back(rThrusterHash);
+		hash ^= rThrusterHash.m_Hash << 0;
+	}
+
+	bool lThrusterDef = m_pLThruster != nullptr;
+	hashData.m_ParseValues.push_back(lThrusterDef);
+	if (lThrusterDef) {
+		HashingData lThrusterHash = m_pLThruster->Hash();
+		hashData.m_Constituents.push_back(lThrusterHash);
+		hash ^= lThrusterHash.m_Hash << 1;
+	}
+
+	bool urThrusterDef = m_pURThruster != nullptr;
+	hashData.m_ParseValues.push_back(urThrusterDef);
+	if (urThrusterDef) {
+		HashingData urThrusterHash = m_pURThruster->Hash();
+		hashData.m_Constituents.push_back(urThrusterHash);
+		hash ^= urThrusterHash.m_Hash << 2;
+	}
+
+	bool ulThrusterDef = m_pULThruster != nullptr;
+	hashData.m_ParseValues.push_back(ulThrusterDef);
+	if (ulThrusterDef) {
+		HashingData ulThrusterHash = m_pULThruster->Hash();
+		hashData.m_Constituents.push_back(ulThrusterHash);
+		hash ^= ulThrusterHash.m_Hash << 3;
+	}
+
+	bool rHatchDef = m_pRHatch != nullptr;
+	hashData.m_ParseValues.push_back(rHatchDef);
+	if (rHatchDef) {
+		HashingData rHatchHash = m_pRHatch->Hash();
+		hashData.m_Constituents.push_back(rHatchHash);
+		hash ^= rHatchHash.m_Hash << 4;
+	}
+
+	bool lHatchDef = m_pLHatch != nullptr;
+	hashData.m_ParseValues.push_back(lHatchDef);
+	if (lHatchDef) {
+		HashingData lHatchHash = m_pLHatch->Hash();
+		hashData.m_Constituents.push_back(lHatchHash);
+		hash ^= lHatchHash.m_Hash << 5;
+	}
+
+	HashingData hatchSwingRangeHash = m_HatchSwingRange.Hash();
+	hashData.m_Constituents.push_back(hatchSwingRangeHash);
+	hash ^= hatchSwingRangeHash.m_Hash << 6;
+
+	hash ^= std::hash<int>{}(m_AutoStabilize) << 7;
+	hash ^= std::hash<float>{}(m_MaxEngineAngle) << 8;
+	hash ^= std::hash<float>{}(m_LateralControlSpeed) << 9;
+	hash ^= std::hash<float>{}(m_HoverHeightModifier) << 10;
+
+	return hashData;
 }
 
 void ACDropShip::Destroy(bool notInherited) {

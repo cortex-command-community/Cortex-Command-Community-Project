@@ -111,11 +111,24 @@ int TerrainDebris::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t TerrainDebris::Hash() const {
-	uint64_t hash = m_DebrisFile.Hash();
+HashingData TerrainDebris::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	HashingData fileHash = m_DebrisFile.Hash();
+	hashData.m_Constituents.push_back(fileHash);
+	hash ^= fileHash.m_Hash << 0;
+
 	hash ^= std::hash<int>{}(m_BitmapCount) << 1;
-	hash ^= m_Material.Hash() << 2;
-	hash ^= m_TargetMaterial.Hash() << 3;
+
+	HashingData materialHash = m_Material.Hash();
+	hashData.m_Constituents.push_back(materialHash);
+	hash ^= materialHash.m_Hash << 2;
+
+	HashingData targetHash = m_TargetMaterial.Hash();
+	hashData.m_Constituents.push_back(targetHash);
+	hash ^= targetHash.m_Hash << 3;
+
 	hash ^= std::hash<int>{}(m_DebrisPlacementMode) << 4;
 	hash ^= std::hash<bool>{}(m_OnlyBuried) << 5;
 	hash ^= std::hash<int>{}(m_MinDepth) << 6;
@@ -126,7 +139,8 @@ uint64_t TerrainDebris::Hash() const {
 	hash ^= std::hash<bool>{}(m_CanVFlip) << 11;
 	hash ^= std::hash<float>{}(m_FlipChance) << 12;
 	hash ^= std::hash<float>{}(m_Density) << 13;
-	return Entity::Hash() ^ (hash << 1);
+
+	return hashData;
 }
 
 bool TerrainDebris::GetPiecePlacementPosition(SLTerrain* terrain, Box& possiblePiecePosition) const {

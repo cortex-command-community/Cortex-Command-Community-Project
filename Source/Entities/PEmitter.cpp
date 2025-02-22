@@ -140,6 +140,7 @@ int PEmitter::Save(Writer& writer) const {
 		writer.NewProperty("AddEmission");
 		writer << *emission;
 	}
+
 	writer.NewPropertyWithValue("EmissionSound", m_EmissionSound);
 	writer.NewPropertyWithValue("BurstSound", m_BurstSound);
 	writer.NewPropertyWithValue("EndSound", m_EndSound);
@@ -165,17 +166,30 @@ int PEmitter::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t PEmitter::Hash() const {
-	uint64_t hash = MOSParticle::Hash();
+HashingData PEmitter::Hash() const {
+	HashingData hashData = MOSParticle::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
 	int i = 0;
 
 	for (Emission* emission: m_EmissionList) {
-		hash ^= emission->Hash() << (i++ % sizeof(uint64_t) * 8);
+		HashingData emissionHash = emission->Hash();
+		hashData.m_Constituents.push_back(emissionHash);
+		hash ^= emissionHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
 	}
 
-	hash ^= m_EmissionSound.Hash() << 1;
-	hash ^= m_BurstSound.Hash() << 2;
-	hash ^= m_EndSound.Hash() << 3;
+	HashingData emissionSoundHash = m_EmissionSound.Hash();
+	hashData.m_Constituents.push_back(emissionSoundHash);
+	hash ^= emissionSoundHash.m_Hash << 1;
+
+	HashingData burstSoundHash = m_BurstSound.Hash();
+	hashData.m_Constituents.push_back(burstSoundHash);
+	hash ^= burstSoundHash.m_Hash << 2;
+
+	HashingData endSoundHash = m_EndSound.Hash();
+	hashData.m_Constituents.push_back(endSoundHash);
+	hash ^= endSoundHash.m_Hash << 3;
+
 	hash ^= std::hash<bool>{}(m_EmitEnabled) << 4;
 	hash ^= std::hash<long>{}(m_EmitCount) << 5;
 	hash ^= std::hash<long>{}(m_EmitCountLimit) << 6;
@@ -187,14 +201,22 @@ uint64_t PEmitter::Hash() const {
 	hash ^= std::hash<float>{}(m_BurstSpacing) << 12;
 	hash ^= std::hash<bool>{}(m_BurstTriggered) << 13;
 	hash ^= std::hash<bool>{}(m_PlayBurstSound) << 14;
-	hash ^= m_EmitAngle.Hash() << 15;
-	hash ^= m_EmissionOffset.Hash() << 0;
+
+	HashingData emitAngleHash = m_EmitAngle.Hash();
+	hashData.m_Constituents.push_back(emitAngleHash);
+	hash ^= emitAngleHash.m_Hash << 15;
+
+	HashingData emitOffsetHash = m_EmissionOffset.Hash();
+	hashData.m_Constituents.push_back(emitOffsetHash);
+	hash ^= emitOffsetHash.m_Hash << 0;
+
 	hash ^= std::hash<float>{}(m_FlashScale) << 1;
 	hash ^= std::hash<bool>{}(m_FlashOnlyOnBurst) << 2;
 	hash ^= std::hash<bool>{}(m_SustainBurstSound) << 3;
 	hash ^= std::hash<bool>{}(m_BurstSoundFollowsEmitter) << 4;
 	hash ^= std::hash<float>{}(m_LoudnessOnEmit) << 5;
-	return hash;
+
+	return hashData;
 }
 
 void PEmitter::Destroy(bool notInherited) {

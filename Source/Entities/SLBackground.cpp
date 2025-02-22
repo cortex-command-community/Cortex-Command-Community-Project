@@ -148,22 +148,39 @@ int SLBackground::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t SLBackground::Hash() const {
-	uint64_t hash = StaticSceneLayer::Hash();
+HashingData SLBackground::Hash() const {
+	HashingData hashData = StaticSceneLayer::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
 	hash ^= std::hash<int>{}(m_FrameCount) << 1;
 	hash ^= std::hash<SpriteAnimMode>{}(m_SpriteAnimMode) << 2;
 	hash ^= std::hash<int>{}(m_SpriteAnimDuration) << 3;
 	hash ^= std::hash<bool>{}(m_IsAnimatedManually) << 4;
 	hash ^= std::hash<bool>{}(m_DrawMasked) << 5;
-	hash ^= m_ScrollInfo.Hash() << 6;
-	hash ^= m_ScaleFactor.Hash() << 7;
+
+	HashingData scrollInfoHash = m_ScrollInfo.Hash();
+	hashData.m_Constituents.push_back(scrollInfoHash);
+	hash ^= scrollInfoHash.m_Hash << 6;
+
+	HashingData scaleFactorHash = m_ScaleFactor.Hash();
+	hashData.m_Constituents.push_back(scaleFactorHash);
+	hash ^= scaleFactorHash.m_Hash << 7;
+
 	hash ^= std::hash<bool>{}(m_IgnoreAutoScale) << 8;
-	hash ^= m_OriginOffset.Hash() << 9;
+
+	HashingData originOffsetHash = m_OriginOffset.Hash();
+	hashData.m_Constituents.push_back(originOffsetHash);
+	hash ^= originOffsetHash.m_Hash << 9;
+
 	hash ^= std::hash<bool>{}(m_CanAutoScrollX) << 10;
 	hash ^= std::hash<bool>{}(m_CanAutoScrollY) << 11;
 	hash ^= std::hash<int>{}(m_AutoScrollStepInterval) << 12;
-	hash ^= m_AutoScrollStep.Hash() << 13;
-	return hash;
+
+	HashingData autoScrollStepHash = m_AutoScrollStep.Hash();
+	hashData.m_Constituents.push_back(autoScrollStepHash);
+	hash ^= autoScrollStepHash.m_Hash << 13;
+
+	return hashData;
 }
 
 void SLBackground::InitScaleFactors() {

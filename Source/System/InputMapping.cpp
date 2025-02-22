@@ -53,6 +53,7 @@ int InputMapping::Save(Writer& writer) const {
 	if (m_MouseButtonMap >= 0) {
 		writer.NewPropertyWithValue("MouseButtonMap", m_MouseButtonMap);
 	}
+
 	if (m_JoyButtonMap >= 0) {
 		writer.NewPropertyWithValue("JoyButtonMap", m_JoyButtonMap);
 	}
@@ -65,7 +66,7 @@ int InputMapping::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t InputMapping::Hash() const {
-	// TODO: FINISH
-	return 0;
+HashingData InputMapping::Hash() const {
+	// TODO: FINISH?
+	return Serializable::Hash();
 }

@@ -230,8 +230,11 @@ int PieMenu::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t PieMenu::Hash() const {
-	uint64_t hash = std::hash<IconSeparatorMode>{}(m_IconSeparatorMode);
+HashingData PieMenu::Hash() const {
+	HashingData hashData = Entity::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= std::hash<IconSeparatorMode>{}(m_IconSeparatorMode) << 0;
 	hash ^= std::hash<int>{}(m_FullInnerRadius) << 1;
 	hash ^= std::hash<int>{}(m_BackgroundThickness) << 2;
 	hash ^= std::hash<int>{}(m_BackgroundSeparatorSize) << 3;
@@ -239,7 +242,16 @@ uint64_t PieMenu::Hash() const {
 	hash ^= std::hash<int>{}(m_BackgroundColor) << 5;
 	hash ^= std::hash<int>{}(m_BackgroundBorderColor) << 6;
 	hash ^= std::hash<int>{}(m_SelectedItemBackgroundColor) << 7;
-	return Entity::Hash() ^ (hash << 1);
+
+	for (const PieSlice* pieSlice: m_CurrentPieSlices) {
+		if (pieSlice->GetOriginalSource() == m_Owner) {
+			HashingData sliceHash = pieSlice->Hash();
+			hashData.m_Constituents.push_back(sliceHash);
+			hash ^= sliceHash.m_Hash << 8;
+		}
+	}
+
+	return hashData;
 }
 
 void PieMenu::SetOwner(Actor* newOwner) {

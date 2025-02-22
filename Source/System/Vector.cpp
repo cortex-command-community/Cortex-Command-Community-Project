@@ -24,8 +24,12 @@ int Vector::Save(Writer& writer) const {
 	return 0;
 }
 
-uint64_t Vector::Hash() const {
-	uint64_t h_x = std::hash<float>{}(m_X);
-	uint64_t h_y = std::hash<float>{}(m_Y);
-	return h_x ^ (h_y << 1);
+HashingData Vector::Hash() const {
+	HashingData hashData = Serializable::Hash();
+	uint64_t& hash = hashData.m_Hash;
+
+	hash ^= std::hash<float>{}(m_X) << 0;
+	hash ^= std::hash<float>{}(m_Y) << 1;
+
+	return hashData;
 }
