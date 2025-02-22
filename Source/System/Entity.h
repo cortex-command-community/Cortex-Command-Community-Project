@@ -193,6 +193,16 @@ namespace RTE {
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		virtual int Create(const Entity& reference);
 
+		/// Records an entity against the reference, expected to be a preset.
+		/// @param writer A Writer that the Entity will save itself to.
+		/// @param reference A reference to write properties against.
+		/// @param hashData A clump of hash data for cheap property comparisons.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		virtual int Write(Writer& writer, const Entity& reference, const HashingData& ) const {
+			writer.ObjectStart(GetClassName());
+			return 0;
+		}
+
 		/// Makes the Serializable ready for use.
 		/// @param reader A Reader that the Serializable will create itself from.
 		/// @param checkType Whether there is a class name in the stream to check against to make sure the correct type is being read from the stream.
