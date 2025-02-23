@@ -220,8 +220,8 @@ int SceneObject::Save(Writer& writer) const {
 	return 0;
 }
 
-int SceneObject::Write(Writer& writer, const Entity& reference, const HashingData& hashData) const {
-	int constituentsConsumed = Entity::Write(writer, reference, hashData);
+size_t SceneObject::Write(Writer& writer, const Entity& reference, const HashingData& hashData) const {
+	size_t constituentsConsumed = Entity::Write(writer, reference, hashData);
 
 	const SceneObject& sceneObjectReference = static_cast<const SceneObject&>(reference);
 
@@ -245,10 +245,7 @@ HashingData SceneObject::Hash() const {
 	HashingData hashData = Entity::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
-	HashingData posHash = m_Pos.Hash();
-	//hashData.m_Constituents.push_back(posHash);
-	hash ^= posHash.m_Hash << 0;
-
+	hash ^= m_Pos.Hash().m_Hash << 0;
 	hash ^= std::hash<float>{}(m_OzValue) << 1;
 	hash ^= std::hash<bool>{}(m_Buyable) << 2;
 	hash ^= std::hash<BuyableMode>{}(m_BuyableMode) << 3;

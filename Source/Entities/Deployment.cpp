@@ -105,6 +105,27 @@ int Deployment::Save(Writer& writer) const {
 	return 0;
 }
 
+size_t Deployment::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = SceneObject::Write(writer, entityReference, hashData);
+
+	const Deployment& reference = static_cast<const Deployment&>(entityReference);
+
+	if (m_LoadoutName != reference.m_LoadoutName)
+		writer.NewPropertyWithValue("LoadoutName", m_LoadoutName);
+
+	if (m_Icon.Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++))
+		writer.NewPropertyWithValue("Icon", m_Icon);
+
+	if (m_SpawnRadius != reference.m_SpawnRadius)
+		writer.NewPropertyWithValue("SpawnRadius", m_SpawnRadius);
+	if (m_WalkRadius != reference.m_WalkRadius)
+		writer.NewPropertyWithValue("WalkRadius", m_WalkRadius);
+	if (m_HFlipped != reference.m_HFlipped)
+		writer.NewPropertyWithValue("HFlipped", m_HFlipped);
+
+	return constituentsConsumed;
+}
+
 HashingData Deployment::Hash() const {
 	HashingData hashData = SceneObject::Hash();
 	uint64_t& hash = hashData.m_Hash;

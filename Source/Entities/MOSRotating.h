@@ -70,7 +70,7 @@ namespace RTE {
 			MOSprite::Reset();
 		}
 
-		int Write(Writer& writer, const MOSRotating& reference, const HashingData& hashData) const;
+		size_t Write(Writer& writer, const Entity& reference, const HashingData& hashData) const override;
 
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)

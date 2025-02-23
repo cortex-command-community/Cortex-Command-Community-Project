@@ -163,7 +163,7 @@ namespace RTE {
 		return 0;
 	}
 
-	int Entity::Write(Writer& writer, const Entity& reference, const HashingData& hashData) const {
+	size_t Entity::Write(Writer& writer, const Entity& reference, const HashingData& hashData) const {
 		writer.ObjectStart(GetClassName());
 
 		writer.NewPropertyWithValue("CopyOf", reference.m_PresetName);
@@ -181,7 +181,7 @@ namespace RTE {
 		// than the number of groups not shared.
 		// TODO: That^
 		if (m_Groups != reference.m_Groups) {
-			if (m_Groups.size() > 0) {
+			if (reference.m_Groups.size() > 0) {
 				writer.NewProperty("_ClearGroups = 1");
 			}
 

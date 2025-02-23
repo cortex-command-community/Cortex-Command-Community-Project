@@ -44,6 +44,12 @@ namespace RTE {
 		}
 #pragma endregion
 
+#pragma region INI Handling
+
+		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
+
+#pragma endregion
+
 #pragma region Getters and Setters
 		/// Returns whether this TerrainObject has any foreground color data.
 		/// @return Whether this TerrainOBject has any foreground color data.

@@ -384,11 +384,13 @@ int MOSRotating::Save(Writer& writer) const {
 	return 0;
 }
 
-int MOSRotating::Write(Writer& writer, const MOSRotating& reference, const HashingData& hashData) const {
-	int constituentsConsumed = MOSprite::Write(writer, reference, hashData);
+size_t MOSRotating::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = MOSprite::Write(writer, entityReference, hashData);
+
+	const MOSRotating& reference = static_cast<const MOSRotating&>(entityReference);
 
 	if (m_pAtomGroup != nullptr) {
-		if (reference.m_pAtomGroup == nullptr || m_pAtomGroup->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
+		if (const Entity* preset = m_pAtomGroup->GetPreset()) {
 			writer.NewProperty("AtomGroup");
 			if (const AtomGroup* preset = static_cast<const AtomGroup*>(m_pAtomGroup->GetPreset())) {
 				m_pAtomGroup->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pAtomGroup->GetClassName(), m_pAtomGroup->GetPresetName(), m_pAtomGroup->GetModuleID()));
@@ -407,7 +409,7 @@ int MOSRotating::Write(Writer& writer, const MOSRotating& reference, const Hashi
 	if (m_pDeepGroup != nullptr) {
 		if (reference.m_pDeepGroup == nullptr || m_pDeepGroup->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("DeepGroup");
-			if (const AtomGroup* preset = static_cast<const AtomGroup*>(m_pDeepGroup->GetPreset())) {
+			if (const Entity* preset = m_pDeepGroup->GetPreset()) {
 				m_pDeepGroup->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pDeepGroup->GetClassName(), m_pDeepGroup->GetPresetName(), m_pDeepGroup->GetModuleID()));
 				writer.ObjectEnd();
 			} else {
@@ -450,6 +452,7 @@ int MOSRotating::Write(Writer& writer, const MOSRotating& reference, const Hashi
 	constituentsConsumed += hashData.m_ParseValues.at(3);
 
 
+
 	for (auto gItr = m_Gibs.begin(); gItr != m_Gibs.end(); ++gItr) {
 		writer.NewProperty("_AddGib");
 		writer << (**gItr);
@@ -467,7 +470,7 @@ int MOSRotating::Write(Writer& writer, const MOSRotating& reference, const Hashi
 	if (m_GibSound != nullptr) {
 		if (reference.m_GibSound == nullptr || m_GibSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("GibSound");
-			if (const SoundContainer* preset = static_cast<const SoundContainer*>(m_GibSound->GetPreset())) {
+			if (const Entity* preset = m_GibSound->GetPreset()) {
 				m_GibSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_GibSound->GetClassName(), m_GibSound->GetPresetName(), m_GibSound->GetModuleID()));
 				writer.ObjectEnd();
 			} else {

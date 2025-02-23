@@ -60,7 +60,7 @@ namespace RTE {
 		/// @param reference A reference to write properties against.
 		/// @param hashData A clump of hash data for cheap property comparisons.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Write(Writer& writer, const AtomGroup& reference, const HashingData&) const;
+		size_t Write(Writer& writer, const Entity& reference, const HashingData&) const override;
 #pragma endregion
 
 #pragma region Destruction

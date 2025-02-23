@@ -203,7 +203,7 @@ std::string MOSprite::GetExitWoundPresetName() const {
 };
 
 int MOSprite::Save(Writer& writer) const {
-	int constituentsConsumed = MovableObject::Save(writer);
+	MovableObject::Save(writer);
 
 	writer.NewPropertyWithValue("SpriteFile", m_SpriteFile);
 	writer.NewPropertyWithValue("FrameCount", m_FrameCount);
@@ -219,14 +219,17 @@ int MOSprite::Save(Writer& writer) const {
 	if (m_pExitWound)
 		writer.NewPropertyWithValue("ExitWound", m_pExitWound->GetEntityCharacteristic());
 
-	return constituentsConsumed;
+	return 0;
 }
 
-int MOSprite::Write(Writer& writer, const MOSprite& reference, const HashingData& hashData) const {
-	MovableObject::Write(writer, reference, hashData);
+size_t MOSprite::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = MovableObject::Write(writer, entityReference, hashData);
 
-	if (m_SpriteFile.GetDataPath() != reference.m_SpriteFile.GetDataPath())
+	const MOSprite& reference = static_cast<const MOSprite&>(entityReference);
+
+	if (m_SpriteFile.Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++))
 		writer.NewPropertyWithValue("SpriteFile", m_SpriteFile);
+
 	if (m_FrameCount != reference.m_FrameCount)
 		writer.NewPropertyWithValue("FrameCount", m_FrameCount);
 	if (m_SpriteOffset != reference.m_SpriteOffset)
@@ -260,7 +263,7 @@ int MOSprite::Write(Writer& writer, const MOSprite& reference, const HashingData
 		}
 	}
 
-	return 0;
+	return constituentsConsumed;
 }
 
 HashingData MOSprite::Hash() const {
@@ -272,19 +275,11 @@ HashingData MOSprite::Hash() const {
 	hash ^= spriteHash << 0;
 
 	hash ^= std::hash<int>{}(m_FrameCount) << 1;
-
-	uint64_t spriteOffsetHash = m_SpriteOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(spriteOffsetHash);
-	hash ^= spriteOffsetHash << 2;
-
+	hash ^= m_SpriteOffset.Hash().m_Hash << 2;
 	hash ^= std::hash<SpriteAnimMode>{}(m_SpriteAnimMode) << 3;
 	hash ^= std::hash<int>{}(m_SpriteAnimDuration) << 4;
 	hash ^= std::hash<bool>{}(m_HFlipped) << 5;
-
-	uint64_t rotHash = m_Rotation.Hash().m_Hash;
-	hashData.m_Constituents.push_back(rotHash);
-	hash ^= rotHash << 6;
-
+	hash ^= m_Rotation.Hash().m_Hash << 6;
 	hash ^= std::hash<float>{}(m_AngularVel) << 7;
 	hash ^= std::hash<bool>{}(m_SettleMaterialDisabled) << 8;
 	hash ^= (m_pEntryWound ? RTE::Hash(m_pEntryWound->GetEntityCharacteristic()) : 0) << 9;

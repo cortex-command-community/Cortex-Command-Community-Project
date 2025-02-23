@@ -466,11 +466,13 @@ int MovableObject::Save(Writer& writer) const {
 	return 0;
 }
 
-int MovableObject::Write(Writer& writer, const MovableObject& reference, const HashingData& hashData) const {
-	int constituentsConsumed = SceneObject::Write(writer, reference, hashData);
+size_t MovableObject::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = SceneObject::Write(writer, entityReference, hashData);
 	// TODO: Make proper save system that knows not to save redundant data!
 	// Note - this function isn't even called when saving a scene. Turns out that scene special-cases this stuff, see Scene::Save()
 	// In future, perhaps we ought to not do that. Who knows?
+
+	const MOSprite& reference = static_cast<const MOSprite&>(entityReference);
 
 	if (m_Mass != reference.m_Mass)
 		writer.NewPropertyWithValue("Mass", m_Mass);
@@ -521,8 +523,9 @@ int MovableObject::Write(Writer& writer, const MovableObject& reference, const H
 		}
 	}
 
-	if (m_ScreenEffectFile.GetDataPath() != reference.m_ScreenEffectFile.GetDataPath())
+	if (m_ScreenEffectFile.Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++))
 		writer.NewPropertyWithValue("ScreenEffect", m_ScreenEffectFile);
+
 	if (m_PostEffectEnabled != reference.m_PostEffectEnabled)
 		writer.NewPropertyWithValue("PostEffectEnabled", m_PostEffectEnabled);
 	if (m_EffectStartTime != reference.m_EffectStartTime)
@@ -582,15 +585,12 @@ HashingData MovableObject::Hash() const {
 	HashingData hashData = SceneObject::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
-	// TODO: These are all written under the assumption that the reading and writing functions are already approximately accurate
-	// If the write function doesn't save things correctly, this gets it's distinction criteria from that, so it's wrong too
+	// TODO: These are all written under the assumption that the reading and writing functions are already approximately accurate.
+	// If the write function doesn't save things correctly, this got it's distinction criteria from that, so it's wrong too.
+	// I guess that's not much of a todo, more like a keep in mind, but you could look at it as an ongoing task.
 
 	hash ^= std::hash<float>{}(m_Mass) << 1;
-
-	HashingData velHash = m_Vel.Hash();
-	//hashData.m_Constituents.push_back(velHash);
-	hash ^= velHash.m_Hash << 2;
-
+	hash ^= m_Vel.Hash().m_Hash << 2;
 	hash ^= std::hash<float>{}(m_Scale) << 3;
 	hash ^= std::hash<float>{}(m_GlobalAccScalar) << 4;
 	hash ^= std::hash<float>{}(m_AirResistance) << 5;
@@ -608,6 +608,7 @@ HashingData MovableObject::Hash() const {
 	hash ^= std::hash<bool>{}(m_MissionCritical) << 1;
 	hash ^= std::hash<bool>{}(m_CanBeSquished) << 2;
 	hash ^= std::hash<bool>{}(m_HUDVisible) << 3;
+
 	int i = 0;
 
 	for (const auto& [scriptPath, scriptEnabled]: m_AllLoadedScripts) {
@@ -616,9 +617,9 @@ HashingData MovableObject::Hash() const {
 		}
 	}
 
-	HashingData effectHash = m_ScreenEffectFile.Hash();
-	//hashData.m_Constituents.push_back(effectHash);
-	hash ^= effectHash.m_Hash << 4;
+	uint64_t effectHash = m_ScreenEffectFile.Hash().m_Hash;
+	hashData.m_Constituents.push_back(effectHash);
+	hash ^= effectHash << 4;
 
 	hash ^= std::hash<bool>{}(m_PostEffectEnabled) << 5;
 	hash ^= std::hash<int>{}(m_EffectStartTime) << 6;

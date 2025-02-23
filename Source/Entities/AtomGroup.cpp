@@ -191,8 +191,10 @@ int AtomGroup::Save(Writer& writer) const {
 	return 0;
 }
 
-int AtomGroup::Write(Writer& writer, const AtomGroup& reference, const HashingData& hashData) const {
-	Entity::Write(writer, reference, hashData);
+size_t AtomGroup::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = Entity::Write(writer, entityReference, hashData);
+
+	const AtomGroup& reference = static_cast<const AtomGroup&>(entityReference);
 
 	if (m_Material != reference.m_Material) {
 		writer.NewPropertyWithValue("Material", m_Material->GetEntityCharacteristic());
@@ -231,7 +233,7 @@ int AtomGroup::Write(Writer& writer, const AtomGroup& reference, const HashingDa
 		writer.NewPropertyWithValue("AreaDistributionSurfaceAreaMultiplier", m_AreaDistributionSurfaceAreaMultiplier);
 	}
 
-	return 0;
+	return constituentsConsumed;
 }
 
 HashingData AtomGroup::Hash() const {

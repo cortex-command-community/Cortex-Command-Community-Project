@@ -55,7 +55,7 @@ namespace RTE {
 #pragma endregion
 
 #pragma region INI Handling
-		int Write(Writer& writer, const Entity& reference, const HashingData& hashData) const override;
+		size_t Write(Writer& writer, const Entity& reference, const HashingData& hashData) const override;
 #pragma endregion
 
 #pragma region Destruction

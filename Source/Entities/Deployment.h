@@ -55,6 +55,8 @@ namespace RTE {
 		/// Anything below 0 is an error signal.
 		int Create(const Deployment& reference);
 
+		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
+
 		/// Resets the entire Deployment, including its inherited members, to
 		/// their default settings or values.
 		void Reset() override {

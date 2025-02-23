@@ -201,8 +201,8 @@ int SoundContainer::Save(Writer& writer) const {
 	return 0;
 }
 
-int SoundContainer::Write(Writer& writer, const Entity& reference, const HashingData& hashData) const {
-	int constituentsConsumed = Entity::Write(writer, reference, hashData);
+size_t SoundContainer::Write(Writer& writer, const Entity& reference, const HashingData& hashData) const {
+	size_t constituentsConsumed = Entity::Write(writer, reference, hashData);
 
 	const SoundContainer& soundSetReference = static_cast<const SoundContainer&>(reference);
 

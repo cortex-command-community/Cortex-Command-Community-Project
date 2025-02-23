@@ -1115,8 +1115,12 @@ int Scene::Save(Writer& writer) const {
 				writer.NewProperty("PlaceAIPlanObject");
 			}
 
-			writer << placedObject;
-			//SaveSceneObject(writer, placedObject, false, doFullGameSave);
+			if (const Entity* preset = placedObject->GetPreset()) {
+				placedObject->Write(writer, *preset, *g_PresetMan.GetEntityHash(placedObject->GetClassName(), placedObject->GetPresetName(), placedObject->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << placedObject;
+			}
 		}
 	}
 

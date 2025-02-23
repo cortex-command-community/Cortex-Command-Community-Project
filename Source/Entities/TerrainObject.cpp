@@ -122,6 +122,29 @@ int TerrainObject::Save(Writer& writer) const {
 	return 0;
 }
 
+size_t TerrainObject::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = SceneObject::Write(writer, entityReference, hashData);
+
+	if (!m_FGColorFile.GetDataPath().empty()) {
+		writer.NewPropertyWithValue("FGColorFile", m_FGColorFile);
+	}
+	if (!m_BGColorFile.GetDataPath().empty()) {
+		writer.NewPropertyWithValue("BGColorFile", m_BGColorFile);
+	}
+	if (!m_MaterialFile.GetDataPath().empty()) {
+		writer.NewPropertyWithValue("MaterialFile", m_MaterialFile);
+	}
+
+	if (m_OffsetDefined) {
+		writer.NewPropertyWithValue("BitmapOffset", m_BitmapOffset);
+	}
+
+	for (const SceneObject::SOPlacer& childObject: m_ChildObjects) {
+		writer.NewPropertyWithValue("AddChildObject", childObject);
+	}
+	return 0;
+}
+
 HashingData TerrainObject::Hash() const {
 	HashingData hashData = SceneObject::Hash();
 	uint64_t& hash = hashData.m_Hash;
@@ -138,9 +161,7 @@ HashingData TerrainObject::Hash() const {
 	hashData.m_Constituents.push_back(materialHash);
 	hash ^= materialHash << 2;
 
-	uint64_t offsetHash = m_BitmapOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(offsetHash);
-	hash ^= offsetHash << 3;
+	hash ^= m_BitmapOffset.Hash().m_Hash << 3;
 
 	int i = 0;
 	
@@ -149,6 +170,8 @@ HashingData TerrainObject::Hash() const {
 		hashData.m_Constituents.push_back(childHash);
 		hash ^= childHash << (i++ % sizeof(uint64_t) * 8);
 	}
+
+	hashData.m_ParseValues.push_back(i);
 
 	return hashData;
 }
