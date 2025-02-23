@@ -90,7 +90,7 @@ namespace RTE {
 		void Destroy(bool notInherited = false) override;
 
 #pragma region INI Handling
-		size_t Write(Writer& writer, const Entity& reference, const HashingData& hashData) const override;
+		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
 #pragma endregion
 
 #pragma region Script Handling

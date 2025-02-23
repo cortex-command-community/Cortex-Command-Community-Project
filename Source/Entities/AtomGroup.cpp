@@ -69,7 +69,7 @@ int AtomGroup::Create(const AtomGroup& reference, bool onlyCopyOwnerAtoms) {
 
 	m_OwnerMOSR = nullptr; // Needs to be set manually by the new MO owner.
 	m_Material = reference.m_Material;
-	m_AutoGenerate = false; /*reference.m_AutoGenerate;*/ // TODO: Investigate if AutoGenerating here can screw something up when copy-creating over an existing AtomGroup.
+	m_AutoGenerate = reference.m_AutoGenerate; // TODO: Investigate if AutoGenerating here can screw something up when copy-creating over an existing AtomGroup.
 	m_Resolution = reference.m_Resolution;
 	m_Depth = reference.m_Depth;
 	m_JointOffset = reference.m_JointOffset;

@@ -202,7 +202,7 @@ int Attachable::Save(Writer& writer) const {
 size_t Attachable::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
 	size_t constituentsConsumed = MOSRotating::Write(writer, entityReference, hashData);
 
-	const Attachable& reference = static_cast<const Attachable&>(reference);
+	const Attachable& reference = static_cast<const Attachable&>(entityReference);
 
 	if (m_ParentOffset != reference.m_ParentOffset)
 		writer.NewPropertyWithValue("ParentOffset", m_ParentOffset);

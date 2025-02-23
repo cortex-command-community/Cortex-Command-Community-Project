@@ -163,16 +163,16 @@ namespace RTE {
 		return 0;
 	}
 
-	size_t Entity::Write(Writer& writer, const Entity& reference, const HashingData& hashData) const {
+	size_t Entity::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
 		writer.ObjectStart(GetClassName());
 
-		writer.NewPropertyWithValue("CopyOf", reference.m_PresetName);
+		writer.NewPropertyWithValue("CopyOf", entityReference.m_PresetName);
 
-		if (m_DisplayName != reference.m_DisplayName) {
+		if (m_DisplayName != entityReference.m_DisplayName) {
 			writer.NewPropertyWithValue("DisplayName", m_DisplayName);
 		}
 
-		if (m_PresetDescription != reference.m_PresetDescription) {
+		if (m_PresetDescription != entityReference.m_PresetDescription) {
 			writer.NewPropertyWithValue("Description", m_PresetDescription);
 		}
 		
@@ -180,8 +180,8 @@ namespace RTE {
 		// when, of the groups including the preset, the number of groups shared plus the clear instruction is greater
 		// than the number of groups not shared.
 		// TODO: That^
-		if (m_Groups != reference.m_Groups) {
-			if (reference.m_Groups.size() > 0) {
+		if (m_Groups != entityReference.m_Groups) {
+			if (entityReference.m_Groups.size() > 0) {
 				writer.NewProperty("_ClearGroups = 1");
 			}
 

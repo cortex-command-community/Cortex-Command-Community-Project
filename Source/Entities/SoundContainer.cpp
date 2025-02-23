@@ -101,7 +101,7 @@ int SoundContainer::Create(const std::string& soundFilePath, bool immobile, bool
 int SoundContainer::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
-	MatchProperty("SpecialBehaviour_TopLevelSoundSet", { reader >> *m_TopLevelSoundSet; });
+	MatchProperty("TopLevelSoundSet", { reader >> *m_TopLevelSoundSet; });
 	MatchProperty("AddSound", { m_TopLevelSoundSet->AddSoundData(SoundSet::ReadAndGetSoundData(reader)); });
 	MatchProperty("AddSoundSet", {
 		SoundSet soundSetToAdd;
@@ -165,7 +165,7 @@ int SoundContainer::Save(Writer& writer) const {
 	Entity::Save(writer);
 
 	// Due to writer limitations, the top level SoundSet has to be explicitly written out, even though SoundContainer standard behaviour is to hide it in INI and just have properties be part of the SoundContainer.
-	writer.NewPropertyWithValue("SpecialBehaviour_TopLevelSoundSet", *m_TopLevelSoundSet);
+	writer.NewPropertyWithValue("TopLevelSoundSet", *m_TopLevelSoundSet);
 
 	writer.NewProperty("SoundSelectionCycleMode");
 	SoundSet::SaveSoundSelectionCycleMode(writer, m_TopLevelSoundSet->GetSoundSelectionCycleMode());
@@ -201,46 +201,61 @@ int SoundContainer::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t SoundContainer::Write(Writer& writer, const Entity& reference, const HashingData& hashData) const {
-	size_t constituentsConsumed = Entity::Write(writer, reference, hashData);
+size_t SoundContainer::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = Entity::Write(writer, entityReference, hashData);
 
-	const SoundContainer& soundSetReference = static_cast<const SoundContainer&>(reference);
+	const SoundContainer& reference = static_cast<const SoundContainer&>(entityReference);
 
 	// Due to writer limitations, the top level SoundSet has to be explicitly written out, even though SoundContainer standard behaviour is to hide it in INI and just have properties be part of the SoundContainer.
 	if (m_TopLevelSoundSet->Hash().m_Hash != hashData.m_Constituents.at(0)) {
-		writer.NewPropertyWithValue("SpecialBehaviour_TopLevelSoundSet", *m_TopLevelSoundSet);
+		writer.NewPropertyWithValue("TopLevelSoundSet", *m_TopLevelSoundSet);
 	}
 
-	writer.NewProperty("SoundSelectionCycleMode");
-	SoundSet::SaveSoundSelectionCycleMode(writer, m_TopLevelSoundSet->GetSoundSelectionCycleMode());
-
-	writer.NewProperty("SoundOverlapMode");
-	auto overlapModeMapEntry = std::find_if(c_SoundOverlapModeMap.begin(), c_SoundOverlapModeMap.end(), [&soundOverlapMode = m_SoundOverlapMode](auto element) { return element.second == soundOverlapMode; });
-	if (overlapModeMapEntry != c_SoundOverlapModeMap.end()) {
-		writer << overlapModeMapEntry->first;
-	} else {
-		RTEAbort("Tried to write invalid SoundOverlapMode when saving SoundContainer.");
+	if (m_SoundOverlapMode != reference.m_SoundOverlapMode) {
+		writer.NewProperty("SoundOverlapMode");
+		auto overlapModeMapEntry = std::find_if(c_SoundOverlapModeMap.begin(), c_SoundOverlapModeMap.end(), [&soundOverlapMode = m_SoundOverlapMode](auto element) { return element.second == soundOverlapMode; });
+		if (overlapModeMapEntry != c_SoundOverlapModeMap.end()) {
+			writer << overlapModeMapEntry->first;
+		} else {
+			RTEAbort("Tried to write invalid SoundOverlapMode when saving SoundContainer.");
+		}
 	}
 
-	writer.NewPropertyWithValue("BusRouting", m_BusRouting);
-	writer.NewPropertyWithValue("Immobile", m_Immobile);
-	writer.NewPropertyWithValue("AttenuationStartDistance", m_AttenuationStartDistance);
-	writer.NewPropertyWithValue("CustomPanValue", m_CustomPanValue);
-	writer.NewPropertyWithValue("PanningStrengthMultiplier", m_PanningStrengthMultiplier);
-	writer.NewPropertyWithValue("LoopSetting", m_Loops);
+	if (m_BusRouting != reference.m_BusRouting)
+		writer.NewPropertyWithValue("BusRouting", m_BusRouting);
+	if (m_Immobile != reference.m_Immobile)
+		writer.NewPropertyWithValue("Immobile", m_Immobile);
+	if (m_AttenuationStartDistance != reference.m_AttenuationStartDistance)
+		writer.NewPropertyWithValue("AttenuationStartDistance", m_AttenuationStartDistance);
+	if (m_CustomPanValue != reference.m_CustomPanValue)
+		writer.NewPropertyWithValue("CustomPanValue", m_CustomPanValue);
+	if (m_PanningStrengthMultiplier != reference.m_PanningStrengthMultiplier)
+		writer.NewPropertyWithValue("PanningStrengthMultiplier", m_PanningStrengthMultiplier);
+	if (m_Loops != reference.m_Loops)
+		writer.NewPropertyWithValue("LoopSetting", m_Loops);
 
-	writer.NewPropertyWithValue("Priority", m_Priority);
-	writer.NewPropertyWithValue("AffectedByGlobalPitch", m_AffectedByGlobalPitch);
+	if (m_Priority != reference.m_Priority)
+		writer.NewPropertyWithValue("Priority", m_Priority);
+	if (m_AffectedByGlobalPitch != reference.m_AffectedByGlobalPitch)
+		writer.NewPropertyWithValue("AffectedByGlobalPitch", m_AffectedByGlobalPitch);
 
-	writer.NewPropertyWithValue("Position", m_Pos);
-	writer.NewPropertyWithValue("Volume", m_Volume);
-	writer.NewPropertyWithValue("Pitch", m_Pitch);
-	writer.NewPropertyWithValue("PitchVariation", m_PitchVariation);
+	if (m_Pos != reference.m_Pos)
+		writer.NewPropertyWithValue("Position", m_Pos);
+	if (m_Volume != reference.m_Volume)
+		writer.NewPropertyWithValue("Volume", m_Volume);
+	if (m_Pitch != reference.m_Pitch)
+		writer.NewPropertyWithValue("Pitch", m_Pitch);
+	if (m_PitchVariation != reference.m_PitchVariation)
+		writer.NewPropertyWithValue("PitchVariation", m_PitchVariation);
 
-	writer.NewPropertyWithValue("WasFadedOut", m_WasFadedOut);
-	writer.NewPropertyWithValue("Paused", m_Paused);
-	writer.NewPropertyWithValue("MusicPreEntryTime", m_MusicPreEntryTime);
-	writer.NewPropertyWithValue("MusicExitTime", m_MusicExitTime);
+	if (m_WasFadedOut != reference.m_WasFadedOut)
+		writer.NewPropertyWithValue("WasFadedOut", m_WasFadedOut);
+	if (m_Paused != reference.m_Paused)
+		writer.NewPropertyWithValue("Paused", m_Paused);
+	if (m_MusicPreEntryTime != reference.m_MusicPreEntryTime)
+		writer.NewPropertyWithValue("MusicPreEntryTime", m_MusicPreEntryTime);
+	if (m_MusicExitTime != reference.m_MusicExitTime)
+		writer.NewPropertyWithValue("MusicExitTime", m_MusicExitTime);
 
 	return constituentsConsumed;
 }
@@ -264,11 +279,7 @@ HashingData SoundContainer::Hash() const {
 
 	hash ^= std::hash<int>{}(m_Priority) << 8;
 	hash ^= std::hash<bool>{}(m_AffectedByGlobalPitch) << 9;
-
-	uint64_t posHash = m_Pos.Hash().m_Hash;
-	hashData.m_Constituents.push_back(posHash);
-	hash ^= posHash << 10;
-
+	hash ^= m_Pos.Hash().m_Hash << 10;
 	hash ^= std::hash<float>{}(m_Volume) << 11;
 	hash ^= std::hash<float>{}(m_Pitch) << 12;
 	hash ^= std::hash<float>{}(m_PitchVariation) << 13;

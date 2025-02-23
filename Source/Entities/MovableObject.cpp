@@ -513,12 +513,20 @@ size_t MovableObject::Write(Writer& writer, const Entity& entityReference, const
 	if (m_HUDVisible != reference.m_HUDVisible)
 		writer.NewPropertyWithValue("HUDVisible", m_HUDVisible);
 
+	/* TODO: Decide whether to delete this (clear script paths currently does nothing)
 	if (reference.m_AllLoadedScripts.size() > 0) {
 		writer.NewPropertyWithValue("_ClearScriptPaths", 1);
 	}
 
 	for (const auto& [scriptPath, scriptEnabled]: m_AllLoadedScripts) {
 		if (!scriptPath.empty()) {
+			writer.NewPropertyWithValue("_AddScriptPath", scriptPath);
+		}
+	}
+	*/
+
+	for (const auto& [scriptPath, scriptEnabled]: m_AllLoadedScripts) {
+		if (!scriptPath.empty() && !reference.HasScript(scriptPath)) {
 			writer.NewPropertyWithValue("_AddScriptPath", scriptPath);
 		}
 	}

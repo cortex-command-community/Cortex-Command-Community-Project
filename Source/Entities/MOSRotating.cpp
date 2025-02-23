@@ -281,7 +281,7 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 	              });
 	MatchProperty("DeepCheck", { reader >> m_DeepCheck; });
 	MatchProperty("OrientToVel", { reader >> m_OrientToVel; });
-	MatchProperty("SpecialBehaviour_ClearAllAttachables", {
+	MatchForwards("SpecialBehaviour_ClearAllAttachables") MatchProperty("_ClearAttachables", {
 		// This special property is used to make Attachables work with our limited serialization system, when saving the game. Note that we discard the property value here, because all that matters is whether or not we have the property.
 		reader.ReadPropValue();
 		for (auto attachableIterator = m_Attachables.begin(); attachableIterator != m_Attachables.end();) {
@@ -298,18 +298,18 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 			reader.ReportError("Tried to AddAttachable a non-Attachable type!");
 		}
 	});
+	MatchProperty("_ClearWounds", { RemoveWounds(GetWoundCount()); })
 	MatchForwards("SpecialBehaviour_AddWound") MatchProperty("_AddWound", {
 		AEmitter* wound = new AEmitter;
 		reader >> wound;
 		AddWound(wound, wound->GetParentOffset());
 	});
 	MatchProperty("_ClearGibs", { m_Gibs.clear(); });
-	MatchForwards("AddGib") MatchProperty("_AddGib",
-	              {
-		              Gib* gib = new Gib();
-		              reader >> *gib;
-		              m_Gibs.push_back(gib);
-	              });
+	MatchForwards("AddGib") MatchProperty("_AddGib", {
+		Gib* gib = new Gib();
+		reader >> *gib;
+		m_Gibs.push_back(gib);
+	});
 	MatchProperty("GibImpulseLimit", { reader >> m_GibImpulseLimit; });
 	MatchForwards("GibWoundLimit") MatchProperty("WoundLimit", { reader >> m_GibWoundLimit; });
 	MatchProperty("GibBlastStrength", { reader >> m_GibBlastStrength; });
@@ -390,9 +390,9 @@ size_t MOSRotating::Write(Writer& writer, const Entity& entityReference, const H
 	const MOSRotating& reference = static_cast<const MOSRotating&>(entityReference);
 
 	if (m_pAtomGroup != nullptr) {
-		if (const Entity* preset = m_pAtomGroup->GetPreset()) {
+		if (reference.m_pAtomGroup == nullptr || m_pAtomGroup->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("AtomGroup");
-			if (const AtomGroup* preset = static_cast<const AtomGroup*>(m_pAtomGroup->GetPreset())) {
+			if (const Entity* preset = m_pAtomGroup->GetPreset()) {
 				m_pAtomGroup->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pAtomGroup->GetClassName(), m_pAtomGroup->GetPresetName(), m_pAtomGroup->GetModuleID()));
 				writer.ObjectEnd();
 			} else {
@@ -428,34 +428,112 @@ size_t MOSRotating::Write(Writer& writer, const Entity& entityReference, const H
 	if (m_OrientToVel != reference.m_OrientToVel)
 		writer.NewPropertyWithValue("OrientToVel", m_OrientToVel);
 
-	if (reference.m_Attachables.size() > 0) {
-		writer.NewPropertyWithValue("_ClearAttachables", 1);
+	bool areWoundsConcatenated = true;
+	std::vector<AEmitter*>::const_iterator wItr = m_Wounds.begin();
+	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(2); refIndex++, wItr++) {
+		if ((*wItr)->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
+			areWoundsConcatenated = false;
+			break;
+		}
 	}
 
-	for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr) {
-		writer.NewProperty("_AddWound");
-		writer << (*itr);
+	if (areWoundsConcatenated) {
+		for (std::vector<AEmitter*>::const_iterator itr = wItr; itr != m_Wounds.end(); ++itr) {
+			writer.NewProperty("_AddWound");
+			if (const Entity* preset = (*itr)->GetPreset()) {
+				(*itr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*itr)->GetClassName(), (*itr)->GetPresetName(), (*itr)->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << (**itr);
+			}
+		}
+	} else {
+		if (reference.m_Wounds.size() > 0) {
+			writer.NewPropertyWithValue("_ClearWounds", 1);
+		}
+
+		for (std::vector<AEmitter*>::const_iterator itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr) {
+			writer.NewProperty("_AddWound");
+			if (const Entity* preset = (*itr)->GetPreset()) {
+				(*itr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*itr)->GetClassName(), (*itr)->GetPresetName(), (*itr)->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << (**itr);
+			}
+		}
 	}
 
 	constituentsConsumed += hashData.m_ParseValues.at(2);
 
-	for (auto aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr) {
-		writer.NewProperty("_AddAttachable");
-		if (const Attachable* preset = static_cast<const Attachable*>((*aItr)->GetPreset())) {
-			(*aItr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*aItr)->GetClassName(), (*aItr)->GetPresetName(), (*aItr)->GetModuleID()));
-			writer.ObjectEnd();
+	bool areAttachablesConcatenated = true;
+	size_t ignoranceOffset = 0;
+	std::list<Attachable*>::const_iterator aItr = m_Attachables.begin();
+	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(3) - ignoranceOffset; refIndex++, aItr++) {
+		if (!AttachableIsHardcoded(*aItr)) {
+			if ((*aItr)->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
+				areAttachablesConcatenated = false;
+				break;
+			}
 		} else {
-			writer << (*aItr);
+			ignoranceOffset++;
+		}
+	}
+
+	if (areAttachablesConcatenated) {
+		for (std::list<Attachable*>::const_iterator itr = aItr; itr != m_Attachables.end(); ++itr) {
+			if (!AttachableIsHardcoded(*itr)) {
+				writer.NewProperty("_AddAttachable");
+				if (const Entity* preset = (*itr)->GetPreset()) {
+					(*itr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*itr)->GetClassName(), (*itr)->GetPresetName(), (*itr)->GetModuleID()));
+					writer.ObjectEnd();
+				} else {
+					writer << (**itr);
+				}
+			}
+		}
+	} else {
+		if (reference.m_Wounds.size() > 0) {
+			writer.NewPropertyWithValue("_ClearAttachables", 1);
+		}
+
+		for (std::list<Attachable*>::const_iterator itr = m_Attachables.begin(); itr != m_Attachables.end(); ++itr) {
+			if (!AttachableIsHardcoded(*itr)) {
+				writer.NewProperty("_AddAttachable");
+				if (const Entity* preset = (*itr)->GetPreset()) {
+					(*itr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*itr)->GetClassName(), (*itr)->GetPresetName(), (*itr)->GetModuleID()));
+					writer.ObjectEnd();
+				} else {
+					writer << (**itr);
+				}
+			}
 		}
 	}
 
 	constituentsConsumed += hashData.m_ParseValues.at(3);
 
+	bool areGibsConcatenated = true;
+	std::list<Gib*>::const_iterator gItr = m_Gibs.begin();
+	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(4); refIndex++, gItr++) {
+		if ((*gItr)->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
+			areGibsConcatenated = false;
+			break;
+		}
+	}
 
+	if (areGibsConcatenated) {
+		for (std::list<Gib*>::const_iterator itr = gItr; itr != m_Gibs.end(); ++itr) {
+			writer.NewProperty("_AddGib");
+			writer << (**itr);
+		}
+	} else {
+		if (reference.m_Gibs.size() > 0) {
+			writer.NewPropertyWithValue("_ClearGibs", 1);
+		}
 
-	for (auto gItr = m_Gibs.begin(); gItr != m_Gibs.end(); ++gItr) {
-		writer.NewProperty("_AddGib");
-		writer << (**gItr);
+		for (std::list<Gib*>::const_iterator itr = m_Gibs.begin(); itr != m_Gibs.end(); ++itr) {
+			writer.NewProperty("_AddGib");
+			writer << (**itr);
+		}
 	}
 
 	constituentsConsumed += hashData.m_ParseValues.at(4);
@@ -522,15 +600,19 @@ HashingData MOSRotating::Hash() const {
 	}
 
 	hashData.m_ParseValues.push_back(i);
+
 	i = 0;
 
 	for (auto aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr) {
-		uint64_t attachableHash = (*aItr)->Hash().m_Hash;
-		hashData.m_Constituents.push_back(attachableHash);
-		hash ^= attachableHash << (i++ % sizeof(uint64_t) * 8);
+		if (!AttachableIsHardcoded(*aItr)) {
+			uint64_t attachableHash = (*aItr)->Hash().m_Hash;
+			hashData.m_Constituents.push_back(attachableHash);
+			hash ^= attachableHash << (i++ % sizeof(uint64_t) * 8);
+		}
 	}
 
 	hashData.m_ParseValues.push_back(i);
+
 	i = 0;
 
 	for (auto gItr = m_Gibs.begin(); gItr != m_Gibs.end(); ++gItr) {

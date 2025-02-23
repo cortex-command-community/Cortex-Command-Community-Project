@@ -347,7 +347,14 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("CharHeight", { reader >> m_CharHeight; });
 	MatchProperty("HolsterOffset", { reader >> m_HolsterOffset; });
 	MatchProperty("ReloadOffset", { reader >> m_ReloadOffset; });
-	MatchForwards("AddInventoryDevice") MatchProperty("AddInventory",
+	MatchProperty("_ClearInventory", {
+		// Delete everything in the inventory, and then forget about it.
+		for (std::deque<MovableObject*>::const_iterator itr = m_Inventory.begin(); itr != m_Inventory.end(); ++itr) {
+			delete (*itr);
+		}
+		m_Inventory.clear();
+	});
+	MatchForwards("AddInventoryDevice") MatchForwards("AddInventory") MatchProperty("_AddInventory",
 	                                                  {
 		                                                  MovableObject* pInvMO = dynamic_cast<MovableObject*>(g_PresetMan.ReadReflectedPreset(reader));
 		                                                  if (!pInvMO) {
@@ -427,6 +434,204 @@ int Actor::Save(Writer& writer) const {
 	return 0;
 }
 
+size_t Actor::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = MOSRotating::Write(writer, entityReference, hashData); // last parse index: 5
+
+	const Actor& reference = static_cast<const Actor&>(entityReference);
+
+	if (m_PlayerControllable != reference.m_PlayerControllable)
+		writer.NewPropertyWithValue("PlayerControllable", m_PlayerControllable);
+
+	if (m_BodyHitSound != nullptr) {
+		if (reference.m_BodyHitSound == nullptr || m_BodyHitSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
+			writer.NewProperty("BodyHitSound");
+			if (const Entity* preset = m_BodyHitSound->GetPreset()) {
+				m_BodyHitSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_BodyHitSound->GetClassName(), m_BodyHitSound->GetPresetName(), m_BodyHitSound->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << m_BodyHitSound;
+			}
+		}
+	} else if (reference.m_BodyHitSound != nullptr) {
+		writer.NewProperty("BodyHitSound");
+		writer << m_BodyHitSound;
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(6);
+
+	if (m_AlarmSound != nullptr) {
+		if (reference.m_AlarmSound == nullptr || m_AlarmSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
+			writer.NewProperty("AlarmSound");
+			if (const Entity* preset = m_AlarmSound->GetPreset()) {
+				m_AlarmSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_AlarmSound->GetClassName(), m_AlarmSound->GetPresetName(), m_AlarmSound->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << m_AlarmSound;
+			}
+		}
+	} else if (reference.m_AlarmSound != nullptr) {
+		writer.NewProperty("AlarmSound");
+		writer << m_AlarmSound;
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(7);
+
+	if (m_PainSound != nullptr) {
+		if (reference.m_PainSound == nullptr || m_PainSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
+			writer.NewProperty("PainSound");
+			if (const Entity* preset = m_PainSound->GetPreset()) {
+				m_PainSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_PainSound->GetClassName(), m_PainSound->GetPresetName(), m_PainSound->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << m_PainSound;
+			}
+		}
+	} else if (reference.m_PainSound != nullptr) {
+		writer.NewProperty("PainSound");
+		writer << m_PainSound;
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(8);
+
+	if (m_DeathSound != nullptr) {
+		if (reference.m_DeathSound == nullptr || m_DeathSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
+			writer.NewProperty("DeathSound");
+			if (const Entity* preset = m_DeathSound->GetPreset()) {
+				m_DeathSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_DeathSound->GetClassName(), m_DeathSound->GetPresetName(), m_DeathSound->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << m_DeathSound;
+			}
+		}
+	} else if (reference.m_DeathSound != nullptr) {
+		writer.NewProperty("DeathSound");
+		writer << m_DeathSound;
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(9);
+
+	if (m_DeviceSwitchSound != nullptr) {
+		if (reference.m_DeviceSwitchSound == nullptr || m_DeviceSwitchSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
+			writer.NewProperty("DeviceSwitchSound");
+			if (const Entity* preset = m_DeviceSwitchSound->GetPreset()) {
+				m_DeviceSwitchSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_DeviceSwitchSound->GetClassName(), m_DeviceSwitchSound->GetPresetName(), m_DeviceSwitchSound->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << m_DeviceSwitchSound;
+			}
+		}
+	} else if (reference.m_DeviceSwitchSound != nullptr) {
+		writer.NewProperty("DeviceSwitchSound");
+		writer << m_DeviceSwitchSound;
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(10);
+
+	if (m_Status != reference.m_Status)
+		writer.NewPropertyWithValue("Status", m_Status);
+	if (m_Health != reference.m_Health)
+		writer.NewPropertyWithValue("Health", m_Health);
+	if (m_MaxHealth != reference.m_MaxHealth)
+		writer.NewPropertyWithValue("MaxHealth", m_MaxHealth);
+	if (m_DeploymentID != reference.m_DeploymentID)
+		writer.NewPropertyWithValue("DeploymentID", m_DeploymentID);
+	if (m_TravelImpulseDamage != reference.m_TravelImpulseDamage)
+		writer.NewPropertyWithValue("ImpulseDamageThreshold", m_TravelImpulseDamage);
+	if (m_StableVel != reference.m_StableVel)
+		writer.NewPropertyWithValue("StableVelocityThreshold", m_StableVel);
+	if (m_StableRecoverDelay != reference.m_StableRecoverDelay)
+		writer.NewPropertyWithValue("StableRecoveryDelay", m_StableRecoverDelay);
+	if (m_CanRun != reference.m_CanRun)
+		writer.NewPropertyWithValue("CanRun", m_CanRun);
+	if (m_CrouchWalkSpeedMultiplier != reference.m_CrouchWalkSpeedMultiplier)
+		writer.NewPropertyWithValue("CrouchWalkSpeedMultiplier", m_CrouchWalkSpeedMultiplier);
+	if (m_GoldCarried != reference.m_GoldCarried)
+		writer.NewPropertyWithValue("GoldCarried", m_GoldCarried);
+	if (m_AimAngle != reference.m_AimAngle)
+		writer.NewPropertyWithValue("AimAngle", m_AimAngle);
+	if (m_AimRange != reference.m_AimRange)
+		writer.NewPropertyWithValue("AimRange", m_AimRange);
+	if (m_AimDistance != reference.m_AimDistance)
+		writer.NewPropertyWithValue("AimDistance", m_AimDistance);
+	if (m_SharpAimDelay != reference.m_SharpAimDelay)
+		writer.NewPropertyWithValue("SharpAimDelay", m_SharpAimDelay);
+	if (m_SightDistance != reference.m_SightDistance)
+		writer.NewPropertyWithValue("SightDistance", m_SightDistance);
+	if (m_Perceptiveness != reference.m_Perceptiveness)
+		writer.NewPropertyWithValue("Perceptiveness", m_Perceptiveness);
+	if (m_PainThreshold != reference.m_PainThreshold)
+		writer.NewPropertyWithValue("PainThreshold", m_PainThreshold);
+	if (m_CanRevealUnseen != reference.m_CanRevealUnseen)
+		writer.NewPropertyWithValue("CanRevealUnseen", m_CanRevealUnseen);
+	if (m_CharHeight != reference.m_CharHeight)
+		writer.NewPropertyWithValue("CharHeight", m_CharHeight);
+	if (m_HolsterOffset != reference.m_HolsterOffset)
+		writer.NewPropertyWithValue("HolsterOffset", m_HolsterOffset);
+	if (m_ReloadOffset != reference.m_ReloadOffset)
+		writer.NewPropertyWithValue("ReloadOffset", m_ReloadOffset);
+
+	bool isInventoryConcatenated = true;
+	std::deque<MovableObject*>::const_iterator iItr = m_Inventory.begin();
+	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(2); refIndex++, iItr++) {
+		if ((*iItr)->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
+			isInventoryConcatenated = false;
+			break;
+		}
+	}
+
+	if (isInventoryConcatenated) {
+		for (std::deque<MovableObject*>::const_iterator itr = iItr; itr != m_Inventory.end(); ++itr) {
+			writer.NewProperty("_AddInventory");
+			if (const Entity* preset = (*itr)->GetPreset()) {
+				(*itr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*itr)->GetClassName(), (*itr)->GetPresetName(), (*itr)->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << (**itr);
+			}
+		}
+	} else {
+		if (reference.m_Inventory.size() > 0) {
+			writer.NewPropertyWithValue("_ClearInventory", 1);
+		}
+
+		for (std::deque<MovableObject*>::const_iterator itr = m_Inventory.begin(); itr != m_Inventory.end(); ++itr) {
+			writer.NewProperty("_AddInventory");
+			if (const Entity* preset = (*itr)->GetPreset()) {
+				(*itr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*itr)->GetClassName(), (*itr)->GetPresetName(), (*itr)->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << (**itr);
+			}
+		}
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(11);
+
+	if (m_MaxInventoryMass != reference.m_MaxInventoryMass)
+		writer.NewPropertyWithValue("MaxInventoryMass", m_MaxInventoryMass);
+	if (m_AIMode != reference.m_AIMode)
+		writer.NewPropertyWithValue("AIMode", m_AIMode);
+
+	if (m_PieMenu->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
+		writer.NewProperty("PieMenu");
+		if (const Entity* preset = m_PieMenu->GetPreset()) {
+			m_PieMenu->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_PieMenu->GetClassName(), m_PieMenu->GetPresetName(), m_PieMenu->GetModuleID()));
+			writer.ObjectEnd();
+		} else {
+			writer << *m_PieMenu;
+		}
+	}
+
+	if (m_Organic != reference.m_Organic)
+		writer.NewPropertyWithValue("Organic", m_Organic);
+	if (m_Mechanical != reference.m_Mechanical)
+		writer.NewPropertyWithValue("Mechanical", m_Mechanical);
+	if (m_AIBaseDigStrength != reference.m_AIBaseDigStrength)
+		writer.NewPropertyWithValue("AIBaseDigStrength", m_AIBaseDigStrength);
+
+	return 0;
+}
+
 HashingData Actor::Hash() const {
 	HashingData hashData = MOSRotating::Hash();
 	uint64_t& hash = hashData.m_Hash;
@@ -478,11 +683,7 @@ HashingData Actor::Hash() const {
 	hash ^= std::hash<float>{}(m_MaxHealth) << 9;
 	hash ^= std::hash<unsigned int>{}(m_DeploymentID) << 10;
 	hash ^= std::hash<float>{}(m_TravelImpulseDamage) << 11;
-
-	uint64_t stableVelHash = m_StableVel.Hash().m_Hash;
-	hashData.m_Constituents.push_back(stableVelHash);
-	hash ^= stableVelHash << 12;
-
+	hash ^= m_StableVel.Hash().m_Hash << 12;
 	hash ^= std::hash<int>{}(m_StableRecoverDelay) << 13;
 	hash ^= std::hash<bool>{}(m_CanRun) << 14;
 	hash ^= std::hash<float>{}(m_CrouchWalkSpeedMultiplier) << 15;
@@ -496,14 +697,8 @@ HashingData Actor::Hash() const {
 	hash ^= std::hash<float>{}(m_PainThreshold) << 7;
 	hash ^= std::hash<bool>{}(m_CanRevealUnseen) << 8;
 	hash ^= std::hash<float>{}(m_CharHeight) << 9;
-
-	uint64_t holsterOffsetHash = m_HolsterOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(holsterOffsetHash);
-	hash ^= holsterOffsetHash << 10;
-
-	uint64_t reloadOffsetHash = m_ReloadOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(reloadOffsetHash);
-	hash ^= reloadOffsetHash << 11;
+	hash ^= m_HolsterOffset.Hash().m_Hash << 10;
+	hash ^= m_ReloadOffset.Hash().m_Hash << 11;
 
 	int i = 0;
 
