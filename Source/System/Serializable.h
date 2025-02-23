@@ -120,7 +120,7 @@ namespace RTE {
 
 		/// Generates the hash value of this serializable.
 		/// @return A hash value.
-		virtual HashingData Hash() const { return HashingData(0, std::vector<HashingData>()); }
+		virtual HashingData Hash() const { return HashingData(0); }
 
 		/// Replaces backslashes with forward slashes in file paths to eliminate issues with cross-platform compatibility or invalid escape sequences.
 		/// @param pathToCorrect Reference to the file path string to correct slashes in.

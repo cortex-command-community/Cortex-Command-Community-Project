@@ -140,19 +140,19 @@ HashingData Material::Hash() const {
 	hash ^= std::hash<unsigned char>{}(m_SpawnMaterialIndex) << 10;
 	hash ^= std::hash<bool>{}(m_IsScrap) << 11;
 
-	HashingData colorHash = m_Color.Hash();
+	uint64_t colorHash = m_Color.Hash().m_Hash;
 	hashData.m_Constituents.push_back(colorHash);
-	hash ^= colorHash.m_Hash << 12;
+	hash ^= colorHash << 12;
 
 	hash ^= std::hash<bool>{}(m_UseOwnColor) << 13;
 
-	HashingData fgTextureHash = m_FGTextureFile.Hash();
+	uint64_t fgTextureHash = m_FGTextureFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(fgTextureHash);
-	hash ^= fgTextureHash.m_Hash << 14;
+	hash ^= fgTextureHash << 14;
 
-	HashingData bgTextureHash = m_BGTextureFile.Hash();
+	uint64_t bgTextureHash = m_BGTextureFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(bgTextureHash);
-	hash ^= bgTextureHash.m_Hash << 15;
+	hash ^= bgTextureHash << 15;
 
 	return hashData;
 }

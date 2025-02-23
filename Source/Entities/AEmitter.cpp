@@ -206,27 +206,27 @@ HashingData AEmitter::Hash() const {
 	int i = 0;
 
 	for (Emission* emission: m_EmissionList) {
-		HashingData emissionHash = emission->Hash();
+		uint64_t emissionHash = emission->Hash().m_Hash;
 		hashData.m_Constituents.push_back(emissionHash);
-		hash ^= emissionHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
+		hash ^= emissionHash << (i++ % sizeof(uint64_t) * 8);
 	}
 
 	if (m_EmissionSound) {
-		HashingData emissionSoundHash = m_EmissionSound->Hash();
+		uint64_t emissionSoundHash = m_EmissionSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(emissionSoundHash);
-		hash ^= emissionSoundHash.m_Hash << 1;
+		hash ^= emissionSoundHash << 1;
 	}
 
 	if (m_BurstSound) {
-		HashingData burstSoundHash = m_BurstSound->Hash();
+		uint64_t burstSoundHash = m_BurstSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(burstSoundHash);
-		hash ^= burstSoundHash.m_Hash << 2;
+		hash ^= burstSoundHash << 2;
 	}
 
 	if (m_EndSound) {
-		HashingData endSoundHash = m_EndSound->Hash();
+		uint64_t endSoundHash = m_EndSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(endSoundHash);
-		hash ^= endSoundHash.m_Hash << 3;
+		hash ^= endSoundHash << 3;
 	}
 
 	hash ^= std::hash<bool>{}(m_EmitEnabled) << 4;
@@ -243,20 +243,20 @@ HashingData AEmitter::Hash() const {
 	hash ^= std::hash<bool>{}(m_BurstTriggered) << 15;
 	hash ^= std::hash<bool>{}(m_PlayBurstSound) << 0;
 
-	HashingData emissionAngleHash = m_EmitAngle.Hash();
+	uint64_t emissionAngleHash = m_EmitAngle.Hash().m_Hash;
 	hashData.m_Constituents.push_back(emissionAngleHash);
-	hash ^= emissionAngleHash.m_Hash << 1;
+	hash ^= emissionAngleHash << 1;
 
-	HashingData emissionOffsetHash = m_EmissionOffset.Hash();
+	uint64_t emissionOffsetHash = m_EmissionOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(emissionOffsetHash);
-	hash ^= emissionOffsetHash.m_Hash << 2;
+	hash ^= emissionOffsetHash << 2;
 
 	hash ^= std::hash<float>{}(m_EmitDamage) << 3;
 
 	if (m_pFlash) {
-		HashingData flashHash = m_pFlash->Hash();
+		uint64_t flashHash = m_pFlash->Hash().m_Hash;
 		hashData.m_Constituents.push_back(flashHash);
-		hash ^= flashHash.m_Hash << 4;
+		hash ^= flashHash << 4;
 	}
 
 	hash ^= std::hash<float>{}(m_FlashScale) << 5;

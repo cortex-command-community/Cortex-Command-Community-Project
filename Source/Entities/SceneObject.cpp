@@ -94,9 +94,9 @@ HashingData SceneObject::SOPlacer::Hash() const {
 
 	hash ^= (m_pObjectReference ? RTE::Hash(m_pObjectReference->GetEntityCharacteristic()) : 0) << 0;
 
-	HashingData offsetHash = m_Offset.Hash();
+	uint64_t offsetHash = m_Offset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(offsetHash);
-	hash ^= offsetHash.m_Hash << 1;
+	hash ^= offsetHash << 1;
 
 	hash ^= std::hash<float>{}(m_RotAngle) << 2;
 	hash ^= std::hash<bool>{}(m_HFlipped) << 3;
@@ -220,20 +220,22 @@ int SceneObject::Save(Writer& writer) const {
 	return 0;
 }
 
-int SceneObject::Write(Writer& writer, const SceneObject& reference, const HashingData& hashData) const {
+int SceneObject::Write(Writer& writer, const Entity& reference, const HashingData& hashData) const {
 	int constituentsConsumed = Entity::Write(writer, reference, hashData);
 
-	if (m_Pos != reference.m_Pos)
+	const SceneObject& sceneObjectReference = static_cast<const SceneObject&>(reference);
+
+	if (m_Pos != sceneObjectReference.m_Pos)
 		writer.NewPropertyWithValue("Position", m_Pos);
-	if (m_OzValue != reference.m_OzValue)
+	if (m_OzValue != sceneObjectReference.m_OzValue)
 		writer.NewPropertyWithValue("GoldValue", m_OzValue);
-	if (m_Buyable != reference.m_Buyable)
+	if (m_Buyable != sceneObjectReference.m_Buyable)
 		writer.NewPropertyWithValue("Buyable", m_Buyable);
-	if (m_BuyableMode != reference.m_BuyableMode)
+	if (m_BuyableMode != sceneObjectReference.m_BuyableMode)
 		writer.NewPropertyWithValue("BuyableMode", static_cast<int>(m_BuyableMode));
-	if (m_Team != reference.m_Team)
+	if (m_Team != sceneObjectReference.m_Team)
 		writer.NewPropertyWithValue("Team", m_Team);
-	if (m_PlacedByPlayer != reference.m_PlacedByPlayer)
+	if (m_PlacedByPlayer != sceneObjectReference.m_PlacedByPlayer)
 		writer.NewPropertyWithValue("PlacedByPlayer", m_PlacedByPlayer);
 
 	return constituentsConsumed;

@@ -73,9 +73,9 @@ HashingData Icon::Hash() const {
 
 	hash ^= std::hash<int>{}(m_FrameCount) << 0;
 
-	HashingData fileHash = m_BitmapFile.Hash();
+	uint64_t fileHash = m_BitmapFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(fileHash);
-	hash ^= fileHash.m_Hash << 1;
+	hash ^= fileHash << 1;
 
 	return hashData;
 }

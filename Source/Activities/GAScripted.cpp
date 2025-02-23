@@ -136,9 +136,9 @@ HashingData GAScripted::Hash() const {
 	int i = 0;
 
 	for (const std::unique_ptr<PieSlice>& pieSliceToAdd: m_PieSlicesToAdd) {
-		HashingData sliceHash = pieSliceToAdd->Hash();
+		uint64_t sliceHash = pieSliceToAdd->Hash().m_Hash;
 		hashData.m_Constituents.push_back(sliceHash);
-		hash ^= sliceHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
+		hash ^= sliceHash << (i++ % sizeof(uint64_t) * 8);
 	}
 
 	hashData.m_ParseValues.push_back(i);

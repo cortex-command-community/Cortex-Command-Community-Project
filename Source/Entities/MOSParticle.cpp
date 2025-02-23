@@ -69,9 +69,9 @@ HashingData MOSParticle::Hash() const {
 	HashingData hashData = MOSprite::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
-	HashingData atomHash = m_Atom->Hash();
+	uint64_t atomHash = m_Atom->Hash().m_Hash;
 	hashData.m_Constituents.push_back(atomHash);
-	hash ^= atomHash.m_Hash << 0;
+	hash ^= atomHash << 0;
 
 	return hashData;
 }

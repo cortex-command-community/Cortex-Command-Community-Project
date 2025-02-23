@@ -111,9 +111,9 @@ HashingData Deployment::Hash() const {
 
 	hash ^= RTE::Hash(m_LoadoutName) << 0;
 
-	HashingData iconHash = m_Icon.Hash();
+	uint64_t iconHash = m_Icon.Hash().m_Hash;
 	hashData.m_Constituents.push_back(iconHash);
-	hash ^= iconHash.m_Hash << 1;
+	hash ^= iconHash << 1;
 
 	hash ^= std::hash<float>{}(m_SpawnRadius) << 2;
 	hash ^= std::hash<float>{}(m_WalkRadius) << 3;

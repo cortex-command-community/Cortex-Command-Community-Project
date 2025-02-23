@@ -126,21 +126,21 @@ HashingData Arm::Hash() const {
 	hash ^= std::hash<float>{}(m_MaxLength) << 1;
 	hash ^= std::hash<float>{}(m_MoveSpeed) << 2;
 
-	HashingData handIdleHash = m_HandIdleOffset.Hash();
+	uint64_t handIdleHash = m_HandIdleOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(handIdleHash);
-	hash ^= handIdleHash.m_Hash << 3;
+	hash ^= handIdleHash << 3;
 
-	HashingData handSpriteHash = m_HandSpriteFile.Hash();
+	uint64_t handSpriteHash = m_HandSpriteFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(handSpriteHash);
-	hash ^= handSpriteHash.m_Hash << 4;
+	hash ^= handSpriteHash << 4;
 
 	hash ^= std::hash<float>{}(m_GripStrength) << 5;
 	hash ^= std::hash<float>{}(m_ThrowStrength) << 6;
 
 	if (m_HeldDevice) {
-		HashingData heldDeviceHash = m_HeldDevice->Hash();
+		uint64_t heldDeviceHash = m_HeldDevice->Hash().m_Hash;
 		hashData.m_Constituents.push_back(heldDeviceHash);
-		hash ^= heldDeviceHash.m_Hash << 7;
+		hash ^= heldDeviceHash << 7;
 	}
 
 	return hashData;

@@ -154,9 +154,9 @@ HashingData SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Hash() const {
 	HashingData hashData = Entity::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
-	HashingData bitmapHash = m_BitmapFile.Hash();
+	uint64_t bitmapHash = m_BitmapFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(bitmapHash);
-	hash ^= bitmapHash.m_Hash << 0;
+	hash ^= bitmapHash << 0;
 	
 	hash ^= std::hash<bool>{}(m_WrapX) << 1;
 	hash ^= std::hash<bool>{}(m_WrapY) << 2;

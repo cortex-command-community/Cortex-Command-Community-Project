@@ -72,9 +72,9 @@ HashingData Turret::Hash() const {
 	int i = 0;
 
 	for (const HeldDevice* mountedDevice: m_MountedDevices) {
-		HashingData mountedDeviceHash = mountedDevice->Hash();
+		uint64_t mountedDeviceHash = mountedDevice->Hash().m_Hash;
 		hashData.m_Constituents.push_back(mountedDeviceHash);
-		hash ^= mountedDeviceHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
+		hash ^= mountedDeviceHash << (i++ % sizeof(uint64_t) * 8);
 	}
 
 	hashData.m_ParseValues.push_back(i);

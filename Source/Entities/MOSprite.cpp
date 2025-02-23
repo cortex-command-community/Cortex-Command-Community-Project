@@ -267,23 +267,23 @@ HashingData MOSprite::Hash() const {
 	HashingData hashData = MovableObject::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
-	HashingData spriteHash = m_SpriteFile.Hash();
+	uint64_t spriteHash = m_SpriteFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(spriteHash);
-	hash ^= spriteHash.m_Hash << 0;
+	hash ^= spriteHash << 0;
 
 	hash ^= std::hash<int>{}(m_FrameCount) << 1;
 
-	HashingData spriteOffsetHash = m_SpriteOffset.Hash();
+	uint64_t spriteOffsetHash = m_SpriteOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(spriteOffsetHash);
-	hash ^= spriteOffsetHash.m_Hash << 2;
+	hash ^= spriteOffsetHash << 2;
 
 	hash ^= std::hash<SpriteAnimMode>{}(m_SpriteAnimMode) << 3;
 	hash ^= std::hash<int>{}(m_SpriteAnimDuration) << 4;
 	hash ^= std::hash<bool>{}(m_HFlipped) << 5;
 
-	HashingData rotHash = m_Rotation.Hash();
+	uint64_t rotHash = m_Rotation.Hash().m_Hash;
 	hashData.m_Constituents.push_back(rotHash);
-	hash ^= rotHash.m_Hash << 6;
+	hash ^= rotHash << 6;
 
 	hash ^= std::hash<float>{}(m_AngularVel) << 7;
 	hash ^= std::hash<bool>{}(m_SettleMaterialDisabled) << 8;

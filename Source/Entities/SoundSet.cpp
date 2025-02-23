@@ -104,9 +104,9 @@ HashingData SoundSet::Hash() const {
 	hashData.m_ParseValues.push_back(m_SubSoundSets.size());
 
 	for (int i = 0; i < m_SubSoundSets.size(); i++) {
-		HashingData subSetHash = m_SubSoundSets.at(i)->Hash();
+		uint64_t subSetHash = m_SubSoundSets.at(i)->Hash().m_Hash;
 		hashData.m_Constituents.push_back(subSetHash);
-		hash ^= subSetHash.m_Hash << (i % sizeof(uint64_t) * 8);
+		hash ^= subSetHash << (i % sizeof(uint64_t) * 8);
 	}
 
 	return hashData;

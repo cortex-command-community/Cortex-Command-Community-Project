@@ -212,16 +212,16 @@ HashingData BunkerAssemblyScheme::Hash() const {
 	HashingData hashData = SceneObject::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
-	HashingData bitmapHash = m_BitmapFile.Hash();
+	uint64_t bitmapHash = m_BitmapFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(bitmapHash);
-	hash ^= bitmapHash.m_Hash << 0;
+	hash ^= bitmapHash << 0;
 
 	int i = 0;
 
 	for (std::list<SOPlacer>::const_iterator itr = m_ChildObjects.begin(); itr != m_ChildObjects.end(); ++itr) {
-		HashingData childHash = (*itr).Hash();
+		uint64_t childHash = (*itr).Hash().m_Hash;
 		hashData.m_Constituents.push_back(childHash);
-		hash ^= childHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
+		hash ^= childHash << (i++ % sizeof(uint64_t) * 8);
 	}
 
 	return hashData;

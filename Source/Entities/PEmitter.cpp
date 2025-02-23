@@ -173,22 +173,22 @@ HashingData PEmitter::Hash() const {
 	int i = 0;
 
 	for (Emission* emission: m_EmissionList) {
-		HashingData emissionHash = emission->Hash();
+		uint64_t emissionHash = emission->Hash().m_Hash;
 		hashData.m_Constituents.push_back(emissionHash);
-		hash ^= emissionHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
+		hash ^= emissionHash << (i++ % sizeof(uint64_t) * 8);
 	}
 
-	HashingData emissionSoundHash = m_EmissionSound.Hash();
+	uint64_t emissionSoundHash = m_EmissionSound.Hash().m_Hash;
 	hashData.m_Constituents.push_back(emissionSoundHash);
-	hash ^= emissionSoundHash.m_Hash << 1;
+	hash ^= emissionSoundHash << 1;
 
-	HashingData burstSoundHash = m_BurstSound.Hash();
+	uint64_t burstSoundHash = m_BurstSound.Hash().m_Hash;
 	hashData.m_Constituents.push_back(burstSoundHash);
-	hash ^= burstSoundHash.m_Hash << 2;
+	hash ^= burstSoundHash << 2;
 
-	HashingData endSoundHash = m_EndSound.Hash();
+	uint64_t endSoundHash = m_EndSound.Hash().m_Hash;
 	hashData.m_Constituents.push_back(endSoundHash);
-	hash ^= endSoundHash.m_Hash << 3;
+	hash ^= endSoundHash << 3;
 
 	hash ^= std::hash<bool>{}(m_EmitEnabled) << 4;
 	hash ^= std::hash<long>{}(m_EmitCount) << 5;
@@ -202,13 +202,13 @@ HashingData PEmitter::Hash() const {
 	hash ^= std::hash<bool>{}(m_BurstTriggered) << 13;
 	hash ^= std::hash<bool>{}(m_PlayBurstSound) << 14;
 
-	HashingData emitAngleHash = m_EmitAngle.Hash();
+	uint64_t emitAngleHash = m_EmitAngle.Hash().m_Hash;
 	hashData.m_Constituents.push_back(emitAngleHash);
-	hash ^= emitAngleHash.m_Hash << 15;
+	hash ^= emitAngleHash << 15;
 
-	HashingData emitOffsetHash = m_EmissionOffset.Hash();
+	uint64_t emitOffsetHash = m_EmissionOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(emitOffsetHash);
-	hash ^= emitOffsetHash.m_Hash << 0;
+	hash ^= emitOffsetHash << 0;
 
 	hash ^= std::hash<float>{}(m_FlashScale) << 1;
 	hash ^= std::hash<bool>{}(m_FlashOnlyOnBurst) << 2;

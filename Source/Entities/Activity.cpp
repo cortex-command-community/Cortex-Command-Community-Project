@@ -307,9 +307,9 @@ HashingData Activity::Hash() const {
 		}
 	}
 
-	HashingData savedValueHash = m_SavedValues.Hash();
+	uint64_t savedValueHash = m_SavedValues.Hash().m_Hash;
 	hashData.m_Constituents.push_back(savedValueHash);
-	hash ^= savedValueHash.m_Hash << 9;
+	hash ^= savedValueHash << 9;
 
 	return hashData;
 }

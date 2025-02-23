@@ -92,18 +92,18 @@ HashingData ThrownDevice::Hash() const {
 	bool activationSoundDef = m_ActivationSound != nullptr;
 	hashData.m_ParseValues.push_back(activationSoundDef);
 	if (activationSoundDef) {
-		HashingData activationSoundHash = m_ActivationSound->Hash();
+		uint64_t activationSoundHash = m_ActivationSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(activationSoundHash);
-		hash ^= activationSoundHash.m_Hash << 1;
+		hash ^= activationSoundHash << 1;
 	}
 
-	HashingData startThrowHash = m_StartThrowOffset.Hash();
+	uint64_t startThrowHash = m_StartThrowOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(startThrowHash);
-	hash ^= startThrowHash.m_Hash << 2;
+	hash ^= startThrowHash << 2;
 
-	HashingData endThrowHash = m_EndThrowOffset.Hash();
+	uint64_t endThrowHash = m_EndThrowOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(endThrowHash);
-	hash ^= endThrowHash.m_Hash << 3;
+	hash ^= endThrowHash << 3;
 
 	hash ^= std::hash<float>{}(m_MinThrowVel) << 4;
 	hash ^= std::hash<float>{}(m_MaxThrowVel) << 5;

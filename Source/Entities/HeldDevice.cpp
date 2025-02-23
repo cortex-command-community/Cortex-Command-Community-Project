@@ -226,19 +226,19 @@ HashingData HeldDevice::Hash() const {
 
 	hash ^= std::hash<bool>{}(m_OneHanded) << 1;
 
-	HashingData stanceOffsetHash = m_StanceOffset.Hash();
+	uint64_t stanceOffsetHash = m_StanceOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(stanceOffsetHash);
-	hash ^= stanceOffsetHash.m_Hash << 2;
+	hash ^= stanceOffsetHash << 2;
 
-	HashingData sharpStanceOffsetHash = m_SharpStanceOffset.Hash();
+	uint64_t sharpStanceOffsetHash = m_SharpStanceOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(sharpStanceOffsetHash);
-	hash ^= sharpStanceOffsetHash.m_Hash << 3;
+	hash ^= sharpStanceOffsetHash << 3;
 
 	hash ^= std::hash<bool>{}(m_Supportable) << 4;
 
-	HashingData supportOffsetHash = m_SupportOffset.Hash();
+	uint64_t supportOffsetHash = m_SupportOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(supportOffsetHash);
-	hash ^= supportOffsetHash.m_Hash << 5;
+	hash ^= supportOffsetHash << 5;
 
 	hash ^= std::hash<bool>{}(m_UseSupportOffsetWhileReloading) << 6;
 	hash ^= std::hash<float>{}(m_GripStrengthMultiplier) << 7;

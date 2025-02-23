@@ -388,7 +388,7 @@ int MOSRotating::Write(Writer& writer, const MOSRotating& reference, const Hashi
 	int constituentsConsumed = MOSprite::Write(writer, reference, hashData);
 
 	if (m_pAtomGroup != nullptr) {
-		if (reference.m_pAtomGroup == nullptr || m_pAtomGroup->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed).m_Hash) {
+		if (reference.m_pAtomGroup == nullptr || m_pAtomGroup->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("AtomGroup");
 			if (const AtomGroup* preset = static_cast<const AtomGroup*>(m_pAtomGroup->GetPreset())) {
 				m_pAtomGroup->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pAtomGroup->GetClassName(), m_pAtomGroup->GetPresetName(), m_pAtomGroup->GetModuleID()));
@@ -405,7 +405,7 @@ int MOSRotating::Write(Writer& writer, const MOSRotating& reference, const Hashi
 	constituentsConsumed += hashData.m_ParseValues.at(0);
 
 	if (m_pDeepGroup != nullptr) {
-		if (reference.m_pDeepGroup == nullptr || m_pDeepGroup->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed).m_Hash) {
+		if (reference.m_pDeepGroup == nullptr || m_pDeepGroup->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("DeepGroup");
 			if (const AtomGroup* preset = static_cast<const AtomGroup*>(m_pDeepGroup->GetPreset())) {
 				m_pDeepGroup->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pDeepGroup->GetClassName(), m_pDeepGroup->GetPresetName(), m_pDeepGroup->GetModuleID()));
@@ -465,7 +465,7 @@ int MOSRotating::Write(Writer& writer, const MOSRotating& reference, const Hashi
 		writer.NewPropertyWithValue("GibAtEndOfLifetime", m_GibAtEndOfLifetime);
 
 	if (m_GibSound != nullptr) {
-		if (reference.m_GibSound == nullptr || m_GibSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed).m_Hash) {
+		if (reference.m_GibSound == nullptr || m_GibSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("GibSound");
 			if (const SoundContainer* preset = static_cast<const SoundContainer*>(m_GibSound->GetPreset())) {
 				m_GibSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_GibSound->GetClassName(), m_GibSound->GetPresetName(), m_GibSound->GetModuleID()));
@@ -476,7 +476,7 @@ int MOSRotating::Write(Writer& writer, const MOSRotating& reference, const Hashi
 		}
 	} else if (reference.m_GibSound != nullptr) {
 		writer.NewProperty("GibSound");
-		writer << m_GibSound;
+		writer << "None";
 	}
 
 	constituentsConsumed += hashData.m_ParseValues.at(5);
@@ -494,17 +494,17 @@ HashingData MOSRotating::Hash() const {
 	bool atomGroupDef = m_pAtomGroup != nullptr;
 	hashData.m_ParseValues.push_back(atomGroupDef);
 	if (atomGroupDef) {
-		HashingData atomGroupHash = m_pAtomGroup->Hash();
+		uint64_t atomGroupHash = m_pAtomGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(atomGroupHash);
-		hash ^= atomGroupHash.m_Hash << 1;
+		hash ^= atomGroupHash << 1;
 	}
 
 	bool deepGroupDef = m_pDeepGroup != nullptr;
 	hashData.m_ParseValues.push_back(deepGroupDef);
 	if (deepGroupDef) {
-		HashingData deepGroupHash = m_pDeepGroup->Hash();
+		uint64_t deepGroupHash = m_pDeepGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(deepGroupHash);
-		hash ^= deepGroupHash.m_Hash << 2;
+		hash ^= deepGroupHash << 2;
 	}
 
 	hash ^= std::hash<bool>{}(m_DeepCheck) << 3;
@@ -513,27 +513,27 @@ HashingData MOSRotating::Hash() const {
 	int i = 0;
 
 	for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr) {
-		HashingData woundHash = (*itr)->Hash();
+		uint64_t woundHash = (*itr)->Hash().m_Hash;
 		hashData.m_Constituents.push_back(woundHash);
-		hash ^= woundHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
+		hash ^= woundHash << (i++ % sizeof(uint64_t) * 8);
 	}
 
 	hashData.m_ParseValues.push_back(i);
 	i = 0;
 
 	for (auto aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr) {
-		HashingData attachableHash = (*aItr)->Hash();
+		uint64_t attachableHash = (*aItr)->Hash().m_Hash;
 		hashData.m_Constituents.push_back(attachableHash);
-		hash ^= attachableHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
+		hash ^= attachableHash << (i++ % sizeof(uint64_t) * 8);
 	}
 
 	hashData.m_ParseValues.push_back(i);
 	i = 0;
 
 	for (auto gItr = m_Gibs.begin(); gItr != m_Gibs.end(); ++gItr) {
-		HashingData gibHash = (*gItr)->Hash();
+		uint64_t gibHash = (*gItr)->Hash().m_Hash;
 		hashData.m_Constituents.push_back(gibHash);
-		hash ^= gibHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
+		hash ^= gibHash << (i++ % sizeof(uint64_t) * 8);
 	}
 
 	hashData.m_ParseValues.push_back(i);
@@ -545,9 +545,9 @@ HashingData MOSRotating::Hash() const {
 	bool gibSoundDef = m_GibSound != nullptr;
 	hashData.m_ParseValues.push_back(gibSoundDef);
 	if (gibSoundDef) {
-		HashingData gibSoundHash = m_GibSound->Hash();
+		uint64_t gibSoundHash = m_GibSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(gibSoundHash);
-		hash ^= gibSoundHash.m_Hash << 8;
+		hash ^= gibSoundHash << 8;
 	}
 
 	hash ^= std::hash<bool>{}(m_EffectOnGib) << 9;

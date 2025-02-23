@@ -154,17 +154,17 @@ HashingData PieSlice::Hash() const {
 	hash ^= std::hash<Directions>{}(m_Direction) << 1;
 	hash ^= std::hash<bool>{}(m_Enabled) << 2;
 
-	HashingData bitmapHash = m_Icon->Hash();
+	uint64_t bitmapHash = m_Icon->Hash().m_Hash;
 	hashData.m_Constituents.push_back(bitmapHash);
-	hash ^= bitmapHash.m_Hash << 3;
+	hash ^= bitmapHash << 3;
 
 	hash ^= (m_LuabindFunctionObject ? RTE::Hash(m_LuabindFunctionObject->GetFilePath()) : 0) << 4;
 	hash ^= RTE::Hash(m_FunctionName) << 5;
 
 	if (m_SubPieMenu) {
-		HashingData subPieHash = m_SubPieMenu->Hash();
+		uint64_t subPieHash = m_SubPieMenu->Hash().m_Hash;
 		hashData.m_Constituents.push_back(subPieHash);
-		hash ^= subPieHash.m_Hash << 6;
+		hash ^= subPieHash << 6;
 	}
 
 	return hashData;

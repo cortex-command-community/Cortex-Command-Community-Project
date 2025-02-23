@@ -240,9 +240,9 @@ HashingData Attachable::Hash() const {
 	HashingData hashData = MOSRotating::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
-	HashingData parentOffsetHash = m_ParentOffset.Hash();
+	uint64_t parentOffsetHash = m_ParentOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(parentOffsetHash);
-	hash ^= parentOffsetHash.m_Hash << 1;
+	hash ^= parentOffsetHash << 1;
 
 	hash ^= std::hash<bool>{}(m_DrawAfterParent) << 2;
 	hash ^= std::hash<bool>{}(m_DeleteWhenRemovedFromParent) << 3;
@@ -251,9 +251,9 @@ HashingData Attachable::Hash() const {
 	hash ^= std::hash<float>{}(m_JointStrength) << 6;
 	hash ^= std::hash<float>{}(m_JointStiffness) << 7;
 
-	HashingData jointOffsetHash = m_JointOffset.Hash();
+	uint64_t jointOffsetHash = m_JointOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(jointOffsetHash);
-	hash ^= jointOffsetHash.m_Hash << 8;
+	hash ^= jointOffsetHash << 8;
 
 	hash ^= (m_BreakWound ? RTE::Hash(m_BreakWound->GetEntityCharacteristic()) : 0) << 9;
 	hash ^= (m_ParentBreakWound ? RTE::Hash(m_ParentBreakWound->GetEntityCharacteristic()) : 0) << 10;
@@ -269,9 +269,9 @@ HashingData Attachable::Hash() const {
 	int i = 0;
 
 	for (const std::unique_ptr<PieSlice>& pieSlice: m_PieSlices) {
-		HashingData sliceHash = pieSlice->Hash();
+		uint64_t sliceHash = pieSlice->Hash().m_Hash;
 		hashData.m_Constituents.push_back(sliceHash);
-		hash ^= sliceHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
+		hash ^= sliceHash << (i++ % sizeof(uint64_t) * 8);
 	}
 
 	hashData.m_ParseValues.push_back(i);

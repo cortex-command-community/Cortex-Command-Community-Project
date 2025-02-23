@@ -201,11 +201,13 @@ int SoundContainer::Save(Writer& writer) const {
 	return 0;
 }
 
-int SoundContainer::Write(Writer& writer, const SoundContainer& reference, const HashingData& hashData) const {
-	Entity::Write(writer, reference, hashData);
+int SoundContainer::Write(Writer& writer, const Entity& reference, const HashingData& hashData) const {
+	int constituentsConsumed = Entity::Write(writer, reference, hashData);
+
+	const SoundContainer& soundSetReference = static_cast<const SoundContainer&>(reference);
 
 	// Due to writer limitations, the top level SoundSet has to be explicitly written out, even though SoundContainer standard behaviour is to hide it in INI and just have properties be part of the SoundContainer.
-	if (m_TopLevelSoundSet->Hash().m_Hash != hashData.m_Constituents.begin()->m_Hash) {
+	if (m_TopLevelSoundSet->Hash().m_Hash != hashData.m_Constituents.at(0)) {
 		writer.NewPropertyWithValue("SpecialBehaviour_TopLevelSoundSet", *m_TopLevelSoundSet);
 	}
 
@@ -240,16 +242,16 @@ int SoundContainer::Write(Writer& writer, const SoundContainer& reference, const
 	writer.NewPropertyWithValue("MusicPreEntryTime", m_MusicPreEntryTime);
 	writer.NewPropertyWithValue("MusicExitTime", m_MusicExitTime);
 
-	return 0;
+	return constituentsConsumed;
 }
 
 HashingData SoundContainer::Hash() const {
 	HashingData hashData = Entity::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
-	HashingData topLevelSoundSetHash = m_TopLevelSoundSet->Hash();
+	uint64_t topLevelSoundSetHash = m_TopLevelSoundSet->Hash().m_Hash;
 	hashData.m_Constituents.push_back(topLevelSoundSetHash);
-	hash ^= topLevelSoundSetHash.m_Hash << 0;
+	hash ^= topLevelSoundSetHash << 0;
 
 	hash ^= std::hash<int>{}(m_SoundOverlapMode) << 1;
 
@@ -263,9 +265,9 @@ HashingData SoundContainer::Hash() const {
 	hash ^= std::hash<int>{}(m_Priority) << 8;
 	hash ^= std::hash<bool>{}(m_AffectedByGlobalPitch) << 9;
 
-	HashingData posHash = m_Pos.Hash();
+	uint64_t posHash = m_Pos.Hash().m_Hash;
 	hashData.m_Constituents.push_back(posHash);
-	hash ^= posHash.m_Hash << 10;
+	hash ^= posHash << 10;
 
 	hash ^= std::hash<float>{}(m_Volume) << 11;
 	hash ^= std::hash<float>{}(m_Pitch) << 12;

@@ -248,10 +248,10 @@ HashingData DataModule::Hash() const {
 	 * ensuring that two connected clients have functionally identical copies of each mod,
 	 * but they actually need to be literally identical as well, due to Lua access to file structures.
 	 * 
-	 * Probably necessary, though, TODO: figure this out (among others).
+	 * Probably necessary, though, TODO: figure this out (among other things).
 	 */
 
-	return HashingData(0, std::vector<HashingData>());
+	return HashingData(0);
 }
 
 std::string DataModule::GetEntityDataLocation(const std::string& exactType, const std::string& instance) {

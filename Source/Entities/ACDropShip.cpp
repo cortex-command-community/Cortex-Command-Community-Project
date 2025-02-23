@@ -147,54 +147,54 @@ HashingData ACDropShip::Hash() const {
 	bool rThrusterDef = m_pRThruster != nullptr;
 	hashData.m_ParseValues.push_back(rThrusterDef);
 	if (rThrusterDef) {
-		HashingData rThrusterHash = m_pRThruster->Hash();
+		uint64_t rThrusterHash = m_pRThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(rThrusterHash);
-		hash ^= rThrusterHash.m_Hash << 0;
+		hash ^= rThrusterHash << 0;
 	}
 
 	bool lThrusterDef = m_pLThruster != nullptr;
 	hashData.m_ParseValues.push_back(lThrusterDef);
 	if (lThrusterDef) {
-		HashingData lThrusterHash = m_pLThruster->Hash();
+		uint64_t lThrusterHash = m_pLThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(lThrusterHash);
-		hash ^= lThrusterHash.m_Hash << 1;
+		hash ^= lThrusterHash << 1;
 	}
 
 	bool urThrusterDef = m_pURThruster != nullptr;
 	hashData.m_ParseValues.push_back(urThrusterDef);
 	if (urThrusterDef) {
-		HashingData urThrusterHash = m_pURThruster->Hash();
+		uint64_t urThrusterHash = m_pURThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(urThrusterHash);
-		hash ^= urThrusterHash.m_Hash << 2;
+		hash ^= urThrusterHash << 2;
 	}
 
 	bool ulThrusterDef = m_pULThruster != nullptr;
 	hashData.m_ParseValues.push_back(ulThrusterDef);
 	if (ulThrusterDef) {
-		HashingData ulThrusterHash = m_pULThruster->Hash();
+		uint64_t ulThrusterHash = m_pULThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(ulThrusterHash);
-		hash ^= ulThrusterHash.m_Hash << 3;
+		hash ^= ulThrusterHash << 3;
 	}
 
 	bool rHatchDef = m_pRHatch != nullptr;
 	hashData.m_ParseValues.push_back(rHatchDef);
 	if (rHatchDef) {
-		HashingData rHatchHash = m_pRHatch->Hash();
+		uint64_t rHatchHash = m_pRHatch->Hash().m_Hash;
 		hashData.m_Constituents.push_back(rHatchHash);
-		hash ^= rHatchHash.m_Hash << 4;
+		hash ^= rHatchHash << 4;
 	}
 
 	bool lHatchDef = m_pLHatch != nullptr;
 	hashData.m_ParseValues.push_back(lHatchDef);
 	if (lHatchDef) {
-		HashingData lHatchHash = m_pLHatch->Hash();
+		uint64_t lHatchHash = m_pLHatch->Hash().m_Hash;
 		hashData.m_Constituents.push_back(lHatchHash);
-		hash ^= lHatchHash.m_Hash << 5;
+		hash ^= lHatchHash << 5;
 	}
 
-	HashingData hatchSwingRangeHash = m_HatchSwingRange.Hash();
+	uint64_t hatchSwingRangeHash = m_HatchSwingRange.Hash().m_Hash;
 	hashData.m_Constituents.push_back(hatchSwingRangeHash);
-	hash ^= hatchSwingRangeHash.m_Hash << 6;
+	hash ^= hatchSwingRangeHash << 6;
 
 	hash ^= std::hash<int>{}(m_AutoStabilize) << 7;
 	hash ^= std::hash<float>{}(m_MaxEngineAngle) << 8;

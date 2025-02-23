@@ -245,9 +245,9 @@ HashingData PieMenu::Hash() const {
 
 	for (const PieSlice* pieSlice: m_CurrentPieSlices) {
 		if (pieSlice->GetOriginalSource() == m_Owner) {
-			HashingData sliceHash = pieSlice->Hash();
+			uint64_t sliceHash = pieSlice->Hash().m_Hash;
 			hashData.m_Constituents.push_back(sliceHash);
-			hash ^= sliceHash.m_Hash << 8;
+			hash ^= sliceHash << 8;
 		}
 	}
 

@@ -89,9 +89,9 @@ HashingData Gib::Hash() const {
 
 	hash ^= (m_GibParticle ? RTE::Hash(m_GibParticle->GetEntityCharacteristic()) : 0) << 0;
 
-	HashingData offsetHash = m_Offset.Hash();
+	uint64_t offsetHash = m_Offset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(offsetHash);
-	hash ^= offsetHash.m_Hash << 1;
+	hash ^= offsetHash << 1;
 
 	hash ^= std::hash<int>{}(m_Count) << 2;
 	hash ^= std::hash<float>{}(m_Spread) << 3;

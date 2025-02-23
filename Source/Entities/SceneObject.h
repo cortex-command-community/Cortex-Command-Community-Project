@@ -136,7 +136,7 @@ namespace RTE {
 		/// @param reference A reference preset to write properties against.
 		/// @param hashData A clump of hash data for cheap property comparisons.
 		/// @return A value representing how many constituents have been from this layer's hash data read thus far.
-		int Write(Writer& writer, const SceneObject& reference, const HashingData& hashData) const;
+		int Write(Writer& writer, const Entity& reference, const HashingData& hashData) const override;
 
 		/// Resets the entire SceneObject, including its inherited members, to their
 		/// default settings or values.

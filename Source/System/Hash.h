@@ -23,13 +23,13 @@ namespace RTE {
 	/// Holds an arbitrary tree of hashing data for storage alongside a preset entry.
 	struct HashingData {
 		/// Constructor method used to instantiate a HashingData object in memory.
-		HashingData(uint64_t hash, std::vector<HashingData> constituents) :
-		    m_Hash(hash), m_Constituents(constituents) {}
+		HashingData(uint64_t hash) :
+		    m_Hash(hash), m_Constituents(), m_ParseValues() {}
 
 		/// The hash of the Entity represented by this hash.
 		uint64_t m_Hash;
 		/// A list of the hash data for all components of this Entity.
-		std::vector<HashingData> m_Constituents;
+		std::vector<uint64_t> m_Constituents;
 		/// A list of integers for handling optional and collection properties by communicating their numeracy on a per-property basis.
 		std::vector<size_t> m_ParseValues;
 	};

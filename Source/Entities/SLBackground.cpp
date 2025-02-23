@@ -158,27 +158,27 @@ HashingData SLBackground::Hash() const {
 	hash ^= std::hash<bool>{}(m_IsAnimatedManually) << 4;
 	hash ^= std::hash<bool>{}(m_DrawMasked) << 5;
 
-	HashingData scrollInfoHash = m_ScrollInfo.Hash();
+	uint64_t scrollInfoHash = m_ScrollInfo.Hash().m_Hash;
 	hashData.m_Constituents.push_back(scrollInfoHash);
-	hash ^= scrollInfoHash.m_Hash << 6;
+	hash ^= scrollInfoHash << 6;
 
-	HashingData scaleFactorHash = m_ScaleFactor.Hash();
+	uint64_t scaleFactorHash = m_ScaleFactor.Hash().m_Hash;
 	hashData.m_Constituents.push_back(scaleFactorHash);
-	hash ^= scaleFactorHash.m_Hash << 7;
+	hash ^= scaleFactorHash << 7;
 
 	hash ^= std::hash<bool>{}(m_IgnoreAutoScale) << 8;
 
-	HashingData originOffsetHash = m_OriginOffset.Hash();
+	uint64_t originOffsetHash = m_OriginOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(originOffsetHash);
-	hash ^= originOffsetHash.m_Hash << 9;
+	hash ^= originOffsetHash << 9;
 
 	hash ^= std::hash<bool>{}(m_CanAutoScrollX) << 10;
 	hash ^= std::hash<bool>{}(m_CanAutoScrollY) << 11;
 	hash ^= std::hash<int>{}(m_AutoScrollStepInterval) << 12;
 
-	HashingData autoScrollStepHash = m_AutoScrollStep.Hash();
+	uint64_t autoScrollStepHash = m_AutoScrollStep.Hash().m_Hash;
 	hashData.m_Constituents.push_back(autoScrollStepHash);
-	hash ^= autoScrollStepHash.m_Hash << 13;
+	hash ^= autoScrollStepHash << 13;
 
 	return hashData;
 }

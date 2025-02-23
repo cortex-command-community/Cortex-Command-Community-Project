@@ -207,90 +207,90 @@ HashingData ACRocket::Hash() const {
 	bool rLegDef = m_pRLeg != nullptr;
 	hashData.m_ParseValues.push_back(rLegDef);
 	if (rLegDef) {
-		HashingData rLegHash = m_pRLeg->Hash();
+		uint64_t rLegHash = m_pRLeg->Hash().m_Hash;
 		hashData.m_Constituents.push_back(rLegHash);
-		hash ^= rLegHash.m_Hash << 1;
+		hash ^= rLegHash << 1;
 	}
 
 	bool lLegDef = m_pLLeg != nullptr;
 	hashData.m_ParseValues.push_back(lLegDef);
 	if (lLegDef) {
-		HashingData lLegHash = m_pLLeg->Hash();
+		uint64_t lLegHash = m_pLLeg->Hash().m_Hash;
 		hashData.m_Constituents.push_back(lLegHash);
-		hash ^= lLegHash.m_Hash << 2;
+		hash ^= lLegHash << 2;
 	}
 
 	bool rFootGroupDef = m_pRFootGroup != nullptr;
 	hashData.m_ParseValues.push_back(rFootGroupDef);
 	if (rFootGroupDef) {
-		HashingData rFootGroupHash = m_pRFootGroup->Hash();
+		uint64_t rFootGroupHash = m_pRFootGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(rFootGroupHash);
-		hash ^= rFootGroupHash.m_Hash << 3;
+		hash ^= rFootGroupHash << 3;
 	}
 
 	bool lFootGroupDef = m_pLFootGroup != nullptr;
 	hashData.m_ParseValues.push_back(lFootGroupDef);
 	if (lFootGroupDef) {
-		HashingData lFootGroupHash = m_pLFootGroup->Hash();
+		uint64_t lFootGroupHash = m_pLFootGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(lFootGroupHash);
-		hash ^= lFootGroupHash.m_Hash << 4;
+		hash ^= lFootGroupHash << 4;
 	}
 
 	bool mThrusterDef = m_pMThruster != nullptr;
 	hashData.m_ParseValues.push_back(mThrusterDef);
 	if (mThrusterDef) {
-		HashingData mThrusterHash = m_pMThruster->Hash();
+		uint64_t mThrusterHash = m_pMThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(mThrusterHash);
-		hash ^= mThrusterHash.m_Hash << 5;
+		hash ^= mThrusterHash << 5;
 	}
 
 	bool rThrusterDef = m_pRThruster != nullptr;
 	hashData.m_ParseValues.push_back(rThrusterDef);
 	if (rThrusterDef) {
-		HashingData rThrusterHash = m_pRThruster->Hash();
+		uint64_t rThrusterHash = m_pRThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(rThrusterHash);
-		hash ^= rThrusterHash.m_Hash << 6;
+		hash ^= rThrusterHash << 6;
 	}
 
 	bool lThrusterDef = m_pLThruster != nullptr;
 	hashData.m_ParseValues.push_back(lThrusterDef);
 	if (lThrusterDef) {
-		HashingData lThrusterHash = m_pLThruster->Hash();
+		uint64_t lThrusterHash = m_pLThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(lThrusterHash);
-		hash ^= lThrusterHash.m_Hash << 7;
+		hash ^= lThrusterHash << 7;
 	}
 
 	bool urThrusterDef = m_pURThruster != nullptr;
 	hashData.m_ParseValues.push_back(urThrusterDef);
 	if (urThrusterDef) {
-		HashingData urFootGroupHash = m_pURThruster->Hash();
+		uint64_t urFootGroupHash = m_pURThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(urFootGroupHash);
-		hash ^= urFootGroupHash.m_Hash << 8;
+		hash ^= urFootGroupHash << 8;
 	}
 
 	bool ulThrusterDef = m_pULThruster != nullptr;
 	hashData.m_ParseValues.push_back(ulThrusterDef);
 	if (ulThrusterDef) {
-		HashingData ulFootGroupHash = m_pULThruster->Hash();
+		uint64_t ulFootGroupHash = m_pULThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(ulFootGroupHash);
-		hash ^= ulFootGroupHash.m_Hash << 9;
+		hash ^= ulFootGroupHash << 9;
 	}
 
-	HashingData rightRaisedPathHash = m_Paths[RIGHT][RAISED].Hash();
+	uint64_t rightRaisedPathHash = m_Paths[RIGHT][RAISED].Hash().m_Hash;
 	hashData.m_Constituents.push_back(rightRaisedPathHash);
-	hash ^= rightRaisedPathHash.m_Hash << 10;
+	hash ^= rightRaisedPathHash << 10;
 
-	HashingData rightLoweredPathHash = m_Paths[RIGHT][LOWERED].Hash();
+	uint64_t rightLoweredPathHash = m_Paths[RIGHT][LOWERED].Hash().m_Hash;
 	hashData.m_Constituents.push_back(rightLoweredPathHash);
-	hash ^= rightLoweredPathHash.m_Hash << 11;
+	hash ^= rightLoweredPathHash << 11;
 
-	HashingData rightLoweringPathHash = m_Paths[RIGHT][LOWERING].Hash();
+	uint64_t rightLoweringPathHash = m_Paths[RIGHT][LOWERING].Hash().m_Hash;
 	hashData.m_Constituents.push_back(rightLoweringPathHash);
-	hash ^= rightLoweringPathHash.m_Hash << 12;
+	hash ^= rightLoweringPathHash << 12;
 
-	HashingData rightRaisingHash = m_Paths[RIGHT][RAISING].Hash();
+	uint64_t rightRaisingHash = m_Paths[RIGHT][RAISING].Hash().m_Hash;
 	hashData.m_Constituents.push_back(rightRaisingHash);
-	hash ^= rightRaisingHash.m_Hash << 13;
+	hash ^= rightRaisingHash << 13;
 
 	hash ^= std::hash<float>{}(m_MaxGimbalAngle) << 14;
 

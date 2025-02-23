@@ -81,9 +81,9 @@ HashingData GlobalScript::Hash() const {
 	hash ^= RTE::Hash(m_LuaClassName) << 2;
 
 	for (int i = 0; i < m_PieSlicesToAdd.size(); i++) {
-		HashingData sliceHash = m_PieSlicesToAdd.at(i)->Hash();
+		uint64_t sliceHash = m_PieSlicesToAdd.at(i)->Hash().m_Hash;
 		hashData.m_Constituents.push_back(sliceHash);
-		hash ^= sliceHash.m_Hash << (i % sizeof(uint64_t) * 8);
+		hash ^= sliceHash << (i % sizeof(uint64_t) * 8);
 	}
 
 	return hashData;

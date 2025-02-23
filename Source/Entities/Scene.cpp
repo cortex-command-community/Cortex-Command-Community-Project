@@ -105,9 +105,9 @@ HashingData Scene::Area::Hash() const {
 	hashData.m_ParseValues.push_back(m_BoxList.size());
 
 	for (int i = 0; i < m_BoxList.size(); i++) {
-		HashingData boxHash = m_BoxList.at(i)->Hash();
+		uint64_t boxHash = m_BoxList.at(i)->Hash().m_Hash;
 		hashData.m_Constituents.push_back(boxHash);
-		hash ^= boxHash.m_Hash << 0;
+		hash ^= boxHash << 0;
 	}
 
 	return hashData;
@@ -1178,9 +1178,9 @@ HashingData Scene::Hash() const {
 
 	// TODO: FINISH
 
-	HashingData locationHash = m_Location.Hash();
+	uint64_t locationHash = m_Location.Hash().m_Hash;
 	hashData.m_Constituents.push_back(locationHash);
-	hash ^= locationHash.m_Hash << 0;
+	hash ^= locationHash << 0;
 
 	hash ^= std::hash<bool>{}(m_MetagamePlayable) << 1;
 
@@ -1259,16 +1259,16 @@ HashingData Scene::Hash() const {
 	int i = 0;
 
 	for (Area* area: m_AreaList) {
-		HashingData areaHash = area->Hash();
+		uint64_t areaHash = area->Hash().m_Hash;
 		hashData.m_Constituents.push_back(areaHash);
-		hash ^= areaHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
+		hash ^= areaHash << (i++ % sizeof(uint64_t) * 8);
 	}
 
 	hashData.m_ParseValues.push_back(i);
 
-	HashingData globalAccHash = m_GlobalAcc.Hash();
+	uint64_t globalAccHash = m_GlobalAcc.Hash().m_Hash;
 	hashData.m_Constituents.push_back(globalAccHash);
-	hash ^= globalAccHash.m_Hash << 13;
+	hash ^= globalAccHash << 13;
 
 	return hashData;
 }

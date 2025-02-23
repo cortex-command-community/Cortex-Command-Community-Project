@@ -106,14 +106,14 @@ HashingData MOPixel::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	if (m_Atom) {
-		HashingData atomHash = m_Atom->Hash();
+		uint64_t atomHash = m_Atom->Hash().m_Hash;
 		hashData.m_Constituents.push_back(atomHash);
-		hash ^= atomHash.m_Hash << 1;
+		hash ^= atomHash << 1;
 	}
 
-	HashingData colorHash = m_Color.Hash();
+	uint64_t colorHash = m_Color.Hash().m_Hash;
 	hashData.m_Constituents.push_back(colorHash);
-	hash ^= colorHash.m_Hash << 2;
+	hash ^= colorHash << 2;
 
 	hash ^= std::hash<float>{}(m_MinLethalRange) << 3;
 	hash ^= std::hash<float>{}(m_MaxLethalRange) << 4;

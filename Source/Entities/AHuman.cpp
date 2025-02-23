@@ -347,9 +347,9 @@ HashingData AHuman::Hash() const {
 	bool headDef = m_pHead != nullptr;
 	hashData.m_ParseValues.push_back(headDef);
 	if (headDef) {
-		HashingData headHash = m_pHead->Hash();
+		uint64_t headHash = m_pHead->Hash().m_Hash;
 		hashData.m_Constituents.push_back(headHash);
-		hash ^= headHash.m_Hash << 2;
+		hash ^= headHash << 2;
 	}
 
 	hash ^= std::hash<float>{}(m_LookToAimRatio) << 3;
@@ -357,9 +357,9 @@ HashingData AHuman::Hash() const {
 	bool jetpackDef = m_pJetpack != nullptr;
 	hashData.m_ParseValues.push_back(jetpackDef);
 	if (jetpackDef) {
-		HashingData jetpackHash = m_pJetpack->Hash();
+		uint64_t jetpackHash = m_pJetpack->Hash().m_Hash;
 		hashData.m_Constituents.push_back(jetpackHash);
-		hash ^= jetpackHash.m_Hash << 4;
+		hash ^= jetpackHash << 4;
 	}
 
 	hash ^= std::hash<float>{}(m_FGArmFlailScalar) << 5;
@@ -370,57 +370,57 @@ HashingData AHuman::Hash() const {
 	bool fgArmDef = m_pFGArm != nullptr;
 	hashData.m_ParseValues.push_back(fgArmDef);
 	if (fgArmDef) {
-		HashingData fgArmHash = m_pFGArm->Hash();
+		uint64_t fgArmHash = m_pFGArm->Hash().m_Hash;
 		hashData.m_Constituents.push_back(fgArmHash);
-		hash ^= fgArmHash.m_Hash << 9;
+		hash ^= fgArmHash << 9;
 	}
 
 	bool bgArmDef = m_pBGArm != nullptr;
 	hashData.m_ParseValues.push_back(bgArmDef);
 	if (bgArmDef) {
-		HashingData bgArmHash = m_pBGArm->Hash();
+		uint64_t bgArmHash = m_pBGArm->Hash().m_Hash;
 		hashData.m_Constituents.push_back(bgArmHash);
-		hash ^= bgArmHash.m_Hash << 10;
+		hash ^= bgArmHash << 10;
 	}
 
 	bool fgLegDef = m_pFGLeg != nullptr;
 	hashData.m_ParseValues.push_back(fgLegDef);
 	if (fgLegDef) {
-		HashingData fgLegHash = m_pFGLeg->Hash();
+		uint64_t fgLegHash = m_pFGLeg->Hash().m_Hash;
 		hashData.m_Constituents.push_back(fgLegHash);
-		hash ^= fgLegHash.m_Hash << 11;
+		hash ^= fgLegHash << 11;
 	}
 
 	bool bgLegDef = m_pBGLeg != nullptr;
 	hashData.m_ParseValues.push_back(bgLegDef);
 	if (bgLegDef) {
-		HashingData bgLegHash = m_pBGLeg->Hash();
+		uint64_t bgLegHash = m_pBGLeg->Hash().m_Hash;
 		hashData.m_Constituents.push_back(bgLegHash);
-		hash ^= bgLegHash.m_Hash << 12;
+		hash ^= bgLegHash << 12;
 	}
 
 	bool fgHandGroupDef = m_pFGHandGroup != nullptr;
 	hashData.m_ParseValues.push_back(fgHandGroupDef);
 	if (fgHandGroupDef) {
-		HashingData fgHandGroupHash = m_pFGHandGroup->Hash();
+		uint64_t fgHandGroupHash = m_pFGHandGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(fgHandGroupHash);
-		hash ^= fgHandGroupHash.m_Hash << 13;
+		hash ^= fgHandGroupHash << 13;
 	}
 
 	bool fgFootGroupDef = m_pFGFootGroup != nullptr;
 	hashData.m_ParseValues.push_back(fgFootGroupDef);
 	if (fgFootGroupDef) {
-		HashingData fgFootGroupHash = m_pFGFootGroup->Hash();
+		uint64_t fgFootGroupHash = m_pFGFootGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(fgFootGroupHash);
-		hash ^= fgFootGroupHash.m_Hash << 14;
+		hash ^= fgFootGroupHash << 14;
 	}
 
 	bool bgFootGroupDef = m_pBGFootGroup != nullptr;
 	hashData.m_ParseValues.push_back(bgFootGroupDef);
 	if (bgFootGroupDef) {
-		HashingData bgFootGroupHash = m_pBGFootGroup->Hash();
+		uint64_t bgFootGroupHash = m_pBGFootGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(bgFootGroupHash);
-		hash ^= bgFootGroupHash.m_Hash << 15;
+		hash ^= bgFootGroupHash << 15;
 	}
 
 	hash ^= std::hash<float>{}(m_MaxWalkPathCrouchShift) << 0;
@@ -428,50 +428,50 @@ HashingData AHuman::Hash() const {
 	bool strideSoundDef = m_StrideSound != nullptr;
 	hashData.m_ParseValues.push_back(strideSoundDef);
 	if (strideSoundDef) {
-		HashingData strideSoundHash = m_StrideSound->Hash();
+		uint64_t strideSoundHash = m_StrideSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(strideSoundHash);
-		hash ^= strideSoundHash.m_Hash << 1;
+		hash ^= strideSoundHash << 1;
 	}
 
-	HashingData fgStandPathHash = m_Paths[FGROUND][STAND].Hash();
+	uint64_t fgStandPathHash = m_Paths[FGROUND][STAND].Hash().m_Hash;
 	hashData.m_Constituents.push_back(fgStandPathHash);
-	hash ^= fgStandPathHash.m_Hash << 2;
+	hash ^= fgStandPathHash << 2;
 
-	HashingData bgStandPathHash = m_Paths[BGROUND][STAND].Hash();
+	uint64_t bgStandPathHash = m_Paths[BGROUND][STAND].Hash().m_Hash;
 	hashData.m_Constituents.push_back(bgStandPathHash);
-	hash ^= bgStandPathHash.m_Hash << 3;
+	hash ^= bgStandPathHash << 3;
 
-	HashingData walkPathHash = m_Paths[FGROUND][WALK].Hash();
+	uint64_t walkPathHash = m_Paths[FGROUND][WALK].Hash().m_Hash;
 	hashData.m_Constituents.push_back(walkPathHash);
-	hash ^= walkPathHash.m_Hash << 4;
+	hash ^= walkPathHash << 4;
 
-	HashingData runPathHash = m_Paths[FGROUND][RUN].Hash();
+	uint64_t runPathHash = m_Paths[FGROUND][RUN].Hash().m_Hash;
 	hashData.m_Constituents.push_back(runPathHash);
-	hash ^= runPathHash.m_Hash << 5;
+	hash ^= runPathHash << 5;
 
-	HashingData pronePathHash = m_Paths[FGROUND][PRONE].Hash();
+	uint64_t pronePathHash = m_Paths[FGROUND][PRONE].Hash().m_Hash;
 	hashData.m_Constituents.push_back(pronePathHash);
-	hash ^= pronePathHash.m_Hash << 6;
+	hash ^= pronePathHash << 6;
 
-	HashingData crawlPathHash = m_Paths[FGROUND][CRAWL].Hash();
+	uint64_t crawlPathHash = m_Paths[FGROUND][CRAWL].Hash().m_Hash;
 	hashData.m_Constituents.push_back(crawlPathHash);
-	hash ^= crawlPathHash.m_Hash << 7;
+	hash ^= crawlPathHash << 7;
 
-	HashingData armCrawlPathHash = m_Paths[FGROUND][ARMCRAWL].Hash();
+	uint64_t armCrawlPathHash = m_Paths[FGROUND][ARMCRAWL].Hash().m_Hash;
 	hashData.m_Constituents.push_back(armCrawlPathHash);
-	hash ^= armCrawlPathHash.m_Hash << 8;
+	hash ^= armCrawlPathHash << 8;
 
-	HashingData climbPathHash = m_Paths[FGROUND][CLIMB].Hash();
+	uint64_t climbPathHash = m_Paths[FGROUND][CLIMB].Hash().m_Hash;
 	hashData.m_Constituents.push_back(climbPathHash);
-	hash ^= climbPathHash.m_Hash << 9;
+	hash ^= climbPathHash << 9;
 
-	HashingData jumpPathHash = m_Paths[FGROUND][JUMP].Hash();
+	uint64_t jumpPathHash = m_Paths[FGROUND][JUMP].Hash().m_Hash;
 	hashData.m_Constituents.push_back(jumpPathHash);
-	hash ^= jumpPathHash.m_Hash << 10;
+	hash ^= jumpPathHash << 10;
 
-	HashingData dislodgePathHash = m_Paths[FGROUND][DISLODGE].Hash();
+	uint64_t dislodgePathHash = m_Paths[FGROUND][DISLODGE].Hash().m_Hash;
 	hashData.m_Constituents.push_back(dislodgePathHash);
-	hash ^= dislodgePathHash.m_Hash << 11;
+	hash ^= dislodgePathHash << 11;
 
 	hash ^= std::hash<float>{}(m_RotAngleTargets[STAND]) << 12;
 	hash ^= std::hash<float>{}(m_RotAngleTargets[WALK]) << 13;

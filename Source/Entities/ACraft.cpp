@@ -90,13 +90,13 @@ HashingData ACraft::Exit::Hash() const {
 	HashingData hashData = Serializable::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
-	HashingData offsetHash = m_Offset.Hash();
+	uint64_t offsetHash = m_Offset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(offsetHash);
-	hash ^= offsetHash.m_Hash << 0;
+	hash ^= offsetHash << 0;
 
-	HashingData velocityHash = m_Velocity.Hash();
+	uint64_t velocityHash = m_Velocity.Hash().m_Hash;
 	hashData.m_Constituents.push_back(velocityHash);
-	hash ^= velocityHash.m_Hash << 1;
+	hash ^= velocityHash << 1;
 
 	hash ^= std::hash<float>{}(m_VelSpread) << 2;
 	hash ^= std::hash<float>{}(m_Radius) << 3;
@@ -343,25 +343,25 @@ HashingData ACraft::Hash() const {
 	bool hatchOpenSoundDef = m_HatchOpenSound != nullptr;
 	hashData.m_ParseValues.push_back(hatchOpenSoundDef);
 	if (hatchOpenSoundDef) {
-		HashingData hatchOpenSoundHash = m_HatchOpenSound->Hash();
+		uint64_t hatchOpenSoundHash = m_HatchOpenSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(hatchOpenSoundHash);
-		hash ^= hatchOpenSoundHash.m_Hash << 2;
+		hash ^= hatchOpenSoundHash << 2;
 	}
 
 	bool hatchCloseSoundDef = m_HatchCloseSound != nullptr;
 	hashData.m_ParseValues.push_back(hatchCloseSoundDef);
 	if (hatchCloseSoundDef) {
-		HashingData hatchCloseSoundHash = m_HatchCloseSound->Hash();
+		uint64_t hatchCloseSoundHash = m_HatchCloseSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(hatchCloseSoundHash);
-		hash ^= hatchCloseSoundHash.m_Hash << 3;
+		hash ^= hatchCloseSoundHash << 3;
 	}
 
 	int i = 0;
 
 	for (std::list<Exit>::const_iterator itr = m_Exits.begin(); itr != m_Exits.end(); ++itr) {
-		HashingData exitHash = itr->Hash();
+		uint64_t exitHash = itr->Hash().m_Hash;
 		hashData.m_Constituents.push_back(exitHash);
-		hash ^= exitHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
+		hash ^= exitHash << (i++ % sizeof(uint64_t) * 8);
 	}
 
 	hashData.m_ParseValues.push_back(i);
@@ -373,9 +373,9 @@ HashingData ACraft::Hash() const {
 	bool crashSoundDef = m_CrashSound != nullptr;
 	hashData.m_ParseValues.push_back(crashSoundDef);
 	if (crashSoundDef) {
-		HashingData crashSoundHash = m_CrashSound->Hash();
+		uint64_t crashSoundHash = m_CrashSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(crashSoundHash);
-		hash ^= crashSoundHash.m_Hash << 7;
+		hash ^= crashSoundHash << 7;
 	}
 
 	hash ^= std::hash<bool>{}(m_CanEnterOrbit) << 8;

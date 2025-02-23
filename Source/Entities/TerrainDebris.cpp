@@ -115,19 +115,19 @@ HashingData TerrainDebris::Hash() const {
 	HashingData hashData = Entity::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
-	HashingData fileHash = m_DebrisFile.Hash();
+	uint64_t fileHash = m_DebrisFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(fileHash);
-	hash ^= fileHash.m_Hash << 0;
+	hash ^= fileHash << 0;
 
 	hash ^= std::hash<int>{}(m_BitmapCount) << 1;
 
-	HashingData materialHash = m_Material.Hash();
+	uint64_t materialHash = m_Material.Hash().m_Hash;
 	hashData.m_Constituents.push_back(materialHash);
-	hash ^= materialHash.m_Hash << 2;
+	hash ^= materialHash << 2;
 
-	HashingData targetHash = m_TargetMaterial.Hash();
+	uint64_t targetHash = m_TargetMaterial.Hash().m_Hash;
 	hashData.m_Constituents.push_back(targetHash);
-	hash ^= targetHash.m_Hash << 3;
+	hash ^= targetHash << 3;
 
 	hash ^= std::hash<int>{}(m_DebrisPlacementMode) << 4;
 	hash ^= std::hash<bool>{}(m_OnlyBuried) << 5;

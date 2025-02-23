@@ -52,13 +52,13 @@ HashingData ADSensor::Hash() const {
 	HashingData hashData = Serializable::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
-	HashingData startOffsetHash = m_StartOffset.Hash();
+	uint64_t startOffsetHash = m_StartOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(startOffsetHash);
-	hash ^= startOffsetHash.m_Hash << 0;
+	hash ^= startOffsetHash << 0;
 
-	HashingData sensorRayHash = m_SensorRay.Hash();
+	uint64_t sensorRayHash = m_SensorRay.Hash().m_Hash;
 	hashData.m_Constituents.push_back(sensorRayHash);
-	hash ^= sensorRayHash.m_Hash << 1;
+	hash ^= sensorRayHash << 1;
 
 	hash ^= std::hash<short>{}(m_Skip) << 2;
 

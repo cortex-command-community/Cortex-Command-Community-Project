@@ -71,9 +71,9 @@ HashingData Box::Hash() const {
 	HashingData hashData = Serializable::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
-	HashingData cornerHash = m_Corner.Hash();
+	uint64_t cornerHash = m_Corner.Hash().m_Hash;
 	hashData.m_Constituents.push_back(cornerHash);
-	hash ^= cornerHash.m_Hash << 0;
+	hash ^= cornerHash << 0;
 
 	hash ^= std::hash<float>{}(m_Width) << 1;
 	hash ^= std::hash<float>{}(m_Height) << 2;

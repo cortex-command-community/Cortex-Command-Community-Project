@@ -192,18 +192,18 @@ HashingData ADoor::Hash() const {
 	bool doorDef = m_Door != nullptr;
 	hashData.m_ParseValues.push_back(doorDef);
 	if (doorDef) {
-		HashingData doorHash = m_Door->Hash();
+		uint64_t doorHash = m_Door->Hash().m_Hash;
 		hashData.m_Constituents.push_back(doorHash);
-		hash ^= doorHash.m_Hash << 1;
+		hash ^= doorHash << 1;
 	}
 
-	HashingData openOffsetHash = m_OpenOffset.Hash();
+	uint64_t openOffsetHash = m_OpenOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(openOffsetHash);
-	hash ^= openOffsetHash.m_Hash << 2;
+	hash ^= openOffsetHash << 2;
 
-	HashingData closedOffsetHash = m_ClosedOffset.Hash();
+	uint64_t closedOffsetHash = m_ClosedOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(closedOffsetHash);
-	hash ^= closedOffsetHash.m_Hash << 3;
+	hash ^= closedOffsetHash << 3;
 
 	hash ^= std::hash<float>{}(m_OpenAngle) << 4;
 	hash ^= std::hash<float>{}(m_ClosedAngle) << 5;
@@ -215,9 +215,9 @@ HashingData ADoor::Hash() const {
 	int i = 0;
 
 	for (const ADSensor& sensor: m_Sensors) {
-		HashingData sensorHash = sensor.Hash();
+		uint64_t sensorHash = sensor.Hash().m_Hash;
 		hashData.m_Constituents.push_back(sensorHash);
-		hash ^= sensorHash.m_Hash << (i % sizeof(uint64_t) * 8);
+		hash ^= sensorHash << (i % sizeof(uint64_t) * 8);
 	}
 
 	hashData.m_ParseValues.push_back(i);
@@ -228,33 +228,33 @@ HashingData ADoor::Hash() const {
 	bool doorMoveStartSoundDef = m_DoorMoveStartSound != nullptr;
 	hashData.m_ParseValues.push_back(doorMoveStartSoundDef);
 	if (doorMoveStartSoundDef) {
-		HashingData doorMoveStartSoundHash = m_DoorMoveStartSound->Hash();
+		uint64_t doorMoveStartSoundHash = m_DoorMoveStartSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(doorMoveStartSoundHash);
-		hash ^= doorMoveStartSoundHash.m_Hash << 12;
+		hash ^= doorMoveStartSoundHash << 12;
 	}
 
 	bool doorMoveSoundDef = m_DoorMoveSound != nullptr;
 	hashData.m_ParseValues.push_back(doorMoveSoundDef);
 	if (doorMoveSoundDef) {
-		HashingData doorMoveSoundHash = m_DoorMoveSound->Hash();
+		uint64_t doorMoveSoundHash = m_DoorMoveSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(doorMoveSoundHash);
-		hash ^= doorMoveSoundHash.m_Hash << 12;
+		hash ^= doorMoveSoundHash << 12;
 	}
 
 	bool doorDirectionChangeSoundDef = m_DoorDirectionChangeSound != nullptr;
 	hashData.m_ParseValues.push_back(doorDirectionChangeSoundDef);
 	if (doorDirectionChangeSoundDef) {
-		HashingData doorDirectionChangeSoundHash = m_DoorDirectionChangeSound->Hash();
+		uint64_t doorDirectionChangeSoundHash = m_DoorDirectionChangeSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(doorDirectionChangeSoundHash);
-		hash ^= doorDirectionChangeSoundHash.m_Hash << 12;
+		hash ^= doorDirectionChangeSoundHash << 12;
 	}
 
 	bool doorMoveEndSoundDef = m_DoorMoveEndSound != nullptr;
 	hashData.m_ParseValues.push_back(doorMoveEndSoundDef);
 	if (doorMoveEndSoundDef) {
-		HashingData doorMoveEndSoundHash = m_DoorMoveEndSound->Hash();
+		uint64_t doorMoveEndSoundHash = m_DoorMoveEndSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(doorMoveEndSoundHash);
-		hash ^= doorMoveEndSoundHash.m_Hash << 12;
+		hash ^= doorMoveEndSoundHash << 12;
 	}
 
 	return hashData;

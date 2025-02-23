@@ -250,15 +250,15 @@ HashingData AtomGroup::Hash() const {
 		hashData.m_ParseValues.push_back(m_Atoms.size());
 
 		for (int i = 0; i < m_Atoms.size(); i++) {
-			HashingData atomHash = m_Atoms.at(i)->Hash();
+			uint64_t atomHash = m_Atoms.at(i)->Hash().m_Hash;
 			hashData.m_Constituents.push_back(atomHash);
-			hash ^= atomHash.m_Hash << (i % sizeof(uint64_t) * 8);
+			hash ^= atomHash << (i % sizeof(uint64_t) * 8);
 		}
 	}
 
-	HashingData jointHash = m_JointOffset.Hash();
+	uint64_t jointHash = m_JointOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(jointHash);
-	hash ^= jointHash.m_Hash << 2;
+	hash ^= jointHash << 2;
 
 	hash ^= std::hash<AreaDistributionType>{}(m_AreaDistributionType) << 3;
 	hash ^= std::hash<float>{}(m_AreaDistributionSurfaceAreaMultiplier) << 4;

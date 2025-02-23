@@ -126,28 +126,28 @@ HashingData TerrainObject::Hash() const {
 	HashingData hashData = SceneObject::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
-	HashingData fgColorHash = m_FGColorFile.Hash();
+	uint64_t fgColorHash = m_FGColorFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(fgColorHash);
-	hash ^= fgColorHash.m_Hash << 0;
+	hash ^= fgColorHash << 0;
 
-	HashingData bgColorHash = m_BGColorFile.Hash();
+	uint64_t bgColorHash = m_BGColorFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(bgColorHash);
-	hash ^= bgColorHash.m_Hash << 1;
+	hash ^= bgColorHash << 1;
 
-	HashingData materialHash = m_MaterialFile.Hash();
+	uint64_t materialHash = m_MaterialFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(materialHash);
-	hash ^= materialHash.m_Hash << 2;
+	hash ^= materialHash << 2;
 
-	HashingData offsetHash = m_BitmapOffset.Hash();
+	uint64_t offsetHash = m_BitmapOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(offsetHash);
-	hash ^= offsetHash.m_Hash << 3;
+	hash ^= offsetHash << 3;
 
 	int i = 0;
 	
 	for (const SceneObject::SOPlacer& childObject: m_ChildObjects) {
-		HashingData childHash = childObject.Hash();
+		uint64_t childHash = childObject.Hash().m_Hash;
 		hashData.m_Constituents.push_back(childHash);
-		hash ^= childHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
+		hash ^= childHash << (i++ % sizeof(uint64_t) * 8);
 	}
 
 	return hashData;

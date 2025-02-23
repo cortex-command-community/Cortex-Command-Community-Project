@@ -122,9 +122,9 @@ HashingData Round::Hash() const {
 	hash ^= (m_Shell ? RTE::Hash(m_Shell->GetEntityCharacteristic()) : 0) << 6;
 	hash ^= std::hash<float>{}(m_ShellVel) << 7;
 
-	HashingData fireSoundHash = m_FireSound.Hash();
+	uint64_t fireSoundHash = m_FireSound.Hash().m_Hash;
 	hashData.m_Constituents.push_back(fireSoundHash);
-	hash ^= fireSoundHash.m_Hash << 8;
+	hash ^= fireSoundHash << 8;
 
 	hash ^= std::hash<unsigned long>{}(m_AILifeTime) << 9;
 	hash ^= std::hash<int>{}(m_AIFireVel) << 10;

@@ -436,41 +436,41 @@ HashingData Actor::Hash() const {
 	bool bodyHitSoundDef = m_BodyHitSound != nullptr;
 	hashData.m_ParseValues.push_back(bodyHitSoundDef);
 	if (bodyHitSoundDef) {
-		HashingData bodyHitSoundHash = m_BodyHitSound->Hash();
+		uint64_t bodyHitSoundHash = m_BodyHitSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(bodyHitSoundHash);
-		hash ^= bodyHitSoundHash.m_Hash << 2;
+		hash ^= bodyHitSoundHash << 2;
 	}
 
 	bool alarmSoundDef = m_AlarmSound != nullptr;
 	hashData.m_ParseValues.push_back(alarmSoundDef);
 	if (alarmSoundDef) {
-		HashingData alarmSoundHash = m_AlarmSound->Hash();
+		uint64_t alarmSoundHash = m_AlarmSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(alarmSoundHash);
-		hash ^= alarmSoundHash.m_Hash << 3;
+		hash ^= alarmSoundHash << 3;
 	}
 
 	bool painSoundDef = m_PainSound != nullptr;
 	hashData.m_ParseValues.push_back(painSoundDef);
 	if (painSoundDef) {
-		HashingData painSoundHash = m_PainSound->Hash();
+		uint64_t painSoundHash = m_PainSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(painSoundHash);
-		hash ^= painSoundHash.m_Hash << 4;
+		hash ^= painSoundHash << 4;
 	}
 
 	bool deathSoundDef = m_DeathSound != nullptr;
 	hashData.m_ParseValues.push_back(deathSoundDef);
 	if (deathSoundDef) {
-		HashingData deathSoundHash = m_DeathSound->Hash();
+		uint64_t deathSoundHash = m_DeathSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(deathSoundHash);
-		hash ^= deathSoundHash.m_Hash << 5;
+		hash ^= deathSoundHash << 5;
 	}
 
 	bool deviceSwitchSoundDef = m_DeviceSwitchSound != nullptr;
 	hashData.m_ParseValues.push_back(deviceSwitchSoundDef);
 	if (deviceSwitchSoundDef) {
-		HashingData deviceSwitchSoundHash = m_DeviceSwitchSound->Hash();
+		uint64_t deviceSwitchSoundHash = m_DeviceSwitchSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(deviceSwitchSoundHash);
-		hash ^= deviceSwitchSoundHash.m_Hash << 6;
+		hash ^= deviceSwitchSoundHash << 6;
 	}
 
 	hash ^= std::hash<int>{}(m_Status) << 7;
@@ -479,9 +479,9 @@ HashingData Actor::Hash() const {
 	hash ^= std::hash<unsigned int>{}(m_DeploymentID) << 10;
 	hash ^= std::hash<float>{}(m_TravelImpulseDamage) << 11;
 
-	HashingData stableVelHash = m_StableVel.Hash();
+	uint64_t stableVelHash = m_StableVel.Hash().m_Hash;
 	hashData.m_Constituents.push_back(stableVelHash);
-	hash ^= stableVelHash.m_Hash << 12;
+	hash ^= stableVelHash << 12;
 
 	hash ^= std::hash<int>{}(m_StableRecoverDelay) << 13;
 	hash ^= std::hash<bool>{}(m_CanRun) << 14;
@@ -497,20 +497,20 @@ HashingData Actor::Hash() const {
 	hash ^= std::hash<bool>{}(m_CanRevealUnseen) << 8;
 	hash ^= std::hash<float>{}(m_CharHeight) << 9;
 
-	HashingData holsterOffsetHash = m_HolsterOffset.Hash();
+	uint64_t holsterOffsetHash = m_HolsterOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(holsterOffsetHash);
-	hash ^= holsterOffsetHash.m_Hash << 10;
+	hash ^= holsterOffsetHash << 10;
 
-	HashingData reloadOffsetHash = m_ReloadOffset.Hash();
+	uint64_t reloadOffsetHash = m_ReloadOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(reloadOffsetHash);
-	hash ^= reloadOffsetHash.m_Hash << 11;
+	hash ^= reloadOffsetHash << 11;
 
 	int i = 0;
 
 	for (std::deque<MovableObject*>::const_iterator itr = m_Inventory.begin(); itr != m_Inventory.end(); ++itr) {
-		HashingData inventoryItemHash = (*itr)->Hash();
+		uint64_t inventoryItemHash = (*itr)->Hash().m_Hash;
 		hashData.m_Constituents.push_back(inventoryItemHash);
-		hash ^= inventoryItemHash.m_Hash << (i++ % sizeof(uint64_t) * 8);
+		hash ^= inventoryItemHash << (i++ % sizeof(uint64_t) * 8);
 	}
 
 	hashData.m_ParseValues.push_back(i);
@@ -518,9 +518,9 @@ HashingData Actor::Hash() const {
 	hash ^= std::hash<float>{}(m_MaxInventoryMass) << 12;
 	hash ^= std::hash<AIMode>{}(m_AIMode) << 13;
 
-	HashingData pieHash = m_PieMenu->Hash();
+	uint64_t pieHash = m_PieMenu->Hash().m_Hash;
 	hashData.m_Constituents.push_back(pieHash);
-	hash ^= pieHash.m_Hash << 14;
+	hash ^= pieHash << 14;
 
 	hash ^= std::hash<bool>{}(m_Organic) << 15;
 	hash ^= std::hash<bool>{}(m_Mechanical) << 0;

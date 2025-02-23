@@ -116,22 +116,22 @@ HashingData Leg::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	if (m_Foot) {
-		HashingData footHash = m_Foot->Hash();
+		uint64_t footHash = m_Foot->Hash().m_Hash;
 		hashData.m_Constituents.push_back(footHash);
-		hash ^= footHash.m_Hash << 1;
+		hash ^= footHash << 1;
 	}
 
-	HashingData contractedHash = m_ContractedOffset.Hash();
+	uint64_t contractedHash = m_ContractedOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(contractedHash);
-	hash ^= contractedHash.m_Hash << 2;
+	hash ^= contractedHash << 2;
 
-	HashingData extendedHash = m_ExtendedOffset.Hash();
+	uint64_t extendedHash = m_ExtendedOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(extendedHash);
-	hash ^= extendedHash.m_Hash << 3;
+	hash ^= extendedHash << 3;
 
-	HashingData idleHash = m_IdleOffset.Hash();
+	uint64_t idleHash = m_IdleOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(idleHash);
-	hash ^= idleHash.m_Hash << 4;
+	hash ^= idleHash << 4;
 
 	hash ^= std::hash<bool>{}(m_WillIdle) << 5;
 	hash ^= std::hash<float>{}(m_MoveSpeed) << 6;
