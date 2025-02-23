@@ -20,17 +20,17 @@ namespace std {
 } // namespace std
 
 namespace RTE {
-	/// Holds an arbitrary tree of hashing data for storage alongside a preset entry.  and a vector of other nodes, as well as another vector indicating the length of the sublists which may be present.
+	/// Holds an arbitrary tree of hashing data for storage alongside a preset entry.
 	struct HashingData {
 		/// Constructor method used to instantiate a HashingData object in memory.
 		HashingData(uint64_t hash, std::vector<HashingData> constituents) :
 		    m_Hash(hash), m_Constituents(constituents) {}
 
-		/// The hash of the entity represented by this hash.
+		/// The hash of the Entity represented by this hash.
 		uint64_t m_Hash;
-		/// A list of the hash data for all the components of this thing.
+		/// A list of the hash data for all components of this Entity.
 		std::vector<HashingData> m_Constituents;
-		/// A list of integers for handling the subcollections of components of this thing.
+		/// A list of integers for handling optional and collection properties by communicating their numeracy on a per-property basis.
 		std::vector<size_t> m_ParseValues;
 	};
 } // namespace RTE
