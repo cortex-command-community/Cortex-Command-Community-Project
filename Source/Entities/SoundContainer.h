@@ -54,6 +54,10 @@ namespace RTE {
 		int Create(const std::string& soundFilePath, bool immobile = false, bool affectedByGlobalPitch = true, BusRouting busRouting = BusRouting::SFX);
 #pragma endregion
 
+#pragma region INI Handling
+		int Write(Writer& writer, const SoundContainer& reference, const HashingData& hashData) const;
+#pragma endregion
+
 #pragma region Destruction
 		/// Destructor method used to clean up a SoundContainer object before deletion from system memory.
 		~SoundContainer() override;

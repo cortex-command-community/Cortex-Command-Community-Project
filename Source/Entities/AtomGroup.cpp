@@ -141,7 +141,8 @@ int AtomGroup::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("AutoGenerate", { reader >> m_AutoGenerate; });
 	MatchProperty("Resolution", { reader >> m_Resolution; });
 	MatchProperty("Depth", { reader >> m_Depth; });
-	MatchProperty("AddAtom", {
+	MatchProperty("ClearAtoms", { m_Atoms.clear(); });
+	MatchForwards("AddAtom") MatchProperty("_AddAtom", {
 		Atom* atom = new Atom;
 		reader >> *atom;
 		m_Atoms.push_back(atom);
@@ -168,7 +169,7 @@ int AtomGroup::ReadProperty(const std::string_view& propName, Reader& reader) {
 int AtomGroup::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewPropertyWithValue("Material", m_Material);
+	writer.NewPropertyWithValue("Material", m_Material->GetEntityCharacteristic());
 	writer.NewPropertyWithValue("AutoGenerate", m_AutoGenerate);
 
 	// Only write out Atoms if they were manually specified
@@ -193,6 +194,44 @@ int AtomGroup::Save(Writer& writer) const {
 int AtomGroup::Write(Writer& writer, const AtomGroup& reference, const HashingData& hashData) const {
 	Entity::Write(writer, reference, hashData);
 
+	if (m_Material != reference.m_Material) {
+		writer.NewPropertyWithValue("Material", m_Material->GetEntityCharacteristic());
+	}
+
+	if (m_AutoGenerate != reference.m_AutoGenerate) {
+		writer.NewPropertyWithValue("AutoGenerate", m_AutoGenerate);
+	}
+
+	// Only write out Atoms if they were manually specified
+	if (!m_AutoGenerate) {
+		if (m_Atoms != reference.m_Atoms) {
+			for (const Atom* atom: m_Atoms) {
+				writer.NewProperty("_AddAtom");
+				writer << *atom;
+			}
+		}
+	} else {
+		if (m_Resolution != reference.m_Resolution) {
+			writer.NewPropertyWithValue("Resolution", m_Resolution);
+		}
+		if (m_Depth != reference.m_Depth) {
+			writer.NewPropertyWithValue("Depth", m_Depth);
+		}
+	}
+
+	if (m_JointOffset != reference.m_JointOffset) {
+		writer.NewPropertyWithValue("JointOffset", m_JointOffset);
+	}
+
+	if (m_AreaDistributionType != reference.m_AreaDistributionType) {
+		writer.NewPropertyWithValue("AreaDistributionType", static_cast<std::underlying_type_t<AreaDistributionType>>(m_AreaDistributionType));
+	}
+
+	if (m_AreaDistributionSurfaceAreaMultiplier != reference.m_AreaDistributionSurfaceAreaMultiplier) {
+		writer.NewPropertyWithValue("AreaDistributionSurfaceAreaMultiplier", m_AreaDistributionSurfaceAreaMultiplier);
+	}
+
+	return 0;
 }
 
 HashingData AtomGroup::Hash() const {
@@ -203,9 +242,13 @@ HashingData AtomGroup::Hash() const {
 	hash ^= std::hash<bool>{}(m_AutoGenerate) << 1;
 
 	if (m_AutoGenerate) {
+		hashData.m_ParseValues.push_back(0);
+
 		hash ^= std::hash<int>{}(m_Resolution) << 2;
 		hash ^= std::hash<int>{}(m_Depth) << 3;
 	} else {
+		hashData.m_ParseValues.push_back(m_Atoms.size());
+
 		for (int i = 0; i < m_Atoms.size(); i++) {
 			HashingData atomHash = m_Atoms.at(i)->Hash();
 			hashData.m_Constituents.push_back(atomHash);

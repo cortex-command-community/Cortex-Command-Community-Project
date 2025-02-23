@@ -173,8 +173,51 @@ int Attachable::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("JointStiffness", m_JointStiffness);
 	writer.NewPropertyWithValue("JointOffset", m_JointOffset);
 
-	writer.NewPropertyWithValue("BreakWound", m_BreakWound);
-	writer.NewPropertyWithValue("ParentBreakWound", m_ParentBreakWound);
+	if (m_BreakWound != nullptr) {
+		writer.NewPropertyWithValue("BreakWound", m_BreakWound->GetEntityCharacteristic());
+	}
+
+	if (m_ParentBreakWound != nullptr) {
+		writer.NewPropertyWithValue("ParentBreakWound", m_ParentBreakWound->GetEntityCharacteristic());
+	}
+
+	writer.NewPropertyWithValue("InheritsHFlipped", ((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2));
+	writer.NewPropertyWithValue("InheritsRotAngle", m_InheritsRotAngle);
+	writer.NewPropertyWithValue("InheritedRotAngleOffset", m_InheritedRotAngleOffset);
+	writer.NewPropertyWithValue("MountedRotAngleOffset", m_MountedRotAngleOffset);
+	writer.NewPropertyWithValue("InheritsVelWhenDetached", m_InheritsVelWhenDetached);
+	writer.NewPropertyWithValue("InheritsAngularVelWhenDetached", m_InheritsAngularVelWhenDetached);
+
+	writer.NewPropertyWithValue("CollidesWithTerrainWhileAttached", m_CollidesWithTerrainWhileAttached);
+	writer.NewPropertyWithValue("IgnoresParticlesWhileAttached", m_IgnoresParticlesWhileAttached);
+
+	for (const std::unique_ptr<PieSlice>& pieSlice: m_PieSlices) {
+		writer.NewPropertyWithValue("AddPieSlice", pieSlice.get());
+	}
+
+	return 0;
+}
+
+int Attachable::Write(Writer& writer, const Attachable& reference, const HashingData& hashData) const {
+	int constituentsConsumed = MOSRotating::Write(writer, reference, hashData);
+
+	writer.NewPropertyWithValue("ParentOffset", m_ParentOffset);
+	writer.NewPropertyWithValue("DrawAfterParent", m_DrawAfterParent);
+	writer.NewPropertyWithValue("DeleteWhenRemovedFromParent", m_DeleteWhenRemovedFromParent);
+	writer.NewPropertyWithValue("GibWhenRemovedFromParent", m_GibWhenRemovedFromParent);
+	writer.NewPropertyWithValue("ApplyTransferredForcesAtOffset", m_ApplyTransferredForcesAtOffset);
+
+	writer.NewPropertyWithValue("JointStrength", m_JointStrength);
+	writer.NewPropertyWithValue("JointStiffness", m_JointStiffness);
+	writer.NewPropertyWithValue("JointOffset", m_JointOffset);
+
+	if (m_BreakWound != nullptr) {
+		writer.NewPropertyWithValue("BreakWound", m_BreakWound->GetEntityCharacteristic());
+	}
+
+	if (m_ParentBreakWound != nullptr) {
+		writer.NewPropertyWithValue("ParentBreakWound", m_ParentBreakWound->GetEntityCharacteristic());
+	}
 
 	writer.NewPropertyWithValue("InheritsHFlipped", ((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2));
 	writer.NewPropertyWithValue("InheritsRotAngle", m_InheritsRotAngle);

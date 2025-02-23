@@ -279,12 +279,11 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("Velocity", { reader >> m_Vel; });
 	MatchProperty("Scale", { reader >> m_Scale; });
 	MatchProperty("GlobalAccScalar", { reader >> m_GlobalAccScalar; });
-	MatchProperty("AirResistance",
-	              {
-		              reader >> m_AirResistance;
-		              // Backwards compatibility after we made this value scaled over time
-		              m_AirResistance /= 0.01666F;
-	              });
+	MatchProperty("AirResistance", {
+		reader >> m_AirResistance;
+		// Backwards compatibility after we made this value scaled over time
+		m_AirResistance /= 0.01666F;
+	});
 	MatchProperty("AirThreshold", { reader >> m_AirThreshold; });
 	MatchProperty("PinStrength", { reader >> m_PinStrength; });
 	MatchProperty("RestThreshold", { reader >> m_RestThreshold; });
@@ -317,7 +316,8 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("MissionCritical", { reader >> m_MissionCritical; });
 	MatchProperty("CanBeSquished", { reader >> m_CanBeSquished; });
 	MatchProperty("HUDVisible", { reader >> m_HUDVisible; });
-	MatchProperty("ScriptPath", {
+	MatchProperty("_ClearScriptPaths", {  });
+	MatchForwards("ScriptPath") MatchProperty("_AddScriptPath", {
 		std::string scriptPath = g_PresetMan.GetFullModulePath(reader.ReadPropValue());
 		switch (LoadScript(scriptPath)) {
 			case 0:
@@ -326,7 +326,7 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 				reader.ReportError("The script path " + scriptPath + " was empty.");
 				break;
 			case -2:
-				reader.ReportError("The script path " + scriptPath + "  did not point to a valid file.");
+				reader.ReportError("The script path " + scriptPath + " did not point to a valid file.");
 				break;
 			case -3:
 				reader.ReportError("The script path " + scriptPath + " is already loaded onto this object.");
@@ -372,7 +372,9 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("ApplyWoundBurstDamageOnCollision", { reader >> m_ApplyWoundBurstDamageOnCollision; });
 	MatchProperty("IgnoreTerrain", { reader >> m_IgnoreTerrain; });
 	MatchProperty("SimUpdatesBetweenScriptedUpdates", { reader >> m_SimUpdatesBetweenScriptedUpdates; });
-	MatchProperty("AddCustomValue", { ReadCustomValueProperty(reader); });
+	MatchProperty("_ClearCustomNumberValues", { m_NumberValueMap.clear(); });
+	MatchProperty("_ClearCustomStringValues", { m_StringValueMap.clear(); });
+	MatchForwards("AddCustomValue") MatchProperty("_AddCustomValue", { ReadCustomValueProperty(reader); });
 	MatchProperty("ForceIntoMasterLuaState", { reader >> m_ForceIntoMasterLuaState; });
 
 	EndPropertyList;
@@ -464,6 +466,118 @@ int MovableObject::Save(Writer& writer) const {
 	return 0;
 }
 
+int MovableObject::Write(Writer& writer, const MovableObject& reference, const HashingData& hashData) const {
+	int constituentsConsumed = SceneObject::Write(writer, reference, hashData);
+	// TODO: Make proper save system that knows not to save redundant data!
+	// Note - this function isn't even called when saving a scene. Turns out that scene special-cases this stuff, see Scene::Save()
+	// In future, perhaps we ought to not do that. Who knows?
+
+	if (m_Mass != reference.m_Mass)
+		writer.NewPropertyWithValue("Mass", m_Mass);
+	if (m_Vel != reference.m_Vel)
+		writer.NewPropertyWithValue("Velocity", m_Vel);
+	if (m_Scale != reference.m_Scale)
+		writer.NewPropertyWithValue("Scale", m_Scale);
+	if (m_GlobalAccScalar != reference.m_GlobalAccScalar)
+		writer.NewPropertyWithValue("GlobalAccScalar", m_GlobalAccScalar);
+	if (m_AirResistance != reference.m_AirResistance)
+		writer.NewPropertyWithValue("AirResistance", m_AirResistance * 0.01666F); // Backwards compatibility after we made this value scaled over time
+	if (m_AirThreshold != reference.m_AirThreshold)
+		writer.NewPropertyWithValue("AirThreshold", m_AirThreshold);
+	if (m_PinStrength != reference.m_PinStrength)
+		writer.NewPropertyWithValue("PinStrength", m_PinStrength);
+	if (m_RestThreshold != reference.m_RestThreshold)
+		writer.NewPropertyWithValue("RestThreshold", m_RestThreshold);
+	if (m_Lifetime != reference.m_Lifetime)
+		writer.NewPropertyWithValue("LifeTime", m_Lifetime);
+	if (m_Sharpness != reference.m_Sharpness)
+		writer.NewPropertyWithValue("Sharpness", m_Sharpness);
+	if (m_HitsMOs != reference.m_HitsMOs)
+		writer.NewPropertyWithValue("HitsMOs", m_HitsMOs);
+	if (m_GetsHitByMOs != reference.m_GetsHitByMOs)
+		writer.NewPropertyWithValue("GetsHitByMOs", m_GetsHitByMOs);
+	if (m_IgnoresTeamHits != reference.m_IgnoresTeamHits)
+		writer.NewPropertyWithValue("IgnoresTeamHits", m_IgnoresTeamHits);
+	if (m_IgnoresAtomGroupHits != reference.m_IgnoresAtomGroupHits)
+		writer.NewPropertyWithValue("IgnoresAtomGroupHits", m_IgnoresAtomGroupHits);
+	if (m_IgnoresAGHitsWhenSlowerThan != reference.m_IgnoresAGHitsWhenSlowerThan)
+		writer.NewPropertyWithValue("IgnoresAGHitsWhenSlowerThan", m_IgnoresAGHitsWhenSlowerThan);
+	if (m_IgnoresActorHits != reference.m_IgnoresActorHits)
+		writer.NewPropertyWithValue("IgnoresActorHits", m_IgnoresActorHits);
+	if (m_MissionCritical != reference.m_MissionCritical)
+		writer.NewPropertyWithValue("MissionCritical", m_MissionCritical);
+	if (m_CanBeSquished != reference.m_CanBeSquished)
+		writer.NewPropertyWithValue("CanBeSquished", m_CanBeSquished);
+	if (m_HUDVisible != reference.m_HUDVisible)
+		writer.NewPropertyWithValue("HUDVisible", m_HUDVisible);
+
+	if (reference.m_AllLoadedScripts.size() > 0) {
+		writer.NewPropertyWithValue("_ClearScriptPaths", 1);
+	}
+
+	for (const auto& [scriptPath, scriptEnabled]: m_AllLoadedScripts) {
+		if (!scriptPath.empty()) {
+			writer.NewPropertyWithValue("_AddScriptPath", scriptPath);
+		}
+	}
+
+	if (m_ScreenEffectFile.GetDataPath() != reference.m_ScreenEffectFile.GetDataPath())
+		writer.NewPropertyWithValue("ScreenEffect", m_ScreenEffectFile);
+	if (m_PostEffectEnabled != reference.m_PostEffectEnabled)
+		writer.NewPropertyWithValue("PostEffectEnabled", m_PostEffectEnabled);
+	if (m_EffectStartTime != reference.m_EffectStartTime)
+		writer.NewPropertyWithValue("EffectStartTime", m_EffectStartTime);
+	if (m_EffectStopTime != reference.m_EffectStopTime)
+		writer.NewPropertyWithValue("EffectStopTime", m_EffectStopTime);
+	if (m_EffectStartStrength != reference.m_EffectStartStrength)
+		writer.NewPropertyWithValue("EffectStartStrength", (float)m_EffectStartStrength / 255.0f);
+	if (m_EffectStopStrength != reference.m_EffectStopStrength)
+		writer.NewPropertyWithValue("EffectStopStrength", (float)m_EffectStopStrength / 255.0f);
+	if (m_EffectAlwaysShows != reference.m_EffectAlwaysShows)
+		writer.NewPropertyWithValue("EffectAlwaysShows", m_EffectAlwaysShows);
+	if (m_DamageOnCollision != reference.m_DamageOnCollision)
+		writer.NewPropertyWithValue("DamageOnCollision", m_DamageOnCollision);
+	if (m_DamageOnPenetration != reference.m_DamageOnPenetration)
+		writer.NewPropertyWithValue("DamageOnPenetration", m_DamageOnPenetration);
+	if (m_WoundDamageMultiplier != reference.m_WoundDamageMultiplier)
+		writer.NewPropertyWithValue("WoundDamageMultiplier", m_WoundDamageMultiplier);
+	if (m_ApplyWoundDamageOnCollision != reference.m_ApplyWoundDamageOnCollision)
+		writer.NewPropertyWithValue("ApplyWoundDamageOnCollision", m_ApplyWoundDamageOnCollision);
+	if (m_ApplyWoundBurstDamageOnCollision != reference.m_ApplyWoundBurstDamageOnCollision)
+		writer.NewPropertyWithValue("ApplyWoundBurstDamageOnCollision", m_ApplyWoundBurstDamageOnCollision);
+	if (m_IgnoreTerrain != reference.m_IgnoreTerrain)
+		writer.NewPropertyWithValue("IgnoreTerrain", m_IgnoreTerrain);
+	if (m_SimUpdatesBetweenScriptedUpdates != reference.m_SimUpdatesBetweenScriptedUpdates)
+		writer.NewPropertyWithValue("SimUpdatesBetweenScriptedUpdates", m_SimUpdatesBetweenScriptedUpdates);
+
+	if (!reference.m_NumberValueMap.empty()) {
+		writer.NewPropertyWithValue("_ClearCustomNumberValues", "1");
+	}
+
+	if (!reference.m_StringValueMap.empty()) {
+		writer.NewPropertyWithValue("_ClearCustomStringValues", "1");
+	}
+
+	for (const auto& [key, value]: m_NumberValueMap) {
+		writer.NewLine();
+		writer.ObjectStart("_AddCustomValue = NumberValue");
+		writer.NewPropertyWithValue(key, value);
+		writer.ObjectEnd();
+	}
+
+	for (const auto& [key, value]: m_StringValueMap) {
+		writer.NewLine();
+		writer.ObjectStart("_AddCustomValue = StringValue");
+		writer.NewPropertyWithValue(key, value);
+		writer.ObjectEnd();
+	}
+
+	if (m_ForceIntoMasterLuaState != reference.m_ForceIntoMasterLuaState)
+		writer.NewPropertyWithValue("ForceIntoMasterLuaState", m_ForceIntoMasterLuaState);
+
+	return constituentsConsumed;
+}
+
 HashingData MovableObject::Hash() const {
 	HashingData hashData = SceneObject::Hash();
 	uint64_t& hash = hashData.m_Hash;
@@ -474,7 +588,7 @@ HashingData MovableObject::Hash() const {
 	hash ^= std::hash<float>{}(m_Mass) << 1;
 
 	HashingData velHash = m_Vel.Hash();
-	hashData.m_Constituents.push_back(velHash);
+	//hashData.m_Constituents.push_back(velHash);
 	hash ^= velHash.m_Hash << 2;
 
 	hash ^= std::hash<float>{}(m_Scale) << 3;
@@ -503,7 +617,7 @@ HashingData MovableObject::Hash() const {
 	}
 
 	HashingData effectHash = m_ScreenEffectFile.Hash();
-	hashData.m_Constituents.push_back(effectHash);
+	//hashData.m_Constituents.push_back(effectHash);
 	hash ^= effectHash.m_Hash << 4;
 
 	hash ^= std::hash<bool>{}(m_PostEffectEnabled) << 5;

@@ -230,9 +230,9 @@ namespace RTE {
 
 		/// Records an entity against the reference, expected to be a preset.
 		/// @param writer A Writer that the Entity will save itself to.
-		/// @param reference A reference to write properties against.
+		/// @param reference A reference preset to write properties against.
 		/// @param hashData A clump of hash data for cheap property comparisons.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		/// @return A value representing how many constituents have been from this layer's hash data read thus far.
 		int Write(Writer& writer, const Entity& reference, const HashingData&) const;
 #pragma endregion
 

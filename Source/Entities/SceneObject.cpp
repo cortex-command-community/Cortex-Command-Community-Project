@@ -204,14 +204,39 @@ int SceneObject::ReadProperty(const std::string_view& propName, Reader& reader) 
 int SceneObject::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	if (!m_Pos.IsZero()) writer.NewPropertyWithValue("Position", m_Pos);
-	if (m_OzValue != 0) writer.NewPropertyWithValue("GoldValue", m_OzValue);
-	if (m_Buyable != true) writer.NewPropertyWithValue("Buyable", m_Buyable);
-	if (m_BuyableMode != BuyableMode::NoRestrictions) writer.NewPropertyWithValue("BuyableMode", static_cast<int>(m_BuyableMode));
-	if (m_Team != Activity::NoTeam) writer.NewPropertyWithValue("Team", m_Team);
-	if (m_PlacedByPlayer != Players::NoPlayer) writer.NewPropertyWithValue("PlacedByPlayer", m_PlacedByPlayer);
+	if (!m_Pos.IsZero())
+		writer.NewPropertyWithValue("Position", m_Pos);
+	if (m_OzValue != 0)
+		writer.NewPropertyWithValue("GoldValue", m_OzValue);
+	if (m_Buyable != true)
+		writer.NewPropertyWithValue("Buyable", m_Buyable);
+	if (m_BuyableMode != BuyableMode::NoRestrictions)
+		writer.NewPropertyWithValue("BuyableMode", static_cast<int>(m_BuyableMode));
+	if (m_Team != Activity::NoTeam)
+		writer.NewPropertyWithValue("Team", m_Team);
+	if (m_PlacedByPlayer != Players::NoPlayer)
+		writer.NewPropertyWithValue("PlacedByPlayer", m_PlacedByPlayer);
 
 	return 0;
+}
+
+int SceneObject::Write(Writer& writer, const SceneObject& reference, const HashingData& hashData) const {
+	int constituentsConsumed = Entity::Write(writer, reference, hashData);
+
+	if (m_Pos != reference.m_Pos)
+		writer.NewPropertyWithValue("Position", m_Pos);
+	if (m_OzValue != reference.m_OzValue)
+		writer.NewPropertyWithValue("GoldValue", m_OzValue);
+	if (m_Buyable != reference.m_Buyable)
+		writer.NewPropertyWithValue("Buyable", m_Buyable);
+	if (m_BuyableMode != reference.m_BuyableMode)
+		writer.NewPropertyWithValue("BuyableMode", static_cast<int>(m_BuyableMode));
+	if (m_Team != reference.m_Team)
+		writer.NewPropertyWithValue("Team", m_Team);
+	if (m_PlacedByPlayer != reference.m_PlacedByPlayer)
+		writer.NewPropertyWithValue("PlacedByPlayer", m_PlacedByPlayer);
+
+	return constituentsConsumed;
 }
 
 HashingData SceneObject::Hash() const {
@@ -219,7 +244,7 @@ HashingData SceneObject::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	HashingData posHash = m_Pos.Hash();
-	hashData.m_Constituents.push_back(posHash);
+	//hashData.m_Constituents.push_back(posHash);
 	hash ^= posHash.m_Hash << 0;
 
 	hash ^= std::hash<float>{}(m_OzValue) << 1;

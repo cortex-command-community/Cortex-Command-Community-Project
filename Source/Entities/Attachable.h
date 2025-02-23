@@ -35,6 +35,8 @@ namespace RTE {
 		/// Destructor method used to clean up an Attachable object before deletion from system memory.
 		~Attachable() override;
 
+		int Write(Writer& writer, const Attachable& reference, const HashingData& hashData) const;
+
 		/// Destroys and resets (through Clear()) the Attachable object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override {

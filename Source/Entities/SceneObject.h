@@ -131,6 +131,13 @@ namespace RTE {
 		/// Anything below 0 is an error signal.
 		int Create(const SceneObject& reference);
 
+		/// Records an entity against the reference, expected to be a preset.
+		/// @param writer A Writer that the Entity will save itself to.
+		/// @param reference A reference preset to write properties against.
+		/// @param hashData A clump of hash data for cheap property comparisons.
+		/// @return A value representing how many constituents have been from this layer's hash data read thus far.
+		int Write(Writer& writer, const SceneObject& reference, const HashingData& hashData) const;
+
 		/// Resets the entire SceneObject, including its inherited members, to their
 		/// default settings or values.
 		void Reset() override {

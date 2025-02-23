@@ -290,7 +290,7 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 			delete RemoveAttachable(attachable);
 		}
 	});
-	MatchForwards("AddAttachable") MatchForwards("AddAEmitter") MatchProperty("AddEmitter", {
+	MatchForwards("AddAttachable") MatchForwards("AddAEmitter") MatchForwards("AddEmitter") MatchProperty("_AddAttachable", {
 		Entity* readerEntity = g_PresetMan.ReadReflectedPreset(reader);
 		if (Attachable* readerAttachable = dynamic_cast<Attachable*>(readerEntity)) {
 			AddAttachable(readerAttachable);
@@ -298,12 +298,13 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 			reader.ReportError("Tried to AddAttachable a non-Attachable type!");
 		}
 	});
-	MatchProperty("SpecialBehaviour_AddWound", {
+	MatchForwards("SpecialBehaviour_AddWound") MatchProperty("_AddWound", {
 		AEmitter* wound = new AEmitter;
 		reader >> wound;
 		AddWound(wound, wound->GetParentOffset());
 	});
-	MatchProperty("AddGib",
+	MatchProperty("_ClearGibs", { m_Gibs.clear(); });
+	MatchForwards("AddGib") MatchProperty("_AddGib",
 	              {
 		              Gib* gib = new Gib();
 		              reader >> *gib;
@@ -363,15 +364,127 @@ int MOSRotating::Save(Writer& writer) const {
 
 	writer.NewProperty("GibImpulseLimit");
 	writer << m_GibImpulseLimit;
-	writer.NewProperty("GibWoundLimit");
-	writer << m_GibWoundLimit;
+	writer.NewPropertyWithValue("GibWoundLimit", m_GibWoundLimit);
 	writer.NewPropertyWithValue("GibAtEndOfLifetime", m_GibAtEndOfLifetime);
-	writer.NewProperty("GibSound");
-	writer << m_GibSound;
+
+	if (m_GibSound != nullptr) {
+		writer.NewProperty("GibSound");
+
+		if (const SoundContainer* gibSoundPreset = static_cast<const SoundContainer*>(m_GibSound->GetPreset())) {
+			m_GibSound->Write(writer, *gibSoundPreset, *g_PresetMan.GetEntityHash("SoundContainer", m_GibSound->GetPresetName(), m_GibSound->GetModuleID()));
+			writer.ObjectEnd();
+		} else {
+			writer << m_GibSound;
+		}
+	}
+
 	writer.NewProperty("EffectOnGib");
 	writer << m_EffectOnGib;
 
 	return 0;
+}
+
+int MOSRotating::Write(Writer& writer, const MOSRotating& reference, const HashingData& hashData) const {
+	int constituentsConsumed = MOSprite::Write(writer, reference, hashData);
+
+	if (m_pAtomGroup != nullptr) {
+		if (reference.m_pAtomGroup == nullptr || m_pAtomGroup->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed).m_Hash) {
+			writer.NewProperty("AtomGroup");
+			if (const AtomGroup* preset = static_cast<const AtomGroup*>(m_pAtomGroup->GetPreset())) {
+				m_pAtomGroup->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pAtomGroup->GetClassName(), m_pAtomGroup->GetPresetName(), m_pAtomGroup->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << m_pAtomGroup;
+			}
+		}
+	} else if (reference.m_pAtomGroup != nullptr) {
+		writer.NewProperty("AtomGroup");
+		writer << m_pAtomGroup;
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(0);
+
+	if (m_pDeepGroup != nullptr) {
+		if (reference.m_pDeepGroup == nullptr || m_pDeepGroup->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed).m_Hash) {
+			writer.NewProperty("DeepGroup");
+			if (const AtomGroup* preset = static_cast<const AtomGroup*>(m_pDeepGroup->GetPreset())) {
+				m_pDeepGroup->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pDeepGroup->GetClassName(), m_pDeepGroup->GetPresetName(), m_pDeepGroup->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << m_pDeepGroup;
+			}
+		}
+	} else if (reference.m_pDeepGroup != nullptr) {
+		writer.NewProperty("DeepGroup");
+		writer << m_pDeepGroup;
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(1);
+
+	if (m_DeepCheck != reference.m_DeepCheck)
+		writer.NewPropertyWithValue("DeepCheck", m_DeepCheck);
+	if (m_OrientToVel != reference.m_OrientToVel)
+		writer.NewPropertyWithValue("OrientToVel", m_OrientToVel);
+
+	if (reference.m_Attachables.size() > 0) {
+		writer.NewPropertyWithValue("_ClearAttachables", 1);
+	}
+
+	for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr) {
+		writer.NewProperty("_AddWound");
+		writer << (*itr);
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(2);
+
+	for (auto aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr) {
+		writer.NewProperty("_AddAttachable");
+		if (const Attachable* preset = static_cast<const Attachable*>((*aItr)->GetPreset())) {
+			(*aItr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*aItr)->GetClassName(), (*aItr)->GetPresetName(), (*aItr)->GetModuleID()));
+			writer.ObjectEnd();
+		} else {
+			writer << (*aItr);
+		}
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(3);
+
+
+	for (auto gItr = m_Gibs.begin(); gItr != m_Gibs.end(); ++gItr) {
+		writer.NewProperty("_AddGib");
+		writer << (**gItr);
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(4);
+
+	if (m_GibImpulseLimit != reference.m_GibImpulseLimit)
+		writer.NewPropertyWithValue("GibImpulseLimit", m_GibImpulseLimit);
+	if (m_GibWoundLimit != reference.m_GibWoundLimit)
+		writer.NewPropertyWithValue("GibWoundLimit", m_GibWoundLimit);
+	if (m_GibAtEndOfLifetime != reference.m_GibAtEndOfLifetime)
+		writer.NewPropertyWithValue("GibAtEndOfLifetime", m_GibAtEndOfLifetime);
+
+	if (m_GibSound != nullptr) {
+		if (reference.m_GibSound == nullptr || m_GibSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed).m_Hash) {
+			writer.NewProperty("GibSound");
+			if (const SoundContainer* preset = static_cast<const SoundContainer*>(m_GibSound->GetPreset())) {
+				m_GibSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_GibSound->GetClassName(), m_GibSound->GetPresetName(), m_GibSound->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << m_GibSound;
+			}
+		}
+	} else if (reference.m_GibSound != nullptr) {
+		writer.NewProperty("GibSound");
+		writer << m_GibSound;
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(5);
+
+	if (m_EffectOnGib != reference.m_EffectOnGib)
+		writer.NewPropertyWithValue("EffectOnGib", m_EffectOnGib);
+
+	return constituentsConsumed;
 }
 
 HashingData MOSRotating::Hash() const {

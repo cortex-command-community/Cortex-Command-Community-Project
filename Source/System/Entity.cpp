@@ -142,19 +142,19 @@ namespace RTE {
 
 		if (m_IsOriginalPreset) {
 			writer.NewPropertyWithValue("PresetName", m_PresetName);
-		} else {
+		} else if (!m_PresetName.empty() && m_PresetName != "None") {
 			writer.NewPropertyWithValue("InstanceName", m_PresetName);
-		}
-
-		if (!m_PresetDescription.empty()) {
-			writer.NewPropertyWithValue("Description", m_PresetDescription);
 		}
 
 		if (!m_PresetDescription.empty()) {
 			writer.NewPropertyWithValue("DisplayName", m_DisplayName);
 		}
 
-		writer.NewProperty("_ClearGroups = 1");
+		if (!m_PresetDescription.empty()) {
+			writer.NewPropertyWithValue("Description", m_PresetDescription);
+		}
+
+		//writer.NewPropertyWithValue("_ClearGroups", 1);
 
 		for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {
 		    writer.NewPropertyWithValue("_AddToGroup", *itr);
@@ -167,14 +167,27 @@ namespace RTE {
 		writer.ObjectStart(GetClassName());
 
 		writer.NewPropertyWithValue("CopyOf", reference.m_PresetName);
-		writer.NewPropertyWithValue("Description", m_PresetDescription);
-		writer.NewPropertyWithValue("DisplayName", m_DisplayName);
+
+		if (m_DisplayName != reference.m_DisplayName) {
+			writer.NewPropertyWithValue("DisplayName", m_DisplayName);
+		}
+
+		if (m_PresetDescription != reference.m_PresetDescription) {
+			writer.NewPropertyWithValue("Description", m_PresetDescription);
+		}
 		
 		// There are some specific circumstances where it would be more compact to remove a set rather than clear
-		writer.NewProperty("_ClearGroups = 1");
+		// when, of the groups including the preset, the number of groups shared plus the clear instruction is greater
+		// than the number of groups not shared.
+		// TODO: That^
+		if (m_Groups != reference.m_Groups) {
+			if (m_Groups.size() > 0) {
+				writer.NewProperty("_ClearGroups = 1");
+			}
 
-		for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {
-			writer.NewPropertyWithValue("_AddToGroup", *itr);
+			for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {
+				writer.NewPropertyWithValue("_AddToGroup", *itr);
+			}
 		}
 
 		return 0;

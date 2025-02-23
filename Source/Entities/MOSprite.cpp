@@ -203,7 +203,7 @@ std::string MOSprite::GetExitWoundPresetName() const {
 };
 
 int MOSprite::Save(Writer& writer) const {
-	MovableObject::Save(writer);
+	int constituentsConsumed = MovableObject::Save(writer);
 
 	writer.NewPropertyWithValue("SpriteFile", m_SpriteFile);
 	writer.NewPropertyWithValue("FrameCount", m_FrameCount);
@@ -214,8 +214,51 @@ int MOSprite::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("Rotation", m_Rotation.GetRadAngle());
 	writer.NewPropertyWithValue("AngularVel", m_AngularVel);
 	writer.NewPropertyWithValue("SettleMaterialDisabled", m_SettleMaterialDisabled);
-	writer.NewPropertyWithValue("EntryWound", m_pEntryWound);
-	writer.NewPropertyWithValue("ExitWound", m_pExitWound);
+	if (m_pEntryWound)
+		writer.NewPropertyWithValue("EntryWound", m_pEntryWound->GetEntityCharacteristic());
+	if (m_pExitWound)
+		writer.NewPropertyWithValue("ExitWound", m_pExitWound->GetEntityCharacteristic());
+
+	return constituentsConsumed;
+}
+
+int MOSprite::Write(Writer& writer, const MOSprite& reference, const HashingData& hashData) const {
+	MovableObject::Write(writer, reference, hashData);
+
+	if (m_SpriteFile.GetDataPath() != reference.m_SpriteFile.GetDataPath())
+		writer.NewPropertyWithValue("SpriteFile", m_SpriteFile);
+	if (m_FrameCount != reference.m_FrameCount)
+		writer.NewPropertyWithValue("FrameCount", m_FrameCount);
+	if (m_SpriteOffset != reference.m_SpriteOffset)
+		writer.NewPropertyWithValue("SpriteOffset", m_SpriteOffset);
+	if (m_SpriteAnimMode != reference.m_SpriteAnimMode)
+		writer.NewPropertyWithValue("SpriteAnimMode", m_SpriteAnimMode);
+	if (m_SpriteAnimDuration != reference.m_SpriteAnimDuration)
+		writer.NewPropertyWithValue("SpriteAnimDuration", m_SpriteAnimDuration);
+	if (m_HFlipped != reference.m_HFlipped)
+		writer.NewPropertyWithValue("HFlipped", m_HFlipped);
+	if (m_Rotation != reference.m_Rotation)
+		writer.NewPropertyWithValue("Rotation", m_Rotation.GetRadAngle());
+	if (m_AngularVel != reference.m_AngularVel)
+		writer.NewPropertyWithValue("AngularVel", m_AngularVel);
+	if (m_SettleMaterialDisabled != reference.m_SettleMaterialDisabled)
+		writer.NewPropertyWithValue("SettleMaterialDisabled", m_SettleMaterialDisabled);
+
+	if (m_pEntryWound != reference.m_pEntryWound) {
+		if (m_pEntryWound) {
+			writer.NewPropertyWithValue("ExitWound", m_pEntryWound->GetEntityCharacteristic());
+		} else {
+			writer.NewPropertyWithValue("ExitWound", "None");
+		}
+	}
+
+	if (m_pExitWound != reference.m_pExitWound) {
+		if (m_pExitWound) {
+			writer.NewPropertyWithValue("ExitWound", m_pExitWound->GetEntityCharacteristic());
+		} else {
+			writer.NewPropertyWithValue("ExitWound", "None");
+		}
+	}
 
 	return 0;
 }
