@@ -180,7 +180,10 @@ int BunkerAssemblyScheme::ReadProperty(const std::string_view& propName, Reader&
 					              rectfill(m_pIconBitmap, x * ScaleX * scale, y * ScaleY * scale, x * ScaleX * scale + ScaleX - 1, y * ScaleY + ScaleY - 1, PAINT_COLOR_VARIABLE);
 			              }
 	              });
-	MatchProperty("_ClearChildObjects", { m_ChildObjects.clear(); });
+	MatchProperty("_ClearChildObjects", {
+		reader.ReadPropValue();
+		m_ChildObjects.clear();
+	});
 	MatchForwards("AddChildObject") MatchProperty("_AddChildObject",
 	              {
 		              SOPlacer newChild;

@@ -69,6 +69,10 @@ namespace RTE {
 		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
+#pragma region INI Handling
+		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
+#pragma endregion
+
 		/// Gets the absoltue position of the top of this' HUD stack.
 		/// @return A Vector with the absolute position of this' HUD stack top point.
 		Vector GetAboveHUDPos() const override { return m_Pos + Vector(0, -32); }

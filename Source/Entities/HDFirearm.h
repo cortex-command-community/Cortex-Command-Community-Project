@@ -53,6 +53,10 @@ namespace RTE {
 		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
+#pragma region INI Handling
+		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
+#pragma endregion
+
 		/// Gets reload end offset, in ms. This is how early the ReloadEnd
 		/// sound is played compared to actual end of reload.
 		/// @return The reload end offset, in ms.

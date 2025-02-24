@@ -372,8 +372,14 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("ApplyWoundBurstDamageOnCollision", { reader >> m_ApplyWoundBurstDamageOnCollision; });
 	MatchProperty("IgnoreTerrain", { reader >> m_IgnoreTerrain; });
 	MatchProperty("SimUpdatesBetweenScriptedUpdates", { reader >> m_SimUpdatesBetweenScriptedUpdates; });
-	MatchProperty("_ClearCustomNumberValues", { m_NumberValueMap.clear(); });
-	MatchProperty("_ClearCustomStringValues", { m_StringValueMap.clear(); });
+	MatchProperty("_ClearCustomNumberValues", { 
+		reader.ReadPropValue();
+		m_NumberValueMap.clear();
+	});
+	MatchProperty("_ClearCustomStringValues", { 
+		reader.ReadPropValue();
+		m_StringValueMap.clear();
+	});
 	MatchForwards("AddCustomValue") MatchProperty("_AddCustomValue", { ReadCustomValueProperty(reader); });
 	MatchProperty("ForceIntoMasterLuaState", { reader >> m_ForceIntoMasterLuaState; });
 

@@ -1021,7 +1021,7 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 	    });
 	MatchProperty(
 	    "AddBackgroundLayer",
-	    SLBackground* pLayer = dynamic_cast<SLBackground*>(g_PresetMan.ReadReflectedPreset(reader));
+	    SLBackground* pLayer = dynamic_cast<SLBackground*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader)->Clone());
 	    RTEAssert(pLayer, "Something went wrong with reading SceneLayer");
 	    if (pLayer) {
 		    m_BackLayerList.push_back(pLayer);

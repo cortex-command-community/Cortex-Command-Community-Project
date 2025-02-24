@@ -128,16 +128,19 @@ int LimbPath::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 	MatchProperty("StartOffset", { reader >> m_Start; });
 	MatchProperty("StartSegCount", { reader >> m_StartSegCount; });
-	MatchProperty("AddSegment",
-	              {
-		              Vector segment;
-		              reader >> segment;
-		              m_Segments.push_back(segment);
-		              m_TotalLength += segment.GetMagnitude();
-		              if (m_Segments.size() >= m_StartSegCount) {
-			              m_RegularLength += segment.GetMagnitude();
-		              }
-	              });
+	MatchProperty("_ClearSegments", {
+		reader.ReadPropValue();
+		m_Segments.clear();
+	});
+	MatchForwards("AddSegment") MatchProperty("_AddSegment", {
+		Vector segment;
+		reader >> segment;
+		m_Segments.push_back(segment);
+		m_TotalLength += segment.GetMagnitude();
+		if (m_Segments.size() >= m_StartSegCount) {
+			m_RegularLength += segment.GetMagnitude();
+		}
+	});
 	MatchProperty("EndSegCount", { reader >> m_FootCollisionsDisabledSegment; });
 	MatchProperty("SegmentEndedThreshold", { reader >> m_SegmentEndedThreshold; });
 
@@ -192,6 +195,60 @@ int LimbPath::Save(Writer& writer) const {
 	return 0;
 }
 
+size_t LimbPath::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+    size_t constituentsConsumed = Entity::Write(writer, entityReference, hashData);
+
+	const LimbPath& reference = static_cast<const LimbPath&>(entityReference);
+
+	if (m_Start != reference.m_Start)
+		writer.NewPropertyWithValue("StartOffset", m_Start);
+	if (m_StartSegCount != reference.m_StartSegCount)
+		writer.NewPropertyWithValue("StartSegCount", m_StartSegCount);
+
+	bool areSegmentsConcatenated = true;
+	std::deque<Vector>::const_iterator sItr = m_Segments.begin();
+	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(0); refIndex++, sItr++) {
+		if (sItr->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
+			areSegmentsConcatenated = false;
+			break;
+		}
+	}
+
+	if (areSegmentsConcatenated) {
+		for (std::deque<Vector>::const_iterator itr = sItr; itr != m_Segments.end(); ++itr) {
+			writer.NewProperty("_AddSegment");
+			writer << (*itr);
+		}
+	} else {
+		if (reference.m_Segments.size() > 0) {
+			writer.NewPropertyWithValue("_ClearSegments", 1);
+		}
+
+		for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr) {
+			writer.NewProperty("_AddSegment");
+			writer << (*itr);
+		}
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(0);
+
+	if (m_FootCollisionsDisabledSegment != reference.m_FootCollisionsDisabledSegment)
+		writer.NewPropertyWithValue("EndSegCount", m_FootCollisionsDisabledSegment);
+	if (m_SegmentEndedThreshold != reference.m_SegmentEndedThreshold)
+		writer.NewPropertyWithValue("SegmentEndedThreshold", m_SegmentEndedThreshold);
+
+	if (m_TravelSpeed != reference.m_TravelSpeed)
+		writer.NewPropertyWithValue("TravelSpeed", m_TravelSpeed);
+	if (m_BaseTravelSpeedMultiplier != reference.m_BaseTravelSpeedMultiplier)
+		writer.NewPropertyWithValue("BaseTravelSpeedMultiplier", m_BaseTravelSpeedMultiplier);
+	if (m_BaseScaleMultiplier != reference.m_BaseScaleMultiplier)
+		writer.NewPropertyWithValue("BaseScaleMultiplier", m_BaseScaleMultiplier);
+	if (m_PushForce != reference.m_PushForce)
+		writer.NewPropertyWithValue("PushForce", m_PushForce);
+
+	return constituentsConsumed;
+}
+
 HashingData LimbPath::Hash() const {
 	HashingData hashData = Entity::Hash();
 	uint64_t& hash = hashData.m_Hash;
@@ -202,8 +259,12 @@ HashingData LimbPath::Hash() const {
 	hash ^= std::hash<int>{}(m_StartSegCount) << 1;
 
 	for (int i = 0; i < m_Segments.size(); i++) {
-		hash ^= m_Segments.at(i).Hash().m_Hash << (i % sizeof(uint64_t) * 8);
+		uint64_t segmentHash = m_Segments.at(i).Hash().m_Hash;
+		hashData.m_Constituents.push_back(segmentHash);
+		hash ^= segmentHash << (i % sizeof(uint64_t) * 8);
 	}
+
+	hashData.m_ParseValues.push_back(m_Segments.size());
 
 	hash ^= std::hash<int>{}(m_FootCollisionsDisabledSegment) << 2;
 	hash ^= std::hash<float>{}(m_SegmentEndedThreshold) << 3;

@@ -141,7 +141,10 @@ int AtomGroup::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("AutoGenerate", { reader >> m_AutoGenerate; });
 	MatchProperty("Resolution", { reader >> m_Resolution; });
 	MatchProperty("Depth", { reader >> m_Depth; });
-	MatchProperty("ClearAtoms", { m_Atoms.clear(); });
+	MatchProperty("_ClearAtoms", {
+		reader.ReadPropValue();
+		m_Atoms.clear();
+	});
 	MatchForwards("AddAtom") MatchProperty("_AddAtom", {
 		Atom* atom = new Atom;
 		reader >> *atom;
@@ -196,6 +199,8 @@ size_t AtomGroup::Write(Writer& writer, const Entity& entityReference, const Has
 
 	const AtomGroup& reference = static_cast<const AtomGroup&>(entityReference);
 
+	// TODO: autogeneration gives this more nuance, could be bad
+
 	if (m_Material != reference.m_Material) {
 		writer.NewPropertyWithValue("Material", m_Material->GetEntityCharacteristic());
 	}
@@ -206,12 +211,32 @@ size_t AtomGroup::Write(Writer& writer, const Entity& entityReference, const Has
 
 	// Only write out Atoms if they were manually specified
 	if (!m_AutoGenerate) {
-		if (m_Atoms != reference.m_Atoms) {
-			for (const Atom* atom: m_Atoms) {
-				writer.NewProperty("_AddAtom");
-				writer << *atom;
+		bool areAtomsConcatenated = true;
+		std::vector<Atom*>::const_iterator aItr = m_Atoms.begin();
+		for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(0); refIndex++, aItr++) {
+			if ((*aItr)->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
+				areAtomsConcatenated = false;
+				break;
 			}
 		}
+
+		if (areAtomsConcatenated) {
+			for (std::vector<Atom*>::const_iterator itr = aItr; itr != m_Atoms.end(); ++itr) {
+				writer.NewProperty("_AddAtom");
+				writer << (**itr);
+			}
+		} else {
+			if (reference.m_Atoms.size() > 0) {
+				writer.NewPropertyWithValue("_ClearAtoms", 1);
+			}
+
+			for (std::vector<Atom*>::const_iterator itr = m_Atoms.begin(); itr != m_Atoms.end(); ++itr) {
+				writer.NewProperty("_AddAtom");
+				writer << (**itr);
+			}
+		}
+
+		constituentsConsumed += hashData.m_ParseValues.at(0);
 	} else {
 		if (m_Resolution != reference.m_Resolution) {
 			writer.NewPropertyWithValue("Resolution", m_Resolution);

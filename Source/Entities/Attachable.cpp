@@ -155,7 +155,10 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("InheritsAngularVelWhenDetached", { reader >> m_InheritsAngularVelWhenDetached; });
 	MatchProperty("CollidesWithTerrainWhileAttached", { reader >> m_CollidesWithTerrainWhileAttached; });
 	MatchProperty("IgnoresParticlesWhileAttached", { reader >> m_IgnoresParticlesWhileAttached; });
-	MatchProperty("_ClearPieSlices", { m_PieSlices.clear(); })
+	MatchProperty("_ClearPieSlices", {
+		reader.ReadPropValue();
+		m_PieSlices.clear();
+	})
 	MatchForwards("AddPieSlice") MatchProperty("_AddPieSlice", { m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader)))); });
 
 	EndPropertyList;
@@ -200,7 +203,7 @@ int Attachable::Save(Writer& writer) const {
 }
 
 size_t Attachable::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = MOSRotating::Write(writer, entityReference, hashData);
+	size_t constituentsConsumed = MOSRotating::Write(writer, entityReference, hashData); // last parse index: 5
 
 	const Attachable& reference = static_cast<const Attachable&>(entityReference);
 

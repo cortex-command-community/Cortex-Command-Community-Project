@@ -50,6 +50,10 @@ namespace RTE {
 		}
 #pragma endregion
 
+#pragma region INI Handling
+		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
+#pragma endregion
+
 #pragma region Getters and Setters
 		/// Gets the max length of this Arm when fully extended, i.e. the farthest possible length from its joint position to the hand.
 		/// @return The max length of this Arm.

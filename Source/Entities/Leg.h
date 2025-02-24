@@ -48,6 +48,10 @@ namespace RTE {
 		}
 #pragma endregion
 
+#pragma region INI Handling
+		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
+#pragma endregion
+
 #pragma region Getters and Setters
 		/// Gets the foot of this Leg.
 		/// @return A pointer to foot of this Leg. Ownership is NOT transferred!

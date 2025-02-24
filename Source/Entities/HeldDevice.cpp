@@ -199,12 +199,7 @@ int HeldDevice::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 int HeldDevice::Save(Writer& writer) const {
 	Attachable::Save(writer);
-	/*
-	    writer.NewLine();
-	    writer << "// 0 = Offensive Weapon, 1 = Tool, 2 = Shield";
-	    writer.NewProperty("HeldDeviceType");
-	    writer << m_HeldDeviceType;
-	*/
+
 	writer.NewPropertyWithValue("OneHanded", m_OneHanded);
 	writer.NewPropertyWithValue("StanceOffset", m_StanceOffset);
 	writer.NewPropertyWithValue("SharpStanceOffset", m_SharpStanceOffset);
@@ -220,26 +215,46 @@ int HeldDevice::Save(Writer& writer) const {
 	return 0;
 }
 
+size_t HeldDevice::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = Attachable::Write(writer, entityReference, hashData); // last parse index: 6
+
+	const HeldDevice& reference = static_cast<const HeldDevice&>(entityReference);
+
+	if (m_OneHanded != reference.m_OneHanded)
+		writer.NewPropertyWithValue("OneHanded", m_OneHanded);
+	if (m_StanceOffset != reference.m_StanceOffset)
+		writer.NewPropertyWithValue("StanceOffset", m_StanceOffset);
+	if (m_SharpStanceOffset != reference.m_SharpStanceOffset)
+		writer.NewPropertyWithValue("SharpStanceOffset", m_SharpStanceOffset);
+	if (m_Supportable != reference.m_Supportable)
+		writer.NewPropertyWithValue("Supportable", m_Supportable);
+	if (m_SupportOffset != reference.m_SupportOffset)
+		writer.NewPropertyWithValue("SupportOffset", m_SupportOffset);
+	if (m_UseSupportOffsetWhileReloading != reference.m_UseSupportOffsetWhileReloading)
+		writer.NewPropertyWithValue("UseSupportOffsetWhileReloading", m_UseSupportOffsetWhileReloading);
+	if (m_GripStrengthMultiplier != reference.m_GripStrengthMultiplier)
+		writer.NewPropertyWithValue("GripStrengthMultiplier", m_GripStrengthMultiplier);
+	if (m_MaxSharpLength != reference.m_MaxSharpLength)
+		writer.NewPropertyWithValue("SharpLength", m_MaxSharpLength);
+	if (m_Loudness != reference.m_Loudness)
+		writer.NewPropertyWithValue("Loudness", m_Loudness);
+	if (m_GetsHitByMOsWhenHeld != reference.m_GetsHitByMOsWhenHeld)
+		writer.NewPropertyWithValue("GetsHitByMOsWhenHeld", m_GetsHitByMOsWhenHeld);
+	if (m_VisualRecoilMultiplier != reference.m_VisualRecoilMultiplier)
+		writer.NewPropertyWithValue("VisualRecoilMultiplier", m_VisualRecoilMultiplier);
+
+	return constituentsConsumed;  // last parse index: 6
+}
+
 HashingData HeldDevice::Hash() const {
 	HashingData hashData = Attachable::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= std::hash<bool>{}(m_OneHanded) << 1;
-
-	uint64_t stanceOffsetHash = m_StanceOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(stanceOffsetHash);
-	hash ^= stanceOffsetHash << 2;
-
-	uint64_t sharpStanceOffsetHash = m_SharpStanceOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(sharpStanceOffsetHash);
-	hash ^= sharpStanceOffsetHash << 3;
-
+	hash ^= m_StanceOffset.Hash().m_Hash << 2;
+	hash ^= m_SharpStanceOffset.Hash().m_Hash << 3;
 	hash ^= std::hash<bool>{}(m_Supportable) << 4;
-
-	uint64_t supportOffsetHash = m_SupportOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(supportOffsetHash);
-	hash ^= supportOffsetHash << 5;
-
+	hash ^= m_SupportOffset.Hash().m_Hash << 5;
 	hash ^= std::hash<bool>{}(m_UseSupportOffsetWhileReloading) << 6;
 	hash ^= std::hash<float>{}(m_GripStrengthMultiplier) << 7;
 	hash ^= std::hash<float>{}(m_MaxSharpLength) << 8;

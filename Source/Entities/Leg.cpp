@@ -111,30 +111,59 @@ int Leg::Save(Writer& writer) const {
 	return 0;
 }
 
+size_t Leg::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = Attachable::Write(writer, entityReference, hashData);
+
+	const Leg& reference = static_cast<const Leg&>(entityReference);
+
+	if (m_Foot != nullptr) {
+		if (reference.m_Foot == nullptr || m_Foot->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
+			writer.NewProperty("Foot");
+			if (const Entity* preset = m_Foot->GetPreset()) {
+				m_Foot->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << m_Foot;
+			}
+		}
+	} else if (reference.m_Foot != nullptr) {
+		writer.NewProperty("Foot");
+		writer << "None";
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(7);
+
+	if (m_ContractedOffset != reference.m_ContractedOffset)
+		writer.NewPropertyWithValue("ContractedOffset", m_ContractedOffset);
+	if (m_ExtendedOffset != reference.m_ExtendedOffset)
+		writer.NewPropertyWithValue("ExtendedOffset", m_ExtendedOffset);
+	if (m_IdleOffset != reference.m_IdleOffset)
+		writer.NewPropertyWithValue("IdleOffset", m_IdleOffset);
+	if (m_WillIdle != reference.m_WillIdle)
+		writer.NewPropertyWithValue("WillIdle", m_WillIdle);
+	if (m_MoveSpeed != reference.m_MoveSpeed)
+		writer.NewPropertyWithValue("MoveSpeed", m_MoveSpeed);
+
+	return constituentsConsumed;
+}
+
 HashingData Leg::Hash() const {
 	HashingData hashData = Attachable::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
-	if (m_Foot) {
+	bool footDef = m_Foot != nullptr;
+	hashData.m_ParseValues.push_back(footDef);
+	if (footDef) {
 		uint64_t footHash = m_Foot->Hash().m_Hash;
 		hashData.m_Constituents.push_back(footHash);
-		hash ^= footHash << 1;
+		hash ^= footHash << 0;
 	}
 
-	uint64_t contractedHash = m_ContractedOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(contractedHash);
-	hash ^= contractedHash << 2;
-
-	uint64_t extendedHash = m_ExtendedOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(extendedHash);
-	hash ^= extendedHash << 3;
-
-	uint64_t idleHash = m_IdleOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(idleHash);
-	hash ^= idleHash << 4;
-
-	hash ^= std::hash<bool>{}(m_WillIdle) << 5;
-	hash ^= std::hash<float>{}(m_MoveSpeed) << 6;
+	hash ^= m_ContractedOffset.Hash().m_Hash << 1;
+	hash ^= m_ExtendedOffset.Hash().m_Hash << 2;
+	hash ^= m_IdleOffset.Hash().m_Hash << 3;
+	hash ^= std::hash<bool>{}(m_WillIdle) << 4;
+	hash ^= std::hash<float>{}(m_MoveSpeed) << 5;
 
 	return hashData;
 }

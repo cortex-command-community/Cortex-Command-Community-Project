@@ -298,13 +298,19 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 			reader.ReportError("Tried to AddAttachable a non-Attachable type!");
 		}
 	});
-	MatchProperty("_ClearWounds", { RemoveWounds(GetWoundCount()); })
+	MatchProperty("_ClearWounds", {
+		reader.ReadPropValue();
+		RemoveWounds(GetWoundCount());
+	});
 	MatchForwards("SpecialBehaviour_AddWound") MatchProperty("_AddWound", {
 		AEmitter* wound = new AEmitter;
 		reader >> wound;
 		AddWound(wound, wound->GetParentOffset());
 	});
-	MatchProperty("_ClearGibs", { m_Gibs.clear(); });
+	MatchProperty("_ClearGibs", { 
+		reader.ReadPropValue();
+		m_Gibs.clear(); 
+	});
 	MatchForwards("AddGib") MatchProperty("_AddGib", {
 		Gib* gib = new Gib();
 		reader >> *gib;

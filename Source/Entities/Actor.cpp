@@ -349,6 +349,7 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("ReloadOffset", { reader >> m_ReloadOffset; });
 	MatchProperty("_ClearInventory", {
 		// Delete everything in the inventory, and then forget about it.
+		reader.ReadPropValue();
 		for (std::deque<MovableObject*>::const_iterator itr = m_Inventory.begin(); itr != m_Inventory.end(); ++itr) {
 			delete (*itr);
 		}
@@ -572,7 +573,7 @@ size_t Actor::Write(Writer& writer, const Entity& entityReference, const Hashing
 
 	bool isInventoryConcatenated = true;
 	std::deque<MovableObject*>::const_iterator iItr = m_Inventory.begin();
-	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(2); refIndex++, iItr++) {
+	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(11); refIndex++, iItr++) {
 		if ((*iItr)->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
 			isInventoryConcatenated = false;
 			break;

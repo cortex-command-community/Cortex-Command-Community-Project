@@ -241,7 +241,7 @@ size_t MOSprite::Write(Writer& writer, const Entity& entityReference, const Hash
 	if (m_HFlipped != reference.m_HFlipped)
 		writer.NewPropertyWithValue("HFlipped", m_HFlipped);
 	if (m_Rotation != reference.m_Rotation)
-		writer.NewPropertyWithValue("Rotation", m_Rotation.GetRadAngle());
+		writer.NewPropertyWithValue("Rotation", m_Rotation);
 	if (m_AngularVel != reference.m_AngularVel)
 		writer.NewPropertyWithValue("AngularVel", m_AngularVel);
 	if (m_SettleMaterialDisabled != reference.m_SettleMaterialDisabled)

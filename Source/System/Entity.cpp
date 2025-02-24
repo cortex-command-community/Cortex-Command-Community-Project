@@ -110,6 +110,7 @@ namespace RTE {
 			m_RandomWeight = Limit(m_RandomWeight, 100, 0);
 		});
 		MatchProperty("_ClearGroups", {
+			reader.ReadPropValue();
 			m_Groups.clear();
 		});
 		MatchForwards("AddToGroup") MatchProperty("_AddToGroup", {
@@ -141,12 +142,12 @@ namespace RTE {
 		// See int Entity::Write(Writer& writer, const Entity& reference, const HashingData& hashData) const
 
 		if (m_IsOriginalPreset) {
-			writer.NewPropertyWithValue("PresetName", m_PresetName);
+			writer.NewPropertyWithValue("PresetName", GetModuleAndPresetName());
 		} else if (!m_PresetName.empty() && m_PresetName != "None") {
-			writer.NewPropertyWithValue("InstanceName", m_PresetName);
+			writer.NewPropertyWithValue("InstanceName", GetModuleAndPresetName());
 		}
 
-		if (!m_PresetDescription.empty()) {
+		if (!m_DisplayName.empty()) {
 			writer.NewPropertyWithValue("DisplayName", m_DisplayName);
 		}
 
@@ -166,7 +167,7 @@ namespace RTE {
 	size_t Entity::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
 		writer.ObjectStart(GetClassName());
 
-		writer.NewPropertyWithValue("CopyOf", entityReference.m_PresetName);
+		writer.NewPropertyWithValue("CopyOf", entityReference.GetModuleAndPresetName());
 
 		if (m_DisplayName != entityReference.m_DisplayName) {
 			writer.NewPropertyWithValue("DisplayName", m_DisplayName);

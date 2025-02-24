@@ -119,6 +119,48 @@ int Arm::Save(Writer& writer) const {
 	return 0;
 }
 
+size_t Arm::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = Attachable::Write(writer, entityReference, hashData); // last parse index: 6
+
+	const Arm& reference = static_cast<const Arm&>(entityReference);
+
+	if (m_MaxLength != reference.m_MaxLength)
+		writer.NewPropertyWithValue("MaxLength", m_MaxLength);
+	if (m_MoveSpeed != reference.m_MoveSpeed)
+		writer.NewPropertyWithValue("MoveSpeed", m_MoveSpeed);
+	if (m_HandIdleOffset != reference.m_HandIdleOffset)
+		writer.NewPropertyWithValue("HandIdleOffset", m_HandIdleOffset);
+
+	if (m_HandSpriteFile.Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
+		writer.NewProperty("HandSprite");
+		writer << m_HandSpriteFile;
+	}
+
+	if (m_GripStrength != reference.m_GripStrength)
+		writer.NewPropertyWithValue("GripStrength", m_GripStrength);
+	if (m_ThrowStrength != reference.m_ThrowStrength)
+		writer.NewPropertyWithValue("ThrowStrength", m_ThrowStrength);
+
+	if (m_HeldDevice != nullptr) {
+		if (reference.m_HeldDevice == nullptr || m_HeldDevice->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
+			writer.NewProperty("HeldDevice");
+			if (const Entity* preset = m_HeldDevice->GetPreset()) {
+				m_HeldDevice->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_HeldDevice->GetClassName(), m_HeldDevice->GetPresetName(), m_HeldDevice->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << m_HeldDevice;
+			}
+		}
+	} else if (reference.m_HeldDevice != nullptr) {
+		writer.NewProperty("HeldDevice");
+		writer << "None";
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(7);
+
+	return constituentsConsumed;
+}
+
 HashingData Arm::Hash() const {
 	HashingData hashData = Attachable::Hash();
 	uint64_t& hash = hashData.m_Hash;
@@ -126,9 +168,7 @@ HashingData Arm::Hash() const {
 	hash ^= std::hash<float>{}(m_MaxLength) << 1;
 	hash ^= std::hash<float>{}(m_MoveSpeed) << 2;
 
-	uint64_t handIdleHash = m_HandIdleOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(handIdleHash);
-	hash ^= handIdleHash << 3;
+	hash ^= m_HandIdleOffset.Hash().m_Hash << 3;
 
 	uint64_t handSpriteHash = m_HandSpriteFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(handSpriteHash);
@@ -137,7 +177,9 @@ HashingData Arm::Hash() const {
 	hash ^= std::hash<float>{}(m_GripStrength) << 5;
 	hash ^= std::hash<float>{}(m_ThrowStrength) << 6;
 
-	if (m_HeldDevice) {
+	bool heldDeviceDef = m_HeldDevice != nullptr;
+	hashData.m_ParseValues.push_back(heldDeviceDef);
+	if (heldDeviceDef) {
 		uint64_t heldDeviceHash = m_HeldDevice->Hash().m_Hash;
 		hashData.m_Constituents.push_back(heldDeviceHash);
 		hash ^= heldDeviceHash << 7;

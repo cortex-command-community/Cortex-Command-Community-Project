@@ -154,6 +154,8 @@ int SoundContainer::ReadProperty(const std::string_view& propName, Reader& reade
 	MatchProperty("Volume", { reader >> m_Volume; });
 	MatchProperty("Pitch", { reader >> m_Pitch; });
 	MatchProperty("PitchVariation", { reader >> m_PitchVariation; });
+	MatchProperty("WasFadedOut", { reader >> m_WasFadedOut; });
+	MatchProperty("Paused", { reader >> m_Paused; });
 
 	MatchProperty("MusicPreEntryTime", { reader >> m_MusicPreEntryTime; });
 	MatchProperty("MusicExitTime", { reader >> m_MusicExitTime; });
