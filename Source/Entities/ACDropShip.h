@@ -53,6 +53,8 @@ namespace RTE {
 		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
+		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
+
 		/// Gets the altitide of this' pos (or appropriate low point) over the
 		/// terrain, in pixels.
 		/// @param max The max altitude you care to check for. 0 Means check the whole scene's height. (default: 0)

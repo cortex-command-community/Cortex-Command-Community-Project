@@ -230,6 +230,74 @@ int PieMenu::Save(Writer& writer) const {
 	return 0;
 }
 
+size_t PieMenu::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = Entity::Write(writer, entityReference, hashData);
+
+	const PieMenu& reference = static_cast<const PieMenu&>(entityReference);
+
+	if (m_IconSeparatorMode != reference.m_IconSeparatorMode)
+		writer.NewPropertyWithValue("IconSeparatorMode", static_cast<int>(m_IconSeparatorMode));
+	if (m_FullInnerRadius != reference.m_FullInnerRadius)
+		writer.NewPropertyWithValue("FullInnerRadius", m_FullInnerRadius);
+	if (m_BackgroundThickness != reference.m_BackgroundThickness)
+		writer.NewPropertyWithValue("BackgroundThickness", m_BackgroundThickness);
+	if (m_BackgroundSeparatorSize != reference.m_BackgroundSeparatorSize)
+		writer.NewPropertyWithValue("BackgroundSeparatorSize", m_BackgroundSeparatorSize);
+	if (m_DrawBackgroundTransparent != reference.m_DrawBackgroundTransparent)
+		writer.NewPropertyWithValue("DrawBackgroundTransparent", m_DrawBackgroundTransparent);
+	if (m_BackgroundColor != reference.m_BackgroundColor)
+		writer.NewPropertyWithValue("BackgroundColor", m_BackgroundColor);
+	if (m_BackgroundBorderColor != reference.m_BackgroundBorderColor)
+		writer.NewPropertyWithValue("BackgroundBorderColor", m_BackgroundBorderColor);
+	if (m_SelectedItemBackgroundColor != reference.m_SelectedItemBackgroundColor)
+		writer.NewPropertyWithValue("SelectedItemBackgroundColor", m_SelectedItemBackgroundColor);
+
+	bool areSlicesConcatenated = true;
+	std::vector<PieSlice*>::const_iterator psItr = m_CurrentPieSlices.begin();
+	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(0); refIndex++, psItr++) {
+		if ((*psItr)->GetOriginalSource() == m_Owner) {
+			if ((*psItr)->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
+				areSlicesConcatenated = false;
+				break;
+			}
+		}
+	}
+
+	if (areSlicesConcatenated) {
+		for (std::vector<PieSlice*>::const_iterator itr = psItr; itr != m_CurrentPieSlices.end(); ++itr) {
+			if ((*psItr)->GetOriginalSource() == m_Owner) {
+				writer.NewProperty("_AddPieSlice");
+				if (const Entity* preset = (*itr)->GetPreset()) {
+					(*itr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*itr)->GetClassName(), (*itr)->GetPresetName(), (*itr)->GetModuleID()));
+					writer.ObjectEnd();
+				} else {
+					writer << (**itr);
+				}
+			}
+		}
+	} else {
+		if (reference.m_CurrentPieSlices.size() > 0) {
+			writer.NewPropertyWithValue("_ClearPieSlices", 1);
+		}
+
+		for (std::vector<PieSlice*>::const_iterator itr = m_CurrentPieSlices.begin(); itr != m_CurrentPieSlices.end(); ++itr) {
+			if ((*psItr)->GetOriginalSource() == m_Owner) {
+				writer.NewProperty("_AddPieSlice");
+				if (const Entity* preset = (*itr)->GetPreset()) {
+					(*itr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*itr)->GetClassName(), (*itr)->GetPresetName(), (*itr)->GetModuleID()));
+					writer.ObjectEnd();
+				} else {
+					writer << (**itr);
+				}
+			}
+		}
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(0);
+
+	return constituentsConsumed; // last parse index: 0
+}
+
 HashingData PieMenu::Hash() const {
 	HashingData hashData = Entity::Hash();
 	uint64_t& hash = hashData.m_Hash;
@@ -243,13 +311,17 @@ HashingData PieMenu::Hash() const {
 	hash ^= std::hash<int>{}(m_BackgroundBorderColor) << 6;
 	hash ^= std::hash<int>{}(m_SelectedItemBackgroundColor) << 7;
 
+	int i = 0;
+
 	for (const PieSlice* pieSlice: m_CurrentPieSlices) {
 		if (pieSlice->GetOriginalSource() == m_Owner) {
 			uint64_t sliceHash = pieSlice->Hash().m_Hash;
 			hashData.m_Constituents.push_back(sliceHash);
-			hash ^= sliceHash << 8;
+			hash ^= sliceHash << (i++ % sizeof(uint64_t) * 8);
 		}
 	}
+
+	hashData.m_ParseValues.push_back(i);
 
 	return hashData;
 }

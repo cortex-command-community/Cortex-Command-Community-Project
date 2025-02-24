@@ -549,53 +549,53 @@ size_t AHuman::Write(Writer& writer, const Entity& entityReference, const Hashin
 		}
 	}
 
-	if (m_Paths[FGROUND][STAND].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
+	if (m_Paths[FGROUND][WALK].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
 		writer.NewProperty("WalkLimbPath");
-		if (const Entity* preset = m_Paths[FGROUND][STAND].GetPreset()) {
-			m_Paths[FGROUND][STAND].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+		if (const Entity* preset = m_Paths[FGROUND][WALK].GetPreset()) {
+			m_Paths[FGROUND][WALK].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 			writer.ObjectEnd();
 		} else {
-			writer << m_Paths[FGROUND][STAND];
+			writer << m_Paths[FGROUND][WALK];
 		}
 	}
 
-	if (m_Paths[FGROUND][STAND].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
+	if (m_Paths[FGROUND][RUN].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
 		writer.NewProperty("RunLimbPath");
-		if (const Entity* preset = m_Paths[FGROUND][STAND].GetPreset()) {
-			m_Paths[FGROUND][STAND].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+		if (const Entity* preset = m_Paths[FGROUND][RUN].GetPreset()) {
+			m_Paths[FGROUND][RUN].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 			writer.ObjectEnd();
 		} else {
-			writer << m_Paths[FGROUND][STAND];
+			writer << m_Paths[FGROUND][RUN];
 		}
 	}
 
-	if (m_Paths[FGROUND][STAND].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
+	if (m_Paths[FGROUND][CROUCH].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
 		writer.NewProperty("CrouchLimbPath");
-		if (const Entity* preset = m_Paths[FGROUND][STAND].GetPreset()) {
-			m_Paths[FGROUND][STAND].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+		if (const Entity* preset = m_Paths[FGROUND][CROUCH].GetPreset()) {
+			m_Paths[FGROUND][CROUCH].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 			writer.ObjectEnd();
 		} else {
-			writer << m_Paths[FGROUND][STAND];
+			writer << m_Paths[FGROUND][CROUCH];
 		}
 	}
 
-	if (m_Paths[FGROUND][STAND].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
+	if (m_Paths[FGROUND][CRAWL].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
 		writer.NewProperty("CrawlLimbPath");
-		if (const Entity* preset = m_Paths[FGROUND][STAND].GetPreset()) {
-			m_Paths[FGROUND][STAND].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+		if (const Entity* preset = m_Paths[FGROUND][CRAWL].GetPreset()) {
+			m_Paths[FGROUND][CRAWL].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 			writer.ObjectEnd();
 		} else {
-			writer << m_Paths[FGROUND][STAND];
+			writer << m_Paths[FGROUND][CRAWL];
 		}
 	}
 
-	if (m_Paths[FGROUND][STAND].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
+	if (m_Paths[FGROUND][ARMCRAWL].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
 		writer.NewProperty("ArmCrawlLimbPath");
-		if (const Entity* preset = m_Paths[FGROUND][STAND].GetPreset()) {
-			m_Paths[FGROUND][STAND].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+		if (const Entity* preset = m_Paths[FGROUND][ARMCRAWL].GetPreset()) {
+			m_Paths[FGROUND][ARMCRAWL].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 			writer.ObjectEnd();
 		} else {
-			writer << m_Paths[FGROUND][STAND];
+			writer << m_Paths[FGROUND][ARMCRAWL];
 		}
 	}
 

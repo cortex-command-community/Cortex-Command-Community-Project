@@ -85,6 +85,52 @@ int ThrownDevice::Save(Writer& writer) const {
 	return 0;
 }
 
+size_t ThrownDevice::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = HeldDevice::Write(writer, entityReference, hashData); // 6
+
+	const ThrownDevice& reference = static_cast<const ThrownDevice&>(entityReference);
+
+	if (m_ActivationSound != nullptr) {
+		if (reference.m_ActivationSound == nullptr || m_ActivationSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
+			writer.NewProperty("ActivationSound");
+			if (const Entity* preset = m_ActivationSound->GetPreset()) {
+				m_ActivationSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << *m_ActivationSound;
+			}
+		}
+	} else if (reference.m_ActivationSound != nullptr) {
+		writer.NewProperty("ActivationSound");
+		writer << "None";
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(7);
+
+	if (m_StartThrowOffset != reference.m_StartThrowOffset)
+		writer.NewPropertyWithValue("StartThrowOffset", m_StartThrowOffset);
+	if (m_EndThrowOffset != reference.m_EndThrowOffset)
+		writer.NewPropertyWithValue("EndThrowOffset", m_EndThrowOffset);
+	if (m_MinThrowVel != reference.m_MinThrowVel)
+		writer.NewPropertyWithValue("MinThrowVel", m_MinThrowVel);
+	if (m_MaxThrowVel != reference.m_MaxThrowVel)
+		writer.NewPropertyWithValue("MaxThrowVel", m_MaxThrowVel);
+	if (m_TriggerDelay != reference.m_TriggerDelay)
+		writer.NewPropertyWithValue("TriggerDelay", m_TriggerDelay);
+	if (m_ActivatesWhenReleased != reference.m_ActivatesWhenReleased)
+		writer.NewPropertyWithValue("ActivatesWhenReleased", m_ActivatesWhenReleased);
+
+	if (m_StrikerLever != reference.m_StrikerLever) {
+		if (m_StrikerLever) {
+			writer.NewPropertyWithValue("StrikerLever", m_StrikerLever->GetEntityCharacteristic());
+		} else {
+			writer.NewPropertyWithValue("StrikerLever", "None");
+		}
+	}
+
+	return constituentsConsumed; // 7
+}
+
 HashingData ThrownDevice::Hash() const {
 	HashingData hashData = HeldDevice::Hash();
 	uint64_t& hash = hashData.m_Hash;
@@ -97,14 +143,8 @@ HashingData ThrownDevice::Hash() const {
 		hash ^= activationSoundHash << 1;
 	}
 
-	uint64_t startThrowHash = m_StartThrowOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(startThrowHash);
-	hash ^= startThrowHash << 2;
-
-	uint64_t endThrowHash = m_EndThrowOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(endThrowHash);
-	hash ^= endThrowHash << 3;
-
+	hash ^= m_StartThrowOffset.Hash().m_Hash << 2;
+	hash ^= m_EndThrowOffset.Hash().m_Hash << 3;
 	hash ^= std::hash<float>{}(m_MinThrowVel) << 4;
 	hash ^= std::hash<float>{}(m_MaxThrowVel) << 5;
 	hash ^= std::hash<long>{}(m_TriggerDelay) << 6;

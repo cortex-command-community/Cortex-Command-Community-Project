@@ -65,6 +65,17 @@ int MOSParticle::Save(Writer& writer) const {
 	return 0;
 }
 
+size_t MOSParticle::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = MOSprite::Write(writer, entityReference, hashData); // NA
+
+	const MOSParticle& reference = static_cast<const MOSParticle&>(entityReference);
+
+	if (m_Atom->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++))
+		writer.NewPropertyWithValue("Atom", m_Atom);
+
+	return constituentsConsumed; // NA
+}
+
 HashingData MOSParticle::Hash() const {
 	HashingData hashData = MOSprite::Hash();
 	uint64_t& hash = hashData.m_Hash;

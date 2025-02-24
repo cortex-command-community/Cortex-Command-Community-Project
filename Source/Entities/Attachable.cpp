@@ -281,7 +281,7 @@ size_t Attachable::Write(Writer& writer, const Entity& entityReference, const Ha
 
 	constituentsConsumed += hashData.m_ParseValues.at(6);
 
-	return constituentsConsumed;
+	return constituentsConsumed; // last parse index: 6
 }
 
 HashingData Attachable::Hash() const {

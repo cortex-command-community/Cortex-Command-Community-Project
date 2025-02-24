@@ -128,9 +128,11 @@ size_t TerrainObject::Write(Writer& writer, const Entity& entityReference, const
 	if (!m_FGColorFile.GetDataPath().empty()) {
 		writer.NewPropertyWithValue("FGColorFile", m_FGColorFile);
 	}
+
 	if (!m_BGColorFile.GetDataPath().empty()) {
 		writer.NewPropertyWithValue("BGColorFile", m_BGColorFile);
 	}
+
 	if (!m_MaterialFile.GetDataPath().empty()) {
 		writer.NewPropertyWithValue("MaterialFile", m_MaterialFile);
 	}

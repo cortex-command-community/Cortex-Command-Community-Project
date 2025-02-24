@@ -630,7 +630,7 @@ size_t Actor::Write(Writer& writer, const Entity& entityReference, const Hashing
 	if (m_AIBaseDigStrength != reference.m_AIBaseDigStrength)
 		writer.NewPropertyWithValue("AIBaseDigStrength", m_AIBaseDigStrength);
 
-	return 0;
+	return constituentsConsumed; // 11
 }
 
 HashingData Actor::Hash() const {

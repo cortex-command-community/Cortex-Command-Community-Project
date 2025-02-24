@@ -391,7 +391,7 @@ int MOSRotating::Save(Writer& writer) const {
 }
 
 size_t MOSRotating::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = MOSprite::Write(writer, entityReference, hashData);
+	size_t constituentsConsumed = MOSprite::Write(writer, entityReference, hashData); // last parse index: NA
 
 	const MOSRotating& reference = static_cast<const MOSRotating&>(entityReference);
 
@@ -472,16 +472,14 @@ size_t MOSRotating::Write(Writer& writer, const Entity& entityReference, const H
 	constituentsConsumed += hashData.m_ParseValues.at(2);
 
 	bool areAttachablesConcatenated = true;
-	size_t ignoranceOffset = 0;
 	std::list<Attachable*>::const_iterator aItr = m_Attachables.begin();
-	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(3) - ignoranceOffset; refIndex++, aItr++) {
+	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(3); aItr++) {
 		if (!AttachableIsHardcoded(*aItr)) {
 			if ((*aItr)->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
 				areAttachablesConcatenated = false;
 				break;
 			}
-		} else {
-			ignoranceOffset++;
+			refIndex++;
 		}
 	}
 
@@ -571,7 +569,7 @@ size_t MOSRotating::Write(Writer& writer, const Entity& entityReference, const H
 	if (m_EffectOnGib != reference.m_EffectOnGib)
 		writer.NewPropertyWithValue("EffectOnGib", m_EffectOnGib);
 
-	return constituentsConsumed;
+	return constituentsConsumed; // last parse index: 5
 }
 
 HashingData MOSRotating::Hash() const {

@@ -249,9 +249,9 @@ size_t MOSprite::Write(Writer& writer, const Entity& entityReference, const Hash
 
 	if (m_pEntryWound != reference.m_pEntryWound) {
 		if (m_pEntryWound) {
-			writer.NewPropertyWithValue("ExitWound", m_pEntryWound->GetEntityCharacteristic());
+			writer.NewPropertyWithValue("EntryWound", m_pEntryWound->GetEntityCharacteristic());
 		} else {
-			writer.NewPropertyWithValue("ExitWound", "None");
+			writer.NewPropertyWithValue("EntryWound", "None");
 		}
 	}
 

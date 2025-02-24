@@ -60,6 +60,10 @@ namespace RTE {
 		}
 #pragma endregion
 
+#pragma region INI Handling
+		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
+#pragma endregion
+
 #pragma region Getters and Setters
 		/// Gets the owner Actor of this PieMenu. Ownership is NOT transferred!
 		/// @return The owner Actor of this PieMenu. Ownership is NOT transferred!

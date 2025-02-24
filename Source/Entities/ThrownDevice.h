@@ -46,6 +46,10 @@ namespace RTE {
 		}
 #pragma endregion
 
+#pragma region INI Handling
+		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
+#pragma endregion
+
 #pragma region Getters and Setters
 		/// Gets the start throw offset of this ThrownDevice's joint relative from the parent Actor's position, if attached.
 		/// @return A const reference to the current start throw parent offset.

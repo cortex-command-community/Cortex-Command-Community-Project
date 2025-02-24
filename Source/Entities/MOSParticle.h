@@ -56,6 +56,10 @@ namespace RTE {
 		}
 #pragma endregion
 
+#pragma region INI Handling
+		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
+#pragma endregion
+
 #pragma region Getters and Setters
 		/// Gets the drawing priority of this MOSParticle. If two things are overlapping when copying to the terrain, the higher priority MO would end up getting drawn.
 		/// @return The drawing priority of this MOSParticle.

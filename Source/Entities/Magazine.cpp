@@ -104,6 +104,42 @@ int Magazine::Save(Writer& writer) const {
 	return 0;
 }
 
+size_t Magazine::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = Attachable::Write(writer, entityReference, hashData);
+
+	const Magazine& reference = static_cast<const Magazine&>(entityReference);
+
+	if (m_RoundCount != reference.m_RoundCount)
+		writer.NewPropertyWithValue("RoundCount", m_RoundCount);
+	if (m_FullCapacity != reference.m_FullCapacity)
+		writer.NewPropertyWithValue("FullCapacity", m_FullCapacity);
+	if (m_RTTRatio != reference.m_RTTRatio)
+		writer.NewPropertyWithValue("RTTRatio", m_RTTRatio);
+
+	if (m_pRegularRound != reference.m_pRegularRound) {
+		if (m_pRegularRound) {
+			writer.NewPropertyWithValue("RegularRound", m_pRegularRound->GetEntityCharacteristic());
+		} else {
+			writer.NewPropertyWithValue("RegularRound", "None");
+		}
+	}
+
+	if (m_pTracerRound != reference.m_pTracerRound) {
+		if (m_pTracerRound) {
+			writer.NewPropertyWithValue("TracerRound", m_pTracerRound->GetEntityCharacteristic());
+		} else {
+			writer.NewPropertyWithValue("TracerRound", "None");
+		}
+	}
+
+	if (m_Discardable != reference.m_Discardable)
+		writer.NewPropertyWithValue("Discardable", m_Discardable);
+	if (m_AIBlastRadius != reference.m_AIBlastRadius)
+		writer.NewPropertyWithValue("AIBlastRadius", m_AIBlastRadius);
+
+	return constituentsConsumed;
+}
+
 HashingData Magazine::Hash() const {
 	HashingData hashData = Attachable::Hash();
 	uint64_t& hash = hashData.m_Hash;

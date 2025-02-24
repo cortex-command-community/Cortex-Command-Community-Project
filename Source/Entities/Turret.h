@@ -39,6 +39,10 @@ namespace RTE {
 		}
 #pragma endregion
 
+#pragma region INI Handling
+		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
+#pragma endregion
+
 #pragma region Getters and Setters
 		/// Indicates whether a HeldDevice is mounted or not.
 		/// @return Whether or not a HeldDevice is mounted on this Turret.

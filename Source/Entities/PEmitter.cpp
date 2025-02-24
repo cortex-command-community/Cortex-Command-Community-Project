@@ -166,6 +166,118 @@ int PEmitter::Save(Writer& writer) const {
 	return 0;
 }
 
+size_t PEmitter::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = MOSParticle::Write(writer, entityReference, hashData); // NA
+
+	const PEmitter& reference = static_cast<const PEmitter&>(entityReference);
+
+	bool areEmissionsConcatenated = true;
+	std::list<Emission*>::const_iterator eItr = m_EmissionList.begin();
+	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(0); refIndex++, eItr++) {
+		if ((*eItr)->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
+			areEmissionsConcatenated = false;
+			break;
+		}
+	}
+
+	if (areEmissionsConcatenated) {
+		for (std::list<Emission*>::const_iterator itr = eItr; itr != m_EmissionList.end(); ++itr) {
+			writer.NewProperty("_AddEmission");
+			if (const Entity* preset = (*itr)->GetPreset()) {
+				(*itr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*itr)->GetClassName(), (*itr)->GetPresetName(), (*itr)->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << (**itr);
+			}
+		}
+	} else {
+		if (reference.m_EmissionList.size() > 0) {
+			writer.NewPropertyWithValue("_ClearEmissions", 1);
+		}
+
+		for (std::list<Emission*>::const_iterator itr = m_EmissionList.begin(); itr != m_EmissionList.end(); ++itr) {
+			writer.NewProperty("_AddEmission");
+			if (const Entity* preset = (*itr)->GetPreset()) {
+				(*itr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*itr)->GetClassName(), (*itr)->GetPresetName(), (*itr)->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << (**itr);
+			}
+		}
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(0);
+
+	if (m_EmissionSound.Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
+		writer.NewProperty("EmissionSound");
+		if (const Entity* preset = m_EmissionSound.GetPreset()) {
+			m_EmissionSound.Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+			writer.ObjectEnd();
+		} else {
+			writer << m_EmissionSound;
+		}
+	}
+
+	if (m_BurstSound.Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
+		writer.NewProperty("BurstSound");
+		if (const Entity* preset = m_BurstSound.GetPreset()) {
+			m_BurstSound.Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+			writer.ObjectEnd();
+		} else {
+			writer << m_BurstSound;
+		}
+	}
+
+	if (m_EndSound.Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
+		writer.NewProperty("EndSound");
+		if (const Entity* preset = m_EndSound.GetPreset()) {
+			m_EndSound.Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+			writer.ObjectEnd();
+		} else {
+			writer << m_EndSound;
+		}
+	}
+
+	if (m_EmitEnabled != reference.m_EmitEnabled)
+		writer.NewPropertyWithValue("EmissionEnabled", m_EmitEnabled);
+	if (m_EmitCount != reference.m_EmitCount)
+		writer.NewPropertyWithValue("EmissionCount", m_EmitCount);
+	if (m_EmitCountLimit != reference.m_EmitCountLimit)
+		writer.NewPropertyWithValue("EmissionCountLimit", m_EmitCountLimit);
+	if (m_EmissionsIgnoreThis != reference.m_EmissionsIgnoreThis)
+		writer.NewPropertyWithValue("EmissionsIgnoreThis", m_EmissionsIgnoreThis);
+	if (m_NegativeThrottleMultiplier != reference.m_NegativeThrottleMultiplier)
+		writer.NewPropertyWithValue("NegativeThrottleMultiplier", m_NegativeThrottleMultiplier);
+	if (m_PositiveThrottleMultiplier != reference.m_PositiveThrottleMultiplier)
+		writer.NewPropertyWithValue("PositiveThrottleMultiplier", m_PositiveThrottleMultiplier);
+	if (m_Throttle != reference.m_Throttle)
+		writer.NewPropertyWithValue("Throttle", m_Throttle);
+	if (m_BurstScale != reference.m_BurstScale)
+		writer.NewPropertyWithValue("BurstScale", m_BurstScale);
+	if (m_BurstSpacing != reference.m_BurstSpacing)
+		writer.NewPropertyWithValue("BurstSpacing", m_BurstSpacing);
+	if (m_BurstTriggered != reference.m_BurstTriggered)
+		writer.NewPropertyWithValue("BurstTriggered", m_BurstTriggered);
+	if (m_PlayBurstSound != reference.m_PlayBurstSound)
+		writer.NewPropertyWithValue("PlayBurstSound", m_PlayBurstSound);
+	if (m_EmitAngle != reference.m_EmitAngle)
+		writer.NewPropertyWithValue("EmissionAngle", m_EmitAngle);
+	if (m_EmissionOffset != reference.m_EmissionOffset)
+		writer.NewPropertyWithValue("EmissionOffset", m_EmissionOffset);
+	if (m_FlashScale != reference.m_FlashScale)
+		writer.NewPropertyWithValue("FlashScale", m_FlashScale);
+	if (m_FlashOnlyOnBurst != reference.m_FlashOnlyOnBurst)
+		writer.NewPropertyWithValue("FlashOnlyOnBurst", m_FlashOnlyOnBurst);
+	if (m_SustainBurstSound != reference.m_SustainBurstSound)
+		writer.NewPropertyWithValue("SustainBurstSound", m_SustainBurstSound);
+	if (m_BurstSoundFollowsEmitter != reference.m_BurstSoundFollowsEmitter)
+		writer.NewPropertyWithValue("BurstSoundFollowsEmitter", m_BurstSoundFollowsEmitter);
+	if (m_LoudnessOnEmit != reference.m_LoudnessOnEmit)
+		writer.NewPropertyWithValue("LoudnessOnEmit", m_LoudnessOnEmit);
+
+	return constituentsConsumed; // 0
+}
+
 HashingData PEmitter::Hash() const {
 	HashingData hashData = MOSParticle::Hash();
 	uint64_t& hash = hashData.m_Hash;
@@ -201,15 +313,8 @@ HashingData PEmitter::Hash() const {
 	hash ^= std::hash<float>{}(m_BurstSpacing) << 12;
 	hash ^= std::hash<bool>{}(m_BurstTriggered) << 13;
 	hash ^= std::hash<bool>{}(m_PlayBurstSound) << 14;
-
-	uint64_t emitAngleHash = m_EmitAngle.Hash().m_Hash;
-	hashData.m_Constituents.push_back(emitAngleHash);
-	hash ^= emitAngleHash << 15;
-
-	uint64_t emitOffsetHash = m_EmissionOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(emitOffsetHash);
-	hash ^= emitOffsetHash << 0;
-
+	hash ^= m_EmitAngle.Hash().m_Hash << 15;
+	hash ^= m_EmissionOffset.Hash().m_Hash << 0;
 	hash ^= std::hash<float>{}(m_FlashScale) << 1;
 	hash ^= std::hash<bool>{}(m_FlashOnlyOnBurst) << 2;
 	hash ^= std::hash<bool>{}(m_SustainBurstSound) << 3;

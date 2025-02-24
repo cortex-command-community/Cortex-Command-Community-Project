@@ -55,8 +55,21 @@ int TDExplosive::ReadProperty(const std::string_view& propName, Reader& reader) 
 
 int TDExplosive::Save(Writer& writer) const {
 	ThrownDevice::Save(writer);
+
 	writer.NewPropertyWithValue("IsAnimatedManually", m_IsAnimatedManually);
+
 	return 0;
+}
+
+size_t TDExplosive::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = ThrownDevice::Write(writer, entityReference, hashData);
+
+	const TDExplosive& reference = static_cast<const TDExplosive&>(entityReference);
+
+	if (m_IsAnimatedManually != reference.m_IsAnimatedManually)
+		writer.NewPropertyWithValue("IsAnimatedManually", m_IsAnimatedManually);
+
+	return constituentsConsumed;
 }
 
 HashingData TDExplosive::Hash() const {

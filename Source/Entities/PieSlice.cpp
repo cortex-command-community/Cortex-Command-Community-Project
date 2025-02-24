@@ -146,6 +146,56 @@ int PieSlice::Save(Writer& writer) const {
 	return 0;
 }
 
+size_t PieSlice::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = Entity::Write(writer, entityReference, hashData);
+
+	const PieSlice& reference = static_cast<const PieSlice&>(entityReference);
+
+	if (m_Type != reference.m_Type) {
+		writer.NewPropertyWithValue("Type", static_cast<int>(m_Type));
+	}
+	if (m_Direction != reference.m_Direction) {
+		writer.NewPropertyWithValue("Direction", static_cast<int>(m_Direction));
+	}
+	if (m_Enabled != reference.m_Enabled) {
+		writer.NewPropertyWithValue("Enabled", m_Enabled);
+	}
+
+	if (m_Icon->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
+		writer.NewProperty("Icon");
+		if (const Entity* preset = m_Icon->GetPreset()) {
+			m_Icon->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+			writer.ObjectEnd();
+		} else {
+			writer << *m_Icon;
+		}
+	}
+
+	if (m_LuabindFunctionObject && !m_FunctionName.empty()) {
+		writer.NewPropertyWithValue("ScriptPath", m_LuabindFunctionObject->GetFilePath());
+		writer.NewPropertyWithValue("FunctionName", m_FunctionName);
+	}
+
+	if (m_SubPieMenu != nullptr) {
+		if (reference.m_SubPieMenu == nullptr || m_SubPieMenu->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
+			writer.NewProperty("SubPieMenu");
+			if (const Entity* preset = m_SubPieMenu->GetPreset()) {
+				m_SubPieMenu->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << *m_SubPieMenu;
+			}
+		}
+	} else if (reference.m_SubPieMenu != nullptr) {
+		writer.NewProperty("SubPieMenu");
+		writer << "None";
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(0);
+
+	return constituentsConsumed; // last parse index: 1
+}
+
 HashingData PieSlice::Hash() const {
 	HashingData hashData = Entity::Hash();
 	uint64_t& hash = hashData.m_Hash;
@@ -161,7 +211,9 @@ HashingData PieSlice::Hash() const {
 	hash ^= (m_LuabindFunctionObject ? RTE::Hash(m_LuabindFunctionObject->GetFilePath()) : 0) << 4;
 	hash ^= RTE::Hash(m_FunctionName) << 5;
 
-	if (m_SubPieMenu) {
+	bool subPieMenuDef = m_SubPieMenu != nullptr;
+	hashData.m_ParseValues.push_back(subPieMenuDef);
+	if (subPieMenuDef) {
 		uint64_t subPieHash = m_SubPieMenu->Hash().m_Hash;
 		hashData.m_Constituents.push_back(subPieHash);
 		hash ^= subPieHash << 6;

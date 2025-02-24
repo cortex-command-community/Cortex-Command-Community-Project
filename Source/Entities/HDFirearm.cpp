@@ -303,7 +303,7 @@ size_t HDFirearm::Write(Writer& writer, const Entity& entityReference, const Has
 		if (reference.m_pMagazine == nullptr || m_pMagazine->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("Magazine");
 			if (const Entity* preset = m_pMagazine->GetPreset()) {
-				m_pMagazine->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pMagazine->GetClassName(), m_pMagazine->GetPresetName(), m_pMagazine->GetModuleID()));
+				m_pMagazine->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 				writer.ObjectEnd();
 			} else {
 				writer << m_pMagazine;
@@ -320,7 +320,7 @@ size_t HDFirearm::Write(Writer& writer, const Entity& entityReference, const Has
 		if (reference.m_pFlash == nullptr || m_pFlash->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("Flash");
 			if (const Entity* preset = m_pFlash->GetPreset()) {
-				m_pFlash->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pMagazine->GetClassName(), m_pMagazine->GetPresetName(), m_pMagazine->GetModuleID()));
+				m_pFlash->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 				writer.ObjectEnd();
 			} else {
 				writer << m_pFlash;
@@ -337,7 +337,7 @@ size_t HDFirearm::Write(Writer& writer, const Entity& entityReference, const Has
 		if (reference.m_PreFireSound == nullptr || m_PreFireSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("PreFireSound");
 			if (const Entity* preset = m_PreFireSound->GetPreset()) {
-				m_PreFireSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pMagazine->GetClassName(), m_pMagazine->GetPresetName(), m_pMagazine->GetModuleID()));
+				m_PreFireSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 				writer.ObjectEnd();
 			} else {
 				writer << m_PreFireSound;
@@ -354,7 +354,7 @@ size_t HDFirearm::Write(Writer& writer, const Entity& entityReference, const Has
 		if (reference.m_FireSound == nullptr || m_FireSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("FireSound");
 			if (const Entity* preset = m_FireSound->GetPreset()) {
-				m_FireSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pMagazine->GetClassName(), m_pMagazine->GetPresetName(), m_pMagazine->GetModuleID()));
+				m_FireSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 				writer.ObjectEnd();
 			} else {
 				writer << m_FireSound;
@@ -371,7 +371,7 @@ size_t HDFirearm::Write(Writer& writer, const Entity& entityReference, const Has
 		if (reference.m_FireEchoSound == nullptr || m_FireEchoSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("FireEchoSound");
 			if (const Entity* preset = m_FireEchoSound->GetPreset()) {
-				m_FireEchoSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pMagazine->GetClassName(), m_pMagazine->GetPresetName(), m_pMagazine->GetModuleID()));
+				m_FireEchoSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 				writer.ObjectEnd();
 			} else {
 				writer << m_FireEchoSound;
@@ -388,7 +388,7 @@ size_t HDFirearm::Write(Writer& writer, const Entity& entityReference, const Has
 		if (reference.m_ActiveSound == nullptr || m_ActiveSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("ActiveSound");
 			if (const Entity* preset = m_ActiveSound->GetPreset()) {
-				m_ActiveSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pMagazine->GetClassName(), m_pMagazine->GetPresetName(), m_pMagazine->GetModuleID()));
+				m_ActiveSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 				writer.ObjectEnd();
 			} else {
 				writer << m_ActiveSound;
@@ -405,7 +405,7 @@ size_t HDFirearm::Write(Writer& writer, const Entity& entityReference, const Has
 		if (reference.m_DeactivationSound == nullptr || m_DeactivationSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("DeactivationSound");
 			if (const Entity* preset = m_DeactivationSound->GetPreset()) {
-				m_DeactivationSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pMagazine->GetClassName(), m_pMagazine->GetPresetName(), m_pMagazine->GetModuleID()));
+				m_DeactivationSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 				writer.ObjectEnd();
 			} else {
 				writer << m_DeactivationSound;
@@ -422,7 +422,7 @@ size_t HDFirearm::Write(Writer& writer, const Entity& entityReference, const Has
 		if (reference.m_EmptySound == nullptr || m_EmptySound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("EmptySound");
 			if (const Entity* preset = m_EmptySound->GetPreset()) {
-				m_EmptySound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pMagazine->GetClassName(), m_pMagazine->GetPresetName(), m_pMagazine->GetModuleID()));
+				m_EmptySound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 				writer.ObjectEnd();
 			} else {
 				writer << m_EmptySound;
@@ -439,7 +439,7 @@ size_t HDFirearm::Write(Writer& writer, const Entity& entityReference, const Has
 		if (reference.m_ReloadStartSound == nullptr || m_ReloadStartSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("ReloadStartSound");
 			if (const Entity* preset = m_ReloadStartSound->GetPreset()) {
-				m_ReloadStartSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pMagazine->GetClassName(), m_pMagazine->GetPresetName(), m_pMagazine->GetModuleID()));
+				m_ReloadStartSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 				writer.ObjectEnd();
 			} else {
 				writer << m_ReloadStartSound;
@@ -456,7 +456,7 @@ size_t HDFirearm::Write(Writer& writer, const Entity& entityReference, const Has
 		if (reference.m_ReloadEndSound == nullptr || m_ReloadEndSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
 			writer.NewProperty("ReloadEndSound");
 			if (const Entity* preset = m_ReloadEndSound->GetPreset()) {
-				m_ReloadEndSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_pMagazine->GetClassName(), m_pMagazine->GetPresetName(), m_pMagazine->GetModuleID()));
+				m_ReloadEndSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 				writer.ObjectEnd();
 			} else {
 				writer << m_ReloadEndSound;

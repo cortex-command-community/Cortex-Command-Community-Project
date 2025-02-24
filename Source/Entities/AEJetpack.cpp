@@ -109,6 +109,40 @@ int AEJetpack::Save(Writer& writer) const {
 	return 0;
 }
 
+size_t AEJetpack::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = AEmitter::Write(writer, entityReference, hashData);
+
+	const AEJetpack& reference = static_cast<const AEJetpack&>(entityReference);
+
+	if (m_JetpackType != reference.m_JetpackType) {
+		writer.NewProperty("JetpackType");
+		switch (m_JetpackType) {
+			default:
+			case JetpackType::Standard:
+				writer << "Standard";
+				break;
+			case JetpackType::JumpPack:
+				writer << "JumpPack";
+				break;
+		}
+	}
+
+	if (m_JetTimeTotal != reference.m_JetTimeTotal)
+		writer.NewPropertyWithValue("JumpTime", m_JetTimeTotal / 1000.0f); // Convert to seconds
+	if (m_JetReplenishRate != reference.m_JetReplenishRate)
+		writer.NewPropertyWithValue("JumpReplenishRate", m_JetReplenishRate);
+	if (m_MinimumFuelRatio != reference.m_MinimumFuelRatio)
+		writer.NewPropertyWithValue("MinimumFuelRatio", m_MinimumFuelRatio);
+	if (m_JetAngleRange != reference.m_JetAngleRange)
+		writer.NewPropertyWithValue("JumpAngleRange", m_JetAngleRange);
+	if (m_CanAdjustAngleWhileFiring != reference.m_CanAdjustAngleWhileFiring)
+		writer.NewPropertyWithValue("CanAdjustAngleWhileFiring", m_CanAdjustAngleWhileFiring);
+	if (m_AdjustsThrottleForWeight != reference.m_AdjustsThrottleForWeight)
+		writer.NewPropertyWithValue("AdjustsThrottleForWeight", m_AdjustsThrottleForWeight);
+
+	return 0;
+}
+
 HashingData AEJetpack::Hash() const {
 	HashingData hashData = AEmitter::Hash();
 	uint64_t& hash = hashData.m_Hash;

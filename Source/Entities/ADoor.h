@@ -53,6 +53,10 @@ namespace RTE {
 		}
 #pragma endregion
 
+#pragma region INI Handling
+		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
+#pragma endregion
+
 #pragma region Getters and Setters
 		/// Gets the moving door Attachable of this ADoor
 		/// @return A pointer to the door Attachable of this. Ownership is NOT transferred!

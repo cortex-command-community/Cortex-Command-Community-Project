@@ -185,6 +185,148 @@ int ADoor::Save(Writer& writer) const {
 	return 0;
 }
 
+size_t ADoor::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	size_t constituentsConsumed = Actor::Write(writer, entityReference, hashData); // 11
+
+	const ADoor& reference = static_cast<const ADoor&>(entityReference);
+
+	if (m_Door != nullptr) {
+		if (reference.m_Door == nullptr || m_Door->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
+			writer.NewProperty("Door");
+			if (const Entity* preset = m_Door->GetPreset()) {
+				m_Door->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << m_Door;
+			}
+		}
+	} else if (reference.m_Door != nullptr) {
+		writer.NewProperty("Door");
+		writer << "None";
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(12);
+
+	if (m_OpenOffset != reference.m_OpenOffset)
+		writer.NewPropertyWithValue("OpenOffset", m_OpenOffset);
+	if (m_ClosedOffset != reference.m_ClosedOffset)
+		writer.NewPropertyWithValue("ClosedOffset", m_ClosedOffset);
+	if (m_OpenAngle != reference.m_OpenAngle)
+		writer.NewPropertyWithValue("OpenAngle", Matrix(m_OpenAngle));
+	if (m_ClosedAngle != reference.m_ClosedAngle)
+		writer.NewPropertyWithValue("ClosedAngle", Matrix(m_ClosedAngle));
+	if (m_DoorMoveTime != reference.m_DoorMoveTime)
+		writer.NewPropertyWithValue("DoorDelay", m_DoorMoveTime);
+	if (m_ClosedByDefault != reference.m_ClosedByDefault)
+		writer.NewPropertyWithValue("ClosedByDefault", m_ClosedByDefault);
+	if (m_ResetToDefaultStateDelay != reference.m_ResetToDefaultStateDelay)
+		writer.NewPropertyWithValue("ResetDefaultDelay", m_ResetToDefaultStateDelay);
+	if (m_SensorInterval != reference.m_SensorInterval)
+		writer.NewPropertyWithValue("SensorInterval", m_SensorInterval);
+
+	bool areSensorsConcatenated = true;
+	std::list<ADSensor>::const_iterator sItr = m_Sensors.begin();
+	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(13); refIndex++, sItr++) {
+		if ((sItr)->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
+			areSensorsConcatenated = false;
+			break;
+		}
+	}
+
+	if (areSensorsConcatenated) {
+		for (std::list<ADSensor>::const_iterator itr = sItr; itr != m_Sensors.end(); ++itr) {
+			writer.NewProperty("_AddSensor");
+			writer << (*itr);
+		}
+	} else {
+		if (reference.m_Sensors.size() > 0) {
+			writer.NewPropertyWithValue("_ClearSensors", 1);
+		}
+
+		for (std::list<ADSensor>::const_iterator itr = m_Sensors.begin(); itr != m_Sensors.end(); ++itr) {
+			writer.NewProperty("_AddSensor");
+			writer << (*itr);
+		}
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(13);
+
+	if (m_DrawMaterialLayerWhenOpen != reference.m_DrawMaterialLayerWhenOpen)
+		writer.NewPropertyWithValue("DrawMaterialLayerWhenOpen", m_DrawMaterialLayerWhenOpen);
+	if (m_DrawMaterialLayerWhenClosed != reference.m_DrawMaterialLayerWhenClosed)
+		writer.NewPropertyWithValue("DrawMaterialLayerWhenClosed", m_DrawMaterialLayerWhenClosed);
+
+	if (m_DoorMoveStartSound != nullptr) {
+		if (reference.m_DoorMoveStartSound == nullptr || m_DoorMoveStartSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
+			writer.NewProperty("DoorMoveStartSound");
+			if (const Entity* preset = m_DoorMoveStartSound->GetPreset()) {
+				m_DoorMoveStartSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << *m_DoorMoveStartSound;
+			}
+		}
+	} else if (reference.m_DoorMoveStartSound != nullptr) {
+		writer.NewProperty("DoorMoveStartSound");
+		writer << "None";
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(14);
+
+	if (m_DoorMoveSound != nullptr) {
+		if (reference.m_DoorMoveSound == nullptr || m_DoorMoveSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
+			writer.NewProperty("DoorMoveSound");
+			if (const Entity* preset = m_DoorMoveSound->GetPreset()) {
+				m_DoorMoveSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << *m_DoorMoveSound;
+			}
+		}
+	} else if (reference.m_DoorMoveSound != nullptr) {
+		writer.NewProperty("DoorMoveSound");
+		writer << "None";
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(15);
+
+	if (m_DoorDirectionChangeSound != nullptr) {
+		if (reference.m_DoorDirectionChangeSound == nullptr || m_DoorDirectionChangeSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
+			writer.NewProperty("DoorDirectionChangeSound");
+			if (const Entity* preset = m_DoorDirectionChangeSound->GetPreset()) {
+				m_DoorDirectionChangeSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << *m_DoorDirectionChangeSound;
+			}
+		}
+	} else if (reference.m_DoorDirectionChangeSound != nullptr) {
+		writer.NewProperty("DoorDirectionChangeSound");
+		writer << "None";
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(16);
+
+	if (m_DoorMoveEndSound != nullptr) {
+		if (reference.m_DoorMoveEndSound == nullptr || m_DoorMoveEndSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
+			writer.NewProperty("DoorMoveEndSound");
+			if (const Entity* preset = m_DoorMoveEndSound->GetPreset()) {
+				m_DoorMoveEndSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+				writer.ObjectEnd();
+			} else {
+				writer << *m_DoorMoveEndSound;
+			}
+		}
+	} else if (reference.m_DoorMoveEndSound != nullptr) {
+		writer.NewProperty("DoorMoveEndSound");
+		writer << "None";
+	}
+
+	constituentsConsumed += hashData.m_ParseValues.at(17);
+
+	return 0;
+}
+
 HashingData ADoor::Hash() const {
 	HashingData hashData = Actor::Hash();
 	uint64_t& hash = hashData.m_Hash;
@@ -197,14 +339,8 @@ HashingData ADoor::Hash() const {
 		hash ^= doorHash << 1;
 	}
 
-	uint64_t openOffsetHash = m_OpenOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(openOffsetHash);
-	hash ^= openOffsetHash << 2;
-
-	uint64_t closedOffsetHash = m_ClosedOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(closedOffsetHash);
-	hash ^= closedOffsetHash << 3;
-
+	hash ^= m_OpenOffset.Hash().m_Hash << 2;
+	hash ^= m_ClosedOffset.Hash().m_Hash << 3;
 	hash ^= std::hash<float>{}(m_OpenAngle) << 4;
 	hash ^= std::hash<float>{}(m_ClosedAngle) << 5;
 	hash ^= std::hash<int>{}(m_DoorMoveTime) << 6;

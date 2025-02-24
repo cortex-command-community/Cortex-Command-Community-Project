@@ -46,6 +46,10 @@ namespace RTE {
 		}
 #pragma endregion
 
+#pragma region INI Handling
+		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
+#pragma endregion
+
 #pragma region Getters and Setters
 		/// If true, then the frame will not be changed automatically during update
 		/// @return Whether or not the TDExplosive's Frame will change automatically during update.
