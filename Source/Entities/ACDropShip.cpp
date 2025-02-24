@@ -140,125 +140,24 @@ int ACDropShip::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t ACDropShip::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = ACraft::Write(writer, entityReference, hashData); // 15
+int ACDropShip::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	ACraft::Write(writer, entityReference, hashData);
 
 	const ACDropShip& reference = static_cast<const ACDropShip&>(entityReference);
 
-	if (m_pRThruster != nullptr) {
-		if (reference.m_pRThruster == nullptr || m_pRThruster->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("RThruster");
-			if (const Entity* preset = m_pRThruster->GetPreset()) {
-				m_pRThruster->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pRThruster;
-			}
-		}
-	} else if (reference.m_pRThruster != nullptr) {
-		writer.NewProperty("RThruster");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(16);
+	writer.NewOptionalEntityPointerProperty("RThruster", m_pRThruster, hashData);
+	writer.NewOptionalEntityPointerProperty("LThruster", m_pLThruster, hashData);
+	writer.NewOptionalEntityPointerProperty("URThruster", m_pURThruster, hashData);
+	writer.NewOptionalEntityPointerProperty("ULThruster", m_pULThruster, hashData);
+	writer.NewOptionalEntityPointerProperty("RHatchDoor", m_pRHatch, hashData);
+	writer.NewOptionalEntityPointerProperty("LHatchDoor", m_pLHatch, hashData);
+	writer.NewDistinctProperty("HatchDoorSwingRange", m_HatchSwingRange, reference.m_HatchSwingRange);
+	writer.NewDistinctProperty("AutoStabilize", m_AutoStabilize, reference.m_AutoStabilize);
+	writer.NewDistinctProperty("MaxEngineAngle", m_MaxEngineAngle, reference.m_MaxEngineAngle);
+	writer.NewDistinctProperty("LateralControlSpeed", m_LateralControlSpeed, reference.m_LateralControlSpeed);
+	writer.NewDistinctProperty("HoverHeightModifier", m_HoverHeightModifier, reference.m_HoverHeightModifier);
 
-	if (m_pLThruster != nullptr) {
-		if (reference.m_pLThruster == nullptr || m_pLThruster->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("LThruster");
-			if (const Entity* preset = m_pLThruster->GetPreset()) {
-				m_pLThruster->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pLThruster;
-			}
-		}
-	} else if (reference.m_pLThruster != nullptr) {
-		writer.NewProperty("LThruster");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(17);
-
-	if (m_pURThruster != nullptr) {
-		if (reference.m_pURThruster == nullptr || m_pURThruster->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("URThruster");
-			if (const Entity* preset = m_pURThruster->GetPreset()) {
-				m_pURThruster->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pURThruster;
-			}
-		}
-	} else if (reference.m_pURThruster != nullptr) {
-		writer.NewProperty("URThruster");
-		writer << "None";
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(18);
-	
-	if (m_pULThruster != nullptr) {
-		if (reference.m_pULThruster == nullptr || m_pULThruster->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("ULThruster");
-			if (const Entity* preset = m_pULThruster->GetPreset()) {
-				m_pULThruster->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pULThruster;
-			}
-		}
-	} else if (reference.m_pULThruster != nullptr) {
-		writer.NewProperty("ULThruster");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(19);
-
-	if (m_pRHatch != nullptr) {
-		if (reference.m_pRHatch == nullptr || m_pRHatch->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("RHatchDoor");
-			if (const Entity* preset = m_pRHatch->GetPreset()) {
-				m_pRHatch->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pRHatch;
-			}
-		}
-	} else if (reference.m_pRHatch != nullptr) {
-		writer.NewProperty("RHatchDoor");
-		writer << "None";
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(20);
-	
-	if (m_pLHatch != nullptr) {
-		if (reference.m_pLHatch == nullptr || m_pLHatch->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("LHatchDoor");
-			if (const Entity* preset = m_pLHatch->GetPreset()) {
-				m_pLHatch->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pLHatch;
-			}
-		}
-	} else if (reference.m_pLHatch != nullptr) {
-		writer.NewProperty("LHatchDoor");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(21);
-
-	if (m_HatchSwingRange != reference.m_HatchSwingRange)
-		writer.NewPropertyWithValue("HatchDoorSwingRange", m_HatchSwingRange);
-	if (m_AutoStabilize != reference.m_AutoStabilize)
-		writer.NewPropertyWithValue("AutoStabilize", m_AutoStabilize);
-	if (m_MaxEngineAngle != reference.m_MaxEngineAngle)
-		writer.NewPropertyWithValue("MaxEngineAngle", m_MaxEngineAngle);
-	if (m_LateralControlSpeed != reference.m_LateralControlSpeed)
-		writer.NewPropertyWithValue("LateralControlSpeed", m_LateralControlSpeed);
-	if (m_HoverHeightModifier != reference.m_HoverHeightModifier)
-		writer.NewPropertyWithValue("HoverHeightModifier", m_HoverHeightModifier);
-
-	return constituentsConsumed; // 21
+	return 0;
 }
 
 HashingData ACDropShip::Hash() const {

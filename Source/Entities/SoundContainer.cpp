@@ -203,8 +203,8 @@ int SoundContainer::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t SoundContainer::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = Entity::Write(writer, entityReference, hashData);
+int SoundContainer::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
 
 	const SoundContainer& reference = static_cast<const SoundContainer&>(entityReference);
 
@@ -223,43 +223,24 @@ size_t SoundContainer::Write(Writer& writer, const Entity& entityReference, cons
 		}
 	}
 
-	if (m_BusRouting != reference.m_BusRouting)
-		writer.NewPropertyWithValue("BusRouting", m_BusRouting);
-	if (m_Immobile != reference.m_Immobile)
-		writer.NewPropertyWithValue("Immobile", m_Immobile);
-	if (m_AttenuationStartDistance != reference.m_AttenuationStartDistance)
-		writer.NewPropertyWithValue("AttenuationStartDistance", m_AttenuationStartDistance);
-	if (m_CustomPanValue != reference.m_CustomPanValue)
-		writer.NewPropertyWithValue("CustomPanValue", m_CustomPanValue);
-	if (m_PanningStrengthMultiplier != reference.m_PanningStrengthMultiplier)
-		writer.NewPropertyWithValue("PanningStrengthMultiplier", m_PanningStrengthMultiplier);
-	if (m_Loops != reference.m_Loops)
-		writer.NewPropertyWithValue("LoopSetting", m_Loops);
+	writer.NewDistinctProperty("BusRouting", m_BusRouting, reference.m_BusRouting);
+	writer.NewDistinctProperty("Immobile", m_Immobile, reference.m_Immobile);
+	writer.NewDistinctProperty("AttenuationStartDistance", m_AttenuationStartDistance, reference.m_AttenuationStartDistance);
+	writer.NewDistinctProperty("CustomPanValue", m_CustomPanValue, reference.m_CustomPanValue);
+	writer.NewDistinctProperty("PanningStrengthMultiplier", m_PanningStrengthMultiplier, reference.m_PanningStrengthMultiplier);
+	writer.NewDistinctProperty("LoopSetting", m_Loops, reference.m_Loops);
+	writer.NewDistinctProperty("Priority", m_Priority, reference.m_Priority);
+	writer.NewDistinctProperty("AffectedByGlobalPitch", m_AffectedByGlobalPitch, reference.m_AffectedByGlobalPitch);
+	writer.NewDistinctProperty("Position", m_Pos, reference.m_Pos);
+	writer.NewDistinctProperty("Volume", m_Volume, reference.m_Volume);
+	writer.NewDistinctProperty("Pitch", m_Pitch, reference.m_Pitch);
+	writer.NewDistinctProperty("PitchVariation", m_PitchVariation, reference.m_PitchVariation);
+	writer.NewDistinctProperty("WasFadedOut", m_WasFadedOut, reference.m_WasFadedOut);
+	writer.NewDistinctProperty("Paused", m_Paused, reference.m_Paused);
+	writer.NewDistinctProperty("MusicPreEntryTime", m_MusicPreEntryTime, reference.m_MusicPreEntryTime);
+	writer.NewDistinctProperty("MusicExitTime", m_MusicExitTime, reference.m_MusicExitTime);
 
-	if (m_Priority != reference.m_Priority)
-		writer.NewPropertyWithValue("Priority", m_Priority);
-	if (m_AffectedByGlobalPitch != reference.m_AffectedByGlobalPitch)
-		writer.NewPropertyWithValue("AffectedByGlobalPitch", m_AffectedByGlobalPitch);
-
-	if (m_Pos != reference.m_Pos)
-		writer.NewPropertyWithValue("Position", m_Pos);
-	if (m_Volume != reference.m_Volume)
-		writer.NewPropertyWithValue("Volume", m_Volume);
-	if (m_Pitch != reference.m_Pitch)
-		writer.NewPropertyWithValue("Pitch", m_Pitch);
-	if (m_PitchVariation != reference.m_PitchVariation)
-		writer.NewPropertyWithValue("PitchVariation", m_PitchVariation);
-
-	if (m_WasFadedOut != reference.m_WasFadedOut)
-		writer.NewPropertyWithValue("WasFadedOut", m_WasFadedOut);
-	if (m_Paused != reference.m_Paused)
-		writer.NewPropertyWithValue("Paused", m_Paused);
-	if (m_MusicPreEntryTime != reference.m_MusicPreEntryTime)
-		writer.NewPropertyWithValue("MusicPreEntryTime", m_MusicPreEntryTime);
-	if (m_MusicExitTime != reference.m_MusicExitTime)
-		writer.NewPropertyWithValue("MusicExitTime", m_MusicExitTime);
-
-	return constituentsConsumed;
+	return 0;
 }
 
 HashingData SoundContainer::Hash() const {

@@ -171,7 +171,7 @@ namespace RTE {
 		void Destroy(bool notInherited = false) override;
 
 #pragma region INI Handling
-		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
+		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
 #pragma endregion
 
 		/// Gets the total liquidation value of this Actor and all its carried

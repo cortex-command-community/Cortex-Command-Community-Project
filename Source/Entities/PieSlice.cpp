@@ -146,8 +146,8 @@ int PieSlice::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t PieSlice::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = Entity::Write(writer, entityReference, hashData);
+int PieSlice::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
 
 	const PieSlice& reference = static_cast<const PieSlice&>(entityReference);
 
@@ -157,43 +157,18 @@ size_t PieSlice::Write(Writer& writer, const Entity& entityReference, const Hash
 	if (m_Direction != reference.m_Direction) {
 		writer.NewPropertyWithValue("Direction", static_cast<int>(m_Direction));
 	}
-	if (m_Enabled != reference.m_Enabled) {
-		writer.NewPropertyWithValue("Enabled", m_Enabled);
-	}
 
-	if (m_Icon->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
-		writer.NewProperty("Icon");
-		if (const Entity* preset = m_Icon->GetPreset()) {
-			m_Icon->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-			writer.ObjectEnd();
-		} else {
-			writer << *m_Icon;
-		}
-	}
+	writer.NewDistinctProperty("Enabled", m_Enabled, reference.m_Enabled);
+	writer.NewEntityPointerProperty("Icon", m_Icon, hashData);
 
 	if (m_LuabindFunctionObject && !m_FunctionName.empty()) {
 		writer.NewPropertyWithValue("ScriptPath", m_LuabindFunctionObject->GetFilePath());
 		writer.NewPropertyWithValue("FunctionName", m_FunctionName);
 	}
 
-	if (m_SubPieMenu != nullptr) {
-		if (reference.m_SubPieMenu == nullptr || m_SubPieMenu->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("SubPieMenu");
-			if (const Entity* preset = m_SubPieMenu->GetPreset()) {
-				m_SubPieMenu->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << *m_SubPieMenu;
-			}
-		}
-	} else if (reference.m_SubPieMenu != nullptr) {
-		writer.NewProperty("SubPieMenu");
-		writer << "None";
-	}
+	writer.NewOptionalEntityPointerProperty("SubPieMenu", m_SubPieMenu, hashData);
 
-	constituentsConsumed += hashData.m_ParseValues.at(0);
-
-	return constituentsConsumed; // last parse index: 1
+	return 0;
 }
 
 HashingData PieSlice::Hash() const {

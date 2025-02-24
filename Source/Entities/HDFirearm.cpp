@@ -294,235 +294,62 @@ int HDFirearm::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t HDFirearm::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = HeldDevice::Write(writer, entityReference, hashData); // last parse index: 6
+int HDFirearm::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	HeldDevice::Write(writer, entityReference, hashData);
 
 	const HDFirearm& reference = static_cast<const HDFirearm&>(entityReference);
 
-	if (m_pMagazine != nullptr) {
-		if (reference.m_pMagazine == nullptr || m_pMagazine->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("Magazine");
-			if (const Entity* preset = m_pMagazine->GetPreset()) {
-				m_pMagazine->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pMagazine;
-			}
-		}
-	} else if (reference.m_pMagazine != nullptr) {
-		writer.NewProperty("Magazine");
-		writer << "None";
-	}
+	writer.NewOptionalEntityPointerProperty("Magazine", m_pMagazine, hashData);
+	writer.NewOptionalEntityPointerProperty("Flash", m_pFlash, hashData);
+	writer.NewOptionalEntityPointerProperty("PreFlashSound", m_PreFireSound, hashData);
+	writer.NewOptionalEntityPointerProperty("FireSound", m_FireSound, hashData);
+	writer.NewOptionalEntityPointerProperty("FireFireEchoSoundSound", m_FireEchoSound, hashData);
+	writer.NewOptionalEntityPointerProperty("ActiveSound", m_ActiveSound, hashData);
+	writer.NewOptionalEntityPointerProperty("DeactivationSound", m_DeactivationSound, hashData);
+	writer.NewOptionalEntityPointerProperty("EmptySound", m_EmptySound, hashData);
+	writer.NewOptionalEntityPointerProperty("ReloadStartSound", m_ReloadStartSound, hashData);
+	writer.NewOptionalEntityPointerProperty("ReloadEndSound", m_ReloadEndSound, hashData);
+	writer.NewDistinctProperty("ReloadEndOffset", m_ReloadEndOffset, reference.m_ReloadEndOffset);
+	writer.NewDistinctProperty("RateOfFire", m_RateOfFire, reference.m_RateOfFire);
+	writer.NewDistinctProperty("ActivationDelay", m_ActivationDelay, reference.m_ActivationDelay);
+	writer.NewDistinctProperty("DeactivationDelay", m_DeactivationDelay, reference.m_DeactivationDelay);
+	writer.NewDistinctProperty("ReloadTime", m_BaseReloadTime, reference.m_BaseReloadTime);
+	writer.NewDistinctProperty("FullAuto", m_FullAuto, reference.m_FullAuto);
+	writer.NewDistinctProperty("FireIgnoresThis", m_FireIgnoresThis, reference.m_FireIgnoresThis);
+	writer.NewDistinctProperty("Reloadable", m_Reloadable, reference.m_Reloadable);
+	writer.NewDistinctProperty("DualReloadable", m_DualReloadable, reference.m_DualReloadable);
+	writer.NewDistinctProperty("OneHandedReloadTimeMultiplier", m_OneHandedReloadTimeMultiplier, reference.m_OneHandedReloadTimeMultiplier);
+	writer.NewDistinctProperty("ReloadAngle", m_ReloadAngle, reference.m_ReloadAngle);
+	writer.NewDistinctProperty("OneHandedReloadAngle", m_OneHandedReloadAngle, reference.m_OneHandedReloadAngle);
+	writer.NewDistinctProperty("RecoilTransmission", m_JointStiffness, reference.m_JointStiffness);
+	writer.NewDistinctProperty("IsAnimatedManually", m_IsAnimatedManually, reference.m_IsAnimatedManually);
 
-	constituentsConsumed += hashData.m_ParseValues.at(7);
-
-	if (m_pFlash != nullptr) {
-		if (reference.m_pFlash == nullptr || m_pFlash->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("Flash");
-			if (const Entity* preset = m_pFlash->GetPreset()) {
-				m_pFlash->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pFlash;
-			}
-		}
-	} else if (reference.m_pFlash != nullptr) {
-		writer.NewProperty("Flash");
-		writer << "None";
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(8);
-
-	if (m_PreFireSound != nullptr) {
-		if (reference.m_PreFireSound == nullptr || m_PreFireSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("PreFireSound");
-			if (const Entity* preset = m_PreFireSound->GetPreset()) {
-				m_PreFireSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_PreFireSound;
-			}
-		}
-	} else if (reference.m_PreFireSound != nullptr) {
-		writer.NewProperty("PreFireSound");
-		writer << "None";
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(9);
-
-	if (m_FireSound != nullptr) {
-		if (reference.m_FireSound == nullptr || m_FireSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("FireSound");
-			if (const Entity* preset = m_FireSound->GetPreset()) {
-				m_FireSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_FireSound;
-			}
-		}
-	} else if (reference.m_FireSound != nullptr) {
-		writer.NewProperty("FireSound");
-		writer << "None";
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(10);
-
-	if (m_FireEchoSound != nullptr) {
-		if (reference.m_FireEchoSound == nullptr || m_FireEchoSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("FireEchoSound");
-			if (const Entity* preset = m_FireEchoSound->GetPreset()) {
-				m_FireEchoSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_FireEchoSound;
-			}
-		}
-	} else if (reference.m_FireEchoSound != nullptr) {
-		writer.NewProperty("FireEchoSound");
-		writer << "None";
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(11);
-
-	if (m_ActiveSound != nullptr) {
-		if (reference.m_ActiveSound == nullptr || m_ActiveSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("ActiveSound");
-			if (const Entity* preset = m_ActiveSound->GetPreset()) {
-				m_ActiveSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_ActiveSound;
-			}
-		}
-	} else if (reference.m_ActiveSound != nullptr) {
-		writer.NewProperty("ActiveSound");
-		writer << "None";
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(12);
-
-	if (m_DeactivationSound != nullptr) {
-		if (reference.m_DeactivationSound == nullptr || m_DeactivationSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("DeactivationSound");
-			if (const Entity* preset = m_DeactivationSound->GetPreset()) {
-				m_DeactivationSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_DeactivationSound;
-			}
-		}
-	} else if (reference.m_DeactivationSound != nullptr) {
-		writer.NewProperty("DeactivationSound");
-		writer << "None";
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(13);
-
-	if (m_EmptySound != nullptr) {
-		if (reference.m_EmptySound == nullptr || m_EmptySound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("EmptySound");
-			if (const Entity* preset = m_EmptySound->GetPreset()) {
-				m_EmptySound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_EmptySound;
-			}
-		}
-	} else if (reference.m_EmptySound != nullptr) {
-		writer.NewProperty("EmptySound");
-		writer << "None";
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(14);
-
-	if (m_ReloadStartSound != nullptr) {
-		if (reference.m_ReloadStartSound == nullptr || m_ReloadStartSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("ReloadStartSound");
-			if (const Entity* preset = m_ReloadStartSound->GetPreset()) {
-				m_ReloadStartSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_ReloadStartSound;
-			}
-		}
-	} else if (reference.m_ReloadStartSound != nullptr) {
-		writer.NewProperty("ReloadStartSound");
-		writer << "None";
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(15);
-
-	if (m_ReloadEndSound != nullptr) {
-		if (reference.m_ReloadEndSound == nullptr || m_ReloadEndSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("ReloadEndSound");
-			if (const Entity* preset = m_ReloadEndSound->GetPreset()) {
-				m_ReloadEndSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_ReloadEndSound;
-			}
-		}
-	} else if (reference.m_ReloadEndSound != nullptr) {
-		writer.NewProperty("ReloadEndSound");
-		writer << "None";
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(15);
-
-	if (m_ReloadEndOffset != reference.m_ReloadEndOffset)
-		writer.NewPropertyWithValue("ReloadEndOffset", m_ReloadEndOffset);
-	if (m_RateOfFire != reference.m_RateOfFire)
-		writer.NewPropertyWithValue("RateOfFire", m_RateOfFire);
-	if (m_ActivationDelay != reference.m_ActivationDelay)
-		writer.NewPropertyWithValue("ActivationDelay", m_ActivationDelay);
-	if (m_DeactivationDelay != reference.m_DeactivationDelay)
-		writer.NewPropertyWithValue("DeactivationDelay", m_DeactivationDelay);
-	if (m_BaseReloadTime != reference.m_BaseReloadTime)
-		writer.NewPropertyWithValue("ReloadTime", m_BaseReloadTime);
-	if (m_FullAuto != reference.m_FullAuto)
-		writer.NewPropertyWithValue("FullAuto", m_FullAuto);
-	if (m_FireIgnoresThis != reference.m_FireIgnoresThis)
-		writer.NewPropertyWithValue("FireIgnoresThis", m_FireIgnoresThis);
-	if (m_Reloadable != reference.m_Reloadable)
-		writer.NewPropertyWithValue("Reloadable", m_Reloadable);
-	if (m_DualReloadable != reference.m_DualReloadable)
-		writer.NewPropertyWithValue("DualReloadable", m_DualReloadable);
-	if (m_OneHandedReloadTimeMultiplier != reference.m_OneHandedReloadTimeMultiplier)
-		writer.NewPropertyWithValue("OneHandedReloadTimeMultiplier", m_OneHandedReloadTimeMultiplier);
-	if (m_ReloadAngle != reference.m_ReloadAngle)
-		writer.NewPropertyWithValue("ReloadAngle", m_ReloadAngle);
-	if (m_OneHandedReloadAngle != reference.m_OneHandedReloadAngle)
-		writer.NewPropertyWithValue("OneHandedReloadAngle", m_OneHandedReloadAngle);
-	if (m_JointStiffness != reference.m_JointStiffness)
-		writer.NewPropertyWithValue("RecoilTransmission", m_JointStiffness);
-	if (m_IsAnimatedManually != reference.m_IsAnimatedManually)
-		writer.NewPropertyWithValue("IsAnimatedManually", m_IsAnimatedManually);
 	if (m_ShakeRange != reference.m_ShakeRange)
 		writer.NewPropertyWithValue("ShakeRange", m_ShakeRange * 2);
+
 	if (m_SharpShakeRange != reference.m_SharpShakeRange)
 		writer.NewPropertyWithValue("SharpShakeRange", m_SharpShakeRange * 2);
-	if (m_NoSupportFactor != reference.m_NoSupportFactor)
-		writer.NewPropertyWithValue("NoSupportFactor", m_NoSupportFactor);
+
+	writer.NewDistinctProperty("NoSupportFactor", m_NoSupportFactor, reference.m_NoSupportFactor);
+
 	if (m_ParticleSpreadRange != reference.m_ParticleSpreadRange)
 		writer.NewPropertyWithValue("ParticleSpreadRange", m_ParticleSpreadRange * 2);
-	if (m_ShellEjectAngle != reference.m_ShellEjectAngle)
-		writer.NewPropertyWithValue("ShellEjectAngle", m_ShellEjectAngle);
+
+	writer.NewDistinctProperty("ShellEjectAngle", m_ShellEjectAngle, reference.m_ShellEjectAngle);
+
 	if (m_ShellSpreadRange != reference.m_ShellSpreadRange)
 		writer.NewPropertyWithValue("ShellSpreadRange", m_ShellSpreadRange * 2);
+
 	if (m_ShellAngVelRange != reference.m_ShellAngVelRange)
 		writer.NewPropertyWithValue("ShellAngVelRange", m_ShellAngVelRange * 2);
-	if (m_ShellVelVariation != reference.m_ShellVelVariation)
-		writer.NewPropertyWithValue("ShellVelVariation", m_ShellVelVariation);
-	if (m_RecoilScreenShakeAmount != reference.m_RecoilScreenShakeAmount)
-		writer.NewPropertyWithValue("RecoilScreenShakeAmount", m_RecoilScreenShakeAmount);
-	if (m_MuzzleOff != reference.m_MuzzleOff)
-		writer.NewPropertyWithValue("MuzzleOffset", m_MuzzleOff);
-	if (m_EjectOff != reference.m_EjectOff)
-		writer.NewPropertyWithValue("EjectionOffset", m_EjectOff);
-	if (m_LegacyCompatibilityRoundsAlwaysFireUnflipped != reference.m_LegacyCompatibilityRoundsAlwaysFireUnflipped)
-		writer.NewPropertyWithValue("LegacyCompatibilityRoundsAlwaysFireUnflipped", m_LegacyCompatibilityRoundsAlwaysFireUnflipped);
 
-	return 0; // last parse index: 15
+	writer.NewDistinctProperty("ShellVelVariation", m_ShellVelVariation, reference.m_ShellVelVariation);
+	writer.NewDistinctProperty("RecoilScreenShakeAmount", m_RecoilScreenShakeAmount, reference.m_RecoilScreenShakeAmount);
+	writer.NewDistinctProperty("MuzzleOffset", m_MuzzleOff, reference.m_MuzzleOff);
+	writer.NewDistinctProperty("EjectionOffset", m_EjectOff, reference.m_EjectOff);
+	writer.NewDistinctProperty("LegacyCompatibilityRoundsAlwaysFireUnflipped", m_LegacyCompatibilityRoundsAlwaysFireUnflipped, reference.m_LegacyCompatibilityRoundsAlwaysFireUnflipped);
+
+	return 0;
 }
 
 HashingData HDFirearm::Hash() const {

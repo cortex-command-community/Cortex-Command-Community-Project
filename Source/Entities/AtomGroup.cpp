@@ -194,71 +194,33 @@ int AtomGroup::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t AtomGroup::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = Entity::Write(writer, entityReference, hashData);
+int AtomGroup::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
 
 	const AtomGroup& reference = static_cast<const AtomGroup&>(entityReference);
 
 	// TODO: autogeneration gives this more nuance, could be bad
 
-	if (m_Material != reference.m_Material) {
-		writer.NewPropertyWithValue("Material", m_Material->GetEntityCharacteristic());
-	}
-
-	if (m_AutoGenerate != reference.m_AutoGenerate) {
-		writer.NewPropertyWithValue("AutoGenerate", m_AutoGenerate);
-	}
+	writer.NewPresetReferenceProperty("Material", m_Material, reference.m_Material);
+	writer.NewDistinctProperty("AutoGenerate", m_AutoGenerate, reference.m_AutoGenerate);
 
 	// Only write out Atoms if they were manually specified
 	if (!m_AutoGenerate) {
-		bool areAtomsConcatenated = true;
-		std::vector<Atom*>::const_iterator aItr = m_Atoms.begin();
-		for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(0); refIndex++, aItr++) {
-			if ((*aItr)->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
-				areAtomsConcatenated = false;
-				break;
-			}
-		}
-
-		if (areAtomsConcatenated) {
-			for (std::vector<Atom*>::const_iterator itr = aItr; itr != m_Atoms.end(); ++itr) {
-				writer.NewProperty("_AddAtom");
-				writer << (**itr);
-			}
-		} else {
-			if (reference.m_Atoms.size() > 0) {
-				writer.NewPropertyWithValue("_ClearAtoms", 1);
-			}
-
-			for (std::vector<Atom*>::const_iterator itr = m_Atoms.begin(); itr != m_Atoms.end(); ++itr) {
-				writer.NewProperty("_AddAtom");
-				writer << (**itr);
-			}
-		}
-
-		constituentsConsumed += hashData.m_ParseValues.at(0);
+		writer.NewPointerSequence("_ClearAtoms", "_AddAtom", m_Atoms, hashData);
 	} else {
-		if (m_Resolution != reference.m_Resolution) {
-			writer.NewPropertyWithValue("Resolution", m_Resolution);
-		}
-		if (m_Depth != reference.m_Depth) {
-			writer.NewPropertyWithValue("Depth", m_Depth);
-		}
+		writer.NewDistinctProperty("Resolution", m_Resolution, reference.m_Resolution);
+		writer.NewDistinctProperty("Depth", m_Depth, reference.m_Depth);
 	}
 
-	if (m_JointOffset != reference.m_JointOffset) {
-		writer.NewPropertyWithValue("JointOffset", m_JointOffset);
-	}
+	writer.NewDistinctProperty("JointOffset", m_JointOffset, reference.m_JointOffset);
 
 	if (m_AreaDistributionType != reference.m_AreaDistributionType) {
 		writer.NewPropertyWithValue("AreaDistributionType", static_cast<std::underlying_type_t<AreaDistributionType>>(m_AreaDistributionType));
 	}
 
-	if (m_AreaDistributionSurfaceAreaMultiplier != reference.m_AreaDistributionSurfaceAreaMultiplier) {
-		writer.NewPropertyWithValue("AreaDistributionSurfaceAreaMultiplier", m_AreaDistributionSurfaceAreaMultiplier);
-	}
+	writer.NewDistinctProperty("AreaDistributionSurfaceAreaMultiplier", m_AreaDistributionSurfaceAreaMultiplier, reference.m_AreaDistributionSurfaceAreaMultiplier);
 
-	return constituentsConsumed;
+	return 0;
 }
 
 HashingData AtomGroup::Hash() const {

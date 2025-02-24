@@ -212,45 +212,15 @@ int BunkerAssemblyScheme::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t BunkerAssemblyScheme::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = SceneObject::Write(writer, entityReference, hashData);
+int BunkerAssemblyScheme::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	SceneObject::Write(writer, entityReference, hashData);
 
 	const BunkerAssemblyScheme& reference = static_cast<const BunkerAssemblyScheme&>(entityReference);
 
-	if (m_BitmapFile.Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++))
-		writer.NewPropertyWithValue("BitmapFile", m_BitmapFile);
+	writer.NewDistinctHashedProperty("BitmapFile", m_BitmapFile, hashData);
+	writer.NewPointerSequence("_ClearChildObjects", "_AddChildObject", m_ChildObjects, hashData);
 
-	// Of ordered lists: if the entirety of the preset's list is intact and preceeding any additions, it is concatenated.
-	// If it is concatenated, the list does not need to be cleared, all following items can be added.
-	// If it is not concatenated, the list is cleared and rewritten from the beginning.
-	std::list<SOPlacer>::const_iterator coItr = m_ChildObjects.begin();
-	bool areChildObjectsConcatenated = true;
-	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(0); refIndex++, coItr++) {
-		if ((coItr)->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
-			areChildObjectsConcatenated = false;
-			break;
-		}
-	}
-
-	if (areChildObjectsConcatenated) {
-		for (std::list<SOPlacer>::const_iterator itr = coItr; itr != m_ChildObjects.end(); ++itr) {
-			writer.NewProperty("_AddChildObject");
-			writer << (*itr);
-		}
-	} else {
-		if (reference.m_ChildObjects.size() > 0) {
-			writer.NewPropertyWithValue("_ClearChildObjects", 1);
-		}
-
-		for (std::list<SOPlacer>::const_iterator itr = m_ChildObjects.begin(); itr != m_ChildObjects.end(); ++itr) {
-			writer.NewProperty("_AddChildObject");
-			writer << (*itr);
-		}
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(0);
-
-	return constituentsConsumed;
+	return 0;
 }
 
 HashingData BunkerAssemblyScheme::Hash() const {

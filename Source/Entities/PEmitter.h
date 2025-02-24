@@ -55,7 +55,7 @@ namespace RTE {
 		void Destroy(bool notInherited = false) override;
 
 #pragma region INI Handling
-		size_t Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const override;
+		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
 #pragma endregion
 
 		/// Indicates whether this PEmitter is currently enabled and emitting.

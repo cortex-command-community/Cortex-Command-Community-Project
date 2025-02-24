@@ -105,25 +105,18 @@ int Deployment::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t Deployment::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = SceneObject::Write(writer, entityReference, hashData);
+int Deployment::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	SceneObject::Write(writer, entityReference, hashData);
 
 	const Deployment& reference = static_cast<const Deployment&>(entityReference);
 
-	if (m_LoadoutName != reference.m_LoadoutName)
-		writer.NewPropertyWithValue("LoadoutName", m_LoadoutName);
+	writer.NewDistinctProperty("LoadoutName", m_LoadoutName, reference.m_LoadoutName);
+	writer.NewDistinctHashedProperty("Icon", m_Icon, hashData);
+	writer.NewDistinctProperty("SpawnRadius", m_SpawnRadius, reference.m_SpawnRadius);
+	writer.NewDistinctProperty("WalkRadius", m_WalkRadius, reference.m_WalkRadius);
+	writer.NewDistinctProperty("HFlipped", m_HFlipped, reference.m_HFlipped);
 
-	if (m_Icon.Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++))
-		writer.NewPropertyWithValue("Icon", m_Icon);
-
-	if (m_SpawnRadius != reference.m_SpawnRadius)
-		writer.NewPropertyWithValue("SpawnRadius", m_SpawnRadius);
-	if (m_WalkRadius != reference.m_WalkRadius)
-		writer.NewPropertyWithValue("WalkRadius", m_WalkRadius);
-	if (m_HFlipped != reference.m_HFlipped)
-		writer.NewPropertyWithValue("HFlipped", m_HFlipped);
-
-	return constituentsConsumed;
+	return 0;
 }
 
 HashingData Deployment::Hash() const {

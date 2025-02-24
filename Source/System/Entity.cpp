@@ -139,7 +139,7 @@ namespace RTE {
 		// corresponding to attributes of the reference, so that the writing can determine the most efficient
 		// and accurate method of recording.
 		// 
-		// See int Entity::Write(Writer& writer, const Entity& reference, const HashingData& hashData) const
+		// See int Entity::Write(Writer& writer, const Entity& entityReference, HashingData hashData) const
 
 		if (m_IsOriginalPreset) {
 			writer.NewPropertyWithValue("PresetName", GetModuleAndPresetName());
@@ -164,7 +164,7 @@ namespace RTE {
 		return 0;
 	}
 
-	size_t Entity::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
+	int Entity::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
 		writer.ObjectStart(GetClassName());
 
 		writer.NewPropertyWithValue("CopyOf", entityReference.GetModuleAndPresetName());
@@ -384,5 +384,29 @@ namespace RTE {
 				fileWriter.NewLineString(itr->GetName() + ": " + std::to_string(itr->m_InstancesInUse), false);
 			}
 		}
+	}
+
+	Writer& operator<<(Writer& writer, const Entity& operand) {
+		if (const Entity* preset = operand.GetPreset()) {
+			HashingData presetHash(*g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+			operand.Write(writer, *preset, presetHash);
+			writer.ObjectEnd();
+		} else {
+			writer << static_cast<const Serializable&>(operand);
+		}
+		return writer;
+	}
+
+	Writer& operator<<(Writer& writer, const Entity* operand) {
+		if (operand != nullptr) {
+			if (const Entity* preset = operand->GetPreset()) {
+				HashingData presetHash(*g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+				operand->Write(writer, *preset, presetHash);
+				writer.ObjectEnd();
+			}
+		} else {
+			writer << static_cast<const Serializable*>(operand);
+		}
+		return writer;
 	}
 } // namespace RTE

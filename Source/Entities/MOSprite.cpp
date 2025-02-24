@@ -222,48 +222,24 @@ int MOSprite::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t MOSprite::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = MovableObject::Write(writer, entityReference, hashData);
+int MOSprite::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	MovableObject::Write(writer, entityReference, hashData);
 
 	const MOSprite& reference = static_cast<const MOSprite&>(entityReference);
 
-	if (m_SpriteFile.Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++))
-		writer.NewPropertyWithValue("SpriteFile", m_SpriteFile);
+	writer.NewDistinctHashedProperty("SpriteFile", m_SpriteFile, hashData);
+	writer.NewDistinctProperty("FrameCount", m_FrameCount, reference.m_FrameCount);
+	writer.NewDistinctProperty("SpriteOffset", m_SpriteOffset, reference.m_SpriteOffset);
+	writer.NewDistinctProperty("SpriteAnimMode", m_SpriteAnimMode, reference.m_SpriteAnimMode);
+	writer.NewDistinctProperty("SpriteAnimDuration", m_SpriteAnimDuration, reference.m_SpriteAnimDuration);
+	writer.NewDistinctProperty("HFlipped", m_HFlipped, reference.m_HFlipped);
+	writer.NewDistinctProperty("Rotation", m_Rotation, reference.m_Rotation);
+	writer.NewDistinctProperty("AngularVel", m_AngularVel, reference.m_AngularVel);
+	writer.NewDistinctProperty("SettleMaterialDisabled", m_SettleMaterialDisabled, reference.m_SettleMaterialDisabled);
+	writer.NewPresetReferenceProperty("EntryWound", m_pEntryWound, reference.m_pEntryWound);
+	writer.NewPresetReferenceProperty("ExitWound", m_pExitWound, reference.m_pExitWound);
 
-	if (m_FrameCount != reference.m_FrameCount)
-		writer.NewPropertyWithValue("FrameCount", m_FrameCount);
-	if (m_SpriteOffset != reference.m_SpriteOffset)
-		writer.NewPropertyWithValue("SpriteOffset", m_SpriteOffset);
-	if (m_SpriteAnimMode != reference.m_SpriteAnimMode)
-		writer.NewPropertyWithValue("SpriteAnimMode", m_SpriteAnimMode);
-	if (m_SpriteAnimDuration != reference.m_SpriteAnimDuration)
-		writer.NewPropertyWithValue("SpriteAnimDuration", m_SpriteAnimDuration);
-	if (m_HFlipped != reference.m_HFlipped)
-		writer.NewPropertyWithValue("HFlipped", m_HFlipped);
-	if (m_Rotation != reference.m_Rotation)
-		writer.NewPropertyWithValue("Rotation", m_Rotation);
-	if (m_AngularVel != reference.m_AngularVel)
-		writer.NewPropertyWithValue("AngularVel", m_AngularVel);
-	if (m_SettleMaterialDisabled != reference.m_SettleMaterialDisabled)
-		writer.NewPropertyWithValue("SettleMaterialDisabled", m_SettleMaterialDisabled);
-
-	if (m_pEntryWound != reference.m_pEntryWound) {
-		if (m_pEntryWound) {
-			writer.NewPropertyWithValue("EntryWound", m_pEntryWound->GetEntityCharacteristic());
-		} else {
-			writer.NewPropertyWithValue("EntryWound", "None");
-		}
-	}
-
-	if (m_pExitWound != reference.m_pExitWound) {
-		if (m_pExitWound) {
-			writer.NewPropertyWithValue("ExitWound", m_pExitWound->GetEntityCharacteristic());
-		} else {
-			writer.NewPropertyWithValue("ExitWound", "None");
-		}
-	}
-
-	return constituentsConsumed;
+	return 0;
 }
 
 HashingData MOSprite::Hash() const {

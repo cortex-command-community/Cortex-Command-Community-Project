@@ -195,58 +195,22 @@ int LimbPath::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t LimbPath::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-    size_t constituentsConsumed = Entity::Write(writer, entityReference, hashData);
+int LimbPath::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
 
 	const LimbPath& reference = static_cast<const LimbPath&>(entityReference);
 
-	if (m_Start != reference.m_Start)
-		writer.NewPropertyWithValue("StartOffset", m_Start);
-	if (m_StartSegCount != reference.m_StartSegCount)
-		writer.NewPropertyWithValue("StartSegCount", m_StartSegCount);
+	writer.NewDistinctProperty("StartOffset", m_Start, reference.m_Start);
+	writer.NewDistinctProperty("StartSegCount", m_StartSegCount, reference.m_StartSegCount);
+	writer.NewPointerSequence("_ClearSegments", "_AddSegment", m_Segments, hashData);
+	writer.NewDistinctProperty("EndSegCount", m_FootCollisionsDisabledSegment, reference.m_FootCollisionsDisabledSegment);
+	writer.NewDistinctProperty("SegmentEndedThreshold", m_SegmentEndedThreshold, reference.m_SegmentEndedThreshold);
+	writer.NewDistinctProperty("TravelSpeed", m_TravelSpeed, reference.m_TravelSpeed);
+	writer.NewDistinctProperty("BaseTravelSpeedMultiplier", m_BaseTravelSpeedMultiplier, reference.m_BaseTravelSpeedMultiplier);
+	writer.NewDistinctProperty("BaseScaleMultiplier", m_BaseScaleMultiplier, reference.m_BaseScaleMultiplier);
+	writer.NewDistinctProperty("PushForce", m_PushForce, reference.m_PushForce);
 
-	bool areSegmentsConcatenated = true;
-	std::deque<Vector>::const_iterator sItr = m_Segments.begin();
-	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(0); refIndex++, sItr++) {
-		if (sItr->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
-			areSegmentsConcatenated = false;
-			break;
-		}
-	}
-
-	if (areSegmentsConcatenated) {
-		for (std::deque<Vector>::const_iterator itr = sItr; itr != m_Segments.end(); ++itr) {
-			writer.NewProperty("_AddSegment");
-			writer << (*itr);
-		}
-	} else {
-		if (reference.m_Segments.size() > 0) {
-			writer.NewPropertyWithValue("_ClearSegments", 1);
-		}
-
-		for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr) {
-			writer.NewProperty("_AddSegment");
-			writer << (*itr);
-		}
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(0);
-
-	if (m_FootCollisionsDisabledSegment != reference.m_FootCollisionsDisabledSegment)
-		writer.NewPropertyWithValue("EndSegCount", m_FootCollisionsDisabledSegment);
-	if (m_SegmentEndedThreshold != reference.m_SegmentEndedThreshold)
-		writer.NewPropertyWithValue("SegmentEndedThreshold", m_SegmentEndedThreshold);
-
-	if (m_TravelSpeed != reference.m_TravelSpeed)
-		writer.NewPropertyWithValue("TravelSpeed", m_TravelSpeed);
-	if (m_BaseTravelSpeedMultiplier != reference.m_BaseTravelSpeedMultiplier)
-		writer.NewPropertyWithValue("BaseTravelSpeedMultiplier", m_BaseTravelSpeedMultiplier);
-	if (m_BaseScaleMultiplier != reference.m_BaseScaleMultiplier)
-		writer.NewPropertyWithValue("BaseScaleMultiplier", m_BaseScaleMultiplier);
-	if (m_PushForce != reference.m_PushForce)
-		writer.NewPropertyWithValue("PushForce", m_PushForce);
-
-	return constituentsConsumed;
+	return 0;
 }
 
 HashingData LimbPath::Hash() const {

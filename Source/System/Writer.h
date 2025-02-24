@@ -4,6 +4,8 @@
 #include <memory>
 #include <ostream>
 
+#include "Hash.h"
+
 namespace RTE {
 
 	/// Writes RTE objects to std::ostreams.
@@ -101,6 +103,194 @@ namespace RTE {
 		template <typename Type> void NewPropertyWithValue(const std::string& propName, const Type& propValue) {
 			NewProperty(propName);
 			*this << propValue;
+		}
+
+		/// Creates a new line and writes the name of the specified property, followed by its set value.
+		/// @param propName The name of the property to be written.
+		/// @param propValue The value of the property.
+		template <typename Type>
+		void NewPointerSequence(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData) {
+			bool areItemsConcatenated = true;
+			auto itemItr = propValue.begin();
+
+			for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.front(); refIndex++, itemItr++) {
+				if ((*itemItr)->Hash().m_Hash != hashData.m_Constituents.front()) {
+					areItemsConcatenated = false;
+					break;
+				}
+
+				hashData.m_Constituents.pop_front();
+			}
+
+			if (areItemsConcatenated) {
+				for (auto itr = itemItr; itr != propValue.end(); ++itr) {
+					NewPropertyWithValue(insertionPhrase, **itr);
+				}
+			} else {
+				if (hashData.m_ParseValues.front() > 0) {
+					NewPropertyWithValue(clearPhrase, 1);
+				}
+
+				for (auto itr = propValue.begin(); itr != propValue.end(); ++itr) {
+					NewPropertyWithValue(insertionPhrase, **itr);
+				}
+			}
+
+			hashData.m_ParseValues.pop_front();
+		}
+
+		/// Creates a new line and writes the name of the specified property, followed by its set value.
+		/// @param propName The name of the property to be written.
+		/// @param propValue The value of the property.
+		template <typename Type>
+		void NewSequence(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData) {
+			bool areItemsConcatenated = true;
+			auto itemItr = propValue.begin();
+
+			for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.front(); refIndex++, itemItr++) {
+				if ((*itemItr).Hash().m_Hash != hashData.m_Constituents.front()) {
+					areItemsConcatenated = false;
+					break;
+				}
+
+				hashData.m_Constituents.pop_front();
+			}
+
+			if (areItemsConcatenated) {
+				for (auto itr = itemItr; itr != propValue.end(); ++itr) {
+					NewPropertyWithValue(insertionPhrase, *itr);
+				}
+			} else {
+				if (hashData.m_ParseValues.front() > 0) {
+					NewPropertyWithValue(clearPhrase, 1);
+				}
+
+				for (auto itr = propValue.begin(); itr != propValue.end(); ++itr) {
+					NewPropertyWithValue(insertionPhrase, *itr);
+				}
+			}
+
+			hashData.m_ParseValues.pop_front();
+		}
+
+		/// Creates a new line and writes the name of the specified property, followed by its set value.
+		/// @param propName The name of the property to be written.
+		/// @param propValue The value of the property.
+		template <typename Type, typename Lambda>
+		void NewPointerSequenceConditional(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData, Lambda&& conditional) {
+			// Begin with the optimistic assumption that the list can be concatenated on top of the reference's
+			bool areItemsConcatenated = true;
+			auto itemItr = propValue.begin();
+
+			for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.front(); refIndex++, itemItr++) {
+				if (conditional(*itemItr)) {
+					if ((*itemItr)->Hash().m_Hash != hashData.m_Constituents.front()) {
+						areItemsConcatenated = false;
+						break;
+					}
+
+					hashData.m_Constituents.pop_front();
+				}
+			}
+
+			if (areItemsConcatenated) {
+				for (auto itr = itemItr; itr != propValue.end(); ++itr) {
+					NewPropertyWithValue(insertionPhrase, **itr);
+				}
+			} else {
+				if (hashData.m_ParseValues.front() > 0) {
+					NewPropertyWithValue(clearPhrase, 1);
+				}
+
+				for (auto itr = propValue.begin(); itr != propValue.end(); ++itr) {
+					if (conditional(*itemItr)) {
+						NewPropertyWithValue(insertionPhrase, **itr);
+					}
+				}
+			}
+
+			// Pop the parse value relevant to this property
+			hashData.m_ParseValues.pop_front();
+		}
+
+		/// Creates a new line and writes the name of the specified property, followed by its set value.
+		/// @param propName The name of the property to be written.
+		/// @param propValue The value of the property.
+		template <typename Type>
+		void NewOptionalEntityPointerProperty(const std::string& propName, const Type& propValue, HashingData& hashData) {
+			if (propValue != nullptr) {
+				// Specify the property if the data indicates no value corresponding to that property
+				bool isToRespecify = hashData.m_ParseValues.front() == 0;
+
+				if (!isToRespecify) {
+					// Specify anyways if the object is different to it's reference
+					isToRespecify = propValue->Hash().m_Hash != hashData.m_Constituents.front();
+					// Parse value above was non-zero, implying this used 1 constituent slot, so having read it, now eject it
+					hashData.m_Constituents.pop_front();
+				}
+
+				if (isToRespecify) {
+					NewProperty(propName);
+					*this << propValue;
+				}
+			} else if (hashData.m_ParseValues.front() != 0) {
+				// This property is null, but the reference's property is not, so clear it
+				NewProperty(propName);
+				NoObject();
+			}
+
+			// Info for parsing has been used, eject it
+			hashData.m_ParseValues.pop_front();
+		}
+
+		/// Creates a new line and writes the name of the specified property, followed by its set value.
+		/// @param propName The name of the property to be written.
+		/// @param propValue The value of the property.
+		template <typename Type>
+		void NewEntityPointerProperty(const std::string& propName, const Type& propValue, HashingData& hashData) {
+			// Specify the property if the data indicates no value corresponding to that property
+			bool isToRespecify = propValue->Hash().m_Hash != hashData.m_Constituents.front();
+			hashData.m_Constituents.pop_front();
+
+			if (isToRespecify) {
+				NewProperty(propName);
+				*this << propValue;
+			}
+		}
+
+		/// Creates a new line and writes the name of the specified property, followed by its set value.
+		/// @param propName The name of the property to be written.
+		/// @param propValue The value of the property.
+		template <typename Type>
+		void NewPresetReferenceProperty(const std::string& propName, const Type& propValue, const Type& propReference) {
+			if (propValue != propReference) {
+				NewProperty(propName);
+
+				if (propValue == nullptr) {
+					NoObject();
+				} else {
+					*this << propValue->GetEntityCharacteristic();
+				}
+			}
+		}
+
+		/// Creates a new line and writes the name of the specified property, followed by its set value.
+		/// @param propName The name of the property to be written.
+		/// @param propValue The value of the property.
+		template <typename Type>
+		void NewDistinctProperty(const std::string& propName, const Type& propValue, const Type& propReference) {
+			if (propValue != propReference) {
+				NewPropertyWithValue(propName, propValue);
+			}
+		}
+
+		/// Creates a new line and writes the name of the specified property, followed by its set value.
+		/// @param propName The name of the property to be written.
+		/// @param propValue The value of the property.
+		template <typename Type>
+		void NewDistinctHashedProperty(const std::string& propName, const Type& propValue, HashingData& hashData) {
+			NewDistinctProperty(propName, propValue.Hash().m_Hash, hashData.m_Constituents.front());
+			hashData.m_Constituents.pop_front();
 		}
 
 		/// Marks that there is a null reference to an object here.

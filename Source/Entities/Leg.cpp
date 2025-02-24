@@ -111,40 +111,19 @@ int Leg::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t Leg::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = Attachable::Write(writer, entityReference, hashData);
+int Leg::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Attachable::Write(writer, entityReference, hashData);
 
 	const Leg& reference = static_cast<const Leg&>(entityReference);
 
-	if (m_Foot != nullptr) {
-		if (reference.m_Foot == nullptr || m_Foot->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("Foot");
-			if (const Entity* preset = m_Foot->GetPreset()) {
-				m_Foot->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_Foot;
-			}
-		}
-	} else if (reference.m_Foot != nullptr) {
-		writer.NewProperty("Foot");
-		writer << "None";
-	}
+	writer.NewOptionalEntityPointerProperty("Foot", m_Foot, hashData);
+	writer.NewDistinctProperty("ContractedOffset", m_ContractedOffset, reference.m_ContractedOffset);
+	writer.NewDistinctProperty("ExtendedOffset", m_ExtendedOffset, reference.m_ExtendedOffset);
+	writer.NewDistinctProperty("IdleOffset", m_IdleOffset, reference.m_IdleOffset);
+	writer.NewDistinctProperty("WillIdle", m_WillIdle, reference.m_WillIdle);
+	writer.NewDistinctProperty("MoveSpeed", m_MoveSpeed, reference.m_MoveSpeed);
 
-	constituentsConsumed += hashData.m_ParseValues.at(7);
-
-	if (m_ContractedOffset != reference.m_ContractedOffset)
-		writer.NewPropertyWithValue("ContractedOffset", m_ContractedOffset);
-	if (m_ExtendedOffset != reference.m_ExtendedOffset)
-		writer.NewPropertyWithValue("ExtendedOffset", m_ExtendedOffset);
-	if (m_IdleOffset != reference.m_IdleOffset)
-		writer.NewPropertyWithValue("IdleOffset", m_IdleOffset);
-	if (m_WillIdle != reference.m_WillIdle)
-		writer.NewPropertyWithValue("WillIdle", m_WillIdle);
-	if (m_MoveSpeed != reference.m_MoveSpeed)
-		writer.NewPropertyWithValue("MoveSpeed", m_MoveSpeed);
-
-	return constituentsConsumed;
+	return 0;
 }
 
 HashingData Leg::Hash() const {

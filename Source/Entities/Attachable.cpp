@@ -202,86 +202,35 @@ int Attachable::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t Attachable::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = MOSRotating::Write(writer, entityReference, hashData); // last parse index: 5
+int Attachable::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	MOSRotating::Write(writer, entityReference, hashData);
 
 	const Attachable& reference = static_cast<const Attachable&>(entityReference);
 
-	if (m_ParentOffset != reference.m_ParentOffset)
-		writer.NewPropertyWithValue("ParentOffset", m_ParentOffset);
-	if (m_DrawAfterParent != reference.m_DrawAfterParent)
-		writer.NewPropertyWithValue("DrawAfterParent", m_DrawAfterParent);
-	if (m_DeleteWhenRemovedFromParent != reference.m_DeleteWhenRemovedFromParent)
-		writer.NewPropertyWithValue("DeleteWhenRemovedFromParent", m_DeleteWhenRemovedFromParent);
-	if (m_GibWhenRemovedFromParent != reference.m_GibWhenRemovedFromParent)
-		writer.NewPropertyWithValue("GibWhenRemovedFromParent", m_GibWhenRemovedFromParent);
-	if (m_ApplyTransferredForcesAtOffset != reference.m_ApplyTransferredForcesAtOffset)
-		writer.NewPropertyWithValue("ApplyTransferredForcesAtOffset", m_ApplyTransferredForcesAtOffset);
-
-	if (m_JointStrength != reference.m_JointStrength)
-		writer.NewPropertyWithValue("JointStrength", m_JointStrength);
-	if (m_JointStiffness != reference.m_JointStiffness)
-		writer.NewPropertyWithValue("JointStiffness", m_JointStiffness);
-	if (m_JointOffset != reference.m_JointOffset)
-		writer.NewPropertyWithValue("JointOffset", m_JointOffset);
-
-	if (m_BreakWound != reference.m_BreakWound) {
-		writer.NewPropertyWithValue("BreakWound", m_BreakWound ? m_BreakWound->GetEntityCharacteristic() : "None");
-	}
-
-	if (m_ParentBreakWound != reference.m_ParentBreakWound) {
-		writer.NewPropertyWithValue("ParentBreakWound", m_ParentBreakWound ? m_ParentBreakWound->GetEntityCharacteristic() : "None");
-	}
+	writer.NewDistinctProperty("ParentOffset", m_ParentOffset, reference.m_ParentOffset);
+	writer.NewDistinctProperty("DrawAfterParent", m_DrawAfterParent, reference.m_DrawAfterParent);
+	writer.NewDistinctProperty("DeleteWhenRemovedFromParent", m_DeleteWhenRemovedFromParent, reference.m_DeleteWhenRemovedFromParent);
+	writer.NewDistinctProperty("GibWhenRemovedFromParent", m_GibWhenRemovedFromParent, reference.m_GibWhenRemovedFromParent);
+	writer.NewDistinctProperty("ApplyTransferredForcesAtOffset", m_ApplyTransferredForcesAtOffset, reference.m_ApplyTransferredForcesAtOffset);
+	writer.NewDistinctProperty("JointStrength", m_JointStrength, reference.m_JointStrength);
+	writer.NewDistinctProperty("JointStiffness", m_JointStiffness, reference.m_JointStiffness);
+	writer.NewDistinctProperty("JointOffset", m_JointOffset, reference.m_JointOffset);
+	writer.NewPresetReferenceProperty("BreakWound", m_BreakWound, reference.m_BreakWound);
+	writer.NewPresetReferenceProperty("ParentBreakWound", m_ParentBreakWound, reference.m_ParentBreakWound);
 
 	if (m_InheritsHFlipped != reference.m_InheritsHFlipped)
 		writer.NewPropertyWithValue("InheritsHFlipped", ((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2));
-	if (m_InheritsRotAngle != reference.m_InheritsRotAngle)
-		writer.NewPropertyWithValue("InheritsRotAngle", m_InheritsRotAngle);
-	if (m_InheritedRotAngleOffset != reference.m_InheritedRotAngleOffset)
-		writer.NewPropertyWithValue("InheritedRotAngleOffset", m_InheritedRotAngleOffset);
-	if (m_MountedRotAngleOffset != reference.m_MountedRotAngleOffset)
-		writer.NewPropertyWithValue("MountedRotAngleOffset", m_MountedRotAngleOffset);
-	if (m_InheritsVelWhenDetached != reference.m_InheritsVelWhenDetached)
-		writer.NewPropertyWithValue("InheritsVelWhenDetached", m_InheritsVelWhenDetached);
-	if (m_InheritsAngularVelWhenDetached != reference.m_InheritsAngularVelWhenDetached)
-		writer.NewPropertyWithValue("InheritsAngularVelWhenDetached", m_InheritsAngularVelWhenDetached);
 
-	if (m_CollidesWithTerrainWhileAttached != reference.m_CollidesWithTerrainWhileAttached)
-		writer.NewPropertyWithValue("CollidesWithTerrainWhileAttached", m_CollidesWithTerrainWhileAttached);
-	if (m_IgnoresParticlesWhileAttached != reference.m_IgnoresParticlesWhileAttached)
-		writer.NewPropertyWithValue("IgnoresParticlesWhileAttached", m_IgnoresParticlesWhileAttached);
+	writer.NewDistinctProperty("InheritsRotAngle", m_InheritsRotAngle, reference.m_InheritsRotAngle);
+	writer.NewDistinctProperty("InheritedRotAngleOffset", m_InheritedRotAngleOffset, reference.m_InheritedRotAngleOffset);
+	writer.NewDistinctProperty("MountedRotAngleOffset", m_MountedRotAngleOffset, reference.m_MountedRotAngleOffset);
+	writer.NewDistinctProperty("InheritsVelWhenDetached", m_InheritsVelWhenDetached, reference.m_InheritsVelWhenDetached);
+	writer.NewDistinctProperty("InheritsAngularVelWhenDetached", m_InheritsAngularVelWhenDetached, reference.m_InheritsAngularVelWhenDetached);
+	writer.NewDistinctProperty("CollidesWithTerrainWhileAttached", m_CollidesWithTerrainWhileAttached, reference.m_CollidesWithTerrainWhileAttached);
+	writer.NewDistinctProperty("IgnoresParticlesWhileAttached", m_IgnoresParticlesWhileAttached, reference.m_IgnoresParticlesWhileAttached);
+	writer.NewPointerSequence("_ClearPieSlices", "_AddPieSlice", m_PieSlices, hashData);
 
-	// Of ordered lists: if the entirety of the preset's list is intact and preceeding any additions, it is concatenated.
-	// If it is concatenated, the list does not need to be cleared, all following items can be added.
-	// If it is not concatenated, the list is cleared and rewritten from the beginning.
-	std::vector<std::unique_ptr<PieSlice>>::const_iterator psItr = m_PieSlices.begin();
-	bool arePieSlicesConcatenated = true;
-	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(6); refIndex++, psItr++) {
-		if ((*psItr)->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
-			arePieSlicesConcatenated = false;
-			break;
-		}
-	}
-
-	if (arePieSlicesConcatenated) {
-		for (std::vector<std::unique_ptr<PieSlice>>::const_iterator itr = psItr; itr != m_PieSlices.end(); ++itr) {
-			writer.NewProperty("_AddPieSlice");
-			writer << (**itr);
-		}
-	} else {
-		if (reference.m_PieSlices.size() > 0) {
-			writer.NewPropertyWithValue("_ClearPieSlices", 1);
-		}
-
-		for (std::vector<std::unique_ptr<PieSlice>>::const_iterator itr = m_PieSlices.begin(); itr != m_PieSlices.end(); ++itr) {
-			writer.NewProperty("_AddPieSlice");
-			writer << (**itr);
-		}
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(6);
-
-	return constituentsConsumed; // last parse index: 6
+	return 0;
 }
 
 HashingData Attachable::Hash() const {

@@ -200,208 +200,29 @@ int ACRocket::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t ACRocket::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = ACraft::Write(writer, entityReference, hashData); // 15
+int ACRocket::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	ACraft::Write(writer, entityReference, hashData);
 
 	const ACRocket& reference = static_cast<const ACRocket&>(entityReference);
 
-	if (m_pRLeg != nullptr) {
-		if (reference.m_pRLeg == nullptr || m_pRLeg->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("RLeg");
-			if (const Entity* preset = m_pRLeg->GetPreset()) {
-				m_pRLeg->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pRLeg;
-			}
-		}
-	} else if (reference.m_pRLeg != nullptr) {
-		writer.NewProperty("RLeg");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(12);
-	
-	if (m_pLLeg != nullptr) {
-		if (reference.m_pLLeg == nullptr || m_pLLeg->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("LLeg");
-			if (const Entity* preset = m_pLLeg->GetPreset()) {
-				m_pLLeg->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pLLeg;
-			}
-		}
-	} else if (reference.m_pLLeg != nullptr) {
-		writer.NewProperty("LLeg");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(13);
-	
-	if (m_pRFootGroup != nullptr) {
-		if (reference.m_pRFootGroup == nullptr || m_pRFootGroup->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("RFootGroup");
-			if (const Entity* preset = m_pRFootGroup->GetPreset()) {
-				m_pRFootGroup->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pRFootGroup;
-			}
-		}
-	} else if (reference.m_pRFootGroup != nullptr) {
-		writer.NewProperty("RFootGroup");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(14);
-	
-	if (m_pLFootGroup != nullptr) {
-		if (reference.m_pLFootGroup == nullptr || m_pLFootGroup->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("LFootGroup");
-			if (const Entity* preset = m_pLFootGroup->GetPreset()) {
-				m_pLFootGroup->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pLFootGroup;
-			}
-		}
-	} else if (reference.m_pLFootGroup != nullptr) {
-		writer.NewProperty("LFootGroup");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(15);
-	
-	if (m_pMThruster != nullptr) {
-		if (reference.m_pMThruster == nullptr || m_pMThruster->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("MThruster");
-			if (const Entity* preset = m_pMThruster->GetPreset()) {
-				m_pMThruster->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pMThruster;
-			}
-		}
-	} else if (reference.m_pMThruster != nullptr) {
-		writer.NewProperty("MThruster");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(16);
-	
-	if (m_pRThruster != nullptr) {
-		if (reference.m_pRThruster == nullptr || m_pRThruster->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("RThruster");
-			if (const Entity* preset = m_pRThruster->GetPreset()) {
-				m_pRThruster->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pRThruster;
-			}
-		}
-	} else if (reference.m_pRThruster != nullptr) {
-		writer.NewProperty("RThruster");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(17);
-	
-	if (m_pLThruster != nullptr) {
-		if (reference.m_pLThruster == nullptr || m_pLThruster->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("LThruster");
-			if (const Entity* preset = m_pLThruster->GetPreset()) {
-				m_pLThruster->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pLThruster;
-			}
-		}
-	} else if (reference.m_pLThruster != nullptr) {
-		writer.NewProperty("LThruster");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(18);
-	
-	if (m_pURThruster != nullptr) {
-		if (reference.m_pURThruster == nullptr || m_pURThruster->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("URThruster");
-			if (const Entity* preset = m_pURThruster->GetPreset()) {
-				m_pURThruster->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pURThruster;
-			}
-		}
-	} else if (reference.m_pURThruster != nullptr) {
-		writer.NewProperty("URThruster");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(19);
-	
-	if (m_pULThruster != nullptr) {
-		if (reference.m_pULThruster == nullptr || m_pULThruster->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("ULThruster");
-			if (const Entity* preset = m_pULThruster->GetPreset()) {
-				m_pULThruster->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pULThruster;
-			}
-		}
-	} else if (reference.m_pULThruster != nullptr) {
-		writer.NewProperty("ULThruster");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(20);
-	
-	if (m_Paths[RIGHT][RAISED].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
-		writer.NewProperty("RaisedGearLimbPath");
-		if (const Entity* preset = m_Paths[RIGHT][RAISED].GetPreset()) {
-			m_Paths[RIGHT][RAISED].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-			writer.ObjectEnd();
-		} else {
-			writer << m_Paths[RIGHT][RAISED];
-		}
-	}
-	
-	if (m_Paths[RIGHT][LOWERED].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
-		writer.NewProperty("LoweredGearLimbPath");
-		if (const Entity* preset = m_Paths[RIGHT][LOWERED].GetPreset()) {
-			m_Paths[RIGHT][LOWERED].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-			writer.ObjectEnd();
-		} else {
-			writer << m_Paths[RIGHT][LOWERED];
-		}
-	}
-	
-	if (m_Paths[RIGHT][LOWERING].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
-		writer.NewProperty("LoweringGearLimbPath");
-		if (const Entity* preset = m_Paths[RIGHT][LOWERING].GetPreset()) {
-			m_Paths[RIGHT][LOWERING].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-			writer.ObjectEnd();
-		} else {
-			writer << m_Paths[RIGHT][LOWERING];
-		}
-	}
-	
-	if (m_Paths[RIGHT][RAISING].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
-		writer.NewProperty("RaisingGearLimbPath");
-		if (const Entity* preset = m_Paths[RIGHT][RAISING].GetPreset()) {
-			m_Paths[RIGHT][RAISING].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-			writer.ObjectEnd();
-		} else {
-			writer << m_Paths[RIGHT][RAISING];
-		}
-	}
+	writer.NewOptionalEntityPointerProperty("RLeg", m_pRLeg, hashData);
+	writer.NewOptionalEntityPointerProperty("LLeg", m_pLLeg, hashData);
+	writer.NewOptionalEntityPointerProperty("RFootGroup", m_pRFootGroup, hashData);
+	writer.NewOptionalEntityPointerProperty("LFootGroup", m_pLFootGroup, hashData);
+	writer.NewOptionalEntityPointerProperty("MThruster", m_pMThruster, hashData);
+	writer.NewOptionalEntityPointerProperty("RThruster", m_pRThruster, hashData);
+	writer.NewOptionalEntityPointerProperty("LThruster", m_pLThruster, hashData);
+	writer.NewOptionalEntityPointerProperty("URThruster", m_pURThruster, hashData);
+	writer.NewOptionalEntityPointerProperty("ULThruster", m_pULThruster, hashData);
+	writer.NewDistinctHashedProperty("RaisedGearLimbPath", m_Paths[RIGHT][RAISED], hashData);
+	writer.NewDistinctHashedProperty("LoweredGearLimbPath", m_Paths[RIGHT][LOWERED], hashData);
+	writer.NewDistinctHashedProperty("RaisingGearLimbPath", m_Paths[RIGHT][RAISING], hashData);
+	writer.NewDistinctHashedProperty("LoweringGearLimbPath", m_Paths[RIGHT][LOWERING], hashData);
 	
 	if (m_MaxGimbalAngle != reference.m_MaxGimbalAngle)
 		writer.NewPropertyWithValue("MaxGimbalAngle", m_MaxGimbalAngle / (c_PI / 180.0F));
 
-	return constituentsConsumed;
+	return 0;
 }
 
 HashingData ACRocket::Hash() const {

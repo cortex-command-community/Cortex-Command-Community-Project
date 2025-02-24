@@ -472,107 +472,65 @@ int MovableObject::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t MovableObject::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = SceneObject::Write(writer, entityReference, hashData);
-	// TODO: Make proper save system that knows not to save redundant data!
-	// Note - this function isn't even called when saving a scene. Turns out that scene special-cases this stuff, see Scene::Save()
-	// In future, perhaps we ought to not do that. Who knows?
+int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	SceneObject::Write(writer, entityReference, hashData);
 
 	const MOSprite& reference = static_cast<const MOSprite&>(entityReference);
 
-	if (m_Mass != reference.m_Mass)
-		writer.NewPropertyWithValue("Mass", m_Mass);
-	if (m_Vel != reference.m_Vel)
-		writer.NewPropertyWithValue("Velocity", m_Vel);
-	if (m_Scale != reference.m_Scale)
-		writer.NewPropertyWithValue("Scale", m_Scale);
-	if (m_GlobalAccScalar != reference.m_GlobalAccScalar)
-		writer.NewPropertyWithValue("GlobalAccScalar", m_GlobalAccScalar);
+	// TODO: This could maybe do with a couple more templates so that fewer things are repeated, dunno, seems good enough
+
+	writer.NewDistinctProperty("Mass", m_Mass, reference.m_Mass);
+	writer.NewDistinctProperty("Velocity", m_Vel, reference.m_Vel);
+	writer.NewDistinctProperty("Scale", m_Scale, reference.m_Scale);
+	writer.NewDistinctProperty("GlobalAccScalar", m_GlobalAccScalar, reference.m_GlobalAccScalar);
+
 	if (m_AirResistance != reference.m_AirResistance)
-		writer.NewPropertyWithValue("AirResistance", m_AirResistance * 0.01666F); // Backwards compatibility after we made this value scaled over time
-	if (m_AirThreshold != reference.m_AirThreshold)
-		writer.NewPropertyWithValue("AirThreshold", m_AirThreshold);
-	if (m_PinStrength != reference.m_PinStrength)
-		writer.NewPropertyWithValue("PinStrength", m_PinStrength);
-	if (m_RestThreshold != reference.m_RestThreshold)
-		writer.NewPropertyWithValue("RestThreshold", m_RestThreshold);
-	if (m_Lifetime != reference.m_Lifetime)
-		writer.NewPropertyWithValue("LifeTime", m_Lifetime);
-	if (m_Sharpness != reference.m_Sharpness)
-		writer.NewPropertyWithValue("Sharpness", m_Sharpness);
-	if (m_HitsMOs != reference.m_HitsMOs)
-		writer.NewPropertyWithValue("HitsMOs", m_HitsMOs);
-	if (m_GetsHitByMOs != reference.m_GetsHitByMOs)
-		writer.NewPropertyWithValue("GetsHitByMOs", m_GetsHitByMOs);
-	if (m_IgnoresTeamHits != reference.m_IgnoresTeamHits)
-		writer.NewPropertyWithValue("IgnoresTeamHits", m_IgnoresTeamHits);
-	if (m_IgnoresAtomGroupHits != reference.m_IgnoresAtomGroupHits)
-		writer.NewPropertyWithValue("IgnoresAtomGroupHits", m_IgnoresAtomGroupHits);
-	if (m_IgnoresAGHitsWhenSlowerThan != reference.m_IgnoresAGHitsWhenSlowerThan)
-		writer.NewPropertyWithValue("IgnoresAGHitsWhenSlowerThan", m_IgnoresAGHitsWhenSlowerThan);
-	if (m_IgnoresActorHits != reference.m_IgnoresActorHits)
-		writer.NewPropertyWithValue("IgnoresActorHits", m_IgnoresActorHits);
-	if (m_MissionCritical != reference.m_MissionCritical)
-		writer.NewPropertyWithValue("MissionCritical", m_MissionCritical);
-	if (m_CanBeSquished != reference.m_CanBeSquished)
-		writer.NewPropertyWithValue("CanBeSquished", m_CanBeSquished);
-	if (m_HUDVisible != reference.m_HUDVisible)
-		writer.NewPropertyWithValue("HUDVisible", m_HUDVisible);
+		writer.NewPropertyWithValue("AirResistance", m_AirResistance * 0.01666F);
 
-	/* TODO: Decide whether to delete this (clear script paths currently does nothing)
-	if (reference.m_AllLoadedScripts.size() > 0) {
-		writer.NewPropertyWithValue("_ClearScriptPaths", 1);
-	}
+	writer.NewDistinctProperty("AirThreshold", m_AirThreshold, reference.m_AirThreshold);
+	writer.NewDistinctProperty("PinStrength", m_PinStrength, reference.m_PinStrength);
+	writer.NewDistinctProperty("RestThreshold", m_RestThreshold, reference.m_RestThreshold);
+	writer.NewDistinctProperty("LifeTime", m_Lifetime, reference.m_Lifetime);
+	writer.NewDistinctProperty("Sharpness", m_Sharpness, reference.m_Sharpness);
+	writer.NewDistinctProperty("HitsMOs", m_HitsMOs, reference.m_HitsMOs);
+	writer.NewDistinctProperty("GetsHitByMOs", m_GetsHitByMOs, reference.m_GetsHitByMOs);
+	writer.NewDistinctProperty("IgnoresTeamHits", m_IgnoresTeamHits, reference.m_IgnoresTeamHits);
+	writer.NewDistinctProperty("IgnoresAtomGroupHits", m_IgnoresAtomGroupHits, reference.m_IgnoresAtomGroupHits);
+	writer.NewDistinctProperty("IgnoresAGHitsWhenSlowerThan", m_IgnoresAGHitsWhenSlowerThan, reference.m_IgnoresAGHitsWhenSlowerThan);
+	writer.NewDistinctProperty("IgnoresActorHits", m_IgnoresActorHits, reference.m_IgnoresActorHits);
+	writer.NewDistinctProperty("MissionCritical", m_MissionCritical, reference.m_MissionCritical);
+	writer.NewDistinctProperty("CanBeSquished", m_CanBeSquished, reference.m_CanBeSquished);
+	writer.NewDistinctProperty("HUDVisible", m_HUDVisible, reference.m_HUDVisible);
 
-	for (const auto& [scriptPath, scriptEnabled]: m_AllLoadedScripts) {
-		if (!scriptPath.empty()) {
-			writer.NewPropertyWithValue("_AddScriptPath", scriptPath);
-		}
-	}
-	*/
-
+	// No need to worry about clearing scripts: you presently can't remove them anyhow, so, no problem?
 	for (const auto& [scriptPath, scriptEnabled]: m_AllLoadedScripts) {
 		if (!scriptPath.empty() && !reference.HasScript(scriptPath)) {
 			writer.NewPropertyWithValue("_AddScriptPath", scriptPath);
 		}
 	}
 
-	if (m_ScreenEffectFile.Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++))
-		writer.NewPropertyWithValue("ScreenEffect", m_ScreenEffectFile);
+	writer.NewDistinctHashedProperty("ScreenEffect", m_ScreenEffectFile, hashData);
+	writer.NewDistinctProperty("PostEffectEnabled", m_PostEffectEnabled, reference.m_PostEffectEnabled);
+	writer.NewDistinctProperty("EffectStartTime", m_EffectStartTime, reference.m_EffectStartTime);
+	writer.NewDistinctProperty("EffectStopTime", m_EffectStopTime, reference.m_EffectStopTime);
 
-	if (m_PostEffectEnabled != reference.m_PostEffectEnabled)
-		writer.NewPropertyWithValue("PostEffectEnabled", m_PostEffectEnabled);
-	if (m_EffectStartTime != reference.m_EffectStartTime)
-		writer.NewPropertyWithValue("EffectStartTime", m_EffectStartTime);
-	if (m_EffectStopTime != reference.m_EffectStopTime)
-		writer.NewPropertyWithValue("EffectStopTime", m_EffectStopTime);
 	if (m_EffectStartStrength != reference.m_EffectStartStrength)
 		writer.NewPropertyWithValue("EffectStartStrength", (float)m_EffectStartStrength / 255.0f);
+
 	if (m_EffectStopStrength != reference.m_EffectStopStrength)
 		writer.NewPropertyWithValue("EffectStopStrength", (float)m_EffectStopStrength / 255.0f);
-	if (m_EffectAlwaysShows != reference.m_EffectAlwaysShows)
-		writer.NewPropertyWithValue("EffectAlwaysShows", m_EffectAlwaysShows);
-	if (m_DamageOnCollision != reference.m_DamageOnCollision)
-		writer.NewPropertyWithValue("DamageOnCollision", m_DamageOnCollision);
-	if (m_DamageOnPenetration != reference.m_DamageOnPenetration)
-		writer.NewPropertyWithValue("DamageOnPenetration", m_DamageOnPenetration);
-	if (m_WoundDamageMultiplier != reference.m_WoundDamageMultiplier)
-		writer.NewPropertyWithValue("WoundDamageMultiplier", m_WoundDamageMultiplier);
-	if (m_ApplyWoundDamageOnCollision != reference.m_ApplyWoundDamageOnCollision)
-		writer.NewPropertyWithValue("ApplyWoundDamageOnCollision", m_ApplyWoundDamageOnCollision);
-	if (m_ApplyWoundBurstDamageOnCollision != reference.m_ApplyWoundBurstDamageOnCollision)
-		writer.NewPropertyWithValue("ApplyWoundBurstDamageOnCollision", m_ApplyWoundBurstDamageOnCollision);
-	if (m_IgnoreTerrain != reference.m_IgnoreTerrain)
-		writer.NewPropertyWithValue("IgnoreTerrain", m_IgnoreTerrain);
-	if (m_SimUpdatesBetweenScriptedUpdates != reference.m_SimUpdatesBetweenScriptedUpdates)
-		writer.NewPropertyWithValue("SimUpdatesBetweenScriptedUpdates", m_SimUpdatesBetweenScriptedUpdates);
+
+	writer.NewDistinctProperty("EffectAlwaysShows", m_EffectAlwaysShows, reference.m_EffectAlwaysShows);
+	writer.NewDistinctProperty("DamageOnCollision", m_DamageOnCollision, reference.m_DamageOnCollision);
+	writer.NewDistinctProperty("DamageOnPenetration", m_DamageOnPenetration, reference.m_DamageOnPenetration);
+	writer.NewDistinctProperty("WoundDamageMultiplier", m_WoundDamageMultiplier, reference.m_WoundDamageMultiplier);
+	writer.NewDistinctProperty("ApplyWoundDamageOnCollision", m_ApplyWoundDamageOnCollision, reference.m_ApplyWoundDamageOnCollision);
+	writer.NewDistinctProperty("ApplyWoundBurstDamageOnCollision", m_ApplyWoundBurstDamageOnCollision, reference.m_ApplyWoundBurstDamageOnCollision);
+	writer.NewDistinctProperty("IgnoreTerrain", m_IgnoreTerrain, reference.m_IgnoreTerrain);
+	writer.NewDistinctProperty("SimUpdatesBetweenScriptedUpdates", m_SimUpdatesBetweenScriptedUpdates, reference.m_SimUpdatesBetweenScriptedUpdates);
 
 	if (!reference.m_NumberValueMap.empty()) {
 		writer.NewPropertyWithValue("_ClearCustomNumberValues", "1");
-	}
-
-	if (!reference.m_StringValueMap.empty()) {
-		writer.NewPropertyWithValue("_ClearCustomStringValues", "1");
 	}
 
 	for (const auto& [key, value]: m_NumberValueMap) {
@@ -582,6 +540,10 @@ size_t MovableObject::Write(Writer& writer, const Entity& entityReference, const
 		writer.ObjectEnd();
 	}
 
+	if (!reference.m_StringValueMap.empty()) {
+		writer.NewPropertyWithValue("_ClearCustomStringValues", "1");
+	}
+
 	for (const auto& [key, value]: m_StringValueMap) {
 		writer.NewLine();
 		writer.ObjectStart("_AddCustomValue = StringValue");
@@ -589,10 +551,9 @@ size_t MovableObject::Write(Writer& writer, const Entity& entityReference, const
 		writer.ObjectEnd();
 	}
 
-	if (m_ForceIntoMasterLuaState != reference.m_ForceIntoMasterLuaState)
-		writer.NewPropertyWithValue("ForceIntoMasterLuaState", m_ForceIntoMasterLuaState);
+	writer.NewDistinctProperty("ForceIntoMasterLuaState", m_ForceIntoMasterLuaState, reference.m_ForceIntoMasterLuaState);
 
-	return constituentsConsumed;
+	return 0;
 }
 
 HashingData MovableObject::Hash() const {

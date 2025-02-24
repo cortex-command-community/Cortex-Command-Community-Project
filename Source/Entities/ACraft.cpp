@@ -335,110 +335,25 @@ int ACraft::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t ACraft::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = Actor::Write(writer, entityReference, hashData); // 11
+int ACraft::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Actor::Write(writer, entityReference, hashData);
 
 	const ACraft& reference = static_cast<const ACraft&>(entityReference);
 
-	if (m_HatchDelay != reference.m_HatchDelay)
-		writer.NewPropertyWithValue("HatchDelay", m_HatchDelay);
+	writer.NewDistinctProperty("HatchDelay", m_HatchDelay, reference.m_HatchDelay);
+	writer.NewOptionalEntityPointerProperty("HatchOpenSound", m_HatchOpenSound, hashData);
+	writer.NewOptionalEntityPointerProperty("HatchCloseSound", m_HatchCloseSound, hashData);
+	writer.NewPointerSequence("_ClearExits", "_AddExit", m_Exits, hashData);
+	writer.NewDistinctProperty("DeliveryDelayMultiplier", m_DeliveryDelayMultiplier, reference.m_DeliveryDelayMultiplier);
+	writer.NewDistinctProperty("ExitInterval", m_ExitInterval, reference.m_ExitInterval);
+	writer.NewDistinctProperty("CanLand", m_LandingCraft, reference.m_LandingCraft);
+	writer.NewOptionalEntityPointerProperty("CrashSound", m_CrashSound, hashData);
+	writer.NewDistinctProperty("CanEnterOrbit", m_CanEnterOrbit, reference.m_CanEnterOrbit);
+	writer.NewDistinctProperty("MaxPassengers", m_MaxPassengers, reference.m_MaxPassengers);
+	writer.NewDistinctProperty("ScuttleIfFlippedTime", m_ScuttleIfFlippedTime, reference.m_ScuttleIfFlippedTime);
+	writer.NewDistinctProperty("ScuttleOnDeath", m_ScuttleOnDeath, reference.m_ScuttleOnDeath);
 
-	if (m_HatchOpenSound != nullptr) {
-		if (reference.m_HatchOpenSound == nullptr || m_HatchOpenSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("HatchOpenSound");
-			if (const Entity* preset = m_HatchOpenSound->GetPreset()) {
-				m_HatchOpenSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_HatchOpenSound;
-			}
-		}
-	} else if (reference.m_HatchOpenSound != nullptr) {
-		writer.NewProperty("HatchOpenSound");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(12);
-
-	if (m_HatchCloseSound != nullptr) {
-		if (reference.m_HatchCloseSound == nullptr || m_HatchCloseSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("HatchCloseSound");
-			if (const Entity* preset = m_HatchCloseSound->GetPreset()) {
-				m_HatchCloseSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_HatchCloseSound;
-			}
-		}
-	} else if (reference.m_HatchCloseSound != nullptr) {
-		writer.NewProperty("HatchCloseSound");
-		writer << "None";
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(13);
-
-	bool areExitsConcatenated = true;
-	std::list<Exit>::const_iterator eItr = m_Exits.begin();
-	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(14); eItr++) {
-		if (eItr->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
-			areExitsConcatenated = false;
-			break;
-		}
-		refIndex++;
-	}
-
-	if (areExitsConcatenated) {
-		for (std::list<Exit>::const_iterator itr = eItr; itr != m_Exits.end(); ++itr) {
-			writer.NewProperty("_AddExit");
-			writer << (*itr);
-		}
-	} else {
-		if (reference.m_Exits.size() > 0) {
-			writer.NewPropertyWithValue("_ClearExits", 1);
-		}
-
-		for (std::list<Exit>::const_iterator itr = m_Exits.begin(); itr != m_Exits.end(); ++itr) {
-			writer.NewProperty("_AddExit");
-			writer << (*itr);
-		}
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(14);
-
-	if (m_DeliveryDelayMultiplier != reference.m_DeliveryDelayMultiplier)
-		writer.NewPropertyWithValue("DeliveryDelayMultiplier", m_DeliveryDelayMultiplier);
-	if (m_ExitInterval != reference.m_ExitInterval)
-		writer.NewPropertyWithValue("ExitInterval", m_ExitInterval);
-	if (m_LandingCraft != reference.m_LandingCraft)
-		writer.NewPropertyWithValue("CanLand", m_LandingCraft);
-
-	if (m_CrashSound != nullptr) {
-		if (reference.m_CrashSound == nullptr || m_CrashSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("CrashSound");
-			if (const Entity* preset = m_CrashSound->GetPreset()) {
-				m_CrashSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_CrashSound;
-			}
-		}
-	} else if (reference.m_CrashSound != nullptr) {
-		writer.NewProperty("CrashSound");
-		writer << "None";
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(15);
-
-	if (m_CanEnterOrbit != reference.m_CanEnterOrbit)
-		writer.NewPropertyWithValue("CanEnterOrbit", m_CanEnterOrbit);
-	if (m_MaxPassengers != reference.m_MaxPassengers)
-		writer.NewPropertyWithValue("MaxPassengers", m_MaxPassengers);
-	if (m_ScuttleIfFlippedTime != reference.m_ScuttleIfFlippedTime)
-		writer.NewPropertyWithValue("ScuttleIfFlippedTime", m_ScuttleIfFlippedTime);
-	if (m_ScuttleOnDeath != reference.m_ScuttleOnDeath)
-		writer.NewPropertyWithValue("ScuttleOnDeath", m_ScuttleOnDeath);
-
-	return constituentsConsumed; // 15
+	return 0;
 }
 
 HashingData ACraft::Hash() const {

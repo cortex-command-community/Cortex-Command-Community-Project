@@ -233,7 +233,7 @@ namespace RTE {
 		/// @param reference A reference preset to write properties against.
 		/// @param hashData A clump of hash data for cheap property comparisons.
 		/// @return A value representing how many constituents have been from this layer's hash data read thus far.
-		virtual size_t Write(Writer& writer, const Entity& entityReference, const HashingData&) const;
+		virtual int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const;
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -370,6 +370,20 @@ namespace RTE {
 		/// Gets the class name of this Entity.
 		/// @return A string with the friendly-formatted type name of this Entity.
 		virtual const std::string& GetClassName() const { return m_sClass.GetName(); }
+#pragma endregion
+
+#pragma region Operator Overloads
+		/// A Writer insertion operator for sending a Serializable to a Writer.
+		/// @param writer A Writer reference as the left hand side operand.
+		/// @param operand A Serializable reference as the right hand side operand.
+		/// @return A Writer reference for further use in an expression.
+		friend Writer& operator<<(Writer& writer, const Entity& operand);
+
+		/// A Writer insertion operator for sending a Serializable to a Writer.
+		/// @param writer A Writer reference as the left hand side operand.
+		/// @param operand A Serializable pointer as the right hand side operand.
+		/// @return A Writer reference for further use in an expression.
+		friend Writer& operator<<(Writer& writer, const Entity* operand);
 #pragma endregion
 
 	protected:

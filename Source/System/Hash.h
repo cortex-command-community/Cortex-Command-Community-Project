@@ -26,11 +26,14 @@ namespace RTE {
 		HashingData(uint64_t hash) :
 		    m_Hash(hash), m_Constituents(), m_ParseValues() {}
 
+		HashingData(const HashingData& reference) :
+			m_Hash(reference.m_Hash), m_Constituents(reference.m_Constituents), m_ParseValues(reference.m_ParseValues) {}
+
 		/// The hash of the Entity represented by this hash.
 		uint64_t m_Hash;
 		/// A list of the hash data for all components of this Entity.
-		std::vector<uint64_t> m_Constituents;
+		std::deque<uint64_t> m_Constituents;
 		/// A list of integers for handling optional and collection properties by communicating their numeracy on a per-property basis.
-		std::vector<size_t> m_ParseValues;
+		std::deque<size_t> m_ParseValues;
 	};
 } // namespace RTE

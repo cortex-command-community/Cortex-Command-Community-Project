@@ -82,13 +82,13 @@ int TerrainObject::ReadProperty(const std::string_view& propName, Reader& reader
 		reader >> m_BitmapOffset;
 		m_OffsetDefined = true;
 	});
-	MatchProperty("AddChildObject", {
+	MatchForwards("AddChildObject") MatchProperty("_AddChildObject", {
 		SceneObject::SOPlacer newChildObject;
 		reader >> newChildObject;
 		newChildObject.SetTeam(m_Team);
 		m_ChildObjects.emplace_back(newChildObject);
 	});
-	MatchProperty("ClearChildObjects", {
+	MatchForwards("ClearChildObjects") MatchProperty("_ClearChildObjects", {
 		bool clearChildObjects;
 		reader >> clearChildObjects;
 		if (clearChildObjects) {
@@ -122,28 +122,15 @@ int TerrainObject::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t TerrainObject::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = SceneObject::Write(writer, entityReference, hashData);
+int TerrainObject::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	SceneObject::Write(writer, entityReference, hashData);
 
-	if (!m_FGColorFile.GetDataPath().empty()) {
-		writer.NewPropertyWithValue("FGColorFile", m_FGColorFile);
-	}
+	writer.NewDistinctHashedProperty("FGColorFile", m_FGColorFile, hashData);
+	writer.NewDistinctHashedProperty("BGColorFile", m_BGColorFile, hashData);
+	writer.NewDistinctHashedProperty("MaterialFile", m_MaterialFile, hashData);
+	writer.NewDistinctHashedProperty("BitmapOffset", m_BitmapOffset, hashData);
+	writer.NewSequence("_ClearChildObjects", "_AddChildObject", m_ChildObjects, hashData);
 
-	if (!m_BGColorFile.GetDataPath().empty()) {
-		writer.NewPropertyWithValue("BGColorFile", m_BGColorFile);
-	}
-
-	if (!m_MaterialFile.GetDataPath().empty()) {
-		writer.NewPropertyWithValue("MaterialFile", m_MaterialFile);
-	}
-
-	if (m_OffsetDefined) {
-		writer.NewPropertyWithValue("BitmapOffset", m_BitmapOffset);
-	}
-
-	for (const SceneObject::SOPlacer& childObject: m_ChildObjects) {
-		writer.NewPropertyWithValue("AddChildObject", childObject);
-	}
 	return 0;
 }
 

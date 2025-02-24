@@ -65,52 +65,15 @@ int Turret::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t Turret::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = Attachable::Write(writer, entityReference, hashData); // last parse index: 6
+int Turret::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Attachable::Write(writer, entityReference, hashData);
 
 	const Turret& reference = static_cast<const Turret&>(entityReference);
 
-	bool areMountedDevicesConcatenated = true;
-	std::vector<HeldDevice*>::const_iterator mdItr = m_MountedDevices.begin();
-	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(2); refIndex++, mdItr++) {
-		if ((*mdItr)->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
-			areMountedDevicesConcatenated = false;
-			break;
-		}
-	}
+	writer.NewPointerSequence("_ClearMountedDevices", "_AddMountedDevice", m_MountedDevices, hashData);
+	writer.NewDistinctProperty("MountedDeviceRotationOffset", m_MountedDeviceRotationOffset, reference.m_MountedDeviceRotationOffset);
 
-	if (areMountedDevicesConcatenated) {
-		for (std::vector<HeldDevice*>::const_iterator itr = mdItr; itr != m_MountedDevices.end(); ++itr) {
-			writer.NewProperty("_AddWound");
-			if (const Entity* preset = (*itr)->GetPreset()) {
-				(*itr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*itr)->GetClassName(), (*itr)->GetPresetName(), (*itr)->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << (**itr);
-			}
-		}
-	} else {
-		if (reference.m_MountedDevices.size() > 0) {
-			writer.NewPropertyWithValue("_ClearWounds", 1);
-		}
-
-		for (std::vector<HeldDevice*>::const_iterator itr = m_MountedDevices.begin(); itr != m_MountedDevices.end(); ++itr) {
-			writer.NewProperty("_AddWound");
-			if (const Entity* preset = (*itr)->GetPreset()) {
-				(*itr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*itr)->GetClassName(), (*itr)->GetPresetName(), (*itr)->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << (**itr);
-			}
-		}
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(7);
-
-	if (m_MountedDeviceRotationOffset != reference.m_MountedDeviceRotationOffset)
-		writer.NewPropertyWithValue("MountedDeviceRotationOffset", m_MountedDeviceRotationOffset);
-
-	return constituentsConsumed; // last parse index: 7
+	return 0;
 }
 
 HashingData Turret::Hash() const {

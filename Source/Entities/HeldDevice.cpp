@@ -215,35 +215,24 @@ int HeldDevice::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t HeldDevice::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = Attachable::Write(writer, entityReference, hashData); // last parse index: 6
+int HeldDevice::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Attachable::Write(writer, entityReference, hashData);
 
 	const HeldDevice& reference = static_cast<const HeldDevice&>(entityReference);
 
-	if (m_OneHanded != reference.m_OneHanded)
-		writer.NewPropertyWithValue("OneHanded", m_OneHanded);
-	if (m_StanceOffset != reference.m_StanceOffset)
-		writer.NewPropertyWithValue("StanceOffset", m_StanceOffset);
-	if (m_SharpStanceOffset != reference.m_SharpStanceOffset)
-		writer.NewPropertyWithValue("SharpStanceOffset", m_SharpStanceOffset);
-	if (m_Supportable != reference.m_Supportable)
-		writer.NewPropertyWithValue("Supportable", m_Supportable);
-	if (m_SupportOffset != reference.m_SupportOffset)
-		writer.NewPropertyWithValue("SupportOffset", m_SupportOffset);
-	if (m_UseSupportOffsetWhileReloading != reference.m_UseSupportOffsetWhileReloading)
-		writer.NewPropertyWithValue("UseSupportOffsetWhileReloading", m_UseSupportOffsetWhileReloading);
-	if (m_GripStrengthMultiplier != reference.m_GripStrengthMultiplier)
-		writer.NewPropertyWithValue("GripStrengthMultiplier", m_GripStrengthMultiplier);
-	if (m_MaxSharpLength != reference.m_MaxSharpLength)
-		writer.NewPropertyWithValue("SharpLength", m_MaxSharpLength);
-	if (m_Loudness != reference.m_Loudness)
-		writer.NewPropertyWithValue("Loudness", m_Loudness);
-	if (m_GetsHitByMOsWhenHeld != reference.m_GetsHitByMOsWhenHeld)
-		writer.NewPropertyWithValue("GetsHitByMOsWhenHeld", m_GetsHitByMOsWhenHeld);
-	if (m_VisualRecoilMultiplier != reference.m_VisualRecoilMultiplier)
-		writer.NewPropertyWithValue("VisualRecoilMultiplier", m_VisualRecoilMultiplier);
+	writer.NewDistinctProperty("OneHanded", m_OneHanded, reference.m_OneHanded);
+	writer.NewDistinctProperty("StanceOffset", m_StanceOffset, reference.m_StanceOffset);
+	writer.NewDistinctProperty("SharpStanceOffset", m_SharpStanceOffset, reference.m_SharpStanceOffset);
+	writer.NewDistinctProperty("Supportable", m_Supportable, reference.m_Supportable);
+	writer.NewDistinctProperty("SupportOffset", m_SupportOffset, reference.m_SupportOffset);
+	writer.NewDistinctProperty("UseSupportOffsetWhileReloading", m_UseSupportOffsetWhileReloading, reference.m_UseSupportOffsetWhileReloading);
+	writer.NewDistinctProperty("GripStrengthMultiplier", m_GripStrengthMultiplier, reference.m_GripStrengthMultiplier);
+	writer.NewDistinctProperty("SharpLength", m_MaxSharpLength, reference.m_MaxSharpLength);
+	writer.NewDistinctProperty("Loudness", m_Loudness, reference.m_Loudness);
+	writer.NewDistinctProperty("GetsHitByMOsWhenHeld", m_GetsHitByMOsWhenHeld, reference.m_GetsHitByMOsWhenHeld);
+	writer.NewDistinctProperty("VisualRecoilMultiplier", m_VisualRecoilMultiplier, reference.m_VisualRecoilMultiplier);
 
-	return constituentsConsumed;  // last parse index: 6
+	return 0;
 }
 
 HashingData HeldDevice::Hash() const {

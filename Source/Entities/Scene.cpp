@@ -1116,7 +1116,8 @@ int Scene::Save(Writer& writer) const {
 			}
 
 			if (const Entity* preset = placedObject->GetPreset()) {
-				placedObject->Write(writer, *preset, *g_PresetMan.GetEntityHash(placedObject->GetClassName(), placedObject->GetPresetName(), placedObject->GetModuleID()));
+				HashingData presetHash(*g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+				placedObject->Write(writer, *preset, presetHash);
 				writer.ObjectEnd();
 			} else {
 				writer << placedObject;

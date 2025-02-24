@@ -101,36 +101,27 @@ int MOPixel::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t MOPixel::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = MovableObject::Write(writer, entityReference, hashData); // NA
+int MOPixel::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	MovableObject::Write(writer, entityReference, hashData);
 
 	const MOPixel& reference = static_cast<const MOPixel&>(entityReference);
 
-	if (m_Atom->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++))
-		writer.NewPropertyWithValue("Atom", m_Atom);
+	writer.NewEntityPointerProperty("Atom", m_Atom, hashData);
+	writer.NewDistinctHashedProperty("Color", m_Color, hashData);
+	writer.NewDistinctProperty("MinLethalRange", m_MinLethalRange, reference.m_MinLethalRange);
+	writer.NewDistinctProperty("MaxLethalRange", m_MaxLethalRange, reference.m_MaxLethalRange);
+	writer.NewDistinctProperty("Staininess", m_Staininess, reference.m_Staininess);
 
-	if (m_Color.Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++))
-		writer.NewPropertyWithValue("Color", m_Color);
-
-	if (m_MinLethalRange != reference.m_MinLethalRange)
-		writer.NewPropertyWithValue("MinLethalRange", m_MinLethalRange);
-	if (m_MaxLethalRange != reference.m_MaxLethalRange)
-		writer.NewPropertyWithValue("MaxLethalRange", m_MaxLethalRange);
-	if (m_Staininess != reference.m_Staininess)
-		writer.NewPropertyWithValue("Staininess", m_Staininess);
-
-	return constituentsConsumed; // NA
+	return 0;
 }
 
 HashingData MOPixel::Hash() const {
 	HashingData hashData = MovableObject::Hash();
 	uint64_t& hash = hashData.m_Hash;
 
-	if (m_Atom) {
-		uint64_t atomHash = m_Atom->Hash().m_Hash;
-		hashData.m_Constituents.push_back(atomHash);
-		hash ^= atomHash << 1;
-	}
+	uint64_t atomHash = m_Atom->Hash().m_Hash;
+	hashData.m_Constituents.push_back(atomHash);
+	hash ^= atomHash << 1;
 
 	uint64_t colorHash = m_Color.Hash().m_Hash;
 	hashData.m_Constituents.push_back(colorHash);

@@ -61,15 +61,14 @@ int TDExplosive::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t TDExplosive::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = ThrownDevice::Write(writer, entityReference, hashData);
+int TDExplosive::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	ThrownDevice::Write(writer, entityReference, hashData);
 
 	const TDExplosive& reference = static_cast<const TDExplosive&>(entityReference);
 
-	if (m_IsAnimatedManually != reference.m_IsAnimatedManually)
-		writer.NewPropertyWithValue("IsAnimatedManually", m_IsAnimatedManually);
+	writer.NewDistinctProperty("IsAnimatedManually", m_IsAnimatedManually, reference.m_IsAnimatedManually);
 
-	return constituentsConsumed;
+	return 0;
 }
 
 HashingData TDExplosive::Hash() const {

@@ -342,264 +342,31 @@ int ACrab::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t ACrab::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = Actor::Write(writer, entityReference, hashData); // 11
+int ACrab::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Actor::Write(writer, entityReference, hashData);
 
 	const ACrab& reference = static_cast<const ACrab&>(entityReference);
 
-	if (m_pTurret != nullptr) {
-		if (reference.m_pTurret == nullptr || m_pTurret->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("Turret");
-			if (const Entity* preset = m_pTurret->GetPreset()) {
-				m_pTurret->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pTurret;
-			}
-		}
-	} else if (reference.m_pTurret != nullptr) {
-		writer.NewProperty("Turret");
-		writer << "None";
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(12);
-	
-	if (m_pJetpack != nullptr) {
-		if (reference.m_pJetpack == nullptr || m_pJetpack->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("Jetpack");
-			if (const Entity* preset = m_pJetpack->GetPreset()) {
-				m_pJetpack->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pJetpack;
-			}
-		}
-	} else if (reference.m_pJetpack != nullptr) {
-		writer.NewProperty("Jetpack");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(13);
-
-	if (m_pLFGLeg != nullptr) {
-		if (reference.m_pLFGLeg == nullptr || m_pLFGLeg->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("LFGLeg");
-			if (const Entity* preset = m_pLFGLeg->GetPreset()) {
-				m_pLFGLeg->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pLFGLeg;
-			}
-		}
-	} else if (reference.m_pLFGLeg != nullptr) {
-		writer.NewProperty("LFGLeg");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(14);
-
-	if (m_pLBGLeg != nullptr) {
-		if (reference.m_pLBGLeg == nullptr || m_pLBGLeg->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("LBGLeg");
-			if (const Entity* preset = m_pLBGLeg->GetPreset()) {
-				m_pLBGLeg->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pLBGLeg;
-			}
-		}
-	} else if (reference.m_pLBGLeg != nullptr) {
-		writer.NewProperty("LBGLeg");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(15);
-
-	if (m_pRFGLeg != nullptr) {
-		if (reference.m_pRFGLeg == nullptr || m_pRFGLeg->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("RFGLeg");
-			if (const Entity* preset = m_pRFGLeg->GetPreset()) {
-				m_pRFGLeg->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pRFGLeg;
-			}
-		}
-	} else if (reference.m_pRFGLeg != nullptr) {
-		writer.NewProperty("RFGLeg");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(16);
-
-	if (m_pRBGLeg != nullptr) {
-		if (reference.m_pRBGLeg == nullptr || m_pRBGLeg->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("RBGLeg");
-			if (const Entity* preset = m_pRBGLeg->GetPreset()) {
-				m_pRBGLeg->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pRBGLeg;
-			}
-		}
-	} else if (reference.m_pRBGLeg != nullptr) {
-		writer.NewProperty("RBGLeg");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(17);
-
-	if (m_pLFGFootGroup != nullptr) {
-		if (reference.m_pLFGFootGroup == nullptr || m_pLFGFootGroup->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("LFGFootGroup");
-			if (const Entity* preset = m_pLFGFootGroup->GetPreset()) {
-				m_pLFGFootGroup->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pLFGFootGroup;
-			}
-		}
-	} else if (reference.m_pLFGFootGroup != nullptr) {
-		writer.NewProperty("LFGFootGroup");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(18);
-
-	if (m_pLBGFootGroup != nullptr) {
-		if (reference.m_pLBGFootGroup == nullptr || m_pLBGFootGroup->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("LBGFootGroup");
-			if (const Entity* preset = m_pLBGFootGroup->GetPreset()) {
-				m_pLBGFootGroup->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pLBGFootGroup;
-			}
-		}
-	} else if (reference.m_pLBGFootGroup != nullptr) {
-		writer.NewProperty("LBGFootGroup");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(19);
-
-	if (m_pRFGFootGroup != nullptr) {
-		if (reference.m_pRFGFootGroup == nullptr || m_pRFGFootGroup->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("RFGFootGroup");
-			if (const Entity* preset = m_pRFGFootGroup->GetPreset()) {
-				m_pRFGFootGroup->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pRFGFootGroup;
-			}
-		}
-	} else if (reference.m_pRFGFootGroup != nullptr) {
-		writer.NewProperty("RFGFootGroup");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(20);
-
-	if (m_pRBGFootGroup != nullptr) {
-		if (reference.m_pRBGFootGroup == nullptr || m_pRBGFootGroup->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("RBGFootGroup");
-			if (const Entity* preset = m_pRBGFootGroup->GetPreset()) {
-				m_pRBGFootGroup->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pRBGFootGroup;
-			}
-		}
-	} else if (reference.m_pRBGFootGroup != nullptr) {
-		writer.NewProperty("RBGFootGroup");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(21);
-
-	if (m_StrideSound != nullptr) {
-		if (reference.m_StrideSound == nullptr || m_StrideSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("StrideSound");
-			if (const Entity* preset = m_StrideSound->GetPreset()) {
-				m_StrideSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_StrideSound;
-			}
-		}
-	} else if (reference.m_StrideSound != nullptr) {
-		writer.NewProperty("StrideSound");
-		writer << "None";
-	}
-	
-	constituentsConsumed += hashData.m_ParseValues.at(22);
-
-	if (m_Paths[LEFTSIDE][FGROUND][STAND].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
-		writer.NewProperty("LStandLimbPath");
-		if (const Entity* preset = m_Paths[LEFTSIDE][FGROUND][STAND].GetPreset()) {
-			m_Paths[LEFTSIDE][FGROUND][STAND].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-			writer.ObjectEnd();
-		} else {
-			writer << m_Paths[LEFTSIDE][FGROUND][STAND];
-		}
-	}
-	
-	if (m_Paths[LEFTSIDE][FGROUND][WALK].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
-		writer.NewProperty("LWalkLimbPath");
-		if (const Entity* preset = m_Paths[LEFTSIDE][FGROUND][WALK].GetPreset()) {
-			m_Paths[LEFTSIDE][FGROUND][WALK].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-			writer.ObjectEnd();
-		} else {
-			writer << m_Paths[LEFTSIDE][FGROUND][WALK];
-		}
-	}
-	
-	if (m_Paths[LEFTSIDE][FGROUND][DISLODGE].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
-		writer.NewProperty("LDislodgeLimbPath");
-		if (const Entity* preset = m_Paths[LEFTSIDE][FGROUND][DISLODGE].GetPreset()) {
-			m_Paths[LEFTSIDE][FGROUND][DISLODGE].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-			writer.ObjectEnd();
-		} else {
-			writer << m_Paths[LEFTSIDE][FGROUND][DISLODGE];
-		}
-	}
-	
-	if (m_Paths[RIGHTSIDE][FGROUND][STAND].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
-		writer.NewProperty("RStandLimbPath");
-		if (const Entity* preset = m_Paths[RIGHTSIDE][FGROUND][STAND].GetPreset()) {
-			m_Paths[RIGHTSIDE][FGROUND][STAND].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-			writer.ObjectEnd();
-		} else {
-			writer << m_Paths[RIGHTSIDE][FGROUND][STAND];
-		}
-	}
-	
-	if (m_Paths[RIGHTSIDE][FGROUND][WALK].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
-		writer.NewProperty("RWalkLimbPath");
-		if (const Entity* preset = m_Paths[RIGHTSIDE][FGROUND][WALK].GetPreset()) {
-			m_Paths[RIGHTSIDE][FGROUND][WALK].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-			writer.ObjectEnd();
-		} else {
-			writer << m_Paths[RIGHTSIDE][FGROUND][WALK];
-		}
-	}
-	
-	if (m_Paths[RIGHTSIDE][FGROUND][DISLODGE].Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
-		writer.NewProperty("RDislodgeLimbPath");
-		if (const Entity* preset = m_Paths[RIGHTSIDE][FGROUND][DISLODGE].GetPreset()) {
-			m_Paths[RIGHTSIDE][FGROUND][DISLODGE].Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-			writer.ObjectEnd();
-		} else {
-			writer << m_Paths[RIGHTSIDE][FGROUND][DISLODGE];
-		}
-	}
-
-	if (m_AimRangeUpperLimit != reference.m_AimRangeUpperLimit)
-		writer.NewPropertyWithValue("AimRangeUpperLimit", m_AimRangeUpperLimit);
-	if (m_AimRangeLowerLimit != reference.m_AimRangeLowerLimit)
-		writer.NewPropertyWithValue("AimRangeLowerLimit", m_AimRangeLowerLimit);
-	if (m_LockMouseAimInput != reference.m_LockMouseAimInput)
-		writer.NewPropertyWithValue("LockMouseAimInput", m_LockMouseAimInput);
+	writer.NewOptionalEntityPointerProperty("Turret", m_pTurret, hashData);
+	writer.NewOptionalEntityPointerProperty("Jetpack", m_pJetpack, hashData);
+	writer.NewOptionalEntityPointerProperty("LFGLeg", m_pLFGLeg, hashData);
+	writer.NewOptionalEntityPointerProperty("LBGLeg", m_pLBGLeg, hashData);
+	writer.NewOptionalEntityPointerProperty("RFGLeg", m_pRFGLeg, hashData);
+	writer.NewOptionalEntityPointerProperty("RBGLeg", m_pRBGLeg, hashData);
+	writer.NewOptionalEntityPointerProperty("LFGFootGroup", m_pLFGFootGroup, hashData);
+	writer.NewOptionalEntityPointerProperty("LBGFootGroup", m_pLBGFootGroup, hashData);
+	writer.NewOptionalEntityPointerProperty("RFGFootGroup", m_pRFGFootGroup, hashData);
+	writer.NewOptionalEntityPointerProperty("RBGFootGroup", m_pRBGFootGroup, hashData);
+	writer.NewOptionalEntityPointerProperty("StrideSound", m_StrideSound, hashData);
+	writer.NewDistinctHashedProperty("LStandLimbPath", m_Paths[LEFTSIDE][FGROUND][STAND], hashData);
+	writer.NewDistinctHashedProperty("LWalkLimbPath", m_Paths[LEFTSIDE][FGROUND][WALK], hashData);
+	writer.NewDistinctHashedProperty("LDislodgeLimbPath", m_Paths[LEFTSIDE][FGROUND][DISLODGE], hashData);
+	writer.NewDistinctHashedProperty("RStandLimbPath", m_Paths[RIGHTSIDE][FGROUND][STAND], hashData);
+	writer.NewDistinctHashedProperty("RWalkLimbPath", m_Paths[RIGHTSIDE][FGROUND][WALK], hashData);
+	writer.NewDistinctHashedProperty("RDislodgeLimbPath", m_Paths[RIGHTSIDE][FGROUND][DISLODGE], hashData);
+	writer.NewDistinctProperty("AimRangeUpperLimit", m_AimRangeUpperLimit, reference.m_AimRangeUpperLimit);
+	writer.NewDistinctProperty("AimRangeLowerLimit", m_AimRangeLowerLimit, reference.m_AimRangeLowerLimit);
+	writer.NewDistinctProperty("LockMouseAimInput", m_LockMouseAimInput, reference.m_LockMouseAimInput);
 
 	return 0;
 }

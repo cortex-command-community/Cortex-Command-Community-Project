@@ -206,161 +206,39 @@ int AEmitter::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t AEmitter::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = Attachable::Write(writer, entityReference, hashData); // 6
+int AEmitter::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Attachable::Write(writer, entityReference, hashData);
 
 	const AEmitter& reference = static_cast<const AEmitter&>(entityReference);
 
-	bool areEmissionsConcatenated = true;
-	std::list<Emission*>::const_iterator eItr = m_EmissionList.begin();
-	for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.at(7); refIndex++, eItr++) {
-		if ((*eItr)->Hash().m_Hash != hashData.m_Constituents.at(refIndex + constituentsConsumed)) {
-			areEmissionsConcatenated = false;
-			break;
-		}
-	}
+	writer.NewPointerSequence("_ClearEmissions", "_AddEmission", m_EmissionList, hashData);
+	writer.NewOptionalEntityPointerProperty("EmissionSound", m_EmissionSound, hashData);
+	writer.NewOptionalEntityPointerProperty("BurstSound", m_BurstSound, hashData);
+	writer.NewOptionalEntityPointerProperty("EndSound", m_EndSound, hashData);
+	writer.NewDistinctProperty("EmissionEnabled", m_EmitEnabled, reference.m_EmitEnabled);
+	writer.NewDistinctProperty("EmissionCount", m_EmitCount, reference.m_EmitCount);
+	writer.NewDistinctProperty("EmissionCountLimit", m_EmitCountLimit, reference.m_EmitCountLimit);
+	writer.NewDistinctProperty("EmissionsIgnoreThis", m_EmissionsIgnoreThis, reference.m_EmissionsIgnoreThis);
+	writer.NewDistinctProperty("NegativeThrottleMultiplier", m_NegativeThrottleMultiplier, reference.m_NegativeThrottleMultiplier);
+	writer.NewDistinctProperty("PositiveThrottleMultiplier", m_PositiveThrottleMultiplier, reference.m_PositiveThrottleMultiplier);
+	writer.NewDistinctProperty("Throttle", m_Throttle, reference.m_Throttle);
+	writer.NewDistinctProperty("BurstScale", m_BurstScale, reference.m_BurstScale);
+	writer.NewDistinctProperty("BurstDamage", m_BurstDamage, reference.m_BurstDamage);
+	writer.NewDistinctProperty("EmitterDamageMultiplier", m_EmitterDamageMultiplier, reference.m_EmitterDamageMultiplier);
+	writer.NewDistinctProperty("BurstSpacing", m_BurstSpacing, reference.m_BurstSpacing);
+	writer.NewDistinctProperty("BurstTriggered", m_BurstTriggered, reference.m_BurstTriggered);
+	writer.NewDistinctProperty("PlayBurstSound", m_PlayBurstSound, reference.m_PlayBurstSound);
+	writer.NewDistinctProperty("EmissionAngle", m_EmitAngle, reference.m_EmitAngle);
+	writer.NewDistinctProperty("EmissionOffset", m_EmissionOffset, reference.m_EmissionOffset);
+	writer.NewDistinctProperty("EmissionDamage", m_EmitDamage, reference.m_EmitDamage);
+	writer.NewOptionalEntityPointerProperty("Flash", m_pFlash, hashData);
+	writer.NewDistinctProperty("FlashScale", m_FlashScale, reference.m_FlashScale);
+	writer.NewDistinctProperty("FlashOnlyOnBurst", m_FlashOnlyOnBurst, reference.m_FlashOnlyOnBurst);
+	writer.NewDistinctProperty("SustainBurstSound", m_SustainBurstSound, reference.m_SustainBurstSound);
+	writer.NewDistinctProperty("BurstSoundFollowsEmitter", m_BurstSoundFollowsEmitter, reference.m_BurstSoundFollowsEmitter);
+	writer.NewDistinctProperty("LoudnessOnEmit", m_LoudnessOnEmit, reference.m_LoudnessOnEmit);
 
-	if (areEmissionsConcatenated) {
-		for (std::list<Emission*>::const_iterator itr = eItr; itr != m_EmissionList.end(); ++itr) {
-			writer.NewProperty("_AddEmission");
-			if (const Entity* preset = (*itr)->GetPreset()) {
-				(*itr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*itr)->GetClassName(), (*itr)->GetPresetName(), (*itr)->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << (**itr);
-			}
-		}
-	} else {
-		if (reference.m_EmissionList.size() > 0) {
-			writer.NewPropertyWithValue("_ClearEmissions", 1);
-		}
-
-		for (std::list<Emission*>::const_iterator itr = m_EmissionList.begin(); itr != m_EmissionList.end(); ++itr) {
-			writer.NewProperty("_AddEmission");
-			if (const Entity* preset = (*itr)->GetPreset()) {
-				(*itr)->Write(writer, *preset, *g_PresetMan.GetEntityHash((*itr)->GetClassName(), (*itr)->GetPresetName(), (*itr)->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << (**itr);
-			}
-		}
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(7);
-
-	if (m_EmissionSound != nullptr) {
-		if (reference.m_EmissionSound == nullptr || m_EmissionSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("EmissionSound");
-			if (const Entity* preset = m_EmissionSound->GetPreset()) {
-				m_EmissionSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_EmissionSound;
-			}
-		}
-	} else if (reference.m_EmissionSound != nullptr) {
-		writer.NewProperty("EmissionSound");
-		writer << m_EmissionSound;
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(8);
-
-	if (m_BurstSound != nullptr) {
-		if (reference.m_BurstSound == nullptr || m_BurstSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("BurstSound");
-			if (const Entity* preset = m_BurstSound->GetPreset()) {
-				m_BurstSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_BurstSound;
-			}
-		}
-	} else if (reference.m_BurstSound != nullptr) {
-		writer.NewProperty("BurstSound");
-		writer << m_BurstSound;
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(9);
-
-	if (m_EndSound != nullptr) {
-		if (reference.m_EndSound == nullptr || m_EndSound->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("EndSound");
-			if (const Entity* preset = m_EndSound->GetPreset()) {
-				m_EndSound->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_EndSound;
-			}
-		}
-	} else if (reference.m_EndSound != nullptr) {
-		writer.NewProperty("EndSound");
-		writer << m_EndSound;
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(10);
-
-	if (m_EmitEnabled != reference.m_EmitEnabled)
-		writer.NewPropertyWithValue("EmissionEnabled", m_EmitEnabled);
-	if (m_EmitCount != reference.m_EmitCount)
-		writer.NewPropertyWithValue("EmissionCount", m_EmitCount);
-	if (m_EmitCountLimit != reference.m_EmitCountLimit)
-		writer.NewPropertyWithValue("EmissionCountLimit", m_EmitCountLimit);
-	if (m_EmissionsIgnoreThis != reference.m_EmissionsIgnoreThis)
-		writer.NewPropertyWithValue("EmissionsIgnoreThis", m_EmissionsIgnoreThis);
-	if (m_NegativeThrottleMultiplier != reference.m_NegativeThrottleMultiplier)
-		writer.NewPropertyWithValue("NegativeThrottleMultiplier", m_NegativeThrottleMultiplier);
-	if (m_PositiveThrottleMultiplier != reference.m_PositiveThrottleMultiplier)
-		writer.NewPropertyWithValue("PositiveThrottleMultiplier", m_PositiveThrottleMultiplier);
-	if (m_Throttle != reference.m_Throttle)
-		writer.NewPropertyWithValue("Throttle", m_Throttle);
-	if (m_BurstScale != reference.m_BurstScale)
-		writer.NewPropertyWithValue("BurstScale", m_BurstScale);
-	if (m_BurstDamage != reference.m_BurstDamage)
-		writer.NewPropertyWithValue("BurstDamage", m_BurstDamage);
-	if (m_EmitterDamageMultiplier != reference.m_EmitterDamageMultiplier)
-		writer.NewPropertyWithValue("EmitterDamageMultiplier", m_EmitterDamageMultiplier);
-	if (m_BurstSpacing != reference.m_BurstSpacing)
-		writer.NewPropertyWithValue("BurstSpacing", m_BurstSpacing);
-	if (m_BurstTriggered != reference.m_BurstTriggered)
-		writer.NewPropertyWithValue("BurstTriggered", m_BurstTriggered);
-	if (m_PlayBurstSound != reference.m_PlayBurstSound)
-		writer.NewPropertyWithValue("PlayBurstSound", m_PlayBurstSound);
-	if (m_EmitAngle != reference.m_EmitAngle)
-		writer.NewPropertyWithValue("EmissionAngle", m_EmitAngle);
-	if (m_EmissionOffset != reference.m_EmissionOffset)
-		writer.NewPropertyWithValue("EmissionOffset", m_EmissionOffset);
-	if (m_EmitDamage != reference.m_EmitDamage)
-		writer.NewPropertyWithValue("EmissionDamage", m_EmitDamage);
-
-	if (m_pFlash != nullptr) {
-		if (reference.m_pFlash == nullptr || m_pFlash->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("Flash");
-			if (const Entity* preset = m_pFlash->GetPreset()) {
-				m_pFlash->Write(writer, *preset, *g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_pFlash;
-			}
-		}
-	} else if (reference.m_pFlash != nullptr) {
-		writer.NewProperty("Flash");
-		writer << m_pFlash;
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(11);
-
-	if (m_FlashScale != reference.m_FlashScale)
-		writer.NewPropertyWithValue("FlashScale", m_FlashScale);
-	if (m_FlashOnlyOnBurst != reference.m_FlashOnlyOnBurst)
-		writer.NewPropertyWithValue("FlashOnlyOnBurst", m_FlashOnlyOnBurst);
-	if (m_SustainBurstSound != reference.m_SustainBurstSound)
-		writer.NewPropertyWithValue("SustainBurstSound", m_SustainBurstSound);
-	if (m_BurstSoundFollowsEmitter != reference.m_BurstSoundFollowsEmitter)
-		writer.NewPropertyWithValue("BurstSoundFollowsEmitter", m_BurstSoundFollowsEmitter);
-	if (m_LoudnessOnEmit != reference.m_LoudnessOnEmit)
-		writer.NewPropertyWithValue("LoudnessOnEmit", m_LoudnessOnEmit);
-
-	return constituentsConsumed; // 11
+	return 0;
 }
 
 HashingData AEmitter::Hash() const {

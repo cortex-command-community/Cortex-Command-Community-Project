@@ -119,46 +119,20 @@ int Arm::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t Arm::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = Attachable::Write(writer, entityReference, hashData); // last parse index: 6
+int Arm::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Attachable::Write(writer, entityReference, hashData);
 
 	const Arm& reference = static_cast<const Arm&>(entityReference);
 
-	if (m_MaxLength != reference.m_MaxLength)
-		writer.NewPropertyWithValue("MaxLength", m_MaxLength);
-	if (m_MoveSpeed != reference.m_MoveSpeed)
-		writer.NewPropertyWithValue("MoveSpeed", m_MoveSpeed);
-	if (m_HandIdleOffset != reference.m_HandIdleOffset)
-		writer.NewPropertyWithValue("HandIdleOffset", m_HandIdleOffset);
+	writer.NewDistinctProperty("MaxLength", m_MaxLength, reference.m_MaxLength);
+	writer.NewDistinctProperty("MoveSpeed", m_MoveSpeed, reference.m_MoveSpeed);
+	writer.NewDistinctProperty("HandIdleOffset", m_HandIdleOffset, reference.m_HandIdleOffset);
+	writer.NewDistinctHashedProperty("HandSprite", m_HandSpriteFile, hashData);
+	writer.NewDistinctProperty("GripStrength", m_GripStrength, reference.m_GripStrength);
+	writer.NewDistinctProperty("ThrowStrength", m_ThrowStrength, reference.m_ThrowStrength);
+	writer.NewOptionalEntityPointerProperty("HeldDevice", m_HeldDevice, hashData);
 
-	if (m_HandSpriteFile.Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed++)) {
-		writer.NewProperty("HandSprite");
-		writer << m_HandSpriteFile;
-	}
-
-	if (m_GripStrength != reference.m_GripStrength)
-		writer.NewPropertyWithValue("GripStrength", m_GripStrength);
-	if (m_ThrowStrength != reference.m_ThrowStrength)
-		writer.NewPropertyWithValue("ThrowStrength", m_ThrowStrength);
-
-	if (m_HeldDevice != nullptr) {
-		if (reference.m_HeldDevice == nullptr || m_HeldDevice->Hash().m_Hash != hashData.m_Constituents.at(constituentsConsumed)) {
-			writer.NewProperty("HeldDevice");
-			if (const Entity* preset = m_HeldDevice->GetPreset()) {
-				m_HeldDevice->Write(writer, *preset, *g_PresetMan.GetEntityHash(m_HeldDevice->GetClassName(), m_HeldDevice->GetPresetName(), m_HeldDevice->GetModuleID()));
-				writer.ObjectEnd();
-			} else {
-				writer << m_HeldDevice;
-			}
-		}
-	} else if (reference.m_HeldDevice != nullptr) {
-		writer.NewProperty("HeldDevice");
-		writer << "None";
-	}
-
-	constituentsConsumed += hashData.m_ParseValues.at(7);
-
-	return constituentsConsumed;
+	return 0;
 }
 
 HashingData Arm::Hash() const {

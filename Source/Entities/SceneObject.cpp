@@ -220,25 +220,22 @@ int SceneObject::Save(Writer& writer) const {
 	return 0;
 }
 
-size_t SceneObject::Write(Writer& writer, const Entity& entityReference, const HashingData& hashData) const {
-	size_t constituentsConsumed = Entity::Write(writer, entityReference, hashData);
+int SceneObject::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
 
 	const SceneObject& reference = static_cast<const SceneObject&>(entityReference);
 
-	if (m_Pos != reference.m_Pos)
-		writer.NewPropertyWithValue("Position", m_Pos);
-	if (m_OzValue != reference.m_OzValue)
-		writer.NewPropertyWithValue("GoldValue", m_OzValue);
-	if (m_Buyable != reference.m_Buyable)
-		writer.NewPropertyWithValue("Buyable", m_Buyable);
+	writer.NewDistinctProperty("Position", m_Pos, reference.m_Pos);
+	writer.NewDistinctProperty("GoldValue", m_OzValue, reference.m_OzValue);
+	writer.NewDistinctProperty("Buyable", m_Buyable, reference.m_Buyable);
+
 	if (m_BuyableMode != reference.m_BuyableMode)
 		writer.NewPropertyWithValue("BuyableMode", static_cast<int>(m_BuyableMode));
-	if (m_Team != reference.m_Team)
-		writer.NewPropertyWithValue("Team", m_Team);
-	if (m_PlacedByPlayer != reference.m_PlacedByPlayer)
-		writer.NewPropertyWithValue("PlacedByPlayer", m_PlacedByPlayer);
 
-	return constituentsConsumed;
+	writer.NewDistinctProperty("Team", m_Team, reference.m_Team);
+	writer.NewDistinctProperty("PlacedByPlayer", m_PlacedByPlayer, reference.m_PlacedByPlayer);
+
+	return 0;
 }
 
 HashingData SceneObject::Hash() const {
