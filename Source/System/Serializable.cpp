@@ -1,4 +1,6 @@
 #include "Serializable.h"
+#include "Entity.h"
+#include "PresetMan.h"
 
 namespace RTE {
 
@@ -43,6 +45,16 @@ namespace RTE {
 	}
 
 	Writer& operator<<(Writer& writer, const Serializable& operand) {
+		if (const Entity* entityOperand = dynamic_cast<const Entity*>(&operand)) {
+			if (!entityOperand->IsOriginalPreset()) {
+				if (const Entity* preset = entityOperand->GetPreset()) {
+					HashingData presetHash(*g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+					entityOperand->Write(writer, *preset, presetHash);
+					writer.ObjectEnd();
+					return writer;
+				}
+			}
+		}
 		operand.Save(writer);
 		writer.ObjectEnd();
 		return writer;
@@ -50,6 +62,16 @@ namespace RTE {
 
 	Writer& operator<<(Writer& writer, const Serializable* operand) {
 		if (operand) {
+			if (const Entity* entityOperand = dynamic_cast<const Entity*>(operand)) {
+				if (!entityOperand->IsOriginalPreset()) {
+					if (const Entity* preset = entityOperand->GetPreset()) {
+						HashingData presetHash(*g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+						entityOperand->Write(writer, *preset, presetHash);
+						writer.ObjectEnd();
+						return writer;
+					}
+				}
+			}
 			operand->Save(writer);
 			writer.ObjectEnd();
 		} else {

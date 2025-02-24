@@ -184,13 +184,12 @@ int BunkerAssemblyScheme::ReadProperty(const std::string_view& propName, Reader&
 		reader.ReadPropValue();
 		m_ChildObjects.clear();
 	});
-	MatchForwards("AddChildObject") MatchProperty("_AddChildObject",
-	              {
-		              SOPlacer newChild;
-		              reader >> newChild;
-		              newChild.SetTeam(m_Team);
-		              m_ChildObjects.push_back(newChild);
-	              });
+	MatchForwards("AddChildObject") MatchProperty("_AddChildObject", {
+		SOPlacer newChild;
+		reader >> newChild;
+		newChild.SetTeam(m_Team);
+		m_ChildObjects.push_back(newChild);
+	});
 	MatchProperty("Limit", { reader >> m_Limit; });
 	MatchProperty("OneTypePerScene", { reader >> m_IsOneTypePerScene; });
 	MatchProperty("MaxDeployments", { reader >> m_MaxDeployments; });

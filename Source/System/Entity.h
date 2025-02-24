@@ -372,20 +372,6 @@ namespace RTE {
 		virtual const std::string& GetClassName() const { return m_sClass.GetName(); }
 #pragma endregion
 
-#pragma region Operator Overloads
-		/// A Writer insertion operator for sending a Serializable to a Writer.
-		/// @param writer A Writer reference as the left hand side operand.
-		/// @param operand A Serializable reference as the right hand side operand.
-		/// @return A Writer reference for further use in an expression.
-		friend Writer& operator<<(Writer& writer, const Entity& operand);
-
-		/// A Writer insertion operator for sending a Serializable to a Writer.
-		/// @param writer A Writer reference as the left hand side operand.
-		/// @param operand A Serializable pointer as the right hand side operand.
-		/// @return A Writer reference for further use in an expression.
-		friend Writer& operator<<(Writer& writer, const Entity* operand);
-#pragma endregion
-
 	protected:
 		static Entity::ClassInfo m_sClass; //!< Type description of this Entity.
 

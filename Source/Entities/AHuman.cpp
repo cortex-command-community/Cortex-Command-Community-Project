@@ -362,7 +362,7 @@ int AHuman::Write(Writer& writer, const Entity& entityReference, HashingData& ha
 	writer.NewDistinctHashedProperty("StandLimbPathBG", m_Paths[BGROUND][STAND], hashData);
 	writer.NewDistinctHashedProperty("WalkLimbPath", m_Paths[FGROUND][WALK], hashData);
 	writer.NewDistinctHashedProperty("RunLimbPath", m_Paths[FGROUND][RUN], hashData);
-	writer.NewDistinctHashedProperty("CrouchLimbPath", m_Paths[FGROUND][CROUCH], hashData);
+	writer.NewDistinctHashedProperty("CrouchLimbPath", m_Paths[FGROUND][PRONE], hashData);
 	writer.NewDistinctHashedProperty("CrawlLimbPath", m_Paths[FGROUND][CRAWL], hashData);
 	writer.NewDistinctHashedProperty("ArmCrawlLimbPath", m_Paths[FGROUND][ARMCRAWL], hashData);
 	writer.NewDistinctHashedProperty("ClimbLimbPath", m_Paths[FGROUND][CLIMB], hashData);

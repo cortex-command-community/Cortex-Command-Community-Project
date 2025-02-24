@@ -385,28 +385,4 @@ namespace RTE {
 			}
 		}
 	}
-
-	Writer& operator<<(Writer& writer, const Entity& operand) {
-		if (const Entity* preset = operand.GetPreset()) {
-			HashingData presetHash(*g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-			operand.Write(writer, *preset, presetHash);
-			writer.ObjectEnd();
-		} else {
-			writer << static_cast<const Serializable&>(operand);
-		}
-		return writer;
-	}
-
-	Writer& operator<<(Writer& writer, const Entity* operand) {
-		if (operand != nullptr) {
-			if (const Entity* preset = operand->GetPreset()) {
-				HashingData presetHash(*g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-				operand->Write(writer, *preset, presetHash);
-				writer.ObjectEnd();
-			}
-		} else {
-			writer << static_cast<const Serializable*>(operand);
-		}
-		return writer;
-	}
 } // namespace RTE

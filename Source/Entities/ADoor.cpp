@@ -145,7 +145,8 @@ int ADoor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("ClosedByDefault", { reader >> m_ClosedByDefault; });
 	MatchProperty("ResetDefaultDelay", { reader >> m_ResetToDefaultStateDelay; });
 	MatchProperty("SensorInterval", { reader >> m_SensorInterval; });
-	MatchProperty("AddSensor", {
+	MatchProperty("_ClearSensors", {});
+	MatchForwards("AddSensor") MatchProperty("_AddSensor", {
 		ADSensor sensor;
 		reader >> sensor;
 		m_Sensors.push_back(sensor);

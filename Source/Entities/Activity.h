@@ -101,6 +101,10 @@ namespace RTE {
 		}
 #pragma endregion
 
+#pragma region INI Handling
+		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
+#pragma endregion
+
 #pragma region Getters and Setters
 		/// Gets the current Activity state code. See the ActivityState enumeration for values.
 		/// @return The current state of this Activity. See ActivityState enumeration.

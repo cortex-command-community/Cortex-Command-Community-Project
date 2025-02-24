@@ -293,7 +293,8 @@ int ACraft::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_CrashSound = new SoundContainer;
 		reader >> m_CrashSound;
 	});
-	MatchProperty("AddExit",
+	MatchProperty("_ClearExits")
+	MatchForwards("AddExit") MatchProperty("_AddExit",
 	              {
 		              Exit exit;
 		              reader >> exit;

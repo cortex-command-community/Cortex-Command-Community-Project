@@ -470,7 +470,7 @@ int Actor::Write(Writer& writer, const Entity& entityReference, HashingData& has
 	writer.NewPointerSequence("_ClearInventory", "_AddInventory", m_Inventory, hashData);
 	writer.NewDistinctProperty("MaxInventoryMass", m_MaxInventoryMass, reference.m_MaxInventoryMass);
 	writer.NewDistinctProperty("AIMode", m_AIMode, reference.m_AIMode);
-	writer.NewDistinctHashedProperty("PieMenu", *m_PieMenu, hashData);
+	writer.NewOptionalEntityPointerProperty("PieMenu", m_PieMenu.get(), hashData);
 	writer.NewDistinctProperty("Organic", m_Organic, reference.m_Organic);
 	writer.NewDistinctProperty("Mechanical", m_Mechanical, reference.m_Mechanical);
 	writer.NewDistinctProperty("AIBaseDigStrength", m_AIBaseDigStrength, reference.m_AIBaseDigStrength);
@@ -559,9 +559,13 @@ HashingData Actor::Hash() const {
 	hash ^= std::hash<float>{}(m_MaxInventoryMass) << 12;
 	hash ^= std::hash<AIMode>{}(m_AIMode) << 13;
 
-	uint64_t pieHash = m_PieMenu->Hash().m_Hash;
-	hashData.m_Constituents.push_back(pieHash);
-	hash ^= pieHash << 14;
+	bool pieMenuDef = m_PieMenu != nullptr;
+	hashData.m_ParseValues.push_back(pieMenuDef);
+	if (pieMenuDef) {
+		uint64_t pieHash = m_PieMenu->Hash().m_Hash;
+		hashData.m_Constituents.push_back(pieHash);
+		hash ^= pieHash << 14;
+	}
 
 	hash ^= std::hash<bool>{}(m_Organic) << 15;
 	hash ^= std::hash<bool>{}(m_Mechanical) << 0;

@@ -193,19 +193,17 @@ namespace RTE {
 				}
 			}
 
-			if (areItemsConcatenated) {
-				for (auto itr = itemItr; itr != propValue.end(); ++itr) {
-					NewPropertyWithValue(insertionPhrase, **itr);
-				}
-			} else {
+			if (!areItemsConcatenated) {
 				if (hashData.m_ParseValues.front() > 0) {
 					NewPropertyWithValue(clearPhrase, 1);
 				}
 
-				for (auto itr = propValue.begin(); itr != propValue.end(); ++itr) {
-					if (conditional(*itemItr)) {
-						NewPropertyWithValue(insertionPhrase, **itr);
-					}
+				itemItr = propValue.begin();
+			}
+
+			for (auto itr = itemItr; itr != propValue.end(); ++itr) {
+				if (conditional(*itr)) {
+					NewPropertyWithValue(insertionPhrase, **itr);
 				}
 			}
 
@@ -289,8 +287,12 @@ namespace RTE {
 		/// @param propValue The value of the property.
 		template <typename Type>
 		void NewDistinctHashedProperty(const std::string& propName, const Type& propValue, HashingData& hashData) {
-			NewDistinctProperty(propName, propValue.Hash().m_Hash, hashData.m_Constituents.front());
+			uint64_t thisHash = propValue.Hash().m_Hash;
+			if (thisHash != hashData.m_Constituents.front()) {
+				NewPropertyWithValue(propName, propValue);
+			}
 			hashData.m_Constituents.pop_front();
+			hashData.m_Constituents.push_back(thisHash);
 		}
 
 		/// Marks that there is a null reference to an object here.
