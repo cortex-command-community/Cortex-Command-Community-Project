@@ -90,7 +90,7 @@ int ThrownDevice::Write(Writer& writer, const Entity& entityReference, HashingDa
 
 	const ThrownDevice& reference = static_cast<const ThrownDevice&>(entityReference);
 
-	writer.NewOptionalEntityPointerProperty("ActivationSound", m_ActivationSound, hashData);
+	writer.NewOptionalEntityPointerProperty("ActivationSound", m_ActivationSound.get(), hashData);
 	writer.NewDistinctProperty("StartThrowOffset", m_StartThrowOffset, reference.m_StartThrowOffset);
 	writer.NewDistinctProperty("EndThrowOffset", m_EndThrowOffset, reference.m_EndThrowOffset);
 	writer.NewDistinctProperty("MinThrowVel", m_MinThrowVel, reference.m_MinThrowVel);

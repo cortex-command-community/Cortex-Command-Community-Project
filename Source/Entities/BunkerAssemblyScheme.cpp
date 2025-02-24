@@ -218,7 +218,7 @@ int BunkerAssemblyScheme::Write(Writer& writer, const Entity& entityReference, H
 	const BunkerAssemblyScheme& reference = static_cast<const BunkerAssemblyScheme&>(entityReference);
 
 	writer.NewDistinctHashedProperty("BitmapFile", m_BitmapFile, hashData);
-	writer.NewPointerSequence("_ClearChildObjects", "_AddChildObject", m_ChildObjects, hashData);
+	writer.NewSequence("_ClearChildObjects", "_AddChildObject", m_ChildObjects, hashData);
 
 	return 0;
 }

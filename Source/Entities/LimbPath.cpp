@@ -202,7 +202,7 @@ int LimbPath::Write(Writer& writer, const Entity& entityReference, HashingData& 
 
 	writer.NewDistinctProperty("StartOffset", m_Start, reference.m_Start);
 	writer.NewDistinctProperty("StartSegCount", m_StartSegCount, reference.m_StartSegCount);
-	writer.NewPointerSequence("_ClearSegments", "_AddSegment", m_Segments, hashData);
+	writer.NewSequence("_ClearSegments", "_AddSegment", m_Segments, hashData);
 	writer.NewDistinctProperty("EndSegCount", m_FootCollisionsDisabledSegment, reference.m_FootCollisionsDisabledSegment);
 	writer.NewDistinctProperty("SegmentEndedThreshold", m_SegmentEndedThreshold, reference.m_SegmentEndedThreshold);
 	writer.NewDistinctProperty("TravelSpeed", m_TravelSpeed, reference.m_TravelSpeed);

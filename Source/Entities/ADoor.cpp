@@ -206,10 +206,10 @@ int ADoor::Write(Writer& writer, const Entity& entityReference, HashingData& has
 	writer.NewSequence("_ClearSensors", "_AddSensor", m_Sensors, hashData);
 	writer.NewDistinctProperty("DrawMaterialLayerWhenOpen", m_DrawMaterialLayerWhenOpen, reference.m_DrawMaterialLayerWhenOpen);
 	writer.NewDistinctProperty("DrawMaterialLayerWhenClosed", m_DrawMaterialLayerWhenClosed, reference.m_DrawMaterialLayerWhenClosed);
-	writer.NewOptionalEntityPointerProperty("DoorMoveStartSound", m_DoorMoveStartSound, hashData);
-	writer.NewOptionalEntityPointerProperty("DoorMoveSound", m_DoorMoveSound, hashData);
-	writer.NewOptionalEntityPointerProperty("DoorDirectionChangeSound", m_DoorDirectionChangeSound, hashData);
-	writer.NewOptionalEntityPointerProperty("DoorMoveEndSound", m_DoorMoveEndSound, hashData);
+	writer.NewOptionalEntityPointerProperty("DoorMoveStartSound", m_DoorMoveStartSound.get(), hashData);
+	writer.NewOptionalEntityPointerProperty("DoorMoveSound", m_DoorMoveSound.get(), hashData);
+	writer.NewOptionalEntityPointerProperty("DoorDirectionChangeSound", m_DoorDirectionChangeSound.get(), hashData);
+	writer.NewOptionalEntityPointerProperty("DoorMoveEndSound", m_DoorMoveEndSound.get(), hashData);
 
 	return 0;
 }

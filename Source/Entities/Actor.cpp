@@ -470,7 +470,7 @@ int Actor::Write(Writer& writer, const Entity& entityReference, HashingData& has
 	writer.NewPointerSequence("_ClearInventory", "_AddInventory", m_Inventory, hashData);
 	writer.NewDistinctProperty("MaxInventoryMass", m_MaxInventoryMass, reference.m_MaxInventoryMass);
 	writer.NewDistinctProperty("AIMode", m_AIMode, reference.m_AIMode);
-	writer.NewEntityPointerProperty("PieMenu", m_PieMenu, hashData);
+	writer.NewDistinctHashedProperty("PieMenu", *m_PieMenu, hashData);
 	writer.NewDistinctProperty("Organic", m_Organic, reference.m_Organic);
 	writer.NewDistinctProperty("Mechanical", m_Mechanical, reference.m_Mechanical);
 	writer.NewDistinctProperty("AIBaseDigStrength", m_AIBaseDigStrength, reference.m_AIBaseDigStrength);

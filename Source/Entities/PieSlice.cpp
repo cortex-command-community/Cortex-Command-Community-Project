@@ -159,14 +159,14 @@ int PieSlice::Write(Writer& writer, const Entity& entityReference, HashingData& 
 	}
 
 	writer.NewDistinctProperty("Enabled", m_Enabled, reference.m_Enabled);
-	writer.NewEntityPointerProperty("Icon", m_Icon, hashData);
+	writer.NewDistinctHashedProperty("Icon", *m_Icon, hashData);
 
 	if (m_LuabindFunctionObject && !m_FunctionName.empty()) {
 		writer.NewPropertyWithValue("ScriptPath", m_LuabindFunctionObject->GetFilePath());
 		writer.NewPropertyWithValue("FunctionName", m_FunctionName);
 	}
 
-	writer.NewOptionalEntityPointerProperty("SubPieMenu", m_SubPieMenu, hashData);
+	writer.NewOptionalEntityPointerProperty("SubPieMenu", m_SubPieMenu.get(), hashData);
 
 	return 0;
 }

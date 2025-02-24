@@ -343,7 +343,7 @@ int ACraft::Write(Writer& writer, const Entity& entityReference, HashingData& ha
 	writer.NewDistinctProperty("HatchDelay", m_HatchDelay, reference.m_HatchDelay);
 	writer.NewOptionalEntityPointerProperty("HatchOpenSound", m_HatchOpenSound, hashData);
 	writer.NewOptionalEntityPointerProperty("HatchCloseSound", m_HatchCloseSound, hashData);
-	writer.NewPointerSequence("_ClearExits", "_AddExit", m_Exits, hashData);
+	writer.NewSequence("_ClearExits", "_AddExit", m_Exits, hashData);
 	writer.NewDistinctProperty("DeliveryDelayMultiplier", m_DeliveryDelayMultiplier, reference.m_DeliveryDelayMultiplier);
 	writer.NewDistinctProperty("ExitInterval", m_ExitInterval, reference.m_ExitInterval);
 	writer.NewDistinctProperty("CanLand", m_LandingCraft, reference.m_LandingCraft);
