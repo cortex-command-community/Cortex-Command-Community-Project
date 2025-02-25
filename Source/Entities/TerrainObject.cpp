@@ -89,11 +89,8 @@ int TerrainObject::ReadProperty(const std::string_view& propName, Reader& reader
 		m_ChildObjects.emplace_back(newChildObject);
 	});
 	MatchForwards("ClearChildObjects") MatchProperty("_ClearChildObjects", {
-		bool clearChildObjects;
-		reader >> clearChildObjects;
-		if (clearChildObjects) {
-			m_ChildObjects.clear();
-		}
+		reader.ReadPropValue();
+		m_ChildObjects.clear();
 	});
 
 	EndPropertyList;

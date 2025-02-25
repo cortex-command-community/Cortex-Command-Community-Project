@@ -94,10 +94,14 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("LuaClassName", {
 		reader >> m_LuaClassName;
 	});
-	MatchProperty("AddPieSlice", {
+	MatchForwards("AddPieSlice") MatchProperty("_AddPieSlice", {
 		m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader))));
 	});
-	MatchProperty("AddRequiredArea", {
+	MatchProperty("_ClearRequiredAres", {
+		reader.ReadPropValue();
+		m_RequiredAreas.clear();
+	});
+	MatchForwards("AddRequiredArea") MatchProperty("_AddRequiredArea", {
 		std::string requiredArea;
 		reader >> requiredArea;
 		m_RequiredAreas.insert(requiredArea);
@@ -126,6 +130,28 @@ int GAScripted::Save(Writer& writer) const {
 	return 0;
 }
 
+int GAScripted::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	GameActivity::Write(writer, entityReference, hashData);
+
+	const GAScripted& reference = static_cast<const GAScripted&>(entityReference);
+
+	writer.NewDistinctProperty("ScriptPath", m_ScriptPath, reference.m_ScriptPath);
+	writer.NewDistinctProperty("LuaClassName", m_LuaClassName, reference.m_LuaClassName);
+	writer.NewPointerSequence("_ClearPieSlices", "_AddPieSlice", m_PieSlicesToAdd, hashData);
+
+	if (m_RequiredAreas != reference.m_RequiredAreas) {
+		if (reference.m_RequiredAreas.size() > 0) {
+			writer.NewProperty("_ClearRequiredAreas = 1");
+		}
+
+		for (auto itr = m_RequiredAreas.begin(); itr != m_RequiredAreas.end(); ++itr) {
+			writer.NewPropertyWithValue("_AddRequiredArea", *itr);
+		}
+	}
+
+	return 0;
+}
+
 HashingData GAScripted::Hash() const {
 	HashingData hashData = GameActivity::Hash();
 	uint64_t& hash = hashData.m_Hash;
@@ -142,6 +168,7 @@ HashingData GAScripted::Hash() const {
 	}
 
 	hashData.m_ParseValues.push_back(i);
+
 	i = 0;
 
 	for (const std::string& requiredArea: m_RequiredAreas) {

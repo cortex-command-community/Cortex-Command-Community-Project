@@ -139,7 +139,7 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 			m_ParentBreakWound = m_BreakWound;
 		}
 	});
-	MatchProperty("ParentBreakWound", { m_ParentBreakWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset(reader)); });
+	MatchProperty("ParentBreakWound", { m_ParentBreakWound = static_cast<const AEmitter*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader)); });
 	MatchProperty("InheritsHFlipped", {
 		reader >> m_InheritsHFlipped;
 		if (m_InheritsHFlipped != 0 && m_InheritsHFlipped != 1) {

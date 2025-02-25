@@ -293,24 +293,19 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 	MatchProperty("PlayerControllable", { reader >> m_PlayerControllable; });
 	MatchProperty("BodyHitSound", {
-		m_BodyHitSound = new SoundContainer;
-		reader >> m_BodyHitSound;
+		m_BodyHitSound = static_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader));
 	});
 	MatchProperty("AlarmSound", {
-		m_AlarmSound = new SoundContainer;
-		reader >> m_AlarmSound;
+		m_AlarmSound = static_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader));
 	});
 	MatchProperty("PainSound", {
-		m_PainSound = new SoundContainer;
-		reader >> m_PainSound;
+		m_PainSound = static_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader));
 	});
 	MatchProperty("DeathSound", {
-		m_DeathSound = new SoundContainer;
-		reader >> m_DeathSound;
+		m_DeathSound = static_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader));
 	});
 	MatchProperty("DeviceSwitchSound", {
-		m_DeviceSwitchSound = new SoundContainer;
-		reader >> m_DeviceSwitchSound;
+		m_DeviceSwitchSound = static_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader));
 	});
 	MatchProperty("Status", { reader >> m_Status; });
 	MatchProperty("DeploymentID", { reader >> m_DeploymentID; });
@@ -375,7 +370,7 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		AddAISceneWaypoint(waypointToAdd);
 	});
 	MatchProperty("PieMenu", {
-		m_PieMenu = std::unique_ptr<PieMenu>(dynamic_cast<PieMenu*>(g_PresetMan.ReadReflectedPreset(reader)));
+		m_PieMenu = std::unique_ptr<PieMenu>(static_cast<PieMenu*>(g_PresetMan.ReadReflectedPreset(reader)));
 		if (!m_PieMenu) {
 			reader.ReportError("Failed to set Actor's pie menu. Doublecheck your name and everything is correct.");
 		}

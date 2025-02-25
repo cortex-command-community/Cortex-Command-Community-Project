@@ -145,7 +145,10 @@ int ADoor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("ClosedByDefault", { reader >> m_ClosedByDefault; });
 	MatchProperty("ResetDefaultDelay", { reader >> m_ResetToDefaultStateDelay; });
 	MatchProperty("SensorInterval", { reader >> m_SensorInterval; });
-	MatchProperty("_ClearSensors", {});
+	MatchProperty("_ClearSensors", {
+		reader.ReadPropValue();
+		m_Sensors.clear();
+	});
 	MatchForwards("AddSensor") MatchProperty("_AddSensor", {
 		ADSensor sensor;
 		reader >> sensor;
@@ -241,7 +244,7 @@ HashingData ADoor::Hash() const {
 	for (const ADSensor& sensor: m_Sensors) {
 		uint64_t sensorHash = sensor.Hash().m_Hash;
 		hashData.m_Constituents.push_back(sensorHash);
-		hash ^= sensorHash << (i % sizeof(uint64_t) * 8);
+		hash ^= sensorHash << (i++ % sizeof(uint64_t) * 8);
 	}
 
 	hashData.m_ParseValues.push_back(i);

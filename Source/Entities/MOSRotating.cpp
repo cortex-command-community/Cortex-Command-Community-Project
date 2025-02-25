@@ -267,22 +267,19 @@ int MOSRotating::Create(const MOSRotating& reference) {
 int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return MOSprite::ReadProperty(propName, reader));
 
-	MatchProperty("AtomGroup",
-	              {
-		              delete m_pAtomGroup;
-		              m_pAtomGroup = new AtomGroup();
-		              reader >> *m_pAtomGroup;
-	              });
-	MatchProperty("DeepGroup",
-	              {
-		              delete m_pDeepGroup;
-		              m_pDeepGroup = new AtomGroup();
-		              reader >> *m_pDeepGroup;
-	              });
+	MatchProperty("AtomGroup", {
+		if (m_pAtomGroup)
+			delete m_pAtomGroup;
+		m_pAtomGroup = static_cast<AtomGroup*>(g_PresetMan.ReadReflectedPreset(reader));
+	});
+	MatchProperty("DeepGroup", {
+		if (m_pDeepGroup)
+			delete m_pDeepGroup;
+		m_pDeepGroup = static_cast<AtomGroup*>(g_PresetMan.ReadReflectedPreset(reader));
+	});
 	MatchProperty("DeepCheck", { reader >> m_DeepCheck; });
 	MatchProperty("OrientToVel", { reader >> m_OrientToVel; });
 	MatchForwards("SpecialBehaviour_ClearAllAttachables") MatchProperty("_ClearAttachables", {
-		// This special property is used to make Attachables work with our limited serialization system, when saving the game. Note that we discard the property value here, because all that matters is whether or not we have the property.
 		reader.ReadPropValue();
 		for (auto attachableIterator = m_Attachables.begin(); attachableIterator != m_Attachables.end();) {
 			Attachable* attachable = *attachableIterator;
@@ -303,12 +300,17 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 		RemoveWounds(GetWoundCount());
 	});
 	MatchForwards("SpecialBehaviour_AddWound") MatchProperty("_AddWound", {
-		AEmitter* wound = new AEmitter;
-		reader >> wound;
-		AddWound(wound, wound->GetParentOffset());
+		Entity* readerEntity = g_PresetMan.ReadReflectedPreset(reader);
+		if (AEmitter* readerWound = dynamic_cast<AEmitter*>(readerEntity)) {
+			AddWound(readerWound, readerWound->GetParentOffset());
+		} else {
+			reader.ReportError("Tried to AddWound a non-AEmitter (which is the type of a wound) type!");
+		}
 	});
 	MatchProperty("_ClearGibs", { 
 		reader.ReadPropValue();
+		for (Gib* gib: m_Gibs)
+			delete gib;
 		m_Gibs.clear(); 
 	});
 	MatchForwards("AddGib") MatchProperty("_AddGib", {
@@ -324,10 +326,9 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("DetachAttachablesBeforeGibbingFromWounds", { reader >> m_DetachAttachablesBeforeGibbingFromWounds; });
 	MatchProperty("GibAtEndOfLifetime", { reader >> m_GibAtEndOfLifetime; });
 	MatchProperty("GibSound", {
-		if (!m_GibSound) {
-			m_GibSound = new SoundContainer;
-		}
-		reader >> m_GibSound;
+		if (m_GibSound)
+			delete m_GibSound;
+		m_GibSound = static_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader));
 	});
 	MatchProperty("EffectOnGib", { reader >> m_EffectOnGib; });
 	MatchProperty("LoudnessOnGib", { reader >> m_LoudnessOnGib; });

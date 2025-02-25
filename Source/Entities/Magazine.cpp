@@ -110,7 +110,12 @@ int Magazine::Write(Writer& writer, const Entity& entityReference, HashingData& 
 	const Magazine& reference = static_cast<const Magazine&>(entityReference);
 
 	writer.NewDistinctProperty("RoundCount", m_RoundCount, reference.m_RoundCount);
-	writer.NewDistinctProperty("FullCapacity", m_FullCapacity, reference.m_FullCapacity);
+
+	// Special casing due to the special casing on magazine reading
+	if (m_RoundCount != reference.m_RoundCount || m_FullCapacity != reference.m_FullCapacity) {
+		writer.NewPropertyWithValue("FullCapacity", m_FullCapacity);
+	}
+
 	writer.NewDistinctProperty("RTTRatio", m_RTTRatio, reference.m_RTTRatio);
 	writer.NewPresetReferenceProperty("RegularRound", m_pRegularRound, reference.m_pRegularRound);
 	writer.NewPresetReferenceProperty("TracerRound", m_pTracerRound, reference.m_pTracerRound);

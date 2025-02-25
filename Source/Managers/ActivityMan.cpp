@@ -84,6 +84,8 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		return false;
 	}
 
+	activity->RunLuaFunction("OnSave");
+
 	// TODO, save to a zip instead of a directory
 	std::filesystem::create_directory(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName);
 
@@ -124,7 +126,13 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	writer->NewPropertyWithValue("OriginalScenePresetName", scene->GetPresetName());
 	writer->NewPropertyWithValue("PlaceObjectsIfSceneIsRestarted", g_SceneMan.GetPlaceObjectsOnLoad());
 	writer->NewPropertyWithValue("PlaceUnitsIfSceneIsRestarted", g_SceneMan.GetPlaceUnitsOnLoad());
-	writer->NewPropertyWithValue("Scene", modifiableScene.get());
+	writer->NewLine();
+	writer->NewLine();
+
+	// Have to save specifically, can't use NewPropertyWithValue, which may detect an existing preset by that name and module
+	writer->NewProperty("Scene");
+	modifiableScene.get()->Save(*writer);
+	writer->ObjectEnd();
 
 	auto saveWriterData = [](Writer* writerToSave) {
 		writerToSave->EndWrite();

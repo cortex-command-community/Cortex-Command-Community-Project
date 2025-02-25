@@ -89,7 +89,14 @@ int PEmitter::Create(const PEmitter& reference) {
 int PEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return MOSParticle::ReadProperty(propName, reader));
 
-	MatchProperty("AddEmission", {
+	MatchProperty("_ClearEmissions", {
+		reader.ReadPropValue();
+		for (Emission* emission: m_EmissionList) {
+			delete emission;
+		}
+		m_EmissionList.clear();
+	});
+	MatchForwards("AddEmission") MatchProperty("_AddEmission", {
 		Emission* emission = new Emission();
 		reader >> *emission;
 		m_EmissionList.push_back(emission);

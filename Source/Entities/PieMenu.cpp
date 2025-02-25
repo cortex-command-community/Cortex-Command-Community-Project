@@ -197,7 +197,16 @@ int PieMenu::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("BackgroundColor", { reader >> m_BackgroundColor; });
 	MatchProperty("BackgroundBorderColor", { reader >> m_BackgroundBorderColor; });
 	MatchProperty("SelectedItemBackgroundColor", { reader >> m_SelectedItemBackgroundColor; });
-	MatchProperty("AddPieSlice", {
+	MatchProperty("_ClearPieSlices", {
+		reader.ReadPropValue();
+		// TODO: sort out if this is even appropriate to do
+		/*for (PieSlice* pieSlice: m_CurrentPieSlices) {
+			if (pieSlice->GetOriginalSource() == this) {
+				delete pieSlice;
+			}
+		}*/
+	});
+	MatchForwards("AddPieSlice") MatchProperty("_AddPieSlice", {
 		if (m_CurrentPieSlices.size() == 4 * PieQuadrant::c_PieQuadrantSlotCount) {
 			reader.ReportError("Pie menus cannot have more than " + std::to_string(4 * PieQuadrant::c_PieQuadrantSlotCount) + " slices. Use sub-pie menus to better organize your pie slices.");
 		}

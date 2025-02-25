@@ -96,6 +96,10 @@ namespace RTE {
 		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
+#pragma region INI Handling
+		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
+#pragma endregion
+
 		/// Gets the current CPU-assisted team, if any (NoTeam) - LEGACY function
 		/// @return The current setting. NoTeam is no team is assisted.
 		int GetCPUTeam() const { return m_CPUTeam; }

@@ -72,6 +72,10 @@ namespace RTE {
 		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
+#pragma region INI Handling
+		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
+#pragma endregion
+
 		/// Reloads the preset scripts of this object, from the same script file
 		/// path as was originally defined. This will also update the original
 		/// preset in the PresetMan with the updated scripts so future objects

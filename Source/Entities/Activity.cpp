@@ -192,7 +192,7 @@ int Activity::ReadProperty(const std::string_view& propName, Reader& reader) {
 		for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 			std::string teamNum = std::to_string(team + 1);
 			if (propName == "Team" + teamNum + "Icon") {
-				reader >> m_TeamIcons[team];
+				g_PresetMan.GetEntityPresetFromCharacteristic(reader)->Clone(&m_TeamIcons[team]);
 				break;
 			}
 		}
@@ -272,6 +272,41 @@ int Activity::Save(Writer& writer) const {
 	}
 
 	writer.NewPropertyWithValue("GenericSavedValues", m_SavedValues);
+
+	return 0;
+}
+
+int Activity::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const Activity& reference = static_cast<const Activity&>(entityReference);
+
+	writer.NewDistinctProperty("Description", m_Description, reference.m_Description);
+	writer.NewDistinctProperty("SceneName", m_SceneName, reference.m_SceneName);
+	writer.NewDistinctProperty("MaxPlayerSupport", m_MaxPlayerSupport, reference.m_MaxPlayerSupport);
+	writer.NewDistinctProperty("MinTeamsRequired", m_MinTeamsRequired, reference.m_MinTeamsRequired);
+	writer.NewDistinctProperty("Difficulty", m_Difficulty, reference.m_Difficulty);
+	writer.NewDistinctProperty("CraftOrbitAtTheEdge", m_CraftOrbitAtTheEdge, reference.m_CraftOrbitAtTheEdge);
+	writer.NewDistinctProperty("InCampaignStage", m_InCampaignStage, reference.m_InCampaignStage);
+	writer.NewDistinctProperty("ActivityState", m_ActivityState, reference.m_ActivityState);
+	writer.NewDistinctProperty("AllowsUserSaving", m_AllowsUserSaving, reference.m_AllowsUserSaving);
+
+	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
+		std::string playerNum = std::to_string(player + 1);
+		writer.NewDistinctProperty("TeamOfPlayer" + playerNum, m_Team[player], reference.m_Team[player]);
+		writer.NewDistinctProperty("FundsContributionOfPlayer" + playerNum, m_FundsContribution[player], reference.m_FundsContribution[player]);
+		writer.NewDistinctProperty("TeamFundsShareOfPlayer" + playerNum, m_TeamFundsShare[player], reference.m_TeamFundsShare[player]);
+		writer.NewDistinctProperty("Player" + playerNum + "IsHuman", m_IsHuman[player], reference.m_IsHuman[player]);
+	}
+
+	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
+		std::string teamNum = std::to_string(team + 1);
+		writer.NewDistinctProperty("Team" + teamNum + "Funds", m_TeamFunds[team], reference.m_TeamFunds[team]);
+		writer.NewDistinctProperty("Team" + teamNum + "Name", m_TeamNames[team], reference.m_TeamNames[team]);
+		writer.NewPresetReferenceProperty("Team" + teamNum + "Icon", &m_TeamIcons[team], &reference.m_TeamIcons[team]);
+	}
+
+	writer.NewDistinctHashedProperty("GenericSavedValues", m_SavedValues, hashData);
 
 	return 0;
 }

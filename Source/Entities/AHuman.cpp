@@ -232,17 +232,17 @@ int AHuman::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Actor::ReadProperty(propName, reader));
 
 	MatchProperty("ThrowPrepTime", { reader >> m_ThrowPrepTime; });
-	MatchProperty("Head", { SetHead(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Head", { SetHead(static_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
 	MatchProperty("LookToAimRatio", { reader >> m_LookToAimRatio; });
-	MatchProperty("Jetpack", { SetJetpack(dynamic_cast<AEJetpack*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Jetpack", { SetJetpack(static_cast<AEJetpack*>(g_PresetMan.ReadReflectedPreset(reader))); });
 	MatchProperty("FGArmFlailScalar", { reader >> m_FGArmFlailScalar; });
 	MatchProperty("BGArmFlailScalar", { reader >> m_BGArmFlailScalar; });
 	MatchProperty("ArmSwingRate", { reader >> m_ArmSwingRate; });
 	MatchProperty("DeviceArmSwayRate", { reader >> m_DeviceArmSwayRate; });
-	MatchProperty("FGArm", { SetFGArm(dynamic_cast<Arm*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("BGArm", { SetBGArm(dynamic_cast<Arm*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("FGLeg", { SetFGLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("BGLeg", { SetBGLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("FGArm", { SetFGArm(static_cast<Arm*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("BGArm", { SetBGArm(static_cast<Arm*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("FGLeg", { SetFGLeg(static_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("BGLeg", { SetBGLeg(static_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
 	MatchProperty("HandGroup", {
 		delete m_pFGHandGroup;
 		delete m_pBGHandGroup;

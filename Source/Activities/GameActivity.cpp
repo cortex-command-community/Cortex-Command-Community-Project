@@ -237,8 +237,8 @@ int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader)
 			                m_TeamTechSwitchEnabled[team] = switchEnabled;
 		                }
 	                });
-	MatchProperty("SpecialBehaviour_StartingGold", { reader >> m_StartingGold; });
-	MatchProperty("SpecialBehaviour_FogOfWarEnabled", { reader >> m_FogOfWarEnabled; });
+	MatchForwards("SpecialBehaviour_StartingGold") MatchProperty("_StartingGold", { reader >> m_StartingGold; });
+	MatchForwards("SpecialBehaviour_FogOfWarEnabled") MatchProperty("_FogOfWarEnabled", { reader >> m_FogOfWarEnabled; });
 
 	EndPropertyList;
 }
@@ -253,6 +253,25 @@ int GameActivity::Save(Writer& writer) const {
 	// Note - these special behaviour properties are for saving and loading. Normally these fields are set by the Activity config GUI.
 	writer.NewPropertyWithValue("SpecialBehaviour_StartingGold", m_StartingGold);
 	writer.NewPropertyWithValue("SpecialBehaviour_FogOfWarEnabled", m_FogOfWarEnabled);
+
+	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
+		writer.NewPropertyWithValue("Team" + std::to_string(team + 1) + "Tech", GetTeamTech(team));
+	}
+
+	return 0;
+}
+
+int GameActivity::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Activity::Write(writer, entityReference, hashData);
+
+	const GameActivity& reference = static_cast<const GameActivity&>(entityReference);
+
+	writer.NewPropertyWithValue("CPUTeam", m_CPUTeam);
+	writer.NewPropertyWithValue("DeliveryDelay", m_DeliveryDelay);
+	writer.NewPropertyWithValue("BuyMenuEnabled", m_BuyMenuEnabled);
+
+	writer.NewPropertyWithValue("_StartingGold", m_StartingGold);
+	writer.NewPropertyWithValue("_FogOfWarEnabled", m_FogOfWarEnabled);
 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 		writer.NewPropertyWithValue("Team" + std::to_string(team + 1) + "Tech", GetTeamTech(team));

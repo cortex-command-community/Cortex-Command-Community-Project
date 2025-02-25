@@ -316,7 +316,10 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("MissionCritical", { reader >> m_MissionCritical; });
 	MatchProperty("CanBeSquished", { reader >> m_CanBeSquished; });
 	MatchProperty("HUDVisible", { reader >> m_HUDVisible; });
-	MatchProperty("_ClearScriptPaths", {  });
+	MatchProperty("_ClearScriptPaths", { 
+		// TODO: Implement removal of scripts from MovableObjects, and while we're at it, serializing disabled scripts
+		reader.ReadPropValue();
+	});
 	MatchForwards("ScriptPath") MatchProperty("_AddScriptPath", {
 		std::string scriptPath = g_PresetMan.GetFullModulePath(reader.ReadPropValue());
 		switch (LoadScript(scriptPath)) {
@@ -529,7 +532,7 @@ int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingD
 	writer.NewDistinctProperty("IgnoreTerrain", m_IgnoreTerrain, reference.m_IgnoreTerrain);
 	writer.NewDistinctProperty("SimUpdatesBetweenScriptedUpdates", m_SimUpdatesBetweenScriptedUpdates, reference.m_SimUpdatesBetweenScriptedUpdates);
 
-	if (!reference.m_NumberValueMap.empty()) {
+	if (m_NumberValueMap != reference.m_NumberValueMap) {
 		writer.NewPropertyWithValue("_ClearCustomNumberValues", "1");
 	}
 
@@ -540,7 +543,7 @@ int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingD
 		writer.ObjectEnd();
 	}
 
-	if (!reference.m_StringValueMap.empty()) {
+	if (m_StringValueMap != reference.m_StringValueMap) {
 		writer.NewPropertyWithValue("_ClearCustomStringValues", "1");
 	}
 

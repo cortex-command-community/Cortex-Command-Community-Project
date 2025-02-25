@@ -155,8 +155,6 @@ namespace RTE {
 			writer.NewPropertyWithValue("Description", m_PresetDescription);
 		}
 
-		//writer.NewPropertyWithValue("_ClearGroups", 1);
-
 		for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {
 		    writer.NewPropertyWithValue("_AddToGroup", *itr);
 		}
@@ -168,6 +166,12 @@ namespace RTE {
 		writer.ObjectStart(GetClassName());
 
 		writer.NewPropertyWithValue("CopyOf", entityReference.GetModuleAndPresetName());
+
+		if (m_IsOriginalPreset) {
+			writer.NewPropertyWithValue("PresetName", GetModuleAndPresetName());
+		} else if (!m_PresetName.empty() && m_PresetName != "None") {
+			writer.NewPropertyWithValue("InstanceName", GetModuleAndPresetName());
+		}
 
 		if (m_DisplayName != entityReference.m_DisplayName) {
 			writer.NewPropertyWithValue("DisplayName", m_DisplayName);
@@ -183,7 +187,7 @@ namespace RTE {
 		// TODO: That^
 		if (m_Groups != entityReference.m_Groups) {
 			if (entityReference.m_Groups.size() > 0) {
-				writer.NewProperty("_ClearGroups = 1");
+				writer.NewPropertyWithValue("_ClearGroups", 1);
 			}
 
 			for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {

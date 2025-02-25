@@ -113,27 +113,30 @@ namespace RTE {
 			bool areItemsConcatenated = true;
 			auto itemItr = propValue.begin();
 
-			for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.front(); refIndex++, itemItr++) {
-				if ((*itemItr)->Hash().m_Hash != hashData.m_Constituents.front()) {
-					areItemsConcatenated = false;
-					break;
+			for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.front(); refIndex++) {
+				if (areItemsConcatenated) {
+					if (itemItr != propValue.end()) {
+						if ((*itemItr)->Hash().m_Hash != hashData.m_Constituents.front()) {
+							areItemsConcatenated = false;
+						}
+						itemItr++;
+					} else
+						areItemsConcatenated = false;
 				}
 
 				hashData.m_Constituents.pop_front();
 			}
 
-			if (areItemsConcatenated) {
-				for (auto itr = itemItr; itr != propValue.end(); ++itr) {
-					NewPropertyWithValue(insertionPhrase, **itr);
-				}
-			} else {
+			if (!areItemsConcatenated) {
 				if (hashData.m_ParseValues.front() > 0) {
 					NewPropertyWithValue(clearPhrase, 1);
 				}
 
-				for (auto itr = propValue.begin(); itr != propValue.end(); ++itr) {
-					NewPropertyWithValue(insertionPhrase, **itr);
-				}
+				itemItr = propValue.begin();
+			}
+			
+			while (itemItr != propValue.end()) {
+				NewPropertyWithValue(insertionPhrase, **(itemItr++));
 			}
 
 			hashData.m_ParseValues.pop_front();
@@ -147,27 +150,30 @@ namespace RTE {
 			bool areItemsConcatenated = true;
 			auto itemItr = propValue.begin();
 
-			for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.front(); refIndex++, itemItr++) {
-				if ((*itemItr).Hash().m_Hash != hashData.m_Constituents.front()) {
-					areItemsConcatenated = false;
-					break;
+			for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.front(); refIndex++) {
+				if (areItemsConcatenated) {
+					if (itemItr != propValue.end()) {
+						if (itemItr->Hash().m_Hash != hashData.m_Constituents.front()) {
+							areItemsConcatenated = false;
+						}
+						itemItr++;
+					} else
+						areItemsConcatenated = false;
 				}
 
 				hashData.m_Constituents.pop_front();
 			}
 
-			if (areItemsConcatenated) {
-				for (auto itr = itemItr; itr != propValue.end(); ++itr) {
-					NewPropertyWithValue(insertionPhrase, *itr);
-				}
-			} else {
+			if (!areItemsConcatenated) {
 				if (hashData.m_ParseValues.front() > 0) {
 					NewPropertyWithValue(clearPhrase, 1);
 				}
 
-				for (auto itr = propValue.begin(); itr != propValue.end(); ++itr) {
-					NewPropertyWithValue(insertionPhrase, *itr);
-				}
+				itemItr = propValue.begin();
+			}
+
+			while (itemItr != propValue.end()) {
+				NewPropertyWithValue(insertionPhrase, *(itemItr++));
 			}
 
 			hashData.m_ParseValues.pop_front();
@@ -182,15 +188,20 @@ namespace RTE {
 			bool areItemsConcatenated = true;
 			auto itemItr = propValue.begin();
 
-			for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.front(); refIndex++, itemItr++) {
-				if (conditional(*itemItr)) {
-					if ((*itemItr)->Hash().m_Hash != hashData.m_Constituents.front()) {
+			for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.front(); refIndex++) {
+				if (areItemsConcatenated) {
+					if (itemItr != propValue.end()) {
+						if (conditional(*itemItr)) {
+							if ((*itemItr)->Hash().m_Hash != hashData.m_Constituents.front()) {
+								areItemsConcatenated = false;
+							}
+						}
+						itemItr++;
+					} else
 						areItemsConcatenated = false;
-						break;
-					}
-
-					hashData.m_Constituents.pop_front();
 				}
+
+				hashData.m_Constituents.pop_front();
 			}
 
 			if (!areItemsConcatenated) {
@@ -201,13 +212,13 @@ namespace RTE {
 				itemItr = propValue.begin();
 			}
 
-			for (auto itr = itemItr; itr != propValue.end(); ++itr) {
-				if (conditional(*itr)) {
-					NewPropertyWithValue(insertionPhrase, **itr);
+			while (itemItr != propValue.end()) {
+				if (conditional(*itemItr)) {
+					NewPropertyWithValue(insertionPhrase, **itemItr);
 				}
+				itemItr++;
 			}
 
-			// Pop the parse value relevant to this property
 			hashData.m_ParseValues.pop_front();
 		}
 
@@ -217,12 +228,13 @@ namespace RTE {
 		template <typename Type>
 		void NewOptionalEntityPointerProperty(const std::string& propName, const Type& propValue, HashingData& hashData) {
 			if (propValue != nullptr) {
+				uint64_t thingHash = propValue->Hash().m_Hash;
 				// Specify the property if the data indicates no value corresponding to that property
 				bool isToRespecify = hashData.m_ParseValues.front() == 0;
 
 				if (!isToRespecify) {
 					// Specify anyways if the object is different to it's reference
-					isToRespecify = propValue->Hash().m_Hash != hashData.m_Constituents.front();
+					isToRespecify = thingHash != hashData.m_Constituents.front();
 					// Parse value above was non-zero, implying this used 1 constituent slot, so having read it, now eject it
 					hashData.m_Constituents.pop_front();
 				}
@@ -287,12 +299,10 @@ namespace RTE {
 		/// @param propValue The value of the property.
 		template <typename Type>
 		void NewDistinctHashedProperty(const std::string& propName, const Type& propValue, HashingData& hashData) {
-			uint64_t thisHash = propValue.Hash().m_Hash;
-			if (thisHash != hashData.m_Constituents.front()) {
+			if (propValue.Hash().m_Hash != hashData.m_Constituents.front()) {
 				NewPropertyWithValue(propName, propValue);
 			}
 			hashData.m_Constituents.pop_front();
-			hashData.m_Constituents.push_back(thisHash);
 		}
 
 		/// Marks that there is a null reference to an object here.

@@ -462,7 +462,7 @@ Entity* PresetMan::ReadReflectedPreset(Reader& reader) {
 		}
 	}
 
-	return 0;
+	return nullptr;
 }
 
 bool PresetMan::GetAllOfType(std::list<Entity*>& entityList, std::string type, int whichModule) {
