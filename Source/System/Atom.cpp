@@ -137,12 +137,11 @@ int Atom::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("Offset", { reader >> m_Offset; });
 	MatchProperty("OriginalOffset", { reader >> m_OriginalOffset; });
 	MatchProperty("Material", {
-		Material mat;
-		mat.Reset();
-		reader >> mat;
-		m_Material = g_SceneMan.AddMaterialCopy(&mat);
-		if (!m_Material) {
-			RTEAbort("Failed to store material \"" + mat.GetPresetName() + "\". Aborting!");
+		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
+		if (const Material* reference = dynamic_cast<const Material*>(entityReference)) {
+			m_Material = reference;
+		} else {
+			reader.ReportError("Tried to point Material to a non-Material type!");
 		}
 	});
 	MatchProperty("TrailColor", { reader >> m_TrailColor; });

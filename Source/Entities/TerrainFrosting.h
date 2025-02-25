@@ -29,8 +29,8 @@ namespace RTE {
 	private:
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
-		Material m_FrostingMaterial; //!< The Material this frosting is made of.
-		Material m_TargetMaterial; //!< The Material this frosting will be placed on top of in the terrain.
+		const Material* m_FrostingMaterial; //!< The Material this frosting is made of.
+		const Material* m_TargetMaterial; //!< The Material this frosting will be placed on top of in the terrain.
 		int m_MinThickness; //!< The minimum height above the target Material, in pixels.
 		int m_MaxThickness; //!< The maximum height above the target Material, in pixels.
 		bool m_InAirOnly; //!< Whether the frosting only appears where there is air (i.e. does not appear where the terrain background layer is showing).

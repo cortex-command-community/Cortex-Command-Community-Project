@@ -47,12 +47,10 @@ namespace RTE {
 	Writer& operator<<(Writer& writer, const Serializable& operand) {
 		if (const Entity* entityOperand = dynamic_cast<const Entity*>(&operand)) {
 			if (const Entity* preset = entityOperand->GetPreset()) {
-				if (preset != entityOperand) {
-					HashingData presetHash(*g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-					entityOperand->Write(writer, *preset, presetHash);
-					writer.ObjectEnd();
-					return writer;
-				}
+				HashingData presetHash(*g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+				entityOperand->Write(writer, *preset, presetHash);
+				writer.ObjectEnd();
+				return writer;
 			}
 		}
 		operand.Save(writer);
@@ -64,12 +62,10 @@ namespace RTE {
 		if (operand) {
 			if (const Entity* entityOperand = dynamic_cast<const Entity*>(operand)) {
 				if (const Entity* preset = entityOperand->GetPreset()) {
-					if (preset != entityOperand) {
-						HashingData presetHash(*g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
-						entityOperand->Write(writer, *preset, presetHash);
-						writer.ObjectEnd();
-						return writer;
-					}
+					HashingData presetHash(*g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
+					entityOperand->Write(writer, *preset, presetHash);
+					writer.ObjectEnd();
+					return writer;
 				}
 			}
 			operand->Save(writer);

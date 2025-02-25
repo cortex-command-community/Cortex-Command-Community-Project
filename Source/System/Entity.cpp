@@ -175,10 +175,6 @@ namespace RTE {
 		// 
 		// For fun, if our preset name differs from the reference's, somehow, we may state the distinction
 		if (m_IsOriginalPreset) {
-			if (m_PresetName == entityReference.m_PresetName) {
-				RTEAssert(Hash().m_Hash != hashData.m_Hash, "This object is saving against itself, or an object of identical composition.\nThis should never happen, and the resulting writeout can only be meaningless for use across runtimes.\nAre you certain?");
-			}
-
 			writer.NewPropertyWithValue("PresetName", GetModuleAndPresetName());
 		} else if (m_PresetName != entityReference.m_PresetName) {
 			writer.NewPropertyWithValue("InstanceName", m_PresetName);
