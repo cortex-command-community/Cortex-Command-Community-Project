@@ -51,7 +51,6 @@ int Turret::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("_ClearMountedDevices", {
 		reader.ReadPropValue();
 		for (HeldDevice* heldDevice : m_MountedDevices) {
-			RemoveMountedDevice(heldDevice);
 			delete RemoveAttachable(heldDevice, false, false);
 		}
 	});

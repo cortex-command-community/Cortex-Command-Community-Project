@@ -139,12 +139,12 @@ namespace RTE {
 		// corresponding to attributes of the reference, so that the writing can determine the most efficient
 		// and accurate method of recording.
 		// 
-		// See int Entity::Write(Writer& writer, const Entity& entityReference, HashingData hashData) const
+		// See int Entity::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const
 
 		if (m_IsOriginalPreset) {
 			writer.NewPropertyWithValue("PresetName", GetModuleAndPresetName());
 		} else if (!m_PresetName.empty() && m_PresetName != "None") {
-			writer.NewPropertyWithValue("InstanceName", GetModuleAndPresetName());
+			writer.NewPropertyWithValue("InstanceName", m_PresetName);
 		}
 
 		if (!m_DisplayName.empty()) {
@@ -167,10 +167,21 @@ namespace RTE {
 
 		writer.NewPropertyWithValue("CopyOf", entityReference.GetModuleAndPresetName());
 
+		// If this is an original preset, then we're writing a preset relative to it's reference,
+		// we will write both module and preset name, so that when it is read, if ever that behavior is implemented,
+		// it will be read into the module which we wish it were from, instead of the one which it is from.
+		// 
+		// this is exclusively to enable modders to screw with each other's stuff
+		// 
+		// For fun, if our preset name differs from the reference's, somehow, we may state the distinction
 		if (m_IsOriginalPreset) {
+			if (m_PresetName == entityReference.m_PresetName) {
+				RTEAssert(Hash().m_Hash != hashData.m_Hash, "This object is saving against itself, or an object of identical composition.\nThis should never happen, and the resulting writeout can only be meaningless for use across runtimes.\nAre you certain?");
+			}
+
 			writer.NewPropertyWithValue("PresetName", GetModuleAndPresetName());
-		} else if (!m_PresetName.empty() && m_PresetName != "None") {
-			writer.NewPropertyWithValue("InstanceName", GetModuleAndPresetName());
+		} else if (m_PresetName != entityReference.m_PresetName) {
+			writer.NewPropertyWithValue("InstanceName", m_PresetName);
 		}
 
 		if (m_DisplayName != entityReference.m_DisplayName) {

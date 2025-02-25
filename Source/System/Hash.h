@@ -23,9 +23,12 @@ namespace RTE {
 	/// Holds an arbitrary tree of hashing data for storage alongside a preset entry.
 	struct HashingData {
 		/// Constructor method used to instantiate a HashingData object in memory.
+		/// @param hash The hash which this will initially store.
 		HashingData(uint64_t hash) :
 		    m_Hash(hash), m_Constituents(), m_ParseValues() {}
 
+		///	Constructor method used to instantiate a HashingData object to be identical to another, by deep copy, and make it ready for use.
+		/// @param reference A reference to the HashingData to deep copy.
 		HashingData(const HashingData& reference) :
 			m_Hash(reference.m_Hash), m_Constituents(reference.m_Constituents), m_ParseValues(reference.m_ParseValues) {}
 
