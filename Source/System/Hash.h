@@ -32,6 +32,35 @@ namespace RTE {
 		HashingData(const HashingData& reference) :
 			m_Hash(reference.m_Hash), m_Constituents(reference.m_Constituents), m_ParseValues(reference.m_ParseValues) {}
 
+		///	Constructor method used to steal the contents of another HashingData with move semantics, and make it ready for use.
+		/// Honestly just toying with move semantics right now, dunno if this is a bad idea.
+		/// @param reference A reference to the HashingData to steal.
+		HashingData(HashingData&& reference) noexcept {
+			m_Hash = std::move(reference.m_Hash);
+			m_Constituents = std::move(reference.m_Constituents);
+			m_ParseValues = std::move(reference.m_ParseValues);
+		}
+
+		///	Constructor method used to steal the contents of another HashingData with move semantics, and make it ready for use.
+		/// Honestly just toying with move semantics right now, dunno if this is a bad idea.
+		/// @param reference A reference to the HashingData to steal.
+		HashingData& operator()(const HashingData& reference) {
+			m_Hash = reference.m_Hash;
+			m_Constituents = reference.m_Constituents;
+			m_ParseValues = reference.m_ParseValues;
+			return *this;
+		}
+
+		///	Constructor method used to steal the contents of another HashingData with move semantics, and make it ready for use.
+		/// Honestly just toying with move semantics right now, dunno if this is a bad idea.
+		/// @param reference A reference to the HashingData to steal.
+		HashingData& operator()(HashingData&& reference) noexcept {
+			m_Hash = std::move(reference.m_Hash);
+			m_Constituents = std::move(reference.m_Constituents);
+			m_ParseValues = std::move(reference.m_ParseValues);
+			return *this;
+		}
+
 		/// The hash of the Entity represented by this hash.
 		uint64_t m_Hash;
 		/// A list of the hash data for all components of this Entity.

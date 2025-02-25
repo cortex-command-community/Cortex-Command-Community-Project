@@ -262,7 +262,7 @@ int PieMenu::Write(Writer& writer, const Entity& entityReference, HashingData& h
 }
 
 HashingData PieMenu::Hash() const {
-	HashingData hashData = Entity::Hash();
+	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= std::hash<IconSeparatorMode>{}(m_IconSeparatorMode) << 0;

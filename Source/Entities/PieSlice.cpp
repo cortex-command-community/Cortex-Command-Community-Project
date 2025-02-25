@@ -172,7 +172,7 @@ int PieSlice::Write(Writer& writer, const Entity& entityReference, HashingData& 
 }
 
 HashingData PieSlice::Hash() const {
-	HashingData hashData = Entity::Hash();
+	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= std::hash<PieSliceType>{}(m_Type) << 1;

@@ -101,28 +101,59 @@ int MetaPlayer::ReadProperty(const std::string_view& propName, Reader& reader) {
 int MetaPlayer::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewPropertyWithValue("Name", m_Name);
-	writer.NewPropertyWithValue("Team", m_Team);
-	writer.NewPropertyWithValue("Human", m_Human);
-	writer.NewPropertyWithValue("InGamePlayer", m_InGamePlayer);
-	writer.NewPropertyWithValue("Aggressiveness", m_Aggressiveness);
-	writer.NewPropertyWithValue("GameOverRound", m_GameOverRound);
+	if (!m_Name.empty())
+		writer.NewPropertyWithValue("Name", m_Name);
 
-	// Need to write out the name, and not just the index of the module. it might change
-	writer.NewPropertyWithValue("NativeTechModule", g_PresetMan.GetDataModule(m_NativeTechModule)->GetFileName());
-	writer.NewPropertyWithValue("NativeCostMultiplier", m_NativeCostMult);
-	writer.NewPropertyWithValue("ForeignCostMultiplier", m_ForeignCostMult);
-	writer.NewPropertyWithValue("BrainPool", m_BrainPool);
-	writer.NewPropertyWithValue("Funds", m_Funds);
-	writer.NewPropertyWithValue("OffensiveBudget", m_OffensiveBudget);
-	writer.NewProperty("OffensiveTarget");
-	writer << (m_OffensiveTarget.empty() ? "None" : m_OffensiveTarget);
+	writer.NewDistinctProperty("Team", m_Team, (int) Activity::NoTeam);
+	writer.NewDistinctProperty("Human", m_Human, true);
+	writer.NewDistinctProperty("InGamePlayer", m_InGamePlayer, (int) Players::PlayerOne);
+	writer.NewDistinctProperty("Aggressiveness", m_Aggressiveness, 0.5F);
+	writer.NewDistinctProperty("GameOverRound", m_GameOverRound, -1);
+
+	if (m_NativeTechModule != 0)
+		writer.NewPropertyWithValue("NativeTechModule", g_PresetMan.GetDataModule(m_NativeTechModule)->GetFileName());
+
+	writer.NewDistinctProperty("NativeCostMultiplier", m_NativeCostMult, 1.0F);
+	writer.NewDistinctProperty("ForeignCostMultiplier", m_ForeignCostMult, 4.0F);
+	writer.NewDistinctProperty("BrainPool", m_BrainPool, 0);
+	writer.NewDistinctProperty("Funds", m_Funds, 0.0F);
+	writer.NewDistinctProperty("OffensiveBudget", m_OffensiveBudget, 0.0F);
+
+	if (!m_OffensiveTarget.empty())
+		writer.NewPropertyWithValue("OffensiveTarget", m_OffensiveTarget);
+
+	return 0;
+}
+
+int MetaPlayer::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const MetaPlayer& reference = static_cast<const MetaPlayer&>(entityReference);
+
+	writer.NewDistinctProperty("Name", m_Name, reference.m_Name);
+	writer.NewDistinctProperty("Team", m_Team, reference.m_Team);
+	writer.NewDistinctProperty("Human", m_Human, reference.m_Human);
+	writer.NewDistinctProperty("InGamePlayer", m_InGamePlayer, reference.m_InGamePlayer);
+	writer.NewDistinctProperty("Aggressiveness", m_Aggressiveness, reference.m_Aggressiveness);
+	writer.NewDistinctProperty("GameOverRound", m_GameOverRound, reference.m_GameOverRound);
+
+	if (m_NativeTechModule != reference.m_NativeTechModule)
+		writer.NewPropertyWithValue("NativeTechModule", g_PresetMan.GetDataModule(m_NativeTechModule)->GetFileName());
+
+	writer.NewDistinctProperty("NativeCostMultiplier", m_NativeCostMult, reference.m_NativeCostMult);
+	writer.NewDistinctProperty("ForeignCostMultiplier", m_ForeignCostMult, reference.m_ForeignCostMult);
+	writer.NewDistinctProperty("BrainPool", m_BrainPool, reference.m_BrainPool);
+	writer.NewDistinctProperty("Funds", m_Funds, reference.m_Funds);
+	writer.NewDistinctProperty("OffensiveBudget", m_OffensiveBudget, reference.m_OffensiveBudget);
+
+	if (m_OffensiveTarget != reference.m_OffensiveTarget)
+		writer.NewPropertyWithValue("OffensiveTarget", m_OffensiveTarget.empty() ? "None" : m_OffensiveTarget);
 
 	return 0;
 }
 
 HashingData MetaPlayer::Hash() const {
-	HashingData hashData = Entity::Hash();
+	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= RTE::Hash(m_Name) << 0;

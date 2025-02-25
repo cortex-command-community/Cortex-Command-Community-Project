@@ -184,8 +184,19 @@ int SLTerrain::Save(Writer& writer) const {
 	return 0;
 }
 
+int SLTerrain::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	SceneLayer::Save(writer);
+
+	const SLTerrain& reference = static_cast<const SLTerrain&>(entityReference);
+
+	// TODO: FINISH
+
+	return 0;
+}
+
 HashingData SLTerrain::Hash() const {
-	HashingData hashData = SceneLayer::Hash();
+	HashingData hashData(std::move(SceneLayer::Hash()));
+	uint64_t& hash = hashData.m_Hash;
 
 	// TODO: FINISH
 

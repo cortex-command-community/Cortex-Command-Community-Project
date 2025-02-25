@@ -327,7 +327,7 @@ bool DataModule::AddEntityPreset(Entity* entityToAdd, bool overwriteSame, const 
 					if (readFromFile != "Same") {
 						(*itr).m_FileReadFrom = readFromFile;
 					}
-					(*itr).m_Hash = existingEntity->Hash();
+					(*itr).m_Hash(std::move(existingEntity->Hash()));
 					break;
 				}
 			}

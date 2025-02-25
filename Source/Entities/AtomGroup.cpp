@@ -5,6 +5,7 @@
 #include "MOSRotating.h"
 #include "LimbPath.h"
 #include "ConsoleMan.h"
+#include "PresetMan.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -127,15 +128,11 @@ int AtomGroup::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 	MatchProperty("Material", {
-		Material mat;
-		mat.Reset();
-		reader >> mat;
-		m_Material = mat.GetIndex() ? g_SceneMan.GetMaterialFromID(mat.GetIndex()) : g_SceneMan.GetMaterial(mat.GetPresetName());
-
-		if (!m_Material) {
-			g_ConsoleMan.PrintString("ERROR: Failed to find matching Material preset \"" + mat.GetPresetName() + "\" " + GetFormattedReaderPosition() + ". Was it defined with AddMaterial?");
-			m_Material = g_SceneMan.GetMaterialFromID(g_MaterialAir);
-			RTEAssert(m_Material, "Failed to find matching Material preset \"" + mat.GetPresetName() + "\" or even fall back to \"Air\" " + GetFormattedReaderPosition() + ".\nAborting!");
+		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
+		if (const Material* reference = dynamic_cast<const Material*>(entityReference)) {
+			m_Material = reference;
+		} else {
+			reader.ReportError("Tried to point Material to a non-Material type!");
 		}
 	});
 	MatchProperty("AutoGenerate", { reader >> m_AutoGenerate; });
@@ -224,7 +221,7 @@ int AtomGroup::Write(Writer& writer, const Entity& entityReference, HashingData&
 }
 
 HashingData AtomGroup::Hash() const {
-	HashingData hashData = Entity::Hash();
+	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= RTE::Hash(m_Material->GetEntityCharacteristic()) << 0;

@@ -68,17 +68,33 @@ int MetaSave::ReadProperty(const std::string_view& propName, Reader& reader) {
 int MetaSave::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewPropertyWithValue("SavePath", m_SavePath);
-	writer.NewPropertyWithValue("PlayerCount", m_PlayerCount);
-	writer.NewPropertyWithValue("Difficulty", m_Difficulty);
-	writer.NewPropertyWithValue("RoundCount", m_RoundCount);
-	writer.NewPropertyWithValue("SiteCount", m_SiteCount);
+	if (!m_SavePath.empty())
+		writer.NewPropertyWithValue("SavePath", m_SavePath);
+
+	writer.NewDistinctProperty("PlayerCount", m_PlayerCount, 0);
+	writer.NewDistinctProperty("Difficulty", m_Difficulty, (int)Activity::MediumDifficulty);
+	writer.NewDistinctProperty("RoundCount", m_RoundCount, 0);
+	writer.NewDistinctProperty("SiteCount", m_SiteCount, 0);
+
+	return 0;
+}
+
+int MetaSave::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const MetaSave& reference = static_cast<const MetaSave&>(entityReference);
+
+	writer.NewDistinctProperty("SavePath", m_SavePath, reference.m_SavePath);
+	writer.NewDistinctProperty("PlayerCount", m_PlayerCount, reference.m_PlayerCount);
+	writer.NewDistinctProperty("Difficulty", m_Difficulty, reference.m_Difficulty);
+	writer.NewDistinctProperty("RoundCount", m_RoundCount, reference.m_RoundCount);
+	writer.NewDistinctProperty("SiteCount", m_SiteCount, reference.m_SiteCount);
 
 	return 0;
 }
 
 HashingData MetaSave::Hash() const {
-	HashingData hashData = Entity::Hash();
+	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= RTE::Hash(m_SavePath) << 0;
@@ -86,5 +102,6 @@ HashingData MetaSave::Hash() const {
 	hash ^= std::hash<int>{}(m_Difficulty) << 2;
 	hash ^= std::hash<int>{}(m_RoundCount) << 3;
 	hash ^= std::hash<int>{}(m_SiteCount) << 4;
+
 	return hashData;
 }

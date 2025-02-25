@@ -1181,8 +1181,16 @@ int Scene::Save(Writer& writer) const {
 	return 0;
 }
 
+int Scene::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const Scene& reference = static_cast<const Scene&>(entityReference);
+
+	return 0;
+}
+
 HashingData Scene::Hash() const {
-	HashingData hashData = Entity::Hash();
+	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	// TODO: FINISH

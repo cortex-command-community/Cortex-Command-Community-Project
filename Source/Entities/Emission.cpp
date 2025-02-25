@@ -113,8 +113,31 @@ int Emission::Save(Writer& writer) const {
 	return 0;
 }
 
+int Emission::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const Emission& reference = static_cast<const Emission&>(entityReference);
+
+	writer.NewPresetReferenceProperty("EmittedParticle", m_pEmission, reference.m_pEmission);
+	writer.NewDistinctProperty("ParticlesPerMinute", m_PPM, reference.m_PPM);
+	writer.NewDistinctProperty("BurstSize", m_BurstSize, reference.m_BurstSize);
+	writer.NewDistinctProperty("Spread", m_Spread, reference.m_Spread);
+	writer.NewDistinctProperty("MinVelocity", m_MinVelocity, reference.m_MinVelocity);
+	writer.NewDistinctProperty("MaxVelocity", m_MaxVelocity, reference.m_MaxVelocity);
+	writer.NewDistinctProperty("LifeVariation", m_LifeVariation, reference.m_LifeVariation);
+	writer.NewDistinctProperty("PushesEmitter", m_PushesEmitter, reference.m_PushesEmitter);
+	writer.NewDistinctProperty("InheritsVel", m_InheritsVel, reference.m_InheritsVel);
+	writer.NewDistinctProperty("InheritsAngularVel", m_InheritsAngularVel, reference.m_InheritsAngularVel);
+	writer.NewDistinctProperty("Offset", m_Offset, reference.m_Offset);
+	writer.NewDistinctProperty("StartTimeMS", m_StartTimer.GetSimTimeLimitMS(), reference.m_StartTimer.GetSimTimeLimitMS());
+	writer.NewDistinctProperty("StopTimeMS", m_StopTimer.GetSimTimeLimitMS(), reference.m_StopTimer.GetSimTimeLimitMS());
+	writer.NewDistinctProperty("ParticleCount", m_ParticleCount, reference.m_ParticleCount);
+
+	return 0;
+}
+
 HashingData Emission::Hash() const {
-	HashingData hashData = Entity::Hash();
+	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= (m_pEmission ? RTE::Hash(m_pEmission->GetEntityCharacteristic()) : 0) << 0;

@@ -62,20 +62,32 @@ int Icon::Save(Writer& writer) const {
 	Entity::Save(writer);
 
 	writer.NewPropertyWithValue("BitmapFile", m_BitmapFile);
-	writer.NewPropertyWithValue("FrameCount", m_FrameCount);
+	writer.NewDistinctProperty("FrameCount", m_FrameCount, 0U);
+
+	return 0;
+}
+
+
+int Icon::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const Icon& reference = static_cast<const Icon&>(entityReference);
+
+	writer.NewDistinctHashedProperty("BitmapFile", m_BitmapFile, hashData);
+	writer.NewDistinctProperty("FrameCount", m_FrameCount, reference.m_FrameCount);
 
 	return 0;
 }
 
 HashingData Icon::Hash() const {
-	HashingData hashData = Entity::Hash();
+	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
-
-	hash ^= std::hash<int>{}(m_FrameCount) << 0;
 
 	uint64_t fileHash = m_BitmapFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(fileHash);
-	hash ^= fileHash << 1;
+	hash ^= fileHash << 0;
+
+	hash ^= std::hash<int>{}(m_FrameCount) << 1;
 
 	return hashData;
 }

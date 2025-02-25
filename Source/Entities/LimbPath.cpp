@@ -178,19 +178,24 @@ Vector LimbPath::RotatePoint(const Vector& point) const {
 int LimbPath::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewPropertyWithValue("StartOffset", m_Start);
-	writer.NewPropertyWithValue("StartSegCount", m_StartSegCount);
+	if (!m_BaseScaleMultiplier.IsZero())
+		writer.NewPropertyWithValue("StartOffset", m_Start);
+
+	writer.NewDistinctProperty("StartSegCount", m_StartSegCount, 0);
+
 	for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr) {
-		writer.NewProperty("AddSegment");
-		writer << *itr;
+		writer.NewPropertyWithValue("_AddSegment", *itr);
 	}
-	writer.NewPropertyWithValue("EndSegCount", m_FootCollisionsDisabledSegment);
-	writer.NewPropertyWithValue("SegmentEndedThreshold", m_SegmentEndedThreshold);
-	
-	writer.NewPropertyWithValue("TravelSpeed", m_TravelSpeed);
-	writer.NewPropertyWithValue("BaseTravelSpeedMultiplier", m_BaseTravelSpeedMultiplier);
-	writer.NewPropertyWithValue("BaseScaleMultiplier", m_BaseScaleMultiplier);
-	writer.NewPropertyWithValue("PushForce", m_PushForce);
+
+	writer.NewDistinctProperty("EndSegCount", m_FootCollisionsDisabledSegment, -1);
+	writer.NewDistinctProperty("SegmentEndedThreshold", m_SegmentEndedThreshold, 2.5F);
+	writer.NewDistinctProperty("TravelSpeed", m_TravelSpeed, 0.0F);
+	writer.NewDistinctProperty("BaseTravelSpeedMultiplier", m_BaseTravelSpeedMultiplier, 1.0F);
+
+	if (m_BaseScaleMultiplier != Vector(1, 1))
+		writer.NewPropertyWithValue("BaseScaleMultiplier", m_BaseScaleMultiplier);
+
+	writer.NewDistinctProperty("PushForce", m_PushForce, 0.0F);
 
 	return 0;
 }
@@ -214,10 +219,8 @@ int LimbPath::Write(Writer& writer, const Entity& entityReference, HashingData& 
 }
 
 HashingData LimbPath::Hash() const {
-	HashingData hashData = Entity::Hash();
+	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
-
-	// TODO: In theory, this should not short circuit the constituencies, but IDRCTBH
 
 	hash ^= m_Start.Hash().m_Hash << 0;
 	hash ^= std::hash<int>{}(m_StartSegCount) << 1;

@@ -93,24 +93,45 @@ int Round::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Round::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewPropertyWithValue("Particle", (m_Particle ? m_Particle->GetEntityCharacteristic() : "None"));
-	writer.NewPropertyWithValue("ParticleCount", m_ParticleCount);
-	writer.NewPropertyWithValue("FireVelocity", m_FireVel);
-	writer.NewPropertyWithValue("InheritsFirerVelocity", m_InheritsFirerVelocity);
-	writer.NewPropertyWithValue("Separation", m_Separation);
-	writer.NewPropertyWithValue("LifeVariation", m_LifeVariation);
-	writer.NewPropertyWithValue("Shell", (m_Shell ? m_Shell->GetEntityCharacteristic() : "None"));
-	writer.NewPropertyWithValue("ShellVelocity", m_ShellVel);
+	writer.NewPresetReferenceProperty("Particle", m_Particle, static_cast<const MovableObject*>(nullptr));
+	writer.NewDistinctProperty("ParticleCount", m_ParticleCount, 0);
+	writer.NewDistinctProperty("FireVelocity", m_FireVel, 0.0F);
+	writer.NewDistinctProperty("InheritsFirerVelocity", m_InheritsFirerVelocity, false);
+	writer.NewDistinctProperty("Separation", m_Separation, 0.0F);
+	writer.NewDistinctProperty("LifeVariation", m_LifeVariation, 0.0F);
+	writer.NewPresetReferenceProperty("Shell", m_Shell, static_cast<const MovableObject*>(nullptr));
+	writer.NewDistinctProperty("ShellVelocity", m_ShellVel, 0.0F);
 	writer.NewPropertyWithValue("FireSound", m_FireSound);
-	writer.NewPropertyWithValue("AILifeTime", m_AILifeTime);
-	writer.NewPropertyWithValue("AIFireVel", m_AIFireVel);
-	writer.NewPropertyWithValue("AIPenetration", m_AIPenetration);
+	writer.NewDistinctProperty("AILifeTime", m_AILifeTime, 0UL);
+	writer.NewDistinctProperty("AIFireVel", m_AIFireVel, -1);
+	writer.NewDistinctProperty("AIPenetration", m_AIPenetration, -1);
+
+	return 0;
+}
+
+int Round::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const Round& reference = static_cast<const Round&>(entityReference);
+
+	writer.NewPresetReferenceProperty("Particle", m_Particle, reference.m_Particle);
+	writer.NewDistinctProperty("ParticleCount", m_ParticleCount, reference.m_ParticleCount);
+	writer.NewDistinctProperty("FireVelocity", m_FireVel, reference.m_FireVel);
+	writer.NewDistinctProperty("InheritsFirerVelocity", m_InheritsFirerVelocity, reference.m_InheritsFirerVelocity);
+	writer.NewDistinctProperty("Separation", m_Separation, reference.m_Separation);
+	writer.NewDistinctProperty("LifeVariation", m_LifeVariation, reference.m_LifeVariation);
+	writer.NewPresetReferenceProperty("Shell", m_Shell, reference.m_Shell);
+	writer.NewDistinctProperty("ShellVelocity", m_ShellVel, reference.m_ShellVel);
+	writer.NewDistinctHashedProperty("FireSound", m_FireSound, hashData);
+	writer.NewDistinctProperty("AILifeTime", m_AILifeTime, reference.m_AILifeTime);
+	writer.NewDistinctProperty("AIFireVel", m_AIFireVel, reference.m_AIFireVel);
+	writer.NewDistinctProperty("AIPenetration", m_AIPenetration, reference.m_AIPenetration);
 
 	return 0;
 }
 
 HashingData Round::Hash() const {
-	HashingData hashData = Entity::Hash();
+	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= (m_Particle ? RTE::Hash(m_Particle->GetEntityCharacteristic()) : 0) << 0;

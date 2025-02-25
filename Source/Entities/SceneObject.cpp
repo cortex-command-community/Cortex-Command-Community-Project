@@ -239,7 +239,7 @@ int SceneObject::Write(Writer& writer, const Entity& entityReference, HashingDat
 }
 
 HashingData SceneObject::Hash() const {
-	HashingData hashData = Entity::Hash();
+	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= m_Pos.Hash().m_Hash << 0;

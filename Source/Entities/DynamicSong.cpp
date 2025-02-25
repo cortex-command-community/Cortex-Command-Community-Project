@@ -121,8 +121,16 @@ int DynamicSongSection::Save(Writer& writer) const {
 	return 0;
 }
 
+int DynamicSongSection::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const DynamicSongSection& reference = static_cast<const DynamicSongSection&>(entityReference);
+
+	return 0;
+}
+
 HashingData DynamicSongSection::Hash() const {
-	HashingData hashData = Entity::Hash();
+	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= std::hash<unsigned int>{}(m_LastTransitionSoundContainerIndex) << 0;
@@ -268,7 +276,10 @@ int DynamicSong::ReadProperty(const std::string_view& propName, Reader& reader) 
 		reader >> songSection;
 		m_DefaultSongSection = songSection;
 	});
-	MatchProperty("AddSongSection", {
+	MatchProperty("_ClearSongSection", {
+		m_SongSections.clear();
+	});
+	MatchForwards("AddSongSection") MatchProperty("_AddSongSection", {
 		DynamicSongSection songSectionToAdd;
 		reader >> songSectionToAdd;
 		for (DynamicSongSection& songSection: GetSongSections()) {
@@ -286,34 +297,43 @@ int DynamicSong::ReadProperty(const std::string_view& propName, Reader& reader) 
 int DynamicSong::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewProperty("DefaultSongSection");
-	writer.ObjectStart("DynamicSongSection");
-	writer << m_DefaultSongSection;
-	writer.ObjectEnd();
+	writer.NewPropertyWithValue("DefaultSongSection", m_DefaultSongSection);
 
 	for (const DynamicSongSection& dynamicSongSection: m_SongSections) {
-		writer.NewProperty("AddSongSection");
-		writer.ObjectStart("SoundContainer");
-		writer << dynamicSongSection;
-		writer.ObjectEnd();
+		writer.NewPropertyWithValue("AddSongSection", dynamicSongSection);
 	}
 
 	return 0;
 }
 
+int DynamicSong::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const DynamicSong& reference = static_cast<const DynamicSong&>(entityReference);
+
+	writer.NewDistinctHashedProperty("DefaultSongSection", m_DefaultSongSection, hashData);
+	writer.NewSequence("_ClearSongSections", "_AddSongSection", m_SongSections, hashData);
+
+	return 0;
+}
+
 HashingData DynamicSong::Hash() const {
-	HashingData hashData = Entity::Hash();
+	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	uint64_t defaultHash = m_DefaultSongSection.Hash().m_Hash;
 	hashData.m_Constituents.push_back(defaultHash);
 	hash ^= defaultHash << 0;
 
-	for (int i = 0; i < m_SongSections.size(); i++) {
-		uint64_t sectionHash = m_SongSections.at(i).Hash().m_Hash;
+	int i = 0;
+
+	for (const auto& songSection: m_SongSections) {
+		uint64_t sectionHash = songSection.Hash().m_Hash;
 		hashData.m_Constituents.push_back(sectionHash);
-		hash ^= sectionHash << (i % sizeof(uint64_t) * 8);
+		hash ^= sectionHash << (i++ % sizeof(uint64_t) * 8);
 	}
+
+	hashData.m_ParseValues.push_back(i);
 
 	return hashData;
 }

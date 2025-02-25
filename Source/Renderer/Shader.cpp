@@ -29,20 +29,37 @@ Shader::~Shader() = default;
 
 int Shader::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
+
 	MatchProperty("VertexShader", { reader >> m_VertexPath; });
 	MatchProperty("FragmentShader", { reader >> m_FragmentPath; });
+
 	EndPropertyList;
 }
 
 int Shader::Save(Writer& writer) const {
 	Entity::Save(writer);
-	writer.NewPropertyWithValue("VertexShader", m_VertexPath);
-	writer.NewPropertyWithValue("FragmentShader", m_FragmentPath);
+
+	if (!m_VertexPath.empty())
+		writer.NewPropertyWithValue("VertexShader", m_VertexPath);
+	if (!m_FragmentPath.empty())
+		writer.NewPropertyWithValue("FragmentShader", m_FragmentPath);
+
+	return 0;
+}
+
+int Shader::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const Shader& reference = static_cast<const Shader&>(entityReference);
+
+	writer.NewDistinctProperty("VertexShader", m_VertexPath, reference.m_VertexPath);
+	writer.NewDistinctProperty("FragmentShader", m_FragmentPath, reference.m_FragmentPath);
+
 	return 0;
 }
 
 HashingData Shader::Hash() const {
-	HashingData hashData = Entity::Hash();
+	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	RTE::Hash(m_VertexPath) << 0;

@@ -38,19 +38,20 @@ int Loadout::Create(const Loadout& reference) {
 int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
-	MatchProperty("DeliveryCraft",
-	              {
-		              m_pDeliveryCraft = dynamic_cast<const ACraft*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader, true));
-	              });
-	MatchProperty("AddCargoItem",
-	              {
-		              const MovableObject* pCargo = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader, true));
-		              if (!pCargo) {
-			              m_Complete = false;
-		              } else {
-			              m_CargoItems.push_back(pCargo);
-		              }
-	              });
+	MatchProperty("DeliveryCraft", {
+		m_pDeliveryCraft = dynamic_cast<const ACraft*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader, true));
+	});
+	MatchProperty("_ClearCargoItems", {
+		m_CargoItems.clear();
+	});
+	MatchForwards("AddCargoItem") MatchProperty("_AddCargoItem", {
+		const MovableObject* pCargo = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader, true));
+		if (!pCargo) {
+			m_Complete = false;
+		} else {
+			m_CargoItems.push_back(pCargo);
+		}
+	});
 
 	EndPropertyList;
 }
@@ -63,23 +64,39 @@ int Loadout::Save(Writer& writer) const {
 	}
 
 	for (std::list<const SceneObject*>::const_iterator itr = m_CargoItems.begin(); itr != m_CargoItems.end(); ++itr) {
-		writer.NewPropertyWithValue("DeliveryCraft", (*itr)->GetEntityCharacteristic());
+		writer.NewPropertyWithValue("_AddCargoItem", (*itr)->GetEntityCharacteristic());
 	}
 
 	return 0;
 }
 
+int Loadout::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const Loadout& reference = static_cast<const Loadout&>(entityReference);
+
+	writer.NewPresetReferenceProperty("DeliveryCraft", m_pDeliveryCraft, reference.m_pDeliveryCraft);
+	writer.NewPresetReferenceSequence("_ClearCargoItems", "_AddCargoItem", m_CargoItems, hashData);
+
+	return 0;
+}
+
+
 HashingData Loadout::Hash() const {
-	HashingData hashData = Entity::Hash();
+	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 	
 	hash ^= (m_pDeliveryCraft ? RTE::Hash(m_pDeliveryCraft->GetEntityCharacteristic()) : 0) << 0;
 
 	int i = 0;
 
-	for (const SceneObject* pCargo : m_CargoItems) {
-		hash ^= RTE::Hash(pCargo->GetEntityCharacteristic()) << (i++ % sizeof(uint64_t) * 8);
+	for (const SceneObject* pCargo: m_CargoItems) {
+		uint64_t cargoHash = RTE::Hash(pCargo->GetEntityCharacteristic());
+		hashData.m_Constituents.push_back(cargoHash);
+		hash ^= cargoHash << (i++ % sizeof(uint64_t) * 8);
 	}
+
+	hashData.m_ParseValues.push_back(i);
 
 	return hashData;
 }

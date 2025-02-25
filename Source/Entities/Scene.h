@@ -267,6 +267,15 @@ namespace RTE {
 		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
+#pragma region INI Handling
+		/// Records an Entity against a reference, expected to be it's preset.
+		/// @param writer A Writer that the Entity will save itself to.
+		/// @param reference A reference preset to write properties against.
+		/// @param hashData A clump of hash data for cheap property comparisons.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
+#pragma endregion
+
 		/// Makes this an original Preset in a different module than it was before.
 		/// It severs ties deeply to the old module it was saved in.
 		/// @param whichModule The ID of the new module.
