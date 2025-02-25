@@ -134,12 +134,21 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("JointOffset", { reader >> m_JointOffset; });
 	MatchProperty("BreakWound", {
-		m_BreakWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset(reader));
-		if (!m_ParentBreakWound) {
-			m_ParentBreakWound = m_BreakWound;
+		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
+		if (const AEmitter* reference = dynamic_cast<const AEmitter*>(entityReference)) {
+			m_BreakWound = reference;
+		} else {
+			reader.ReportError("Tried to point BreakWound to a non-AEmitter type!");
 		}
 	});
-	MatchProperty("ParentBreakWound", { m_ParentBreakWound = static_cast<const AEmitter*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader)); });
+	MatchProperty("ParentBreakWound", {
+		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
+		if (const AEmitter* reference = dynamic_cast<const AEmitter*>(entityReference)) {
+			m_ParentBreakWound = reference;
+		} else {
+			reader.ReportError("Tried to point ParentBreakWound to a non-AEmitter type!");
+		}
+	});
 	MatchProperty("InheritsHFlipped", {
 		reader >> m_InheritsHFlipped;
 		if (m_InheritsHFlipped != 0 && m_InheritsHFlipped != 1) {
@@ -158,8 +167,15 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("_ClearPieSlices", {
 		reader.ReadPropValue();
 		m_PieSlices.clear();
-	})
-	MatchForwards("AddPieSlice") MatchProperty("_AddPieSlice", { m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader)))); });
+	});
+	MatchForwards("AddPieSlice") MatchProperty("_AddPieSlice", {
+		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
+		if (PieSlice* reference = dynamic_cast<PieSlice*>(entityReference)) {
+			m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(reference));
+		} else {
+			reader.ReportError("Tried to AddPieSlice a non-PieSlice type!");
+		}
+	});
 
 	EndPropertyList;
 }

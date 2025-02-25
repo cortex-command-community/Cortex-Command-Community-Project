@@ -268,14 +268,26 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 	StartPropertyList(return MOSprite::ReadProperty(propName, reader));
 
 	MatchProperty("AtomGroup", {
-		if (m_pAtomGroup)
+		if (m_pAtomGroup) {
 			delete m_pAtomGroup;
-		m_pAtomGroup = static_cast<AtomGroup*>(g_PresetMan.ReadReflectedPreset(reader));
+		}
+		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
+		if (AtomGroup* reference = dynamic_cast<AtomGroup*>(entityReference)) {
+			m_pAtomGroup = reference;
+		} else {
+			reader.ReportError("Tried to set AtomGroup to a non-AtomGroup type!");
+		}
 	});
 	MatchProperty("DeepGroup", {
-		if (m_pDeepGroup)
+		if (m_pDeepGroup) {
 			delete m_pDeepGroup;
-		m_pDeepGroup = static_cast<AtomGroup*>(g_PresetMan.ReadReflectedPreset(reader));
+		}
+		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
+		if (AtomGroup* reference = dynamic_cast<AtomGroup*>(entityReference)) {
+			m_pDeepGroup = reference;
+		} else {
+			reader.ReportError("Tried to set DeepGroup to a non-AtomGroup type!");
+		}
 	});
 	MatchProperty("DeepCheck", { reader >> m_DeepCheck; });
 	MatchProperty("OrientToVel", { reader >> m_OrientToVel; });
@@ -326,9 +338,15 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("DetachAttachablesBeforeGibbingFromWounds", { reader >> m_DetachAttachablesBeforeGibbingFromWounds; });
 	MatchProperty("GibAtEndOfLifetime", { reader >> m_GibAtEndOfLifetime; });
 	MatchProperty("GibSound", {
-		if (m_GibSound)
+		if (m_GibSound) {
 			delete m_GibSound;
-		m_GibSound = static_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader));
+		}
+		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
+		if (SoundContainer* reference = dynamic_cast<SoundContainer*>(entityReference)) {
+			m_GibSound = reference;
+		} else {
+			reader.ReportError("Tried to set GibSound to a non-SoundContainer type!");
+		}
 	});
 	MatchProperty("EffectOnGib", { reader >> m_EffectOnGib; });
 	MatchProperty("LoudnessOnGib", { reader >> m_LoudnessOnGib; });
