@@ -10,8 +10,6 @@
 
 #ifdef _WIN32
 #include "Windows.h"
-#include "DbgHelp.h"
-#include "RTEStackTrace.h"
 #endif
 
 #include <array>
@@ -34,6 +32,9 @@
 #include <sys/sysctl.h>
 #endif
 
+#include "backward/backward.hpp"
+
+
 using namespace RTE;
 
 bool RTEError::s_CurrentlyAborting = false;
@@ -41,6 +42,9 @@ bool RTEError::s_IgnoreAllAsserts = false;
 std::string RTEError::s_LastIgnoredAssertDescription = "";
 std::source_location RTEError::s_LastIgnoredAssertLocation = {};
 
+#if (defined(__linux__) || (defined(__APPLE__) && defined(__MACH__)))
+backward::SignalHandling sh;
+#endif
 #ifdef _WIN32
 /// <summary>
 /// Custom exception handler for Windows SEH.
@@ -157,9 +161,13 @@ static LONG WINAPI RTEWindowsExceptionHandler([[maybe_unused]] EXCEPTION_POINTER
 	exceptionDescription << getExceptionDescriptionFromCode(exceptionCode) << " at address 0x" << std::uppercase << std::hex << exceptionAddress << ".\n\n"
 	                     << symbolNameAtAddress << std::endl;
 
-	RTEStackTrace stackTrace;
+	backward::StackTrace st;
+	st.load_here(32, exceptPtr->ContextRecord);
+	backward::Printer printer;
+	std::ostringstream stack;
+	printer.print(st, stack);
 
-	RTEError::UnhandledExceptionFunc(exceptionDescription.str(), stackTrace.GetCallStackAsString(processHandle, exceptPtr->ContextRecord));
+	RTEError::UnhandledExceptionFunc(exceptionDescription.str(), stack.str());
 	return EXCEPTION_EXECUTE_HANDLER;
 #endif
 }
@@ -344,10 +352,12 @@ void RTEError::AbortFunc(const std::string& description, const std::source_locat
 
 		std::string callstack = "";
 
-#ifdef _WIN32
-		RTEStackTrace stackTrace;
-		callstack += ("\n\n" + stackTrace.GetCallStackAsString());
-#endif
+		backward::StackTrace st;
+		st.load_here();
+		backward::Printer printer;
+		std::ostringstream stack;
+		printer.print(st, stack);
+		callstack = stack.str();
 
 		std::string consoleSaveMsg;
 		if (!callstack.empty()) {
