@@ -68,7 +68,7 @@ int Box::Save(Writer& writer) const {
 }
 
 HashingData Box::Hash() const {
-	HashingData hashData = Serializable::Hash();
+	HashingData hashData(std::move(Serializable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	uint64_t cornerHash = m_Corner.Hash().m_Hash;

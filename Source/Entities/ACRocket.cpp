@@ -226,7 +226,7 @@ int ACRocket::Write(Writer& writer, const Entity& entityReference, HashingData& 
 }
 
 HashingData ACRocket::Hash() const {
-	HashingData hashData = ACraft::Hash();
+	HashingData hashData(std::move(ACraft::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 	
 	bool rLegDef = m_pRLeg != nullptr;

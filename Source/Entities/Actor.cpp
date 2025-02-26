@@ -518,7 +518,7 @@ int Actor::Write(Writer& writer, const Entity& entityReference, HashingData& has
 }
 
 HashingData Actor::Hash() const {
-	HashingData hashData = MOSRotating::Hash();
+	HashingData hashData(std::move(MOSRotating::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= std::hash<bool>{}(m_PlayerControllable) << 1;

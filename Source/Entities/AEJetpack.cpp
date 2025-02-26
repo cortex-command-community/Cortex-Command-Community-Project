@@ -140,7 +140,7 @@ int AEJetpack::Write(Writer& writer, const Entity& entityReference, HashingData&
 }
 
 HashingData AEJetpack::Hash() const {
-	HashingData hashData = AEmitter::Hash();
+	HashingData hashData(std::move(AEmitter::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= std::hash<JetpackType>{}(m_JetpackType) << 1;

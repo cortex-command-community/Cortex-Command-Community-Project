@@ -223,7 +223,7 @@ int BunkerAssemblyScheme::Write(Writer& writer, const Entity& entityReference, H
 }
 
 HashingData BunkerAssemblyScheme::Hash() const {
-	HashingData hashData = SceneObject::Hash();
+	HashingData hashData(std::move(SceneObject::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	uint64_t bitmapHash = m_BitmapFile.Hash().m_Hash;

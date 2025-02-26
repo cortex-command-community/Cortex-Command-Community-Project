@@ -205,7 +205,7 @@ int PEmitter::Write(Writer& writer, const Entity& entityReference, HashingData& 
 }
 
 HashingData PEmitter::Hash() const {
-	HashingData hashData = MOSParticle::Hash();
+	HashingData hashData(std::move(MOSParticle::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	int i = 0;

@@ -120,7 +120,7 @@ int Deployment::Write(Writer& writer, const Entity& entityReference, HashingData
 }
 
 HashingData Deployment::Hash() const {
-	HashingData hashData = SceneObject::Hash();
+	HashingData hashData(std::move(SceneObject::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= RTE::Hash(m_LoadoutName) << 0;

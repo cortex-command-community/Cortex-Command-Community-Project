@@ -88,7 +88,7 @@ int ACraft::Exit::Save(Writer& writer) const {
 }
 
 HashingData ACraft::Exit::Hash() const {
-	HashingData hashData = Serializable::Hash();
+	HashingData hashData(std::move(Serializable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	uint64_t offsetHash = m_Offset.Hash().m_Hash;
@@ -358,7 +358,7 @@ int ACraft::Write(Writer& writer, const Entity& entityReference, HashingData& ha
 }
 
 HashingData ACraft::Hash() const {
-	HashingData hashData = Actor::Hash();
+	HashingData hashData(std::move(Actor::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= std::hash<int>{}(m_HatchDelay) << 1;

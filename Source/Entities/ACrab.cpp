@@ -372,7 +372,7 @@ int ACrab::Write(Writer& writer, const Entity& entityReference, HashingData& has
 }
 
 HashingData ACrab::Hash() const {
-	HashingData hashData = Actor::Hash();
+	HashingData hashData(std::move(Actor::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	bool turretDef = m_pTurret != nullptr;

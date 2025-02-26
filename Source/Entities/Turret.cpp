@@ -83,7 +83,7 @@ int Turret::Write(Writer& writer, const Entity& entityReference, HashingData& ha
 }
 
 HashingData Turret::Hash() const {
-	HashingData hashData = Attachable::Hash();
+	HashingData hashData(std::move(Attachable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	int i = 0;

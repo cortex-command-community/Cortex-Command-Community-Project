@@ -76,7 +76,7 @@ int ContentFile::Save(Writer& writer) const {
 }
 
 HashingData ContentFile::Hash() const {
-	HashingData hashData = Serializable::Hash();
+	HashingData hashData(std::move(Serializable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= RTE::Hash(m_DataPath) << 0;

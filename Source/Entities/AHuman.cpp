@@ -378,7 +378,7 @@ int AHuman::Write(Writer& writer, const Entity& entityReference, HashingData& ha
 }
 
 HashingData AHuman::Hash() const {
-	HashingData hashData = Actor::Hash();
+	HashingData hashData(std::move(Actor::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= std::hash<long>{}(m_ThrowPrepTime) << 1;

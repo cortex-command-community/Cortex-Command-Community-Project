@@ -84,7 +84,7 @@ int Gib::Save(Writer& writer) const {
 }
 
 HashingData Gib::Hash() const {
-	HashingData hashData = Serializable::Hash();
+	HashingData hashData(std::move(Serializable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= (m_GibParticle ? RTE::Hash(m_GibParticle->GetEntityCharacteristic()) : 0) << 0;

@@ -132,7 +132,7 @@ int TerrainObject::Write(Writer& writer, const Entity& entityReference, HashingD
 }
 
 HashingData TerrainObject::Hash() const {
-	HashingData hashData = SceneObject::Hash();
+	HashingData hashData(std::move(SceneObject::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	uint64_t fgColorHash = m_FGColorFile.Hash().m_Hash;

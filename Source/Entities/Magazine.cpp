@@ -126,7 +126,7 @@ int Magazine::Write(Writer& writer, const Entity& entityReference, HashingData& 
 }
 
 HashingData Magazine::Hash() const {
-	HashingData hashData = Attachable::Hash();
+	HashingData hashData(std::move(Attachable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= std::hash<int>{}(m_RoundCount) << 1;

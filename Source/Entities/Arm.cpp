@@ -136,7 +136,7 @@ int Arm::Write(Writer& writer, const Entity& entityReference, HashingData& hashD
 }
 
 HashingData Arm::Hash() const {
-	HashingData hashData = Attachable::Hash();
+	HashingData hashData(std::move(Attachable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= std::hash<float>{}(m_MaxLength) << 1;

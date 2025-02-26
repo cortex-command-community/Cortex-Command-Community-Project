@@ -103,7 +103,7 @@ int ThrownDevice::Write(Writer& writer, const Entity& entityReference, HashingDa
 }
 
 HashingData ThrownDevice::Hash() const {
-	HashingData hashData = HeldDevice::Hash();
+	HashingData hashData(std::move(HeldDevice::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	bool activationSoundDef = m_ActivationSound != nullptr;

@@ -43,7 +43,7 @@ int Color::Save(Writer& writer) const {
 }
 
 HashingData Color::Hash() const {
-	HashingData hashData = Serializable::Hash();
+	HashingData hashData(std::move(Serializable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= std::hash<int>{}(m_R) << 0;

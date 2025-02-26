@@ -49,7 +49,7 @@ int ADSensor::Save(Writer& writer) const {
 }
 
 HashingData ADSensor::Hash() const {
-	HashingData hashData = Serializable::Hash();
+	HashingData hashData(std::move(Serializable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	uint64_t startOffsetHash = m_StartOffset.Hash().m_Hash;

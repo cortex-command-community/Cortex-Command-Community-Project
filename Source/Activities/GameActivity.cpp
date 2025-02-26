@@ -281,7 +281,7 @@ int GameActivity::Write(Writer& writer, const Entity& entityReference, HashingDa
 }
 
 HashingData GameActivity::Hash() const {
-	HashingData hashData = Activity::Hash();
+	HashingData hashData(std::move(Activity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= std::hash<int>{}(m_CPUTeam) << 0;

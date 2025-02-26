@@ -236,7 +236,7 @@ int HeldDevice::Write(Writer& writer, const Entity& entityReference, HashingData
 }
 
 HashingData HeldDevice::Hash() const {
-	HashingData hashData = Attachable::Hash();
+	HashingData hashData(std::move(Attachable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= std::hash<bool>{}(m_OneHanded) << 1;
