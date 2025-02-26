@@ -111,13 +111,12 @@ function ThreadedUpdate(self)
 					self.needsChamber = false;
 					self.InheritedRotAngleTarget = 0;
 					self.rotationSpeed = 0.1;
-					
-					local shell = CreateMOSParticle("Casing Long");
 
-					shell.Pos = self.Pos;
-					shell.Vel = self.Vel + Vector(-6 * self.FlipFactor, -4):RadRotate(self.RotAngle);
-					shell.Team = self.Team;
-					MovableMan:AddParticle(shell);
+					self.shell = CreateMOSParticle("Casing Long");
+					self.shell.Pos = self.Pos;
+					self.shell.Vel = self.Vel + Vector(-6 * self.FlipFactor, -4):RadRotate(self.RotAngle);
+					self.shell.Team = self.Team;
+					self:RequestSyncedUpdate();
 					
 					self.chamberAnim = true;
 				end
@@ -189,7 +188,12 @@ function ThreadedUpdate(self)
 	end
 	
 	if self.chamberAnim then
-		local balance = 5 + math.abs(math.sin(self.parent.RotAngle) * 5);	--Laying down horizontally reduces swaying when pulling bolt
+		local balance = 5;
+
+		if self.parent then
+			balance = balance + math.abs(math.sin(self.parent.RotAngle) * 5); --Laying down horizontally reduces swaying when pulling bolt
+		end
+
 		self.Frame = 1;
 		self.SupportOffset = Vector(-5, -1);
 		local rotTotal = math.sin(self.rotFactor)/balance;
@@ -283,6 +287,13 @@ function ThreadedUpdate(self)
 	
 	if self.InheritedRotAngleTarget > 0 then
 		self.InheritedRotAngleTarget = math.max(self.InheritedRotAngleTarget - TimerMan.DeltaTimeSecs, 0);
+	end
+end
+
+function SyncedUpdate(self)
+	if self.shell then
+		MovableMan:AddParticle(self.shell);
+		self.shell = nil;
 	end
 end
 
