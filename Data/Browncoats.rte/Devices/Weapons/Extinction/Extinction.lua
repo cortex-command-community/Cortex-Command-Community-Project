@@ -71,7 +71,7 @@ function Create(self)
 	self.cockDelay = 300;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	self.fanFireSound.Pos = self.Pos;
 	self.cockSound.Pos = self.Pos;
 	self.preSound.Pos = self.Pos;
