@@ -75,6 +75,7 @@ namespace RTE {
 
 			// Indicate where this was read from
 			m_DefinedInModule = reader.GetReadModuleID();
+			m_DisplayName = m_PresetName;
 		});
 		MatchProperty("InstanceName", {
 			// Set this directly so that SetPresetName doesn't confuse that we're an orignal preset
@@ -89,6 +90,7 @@ namespace RTE {
 
 			// Indicate where this was read from
 			m_DefinedInModule = reader.GetReadModuleID();
+			m_DisplayName = m_PresetName;
 		});
 		MatchProperty("Description", {
 			std::string descriptionValue = reader.ReadPropValue();

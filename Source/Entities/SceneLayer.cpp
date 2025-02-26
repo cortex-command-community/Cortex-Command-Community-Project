@@ -158,7 +158,7 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Save(Writer& writer) const {
 	writer.NewDistinctProperty("WrapY", m_WrapY, true);
 	writer.NewDistinctProperty("DrawTransparent", m_DrawMasked, true);
 
-	if (!m_ScrollInfo.IsZero())
+	if (m_ScaleFactor != Vector(1, 1))
 		writer.NewPropertyWithValue("ScrollRatio", m_ScrollInfo);
 
 	if (m_ScaleFactor != Vector(1, 1))

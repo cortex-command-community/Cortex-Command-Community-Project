@@ -98,17 +98,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	// We need a copy of our scene, because we have to do some fixup to remove PLACEONLOAD items and only keep the current MovableMan state.
 	std::unique_ptr<Scene> modifiableScene(dynamic_cast<Scene*>(scene->Clone()));
 
-	// Delete any existing objects from our scene - we don't want to replace broken doors or repair any stuff when we load.
-	modifiableScene->ClearPlacedObjectSet(Scene::PlacedObjectSets::PLACEONLOAD, true);
-
-	// Become our own original preset, instead of being a copy of the Scene we got cloned from, so we don't still pick up the PlacedObjectSets from our parent when loading.
-	modifiableScene->SetPresetName(fileName);
-	modifiableScene->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
 	modifiableScene->SetSavedGameInternal(true);
-
-	// Make sure the terrain is also treated as an original preset, otherwise it will screw up if we save then load then save again, since it'll try to be a CopyOf of itself.
-	modifiableScene->GetTerrain()->SetPresetName(fileName);
-	modifiableScene->GetTerrain()->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
 
 	// Block the main thread for a bit to let the Writer access the relevant data.
 	std::unique_ptr<Writer> writer(std::make_unique<Writer>(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + "/Save.ini"));
@@ -128,11 +118,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	writer->NewPropertyWithValue("PlaceUnitsIfSceneIsRestarted", g_SceneMan.GetPlaceUnitsOnLoad());
 	writer->NewLine();
 	writer->NewLine();
-
-	// Have to save specifically, can't use NewPropertyWithValue, which may detect an existing preset by that name and module
-	writer->NewProperty("Scene");
-	modifiableScene.get()->Save(*writer);
-	writer->ObjectEnd();
+	writer->NewPropertyWithValue("Scene", *modifiableScene.get());
 
 	auto saveWriterData = [](Writer* writerToSave) {
 		writerToSave->EndWrite();

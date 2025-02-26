@@ -100,17 +100,35 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_BGColorLayer->SetZOrder(c_TerrainBGDepth);
 		reader >> m_BGColorLayer.get();
 	});
-	MatchProperty("AddTerrainFrosting", {
+	MatchProperty("_ClearTerrainFrostings", {
+		reader.ReadPropValue();
+		for (TerrainFrosting* terrainFrosting: m_TerrainFrostings)
+			delete terrainFrosting;
+		m_TerrainFrostings.clear();
+	});
+	MatchForwards("AddTerrainFrosting") MatchProperty("_AddTerrainFrosting", {
 		std::unique_ptr<TerrainFrosting> terrainFrosting = std::make_unique<TerrainFrosting>();
 		reader >> terrainFrosting.get();
 		m_TerrainFrostings.emplace_back(terrainFrosting.release());
 	});
-	MatchProperty("AddTerrainDebris", {
+	MatchProperty("_ClearTerrainDebris", {
+		reader.ReadPropValue();
+		for (TerrainDebris* terrainDebris: m_TerrainDebris)
+			delete terrainDebris;
+		m_TerrainDebris.clear();
+	});
+	MatchForwards("AddTerrainDebris") MatchProperty("_AddTerrainDebris", {
 		std::unique_ptr<TerrainDebris> terrainDebris = std::make_unique<TerrainDebris>();
 		reader >> terrainDebris.get();
 		m_TerrainDebris.emplace_back(terrainDebris.release());
 	});
-	MatchProperty("PlaceTerrainObject", {
+	MatchProperty("_ClearTerrainObjects", {
+		reader.ReadPropValue();
+		for (TerrainObject* terrainObject: m_TerrainObjects)
+			delete terrainObject;
+		m_TerrainObjects.clear();
+	});
+	MatchForwards("PlaceTerrainObject") MatchProperty("_PlaceTerrainObject", {
 		std::unique_ptr<TerrainObject> terrainObject = std::make_unique<TerrainObject>();
 		reader >> terrainObject.get();
 		m_TerrainObjects.emplace_back(terrainObject.release());
@@ -137,31 +155,25 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 int SLTerrain::Save(Writer& writer) const {
 	SceneLayer::Save(writer);
 
-	// Only write the background texture info if the background itself is not saved out as a file already, since saved, pre-rendered bitmaps don't need texturing.
-	if (m_BGColorLayer->IsLoadedFromDisk()) {
-		writer.NewPropertyWithValue("BGColorLayer", m_BGColorLayer.get());
-	} else {
-		writer.NewPropertyWithValue("BackgroundTexture", m_DefaultBGTextureFile);
+	writer.NewPropertyWithValue("BackgroundTexture", m_DefaultBGTextureFile);
+	writer.NewPropertyWithValue("BGColorLayer", m_BGColorLayer.get());
+	writer.NewPropertyWithValue("FGColorLayer", m_FGColorLayer.get());
+
+	for (const TerrainFrosting* terrainFrosting: m_TerrainFrostings) {
+		writer.NewPropertyWithValue("AddTerrainFrosting", terrainFrosting);
 	}
 
-	// Only write the procedural parameters if the foreground itself is not saved out as a file already, since saved, pre-rendered bitmaps don't need procedural generation.
-	if (m_FGColorLayer->IsLoadedFromDisk()) {
-		writer.NewPropertyWithValue("FGColorLayer", m_FGColorLayer.get());
-	} else {
-		for (const TerrainFrosting* terrainFrosting: m_TerrainFrostings) {
-			writer.NewPropertyWithValue("AddTerrainFrosting", terrainFrosting);
-		}
-		for (const TerrainDebris* terrainDebris: m_TerrainDebris) {
-			writer.NewPropertyWithValue("AddTerrainDebris", terrainDebris);
-		}
-		for (const TerrainObject* terrainObject: m_TerrainObjects) {
-			// Write out only what is needed to place a copy of this in the Terrain
-			writer.NewProperty("PlaceTerrainObject");
-			writer.ObjectStart(terrainObject->GetClassName());
-			writer.NewPropertyWithValue("CopyOf", terrainObject->GetModuleAndPresetName());
-			writer.NewPropertyWithValue("Position", terrainObject->GetPos());
-			writer.ObjectEnd();
-		}
+	for (const TerrainDebris* terrainDebris: m_TerrainDebris) {
+		writer.NewPropertyWithValue("AddTerrainDebris", terrainDebris);
+	}
+
+	for (const TerrainObject* terrainObject: m_TerrainObjects) {
+		// Write out only what is needed to place a copy of this in the Terrain
+		writer.NewProperty("PlaceTerrainObject");
+		writer.ObjectStart(terrainObject->GetClassName());
+		writer.NewPropertyWithValue("CopyOf", terrainObject->GetModuleAndPresetName());
+		writer.NewPropertyWithValue("Position", terrainObject->GetPos());
+		writer.ObjectEnd();
 	}
 
 	writer.NewProperty("OrbitDirection");
@@ -185,11 +197,17 @@ int SLTerrain::Save(Writer& writer) const {
 }
 
 int SLTerrain::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	SceneLayer::Save(writer);
+	SceneLayer::Write(writer, entityReference, hashData);
 
 	const SLTerrain& reference = static_cast<const SLTerrain&>(entityReference);
 
-	// TODO: FINISH
+	writer.NewDistinctHashedProperty("BackgroundTexture", m_DefaultBGTextureFile, hashData);
+	writer.NewEntityPointerProperty("BGColorLayer", m_BGColorLayer, hashData);
+	writer.NewEntityPointerProperty("FGColorLayer", m_FGColorLayer, hashData);
+	writer.NewPointerSequence("_ClearTerrainFrostings", "_AddTerrainFrosting", m_TerrainFrostings, hashData);
+	writer.NewPointerSequence("_ClearTerrainDebris", "_AddTerrainDebris", m_TerrainDebris, hashData);
+	writer.NewPointerSequence("_ClearTerrainObjects", "_PlaceTerrainObject", m_TerrainObjects, hashData);
+	writer.NewDistinctProperty("OrbitDirection", m_OrbitDirection, reference.m_OrbitDirection);
 
 	return 0;
 }
@@ -198,7 +216,49 @@ HashingData SLTerrain::Hash() const {
 	HashingData hashData(std::move(SceneLayer::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	// TODO: FINISH
+	uint64_t bgColorLayerHash = m_BGColorLayer->Hash().m_Hash;
+	hashData.m_Constituents.push_back(bgColorLayerHash);
+	hash ^= bgColorLayerHash << 0;
+
+	uint64_t backgroundDefaultHash = m_DefaultBGTextureFile.Hash().m_Hash;
+	hashData.m_Constituents.push_back(backgroundDefaultHash);
+	hash ^= backgroundDefaultHash << 1;
+
+	uint64_t fgColorLayerHash = m_FGColorLayer->Hash().m_Hash;
+	hashData.m_Constituents.push_back(fgColorLayerHash);
+	hash ^= fgColorLayerHash << 2;
+
+	int i = 0;
+
+	for (const TerrainFrosting* terrainFrosting: m_TerrainFrostings) {
+		uint64_t terrainFrostingHash = terrainFrosting->Hash().m_Hash;
+		hashData.m_Constituents.push_back(terrainFrostingHash);
+		hash ^= terrainFrostingHash << (i++ % sizeof(uint64_t) * 8);
+	}
+
+	hashData.m_ParseValues.push_back(i);
+
+	i = 0;
+
+	for (const TerrainDebris* terrainDebris: m_TerrainDebris) {
+		uint64_t terrainDebrisHash = terrainDebris->Hash().m_Hash;
+		hashData.m_Constituents.push_back(terrainDebrisHash);
+		hash ^= terrainDebrisHash << (i++ % sizeof(uint64_t) * 8);
+	}
+
+	hashData.m_ParseValues.push_back(i);
+
+	i = 0;
+
+	for (const TerrainObject* terrainObject: m_TerrainObjects) {
+		uint64_t terrainObjectHash = terrainObject->Hash().m_Hash;
+		hashData.m_Constituents.push_back(terrainObjectHash);
+		hash ^= terrainObjectHash << (i++ % sizeof(uint64_t) * 8);
+	}
+
+	hashData.m_ParseValues.push_back(i);
+
+	hash ^= std::hash<Directions>{}(m_OrbitDirection) << 3;
 
 	return hashData;
 }

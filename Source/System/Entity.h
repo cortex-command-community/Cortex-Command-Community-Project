@@ -263,6 +263,16 @@ namespace RTE {
 			m_PresetName = newName;
 		}
 
+		/// Gets the name of this Entity's data Preset.
+		/// @return A string reference with the instance name of this Entity.
+		const std::string& GetDisplayName() const { return m_DisplayName; }
+
+		/// Sets the name of this Entity's data Preset.
+		/// @param newName A string reference with the display name of this Entity.
+		virtual void SetDisplayName(const std::string& newName, bool calledFromLua = false) {
+			m_DisplayName = newName;
+		}
+
 		/// Gets the plain text description of this Entity's data Preset.
 		/// @return A string reference with the plain text description name of this Preset.
 		const std::string& GetDescription() const { return m_PresetDescription; }
