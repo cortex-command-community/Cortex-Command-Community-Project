@@ -410,7 +410,7 @@ const Entity* PresetMan::GetEntityPresetFromCharacteristic(Reader& reader, bool 
 				return pReturnPreset;
 			}
 
-			for (int i = 0; i < m_OfficialModuleCount && !pReturnPreset; ++i)
+			for (int i = 0; i < m_DataModuleIDs.size() && !pReturnPreset; ++i)
 				pReturnPreset = m_pDataModules[i]->GetEntityPreset(ClassName, PresetName);
 
 			if (pReturnPreset) {

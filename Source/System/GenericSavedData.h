@@ -107,8 +107,8 @@ namespace RTE {
 		void SaveNumber(const std::string& key, float value) { m_SavedNumbers.m_Data[key] = value; };
 		float LoadNumber(const std::string& key) { return m_SavedNumbers.m_Data[key]; };
 
-		void SaveEntity(const std::string& key, const Entity* value) { m_SavedEntities.m_Data[key] = value->Clone(); };
-		Entity* LoadEntity(const std::string& key) { return m_SavedEntities.m_Data[key]; };
+		void SaveEntity(const std::string& key, const Entity* value);
+		Entity* LoadEntity(const std::string& key);
 
 		GenericSavedEncodedStrings m_SavedEncodedStrings; //!< Stored encoded string data.
 		GenericSavedStrings m_SavedStrings; //!< Stored string data.

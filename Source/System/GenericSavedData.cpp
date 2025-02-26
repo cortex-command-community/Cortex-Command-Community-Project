@@ -92,6 +92,21 @@ const std::string& GenericSavedData::LoadString(const std::string& key) {
 	return *loadString;
 }
 
+void GenericSavedData::SaveEntity(const std::string& key, const Entity* value) {
+	delete m_SavedEntities.m_Data[key];
+
+	// If we're being given a null pointer (I hope nil means null pointer), clear the key, otherwise insert a clone of the argument.
+	if (value == nullptr) {
+		m_SavedEntities.m_Data.erase(key);
+	} else
+		m_SavedEntities.m_Data[key] = value->Clone();
+};
+
+Entity* GenericSavedData::LoadEntity(const std::string& key) {
+	// If it doesn't exist, reeturn nothing instead of a clone.
+	return m_SavedEntities.m_Data.at(key) ? m_SavedEntities.m_Data[key]->Clone() : nullptr;
+};
+
 int GenericSavedData::GenericSavedEncodedStrings::ReadProperty(const std::string_view& propName, Reader& reader) {
 	std::string value = reader.ReadPropValue();
 	m_Data[std::string(propName)] = base64_decode(value); // until we get P0919R2.
