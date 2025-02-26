@@ -21,7 +21,7 @@ function ThreadedUpdate(self)
 			self.activeSound:Stop();
 			self.charge = 0;
 		end
-		
+
 		self.inventorySwapTimer:Reset();
 		if self.Magazine.RoundCount > 0 then
 			if self.animTimer:IsPastSimMS(200 * (1 - self.charge)) then
@@ -38,7 +38,7 @@ function ThreadedUpdate(self)
 					self.damagePar.Team = self.Team;
 					self.damagePar.IgnoresTeamHits = true;
 					self.damagePar.Lifetime = 100 * (1 + self.charge);
-					
+
 					self:RequestSyncedUpdate();
 				end
 			end
@@ -106,7 +106,7 @@ function SyncedUpdate(self)
 	end
 
 	if self.damagePar then
-		MovableMan:AddParticle(self.par);
+		MovableMan:AddParticle(self.damagePar);
 		self.damagePar = nil;
 	end
 
