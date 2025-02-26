@@ -88,7 +88,7 @@ function OneManArmyZeroG:StartNewGame()
 	
 	MusicMan:PlayDynamicSong("Generic Battle Music");
 	
-	local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
+	--[[local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 	automoverController.Team = -1;
 	automoverController:SetNumberValue("MovementSpeed", 16);
 	automoverController:SetNumberValue("ActorUnstickingDisabled", 1);
@@ -101,7 +101,7 @@ function OneManArmyZeroG:StartNewGame()
 	superNode.Scale = 0;
 	superNode:SetNumberValue("ZoneWidth", SceneMan.SceneWidth);
 	superNode:SetNumberValue("ZoneHeight", SceneMan.SceneHeight);
-	MovableMan:AddParticle(superNode);
+	MovableMan:AddParticle(superNode);]]
 
 	self:SetupHumanPlayerBrains(actorGroup, primaryGroup, secondaryGroup, tertiaryGroup);
 end
@@ -251,12 +251,12 @@ function OneManArmyZeroG:ResumeLoadedGame()
 		end
 	end
 	
-	for particle in MovableMan.AddedParticles do
+	--[[for particle in MovableMan.AddedParticles do
 		if particle.PresetName == "Automover Node 1x1" then
 			particle.Scale = 0;
 			break;
 		end
-	end
+	end]]
 	
 	for actor in MovableMan.AddedActors do
 		if actor.Team ~= Activity.TEAM_1 then

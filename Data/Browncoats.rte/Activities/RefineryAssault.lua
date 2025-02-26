@@ -281,10 +281,10 @@ function RefineryAssault:StartActivity(newGame)
 		
 		self:SetupFirstStage();
 
-		local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
+		--[[local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 		automoverController.Pos = Vector();
 		automoverController.Team = self.aiTeam;
-		MovableMan:AddActor(automoverController);
+		MovableMan:AddActor(automoverController);]]
 		
 		-- Tell capturables to deactivate, we'll activate them as we go along
 		MovableMan:SendGlobalMessage("DeactivateCapturable_RefineryLCHackConsole1");
