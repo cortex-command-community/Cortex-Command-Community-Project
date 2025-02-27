@@ -47,7 +47,7 @@ end
 
 --TODO: Figure out how to snap different sizes properly
 function ConstructorSnapPos(checkPos, blockSize)
-	return Vector(math.floor((checkPos.X - blockSize/2)/blockSize) * blockSize + blockSize/2, math.floor((checkPos.Y - blockSize/2)/blockSize) * blockSize + blockSize/2);
+	return Vector(math.floor((checkPos.X)/blockSize) * blockSize, math.floor((checkPos.Y)/blockSize) * blockSize);
 end
 
 function ConstructorTerrainRay(start, trace, skip)
@@ -61,13 +61,14 @@ function Create(self)
 
 	self.buildTimer = Timer();
 	self.buildList = {};
-	self.buildCost = 10;	--How much resource is required per one build 3 x 3 px piece
+	self.cellSize = 3;
+	self.buildCost = self.cellSize * self.cellSize + 1;	--How much resource is required per one build 3 x 3 px piece
 	self.sprayCost = self.buildCost * 0.5;
 
 	self.buildSize = 24;
 	self.buildSizeMin = self.buildSize/4;
 	self.buildSizeMax = self.buildSize;
-	self.fullBlock = 64 * self.buildCost;	--One full 24x24 block of concrete requires 64 units of resource
+	self.fullBlock = 144 * self.buildCost;	--One full 24x24 block of concrete requires 64 units of resource
 	self.maxResource = 12 * self.fullBlock;
 	self.startResource = 3;
 	self.resource = self.startResource * self.fullBlock;
@@ -186,8 +187,8 @@ end
 
 function Update(self)
 	local actor = self:GetRootParent();
-	if actor and IsActor(actor) then
 
+	if actor and IsActor(actor) then
 		actor = ToActor(actor);
 		local ctrl = actor:GetController();
 		local playerControlled = actor:IsPlayerControlled();
@@ -195,7 +196,7 @@ function Update(self)
 
 		if playerControlled and self.menu_ignore then
 			if not ctrl:IsState(Controller.PIE_MENU_ACTIVE) then
-				self.menu_ignore = false
+				self.menu_ignore = false;
 			end
 		end
 
@@ -390,7 +391,6 @@ function Update(self)
 					end
 				end
 			end
-
 		elseif mode == 1 then	-- cancel
 			self:RemoveNumberValue("BuildMode");
 
@@ -408,10 +408,12 @@ function Update(self)
 				end
 			end
 		end
+
 		local displayColorBlue = 5;
 		local displayColorYellow = 120;
 		local displayColorRed = 13;
 		local displayColorWhite = 254;
+
 		if self.displayTimer:IsPastSimMS(TimerMan.DeltaTimeMS) then
 			self.displayTimer:Reset();
 			-- flickering colors
@@ -449,13 +451,15 @@ function Update(self)
 
 			if ctrl:IsState(Controller.WEAPON_CHANGE_NEXT) then
 				self.buildSize = self.buildSize * 2;
+
 				if self.buildSize > self.buildSizeMax then
 					self.buildSize = self.buildSizeMin;
 				end
 			end
 
 			if ctrl:IsState(Controller.WEAPON_CHANGE_PREV) then
-				self.buildSize = self.buildSize/2;
+				self.buildSize = self.buildSize / 2;
+
 				if self.buildSize < self.buildSizeMin then
 					self.buildSize = self.buildSizeMax;
 				end
@@ -467,6 +471,7 @@ function Update(self)
 
 			local precise = not mouseControlled and aiming;
 			local map = Vector();
+
 			if precise then
 				map = Vector(math.floor(self.cursor.X - self.buildSize/2), math.floor(self.cursor.Y - self.buildSize/2));
 				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(2, 2), self.cursor + Vector(-3, -3), displayColorYellow);
@@ -480,6 +485,7 @@ function Update(self)
 			PrimitiveMan:DrawBoxPrimitive(screen, map, map + Vector(self.buildSize - 1, self.buildSize - 1), displayColorYellow);
 
 			local dist = SceneMan:ShortestDistance(actor.ViewPoint, self.cursor, SceneMan.SceneWrapsX);
+
 			if math.abs(dist.X) > self.maxCursorDist.X then
 				self.cursor.X = actor.ViewPoint.X + self.maxCursorDist.X * (dist.X < 0 and -1 or 1);
 			end
@@ -519,9 +525,11 @@ function Update(self)
 
 		-- clean up the build list of nil slots and draw the squares to show the build layout
 		local tempList = {};
+
 		for i = 1, #self.buildList do
 			if self.buildList[i] ~= nil then
 				tempList[#tempList + 1] = self.buildList[i];
+
 				if not self.operatedByAI then
 					if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildList[i][1], self.buildList[i][2]), SceneMan.SceneWrapsX):MagnitudeIsLessThan(self.buildDistance) then
 						PrimitiveMan:DrawBoxPrimitive(screen, Vector(self.buildList[i][1], self.buildList[i][2]), Vector(self.buildList[i][1] + self.buildList[i][4] - 1, self.buildList[i][2] + self.buildList[i][4] - 1), displayColorBlue);
@@ -537,8 +545,7 @@ function Update(self)
 		-- building up the first block in the build queue
 		if self.resource >= self.buildCost and self.buildList[1] then
 			if SceneMan:ShortestDistance(actor.Pos, Vector(self.buildList[1][1], self.buildList[1][2]), SceneMan.SceneWrapsX):MagnitudeIsLessThan(self.buildDistance) then
-				--TODO: experiment with different cell sizes?
-				local cellSize = 3;
+				local cellSize = self.cellSize;
 				local oneThirdBlock = self.buildList[1][4]/cellSize;
 				local cellsPerBlock = oneThirdBlock^2;
 				if self.buildList[1][3] < cellsPerBlock then
@@ -557,8 +564,13 @@ function Update(self)
 							local strengthRatio = SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(pos.X, pos.Y)).StructuralIntegrity/self.digStrength;
 							if strengthRatio < 1 and SceneMan:GetMOIDPixel(pos.X, pos.Y) == rte.NoMOID then
 								local name = "";
-								if bx + x == 0 or bx + x == self.buildList[1][4] - 1 or by + y == 0 or by + y == self.buildList[1][4] - 1 then
-									name = "Base.rte/Constructor Border Tile " .. math.random(4);
+								if bx + x <= 1 or bx + x >= self.buildList[1][4] - 2 or by + y <= 1 or by + y >= self.buildList[1][4] - 2 then
+									if bx + x == 0 or bx + x == self.buildList[1][4] - 1 or by + y == 0 or by + y == self.buildList[1][4] - 1 then
+										name = "Base.rte/Constructor Border Tile " .. math.random(4);
+									else
+										self.colorCandidates = { 8, 11, 12, 6, 13 };
+										name = "Base.rte/Constructor Tile " .. self.colorCandidates[math.random(#self.colorCandidates)];
+									end
 								else
 									name = "Base.rte/Constructor Tile " .. math.random(16);
 								end
