@@ -191,6 +191,7 @@ function Create(self)
 	self.tunnelFillDelay = 30000 + 30000 * (1 - ActivityMan:GetActivity().Difficulty/GameActivity.MAXDIFFICULTY);
 
 	self.menu_ignore = false; -- ignore the pie menu button until it's released
+	self.ignorePrimaryWeaponKey = false; -- ignore the weapon primary button until it's released
 
 	-- don't change these
 	self.toAutoBuild = false;
@@ -302,6 +303,12 @@ function Update(self)
 			end
 		end
 
+		if playerControlled and self.ignorePrimaryWeaponKey then
+			if not ctrl:IsState(Controller.WEAPON_PRIMARY_HOTKEYSTART) then
+				self.ignorePrimaryWeaponKey = false;
+			end
+		end
+
 		if self.Magazine then
 			self.Magazine.RoundCount = math.max(self.resource, 1);
 
@@ -403,6 +410,12 @@ function Update(self)
 			end
 		else
 			self.toAutoBuild = false;
+		end
+
+		if playerControlled and not self.cursor and ctrl:IsState(Controller.WEAPON_PRIMARY_HOTKEYSTART) then
+			self.cursor = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
+			-- If the player actively selected this, ignore the pie menu.
+			self.ignorePrimaryWeaponKey = true;
 		end
 
 		local mode = self:GetNumberValue("BuildMode");
@@ -668,7 +681,7 @@ function Update(self)
 				self.tempSequence = {};
 			end
 
-			if ctrl:IsState(Controller.WEAPON_PRIMARY_HOTKEYSTART) then
+			if not self.ignorePrimaryWeaponKey and ctrl:IsState(Controller.WEAPON_PRIMARY_HOTKEYSTART) then
 				-- Use temporary info about block size space to figure out how large a grid can contain requisite block offset data.
 				local buildInfos = {};
 

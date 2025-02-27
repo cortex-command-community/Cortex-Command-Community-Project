@@ -931,6 +931,10 @@ float AHuman::EstimateJumpHeight() const {
 		return 0.0F;
 	}
 
+	if (g_SceneMan.GetGlobalAcc().YIsZero()) {
+		return INFINITY;
+	}
+
 	float totalMass = GetMass();
 	float fuelTime = m_pJetpack->GetJetTimeTotal();
 	float fuelUseMultiplier = m_pJetpack->GetThrottleFactor();
