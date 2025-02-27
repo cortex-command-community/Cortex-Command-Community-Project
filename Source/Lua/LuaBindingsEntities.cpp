@@ -14,6 +14,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Entity) {
 
 	    .property("ClassName", &Entity::GetClassName)
 	    .property("PresetName", &Entity::GetPresetName, &LuaAdaptersEntity::SetPresetName)
+	    .property("DisplayName", &Entity::GetDisplayName, &LuaAdaptersEntity::SetDisplayName)
 	    .property("Description", &Entity::GetDescription, &Entity::SetDescription)
 	    .property("IsOriginalPreset", &Entity::IsOriginalPreset)
 	    .property("ModuleID", &Entity::GetModuleID)

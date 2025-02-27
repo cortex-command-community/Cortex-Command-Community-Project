@@ -66,6 +66,9 @@ namespace RTE {
 		MatchProperty("PresetName", {
 			SetPresetName(reader.ReadPropValue());
 
+			// Indicate where this was read from.
+			m_DefinedInModule = reader.GetReadModuleID();
+
 			// Preset name might have "[ModuleName]/" preceding it, detect it here and IGNORE IT!
 			// TODO: don't ignore it
 			int slashPos = m_PresetName.find_first_of('/');
@@ -75,11 +78,17 @@ namespace RTE {
 
 			// Indicate where this was read from
 			m_DefinedInModule = reader.GetReadModuleID();
+
+			// Set display name, as default, which is safe because display name is written following preset name.
 			m_DisplayName = m_PresetName;
 		});
 		MatchProperty("InstanceName", {
-			// Set this directly so that SetPresetName doesn't confuse that we're an orignal preset
+			// Set this directly so that SetPresetName doesn't confuse that we're an orignal preset.
+			// Not sure why this is allowed, but I feel like I allowed it for a reason.
 			m_PresetName = reader.ReadPropValue();
+
+			// Indicate where this was read from
+			m_DefinedInModule = reader.GetReadModuleID();
 
 			// Preset name might have "[ModuleName]/" preceding it, detect it here and IGNORE IT!
 			// TODO: don't ignore it
@@ -88,8 +97,7 @@ namespace RTE {
 				m_PresetName = m_PresetName.substr(slashPos + 1);
 			}
 
-			// Indicate where this was read from
-			m_DefinedInModule = reader.GetReadModuleID();
+			// Set display name, as default, which is safe because display name is written following preset name.
 			m_DisplayName = m_PresetName;
 		});
 		MatchProperty("Description", {
