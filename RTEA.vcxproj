@@ -763,8 +763,6 @@
     <ClInclude Include="Source\Managers\GLResourceMan.h" />
     <ClInclude Include="Source\Managers\MusicMan.h" />
     <ClInclude Include="Source\Managers\MenuMan.h" />
-    <ClInclude Include="Source\Managers\NetworkClient.h" />
-    <ClInclude Include="Source\Managers\NetworkServer.h" />
     <ClInclude Include="Source\Managers\PerformanceMan.h" />
     <ClInclude Include="Source\Managers\PostProcessMan.h" />
     <ClInclude Include="Source\Managers\PrimitiveMan.h" />
@@ -803,7 +801,6 @@
     <ClInclude Include="Source\Renderer\GLCheck.h" />
     <ClInclude Include="Source\System\InputMapping.h" />
     <ClInclude Include="Source\System\InputScheme.h" />
-    <ClInclude Include="Source\System\NetworkMessages.h" />
     <ClInclude Include="Source\System\GraphicalPrimitive.h" />
     <ClInclude Include="Source\System\Gamepad.h" />
     <ClInclude Include="Source\Menus\InventoryMenuGUI.h" />
@@ -924,8 +921,6 @@
     <ClInclude Include="Source\Activities\GAScripted.h" />
     <ClInclude Include="Source\Activities\GATutorial.h" />
     <ClInclude Include="Source\Activities\GibEditor.h" />
-    <ClInclude Include="Source\Activities\MultiplayerGame.h" />
-    <ClInclude Include="Source\Activities\MultiplayerServerLobby.h" />
     <ClInclude Include="Source\Activities\SceneEditor.h" />
     <ClInclude Include="Source\Menus\AreaEditorGUI.h" />
     <ClInclude Include="Source\Menus\AreaPickerGUI.h" />
@@ -1016,8 +1011,6 @@
     <ClCompile Include="Source\GUI\GUISound.cpp" />
     <ClCompile Include="Source\GUI\GUIWriter.cpp" />
     <ClCompile Include="Source\Managers\MenuMan.cpp" />
-    <ClCompile Include="Source\Managers\NetworkClient.cpp" />
-    <ClCompile Include="Source\Managers\NetworkServer.cpp" />
     <ClCompile Include="Source\Managers\PerformanceMan.cpp" />
     <ClCompile Include="Source\Managers\PostProcessMan.cpp" />
     <ClCompile Include="Source\Managers\PrimitiveMan.cpp" />
@@ -1448,8 +1441,6 @@
     <ClCompile Include="Source\Activities\GAScripted.cpp" />
     <ClCompile Include="Source\Activities\GATutorial.cpp" />
     <ClCompile Include="Source\Activities\GibEditor.cpp" />
-    <ClCompile Include="Source\Activities\MultiplayerGame.cpp" />
-    <ClCompile Include="Source\Activities\MultiplayerServerLobby.cpp" />
     <ClCompile Include="Source\Activities\SceneEditor.cpp" />
     <ClCompile Include="Source\Menus\AreaEditorGUI.cpp" />
     <ClCompile Include="Source\Menus\AreaPickerGUI.cpp" />
