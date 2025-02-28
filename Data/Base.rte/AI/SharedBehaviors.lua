@@ -259,7 +259,7 @@ function SharedBehaviors.Patrol(AI, Owner, Abort)
 
 	if Dist:MagnitudeIsGreaterThan(20) then
 		Owner:ClearAIWaypoints();
-		Owner:AddAISceneWaypoint(Free);	
+		Owner:AddAISceneWaypoint(Free);
 		Owner:UpdateMovePath();
 
 		-- wait until movepath is updated
@@ -434,7 +434,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 	local obstacleState = Actor.PROCEEDING;
 	local Obst = {R_LOW = 1, R_FRONT = 2, R_HIGH = 3, R_UP = 5, L_UP = 6, L_HIGH = 8, L_FRONT = 9, L_LOW = 10};
 	local Facings = {{aim=0, facing=0}, {aim=1.4, facing=1.4}, {aim=1.4, facing=math.pi-1.4}, {aim=0, facing=math.pi}};
-	
+
 	local NeedsNewPath, Waypoint, HasMovePath, Dist, CurrDist;
 	NeedsNewPath = true;
 
@@ -518,7 +518,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 		end
 
 		AverageVel = SharedBehaviors.UpdateAverageVel(Owner, AverageVel);
-		
+
 		local stuckThreshold = 2.5; -- pixels per second of movement we need to be considered not stuck
 
 		-- Cap AverageVel, so if we have a spike in velocity it doesn't take too long to come back down
@@ -1089,7 +1089,7 @@ function SharedBehaviors.GetProjectileData(Owner)
 		PrjDat.vqu = PrjDat.vsq^2; -- muzzle velocity quad
 		PrjDat.drg = 1 - Projectile.AirResistance * TimerMan.DeltaTimeSecs; -- AirResistance is stored as the ini-value times 60
 		PrjDat.thr = math.min(Projectile.AirThreshold, PrjDat.vel);
-		PrjDat.pen = (Projectile.Mass * Projectile.Sharpness * PrjDat.vel) * PrjDat.drg;
+		PrjDat.pen = Weapon:GetAIPenetration() * PrjDat.drg;
 
 		PrjDat.blast = Weapon:GetAIBlastRadius();
 		if PrjDat.blast > 0 or Weapon:IsInGroup("Weapons - Explosive") then
