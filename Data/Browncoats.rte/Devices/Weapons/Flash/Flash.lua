@@ -12,6 +12,28 @@ function Create(self)
 	self.targetLockSound = CreateSoundContainer("Mine Activate", "Base.rte");
 end
 
+function OnFire(self)
+	local rocketNumber = self.RoundInMagCount + 1;
+
+	local rocket = CreateAEmitter("Particle Browncoat Rocket", "Browncoats.rte");
+	if #self.targets > 0 then
+		if self.targets[rocketNumber] and self.targets[rocketNumber].actor.ID ~= rte.NoMOID then
+			rocket:SetNumberValue("TargetID", self.targets[rocketNumber].actor.ID);
+			self.targets[rocketNumber].topLeft = self.targets[rocketNumber].topLeft * 1.5;
+			self.targets[rocketNumber].bottomRight = self.targets[rocketNumber].bottomRight * 1.5;
+		elseif rocketNumber > #self.targets then
+			rocket:SetNumberValue("TargetID", self.targets[math.random(#self.targets)].actor.ID);
+		end
+	end
+	rocket.Pos = self.MuzzlePos + Vector(0, (rocketNumber - self.RoundInMagCapacity * 0.5)):RadRotate(self.RotAngle);
+	rocket.Vel = self.Vel + Vector(self.fireVel * RangeRand(0.9, 1.1) * self.FlipFactor, 0):RadRotate(self.RotAngle - ((self.spread * 0.5) - (rocketNumber/self.RoundInMagCapacity) * self.spread) * self.FlipFactor);
+	rocket.RotAngle = rocket.Vel.AbsRadAngle;
+	rocket.AngularVel = math.cos(rocket.Vel.AbsRadAngle) * 5;
+	rocket.Team = self.Team;
+	rocket.IgnoresTeamHits = true;
+	MovableMan:AddParticle(rocket);
+end
+
 function ThreadedUpdate(self)
 	local parent = self:GetRootParent();
 	if IsActor(parent) then
@@ -91,33 +113,5 @@ function ThreadedUpdate(self)
 	else
 		parent = nil;
 		self.targets = {};
-	end
-
-	if self.FiredFrame then
-		local rocketNumber = self.RoundInMagCount + 1;
-	
-		self.rocket = CreateAEmitter("Particle Browncoat Rocket", "Browncoats.rte");
-		if #self.targets > 0 then
-			if self.targets[rocketNumber] and self.targets[rocketNumber].actor.ID ~= rte.NoMOID then
-				rocket:SetNumberValue("TargetID", self.targets[rocketNumber].actor.ID);
-				self.targets[rocketNumber].topLeft = self.targets[rocketNumber].topLeft * 1.5;
-				self.targets[rocketNumber].bottomRight = self.targets[rocketNumber].bottomRight * 1.5;
-			elseif rocketNumber > #self.targets then
-				rocket:SetNumberValue("TargetID", self.targets[math.random(#self.targets)].actor.ID);
-			end
-		end
-		self.rocket.Pos = self.MuzzlePos + Vector(0, (rocketNumber - self.RoundInMagCapacity * 0.5)):RadRotate(self.RotAngle);
-		self.rocket.Vel = self.Vel + Vector(self.fireVel * RangeRand(0.9, 1.1) * self.FlipFactor, 0):RadRotate(self.RotAngle - ((self.spread * 0.5) - (rocketNumber/self.RoundInMagCapacity) * self.spread) * self.FlipFactor);
-		self.rocket.RotAngle = rocket.Vel.AbsRadAngle;
-		self.rocket.AngularVel = math.cos(rocket.Vel.AbsRadAngle) * 5;
-		self.rocket.Team = self.Team;
-		self.rocket.IgnoresTeamHits = true;
-	end
-end
-
-function SyncedUpdate(self)
-	if self.rocket then
-		MovableMan:AddParticle(self.rocket);
-		self.rocket = nil;
 	end
 end

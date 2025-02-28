@@ -205,6 +205,11 @@ if host_machine.system() in ['linux','darwin']
   elif host_machine.system()=='darwin'
     deps += dependency('appleframeworks', modules: ['Foundation', 'OpenGL'])  
   endif
+  bfd = compiler.find_library('bfd', required: false)
+  if bfd.found()
+    preprocessor_flags += '-DBACKWARD_HAS_BFD'
+    deps += bfd
+  endif
 elif host_machine.system() == 'windows'
   sdl2 = subproject('SDL2-2.26.3')
   sdl2_dep = dependency('sdl2')
