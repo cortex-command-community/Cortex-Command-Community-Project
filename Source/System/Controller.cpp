@@ -355,6 +355,9 @@ void Controller::UpdatePlayerPieMenuInput(std::array<bool, ControlState::CONTROL
 			m_WeaponReloadIgnore = true;
 		}
 
+		// RELOAD and RELOADHELD instead of RELOADSTART and RELOAD for mod lua compatibility reasons.
+		m_ControlStates[ControlState::WEAPON_RELOADHELD] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_WEAPON_RELOAD);
+
 		m_ControlStates[ControlState::WEAPON_PRIMARY_HOTKEYSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_WEAPON_PRIMARY_HOTKEY);
 		m_ControlStates[ControlState::WEAPON_AUXILIARY_HOTKEYSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY);
 		m_ControlStates[ControlState::ACTOR_PRIMARY_HOTKEYSTART] = g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_ACTOR_PRIMARY_HOTKEY);
@@ -432,7 +435,7 @@ void Controller::UpdatePlayerAnalogInput() {
 	// Disable sharp aim while moving - this also helps with keyboard vs mouse fighting when moving and aiming in opposite directions
 	if (m_ControlStates[ControlState::BODY_JUMP] && !pieMenuActive) {
 		if (IsMouseControlled()) {
-			g_UInputMan.SetMouseValueMagnitude(0.3F);
+			g_UInputMan.SetMouseValueMagnitude(0.3F, m_Player);
 		}
 		m_ControlStates[ControlState::AIM_SHARP] = false;
 	}

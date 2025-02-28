@@ -112,14 +112,14 @@ namespace RTE {
 		/// Checks if the script at the given path is one of the scripts on this MO.
 		/// @param scriptPath The path to the script to check.
 		/// @return Whether or not the script is on this MO.
-		bool HasScript(const std::string& scriptPath) const { return m_AllLoadedScripts.find(scriptPath) != m_AllLoadedScripts.end(); }
+		bool HasScript(const std::string& scriptPath) const { return std::find(m_AllLoadedScripts.begin(), m_AllLoadedScripts.end(), scriptPath) != m_AllLoadedScripts.end(); }
 
 		/// Checks if the script at the given path is one of the enabled scripts on this MO.
 		/// @param scriptPath The path to the script to check.
 		/// @return Whether or not the script is enabled on this MO.
 		bool ScriptEnabled(const std::string& scriptPath) const {
-			auto scriptPathIterator = m_AllLoadedScripts.find(scriptPath);
-			return scriptPathIterator != m_AllLoadedScripts.end() && scriptPathIterator->second == true;
+			auto scriptPathIterator = m_EnabledScripts.find(scriptPath);
+			return scriptPathIterator != m_EnabledScripts.end() && scriptPathIterator->second == true;
 		}
 
 		/// Enables or dsiableds the script at the given path on this MO.
@@ -588,8 +588,9 @@ namespace RTE {
 		/// Whether a set of X, Y coordinates overlap us (in world space).
 		/// @param pixelX The given X coordinate, in world space.
 		/// @param pixelY The given Y coordinate, in world space.
+		/// @param validOnly Whether to return false if this MO isn't validly owned by MovableMan or not.
 		/// @return Whether the given coordinate overlap us.
-		virtual bool HitTestAtPixel(int pixelX, int pixelY) const { return false; }
+		virtual bool HitTestAtPixel(int pixelX, int pixelY, bool validOnly = true) const { return false; }
 
 		/// Shows whether this is or carries a specifically named object in its
 		/// inventory. Also looks through the inventories of potential passengers,
@@ -1234,7 +1235,8 @@ namespace RTE {
 		};
 
 		std::string m_ScriptObjectName; //!< The name of this object for script usage.
-		std::unordered_map<std::string, bool> m_AllLoadedScripts; //!< A map of script paths to the enabled state of the given script.
+		std::vector<std::string> m_AllLoadedScripts; //!< A vector of script for scripts applied to this object, in order of insertion.
+		std::unordered_map<std::string, bool> m_EnabledScripts; //!< A map of script paths to the enabled state of the given script.
 		std::unordered_map<std::string, std::vector<LuaFunction>> m_FunctionsAndScripts; //!< A map of function names to vectors of Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
 
 		volatile bool m_RequestedSyncedUpdate; //!< For optimisation purposes, scripts explicitly request a synced update if they want one.
