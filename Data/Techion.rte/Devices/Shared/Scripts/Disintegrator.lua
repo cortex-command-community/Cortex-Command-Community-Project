@@ -124,10 +124,13 @@ function Update(self)
 			for i = 1, radius do
 				if math.random(radius) > i then
 
-					local piece = CreateMOSParticle("Techion.rte/White Goo Particle");
+					local piece;
 					if math.random() < 0.3 then
 						piece = CreateMOPixel("Techion.rte/Nanogoo " .. math.random(6));
+					else
+						piece = CreateMOSParticle("Techion.rte/White Goo Particle");
 					end
+
 					local offset = Vector(mo.Radius * mo.Scale * RangeRand(0, 0.5), 0):RadRotate(6.28 * math.random());
 					piece.Pos = mo.Pos + offset;
 					piece.Vel = mo.Vel + offset:SetMagnitude(RangeRand(radius, radius * 2)/math.sqrt(1 + offset.Magnitude));

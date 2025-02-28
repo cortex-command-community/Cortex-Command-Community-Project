@@ -112,7 +112,7 @@ function OnMessage(self, message, context)
 	end
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	self.voiceSound.Pos = self.Pos;
 
 	self.controller = self:GetController();

@@ -1,53 +1,59 @@
 function Create(self)
+	local var = {};
+
 	--Range of the shot.
-	self.range = 600;
+	var.range = 600;
 
 	--Amplitude of the wave.
-	self.maxAmplitude = math.floor(1 + math.sqrt(self.Vel.Magnitude) + 0.5);
+	var.maxAmplitude = math.floor(1 + math.sqrt(self.Vel.Magnitude) + 0.5);
 
 	--Wavelength of the wave.
-	self.flaceLength = math.floor(3 + math.sqrt(self.Vel.Magnitude) + 0.5);
+	var.flaceLength = math.floor(3 + math.sqrt(self.Vel.Magnitude) + 0.5);
 
 	--Track intersecting beams
-	self.lastAmplitude = 1;
+	var.lastAmplitude = 1;
 
 	--Speed of the wave (pixels per second).
-	self.speed = self.Vel.Magnitude * 10;
+	var.speed = self.Vel.Magnitude * 10;
 
 	--Speed of damage particles.
-	self.damageSpeed = 50 + self.Vel.Magnitude * 0.1;
+	var.damageSpeed = 50 + self.Vel.Magnitude * 0.1;
 
 	--Maximum strength for material penetration (both MOs and terrain).
-	self.strengthThreshold = 50 + self.Vel.Magnitude * 0.3;
+	var.strengthThreshold = 50 + self.Vel.Magnitude * 0.3;
 
 	--Direction of the wave.
-	self.direction = Vector(self.Vel.X, self.Vel.Y);
-	self.direction:SetMagnitude(1);
-	self.up = Vector(self.direction.X, self.direction.Y);
-	self.up:RadRotate(math.pi * 0.5);
+	var.direction = Vector(self.Vel.X, self.Vel.Y);
+	var.direction:SetMagnitude(1);
+	var.up = Vector(var.direction.X, var.direction.Y);
+	var.up:RadRotate(math.pi * 0.5);
 
 	--Interval at which to create damage particles.
-	self.damageInterval = 3;
+	var.damageInterval = 3;
 
 	--Timer for the wave.
-	self.timer = Timer();
+	var.timer = Timer();
 
 	--The last starting position along the line.
-	self.lastI = 0;
+	var.lastI = 0;
 
 	--Count MO and terrain hits.
-	self.hits = 0;
+	var.hits = 0;
 
 	--Disintegration strength.
-	self.disintegrationStrength = 500;
+	var.disintegrationStrength = 500;
 	
-	self.melter = CreateMOPixel("Disintegrator", "Techion.rte");
+	var.melter = CreateMOPixel("Disintegrator", "Techion.rte");
+
+	var.Pos = self.Pos;
+	self.var = var;
 end
 
 function Update(self)
-	local endPoint = self.timer.ElapsedSimTimeS * self.speed;
-	if endPoint > self.range then
-		endPoint = self.range;
+	local var = self.var;
+	local endPoint = var.timer.ElapsedSimTimeS * var.speed;
+	if endPoint > var.range then
+		endPoint = var.range;
 		self.ToDelete = true;
 	else
 		self.ToDelete = false;
@@ -57,21 +63,21 @@ function Update(self)
 	endPoint = math.floor(endPoint);
 
 	--Draw out the path.
-	for i = self.lastI, endPoint, 1 do
-		local amplitude = math.sin((i/self.flaceLength) * 2 * math.pi) * self.maxAmplitude;
-		local waveOffset = Vector(self.up.X, self.up.Y);
+	for i = var.lastI, endPoint, 1 do
+		local amplitude = math.sin((i/var.flaceLength) * 2 * math.pi) * var.maxAmplitude;
+		local waveOffset = Vector(var.up.X, var.up.Y);
 		waveOffset:SetMagnitude(amplitude);
 
-		local linePos = self.Pos + Vector(self.direction.X, self.direction.Y):SetMagnitude(i * 2);
-		local fireVector = Vector(self.direction.X, self.direction.Y):SetMagnitude(self.damageSpeed);
+		local linePos = var.Pos + Vector(var.direction.X, var.direction.Y):SetMagnitude(i * 2);
+		local fireVector = Vector(var.direction.X, var.direction.Y):SetMagnitude(var.damageSpeed);
 		local upPos = linePos + waveOffset;
 		local downPos = linePos - waveOffset * 0.2;
 
 		--Cancel the beam if there's a terrain collision.
-		local trace = Vector(fireVector.X, fireVector.Y):SetMagnitude(self.damageSpeed * 0.1);
+		local trace = Vector(fireVector.X, fireVector.Y):SetMagnitude(var.damageSpeed * 0.1);
 
 		local strSumRay = SceneMan:CastStrengthSumRay(downPos, downPos + trace, 3, 160);
-		self.hits = self.hits + math.sqrt(strSumRay);
+		var.hits = var.hits + math.sqrt(strSumRay);
 
 		if SceneMan:GetTerrMatter(upPos.X, upPos.Y) == rte.airID then
 			--Add the blue wave effect.
@@ -99,7 +105,7 @@ function Update(self)
 		frontB.Vel = (fireVector + waveOffset) * 0.04;
 		MovableMan:AddParticle(frontB);
 
-		if i % self.damageInterval == 0 then
+		if i % var.damageInterval == 0 then
 			local pos = {upPos, downPos};
 			local hitID = rte.NoMOID;
 			for i = 1, #pos do
@@ -126,15 +132,15 @@ function Update(self)
 
 					local rootMO = mo:GetRootParent();
 					if i == 2 and IsActor(rootMO) then
-						local melter = self.melter:Clone();
+						local melter = var.melter:Clone();
 						melter.Pos = hitPos;
 						melter.Team = self.Team;
 						melter.Sharpness = rootMO.ID;
-						melter.PinStrength = self.disintegrationStrength;
+						melter.PinStrength = var.disintegrationStrength;
 						MovableMan:AddMO(melter);
 					end
 
-					self.hits = self.hits + (i == 2 and math.sqrt(mo.Material.StructuralIntegrity) + math.sqrt(mo.Radius + mo.Mass) * 0.1 or 1);
+					var.hits = var.hits + (i == 2 and math.sqrt(mo.Material.StructuralIntegrity) + math.sqrt(mo.Radius + mo.Mass) * 0.1 or 1);
 					
 					--Add the dissipate effect.
 					local effect = CreateAEmitter("Techion.rte/Laser Dissipate Effect");
@@ -145,18 +151,18 @@ function Update(self)
 			end
 		end
 
-		if (self.lastAmplitude > 0 and amplitude < 0) or (self.lastAmplitude < 0 and amplitude > 0) then
+		if (var.lastAmplitude > 0 and amplitude < 0) or (var.lastAmplitude < 0 and amplitude > 0) then
 			local part = CreateMOPixel("Techion.rte/Dihelical Cannon Large Effect Particle");
-			part.Pos = linePos - Vector(self.direction.X, self.direction.Y):SetMagnitude(2);
+			part.Pos = linePos - Vector(var.direction.X, var.direction.Y):SetMagnitude(2);
 			part.Vel = fireVector * 0.1;
 			MovableMan:AddParticle(part);
 		end
 
-		self.lastAmplitude = amplitude;
-		if self.hits > self.strengthThreshold then
+		var.lastAmplitude = amplitude;
+		if var.hits > var.strengthThreshold then
 
 			local effect = CreateAEmitter("Techion.rte/Dihelical Cannon Impact Particle");
-			effect.Pos = linePos - Vector(self.direction.X, self.direction.Y):SetMagnitude(2);
+			effect.Pos = linePos - Vector(var.direction.X, var.direction.Y):SetMagnitude(2);
 			effect.Team = self.Team;
 			effect.IgnoresTeamHits = true;
 			MovableMan:AddParticle(effect);
@@ -164,12 +170,12 @@ function Update(self)
 			self.ToDelete = true;
 			break;
 		else
-			self.hits = self.hits * 0.9;
+			var.hits = var.hits * 0.9;
 		end
 
-		self.flaceLength = self.flaceLength * (1 + 0.05/self.flaceLength);
-		self.maxAmplitude = self.flaceLength * 0.5;
+		var.flaceLength = var.flaceLength * (1 + 0.05/var.flaceLength);
+		var.maxAmplitude = var.flaceLength * 0.5;
 	end
 	
-	self.lastI = endPoint;
+	var.lastI = endPoint;
 end

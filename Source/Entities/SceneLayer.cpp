@@ -45,6 +45,7 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Clear() {
 	m_WrapY = true;
 	m_OriginOffset.Reset();
 	m_Offset.Reset();
+	m_ZOrder = 0.0F;
 	m_ScrollInfo.SetXY(1.0F, 1.0F);
 	m_ScrollRatio.SetXY(1.0F, 1.0F);
 	m_ScaleFactor.SetXY(1.0F, 1.0F);
@@ -510,6 +511,8 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::DrawTiled(const Box& target
 		glUniform1i(maskedUniformLocation, 0);
 	}
 
+	rlZDepth(m_ZOrder);
+
 	for (int tiledOffsetX = 0; tiledOffsetX < areaToCoverX;) {
 		float destX = targetBox.GetCorner().GetFloorIntX() + tiledOffsetX - m_Offset.GetFloorIntX();
 
@@ -536,6 +539,8 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::DrawTiled(const Box& target
 		}
 		tiledOffsetX += bitmapWidth;
 	}
+
+	rlZDepth(c_DefaultDrawDepth);
 
 	if (!m_DrawMasked) {
 		rlDrawRenderBatchActive();

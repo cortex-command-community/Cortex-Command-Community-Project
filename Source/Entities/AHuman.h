@@ -301,7 +301,7 @@ namespace RTE {
 		/// this only works if nothing is held at all, or the FG arm holds a
 		/// one-handed device, or we're in inventory mode.
 		/// @return Whether a shield was successfully equipped in the background arm.
-		bool EquipShieldInBGArm();
+		bool EquipShieldInBGArm(bool depositToFront = false);
 
 		/// Tries to equip the first dual-wieldable in inventory to the background arm;
 		/// this only works if nothing is held at all, or the FG arm holds a

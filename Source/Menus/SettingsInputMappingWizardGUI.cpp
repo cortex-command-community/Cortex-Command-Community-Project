@@ -40,8 +40,8 @@ SettingsInputMappingWizardGUI::SettingsInputMappingWizardGUI(GUIControlManager* 
 	m_InputWizardScreenBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxInputMappingWizard"));
 	m_InputWizardTitleLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelPlayerInputMappingWizardTitle"));
 
-	int dpadDiagramBitampCount = 13;
-	ContentFile("Base.rte/GUIs/Controllers/D-Pad.png").GetAsAnimation(m_DPadDiagramBitmaps, dpadDiagramBitampCount, COLORCONV_8_TO_32);
+	int dpadDiagramBitmapCount = 13;
+	ContentFile("Base.rte/GUIs/Controllers/D-Pad.png").GetAsAnimation(m_DPadDiagramBitmaps, dpadDiagramBitmapCount, COLORCONV_8_TO_32);
 
 	int analogDiagramBitmapCount = 23;
 	ContentFile("Base.rte/GUIs/Controllers/DualAnalogDS.png").GetAsAnimation(m_DualAnalogDSDiagramBitmaps, analogDiagramBitmapCount, COLORCONV_8_TO_32);
@@ -708,6 +708,46 @@ bool SettingsInputMappingWizardGUI::UpdateMouseAndKeyboardConfigSequence() {
 				m_ConfigStepChange = false;
 			}
 			if (!m_ConfigFinished && m_NewInputScheme.CaptureKeyMapping(InputElements::INPUT_WEAPON_CHANGE_NEXT)) {
+				return true;
+			}
+			break;
+		case 13:
+			if (m_ConfigStepChange) {
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PRIMARY WEAPON HOTKEY");
+				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[V]");
+				m_ConfigStepChange = false;
+			}
+			if (!m_ConfigFinished && m_NewInputScheme.CaptureKeyMapping(InputElements::INPUT_WEAPON_PRIMARY_HOTKEY)) {
+				return true;
+			}
+			break;
+		case 14:
+			if (m_ConfigStepChange) {
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("AUXILIARY WEAPON HOTKEY");
+				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[B]");
+				m_ConfigStepChange = false;
+			}
+			if (!m_ConfigFinished && m_NewInputScheme.CaptureKeyMapping(InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY)) {
+				return true;
+			}
+			break;
+		case 15:
+			if (m_ConfigStepChange) {
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PRIMARY ACTOR HOTKEY");
+				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[X]");
+				m_ConfigStepChange = false;
+			}
+			if (!m_ConfigFinished && m_NewInputScheme.CaptureKeyMapping(InputElements::INPUT_ACTOR_PRIMARY_HOTKEY)) {
+				return true;
+			}
+			break;
+		case 16:
+			if (m_ConfigStepChange) {
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("AUXILIARY ACTOR HOTKEY");
+				m_WizardManualConfigScreen.ConfigStepRecommendedKeyLabel->SetText("[O]");
+				m_ConfigStepChange = false;
+			}
+			if (!m_ConfigFinished && m_NewInputScheme.CaptureKeyMapping(InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY)) {
 				m_ConfigFinished = true;
 				return true;
 			}
@@ -1020,41 +1060,41 @@ bool SettingsInputMappingWizardGUI::UpdateGamepadAnalogConfigSequence() {
 			break;
 		case 16:
 			if (m_ConfigStepChange) {
-				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PICK UP DEVICE");
-				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[D-Pad Up]");
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PRIMARY WEAPON HOTKEY");
+				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[D-Pad Right]");
 				m_ConfigStepChange = false;
 			}
-			if (m_NewInputScheme.CaptureJoystickMapping(m_ConfiguringGamepadIndex, InputElements::INPUT_WEAPON_PICKUP)) {
+			if (m_NewInputScheme.CaptureJoystickMapping(m_ConfiguringGamepadIndex, InputElements::INPUT_WEAPON_PRIMARY_HOTKEY)) {
 				return true;
 			}
 			break;
 		case 17:
 			if (m_ConfigStepChange) {
-				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("DROP DEVICE");
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("AUXILIARY WEAPON HOTKEY");
 				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[D-Pad Down]");
 				m_ConfigStepChange = false;
 			}
-			if (m_NewInputScheme.CaptureJoystickMapping(m_ConfiguringGamepadIndex, InputElements::INPUT_WEAPON_DROP)) {
+			if (m_NewInputScheme.CaptureJoystickMapping(m_ConfiguringGamepadIndex, InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY)) {
 				return true;
 			}
 			break;
 		case 18:
 			if (m_ConfigStepChange) {
-				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("NEXT DEVICE");
-				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[D-Pad Right]");
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PRIMARY ACTOR HOTKEY");
+				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[D-Pad Up]");
 				m_ConfigStepChange = false;
 			}
-			if (m_NewInputScheme.CaptureJoystickMapping(m_ConfiguringGamepadIndex, InputElements::INPUT_WEAPON_CHANGE_NEXT)) {
+			if (m_NewInputScheme.CaptureJoystickMapping(m_ConfiguringGamepadIndex, InputElements::INPUT_ACTOR_PRIMARY_HOTKEY)) {
 				return true;
 			}
 			break;
 		case 19:
 			if (m_ConfigStepChange) {
-				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("PREVIOUS DEVICE");
+				m_WizardManualConfigScreen.ConfigStepDescriptionLabel->SetText("AUXILIARY ACTOR HOTKEY");
 				m_WizardManualConfigScreen.GamepadConfigStepRecommendedInputLabel->SetText("[D-Pad Left]");
 				m_ConfigStepChange = false;
 			}
-			if (m_NewInputScheme.CaptureJoystickMapping(m_ConfiguringGamepadIndex, InputElements::INPUT_WEAPON_CHANGE_PREV)) {
+			if (m_NewInputScheme.CaptureJoystickMapping(m_ConfiguringGamepadIndex, InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY)) {
 				return true;
 			}
 			break;

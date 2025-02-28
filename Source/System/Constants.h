@@ -142,6 +142,14 @@ namespace RTE {
 	    1.0f, -1.0f, 1.0f, 1.0f,
 	    -1.0f, 1.0f, 0.0f, 0.0f,
 	    -1.0f, -1.0f, 0.0f, 1.0f};
+
+	static constexpr float c_GuiDepth = -100.0f;
+	static constexpr float c_DefaultDrawDepth = 0.0f;
+	static constexpr float c_TerrainBGDepth = 50.0f;
+	static constexpr float c_BackgroundDepth = 100.0f;
+
+	static constexpr float c_FarDepth = 200.0f;
+	static constexpr float c_NearDepth = -200.0f;
 #pragma endregion
 
 #pragma region Math Constants

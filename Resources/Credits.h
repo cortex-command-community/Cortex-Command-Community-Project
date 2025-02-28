@@ -8,7 +8,8 @@ R"(- C O R T E X   C O M M A N D   C O M M U N I T Y   P R O J E C T -
 
 Programming
 3 4 3 N
-A L B E R T O  " T H E P A W N "  K U R T Y A N
+A L B E R T O   " T H E P A W N "   K U R T Y A N
+B I T   G H O S T
 C O M R A D E S H O O K
 E V G E N I Y   " W E E G E E "   V I G O V S K I Y
 F R I S 0 U M A N

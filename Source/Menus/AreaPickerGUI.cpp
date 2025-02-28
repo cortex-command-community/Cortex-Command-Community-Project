@@ -201,10 +201,10 @@ void AreaPickerGUI::UpdateAreasList(std::string selectAreaName) {
 		Scene* pScene = g_SceneMan.GetScene();
 		int indexToSelect = 0;
 		// Add all the current Scene's Area:s to the list!
-		for (std::list<Scene::Area>::iterator itr = pScene->m_AreaList.begin(); itr != pScene->m_AreaList.end(); ++itr) {
-			m_pAreasList->AddItem((*itr).GetName());
+		for (std::list<Scene::Area*>::iterator itr = pScene->m_AreaList.begin(); itr != pScene->m_AreaList.end(); ++itr) {
+			m_pAreasList->AddItem((*itr)->GetName());
 			// If an Area's name matches the one we're supposed to leave selected after update, then save teh index
-			if ((*itr).GetName() == selectAreaName)
+			if ((*itr)->GetName() == selectAreaName)
 				m_SelectedAreaIndex = indexToSelect;
 			indexToSelect++;
 		}

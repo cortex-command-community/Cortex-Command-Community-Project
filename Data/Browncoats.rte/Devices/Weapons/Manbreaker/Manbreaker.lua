@@ -211,7 +211,7 @@ function Create(self)
 	end
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	self.preSound.Pos = self.Pos;
 	self.overheatLoopSound.Pos = self.Pos;
 	self.overheatFixSound.Pos = self.Pos;

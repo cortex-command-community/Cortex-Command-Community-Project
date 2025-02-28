@@ -68,6 +68,14 @@ namespace RTE {
 		/// @param getsHitByMOsOnly Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.
 		/// @return A vector of MOIDs that are potentially overlapping the x and y coordinates.
 		const std::vector<int>& GetMOIDsAtPosition(int x, int y, int ignoreTeam, bool getsHitByMOsOnly) const;
+
+		/// Get a vector of pointers to all the MovableObjects that are potentially overlapping the given X and Y Scene coordinates.
+		/// @param x The X coordinate to check.
+		/// @param y The Y coordinate to check.
+		/// @param ignoreTeam The team to ignore when getting MOs.
+		/// @param getsHitByMOsOnly Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.
+		/// @return A vector of pointers to all MovableObjects within the given x and y coordinates, who aren't of the ignored team.
+		std::vector<MovableObject*> GetMOsAtPosition(int x, int y, int ignoreTeam, bool getsHitByMOsOnly) const;
 #pragma endregion
 
 	private:
