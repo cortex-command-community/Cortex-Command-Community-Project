@@ -60,6 +60,7 @@ function ConstructorIsInPlan(buildPlan, xPos, yPos)
 	for blockSize, blockPlan in pairs(buildPlan) do
 		for majorX, column in pairs(blockPlan) do
 			for majorY, cell in pairs(column) do
+				-- TODO: This could maybe be made more efficient by skipping columns and cells if they are distant, but only in larger sets I think
 				for blockIndex, block in ipairs(cell) do
 					local blockPosX = majorX * blockSize + block.X;
 					local blockPosY = majorY * blockSize + block.Y;
@@ -80,11 +81,11 @@ end
 
 do
 	--[[
-	01110
-	11011
+	11111
 	10001
-	11011
-	01110
+	10001
+	10001
+	11111
 	]]
 	local neighbor16 = {
 		{ X = -1, Y = -2 },
@@ -106,9 +107,9 @@ do
 	};
 
 	--[[
-	010
+	111
 	101
-	010
+	111
 	]]
 	local neighbor8 = {
 		{ X = 1, Y = 0 },
@@ -186,8 +187,8 @@ function Create(self)
 	self.buildsPerSecond = 100;
 	self.buildSound = CreateSoundContainer("Geiger Click", "Base.rte");
 
-	self.buildDistance = 400; -- pixel distance
-	self.digDistance = 200; -- pixel distance
+	self.buildDistance = 360; -- pixel distance
+	self.digDistance = 120; -- pixel distance
 	self.minFillDistance = 5; -- block distance
 	self.maxFillDistance = 6; -- block distance
 	self.tunnelFillDelay = 30000 + 30000 * (1 - ActivityMan:GetActivity().Difficulty/GameActivity.MAXDIFFICULTY);
@@ -277,16 +278,20 @@ end
 
 function OnAttach(self, newParent)
 	local rootParent = self:GetRootParent();
+
 	if IsActor(rootParent) and MovableMan:IsActor(rootParent) then
 		local pieMenu = ToActor(rootParent).PieMenu;
 		local subPieMenuPieSlice = pieMenu:GetFirstPieSliceByPresetName("Constructor Options");
+
 		if subPieMenuPieSlice ~= nil then
 			pieMenu = subPieMenuPieSlice.SubPieMenu;
 		end
 
 		local mode = self:GetStringValue("ConstructorMode");
 		local pieSliceToAddPresetName = mode == "Dig" and "Constructor Spray Mode" or "Constructor Dig Mode";
+		local pieSliceToRemovePresetName = mode == "Dig" and "Constructor Dig Mode" or "Constructor Spray Mode";
 		pieMenu:AddPieSliceIfPresetNameIsUnique(CreatePieSlice(pieSliceToAddPresetName, self.ModuleName), self);
+		pieMenu:RemovePieSlicesByPresetName(pieSliceToRemovePresetName);
 	end
 end
 
@@ -454,11 +459,11 @@ function Update(self)
 
 							for x = 1, 3 do
 								for y = 1, 3 do
-									local checkPos = ConstructorWrapPos(Vector(digPos.X - 2 + x, digPos.Y - 2 + y));
+									local checkPos = ConstructorWrapPos(Vector(digPos.X - 1 + x, digPos.Y - 1 + y));
 									local terrCheck = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y);
 									local material = SceneMan:GetMaterialFromID(terrCheck);
 
-									if material.StructuralIntegrity <= self.digStrength and material.StructuralIntegrity <= self.digStrength * RangeRand(0.5, 1.05) then
+									if material.StructuralIntegrity <= self.digStrength and material.StructuralIntegrity <= self.digStrength * RangeRand(0.5, 1.10) then
 										local px = SceneMan:DislodgePixel(checkPos.X, checkPos.Y);
 
 										if px then
@@ -536,6 +541,7 @@ function Update(self)
 		local displayColorRed = 13;
 		local displayColorWhite = 254;
 		local displayColorGreen = 145;
+		local displayColorOrange = 47;
 
 		if self.displayTimer:IsPastSimMS(100) then
 			self.displayTimer:Reset();
@@ -545,6 +551,7 @@ function Update(self)
 			displayColorRed = 12;
 			displayColorWhite = 252;
 			displayColorGreen = 147;
+			displayColorOrange = 48;
 		end
 
 		if self.cursor then
@@ -768,27 +775,25 @@ function Update(self)
 					ultraHighBoundY = math.max(tempInfo.greatestY + _, ultraHighBoundY);
 				end
 
+				local bluePrintDisplayColor = self:GetStringValue("ConstructorMode") ~= "Spray" and displayColorRed or displayColorBlue;
+
 				local corner = Vector(ultraLowBoundX - 3, ultraLowBoundY - 3);
-				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector( 5,  0), displayColorBlue);
-				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector( 0,  5), displayColorBlue);
+				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector( 5,  0), bluePrintDisplayColor);
+				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector( 0,  5), bluePrintDisplayColor);
 				corner = Vector(ultraLowBoundX - 3, ultraHighBoundY + 2);
-				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector( 5,  0), displayColorBlue);
-				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector( 0, -5), displayColorBlue);
+				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector( 5,  0), bluePrintDisplayColor);
+				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector( 0, -5), bluePrintDisplayColor);
 				corner = Vector(ultraHighBoundX + 2, ultraHighBoundY + 2);
-				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector(-5,  0), displayColorBlue);
-				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector( 0, -5), displayColorBlue);
+				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector(-5,  0), bluePrintDisplayColor);
+				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector( 0, -5), bluePrintDisplayColor);
 				corner = Vector(ultraHighBoundX + 2, ultraLowBoundY - 3);
-				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector(-5,  0), displayColorBlue);
-				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector( 0,  5), displayColorBlue);
+				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector(-5,  0), bluePrintDisplayColor);
+				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector( 0,  5), bluePrintDisplayColor);
 
 				for _, tempList in pairs(self.tempLists) do
 					for i, block in pairs(tempList) do
 						if not self.operatedByAI then
-							if SceneMan:ShortestDistance(actor.Pos, Vector(block[1], block[2]), true):MagnitudeIsLessThan(self.buildDistance) then
-								PrimitiveMan:DrawBoxPrimitive(screen, Vector(block[1], block[2]), Vector(block[1] + _ - 1, block[2] + _ - 1), displayColorBlue);
-							else
-								PrimitiveMan:DrawBoxPrimitive(screen, Vector(block[1], block[2]), Vector(block[1] + _ - 1, block[2] + _ - 1), displayColorRed);
-							end
+							PrimitiveMan:DrawBoxPrimitive(screen, Vector(block[1], block[2]), Vector(block[1] + _ - 1, block[2] + _ - 1), bluePrintDisplayColor);
 						end
 					end
 				end
@@ -802,12 +807,14 @@ function Update(self)
 			end
 		end
 
+		-- Draw all build orders
 		for i, buildOrder in pairs(self.buildOrders) do
 			buildSequence = buildOrder.buildSequence;
 			buildLists = buildOrder.buildLists;
 			buildInfo = buildOrder.buildInfo;
 
 			local displayColor = displayColorGreen;
+			local unavailableColor = displayColorRed;
 			
 			for _, blockIndex in ipairs(buildSequence) do
 				local size = blockIndex[1];
@@ -820,6 +827,7 @@ function Update(self)
 				local block = cell[cellIndex];
 				local fullX = majorX * size + block.X;
 				local fullY = majorY * size + block.Y;
+
 				if not self.operatedByAI then
 					if SceneMan:ShortestDistance(actor.Pos, Vector(fullX + size / 2, fullY + size / 2), true):MagnitudeIsLessThan(self.buildDistance) then
 						PrimitiveMan:DrawBoxPrimitive(screen, Vector(fullX, fullY), Vector(fullX + size - 1, fullY + size - 1), displayColor);
@@ -830,18 +838,18 @@ function Update(self)
 			end
 
 			local corner = Vector(buildInfo.ultraLowBoundX - 3, buildInfo.ultraLowBoundY - 3);
-			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector( 4,  0), corner, corner + Vector( 0,  4), displayColor);
+			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector( 2,  0), corner, corner + Vector( 0,  2), displayColor);
 
 			corner = Vector(buildInfo.ultraLowBoundX - 3, buildInfo.ultraHighBoundY + 2);
-			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector( 4,  0), corner, corner + Vector( 0, -4), displayColor);
+			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector( 2,  0), corner, corner + Vector( 0, -2), displayColor);
 
 			corner = Vector(buildInfo.ultraHighBoundX + 2, buildInfo.ultraHighBoundY + 2);
-			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector(-4,  0), corner, corner + Vector( 0, -4), displayColor);
+			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector(-2,  0), corner, corner + Vector( 0, -2), displayColor);
 
 			corner = Vector(buildInfo.ultraHighBoundX + 2, buildInfo.ultraLowBoundY - 3);
-			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector(-4,  0), corner, corner + Vector( 0,  4), displayColor);
+			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector(-2,  0), corner, corner + Vector( 0,  2), displayColor);
 
-			-- only act upon the first item in the list
+			-- But only act upon the first item listed
 			if i == 1 then
 				if buildSequence[1] then
 					if self.resource >= self.buildCost then
@@ -913,7 +921,7 @@ function Update(self)
 									end
 
 									if screen ~= -1 then
-										PrimitiveMan:DrawLinePrimitive(screen, self.Pos, buildPos, displayColorBlue);
+										PrimitiveMan:DrawLinePrimitive(screen, self.Pos, buildPos, displayColor);
 									end
 
 									self.buildSound.Volume = totalCost;
@@ -942,7 +950,8 @@ function Update(self)
 			digLists = digOrder.buildLists;
 			digInfo = digOrder.buildInfo;
 
-			local displayColor = displayColorRed;
+			local displayColor = displayColorOrange;
+			local unavailableColor = displayColorRed;
 			
 			for _, blockIndex in ipairs(digSequence) do
 				local size = blockIndex[1];
@@ -959,27 +968,52 @@ function Update(self)
 					if SceneMan:ShortestDistance(actor.Pos, Vector(fullX + size / 2, fullY + size / 2), true):MagnitudeIsLessThan(self.digDistance) then
 						PrimitiveMan:DrawBoxPrimitive(screen, Vector(fullX, fullY), Vector(fullX + size - 1, fullY + size - 1), displayColor);
 					else
-						PrimitiveMan:DrawBoxPrimitive(screen, Vector(fullX, fullY), Vector(fullX + size - 1, fullY + size - 1), displayColorRed);
+						PrimitiveMan:DrawBoxPrimitive(screen, Vector(fullX, fullY), Vector(fullX + size - 1, fullY + size - 1), unavailableColor);
 					end
 				end
 			end
 
 			local corner = Vector(digInfo.ultraLowBoundX - 3, digInfo.ultraLowBoundY - 3);
-			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector( 4,  0), corner, corner + Vector( 0,  4), displayColor);
+			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector( 2,  0), corner, corner + Vector( 0,  2), displayColor);
 
 			corner = Vector(digInfo.ultraLowBoundX - 3, digInfo.ultraHighBoundY + 2);
-			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector( 4,  0), corner, corner + Vector( 0, -4), displayColor);
+			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector( 2,  0), corner, corner + Vector( 0, -2), displayColor);
 
 			corner = Vector(digInfo.ultraHighBoundX + 2, digInfo.ultraHighBoundY + 2);
-			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector(-4,  0), corner, corner + Vector( 0, -4), displayColor);
+			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector(-2,  0), corner, corner + Vector( 0, -2), displayColor);
 
 			corner = Vector(digInfo.ultraHighBoundX + 2, digInfo.ultraLowBoundY - 3);
-			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector(-4,  0), corner, corner + Vector( 0,  4), displayColor);
+			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector(-2,  0), corner, corner + Vector( 0,  2), displayColor);
 
 			-- only act upon the first item in the list
 			if i == 1 then
 				if digSequence[1] then
-					local blockIndex = digSequence[1];
+					local closest = 1;
+					local leastDistSquared = math.huge;
+					local muzzlePosition = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
+
+					for i, block in pairs(digSequence) do
+						local blockIndex = block;
+						local size = blockIndex[1];
+						local majorX = blockIndex[2];
+						local majorY = blockIndex[3];
+						local cellIndex = blockIndex[4];
+						local grid = digLists[size];
+						local column = grid[majorX];
+						local cell = column[majorY];
+						local block = cell[cellIndex];
+						local fullX = majorX * size + block.X + size / 2;
+						local fullY = majorY * size + block.Y + size / 2;
+						
+						local distSquared = math.pow(fullX - muzzlePosition.X, 2) + math.pow(fullY - muzzlePosition.Y, 2);
+
+						if distSquared < leastDistSquared then
+							leastDistSquared = distSquared;
+							closest = i;
+						end
+					end
+					
+					local blockIndex = digSequence[closest];
 					local size = blockIndex[1];
 					local majorX = blockIndex[2];
 					local majorY = blockIndex[3];
@@ -1002,15 +1036,16 @@ function Update(self)
 							by = by * cellSize - 1;
 							bx = bx * cellSize - 1;
 							local totalCost = 0;
-							local startPos = ConstructorWrapPos(Vector(bx + fullX, by + fullY));
+							local startPos = ConstructorWrapPos(Vector(bx + fullX + math.ceil(cellSize / 2), by + fullY + math.ceil(cellSize / 2)));
 							local digWeightTotal = 0;
 							local totalVel = Vector();
 							local found = 0;
 							local clear = true;
+							local digThreshold = RangeRand(0.5, 4) * self.digStrength;
 
-							for x = 1, cellSize do
-								for y = 1, cellSize do
-									local checkPos = ConstructorWrapPos(Vector(startPos.X + x, startPos.Y + y));
+							for xOffset = -math.ceil(cellSize / 2) + 1, math.floor(cellSize / 2) do
+								for yOffset = -math.ceil(cellSize / 2) + 1, math.floor(cellSize / 2) do
+									local checkPos = ConstructorWrapPos(Vector(startPos.X + xOffset, startPos.Y + yOffset));
 									local terrCheck = SceneMan:GetTerrMatter(checkPos.X, checkPos.Y);
 									local material = SceneMan:GetMaterialFromID(terrCheck);
 
@@ -1018,7 +1053,7 @@ function Update(self)
 										clear = false;
 									end
 
-									if material.StructuralIntegrity <= self.digStrength and material.StructuralIntegrity <= self.digStrength * RangeRand(0.5, 1.05) then
+									if material.StructuralIntegrity <= self.digStrength and material.StructuralIntegrity <= RangeRand(0.5, 1.05) * self.digStrength and material.StructuralIntegrity <= digThreshold then
 										local px = SceneMan:DislodgePixel(checkPos.X, checkPos.Y);
 
 										if px then
@@ -1038,6 +1073,7 @@ function Update(self)
 												px.Lifetime = 1000;
 												speed = speed + (1 - digWeight) * 5;
 												digWeightTotal = digWeightTotal + digWeight;
+												digThreshold = digThreshold - material.StructuralIntegrity;
 											end
 
 											px.IgnoreTerrain = true;
@@ -1063,7 +1099,7 @@ function Update(self)
 
 								local collectFX = CreateMOPixel("Particle Constructor Gather Material" .. (digWeightTotal > 0.5 and " Big" or ""));
 								collectFX.Vel = totalVel/found;
-								collectFX.Pos = Vector(fullX, fullY) + collectFX.Vel * rte.PxTravelledPerFrame;
+								collectFX.Pos = Vector(startPos.X + math.random(cellSize), startPos.Y + math.random(cellSize)) + collectFX.Vel * rte.PxTravelledPerFrame;
 
 								MovableMan:AddParticle(collectFX);
 
@@ -1079,18 +1115,16 @@ function Update(self)
 								end
 
 								if screen ~= -1 then
-									PrimitiveMan:DrawLinePrimitive(screen, self.Pos, digPos, displayColorRed);
+									PrimitiveMan:DrawLinePrimitive(screen, Vector(self.MuzzlePos.X, self.MuzzlePos.Y), digPos, displayColor);
 								end
 
 								if block.C == cellsPerBlock then
-									table.remove(digSequence, 1);
+									table.remove(digSequence, closest);
 								end
 							end
 						else
-							table.remove(digSequence, 1);
+							table.remove(digSequence, closest);
 						end
-					else
-						table.insert(digSequence, table.remove(digSequence, 1));
 					end
 				else
 					table.remove(self.digOrders, 1);
