@@ -122,6 +122,9 @@ do
 		{ X =  1, Y =  1 },
 	};
 
+	-- TODO: This could also be more efficient by only checking necessary pixels.
+	-- It's a given that at least 25% of the 8 and 16 neighbors are inside of the block this is currently checking a pixel of.
+	-- The fast but bulky solution might be translating an x and y offset from block origin to an index for a cached list of neighbor sets.
 	function ConstructorCheckPixelTypeAgainstBuildPlan(buildPlan, xPos, yPos, blockPos, size)
 		if xPos <= blockPos.X + 1 or xPos >= blockPos.X + size - 2
 		or yPos <= blockPos.Y + 1 or yPos >= blockPos.Y + size - 2 then
@@ -152,57 +155,75 @@ do
 end
 
 function Create(self)
+	-- Timers
 	self.displayTimer = Timer();
-
 	self.buildTimer = Timer();
-
-	-- Keep a list of currently active build orders.
-	self.buildOrders = {};
-	self.digOrders = {};
-
-	-- Keep the listings of blocks in various sizes and positions, as well as a cache of corners
-	self.tempLists = {};
-	self.tempInfos = {};
-	self.tempSequence = {};
-
-	self.cellSize = 3;
-	self.buildCost = self.cellSize * self.cellSize + 1;	--How much resource is required per one build cellSize by cellSize px piece
-	self.sprayCost = self.buildCost * 0.5;
-
-	self.buildSize = 24;
-	self.buildSizeMin = self.buildSize/4;
-	self.buildSizeMax = self.buildSize;
-	self.fullBlock = self.buildSize / self.cellSize * self.buildSize / self.cellSize * self.buildCost;	--One full 24x24 block of concrete requires 64 units of resource
-	self.maxResource = 12 * self.fullBlock;
-	self.startResource = 3;
-	self.resource = self.startResource * self.fullBlock;
 	self.tunnelFillTimer = Timer();
 
-	self.clearer = CreateMOSRotating("Constructor Terrain Clearer");
+	-- Keep a list of recorded orders.
+	self.buildOrders = {};
+	self.excavationOrders = {};
 
-	self.digStrength = 200;	--The StructuralIntegrity limit of harvestable materials
+	-- Keep a list of build order sequence as well.
+	self.orderSequence = {};
 
+	-- Keep the listings of blocks in various sizes, as well as the corners of each size, and a sequencing list.
+	self.blueprintBlocksPerSize = {};
+	self.blueprintCornersPerSize = {};
+	self.blueprintSizeSequence = {};
+
+	-- Size of constructor action cell, 3 seems to be optimal.
+	self.cellSize = 3;
+
+	-- Cost of one cell construction against air is 11% more than actual quantity of concrete required for that area.
+	self.cellCost = self.cellSize * self.cellSize + 1;
+	self.sprayCost = self.cellCost * 0.5;
+
+	-- Standard construction block in CC.
+	self.blockSize = 24;
+	self.blockSizeMin = self.blockSize/4;
+	self.blockSizeMax = self.blockSize;
+
+	-- A block costs as much as a cell times the number of cells per block.
+	self.fullBlock = self.blockSize * self.blockSize / (self.cellSize * self.cellSize) * self.cellCost;
+	self.maxResource = 12 * self.fullBlock;
+	self.resource = 3 * self.fullBlock;
+
+	-- Not used presently, but nanolyzer among others use it, so remains in INI.
+	--self.clearer = CreateMOSRotating("Constructor Terrain Clearer");
+
+	-- The StructuralIntegrity limit of harvestable materials, equal to that of concrete.
+	self.digStrength = 200;
+
+	-- The maximum distance from the muzzle which the constructor can dig.
 	self.digLength = 40;
+
 	self.spreadRange = math.rad(self.ParticleSpreadRange);
-	self.buildsPerSecond = 100;
 	self.buildSound = CreateSoundContainer("Geiger Click", "Base.rte");
 
-	self.buildDistance = 360; -- pixel distance
-	self.digDistance = 120; -- pixel distance
-	self.minFillDistance = 5; -- block distance
-	self.maxFillDistance = 6; -- block distance
+	-- Max distances of build and dig orders respectively, in pixels.
+	self.buildDistance = 360;
+	self.excavationDistance = 120;
+
+	-- AI operation data. Probably relevant eventually.
+	self.minFillDistance = 5;
+	self.maxFillDistance = 6;
 	self.tunnelFillDelay = 30000 + 30000 * (1 - ActivityMan:GetActivity().Difficulty/GameActivity.MAXDIFFICULTY);
 
-	self.menu_ignore = false; -- ignore the pie menu button until it's released
-	self.ignorePrimaryWeaponKey = false; -- ignore the weapon primary button until it's released
+	-- For ignoring inputs until release.
+	self.ignorePieMenu = false;
+	self.ignorePrimaryWeaponKey = false;
 
-	-- don't change these
-	self.toAutoBuild = false;
-	self.operatedByAI = false;
+	-- Cursor speed amplification for gamepad input.
 	self.cursorMoveSpeed = 2;
+
+	-- How far we allow the cursor to wander from origin (user).
 	self.maxCursorDist = Vector(FrameMan.PlayerScreenWidth * 0.5 - 6, FrameMan.PlayerScreenHeight * 0.5 - 6);
 
-	-- autobuild for standard units
+	-- Whether the AI is presently pretending to know what it's doing.
+	self.operatedByAI = false;
+
+	-- Autobuild for standard units.
 	self.autoBuildList = {
 		Vector(-3, 1),
 		Vector(-2, 1),
@@ -241,7 +262,7 @@ function Create(self)
 		Vector(4, -8)
 	};
 
-	-- autobuild for brain units
+	-- Autobuild for brain units.
 	self.autoBuildListBrain = {
 		Vector(-2, 2),
 		Vector(-2, 1),
@@ -287,9 +308,15 @@ function OnAttach(self, newParent)
 			pieMenu = subPieMenuPieSlice.SubPieMenu;
 		end
 
-		local mode = self:GetStringValue("ConstructorMode");
-		local pieSliceToAddPresetName = mode == "Dig" and "Constructor Spray Mode" or "Constructor Dig Mode";
-		local pieSliceToRemovePresetName = mode == "Dig" and "Constructor Dig Mode" or "Constructor Spray Mode";
+		local isDigging = self:GetStringValue("ConstructorMode") == "Dig";
+
+		local pieSliceToAddPresetName = isDigging and "Constructor Spray Mode" or "Constructor Dig Mode";
+		local pieSliceToRemovePresetName = isDigging and "Constructor Dig Mode" or "Constructor Spray Mode";
+		pieMenu:AddPieSliceIfPresetNameIsUnique(CreatePieSlice(pieSliceToAddPresetName, self.ModuleName), self);
+		pieMenu:RemovePieSlicesByPresetName(pieSliceToRemovePresetName);
+
+		pieSliceToAddPresetName = isDigging and "Constructor Order Excavation" or "Constructor Order Construction";
+		pieSliceToRemovePresetName = isDigging and "Constructor Order Construction" or "Constructor Order Excavation";
 		pieMenu:AddPieSliceIfPresetNameIsUnique(CreatePieSlice(pieSliceToAddPresetName, self.ModuleName), self);
 		pieMenu:RemovePieSlicesByPresetName(pieSliceToRemovePresetName);
 	end
@@ -300,68 +327,74 @@ function Update(self)
 
 	if actor and IsActor(actor) then
 		actor = ToActor(actor);
+
+		local muzzlePosition = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
 		local ctrl = actor:GetController();
 		local playerControlled = actor:IsPlayerControlled();
 		local screen = ActivityMan:GetActivity():ScreenOfPlayer(ctrl.Player);
 
-		if playerControlled and self.menu_ignore then
+		if playerControlled and self.ignorePieMenu then
 			if not ctrl:IsState(Controller.PIE_MENU_ACTIVE) then
-				self.menu_ignore = false;
+				self.ignorePieMenu = false;
 			end
 		end
 
 		if playerControlled and self.ignorePrimaryWeaponKey then
-			if not ctrl:IsState(Controller.WEAPON_PRIMARY_HOTKEYSTART) then
+			if not ctrl:IsState(Controller.WEAPON_PRIMARY_HOTKEY) then
 				self.ignorePrimaryWeaponKey = false;
 			end
 		end
 
-		if self.Magazine then
-			self.Magazine.RoundCount = math.max(self.resource, 1);
+		local magazine = self.Magazine;
 
-			self.Magazine.Mass = 1 + 29 * (self.resource/self.maxResource);
-			self.Magazine.Scale = 0.5 + (self.resource/self.maxResource) * 0.5;
-
-			local parentWidth = ToMOSprite(actor):GetSpriteWidth();
-			local parentHeight = ToMOSprite(actor):GetSpriteHeight();
-			self.Magazine.Pos = actor.Pos + Vector(-(self.Magazine.Radius * 0.3 + parentWidth * 0.2 - 0.5) * self.FlipFactor, -(self.Magazine.Radius * 0.15 + parentHeight * 0.2)):RadRotate(actor.RotAngle);
-			self.Magazine.RotAngle = actor.RotAngle;
+		if not magazine then
+			magazine = CreateMagazine("Magazine Constructor", self.ModuleName);
+			self.Magazine = magazine;
 		end
 
-		if ctrl:IsState(Controller.PIE_MENU_ACTIVE) then
-			PrimitiveMan:DrawTextPrimitive(screen, actor.AboveHUDPos + Vector(0, 26), "Mode: ".. self:GetStringValue("ConstructorMode"), true, 1);
-		end
+		magazine.RoundCount = math.max(self.resource, 1);
+
+		magazine.Mass = 1 + 29 * (self.resource/self.maxResource);
+		magazine.Scale = 0.5 + (self.resource/self.maxResource) * 0.5;
+
+		local parentWidth = ToMOSprite(actor):GetSpriteWidth();
+		local parentHeight = ToMOSprite(actor):GetSpriteHeight();
+		magazine.Pos = actor.Pos + Vector(-(magazine.Radius * 0.3 + parentWidth * 0.2 - 0.5) * self.FlipFactor, -(magazine.Radius * 0.15 + parentHeight * 0.2)):RadRotate(actor.RotAngle);
+		magazine.RotAngle = actor.RotAngle;
 
 		-- constructor actions if the user is in gold dig mode
 		if playerControlled then
 			self.operatedByAI = false;
-			self.toAutoBuild = true;
 		elseif actor.AIMode == Actor.AIMODE_GOLDDIG then
-			if self.toAutoBuild == false then
-				if self:GetStringValue("ConstructorMode") == "Spray" then
-					self:SetStringValue("ConstructorMode", "Dig");
-				end
+			if self:GetStringValue("ConstructorMode") == "Spray" then
+				self:SetStringValue("ConstructorMode", "Dig");
+			end
+
+			if not self.operatedByAI then
 				if ctrl:IsState(Controller.WEAPON_FIRE) and SceneMan:ShortestDistance(actor.Pos, ConstructorTerrainRay(actor.Pos, Vector(0, 50), 3), true):MagnitudeIsLessThan(30) then
-					self.tunnelFillTimer:Reset();
 					self.operatedByAI = true;
-					self.aiSkillRatio = 1.5 - ActivityMan:GetActivity():GetTeamAISkill(actor.Team)/100;
-					self.toAutoBuild = true;
+
+					self.tunnelFillTimer:Reset();
+					self.aiSkillRatio = 1.5 - ActivityMan:GetActivity():GetTeamAISkill(actor.Team) / 100;
 					self.buildLists = {};
 					local buildscheme = self.autoBuildList;
+
 					if actor:HasObjectInGroup("Brains") then
 						buildscheme = self.autoBuildListBrain;
-						self.buildSize = 12;
+						self.blockSize = 12;
 					else
-						self.buildSize = 24;
+						self.blockSize = 24;
 					end
-					local snappos = ConstructorSnapPos(actor.Pos, self.buildSize);
+
+					local snappos = ConstructorSnapPos(actor.Pos, self.blockSize);
+
 					for i = 1, #buildscheme do
-						local temppos = snappos + Vector(buildscheme[i].X * self.buildSize, buildscheme[i].Y * self.buildSize);
+						local temppos = snappos + Vector(buildscheme[i].X * self.blockSize, buildscheme[i].Y * self.blockSize);
 						local buildThis = {};
 						buildThis[1] = temppos.X;
 						buildThis[2] = temppos.Y;
 						buildThis[3] = 0;
-						buildThis[4] = self.buildSize;
+						buildThis[4] = self.blockSize;
 						self.buildLists[#self.buildLists + 1] = buildThis;
 					end
 				end
@@ -370,7 +403,7 @@ function Update(self)
 			-- constructor actions if it's AI controlled
 			if self.operatedByAI then
 				if self.tunnelFillTimer:IsPastSimMS(self.tunnelFillDelay * self.aiSkillRatio) and #self.buildLists == 0 then
-					self.buildSize = 24;
+					self.blockSize = 24;
 					self.tunnelFillTimer:Reset();
 
 					-- create an empty 2D array, call cells having -1
@@ -386,14 +419,14 @@ function Update(self)
 					local center = math.ceil(((self.maxFillDistance * 2) + 1) * 0.5);
 
 					-- FLOOD FILL!
-					ConstructorFloodFill(center, center, 0, self.maxFillDistance, floodFillListX, ConstructorSnapPos(actor.Pos, self.buildSize), self.buildSize);
+					ConstructorFloodFill(center, center, 0, self.maxFillDistance, floodFillListX, ConstructorSnapPos(actor.Pos, self.blockSize), self.blockSize);
 
 					-- dump the correctly numbered cells into the build table
 					for x = 1, #floodFillListX do
 						for y = 1, #floodFillListX do
 							if floodFillListX[x][y] >= self.minFillDistance and floodFillListX[x][y] <= self.maxFillDistance then
-								local mapX = ConstructorSnapPos(actor.Pos, self.buildSize).X + ((center - x) * -self.buildSize);
-								local mapY = ConstructorSnapPos(actor.Pos, self.buildSize).Y + ((center - y) * -self.buildSize);
+								local mapX = ConstructorSnapPos(actor.Pos, self.blockSize).X + ((center - x) * -self.blockSize);
+								local mapY = ConstructorSnapPos(actor.Pos, self.blockSize).Y + ((center - y) * -self.blockSize);
 								local freeSlot = true;
 								for i = 1, #self.buildLists do
 									if self.buildLists[i] ~= nil and self.buildLists[i][1] == mapX and self.buildLists[i][2] == mapY then
@@ -407,7 +440,7 @@ function Update(self)
 									buildThis[1] = mapX;
 									buildThis[2] = mapY;
 									buildThis[3] = 0;
-									buildThis[4] = self.buildSize;
+									buildThis[4] = self.blockSize;
 									self.buildLists[#self.buildLists + 1] = buildThis;
 								end
 							end
@@ -415,12 +448,10 @@ function Update(self)
 					end
 				end
 			end
-		else
-			self.toAutoBuild = false;
 		end
 
 		if playerControlled and not self.cursor and ctrl:IsState(Controller.WEAPON_PRIMARY_HOTKEYSTART) then
-			self.cursor = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
+			self.cursor = muzzlePosition;
 			-- If the player actively selected this, ignore the pie menu.
 			self.ignorePrimaryWeaponKey = true;
 		end
@@ -436,8 +467,8 @@ function Update(self)
 					if self.resource >= self.sprayCost then
 						local particleCount = 9;
 						for i = 1, particleCount do
-							local spray = CreateMOPixel("Particle Concrete " .. math.random(4), "Base.rte");
-							spray.Pos = self.MuzzlePos;
+							local spray = CreateMOPixel("Particle Concrete " .. math.random(4), self.ModuleName);
+							spray.Pos = muzzlePosition;
 							spray.Vel = self.Vel + Vector(RangeRand(11, 13), 0):RadRotate(angle + RangeRand(-0.5, 0.5) * self.spreadRange);
 							spray.Team = self.Team;
 							spray.IgnoresTeamHits = true;
@@ -450,7 +481,7 @@ function Update(self)
 				else
 					for i = 1, self.RoundsFired do
 						local trace = Vector(self.digLength, 0):RadRotate(angle + RangeRand(-1, 1) * self.spreadRange);
-						local digPos = ConstructorTerrainRay(self.MuzzlePos, trace, 0);
+						local digPos = ConstructorTerrainRay(muzzlePosition, trace, 0);
 
 						if SceneMan:GetTerrMatter(digPos.X, digPos.Y) ~= rte.airID then
 							local digWeightTotal = 0;
@@ -499,7 +530,7 @@ function Update(self)
 							if found > 0 then
 								if digWeightTotal > 0 then
 									digWeightTotal = digWeightTotal/9;
-									self.resource = math.min(self.resource + digWeightTotal * self.buildCost, self.maxResource);
+									self.resource = math.min(self.resource + digWeightTotal * self.cellCost, self.maxResource);
 								end
 
 								local collectFX = CreateMOPixel("Particle Constructor Gather Material" .. (digWeightTotal > 0.5 and " Big" or ""));
@@ -520,18 +551,23 @@ function Update(self)
 		elseif mode == 1 then	-- cancel
 			self:RemoveNumberValue("BuildMode");
 
-			self.buildOrders = {};
-			self.digOrders = {};
-			self.cursor = nil;
+			-- Cancel the last given order
+			local lastIndexOfSequence = #self.orderSequence;
+
+			if lastIndexOfSequence > 0 then
+				local removingExcavation = table.remove(self.orderSequence, lastIndexOfSequence);
+				local target = removingExcavation and self.excavationOrders or self.buildOrders;
+				table.remove(target, #target);
+			end
 		elseif mode == 2 then	-- build
 			self:RemoveNumberValue("BuildMode");
 
 			-- constructor build cursor
 			if playerControlled then
-				self.cursor = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
+				self.cursor = muzzlePosition;
 				-- If the player actively selected this, ignore the pie menu.
 				if ctrl:IsState(Controller.PIE_MENU_ACTIVE) then
-					self.menu_ignore = true;
+					self.ignorePieMenu = true;
 				end
 			end
 		end
@@ -540,6 +576,7 @@ function Update(self)
 		local displayColorYellow = 120;
 		local displayColorRed = 13;
 		local displayColorWhite = 254;
+		local displayColorGray = 254;
 		local displayColorGreen = 145;
 		local displayColorOrange = 47;
 
@@ -550,9 +587,13 @@ function Update(self)
 			displayColorYellow = 116;
 			displayColorRed = 12;
 			displayColorWhite = 252;
+			displayColorGray = 254; -- TODO: Color pick something for this, use it for other player view
 			displayColorGreen = 147;
 			displayColorOrange = 48;
 		end
+		
+		local precise = nil;
+		local map = nil;
 
 		if self.cursor then
 			local cursorMovement = Vector();
@@ -582,24 +623,24 @@ function Update(self)
 			end
 
 			if ctrl:IsState(Controller.WEAPON_CHANGE_NEXT) then
-				self.buildSize = self.buildSize * 2;
+				self.blockSize = self.blockSize * 2;
 
-				if self.buildSize > self.buildSizeMax then
-					self.buildSize = self.buildSizeMin;
+				if self.blockSize > self.blockSizeMax then
+					self.blockSize = self.blockSizeMin;
 				end
 			end
 
 			if ctrl:IsState(Controller.WEAPON_CHANGE_PREV) then
-				self.buildSize = self.buildSize / 2;
+				self.blockSize = self.blockSize / 2;
 
-				if self.buildSize < self.buildSizeMin then
-					self.buildSize = self.buildSizeMax;
+				if self.blockSize < self.blockSizeMin then
+					self.blockSize = self.blockSizeMax;
 				end
 			end
 
-			if not self.tempLists[self.buildSize] then
-				self.tempLists[self.buildSize] = {};
-				self.tempInfos[self.buildSize] = {
+			if not self.blueprintBlocksPerSize[self.blockSize] then
+				self.blueprintBlocksPerSize[self.blockSize] = {};
+				self.blueprintCornersPerSize[self.blockSize] = {
 					leastX = math.huge,
 					greatestX = -math.huge,
 					leastY = math.huge,
@@ -611,27 +652,17 @@ function Update(self)
 				self.cursor = self.cursor + (mouseControlled and cursorMovement or cursorMovement:SetMagnitude(self.cursorMoveSpeed * (aiming and 0.5 or 1)));
 			end
 
-			local precise = nil;
-			
 			if not mouseControlled then
 				precise = aiming;
 			else
 				precise = ctrl:IsState(Controller.WEAPON_AUXILIARY_HOTKEY);
 			end
 
-			local map = Vector();
-
 			if precise then
-				map = Vector(math.floor(self.cursor.X - self.buildSize/2), math.floor(self.cursor.Y - self.buildSize/2));
-				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(2, 2), self.cursor + Vector(-3, -3), displayColorYellow);
-				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(2, -3), self.cursor + Vector(-3, 2), displayColorYellow);
+				map = Vector(math.floor(self.cursor.X - self.blockSize/2), math.floor(self.cursor.Y - self.blockSize/2));
 			else
-				map = ConstructorSnapPos(self.cursor, self.buildSize);
-				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(0, 4), self.cursor + Vector(0, -4), displayColorYellow);
-				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(4, 0), self.cursor + Vector(-4, 0), displayColorYellow);
+				map = ConstructorSnapPos(self.cursor, self.blockSize);
 			end
-
-			PrimitiveMan:DrawBoxPrimitive(screen, map, map + Vector(self.buildSize - 1, self.buildSize - 1), displayColorYellow);
 
 			local dist = SceneMan:ShortestDistance(actor.ViewPoint, self.cursor, true);
 
@@ -643,24 +674,24 @@ function Update(self)
 				self.cursor.Y = actor.ViewPoint.Y + self.maxCursorDist.Y * (dist.Y < 0 and -1 or 1);
 			end
 
-			if (not self.menu_ignore and ctrl:IsState(Controller.PIE_MENU_ACTIVE)) or ctrl:IsState(Controller.ACTOR_NEXT_PREP) or ctrl:IsState(Controller.ACTOR_PREV_PREP) then
+			if (not self.ignorePieMenu and ctrl:IsState(Controller.PIE_MENU_ACTIVE)) or ctrl:IsState(Controller.ACTOR_NEXT_PREP) or ctrl:IsState(Controller.ACTOR_PREV_PREP) then
 				self.cursor = nil;
-				self.tempLists = {};
-				self.tempInfos = {};
-				self.tempSequence = {};
+				self.blueprintBlocksPerSize = {};
+				self.blueprintCornersPerSize = {};
+				self.blueprintSizeSequence = {};
 			elseif playerControlled then
 				-- add blocks to the build queue if the cursor is firing
 				if ctrl:IsState(Controller.WEAPON_FIRE) then
 					local freeSlot = true;
-					local tempList = self.tempLists[self.buildSize];
-					local tempInfo = self.tempInfos[self.buildSize];
+					local tempList = self.blueprintBlocksPerSize[self.blockSize];
+					local tempInfo = self.blueprintCornersPerSize[self.blockSize];
 
-					for _, tempList in pairs(self.tempLists) do
+					for _, tempList in pairs(self.blueprintBlocksPerSize) do
 						for i = 1, #tempList do
 							if
 								tempList[i]
-								and tempList[i][1] <= map.X and tempList[i][1] + _ >= map.X + self.buildSize
-								and tempList[i][2] <= map.Y and tempList[i][2] + _ >= map.Y + self.buildSize
+								and tempList[i][1] <= map.X and tempList[i][1] + _ >= map.X + self.blockSize
+								and tempList[i][2] <= map.Y and tempList[i][2] + _ >= map.Y + self.blockSize
 							then
 								freeSlot = false;
 								break;
@@ -679,58 +710,52 @@ function Update(self)
 						blockDescription[2] = map.Y;
 						table.insert(tempList, blockDescription);
 
-						table.insert(self.tempSequence, self.buildSize);
+						table.insert(self.blueprintSizeSequence, self.blockSize);
 					end
 				end
 			else
 				self.cursor = nil;
-				self.tempLists = {};
-				self.tempInfos = {};
-				self.tempSequence = {};
+				self.blueprintBlocksPerSize = {};
+				self.blueprintCornersPerSize = {};
+				self.blueprintSizeSequence = {};
 			end
 
-			if not self.ignorePrimaryWeaponKey and #self.tempSequence > 0 and ctrl:IsState(Controller.WEAPON_PRIMARY_HOTKEYSTART) then
-				local buildOrder = {};
-
-				-- Use temporary info about block size space to figure out how large a grid can contain requisite block offset data.
-				local buildInfo = {};
+			if not self.ignorePrimaryWeaponKey and #self.blueprintSizeSequence > 0 and ctrl:IsState(Controller.WEAPON_PRIMARY_HOTKEYSTART) then
+				local order = {};
+				local orderInfo = {};
 				
-				buildInfo.ultraLowBoundX = math.huge;
-				buildInfo.ultraLowBoundY = math.huge;
-				buildInfo.ultraHighBoundX = -math.huge;
-				buildInfo.ultraHighBoundY = -math.huge;
-				buildInfo.isTunneling = self:GetStringValue("ConstructorMode") ~= "Spray";
+				orderInfo.ultraLowBoundX = math.huge;
+				orderInfo.ultraLowBoundY = math.huge;
+				orderInfo.ultraHighBoundX = -math.huge;
+				orderInfo.ultraHighBoundY = -math.huge;
 
-				for _, tempInfo in pairs(self.tempInfos) do
-					local tempInfo = self.tempInfos[_];
+				for _, tempInfo in pairs(self.blueprintCornersPerSize) do
+					local tempInfo = self.blueprintCornersPerSize[_];
 
-					buildInfo.ultraLowBoundX = math.min(tempInfo.leastX, buildInfo.ultraLowBoundX);
-					buildInfo.ultraLowBoundY = math.min(tempInfo.leastY, buildInfo.ultraLowBoundY);
-					buildInfo.ultraHighBoundX = math.max(tempInfo.greatestX + _, buildInfo.ultraHighBoundX);
-					buildInfo.ultraHighBoundY = math.max(tempInfo.greatestY + _, buildInfo.ultraHighBoundY);
+					orderInfo.ultraLowBoundX = math.min(tempInfo.leastX, orderInfo.ultraLowBoundX);
+					orderInfo.ultraLowBoundY = math.min(tempInfo.leastY, orderInfo.ultraLowBoundY);
+					orderInfo.ultraHighBoundX = math.max(tempInfo.greatestX + _, orderInfo.ultraHighBoundX);
+					orderInfo.ultraHighBoundY = math.max(tempInfo.greatestY + _, orderInfo.ultraHighBoundY);
 				end
 
-				-- No longer needed.
-				self.tempInfos = {};
-
-				-- The information to build is in the grid.
-				buildOrder.buildInfo = buildInfo;
+				self.blueprintCornersPerSize = {};
+				order.orderInfo = orderInfo;
 
 				-- Localize for speed, probably.
-				local tempLists = self.tempLists;
-				local tempSequence = self.tempSequence;
+				local tempLists = self.blueprintBlocksPerSize;
+				local tempSequence = self.blueprintSizeSequence;
 
 				-- This is the same order we want to actually build it in.
-				buildOrder.buildSequence = tempSequence;
-				buildOrder.buildLists = {};
+				order.orderSequence = tempSequence;
+				order.orderBlockSpaces = {};
 
 				-- Iterate through all blocks in the same order they were placed.
 				for i = 1, #tempSequence do
 					local _ = tempSequence[i];
 
 					-- We can link it right away, tables do not copy assign, shallow or otherwise.
-					local buildList = buildOrder.buildLists[_] or {};
-					buildOrder.buildLists[_] = buildList;
+					local buildList = order.orderBlockSpaces[_] or {};
+					order.orderBlockSpaces[_] = buildList;
 
 					-- Get the block we care about, as well as grid info.
 					local blockInfo = table.remove(tempLists[_], 1);
@@ -752,12 +777,15 @@ function Update(self)
 					tempSequence[i] = {_, blockX, blockY, #buildList[blockX][blockY]};
 				end
 				
-				-- Once the loop is done, every temp block has been transformed into a categorized grid positioned and offset block in buildLists.
-				self.tempLists = {};
-				-- The temp sequences list is also full of tables now, we've linked it to buildSequence as well.
-				self.tempSequence = {};
+				-- Once the loop is done, every temp block has been transformed into a categorized grid positioned and offset block in orderBlockSpaces.
+				self.blueprintBlocksPerSize = {};
+				-- The temp sequences list is also full of tables now, we've linked it to orderSequence as well.
+				self.blueprintSizeSequence = {};
 
-				table.insert(buildInfo.isTunneling and self.digOrders or self.buildOrders, buildOrder);
+				-- Depending on whether the given orders are to build or excavate, change the list and indicate.
+				local isExcavation = self:GetStringValue("ConstructorMode") ~= "Spray";
+				table.insert(self.orderSequence, isExcavation);
+				table.insert(isExcavation and self.excavationOrders or self.buildOrders, order);
 			end
 				
 			if not ctrl:IsState(Controller.WEAPON_PRIMARY_HOTKEY) then
@@ -766,8 +794,8 @@ function Update(self)
 				local ultraHighBoundX = -math.huge;
 				local ultraHighBoundY = -math.huge;
 
-				for _, tempInfo in pairs(self.tempInfos) do
-					local tempInfo = self.tempInfos[_];
+				for _, tempInfo in pairs(self.blueprintCornersPerSize) do
+					local tempInfo = self.blueprintCornersPerSize[_];
 
 					ultraLowBoundX = math.min(tempInfo.leastX, ultraLowBoundX);
 					ultraLowBoundY = math.min(tempInfo.leastY, ultraLowBoundY);
@@ -790,16 +818,14 @@ function Update(self)
 				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector(-5,  0), bluePrintDisplayColor);
 				PrimitiveMan:DrawLinePrimitive(screen, corner, corner + Vector( 0,  5), bluePrintDisplayColor);
 
-				for _, tempList in pairs(self.tempLists) do
+				for _, tempList in pairs(self.blueprintBlocksPerSize) do
 					for i, block in pairs(tempList) do
-						if not self.operatedByAI then
-							PrimitiveMan:DrawBoxPrimitive(screen, Vector(block[1], block[2]), Vector(block[1] + _ - 1, block[2] + _ - 1), bluePrintDisplayColor);
-						end
+						PrimitiveMan:DrawBoxPrimitive(screen, Vector(block[1], block[2]), Vector(block[1] + _ - 1, block[2] + _ - 1), bluePrintDisplayColor);
 					end
 				end
 			end
 			
-			if not ((not self.menu_ignore and ctrl:IsState(Controller.PIE_MENU_ACTIVE)) or ctrl:IsState(Controller.ACTOR_NEXT_PREP) or ctrl:IsState(Controller.ACTOR_PREV_PREP)) and playerControlled then
+			if not ((not self.ignorePieMenu and ctrl:IsState(Controller.PIE_MENU_ACTIVE)) or ctrl:IsState(Controller.ACTOR_NEXT_PREP) or ctrl:IsState(Controller.ACTOR_PREV_PREP)) and playerControlled then
 				-- go through and disable all 41 controller states when moving the build cursor
 				for state = 0, 40 do
 					ctrl:SetState(state, false);
@@ -809,9 +835,9 @@ function Update(self)
 
 		-- Draw all build orders
 		for i, buildOrder in pairs(self.buildOrders) do
-			buildSequence = buildOrder.buildSequence;
-			buildLists = buildOrder.buildLists;
-			buildInfo = buildOrder.buildInfo;
+			buildSequence = buildOrder.orderSequence;
+			buildBlockSpaces = buildOrder.orderBlockSpaces;
+			buildInfo = buildOrder.orderInfo;
 
 			local displayColor = displayColorGreen;
 			local unavailableColor = displayColorRed;
@@ -821,7 +847,7 @@ function Update(self)
 				local majorX = blockIndex[2];
 				local majorY = blockIndex[3];
 				local cellIndex = blockIndex[4];
-				local grid = buildLists[size];
+				local grid = buildBlockSpaces[size];
 				local column = grid[majorX];
 				local cell = column[majorY];
 				local block = cell[cellIndex];
@@ -852,13 +878,13 @@ function Update(self)
 			-- But only act upon the first item listed
 			if i == 1 then
 				if buildSequence[1] then
-					if self.resource >= self.buildCost then
+					if self.resource >= self.cellCost then
 						local blockIndex = buildSequence[1];
 						local size = blockIndex[1];
 						local majorX = blockIndex[2];
 						local majorY = blockIndex[3];
 						local cellIndex = blockIndex[4];
-						local grid = buildLists[size];
+						local grid = buildBlockSpaces[size];
 						local column = grid[majorX];
 						local cell = column[majorY];
 						local block = cell[cellIndex];
@@ -888,18 +914,18 @@ function Update(self)
 										if strengthRatio < 1 and SceneMan:GetMOIDPixel(pos.X, pos.Y) == rte.NoMOID then
 											local name = "";
 
-											local whichBorder = ConstructorCheckPixelTypeAgainstBuildPlan(buildLists, pos.X, pos.Y, { X = fullX, Y = fullY }, size);
+											local whichBorder = ConstructorCheckPixelTypeAgainstBuildPlan(buildBlockSpaces, pos.X, pos.Y, { X = fullX, Y = fullY }, size);
 
 											if whichBorder == 0 then -- Normal
-												name = "Base.rte/Constructor Tile " .. math.random(16);
+												name = "Constructor Tile " .. math.random(16);
 											elseif whichBorder == 1 then -- Inner border
 												self.colorCandidates = { 8, 11, 12, 6, 13 };
-												name = "Base.rte/Constructor Tile " .. self.colorCandidates[math.random(#self.colorCandidates)];
+												name = "Constructor Tile " .. self.colorCandidates[math.random(#self.colorCandidates)];
 											else -- Outter border
-												name = "Base.rte/Constructor Border Tile " .. math.random(4);
+												name = "Constructor Border Tile " .. math.random(4);
 											end
 								
-											local terrainObject = CreateTerrainObject(name);
+											local terrainObject = CreateTerrainObject(name, self.ModuleName);
 											terrainObject.Pos = pos;
 											SceneMan:AddSceneObject(terrainObject);
 											didBuild = true;
@@ -909,14 +935,14 @@ function Update(self)
 								end
 
 								if didBuild then
-									self.resource = self.resource - (self.buildCost * totalCost);
+									self.resource = self.resource - (self.cellCost * totalCost);
 									local buildPos = self.Pos + SceneMan:ShortestDistance(self.Pos, Vector(bx + fullX + (cellSize - 1), by + fullY + (cellSize - 1)), true);
 
 									for otherPlayer = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 										local otherScreen = ActivityMan:GetActivity():ScreenOfPlayer(otherPlayer);
 
 										if otherScreen ~= -1 and (otherScreen == screen or not SceneMan:IsUnseen(buildPos.X, buildPos.Y, ActivityMan:GetActivity():GetTeamOfPlayer(otherPlayer))) then
-											PrimitiveMan:DrawBoxFillPrimitive(otherScreen, Vector(bx + fullX + 1, by + fullY + 1), Vector(bx + fullX + cellSize, by + fullY + cellSize), displayColorWhite);
+											PrimitiveMan:DrawBoxFillPrimitive(otherScreen, Vector(bx + fullX + 1, by + fullY + 1), Vector(bx + fullX + cellSize, by + fullY + cellSize), displayColorGray);
 										end
 									end
 
@@ -941,31 +967,38 @@ function Update(self)
 					end
 				else
 					table.remove(self.buildOrders, 1);
+
+					for i, orderIsExcavation in ipairs(self.orderSequence) do
+						if not orderIsExcavation then
+							table.remove(self.orderSequence, i);
+							break;
+						end
+					end
 				end
 			end
 		end
 
-		for i, digOrder in pairs(self.digOrders) do
-			digSequence = digOrder.buildSequence;
-			digLists = digOrder.buildLists;
-			digInfo = digOrder.buildInfo;
+		for i, digOrder in pairs(self.excavationOrders) do
+			excavationSequence = digOrder.orderSequence;
+			excavationBlockSpaces = digOrder.orderBlockSpaces;
+			excavationInfo = digOrder.orderInfo;
 
 			local displayColor = displayColorOrange;
 			local unavailableColor = displayColorRed;
 			
-			for _, blockIndex in ipairs(digSequence) do
+			for _, blockIndex in ipairs(excavationSequence) do
 				local size = blockIndex[1];
 				local majorX = blockIndex[2];
 				local majorY = blockIndex[3];
 				local cellIndex = blockIndex[4];
-				local grid = digLists[size];
+				local grid = excavationBlockSpaces[size];
 				local column = grid[majorX];
 				local cell = column[majorY];
 				local block = cell[cellIndex];
 				local fullX = majorX * size + block.X;
 				local fullY = majorY * size + block.Y;
 				if not self.operatedByAI then
-					if SceneMan:ShortestDistance(actor.Pos, Vector(fullX + size / 2, fullY + size / 2), true):MagnitudeIsLessThan(self.digDistance) then
+					if SceneMan:ShortestDistance(actor.Pos, Vector(fullX + size / 2, fullY + size / 2), true):MagnitudeIsLessThan(self.excavationDistance) then
 						PrimitiveMan:DrawBoxPrimitive(screen, Vector(fullX, fullY), Vector(fullX + size - 1, fullY + size - 1), displayColor);
 					else
 						PrimitiveMan:DrawBoxPrimitive(screen, Vector(fullX, fullY), Vector(fullX + size - 1, fullY + size - 1), unavailableColor);
@@ -973,35 +1006,37 @@ function Update(self)
 				end
 			end
 
-			local corner = Vector(digInfo.ultraLowBoundX - 3, digInfo.ultraLowBoundY - 3);
+			local corner = Vector(excavationInfo.ultraLowBoundX - 3, excavationInfo.ultraLowBoundY - 3);
 			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector( 2,  0), corner, corner + Vector( 0,  2), displayColor);
 
-			corner = Vector(digInfo.ultraLowBoundX - 3, digInfo.ultraHighBoundY + 2);
+			corner = Vector(excavationInfo.ultraLowBoundX - 3, excavationInfo.ultraHighBoundY + 2);
 			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector( 2,  0), corner, corner + Vector( 0, -2), displayColor);
 
-			corner = Vector(digInfo.ultraHighBoundX + 2, digInfo.ultraHighBoundY + 2);
+			corner = Vector(excavationInfo.ultraHighBoundX + 2, excavationInfo.ultraHighBoundY + 2);
 			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector(-2,  0), corner, corner + Vector( 0, -2), displayColor);
 
-			corner = Vector(digInfo.ultraHighBoundX + 2, digInfo.ultraLowBoundY - 3);
+			corner = Vector(excavationInfo.ultraHighBoundX + 2, excavationInfo.ultraLowBoundY - 3);
 			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector(-2,  0), corner, corner + Vector( 0,  2), displayColor);
 
 			-- only act upon the first item in the list
 			if i == 1 then
-				if digSequence[1] then
+				if excavationSequence[1] then
+					local cellSize = self.cellSize;
+
 					local closest = 1;
 					local leastDistSquared = math.huge;
-					local muzzlePosition = Vector(self.MuzzlePos.X, self.MuzzlePos.Y);
 
-					for i, block in pairs(digSequence) do
-						local blockIndex = block;
+					for i, blockIndex in pairs(excavationSequence) do
 						local size = blockIndex[1];
 						local majorX = blockIndex[2];
 						local majorY = blockIndex[3];
 						local cellIndex = blockIndex[4];
-						local grid = digLists[size];
+
+						local grid = excavationBlockSpaces[size];
 						local column = grid[majorX];
 						local cell = column[majorY];
 						local block = cell[cellIndex];
+
 						local fullX = majorX * size + block.X + size / 2;
 						local fullY = majorY * size + block.Y + size / 2;
 						
@@ -1013,20 +1048,22 @@ function Update(self)
 						end
 					end
 					
-					local blockIndex = digSequence[closest];
+					local blockIndex = excavationSequence[closest];
+
 					local size = blockIndex[1];
 					local majorX = blockIndex[2];
 					local majorY = blockIndex[3];
 					local cellIndex = blockIndex[4];
-					local grid = digLists[size];
+
+					local grid = excavationBlockSpaces[size];
 					local column = grid[majorX];
 					local cell = column[majorY];
 					local block = cell[cellIndex];
+
 					local fullX = majorX * size + block.X;
 					local fullY = majorY * size + block.Y;
 						
-					if SceneMan:ShortestDistance(actor.Pos, Vector(fullX + size / 2, fullY + size / 2), true):MagnitudeIsLessThan(self.digDistance) then
-						local cellSize = self.cellSize;
+					if SceneMan:ShortestDistance(muzzlePosition, Vector(fullX + size / 2, fullY + size / 2), true):MagnitudeIsLessThan(self.excavationDistance) then
 						local oneThirdBlock = size/cellSize;
 						local cellsPerBlock = oneThirdBlock^2;
 
@@ -1094,7 +1131,7 @@ function Update(self)
 							if found > 0 then
 								if digWeightTotal > 0 then
 									digWeightTotal = digWeightTotal/9;
-									self.resource = math.min(self.resource + digWeightTotal * self.buildCost, self.maxResource);
+									self.resource = math.min(self.resource + digWeightTotal * self.cellCost, self.maxResource);
 								end
 
 								local collectFX = CreateMOPixel("Particle Constructor Gather Material" .. (digWeightTotal > 0.5 and " Big" or ""));
@@ -1103,33 +1140,58 @@ function Update(self)
 
 								MovableMan:AddParticle(collectFX);
 
-								self.resource = self.resource - (self.buildCost * totalCost);
+								self.resource = self.resource - (self.cellCost * totalCost);
 								local digPos = self.Pos + SceneMan:ShortestDistance(self.Pos, Vector(bx + fullX + (cellSize - 1), by + fullY + (cellSize - 1)), true);
 
 								for otherPlayer = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 									local otherScreen = ActivityMan:GetActivity():ScreenOfPlayer(otherPlayer);
 
 									if otherScreen ~= -1 and (otherScreen == screen or not SceneMan:IsUnseen(digPos.X, digPos.Y, ActivityMan:GetActivity():GetTeamOfPlayer(otherPlayer))) then
-										PrimitiveMan:DrawBoxFillPrimitive(otherScreen, Vector(bx + fullX + 1, by + fullY + 1), Vector(bx + fullX + cellSize, by + fullY + cellSize), displayColorWhite);
+										PrimitiveMan:DrawBoxFillPrimitive(otherScreen, Vector(bx + fullX + 1, by + fullY + 1), Vector(bx + fullX + cellSize, by + fullY + cellSize), displayColorGray);
 									end
 								end
 
 								if screen ~= -1 then
-									PrimitiveMan:DrawLinePrimitive(screen, Vector(self.MuzzlePos.X, self.MuzzlePos.Y), digPos, displayColor);
+									PrimitiveMan:DrawLinePrimitive(screen, muzzlePosition, digPos, displayColor);
 								end
 
 								if block.C == cellsPerBlock then
-									table.remove(digSequence, closest);
+									table.remove(excavationSequence, closest);
 								end
 							end
 						else
-							table.remove(digSequence, closest);
+							table.remove(excavationSequence, closest);
 						end
 					end
 				else
-					table.remove(self.digOrders, 1);
+					table.remove(self.excavationOrders, 1);
+					
+					for i, orderIsExcavation in ipairs(self.orderSequence) do
+						if orderIsExcavation then
+							table.remove(self.orderSequence, i);
+							break;
+						end
+					end
 				end
 			end
+		end
+
+		if ctrl:IsState(Controller.PIE_MENU_ACTIVE) then
+			PrimitiveMan:DrawTextPrimitive(screen, actor.AboveHUDPos + Vector(0, 26), "Mode: ".. self:GetStringValue("ConstructorMode"), true, 1);
+		end
+
+		if self.cursor then
+			local cursorColor = self:GetStringValue("ConstructorMode") ~= "Spray" and displayColorYellow or displayColorWhite;
+
+			if precise then
+				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(2, 2), self.cursor + Vector(-3, -3), cursorColor);
+				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(2, -3), self.cursor + Vector(-3, 2), cursorColor);
+			else
+				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(0, 4), self.cursor + Vector(0, -4), cursorColor);
+				PrimitiveMan:DrawLinePrimitive(screen, self.cursor + Vector(4, 0), self.cursor + Vector(-4, 0), cursorColor);
+			end
+
+			PrimitiveMan:DrawBoxPrimitive(screen, map, map + Vector(self.blockSize - 1, self.blockSize - 1), cursorColor);
 		end
 
 		if display then
