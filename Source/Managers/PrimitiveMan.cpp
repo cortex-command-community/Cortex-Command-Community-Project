@@ -217,12 +217,12 @@ void PrimitiveMan::DrawTextPrimitive(int player, const Vector& start, const std:
 	SchedulePrimitive(std::make_unique<TextPrimitive>(player, start, text, isSmall, alignment, rotAngle));
 }
 
-void PrimitiveMan::DrawBitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame, bool hFlipped, bool vFlipped) {
-	SchedulePrimitive(std::make_unique<BitmapPrimitive>(player, centerPos, moSprite, rotAngle, frame, hFlipped, vFlipped));
+void PrimitiveMan::DrawBitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame, unsigned int scale, bool hFlipped, bool vFlipped) {
+	SchedulePrimitive(std::make_unique<BitmapPrimitive>(player, centerPos, moSprite, rotAngle, frame, scale, hFlipped, vFlipped));
 }
 
-void PrimitiveMan::DrawBitmapPrimitive(int player, const Vector& centerPos, const std::string& filePath, float rotAngle, bool hFlipped, bool vFlipped) {
-	SchedulePrimitive(std::make_unique<BitmapPrimitive>(player, centerPos, filePath, rotAngle, hFlipped, vFlipped));
+void PrimitiveMan::DrawBitmapPrimitive(int player, const Vector& centerPos, const std::string& filePath, float rotAngle, unsigned int scale, bool hFlipped, bool vFlipped) {
+	SchedulePrimitive(std::make_unique<BitmapPrimitive>(player, centerPos, filePath, rotAngle, scale, hFlipped, vFlipped));
 }
 
 void PrimitiveMan::DrawIconPrimitive(int player, const Vector& centerPos, Entity* entity) {

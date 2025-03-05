@@ -504,9 +504,13 @@ void BitmapPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		return;
 	}
 
-	BITMAP* bitmapToDraw = create_bitmap_ex(8, m_Bitmap->w, m_Bitmap->h);
+	BITMAP* bitmapToDraw = create_bitmap_ex(8, m_Bitmap->w * m_Scale, m_Bitmap->h * m_Scale);
 	clear_to_color(bitmapToDraw, ColorKeys::g_MaskColor);
-	draw_sprite(bitmapToDraw, m_Bitmap, 0, 0);
+	if (m_Scale == 1u) {
+		draw_sprite(bitmapToDraw, m_Bitmap, 0, 0);
+	} else {
+		stretch_sprite(bitmapToDraw, m_Bitmap, 0, 0, m_Bitmap->w * m_Scale, m_Bitmap->h * m_Scale);
+	}
 
 	if (m_HFlipped || m_VFlipped) {
 		BITMAP* flipBitmap = create_bitmap_ex(8, bitmapToDraw->w, bitmapToDraw->h);
