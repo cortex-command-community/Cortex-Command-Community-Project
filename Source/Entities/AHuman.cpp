@@ -2669,8 +2669,6 @@ void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 	circlefill(pTargetBitmap, waypoint.m_X, waypoint.m_Y, 3, g_RedColor);
 	lastPoint = m_PrevPathTarget - targetPos;
 	circlefill(pTargetBitmap, lastPoint.m_X, lastPoint.m_Y, 2, g_YellowGlowColor);
-	lastPoint = m_DigTunnelEndPos - targetPos;
-	circlefill(pTargetBitmap, lastPoint.m_X, lastPoint.m_Y, 2, g_YellowGlowColor);
 	// Radius
 //    waypoint = m_Pos - targetPos;
 //    circle(pTargetBitmap, waypoint.m_X, waypoint.m_Y, m_MoveProximityLimit, g_RedColor);

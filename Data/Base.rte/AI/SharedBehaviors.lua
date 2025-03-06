@@ -432,8 +432,28 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 	local sweepRange = 0;
 	local digState = AHuman.NOTDIGGING;
 	local obstacleState = Actor.PROCEEDING;
-	local Obst = {R_LOW = 1, R_FRONT = 2, R_HIGH = 3, R_UP = 5, L_UP = 6, L_HIGH = 8, L_FRONT = 9, L_LOW = 10};
-	local Facings = {{aim=0, facing=0}, {aim=1.4, facing=1.4}, {aim=1.4, facing=math.pi-1.4}, {aim=0, facing=math.pi}};
+	local Obst = {
+		R_LOW = 1,
+		R_FRONT = 2,
+		R_HIGH = 3,
+		R_UP = 5,
+		L_UP = 6,
+		L_HIGH = 8,
+		L_FRONT = 9,
+		L_LOW = 10
+	};
+	local Facings = {
+		{aim = 0, facing = 0},
+		{aim = 1.4, facing = 1.4},
+		{aim = 1.4, facing = math.pi - 1.4},
+		{aim = 0, facing = math.pi }
+	};
+	local waypointTypes = {
+		NONE = 0,
+		LAST = 1,
+		AIR = 2,
+		DROP = 3,
+	};
 
 	local NeedsNewPath, Waypoint, HasMovePath, Dist, CurrDist;
 	NeedsNewPath = true;
@@ -444,24 +464,30 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 		Waypoint = nil;
 		HasMovePath = false;
 
-		-- ugh
+		-- Check the first item in the move path, if it exists then we have an untyped waypoint, and a move path, of course.
 		for pos in Owner.MovePath do
 			HasMovePath = true;
 			Waypoint = {};
 			Waypoint.Pos = pos;
 			Waypoint.Type = nil;
+
+			-- If it's also the only item in the move path, mark the waypoint the last.
 			if Owner.MovePathSize == 1 then
 				Waypoint.Type = "last";
 			end
+
 			break;
 		end
 
+		-- If we have a waypoint, which is not composed of air
 		if Waypoint ~= nil and Waypoint.Type ~= "air" then
 			local Free = Vector();
 
-			-- only if we have a digging tool
+			-- Then if it's not a drop and we have a digging tool
 			if Waypoint.Type ~= "drop" and Owner:HasObjectInGroup("Tools - Diggers") then
-				local PathSegRay = SceneMan:ShortestDistance(PrevWptPos, Waypoint.Pos, false); -- detect material blocking the path and start digging through it
+				 -- Detect material blocking the path and start digging through it
+				local PathSegRay = SceneMan:ShortestDistance(PrevWptPos, Waypoint.Pos, false);
+
 				if AI.teamBlockState ~= Actor.BLOCKED and SceneMan:CastStrengthRay(PrevWptPos, PathSegRay, 4, Free, 2, rte.doorID, true) then
 					if SceneMan:ShortestDistance(Owner.Pos, Free, false):MagnitudeIsLessThan(Owner.Height*0.4) then	-- check that we're close enough to start digging
 						digState = AHuman.STARTDIG;
@@ -773,7 +799,8 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 								end
 							end
 
-							local tolerance = Owner.MoveProximityLimit;
+							local tolerance = Owner.MoveProximityLimit * 1.6;
+
 							if AI.jump then
 								tolerance = tolerance * 2;
 							end
@@ -798,6 +825,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 									if not AI.flying and Owner.Vel.Largest < 5 then
 										if not Owner.MOMoveTarget then
 											local ProxyWpt = SceneMan:MovePointToGround(Owner:GetLastAIWaypoint(), Owner.Height*0.2, 4);
+
 											if SceneMan:ShortestDistance(Owner.Pos, ProxyWpt, false).Largest < Owner.Height*0.4 then
 												Owner:ClearAIWaypoints();
 												Owner:ClearMovePath();
@@ -948,12 +976,14 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 											SceneMan:CastObstacleRay(Owner.Pos, Trace, FallPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
 
 											local deltaToJump = 5;
+
 											if Owner.Jetpack.JetpackType == AEJetpack.JumpPack then
 												deltaToJump = deltaToJump * 1.4;
 											end
 
 											table.sort(Facings, function(A, B) return A.range < B.range end);
 											local delta = SceneMan:ShortestDistance(Waypoint.Pos, FallPos, false).Magnitude - Facings[1].range;
+
 											if delta < 1 then
 												AI.jump = false;
 											elseif delta > deltaToJump or (AI.flying and Owner.Jetpack.JetpackType == AEJetpack.Standard) then

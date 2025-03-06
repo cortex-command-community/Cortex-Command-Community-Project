@@ -211,7 +211,7 @@ namespace RTE {
 		/// @return A list of the PathNode ids inside the box.
 		std::vector<int> GetNodeIdsInBox(Box box);
 
-		/// Helper function to determine if a node is on solid fround.
+		/// Helper function to determine if a node is on solid ground.
 		/// @param node The node we're checking.
 		/// @return Whether the node is on solid ground.
 		bool NodeIsOnSolidGround(const PathNode& node) const;

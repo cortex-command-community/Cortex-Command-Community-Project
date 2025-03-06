@@ -142,6 +142,7 @@ Round* Magazine::PopNextRound() {
 
 float Magazine::EstimateDigStrength() const {
 	float maxPenetration = 1;
+
 	if (m_pTracerRound) {
 		// Find the next tracer
 		const MovableObject* pBullet = m_pTracerRound->GetNextParticle();

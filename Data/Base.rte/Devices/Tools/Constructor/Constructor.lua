@@ -161,7 +161,7 @@ function Create(self)
 	self.tunnelFillTimer = Timer();
 
 	-- Keep a list of recorded orders.
-	self.buildOrders = {};
+	self.constructionOrders = {};
 	self.excavationOrders = {};
 
 	-- Keep a list of build order sequence as well.
@@ -202,7 +202,7 @@ function Create(self)
 	self.buildSound = CreateSoundContainer("Geiger Click", "Base.rte");
 
 	-- Max distances of build and dig orders respectively, in pixels.
-	self.buildDistance = 360;
+	self.buildDistance = 120;
 	self.excavationDistance = 120;
 
 	-- AI operation data. Probably relevant eventually.
@@ -365,11 +365,40 @@ function Update(self)
 		-- constructor actions if the user is in gold dig mode
 		if playerControlled then
 			self.operatedByAI = false;
-		elseif actor.AIMode == Actor.AIMODE_GOLDDIG then
-			if self:GetStringValue("ConstructorMode") == "Spray" then
+		else
+			local isGoingTo = actor.AIMode == Actor.AIMODE_GOTO;
+			local isGoldDigging = actor.AIMode == Actor.AIMODE_GOLDDIG;
+			
+			if (isGoingTo or isGoldDigging) and self:GetStringValue("ConstructorMode") ~= "Dig" then
 				self:SetStringValue("ConstructorMode", "Dig");
 			end
+			
+			if (isGoldDigging) then
+				if not self.operatedByAI then
+					self.operatedByAI = true;
+				end
 
+				local presentOrderTunneling = self.orderSequence[1];
+
+				if presentOrderTunneling ~= nil then
+					local pressingOrderList = presentOrderTunneling and self.excavationOrders or self.constructionOrders;
+					local order = pressingOrderList[1];
+
+					if order then
+						local orderInfo = order.orderInfo;
+						local topLeftExcavation = Vector(orderInfo.ultraLowBoundX, orderInfo.ultraLowBoundY);
+						local topRightExcavation = Vector(orderInfo.ultraHighBoundX, orderInfo.ultraHighBoundY);
+						local moveGoal = topLeftExcavation + SceneMan:ShortestDistance(topLeftExcavation, topRightExcavation, true) / 2;
+
+						if actor:GetWaypointListSize() > 0 and actor:SceneWaypoints() ~= moveGoal then
+							actor:ClearAIWaypoints();
+							actor:AddAISceneWaypoint(moveGoal);
+						end
+					end
+				end
+			end
+
+			--[[
 			if not self.operatedByAI then
 				if ctrl:IsState(Controller.WEAPON_FIRE) and SceneMan:ShortestDistance(actor.Pos, ConstructorTerrainRay(actor.Pos, Vector(0, 50), 3), true):MagnitudeIsLessThan(30) then
 					self.operatedByAI = true;
@@ -447,7 +476,7 @@ function Update(self)
 						end
 					end
 				end
-			end
+			end--]]
 		end
 
 		if playerControlled and not self.cursor and ctrl:IsState(Controller.WEAPON_PRIMARY_HOTKEYSTART) then
@@ -556,7 +585,7 @@ function Update(self)
 
 			if lastIndexOfSequence > 0 then
 				local removingExcavation = table.remove(self.orderSequence, lastIndexOfSequence);
-				local target = removingExcavation and self.excavationOrders or self.buildOrders;
+				local target = removingExcavation and self.excavationOrders or self.constructionOrders;
 				table.remove(target, #target);
 			end
 		elseif mode == 2 then	-- build
@@ -785,7 +814,7 @@ function Update(self)
 				-- Depending on whether the given orders are to build or excavate, change the list and indicate.
 				local isExcavation = self:GetStringValue("ConstructorMode") ~= "Spray";
 				table.insert(self.orderSequence, isExcavation);
-				table.insert(isExcavation and self.excavationOrders or self.buildOrders, order);
+				table.insert(isExcavation and self.excavationOrders or self.constructionOrders, order);
 			end
 				
 			if not ctrl:IsState(Controller.WEAPON_PRIMARY_HOTKEY) then
@@ -834,20 +863,20 @@ function Update(self)
 		end
 
 		-- Draw all build orders
-		for i, buildOrder in pairs(self.buildOrders) do
-			buildSequence = buildOrder.orderSequence;
-			buildBlockSpaces = buildOrder.orderBlockSpaces;
-			buildInfo = buildOrder.orderInfo;
+		for i, constructionOrder in pairs(self.constructionOrders) do
+			constructionSequence = constructionOrder.orderSequence;
+			constructionBlockSpaces = constructionOrder.orderBlockSpaces;
+			constructionInfo = constructionOrder.orderInfo;
 
 			local displayColor = displayColorGreen;
 			local unavailableColor = displayColorRed;
 			
-			for _, blockIndex in ipairs(buildSequence) do
+			for _, blockIndex in ipairs(constructionSequence) do
 				local size = blockIndex[1];
 				local majorX = blockIndex[2];
 				local majorY = blockIndex[3];
 				local cellIndex = blockIndex[4];
-				local grid = buildBlockSpaces[size];
+				local grid = constructionBlockSpaces[size];
 				local column = grid[majorX];
 				local cell = column[majorY];
 				local block = cell[cellIndex];
@@ -855,7 +884,7 @@ function Update(self)
 				local fullY = majorY * size + block.Y;
 
 				if not self.operatedByAI then
-					if SceneMan:ShortestDistance(actor.Pos, Vector(fullX + size / 2, fullY + size / 2), true):MagnitudeIsLessThan(self.buildDistance) then
+					if SceneMan:ShortestDistance(muzzlePosition, Vector(fullX + size / 2, fullY + size / 2), true):MagnitudeIsLessThan(self.buildDistance) then
 						PrimitiveMan:DrawBoxPrimitive(screen, Vector(fullX, fullY), Vector(fullX + size - 1, fullY + size - 1), displayColor);
 					else
 						PrimitiveMan:DrawBoxPrimitive(screen, Vector(fullX, fullY), Vector(fullX + size - 1, fullY + size - 1), displayColorRed);
@@ -863,35 +892,35 @@ function Update(self)
 				end
 			end
 
-			local corner = Vector(buildInfo.ultraLowBoundX - 3, buildInfo.ultraLowBoundY - 3);
+			local corner = Vector(constructionInfo.ultraLowBoundX - 3, constructionInfo.ultraLowBoundY - 3);
 			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector( 2,  0), corner, corner + Vector( 0,  2), displayColor);
 
-			corner = Vector(buildInfo.ultraLowBoundX - 3, buildInfo.ultraHighBoundY + 2);
+			corner = Vector(constructionInfo.ultraLowBoundX - 3, constructionInfo.ultraHighBoundY + 2);
 			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector( 2,  0), corner, corner + Vector( 0, -2), displayColor);
 
-			corner = Vector(buildInfo.ultraHighBoundX + 2, buildInfo.ultraHighBoundY + 2);
+			corner = Vector(constructionInfo.ultraHighBoundX + 2, constructionInfo.ultraHighBoundY + 2);
 			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector(-2,  0), corner, corner + Vector( 0, -2), displayColor);
 
-			corner = Vector(buildInfo.ultraHighBoundX + 2, buildInfo.ultraLowBoundY - 3);
+			corner = Vector(constructionInfo.ultraHighBoundX + 2, constructionInfo.ultraLowBoundY - 3);
 			PrimitiveMan:DrawTriangleFillPrimitive(screen, corner + Vector(-2,  0), corner, corner + Vector( 0,  2), displayColor);
 
 			-- But only act upon the first item listed
 			if i == 1 then
-				if buildSequence[1] then
+				if constructionSequence[1] then
 					if self.resource >= self.cellCost then
-						local blockIndex = buildSequence[1];
+						local blockIndex = constructionSequence[1];
 						local size = blockIndex[1];
 						local majorX = blockIndex[2];
 						local majorY = blockIndex[3];
 						local cellIndex = blockIndex[4];
-						local grid = buildBlockSpaces[size];
+						local grid = constructionBlockSpaces[size];
 						local column = grid[majorX];
 						local cell = column[majorY];
 						local block = cell[cellIndex];
 						local fullX = majorX * size + block.X;
 						local fullY = majorY * size + block.Y;
 
-						if SceneMan:ShortestDistance(actor.Pos, Vector(fullX + size / 2, fullY + size / 2), true):MagnitudeIsLessThan(self.buildDistance) then
+						if SceneMan:ShortestDistance(muzzlePosition, Vector(fullX + size / 2, fullY + size / 2), true):MagnitudeIsLessThan(self.buildDistance) then
 							local cellSize = self.cellSize;
 							local oneThirdBlock = size/cellSize;
 							local cellsPerBlock = oneThirdBlock^2;
@@ -914,7 +943,7 @@ function Update(self)
 										if strengthRatio < 1 and SceneMan:GetMOIDPixel(pos.X, pos.Y) == rte.NoMOID then
 											local name = "";
 
-											local whichBorder = ConstructorCheckPixelTypeAgainstBuildPlan(buildBlockSpaces, pos.X, pos.Y, { X = fullX, Y = fullY }, size);
+											local whichBorder = ConstructorCheckPixelTypeAgainstBuildPlan(constructionBlockSpaces, pos.X, pos.Y, { X = fullX, Y = fullY }, size);
 
 											if whichBorder == 0 then -- Normal
 												name = "Constructor Tile " .. math.random(16);
@@ -955,21 +984,25 @@ function Update(self)
 									self.buildSound:Play(buildPos);
 
 									if block.C == cellsPerBlock then
-										table.remove(buildSequence, 1);
+										table.remove(constructionSequence, 1);
 									end
 								end
 							else
-								table.remove(buildSequence, 1);
+								table.remove(constructionSequence, 1);
 							end
 						else
-							table.insert(buildSequence, table.remove(buildSequence, 1));
+							table.insert(constructionSequence, table.remove(constructionSequence, 1));
 						end
 					end
 				else
-					table.remove(self.buildOrders, 1);
+					table.remove(self.constructionOrders, 1);
 
 					for i, orderIsExcavation in ipairs(self.orderSequence) do
 						if not orderIsExcavation then
+							if i == 1 then
+								actor:ClearAIWaypoints();
+							end
+
 							table.remove(self.orderSequence, i);
 							break;
 						end
@@ -998,7 +1031,7 @@ function Update(self)
 				local fullX = majorX * size + block.X;
 				local fullY = majorY * size + block.Y;
 				if not self.operatedByAI then
-					if SceneMan:ShortestDistance(actor.Pos, Vector(fullX + size / 2, fullY + size / 2), true):MagnitudeIsLessThan(self.excavationDistance) then
+					if SceneMan:ShortestDistance(muzzlePosition, Vector(fullX + size / 2, fullY + size / 2), true):MagnitudeIsLessThan(self.excavationDistance) then
 						PrimitiveMan:DrawBoxPrimitive(screen, Vector(fullX, fullY), Vector(fullX + size - 1, fullY + size - 1), displayColor);
 					else
 						PrimitiveMan:DrawBoxPrimitive(screen, Vector(fullX, fullY), Vector(fullX + size - 1, fullY + size - 1), unavailableColor);
@@ -1168,6 +1201,10 @@ function Update(self)
 					
 					for i, orderIsExcavation in ipairs(self.orderSequence) do
 						if orderIsExcavation then
+							if i == 1 then
+								actor:ClearAIWaypoints();
+							end
+
 							table.remove(self.orderSequence, i);
 							break;
 						end
