@@ -34,7 +34,7 @@
     <Filter Include="GUI\Wrappers">
       <UniqueIdentifier>{14ff3fdb-4366-4bed-8b6e-ddcf72987b81}</UniqueIdentifier>
     </Filter>
-    <Filter Include="System\StackWalker">
+    <Filter Include="System\backward">
       <UniqueIdentifier>{a8668dc1-51c5-418d-91bf-7ee92f008cb1}</UniqueIdentifier>
     </Filter>
     <Filter Include="external">
@@ -417,18 +417,6 @@
     <ClInclude Include="Source\Entities\PEmitter.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Managers\NetworkClient.h">
-      <Filter>Managers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Managers\NetworkServer.h">
-      <Filter>Managers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Activities\MultiplayerGame.h">
-      <Filter>Activities</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Activities\MultiplayerServerLobby.h">
-      <Filter>Activities</Filter>
-    </ClInclude>
     <ClInclude Include="Source\System\StandardIncludes.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -612,11 +600,8 @@
     <ClInclude Include="Source\System\GameVersion.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\StackWalker\StackWalker.h">
-      <Filter>System\StackWalker</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\System\RTEStackTrace.h">
-      <Filter>System</Filter>
+    <ClInclude Include="Source\System\backward\backward.hpp">
+      <Filter>System\backward</Filter>
     </ClInclude>
     <ClInclude Include="Source\Entities\AEJetpack.h">
       <Filter>Entities</Filter>
@@ -1001,18 +986,6 @@
     <ClCompile Include="Source\Entities\PEmitter.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Managers\NetworkClient.cpp">
-      <Filter>Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Managers\NetworkServer.cpp">
-      <Filter>Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Activities\MultiplayerGame.cpp">
-      <Filter>Activities</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Activities\MultiplayerServerLobby.cpp">
-      <Filter>Activities</Filter>
-    </ClCompile>
     <ClCompile Include="Source\System\StandardIncludes.cpp">
       <Filter>System</Filter>
     </ClCompile>
@@ -1198,12 +1171,6 @@
     </ClCompile>
     <ClCompile Include="Source\System\Semver200\Semver200_parser.cpp">
       <Filter>System\Semver200</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\System\StackWalker\StackWalker.cpp">
-      <Filter>System\StackWalker</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\System\RTEStackTrace.cpp">
-      <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="Source\Renderer\glad\gl.c">
       <Filter>Renderer\glad</Filter>

@@ -426,7 +426,6 @@ void MainMenuGUI::HandleMainScreenInputEvents(const GUIControl* guiEventControl)
 	} else if (guiEventControl == m_MainMenuButtons[MenuButton::MultiplayerButton]) {
 		m_UpdateResult = MainMenuUpdateResult::ActivityStarted;
 		g_GUISound.BackButtonPressSound()->Play();
-		g_ActivityMan.SetStartMultiplayerActivity();
 	} else if (guiEventControl == m_MainMenuButtons[MenuButton::SaveOrLoadGameButton]) {
 		SetActiveMenuScreen(MenuScreen::SaveOrLoadGameScreen);
 	} else if (guiEventControl == m_MainMenuButtons[MenuButton::SettingsButton]) {

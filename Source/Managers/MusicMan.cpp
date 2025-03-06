@@ -1,6 +1,5 @@
 ﻿#include "MusicMan.h"
 
-#include "NetworkClient.h"
 #include "AudioMan.h"
 #include "ConsoleMan.h"
 #include "PresetMan.h"
@@ -128,7 +127,7 @@ bool MusicMan::SetNextDynamicSongSection(const std::string& newSongSectionType, 
 	if (m_NextSongSection) {
 		currentDynamicSongSection = m_NextSongSection->GetPresetName();
 	}
-	
+
 	if (!m_IsPlayingDynamicMusic) {
 		return false;
 	}
@@ -140,7 +139,7 @@ bool MusicMan::SetNextDynamicSongSection(const std::string& newSongSectionType, 
 			m_PreviousSoundContainerSetToFade = false;
 			if (m_PreviousSoundContainer) {
 				m_PreviousSoundContainer->Stop();
-				m_PreviousSoundContainer = nullptr;				
+				m_PreviousSoundContainer = nullptr;
 			}
 		}
 		CyclePlayingSoundContainers(smoothFade);
@@ -158,7 +157,7 @@ bool MusicMan::CyclePlayingSoundContainers(bool smoothFade) {
 	if (m_PreviousSoundContainer) {
 		previousSoundContainer = m_PreviousSoundContainer->GetPresetName();
 	}
-	
+
 	if (m_CurrentSoundContainer && m_CurrentSoundContainer->IsBeingPlayed()) {
 		if (smoothFade) {
 			m_CurrentSoundContainer->FadeOut(static_cast<int>(m_NextSoundContainer->GetMusicPreEntryTime()));

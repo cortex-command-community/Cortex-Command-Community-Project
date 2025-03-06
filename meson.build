@@ -57,7 +57,7 @@ if compiler.get_argument_syntax()== 'gcc' # used for gcc compatible compilers
   buildtype_debug = get_option('debug')
   if buildtype_debug
 
-    extra_args += ['-Wno-unknown-pragmas', '-Wno-deprecated-declarations', '-Wno-misleading-indentation'] # Disable #pragma region complaints and luabind auto_ptr warning
+    extra_args += ['-Wno-write-strings', '-Wno-unknown-pragmas', '-Wno-deprecated-declarations', '-Wno-misleading-indentation'] # Disable #pragma region complaints and luabind auto_ptr warning
 
     if get_option('sane_warnings')
       extra_args += ['-Wno-sign-compare', '-Wno-non-virtual-dtor', '-Wno-parentheses', '-Wno-overloaded-virtual', '-Wno-unused-variable', '-Wno-unused-function']
@@ -203,6 +203,11 @@ if host_machine.system() in ['linux','darwin']
   ]
   if host_machine.system()=='darwin'
     deps += dependency('appleframeworks', modules: ['Foundation'])  
+  endif
+  bfd = compiler.find_library('bfd', required: false)
+  if bfd.found()
+    preprocessor_flags += '-DBACKWARD_HAS_BFD'
+    deps += bfd
   endif
 elif host_machine.system() == 'windows'
   sdl2 = subproject('SDL2-2.26.3')

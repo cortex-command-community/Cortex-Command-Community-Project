@@ -637,7 +637,7 @@ void PieMenu::Draw(BITMAP* targetBitmap, const Vector& targetPos) const {
 	CalculateDrawPosition(targetBitmap, targetPos, drawPos);
 
 	if (m_EnabledState != EnabledState::Disabled) {
-		if (m_DrawBackgroundTransparent && !g_FrameMan.IsInMultiplayerMode()) {
+		if (m_DrawBackgroundTransparent) {
 			g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
 			g_GLResourceMan.UpdateDynamicBitmap(m_BGBitmap, true);
 			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_BGBitmap), drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2, {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
