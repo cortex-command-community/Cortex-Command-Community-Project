@@ -432,6 +432,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 	local sweepRange = 0;
 	local digState = AHuman.NOTDIGGING;
 	local obstacleState = Actor.PROCEEDING;
+
 	local Obst = {
 		R_LOW = 1,
 		R_FRONT = 2,
@@ -440,13 +441,13 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 		L_UP = 6,
 		L_HIGH = 8,
 		L_FRONT = 9,
-		L_LOW = 10
+		L_LOW = 10,
 	};
 	local Facings = {
-		{aim = 0, facing = 0},
-		{aim = 1.4, facing = 1.4},
-		{aim = 1.4, facing = math.pi - 1.4},
-		{aim = 0, facing = math.pi }
+		{ aim = 0, facing = 0 },
+		{ aim = 1.4, facing = 1.4 },
+		{ aim = 1.4, facing = math.pi - 1.4 },
+		{ aim = 0, facing = math.pi },
 	};
 	local waypointTypes = {
 		NONE = 0,
@@ -479,15 +480,18 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 			break;
 		end
 
+		local stuckThreshold = 2.5; -- pixels per second of movement we need to be considered not stuck
+
 		-- If we have a waypoint, which is not composed of air
 		if Waypoint ~= nil and Waypoint.Type ~= "air" then
 			local Free = Vector();
 
 			-- Then if it's not a drop and we have a digging tool
 			if Waypoint.Type ~= "drop" and Owner:HasObjectInGroup("Tools - Diggers") then
-				 -- Detect material blocking the path and start digging through it
+				-- Detect material blocking the path and start digging through it
 				local PathSegRay = SceneMan:ShortestDistance(PrevWptPos, Waypoint.Pos, false);
 
+				-- If we're not blocked and there is material in our path
 				if AI.teamBlockState ~= Actor.BLOCKED and SceneMan:CastStrengthRay(PrevWptPos, PathSegRay, 4, Free, 2, rte.doorID, true) then
 					if SceneMan:ShortestDistance(Owner.Pos, Free, false):MagnitudeIsLessThan(Owner.Height*0.4) then	-- check that we're close enough to start digging
 						digState = AHuman.STARTDIG;
@@ -543,11 +547,8 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 			ArrivedTimer:SetSimTimeLimitMS(0);
 		end
 
-		AverageVel = SharedBehaviors.UpdateAverageVel(Owner, AverageVel);
-
-		local stuckThreshold = 2.5; -- pixels per second of movement we need to be considered not stuck
-
 		-- Cap AverageVel, so if we have a spike in velocity it doesn't take too long to come back down
+		AverageVel = SharedBehaviors.UpdateAverageVel(Owner, AverageVel);
 		AverageVel:CapMagnitude(stuckThreshold * 5)
 
 		-- Reset our stuck timer if we're moving
@@ -578,6 +579,8 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 			NeedsNewPath = true; -- update the path
 		elseif StuckTimer:IsPastSimTimeLimit() then	-- dislodge
 			Owner:SetNumberValue("AI_StuckForTime", StuckTimer.ElapsedSimTimeMS);
+			--print "would you believe me if i said we're stuck";
+
 			if AI.jump then
 				if Owner.Jetpack and Owner.Jetpack.JetTimeLeft < AI.minBurstTime then	-- out of fuel
 					AI.jump = false;
