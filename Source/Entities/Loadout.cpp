@@ -39,17 +39,24 @@ int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 	MatchProperty("DeliveryCraft", {
-		m_pDeliveryCraft = dynamic_cast<const ACraft*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader, true));
+		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader, true);
+		const ACraft* reference = dynamic_cast<const ACraft*>(entityReference);
+		if (entityReference == nullptr || reference != nullptr) {
+			m_pDeliveryCraft = reference;
+		} else {
+			reader.ReportError("Tried to point DeliveryCraft to a non-ACraft type!");
+		}
 	});
 	MatchProperty("_ClearCargoItems", {
 		m_CargoItems.clear();
 	});
 	MatchForwards("AddCargoItem") MatchProperty("_AddCargoItem", {
-		const MovableObject* pCargo = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader, true));
-		if (!pCargo) {
-			m_Complete = false;
+		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader, true);
+		const MovableObject* reference = dynamic_cast<const MovableObject*>(entityReference);
+		if (reference != nullptr) {
+			m_CargoItems.push_back(reference);
 		} else {
-			m_CargoItems.push_back(pCargo);
+			m_Complete = false;
 		}
 	});
 

@@ -192,7 +192,9 @@ int Activity::ReadProperty(const std::string_view& propName, Reader& reader) {
 		for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 			std::string teamNum = std::to_string(team + 1);
 			if (propName == "Team" + teamNum + "Icon") {
-				g_PresetMan.GetEntityPresetFromCharacteristic(reader)->Clone(&m_TeamIcons[team]);
+				Icon* icon = static_cast<Icon*>(g_PresetMan.ReadReflectedPreset(reader));
+				icon->Clone(&m_TeamIcons[team]);
+				delete icon;
 				break;
 			}
 		}
@@ -303,7 +305,7 @@ int Activity::Write(Writer& writer, const Entity& entityReference, HashingData& 
 		std::string teamNum = std::to_string(team + 1);
 		writer.NewDistinctProperty("Team" + teamNum + "Funds", m_TeamFunds[team], reference.m_TeamFunds[team]);
 		writer.NewDistinctProperty("Team" + teamNum + "Name", m_TeamNames[team], reference.m_TeamNames[team]);
-		writer.NewPresetReferenceProperty("Team" + teamNum + "Icon", &m_TeamIcons[team], &reference.m_TeamIcons[team]);
+		writer.NewDistinctHashedProperty("Team" + teamNum + "Icon", m_TeamIcons[team], hashData);
 	}
 
 	writer.NewDistinctHashedProperty("GenericSavedValues", m_SavedValues, hashData);
@@ -335,11 +337,12 @@ HashingData Activity::Hash() const {
 	}
 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-		if (m_TeamActive[team]) {
-			hash ^= std::hash<float>{}(m_TeamFunds[team]) << (4 * team);
-			hash ^= RTE::Hash(m_TeamNames[team]) << (4 * team + 1);
-			hash ^= RTE::Hash(m_TeamIcons[team].GetEntityCharacteristic()) << (4 * team + 2);
-		}
+		hash ^= std::hash<float>{}(m_TeamFunds[team]) << (4 * team);
+		hash ^= RTE::Hash(m_TeamNames[team]) << (4 * team + 1);
+
+		uint64_t teamIconHash = m_TeamIcons[team].Hash().m_Hash;
+		hashData.m_Constituents.push_back(teamIconHash);
+		hash ^= teamIconHash << (4 * team + 2);
 	}
 
 	uint64_t savedValueHash = m_SavedValues.Hash().m_Hash;

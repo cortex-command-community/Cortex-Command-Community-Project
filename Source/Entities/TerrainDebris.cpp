@@ -72,7 +72,8 @@ int TerrainDebris::ReadProperty(const std::string_view& propName, Reader& reader
 	});
 	MatchProperty("DebrisMaterial", {
 		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		if (const Material* reference = dynamic_cast<const Material*>(entityReference)) {
+		const Material* reference = dynamic_cast<const Material*>(entityReference);
+		if (entityReference == nullptr || reference != nullptr) {
 			m_Material = reference;
 		} else {
 			reader.ReportError("Tried to point DebrisMaterial to a non-Material type!");
@@ -80,7 +81,8 @@ int TerrainDebris::ReadProperty(const std::string_view& propName, Reader& reader
 	});
 	MatchProperty("TargetMaterial", {
 		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		if (const Material* reference = dynamic_cast<const Material*>(entityReference)) {
+		const Material* reference = dynamic_cast<const Material*>(entityReference);
+		if (entityReference == nullptr || reference != nullptr) {
 			m_TargetMaterial = reference;
 		} else {
 			reader.ReportError("Tried to point TargetMaterial to a non-Material type!");

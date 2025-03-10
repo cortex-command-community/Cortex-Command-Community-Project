@@ -48,8 +48,13 @@ int Gib::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
 	MatchProperty("GibParticle", {
-		m_GibParticle = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader));
-		RTEAssert(m_GibParticle, "Stream suggests allocating an unallocable type in Gib::Create!");
+		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
+		const MovableObject* reference = dynamic_cast<const MovableObject*>(entityReference);
+		if (entityReference == nullptr || reference != nullptr) {
+			m_GibParticle = reference;
+		} else {
+			reader.ReportError("Tried to point GibParticle to a non-MovableObject type!");
+		}
 	});
 	MatchProperty("Offset", { reader >> m_Offset; });
 	MatchProperty("Count", { reader >> m_Count; });

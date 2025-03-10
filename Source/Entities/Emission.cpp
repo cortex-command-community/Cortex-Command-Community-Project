@@ -60,11 +60,15 @@ int Emission::Create(const Emission& reference) {
 int Emission::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
-	MatchProperty("EmittedParticle",
-	              {
-		              m_pEmission = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPresetFromCharacteristic(reader));
-		              RTEAssert(m_pEmission, "Stream suggests allocating an unallocatable type in AEmitter::Emission::Create!");
-	              });
+	MatchProperty("EmittedParticle", {
+		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
+		const MovableObject* reference = dynamic_cast<const MovableObject*>(entityReference);
+		if (entityReference == nullptr || reference != nullptr) {
+			m_pEmission = reference;
+		} else {
+			reader.ReportError("Tried to point EmittedParticle to a non-MovableObject type!");
+		}
+	});
 	MatchProperty("ParticlesPerMinute", { reader >> m_PPM; });
 	MatchProperty("BurstSize", { reader >> m_BurstSize; });
 	MatchProperty("Spread", { reader >> m_Spread; });
@@ -76,18 +80,16 @@ int Emission::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("ParticleCount", { reader >> m_ParticleCount; });
 	MatchProperty("InheritsVel", { reader >> m_InheritsVel; });
 	MatchProperty("InheritsAngularVel", { reader >> m_InheritsAngularVel; });
-	MatchProperty("StartTimeMS",
-	              {
-		              double startTime;
-		              reader >> startTime;
-		              m_StartTimer.SetSimTimeLimitMS(startTime);
-	              });
-	MatchProperty("StopTimeMS",
-	              {
-		              double stopTime;
-		              reader >> stopTime;
-		              m_StopTimer.SetSimTimeLimitMS(stopTime);
-	              });
+	MatchProperty("StartTimeMS", {
+		double startTime;
+		reader >> startTime;
+		m_StartTimer.SetSimTimeLimitMS(startTime);
+	});
+	MatchProperty("StopTimeMS", {
+		double stopTime;
+		reader >> stopTime;
+		m_StopTimer.SetSimTimeLimitMS(stopTime);
+	});
 
 	EndPropertyList;
 }

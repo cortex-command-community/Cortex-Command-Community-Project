@@ -176,7 +176,8 @@ int MOSprite::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("SettleMaterialDisabled", { reader >> m_SettleMaterialDisabled; });
 	MatchProperty("EntryWound", {
 		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		if (const AEmitter* reference = dynamic_cast<const AEmitter*>(entityReference)) {
+		const AEmitter* reference = dynamic_cast<const AEmitter*>(entityReference);
+		if (entityReference == nullptr || reference != nullptr) {
 			m_pEntryWound = reference;
 		} else {
 			reader.ReportError("Tried to point EntryWound to a non-AEmitter type!");
@@ -184,7 +185,8 @@ int MOSprite::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("ExitWound", {
 		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		if (const AEmitter* reference = dynamic_cast<const AEmitter*>(entityReference)) {
+		const AEmitter* reference = dynamic_cast<const AEmitter*>(entityReference);
+		if (entityReference == nullptr || reference != nullptr) {
 			m_pExitWound = reference;
 		} else {
 			reader.ReportError("Tried to point ExitWound to a non-AEmitter type!");

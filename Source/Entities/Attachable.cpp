@@ -135,7 +135,8 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("JointOffset", { reader >> m_JointOffset; });
 	MatchProperty("BreakWound", {
 		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		if (const AEmitter* reference = dynamic_cast<const AEmitter*>(entityReference)) {
+		const AEmitter* reference = dynamic_cast<const AEmitter*>(entityReference);
+		if (entityReference == nullptr || reference != nullptr) {
 			m_BreakWound = reference;
 		} else {
 			reader.ReportError("Tried to point BreakWound to a non-AEmitter type!");
@@ -143,7 +144,8 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("ParentBreakWound", {
 		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		if (const AEmitter* reference = dynamic_cast<const AEmitter*>(entityReference)) {
+		const AEmitter* reference = dynamic_cast<const AEmitter*>(entityReference);
+		if (entityReference == nullptr || reference != nullptr) {
 			m_ParentBreakWound = reference;
 		} else {
 			reader.ReportError("Tried to point ParentBreakWound to a non-AEmitter type!");

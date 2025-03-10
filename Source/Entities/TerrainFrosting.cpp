@@ -19,7 +19,8 @@ int TerrainFrosting::ReadProperty(const std::string_view& propName, Reader& read
 
 	MatchProperty("FrostingMaterial", {
 		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		if (const Material* reference = dynamic_cast<const Material*>(entityReference)) {
+		const Material* reference = dynamic_cast<const Material*>(entityReference);
+		if (entityReference == nullptr || reference != nullptr) {
 			m_FrostingMaterial = reference;
 		} else {
 			reader.ReportError("Tried to point FrostingMaterial to a non-Material type!");
@@ -27,7 +28,8 @@ int TerrainFrosting::ReadProperty(const std::string_view& propName, Reader& read
 	});
 	MatchProperty("TargetMaterial", {
 		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		if (const Material* reference = dynamic_cast<const Material*>(entityReference)) {
+		const Material* reference = dynamic_cast<const Material*>(entityReference);
+		if (entityReference == nullptr || reference != nullptr) {
 			m_TargetMaterial = reference;
 		} else {
 			reader.ReportError("Tried to point TargetMaterial to a non-Material type!");

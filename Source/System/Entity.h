@@ -269,7 +269,7 @@ namespace RTE {
 
 		/// Sets the name of this Entity's data Preset.
 		/// @param newName A string reference with the display name of this Entity.
-		virtual void SetDisplayName(const std::string& newName, bool calledFromLua = false) {
+		virtual void SetDisplayName(const std::string& newName) {
 			m_DisplayName = newName;
 		}
 

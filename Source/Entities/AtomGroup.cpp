@@ -129,7 +129,8 @@ int AtomGroup::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 	MatchProperty("Material", {
 		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		if (const Material* reference = dynamic_cast<const Material*>(entityReference)) {
+		const Material* reference = dynamic_cast<const Material*>(entityReference);
+		if (entityReference == nullptr || reference != nullptr) {
 			m_Material = reference;
 		} else {
 			reader.ReportError("Tried to point Material to a non-Material type!");
