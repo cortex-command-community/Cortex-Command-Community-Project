@@ -4,10 +4,13 @@
 #include "SceneMan.h"
 #include "ConsoleMan.h"
 #include "MOSprite.h"
+#include "Shader.h"
 
 #include "tracy/Tracy.hpp"
 
 #include <array>
+#include "Draw.h"
+#include "glad/gl.h"
 
 using namespace RTE;
 
@@ -230,29 +233,42 @@ void PrimitiveMan::DrawPrimitives(int player, BITMAP* targetBitmap, const Vector
 	int lastDrawMode = DRAW_MODE_SOLID;
 	DrawBlendMode lastBlendMode = DrawBlendMode::NoBlend;
 	std::array<int, 4> lastBlendAmounts = {BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend};
-
+	GLint currentShader = rlGetShaderCurrent();
+	rlDrawRenderBatchActive();
+	glBlendBarrierKHR();
+	rlEnableAdvancedColorBlend();
+	rlEnableColorBlend();
 	for (const std::unique_ptr<GraphicalPrimitive>& primitive: m_ScheduledPrimitives) {
 		if (int playerToDrawFor = primitive->m_Player; playerToDrawFor == player || playerToDrawFor == -1) {
+			rlDrawRenderBatchActive();
 			if (DrawBlendMode blendMode = primitive->m_BlendMode; blendMode > DrawBlendMode::NoBlend) {
 				if (const std::array<int, 4>& blendAmounts = primitive->m_ColorChannelBlendAmounts; blendMode != lastBlendMode || blendAmounts != lastBlendAmounts) {
-					g_FrameMan.SetColorTable(blendMode, blendAmounts);
+					rlEnableShader(rlGetShaderCurrent());
+					g_FrameMan.SetBlendMode(blendMode);
+					GLint colorUniform = glGetUniformLocation(rlGetShaderCurrent(), "rteColor");
+					glUniform4f(colorUniform, blendAmounts[0] / static_cast<float>(MaxBlend), blendAmounts[1] / static_cast<float>(MaxBlend), blendAmounts[2] / static_cast<float>(MaxBlend), blendAmounts[3] / static_cast<float>(MaxBlend));
+					//g_FrameMan.SetColorTable(blendMode, blendAmounts);
 					lastBlendMode = blendMode;
 					lastBlendAmounts = blendAmounts;
 				}
-				if (lastDrawMode != DRAW_MODE_TRANS) {
-					// Drawing mode is set so blending effects apply to true primitives. For bitmap based primitives it has no effect.
-					drawing_mode(DRAW_MODE_TRANS, nullptr, 0, 0);
-					lastDrawMode = DRAW_MODE_TRANS;
-				}
 			} else {
-				if (lastDrawMode != DRAW_MODE_SOLID) {
-					drawing_mode(DRAW_MODE_SOLID, nullptr, 0, 0);
-					lastDrawMode = DRAW_MODE_SOLID;
-				}
+				g_FrameMan.SetBlendMode(BlendTransparency);
+				rlEnableShader(currentShader);
+				GLint colorUniform = glGetUniformLocation(rlGetShaderCurrent(), "rteColor");
+				glUniform4f(colorUniform, 1.0f, 1.0f, 1.0f, 1.0f);
 				lastBlendMode = DrawBlendMode::NoBlend;
 			}
+			glBlendBarrierKHR();
+			rlZDepth(primitive->m_Depth);
 			primitive->DrawTiled(targetBitmap, targetPos);
 		}
 	}
+	rlDrawRenderBatchActive();
+	rlDisableAdvancedColorBlend();
+	rlSetBlendMode(RL_BLEND_ALPHA);
+	rlEnableShader(currentShader);
+	GLint colorUniform = glGetUniformLocation(rlGetShaderCurrent(), "rteColor");
+	glUniform4f(colorUniform, 1.0f, 1.0f, 1.0f, 1.0f);
+	rlZDepth(c_DefaultDrawDepth);
 	drawing_mode(DRAW_MODE_SOLID, nullptr, 0, 0);
 }
