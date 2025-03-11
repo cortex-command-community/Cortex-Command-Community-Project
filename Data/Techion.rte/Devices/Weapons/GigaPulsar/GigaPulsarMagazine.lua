@@ -11,7 +11,7 @@ function ThreadedUpdate(self)
 		self.smoke = CreateMOSParticle("Tiny Smoke Ball 1");
 		self.smoke.Pos = self.Pos + Vector(math.random(-1, 1), math.random(-1, 1));
 		self.smoke.Vel = self.Vel + Vector(RangeRand(-2, 2), RangeRand(-2, 2));
-		self.smoke.Lifetime = smoke.Lifetime * RangeRand(0.5, 1.0);
+		self.smoke.Lifetime = self.smoke.Lifetime * RangeRand(0.5, 1.0);
 		self:RequestSyncedUpdate();
 	end
 end

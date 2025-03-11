@@ -42,6 +42,7 @@ void MOSprite::Clear() {
 	m_SettleMaterialDisabled = false;
 	m_pEntryWound = 0;
 	m_pExitWound = 0;
+	m_SpriteModified = false;
 }
 
 int MOSprite::Create() {
@@ -235,6 +236,12 @@ void MOSprite::Destroy(bool notInherited) {
 	//    delete m_pEntryWound; Not doing this anymore since we're not owning
 	//    delete m_pExitWound;
 
+	if (m_SpriteModified) {
+		for (BITMAP* sprite : m_aSprite) {
+			destroy_bitmap(sprite);
+		}
+	}
+
 	if (!notInherited)
 		MovableObject::Destroy();
 	Clear();
@@ -346,9 +353,90 @@ Vector MOSprite::RotateOffset(const Vector& offset) const {
 }
 
 Vector MOSprite::UnRotateOffset(const Vector& offset) const {
-	Vector rotOff(offset.GetXFlipped(m_HFlipped));
+	Vector rotOff(offset);
 	rotOff /= const_cast<Matrix&>(m_Rotation);
-	return rotOff;
+	return rotOff.GetXFlipped(m_HFlipped);
+}
+
+int MOSprite::GetSpritePixelIndex(int x, int y, int whichFrame) const {
+	unsigned int clampedFrame = std::max(std::min(whichFrame, static_cast<int>(m_FrameCount) - 1), 0);
+	BITMAP* targetSprite = m_aSprite[clampedFrame];
+	if (is_inside_bitmap(targetSprite, x, y, 0)) {
+		return _getpixel(targetSprite, x, y);
+	}
+	return -1;
+}
+
+std::vector<Vector>* MOSprite::GetAllSpritePixelPositions(const Vector& origin, float angle, bool hflipped, int whichFrame, int ignoreIndex, bool invert, bool includeChildren) {
+	std::vector<Vector>* posList = new std::vector<Vector>();
+	unsigned int clampedFrame = std::max(std::min(whichFrame, static_cast<int>(m_FrameCount) - 1), 0);
+	int spriteSize = m_SpriteDiameter;
+	if (includeChildren && dynamic_cast<MOSRotating*>(this)) {
+		spriteSize = dynamic_cast<MOSRotating*>(this)->GetDiameter();
+	}
+	BITMAP* sprite = m_aSprite[clampedFrame];
+	BITMAP* temp = create_bitmap_ex(8, spriteSize, spriteSize);
+	rectfill(temp, 0, 0, temp->w - 1, temp->h - 1, 0);
+	Vector tempCentre = Vector(temp->w / 2, temp->h / 2);
+	Vector spriteCentre = Vector(sprite->w / 2, sprite->h / 2);
+
+	if (includeChildren) {
+		Draw(temp, m_Pos - tempCentre);
+	} else {
+		Vector offset = (tempCentre + (m_SpriteOffset + spriteCentre).GetXFlipped(m_HFlipped).RadRotate(m_Rotation.GetRadAngle()) - spriteCentre);
+		if (!hflipped) {
+			rotate_scaled_sprite(temp, sprite, offset.m_X, offset.m_Y, ftofix(GetAllegroAngle(-m_Rotation.GetDegAngle())), ftofix(m_Scale));
+		} else {
+			rotate_scaled_sprite_v_flip(temp, sprite, offset.m_X, offset.m_Y, ftofix(GetAllegroAngle(-m_Rotation.GetDegAngle())) + itofix(128), ftofix(m_Scale));
+		}
+	}
+
+	for (int y = 0; y < temp->h; y++) {
+		for (int x = 0; x < temp->w; x++) {
+			int pixelIndex = _getpixel(temp, x, y);
+			if (pixelIndex >= 0 && (pixelIndex != ignoreIndex) != invert) {
+				Vector pixelPos = (Vector(x, y) - tempCentre) + origin;
+				posList->push_back(pixelPos);
+			}
+		}
+	}
+
+	destroy_bitmap(temp);
+	return posList;
+}
+
+bool MOSprite::SetSpritePixelIndex(int x, int y, int whichFrame, int colorIndex, int ignoreIndex, bool invert) {
+	if (!m_SpriteModified) {
+		std::vector<BITMAP*> spriteList;
+
+		for (BITMAP* sprite : m_aSprite) {
+			BITMAP* spriteCopy = create_bitmap_ex(8, sprite->w, sprite->h);
+			rectfill(spriteCopy, 0, 0, spriteCopy->w - 1, spriteCopy->h - 1, 0);
+			draw_sprite(spriteCopy, sprite, 0, 0);
+			spriteList.push_back(spriteCopy);
+		}
+
+		m_aSprite = spriteList;
+		m_SpriteModified = true;
+	}
+
+	unsigned int clampedFrame = std::max(std::min(whichFrame, static_cast<int>(m_FrameCount) - 1), 0);
+	BITMAP* targetSprite = m_aSprite[clampedFrame];
+	if (is_inside_bitmap(targetSprite, x, y, 0) && (ignoreIndex < 0 || (_getpixel(targetSprite, x, y) != ignoreIndex) != invert)) {
+		_putpixel(targetSprite, x, y, colorIndex);
+		return true;
+	}
+	return false;
+}
+
+void MOSprite::SetAllSpritePixelIndexes(int whichFrame, int colorIndex, int ignoreIndex, bool invert) {
+	unsigned int clampedFrame = std::max(std::min(whichFrame, static_cast<int>(m_FrameCount) - 1), 0);
+	BITMAP* targetSprite = m_aSprite[clampedFrame];
+	for (int y = 0; y < targetSprite->h; y++) {
+		for (int x = 0; x < targetSprite->w; x++) {
+			SetSpritePixelIndex(x, y, clampedFrame, colorIndex, ignoreIndex, invert);
+		}
+	}
 }
 
 void MOSprite::Update() {

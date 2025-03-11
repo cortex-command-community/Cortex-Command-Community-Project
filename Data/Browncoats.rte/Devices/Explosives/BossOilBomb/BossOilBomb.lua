@@ -14,7 +14,7 @@ function Create(self)
 	self.HUDVisible = false;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	self.thrownSound.Pos = self.Pos;
 	
 	if self:IsAttached() then

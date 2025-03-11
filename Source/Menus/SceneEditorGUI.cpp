@@ -894,12 +894,6 @@ void SceneEditorGUI::Update() {
 							g_SceneMan.GetTerrain()->CleanAir();
 
 							Vector terrainObjectPos = pTO->GetPos() + pTO->GetBitmapOffset();
-							if (pTO->HasBGColorBitmap()) {
-								g_SceneMan.RegisterTerrainChange(terrainObjectPos.GetFloorIntX(), terrainObjectPos.GetFloorIntY(), pTO->GetBitmapWidth(), pTO->GetBitmapHeight(), ColorKeys::g_MaskColor, true);
-							}
-							if (pTO->HasFGColorBitmap()) {
-								g_SceneMan.RegisterTerrainChange(terrainObjectPos.GetFloorIntX(), terrainObjectPos.GetFloorIntY(), pTO->GetBitmapWidth(), pTO->GetBitmapHeight(), ColorKeys::g_MaskColor, false);
-							}
 
 							// TODO: Make IsBrain function to see if one was placed
 							if (pTO->GetPresetName() == "Brain Vault") {

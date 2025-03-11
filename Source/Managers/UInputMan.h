@@ -77,7 +77,7 @@ namespace RTE {
 		/// Access a specific player's control scheme.
 		/// @param whichPlayer Which player to get the scheme for.
 		/// @return A pointer to the requested player's control scheme. Ownership is NOT transferred!
-		InputScheme* GetControlScheme(int whichPlayer) { return IsInMultiplayerMode() ? &m_ControlScheme[Players::PlayerOne] : &m_ControlScheme.at(whichPlayer); }
+		InputScheme* GetControlScheme(int whichPlayer) { return &m_ControlScheme.at(whichPlayer); }
 
 		/// Get the current device Icon of a specific player's scheme.
 		/// @param whichPlayer Which player to get the scheme device icon of.
@@ -323,7 +323,7 @@ namespace RTE {
 		/// @param player The player to get mouse wheel position for.
 		/// @return The relative mouse wheel position for the specified player.
 		int MouseWheelMovedByPlayer(int player) const {
-			return (IsInMultiplayerMode() && player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_NetworkMouseWheelState[player] : m_MouseWheelChange;
+			return m_MouseWheelChange;
 		}
 
 		/// Return true if there are any mouse button presses at all.
@@ -437,72 +437,6 @@ namespace RTE {
 		bool AnyJoyButtonPress(int whichJoy) const;
 #pragma endregion
 
-#pragma region Network Handling
-		/// Returns true if manager is in multiplayer mode.
-		/// @return True if in multiplayer mode.
-		bool IsInMultiplayerMode() const { return m_OverrideInput; }
-
-		/// Sets the multiplayer mode flag.
-		/// @param value Whether this manager should operate in multiplayer mode.
-		void SetMultiplayerMode(bool value) { m_OverrideInput = value; }
-
-		/// Gets the position of the mouse for a player during network multiplayer.
-		/// @param player The player to get for.
-		/// @return The position of the mouse for the specified player
-		Vector GetNetworkAccumulatedRawMouseMovement(int player);
-
-		/// Sets the position of the mouse for a player during network multiplayer.
-		/// @param player The player to set for.
-		/// @param input The new position of the mouse.
-		void SetNetworkMouseMovement(int player, const Vector& input) { m_NetworkAccumulatedRawMouseMovement[player] += input; }
-
-		/// Sets whether an input element is held by a player during network multiplayer.
-		/// @param player Which player to set for.
-		/// @param element Which input element to set for.
-		/// @param state The new state of the input element. True or false.
-		void SetNetworkInputElementState(int player, int element, bool state);
-
-		/// Sets whether a mouse button is held by a player during network multiplayer.
-		/// @param player Which player to set for.
-		/// @param whichButton Which mouse button to set for.
-		/// @param state The new state of the mouse button. True or false.
-		void SetNetworkMouseButtonHeldState(int player, int whichButton, bool state) { SetNetworkMouseButtonState(player, whichButton, InputState::Held, state); }
-
-		/// Sets whether a mouse button is pressed by a player during network multiplayer.
-		/// @param player Which player to set for.
-		/// @param whichButton Which mouse button to set for.
-		/// @param state The new state of the mouse button. True or false.
-		void SetNetworkMouseButtonPressedState(int player, int whichButton, bool state) { SetNetworkMouseButtonState(player, whichButton, InputState::Pressed, state); }
-
-		/// Sets whether a mouse button is released by a player during network multiplayer.
-		/// @param player Which player to set for.
-		/// @param whichButton Which mouse button to set for.
-		/// @param state The new state of the mouse button. True or false.
-		void SetNetworkMouseButtonReleasedState(int player, int whichButton, bool state) { SetNetworkMouseButtonState(player, whichButton, InputState::Released, state); }
-
-		/// Sets the state of the mouse wheel for a player during network multiplayer.
-		/// @param player The player to set for.
-		/// @param state The new state of the mouse wheel.
-		void SetNetworkMouseWheelState(int player, int state) {
-			if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
-				m_NetworkMouseWheelState[player] += state;
-			}
-		}
-
-		/// Gets whether the specified input element is pressed during network multiplayer.
-		/// @param element The input element to check for.
-		/// @return Whether the specified input element is pressed or not.
-		bool NetworkAccumulatedElementPressed(int element) const { return NetworkAccumulatedElementState(element, InputState::Pressed); }
-
-		/// Gets whether the specified input element is released during network multiplayer.
-		/// @param element The input element to check for.
-		/// @return Whether the specified input element is released or not.
-		bool NetworkAccumulatedElementReleased(int element) const { return NetworkAccumulatedElementState(element, InputState::Released); }
-
-		/// Clears all the accumulated input element states.
-		void ClearNetworkAccumulatedStates();
-#pragma endregion
-
 	private:
 		/// Enumeration for the different states an input element or button can be in.
 		enum InputState {
@@ -554,19 +488,6 @@ namespace RTE {
 		/// This is to avoid having the window fly away because the user clicked the title bar.
 		bool m_PrepareToEnableMouseMoving;
 
-		bool m_NetworkAccumulatedElementState[InputElements::INPUT_COUNT][InputState::InputStateCount]; //!< The state of a client input element during network multiplayer.
-		bool m_NetworkServerChangedInputElementState[Players::MaxPlayerCount][InputElements::INPUT_COUNT]; //!< The server side state of a player's input element during network multiplayer.
-
-		std::array<std::array<bool, InputElements::INPUT_COUNT>, Players::MaxPlayerCount> m_NetworkServerPreviousInputElementState;
-		bool m_NetworkServerChangedMouseButtonState[Players::MaxPlayerCount][MouseButtons::MAX_MOUSE_BUTTONS]; //!< The state of a player's mouse button during network multiplayer.
-		std::array<std::array<bool, InputElements::INPUT_COUNT>, Players::MaxPlayerCount> m_NetworkServerPreviousMouseButtonState;
-
-		Vector m_NetworkAccumulatedRawMouseMovement[Players::MaxPlayerCount]; //!< The position of the mouse for each player during network multiplayer.
-		Vector m_NetworkAnalogMoveData[Players::MaxPlayerCount]; //!< Mouse analog movement data for each player during network multiplayer.
-		int m_NetworkMouseWheelState[Players::MaxPlayerCount]; //!< The position of a player's mouse wheel during network multiplayer.
-
-		bool m_TrapMousePosPerPlayer[Players::MaxPlayerCount]; //!< Whether to trap the mouse position to the middle of the screen for each player during network multiplayer.
-
 		static constexpr double c_GamepadAxisLimit = 32767.0; //!< Maximum axis value as defined by SDL (int16 max).
 		static constexpr int c_AxisDigitalPressedThreshold = 8192; //!< Digital Axis threshold value as defined by allegro.
 		static constexpr int c_AxisDigitalReleasedThreshold = c_AxisDigitalPressedThreshold - 100; //!< Digital Axis release threshold, to debounce values.
@@ -587,8 +508,6 @@ namespace RTE {
 		/// @return Whether the element is in the specified state or not.
 		bool GetInputElementState(int whichPlayer, int whichElement, InputState whichState);
 
-		bool GetNetworkInputElementState(int whichPlayer, int whichElement, InputState whichState);
-
 		/// Gets whether any generic button with the menu cursor is in the specified state.
 		/// @param whichButton Which menu button to check for. See MenuButtons enumeration.
 		/// @param whichState Which state to check for. See InputState enumeration.
@@ -608,13 +527,6 @@ namespace RTE {
 		/// @return Whether the mouse button is in the specified state or not.
 		bool GetMouseButtonState(int whichPlayer, int whichButton, InputState whichState) const;
 
-		/// Gets whether a multiplayer mouse button is in the specified state.
-		/// @param whichPlayer Which player to check for. See Players enumeration.
-		/// @param whichButton Which mouse button to check for. See MouseButtons enumeration.
-		/// @param whichState Which state to check for. See InputState enumeration.
-		/// @return Whether the mouse button is in the specified state or not.
-		bool GetNetworkMouseButtonState(int whichPlayer, int whichButton, InputState whichState) const;
-
 		/// Gets whether a joystick button is in the specified state.
 		/// @param whichJoy Which joystick to check for.
 		/// @param whichButton Which joystick button to check for. See JoyButtons enumeration.
@@ -629,21 +541,6 @@ namespace RTE {
 		/// @param whichState Which state to check for. See InputState enumeration.
 		/// @return Whether the joystick stick axis is in the specified state or not.
 		bool GetJoystickDirectionState(int whichJoy, int whichAxis, int whichDir, InputState whichState) const;
-
-		/// Sets a mouse button for a player to the specified state during network multiplayer.
-		/// @param player Which player to set for. See Players enumeration.
-		/// @param whichButton Which mouse button to set for. See MouseButtons enumeration.
-		/// @param whichState Which input state to set. See InputState enumeration.
-		/// @param newState The new state of the specified InputState. True or false.
-		void SetNetworkMouseButtonState(int player, int whichButton, InputState whichState, bool newState);
-
-		/// Gets whether an input element is in the specified state during network multiplayer.
-		/// @param element Which element to check for. See InputElements enumeration.
-		/// @param whichState Which state to check for. See InputState enumeration.
-		/// @return Whether the element is in the specified state or not.
-		bool NetworkAccumulatedElementState(int element, InputState whichState) const {
-			return (element < InputElements::INPUT_L_UP || element >= InputElements::INPUT_COUNT) ? false : m_NetworkAccumulatedElementState[element][whichState];
-		}
 #pragma endregion
 
 #pragma region Update Breakdown
@@ -668,9 +565,6 @@ namespace RTE {
 		/// Connect a joystick or gamepad device and add it to the joystick list if a slot is available (up to max player count).
 		/// @param deviceIndex The device index (generated by the connected event or a value up to SDL_NumJoysticks()).
 		void HandleGamepadHotPlug(int deviceIndex);
-
-		/// Stores all the input events that happened during this update to be compared to in the next update. This is called from Update().
-		void StoreInputEventsForNextUpdate();
 #pragma endregion
 
 		/// Clears all the member variables of this UInputMan, effectively resetting the members of this abstraction level only.

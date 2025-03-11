@@ -144,11 +144,6 @@ void PostProcessMan::AdjustEffectsPosToPlayerScreen(int playerScreen, BITMAP* ta
 	int occludedOffsetX = targetBitmap->w + screenOcclusionOffsetX;
 	int occludedOffsetY = targetBitmap->h + screenOcclusionOffsetY;
 
-	// Copy post effects received by client if in network mode
-	if (g_FrameMan.GetDrawNetworkBackBuffer()) {
-		GetNetworkPostEffectsList(0, screenRelativeEffectsList);
-	}
-
 	// Adjust for the player screen's position on the final buffer
 	for (const PostEffect& postEffect: screenRelativeEffectsList) {
 		// Make sure we won't be adding any effects to a part of the screen that is occluded by menus and such
@@ -251,24 +246,6 @@ bool PostProcessMan::GetGlowAreasWrapped(const Vector& boxPos, int boxWidth, int
 		}
 	}
 	return foundAny;
-}
-
-void PostProcessMan::GetNetworkPostEffectsList(int whichScreen, std::list<PostEffect>& outputList) {
-	ScreenRelativeEffectsMutex.at(whichScreen).lock();
-	outputList.clear();
-	for (const PostEffect& postEffect: m_ScreenRelativeEffects.at(whichScreen)) {
-		outputList.push_back(PostEffect(postEffect.m_Pos, postEffect.m_Bitmap, postEffect.m_BitmapHash, postEffect.m_Strength, postEffect.m_Angle));
-	}
-	ScreenRelativeEffectsMutex.at(whichScreen).unlock();
-}
-
-void PostProcessMan::SetNetworkPostEffectsList(int whichScreen, std::list<PostEffect>& inputList) {
-	ScreenRelativeEffectsMutex.at(whichScreen).lock();
-	m_ScreenRelativeEffects.at(whichScreen).clear();
-	for (const PostEffect& postEffect: inputList) {
-		m_ScreenRelativeEffects.at(whichScreen).push_back(PostEffect(postEffect.m_Pos, postEffect.m_Bitmap, postEffect.m_BitmapHash, postEffect.m_Strength, postEffect.m_Angle));
-	}
-	ScreenRelativeEffectsMutex.at(whichScreen).unlock();
 }
 
 bool PostProcessMan::GetPostScreenEffects(Vector boxPos, int boxWidth, int boxHeight, std::list<PostEffect>& effectsList, int team) {
