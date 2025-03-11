@@ -216,13 +216,13 @@ HashingData SLTerrain::Hash() const {
 	HashingData hashData(std::move(SceneLayer::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	uint64_t bgColorLayerHash = m_BGColorLayer->Hash().m_Hash;
-	hashData.m_Constituents.push_back(bgColorLayerHash);
-	hash ^= bgColorLayerHash << 0;
-
 	uint64_t backgroundDefaultHash = m_DefaultBGTextureFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(backgroundDefaultHash);
-	hash ^= backgroundDefaultHash << 1;
+	hash ^= backgroundDefaultHash << 0;
+
+	uint64_t bgColorLayerHash = m_BGColorLayer->Hash().m_Hash;
+	hashData.m_Constituents.push_back(bgColorLayerHash);
+	hash ^= bgColorLayerHash << 1;
 
 	uint64_t fgColorLayerHash = m_FGColorLayer->Hash().m_Hash;
 	hashData.m_Constituents.push_back(fgColorLayerHash);

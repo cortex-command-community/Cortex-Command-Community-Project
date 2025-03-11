@@ -122,10 +122,12 @@ int TerrainObject::Save(Writer& writer) const {
 int TerrainObject::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
 	SceneObject::Write(writer, entityReference, hashData);
 
+	const TerrainObject& reference = static_cast<const TerrainObject&>(entityReference);
+
 	writer.NewDistinctHashedProperty("FGColorFile", m_FGColorFile, hashData);
 	writer.NewDistinctHashedProperty("BGColorFile", m_BGColorFile, hashData);
 	writer.NewDistinctHashedProperty("MaterialFile", m_MaterialFile, hashData);
-	writer.NewDistinctHashedProperty("BitmapOffset", m_BitmapOffset, hashData);
+	writer.NewDistinctProperty("BitmapOffset", m_BitmapOffset, reference.m_BitmapOffset);
 	writer.NewSequence("_ClearChildObjects", "_AddChildObject", m_ChildObjects, hashData);
 
 	return 0;

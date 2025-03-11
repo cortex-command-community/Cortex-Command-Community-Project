@@ -217,7 +217,7 @@ void AssemblyEditorGUI::Update() {
 		g_PresetMan.GetAllOfGroup(assemblies, m_pCurrentScheme->GetPresetName(), "BunkerAssembly");
 
 		std::stringstream assemblyName;
-		assemblyName << m_pCurrentScheme->GetPresetName() << " [ " << assemblies.size() << " ]";
+		assemblyName << m_pCurrentScheme->GetDisplayName() << " [ " << assemblies.size() << " ]";
 		selectedAssembly += assemblyName.str();
 	}
 

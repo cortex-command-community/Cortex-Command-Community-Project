@@ -1951,17 +1951,17 @@ void BuyMenuGUI::CategoryChange(bool focusOnCategoryTabs) {
 						if (m_OwnedItems.size() > 0 || m_OnlyShowOwnedItems) {
 							if (GetOwnedItemsAmount((*tItr)->GetModuleAndPresetName()) > 0) {
 								std::string amount = std::to_string(GetOwnedItemsAmount((*tItr)->GetModuleAndPresetName())) + " pcs";
-								m_pShopList->AddItem((*tItr)->GetPresetName(), amount, pItemBitmap, *tItr);
+								m_pShopList->AddItem((*tItr)->GetDisplayName(), amount, pItemBitmap, *tItr);
 							} else {
 								if (!m_OnlyShowOwnedItems)
-									m_pShopList->AddItem((*tItr)->GetPresetName(), (*tItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *tItr);
+									m_pShopList->AddItem((*tItr)->GetDisplayName(), (*tItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *tItr);
 								else {
 									if (m_AlwaysAllowedItems.find((*tItr)->GetModuleAndPresetName()) != m_AlwaysAllowedItems.end())
-										m_pShopList->AddItem((*tItr)->GetPresetName(), (*tItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *tItr);
+										m_pShopList->AddItem((*tItr)->GetDisplayName(), (*tItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *tItr);
 								}
 							}
 						} else {
-							m_pShopList->AddItem((*tItr)->GetPresetName(), (*tItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *tItr);
+							m_pShopList->AddItem((*tItr)->GetDisplayName(), (*tItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *tItr);
 						}
 					}
 				}
@@ -2051,7 +2051,7 @@ bool BuyMenuGUI::DeployLoadout(int index) {
 			if (GetOwnedItemsAmount((*cItr)->GetModuleAndPresetName()) > 0) {
 				canAdd = false;
 				// Add manually with pcs counter
-				AddCartItem((*cItr)->GetPresetName(), "1 pc", pItemBitmap, *cItr);
+				AddCartItem((*cItr)->GetDisplayName(), "1 pc", pItemBitmap, *cItr);
 			} else
 				canAdd = false;
 		}
@@ -2060,16 +2060,16 @@ bool BuyMenuGUI::DeployLoadout(int index) {
 			canAdd = true;
 
 		if (canAdd)
-			AddCartItem((*cItr)->GetPresetName(), (*cItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *cItr);
+			AddCartItem((*cItr)->GetDisplayName(), (*cItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *cItr);
 	}
 	// Now set the craft to what the loadout specifies, if anything
 	if (m_Loadouts[index].GetDeliveryCraft()) {
 		m_pSelectedCraft = m_Loadouts[index].GetDeliveryCraft();
 		// Take into account whether these are native or not, and multiply the cost accordingly
-		m_pCraftBox->SetText(m_pSelectedCraft->GetPresetName());
+		m_pCraftBox->SetText(m_pSelectedCraft->GetDisplayName());
 		m_pCraftBox->SetRightText(m_pSelectedCraft->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult));
 
-		m_pCraftNameLabel->SetText(m_pSelectedCraft->GetPresetName());
+		m_pCraftNameLabel->SetText(m_pSelectedCraft->GetDisplayName());
 		m_pCraftPriceLabel->SetText(m_pSelectedCraft->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult));
 		UpdateTotalPassengersLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftPassengersLabel);
 		UpdateTotalMassLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftMassLabel);
@@ -2189,8 +2189,8 @@ void BuyMenuGUI::AddPresetsToItemList() {
 		pPassenger = 0;
 
 		// Add preset name at the begining to differentiate loadouts from user-defined presets
-		if ((*lItr).GetPresetName() != "None")
-			loadoutLabel = (*lItr).GetPresetName() + ":\n";
+		if ((*lItr).GetDisplayName() != "None")
+			loadoutLabel = (*lItr).GetDisplayName() + ":\n";
 
 		// Go through the cargo setup of each loadout and encode a meaningful label for the list item
 		for (std::list<const SceneObject*>::iterator cItr = (*lItr).GetCargoList()->begin(); cItr != (*lItr).GetCargoList()->end(); ++cItr) {
@@ -2198,7 +2198,7 @@ void BuyMenuGUI::AddPresetsToItemList() {
 			if (cItr != (*lItr).GetCargoList()->begin())
 				loadoutLabel += ", ";
 			// Append the name of the current cargo thing to the label
-			loadoutLabel += (*cItr)->GetPresetName();
+			loadoutLabel += (*cItr)->GetDisplayName();
 			// Adjust price for foreignness of the items to this player
 			loadoutCost += (*cItr)->GetGoldValue(m_NativeTechModule, m_ForeignCostMult);
 			if (!pPassenger)
@@ -2207,7 +2207,7 @@ void BuyMenuGUI::AddPresetsToItemList() {
 
 		// Add the ship's cost, if there is one defined
 		if ((*lItr).GetDeliveryCraft()) {
-			loadoutLabel += " via " + (*lItr).GetDeliveryCraft()->GetPresetName();
+			loadoutLabel += " via " + (*lItr).GetDeliveryCraft()->GetDisplayName();
 			// Adjust price for foreignness of the ship to this player
 			loadoutCost += (*lItr).GetDeliveryCraft()->GetGoldValue(m_NativeTechModule, m_ForeignCostMult);
 		}

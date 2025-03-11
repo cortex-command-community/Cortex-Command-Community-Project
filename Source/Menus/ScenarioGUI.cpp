@@ -168,7 +168,7 @@ void ScenarioGUI::SetSelectedScene(Scene* newSelectedScene) {
 			m_DrawDefaultScenePreview = true;
 		}
 
-		m_SceneNameLabel->SetText(m_SelectedScene->GetPresetName());
+		m_SceneNameLabel->SetText(m_SelectedScene->GetDisplayName());
 
 		Vector sceneSizeMeters = m_SelectedScene->GetDimensions() / c_PPM;
 		std::string sceneDimensions = "Site Dimensions: " + std::to_string(sceneSizeMeters.GetFloorIntX()) + " x " + std::to_string(sceneSizeMeters.GetFloorIntY()) + " meters";
@@ -233,7 +233,7 @@ void ScenarioGUI::FetchActivitiesAndScenesLists() {
 			}
 			m_ScenarioActivities.insert(activityAndCompatibleScenes);
 			// Add to the activity selection ComboBox and attach the activity pointer, not passing in ownership.
-			m_ActivitySelectComboBox->AddItem(presetActivity->GetPresetName(), "", nullptr, presetActivity);
+			m_ActivitySelectComboBox->AddItem(presetActivity->GetDisplayName(), "", nullptr, presetActivity);
 
 			if (prevSelectedActivityIndex < 0 && presetActivity->GetClassName() == "GATutorial") {
 				prevSelectedActivityIndex = index;
@@ -446,7 +446,7 @@ void ScenarioGUI::UpdateHoveredSitePointLabel(int mouseX, int mouseY) {
 			g_GUISound.SelectionChangeSound()->Play();
 			m_HoveredScene = candidateScene;
 
-			m_SitePointNameLabel->SetText(m_HoveredScene->GetPresetName());
+			m_SitePointNameLabel->SetText(m_HoveredScene->GetDisplayName());
 			Vector sceneLabelPos = m_PlanetCenter + Vector(m_HoveredScene->GetLocation() + m_HoveredScene->GetLocationOffset()) - Vector(static_cast<float>(m_SitePointNameLabel->GetWidth() / 2), 0) - Vector(0, static_cast<float>(m_SitePointNameLabel->GetHeight()) * 1.5F);
 			int padding = 5;
 			sceneLabelPos.SetX(static_cast<float>(std::clamp(sceneLabelPos.GetFloorIntX(), padding, m_RootBoxMaxWidth - m_SitePointNameLabel->GetWidth() - padding)));

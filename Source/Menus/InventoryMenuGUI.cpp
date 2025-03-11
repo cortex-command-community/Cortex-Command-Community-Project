@@ -605,7 +605,7 @@ void InventoryMenuGUI::UpdateFullModeEquippedItemButtons() {
 	if (m_GUISelectedItem && m_GUISelectedItem->Button == m_GUIEquippedItemButton && m_GUISelectedItem->DragWasHeldForLongEnough()) {
 		m_GUIEquippedItemButton->SetIconAndText(nullptr, ">>>");
 	} else if (equippedItem) {
-		m_GUIEquippedItemButton->SetIconAndText(equippedItem->GetGraphicalIcon(), equippedItem->GetPresetName());
+		m_GUIEquippedItemButton->SetIconAndText(equippedItem->GetGraphicalIcon(), equippedItem->GetDisplayName());
 	} else {
 		m_GUIEquippedItemButton->SetEnabled(m_GUISelectedItem != nullptr);
 		m_GUIEquippedItemButton->SetIconAndText(nullptr, "> <");
@@ -615,7 +615,7 @@ void InventoryMenuGUI::UpdateFullModeEquippedItemButtons() {
 	if (m_GUISelectedItem && m_GUISelectedItem->Button == m_GUIOffhandEquippedItemButton && m_GUISelectedItem->DragWasHeldForLongEnough()) {
 		m_GUIOffhandEquippedItemButton->SetIconAndText(nullptr, ">>>");
 	} else if (offhandEquippedItem) {
-		m_GUIOffhandEquippedItemButton->SetIconAndText(offhandEquippedItem->GetGraphicalIcon(), offhandEquippedItem->GetPresetName());
+		m_GUIOffhandEquippedItemButton->SetIconAndText(offhandEquippedItem->GetGraphicalIcon(), offhandEquippedItem->GetDisplayName());
 	} else {
 		m_GUIOffhandEquippedItemButton->SetEnabled(m_GUISelectedItem != nullptr);
 		m_GUIOffhandEquippedItemButton->SetIconAndText(nullptr, "> <");
@@ -672,7 +672,7 @@ void InventoryMenuGUI::UpdateFullModeInventoryItemButtons(const std::deque<Movab
 			if (m_GUISelectedItem && m_GUISelectedItem->Button == itemButton && m_GUISelectedItem->DragWasHeldForLongEnough()) {
 				itemButton->SetIconAndText(nullptr, ">>>");
 			} else {
-				itemButton->SetIconAndText(inventoryItem->GetGraphicalIcon(), inventoryItem->GetPresetName());
+				itemButton->SetIconAndText(inventoryItem->GetGraphicalIcon(), inventoryItem->GetDisplayName());
 			}
 		} else if (i > lastPopulatedIndex) {
 			if (!m_GUIShowEmptyRows && inventory->size() < c_FullViewPageItemLimit && ((i - startIndex) >= (inventory->size() + c_ItemsPerRow - (inventory->size() % c_ItemsPerRow)))) {

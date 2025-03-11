@@ -406,7 +406,7 @@ void ObjectPickerGUI::UpdateObjectsList(bool selectTop) {
 			if (moduleID == 0 || m_ExpandedModules.at(moduleID)) {
 				for (SceneObject* objectListEntry: objectList) {
 					GUIBitmap* objectIcon = new AllegroBitmap(objectListEntry->GetGraphicalIcon());
-					m_ObjectsList->AddItem(objectListEntry->GetPresetName(), objectListEntry->GetGoldValueString(m_NativeTechModuleID, m_ForeignCostMult), objectIcon, objectListEntry);
+					m_ObjectsList->AddItem(objectListEntry->GetDisplayName(), objectListEntry->GetGoldValueString(m_NativeTechModuleID, m_ForeignCostMult), objectIcon, objectListEntry);
 				}
 			}
 		}

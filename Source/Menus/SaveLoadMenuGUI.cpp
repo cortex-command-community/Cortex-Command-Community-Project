@@ -116,7 +116,7 @@ void SaveLoadMenuGUI::PopulateSaveGamesList() {
 			              }
 		              }
 
-		              record.Activity = activity.GetPresetName();
+		              record.Activity = activity.GetDisplayName();
 		              record.Scene = originalScenePresetName;
 	              });
 

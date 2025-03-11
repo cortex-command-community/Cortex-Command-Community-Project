@@ -76,9 +76,6 @@ namespace RTE {
 				m_PresetName = m_PresetName.substr(slashPos + 1);
 			}
 
-			// Indicate where this was read from
-			m_DefinedInModule = reader.GetReadModuleID();
-
 			// Set display name, as default, which is safe because display name is written following preset name.
 			m_DisplayName = m_PresetName;
 		});
