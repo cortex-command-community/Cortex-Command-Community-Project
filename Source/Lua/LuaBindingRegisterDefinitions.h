@@ -302,5 +302,6 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(AlarmEvent);
 		LuaBindingRegisterFunctionDeclarationForType(Directions);
 		LuaBindingRegisterFunctionDeclarationForType(DrawBlendMode);
+		LuaBindingRegisterFunctionDeclarationForType(DrawDepth);
 	};
 } // namespace RTE
