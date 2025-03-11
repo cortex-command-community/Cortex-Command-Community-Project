@@ -235,8 +235,10 @@ void PrimitiveMan::DrawPrimitives(int player, BITMAP* targetBitmap, const Vector
 	std::array<int, 4> lastBlendAmounts = {BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend};
 	GLint currentShader = rlGetShaderCurrent();
 	rlDrawRenderBatchActive();
-	glBlendBarrierKHR();
-	rlEnableAdvancedColorBlend();
+	if (GLAD_GL_KHR_blend_equation_advanced_coherent){
+		glBlendBarrierKHR();
+		rlEnableAdvancedColorBlend();
+	}
 	rlEnableColorBlend();
 	for (const std::unique_ptr<GraphicalPrimitive>& primitive: m_ScheduledPrimitives) {
 		if (int playerToDrawFor = primitive->m_Player; playerToDrawFor == player || playerToDrawFor == -1) {
@@ -258,13 +260,17 @@ void PrimitiveMan::DrawPrimitives(int player, BITMAP* targetBitmap, const Vector
 				glUniform4f(colorUniform, 1.0f, 1.0f, 1.0f, 1.0f);
 				lastBlendMode = DrawBlendMode::NoBlend;
 			}
-			glBlendBarrierKHR();
+			if (GLAD_GL_KHR_blend_equation_advanced_coherent) {
+				glBlendBarrierKHR();
+			}
 			rlZDepth(primitive->m_Depth);
 			primitive->DrawTiled(targetBitmap, targetPos);
 		}
 	}
 	rlDrawRenderBatchActive();
-	rlDisableAdvancedColorBlend();
+	if (GLAD_GL_KHR_blend_equation_advanced_coherent) {
+		rlDisableAdvancedColorBlend();
+	}
 	rlSetBlendMode(RL_BLEND_ALPHA);
 	rlEnableShader(currentShader);
 	GLint colorUniform = glGetUniformLocation(rlGetShaderCurrent(), "rteColor");
