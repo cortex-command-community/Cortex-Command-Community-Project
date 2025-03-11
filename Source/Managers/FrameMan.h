@@ -193,6 +193,12 @@ namespace RTE {
 		/// Clears the 32bpp backbuffer with black.
 		void ClearBackBuffer32() { clear_to_color(m_BackBuffer32.get(), 0); }
 
+		/// Set the current GL Blend mode. This generally requires a batch flush.
+		/// @param blendMode The new blend mode to set.
+		/// @remark Some blendmodes are not possible to do within the limits of the usual gpu blending functions
+		/// and will make use of the blending shader instead, so if necessary restore the current shader after use.
+		void SetBlendMode(DrawBlendMode blendMode);
+
 		/// Sets a specific color table which is used for any subsequent blended drawing in indexed color modes.
 		/// @param blendMode The blending mode that will be used in drawing.
 		/// @param colorChannelBlendAmounts The color channel blend amounts that will be used to select or create the correct table in the specified blending mode.
