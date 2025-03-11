@@ -94,10 +94,10 @@ void LuaStateWrapper::Initialize() {
 	                             .def("FileEOF", &LuaStateWrapper::FileEOF),
 
 	                         luabind::def("DeleteEntity", &LuaAdaptersUtility::DeleteEntity, luabind::adopt(_1)), // NOT a member function, so adopting _1 instead of the _2 for the first param, since there's no "this" pointer!!
-	                         luabind::def("LERP", (float (*)(float, float, float, float, float)) & Lerp),
-	                         luabind::def("Lerp", (float (*)(float, float, float, float, float)) & Lerp),
-	                         luabind::def("Lerp", (Vector(*)(float, float, Vector, Vector, float)) & Lerp),
-	                         luabind::def("Lerp", (Matrix(*)(float, float, Matrix, Matrix, float)) & Lerp),
+	                         luabind::def("LERP", (float (*)(float, float, float, float, float))&Lerp),
+	                         luabind::def("Lerp", (float (*)(float, float, float, float, float))&Lerp),
+	                         luabind::def("Lerp", (Vector(*)(float, float, Vector, Vector, float))&Lerp),
+	                         luabind::def("Lerp", (Matrix(*)(float, float, Matrix, Matrix, float))&Lerp),
 	                         luabind::def("EaseIn", &EaseIn),
 	                         luabind::def("EaseOut", &EaseOut),
 	                         luabind::def("EaseInOut", &EaseInOut),
@@ -212,7 +212,8 @@ void LuaStateWrapper::Initialize() {
 	                         RegisterLuaBindingsOfType(InputLuaBindings, SDL_GameControllerAxis),
 	                         RegisterLuaBindingsOfType(MiscLuaBindings, AlarmEvent),
 	                         RegisterLuaBindingsOfType(MiscLuaBindings, Directions),
-	                         RegisterLuaBindingsOfType(MiscLuaBindings, DrawBlendMode)];
+	                         RegisterLuaBindingsOfType(MiscLuaBindings, DrawBlendMode),
+	                         RegisterLuaBindingsOfType(MiscLuaBindings, DrawDepth)];
 
 	// Assign the manager instances to globals in the lua master state
 	luabind::globals(m_State)["TimerMan"] = &g_TimerMan;
