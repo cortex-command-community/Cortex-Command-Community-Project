@@ -177,11 +177,11 @@ namespace RTE {
 
 		/// Gets the state of the Right Alt key.
 		/// @return The state of the Right Alt key.
-		bool FlagRAltState() const { return (SDL_GetModState() & KMOD_RALT) > 0; }
+		bool FlagRAltState() const { return (SDL_GetModState() & (KMOD_RALT | KMOD_MODE)) > 0; }
 
 		/// Gets the state of either Alt key.
 		/// @return The state of either Alt key.
-		bool FlagAltState() const { return (SDL_GetModState() & KMOD_ALT) > 0; }
+		bool FlagAltState() const { return (SDL_GetModState() & (KMOD_ALT | KMOD_MODE)) > 0; }
 
 		/// Gets the state of the Left Shift key.
 		/// @return The state of the Left Shift key.
