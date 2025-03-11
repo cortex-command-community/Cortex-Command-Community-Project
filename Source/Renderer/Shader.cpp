@@ -200,5 +200,11 @@ void Shader::ApplyDefaultUniforms() {
 	m_Locations[RL_SHADER_LOC_MATRIX_MODEL] = GetUniformLocation("rteModel");
 	m_Locations[RL_SHADER_LOC_COLOR_DIFFUSE] = GetUniformLocation("rteColor");
 	m_Locations[RL_SHADER_LOC_MAP_DIFFUSE] = GetUniformLocation("rteTexture");
-
+	Enable();
+	SetMatrix4f(m_Locations[RL_SHADER_LOC_MATRIX_MVP], glm::mat4(1.0f));
+	SetMatrix4f(m_Locations[RL_SHADER_LOC_MATRIX_VIEW], glm::mat4(1.0f));
+	SetMatrix4f(m_Locations[RL_SHADER_LOC_MATRIX_PROJECTION], glm::mat4(1.0f));
+	SetMatrix4f(m_Locations[RL_SHADER_LOC_MATRIX_MODEL], glm::mat4(1.0f));
+	SetVector4f(m_Locations[RL_SHADER_LOC_COLOR_DIFFUSE], glm::vec4(1.0f));
+	SetInt(m_Locations[RL_SHADER_LOC_MAP_DIFFUSE], 0);
 }
