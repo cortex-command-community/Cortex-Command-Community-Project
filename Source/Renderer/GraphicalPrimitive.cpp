@@ -2,6 +2,8 @@
 #include "Matrix.h"
 #include "FrameMan.h"
 #include "SceneMan.h"
+#include "GLResourceMan.h"
+#include "SLTerrain.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
@@ -34,9 +36,6 @@ Vector GraphicalPrimitive::WrapCoordinates(Vector targetPos, const Vector& scene
 }
 
 void GraphicalPrimitive::DrawTiled(BITMAP* drawScreen, const Vector& targetPos) {
-	DrawLineV(-targetPos + Vector(-30, -30), -targetPos + Vector(30, 30), {53, 0, 0, 255});
-	DrawLineV(-targetPos + Vector(30, -30), -targetPos + Vector(-30, 30), {53, 0, 0, 255});
-
 	Vector tiledTarget{targetPos};
 	if (g_SceneMan.SceneWrapsX()) {
 		tiledTarget.m_X = std::fmodf(targetPos.m_X, g_SceneMan.GetSceneWidth());
@@ -44,13 +43,11 @@ void GraphicalPrimitive::DrawTiled(BITMAP* drawScreen, const Vector& targetPos) 
 	if (g_SceneMan.SceneWrapsY()) {
 		tiledTarget.m_Y = std::fmodf(targetPos.m_Y, g_SceneMan.GetSceneHeight());
 	}
-	DrawLineV(-tiledTarget + Vector(-30, -30), -tiledTarget + Vector(30, 30), {53, 0, 0, 255});
-	DrawLineV(-tiledTarget + Vector(30, -30), -tiledTarget + Vector(-30, 30), {53, 0, 0, 255});
 
 	float bitmapWidth = g_SceneMan.GetSceneWidth();
 	float bitmapHeight = g_SceneMan.GetSceneHeight();
-	int areaToCoverX = drawScreen->w;
-	int areaToCoverY = drawScreen->h;
+	float areaToCoverX = drawScreen->w + g_SceneMan.GetTerrain()->GetOffset().m_X;
+	float areaToCoverY = drawScreen->h + g_SceneMan.GetTerrain()->GetOffset().m_Y;
 
 	for (int tiledOffsetX = 0; tiledOffsetX < areaToCoverX;) {
 		float destX = tiledOffsetX - tiledTarget.m_X;
@@ -213,46 +210,47 @@ void PolygonFillPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 	DrawTriangleStrip(drawPoints.data(), drawPoints.size(), {m_Color, 0, 0, 255});
 }
 
-void TextPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
-	if (m_Text.empty()) {
+
+void TextPrimitive::CreateTextBitmap() {
+	if(m_Text.empty()) {
 		return;
 	}
-
-	AllegroBitmap playerGUIBitmap(drawScreen);
 	GUIFont* font = m_IsSmall ? g_FrameMan.GetSmallFont() : g_FrameMan.GetLargeFont();
 	Matrix rotation = Matrix(m_RotAngle);
 	Vector targetPosAdjustment = Vector();
 
-	BITMAP* tempDrawBitmap = nullptr;
-	if (m_BlendMode > DrawBlendMode::NoBlend || m_RotAngle != 0) {
-		int textWidth = font->CalculateWidth(m_Text);
-		int textHeight = font->CalculateHeight(m_Text);
+	int textWidth = font->CalculateWidth(m_Text);
+	int textHeight = font->CalculateHeight(m_Text);
 
-		tempDrawBitmap = create_bitmap_ex(8, textWidth * 2, textHeight);
-		clear_to_color(tempDrawBitmap, ColorKeys::g_MaskColor);
-		AllegroBitmap tempDrawAllegroBitmap(tempDrawBitmap);
-		font->DrawAligned(&tempDrawAllegroBitmap, textWidth, 0, m_Text, m_Alignment);
+	drawing_mode(DRAW_MODE_SOLID, nullptr, 0, 0);
+	
+	m_TextBitmap = create_bitmap_ex(8, textWidth * 2, textHeight);
+	clear_to_color(m_TextBitmap, ColorKeys::g_MaskColor);
+	AllegroBitmap tempDrawAllegroBitmap(m_TextBitmap);
+	font->DrawAligned(&tempDrawAllegroBitmap, textWidth, 0, m_Text, m_Alignment);
 
-		targetPosAdjustment = Vector(static_cast<float>(textWidth), 0);
+	m_TargetPosAlignment = Vector(static_cast<float>(textWidth), 0);
+}
+
+void TextPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
+	if (!m_TextBitmap) {
+		return;
 	}
 
-	Vector drawStart = WrapCoordinates(targetPos, m_StartPos) - targetPosAdjustment;
+	Vector drawStart = WrapCoordinates(targetPos, m_StartPos) - m_TargetPosAlignment;
+	Rectangle bitmapRect(0.0f, 0.0f, m_TextBitmap->w, m_TextBitmap->h);
+	Rectangle destRect(
+		drawStart.m_X,
+		drawStart.m_Y,
+		m_TextBitmap->w,
+		m_TextBitmap->h);
+	DrawTexturePro(m_TextBitmap, bitmapRect, destRect, {0.0f, 0.0f}, m_RotAngle, {255, 255, 255, 255});
+}
 
-	if (m_BlendMode > DrawBlendMode::NoBlend) {
-		if (m_RotAngle != 0) {
-			rotate_sprite_trans(drawScreen, tempDrawBitmap, drawStart.GetFloorIntX(), drawStart.GetFloorIntY(), ftofix(rotation.GetAllegroAngle()));
-		} else {
-			draw_trans_sprite(drawScreen, tempDrawBitmap, drawStart.GetFloorIntX(), drawStart.GetFloorIntY());
-		}
-	} else {
-		if (m_RotAngle != 0) {
-			rotate_sprite(drawScreen, tempDrawBitmap, drawStart.GetFloorIntX(), drawStart.GetFloorIntY(), ftofix(rotation.GetAllegroAngle()));
-		} else {
-			font->DrawAligned(&playerGUIBitmap, drawStart.GetFloorIntX(), drawStart.GetFloorIntY(), m_Text, m_Alignment);
-		}
-	}
-	if (tempDrawBitmap) {
-		destroy_bitmap(tempDrawBitmap);
+TextPrimitive::~TextPrimitive() {
+	if (m_TextBitmap) {
+		g_GLResourceMan.DestroyBitmapInfo(m_TextBitmap);
+		destroy_bitmap(m_TextBitmap);
 	}
 }
 
@@ -261,33 +259,14 @@ void BitmapPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		return;
 	}
 
-	BITMAP* bitmapToDraw = create_bitmap_ex(8, m_Bitmap->w, m_Bitmap->h);
-	clear_to_color(bitmapToDraw, ColorKeys::g_MaskColor);
-	draw_sprite(bitmapToDraw, m_Bitmap, 0, 0);
-
-	if (m_HFlipped || m_VFlipped) {
-		BITMAP* flipBitmap = create_bitmap_ex(8, bitmapToDraw->w, bitmapToDraw->h);
-		clear_to_color(flipBitmap, ColorKeys::g_MaskColor);
-
-		if (m_HFlipped && !m_VFlipped) {
-			draw_sprite_h_flip(flipBitmap, bitmapToDraw, 0, 0);
-		} else if (!m_HFlipped && m_VFlipped) {
-			draw_sprite_v_flip(flipBitmap, bitmapToDraw, 0, 0);
-		} else if (m_HFlipped && m_VFlipped) {
-			draw_sprite_vh_flip(flipBitmap, bitmapToDraw, 0, 0);
-		}
-
-		blit(flipBitmap, bitmapToDraw, 0, 0, 0, 0, bitmapToDraw->w, bitmapToDraw->h);
-		destroy_bitmap(flipBitmap);
-	}
-
-	Matrix rotation = Matrix(m_RotAngle);
-
 	Vector drawStart = WrapCoordinates(targetPos, m_StartPos);
-	if (m_BlendMode > DrawBlendMode::NoBlend) {
-		pivot_scaled_sprite_trans(drawScreen, bitmapToDraw, drawStart.GetFloorIntX(), drawStart.GetFloorIntY(), bitmapToDraw->w / 2, bitmapToDraw->h / 2, ftofix(rotation.GetAllegroAngle()), ftofix(1.0));
-	} else {
-		pivot_scaled_sprite(drawScreen, bitmapToDraw, drawStart.GetFloorIntX(), drawStart.GetFloorIntY(), bitmapToDraw->w / 2, bitmapToDraw->h / 2, ftofix(rotation.GetAllegroAngle()), ftofix(1.0));
-	}
-	destroy_bitmap(bitmapToDraw);
+
+	Rectangle flippedRect(
+		drawStart.m_X - m_Bitmap->w / 2,
+		drawStart.m_Y - m_Bitmap->h / 2,
+		m_VFlipped ? -m_Bitmap->w : m_Bitmap->w,
+		m_HFlipped ? -m_Bitmap->h : m_Bitmap->h
+	);
+
+	DrawTexturePro(m_Bitmap, Rectangle(0.0f, 0.0f, m_Bitmap->w, m_Bitmap->h), flippedRect, {0.0f, 0.0f}, m_RotAngle, {255, 255, 255, 255});
 }
