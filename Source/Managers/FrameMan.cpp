@@ -619,8 +619,8 @@ void FrameMan::SaveScreenToBitmap() {
 	// Flip the pixels
 	std::vector<char*> temp(m_ScreenDumpBuffer->pitch);
 	char* pixels = reinterpret_cast<char*>(m_ScreenDumpBuffer->pixels);
-	ssize_t pitch = m_ScreenDumpBuffer->pitch;
-	for (ssize_t y = 0; y < m_ScreenDumpBuffer->h / 2; ++y) {
+	size_t pitch = m_ScreenDumpBuffer->pitch;
+	for (size_t y = 0; y < m_ScreenDumpBuffer->h / 2; ++y) {
 		std::swap_ranges(pixels + y * pitch, pixels + (y + 1) * pitch, pixels + (m_ScreenDumpBuffer->h - y - 1) * pitch);
 	}
 }
