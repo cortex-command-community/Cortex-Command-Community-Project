@@ -449,6 +449,13 @@ typedef enum {
 // Color blending modes (pre-defined)
 typedef enum {
 	RL_BLEND_ALPHA = 0, // Blend textures considering alpha (default)
+	RL_BLEND_BURN,
+	RL_BLEND_DODGE,
+	RL_BLEND_SCREEN,
+	RL_BLEND_HSL_COLOR,
+	RL_BLEND_HSL_SATURATION,
+	RL_BLEND_HSL_LUMINOSITY,
+	RL_BLEND_HSL_HUE,
 	RL_BLEND_ADDITIVE, // Blend textures adding colors
 	RL_BLEND_MULTIPLIED, // Blend textures multiplying colors
 	RL_BLEND_ADD_COLORS, // Blend textures adding colors (alternative)
@@ -494,6 +501,7 @@ typedef enum {
 
 // Shader uniform data type
 typedef enum {
+	RL_SHADER_UNIFORM_INVALID = -1,
 	RL_SHADER_UNIFORM_FLOAT = 0, // Shader uniform type: float
 	RL_SHADER_UNIFORM_VEC2, // Shader uniform type: vec2 (2 float)
 	RL_SHADER_UNIFORM_VEC3, // Shader uniform type: vec3 (3 float)
@@ -573,6 +581,7 @@ typedef struct rlUniformValue {
 		RLMatrix matrixValue;
 		float vectorValue[4];
 		int integerValue[4];
+		unsigned int unsignedValue[4];
 	};
 	rlShaderUniformDataType uniformType;
 	int location;
@@ -587,10 +596,21 @@ typedef struct rlDrawCall {
 	int vertexCount; // Number of vertex of the draw
 	int vertexAlignment; // Number of vertex required for index alignment (LINES, TRIANGLES)
 	// unsigned int vaoId;       // Vertex array id to be used on the draw -> Using RLGL.currentBatch->vertexBuffer.vaoId
-	unsigned int shaderId;    // Shader id to be used on the draw -> Using RLGL.currentShaderId
-	rlUniformValue* shaderUniforms;
+	// unsigned int shaderId; // Shader id to be used on the draw -> Using RLGL.currentShaderId
+	// rlUniformValue* shaderUniforms;
 	unsigned int textureId; // Texture id to be used on the draw -> Use to create new draw call if changes
-	
+
+	// Blending variables
+	int currentBlendMode; // Blending mode active
+	int BlendSrcFactor; // Blending source factor
+	int BlendDstFactor; // Blending destination factor
+	int BlendEquation; // Blending equation
+	int BlendSrcFactorRGB; // Blending source RGB factor
+	int BlendDestFactorRGB; // Blending destination RGB factor
+	int BlendSrcFactorAlpha; // Blending source alpha factor
+	int BlendDestFactorAlpha; // Blending destination alpha factor
+	int BlendEquationRGB; // Blending equation for RGB
+	int BlendEquationAlpha; // Blending equation for alpha
 
 	// Matrix projection;        // Projection matrix for this draw -> Using RLGL.projection by default
 	// Matrix modelview;         // Modelview matrix for this draw -> Using RLGL.modelview by default
@@ -688,6 +708,8 @@ RLAPI void rlBlitFramebuffer(int srcX, int srcY, int srcWidth, int srcHeight, in
 RLAPI void rlBindFramebuffer(unsigned int target, unsigned int framebuffer); // Bind framebuffer (FBO)
 
 // General render state
+RLAPI void rlEnableAdvancedColorBlend(void);
+RLAPI void rlDisableAdvancedColorBlend(void);
 RLAPI void rlEnableColorBlend(void); // Enable color blending
 RLAPI void rlDisableColorBlend(void); // Disable color blending
 RLAPI void rlEnableDepthTest(void); // Enable depth test
@@ -792,6 +814,7 @@ RLAPI unsigned int rlCompileShader(const char* shaderCode, int type); // Compile
 RLAPI unsigned int rlLoadShaderProgram(unsigned int vShaderId, unsigned int fShaderId); // Load custom shader program
 RLAPI void rlUnloadShaderProgram(unsigned int id); // Unload shader program
 RLAPI int rlGetLocationUniform(unsigned int shaderId, const char* uniformName); // Get shader location uniform
+RLAPI int rlGetLocationUniformCurrent(const char* uniformName);
 RLAPI int rlGetLocationAttrib(unsigned int shaderId, const char* attribName); // Get shader location attribute
 RLAPI void rlSetUniform(int locIndex, const void* value, int uniformType, int count); // Set shader value uniform
 RLAPI void rlSetUniformMatrix(int locIndex, RLMatrix mat); // Set shader value matrix

@@ -1,14 +1,19 @@
-#version 130
+#version 330
+#extension GL_KHR_blend_equation_advanced: enable
 
 in vec2 textureUV;
 in vec4 vertexColor;
 
+#ifdef GL_KHR_blend_equation_advanced
+layout(blend_support_all_equations) out vec4 FragColor;
+#else
 out vec4 FragColor;
-
+#endif
 uniform sampler2D rteTexture;
 uniform sampler2D rtePalette;
-uniform vec4 rteColor;
-uniform bool drawMasked;
+uniform vec4 rteColor = vec4(1.0);
+uniform bool rteBlendInvert = false;
+uniform bool drawMasked = false;
 
 
 vec4 texture2DAA(sampler2D tex, vec2 uv) {
@@ -25,5 +30,9 @@ void main() {
 	if (red==0 && drawMasked) {
 		discard;
 	}
-	FragColor = texture2DAA(rtePalette, vec2(red * rteColor.r * vertexColor.r, 0.0)) * vec4(vec3(1.0), rteColor.a * vertexColor.a);
+	if (!rteBlendInvert) {
+		FragColor = texture2DAA(rtePalette, vec2(red * vertexColor.r, 0.0)) * vec4(rteColor.rgb, rteColor.a * vertexColor.a);
+	} else {
+		FragColor = vec4(vec3(1.0), 0.0) - (texture2DAA(rtePalette, vec2(red * vertexColor.r, 0.0)) * vec4(rteColor.rgb, rteColor.a * vertexColor.a));
+	}
 }

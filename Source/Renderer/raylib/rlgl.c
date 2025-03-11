@@ -6,7 +6,7 @@
 /***********************************************************************************
  *
  *   RLGL IMPLEMENTATION
- 
+
  *
  *   LICENSE: zlib/libpng
  *
@@ -268,7 +268,6 @@ typedef struct rlglData {
 		int* defaultShaderLocs; // Default shader locations pointer to be used on rendering
 		unsigned int currentShaderId; // Current shader id to be used on rendering (by default, defaultShaderId)
 		int* currentShaderLocs; // Current shader locations pointer to be used on rendering (by default, defaultShaderLocs)
-
 		bool stereoRender; // Stereo rendering flag
 		RLMatrix projectionStereo[2]; // VR stereo rendering eyes projection matrices
 		RLMatrix viewOffsetStereo[2]; // VR stereo rendering eyes view offset matrices
@@ -307,6 +306,8 @@ typedef struct rlglData {
 		bool texAnisoFilter; // Anisotropic texture filtering support (GL_EXT_texture_filter_anisotropic)
 		bool computeShader; // Compute shaders support (GL_ARB_compute_shader)
 		bool ssbo; // Shader storage buffer object support (GL_ARB_shader_storage_buffer_object)
+		bool advanced_blend_equations;
+		bool advanced_blend_equations_coherent;
 		bool debug_output;
 
 		float maxAnisotropyLevel; // Maximum anisotropy level supported (minimum is 2.0f)
@@ -1095,6 +1096,17 @@ void rlEnableColorBlend(void) { glEnable(GL_BLEND); }
 // Disable color blending
 void rlDisableColorBlend(void) { glDisable(GL_BLEND); }
 
+void rlEnableAdvancedColorBlend(void) {
+	if (RLGL.ExtSupported.advanced_blend_equations_coherent) {
+		glEnable(GL_BLEND_ADVANCED_COHERENT_KHR);
+	}
+}
+
+void rlDisableAdvancedColorBlend(void) {
+	if (RLGL.ExtSupported.advanced_blend_equations_coherent) {
+		glDisable(GL_BLEND_ADVANCED_COHERENT_KHR);
+	}
+}
 // Enable depth test
 void rlEnableDepthTest(void) { glEnable(GL_DEPTH_TEST); }
 
@@ -1272,10 +1284,49 @@ void rlSetBlendMode(int mode) {
 #if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
 	if ((RLGL.State.currentBlendMode != mode) || ((mode == RL_BLEND_CUSTOM || mode == RL_BLEND_CUSTOM_SEPARATE) && RLGL.State.glCustomBlendModeModified)) {
 		rlDrawRenderBatch(RLGL.currentBatch);
-
+		TRACELOG(LOG_DEBUG, "blendmode: %d", mode);
 		switch (mode) {
 			case RL_BLEND_ALPHA:
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glBlendEquation(GL_FUNC_ADD);
+				break;
+			case RL_BLEND_BURN:
+				if(RLGL.ExtSupported.advanced_blend_equations){
+					glBlendEquation(GL_COLORBURN_KHR);
+				} else {
+					rlSetBlendMode(RL_BLEND_ALPHA);
+				}
+				break;
+			case RL_BLEND_DODGE:
+				if (RLGL.ExtSupported.advanced_blend_equations) {
+					glBlendEquation(GL_COLORDODGE_KHR);
+				} else {
+					rlSetBlendMode(RL_BLEND_ALPHA);
+				}
+				break;
+			case RL_BLEND_HSL_COLOR:
+				if (RLGL.ExtSupported.advanced_blend_equations) {
+					glBlendEquation(GL_HSL_COLOR_KHR);
+				} else {
+					rlSetBlendMode(RL_BLEND_ALPHA);
+				}
+				break;
+			case RL_BLEND_HSL_SATURATION:
+				if(RLGL.ExtSupported.advanced_blend_equations) {
+					glBlendEquation(GL_HSL_SATURATION_KHR);
+				} else {
+					rlSetBlendMode(RL_BLEND_ALPHA);
+				}
+				break;
+			case RL_BLEND_HSL_LUMINOSITY:
+				if (RLGL.ExtSupported.advanced_blend_equations) {
+					glBlendEquation(GL_HSL_LUMINOSITY_KHR);
+				} else {
+					rlSetBlendMode(RL_BLEND_ALPHA);
+				}
+				break;
+			case RL_BLEND_SCREEN:
+				glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_COLOR, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				glBlendEquation(GL_FUNC_ADD);
 				break;
 			case RL_BLEND_ADDITIVE:
@@ -1359,7 +1410,7 @@ void rlSetBlendFactorsSeparate(int glSrcRGB, int glDstRGB, int glSrcAlpha, int g
 //----------------------------------------------------------------------------------
 // Module Functions Definition - OpenGL Debug
 //----------------------------------------------------------------------------------
-#if defined(RLGL_ENABLE_OPENGL_DEBUG_CONTEXT) && defined(GRAPHICS_API_OPENGL_43)
+#if defined(RLGL_ENABLE_OPENGL_DEBUG_CONTEXT)
 static void GLAPIENTRY rlDebugMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
 	// Ignore non-significant error/warning codes (NVidia drivers)
 	// NOTE: Here there are the details with a sample output:
@@ -1461,8 +1512,8 @@ static void GLAPIENTRY rlDebugMessageCallback(GLenum source, GLenum type, GLuint
 // Initialize rlgl: OpenGL extensions, default buffers/shaders/textures, OpenGL states
 void rlglInit(int width, int height) {
 	// Enable OpenGL debug context if required
-#if defined(RLGL_ENABLE_OPENGL_DEBUG_CONTEXT) && defined(GRAPHICS_API_OPENGL_43)
-	if ((glDebugMessageCallback != NULL) && (glDebugMessageControl != NULL)) {
+#if defined(RLGL_ENABLE_OPENGL_DEBUG_CONTEXT) 
+	if (RLGL.ExtSupported.debug_output && (glDebugMessageCallback != NULL) && (glDebugMessageControl != NULL)) {
 		glDebugMessageCallback(rlDebugMessageCallback, 0);
 		// glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DEBUG_SEVERITY_HIGH, 0, 0, GL_TRUE);
 
@@ -1615,7 +1666,9 @@ void rlLoadExtensions(void* loader) {
 	RLGL.ExtSupported.texCompASTC = GLAD_GL_KHR_texture_compression_astc_hdr && GLAD_GL_KHR_texture_compression_astc_ldr;
 	RLGL.ExtSupported.texCompDXT = GLAD_GL_EXT_texture_compression_s3tc; // Texture compression: DXT
 	RLGL.ExtSupported.texCompETC2 = GLAD_GL_ARB_ES3_compatibility; // Texture compression: ETC2/EAC
-	RLGL.ExtSupported.debug_output = GLAD_GL_ARB_debug_output;
+	RLGL.ExtSupported.debug_output = GLAD_GL_KHR_debug;
+	RLGL.ExtSupported.advanced_blend_equations = GLAD_GL_KHR_blend_equation_advanced;
+	RLGL.ExtSupported.advanced_blend_equations_coherent = GLAD_GL_KHR_blend_equation_advanced_coherent;
 #if defined(GRAPHICS_API_OPENGL_43)
 	RLGL.ExtSupported.computeShader = GLAD_GL_ARB_compute_shader;
 	RLGL.ExtSupported.ssbo = GLAD_GL_ARB_shader_storage_buffer_object;
@@ -2082,10 +2135,17 @@ rlRenderBatch rlLoadRenderBatch(int numBuffers, int bufferElements) {
 		batch.draws[i].vertexCount = 0;
 		batch.draws[i].vertexAlignment = 0;
 		// batch.draws[i].vaoId = 0;
-		// batch.draws[i].shaderId = 0;
 		batch.draws[i].textureId = RLGL.State.defaultTextureId;
-		batch.draws[i].shaderId = RLGL.State.defaultShaderId;
-		batch.draws[i].shaderUniforms = (rlUniformValue*)RL_MALLOC(RL_DEFAULT_DRAWCALL_UNIFORMS * sizeof(rlUniformValue));
+		batch.draws[i].currentBlendMode = RLGL.State.currentBlendMode;
+		batch.draws[i].BlendSrcFactor = RLGL.State.glBlendSrcFactor;
+		batch.draws[i].BlendDstFactor = RLGL.State.glBlendDstFactor;
+		batch.draws[i].BlendEquation = RLGL.State.glBlendEquation;
+		batch.draws[i].BlendSrcFactorRGB = RLGL.State.glBlendSrcFactorRGB;
+		batch.draws[i].BlendDestFactorRGB = RLGL.State.glBlendDestFactorRGB;
+		batch.draws[i].BlendSrcFactorAlpha = RLGL.State.glBlendSrcFactorAlpha;
+		batch.draws[i].BlendDestFactorAlpha = RLGL.State.glBlendDestFactorAlpha;
+		batch.draws[i].BlendEquationRGB = RLGL.State.glBlendEquationRGB;
+		batch.draws[i].BlendEquationAlpha = RLGL.State.glBlendEquationAlpha;
 		// batch.draws[i].RLGL.State.projection = rlMatrixIdentity();
 		// batch.draws[i].RLGL.State.modelview = rlMatrixIdentity();
 	}
@@ -2147,6 +2207,7 @@ void rlUnloadRenderBatch(rlRenderBatch batch) {
 // NOTE: We require a pointer to reset batch and increase current buffer (multi-buffer)
 void rlDrawRenderBatch(rlRenderBatch* batch) {
 #if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+	TRACELOGD("FLUSH");
 	// Update batch vertex buffers
 	//------------------------------------------------------------------------------------------------------------
 	// NOTE: If there is not vertex data, buffers doesn't need to be updated (vertexCount > 0)
@@ -2194,7 +2255,7 @@ void rlDrawRenderBatch(rlRenderBatch* batch) {
 		// Unbind the current VAO
 		if (RLGL.ExtSupported.vao)
 			glBindVertexArray(0);
-	}
+	} else { TRACELOGD("NO DATA!"); }
 	//------------------------------------------------------------------------------------------------------------
 
 	// Draw batch vertex buffers (considering VR stereo if required)
@@ -2272,7 +2333,6 @@ void rlDrawRenderBatch(rlRenderBatch* batch) {
 			}
 
 			// Setup some default shader values
-			glUniform4f(RLGL.State.currentShaderLocs[RL_SHADER_LOC_COLOR_DIFFUSE], 1.0f, 1.0f, 1.0f, 1.0f);
 			glUniform1i(RLGL.State.currentShaderLocs[RL_SHADER_LOC_MAP_DIFFUSE], 0); // Active default sampler2D: texture0
 
 			// Activate additional sampler textures
@@ -2320,7 +2380,6 @@ void rlDrawRenderBatch(rlRenderBatch* batch) {
 		if (RLGL.ExtSupported.vao)
 			glBindVertexArray(0); // Unbind VAO
 
-		glUseProgram(0); // Unbind shader program
 	}
 
 	// Restore viewport to default measures
@@ -3694,6 +3753,10 @@ int rlGetLocationUniform(unsigned int shaderId, const char* uniformName) {
 	return location;
 }
 
+int rlGetLocationUniformCurrent(const char* uniformName) {
+	return rlGetLocationUniform(RLGL.State.currentShaderId, uniformName);
+}
+
 // Get shader location attribute
 int rlGetLocationAttrib(unsigned int shaderId, const char* attribName) {
 	int location = -1;
@@ -4402,7 +4465,7 @@ static void rlLoadShaderDefault(void) {
 	    "in vec4 fragColor;                 \n"
 	    "out vec4 finalColor;               \n"
 	    "uniform sampler2D texture0;        \n"
-	    "uniform vec4 colDiffuse;           \n"
+	    "uniform vec4 colDiffuse = vec4(1.0);           \n"
 	    "void main()                        \n"
 	    "{                                  \n"
 	    "    vec4 texelColor = texture(texture0, fragTexCoord);   \n"
