@@ -827,7 +827,7 @@ void FrameMan::Draw() {
 		rlSetBlendMode(RL_BLEND_ALPHA);
 		rlEnableDepthTest();
 
-		m_PlayerScreen->Begin(true, m_Zoom);
+		m_PlayerScreen->Begin(true, 1.0f);
 		backgroundShader.Begin();
 		backgroundShader.Enable();
 		rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
