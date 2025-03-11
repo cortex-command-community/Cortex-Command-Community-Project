@@ -91,6 +91,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `SceneMan` function `CastAllMOsRay(startVector, rayVector, table ignoreMOIDs, ignoreTeam, ignoreMaterial, bool ignoreAllTerrain, int skip)` which returns an iterator with pointers to all the non-ignored MOs met along the ray.
 
+- New parameter `depth` for all primitives sets draw depth of the drawn primitive. The default depth is -75.0 (lower numbers draw on top, higher numbers in the back). 
+
+- New `DrawDepth` enum for default draw depths:
+   - `Default` = 0.0f (Main draw depth for MOs)
+   - `GUI` = -100.0f (Draw Depth of GUI elements)
+   - `Primitive` = -75.0f (Default Primitive draw depth)
+   - `TerrainBackground` = 50.0f (Draw Depth of Terrain Background layer)
+   - `Background` = 100.0f (Draw Depth of Background layer)
+
 </details>
 
 <details><summary><b>Changed</b></summary>
