@@ -25,6 +25,7 @@
 
 #include "GLCheck.h"
 #include "glad/gl.h"
+#include "Draw.h"
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
@@ -415,6 +416,59 @@ void FrameMan::ClearScreenText(int whichScreen) {
 		m_TextDuration[whichScreen] = -1;
 		m_TextDurationTimer[whichScreen].Reset();
 		m_TextBlinking[whichScreen] = 0;
+	}
+}
+
+void FrameMan::SetBlendMode(DrawBlendMode blendMode) {
+	GLint invertLoc = rlGetLocationUniformCurrent("rteBlendInvert");
+	glUniform1i(invertLoc, 0);
+	switch (blendMode) {
+		case BlendTransparency: {
+			rlSetBlendMode(RL_BLEND_ALPHA);
+			break;
+		}
+		case BlendScreen: {
+			rlSetBlendMode(RL_BLEND_SCREEN);
+			break;
+		}
+		case BlendDifference: {
+			rlSetBlendMode(RL_BLEND_SUBTRACT_COLORS);
+			break;
+		}
+		case BlendMultiply: {
+			rlSetBlendMode(RL_BLEND_MULTIPLIED);
+			break;
+		}
+		case BlendBurn: {
+			rlSetBlendMode(RL_BLEND_BURN);
+			break;
+		}
+		case BlendDodge: {
+			rlSetBlendMode(RL_BLEND_DODGE);
+			break;
+		}
+		case BlendColor: {
+			rlSetBlendMode(RL_BLEND_HSL_COLOR);
+			break;
+		}
+		case BlendLuminance: {
+			rlSetBlendMode(RL_BLEND_HSL_LUMINOSITY);
+			break;
+		}
+		case BlendSaturation: {
+			rlSetBlendMode(RL_BLEND_HSL_SATURATION);
+			break;
+		}
+		case BlendInvert: {
+			rlSetBlendMode(RL_BLEND_ALPHA);
+			glUniform1i(invertLoc, 1);
+			break;
+		}
+		default: {
+			rlSetBlendMode(RL_BLEND_ALPHA);
+			RTEAssert(blendMode < BlendModeCount, "Unkown blend mode selected!");
+			break;
+		}
 	}
 }
 
@@ -899,6 +953,9 @@ void FrameMan::Draw() {
 		} else {
 			g_SceneMan.Draw(drawScreen, drawScreenGUI, targetPos, true, true);
 		}
+
+
+		g_PrimitiveMan.DrawPrimitives(playerScreen, drawScreenGUI, targetPos);
 
 		// Get only the scene-relative post effects that affect this player's screen
 		if (pActivity) {
