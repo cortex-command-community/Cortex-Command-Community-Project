@@ -81,11 +81,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `Attachable` INI and Lua (R/W) properties `InheritsVelWhenDetached` and `InheritsAngularVelWhenDetached`, which determine how much of these velocities an attachable inherits from its parent when detached. Defaults to 1.
 
-<<<<<<< HEAD
 - New GPU Renderer using OpenGL+Raylib, draw now takes 0ms in pretty much every instance.
 
 - New Z Order for scene layers and primitives: Background layer sits at z=100, Terrain Background at z=50, Terrain color and MO color at z=0, GUIs sit at z=-100, allowed z range is [-200, +200], in the future this'll be expanded to MO draw as well.
-=======
 - Added Lua-accessible bitmap manipulation functions to `MOSprite`s:	
 	```
 	GetSpritePixelIndex(int x, int y, int whichFrame) - Returns the color index of the pixel at the given coordinate on the given frame of the sprite ((0, 0) is the upper left corner!)
@@ -101,7 +99,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	SetAllVisibleSpritePixelIndexes(int colorIndex) - Simplified version of the above, sets all visible pixels of the currently visible sprite to the given color index.
 	```
 - Added `Material` Lua function `GetColorIndex()`, which returns the color index of the calling material.
->>>>>>> development
 
 - New `ACraft` INI and Lua (R/W) property `CanEnterOrbit`, which determines whether a craft can enter orbit (and refund gold appropriately) or not. If false, default out-of-bounds deletion logic applies.
 
@@ -194,13 +191,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue where internal Lua functions OriginalDoFile, OriginalLoadFile, and OriginalRequire were polluting the global namespace. They have now been made inaccessible.
 
-<<<<<<< HEAD
 - Fixed the palette being mangled to 6bit/color on load.
 
 - Fixed allegro not loading alpha of image with alpha by using SDL_image instead.
-=======
 - Fixed `MOSprite:UnRotateOffset()` giving the wrong results on HFLipped sprites.
->>>>>>> development
 
 - Various fixes and improvements to inventory management when dual-wielding or carrying a shield, to stop situations where the actor unexpectedly puts their items away.
 
