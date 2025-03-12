@@ -169,36 +169,35 @@ int SoundContainer::Save(Writer& writer) const {
 	// Due to writer limitations, the top level SoundSet has to be explicitly written out, even though SoundContainer standard behaviour is to hide it in INI and just have properties be part of the SoundContainer.
 	writer.NewPropertyWithValue("TopLevelSoundSet", *m_TopLevelSoundSet);
 
-	writer.NewProperty("SoundSelectionCycleMode");
-	SoundSet::SaveSoundSelectionCycleMode(writer, m_TopLevelSoundSet->GetSoundSelectionCycleMode());
-
-	writer.NewProperty("SoundOverlapMode");
-	auto overlapModeMapEntry = std::find_if(c_SoundOverlapModeMap.begin(), c_SoundOverlapModeMap.end(), [&soundOverlapMode = m_SoundOverlapMode](auto element) { return element.second == soundOverlapMode; });
-	if (overlapModeMapEntry != c_SoundOverlapModeMap.end()) {
-		writer << overlapModeMapEntry->first;
-	} else {
-		RTEAbort("Tried to write invalid SoundOverlapMode when saving SoundContainer.");
+	if (m_SoundOverlapMode != SoundOverlapMode::OVERLAP) {
+		writer.NewProperty("SoundOverlapMode");
+		auto overlapModeMapEntry = std::find_if(c_SoundOverlapModeMap.begin(), c_SoundOverlapModeMap.end(), [&soundOverlapMode = m_SoundOverlapMode](auto element) { return element.second == soundOverlapMode; });
+		if (overlapModeMapEntry != c_SoundOverlapModeMap.end()) {
+			writer << overlapModeMapEntry->first;
+		} else {
+			RTEAbort("Tried to write invalid SoundOverlapMode when saving SoundContainer.");
+		}
 	}
 
-	writer.NewPropertyWithValue("BusRouting", m_BusRouting);
-	writer.NewPropertyWithValue("Immobile", m_Immobile);
-	writer.NewPropertyWithValue("AttenuationStartDistance", m_AttenuationStartDistance);
-	writer.NewPropertyWithValue("CustomPanValue", m_CustomPanValue);
-	writer.NewPropertyWithValue("PanningStrengthMultiplier", m_PanningStrengthMultiplier);
-	writer.NewPropertyWithValue("LoopSetting", m_Loops);
+	writer.NewDistinctProperty("BusRouting", m_BusRouting, BusRouting::SFX);
+	writer.NewDistinctProperty("Immobile", m_Immobile, false);
+	writer.NewDistinctProperty("AttenuationStartDistance", m_AttenuationStartDistance, (float) c_DefaultAttenuationStartDistance);
+	writer.NewDistinctProperty("CustomPanValue", m_CustomPanValue, 0.0F);
+	writer.NewDistinctProperty("PanningStrengthMultiplier", m_PanningStrengthMultiplier, 1.0F);
+	writer.NewDistinctProperty("LoopSetting", m_Loops, 0);
+	writer.NewDistinctProperty("Priority", m_Priority, (int) AudioMan::PRIORITY_NORMAL);
+	writer.NewDistinctProperty("AffectedByGlobalPitch", m_AffectedByGlobalPitch, true);
 
-	writer.NewPropertyWithValue("Priority", m_Priority);
-	writer.NewPropertyWithValue("AffectedByGlobalPitch", m_AffectedByGlobalPitch);
+	if (!m_Pos.IsZero())
+		writer.NewPropertyWithValue("Position", m_Pos);
 
-	writer.NewPropertyWithValue("Position", m_Pos);
-	writer.NewPropertyWithValue("Volume", m_Volume);
-	writer.NewPropertyWithValue("Pitch", m_Pitch);
-	writer.NewPropertyWithValue("PitchVariation", m_PitchVariation);
-
-	writer.NewPropertyWithValue("WasFadedOut", m_WasFadedOut);
-	writer.NewPropertyWithValue("Paused", m_Paused);
-	writer.NewPropertyWithValue("MusicPreEntryTime", m_MusicPreEntryTime);
-	writer.NewPropertyWithValue("MusicExitTime", m_MusicExitTime);
+	writer.NewDistinctProperty("Volume", m_Volume, 1.0F);
+	writer.NewDistinctProperty("Pitch", m_Pitch, 1.0F);
+	writer.NewDistinctProperty("PitchVariation", m_PitchVariation, 0.0F);
+	writer.NewDistinctProperty("WasFadedOut", m_WasFadedOut, false);
+	writer.NewDistinctProperty("Paused", m_Paused, false);
+	writer.NewDistinctProperty("MusicPreEntryTime", m_MusicPreEntryTime, 0.0F);
+	writer.NewDistinctProperty("MusicExitTime", m_MusicExitTime, 0.0F);
 
 	return 0;
 }
@@ -259,14 +258,12 @@ HashingData SoundContainer::Hash() const {
 	hash ^= std::hash<float>{}(m_CustomPanValue) << 5;
 	hash ^= std::hash<float>{}(m_PanningStrengthMultiplier) << 6;
 	hash ^= std::hash<int>{}(m_Loops) << 7;
-
 	hash ^= std::hash<int>{}(m_Priority) << 8;
 	hash ^= std::hash<bool>{}(m_AffectedByGlobalPitch) << 9;
 	hash ^= m_Pos.Hash().m_Hash << 10;
 	hash ^= std::hash<float>{}(m_Volume) << 11;
 	hash ^= std::hash<float>{}(m_Pitch) << 12;
 	hash ^= std::hash<float>{}(m_PitchVariation) << 13;
-
 	hash ^= std::hash<bool>{}(m_WasFadedOut) << 14;
 	hash ^= std::hash<bool>{}(m_Paused) << 15;
 	hash ^= std::hash<float>{}(m_MusicPreEntryTime) << 0;

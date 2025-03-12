@@ -59,26 +59,28 @@ int SoundSet::ReadProperty(const std::string_view& propName, Reader& reader) {
 int SoundSet::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewProperty("SoundSelectionCycleMode");
-	SaveSoundSelectionCycleMode(writer, m_SoundSelectionCycleMode);
+	if (m_SoundSelectionCycleMode != SoundSelectionCycleMode::RANDOM) {
+		writer.NewProperty("SoundSelectionCycleMode");
+		SaveSoundSelectionCycleMode(writer, m_SoundSelectionCycleMode);
+	}
 
 	for (const SoundData& soundData: m_SoundData) {
 		writer.NewProperty("AddSound");
 		writer.ObjectStart("ContentFile");
 
 		writer.NewPropertyWithValue("FilePath", soundData.SoundFile.GetDataPath());
-		writer.NewPropertyWithValue("Offset", soundData.Offset);
-		writer.NewPropertyWithValue("MinimumAudibleDistance", soundData.MinimumAudibleDistance);
-		writer.NewPropertyWithValue("AttenuationStartDistance", soundData.AttenuationStartDistance);
+
+		if (!soundData.Offset.IsZero())
+			writer.NewPropertyWithValue("Offset", soundData.Offset);
+
+		writer.NewDistinctProperty("MinimumAudibleDistance", soundData.MinimumAudibleDistance, 0.0F);
+		writer.NewDistinctProperty("AttenuationStartDistance", soundData.AttenuationStartDistance, -1.0F);
 
 		writer.ObjectEnd();
 	}
 
 	for (const SoundSet* subSoundSet: m_SubSoundSets) {
-		writer.NewProperty("AddSoundSet");
-		writer.ObjectStart("SoundSet");
-		writer << *subSoundSet;
-		writer.ObjectEnd();
+		writer.NewPropertyWithValue("AddSoundSet", *subSoundSet);
 	}
 
 	return 0;
@@ -101,13 +103,15 @@ HashingData SoundSet::Hash() const {
 		hash ^= hashSet << (i % sizeof(uint64_t) * 8);
 	}
 
-	hashData.m_ParseValues.push_back(m_SubSoundSets.size());
+	hashData.m_ParseValues.push_back(m_SoundData.size());
 
 	for (int i = 0; i < m_SubSoundSets.size(); i++) {
 		uint64_t subSetHash = m_SubSoundSets.at(i)->Hash().m_Hash;
 		hashData.m_Constituents.push_back(subSetHash);
 		hash ^= subSetHash << (i % sizeof(uint64_t) * 8);
 	}
+
+	hashData.m_ParseValues.push_back(m_SubSoundSets.size());
 
 	return hashData;
 }
