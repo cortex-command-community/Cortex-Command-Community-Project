@@ -408,10 +408,8 @@ void FrameMan::SetBlendMode(DrawBlendMode blendMode) {
 		}
 		case BlendDissolve: {
 			rlSetBlendMode(RL_BLEND_ALPHA);
-			std::cout << "Dissolve pre " << rlGetShaderCurrent();
 			const Shader* dissolve = dynamic_cast<const Shader*>(g_PresetMan.GetEntityPreset("Shader", "Dissolve"));
 			dissolve->Begin();
-			std::cout << " " << rlGetShaderCurrent() << std::endl;
 			GLint paletteLoc =  dissolve->GetUniformLocation("rtePalette");
 			rlSetUniformSampler(paletteLoc, g_PostProcessMan.GetPaletteTexture());
 			break;
