@@ -1090,23 +1090,30 @@ float AHuman::EstimateJumpHeight() const {
 		return 0.0F;
 	}
 
+	// Use magnitude because whatever direction constant force is in is the direction we'd be thrusting to resist.
+	float globalAcc = g_SceneMan.GetGlobalAcc().GetMagnitude() * g_TimerMan.GetDeltaTimeSecs();
+
+	// If no force to resist, then we can "jump" anywhere, guaranteed.
+	if (globalAcc == 0.0F) {
+		return std::numeric_limits<float>::max();
+	}
+
 	float totalMass = GetMass();
 	float fuelTime = m_pJetpack->GetJetTimeTotal();
 	float fuelUseMultiplier = m_pJetpack->GetThrottleFactor();
 	float impulseBurst = m_pJetpack->EstimateImpulse(true) / totalMass;
 	float impulseThrust = m_pJetpack->EstimateImpulse(false) / totalMass;
+	float currentVelocity = -impulseBurst;
+	float totalHeight = currentVelocity * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
 
-	Vector globalAcc = g_SceneMan.GetGlobalAcc() * g_TimerMan.GetDeltaTimeSecs();
-	Vector currentVelocity = Vector(0.0F, -impulseBurst);
-	float totalHeight = currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
 	do {
 		currentVelocity += globalAcc;
-		totalHeight += currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
+		totalHeight += currentVelocity * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
 		if (fuelTime > 0.0F) {
-			currentVelocity.m_Y -= impulseThrust;
+			currentVelocity -= impulseThrust;
 			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplier;
 		}
-	} while (currentVelocity.GetY() < 0.0F);
+	} while (currentVelocity < 0.0F);
 
 	float finalCalculatedHeight = totalHeight * -1.0F * c_MPP;
 	float finalHeightMultipler = 0.8f; // Make us think we can do a little less because AI path following is shit
