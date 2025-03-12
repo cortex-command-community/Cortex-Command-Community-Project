@@ -406,6 +406,16 @@ void FrameMan::SetBlendMode(DrawBlendMode blendMode) {
 			glUniform1i(invertLoc, 1);
 			break;
 		}
+		case BlendDissolve: {
+			rlSetBlendMode(RL_BLEND_ALPHA);
+			std::cout << "Dissolve pre " << rlGetShaderCurrent();
+			const Shader* dissolve = dynamic_cast<const Shader*>(g_PresetMan.GetEntityPreset("Shader", "Dissolve"));
+			dissolve->Begin();
+			std::cout << " " << rlGetShaderCurrent() << std::endl;
+			GLint paletteLoc =  dissolve->GetUniformLocation("rtePalette");
+			rlSetUniformSampler(paletteLoc, g_PostProcessMan.GetPaletteTexture());
+			break;
+		}
 		default: {
 			rlSetBlendMode(RL_BLEND_ALPHA);
 			RTEAssert(blendMode < BlendModeCount, "Unkown blend mode selected!");

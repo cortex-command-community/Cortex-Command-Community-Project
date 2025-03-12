@@ -11,6 +11,8 @@
 #include <array>
 #include "Draw.h"
 #include "glad/gl.h"
+#include "Shader.h"
+#include "PresetMan.h"
 
 using namespace RTE;
 
@@ -239,17 +241,20 @@ void PrimitiveMan::DrawPrimitives(int player, BITMAP* targetBitmap, const Vector
 		glBlendBarrierKHR();
 		rlEnableAdvancedColorBlend();
 	}
+	const Shader* background = dynamic_cast<const Shader*>(g_PresetMan.GetEntityPreset("Shader", "Background"));
 	rlEnableColorBlend();
 	for (const std::unique_ptr<GraphicalPrimitive>& primitive: m_ScheduledPrimitives) {
 		if (int playerToDrawFor = primitive->m_Player; playerToDrawFor == player || playerToDrawFor == -1) {
 			rlDrawRenderBatchActive();
 			if (DrawBlendMode blendMode = primitive->m_BlendMode; blendMode > DrawBlendMode::NoBlend) {
 				if (const std::array<int, 4>& blendAmounts = primitive->m_ColorChannelBlendAmounts; blendMode != lastBlendMode || blendAmounts != lastBlendAmounts) {
+					if (lastBlendMode == BlendDissolve) {
+						background->Begin();
+					}
 					rlEnableShader(rlGetShaderCurrent());
 					g_FrameMan.SetBlendMode(blendMode);
 					GLint colorUniform = glGetUniformLocation(rlGetShaderCurrent(), "rteColor");
 					glUniform4f(colorUniform, blendAmounts[0] / static_cast<float>(MaxBlend), blendAmounts[1] / static_cast<float>(MaxBlend), blendAmounts[2] / static_cast<float>(MaxBlend), blendAmounts[3] / static_cast<float>(MaxBlend));
-					//g_FrameMan.SetColorTable(blendMode, blendAmounts);
 					lastBlendMode = blendMode;
 					lastBlendAmounts = blendAmounts;
 				}
@@ -272,7 +277,7 @@ void PrimitiveMan::DrawPrimitives(int player, BITMAP* targetBitmap, const Vector
 		rlDisableAdvancedColorBlend();
 	}
 	rlSetBlendMode(RL_BLEND_ALPHA);
-	rlEnableShader(currentShader);
+	background->Begin();
 	GLint colorUniform = glGetUniformLocation(rlGetShaderCurrent(), "rteColor");
 	glUniform4f(colorUniform, 1.0f, 1.0f, 1.0f, 1.0f);
 	rlZDepth(c_DefaultDrawDepth);
