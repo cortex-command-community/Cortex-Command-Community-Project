@@ -100,7 +100,7 @@ bool Shader::Compile(const std::string& vertexPath, const std::string& fragPath)
 void Shader::Enable() {
 	rlEnableShader(m_ProgramID);
 }
-void Shader::Begin() {
+void Shader::Begin() const {
 	rlSetShader(m_ProgramID, m_Locations.data());
 	glUseProgram(m_ProgramID);
 }
