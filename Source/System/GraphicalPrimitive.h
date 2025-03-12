@@ -537,7 +537,7 @@ namespace RTE {
 		float m_RotAngle = 0; //!< Angle to rotate bitmap in radians.
 		bool m_HFlipped = false; //!< Whether the Bitmap to draw should be horizontally flipped.
 		bool m_VFlipped = false; //!< Whether the Bitmap to draw should be vertically flipped.
-		unsigned int m_Scale = 1u;
+		float m_Scale = 1.0;
 
 		/// Constructor method for BitmapPrimitive object.
 		/// @param player Player screen to draw this primitive on.
@@ -547,7 +547,7 @@ namespace RTE {
 		/// @param scale BITMAP scale.
 		/// @param hFlipped Whether the BITMAP to draw should be horizontally flipped.
 		/// @param vFlipped Whether the BITMAP to draw should be vertically flipped.
-		BitmapPrimitive(int player, const Vector& centerPos, BITMAP* bitmap, float rotAngle, unsigned int scale, bool hFlipped, bool vFlipped) :
+		BitmapPrimitive(int player, const Vector& centerPos, BITMAP* bitmap, float rotAngle, float scale, bool hFlipped, bool vFlipped) :
 		    m_Bitmap(bitmap), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped) {
 
 			m_StartPos = centerPos;
@@ -563,7 +563,7 @@ namespace RTE {
 		/// @param hFlipped Whether the BITMAP to draw should be horizontally flipped.
 		/// @param vFlipped Whether the BITMAP to draw should be vertically flipped.
 		BitmapPrimitive(int player, const Vector& centerPos, BITMAP* bitmap, float rotAngle, bool hFlipped, bool vFlipped) :
-		    BitmapPrimitive(player, centerPos, bitmap, rotAngle, 1u, hFlipped, vFlipped) {}
+		    BitmapPrimitive(player, centerPos, bitmap, rotAngle, 1.0f, hFlipped, vFlipped) {}
 
 		/// Constructor method for BitmapPrimitive object.
 		/// @param player Player screen to draw this primitive on.
@@ -574,7 +574,7 @@ namespace RTE {
 		/// @param scale BITMAP scale.
 		/// @param hFlipped Whether the BITMAP to draw should be horizontally flipped.
 		/// @param vFlipped Whether the BITMAP to draw should be vertically flipped.
-		BitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame, unsigned int scale, bool hFlipped, bool vFlipped) :
+		BitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame, float scale, bool hFlipped, bool vFlipped) :
 		    m_Bitmap(moSprite->GetSpriteFrame(frame)), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped) {
 
 			m_StartPos = centerPos;
@@ -591,7 +591,7 @@ namespace RTE {
 		/// @param hFlipped Whether the BITMAP to draw should be horizontally flipped.
 		/// @param vFlipped Whether the BITMAP to draw should be vertically flipped.
 		BitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame, bool hFlipped, bool vFlipped) :
-		    BitmapPrimitive(player, centerPos, moSprite, rotAngle, frame, 1u, hFlipped, vFlipped) {}
+		    BitmapPrimitive(player, centerPos, moSprite, rotAngle, frame, 1.0f, hFlipped, vFlipped) {}
 
 		/// Constructor method for BitmapPrimitive object.
 		/// @param player Player screen to draw this primitive on.
@@ -601,7 +601,7 @@ namespace RTE {
 		/// @param scale BITMAP scale.
 		/// @param hFlipped Whether the BITMAP to draw should be horizontally flipped.
 		/// @param vFlipped Whether the BITMAP to draw should be vertically flipped.
-		BitmapPrimitive(int player, const Vector& centerPos, const std::string& filePath, float rotAngle, unsigned int scale, bool hFlipped, bool vFlipped) :
+		BitmapPrimitive(int player, const Vector& centerPos, const std::string& filePath, float rotAngle, float scale, bool hFlipped, bool vFlipped) :
 		    m_Bitmap(ContentFile(filePath.c_str()).GetAsBitmap()), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped) {
 
 			m_StartPos = centerPos;
@@ -616,7 +616,7 @@ namespace RTE {
 		/// @param hFlipped Whether the BITMAP to draw should be horizontally flipped.
 		/// @param vFlipped Whether the BITMAP to draw should be vertically flipped.
 		BitmapPrimitive(int player, const Vector& centerPos, const std::string& filePath, float rotAngle, bool hFlipped, bool vFlipped) :
-		    BitmapPrimitive(player, centerPos, filePath, rotAngle, 1u, hFlipped, vFlipped) {}
+		    BitmapPrimitive(player, centerPos, filePath, rotAngle, 1.0f, hFlipped, vFlipped) {}
 
 	private:
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
