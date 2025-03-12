@@ -504,7 +504,7 @@ void BitmapPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 		return;
 	}
 
-	BITMAP* bitmapToDraw = create_bitmap_ex(8, (int)(m_Bitmap->w * m_Scale), (int)(m_Bitmap->h * m_Scale));
+	BITMAP* bitmapToDraw = create_bitmap_ex(8, m_Bitmap->w * m_Scale, m_Bitmap->h * m_Scale);
 	clear_to_color(bitmapToDraw, ColorKeys::g_MaskColor);
 	if (m_Scale == 1.0f) {
 		draw_sprite(bitmapToDraw, m_Bitmap, 0, 0);
