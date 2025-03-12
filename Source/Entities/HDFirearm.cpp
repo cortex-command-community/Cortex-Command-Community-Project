@@ -303,7 +303,7 @@ int HDFirearm::Write(Writer& writer, const Entity& entityReference, HashingData&
 	writer.NewOptionalEntityPointerProperty("Flash", m_pFlash, hashData);
 	writer.NewOptionalEntityPointerProperty("PreFlashSound", m_PreFireSound, hashData);
 	writer.NewOptionalEntityPointerProperty("FireSound", m_FireSound, hashData);
-	writer.NewOptionalEntityPointerProperty("FireFireEchoSoundSound", m_FireEchoSound, hashData);
+	writer.NewOptionalEntityPointerProperty("FireEchoSound", m_FireEchoSound, hashData);
 	writer.NewOptionalEntityPointerProperty("ActiveSound", m_ActiveSound, hashData);
 	writer.NewOptionalEntityPointerProperty("DeactivationSound", m_DeactivationSound, hashData);
 	writer.NewOptionalEntityPointerProperty("EmptySound", m_EmptySound, hashData);
