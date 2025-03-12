@@ -3906,7 +3906,7 @@ void rlClearActiveTextures() {
 }
 
 // Set shader currently active (id and locations)
-void rlSetShader(unsigned int id, int* locs) {
+void rlSetShader(unsigned int id, const int* locs) {
 #if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
 	if (RLGL.State.currentShaderId != id) {
 		rlDrawRenderBatch(RLGL.currentBatch);

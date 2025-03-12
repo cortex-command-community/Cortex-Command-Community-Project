@@ -820,7 +820,7 @@ RLAPI void rlSetUniform(int locIndex, const void* value, int uniformType, int co
 RLAPI void rlSetUniformMatrix(int locIndex, RLMatrix mat); // Set shader value matrix
 RLAPI void rlSetUniformMatrices(int locIndex, const RLMatrix* mat, int count); // Set shader value matrices
 RLAPI void rlSetUniformSampler(int locIndex, unsigned int textureId); // Set shader value sampler
-RLAPI void rlSetShader(unsigned int id, int* locs); // Set shader currently active (id and locations)
+RLAPI void rlSetShader(unsigned int id, const int* locs); // Set shader currently active (id and locations)
 RLAPI unsigned int rlGetShaderCurrent();
 // Compute shader management
 RLAPI unsigned int rlLoadComputeShaderProgram(unsigned int shaderId); // Load compute shader program
