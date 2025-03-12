@@ -33,6 +33,6 @@ void main() {
 	if (!rteBlendInvert) {
 		FragColor = texture2DAA(rtePalette, vec2(red * vertexColor.r, 0.0)) * vec4(rteColor.rgb, rteColor.a * vertexColor.a);
 	} else {
-		FragColor = vec4(vec3(1.0), 0.0) - (texture2DAA(rtePalette, vec2(red * vertexColor.r, 0.0)) * vec4(rteColor.rgb, rteColor.a * vertexColor.a));
+		FragColor = vec4(vec3(1.0), 0.0) - (texture2DAA(rtePalette, vec2(red * vertexColor.r, 0.0)) * vec4(rteColor.rgb, -rteColor.a * vertexColor.a));
 	}
 }
