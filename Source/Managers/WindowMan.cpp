@@ -691,7 +691,7 @@ void WindowMan::ClearBackbuffer(bool clearFrameMan) {
 
 void WindowMan::UploadFrame() {
 
-	m_ScreenBuffer->Begin(true);
+	m_ScreenBuffer->Begin(g_ActivityMan.IsInActivity());
 
 	rlDisableDepthTest();
 	rlDisableColorBlend();
