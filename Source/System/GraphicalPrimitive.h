@@ -537,7 +537,7 @@ namespace RTE {
 		float m_RotAngle = 0; //!< Angle to rotate bitmap in radians.
 		bool m_HFlipped = false; //!< Whether the Bitmap to draw should be horizontally flipped.
 		bool m_VFlipped = false; //!< Whether the Bitmap to draw should be vertically flipped.
-		float m_Scale = 1.0;
+		float m_Scale = 1.0f;
 
 		/// Constructor method for BitmapPrimitive object.
 		/// @param player Player screen to draw this primitive on.
