@@ -679,7 +679,7 @@ function WaveDefense:CreateMediumDrop(xPosLZ, Destination)
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge;
 		elseif craftMaxMass < 1 then
-			if Craft.ClassName == "ACDropship" then
+			if Craft.ClassName == "ACDropShip" then
 				Craft = RandomACDropShip("Craft", 0); -- MaxMass not defined
 			else
 				Craft = RandomACRocket("Craft", 0); -- MaxMass not defined
@@ -737,7 +737,7 @@ function WaveDefense:CreateLightDrop(xPosLZ, Destination)
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge;
 		elseif craftMaxMass < 1 then
-			if Craft.ClassName == "ACDropship" then
+			if Craft.ClassName == "ACDropShip" then
 				Craft = RandomACDropShip("Craft", 0); -- MaxMass not defined
 			else
 				Craft = RandomACRocket("Craft", 0); -- MaxMass not defined
@@ -793,7 +793,7 @@ function WaveDefense:CreateScoutDrop(xPosLZ, Destination)
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge;
 		elseif craftMaxMass < 1 then
-			if Craft.ClassName == "ACDropship" then
+			if Craft.ClassName == "ACDropShip" then
 				Craft = RandomACDropShip("Craft", 0); -- MaxMass not defined
 			else
 				Craft = RandomACRocket("Craft", 0); -- MaxMass not defined

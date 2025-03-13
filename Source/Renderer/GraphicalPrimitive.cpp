@@ -265,8 +265,8 @@ void BitmapPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 	Rectangle flippedRect(
 		drawStart.m_X - m_Bitmap->w / 2,
 		drawStart.m_Y - m_Bitmap->h / 2,
-		m_VFlipped ? -m_Bitmap->w : m_Bitmap->w,
-		m_HFlipped ? -m_Bitmap->h : m_Bitmap->h
+		(m_VFlipped ? -m_Bitmap->w : m_Bitmap->w) * m_Scale,
+		(m_HFlipped ? -m_Bitmap->h : m_Bitmap->h) * m_Scale
 	);
 
 	DrawTexturePro(m_Bitmap, Rectangle(0.0f, 0.0f, m_Bitmap->w, m_Bitmap->h), flippedRect, {0.0f, 0.0f}, m_RotAngle, {255, 255, 255, 255});

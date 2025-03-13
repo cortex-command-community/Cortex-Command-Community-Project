@@ -330,7 +330,7 @@ function MaginotMission:UpdateAttackerSpawns()
 		if self.currentFightStage >= self.fightStage.defendLeft then
 			local attackerCraft = RandomACDropShip("Craft", self.attackerTech);
 			if not attackerCraft then
-				attackerCraft = CreateACDropship("Dropship MK1", "Base.rte");
+				attackerCraft = CreateACDropShip("Dropship MK1", "Base.rte");
 			end
 
 			if attackerCraft then
