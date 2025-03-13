@@ -103,6 +103,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `SceneMan` function `CastAllMOsRay(startVector, rayVector, table ignoreMOIDs, ignoreTeam, ignoreMaterial, bool ignoreAllTerrain, int skip)` which returns an iterator with pointers to all the non-ignored MOs met along the ray.
 
+- Added scaling capability to Bitmap primitives.
+	New draw bindings with argument for scale are:
+	```
+	PrimitiveMan:DrawBitmapPrimitive(pos, moSprite, rotAngle, frame, scale)
+	PrimitiveMan:DrawBitmapPrimitive(pos, moSprite, rotAngle, frame, scale, bool hFlipped, bool vFlipped)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, moSprite, rotAngle, frame, scale)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, moSprite, rotAngle, frame, scale, bool hFlipped, bool vFlipped)
+	PrimitiveMan:DrawBitmapPrimitive(pos, filePath, rotAngle, scale)
+	PrimitiveMan:DrawBitmapPrimitive(pos, filePath, rotAngle, scale, bool hFlipped, bool vFlipped)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, filePath, rotAngle, scale)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, filePath, rotAngle, scale, bool hFlipped, bool vFlipped)
+	```
+	As well as constructors:
+	```
+	BitmapPrimitive(player, pos, moSprite, rotAngle, frame, scale, hFlipped, vFlipped)
+	BitmapPrimitive(player, pos, filePath, rotAngle, scale, hFlipped, vFlipped)
+	```
+	Original bindings with no scale argument are untouched and can be called as they were.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
