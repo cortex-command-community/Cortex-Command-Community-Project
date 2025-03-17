@@ -3,6 +3,7 @@ project('Cortex-Command-Community-Project', ['cpp','c'], subproject_dir: 'extern
 #### Build environment Setup ####
 
 compiler = meson.get_compiler('cpp')
+cmake = import('cmake')
 deps=[]
 
 elfname = 'CortexCommand'
@@ -191,8 +192,8 @@ endif
 #### Platform Common External Libraries ####
 if host_machine.system() in ['linux','darwin']
   deps += [
-    dependency(['sdl2']),
-    dependency('SDL2_image'),
+    dependency(['sdl3']),
+    dependency('SDL3_image'),
     dependency('flac'),
     dependency('minizip'),
     dependency('threads'),
