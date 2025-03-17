@@ -4,7 +4,7 @@
 #include "FrameMan.h"
 #include "UInputMan.h"
 #include "Timer.h"
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 using namespace RTE;
 
@@ -21,7 +21,7 @@ GUIInputWrapper::GUIInputWrapper(int whichPlayer, bool keyJoyMouseCursor) :
 
 void GUIInputWrapper::ConvertKeyEvent(SDL_Scancode sdlKey, int guilibKey, float elapsedS) {
 	int nKeys;
-	const Uint8* sdlKeyState = SDL_GetKeyboardState(&nKeys);
+	const bool* sdlKeyState = SDL_GetKeyboardState(&nKeys);
 	if (sdlKeyState[sdlKey]) {
 		if (m_KeyHoldDuration[guilibKey] < 0) {
 			m_KeyboardBuffer[guilibKey] = GUIInput::Pushed;
@@ -69,7 +69,7 @@ void GUIInputWrapper::UpdateKeyboardInput(float keyElapsedTime) {
 	for (size_t k = 0; k < GUIInput::Constants::KEYBOARD_BUFFER_SIZE; ++k) {
 		if (g_UInputMan.KeyPressed(static_cast<SDL_Scancode>(k))) {
 			m_ScanCodeState[k] = GUIInput::Pushed;
-			uint8_t keyName = static_cast<uint8_t>(SDL_GetKeyFromScancode(static_cast<SDL_Scancode>(k)));
+			uint8_t keyName = static_cast<uint8_t>(SDL_GetKeyFromScancode(static_cast<SDL_Scancode>(k), NULL, false));
 			m_KeyboardBuffer[keyName] = GUIInput::Pushed;
 		}
 	}
@@ -95,22 +95,22 @@ void GUIInputWrapper::UpdateKeyboardInput(float keyElapsedTime) {
 	m_Modifier = GUIInput::ModNone;
 	SDL_Keymod keyShifts = SDL_GetModState();
 
-	if (keyShifts & KMOD_SHIFT) {
+	if (keyShifts & SDL_KMOD_SHIFT) {
 		m_Modifier |= GUIInput::ModShift;
 	}
-	if (keyShifts & KMOD_ALT) {
+	if (keyShifts & SDL_KMOD_ALT) {
 		m_Modifier |= GUIInput::ModAlt;
 	}
-	if (keyShifts & KMOD_CTRL) {
+	if (keyShifts & SDL_KMOD_CTRL) {
 		m_Modifier |= GUIInput::ModCtrl;
 	}
-	if (keyShifts & KMOD_GUI) {
+	if (keyShifts & SDL_KMOD_GUI) {
 		m_Modifier |= GUIInput::ModCommand;
 	}
 }
 
 void GUIInputWrapper::UpdateMouseInput() {
-	int discard;
+	float discard;
 	Uint32 buttonState = SDL_GetMouseState(&discard, &discard);
 	Vector mousePos = g_UInputMan.GetAbsoluteMousePosition();
 

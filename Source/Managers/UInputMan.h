@@ -4,8 +4,8 @@
 #include "Vector.h"
 #include "InputScheme.h"
 #include "Gamepad.h"
-#include "SDL_keyboard.h"
-#include "SDL_events.h"
+#include <SDL3/SDL_keyboard.h>
+#include <SDL3/SDL_events.h>
 
 #include <algorithm>
 #include <array>
@@ -161,39 +161,39 @@ namespace RTE {
 
 		/// Gets the state of the Left Ctrl key.
 		/// @return The state of the Left Ctrl key.
-		bool FlagLCtrlState() const { return (SDL_GetModState() & KMOD_LCTRL) > 0; }
+		bool FlagLCtrlState() const { return (SDL_GetModState() & SDL_KMOD_LCTRL) > 0; }
 
 		/// Gets the state of the Right Ctrl key.
 		/// @return The state of the Right Ctrl key.
-		bool FlagRCtrlState() const { return (SDL_GetModState() & KMOD_RCTRL) > 0; }
+		bool FlagRCtrlState() const { return (SDL_GetModState() & SDL_KMOD_RCTRL) > 0; }
 
 		/// Gets the state of either Ctrl key.
 		/// @return The state of either Ctrl key.
-		bool FlagCtrlState() const { return (SDL_GetModState() & KMOD_CTRL) > 0; }
+		bool FlagCtrlState() const { return (SDL_GetModState() & SDL_KMOD_CTRL) > 0; }
 
 		/// Gets the state of the Left Alt key.
 		/// @return The state of the Alt key.
-		bool FlagLAltState() const { return (SDL_GetModState() & KMOD_LALT) > 0; }
+		bool FlagLAltState() const { return (SDL_GetModState() & SDL_KMOD_LALT) > 0; }
 
 		/// Gets the state of the Right Alt key.
 		/// @return The state of the Right Alt key.
-		bool FlagRAltState() const { return (SDL_GetModState() & KMOD_RALT) > 0; }
+		bool FlagRAltState() const { return (SDL_GetModState() & SDL_KMOD_RALT) > 0; }
 
 		/// Gets the state of either Alt key.
 		/// @return The state of either Alt key.
-		bool FlagAltState() const { return (SDL_GetModState() & KMOD_ALT) > 0; }
+		bool FlagAltState() const { return (SDL_GetModState() & SDL_KMOD_ALT) > 0; }
 
 		/// Gets the state of the Left Shift key.
 		/// @return The state of the Left Shift key.
-		bool FlagLShiftState() const { return (SDL_GetModState() & KMOD_LSHIFT) > 0; }
+		bool FlagLShiftState() const { return (SDL_GetModState() & SDL_KMOD_LSHIFT) > 0; }
 
 		/// Gets the state of the Right Shift key.
 		/// @return The state of the Right Shift key.
-		bool FlagRShiftState() const { return (SDL_GetModState() & KMOD_RSHIFT) > 0; }
+		bool FlagRShiftState() const { return (SDL_GetModState() & SDL_KMOD_RSHIFT) > 0; }
 
 		/// Gets the state of either Shift key.
 		/// @return The state of either Shift key.
-		bool FlagShiftState() const { return (SDL_GetModState() & KMOD_SHIFT) > 0; }
+		bool FlagShiftState() const { return (SDL_GetModState() & SDL_KMOD_SHIFT) > 0; }
 #pragma endregion
 
 #pragma region Keyboard Handling
@@ -209,7 +209,7 @@ namespace RTE {
 		/// Gets whether a key is being held right now, by keycode.
 		/// @param keycodeToTest A keycode to test. See SDL_KeyCode enumeration.
 		/// @return Whether the key is held or not.
-		bool KeyHeld(SDL_Keycode keycodeToTest) const { return KeyHeld(SDL_GetScancodeFromKey(keycodeToTest)); }
+		bool KeyHeld(SDL_Keycode keycodeToTest) const { return KeyHeld(SDL_GetScancodeFromKey(keycodeToTest, NULL)); }
 
 		/// Gets whether a key was pressed between the last update and the one previous to it, by scancode.
 		/// @param scancodeToTest A scancode to test. See SDL_Scancode enumeration.
@@ -219,7 +219,7 @@ namespace RTE {
 		/// Gets whether a key was pressed between the last update and the one previous to it, by keycode.
 		/// @param keycodeToTest A keycode to test. See SDL_KeyCode enumeration.
 		/// @return Whether the key is pressed or not.
-		bool KeyPressed(SDL_Keycode keycodeToTest) const { return KeyPressed(SDL_GetScancodeFromKey(keycodeToTest)); }
+		bool KeyPressed(SDL_Keycode keycodeToTest) const { return KeyPressed(SDL_GetScancodeFromKey(keycodeToTest, NULL)); }
 
 		/// Gets whether a key was released between the last update and the one previous to it, by scancode.
 		/// @param scancodeToTest A scancode to test. See SDL_Scancode enumeration.
@@ -229,7 +229,7 @@ namespace RTE {
 		/// Gets whether a key was released between the last update and the one previous to it, by keycode.
 		/// @param keycodeToTest A keycode to test. See SDL_KeyCode enumeration.
 		/// @return Whether the key is released or not.
-		bool KeyReleased(SDL_Keycode keycodeToTest) const { return KeyReleased(SDL_GetScancodeFromKey(keycodeToTest)); }
+		bool KeyReleased(SDL_Keycode keycodeToTest) const { return KeyReleased(SDL_GetScancodeFromKey(keycodeToTest, NULL)); }
 
 		/// Return true if there are any keyboard button presses at all.
 		/// @return Whether any keyboard buttons have been pressed at all since last frame.
@@ -446,8 +446,8 @@ namespace RTE {
 			InputStateCount
 		};
 
-		static std::array<uint8_t, SDL_NUM_SCANCODES> s_PrevKeyStates; //!< Key states as they were the previous update.
-		static std::array<uint8_t, SDL_NUM_SCANCODES> s_ChangedKeyStates; //!< Key states that have changed.
+		static std::array<bool, SDL_SCANCODE_COUNT> s_PrevKeyStates; //!< Key states as they were the previous update.
+		static std::array<bool, SDL_SCANCODE_COUNT> s_ChangedKeyStates; //!< Key states that have changed.
 
 		static std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS> s_CurrentMouseButtonStates; //!< Current mouse button states.
 		static std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS> s_PrevMouseButtonStates; //!< Mouse button states as they were the previous update.

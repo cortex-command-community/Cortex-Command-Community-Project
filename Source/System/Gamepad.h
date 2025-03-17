@@ -1,11 +1,11 @@
 #pragma once
 
 #include "Vector.h"
-#include "SDL_gamecontroller.h"
+#include <SDL3/SDL_gamepad.h>
 
 namespace RTE {
 
-	/// Structure for storing SDL_GameController or SDL_Joystick states.
+	/// Structure for storing SDL_Gamepad or SDL_Joystick states.
 	struct Gamepad {
 		int m_DeviceIndex = -1; //!< The SDL device index, used when reopening devices as SDL will attempt to reassign joysticks to the same index.
 		SDL_JoystickID m_JoystickID = -1; //!< The joystick ID for event handling.

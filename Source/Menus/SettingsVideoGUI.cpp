@@ -13,7 +13,7 @@
 #include "GUIComboBox.h"
 #include "GUITextBox.h"
 
-#include "SDL_video.h"
+#include <SDL3/SDL_video.h>
 #include "glm/ext.hpp"
 #include "glm/gtc/epsilon.hpp"
 #if __cpp_lib_format >= 201907L
@@ -56,7 +56,9 @@ SettingsVideoGUI::SettingsVideoGUI(GUIControlManager* parentControlManager) :
 
 	m_UseMultiDisplaysCheckbox = dynamic_cast<GUICheckbox*>(m_GUIControlManager->GetControl("CheckboxUseMultiDisplays"));
 	m_UseMultiDisplaysCheckbox->SetCheck(g_WindowMan.GetUseMultiDisplays());
-	m_UseMultiDisplaysCheckbox->SetVisible(m_UseMultiDisplaysCheckbox->GetVisible() && SDL_GetNumVideoDisplays() > 1);
+	int numDisplays = 0;
+	SDL_free(SDL_GetDisplays(&numDisplays));
+	m_UseMultiDisplaysCheckbox->SetVisible(m_UseMultiDisplaysCheckbox->GetVisible() && numDisplays > 1);
 
 	m_PresetResolutionRadioButton = dynamic_cast<GUIRadioButton*>(m_GUIControlManager->GetControl("RadioPresetResolution"));
 	m_CustomResolutionRadioButton = dynamic_cast<GUIRadioButton*>(m_GUIControlManager->GetControl("RadioCustomResolution"));
