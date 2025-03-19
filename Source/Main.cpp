@@ -40,11 +40,11 @@
 #include "UInputMan.h"
 #include "PerformanceMan.h"
 #include "FrameMan.h"
+#include "PostProcessMan.h"
+#include "SceneMan.h"
 #include "MetaMan.h"
 #include "WindowMan.h"
 #include "GLResourceMan.h"
-#include "NetworkServer.h"
-#include "NetworkClient.h"
 #include "CameraMan.h"
 #include "ActivityMan.h"
 #include "PrimitiveMan.h"
@@ -55,6 +55,10 @@
 
 #include "RenderTarget.h"
 #include "tracy/Tracy.hpp"
+
+#ifdef _WIN32
+#include "windows.h"
+#endif
 
 extern "C" {
 FILE __iob_func[3] = {*stdin, *stdout, *stderr};
@@ -73,8 +77,6 @@ void InitializeManagers() {
 	WindowMan::Construct();
 	GLResourceMan::Construct();
 	LuaMan::Construct();
-	NetworkServer::Construct();
-	NetworkClient::Construct();
 	FrameMan::Construct();
 	PerformanceMan::Construct();
 	PostProcessMan::Construct();
@@ -98,8 +100,6 @@ void InitializeManagers() {
 	g_GLResourceMan.Initialize();
 
 	g_LuaMan.Initialize();
-	g_NetworkServer.Initialize();
-	g_NetworkClient.Initialize();
 	g_TimerMan.Initialize();
 	g_FrameMan.Initialize();
 	g_PostProcessMan.Initialize();
@@ -128,8 +128,6 @@ void InitializeManagers() {
 /// Destroys all the managers and frees all loaded data before termination.
 /// </summary>
 void DestroyManagers() {
-	g_NetworkClient.Destroy();
-	g_NetworkServer.Destroy();
 	g_MetaMan.Destroy();
 	g_PerformanceMan.Destroy();
 	g_MovableMan.Destroy();
@@ -189,11 +187,7 @@ void HandleMainArgs(int argCount, char** argValue) {
 			}
 		}
 		if (!launchModeSet) {
-			if (currentArg == "-server") {
-				g_NetworkServer.EnableServerMode();
-				g_NetworkServer.SetServerPort(!lastArg ? argValue[++i] : "8000");
-				launchModeSet = true;
-			} else if (!lastArg && currentArg == "-editor") {
+			if (!lastArg && currentArg == "-editor") {
 				g_ActivityMan.SetEditorToLaunch(argValue[++i]);
 				launchModeSet = true;
 			}
@@ -337,12 +331,6 @@ void RunGameLoop() {
 
 			g_UInputMan.Update();
 
-			// It is vital that server is updated after input manager but before activity because input manager will clear received pressed and released events on next update.
-			if (g_NetworkServer.IsServerModeEnabled()) {
-				g_NetworkServer.Update(true);
-				serverUpdated = true;
-			}
-
 			g_FrameMan.Update();
 
 			g_MovableMan.CompleteQueuedMOIDDrawings();
@@ -391,23 +379,6 @@ void RunGameLoop() {
 			}
 		}
 
-		if (g_NetworkServer.IsServerModeEnabled()) {
-			// Pause sim while we're waiting for scene transmission or scene will start changing before clients receive them and those changes will be lost.
-			g_TimerMan.PauseSim(!(g_NetworkServer.ReadyForSimulation() && g_ActivityMan.IsInActivity()));
-
-			if (!serverUpdated) {
-				g_NetworkServer.Update();
-			}
-
-			if (g_NetworkServer.GetServerSimSleepWhenIdle()) {
-				long long ticksToSleep = g_TimerMan.GetTimeToSleep();
-				if (ticksToSleep > 0) {
-					double secsToSleep = static_cast<double>(ticksToSleep) / static_cast<double>(g_TimerMan.GetTicksPerSecond());
-					long long milisToSleep = static_cast<long long>(secsToSleep) * 1000;
-					std::this_thread::sleep_for(std::chrono::milliseconds(milisToSleep));
-				}
-			}
-		}
 		updateEndAndDrawStartTime = g_TimerMan.GetAbsoluteTime();
 		updateTotalTime = updateEndAndDrawStartTime - updateStartTime;
 		drawStartTime = updateEndAndDrawStartTime;
@@ -466,10 +437,6 @@ int main(int argc, char** argv) {
 	InitializeManagers();
 
 	HandleMainArgs(argc, argv);
-
-	if (g_NetworkServer.IsServerModeEnabled()) {
-		SDL_ShowCursor(SDL_ENABLE);
-	}
 
 	g_PresetMan.LoadAllDataModules();
 

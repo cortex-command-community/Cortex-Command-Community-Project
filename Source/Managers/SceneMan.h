@@ -946,12 +946,6 @@ namespace RTE {
 		/// @return Pointer to stored material.
 		Material* AddMaterialCopy(Material* mat);
 
-		/// Registers terrain change event for the network server to be then sent to clients.
-		/// @param x,y - scene coordinates of change, w,h - size of the changed region,
-		/// color - changed color for one-pixel events,
-		/// back - if true, then background bitmap was changed if false then foreground.
-		void RegisterTerrainChange(int x, int y, int w, int h, unsigned char color, bool back);
-
 		/// Gets an intermediate bitmap that is used for drawing a settled MovableObject into the terrain.
 		/// @param moDiameter The diameter of the MovableObject to calculate the required bitmap size.
 		/// @return Pointer to the temp BITMAP of the appropriate size. Ownership is NOT transferred!

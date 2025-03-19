@@ -11,7 +11,7 @@ function Create(self)
 	self.angleList = {};
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if MovableMan:IsParticle(self) and self.lifeTimer:IsPastSimMS(self.detonationDelay) then
 		self:GibThis();
 	else

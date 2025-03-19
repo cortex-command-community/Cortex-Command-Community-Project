@@ -215,11 +215,7 @@ int InventoryMenuGUI::SetupFullOrTransferMode() {
 		s_CursorBitmap = cursorFile.GetAsBitmap();
 	}
 
-	if (g_FrameMan.IsInMultiplayerMode()) {
-		dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("base"))->SetSize(g_FrameMan.GetPlayerFrameBufferWidth(m_MenuController->GetPlayer()), g_FrameMan.GetPlayerFrameBufferHeight(m_MenuController->GetPlayer()));
-	} else {
-		dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("base"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
-	}
+	dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("base"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
 
 	m_GUITopLevelBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBox_InventoryMenuGUI"));
 	m_GUITopLevelBox->SetPositionAbs(g_FrameMan.GetPlayerFrameBufferWidth(m_MenuController->GetPlayer()), 0);
@@ -1356,7 +1352,7 @@ void InventoryMenuGUI::DrawCarouselMode(BITMAP* targetBitmap, const Vector& draw
 	for (const IntRect& wrappedRectangle: wrappedRectangles) {
 		g_GLResourceMan.UpdateDynamicBitmap(m_CarouselBGBitmap.get(), true);
 		g_GLResourceMan.UpdateDynamicBitmap(m_CarouselBitmap.get(), true);
-		if (m_CarouselBackgroundTransparent && !g_FrameMan.IsInMultiplayerMode()) {
+		if (m_CarouselBackgroundTransparent) {
 			g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
 			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_CarouselBGBitmap.get()), wrappedRectangle.m_Left - m_CarouselBGBitmap->w / 2, wrappedRectangle.m_Top - m_CarouselBGBitmap->h / 2, {255, 255, 255, 75});
 			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_CarouselBitmap.get()), wrappedRectangle.m_Left - m_CarouselBitmap->w / 2, wrappedRectangle.m_Top - m_CarouselBitmap->h / 2, {255, 255, 255, 255});

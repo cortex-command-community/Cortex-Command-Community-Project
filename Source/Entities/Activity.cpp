@@ -8,7 +8,6 @@
 #include "FrameMan.h"
 #include "MetaMan.h"
 #include "SceneMan.h"
-#include "NetworkClient.h"
 
 #include "ACraft.h"
 
@@ -362,11 +361,9 @@ int Activity::Start() {
 	m_Paused = false;
 
 	// Reset the mouse moving so that it won't trap the mouse if the window isn't in focus (common after loading)
-	if (!g_FrameMan.IsInMultiplayerMode()) {
-		g_UInputMan.DisableMouseMoving(true);
-		g_UInputMan.DisableMouseMoving(false);
-		g_UInputMan.DisableKeys(false);
-	}
+	g_UInputMan.DisableMouseMoving(true);
+	g_UInputMan.DisableMouseMoving(false);
+	g_UInputMan.DisableKeys(false);
 
 	int error = g_SceneMan.LoadScene();
 	if (error < 0) {
@@ -944,10 +941,6 @@ void Activity::Update() {
 
 bool Activity::CanBeUserSaved() const {
 	if (const Scene* scene = g_SceneMan.GetScene(); (scene && scene->IsMetagameInternal()) || g_MetaMan.GameInProgress()) {
-		return false;
-	}
-
-	if (g_NetworkClient.IsConnectedAndRegistered()) {
 		return false;
 	}
 

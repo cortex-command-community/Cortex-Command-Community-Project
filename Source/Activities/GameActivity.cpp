@@ -821,37 +821,32 @@ int GameActivity::Start() {
 		////////////////////////////////////
 		// GUI split screen setup
 		// If there are split screens, set up the GUIs to draw and their mouses to point correctly
-		if (g_FrameMan.IsInMultiplayerMode()) {
-			m_pEditorGUI[player]->SetPosOnScreen(0, 0);
-			m_pBuyGUI[player]->SetPosOnScreen(0, 0);
-		} else {
-			if (g_FrameMan.GetScreenCount() > 1) {
-				// Screen 1 Always upper left corner
-				if (ScreenOfPlayer(player) == 0) {
-					m_pEditorGUI[player]->SetPosOnScreen(0, 0);
-					m_pBuyGUI[player]->SetPosOnScreen(0, 0);
-				} else if (ScreenOfPlayer(player) == 1) {
-					// If both splits, or just Vsplit, then in upper right quadrant
-					if ((g_FrameMan.GetVSplit() && !g_FrameMan.GetHSplit()) || (g_FrameMan.GetVSplit() && g_FrameMan.GetVSplit())) {
-						m_pEditorGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, 0);
-						m_pBuyGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, 0);
-					}
-					// If only hsplit, then lower left quadrant
-					else {
-						m_pEditorGUI[player]->SetPosOnScreen(0, g_WindowMan.GetResY() / 2);
-						m_pBuyGUI[player]->SetPosOnScreen(0, g_WindowMan.GetResY() / 2);
-					}
+		if (g_FrameMan.GetScreenCount() > 1) {
+			// Screen 1 Always upper left corner
+			if (ScreenOfPlayer(player) == 0) {
+				m_pEditorGUI[player]->SetPosOnScreen(0, 0);
+				m_pBuyGUI[player]->SetPosOnScreen(0, 0);
+			} else if (ScreenOfPlayer(player) == 1) {
+				// If both splits, or just Vsplit, then in upper right quadrant
+				if ((g_FrameMan.GetVSplit() && !g_FrameMan.GetHSplit()) || (g_FrameMan.GetVSplit() && g_FrameMan.GetVSplit())) {
+					m_pEditorGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, 0);
+					m_pBuyGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, 0);
 				}
-				// Screen 3 is lower left quadrant
-				else if (ScreenOfPlayer(player) == 2) {
+				// If only hsplit, then lower left quadrant
+				else {
 					m_pEditorGUI[player]->SetPosOnScreen(0, g_WindowMan.GetResY() / 2);
 					m_pBuyGUI[player]->SetPosOnScreen(0, g_WindowMan.GetResY() / 2);
 				}
-				// Screen 4 is lower right quadrant
-				else if (ScreenOfPlayer(player) == 3) {
-					m_pEditorGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, g_WindowMan.GetResY() / 2);
-					m_pBuyGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, g_WindowMan.GetResY() / 2);
-				}
+			}
+			// Screen 3 is lower left quadrant
+			else if (ScreenOfPlayer(player) == 2) {
+				m_pEditorGUI[player]->SetPosOnScreen(0, g_WindowMan.GetResY() / 2);
+				m_pBuyGUI[player]->SetPosOnScreen(0, g_WindowMan.GetResY() / 2);
+			}
+			// Screen 4 is lower right quadrant
+			else if (ScreenOfPlayer(player) == 3) {
+				m_pEditorGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, g_WindowMan.GetResY() / 2);
+				m_pBuyGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, g_WindowMan.GetResY() / 2);
 			}
 		}
 
@@ -1765,10 +1760,7 @@ void GameActivity::Update() {
 		if (m_ActivityState == ActivityState::Over && m_GameOverTimer.IsPastRealMS(m_GameOverPeriod)) {
 			g_FrameMan.ClearScreenText(ScreenOfPlayer(player));
 			// g_FrameMan.SetScreenText("Press [Esc] to leave the battlefield", ScreenOfPlayer(player), 750);
-			if (g_FrameMan.IsInMultiplayerMode())
-				g_FrameMan.SetScreenText("All players must press and hold [BACKSPACE] to continue!", ScreenOfPlayer(player), 750);
-			else
-				g_FrameMan.SetScreenText("Press [SPACE] or [START] to continue!", ScreenOfPlayer(player), 750);
+			g_FrameMan.SetScreenText("Press [SPACE] or [START] to continue!", ScreenOfPlayer(player), 750);
 
 			// Actually end on space
 			if (m_GameOverTimer.IsPastSimMS(55000) || g_UInputMan.AnyStartPress()) {

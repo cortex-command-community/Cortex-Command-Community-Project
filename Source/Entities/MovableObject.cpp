@@ -79,6 +79,7 @@ void MovableObject::Clear() {
 	m_HUDVisible = true;
 	m_IsTraveling = false;
 	m_AllLoadedScripts.clear();
+	m_EnabledScripts.clear();
 	m_FunctionsAndScripts.clear();
 	m_StringValueMap.clear();
 	m_NumberValueMap.clear();
@@ -225,8 +226,8 @@ int MovableObject::Create(const MovableObject& reference) {
 	m_PostEffectEnabled = reference.m_PostEffectEnabled;
 
 	m_ForceIntoMasterLuaState = reference.m_ForceIntoMasterLuaState;
-	for (auto& [scriptPath, scriptEnabled]: reference.m_AllLoadedScripts) {
-		LoadScript(scriptPath, scriptEnabled);
+	for (const auto& scriptPath: reference.m_AllLoadedScripts) {
+		LoadScript(scriptPath, reference.m_EnabledScripts.at(scriptPath));
 	}
 
 	if (reference.m_pScreenEffect) {
@@ -435,7 +436,7 @@ int MovableObject::Save(Writer& writer) const {
 	if (m_CanBeSquished != true) writer.NewPropertyWithValue("CanBeSquished", m_CanBeSquished);
 	if (m_HUDVisible != true) writer.NewPropertyWithValue("HUDVisible", m_HUDVisible);
 
-	for (const auto& [scriptPath, scriptEnabled]: m_AllLoadedScripts) {
+	for (const auto& scriptPath: m_AllLoadedScripts) {
 		if (!scriptPath.empty()) {
 			writer.NewPropertyWithValue("ScriptPath", scriptPath);
 		}
@@ -506,7 +507,7 @@ int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingD
 	writer.NewDistinctProperty("HUDVisible", m_HUDVisible, reference.m_HUDVisible);
 
 	// No need to worry about clearing scripts: you presently can't remove them anyhow, so, no problem?
-	for (const auto& [scriptPath, scriptEnabled]: m_AllLoadedScripts) {
+	for (const auto& scriptPath: m_AllLoadedScripts) {
 		if (!scriptPath.empty() && !reference.HasScript(scriptPath)) {
 			writer.NewPropertyWithValue("_AddScriptPath", scriptPath);
 		}
@@ -589,7 +590,7 @@ HashingData MovableObject::Hash() const {
 
 	int i = 0;
 
-	for (const auto& [scriptPath, scriptEnabled]: m_AllLoadedScripts) {
+	for (const auto& scriptPath: m_AllLoadedScripts) {
 		if (!scriptPath.empty()) {
 			hash ^= RTE::Hash(scriptPath) << (i++ % sizeof(uint64_t) * 8);
 		}
@@ -680,7 +681,8 @@ int MovableObject::LoadScript(const std::string& scriptPath, bool loadAsEnabledS
 		}
 	}
 
-	m_AllLoadedScripts.try_emplace(scriptPath, loadAsEnabledScript);
+	m_EnabledScripts.try_emplace(scriptPath, loadAsEnabledScript);
+	m_AllLoadedScripts.push_back(scriptPath);
 
 	std::unordered_map<std::string, LuabindObjectWrapper*> scriptFileFunctions;
 	if (usedState.RunScriptFileAndRetrieveFunctions(scriptPath, GetSupportedScriptFunctionNames(), scriptFileFunctions) < 0) {
@@ -715,14 +717,16 @@ int MovableObject::ReloadScripts() {
 		movableObjectPreset->ReloadScripts();
 	}
 
-	std::unordered_map<std::string, bool> loadedScriptsCopy = m_AllLoadedScripts;
+	std::unordered_map<std::string, bool> enabledScriptsCopy = m_EnabledScripts;
+	std::vector<std::string> loadedScriptsCopy = m_AllLoadedScripts;
+	m_EnabledScripts.clear();
 	m_AllLoadedScripts.clear();
 	m_FunctionsAndScripts.clear();
-	for (const auto& [scriptPath, scriptEnabled]: loadedScriptsCopy) {
-		status = LoadScript(scriptPath, scriptEnabled);
+	for (const auto& scriptPath: loadedScriptsCopy) {
+		status = LoadScript(scriptPath, enabledScriptsCopy.at(scriptPath));
 		// If the script fails to load because of an error in its Lua, we need to manually add the script path so it's not lost forever.
 		if (status == -4) {
-			m_AllLoadedScripts.try_emplace(scriptPath, scriptEnabled);
+			m_EnabledScripts.try_emplace(scriptPath, enabledScriptsCopy.at(scriptPath));
 		} else if (status < 0) {
 			break;
 		}
@@ -753,7 +757,7 @@ bool MovableObject::EnableOrDisableScript(const std::string& scriptPath, bool en
 		return false;
 	}
 
-	if (auto scriptEntryIterator = m_AllLoadedScripts.find(scriptPath); scriptEntryIterator != m_AllLoadedScripts.end() && scriptEntryIterator->second == !enableScript) {
+	if (auto scriptEntryIterator = m_EnabledScripts.find(scriptPath); scriptEntryIterator != m_EnabledScripts.end() && scriptEntryIterator->second == !enableScript) {
 		if (ObjectScriptsInitialized() && RunFunctionOfScript(scriptPath, enableScript ? "OnScriptEnable" : "OnScriptDisable") < 0) {
 			return false;
 		}
@@ -775,7 +779,7 @@ bool MovableObject::EnableOrDisableScript(const std::string& scriptPath, bool en
 }
 
 void MovableObject::EnableOrDisableAllScripts(bool enableScripts) {
-	for (const auto& [scriptPath, scriptIsEnabled]: m_AllLoadedScripts) {
+	for (const auto& [scriptPath, scriptIsEnabled]: m_EnabledScripts) {
 		if (enableScripts != scriptIsEnabled) {
 			EnableOrDisableScript(scriptPath, enableScripts);
 		}
@@ -823,9 +827,7 @@ int MovableObject::RunFunctionOfScript(const std::string& scriptPath, const std:
 	for (const LuaFunction& luaFunction: m_FunctionsAndScripts.at(functionName)) {
 		const LuabindObjectWrapper* luabindObjectWrapper = luaFunction.m_LuaFunction.get();
 		if (scriptPath == luabindObjectWrapper->GetFilePath() && usedState.RunScriptFunctionObject(luabindObjectWrapper, "_ScriptedObjects", std::to_string(m_UniqueID), functionEntityArguments, functionLiteralArguments) < 0) {
-			if (m_AllLoadedScripts.size() > 1) {
-				g_ConsoleMan.PrintString("ERROR: An error occured while trying to run the " + functionName + " function for script at path " + scriptPath);
-			}
+			g_ConsoleMan.PrintString("ERROR: An error occured while trying to run the " + functionName + " function for script at path " + scriptPath);
 			return -2;
 		}
 	}
@@ -1245,14 +1247,12 @@ bool MovableObject::DrawToTerrain(SLTerrain* terrain) {
 		wrappedMaskedBlit(terrain->GetMaterialBitmap(), tempBitmap, tempBitmapPos, true);
 
 		terrain->AddUpdatedMaterialArea(Box(tempBitmapPos, static_cast<float>(tempBitmap->w), static_cast<float>(tempBitmap->h)));
-		g_SceneMan.RegisterTerrainChange(tempBitmapPos.GetFloorIntX(), tempBitmapPos.GetFloorIntY(), tempBitmap->w, tempBitmap->h, ColorKeys::g_MaskColor, false);
 	} else {
 		Draw(terrain->GetFGColorBitmap(), Vector(), DrawMode::g_DrawColor, true);
 		Material const* terrMat = g_SceneMan.GetMaterialFromID(g_SceneMan.GetTerrain()->GetMaterialPixel(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY()));
 		if (GetMaterial()->GetPriority() > terrMat->GetPriority()) {
 			Draw(terrain->GetMaterialBitmap(), Vector(), DrawMode::g_DrawMaterial, true);
 		}
-		g_SceneMan.RegisterTerrainChange(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY(), 1, 1, DrawMode::g_DrawColor, false);
 	}
 	return true;
 }

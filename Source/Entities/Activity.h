@@ -3,6 +3,7 @@
 #include "Icon.h"
 #include "Controller.h"
 #include "GenericSavedData.h"
+#include "Entity.h"
 
 namespace RTE {
 

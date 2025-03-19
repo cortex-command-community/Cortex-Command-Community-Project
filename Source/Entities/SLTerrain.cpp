@@ -544,7 +544,6 @@ std::deque<MOPixel*> SLTerrain::EraseSilhouette(BITMAP* sprite, const Vector& po
 				}
 				if (colorPixel != ColorKeys::g_MaskColor) {
 					putpixel(m_FGColorLayer->GetBitmap(), terrX, terrY, ColorKeys::g_MaskColor);
-					g_SceneMan.RegisterTerrainChange(terrX, terrY, 1, 1, ColorKeys::g_MaskColor, false);
 				}
 			}
 		}

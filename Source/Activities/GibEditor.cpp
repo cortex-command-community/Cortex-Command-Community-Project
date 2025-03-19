@@ -637,7 +637,7 @@ void GibEditor::StuffEditedGibs(MOSRotating* pEditedObject) {
 	// Take each proxy object and stuff it into a Gib instance which then gets stuffed into the object to be saved
 	std::list<MovableObject*>* pProxyGibList = m_pEditorGUI->GetPlacedGibs();
 	for (std::list<MovableObject*>::iterator gItr = pProxyGibList->begin(); gItr != pProxyGibList->end(); ++gItr) {
-		Gib* newGib;
+		Gib* newGib = new Gib();
 		// Only set the refernce instance directly from the isntanceman. OWNERSHIP IS NOT TRANSFERRED!
 		newGib->m_GibParticle = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset((*gItr)->GetClassName(), (*gItr)->GetPresetName(), m_ModuleSpaceID));
 		if (newGib->m_GibParticle) {

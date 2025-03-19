@@ -6,7 +6,6 @@
 #include "Scene.h"
 #include "SceneMan.h"
 #include "SLTerrain.h"
-#include "NetworkClient.h"
 
 using namespace RTE;
 
@@ -55,11 +54,7 @@ Vector CameraMan::GetUnwrappedOffset(int screenId) const {
 
 void CameraMan::SetScroll(const Vector& center, int screenId) {
 	Screen& screen = m_Screens[screenId];
-	if (g_FrameMan.IsInMultiplayerMode()) {
-		screen.Offset.SetXY(static_cast<float>(center.GetFloorIntX() - (g_FrameMan.GetPlayerFrameBufferWidth(screenId) / 2)), static_cast<float>(center.GetFloorIntY() - (g_FrameMan.GetPlayerFrameBufferHeight(screenId) / 2)));
-	} else {
-		screen.Offset.SetXY(static_cast<float>(center.GetFloorIntX() - (g_WindowMan.GetResX() / 2)), static_cast<float>(center.GetFloorIntY() - (g_WindowMan.GetResY() / 2)));
-	}
+	screen.Offset.SetXY(static_cast<float>(center.GetFloorIntX() - (g_WindowMan.GetResX() / 2)), static_cast<float>(center.GetFloorIntY() - (g_WindowMan.GetResY() / 2)));
 	CheckOffset(screenId);
 }
 
@@ -68,7 +63,7 @@ Vector CameraMan::GetScrollTarget(int screenId) const {
 		// Would it be preferable to just set screenId to 0?
 		return Vector();
 	}
-	return g_NetworkClient.IsConnectedAndRegistered() ? g_NetworkClient.GetFrameTarget() : m_Screens[screenId].ScrollTarget;
+	return m_Screens[screenId].ScrollTarget;
 }
 
 void CameraMan::SetScrollTarget(const Vector& targetCenter, float speed, int screenId) {
@@ -156,14 +151,8 @@ void CameraMan::CheckOffset(int screenId) {
 Vector CameraMan::GetFrameSize(int screenId) {
 	int frameWidth = g_WindowMan.GetResX();
 	int frameHeight = g_WindowMan.GetResY();
-
-	if (g_FrameMan.IsInMultiplayerMode()) {
-		frameWidth = g_FrameMan.GetPlayerFrameBufferWidth(screenId);
-		frameHeight = g_FrameMan.GetPlayerFrameBufferHeight(screenId);
-	} else {
-		frameWidth = frameWidth / (g_FrameMan.GetVSplit() ? 2 : 1);
-		frameHeight = frameHeight / (g_FrameMan.GetHSplit() ? 2 : 1);
-	}
+	frameWidth = g_FrameMan.GetPlayerFrameBufferWidth(screenId);
+	frameHeight = g_FrameMan.GetPlayerFrameBufferHeight(screenId);
 
 	return Vector(static_cast<float>(frameWidth), static_cast<float>(frameHeight));
 }
@@ -231,13 +220,8 @@ void CameraMan::Update(int screenId) {
 	Vector oldOffset(screen.Offset);
 
 	Vector offsetTarget;
-	if (g_FrameMan.IsInMultiplayerMode()) {
-		offsetTarget.SetX(screen.ScrollTarget.GetX() - static_cast<float>(g_FrameMan.GetPlayerFrameBufferWidth(screenId) / 2));
-		offsetTarget.SetY(screen.ScrollTarget.GetY() - static_cast<float>(g_FrameMan.GetPlayerFrameBufferHeight(screenId) / 2));
-	} else {
-		offsetTarget.SetX(screen.ScrollTarget.GetX() - static_cast<float>(g_WindowMan.GetResX() / (g_FrameMan.GetVSplit() ? 4 : 2)));
-		offsetTarget.SetY(screen.ScrollTarget.GetY() - static_cast<float>(g_WindowMan.GetResY() / (g_FrameMan.GetHSplit() ? 4 : 2)));
-	}
+	offsetTarget.SetX(screen.ScrollTarget.GetX() - static_cast<float>(g_WindowMan.GetResX() / (g_FrameMan.GetVSplit() ? 4 : 2)));
+	offsetTarget.SetY(screen.ScrollTarget.GetY() - static_cast<float>(g_WindowMan.GetResY() / (g_FrameMan.GetHSplit() ? 4 : 2)));
 	// Take the occlusion of the screens into account so that the scroll target is still centered on the terrain-visible portion of the screen.
 	offsetTarget -= (screen.ScreenOcclusion / 2);
 
