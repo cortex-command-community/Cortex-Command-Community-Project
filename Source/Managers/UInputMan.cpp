@@ -434,8 +434,13 @@ void UInputMan::TrapMousePos(bool trap, int whichPlayer) {
 		m_TrapMousePos = trap;
 		SDL_SetWindowRelativeMouseMode(g_WindowMan.GetWindow(), trap);
 	} else if (m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
-		m_TrapMousePos = trap || m_EnableMultiMouseKeyboard;
-		SDL_SetWindowRelativeMouseMode(g_WindowMan.GetWindow(), m_TrapMousePos);
+		m_TrapMousePos = trap;
+		SDL_SetWindowRelativeMouseMode(g_WindowMan.GetWindow(), m_TrapMousePos||m_EnableMultiMouseKeyboard);
+		if (m_EnableMultiMouseKeyboard) {
+			if (auto mouse = m_MouseStates.find(m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
+				mouse->second.relativeMode = trap;
+			}
+		}
 	}
 }
 
@@ -444,7 +449,6 @@ void UInputMan::ForceMouseWithinBox(int x, int y, int width, int height, int whi
 	int rightMostPos = m_PlayerScreenMouseBounds.x + m_PlayerScreenMouseBounds.w;
 	int bottomMostPos = m_PlayerScreenMouseBounds.y + m_PlayerScreenMouseBounds.h;
 	if (g_WindowMan.AnyWindowHasFocus() && !m_DisableMouseMoving && !m_TrapMousePos && (whichPlayer == Players::NoPlayer || (m_ControlScheme[whichPlayer].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB && !m_EnableMultiMouseKeyboard))) {
-
 		if (g_WindowMan.FullyCoversAllDisplays()) {
 			int leftPos = std::clamp(m_PlayerScreenMouseBounds.x + x, m_PlayerScreenMouseBounds.x, rightMostPos);
 			int topPos = std::clamp(m_PlayerScreenMouseBounds.y + y, m_PlayerScreenMouseBounds.y, bottomMostPos);
@@ -471,7 +475,7 @@ void UInputMan::ForceMouseWithinBox(int x, int y, int width, int height, int whi
 			}
 			SDL_SetWindowMouseRect(g_WindowMan.GetWindow(), &newMouseBounds);
 		}
-	} else if (m_ControlScheme[whichPlayer].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB && m_EnableMultiMouseKeyboard) {
+	} else if (whichPlayer != Players::NoPlayer && m_ControlScheme[whichPlayer].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB && m_EnableMultiMouseKeyboard) {
 		if (auto mouse = m_MouseStates.find(m_ControlScheme[whichPlayer].GetDeviceID().mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
 			Vector& position = mouse->second.position;
 			position.m_X = std::clamp(position.GetFloorIntX(), m_PlayerScreenMouseBounds.x, rightMostPos);
@@ -513,7 +517,7 @@ void UInputMan::ForceMouseWithinPlayerScreen(bool force, int whichPlayer) {
 
 	if (force) {
 		if (g_WindowMan.FullyCoversAllDisplays() || m_EnableMultiMouseKeyboard) {
-			ForceMouseWithinBox(0, 0, m_PlayerScreenMouseBounds.w, m_PlayerScreenMouseBounds.h);
+			ForceMouseWithinBox(0, 0, m_PlayerScreenMouseBounds.w, m_PlayerScreenMouseBounds.h, whichPlayer);
 		} else {
 			SDL_SetWindowMouseRect(g_WindowMan.GetWindow(), &m_PlayerScreenMouseBounds);
 		}
@@ -615,8 +619,16 @@ bool UInputMan::GetInputElementState(int whichPlayer, int whichElement, InputSta
 	if (!elementState && device == InputDevice::DEVICE_KEYB_ONLY || (device == InputDevice::DEVICE_MOUSE_KEYB && !(whichElement == InputElements::INPUT_AIM_UP || whichElement == InputElements::INPUT_AIM_DOWN))) {
 		elementState = GetKeyboardButtonState(static_cast<SDL_Scancode>(element->GetKey()), whichState);
 	}
-	if (!elementState && device == InputDevice::DEVICE_MOUSE_KEYB && m_TrapMousePos) {
-		elementState = GetMouseButtonState(whichPlayer, element->GetMouseButton(), whichState);
+	if (!elementState && device == InputDevice::DEVICE_MOUSE_KEYB) {
+		bool trapMouse = m_TrapMousePos;
+		if (m_EnableMultiMouseKeyboard) {
+			if (auto mouse = m_MouseStates.find(m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
+				trapMouse = mouse->second.relativeMode;
+			}
+		}
+		if (trapMouse) {
+			elementState = GetMouseButtonState(whichPlayer, element->GetMouseButton(), whichState);
+		}
 	}
 
 	if (!elementState && device >= InputDevice::DEVICE_GAMEPAD_1) {
@@ -671,7 +683,6 @@ bool UInputMan::GetMouseButtonState(int whichPlayer, int whichButton, InputState
 	InputDevice playerDevice = InputDevice::DEVICE_COUNT;
 	if (whichPlayer != Players::NoPlayer) {
 		playerDevice = m_ControlScheme.at(whichPlayer).GetDevice();
-		std::cout << "Player" << whichPlayer << " device " << playerDevice << std::endl;
 	}
 	if (mouse == 0 && (whichPlayer == Players::NoPlayer || (playerDevice != InputDevice::DEVICE_MOUSE_KEYB))) {
 		switch (whichState) {
@@ -692,12 +703,7 @@ bool UInputMan::GetMouseButtonState(int whichPlayer, int whichButton, InputState
 		}
 		SDL_MouseID mouseID = mouse == 0 ? playerMouseID : mouse;
 		auto mouseIterator = m_MouseStates.find(mouseID);
-		std::cout << "Player mouseID " << mouseID << std::endl;
 		if (mouseIterator != m_MouseStates.end()) {
-			for (int i = 0; i < MAX_MOUSE_BUTTONS; i++) {
-				std::cout << mouseIterator->second.state[i] << ":" << mouseIterator->second.change[i] << " ";
-			}
-			std::cout << std::endl;
 			switch (whichState) {
 				case InputState::Held:
 					return mouseIterator->second.state[whichButton];
@@ -1043,32 +1049,30 @@ void UInputMan::HandleSpecialInput() {
 void UInputMan::UpdateMouseInput() {
 	// Detect and store mouse movement input, translated to analog stick emulation
 	// TODO: Figure out a less shit solution to updating the mouse in GUIs when there are no mouse players configured, i.e. no player input scheme is using mouse+keyboard. For not just check if we're out of Activity.
-	if (!g_ActivityMan.IsInActivity()) {
-		m_AnalogMouseData.m_X += m_RawMouseMovement.m_X * 3;
-		m_AnalogMouseData.m_Y += m_RawMouseMovement.m_Y * 3;
-		m_AnalogMouseData.CapMagnitude(m_MouseTrapRadius);
-		for (auto& [mouseID, mouse]: m_MouseStates) {
-			mouse.analogAim += mouse.relativeMotion * 3;
-			mouse.analogAim.CapMagnitude(m_MouseTrapRadius);
-		}
+	m_AnalogMouseData.m_X += m_RawMouseMovement.m_X * 3;
+	m_AnalogMouseData.m_Y += m_RawMouseMovement.m_Y * 3;
+	m_AnalogMouseData.CapMagnitude(m_MouseTrapRadius);
+	for (auto& [mouseID, mouse]: m_MouseStates) {
+		mouse.analogAim += mouse.relativeMotion * 3;
+		mouse.analogAim.CapMagnitude(m_MouseTrapRadius);
+	}
 
-		// Only mess with the mouse pos if the original mouse position is not above the screen and may be grabbing the title bar of the game window
-		if (g_WindowMan.AnyWindowHasFocus() && !m_DisableMouseMoving && (!m_TrapMousePos || m_EnableMultiMouseKeyboard)) {
-			// The mouse cursor is visible and can move about the screen/window, but it should still be contained within the mouse player's part of the window
-			for (int player = PlayerOne; player < MaxPlayerCount; player++) {
-				if (m_ControlScheme[player].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
-					ForceMouseWithinPlayerScreen(g_ActivityMan.IsInActivity(), player);
-				}
+	// Only mess with the mouse pos if the original mouse position is not above the screen and may be grabbing the title bar of the game window
+	if (g_WindowMan.AnyWindowHasFocus() && !m_DisableMouseMoving && (!m_TrapMousePos || m_EnableMultiMouseKeyboard)) {
+		// The mouse cursor is visible and can move about the screen/window, but it should still be contained within the mouse player's part of the window
+		for (int player = PlayerOne; player < MaxPlayerCount; player++) {
+			if (m_ControlScheme[player].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+				ForceMouseWithinPlayerScreen(g_ActivityMan.IsInActivity(), player);
 			}
 		}
+	}
 
-		// Enable the mouse cursor positioning again after having been disabled. Only do this when the mouse is within the drawing area so it
-		// won't cause the whole window to move if the user clicks the title bar and unintentionally drags it due to programmatic positioning.
-		int mousePosX = m_AbsoluteMousePos.m_X / g_WindowMan.GetResMultiplier();
-		int mousePosY = m_AbsoluteMousePos.m_Y / g_WindowMan.GetResMultiplier();
-		if (m_DisableMouseMoving && m_PrepareToEnableMouseMoving && (mousePosX >= 0 && mousePosX < g_WindowMan.GetResX() && mousePosY >= 0 && mousePosY < g_WindowMan.GetResY())) {
-			m_DisableMouseMoving = m_PrepareToEnableMouseMoving = false;
-		}
+	// Enable the mouse cursor positioning again after having been disabled. Only do this when the mouse is within the drawing area so it
+	// won't cause the whole window to move if the user clicks the title bar and unintentionally drags it due to programmatic positioning.
+	int mousePosX = m_AbsoluteMousePos.m_X / g_WindowMan.GetResMultiplier();
+	int mousePosY = m_AbsoluteMousePos.m_Y / g_WindowMan.GetResMultiplier();
+	if (m_DisableMouseMoving && m_PrepareToEnableMouseMoving && (mousePosX >= 0 && mousePosX < g_WindowMan.GetResX() && mousePosY >= 0 && mousePosY < g_WindowMan.GetResY())) {
+		m_DisableMouseMoving = m_PrepareToEnableMouseMoving = false;
 	}
 }
 

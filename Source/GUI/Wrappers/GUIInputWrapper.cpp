@@ -57,7 +57,7 @@ void GUIInputWrapper::Update() {
 	}
 
 	// Update the mouse position of this GUIInput, based on the SDL mouse vars (which may have been altered by joystick or keyboard input).
-	Vector mousePos = g_UInputMan.GetAbsoluteMousePosition();
+	Vector mousePos = g_UInputMan.GetAbsoluteMousePosition(m_Player);
 	m_MouseX = static_cast<int>(mousePos.GetX() / static_cast<float>(g_WindowMan.GetResMultiplier()));
 	m_MouseY = static_cast<int>(mousePos.GetY() / static_cast<float>(g_WindowMan.GetResMultiplier()));
 }
@@ -115,8 +115,8 @@ void GUIInputWrapper::UpdateMouseInput() {
 	const auto& buttonChange = g_UInputMan.GetMouseChange(m_Player);
 	Vector mousePos = g_UInputMan.GetAbsoluteMousePosition(m_Player);
 
-	m_LastFrameMouseX = mousePos.GetFloorIntX();
-	m_LastFrameMouseY = mousePos.GetFloorIntY();
+	m_MouseX = mousePos.GetFloorIntX();
+	m_MouseY = mousePos.GetFloorIntY();
 
 	for (int button = 0; button < 3; button++) {
 		m_MouseButtonsStates[button] = buttonStates[button + 1] ? Down : Up;

@@ -476,6 +476,7 @@ namespace RTE {
 			Vector relativeMotion{};
 			Vector analogAim{};
 			float wheelChange{0.0f};
+			bool relativeMode{};
 		};
 		std::unordered_map<SDL_MouseID, Mouse> m_MouseStates; //!< Mouse states when multi mouse support is enabled.
 

@@ -218,18 +218,6 @@ void SettingsInputGUI::ShowDeviceCaptureBox(bool keyboard, int player) {
 	}
 	m_DeviceCaptureDialog.SelectorTextLabel->SetText(selectorText);
 	m_DeviceCaptureDialog.Player = player;
-	
-	int mouseCount{0};
-	SDL_MouseID* mice = SDL_GetMice(&mouseCount);
-	for(int i = 0; i < mouseCount; i++) {
-		std::cout << mice[i] << " " << SDL_GetMouseNameForID(mice[i]) << std::endl;
-	}
-
-	int keyboardCount{0};
-	SDL_KeyboardID* keybs = SDL_GetKeyboards(&keyboardCount);
-	for (int i = 0; i < keyboardCount; i++) {
-		std::cout << keybs[i] << " " << SDL_GetKeyboardNameForID(keybs[i]) << std::endl;
-	}
 }
 
 void SettingsInputGUI::HideDeviceCaptureBox() {
