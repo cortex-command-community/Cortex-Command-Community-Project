@@ -55,6 +55,10 @@ namespace RTE {
 
 		/// Handles input capture logic of the input mapping wizard manual configuration sequence.
 		void HandleConfigWizardManualConfiguration() const { m_InputMappingConfigMenu->GetInputConfigWizardMenu()->HandleManualConfigSequence(); }
+
+		bool InputConfigIsConfiguringDevice() const { return m_DeviceCaptureDialog.Active; }
+
+		void HandleConfigDeviceMapping();
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -76,7 +80,18 @@ namespace RTE {
 			GUICollectionBox* DeadZoneControlsBox;
 			GUIRadioButton* CircleDeadZoneRadioButton;
 			GUIRadioButton* SquareDeadZoneRadioButton;
+			GUICollectionBox* KeyboardMouseSelectBox;
+			GUIButton* KeyboardSelectButton;
+			GUIButton* MouseSelectButton;
 		};
+
+		struct {
+			GUICollectionBox* DeviceCaptureBox;
+			GUILabel* SelectorTextLabel;
+			bool Keyboard{false};
+			bool Active{false};
+			int Player{-1};
+		} m_DeviceCaptureDialog;
 
 		GUIControlManager* m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
 
@@ -104,9 +119,18 @@ namespace RTE {
 		/// @param player The player to enable input sensitivity controls for.
 		void ShowOrHidePlayerInputDeviceSensitivityControls(int player);
 
+		void UpdateMouseKeyboardSelectControls();
+
 		/// Updates the input sensitivity controls of a player according to the InputScheme.
 		/// @param player The player to update input sensitivity control values for.
 		void UpdatePlayerInputSensitivityControlValues(int player);
+
+		void UpdatePlayerKeyboardMouseButtonLabels(int player);
+
+		void ShowDeviceCaptureBox(bool keyboard, int player);
+
+		void HideDeviceCaptureBox();
+
 #pragma endregion
 
 		// Disallow the use of some implicit methods.

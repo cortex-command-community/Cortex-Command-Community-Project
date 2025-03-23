@@ -30,12 +30,19 @@ SettingsInputGUI::SettingsInputGUI(GUIControlManager* parentControlManager) :
 		m_PlayerInputSettingsBoxes[player].DeadZoneControlsBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxP" + playerNum + "DeadzoneControls"));
 		m_PlayerInputSettingsBoxes[player].CircleDeadZoneRadioButton = dynamic_cast<GUIRadioButton*>(m_GUIControlManager->GetControl("RadioP" + playerNum + "DeadzoneCircle"));
 		m_PlayerInputSettingsBoxes[player].SquareDeadZoneRadioButton = dynamic_cast<GUIRadioButton*>(m_GUIControlManager->GetControl("RadioP" + playerNum + "DeadzoneSquare"));
+
+		m_PlayerInputSettingsBoxes[player].KeyboardMouseSelectBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxP" + playerNum + "KeyboardMouseSelect"));
+		m_PlayerInputSettingsBoxes[player].KeyboardSelectButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "KeyboardSelect"));
+		m_PlayerInputSettingsBoxes[player].MouseSelectButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonP" + playerNum + "MouseSelect"));
 	}
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 		UpdatePlayerSelectedDeviceLabel(player);
 		ShowOrHidePlayerInputDeviceSensitivityControls(player);
 	}
+	UpdateMouseKeyboardSelectControls();
 	m_InputMappingConfigMenu = std::make_unique<SettingsInputMappingGUI>(parentControlManager);
+	m_DeviceCaptureDialog.DeviceCaptureBox = dynamic_cast<GUICollectionBox*> (m_GUIControlManager->GetControl("CollectionBoxDeviceCapture"));
+	m_DeviceCaptureDialog.SelectorTextLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelDeviceCaptureInstruction1"));
 }
 
 void SettingsInputGUI::SetEnabled(bool enable) const {
@@ -62,6 +69,7 @@ void SettingsInputGUI::ResetPlayerInputSettings(int player) {
 		UpdatePlayerSelectedDeviceLabel(player);
 		ShowOrHidePlayerInputDeviceSensitivityControls(player);
 		UpdatePlayerInputSensitivityControlValues(player);
+		UpdateMouseKeyboardSelectControls();
 
 		m_PlayerInputSettingsBoxes.at(player).ResetControlsButton->SetText("Reset");
 		g_GUISound.ExitMenuSound()->Play();
@@ -85,6 +93,7 @@ void SettingsInputGUI::SetPlayerNextOrPrevInputDevice(int player, bool nextDevic
 	g_UInputMan.GetControlScheme(player)->SetDevice(static_cast<InputDevice>(currentDevice));
 	UpdatePlayerSelectedDeviceLabel(player);
 	ShowOrHidePlayerInputDeviceSensitivityControls(player);
+	UpdateMouseKeyboardSelectControls();
 }
 
 void SettingsInputGUI::UpdatePlayerSelectedDeviceLabel(int player) {
@@ -146,6 +155,13 @@ void SettingsInputGUI::ShowOrHidePlayerInputDeviceSensitivityControls(int player
 	UpdatePlayerInputSensitivityControlValues(player);
 }
 
+void SettingsInputGUI::UpdateMouseKeyboardSelectControls() {
+	bool showControls = g_UInputMan.IsMultiMouseKeyboardEnabled();
+	for (int player = 0; player < MaxPlayerCount; player++) {
+		m_PlayerInputSettingsBoxes.at(player).KeyboardMouseSelectBox->SetVisible(showControls);
+	}
+}
+
 void SettingsInputGUI::UpdatePlayerInputSensitivityControlValues(int player) {
 	switch (g_UInputMan.GetControlScheme(player)->GetDevice()) {
 		case InputDevice::DEVICE_KEYB_ONLY:
@@ -178,6 +194,63 @@ void SettingsInputGUI::UpdatePlayerInputSensitivityControlValues(int player) {
 	}
 }
 
+void SettingsInputGUI::UpdatePlayerKeyboardMouseButtonLabels(int player) {
+	if (SDL_MouseID mouse = g_UInputMan.GetControlScheme(player)->GetDeviceID().mouseKeyboard.mouse; mouse != 0) {
+		m_PlayerInputSettingsBoxes[player].MouseSelectButton->SetText("Mouse " + std::to_string(mouse));
+	}
+	if (SDL_KeyboardID keyboard = g_UInputMan.GetControlScheme(player)->GetDeviceID().mouseKeyboard.keyboard; keyboard != 0) {
+		m_PlayerInputSettingsBoxes[player].KeyboardSelectButton->SetText("Keyboard " + std::to_string(keyboard));
+	}
+}
+
+void SettingsInputGUI::ShowDeviceCaptureBox(bool keyboard, int player) {
+	m_InputSettingsBox->SetEnabled(false);
+	m_DeviceCaptureDialog.DeviceCaptureBox->SetEnabled(true);
+	m_DeviceCaptureDialog.DeviceCaptureBox->SetVisible(true);
+	m_DeviceCaptureDialog.Keyboard = keyboard;
+	m_DeviceCaptureDialog.Active = true;
+	std::string selectorText = "";
+	if (keyboard) {
+		selectorText = "Press any key on your keyboard.";
+	} else {
+		selectorText = "Press any button on your mouse.";
+		g_UInputMan.TrapMousePos();
+	}
+	m_DeviceCaptureDialog.SelectorTextLabel->SetText(selectorText);
+	m_DeviceCaptureDialog.Player = player;
+	
+	int mouseCount{0};
+	SDL_MouseID* mice = SDL_GetMice(&mouseCount);
+	for(int i = 0; i < mouseCount; i++) {
+		std::cout << mice[i] << " " << SDL_GetMouseNameForID(mice[i]) << std::endl;
+	}
+
+	int keyboardCount{0};
+	SDL_KeyboardID* keybs = SDL_GetKeyboards(&keyboardCount);
+	for (int i = 0; i < keyboardCount; i++) {
+		std::cout << keybs[i] << " " << SDL_GetKeyboardNameForID(keybs[i]) << std::endl;
+	}
+}
+
+void SettingsInputGUI::HideDeviceCaptureBox() {
+	m_InputSettingsBox->SetEnabled(true);
+	m_DeviceCaptureDialog.DeviceCaptureBox->SetEnabled(false);
+	m_DeviceCaptureDialog.DeviceCaptureBox->SetVisible(false);
+	m_DeviceCaptureDialog.Active = false;
+	g_UInputMan.TrapMousePos(false);
+}
+
+void SettingsInputGUI::HandleConfigDeviceMapping() {
+	InputScheme* playerScheme = g_UInputMan.GetControlScheme(m_DeviceCaptureDialog.Player);
+	bool keyboard = m_DeviceCaptureDialog.Keyboard;
+	bool deviceMapped = playerScheme->CaptureDeviceMapping(!keyboard, keyboard);
+	if (deviceMapped) {
+		g_GUISound.ExitMenuSound()->Play();
+		HideDeviceCaptureBox();
+		UpdatePlayerKeyboardMouseButtonLabels(m_DeviceCaptureDialog.Player);
+	}
+}
+
 void SettingsInputGUI::HandleInputEvents(GUIEvent& guiEvent) {
 	if (m_InputMappingConfigMenu->IsEnabled()) {
 		m_InputMappingConfigMenu->HandleInputEvents(guiEvent);
@@ -197,6 +270,12 @@ void SettingsInputGUI::HandleInputEvents(GUIEvent& guiEvent) {
 			} else if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes[player].ResetControlsButton) {
 				g_GUISound.ButtonPressSound()->Play();
 				ResetPlayerInputSettings(player);
+			} else if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes[player].KeyboardSelectButton) {
+				g_GUISound.ButtonPressSound()->Play();
+				ShowDeviceCaptureBox(true, player);
+			} else if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes[player].MouseSelectButton) {
+				g_GUISound.ButtonPressSound()->Play();
+				ShowDeviceCaptureBox(false, player);
 			}
 		} else if (guiEvent.GetType() == GUIEvent::Notification) {
 			if (guiEvent.GetControl() == m_PlayerInputSettingsBoxes[player].SensitivitySlider) {

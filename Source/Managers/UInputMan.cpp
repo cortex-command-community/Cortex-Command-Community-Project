@@ -10,7 +10,6 @@
 #include "Icon.h"
 #include "GameActivity.h"
 #include "System.h"
-
 #include <SDL3/SDL.h>
 
 using namespace RTE;
@@ -93,6 +92,8 @@ int UInputMan::Initialize() {
 			SDL_SetGamepadPlayerIndex(controller, index);
 			s_PrevJoystickStates[controllerIndex] = Gamepad(index, joysticks[index], SDL_GAMEPAD_AXIS_COUNT, SDL_GAMEPAD_BUTTON_COUNT);
 			s_ChangedJoystickStates[controllerIndex] = Gamepad(index, joysticks[index], SDL_GAMEPAD_AXIS_COUNT, SDL_GAMEPAD_BUTTON_COUNT);
+			auto playerScheme = std::find_if(m_ControlScheme.begin(), m_ControlScheme.end(), [controllerIndex](auto& scheme) { return scheme.GetDevice() == controllerIndex + InputDevice::DEVICE_GAMEPAD_1; });
+			playerScheme->SetDeviceID({.gamepad = joysticks[index]});
 			controllerIndex++;
 			m_NumJoysticks++;
 		} else {
@@ -103,12 +104,22 @@ int UInputMan::Initialize() {
 			}
 			s_PrevJoystickStates[controllerIndex] = Gamepad(index, joysticks[index], SDL_GetNumJoystickAxes(joy), SDL_GetNumJoystickButtons(joy));
 			s_ChangedJoystickStates[controllerIndex] = Gamepad(index, joysticks[index], SDL_GetNumJoystickAxes(joy), SDL_GetNumJoystickButtons(joy));
+			auto playerScheme = std::find_if(m_ControlScheme.begin(), m_ControlScheme.end(), [controllerIndex](auto& scheme) { return scheme.GetDevice() == controllerIndex + InputDevice::DEVICE_GAMEPAD_1; });
+			playerScheme->SetDeviceID({.gamepad = joysticks[index]});
 			controllerIndex++;
 			m_NumJoysticks++;
 		}
 	}
 
 	SDL_free(joysticks);
+
+	int playerMouseControlled = 0;
+	for (int player = PlayerOne; player < MaxPlayerCount; player++) {
+		if (m_ControlScheme[player].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+			playerMouseControlled++;
+		}
+	}
+	m_EnableMultiMouseKeyboard = playerMouseControlled > 1 || m_ForceEnableMultiMouseKeyboard;
 
 	m_PlayerScreenMouseBounds = {
 	    0,
@@ -151,7 +162,13 @@ Vector UInputMan::AnalogAimValues(int whichPlayer) {
 
 	Vector aimValues(0, 0);
 	if (device == InputDevice::DEVICE_MOUSE_KEYB) {
-		aimValues = (m_AnalogMouseData / m_MouseTrapRadius);
+		if (!m_EnableMultiMouseKeyboard) {
+			aimValues = (m_AnalogMouseData / m_MouseTrapRadius);
+		} else {
+			if (auto mouse = m_MouseStates.find(m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
+				aimValues = mouse->second.analogAim / m_MouseTrapRadius;
+			}
+		}
 	}
 	if (device >= InputDevice::DEVICE_GAMEPAD_1) {
 		int whichJoy = GetJoystickIndex(device);
@@ -168,50 +185,55 @@ Vector UInputMan::AnalogAimValues(int whichPlayer) {
 	return aimValues;
 }
 
-Vector UInputMan::GetMenuDirectional() {
-	Vector allInput(0, 0);
-	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
-		InputDevice device = m_ControlScheme.at(player).GetDevice();
-
-		switch (device) {
-			case InputDevice::DEVICE_KEYB_ONLY:
-				if (ElementHeld(player, InputElements::INPUT_L_UP)) {
-					allInput.m_Y += -1.0F;
-				}
-				if (ElementHeld(player, InputElements::INPUT_L_DOWN)) {
-					allInput.m_Y += 1.0F;
-				}
-				if (ElementHeld(player, InputElements::INPUT_L_LEFT)) {
-					allInput.m_X += -1.0F;
-				}
-				if (ElementHeld(player, InputElements::INPUT_L_RIGHT)) {
-					allInput.m_X += 1.0F;
-				}
-				break;
-			case InputDevice::DEVICE_MOUSE_KEYB:
-				// Mouse player shouldn't be doing anything here, he should be using the mouse!
-				break;
-			default:
-				if (device == InputDevice::DEVICE_COUNT) {
-					RTEAbort("Trying to control the menu cursor with an invalid input device!");
-					break;
-				}
-
-				// Analog enabled device (DEVICE_GAMEPAD_1-4)
-				if (AnalogMoveValues(player).GetLargest() > 0.05F) {
-					allInput += AnalogMoveValues(player);
-					m_LastDeviceWhichControlledGUICursor = device;
-				}
-				if (AnalogAimValues(player).GetLargest() > 0.05F) {
-					allInput += AnalogAimValues(player);
-					m_LastDeviceWhichControlledGUICursor = device;
-				}
-				break;
+Vector UInputMan::GetMenuDirectional(int whichPlayer) {
+	if (whichPlayer == -1) {
+		Vector allInput(0.0f, 0.0f);
+		for (int player = PlayerOne; player < MaxPlayerCount; player++) {
+			allInput += GetMenuDirectional(player);
 		}
+		allInput.CapMagnitude(1.0f);
+		return allInput;
 	}
-	allInput.CapMagnitude(1.0F);
+	Vector playerInput(0, 0);
+	InputDevice device = m_ControlScheme.at(whichPlayer).GetDevice();
 
-	return allInput;
+	switch (device) {
+		case InputDevice::DEVICE_KEYB_ONLY:
+			if (ElementHeld(whichPlayer, InputElements::INPUT_L_UP)) {
+				playerInput.m_Y += -1.0F;
+			}
+			if (ElementHeld(whichPlayer, InputElements::INPUT_L_DOWN)) {
+				playerInput.m_Y += 1.0F;
+			}
+			if (ElementHeld(whichPlayer, InputElements::INPUT_L_LEFT)) {
+				playerInput.m_X += -1.0F;
+			}
+			if (ElementHeld(whichPlayer, InputElements::INPUT_L_RIGHT)) {
+				playerInput.m_X += 1.0F;
+			}
+			break;
+		case InputDevice::DEVICE_MOUSE_KEYB:
+			// Mouse player shouldn't be doing anything here, he should be using the mouse!
+			break;
+		default:
+			if (device == InputDevice::DEVICE_COUNT) {
+				RTEAbort("Trying to control the menu cursor with an invalid input device!");
+				break;
+			}
+
+			// Analog enabled device (DEVICE_GAMEPAD_1-4)
+			if (AnalogMoveValues(whichPlayer).GetLargest() > 0.05F) {
+				playerInput += AnalogMoveValues(whichPlayer);
+				m_LastDeviceWhichControlledGUICursor = device;
+			}
+			if (AnalogAimValues(whichPlayer).GetLargest() > 0.05F) {
+				playerInput += AnalogAimValues(whichPlayer);
+				m_LastDeviceWhichControlledGUICursor = device;
+			}
+			break;
+	}
+	playerInput.CapMagnitude(1.0f);
+	return playerInput;
 }
 
 bool UInputMan::AnyKeyOrJoyInput() const {
@@ -259,10 +281,18 @@ bool UInputMan::AnyBackPress() {
 	return false;
 }
 
-bool UInputMan::AnyKeyPress() const {
-	for (size_t testKey = SDL_SCANCODE_A; testKey < SDL_SCANCODE_COUNT; ++testKey) {
-		if (s_PrevKeyStates[testKey] && s_ChangedKeyStates[testKey]) {
-			return true;
+bool UInputMan::AnyKeyPress(SDL_KeyboardID keyboardID) const {
+	if (keyboardID == 0) {
+		for (size_t testKey = SDL_SCANCODE_A; testKey < SDL_SCANCODE_COUNT; ++testKey) {
+			if (s_PrevKeyStates[testKey] && s_ChangedKeyStates[testKey]) {
+				return true;
+			}
+		}
+	} else if (auto keyboard = m_KeyboardStates.find(keyboardID); keyboard != m_KeyboardStates.end()) {
+		for (size_t testKey = SDL_SCANCODE_A; testKey < SDL_SCANCODE_COUNT; ++testKey) {
+			if (keyboard->second.keyStates[testKey] && keyboard->second.changedKeyStates[testKey]) {
+				return true;
+			}
 		}
 	}
 	return false;
@@ -288,35 +318,111 @@ void UInputMan::DisableMouseMoving(bool disable) {
 	}
 }
 
+bool UInputMan::IsMultiMouseKeyboardEnabled() const {
+	int playerMouseControlled{0};
+	for (int player = PlayerOne; player < MaxPlayerCount; player++) {
+		if (m_ControlScheme[player].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+			playerMouseControlled++;
+		}
+	}
+	return playerMouseControlled > 1;
+}
+
+Vector UInputMan::GetAbsoluteMousePosition(int whichPlayer) const {
+	if (!m_EnableMultiMouseKeyboard || (whichPlayer == Players::NoPlayer)) {
+		return m_AbsoluteMousePos;
+	} else if (m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+		if (auto mouse = m_MouseStates.find(m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
+			return mouse->second.position;
+		}
+	}
+	return m_AbsoluteMousePos;
+}
+
+void UInputMan::SetAbsoluteMousePosition(const Vector& pos, int whichPlayer) {
+	if (whichPlayer == Players::NoPlayer || !m_EnableMultiMouseKeyboard) {
+		m_AbsoluteMousePos = pos;
+	} else if (m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+		if (auto mouse = m_MouseStates.find(m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
+			mouse->second.position = pos;
+		}
+	}
+}
+
 Vector UInputMan::GetMouseMovement(int whichPlayer) const {
-	if (whichPlayer == Players::NoPlayer || m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+	if (whichPlayer == Players::NoPlayer || (m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB && !m_EnableMultiMouseKeyboard)) {
 		return m_RawMouseMovement;
+	} else if (m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+		if (auto mouse = m_MouseStates.find(m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
+			return mouse->second.relativeMotion;
+		}
 	}
 	return Vector(0, 0);
 }
 
 void UInputMan::SetMouseValueMagnitude(float magCap, int whichPlayer) {
 	if (whichPlayer != Players::NoPlayer && m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
-		m_AnalogMouseData.SetMagnitude(m_MouseTrapRadius * magCap);
+		if (!m_EnableMultiMouseKeyboard) {
+			m_AnalogMouseData.SetMagnitude(m_MouseTrapRadius * magCap);
+		} else {
+			if (auto mouse = m_MouseStates.find(m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
+				mouse->second.analogAim.SetMagnitude(m_MouseTrapRadius * magCap);
+			}
+		}
 	}
 }
 
 void UInputMan::SetMouseValueAngle(float angle, int whichPlayer) {
 	if (whichPlayer != Players::NoPlayer && m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
-		m_AnalogMouseData.SetAbsRadAngle(angle);
+		if (!m_EnableMultiMouseKeyboard) {
+			m_AnalogMouseData.SetAbsRadAngle(angle);
+		} else {
+			if (auto mouse = m_MouseStates.find(m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
+				mouse->second.analogAim.SetAbsDegAngle(angle);
+			}
+		}
 	}
 }
 
-void UInputMan::SetMousePos(const Vector& newPos, int whichPlayer) const {
+void UInputMan::SetMousePos(const Vector& newPos, int whichPlayer) {
 	// Only mess with the mouse if the original mouse position is not above the screen and may be grabbing the title bar of the game window
-	if (!m_DisableMouseMoving && !m_TrapMousePos && (whichPlayer == Players::NoPlayer || m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB)) {
+	if (!m_DisableMouseMoving && !m_TrapMousePos && ((whichPlayer == Players::NoPlayer) || (m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB && !m_EnableMultiMouseKeyboard))) {
 		SDL_WarpMouseInWindow(g_WindowMan.GetWindow(), newPos.GetFloorIntX(), newPos.GetFloorIntY());
+	} else if (whichPlayer < Players::MaxPlayerCount && whichPlayer > Players::NoPlayer && m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+		m_MouseStates[m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse].position = newPos;
 	}
 }
 
-bool UInputMan::AnyMouseButtonPress() const {
+const std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS>& UInputMan::GetMouseState(int whichPlayer) const {
+	if (whichPlayer == Players::NoPlayer) {
+		return s_CurrentMouseButtonStates;
+	}
+	InputDevice playerInput = m_ControlScheme.at(whichPlayer).GetDevice();
+	if (playerInput == InputDevice::DEVICE_MOUSE_KEYB) {
+		DeviceID playerDevice = m_ControlScheme.at(whichPlayer).GetDeviceID();
+		if (auto mouse = m_MouseStates.find(playerDevice.mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
+			return mouse->second.state;
+		}
+	}
+	return s_CurrentMouseButtonStates;
+}
+const std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS>& UInputMan::GetMouseChange(int whichPlayer) const {
+	if (whichPlayer == Players::NoPlayer) {
+		return s_ChangedMouseButtonStates;
+	}
+	InputDevice playerInput = m_ControlScheme.at(whichPlayer).GetDevice();
+	if (playerInput == InputDevice::DEVICE_MOUSE_KEYB) {
+		DeviceID playerDevice = m_ControlScheme.at(whichPlayer).GetDeviceID();
+		if (auto mouse = m_MouseStates.find(playerDevice.mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
+			return mouse->second.change;
+		}
+	}
+	return s_ChangedMouseButtonStates;
+}
+
+bool UInputMan::AnyMouseButtonPress(SDL_MouseID mouseID) const {
 	for (int button = MouseButtons::MOUSE_LEFT; button < MouseButtons::MAX_MOUSE_BUTTONS; ++button) {
-		if (MouseButtonPressed(button, -1)) {
+		if (MouseButtonPressed(button, -1, mouseID)) {
 			return true;
 		}
 	}
@@ -324,17 +430,20 @@ bool UInputMan::AnyMouseButtonPress() const {
 }
 
 void UInputMan::TrapMousePos(bool trap, int whichPlayer) {
-	if ((whichPlayer == Players::NoPlayer || m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB)) {
+	if (whichPlayer == Players::NoPlayer) {
 		m_TrapMousePos = trap;
-		SDL_SetWindowRelativeMouseMode(g_WindowMan.GetWindow(), static_cast<bool>(trap));
+		SDL_SetWindowRelativeMouseMode(g_WindowMan.GetWindow(), trap);
+	} else if (m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+		m_TrapMousePos = trap || m_EnableMultiMouseKeyboard;
+		SDL_SetWindowRelativeMouseMode(g_WindowMan.GetWindow(), m_TrapMousePos);
 	}
 }
 
-void UInputMan::ForceMouseWithinBox(int x, int y, int width, int height, int whichPlayer) const {
+void UInputMan::ForceMouseWithinBox(int x, int y, int width, int height, int whichPlayer) {
 	// Only mess with the mouse if the original mouse position is not above the screen and may be grabbing the title bar of the game window.
-	if (g_WindowMan.AnyWindowHasFocus() && !m_DisableMouseMoving && !m_TrapMousePos && (whichPlayer == Players::NoPlayer || m_ControlScheme[whichPlayer].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB)) {
-		int rightMostPos = m_PlayerScreenMouseBounds.x + m_PlayerScreenMouseBounds.w;
-		int bottomMostPos = m_PlayerScreenMouseBounds.y + m_PlayerScreenMouseBounds.h;
+	int rightMostPos = m_PlayerScreenMouseBounds.x + m_PlayerScreenMouseBounds.w;
+	int bottomMostPos = m_PlayerScreenMouseBounds.y + m_PlayerScreenMouseBounds.h;
+	if (g_WindowMan.AnyWindowHasFocus() && !m_DisableMouseMoving && !m_TrapMousePos && (whichPlayer == Players::NoPlayer || (m_ControlScheme[whichPlayer].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB && !m_EnableMultiMouseKeyboard))) {
 
 		if (g_WindowMan.FullyCoversAllDisplays()) {
 			int leftPos = std::clamp(m_PlayerScreenMouseBounds.x + x, m_PlayerScreenMouseBounds.x, rightMostPos);
@@ -361,6 +470,12 @@ void UInputMan::ForceMouseWithinBox(int x, int y, int width, int height, int whi
 				newMouseBounds = m_PlayerScreenMouseBounds;
 			}
 			SDL_SetWindowMouseRect(g_WindowMan.GetWindow(), &newMouseBounds);
+		}
+	} else if (m_ControlScheme[whichPlayer].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB && m_EnableMultiMouseKeyboard) {
+		if (auto mouse = m_MouseStates.find(m_ControlScheme[whichPlayer].GetDeviceID().mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
+			Vector& position = mouse->second.position;
+			position.m_X = std::clamp(position.GetFloorIntX(), m_PlayerScreenMouseBounds.x, rightMostPos);
+			position.m_Y = std::clamp(position.GetFloorIntY(), m_PlayerScreenMouseBounds.y, bottomMostPos);
 		}
 	}
 }
@@ -397,7 +512,7 @@ void UInputMan::ForceMouseWithinPlayerScreen(bool force, int whichPlayer) {
 	}
 
 	if (force) {
-		if (g_WindowMan.FullyCoversAllDisplays()) {
+		if (g_WindowMan.FullyCoversAllDisplays() || m_EnableMultiMouseKeyboard) {
 			ForceMouseWithinBox(0, 0, m_PlayerScreenMouseBounds.w, m_PlayerScreenMouseBounds.h);
 		} else {
 			SDL_SetWindowMouseRect(g_WindowMan.GetWindow(), &m_PlayerScreenMouseBounds);
@@ -407,6 +522,14 @@ void UInputMan::ForceMouseWithinPlayerScreen(bool force, int whichPlayer) {
 		m_PlayerScreenMouseBounds = {0, 0, static_cast<int>(g_WindowMan.GetResX() * resMultiplier), static_cast<int>(g_WindowMan.GetResY() * resMultiplier)};
 		SDL_SetWindowMouseRect(g_WindowMan.GetWindow(), nullptr);
 	}
+}
+
+SDL_JoystickID UInputMan::GetGamepadID(InputDevice gamepad) const {
+	if (gamepad > InputDevice::DEVICE_GAMEPAD_4 || gamepad < InputDevice::DEVICE_GAMEPAD_1) {
+		return 0;
+	}
+	int gamepadIndex = GetJoystickIndex(gamepad);
+	return s_ChangedJoystickStates[gamepadIndex].m_JoystickID;
 }
 
 int UInputMan::GetJoystickAxisCount(int whichJoy) const {
@@ -541,22 +664,54 @@ bool UInputMan::GetKeyboardButtonState(SDL_Scancode scancodeToTest, InputState w
 	}
 }
 
-bool UInputMan::GetMouseButtonState(int whichPlayer, int whichButton, InputState whichState) const {
+bool UInputMan::GetMouseButtonState(int whichPlayer, int whichButton, InputState whichState, SDL_MouseID mouse) const {
 	if (whichButton < MouseButtons::MOUSE_LEFT || whichButton >= MouseButtons::MAX_MOUSE_BUTTONS) {
 		return false;
 	}
-
-	switch (whichState) {
-		case InputState::Held:
-			return s_CurrentMouseButtonStates[whichButton];
-		case InputState::Pressed:
-			return s_CurrentMouseButtonStates[whichButton] && s_ChangedMouseButtonStates[whichButton];
-		case InputState::Released:
-			return !s_CurrentMouseButtonStates[whichButton] && s_ChangedMouseButtonStates[whichButton];
-		default:
-			RTEAbort("Undefined InputState value passed in. See InputState enumeration.");
-			return false;
+	InputDevice playerDevice = InputDevice::DEVICE_COUNT;
+	if (whichPlayer != Players::NoPlayer) {
+		playerDevice = m_ControlScheme.at(whichPlayer).GetDevice();
+		std::cout << "Player" << whichPlayer << " device " << playerDevice << std::endl;
 	}
+	if (mouse == 0 && (whichPlayer == Players::NoPlayer || (playerDevice != InputDevice::DEVICE_MOUSE_KEYB))) {
+		switch (whichState) {
+			case InputState::Held:
+				return s_CurrentMouseButtonStates[whichButton];
+			case InputState::Pressed:
+				return s_CurrentMouseButtonStates[whichButton] && s_ChangedMouseButtonStates[whichButton];
+			case InputState::Released:
+				return !s_CurrentMouseButtonStates[whichButton] && s_ChangedMouseButtonStates[whichButton];
+			default:
+				RTEAbort("Undefined InputState value passed in. See InputState enumeration.");
+				return false;
+		}
+	} else {
+		SDL_MouseID playerMouseID = 0;
+		if (whichPlayer != Players::NoPlayer && m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+			playerMouseID = m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse;
+		}
+		SDL_MouseID mouseID = mouse == 0 ? playerMouseID : mouse;
+		auto mouseIterator = m_MouseStates.find(mouseID);
+		std::cout << "Player mouseID " << mouseID << std::endl;
+		if (mouseIterator != m_MouseStates.end()) {
+			for (int i = 0; i < MAX_MOUSE_BUTTONS; i++) {
+				std::cout << mouseIterator->second.state[i] << ":" << mouseIterator->second.change[i] << " ";
+			}
+			std::cout << std::endl;
+			switch (whichState) {
+				case InputState::Held:
+					return mouseIterator->second.state[whichButton];
+				case InputState::Pressed:
+					return mouseIterator->second.state[whichButton] && mouseIterator->second.change[whichButton];
+				case InputState::Released:
+					return !mouseIterator->second.state[whichButton] && mouseIterator->second.change[whichButton];
+				default:
+					RTEAbort("Undefined InputState value passed in. See InputState enumeration.");
+					return false;
+			}
+		}
+	}
+	return false;
 }
 
 bool UInputMan::GetJoystickButtonState(int whichJoy, int whichButton, InputState whichState) const {
@@ -634,6 +789,11 @@ int UInputMan::Update() {
 	m_TextInput.clear();
 	m_MouseWheelChange = 0;
 	m_RawMouseMovement.Reset();
+	for (auto& [mouseID, mouse]: m_MouseStates) {
+		mouse.wheelChange = 0;
+		mouse.relativeMotion.Reset();
+		mouse.change.fill(false);
+	}
 
 	SDL_Event inputEvent;
 	for (std::vector<SDL_Event>::const_iterator eventIterator = m_EventQueue.begin(); eventIterator != m_EventQueue.end(); eventIterator++) {
@@ -641,10 +801,15 @@ int UInputMan::Update() {
 
 		switch (inputEvent.type) {
 			case SDL_EVENT_KEY_UP:
-			case SDL_EVENT_KEY_DOWN:
+			case SDL_EVENT_KEY_DOWN: {
 				s_ChangedKeyStates[inputEvent.key.scancode] = (inputEvent.key.down != s_PrevKeyStates[inputEvent.key.scancode]);
 				s_PrevKeyStates[inputEvent.key.scancode] = inputEvent.key.down;
+				Keyboard& keyboard = m_KeyboardStates[inputEvent.key.which];
+				keyboard.id = inputEvent.key.which;
+				keyboard.changedKeyStates[inputEvent.key.scancode] = (inputEvent.key.down != keyboard.keyStates[inputEvent.key.scancode]);
+				keyboard.keyStates[inputEvent.key.scancode] = inputEvent.key.down;
 				break;
+			}
 			case SDL_EVENT_TEXT_INPUT: {
 				char input = inputEvent.text.text[0];
 				size_t i = 0;
@@ -657,12 +822,19 @@ int UInputMan::Update() {
 				}
 				break;
 			}
-			case SDL_EVENT_MOUSE_MOTION:
+			case SDL_EVENT_MOUSE_MOTION: {
 				if (m_DisableMouseMoving) {
 					break;
 				}
+
+				Mouse& mouse = m_MouseStates[inputEvent.motion.which];
+				mouse.id = inputEvent.motion.which;
+				mouse.position += {inputEvent.motion.xrel, inputEvent.motion.yrel};
+				mouse.relativeMotion += {inputEvent.motion.xrel, inputEvent.motion.yrel};
+
 				m_RawMouseMovement += Vector(static_cast<float>(inputEvent.motion.xrel), static_cast<float>(inputEvent.motion.yrel));
 				m_AbsoluteMousePos.SetXY(static_cast<float>(inputEvent.motion.x), static_cast<float>(inputEvent.motion.y));
+
 				if (g_WindowMan.FullyCoversAllDisplays()) {
 					int windowPosX = 0;
 					int windowPosY = 0;
@@ -671,18 +843,26 @@ int UInputMan::Update() {
 					m_AbsoluteMousePos += windowCoord;
 				}
 				break;
+			}
 			case SDL_EVENT_MOUSE_BUTTON_UP:
-			case SDL_EVENT_MOUSE_BUTTON_DOWN:
+			case SDL_EVENT_MOUSE_BUTTON_DOWN: {
 				if (inputEvent.button.button > SDL_BUTTON_RIGHT) {
 					break;
 				}
+				Mouse& mouse = m_MouseStates[inputEvent.motion.which];
+				mouse.id = inputEvent.motion.which;
+				mouse.change[inputEvent.button.button] = inputEvent.button.down != mouse.state[inputEvent.button.button];
+				mouse.state[inputEvent.button.button] = inputEvent.button.down;
 				s_ChangedMouseButtonStates[inputEvent.button.button] = (static_cast<bool>(inputEvent.button.down) != s_PrevMouseButtonStates[inputEvent.button.button]);
 				s_PrevMouseButtonStates[inputEvent.button.button] = static_cast<bool>(inputEvent.button.down);
 				s_CurrentMouseButtonStates[inputEvent.button.button] = static_cast<bool>(inputEvent.button.down);
 				break;
-			case SDL_EVENT_MOUSE_WHEEL:
+			}
+			case SDL_EVENT_MOUSE_WHEEL: {
 				m_MouseWheelChange += inputEvent.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? inputEvent.wheel.y : -inputEvent.wheel.y;
+				m_MouseStates[inputEvent.wheel.which].wheelChange += inputEvent.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? inputEvent.wheel.y : -inputEvent.wheel.y;
 				break;
+			}
 			case SDL_EVENT_GAMEPAD_AXIS_MOTION:
 			case SDL_EVENT_JOYSTICK_AXIS_MOTION:
 				if (std::vector<Gamepad>::iterator device = std::find(s_PrevJoystickStates.begin(), s_PrevJoystickStates.end(), inputEvent.type == SDL_EVENT_GAMEPAD_AXIS_MOTION ? inputEvent.gaxis.which : inputEvent.jaxis.which); device != s_PrevJoystickStates.end()) {
@@ -740,6 +920,9 @@ int UInputMan::Update() {
 	}
 	m_EventQueue.clear();
 	m_RawMouseMovement *= m_MouseSensitivity;
+	for (auto& [mouseID, mouse]: m_MouseStates) {
+		mouse.relativeMotion *= m_MouseSensitivity;
+	}
 
 	UpdateMouseInput();
 	UpdateJoystickDigitalAxis();
@@ -859,17 +1042,24 @@ void UInputMan::HandleSpecialInput() {
 
 void UInputMan::UpdateMouseInput() {
 	// Detect and store mouse movement input, translated to analog stick emulation
-	int mousePlayer = MouseUsedByPlayer();
 	// TODO: Figure out a less shit solution to updating the mouse in GUIs when there are no mouse players configured, i.e. no player input scheme is using mouse+keyboard. For not just check if we're out of Activity.
-	if (!g_ActivityMan.IsInActivity() || mousePlayer != Players::NoPlayer) {
+	if (!g_ActivityMan.IsInActivity()) {
 		m_AnalogMouseData.m_X += m_RawMouseMovement.m_X * 3;
 		m_AnalogMouseData.m_Y += m_RawMouseMovement.m_Y * 3;
 		m_AnalogMouseData.CapMagnitude(m_MouseTrapRadius);
+		for (auto& [mouseID, mouse]: m_MouseStates) {
+			mouse.analogAim += mouse.relativeMotion * 3;
+			mouse.analogAim.CapMagnitude(m_MouseTrapRadius);
+		}
 
 		// Only mess with the mouse pos if the original mouse position is not above the screen and may be grabbing the title bar of the game window
-		if (g_WindowMan.AnyWindowHasFocus() && !m_DisableMouseMoving && !m_TrapMousePos) {
+		if (g_WindowMan.AnyWindowHasFocus() && !m_DisableMouseMoving && (!m_TrapMousePos || m_EnableMultiMouseKeyboard)) {
 			// The mouse cursor is visible and can move about the screen/window, but it should still be contained within the mouse player's part of the window
-			ForceMouseWithinPlayerScreen(g_ActivityMan.IsInActivity(), mousePlayer);
+			for (int player = PlayerOne; player < MaxPlayerCount; player++) {
+				if (m_ControlScheme[player].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+					ForceMouseWithinPlayerScreen(g_ActivityMan.IsInActivity(), player);
+				}
+			}
 		}
 
 		// Enable the mouse cursor positioning again after having been disabled. Only do this when the mouse is within the drawing area so it

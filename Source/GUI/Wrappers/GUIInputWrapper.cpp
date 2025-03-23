@@ -5,6 +5,7 @@
 #include "UInputMan.h"
 #include "Timer.h"
 #include <SDL3/SDL.h>
+#include <iostream>
 
 using namespace RTE;
 
@@ -110,103 +111,20 @@ void GUIInputWrapper::UpdateKeyboardInput(float keyElapsedTime) {
 }
 
 void GUIInputWrapper::UpdateMouseInput() {
-	float discard;
-	Uint32 buttonState = SDL_GetMouseState(&discard, &discard);
-	Vector mousePos = g_UInputMan.GetAbsoluteMousePosition();
-
-	if (m_OverrideInput) {
-		mousePos.SetXY(static_cast<float>(m_LastFrameMouseX), static_cast<float>(m_LastFrameMouseY));
-
-		if (m_Player >= 0 && m_Player < 4) {
-			if (m_NetworkMouseX[m_Player] != 0) {
-				if (m_NetworkMouseX[m_Player] < 0) {
-					m_NetworkMouseX[m_Player] = 1;
-				}
-				if (m_NetworkMouseX[m_Player] >= g_FrameMan.GetPlayerFrameBufferWidth(m_Player)) {
-					m_NetworkMouseX[m_Player] = g_FrameMan.GetPlayerFrameBufferWidth(m_Player) - 2;
-				}
-				mousePos.SetX(static_cast<float>(m_NetworkMouseX[m_Player]));
-			}
-			if (m_NetworkMouseY[m_Player] != 0) {
-				if (m_NetworkMouseY[m_Player] < 0) {
-					m_NetworkMouseY[m_Player] = 1;
-				}
-				if (m_NetworkMouseY[m_Player] >= g_FrameMan.GetPlayerFrameBufferHeight(m_Player)) {
-					m_NetworkMouseY[m_Player] = g_FrameMan.GetPlayerFrameBufferHeight(m_Player) - 2;
-				}
-				mousePos.SetY(static_cast<float>(m_NetworkMouseY[m_Player]));
-			}
-		} else {
-			if (m_NetworkMouseX[0] != 0) {
-				if (m_NetworkMouseX[0] < 0) {
-					m_NetworkMouseX[0] = 1;
-				}
-				if (m_NetworkMouseX[0] >= g_FrameMan.GetPlayerFrameBufferWidth(0)) {
-					m_NetworkMouseX[0] = g_FrameMan.GetPlayerFrameBufferWidth(0) - 2;
-				}
-				mousePos.SetX(static_cast<float>(m_NetworkMouseX[0]));
-			}
-			if (m_NetworkMouseY[0] != 0) {
-				if (m_NetworkMouseY[0] < 0) {
-					m_NetworkMouseY[0] = 1;
-				}
-				if (m_NetworkMouseY[0] >= g_FrameMan.GetPlayerFrameBufferHeight(0)) {
-					m_NetworkMouseY[0] = g_FrameMan.GetPlayerFrameBufferHeight(0) - 2;
-				}
-				mousePos.SetY(static_cast<float>(m_NetworkMouseY[0]));
-			}
-		}
-		g_UInputMan.SetAbsoluteMousePosition(mousePos);
-	}
+	const auto& buttonStates = g_UInputMan.GetMouseState(m_Player);
+	const auto& buttonChange = g_UInputMan.GetMouseChange(m_Player);
+	Vector mousePos = g_UInputMan.GetAbsoluteMousePosition(m_Player);
 
 	m_LastFrameMouseX = mousePos.GetFloorIntX();
 	m_LastFrameMouseY = mousePos.GetFloorIntY();
 
-	if (!m_OverrideInput) {
-		if (!m_KeyJoyMouseCursor) {
-			if (buttonState & SDL_BUTTON_LMASK) {
-				m_MouseButtonsEvents[0] = (m_MouseButtonsStates[0] == GUIInput::Up) ? GUIInput::Pushed : GUIInput::Repeat;
-				m_MouseButtonsStates[0] = GUIInput::Down;
-			} else {
-				m_MouseButtonsEvents[0] = (m_MouseButtonsStates[0] == GUIInput::Down) ? GUIInput::Released : GUIInput::None;
-				m_MouseButtonsStates[0] = GUIInput::Up;
-			}
-		}
-		if (buttonState & SDL_BUTTON_MMASK) {
-			m_MouseButtonsEvents[1] = (m_MouseButtonsStates[1] == GUIInput::Up) ? GUIInput::Pushed : GUIInput::Repeat;
-			m_MouseButtonsStates[1] = GUIInput::Down;
+	for (int button = 0; button < 3; button++) {
+		m_MouseButtonsStates[button] = buttonStates[button + 1] ? Down : Up;
+		if (m_MouseButtonsStates[button] == Down) {
+			m_MouseButtonsEvents[button] = buttonChange[button + 1] ? Pushed : Repeat;
 		} else {
-			m_MouseButtonsEvents[1] = (m_MouseButtonsStates[1] == GUIInput::Down) ? GUIInput::Released : GUIInput::None;
-			m_MouseButtonsStates[1] = GUIInput::Up;
+			m_MouseButtonsEvents[button] = buttonChange[button + 1] ? Released : None;
 		}
-		if (buttonState & SDL_BUTTON_RMASK) {
-			m_MouseButtonsEvents[2] = (m_MouseButtonsStates[2] == GUIInput::Up) ? GUIInput::Pushed : GUIInput::Repeat;
-			m_MouseButtonsStates[2] = GUIInput::Down;
-		} else {
-			m_MouseButtonsEvents[2] = (m_MouseButtonsStates[2] == GUIInput::Down) ? GUIInput::Released : GUIInput::None;
-			m_MouseButtonsStates[2] = GUIInput::Up;
-		}
-
-		if (m_Player <= Players::NoPlayer || m_Player >= Players::MaxPlayerCount) {
-			for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
-				m_MouseWheelChange = g_UInputMan.MouseWheelMovedByPlayer(player);
-				if (m_MouseWheelChange) {
-					break;
-				}
-			}
-		} else {
-			m_MouseWheelChange = g_UInputMan.MouseWheelMovedByPlayer(m_Player);
-		}
-	} else {
-		int player = (m_Player <= Players::NoPlayer || m_Player >= Players::MaxPlayerCount) ? 0 : m_Player;
-
-		m_NetworkMouseButtonsEvents[player][0] = m_NetworkMouseButtonsStates[player][0] == GUIInput::Down ? (m_PrevNetworkMouseButtonsStates[player][0] == GUIInput::Up ? GUIInput::Pushed : GUIInput::Repeat) : (m_PrevNetworkMouseButtonsStates[player][0] == GUIInput::Down ? GUIInput::Released : GUIInput::None);
-		m_NetworkMouseButtonsEvents[player][1] = m_NetworkMouseButtonsStates[player][1] == GUIInput::Down ? (m_PrevNetworkMouseButtonsStates[player][1] == GUIInput::Up ? GUIInput::Pushed : GUIInput::Repeat) : (m_PrevNetworkMouseButtonsStates[player][1] == GUIInput::Down ? GUIInput::Released : GUIInput::None);
-		m_NetworkMouseButtonsEvents[player][2] = m_NetworkMouseButtonsStates[player][2] == GUIInput::Down ? (m_PrevNetworkMouseButtonsStates[player][2] == GUIInput::Up ? GUIInput::Pushed : GUIInput::Repeat) : (m_PrevNetworkMouseButtonsStates[player][2] == GUIInput::Down ? GUIInput::Released : GUIInput::None);
-
-		m_PrevNetworkMouseButtonsStates[player][0] = m_NetworkMouseButtonsEvents[player][0];
-		m_PrevNetworkMouseButtonsStates[player][1] = m_NetworkMouseButtonsEvents[player][1];
-		m_PrevNetworkMouseButtonsStates[player][2] = m_NetworkMouseButtonsEvents[player][2];
 	}
 }
 
@@ -221,7 +139,7 @@ void GUIInputWrapper::UpdateKeyJoyMouseInput(float keyElapsedTime) {
 	}
 
 	float acceleration = 0.25F + static_cast<float>(std::min(m_CursorAccelTimer->GetElapsedRealTimeS(), 0.5)) * 20.0F;
-	Vector newMousePos = g_UInputMan.GetAbsoluteMousePosition();
+	Vector newMousePos = g_UInputMan.GetAbsoluteMousePosition(m_Player);
 
 	// Manipulate the mouse position with the joysticks or keys.
 	newMousePos.m_X += joyKeyDirectional.GetX() * static_cast<float>(mouseDenominator) * keyElapsedTime * 15.0F * acceleration;
@@ -231,7 +149,7 @@ void GUIInputWrapper::UpdateKeyJoyMouseInput(float keyElapsedTime) {
 	newMousePos.m_X = std::clamp(newMousePos.m_X, 0.0F, static_cast<float>(g_WindowMan.GetResX() * mouseDenominator) - 3.0F);
 	newMousePos.m_Y = std::clamp(newMousePos.m_Y, 0.0F, static_cast<float>(g_WindowMan.GetResY() * mouseDenominator) - 3.0F);
 
-	g_UInputMan.SetAbsoluteMousePosition(newMousePos);
+	g_UInputMan.SetAbsoluteMousePosition(newMousePos, m_Player);
 
 	// Update mouse button states and presses. In the menu, either left or mouse button works.
 	if (g_UInputMan.MenuButtonHeld(UInputMan::MenuCursorButtons::MENU_EITHER)) {

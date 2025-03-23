@@ -1,5 +1,6 @@
 #include "InputScheme.h"
 #include "UInputMan.h"
+#include <SDL3/SDL.h>
 
 using namespace RTE;
 
@@ -130,18 +131,22 @@ void InputScheme::ResetToPlayerDefaults(Players player) {
 	switch (player) {
 		case Players::PlayerOne:
 			m_ActiveDevice = InputDevice::DEVICE_MOUSE_KEYB;
+			m_DeviceID.mouseKeyboard = {0, 0};
 			SetPreset(InputPreset::PresetMouseWASDKeys);
 			break;
 		case Players::PlayerTwo:
 			m_ActiveDevice = InputDevice::DEVICE_KEYB_ONLY;
+			m_DeviceID.keyboard = {0};
 			SetPreset(InputPreset::PresetArrowKeys);
 			break;
 		case Players::PlayerThree:
 			m_ActiveDevice = InputDevice::DEVICE_GAMEPAD_1;
+			m_DeviceID.gamepad = 0;
 			SetPreset(InputPreset::PresetGenericDualAnalog);
 			break;
 		case Players::PlayerFour:
 			m_ActiveDevice = InputDevice::DEVICE_GAMEPAD_2;
+			m_DeviceID.gamepad = 0;
 			SetPreset(InputPreset::PresetGenericDualAnalog);
 			break;
 		default:
@@ -151,6 +156,17 @@ void InputScheme::ResetToPlayerDefaults(Players player) {
 	m_JoystickDeadzoneType = DeadZoneType::CIRCLE;
 	m_JoystickDeadzone = 0.01F;
 	m_DigitalAimSpeed = 1.0F;
+}
+
+void InputScheme::SetDevice(InputDevice activeDevice) {
+	m_ActiveDevice = activeDevice;
+	if (m_ActiveDevice >= InputDevice::DEVICE_GAMEPAD_1) {
+		m_DeviceID.gamepad = g_UInputMan.GetGamepadID(m_ActiveDevice);
+	} else if (m_ActiveDevice == InputDevice::DEVICE_KEYB_ONLY) {
+		m_DeviceID.keyboard = 0;
+	} else if (m_ActiveDevice == InputDevice::DEVICE_MOUSE_KEYB) {
+		m_DeviceID.mouseKeyboard = {0, 0};
+	}
 }
 
 void InputScheme::SetPreset(InputPreset schemePreset) {
@@ -477,4 +493,45 @@ bool InputScheme::CaptureJoystickMapping(int whichJoy, int whichInput) {
 		}
 	}
 	return false;
+}
+
+bool InputScheme::CaptureDeviceMapping(bool mouse, bool keyboard) {
+	// Ignore Gamepad mapping for now, these are already handled by UInputMan
+	if (m_ActiveDevice >= InputDevice::DEVICE_GAMEPAD_1) {
+		return false;
+	}
+	bool deviceMapped = false;
+	if (m_ActiveDevice == InputDevice::DEVICE_MOUSE_KEYB) {
+		if (mouse) {
+			int mouseCount = 0;
+			SDL_MouseID* mice = SDL_GetMice(&mouseCount);
+			for (int i = 0; i < mouseCount; i++) {
+				if (g_UInputMan.AnyMouseButtonPress(mice[i])) {
+					m_DeviceID.mouseKeyboard.mouse = mice[i];
+					deviceMapped = true;
+					break;
+				}
+			}
+			SDL_free(mice);
+		}
+	}
+	if (m_ActiveDevice == InputDevice::DEVICE_KEYB_ONLY || m_ActiveDevice == InputDevice::DEVICE_MOUSE_KEYB) {
+		if (keyboard) {
+			int keyboardCount = 0;
+			SDL_KeyboardID* keyboards = SDL_GetKeyboards(&keyboardCount);
+			for (int i = 0; i < keyboardCount; i++) {
+				if (g_UInputMan.AnyKeyPress(keyboards[i])) {
+					if (m_ActiveDevice == InputDevice::DEVICE_KEYB_ONLY) {
+						m_DeviceID.keyboard = keyboards[i];
+					} else {
+						m_DeviceID.mouseKeyboard.keyboard = keyboards[i];
+					}
+					deviceMapped = true;
+					break;
+				}
+			}
+			SDL_free(keyboards);
+		}
+	}
+	return deviceMapped;
 }

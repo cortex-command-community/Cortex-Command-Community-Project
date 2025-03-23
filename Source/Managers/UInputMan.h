@@ -123,9 +123,10 @@ namespace RTE {
 		/// @return Whether the element is released or not.
 		bool ElementReleased(int whichPlayer, int whichElement) { return GetInputElementState(whichPlayer, whichElement, InputState::Released); }
 
-		/// Gets the generic direction input from any and all players which can affect a shared menu cursor. Normalized to 1.0 max.
+		/// Gets the generic direction input from one or all players which can affect a shared menu cursor. Normalized to 1.0 max.
+		/// @param whichPlayer The player for which menu direction is taken, -1 for combined.
 		/// @return The vector with the directional input from any or all players.
-		Vector GetMenuDirectional();
+		Vector GetMenuDirectional(int whichPlayer = -1);
 
 		/// Gets whether any generic button with the menu cursor is held down.
 		/// @param whichButton Which generic menu cursor button to check for.
@@ -233,7 +234,7 @@ namespace RTE {
 
 		/// Return true if there are any keyboard button presses at all.
 		/// @return Whether any keyboard buttons have been pressed at all since last frame.
-		bool AnyKeyPress() const;
+		bool AnyKeyPress(SDL_KeyboardID keyboardID = 0) const;
 
 		/// Fills the given string with the text input since the last frame (if any).
 		/// @param text The std::string to fill.
@@ -261,13 +262,15 @@ namespace RTE {
 		/// @param disable Whether to disable mouse positioning or not.
 		void DisableMouseMoving(bool disable = true);
 
+		bool IsMultiMouseKeyboardEnabled() const;
+
 		/// Get the absolute mouse position in window coordinates.
 		/// @return The absolute mouse position.
-		Vector GetAbsoluteMousePosition() const { return m_AbsoluteMousePos; }
+		Vector GetAbsoluteMousePosition( int whichPlayer = -1) const;
 
 		/// Set the absolute mouse position (e.g. for player input mouse movement). Does not move the system cursor.
 		/// @param pos The new mouse position.
-		void SetAbsoluteMousePosition(const Vector& pos) { m_AbsoluteMousePos = pos; }
+		void SetAbsoluteMousePosition(const Vector& pos, int whichPlayer = -1);
 
 		/// Gets the relative movement of the mouse since last update. Only returns true if the selected player is actually using the mouse.
 		/// @param whichPlayer Which player to get movement for. If the player doesn't use the mouse this always returns a zero vector.
@@ -287,7 +290,7 @@ namespace RTE {
 		/// Sets the absolute screen position of the mouse cursor.
 		/// @param newPos Where to place the mouse.
 		/// @param whichPlayer Which player is trying to control the mouse. Only the player with actual control over the mouse will be affected. -1 means do it regardless of player.
-		void SetMousePos(const Vector& newPos, int whichPlayer = -1) const;
+		void SetMousePos(const Vector& newPos, int whichPlayer = -1);
 
 		/// Gets mouse sensitivity while in Activity.
 		/// @return The current mouse sensitivity.
@@ -301,19 +304,22 @@ namespace RTE {
 		/// @param whichButton Which button to check for.
 		/// @param whichPlayer Which player to check for.
 		/// @return Whether the mouse button is held or not.
-		bool MouseButtonHeld(int whichButton, int whichPlayer = Players::PlayerOne) const { return GetMouseButtonState(whichPlayer, whichButton, InputState::Held); }
+		bool MouseButtonHeld(int whichButton, int whichPlayer = Players::PlayerOne, SDL_MouseID mouse = 0) const { return GetMouseButtonState(whichPlayer, whichButton, InputState::Held, mouse); }
 
 		/// Gets whether a mouse button was pressed between the last update and the one previous to it.
 		/// @param whichButton Which button to check for.
 		/// @param whichPlayer Which player to check for.
 		/// @return Whether the mouse button is pressed or not.
-		bool MouseButtonPressed(int whichButton, int whichPlayer = Players::PlayerOne) const { return GetMouseButtonState(whichPlayer, whichButton, InputState::Pressed); }
+		bool MouseButtonPressed(int whichButton, int whichPlayer = Players::PlayerOne, SDL_MouseID mouse = 0) const { return GetMouseButtonState(whichPlayer, whichButton, InputState::Pressed, mouse); }
 
 		/// Gets whether a mouse button was released between the last update and the one previous to it.
 		/// @param whichButton Which button to check for.
 		/// @param whichPlayer Which player to check for.
 		/// @return Whether the mouse button is released or not.
-		bool MouseButtonReleased(int whichButton, int whichPlayer = Players::PlayerOne) const { return GetMouseButtonState(whichPlayer, whichButton, InputState::Released); }
+		bool MouseButtonReleased(int whichButton, int whichPlayer = Players::PlayerOne, SDL_MouseID mouse = 0) const { return GetMouseButtonState(whichPlayer, whichButton, InputState::Released, mouse); }
+
+		const std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS>& GetMouseState(int whichPlayer = -1) const;
+		const std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS>& GetMouseChange(int whichPlayer = -1) const;
 
 		/// Gets whether the mouse wheel has been moved past the threshold limit in either direction this frame.
 		/// @return The direction the mouse wheel has been moved which is past that threshold. 0 means not past, negative means moved down, positive means moved up.
@@ -328,7 +334,7 @@ namespace RTE {
 
 		/// Return true if there are any mouse button presses at all.
 		/// @return Whether any mouse buttons have been pressed at all since last frame.
-		bool AnyMouseButtonPress() const;
+		bool AnyMouseButtonPress(SDL_MouseID mouseID = 0) const;
 
 		/// Sets the mouse to be trapped in the middle of the screen so it doesn't go out and click on other windows etc.
 		/// This is usually used when the cursor is invisible and only relative mouse movements are used.
@@ -344,7 +350,7 @@ namespace RTE {
 		/// @param width The width of the box.
 		/// @param height The height of the box.
 		/// @param whichPlayer Which player is trying to control the mouse. Only the player with actual control over the mouse will be affected. -1 means do it regardless of player.
-		void ForceMouseWithinBox(int x, int y, int width, int height, int whichPlayer = Players::NoPlayer) const;
+		void ForceMouseWithinBox(int x, int y, int width, int height, int whichPlayer = Players::NoPlayer);
 #pragma endregion
 
 #pragma region Joystick Handling
@@ -356,6 +362,8 @@ namespace RTE {
 		/// @param device The InputDevice to get index from.
 		/// @return The corrected index. A non-joystick device will result in an out of range value returned which will not affect any active joysticks.
 		int GetJoystickIndex(InputDevice device) const { return (device >= InputDevice::DEVICE_GAMEPAD_1 && device < InputDevice::DEVICE_COUNT) ? device - InputDevice::DEVICE_GAMEPAD_1 : InputDevice::DEVICE_COUNT; }
+
+		SDL_JoystickID GetGamepadID(InputDevice gamepad) const;
 
 		/// Gets the number of axes of the specified joystick.
 		/// @param whichJoy Joystick to check.
@@ -449,9 +457,27 @@ namespace RTE {
 		static std::array<bool, SDL_SCANCODE_COUNT> s_PrevKeyStates; //!< Key states as they were the previous update.
 		static std::array<bool, SDL_SCANCODE_COUNT> s_ChangedKeyStates; //!< Key states that have changed.
 
+		struct Keyboard {
+			SDL_KeyboardID id{0};
+			std::array<bool, SDL_SCANCODE_COUNT> keyStates{};
+			std::array<bool, SDL_SCANCODE_COUNT> changedKeyStates{};
+		};
+		std::unordered_map<SDL_KeyboardID, Keyboard> m_KeyboardStates; //!< Keyboard state when multi keyboard support is enabled.
+
 		static std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS> s_CurrentMouseButtonStates; //!< Current mouse button states.
 		static std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS> s_PrevMouseButtonStates; //!< Mouse button states as they were the previous update.
 		static std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS> s_ChangedMouseButtonStates; //!< Mouse button states that have changed since previous update.
+
+		struct Mouse {
+			SDL_MouseID id{0};
+			std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS> state{};
+			std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS> change{};
+			Vector position{};
+			Vector relativeMotion{};
+			Vector analogAim{};
+			float wheelChange{0.0f};
+		};
+		std::unordered_map<SDL_MouseID, Mouse> m_MouseStates; //!< Mouse states when multi mouse support is enabled.
 
 		static std::vector<Gamepad> s_PrevJoystickStates; //!< Joystick states as they were the previous update.
 		static std::vector<Gamepad> s_ChangedJoystickStates; //!< Joystick states that have changed.
@@ -481,6 +507,9 @@ namespace RTE {
 
 		InputDevice m_LastDeviceWhichControlledGUICursor; //!< Indicates which device controlled the cursor last time.
 
+		bool m_ForceEnableMultiMouseKeyboard{true}; //!< Whether to force enable muti mouse/keyboard support.
+		bool m_EnableMultiMouseKeyboard{true}; //!< Allow use of multiple mice and keyboards. (Enables relative mouse mode.)
+		bool m_PlayerMouseKeyboardKnown{false}; //!< Whether all player devices are known when multiple mouse and/or keyboards are requested.
 		bool m_DisableKeyboard; //!< Temporarily disable all keyboard input reading.
 		bool m_DisableMouseMoving; //!< Temporary disable for positioning the mouse, for when the game window is not in focus.
 
@@ -525,7 +554,7 @@ namespace RTE {
 		/// @param whichButton Which mouse button to check for. See MouseButtons enumeration.
 		/// @param whichState Which state to check for. See InputState enumeration.
 		/// @return Whether the mouse button is in the specified state or not.
-		bool GetMouseButtonState(int whichPlayer, int whichButton, InputState whichState) const;
+		bool GetMouseButtonState(int whichPlayer, int whichButton, InputState whichState, SDL_MouseID mouse = 0) const;
 
 		/// Gets whether a joystick button is in the specified state.
 		/// @param whichJoy Which joystick to check for.
