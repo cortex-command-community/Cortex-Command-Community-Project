@@ -41,13 +41,26 @@ SettingsInputGUI::SettingsInputGUI(GUIControlManager* parentControlManager) :
 	}
 	UpdateMouseKeyboardSelectControls();
 	m_InputMappingConfigMenu = std::make_unique<SettingsInputMappingGUI>(parentControlManager);
-	m_DeviceCaptureDialog.DeviceCaptureBox = dynamic_cast<GUICollectionBox*> (m_GUIControlManager->GetControl("CollectionBoxDeviceCapture"));
+	m_DeviceCaptureDialog.DeviceCaptureBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxDeviceCapture"));
 	m_DeviceCaptureDialog.SelectorTextLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelDeviceCaptureInstruction1"));
 }
 
 void SettingsInputGUI::SetEnabled(bool enable) const {
 	m_InputSettingsBox->SetVisible(enable);
 	m_InputSettingsBox->SetEnabled(enable);
+}
+
+GUICollectionBox* SettingsInputGUI::GetActiveDialogBox() const {
+	if (m_DeviceCaptureDialog.Active) {
+		return m_DeviceCaptureDialog.DeviceCaptureBox;
+	}
+	return m_InputMappingConfigMenu->GetActiveDialogBox();
+}
+void SettingsInputGUI::CloseActiveDialogBox() {
+	if (m_DeviceCaptureDialog.Active) {
+		HideDeviceCaptureBox();
+	}
+	m_InputMappingConfigMenu->CloseActiveDialogBox();
 }
 
 void SettingsInputGUI::ResetPlayerInputSettings(int player) {
@@ -156,9 +169,10 @@ void SettingsInputGUI::ShowOrHidePlayerInputDeviceSensitivityControls(int player
 }
 
 void SettingsInputGUI::UpdateMouseKeyboardSelectControls() {
-	bool showControls = g_UInputMan.IsMultiMouseKeyboardEnabled();
 	for (int player = 0; player < MaxPlayerCount; player++) {
+		bool showControls = g_UInputMan.IsMultiMouseKeyboardEnabled() && g_UInputMan.GetControlScheme(player)->GetDevice() == InputDevice::DEVICE_MOUSE_KEYB;
 		m_PlayerInputSettingsBoxes.at(player).KeyboardMouseSelectBox->SetVisible(showControls);
+		m_PlayerInputSettingsBoxes.at(player).KeyboardMouseSelectBox->SetEnabled(showControls);
 	}
 }
 
@@ -226,6 +240,7 @@ void SettingsInputGUI::HideDeviceCaptureBox() {
 	m_DeviceCaptureDialog.DeviceCaptureBox->SetVisible(false);
 	m_DeviceCaptureDialog.Active = false;
 	g_UInputMan.TrapMousePos(false);
+	g_UInputMan.ClearMouseButtons();
 }
 
 void SettingsInputGUI::HandleConfigDeviceMapping() {
@@ -233,6 +248,12 @@ void SettingsInputGUI::HandleConfigDeviceMapping() {
 	bool keyboard = m_DeviceCaptureDialog.Keyboard;
 	bool deviceMapped = playerScheme->CaptureDeviceMapping(!keyboard, keyboard);
 	if (deviceMapped) {
+		g_GUISound.ExitMenuSound()->Play();
+		HideDeviceCaptureBox();
+		UpdatePlayerKeyboardMouseButtonLabels(m_DeviceCaptureDialog.Player);
+	}
+	if (g_UInputMan.KeyPressed(SDLK_DELETE)) {
+		playerScheme->ResetDeviceID();
 		g_GUISound.ExitMenuSound()->Play();
 		HideDeviceCaptureBox();
 		UpdatePlayerKeyboardMouseButtonLabels(m_DeviceCaptureDialog.Player);

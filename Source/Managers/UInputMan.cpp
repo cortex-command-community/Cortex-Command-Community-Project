@@ -420,6 +420,15 @@ const std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS>& UInputMan::GetMouseChan
 	return s_ChangedMouseButtonStates;
 }
 
+void UInputMan::ClearMouseButtons() {
+	s_ChangedMouseButtonStates.fill(false);
+	s_PrevMouseButtonStates.fill(false);
+	for (auto& [mouseID, mouse] : m_MouseStates) {
+		mouse.state.fill(false);
+		mouse.change.fill(false);
+	}
+}
+
 bool UInputMan::AnyMouseButtonPress(SDL_MouseID mouseID) const {
 	for (int button = MouseButtons::MOUSE_LEFT; button < MouseButtons::MAX_MOUSE_BUTTONS; ++button) {
 		if (MouseButtonPressed(button, -1, mouseID)) {

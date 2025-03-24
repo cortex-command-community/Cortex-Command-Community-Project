@@ -71,6 +71,8 @@ namespace RTE {
 
 		void SetDeviceID(DeviceID deviceID) { m_DeviceID = deviceID; }
 
+		void ResetDeviceID();
+
 		/// Gets the InputPreset that this scheme is using.
 		/// @return The InputPreset of this scheme. See InputPreset enumeration.
 		InputPreset GetPreset() const { return m_SchemePreset; }

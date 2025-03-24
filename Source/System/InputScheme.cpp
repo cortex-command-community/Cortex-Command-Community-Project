@@ -169,6 +169,25 @@ void InputScheme::SetDevice(InputDevice activeDevice) {
 	}
 }
 
+void InputScheme::ResetDeviceID() {
+	switch(m_ActiveDevice) {
+		case DEVICE_KEYB_ONLY:
+			m_DeviceID.keyboard = 0;
+			break;
+		case DEVICE_MOUSE_KEYB:
+			m_DeviceID.mouseKeyboard = {0, 0};
+			break;
+		case DEVICE_GAMEPAD_1:
+		case DEVICE_GAMEPAD_2:
+		case DEVICE_GAMEPAD_3:
+		case DEVICE_GAMEPAD_4:
+			m_DeviceID.gamepad = 0;
+			break;
+		default:
+			break;
+	}
+}
+
 void InputScheme::SetPreset(InputPreset schemePreset) {
 	m_SchemePreset = schemePreset;
 
@@ -520,7 +539,7 @@ bool InputScheme::CaptureDeviceMapping(bool mouse, bool keyboard) {
 			int keyboardCount = 0;
 			SDL_KeyboardID* keyboards = SDL_GetKeyboards(&keyboardCount);
 			for (int i = 0; i < keyboardCount; i++) {
-				if (g_UInputMan.AnyKeyPress(keyboards[i])) {
+				if (g_UInputMan.AnyKeyPress(keyboards[i]) && !g_UInputMan.KeyPressed(SDLK_ESCAPE) && !g_UInputMan.KeyPressed(SDLK_DELETE)) {
 					if (m_ActiveDevice == InputDevice::DEVICE_KEYB_ONLY) {
 						m_DeviceID.keyboard = keyboards[i];
 					} else {

@@ -35,10 +35,10 @@ namespace RTE {
 
 		/// Gets the currently active GUICollectionBox that acts as a dialog box and requires disabling navigation and drawing an overlay.
 		/// @return Pointer to the GUICollectionBox that is the currently active dialog box, if any. Ownership is NOT transferred!
-		GUICollectionBox* GetActiveDialogBox() const { return m_InputMappingConfigMenu->GetActiveDialogBox(); }
+		GUICollectionBox* GetActiveDialogBox() const;
 
 		/// Closes the currently active GUICollectionBox that acts as a dialog box by hiding it. If the active dialog box is a sub-menu, disables it.
-		void CloseActiveDialogBox() const { m_InputMappingConfigMenu->CloseActiveDialogBox(); }
+		void CloseActiveDialogBox();
 #pragma endregion
 
 #pragma region Input Config Wizard Handling

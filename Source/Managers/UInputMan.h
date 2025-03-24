@@ -321,6 +321,8 @@ namespace RTE {
 		const std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS>& GetMouseState(int whichPlayer = -1) const;
 		const std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS>& GetMouseChange(int whichPlayer = -1) const;
 
+		void ClearMouseButtons();
+
 		/// Gets whether the mouse wheel has been moved past the threshold limit in either direction this frame.
 		/// @return The direction the mouse wheel has been moved which is past that threshold. 0 means not past, negative means moved down, positive means moved up.
 		int MouseWheelMoved() const { return m_MouseWheelChange; }
