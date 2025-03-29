@@ -1,5 +1,6 @@
 #include "SettingsInputGUI.h"
 #include "UInputMan.h"
+#include "WindowMan.h"
 
 #include "GUI.h"
 #include "GUICollectionBox.h"
@@ -43,6 +44,8 @@ SettingsInputGUI::SettingsInputGUI(GUIControlManager* parentControlManager) :
 	m_InputMappingConfigMenu = std::make_unique<SettingsInputMappingGUI>(parentControlManager);
 	m_DeviceCaptureDialog.DeviceCaptureBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxDeviceCapture"));
 	m_DeviceCaptureDialog.SelectorTextLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelDeviceCaptureInstruction1"));
+	GUICollectionBox* settingsRootBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxSettingsBase"));
+	m_DeviceCaptureDialog.DeviceCaptureBox->SetPositionAbs(settingsRootBox->GetXPos() + ((settingsRootBox->GetWidth() - m_DeviceCaptureDialog.DeviceCaptureBox->GetWidth()) / 2), settingsRootBox->GetYPos() + ((settingsRootBox->GetHeight() - m_DeviceCaptureDialog.DeviceCaptureBox->GetHeight()) / 2));
 }
 
 void SettingsInputGUI::SetEnabled(bool enable) const {
@@ -170,7 +173,7 @@ void SettingsInputGUI::ShowOrHidePlayerInputDeviceSensitivityControls(int player
 
 void SettingsInputGUI::UpdateMouseKeyboardSelectControls() {
 	for (int player = 0; player < MaxPlayerCount; player++) {
-		bool showControls = g_UInputMan.IsMultiMouseKeyboardEnabled() && g_UInputMan.GetControlScheme(player)->GetDevice() == InputDevice::DEVICE_MOUSE_KEYB;
+		bool showControls = g_UInputMan.CheckMultiMouseKeyboardEnabled() && g_UInputMan.GetControlScheme(player)->GetDevice() == InputDevice::DEVICE_MOUSE_KEYB;
 		m_PlayerInputSettingsBoxes.at(player).KeyboardMouseSelectBox->SetVisible(showControls);
 		m_PlayerInputSettingsBoxes.at(player).KeyboardMouseSelectBox->SetEnabled(showControls);
 	}
@@ -211,9 +214,13 @@ void SettingsInputGUI::UpdatePlayerInputSensitivityControlValues(int player) {
 void SettingsInputGUI::UpdatePlayerKeyboardMouseButtonLabels(int player) {
 	if (SDL_MouseID mouse = g_UInputMan.GetControlScheme(player)->GetDeviceID().mouseKeyboard.mouse; mouse != 0) {
 		m_PlayerInputSettingsBoxes[player].MouseSelectButton->SetText("Mouse " + std::to_string(mouse));
+	} else {
+		m_PlayerInputSettingsBoxes[player].MouseSelectButton->SetText("Set Mouse");
 	}
 	if (SDL_KeyboardID keyboard = g_UInputMan.GetControlScheme(player)->GetDeviceID().mouseKeyboard.keyboard; keyboard != 0) {
 		m_PlayerInputSettingsBoxes[player].KeyboardSelectButton->SetText("Keyboard " + std::to_string(keyboard));
+	} else {
+		m_PlayerInputSettingsBoxes[player].KeyboardSelectButton->SetText("Set Keyboard");
 	}
 }
 
@@ -241,6 +248,7 @@ void SettingsInputGUI::HideDeviceCaptureBox() {
 	m_DeviceCaptureDialog.Active = false;
 	g_UInputMan.TrapMousePos(false);
 	g_UInputMan.ClearMouseButtons();
+	m_GUIControlManager->GetInput()->ClearMouseState();
 }
 
 void SettingsInputGUI::HandleConfigDeviceMapping() {
