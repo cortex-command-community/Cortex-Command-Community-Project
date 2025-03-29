@@ -248,6 +248,10 @@ void WindowMan::SetVSyncEnabled(bool enable) {
 	SDL_GL_SetSwapInterval(sdlEnableVSync);
 }
 
+void WindowMan::RefocusWindow() const {
+	SDL_RaiseWindow(m_PrimaryWindow.get());
+}
+
 void WindowMan::UpdatePrimaryDisplayInfo() {
 	m_PrimaryWindowDisplayIndex = SDL_GetDisplayForWindow(m_PrimaryWindow.get());
 

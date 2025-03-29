@@ -132,6 +132,8 @@ namespace RTE {
 		/// Get the screen buffer texture.
 		/// @return The screen buffer texture.
 		std::shared_ptr<RenderTarget> GetScreenBuffer() const { return m_ScreenBuffer; }
+
+		void RefocusWindow() const;
 #pragma endregion
 
 #pragma region Resolution Change Handling
