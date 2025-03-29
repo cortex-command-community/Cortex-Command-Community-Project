@@ -426,10 +426,18 @@ bool ScenarioActivityConfigGUI::HandleInputEvents() {
 				g_GUISound.BackButtonPressSound()->Play();
 				SetEnabled(false);
 			} else if (guiEvent.GetControl() == m_StartGameButton) {
-				g_GUISound.ButtonPressSound()->Play();
-				StartGame();
-				SetEnabled(false);
-				return true;
+				// Make sure all players have known input devices if multimouse is enabled.
+				std::vector humanPlayers = GetHumanPlayers();
+				if (g_UInputMan.CheckMultiMouseKeyboardEnabled(humanPlayers) && g_UInputMan.AllPlayerInputDevicesKnown(humanPlayers)) {
+					g_GUISound.ButtonPressSound()->Play();
+					StartGame();
+					SetEnabled(false);
+					return true;
+				} else {
+					// TODO: Show message and device selection.
+					g_GUISound.UserErrorSound()->Play();
+					return false;
+				}
 			}
 		} else if (guiEvent.GetType() == GUIEvent::Notification) {
 			if (guiEvent.GetControl() == m_ActivityDifficultySlider) {
@@ -452,6 +460,21 @@ bool ScenarioActivityConfigGUI::HandleInputEvents() {
 		}
 	}
 	return false;
+}
+
+std::vector<int> ScenarioActivityConfigGUI::GetHumanPlayers() {
+	std::vector<int> humanPlayers;
+	for (int player = Players::PlayerOne; player < PlayerColumns::PlayerColumnCount; ++player) {
+		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
+			if (m_PlayerBoxes.at(player).at(team)->GetDrawType() == GUICollectionBox::Image) {
+				if (player != PlayerColumns::PlayerCPU) {
+					humanPlayers.push_back(player);
+					break;
+				}
+			}
+		}
+	}
+	return humanPlayers;
 }
 
 void ScenarioActivityConfigGUI::Draw() {
