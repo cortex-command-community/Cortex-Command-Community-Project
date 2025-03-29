@@ -192,8 +192,8 @@ endif
 #### Platform Common External Libraries ####
 if host_machine.system() in ['linux','darwin']
   deps += [
-    dependency(['sdl3']),
-    dependency('SDL3_image'),
+    #dependency(['sdl3']),
+    #dependency('SDL3_image'),
     dependency('flac'),
     dependency('minizip'),
     dependency('threads'),
@@ -231,6 +231,15 @@ external_objects = []
 external_libs = []
 subdir('external')
 
+sdl3_opt = cmake.subproject_options()
+sdl3_opt.add_cmake_defines({'CMAKE_POSITION_INDEPENDENT_CODE': get_option('b_staticpic'), 'BUILD_SHARED_LIBS':false, 'BUILD_STATIC_LIBS': true})
+sdl3_opt.append_compile_args('c','-DUSE_XINPUT2_KEYBOARD')
+sdl3_proj = cmake.subproject('SDL3-3.2.8', options: sdl3_opt)
+sdl3_dep = sdl3_proj.dependency('SDL3-static')
+
+sdl3_image_proj = cmake.subproject('SDL3_image-3.2.4', options: sdl3_opt)
+sdl3_image_dep = sdl3_image_proj.dependency('SDL3_image-static')
+
 boost_dep = declare_dependency(include_directories: include_directories('external/include/boost_1_75'))
 meson.override_dependency('boost-175', boost_dep)
 install_rpath = prefix/get_option('fmod_dir')
@@ -246,7 +255,7 @@ raknet_proj = subproject('RakNet')
 raknet_dep = dependency('RakNet')
 tracy_proj = subproject('tracy')
 tracy_dep = dependency('tracy')
-deps += [allegro_dep, luajit_dep, loadpng_dep, raknet_dep, boost_dep, tracy_dep]
+deps += [sdl3_dep, sdl3_image_dep, allegro_dep, luajit_dep, loadpng_dep, raknet_dep, boost_dep, tracy_dep]
 
 #### Sources Setup ####
 source_inc_dirs = []
