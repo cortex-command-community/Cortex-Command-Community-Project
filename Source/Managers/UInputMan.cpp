@@ -119,7 +119,7 @@ int UInputMan::Initialize() {
 			playerMouseControlled++;
 		}
 	}
-	m_EnableMultiMouseKeyboard = playerMouseControlled > 1 || m_ForceEnableMultiMouseKeyboard;
+	m_EnableMultiMouseKeyboard = playerMouseControlled > 1 && !m_ForceDisableMultiMouseKeyboard;
 
 	m_PlayerScreenMouseBounds = {
 	    0,
@@ -317,15 +317,41 @@ void UInputMan::DisableMouseMoving(bool disable) {
 		m_PrepareToEnableMouseMoving = true;
 	}
 }
-
-bool UInputMan::IsMultiMouseKeyboardEnabled() const {
+bool UInputMan::CheckMultiMouseKeyboardEnabled(std::optional<std::reference_wrapper<const std::vector<int>>> players) {
 	int playerMouseControlled{0};
-	for (int player = PlayerOne; player < MaxPlayerCount; player++) {
-		if (m_ControlScheme[player].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
-			playerMouseControlled++;
+	if (players) {
+		for (int player: players->get()) {
+			if (m_ControlScheme[player].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+				playerMouseControlled++;
+			}
+		}
+	} else {
+		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
+			if (m_ControlScheme[player].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+				playerMouseControlled++;
+			}
 		}
 	}
-	return playerMouseControlled > 1;
+
+	SDL_SetHint(SDL_HINT_WINDOWS_RAW_KEYBOARD, "1");
+	m_EnableMultiMouseKeyboard = playerMouseControlled > 1 && !m_ForceDisableMultiMouseKeyboard;
+	return m_EnableMultiMouseKeyboard;
+}
+
+bool UInputMan::AllPlayerInputDevicesKnown(const std::vector<int>& humanPlayers) const {
+	if (!m_EnableMultiMouseKeyboard) {
+		return true;
+	}
+
+	for (int player: humanPlayers) {
+		if (m_ControlScheme[player].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
+			DeviceID playerDevice = m_ControlScheme[player].GetDeviceID();
+			if (playerDevice.mouseKeyboard.mouse == 0 || playerDevice.mouseKeyboard.keyboard == 0) {
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
 Vector UInputMan::GetAbsoluteMousePosition(int whichPlayer) const {
@@ -394,7 +420,7 @@ void UInputMan::SetMousePos(const Vector& newPos, int whichPlayer) {
 }
 
 const std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS>& UInputMan::GetMouseState(int whichPlayer) const {
-	if (whichPlayer == Players::NoPlayer) {
+	if (whichPlayer == Players::NoPlayer || !m_EnableMultiMouseKeyboard) {
 		return s_CurrentMouseButtonStates;
 	}
 	InputDevice playerInput = m_ControlScheme.at(whichPlayer).GetDevice();
@@ -407,7 +433,7 @@ const std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS>& UInputMan::GetMouseStat
 	return s_CurrentMouseButtonStates;
 }
 const std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS>& UInputMan::GetMouseChange(int whichPlayer) const {
-	if (whichPlayer == Players::NoPlayer) {
+	if (whichPlayer == Players::NoPlayer || !m_EnableMultiMouseKeyboard) {
 		return s_ChangedMouseButtonStates;
 	}
 	InputDevice playerInput = m_ControlScheme.at(whichPlayer).GetDevice();
@@ -693,7 +719,7 @@ bool UInputMan::GetMouseButtonState(int whichPlayer, int whichButton, InputState
 	if (whichPlayer != Players::NoPlayer) {
 		playerDevice = m_ControlScheme.at(whichPlayer).GetDevice();
 	}
-	if (mouse == 0 && (whichPlayer == Players::NoPlayer || (playerDevice != InputDevice::DEVICE_MOUSE_KEYB))) {
+	if (mouse == 0 && (whichPlayer == Players::NoPlayer || !m_EnableMultiMouseKeyboard || (playerDevice != InputDevice::DEVICE_MOUSE_KEYB))) {
 		switch (whichState) {
 			case InputState::Held:
 				return s_CurrentMouseButtonStates[whichButton];

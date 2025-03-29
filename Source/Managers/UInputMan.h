@@ -11,6 +11,8 @@
 #include <array>
 #include <string>
 #include <vector>
+#include <optional>
+#include <functional>
 
 #define g_UInputMan UInputMan::Instance()
 
@@ -262,7 +264,12 @@ namespace RTE {
 		/// @param disable Whether to disable mouse positioning or not.
 		void DisableMouseMoving(bool disable = true);
 
-		bool IsMultiMouseKeyboardEnabled() const;
+		/// @brief Check if multi mouse and keyboard should be enabled.
+		/// Checks through a list of human players to see if multimouse is required.
+		/// @param player A list of human players.
+		bool CheckMultiMouseKeyboardEnabled(std::optional<std::reference_wrapper<const std::vector<int>>> players = std::nullopt);
+
+		bool AllPlayerInputDevicesKnown(const std::vector<int>& humanPlayers) const;
 
 		/// Get the absolute mouse position in window coordinates.
 		/// @return The absolute mouse position.
@@ -510,7 +517,7 @@ namespace RTE {
 
 		InputDevice m_LastDeviceWhichControlledGUICursor; //!< Indicates which device controlled the cursor last time.
 
-		bool m_ForceEnableMultiMouseKeyboard{true}; //!< Whether to force enable muti mouse/keyboard support.
+		bool m_ForceDisableMultiMouseKeyboard{false}; //!< Whether to force enable muti mouse/keyboard support.
 		bool m_EnableMultiMouseKeyboard{true}; //!< Allow use of multiple mice and keyboards. (Enables relative mouse mode.)
 		bool m_PlayerMouseKeyboardKnown{false}; //!< Whether all player devices are known when multiple mouse and/or keyboards are requested.
 		bool m_DisableKeyboard; //!< Temporarily disable all keyboard input reading.
