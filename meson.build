@@ -211,10 +211,6 @@ if host_machine.system() in ['linux','darwin']
     deps += bfd
   endif
 elif host_machine.system() == 'windows'
-  sdl2 = subproject('SDL2-2.26.3')
-  sdl2_dep = dependency('sdl2')
-  sdl2_image = subproject('SDL2_image-2.8.2')
-  sdl2_image_dep = dependency('SDL2_image')
   zlib = subproject('zlib-ng-2.1.3')
   zlib_dep = dependency('zlib')
   minizip = subproject('minizip-ng-4.0.0')
@@ -223,7 +219,7 @@ elif host_machine.system() == 'windows'
   libpng_dep = dependency('libpng')
   # Windows Libraries
   opengl = compiler.find_library('opengl32')
-  deps += [sdl2_dep, sdl2_image_dep, zlib_dep, minizip_dep, libpng_dep, opengl]
+  deps += [zlib_dep, minizip_dep, libpng_dep, opengl]
 endif
 
 
