@@ -1,6 +1,6 @@
 function FasterWalkingScript:StartScript()
-	self.multiplier = 1.6;
-	self.pushForceDenominator = 1.2;
+	self.multiplier = 1.2;
+	self.pushForceDenominator = 3;
 end
 
 function FasterWalkingScript:UpdateScript()

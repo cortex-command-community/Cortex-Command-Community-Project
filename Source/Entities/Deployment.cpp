@@ -257,9 +257,11 @@ SceneObject* Deployment::CreateDeployedObject(int player, float& costTally) {
 		// Get the first object in the Loadout
 		pReturnObject = pLoadout->CreateFirstDevice(nativeModule, foreignCostMult, nativeCostMult, costTally);
 		// Set the position and team etc for the Actor we are prepping to spawn
-		pReturnObject->SetPos(m_Pos);
-		pReturnObject->SetHFlipped(m_HFlipped);
-		pReturnObject->SetTeam(m_Team);
+		if (pReturnObject) {
+			pReturnObject->SetPos(m_Pos);
+			pReturnObject->SetHFlipped(m_HFlipped);
+			pReturnObject->SetTeam(m_Team);
+		}
 	}
 
 	// PASSING OWNERSHIP

@@ -293,9 +293,7 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 	MatchProperty("PlayerControllable", { reader >> m_PlayerControllable; });
 	MatchProperty("BodyHitSound", {
-		if (m_BodyHitSound) {
-			delete m_BodyHitSound;
-		}
+		delete m_BodyHitSound;
 		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
 		if (SoundContainer* reference = dynamic_cast<SoundContainer*>(entityReference)) {
 			m_BodyHitSound = reference;
@@ -304,9 +302,7 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		}
 	});
 	MatchProperty("AlarmSound", {
-		if (m_AlarmSound) {
-			delete m_AlarmSound;
-		}
+		delete m_AlarmSound;
 		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
 		if (SoundContainer* reference = dynamic_cast<SoundContainer*>(entityReference)) {
 			m_AlarmSound = reference;
@@ -315,9 +311,7 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		}
 	});
 	MatchProperty("PainSound", {
-		if (m_PainSound) {
-			delete m_PainSound;
-		}
+		delete m_PainSound;
 		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
 		if (SoundContainer* reference = dynamic_cast<SoundContainer*>(entityReference)) {
 			m_PainSound = reference;
@@ -326,9 +320,7 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		}
 	});
 	MatchProperty("DeathSound", {
-		if (m_DeathSound) {
-			delete m_DeathSound;
-		}
+		delete m_DeathSound;
 		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
 		if (SoundContainer* reference = dynamic_cast<SoundContainer*>(entityReference)) {
 			m_DeathSound = reference;
@@ -337,9 +329,7 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		}
 	});
 	MatchProperty("DeviceSwitchSound", {
-		if (m_DeviceSwitchSound) {
-			delete m_DeviceSwitchSound;
-		}
+		delete m_DeviceSwitchSound;
 		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
 		if (SoundContainer* reference = dynamic_cast<SoundContainer*>(entityReference)) {
 			m_DeviceSwitchSound = reference;
@@ -350,21 +340,20 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("Status", { reader >> m_Status; });
 	MatchProperty("DeploymentID", { reader >> m_DeploymentID; });
 	MatchProperty("PassengerSlots", { reader >> m_PassengerSlots; });
-	MatchProperty("Health",
-	              {
-		              reader >> m_Health;
-		              m_PrevHealth = m_Health;
-		              if (m_Health > m_MaxHealth)
-			              m_MaxHealth = m_Health;
-	              });
-	MatchProperty("MaxHealth",
-	              {
-		              reader >> m_MaxHealth;
-		              if (m_MaxHealth < m_Health) {
-			              m_Health = m_MaxHealth;
-			              m_PrevHealth = m_Health;
-		              }
-	              });
+	MatchProperty("Health", {
+		reader >> m_Health;
+		m_PrevHealth = m_Health;
+		if (m_Health > m_MaxHealth) {
+			m_MaxHealth = m_Health;
+		}
+	});
+	MatchProperty("MaxHealth", {
+		reader >> m_MaxHealth;
+		if (m_MaxHealth < m_Health) {
+			m_Health = m_MaxHealth;
+			m_PrevHealth = m_Health;
+		}
+	});
 	MatchProperty("ImpulseDamageThreshold", { reader >> m_TravelImpulseDamage; });
 	MatchProperty("StableVelocityThreshold", { reader >> m_StableVel; });
 	MatchProperty("StableRecoveryDelay", { reader >> m_StableRecoverDelay; });
