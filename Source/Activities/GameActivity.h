@@ -425,9 +425,13 @@ namespace RTE {
 
 		bool GetGoldSwitchEnabled() const { return m_GoldSwitchEnabled; }
 
+		bool GetDifficultySwitchEnabled() const { return m_DifficultySwitchEnabled; }
+
 		bool GetRequireClearPathToOrbitSwitchEnabled() const { return m_RequireClearPathToOrbitSwitchEnabled; }
 
 		bool GetTeamTechSwitchEnabled(int team) const { return m_TeamTechSwitchEnabled[team]; }
+
+		bool GetTeamAISwitchEnabled(int team) const { return m_TeamAISwitchEnabled[team]; }
 
 		/// Returns CrabToHumanSpawnRatio for specified module
 		/// @return Crab-To-Human spawn ratio value set for specified module, 0.25 is default.
@@ -590,6 +594,7 @@ namespace RTE {
 		// Tech of player
 		std::string m_TeamTech[Teams::MaxTeamCount];
 		bool m_TeamTechSwitchEnabled[Teams::MaxTeamCount];
+		bool m_TeamAISwitchEnabled[Teams::MaxTeamCount];
 
 		// Initial gold amount selected by player in scenario setup dialog
 		int m_StartingGold;
@@ -604,7 +609,7 @@ namespace RTE {
 		int m_DefaultRequireClearPathToOrbit;
 		// Default deploy units swutch value, default -1 (unspecified)
 		int m_DefaultDeployUnits;
-		// Default gold amount for different difficulties, defalt -1 (unspecified)
+		// Default gold amount for different difficulties, default -1 (unspecified)
 		int m_DefaultGoldCakeDifficulty;
 		int m_DefaultGoldEasyDifficulty;
 		int m_DefaultGoldMediumDifficulty;
@@ -615,7 +620,9 @@ namespace RTE {
 		bool m_FogOfWarSwitchEnabled;
 		bool m_DeployUnitsSwitchEnabled;
 		bool m_GoldSwitchEnabled;
+		bool m_DifficultySwitchEnabled;
 		bool m_RequireClearPathToOrbitSwitchEnabled;
+		// Whether the buy menu is enabled in this activity
 		bool m_BuyMenuEnabled;
 
 		// The cursor animations for the LZ indicators

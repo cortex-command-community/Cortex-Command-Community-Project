@@ -130,6 +130,7 @@ void ScenarioActivityConfigGUI::SetEnabled(bool enable, const Activity* selected
 
 void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 	m_ActivityDifficultyLabel->SetText(" " + Activity::GetDifficultyString(m_ActivityDifficultySlider->GetValue()));
+	m_ActivityDifficultySlider->SetEnabled(m_SelectedActivity->GetDifficultySwitchEnabled());
 
 	m_StartingGoldAdjustedManually = false;
 	UpdateStartingGoldSliderAndLabel();
@@ -208,6 +209,7 @@ void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 		}
 
 		m_TeamTechComboBoxes.at(team)->SetEnabled(m_SelectedActivity->GetTeamTechSwitchEnabled(team));
+		m_TeamAISkillSliders.at(team)->SetEnabled(m_SelectedActivity->GetTeamAISwitchEnabled(team));
 
 		m_TeamAISkillSliders.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
 		m_TeamAISkillLabels.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
