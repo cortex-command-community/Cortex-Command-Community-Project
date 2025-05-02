@@ -180,7 +180,7 @@ namespace RTE {
 
 		/// Gets the state of the Right Alt key.
 		/// @return The state of the Right Alt key.
-		bool FlagRAltState() const { return (SDL_GetModState() & SDL_KMOD_RALT) > 0; }
+		bool FlagRAltState() const { return (SDL_GetModState() & (SDL_KMOD_RALT | SDL_KMOD_MODE)) > 0; }
 
 		/// Gets the state of either Alt key.
 		/// @return The state of either Alt key.
