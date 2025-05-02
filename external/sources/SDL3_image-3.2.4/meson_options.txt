@@ -1,0 +1,153 @@
+option(
+  'force_builtin_bmp',
+  type: 'boolean',
+  value: true,
+  description: 'Do not use backend-provided BMP loaders. Potentially slower but pixel-perfect. Recommended for tests.',
+)
+
+# Backends
+
+option(
+  'use_stbimage',
+  type: 'feature',
+  description: 'Use stb_image for JPEG and PNG',
+)
+
+option(
+  'use_imageio',
+  type: 'feature',
+  description: 'Use Image I/O framework for supported formats',
+)
+
+option(
+  'use_wic',
+  type: 'feature',
+  # It is disabled by default in upstream build system, plus CI fails to load WIC
+  value: 'disabled',
+  description: 'Use WIC (Windows Imaging Component) for supported formats',
+)
+
+# Image loaders that may require external library (some can be provided by backends instead)
+
+option(
+  'jpg',
+  type: 'feature',
+  description: 'Support loading JPEG images',
+)
+
+option(
+  'jpg_save',
+  type: 'feature',
+  description: 'Support saving JPEG images',
+)
+
+option(
+  'png',
+  type: 'feature',
+  description: 'Support loading PNG images',
+)
+
+option(
+  'png_save',
+  type: 'feature',
+  description: 'Support saving PNG images',
+)
+
+option(
+  'avif',
+  type: 'feature',
+  description: 'Support loading AVIF images',
+)
+
+option(
+  'avif_save',
+  type: 'feature',
+  description: 'Support saving AVIF images',
+)
+
+option(
+  'jxl',
+  type: 'feature',
+  description: 'Support loading JXL images',
+)
+
+option(
+  'tif',
+  type: 'feature',
+  description: 'Support loading TIFF images',
+)
+
+option(
+  'webp',
+  type: 'feature',
+  description: 'Support loading WEBP images',
+)
+
+# Image loaders that never require external libraries
+
+option(
+  'bmp',
+  type: 'feature',
+  description: 'Support loading BMP images',
+)
+
+option(
+  'gif',
+  type: 'feature',
+  description: 'Support loading GIF images',
+)
+
+option(
+  'lbm',
+  type: 'feature',
+  description: 'Support loading LBM images',
+)
+
+option(
+  'pcx',
+  type: 'feature',
+  description: 'Support loading PCX images',
+)
+
+option(
+  'pnm',
+  type: 'feature',
+  description: 'Support loading PNM images',
+)
+
+option(
+  'qoi',
+  type: 'feature',
+  description: 'Support loading QOI images',
+)
+
+option(
+  'svg',
+  type: 'feature',
+  description: 'Support loading SVG images',
+)
+
+option(
+  'tga',
+  type: 'feature',
+  description: 'Support loading TGA images',
+)
+
+option(
+  'xcf',
+  type: 'feature',
+  description: 'Support loading XCF images',
+)
+
+option(
+  'xpm',
+  type: 'feature',
+  description: 'Support loading XPM images',
+)
+
+option(
+  'xv',
+  type: 'feature',
+  description: 'Support loading XV images',
+)
+
