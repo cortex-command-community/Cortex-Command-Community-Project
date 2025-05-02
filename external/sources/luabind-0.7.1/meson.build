@@ -13,7 +13,7 @@ deps = []
 cxx = meson.get_compiler('cpp')
 if cxx.get_argument_syntax() == 'gcc'
   cpp_args = ['-w', '-fpermissive']
-  luabind_args = cpp_args
+  luabind_args += cpp_args
 elif cxx.get_argument_syntax() == 'msvc'
   cpp_args = ['-permissive', '-DBOOST_BIND_GLOBAL_PLACEHOLDERS=1', '-DLUABIND_BUILDING', '-D_ITERATOR_DEBUG_LEVEL=0']
   luabind_args = ['-D_HAS_AUTO_PTR_ETC=1', '-DBOOST_BIND_GLOBAL_PLACEHOLDERS=1', '-permissive']

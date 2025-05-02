@@ -230,9 +230,13 @@ subdir('external')
 sdl3_opt = cmake.subproject_options()
 sdl3_opt.add_cmake_defines({'CMAKE_POSITION_INDEPENDENT_CODE': get_option('b_staticpic'), 'BUILD_SHARED_LIBS':false, 'BUILD_STATIC_LIBS': true})
 sdl3_opt.append_compile_args('c','-DUSE_XINPUT2_KEYBOARD')
-sdl3_proj = cmake.subproject('SDL3-3.2.10', options: sdl3_opt)
-sdl3_dep = sdl3_proj.dependency('SDL3-static')
-meson.override_dependency('sdl3', sdl3_dep)
+if host_machine.system() == 'darwin'
+  sdl3_dep = dependency('sdl3')
+else
+  sdl3_proj = cmake.subproject('SDL3-3.2.10', options: sdl3_opt)
+  sdl3_dep = sdl3_proj.dependency('SDL3-static')
+  meson.override_dependency('sdl3', sdl3_dep)
+endif
 
 sdl3_image_proj = subproject('SDL3_image-3.2.4')
 sdl3_image_dep = sdl3_image_proj.get_variable('sdl3_image_dep')
