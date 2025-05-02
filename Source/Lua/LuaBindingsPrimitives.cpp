@@ -95,6 +95,8 @@ LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, TextPrimitive)
 LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, BitmapPrimitive) {
 	return luabind::class_<BitmapPrimitive, GraphicalPrimitive>("BitmapPrimitive")
 
+	    .def(luabind::constructor<int, const Vector&, const MOSprite*, float, unsigned int, float, bool, bool>())
+	    .def(luabind::constructor<int, const Vector&, const std::string&, float, float, bool, bool>())
 	    .def(luabind::constructor<int, const Vector&, const MOSprite*, float, unsigned int, bool, bool>())
 	    .def(luabind::constructor<int, const Vector&, const std::string&, float, bool, bool>());
 }

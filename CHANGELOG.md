@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	Actors are now more capable and responsive when digging. They will dig to their target if they cannot reach it with their jetpack (for example if there is a long vertical shaft in the route they cannot get up), and they preferentially avoid rocks, metal and other hard substances by digging around them. Actors also dig faster and spend less time idle.  
 	In the `CalculatePath` and `CalculatePathAsync` functions, the parameter `movePathToGround` has been replaced with `jumpHeight`, which is the height in metres the pathfind can jump vertically.  
 	New `Actor` Lua property `JumpHeight` (R) to estimate the jump height of the actor (in metres), based on the actor's jetpack and weight. Actors without a jetpack return 0.  
-	The new function `GetPathFindingFlyingJumpHeight()` can be used to get a jumpHeight that allows flying (i.e infinite jump height). This is also the value that `ACRocket`s and `ACDropships` return for `JumpHeight`.
+	The new function `GetPathFindingFlyingJumpHeight()` can be used to get a jumpHeight that allows flying (i.e infinite jump height). This is also the value that `ACRocket`s and `ACDropShip`s return for `JumpHeight`.
 
 - Improved locomotion.
 	Added the ability to run. When running, you cannot sharpaim whatsoever.
@@ -103,6 +103,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `SceneMan` function `CastAllMOsRay(startVector, rayVector, table ignoreMOIDs, ignoreTeam, ignoreMaterial, bool ignoreAllTerrain, int skip)` which returns an iterator with pointers to all the non-ignored MOs met along the ray.
 
+- Added scaling capability to Bitmap primitives.
+	New draw bindings with argument for scale are:
+	```
+	PrimitiveMan:DrawBitmapPrimitive(pos, moSprite, rotAngle, frame, scale)
+	PrimitiveMan:DrawBitmapPrimitive(pos, moSprite, rotAngle, frame, scale, bool hFlipped, bool vFlipped)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, moSprite, rotAngle, frame, scale)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, moSprite, rotAngle, frame, scale, bool hFlipped, bool vFlipped)
+	PrimitiveMan:DrawBitmapPrimitive(pos, filePath, rotAngle, scale)
+	PrimitiveMan:DrawBitmapPrimitive(pos, filePath, rotAngle, scale, bool hFlipped, bool vFlipped)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, filePath, rotAngle, scale)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, filePath, rotAngle, scale, bool hFlipped, bool vFlipped)
+	```
+	As well as constructors:
+	```
+	BitmapPrimitive(player, pos, moSprite, rotAngle, frame, scale, hFlipped, vFlipped)
+	BitmapPrimitive(player, pos, filePath, rotAngle, scale, hFlipped, vFlipped)
+	```
+	Original bindings with no scale argument are untouched and can be called as they were.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -188,6 +207,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed several issues with the way pie menus and aiming interacts between players, such as opening the pie menu always resetting the M&KB player's aim and pie selection, as well as another issue where the pie menu would fail to appear entirely for some players.
 
 - Fixed issue where scripts applied to `MovableObject`s could become disordered in certain circumstances.
+
+- Fixed a minor inconsistency where `ACDropShip`s were frequently referred to as `ACDropship`s in Lua, the lower case 's' invalidating keywords where the typo occured.
 
 </details>
 
