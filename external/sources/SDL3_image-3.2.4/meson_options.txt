@@ -10,12 +10,14 @@ option(
 option(
   'use_stbimage',
   type: 'feature',
+  value: 'disabled',
   description: 'Use stb_image for JPEG and PNG',
 )
 
 option(
   'use_imageio',
   type: 'feature',
+  value: 'disabled',
   description: 'Use Image I/O framework for supported formats',
 )
 
