@@ -213,12 +213,6 @@ int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader)
 	MatchProperty("DefaultGoldHardDifficulty", { reader >> m_DefaultGoldHardDifficulty; });
 	MatchProperty("DefaultGoldNutsDifficulty", { reader >> m_DefaultGoldNutsDifficulty; });
 	MatchProperty("DefaultGoldMaxDifficulty", { reader >> m_DefaultGoldMaxDifficulty; });
-	MatchProperty("FogOfWarSwitchEnabled", { reader >> m_FogOfWarSwitchEnabled; });
-	MatchProperty("DeployUnitsSwitchEnabled", { reader >> m_DeployUnitsSwitchEnabled; });
-	MatchProperty("GoldSwitchEnabled", { reader >> m_GoldSwitchEnabled; });
-	MatchProperty("DifficultySwitchEnabled", { reader >> m_DifficultySwitchEnabled; });
-	MatchProperty("RequireClearPathToOrbitSwitchEnabled", { reader >> m_RequireClearPathToOrbitSwitchEnabled; });
-	MatchProperty("BuyMenuEnabled", { reader >> m_BuyMenuEnabled; });
 	MatchForwards("Team1Tech") MatchForwards("Team2Tech") MatchForwards("Team3Tech") MatchProperty("Team4Tech", {
 		for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 			if (propName == "Team" + std::to_string(team + 1) + "Tech") {
@@ -226,6 +220,12 @@ int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader)
 			}
 		}
 	});
+	MatchProperty("FogOfWarSwitchEnabled", { reader >> m_FogOfWarSwitchEnabled; });
+	MatchProperty("DeployUnitsSwitchEnabled", { reader >> m_DeployUnitsSwitchEnabled; });
+	MatchProperty("GoldSwitchEnabled", { reader >> m_GoldSwitchEnabled; });
+	MatchProperty("DifficultySwitchEnabled", { reader >> m_DifficultySwitchEnabled; });
+	MatchProperty("RequireClearPathToOrbitSwitchEnabled", { reader >> m_RequireClearPathToOrbitSwitchEnabled; });
+	MatchProperty("BuyMenuEnabled", { reader >> m_BuyMenuEnabled; });
 	MatchForwards("Team1TechSwitchEnabled") MatchForwards("Team2TechSwitchEnabled") MatchForwards("Team3TechSwitchEnabled") MatchProperty("Team4TechSwitchEnabled", {
 		for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 			if (propName == "Team" + std::to_string(team + 1) + "TechSwitchEnabled") {

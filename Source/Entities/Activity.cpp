@@ -207,6 +207,13 @@ int Activity::ReadProperty(const std::string_view& propName, Reader& reader) {
 			}
 		}
 	});
+	MatchForwards("Team1AISkill") MatchForwards("Team2AISkill") MatchForwards("Team3AISkill") MatchProperty("Team4AISkill", {
+		for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
+			if (propName == "Team" + std::to_string(team + 1) + "AISkill") {
+				reader >> m_TeamAISkillLevels[team];
+			}
+		}
+	});
 	MatchForwards("TeamFundsShareOfPlayer1") MatchForwards("TeamFundsShareOfPlayer2") MatchForwards("TeamFundsShareOfPlayer3") MatchProperty("TeamFundsShareOfPlayer4", {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
 			std::string playerNum = std::to_string(player + 1);

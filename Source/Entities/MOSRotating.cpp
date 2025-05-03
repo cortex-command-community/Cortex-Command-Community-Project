@@ -338,9 +338,7 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("DetachAttachablesBeforeGibbingFromWounds", { reader >> m_DetachAttachablesBeforeGibbingFromWounds; });
 	MatchProperty("GibAtEndOfLifetime", { reader >> m_GibAtEndOfLifetime; });
 	MatchProperty("GibSound", {
-		if (m_GibSound) {
-			delete m_GibSound;
-		}
+		delete m_GibSound;
 		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
 		if (SoundContainer* reference = dynamic_cast<SoundContainer*>(entityReference)) {
 			m_GibSound = reference;
@@ -353,6 +351,9 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("DamageMultiplier", {
 		reader >> m_DamageMultiplier;
 		m_NoSetDamageMultiplier = false;
+	});
+	MatchProperty("_NoSetDamageMultiplier", {
+		reader >> m_NoSetDamageMultiplier;
 	});
 
 	EndPropertyList;
@@ -428,6 +429,8 @@ int MOSRotating::Write(Writer& writer, const Entity& entityReference, HashingDat
 	writer.NewDistinctProperty("GibAtEndOfLifetime", m_GibAtEndOfLifetime, reference.m_GibAtEndOfLifetime);
 	writer.NewOptionalEntityPointerProperty("GibSound", m_GibSound, hashData);
 	writer.NewDistinctProperty("EffectOnGib", m_EffectOnGib, reference.m_EffectOnGib);
+	writer.NewDistinctProperty("DamageMultiplier", m_DamageMultiplier, reference.m_DamageMultiplier);
+	writer.NewDistinctProperty("_NoSetDamageMultiplier", m_NoSetDamageMultiplier, reference.m_NoSetDamageMultiplier);
 
 	return 0;
 }
