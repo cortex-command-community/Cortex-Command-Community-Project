@@ -31,11 +31,14 @@ ScenarioActivityConfigGUI::ScenarioActivityConfigGUI(GUIControlManager* parentCo
 
 	m_ActivityDifficultyLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelActivityDifficultyValue"));
 	m_ActivityDifficultySlider = dynamic_cast<GUISlider*>(m_GUIControlManager->GetControl("SliderActivityDifficulty"));
+
 	m_StartingGoldLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelStartingGoldValue"));
 	m_StartingGoldSlider = dynamic_cast<GUISlider*>(m_GUIControlManager->GetControl("SliderStartingGold"));
 
 	m_RequireClearPathToOrbitCheckbox = dynamic_cast<GUICheckbox*>(m_GUIControlManager->GetControl("CheckboxRequireClearPathToOrbit"));
+
 	m_FogOfWarCheckbox = dynamic_cast<GUICheckbox*>(m_GUIControlManager->GetControl("CheckboxFogOfWar"));
+
 	m_DeployUnitsCheckbox = dynamic_cast<GUICheckbox*>(m_GUIControlManager->GetControl("CheckboxDeployUnits"));
 
 	m_PlayersAndTeamsConfigBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxPlayersAndTeamsConfig"));
@@ -56,6 +59,8 @@ ScenarioActivityConfigGUI::ScenarioActivityConfigGUI(GUIControlManager* parentCo
 		m_TeamAISkillSliders[team]->SetValue(Activity::AISkillSetting::DefaultSkill);
 		m_TeamAISkillLabels[team] = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelTeam" + teamNumber + "AISkill"));
 		m_TeamAISkillLabels[team]->SetText(Activity::GetAISkillString(m_TeamAISkillSliders[team]->GetValue()));
+
+		m_TeamCPULockLabels[team] = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelCPUTeam" + teamNumber + "Lock"));
 	}
 	for (int player = Players::PlayerOne; player < PlayerColumns::PlayerColumnCount; ++player) {
 		for (int team = Activity::Teams::TeamOne; team < TeamRows::TeamRowCount; ++team) {
@@ -130,6 +135,7 @@ void ScenarioActivityConfigGUI::SetEnabled(bool enable, const Activity* selected
 
 void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 	m_ActivityDifficultyLabel->SetText(" " + Activity::GetDifficultyString(m_ActivityDifficultySlider->GetValue()));
+	UpdateStartingDifficultySliderAndLabel();
 	m_ActivityDifficultySlider->SetEnabled(m_SelectedActivity->GetDifficultySwitchEnabled());
 
 	m_StartingGoldAdjustedManually = false;
@@ -333,6 +339,22 @@ void ScenarioActivityConfigGUI::UpdateStartingGoldSliderAndLabel() {
 		std::snprintf(goldString.data(), goldString.size(), " %c %d oz", -58, startGold);
 	}
 	m_StartingGoldLabel->SetText(goldString);
+}
+
+void ScenarioActivityConfigGUI::UpdateStartingDifficultySliderAndLabel() {
+	if (m_SelectedActivity->GetDefaultDifficulty() > -1) {
+		m_ActivityDifficultySlider->SetValue(m_SelectedActivity->GetDefaultDifficulty());
+	}
+	m_ActivityDifficultyLabel->SetText(" " + Activity::GetDifficultyString(m_ActivityDifficultySlider->GetValue()));
+}
+
+void ScenarioActivityConfigGUI::UpdateStartingAISkillSlidersAndLabels() {
+	for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
+		if (m_SelectedActivity->GetDefaultAISkill(team) > -1) {
+			m_TeamAISkillSliders[team]->SetValue(m_SelectedActivity->GetDefaultAISkill(team));
+		}
+		m_TeamAISkillLabels[team]->SetText(Activity::GetAISkillString(m_TeamAISkillSliders[team]->GetValue()));
+	}
 }
 
 void ScenarioActivityConfigGUI::UpdatePlayerTeamSetupCell(int mouseX, int mouseY) {

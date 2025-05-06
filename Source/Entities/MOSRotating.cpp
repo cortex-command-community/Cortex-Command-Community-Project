@@ -455,8 +455,8 @@ HashingData MOSRotating::Hash() const {
 		hash ^= deepGroupHash << 2;
 	}
 
-	hash ^= std::hash<bool>{}(m_DeepCheck) << 3;
-	hash ^= std::hash<float>{}(m_OrientToVel) << 4;
+	hash ^= static_cast<uint64_t>(m_DeepCheck) << 3;
+	hash ^= static_cast<uint64_t>(m_OrientToVel) << 4;
 
 	int i = 0;
 
@@ -490,9 +490,9 @@ HashingData MOSRotating::Hash() const {
 
 	hashData.m_ParseValues.push_back(i);
 
-	hash ^= std::hash<float>{}(m_GibImpulseLimit) << 5;
-	hash ^= std::hash<int>{}(m_GibWoundLimit) << 6;
-	hash ^= std::hash<bool>{}(m_GibAtEndOfLifetime) << 7;
+	hash ^= static_cast<uint64_t>(m_GibImpulseLimit) << 5;
+	hash ^= static_cast<uint64_t>(m_GibWoundLimit) << 6;
+	hash ^= static_cast<uint64_t>(m_GibAtEndOfLifetime) << 7;
 
 	bool gibSoundDef = m_GibSound != nullptr;
 	hashData.m_ParseValues.push_back(gibSoundDef);
@@ -502,7 +502,7 @@ HashingData MOSRotating::Hash() const {
 		hash ^= gibSoundHash << 8;
 	}
 
-	hash ^= std::hash<bool>{}(m_EffectOnGib) << 9;
+	hash ^= static_cast<uint64_t>(m_EffectOnGib) << 9;
 
 	return hashData;
 }

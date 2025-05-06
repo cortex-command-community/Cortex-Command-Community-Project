@@ -266,14 +266,14 @@ HashingData MOSprite::Hash() const {
 	hashData.m_Constituents.push_back(spriteHash);
 	hash ^= spriteHash << 0;
 
-	hash ^= std::hash<int>{}(m_FrameCount) << 1;
+	hash ^= static_cast<uint64_t>(m_FrameCount) << 1;
 	hash ^= m_SpriteOffset.Hash().m_Hash << 2;
-	hash ^= std::hash<SpriteAnimMode>{}(m_SpriteAnimMode) << 3;
-	hash ^= std::hash<int>{}(m_SpriteAnimDuration) << 4;
-	hash ^= std::hash<bool>{}(m_HFlipped) << 5;
+	hash ^= static_cast<uint64_t>(m_SpriteAnimMode) << 3;
+	hash ^= static_cast<uint64_t>(m_SpriteAnimDuration) << 4;
+	hash ^= static_cast<uint64_t>(m_HFlipped) << 5;
 	hash ^= m_Rotation.Hash().m_Hash << 6;
-	hash ^= std::hash<float>{}(m_AngularVel) << 7;
-	hash ^= std::hash<bool>{}(m_SettleMaterialDisabled) << 8;
+	hash ^= static_cast<uint64_t>(m_AngularVel) << 7;
+	hash ^= static_cast<uint64_t>(m_SettleMaterialDisabled) << 8;
 	hash ^= (m_pEntryWound ? RTE::Hash(m_pEntryWound->GetEntityCharacteristic()) : 0) << 9;
 	hash ^= (m_pExitWound ? RTE::Hash(m_pExitWound->GetEntityCharacteristic()) : 0) << 10;
 

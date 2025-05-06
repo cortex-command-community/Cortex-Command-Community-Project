@@ -141,8 +141,8 @@ HashingData Leg::Hash() const {
 	hash ^= m_ContractedOffset.Hash().m_Hash << 1;
 	hash ^= m_ExtendedOffset.Hash().m_Hash << 2;
 	hash ^= m_IdleOffset.Hash().m_Hash << 3;
-	hash ^= std::hash<bool>{}(m_WillIdle) << 4;
-	hash ^= std::hash<float>{}(m_MoveSpeed) << 5;
+	hash ^= static_cast<uint64_t>(m_WillIdle) << 4;
+	hash ^= static_cast<uint64_t>(m_MoveSpeed) << 5;
 
 	return hashData;
 }

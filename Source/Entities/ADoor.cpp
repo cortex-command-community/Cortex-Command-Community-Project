@@ -232,12 +232,12 @@ HashingData ADoor::Hash() const {
 
 	hash ^= m_OpenOffset.Hash().m_Hash << 2;
 	hash ^= m_ClosedOffset.Hash().m_Hash << 3;
-	hash ^= std::hash<float>{}(m_OpenAngle) << 4;
-	hash ^= std::hash<float>{}(m_ClosedAngle) << 5;
-	hash ^= std::hash<int>{}(m_DoorMoveTime) << 6;
-	hash ^= std::hash<bool>{}(m_ClosedByDefault) << 7;
-	hash ^= std::hash<int>{}(m_ResetToDefaultStateDelay) << 8;
-	hash ^= std::hash<long>{}(m_SensorInterval) << 9;
+	hash ^= static_cast<uint64_t>(m_OpenAngle) << 4;
+	hash ^= static_cast<uint64_t>(m_ClosedAngle) << 5;
+	hash ^= static_cast<uint64_t>(m_DoorMoveTime) << 6;
+	hash ^= static_cast<uint64_t>(m_ClosedByDefault) << 7;
+	hash ^= static_cast<uint64_t>(m_ResetToDefaultStateDelay) << 8;
+	hash ^= static_cast<uint64_t>(m_SensorInterval) << 9;
 
 	int i = 0;
 
@@ -249,8 +249,8 @@ HashingData ADoor::Hash() const {
 
 	hashData.m_ParseValues.push_back(i);
 
-	hash ^= std::hash<bool>{}(m_DrawMaterialLayerWhenOpen) << 10;
-	hash ^= std::hash<bool>{}(m_DrawMaterialLayerWhenClosed) << 11;
+	hash ^= static_cast<uint64_t>(m_DrawMaterialLayerWhenOpen) << 10;
+	hash ^= static_cast<uint64_t>(m_DrawMaterialLayerWhenClosed) << 11;
 
 	bool doorMoveStartSoundDef = m_DoorMoveStartSound != nullptr;
 	hashData.m_ParseValues.push_back(doorMoveStartSoundDef);

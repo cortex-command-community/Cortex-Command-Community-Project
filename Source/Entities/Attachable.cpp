@@ -256,23 +256,23 @@ HashingData Attachable::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= m_ParentOffset.Hash().m_Hash << 1;
-	hash ^= std::hash<bool>{}(m_DrawAfterParent) << 2;
-	hash ^= std::hash<bool>{}(m_DeleteWhenRemovedFromParent) << 3;
-	hash ^= std::hash<bool>{}(m_GibWhenRemovedFromParent) << 4;
-	hash ^= std::hash<bool>{}(m_ApplyTransferredForcesAtOffset) << 5;
-	hash ^= std::hash<float>{}(m_JointStrength) << 6;
-	hash ^= std::hash<float>{}(m_JointStiffness) << 7;
+	hash ^= static_cast<uint64_t>(m_DrawAfterParent) << 2;
+	hash ^= static_cast<uint64_t>(m_DeleteWhenRemovedFromParent) << 3;
+	hash ^= static_cast<uint64_t>(m_GibWhenRemovedFromParent) << 4;
+	hash ^= static_cast<uint64_t>(m_ApplyTransferredForcesAtOffset) << 5;
+	hash ^= static_cast<uint64_t>(m_JointStrength) << 6;
+	hash ^= static_cast<uint64_t>(m_JointStiffness) << 7;
 	hash ^= m_JointOffset.Hash().m_Hash << 8;
 	hash ^= (m_BreakWound ? RTE::Hash(m_BreakWound->GetEntityCharacteristic()) : 0) << 9;
 	hash ^= (m_ParentBreakWound ? RTE::Hash(m_ParentBreakWound->GetEntityCharacteristic()) : 0) << 10;
-	hash ^= std::hash<int>{}((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2) << 11;
-	hash ^= std::hash<bool>{}(m_InheritsRotAngle) << 12;
-	hash ^= std::hash<float>{}(m_InheritedRotAngleOffset) << 13;
-	hash ^= std::hash<float>{}(m_MountedRotAngleOffset) << 14;
-	hash ^= std::hash<bool>{}(m_InheritsVelWhenDetached) << 15;
-	hash ^= std::hash<bool>{}(m_InheritsAngularVelWhenDetached) << 0;
-	hash ^= std::hash<bool>{}(m_CollidesWithTerrainWhileAttached) << 1;
-	hash ^= std::hash<bool>{}(m_IgnoresParticlesWhileAttached) << 2;
+	hash ^= static_cast<uint64_t>((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2) << 11;
+	hash ^= static_cast<uint64_t>(m_InheritsRotAngle) << 12;
+	hash ^= static_cast<uint64_t>(m_InheritedRotAngleOffset) << 13;
+	hash ^= static_cast<uint64_t>(m_MountedRotAngleOffset) << 14;
+	hash ^= static_cast<uint64_t>(m_InheritsVelWhenDetached) << 15;
+	hash ^= static_cast<uint64_t>(m_InheritsAngularVelWhenDetached) << 0;
+	hash ^= static_cast<uint64_t>(m_CollidesWithTerrainWhileAttached) << 1;
+	hash ^= static_cast<uint64_t>(m_IgnoresParticlesWhileAttached) << 2;
 
 	int i = 0;
 

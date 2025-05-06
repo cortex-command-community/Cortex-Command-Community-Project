@@ -121,18 +121,13 @@ int GATutorial::Create(const GATutorial& reference) {
 
 int GATutorial::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return GameActivity::ReadProperty(propName, reader));
-	/*
-	    MatchProperty("SpawnIntervalEasiest", { reader >> m_SpawnIntervalEasiest; });
-	    MatchProperty("SpawnIntervalHardest", { reader >> m_SpawnIntervalHardest; });
-	    MatchProperty("AddAttackerSpawn",
-	        Actor *pNewSpawn = dynamic_cast<Actor *>(g_PresetMan.ReadReflectedPreset(reader));
-	        if (pNewSpawn) { m_AttackerSpawns.push_back(pNewSpawn); } );
-	*/
+
 	EndPropertyList;
 }
 
 int GATutorial::Save(Writer& writer) const {
 	GameActivity::Save(writer);
+
 	return 0;
 }
 
@@ -183,7 +178,7 @@ int GATutorial::Start() {
 		}
 
 		// If this is a CPU controlled team, then try to find a brain for them, or place one
-		if (team == m_CPUTeam && !m_pCPUBrain) {
+		if (team && !m_pCPUBrain) {
 			// TODO: Make special CPU brain actor which will only appear in CPU brain fights, and have to be placed in the scenes
 			m_pCPUBrain = g_MovableMan.GetUnassignedBrain(team);
 			m_pCPUBrain = m_pCPUBrain ? m_pCPUBrain : g_MovableMan.GetFirstBrainActor(team); // Try getting our assigned brain

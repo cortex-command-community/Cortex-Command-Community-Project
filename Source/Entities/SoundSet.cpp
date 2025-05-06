@@ -90,7 +90,7 @@ HashingData SoundSet::Hash() const {
 	HashingData hashData(std::move(Serializable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= std::hash<int>{}(m_SoundSelectionCycleMode) << 0;
+	hash ^= static_cast<uint64_t>(m_SoundSelectionCycleMode) << 0;
 
 	for (int i = 0; i < m_SoundData.size(); i++) {
 		const SoundData& data = m_SoundData.at(i);
@@ -103,15 +103,9 @@ HashingData SoundSet::Hash() const {
 		hash ^= hashSet << (i % sizeof(uint64_t) * 8);
 	}
 
-	hashData.m_ParseValues.push_back(m_SoundData.size());
-
 	for (int i = 0; i < m_SubSoundSets.size(); i++) {
-		uint64_t subSetHash = m_SubSoundSets.at(i)->Hash().m_Hash;
-		hashData.m_Constituents.push_back(subSetHash);
-		hash ^= subSetHash << (i % sizeof(uint64_t) * 8);
+		hash ^= m_SubSoundSets.at(i)->Hash().m_Hash << (i % sizeof(uint64_t) * 8);
 	}
-
-	hashData.m_ParseValues.push_back(m_SubSoundSets.size());
 
 	return hashData;
 }

@@ -159,19 +159,19 @@ HashingData TerrainDebris::Hash() const {
 	hashData.m_Constituents.push_back(fileHash);
 	hash ^= fileHash << 0;
 
-	hash ^= std::hash<int>{}(m_BitmapCount) << 1;
+	hash ^= static_cast<uint64_t>(m_BitmapCount) << 1;
 	hash ^= RTE::Hash(m_Material->GetEntityCharacteristic()) << 2;
 	hash ^= RTE::Hash(m_TargetMaterial->GetEntityCharacteristic()) << 3;
-	hash ^= std::hash<int>{}(m_DebrisPlacementMode) << 4;
-	hash ^= std::hash<bool>{}(m_OnlyBuried) << 5;
-	hash ^= std::hash<int>{}(m_MinDepth) << 6;
-	hash ^= std::hash<int>{}(m_MaxDepth) << 7;
-	hash ^= std::hash<int>{}(m_MinRotation) << 8;
-	hash ^= std::hash<int>{}(m_MaxRotation) << 9;
-	hash ^= std::hash<bool>{}(m_CanHFlip) << 10;
-	hash ^= std::hash<bool>{}(m_CanVFlip) << 11;
-	hash ^= std::hash<float>{}(m_FlipChance) << 12;
-	hash ^= std::hash<float>{}(m_Density) << 13;
+	hash ^= static_cast<uint64_t>(m_DebrisPlacementMode) << 4;
+	hash ^= static_cast<uint64_t>(m_OnlyBuried) << 5;
+	hash ^= static_cast<uint64_t>(m_MinDepth) << 6;
+	hash ^= static_cast<uint64_t>(m_MaxDepth) << 7;
+	hash ^= static_cast<uint64_t>(m_MinRotation) << 8;
+	hash ^= static_cast<uint64_t>(m_MaxRotation) << 9;
+	hash ^= static_cast<uint64_t>(m_CanHFlip) << 10;
+	hash ^= static_cast<uint64_t>(m_CanVFlip) << 11;
+	hash ^= static_cast<uint64_t>(m_FlipChance) << 12;
+	hash ^= static_cast<uint64_t>(m_Density) << 13;
 
 	return hashData;
 }

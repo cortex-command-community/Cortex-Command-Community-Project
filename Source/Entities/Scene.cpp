@@ -88,9 +88,10 @@ int Scene::Area::ReadProperty(const std::string_view& propName, Reader& reader) 
 int Scene::Area::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewPropertyWithValue("Name", m_Name);
+	if (!m_Name.empty())
+		writer.NewPropertyWithValue("Name", m_Name);
 
-	for (Box* box: m_BoxList) {
+	for (const Box* box: m_BoxList) {
 		writer.NewProperty("AddBox");
 		writer << *box;
 	}
@@ -103,13 +104,10 @@ HashingData Scene::Area::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= RTE::Hash(m_Name) << 0;
+	int i = 0;
 
-	hashData.m_ParseValues.push_back(m_BoxList.size());
-
-	for (int i = 0; i < m_BoxList.size(); i++) {
-		uint64_t boxHash = m_BoxList.at(i)->Hash().m_Hash;
-		hashData.m_Constituents.push_back(boxHash);
-		hash ^= boxHash << 0;
+	for (const Box* box: m_BoxList) {
+		hash ^= box->Hash().m_Hash << (i++ % sizeof(uint64_t) * 8);
 	}
 
 	return hashData;
@@ -1285,22 +1283,22 @@ HashingData Scene::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= m_Location.Hash().m_Hash << 0;
-	hash ^= std::hash<bool>{}(m_MetagamePlayable) << 1;
+	hash ^= static_cast<uint64_t>(m_MetagamePlayable) << 1;
 
 	uint64_t locationHash = m_PreviewBitmapFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(locationHash);
 	hash ^= locationHash << 2;
 
 	hash ^= RTE::Hash(m_MetasceneParent) << 3;
-	hash ^= std::hash<bool>{}(m_IsMetagameInternal) << 4;
-	hash ^= std::hash<bool>{}(m_IsSavedGameInternal) << 5;
-	hash ^= std::hash<bool>{}(m_Revealed) << 6;
-	hash ^= std::hash<int>{}(m_OwnedByTeam) << 7;
-	hash ^= std::hash<float>{}(m_RoundIncome) << 8;
+	hash ^= static_cast<uint64_t>(m_IsMetagameInternal) << 4;
+	hash ^= static_cast<uint64_t>(m_IsSavedGameInternal) << 5;
+	hash ^= static_cast<uint64_t>(m_Revealed) << 6;
+	hash ^= static_cast<uint64_t>(m_OwnedByTeam) << 7;
+	hash ^= static_cast<uint64_t>(m_RoundIncome) << 8;
 
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
-		hash ^= std::hash<float>{}(m_BuildBudget[player]) << (9 + player * 4);
-		hash ^= std::hash<float>{}(m_BuildBudgetRatio[player]) << (10 + player * 4);
+		hash ^= static_cast<uint64_t>(m_BuildBudget[player]) << (9 + player * 4);
+		hash ^= static_cast<uint64_t>(m_BuildBudgetRatio[player]) << (10 + player * 4);
 
 		bool residentBrainDef = m_ResidentBrains[player] != nullptr;
 		hashData.m_ParseValues.push_back(residentBrainDef);
@@ -1311,8 +1309,8 @@ HashingData Scene::Hash() const {
 		}
 	}
 
-	hash ^= std::hash<bool>{}(m_AutoDesigned) << 12;
-	hash ^= std::hash<float>{}(m_TotalInvestment) << 13;
+	hash ^= static_cast<uint64_t>(m_AutoDesigned) << 12;
+	hash ^= static_cast<uint64_t>(m_TotalInvestment) << 13;
 
 	bool terrainDef = m_pTerrain != nullptr;
 	hashData.m_ParseValues.push_back(terrainDef);
@@ -1355,7 +1353,7 @@ HashingData Scene::Hash() const {
 			hash ^= unseenLayerHash << (1 + team * 4);
 		}
 
-		hash ^= std::hash<bool>{}(m_ScanScheduled[team]) << 2;
+		hash ^= static_cast<uint64_t>(m_ScanScheduled[team]) << 2;
 	}
 
 	i = 0;

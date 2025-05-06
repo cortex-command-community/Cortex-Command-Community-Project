@@ -157,17 +157,17 @@ HashingData MetaPlayer::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= RTE::Hash(m_Name) << 0;
-	hash ^= std::hash<int>{}(m_Team) << 1;
-	hash ^= std::hash<bool>{}(m_Human) << 2;
-	hash ^= std::hash<int>{}(m_InGamePlayer) << 3;
-	hash ^= std::hash<float>{}(m_Aggressiveness) << 4;
-	hash ^= std::hash<int>{}(m_GameOverRound) << 5;
+	hash ^= static_cast<uint64_t>(m_Team) << 1;
+	hash ^= static_cast<uint64_t>(m_Human) << 2;
+	hash ^= static_cast<uint64_t>(m_InGamePlayer) << 3;
+	hash ^= static_cast<uint64_t>(m_Aggressiveness) << 4;
+	hash ^= static_cast<uint64_t>(m_GameOverRound) << 5;
 	hash ^= RTE::Hash(g_PresetMan.GetDataModule(m_NativeTechModule)->GetFileName()) << 6;
-	hash ^= std::hash<float>{}(m_NativeCostMult) << 7;
-	hash ^= std::hash<float>{}(m_ForeignCostMult) << 8;
-	hash ^= std::hash<int>{}(m_BrainPool) << 9;
-	hash ^= std::hash<float>{}(m_Funds) << 10;
-	hash ^= std::hash<float>{}(m_OffensiveBudget) << 11;
+	hash ^= static_cast<uint64_t>(m_NativeCostMult) << 7;
+	hash ^= static_cast<uint64_t>(m_ForeignCostMult) << 8;
+	hash ^= static_cast<uint64_t>(m_BrainPool) << 9;
+	hash ^= static_cast<uint64_t>(m_Funds) << 10;
+	hash ^= static_cast<uint64_t>(m_OffensiveBudget) << 11;
 	hash ^= RTE::Hash(m_OffensiveTarget) << 12;
 
 	return hashData;

@@ -510,7 +510,7 @@ HashingData Actor::Hash() const {
 	HashingData hashData(std::move(MOSRotating::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= std::hash<bool>{}(m_PlayerControllable) << 1;
+	hash ^= static_cast<uint64_t>(m_PlayerControllable) << 1;
 
 	bool bodyHitSoundDef = m_BodyHitSound != nullptr;
 	hashData.m_ParseValues.push_back(bodyHitSoundDef);
@@ -552,25 +552,25 @@ HashingData Actor::Hash() const {
 		hash ^= deviceSwitchSoundHash << 6;
 	}
 
-	hash ^= std::hash<int>{}(m_Status) << 7;
-	hash ^= std::hash<float>{}(m_Health) << 8;
-	hash ^= std::hash<float>{}(m_MaxHealth) << 9;
+	hash ^= static_cast<uint64_t>(m_Status) << 7;
+	hash ^= static_cast<uint64_t>(m_Health) << 8;
+	hash ^= static_cast<uint64_t>(m_MaxHealth) << 9;
 	hash ^= std::hash<unsigned int>{}(m_DeploymentID) << 10;
-	hash ^= std::hash<float>{}(m_TravelImpulseDamage) << 11;
+	hash ^= static_cast<uint64_t>(m_TravelImpulseDamage) << 11;
 	hash ^= m_StableVel.Hash().m_Hash << 12;
-	hash ^= std::hash<int>{}(m_StableRecoverDelay) << 13;
-	hash ^= std::hash<bool>{}(m_CanRun) << 14;
-	hash ^= std::hash<float>{}(m_CrouchWalkSpeedMultiplier) << 15;
-	hash ^= std::hash<float>{}(m_GoldCarried) << 0;
-	hash ^= std::hash<float>{}(m_AimAngle) << 1;
-	hash ^= std::hash<float>{}(m_AimRange) << 2;
-	hash ^= std::hash<float>{}(m_AimDistance) << 3;
-	hash ^= std::hash<int>{}(m_SharpAimDelay) << 4;
-	hash ^= std::hash<float>{}(m_SightDistance) << 5;
-	hash ^= std::hash<float>{}(m_Perceptiveness) << 6;
-	hash ^= std::hash<float>{}(m_PainThreshold) << 7;
-	hash ^= std::hash<bool>{}(m_CanRevealUnseen) << 8;
-	hash ^= std::hash<float>{}(m_CharHeight) << 9;
+	hash ^= static_cast<uint64_t>(m_StableRecoverDelay) << 13;
+	hash ^= static_cast<uint64_t>(m_CanRun) << 14;
+	hash ^= static_cast<uint64_t>(m_CrouchWalkSpeedMultiplier) << 15;
+	hash ^= static_cast<uint64_t>(m_GoldCarried) << 0;
+	hash ^= static_cast<uint64_t>(m_AimAngle) << 1;
+	hash ^= static_cast<uint64_t>(m_AimRange) << 2;
+	hash ^= static_cast<uint64_t>(m_AimDistance) << 3;
+	hash ^= static_cast<uint64_t>(m_SharpAimDelay) << 4;
+	hash ^= static_cast<uint64_t>(m_SightDistance) << 5;
+	hash ^= static_cast<uint64_t>(m_Perceptiveness) << 6;
+	hash ^= static_cast<uint64_t>(m_PainThreshold) << 7;
+	hash ^= static_cast<uint64_t>(m_CanRevealUnseen) << 8;
+	hash ^= static_cast<uint64_t>(m_CharHeight) << 9;
 	hash ^= m_HolsterOffset.Hash().m_Hash << 10;
 	hash ^= m_ReloadOffset.Hash().m_Hash << 11;
 
@@ -584,8 +584,8 @@ HashingData Actor::Hash() const {
 
 	hashData.m_ParseValues.push_back(i);
 
-	hash ^= std::hash<float>{}(m_MaxInventoryMass) << 12;
-	hash ^= std::hash<AIMode>{}(m_AIMode) << 13;
+	hash ^= static_cast<uint64_t>(m_MaxInventoryMass) << 12;
+	hash ^= static_cast<uint64_t>(m_AIMode) << 13;
 
 	bool pieMenuDef = m_PieMenu != nullptr;
 	hashData.m_ParseValues.push_back(pieMenuDef);
@@ -595,9 +595,9 @@ HashingData Actor::Hash() const {
 		hash ^= pieHash << 14;
 	}
 
-	hash ^= std::hash<bool>{}(m_Organic) << 15;
-	hash ^= std::hash<bool>{}(m_Mechanical) << 0;
-	hash ^= std::hash<float>{}(m_AIBaseDigStrength) << 1;
+	hash ^= static_cast<uint64_t>(m_Organic) << 15;
+	hash ^= static_cast<uint64_t>(m_Mechanical) << 0;
+	hash ^= static_cast<uint64_t>(m_AIBaseDigStrength) << 1;
 
 	return hashData;
 }

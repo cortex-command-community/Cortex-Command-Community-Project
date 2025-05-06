@@ -87,7 +87,7 @@ HashingData Icon::Hash() const {
 	hashData.m_Constituents.push_back(fileHash);
 	hash ^= fileHash << 0;
 
-	hash ^= std::hash<int>{}(m_FrameCount) << 1;
+	hash ^= static_cast<uint64_t>(m_FrameCount) << 1;
 
 	return hashData;
 }

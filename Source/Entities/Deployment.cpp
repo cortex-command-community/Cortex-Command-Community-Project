@@ -129,9 +129,9 @@ HashingData Deployment::Hash() const {
 	hashData.m_Constituents.push_back(iconHash);
 	hash ^= iconHash << 1;
 
-	hash ^= std::hash<float>{}(m_SpawnRadius) << 2;
-	hash ^= std::hash<float>{}(m_WalkRadius) << 3;
-	hash ^= std::hash<bool>{}(m_HFlipped) << 4;
+	hash ^= static_cast<uint64_t>(m_SpawnRadius) << 2;
+	hash ^= static_cast<uint64_t>(m_WalkRadius) << 3;
+	hash ^= static_cast<uint64_t>(m_HFlipped) << 4;
 
 	return hashData;
 }

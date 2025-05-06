@@ -279,22 +279,22 @@ HashingData AEmitter::Hash() const {
 		hash ^= endSoundHash << 3;
 	}
 
-	hash ^= std::hash<bool>{}(m_EmitEnabled) << 4;
-	hash ^= std::hash<int>{}(m_EmitCount) << 5;
-	hash ^= std::hash<long>{}(m_EmitCountLimit) << 6;
-	hash ^= std::hash<bool>{}(m_EmissionsIgnoreThis) << 7;
-	hash ^= std::hash<float>{}(m_NegativeThrottleMultiplier) << 8;
-	hash ^= std::hash<float>{}(m_PositiveThrottleMultiplier) << 9;
-	hash ^= std::hash<float>{}(m_Throttle) << 10;
-	hash ^= std::hash<float>{}(m_BurstScale) << 11;
-	hash ^= std::hash<float>{}(m_BurstDamage) << 12;
-	hash ^= std::hash<float>{}(m_EmitterDamageMultiplier) << 13;
-	hash ^= std::hash<float>{}(m_BurstSpacing) << 14;
-	hash ^= std::hash<bool>{}(m_BurstTriggered) << 15;
-	hash ^= std::hash<bool>{}(m_PlayBurstSound) << 0;
+	hash ^= static_cast<uint64_t>(m_EmitEnabled) << 4;
+	hash ^= static_cast<uint64_t>(m_EmitCount) << 5;
+	hash ^= static_cast<uint64_t>(m_EmitCountLimit) << 6;
+	hash ^= static_cast<uint64_t>(m_EmissionsIgnoreThis) << 7;
+	hash ^= static_cast<uint64_t>(m_NegativeThrottleMultiplier) << 8;
+	hash ^= static_cast<uint64_t>(m_PositiveThrottleMultiplier) << 9;
+	hash ^= static_cast<uint64_t>(m_Throttle) << 10;
+	hash ^= static_cast<uint64_t>(m_BurstScale) << 11;
+	hash ^= static_cast<uint64_t>(m_BurstDamage) << 12;
+	hash ^= static_cast<uint64_t>(m_EmitterDamageMultiplier) << 13;
+	hash ^= static_cast<uint64_t>(m_BurstSpacing) << 14;
+	hash ^= static_cast<uint64_t>(m_BurstTriggered) << 15;
+	hash ^= static_cast<uint64_t>(m_PlayBurstSound) << 0;
 	hash ^= m_EmitAngle.Hash().m_Hash << 1;
 	hash ^= m_EmissionOffset.Hash().m_Hash << 2;
-	hash ^= std::hash<float>{}(m_EmitDamage) << 3;
+	hash ^= static_cast<uint64_t>(m_EmitDamage) << 3;
 
 	bool flashDef = m_pFlash != nullptr;
 	hashData.m_ParseValues.push_back(flashDef);
@@ -304,11 +304,11 @@ HashingData AEmitter::Hash() const {
 		hash ^= flashHash << 4;
 	}
 
-	hash ^= std::hash<float>{}(m_FlashScale) << 5;
-	hash ^= std::hash<bool>{}(m_FlashOnlyOnBurst) << 6;
-	hash ^= std::hash<bool>{}(m_SustainBurstSound) << 7;
-	hash ^= std::hash<bool>{}(m_BurstSoundFollowsEmitter) << 8;
-	hash ^= std::hash<float>{}(m_LoudnessOnEmit) << 9;
+	hash ^= static_cast<uint64_t>(m_FlashScale) << 5;
+	hash ^= static_cast<uint64_t>(m_FlashOnlyOnBurst) << 6;
+	hash ^= static_cast<uint64_t>(m_SustainBurstSound) << 7;
+	hash ^= static_cast<uint64_t>(m_BurstSoundFollowsEmitter) << 8;
+	hash ^= static_cast<uint64_t>(m_LoudnessOnEmit) << 9;
 
 	return hashData;
 }

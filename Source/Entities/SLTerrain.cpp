@@ -258,7 +258,7 @@ HashingData SLTerrain::Hash() const {
 
 	hashData.m_ParseValues.push_back(i);
 
-	hash ^= std::hash<Directions>{}(m_OrbitDirection) << 3;
+	hash ^= static_cast<uint64_t>(m_OrbitDirection) << 3;
 
 	return hashData;
 }

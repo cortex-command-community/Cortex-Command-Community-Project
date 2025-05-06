@@ -41,9 +41,12 @@ int ADSensor::ReadProperty(const std::string_view& propName, Reader& reader) {
 int ADSensor::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewPropertyWithValue("StartOffset", m_StartOffset);
-	writer.NewPropertyWithValue("SensorRay", m_SensorRay);
-	writer.NewPropertyWithValue("SkipPixels", m_Skip);
+	if (!m_StartOffset.IsZero())
+		writer.NewPropertyWithValue("StartOffset", m_StartOffset);
+	if (!m_SensorRay.IsZero())
+		writer.NewPropertyWithValue("SensorRay", m_SensorRay);
+	if (m_Skip != 3)
+		writer.NewPropertyWithValue("SkipPixels", m_Skip);
 
 	return 0;
 }
@@ -52,15 +55,9 @@ HashingData ADSensor::Hash() const {
 	HashingData hashData(std::move(Serializable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	uint64_t startOffsetHash = m_StartOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(startOffsetHash);
-	hash ^= startOffsetHash << 0;
-
-	uint64_t sensorRayHash = m_SensorRay.Hash().m_Hash;
-	hashData.m_Constituents.push_back(sensorRayHash);
-	hash ^= sensorRayHash << 1;
-
-	hash ^= std::hash<short>{}(m_Skip) << 2;
+	hash ^= m_StartOffset.Hash().m_Hash << 0;
+	hash ^= m_SensorRay.Hash().m_Hash << 1;
+	hash ^= static_cast<uint64_t>(m_Skip) << 2;
 
 	return hashData;
 }

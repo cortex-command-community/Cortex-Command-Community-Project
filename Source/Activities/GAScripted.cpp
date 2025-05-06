@@ -94,6 +94,13 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("LuaClassName", {
 		reader >> m_LuaClassName;
 	});
+	MatchProperty("_ClearPieSlices", {
+		reader.ReadPropValue();
+		for (std::unique_ptr<PieSlice>& pieSlice: m_PieSlicesToAdd) {
+			delete pieSlice.release();
+		}
+		m_PieSlicesToAdd.clear();
+	});
 	MatchForwards("AddPieSlice") MatchProperty("_AddPieSlice", {
 		m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader))));
 	});

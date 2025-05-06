@@ -139,8 +139,8 @@ HashingData Arm::Hash() const {
 	HashingData hashData(std::move(Attachable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= std::hash<float>{}(m_MaxLength) << 1;
-	hash ^= std::hash<float>{}(m_MoveSpeed) << 2;
+	hash ^= static_cast<uint64_t>(m_MaxLength) << 1;
+	hash ^= static_cast<uint64_t>(m_MoveSpeed) << 2;
 
 	hash ^= m_HandIdleOffset.Hash().m_Hash << 3;
 
@@ -148,8 +148,8 @@ HashingData Arm::Hash() const {
 	hashData.m_Constituents.push_back(handSpriteHash);
 	hash ^= handSpriteHash << 4;
 
-	hash ^= std::hash<float>{}(m_GripStrength) << 5;
-	hash ^= std::hash<float>{}(m_ThrowStrength) << 6;
+	hash ^= static_cast<uint64_t>(m_GripStrength) << 5;
+	hash ^= static_cast<uint64_t>(m_ThrowStrength) << 6;
 
 	bool heldDeviceDef = m_HeldDevice != nullptr;
 	hashData.m_ParseValues.push_back(heldDeviceDef);

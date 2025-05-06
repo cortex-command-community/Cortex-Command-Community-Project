@@ -60,9 +60,9 @@ HashingData TerrainFrosting::Hash() const {
 
 	hash ^= RTE::Hash(m_FrostingMaterial->GetEntityCharacteristic());
 	hash ^= RTE::Hash(m_TargetMaterial->GetEntityCharacteristic());
-	hash ^= std::hash<int>{}(m_MinThickness);
-	hash ^= std::hash<int>{}(m_MaxThickness);
-	hash ^= std::hash<bool>{}(m_InAirOnly);
+	hash ^= static_cast<uint64_t>(m_MinThickness);
+	hash ^= static_cast<uint64_t>(m_MaxThickness);
+	hash ^= static_cast<uint64_t>(m_InAirOnly);
 
 	return hashData;
 }

@@ -163,7 +163,7 @@ namespace RTE {
 		}
 
 		for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {
-		    writer.NewPropertyWithValue("_AddToGroup", *itr);
+		    writer.NewPropertyWithValue("AddToGroup", *itr);
 		}
 
 		return 0;
@@ -218,14 +218,14 @@ namespace RTE {
 
 		hash ^= RTE::Hash(m_PresetName) << 0;
 		hash ^= RTE::Hash(m_DisplayName) << 1;
-		hash ^= std::hash<int>{}(m_DefinedInModule) << 2;
+		hash ^= static_cast<uint64_t>(m_DefinedInModule) << 2;
 		hash ^= RTE::Hash(m_PresetDescription) << 3;
 
 		for (auto& group: m_Groups) {
 			hash ^= RTE::Hash(group) << 4;
 		}
 
-		hash ^= std::hash<int>{}(m_RandomWeight) << 5;
+		hash ^= static_cast<uint64_t>(m_RandomWeight) << 5;
 
 		return hashData;
 	}

@@ -250,24 +250,24 @@ HashingData SoundContainer::Hash() const {
 	hashData.m_Constituents.push_back(topLevelSoundSetHash);
 	hash ^= topLevelSoundSetHash << 0;
 
-	hash ^= std::hash<int>{}(m_SoundOverlapMode) << 1;
+	hash ^= static_cast<uint64_t>(m_SoundOverlapMode) << 1;
 
-	hash ^= std::hash<int>{}(m_BusRouting) << 2;
-	hash ^= std::hash<bool>{}(m_Immobile) << 3;
-	hash ^= std::hash<float>{}(m_AttenuationStartDistance) << 4;
-	hash ^= std::hash<float>{}(m_CustomPanValue) << 5;
-	hash ^= std::hash<float>{}(m_PanningStrengthMultiplier) << 6;
-	hash ^= std::hash<int>{}(m_Loops) << 7;
-	hash ^= std::hash<int>{}(m_Priority) << 8;
-	hash ^= std::hash<bool>{}(m_AffectedByGlobalPitch) << 9;
+	hash ^= static_cast<uint64_t>(m_BusRouting) << 2;
+	hash ^= static_cast<uint64_t>(m_Immobile) << 3;
+	hash ^= static_cast<uint64_t>(m_AttenuationStartDistance) << 4;
+	hash ^= static_cast<uint64_t>(m_CustomPanValue) << 5;
+	hash ^= static_cast<uint64_t>(m_PanningStrengthMultiplier) << 6;
+	hash ^= static_cast<uint64_t>(m_Loops) << 7;
+	hash ^= static_cast<uint64_t>(m_Priority) << 8;
+	hash ^= static_cast<uint64_t>(m_AffectedByGlobalPitch) << 9;
 	hash ^= m_Pos.Hash().m_Hash << 10;
-	hash ^= std::hash<float>{}(m_Volume) << 11;
-	hash ^= std::hash<float>{}(m_Pitch) << 12;
-	hash ^= std::hash<float>{}(m_PitchVariation) << 13;
-	hash ^= std::hash<bool>{}(m_WasFadedOut) << 14;
-	hash ^= std::hash<bool>{}(m_Paused) << 15;
-	hash ^= std::hash<float>{}(m_MusicPreEntryTime) << 0;
-	hash ^= std::hash<float>{}(m_MusicExitTime) << 1;
+	hash ^= static_cast<uint64_t>(m_Volume) << 11;
+	hash ^= static_cast<uint64_t>(m_Pitch) << 12;
+	hash ^= static_cast<uint64_t>(m_PitchVariation) << 13;
+	hash ^= static_cast<uint64_t>(m_WasFadedOut) << 14;
+	hash ^= static_cast<uint64_t>(m_Paused) << 15;
+	hash ^= static_cast<uint64_t>(m_MusicPreEntryTime) << 0;
+	hash ^= static_cast<uint64_t>(m_MusicExitTime) << 1;
 
 	return hashData;
 }

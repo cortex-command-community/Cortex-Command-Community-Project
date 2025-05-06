@@ -436,32 +436,32 @@ HashingData HDFirearm::Hash() const {
 		hash ^= reloadEndSoundHash << 9;
 	}
 
-	hash ^= std::hash<float>{}(m_ReloadEndOffset) << 10;
-	hash ^= std::hash<int>{}(m_RateOfFire) << 11;
-	hash ^= std::hash<int>{}(m_ActivationDelay) << 12;
-	hash ^= std::hash<int>{}(m_DeactivationDelay) << 13;
-	hash ^= std::hash<int>{}(m_BaseReloadTime) << 14;
-	hash ^= std::hash<bool>{}(m_FullAuto) << 15;
-	hash ^= std::hash<bool>{}(m_FireIgnoresThis) << 0;
-	hash ^= std::hash<bool>{}(m_Reloadable) << 1;
-	hash ^= std::hash<bool>{}(m_DualReloadable) << 2;
-	hash ^= std::hash<float>{}(m_OneHandedReloadTimeMultiplier) << 3;
-	hash ^= std::hash<float>{}(m_ReloadAngle) << 4;
-	hash ^= std::hash<float>{}(m_OneHandedReloadAngle) << 5;
-	hash ^= std::hash<float>{}(m_JointStiffness) << 6;
-	hash ^= std::hash<bool>{}(m_IsAnimatedManually) << 7;
-	hash ^= std::hash<float>{}(m_ShakeRange) << 8;
-	hash ^= std::hash<float>{}(m_SharpShakeRange) << 9;
-	hash ^= std::hash<float>{}(m_NoSupportFactor) << 10;
-	hash ^= std::hash<float>{}(m_ParticleSpreadRange) << 11;
-	hash ^= std::hash<float>{}(m_ShellEjectAngle) << 12;
-	hash ^= std::hash<float>{}(m_ShellSpreadRange) << 13;
-	hash ^= std::hash<float>{}(m_ShellAngVelRange) << 14;
-	hash ^= std::hash<float>{}(m_ShellVelVariation) << 15;
-	hash ^= std::hash<float>{}(m_RecoilScreenShakeAmount) << 0;
+	hash ^= static_cast<uint64_t>(m_ReloadEndOffset) << 10;
+	hash ^= static_cast<uint64_t>(m_RateOfFire) << 11;
+	hash ^= static_cast<uint64_t>(m_ActivationDelay) << 12;
+	hash ^= static_cast<uint64_t>(m_DeactivationDelay) << 13;
+	hash ^= static_cast<uint64_t>(m_BaseReloadTime) << 14;
+	hash ^= static_cast<uint64_t>(m_FullAuto) << 15;
+	hash ^= static_cast<uint64_t>(m_FireIgnoresThis) << 0;
+	hash ^= static_cast<uint64_t>(m_Reloadable) << 1;
+	hash ^= static_cast<uint64_t>(m_DualReloadable) << 2;
+	hash ^= static_cast<uint64_t>(m_OneHandedReloadTimeMultiplier) << 3;
+	hash ^= static_cast<uint64_t>(m_ReloadAngle) << 4;
+	hash ^= static_cast<uint64_t>(m_OneHandedReloadAngle) << 5;
+	hash ^= static_cast<uint64_t>(m_JointStiffness) << 6;
+	hash ^= static_cast<uint64_t>(m_IsAnimatedManually) << 7;
+	hash ^= static_cast<uint64_t>(m_ShakeRange) << 8;
+	hash ^= static_cast<uint64_t>(m_SharpShakeRange) << 9;
+	hash ^= static_cast<uint64_t>(m_NoSupportFactor) << 10;
+	hash ^= static_cast<uint64_t>(m_ParticleSpreadRange) << 11;
+	hash ^= static_cast<uint64_t>(m_ShellEjectAngle) << 12;
+	hash ^= static_cast<uint64_t>(m_ShellSpreadRange) << 13;
+	hash ^= static_cast<uint64_t>(m_ShellAngVelRange) << 14;
+	hash ^= static_cast<uint64_t>(m_ShellVelVariation) << 15;
+	hash ^= static_cast<uint64_t>(m_RecoilScreenShakeAmount) << 0;
 	hash ^= m_MuzzleOff.Hash().m_Hash << 1;
 	hash ^= m_EjectOff.Hash().m_Hash << 2;
-	hash ^= std::hash<bool>{}(m_LegacyCompatibilityRoundsAlwaysFireUnflipped) << 3;
+	hash ^= static_cast<uint64_t>(m_LegacyCompatibilityRoundsAlwaysFireUnflipped) << 3;
 
 	return hashData;
 }

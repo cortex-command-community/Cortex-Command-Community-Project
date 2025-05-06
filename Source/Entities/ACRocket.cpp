@@ -317,7 +317,7 @@ HashingData ACRocket::Hash() const {
 	hashData.m_Constituents.push_back(rightRaisingHash);
 	hash ^= rightRaisingHash << 13;
 
-	hash ^= std::hash<float>{}(m_MaxGimbalAngle) << 14;
+	hash ^= static_cast<uint64_t>(m_MaxGimbalAngle) << 14;
 
 	return hashData;
 }

@@ -152,24 +152,24 @@ HashingData Material::Hash() const {
 	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= std::hash<int>{}(m_Priority) << 0;
-	hash ^= std::hash<int>{}(m_Piling) << 1;
-	hash ^= std::hash<float>{}(m_Integrity) << 2;
-	hash ^= std::hash<float>{}(m_Restitution) << 3;
-	hash ^= std::hash<float>{}(m_Friction) << 4;
-	hash ^= std::hash<float>{}(m_Stickiness) << 5;
-	hash ^= std::hash<float>{}(m_VolumeDensity) << 6;
-	hash ^= std::hash<float>{}(m_GibImpulseLimitPerLiter) << 7;
-	hash ^= std::hash<float>{}(m_GibWoundLimitPerLiter) << 8;
+	hash ^= static_cast<uint64_t>(m_Priority) << 0;
+	hash ^= static_cast<uint64_t>(m_Piling) << 1;
+	hash ^= static_cast<uint64_t>(m_Integrity) << 2;
+	hash ^= static_cast<uint64_t>(m_Restitution) << 3;
+	hash ^= static_cast<uint64_t>(m_Friction) << 4;
+	hash ^= static_cast<uint64_t>(m_Stickiness) << 5;
+	hash ^= static_cast<uint64_t>(m_VolumeDensity) << 6;
+	hash ^= static_cast<uint64_t>(m_GibImpulseLimitPerLiter) << 7;
+	hash ^= static_cast<uint64_t>(m_GibWoundLimitPerLiter) << 8;
 	hash ^= std::hash<unsigned char>{}(m_SettleMaterialIndex) << 9;
 	hash ^= std::hash<unsigned char>{}(m_SpawnMaterialIndex) << 10;
-	hash ^= std::hash<bool>{}(m_IsScrap) << 11;
+	hash ^= static_cast<uint64_t>(m_IsScrap) << 11;
 
 	uint64_t colorHash = m_Color.Hash().m_Hash;
 	hashData.m_Constituents.push_back(colorHash);
 	hash ^= colorHash << 12;
 
-	hash ^= std::hash<bool>{}(m_UseOwnColor) << 13;
+	hash ^= static_cast<uint64_t>(m_UseOwnColor) << 13;
 
 	uint64_t fgTextureHash = m_FGTextureFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(fgTextureHash);

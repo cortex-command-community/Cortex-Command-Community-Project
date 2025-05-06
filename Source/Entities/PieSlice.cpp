@@ -175,9 +175,9 @@ HashingData PieSlice::Hash() const {
 	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= std::hash<PieSliceType>{}(m_Type) << 1;
-	hash ^= std::hash<Directions>{}(m_Direction) << 1;
-	hash ^= std::hash<bool>{}(m_Enabled) << 2;
+	hash ^= static_cast<uint64_t>(m_Type) << 1;
+	hash ^= static_cast<uint64_t>(m_Direction) << 1;
+	hash ^= static_cast<uint64_t>(m_Enabled) << 2;
 
 	uint64_t bitmapHash = m_Icon->Hash().m_Hash;
 	hashData.m_Constituents.push_back(bitmapHash);

@@ -158,14 +158,14 @@ HashingData SLBackground::Hash() const {
 	HashingData hashData(std::move(StaticSceneLayer::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= std::hash<int>{}(m_FrameCount) << 1;
-	hash ^= std::hash<SpriteAnimMode>{}(m_SpriteAnimMode) << 2;
-	hash ^= std::hash<int>{}(m_SpriteAnimDuration) << 3;
-	hash ^= std::hash<bool>{}(m_IsAnimatedManually) << 4;
-	hash ^= std::hash<int>{}(m_AutoScrollStepInterval) << 5;
+	hash ^= static_cast<uint64_t>(m_FrameCount) << 1;
+	hash ^= static_cast<uint64_t>(m_SpriteAnimMode) << 2;
+	hash ^= static_cast<uint64_t>(m_SpriteAnimDuration) << 3;
+	hash ^= static_cast<uint64_t>(m_IsAnimatedManually) << 4;
+	hash ^= static_cast<uint64_t>(m_AutoScrollStepInterval) << 5;
 	hash ^= m_AutoScrollStep.Hash().m_Hash << 6;
-	hash ^= std::hash<bool>{}(m_CanAutoScrollX) << 7;
-	hash ^= std::hash<bool>{}(m_CanAutoScrollY) << 8;
+	hash ^= static_cast<uint64_t>(m_CanAutoScrollX) << 7;
+	hash ^= static_cast<uint64_t>(m_CanAutoScrollY) << 8;
 
 	return hashData;
 }

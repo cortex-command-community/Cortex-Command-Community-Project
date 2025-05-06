@@ -175,22 +175,12 @@ HashingData Atom::Hash() const {
 	HashingData hashData(std::move(Serializable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	uint64_t offsetHash = m_Offset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(offsetHash);
-	hash ^= offsetHash << 0;
-
-	uint64_t startOffsetHash = m_OriginalOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(startOffsetHash);
-	hash ^= startOffsetHash << 1;
-
+	hash ^= m_Offset.Hash().m_Hash << 0;
+	hash ^= m_OriginalOffset.Hash().m_Hash << 1;
 	hash ^= (m_Material ? RTE::Hash(m_Material->GetEntityCharacteristic()) : 0) << 2;
-	
-	uint64_t trailColorHash = m_TrailColor.Hash().m_Hash;
-	hashData.m_Constituents.push_back(trailColorHash);
-	hash ^= trailColorHash << 3;
-
-	hash ^= std::hash<int>{}(m_TrailLength) << 4;
-	hash ^= std::hash<float>{}(m_TrailLengthVariation) << 5;
+	hash ^= m_TrailColor.Hash().m_Hash << 3;
+	hash ^= static_cast<uint64_t>(m_TrailLength) << 4;
+	hash ^= static_cast<uint64_t>(m_TrailLengthVariation) << 5;
 
 	return hashData;
 }

@@ -97,7 +97,7 @@ HashingData GlobalScript::Hash() const {
 	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= std::hash<bool>{}(m_LateUpdate) << 0;
+	hash ^= static_cast<uint64_t>(m_LateUpdate) << 0;
 	hash ^= RTE::Hash(m_ScriptPath) << 1;
 	hash ^= RTE::Hash(m_LuaClassName) << 2;
 

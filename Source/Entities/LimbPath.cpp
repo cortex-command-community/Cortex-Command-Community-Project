@@ -223,7 +223,7 @@ HashingData LimbPath::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= m_Start.Hash().m_Hash << 0;
-	hash ^= std::hash<int>{}(m_StartSegCount) << 1;
+	hash ^= static_cast<uint64_t>(m_StartSegCount) << 1;
 
 	for (int i = 0; i < m_Segments.size(); i++) {
 		uint64_t segmentHash = m_Segments.at(i).Hash().m_Hash;
@@ -233,12 +233,12 @@ HashingData LimbPath::Hash() const {
 
 	hashData.m_ParseValues.push_back(m_Segments.size());
 
-	hash ^= std::hash<int>{}(m_FootCollisionsDisabledSegment) << 2;
-	hash ^= std::hash<float>{}(m_SegmentEndedThreshold) << 3;
-	hash ^= std::hash<float>{}(m_TravelSpeed) << 4;
-	hash ^= std::hash<float>{}(m_BaseTravelSpeedMultiplier) << 5;
+	hash ^= static_cast<uint64_t>(m_FootCollisionsDisabledSegment) << 2;
+	hash ^= static_cast<uint64_t>(m_SegmentEndedThreshold) << 3;
+	hash ^= static_cast<uint64_t>(m_TravelSpeed) << 4;
+	hash ^= static_cast<uint64_t>(m_BaseTravelSpeedMultiplier) << 5;
 	hash ^= m_BaseScaleMultiplier.Hash().m_Hash << 6;
-	hash ^= std::hash<float>{}(m_PushForce) << 7;
+	hash ^= static_cast<uint64_t>(m_PushForce) << 7;
 
 	return hashData;
 }

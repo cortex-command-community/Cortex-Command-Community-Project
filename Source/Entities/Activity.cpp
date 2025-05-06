@@ -136,14 +136,14 @@ int Activity::Create(const Activity& reference) {
 int Activity::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
+	MatchProperty("ActivityState", { m_ActivityState = static_cast<ActivityState>(std::stoi(reader.ReadPropValue())); });
 	MatchProperty("Description", { reader >> m_Description; });
 	MatchProperty("SceneName", { reader >> m_SceneName; });
 	MatchProperty("MaxPlayerSupport", { reader >> m_MaxPlayerSupport; });
 	MatchProperty("MinTeamsRequired", { reader >> m_MinTeamsRequired; });
-	MatchProperty("Difficulty", { reader >> m_Difficulty; });
+	MatchForwards("Difficulty") MatchProperty("_Difficulty", { reader >> m_Difficulty; });
 	MatchProperty("CraftOrbitAtTheEdge", { reader >> m_CraftOrbitAtTheEdge; });
 	MatchProperty("InCampaignStage", { reader >> m_InCampaignStage; });
-	MatchProperty("ActivityState", { m_ActivityState = static_cast<ActivityState>(std::stoi(reader.ReadPropValue())); });
 	MatchProperty("AllowsUserSaving", { reader >> m_AllowsUserSaving; });
 	MatchForwards("TeamOfPlayer1") MatchForwards("TeamOfPlayer2") MatchForwards("TeamOfPlayer3") MatchProperty("TeamOfPlayer4", {
 		for (int playerTeam = Teams::TeamOne; playerTeam < Teams::MaxTeamCount; playerTeam++) {
@@ -312,6 +312,7 @@ int Activity::Write(Writer& writer, const Entity& entityReference, HashingData& 
 		writer.NewDistinctProperty("Team" + teamNum + "Funds", m_TeamFunds[team], reference.m_TeamFunds[team]);
 		writer.NewDistinctProperty("Team" + teamNum + "Name", m_TeamNames[team], reference.m_TeamNames[team]);
 		writer.NewDistinctHashedProperty("Team" + teamNum + "Icon", m_TeamIcons[team], hashData);
+		writer.NewDistinctProperty("Team" + teamNum + "AISkill", m_TeamAISkillLevels[team], reference.m_TeamAISkillLevels[team]);
 	}
 
 	writer.NewDistinctHashedProperty("GenericSavedValues", m_SavedValues, hashData);
@@ -325,30 +326,32 @@ HashingData Activity::Hash() const {
 
 	hash ^= RTE::Hash(m_Description) << 0;
 	hash ^= RTE::Hash(m_SceneName) << 1;
-	hash ^= std::hash<int>{}(m_MaxPlayerSupport) << 2;
-	hash ^= std::hash<int>{}(m_MinTeamsRequired) << 3;
-	hash ^= std::hash<int>{}(m_Difficulty) << 4;
-	hash ^= std::hash<bool>{}(m_CraftOrbitAtTheEdge) << 5;
-	hash ^= std::hash<int>{}(m_InCampaignStage) << 6;
-	hash ^= std::hash<ActivityState>{}(m_ActivityState) << 7;
-	hash ^= std::hash<bool>{}(m_AllowsUserSaving) << 8;
+	hash ^= static_cast<uint64_t>(m_MaxPlayerSupport) << 2;
+	hash ^= static_cast<uint64_t>(m_MinTeamsRequired) << 3;
+	hash ^= static_cast<uint64_t>(m_Difficulty) << 4;
+	hash ^= static_cast<uint64_t>(m_CraftOrbitAtTheEdge) << 5;
+	hash ^= static_cast<uint64_t>(m_InCampaignStage) << 6;
+	hash ^= static_cast<uint64_t>(m_ActivityState) << 7;
+	hash ^= static_cast<uint64_t>(m_AllowsUserSaving) << 8;
 
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
 		if (m_IsActive[player]) {
-			hash ^= std::hash<int>{}(m_Team[player]) << (4 * player);
-			hash ^= std::hash<float>{}(m_FundsContribution[player]) << (4 * player + 1);
-			hash ^= std::hash<float>{}(m_TeamFundsShare[player]) << (4 * player + 2);
-			hash ^= std::hash<bool>{}(m_IsHuman[player]) << (4 * player + 3);
+			hash ^= static_cast<uint64_t>(m_Team[player]) << (4 * player);
+			hash ^= static_cast<uint64_t>(m_FundsContribution[player]) << (4 * player + 1);
+			hash ^= static_cast<uint64_t>(m_TeamFundsShare[player]) << (4 * player + 2);
+			hash ^= static_cast<uint64_t>(m_IsHuman[player]) << (4 * player + 3);
 		}
 	}
 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-		hash ^= std::hash<float>{}(m_TeamFunds[team]) << (4 * team);
+		hash ^= static_cast<uint64_t>(m_TeamFunds[team]) << (4 * team);
 		hash ^= RTE::Hash(m_TeamNames[team]) << (4 * team + 1);
 
 		uint64_t teamIconHash = m_TeamIcons[team].Hash().m_Hash;
 		hashData.m_Constituents.push_back(teamIconHash);
 		hash ^= teamIconHash << (4 * team + 2);
+
+		hash ^= static_cast<uint64_t>(m_TeamAISkillLevels[team]) << (4 * team + 3);
 	}
 
 	uint64_t savedValueHash = m_SavedValues.Hash().m_Hash;

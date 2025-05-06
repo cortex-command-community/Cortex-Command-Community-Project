@@ -14,8 +14,8 @@ const std::string GenericSavedData::GenericSavedEntities::c_ClassName = "Generic
 int GenericSavedData::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
-	MatchProperty("StringValues", { reader >> m_SavedStrings; });
 	MatchProperty("EncodedStringValues", { reader >> m_SavedEncodedStrings; });
+	MatchProperty("StringValues", { reader >> m_SavedStrings; });
 	MatchProperty("NumberValues", { reader >> m_SavedNumbers; });
 	MatchProperty("EntityValues", { reader >> m_SavedEntities; });
 
@@ -25,10 +25,14 @@ int GenericSavedData::ReadProperty(const std::string_view& propName, Reader& rea
 int GenericSavedData::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewPropertyWithValue("EncodedStringValues", m_SavedEncodedStrings);
-	writer.NewPropertyWithValue("StringValues", m_SavedStrings);
-	writer.NewPropertyWithValue("NumberValues", m_SavedNumbers);
-	writer.NewPropertyWithValue("EntityValues", m_SavedEntities);
+	if (!m_SavedEncodedStrings.m_Data.empty())
+		writer.NewPropertyWithValue("EncodedStringValues", m_SavedEncodedStrings);
+	if (!m_SavedStrings.m_Data.empty())
+		writer.NewPropertyWithValue("StringValues", m_SavedStrings);
+	if (!m_SavedNumbers.m_Data.empty())
+		writer.NewPropertyWithValue("NumberValues", m_SavedNumbers);
+	if (!m_SavedEntities.m_Data.empty())
+		writer.NewPropertyWithValue("EntityValues", m_SavedEntities);
 
 	return 0;
 }
@@ -188,7 +192,7 @@ HashingData GenericSavedData::GenericSavedNumbers::Hash() const {
 
 	for (const auto& [key, value]: m_Data) {
 		hash ^= RTE::Hash(key);
-		hash ^= std::hash<float>{}(value);
+		hash ^= static_cast<uint64_t>(value);
 	}
 
 	return hashData;

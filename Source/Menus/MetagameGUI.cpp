@@ -651,31 +651,26 @@ int MetagameGUI::ReadProperty(const std::string_view& propName, Reader& reader) 
 
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
-	MatchProperty("P1BoxPos",
-	              {
-		              reader >> tempPos;
-		              m_apPlayerBox[Players::PlayerOne]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
-	              });
-	MatchProperty("P2BoxPos",
-	              {
-		              reader >> tempPos;
-		              m_apPlayerBox[Players::PlayerTwo]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
-	              });
-	MatchProperty("P3BoxPos",
-	              {
-		              reader >> tempPos;
-		              m_apPlayerBox[Players::PlayerThree]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
-	              });
-	MatchProperty("P4BoxPos",
-	              {
-		              reader >> tempPos;
-		              m_apPlayerBox[Players::PlayerFour]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
-	              });
-	MatchProperty("PhaseBoxPos",
-	              {
-		              reader >> tempPos;
-		              m_pPhaseBox->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
-	              });
+	MatchProperty("P1BoxPos", {
+		reader >> tempPos;
+		m_apPlayerBox[Players::PlayerOne]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
+	});
+	MatchProperty("P2BoxPos", {
+		reader >> tempPos;
+		m_apPlayerBox[Players::PlayerTwo]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
+	});
+	MatchProperty("P3BoxPos", {
+		reader >> tempPos;
+		m_apPlayerBox[Players::PlayerThree]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
+	});
+	MatchProperty("P4BoxPos", {
+		reader >> tempPos;
+		m_apPlayerBox[Players::PlayerFour]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
+	});
+	MatchProperty("PhaseBoxPos", {
+		reader >> tempPos;
+		m_pPhaseBox->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
+	});
 
 	EndPropertyList;
 }

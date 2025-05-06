@@ -73,17 +73,28 @@ int Gib::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Gib::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	if (m_GibParticle != nullptr) writer.NewPropertyWithValue("GibParticle", m_GibParticle->GetEntityCharacteristic());
-	if (!m_Offset.IsZero()) writer.NewPropertyWithValue("Offset", m_Offset);
-	if (m_Count != 1) writer.NewPropertyWithValue("Count", m_Count);
-	if (m_Spread != 0.1f) writer.NewPropertyWithValue("Spread", m_Spread);
-	if (GetMinVelocity() != 0) writer.NewPropertyWithValue("MinVelocity", GetMinVelocity());
-	if (GetMaxVelocity() != 0) writer.NewPropertyWithValue("MaxVelocity", GetMaxVelocity());
-	if (m_LifeVariation != 0.1f) writer.NewPropertyWithValue("LifeVariation", m_LifeVariation);
-	if (m_InheritsVel != 1.0f) writer.NewPropertyWithValue("InheritsVel", m_InheritsVel);
-	if (m_InheritsAngularVel != 1.0f) writer.NewPropertyWithValue("InheritsAngularVel", m_InheritsAngularVel);
-	if (m_IgnoresTeamHits != false) writer.NewPropertyWithValue("IgnoresTeamHits", m_IgnoresTeamHits);
-	if (m_SpreadMode != SpreadMode::SpreadRandom) writer.NewPropertyWithValue("SpreadMode", m_SpreadMode);
+	if (m_GibParticle != nullptr)
+		writer.NewPropertyWithValue("GibParticle", m_GibParticle->GetEntityCharacteristic());
+	if (!m_Offset.IsZero())
+		writer.NewPropertyWithValue("Offset", m_Offset);
+	if (m_Count != 1)
+		writer.NewPropertyWithValue("Count", m_Count);
+	if (m_Spread != 0.1F)
+		writer.NewPropertyWithValue("Spread", m_Spread);
+	if (GetMinVelocity() != 0.0F)
+		writer.NewPropertyWithValue("MinVelocity", GetMinVelocity());
+	if (GetMaxVelocity() != 0.0F)
+		writer.NewPropertyWithValue("MaxVelocity", GetMaxVelocity());
+	if (m_LifeVariation != 0.1F)
+		writer.NewPropertyWithValue("LifeVariation", m_LifeVariation);
+	if (m_InheritsVel != 1.0F)
+		writer.NewPropertyWithValue("InheritsVel", m_InheritsVel);
+	if (m_InheritsAngularVel != 1.0F)
+		writer.NewPropertyWithValue("InheritsAngularVel", m_InheritsAngularVel);
+	if (m_IgnoresTeamHits != false)
+		writer.NewPropertyWithValue("IgnoresTeamHits", m_IgnoresTeamHits);
+	if (m_SpreadMode != SpreadMode::SpreadRandom)
+		writer.NewPropertyWithValue("SpreadMode", m_SpreadMode);
 
 	return 0;
 }
@@ -93,20 +104,16 @@ HashingData Gib::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= (m_GibParticle ? RTE::Hash(m_GibParticle->GetEntityCharacteristic()) : 0) << 0;
-
-	uint64_t offsetHash = m_Offset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(offsetHash);
-	hash ^= offsetHash << 1;
-
-	hash ^= std::hash<int>{}(m_Count) << 2;
-	hash ^= std::hash<float>{}(m_Spread) << 3;
-	hash ^= std::hash<float>{}(m_MinVelocity) << 4;
-	hash ^= std::hash<float>{}(m_MaxVelocity) << 5;
-	hash ^= std::hash<float>{}(m_LifeVariation) << 6;
-	hash ^= std::hash<float>{}(m_InheritsVel) << 7;
-	hash ^= std::hash<float>{}(m_InheritsAngularVel) << 8;
-	hash ^= std::hash<bool>{}(m_IgnoresTeamHits) << 9;
-	hash ^= std::hash<SpreadMode>{}(m_SpreadMode) << 10;
+	hash ^= m_Offset.Hash().m_Hash << 1;
+	hash ^= static_cast<uint64_t>(m_Count) << 2;
+	hash ^= static_cast<uint64_t>(m_Spread) << 3;
+	hash ^= static_cast<uint64_t>(m_MinVelocity) << 4;
+	hash ^= static_cast<uint64_t>(m_MaxVelocity) << 5;
+	hash ^= static_cast<uint64_t>(m_LifeVariation) << 6;
+	hash ^= static_cast<uint64_t>(m_InheritsVel) << 7;
+	hash ^= static_cast<uint64_t>(m_InheritsAngularVel) << 8;
+	hash ^= static_cast<uint64_t>(m_IgnoresTeamHits) << 9;
+	hash ^= static_cast<uint64_t>(m_SpreadMode) << 10;
 
 	return hashData;
 }

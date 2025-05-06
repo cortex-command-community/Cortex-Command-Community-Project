@@ -407,6 +407,8 @@ namespace RTE {
 
 		int GetDefaultGoldCakeDifficulty() const { return m_DefaultGoldCakeDifficulty; }
 
+		int GetDefaultDifficulty() const { return m_DefaultDifficulty; }
+
 		int GetDefaultGoldEasyDifficulty() const { return m_DefaultGoldEasyDifficulty; }
 
 		int GetDefaultGoldMediumDifficulty() const { return m_DefaultGoldMediumDifficulty; }
@@ -418,6 +420,8 @@ namespace RTE {
 		/// Gets the default gold for max difficulty.
 		/// @return The default gold for max difficulty.
 		int GetDefaultGoldMaxDifficulty() const { return m_DefaultGoldMaxDifficulty; }
+
+		int GetDefaultAISkill(int team) const { return m_TeamDefaultAISkill[team]; }
 
 		bool GetFogOfWarSwitchEnabled() const { return m_FogOfWarSwitchEnabled; }
 
@@ -543,11 +547,6 @@ namespace RTE {
 		// Member variables
 		static Entity::ClassInfo m_sClass;
 
-		// Which team is CPU-managed, if any (-1) - LEGACY, now controlled by Activity::m_IsHuman
-		int m_CPUTeam;
-		// Team is active or not this game
-		bool m_TeamIsCPU[Teams::MaxTeamCount];
-
 		// The observation sceneman scroll targets, for when the game is over or a player is in observation mode
 		Vector m_ObservationTarget[Players::MaxPlayerCount];
 		// The player death sceneman scroll targets, for when a player-controlled actor dies and the view should go to his last position
@@ -582,6 +581,10 @@ namespace RTE {
 		// Once a delivery is made with anything in here, this list is automatically cleared out, and the next delivery will be what's set in the buy menu.
 		std::list<const SceneObject*> m_PurchaseOverride[Players::MaxPlayerCount];
 
+		// Which team is CPU-managed, if any (-1) - LEGACY, now controlled by Activity::m_IsHuman
+		int m_CPUTeam;
+		// Team is active or not this game
+		bool m_TeamIsCPU[Teams::MaxTeamCount];
 		// The delivery queue which contains all the info about all the made orders currently in transit to delivery
 		std::deque<Delivery> m_Deliveries[Teams::MaxTeamCount];
 		// The box within where landing zones can be put
@@ -594,14 +597,20 @@ namespace RTE {
 		// Tech of player
 		std::string m_TeamTech[Teams::MaxTeamCount];
 		bool m_TeamTechSwitchEnabled[Teams::MaxTeamCount];
+		bool m_TeamCPUSwitchEnabled[Teams::MaxTeamCount];
 		bool m_TeamAISwitchEnabled[Teams::MaxTeamCount];
+		int m_TeamDefaultAISkill[Teams::MaxTeamCount];
 
 		// Initial gold amount selected by player in scenario setup dialog
 		int m_StartingGold;
+		// Initial difficulty selected by player in scenario setup dialog
+		int m_StartingDifficulty;
 		// Whether fog of war was enabled or not in scenario setup dialog
 		bool m_FogOfWarEnabled;
 		// Whether we need a clear path to orbit to place brain
 		bool m_RequireClearPathToOrbit;
+		// Whether unit deployment was enabled in scenario setup dialog
+		bool m_DeployUnits;
 
 		// Default fog of war switch state for this activity, default -1 (unspecified)
 		int m_DefaultFogOfWar;
@@ -609,6 +618,8 @@ namespace RTE {
 		int m_DefaultRequireClearPathToOrbit;
 		// Default deploy units swutch value, default -1 (unspecified)
 		int m_DefaultDeployUnits;
+		// Default difficulty, default -1 (unspecified)
+		int m_DefaultDifficulty;
 		// Default gold amount for different difficulties, default -1 (unspecified)
 		int m_DefaultGoldCakeDifficulty;
 		int m_DefaultGoldEasyDifficulty;

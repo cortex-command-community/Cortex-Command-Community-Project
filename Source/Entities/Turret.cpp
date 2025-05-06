@@ -96,7 +96,7 @@ HashingData Turret::Hash() const {
 
 	hashData.m_ParseValues.push_back(i);
 
-	hash ^= std::hash<float>{}(m_MountedDeviceRotationOffset) << 1;
+	hash ^= static_cast<uint64_t>(m_MountedDeviceRotationOffset) << 1;
 
 	return hashData;
 }

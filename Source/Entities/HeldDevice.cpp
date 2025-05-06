@@ -239,17 +239,17 @@ HashingData HeldDevice::Hash() const {
 	HashingData hashData(std::move(Attachable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= std::hash<bool>{}(m_OneHanded) << 1;
+	hash ^= static_cast<uint64_t>(m_OneHanded) << 1;
 	hash ^= m_StanceOffset.Hash().m_Hash << 2;
 	hash ^= m_SharpStanceOffset.Hash().m_Hash << 3;
-	hash ^= std::hash<bool>{}(m_Supportable) << 4;
+	hash ^= static_cast<uint64_t>(m_Supportable) << 4;
 	hash ^= m_SupportOffset.Hash().m_Hash << 5;
-	hash ^= std::hash<bool>{}(m_UseSupportOffsetWhileReloading) << 6;
-	hash ^= std::hash<float>{}(m_GripStrengthMultiplier) << 7;
-	hash ^= std::hash<float>{}(m_MaxSharpLength) << 8;
-	hash ^= std::hash<float>{}(m_Loudness) << 9;
-	hash ^= std::hash<bool>{}(m_GetsHitByMOsWhenHeld) << 10;
-	hash ^= std::hash<float>{}(m_VisualRecoilMultiplier) << 11;
+	hash ^= static_cast<uint64_t>(m_UseSupportOffsetWhileReloading) << 6;
+	hash ^= static_cast<uint64_t>(m_GripStrengthMultiplier) << 7;
+	hash ^= static_cast<uint64_t>(m_MaxSharpLength) << 8;
+	hash ^= static_cast<uint64_t>(m_Loudness) << 9;
+	hash ^= static_cast<uint64_t>(m_GetsHitByMOsWhenHeld) << 10;
+	hash ^= static_cast<uint64_t>(m_VisualRecoilMultiplier) << 11;
 
 	return hashData;
 }

@@ -78,11 +78,16 @@ int ACraft::Exit::ReadProperty(const std::string_view& propName, Reader& reader)
 int ACraft::Exit::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewPropertyWithValue("Offset", m_Offset);
-	writer.NewPropertyWithValue("Velocity", m_Velocity);
-	writer.NewPropertyWithValue("VelocitySpread", m_VelSpread);
-	writer.NewPropertyWithValue("Radius", m_Radius);
-	writer.NewPropertyWithValue("Range", m_Range);
+	if (!m_Offset.IsZero())
+		writer.NewPropertyWithValue("Offset", m_Offset);
+	if (!m_Velocity.IsZero())
+		writer.NewPropertyWithValue("Velocity", m_Velocity);
+	if (m_VelSpread != 0.2F)
+		writer.NewPropertyWithValue("VelocitySpread", m_VelSpread);
+	if (m_Radius != 10.0F)
+		writer.NewPropertyWithValue("Radius", m_Radius);
+	if (m_Range != 35.0F)
+		writer.NewPropertyWithValue("Range", m_Range);
 
 	return 0;
 }
@@ -91,17 +96,11 @@ HashingData ACraft::Exit::Hash() const {
 	HashingData hashData(std::move(Serializable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	uint64_t offsetHash = m_Offset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(offsetHash);
-	hash ^= offsetHash << 0;
-
-	uint64_t velocityHash = m_Velocity.Hash().m_Hash;
-	hashData.m_Constituents.push_back(velocityHash);
-	hash ^= velocityHash << 1;
-
-	hash ^= std::hash<float>{}(m_VelSpread) << 2;
-	hash ^= std::hash<float>{}(m_Radius) << 3;
-	hash ^= std::hash<float>{}(m_Range) << 4;
+	hash ^= m_Offset.Hash().m_Hash << 0;
+	hash ^= m_Velocity.Hash().m_Hash << 1;
+	hash ^= static_cast<uint64_t>(m_VelSpread) << 2;
+	hash ^= static_cast<uint64_t>(m_Radius) << 3;
+	hash ^= static_cast<uint64_t>(m_Range) << 4;
 
 	return hashData;
 }
@@ -280,26 +279,30 @@ int ACraft::Create(const ACraft& reference) {
 int ACraft::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Actor::ReadProperty(propName, reader));
 
-	MatchProperty("HatchDelay", { reader >> m_HatchDelay; });
 	MatchProperty("HatchOpenSound", {
+		delete m_HatchOpenSound;
 		m_HatchOpenSound = new SoundContainer;
 		reader >> m_HatchOpenSound;
 	});
 	MatchProperty("HatchCloseSound", {
+		delete m_HatchCloseSound;
 		m_HatchCloseSound = new SoundContainer;
 		reader >> m_HatchCloseSound;
 	});
 	MatchProperty("CrashSound", {
+		delete m_CrashSound;
 		m_CrashSound = new SoundContainer;
 		reader >> m_CrashSound;
 	});
-	MatchProperty("_ClearExits")
-	MatchForwards("AddExit") MatchProperty("_AddExit",
-	              {
-		              Exit exit;
-		              reader >> exit;
-		              m_Exits.push_back(exit);
-	              });
+	MatchProperty("_ClearExits", {
+		m_Exits.clear();
+	});
+	MatchForwards("AddExit") MatchProperty("_AddExit", {
+		Exit exit;
+		reader >> exit;
+		m_Exits.push_back(exit);
+	});
+	MatchProperty("HatchDelay", { reader >> m_HatchDelay; });
 	MatchProperty("DeliveryDelayMultiplier", { reader >> m_DeliveryDelayMultiplier; });
 	MatchProperty("ExitInterval", { reader >> m_ExitInterval; });
 	MatchProperty("CanLand", { reader >> m_LandingCraft; });
@@ -314,21 +317,18 @@ int ACraft::ReadProperty(const std::string_view& propName, Reader& reader) {
 int ACraft::Save(Writer& writer) const {
 	Actor::Save(writer);
 
-	writer.NewPropertyWithValue("HatchDelay", m_HatchDelay);
 	writer.NewPropertyWithValue("HatchOpenSound", m_HatchOpenSound);
 	writer.NewPropertyWithValue("HatchCloseSound", m_HatchCloseSound);
+	writer.NewPropertyWithValue("CrashSound", m_CrashSound);
 	for (std::list<Exit>::const_iterator itr = m_Exits.begin(); itr != m_Exits.end(); ++itr) {
 		writer.NewProperty("AddExit");
 		writer << (*itr);
 	}
+	writer.NewPropertyWithValue("HatchDelay", m_HatchDelay);
 	writer.NewPropertyWithValue("DeliveryDelayMultiplier", m_DeliveryDelayMultiplier);
 	writer.NewPropertyWithValue("ExitInterval", m_ExitInterval);
 	writer.NewPropertyWithValue("CanLand", m_LandingCraft);
-
-	writer.NewPropertyWithValue("CrashSound", m_CrashSound);
-	
 	writer.NewPropertyWithValue("CanEnterOrbit", m_CanEnterOrbit);
-	
 	writer.NewPropertyWithValue("MaxPassengers", m_MaxPassengers);
 	writer.NewPropertyWithValue("ScuttleIfFlippedTime", m_ScuttleIfFlippedTime);
 	writer.NewPropertyWithValue("ScuttleOnDeath", m_ScuttleOnDeath);
@@ -341,14 +341,14 @@ int ACraft::Write(Writer& writer, const Entity& entityReference, HashingData& ha
 
 	const ACraft& reference = static_cast<const ACraft&>(entityReference);
 
-	writer.NewDistinctProperty("HatchDelay", m_HatchDelay, reference.m_HatchDelay);
 	writer.NewOptionalEntityPointerProperty("HatchOpenSound", m_HatchOpenSound, hashData);
 	writer.NewOptionalEntityPointerProperty("HatchCloseSound", m_HatchCloseSound, hashData);
+	writer.NewOptionalEntityPointerProperty("CrashSound", m_CrashSound, hashData);
 	writer.NewSequence("_ClearExits", "_AddExit", m_Exits, hashData);
+	writer.NewDistinctProperty("HatchDelay", m_HatchDelay, reference.m_HatchDelay);
 	writer.NewDistinctProperty("DeliveryDelayMultiplier", m_DeliveryDelayMultiplier, reference.m_DeliveryDelayMultiplier);
 	writer.NewDistinctProperty("ExitInterval", m_ExitInterval, reference.m_ExitInterval);
 	writer.NewDistinctProperty("CanLand", m_LandingCraft, reference.m_LandingCraft);
-	writer.NewOptionalEntityPointerProperty("CrashSound", m_CrashSound, hashData);
 	writer.NewDistinctProperty("CanEnterOrbit", m_CanEnterOrbit, reference.m_CanEnterOrbit);
 	writer.NewDistinctProperty("MaxPassengers", m_MaxPassengers, reference.m_MaxPassengers);
 	writer.NewDistinctProperty("ScuttleIfFlippedTime", m_ScuttleIfFlippedTime, reference.m_ScuttleIfFlippedTime);
@@ -361,10 +361,9 @@ HashingData ACraft::Hash() const {
 	HashingData hashData(std::move(Actor::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= std::hash<int>{}(m_HatchDelay) << 1;
-
 	bool hatchOpenSoundDef = m_HatchOpenSound != nullptr;
 	hashData.m_ParseValues.push_back(hatchOpenSoundDef);
+
 	if (hatchOpenSoundDef) {
 		uint64_t hatchOpenSoundHash = m_HatchOpenSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(hatchOpenSoundHash);
@@ -373,10 +372,20 @@ HashingData ACraft::Hash() const {
 
 	bool hatchCloseSoundDef = m_HatchCloseSound != nullptr;
 	hashData.m_ParseValues.push_back(hatchCloseSoundDef);
+
 	if (hatchCloseSoundDef) {
 		uint64_t hatchCloseSoundHash = m_HatchCloseSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(hatchCloseSoundHash);
 		hash ^= hatchCloseSoundHash << 3;
+	}
+
+	bool crashSoundDef = m_CrashSound != nullptr;
+	hashData.m_ParseValues.push_back(crashSoundDef);
+
+	if (crashSoundDef) {
+		uint64_t crashSoundHash = m_CrashSound->Hash().m_Hash;
+		hashData.m_Constituents.push_back(crashSoundHash);
+		hash ^= crashSoundHash << 7;
 	}
 
 	int i = 0;
@@ -389,22 +398,14 @@ HashingData ACraft::Hash() const {
 
 	hashData.m_ParseValues.push_back(i);
 
-	hash ^= std::hash<int>{}(m_DeliveryDelayMultiplier) << 4;
-	hash ^= std::hash<long>{}(m_ExitInterval) << 5;
-	hash ^= std::hash<bool>{}(m_LandingCraft) << 6;
-
-	bool crashSoundDef = m_CrashSound != nullptr;
-	hashData.m_ParseValues.push_back(crashSoundDef);
-	if (crashSoundDef) {
-		uint64_t crashSoundHash = m_CrashSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(crashSoundHash);
-		hash ^= crashSoundHash << 7;
-	}
-
-	hash ^= std::hash<bool>{}(m_CanEnterOrbit) << 8;
-	hash ^= std::hash<int>{}(m_MaxPassengers) << 9;
-	hash ^= std::hash<int>{}(m_ScuttleIfFlippedTime) << 10;
-	hash ^= std::hash<bool>{}(m_ScuttleOnDeath) << 11;
+	hash ^= static_cast<uint64_t>(m_HatchDelay) << 1;
+	hash ^= static_cast<uint64_t>(m_DeliveryDelayMultiplier) << 4;
+	hash ^= static_cast<uint64_t>(m_ExitInterval) << 5;
+	hash ^= static_cast<uint64_t>(m_LandingCraft) << 6;
+	hash ^= static_cast<uint64_t>(m_CanEnterOrbit) << 8;
+	hash ^= static_cast<uint64_t>(m_MaxPassengers) << 9;
+	hash ^= static_cast<uint64_t>(m_ScuttleIfFlippedTime) << 10;
+	hash ^= static_cast<uint64_t>(m_ScuttleOnDeath) << 11;
 
 	return hashData;
 }

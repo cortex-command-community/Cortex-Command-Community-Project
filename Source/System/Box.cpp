@@ -60,9 +60,12 @@ int Box::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Box::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewPropertyWithValue("Corner", m_Corner);
-	writer.NewPropertyWithValue("Width", m_Width);
-	writer.NewPropertyWithValue("Height", m_Height);
+	if (!m_Corner.IsZero())
+		writer.NewPropertyWithValue("Corner", m_Corner);
+	if (m_Width != 0.0F)
+		writer.NewPropertyWithValue("Width", m_Width);
+	if (m_Height != 0.0F)
+		writer.NewPropertyWithValue("Height", m_Height);
 
 	return 0;
 }
@@ -71,12 +74,9 @@ HashingData Box::Hash() const {
 	HashingData hashData(std::move(Serializable::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	uint64_t cornerHash = m_Corner.Hash().m_Hash;
-	hashData.m_Constituents.push_back(cornerHash);
-	hash ^= cornerHash << 0;
-
-	hash ^= std::hash<float>{}(m_Width) << 1;
-	hash ^= std::hash<float>{}(m_Height) << 2;
+	hash ^= m_Corner.Hash().m_Hash << 0;
+	hash ^= static_cast<uint64_t>(m_Width) << 1;
+	hash ^= static_cast<uint64_t>(m_Height) << 2;
 
 	return hashData;
 }

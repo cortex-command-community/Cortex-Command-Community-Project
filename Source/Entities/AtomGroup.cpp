@@ -185,7 +185,6 @@ int AtomGroup::Save(Writer& writer) const {
 	}
 
 	writer.NewPropertyWithValue("JointOffset", m_JointOffset);
-
 	writer.NewPropertyWithValue("AreaDistributionType", static_cast<std::underlying_type_t<AreaDistributionType>>(m_AreaDistributionType));
 	writer.NewPropertyWithValue("AreaDistributionSurfaceAreaMultiplier", m_AreaDistributionSurfaceAreaMultiplier);
 
@@ -226,13 +225,13 @@ HashingData AtomGroup::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= RTE::Hash(m_Material->GetEntityCharacteristic()) << 0;
-	hash ^= std::hash<bool>{}(m_AutoGenerate) << 1;
+	hash ^= static_cast<uint64_t>(m_AutoGenerate) << 1;
 
 	if (m_AutoGenerate) {
 		hashData.m_ParseValues.push_back(0);
 
-		hash ^= std::hash<int>{}(m_Resolution) << 2;
-		hash ^= std::hash<int>{}(m_Depth) << 3;
+		hash ^= static_cast<uint64_t>(m_Resolution) << 2;
+		hash ^= static_cast<uint64_t>(m_Depth) << 3;
 	} else {
 		hashData.m_ParseValues.push_back(m_Atoms.size());
 
@@ -247,8 +246,8 @@ HashingData AtomGroup::Hash() const {
 	hashData.m_Constituents.push_back(jointHash);
 	hash ^= jointHash << 2;
 
-	hash ^= std::hash<AreaDistributionType>{}(m_AreaDistributionType) << 3;
-	hash ^= std::hash<float>{}(m_AreaDistributionSurfaceAreaMultiplier) << 4;
+	hash ^= static_cast<uint64_t>(m_AreaDistributionType) << 3;
+	hash ^= static_cast<uint64_t>(m_AreaDistributionSurfaceAreaMultiplier) << 4;
 
 	return hashData;
 }

@@ -96,6 +96,7 @@ namespace RTE {
 		std::array<GUIComboBox*, Activity::Teams::MaxTeamCount> m_TeamTechComboBoxes;
 		std::array<GUILabel*, Activity::Teams::MaxTeamCount> m_TeamAISkillLabels;
 		std::array<GUISlider*, Activity::Teams::MaxTeamCount> m_TeamAISkillSliders;
+		std::array<GUILabel*, Activity::Teams::MaxTeamCount> m_TeamCPULockLabels;
 
 #pragma region Activity Configuration Screen Handling
 		/// Fills each team's Tech ComboBox with all valid Tech DataModules.
@@ -110,6 +111,14 @@ namespace RTE {
 		/// Updates the starting gold slider to the Activity difficulty setting (when applicable) and updates the value in the label according to the value in the slider.
 		/// @return
 		void UpdateStartingGoldSliderAndLabel();
+
+		/// Updates the starting difficulty slider to the Activity difficulty setting (when applicable) and updates the value in the label according to the value in the slider.
+		/// @return
+		void UpdateStartingDifficultySliderAndLabel();
+
+		/// Updates the starting AI skill sliders to the Activity difficulty setting (when applicable) and updates the value in the label according to the value in the slider.
+		/// @return
+		void UpdateStartingAISkillSlidersAndLabels();
 
 		/// Updates the currently hovered cell in the players and teams config box to apply the hovered visual and removes the hovered visual from any other cells. Also handles clicking on cells.
 		/// @param mouseX Mouse X position.

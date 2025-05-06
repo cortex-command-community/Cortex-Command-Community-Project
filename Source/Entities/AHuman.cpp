@@ -381,7 +381,7 @@ HashingData AHuman::Hash() const {
 	HashingData hashData(std::move(Actor::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= std::hash<long>{}(m_ThrowPrepTime) << 1;
+	hash ^= static_cast<uint64_t>(m_ThrowPrepTime) << 1;
 
 	bool headDef = m_pHead != nullptr;
 	hashData.m_ParseValues.push_back(headDef);
@@ -391,7 +391,7 @@ HashingData AHuman::Hash() const {
 		hash ^= headHash << 2;
 	}
 
-	hash ^= std::hash<float>{}(m_LookToAimRatio) << 3;
+	hash ^= static_cast<uint64_t>(m_LookToAimRatio) << 3;
 
 	bool jetpackDef = m_pJetpack != nullptr;
 	hashData.m_ParseValues.push_back(jetpackDef);
@@ -401,10 +401,10 @@ HashingData AHuman::Hash() const {
 		hash ^= jetpackHash << 4;
 	}
 
-	hash ^= std::hash<float>{}(m_FGArmFlailScalar) << 5;
-	hash ^= std::hash<float>{}(m_BGArmFlailScalar) << 6;
-	hash ^= std::hash<float>{}(m_ArmSwingRate) << 7;
-	hash ^= std::hash<float>{}(m_DeviceArmSwayRate) << 8;
+	hash ^= static_cast<uint64_t>(m_FGArmFlailScalar) << 5;
+	hash ^= static_cast<uint64_t>(m_BGArmFlailScalar) << 6;
+	hash ^= static_cast<uint64_t>(m_ArmSwingRate) << 7;
+	hash ^= static_cast<uint64_t>(m_DeviceArmSwayRate) << 8;
 
 	bool fgArmDef = m_pFGArm != nullptr;
 	hashData.m_ParseValues.push_back(fgArmDef);
@@ -462,7 +462,7 @@ HashingData AHuman::Hash() const {
 		hash ^= bgFootGroupHash << 15;
 	}
 
-	hash ^= std::hash<float>{}(m_MaxWalkPathCrouchShift) << 0;
+	hash ^= static_cast<uint64_t>(m_MaxWalkPathCrouchShift) << 0;
 
 	bool strideSoundDef = m_StrideSound != nullptr;
 	hashData.m_ParseValues.push_back(strideSoundDef);
@@ -512,11 +512,11 @@ HashingData AHuman::Hash() const {
 	hashData.m_Constituents.push_back(dislodgePathHash);
 	hash ^= dislodgePathHash << 11;
 
-	hash ^= std::hash<float>{}(m_RotAngleTargets[STAND]) << 12;
-	hash ^= std::hash<float>{}(m_RotAngleTargets[WALK]) << 13;
-	hash ^= std::hash<float>{}(m_RotAngleTargets[RUN]) << 14;
-	hash ^= std::hash<float>{}(m_RotAngleTargets[PRONE]) << 15;
-	hash ^= std::hash<float>{}(m_RotAngleTargets[JUMP]) << 0;
+	hash ^= static_cast<uint64_t>(m_RotAngleTargets[STAND]) << 12;
+	hash ^= static_cast<uint64_t>(m_RotAngleTargets[WALK]) << 13;
+	hash ^= static_cast<uint64_t>(m_RotAngleTargets[RUN]) << 14;
+	hash ^= static_cast<uint64_t>(m_RotAngleTargets[PRONE]) << 15;
+	hash ^= static_cast<uint64_t>(m_RotAngleTargets[JUMP]) << 0;
 
 	return hashData;
 }

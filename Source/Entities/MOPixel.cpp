@@ -127,9 +127,9 @@ HashingData MOPixel::Hash() const {
 	hashData.m_Constituents.push_back(colorHash);
 	hash ^= colorHash << 2;
 
-	hash ^= std::hash<float>{}(m_MinLethalRange) << 3;
-	hash ^= std::hash<float>{}(m_MaxLethalRange) << 4;
-	hash ^= std::hash<float>{}(m_Staininess) << 5;
+	hash ^= static_cast<uint64_t>(m_MinLethalRange) << 3;
+	hash ^= static_cast<uint64_t>(m_MaxLethalRange) << 4;
+	hash ^= static_cast<uint64_t>(m_Staininess) << 5;
 
 	return hashData;
 }

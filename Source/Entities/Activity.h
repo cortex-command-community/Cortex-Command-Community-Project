@@ -574,7 +574,7 @@ namespace RTE {
 		/// Saves a entity which will be stored in our ini.
 		/// @param key The key of the saved entity.
 		/// @param value The entity to save.
-		void SaveEntity(const std::string& key, Entity* value) { m_SavedValues.SaveEntity(key, value); };
+		void SaveEntity(const std::string& key, const Entity* value) { m_SavedValues.SaveEntity(key, value); };
 
 		/// Loads and returns a previously saved entity.
 		/// @param key The key of the entity to load.

@@ -216,10 +216,10 @@ HashingData ACDropShip::Hash() const {
 	hashData.m_Constituents.push_back(hatchSwingRangeHash);
 	hash ^= hatchSwingRangeHash << 6;
 
-	hash ^= std::hash<int>{}(m_AutoStabilize) << 7;
-	hash ^= std::hash<float>{}(m_MaxEngineAngle) << 8;
-	hash ^= std::hash<float>{}(m_LateralControlSpeed) << 9;
-	hash ^= std::hash<float>{}(m_HoverHeightModifier) << 10;
+	hash ^= static_cast<uint64_t>(m_AutoStabilize) << 7;
+	hash ^= static_cast<uint64_t>(m_MaxEngineAngle) << 8;
+	hash ^= static_cast<uint64_t>(m_LateralControlSpeed) << 9;
+	hash ^= static_cast<uint64_t>(m_HoverHeightModifier) << 10;
 
 	return hashData;
 }

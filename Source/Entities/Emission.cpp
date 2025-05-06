@@ -143,19 +143,19 @@ HashingData Emission::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= (m_pEmission ? RTE::Hash(m_pEmission->GetEntityCharacteristic()) : 0) << 0;
-	hash ^= std::hash<float>{}(m_PPM) << 1;
-	hash ^= std::hash<int>{}(m_BurstSize) << 2;
-	hash ^= std::hash<float>{}(m_Spread) << 3;
-	hash ^= std::hash<float>{}(m_MinVelocity) << 4;
-	hash ^= std::hash<float>{}(m_MaxVelocity) << 5;
-	hash ^= std::hash<float>{}(m_LifeVariation) << 6;
-	hash ^= std::hash<bool>{}(m_PushesEmitter) << 7;
-	hash ^= std::hash<float>{}(m_InheritsVel) << 8;
-	hash ^= std::hash<float>{}(m_InheritsAngularVel) << 9;
+	hash ^= static_cast<uint64_t>(m_PPM) << 1;
+	hash ^= static_cast<uint64_t>(m_BurstSize) << 2;
+	hash ^= static_cast<uint64_t>(m_Spread) << 3;
+	hash ^= static_cast<uint64_t>(m_MinVelocity) << 4;
+	hash ^= static_cast<uint64_t>(m_MaxVelocity) << 5;
+	hash ^= static_cast<uint64_t>(m_LifeVariation) << 6;
+	hash ^= static_cast<uint64_t>(m_PushesEmitter) << 7;
+	hash ^= static_cast<uint64_t>(m_InheritsVel) << 8;
+	hash ^= static_cast<uint64_t>(m_InheritsAngularVel) << 9;
 	hash ^= m_Offset.Hash().m_Hash << 10;
-	hash ^= std::hash<double>{}(m_StartTimer.GetSimTimeLimitMS()) << 11;
-	hash ^= std::hash<double>{}(m_StopTimer.GetSimTimeLimitMS()) << 12;
-	hash ^= std::hash<int>{}(m_ParticleCount) << 13;
+	hash ^= static_cast<uint64_t>(m_StartTimer.GetSimTimeLimitMS()) << 11;
+	hash ^= static_cast<uint64_t>(m_StopTimer.GetSimTimeLimitMS()) << 12;
+	hash ^= static_cast<uint64_t>(m_ParticleCount) << 13;
 
 	return hashData;
 }

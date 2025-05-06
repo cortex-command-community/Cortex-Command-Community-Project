@@ -151,21 +151,21 @@ HashingData Round::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= (m_Particle ? RTE::Hash(m_Particle->GetEntityCharacteristic()) : 0) << 0;
-	hash ^= std::hash<int>{}(m_ParticleCount) << 1;
-	hash ^= std::hash<float>{}(m_FireVel) << 2;
-	hash ^= std::hash<bool>{}(m_InheritsFirerVelocity) << 3;
-	hash ^= std::hash<float>{}(m_Separation) << 4;
-	hash ^= std::hash<float>{}(m_LifeVariation) << 5;
+	hash ^= static_cast<uint64_t>(m_ParticleCount) << 1;
+	hash ^= static_cast<uint64_t>(m_FireVel) << 2;
+	hash ^= static_cast<uint64_t>(m_InheritsFirerVelocity) << 3;
+	hash ^= static_cast<uint64_t>(m_Separation) << 4;
+	hash ^= static_cast<uint64_t>(m_LifeVariation) << 5;
 	hash ^= (m_Shell ? RTE::Hash(m_Shell->GetEntityCharacteristic()) : 0) << 6;
-	hash ^= std::hash<float>{}(m_ShellVel) << 7;
+	hash ^= static_cast<uint64_t>(m_ShellVel) << 7;
 
 	uint64_t fireSoundHash = m_FireSound.Hash().m_Hash;
 	hashData.m_Constituents.push_back(fireSoundHash);
 	hash ^= fireSoundHash << 8;
 
 	hash ^= std::hash<unsigned long>{}(m_AILifeTime) << 9;
-	hash ^= std::hash<int>{}(m_AIFireVel) << 10;
-	hash ^= std::hash<int>{}(m_AIPenetration) << 11;
+	hash ^= static_cast<uint64_t>(m_AIFireVel) << 10;
+	hash ^= static_cast<uint64_t>(m_AIPenetration) << 11;
 
 	return hashData;
 }

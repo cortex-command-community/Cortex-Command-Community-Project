@@ -568,25 +568,25 @@ HashingData MovableObject::Hash() const {
 	// If the write function doesn't save things correctly, this got it's distinction criteria from that, so it's wrong too.
 	// I guess that's not much of a todo, more like a keep in mind, but you could look at it as an ongoing task.
 
-	hash ^= std::hash<float>{}(m_Mass) << 1;
+	hash ^= static_cast<uint64_t>(m_Mass) << 1;
 	hash ^= m_Vel.Hash().m_Hash << 2;
-	hash ^= std::hash<float>{}(m_Scale) << 3;
-	hash ^= std::hash<float>{}(m_GlobalAccScalar) << 4;
-	hash ^= std::hash<float>{}(m_AirResistance) << 5;
-	hash ^= std::hash<float>{}(m_AirThreshold) << 6;
-	hash ^= std::hash<float>{}(m_PinStrength) << 7;
-	hash ^= std::hash<int>{}(m_RestThreshold) << 8;
+	hash ^= static_cast<uint64_t>(m_Scale) << 3;
+	hash ^= static_cast<uint64_t>(m_GlobalAccScalar) << 4;
+	hash ^= static_cast<uint64_t>(m_AirResistance) << 5;
+	hash ^= static_cast<uint64_t>(m_AirThreshold) << 6;
+	hash ^= static_cast<uint64_t>(m_PinStrength) << 7;
+	hash ^= static_cast<uint64_t>(m_RestThreshold) << 8;
 	hash ^= std::hash<unsigned long>{}(m_Lifetime) << 9;
-	hash ^= std::hash<float>{}(m_Sharpness) << 10;
-	hash ^= std::hash<bool>{}(m_HitsMOs) << 11;
-	hash ^= std::hash<bool>{}(m_GetsHitByMOs) << 12;
-	hash ^= std::hash<bool>{}(m_IgnoresTeamHits) << 13;
-	hash ^= std::hash<bool>{}(m_IgnoresAtomGroupHits) << 14;
-	hash ^= std::hash<float>{}(m_IgnoresAGHitsWhenSlowerThan) << 15;
-	hash ^= std::hash<bool>{}(m_IgnoresActorHits) << 0;
-	hash ^= std::hash<bool>{}(m_MissionCritical) << 1;
-	hash ^= std::hash<bool>{}(m_CanBeSquished) << 2;
-	hash ^= std::hash<bool>{}(m_HUDVisible) << 3;
+	hash ^= static_cast<uint64_t>(m_Sharpness) << 10;
+	hash ^= static_cast<uint64_t>(m_HitsMOs) << 11;
+	hash ^= static_cast<uint64_t>(m_GetsHitByMOs) << 12;
+	hash ^= static_cast<uint64_t>(m_IgnoresTeamHits) << 13;
+	hash ^= static_cast<uint64_t>(m_IgnoresAtomGroupHits) << 14;
+	hash ^= static_cast<uint64_t>(m_IgnoresAGHitsWhenSlowerThan) << 15;
+	hash ^= static_cast<uint64_t>(m_IgnoresActorHits) << 0;
+	hash ^= static_cast<uint64_t>(m_MissionCritical) << 1;
+	hash ^= static_cast<uint64_t>(m_CanBeSquished) << 2;
+	hash ^= static_cast<uint64_t>(m_HUDVisible) << 3;
 
 	int i = 0;
 
@@ -600,23 +600,23 @@ HashingData MovableObject::Hash() const {
 	hashData.m_Constituents.push_back(effectHash);
 	hash ^= effectHash << 4;
 
-	hash ^= std::hash<bool>{}(m_PostEffectEnabled) << 5;
-	hash ^= std::hash<int>{}(m_EffectStartTime) << 6;
-	hash ^= std::hash<int>{}(m_EffectStopTime) << 7;
-	hash ^= std::hash<float>{}(m_EffectStartStrength) << 8;
-	hash ^= std::hash<float>{}(m_EffectStopStrength) << 9;
-	hash ^= std::hash<bool>{}(m_EffectAlwaysShows) << 10;
-	hash ^= std::hash<float>{}(m_DamageOnCollision) << 11;
-	hash ^= std::hash<float>{}(m_DamageOnPenetration) << 12;
-	hash ^= std::hash<float>{}(m_WoundDamageMultiplier) << 13;
-	hash ^= std::hash<bool>{}(m_ApplyWoundDamageOnCollision) << 14;
-	hash ^= std::hash<bool>{}(m_ApplyWoundBurstDamageOnCollision) << 15;
-	hash ^= std::hash<bool>{}(m_IgnoreTerrain) << 0;
-	hash ^= std::hash<int>{}(m_SimUpdatesBetweenScriptedUpdates) << 1;
+	hash ^= static_cast<uint64_t>(m_PostEffectEnabled) << 5;
+	hash ^= static_cast<uint64_t>(m_EffectStartTime) << 6;
+	hash ^= static_cast<uint64_t>(m_EffectStopTime) << 7;
+	hash ^= static_cast<uint64_t>(m_EffectStartStrength) << 8;
+	hash ^= static_cast<uint64_t>(m_EffectStopStrength) << 9;
+	hash ^= static_cast<uint64_t>(m_EffectAlwaysShows) << 10;
+	hash ^= static_cast<uint64_t>(m_DamageOnCollision) << 11;
+	hash ^= static_cast<uint64_t>(m_DamageOnPenetration) << 12;
+	hash ^= static_cast<uint64_t>(m_WoundDamageMultiplier) << 13;
+	hash ^= static_cast<uint64_t>(m_ApplyWoundDamageOnCollision) << 14;
+	hash ^= static_cast<uint64_t>(m_ApplyWoundBurstDamageOnCollision) << 15;
+	hash ^= static_cast<uint64_t>(m_IgnoreTerrain) << 0;
+	hash ^= static_cast<uint64_t>(m_SimUpdatesBetweenScriptedUpdates) << 1;
 
 	for (const auto& [key, value]: m_NumberValueMap) {
 		hash ^= RTE::Hash(key) << 16;
-		hash ^= std::hash<double>{}(value) << 17;
+		hash ^= static_cast<uint64_t>(value) << 17;
 	}
 
 	for (const auto& [key, value]: m_StringValueMap) {
@@ -624,7 +624,7 @@ HashingData MovableObject::Hash() const {
 		hash ^= RTE::Hash(value) << 33;
 	}
 
-	hash ^= std::hash<bool>{}(m_ForceIntoMasterLuaState) << 2;
+	hash ^= static_cast<uint64_t>(m_ForceIntoMasterLuaState) << 2;
 
 	return hashData;
 }

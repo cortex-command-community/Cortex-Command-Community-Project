@@ -265,14 +265,14 @@ HashingData PieMenu::Hash() const {
 	HashingData hashData(std::move(Entity::Hash()));
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= std::hash<IconSeparatorMode>{}(m_IconSeparatorMode) << 0;
-	hash ^= std::hash<int>{}(m_FullInnerRadius) << 1;
-	hash ^= std::hash<int>{}(m_BackgroundThickness) << 2;
-	hash ^= std::hash<int>{}(m_BackgroundSeparatorSize) << 3;
-	hash ^= std::hash<bool>{}(m_DrawBackgroundTransparent) << 4;
-	hash ^= std::hash<int>{}(m_BackgroundColor) << 5;
-	hash ^= std::hash<int>{}(m_BackgroundBorderColor) << 6;
-	hash ^= std::hash<int>{}(m_SelectedItemBackgroundColor) << 7;
+	hash ^= static_cast<uint64_t>(m_IconSeparatorMode) << 0;
+	hash ^= static_cast<uint64_t>(m_FullInnerRadius) << 1;
+	hash ^= static_cast<uint64_t>(m_BackgroundThickness) << 2;
+	hash ^= static_cast<uint64_t>(m_BackgroundSeparatorSize) << 3;
+	hash ^= static_cast<uint64_t>(m_DrawBackgroundTransparent) << 4;
+	hash ^= static_cast<uint64_t>(m_BackgroundColor) << 5;
+	hash ^= static_cast<uint64_t>(m_BackgroundBorderColor) << 6;
+	hash ^= static_cast<uint64_t>(m_SelectedItemBackgroundColor) << 7;
 
 	int i = 0;
 

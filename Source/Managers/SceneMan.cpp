@@ -284,6 +284,7 @@ int SceneMan::Save(Writer& writer) const {
 }
 
 HashingData SceneMan::Hash() const {
+	// TODO: FINISH?
 	return Serializable::Hash();
 }
 

@@ -116,10 +116,10 @@ HashingData ThrownDevice::Hash() const {
 
 	hash ^= m_StartThrowOffset.Hash().m_Hash << 2;
 	hash ^= m_EndThrowOffset.Hash().m_Hash << 3;
-	hash ^= std::hash<float>{}(m_MinThrowVel) << 4;
-	hash ^= std::hash<float>{}(m_MaxThrowVel) << 5;
-	hash ^= std::hash<long>{}(m_TriggerDelay) << 6;
-	hash ^= std::hash<bool>{}(m_ActivatesWhenReleased) << 7;
+	hash ^= static_cast<uint64_t>(m_MinThrowVel) << 4;
+	hash ^= static_cast<uint64_t>(m_MaxThrowVel) << 5;
+	hash ^= static_cast<uint64_t>(m_TriggerDelay) << 6;
+	hash ^= static_cast<uint64_t>(m_ActivatesWhenReleased) << 7;
 	hash ^= (m_StrikerLever ? RTE::Hash(m_StrikerLever->GetEntityCharacteristic()) : 0) << 8;
 
 	return hashData;

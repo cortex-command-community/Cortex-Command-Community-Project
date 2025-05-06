@@ -392,5 +392,6 @@ int SettingsMan::Save(Writer& writer) const {
 }
 
 HashingData SettingsMan::Hash() const {
+	// TODO: FINISH?
 	return Serializable::Hash();
 }

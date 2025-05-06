@@ -98,10 +98,10 @@ HashingData MetaSave::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= RTE::Hash(m_SavePath) << 0;
-	hash ^= std::hash<int>{}(m_PlayerCount) << 1;
-	hash ^= std::hash<int>{}(m_Difficulty) << 2;
-	hash ^= std::hash<int>{}(m_RoundCount) << 3;
-	hash ^= std::hash<int>{}(m_SiteCount) << 4;
+	hash ^= static_cast<uint64_t>(m_PlayerCount) << 1;
+	hash ^= static_cast<uint64_t>(m_Difficulty) << 2;
+	hash ^= static_cast<uint64_t>(m_RoundCount) << 3;
+	hash ^= static_cast<uint64_t>(m_SiteCount) << 4;
 
 	return hashData;
 }

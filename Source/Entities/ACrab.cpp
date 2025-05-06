@@ -487,9 +487,9 @@ HashingData ACrab::Hash() const {
 	hashData.m_Constituents.push_back(rightDislodgePathHash);
 	hash ^= rightDislodgePathHash << 1;
 
-	hash ^= std::hash<float>{}(m_AimRangeUpperLimit) << 2;
-	hash ^= std::hash<float>{}(m_AimRangeLowerLimit) << 3;
-	hash ^= std::hash<bool>{}(m_LockMouseAimInput) << 4;
+	hash ^= static_cast<uint64_t>(m_AimRangeUpperLimit) << 2;
+	hash ^= static_cast<uint64_t>(m_AimRangeLowerLimit) << 3;
+	hash ^= static_cast<uint64_t>(m_LockMouseAimInput) << 4;
 
 	return hashData;
 }

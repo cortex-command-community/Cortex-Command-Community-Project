@@ -48,18 +48,21 @@ int SceneObject::SOPlacer::Create(const SOPlacer& reference) {
 int SceneObject::SOPlacer::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
-	MatchProperty("PlacedObject",
-	              {
-		              m_pObjectReference = dynamic_cast<const SceneObject*>(g_PresetMan.GetEntityPreset(reader));
-		              RTEAssert(m_pObjectReference, "Stream suggests allocating an unallocatable type in SOPlacer::Create!");
-	              });
+	MatchProperty("PlacedObject", {
+		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
+		const SceneObject* reference = dynamic_cast<const SceneObject*>(entityReference);
+		if (entityReference == nullptr || reference != nullptr) {
+			m_pObjectReference = reference;
+		} else {
+			reader.ReportError("Tried to point PlacedObject to a non-SceneObject type!");
+		}
+	});
 	MatchProperty("Offset", { reader >> m_Offset; });
-	MatchProperty("Rotation",
-	              {
-		              Matrix rot;
-		              reader >> rot;
-		              m_RotAngle = rot.GetRadAngle();
-	              });
+	MatchProperty("Rotation", {
+		Matrix rot;
+		reader >> rot;
+		m_RotAngle = rot.GetRadAngle();
+	});
 	MatchProperty("HFlipped", { reader >> m_HFlipped; });
 	MatchProperty("Team", { reader >> m_Team; });
 
@@ -69,21 +72,16 @@ int SceneObject::SOPlacer::ReadProperty(const std::string_view& propName, Reader
 int SceneObject::SOPlacer::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewPropertyWithValue("PlacedObject", m_pObjectReference);
-	writer.NewPropertyWithValue("Offset", m_Offset);
-	// TODO: make generalized way of detecting defaults
-	if (m_RotAngle != 0) {
-		writer.NewProperty("Rotation");
-		Matrix rot;
-		rot.SetRadAngle(m_RotAngle);
-		writer << rot;
-	}
-	if (m_HFlipped) {
+	if (m_pObjectReference != nullptr)
+		writer.NewPropertyWithValue("PlacedObject", m_pObjectReference->GetEntityCharacteristic());
+	if (!m_Offset.IsZero())
+		writer.NewPropertyWithValue("Offset", m_Offset);
+	if (m_RotAngle != 0.0F)
+		writer.NewPropertyWithValue("Rotation", Matrix(m_RotAngle));
+	if (m_HFlipped)
 		writer.NewPropertyWithValue("HFlipped", m_HFlipped);
-	}
-	if (m_Team >= Activity::TeamOne) {
+	if (m_Team > Activity::NoTeam)
 		writer.NewPropertyWithValue("Team", m_Team);
-	}
 
 	return 0;
 }
@@ -93,14 +91,10 @@ HashingData SceneObject::SOPlacer::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= (m_pObjectReference ? RTE::Hash(m_pObjectReference->GetEntityCharacteristic()) : 0) << 0;
-
-	uint64_t offsetHash = m_Offset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(offsetHash);
-	hash ^= offsetHash << 1;
-
-	hash ^= std::hash<float>{}(m_RotAngle) << 2;
-	hash ^= std::hash<bool>{}(m_HFlipped) << 3;
-	hash ^= std::hash<int>{}(m_Team) << 4;
+	hash ^= m_Offset.Hash().m_Hash << 1;
+	hash ^= static_cast<uint64_t>(m_RotAngle) << 2;
+	hash ^= static_cast<uint64_t>(m_HFlipped) << 3;
+	hash ^= static_cast<uint64_t>(m_Team) << 4;
 
 	return hashData;
 }
@@ -243,11 +237,11 @@ HashingData SceneObject::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= m_Pos.Hash().m_Hash << 0;
-	hash ^= std::hash<float>{}(m_OzValue) << 1;
-	hash ^= std::hash<bool>{}(m_Buyable) << 2;
-	hash ^= std::hash<BuyableMode>{}(m_BuyableMode) << 3;
-	hash ^= std::hash<int>{}(m_Team) << 4;
-	hash ^= std::hash<int>{}(m_PlacedByPlayer) << 5;
+	hash ^= static_cast<uint64_t>(m_OzValue) << 1;
+	hash ^= static_cast<uint64_t>(m_Buyable) << 2;
+	hash ^= static_cast<uint64_t>(m_BuyableMode) << 3;
+	hash ^= static_cast<uint64_t>(m_Team) << 4;
+	hash ^= static_cast<uint64_t>(m_PlacedByPlayer) << 5;
 
 	return hashData;
 }
