@@ -56,6 +56,8 @@
 #include "RenderTarget.h"
 #include "tracy/Tracy.hpp"
 
+#include "imgui_impl_sdl3.h"
+
 #ifdef _WIN32
 #include "windows.h"
 #endif
@@ -232,6 +234,7 @@ void PollSDLEvents() {
 			default:
 				break;
 		}
+		ImGui_ImplSDL3_ProcessEvent(&sdlEvent);
 		if (sdlEvent.type >= SDL_EVENT_WINDOW_FIRST && sdlEvent.type <= SDL_EVENT_WINDOW_LAST) {
 			g_WindowMan.QueueWindowEvent(sdlEvent);
 		}

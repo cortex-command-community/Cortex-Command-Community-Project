@@ -21,6 +21,10 @@
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
 
+#include "GUI/imgui/imgui.h"
+#include "GUI/imgui/backends/imgui_impl_sdl3.h"
+#include "GUI/imgui/backends/imgui_impl_opengl3.h"
+
 #ifdef __linux__
 #include "Resources/cccp.xpm"
 #include <SDL3_image/SDL_image.h>
@@ -81,6 +85,9 @@ WindowMan::WindowMan() {
 WindowMan::~WindowMan() = default;
 
 void WindowMan::Destroy() {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplSDL3_Shutdown();
+	ImGui::DestroyContext();
 	GL_CHECK(glDeleteTextures(1, &m_BackBuffer32Texture));
 	GL_CHECK(glDeleteBuffers(1, &m_ScreenVBO));
 	GL_CHECK(glDeleteVertexArrays(1, &m_ScreenVAO));
@@ -105,6 +112,20 @@ void WindowMan::Initialize() {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	CreatePrimaryWindow();
 	InitializeOpenGL();
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+
+	ImGui::StyleColorsDark();
+	ImGui_ImplSDL3_InitForOpenGL(m_PrimaryWindow.get(), m_GLContext.get());
+	ImGui_ImplOpenGL3_Init("#version 130");
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplSDL3_NewFrame();
+	ImGui::NewFrame();
+
 	CreateBackBufferTexture();
 	m_ScreenBlitShader = std::make_unique<Shader>(g_PresetMan.GetFullModulePath("Base.rte/Shaders/ScreenBlit.vert"), g_PresetMan.GetFullModulePath("Base.rte/Shaders/ScreenBlit.frag"));
 
@@ -760,9 +781,14 @@ void WindowMan::UploadFrame() {
 			rlDrawRenderBatchActive();
 		}
 	}
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	Present();
 	TracyGpuCollect;
 	FrameMark;
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplSDL3_NewFrame();
+	ImGui::NewFrame();
 }
 
 void WindowMan::Present() {
