@@ -8,3 +8,8 @@ sources += files(
 	'backends/imgui_impl_sdl3.cpp',
 	'backends/imgui_impl_opengl3.cpp'
 )
+
+source_inc_dirs += include_directories(
+'.',
+'backends'
+)
