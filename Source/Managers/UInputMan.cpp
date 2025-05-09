@@ -314,6 +314,10 @@ void UInputMan::DisableMouseMoving(bool disable) {
 	}
 }
 bool UInputMan::CheckMultiMouseKeyboardEnabled(std::optional<std::reference_wrapper<const std::vector<int>>> players) {
+	if (m_ForceDisableMultiMouseKeyboard) {
+		m_EnableMultiMouseKeyboard = false;
+		return false;
+	}
 	int playerMouseControlled{0};
 	if (players) {
 		for (int player: players->get()) {
@@ -707,7 +711,7 @@ bool UInputMan::GetKeyboardButtonState(SDL_Scancode scancodeToTest, InputState w
 
 	std::unordered_map<SDL_KeyboardID, Keyboard>::const_iterator keyboardIterator;
 
-	if (keyboardID == 0 && (playerDevice == InputDevice::DEVICE_KEYB_ONLY || playerDevice == InputDevice::DEVICE_MOUSE_KEYB)) {
+	if (m_EnableMultiMouseKeyboard && keyboardID == 0 && (playerDevice == InputDevice::DEVICE_KEYB_ONLY || playerDevice == InputDevice::DEVICE_MOUSE_KEYB)) {
 		if(playerDevice == InputDevice::DEVICE_KEYB_ONLY) {
 			keyboardID = m_ControlScheme.at(whichPlayer).GetDeviceID().keyboard;
 		} else {
@@ -752,7 +756,7 @@ bool UInputMan::GetMouseButtonState(int whichPlayer, int whichButton, InputState
 
 	std::unordered_map<SDL_MouseID, Mouse>::const_iterator mouseIterator;
 
-	if (mouseID == 0 && (playerDevice == InputDevice::DEVICE_MOUSE_KEYB)) {
+	if (m_EnableMultiMouseKeyboard && mouseID == 0 && (playerDevice == InputDevice::DEVICE_MOUSE_KEYB)) {
 		mouseID = m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse;
 	}
 

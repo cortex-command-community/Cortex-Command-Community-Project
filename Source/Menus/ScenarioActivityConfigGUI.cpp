@@ -284,6 +284,7 @@ bool ScenarioActivityConfigGUI::Update(int mouseX, int mouseY) {
 	int maxHumanPlayers = m_SelectedActivity->GetMaxPlayerSupport();
 	int minTeamsRequired = m_SelectedActivity->GetMinTeamsRequired();
 
+	std::vector humanPlayers = GetHumanPlayers();
 	std::string errorMessage = "";
 	if (humansInTeams > maxHumanPlayers) {
 		errorMessage = "Too many players assigned! Max for this activity is " + std::to_string(maxHumanPlayers);
@@ -291,7 +292,10 @@ bool ScenarioActivityConfigGUI::Update(int mouseX, int mouseY) {
 		errorMessage = "Assign players to at least " + std::to_string(minTeamsRequired) + " of the teams!";
 	} else if (teamWithHumans == 0) {
 		errorMessage = "Assign human players to at least one team!";
+	} else if (g_UInputMan.CheckMultiMouseKeyboardEnabled(humanPlayers) && !g_UInputMan.AllPlayerInputDevicesKnown(humanPlayers)) {
+		errorMessage = "Some players have not set keyboard or mouse devices. Please go to input settings to configure!";
 	}
+
 	m_StartErrorLabel->SetText(errorMessage);
 	m_StartErrorLabel->SetVisible(!errorMessage.empty());
 	m_StartGameButton->SetVisible(errorMessage.empty());
@@ -427,17 +431,10 @@ bool ScenarioActivityConfigGUI::HandleInputEvents() {
 				SetEnabled(false);
 			} else if (guiEvent.GetControl() == m_StartGameButton) {
 				// Make sure all players have known input devices if multimouse is enabled.
-				std::vector humanPlayers = GetHumanPlayers();
-				if (g_UInputMan.CheckMultiMouseKeyboardEnabled(humanPlayers) && g_UInputMan.AllPlayerInputDevicesKnown(humanPlayers)) {
-					g_GUISound.ButtonPressSound()->Play();
-					StartGame();
-					SetEnabled(false);
-					return true;
-				} else {
-					// TODO: Show message and device selection.
-					g_GUISound.UserErrorSound()->Play();
-					return false;
-				}
+				g_GUISound.ButtonPressSound()->Play();
+				StartGame();
+				SetEnabled(false);
+				return true;
 			}
 		} else if (guiEvent.GetType() == GUIEvent::Notification) {
 			if (guiEvent.GetControl() == m_ActivityDifficultySlider) {
