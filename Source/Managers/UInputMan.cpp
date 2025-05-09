@@ -866,7 +866,6 @@ int UInputMan::Update() {
 			case SDL_EVENT_KEY_UP:
 			case SDL_EVENT_KEY_DOWN: {
 				Keyboard& keyboard = m_KeyboardStates[inputEvent.key.which];
-				std::cout << inputEvent.key.which << std::endl;
 				keyboard.id = inputEvent.key.which;
 				keyboard.changedKeyStates[inputEvent.key.scancode] = (inputEvent.key.down != keyboard.keyStates[inputEvent.key.scancode]);
 				keyboard.keyStates[inputEvent.key.scancode] = inputEvent.key.down;
@@ -951,7 +950,6 @@ int UInputMan::Update() {
 				mouse.id = inputEvent.button.which;
 				mouse.change[inputEvent.button.button] = inputEvent.button.down != mouse.state[inputEvent.button.button];
 				mouse.state[inputEvent.button.button] = inputEvent.button.down;
-				std::cout << inputEvent.button.which << " " << (int)inputEvent.button.button << " " << inputEvent.button.down << std::endl;
 				if (inputEvent.button.which != 0) {
 					m_MouseStates[0].change[inputEvent.button.button] = inputEvent.button.down != m_MouseStates[0].state[inputEvent.button.button];
 					m_MouseStates[0].state[inputEvent.button.button] = inputEvent.button.down;
