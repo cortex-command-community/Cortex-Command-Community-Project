@@ -75,20 +75,22 @@ void GameActivity::Clear() {
 	m_FogOfWarEnabled = false;
 	m_RequireClearPathToOrbit = false;
 
-	m_DefaultFogOfWar = -1;
-	m_DefaultRequireClearPathToOrbit = -1;
-	m_DefaultDeployUnits = 1;
+	m_DefaultDifficulty = -1;
 	m_DefaultGoldCakeDifficulty = -1;
 	m_DefaultGoldEasyDifficulty = -1;
 	m_DefaultGoldMediumDifficulty = -1;
 	m_DefaultGoldHardDifficulty = -1;
 	m_DefaultGoldNutsDifficulty = -1;
 	m_DefaultGoldMaxDifficulty = -1;
+	m_DefaultManuallyAdjustedGold = -1;
+	m_DefaultFogOfWar = -1;
+	m_DefaultRequireClearPathToOrbit = -1;
+	m_DefaultDeployUnits = 1;
 
+	m_DifficultySwitchEnabled = true;
+	m_GoldSwitchEnabled = true;
 	m_FogOfWarSwitchEnabled = true;
 	m_DeployUnitsSwitchEnabled = false;
-	m_GoldSwitchEnabled = true;
-	m_DifficultySwitchEnabled = true;
 	m_RequireClearPathToOrbitSwitchEnabled = true;
 
 	m_BuyMenuEnabled = true;
@@ -212,6 +214,7 @@ int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader)
 	MatchProperty("DefaultGoldHardDifficulty", { reader >> m_DefaultGoldHardDifficulty; });
 	MatchProperty("DefaultGoldNutsDifficulty", { reader >> m_DefaultGoldNutsDifficulty; });
 	MatchProperty("DefaultGoldMaxDifficulty", { reader >> m_DefaultGoldMaxDifficulty; });
+	MatchProperty("DefaultManuallyAdjustedGold", { reader >> m_DefaultManuallyAdjustedGold; });
 	MatchProperty("GoldSwitchEnabled", { reader >> m_GoldSwitchEnabled; });
 	MatchForwards("SpecialBehaviour_StartingGold") MatchProperty("_StartingGold", { reader >> m_StartingGold; });
 

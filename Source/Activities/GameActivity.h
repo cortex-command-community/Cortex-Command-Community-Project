@@ -371,24 +371,24 @@ namespace RTE {
 		/// @return Returns active human team count.
 		int GetActiveHumanTeamCount() const;
 
+		/// Returns how much starting gold was selected in scenario setup dialog. 20000 - infinite amount.
+		/// @return How much starting gold must be given to human players.
+		int GetStartingGold() { return m_StartingGold; }
+
 		/// Changes how much starting gold was selected in scenario setup dialog. 20000 - infinite amount.
 		/// @param amount Starting gold amount
 		void SetStartingGold(int amount) { m_StartingGold = amount; }
 
-		/// Returns how much starting gold was selected in scenario setup dialog. 20000 - infinite amount.
-		/// @return How much starting gold must be given to human players.
-		int GetStartingGold() { return m_StartingGold; }
+		/// Returns whether fog of war must be enabled for this activity or not.
+		/// Call it to determine whether you should call MakeAllUnseen or not at the start of activity.
+		/// @return Whether Fog of war flag was checked during scenario setup dialog.
+		bool GetFogOfWarEnabled() { return m_FogOfWarEnabled; }
 
 		/// Changes whether fog of war must be enabled for this activity or not.
 		/// Never hides or reveals anything, just changes internal flag.
 		/// @param enable New fog of war state. true = enabled.
 		/// Return value:	None.
 		void SetFogOfWarEnabled(bool enable) { m_FogOfWarEnabled = enable; }
-
-		/// Returns whether fog of war must be enabled for this activity or not.
-		/// Call it to determine whether you should call MakeAllUnseen or not at the start of activity.
-		/// @return Whether Fog of war flag was checked during scenario setup dialog.
-		bool GetFogOfWarEnabled() { return m_FogOfWarEnabled; }
 
 		/// Tells whether player activity requires a cleat path to orbit to place brain
 		/// Return value:	Whether we need a clear path to orbit to place brains.
@@ -399,43 +399,53 @@ namespace RTE {
 		/// Return value:	None.
 		void SetRequireClearPathToOrbit(bool newvalue) { m_RequireClearPathToOrbit = newvalue; }
 
-		int GetDefaultFogOfWar() const { return m_DefaultFogOfWar; }
-
-		int GetDefaultRequireClearPathToOrbit() const { return m_DefaultRequireClearPathToOrbit; }
-
-		int GetDefaultDeployUnits() const { return m_DefaultDeployUnits; }
-
-		int GetDefaultGoldCakeDifficulty() const { return m_DefaultGoldCakeDifficulty; }
-
-		int GetDefaultDifficulty() const { return m_DefaultDifficulty; }
-
-		int GetDefaultGoldEasyDifficulty() const { return m_DefaultGoldEasyDifficulty; }
-
-		int GetDefaultGoldMediumDifficulty() const { return m_DefaultGoldMediumDifficulty; }
-
-		int GetDefaultGoldHardDifficulty() const { return m_DefaultGoldHardDifficulty; }
-
-		int GetDefaultGoldNutsDifficulty() const { return m_DefaultGoldNutsDifficulty; }
-
-		/// Gets the default gold for max difficulty.
-		/// @return The default gold for max difficulty.
-		int GetDefaultGoldMaxDifficulty() const { return m_DefaultGoldMaxDifficulty; }
-
-		int GetDefaultAISkill(int team) const { return m_TeamDefaultAISkill[team]; }
-
-		bool GetFogOfWarSwitchEnabled() const { return m_FogOfWarSwitchEnabled; }
-
-		bool GetDeployUnitsSwitchEnabled() const { return m_DeployUnitsSwitchEnabled; }
-
-		bool GetGoldSwitchEnabled() const { return m_GoldSwitchEnabled; }
+		/// Various activity configuration.
 
 		bool GetDifficultySwitchEnabled() const { return m_DifficultySwitchEnabled; }
+		int GetDefaultDifficulty() const { return m_DefaultDifficulty; }
+        void SetDefaultDifficulty(int difficulty) { m_DefaultDifficulty = difficulty; }
+
+		int GetDefaultGoldCakeDifficulty() const { return m_DefaultGoldCakeDifficulty; }
+		void SetDefaultGoldCakeDifficulty(int gold) { m_DefaultGoldCakeDifficulty = gold; }
+
+		int GetDefaultGoldEasyDifficulty() const { return m_DefaultGoldEasyDifficulty; }
+		void SetDefaultGoldEasyDifficulty(int gold) { m_DefaultGoldEasyDifficulty = gold; }
+
+		int GetDefaultGoldMediumDifficulty() const { return m_DefaultGoldMediumDifficulty; }
+		void SetDefaultGoldMediumDifficulty(int gold) { m_DefaultGoldMediumDifficulty = gold; }
+
+		int GetDefaultGoldHardDifficulty() const { return m_DefaultGoldHardDifficulty; }
+		void SetDefaultGoldHardDifficulty(int gold) { m_DefaultGoldHardDifficulty = gold; }
+
+		int GetDefaultGoldNutsDifficulty() const { return m_DefaultGoldNutsDifficulty; }
+		void SetDefaultGoldNutsDifficulty(int gold) { m_DefaultGoldNutsDifficulty = gold; }
+
+		int GetDefaultGoldMaxDifficulty() const { return m_DefaultGoldMaxDifficulty; }
+		void SetDefaultGoldMaxDifficulty(int gold) { m_DefaultGoldMaxDifficulty = gold; }
+
+		bool GetGoldSwitchEnabled() const { return m_GoldSwitchEnabled; }
+		int GetDefaultManuallyAdjustedGold() const { return m_DefaultManuallyAdjustedGold; }
+		void SetDefaultManuallyAdjustedGold(int adjusted) { m_DefaultManuallyAdjustedGold = adjusted; }
+
+		bool GetFogOfWarSwitchEnabled() const { return m_FogOfWarSwitchEnabled; }
+		int GetDefaultFogOfWar() const { return m_DefaultFogOfWar; }
+		void SetDefaultFogOfWar(int fogOfWar) { m_DefaultFogOfWar = fogOfWar; }
 
 		bool GetRequireClearPathToOrbitSwitchEnabled() const { return m_RequireClearPathToOrbitSwitchEnabled; }
+		int GetDefaultRequireClearPathToOrbit() const { return m_DefaultRequireClearPathToOrbit; }
+		void SetDefaultRequireClearPathToOrbit(int requireClearPath) { m_DefaultRequireClearPathToOrbit = requireClearPath; }
+
+		bool GetDeployUnitsSwitchEnabled() const { return m_DeployUnitsSwitchEnabled; }
+		int GetDefaultDeployUnits() const { return m_DefaultDeployUnits; }
+		void SetDefaultDeployUnits(int deployUnits) { m_DefaultDeployUnits = deployUnits; }
 
 		bool GetTeamTechSwitchEnabled(int team) const { return m_TeamTechSwitchEnabled[team]; }
+		std::string GetDefaultTeamTech(int team) const { return (team >= Teams::TeamOne && team < Teams::MaxTeamCount) ? m_TeamDefaultTech[team] : ""; }
+		void SetDefaultTeamTech(int team, std::string tech) { m_TeamDefaultTech[team] = tech; }
 
 		bool GetTeamAISwitchEnabled(int team) const { return m_TeamAISwitchEnabled[team]; }
+		int GetDefaultAISkill(int team) const { return m_TeamDefaultAISkill[team]; }
+		void SetDefaultAISkill(int team, int skill) { m_TeamDefaultAISkill[team] = skill; }
 
 		/// Returns CrabToHumanSpawnRatio for specified module
 		/// @return Crab-To-Human spawn ratio value set for specified module, 0.25 is default.
@@ -595,6 +605,7 @@ namespace RTE {
 		std::list<ObjectivePoint> m_Objectives;
 
 		// Tech of player
+		std::string m_TeamDefaultTech[Teams::MaxTeamCount];
 		std::string m_TeamTech[Teams::MaxTeamCount];
 		bool m_TeamTechSwitchEnabled[Teams::MaxTeamCount];
 		bool m_TeamCPUSwitchEnabled[Teams::MaxTeamCount];
@@ -627,6 +638,8 @@ namespace RTE {
 		int m_DefaultGoldHardDifficulty;
 		int m_DefaultGoldNutsDifficulty;
 		int m_DefaultGoldMaxDifficulty;
+		// If we contain configuration state, so we do. Whether or not the starting gold on this activity was adjusted manually.
+		int m_DefaultManuallyAdjustedGold;
 		// Whether those switches are enabled or disabled in scenario setup dialog, true by default
 		bool m_FogOfWarSwitchEnabled;
 		bool m_DeployUnitsSwitchEnabled;

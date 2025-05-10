@@ -499,6 +499,20 @@ namespace RTE {
 				m_TeamAISkillLevels[team] = Limit(skill, AISkillSetting::UnfairSkill, AISkillSetting::MinSkill);
 			}
 		}
+
+		/// Returns skill level for specified team. If team is less than 0 or greater than 3 an average of all teams is returned.
+		/// @param team Team to get skill level for.
+		/// @return Team skill level.
+		int GetTeamStartingAISkill(int team) const;
+
+		/// Sets AI skill level for specified team.
+		/// @param team The team to set for.
+		/// @param skill AI skill level, 1-100.
+		void SetTeamStartingAISkill(int team, int skill) {
+			if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) {
+				m_TeamAISkillLevels[team] = Limit(skill, AISkillSetting::UnfairSkill, AISkillSetting::MinSkill);
+			}
+		}
 #pragma endregion
 
 #pragma region Actor Handling
@@ -616,6 +630,7 @@ namespace RTE {
 		int m_Team[Players::MaxPlayerCount]; //!< The designated team of each player.
 		int m_TeamDeaths[Teams::MaxTeamCount]; //!< The count of how many actors have died on this team.
 		int m_TeamAISkillLevels[Teams::MaxTeamCount]; //!< AI skill levels for teams.
+		int m_StartingTeamAISkillLevels[Teams::MaxTeamCount]; //!< AI skill levels for teams.
 
 		float m_TeamFunds[Teams::MaxTeamCount]; //!< Gold counter for each team.
 		float m_TeamFundsShare[Players::MaxPlayerCount]; //!< The ratio of how much this player contributed to his team's funds at the start of the Activity.

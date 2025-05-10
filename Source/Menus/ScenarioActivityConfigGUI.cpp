@@ -80,6 +80,7 @@ void ScenarioActivityConfigGUI::PopulateTechComboBoxes() {
 		m_TeamTechComboBoxes[team]->GetListPanel()->AddItem("-Random-", "", nullptr, nullptr, -1);
 		m_TeamTechComboBoxes[team]->SetSelectedIndex(0);
 	}
+
 	for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); ++moduleID) {
 		if (const DataModule* dataModule = g_PresetMan.GetDataModule(moduleID)) {
 			if (dataModule->IsFaction()) {
@@ -89,9 +90,11 @@ void ScenarioActivityConfigGUI::PopulateTechComboBoxes() {
 			}
 		}
 	}
+
 	for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 		m_TeamTechComboBoxes[team]->GetListPanel()->ScrollToTop();
 	}
+
 	m_TechListFetched = true;
 }
 
@@ -99,41 +102,45 @@ bool ScenarioActivityConfigGUI::IsEnabled() const {
 	return m_ActivityConfigBox->GetEnabled() && m_ActivityConfigBox->GetVisible();
 }
 
-void ScenarioActivityConfigGUI::SetEnabled(bool enable, const Activity* selectedActivity, Scene* selectedScene) {
-	m_ActivityConfigBox->SetEnabled(enable);
+void ScenarioActivityConfigGUI::SetEnabled(bool enable, Activity* selectedActivity, Scene* selectedScene) {
 	m_ActivityConfigBox->SetVisible(enable);
-
-	bool selectingPreviousActivityWithManuallyAdjustedGold = m_StartingGoldAdjustedManually && m_PreviouslySelectedActivity == selectedActivity;
-	if (enable) {
-		m_SelectedActivity = dynamic_cast<const GameActivity*>(selectedActivity);
-		m_SelectedScene = selectedScene;
-		RTEAssert(m_SelectedActivity && m_SelectedScene, "Trying to start a scenario game without an Activity or a Scene!");
-	} else {
-		m_PreviouslySelectedActivity = m_SelectedActivity;
-		m_SelectedActivity = nullptr;
-		m_SelectedScene = nullptr;
-	}
 	// The tech select ComboBoxes aren't children of the config box (dirty hack to allow the drop-down list to extend beyond the parent box bounds without clipping) so we need to set their visibility separately.
 	for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 		m_TeamTechComboBoxes[team]->SetVisible(enable);
 	}
-	if (enable && m_SelectedActivity && m_SelectedScene) {
-		if (!m_TechListFetched) {
-			PopulateTechComboBoxes();
-		}
 
-		int startingGoldOverride = selectingPreviousActivityWithManuallyAdjustedGold ? m_StartingGoldSlider->GetValue() : -1;
+	if (enable) {
+		m_SelectedActivity = dynamic_cast<GameActivity*>(selectedActivity);
+		m_SelectedScene = selectedScene;
+		RTEAssert(m_SelectedActivity && m_SelectedScene, "Trying to start a scenario game without an Activity and a Scene!");
+
 		ResetActivityConfigBox();
+	} else {
+		m_SelectedActivity->SetDefaultFogOfWar(m_FogOfWarCheckbox->GetCheck());
+		m_SelectedActivity->SetDefaultRequireClearPathToOrbit(m_RequireClearPathToOrbitCheckbox->GetCheck());
+		m_SelectedActivity->SetDefaultDeployUnits(m_DeployUnitsCheckbox->GetCheck());
+		m_SelectedActivity->SetDefaultDifficulty(m_ActivityDifficultySlider->GetValue());
 
-		if (startingGoldOverride >= 0) {
-			m_StartingGoldSlider->SetValue(startingGoldOverride);
-			m_StartingGoldAdjustedManually = true;
-			UpdateStartingGoldSliderAndLabel();
+		if (m_StartingGoldAdjustedManually) {
+			m_SelectedActivity->SetDefaultManuallyAdjustedGold(m_StartingGoldSlider->GetValue());
 		}
+
+		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
+			m_SelectedActivity->SetDefaultAISkill(team, m_TeamAISkillSliders[team]->GetValue());
+			m_SelectedActivity->SetDefaultTeamTech(team, m_TeamTechComboBoxes[team]->GetSelectedItem()->m_Name);
+		}
+
+		m_PreviouslySelectedActivity = m_SelectedActivity;
+		m_SelectedActivity = nullptr;
+		m_SelectedScene = nullptr;
 	}
 }
 
 void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
+	if (!m_TechListFetched) {
+		PopulateTechComboBoxes();
+	}
+
 	m_ActivityDifficultyLabel->SetText(" " + Activity::GetDifficultyString(m_ActivityDifficultySlider->GetValue()));
 	UpdateStartingDifficultySliderAndLabel();
 	m_ActivityDifficultySlider->SetEnabled(m_SelectedActivity->GetDifficultySwitchEnabled());
@@ -199,17 +206,17 @@ void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 
 		m_TeamTechComboBoxes.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
 
-		std::string teamModule = m_SelectedActivity->GetTeamTech(team);
+		std::string teamModule = m_SelectedActivity->GetDefaultTeamTech(team);
 		int teamModuleID = g_PresetMan.GetModuleID(teamModule);
 
 		if (teamModuleID != -1) {
 			auto items = m_TeamTechComboBoxes.at(team)->GetListPanel()->GetItemList();
 			for (int i = 0; i < items->size(); i++) {
 				if (teamModuleID == items->at(i)->m_ExtraIndex) {
-					teamModuleID = i;
+					m_TeamTechComboBoxes.at(team)->SetSelectedIndex(i);
+					break;
 				}
 			}
-			m_TeamTechComboBoxes.at(team)->SetSelectedIndex(teamModuleID);
 		} else {
 			m_TeamTechComboBoxes.at(team)->SetSelectedIndex(0);
 		}
@@ -223,6 +230,14 @@ void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 	if (const Icon* disabledTeamIcon = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Disabled Team"))) {
 		m_TeamIconBoxes.at(TeamRows::DisabledTeam)->SetDrawImage(new AllegroBitmap(disabledTeamIcon->GetBitmaps32()[0]));
 	}
+
+	int startingGoldOverride = m_SelectedActivity->GetDefaultManuallyAdjustedGold();
+
+	if (startingGoldOverride >= 0) {
+		m_StartingGoldSlider->SetValue(startingGoldOverride);
+		m_StartingGoldAdjustedManually = true;
+		UpdateStartingGoldSliderAndLabel();
+	}
 }
 
 void ScenarioActivityConfigGUI::StartGame() {
@@ -233,9 +248,11 @@ void ScenarioActivityConfigGUI::StartGame() {
 
 	gameActivity->SetRequireClearPathToOrbit(m_RequireClearPathToOrbitCheckbox->GetCheck());
 	gameActivity->SetFogOfWarEnabled(m_FogOfWarCheckbox->GetCheck());
+	// TODO gameActivity->SetDeployUnits(m_DeployUnitsCheckbox->GetCheck());
 	g_SceneMan.SetSceneToLoad(m_SelectedScene, true, m_DeployUnitsCheckbox->GetCheck());
 
 	gameActivity->ClearPlayers(false);
+
 	for (int player = Players::PlayerOne; player < PlayerColumns::PlayerColumnCount; ++player) {
 		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 			if (m_PlayerBoxes.at(player).at(team)->GetDrawType() == GUICollectionBox::Image) {
@@ -261,6 +278,7 @@ void ScenarioActivityConfigGUI::StartGame() {
 		}
 		gameActivity->SetTeamAISkill(team, (m_TeamAISkillSliders.at(team)->IsEnabled()) ? m_TeamAISkillSliders.at(team)->GetValue() : Activity::AISkillSetting::DefaultSkill);
 	}
+
 	g_LuaMan.FileCloseAll();
 	g_ActivityMan.SetStartActivity(gameActivity);
 }

@@ -129,7 +129,7 @@ void ScenarioGUI::SetDraggedBox(int mouseX, int mouseY) {
 	}
 }
 
-void ScenarioGUI::SetSelectedActivity(const Activity* newSelectedActivity) {
+void ScenarioGUI::SetSelectedActivity(Activity* newSelectedActivity) {
 	m_SelectedActivity = newSelectedActivity;
 	m_ActivityScenes = nullptr;
 
@@ -244,7 +244,7 @@ void ScenarioGUI::FetchActivitiesAndScenesLists() {
 	}
 	if (prevSelectedActivityIndex >= 0) {
 		m_ActivitySelectComboBox->SetSelectedIndex(prevSelectedActivityIndex);
-		SetSelectedActivity(dynamic_cast<const Activity*>(m_ActivitySelectComboBox->GetSelectedItem()->m_pEntity));
+		SetSelectedActivity(const_cast<Activity*>(dynamic_cast<const Activity*>(m_ActivitySelectComboBox->GetSelectedItem()->m_pEntity)));
 		if (prevSelectedScene) {
 			SetSelectedScene(prevSelectedScene);
 		}
@@ -516,7 +516,7 @@ void ScenarioGUI::HandleInputEvents(int mouseX, int mouseY) {
 
 			if (guiEvent.GetMsg() == GUIComboBox::Closed && guiEvent.GetControl() == m_ActivitySelectComboBox) {
 				g_GUISound.ItemChangeSound()->Play();
-				SetSelectedActivity((m_ActivitySelectComboBox->GetSelectedItem()) ? dynamic_cast<const Activity*>(m_ActivitySelectComboBox->GetSelectedItem()->m_pEntity) : nullptr);
+				SetSelectedActivity(const_cast<Activity*>((m_ActivitySelectComboBox->GetSelectedItem()) ? dynamic_cast<const Activity*>(m_ActivitySelectComboBox->GetSelectedItem()->m_pEntity) : nullptr));
 			}
 		}
 	}

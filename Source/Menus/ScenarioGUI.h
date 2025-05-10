@@ -66,7 +66,7 @@ namespace RTE {
 		ScenarioMenuUpdateResult m_UpdateResult; //!< The result of the ScenarioGUI update. See ScenarioMenuUpdateResult enumeration.
 
 		std::map<Activity*, std::vector<Scene*>> m_ScenarioActivities; //!< The map of Activities and the Scenes compatible with each, neither of which are owned here.
-		const Activity* m_SelectedActivity; //!< The currently selected Activity. Not owned.
+		Activity* m_SelectedActivity; //!< The currently selected Activity. Not owned.
 
 		std::vector<Scene*>* m_ActivityScenes; //!< Pointer to the current set of Scenes being displayed. Not owned, and neither are the Scenes.
 		Scene* m_SelectedScene; //!< The scene preset currently selected. Not owned.
@@ -120,7 +120,7 @@ namespace RTE {
 
 		/// Sets the selected Activity, refreshes the compatible Scenes on the planet and updates the Activity info box appropriately.
 		/// @param newSelectedActivity The new selected Activity.
-		void SetSelectedActivity(const Activity* newSelectedActivity);
+		void SetSelectedActivity(Activity* newSelectedActivity);
 
 		/// Sets the currently selected Scene and updates the Scene info box appropriately.
 		/// @param newSelectedScene The new selected Scene.

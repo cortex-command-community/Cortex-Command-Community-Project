@@ -36,7 +36,7 @@ namespace RTE {
 		/// @param enable Show and enable or hide and disable the ScenarioActivityConfigGUI.
 		/// @param selectedActivity Pointer to the Activity this ScenarioActivityConfigGUI will be configuring for.
 		/// @param selectedScene Pointer to the Scene the passed in Activity will be using.
-		void SetEnabled(bool enable, const Activity* selectedActivity = nullptr, Scene* selectedScene = nullptr);
+		void SetEnabled(bool enable, Activity* selectedActivity = nullptr, Scene* selectedScene = nullptr);
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -65,7 +65,7 @@ namespace RTE {
 
 		GUIControlManager* m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
 
-		const GameActivity* m_SelectedActivity; //!< The Activity this ScenarioActivityConfigGUI is configuring.
+		GameActivity* m_SelectedActivity; //!< The Activity this ScenarioActivityConfigGUI is configuring.
 		const GameActivity* m_PreviouslySelectedActivity; //!< The Activity this ScenarioActivityConfigGUI was configuring last, before it got was disabled.
 		Scene* m_SelectedScene; //!< The Scene the selected Activity will be using.
 		int m_LockedCPUTeam = Activity::Teams::NoTeam; //!< Which team the CPU is locked to, if any.
