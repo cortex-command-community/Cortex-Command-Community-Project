@@ -452,7 +452,7 @@ int FrameMan::SaveBitmap(SaveBitmapMode modeToSave, const std::string& nameBase,
 	}
 
 	// TODO: Remove this once GCC13 is released and switched to. std::format and std::chrono::time_zone are not part of latest libstdc++.
-#if defined(__GNUC__) && __GNUC__ < 13
+#if defined(__GNUC__) && (__GNUC__ < 13 || defined(__APPLE__)) //FIXME: macOS for some reason builds with incorrect iconv in CI which breaks format, could not debug.
 	std::chrono::time_point now = std::chrono::system_clock::now();
 	time_t currentTime = std::chrono::system_clock::to_time_t(now);
 	tm* localCurrentTime = std::localtime(&currentTime);
