@@ -89,8 +89,15 @@ function Update(self)
 			local mode = self.parentGun:GetNumberValue("GrappleMode");
 
 			if mode ~= 0 then
-				self.pieSelection = mode;
-				self.parentGun:RemoveNumberValue("GrappleMode");
+				if mode == 3 then -- Unhook via Pie Menu
+					self.ToDelete = true;
+					if self.parentGun then -- Corrected 'sif' to 'if'
+						self.parentGun:RemoveNumberValue("GrappleMode");
+					end
+				else
+					self.pieSelection = mode;
+					self.parentGun:RemoveNumberValue("GrappleMode");
+				end
 			end
 
 			if self.parentGun.FiredFrame then
@@ -114,7 +121,10 @@ function Update(self)
 			if (self.parentGun and self.parentGun.ID ~= rte.NoMOID) and (self.parentGun:GetRootParent().ID == self.parent.ID) then
 				if self.parent:IsPlayerControlled() then
 					if controller:IsState(Controller.WEAPON_RELOAD) then
-						self.ToDelete = true;
+						-- Only unhook with R if holding the Grapple Gun
+						if self.parent.EquippedItem and self.parentGun and self.parent.EquippedItem.ID == self.parentGun.ID then
+							self.ToDelete = true;
+						end
 					end
 					if self.parentGun.Magazine then
 						self.parentGun.Magazine.RoundCount = 0;
@@ -434,18 +444,30 @@ function Update(self)
 
 		-- Double tapping crouch retrieves the hook
 		if controller and controller:IsState(Controller.BODY_PRONE) then
-			self.pieSelection = 0;
-			if self.canTap == true then
-				controller:SetState(Controller.BODY_PRONE, false);
-				self.climb = 0;
-				if self.parentGun ~= nil and self.parentGun.ID ~= rte.NoMOID then
-					self.parentGun:RemoveNumberValue("GrappleMode");
-				end
+			-- Check if the player is currently holding the grappling gun
+			local isHoldingGrappleGun = false;
+			if self.parent and self.parent.EquippedItem and self.parentGun and self.parent.EquippedItem.ID == self.parentGun.ID then
+				isHoldingGrappleGun = true;
+			end
 
-				self.tapTimer:Reset();
-				self.didTap = true;
-				self.canTap = false;
-				self.tapCounter = self.tapCounter + 1;
+			if not isHoldingGrappleGun then -- Only process tap for unhook if NOT holding grapple gun
+				self.pieSelection = 0;
+				if self.canTap == true then
+					controller:SetState(Controller.BODY_PRONE, false);
+					self.climb = 0;
+					if self.parentGun ~= nil and self.parentGun.ID ~= rte.NoMOID then
+						self.parentGun:RemoveNumberValue("GrappleMode");
+					end
+
+					self.tapTimer:Reset();
+					self.didTap = true;
+					self.canTap = false;
+					self.tapCounter = self.tapCounter + 1;
+				end
+			else
+				-- If holding the gun, crouch might be for manual rope control.
+				-- Ensure canTap is true so that normal crouch isn't blocked by this tap logic.
+				self.canTap = true;
 			end
 		else
 			self.canTap = true;
@@ -455,7 +477,16 @@ function Update(self)
 			self.tapCounter = 0;
 		else
 			if self.tapCounter >= self.tapAmount then
-				self.ToDelete = true;
+				local isHoldingGrappleGun = false;
+				if self.parent and self.parent.EquippedItem and self.parentGun and self.parent.EquippedItem.ID == self.parentGun.ID then
+					isHoldingGrappleGun = true;
+				end
+
+				if not isHoldingGrappleGun then -- Only unhook via double tap if NOT holding grapple gun
+					self.ToDelete = true;
+				else
+					self.tapCounter = 0; -- If holding gun, reset counter to prevent unhook
+				end
 			end
 		end
 
