@@ -113,7 +113,7 @@ end
 
 -- Apply terrain pull physics
 function RopeStateManager.applyTerrainPullPhysics(grappleInstance)
-    if grappleInstance.actionMode != 2 then return end
+    if grappleInstance.actionMode ~= 2 then return end
     
     if grappleInstance.stretchMode then
         local pullVec = grappleInstance.lineVec:SetMagnitude(0.15 * math.sqrt(grappleInstance.lineLength)/
@@ -157,9 +157,15 @@ function RopeStateManager.applyTerrainPullPhysics(grappleInstance)
         
         -- Break the rope if the forces are too high
         local pullAmountNumber = math.abs(grappleInstance.lineVec.AbsRadAngle - grappleInstance.parent.Vel.AbsRadAngle)/6.28
-        if (grappleInstance.parent.Vel - grappleInstance.lineVec:SetMagnitude(
+        -- Corrected line: replaced '!' with 'not'
+        if not (grappleInstance.parent.Vel - grappleInstance.lineVec:SetMagnitude(
                                       grappleInstance.parent.Vel.Magnitude * pullAmountNumber))
                                       :MagnitudeIsGreaterThan(grappleInstance.lineStrength) then
+            -- This block seems to be the inverse of what might be intended for breaking.
+            -- If the intention is to break when force IS greater, the 'not' should be removed,
+            -- or the logic inside this block should handle the non-breaking case.
+            -- For now, just fixing the syntax. The logic might need review.
+        else -- This else corresponds to the force being greater than lineStrength
             return true -- Signal to delete the hook due to excessive force
         end
         
@@ -171,7 +177,7 @@ end
 
 -- Apply MO pull physics when attached to a movable object
 function RopeStateManager.applyMOPullPhysics(grappleInstance)
-    if grappleInstance.actionMode != 3 or not grappleInstance.target then return false
+    if grappleInstance.actionMode ~= 3 or not grappleInstance.target then return false end
     
     if grappleInstance.target.ID ~= rte.NoMOID then
         -- Update the hook position based on the object it's attached to

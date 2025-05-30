@@ -1,5 +1,5 @@
 -- Load required modules
-local RopeStateManager = require("Base.rte.Devices.Tools.GrappleGun.Scripts.RopeStateManager")
+local RopeStateManager = require("Devices.Tools.GrappleGun.Scripts.RopeStateManager")
 
 function GrapplePieRetract(pieMenuOwner, pieMenu, pieSlice)
 	local gun = pieMenuOwner.EquippedItem;

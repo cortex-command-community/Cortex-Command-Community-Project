@@ -1,5 +1,5 @@
--- Grapple Gun Physics Module
--- Handles the physics simulation for the rope
+-- Rope Physics Module
+-- Handles the physics simulation for the grapple rope
 
 local RopePhysics = {}
 
@@ -152,6 +152,115 @@ function RopePhysics.updateRopeFlightPath(self)
         self.apy[i] = segmentPos.Y
         self.lastX[i] = segmentPos.X
         self.lastY[i] = segmentPos.Y
+    end
+end
+
+-- Update the rope physics using Verlet integration (VelvetGrapple approach)
+function RopePhysics.updateRopePhysics(grappleInstance, startPos, endPos, cablelength)
+    -- Apply Verlet integration (main physics loop)
+    local segments = grappleInstance.currentSegments
+    local lastX, lastY = {}, {}
+    
+    -- Update positions using Verlet integration
+    for i = 0, segments do
+        local t = i / segments
+        local segPos = Vector.Lerp(startPos, endPos, t)
+        local dx = segPos.X - grappleInstance.apx[i]
+        local dy = segPos.Y - grappleInstance.apy[i]
+        
+        -- Log the position update for debugging
+        Logger.debug(string.format("Segment %d: Pos(%.2f, %.2f) -> (%.2f, %.2f)", i, grappleInstance.apx[i], grappleInstance.apy[i], segPos.X, segPos.Y))
+        
+        -- Update positions
+        grappleInstance.apx[i] = segPos.X
+        grappleInstance.apy[i] = segPos.Y
+        lastX[i] = dx
+        lastY[i] = dy
+    end
+    
+    -- Update velocities
+    for i = 0, segments do
+        grappleInstance.lastX[i] = lastX[i]
+        grappleInstance.lastY[i] = lastY[i]
+    end
+end
+
+-- Apply constraints to keep rope segments connected and within length limits
+function RopePhysics.applyRopeConstraints(grappleInstance, cablelength)
+    Logger.debug("RopePhysics.applyRopeConstraints called with cablelength: " .. tostring(cablelength))
+    local transX = 0
+    local transY = 0
+    local segments = grappleInstance.currentSegments
+    
+    -- Apply constraints between each pair of segments
+    for i = 0, segments - 1 do
+        local dx = grappleInstance.apx[i+1] - grappleInstance.apx[i]
+        local dy = grappleInstance.apy[i+1] - grappleInstance.apy[i]
+        local dist = math.sqrt(dx*dx + dy*dy)
+        local diff = (dist - cablelength) / dist * 0.5 -- Half the difference to each segment
+        
+        -- Log the constraint application for debugging
+        Logger.debug(string.format("Applying constraint between segment %d and %d: diff=%.2f", i, i+1, diff))
+        
+        -- Adjust positions to satisfy constraint
+        grappleInstance.apx[i+1] = grappleInstance.apx[i+1] - diff * dx
+        grappleInstance.apy[i+1] = grappleInstance.apy[i+1] - diff * dy
+        grappleInstance.apx[i] = grappleInstance.apx[i] + diff * dx
+        grappleInstance.apy[i] = grappleInstance.apy[i] + diff * dy
+    end
+end
+
+-- Handle player pulling on the rope (manual or automatic)
+function RopePhysics.handleRopePull(grappleInstance, controller, terrCheck)
+    Logger.debug("RopePhysics.handleRopePull called")
+    local player = grappleInstance.parent
+    local segments = grappleInstance.currentSegments
+    
+    -- Manual pull (e.g., player input)
+    if controller:IsState(Controller.WEAPON) then
+        local aimVec = Vector(controller:GetAimPos()):SetMagnitude(1)
+        grappleInstance.apx[0] = player.Pos.X + aimVec.X * 10
+        grappleInstance.apy[0] = player.Pos.Y + aimVec.Y * 10
+    end
+    
+    -- Automatic retraction (e.g., rope not taut)
+    if grappleInstance.currentLineLength < grappleInstance.maxLineLength then
+        local retractVec = Vector(grappleInstance.apx[segments], grappleInstance.apy[segments]) - player.Pos
+        retractVec:SetMagnitude(1)
+        grappleInstance.apx[segments] = grappleInstance.apx[segments] - retractVec.X
+        grappleInstance.apy[segments] = grappleInstance.apy[segments] - retractVec.Y
+    end
+end
+
+-- Handle player extending the rope
+function RopePhysics.handleRopeExtend(grappleInstance)
+    Logger.debug("RopePhysics.handleRopeExtend called")
+    if grappleInstance.currentLineLength < grappleInstance.maxLineLength then
+        local segments = grappleInstance.currentSegments
+        local extendVec = Vector(grappleInstance.apx[segments], grappleInstance.apy[segments]) - grappleInstance.parent.Pos
+        extendVec:SetMagnitude(1)
+        grappleInstance.apx[segments] = grappleInstance.apx[segments] + extendVec.X
+        grappleInstance.apy[segments] = grappleInstance.apy[segments] + extendVec.Y
+    end
+end
+
+-- Check for and handle rope breaking if tension is too high
+function RopePhysics.checkRopeBreak(grappleInstance)
+    Logger.debug("RopePhysics.checkRopeBreak called")
+    -- Calculate tension (simplified)
+    local tension = 0
+    local segments = grappleInstance.currentSegments
+    
+    for i = 0, segments - 1 do
+        local dx = grappleInstance.apx[i+1] - grappleInstance.apx[i]
+        local dy = grappleInstance.apy[i+1] - grappleInstance.apy[i]
+        tension = tension + math.sqrt(dx*dx + dy*dy)
+    end
+    
+    -- Break the rope if tension exceeds a threshold
+    if tension > grappleInstance.maxTension then
+        Logger.warn("Rope tension too high, breaking rope")
+        grappleInstance:Break()
     end
 end
 

@@ -77,48 +77,46 @@ end
 
 -- Show tension indicator above player when rope is tense
 function RopeRenderer.showTensionIndicator(grappleInstance, player) -- Changed self to grappleInstance
-    if not grappleInstance.parent or player <= 0 or not grappleInstance.parent:IsPlayerControlled() then
-        return
-    end
+    if grappleInstance.limitReached and grappleInstance.actionMode > 1 then
+        -- Only show when rope is under tension (original logic was comparing lineLength and currentLineLength)
+        -- This needs to be adapted based on how tension is actually determined in Grapple.lua
+        -- For now, let's assume a simple tension model if currentLineLength is less than a set lineLength
+        -- This part might need adjustment based on the main Grapple.lua logic for 'lineStrength' or similar
+        local currentTension = 0
+        if grappleInstance.setLineLength > 0 and grappleInstance.currentLineLength < grappleInstance.setLineLength then
+             currentTension = (grappleInstance.setLineLength - grappleInstance.currentLineLength) / grappleInstance.setLineLength
+        end
     
-    -- Only show when rope is under tension (original logic was comparing lineLength and currentLineLength)
-    -- This needs to be adapted based on how tension is actually determined in Grapple.lua
-    -- For now, let's assume a simple tension model if currentLineLength is less than a set lineLength
-    -- This part might need adjustment based on the main Grapple.lua logic for 'lineStrength' or similar
-    local currentTension = 0
-    if grappleInstance.setLineLength > 0 and grappleInstance.currentLineLength < grappleInstance.setLineLength then
-         currentTension = (grappleInstance.setLineLength - grappleInstance.currentLineLength) / grappleInstance.setLineLength
-    end
-
-    if currentTension < 0.1 then -- Show only if tension is somewhat significant
-        return
-    end
-    
-    local tensionRatio = math.min(currentTension * 5, 1.0) -- Scale for visibility, max 1.0
-
-    -- Calculate indicator position (above player)
-    local indicatorPos = Vector(grappleInstance.parent.Pos.X, grappleInstance.parent.Pos.Y - grappleInstance.parent.Height * 0.5 - 12)
-    
-    -- Visual indicator style based on tension
-    local indicatorWidth = 20
-    local indicatorHeight = 3
-    
-    -- Draw tension bar background
-    PrimitiveMan:DrawBoxFillPrimitive(player, 
-        indicatorPos - Vector(indicatorWidth/2 + 1, indicatorHeight/2 + 1), 
-        indicatorPos + Vector(indicatorWidth/2 + 1, indicatorHeight/2 + 1), 
-        13) -- Dark background (using color 13 as in original)
+        if currentTension < 0.1 then -- Show only if tension is somewhat significant
+            return
+        end
         
-    -- Draw tension bar fill
-    PrimitiveMan:DrawBoxFillPrimitive(player, 
-        indicatorPos - Vector(indicatorWidth/2, indicatorHeight/2), 
-        indicatorPos + Vector(indicatorWidth/2 * tensionRatio, indicatorHeight/2), 
-        13) -- Red fill (using color 13 as in original, was 5)
+        local tensionRatio = math.min(currentTension * 5, 1.0) -- Scale for visibility, max 1.0
+    
+        -- Calculate indicator position (above player)
+        local indicatorPos = Vector(grappleInstance.parent.Pos.X, grappleInstance.parent.Pos.Y - grappleInstance.parent.Height * 0.5 - 12)
         
-    -- Draw warning text if close to breaking (e.g. tensionRatio > 0.8)
-    if tensionRatio > 0.8 then
-        local warningPos = Vector(indicatorPos.X, indicatorPos.Y - 10)
-        PrimitiveMan:DrawTextPrimitive(player, warningPos, "TENSION!", 162)
+        -- Visual indicator style based on tension
+        local indicatorWidth = 20
+        local indicatorHeight = 3
+        
+        -- Draw tension bar background
+        PrimitiveMan:DrawBoxFillPrimitive(player, 
+            indicatorPos - Vector(indicatorWidth/2 + 1, indicatorHeight/2 + 1), 
+            indicatorPos + Vector(indicatorWidth/2 + 1, indicatorHeight/2 + 1), 
+            13) -- Dark background (using color 13 as in original)
+            
+        -- Draw tension bar fill
+        PrimitiveMan:DrawBoxFillPrimitive(player, 
+            indicatorPos - Vector(indicatorWidth/2, indicatorHeight/2), 
+            indicatorPos + Vector(indicatorWidth/2 * tensionRatio, indicatorHeight/2), 
+            13) -- Red fill (using color 13 as in original, was 5)
+            
+        -- Draw warning text if close to breaking (e.g. tensionRatio > 0.8)
+        if tensionRatio > 0.8 then
+            local warningPos = Vector(indicatorPos.X, indicatorPos.Y - 10)
+            PrimitiveMan:DrawTextPrimitive(player, warningPos, "TENSION!", 162)
+        end
     end
 end
 
