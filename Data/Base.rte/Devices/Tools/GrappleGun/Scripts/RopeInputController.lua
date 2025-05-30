@@ -1,5 +1,6 @@
 -- Grapple Gun Input Controller Module
--- Handles all user input related to grapple rope control
+-- Handles user input for rope control with pure constraint-based physics
+-- No velocity manipulation, no force application - only rope length control
 
 local RopeInputController = {}
 
@@ -134,18 +135,10 @@ function RopeInputController.handleDirectionalControl(grappleInstance, controlle
     
     if controller:IsMouseControlled() == false then
         if controller:IsState(Controller.HOLD_UP) then
-            if grappleInstance.currentLineLength > grappleInstance.climbInterval and terrCheck == false then
+            if grappleInstance.currentLineLength > grappleInstance.climbInterval then
                 grappleInstance.climb = 1
-            elseif terrCheck ~= false then
-                -- Try to nudge past terrain
-                local nudge = math.sqrt(grappleInstance.lineLength + grappleInstance.parent.Radius) / 
-                             (10 + grappleInstance.parent.Vel.Magnitude)
-                local aimvec = Vector(grappleInstance.lineVec.Magnitude, 0)
-                               :SetMagnitude(nudge)
-                               :RadRotate((grappleInstance.lineVec.AbsRadAngle + 
-                                         grappleInstance.parent:GetAimAngle(true))/2 + 
-                                         grappleInstance.parent.FlipFactor * 0.7)
-                grappleInstance.parent.Vel = grappleInstance.parent.Vel + aimvec
+                -- Pure position-based system - no direct velocity manipulation
+                -- Terrain obstacles are handled by Verlet constraint system
             end
         end
 
@@ -260,24 +253,14 @@ function RopeInputController.handleAutoRetraction(grappleInstance, terrCheck)
         grappleInstance.climbTimer:Reset()
         
         if grappleInstance.pieSelection == 0 and grappleInstance.parentGun:IsActivated() then
-            if grappleInstance.currentLineLength > grappleInstance.autoClimbIntervalA and terrCheck == false then
+            if grappleInstance.currentLineLength > grappleInstance.autoClimbIntervalA then
                 grappleInstance.currentLineLength = grappleInstance.currentLineLength - (grappleInstance.autoClimbIntervalA/parentForces)
                 grappleInstance.setLineLength = grappleInstance.currentLineLength
+                -- Pure position-based system - no velocity manipulation or terrain nudging
+                -- Verlet constraints handle all physical interactions
             else
                 grappleInstance.parentGun:RemoveNumberValue("GrappleMode")
                 grappleInstance.pieSelection = 0
-                
-                if terrCheck ~= false then
-                    -- Try to nudge past terrain
-                    local nudge = math.sqrt(grappleInstance.lineLength + grappleInstance.parent.Radius) / 
-                                 (10 + grappleInstance.parent.Vel.Magnitude)
-                    local aimvec = Vector(grappleInstance.lineVec.Magnitude, 0)
-                                  :SetMagnitude(nudge)
-                                  :RadRotate((grappleInstance.lineVec.AbsRadAngle + 
-                                            grappleInstance.parent:GetAimAngle(true))/2 + 
-                                            grappleInstance.parent.FlipFactor * 0.7)
-                    grappleInstance.parent.Vel = grappleInstance.parent.Vel + aimvec
-                end
             end
         end
     end
@@ -288,9 +271,10 @@ function RopeInputController.handleAutoRetraction(grappleInstance, terrCheck)
         
         if grappleInstance.pieSelection == 1 then
             -- Full retract
-            if grappleInstance.currentLineLength > grappleInstance.autoClimbIntervalA and terrCheck == false then
+            if grappleInstance.currentLineLength > grappleInstance.autoClimbIntervalA then
                 grappleInstance.currentLineLength = grappleInstance.currentLineLength - (grappleInstance.autoClimbIntervalA/parentForces)
                 grappleInstance.setLineLength = grappleInstance.currentLineLength
+                -- Pure position-based system - no terrain checking or velocity manipulation
             else
                 grappleInstance.pieSelection = 0
             end

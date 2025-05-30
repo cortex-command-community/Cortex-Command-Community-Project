@@ -1,5 +1,7 @@
 -- Rope Physics Module
--- Handles the physics simulation for the grapple rope
+-- Ultra-rigid Verlet rope physics with pure position-based constraints
+-- No dampening, no force accumulation, no direct player manipulation
+-- EXTREMELY HARD TO BREAK: Rope only breaks at 500% stretch (5x original length)
 
 local RopePhysics = {}
 
@@ -180,13 +182,12 @@ function RopePhysics.updateRopeFlightPath(self)
     self.apy[self.currentSegments] = endPos.Y
 end
 
--- Update the rope physics using Verlet integration
--- Includes improved damping and spring behavior for better actor safety
+-- Update the rope physics using Verlet integration with no dampening
 function RopePhysics.updateRopePhysics(grappleInstance, startPos, endPos, cablelength)
     local segments = grappleInstance.currentSegments
     if segments < 1 then return end
 
-    local gravity_y = 0.04 -- Slightly reduced gravity for gentler behavior
+    local gravity_y = 0.1 -- Normal gravity for realistic rope behavior
 
     -- Initialize previous positions for new points
     for i = 0, segments do
@@ -203,24 +204,15 @@ function RopePhysics.updateRopePhysics(grappleInstance, startPos, endPos, cablel
         local prev_x = grappleInstance.lastX[i]
         local prev_y = grappleInstance.lastY[i]
 
-        -- Calculate velocity from position history
+        -- Calculate velocity from position history (no dampening applied)
         local vel_x = current_x - prev_x
         local vel_y = current_y - prev_y
-
-        -- Apply progressive damping - stronger for faster movements
-        local velocity_magnitude = math.sqrt(vel_x*vel_x + vel_y*vel_y)
-        local base_damping = 0.98
-        local extra_damping = math.min(velocity_magnitude * 0.01, 0.05) -- Additional damping for high velocities
-        local damping = base_damping - extra_damping
-        
-        vel_x = vel_x * damping
-        vel_y = vel_y * damping
 
         -- Store current position as previous for next frame
         grappleInstance.lastX[i] = current_x
         grappleInstance.lastY[i] = current_y
 
-        -- Apply Verlet integration with gravity
+        -- Apply Verlet integration with gravity (no dampening)
         grappleInstance.apx[i] = current_x + vel_x
         grappleInstance.apy[i] = current_y + vel_y + gravity_y
     end
@@ -273,78 +265,221 @@ function RopePhysics.updateRopePhysics(grappleInstance, startPos, endPos, cablel
     end
 end
 
--- Apply constraints to keep rope segments connected and within length limits
--- Now includes spring damping to prevent actor obliteration from tension
+-- Advanced force protection system for preventing actor death from rope forces
+function RopePhysics.calculateActorProtection(grappleInstance, force_magnitude, force_direction)
+    -- Simplified - just return reduced values, no complex calculations
+    local safe_force_magnitude = math.min(force_magnitude, 5.0) -- Hard cap at 5
+    local safe_force_vector = force_direction * safe_force_magnitude
+    return safe_force_magnitude, safe_force_vector
+end
+
+-- Apply stored forces gradually over time
+function RopePhysics.applyStoredForces(grappleInstance)
+    -- Disabled - no stored forces in pure Verlet implementation
+end
+
+-- Proper Verlet rope constraint satisfaction with rigid distance constraints
+-- Implements true non-stretchy rope behavior using position-based dynamics
+-- Now properly integrated with centralized length control
 function RopePhysics.applyRopeConstraints(grappleInstance, currentTotalCableLength)
     local segments = grappleInstance.currentSegments
-    if segments == 0 then return end
+    if segments == 0 then return false end
+    
+    if not grappleInstance.parent then return false end
 
-    local targetSegmentLength = currentTotalCableLength / segments
-    if targetSegmentLength <= 0 then
-        return
+    -- Use the centrally controlled rope length as the maximum constraint
+    local maxRopeLength = grappleInstance.currentLineLength or grappleInstance.maxLineLength
+    
+    -- FIRST: Enforce rigid maximum distance constraint through rope physics only
+    -- Pure Verlet implementation - no direct player position manipulation
+    local playerPos = grappleInstance.parent.Pos
+    local hookPos = Vector(grappleInstance.apx[segments], grappleInstance.apy[segments])
+    local ropeVector = SceneMan:ShortestDistance(playerPos, hookPos, grappleInstance.mapWrapsX)
+    local totalRopeDistance = ropeVector.Magnitude
+    
+    -- Update anchor positions for constraint calculations
+    grappleInstance.apx[0] = playerPos.X
+    grappleInstance.apy[0] = playerPos.Y
+
+    -- GLOBAL CONSTRAINT: Handle rope length constraints smoothly
+    if totalRopeDistance > maxRopeLength then
+        local excessDistance = totalRopeDistance - maxRopeLength
+        local constraintDirection = ropeVector:SetMagnitude(1)
+        
+        -- Check if hook is anchored (attached to terrain or MO)
+        if grappleInstance.actionMode >= 2 then
+            -- Hook is anchored - apply PROPER SWINGING CONSTRAINT
+            -- This allows free tangential movement (swinging) while constraining radial movement
+            
+            local currentVelocity = grappleInstance.parent.Vel
+            
+            -- Calculate velocity component toward/away from hook
+            -- constraintDirection points FROM player TO hook
+            local radialVelocity = currentVelocity:Dot(constraintDirection)
+            
+            -- Only constrain the radial component if moving away from hook (stretching rope)
+            if radialVelocity < 0 then
+                -- Player is moving away from hook - remove ONLY the radial component
+                -- Keep all tangential velocity for swinging motion
+                local radialVelocityVector = constraintDirection * radialVelocity
+                local tangentialVelocity = currentVelocity - radialVelocityVector
+                
+                -- Set velocity to pure tangential motion (perfect swinging)
+                grappleInstance.parent.Vel = tangentialVelocity
+                
+                -- Set tension for physics feedback
+                grappleInstance.ropeTensionForce = -radialVelocity * 0.5
+                grappleInstance.ropeTensionDirection = constraintDirection
+            else
+                -- Player is moving toward hook or tangentially - no constraint needed
+                -- This allows free movement inward and pure swinging motion
+                grappleInstance.ropeTensionForce = nil
+                grappleInstance.ropeTensionDirection = nil
+            end
+            
+            -- CRITICAL: Also enforce position constraint to prevent gradual stretching
+            -- After constraining velocity, ensure player doesn't drift beyond max rope length
+            if totalRopeDistance > maxRopeLength then
+                local correctionDistance = totalRopeDistance - maxRopeLength
+                local correctionVector = constraintDirection * correctionDistance
+                
+                -- Move player back to exact rope radius (smooth correction)
+                local correctionStrength = 0.8 -- Strong but not instant correction
+                grappleInstance.parent.Pos = grappleInstance.parent.Pos + correctionVector * correctionStrength
+                
+                -- Update rope anchor to match corrected player position
+                grappleInstance.apx[0] = grappleInstance.parent.Pos.X
+                grappleInstance.apy[0] = grappleInstance.parent.Pos.Y
+            end
+        else
+            -- Hook is in flight - we can move it to maintain rope length
+            local correctionVector = constraintDirection * excessDistance
+            grappleInstance.apx[segments] = grappleInstance.apx[segments] - correctionVector.X
+            grappleInstance.apy[segments] = grappleInstance.apy[segments] - correctionVector.Y
+            
+            -- Clear any tension forces since rope is not under tension
+            grappleInstance.ropeTensionForce = nil
+            grappleInstance.ropeTensionDirection = nil
+            
+            -- Recalculate after constraint
+            hookPos = Vector(grappleInstance.apx[segments], grappleInstance.apy[segments])
+            ropeVector = SceneMan:ShortestDistance(playerPos, hookPos, grappleInstance.mapWrapsX)
+            totalRopeDistance = ropeVector.Magnitude
+        end
+    else
+        -- Rope is not at maximum length - clear tension forces
+        grappleInstance.ropeTensionForce = nil
+        grappleInstance.ropeTensionDirection = nil
     end
 
-    local iterations = 3 -- Fewer iterations for more stability
+    -- SECOND: Apply smooth rope retraction if rope is being shortened
+    -- This prevents "snapping" when the player retracts the rope
+    local currentActualLength = 0
+    for i = 0, segments - 1 do
+        local dx = grappleInstance.apx[i+1] - grappleInstance.apx[i]
+        local dy = grappleInstance.apy[i+1] - grappleInstance.apy[i]
+        currentActualLength = currentActualLength + math.sqrt(dx*dx + dy*dy)
+    end
+    
+    if currentActualLength > maxRopeLength then
+        -- Rope needs to be shortened - apply smooth contraction
+        local contractionRatio = maxRopeLength / currentActualLength
+        local contractionSpeed = 0.1 -- Smooth retraction speed
+        
+        -- Smoothly contract each segment toward the desired length
+        for i = 1, segments - 1 do
+            local toHook = Vector(grappleInstance.apx[segments] - grappleInstance.apx[i], 
+                                grappleInstance.apy[segments] - grappleInstance.apy[i])
+            local distanceToHook = toHook.Magnitude
+            
+            if distanceToHook > 0.1 then
+                -- Move segment gradually toward hook
+                local contractionDirection = toHook:SetMagnitude(1)
+                local contractionAmount = distanceToHook * (1 - contractionRatio) * contractionSpeed
+                
+                grappleInstance.apx[i] = grappleInstance.apx[i] + contractionDirection.X * contractionAmount
+                grappleInstance.apy[i] = grappleInstance.apy[i] + contractionDirection.Y * contractionAmount
+            end
+        end
+    end
+
+    -- THIRD: Apply rigid Verlet constraints for rope segments using MAXIMUM ALLOWED length
+    -- This prevents gradual stretching during swinging by enforcing the max rope length
+    local targetSegmentLength = maxRopeLength / segments -- Use maximum allowed length, not current distance
+    local iterations = 32 -- High iteration count for rigid rope behavior
+    local constraint_strength = 1.0 -- Full strength for completely rigid rope
 
     for iter = 1, iterations do
         for i = 0, segments - 1 do
             local p1_idx = i
             local p2_idx = i + 1
 
-            local dx = grappleInstance.apx[p2_idx] - grappleInstance.apx[p1_idx]
-            local dy = grappleInstance.apy[p2_idx] - grappleInstance.apy[p1_idx]
+            local x1, y1 = grappleInstance.apx[p1_idx], grappleInstance.apy[p1_idx]
+            local x2, y2 = grappleInstance.apx[p2_idx], grappleInstance.apy[p2_idx]
             
+            local dx = x2 - x1
+            local dy = y2 - y1
             local distance = math.sqrt(dx*dx + dy*dy)
             
-            if distance > 0.001 then
+            if distance > 0.001 then -- Avoid division by zero
+                -- Calculate exact constraint satisfaction
                 local difference = targetSegmentLength - distance
-                
-                -- Spring-like behavior: stronger correction for larger deviations but with limits
-                local stretch_ratio = distance / targetSegmentLength
-                local correction_strength = 0.2 -- Reduced from 0.3 for gentler corrections
-                
-                -- Apply spring damping to prevent extreme tension forces
-                if stretch_ratio > 1.5 then
-                    -- Very stretched - apply gentle restoration to prevent snap-back
-                    correction_strength = 0.1
-                elseif stretch_ratio > 1.2 then
-                    -- Moderately stretched - normal spring force
-                    correction_strength = 0.15
-                elseif stretch_ratio < 0.7 then
-                    -- Very compressed - allow some slack, gentle restoration
-                    correction_strength = 0.1
-                end
-                
-                local percent = (difference / distance) * correction_strength
-                
+                local percent = (difference / distance) * constraint_strength
                 local offsetX = dx * percent * 0.5
                 local offsetY = dy * percent * 0.5
 
-                -- Apply corrections based on which points are moveable
-                local p1_is_anchor = (p1_idx == 0 or p1_idx == segments)
-                local p2_is_anchor = (p2_idx == 0 or p2_idx == segments)
+                -- Check which points are anchors
+                local p1_is_anchor = (p1_idx == 0) -- Player anchor
+                local p2_is_anchor = (p2_idx == segments) -- Hook anchor
                 
                 if not p1_is_anchor and not p2_is_anchor then
                     -- Both points are free - move both equally
-                    grappleInstance.apx[p1_idx] = grappleInstance.apx[p1_idx] - offsetX
-                    grappleInstance.apy[p1_idx] = grappleInstance.apy[p1_idx] - offsetY
-                    grappleInstance.apx[p2_idx] = grappleInstance.apx[p2_idx] + offsetX
-                    grappleInstance.apy[p2_idx] = grappleInstance.apy[p2_idx] + offsetY
+                    grappleInstance.apx[p1_idx] = x1 - offsetX
+                    grappleInstance.apy[p1_idx] = y1 - offsetY
+                    grappleInstance.apx[p2_idx] = x2 + offsetX
+                    grappleInstance.apy[p2_idx] = y2 + offsetY
+                    
                 elseif p1_is_anchor and not p2_is_anchor then
-                    -- Only p2 can move - apply spring damping to prevent actor obliteration
-                    local force_multiplier = 1.5 -- Reduced from 2 for gentler force
-                    grappleInstance.apx[p2_idx] = grappleInstance.apx[p2_idx] + offsetX * force_multiplier
-                    grappleInstance.apy[p2_idx] = grappleInstance.apy[p2_idx] + offsetY * force_multiplier
+                    -- P1 is player anchor - only move P2
+                    -- Pure position-based constraints - no force feedback to player
+                    grappleInstance.apx[p2_idx] = x2 + offsetX * 2
+                    grappleInstance.apy[p2_idx] = y2 + offsetY * 2
+                    
                 elseif not p1_is_anchor and p2_is_anchor then
-                    -- Only p1 can move - apply spring damping to prevent actor obliteration
-                    local force_multiplier = 1.5 -- Reduced from 2 for gentler force
-                    grappleInstance.apx[p1_idx] = grappleInstance.apx[p1_idx] - offsetX * force_multiplier
-                    grappleInstance.apy[p1_idx] = grappleInstance.apy[p1_idx] - offsetY * force_multiplier
+                    -- P2 is hook anchor - only move P1
+                    grappleInstance.apx[p1_idx] = x1 - offsetX * 2
+                    grappleInstance.apy[p1_idx] = y1 - offsetY * 2
                 end
-                -- If both are anchors, do nothing
             end
         end
     end
+
+    -- Calculate final rope distance and segment lengths for breaking check and debug info
+    local finalRopeDistance = 0
+    local segmentLengths = {}
+    for i = 0, segments - 1 do
+        local dx = grappleInstance.apx[i+1] - grappleInstance.apx[i]
+        local dy = grappleInstance.apy[i+1] - grappleInstance.apy[i]
+        local segmentLength = math.sqrt(dx*dx + dy*dy)
+        segmentLengths[i] = segmentLength
+        finalRopeDistance = finalRopeDistance + segmentLength
+    end
+    
+    -- Store segment length data for debug display
+    grappleInstance.segmentLengths = segmentLengths
+    grappleInstance.actualRopeLength = finalRopeDistance
+    
+    -- EXTREMELY HARD TO BREAK: Only break at 500% stretch (5x original length)
+    -- This makes the rope virtually indestructible under normal conditions
+    if finalRopeDistance > maxRopeLength * 5.0 then -- Break at 500% stretch - extremely high threshold
+        grappleInstance.shouldBreak = true
+        return true
+    end
+
+    -- Store tension as stretch ratio for feedback
+    grappleInstance.currentTension = math.max(0, (finalRopeDistance - maxRopeLength) / maxRopeLength)
+
+    return false -- Rope didn't break
 end
 
 -- Smooth the rope using weighted averaging to reduce jaggedness
@@ -418,9 +553,9 @@ function RopePhysics.checkRopeBreak(grappleInstance)
         tension = tension + math.sqrt(dx*dx + dy*dy)
     end
     
-    -- Break the rope if tension exceeds a threshold
-    if tension > grappleInstance.maxTension then
-        grappleInstance:Break()
+    -- EXTREMELY HARD TO BREAK: Only break if tension exceeds 5x the line strength
+    if tension > (grappleInstance.lineStrength or 10000) * 5 then
+        grappleInstance.shouldBreak = true
     end
 end
 

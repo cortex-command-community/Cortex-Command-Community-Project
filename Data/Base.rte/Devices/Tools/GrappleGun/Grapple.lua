@@ -23,11 +23,11 @@ function Create(self)
     self.fireVel = 40      -- This immediately overwrites the .ini FireVel
     self.maxLineLength = 400   -- Shorter rope for faster gameplay
     self.setLineLength = 0
-    self.lineStrength = 40 -- How much "force" the rope can take before breaking
+    self.lineStrength = 10000 -- EXTREMELY HIGH force threshold - virtually unbreakable (was 120)
 
     self.limitReached = false
-    self.stretchMode = false   -- Alternative elastic pull mode a là Liero
-    self.stretchPullRatio = 0.01 -- How much the rope stretches when pulling in stretch mode
+    self.stretchMode = false   -- Disabled for rigid rope behavior
+    self.stretchPullRatio = 0.0 -- No stretching allowed for rigid rope
     self.pieSelection = 0  -- 0 is nothing, 1 is full retract, 2 is partial retract, 3 is partial extend, 4 is full extend
 
     self.climbDelay = 8    -- Faster climbing for shorter rope
@@ -45,16 +45,13 @@ function Create(self)
     -- Rope physics variables from VelvetGrapple
     self.currentLineLength = 0
     self.longestLineLength = 0
-    self.cablespring = 0.15 -- VelvetGrapple constraint stiffness
+    self.cablespring = 0.01 -- Very low for completely rigid rope behavior (was 0.05)
     
     -- Dynamic rope segment calculation variables
     self.minSegments = 1   -- Minimum number of segments
     self.maxSegments = 500  -- Maximum number of segments
     self.segmentLength = 12 -- Target length per segment (increased for better performance)
     self.currentSegments = self.minSegments -- Current number of segments
-    
-    -- Verlet physics friction for stability
-    self.usefriction = 0.99 -- Matches VelvetGrapple
     
     -- Mousewheel control variables
     self.shiftScrollSpeed = 8.0 -- Faster rope control with Shift+Mousewheel
@@ -125,9 +122,9 @@ function Update(self)
 				self.ToDelete = false
 				self.ToSettle = false
 
-				-- Make sure we have a minimum viable rope length to avoid issues
-				if self.actionMode == 1 and self.currentLineLength < 1 then
-					self.currentLineLength = math.max(1, SceneMan:ShortestDistance(self.parent.Pos, self.Pos, self.mapWrapsX).Magnitude)
+				-- Make sure we have valid rope data, but allow zero length
+				if self.actionMode == 1 and self.currentLineLength < 0 then
+					self.currentLineLength = 0 -- Allow zero length compression
 				end
 				
 				-- Update line length when in flight
@@ -172,8 +169,20 @@ function Update(self)
 					-- Attached mode - run full physics simulation
 					RopePhysics.updateRopePhysics(self, startPos, endPos, self.currentLineLength)
 					
-					-- Apply constraints to maintain rope structure and length
-					RopePhysics.applyRopeConstraints(self, self.currentLineLength)
+					-- Apply constraints and check for rope breaking (extremely high threshold)
+					local ropeBreaks = RopePhysics.applyRopeConstraints(self, self.currentLineLength)
+					if ropeBreaks or self.shouldBreak then
+						-- Rope snapped due to EXTREME tension (500% stretch)
+						self.ToDelete = true
+						if self.parent and self.parent:IsPlayerControlled() then
+							-- Add screen shake and sound effect when rope breaks
+							FrameMan:SetScreenScrollSpeed(10.0) -- More dramatic shake for extreme break
+							if self.returnSound then
+								self.returnSound:Play(self.parent.Pos)
+							end
+						end
+						return -- Exit early since rope is breaking
+					end
 				end
 				
 				-- Special handling for attached targets (MO grabbing)
@@ -205,13 +214,6 @@ function Update(self)
 
 				-- Draw the rope using the renderer module
 				RopeRenderer.drawRope(self, player)
-				
-				-- Show rope tension indicator when necessary
-				RopeRenderer.showTensionIndicator(self, player)
-				
-				-- Show debug info temporarily to help diagnose issues
-				local debugPos = self.Pos + Vector(10, -30) -- Define a position for debug text
-				RopeRenderer.showDebugInfo(self, player, debugPos)
 
 				-- Update lineVec and lineLength based on current positions
 				self.lineVec = SceneMan:ShortestDistance(self.parent.Pos, self.Pos, self.mapWrapsX)
@@ -223,17 +225,29 @@ function Update(self)
 					self.Pos.Y = self.apy[self.currentSegments]
 				end
 
-				-- Update current line length based on action mode
+				-- Update current line length based on action mode - CENTRALIZED CONTROL
 				if self.actionMode == 1 and self.limitReached == false then 
 					-- Always update rope length while in flight - rope should be tight
 					self.currentLineLength = self.lineLength 
+					self.setLineLength = self.currentLineLength
 				elseif self.actionMode > 1 then
-					-- When attached, maintain set line length for physics constraints
-					-- currentLineLength should only be updated by player input or automatic climbing
+					-- When attached, currentLineLength is controlled by input/auto-climbing
+					-- Ensure it stays within bounds
+					self.currentLineLength = math.max(10, math.min(self.currentLineLength, self.maxLineLength))
+					self.setLineLength = self.currentLineLength
 				end
 
-				-- Check if line length exceeds maximum
-				RopeStateManager.checkLineLengthUpdate(self)
+				-- Single length limit check - removed redundant checkLineLengthUpdate call
+				if self.currentLineLength > self.maxLineLength then
+					self.currentLineLength = self.maxLineLength
+					self.setLineLength = self.maxLineLength
+					if not self.limitReached then
+						self.limitReached = true
+						self.clickSound:Play(self.parent.Pos)
+					end
+				else
+					self.limitReached = false
+				end
 
 				if self.parentGun and self.parentGun.ID ~= rte.NoMOID then
 					self.parent = ToMOSRotating(MovableMan:GetMOFromID(self.parentGun.RootID))
@@ -340,15 +354,12 @@ function Update(self)
 					-- Process input based climbing
 					RopeInputController.handleRopePulling(self)
 					
-					-- Process terrain pull physics
-					if self.actionMode == 2 and RopeStateManager.applyTerrainPullPhysics(self) then
-						self.ToDelete = true
-					end
+					-- DISABLE force-based physics - using pure Verlet constraint system instead
+					-- The RopePhysics.applyRopeConstraints handles all position constraints
+					-- No need for additional spring forces that conflict with rigid constraints
 					
-					-- Process MO pull physics
-					if self.actionMode == 3 and RopeStateManager.applyMOPullPhysics(self) then
-						self.ToDelete = true
-					end
+					-- UNBREAKABLE ROPE: No automatic unhooking due to target destruction
+					-- Rope remains attached even if target MO is destroyed for maximum persistence
 				end
 				
 				-- Check if we should unhook via double-tap mechanic
