@@ -9,36 +9,52 @@ function RopePhysics.verletCollide(self, h, nextX, nextY)
     local ray = Vector(nextX, nextY)
     local startpos = Vector(self.apx[h], self.apy[h])
     local rayvec = Vector()
-    local rayvec2 = Vector()
+    local rayvec2 = Vector() -- This will store the surface normal
 
     -- Skip collision check for very short movements to optimize performance
-    if ray:MagnitudeIsLessThan(0.2) then
+    if ray:MagnitudeIsLessThan(0.05) then -- Further reduced threshold
         self.apx[h] = self.apx[h] + nextX
         self.apy[h] = self.apy[h] + nextY
         return
     end
 
-    -- Adaptive ray casting - use faster/simpler method for mid-segments
-    local rayl
-    if h > 1 and h < self.currentSegments - 1 then
-        -- Mid segments use simplified collision
-        rayl = SceneMan:CastStrengthRay(startpos, ray, 1, rayvec, 0, rte.airID, self.mapWrapsX)
-    else
-        -- End segments near player/target use more precise collision
-        rayl = SceneMan:CastObstacleRay(startpos, ray, rayvec, rayvec2, self.parent.ID, self.Team, rte.airID, 0)
-    end
+    rayl = SceneMan:CastObstacleRay(startpos, ray, rayvec, rayvec2, (self.parent and self.parent.ID or 0), self.Team, rte.airID, 0)
 
-    if rayl >= 0 then
-        local ud = SceneMan:ShortestDistance(rayvec, startpos, true)
-        local angle2 = ud.AbsRadAngle
-        local usemag = math.min(ray.Magnitude*0.8, 0.8) -- Reduced bounce response
-        local changevect = Vector(usemag, 0):RadRotate(angle2)
-        self.apx[h] = self.apx[h] + changevect.X
-        self.apy[h] = self.apy[h] + changevect.Y
-        -- Apply damping to velocity after collision
-        self.lastX[h] = rayvec.X * 0.7
-        self.lastY[h] = rayvec.Y * 0.7
+    if type(rayl) == "number" and rayl >= 0 then
+        -- Collision detected at rayvec
+        -- Move point to collision surface, then nudge it slightly along the normal
+        local nudgeDistance = 1.0 -- Increased nudge to prevent phasing (was 0.3)
+        
+        -- Ensure normal is normalized (it should be, but good practice)
+        if rayvec2:MagnitudeIsGreaterThan(0.001) then
+            rayvec2:SetMagnitude(1)
+        else
+            -- If normal is zero (should not happen for valid surface), don't nudge or use a default upward nudge
+            rayvec2 = Vector(0, -1) -- Default to pushing upwards if normal is bad
+        end
+
+        local collisionPointX = rayvec.X + rayvec2.X * nudgeDistance
+        local collisionPointY = rayvec.Y + rayvec2.Y * nudgeDistance
+        
+        self.apx[h] = collisionPointX
+        self.apy[h] = collisionPointY
+        
+        -- Update lastX, lastY so that the velocity for the next frame has a strong rebound
+        -- This helps prevent phasing by giving a bounce away from the collision surface
+        local bounceStrength = 0.5 -- Velocity component for the bounce
+        -- The velocity for the next frame (apx[h] - lastX[h]) should be along the normal (rayvec2)
+        -- So, lastX[h] = apx[h] - (rayvec2.X * bounceStrength)
+        self.lastX[h] = collisionPointX - rayvec2.X * bounceStrength
+        self.lastY[h] = collisionPointY - rayvec2.Y * bounceStrength
+        
+        -- For the segments at the endpoints (anchors), if they collide, they should stop.
+        if h == 0 or h == self.currentSegments then
+            -- Set velocity to zero to prevent further movement on next frame
+            self.lastX[h] = self.apx[h]
+            self.lastY[h] = self.apy[h]
+        end
     else
+        -- No collision, apply the full displacement.
         self.apx[h] = self.apx[h] + nextX
         self.apy[h] = self.apy[h] + nextY
     end
@@ -64,17 +80,13 @@ end
 -- Determine appropriate physics iterations based on segment count and distance
 function RopePhysics.optimizePhysicsIterations(self)
     -- Base iteration count
-    local baseIterations = 3
-    
-    -- For very long ropes or many segments, reduce iterations to maintain performance
-    if self.currentSegments > 30 or self.currentLineLength > 300 then
-        return 2
-    -- For very short ropes, increase iterations for stability
-    elseif self.currentSegments < 8 and self.currentLineLength < 100 then
-        return 4
+    if self.currentSegments < 15 and self.currentLineLength < 150 then
+        return 5 -- More iterations for shorter, more active ropes
+    elseif self.currentSegments > 30 or self.currentLineLength > 300 then
+        return 3 -- Fewer for very long ropes to save performance
     end
     
-    return baseIterations
+    return 4 -- Default
 end
 
 -- Resize the rope segments (add/remove/reposition)
@@ -136,92 +148,246 @@ function RopePhysics.updateRopeFlightPath(self)
         return
     end
     
-    -- Calculate the direct path
+    -- Calculate the direct path from player to hook
     local startPos = self.parent.Pos
     local endPos = self.Pos
-    local distance = SceneMan:ShortestDistance(startPos, endPos, self.mapWrapsX).Magnitude
+    local ropeVector = SceneMan:ShortestDistance(startPos, endPos, self.mapWrapsX)
+    local distance = ropeVector.Magnitude
     
-    -- Update segment positions
+    -- Update total rope length to match the straight-line distance
+    self.currentLineLength = distance
+    self.lineLength = distance
+    
+    -- Create perfectly straight rope segments
     for i = 0, self.currentSegments do
-        local t = i / self.currentSegments
-        local segmentPos = SceneMan:ShortestDistance(startPos, endPos, self.mapWrapsX)
-        segmentPos:SetMagnitude(distance * t)
-        segmentPos = startPos + segmentPos
+        local t = i / math.max(1, self.currentSegments)
+        
+        -- Calculate position along the straight line
+        local segmentPos = startPos + Vector(ropeVector.X * t, ropeVector.Y * t)
         
         self.apx[i] = segmentPos.X
         self.apy[i] = segmentPos.Y
+        
+        -- Set previous positions to current positions to prevent velocity
         self.lastX[i] = segmentPos.X
         self.lastY[i] = segmentPos.Y
     end
+    
+    -- Ensure exact anchor positions
+    self.apx[0] = startPos.X
+    self.apy[0] = startPos.Y
+    self.apx[self.currentSegments] = endPos.X
+    self.apy[self.currentSegments] = endPos.Y
 end
 
--- Update the rope physics using Verlet integration (VelvetGrapple approach)
+-- Update the rope physics using Verlet integration
+-- Includes improved damping and spring behavior for better actor safety
 function RopePhysics.updateRopePhysics(grappleInstance, startPos, endPos, cablelength)
-    -- Apply Verlet integration (main physics loop)
     local segments = grappleInstance.currentSegments
-    local lastX, lastY = {}, {}
-    
-    -- Update positions using Verlet integration
+    if segments < 1 then return end
+
+    local gravity_y = 0.04 -- Slightly reduced gravity for gentler behavior
+
+    -- Initialize previous positions for new points
     for i = 0, segments do
-        local t = i / segments
-        local segPos = Vector.Lerp(startPos, endPos, t)
-        local dx = segPos.X - grappleInstance.apx[i]
-        local dy = segPos.Y - grappleInstance.apy[i]
+        if grappleInstance.lastX[i] == nil then
+            grappleInstance.lastX[i] = grappleInstance.apx[i]
+            grappleInstance.lastY[i] = grappleInstance.apy[i]
+        end
+    end
+
+    -- Verlet integration for interior points only (not anchor points)
+    for i = 1, segments - 1 do
+        local current_x = grappleInstance.apx[i]
+        local current_y = grappleInstance.apy[i]
+        local prev_x = grappleInstance.lastX[i]
+        local prev_y = grappleInstance.lastY[i]
+
+        -- Calculate velocity from position history
+        local vel_x = current_x - prev_x
+        local vel_y = current_y - prev_y
+
+        -- Apply progressive damping - stronger for faster movements
+        local velocity_magnitude = math.sqrt(vel_x*vel_x + vel_y*vel_y)
+        local base_damping = 0.98
+        local extra_damping = math.min(velocity_magnitude * 0.01, 0.05) -- Additional damping for high velocities
+        local damping = base_damping - extra_damping
         
-        -- Log the position update for debugging
-        Logger.debug(string.format("Segment %d: Pos(%.2f, %.2f) -> (%.2f, %.2f)", i, grappleInstance.apx[i], grappleInstance.apy[i], segPos.X, segPos.Y))
-        
-        -- Update positions
-        grappleInstance.apx[i] = segPos.X
-        grappleInstance.apy[i] = segPos.Y
-        lastX[i] = dx
-        lastY[i] = dy
+        vel_x = vel_x * damping
+        vel_y = vel_y * damping
+
+        -- Store current position as previous for next frame
+        grappleInstance.lastX[i] = current_x
+        grappleInstance.lastY[i] = current_y
+
+        -- Apply Verlet integration with gravity
+        grappleInstance.apx[i] = current_x + vel_x
+        grappleInstance.apy[i] = current_y + vel_y + gravity_y
+    end
+
+    -- Set anchor positions AFTER physics update with velocity tracking
+    -- Update anchor positions and track their velocity for wave propagation
+    if grappleInstance.anchorVelX == nil then 
+        grappleInstance.anchorVelX = {[0] = 0, [segments] = 0}
+        grappleInstance.anchorVelY = {[0] = 0, [segments] = 0}
     end
     
-    -- Update velocities
-    for i = 0, segments do
-        grappleInstance.lastX[i] = lastX[i]
-        grappleInstance.lastY[i] = lastY[i]
+    -- Track start anchor (player) velocity
+    local startVelX = startPos.X - grappleInstance.apx[0]
+    local startVelY = startPos.Y - grappleInstance.apy[0]
+    grappleInstance.anchorVelX[0] = startVelX
+    grappleInstance.anchorVelY[0] = startVelY
+    
+    -- Track end anchor (hook) velocity
+    local endVelX = endPos.X - grappleInstance.apx[segments]
+    local endVelY = endPos.Y - grappleInstance.apy[segments]
+    grappleInstance.anchorVelX[segments] = endVelX
+    grappleInstance.anchorVelY[segments] = endVelY
+    
+    -- Set anchor positions
+    grappleInstance.apx[0] = startPos.X
+    grappleInstance.apy[0] = startPos.Y
+    grappleInstance.lastX[0] = startPos.X - startVelX
+    grappleInstance.lastY[0] = startPos.Y - startVelY
+
+    grappleInstance.apx[segments] = endPos.X
+    grappleInstance.apy[segments] = endPos.Y
+    grappleInstance.lastX[segments] = endPos.X - endVelX
+    grappleInstance.lastY[segments] = endPos.Y - endVelY
+    
+    -- Propagate anchor movement to adjacent segments for wave effects
+    if math.abs(startVelX) > 0.1 or math.abs(startVelY) > 0.1 then
+        -- Player anchor moved - affect first segment
+        if segments > 1 then
+            grappleInstance.apx[1] = grappleInstance.apx[1] + startVelX * 0.3
+            grappleInstance.apy[1] = grappleInstance.apy[1] + startVelY * 0.3
+        end
+    end
+    
+    if math.abs(endVelX) > 0.1 or math.abs(endVelY) > 0.1 then
+        -- Hook anchor moved - affect last segment
+        if segments > 1 then
+            grappleInstance.apx[segments-1] = grappleInstance.apx[segments-1] + endVelX * 0.3
+            grappleInstance.apy[segments-1] = grappleInstance.apy[segments-1] + endVelY * 0.3
+        end
     end
 end
 
 -- Apply constraints to keep rope segments connected and within length limits
-function RopePhysics.applyRopeConstraints(grappleInstance, cablelength)
-    Logger.debug("RopePhysics.applyRopeConstraints called with cablelength: " .. tostring(cablelength))
-    local transX = 0
-    local transY = 0
+-- Now includes spring damping to prevent actor obliteration from tension
+function RopePhysics.applyRopeConstraints(grappleInstance, currentTotalCableLength)
     local segments = grappleInstance.currentSegments
+    if segments == 0 then return end
+
+    local targetSegmentLength = currentTotalCableLength / segments
+    if targetSegmentLength <= 0 then
+        return
+    end
+
+    local iterations = 3 -- Fewer iterations for more stability
+
+    for iter = 1, iterations do
+        for i = 0, segments - 1 do
+            local p1_idx = i
+            local p2_idx = i + 1
+
+            local dx = grappleInstance.apx[p2_idx] - grappleInstance.apx[p1_idx]
+            local dy = grappleInstance.apy[p2_idx] - grappleInstance.apy[p1_idx]
+            
+            local distance = math.sqrt(dx*dx + dy*dy)
+            
+            if distance > 0.001 then
+                local difference = targetSegmentLength - distance
+                
+                -- Spring-like behavior: stronger correction for larger deviations but with limits
+                local stretch_ratio = distance / targetSegmentLength
+                local correction_strength = 0.2 -- Reduced from 0.3 for gentler corrections
+                
+                -- Apply spring damping to prevent extreme tension forces
+                if stretch_ratio > 1.5 then
+                    -- Very stretched - apply gentle restoration to prevent snap-back
+                    correction_strength = 0.1
+                elseif stretch_ratio > 1.2 then
+                    -- Moderately stretched - normal spring force
+                    correction_strength = 0.15
+                elseif stretch_ratio < 0.7 then
+                    -- Very compressed - allow some slack, gentle restoration
+                    correction_strength = 0.1
+                end
+                
+                local percent = (difference / distance) * correction_strength
+                
+                local offsetX = dx * percent * 0.5
+                local offsetY = dy * percent * 0.5
+
+                -- Apply corrections based on which points are moveable
+                local p1_is_anchor = (p1_idx == 0 or p1_idx == segments)
+                local p2_is_anchor = (p2_idx == 0 or p2_idx == segments)
+                
+                if not p1_is_anchor and not p2_is_anchor then
+                    -- Both points are free - move both equally
+                    grappleInstance.apx[p1_idx] = grappleInstance.apx[p1_idx] - offsetX
+                    grappleInstance.apy[p1_idx] = grappleInstance.apy[p1_idx] - offsetY
+                    grappleInstance.apx[p2_idx] = grappleInstance.apx[p2_idx] + offsetX
+                    grappleInstance.apy[p2_idx] = grappleInstance.apy[p2_idx] + offsetY
+                elseif p1_is_anchor and not p2_is_anchor then
+                    -- Only p2 can move - apply spring damping to prevent actor obliteration
+                    local force_multiplier = 1.5 -- Reduced from 2 for gentler force
+                    grappleInstance.apx[p2_idx] = grappleInstance.apx[p2_idx] + offsetX * force_multiplier
+                    grappleInstance.apy[p2_idx] = grappleInstance.apy[p2_idx] + offsetY * force_multiplier
+                elseif not p1_is_anchor and p2_is_anchor then
+                    -- Only p1 can move - apply spring damping to prevent actor obliteration
+                    local force_multiplier = 1.5 -- Reduced from 2 for gentler force
+                    grappleInstance.apx[p1_idx] = grappleInstance.apx[p1_idx] - offsetX * force_multiplier
+                    grappleInstance.apy[p1_idx] = grappleInstance.apy[p1_idx] - offsetY * force_multiplier
+                end
+                -- If both are anchors, do nothing
+            end
+        end
+    end
+end
+
+-- Smooth the rope using weighted averaging to reduce jaggedness
+function RopePhysics.smoothRope(grappleInstance)
+    local segments = grappleInstance.currentSegments
+    if segments < 3 then return end
     
-    -- Apply constraints between each pair of segments
-    for i = 0, segments - 1 do
-        local dx = grappleInstance.apx[i+1] - grappleInstance.apx[i]
-        local dy = grappleInstance.apy[i+1] - grappleInstance.apy[i]
-        local dist = math.sqrt(dx*dx + dy*dy)
-        local diff = (dist - cablelength) / dist * 0.5 -- Half the difference to each segment
+    -- Very light smoothing that doesn't interfere with physics
+    local smoothing_strength = 0.1
+    
+    -- Create temporary arrays for smoothed positions
+    local smoothedX = {}
+    local smoothedY = {}
+    
+    -- Copy all points first
+    for i = 0, segments do
+        smoothedX[i] = grappleInstance.apx[i]
+        smoothedY[i] = grappleInstance.apy[i]
+    end
+    
+    -- Apply very light smoothing to intermediate points only
+    for i = 1, segments - 1 do
+        local avgX = (grappleInstance.apx[i-1] + grappleInstance.apx[i] + grappleInstance.apx[i+1]) / 3
+        local avgY = (grappleInstance.apy[i-1] + grappleInstance.apy[i] + grappleInstance.apy[i+1]) / 3
         
-        -- Log the constraint application for debugging
-        Logger.debug(string.format("Applying constraint between segment %d and %d: diff=%.2f", i, i+1, diff))
-        
-        -- Adjust positions to satisfy constraint
-        grappleInstance.apx[i+1] = grappleInstance.apx[i+1] - diff * dx
-        grappleInstance.apy[i+1] = grappleInstance.apy[i+1] - diff * dy
-        grappleInstance.apx[i] = grappleInstance.apx[i] + diff * dx
-        grappleInstance.apy[i] = grappleInstance.apy[i] + diff * dy
+        smoothedX[i] = grappleInstance.apx[i] * (1 - smoothing_strength) + avgX * smoothing_strength
+        smoothedY[i] = grappleInstance.apy[i] * (1 - smoothing_strength) + avgY * smoothing_strength
+    end
+    
+    -- Apply smoothed positions back to rope (except anchors)
+    for i = 1, segments - 1 do
+        grappleInstance.apx[i] = smoothedX[i]
+        grappleInstance.apy[i] = smoothedY[i]
     end
 end
 
 -- Handle player pulling on the rope (manual or automatic)
 function RopePhysics.handleRopePull(grappleInstance, controller, terrCheck)
-    Logger.debug("RopePhysics.handleRopePull called")
     local player = grappleInstance.parent
     local segments = grappleInstance.currentSegments
     
-    -- Manual pull (e.g., player input)
-    if controller:IsState(Controller.WEAPON) then
-        local aimVec = Vector(controller:GetAimPos()):SetMagnitude(1)
-        grappleInstance.apx[0] = player.Pos.X + aimVec.X * 10
-        grappleInstance.apy[0] = player.Pos.Y + aimVec.Y * 10
-    end
+    -- Manual pull - this would need to be handled by the calling code
+    -- as we don't have access to the controller constants here
     
     -- Automatic retraction (e.g., rope not taut)
     if grappleInstance.currentLineLength < grappleInstance.maxLineLength then
@@ -234,19 +400,14 @@ end
 
 -- Handle player extending the rope
 function RopePhysics.handleRopeExtend(grappleInstance)
-    Logger.debug("RopePhysics.handleRopeExtend called")
     if grappleInstance.currentLineLength < grappleInstance.maxLineLength then
-        local segments = grappleInstance.currentSegments
-        local extendVec = Vector(grappleInstance.apx[segments], grappleInstance.apy[segments]) - grappleInstance.parent.Pos
-        extendVec:SetMagnitude(1)
-        grappleInstance.apx[segments] = grappleInstance.apx[segments] + extendVec.X
-        grappleInstance.apy[segments] = grappleInstance.apy[segments] + extendVec.Y
+        -- Placeholder for rope extension logic
+        -- This might involve increasing grappleInstance.currentLineLength
+        -- or allowing the hook to move further if not anchored.
     end
 end
 
--- Check for and handle rope breaking if tension is too high
 function RopePhysics.checkRopeBreak(grappleInstance)
-    Logger.debug("RopePhysics.checkRopeBreak called")
     -- Calculate tension (simplified)
     local tension = 0
     local segments = grappleInstance.currentSegments
@@ -259,7 +420,6 @@ function RopePhysics.checkRopeBreak(grappleInstance)
     
     -- Break the rope if tension exceeds a threshold
     if tension > grappleInstance.maxTension then
-        Logger.warn("Rope tension too high, breaking rope")
         grappleInstance:Break()
     end
 end

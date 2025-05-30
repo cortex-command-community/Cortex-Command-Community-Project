@@ -27,7 +27,7 @@ function Create(self)
 
     self.limitReached = false
     self.stretchMode = false   -- Alternative elastic pull mode a là Liero
-    self.stretchPullRatio = 0.1
+    self.stretchPullRatio = 0.01 -- How much the rope stretches when pulling in stretch mode
     self.pieSelection = 0  -- 0 is nothing, 1 is full retract, 2 is partial retract, 3 is partial extend, 4 is full extend
 
     self.climbDelay = 8    -- Faster climbing for shorter rope
@@ -48,8 +48,8 @@ function Create(self)
     self.cablespring = 0.15 -- VelvetGrapple constraint stiffness
     
     -- Dynamic rope segment calculation variables
-    self.minSegments = 4   -- Minimum number of segments
-    self.maxSegments = 50  -- Maximum number of segments
+    self.minSegments = 1   -- Minimum number of segments
+    self.maxSegments = 500  -- Maximum number of segments
     self.segmentLength = 12 -- Target length per segment (increased for better performance)
     self.currentSegments = self.minSegments -- Current number of segments
     
@@ -137,11 +137,17 @@ function Update(self)
 					self.lineLength = self.lineVec.Magnitude
 					self.currentLineLength = self.lineLength
 					
-					-- Update rope anchor points directly
+					-- Update rope anchor points directly for flight mode
 					self.apx[0] = self.parent.Pos.X
 					self.apy[0] = self.parent.Pos.Y
 					self.apx[self.currentSegments] = self.Pos.X
 					self.apy[self.currentSegments] = self.Pos.Y
+					
+					-- Set all lastX/lastY positions to prevent velocity inheritance from previous mode
+					for i = 0, self.currentSegments do
+						self.lastX[i] = self.apx[i]
+						self.lastY[i] = self.apy[i]
+					end
 				end
 				
 				-- Calculate optimal number of segments based on rope length using our module function
@@ -155,75 +161,46 @@ function Update(self)
 					end
 				end
 				
-				-- Rope physics simulation using VelvetGrapple approach
-				local cablelength = self.currentLineLength / math.max(1, self.currentSegments) -- Dynamic per-segment length
+				-- Proper rope physics simulation using the RopePhysics module
+				local endPos = self.Pos
 				
-				-- Set anchor points and update physics for all segments
-				local i = self.currentSegments
-				-- HANDLE ALL LINE JOINTS (from n down to 0)
-				while i > -1 do
-					if i == 0 or (i == self.currentSegments and self.limitReached == false and (self.actionMode == 1 or self.actionMode > 1)) then
-						-- Anchor points: 0 (player) and n (hook)
-						if i == 0 then -- POINT 0: ANCHOR TO GUN
-							local usepos = self.parent.Pos
-							self.apx[i] = usepos.X
-							self.apy[i] = usepos.Y
-							self.lastX[i] = self.lastPos.X
-							self.lastY[i] = self.lastPos.Y
-						else -- POINT n: ANCHOR TO GRAPPLE if IN FLIGHT
-							local usepos = self.Pos
-							self.apx[i] = usepos.X
-							self.apy[i] = usepos.Y
-							self.lastX[i] = usepos.X
-							self.lastY[i] = usepos.Y
-						end
-					else
-						if not (i == self.currentSegments and self.actionMode == 2) then
-							-- CALCULATE BASIC PHYSICS
-							local accX = 0
-							local accY = 0.05
-
-							local velX = self.apx[i] - self.lastX[i]
-							local velY = self.apy[i] - self.lastY[i]
-
-							local ufriction = self.usefriction
-							if i == self.currentSegments then 
-								ufriction = 0.99
-								accY = 0.5
-							end
-
-							local nextX = (velX + accX) * ufriction
-							local nextY = (velY + accY) * ufriction
-
-							self.lastX[i] = self.apx[i]
-							self.lastY[i] = self.apy[i]
-
-							-- Use physics module for collision handling
-							RopePhysics.verletCollide(self, i, nextX, nextY)
-						end
-						
-						if i == self.currentSegments and self.actionMode == 3 then
-							if self.target and self.target.ID ~= rte.NoMOID then
-								local target = self.target
-								if target.ID ~= target.RootID then
-									local mo = target:GetRootParent()
-									if mo.ID ~= rte.NoMOID and IsAttachable(target) then
-										target = mo
-									end
-								end
-
-								self.lastX[i] = self.apx[i]-target.Vel.X
-								self.lastY[i] = self.apy[i]-target.Vel.Y
-							else    -- Our MO has been destroyed, return hook
-								self.ToDelete = true
-							end
+				-- Choose physics simulation based on rope mode
+				if self.actionMode == 1 then
+					-- Flight mode - keep rope tight and straight
+					RopePhysics.updateRopeFlightPath(self)
+				else
+					-- Attached mode - run full physics simulation
+					RopePhysics.updateRopePhysics(self, startPos, endPos, self.currentLineLength)
+					
+					-- Apply constraints to maintain rope structure and length
+					RopePhysics.applyRopeConstraints(self, self.currentLineLength)
+				end
+				
+				-- Special handling for attached targets (MO grabbing)
+				if self.actionMode == 3 and self.target and self.target.ID ~= rte.NoMOID then
+					local target = self.target
+					if target.ID ~= target.RootID then
+						local mo = target:GetRootParent()
+						if mo.ID ~= rte.NoMOID and IsAttachable(target) then
+							target = mo
 						end
 					end
 					
-					-- Get optimized iteration count based on rope conditions
-					local maxIterations = RopePhysics.optimizePhysicsIterations(self)
-
-					i = i-1
+					-- Update hook position to follow the target
+					self.Pos = target.Pos
+					self.apx[self.currentSegments] = target.Pos.X
+					self.apy[self.currentSegments] = target.Pos.Y
+					
+					-- Apply target velocity to the hook anchor for physics continuity
+					self.lastX[self.currentSegments] = self.apx[self.currentSegments] - target.Vel.X
+					self.lastY[self.currentSegments] = self.apy[self.currentSegments] - target.Vel.Y
+				else
+					-- Update hook position from rope physics when not attached to MO
+					if self.actionMode > 1 then -- Hook is stuck to terrain
+						-- Let the rope physics determine hook position constraints
+						self.Pos.X = self.apx[self.currentSegments]
+						self.Pos.Y = self.apy[self.currentSegments]
+					end
 				end
 
 				-- Draw the rope using the renderer module
@@ -236,19 +213,23 @@ function Update(self)
 				local debugPos = self.Pos + Vector(10, -30) -- Define a position for debug text
 				RopeRenderer.showDebugInfo(self, player, debugPos)
 
-				-- Update hook position based on rope physics
+				-- Update lineVec and lineLength based on current positions
+				self.lineVec = SceneMan:ShortestDistance(self.parent.Pos, self.Pos, self.mapWrapsX)
+				self.lineLength = self.lineVec.Magnitude
+
+				-- Update hook position if length limit is reached during flight
 				if self.actionMode == 1 and self.limitReached == true then
 					self.Pos.X = self.apx[self.currentSegments]
 					self.Pos.Y = self.apy[self.currentSegments]
 				end
 
-				self.lineVec = SceneMan:ShortestDistance(self.parent.Pos, self.Pos, self.mapWrapsX)
-				self.lineLength = self.lineVec.Magnitude
-
-				-- Update current line length
+				-- Update current line length based on action mode
 				if self.actionMode == 1 and self.limitReached == false then 
-					-- Always update rope length while in flight
+					-- Always update rope length while in flight - rope should be tight
 					self.currentLineLength = self.lineLength 
+				elseif self.actionMode > 1 then
+					-- When attached, maintain set line length for physics constraints
+					-- currentLineLength should only be updated by player input or automatic climbing
 				end
 
 				-- Check if line length exceeds maximum

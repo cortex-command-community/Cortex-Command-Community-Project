@@ -3,7 +3,39 @@
 
 local RopeRenderer = {}
 
--- Draw a rope segment with varying thickness based on tension
+-- Calculate total rope distance across all segments
+function RopeRenderer.calculateTotalRopeDistance(grappleInstance)
+    local totalDistance = 0
+    
+    for i = 0, grappleInstance.currentSegments - 1 do
+        if grappleInstance.apx[i] and grappleInstance.apy[i] and grappleInstance.apx[i+1] and grappleInstance.apy[i+1] then
+            local vect1 = Vector(grappleInstance.apx[i], grappleInstance.apy[i])
+            local vect2 = Vector(grappleInstance.apx[i+1], grappleInstance.apy[i+1])
+            local segmentVec = SceneMan:ShortestDistance(vect1, vect2, grappleInstance.mapWrapsX)
+            totalDistance = totalDistance + segmentVec.Magnitude
+        end
+    end
+    
+    return totalDistance
+end
+
+-- Calculate distance from start of rope to current segment
+function RopeRenderer.calculateDistanceToSegment(grappleInstance, segmentIndex)
+    local distanceToSegment = 0
+    
+    for i = 0, segmentIndex - 1 do
+        if grappleInstance.apx[i] and grappleInstance.apy[i] and grappleInstance.apx[i+1] and grappleInstance.apy[i+1] then
+            local vect1 = Vector(grappleInstance.apx[i], grappleInstance.apy[i])
+            local vect2 = Vector(grappleInstance.apx[i+1], grappleInstance.apy[i+1])
+            local segmentVec = SceneMan:ShortestDistance(vect1, vect2, grappleInstance.mapWrapsX)
+            distanceToSegment = distanceToSegment + segmentVec.Magnitude
+        end
+    end
+    
+    return distanceToSegment
+end
+
+-- Draw a rope segment with varying thickness based on tension and color gradient
 function RopeRenderer.drawSegment(grappleInstance, a, b, player) -- Changed self to grappleInstance for clarity
     -- Make sure we have valid points to draw
     if not grappleInstance.apx[a] or not grappleInstance.apy[a] or not grappleInstance.apx[b] or not grappleInstance.apy[b] then
@@ -30,16 +62,38 @@ function RopeRenderer.drawSegment(grappleInstance, a, b, player) -- Changed self
     local targetLength = math.max(1, grappleInstance.currentLineLength) / math.max(1, grappleInstance.currentSegments)
     local tensionRatio = segmentLength / math.max(1, targetLength)
     
-    -- Color based on tension (normal: light brown, stretched: reddish)
-    local ropeColor = 155 -- Default light brown color
+    -- Calculate position along rope for color gradient based on total distance (0.0 = start, 1.0 = end)
+    local totalRopeDistance = RopeRenderer.calculateTotalRopeDistance(grappleInstance)
+    local distanceToCurrentSegment = RopeRenderer.calculateDistanceToSegment(grappleInstance, a)
+    local gradient_position = 0
     
-    -- Tense rope shows as red
+    if totalRopeDistance > 0 then
+        gradient_position = distanceToCurrentSegment / totalRopeDistance
+    else
+        -- Fallback to simple segment ratio if distance calculation fails
+        gradient_position = a / math.max(1, grappleInstance.currentSegments)
+    end
+    
+    -- Tension-based color override (takes precedence over gradient)
+    local ropeColor = 155 -- Default light brown
     if tensionRatio > 1.2 then
-        -- Rope is under high tension - show as reddish
+        -- Rope is under high tension - show as reddish regardless of position
         ropeColor = 13 -- Reddish color
     elseif tensionRatio < 0.8 then
-        -- Rope is slack - show as darker brown
+        -- Rope is slack - show as darker color
         ropeColor = 97 -- Darker brown
+    else
+        -- Normal tension - apply smooth gradient color with mathematical interpolation
+        -- Linear interpolation from light brown (155) to dark brown (97)
+        local startColor = 155 -- Light brown near start (grapple gun)
+        local endColor = 97   -- Dark brown near end (hook)
+        
+        -- Calculate interpolated color value using linear interpolation
+        -- formula: result = start + (end - start) * t, where t is 0.0 to 1.0
+        ropeColor = math.floor(startColor + (endColor - startColor) * gradient_position)
+        
+        -- Ensure color stays within valid range
+        ropeColor = math.max(97, math.min(155, ropeColor))
     end
     
     -- Draw the rope with appropriate color
@@ -78,13 +132,17 @@ end
 -- Show tension indicator above player when rope is tense
 function RopeRenderer.showTensionIndicator(grappleInstance, player) -- Changed self to grappleInstance
     if grappleInstance.limitReached and grappleInstance.actionMode > 1 then
-        -- Only show when rope is under tension (original logic was comparing lineLength and currentLineLength)
-        -- This needs to be adapted based on how tension is actually determined in Grapple.lua
-        -- For now, let's assume a simple tension model if currentLineLength is less than a set lineLength
-        -- This part might need adjustment based on the main Grapple.lua logic for 'lineStrength' or similar
+        -- Calculate overall rope tension based on total distance vs target
+        local totalRopeDistance = RopeRenderer.calculateTotalRopeDistance(grappleInstance)
+        local targetTotalDistance = grappleInstance.currentLineLength
+        
         local currentTension = 0
-        if grappleInstance.setLineLength > 0 and grappleInstance.currentLineLength < grappleInstance.setLineLength then
-             currentTension = (grappleInstance.setLineLength - grappleInstance.currentLineLength) / grappleInstance.setLineLength
+        if targetTotalDistance > 0 and totalRopeDistance > targetTotalDistance then
+            -- Rope is stretched beyond target length
+            currentTension = (totalRopeDistance - targetTotalDistance) / targetTotalDistance
+        elseif grappleInstance.setLineLength > 0 and grappleInstance.currentLineLength < grappleInstance.setLineLength then
+            -- Fallback to original calculation method
+            currentTension = (grappleInstance.setLineLength - grappleInstance.currentLineLength) / grappleInstance.setLineLength
         end
     
         if currentTension < 0.1 then -- Show only if tension is somewhat significant
@@ -129,6 +187,9 @@ function RopeRenderer.showDebugInfo(grappleInstance, player, debugTextPos) -- Ch
     -- Position for debug text - allow passing it in, or default
     local pos = debugTextPos or Vector(grappleInstance.parent.Pos.X - 60, grappleInstance.parent.Pos.Y - 60)
     
+    -- Calculate total rope distance
+    local totalDistance = RopeRenderer.calculateTotalRopeDistance(grappleInstance)
+    
     -- Show rope state information
     PrimitiveMan:DrawTextPrimitive(player, pos, "Rope State:", 162)
     pos.Y = pos.Y + 10
@@ -139,6 +200,8 @@ function RopeRenderer.showDebugInfo(grappleInstance, player, debugTextPos) -- Ch
     PrimitiveMan:DrawTextPrimitive(player, pos, "Segments: " .. grappleInstance.currentSegments, 162)
     pos.Y = pos.Y + 10
     PrimitiveMan:DrawTextPrimitive(player, pos, "Set Length: " .. grappleInstance.setLineLength, 162)
+    pos.Y = pos.Y + 10
+    PrimitiveMan:DrawTextPrimitive(player, pos, "Total Distance: " .. string.format("%.2f", totalDistance), 162)
 end
 
 return RopeRenderer
