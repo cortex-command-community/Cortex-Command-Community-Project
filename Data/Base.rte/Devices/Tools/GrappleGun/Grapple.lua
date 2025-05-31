@@ -21,7 +21,7 @@ function Create(self)
     self.canTap = false
 
     self.fireVel = 40      -- This immediately overwrites the .ini FireVel
-    self.maxLineLength = 400   -- Shorter rope for faster gameplay
+    self.maxLineLength = 600   -- Shorter rope for faster gameplay (Increased from 400)
     self.maxShootDistance = self.maxLineLength * 0.95 -- 95% of maxLineLength (5% less shooting distance)
     self.setLineLength = 0
     self.lineStrength = 10000 -- EXTREMELY HIGH force threshold - virtually unbreakable (was 120)
@@ -81,7 +81,7 @@ function Create(self)
 
     --Find the parent gun that fired us
     for gun in MovableMan:GetMOsInRadius(self.Pos, 50) do
-        if gun and gun.ClassName == "HDFirearm" and gun.PresetName == "Grapple Gun" and SceneMan:ShortestDistance(self.Pos, ToHDFirearm(gun).MuzzlePos, self.mapWrapsX):MagnitudeIsLessThan(5) then
+        if gun and gun.ClassName == "HDFirearm" and gun.PresetName == "Grapple Gun" and SceneMan:ShortestDistance(self.Pos, ToHDFirearm(gun).MuzzlePos, self.mapWrapsX):MagnitudeIsLessThan(15) then -- Increased threshold from 5 to 15
             self.parentGun = ToHDFirearm(gun)
             self.parent = MovableMan:GetMOFromID(gun.RootID)
             if MovableMan:IsActor(self.parent) then
@@ -92,7 +92,7 @@ function Create(self)
                     self.parent = ToACrab(self.parent)
                 end
 
-                self.Vel = (self.parent.Vel * 0.5) + Vector(self.fireVel, 0):RadRotate(self.parent:GetAimAngle(true))
+                self.Vel = self.parent.Vel + Vector(self.fireVel, 0):RadRotate(self.parent:GetAimAngle(true)) -- Changed: Use full parent velocity
                 self.parentGun:RemoveNumberValue("GrappleMode")
                 for part in self.parent.Attachables do
                     local radcheck = SceneMan:ShortestDistance(self.parent.Pos, part.Pos, self.mapWrapsX).Magnitude + part.Radius
@@ -135,7 +135,7 @@ function Update(self)
 					self.lineLength = self.lineVec.Magnitude
 					self.currentLineLength = self.lineLength
 					
-					-- Check if we\'ve reached the maximum shooting distance during flight
+					-- Check if we've reached the maximum shooting distance during flight
 					if self.lineLength >= self.maxShootDistance then
 						-- Stop the claw at max shooting distance but keep it in flight mode
 						local maxShootVec = self.lineVec:SetMagnitude(self.maxShootDistance)
@@ -154,11 +154,10 @@ function Update(self)
 					self.apy[self.currentSegments] = self.Pos.Y
 					
 					-- Set all lastX/lastY positions to prevent velocity inheritance from previous mode
-					-- Commenting out this loop allows for rope physics during flight
-					-- for i = 0, self.currentSegments do
-					-- 	self.lastX[i] = self.apx[i]
-					-- 	self.lastY[i] = self.apy[i]
-					-- end
+					for i = 0, self.currentSegments do
+						self.lastX[i] = self.apx[i]
+						self.lastY[i] = self.apy[i]
+					end
 				end
 				
 				-- Calculate optimal number of segments based on rope length using our module function
@@ -180,18 +179,18 @@ function Update(self)
 				
 				-- Apply constraints and check for rope breaking (extremely high threshold)
 				local ropeBreaks = RopePhysics.applyRopeConstraints(self, self.currentLineLength)
-				if ropeBreaks or self.shouldBreak then
-					-- Rope snapped due to EXTREME tension (500% stretch)
-					self.ToDelete = true
-					if self.parent and self.parent:IsPlayerControlled() then
-						-- Add screen shake and sound effect when rope breaks
-						FrameMan:SetScreenScrollSpeed(10.0) -- More dramatic shake for extreme break
-						if self.returnSound then
-							self.returnSound:Play(self.parent.Pos)
+					if ropeBreaks or self.shouldBreak then
+						-- Rope snapped due to EXTREME tension (500% stretch)
+						self.ToDelete = true
+						if self.parent and self.parent:IsPlayerControlled() then
+							-- Add screen shake and sound effect when rope breaks
+							FrameMan:SetScreenScrollSpeed(10.0) -- More dramatic shake for extreme break
+							if self.returnSound then
+								self.returnSound:Play(self.parent.Pos)
+							end
 						end
+						return -- Exit early since rope is breaking
 					end
-					return -- Exit early since rope is breaking
-				end
 				
 				-- Special handling for attached targets (MO grabbing)
 				if self.actionMode == 3 and self.target and self.target.ID ~= rte.NoMOID then
@@ -391,16 +390,16 @@ function Update(self)
 					self.returnSound:Play(self.parent.Pos)
 				end
 
-			else
-				self.ToDelete = true -- Parent Actor has no controller
+			else -- Parent Actor has no controller
+				self.ToDelete = true
 			end
-		else
-			self.ToDelete = true -- Parent is not an Actor
-		end
-	else
+		else -- else for 'if MovableMan:IsActor(self.parent) then'
+			self.ToDelete = true
+		end -- end for 'if MovableMan:IsActor(self.parent) then'
+	else -- else for 'if self.parent and IsMOSRotating(self.parent) and self.parent:HasObject("Grapple Gun") then'
 		self.ToDelete = true -- Parent is nil, not MOSRotating, or doesn't have "Grapple Gun"
-	end
-end
+	end -- end for 'if self.parent and IsMOSRotating(self.parent) and self.parent:HasObject("Grapple Gun") then'
+end -- end for 'function Update(self)'
 
 function Destroy(self)
     if MovableMan:IsParticle(self.crankSound) then

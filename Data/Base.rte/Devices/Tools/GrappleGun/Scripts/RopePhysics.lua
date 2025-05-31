@@ -1,4 +1,3 @@
--- filepath: /home/cretin/git/Cortex-Command-Community-Project/Data/Base.rte/Devices/Tools/GrappleGun/Scripts/RopePhysics.lua
 --[[ 
   RopePhysics.lua - Advanced Rope Physics Module
   
@@ -444,7 +443,7 @@ function RopePhysics.applyRopeConstraints(grappleInstance, currentTotalCableLeng
         currentActualLength = currentActualLength + math.sqrt(dx*dx + dy*dy)
     end
     
-    if currentActualLength > maxRopeLength then
+    if currentActualLength > 0.001 and currentActualLength > maxRopeLength then -- Added check for currentActualLength > 0.001
         -- Rope needs to be shortened - apply smooth contraction
         local contractionRatio = maxRopeLength / currentActualLength
         local contractionSpeed = 0.1 -- Smooth retraction speed
@@ -468,8 +467,8 @@ function RopePhysics.applyRopeConstraints(grappleInstance, currentTotalCableLeng
 
     -- THIRD: Apply rigid Verlet constraints for rope segments using MAXIMUM ALLOWED length
     -- This prevents gradual stretching during swinging by enforcing the max rope length
-    local targetSegmentLength = maxRopeLength / segments -- Use maximum allowed length, not current distance
-    local iterations = 32 -- High iteration count for rigid rope behavior
+    local targetSegmentLength = maxRopeLength / math.max(1, segments) -- Use maximum allowed length, not current distance, ensure segments is not zero
+    local iterations = RopePhysics.optimizePhysicsIterations(grappleInstance) -- Dynamically set iterations
     local constraint_strength = 1.0 -- Full strength for completely rigid rope
 
     for iter = 1, iterations do
@@ -482,7 +481,7 @@ function RopePhysics.applyRopeConstraints(grappleInstance, currentTotalCableLeng
             
             local dx = x2 - x1
             local dy = y2 - y1
-            local distance = math.sqrt(dx*dx + dy*dy)
+            local distance = math.sqrt(dx*dx + dy*dy) -- Reverted: Removed * 1.5 multiplier
             
             if distance > 0.001 then -- Avoid division by zero
                 -- Calculate exact constraint satisfaction
