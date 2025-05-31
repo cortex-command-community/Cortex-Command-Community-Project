@@ -1,26 +1,46 @@
--- Rope Physics Module
--- Ultra-rigid Verlet rope physics with pure position-based constraints
--- No dampening, no force accumulation, no direct player manipulation
--- EXTREMELY HARD TO BREAK: Rope only breaks at 500% stretch (5x original length)
+-- filepath: /home/cretin/git/Cortex-Command-Community-Project/Data/Base.rte/Devices/Tools/GrappleGun/Scripts/RopePhysics.lua
+--[[ 
+  RopePhysics.lua - Advanced Rope Physics Module
+  
+  Implementation of ultra-rigid Verlet rope physics with pure position-based constraints.
+  Features:
+  - No dampening for realistic rope behavior
+  - No force accumulation, avoiding instability
+  - No direct player manipulation, only physics-based interactions
+  - Extremely durable: rope only breaks at 500% stretch (5x original length)
+  - Optimized for performance in high-stress situations
+  
+  This module handles all rope physics calculations for the grappling hook,
+  including collision detection, tension forces, and segment constraints.
+--]]
 
 local RopePhysics = {}
 
--- Verlet collision resolution (optimized for many segments)
+--[[
+  Verlet collision resolution (optimized for many segments)
+  @param self  The grapple instance
+  @param h     The index of the segment to process
+  @param nextX The X component of the movement vector
+  @param nextY The Y component of the movement vector
+]]
 function RopePhysics.verletCollide(self, h, nextX, nextY)
-    --APPLY FRICTION TO INDIVIDUAL JOINTS
+    -- Apply friction to individual joints
     local ray = Vector(nextX, nextY)
     local startpos = Vector(self.apx[h], self.apy[h])
-    local rayvec = Vector()
-    local rayvec2 = Vector() -- This will store the surface normal
+    local rayvec = Vector()   -- Will store collision point
+    local rayvec2 = Vector()  -- Will store the surface normal
 
     -- Skip collision check for very short movements to optimize performance
-    if ray:MagnitudeIsLessThan(0.05) then -- Further reduced threshold
+    if ray:MagnitudeIsLessThan(0.05) then -- Performance optimization threshold
         self.apx[h] = self.apx[h] + nextX
         self.apy[h] = self.apy[h] + nextY
         return
     end
 
-    rayl = SceneMan:CastObstacleRay(startpos, ray, rayvec, rayvec2, (self.parent and self.parent.ID or 0), self.Team, rte.airID, 0)
+    -- Cast ray to detect terrain and objects, using the parent entity ID to avoid self-collision
+    local rayl = SceneMan:CastObstacleRay(startpos, ray, rayvec, rayvec2, 
+                                         (self.parent and self.parent.ID or 0), 
+                                         self.Team, rte.airID, 0)
 
     if type(rayl) == "number" and rayl >= 0 then
         -- Collision detected at rayvec
@@ -63,6 +83,10 @@ function RopePhysics.verletCollide(self, h, nextX, nextY)
 end
 
 -- Calculate optimal segment count for a given rope length
+-- Dynamically adjusts segments based on rope length for performance optimization
+-- @param self       The grapple instance
+-- @param ropeLength The current length of the rope
+-- @return           The optimal number of segments for this rope length
 function RopePhysics.calculateOptimalSegments(self, ropeLength)
     -- Base calculation
     local baseSegments = math.ceil(ropeLength / self.segmentLength)
@@ -80,18 +104,23 @@ function RopePhysics.calculateOptimalSegments(self, ropeLength)
 end
 
 -- Determine appropriate physics iterations based on segment count and distance
+-- @param self The grapple instance
+-- @return     The number of physics iterations to use for this rope
 function RopePhysics.optimizePhysicsIterations(self)
-    -- Base iteration count
+    -- Base iteration count - balance between performance and physics accuracy
     if self.currentSegments < 15 and self.currentLineLength < 150 then
-        return 5 -- More iterations for shorter, more active ropes
+        return 36 -- More iterations for shorter, more active ropes (higher accuracy)
     elseif self.currentSegments > 30 or self.currentLineLength > 300 then
-        return 3 -- Fewer for very long ropes to save performance
+        return 9 -- Fewer iterations for very long ropes to save performance
     end
     
-    return 4 -- Default
+    return 18 -- Default for medium-length ropes
 end
 
 -- Resize the rope segments (add/remove/reposition)
+-- Handles interpolation between previous and new segment counts
+-- @param self     The grapple instance
+-- @param segments The new number of segments to use
 function RopePhysics.resizeRopeSegments(self, segments)
     -- Get current positions to interpolate from
     local startPos = self.parent and self.parent.Pos or Vector(self.apx[0] or self.Pos.X, self.apy[0] or self.Pos.Y)
@@ -145,6 +174,8 @@ function RopePhysics.resizeRopeSegments(self, segments)
 end
 
 -- Update rope segments to form a straight line during flight
+-- Used when the grappling hook is in flight and needs a clean path
+-- @param self The grapple instance
 function RopePhysics.updateRopeFlightPath(self)
     if not (self.parent and self.apx and self.currentSegments > 0) then
         return
@@ -183,6 +214,11 @@ function RopePhysics.updateRopeFlightPath(self)
 end
 
 -- Update the rope physics using Verlet integration with no dampening
+-- Core physics update that handles all rope segment movement
+-- @param grappleInstance     The grapple instance to update
+-- @param startPos           Position vector of the start anchor (player)
+-- @param endPos             Position vector of the end anchor (hook)
+-- @param cablelength        Current maximum length of the cable
 function RopePhysics.updateRopePhysics(grappleInstance, startPos, endPos, cablelength)
     local segments = grappleInstance.currentSegments
     if segments < 1 then return end
@@ -266,6 +302,11 @@ function RopePhysics.updateRopePhysics(grappleInstance, startPos, endPos, cablel
 end
 
 -- Advanced force protection system for preventing actor death from rope forces
+-- Limits maximum force applied to actors to prevent unexpected deaths
+-- @param grappleInstance   The grapple instance
+-- @param force_magnitude   The original magnitude of the force
+-- @param force_direction   The direction vector of the force
+-- @return                  The safe force magnitude and safe force vector
 function RopePhysics.calculateActorProtection(grappleInstance, force_magnitude, force_direction)
     -- Simplified - just return reduced values, no complex calculations
     local safe_force_magnitude = math.min(force_magnitude, 5.0) -- Hard cap at 5
@@ -274,13 +315,17 @@ function RopePhysics.calculateActorProtection(grappleInstance, force_magnitude, 
 end
 
 -- Apply stored forces gradually over time
+-- Currently disabled in pure Verlet implementation
+-- @param grappleInstance   The grapple instance
 function RopePhysics.applyStoredForces(grappleInstance)
     -- Disabled - no stored forces in pure Verlet implementation
 end
 
 -- Proper Verlet rope constraint satisfaction with rigid distance constraints
 -- Implements true non-stretchy rope behavior using position-based dynamics
--- Now properly integrated with centralized length control
+-- @param grappleInstance        The grapple instance to apply constraints to
+-- @param currentTotalCableLength The current total cable length
+-- @return                       true if rope should break, false otherwise
 function RopePhysics.applyRopeConstraints(grappleInstance, currentTotalCableLength)
     local segments = grappleInstance.currentSegments
     if segments == 0 then return false end
@@ -501,6 +546,9 @@ function RopePhysics.applyRopeConstraints(grappleInstance, currentTotalCableLeng
 end
 
 -- Smooth the rope using weighted averaging to reduce jaggedness
+-- Applies limited averaging to intermediate points to create a smoother visual appearance
+-- without significantly affecting the physics behavior
+-- @param grappleInstance The grapple instance to smooth
 function RopePhysics.smoothRope(grappleInstance)
     local segments = grappleInstance.currentSegments
     if segments < 3 then return end
@@ -535,6 +583,10 @@ function RopePhysics.smoothRope(grappleInstance)
 end
 
 -- Handle player pulling on the rope (manual or automatic)
+-- Manages player interactions with the rope when pulling
+-- @param grappleInstance  The grapple instance
+-- @param controller       The input controller (optional)
+-- @param terrCheck        Flag to check terrain (optional)
 function RopePhysics.handleRopePull(grappleInstance, controller, terrCheck)
     local player = grappleInstance.parent
     local segments = grappleInstance.currentSegments
@@ -552,6 +604,8 @@ function RopePhysics.handleRopePull(grappleInstance, controller, terrCheck)
 end
 
 -- Handle player extending the rope
+-- Manages player interactions with the rope when extending
+-- @param grappleInstance  The grapple instance
 function RopePhysics.handleRopeExtend(grappleInstance)
     if grappleInstance.currentLineLength < grappleInstance.maxLineLength then
         -- Placeholder for rope extension logic
@@ -560,6 +614,10 @@ function RopePhysics.handleRopeExtend(grappleInstance)
     end
 end
 
+-- Check if the rope should break due to extreme tension
+-- Uses simplified tension calculation based on segment stretching
+-- @param grappleInstance  The grapple instance
+-- @return                Sets grappleInstance.shouldBreak = true if rope should break
 function RopePhysics.checkRopeBreak(grappleInstance)
     -- Calculate tension (simplified)
     local tension = 0
@@ -577,4 +635,6 @@ function RopePhysics.checkRopeBreak(grappleInstance)
     end
 end
 
+-- Return the module for inclusion in other files
+-- This module can be imported using: local RopePhysics = require("Base.rte/Devices/Tools/GrappleGun/Scripts/RopePhysics")
 return RopePhysics
