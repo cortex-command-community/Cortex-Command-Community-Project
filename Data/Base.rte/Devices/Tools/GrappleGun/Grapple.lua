@@ -55,7 +55,7 @@ function Create(self)
     self.currentSegments = self.minSegments -- Current number of segments
     
     -- Mousewheel control variables
-    self.shiftScrollSpeed = 8.0 -- Faster rope control with Shift+Mousewheel
+    self.shiftScrollSpeed = 1.0 -- Faster rope control with Shift+Mousewheel
 
     --ESTABLISH LINE
     self.apx = {}
@@ -74,8 +74,8 @@ function Create(self)
         self.lastY[i] = py
     end
     
-    self.lastX[self.minSegments] = px - self.Vel.X
-    self.lastY[self.minSegments] = py - self.Vel.Y
+    -- self.lastX[self.minSegments] = px - self.Vel.X -- This will be set after parent is found and hook Vel is determined
+    -- self.lastY[self.minSegments] = py - self.Vel.Y
     self.currentSegments = self.minSegments -- Start with minimum segments
     --slots 0 and currentSegments are ANCHOR POINTS
 
@@ -92,7 +92,20 @@ function Create(self)
                     self.parent = ToACrab(self.parent)
                 end
 
+                -- Initialize player anchor point (segment 0) based on parent's state
+                self.apx[0] = self.parent.Pos.X
+                self.apy[0] = self.parent.Pos.Y
+                self.lastX[0] = self.parent.Pos.X - self.parent.Vel.X 
+                self.lastY[0] = self.parent.Pos.Y - self.parent.Vel.Y
+
                 self.Vel = self.parent.Vel + Vector(self.fireVel, 0):RadRotate(self.parent:GetAimAngle(true)) -- Changed: Use full parent velocity
+                
+                -- Now that hook's self.Vel is set, initialize its lastX/Y for initial trajectory for the hook end
+                -- Note: self.currentSegments is self.minSegments at this point.
+                self.lastX[self.currentSegments] = px - self.Vel.X 
+                self.lastY[self.currentSegments] = py - self.Vel.Y
+
+
                 self.parentGun:RemoveNumberValue("GrappleMode")
                 for part in self.parent.Attachables do
                     local radcheck = SceneMan:ShortestDistance(self.parent.Pos, part.Pos, self.mapWrapsX).Magnitude + part.Radius
@@ -132,19 +145,20 @@ function Update(self)
 				if self.actionMode == 1 then
 					-- Immediately update rope length based on actual hook position
 					self.lineVec = SceneMan:ShortestDistance(self.parent.Pos, self.Pos, self.mapWrapsX)
-					self.lineLength = self.lineVec.Magnitude
-					self.currentLineLength = self.lineLength
-					
-					-- Check if we've reached the maximum shooting distance during flight
+					self.lineLength = self.lineVec.Magnitude -- Actual current distance
+
+					-- Determine currentLineLength and limitReached status based on maxShootDistance
 					if self.lineLength >= self.maxShootDistance then
-						-- Stop the claw at max shooting distance but keep it in flight mode
-						local maxShootVec = self.lineVec:SetMagnitude(self.maxShootDistance)
-						self.Pos = self.parent.Pos + maxShootVec
-						self.Vel = Vector(0, 0) -- Stop the claw
-						self.currentLineLength = self.maxShootDistance
+						if not self.limitReached then -- Play sound only on the frame it first reaches the limit
+							self.clickSound:Play(self.parent.Pos)
+						end
+						self.currentLineLength = self.maxShootDistance -- Cap the effective rope length for physics
 						self.limitReached = true
-						-- Keep actionMode = 1 (flight) so it can still detect collisions
-						self.clickSound:Play(self.parent.Pos)
+						-- By not setting self.Pos or self.Vel directly, we let RopePhysics.applyRopeConstraints
+						-- handle the "binding" at maxShootDistance, creating a tethered effect.
+					else
+						self.currentLineLength = self.lineLength -- Rope is shorter than max, so its length is the actual distance
+						self.limitReached = false
 					end
 					
 					-- Update rope anchor points directly for flight mode
@@ -152,12 +166,6 @@ function Update(self)
 					self.apy[0] = self.parent.Pos.Y
 					self.apx[self.currentSegments] = self.Pos.X
 					self.apy[self.currentSegments] = self.Pos.Y
-					
-					-- Set all lastX/lastY positions to prevent velocity inheritance from previous mode
-					for i = 0, self.currentSegments do
-						self.lastX[i] = self.apx[i]
-						self.lastY[i] = self.apy[i]
-					end
 				end
 				
 				-- Calculate optimal number of segments based on rope length using our module function
@@ -194,22 +202,28 @@ function Update(self)
 				
 				-- Special handling for attached targets (MO grabbing)
 				if self.actionMode == 3 and self.target and self.target.ID ~= rte.NoMOID then
-					local target = self.target
-					if target.ID ~= target.RootID then
-						local mo = target:GetRootParent()
-						if mo.ID ~= rte.NoMOID and IsAttachable(target) then
-							target = mo
+					local effective_target = self.target -- Start with the direct hit object
+
+					-- If the direct hit target is part of a larger entity (e.g., a limb of an actor),
+					-- try to use its root parent as the effective target, provided the root is "attachable".
+					if self.target.ID ~= self.target.RootID then
+						local root_parent = self.target:GetRootParent()
+						-- Check if root_parent is valid and if it's considered attachable
+						if root_parent and root_parent.ID ~= rte.NoMOID and IsAttachable(root_parent) then
+							effective_target = root_parent -- Use the attachable root parent
+						-- Else, if root_parent is not attachable (or doesn't exist),
+						-- we continue using the original self.target as effective_target.
 						end
 					end
 					
-					-- Update hook position to follow the target
-					self.Pos = target.Pos
-					self.apx[self.currentSegments] = target.Pos.X
-					self.apy[self.currentSegments] = target.Pos.Y
+					-- Update hook position to follow the 'effective_target'
+					self.Pos = effective_target.Pos
+					self.apx[self.currentSegments] = effective_target.Pos.X
+					self.apy[self.currentSegments] = effective_target.Pos.Y
 					
-					-- Apply target velocity to the hook anchor for physics continuity
-					self.lastX[self.currentSegments] = self.apx[self.currentSegments] - target.Vel.X
-					self.lastY[self.currentSegments] = self.apy[self.currentSegments] - target.Vel.Y
+					-- Apply 'effective_target' velocity to the hook anchor for physics continuity
+					self.lastX[self.currentSegments] = self.apx[self.currentSegments] - effective_target.Vel.X
+					self.lastY[self.currentSegments] = self.apy[self.currentSegments] - effective_target.Vel.Y
 				else
 					-- Update hook position from rope physics when not attached to MO
 					if self.actionMode > 1 then -- Hook is stuck to terrain
@@ -253,6 +267,21 @@ function Update(self)
 					if self.actionMode > 1 then  -- Only reset limit flag when attached, not during flight
 						self.limitReached = false
 					end
+					
+					-- Update rope anchor points
+                    -- Player end (anchor 0)
+                    self.apx[0] = self.parent.Pos.X
+                    self.apy[0] = self.parent.Pos.Y
+                    -- Set lastX/Y for the player anchor to reflect its movement.
+                    -- This makes the rope correctly inherit player\'s motion at the anchor point.
+                    self.lastX[0] = self.parent.Pos.X - self.parent.Vel.X 
+                    self.lastY[0] = self.parent.Pos.Y - self.parent.Vel.Y 
+
+                    -- Hook end (anchor currentSegments)
+					self.apx[self.currentSegments] = self.Pos.X
+					self.apy[self.currentSegments] = self.Pos.Y
+					-- lastX/Y for the hook end are implicitly handled by the Verlet integration
+                    -- as we are no longer resetting them in a loop for actionMode == 1.
 				end
 
 				if self.parentGun and self.parentGun.ID ~= rte.NoMOID then

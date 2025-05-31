@@ -107,13 +107,14 @@ end
 -- @return     The number of physics iterations to use for this rope
 function RopePhysics.optimizePhysicsIterations(self)
     -- Base iteration count - balance between performance and physics accuracy
-    if self.currentSegments < 15 and self.currentLineLength < 150 then
-        return 36 -- More iterations for shorter, more active ropes (higher accuracy)
-    elseif self.currentSegments > 30 or self.currentLineLength > 300 then
-        return 9 -- Fewer iterations for very long ropes to save performance
-    end
-    
-    return 18 -- Default for medium-length ropes
+    -- if self.currentSegments < 15 and self.currentLineLength < 150 then
+    --     return 36 -- More iterations for shorter, more active ropes (higher accuracy)
+    -- elseif self.currentSegments > 30 or self.currentLineLength > 300 then
+    --     return 9 -- Fewer iterations for very long ropes to save performance
+    -- end
+    -- 
+    -- return 18 -- Default for medium-length ropes
+    return 32 -- User request: Set all iterations to 32
 end
 
 -- Resize the rope segments (add/remove/reposition)
@@ -331,103 +332,78 @@ function RopePhysics.applyRopeConstraints(grappleInstance, currentTotalCableLeng
     
     if not grappleInstance.parent then return false end
 
-    -- Use the centrally controlled rope length as the maximum constraint
     local maxRopeLength = grappleInstance.currentLineLength or grappleInstance.maxLineLength
     
-    -- FIRST: Enforce rigid maximum distance constraint through rope physics only
-    -- Pure Verlet implementation - no direct player position manipulation
-    local playerPos = grappleInstance.parent.Pos
+    local playerPos = grappleInstance.parent.Pos 
     local hookPos = Vector(grappleInstance.apx[segments], grappleInstance.apy[segments])
-    local ropeVector = SceneMan:ShortestDistance(playerPos, hookPos, grappleInstance.mapWrapsX)
-    local totalRopeDistance = ropeVector.Magnitude
     
-    -- Update anchor positions for constraint calculations
+    -- Ensure player anchor point is up-to-date for constraint calculations
     grappleInstance.apx[0] = playerPos.X
     grappleInstance.apy[0] = playerPos.Y
 
-    -- GLOBAL CONSTRAINT: Handle rope length constraints smoothly
+    local ropeVector = SceneMan:ShortestDistance(playerPos, hookPos, grappleInstance.mapWrapsX)
+    local totalRopeDistance = ropeVector.Magnitude
+
+    -- GLOBAL CONSTRAINT: Handle rope length limits
     if totalRopeDistance > maxRopeLength then
         local excessDistance = totalRopeDistance - maxRopeLength
-        local constraintDirection = ropeVector:SetMagnitude(1)
-        
-        -- Check if hook is anchored (attached to terrain or MO)
-        -- if grappleInstance.actionMode >= 2 then  -- Original condition
-        if grappleInstance.actionMode == 2 then -- Changed: Actor anchored to claw only in mode 2
-            -- Hook is anchored - apply PROPER SWINGING CONSTRAINT
-            -- This allows free tangential movement (swinging) while constraining radial movement
+        local constraintDirection = ropeVector:SetMagnitude(1) -- Vector from player to hook
+
+        if grappleInstance.actionMode == 2 then -- Hook is anchored to terrain; player swings.
+            -- Player is overstretched. Correct position and velocity for a rigid swing.
             
-            local currentVelocity = grappleInstance.parent.Vel
+            -- 1. Correct Player Position: Snap player precisely to the maxRopeLength arc.
+            local vec_from_hook_to_player = playerPos - hookPos -- Vector from hook to current player position
+            grappleInstance.parent.Pos = hookPos + vec_from_hook_to_player:SetMagnitude(maxRopeLength)
+
+            -- Update player's rope anchor point and local playerPos variable to reflect the correction.
+            grappleInstance.apx[0] = grappleInstance.parent.Pos.X
+            grappleInstance.apy[0] = grappleInstance.parent.Pos.Y
+            playerPos = grappleInstance.parent.Pos 
+
+            -- 2. Correct Player Velocity: Make it purely tangential to the swing arc.
+            local currentVel = grappleInstance.parent.Vel
+            -- Define rope direction from the *newly corrected* player position to the hook.
+            local ropeDirFromPlayerToHook = (hookPos - playerPos):SetMagnitude(1) 
             
-            -- Calculate velocity component toward/away from hook
-            -- constraintDirection points FROM player TO hook
-            local radialVelocity = currentVelocity:Dot(constraintDirection)
+            local radialVelScalar = currentVel:Dot(ropeDirFromPlayerToHook)
+            -- radialVelScalar is the component of currentVel along the rope direction (player to hook).
+            -- If > 0, moving towards hook. If < 0, moving away from hook.
+            -- For a rigid tether at max length, all velocity along the rope axis should be nullified.
+            local radialVelocityVector = ropeDirFromPlayerToHook * radialVelScalar
+            local tangentialVelocity = currentVel - radialVelocityVector
             
-            -- Only constrain the radial component if moving away from hook (stretching rope)
-            if radialVelocity < 0 then
-                -- Player is moving away from hook - remove ONLY the radial component
-                -- Keep all tangential velocity for swinging motion
-                local radialVelocityVector = constraintDirection * radialVelocity
-                local tangentialVelocity = currentVelocity - radialVelocityVector
-                
-                -- Set velocity to pure tangential motion (perfect swinging)
-                grappleInstance.parent.Vel = tangentialVelocity
-                
-                -- Set tension for physics feedback
-                grappleInstance.ropeTensionForce = -radialVelocity * 0.5
-                grappleInstance.ropeTensionDirection = constraintDirection
+            grappleInstance.parent.Vel = tangentialVelocity
+
+            -- Tension feedback: Indicate that the rope resisted outward motion.
+            -- resisted_outgoing_speed will be positive if player was moving away from hook.
+            local resisted_outgoing_speed = -radialVelScalar 
+            if resisted_outgoing_speed > 0.01 then 
+                grappleInstance.ropeTensionForce = resisted_outgoing_speed * 0.5 -- Magnitude based on resisted speed
+                grappleInstance.ropeTensionDirection = ropeDirFromPlayerToHook -- Force on player is towards hook
             else
-                -- Player is moving toward hook or tangentially - no constraint needed
-                -- This allows free movement inward and pure swinging motion
                 grappleInstance.ropeTensionForce = nil
                 grappleInstance.ropeTensionDirection = nil
             end
+
+        else -- Handles actionMode == 1 (hook flying), actionMode == 3 (hook on MO), and any other defaults.
+             -- In these cases, the player is the anchor, and the hook end of the rope is corrected.
+            local correctionVector = constraintDirection * excessDistance -- constraintDirection is player -> hook
             
-            -- CRITICAL: Also enforce position constraint to prevent gradual stretching
-            -- After constraining velocity, ensure player doesn't drift beyond max rope length
-            if totalRopeDistance > maxRopeLength then
-                local correctionDistance = totalRopeDistance - maxRopeLength
-                local correctionVector = constraintDirection * correctionDistance
-                
-                -- Move player back to exact rope radius (smooth correction)
-                local correctionStrength = 0.8 -- Strong but not instant correction
-                grappleInstance.parent.Pos = grappleInstance.parent.Pos + correctionVector * correctionStrength
-                
-                -- Update rope anchor to match corrected player position
-                grappleInstance.apx[0] = grappleInstance.parent.Pos.X
-                grappleInstance.apy[0] = grappleInstance.parent.Pos.Y
-            end
-        elseif grappleInstance.actionMode == 1 then -- Added: Claw anchored to actor in mode 1
-            -- Hook is in flight, anchor it to the player
-            local correctionVector = constraintDirection * excessDistance
-            -- Move the player instead of the hook
-            grappleInstance.parent.Pos = grappleInstance.parent.Pos + correctionVector
-            -- Update rope anchor to match corrected player position
-            grappleInstance.apx[0] = grappleInstance.parent.Pos.X
-            grappleInstance.apy[0] = grappleInstance.parent.Pos.Y
-
-            -- Clear any tension forces since rope is not under tension
-            grappleInstance.ropeTensionForce = nil
-            grappleInstance.ropeTensionDirection = nil
-
-            -- Recalculate after constraint
-            playerPos = grappleInstance.parent.Pos -- update playerPos for subsequent calculations
-            ropeVector = SceneMan:ShortestDistance(playerPos, hookPos, grappleInstance.mapWrapsX)
-            totalRopeDistance = ropeVector.Magnitude
-        else
-            -- Hook is in flight - we can move it to maintain rope length (default case)
-            local correctionVector = constraintDirection * excessDistance
-            grappleInstance.apx[segments] = grappleInstance.apx[segments] - correctionVector.X
+            -- Move hook segment towards player
+            grappleInstance.apx[segments] = grappleInstance.apx[segments] - correctionVector.X 
             grappleInstance.apy[segments] = grappleInstance.apy[segments] - correctionVector.Y
             
-            -- Clear any tension forces since rope is not under tension
-            grappleInstance.ropeTensionForce = nil
+            grappleInstance.ropeTensionForce = nil 
             grappleInstance.ropeTensionDirection = nil
             
-            -- Recalculate after constraint
-            hookPos = Vector(grappleInstance.apx[segments], grappleInstance.apy[segments])
-            ropeVector = SceneMan:ShortestDistance(playerPos, hookPos, grappleInstance.mapWrapsX)
-            totalRopeDistance = ropeVector.Magnitude
+            hookPos = Vector(grappleInstance.apx[segments], grappleInstance.apy[segments]) -- Update hookPos for subsequent segment constraints
         end
+        
+        -- After any correction, update totalRopeDistance for the segment constraint part
+        -- This ensures the segment distribution logic uses the corrected overall length.
+        ropeVector = SceneMan:ShortestDistance(playerPos, hookPos, grappleInstance.mapWrapsX)
+        totalRopeDistance = ropeVector.Magnitude 
     else
         -- Rope is not at maximum length - clear tension forces
         grappleInstance.ropeTensionForce = nil

@@ -36,17 +36,9 @@ end
 
 -- Draw the complete rope with debug information
 function RopeRenderer.drawRope(grappleInstance, player)
-    -- If we're in flight mode, draw a simple direct line
-    if grappleInstance.actionMode == 1 then
-        -- Draw a direct line from player to hook for visibility during flight
-        if grappleInstance.parent then
-            PrimitiveMan:DrawLinePrimitive(player, grappleInstance.parent.Pos, grappleInstance.Pos, 97)
-        end
-    else
-        -- Draw regular rope segments with physics
-        for i = 0, grappleInstance.currentSegments - 1 do
-            RopeRenderer.drawSegment(grappleInstance, i, i + 1, player)
-        end
+    -- Always draw regular rope segments with physics, regardless of actionMode
+    for i = 0, grappleInstance.currentSegments - 1 do
+        RopeRenderer.drawSegment(grappleInstance, i, i + 1, player)
     end
     
     -- Always draw debug information when player is controlling
