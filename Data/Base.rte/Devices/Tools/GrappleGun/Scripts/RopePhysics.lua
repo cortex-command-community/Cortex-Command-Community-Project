@@ -307,7 +307,8 @@ function RopePhysics.applyRopeConstraints(grappleInstance, currentTotalCableLeng
         local constraintDirection = ropeVector:SetMagnitude(1)
         
         -- Check if hook is anchored (attached to terrain or MO)
-        if grappleInstance.actionMode >= 2 then
+        -- if grappleInstance.actionMode >= 2 then  -- Original condition
+        if grappleInstance.actionMode == 2 then -- Changed: Actor anchored to claw only in mode 2
             -- Hook is anchored - apply PROPER SWINGING CONSTRAINT
             -- This allows free tangential movement (swinging) while constraining radial movement
             
@@ -351,8 +352,25 @@ function RopePhysics.applyRopeConstraints(grappleInstance, currentTotalCableLeng
                 grappleInstance.apx[0] = grappleInstance.parent.Pos.X
                 grappleInstance.apy[0] = grappleInstance.parent.Pos.Y
             end
+        elseif grappleInstance.actionMode == 1 then -- Added: Claw anchored to actor in mode 1
+            -- Hook is in flight, anchor it to the player
+            local correctionVector = constraintDirection * excessDistance
+            -- Move the player instead of the hook
+            grappleInstance.parent.Pos = grappleInstance.parent.Pos + correctionVector
+            -- Update rope anchor to match corrected player position
+            grappleInstance.apx[0] = grappleInstance.parent.Pos.X
+            grappleInstance.apy[0] = grappleInstance.parent.Pos.Y
+
+            -- Clear any tension forces since rope is not under tension
+            grappleInstance.ropeTensionForce = nil
+            grappleInstance.ropeTensionDirection = nil
+
+            -- Recalculate after constraint
+            playerPos = grappleInstance.parent.Pos -- update playerPos for subsequent calculations
+            ropeVector = SceneMan:ShortestDistance(playerPos, hookPos, grappleInstance.mapWrapsX)
+            totalRopeDistance = ropeVector.Magnitude
         else
-            -- Hook is in flight - we can move it to maintain rope length
+            -- Hook is in flight - we can move it to maintain rope length (default case)
             local correctionVector = constraintDirection * excessDistance
             grappleInstance.apx[segments] = grappleInstance.apx[segments] - correctionVector.X
             grappleInstance.apy[segments] = grappleInstance.apy[segments] - correctionVector.Y

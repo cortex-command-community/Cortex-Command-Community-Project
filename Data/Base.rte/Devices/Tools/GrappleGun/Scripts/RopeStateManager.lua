@@ -64,6 +64,10 @@ function RopeStateManager.checkAttachmentCollisions(grappleInstance)
         grappleInstance.Vel = Vector() -- Stop the hook
         grappleInstance.PinStrength = 1000
         grappleInstance.Frame = 1 -- Change appearance
+        
+        -- Reset rope physics initialization when transitioning from flight to attached
+        grappleInstance.ropePhysicsInitialized = false
+        grappleInstance.limitReached = false -- Reset limit when attaching
     end
     
     return stateChanged
@@ -72,6 +76,14 @@ end
 -- Handle exceeding maximum length - SIMPLIFIED VERSION
 -- Main length control is now centralized in Grapple.lua
 function RopeStateManager.checkLengthLimit(grappleInstance)
+    -- During flight, the claw automatically stops at max rope length
+    -- This function now mainly handles attached mode length limits
+    if grappleInstance.actionMode == 1 then
+        -- Flight mode - length limit is handled in main Grapple.lua Update function
+        return grappleInstance.limitReached
+    end
+    
+    -- Attached mode - check if rope is at maximum length
     if grappleInstance.lineLength > grappleInstance.maxLineLength then
         if grappleInstance.limitReached == false then
             grappleInstance.limitReached = true

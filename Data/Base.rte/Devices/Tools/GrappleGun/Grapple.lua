@@ -22,6 +22,7 @@ function Create(self)
 
     self.fireVel = 40      -- This immediately overwrites the .ini FireVel
     self.maxLineLength = 400   -- Shorter rope for faster gameplay
+    self.maxShootDistance = self.maxLineLength * 0.95 -- 95% of maxLineLength (5% less shooting distance)
     self.setLineLength = 0
     self.lineStrength = 10000 -- EXTREMELY HIGH force threshold - virtually unbreakable (was 120)
 
@@ -134,6 +135,18 @@ function Update(self)
 					self.lineLength = self.lineVec.Magnitude
 					self.currentLineLength = self.lineLength
 					
+					-- Check if we\'ve reached the maximum shooting distance during flight
+					if self.lineLength >= self.maxShootDistance then
+						-- Stop the claw at max shooting distance but keep it in flight mode
+						local maxShootVec = self.lineVec:SetMagnitude(self.maxShootDistance)
+						self.Pos = self.parent.Pos + maxShootVec
+						self.Vel = Vector(0, 0) -- Stop the claw
+						self.currentLineLength = self.maxShootDistance
+						self.limitReached = true
+						-- Keep actionMode = 1 (flight) so it can still detect collisions
+						self.clickSound:Play(self.parent.Pos)
+					end
+					
 					-- Update rope anchor points directly for flight mode
 					self.apx[0] = self.parent.Pos.X
 					self.apy[0] = self.parent.Pos.Y
@@ -141,10 +154,11 @@ function Update(self)
 					self.apy[self.currentSegments] = self.Pos.Y
 					
 					-- Set all lastX/lastY positions to prevent velocity inheritance from previous mode
-					for i = 0, self.currentSegments do
-						self.lastX[i] = self.apx[i]
-						self.lastY[i] = self.apy[i]
-					end
+					-- Commenting out this loop allows for rope physics during flight
+					-- for i = 0, self.currentSegments do
+					-- 	self.lastX[i] = self.apx[i]
+					-- 	self.lastY[i] = self.apy[i]
+					-- end
 				end
 				
 				-- Calculate optimal number of segments based on rope length using our module function
@@ -161,28 +175,22 @@ function Update(self)
 				-- Proper rope physics simulation using the RopePhysics module
 				local endPos = self.Pos
 				
-				-- Choose physics simulation based on rope mode
-				if self.actionMode == 1 then
-					-- Flight mode - keep rope tight and straight
-					RopePhysics.updateRopeFlightPath(self)
-				else
-					-- Attached mode - run full physics simulation
-					RopePhysics.updateRopePhysics(self, startPos, endPos, self.currentLineLength)
-					
-					-- Apply constraints and check for rope breaking (extremely high threshold)
-					local ropeBreaks = RopePhysics.applyRopeConstraints(self, self.currentLineLength)
-					if ropeBreaks or self.shouldBreak then
-						-- Rope snapped due to EXTREME tension (500% stretch)
-						self.ToDelete = true
-						if self.parent and self.parent:IsPlayerControlled() then
-							-- Add screen shake and sound effect when rope breaks
-							FrameMan:SetScreenScrollSpeed(10.0) -- More dramatic shake for extreme break
-							if self.returnSound then
-								self.returnSound:Play(self.parent.Pos)
-							end
+				-- Use full rope physics simulation for both flight and attached modes
+				RopePhysics.updateRopePhysics(self, startPos, endPos, self.currentLineLength)
+				
+				-- Apply constraints and check for rope breaking (extremely high threshold)
+				local ropeBreaks = RopePhysics.applyRopeConstraints(self, self.currentLineLength)
+				if ropeBreaks or self.shouldBreak then
+					-- Rope snapped due to EXTREME tension (500% stretch)
+					self.ToDelete = true
+					if self.parent and self.parent:IsPlayerControlled() then
+						-- Add screen shake and sound effect when rope breaks
+						FrameMan:SetScreenScrollSpeed(10.0) -- More dramatic shake for extreme break
+						if self.returnSound then
+							self.returnSound:Play(self.parent.Pos)
 						end
-						return -- Exit early since rope is breaking
 					end
+					return -- Exit early since rope is breaking
 				end
 				
 				-- Special handling for attached targets (MO grabbing)
@@ -237,16 +245,15 @@ function Update(self)
 					self.setLineLength = self.currentLineLength
 				end
 
-				-- Single length limit check - removed redundant checkLineLengthUpdate call
+				-- Single length limit check - now handled during flight phase
 				if self.currentLineLength > self.maxLineLength then
 					self.currentLineLength = self.maxLineLength
 					self.setLineLength = self.maxLineLength
-					if not self.limitReached then
-						self.limitReached = true
-						self.clickSound:Play(self.parent.Pos)
-					end
+					-- limitReached is now set during flight phase
 				else
-					self.limitReached = false
+					if self.actionMode > 1 then  -- Only reset limit flag when attached, not during flight
+						self.limitReached = false
+					end
 				end
 
 				if self.parentGun and self.parentGun.ID ~= rte.NoMOID then
