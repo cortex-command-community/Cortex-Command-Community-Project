@@ -1,294 +1,269 @@
 -- Grapple Gun Input Controller Module
--- Handles user input for rope control with pure constraint-based physics
--- No velocity manipulation, no force application - only rope length control
+-- Handles user input for rope control.
+-- Translates raw input into actions for the main grapple logic.
 
 local RopeInputController = {}
 
--- Handle direct rope length control with Shift+Mousewheel 
+-- Helper to check if the player is currently holding the specific grapple gun instance.
+local function isHoldingGrappleGun(grappleInstance)
+    if grappleInstance and grappleInstance.parent and grappleInstance.parent.EquippedItem and
+       grappleInstance.parentGun and grappleInstance.parent.EquippedItem.ID == grappleInstance.parentGun.ID then
+        return true
+    end
+    return false
+end
+
+-- Handle direct rope length control with Shift+Mousewheel.
 function RopeInputController.handleShiftMousewheelControls(grappleInstance, controller)
-    -- Only process shift+mousewheel when holding shift key (jump or crouch)
+    if not controller then return end
+
+    -- Only process if Shift (Jump or Crouch in this context) is held.
     local shiftHeld = controller:IsState(Controller.BODY_JUMPSTART) or controller:IsState(Controller.BODY_CROUCH)
     if not shiftHeld then return end
     
     local scrollAmount = 0
-    
     if controller:IsState(Controller.SCROLL_UP) then
-        -- Scroll up - shorten rope
         scrollAmount = -grappleInstance.shiftScrollSpeed
     elseif controller:IsState(Controller.SCROLL_DOWN) then
-        -- Scroll down - lengthen rope
         scrollAmount = grappleInstance.shiftScrollSpeed
     end
     
     if scrollAmount ~= 0 then
-        -- Apply length change
         local newLength = grappleInstance.currentLineLength + scrollAmount
-        -- Clamp to valid range
+        -- Clamp to valid range (e.g., min 10, max defined by maxLineLength).
         newLength = math.max(10, math.min(newLength, grappleInstance.maxLineLength)) 
         
-        -- Update rope length
         grappleInstance.currentLineLength = newLength
-        grappleInstance.setLineLength = newLength
+        grappleInstance.setLineLength = newLength -- Ensure setLineLength is also updated.
+        grappleInstance.climbTimer:Reset() -- Reset climb timer to reflect manual adjustment.
     end
 end
 
--- Handle R key (reload) press to unhook grapple
+-- Handle R key (reload) press to unhook the grapple.
 function RopeInputController.handleReloadKeyUnhook(grappleInstance, controller)
     if not controller then return false end
     
-    -- Check for reload key press (R key)
     if controller:IsState(Controller.WEAPON_RELOAD) then
-        -- Only unhook if holding the Grapple Gun
-        if grappleInstance.parent.EquippedItem and 
-           grappleInstance.parentGun and 
-           grappleInstance.parent.EquippedItem.ID == grappleInstance.parentGun.ID then
-            return true -- Signal to delete the hook
+        -- Only unhook if the player is actually holding this grapple gun.
+        if isHoldingGrappleGun(grappleInstance) then
+            return true -- Signal to Grapple.lua to delete the hook.
         end
     end
-    
     return false
 end
 
--- Handle double-tap detection for retrieving grapple
+-- Handle double-tap detection (e.g., crouch key) for retrieving the grapple.
+-- This is typically used when *not* holding the grapple gun.
 function RopeInputController.handleTapDetection(grappleInstance, controller)
-    if not controller then return false end
+    if not controller or not grappleInstance.parent then return false end
 
     local proneState = controller:IsState(Controller.BODY_PRONE)
-    local isHoldingGrappleGun = false
     
-    -- Check if player is holding grapple gun
-    if grappleInstance.parent and grappleInstance.parent.EquippedItem and 
-       grappleInstance.parentGun and grappleInstance.parent.EquippedItem.ID == grappleInstance.parentGun.ID then
-        isHoldingGrappleGun = true
+    -- This tap detection is for recalling the hook when *NOT* holding the gun.
+    if isHoldingGrappleGun(grappleInstance) then
+        grappleInstance.tapCounter = 0 -- Reset tap if player is holding the gun.
+        grappleInstance.canTap = true -- Allow tapping if they switch away.
+        return false
     end
-    
-    local shouldUnhook = false
-    
-    -- Handle tap state changes
+        
     if proneState then
-        if not isHoldingGrappleGun then -- Only process tap for unhook if NOT holding grapple gun
+        if grappleInstance.canTap then
+            controller:SetState(Controller.BODY_PRONE, false) -- Prevent continuous prone state.
+            
+            -- Reset pie selection and climb state if a tap occurs.
             grappleInstance.pieSelection = 0
-            if grappleInstance.canTap then
-                controller:SetState(Controller.BODY_PRONE, false)
-                grappleInstance.climb = 0
-                
-                if grappleInstance.parentGun and grappleInstance.parentGun.ID ~= rte.NoMOID then
-                    grappleInstance.parentGun:RemoveNumberValue("GrappleMode")
-                end
-                
-                grappleInstance.tapTimer:Reset()
-                grappleInstance.didTap = true
-                grappleInstance.canTap = false
-                grappleInstance.tapCounter = grappleInstance.tapCounter + 1
+            grappleInstance.climb = 0
+            if grappleInstance.parentGun and grappleInstance.parentGun.ID ~= rte.NoMOID then
+                grappleInstance.parentGun:RemoveNumberValue("GrappleMode")
             end
-        else
-            grappleInstance.canTap = true
+            
+            grappleInstance.tapTimer:Reset()
+            -- grappleInstance.didTap = true -- If used for anything.
+            grappleInstance.canTap = false -- Prevent immediate re-tap.
+            grappleInstance.tapCounter = grappleInstance.tapCounter + 1
         end
     else
-        grappleInstance.canTap = true
+        grappleInstance.canTap = true -- Ready for the first tap.
     end
     
-    -- Check if we've reached enough taps in time to unhook
     if grappleInstance.tapTimer:IsPastSimMS(grappleInstance.tapTime) then
-        grappleInstance.tapCounter = 0
+        grappleInstance.tapCounter = 0 -- Reset if too much time passed.
     else
         if grappleInstance.tapCounter >= grappleInstance.tapAmount then
-            if not isHoldingGrappleGun then -- Only unhook via double tap if NOT holding grapple gun
-                shouldUnhook = true
-            else
-                grappleInstance.tapCounter = 0 -- If holding gun, reset counter to prevent unhook
-            end
+            grappleInstance.tapCounter = 0 -- Reset after successful multi-tap.
+            return true -- Signal to Grapple.lua to delete the hook.
         end
     end
-    
-    return shouldUnhook
+    return false
 end
 
--- Handle mouse wheel scrolling for rope length control
+-- Handle mouse wheel scrolling for rope length control (when not holding Shift).
 function RopeInputController.handleMouseWheelControl(grappleInstance, controller)
-    if not controller:IsMouseControlled() then return end
+    if not controller or not controller:IsMouseControlled() then return end
     
+    -- Clear weapon change states if mouse wheel is used for grapple control.
     controller:SetState(Controller.WEAPON_CHANGE_NEXT, false)
     controller:SetState(Controller.WEAPON_CHANGE_PREV, false)
     
-    -- Handle Shift+Mousewheel for rope control
-    if controller:IsState(Controller.BODY_JUMPSTART) or controller:IsState(Controller.BODY_CROUCH) then
-        -- Call our enhanced Shift+Mousewheel handler function
+    -- If Shift is held, it's handled by handleShiftMousewheelControls.
+    local shiftHeld = controller:IsState(Controller.BODY_JUMPSTART) or controller:IsState(Controller.BODY_CROUCH)
+    if shiftHeld then
         RopeInputController.handleShiftMousewheelControls(grappleInstance, controller)
     else
-        -- Normal mousewheel behavior (without shift)
+        -- Normal mousewheel behavior (without Shift) for quick retract/extend.
         if controller:IsState(Controller.SCROLL_UP) then
             grappleInstance.climbTimer:Reset()
-            grappleInstance.climb = 3
-        end
-        
-        if controller:IsState(Controller.SCROLL_DOWN) then
+            grappleInstance.climb = 3 -- Signal mouse retract.
+        elseif controller:IsState(Controller.SCROLL_DOWN) then
             grappleInstance.climbTimer:Reset()
-            grappleInstance.climb = 4
+            grappleInstance.climb = 4 -- Signal mouse extend.
         end
     end
 end
 
--- Process standard directional controls for climbing
-function RopeInputController.handleDirectionalControl(grappleInstance, controller, terrCheck)
-    if not controller then return end
+-- Process standard directional controls (Up/Down keys) for climbing.
+function RopeInputController.handleDirectionalControl(grappleInstance, controller)
+    if not controller or controller:IsMouseControlled() then return end -- Only for keyboard/gamepad.
     
-    if controller:IsMouseControlled() == false then
-        if controller:IsState(Controller.HOLD_UP) then
-            if grappleInstance.currentLineLength > grappleInstance.climbInterval then
-                grappleInstance.climb = 1
-                -- Pure position-based system - no direct velocity manipulation
-                -- Terrain obstacles are handled by Verlet constraint system
-            end
+    -- Using HOLD_UP/HOLD_DOWN for continuous climbing.
+    if controller:IsState(Controller.HOLD_UP) then
+        if grappleInstance.currentLineLength > grappleInstance.climbInterval then -- Check if can retract further.
+            grappleInstance.climb = 1 -- Signal key retract.
         end
-
-        if controller:IsState(Controller.HOLD_DOWN) and 
-           grappleInstance.currentLineLength < (grappleInstance.maxLineLength-grappleInstance.climbInterval) then
-            grappleInstance.climb = 2
+    elseif controller:IsState(Controller.HOLD_DOWN) then -- Use elseif to prevent retract & extend same frame.
+        if grappleInstance.currentLineLength < (grappleInstance.maxLineLength - grappleInstance.climbInterval) then -- Check if can extend further.
+            grappleInstance.climb = 2 -- Signal key extend.
         end
     end
     
+    -- Clear aim states if directional keys are used for climbing.
     controller:SetState(Controller.AIM_UP, false)
     controller:SetState(Controller.AIM_DOWN, false)
 end
 
--- Handle rope pulling actions from gun activation
+-- Main function to handle all rope pulling/climbing inputs.
+-- This function is called from Grapple.lua's Update when the hook is attached.
 function RopeInputController.handleRopePulling(grappleInstance)
+    if not grappleInstance.parent then return end
     local controller = grappleInstance.parent:GetController()
-    local parentForces = 1 + (grappleInstance.parent.Vel.Magnitude * 10 + 
-                             grappleInstance.parent.Mass)/(1 + grappleInstance.lineLength)
-                             
-    -- Check for terrain between player and hook to avoid auto-pulling through walls
-    local terrCheck = false
-    if grappleInstance.parentRadius ~= nil then
-        local terrVector = Vector()
-        terrCheck = SceneMan:CastStrengthRay(grappleInstance.parent.Pos, 
-                                            grappleInstance.lineVec:SetMagnitude(grappleInstance.parentRadius), 
-                                            0, terrVector, 2, rte.airID, grappleInstance.mapWrapsX)
+    if not controller then return end
+
+    -- parentForces influences how fast the player can climb against their own momentum/mass.
+    local parentForces = 1.0
+    if grappleInstance.parent.Vel and grappleInstance.parent.Mass and grappleInstance.lineLength > 0 then
+         parentForces = 1 + (grappleInstance.parent.Vel.Magnitude * 10 + grappleInstance.parent.Mass) / (1 + grappleInstance.lineLength)
+         parentForces = math.max(0.1, parentForces) -- Prevent division by zero or excessively small forces.
     end
-    
-    -- Handle climbing timer for manual rope control
-    if grappleInstance.climb ~= 0 and 
-       grappleInstance.pieSelection == 0 and 
-       grappleInstance.climbTimer:IsPastSimMS(grappleInstance.climbDelay) then
-        
-        grappleInstance.climbTimer:Reset()
-        
-        -- Process up/down movement
-        if grappleInstance.climb == 1 then
-            -- Retract - pull player up
-            grappleInstance.currentLineLength = grappleInstance.currentLineLength - (grappleInstance.climbInterval/parentForces)
+                             
+    -- Handle timed climbing actions (from key presses or mouse wheel).
+    if grappleInstance.climb ~= 0 and grappleInstance.pieSelection == 0 then -- Don't interfere with pie menu.
+        if grappleInstance.climbTimer:IsPastSimMS(grappleInstance.climbDelay) then
+            grappleInstance.climbTimer:Reset()
+            
+            if grappleInstance.climb == 1 then -- Key retract
+                grappleInstance.currentLineLength = grappleInstance.currentLineLength - (grappleInstance.climbInterval / parentForces)
+            elseif grappleInstance.climb == 2 then -- Key extend
+                grappleInstance.currentLineLength = grappleInstance.currentLineLength + grappleInstance.climbInterval -- Extending isn't typically resisted by parentForces.
+            end
             grappleInstance.setLineLength = grappleInstance.currentLineLength
-        elseif grappleInstance.climb == 2 then
-            -- Extend - let player down
-            grappleInstance.currentLineLength = grappleInstance.currentLineLength + grappleInstance.climbInterval
-            grappleInstance.setLineLength = grappleInstance.currentLineLength
+            grappleInstance.climb = 0 -- Reset climb state after action.
         end
         
-        -- Reset climb state
-        grappleInstance.climb = 0
+        -- Handle mouse-based climbing (continuous while scroll is active).
+        if grappleInstance.climb == 3 or grappleInstance.climb == 4 then -- Mouse retract/extend
+            if grappleInstance.mouseClimbTimer:IsPastSimMS(grappleInstance.climbDelay) then -- Use climbDelay for tick rate.
+                grappleInstance.mouseClimbTimer:Reset()
+                if grappleInstance.climb == 3 and grappleInstance.currentLineLength > grappleInstance.climbInterval then
+                    grappleInstance.currentLineLength = grappleInstance.currentLineLength - (grappleInstance.climbInterval / parentForces)
+                elseif grappleInstance.climb == 4 and grappleInstance.currentLineLength < (grappleInstance.maxLineLength - grappleInstance.climbInterval) then
+                    grappleInstance.currentLineLength = grappleInstance.currentLineLength + grappleInstance.climbInterval
+                end
+                grappleInstance.setLineLength = grappleInstance.currentLineLength
+            end
+            -- Check if mouse scroll period has ended.
+            if grappleInstance.climbTimer:IsPastSimMS(grappleInstance.mouseClimbLength) then
+                 grappleInstance.climb = 0 -- End mouse climb state.
+            end
+        end
     end
     
-    -- Handle mouse-based climbing
-    if (grappleInstance.climb == 3 or grappleInstance.climb == 4) then
-        if grappleInstance.climbTimer:IsPastSimMS(grappleInstance.mouseClimbLength) then
-            grappleInstance.climbTimer:Reset()
-            grappleInstance.mouseClimbTimer:Reset()
-            grappleInstance.climb = 0
+    -- Clamp currentLineLength to ensure it stays within valid bounds.
+    grappleInstance.currentLineLength = math.max(10, math.min(grappleInstance.currentLineLength, grappleInstance.maxLineLength))
+    
+    -- Process directional and mouse wheel inputs for next frame.
+    RopeInputController.handleDirectionalControl(grappleInstance, controller)
+    RopeInputController.handleMouseWheelControl(grappleInstance, controller)
+end
+
+-- Process pie menu selections made by the player.
+function RopeInputController.handlePieMenuSelection(grappleInstance)
+    if not grappleInstance.parentGun or grappleInstance.parentGun.ID == rte.NoMOID then return false end
+    
+    local mode = grappleInstance.parentGun:GetNumberValue("GrappleMode") -- Read mode set by Pie.lua.
+    
+    if mode and mode ~= 0 then
+        grappleInstance.parentGun:RemoveNumberValue("GrappleMode") -- Consume the mode.
+        if mode == 3 then -- Unhook via Pie Menu.
+            return true -- Signal to Grapple.lua to delete the hook.
         else
-            -- Handle mouse wheel based climbing
-            if grappleInstance.mouseClimbTimer:IsPastSimMS(grappleInstance.climbDelay) then
-                grappleInstance.mouseClimbTimer:Reset()
-                
-                if grappleInstance.climb == 3 and grappleInstance.currentLineLength > grappleInstance.climbInterval then
-                    -- Mouse wheel up - retract rope
-                    grappleInstance.currentLineLength = grappleInstance.currentLineLength - (grappleInstance.climbInterval/parentForces)
-                    grappleInstance.setLineLength = grappleInstance.currentLineLength
-                elseif grappleInstance.climb == 4 and grappleInstance.currentLineLength < (grappleInstance.maxLineLength-grappleInstance.climbInterval) then
-                    -- Mouse wheel down - extend rope
-                    grappleInstance.currentLineLength = grappleInstance.currentLineLength + grappleInstance.climbInterval
-                    grappleInstance.setLineLength = grappleInstance.currentLineLength
+            -- Modes 1 (Retract) and 2 (Extend) from pie menu.
+            grappleInstance.pieSelection = mode 
+            grappleInstance.climb = 0 -- Pie menu overrides other climb inputs.
+        end
+    end
+    return false -- No "Unhook" selection from pie menu this frame.
+end
+
+-- Handle automatic retraction (e.g., when holding fire button or from pie menu).
+-- terrCheck indicates if terrain is between player and hook.
+function RopeInputController.handleAutoRetraction(grappleInstance, terrCheck)
+    if not grappleInstance.parentGun or grappleInstance.parentGun.ID == rte.NoMOID then return end
+    
+    local parentForces = 1.0
+    if grappleInstance.parent and grappleInstance.parent.Vel and grappleInstance.parent.Mass and grappleInstance.lineLength > 0 then
+         parentForces = 1 + (grappleInstance.parent.Vel.Magnitude * 10 + grappleInstance.parent.Mass) / (1 + grappleInstance.lineLength)
+         parentForces = math.max(0.1, parentForces)
+    end
+    
+    -- Auto-retract by holding fire button (if no pie selection is active).
+    if grappleInstance.parentGun:IsActivated() and grappleInstance.pieSelection == 0 then
+        if grappleInstance.climbTimer:IsPastSimMS(grappleInstance.climbDelay) then -- Use a timer for consistent speed.
+            grappleInstance.climbTimer:Reset()
+            if grappleInstance.currentLineLength > grappleInstance.autoClimbIntervalA then
+                grappleInstance.currentLineLength = grappleInstance.currentLineLength - (grappleInstance.autoClimbIntervalA / parentForces)
+                grappleInstance.setLineLength = grappleInstance.currentLineLength
+            else
+                -- Reached min length or close enough, stop auto-retracting via fire button.
+                -- Consider if pieSelection should be reset here or if IsActivated should be cleared.
+            end
+        end
+    end
+    
+    -- Process programmatic rope control from pie menu selection.
+    if grappleInstance.pieSelection ~= 0 then
+        if grappleInstance.climbTimer:IsPastSimMS(grappleInstance.climbDelay) then
+            grappleInstance.climbTimer:Reset()
+            local actionTaken = false
+            if grappleInstance.pieSelection == 1 then -- Full retract from pie.
+                if grappleInstance.currentLineLength > grappleInstance.autoClimbIntervalA then
+                    grappleInstance.currentLineLength = grappleInstance.currentLineLength - (grappleInstance.autoClimbIntervalA / parentForces)
+                    actionTaken = true
+                end
+            elseif grappleInstance.pieSelection == 2 then -- Extend from pie (was partial extend, now just extend).
+                if grappleInstance.currentLineLength < (grappleInstance.maxLineLength - grappleInstance.autoClimbIntervalB) then
+                    grappleInstance.currentLineLength = grappleInstance.currentLineLength + grappleInstance.autoClimbIntervalB
+                    actionTaken = true
                 end
             end
-        end
-    end
-    
-    -- Process directional controls
-    RopeInputController.handleDirectionalControl(grappleInstance, controller, terrCheck)
-    
-    -- Process mouse wheel controls
-    RopeInputController.handleMouseWheelControl(grappleInstance, controller)
-    
-    return terrCheck
-end
-
--- Process pie menu selections
-function RopeInputController.handlePieMenuSelection(grappleInstance)
-    if not grappleInstance.parentGun then return end
-    
-    local mode = grappleInstance.parentGun:GetNumberValue("GrappleMode")
-    
-    if mode ~= 0 then
-        if mode == 3 then -- Unhook via Pie Menu
-            grappleInstance.parentGun:RemoveNumberValue("GrappleMode")
-            return true -- Signal to delete the hook
-        else
-            grappleInstance.pieSelection = mode
-            grappleInstance.parentGun:RemoveNumberValue("GrappleMode")
-        end
-    end
-    
-    return false
-end
-
--- Handle auto retraction via held fire button
-function RopeInputController.handleAutoRetraction(grappleInstance, terrCheck)
-    if not grappleInstance.parentGun then return end
-    
-    local parentForces = 1 + (grappleInstance.parent.Vel.Magnitude * 10 + 
-                             grappleInstance.parent.Mass)/(1 + grappleInstance.lineLength)
-    
-    -- Retract automatically by holding fire or control the rope through the pie menu
-    if grappleInstance.parentGun:IsActivated() and grappleInstance.climbTimer:IsPastSimMS(grappleInstance.climbDelay) then
-        grappleInstance.climbTimer:Reset()
-        
-        if grappleInstance.pieSelection == 0 and grappleInstance.parentGun:IsActivated() then
-            if grappleInstance.currentLineLength > grappleInstance.autoClimbIntervalA then
-                grappleInstance.currentLineLength = grappleInstance.currentLineLength - (grappleInstance.autoClimbIntervalA/parentForces)
-                grappleInstance.setLineLength = grappleInstance.currentLineLength
-                -- Pure position-based system - no velocity manipulation or terrain nudging
-                -- Verlet constraints handle all physical interactions
-            else
-                grappleInstance.parentGun:RemoveNumberValue("GrappleMode")
-                grappleInstance.pieSelection = 0
+            
+            grappleInstance.setLineLength = grappleInstance.currentLineLength
+            if not actionTaken then
+                grappleInstance.pieSelection = 0 -- Stop pie action if target length reached or no change.
             end
         end
     end
-    
-    -- Process programmatic rope control through pie menu selection
-    if grappleInstance.pieSelection ~= 0 and grappleInstance.climbTimer:IsPastSimMS(grappleInstance.climbDelay) then
-        grappleInstance.climbTimer:Reset()
-        
-        if grappleInstance.pieSelection == 1 then
-            -- Full retract
-            if grappleInstance.currentLineLength > grappleInstance.autoClimbIntervalA then
-                grappleInstance.currentLineLength = grappleInstance.currentLineLength - (grappleInstance.autoClimbIntervalA/parentForces)
-                grappleInstance.setLineLength = grappleInstance.currentLineLength
-                -- Pure position-based system - no terrain checking or velocity manipulation
-            else
-                grappleInstance.pieSelection = 0
-            end
-        elseif grappleInstance.pieSelection == 2 then
-            -- Partial extend
-            if grappleInstance.currentLineLength < (grappleInstance.maxLineLength - grappleInstance.autoClimbIntervalB) then
-                grappleInstance.currentLineLength = grappleInstance.currentLineLength + grappleInstance.autoClimbIntervalB
-                grappleInstance.setLineLength = grappleInstance.currentLineLength
-            else
-                grappleInstance.parentGun:RemoveNumberValue("GrappleMode")
-                grappleInstance.pieSelection = 0
-            end
-        end
-    end
+    -- Clamp again after auto-retraction/extension.
+    grappleInstance.currentLineLength = math.max(10, math.min(grappleInstance.currentLineLength, grappleInstance.maxLineLength))
 end
 
 return RopeInputController

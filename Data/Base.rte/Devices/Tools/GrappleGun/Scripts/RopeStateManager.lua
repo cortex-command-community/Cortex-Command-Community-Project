@@ -1,540 +1,352 @@
+---@diagnostic disable: undefined-global
 -- Grapple Gun State Manager Module
--- Handles state transitions and physics effects based on grapple state
+-- Handles grapple state transitions, collision checks for attachment,
+-- and effects related to the grapple's state.
+
+-- Localize Cortex Command globals
+local CreateMOPixel = CreateMOPixel
+local SceneMan = SceneMan
+local MovableMan = MovableMan
+local Vector = Vector
+local rte = rte
 
 local RopeStateManager = {}
 
--- Initialize rope state (called from Create function)
+--[[
+  Initializes the core state variables for the grapple instance.
+  Called from Grapple.lua's Create function.
+  @param grappleInstance The grapple instance.
+]]
 function RopeStateManager.initState(grappleInstance)
-    grappleInstance.actionMode = 0    -- 0 = start, 1 = flying, 2 = grab terrain, 3 = grab MO
-    grappleInstance.limitReached = false
-    grappleInstance.canRelease = false
-    grappleInstance.currentLineLength = 0
-    grappleInstance.longestLineLength = 0
-    grappleInstance.setLineLength = 0
+    grappleInstance.actionMode = 0    -- 0: Start/Inactive, 1: Flying, 2: Grabbed Terrain, 3: Grabbed MO
+    grappleInstance.limitReached = false -- True if rope is at max extension.
+    grappleInstance.canRelease = false   -- True if the grapple is in a state where it can be released by player action.
+    grappleInstance.currentLineLength = 0 -- The current physics target length of the rope.
+    -- grappleInstance.longestLineLength = 0 -- Seems unused, consider removing.
+    grappleInstance.setLineLength = 0     -- The length explicitly set by input or logic.
     
-    -- Ensure parent and parent gun are initialized properly
-    -- This is typically called separately in the Create function
+    grappleInstance.target = nil -- Stores the MO if actionMode is 3.
+    grappleInstance.stickPosition = nil -- Offset from target MO's origin.
+    grappleInstance.stickRotation = nil -- Initial rotation of target MO.
+    grappleInstance.stickDirection = nil -- Initial rotation of the grapple claw itself.
+
+    grappleInstance.shouldBreak = false -- Flag to indicate rope should break.
+    grappleInstance.ropePhysicsInitialized = false -- Flag for one-time physics setups if needed.
 end
 
--- Handle state changes from flight to attached state
+--[[
+  Checks for collisions when the grapple is flying, to transition to an attached state.
+  @param grappleInstance The grapple instance.
+  @return True if the state changed (grapple attached), false otherwise.
+]]
 function RopeStateManager.checkAttachmentCollisions(grappleInstance)
-    -- Only process in flight state
-    if grappleInstance.actionMode ~= 1 then return false end
+    if grappleInstance.actionMode ~= 1 then return false end -- Only process in flying state.
     
     local stateChanged = false
-    local length = math.sqrt(grappleInstance.Diameter + grappleInstance.Vel.Magnitude)
-    -- Detect terrain and stick if found
-    local ray = Vector(length, 0):RadRotate(grappleInstance.Vel.AbsRadAngle)
-    grappleInstance.rayVec = Vector()
+    -- Calculate ray length based on grapple's diameter and velocity magnitude.
+    -- A small base length ensures even slow-moving grapples can detect nearby surfaces.
+    local rayLength = (grappleInstance.Diameter or 2) + (grappleInstance.Vel and grappleInstance.Vel.Magnitude or 0)
+    rayLength = math.max(5, rayLength) -- Ensure a minimum ray length.
+
+    local rayDirection = Vector(1,0) -- Default direction
+    if grappleInstance.Vel and grappleInstance.Vel.Magnitude and grappleInstance.Vel.Magnitude > 0.01 then
+        local mag = grappleInstance.Vel.Magnitude
+        -- Ensure mag is not zero before division, though the > 0.01 check should cover this.
+        if mag ~= 0 then
+            rayDirection = Vector(grappleInstance.Vel.X / mag, grappleInstance.Vel.Y / mag)
+        end
+        -- If mag is 0 (or very close, caught by <= 0.01), rayDirection remains Vector(1,0)
+    end
+    -- If grappleInstance.Vel is nil or its magnitude is too small, rayDirection remains Vector(1,0)
     
-    if SceneMan:CastStrengthRay(grappleInstance.Pos, ray, 0, grappleInstance.rayVec, 0, rte.airID, grappleInstance.mapWrapsX) then
-        grappleInstance.actionMode = 2
+    local collisionRay = rayDirection * rayLength
+    
+    local hitPoint = Vector() -- Will store the point of collision.
+
+    -- 1. Check for Terrain Collision
+    if SceneMan:CastStrengthRay(grappleInstance.Pos, collisionRay, 0, hitPoint, 0, rte.airID, grappleInstance.mapWrapsX) then
+        grappleInstance.actionMode = 2 -- Transition to "Grabbed Terrain"
+        grappleInstance.Pos = hitPoint -- Snap grapple to the hit point.
+        grappleInstance.apx[grappleInstance.currentSegments] = hitPoint.X -- Update anchor point
+        grappleInstance.apy[grappleInstance.currentSegments] = hitPoint.Y -- Update anchor point
+        grappleInstance.lastX[grappleInstance.currentSegments] = hitPoint.X -- Ensure lastPos is also updated for stability
+        grappleInstance.lastY[grappleInstance.currentSegments] = hitPoint.Y
         stateChanged = true
+        if grappleInstance.stickSound then grappleInstance.stickSound:Play(grappleInstance.Pos) end
     else
-        -- Detect MOs and stick if found
-        local moRay = SceneMan:CastMORay(grappleInstance.Pos, ray, grappleInstance.parent.ID, -2, rte.airID, false, 0)
-        if moRay ~= rte.NoMOID then
-            grappleInstance.target = MovableMan:GetMOFromID(moRay)
-            -- Treat pinned MOs as terrain
-            if grappleInstance.target.PinStrength > 0 then
-                grappleInstance.actionMode = 2
+        -- 2. Check for Movable Object (MO) Collision
+        local hitMORayInfo = SceneMan:CastMORay(grappleInstance.Pos, collisionRay, 
+                                            (grappleInstance.parent and grappleInstance.parent.ID or 0), -- Exclude parent actor
+                                            -2, -- Hit any team except own if negative, or specific team. -2 for any other.
+                                            rte.airID, false, 0) -- flags, filter
+        
+        if hitMORayInfo and hitMORayInfo.MOSPtr and hitMORayInfo.MOSPtr.ID ~= rte.NoMOID then
+            local hitMO = hitMORayInfo.MOSPtr
+            grappleInstance.target = hitMO -- Store the hit MO.
+            
+            -- If the MO is pinned (e.g., a static object like a bunker piece, or a character that used "Pin Self"), treat it like terrain.
+            -- Also consider MOs that are not Actors but might be part of the terrain/level.
+            local isPinnedActor = MovableMan:IsActor(hitMO) and ToActor(hitMO):IsPinned()
+            -- One could add more conditions here, e.g. checking hitMO.Material.Mass == 0 for static terrain pieces if applicable
+            
+            if isPinnedActor or (not MovableMan:IsActor(hitMO) and hitMO.Material and hitMO.Material.Mass == 0) then 
+                grappleInstance.actionMode = 2 -- Grabbed Terrain (effectively)
+                grappleInstance.Pos = hitMORayInfo.HitPos -- Snap grapple to the hit point on MO
+                grappleInstance.apx[grappleInstance.currentSegments] = hitMORayInfo.HitPos.X -- Update anchor point
+                grappleInstance.apy[grappleInstance.currentSegments] = hitMORayInfo.HitPos.Y -- Update anchor point
+                grappleInstance.lastX[grappleInstance.currentSegments] = hitMORayInfo.HitPos.X
+                grappleInstance.lastY[grappleInstance.currentSegments] = hitMORayInfo.HitPos.Y
+                -- For stickDirection, it might be better to use the hit normal if available,
+                -- otherwise, the direction from player to hook is a fallback.
+                -- local hitNormal = hitMORayInfo.HitNormal 
+                -- grappleInstance.stickDirection = hitNormal or (grappleInstance.Pos - grappleInstance.parent.Pos):Normalized()
+                grappleInstance.stickDirection = (grappleInstance.Pos - (grappleInstance.parent and grappleInstance.parent.Pos or grappleInstance.Pos)):Normalized()
+
+
+                if grappleInstance.stickSound then grappleInstance.stickSound:Play(grappleInstance.Pos) end
                 stateChanged = true
-            else
-                -- Store the offset from the object so we can maintain it when the object moves/rotates
-                grappleInstance.stickPosition = SceneMan:ShortestDistance(grappleInstance.target.Pos, grappleInstance.Pos, grappleInstance.mapWrapsX)
-                grappleInstance.stickRotation = grappleInstance.target.RotAngle
-                grappleInstance.stickDirection = grappleInstance.RotAngle
-                grappleInstance.actionMode = 3
+            -- Check if the MO is an Actor and is physical (can be grappled)
+            elseif MovableMan:IsActor(hitMO) and ToActor(hitMO):IsPhysical() then
+                grappleInstance.actionMode = 3 -- Grabbed MO
+                grappleInstance.Pos = hitMORayInfo.HitPos -- Snap grapple to hit point on MO
+                grappleInstance.apx[grappleInstance.currentSegments] = hitMORayInfo.HitPos.X -- Update anchor point
+                grappleInstance.apy[grappleInstance.currentSegments] = hitMORayInfo.HitPos.Y -- Update anchor point
+                grappleInstance.lastX[grappleInstance.currentSegments] = hitMORayInfo.HitPos.X
+                grappleInstance.lastY[grappleInstance.currentSegments] = hitMORayInfo.HitPos.Y
+                
+                grappleInstance.stickOffset = grappleInstance.Pos - hitMO.Pos -- Relative position on MO
+                grappleInstance.stickAngle = hitMO.RotAngle -- Initial angle of MO
+                -- grappleInstance.stickDirection = (grappleInstance.Pos - grappleInstance.parent.Pos):Normalized()
+                grappleInstance.stickDirection = (grappleInstance.Pos - (grappleInstance.parent and grappleInstance.parent.Pos or grappleInstance.Pos)):Normalized()
+
+                if grappleInstance.stickSound then grappleInstance.stickSound:Play(grappleInstance.Pos) end
                 stateChanged = true
             end
-            
-            -- Inflict damage on the target
-            local part = CreateMOPixel("Grapple Gun Damage Particle")
-            part.Pos = grappleInstance.Pos
-            part.Vel = SceneMan:ShortestDistance(grappleInstance.Pos, grappleInstance.target.Pos, grappleInstance.mapWrapsX):SetMagnitude(grappleInstance.Vel.Magnitude)
-            MovableMan:AddParticle(part)
+            -- If it's not a pinnable MO and not a physical Actor, it's ignored (e.g., a non-physical particle)
         end
     end
     
-    -- Handle state change initialization
+    -- Actions to take if the state changed to an attached state.
     if stateChanged then
-        grappleInstance.stickSound:Play(grappleInstance.Pos)
-        grappleInstance.currentLineLength = math.floor(grappleInstance.lineLength)
-        grappleInstance.setLineLength = grappleInstance.currentLineLength
-        grappleInstance.Vel = Vector() -- Stop the hook
-        grappleInstance.PinStrength = 1000
-        grappleInstance.Frame = 1 -- Change appearance
+        -- Play sound before potential errors if parent.Pos is nil, though parent should be valid.
+        if grappleInstance.stickSound then grappleInstance.stickSound:Play(grappleInstance.Pos) end
         
-        -- Reset rope physics initialization when transitioning from flight to attached
-        grappleInstance.ropePhysicsInitialized = false
-        grappleInstance.limitReached = false -- Reset limit when attaching
+        -- Update line length to current distance upon sticking.
+        if grappleInstance.parent and grappleInstance.parent.Pos then
+            local distVec = grappleInstance.Pos - grappleInstance.parent.Pos
+            grappleInstance.currentLineLength = math.floor(distVec.Magnitude)
+        else
+            -- Fallback if parent or parent.Pos is nil. This indicates a deeper issue elsewhere.
+            -- Setting to a large portion of maxLineLength as a temporary measure.
+            grappleInstance.currentLineLength = grappleInstance.maxLineLength * 0.9 
+        end
+        -- Ensure currentLineLength is within valid bounds immediately after calculating.
+        grappleInstance.currentLineLength = math.max(10, math.min(grappleInstance.currentLineLength, grappleInstance.maxLineLength))
+
+        grappleInstance.setLineLength = grappleInstance.currentLineLength
+        grappleInstance.Vel = Vector(0,0) -- Stop the hook's independent movement.
+        grappleInstance.PinStrength = 1000 -- Make it "stick" firmly.
+        grappleInstance.Frame = 1 -- Change sprite frame to "stuck" appearance if applicable.
+        
+        grappleInstance.canRelease = true -- Now that it's stuck, player can choose to release it.
+        grappleInstance.limitReached = (grappleInstance.currentLineLength >= grappleInstance.maxLineLength - 0.1)
+        grappleInstance.ropePhysicsInitialized = false -- May need re-init for rope physics with new anchor.
     end
     
     return stateChanged
 end
 
--- Handle exceeding maximum length - SIMPLIFIED VERSION
--- Main length control is now centralized in Grapple.lua
+--[[
+  Handles logic when the rope reaches its maximum allowed length.
+  This is mostly for effects like sound, as the actual length constraint is handled by RopePhysics.
+  @param grappleInstance The grapple instance.
+  @return True if the limit was newly reached this frame, false otherwise.
+]]
 function RopeStateManager.checkLengthLimit(grappleInstance)
-    -- During flight, the claw automatically stops at max rope length
-    -- This function now mainly handles attached mode length limits
-    if grappleInstance.actionMode == 1 then
-        -- Flight mode - length limit is handled in main Grapple.lua Update function
-        return grappleInstance.limitReached
+    -- This function's primary role is now for triggering effects when the length limit is hit.
+    -- The actual physics of stopping at max length is handled in Grapple.lua (for flight)
+    -- and RopePhysics.applyRopeConstraints (for attached states).
+
+    local effectivelyAtMax = false
+    if grappleInstance.actionMode == 1 then -- Flying
+        effectivelyAtMax = (grappleInstance.lineLength >= grappleInstance.maxShootDistance - 0.1)
+    else -- Attached
+        effectivelyAtMax = (grappleInstance.currentLineLength >= grappleInstance.maxLineLength - 0.1)
     end
-    
-    -- Attached mode - check if rope is at maximum length
-    if grappleInstance.lineLength > grappleInstance.maxLineLength then
-        if grappleInstance.limitReached == false then
+
+    if effectivelyAtMax then
+        if not grappleInstance.limitReached then -- If it wasn't at limit last frame
             grappleInstance.limitReached = true
-            grappleInstance.clickSound:Play(grappleInstance.parent.Pos)
-        end
-        return true -- Signal that limit was reached
-    end
-    
-    grappleInstance.limitReached = false
-    return false
-end
-
--- Apply elastic stretch dynamics when in stretch mode
-function RopeStateManager.applyStretchMode(grappleInstance)
-    if not grappleInstance.stretchMode then return end
-    
-    if grappleInstance.actionMode == 1 then
-        -- Stretch mode: gradually retract the hook for a return hit
-        grappleInstance.Vel = grappleInstance.Vel - 
-                            Vector(grappleInstance.lineVec.X, grappleInstance.lineVec.Y)
-                            :SetMagnitude(math.sqrt(grappleInstance.lineLength) * 
-                                        grappleInstance.stretchPullRatio/2)
-    end
-end
-
--- Apply sophisticated terrain pull physics with comprehensive actor protection
-function RopeStateManager.applyTerrainPullPhysics(grappleInstance)
-    if grappleInstance.actionMode ~= 2 then return false end
-    
-    -- Check if we have rope tension from the constraint system
-    if grappleInstance.ropeTensionForce and grappleInstance.ropeTensionDirection then
-        -- Use the tension force calculated by the rope constraint system
-        local raw_spring_force = grappleInstance.ropeTensionForce
-        local force_direction = grappleInstance.ropeTensionDirection
-        
-        -- Apply sophisticated actor protection
-        local actor = grappleInstance.parent
-        local actor_mass = actor.Mass
-        local actor_vel = actor.Vel.Magnitude
-        local actor_health = actor.Health
-        
-        -- Base safety limits
-        local base_force_limit = 6.0 -- Conservative limit for terrain pulls
-        local mass_scaling = math.min(actor_mass / 80, 1.8)
-        local velocity_penalty = 1 + math.min(actor_vel / 15, 1.0)
-        local health_scaling = math.min(actor_health / 100, 1.1)
-        
-        local safe_force_limit = base_force_limit * mass_scaling * health_scaling / velocity_penalty
-        
-        -- Progressive force dampening with multiple stages
-        local force_dampening = 1.0
-        if raw_spring_force > safe_force_limit then
-            local excess_ratio = raw_spring_force / safe_force_limit
-            if excess_ratio < 2.0 then
-                -- Linear dampening for moderate excess
-                force_dampening = 1.0 / excess_ratio
-            else
-                -- Logarithmic dampening for extreme forces
-                force_dampening = 1.0 / (1 + math.log(excess_ratio))
+            if grappleInstance.clickSound and grappleInstance.parent and grappleInstance.parent.Pos then
+                grappleInstance.clickSound:Play(grappleInstance.parent.Pos)
             end
-        end
-        
-        -- Energy conservation check
-        local kinetic_energy = 0.5 * actor_mass * actor_vel * actor_vel
-        local rope_potential_energy = raw_spring_force * (raw_spring_force / 10) -- Approximation
-        local total_energy = kinetic_energy + rope_potential_energy
-        
-        local energy_limit = 1500 -- Energy threshold
-        if total_energy > energy_limit then
-            local energy_dampening = energy_limit / total_energy
-            force_dampening = force_dampening * energy_dampening
-        end
-        
-        -- Calculate final safe force
-        local safe_force_magnitude = raw_spring_force * force_dampening
-        local safe_force_vector = force_direction * safe_force_magnitude
-        
-        -- Apply primary force to pull player toward hook when rope is taut
-        if safe_force_magnitude > 0.1 then
-            actor:AddForce(safe_force_vector, actor.Pos)
-        end
-        
-        return false -- Don't break rope from tension
-    end
-    
-    -- Fallback to old system if no tension force available
-    local minRopeLength = 1
-    local effectiveCurrentLength = math.max(minRopeLength, grappleInstance.currentLineLength)
-    
-    if grappleInstance.lineLength > effectiveCurrentLength then
-        -- Calculate extension and forces
-        local extension = grappleInstance.lineLength - effectiveCurrentLength
-        local base_spring_constant = 0.5 -- Reduced for safety
-        
-        -- Dynamic force calculation based on extension ratio
-        local extension_ratio = extension / effectiveCurrentLength
-        local dynamic_spring_constant = base_spring_constant * (1 + extension_ratio * 0.3)
-        
-        -- Calculate raw spring force
-        local raw_spring_force = extension * dynamic_spring_constant
-        
-        -- Apply sophisticated actor protection
-        local force_direction = grappleInstance.lineVec:SetMagnitude(1)
-        
-        -- Multi-layered safety system
-        local actor = grappleInstance.parent
-        local actor_mass = actor.Mass
-        local actor_vel = actor.Vel.Magnitude
-        local actor_health = actor.Health
-        
-        -- Base safety limits
-        local base_force_limit = 6.0 -- Conservative limit for terrain pulls
-        local mass_scaling = math.min(actor_mass / 80, 1.8)
-        local velocity_penalty = 1 + math.min(actor_vel / 15, 1.0)
-        local health_scaling = math.min(actor_health / 100, 1.1)
-        
-        local safe_force_limit = base_force_limit * mass_scaling * health_scaling / velocity_penalty
-        
-        -- Progressive force dampening with multiple stages
-        local force_dampening = 1.0
-        if raw_spring_force > safe_force_limit then
-            local excess_ratio = raw_spring_force / safe_force_limit
-            if excess_ratio < 2.0 then
-                -- Linear dampening for moderate excess
-                force_dampening = 1.0 / excess_ratio
-            else
-                -- Logarithmic dampening for extreme forces
-                force_dampening = 1.0 / (1 + math.log(excess_ratio))
-            end
-        end
-        
-        -- Energy conservation check
-        local kinetic_energy = 0.5 * actor_mass * actor_vel * actor_vel
-        local rope_potential_energy = raw_spring_force * extension
-        local total_energy = kinetic_energy + rope_potential_energy
-        
-        local energy_limit = 1500 -- Energy threshold
-        if total_energy > energy_limit then
-            local energy_dampening = energy_limit / total_energy
-            force_dampening = force_dampening * energy_dampening
-        end
-        
-        -- Calculate final safe force
-        local safe_force_magnitude = raw_spring_force * force_dampening
-        local safe_force_vector = force_direction * safe_force_magnitude
-        
-        -- Force distribution over time for very high forces
-        if raw_spring_force > safe_force_limit * 3 then
-            -- Store excess force for gradual application
-            if not grappleInstance.terrainForceBuffer then
-                grappleInstance.terrainForceBuffer = {force = 0, decay = 0.85}
-            end
-            
-            local excess_force = raw_spring_force - safe_force_magnitude
-            grappleInstance.terrainForceBuffer.force = grappleInstance.terrainForceBuffer.force + excess_force * 0.2
-        end
-        
-        -- Apply primary force
-        if safe_force_magnitude > 0.1 then
-            actor:AddForce(safe_force_vector, actor.Pos)
-        end
-        
-        -- Apply buffered forces if they exist
-        if grappleInstance.terrainForceBuffer and grappleInstance.terrainForceBuffer.force > 0.1 then
-            local buffer_force = grappleInstance.terrainForceBuffer.force * 0.25 -- Apply 25% per frame
-            local buffered_force_vector = force_direction * buffer_force
-            
-            -- Additional safety check for buffered forces
-            if buffer_force < safe_force_limit * 0.8 then
-                actor:AddForce(buffered_force_vector, actor.Pos)
-            end
-            
-            -- Decay the buffered force
-            grappleInstance.terrainForceBuffer.force = grappleInstance.terrainForceBuffer.force * grappleInstance.terrainForceBuffer.decay
-        end
-        
-        -- Rope breaking with sophisticated criteria
-        local break_threshold = (grappleInstance.lineStrength or 50) * 0.9
-        
-        -- Track sustained high forces
-        if not grappleInstance.terrainForceHistory then
-            grappleInstance.terrainForceHistory = {}
-            for i = 1, 8 do
-                grappleInstance.terrainForceHistory[i] = 0
-            end
-        end
-        
-        table.remove(grappleInstance.terrainForceHistory, 1)
-        table.insert(grappleInstance.terrainForceHistory, raw_spring_force)
-        
-        local avg_force = 0
-        for i = 1, #grappleInstance.terrainForceHistory do
-            avg_force = avg_force + grappleInstance.terrainForceHistory[i]
-        end
-        avg_force = avg_force / #grappleInstance.terrainForceHistory
-        
-        -- Break rope if sustained high force or extreme instantaneous force
-        if (avg_force > break_threshold * 0.7 and raw_spring_force > break_threshold) or 
-           raw_spring_force > break_threshold * 2 then
-            return true -- Signal to delete the hook due to excessive tension
-        end
-    end
-    
-    return false
-end
-
--- Apply sophisticated MO pull physics with comprehensive force protection for both actor and target
-function RopeStateManager.applyMOPullPhysics(grappleInstance)
-    if grappleInstance.actionMode ~= 3 or not grappleInstance.target then return false end
-    
-    if grappleInstance.target.ID ~= rte.NoMOID then
-        -- Update the hook position based on the object it's attached to
-        grappleInstance.Pos = grappleInstance.target.Pos + 
-                            Vector(grappleInstance.stickPosition.X, grappleInstance.stickPosition.Y)
-                            :RadRotate(grappleInstance.target.RotAngle - grappleInstance.stickRotation)
-        grappleInstance.RotAngle = grappleInstance.stickDirection + 
-                                 (grappleInstance.target.RotAngle - grappleInstance.stickRotation)
-        
-        -- Update rope anchor point for hook position
-        grappleInstance.apx[grappleInstance.currentSegments] = grappleInstance.Pos.X
-        grappleInstance.apy[grappleInstance.currentSegments] = grappleInstance.Pos.Y
-
-        local target = grappleInstance.target
-        -- Simplified root parent check without IsAttachable since it's not available
-        if target.ID ~= target.RootID then
-            local mo = target:GetRootParent()
-            if mo.ID ~= rte.NoMOID then
-                target = mo
-            end
-        end
-
-        if grappleInstance.stretchMode then
-            local pullVec = grappleInstance.lineVec:SetMagnitude(grappleInstance.stretchPullRatio * 
-                                                             math.sqrt(grappleInstance.lineLength)/
-                                                             grappleInstance.parentForces)
-            grappleInstance.parent.Vel = grappleInstance.parent.Vel + pullVec
-
-            local targetForces = 1 + (target.Vel.Magnitude * 10 + target.Mass)/(1 + grappleInstance.lineLength)
-            target.Vel = target.Vel - (pullVec) * grappleInstance.parentForces/targetForces
-        elseif grappleInstance.lineLength > grappleInstance.currentLineLength then
-            -- Check if we have rope tension from the constraint system
-            if grappleInstance.ropeTensionForce and grappleInstance.ropeTensionDirection then
-                -- Use the tension force calculated by the rope constraint system
-                local raw_spring_force = grappleInstance.ropeTensionForce
-                local actor = grappleInstance.parent
-                local actor_mass = actor.Mass
-                local actor_vel = actor.Vel.Magnitude
-                local actor_health = actor.Health
-                
-                local target_mass = target.Mass
-                local target_vel = target.Vel.Magnitude
-                
-                -- Dynamic force calculation with mass ratio considerations
-                local mass_ratio = actor_mass / (actor_mass + target_mass)
-                
-                -- Multi-tier actor protection system
-                local actor_base_limit = 5.0 -- Conservative limit for MO pulls
-                local actor_mass_scaling = math.min(actor_mass / 70, 1.6)
-                local actor_velocity_penalty = 1 + math.min(actor_vel / 12, 0.8)
-                local actor_health_scaling = math.min(actor_health / 100, 1.05)
-                
-                local actor_safe_limit = actor_base_limit * actor_mass_scaling * actor_health_scaling / actor_velocity_penalty
-                
-                -- Actor force protection
-                local actor_force_dampening = 1.0
-                if raw_spring_force > actor_safe_limit then
-                    local excess_ratio = raw_spring_force / actor_safe_limit
-                    if excess_ratio < 1.5 then
-                        actor_force_dampening = 1.0 / excess_ratio
-                    else
-                        actor_force_dampening = 1.0 / (1 + math.log(excess_ratio * 0.5))
-                    end
-                end
-                
-                -- Calculate safe actor force using tension direction
-                local actor_safe_force = raw_spring_force * actor_force_dampening * mass_ratio
-                local actor_force_vector = grappleInstance.ropeTensionDirection * actor_safe_force
-                
-                -- Target force protection (less strict than actor)
-                local target_force_limit = 25.0 -- Targets can handle more force
-                local target_force_scaling = math.min(1.0, target_force_limit / raw_spring_force)
-                local target_safe_force = raw_spring_force * target_force_scaling * (1 - mass_ratio)
-                local target_force_vector = grappleInstance.ropeTensionDirection * target_safe_force
-                
-                -- Apply forces when rope is taut
-                if actor_safe_force > 0.1 then
-                    actor:AddForce(actor_force_vector, actor.Pos)
-                end
-                
-                if target_safe_force > 0.1 then
-                    target:AddForce(-target_force_vector, target.Pos)
-                end
-            else
-                -- Fallback to old spring system if no tension force available
-                local minRopeLength = 1
-                local effectiveCurrentLength = math.max(minRopeLength, grappleInstance.currentLineLength)
-                
-                if grappleInstance.lineLength > effectiveCurrentLength then
-                    local extension = grappleInstance.lineLength - effectiveCurrentLength
-                    
-                    -- Calculate sophisticated force distribution
-                    local actor = grappleInstance.parent
-                    local actor_mass = actor.Mass
-                    local actor_vel = actor.Vel.Magnitude
-                    local actor_health = actor.Health
-                    
-                    local target_mass = target.Mass
-                    local target_vel = target.Vel.Magnitude
-                    
-                    -- Dynamic force calculation with mass ratio considerations
-                local mass_ratio = actor_mass / (actor_mass + target_mass)
-                local base_spring_constant = 0.4 -- Conservative for MO interactions
-                
-                -- Adjust spring constant based on mass distribution
-                local dynamic_spring_constant = base_spring_constant * (1 + math.abs(mass_ratio - 0.5))
-                
-                local raw_spring_force = extension * dynamic_spring_constant
-                
-                -- Multi-tier actor protection system
-                local actor_base_limit = 5.0 -- Conservative limit for MO pulls
-                local actor_mass_scaling = math.min(actor_mass / 70, 1.6)
-                local actor_velocity_penalty = 1 + math.min(actor_vel / 12, 0.8)
-                local actor_health_scaling = math.min(actor_health / 100, 1.05)
-                
-                local actor_safe_limit = actor_base_limit * actor_mass_scaling * actor_health_scaling / actor_velocity_penalty
-                
-                -- Actor force protection
-                local actor_force_dampening = 1.0
-                if raw_spring_force > actor_safe_limit then
-                    local excess_ratio = raw_spring_force / actor_safe_limit
-                    if excess_ratio < 1.5 then
-                        actor_force_dampening = 1.0 / excess_ratio
-                    else
-                        actor_force_dampening = 1.0 / (1 + math.log(excess_ratio * 0.5))
-                    end
-                end
-                
-                -- Energy-based safety for actor
-                local actor_kinetic_energy = 0.5 * actor_mass * actor_vel * actor_vel
-                local actor_potential_energy = raw_spring_force * extension * mass_ratio
-                local actor_total_energy = actor_kinetic_energy + actor_potential_energy
-                
-                local actor_energy_limit = 1200
-                if actor_total_energy > actor_energy_limit then
-                    local actor_energy_dampening = actor_energy_limit / actor_total_energy
-                    actor_force_dampening = actor_force_dampening * actor_energy_dampening
-                end
-                
-                -- Calculate safe actor force
-                local actor_safe_force = raw_spring_force * actor_force_dampening * mass_ratio
-                local actor_force_vector = grappleInstance.lineVec:SetMagnitude(actor_safe_force)
-                
-                -- Target force protection (less strict than actor)
-                local target_force_limit = 25.0 -- Targets can handle more force
-                local target_force_scaling = math.min(1.0, target_force_limit / raw_spring_force)
-                local target_safe_force = raw_spring_force * target_force_scaling * (1 - mass_ratio)
-                local target_force_vector = grappleInstance.lineVec:SetMagnitude(target_safe_force)
-                
-                -- Force distribution over time for extreme forces
-                if raw_spring_force > actor_safe_limit * 2.5 then
-                    if not grappleInstance.moForceBuffer then
-                        grappleInstance.moForceBuffer = {
-                            actorForce = 0, 
-                            targetForce = 0, 
-                            decay = 0.88
-                        }
-                    end
-                    
-                    local excess_actor_force = raw_spring_force - actor_safe_force
-                    local excess_target_force = raw_spring_force - target_safe_force
-                    
-                    grappleInstance.moForceBuffer.actorForce = grappleInstance.moForceBuffer.actorForce + excess_actor_force * 0.15
-                    grappleInstance.moForceBuffer.targetForce = grappleInstance.moForceBuffer.targetForce + excess_target_force * 0.15
-                end
-                
-                -- Apply primary forces
-                if actor_safe_force > 0.1 then
-                    actor:AddForce(actor_force_vector, actor.Pos)
-                end
-                
-                if target_safe_force > 0.1 then
-                    target:AddForce(-target_force_vector, target.Pos)
-                end
-                
-                -- Apply buffered forces gradually
-                if grappleInstance.moForceBuffer then
-                    local buffer = grappleInstance.moForceBuffer
-                    
-                    if buffer.actorForce > 0.1 then
-                        local buffered_actor_force = buffer.actorForce * 0.2
-                        if buffered_actor_force < actor_safe_limit * 0.6 then
-                            local buffered_actor_vector = grappleInstance.lineVec:SetMagnitude(buffered_actor_force)
-                            actor:AddForce(buffered_actor_vector, actor.Pos)
-                        end
-                        buffer.actorForce = buffer.actorForce * buffer.decay
-                    end
-                    
-                    if buffer.targetForce > 0.1 then
-                        local buffered_target_force = buffer.targetForce * 0.2
-                        local buffered_target_vector = grappleInstance.lineVec:SetMagnitude(buffered_target_force)
-                        target:AddForce(-buffered_target_vector, target.Pos)
-                        buffer.targetForce = buffer.targetForce * buffer.decay
-                    end
-                end
-                
-                -- Enhanced rope breaking criteria for MO interactions
-                local break_threshold = (grappleInstance.lineStrength or 50) * 0.85
-                
-                -- Track force history for MO interactions
-                if not grappleInstance.moForceHistory then
-                    grappleInstance.moForceHistory = {}
-                    for i = 1, 6 do
-                        grappleInstance.moForceHistory[i] = 0
-                    end
-                end
-                
-                table.remove(grappleInstance.moForceHistory, 1)
-                table.insert(grappleInstance.moForceHistory, raw_spring_force)
-                
-                local avg_mo_force = 0
-                for i = 1, #grappleInstance.moForceHistory do
-                    avg_mo_force = avg_mo_force + grappleInstance.moForceHistory[i]
-                end
-                avg_mo_force = avg_mo_force / #grappleInstance.moForceHistory
-                
-                -- Break rope if forces are too extreme for MO interaction
-                if (avg_mo_force > break_threshold * 0.6 and raw_spring_force > break_threshold) or 
-                   raw_spring_force > break_threshold * 1.8 then
-                    return true -- Signal to delete the hook due to excessive force
-                end
-                
-                -- Add dampening for smoother motion
-                target.Vel = target.Vel * 0.985
-                target.AngularVel = target.AngularVel * 0.995
-                end
-            end
+            return true -- Newly reached limit
         end
     else
-        -- Our MO has been destroyed, return hook
-        return true -- Signal to delete the hook
+        grappleInstance.limitReached = false
     end
-    
-    return false
+    return false -- Not newly at limit, or not at limit.
 end
 
--- Determine if the grapple can be released based on its current state
+--[[
+  Applies effects for "stretch mode" (currently disabled by default in Grapple.lua).
+  If enabled, this would typically retract the hook.
+  @param grappleInstance The grapple instance.
+]]
+function RopeStateManager.applyStretchMode(grappleInstance)
+    if not grappleInstance.stretchMode or not grappleInstance.parent or not grappleInstance.parent.Pos then return end
+    
+    if grappleInstance.actionMode == 1 and grappleInstance.lineVec then -- Flying
+        -- Example: Gradually retract the hook.
+        local pullForceFactor = (grappleInstance.stretchPullRatio or 0.05) * 0.5
+        local pullMagnitude = math.sqrt(grappleInstance.lineLength or 0) * pullForceFactor
+        
+        grappleInstance.Vel = grappleInstance.Vel - grappleInstance.lineVec:SetMagnitude(pullMagnitude)
+    end
+end
+
+
+--[[
+  Helper function to get the effective target MO, considering root parents.
+  @param grappleInstance The grapple instance.
+  @return The effective target MO, or nil.
+]]
+function RopeStateManager.getEffectiveTarget(grappleInstance)
+    if not grappleInstance or not grappleInstance.target or grappleInstance.target.ID == rte.NoMOID then
+        return nil
+    end
+
+    local currentTarget = grappleInstance.target
+    -- If the direct hit target is part of a larger entity (e.g., a limb of an actor),
+    -- try to use its root parent as the effective target, IF the root is "attachable" (conceptual).
+    -- For now, we just get the root parent if it's different.
+    if currentTarget.RootID and currentTarget.ID ~= currentTarget.RootID then
+        local rootParent = MovableMan:GetMOFromID(currentTarget.RootID)
+        if rootParent and rootParent.ID ~= rte.NoMOID then
+            -- Add a check here if certain MO types shouldn't be "grabbed" by their root
+            -- e.g., if IsAttachable(rootParent) then effective_target = rootParent end
+            -- For now, always use root if available.
+            return rootParent
+        end
+    end
+    return currentTarget -- Return the original target if no valid root parent or same as root.
+end
+
+
+-- The following physics application functions (applyTerrainPullPhysics, applyMOPullPhysics)
+-- are complex and were part of a system that applied direct forces.
+-- In a pure Verlet constraint system (as aimed for in RopePhysics.lua),
+-- these direct force applications can conflict or become redundant if the constraints
+-- are correctly managing positions and by extension, velocities.
+-- They are kept for reference or if a hybrid model is intended, but their direct usage
+-- should be carefully considered alongside the constraint-based physics.
+-- If RopePhysics.applyRopeConstraints correctly handles player/MO movement due to rope tension,
+-- these functions might only be needed for secondary effects or very specific scenarios.
+
+--[[
+  Applies physics forces when the grapple is attached to terrain.
+  (Primarily for a force-based system, review if needed with Verlet constraints)
+  @param grappleInstance The grapple instance.
+  @return True if the rope should break from this interaction, false otherwise.
+]]
+function RopeStateManager.applyTerrainPullPhysics(grappleInstance)
+    if grappleInstance.actionMode ~= 2 or not grappleInstance.parent then return false end
+    
+    -- If RopePhysics.applyRopeConstraints provides tension force/direction, use that.
+    if grappleInstance.ropeTensionForce and grappleInstance.ropeTensionDirection and grappleInstance.parent.AddForce then
+        local actor = grappleInstance.parent
+        local raw_force_magnitude = grappleInstance.ropeTensionForce
+        local force_direction = grappleInstance.ropeTensionDirection -- Should be towards the hook point
+
+        -- Apply actor protection/scaling to this force
+        -- This is a simplified protection; a more detailed one would consider mass, velocity, health.
+        local safe_force_magnitude = math.min(raw_force_magnitude, (actor.Mass or 10) * 0.5) -- Cap force based on mass
+        
+        local final_force_vector = force_direction * safe_force_magnitude
+        actor:AddForce(final_force_vector) -- AddForce at center of mass
+        
+        -- No breaking logic here, as RopePhysics handles breaking by stretch.
+        return false 
+    end
+    
+    -- Fallback or alternative spring logic (if not using tension from constraints directly for forces)
+    -- This section would be active if grappleInstance.ropeTensionForce is nil.
+    -- ... (original complex spring logic could be here) ...
+    -- However, this is likely to conflict with a pure constraint system.
+    
+    return false -- Default: no break from this function.
+end
+
+--[[
+  Applies physics forces when the grapple is attached to a Movable Object.
+  (Primarily for a force-based system, review if needed with Verlet constraints)
+  @param grappleInstance The grapple instance.
+  @return True if the rope should break, false otherwise.
+]]
+function RopeStateManager.applyMOPullPhysics(grappleInstance)
+    if grappleInstance.actionMode ~= 3 or not grappleInstance.target or grappleInstance.target.ID == rte.NoMOID or not grappleInstance.parent then
+        return false -- Or true if target is lost, to signal unhook.
+    end
+
+    local effective_target = RopeStateManager.getEffectiveTarget(grappleInstance)
+    if not effective_target or effective_target.ID == rte.NoMOID then
+        return true -- Signal unhook.
+    end
+
+    -- Update hook's visual position to stick to the target MO.
+    if effective_target.Pos and grappleInstance.stickPosition then
+        local rotatedStickPos = Vector(grappleInstance.stickPosition.X, grappleInstance.stickPosition.Y)
+        if effective_target.RotAngle and grappleInstance.stickRotation then
+             rotatedStickPos:RadRotate(effective_target.RotAngle - grappleInstance.stickRotation)
+        end
+        grappleInstance.Pos = effective_target.Pos + rotatedStickPos
+        if effective_target.RotAngle and grappleInstance.stickRotation and grappleInstance.stickDirection then
+            grappleInstance.RotAngle = grappleInstance.stickDirection + (effective_target.RotAngle - grappleInstance.stickRotation)
+        end
+    end
+    
+    -- If RopePhysics.applyRopeConstraints provides tension, apply forces to player and target.
+    if grappleInstance.ropeTensionForce and grappleInstance.ropeTensionDirection then
+        local actor = grappleInstance.parent
+        local raw_force_magnitude = grappleInstance.ropeTensionForce
+        local force_direction_on_actor = grappleInstance.ropeTensionDirection -- Towards hook
+
+        local total_mass = (actor.Mass or 10) + (effective_target.Mass or 10)
+        local actor_force_share = (effective_target.Mass or 10) / total_mass
+        local target_force_share = (actor.Mass or 10) / total_mass
+        
+        -- Simplified protection and force application
+        local actor_pull_force = math.min(raw_force_magnitude * actor_force_share, (actor.Mass or 10) * 0.5)
+        local target_pull_force = math.min(raw_force_magnitude * target_force_share, (effective_target.Mass or 10) * 0.8)
+
+        if actor.AddForce then actor:AddForce(force_direction_on_actor * actor_pull_force) end
+        if effective_target.AddForce then effective_target:AddForce(-force_direction_on_actor * target_pull_force) end
+        
+        return false -- No breaking from this function.
+    end
+
+    -- Fallback or alternative spring logic for MOs...
+    -- ... (original complex MO spring logic) ...
+    -- Again, likely to conflict with pure constraint system.
+
+    -- Check if target MO is destroyed or invalid.
+    if not MovableMan:IsValid(effective_target) or effective_target.ToDelete then
+        return true -- Signal to delete the hook.
+    end
+    
+    return false -- Default: no break.
+end
+
+
+--[[
+  Determines if the grapple can be released by the player.
+  @param grappleInstance The grapple instance.
+  @return True if releasable, false otherwise.
+]]
 function RopeStateManager.canReleaseGrapple(grappleInstance)
-    -- Check if the grapple is in a state where it can be released
-    -- For now just return the canRelease property, but this could be expanded
-    -- with additional logic in the future if needed
-    return grappleInstance.canRelease
+    -- The 'canRelease' flag is set to true in checkAttachmentCollisions when the hook sticks.
+    -- It can be set to false if, for example, the hook is mid-flight or during a special animation.
+    return grappleInstance.canRelease or false -- Default to false if nil.
 end
 
 return RopeStateManager

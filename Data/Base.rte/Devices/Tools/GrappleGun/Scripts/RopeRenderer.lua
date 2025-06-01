@@ -1,122 +1,132 @@
+---@diagnostic disable: undefined-global
 -- Grapple Gun Rope Renderer Module
--- Handles the rendering and visualization of the rope
+-- Handles the visual rendering of the rope and optional debug information.
+
+-- Localize Cortex Command globals
+local PrimitiveMan = PrimitiveMan
+local SceneMan = SceneMan
+local FrameMan = FrameMan
+local Vector = Vector
 
 local RopeRenderer = {}
 
--- Draw a rope segment with consistent appearance
-function RopeRenderer.drawSegment(grappleInstance, a, b, player)
-    -- Make sure we have valid points to draw
-    if not grappleInstance.apx[a] or not grappleInstance.apy[a] or not grappleInstance.apx[b] or not grappleInstance.apy[b] then
+-- Configuration for rendering
+local ROPE_COLOR = 97 -- Dark brown color, consistent with original.
+local DEBUG_TEXT_COLOR = 1000 -- Standard white for debug text.
+local DEBUG_LINE_HEIGHT = 12
+local MAX_DEBUG_SEGMENTS_TO_SHOW = 10 -- Limit displayed segment lengths to avoid clutter.
+
+--[[
+  Draws a single segment of the rope.
+  @param grappleInstance The grapple instance.
+  @param segmentStartIdx Index of the starting point of the segment.
+  @param segmentEndIdx   Index of the ending point of the segment.
+  @param player          The player index for the screen context.
+]]
+function RopeRenderer.drawSegment(grappleInstance, segmentStartIdx, segmentEndIdx, player)
+    -- Validate that the segment indices and corresponding points exist.
+    if not grappleInstance.apx or
+       not grappleInstance.apx[segmentStartIdx] or not grappleInstance.apy[segmentStartIdx] or
+       not grappleInstance.apx[segmentEndIdx] or not grappleInstance.apy[segmentEndIdx] then
+        -- print("RopeRenderer: Invalid segment indices or points for drawing.")
         return
     end
     
-    local vect1 = Vector(grappleInstance.apx[a], grappleInstance.apy[a])
-    local vect2 = Vector(grappleInstance.apx[b], grappleInstance.apy[b])
+    local point1 = Vector(grappleInstance.apx[segmentStartIdx], grappleInstance.apy[segmentStartIdx])
+    local point2 = Vector(grappleInstance.apx[segmentEndIdx], grappleInstance.apy[segmentEndIdx])
     
-    -- Safety check for invalid coordinates
-    if vect1.X == 0 and vect1.Y == 0 or vect2.X == 0 and vect2.Y == 0 then
+    -- Safety check for zero vectors, which might indicate uninitialized points.
+    if (point1.X == 0 and point1.Y == 0) or (point2.X == 0 and point2.Y == 0) then
+        -- print("RopeRenderer: Segment point is zero vector, skipping draw.")
         return
     end
     
-    -- Calculate rope segment for safety check
-    local segmentVec = SceneMan:ShortestDistance(vect1, vect2, grappleInstance.mapWrapsX)
-    local segmentLength = segmentVec.Magnitude
+    -- Calculate visual segment vector and length for sanity checking.
+    local visualSegmentVec = SceneMan:ShortestDistance(point1, point2, grappleInstance.mapWrapsX)
+    local visualSegmentLength = visualSegmentVec.Magnitude
     
-    -- Safety check for very long segments (probably invalid)
-    if segmentLength > 1000 then
+    -- Safety check for excessively long visual segments, which could be an error or cause rendering issues.
+    if visualSegmentLength > (grappleInstance.maxLineLength or 600) * 1.5 then -- Allow some slack over maxLineLength
+        -- print("RopeRenderer: Visual segment length (" .. visualSegmentLength .. ") is excessively long, skipping draw.")
         return
     end
     
-    -- Use consistent color for all rope segments
-    local ropeColor = 97 -- Dark brown color
-    
-    -- Draw the rope with consistent appearance
-    PrimitiveMan:DrawLinePrimitive(player, vect1, vect2, ropeColor)
+    PrimitiveMan:DrawLinePrimitive(player, point1, point2, ROPE_COLOR)
 end
 
--- Draw the complete rope with debug information
+--[[
+  Draws the complete rope, iterating through its segments.
+  Also triggers debug information drawing if conditions are met.
+  @param grappleInstance The grapple instance.
+  @param player          The player index for the screen context.
+]]
 function RopeRenderer.drawRope(grappleInstance, player)
-    -- Always draw regular rope segments with physics, regardless of actionMode
+    if not grappleInstance or grappleInstance.currentSegments == nil or grappleInstance.currentSegments < 1 then
+        return -- Nothing to draw if no segments.
+    end
+
+    -- Draw each segment of the rope.
     for i = 0, grappleInstance.currentSegments - 1 do
         RopeRenderer.drawSegment(grappleInstance, i, i + 1, player)
     end
     
-    -- Always draw debug information when player is controlling
-    RopeRenderer.drawDebugInfo(grappleInstance, player)
+    -- Optionally draw debug information.
+    -- Condition: Parent exists, is player controlled, and a global debug flag could be added here.
+    if grappleInstance.parent and grappleInstance.parent:IsPlayerControlled() then -- Add 'and GlobalDebugFlags.Grapple'
+        RopeRenderer.drawDebugInfo(grappleInstance, player)
+    end
 end
 
--- Draw debug information about rope segments and lengths
+--[[
+  Draws debug information on screen regarding the rope's state.
+  @param grappleInstance The grapple instance.
+  @param player          The player index for the screen context.
+]]
 function RopeRenderer.drawDebugInfo(grappleInstance, player)
-    if not grappleInstance.parent or not grappleInstance.parent:IsPlayerControlled() then
+    -- Ensure parent is valid before trying to position debug text relative to it.
+    if not grappleInstance.parent or not grappleInstance.parent.Pos then
         return
     end
     
-    local screenPos = grappleInstance.parent.Pos + Vector(-100, -150)
-    local lineHeight = 12
+    local screenPos = grappleInstance.parent.Pos + Vector(-120, -180) -- Adjusted for better visibility
     local currentLine = 0
     
-    -- Display current rope statistics
-    local currentPos = screenPos + Vector(0, currentLine * lineHeight)
-    FrameMan:SetScreenText("=== ROPE DEBUG INFO ===", currentPos.X, currentPos.Y, 1000, false)
-    currentLine = currentLine + 1
-    
-    currentPos = screenPos + Vector(0, currentLine * lineHeight)
-    FrameMan:SetScreenText("Current Length: " .. math.floor(grappleInstance.currentLineLength or 0), 
-                          currentPos.X, currentPos.Y, 1000, false)
-    currentLine = currentLine + 1
-    
-    if grappleInstance.actualRopeLength then
-        currentPos = screenPos + Vector(0, currentLine * lineHeight)
-        FrameMan:SetScreenText("Actual Length: " .. math.floor(grappleInstance.actualRopeLength), 
-                              currentPos.X, currentPos.Y, 1000, false)
+    local function drawDebugText(text)
+        local textPos = screenPos + Vector(0, currentLine * DEBUG_LINE_HEIGHT)
+        FrameMan:SetScreenText(text, textPos.X, textPos.Y, DEBUG_TEXT_COLOR, false)
         currentLine = currentLine + 1
     end
     
-    currentPos = screenPos + Vector(0, currentLine * lineHeight)
-    FrameMan:SetScreenText("Max Length: " .. math.floor(grappleInstance.maxLineLength), 
-                          currentPos.X, currentPos.Y, 1000, false)
-    currentLine = currentLine + 1
-    
-    currentPos = screenPos + Vector(0, currentLine * lineHeight)
-    FrameMan:SetScreenText("Segments: " .. (grappleInstance.currentSegments or 0), 
-                          currentPos.X, currentPos.Y, 1000, false)
-    currentLine = currentLine + 1
+    drawDebugText("=== GRAPPLE DEBUG ===")
+    drawDebugText("Mode: " .. (grappleInstance.actionMode or "N/A"))
+    drawDebugText(string.format("Target Length: %.1f", grappleInstance.currentLineLength or 0))
+    drawDebugText(string.format("Visual Length: %.1f", grappleInstance.lineLength or 0)) -- Actual distance player-hook
+    drawDebugText(string.format("Physics Length (Verlet): %.1f", grappleInstance.actualRopeLength or 0)) -- Sum of segment lengths
+    drawDebugText("Max Length: " .. (grappleInstance.maxLineLength or "N/A"))
+    drawDebugText("Segments: " .. (grappleInstance.currentSegments or 0))
     
     if grappleInstance.currentTension then
-        local tensionPercent = math.floor(grappleInstance.currentTension * 100)
-        currentPos = screenPos + Vector(0, currentLine * lineHeight)
-        FrameMan:SetScreenText("Tension: " .. tensionPercent .. "%", 
-                              currentPos.X, currentPos.Y, 1000, false)
-        currentLine = currentLine + 1
+        drawDebugText(string.format("Tension (Stretch): %.2f%%", grappleInstance.currentTension * 100))
     end
+    drawDebugText("Limit Reached: " .. tostring(grappleInstance.limitReached or false))
     
-    currentPos = screenPos + Vector(0, currentLine * lineHeight)
-    FrameMan:SetScreenText("Line Strength: " .. (grappleInstance.lineStrength or "N/A"), 
-                          currentPos.X, currentPos.Y, 1000, false)
-    currentLine = currentLine + 1
-    
-    -- Display individual segment lengths (limit to first 10 segments to avoid clutter)
-    if grappleInstance.segmentLengths then
-        currentPos = screenPos + Vector(0, currentLine * lineHeight)
-        FrameMan:SetScreenText("--- SEGMENT LENGTHS ---", 
-                              currentPos.X, currentPos.Y, 1000, false)
-        currentLine = currentLine + 1
-        
-        local segmentsToShow = math.min(10, #grappleInstance.segmentLengths)
+    -- Display individual segment lengths (limited count).
+    if grappleInstance.apx and grappleInstance.currentSegments and grappleInstance.currentSegments > 0 then
+        drawDebugText("--- SEGMENT LENGTHS ---")
+        local segmentsToShow = math.min(MAX_DEBUG_SEGMENTS_TO_SHOW, grappleInstance.currentSegments)
         for i = 0, segmentsToShow - 1 do
-            if grappleInstance.segmentLengths[i] then
-                local segmentText = "Seg " .. i .. ": " .. math.floor(grappleInstance.segmentLengths[i] * 10) / 10
-                currentPos = screenPos + Vector(0, currentLine * lineHeight)
-                FrameMan:SetScreenText(segmentText, 
-                                      currentPos.X, currentPos.Y, 1000, false)
-                currentLine = currentLine + 1
+            if grappleInstance.apx[i+1] and grappleInstance.apx[i] then
+                 local p1 = Vector(grappleInstance.apx[i], grappleInstance.apy[i])
+                 local p2 = Vector(grappleInstance.apx[i+1], grappleInstance.apy[i+1])
+                 local len = SceneMan:ShortestDistance(p1, p2, grappleInstance.mapWrapsX).Magnitude
+                 drawDebugText(string.format("Seg %d: %.1f", i, len))
+            else
+                drawDebugText(string.format("Seg %d: Invalid", i))
             end
         end
         
-        if #grappleInstance.segmentLengths > 10 then
-            currentPos = screenPos + Vector(0, currentLine * lineHeight)
-            FrameMan:SetScreenText("... (" .. (#grappleInstance.segmentLengths - 10) .. " more segments)", 
-                                  currentPos.X, currentPos.Y, 1000, false)
+        if grappleInstance.currentSegments > MAX_DEBUG_SEGMENTS_TO_SHOW then
+            drawDebugText("... (" .. (grappleInstance.currentSegments - MAX_DEBUG_SEGMENTS_TO_SHOW) .. " more)")
         end
     end
 end
