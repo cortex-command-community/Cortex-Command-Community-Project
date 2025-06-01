@@ -123,8 +123,8 @@ namespace RTE {
 	PER_LUA_BINDING(JoyDirections) \
 	PER_LUA_BINDING(SDL_Scancode) \
 	PER_LUA_BINDING(SDL_Keycode) \
-	PER_LUA_BINDING(SDL_GameControllerButton) \
-	PER_LUA_BINDING(SDL_GameControllerAxis) \
+	PER_LUA_BINDING(SDL_GamepadButton) \
+	PER_LUA_BINDING(SDL_GamepadAxis) \
 	/* MiscLuaBindings */ \
 	PER_LUA_BINDING(AlarmEvent) \
 	PER_LUA_BINDING(Directions) \
@@ -293,8 +293,8 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(JoyDirections);
 		LuaBindingRegisterFunctionDeclarationForType(SDL_Scancode);
 		LuaBindingRegisterFunctionDeclarationForType(SDL_Keycode);
-		LuaBindingRegisterFunctionDeclarationForType(SDL_GameControllerButton);
-		LuaBindingRegisterFunctionDeclarationForType(SDL_GameControllerAxis);
+		LuaBindingRegisterFunctionDeclarationForType(SDL_GamepadButton);
+		LuaBindingRegisterFunctionDeclarationForType(SDL_GamepadAxis);
 	};
 
 	/// Struct that contains Lua binding registration functions for types that don't really belong in any of the other binding structs.

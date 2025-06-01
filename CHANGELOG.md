@@ -122,6 +122,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	```
 	Original bindings with no scale argument are untouched and can be called as they were.
 
+- Added multiseat support for multiple mice and keyboards on one computer.
+
+- Added optional player argument to all `UInputMan:Key*` Lua Methods. (e.g. `KeyHeld(keycode, player)`) This allows checking individual player's keyboards, when multiple keyboards are available.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -175,6 +179,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Techion Laser Rifle now has a constant range rather than being dependent on game resolution.
 
 - Various performance improvements.
+
+- Drop support for macOS < 11.1 (Big Sur) :(
+
+- Updated SDL2 to SDL3
 
 </details>
 

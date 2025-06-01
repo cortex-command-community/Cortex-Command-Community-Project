@@ -34,3 +34,5 @@ sources += files(
 'GUIUtil.cpp',
 'GUIWriter.cpp'
 )
+
+subdir('imgui')
