@@ -1,4 +1,7 @@
 #include "WindowMan.h"
+#include "RTEError.h"
+#include "SDL3/SDL_error.h"
+#include "SDL3/SDL_video.h"
 #include "SettingsMan.h"
 #include "FrameMan.h"
 #include "ActivityMan.h"
@@ -96,7 +99,20 @@ void WindowMan::Destroy() {
 void WindowMan::Initialize() {
 	SDL_free(SDL_GetDisplays(&m_NumDisplays));
 
-	SDL_Rect currentDisplayBounds;
+	m_PrimaryWindowDisplayIndex = SDL_GetPrimaryDisplay();
+	if (m_PrimaryWindowDisplayIndex == 0) {
+		g_ConsoleMan.PrintString("ERROR: Failed to get primary display!" + std::string(SDL_GetError()));
+		int count{0};
+		SDL_DisplayID* displays = SDL_GetDisplays(&count);
+		if (displays) {
+			m_PrimaryWindowDisplayIndex = displays[0];
+		} else {
+			RTEAbort("No displays detetected somehow! " + std::string(SDL_GetError()));
+		}
+		SDL_free(displays);
+	}
+
+	SDL_Rect currentDisplayBounds{};
 	SDL_GetDisplayBounds(m_PrimaryWindowDisplayIndex, &currentDisplayBounds);
 
 	m_PrimaryWindowDisplayWidth = currentDisplayBounds.w;
@@ -160,7 +176,6 @@ void WindowMan::CreatePrimaryWindow() {
 
 	int windowPosX = (m_ResX * m_ResMultiplier <= m_PrimaryWindowDisplayWidth) ? SDL_WINDOWPOS_CENTERED : (m_MaxResX - (m_ResX * m_ResMultiplier)) / 2;
 	int windowPosY = SDL_WINDOWPOS_CENTERED;
-	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 
 	SDL_PropertiesID windowProps = SDL_CreateProperties();
 	RTEAssert(windowProps, "Unable to create window properties! " + std::string(SDL_GetError()));
