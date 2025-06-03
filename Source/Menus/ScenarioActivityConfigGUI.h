@@ -101,6 +101,9 @@ namespace RTE {
 		/// Fills each team's Tech ComboBox with all valid Tech DataModules.
 		void PopulateTechComboBoxes();
 
+		/// Helper function for multimouse support. Creates a list of human controlled players.
+		std::vector<int> GetHumanPlayers();
+
 		/// Resets the configuration screen to the selected Activity's default settings and enables/disables attribute settings accordingly, making the configuration screen ready for interaction.
 		void ResetActivityConfigBox();
 

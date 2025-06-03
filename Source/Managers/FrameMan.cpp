@@ -29,7 +29,7 @@
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
-#include "SDL_image.h"
+#include <SDL3_image/SDL_image.h>
 
 using namespace RTE;
 
@@ -486,9 +486,9 @@ void FrameMan::SetTransTableFromPreset(TransparencyPreset transPreset) {
 bool FrameMan::LoadPalette(const std::string& palettePath) {
 	const std::string fullPalettePath = g_PresetMan.GetFullModulePath(palettePath);
 	SDL_Surface* paletteImage = IMG_Load(palettePath.c_str());
-	RTEAssert(paletteImage && paletteImage->format->palette, ("Failed to load palette from bitmap with following path:\n\n" + fullPalettePath).c_str());
+	RTEAssert(paletteImage && SDL_GetSurfacePalette(paletteImage), ("Failed to load palette from bitmap with following path:\n\n" + fullPalettePath).c_str());
 
-	SDL_Palette* palette = paletteImage->format->palette;
+	SDL_Palette* palette = SDL_GetSurfacePalette(paletteImage);
 	for (size_t i = 0; i < 256; i++) {
 		m_Palette[i] = {
 			palette->colors[i].r,
@@ -497,7 +497,7 @@ bool FrameMan::LoadPalette(const std::string& palettePath) {
 			0
 		};
 	}
-	SDL_FreeSurface(paletteImage);
+	SDL_DestroySurface(paletteImage);
 
 	set_palette(m_Palette);
 
@@ -518,7 +518,7 @@ int FrameMan::SaveBitmap(SaveBitmapMode modeToSave, const std::string& nameBase,
 	set_palette(m_DefaultPalette);
 
 	// TODO: Remove this once GCC13 is released and switched to. std::format and std::chrono::time_zone are not part of latest libstdc++.
-#if defined(__GNUC__) && __GNUC__ < 13
+#if defined(__GNUC__) && (__GNUC__ < 13 || defined(__APPLE__)) //FIXME: macOS for some reason builds with incorrect iconv in CI which breaks format, could not debug.
 	std::chrono::time_point now = std::chrono::system_clock::now();
 	time_t currentTime = std::chrono::system_clock::to_time_t(now);
 	tm* localCurrentTime = std::localtime(&currentTime);

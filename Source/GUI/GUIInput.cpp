@@ -87,6 +87,11 @@ void GUIInput::GetMouseButtons(int* Buttons, int* States) const {
 	}
 }
 
+void GUIInput::ClearMouseState() {
+	memset(m_MouseButtonsEvents, 0, sizeof(int) * 3);
+	memset(m_MouseButtonsStates, 0, sizeof(int) * 3);
+}
+
 void GUIInput::SetNetworkMouseButton(int whichPlayer, int state1, int state2, int state3) {
 	if (whichPlayer >= 0 && whichPlayer < 4) {
 		m_OverrideInput = true;

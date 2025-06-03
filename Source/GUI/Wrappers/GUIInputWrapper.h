@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GUIInput.h"
-#include "SDL_scancode.h"
+#include <SDL3/SDL_scancode.h>
 
 #include <array>
 #include <memory>

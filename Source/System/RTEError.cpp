@@ -6,7 +6,7 @@
 #include "ActivityMan.h"
 #include "System.h"
 
-#include "SDL_messagebox.h"
+#include <SDL3/SDL_messagebox.h>
 
 #ifdef _WIN32
 #include "Windows.h"
@@ -560,7 +560,7 @@ bool RTEError::DumpAbortScreen() {
 	int success = -1;
 	if (glReadPixels != nullptr) {
 		int w, h;
-		SDL_GL_GetDrawableSize(g_WindowMan.GetWindow(), &w, &h);
+		SDL_GetWindowSizeInPixels(g_WindowMan.GetWindow(), &w, &h);
 		if (!(w > 0 && h > 0)) {
 			return false;
 		}
