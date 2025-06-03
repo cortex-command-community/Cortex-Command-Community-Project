@@ -1,5 +1,5 @@
 ---@diagnostic disable: undefined-global
--- filepath: /home/cretin/git/Cortex-Command-Community-Project/Data/Base.rte/Devices/Tools/GrappleGun/Grapple.lua
+-- filepath: /Cortex-Command-Community-Project/Data/Base.rte/Devices/Tools/GrappleGun/Grapple.lua
 -- Main logic for the grapple claw MovableObject.
 
 -- Load Modules
@@ -7,7 +7,6 @@ local RopePhysics = require("Devices.Tools.GrappleGun.Scripts.RopePhysics")
 local RopeRenderer = require("Devices.Tools.GrappleGun.Scripts.RopeRenderer")
 local RopeInputController = require("Devices.Tools.GrappleGun.Scripts.RopeInputController")
 local RopeStateManager = require("Devices.Tools.GrappleGun.Scripts.RopeStateManager")
-
 function Create(self)
     self.lastPos = self.Pos
     
@@ -18,11 +17,12 @@ function Create(self)
     
     -- Initialize state using the state manager. This sets self.actionMode = 0.
     RopeStateManager.initState(self)
-
     -- self.initializationOk = true -- This flag is effectively replaced by checking self.actionMode == 0 in Update.
 
     -- Core grapple properties
-    self.fireVel = 40      -- Initial velocity of the hook. Overwrites .ini FireVel. Crucial for HDFirearm.
+    self.fireVel = 30      -- Initial velocity of the hook. Overwrites .ini FireVel.
+    self.hookRadius = 50   -- Reduced from 360 for more precise parent finding
+
     self.maxLineLength = 600   -- Maximum allowed length of the rope.
     self.maxShootDistance = self.maxLineLength * 0.95 -- Hook will detach if it travels further than this before sticking.
     self.setLineLength = 0 -- Target length set by input/logic.
@@ -33,10 +33,13 @@ function Create(self)
     self.stretchPullRatio = 0.0 -- No stretching for rigid rope.
     self.pieSelection = 0  -- Current pie menu selection (0: none, 1: full retract, etc.).
 
+
     -- Timing and interval properties for rope actions
     self.climbDelay = 8    -- Delay between climb ticks.
     self.tapTime = 150     -- Max time between taps for double-tap unhook.
     self.tapAmount = 2     -- Number of taps required for unhook.
+    self.tapCounter = 0    -- Current tap count for multi-tap detection.
+    self.canTap = false    -- Flag to register the first tap in a sequence.
     self.mouseClimbLength = 200    -- Duration mouse scroll input is considered active.
     self.climbInterval = 4.0       -- Amount rope length changes per climb tick.
     self.autoClimbIntervalA = 5.0  -- Auto-retract speed (primary).
@@ -82,56 +85,79 @@ function Create(self)
 end
 
 function Update(self)
-    if self.ToDelete then return end -- Already marked for deletion from a previous frame or early in this one.
+    if self.ToDelete then return end
 
     -- First-time setup: Find parent, initialize velocity, anchor points, etc.
     if self.actionMode == 0 then
         local foundAndValidParent = false
-        for gun_mo in MovableMan:GetMOsInRadius(self.Pos, 75) do
+        for gun_mo in MovableMan:GetMOsInRadius(self.Pos, self.hookRadius) do
             if gun_mo and gun_mo.ClassName == "HDFirearm" and gun_mo.PresetName == "Grapple Gun" then
                 local hdfGun = ToHDFirearm(gun_mo)
                 if hdfGun and SceneMan:ShortestDistance(self.Pos, hdfGun.MuzzlePos, self.mapWrapsX):MagnitudeIsLessThan(20) then
                     self.parentGun = hdfGun
                     local rootParentMO = MovableMan:GetMOFromID(hdfGun.RootID)
-                    if rootParentMO then
-                        if MovableMan:IsActor(rootParentMO) then
-                            self.parent = ToActor(rootParentMO) -- Store as Actor type
+                    if rootParentMO and MovableMan:IsActor(rootParentMO) then
+                        self.parent = ToActor(rootParentMO)
+                        self.apx[0] = self.parent.Pos.X
+                        self.apy[0] = self.parent.Pos.Y
+                        self.lastX[0] = self.parent.Pos.X - (self.parent.Vel.X or 0)
+                        self.lastY[0] = self.parent.Pos.Y - (self.parent.Vel.Y or 0)
 
-                            -- Initialize player anchor point (segment 0)
-                            self.apx[0] = self.parent.Pos.X
-                            self.apy[0] = self.parent.Pos.Y
-                            self.lastX[0] = self.parent.Pos.X - (self.parent.Vel.X or 0)
-                            self.lastY[0] = self.parent.Pos.Y - (self.parent.Vel.Y or 0)
+                        -- Set initial velocity of the hook based on parent's aim and velocity
+                        local aimAngle = self.parent:GetAimAngle(true)
+                        self.Vel = (self.parent.Vel or Vector(0,0)) + Vector(self.fireVel, 0):RadRotate(aimAngle)
+                        
+                        -- Initialize hook's lastX/Y for its initial trajectory
+                        self.lastX[self.currentSegments] = self.Pos.X - self.Vel.X 
+                        self.lastY[self.currentSegments] = self.Pos.Y - self.Vel.Y
 
-                            -- Set initial velocity of the hook based on parent's aim and velocity
-                            local aimAngle = self.parent:GetAimAngle(true)
-                            self.Vel = (self.parent.Vel or Vector(0,0)) + Vector(self.fireVel, 0):RadRotate(aimAngle)
-                            
-                            -- Initialize hook's lastX/Y for its initial trajectory
-                            self.lastX[self.currentSegments] = self.Pos.X - self.Vel.X 
-                            self.lastY[self.currentSegments] = self.Pos.Y - self.Vel.Y
+                        if self.parentGun then -- Should be valid here
+                            self.parentGun:RemoveNumberValue("GrappleMode") -- Clear any previous mode
+                        end
 
-                            if self.parentGun then -- Should be valid here
-                                self.parentGun:RemoveNumberValue("GrappleMode") -- Clear any previous mode
-                            end
-
-                            -- Determine parent's effective radius for terrain checks
-                            self.parentRadius = 5 -- Default radius
-                            if self.parent.Attachables and type(self.parent.Attachables) == "table" then
-                                for _, part in ipairs(self.parent.Attachables) do
-                                    if part and part.Pos and part.Radius then
-                                        local radcheck = SceneMan:ShortestDistance(self.parent.Pos, part.Pos, self.mapWrapsX).Magnitude + part.Radius
-                                        if self.parentRadius == nil or radcheck > self.parentRadius then
-                                            self.parentRadius = radcheck
-                                        end
+                        -- Determine parent's effective radius for terrain checks
+                        self.parentRadius = 5 -- Default radius
+                        if self.parent.Attachables and type(self.parent.Attachables) == "table" then
+                            for _, part in ipairs(self.parent.Attachables) do
+                                if part and part.Pos and part.Radius then
+                                    local radcheck = SceneMan:ShortestDistance(self.parent.Pos, part.Pos, self.mapWrapsX).Magnitude + part.Radius
+                                    if self.parentRadius == nil or radcheck > self.parentRadius then
+                                        self.parentRadius = radcheck
                                     end
                                 end
                             end
-                            self.actionMode = 1 -- Set to flying, initialization successful
-                            foundAndValidParent = true
-                        end -- if MovableMan:IsActor(rootParentMO)
-                    end -- if rootParentMO
-                    break -- Found our gun, processed it.
+                        end
+                        self.actionMode = 1 -- Set to flying, initialization successful
+                        
+                        -- Initialize rope segments for display during flight with proper physics
+                        -- First segment is at the shooter's position, last segment is at hook position
+                        -- Use more segments for better physics and visuals
+                        self.currentSegments = 4 -- Start with more segments for better physics during flight
+                        self.apx[0] = self.parent.Pos.X
+                        self.apy[0] = self.parent.Pos.Y
+                        self.lastX[0] = self.parent.Pos.X - (self.parent.Vel.X or 0)
+                        self.lastY[0] = self.parent.Pos.Y - (self.parent.Vel.Y or 0)
+                        
+                        -- Initialize the hook segment
+                        self.apx[self.currentSegments] = self.Pos.X
+                        self.apy[self.currentSegments] = self.Pos.Y
+                        self.lastX[self.currentSegments] = self.Pos.X - (self.Vel.X or 0)
+                        self.lastY[self.currentSegments] = self.Pos.Y - (self.Vel.Y or 0)
+                        
+                        -- Initialize intermediate segments with a natural drape
+                        for i = 1, self.currentSegments - 1 do
+                            local t = i / self.currentSegments
+                            self.apx[i] = self.parent.Pos.X + t * (self.Pos.X - self.parent.Pos.X)
+                            self.apy[i] = self.parent.Pos.Y + t * (self.Pos.Y - self.parent.Pos.Y)
+                            -- Add slight droop for natural look
+                            self.apy[i] = self.apy[i] + math.sin(t * math.pi) * 2
+                            -- Initialize lastX/Y with small velocity matching the overall direction
+                            self.lastX[i] = self.apx[i] - (self.Vel.X or 0) * 0.2
+                            self.lastY[i] = self.apy[i] - (self.Vel.Y or 0) * 0.2
+                        end
+                        
+                        foundAndValidParent = true
+                    end -- if MovableMan:IsActor(rootParentMO)
                 end -- if hdfGun and distance check
             end -- if gun_mo is grapple gun
         end -- for gun_mo
@@ -167,6 +193,22 @@ function Update(self)
     end
     local player = controller.Player or 0
 
+    -- Handle pie menu modes
+    if self.parentGun then
+        local mode = self.parentGun:GetNumberValue("GrappleMode")
+        if mode ~= 0 then
+            if mode == 3 then -- Unhook via Pie Menu
+                self.ToDelete = true
+                if self.parentGun then
+                    self.parentGun:RemoveNumberValue("GrappleMode")
+                end
+            else
+                self.pieSelection = mode
+                self.parentGun:RemoveNumberValue("GrappleMode")
+            end
+        end
+    end
+
     -- Standard update flags
     self.ToSettle = false -- Grapple claw should not settle
 
@@ -182,7 +224,14 @@ function Update(self)
         -- Hook position is determined by its own physics
         self.apx[self.currentSegments] = self.Pos.X
         self.apy[self.currentSegments] = self.Pos.Y
-        -- lastX/Y for the hook end are updated by its own Verlet integration
+        -- Initialize lastX/Y for the hook end if not set
+        if not self.lastX[self.currentSegments] then
+            self.lastX[self.currentSegments] = self.Pos.X - (self.Vel.X or 0)
+            self.lastY[self.currentSegments] = self.Pos.Y - (self.Vel.Y or 0)
+        end
+        
+        -- Use full Verlet physics during flight, not just simple line positioning
+        -- This ensures consistent rope behavior across all action modes
     elseif self.actionMode == 2 then -- Grabbed terrain
         -- Hook position is fixed where it grabbed
         self.Pos.X = self.apx[self.currentSegments] -- Ensure self.Pos matches anchor
@@ -233,12 +282,34 @@ function Update(self)
 
     -- Dynamic rope segment calculation
     local desiredSegments = RopePhysics.calculateOptimalSegments(self, math.max(1, self.currentLineLength))
-    if desiredSegments ~= self.currentSegments and math.abs(desiredSegments - self.currentSegments) > 1 then -- Hysteresis
+    
+   -- In flying mode, ensure we have enough intermediate segments for proper Verlet physics
+    if self.actionMode == 1 then
+        -- For short distances, use at least 6 segments
+        -- For longer distances, use enough segments for proper rope physics
+        -- This higher segment count is essential for proper Verlet physics simulation
+        local minSegmentsForFlight = math.max(6, math.floor(self.lineLength / 25))
+        desiredSegments = math.max(minSegmentsForFlight, desiredSegments)
+    end
+    
+    -- Update segments if needed, with reduced hysteresis threshold for flight mode
+    -- This ensures smoother transitions as the rope extends
+    local segmentUpdateThreshold = self.actionMode == 1 and 1 or 2
+    if desiredSegments ~= self.currentSegments and math.abs(desiredSegments - self.currentSegments) >= segmentUpdateThreshold then
         RopePhysics.resizeRopeSegments(self, desiredSegments)
     end
 
     -- Core rope physics simulation
     RopePhysics.updateRopePhysics(self, parentActor.Pos, self.Pos, self.currentLineLength)
+    
+    -- Check for hook attachment collisions (only when flying)
+    if self.actionMode == 1 then
+        local stateChanged = RopeStateManager.checkAttachmentCollisions(self)
+        if stateChanged then
+            -- Rope physics may need re-initialization after attachment
+            self.ropePhysicsInitialized = false
+        end
+    end
     
     -- Apply constraints and check for breaking
     local ropeBreaks = RopePhysics.applyRopeConstraints(self, self.currentLineLength)
@@ -284,16 +355,34 @@ function Update(self)
     end
     
     -- Player-specific controls and unhooking mechanisms
-    if IsAHuman(parentActor) then -- Or IsACrab, if they can use it
-        local parentHuman = ToAHuman(parentActor) -- Cast for specific human properties if needed
-        if parentHuman:IsPlayerControlled() then
-            -- Unhook with Reload key (R)
-            if RopeInputController.handleReloadKeyUnhook(self, controller) then
-                self.ToDelete = true
+    if IsAHuman(parentActor) or IsACrab(parentActor) then
+        if parentActor:IsPlayerControlled() then
+            -- R key unhooking functionality
+            local isHoldingGrapple = false
+            
+            -- Check if holding grapple in main hand
+            if self.parent.EquippedItem and self.parentGun and self.parent.EquippedItem.ID == self.parentGun.ID then
+                isHoldingGrapple = true
             end
-            -- Unhook with double-tap crouch (if not holding the gun)
-            if RopeInputController.handleTapDetection(self, controller) then
+            
+            -- Check if holding grapple in off-hand
+            local isHoldingInBG = self.parent.EquippedBGItem and self.parentGun and 
+                                 self.parent.EquippedBGItem.ID == self.parentGun.ID
+            
+            -- If reload key pressed while holding grapple gun, unhook
+            if controller:IsState(Controller.WEAPON_RELOAD) and (isHoldingGrapple or isHoldingInBG) then
+                print("R key unhook triggered!")  -- Debug message
                 self.ToDelete = true
+                return -- Exit immediately to prevent other checks
+            end
+            
+            -- Unhook with double-tap crouch (ONLY when NOT holding the gun)
+            if not isHoldingGrapple and not isHoldingInBG then
+                if RopeInputController.handleTapDetection(self, controller) then
+                    print("Double-tap unhook triggered!")  -- Debug message
+                    self.ToDelete = true
+                    return -- Exit immediately
+                end
             end
         end
         -- Gun stance offset when holding the gun
@@ -306,52 +395,26 @@ function Update(self)
         end
     end
 
-    -- Handle Pie Menu actions
+    -- Delegate all input handling to RopeInputController
+    -- 1. Pie menu selection (unhook, retract, extend)
     if RopeInputController.handlePieMenuSelection(self) then
-        self.ToDelete = true -- Pie menu selected "Unhook"
+        self.ToDelete = true
+        if self.parentGun then self.parentGun:RemoveNumberValue("GrappleMode") end
+        return
     end
-
-    -- Manage crank sound
-    if not self.crankSoundInstance or self.crankSoundInstance.ToDelete then
-        self.crankSoundInstance = CreateAEmitter("Grapple Gun Sound Crank")
-        self.crankSoundInstance.Pos = parentActor.Pos
-        MovableMan:AddParticle(self.crankSoundInstance)
-    else
-        self.crankSoundInstance.Pos = parentActor.Pos
-        if self.lastSetLineLength and math.abs(self.lastSetLineLength - self.currentLineLength) > 0.1 then
-            self.crankSoundInstance:EnableEmission(true)
-        else
-            self.crankSoundInstance:EnableEmission(false)
-        end
+    -- 2. R key (reload) to unhook
+    if RopeInputController.handleReloadKeyUnhook(self, controller) then
+        self.ToDelete = true
+        return
     end
-    self.lastSetLineLength = self.currentLineLength
-
-
-    -- State-specific updates
-    if self.actionMode == 1 then -- Hook is in flight
-        RopeStateManager.applyStretchMode(self) -- (Currently does nothing if stretchMode is false)
-        RopeStateManager.checkAttachmentCollisions(self) -- This can change self.actionMode
-        -- RopeStateManager.checkLengthLimit(self) -- Length limit during flight is handled above
-    elseif self.actionMode > 1 then -- Hook has stuck (terrain or MO)
-        -- Calculate forces affecting player (used by input controller for climb speed)
-        self.parentForces = 1 + (parentActor.Vel.Magnitude * 10 + parentActor.Mass) / (1 + self.lineLength)
-        
-        local terrCheck = false
-        if self.parentRadius then
-            terrCheck = SceneMan:CastStrengthRay(parentActor.Pos, 
-                                                 self.lineVec:SetMagnitude(self.parentRadius), 
-                                                 0, Vector(), 2, rte.airID, self.mapWrapsX)
-        end
-
-        RopeInputController.handleAutoRetraction(self, terrCheck)
-        RopeInputController.handleRopePulling(self) -- Handles manual climb/extend inputs
-
-        -- Physics for attached states (pulling player/MO) are now primarily handled by RopePhysics.applyRopeConstraints
-        -- and the resulting tension. Direct force application here should be minimal or for specific effects.
-        -- RopeStateManager.applyTerrainPullPhysics(self) -- If direct forces are still desired
-        -- RopeStateManager.applyMOPullPhysics(self)
+    -- 3. Double-tap crouch to unhook (only if not holding gun)
+    if RopeInputController.handleTapDetection(self, controller) then
+        self.ToDelete = true
+        return
     end
-    
+    -- 4. Mousewheel and directional controls for rope length
+    RopeInputController.handleRopePulling(self)
+
     -- Render the rope
     RopeRenderer.drawRope(self, player)
 

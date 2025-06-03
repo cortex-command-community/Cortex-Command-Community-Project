@@ -43,28 +43,63 @@ function RopeStateManager.checkAttachmentCollisions(grappleInstance)
     if grappleInstance.actionMode ~= 1 then return false end -- Only process in flying state.
     
     local stateChanged = false
-    -- Calculate ray length based on grapple's diameter and velocity magnitude.
-    -- A small base length ensures even slow-moving grapples can detect nearby surfaces.
-    local rayLength = (grappleInstance.Diameter or 2) + (grappleInstance.Vel and grappleInstance.Vel.Magnitude or 0)
-    rayLength = math.max(5, rayLength) -- Ensure a minimum ray length.
+    
+    -- More precise collision detection with velocity-based scaling
+    local baseRayLength = math.max(3, (grappleInstance.Diameter or 4) * 1.2) -- Reduced from *2
+    local velocityComponent = math.min(8, (grappleInstance.Vel and grappleInstance.Vel.Magnitude or 0) * 0.6) -- Cap velocity influence
+    local rayLength = baseRayLength + velocityComponent
+    rayLength = math.max(5, rayLength) -- Reduced minimum from 10 to 5
 
     local rayDirection = Vector(1,0) -- Default direction
-    if grappleInstance.Vel and grappleInstance.Vel.Magnitude and grappleInstance.Vel.Magnitude > 0.01 then
+    if grappleInstance.Vel and grappleInstance.Vel.Magnitude and grappleInstance.Vel.Magnitude > 0.005 then -- Reduced threshold for better sensitivity
         local mag = grappleInstance.Vel.Magnitude
-        -- Ensure mag is not zero before division, though the > 0.01 check should cover this.
         if mag ~= 0 then
             rayDirection = Vector(grappleInstance.Vel.X / mag, grappleInstance.Vel.Y / mag)
         end
-        -- If mag is 0 (or very close, caught by <= 0.01), rayDirection remains Vector(1,0)
     end
-    -- If grappleInstance.Vel is nil or its magnitude is too small, rayDirection remains Vector(1,0)
     
+    -- Primary ray (most precise) - velocity direction
     local collisionRay = rayDirection * rayLength
+    local hitPoint = Vector()
     
-    local hitPoint = Vector() -- Will store the point of collision.
+    -- Secondary ray (fallback) - shorter but still directional  
+    local secondaryRayLength = math.max(3, baseRayLength * 0.6) -- Reduced from 0.75
+    local secondaryHitPoint = Vector()
+    
+    -- Close-range radius (last resort) - much smaller
+    local closeRangeRadius = math.max(2, (grappleInstance.Diameter or 4) * 0.8) -- Reduced significantly
+    local terrainHit = false
+    local finalHitPoint = Vector()
 
-    -- 1. Check for Terrain Collision
-    if SceneMan:CastStrengthRay(grappleInstance.Pos, collisionRay, 0, hitPoint, 0, rte.airID, grappleInstance.mapWrapsX) then
+    -- 1. Check for Terrain Collision (primary ray)
+    local terrainHit = SceneMan:CastStrengthRay(grappleInstance.Pos, collisionRay, 0, hitPoint, 0, rte.airID, grappleInstance.mapWrapsX)
+    
+    -- 2. Check for terrain with secondary shorter ray for better sensitivity
+    local secondaryTerrainHit = false
+    if not terrainHit then
+        secondaryTerrainHit = SceneMan:CastStrengthRay(grappleInstance.Pos, rayDirection * secondaryRayLength, 0, secondaryHitPoint, 0, rte.airID, grappleInstance.mapWrapsX)
+        if secondaryTerrainHit then
+            hitPoint = secondaryHitPoint
+            terrainHit = true
+        end
+    end
+    
+    -- 3. Check for close-range terrain collision (only if moving slowly or nearly stopped)
+    if not terrainHit and (not grappleInstance.Vel or grappleInstance.Vel.Magnitude < 3) then
+        -- Only use close-range when hook is moving slowly (more precise)
+        local checkAngles = {0, math.pi/2, math.pi, 3*math.pi/2} -- Reduced from 8 to 4 directions
+        for _, angle in ipairs(checkAngles) do
+            local checkDir = Vector(math.cos(angle), math.sin(angle)) * closeRangeRadius
+            local closeRangeHit = Vector()
+            if SceneMan:CastStrengthRay(grappleInstance.Pos, checkDir, 0, closeRangeHit, 0, rte.airID, grappleInstance.mapWrapsX) then
+                hitPoint = closeRangeHit
+                terrainHit = true
+                break
+            end
+        end
+    end
+    
+    if terrainHit then
         grappleInstance.actionMode = 2 -- Transition to "Grabbed Terrain"
         grappleInstance.Pos = hitPoint -- Snap grapple to the hit point.
         grappleInstance.apx[grappleInstance.currentSegments] = hitPoint.X -- Update anchor point
@@ -74,55 +109,78 @@ function RopeStateManager.checkAttachmentCollisions(grappleInstance)
         stateChanged = true
         if grappleInstance.stickSound then grappleInstance.stickSound:Play(grappleInstance.Pos) end
     else
-        -- 2. Check for Movable Object (MO) Collision
+        -- 3. Check for Movable Object (MO) Collision (primary ray)
         local hitMORayInfo = SceneMan:CastMORay(grappleInstance.Pos, collisionRay, 
                                             (grappleInstance.parent and grappleInstance.parent.ID or 0), -- Exclude parent actor
                                             -2, -- Hit any team except own if negative, or specific team. -2 for any other.
                                             rte.airID, false, 0) -- flags, filter
         
-        if hitMORayInfo and hitMORayInfo.MOSPtr and hitMORayInfo.MOSPtr.ID ~= rte.NoMOID then
+        -- 4. Check for MO with secondary ray if primary failed
+        if not (hitMORayInfo and type(hitMORayInfo) == "table" and hitMORayInfo.MOSPtr and hitMORayInfo.MOSPtr.ID ~= rte.NoMOID) then
+            hitMORayInfo = SceneMan:CastMORay(grappleInstance.Pos, rayDirection * secondaryRayLength, 
+                                                (grappleInstance.parent and grappleInstance.parent.ID or 0),
+                                                -2, rte.airID, false, 0)
+        end
+        
+        if hitMORayInfo and type(hitMORayInfo) == "table" and hitMORayInfo.MOSPtr and hitMORayInfo.MOSPtr.ID ~= rte.NoMOID then
             local hitMO = hitMORayInfo.MOSPtr
-            grappleInstance.target = hitMO -- Store the hit MO.
             
-            -- If the MO is pinned (e.g., a static object like a bunker piece, or a character that used "Pin Self"), treat it like terrain.
-            -- Also consider MOs that are not Actors but might be part of the terrain/level.
-            local isPinnedActor = MovableMan:IsActor(hitMO) and ToActor(hitMO):IsPinned()
-            -- One could add more conditions here, e.g. checking hitMO.Material.Mass == 0 for static terrain pieces if applicable
-            
-            if isPinnedActor or (not MovableMan:IsActor(hitMO) and hitMO.Material and hitMO.Material.Mass == 0) then 
-                grappleInstance.actionMode = 2 -- Grabbed Terrain (effectively)
-                grappleInstance.Pos = hitMORayInfo.HitPos -- Snap grapple to the hit point on MO
-                grappleInstance.apx[grappleInstance.currentSegments] = hitMORayInfo.HitPos.X -- Update anchor point
-                grappleInstance.apy[grappleInstance.currentSegments] = hitMORayInfo.HitPos.Y -- Update anchor point
-                grappleInstance.lastX[grappleInstance.currentSegments] = hitMORayInfo.HitPos.X
-                grappleInstance.lastY[grappleInstance.currentSegments] = hitMORayInfo.HitPos.Y
-                -- For stickDirection, it might be better to use the hit normal if available,
-                -- otherwise, the direction from player to hook is a fallback.
-                -- local hitNormal = hitMORayInfo.HitNormal 
-                -- grappleInstance.stickDirection = hitNormal or (grappleInstance.Pos - grappleInstance.parent.Pos):Normalized()
-                grappleInstance.stickDirection = (grappleInstance.Pos - (grappleInstance.parent and grappleInstance.parent.Pos or grappleInstance.Pos)):Normalized()
-
-
-                if grappleInstance.stickSound then grappleInstance.stickSound:Play(grappleInstance.Pos) end
-                stateChanged = true
-            -- Check if the MO is an Actor and is physical (can be grappled)
-            elseif MovableMan:IsActor(hitMO) and ToActor(hitMO):IsPhysical() then
-                grappleInstance.actionMode = 3 -- Grabbed MO
-                grappleInstance.Pos = hitMORayInfo.HitPos -- Snap grapple to hit point on MO
-                grappleInstance.apx[grappleInstance.currentSegments] = hitMORayInfo.HitPos.X -- Update anchor point
-                grappleInstance.apy[grappleInstance.currentSegments] = hitMORayInfo.HitPos.Y -- Update anchor point
-                grappleInstance.lastX[grappleInstance.currentSegments] = hitMORayInfo.HitPos.X
-                grappleInstance.lastY[grappleInstance.currentSegments] = hitMORayInfo.HitPos.Y
-                
-                grappleInstance.stickOffset = grappleInstance.Pos - hitMO.Pos -- Relative position on MO
-                grappleInstance.stickAngle = hitMO.RotAngle -- Initial angle of MO
-                -- grappleInstance.stickDirection = (grappleInstance.Pos - grappleInstance.parent.Pos):Normalized()
-                grappleInstance.stickDirection = (grappleInstance.Pos - (grappleInstance.parent and grappleInstance.parent.Pos or grappleInstance.Pos)):Normalized()
-
-                if grappleInstance.stickSound then grappleInstance.stickSound:Play(grappleInstance.Pos) end
-                stateChanged = true
+            -- Filter out tiny particles or debris (improved target selection)
+            local minGrappableSize = 3 -- Minimum diameter for grappable objects
+            if hitMO.Diameter and hitMO.Diameter < minGrappableSize then
+                -- Skip tiny objects, continue to secondary ray check
+                local secondaryHit = SceneMan:CastMORay(grappleInstance.Pos, rayDirection * secondaryRayLength, 
+                                                    (grappleInstance.parent and grappleInstance.parent.ID or 0),
+                                                    -2, rte.airID, false, 0)
+                if secondaryHit and type(secondaryHit) == "table" and secondaryHit.MOSPtr and secondaryHit.MOSPtr.ID ~= rte.NoMOID then
+                    hitMO = secondaryHit.MOSPtr
+                    hitMORayInfo = secondaryHit
+                else
+                    hitMO = nil -- No valid target found
+                    hitMORayInfo = nil
+                end
             end
-            -- If it's not a pinnable MO and not a physical Actor, it's ignored (e.g., a non-physical particle)
+            
+            if hitMO and hitMORayInfo then
+                grappleInstance.target = hitMO -- Store the hit MO.
+                
+                -- If the MO is pinned (e.g., a static object like a bunker piece, or a character that used "Pin Self"), treat it like terrain.
+                -- Also consider MOs that are not Actors but might be part of the terrain/level.
+                local isPinnedActor = MovableMan:IsActor(hitMO) and ToActor(hitMO):IsPinned()
+                -- One could add more conditions here, e.g. checking hitMO.Material.Mass == 0 for static terrain pieces if applicable
+                
+                if isPinnedActor or (not MovableMan:IsActor(hitMO) and hitMO.Material and hitMO.Material.Mass == 0) then 
+                    grappleInstance.actionMode = 2 -- Grabbed Terrain (effectively)
+                    grappleInstance.Pos = hitMORayInfo.HitPos -- Snap grapple to the hit point on MO
+                    grappleInstance.apx[grappleInstance.currentSegments] = hitMORayInfo.HitPos.X -- Update anchor point
+                    grappleInstance.apy[grappleInstance.currentSegments] = hitMORayInfo.HitPos.Y -- Update anchor point
+                    grappleInstance.lastX[grappleInstance.currentSegments] = hitMORayInfo.HitPos.X
+                    grappleInstance.lastY[grappleInstance.currentSegments] = hitMORayInfo.HitPos.Y
+                    -- For stickDirection, it might be better to use the hit normal if available,
+                    -- otherwise, the direction from player to hook is a fallback.
+                    -- local hitNormal = hitMORayInfo.HitNormal 
+                    -- grappleInstance.stickDirection = hitNormal or (grappleInstance.Pos - grappleInstance.parent.Pos):Normalized()
+                    grappleInstance.stickDirection = (grappleInstance.Pos - (grappleInstance.parent and grappleInstance.parent.Pos or grappleInstance.Pos)):Normalized()
+
+                    stateChanged = true
+                -- Check if the MO is an Actor and is physical (can be grappled)
+                elseif MovableMan:IsActor(hitMO) and ToActor(hitMO):IsPhysical() then
+                    grappleInstance.actionMode = 3 -- Grabbed MO
+                    grappleInstance.Pos = hitMORayInfo.HitPos -- Snap grapple to hit point on MO
+                    grappleInstance.apx[grappleInstance.currentSegments] = hitMORayInfo.HitPos.X -- Update anchor point
+                    grappleInstance.apy[grappleInstance.currentSegments] = hitMORayInfo.HitPos.Y -- Update anchor point
+                    grappleInstance.lastX[grappleInstance.currentSegments] = hitMORayInfo.HitPos.X
+                    grappleInstance.lastY[grappleInstance.currentSegments] = hitMORayInfo.HitPos.Y
+                    
+                    grappleInstance.stickOffset = grappleInstance.Pos - hitMO.Pos -- Relative position on MO
+                    grappleInstance.stickAngle = hitMO.RotAngle -- Initial angle of MO
+                    -- grappleInstance.stickDirection = (grappleInstance.Pos - grappleInstance.parent.Pos):Normalized()
+                    grappleInstance.stickDirection = (grappleInstance.Pos - (grappleInstance.parent and grappleInstance.parent.Pos or grappleInstance.Pos)):Normalized()
+
+                    stateChanged = true
+                end
+                -- If it's not a pinnable MO and not a physical Actor, it's ignored (e.g., a non-physical particle)
+            end
         end
     end
     

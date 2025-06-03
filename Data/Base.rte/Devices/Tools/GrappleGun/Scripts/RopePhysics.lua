@@ -1,5 +1,5 @@
 ---@diagnostic disable: undefined-global
--- filepath: /home/cretin/git/Cortex-Command-Community-Project/Data/Base.rte/Devices/Tools/GrappleGun/Scripts/RopePhysics.lua
+-- filepath: Cortex-Command-Community-Project/Data/Base.rte/Devices/Tools/GrappleGun/Scripts/RopePhysics.lua
 --[[ 
   RopePhysics.lua - Advanced Rope Physics Module
   
@@ -7,13 +7,13 @@
   Aims for a rigid rope behavior with high durability.
 --]]
 
-local RopeStateManager = require("Devices.Tools.GrappleGun.Scripts.RopeStateManager") -- Added this line
+local RopeStateManager = require("Devices.Tools.GrappleGun.Scripts.RopeStateManager") 
 
 local RopePhysics = {}
 
 -- Constants for physics behavior
 local GRAVITY_Y = 0.1 -- Simulate normal gravity for the rope segments.
-local NUDGE_DISTANCE = 0.5 -- Increased from 0.3 to help prevent phasing through terrain.
+local NUDGE_DISTANCE = 1 -- Increased from 0.3 to help prevent phasing through terrain.
 local BOUNCE_STRENGTH = 0.3 -- How much velocity is retained perpendicular to a collision surface.
 local CONSTRAINT_STRENGTH = 1.0 -- Full strength for rigid rope constraints.
 local DEFAULT_PHYSICS_ITERATIONS = 32 -- Default number of constraint iterations. User request.
@@ -247,12 +247,52 @@ function RopePhysics.updateRopePhysics(grappleInstance, startPos, endPos, cableL
     -- Hook anchor (segment 'segments')
     if endPos then
         if grappleInstance.actionMode == 1 then -- Flying hook
-            -- For a flying hook, its own physics (self.Vel, self.Pos) dictate its movement.
-            -- The end anchor point of the rope simply follows self.Pos.
+            -- Save the current hook position for the final segment
+            -- The hook itself still follows its natural physics trajectory
             grappleInstance.apx[segments] = grappleInstance.Pos.X
             grappleInstance.apy[segments] = grappleInstance.Pos.Y
             grappleInstance.lastX[segments] = grappleInstance.Pos.X - (grappleInstance.Vel.X or 0)
             grappleInstance.lastY[segments] = grappleInstance.Pos.Y - (grappleInstance.Vel.Y or 0)
+            
+            -- Now apply Verlet physics to all intermediate rope segments
+            -- This makes the rope behave like it has actual physics during flight
+            if segments > 2 then -- Only if we have intermediate segments
+                for i = 1, segments - 1 do
+                    -- Calculate how far along the rope this segment is - for natural draping effect
+                    local t = i / segments
+                    
+                    -- Apply a slight gravity influence based on segment position
+                    -- Middle segments should droop more than those near anchors
+                    local gravity_factor = t * (1 - t) * 4 -- Parabolic function, max at t=0.5
+                    
+                    -- Calculate position if the rope was straight between player and hook
+                    local straight_x = grappleInstance.apx[0] + t * (grappleInstance.apx[segments] - grappleInstance.apx[0])
+                    local straight_y = grappleInstance.apy[0] + t * (grappleInstance.apy[segments] - grappleInstance.apy[0])
+                    
+                    -- Apply gravity influence only to existing positions, don't override completely
+                    if not grappleInstance.lastX[i] then
+                        -- First initialization for this segment
+                        grappleInstance.lastX[i] = straight_x
+                        grappleInstance.lastY[i] = straight_y
+                        grappleInstance.apx[i] = straight_x
+                        grappleInstance.apy[i] = straight_y + gravity_factor * 0.5 -- Slight initial droop
+                    else
+                        -- Preserve momentum from previous frame
+                        local vel_x = grappleInstance.apx[i] - grappleInstance.lastX[i]
+                        local vel_y = grappleInstance.apy[i] - grappleInstance.lastY[i]
+                        
+                        grappleInstance.lastX[i] = grappleInstance.apx[i]
+                        grappleInstance.lastY[i] = grappleInstance.apy[i]
+                        
+                        -- Apply Verlet integration with gravity influence
+                        local next_x = grappleInstance.apx[i] + vel_x * 0.98 -- Slight damping
+                        local next_y = grappleInstance.apy[i] + vel_y * 0.98 + GRAVITY_Y * gravity_factor
+                        
+                        -- Perform collision detection for this segment's new position
+                        RopePhysics.verletCollide(grappleInstance, i, next_x - grappleInstance.apx[i], next_y - grappleInstance.apy[i])
+                    end
+                end
+            end
         elseif grappleInstance.actionMode == 2 then -- Hook stuck in terrain
             -- Position is fixed. Velocity is zero.
             grappleInstance.apx[segments] = grappleInstance.apx[segments] -- Should already be set
@@ -324,7 +364,7 @@ function RopePhysics.applyRopeConstraints(grappleInstance, currentPhysicsLength)
 
             -- Determine how to apply correction based on actionMode
             if grappleInstance.actionMode == 2 then -- Hook on terrain, player swings
-                -- Correct player position and velocity (primary correction)
+                -- Correct player position (only when exceeding max length)
                 local vec_from_hook_to_player = Vector(p_start_x - p_end_x, p_start_y - p_end_y)
                 local correctedPlayerPos = Vector(p_end_x, p_end_y) + vec_from_hook_to_player:SetMagnitude(maxAllowedRopeLength)
                 
@@ -332,14 +372,19 @@ function RopePhysics.applyRopeConstraints(grappleInstance, currentPhysicsLength)
                 grappleInstance.apx[0] = correctedPlayerPos.X
                 grappleInstance.apy[0] = correctedPlayerPos.Y
                 
-                -- Correct player velocity to be tangential
+                -- Correct player velocity - BUT ONLY remove the OUTWARD component
                 local ropeDirFromPlayerToHook = (Vector(p_end_x, p_end_y) - correctedPlayerPos):SetMagnitude(1)
                 local radialVelScalar = grappleInstance.parent.Vel:Dot(ropeDirFromPlayerToHook)
-                grappleInstance.parent.Vel = grappleInstance.parent.Vel - (ropeDirFromPlayerToHook * radialVelScalar)
+                
+                -- Only remove velocity component if it's moving AWAY from hook (radialVelScalar < 0)
+                -- Allow all inward movement (towards hook) to preserve free movement within the radius
+                if radialVelScalar < 0 then -- Only cancel outward velocity
+                    grappleInstance.parent.Vel = grappleInstance.parent.Vel - (ropeDirFromPlayerToHook * radialVelScalar)
+                end
                 
                 -- Store tension feedback
                 if -radialVelScalar > 0.01 then
-                    grappleInstance.ropeTensionForce = -radialVelScalar * 0.5 -- Simplified tension magnitude
+                    grappleInstance.ropeTensionForce = -radialVelScalar * 0.5
                     grappleInstance.ropeTensionDirection = ropeDirFromPlayerToHook
                 else
                     grappleInstance.ropeTensionForce = nil
