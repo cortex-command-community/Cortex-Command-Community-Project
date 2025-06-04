@@ -20,10 +20,10 @@ function Create(self)
     -- self.initializationOk = true -- This flag is effectively replaced by checking self.actionMode == 0 in Update.
 
     -- Core grapple properties
-    self.fireVel = 30      -- Initial velocity of the hook. Overwrites .ini FireVel.
-    self.hookRadius = 50   -- Reduced from 360 for more precise parent finding
+    self.fireVel = 40      -- Initial velocity of the hook. Overwrites .ini FireVel.
+    self.hookRadius = 360   -- Reduced from 360 for more precise parent finding
 
-    self.maxLineLength = 600   -- Maximum allowed length of the rope.
+    self.maxLineLength = 1000   -- Maximum allowed length of the rope.
     self.maxShootDistance = self.maxLineLength * 0.95 -- Hook will detach if it travels further than this before sticking.
     self.setLineLength = 0 -- Target length set by input/logic.
     self.lineStrength = 10000 -- Force threshold for breaking (effectively unbreakable).
@@ -82,6 +82,17 @@ function Create(self)
     -- Parent gun, parent actor, and related properties (Vel, anchor points, parentRadius)
     -- will be determined and set in the first Update call.
     -- No self.ToDelete = true will be set in Create.
+    
+    -- Add these new flags:
+    self.shouldUnhook = false      -- Flag set by gun to signal unhook
+    -- self.reloadKeyPressed = false  -- Track R key state to prevent spam
+    
+    -- Keep only the tap detection variables:
+    self.tapCounter = 0
+    self.canTap = false
+    self.tapTime = 150
+    self.tapAmount = 2
+    self.tapTimer = Timer()
 end
 
 function Update(self)
@@ -184,29 +195,6 @@ function Update(self)
     if not self.parentGun or self.parentGun.ID == rte.NoMOID or not parentActor:HasObject("Grapple Gun") then
         self.ToDelete = true
         return
-    end
-
-    local controller = parentActor:GetController()
-    if not controller then
-        self.ToDelete = true
-        return
-    end
-    local player = controller.Player or 0
-
-    -- Handle pie menu modes
-    if self.parentGun then
-        local mode = self.parentGun:GetNumberValue("GrappleMode")
-        if mode ~= 0 then
-            if mode == 3 then -- Unhook via Pie Menu
-                self.ToDelete = true
-                if self.parentGun then
-                    self.parentGun:RemoveNumberValue("GrappleMode")
-                end
-            else
-                self.pieSelection = mode
-                self.parentGun:RemoveNumberValue("GrappleMode")
-            end
-        end
     end
 
     -- Standard update flags
@@ -357,34 +345,37 @@ function Update(self)
     -- Player-specific controls and unhooking mechanisms
     if IsAHuman(parentActor) or IsACrab(parentActor) then
         if parentActor:IsPlayerControlled() then
-            -- R key unhooking functionality
-            local isHoldingGrapple = false
-            
-            -- Check if holding grapple in main hand
-            if self.parent.EquippedItem and self.parentGun and self.parent.EquippedItem.ID == self.parentGun.ID then
-                isHoldingGrapple = true
-            end
-            
-            -- Check if holding grapple in off-hand
-            local isHoldingInBG = self.parent.EquippedBGItem and self.parentGun and 
-                                 self.parent.EquippedBGItem.ID == self.parentGun.ID
-            
-            -- If reload key pressed while holding grapple gun, unhook
-            if controller:IsState(Controller.WEAPON_RELOAD) and (isHoldingGrapple or isHoldingInBG) then
-                print("R key unhook triggered!")  -- Debug message
-                self.ToDelete = true
-                return -- Exit immediately to prevent other checks
-            end
-            
-            -- Unhook with double-tap crouch (ONLY when NOT holding the gun)
-            if not isHoldingGrapple and not isHoldingInBG then
-                if RopeInputController.handleTapDetection(self, controller) then
-                    print("Double-tap unhook triggered!")  -- Debug message
+            local controller = self.parent:GetController()
+            if controller then
+                -- ONLY use RopeInputController for all input handling
+                
+                -- 1. R key to unhook (when holding gun)
+                if RopeInputController.handleReloadKeyUnhook(self, controller) then
+                    print("Unhooking via R key!")
                     self.ToDelete = true
-                    return -- Exit immediately
+                    return
                 end
+                
+                -- 2. Double crouch-tap to unhook (when NOT holding gun)
+                if RopeInputController.handleTapDetection(self, controller) then
+                    print("Unhooking via double crouch!")
+                    self.ToDelete = true
+                    return
+                end
+                
+                -- 3. Pie menu unhook
+                if RopeInputController.handlePieMenuSelection(self) then
+                    print("Unhooking via pie menu!")
+                    self.ToDelete = true
+                    return
+                end
+                
+                -- 4. Other rope controls
+                RopeInputController.handleRopePulling(self)
+                RopeInputController.handleAutoRetraction(self, false)
             end
         end
+        
         -- Gun stance offset when holding the gun
         if self.parentGun and self.parentGun.RootID == parentActor.ID then
              if MovableMan:IsParticle(self.parentGun.Magazine) then -- Check if Magazine is a particle
@@ -394,27 +385,7 @@ function Update(self)
             self.parentGun.StanceOffset = Vector(self.lineLength, 0):RadRotate(offsetAngle)
         end
     end
-
-    -- Delegate all input handling to RopeInputController
-    -- 1. Pie menu selection (unhook, retract, extend)
-    if RopeInputController.handlePieMenuSelection(self) then
-        self.ToDelete = true
-        if self.parentGun then self.parentGun:RemoveNumberValue("GrappleMode") end
-        return
-    end
-    -- 2. R key (reload) to unhook
-    if RopeInputController.handleReloadKeyUnhook(self, controller) then
-        self.ToDelete = true
-        return
-    end
-    -- 3. Double-tap crouch to unhook (only if not holding gun)
-    if RopeInputController.handleTapDetection(self, controller) then
-        self.ToDelete = true
-        return
-    end
-    -- 4. Mousewheel and directional controls for rope length
-    RopeInputController.handleRopePulling(self)
-
+    
     -- Render the rope
     RopeRenderer.drawRope(self, player)
 

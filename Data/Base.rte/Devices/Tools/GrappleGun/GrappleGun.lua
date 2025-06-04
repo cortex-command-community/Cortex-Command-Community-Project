@@ -51,8 +51,8 @@ function Update(self)
         return
     end
 
-    local parentActor = ToActor(parent) -- Cast to Actor base type.
-    -- Specific casting to AHuman or ACrab can be done if needed for type-specific logic.
+    local parentActor = ToActor(parent) -- Cast to Actor base type
+    -- Specific casting to AHuman or ACrab can be done if needed for type-specific logic
 
     if not parentActor:IsPlayerControlled() or parentActor.Status >= Actor.DYING then
         self:Deactivate() -- Deactivate if not player controlled or if player is dying.
@@ -65,12 +65,15 @@ function Update(self)
         return
     end
 
-    -- Deactivate if equipped in the background arm and a foreground item exists,
-    -- to allow the foreground item (e.g., another weapon) to be used.
+    -- REMOVE/COMMENT OUT this section that deactivates in background:
+    --[[
     if parentActor.EquippedBGItem and parentActor.EquippedBGItem.ID == self.ID and parentActor.EquippedItem then
         self:Deactivate()
-        -- Potentially return here if no further logic should run for a BG equipped grapple gun.
+        // Potentially return here if no further logic should run for a BG equipped grapple gun.
     end
+    --]]
+    
+    -- Allow gun to stay active in background for rope functionality
 
     -- Magazine handling (visual representation of the hook's availability)
     if self.Magazine and MovableMan:IsParticle(self.Magazine) then
@@ -90,31 +93,15 @@ function Update(self)
                 self.SharpStanceOffset = Vector(spriteWidth, 1)
             end
 
-            -- Crouch-tap logic (potentially for recalling an active hook)
-            if controller:IsState(Controller.BODY_PRONE) then
-                if self.canTap then
-                    controller:SetState(Controller.BODY_PRONE, false) -- Prevent continuous prone state
-                    self.tapTimerJump:Reset()
-                    -- self.didTap = true; -- Mark that a tap occurred (if used elsewhere)
-                    self.canTap = false
-                    self.tapCounter = self.tapCounter + 1
-                end
-            else
-                self.canTap = true -- Allow first tap when not prone
+            -- REMOVE the entire crouch-tap section from the gun - it should only be in the hook
+            -- The gun should NOT handle unhooking directly
+            
+            -- Only keep this for other gun functionality, NOT for unhooking:
+            if controller:IsState(Controller.WEAPON_RELOAD) then
+                -- Gun's own reload logic here (if any)
+                -- Do NOT send unhook signals from here
             end
-
-            if self.tapTimerJump:IsPastSimMS(self.tapTime) then
-                self.tapCounter = 0 -- Reset counter if too much time has passed
-            else
-                if self.tapCounter >= self.tapAmount then
-                    -- If enough taps, activate the gun. This might be intended to fire/recall.
-                    -- If a grapple is already out, Grapple.lua's tap detection should handle recall.
-                    -- If no grapple is out, this would fire a new one.
-                    -- Clarify the intent: is this to fire, or to send a signal to an existing grapple?
-                    self:Activate() -- This will typically fire the HDFirearm.
-                    self.tapCounter = 0
-                end
-            end
+            
         end
 
         -- Guide arrow visibility logic
@@ -174,6 +161,8 @@ function Update(self)
             magParticle.Frame = 0      -- Standard frame
         else
             magParticle.Scale = 0 -- Hidden by active grapple (Grapple.lua also does this)
+            magParticle.RoundCount = 0 -- Visually empty
+
         end
     end
 end

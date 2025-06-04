@@ -122,13 +122,14 @@ function RopeStateManager.checkAttachmentCollisions(grappleInstance)
                                                 -2, rte.airID, false, 0)
         end
         
+        -- Ensure we have a valid hit result before proceeding
         if hitMORayInfo and type(hitMORayInfo) == "table" and hitMORayInfo.MOSPtr and hitMORayInfo.MOSPtr.ID ~= rte.NoMOID then
             local hitMO = hitMORayInfo.MOSPtr
             
             -- Filter out tiny particles or debris (improved target selection)
             local minGrappableSize = 3 -- Minimum diameter for grappable objects
             if hitMO.Diameter and hitMO.Diameter < minGrappableSize then
-                -- Skip tiny objects, continue to secondary ray check
+                -- Skip tiny objects - try secondary ray
                 local secondaryHit = SceneMan:CastMORay(grappleInstance.Pos, rayDirection * secondaryRayLength, 
                                                     (grappleInstance.parent and grappleInstance.parent.ID or 0),
                                                     -2, rte.airID, false, 0)
@@ -141,7 +142,8 @@ function RopeStateManager.checkAttachmentCollisions(grappleInstance)
                 end
             end
             
-            if hitMO and hitMORayInfo then
+            -- Only proceed if we still have a valid hit
+            if hitMO and hitMORayInfo and hitMORayInfo.HitPos then
                 grappleInstance.target = hitMO -- Store the hit MO.
                 
                 -- If the MO is pinned (e.g., a static object like a bunker piece, or a character that used "Pin Self"), treat it like terrain.
@@ -405,6 +407,22 @@ function RopeStateManager.canReleaseGrapple(grappleInstance)
     -- The 'canRelease' flag is set to true in checkAttachmentCollisions when the hook sticks.
     -- It can be set to false if, for example, the hook is mid-flight or during a special animation.
     return grappleInstance.canRelease or false -- Default to false if nil.
+end
+
+--[[
+  Releases the grapple from its current attachment and transitions to deletion state.
+  @param grappleInstance The grapple instance.
+]]
+function RopeStateManager.releaseGrapple(grappleInstance)
+    grappleInstance.actionMode = 0  -- Set to inactive state
+    grappleInstance.target = nil
+    grappleInstance.canRelease = false
+    grappleInstance.ToDelete = true -- Mark for deletion
+    
+    -- Clear parent gun's grapple mode flag if it exists
+    if grappleInstance.parentGun then
+        grappleInstance.parentGun:RemoveNumberValue("GrappleMode")
+    end
 end
 
 return RopeStateManager

@@ -51,7 +51,8 @@ function RopeRenderer.drawSegment(grappleInstance, segmentStartIdx, segmentEndId
         return
     end
     
-    PrimitiveMan:DrawLinePrimitive(player, point1, point2, ROPE_COLOR)
+    -- Fix the DrawLinePrimitive call - remove player parameter if it's nil
+    PrimitiveMan:DrawLinePrimitive(point1, point2, ROPE_COLOR)
 end
 
 --[[
@@ -59,7 +60,7 @@ end
   Also triggers debug information drawing if conditions are met.
   @param grappleInstance The grapple instance.
   @param player          The player index for the screen context.
-]]
+]]--
 function RopeRenderer.drawRope(grappleInstance, player)
     if not grappleInstance or grappleInstance.currentSegments == nil or grappleInstance.currentSegments < 1 then
         return -- Nothing to draw if no segments.
