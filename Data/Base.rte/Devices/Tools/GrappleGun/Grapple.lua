@@ -192,7 +192,8 @@ function Update(self)
     
     local parentActor = self.parent -- self.parent is already an Actor type from the setup block
     
-    if not self.parentGun or self.parentGun.ID == rte.NoMOID or not parentActor:HasObject("Grapple Gun") then
+    -- Remove the HasObject check - allow grapple to persist even when gun is not equipped
+    if not self.parentGun or self.parentGun.ID == rte.NoMOID then
         self.ToDelete = true
         return
     end
@@ -347,30 +348,31 @@ function Update(self)
         if parentActor:IsPlayerControlled() then
             local controller = self.parent:GetController()
             if controller then
-                -- ONLY use RopeInputController for all input handling
-                
-                -- 1. R key to unhook (when holding gun)
+                -- 1. Handle R key (reload) to unhook - use the module function
                 if RopeInputController.handleReloadKeyUnhook(self, controller) then
-                    print("Unhooking via R key!")
                     self.ToDelete = true
                     return
                 end
                 
-                -- 2. Double crouch-tap to unhook (when NOT holding gun)
-                if RopeInputController.handleTapDetection(self, controller) then
-                    print("Unhooking via double crouch!")
-                    self.ToDelete = true
-                    return
-                end
-                
-                -- 3. Pie menu unhook
+                -- 2. Handle pie menu unhook commands
                 if RopeInputController.handlePieMenuSelection(self) then
-                    print("Unhooking via pie menu!")
                     self.ToDelete = true
                     return
                 end
                 
-                -- 4. Other rope controls
+                -- 3. Handle double-tap crouch to unhook - use the module function
+                if RopeInputController.handleTapDetection(self, controller) then
+                    self.ToDelete = true
+                    return
+                end
+                
+                -- Set magazine to empty when grapple is active
+                if self.parentGun.Magazine then
+                    self.parentGun.Magazine.RoundCount = 0
+                    self.parentGun.Magazine.Scale = 0 -- Hide the magazine
+                end
+                
+                -- 4. Other rope controls (climbing, length adjustment)
                 RopeInputController.handleRopePulling(self)
                 RopeInputController.handleAutoRetraction(self, false)
             end
@@ -378,9 +380,6 @@ function Update(self)
         
         -- Gun stance offset when holding the gun
         if self.parentGun and self.parentGun.RootID == parentActor.ID then
-             if MovableMan:IsParticle(self.parentGun.Magazine) then -- Check if Magazine is a particle
-                ToMOSParticle(self.parentGun.Magazine).RoundCount = 0 -- Visually empty
-             end
             local offsetAngle = parentActor.FlipFactor * (self.lineVec.AbsRadAngle - parentActor:GetAimAngle(true))
             self.parentGun.StanceOffset = Vector(self.lineLength, 0):RadRotate(offsetAngle)
         end
@@ -391,12 +390,12 @@ function Update(self)
 
     -- Final deletion check and cleanup
     if self.ToDelete then
-        if self.parentGun and MovableMan:IsParticle(self.parentGun.Magazine) then
-            local mag = ToMOSParticle(self.parentGun.Magazine)
-            -- Show magazine briefly as if hook is retracting
-            mag.Pos = parentActor.Pos + (self.lineVec * 0.5)
-            mag.Scale = 1
-            mag.Frame = 0 -- Assuming frame 0 is the visible magazine
+        if self.parentGun and self.parentGun.Magazine then
+            -- Show the magazine as if the hook is being retracted
+            local drawPos = parentActor.Pos + (self.lineVec * 0.5)
+            self.parentGun.Magazine.Pos = drawPos
+            self.parentGun.Magazine.Scale = 1
+            self.parentGun.Magazine.Frame = 0
         end
         if self.returnSound then self.returnSound:Play(parentActor.Pos) end
     end
@@ -409,12 +408,14 @@ function Destroy(self)
     
     -- Clean up references on the parent gun
     if self.parentGun and self.parentGun.ID ~= rte.NoMOID then
-        self.parentGun.HUDVisible = true -- Assuming it was hidden
+        self.parentGun.HUDVisible = true
         self.parentGun:RemoveNumberValue("GrappleMode")
-        -- Reset stance offset if it was modified
-        self.parentGun.StanceOffset = Vector(0,0) 
-        if MovableMan:IsParticle(self.parentGun.Magazine) then
-            ToMOSParticle(self.parentGun.Magazine).Scale = 1 -- Ensure magazine is visible
+        self.parentGun.StanceOffset = Vector(0,0)
+        
+        -- Restore and show magazine when grapple is destroyed
+        if self.parentGun.Magazine then
+            self.parentGun.Magazine.RoundCount = 1 -- Restore to 1 round when grapple returns
+            self.parentGun.Magazine.Scale = 1 -- Make magazine visible again
         end
     end
 end

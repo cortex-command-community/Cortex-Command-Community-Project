@@ -18,6 +18,15 @@ local function isHoldingGrappleGun(grappleInstance)
         return true
     end
     
+    -- NEW: Also check if the gun exists in inventory (allowing control even when not equipped)
+    if grappleInstance.parent.Inventory then
+        for item in grappleInstance.parent.Inventory do
+            if item and item.ID == grappleInstance.parentGun.ID then
+                return true
+            end
+        end
+    end
+    
     return false
 end
 
@@ -71,15 +80,15 @@ end
 function RopeInputController.handleReloadKeyUnhook(grappleInstance, controller)
     if not controller then return false end
     
-    -- Only process R key if holding the grapple gun (main hand OR background hand)
-    local isHolding = isHoldingGrappleGun(grappleInstance)
-    if not isHolding then 
-        -- NOT holding gun - don't process R key
-        return false 
+    local isCurrentlyHolding = false
+    if grappleInstance.parent.EquippedItem and grappleInstance.parent.EquippedItem.ID == grappleInstance.parentGun.ID then
+        isCurrentlyHolding = true
+    elseif grappleInstance.parent.EquippedBGItem and grappleInstance.parent.EquippedBGItem.ID == grappleInstance.parentGun.ID then
+        isCurrentlyHolding = true
     end
     
-    -- IS holding gun - check for R key press
-    if controller:IsState(Controller.WEAPON_RELOAD) then
+    -- If currently holding the gun, use R key to unhook
+    if isCurrentlyHolding and controller:IsState(Controller.WEAPON_RELOAD) then
         print("R key pressed while holding grapple gun - unhooking!") -- Debug
         return true -- Signal unhook
     end
@@ -94,21 +103,27 @@ function RopeInputController.handleTapDetection(grappleInstance, controller)
     if not controller or not grappleInstance.parent then return false end
 
     -- This tap detection is for recalling the hook when *NOT* holding the gun.
-    if isHoldingGrappleGun(grappleInstance) then
-        -- IS holding gun - don't process crouch-tap, reset counters
+    local isHolding = isHoldingGrappleGun(grappleInstance)
+    if isHolding then
+        -- IS holding gun - don't process crouch-tap for unhook, reset counters
         grappleInstance.tapCounter = 0
         grappleInstance.canTap = true
         return false
     end
 
-    -- NOT holding gun - process crouch-tap
+    -- NOT holding gun - process crouch-tap for unhook
     local proneState = controller:IsState(Controller.BODY_PRONE)
     
     if proneState then
         if grappleInstance.canTap then
+            -- Clear the prone state immediately to prevent interference
+            controller:SetState(Controller.BODY_PRONE, false)
+            
             grappleInstance.tapCounter = grappleInstance.tapCounter + 1
             grappleInstance.canTap = false
             grappleInstance.tapTimer:Reset()
+            
+            print("Crouch tap " .. grappleInstance.tapCounter .. " detected (not holding gun)") -- Debug
         end
     else
         grappleInstance.canTap = true -- Ready for the next tap when crouch is released.
@@ -126,6 +141,23 @@ function RopeInputController.handleTapDetection(grappleInstance, controller)
     end
     
     return false
+end
+
+-- Add a new function for handling crouch controls when holding the gun
+function RopeInputController.handleCrouchControls(grappleInstance, controller)
+    if not controller or not grappleInstance.parent then return end
+    
+    -- Only process if holding the grapple gun
+    local isHolding = isHoldingGrappleGun(grappleInstance)
+    if not isHolding then return end
+    
+    -- When holding gun, crouch can be used for rope control
+    -- This ensures crouch works normally for rope length control
+    -- without interfering with unhook tap detection
+    
+    -- Reset tap counters when holding gun to prevent accidental unhooks
+    grappleInstance.tapCounter = 0
+    grappleInstance.canTap = true
 end
 
 -- Handle mouse wheel scrolling for rope length control (when not holding Shift).
