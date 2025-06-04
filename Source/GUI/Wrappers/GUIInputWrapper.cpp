@@ -1,5 +1,7 @@
 #include "GUI.h"
 #include "GUIInputWrapper.h"
+#include "GUIInput.h"
+#include "SDL3/SDL_keyboard.h"
 #include "WindowMan.h"
 #include "FrameMan.h"
 #include "UInputMan.h"
@@ -60,6 +62,18 @@ void GUIInputWrapper::Update() {
 	Vector mousePos = g_UInputMan.GetAbsoluteMousePosition(m_Player);
 	m_MouseX = static_cast<int>(mousePos.GetX() / static_cast<float>(g_WindowMan.GetResMultiplier()));
 	m_MouseY = static_cast<int>(mousePos.GetY() / static_cast<float>(g_WindowMan.GetResMultiplier()));
+}
+
+void GUIInputWrapper::StartTextInput() {
+	GUIInput::StartTextInput();
+	SDL_StartTextInput(g_WindowMan.GetWindow());
+}
+
+void GUIInputWrapper::StopTextInput() {
+	GUIInput::StopTextInput();
+	if (m_TextInputActive <= 0) {
+		SDL_StopTextInput(g_WindowMan.GetWindow());
+	}
 }
 
 void GUIInputWrapper::UpdateKeyboardInput(float keyElapsedTime) {

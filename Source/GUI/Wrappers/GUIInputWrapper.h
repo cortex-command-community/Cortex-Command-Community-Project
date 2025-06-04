@@ -29,6 +29,10 @@ namespace RTE {
 #pragma region Virtual Override Methods
 		/// Updates the input.
 		void Update() override;
+
+		void StartTextInput() override;
+
+		void StopTextInput() override;
 #pragma endregion
 
 	private:
