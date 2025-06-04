@@ -1,4 +1,3 @@
-#include "GUIInput.h"
 #include "GUI.h"
 
 using namespace RTE;

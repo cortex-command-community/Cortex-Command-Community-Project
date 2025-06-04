@@ -1,7 +1,6 @@
 #include "GUI.h"
 #include "GUIInputWrapper.h"
-#include "GUIInput.h"
-#include "SDL3/SDL_keyboard.h"
+#include "SDL3/SDL.h"
 #include "WindowMan.h"
 #include "FrameMan.h"
 #include "UInputMan.h"
