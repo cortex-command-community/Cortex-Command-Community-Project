@@ -192,8 +192,40 @@ function Update(self)
     
     local parentActor = self.parent -- self.parent is already an Actor type from the setup block
     
-    -- Remove the HasObject check - allow grapple to persist even when gun is not equipped
+    -- Check if grapple gun still exists - either equipped or in inventory
     if not self.parentGun or self.parentGun.ID == rte.NoMOID then
+        self.ToDelete = true
+        return
+    end
+    
+    -- Check if the gun still belongs to the parent actor
+    local shouldDelete = false
+    
+    if self.parentGun.RootID == parentActor.ID then
+        -- Gun is equipped by our parent - all good
+    elseif self.parentGun.RootID == rte.NoMOID then
+        -- Gun is unequipped - check if it's in our parent's inventory
+        local gunInInventory = false
+        if parentActor.Inventory then
+            for item in parentActor.Inventory do
+                if item and item.ID == self.parentGun.ID then
+                    gunInInventory = true
+                    break
+                end
+            end
+        end
+        if not gunInInventory then
+            shouldDelete = true
+        end
+    else
+        -- Gun is equipped by someone else
+        local currentOwner = MovableMan:GetMOFromID(self.parentGun.RootID)
+        if currentOwner and IsActor(currentOwner) and currentOwner.ID ~= parentActor.ID then
+            shouldDelete = true
+        end
+    end
+    
+    if shouldDelete then
         self.ToDelete = true
         return
     end
@@ -320,26 +352,32 @@ function Update(self)
         self.Pos.Y = self.apy[self.currentSegments]
     end
 
-    -- Aim the gun
+    -- Aim the gun only if it's currently equipped
     if self.parentGun and self.parentGun.ID ~= rte.NoMOID then
-        local flipAng = parentActor.HFlipped and math.pi or 0
-        self.parentGun.RotAngle = self.lineVec.AbsRadAngle + flipAng
-        if MovableMan:IsParticle(self.parentGun.Magazine) then -- Check if Magazine is a particle
-             ToMOSParticle(self.parentGun.Magazine).Scale = 0 -- Hide magazine when grapple is active
-        end
-
-        -- Handle unhooking from firing the gun again
-        if self.parentGun.FiredFrame then
-            if self.actionMode == 1 then -- If flying, just delete
+        local gunIsEquipped = (self.parentGun.RootID == parentActor.ID)
+        
+        if gunIsEquipped then
+            local flipAng = parentActor.HFlipped and math.pi or 0
+            self.parentGun.RotAngle = self.lineVec.AbsRadAngle + flipAng
+            
+            -- Handle unhooking from firing the gun again - ONLY when gun is equipped
+            if self.parentGun.FiredFrame then
+                if self.actionMode == 1 then -- If flying, just delete
+                    self.ToDelete = true
+                elseif self.actionMode > 1 then -- If attached, mark as ready to release
+                    self.canRelease = true 
+                end
+            end
+            -- If marked ready and gun is fired again (or activated for some guns)
+            if self.canRelease and self.parentGun.FiredFrame and 
+               (self.parentGun.Vel.Y ~= -1 or self.parentGun:IsActivated()) then
                 self.ToDelete = true
-            elseif self.actionMode > 1 then -- If attached, mark as ready to release
-                self.canRelease = true 
             end
         end
-        -- If marked ready and gun is fired again (or activated for some guns)
-        if self.canRelease and self.parentGun.FiredFrame and 
-           (self.parentGun.Vel.Y ~= -1 or self.parentGun:IsActivated()) then -- Original logic for release condition
-            self.ToDelete = true
+        
+        -- Always hide magazine when grapple is active, regardless of equipped status
+        if MovableMan:IsParticle(self.parentGun.Magazine) then -- Check if Magazine is a particle
+             ToMOSParticle(self.parentGun.Magazine).Scale = 0 -- Hide magazine when grapple is active
         end
     end
     
@@ -347,7 +385,10 @@ function Update(self)
     if IsAHuman(parentActor) or IsACrab(parentActor) then
         if parentActor:IsPlayerControlled() then
             local controller = self.parent:GetController()
-            if controller then
+            local gunIsEquipped = self.parentGun and (self.parentGun.RootID == parentActor.ID)
+            
+            if controller and gunIsEquipped then
+                -- Only handle unhook inputs when gun is equipped
                 -- 1. Handle R key (reload) to unhook - use the module function
                 if RopeInputController.handleReloadKeyUnhook(self, controller) then
                     self.ToDelete = true
@@ -371,8 +412,10 @@ function Update(self)
                     self.parentGun.Magazine.RoundCount = 0
                     self.parentGun.Magazine.Scale = 0 -- Hide the magazine
                 end
-                
-                -- 4. Other rope controls (climbing, length adjustment)
+            end
+            
+            if controller then
+                -- Always allow rope movement controls regardless of gun equipped status
                 RopeInputController.handleRopePulling(self)
                 RopeInputController.handleAutoRetraction(self, false)
             end
