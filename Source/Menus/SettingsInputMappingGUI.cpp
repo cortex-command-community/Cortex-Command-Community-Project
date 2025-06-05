@@ -28,10 +28,15 @@ SettingsInputMappingGUI::SettingsInputMappingGUI(GUIControlManager* parentContro
 	m_LastInputMapScrollingBoxScrollbarValue = m_InputMapScrollingBoxScrollbar->GetValue();
 
 	for (int i = 0; i < InputElements::INPUT_COUNT; ++i) {
-		m_InputMapLabel[i] = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelInputName" + std::to_string(i + 1)));
-		m_InputMapLabel[i]->SetText(c_InputElementNames[i]);
-		m_InputMapButton[i] = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonInputKey" + std::to_string(i + 1)));
-	}
+        m_InputMapLabel[i] = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelInputName" + std::to_string(i + 1)));
+        
+        // Add null check to prevent crash
+        if (m_InputMapLabel[i]) {
+            m_InputMapLabel[i]->SetText(c_InputElementNames[i]);
+        }
+        
+        m_InputMapButton[i] = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonInputKey" + std::to_string(i + 1)));
+    }
 	m_InputMappingCaptureBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxInputCapture"));
 	m_InputMappingCaptureBox->SetVisible(false);
 

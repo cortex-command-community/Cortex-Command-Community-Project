@@ -44,7 +44,7 @@ LuaBindingRegisterFunctionDefinitionForType(InputLuaBindings, InputElements) {
 	                            luabind::value("INPUT_JUMP", InputElements::INPUT_JUMP),
 	                            luabind::value("INPUT_CROUCH", InputElements::INPUT_PRONE), // awful, but script compat
 	                            luabind::value("INPUT_PRONE", InputElements::INPUT_PRONE),
-								luabind::value("INPUT_SHIFT", InputElements::INPUT_SHIFT), 
+	                            // luabind::value("INPUT_SHIFT", InputElements::INPUT_SHIFT), // Comment out
 	                            luabind::value("INPUT_WALKCROUCH", InputElements::INPUT_CROUCH),
 	                            luabind::value("INPUT_NEXT", InputElements::INPUT_NEXT),
 	                            luabind::value("INPUT_PREV", InputElements::INPUT_PREV),
