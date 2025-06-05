@@ -223,24 +223,24 @@ function RopeInputController.handleShiftMousewheelControls(grappleInstance, cont
         return false 
     end
     
-    print("[SHIFT+WHEEL DEBUG] Starting shift mousewheel check")
+    Logger.debug("RopeInputController.handleShiftMousewheelControls() - Starting shift mousewheel check")
     
     -- Only allow when gun is equipped and grapple is attached
     if grappleInstance.actionMode <= 1 then
-        print("[SHIFT+WHEEL DEBUG] Action mode is " .. grappleInstance.actionMode .. " (not attached)")
+        Logger.debug("RopeInputController.handleShiftMousewheelControls() - Action mode is %d (not attached)", grappleInstance.actionMode)
         return false
     end
     
     if not isCurrentlyEquipped(grappleInstance) then
-        print("[SHIFT+WHEEL DEBUG] Gun not currently equipped")
+        Logger.debug("RopeInputController.handleShiftMousewheelControls() - Gun not currently equipped")
         return false
     end
     
-    print("[SHIFT+WHEEL DEBUG] Equipment and attachment checks passed")
+    Logger.debug("RopeInputController.handleShiftMousewheelControls() - Equipment and attachment checks passed")
     
     -- Check for actual keyboard SHIFT key
     local shiftHeld = controller:IsState(Controller.KEYBOARD_SHIFT)
-    print("[SHIFT+WHEEL DEBUG] Keyboard SHIFT held (KEYBOARD_SHIFT): " .. tostring(shiftHeld))
+    Logger.debug("RopeInputController.handleShiftMousewheelControls() - Keyboard SHIFT held (KEYBOARD_SHIFT): %s", tostring(shiftHeld))
     
     if not shiftHeld then
         return false
@@ -250,13 +250,13 @@ function RopeInputController.handleShiftMousewheelControls(grappleInstance, cont
     local scrollUp = controller:IsState(Controller.SCROLL_UP)
     local scrollDown = controller:IsState(Controller.SCROLL_DOWN)
     
-    print("[SHIFT+WHEEL DEBUG] Scroll up: " .. tostring(scrollUp) .. ", Scroll down: " .. tostring(scrollDown))
+    Logger.debug("RopeInputController.handleShiftMousewheelControls() - Scroll up: %s, Scroll down: %s", tostring(scrollUp), tostring(scrollDown))
     
     if not scrollUp and not scrollDown then
         return false
     end
     
-    print("[SHIFT+WHEEL DEBUG] SHIFT + Mousewheel detected!")
+    Logger.info("RopeInputController.handleShiftMousewheelControls() - SHIFT + Mousewheel detected!")
     
     -- IMPORTANT: Clear the scroll states to prevent weapon switching
     controller:SetState(Controller.SCROLL_UP, false)
@@ -270,10 +270,10 @@ function RopeInputController.handleShiftMousewheelControls(grappleInstance, cont
     
     if scrollUp then
         lengthChange = -preciseScrollSpeed -- Shorten rope
-        print("[SHIFT+WHEEL DEBUG] Shortening rope by " .. preciseScrollSpeed)
+        Logger.info("RopeInputController.handleShiftMousewheelControls() - Shortening rope by %.1f", preciseScrollSpeed)
     elseif scrollDown then
         lengthChange = preciseScrollSpeed -- Lengthen rope
-        print("[SHIFT+WHEEL DEBUG] Lengthening rope by " .. preciseScrollSpeed)
+        Logger.info("RopeInputController.handleShiftMousewheelControls() - Lengthening rope by %.1f", preciseScrollSpeed)
     end
     
     -- Update rope length
@@ -281,7 +281,7 @@ function RopeInputController.handleShiftMousewheelControls(grappleInstance, cont
     grappleInstance.currentLineLength = math.max(10, math.min(grappleInstance.currentLineLength + lengthChange, grappleInstance.maxLineLength))
     grappleInstance.setLineLength = grappleInstance.currentLineLength
     
-    print("[SHIFT+WHEEL DEBUG] Rope length changed from " .. oldLength .. " to " .. grappleInstance.currentLineLength)
+    Logger.info("RopeInputController.handleShiftMousewheelControls() - Rope length changed from %.1f to %.1f", oldLength, grappleInstance.currentLineLength)
     
     -- Clear any automatic selections since user is manually controlling
     grappleInstance.pieSelection = 0
