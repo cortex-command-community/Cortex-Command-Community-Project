@@ -16,7 +16,6 @@ local rte = rte
 
 function Create(self)
     -- Timers and counters for tap-based controls (e.g., double-tap to retrieve hook)
-    self.tapTimerAim = Timer() -- Unused? Or intended for a different tap action.
     self.tapTimerJump = Timer() -- Used for crouch-tap detection.
     self.tapCounter = 0
     -- self.didTap = false -- Seems unused, consider removing.
