@@ -298,7 +298,6 @@ void GUIControlManager::DrawMouse(GUIScreen* guiScreen) {
 	int MouseX;
 	int MouseY;
 	m_Input->GetMousePosition(&MouseX, &MouseY);
-
 	switch (m_CursorType) {
 		// Pointer
 		case Pointer:

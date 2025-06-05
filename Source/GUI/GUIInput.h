@@ -99,6 +99,8 @@ namespace RTE {
 		/// @param Events State array.
 		void GetMouseButtons(int* Events, int* States) const;
 
+		void ClearMouseState();
+
 		static void SetNetworkMouseButton(int whichPlayer, int state1, int state2, int state3);
 
 		/// Gets the mouse position

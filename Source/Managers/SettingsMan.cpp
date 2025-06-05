@@ -189,6 +189,7 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("VisibleAssemblyGroup", { m_VisibleAssemblyGroupsList.push_back(reader.ReadPropValue()); });
 	MatchProperty("DisableMod", { m_DisabledMods.try_emplace(reader.ReadPropValue(), true); });
 	MatchProperty("EnableGlobalScript", { m_EnabledGlobalScripts.try_emplace(reader.ReadPropValue(), true); });
+	MatchProperty("ForceDisableMultimouse", { reader >> g_UInputMan.m_ForceDisableMultiMouseKeyboard; });
 	MatchProperty("MouseSensitivity", { reader >> g_UInputMan.m_MouseSensitivity; });
 	MatchForwards("Player1Scheme") MatchForwards("Player2Scheme") MatchForwards("Player3Scheme") MatchProperty("Player4Scheme", {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
@@ -371,6 +372,7 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewDivider(false);
 	writer.NewLineString("// Input Mapping", false);
 	writer.NewLine(false);
+	writer.NewPropertyWithValue("ForceDisableMultimouse", g_UInputMan.m_ForceDisableMultiMouseKeyboard);
 	writer.NewPropertyWithValue("MouseSensitivity", g_UInputMan.m_MouseSensitivity);
 
 	writer.NewLine(false);

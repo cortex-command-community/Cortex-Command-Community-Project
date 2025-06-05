@@ -208,8 +208,8 @@ void LuaStateWrapper::Initialize() {
 	                         RegisterLuaBindingsOfType(InputLuaBindings, MouseButtons),
 	                         RegisterLuaBindingsOfType(InputLuaBindings, SDL_Keycode),
 	                         RegisterLuaBindingsOfType(InputLuaBindings, SDL_Scancode),
-	                         RegisterLuaBindingsOfType(InputLuaBindings, SDL_GameControllerButton),
-	                         RegisterLuaBindingsOfType(InputLuaBindings, SDL_GameControllerAxis),
+	                         RegisterLuaBindingsOfType(InputLuaBindings, SDL_GamepadButton),
+	                         RegisterLuaBindingsOfType(InputLuaBindings, SDL_GamepadAxis),
 	                         RegisterLuaBindingsOfType(MiscLuaBindings, AlarmEvent),
 	                         RegisterLuaBindingsOfType(MiscLuaBindings, Directions),
 	                         RegisterLuaBindingsOfType(MiscLuaBindings, DrawBlendMode)];

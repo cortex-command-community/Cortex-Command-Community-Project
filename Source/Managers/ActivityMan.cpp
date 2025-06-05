@@ -330,6 +330,13 @@ void ActivityMan::ResumeActivity() {
 		m_InActivity = true;
 		m_ActivityNeedsResume = false;
 
+		std::vector<int> humanPlayers;
+		for (int player = 0; player < MaxPlayerCount; player++) {
+			if (m_Activity->PlayerHuman(player)) {
+				humanPlayers.push_back(player);
+			}
+		}
+		g_UInputMan.CheckMultiMouseKeyboardEnabled(humanPlayers);
 		PauseActivity(false);
 		g_TimerMan.PauseSim(false);
 		g_PerformanceMan.ResetPerformanceTimings();
