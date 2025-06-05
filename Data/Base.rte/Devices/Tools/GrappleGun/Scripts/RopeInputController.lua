@@ -219,53 +219,74 @@ end
 
 -- Handle precise rope control with Shift+Mousewheel
 function RopeInputController.handleShiftMousewheelControls(grappleInstance, controller)
-    if not controller or grappleInstance.actionMode <= 1 then 
-        Logger.debug("RopeInputController.handleShiftMousewheelControls() - No controller or wrong action mode (%d)", grappleInstance.actionMode or 0)
-        return 
-    end
-
-    -- Only allow rope controls if gun is equipped
-    if not isCurrentlyEquipped(grappleInstance) then 
-        Logger.debug("RopeInputController.handleShiftMousewheelControls() - Gun not equipped")
-        return 
-    end
-
-    local shiftHeld = controller:IsState(Controller.BODY_JUMPSTART) or controller:IsState(Controller.BODY_CROUCH)
-    if not shiftHeld then 
-        Logger.debug("RopeInputController.handleShiftMousewheelControls() - Shift not held")
-        return 
+    if not controller or not grappleInstance.parent then 
+        return false 
     end
     
-    Logger.debug("RopeInputController.handleShiftMousewheelControls() - Checking shift+mousewheel input")
+    print("[SHIFT+WHEEL DEBUG] Starting shift mousewheel check")
     
-    local scrollAmount = 0
-    local preciseScrollSpeed = (grappleInstance.shiftScrollSpeed or 1.0) * 0.25
-    
-    if controller:IsState(Controller.SCROLL_UP) then
-        scrollAmount = -preciseScrollSpeed
-        Logger.debug("RopeInputController.handleShiftMousewheelControls() - Scroll up detected")
-    elseif controller:IsState(Controller.SCROLL_DOWN) then
-        scrollAmount = preciseScrollSpeed
-        Logger.debug("RopeInputController.handleShiftMousewheelControls() - Scroll down detected")
+    -- Only allow when gun is equipped and grapple is attached
+    if grappleInstance.actionMode <= 1 then
+        print("[SHIFT+WHEEL DEBUG] Action mode is " .. grappleInstance.actionMode .. " (not attached)")
+        return false
     end
     
-    if scrollAmount ~= 0 then
-        local oldLength = grappleInstance.currentLineLength
-        local newLength = math.max(10, math.min(
-            grappleInstance.currentLineLength + scrollAmount, 
-            grappleInstance.maxLineLength
-        ))
-        
-        grappleInstance.currentLineLength = newLength
-        grappleInstance.setLineLength = newLength
-        grappleInstance.climbTimer:Reset()
-        
-        -- Clear automatic selections
-        grappleInstance.pieSelection = 0
-        grappleInstance.climb = 0
-        
-        Logger.info("RopeInputController.handleShiftMousewheelControls() - Precise rope control: %.1f -> %.1f", oldLength, newLength)
+    if not isCurrentlyEquipped(grappleInstance) then
+        print("[SHIFT+WHEEL DEBUG] Gun not currently equipped")
+        return false
     end
+    
+    print("[SHIFT+WHEEL DEBUG] Equipment and attachment checks passed")
+    
+    -- Check for actual keyboard SHIFT key
+    local shiftHeld = controller:IsState(Controller.KEYBOARD_SHIFT)
+    print("[SHIFT+WHEEL DEBUG] Keyboard SHIFT held (KEYBOARD_SHIFT): " .. tostring(shiftHeld))
+    
+    if not shiftHeld then
+        return false
+    end
+    
+    -- Check for mouse wheel input
+    local scrollUp = controller:IsState(Controller.SCROLL_UP)
+    local scrollDown = controller:IsState(Controller.SCROLL_DOWN)
+    
+    print("[SHIFT+WHEEL DEBUG] Scroll up: " .. tostring(scrollUp) .. ", Scroll down: " .. tostring(scrollDown))
+    
+    if not scrollUp and not scrollDown then
+        return false
+    end
+    
+    print("[SHIFT+WHEEL DEBUG] SHIFT + Mousewheel detected!")
+    
+    -- IMPORTANT: Clear the scroll states to prevent weapon switching
+    controller:SetState(Controller.SCROLL_UP, false)
+    controller:SetState(Controller.SCROLL_DOWN, false)
+    controller:SetState(Controller.WEAPON_CHANGE_NEXT, false)
+    controller:SetState(Controller.WEAPON_CHANGE_PREV, false)
+    
+    -- Apply precise rope length control
+    local preciseScrollSpeed = grappleInstance.shiftScrollSpeed or 1.0
+    local lengthChange = 0
+    
+    if scrollUp then
+        lengthChange = -preciseScrollSpeed -- Shorten rope
+        print("[SHIFT+WHEEL DEBUG] Shortening rope by " .. preciseScrollSpeed)
+    elseif scrollDown then
+        lengthChange = preciseScrollSpeed -- Lengthen rope
+        print("[SHIFT+WHEEL DEBUG] Lengthening rope by " .. preciseScrollSpeed)
+    end
+    
+    -- Update rope length
+    local oldLength = grappleInstance.currentLineLength
+    grappleInstance.currentLineLength = math.max(10, math.min(grappleInstance.currentLineLength + lengthChange, grappleInstance.maxLineLength))
+    grappleInstance.setLineLength = grappleInstance.currentLineLength
+    
+    print("[SHIFT+WHEEL DEBUG] Rope length changed from " .. oldLength .. " to " .. grappleInstance.currentLineLength)
+    
+    -- Clear any automatic selections since user is manually controlling
+    grappleInstance.pieSelection = 0
+    
+    return true
 end
 
 -- Handle mouse wheel scrolling for rope control
@@ -348,72 +369,27 @@ end
 -- Main rope pulling handler
 function RopeInputController.handleRopePulling(grappleInstance)
     if not grappleInstance.parent then 
-        Logger.debug("RopeInputController.handleRopePulling() - No parent")
         return 
     end
     
     local controller = grappleInstance.parent:GetController()
     if not controller then 
-        Logger.debug("RopeInputController.handleRopePulling() - No controller")
         return 
     end
     
-    Logger.debug("RopeInputController.handleRopePulling() - Processing rope pulling controls")
+    print("[ROPE PULLING DEBUG] Starting rope pulling handler")
     
-    -- Only allow active rope control if gun is equipped
-    if not isCurrentlyEquipped(grappleInstance) then 
-        Logger.debug("RopeInputController.handleRopePulling() - Gun not equipped, skipping active controls")
-        return 
+    -- Handle SHIFT + Mousewheel for precise control first
+    if RopeInputController.handleShiftMousewheelControls(grappleInstance, controller) then
+        print("[ROPE PULLING DEBUG] SHIFT + Mousewheel handled, returning")
+        return -- If shift+mousewheel was handled, don't process other inputs
     end
     
-    local oldLength = grappleInstance.setLineLength
-    local lengthChanged = false
-    
-    -- Handle directional controls
-    if controller:IsState(Controller.MOVE_UP) then
-        local newLength = math.max(grappleInstance.setLineLength - grappleInstance.climbInterval, 50)
-        grappleInstance.setLineLength = newLength
-        lengthChanged = true
-        Logger.info("RopeInputController.handleRopePulling() - Move up: rope length %.1f -> %.1f", oldLength, newLength)
-    elseif controller:IsState(Controller.MOVE_DOWN) then
-        local newLength = math.min(grappleInstance.setLineLength + grappleInstance.climbInterval, grappleInstance.maxLineLength)
-        grappleInstance.setLineLength = newLength
-        lengthChanged = true
-        Logger.info("RopeInputController.handleRopePulling() - Move down: rope length %.1f -> %.1f", oldLength, newLength)
-    end
-    
-    -- Handle shift+mousewheel
-    RopeInputController.handleShiftMousewheelControls(grappleInstance, controller)
-    
-    -- Play sounds for length changes
-    if lengthChanged and math.abs(grappleInstance.setLineLength - oldLength) > 5 then
-        if grappleInstance.setLineLength < oldLength then
-            -- Retracting sound
-            Logger.info("RopeInputController.handleRopePulling() - Playing retraction sound")
-            if grappleInstance.crankSoundInstance and not grappleInstance.crankSoundInstance.ToDelete then
-                grappleInstance.crankSoundInstance.ToDelete = true
-            end
-            grappleInstance.crankSoundInstance = CreateSoundContainer("Grapple Gun Crank", "Base.rte")
-            if grappleInstance.crankSoundInstance then
-                grappleInstance.crankSoundInstance:Play(grappleInstance.parent.Pos)
-            end
-        else
-            -- Extending sound
-            Logger.info("RopeInputController.handleRopePulling() - Playing extension sound")
-            if grappleInstance.clickSound then
-                grappleInstance.clickSound:Play(grappleInstance.parent.Pos)
-            end
-        end
-    end
-    
-    local clampedLength = math.max(10, math.min(grappleInstance.currentLineLength, grappleInstance.maxLineLength))
-    if clampedLength ~= grappleInstance.currentLineLength then
-        Logger.debug("RopeInputController.handleRopePulling() - Clamped rope length from %.1f to %.1f", grappleInstance.currentLineLength, clampedLength)
-    end
-    grappleInstance.currentLineLength = clampedLength
-    
-    RopeInputController.handleDirectionalControl(grappleInstance, controller)
+    -- Handle regular mouse wheel control
     RopeInputController.handleMouseWheelControl(grappleInstance, controller)
+    
+    -- Handle directional key controls
+    RopeInputController.handleDirectionalControl(grappleInstance, controller)
 end
 
 -- Handle pie menu selections

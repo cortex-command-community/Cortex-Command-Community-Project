@@ -220,6 +220,7 @@ namespace RTE {
 		INPUT_JUMP,
 		INPUT_CROUCH,
 		INPUT_PRONE,
+		INPUT_SHIFT,  
 		INPUT_NEXT,
 		INPUT_PREV,
 		INPUT_WEAPON_CHANGE_NEXT,
@@ -258,6 +259,7 @@ namespace RTE {
 	    "Jump", // INPUT_JUMP
 	    "Crouch", // INPUT_CROUCH
 	    "Prone", // INPUT_PRONE
+	    "Shift", // INPUT_SHIFT
 	    "Next Body", // INPUT_NEXT
 	    "Prev. Body", // INPUT_PREV
 	    "Next Device", // INPUT_WEAPON_CHANGE_NEXT
