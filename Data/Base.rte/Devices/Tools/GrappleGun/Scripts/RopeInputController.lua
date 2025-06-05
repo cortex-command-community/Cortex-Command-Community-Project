@@ -2,43 +2,128 @@
 -- Handles user input for rope control.
 -- Translates raw input into actions for the main grapple logic.
 
+local Logger = require("Devices.Tools.GrappleGun.Scripts.Logger")
 local RopeInputController = {}
 
 -- Check if player is currently holding the grapple gun (equipped in main or background hand)
 local function isCurrentlyEquipped(grappleInstance)
-    if not grappleInstance.parent or not grappleInstance.parentGun then return false end
+    if not grappleInstance.parent then 
+        Logger.debug("RopeInputController.isCurrentlyEquipped() - No parent")
+        return false 
+    end
     
     local parent = grappleInstance.parent
-    return (parent.EquippedItem and parent.EquippedItem.ID == grappleInstance.parentGun.ID) or
-           (parent.EquippedBGItem and parent.EquippedBGItem.ID == grappleInstance.parentGun.ID)
+    
+    -- Check main equipped item
+    local mainEquipped = false
+    if parent.EquippedItem and parent.EquippedItem.PresetName == "Grapple Gun" then
+        mainEquipped = true
+        -- Always update our reference when we find the gun equipped
+        grappleInstance.parentGun = ToHDFirearm(parent.EquippedItem)
+        Logger.debug("RopeInputController.isCurrentlyEquipped() - Updated parentGun reference from main hand (ID: %d)", grappleInstance.parentGun.ID)
+    end
+    
+    -- Check background equipped item
+    local bgEquipped = false
+    if parent.EquippedBGItem and parent.EquippedBGItem.PresetName == "Grapple Gun" then
+        bgEquipped = true
+        -- Always update our reference when we find the gun equipped
+        grappleInstance.parentGun = ToHDFirearm(parent.EquippedBGItem)
+        Logger.debug("RopeInputController.isCurrentlyEquipped() - Updated parentGun reference from BG hand (ID: %d)", grappleInstance.parentGun.ID)
+    end
+    
+    -- Additional check: see if gun's RootID matches parent (if we have a valid parentGun)
+    local rootEquipped = false
+    if grappleInstance.parentGun and grappleInstance.parentGun.ID ~= rte.NoMOID then
+        if grappleInstance.parentGun.RootID == parent.ID then
+            rootEquipped = true
+            Logger.debug("RopeInputController.isCurrentlyEquipped() - Gun root matches parent ID")
+        else
+            Logger.debug("RopeInputController.isCurrentlyEquipped() - Gun root mismatch: gun RootID=%d, parent ID=%d", 
+                         grappleInstance.parentGun.RootID, parent.ID)
+        end
+    end
+    
+    local isEquipped = mainEquipped or bgEquipped or rootEquipped
+    
+    Logger.debug("RopeInputController.isCurrentlyEquipped() - Equipment check: main=%s, bg=%s, root=%s, final=%s", 
+                 tostring(mainEquipped), tostring(bgEquipped), tostring(rootEquipped), tostring(isEquipped))
+    
+    -- Debug additional info about current equipment state
+    if parent.EquippedItem then
+        Logger.debug("RopeInputController.isCurrentlyEquipped() - Main equipped: %s (ID: %d)", 
+                     parent.EquippedItem.PresetName or "Unknown", parent.EquippedItem.ID)
+    else
+        Logger.debug("RopeInputController.isCurrentlyEquipped() - No main equipped item")
+    end
+    
+    if parent.EquippedBGItem then
+        Logger.debug("RopeInputController.isCurrentlyEquipped() - BG equipped: %s (ID: %d)", 
+                     parent.EquippedBGItem.PresetName or "Unknown", parent.EquippedBGItem.ID)
+    else
+        Logger.debug("RopeInputController.isCurrentlyEquipped() - No BG equipped item")
+    end
+    
+    if grappleInstance.parentGun then
+        Logger.debug("RopeInputController.isCurrentlyEquipped() - Parent gun: %s (ID: %d, RootID: %d)", 
+                     grappleInstance.parentGun.PresetName or "Unknown", grappleInstance.parentGun.ID, grappleInstance.parentGun.RootID)
+    else
+        Logger.debug("RopeInputController.isCurrentlyEquipped() - No parent gun reference")
+    end
+    
+    return isEquipped
 end
 
 -- Check if gun exists in player's inventory
 local function isInInventory(grappleInstance)
-    if not grappleInstance.parent or not grappleInstance.parentGun or not grappleInstance.parent.Inventory then 
+    if not grappleInstance.parent or not grappleInstance.parent.Inventory then 
+        Logger.debug("RopeInputController.isInInventory() - Missing parent or inventory")
         return false 
     end
     
+    local inventoryCount = 0
     for item in grappleInstance.parent.Inventory do
-        if item and item.ID == grappleInstance.parentGun.ID then
-            return true
+        inventoryCount = inventoryCount + 1
+        if item then
+            Logger.debug("RopeInputController.isInInventory() - Inventory item %d: %s (ID: %d)", 
+                         inventoryCount, item.PresetName or "Unknown", item.ID)
+            if item.PresetName == "Grapple Gun" then
+                -- Always update our reference when we find the gun in inventory
+                grappleInstance.parentGun = ToHDFirearm(item)
+                Logger.debug("RopeInputController.isInInventory() - Updated parentGun reference from inventory (ID: %d)", grappleInstance.parentGun.ID)
+                return true
+            end
+        else
+            Logger.debug("RopeInputController.isInInventory() - Inventory item %d: nil", inventoryCount)
         end
     end
+    
+    Logger.debug("RopeInputController.isInInventory() - Gun not found in inventory (%d items checked)", inventoryCount)
     return false
 end
 
 -- Handle gun persistence - ensure grapple stays active even when gun changes hands/inventory
 function RopeInputController.handleGunPersistence(grappleInstance)
-    if not grappleInstance.parent or not grappleInstance.parentGun then return false end
-    
-    -- Check if gun still exists in any form (equipped or in inventory)
-    local gunStillExists = isCurrentlyEquipped(grappleInstance) or isInInventory(grappleInstance)
-    
-    if not gunStillExists then
-        -- Gun was completely removed from player (dropped, etc.)
-        print("Grapple gun removed from player - maintaining hook but no new controls")
-        return false -- This will eventually lead to unhook when hook hits terrain
+    if not grappleInstance.parent or not grappleInstance.parentGun then 
+        Logger.warn("RopeInputController.handleGunPersistence() - Missing parent or parentGun")
+        return false 
     end
+    
+    Logger.debug("RopeInputController.handleGunPersistence() - Checking gun persistence")
+    
+    -- Check if gun still exists and is accessible to the player
+    local gunIsAccessible = isCurrentlyEquipped(grappleInstance) or 
+                           isInInventory(grappleInstance) or
+                           (grappleInstance.parentGun.RootID == rte.NoMOID and 
+                            SceneMan:ShortestDistance(grappleInstance.parent.Pos, grappleInstance.parentGun.Pos, SceneMan.SceneWrapsX).Magnitude < 100)
+    
+    if not gunIsAccessible then
+        -- Gun was completely removed or taken by someone else
+        Logger.warn("RopeInputController.handleGunPersistence() - Gun no longer accessible, grapple will remain but controls limited")
+        return false
+    end
+    
+    Logger.debug("RopeInputController.handleGunPersistence() - Gun still accessible, updating magazine state")
     
     -- Gun still exists somewhere - keep grapple active
     -- Update magazine state regardless of where gun is
@@ -46,6 +131,7 @@ function RopeInputController.handleGunPersistence(grappleInstance)
         local mag = ToMOSParticle(grappleInstance.parentGun.Magazine)
         mag.RoundCount = 0 -- Keep showing as "fired"
         mag.Scale = 0 -- Keep hidden while grapple is active
+        Logger.debug("RopeInputController.handleGunPersistence() - Magazine state updated (hidden, empty)")
     end
     
     return true
@@ -53,29 +139,44 @@ end
 
 -- Handle R key unhooking (only when gun is equipped)
 function RopeInputController.handleReloadKeyUnhook(grappleInstance, controller)
-    if not controller then return false end
+    if not controller then 
+        Logger.debug("RopeInputController.handleReloadKeyUnhook() - No controller provided")
+        return false 
+    end
+    
+    Logger.debug("RopeInputController.handleReloadKeyUnhook() - Checking reload key state")
     
     if isCurrentlyEquipped(grappleInstance) and controller:IsState(Controller.WEAPON_RELOAD) then
-        print("R key pressed while holding grapple gun - unhooking!")
+        Logger.info("RopeInputController.handleReloadKeyUnhook() - R key pressed while holding grapple gun - unhooking!")
         return true
     end
     
+    Logger.debug("RopeInputController.handleReloadKeyUnhook() - No unhook condition met")
     return false
 end
 
 -- Handle double-tap crouch unhooking (only when gun is NOT equipped but in inventory)
 function RopeInputController.handleTapDetection(grappleInstance, controller)
-    if not controller or not grappleInstance.parent then return false end
+    if not controller or not grappleInstance.parent then 
+        Logger.debug("RopeInputController.handleTapDetection() - No controller or parent")
+        return false 
+    end
+
+    Logger.debug("RopeInputController.handleTapDetection() - Processing tap detection, counter: %d", grappleInstance.tapCounter)
 
     -- Only allow tap unhooking when gun is NOT equipped but IS in inventory
     if isCurrentlyEquipped(grappleInstance) then
         -- Reset tap state when gun is equipped
+        if grappleInstance.tapCounter > 0 then
+            Logger.debug("RopeInputController.handleTapDetection() - Gun equipped, resetting tap counter")
+        end
         grappleInstance.tapCounter = 0
         grappleInstance.canTap = true
         return false
     end
     
     if not isInInventory(grappleInstance) then
+        Logger.debug("RopeInputController.handleTapDetection() - Gun not in inventory")
         return false -- Gun not in inventory at all
     end
 
@@ -90,18 +191,26 @@ function RopeInputController.handleTapDetection(grappleInstance, controller)
             grappleInstance.canTap = false
             grappleInstance.tapTimer:Reset()
             
-            print("Crouch tap " .. grappleInstance.tapCounter .. " detected (gun not equipped)")
+            Logger.info("RopeInputController.handleTapDetection() - Crouch tap %d detected (gun not equipped)", grappleInstance.tapCounter)
+        else
+            Logger.debug("RopeInputController.handleTapDetection() - Crouch held but can't tap yet")
         end
     else
+        if not grappleInstance.canTap then
+            Logger.debug("RopeInputController.handleTapDetection() - Crouch released, can tap again")
+        end
         grappleInstance.canTap = true
     end
     
     -- Check for successful double-tap
     if grappleInstance.tapTimer:IsPastSimMS(grappleInstance.tapTime) then
+        if grappleInstance.tapCounter > 0 then
+            Logger.debug("RopeInputController.handleTapDetection() - Tap timeout, resetting counter")
+        end
         grappleInstance.tapCounter = 0 -- Reset if too much time passed
     elseif grappleInstance.tapCounter >= grappleInstance.tapAmount then
         grappleInstance.tapCounter = 0
-        print("Double crouch-tap while gun not equipped - unhooking!")
+        Logger.info("RopeInputController.handleTapDetection() - Double crouch-tap while gun not equipped - unhooking!")
         return true
     end
     
@@ -110,24 +219,38 @@ end
 
 -- Handle precise rope control with Shift+Mousewheel
 function RopeInputController.handleShiftMousewheelControls(grappleInstance, controller)
-    if not controller or grappleInstance.actionMode <= 1 then return end
+    if not controller or grappleInstance.actionMode <= 1 then 
+        Logger.debug("RopeInputController.handleShiftMousewheelControls() - No controller or wrong action mode (%d)", grappleInstance.actionMode or 0)
+        return 
+    end
 
     -- Only allow rope controls if gun is equipped
-    if not isCurrentlyEquipped(grappleInstance) then return end
+    if not isCurrentlyEquipped(grappleInstance) then 
+        Logger.debug("RopeInputController.handleShiftMousewheelControls() - Gun not equipped")
+        return 
+    end
 
     local shiftHeld = controller:IsState(Controller.BODY_JUMPSTART) or controller:IsState(Controller.BODY_CROUCH)
-    if not shiftHeld then return end
+    if not shiftHeld then 
+        Logger.debug("RopeInputController.handleShiftMousewheelControls() - Shift not held")
+        return 
+    end
+    
+    Logger.debug("RopeInputController.handleShiftMousewheelControls() - Checking shift+mousewheel input")
     
     local scrollAmount = 0
     local preciseScrollSpeed = (grappleInstance.shiftScrollSpeed or 1.0) * 0.25
     
     if controller:IsState(Controller.SCROLL_UP) then
         scrollAmount = -preciseScrollSpeed
+        Logger.debug("RopeInputController.handleShiftMousewheelControls() - Scroll up detected")
     elseif controller:IsState(Controller.SCROLL_DOWN) then
         scrollAmount = preciseScrollSpeed
+        Logger.debug("RopeInputController.handleShiftMousewheelControls() - Scroll down detected")
     end
     
     if scrollAmount ~= 0 then
+        local oldLength = grappleInstance.currentLineLength
         local newLength = math.max(10, math.min(
             grappleInstance.currentLineLength + scrollAmount, 
             grappleInstance.maxLineLength
@@ -140,15 +263,25 @@ function RopeInputController.handleShiftMousewheelControls(grappleInstance, cont
         -- Clear automatic selections
         grappleInstance.pieSelection = 0
         grappleInstance.climb = 0
+        
+        Logger.info("RopeInputController.handleShiftMousewheelControls() - Precise rope control: %.1f -> %.1f", oldLength, newLength)
     end
 end
 
 -- Handle mouse wheel scrolling for rope control
 function RopeInputController.handleMouseWheelControl(grappleInstance, controller)
-    if not controller or not controller:IsMouseControlled() then return end
+    if not controller or not controller:IsMouseControlled() then 
+        Logger.debug("RopeInputController.handleMouseWheelControl() - No controller or not mouse controlled")
+        return 
+    end
     
     -- Only allow rope controls if gun is equipped
-    if not isCurrentlyEquipped(grappleInstance) then return end
+    if not isCurrentlyEquipped(grappleInstance) then 
+        Logger.debug("RopeInputController.handleMouseWheelControl() - Gun not equipped")
+        return 
+    end
+    
+    Logger.debug("RopeInputController.handleMouseWheelControl() - Processing mouse wheel input")
     
     -- Clear weapon change states
     controller:SetState(Controller.WEAPON_CHANGE_NEXT, false)
@@ -157,15 +290,18 @@ function RopeInputController.handleMouseWheelControl(grappleInstance, controller
     -- Check if shift is held for precise control
     local shiftHeld = controller:IsState(Controller.BODY_JUMPSTART) or controller:IsState(Controller.BODY_CROUCH)
     if shiftHeld then
+        Logger.debug("RopeInputController.handleMouseWheelControl() - Shift held, using precise controls")
         RopeInputController.handleShiftMousewheelControls(grappleInstance, controller)
     else
         -- Normal mousewheel behavior
         if controller:IsState(Controller.SCROLL_UP) then
             grappleInstance.climbTimer:Reset()
             grappleInstance.climb = 3 -- Mouse retract
+            Logger.info("RopeInputController.handleMouseWheelControl() - Mouse wheel up - retracting rope")
         elseif controller:IsState(Controller.SCROLL_DOWN) then
             grappleInstance.climbTimer:Reset()
             grappleInstance.climb = 4 -- Mouse extend
+            Logger.info("RopeInputController.handleMouseWheelControl() - Mouse wheel down - extending rope")
         end
     end
 end
@@ -173,47 +309,77 @@ end
 -- Handle directional key controls for climbing
 function RopeInputController.handleDirectionalControl(grappleInstance, controller)
     if not controller or controller:IsMouseControlled() or grappleInstance.actionMode <= 1 then 
+        Logger.debug("RopeInputController.handleDirectionalControl() - Invalid state for directional control")
         return 
     end
     
     -- Only allow rope controls if gun is equipped
-    if not isCurrentlyEquipped(grappleInstance) then return end
+    if not isCurrentlyEquipped(grappleInstance) then 
+        Logger.debug("RopeInputController.handleDirectionalControl() - Gun not equipped")
+        return 
+    end
+    
+    Logger.debug("RopeInputController.handleDirectionalControl() - Checking directional input")
     
     if controller:IsState(Controller.HOLD_UP) then
         if grappleInstance.currentLineLength > grappleInstance.climbInterval then
             grappleInstance.climb = 1 -- Key retract
+            Logger.info("RopeInputController.handleDirectionalControl() - Up key held - retracting rope")
+        else
+            Logger.debug("RopeInputController.handleDirectionalControl() - Up key held but rope too short to retract")
         end
     elseif controller:IsState(Controller.HOLD_DOWN) then
         if grappleInstance.currentLineLength < (grappleInstance.maxLineLength - grappleInstance.climbInterval) then
             grappleInstance.climb = 2 -- Key extend
+            Logger.info("RopeInputController.handleDirectionalControl() - Down key held - extending rope")
+        else
+            Logger.debug("RopeInputController.handleDirectionalControl() - Down key held but rope at max length")
         end
     end
     
     -- Clear aim states if directional keys are used
-    controller:SetState(Controller.AIM_UP, false)
-    controller:SetState(Controller.AIM_DOWN, false)
+    if controller:IsState(Controller.HOLD_UP) or controller:IsState(Controller.HOLD_DOWN) then
+        controller:SetState(Controller.AIM_UP, false)
+        controller:SetState(Controller.AIM_DOWN, false)
+        Logger.debug("RopeInputController.handleDirectionalControl() - Cleared aim states")
+    end
 end
 
 -- Main rope pulling handler
 function RopeInputController.handleRopePulling(grappleInstance)
-    if not grappleInstance.parent then return end
+    if not grappleInstance.parent then 
+        Logger.debug("RopeInputController.handleRopePulling() - No parent")
+        return 
+    end
     
     local controller = grappleInstance.parent:GetController()
-    if not controller then return end
+    if not controller then 
+        Logger.debug("RopeInputController.handleRopePulling() - No controller")
+        return 
+    end
+    
+    Logger.debug("RopeInputController.handleRopePulling() - Processing rope pulling controls")
     
     -- Only allow active rope control if gun is equipped
-    if not isCurrentlyEquipped(grappleInstance) then return end
+    if not isCurrentlyEquipped(grappleInstance) then 
+        Logger.debug("RopeInputController.handleRopePulling() - Gun not equipped, skipping active controls")
+        return 
+    end
     
     local oldLength = grappleInstance.setLineLength
     local lengthChanged = false
     
     -- Handle directional controls
     if controller:IsState(Controller.MOVE_UP) then
-        grappleInstance.setLineLength = math.max(grappleInstance.setLineLength - grappleInstance.climbInterval, 50)
+        local newLength = math.max(grappleInstance.setLineLength - grappleInstance.climbInterval, 50)
+        grappleInstance.setLineLength = newLength
         lengthChanged = true
+        Logger.info("RopeInputController.handleRopePulling() - Move up: rope length %.1f -> %.1f", oldLength, newLength)
     elseif controller:IsState(Controller.MOVE_DOWN) then
-        grappleInstance.setLineLength = math.min(grappleInstance.setLineLength + grappleInstance.climbInterval, grappleInstance.maxLineLength)
+        local newLength = math.min(grappleInstance.setLineLength + grappleInstance.climbInterval, grappleInstance.maxLineLength)
+        grappleInstance.setLineLength = newLength
         lengthChanged = true
+        Logger.info("RopeInputController.handleRopePulling() - Move down: rope length %.1f -> %.1f", oldLength, newLength)
     end
     
     -- Handle shift+mousewheel
@@ -223,6 +389,7 @@ function RopeInputController.handleRopePulling(grappleInstance)
     if lengthChanged and math.abs(grappleInstance.setLineLength - oldLength) > 5 then
         if grappleInstance.setLineLength < oldLength then
             -- Retracting sound
+            Logger.info("RopeInputController.handleRopePulling() - Playing retraction sound")
             if grappleInstance.crankSoundInstance and not grappleInstance.crankSoundInstance.ToDelete then
                 grappleInstance.crankSoundInstance.ToDelete = true
             end
@@ -232,13 +399,18 @@ function RopeInputController.handleRopePulling(grappleInstance)
             end
         else
             -- Extending sound
+            Logger.info("RopeInputController.handleRopePulling() - Playing extension sound")
             if grappleInstance.clickSound then
                 grappleInstance.clickSound:Play(grappleInstance.parent.Pos)
             end
         end
     end
     
-    grappleInstance.currentLineLength = math.max(10, math.min(grappleInstance.currentLineLength, grappleInstance.maxLineLength))
+    local clampedLength = math.max(10, math.min(grappleInstance.currentLineLength, grappleInstance.maxLineLength))
+    if clampedLength ~= grappleInstance.currentLineLength then
+        Logger.debug("RopeInputController.handleRopePulling() - Clamped rope length from %.1f to %.1f", grappleInstance.currentLineLength, clampedLength)
+    end
+    grappleInstance.currentLineLength = clampedLength
     
     RopeInputController.handleDirectionalControl(grappleInstance, controller)
     RopeInputController.handleMouseWheelControl(grappleInstance, controller)
@@ -246,20 +418,32 @@ end
 
 -- Handle pie menu selections
 function RopeInputController.handlePieMenuSelection(grappleInstance)
-    if not grappleInstance.parentGun or grappleInstance.parentGun.ID == rte.NoMOID then return false end
+    if not grappleInstance.parentGun or grappleInstance.parentGun.ID == rte.NoMOID then 
+        Logger.debug("RopeInputController.handlePieMenuSelection() - No parent gun")
+        return false 
+    end
     
     -- Only allow pie menu controls if gun is equipped
-    if not isCurrentlyEquipped(grappleInstance) then return false end
+    if not isCurrentlyEquipped(grappleInstance) then 
+        Logger.debug("RopeInputController.handlePieMenuSelection() - Gun not equipped")
+        return false 
+    end
+    
+    Logger.debug("RopeInputController.handlePieMenuSelection() - Checking for pie menu commands")
     
     local mode = grappleInstance.parentGun:GetNumberValue("GrappleMode")
     
     if mode and mode ~= 0 then
         grappleInstance.parentGun:RemoveNumberValue("GrappleMode")
+        Logger.info("RopeInputController.handlePieMenuSelection() - Pie menu mode %d selected", mode)
+        
         if mode == 3 then
+            Logger.info("RopeInputController.handlePieMenuSelection() - Unhook command from pie menu")
             return true -- Unhook via pie menu
         elseif grappleInstance.actionMode > 1 then
             grappleInstance.pieSelection = mode
             grappleInstance.climb = 0
+            Logger.info("RopeInputController.handlePieMenuSelection() - Pie selection set to %d", mode)
         end
     end
     return false
@@ -268,20 +452,29 @@ end
 -- Handle automatic retraction
 function RopeInputController.handleAutoRetraction(grappleInstance, terrCheck)
     if not grappleInstance.parentGun or grappleInstance.parentGun.ID == rte.NoMOID or grappleInstance.actionMode <= 1 then
+        if grappleInstance.pieSelection ~= 0 then
+            Logger.debug("RopeInputController.handleAutoRetraction() - Clearing pie selection (invalid state)")
+        end
         grappleInstance.pieSelection = 0
         return
     end
     
     -- Only allow auto retraction if gun is equipped
     if not isCurrentlyEquipped(grappleInstance) then 
+        if grappleInstance.pieSelection ~= 0 then
+            Logger.debug("RopeInputController.handleAutoRetraction() - Clearing pie selection (gun not equipped)")
+        end
         grappleInstance.pieSelection = 0
         return 
     end
+    
+    Logger.debug("RopeInputController.handleAutoRetraction() - Processing auto retraction, pieSelection: %d", grappleInstance.pieSelection)
     
     local parentForces = 1.0
     if grappleInstance.parent and grappleInstance.parent.Vel and grappleInstance.parent.Mass and grappleInstance.lineLength > 0 then
         parentForces = 1 + (grappleInstance.parent.Vel.Magnitude * 10 + grappleInstance.parent.Mass) / (1 + grappleInstance.lineLength)
         parentForces = math.max(0.1, parentForces)
+        Logger.debug("RopeInputController.handleAutoRetraction() - Parent forces calculated: %.2f", parentForces)
     end
     
     -- Auto retraction when gun is activated
@@ -289,8 +482,12 @@ function RopeInputController.handleAutoRetraction(grappleInstance, terrCheck)
         if grappleInstance.climbTimer:IsPastSimMS(grappleInstance.climbDelay) then
             grappleInstance.climbTimer:Reset()
             if grappleInstance.currentLineLength > grappleInstance.autoClimbIntervalA then
+                local oldLength = grappleInstance.currentLineLength
                 grappleInstance.currentLineLength = grappleInstance.currentLineLength - (grappleInstance.autoClimbIntervalA / parentForces)
                 grappleInstance.setLineLength = grappleInstance.currentLineLength
+                Logger.info("RopeInputController.handleAutoRetraction() - Gun activated: auto retract %.1f -> %.1f", oldLength, grappleInstance.currentLineLength)
+            else
+                Logger.debug("RopeInputController.handleAutoRetraction() - Gun activated but rope too short to retract")
             end
         end
     end
@@ -300,27 +497,98 @@ function RopeInputController.handleAutoRetraction(grappleInstance, terrCheck)
         if grappleInstance.climbTimer:IsPastSimMS(grappleInstance.climbDelay) then
             grappleInstance.climbTimer:Reset()
             local actionTaken = false
+            local oldLength = grappleInstance.currentLineLength
             
             if grappleInstance.pieSelection == 1 then -- Retract
                 if grappleInstance.currentLineLength > grappleInstance.autoClimbIntervalA then
                     grappleInstance.currentLineLength = grappleInstance.currentLineLength - (grappleInstance.autoClimbIntervalA / parentForces)
                     actionTaken = true
+                    Logger.info("RopeInputController.handleAutoRetraction() - Pie retract: %.1f -> %.1f", oldLength, grappleInstance.currentLineLength)
+                else
+                    Logger.debug("RopeInputController.handleAutoRetraction() - Pie retract: rope too short")
                 end
             elseif grappleInstance.pieSelection == 2 then -- Extend
                 if grappleInstance.currentLineLength < (grappleInstance.maxLineLength - grappleInstance.autoClimbIntervalB) then
                     grappleInstance.currentLineLength = grappleInstance.currentLineLength + grappleInstance.autoClimbIntervalB
                     actionTaken = true
+                    Logger.info("RopeInputController.handleAutoRetraction() - Pie extend: %.1f -> %.1f", oldLength, grappleInstance.currentLineLength)
+                else
+                    Logger.debug("RopeInputController.handleAutoRetraction() - Pie extend: rope at max length")
                 end
             end
             
             grappleInstance.setLineLength = grappleInstance.currentLineLength
             if not actionTaken then
+                Logger.info("RopeInputController.handleAutoRetraction() - Pie action complete, clearing selection")
                 grappleInstance.pieSelection = 0
             end
         end
     end
     
-    grappleInstance.currentLineLength = math.max(10, math.min(grappleInstance.currentLineLength, grappleInstance.maxLineLength))
+    local clampedLength = math.max(10, math.min(grappleInstance.currentLineLength, grappleInstance.maxLineLength))
+    if clampedLength ~= grappleInstance.currentLineLength then
+        Logger.debug("RopeInputController.handleAutoRetraction() - Clamped rope length from %.1f to %.1f", grappleInstance.currentLineLength, clampedLength)
+    end
+    grappleInstance.currentLineLength = clampedLength
+end
+
+-- Refresh gun reference - called when gun might have changed
+function RopeInputController.refreshGunReference(grappleInstance)
+    -- Only refresh if we don't have a valid reference
+    if grappleInstance.parentGun then
+        local success, presetName = pcall(function() return grappleInstance.parentGun.PresetName end)
+        if success and presetName == "Grapple Gun" then
+            Logger.debug("RopeInputController.refreshGunReference() - Current gun reference is valid, no refresh needed")
+            return true -- Current reference is fine
+        end
+    end
+    
+    Logger.debug("RopeInputController.refreshGunReference() - Refreshing gun reference")
+    
+    if not grappleInstance.parent then 
+        Logger.debug("RopeInputController.refreshGunReference() - No parent")
+        return false
+    end
+    
+    local parent = grappleInstance.parent
+    local foundGun = false
+    
+    -- Check equipped items first
+    if parent.EquippedItem and parent.EquippedItem.PresetName == "Grapple Gun" then
+        grappleInstance.parentGun = ToHDFirearm(parent.EquippedItem)
+        foundGun = true
+        Logger.info("RopeInputController.refreshGunReference() - Gun found equipped in main hand (ID: %d)", grappleInstance.parentGun.ID)
+    elseif parent.EquippedBGItem and parent.EquippedBGItem.PresetName == "Grapple Gun" then
+        grappleInstance.parentGun = ToHDFirearm(parent.EquippedBGItem)
+        foundGun = true
+        Logger.info("RopeInputController.refreshGunReference() - Gun found equipped in BG hand (ID: %d)", grappleInstance.parentGun.ID)
+    end
+    
+    -- If not equipped, check inventory
+    if not foundGun and parent.Inventory then
+        for item in parent.Inventory do
+            if item and item.PresetName == "Grapple Gun" then
+                grappleInstance.parentGun = ToHDFirearm(item)
+                foundGun = true
+                Logger.info("RopeInputController.refreshGunReference() - Gun found in inventory (ID: %d)", grappleInstance.parentGun.ID)
+                break
+            end
+        end
+    end
+    
+    if foundGun and grappleInstance.parentGun then
+        -- Update magazine state for the refreshed gun
+        if grappleInstance.parentGun.Magazine and MovableMan:IsParticle(grappleInstance.parentGun.Magazine) then
+            local mag = ToMOSParticle(grappleInstance.parentGun.Magazine)
+            mag.RoundCount = 0 -- Keep showing as "fired"
+            mag.Scale = 0 -- Keep hidden while grapple is active
+            Logger.debug("RopeInputController.refreshGunReference() - Updated magazine state for refreshed gun")
+        end
+        return true
+    end
+    
+    Logger.warn("RopeInputController.refreshGunReference() - Could not find any grapple gun")
+    return false
 end
 
 return RopeInputController
