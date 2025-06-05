@@ -537,7 +537,8 @@ function RopeInputController.refreshGunReference(grappleInstance)
     -- Only refresh if we don't have a valid reference
     if grappleInstance.parentGun then
         local success, presetName = pcall(function() return grappleInstance.parentGun.PresetName end)
-        if success and presetName == "Grapple Gun" then
+        local idSuccess, gunID = pcall(function() return grappleInstance.parentGun.ID end)
+        if success and presetName == "Grapple Gun" and idSuccess and gunID and gunID ~= rte.NoMOID then
             Logger.debug("RopeInputController.refreshGunReference() - Current gun reference is valid, no refresh needed")
             return true -- Current reference is fine
         end
@@ -577,17 +578,62 @@ function RopeInputController.refreshGunReference(grappleInstance)
     end
     
     if foundGun and grappleInstance.parentGun then
-        -- Update magazine state for the refreshed gun
-        if grappleInstance.parentGun.Magazine and MovableMan:IsParticle(grappleInstance.parentGun.Magazine) then
-            local mag = ToMOSParticle(grappleInstance.parentGun.Magazine)
-            mag.RoundCount = 0 -- Keep showing as "fired"
-            mag.Scale = 0 -- Keep hidden while grapple is active
-            Logger.debug("RopeInputController.refreshGunReference() - Updated magazine state for refreshed gun")
+        -- Test if we can actually access the gun's properties
+        local testSuccess, testID = pcall(function() return grappleInstance.parentGun.ID end)
+        if testSuccess and testID and testID ~= rte.NoMOID then
+            -- Update magazine state for the refreshed gun
+            local magSuccess, magazine = pcall(function() return grappleInstance.parentGun.Magazine end)
+            if magSuccess and magazine and MovableMan:IsParticle(magazine) then
+                local mag = ToMOSParticle(magazine)
+                mag.RoundCount = 0 -- Keep showing as "fired"
+                mag.Scale = 0 -- Keep hidden while grapple is active
+                Logger.debug("RopeInputController.refreshGunReference() - Updated magazine state for refreshed gun")
+            end
+            return true
+        else
+            Logger.warn("RopeInputController.refreshGunReference() - Found gun but cannot access its properties")
+            grappleInstance.parentGun = nil
+            return false
         end
-        return true
     end
     
     Logger.warn("RopeInputController.refreshGunReference() - Could not find any grapple gun")
+    return false
+end
+
+-- Restore magazine state when grapple is being destroyed
+function RopeInputController.restoreMagazineState(grappleInstance)
+    if not grappleInstance.parentGun then
+        Logger.debug("RopeInputController.restoreMagazineState() - No parent gun to restore")
+        -- Try to find gun one more time for restoration
+        if RopeInputController.refreshGunReference(grappleInstance) then
+            Logger.debug("RopeInputController.restoreMagazineState() - Found gun during restoration attempt")
+        else
+            return false
+        end
+    end
+    
+    -- Don't call refreshGunReference again if we already have a gun reference
+    -- Test the gun reference directly
+    local success, gunID = pcall(function() return grappleInstance.parentGun.ID end)
+    if success and gunID and gunID ~= rte.NoMOID then
+        Logger.info("RopeInputController.restoreMagazineState() - Restoring magazine state for gun (ID: %d)", gunID)
+        
+        -- Restore magazine visibility and ammo count
+        local magSuccess, magazine = pcall(function() return grappleInstance.parentGun.Magazine end)
+        if magSuccess and magazine and MovableMan:IsParticle(magazine) then
+            local mag = ToMOSParticle(magazine)
+            mag.RoundCount = 1 -- Restore ammo
+            mag.Scale = 1 -- Make magazine visible again
+            Logger.info("RopeInputController.restoreMagazineState() - Magazine restored (visible, ammo: 1)")
+            return true
+        else
+            Logger.warn("RopeInputController.restoreMagazineState() - No magazine found to restore")
+        end
+    else
+        Logger.warn("RopeInputController.restoreMagazineState() - Gun ID invalid or inaccessible")
+    end
+    
     return false
 end
 

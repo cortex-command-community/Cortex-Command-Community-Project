@@ -788,6 +788,10 @@ function Update (self)
                 Logger.info("Grapple Update() - Gun fired while grapple active")
                 if self.actionMode == 1 then -- If flying, just delete
                     Logger.info("Grapple Update() - Flying mode: marking for deletion")
+                    if self.returnSound then 
+                        self.returnSound:Play(parentActor.Pos)
+                        Logger.debug("Grapple Update() - Return sound played for gun fire unhook (flying)")
+                    end
                     self.ToDelete = true
                 elseif self.actionMode > 1 then -- If attached, mark as ready to release
                     Logger.info("Grapple Update() - Attached mode: marking ready to release")
@@ -798,6 +802,10 @@ function Update (self)
             if self.canRelease and self.parentGun.FiredFrame and 
                (self.parentGun.Vel.Y ~= -1 or self.parentGun:IsActivated()) then
                 Logger.info("Grapple Update() - Release condition met, marking for deletion")
+                if self.returnSound then 
+                    self.returnSound:Play(parentActor.Pos)
+                    Logger.debug("Grapple Update() - Return sound played for gun fire unhook (attached)")
+                end
                 self.ToDelete = true
             end
         end
@@ -928,6 +936,9 @@ function Destroy(self)
         Logger.debug("Grapple Destroy() - Crank sound instance marked for deletion")
     end
     
+    -- Try to restore magazine state via the input controller first
+    RopeInputController.restoreMagazineState(self)
+    
     -- Clean up references on the parent gun
     if self.parentGun and self.parentGun.ID ~= rte.NoMOID then
         Logger.debug("Grapple Destroy() - Cleaning up parent gun references")
@@ -935,11 +946,11 @@ function Destroy(self)
         self.parentGun:RemoveNumberValue("GrappleMode")
         self.parentGun.StanceOffset = Vector(0,0)
         
-        -- Restore and show magazine when grapple is destroyed
+        -- Restore and show magazine when grapple is destroyed (fallback)
         if self.parentGun.Magazine then
             self.parentGun.Magazine.RoundCount = 1 -- Restore to 1 round when grapple returns
             self.parentGun.Magazine.Scale = 1 -- Make magazine visible again
-            Logger.debug("Grapple Destroy() - Magazine restored and made visible")
+            Logger.debug("Grapple Destroy() - Magazine restored and made visible (fallback)")
         end
     end
     
