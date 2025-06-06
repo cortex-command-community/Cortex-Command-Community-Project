@@ -292,8 +292,6 @@ void Controller::UpdatePlayerPieMenuInput(std::array<bool, ControlState::CONTROL
 		m_ControlStates[ControlState::BODY_CROUCH] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_CROUCH);
 		m_ControlStates[ControlState::BODY_PRONE] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PRONE);
 		
-        // Add SHIFT key detection using UInputMan's built-in SHIFT detection
-        m_ControlStates[ControlState::KEYBOARD_SHIFT] = g_UInputMan.FlagShiftState();
 
 		// MOVEMENT LEFT/RIGHT
 		if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_L_RIGHT)) {

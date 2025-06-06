@@ -726,9 +726,9 @@ void HDFirearm::Update() {
 
 				pRound = m_pMagazine->PopNextRound();
 				if (!pRound) {
-                    // Handle the case where no round is available
-                    continue; // or break, depending on desired behavior
-                }
+					// Handle the case where no round is available
+					continue; // or break, depending on desired behavior
+				}
 				shake = (m_ShakeRange - ((m_ShakeRange - m_SharpShakeRange) * m_SharpAim)) *
 				        (m_Supported ? 1.0F : m_NoSupportFactor) * RandomNormalNum();
 				tempNozzle = m_MuzzleOff.GetYFlipped(m_HFlipped);

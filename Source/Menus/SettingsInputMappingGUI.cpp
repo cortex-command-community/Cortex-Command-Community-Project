@@ -28,29 +28,37 @@ SettingsInputMappingGUI::SettingsInputMappingGUI(GUIControlManager* parentContro
 	m_LastInputMapScrollingBoxScrollbarValue = m_InputMapScrollingBoxScrollbar->GetValue();
 
 	for (int i = 0; i < InputElements::INPUT_COUNT; ++i) {
-        m_InputMapLabel[i] = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelInputName" + std::to_string(i + 1)));
-        
-        // Add null check to prevent crash
-        if (m_InputMapLabel[i]) {
-            m_InputMapLabel[i]->SetText(c_InputElementNames[i]);
-        }
-        
-        m_InputMapButton[i] = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonInputKey" + std::to_string(i + 1)));
-    }
-	m_InputMappingCaptureBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxInputCapture"));
-	m_InputMappingCaptureBox->SetVisible(false);
+		m_InputMapLabel[i] = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelInputName" + std::to_string(i + 1)));
 
-	GUICollectionBox* settingsRootBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxSettingsBase"));
-	m_InputMappingCaptureBox->SetPositionAbs(settingsRootBox->GetXPos() + ((settingsRootBox->GetWidth() - m_InputMappingCaptureBox->GetWidth()) / 2), settingsRootBox->GetYPos() + ((settingsRootBox->GetHeight() - m_InputMappingCaptureBox->GetHeight()) / 2));
+		// Add null check to prevent crash
+		if (m_InputMapLabel[i]) {
+			m_InputMapLabel[i]->SetText(c_InputElementNames[i]);
+		}
 
-	m_InputElementCapturingInputNameLabel = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonLabelInputMappingName"));
+		m_InputMapButton[i] = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonInputKey" + std::to_string(i + 1)));
+		// Add null check to prevent crash
+		if (m_InputMapButton[i]) {
+			// Optionally, initialize button text or state here if needed
+		}
+		m_InputMapLabel[i]->SetText(c_InputElementNames[i]);
+	}
 
-	m_InputConfigWizardMenu = std::make_unique<SettingsInputMappingWizardGUI>(parentControlManager);
+	m_InputMapButton[i] = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonInputKey" + std::to_string(i + 1)));
+}
+m_InputMappingCaptureBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxInputCapture"));
+m_InputMappingCaptureBox->SetVisible(false);
 
-	m_ConfiguringPlayer = Players::NoPlayer;
-	m_ConfiguringPlayerInputScheme = nullptr;
-	m_ConfiguringManually = false;
-	m_InputElementCapturingInput = InputElements::INPUT_COUNT;
+GUICollectionBox* settingsRootBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxSettingsBase"));
+m_InputMappingCaptureBox->SetPositionAbs(settingsRootBox->GetXPos() + ((settingsRootBox->GetWidth() - m_InputMappingCaptureBox->GetWidth()) / 2), settingsRootBox->GetYPos() + ((settingsRootBox->GetHeight() - m_InputMappingCaptureBox->GetHeight()) / 2));
+
+m_InputElementCapturingInputNameLabel = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonLabelInputMappingName"));
+
+m_InputConfigWizardMenu = std::make_unique<SettingsInputMappingWizardGUI>(parentControlManager);
+
+m_ConfiguringPlayer = Players::NoPlayer;
+m_ConfiguringPlayerInputScheme = nullptr;
+m_ConfiguringManually = false;
+m_InputElementCapturingInput = InputElements::INPUT_COUNT;
 }
 
 bool SettingsInputMappingGUI::IsEnabled() const {
