@@ -239,7 +239,7 @@ function RopeInputController.handleShiftMousewheelControls(grappleInstance, cont
 	Logger.debug("RopeInputController.handleShiftMousewheelControls() - Equipment and attachment checks passed")
 	
 	-- Check for actual SHIFT key using UInputMan
-	local shiftHeld = UInputMan:FlagShiftState()
+	local shiftHeld = UInputMan.FlagShiftState
 	Logger.debug("RopeInputController.handleShiftMousewheelControls() - SHIFT key held (UInputMan): %s", tostring(shiftHeld))
 	
 	if not shiftHeld then

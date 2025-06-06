@@ -102,3 +102,4 @@ LogLoadingWarning.txt
 LogConsole.txt
 Console.dump.log
 Console.input.log
+imgui.ini
