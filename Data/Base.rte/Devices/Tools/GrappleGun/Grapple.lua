@@ -7,7 +7,7 @@ local RopePhysics = require("Devices.Tools.GrappleGun.Scripts.RopePhysics")
 local RopeRenderer = require("Devices.Tools.GrappleGun.Scripts.RopeRenderer")
 local RopeInputController = require("Devices.Tools.GrappleGun.Scripts.RopeInputController")
 local RopeStateManager = require("Devices.Tools.GrappleGun.Scripts.RopeStateManager")
-local Logger = require("Devices.Tools.GrappleGun.Scripts.Logger")
+local Logger = require("Scripts.Logger")
 
 function Create(self)
 	Logger.info("Grapple Create() - Starting initialization")

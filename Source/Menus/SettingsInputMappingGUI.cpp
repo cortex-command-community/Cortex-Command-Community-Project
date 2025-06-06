@@ -13,7 +13,7 @@ using namespace RTE;
 std::array<InputElements, 7> SettingsInputMappingGUI::m_InputElementsUsedByMouse = {InputElements::INPUT_FIRE, InputElements::INPUT_PIEMENU_ANALOG, InputElements::INPUT_AIM, InputElements::INPUT_AIM_UP, InputElements::INPUT_AIM_DOWN, InputElements::INPUT_AIM_LEFT, InputElements::INPUT_AIM_RIGHT};
 
 SettingsInputMappingGUI::SettingsInputMappingGUI(GUIControlManager* parentControlManager) :
-    m_GUIControlManager(parentControlManager) {
+	m_GUIControlManager(parentControlManager) {
 	m_InputMappingSettingsBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxPlayerInputMapping"));
 	m_InputMappingSettingsBox->SetVisible(false);
 
@@ -40,25 +40,22 @@ SettingsInputMappingGUI::SettingsInputMappingGUI(GUIControlManager* parentContro
 		if (m_InputMapButton[i]) {
 			// Optionally, initialize button text or state here if needed
 		}
-		m_InputMapLabel[i]->SetText(c_InputElementNames[i]);
 	}
 
-	m_InputMapButton[i] = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonInputKey" + std::to_string(i + 1)));
-}
-m_InputMappingCaptureBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxInputCapture"));
-m_InputMappingCaptureBox->SetVisible(false);
+	m_InputMappingCaptureBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxInputCapture"));
+	m_InputMappingCaptureBox->SetVisible(false);
 
-GUICollectionBox* settingsRootBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxSettingsBase"));
-m_InputMappingCaptureBox->SetPositionAbs(settingsRootBox->GetXPos() + ((settingsRootBox->GetWidth() - m_InputMappingCaptureBox->GetWidth()) / 2), settingsRootBox->GetYPos() + ((settingsRootBox->GetHeight() - m_InputMappingCaptureBox->GetHeight()) / 2));
+	GUICollectionBox* settingsRootBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxSettingsBase"));
+	m_InputMappingCaptureBox->SetPositionAbs(settingsRootBox->GetXPos() + ((settingsRootBox->GetWidth() - m_InputMappingCaptureBox->GetWidth()) / 2), settingsRootBox->GetYPos() + ((settingsRootBox->GetHeight() - m_InputMappingCaptureBox->GetHeight()) / 2));
 
-m_InputElementCapturingInputNameLabel = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonLabelInputMappingName"));
+	m_InputElementCapturingInputNameLabel = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonLabelInputMappingName"));
 
-m_InputConfigWizardMenu = std::make_unique<SettingsInputMappingWizardGUI>(parentControlManager);
+	m_InputConfigWizardMenu = std::make_unique<SettingsInputMappingWizardGUI>(parentControlManager);
 
-m_ConfiguringPlayer = Players::NoPlayer;
-m_ConfiguringPlayerInputScheme = nullptr;
-m_ConfiguringManually = false;
-m_InputElementCapturingInput = InputElements::INPUT_COUNT;
+	m_ConfiguringPlayer = Players::NoPlayer;
+	m_ConfiguringPlayerInputScheme = nullptr;
+	m_ConfiguringManually = false;
+	m_InputElementCapturingInput = InputElements::INPUT_COUNT;
 }
 
 bool SettingsInputMappingGUI::IsEnabled() const {
