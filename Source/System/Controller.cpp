@@ -226,7 +226,7 @@ void Controller::UpdatePlayerInput(std::array<bool, ControlState::CONTROLSTATECO
 	// Only actually switch when the change button(s) are released
 	// BRAIN ACTOR
 	if ((g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_NEXT) && g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_PREV)) ||
-	    (g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_NEXT) && g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PREV))) {
+		(g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_NEXT) && g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PREV))) {
 		m_ControlStates[ControlState::ACTOR_BRAIN] = true;
 		// Ignore the next releases of next and previous buttons so that the brain isn't switched away form immediate after using the brain shortcut
 		m_NextIgnore = m_PrevIgnore = true;
@@ -291,7 +291,6 @@ void Controller::UpdatePlayerPieMenuInput(std::array<bool, ControlState::CONTROL
 		m_ControlStates[ControlState::BODY_JUMP] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_JUMP);
 		m_ControlStates[ControlState::BODY_CROUCH] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_CROUCH);
 		m_ControlStates[ControlState::BODY_PRONE] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PRONE);
-		
 
 		// MOVEMENT LEFT/RIGHT
 		if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_L_RIGHT)) {

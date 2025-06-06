@@ -138,10 +138,10 @@ namespace RTE {
 #define c_PlayerSlotColorHovered makecol(203, 130, 56)
 #define c_PlayerSlotColorDisabled makecol(104, 67, 15)
 	static constexpr std::array<float, 16> c_Quad{
-	    1.0f, 1.0f, 1.0f, 0.0f,
-	    1.0f, -1.0f, 1.0f, 1.0f,
-	    -1.0f, 1.0f, 0.0f, 0.0f,
-	    -1.0f, -1.0f, 0.0f, 1.0f};
+		1.0f, 1.0f, 1.0f, 0.0f,
+		1.0f, -1.0f, 1.0f, 1.0f,
+		-1.0f, 1.0f, 0.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f, 1.0f};
 
 	static constexpr float c_GuiDepth = -100.0f;
 	static constexpr float c_DefaultDrawDepth = 0.0f;
@@ -220,7 +220,6 @@ namespace RTE {
 		INPUT_JUMP,
 		INPUT_CROUCH,
 		INPUT_PRONE,
-		INPUT_SHIFT,
 		INPUT_NEXT,
 		INPUT_PREV,
 		INPUT_WEAPON_CHANGE_NEXT,
@@ -242,41 +241,40 @@ namespace RTE {
 	};
 
 	static const std::array<const std::string_view, InputElements::INPUT_COUNT> c_InputElementNames = {
-	    "Move Up", // INPUT_L_UP
-	    "Move Down", // INPUT_L_DOWN
-	    "Move Left", // INPUT_L_LEFT
-	    "Move Right", // INPUT_L_RIGHT
-	    "Run", // INPUT_MOVE_FAST
-	    "Run (Toggle)", // INPUT_MOVE_FAST_TOGGLE
-	    "Aim Up", // INPUT_AIM_UP
-	    "Aim Down", // INPUT_AIM_DOWN
-	    "Aim Left", // INPUT_AIM_LEFT
-	    "Aim Right", // INPUT_AIM_RIGHT
-	    "Fire/Activate", // INPUT_FIRE
-	    "Sharp Aim", // INPUT_AIM
-	    "Pie Menu (Analog)", // INPUT_PIEMENU_ANALOG
-	    "Pie Menu (Digital)", // INPUT_PIEMENU_DIGITAL
-	    "Jump", // INPUT_JUMP
-	    "Crouch", // INPUT_CROUCH
-	    "Prone", // INPUT_PRONE
-	    "Shift", // INPUT_SHIFT
-	    "Next Body", // INPUT_NEXT
-	    "Prev. Body", // INPUT_PREV
-	    "Next Device", // INPUT_WEAPON_CHANGE_NEXT
-	    "Prev. Device", // INPUT_WEAPON_CHANGE_PREV
-	    "Pick Up Device", // INPUT_WEAPON_PICKUP
-	    "Drop Device", // INPUT_WEAPON_DROP
-	    "Reload Weapon", // INPUT_WEAPON_RELOAD
-	    "Primary Weapon Hotkey", // INPUT_WEAPON_PRIMARY_HOTKEY
-	    "Auxiliary Weapon Hotkey", // INPUT_WEAPON_AUXILIARY_HOTKEY
+		"Move Up", // INPUT_L_UP
+		"Move Down", // INPUT_L_DOWN
+		"Move Left", // INPUT_L_LEFT
+		"Move Right", // INPUT_L_RIGHT
+		"Run", // INPUT_MOVE_FAST
+		"Run (Toggle)", // INPUT_MOVE_FAST_TOGGLE
+		"Aim Up", // INPUT_AIM_UP
+		"Aim Down", // INPUT_AIM_DOWN
+		"Aim Left", // INPUT_AIM_LEFT
+		"Aim Right", // INPUT_AIM_RIGHT
+		"Fire/Activate", // INPUT_FIRE
+		"Sharp Aim", // INPUT_AIM
+		"Pie Menu (Analog)", // INPUT_PIEMENU_ANALOG
+		"Pie Menu (Digital)", // INPUT_PIEMENU_DIGITAL
+		"Jump", // INPUT_JUMP
+		"Crouch", // INPUT_CROUCH
+		"Prone", // INPUT_PRONE
+		"Next Body", // INPUT_NEXT
+		"Prev. Body", // INPUT_PREV
+		"Next Device", // INPUT_WEAPON_CHANGE_NEXT
+		"Prev. Device", // INPUT_WEAPON_CHANGE_PREV
+		"Pick Up Device", // INPUT_WEAPON_PICKUP
+		"Drop Device", // INPUT_WEAPON_DROP
+		"Reload Weapon", // INPUT_WEAPON_RELOAD
+		"Primary Weapon Hotkey", // INPUT_WEAPON_PRIMARY_HOTKEY
+		"Auxiliary Weapon Hotkey", // INPUT_WEAPON_AUXILIARY_HOTKEY
 		"Primary Actor Hotkey", // INPUT_ACTOR_PRIMARY_HOTKEY
 		"Auxiliary Actor Hotkey", // INPUT_ACTOR_AUXILIARY_HOTKEY
-	    "Start", // INPUT_START
-	    "Back", // INPUT_BACK
-	    "Analog Aim Up", // INPUT_R_UP
-	    "Analog Aim Down", // INPUT_R_DOWN
-	    "Analog Aim Left", // INPUT_R_LEFT
-	    "Analog Aim Right" // INPUT_R_RIGHT
+		"Start", // INPUT_START
+		"Back", // INPUT_BACK
+		"Analog Aim Up", // INPUT_R_UP
+		"Analog Aim Down", // INPUT_R_DOWN
+		"Analog Aim Left", // INPUT_R_LEFT
+		"Analog Aim Right" // INPUT_R_RIGHT
 	};
 
 	/// Enumeration for mouse button types.
@@ -352,18 +350,18 @@ namespace RTE {
 	};
 
 	static const std::unordered_map<std::string_view, Directions> c_DirectionNameToDirectionsMap = {
-	    {"None", Directions::None},
-	    {"Up", Directions::Up},
-	    {"Down", Directions::Down},
-	    {"Left", Directions::Left},
-	    {"Right", Directions::Right},
-	    {"Any", Directions::Any}};
+		{"None", Directions::None},
+		{"Up", Directions::Up},
+		{"Down", Directions::Down},
+		{"Left", Directions::Left},
+		{"Right", Directions::Right},
+		{"Any", Directions::Any}};
 
 	static const std::unordered_map<Directions, const float> c_DirectionsToRadiansMap = {
-	    {Directions::Up, c_HalfPI},
-	    {Directions::Down, c_OneAndAHalfPI},
-	    {Directions::Left, c_PI},
-	    {Directions::Right, 0.0F}};
+		{Directions::Up, c_HalfPI},
+		{Directions::Down, c_OneAndAHalfPI},
+		{Directions::Left, c_PI},
+		{Directions::Right, 0.0F}};
 #pragma endregion
 
 #pragma region Un - Definitions
