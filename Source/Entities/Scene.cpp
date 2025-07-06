@@ -850,6 +850,8 @@ int Scene::SaveData(std::string pathBase, bool doAsyncSaves) {
 std::vector<SceneLayerInfo> Scene::GetCopiedSceneLayerBitmaps() {
 	std::vector<SceneLayerInfo> layerInfos;
 
+	// TODO- implement this. Basically just copy each scene layer to the vector
+	// This is for saving- we block to copy these layers, but it means the actual saving (compression, write to disk etc) can be done async
 	/*
 	// Save Terrain's data
 	m_pTerrain

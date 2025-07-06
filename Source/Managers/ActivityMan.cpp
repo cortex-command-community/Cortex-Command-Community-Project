@@ -82,6 +82,8 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		return false;
 	}
 
+	// THIS BLOCK OF CODE NEEDS ZIPPIFIED!
+	/*
 	// TODO, save to a zip instead of a directory
 	std::filesystem::create_directory(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName);
 
@@ -90,6 +92,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		g_ConsoleMan.PrintString("ERROR: Failed to save scene bitmaps while saving!");
 		return false;
 	}
+	*/
 
 	// We need a copy of our scene, because we have to do some fixup to remove PLACEONLOAD items and only keep the current MovableMan state.
 	std::unique_ptr<Scene> modifiableScene(dynamic_cast<Scene*>(scene->Clone()));
@@ -164,6 +167,8 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 
 bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	m_SaveGameTask.wait();
+
+	// TODO- this needs to load a zip!
 
 	std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + "/Save.ini";
 
