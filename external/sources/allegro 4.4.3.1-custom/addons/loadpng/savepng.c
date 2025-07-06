@@ -292,6 +292,131 @@ static int really_save_png(PACKFILE *fp, BITMAP *bmp, AL_CONST RGB *pal)
     return -1;
 }
 
+/* save_memory_png:
+ *  Writes a non-interlaced, no-frills PNG, taking the usual save_xyz
+ *  parameters.  Returns non-zero on error.
+ */
+static int save_memory_png(void *buffer, BITMAP *bmp, AL_CONST RGB *pal)
+{
+    jmp_buf jmpbuf;
+    png_structp png_ptr = NULL;
+    png_infop info_ptr = NULL;
+    int depth;
+    int colour_type;
+
+    depth = bitmap_color_depth(bmp);
+    if (depth == 8 && !pal)
+	return -1;
+
+    /* Create and initialize the png_struct with the
+     * desired error handler functions.
+     */
+    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
+				      (void *)NULL, NULL, NULL);
+    if (!png_ptr)
+	goto Error;
+
+    /* Allocate/initialize the image information data. */
+    info_ptr = png_create_info_struct(png_ptr);
+    if (!info_ptr)
+	goto Error;
+
+    /* Set error handling. */
+    if (setjmp(jmpbuf)) {
+	/* If we get here, we had a problem reading the file. */
+	goto Error;
+    }
+    png_set_error_fn(png_ptr, jmpbuf, user_error_fn, NULL);
+
+    /* Use memory routines. */
+    png_set_write_fn(png_ptr, buffer, NULL, NULL);
+
+    /* Set the image information here.  Width and height are up to 2^31,
+     * bit_depth is one of 1, 2, 4, 8, or 16, but valid values also depend on
+     * the color_type selected. color_type is one of PNG_COLOR_TYPE_GRAY,
+     * PNG_COLOR_TYPE_GRAY_ALPHA, PNG_COLOR_TYPE_PALETTE, PNG_COLOR_TYPE_RGB,
+     * or PNG_COLOR_TYPE_RGB_ALPHA.  interlace is either PNG_INTERLACE_NONE or
+     * PNG_INTERLACE_ADAM7, and the compression_type and filter_type MUST
+     * currently be PNG_COMPRESSION_TYPE_BASE and PNG_FILTER_TYPE_BASE.
+     */
+    if (depth == 8)
+	colour_type = PNG_COLOR_TYPE_PALETTE;
+    else if (depth == 32)
+	colour_type = PNG_COLOR_TYPE_RGB_ALPHA;
+    else
+	colour_type = PNG_COLOR_TYPE_RGB;
+
+    /* Set compression level. */
+    png_set_compression_level(png_ptr, _png_compression_level);
+
+    png_set_IHDR(png_ptr, info_ptr, bmp->w, bmp->h, 8, colour_type,
+		 PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
+		 PNG_FILTER_TYPE_BASE);
+
+    /* Set the palette if there is one.  Required for indexed-color images. */
+    if (colour_type == PNG_COLOR_TYPE_PALETTE) {
+	png_color palette[256];
+	int i;
+
+	for (i = 0; i < 256; i++) {
+	    palette[i].red   = pal[i].r;   /* 64 -> 256 */
+	    palette[i].green = pal[i].g;
+	    palette[i].blue  = pal[i].b;
+	}
+
+	/* Set palette colors. */
+	png_set_PLTE(png_ptr, info_ptr, palette, 256);
+    }
+
+    /* Optionally write comments into the image ... Nah. */
+
+    /* Write the file header information. */
+    png_write_info(png_ptr, info_ptr);
+
+    /* Once we write out the header, the compression type on the text
+     * chunks gets changed to PNG_TEXT_COMPRESSION_NONE_WR or
+     * PNG_TEXT_COMPRESSION_zTXt_WR, so it doesn't get written out again
+     * at the end.
+     */
+
+    /* Save the data. */
+    switch (depth) {
+	case 8:
+	    if (!save_indexed(png_ptr, bmp))
+		goto Error;
+	    break;
+	case 15:
+	case 16:
+	case 24:
+	    if (!save_rgb(png_ptr, bmp))
+		goto Error;
+	    break;
+	case 32:
+	    if (!save_rgba(png_ptr, bmp))
+		goto Error;
+	    break;
+	default:
+	    ASSERT(FALSE);
+	    goto Error;
+    }
+
+    png_write_end(png_ptr, info_ptr);
+
+    png_destroy_write_struct(&png_ptr, &info_ptr);
+
+    return 0;
+
+  Error:
+
+    if (png_ptr) {
+	if (info_ptr)
+	    png_destroy_write_struct(&png_ptr, &info_ptr);
+	else
+	    png_destroy_write_struct(&png_ptr, NULL);
+    }
+
+    return -1;
+}
 
 int save_png(AL_CONST char *filename, BITMAP *bmp, AL_CONST RGB *pal)
 {
