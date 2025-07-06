@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GUIInput.h"
-#include <SDL3/SDL_scancode.h>
+#include "SDL3/SDL_scancode.h"
 
 #include <array>
 #include <memory>
@@ -29,6 +29,10 @@ namespace RTE {
 #pragma region Virtual Override Methods
 		/// Updates the input.
 		void Update() override;
+
+		void StartTextInput() override;
+
+		void StopTextInput() override;
 #pragma endregion
 
 	private:
