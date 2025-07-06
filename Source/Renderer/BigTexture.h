@@ -21,6 +21,7 @@ namespace RTE {
 		/// @param dest The destination rectangle on the screen.
 		void Draw(Rectangle source, Rectangle dest);
 		std::vector<Texture2D> m_Textures{}; //!< The tiles of this BigTexture.
+		std::vector<unsigned int> m_UploadBuffers{}; //!< Upload buffers to reduce wait time on big uploads.
 		std::vector<Box> m_Regions{}; //!< The offset regions of each tile.
 		BITMAP* m_Bitmap{nullptr}; //!< The memory BITMAP, not owned.
 		int m_Width{0}; //!< The total width of this texture.

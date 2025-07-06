@@ -81,6 +81,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `Attachable` INI and Lua (R/W) properties `InheritsVelWhenDetached` and `InheritsAngularVelWhenDetached`, which determine how much of these velocities an attachable inherits from its parent when detached. Defaults to 1.
 
+- New GPU Renderer using OpenGL+Raylib, draw now takes 0ms in pretty much every instance.
+
+- New Z Order for scene layers and primitives: Background layer sits at z=100, Terrain Background at z=50, Terrain color and MO color at z=0, GUIs sit at z=-100, allowed z range is [-200, +200], in the future this'll be expanded to MO draw as well.
 - Added Lua-accessible bitmap manipulation functions to `MOSprite`s:	
 	```
 	GetSpritePixelIndex(int x, int y, int whichFrame) - Returns the color index of the pixel at the given coordinate on the given frame of the sprite ((0, 0) is the upper left corner!)
@@ -102,6 +105,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - New `MovableMan` function `GetMOsAtPosition(posX, posY, ignoreTeam, getsHitByMOsOnly)` that will return an iterator with all the `MovableObject`s that intersect that exact position with their sprite.
 
 - New `SceneMan` function `CastAllMOsRay(startVector, rayVector, table ignoreMOIDs, ignoreTeam, ignoreMaterial, bool ignoreAllTerrain, int skip)` which returns an iterator with pointers to all the non-ignored MOs met along the ray.
+
+- New parameter `depth` for all primitives sets draw depth of the drawn primitive. The default depth is -75.0 (lower numbers draw on top, higher numbers in the back). 
+
+- New `DrawDepth` enum for default draw depths:
+   - `Default` = 0.0f (Main draw depth for MOs)
+   - `GUI` = -100.0f (Draw Depth of GUI elements)
+   - `Primitive` = -75.0f (Default Primitive draw depth)
+   - `TerrainBackground` = 50.0f (Draw Depth of Terrain Background layer)
+   - `Background` = 100.0f (Draw Depth of Background layer)
 
 - Added scaling capability to Bitmap primitives.
 	New draw bindings with argument for scale are:
@@ -168,6 +180,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `InheritsVel` and its ilk have been uncapped, allowing users to set them outside of 0-1.
 
+- Lua renamed `SceneLayer`->`StaticSceneLayer` due to changed SLBackground base class.
+
 - `Scene` Lua functions `AddNavigatableArea(areaName)` and `ClearNavigatableAreas()` have been renamed/corrected to `AddNavigableArea(areaName)` and `ClearNavigableAreas()`, respectively.
 
 - `MOSRotating` Lua function `AddWound` now additionally accepts the format `MOSRotating:AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit, bool isEntryWound, bool isExitWound)`, allowing modders to specify added wounds as entry- or exit wounds, for the purpose of not playing multiple burst sounds on the same frame. These new arguments are optional.
@@ -204,6 +218,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue where internal Lua functions OriginalDoFile, OriginalLoadFile, and OriginalRequire were polluting the global namespace. They have now been made inaccessible.
 
+- Fixed the palette being mangled to 6bit/color on load.
+
+- Fixed allegro not loading alpha of image with alpha by using SDL_image instead.
 - Fixed `MOSprite:UnRotateOffset()` giving the wrong results on HFLipped sprites.
 
 - Various fixes and improvements to inventory management when dual-wielding or carrying a shield, to stop situations where the actor unexpectedly puts their items away.

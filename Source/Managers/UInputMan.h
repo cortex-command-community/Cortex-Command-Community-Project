@@ -188,7 +188,7 @@ namespace RTE {
 
 		/// Gets the state of either Alt key.
 		/// @return The state of either Alt key.
-		bool FlagAltState() const { return (SDL_GetModState() & SDL_KMOD_ALT) > 0; }
+		bool FlagAltState() const { return (SDL_GetModState() & SDL_KMOD_ALT | SDL_KMOD_MODE) > 0; }
 
 		/// Gets the state of the Left Shift key.
 		/// @return The state of the Left Shift key.

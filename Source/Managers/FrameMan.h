@@ -21,6 +21,9 @@ namespace RTE {
 	struct BitmapDeleter {
 		void operator()(BITMAP* bitmap) const;
 	};
+	struct SurfaceDeleter {
+		void operator()(SDL_Surface* surface) const;
+	};
 
 	/// The singleton manager over the composition of frames.
 	class FrameMan : public Singleton<FrameMan> {
@@ -188,6 +191,12 @@ namespace RTE {
 		/// Clears the 32bpp backbuffer with black.
 		void ClearBackBuffer32() { clear_to_color(m_BackBuffer32.get(), 0); }
 
+		/// Set the current GL Blend mode. This generally requires a batch flush.
+		/// @param blendMode The new blend mode to set.
+		/// @remark Some blendmodes are not possible to do within the limits of the usual gpu blending functions
+		/// and will make use of the blending shader instead, so if necessary restore the current shader after use.
+		void SetBlendMode(DrawBlendMode blendMode);
+
 		/// Sets a specific color table which is used for any subsequent blended drawing in indexed color modes.
 		/// @param blendMode The blending mode that will be used in drawing.
 		/// @param colorChannelBlendAmounts The color channel blend amounts that will be used to select or create the correct table in the specified blending mode.
@@ -354,7 +363,7 @@ namespace RTE {
 		std::shared_ptr<BITMAP> m_BackBuffer8; //!< Screen backbuffer, always 8bpp, gets copied to the 32bpp buffer for post-processing.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_BackBuffer32; //!< 32bpp backbuffer, only used for post-processing.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_OverlayBitmap32; //!< 32bpp bitmap used for overlaying (fading in/out or darkening) the screen.
-		std::unique_ptr<BITMAP, BitmapDeleter> m_ScreenDumpBuffer; //!< Temporary buffer for making quick screencaps. This is used for color conversion between 32bpp and 24bpp so we can save the file.
+		std::unique_ptr<SDL_Surface, SurfaceDeleter> m_ScreenDumpBuffer; //!< Temporary buffer for making quick screencaps. This is used for color conversion between 32bpp and 24bpp so we can save the file.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_WorldDumpBuffer; //!< Temporary buffer for making whole scene screencaps.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_ScenePreviewDumpGradient; //!< BITMAP for the scene preview sky gradient (easier to load from a pre-made file because it's dithered).
 		std::unique_ptr<BITMAP, BitmapDeleter> m_ScreenDumpNamePlaceholder; //!< Dummy BITMAP for keeping naming continuity when saving ScreenDumps with multi-threading.

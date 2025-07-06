@@ -233,9 +233,9 @@ static int really_save_png(PACKFILE *fp, BITMAP *bmp, AL_CONST RGB *pal)
 	int i;
 
 	for (i = 0; i < 256; i++) {
-	    palette[i].red   = _rgb_scale_6[pal[i].r];   /* 64 -> 256 */
-	    palette[i].green = _rgb_scale_6[pal[i].g];
-	    palette[i].blue  = _rgb_scale_6[pal[i].b];
+	    palette[i].red   = pal[i].r;   /* 64 -> 256 */
+	    palette[i].green = pal[i].g;
+	    palette[i].blue  = pal[i].b;
 	}
 
 	/* Set palette colors. */

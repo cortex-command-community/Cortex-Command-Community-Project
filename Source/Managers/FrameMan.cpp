@@ -1,5 +1,6 @@
 #include "FrameMan.h"
 
+#include "SDL3/SDL_surface.h"
 #include "WindowMan.h"
 #include "PostProcessMan.h"
 #include "PresetMan.h"
@@ -25,6 +26,7 @@
 
 #include "GLCheck.h"
 #include "glad/gl.h"
+#include "Draw.h"
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
@@ -33,6 +35,7 @@
 using namespace RTE;
 
 void BitmapDeleter::operator()(BITMAP* bitmap) const { destroy_bitmap(bitmap); }
+void SurfaceDeleter::operator()(SDL_Surface* surface) const { SDL_DestroySurface(surface); }
 
 const std::array<std::function<void(int r, int g, int b, int a)>, DrawBlendMode::BlendModeCount> FrameMan::c_BlenderSetterFunctions = {
     nullptr, // NoBlend obviously has no blender, but we want to keep the indices matching with the enum.
@@ -155,15 +158,15 @@ int FrameMan::CreateBackBuffers() {
 		m_PlayerScreen = m_BackBuffer;
 	}
 
-	m_ScreenDumpBuffer = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(24, m_BackBuffer32->w, m_BackBuffer32->h));
+	m_ScreenDumpBuffer = std::unique_ptr<SDL_Surface, SurfaceDeleter>(SDL_CreateSurface(m_BackBuffer8->w, m_BackBuffer8->h, SDL_PIXELFORMAT_RGB24));
 
 	return 0;
 }
 
 void FrameMan::CreatePresetColorTables() {
 	// Create RGB lookup table that supposedly speeds up calculation of other color tables.
-	//create_rgb_table(&m_RGBTable, m_DefaultPalette, nullptr);
-	//rgb_map = &m_RGBTable;
+	// create_rgb_table(&m_RGBTable, m_DefaultPalette, nullptr);
+	// rgb_map = &m_RGBTable;
 
 	// Create transparency color tables. Tables for other blend modes will be created on demand.
 	int transparencyPresetCount = BlendAmountLimits::MaxBlend / c_BlendAmountStep;
@@ -357,6 +360,67 @@ void FrameMan::ClearScreenText(int whichScreen) {
 	}
 }
 
+void FrameMan::SetBlendMode(DrawBlendMode blendMode) {
+	GLint invertLoc = rlGetLocationUniformCurrent("rteBlendInvert");
+	glUniform1i(invertLoc, 0);
+	switch (blendMode) {
+		case BlendTransparency: {
+			rlSetBlendMode(RL_BLEND_ALPHA);
+			break;
+		}
+		case BlendScreen: {
+			rlSetBlendMode(RL_BLEND_SCREEN);
+			break;
+		}
+		case BlendDifference: {
+			rlSetBlendMode(RL_BLEND_SUBTRACT_COLORS);
+			break;
+		}
+		case BlendMultiply: {
+			rlSetBlendMode(RL_BLEND_MULTIPLIED);
+			break;
+		}
+		case BlendBurn: {
+			rlSetBlendMode(RL_BLEND_BURN);
+			break;
+		}
+		case BlendDodge: {
+			rlSetBlendMode(RL_BLEND_DODGE);
+			break;
+		}
+		case BlendColor: {
+			rlSetBlendMode(RL_BLEND_HSL_COLOR);
+			break;
+		}
+		case BlendLuminance: {
+			rlSetBlendMode(RL_BLEND_HSL_LUMINOSITY);
+			break;
+		}
+		case BlendSaturation: {
+			rlSetBlendMode(RL_BLEND_HSL_SATURATION);
+			break;
+		}
+		case BlendInvert: {
+			rlSetBlendMode(RL_BLEND_ALPHA);
+			glUniform1i(invertLoc, 1);
+			break;
+		}
+		case BlendDissolve: {
+			rlSetBlendMode(RL_BLEND_ALPHA);
+			const Shader* dissolve = dynamic_cast<const Shader*>(g_PresetMan.GetEntityPreset("Shader", "Dissolve"));
+			dissolve->Begin();
+			GLint paletteLoc = dissolve->GetUniformLocation("rtePalette");
+			rlSetUniformSampler(paletteLoc, g_PostProcessMan.GetPaletteTexture());
+			break;
+		}
+		default: {
+			rlSetBlendMode(RL_BLEND_ALPHA);
+			RTEAssert(blendMode < BlendModeCount, "Unkown blend mode selected!");
+			break;
+		}
+	}
+}
+
 void FrameMan::SetColorTable(DrawBlendMode blendMode, std::array<int, 4> colorChannelBlendAmounts) {
 	RTEAssert(blendMode > DrawBlendMode::NoBlend && blendMode < DrawBlendMode::BlendModeCount, "Invalid DrawBlendMode or DrawBlendMode::NoBlend passed into FrameMan::SetColorTable. See DrawBlendMode enumeration for defined values.");
 
@@ -426,11 +490,10 @@ bool FrameMan::LoadPalette(const std::string& palettePath) {
 	SDL_Palette* palette = SDL_GetSurfacePalette(paletteImage);
 	for (size_t i = 0; i < 256; i++) {
 		m_Palette[i] = {
-			palette->colors[i].r,
-			palette->colors[i].g,
-			palette->colors[i].b,
-			0
-		};
+		    palette->colors[i].r,
+		    palette->colors[i].g,
+		    palette->colors[i].b,
+		    0};
 	}
 	SDL_DestroySurface(paletteImage);
 
@@ -450,9 +513,10 @@ int FrameMan::SaveBitmap(SaveBitmapMode modeToSave, const std::string& nameBase,
 	if (nameBase.empty() || nameBase.size() <= 0) {
 		return -1;
 	}
+	set_palette(m_DefaultPalette);
 
 	// TODO: Remove this once GCC13 is released and switched to. std::format and std::chrono::time_zone are not part of latest libstdc++.
-#if defined(__GNUC__) && (__GNUC__ < 13 || defined(__APPLE__)) //FIXME: macOS for some reason builds with incorrect iconv in CI which breaks format, could not debug.
+#if defined(__GNUC__) && (__GNUC__ < 13 || defined(__APPLE__)) // FIXME: macOS for some reason builds with incorrect iconv in CI which breaks format, could not debug.
 	std::chrono::time_point now = std::chrono::system_clock::now();
 	time_t currentTime = std::chrono::system_clock::to_time_t(now);
 	tm* localCurrentTime = std::localtime(&currentTime);
@@ -461,7 +525,7 @@ int FrameMan::SaveBitmap(SaveBitmapMode modeToSave, const std::string& nameBase,
 
 	std::array<char, 128> fullFileNameBuffer = {};
 	// We can't get sub-second precision from timeBuffer so we'll append absolute time to not overwrite the same file when dumping multiple times per second.
-	std::snprintf(fullFileNameBuffer.data(), sizeof(fullFileNameBuffer), "%s/%s_%s.%zi.png", System::GetScreenshotDirectory().c_str(), nameBase.c_str(), formattedTimeAndDate.data(), g_TimerMan.GetAbsoluteTime());
+	std::snprintf(fullFileNameBuffer.data(), sizeof(fullFileNameBuffer), "%s/%s_%s.%lli.png", System::GetScreenshotDirectory().c_str(), nameBase.c_str(), formattedTimeAndDate.data(), g_TimerMan.GetAbsoluteTime());
 
 	std::string fullFileName(fullFileNameBuffer.data());
 #else
@@ -478,23 +542,21 @@ int FrameMan::SaveBitmap(SaveBitmapMode modeToSave, const std::string& nameBase,
 			}
 			break;
 		case ScreenDump:
-			if (m_BackBuffer32 && m_ScreenDumpBuffer) {
+			if (m_ScreenDumpBuffer) {
 				SaveScreenToBitmap();
 
 				// Make a copy of the buffer because it may be overwritten mid thread and everything will be on fire.
-				BITMAP* outputBitmap = create_bitmap_ex(bitmap_color_depth(m_ScreenDumpBuffer.get()), m_ScreenDumpBuffer->w, m_ScreenDumpBuffer->h);
-				stretch_blit(m_ScreenDumpBuffer.get(), outputBitmap, 0, 0, m_ScreenDumpBuffer->w, m_ScreenDumpBuffer->h, 0, 0, outputBitmap->w, outputBitmap->h);
-
-				auto saveScreenDump = [fullFileName](BITMAP* bitmapToSaveCopy) {
+				SDL_Surface* saveSurface = SDL_ConvertSurface(m_ScreenDumpBuffer.get(), m_ScreenDumpBuffer->format);
+				auto saveScreenDump = [fullFileName](SDL_Surface* bitmapToSaveCopy) {
 					// nullptr for the PALETTE parameter here because we're saving a 24bpp file and it's irrelevant.
-					if (save_png(fullFileName.c_str(), bitmapToSaveCopy, nullptr) == 0) {
+					if (IMG_SavePNG(bitmapToSaveCopy, fullFileName.c_str()) == 0) {
 						g_ConsoleMan.PrintString("SYSTEM: Screen was dumped to: " + fullFileName);
 					} else {
 						g_ConsoleMan.PrintString("ERROR: Unable to save bitmap to: " + fullFileName);
 					}
-					destroy_bitmap(bitmapToSaveCopy);
+					// SDL_FreeSurface(bitmapToSaveCopy);
 				};
-				std::thread saveThread(saveScreenDump, outputBitmap);
+				std::thread saveThread(saveScreenDump, saveSurface);
 				saveThread.detach();
 
 				saveSuccess = true;
@@ -522,12 +584,19 @@ int FrameMan::SaveBitmap(SaveBitmapMode modeToSave, const std::string& nameBase,
 
 				BITMAP* depthConvertBitmap = create_bitmap_ex(24, m_WorldDumpBuffer->w, m_WorldDumpBuffer->h);
 				blit(m_WorldDumpBuffer.get(), depthConvertBitmap, 0, 0, 0, 0, m_WorldDumpBuffer->w, m_WorldDumpBuffer->h);
+				SDL_Surface* saveSurface = SDL_CreateSurfaceFrom(
+				    depthConvertBitmap->w,
+				    depthConvertBitmap->h,
+				    SDL_PIXELFORMAT_RGB24,
+				    depthConvertBitmap->dat,
+				    3);
 
-				if (save_png(fullFileName.c_str(), depthConvertBitmap, nullptr) == 0) {
+				if (IMG_SavePNG(saveSurface, fullFileName.c_str()) == 0) {
 					g_ConsoleMan.PrintString("SYSTEM: World was dumped to: " + fullFileName);
 					saveSuccess = true;
 				}
 				destroy_bitmap(depthConvertBitmap);
+				SDL_DestroySurface(saveSurface);
 			}
 			break;
 		default:
@@ -547,28 +616,31 @@ void FrameMan::SaveScreenToBitmap() {
 		return;
 	}
 
+	glPixelStorei(GL_PACK_ALIGNMENT, 4);
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_WindowMan.GetScreenBuffer()->GetColorTexture().id));
-	GL_CHECK(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, m_ScreenDumpBuffer->line[0]));
+	GL_CHECK(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, m_ScreenDumpBuffer->pixels));
+
+	// Flip the pixels
+	std::vector<char*> temp(m_ScreenDumpBuffer->pitch);
+	char* pixels = reinterpret_cast<char*>(m_ScreenDumpBuffer->pixels);
+	size_t pitch = m_ScreenDumpBuffer->pitch;
+	for (size_t y = 0; y < m_ScreenDumpBuffer->h / 2; ++y) {
+		std::swap_ranges(pixels + y * pitch, pixels + (y + 1) * pitch, pixels + (m_ScreenDumpBuffer->h - y - 1) * pitch);
+	}
 }
 
 int FrameMan::SaveIndexedPNG(const char* fileName, BITMAP* bitmapToSave) const {
-	// nullptr for the PALETTE parameter here because the bitmap is 32bpp and whatever we index it with will end up wrong anyway.
-	save_png(fileName, bitmapToSave, nullptr);
-
-	int lastColorConversionMode = get_color_conversion();
-	set_color_conversion(COLORCONV_REDUCE_TO_256);
-	// nullptr for the PALETTE parameter here because we don't need the bad palette from it and don't want it to overwrite anything.
-	BITMAP* tempLoadBitmap = load_bitmap(fileName, nullptr);
-	std::remove(fileName);
-
-	BITMAP* tempConvertingBitmap = create_bitmap_ex(8, bitmapToSave->w, bitmapToSave->h);
-	blit(tempLoadBitmap, tempConvertingBitmap, 0, 0, 0, 0, tempConvertingBitmap->w, tempConvertingBitmap->h);
-
-	int saveResult = save_png(fileName, tempConvertingBitmap, m_Palette);
-
-	set_color_conversion(lastColorConversionMode);
-	destroy_bitmap(tempLoadBitmap);
-	destroy_bitmap(tempConvertingBitmap);
+	set_palette(m_DefaultPalette);
+	SDL_Surface* surface = SDL_CreateSurfaceFrom(bitmapToSave->w,
+	                                             bitmapToSave->h,
+	                                             SDL_PIXELFORMAT_INDEX8,
+	                                             bitmapToSave->dat,
+	                                             bitmap_color_depth(bitmapToSave) / 8);
+	SDL_Palette* pal = ContentFile::DefaultPaletteToSDL();
+	SDL_SetSurfacePalette(surface, pal);
+	int saveResult = IMG_SavePNG(surface, fileName);
+	SDL_DestroyPalette(pal);
+	SDL_DestroySurface(surface);
 
 	return saveResult;
 }
@@ -737,7 +809,7 @@ void FrameMan::Draw() {
 	ZoneScopedN("Draw");
 	TracyGpuZone("FrameMan::Draw");
 
-	//rlSetShader(rlGetShaderIdDefault(), rlGetShaderLocsDefault());
+	// rlSetShader(rlGetShaderIdDefault(), rlGetShaderLocsDefault());
 	Shader backgroundShader;
 	g_PresetMan.GetEntityPreset("Shader", "Background")->Clone(&backgroundShader);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -763,13 +835,13 @@ void FrameMan::Draw() {
 		rlSetBlendMode(RL_BLEND_ALPHA);
 		rlEnableDepthTest();
 
-		m_PlayerScreen->Begin(true);
+		m_PlayerScreen->Begin(true, 1.0f);
 		backgroundShader.Begin();
 		backgroundShader.Enable();
 		rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
 		backgroundShader.SetInt("drawMasked", 1);
 
-		//rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
+		// rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
 		BITMAP* drawScreen = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
 		BITMAP* drawScreenGUI = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
 		// Need to clear the backbuffers because Scene background layers can be too small to fill the whole backbuffer or drawn masked resulting in artifacts from the previous frame.
@@ -795,6 +867,8 @@ void FrameMan::Draw() {
 
 		// Draw the scene
 		g_SceneMan.Draw(drawScreen, drawScreenGUI, targetPos);
+
+		g_PrimitiveMan.DrawPrimitives(playerScreen, drawScreenGUI, targetPos);
 
 		// Get only the scene-relative post effects that affect this player's screen
 		if (pActivity) {
@@ -844,7 +918,7 @@ void FrameMan::Draw() {
 	}
 
 	rlEnableDepthTest();
-	rlZDepth(c_GuiDepth-1.0f);
+	rlZDepth(c_GuiDepth - 1.0f);
 	g_GLResourceMan.UpdateDynamicBitmap(m_BackBuffer8.get(), true);
 	backgroundShader.Begin();
 	backgroundShader.Enable();
@@ -921,7 +995,39 @@ void FrameMan::DrawScreenFlash(int playerScreen, BITMAP* playerGUIBitmap) {
 			if (m_FlashedLastFrame[playerScreen]) {
 				m_FlashedLastFrame[playerScreen] = false;
 			} else {
-				rectfill(playerGUIBitmap, 0, 0, playerGUIBitmap->w, playerGUIBitmap->h, m_FlashScreenColor[playerScreen]);
+				rlZDepth(c_GuiDepth);
+				rlBegin(RL_QUADS);
+
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 50);
+				rlVertex2f(playerGUIBitmap->w * .25f, playerGUIBitmap->h * .25f);
+				rlVertex2f(playerGUIBitmap->w - playerGUIBitmap->w * .25f, playerGUIBitmap->h * 0.25f);
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 255);
+				rlVertex2f(playerGUIBitmap->w, 0.0f);
+				rlVertex2f(0.0f, 0.0f);
+
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 50);
+				rlVertex2f(playerGUIBitmap->w * .25f, playerGUIBitmap->h - playerGUIBitmap->h * .25f);
+				rlVertex2f(playerGUIBitmap->w * .25f, playerGUIBitmap->h * 0.25f);
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 255);
+				rlVertex2f(0.0f, 0.0f);
+				rlVertex2f(0.0f, playerGUIBitmap->h);
+
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 50);
+				rlVertex2f(playerGUIBitmap->w - playerGUIBitmap->w * .25f, playerGUIBitmap->h - playerGUIBitmap->h * .25f);
+				rlVertex2f(playerGUIBitmap->w * .25f, playerGUIBitmap->h - playerGUIBitmap->h * .25f);
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 255);
+				rlVertex2f(0.0f, playerGUIBitmap->h);
+				rlVertex2f(playerGUIBitmap->w, playerGUIBitmap->h);
+
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 50);
+				rlVertex2f(playerGUIBitmap->w - playerGUIBitmap->w * .25f, playerGUIBitmap->h * .25f);
+				rlVertex2f(playerGUIBitmap->w - playerGUIBitmap->w * .25f, playerGUIBitmap->h - playerGUIBitmap->h * .25f);
+				rlColor4ub(m_FlashScreenColor[playerScreen], 0, 0, 255);
+				rlVertex2f(playerGUIBitmap->w, playerGUIBitmap->h);
+				rlVertex2f(playerGUIBitmap->w, 0.0f);
+
+				rlEnd();
+				rlZDepth(c_DefaultDrawDepth);
 				m_FlashedLastFrame[playerScreen] = true;
 			}
 		}

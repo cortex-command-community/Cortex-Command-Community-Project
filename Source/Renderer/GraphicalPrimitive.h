@@ -5,6 +5,7 @@
 #include <array>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 namespace RTE {
 
@@ -43,27 +44,22 @@ namespace RTE {
 
 		Vector m_StartPos; //!< Start position of the primitive.
 		Vector m_EndPos; //!< End position of the primitive.
+		float m_DrawRadiusSquared{0.0f};
 		unsigned char m_Color = 0; //!< Color to draw this primitive with.
 		int m_Player = -1; //!< Player screen to draw this primitive on.
 		DrawBlendMode m_BlendMode = DrawBlendMode::NoBlend; //!< The blending mode that will be used when drawing this primitive.
 		std::array<int, 4> m_ColorChannelBlendAmounts = {BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend}; //!< The blending amount for each color channel when drawing in blended mode.
+		float m_Depth{c_PrimitiveDepth};
 
 		/// Destructor method used to clean up a GraphicalPrimitive object before deletion from system memory.
 		virtual ~GraphicalPrimitive() = default;
 
-		/// Translates coordinates from scene to this bitmap offset producing two coordinates.
+		/// Wraps coordinates if current Scene is wrapped.
 		/// @param targetPos Target position.
 		/// @param scenePos Position on scene.
-		/// @param drawLeftPos 'Left' position of bitmap on scene with negative values as if scene seam is 0,0.
-		/// @param drawRightPos 'Right' position of bitmap on scene with positive values.
-		/// @remark
-		/// Unfortunately it's hard to explain how this works. It tries to represent scene bitmap as two parts with center in 0,0.
-		/// Right part is just plain visible part with coordinates from [0, scenewidth] and left part is imaginary bitmap as if we traversed it across the seam right-to-left with coordinates [0, -scenewidth].
-		/// So in order to be drawn each screen coordinates calculated twice for left and right 'bitmaps' and then one of them either flies away off-screen or gets drawn on the screen.
-		/// When we cross the seam either left or right part is actually drawn in the bitmap, and negative coordinates of right part are compensated by view point offset coordinates when we cross the seam right to left.
-		/// I really don't know how to make it simpler, because it has so many special cases and simply wrapping all out-of-the scene coordinates don't work because this way nothing will be ever draw across the seam.
-		/// You're welcome to rewrite this nightmare if you can, I wasted a whole week on this (I can admit that I'm just too dumb for this) )))
-		void TranslateCoordinates(Vector targetPos, const Vector& scenePos, Vector& drawLeftPos, Vector& drawRightPos) const;
+		Vector WrapCoordinates(Vector targetPos, const Vector& scenePos) const;
+
+		void DrawTiled(BITMAP* drawScreen, const Vector& targetPos);
 
 		/// Draws this primitive on provided bitmap.
 		/// @param drawScreen Bitmap to draw on.
@@ -86,16 +82,36 @@ namespace RTE {
 	public:
 		GraphicalPrimitiveOverrideMethods;
 
+		float m_Thickness{1.0f};
+
 		/// Constructor method for LinePrimitive object.
 		/// @param player Player screen to draw this primitive on.
 		/// @param startPos Start position of the primitive.
 		/// @param end End position of the primitive.
 		/// @param color Color to draw this primitive with.
-		LinePrimitive(int player, const Vector& startPos, const Vector& endPos, unsigned char color) {
+		LinePrimitive(int player, const Vector& startPos, const Vector& endPos, unsigned char color, float depth = c_PrimitiveDepth) {
 			m_StartPos = startPos;
 			m_EndPos = endPos;
+			m_DrawRadiusSquared = std::abs((m_StartPos - m_EndPos).GetSqrMagnitude());
 			m_Color = color;
 			m_Player = player;
+			m_Thickness = 1;
+			m_Depth = depth;
+		}
+		/// Constructor method for LinePrimitive object.
+		/// @param player Player screen to draw this primitive on.
+		/// @param startPos Start position of the primitive.
+		/// @param end End position of the primitive.
+		/// @param thickness Thickness of the line.
+		/// @param color Color to draw this primitive with.
+		LinePrimitive(int player, const Vector& startPos, const Vector& endPos, float thickness, unsigned char color, float depth = c_PrimitiveDepth) {
+			m_StartPos = startPos;
+			m_EndPos = endPos;
+			m_DrawRadiusSquared = std::abs((m_StartPos - m_EndPos).GetSqrMagnitude());
+			m_Color = color;
+			m_Player = player;
+			m_Thickness = thickness;
+			m_Depth = depth;
 		}
 
 	private:
@@ -122,12 +138,14 @@ namespace RTE {
 		/// @param endAngle The angle at which the arc drawing ends.
 		/// @param radius Radius of the arc primitive.
 		/// @param color Color to draw this primitive with.
-		ArcPrimitive(int player, const Vector& centerPos, float startAngle, float endAngle, int radius, int thickness, unsigned char color) :
+		ArcPrimitive(int player, const Vector& centerPos, float startAngle, float endAngle, int radius, int thickness, unsigned char color, float depth = c_PrimitiveDepth) :
 		    m_StartAngle(startAngle), m_EndAngle(endAngle), m_Radius(radius), m_Thickness(thickness) {
 
 			m_StartPos = centerPos;
 			m_Color = color;
 			m_Player = player;
+			m_DrawRadiusSquared = (m_Radius + m_Thickness) * (m_Radius + m_Thickness);
+			m_Depth = depth;
 		}
 
 	private:
@@ -152,13 +170,15 @@ namespace RTE {
 		/// @param guideB The second guide point that controls the curve of the spline. The spline won't necessarily pass through this point, but it will affect it's shape.
 		/// @param endPos End position of the primitive.
 		/// @param color Color to draw this primitive with.
-		SplinePrimitive(int player, const Vector& startPos, const Vector& guideA, const Vector& guideB, const Vector& endPos, unsigned char color) :
+		SplinePrimitive(int player, const Vector& startPos, const Vector& guideA, const Vector& guideB, const Vector& endPos, unsigned char color, float depth = c_PrimitiveDepth) :
 		    m_GuidePointAPos(guideA), m_GuidePointBPos(guideB) {
 
 			m_StartPos = startPos;
 			m_EndPos = endPos;
 			m_Color = color;
 			m_Player = player;
+			m_DrawRadiusSquared = std::max<float>({(startPos - guideA).GetSqrMagnitude(), (startPos - guideB).GetSqrMagnitude(), (startPos - endPos).GetSqrMagnitude()});
+			m_Depth = depth;
 		}
 
 	private:
@@ -178,11 +198,13 @@ namespace RTE {
 		/// @param topLeftPos Start position of the primitive. Top left corner.
 		/// @param bottomRightPos End position of the primitive. Bottom right corner.
 		/// @param color Color to draw this primitive with.
-		BoxPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, unsigned char color) {
+		BoxPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, unsigned char color, float depth = c_PrimitiveDepth) {
 			m_StartPos = topLeftPos;
 			m_EndPos = bottomRightPos;
 			m_Color = color;
 			m_Player = player;
+			m_DrawRadiusSquared = (m_EndPos - m_StartPos).GetSqrMagnitude();
+			m_Depth = depth;
 		}
 
 	private:
@@ -202,11 +224,13 @@ namespace RTE {
 		/// @param topLeftPos Start position of the primitive. Top left corner.
 		/// @param bottomRightPos End position of the primitive. Bottom right corner.
 		/// @param color Color to draw this primitive with.
-		BoxFillPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, unsigned char color) {
+		BoxFillPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, unsigned char color, float depth = c_PrimitiveDepth) {
 			m_StartPos = topLeftPos;
 			m_EndPos = bottomRightPos;
 			m_Color = color;
 			m_Player = player;
+			m_DrawRadiusSquared = (m_StartPos - m_EndPos).GetSqrMagnitude();
+			m_Depth = depth;
 		}
 
 	private:
@@ -229,13 +253,15 @@ namespace RTE {
 		/// @param bottomRightPos End position of the primitive. Bottom right corner.
 		/// @param cornerRadius The radius of the corners of the box. Smaller radius equals sharper corners.
 		/// @param color Color to draw this primitive with.
-		RoundedBoxPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, int cornerRadius, unsigned char color) :
+		RoundedBoxPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, int cornerRadius, unsigned char color, float depth = c_PrimitiveDepth) :
 		    m_CornerRadius(cornerRadius) {
 
 			m_StartPos = topLeftPos;
 			m_EndPos = bottomRightPos;
 			m_Color = color;
 			m_Player = player;
+			m_DrawRadiusSquared = (m_EndPos - m_StartPos).GetSqrMagnitude();
+			m_Depth = depth;
 		}
 
 	private:
@@ -258,13 +284,14 @@ namespace RTE {
 		/// @param bottomRightPos End position of the primitive. Bottom right corner.
 		/// @param cornerRadius The radius of the corners of the box. Smaller radius equals sharper corners.
 		/// @param color Color to draw this primitive with.
-		RoundedBoxFillPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, int cornerRadius, unsigned char color) :
+		RoundedBoxFillPrimitive(int player, const Vector& topLeftPos, const Vector& bottomRightPos, int cornerRadius, unsigned char color, float depth = c_PrimitiveDepth) :
 		    m_CornerRadius(cornerRadius) {
 
 			m_StartPos = topLeftPos;
 			m_EndPos = bottomRightPos;
 			m_Color = color;
 			m_Player = player;
+			m_Depth = depth;
 		}
 
 	private:
@@ -286,12 +313,13 @@ namespace RTE {
 		/// @param centerPos Position of this primitive's center.
 		/// @param radius Radius of the circle primitive.
 		/// @param color Color to draw this primitive with.
-		CirclePrimitive(int player, const Vector& centerPos, int radius, unsigned char color) :
+		CirclePrimitive(int player, const Vector& centerPos, int radius, unsigned char color, float depth = c_PrimitiveDepth) :
 		    m_Radius(radius) {
 
 			m_StartPos = centerPos;
 			m_Color = color;
 			m_Player = player;
+			m_Depth = depth;
 		}
 
 	private:
@@ -313,12 +341,13 @@ namespace RTE {
 		/// @param centerPos Position of this primitive's center.
 		/// @param radius Radius of the circle primitive.
 		/// @param color Color to draw this primitive with.
-		CircleFillPrimitive(int player, const Vector& centerPos, int radius, unsigned char color) :
+		CircleFillPrimitive(int player, const Vector& centerPos, int radius, unsigned char color, float depth = c_PrimitiveDepth) :
 		    m_Radius(radius) {
 
 			m_StartPos = centerPos;
 			m_Color = color;
 			m_Player = player;
+			m_Depth = depth;
 		}
 
 	private:
@@ -342,12 +371,13 @@ namespace RTE {
 		/// @param horizRadius Horizontal radius of the ellipse primitive.
 		/// @param vertRadius Vertical radius of the ellipse primitive.
 		/// @param color Color to draw this primitive with.
-		EllipsePrimitive(int player, const Vector& centerPos, int horizRadius, int vertRadius, unsigned char color) :
+		EllipsePrimitive(int player, const Vector& centerPos, int horizRadius, int vertRadius, unsigned char color, float depth = c_PrimitiveDepth) :
 		    m_HorizRadius(horizRadius), m_VertRadius(vertRadius) {
 
 			m_StartPos = centerPos;
 			m_Color = color;
 			m_Player = player;
+			m_Depth = depth;
 		}
 
 	private:
@@ -370,12 +400,13 @@ namespace RTE {
 		/// @param centerPos Position of this primitive's center.
 		/// @param radius Radius of the circle primitive.
 		/// @param color Color to draw this primitive with.
-		EllipseFillPrimitive(int player, const Vector& centerPos, int horizRadius, int vertRadius, unsigned char color) :
+		EllipseFillPrimitive(int player, const Vector& centerPos, int horizRadius, int vertRadius, unsigned char color, float depth = c_PrimitiveDepth) :
 		    m_HorizRadius(horizRadius), m_VertRadius(vertRadius) {
 
 			m_StartPos = centerPos;
 			m_Color = color;
 			m_Player = player;
+			m_Depth = depth;
 		}
 
 	private:
@@ -400,11 +431,12 @@ namespace RTE {
 		/// @param pointB Position of the second point of the triangle
 		/// @param pointC Position of the third point of the triangle
 		/// @param color Color to draw this primitive with.
-		TrianglePrimitive(int player, const Vector& pointA, const Vector& pointB, const Vector& pointC, unsigned char color) :
+		TrianglePrimitive(int player, const Vector& pointA, const Vector& pointB, const Vector& pointC, unsigned char color, float depth = c_PrimitiveDepth) :
 		    m_PointAPos(pointA), m_PointBPos(pointB), m_PointCPos(pointC) {
 
 			m_Color = color;
 			m_Player = player;
+			m_Depth = depth;
 		}
 
 	private:
@@ -429,11 +461,12 @@ namespace RTE {
 		/// @param pointB Position of the second point of the triangle
 		/// @param pointC Position of the third point of the triangle
 		/// @param color Color to draw this primitive with.
-		TriangleFillPrimitive(int player, const Vector& pointA, const Vector& pointB, const Vector& pointC, unsigned char color) :
+		TriangleFillPrimitive(int player, const Vector& pointA, const Vector& pointB, const Vector& pointC, unsigned char color, float depth = c_PrimitiveDepth) :
 		    m_PointAPos(pointA), m_PointBPos(pointB), m_PointCPos(pointC) {
 
 			m_Color = color;
 			m_Player = player;
+			m_Depth = depth;
 		}
 
 	private:
@@ -455,12 +488,13 @@ namespace RTE {
 		/// @param startPos Start position of the primitive.
 		/// @param vertices A vector containing the positions of the vertices of the polygon, relative to the center position.
 		/// @param color Color to draw this primitive with.
-		PolygonPrimitive(int player, const Vector& startPos, unsigned char color, const std::vector<Vector*>& vertices) :
+		PolygonPrimitive(int player, const Vector& startPos, unsigned char color, const std::vector<Vector*>& vertices, float depth = c_PrimitiveDepth) :
 		    m_Vertices(vertices) {
 
 			m_StartPos = startPos;
 			m_Color = color;
 			m_Player = player;
+			m_Depth = depth;
 		}
 
 	private:
@@ -482,12 +516,13 @@ namespace RTE {
 		/// @param startPos Start position of the primitive.
 		/// @param vertices A vector containing the positions of the vertices of the polygon, relative to the center position.
 		/// @param color Color to draw this primitive with.
-		PolygonFillPrimitive(int player, const Vector& startPos, unsigned char color, const std::vector<Vector*>& vertices) :
+		PolygonFillPrimitive(int player, const Vector& startPos, unsigned char color, const std::vector<Vector*>& vertices, float depth = c_PrimitiveDepth) :
 		    m_Vertices(vertices) {
 
 			m_StartPos = startPos;
 			m_Color = color;
 			m_Player = player;
+			m_Depth = depth;
 		}
 
 	private:
@@ -506,6 +541,10 @@ namespace RTE {
 		bool m_IsSmall = false; //!< Use small or large font. True for small font.
 		int m_Alignment = 0; //!< Alignment of text.
 		float m_RotAngle = 0; //!< Angle to rotate text in radians.
+		BITMAP* m_TextBitmap = nullptr;
+		Vector m_TargetPosAlignment{};
+
+		void CreateTextBitmap();
 
 		/// Constructor method for TextPrimitive object.
 		/// @param player Player screen to draw this primitive on.
@@ -514,12 +553,16 @@ namespace RTE {
 		/// @param isSmall Use small or large font. True for small font.
 		/// @param alignment Alignment of text.
 		/// @param rotAngle Angle to rotate text in radians.
-		TextPrimitive(int player, const Vector& pos, const std::string& text, bool isSmall, int alignment, float rotAngle) :
+		TextPrimitive(int player, const Vector& pos, const std::string& text, bool isSmall, int alignment, float rotAngle, float depth = c_PrimitiveDepth) :
 		    m_Text(text), m_IsSmall(isSmall), m_Alignment(alignment), m_RotAngle(rotAngle) {
 
 			m_StartPos = pos;
 			m_Player = player;
+			m_Depth = depth;
+			CreateTextBitmap();
 		}
+
+		~TextPrimitive();
 
 	private:
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.
@@ -548,7 +591,7 @@ namespace RTE {
 		/// @param hFlipped Whether the BITMAP to draw should be horizontally flipped.
 		/// @param vFlipped Whether the BITMAP to draw should be vertically flipped.
 		BitmapPrimitive(int player, const Vector& centerPos, BITMAP* bitmap, float rotAngle, float scale, bool hFlipped, bool vFlipped) :
-		    m_Bitmap(bitmap), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped) {
+		    m_Bitmap(bitmap), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped), m_Scale(1.0f) {
 
 			m_StartPos = centerPos;
 			m_Player = player;
@@ -562,8 +605,13 @@ namespace RTE {
 		/// @param rotAngle Angle to rotate BITMAP in radians.
 		/// @param hFlipped Whether the BITMAP to draw should be horizontally flipped.
 		/// @param vFlipped Whether the BITMAP to draw should be vertically flipped.
-		BitmapPrimitive(int player, const Vector& centerPos, BITMAP* bitmap, float rotAngle, bool hFlipped, bool vFlipped) :
-		    BitmapPrimitive(player, centerPos, bitmap, rotAngle, 1.0f, hFlipped, vFlipped) {}
+		BitmapPrimitive(int player, const Vector& centerPos, BITMAP* bitmap, float rotAngle, bool hFlipped, bool vFlipped, float depth = c_PrimitiveDepth) :
+		    m_Bitmap(bitmap), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped), m_Scale(1.0f) {
+
+			m_StartPos = centerPos;
+			m_Player = player;
+			m_Depth = depth;
+		}
 
 		/// Constructor method for BitmapPrimitive object.
 		/// @param player Player screen to draw this primitive on.
@@ -574,12 +622,12 @@ namespace RTE {
 		/// @param scale BITMAP scale.
 		/// @param hFlipped Whether the BITMAP to draw should be horizontally flipped.
 		/// @param vFlipped Whether the BITMAP to draw should be vertically flipped.
-		BitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame, float scale, bool hFlipped, bool vFlipped) :
-		    m_Bitmap(moSprite->GetSpriteFrame(frame)), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped) {
+		BitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame, float scale, bool hFlipped, bool vFlipped, float depth = c_PrimitiveDepth) :
+		    m_Bitmap(moSprite->GetSpriteFrame(frame)), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped), m_Scale(scale) {
 
 			m_StartPos = centerPos;
 			m_Player = player;
-			m_Scale = scale;
+			m_Depth = depth;
 		}
 
 		/// Constructor method for BitmapPrimitive object.
@@ -590,8 +638,12 @@ namespace RTE {
 		/// @param frame Frame number of the MOSprite that will be drawn.
 		/// @param hFlipped Whether the BITMAP to draw should be horizontally flipped.
 		/// @param vFlipped Whether the BITMAP to draw should be vertically flipped.
-		BitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame, bool hFlipped, bool vFlipped) :
-		    BitmapPrimitive(player, centerPos, moSprite, rotAngle, frame, 1.0f, hFlipped, vFlipped) {}
+		BitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame, bool hFlipped, bool vFlipped, float depth = c_PrimitiveDepth) :
+		    m_Bitmap(moSprite->GetSpriteFrame(frame)), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped), m_Scale(1.0f) {
+			m_StartPos = centerPos;
+			m_Player = player;
+			m_Depth = depth;
+		}
 
 		/// Constructor method for BitmapPrimitive object.
 		/// @param player Player screen to draw this primitive on.
@@ -602,11 +654,9 @@ namespace RTE {
 		/// @param hFlipped Whether the BITMAP to draw should be horizontally flipped.
 		/// @param vFlipped Whether the BITMAP to draw should be vertically flipped.
 		BitmapPrimitive(int player, const Vector& centerPos, const std::string& filePath, float rotAngle, float scale, bool hFlipped, bool vFlipped) :
-		    m_Bitmap(ContentFile(filePath.c_str()).GetAsBitmap()), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped) {
-
+		    m_Bitmap(ContentFile(filePath.c_str()).GetAsBitmap()), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped), m_Scale(scale) {
 			m_StartPos = centerPos;
 			m_Player = player;
-			m_Scale = scale;
 		}
 		/// Constructor method for BitmapPrimitive object.
 		/// @param player Player screen to draw this primitive on.
@@ -615,8 +665,12 @@ namespace RTE {
 		/// @param rotAngle Angle to rotate BITMAP in radians.
 		/// @param hFlipped Whether the BITMAP to draw should be horizontally flipped.
 		/// @param vFlipped Whether the BITMAP to draw should be vertically flipped.
-		BitmapPrimitive(int player, const Vector& centerPos, const std::string& filePath, float rotAngle, bool hFlipped, bool vFlipped) :
-		    BitmapPrimitive(player, centerPos, filePath, rotAngle, 1.0f, hFlipped, vFlipped) {}
+		BitmapPrimitive(int player, const Vector& centerPos, const std::string& filePath, float rotAngle, bool hFlipped, bool vFlipped, float depth = c_PrimitiveDepth) :
+		    m_Bitmap(ContentFile(filePath.c_str()).GetAsBitmap()), m_RotAngle(rotAngle), m_HFlipped(hFlipped), m_VFlipped(vFlipped), m_Scale(1.0f) {
+			m_StartPos = centerPos;
+			m_Player = player;
+			m_Depth = depth;
+		}
 
 	private:
 		static const PrimitiveType c_PrimitiveType; //!< Type identifier of this primitive.

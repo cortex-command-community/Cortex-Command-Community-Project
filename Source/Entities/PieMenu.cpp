@@ -636,6 +636,7 @@ void PieMenu::Draw(BITMAP* targetBitmap, const Vector& targetPos) const {
 	Vector drawPos;
 	CalculateDrawPosition(targetBitmap, targetPos, drawPos);
 
+	rlZDepth(c_GuiDepth);
 	if (m_EnabledState != EnabledState::Disabled) {
 		if (m_DrawBackgroundTransparent) {
 			g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
@@ -646,6 +647,7 @@ void PieMenu::Draw(BITMAP* targetBitmap, const Vector& targetPos) const {
 			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_BGBitmap), drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2, {255, 255, 255, 255});
 		}
 	}
+	rlZDepth(c_DefaultDrawDepth);
 
 	if (m_EnabledState == EnabledState::Enabled) {
 		DrawPieIcons(targetBitmap, drawPos);

@@ -109,7 +109,7 @@ void WindowMan::Initialize() {
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 	CreatePrimaryWindow();
 	InitializeOpenGL();
 
@@ -721,8 +721,6 @@ void WindowMan::ClearBackbuffer(bool clearFrameMan) {
 	if (clearFrameMan) {
 		g_FrameMan.ClearBackBuffer32();
 	}
-	m_ScreenBuffer->Begin(true);
-	m_ScreenBuffer->End();
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
 	GL_CHECK(glActiveTexture(GL_TEXTURE1));
@@ -732,7 +730,7 @@ void WindowMan::ClearBackbuffer(bool clearFrameMan) {
 
 void WindowMan::UploadFrame() {
 
-	m_ScreenBuffer->Begin(false);
+	m_ScreenBuffer->Begin(g_ActivityMan.IsInActivity());
 
 	rlDisableDepthTest();
 	rlDisableColorBlend();
