@@ -136,7 +136,10 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	writer->NewPropertyWithValue("PlaceUnitsIfSceneIsRestarted", g_SceneMan.GetPlaceUnitsOnLoad());
 	writer->NewPropertyWithValue("Scene", modifiableScene.get());
 
-	auto saveWriterData = [&](Writer* writerToSave) {
+	// Get BITMAPS so save into our zip
+	std::vector<SceneLayerInfo> sceneLayerInfos = scene->GetCopiedSceneLayerBitmaps();
+
+	auto saveWriterData = [&](Writer* writerToSave, std::vector<SceneLayerInfo>&& sceneLayerInfos) {
 		std::stringstream* stream = static_cast<std::stringstream*>(writerToSave->GetStream());
 		stream->flush();
 
@@ -150,13 +153,25 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		zipWriteInFileInZip(zippedSaveFile, streamAsString.data(), streamAsString.size());
 		zipCloseFileInZip(zippedSaveFile);
 
+		PALETTE palette;
+		get_palette(palette);
+
+		for (const SceneLayerInfo& layerInfo : sceneLayerInfos)
+		{
+			// Allego lacks the fucking ability to save/load png from a byte stream
+			// AAAAAAAAAAAAAAAAAAAAAAAAAAA
+			//zipOpenNewFileInZip(zippedSaveFile, (fileName + " " + layerInfo.name + ".png").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, defaultCompression);
+			//zipWriteInFileInZip(zippedSaveFile, streamAsString.data(), streamAsString.size());
+			//zipCloseFileInZip(zippedSaveFile);
+		}
+
 		zipClose(zippedSaveFile, fileName.c_str());
 
 		delete writerToSave;
 	};
 
 	// For some reason I can't std::move a unique ptr in, so just releasing and deleting manually...
-	m_SaveGameTask.push_back(g_ThreadMan.GetBackgroundThreadPool().submit(saveWriterData, writer.release()));
+	m_SaveGameTask.push_back(g_ThreadMan.GetBackgroundThreadPool().submit(saveWriterData, writer.release(), std::move(sceneLayerInfos)));
 
 	// We didn't transfer ownership, so we must be very careful that sceneAltered's deletion doesn't touch the stuff we got from MovableMan.
 	modifiableScene->ClearPlacedObjectSet(Scene::PlacedObjectSets::PLACEONLOAD, false);

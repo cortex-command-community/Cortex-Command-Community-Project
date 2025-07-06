@@ -68,6 +68,10 @@ namespace RTE {
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int SaveData(const std::string& pathBase, bool doAsyncSaves = true) override;
 
+		/// Copies bitmap data into layerInfos.
+		/// @param layerInfos List of SceneLayerInfo to emplace our copied data into.
+		void CopyBitmapData(std::vector<SceneLayerInfo>& layerInfos) const;
+
 		/// Clears out any previously loaded bitmap data from memory.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int ClearData() override;

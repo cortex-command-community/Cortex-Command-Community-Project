@@ -92,7 +92,7 @@ namespace RTE {
 
 		/// Copies the bitmap.
 		/// @return The copied bitmap.
-		std::unique_ptr<BITMAP> CopyBitmap();
+		std::unique_ptr<BITMAP> CopyBitmap() const;
 #pragma endregion
 
 #pragma region Getters and Setters
