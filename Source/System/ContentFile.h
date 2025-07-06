@@ -150,6 +150,9 @@ namespace RTE {
 		FMOD::Sound* GetAsSound(bool abortGameForInvalidSound = true, bool asyncLoading = true);
 #pragma endregion
 
+		/// Copies the default palette to an sdl palette.
+		static SDL_Palette* DefaultPaletteToSDL();
+
 	private:
 		/// Enumeration for loading BITMAPs by bit depth. NOTE: This can't be lower down because s_LoadedBitmaps relies on this definition.
 		enum BitDepths {
@@ -200,8 +203,6 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Data Handling
-		/// Copies the default palette to an sdl palette.
-		static SDL_Palette* DefaultPaletteToSDL();
 
 		/// Loads the data from dataPahtToLoad as an SDL_Surface.
 		/// This prevents allegro from doing anything to the image colors it'd otherwise be doing, like breaking the palette or removing alpha values.

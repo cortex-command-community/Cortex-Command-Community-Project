@@ -152,14 +152,6 @@ namespace RTE {
 		/// Launch editor Activity specified in command-line argument.
 		/// @return Whether a valid editor name was passed in and set to be launched next time ResetActivity is called.
 		bool SetStartEditorActivitySetToLaunchInto();
-
-		/// Loads "Multiplayer Scene" and starts the MultiplayerGame Activity.
-		/// @return Whether the MultiplayerGame Activity was successfully created and set to be launched next time ResetActivity is called.
-		bool SetStartMultiplayerActivity();
-
-		/// Launch multiplayer server overview Activity.
-		/// @return Whether the server overview Activity was successfully created and set to be launched next time ResetActivity is called.
-		bool SetStartMultiplayerServerOverview();
 #pragma endregion
 
 #pragma region Concrete Methods

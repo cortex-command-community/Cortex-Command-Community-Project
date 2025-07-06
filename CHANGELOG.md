@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	Actors are now more capable and responsive when digging. They will dig to their target if they cannot reach it with their jetpack (for example if there is a long vertical shaft in the route they cannot get up), and they preferentially avoid rocks, metal and other hard substances by digging around them. Actors also dig faster and spend less time idle.  
 	In the `CalculatePath` and `CalculatePathAsync` functions, the parameter `movePathToGround` has been replaced with `jumpHeight`, which is the height in metres the pathfind can jump vertically.  
 	New `Actor` Lua property `JumpHeight` (R) to estimate the jump height of the actor (in metres), based on the actor's jetpack and weight. Actors without a jetpack return 0.  
-	The new function `GetPathFindingFlyingJumpHeight()` can be used to get a jumpHeight that allows flying (i.e infinite jump height). This is also the value that `ACRocket`s and `ACDropships` return for `JumpHeight`.
+	The new function `GetPathFindingFlyingJumpHeight()` can be used to get a jumpHeight that allows flying (i.e infinite jump height). This is also the value that `ACRocket`s and `ACDropShip`s return for `JumpHeight`.
 
 - Improved locomotion.
 	Added the ability to run. When running, you cannot sharpaim whatsoever.
@@ -81,6 +81,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `Attachable` INI and Lua (R/W) properties `InheritsVelWhenDetached` and `InheritsAngularVelWhenDetached`, which determine how much of these velocities an attachable inherits from its parent when detached. Defaults to 1.
 
+- New GPU Renderer using OpenGL+Raylib, draw now takes 0ms in pretty much every instance.
+
+- New Z Order for scene layers and primitives: Background layer sits at z=100, Terrain Background at z=50, Terrain color and MO color at z=0, GUIs sit at z=-100, allowed z range is [-200, +200], in the future this'll be expanded to MO draw as well.
 - Added Lua-accessible bitmap manipulation functions to `MOSprite`s:	
 	```
 	GetSpritePixelIndex(int x, int y, int whichFrame) - Returns the color index of the pixel at the given coordinate on the given frame of the sprite ((0, 0) is the upper left corner!)
@@ -102,6 +105,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - New `MovableMan` function `GetMOsAtPosition(posX, posY, ignoreTeam, getsHitByMOsOnly)` that will return an iterator with all the `MovableObject`s that intersect that exact position with their sprite.
 
 - New `SceneMan` function `CastAllMOsRay(startVector, rayVector, table ignoreMOIDs, ignoreTeam, ignoreMaterial, bool ignoreAllTerrain, int skip)` which returns an iterator with pointers to all the non-ignored MOs met along the ray.
+
+- New parameter `depth` for all primitives sets draw depth of the drawn primitive. The default depth is -75.0 (lower numbers draw on top, higher numbers in the back). 
+
+- New `DrawDepth` enum for default draw depths:
+   - `Default` = 0.0f (Main draw depth for MOs)
+   - `GUI` = -100.0f (Draw Depth of GUI elements)
+   - `Primitive` = -75.0f (Default Primitive draw depth)
+   - `TerrainBackground` = 50.0f (Draw Depth of Terrain Background layer)
+   - `Background` = 100.0f (Draw Depth of Background layer)
+
+- Added scaling capability to Bitmap primitives.
+	New draw bindings with argument for scale are:
+	```
+	PrimitiveMan:DrawBitmapPrimitive(pos, moSprite, rotAngle, frame, scale)
+	PrimitiveMan:DrawBitmapPrimitive(pos, moSprite, rotAngle, frame, scale, bool hFlipped, bool vFlipped)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, moSprite, rotAngle, frame, scale)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, moSprite, rotAngle, frame, scale, bool hFlipped, bool vFlipped)
+	PrimitiveMan:DrawBitmapPrimitive(pos, filePath, rotAngle, scale)
+	PrimitiveMan:DrawBitmapPrimitive(pos, filePath, rotAngle, scale, bool hFlipped, bool vFlipped)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, filePath, rotAngle, scale)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, filePath, rotAngle, scale, bool hFlipped, bool vFlipped)
+	```
+	As well as constructors:
+	```
+	BitmapPrimitive(player, pos, moSprite, rotAngle, frame, scale, hFlipped, vFlipped)
+	BitmapPrimitive(player, pos, filePath, rotAngle, scale, hFlipped, vFlipped)
+	```
+	Original bindings with no scale argument are untouched and can be called as they were.
+
+- Added multiseat support for multiple mice and keyboards on one computer.
+
+- Added optional player argument to all `UInputMan:Key*` Lua Methods. (e.g. `KeyHeld(keycode, player)`) This allows checking individual player's keyboards, when multiple keyboards are available.
 
 </details>
 
@@ -145,6 +180,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `InheritsVel` and its ilk have been uncapped, allowing users to set them outside of 0-1.
 
+- Lua renamed `SceneLayer`->`StaticSceneLayer` due to changed SLBackground base class.
+
 - `Scene` Lua functions `AddNavigatableArea(areaName)` and `ClearNavigatableAreas()` have been renamed/corrected to `AddNavigableArea(areaName)` and `ClearNavigableAreas()`, respectively.
 
 - `MOSRotating` Lua function `AddWound` now additionally accepts the format `MOSRotating:AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit, bool isEntryWound, bool isExitWound)`, allowing modders to specify added wounds as entry- or exit wounds, for the purpose of not playing multiple burst sounds on the same frame. These new arguments are optional.
@@ -156,6 +193,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Techion Laser Rifle now has a constant range rather than being dependent on game resolution.
 
 - Various performance improvements.
+
+- Drop support for macOS < 11.1 (Big Sur) :(
+
+- Updated SDL2 to SDL3
 
 </details>
 
@@ -177,6 +218,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue where internal Lua functions OriginalDoFile, OriginalLoadFile, and OriginalRequire were polluting the global namespace. They have now been made inaccessible.
 
+- Fixed the palette being mangled to 6bit/color on load.
+
+- Fixed allegro not loading alpha of image with alpha by using SDL_image instead.
 - Fixed `MOSprite:UnRotateOffset()` giving the wrong results on HFLipped sprites.
 
 - Various fixes and improvements to inventory management when dual-wielding or carrying a shield, to stop situations where the actor unexpectedly puts their items away.
@@ -188,6 +232,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed several issues with the way pie menus and aiming interacts between players, such as opening the pie menu always resetting the M&KB player's aim and pie selection, as well as another issue where the pie menu would fail to appear entirely for some players.
 
 - Fixed issue where scripts applied to `MovableObject`s could become disordered in certain circumstances.
+
+- Fixed a minor inconsistency where `ACDropShip`s were frequently referred to as `ACDropship`s in Lua, the lower case 's' invalidating keywords where the typo occured.
 
 </details>
 

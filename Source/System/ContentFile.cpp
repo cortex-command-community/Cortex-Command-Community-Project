@@ -10,7 +10,7 @@
 #include "png.h"
 #include "fmod/fmod.hpp"
 #include "fmod/fmod_errors.h"
-#include "SDL_image.h"
+#include <SDL3_image/SDL_image.h>
 
 #include <cstring>
 
@@ -258,7 +258,7 @@ void ContentFile::GetAsAnimation(std::vector<BITMAP*>& vectorToFill, int frameCo
 	}
 }
 SDL_Palette* ContentFile::DefaultPaletteToSDL() {
-		SDL_Palette* palette = SDL_AllocPalette(256);
+		SDL_Palette* palette = SDL_CreatePalette(256);
 		std::array<SDL_Color, 256> paletteColor;
 		PALETTE currentPalette;
 		get_palette(currentPalette);
@@ -277,27 +277,24 @@ SDL_Surface* ContentFile::LoadImageAsSurface(int conversionMode, const std::stri
 	SDL_Surface* image = IMG_Load(dataPathToLoad.c_str());
 	bool convert8To32 = conversionMode & COLORCONV_8_TO_32;
 	bool convertTo8 = conversionMode & COLORCONV_REDUCE_TO_256;
-	int bitDepth = image->format->BitsPerPixel;
+	int bitDepth = SDL_GetPixelFormatDetails(image->format)->bits_per_pixel;
 	if (convertTo8 && bitDepth != 8) {
 		SDL_Palette* palette = DefaultPaletteToSDL();
-		SDL_PixelFormat* format = SDL_AllocFormat(SDL_PIXELFORMAT_INDEX8);
-		SDL_SetPixelFormatPalette(format, palette);
-		SDL_Surface* newImage = SDL_ConvertSurface(image, format, 0);
-		SDL_FreeFormat(format);
-		SDL_FreePalette(palette);
-		SDL_FreeSurface(image);
+		SDL_Surface* newImage = SDL_ConvertSurfaceAndColorspace(image, SDL_PIXELFORMAT_INDEX8, palette, SDL_COLORSPACE_UNKNOWN, 0);
+		SDL_DestroyPalette(palette);
+		SDL_DestroySurface(image);
 		image = newImage;
 		bitDepth = 8;
 	} else if (bitDepth != 8 || convert8To32) {
 		
 		SDL_Palette* palette = DefaultPaletteToSDL();
-		if (image->format->BitsPerPixel == 8) {
+		if (SDL_GetPixelFormatDetails(image->format)->bits_per_pixel == 8) {
 			SDL_SetSurfacePalette(image, palette);
-			SDL_SetColorKey(image, SDL_TRUE, 0);
+			SDL_SetSurfaceColorKey(image, true, 0);
 		}
-		SDL_FreePalette(palette);
-		SDL_Surface* newImage = SDL_ConvertSurfaceFormat(image, SDL_PIXELFORMAT_RGBA32, 0);
-		SDL_FreeSurface(image);
+		SDL_DestroyPalette(palette);
+		SDL_Surface* newImage = SDL_ConvertSurface(image, SDL_PIXELFORMAT_RGBA32);
+		SDL_DestroySurface(image);
 		image = newImage;
 		bitDepth = 32;
 	}
@@ -312,15 +309,15 @@ BITMAP* ContentFile::LoadAndReleaseBitmap(int conversionMode, const std::string&
 	const std::string dataPathToLoad = dataPathToSpecificFrame.empty() ? m_DataPath : dataPathToSpecificFrame;
 
 	SDL_Surface* image = LoadImageAsSurface(conversionMode, dataPathToLoad);
-	int bitDepth = image->format->BitsPerPixel;
+	int bitDepth = SDL_GetPixelFormatDetails(image->format)->bits_per_pixel;
 
 	BITMAP* returnBitmap = create_bitmap_ex(bitDepth, image->w, image->h);
 	
 	// allegro doesn't (always) align lines to 4byte, so copy line by line. SDL_Surface.pitch is the size in bytes per line + alignment padding.
 	for (int y = 0; y < image->h; ++y) {
-		memcpy(returnBitmap->line[y], static_cast<unsigned char*>(image->pixels) + image->pitch * y, image->w * image->format->BytesPerPixel);
+		memcpy(returnBitmap->line[y], static_cast<unsigned char*>(image->pixels) + image->pitch * y, image->w * SDL_GetPixelFormatDetails(image->format)->bytes_per_pixel);
 	}
-	SDL_FreeSurface(image);
+	SDL_DestroySurface(image);
 
 	RTEAssert(returnBitmap, "Failed to load image file with following path and name:\n\n" + m_DataPathAndReaderPosition + "\nThe file may be corrupt, incorrectly converted or saved with unsupported parameters.");
 
@@ -404,11 +401,11 @@ void ContentFile::ReloadBitmap(const std::string& filePath, int conversionMode) 
 	SDL_Surface* newImage = LoadImageAsSurface(conversionMode, filePath);
 
 
-	BITMAP* newBitmap = create_bitmap_ex(newImage->format->BitsPerPixel, newImage->w, newImage->h);
+	BITMAP* newBitmap = create_bitmap_ex(SDL_GetPixelFormatDetails(newImage->format)->bits_per_pixel, newImage->w, newImage->h);
 
 	// allegro doesn't (always) align lines to 4byte, so copy line by line. SDL_Surface.pitch is the size in bytes per line + alignment padding.
 	for (int y = 0; y < newImage->h; y++) {
-		memcpy(newBitmap->line[y], static_cast<unsigned char*>(newImage->pixels) + y * newImage->pitch, newImage->w * newImage->format->BytesPerPixel); 
+		memcpy(newBitmap->line[y], static_cast<unsigned char*>(newImage->pixels) + y * newImage->pitch, newImage->w * SDL_GetPixelFormatDetails(newImage->format)->bytes_per_pixel); 
 	}
 
 	//AddAlphaChannel(newBitmap);

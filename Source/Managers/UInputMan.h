@@ -1,16 +1,22 @@
 #pragma once
 
+#include "Constants.h"
+#include "SDL3/SDL_keycode.h"
+#include "SDL3/SDL_scancode.h"
 #include "Singleton.h"
 #include "Vector.h"
 #include "InputScheme.h"
 #include "Gamepad.h"
-#include "SDL_keyboard.h"
-#include "SDL_events.h"
+#include "allegro/keyboard.h"
+#include <SDL3/SDL_keyboard.h>
+#include <SDL3/SDL_events.h>
 
 #include <algorithm>
 #include <array>
 #include <string>
 #include <vector>
+#include <optional>
+#include <functional>
 
 #define g_UInputMan UInputMan::Instance()
 
@@ -77,7 +83,7 @@ namespace RTE {
 		/// Access a specific player's control scheme.
 		/// @param whichPlayer Which player to get the scheme for.
 		/// @return A pointer to the requested player's control scheme. Ownership is NOT transferred!
-		InputScheme* GetControlScheme(int whichPlayer) { return IsInMultiplayerMode() ? &m_ControlScheme[Players::PlayerOne] : &m_ControlScheme.at(whichPlayer); }
+		InputScheme* GetControlScheme(int whichPlayer) { return &m_ControlScheme.at(whichPlayer); }
 
 		/// Get the current device Icon of a specific player's scheme.
 		/// @param whichPlayer Which player to get the scheme device icon of.
@@ -123,9 +129,10 @@ namespace RTE {
 		/// @return Whether the element is released or not.
 		bool ElementReleased(int whichPlayer, int whichElement) { return GetInputElementState(whichPlayer, whichElement, InputState::Released); }
 
-		/// Gets the generic direction input from any and all players which can affect a shared menu cursor. Normalized to 1.0 max.
+		/// Gets the generic direction input from one or all players which can affect a shared menu cursor. Normalized to 1.0 max.
+		/// @param whichPlayer The player for which menu direction is taken, -1 for combined.
 		/// @return The vector with the directional input from any or all players.
-		Vector GetMenuDirectional();
+		Vector GetMenuDirectional(int whichPlayer = -1);
 
 		/// Gets whether any generic button with the menu cursor is held down.
 		/// @param whichButton Which generic menu cursor button to check for.
@@ -161,39 +168,39 @@ namespace RTE {
 
 		/// Gets the state of the Left Ctrl key.
 		/// @return The state of the Left Ctrl key.
-		bool FlagLCtrlState() const { return (SDL_GetModState() & KMOD_LCTRL) > 0; }
+		bool FlagLCtrlState() const { return (SDL_GetModState() & SDL_KMOD_LCTRL) > 0; }
 
 		/// Gets the state of the Right Ctrl key.
 		/// @return The state of the Right Ctrl key.
-		bool FlagRCtrlState() const { return (SDL_GetModState() & KMOD_RCTRL) > 0; }
+		bool FlagRCtrlState() const { return (SDL_GetModState() & SDL_KMOD_RCTRL) > 0; }
 
 		/// Gets the state of either Ctrl key.
 		/// @return The state of either Ctrl key.
-		bool FlagCtrlState() const { return (SDL_GetModState() & KMOD_CTRL) > 0; }
+		bool FlagCtrlState() const { return (SDL_GetModState() & SDL_KMOD_CTRL) > 0; }
 
 		/// Gets the state of the Left Alt key.
 		/// @return The state of the Alt key.
-		bool FlagLAltState() const { return (SDL_GetModState() & KMOD_LALT) > 0; }
+		bool FlagLAltState() const { return (SDL_GetModState() & SDL_KMOD_LALT) > 0; }
 
 		/// Gets the state of the Right Alt key.
 		/// @return The state of the Right Alt key.
-		bool FlagRAltState() const { return (SDL_GetModState() & KMOD_RALT) > 0; }
+		bool FlagRAltState() const { return (SDL_GetModState() & (SDL_KMOD_RALT | SDL_KMOD_MODE)) > 0; }
 
 		/// Gets the state of either Alt key.
 		/// @return The state of either Alt key.
-		bool FlagAltState() const { return (SDL_GetModState() & KMOD_ALT) > 0; }
+		bool FlagAltState() const { return (SDL_GetModState() & SDL_KMOD_ALT | SDL_KMOD_MODE) > 0; }
 
 		/// Gets the state of the Left Shift key.
 		/// @return The state of the Left Shift key.
-		bool FlagLShiftState() const { return (SDL_GetModState() & KMOD_LSHIFT) > 0; }
+		bool FlagLShiftState() const { return (SDL_GetModState() & SDL_KMOD_LSHIFT) > 0; }
 
 		/// Gets the state of the Right Shift key.
 		/// @return The state of the Right Shift key.
-		bool FlagRShiftState() const { return (SDL_GetModState() & KMOD_RSHIFT) > 0; }
+		bool FlagRShiftState() const { return (SDL_GetModState() & SDL_KMOD_RSHIFT) > 0; }
 
 		/// Gets the state of either Shift key.
 		/// @return The state of either Shift key.
-		bool FlagShiftState() const { return (SDL_GetModState() & KMOD_SHIFT) > 0; }
+		bool FlagShiftState() const { return (SDL_GetModState() & SDL_KMOD_SHIFT) > 0; }
 #pragma endregion
 
 #pragma region Keyboard Handling
@@ -204,36 +211,42 @@ namespace RTE {
 		/// Gets whether a key is being held right now, by scancode.
 		/// @param scancodeToTest A scancode to test. See SDL_Scancode enumeration.
 		/// @return Whether the key is held or not.
-		bool KeyHeld(SDL_Scancode scancodeToTest) const { return GetKeyboardButtonState(scancodeToTest, InputState::Held); }
+		bool KeyHeld(SDL_Scancode scancodeToTest, int whichPlayer = -1) const { return GetKeyboardButtonState(scancodeToTest, InputState::Held, whichPlayer); }
+		bool KeyHeldScancode(SDL_Scancode scancodeToTest) const { return KeyHeld(scancodeToTest, -1); } //!< Lua disambiguation helper.
 
 		/// Gets whether a key is being held right now, by keycode.
 		/// @param keycodeToTest A keycode to test. See SDL_KeyCode enumeration.
 		/// @return Whether the key is held or not.
-		bool KeyHeld(SDL_Keycode keycodeToTest) const { return KeyHeld(SDL_GetScancodeFromKey(keycodeToTest)); }
+		bool KeyHeld(SDL_Keycode keycodeToTest, int whichPlayer = -1) const { return KeyHeld(SDL_GetScancodeFromKey(keycodeToTest, NULL), whichPlayer); }
+		bool KeyHeldKeycode(SDL_Keycode keycodeToTest) const { return KeyHeld(keycodeToTest); } //!< Lua disambiguation helper.
 
 		/// Gets whether a key was pressed between the last update and the one previous to it, by scancode.
 		/// @param scancodeToTest A scancode to test. See SDL_Scancode enumeration.
 		/// @return Whether the key is pressed or not.
-		bool KeyPressed(SDL_Scancode scancodeToTest) const { return GetKeyboardButtonState(scancodeToTest, InputState::Pressed); }
+		bool KeyPressed(SDL_Scancode scancodeToTest, int whichPlayer = -1) const { return GetKeyboardButtonState(scancodeToTest, InputState::Pressed, whichPlayer); }
+		bool KeyPressedScancode(SDL_Scancode scancodeToTest) const { return KeyPressed(scancodeToTest); } //!< Lua disambiguation helper.
 
 		/// Gets whether a key was pressed between the last update and the one previous to it, by keycode.
 		/// @param keycodeToTest A keycode to test. See SDL_KeyCode enumeration.
 		/// @return Whether the key is pressed or not.
-		bool KeyPressed(SDL_Keycode keycodeToTest) const { return KeyPressed(SDL_GetScancodeFromKey(keycodeToTest)); }
+		bool KeyPressed(SDL_Keycode keycodeToTest, int whichPlayer = -1) const { return KeyPressed(SDL_GetScancodeFromKey(keycodeToTest, NULL), whichPlayer); }
+		bool KeyPressedKeycode(SDL_Keycode keycodeToTest) const { return KeyPressed(keycodeToTest); } //!< Lua disambiguation helper.
 
 		/// Gets whether a key was released between the last update and the one previous to it, by scancode.
 		/// @param scancodeToTest A scancode to test. See SDL_Scancode enumeration.
 		/// @return Whether the key is released or not.
-		bool KeyReleased(SDL_Scancode scancodeToTest) const { return GetKeyboardButtonState(scancodeToTest, InputState::Released); }
+		bool KeyReleased(SDL_Scancode scancodeToTest, int whichPlayer = -1) const { return GetKeyboardButtonState(scancodeToTest, InputState::Released, whichPlayer); }
+		bool KeyReleasedScancode(SDL_Scancode scancodeToTest) const { return KeyReleased(scancodeToTest); } //!< Lua disambiguation helper.
 
 		/// Gets whether a key was released between the last update and the one previous to it, by keycode.
 		/// @param keycodeToTest A keycode to test. See SDL_KeyCode enumeration.
 		/// @return Whether the key is released or not.
-		bool KeyReleased(SDL_Keycode keycodeToTest) const { return KeyReleased(SDL_GetScancodeFromKey(keycodeToTest)); }
+		bool KeyReleased(SDL_Keycode keycodeToTest, int whichPlayer = -1) const { return KeyReleased(SDL_GetScancodeFromKey(keycodeToTest, NULL), whichPlayer); }
+		bool KeyReleasedKeycode(SDL_Keycode keycodeToTest) const { return KeyReleased(keycodeToTest); } //!< Lua disambiguation helper.
 
 		/// Return true if there are any keyboard button presses at all.
 		/// @return Whether any keyboard buttons have been pressed at all since last frame.
-		bool AnyKeyPress() const;
+		bool AnyKeyPress(SDL_KeyboardID keyboardID = 0) const;
 
 		/// Fills the given string with the text input since the last frame (if any).
 		/// @param text The std::string to fill.
@@ -261,13 +274,20 @@ namespace RTE {
 		/// @param disable Whether to disable mouse positioning or not.
 		void DisableMouseMoving(bool disable = true);
 
+		/// @brief Check if multi mouse and keyboard should be enabled.
+		/// Checks through a list of human players to see if multimouse is required.
+		/// @param player A list of human players.
+		bool CheckMultiMouseKeyboardEnabled(std::optional<std::reference_wrapper<const std::vector<int>>> players = std::nullopt);
+
+		bool AllPlayerInputDevicesKnown(const std::vector<int>& humanPlayers) const;
+
 		/// Get the absolute mouse position in window coordinates.
 		/// @return The absolute mouse position.
-		Vector GetAbsoluteMousePosition() const { return m_AbsoluteMousePos; }
+		Vector GetAbsoluteMousePosition( int whichPlayer = -1) const;
 
 		/// Set the absolute mouse position (e.g. for player input mouse movement). Does not move the system cursor.
 		/// @param pos The new mouse position.
-		void SetAbsoluteMousePosition(const Vector& pos) { m_AbsoluteMousePos = pos; }
+		void SetAbsoluteMousePosition(const Vector& pos, int whichPlayer = -1);
 
 		/// Gets the relative movement of the mouse since last update. Only returns true if the selected player is actually using the mouse.
 		/// @param whichPlayer Which player to get movement for. If the player doesn't use the mouse this always returns a zero vector.
@@ -287,7 +307,7 @@ namespace RTE {
 		/// Sets the absolute screen position of the mouse cursor.
 		/// @param newPos Where to place the mouse.
 		/// @param whichPlayer Which player is trying to control the mouse. Only the player with actual control over the mouse will be affected. -1 means do it regardless of player.
-		void SetMousePos(const Vector& newPos, int whichPlayer = -1) const;
+		void SetMousePos(const Vector& newPos, int whichPlayer = -1);
 
 		/// Gets mouse sensitivity while in Activity.
 		/// @return The current mouse sensitivity.
@@ -301,19 +321,24 @@ namespace RTE {
 		/// @param whichButton Which button to check for.
 		/// @param whichPlayer Which player to check for.
 		/// @return Whether the mouse button is held or not.
-		bool MouseButtonHeld(int whichButton, int whichPlayer = Players::PlayerOne) const { return GetMouseButtonState(whichPlayer, whichButton, InputState::Held); }
+		bool MouseButtonHeld(int whichButton, int whichPlayer = Players::PlayerOne, SDL_MouseID mouse = 0) const { return GetMouseButtonState(whichPlayer, whichButton, InputState::Held, mouse); }
 
 		/// Gets whether a mouse button was pressed between the last update and the one previous to it.
 		/// @param whichButton Which button to check for.
 		/// @param whichPlayer Which player to check for.
 		/// @return Whether the mouse button is pressed or not.
-		bool MouseButtonPressed(int whichButton, int whichPlayer = Players::PlayerOne) const { return GetMouseButtonState(whichPlayer, whichButton, InputState::Pressed); }
+		bool MouseButtonPressed(int whichButton, int whichPlayer = Players::PlayerOne, SDL_MouseID mouse = 0) const { return GetMouseButtonState(whichPlayer, whichButton, InputState::Pressed, mouse); }
 
 		/// Gets whether a mouse button was released between the last update and the one previous to it.
 		/// @param whichButton Which button to check for.
 		/// @param whichPlayer Which player to check for.
 		/// @return Whether the mouse button is released or not.
-		bool MouseButtonReleased(int whichButton, int whichPlayer = Players::PlayerOne) const { return GetMouseButtonState(whichPlayer, whichButton, InputState::Released); }
+		bool MouseButtonReleased(int whichButton, int whichPlayer = Players::PlayerOne, SDL_MouseID mouse = 0) const { return GetMouseButtonState(whichPlayer, whichButton, InputState::Released, mouse); }
+
+		const std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS>& GetMouseState(int whichPlayer = -1) const;
+		const std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS>& GetMouseChange(int whichPlayer = -1) const;
+
+		void ClearMouseButtons();
 
 		/// Gets whether the mouse wheel has been moved past the threshold limit in either direction this frame.
 		/// @return The direction the mouse wheel has been moved which is past that threshold. 0 means not past, negative means moved down, positive means moved up.
@@ -323,12 +348,12 @@ namespace RTE {
 		/// @param player The player to get mouse wheel position for.
 		/// @return The relative mouse wheel position for the specified player.
 		int MouseWheelMovedByPlayer(int player) const {
-			return (IsInMultiplayerMode() && player >= Players::PlayerOne && player < Players::MaxPlayerCount) ? m_NetworkMouseWheelState[player] : m_MouseWheelChange;
+			return m_MouseWheelChange;
 		}
 
 		/// Return true if there are any mouse button presses at all.
 		/// @return Whether any mouse buttons have been pressed at all since last frame.
-		bool AnyMouseButtonPress() const;
+		bool AnyMouseButtonPress(SDL_MouseID mouseID = 0) const;
 
 		/// Sets the mouse to be trapped in the middle of the screen so it doesn't go out and click on other windows etc.
 		/// This is usually used when the cursor is invisible and only relative mouse movements are used.
@@ -344,7 +369,7 @@ namespace RTE {
 		/// @param width The width of the box.
 		/// @param height The height of the box.
 		/// @param whichPlayer Which player is trying to control the mouse. Only the player with actual control over the mouse will be affected. -1 means do it regardless of player.
-		void ForceMouseWithinBox(int x, int y, int width, int height, int whichPlayer = Players::NoPlayer) const;
+		void ForceMouseWithinBox(int x, int y, int width, int height, int whichPlayer = Players::NoPlayer);
 #pragma endregion
 
 #pragma region Joystick Handling
@@ -356,6 +381,8 @@ namespace RTE {
 		/// @param device The InputDevice to get index from.
 		/// @return The corrected index. A non-joystick device will result in an out of range value returned which will not affect any active joysticks.
 		int GetJoystickIndex(InputDevice device) const { return (device >= InputDevice::DEVICE_GAMEPAD_1 && device < InputDevice::DEVICE_COUNT) ? device - InputDevice::DEVICE_GAMEPAD_1 : InputDevice::DEVICE_COUNT; }
+
+		SDL_JoystickID GetGamepadID(InputDevice gamepad) const;
 
 		/// Gets the number of axes of the specified joystick.
 		/// @param whichJoy Joystick to check.
@@ -437,72 +464,6 @@ namespace RTE {
 		bool AnyJoyButtonPress(int whichJoy) const;
 #pragma endregion
 
-#pragma region Network Handling
-		/// Returns true if manager is in multiplayer mode.
-		/// @return True if in multiplayer mode.
-		bool IsInMultiplayerMode() const { return m_OverrideInput; }
-
-		/// Sets the multiplayer mode flag.
-		/// @param value Whether this manager should operate in multiplayer mode.
-		void SetMultiplayerMode(bool value) { m_OverrideInput = value; }
-
-		/// Gets the position of the mouse for a player during network multiplayer.
-		/// @param player The player to get for.
-		/// @return The position of the mouse for the specified player
-		Vector GetNetworkAccumulatedRawMouseMovement(int player);
-
-		/// Sets the position of the mouse for a player during network multiplayer.
-		/// @param player The player to set for.
-		/// @param input The new position of the mouse.
-		void SetNetworkMouseMovement(int player, const Vector& input) { m_NetworkAccumulatedRawMouseMovement[player] += input; }
-
-		/// Sets whether an input element is held by a player during network multiplayer.
-		/// @param player Which player to set for.
-		/// @param element Which input element to set for.
-		/// @param state The new state of the input element. True or false.
-		void SetNetworkInputElementState(int player, int element, bool state);
-
-		/// Sets whether a mouse button is held by a player during network multiplayer.
-		/// @param player Which player to set for.
-		/// @param whichButton Which mouse button to set for.
-		/// @param state The new state of the mouse button. True or false.
-		void SetNetworkMouseButtonHeldState(int player, int whichButton, bool state) { SetNetworkMouseButtonState(player, whichButton, InputState::Held, state); }
-
-		/// Sets whether a mouse button is pressed by a player during network multiplayer.
-		/// @param player Which player to set for.
-		/// @param whichButton Which mouse button to set for.
-		/// @param state The new state of the mouse button. True or false.
-		void SetNetworkMouseButtonPressedState(int player, int whichButton, bool state) { SetNetworkMouseButtonState(player, whichButton, InputState::Pressed, state); }
-
-		/// Sets whether a mouse button is released by a player during network multiplayer.
-		/// @param player Which player to set for.
-		/// @param whichButton Which mouse button to set for.
-		/// @param state The new state of the mouse button. True or false.
-		void SetNetworkMouseButtonReleasedState(int player, int whichButton, bool state) { SetNetworkMouseButtonState(player, whichButton, InputState::Released, state); }
-
-		/// Sets the state of the mouse wheel for a player during network multiplayer.
-		/// @param player The player to set for.
-		/// @param state The new state of the mouse wheel.
-		void SetNetworkMouseWheelState(int player, int state) {
-			if (player >= Players::PlayerOne && player < Players::MaxPlayerCount) {
-				m_NetworkMouseWheelState[player] += state;
-			}
-		}
-
-		/// Gets whether the specified input element is pressed during network multiplayer.
-		/// @param element The input element to check for.
-		/// @return Whether the specified input element is pressed or not.
-		bool NetworkAccumulatedElementPressed(int element) const { return NetworkAccumulatedElementState(element, InputState::Pressed); }
-
-		/// Gets whether the specified input element is released during network multiplayer.
-		/// @param element The input element to check for.
-		/// @return Whether the specified input element is released or not.
-		bool NetworkAccumulatedElementReleased(int element) const { return NetworkAccumulatedElementState(element, InputState::Released); }
-
-		/// Clears all the accumulated input element states.
-		void ClearNetworkAccumulatedStates();
-#pragma endregion
-
 	private:
 		/// Enumeration for the different states an input element or button can be in.
 		enum InputState {
@@ -512,12 +473,24 @@ namespace RTE {
 			InputStateCount
 		};
 
-		static std::array<uint8_t, SDL_NUM_SCANCODES> s_PrevKeyStates; //!< Key states as they were the previous update.
-		static std::array<uint8_t, SDL_NUM_SCANCODES> s_ChangedKeyStates; //!< Key states that have changed.
+		struct Keyboard {
+			SDL_KeyboardID id{0};
+			std::array<bool, SDL_SCANCODE_COUNT> keyStates{};
+			std::array<bool, SDL_SCANCODE_COUNT> changedKeyStates{};
+		};
+		std::unordered_map<SDL_KeyboardID, Keyboard> m_KeyboardStates; //!< Keyboard state when multi keyboard support is enabled.
 
-		static std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS> s_CurrentMouseButtonStates; //!< Current mouse button states.
-		static std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS> s_PrevMouseButtonStates; //!< Mouse button states as they were the previous update.
-		static std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS> s_ChangedMouseButtonStates; //!< Mouse button states that have changed since previous update.
+		struct Mouse {
+			SDL_MouseID id{0};
+			std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS> state{};
+			std::array<bool, MouseButtons::MAX_MOUSE_BUTTONS> change{};
+			Vector position{};
+			Vector relativeMotion{};
+			Vector analogAim{};
+			float wheelChange{0.0f};
+			bool relativeMode{};
+		};
+		std::unordered_map<SDL_MouseID, Mouse> m_MouseStates; //!< Mouse states. Only MouseStates[0] is guaranteed to exist and contains the combined mouse input.
 
 		static std::vector<Gamepad> s_PrevJoystickStates; //!< Joystick states as they were the previous update.
 		static std::vector<Gamepad> s_ChangedJoystickStates; //!< Joystick states that have changed.
@@ -547,25 +520,15 @@ namespace RTE {
 
 		InputDevice m_LastDeviceWhichControlledGUICursor; //!< Indicates which device controlled the cursor last time.
 
+		bool m_ForceDisableMultiMouseKeyboard{false}; //!< Whether to force enable muti mouse/keyboard support.
+		bool m_EnableMultiMouseKeyboard{true}; //!< Allow use of multiple mice and keyboards. (Enables relative mouse mode.)
+		bool m_PlayerMouseKeyboardKnown{false}; //!< Whether all player devices are known when multiple mouse and/or keyboards are requested.
 		bool m_DisableKeyboard; //!< Temporarily disable all keyboard input reading.
 		bool m_DisableMouseMoving; //!< Temporary disable for positioning the mouse, for when the game window is not in focus.
 
 		/// This is set when focus is switched back to the game window and will cause the m_DisableMouseMoving to switch to false when the mouse button is RELEASED.
 		/// This is to avoid having the window fly away because the user clicked the title bar.
 		bool m_PrepareToEnableMouseMoving;
-
-		bool m_NetworkAccumulatedElementState[InputElements::INPUT_COUNT][InputState::InputStateCount]; //!< The state of a client input element during network multiplayer.
-		bool m_NetworkServerChangedInputElementState[Players::MaxPlayerCount][InputElements::INPUT_COUNT]; //!< The server side state of a player's input element during network multiplayer.
-
-		std::array<std::array<bool, InputElements::INPUT_COUNT>, Players::MaxPlayerCount> m_NetworkServerPreviousInputElementState;
-		bool m_NetworkServerChangedMouseButtonState[Players::MaxPlayerCount][MouseButtons::MAX_MOUSE_BUTTONS]; //!< The state of a player's mouse button during network multiplayer.
-		std::array<std::array<bool, InputElements::INPUT_COUNT>, Players::MaxPlayerCount> m_NetworkServerPreviousMouseButtonState;
-
-		Vector m_NetworkAccumulatedRawMouseMovement[Players::MaxPlayerCount]; //!< The position of the mouse for each player during network multiplayer.
-		Vector m_NetworkAnalogMoveData[Players::MaxPlayerCount]; //!< Mouse analog movement data for each player during network multiplayer.
-		int m_NetworkMouseWheelState[Players::MaxPlayerCount]; //!< The position of a player's mouse wheel during network multiplayer.
-
-		bool m_TrapMousePosPerPlayer[Players::MaxPlayerCount]; //!< Whether to trap the mouse position to the middle of the screen for each player during network multiplayer.
 
 		static constexpr double c_GamepadAxisLimit = 32767.0; //!< Maximum axis value as defined by SDL (int16 max).
 		static constexpr int c_AxisDigitalPressedThreshold = 8192; //!< Digital Axis threshold value as defined by allegro.
@@ -587,8 +550,6 @@ namespace RTE {
 		/// @return Whether the element is in the specified state or not.
 		bool GetInputElementState(int whichPlayer, int whichElement, InputState whichState);
 
-		bool GetNetworkInputElementState(int whichPlayer, int whichElement, InputState whichState);
-
 		/// Gets whether any generic button with the menu cursor is in the specified state.
 		/// @param whichButton Which menu button to check for. See MenuButtons enumeration.
 		/// @param whichState Which state to check for. See InputState enumeration.
@@ -599,21 +560,14 @@ namespace RTE {
 		/// @param scancodeToTest A scancode to test. See SDL_Scancode enumeration.
 		/// @param whichState Which state to check for. See InputState enumeration.
 		/// @return Whether the keyboard key is in the specified state or not.
-		bool GetKeyboardButtonState(SDL_Scancode scancodeToTest, InputState whichState) const;
+		bool GetKeyboardButtonState(SDL_Scancode scancodeToTest, InputState whichState, int whichPlayer = NoPlayer, SDL_KeyboardID keyboard = 0) const;
 
 		/// Gets whether a mouse button is in the specified state.
 		/// @param whichPlayer Which player to check for. See Players enumeration.
 		/// @param whichButton Which mouse button to check for. See MouseButtons enumeration.
 		/// @param whichState Which state to check for. See InputState enumeration.
 		/// @return Whether the mouse button is in the specified state or not.
-		bool GetMouseButtonState(int whichPlayer, int whichButton, InputState whichState) const;
-
-		/// Gets whether a multiplayer mouse button is in the specified state.
-		/// @param whichPlayer Which player to check for. See Players enumeration.
-		/// @param whichButton Which mouse button to check for. See MouseButtons enumeration.
-		/// @param whichState Which state to check for. See InputState enumeration.
-		/// @return Whether the mouse button is in the specified state or not.
-		bool GetNetworkMouseButtonState(int whichPlayer, int whichButton, InputState whichState) const;
+		bool GetMouseButtonState(int whichPlayer, int whichButton, InputState whichState, SDL_MouseID mouse = 0) const;
 
 		/// Gets whether a joystick button is in the specified state.
 		/// @param whichJoy Which joystick to check for.
@@ -629,21 +583,6 @@ namespace RTE {
 		/// @param whichState Which state to check for. See InputState enumeration.
 		/// @return Whether the joystick stick axis is in the specified state or not.
 		bool GetJoystickDirectionState(int whichJoy, int whichAxis, int whichDir, InputState whichState) const;
-
-		/// Sets a mouse button for a player to the specified state during network multiplayer.
-		/// @param player Which player to set for. See Players enumeration.
-		/// @param whichButton Which mouse button to set for. See MouseButtons enumeration.
-		/// @param whichState Which input state to set. See InputState enumeration.
-		/// @param newState The new state of the specified InputState. True or false.
-		void SetNetworkMouseButtonState(int player, int whichButton, InputState whichState, bool newState);
-
-		/// Gets whether an input element is in the specified state during network multiplayer.
-		/// @param element Which element to check for. See InputElements enumeration.
-		/// @param whichState Which state to check for. See InputState enumeration.
-		/// @return Whether the element is in the specified state or not.
-		bool NetworkAccumulatedElementState(int element, InputState whichState) const {
-			return (element < InputElements::INPUT_L_UP || element >= InputElements::INPUT_COUNT) ? false : m_NetworkAccumulatedElementState[element][whichState];
-		}
 #pragma endregion
 
 #pragma region Update Breakdown
@@ -668,9 +607,6 @@ namespace RTE {
 		/// Connect a joystick or gamepad device and add it to the joystick list if a slot is available (up to max player count).
 		/// @param deviceIndex The device index (generated by the connected event or a value up to SDL_NumJoysticks()).
 		void HandleGamepadHotPlug(int deviceIndex);
-
-		/// Stores all the input events that happened during this update to be compared to in the next update. This is called from Update().
-		void StoreInputEventsForNextUpdate();
 #pragma endregion
 
 		/// Clears all the member variables of this UInputMan, effectively resetting the members of this abstraction level only.

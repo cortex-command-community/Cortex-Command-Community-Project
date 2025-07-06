@@ -25,6 +25,9 @@
 #include "BunkerAssemblyScheme.h"
 
 #include "GLResourceMan.h"
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyOpenGL.hpp"
+#include "BigTexture.h"
 
 #include <array>
 #include <string>
@@ -891,12 +894,6 @@ void SceneEditorGUI::Update() {
 							g_SceneMan.GetTerrain()->CleanAir();
 
 							Vector terrainObjectPos = pTO->GetPos() + pTO->GetBitmapOffset();
-							if (pTO->HasBGColorBitmap()) {
-								g_SceneMan.RegisterTerrainChange(terrainObjectPos.GetFloorIntX(), terrainObjectPos.GetFloorIntY(), pTO->GetBitmapWidth(), pTO->GetBitmapHeight(), ColorKeys::g_MaskColor, true);
-							}
-							if (pTO->HasFGColorBitmap()) {
-								g_SceneMan.RegisterTerrainChange(terrainObjectPos.GetFloorIntX(), terrainObjectPos.GetFloorIntY(), pTO->GetBitmapWidth(), pTO->GetBitmapHeight(), ColorKeys::g_MaskColor, false);
-							}
 
 							// TODO: Make IsBrain function to see if one was placed
 							if (pTO->GetPresetName() == "Brain Vault") {
@@ -1185,14 +1182,19 @@ void SceneEditorGUI::Update() {
 	}
 }
 
-void SceneEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const {
+void SceneEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
+	ZoneScoped;
+	TracyGpuZone("SceneEditor Draw");
 	// Done, so don't draw the UI
 	if (m_EditorGUIMode == DONEEDITING)
 		return;
 
-	BITMAP* temp = create_bitmap_ex(bitmap_color_depth(pTargetBitmap), pTargetBitmap->w, pTargetBitmap->h);
-	clear_to_color(temp, 0);
-
+	if (!m_DrawTexture || (m_DrawTexture->m_Width != pTargetBitmap->w && m_DrawTexture->m_Height != pTargetBitmap->h)) {
+		BITMAP* temp = create_bitmap_ex(bitmap_color_depth(pTargetBitmap), pTargetBitmap->w, pTargetBitmap->h);
+		m_DrawBitmap = std::unique_ptr<BITMAP, BitmapDeleter>(temp);
+		m_DrawTexture = std::make_unique<BigTexture>(m_DrawBitmap.get());
+	}
+	clear_to_color(m_DrawBitmap.get(), 0);
 	// The get a std::list of the currently edited set of placed objects in the Scene
 	const std::list<SceneObject*>* pSceneObjectList = 0;
 	if (m_FeatureSet == ONLOADEDIT)
@@ -1202,22 +1204,22 @@ void SceneEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const 
 		// Draw the 'original' set of placed scene objects as solid before the blueprints
 		const std::list<SceneObject*>* pOriginalsList = g_SceneMan.GetScene()->GetPlacedObjects(Scene::PLACEONLOAD);
 		for (std::list<SceneObject*>::const_iterator itr = pOriginalsList->begin(); itr != pOriginalsList->end(); ++itr) {
-			(*itr)->Draw(temp, targetPos);
+			(*itr)->Draw(m_DrawBitmap.get(), targetPos);
 			// Draw basic HUD if an actor
 			Actor* pActor = dynamic_cast<Actor*>(*itr);
 			//            if (pActor)
-			//                pActor->DrawHUD(temp, targetPos);
+			//                pActor->DrawHUD(m_DrawBitmap.get(), targetPos);
 		}
 	} else if (m_FeatureSet == AIPLANEDIT) {
 		pSceneObjectList = g_SceneMan.GetScene()->GetPlacedObjects(Scene::AIPLAN);
 		// Draw the 'original' set of placed scene objects as solid before the planned base
 		const std::list<SceneObject*>* pOriginalsList = g_SceneMan.GetScene()->GetPlacedObjects(Scene::PLACEONLOAD);
 		for (std::list<SceneObject*>::const_iterator itr = pOriginalsList->begin(); itr != pOriginalsList->end(); ++itr) {
-			(*itr)->Draw(temp, targetPos);
+			(*itr)->Draw(m_DrawBitmap.get(), targetPos);
 			// Draw basic HUD if an actor
 			Actor* pActor = dynamic_cast<Actor*>(*itr);
 			//            if (pActor)
-			//                pActor->DrawHUD(temp, targetPos);
+			//                pActor->DrawHUD(m_DrawBitmap.get(), targetPos);
 		}
 	}
 
@@ -1231,7 +1233,7 @@ void SceneEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const 
 			// Draw the currently held object into the order of the std::list if it is to be placed inside
 			if (m_pCurrentObject && m_DrawCurrentObject && i == m_ObjectListOrder) {
 				g_FrameMan.SetTransTableFromPreset(m_BlinkTimer.AlternateReal(333) || m_EditorGUIMode == PLACINGOBJECT ? TransparencyPreset::LessTrans : TransparencyPreset::HalfTrans);
-				m_pCurrentObject->Draw(temp, targetPos, g_DrawTrans);
+				m_pCurrentObject->Draw(m_DrawBitmap.get(), targetPos, g_DrawTrans);
 				pActor = dynamic_cast<Actor*>(m_pCurrentObject);
 				if (pActor)
 					pActor->DrawHUD(pTargetBitmap, targetPos);
@@ -1244,7 +1246,7 @@ void SceneEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const 
 			// Blink trans if we are supposed to blink this one
 			if ((*itr) == m_pObjectToBlink) {
 				g_FrameMan.SetTransTableFromPreset(m_BlinkTimer.AlternateReal(333) ? TransparencyPreset::LessTrans : TransparencyPreset::HalfTrans);
-				(*itr)->Draw(temp, targetPos, g_DrawTrans);
+				(*itr)->Draw(m_DrawBitmap.get(), targetPos, g_DrawTrans);
 			}
 			// Drawing of already placed objects that aren't highlighted or anything
 			else {
@@ -1255,15 +1257,15 @@ void SceneEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const 
 					// Animate the ghosted into appearing solid in the build order to make the order clear
 					if (i >= m_RevealIndex) {
 						g_FrameMan.SetTransTableFromPreset(pActor ? TransparencyPreset::MoreTrans : TransparencyPreset::HalfTrans);
-						(*itr)->Draw(temp, targetPos, g_DrawTrans);
+						(*itr)->Draw(m_DrawBitmap.get(), targetPos, g_DrawTrans);
 					}
 					// Show as non-transparent half the time to still give benefits of WYSIWYG
 					else
-						(*itr)->Draw(temp, targetPos);
+						(*itr)->Draw(m_DrawBitmap.get(), targetPos);
 				}
 				// In full scene edit mode, we want to give a WYSIWYG view
 				else {
-					(*itr)->Draw(temp, targetPos);
+					(*itr)->Draw(m_DrawBitmap.get(), targetPos);
 
 					// Draw team marks for doors, deployments and assemblies
 					Deployment* pDeployment = dynamic_cast<Deployment*>(*itr);
@@ -1304,7 +1306,7 @@ void SceneEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const 
 	if ((m_pCurrentObject && !m_pCurrentObject->IsInGroup("Brains")) && m_EditorGUIMode != INSTALLINGBRAIN && !(m_EditorGUIMode == PLACINGOBJECT && m_PreviousMode == INSTALLINGBRAIN)) {
 		SceneObject* pBrain = g_SceneMan.GetScene()->GetResidentBrain(m_pController->GetPlayer());
 		if (pBrain) {
-			pBrain->Draw(temp, targetPos);
+			pBrain->Draw(m_DrawBitmap.get(), targetPos);
 			// Draw basic HUD if an actor
 			Actor* pActor = dynamic_cast<Actor*>(pBrain);
 			if (pActor)
@@ -1323,27 +1325,24 @@ void SceneEditorGUI::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) const 
 	}
 	// If the held object will be placed at the end of the std::list, draw it last to the scene, transperent blinking
 	else if (m_pCurrentObject && (m_ObjectListOrder < 0 || (pSceneObjectList && m_ObjectListOrder == pSceneObjectList->size()))) {
+		rlZDepth(c_GuiDepth);
 		g_FrameMan.SetTransTableFromPreset(m_BlinkTimer.AlternateReal(333) || m_EditorGUIMode == PLACINGOBJECT ? TransparencyPreset::LessTrans : TransparencyPreset::HalfTrans);
-		m_pCurrentObject->Draw(temp, targetPos, g_DrawTrans);
+		m_pCurrentObject->Draw(m_DrawBitmap.get(), targetPos, g_DrawTrans);
 		Actor* pActor = dynamic_cast<Actor*>(m_pCurrentObject);
 		if (pActor && m_FeatureSet != BLUEPRINTEDIT && m_FeatureSet != AIPLANEDIT)
 			pActor->DrawHUD(pTargetBitmap, targetPos);
+		rlZDepth(c_DefaultDrawDepth);
 	}
 
 	m_pPicker->Draw(pTargetBitmap);
 
+	m_DrawTexture->Update(Box(Vector(), m_DrawTexture->m_Width, m_DrawTexture->m_Height));
+	rlZDepth(-1);
+	m_DrawTexture->Draw(Box(Vector(), m_DrawTexture->m_Width, m_DrawTexture->m_Height), Box(Vector(), m_DrawTexture->m_Width, m_DrawTexture->m_Height));
+	rlZDepth(0);
+
 	// Draw the pie menu
 	m_PieMenu->Draw(pTargetBitmap, targetPos);
-
-	Texture2D tempTexture = g_GLResourceMan.GetStaticTextureFromBitmap(temp);
-
-	rlZDepth(3);
-	DrawTexture(tempTexture, 0, 0, {255, 255, 255, 255});
-	rlZDepth(0.0f);
-	rlDrawRenderBatchActive();
-
-	g_GLResourceMan.DestroyBitmapInfo(temp);
-	destroy_bitmap(temp);
 }
 
 void SceneEditorGUI::UpdateBrainSkyPathAndCost(Vector brainPos) {

@@ -6,7 +6,7 @@
 #include "ActivityMan.h"
 #include "System.h"
 
-#include "SDL_messagebox.h"
+#include <SDL3/SDL_messagebox.h>
 
 #ifdef _WIN32
 #include "Windows.h"
@@ -434,9 +434,20 @@ void RTEError::DumpHardwareInfo() {
 	std::string glVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
 	std::string glVendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
 	std::string glRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+
+	std::string glExtentions = "";
+	GLint numExt = 0;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &numExt);
+	for(GLint i = 0; i < numExt; i++) {
+		glExtentions += "\t";
+		glExtentions += reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i));
+		glExtentions += "\n";
+	}
+
 	std::string hwInfo = "GL Version: " + glVersion + "\n" +
 	                     "GL Vendor: " + glVendor + "\n" +
-	                     "GL Renderer: " + glRenderer + "\n";
+	                     "GL Renderer: " + glRenderer + "\n" +
+	                     "Available Extensions: \n" + glExtentions + "\n";
 
 #if defined(_MSC_VER) || defined(__linux__)
 	int vendorRegs[4] = {0};
@@ -549,7 +560,7 @@ bool RTEError::DumpAbortScreen() {
 	int success = -1;
 	if (glReadPixels != nullptr) {
 		int w, h;
-		SDL_GL_GetDrawableSize(g_WindowMan.GetWindow(), &w, &h);
+		SDL_GetWindowSizeInPixels(g_WindowMan.GetWindow(), &w, &h);
 		if (!(w > 0 && h > 0)) {
 			return false;
 		}

@@ -8,7 +8,7 @@ sources += files(
 'GAScripted.cpp',
 'GATutorial.cpp',
 'GibEditor.cpp',
-'MultiplayerGame.cpp',
-'MultiplayerServerLobby.cpp',
+#'MultiplayerGame.cpp',
+#'MultiplayerServerLobby.cpp',
 'SceneEditor.cpp',
 )

@@ -23,9 +23,6 @@
 #include "ActorEditor.h"
 #include "AssemblyEditor.h"
 
-#include "NetworkServer.h"
-#include "MultiplayerServerLobby.h"
-#include "MultiplayerGame.h"
 #include "MusicMan.h"
 
 #include "zip.h"
@@ -57,9 +54,7 @@ void ActivityMan::Clear() {
 }
 
 bool ActivityMan::Initialize() {
-	if (g_NetworkServer.IsServerModeEnabled()) {
-		return SetStartMultiplayerServerOverview();
-	} else if (IsSetToLaunchIntoEditor()) {
+	if (IsSetToLaunchIntoEditor()) {
 		// Evaluate LaunchIntoEditor before LaunchIntoActivity so it takes priority when both are set, otherwise it is ignored and editor is never launched.
 		return SetStartEditorActivitySetToLaunchInto();
 	} else if (IsSetToLaunchIntoActivity()) {
@@ -272,42 +267,6 @@ bool ActivityMan::SetStartEditorActivitySetToLaunchInto() {
 	}
 }
 
-bool ActivityMan::SetStartMultiplayerActivity() {
-	if (std::unique_ptr<MultiplayerGame> multiplayerGame = std::make_unique<MultiplayerGame>()) {
-		if (g_MetaMan.GameInProgress()) {
-			g_MetaMan.EndGame();
-		}
-		g_SceneMan.SetSceneToLoad("Multiplayer Scene");
-		multiplayerGame->Create();
-		SetStartActivity(multiplayerGame.release());
-		m_ActivityNeedsRestart = true;
-		return true;
-	}
-	return false;
-}
-
-bool ActivityMan::SetStartMultiplayerServerOverview() {
-	g_NetworkServer.Start();
-
-	if (std::unique_ptr<MultiplayerServerLobby> multiplayerServerLobby = std::make_unique<MultiplayerServerLobby>()) {
-		g_UInputMan.SetMultiplayerMode(true);
-		g_FrameMan.SetMultiplayerMode(true);
-		g_AudioMan.SetMultiplayerMode(true);
-		g_AudioMan.SetMasterMuted();
-		g_SceneMan.SetSceneToLoad("Multiplayer Scene");
-
-		multiplayerServerLobby->Create();
-		multiplayerServerLobby->ClearPlayers(true);
-		for (int playerAndTeamNum = Players::PlayerOne; playerAndTeamNum < Players::MaxPlayerCount; ++playerAndTeamNum) {
-			multiplayerServerLobby->AddPlayer(playerAndTeamNum, true, playerAndTeamNum, 0);
-		}
-		SetStartActivity(multiplayerServerLobby.release());
-		m_ActivityNeedsRestart = true;
-		return true;
-	}
-	return false;
-}
-
 int ActivityMan::StartActivity(Activity* activity) {
 	RTEAssert(activity, "Trying to start a null activity!");
 
@@ -397,6 +356,13 @@ void ActivityMan::ResumeActivity() {
 		m_InActivity = true;
 		m_ActivityNeedsResume = false;
 
+		std::vector<int> humanPlayers;
+		for (int player = 0; player < MaxPlayerCount; player++) {
+			if (m_Activity->PlayerHuman(player)) {
+				humanPlayers.push_back(player);
+			}
+		}
+		g_UInputMan.CheckMultiMouseKeyboardEnabled(humanPlayers);
 		PauseActivity(false);
 		g_TimerMan.PauseSim(false);
 		g_PerformanceMan.ResetPerformanceTimings();

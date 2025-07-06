@@ -139,18 +139,6 @@ namespace RTE {
 		bool GetGlowAreasWrapped(const Vector& boxPos, int boxWidth, int boxHeight, std::list<Box>& areaList) const;
 #pragma endregion
 
-#pragma region Network Post Effect Handling
-		/// Copies the specified player's screen relative post effects list of this PostProcessMan to the referenced list. Used for sending post effect data over the network.
-		/// @param whichScreen Which player screen to get list for.
-		/// @param outputList Reference to the list of post effects to copy into.
-		void GetNetworkPostEffectsList(int whichScreen, std::list<PostEffect>& outputList);
-
-		/// Copies the player's screen relative post effects from the referenced list to the list of this PostProcessMan. Used for receiving post effect data over the network.
-		/// @param whichScreen Which player screen to set list for.
-		/// @param inputList Reference to the list of post effects to copy from.
-		void SetNetworkPostEffectsList(int whichScreen, std::list<PostEffect>& inputList);
-#pragma endregion
-
 		/// Gets the backbuffer texture for indexed drawings.
 		/// @return The opengl backbuffer texture for indexed drawings.
 		std::shared_ptr<RenderTarget> GetPostProcessColorBuffer() { return m_PostProcessFramebuffer; }
