@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Default User.DESKTOP-505QBRI\Documents\Code\Cortex-Command-Community-Project\external\sources\fmem\_Bin\CMakeFiles\cc779dc5ec712c50f2b9dcc01220f8ce\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\Default User.DESKTOP-505QBRI\Documents\Code\Cortex-Command-Community-Project\external\sources\fmem\include\fmem.h.in">
+      <Filter>Buildsystem Input Files\include</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{F2F1BF3F-0003-3048-8B0D-3D5AAAB2CC02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{08269C53-20E3-3374-B634-88B85FCB2D6F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Buildsystem Input Files\include">
+      <UniqueIdentifier>{04EA1C95-25DB-3B85-A10E-A79147862BFB}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

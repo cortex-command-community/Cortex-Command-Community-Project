@@ -28,6 +28,8 @@
 #include "zip.h"
 #include "unzip.h"
 
+#include "fmem.h"
+
 using namespace RTE;
 
 ActivityMan::ActivityMan() {
@@ -109,13 +111,6 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	modifiableScene->GetTerrain()->SetPresetName(fileName);
 	modifiableScene->GetTerrain()->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
 
-	// Create zip sav file
-	zipFile zippedSaveFile = zipOpen((g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ccsave").c_str(), APPEND_STATUS_CREATE);
-	if (!zippedSaveFile) {
-		g_ConsoleMan.PrintString("ERROR: Couldn't create zip save file!");
-		return false;
-	}
-
 	std::unique_ptr<std::stringstream> iniStream = std::make_unique<std::stringstream>();
 
 	// Block the main thread for a bit to let the Writer access the relevant data.
@@ -137,9 +132,11 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	writer->NewPropertyWithValue("Scene", modifiableScene.get());
 
 	// Get BITMAPS so save into our zip
-	std::vector<SceneLayerInfo> sceneLayerInfos = scene->GetCopiedSceneLayerBitmaps();
+	// I tired std::moving this into the function directly but threadpool really doesn't like that
+	std::vector<SceneLayerInfo>* sceneLayerInfos = new std::vector<SceneLayerInfo>();
+	*sceneLayerInfos = std::move(scene->GetCopiedSceneLayerBitmaps());
 
-	auto saveWriterData = [&](Writer* writerToSave, std::vector<SceneLayerInfo>&& sceneLayerInfos) {
+	auto saveWriterData = [fileName, sceneLayerInfos](Writer* writerToSave) {
 		std::stringstream* stream = static_cast<std::stringstream*>(writerToSave->GetStream());
 		stream->flush();
 
@@ -147,6 +144,13 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		std::string streamAsString = stream->str();
 
 		zip_fileinfo zfi = {0};
+
+		// Create zip sav file
+		zipFile zippedSaveFile = zipOpen((g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ccsave").c_str(), APPEND_STATUS_CREATE);
+		if (!zippedSaveFile) {
+			g_ConsoleMan.PrintString("ERROR: Couldn't create zip save file!");
+			return;
+		}
 
 		const int defaultCompression = 6;
 		zipOpenNewFileInZip(zippedSaveFile, (fileName + ".ini").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, defaultCompression);
@@ -156,22 +160,38 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		PALETTE palette;
 		get_palette(palette);
 
-		for (const SceneLayerInfo& layerInfo : sceneLayerInfos)
+		for (const SceneLayerInfo& layerInfo : *sceneLayerInfos)
 		{
-			// Allego lacks the fucking ability to save/load png from a byte stream
-			// AAAAAAAAAAAAAAAAAAAAAAAAAAA
-			//zipOpenNewFileInZip(zippedSaveFile, (fileName + " " + layerInfo.name + ".png").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, defaultCompression);
-			//zipWriteInFileInZip(zippedSaveFile, streamAsString.data(), streamAsString.size());
-			//zipCloseFileInZip(zippedSaveFile);
+			// A bit of a finicky workaround, but to save a png to memory we create a memory stream and send that into allegro to save into
+			fmem memStructure;
+			fmem_init(&memStructure);
+
+			// Save the png to our memory stream
+			FILE* stream = fmem_open(&memStructure, "w");
+			save_stream_png(stream, layerInfo.bitmap.get(), palette);
+			fflush(stream);
+
+			// Actually get the memory
+			void* buffer;
+			size_t size;
+			fmem_mem(&memStructure, &buffer, &size);
+
+			zipOpenNewFileInZip(zippedSaveFile, (fileName + " " + layerInfo.name + ".png").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, defaultCompression);
+			zipWriteInFileInZip(zippedSaveFile, static_cast<const char*>(buffer), size);
+			zipCloseFileInZip(zippedSaveFile);
+
+			fclose(stream);
+			fmem_term(&memStructure);
 		}
 
 		zipClose(zippedSaveFile, fileName.c_str());
 
 		delete writerToSave;
+		delete sceneLayerInfos;
 	};
 
 	// For some reason I can't std::move a unique ptr in, so just releasing and deleting manually...
-	m_SaveGameTask.push_back(g_ThreadMan.GetBackgroundThreadPool().submit(saveWriterData, writer.release(), std::move(sceneLayerInfos)));
+	m_SaveGameTask.push_back(g_ThreadMan.GetBackgroundThreadPool().submit(saveWriterData, writer.release()));
 
 	// We didn't transfer ownership, so we must be very careful that sceneAltered's deletion doesn't touch the stuff we got from MovableMan.
 	modifiableScene->ClearPlacedObjectSet(Scene::PlacedObjectSets::PLACEONLOAD, false);

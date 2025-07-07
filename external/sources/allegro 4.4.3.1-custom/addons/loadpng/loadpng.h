@@ -25,13 +25,12 @@ extern "C" {
     #define APNG_FUNC(type, name, args) extern type name args
 #endif /* (defined LOADPNG_DYNAMIC) && (defined ALLEGRO_WINDOWS) */
 
-
+#include <stdio.h>
 
 /* Overkill :-) */
 #define LOADPNG_VERSION		1
 #define LOADPNG_SUBVERSION	5
 #define LOADPNG_VERSIONSTR	"1.5"
-
 
 /* _png_screen_gamma is slightly overloaded (sorry):
  *
@@ -69,8 +68,8 @@ APNG_FUNC(int, save_png, (AL_CONST char *filename, BITMAP *bmp, AL_CONST RGB *pa
 /* Save a bitmap to a PACKFILE in PNG format. */
 APNG_FUNC(int, save_png_pf, (PACKFILE *pack, BITMAP *bmp, AL_CONST RGB *pal));
 
-/* Save a bitmap to a memory buffer in PNG format. */
-APNG_FUNC(int, save_memory_png, (void *buffer, BITMAP *bmp, AL_CONST RGB *pal));
+/* Save a bitmap to a stream in PNG format. */
+APNG_FUNC(int, save_stream_png, (FILE *stream, BITMAP *bmp, AL_CONST RGB *pal));
 
 /* Adds `PNG' to Allegro's internal file type table.
  * You can then just use load_bitmap and save_bitmap as usual.

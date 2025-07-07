@@ -292,11 +292,46 @@ static int really_save_png(PACKFILE *fp, BITMAP *bmp, AL_CONST RGB *pal)
     return -1;
 }
 
+int save_png(AL_CONST char *filename, BITMAP *bmp, AL_CONST RGB *pal)
+{
+    PACKFILE *fp;
+    int result;
+
+    ASSERT(filename);
+    ASSERT(bmp);
+
+    fp = pack_fopen(filename, "w");
+    if (!fp)
+	return -1;
+    
+    acquire_bitmap(bmp);
+    result = really_save_png(fp, bmp, pal);
+    release_bitmap(bmp);
+
+    pack_fclose(fp);
+
+    return result;
+}
+
+int save_png_pf(PACKFILE *pack, BITMAP *bmp, AL_CONST RGB *pal)
+{
+    int result;
+
+    ASSERT(pack);
+    ASSERT(bmp);
+    
+    acquire_bitmap(bmp);
+    result = really_save_png(pack, bmp, pal);
+    release_bitmap(bmp);
+
+    return result;
+}
+
 /* save_memory_png:
  *  Writes a non-interlaced, no-frills PNG, taking the usual save_xyz
  *  parameters.  Returns non-zero on error.
  */
-static int save_memory_png(void *buffer, BITMAP *bmp, AL_CONST RGB *pal)
+int save_stream_png(FILE *stream, BITMAP *bmp, AL_CONST RGB *pal)
 {
     jmp_buf jmpbuf;
     png_structp png_ptr = NULL;
@@ -328,8 +363,8 @@ static int save_memory_png(void *buffer, BITMAP *bmp, AL_CONST RGB *pal)
     }
     png_set_error_fn(png_ptr, jmpbuf, user_error_fn, NULL);
 
-    /* Use memory routines. */
-    png_set_write_fn(png_ptr, buffer, NULL, NULL);
+    /* Use stream routines. */
+	png_set_write_fn(png_ptr, stream, NULL, NULL);
 
     /* Set the image information here.  Width and height are up to 2^31,
      * bit_depth is one of 1, 2, 4, 8, or 16, but valid values also depend on
@@ -416,39 +451,4 @@ static int save_memory_png(void *buffer, BITMAP *bmp, AL_CONST RGB *pal)
     }
 
     return -1;
-}
-
-int save_png(AL_CONST char *filename, BITMAP *bmp, AL_CONST RGB *pal)
-{
-    PACKFILE *fp;
-    int result;
-
-    ASSERT(filename);
-    ASSERT(bmp);
-
-    fp = pack_fopen(filename, "w");
-    if (!fp)
-	return -1;
-    
-    acquire_bitmap(bmp);
-    result = really_save_png(fp, bmp, pal);
-    release_bitmap(bmp);
-
-    pack_fclose(fp);
-
-    return result;
-}
-
-int save_png_pf(PACKFILE *pack, BITMAP *bmp, AL_CONST RGB *pal)
-{
-    int result;
-
-    ASSERT(pack);
-    ASSERT(bmp);
-    
-    acquire_bitmap(bmp);
-    result = really_save_png(pack, bmp, pal);
-    release_bitmap(bmp);
-
-    return result;
 }

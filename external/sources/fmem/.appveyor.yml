@@ -1,0 +1,62 @@
+version: 1.0.0-b{build}-{branch}
+
+os: Visual Studio 2015
+
+environment:
+  matrix:
+  - COMPILER: mingw
+    GENERATOR: "MSYS Makefiles"
+    CPPFLAGS: -D__USE_MINGW_ANSI_STDIO
+  - COMPILER: mingw
+    GENERATOR: "MSYS Makefiles"
+  - COMPILER: msvc
+    GENERATOR: "Visual Studio 14 2015 Win64"
+    BUILD_FLAGS: /verbosity:m
+
+init:
+  - git config --global core.autocrlf input
+  - set MSYSTEM=MINGW64
+
+  # Disable windows process crash popup
+  # See: https://msdn.microsoft.com/en-us/library/bb513638%28VS.85%29.aspx
+  - reg add "HKLM\SYSTEM\CurrentControlSet\Control\Windows" /f /v ErrorMode /t REG_DWORD /d 2
+  - reg add "HKLM\Software\Microsoft\Windows\Windows Error Reporting" /f /v DontShowUI /t REG_DWORD /d 1
+  - reg add "HKLM\Software\Microsoft\Windows\Windows Error Reporting" /f /v Disable /t REG_DWORD /d 1
+
+  - set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%
+  - set PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\build;C:\criterion-v2.3.2\bin
+
+  # Remove Xamarin msbuild warnings
+  - del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
+
+clone_depth: 5
+
+configuration:
+  - RelWithDebInfo
+
+install:
+  # Install Criterion
+  - sh -c 'curl -L https://github.com/Snaipe/Criterion/releases/download/v2.3.2/criterion-v2.3.2-windows-msvc-x86_64.tar.bz2 | tar -xjf - -C /c/'
+
+  # Configure project
+  - 'mkdir build && cd build'
+  - >
+      cmake
+      -Wno-dev
+      -DCMAKE_BUILD_TYPE="%CONFIGURATION%"
+      -DCMAKE_PREFIX_PATH="C:/criterion-v2.3.2"
+      %CMAKE_OPTS%
+      -G "%GENERATOR%"
+      ..
+
+build_script:
+  - cmake --build . -- %BUILD_FLAGS%
+
+test_script:
+  - cp C:\criterion-v2.3.2\bin\criterion.dll %APPVEYOR_BUILD_FOLDER%\build\test\
+  - ps: |
+        ctest --output-on-failure
+        if (-not $lastexitcode -eq 0) {
+            type Testing/Temporary/LastTest.log
+            $host.setshouldexit(1)
+        }
