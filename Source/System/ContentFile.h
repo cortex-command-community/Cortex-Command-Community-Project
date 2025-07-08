@@ -115,6 +115,9 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Data Handling
+		static void ManuallyLoadDataBitmap(const std::string& filePath, BITMAP* bitmap, int conversionMode = 0);
+		static void ManuallyClearDataBitmap(const std::string& filePath, int conversionMode = 0);
+
 		/// Reloads all BITMAPs in the cache from disk, allowing any changes to be reflected at runtime.
 		static void ReloadAllBitmaps();
 

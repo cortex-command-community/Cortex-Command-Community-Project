@@ -120,7 +120,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	writer->NewPropertyWithValue("Scene", modifiableScene.get());
 
 	// Get BITMAPS so save into our zip
-	// I tired std::moving this into the function directly but threadpool really doesn't like that
+	// I tried std::moving this into the function directly but threadpool really doesn't like that
 	std::vector<SceneLayerInfo>* sceneLayerInfos = new std::vector<SceneLayerInfo>();
 	*sceneLayerInfos = std::move(scene->GetCopiedSceneLayerBitmaps());
 
@@ -141,7 +141,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		}
 
 		const int defaultCompression = 6;
-		zipOpenNewFileInZip(zippedSaveFile, (fileName + ".ini").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, defaultCompression);
+		zipOpenNewFileInZip(zippedSaveFile, "Save.ini", &zfi, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, defaultCompression);
 		zipWriteInFileInZip(zippedSaveFile, streamAsString.data(), streamAsString.size());
 		zipCloseFileInZip(zippedSaveFile);
 
@@ -164,7 +164,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 			size_t size;
 			fmem_mem(&memStructure, &buffer, &size);
 
-			zipOpenNewFileInZip(zippedSaveFile, (fileName + " " + layerInfo.name + ".png").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, defaultCompression);
+			zipOpenNewFileInZip(zippedSaveFile, ("Save " + layerInfo.name + ".png").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, defaultCompression);
 			zipWriteInFileInZip(zippedSaveFile, static_cast<const char*>(buffer), size);
 			zipCloseFileInZip(zippedSaveFile);
 
@@ -191,9 +191,10 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	m_SaveGameTask.wait();
 
-	std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ccsave";
+	std::string filePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName;
 
 	// load zip sav file
+	std::string saveFilePath = filePath + ".ccsave";
 	unzFile zippedSaveFile = unzOpen(saveFilePath.c_str());
 	if (!zippedSaveFile) {
 		RTEError::ShowMessageBox("Game loading failed! Make sure you have a saved game called \"" + fileName + "\"");
@@ -218,9 +219,9 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 		unzCloseCurrentFile(zippedSaveFile);
 	};
 
-	unzipFileIntoBuffer(fileName + ".ini");
+	unzipFileIntoBuffer("Save.ini");
 
-	Reader reader(std::make_unique<std::istringstream>(buffer), saveFilePath, true, nullptr, false);
+	Reader reader(std::make_unique<std::istringstream>(buffer), filePath + "/Save.ini", true, nullptr, false);
 
 	std::unique_ptr<Scene> scene(std::make_unique<Scene>());
 	std::unique_ptr<GAScripted> activity(std::make_unique<GAScripted>());
@@ -247,6 +248,30 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 
 	int numberOfTeams = activity->m_TeamCount;
 
+	// Manually load all our bitmaps into our cache so the activity skips looking for the file and just gets it directly from us
+	PALETTE palette;
+	get_palette(palette);
+
+	unzipFileIntoBuffer("Save Mat.png");
+	ContentFile::ManuallyLoadDataBitmap(filePath + "/Save Mat.png", load_memory_png(buffer, info.uncompressed_size, palette));
+	free(buffer);
+
+	unzipFileIntoBuffer("Save FG.png");
+	ContentFile::ManuallyLoadDataBitmap(filePath + "/Save FG.png", load_memory_png(buffer, info.uncompressed_size, palette));
+	free(buffer);
+
+	unzipFileIntoBuffer("Save BG.png");
+	ContentFile::ManuallyLoadDataBitmap(filePath + "/Save BG.png", load_memory_png(buffer, info.uncompressed_size, palette));
+	free(buffer);
+
+	for (int i = 0; i < numberOfTeams; ++i) {
+		unzipFileIntoBuffer(std::format("Save UST%i.png", i));
+		ContentFile::ManuallyLoadDataBitmap(filePath + std::format("/Save UST%i", i), load_memory_png(buffer, info.uncompressed_size, palette));
+		free(buffer);
+	}
+
+	unzClose(zippedSaveFile);
+
 	// SetSceneToLoad() doesn't Clone(), but when the Activity starts, it will eventually call LoadScene(), which does a Clone() of scene internally.
 	g_SceneMan.SetSceneToLoad(scene.get(), true, true);
 	// Saved Scenes get their presetname set to their filename to ensure they're separate from the preset Scene they're based off of.
@@ -257,31 +282,13 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	// When this method exits, our Scene object will be destroyed, which will cause problems if you try to restart it. To avoid this, set the Scene to load to the preset object with the same name.
 	g_SceneMan.SetSceneToLoad(originalScenePresetName, placeObjectsIfSceneIsRestarted, placeUnitsIfSceneIsRestarted);
 
-	// Replace our scene images with the ones from the zip
-	std::vector<SceneLayerInfo> layerInfos;
-
-	PALETTE palette;
-	get_palette(palette);
-
-	unzipFileIntoBuffer(fileName + " Mat.png");
-	layerInfos.emplace_back("Mat", std::unique_ptr<BITMAP>(load_memory_png(buffer, info.uncompressed_size, palette)));
-	free(buffer);
-
-	unzipFileIntoBuffer(fileName + " FG.png");
-	layerInfos.emplace_back("FG",  std::unique_ptr<BITMAP>(load_memory_png(buffer, info.uncompressed_size, palette)));
-	free(buffer);
-
-	unzipFileIntoBuffer(fileName + " BG.png");
-	layerInfos.emplace_back("BG",  std::unique_ptr<BITMAP>(load_memory_png(buffer, info.uncompressed_size, palette)));
-	free(buffer);
-
+	// Clear out the cache, we don't need it anymore (and don't want a cache reload to look for this file thinking it really exists)
+	ContentFile::ManuallyClearDataBitmap(filePath + "/Save Mat.png");
+	ContentFile::ManuallyClearDataBitmap(filePath + "/Save FG.png");
+	ContentFile::ManuallyClearDataBitmap(filePath + "/Save BG.png");
 	for (int i = 0; i < numberOfTeams; ++i) {
-		unzipFileIntoBuffer(fileName + std::format(" T%i.png", i));
-		layerInfos.emplace_back(std::format("T%i", i), std::unique_ptr<BITMAP>(load_memory_png(buffer, info.uncompressed_size, palette)));
-		free(buffer);
+		ContentFile::ManuallyClearDataBitmap(filePath + std::format("/Save UST%i.png", i));
 	}
-
-	g_SceneMan.GetScene()->ConstructSceneLayersFromBitmaps(std::move(layerInfos));
 	
 	g_ConsoleMan.PrintString("SYSTEM: Game \"" + fileName + "\" loaded!");
 

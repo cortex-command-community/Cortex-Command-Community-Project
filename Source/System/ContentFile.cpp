@@ -182,6 +182,20 @@ void ContentFile::ReadAndStoreBMPFileInfo(FILE* imageFile) {
 	}
 }
 
+void ContentFile::ManuallyLoadDataBitmap(const std::string& filePath, BITMAP* bitmap, int conversionMode) {
+	const int bitDepth = conversionMode == COLORCONV_8_TO_32 ? BitDepths::ThirtyTwo : BitDepths::Eight;
+	s_LoadedBitmaps[bitDepth].try_emplace(filePath, bitmap);
+}
+
+void ContentFile::ManuallyClearDataBitmap(const std::string& filePath, int conversionMode) {
+	const int bitDepth = conversionMode == COLORCONV_8_TO_32 ? BitDepths::ThirtyTwo : BitDepths::Eight;
+	std::unordered_map<std::string, BITMAP*>::iterator foundBitmap = s_LoadedBitmaps[bitDepth].find(filePath);
+	if (foundBitmap != s_LoadedBitmaps[bitDepth].end()) {
+		delete (*foundBitmap).second;
+		s_LoadedBitmaps[bitDepth].erase(filePath);
+	}
+}
+
 void ContentFile::ReloadAllBitmaps() {
 	for (const std::unordered_map<std::string, BITMAP*>& bitmapCache: s_LoadedBitmaps) {
 		for (const auto& [filePath, oldBitmap]: bitmapCache) {
