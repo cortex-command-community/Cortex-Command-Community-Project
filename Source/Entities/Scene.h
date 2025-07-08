@@ -251,7 +251,9 @@ namespace RTE {
 		/// Anything below 0 is an error signal.
 		int SaveData(std::string pathBase, bool doAsyncSaves = true);
 
-		std::vector<SceneLayerInfo> GetCopiedSceneLayerBitmaps();
+		void ConstructSceneLayersFromBitmaps(std::vector<SceneLayerInfo>&& layerInfos);
+
+		std::vector<SceneLayerInfo> GetCopiedSceneLayerBitmaps() const;
 
 		/// Saves preview bitmap for this scene.
 		/// @param bitmapPath The full filepath the where to save the Bitmap data.

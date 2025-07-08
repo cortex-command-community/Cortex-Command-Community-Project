@@ -90,6 +90,14 @@ namespace RTE {
 		/// @param layerToDraw The layer that should be drawn. See LayerType enumeration.
 		void SetLayerToDraw(LayerType layerToDraw) { m_LayerToDraw = layerToDraw; }
 
+		/// Gets the foreground scenelayer of this SLTerrain.
+		/// @return A pointer to the foreground scenelayer.
+		SceneLayer* GetFGSceneLayer() { return m_FGColorLayer.get(); }
+
+		/// Gets the background scenelayer of this SLTerrain.
+		/// @return A pointer to the background scenelayer.
+		SceneLayer* GetBGSceneLayer() { return m_BGColorLayer.get(); }
+
 		/// Gets the foreground color bitmap of this SLTerrain.
 		/// @return A pointer to the foreground color bitmap.
 		BITMAP* GetFGColorBitmap() { return m_FGColorLayer->GetBitmap(); m_FGColorLayer->SetUpdated(); }

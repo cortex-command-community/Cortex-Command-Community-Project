@@ -847,7 +847,23 @@ int Scene::SaveData(std::string pathBase, bool doAsyncSaves) {
 	return 0;
 }
 
-std::vector<SceneLayerInfo> Scene::GetCopiedSceneLayerBitmaps() {
+void Scene::ConstructSceneLayersFromBitmaps(std::vector<SceneLayerInfo>&& layerInfos) {
+	for (SceneLayerInfo& sceneLayerInfo : layerInfos) {
+		if (sceneLayerInfo.name == "Mat") {
+			m_pTerrain->LoadDataFromBitmap(sceneLayerInfo.bitmap.release());
+		} else if (sceneLayerInfo.name == "FG") {
+			m_pTerrain->GetFGSceneLayer()->LoadDataFromBitmap(sceneLayerInfo.bitmap.release());
+		} else if (sceneLayerInfo.name == "BG") {
+			m_pTerrain->GetBGSceneLayer()->LoadDataFromBitmap(sceneLayerInfo.bitmap.release());
+		} else {
+			char endCh = sceneLayerInfo.name.back();
+			int team = endCh - '0';
+			m_apUnseenLayer[team]->LoadDataFromBitmap(sceneLayerInfo.bitmap.release());
+		}
+	}
+}
+
+std::vector<SceneLayerInfo> Scene::GetCopiedSceneLayerBitmaps() const {
 	std::vector<SceneLayerInfo> layerInfos;
 
 	// Save Terrain's data

@@ -201,21 +201,24 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	}
 
 	unz_file_info info;
-	char* buffer;
+	char* buffer = nullptr;
 
-	unzLocateFile(zippedSaveFile, (fileName + ".ini").c_str(), nullptr);
-	unzOpenCurrentFile(zippedSaveFile);
-	unzGetCurrentFileInfo(zippedSaveFile, &info, nullptr, 0, nullptr, 0, nullptr, 0);
-	
-	buffer = (char*)malloc(info.uncompressed_size);
-	if (!buffer) {
-		// If this ever hits I've lost all faith in modern OSes, but alas when one is writing C, one must dance along
-		RTEError::ShowMessageBox("Catastrophic failure! Failed to allocate memory for savegame");
-		return false;
-	}
+	auto unzipFileIntoBuffer = [&](std::string fullFileName) {
+		unzLocateFile(zippedSaveFile, fullFileName.c_str(), nullptr);
+		unzOpenCurrentFile(zippedSaveFile);
+		unzGetCurrentFileInfo(zippedSaveFile, &info, nullptr, 0, nullptr, 0, nullptr, 0);
 
-	unzReadCurrentFile(zippedSaveFile, buffer, info.uncompressed_size);
-	unzCloseCurrentFile(zippedSaveFile);
+		buffer = (char*)malloc(info.uncompressed_size);
+		if (!buffer) {
+			// If this ever hits I've lost all faith in modern OSes, but alas when one is writing C, one must dance along
+			RTEError::ShowMessageBox("Catastrophic failure! Failed to allocate memory for savegame");
+		}
+
+		unzReadCurrentFile(zippedSaveFile, buffer, info.uncompressed_size);
+		unzCloseCurrentFile(zippedSaveFile);
+	};
+
+	unzipFileIntoBuffer(fileName + ".ini");
 
 	Reader reader(std::make_unique<std::istringstream>(buffer), saveFilePath, true, nullptr, false);
 
@@ -240,6 +243,10 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 		}
 	}
 
+	free(buffer);
+
+	int numberOfTeams = activity->m_TeamCount;
+
 	// SetSceneToLoad() doesn't Clone(), but when the Activity starts, it will eventually call LoadScene(), which does a Clone() of scene internally.
 	g_SceneMan.SetSceneToLoad(scene.get(), true, true);
 	// Saved Scenes get their presetname set to their filename to ensure they're separate from the preset Scene they're based off of.
@@ -250,9 +257,34 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	// When this method exits, our Scene object will be destroyed, which will cause problems if you try to restart it. To avoid this, set the Scene to load to the preset object with the same name.
 	g_SceneMan.SetSceneToLoad(originalScenePresetName, placeObjectsIfSceneIsRestarted, placeUnitsIfSceneIsRestarted);
 
+	// Replace our scene images with the ones from the zip
+	std::vector<SceneLayerInfo> layerInfos;
+
+	PALETTE palette;
+	get_palette(palette);
+
+	unzipFileIntoBuffer(fileName + " Mat.png");
+	layerInfos.emplace_back("Mat", std::unique_ptr<BITMAP>(load_memory_png(buffer, info.uncompressed_size, palette)));
+	free(buffer);
+
+	unzipFileIntoBuffer(fileName + " FG.png");
+	layerInfos.emplace_back("FG",  std::unique_ptr<BITMAP>(load_memory_png(buffer, info.uncompressed_size, palette)));
+	free(buffer);
+
+	unzipFileIntoBuffer(fileName + " BG.png");
+	layerInfos.emplace_back("BG",  std::unique_ptr<BITMAP>(load_memory_png(buffer, info.uncompressed_size, palette)));
+	free(buffer);
+
+	for (int i = 0; i < numberOfTeams; ++i) {
+		unzipFileIntoBuffer(fileName + std::format(" T%i.png", i));
+		layerInfos.emplace_back(std::format("T%i", i), std::unique_ptr<BITMAP>(load_memory_png(buffer, info.uncompressed_size, palette)));
+		free(buffer);
+	}
+
+	g_SceneMan.GetScene()->ConstructSceneLayersFromBitmaps(std::move(layerInfos));
+	
 	g_ConsoleMan.PrintString("SYSTEM: Game \"" + fileName + "\" loaded!");
 
-	free(buffer);
 	return true;
 }
 
