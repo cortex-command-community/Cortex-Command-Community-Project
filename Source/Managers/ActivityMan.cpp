@@ -84,18 +84,6 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		return false;
 	}
 
-	// THIS BLOCK OF CODE NEEDS ZIPPIFIED!
-	/*
-	// TODO, save to a zip instead of a directory
-	std::filesystem::create_directory(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName);
-
-	if (scene->SaveData(c_UserScriptedSavesModuleName + "/" + fileName + "/Save") < 0) {
-		// This print is actually pointless because game will abort if it fails to save layer bitmaps. It stays here for now because in reality the game doesn't properly abort if the layer bitmaps fail to save. It is what it is.
-		g_ConsoleMan.PrintString("ERROR: Failed to save scene bitmaps while saving!");
-		return false;
-	}
-	*/
-
 	// We need a copy of our scene, because we have to do some fixup to remove PLACEONLOAD items and only keep the current MovableMan state.
 	std::unique_ptr<Scene> modifiableScene(dynamic_cast<Scene*>(scene->Clone()));
 
@@ -203,16 +191,33 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	m_SaveGameTask.wait();
 
-	// TODO- this needs to load a zip!
+	std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ccsave";
 
-	std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + "/Save.ini";
-
-	if (!std::filesystem::exists(saveFilePath)) {
+	// load zip sav file
+	unzFile zippedSaveFile = unzOpen(saveFilePath.c_str());
+	if (!zippedSaveFile) {
 		RTEError::ShowMessageBox("Game loading failed! Make sure you have a saved game called \"" + fileName + "\"");
 		return false;
 	}
 
-	Reader reader(saveFilePath, true, nullptr, false);
+	unz_file_info info;
+	char* buffer;
+
+	unzLocateFile(zippedSaveFile, (fileName + ".ini").c_str(), nullptr);
+	unzOpenCurrentFile(zippedSaveFile);
+	unzGetCurrentFileInfo(zippedSaveFile, &info, nullptr, 0, nullptr, 0, nullptr, 0);
+	
+	buffer = (char*)malloc(info.uncompressed_size);
+	if (!buffer) {
+		// If this ever hits I've lost all faith in modern OSes, but alas when one is writing C, one must dance along
+		RTEError::ShowMessageBox("Catastrophic failure! Failed to allocate memory for savegame");
+		return false;
+	}
+
+	unzReadCurrentFile(zippedSaveFile, buffer, info.uncompressed_size);
+	unzCloseCurrentFile(zippedSaveFile);
+
+	Reader reader(std::make_unique<std::istringstream>(buffer), saveFilePath, true, nullptr, false);
 
 	std::unique_ptr<Scene> scene(std::make_unique<Scene>());
 	std::unique_ptr<GAScripted> activity(std::make_unique<GAScripted>());
@@ -246,6 +251,8 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	g_SceneMan.SetSceneToLoad(originalScenePresetName, placeObjectsIfSceneIsRestarted, placeUnitsIfSceneIsRestarted);
 
 	g_ConsoleMan.PrintString("SYSTEM: Game \"" + fileName + "\" loaded!");
+
+	free(buffer);
 	return true;
 }
 
