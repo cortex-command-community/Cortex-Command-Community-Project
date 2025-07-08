@@ -203,6 +203,7 @@ template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::LoadDataFromBitmap(BITMAP* bitmap) {
 	if (m_MainBitmapOwned) {
 		destroy_bitmap(m_MainBitmap);
+		m_MainBitmap = nullptr;
 	}
 
 	m_MainBitmap = bitmap;
@@ -222,6 +223,7 @@ template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::LoadData() {
 	if (m_MainBitmapOwned) {
 		destroy_bitmap(m_MainBitmap);
+		m_MainBitmap = nullptr;
 	}
 
 	// Load from disk and take ownership. Don't cache because the bitmap will be modified.
