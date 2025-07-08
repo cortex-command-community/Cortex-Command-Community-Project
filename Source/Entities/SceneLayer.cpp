@@ -220,6 +220,10 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::LoadDataFromBitmap(BITMAP* b
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::LoadData() {
+	if (m_MainBitmapOwned) {
+		destroy_bitmap(m_MainBitmap);
+	}
+
 	// Load from disk and take ownership. Don't cache because the bitmap will be modified.
 	m_MainBitmap = m_BitmapFile.GetAsBitmap(COLORCONV_NONE, false);
 	m_MainBitmapOwned = true;
