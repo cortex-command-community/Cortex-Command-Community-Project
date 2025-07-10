@@ -59,7 +59,7 @@
 //----------------------------------------------------------------------------------
 // Global Variables Definition
 //----------------------------------------------------------------------------------
-static int logTypeLevel = LOG_INFO;                 // Minimum log type level
+static int logTypeLevel = LOG_ERROR;                 // Minimum log type level
 
 static TraceLogCallback traceLog = NULL;            // TraceLog callback function pointer
 static LoadFileDataCallback loadFileData = NULL;    // LoadFileData callback function pointer
