@@ -154,5 +154,7 @@ GLuint GLResourceMan::UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const st
 
 void GLResourceMan::DestroyBitmapInfo(BITMAP* bitmap) {
 	GLBitmapInfo* info = GetBitmapInfo(bitmap);
-	rlUnloadTexture(info->m_Texture);
+	if (info) {
+		rlUnloadTexture(info->m_Texture);
+	}
 }
