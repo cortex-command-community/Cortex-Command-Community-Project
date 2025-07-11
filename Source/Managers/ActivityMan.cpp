@@ -100,6 +100,10 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	modifiableScene->GetTerrain()->SetPresetName(fileName);
 	modifiableScene->GetTerrain()->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
 
+	modifiableScene->GetTerrain()->OverrideDataPath("Save Mat.png");
+	modifiableScene->GetTerrain()->GetFGSceneLayer()->OverrideDataPath("Save FG.png");
+	modifiableScene->GetTerrain()->GetBGSceneLayer()->OverrideDataPath("Save BG.png");
+
 	std::unique_ptr<std::stringstream> iniStream = std::make_unique<std::stringstream>();
 
 	// Block the main thread for a bit to let the Writer access the relevant data.

@@ -76,6 +76,10 @@ namespace RTE {
 		/// @return Whether this SceneLayer's bitmap data was loaded from a file or not.
 		virtual bool IsLoadedFromDisk() const { return !m_BitmapFile.GetDataPath().empty(); }
 
+		/// Override's this SceneLayer's datapath. Used for saved games
+		/// @param dataPath The new datapath to override this SceneLayer to use.
+		void OverrideDataPath(const std::string& dataPath) { m_BitmapFile.SetDataPath(dataPath); }
+
 		/// Loads previously specified/created data into memory from an existing BITMAP. Has to be done before using this SceneLayer if the bitmap was not generated at runtime.
 		/// @param bitmap Pointer to the bitmap to take. Takes ownership!
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
