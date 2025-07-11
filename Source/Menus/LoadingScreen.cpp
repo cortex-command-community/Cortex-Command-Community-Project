@@ -76,19 +76,11 @@ void LoadingScreen::CreateLoadingSplash(int xOffset) {
 	m_LoadingBackground->Create(ContentFile("Base.rte/GUIs/Title/LoadingSplash.png").GetAsBitmap(COLORCONV_NONE, false), false, Vector(), true, false, Vector(1.0F, 0));
 	m_LoadingBackground->SetOffset(Vector(static_cast<float>(((m_LoadingBackground->GetBitmap()->w - g_WindowMan.GetResX()) / 2) + xOffset), 0));
 
-	Box loadingSplashTargetBox(Vector(0, static_cast<float>((g_WindowMan.GetResY() - m_LoadingBackground->GetBitmap()->h) / 2)), static_cast<float>(g_WindowMan.GetResX()), static_cast<float>(m_LoadingBackground->GetBitmap()->h));
-	RenderTarget defaultTarget{
-		FloatRect(0, 0, g_WindowMan.GetResX(), g_WindowMan.GetResY()),
-		FloatRect(0, 0, g_WindowMan.GetResX(), g_WindowMan.GetResY()),
-		0,
-		Texture2D(),
-		true
-	};
-	defaultTarget.Begin();
-	g_WindowMan.ClearBackbuffer();
+	Box loadingSplashTargetBox(Vector(0, static_cast<float>((g_WindowMan.GetResY() - g_LoadingScreen.m_LoadingBackground->GetBitmap()->h) / 2)), static_cast<float>(g_WindowMan.GetResX()), static_cast<float>(g_LoadingScreen.m_LoadingBackground->GetBitmap()->h));
+	g_WindowMan.ClearBackbuffer(false);
+	g_WindowMan.GetScreenBuffer()->Begin();
 	m_LoadingBackground->Draw(loadingSplashTargetBox, loadingSplashTargetBox);
-	rlDrawRenderBatchActive();
-	g_WindowMan.Present();
+	g_WindowMan.UploadFrame();
 }
 
 void LoadingScreen::CreateProgressReportListbox(GUIControlManager* parentControlManager) {
@@ -152,6 +144,7 @@ void LoadingScreen::LoadingSplashProgressReport(const std::string& reportString,
 		blit(g_LoadingScreen.m_ProgressListboxBitmap, g_FrameMan.GetBackBuffer32(), 0, 0, g_LoadingScreen.m_ProgressListboxPosX, g_LoadingScreen.m_ProgressListboxPosY, g_LoadingScreen.m_ProgressListboxBitmap->w, g_LoadingScreen.m_ProgressListboxBitmap->h);
 
 		Box loadingSplashTargetBox(Vector(0, static_cast<float>((g_WindowMan.GetResY() - g_LoadingScreen.m_LoadingBackground->GetBitmap()->h) / 2)), static_cast<float>(g_WindowMan.GetResX()), static_cast<float>(g_LoadingScreen.m_LoadingBackground->GetBitmap()->h));
+
 		g_WindowMan.ClearBackbuffer(false);
 		g_WindowMan.GetScreenBuffer()->Begin();
 		g_LoadingScreen.m_LoadingBackground->Draw(loadingSplashTargetBox, loadingSplashTargetBox);

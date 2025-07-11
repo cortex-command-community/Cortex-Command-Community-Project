@@ -272,19 +272,18 @@ void ContentFile::GetAsAnimation(std::vector<BITMAP*>& vectorToFill, int frameCo
 	}
 }
 SDL_Palette* ContentFile::DefaultPaletteToSDL() {
-		SDL_Palette* palette = SDL_CreatePalette(256);
-		std::array<SDL_Color, 256> paletteColor;
-		PALETTE currentPalette;
-		get_palette(currentPalette);
-		paletteColor[0] = {.r = 0, .g = 0, .b = 0, .a = 0};
-		for (size_t i = 1; i < paletteColor.size(); ++i) {
-			paletteColor[i].r = currentPalette[i].r;
-			paletteColor[i].g = currentPalette[i].g;
-			paletteColor[i].b = currentPalette[i].b;
-			paletteColor[i].a = 255;
-		}
-		SDL_SetPaletteColors(palette, paletteColor.data(), 0, 256);
-		return palette;
+	SDL_Palette* palette = SDL_CreatePalette(256);
+	std::array<SDL_Color, 256> paletteColor;
+	const PALETTE& defaultPalette = g_FrameMan.GetDefaultPalette();
+	paletteColor[0] = {.r = 0, .g = 0, .b = 0, .a = 0};
+	for (size_t i = 1; i < paletteColor.size(); ++i) {
+		paletteColor[i].r = defaultPalette[i].r;
+		paletteColor[i].g = defaultPalette[i].g;
+		paletteColor[i].b = defaultPalette[i].b;
+		paletteColor[i].a = 255;
+	}
+	SDL_SetPaletteColors(palette, paletteColor.data(), 0, 256);
+	return palette;
 }
 
 SDL_Surface* ContentFile::LoadImageAsSurface(int conversionMode, const std::string& dataPathToLoad) {
@@ -300,7 +299,6 @@ SDL_Surface* ContentFile::LoadImageAsSurface(int conversionMode, const std::stri
 		image = newImage;
 		bitDepth = 8;
 	} else if (bitDepth != 8 || convert8To32) {
-		
 		SDL_Palette* palette = DefaultPaletteToSDL();
 		if (SDL_GetPixelFormatDetails(image->format)->bits_per_pixel == 8) {
 			SDL_SetSurfacePalette(image, palette);
@@ -326,7 +324,7 @@ BITMAP* ContentFile::LoadAndReleaseBitmap(int conversionMode, const std::string&
 	int bitDepth = SDL_GetPixelFormatDetails(image->format)->bits_per_pixel;
 
 	BITMAP* returnBitmap = create_bitmap_ex(bitDepth, image->w, image->h);
-	
+
 	// allegro doesn't (always) align lines to 4byte, so copy line by line. SDL_Surface.pitch is the size in bytes per line + alignment padding.
 	for (int y = 0; y < image->h; ++y) {
 		memcpy(returnBitmap->line[y], static_cast<unsigned char*>(image->pixels) + image->pitch * y, image->w * SDL_GetPixelFormatDetails(image->format)->bytes_per_pixel);
