@@ -100,9 +100,11 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	modifiableScene->GetTerrain()->SetPresetName(fileName);
 	modifiableScene->GetTerrain()->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
 
-	modifiableScene->GetTerrain()->OverrideDataPath("Save Mat.png");
-	modifiableScene->GetTerrain()->GetFGSceneLayer()->OverrideDataPath("Save FG.png");
-	modifiableScene->GetTerrain()->GetBGSceneLayer()->OverrideDataPath("Save BG.png");
+	// See our content files to point to our save game location. This won't actually save a file here- but it allows us to set these up as in-memory ContentFiles on load
+	// Meaning that our loading code doesn't need to care about whether it's loading a savegame or a file- it just sees it as an already loaded, cached bitmap
+	modifiableScene->GetTerrain()->GetContentFile().SetDataPath(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName) + "/Save Mat.png");
+	modifiableScene->GetTerrain()->GetFGSceneLayer()->GetContentFile().SetDataPath(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName) + "/Save FG.png");
+	modifiableScene->GetTerrain()->GetBGSceneLayer()->GetContentFile().SetDataPath(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName) + "/Save BG.png");
 
 	std::unique_ptr<std::stringstream> iniStream = std::make_unique<std::stringstream>();
 
@@ -293,20 +295,20 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	get_palette(palette);
 
 	unzipFileIntoBuffer("Save Mat.png");
-	ContentFile::ManuallyLoadDataBitmap(filePath + "/Save Mat.png", loadMemPngIntoBitmap(buffer, info.uncompressed_size));
+	ContentFile::ManuallyLoadDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save Mat.png", loadMemPngIntoBitmap(buffer, info.uncompressed_size));
 	free(buffer);
 
 	unzipFileIntoBuffer("Save FG.png");
-	ContentFile::ManuallyLoadDataBitmap(filePath + "/Save FG.png", loadMemPngIntoBitmap(buffer, info.uncompressed_size));
+	ContentFile::ManuallyLoadDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save FG.png", loadMemPngIntoBitmap(buffer, info.uncompressed_size));
 	free(buffer);
 
 	unzipFileIntoBuffer("Save BG.png");
-	ContentFile::ManuallyLoadDataBitmap(filePath + "/Save BG.png", loadMemPngIntoBitmap(buffer, info.uncompressed_size));
+	ContentFile::ManuallyLoadDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save BG.png", loadMemPngIntoBitmap(buffer, info.uncompressed_size));
 	free(buffer);
 
 	for (int i = 0; i < numberOfTeams; ++i) {
 		unzipFileIntoBuffer(std::format("Save UST%i.png", i));
-		ContentFile::ManuallyLoadDataBitmap(filePath + std::format("/Save UST%i", i), loadMemPngIntoBitmap(buffer, info.uncompressed_size));
+		ContentFile::ManuallyLoadDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save UST%i", i), loadMemPngIntoBitmap(buffer, info.uncompressed_size));
 		free(buffer);
 	}
 
@@ -323,11 +325,11 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	g_SceneMan.SetSceneToLoad(originalScenePresetName, placeObjectsIfSceneIsRestarted, placeUnitsIfSceneIsRestarted);
 
 	// Clear out the cache, we don't need it anymore (and don't want a cache reload to look for this file thinking it really exists)
-	ContentFile::ManuallyClearDataBitmap(filePath + "/Save Mat.png");
-	ContentFile::ManuallyClearDataBitmap(filePath + "/Save FG.png");
-	ContentFile::ManuallyClearDataBitmap(filePath + "/Save BG.png");
+	ContentFile::ManuallyClearDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save Mat.png");
+	ContentFile::ManuallyClearDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save FG.png");
+	ContentFile::ManuallyClearDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save BG.png");
 	for (int i = 0; i < numberOfTeams; ++i) {
-		ContentFile::ManuallyClearDataBitmap(filePath + std::format("/Save UST%i.png", i));
+		ContentFile::ManuallyClearDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save UST%i.png", i));
 	}
 	
 	g_ConsoleMan.PrintString("SYSTEM: Game \"" + fileName + "\" loaded!");
