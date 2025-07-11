@@ -102,9 +102,9 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 
 	// See our content files to point to our save game location. This won't actually save a file here- but it allows us to set these up as in-memory ContentFiles on load
 	// Meaning that our loading code doesn't need to care about whether it's loading a savegame or a file- it just sees it as an already loaded, cached bitmap
-	modifiableScene->GetTerrain()->GetContentFile().SetDataPath(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName) + "/Save Mat.png");
-	modifiableScene->GetTerrain()->GetFGSceneLayer()->GetContentFile().SetDataPath(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName) + "/Save FG.png");
-	modifiableScene->GetTerrain()->GetBGSceneLayer()->GetContentFile().SetDataPath(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName) + "/Save BG.png");
+	modifiableScene->GetTerrain()->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save Mat.png");
+	modifiableScene->GetTerrain()->GetFGSceneLayer()->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save FG.png");
+	modifiableScene->GetTerrain()->GetBGSceneLayer()->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save BG.png");
 
 	std::unique_ptr<std::stringstream> iniStream = std::make_unique<std::stringstream>();
 
