@@ -102,8 +102,13 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 
 	// See our content files to point to our save game location. This won't actually save a file here- but it allows us to set these up as in-memory ContentFiles on load
 	// Meaning that our loading code doesn't need to care about whether it's loading a savegame or a file- it just sees it as an already loaded, cached bitmap
+	modifiableScene->GetTerrain()->GetContentFile().SetIsMemoryFile(true);
 	modifiableScene->GetTerrain()->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save Mat.png");
+
+	modifiableScene->GetTerrain()->GetFGSceneLayer()->GetContentFile().SetIsMemoryFile(true);
 	modifiableScene->GetTerrain()->GetFGSceneLayer()->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save FG.png");
+
+	modifiableScene->GetTerrain()->GetBGSceneLayer()->GetContentFile().SetIsMemoryFile(true);
 	modifiableScene->GetTerrain()->GetBGSceneLayer()->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save BG.png");
 
 	std::unique_ptr<std::stringstream> iniStream = std::make_unique<std::stringstream>();
@@ -223,7 +228,10 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	char* buffer = nullptr;
 
 	auto unzipFileIntoBuffer = [&](std::string fullFileName) {
-		unzLocateFile(zippedSaveFile, fullFileName.c_str(), nullptr);
+		if (unzLocateFile(zippedSaveFile, fullFileName.c_str(), nullptr) == UNZ_END_OF_LIST_OF_FILE) {
+			return false;
+		}
+
 		unzOpenCurrentFile(zippedSaveFile);
 		unzGetCurrentFileInfo(zippedSaveFile, &info, nullptr, 0, nullptr, 0, nullptr, 0);
 
@@ -231,35 +239,48 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 		if (!buffer) {
 			// If this ever hits I've lost all faith in modern OSes, but alas when one is writing C, one must dance along
 			RTEError::ShowMessageBox("Catastrophic failure! Failed to allocate memory for savegame");
+			return false;
 		}
 
 		unzReadCurrentFile(zippedSaveFile, buffer, info.uncompressed_size);
 		unzCloseCurrentFile(zippedSaveFile);
+
+		return true;
 	};
 
-	auto loadMemPngIntoBitmap = [](void* buffer, size_t size) {
-		BITMAP* bitmap = nullptr; // just to help the compiler deduce the type, we can't early-return nullptr or it thiks we return std::nullptr_t
-
+	auto loadMemPng = [](void* buffer, size_t size) {
 		SDL_IOStream* stream = SDL_IOFromConstMem(buffer, size);
 		SDL_Surface* image = stream ? IMG_LoadPNG_IO(stream) : nullptr;
-		if (!image) {
-			return bitmap;
-		}
-
 		SDL_CloseIO(stream);
 
-		bitmap = create_bitmap_ex(SDL_BITSPERPIXEL(image->format), image->w, image->h);
-
-		// Allegro doesn't align lines, SDL does 4byte alignment
-		for (int y = 0; y < image->h; y++) {
-			memcpy(bitmap->line[y],
-			       static_cast<unsigned char*>(image->pixels) + image->pitch * y,
-			       image->w * SDL_BYTESPERPIXEL(image->format));
-		}
-
+		SDL_Palette* palette = ContentFile::DefaultPaletteToSDL();
+		SDL_Surface* newImage = SDL_ConvertSurfaceAndColorspace(image, SDL_PIXELFORMAT_INDEX8, palette, SDL_COLORSPACE_UNKNOWN, 0);
+		SDL_DestroyPalette(palette);
 		SDL_DestroySurface(image);
-		return bitmap;
+		image = newImage;
+
+		free(buffer);
+		return image;
 	};
+
+	// Manually load all our bitmaps into our cache so the activity skips looking for the file and just gets it directly from us
+	if (unzipFileIntoBuffer("Save Mat.png")) {
+		ContentFile::ManuallyLoadDataPNG(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save Mat.png", loadMemPng(buffer, info.uncompressed_size));
+	}
+
+	if (unzipFileIntoBuffer("Save FG.png")) {
+		ContentFile::ManuallyLoadDataPNG(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save FG.png", loadMemPng(buffer, info.uncompressed_size));
+	}
+
+	if (unzipFileIntoBuffer("Save BG.png")) {
+		ContentFile::ManuallyLoadDataPNG(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save BG.png", loadMemPng(buffer, info.uncompressed_size));
+	}
+
+	for (int i = 0; i < Activity::MaxTeamCount; ++i) {
+		if (unzipFileIntoBuffer(std::format("Save UST%i.png", i))) {
+			ContentFile::ManuallyLoadDataPNG(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save UST%i", i), loadMemPng(buffer, info.uncompressed_size));
+		}
+	}
 
 	unzipFileIntoBuffer("Save.ini");
 
@@ -288,30 +309,6 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 
 	free(buffer);
 
-	int numberOfTeams = activity->m_TeamCount;
-
-	// Manually load all our bitmaps into our cache so the activity skips looking for the file and just gets it directly from us
-	PALETTE palette;
-	get_palette(palette);
-
-	unzipFileIntoBuffer("Save Mat.png");
-	ContentFile::ManuallyLoadDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save Mat.png", loadMemPngIntoBitmap(buffer, info.uncompressed_size));
-	free(buffer);
-
-	unzipFileIntoBuffer("Save FG.png");
-	ContentFile::ManuallyLoadDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save FG.png", loadMemPngIntoBitmap(buffer, info.uncompressed_size));
-	free(buffer);
-
-	unzipFileIntoBuffer("Save BG.png");
-	ContentFile::ManuallyLoadDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save BG.png", loadMemPngIntoBitmap(buffer, info.uncompressed_size));
-	free(buffer);
-
-	for (int i = 0; i < numberOfTeams; ++i) {
-		unzipFileIntoBuffer(std::format("Save UST%i.png", i));
-		ContentFile::ManuallyLoadDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save UST%i", i), loadMemPngIntoBitmap(buffer, info.uncompressed_size));
-		free(buffer);
-	}
-
 	unzClose(zippedSaveFile);
 
 	// SetSceneToLoad() doesn't Clone(), but when the Activity starts, it will eventually call LoadScene(), which does a Clone() of scene internally.
@@ -324,14 +321,6 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	// When this method exits, our Scene object will be destroyed, which will cause problems if you try to restart it. To avoid this, set the Scene to load to the preset object with the same name.
 	g_SceneMan.SetSceneToLoad(originalScenePresetName, placeObjectsIfSceneIsRestarted, placeUnitsIfSceneIsRestarted);
 
-	// Clear out the cache, we don't need it anymore (and don't want a cache reload to look for this file thinking it really exists)
-	ContentFile::ManuallyClearDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save Mat.png");
-	ContentFile::ManuallyClearDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save FG.png");
-	ContentFile::ManuallyClearDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save BG.png");
-	for (int i = 0; i < numberOfTeams; ++i) {
-		ContentFile::ManuallyClearDataBitmap(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save UST%i.png", i));
-	}
-	
 	g_ConsoleMan.PrintString("SYSTEM: Game \"" + fileName + "\" loaded!");
 
 	return true;
