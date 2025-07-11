@@ -28,7 +28,8 @@
 #include "zip.h"
 #include "unzip.h"
 
-#include "fmem.h"
+#include "SDL3/SDL_surface.h"
+#include <SDL3_image/SDL_image.h>
 
 using namespace RTE;
 
@@ -150,26 +151,37 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 
 		for (const SceneLayerInfo& layerInfo : *sceneLayerInfos)
 		{
-			// A bit of a finicky workaround, but to save a png to memory we create a memory stream and send that into allegro to save into
-			fmem memStructure;
-			fmem_init(&memStructure);
+			// Save png into a memory buffer
+ 			SDL_IOStream* stream = SDL_IOFromDynamicMem();
+			SDL_Surface* image = SDL_CreateSurfaceFrom(layerInfo.bitmap->w, layerInfo.bitmap->h, SDL_PIXELFORMAT_INDEX8, layerInfo.bitmap->dat, layerInfo.bitmap->w);
 
-			// Save the png to our memory stream
-			FILE* stream = fmem_open(&memStructure, "w");
-			save_stream_png(stream, layerInfo.bitmap.get(), palette);
-			fflush(stream);
+			SDL_Palette* palette = ContentFile::DefaultPaletteToSDL();
+			SDL_SetSurfacePalette(image, palette);
+
+			bool result = IMG_SavePNG_IO(image, stream, false);
+			SDL_FlushIO(stream);
+
+			SDL_DestroyPalette(palette);
+			SDL_DestroySurface(image);
+
+			if (!result) {
+				g_ConsoleMan.PrintString("ERROR: Failed to save scenelayers to PNG!");
+				continue;
+			}
 
 			// Actually get the memory
-			void* buffer;
-			size_t size;
-			fmem_mem(&memStructure, &buffer, &size);
+			void* buffer = SDL_GetPointerProperty(SDL_GetIOProperties(stream), SDL_PROP_IOSTREAM_DYNAMIC_MEMORY_POINTER, nullptr);
+			size_t size = static_cast<size_t>(SDL_GetIOSize(stream));
+			if (!buffer || size < 0) {
+				g_ConsoleMan.PrintString("ERROR: Failed to save scenelayers to PNG!");
+				continue;
+			}
 
 			zipOpenNewFileInZip(zippedSaveFile, ("Save " + layerInfo.name + ".png").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, defaultCompression);
 			zipWriteInFileInZip(zippedSaveFile, static_cast<const char*>(buffer), size);
 			zipCloseFileInZip(zippedSaveFile);
 
-			fclose(stream);
-			fmem_term(&memStructure);
+			SDL_CloseIO(stream);
 		}
 
 		zipClose(zippedSaveFile, fileName.c_str());
@@ -219,6 +231,30 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 		unzCloseCurrentFile(zippedSaveFile);
 	};
 
+	auto loadMemPngIntoBitmap = [](void* buffer, size_t size) {
+		BITMAP* bitmap = nullptr; // just to help the compiler deduce the type, we can't early-return nullptr or it thiks we return std::nullptr_t
+
+		SDL_IOStream* stream = SDL_IOFromConstMem(buffer, size);
+		SDL_Surface* image = stream ? IMG_LoadPNG_IO(stream) : nullptr;
+		if (!image) {
+			return bitmap;
+		}
+
+		SDL_CloseIO(stream);
+
+		bitmap = create_bitmap_ex(SDL_BITSPERPIXEL(image->format), image->w, image->h);
+
+		// Allegro doesn't align lines, SDL does 4byte alignment
+		for (int y = 0; y < image->h; y++) {
+			memcpy(bitmap->line[y],
+			       static_cast<unsigned char*>(image->pixels) + image->pitch * y,
+			       image->w * SDL_BYTESPERPIXEL(image->format));
+		}
+
+		SDL_DestroySurface(image);
+		return bitmap;
+	};
+
 	unzipFileIntoBuffer("Save.ini");
 
 	Reader reader(std::make_unique<std::istringstream>(buffer), filePath + "/Save.ini", true, nullptr, false);
@@ -253,20 +289,20 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	get_palette(palette);
 
 	unzipFileIntoBuffer("Save Mat.png");
-	ContentFile::ManuallyLoadDataBitmap(filePath + "/Save Mat.png", load_memory_png(buffer, info.uncompressed_size, palette));
+	ContentFile::ManuallyLoadDataBitmap(filePath + "/Save Mat.png", loadMemPngIntoBitmap(buffer, info.uncompressed_size));
 	free(buffer);
 
 	unzipFileIntoBuffer("Save FG.png");
-	ContentFile::ManuallyLoadDataBitmap(filePath + "/Save FG.png", load_memory_png(buffer, info.uncompressed_size, palette));
+	ContentFile::ManuallyLoadDataBitmap(filePath + "/Save FG.png", loadMemPngIntoBitmap(buffer, info.uncompressed_size));
 	free(buffer);
 
 	unzipFileIntoBuffer("Save BG.png");
-	ContentFile::ManuallyLoadDataBitmap(filePath + "/Save BG.png", load_memory_png(buffer, info.uncompressed_size, palette));
+	ContentFile::ManuallyLoadDataBitmap(filePath + "/Save BG.png", loadMemPngIntoBitmap(buffer, info.uncompressed_size));
 	free(buffer);
 
 	for (int i = 0; i < numberOfTeams; ++i) {
 		unzipFileIntoBuffer(std::format("Save UST%i.png", i));
-		ContentFile::ManuallyLoadDataBitmap(filePath + std::format("/Save UST%i", i), load_memory_png(buffer, info.uncompressed_size, palette));
+		ContentFile::ManuallyLoadDataBitmap(filePath + std::format("/Save UST%i", i), loadMemPngIntoBitmap(buffer, info.uncompressed_size));
 		free(buffer);
 	}
 
