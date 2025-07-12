@@ -73,11 +73,6 @@ bool ActivityMan::ForceAbortSave() {
 	return SaveCurrentGame("AbortSave");
 }
 
-// Not sure why this isn't in the minizip header, but we save some of the files without compression
-// (index, because it's so small, and pngs, because they're already compressed)
-#define MZ_COMPRESS_METHOD_STORE 0
-#define MZ_COMPRESS_LEVEL_FAST 2
-
 bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	m_SaveGameTask.wait();
 	m_SaveGameTask = BS::multi_future<void>();
@@ -108,13 +103,20 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	// See our content files to point to our save game location. This won't actually save a file here- but it allows us to set these up as in-memory ContentFiles on load
 	// Meaning that our loading code doesn't need to care about whether it's loading a savegame or a file- it just sees it as an already loaded, cached bitmap
 	modifiableScene->GetTerrain()->GetContentFile().SetIsMemoryFile(true);
-	modifiableScene->GetTerrain()->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save Mat.png");
-
 	modifiableScene->GetTerrain()->GetFGSceneLayer()->GetContentFile().SetIsMemoryFile(true);
-	modifiableScene->GetTerrain()->GetFGSceneLayer()->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save FG.png");
-
 	modifiableScene->GetTerrain()->GetBGSceneLayer()->GetContentFile().SetIsMemoryFile(true);
+
+	modifiableScene->GetTerrain()->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save Mat.png");
+	modifiableScene->GetTerrain()->GetFGSceneLayer()->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save FG.png");
 	modifiableScene->GetTerrain()->GetBGSceneLayer()->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save BG.png");
+
+	for (int i = 0; i < Activity::MaxTeamCount; ++i) {
+		SceneLayer* unseenLayer = modifiableScene->GetUnseenLayer(i);
+		if (unseenLayer) {
+			unseenLayer->GetContentFile().SetIsMemoryFile(true);
+			unseenLayer->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save UST{}.png", i));
+		}
+	}
 
 	std::unique_ptr<std::stringstream> iniStream = std::make_unique<std::stringstream>();
 
@@ -173,7 +175,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		zipWriteInFileInZip(zippedSaveFile, indexStreamAsString.data(), indexStreamAsString.size());
 		zipCloseFileInZip(zippedSaveFile);
 
-		zipOpenNewFileInZip(zippedSaveFile, "Save.ini", &zfi, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, MZ_COMPRESS_LEVEL_FAST);
+		zipOpenNewFileInZip(zippedSaveFile, "Save.ini", &zfi, nullptr, 0, nullptr, 0, nullptr, MZ_COMPRESS_METHOD_DEFLATE, MZ_COMPRESS_LEVEL_FAST);
 		zipWriteInFileInZip(zippedSaveFile, mainStreamAsString.data(), mainStreamAsString.size());
 		zipCloseFileInZip(zippedSaveFile);
 
@@ -298,8 +300,8 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	}
 
 	for (int i = 0; i < Activity::MaxTeamCount; ++i) {
-		if (unzipFileIntoBuffer(std::format("Save UST%i.png", i))) {
-			ContentFile::ManuallyLoadDataPNG(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save UST%i", i), loadMemPng(buffer, info.uncompressed_size));
+		if (unzipFileIntoBuffer(std::format("Save UST{}.png", i))) {
+			ContentFile::ManuallyLoadDataPNG(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save UST{}.png", i), loadMemPng(buffer, info.uncompressed_size));
 		}
 	}
 

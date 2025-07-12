@@ -872,13 +872,11 @@ std::vector<SceneLayerInfo> Scene::GetCopiedSceneLayerBitmaps() const {
 	// Don't bother saving background layers to disk, as they are never altered
 
 	// Save unseen layers' data
-	char str[64];
 	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team)
 	{
 	    if (m_apUnseenLayer[team])
 	    {
-			std::snprintf(str, sizeof(str), "US T%d", team);
-			layerInfos.emplace_back(std::string(str), m_apUnseenLayer[team]->CopyBitmap());
+			layerInfos.emplace_back(std::format("UST{}", team), m_apUnseenLayer[team]->CopyBitmap());
 	    }
 	}
 
