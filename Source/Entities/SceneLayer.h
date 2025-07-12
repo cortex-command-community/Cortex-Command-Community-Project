@@ -11,6 +11,11 @@ namespace RTE {
 
 	struct BigTexture;
 
+	struct SceneLayerInfo {
+		std::string name;
+		std::unique_ptr<BITMAP> bitmap;
+	};
+
 	/// A scrolling layer of the Scene.
 	template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE = false>
 	class SceneLayerImpl : public Entity {
@@ -79,11 +84,6 @@ namespace RTE {
 		/// Gets this SceneLayer's ContentFile. Used for saved games
 		/// @return This SceneLayer's ContentFile.
 		ContentFile& GetContentFile() { return m_BitmapFile; }
-
-		/// Loads previously specified/created data into memory from an existing BITMAP. Has to be done before using this SceneLayer if the bitmap was not generated at runtime.
-		/// @param bitmap Pointer to the bitmap to take. Takes ownership!
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		virtual int LoadDataFromBitmap(BITMAP* bitmap);
 
 		/// Loads previously specified/created data into memory. Has to be done before using this SceneLayer if the bitmap was not generated at runtime.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.

@@ -200,26 +200,6 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::InitScrollRatios(bool initF
 }
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
-int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::LoadDataFromBitmap(BITMAP* bitmap) {
-	if (m_MainBitmapOwned) {
-		destroy_bitmap(m_MainBitmap);
-		m_MainBitmap = nullptr;
-	}
-
-	m_MainBitmap = bitmap;
-	m_MainBitmapOwned = true;
-
-	m_BackBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
-	if constexpr (!STATIC_TEXTURE) {
-		m_MainTexture = std::make_unique<BigTexture>(m_MainBitmap);
-	}
-	m_LastClearColor = ColorKeys::g_InvalidColor;
-
-	InitScrollRatios();
-	return 0;
-}
-
-template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::LoadData() {
 	if (m_MainBitmapOwned) {
 		destroy_bitmap(m_MainBitmap);

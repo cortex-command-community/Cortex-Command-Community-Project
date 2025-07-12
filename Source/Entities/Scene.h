@@ -9,6 +9,7 @@
 #include "Box.h"
 #include "Activity.h"
 #include "PathFinder.h"
+#include "SceneLayer.h"
 
 #include <array>
 #include <map>
@@ -24,11 +25,6 @@ namespace RTE {
 	class BunkerAssembly;
 	class SceneObject;
 	class Deployment;
-
-	struct SceneLayerInfo {
-		std::string name;
-		std::unique_ptr<BITMAP> bitmap;
-	};
 
 	/// Contains everything that defines a complete scene.
 	class Scene : public Entity {
@@ -251,8 +247,8 @@ namespace RTE {
 		/// Anything below 0 is an error signal.
 		int SaveData(std::string pathBase, bool doAsyncSaves = true);
 
-		void ConstructSceneLayersFromBitmaps(std::vector<SceneLayerInfo>&& layerInfos);
-
+		// Gets copied bitmaps of our scene layers, for saving.
+		// @return A list of SceneLayerInfo including our name and a copied bitmap.
 		std::vector<SceneLayerInfo> GetCopiedSceneLayerBitmaps() const;
 
 		/// Saves preview bitmap for this scene.

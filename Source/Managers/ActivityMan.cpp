@@ -165,22 +165,18 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		mainStream->flush();
 		indexStream->flush();
 
-		// Ugly copies, but eh. todo - use a string stream that just gives us a raw buffer to grab at
-		std::string mainStreamAsString = mainStream->str();
-		std::string indexStreamAsString = indexStream->str();
+		std::string_view mainStreamView = mainStream->view();
+		std::string_view indexStreamView = indexStream->view();
 
 		zip_fileinfo zfi = {0};
 
 		zipOpenNewFileInZip(zippedSaveFile, "Index.ini", &zfi, nullptr, 0, nullptr, 0, nullptr, MZ_COMPRESS_METHOD_STORE, MZ_COMPRESS_LEVEL_FAST);
-		zipWriteInFileInZip(zippedSaveFile, indexStreamAsString.data(), indexStreamAsString.size());
+		zipWriteInFileInZip(zippedSaveFile, indexStreamView.data(), indexStreamView.size());
 		zipCloseFileInZip(zippedSaveFile);
 
 		zipOpenNewFileInZip(zippedSaveFile, "Save.ini", &zfi, nullptr, 0, nullptr, 0, nullptr, MZ_COMPRESS_METHOD_DEFLATE, MZ_COMPRESS_LEVEL_FAST);
-		zipWriteInFileInZip(zippedSaveFile, mainStreamAsString.data(), mainStreamAsString.size());
+		zipWriteInFileInZip(zippedSaveFile, mainStreamView.data(), mainStreamView.size());
 		zipCloseFileInZip(zippedSaveFile);
-
-		PALETTE palette;
-		get_palette(palette);
 
 		for (const SceneLayerInfo& layerInfo : *sceneLayerInfos)
 		{
