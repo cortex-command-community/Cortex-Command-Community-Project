@@ -25,7 +25,6 @@
 
 #include "MusicMan.h"
 
-#include "mz.h"
 #include "zip.h"
 #include "unzip.h"
 
