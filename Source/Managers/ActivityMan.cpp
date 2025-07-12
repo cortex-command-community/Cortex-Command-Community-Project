@@ -25,11 +25,14 @@
 
 #include "MusicMan.h"
 
+#include "mz.h"
 #include "zip.h"
 #include "unzip.h"
 
 #include "SDL3/SDL_surface.h"
 #include <SDL3_image/SDL_image.h>
+
+#include <execution>
 
 using namespace RTE;
 
@@ -253,7 +256,8 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	char* buffer = nullptr;
 
 	auto unzipFileIntoBuffer = [&](std::string fullFileName) {
-		if (unzLocateFile(zippedSaveFile, fullFileName.c_str(), nullptr) == UNZ_END_OF_LIST_OF_FILE) {
+		// These need to use NULL instead of nullptr to compile on Linux/OSX?
+		if (unzLocateFile(zippedSaveFile, fullFileName.c_str(), NULL) == UNZ_END_OF_LIST_OF_FILE) {
 			return false;
 		}
 

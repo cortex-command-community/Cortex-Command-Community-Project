@@ -105,7 +105,8 @@ void SaveLoadMenuGUI::PopulateSaveGamesList() {
 			              return;
 		              }
 
-		              if (unzLocateFile(zippedSaveFile, "Index.ini", nullptr) == UNZ_END_OF_LIST_OF_FILE) {
+					  // These need to use NULL instead of nullptr to compile on Linux/OSX?
+		              if (unzLocateFile(zippedSaveFile, "Index.ini", NULL) == UNZ_END_OF_LIST_OF_FILE) {
 			              unzClose(zippedSaveFile);
 			              return;
 		              }
