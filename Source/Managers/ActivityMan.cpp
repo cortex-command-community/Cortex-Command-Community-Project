@@ -75,6 +75,11 @@ bool ActivityMan::ForceAbortSave() {
 	return SaveCurrentGame("AbortSave");
 }
 
+// For some reason these aren't defined on Linux/MacOS... so
+#define HACK_MZ_COMPRESS_METHOD_STORE 0
+#define HACK_MZ_COMPRESS_LEVEL_FAST 2
+#define HACK_MZ_COMPRESS_METHOD_DEFLATE 8
+
 bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	m_SaveGameTask.wait();
 	m_SaveGameTask = BS::multi_future<void>();
@@ -172,11 +177,11 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 
 		zip_fileinfo zfi = {0};
 
-		zipOpenNewFileInZip(zippedSaveFile, "Index.ini", &zfi, nullptr, 0, nullptr, 0, nullptr, MZ_COMPRESS_METHOD_STORE, MZ_COMPRESS_LEVEL_FAST);
+		zipOpenNewFileInZip(zippedSaveFile, "Index.ini", &zfi, nullptr, 0, nullptr, 0, nullptr, HACK_MZ_COMPRESS_METHOD_STORE, HACK_MZ_COMPRESS_LEVEL_FAST);
 		zipWriteInFileInZip(zippedSaveFile, indexStreamView.data(), indexStreamView.size());
 		zipCloseFileInZip(zippedSaveFile);
 
-		zipOpenNewFileInZip(zippedSaveFile, "Save.ini", &zfi, nullptr, 0, nullptr, 0, nullptr, MZ_COMPRESS_METHOD_DEFLATE, MZ_COMPRESS_LEVEL_FAST);
+		zipOpenNewFileInZip(zippedSaveFile, "Save.ini", &zfi, nullptr, 0, nullptr, 0, nullptr, HACK_MZ_COMPRESS_METHOD_DEFLATE, HACK_MZ_COMPRESS_LEVEL_FAST);
 		zipWriteInFileInZip(zippedSaveFile, mainStreamView.data(), mainStreamView.size());
 		zipCloseFileInZip(zippedSaveFile);
 
@@ -209,7 +214,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 				              return;
 			              }
 
-			              zipOpenNewFileInZip(zippedSaveFile, ("Save " + layerInfo.name + ".png").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, MZ_COMPRESS_METHOD_STORE, MZ_COMPRESS_LEVEL_FAST);
+			              zipOpenNewFileInZip(zippedSaveFile, ("Save " + layerInfo.name + ".png").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, HACK_MZ_COMPRESS_METHOD_STORE, HACK_MZ_COMPRESS_LEVEL_FAST);
 			              zipWriteInFileInZip(zippedSaveFile, static_cast<const char*>(buffer), size);
 			              zipCloseFileInZip(zippedSaveFile);
 
