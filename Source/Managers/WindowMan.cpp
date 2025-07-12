@@ -682,7 +682,6 @@ void WindowMan::HandleWindowExposedEvent(void *userdata, SDL_Event *event) {
 		g_WindowMan.SetViewportLetterboxed();
 		g_WindowMan.ClearBackbuffer(false);
 		g_WindowMan.UploadFrame();
-		g_WindowMan.Present();
 	}
 }
 
