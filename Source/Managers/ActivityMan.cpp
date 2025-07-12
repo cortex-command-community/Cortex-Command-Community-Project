@@ -159,7 +159,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 			delete sceneLayerInfos;
 			return;
 		}
-		
+
 		std::stringstream* mainStream = static_cast<std::stringstream*>(mainWriter->GetStream());
 		std::stringstream* indexStream = static_cast<std::stringstream*>(indexWriter->GetStream());
 		mainStream->flush();
@@ -178,40 +178,41 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		zipWriteInFileInZip(zippedSaveFile, mainStreamView.data(), mainStreamView.size());
 		zipCloseFileInZip(zippedSaveFile);
 
-		for (const SceneLayerInfo& layerInfo : *sceneLayerInfos)
-		{
-			// Save png into a memory buffer
- 			SDL_IOStream* stream = SDL_IOFromDynamicMem();
-			SDL_Surface* image = SDL_CreateSurfaceFrom(layerInfo.bitmap->w, layerInfo.bitmap->h, SDL_PIXELFORMAT_INDEX8, layerInfo.bitmap->dat, layerInfo.bitmap->w);
+		std::for_each(std::execution::par_unseq,
+		              sceneLayerInfos->begin(), sceneLayerInfos->end(),
+		              [&](const SceneLayerInfo& layerInfo) {
+			              // Save png into a memory buffer
+			              SDL_IOStream* stream = SDL_IOFromDynamicMem();
+			              SDL_Surface* image = SDL_CreateSurfaceFrom(layerInfo.bitmap->w, layerInfo.bitmap->h, SDL_PIXELFORMAT_INDEX8, layerInfo.bitmap->dat, layerInfo.bitmap->w);
 
-			SDL_Palette* palette = ContentFile::DefaultPaletteToSDL();
-			SDL_SetSurfacePalette(image, palette);
+			              SDL_Palette* palette = ContentFile::DefaultPaletteToSDL();
+			              SDL_SetSurfacePalette(image, palette);
 
-			bool result = IMG_SavePNG_IO(image, stream, false);
-			SDL_FlushIO(stream);
+			              bool result = IMG_SavePNG_IO(image, stream, false);
+			              SDL_FlushIO(stream);
 
-			SDL_DestroyPalette(palette);
-			SDL_DestroySurface(image);
+			              SDL_DestroyPalette(palette);
+			              SDL_DestroySurface(image);
 
-			if (!result) {
-				g_ConsoleMan.PrintString("ERROR: Failed to save scenelayers to PNG!");
-				continue;
-			}
+			              if (!result) {
+				              g_ConsoleMan.PrintString("ERROR: Failed to save scenelayers to PNG!");
+				              return;
+			              }
 
-			// Actually get the memory
-			void* buffer = SDL_GetPointerProperty(SDL_GetIOProperties(stream), SDL_PROP_IOSTREAM_DYNAMIC_MEMORY_POINTER, nullptr);
-			size_t size = static_cast<size_t>(SDL_GetIOSize(stream));
-			if (!buffer || size < 0) {
-				g_ConsoleMan.PrintString("ERROR: Failed to save scenelayers to PNG!");
-				continue;
-			}
+			              // Actually get the memory
+			              void* buffer = SDL_GetPointerProperty(SDL_GetIOProperties(stream), SDL_PROP_IOSTREAM_DYNAMIC_MEMORY_POINTER, nullptr);
+			              size_t size = static_cast<size_t>(SDL_GetIOSize(stream));
+			              if (!buffer || size < 0) {
+				              g_ConsoleMan.PrintString("ERROR: Failed to save scenelayers to PNG!");
+				              return;
+			              }
 
-			zipOpenNewFileInZip(zippedSaveFile, ("Save " + layerInfo.name + ".png").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, MZ_COMPRESS_METHOD_STORE, MZ_COMPRESS_LEVEL_FAST);
-			zipWriteInFileInZip(zippedSaveFile, static_cast<const char*>(buffer), size);
-			zipCloseFileInZip(zippedSaveFile);
+			              zipOpenNewFileInZip(zippedSaveFile, ("Save " + layerInfo.name + ".png").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, MZ_COMPRESS_METHOD_STORE, MZ_COMPRESS_LEVEL_FAST);
+			              zipWriteInFileInZip(zippedSaveFile, static_cast<const char*>(buffer), size);
+			              zipCloseFileInZip(zippedSaveFile);
 
-			SDL_CloseIO(stream);
-		}
+			              SDL_CloseIO(stream);
+		              });
 
 		zipClose(zippedSaveFile, fileName.c_str());
 
@@ -301,8 +302,7 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 		}
 	}
 
-	if (!unzipFileIntoBuffer("Save.ini"))
-	{
+	if (!unzipFileIntoBuffer("Save.ini")) {
 		RTEError::ShowMessageBox("Game loading failed! This save looks invalid or corrupted.");
 		return false;
 	}
