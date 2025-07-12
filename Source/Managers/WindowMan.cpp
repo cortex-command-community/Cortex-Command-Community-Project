@@ -734,7 +734,6 @@ void WindowMan::Update() {
 			case SDL_EVENT_WINDOW_RESIZED:
 			case SDL_WINDOW_MAXIMIZED:
 				SetViewportLetterboxed();
-				std::cout << "resize" << std::endl;
 				break;
 			default:
 				break;
