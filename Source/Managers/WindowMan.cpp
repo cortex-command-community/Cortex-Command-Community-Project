@@ -1,7 +1,6 @@
 #include "WindowMan.h"
 #include "RTEError.h"
-#include "SDL3/SDL_error.h"
-#include "SDL3/SDL_video.h"
+#include "SDL3/SDL.h"
 #include "SettingsMan.h"
 #include "FrameMan.h"
 #include "ActivityMan.h"
@@ -155,6 +154,10 @@ void WindowMan::Initialize() {
 	} else {
 		SetViewportLetterboxed();
 	}
+
+#ifdef _WIN32
+	SDL_AddEventWatch((SDL_EventFilter)WindowMan::HandleWindowExposedEvent, nullptr);
+#endif
 }
 
 void WindowMan::CreatePrimaryWindow() {
@@ -674,6 +677,15 @@ void WindowMan::DisplaySwitchOut() const {
 	SDL_SetCursor(nullptr);
 }
 
+void WindowMan::HandleWindowExposedEvent(void *userdata, SDL_Event *event) {
+	if (event->type == SDL_EVENT_WINDOW_EXPOSED) {
+		g_WindowMan.SetViewportLetterboxed();
+		g_WindowMan.ClearBackbuffer(false);
+		g_WindowMan.UploadFrame();
+		g_WindowMan.Present();
+	}
+}
+
 void WindowMan::QueueWindowEvent(const SDL_Event& windowEvent) {
 	m_EventQueue.emplace_back(windowEvent);
 }
@@ -722,6 +734,7 @@ void WindowMan::Update() {
 			case SDL_EVENT_WINDOW_RESIZED:
 			case SDL_WINDOW_MAXIMIZED:
 				SetViewportLetterboxed();
+				std::cout << "resize" << std::endl;
 				break;
 			default:
 				break;
