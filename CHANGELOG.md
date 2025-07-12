@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 <details><summary><b>Added</b></summary>
 
 - Pathfinding and navigation overhaul, including jetpack/jump-aware pathfinding.  
-	Actors will now intelligently choose their path depending on how high they can jump, instead of always taking the shortest flying path. This will reduce instances of the AI getting stuck while trying to take paths that are impossible for them.  
+	Actors will now choose their path depending on how high they can jump, instead of always taking the shortest flying path. This will reduce instances of the AI getting stuck while trying to take paths that are impossible for them.  
 	Improvements to both `ACrab` and `AHuman` navigation. `ACrab`s are now aware of how to pathfind and navigate using their jetpack, and will use it where applicable. Actors are better at using their jetpack, and will use automovers if their jetpack is not sufficient to reach a destination.  
 	Actors are now more capable and responsive when digging. They will dig to their target if they cannot reach it with their jetpack (for example if there is a long vertical shaft in the route they cannot get up), and they preferentially avoid rocks, metal and other hard substances by digging around them. Actors also dig faster and spend less time idle.  
 	In the `CalculatePath` and `CalculatePathAsync` functions, the parameter `movePathToGround` has been replaced with `jumpHeight`, which is the height in metres the pathfind can jump vertically.  
@@ -25,6 +25,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	Added new `Controller` state `WALKCROUCH` for crouching, and `PRONE` for prone. The existing `CROUCH` state has been deprecated, as it referred to PRONE.
 	Added new `Actor` INI and Lua (R/W) property `CanRun` which denotes whether the Actor can run or not.
 	Added new `Actor` INI and Lua (R/W) property `CrouchWalkSpeedMultiplier` which is a walking speed multiplier when at max crouch amount.
+
+- New hotkey system for `Actor` and `HeldDevice`.
+	Pressing a certain new hotkey will mark it as activated on `Actor` and `HeldDevice`, letting scripts make use of the new bindings easily.
+	`Enum` binding for `HeldDevice.HeldDeviceHotkeyType`: `PRIMARYHOTKEY = 0, AUXILIARYHOTKEY = 1, HELDDEVICEHOTKEYTYPECOUNT = 2`.  
+	`Enum` binding for `Actor.ActorHotkeyType`: `PRIMARYHOTKEY = 0, AUXILIARYHOTKEY = 1, ACTORHOTKEYTYPECOUNT = 2`. 
+	Both `Actor` and `HeldDevice` have the following functions:
+	`HotkeyActionIsActivated(hotkeyType)` returns whether a certain hotkey action is being activated or not.
+	`ActivateHotkeyAction(hotkeyType)` activates a certain hotkey action.
+	`DeactivateHotkeyAction(hotkeyType)` deactivates a certain hotkey action.
+
+- New hotkey bindings.
+	On Mouse+KB PC the defaults are: Weapon Primary Hotkey on V, Weapon Auxiliary Hotkey on H, Actor Primary Hotkey on X, Actor Auxiliary Hotkey on O.
+	Added new `Controller` states `WEAPON_PRIMARY_HOTKEYSTART`, `WEAPON_AUXILIARY_HOTKEYSTART`, `ACTOR_PRIMARY_HOTKEYSTART`, `ACTOR_AUXILIARY_HOTKEYSTART`, `WEAPON_PRIMARY_HOTKEY`, `WEAPON_AUXILIARY_HOTKEY`, `ACTOR_PRIMARY_HOTKEY`, `ACTOR_AUXILIARY_HOTKEY`
+
+- Added multiseat support for multiple mice and keyboards on one computer.
+
+- Added optional player argument to all `UInputMan:Key*` Lua Methods. (e.g. `KeyHeld(keycode, player)`) This allows checking individual player's keyboards, when multiple keyboards are available.
 
 - New music system, including a dynamic horizontal sequencing system, under the new music manager `MusicMan`.  
 	`PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to play a new DynamicSong.
@@ -51,19 +68,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - New `AEmitter` and `PEmitter` INI and Lua (R/W) property `PlayBurstSound` which denotes whether the BurstSound should play when appropriate. This should not be confused for a trigger - it's just a enable/disable toggle to avoid having to remove and add BurstSound altogether.
 
 - New `MOSprite` INI and Lua (R/W) integer property `ForcedHFlip` which forces a certain flippedness and disallows anything else from ever changing it without clearing the forced value first. 0 is forced not flipped, 1 forced flipped, and -1 is no force.
-
-- New hotkey bindings.
-	On Mouse+KB PC the defaults are: Weapon Primary Hotkey on V, Weapon Auxiliary Hotkey on H, Actor Primary Hotkey on X, Actor Auxiliary Hotkey on O.
-	Added new `Controller` states `WEAPON_PRIMARY_HOTKEYSTART`, `WEAPON_AUXILIARY_HOTKEYSTART`, `ACTOR_PRIMARY_HOTKEYSTART`, `ACTOR_AUXILIARY_HOTKEYSTART`, `WEAPON_PRIMARY_HOTKEY`, `WEAPON_AUXILIARY_HOTKEY`, `ACTOR_PRIMARY_HOTKEY`, `ACTOR_AUXILIARY_HOTKEY`
-
-- New hotkey system for `Actor` and `HeldDevice`.
-	Pressing a certain new hotkey will mark it as activated on `Actor` and `HeldDevice`, letting scripts make use of the new bindings easily.
-	`Enum` binding for `HeldDevice.HeldDeviceHotkeyType`: `PRIMARYHOTKEY = 0, AUXILIARYHOTKEY = 1, HELDDEVICEHOTKEYTYPECOUNT = 2`.  
-	`Enum` binding for `Actor.ActorHotkeyType`: `PRIMARYHOTKEY = 0, AUXILIARYHOTKEY = 1, ACTORHOTKEYTYPECOUNT = 2`. 
-	Both `Actor` and `HeldDevice` have the following functions:
-	`HotkeyActionIsActivated(hotkeyType)` returns whether a certain hotkey action is being activated or not.
-	`ActivateHotkeyAction(hotkeyType)` activates a certain hotkey action.
-	`DeactivateHotkeyAction(hotkeyType)` deactivates a certain hotkey action.
 	
 - New `Controller` state `WEAPON_RELOADHELD`, which is true every frame reload input is held (as opposed to `WEAPON_RELOAD` which is only true once when pressed).
 
@@ -134,10 +138,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	```
 	Original bindings with no scale argument are untouched and can be called as they were.
 
-- Added multiseat support for multiple mice and keyboards on one computer.
-
-- Added optional player argument to all `UInputMan:Key*` Lua Methods. (e.g. `KeyHeld(keycode, player)`) This allows checking individual player's keyboards, when multiple keyboards are available.
-
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -147,6 +147,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Increased fog-of-war resolution in all vanilla activities, and conquest, from 20x20 to 4x4.
 	The Ronin Scrambler, the basic scanner, and `SceneMan:CastUnseenRay` have been changed to accomodate fog-of-war resolutions as fine as 1x1 and as coarse as 20x20.
 	The fog-of-war revealing code is now multithreaded to increase performance.
+
+- Save files are now compressed and stored in a single file, instead of a directory.
+	Savefiles have the extension `.ccsave`, but their underlying format is really just a `.zip` file. This can be opened and modified as before with any zip file viewer.
+	These savefiles can be safely renamed and moved without breaking the savegame, unlike before.
 
 - All vanilla scenario activities have had their settings polished, respecting settings which make sense and disabling settings which don't.
 	You can now have fog of war in the test scene, and can no longer require path to orbit in Zero-G Diggers-Only One Man Army.
