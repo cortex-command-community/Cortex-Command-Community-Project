@@ -232,16 +232,21 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 }
 
 bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
-	m_SaveGameTask.wait();
-
 	std::string filePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName;
 
 	// load zip sav file
 	std::string saveFilePath = filePath + ".ccsave";
 	unzFile zippedSaveFile = unzOpen(saveFilePath.c_str());
 	if (!zippedSaveFile) {
-		RTEError::ShowMessageBox("Game loading failed! Make sure you have a saved game called \"" + fileName + "\"");
-		return false;
+		// Might be trying to open one we're already saving too, wait until we finish saving and try again
+		m_SaveGameTask.wait();
+		zippedSaveFile = unzOpen(saveFilePath.c_str());
+
+		if (!zippedSaveFile) {
+			// Some other process is stopping us from loading, oh well
+			RTEError::ShowMessageBox("Game loading failed! Make sure you have a saved game called \"" + fileName + "\"");
+			return false;
+		}
 	}
 
 	unz_file_info info;
