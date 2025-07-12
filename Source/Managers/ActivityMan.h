@@ -129,6 +129,9 @@ namespace RTE {
 		/// @param fileName Path to the file.
 		/// @return Whether or not the saved game was successfully loaded.
 		bool LoadAndLaunchGame(const std::string& fileName);
+
+		/// Waits for the task that saves the game to complete.
+		void WaitForSaveGameTask() const { m_SaveGameTask.wait(); }
 #pragma endregion
 
 #pragma region Activity Start Handling

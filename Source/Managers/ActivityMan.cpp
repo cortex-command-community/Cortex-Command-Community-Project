@@ -73,6 +73,11 @@ bool ActivityMan::ForceAbortSave() {
 	return SaveCurrentGame("AbortSave");
 }
 
+// Not sure why this isn't in the minizip header, but we save some of the files without compression
+// (index, because it's so small, and pngs, because they're already compressed)
+#define MZ_COMPRESS_METHOD_STORE 0
+#define MZ_COMPRESS_LEVEL_FAST 2
+
 bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	m_SaveGameTask.wait();
 	m_SaveGameTask = BS::multi_future<void>();
@@ -131,30 +136,45 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	writer->NewPropertyWithValue("PlaceUnitsIfSceneIsRestarted", g_SceneMan.GetPlaceUnitsOnLoad());
 	writer->NewPropertyWithValue("Scene", modifiableScene.get());
 
+	// Save a small little file with index info (activity and original scene name) so we can display info in the samegame menu without needing to decompress and read through the entire zip
+	std::unique_ptr<std::stringstream> indexStream = std::make_unique<std::stringstream>();
+	Writer* indexWriter = new Writer(std::move(indexStream));
+	indexWriter->NewPropertyWithValue("ActivityName", activity->GetPresetName());
+	indexWriter->NewPropertyWithValue("OriginalScenePresetName", scene->GetPresetName());
+
 	// Get BITMAPS so save into our zip
 	// I tried std::moving this into the function directly but threadpool really doesn't like that
 	std::vector<SceneLayerInfo>* sceneLayerInfos = new std::vector<SceneLayerInfo>();
 	*sceneLayerInfos = std::move(scene->GetCopiedSceneLayerBitmaps());
 
-	auto saveWriterData = [fileName, sceneLayerInfos](Writer* writerToSave) {
-		std::stringstream* stream = static_cast<std::stringstream*>(writerToSave->GetStream());
-		stream->flush();
-
-		// Ugly copies, but eh. todo - use a string stream that just gives us a raw buffer to grab at
-		std::string streamAsString = stream->str();
-
-		zip_fileinfo zfi = {0};
-
+	auto saveWriterData = [fileName, sceneLayerInfos, indexWriter](Writer* mainWriter) {
 		// Create zip sav file
 		zipFile zippedSaveFile = zipOpen((g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ccsave").c_str(), APPEND_STATUS_CREATE);
 		if (!zippedSaveFile) {
 			g_ConsoleMan.PrintString("ERROR: Couldn't create zip save file!");
+			delete mainWriter;
+			delete indexWriter;
+			delete sceneLayerInfos;
 			return;
 		}
+		
+		std::stringstream* mainStream = static_cast<std::stringstream*>(mainWriter->GetStream());
+		std::stringstream* indexStream = static_cast<std::stringstream*>(indexWriter->GetStream());
+		mainStream->flush();
+		indexStream->flush();
 
-		const int defaultCompression = 6;
-		zipOpenNewFileInZip(zippedSaveFile, "Save.ini", &zfi, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, defaultCompression);
-		zipWriteInFileInZip(zippedSaveFile, streamAsString.data(), streamAsString.size());
+		// Ugly copies, but eh. todo - use a string stream that just gives us a raw buffer to grab at
+		std::string mainStreamAsString = mainStream->str();
+		std::string indexStreamAsString = indexStream->str();
+
+		zip_fileinfo zfi = {0};
+
+		zipOpenNewFileInZip(zippedSaveFile, "Index.ini", &zfi, nullptr, 0, nullptr, 0, nullptr, MZ_COMPRESS_METHOD_STORE, MZ_COMPRESS_LEVEL_FAST);
+		zipWriteInFileInZip(zippedSaveFile, indexStreamAsString.data(), indexStreamAsString.size());
+		zipCloseFileInZip(zippedSaveFile);
+
+		zipOpenNewFileInZip(zippedSaveFile, "Save.ini", &zfi, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, MZ_COMPRESS_LEVEL_FAST);
+		zipWriteInFileInZip(zippedSaveFile, mainStreamAsString.data(), mainStreamAsString.size());
 		zipCloseFileInZip(zippedSaveFile);
 
 		PALETTE palette;
@@ -188,7 +208,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 				continue;
 			}
 
-			zipOpenNewFileInZip(zippedSaveFile, ("Save " + layerInfo.name + ".png").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, defaultCompression);
+			zipOpenNewFileInZip(zippedSaveFile, ("Save " + layerInfo.name + ".png").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, MZ_COMPRESS_METHOD_STORE, MZ_COMPRESS_LEVEL_FAST);
 			zipWriteInFileInZip(zippedSaveFile, static_cast<const char*>(buffer), size);
 			zipCloseFileInZip(zippedSaveFile);
 
@@ -197,7 +217,8 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 
 		zipClose(zippedSaveFile, fileName.c_str());
 
-		delete writerToSave;
+		delete mainWriter;
+		delete indexWriter;
 		delete sceneLayerInfos;
 	};
 
@@ -235,7 +256,7 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 		unzOpenCurrentFile(zippedSaveFile);
 		unzGetCurrentFileInfo(zippedSaveFile, &info, nullptr, 0, nullptr, 0, nullptr, 0);
 
-		buffer = (char*)malloc(info.uncompressed_size);
+		buffer = (char*)malloc(info.uncompressed_size + 1); // add one so we can add a pretend null terminator on the end
 		if (!buffer) {
 			// If this ever hits I've lost all faith in modern OSes, but alas when one is writing C, one must dance along
 			RTEError::ShowMessageBox("Catastrophic failure! Failed to allocate memory for savegame");
@@ -282,7 +303,13 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 		}
 	}
 
-	unzipFileIntoBuffer("Save.ini");
+	if (!unzipFileIntoBuffer("Save.ini"))
+	{
+		RTEError::ShowMessageBox("Game loading failed! This save looks invalid or corrupted.");
+		return false;
+	}
+
+	buffer[info.uncompressed_size] = 0; // null terminate
 
 	Reader reader(std::make_unique<std::istringstream>(buffer), filePath + "/Save.ini", true, nullptr, false);
 
