@@ -155,9 +155,7 @@ void WindowMan::Initialize() {
 		SetViewportLetterboxed();
 	}
 
-#ifdef _WIN32
 	SDL_AddEventWatch((SDL_EventFilter)WindowMan::HandleWindowExposedEvent, nullptr);
-#endif
 }
 
 void WindowMan::CreatePrimaryWindow() {
