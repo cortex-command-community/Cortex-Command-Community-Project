@@ -201,6 +201,11 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::InitScrollRatios(bool initF
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::LoadData() {
+	if (m_MainBitmapOwned) {
+		destroy_bitmap(m_MainBitmap);
+		m_MainBitmap = nullptr;
+	}
+
 	// Load from disk and take ownership. Don't cache because the bitmap will be modified.
 	m_MainBitmap = m_BitmapFile.GetAsBitmap(COLORCONV_NONE, false);
 	m_MainBitmapOwned = true;
@@ -243,6 +248,16 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::SaveData(const std::string& 
 		}
 	}
 	return 0;
+}
+
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+std::unique_ptr<BITMAP> SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::CopyBitmap() const {
+	BITMAP* outputBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
+	if (m_MainBitmap) {
+		outputBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
+		blit(m_MainBitmap, outputBitmap, 0, 0, 0, 0, m_MainBitmap->w, m_MainBitmap->h);
+	}
+	return std::unique_ptr<BITMAP>(outputBitmap);
 }
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
