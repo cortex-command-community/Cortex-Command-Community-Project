@@ -1389,23 +1389,6 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 		if (!m_Controller.IsState(PIE_MENU_ACTIVE) || actorScreen != whichScreen) {
 			// If we're still alive, show the team colors
 			if (m_Health > 0) {
-				if (IsPlayerControlled() && g_FrameMan.IsInMultiplayerMode()) {
-					m_pControllerIcon = nullptr;
-					if (m_Team == 0) {
-						m_pControllerIcon = g_UInputMan.GetDeviceIcon(DEVICE_GAMEPAD_1);
-					} else if (m_Team == 1) {
-						m_pControllerIcon = g_UInputMan.GetDeviceIcon(DEVICE_GAMEPAD_2);
-					} else if (m_Team == 2) {
-						m_pControllerIcon = g_UInputMan.GetDeviceIcon(DEVICE_GAMEPAD_3);
-					} else if (m_Team == 3) {
-						m_pControllerIcon = g_UInputMan.GetDeviceIcon(DEVICE_GAMEPAD_4);
-					}
-
-					if (m_pControllerIcon) {
-						std::vector<BITMAP*> apControllerBitmaps = m_pControllerIcon->GetBitmaps8();
-						masked_blit(apControllerBitmaps[0], pTargetBitmap, 0, 0, drawPos.m_X - apControllerBitmaps[0]->w - 2 + 10, drawPos.m_Y + m_HUDStack - (apControllerBitmaps[0]->h / 2) + 8, apControllerBitmaps[0]->w, apControllerBitmaps[0]->h);
-					}
-				}
 
 				// Get the Icon bitmaps of this Actor's team, if any
 				std::vector<BITMAP*> apIconBitmaps;
@@ -1446,13 +1429,6 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 					pSmallFont->DrawAligned(&bitmapInt, drawPos.GetFloorIntX() - 0, drawPos.GetFloorIntY() + m_HUDStack + 2, str, GUIFont::Left);
 
 					m_HUDStack -= 11;
-				}
-				// Player name
-				if (g_FrameMan.IsInMultiplayerMode()) {
-					if (GameActivity* gameActivity = dynamic_cast<GameActivity*>(g_ActivityMan.GetActivity())) {
-						pSmallFont->DrawAligned(&bitmapInt, drawPos.GetFloorIntX(), drawPos.GetFloorIntY() + m_HUDStack + 2, gameActivity->GetNetworkPlayerName(m_Controller.GetPlayer()).c_str(), GUIFont::Centre);
-						m_HUDStack -= 11;
-					}
 				}
 			}
 		}

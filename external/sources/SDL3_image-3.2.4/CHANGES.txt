@@ -1,0 +1,11 @@
+3.2.4:
+ * Fixed alpha in less than 32-bit ICO and CUR images
+
+3.2.2:
+ * Fixed partial alpha in ICO and CUR images
+ * Set the cursor hotspot properties when loading CUR images
+
+3.0.0:
+ * Added support for loading HDR AVIF images
+ * Added AVIF save support:
+    IMG_SaveAVIF() and IMG_SaveAVIF_IO()

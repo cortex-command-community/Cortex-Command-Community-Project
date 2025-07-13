@@ -4,10 +4,15 @@
 #include "SceneMan.h"
 #include "ConsoleMan.h"
 #include "MOSprite.h"
+#include "Shader.h"
 
 #include "tracy/Tracy.hpp"
 
 #include <array>
+#include "Draw.h"
+#include "glad/gl.h"
+#include "Shader.h"
+#include "PresetMan.h"
 
 using namespace RTE;
 
@@ -71,18 +76,7 @@ void PrimitiveMan::SchedulePrimitivesForBlendedDrawing(DrawBlendMode blendMode, 
 }
 
 void PrimitiveMan::DrawLinePrimitive(int player, const Vector& startPos, const Vector& endPos, unsigned char color, int thickness) {
-	if (thickness > 1) {
-		Vector dirVector = g_SceneMan.ShortestDistance(startPos, endPos, g_SceneMan.SceneWrapsX()).SetMagnitude(static_cast<float>(thickness - 1) / 2.0F).Perpendicularize();
-		Vector pointA = startPos + dirVector;
-		Vector pointB = startPos - dirVector;
-		Vector pointC = endPos + dirVector;
-		Vector pointD = endPos - dirVector;
-
-		DrawTriangleFillPrimitive(player, pointA, pointB, pointC, color);
-		DrawTriangleFillPrimitive(player, pointC, pointD, pointB, color);
-	} else {
-		SchedulePrimitive(std::make_unique<LinePrimitive>(player, startPos, endPos, color));
-	}
+	SchedulePrimitive(std::make_unique<LinePrimitive>(player, startPos, endPos, thickness, color));
 }
 
 void PrimitiveMan::DrawArcPrimitive(const Vector& centerPos, float startAngle, float endAngle, int radius, unsigned char color) {
@@ -217,12 +211,12 @@ void PrimitiveMan::DrawTextPrimitive(int player, const Vector& start, const std:
 	SchedulePrimitive(std::make_unique<TextPrimitive>(player, start, text, isSmall, alignment, rotAngle));
 }
 
-void PrimitiveMan::DrawBitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame, bool hFlipped, bool vFlipped) {
-	SchedulePrimitive(std::make_unique<BitmapPrimitive>(player, centerPos, moSprite, rotAngle, frame, hFlipped, vFlipped));
+void PrimitiveMan::DrawBitmapPrimitive(int player, const Vector& centerPos, const MOSprite* moSprite, float rotAngle, unsigned int frame, float scale, bool hFlipped, bool vFlipped) {
+	SchedulePrimitive(std::make_unique<BitmapPrimitive>(player, centerPos, moSprite, rotAngle, frame, scale, hFlipped, vFlipped));
 }
 
-void PrimitiveMan::DrawBitmapPrimitive(int player, const Vector& centerPos, const std::string& filePath, float rotAngle, bool hFlipped, bool vFlipped) {
-	SchedulePrimitive(std::make_unique<BitmapPrimitive>(player, centerPos, filePath, rotAngle, hFlipped, vFlipped));
+void PrimitiveMan::DrawBitmapPrimitive(int player, const Vector& centerPos, const std::string& filePath, float rotAngle, float scale, bool hFlipped, bool vFlipped) {
+	SchedulePrimitive(std::make_unique<BitmapPrimitive>(player, centerPos, filePath, rotAngle, scale, hFlipped, vFlipped));
 }
 
 void PrimitiveMan::DrawIconPrimitive(int player, const Vector& centerPos, Entity* entity) {
@@ -241,29 +235,51 @@ void PrimitiveMan::DrawPrimitives(int player, BITMAP* targetBitmap, const Vector
 	int lastDrawMode = DRAW_MODE_SOLID;
 	DrawBlendMode lastBlendMode = DrawBlendMode::NoBlend;
 	std::array<int, 4> lastBlendAmounts = {BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend};
-
+	GLint currentShader = rlGetShaderCurrent();
+	rlDrawRenderBatchActive();
+	if (GLAD_GL_KHR_blend_equation_advanced_coherent){
+		glBlendBarrierKHR();
+		rlEnableAdvancedColorBlend();
+	}
+	const Shader* background = dynamic_cast<const Shader*>(g_PresetMan.GetEntityPreset("Shader", "Background"));
+	rlEnableColorBlend();
 	for (const std::unique_ptr<GraphicalPrimitive>& primitive: m_ScheduledPrimitives) {
 		if (int playerToDrawFor = primitive->m_Player; playerToDrawFor == player || playerToDrawFor == -1) {
+			rlDrawRenderBatchActive();
 			if (DrawBlendMode blendMode = primitive->m_BlendMode; blendMode > DrawBlendMode::NoBlend) {
 				if (const std::array<int, 4>& blendAmounts = primitive->m_ColorChannelBlendAmounts; blendMode != lastBlendMode || blendAmounts != lastBlendAmounts) {
-					g_FrameMan.SetColorTable(blendMode, blendAmounts);
+					if (lastBlendMode == BlendDissolve) {
+						background->Begin();
+					}
+					rlEnableShader(rlGetShaderCurrent());
+					g_FrameMan.SetBlendMode(blendMode);
+					GLint colorUniform = glGetUniformLocation(rlGetShaderCurrent(), "rteColor");
+					glUniform4f(colorUniform, blendAmounts[0] / static_cast<float>(MaxBlend), blendAmounts[1] / static_cast<float>(MaxBlend), blendAmounts[2] / static_cast<float>(MaxBlend), blendAmounts[3] / static_cast<float>(MaxBlend));
 					lastBlendMode = blendMode;
 					lastBlendAmounts = blendAmounts;
 				}
-				if (lastDrawMode != DRAW_MODE_TRANS) {
-					// Drawing mode is set so blending effects apply to true primitives. For bitmap based primitives it has no effect.
-					drawing_mode(DRAW_MODE_TRANS, nullptr, 0, 0);
-					lastDrawMode = DRAW_MODE_TRANS;
-				}
 			} else {
-				if (lastDrawMode != DRAW_MODE_SOLID) {
-					drawing_mode(DRAW_MODE_SOLID, nullptr, 0, 0);
-					lastDrawMode = DRAW_MODE_SOLID;
-				}
+				g_FrameMan.SetBlendMode(BlendTransparency);
+				rlEnableShader(currentShader);
+				GLint colorUniform = glGetUniformLocation(rlGetShaderCurrent(), "rteColor");
+				glUniform4f(colorUniform, 1.0f, 1.0f, 1.0f, 1.0f);
 				lastBlendMode = DrawBlendMode::NoBlend;
 			}
-			primitive->Draw(targetBitmap, targetPos);
+			if (GLAD_GL_KHR_blend_equation_advanced_coherent) {
+				glBlendBarrierKHR();
+			}
+			rlZDepth(primitive->m_Depth);
+			primitive->DrawTiled(targetBitmap, targetPos);
 		}
 	}
+	rlDrawRenderBatchActive();
+	if (GLAD_GL_KHR_blend_equation_advanced_coherent) {
+		rlDisableAdvancedColorBlend();
+	}
+	rlSetBlendMode(RL_BLEND_ALPHA);
+	background->Begin();
+	GLint colorUniform = glGetUniformLocation(rlGetShaderCurrent(), "rteColor");
+	glUniform4f(colorUniform, 1.0f, 1.0f, 1.0f, 1.0f);
+	rlZDepth(c_DefaultDrawDepth);
 	drawing_mode(DRAW_MODE_SOLID, nullptr, 0, 0);
 }

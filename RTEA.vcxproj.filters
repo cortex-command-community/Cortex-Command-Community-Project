@@ -34,6 +34,10 @@
     <Filter Include="GUI\Wrappers">
       <UniqueIdentifier>{14ff3fdb-4366-4bed-8b6e-ddcf72987b81}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GUI\imgui">
+    </Filter>
+    <Filter Include="GUI\imgui\backends">
+    </Filter>
     <Filter Include="System\backward">
       <UniqueIdentifier>{a8668dc1-51c5-418d-91bf-7ee92f008cb1}</UniqueIdentifier>
     </Filter>
@@ -234,6 +238,18 @@
     <ClInclude Include="Source\GUI\GUIUtil.h">
       <Filter>GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Source\GUI\imgui\imgui.h">
+      <Filter>GUI\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\GUI\imgui\imconfig.h">
+      <Filter>GUI\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\GUI\imgui\backends\imgui_impl_sdl3.h">
+      <Filter>GUI\imgui\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\GUI\imgui\backends\imgui_impl_opengl3.h">
+      <Filter>GUI\imgui\backends</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Entities\ACDropShip.h">
       <Filter>Entities</Filter>
     </ClInclude>
@@ -417,18 +433,6 @@
     <ClInclude Include="Source\Entities\PEmitter.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Managers\NetworkClient.h">
-      <Filter>Managers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Managers\NetworkServer.h">
-      <Filter>Managers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Activities\MultiplayerGame.h">
-      <Filter>Activities</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Activities\MultiplayerServerLobby.h">
-      <Filter>Activities</Filter>
-    </ClInclude>
     <ClInclude Include="Source\System\StandardIncludes.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -480,9 +484,6 @@
     <ClInclude Include="Source\Entities\Round.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\NetworkMessages.h">
-      <Filter>System</Filter>
-    </ClInclude>
     <ClInclude Include="Source\System\InputScheme.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -495,8 +496,8 @@
     <ClInclude Include="Source\Entities\Activity.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\GraphicalPrimitive.h">
-      <Filter>System</Filter>
+    <ClInclude Include="Source\Renderer\GraphicalPrimitive.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Source\Menus\TitleScreen.h">
       <Filter>Menus</Filter>
@@ -653,6 +654,12 @@
     <ClInclude Include="Source\Renderer\raylib\rlutils.h">
       <Filter>Renderer\raylib</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Renderer\raylib\rlutil.h" />
+    <ClInclude Include="Source\GUI\imgui\imgui_internal.h" />
+    <ClInclude Include="Source\GUI\imgui\imstb_rectpack.h" />
+    <ClInclude Include="Source\GUI\imgui\imstb_textedit.h" />
+    <ClInclude Include="Source\GUI\imgui\imstd_truetype.h" />
+    <ClInclude Include="Source\GUI\imgui\backends\imgui_impl_opengl3_loader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\System\Box.cpp">
@@ -813,6 +820,27 @@
     </ClCompile>
     <ClCompile Include="Source\GUI\GUIUtil.cpp">
       <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GUI\imgui\imgui.cpp">
+      <Filter>GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GUI\imgui\imgui_demo.cpp">
+      <Filter>GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GUI\imgui\imgui_draw.cpp">
+      <Filter>GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GUI\imgui\imgui_tables.cpp">
+      <Filter>GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GUI\imgui\imgui_widgets.cpp">
+      <Filter>GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GUI\imgui\backends\imgui_impl_sdl3.cpp">
+      <Filter>GUI\imgui\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GUI\imgui\backends\imgui_impl_opengl3.cpp">
+      <Filter>GUI\imgui\backends</Filter>
     </ClCompile>
     <ClCompile Include="Source\Entities\ACDropShip.cpp">
       <Filter>Entities</Filter>
@@ -998,18 +1026,6 @@
     <ClCompile Include="Source\Entities\PEmitter.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Managers\NetworkClient.cpp">
-      <Filter>Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Managers\NetworkServer.cpp">
-      <Filter>Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Activities\MultiplayerGame.cpp">
-      <Filter>Activities</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Activities\MultiplayerServerLobby.cpp">
-      <Filter>Activities</Filter>
-    </ClCompile>
     <ClCompile Include="Source\System\StandardIncludes.cpp">
       <Filter>System</Filter>
     </ClCompile>
@@ -1067,8 +1083,8 @@
     <ClCompile Include="Source\Entities\Activity.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Source\System\GraphicalPrimitive.cpp">
-      <Filter>System</Filter>
+    <ClCompile Include="Source\Renderer\GraphicalPrimitive.cpp">
+      <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Source\Menus\TitleScreen.cpp">
       <Filter>Menus</Filter>

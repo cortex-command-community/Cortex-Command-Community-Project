@@ -129,6 +129,9 @@ namespace RTE {
 		/// @param fileName Path to the file.
 		/// @return Whether or not the saved game was successfully loaded.
 		bool LoadAndLaunchGame(const std::string& fileName);
+
+		/// Waits for the task that saves the game to complete.
+		void WaitForSaveGameTask() const { m_SaveGameTask.wait(); }
 #pragma endregion
 
 #pragma region Activity Start Handling
@@ -152,14 +155,6 @@ namespace RTE {
 		/// Launch editor Activity specified in command-line argument.
 		/// @return Whether a valid editor name was passed in and set to be launched next time ResetActivity is called.
 		bool SetStartEditorActivitySetToLaunchInto();
-
-		/// Loads "Multiplayer Scene" and starts the MultiplayerGame Activity.
-		/// @return Whether the MultiplayerGame Activity was successfully created and set to be launched next time ResetActivity is called.
-		bool SetStartMultiplayerActivity();
-
-		/// Launch multiplayer server overview Activity.
-		/// @return Whether the server overview Activity was successfully created and set to be launched next time ResetActivity is called.
-		bool SetStartMultiplayerServerOverview();
 #pragma endregion
 
 #pragma region Concrete Methods

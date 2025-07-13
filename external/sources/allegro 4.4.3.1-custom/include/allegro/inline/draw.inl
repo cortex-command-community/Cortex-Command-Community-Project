@@ -239,6 +239,7 @@ AL_INLINE(void, draw_sprite, (BITMAP *bmp, BITMAP *sprite, int x, int y),
 {
    ASSERT(bmp);
    ASSERT(sprite);
+   TracyCZone(draw, 1);
 
    if (sprite->vtable->color_depth == 8) {
       bmp->vtable->draw_256_sprite(bmp, sprite, x, y);
@@ -247,6 +248,7 @@ AL_INLINE(void, draw_sprite, (BITMAP *bmp, BITMAP *sprite, int x, int y),
       ASSERT(bmp->vtable->color_depth == sprite->vtable->color_depth);
       bmp->vtable->draw_sprite(bmp, sprite, x, y);
    }
+   TracyCZoneEnd(draw);
 })
 
 AL_INLINE(void, draw_sprite_ex, (BITMAP *bmp, BITMAP *sprite, int x, int y,
@@ -254,6 +256,7 @@ AL_INLINE(void, draw_sprite_ex, (BITMAP *bmp, BITMAP *sprite, int x, int y,
 {
    ASSERT(bmp);
    ASSERT(sprite);
+   TracyCZone(ctx, 1);
 
    if (mode == DRAW_SPRITE_TRANS) {
       ASSERT((bmp->vtable->color_depth == sprite->vtable->color_depth) ||
@@ -266,36 +269,44 @@ AL_INLINE(void, draw_sprite_ex, (BITMAP *bmp, BITMAP *sprite, int x, int y,
       ASSERT(bmp->vtable->color_depth == sprite->vtable->color_depth);
       bmp->vtable->draw_sprite_ex(bmp, sprite, x, y, mode, flip);
    }
+   TracyCZoneEnd(ctx);
 })
 
 
 AL_INLINE(void, draw_sprite_v_flip, (BITMAP *bmp, BITMAP *sprite, int x, int y),{
+   TracyCZone(ctx, 1);
    ASSERT(bmp);
    ASSERT(sprite);
    ASSERT(bmp->vtable->color_depth == sprite->vtable->color_depth);
 
    bmp->vtable->draw_sprite_v_flip(bmp, sprite, x, y);
+   TracyCZoneEnd(ctx);
 })
 
 AL_INLINE(void, draw_sprite_h_flip, (BITMAP *bmp, BITMAP *sprite, int x, int y),{
+   TracyCZone(ctx, 1);
    ASSERT(bmp);
    ASSERT(sprite);
    ASSERT(bmp->vtable->color_depth == sprite->vtable->color_depth);
 
    bmp->vtable->draw_sprite_h_flip(bmp, sprite, x, y);
+   TracyCZoneEnd(ctx);
 })
 
 AL_INLINE(void, draw_sprite_vh_flip, (BITMAP *bmp, BITMAP *sprite, int x, int y),
 {
+   TracyCZone(ctx, 1);
    ASSERT(bmp);
    ASSERT(sprite);
    ASSERT(bmp->vtable->color_depth == sprite->vtable->color_depth);
 
    bmp->vtable->draw_sprite_vh_flip(bmp, sprite, x, y);
+   TracyCZoneEnd(ctx);
 })
 
 AL_INLINE(void, draw_trans_sprite, (BITMAP *bmp, BITMAP *sprite, int x, int y),
 {
+   TracyCZone(ctx, 1);
    ASSERT(bmp);
    ASSERT(sprite);
 

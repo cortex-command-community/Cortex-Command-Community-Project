@@ -40,7 +40,7 @@ namespace RTE {
 		void Enable();
 
 		/// Begin shader draw mode. Flushes the active batch and enables this shader.
-		void Begin();
+		void Begin() const;
 
 		/// Disables this shader and sets up the default raylib shader. Flushes the active batch and clears bound textures.
 		void End() const;

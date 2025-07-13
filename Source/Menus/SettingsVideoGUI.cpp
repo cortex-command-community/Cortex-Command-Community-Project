@@ -13,7 +13,7 @@
 #include "GUIComboBox.h"
 #include "GUITextBox.h"
 
-#include "SDL_video.h"
+#include <SDL3/SDL_video.h>
 #include "glm/ext.hpp"
 #include "glm/gtc/epsilon.hpp"
 #if __cpp_lib_format >= 201907L
@@ -25,7 +25,7 @@
 using namespace RTE;
 
 std::string SettingsVideoGUI::PresetResolutionRecord::GetDisplayString() const {
-#if __cpp_lib_format >= 201907L
+#if __cpp_lib_format >= 201907L && !(defined(__APPLE__) && defined(__GNUC__)) //FIXME: macOS CI borken without this.
 	return std::format("{}x{} ({:.1g}x Fullscreen scale)", Width, Height, Scale);
 #else
 	return std::to_string(Width) + "x" + std::to_string(Height);
@@ -56,7 +56,9 @@ SettingsVideoGUI::SettingsVideoGUI(GUIControlManager* parentControlManager) :
 
 	m_UseMultiDisplaysCheckbox = dynamic_cast<GUICheckbox*>(m_GUIControlManager->GetControl("CheckboxUseMultiDisplays"));
 	m_UseMultiDisplaysCheckbox->SetCheck(g_WindowMan.GetUseMultiDisplays());
-	m_UseMultiDisplaysCheckbox->SetVisible(m_UseMultiDisplaysCheckbox->GetVisible() && SDL_GetNumVideoDisplays() > 1);
+	int numDisplays = 0;
+	SDL_free(SDL_GetDisplays(&numDisplays));
+	m_UseMultiDisplaysCheckbox->SetVisible(m_UseMultiDisplaysCheckbox->GetVisible() && numDisplays > 1);
 
 	m_PresetResolutionRadioButton = dynamic_cast<GUIRadioButton*>(m_GUIControlManager->GetControl("RadioPresetResolution"));
 	m_CustomResolutionRadioButton = dynamic_cast<GUIRadioButton*>(m_GUIControlManager->GetControl("RadioCustomResolution"));
@@ -111,7 +113,7 @@ void SettingsVideoGUI::CreateCustomResolutionBox() {
 
 	m_CustomResolutionMultiplierComboBox = dynamic_cast<GUIComboBox*>(m_GUIControlManager->GetControl("ComboboxResolutionMultiplier"));
 	PopulateResMultplierComboBox();
-#if __cpp_lib_format >= 201907L
+#if __cpp_lib_format >= 201907L && !(defined(__APPLE__) && defined(__GNUC__))
 	m_CustomResolutionMultiplierComboBox->SetText(std::format("{:.3g}x", m_NewResMultiplier));
 #else
 	m_CustomResolutionMultiplierComboBox->SetText(std::to_string(m_NewResMultiplier));
@@ -129,7 +131,7 @@ void SettingsVideoGUI::SetEnabled(bool enable) const {
 	if (enable) {
 		m_CustomResolutionWidthTextBox->SetText(std::to_string(static_cast<int>(g_WindowMan.GetResX())));
 		m_CustomResolutionHeightTextBox->SetText(std::to_string(static_cast<int>(g_WindowMan.GetResY())));
-#if __cpp_lib_format >= 201907L
+#if __cpp_lib_format >= 201907L && !(defined(__APPLE__) && defined(__GNUC__))
 		m_CustomResolutionMultiplierComboBox->SetText(std::format("{:.3g}x", m_NewResMultiplier));
 #else
 		m_CustomResolutionMultiplierComboBox->SetText(std::to_string(m_NewResMultiplier));
@@ -198,7 +200,7 @@ void SettingsVideoGUI::PopulateResMultplierComboBox() {
 	m_CustomResolutionMultiplierComboBox->ClearList();
 
 	for (float resMultiplier = 1.0f; resMultiplier <= maximumResMultiplier; resMultiplier += 0.5) {
-#if __cpp_lib_format >= 201907L
+#if __cpp_lib_format >= 201907L && !(defined(__APPLE__) && defined(__GNUC__))
 		m_CustomResolutionMultiplierComboBox->AddItem(std::format("{:.3g}x", resMultiplier));
 #else
 		m_CustomResolutionMultiplierComboBox->AddItem(std::to_string(resMultiplier));

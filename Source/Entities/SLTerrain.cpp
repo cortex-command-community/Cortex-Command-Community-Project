@@ -308,6 +308,12 @@ int SLTerrain::SaveData(const std::string& pathBase, bool doAsyncSaves) {
 	return 0;
 }
 
+void SLTerrain::CopyBitmapData(std::vector<SceneLayerInfo>& layerInfos) const {
+	layerInfos.emplace_back(std::string("Mat"), SceneLayer::CopyBitmap());
+	layerInfos.emplace_back(std::string("FG"), m_FGColorLayer->CopyBitmap());
+	layerInfos.emplace_back(std::string("BG"), m_BGColorLayer->CopyBitmap());
+}
+
 int SLTerrain::ClearData() {
 	RTEAssert(SceneLayer::ClearData() == 0, "Failed to clear material bitmap data of an SLTerrain!");
 	RTEAssert(m_FGColorLayer && m_FGColorLayer->ClearData() == 0, "Failed to clear the foreground color bitmap data of an SLTerrain!");
@@ -465,7 +471,6 @@ std::deque<MOPixel*> SLTerrain::EraseSilhouette(BITMAP* sprite, const Vector& po
 				}
 				if (colorPixel != ColorKeys::g_MaskColor) {
 					putpixel(m_FGColorLayer->GetBitmap(), terrX, terrY, ColorKeys::g_MaskColor);
-					g_SceneMan.RegisterTerrainChange(terrX, terrY, 1, 1, ColorKeys::g_MaskColor, false);
 				}
 			}
 		}
