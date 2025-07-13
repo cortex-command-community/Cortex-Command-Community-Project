@@ -484,9 +484,6 @@
     <ClInclude Include="Source\Entities\Round.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\NetworkMessages.h">
-      <Filter>System</Filter>
-    </ClInclude>
     <ClInclude Include="Source\System\InputScheme.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -657,6 +654,12 @@
     <ClInclude Include="Source\Renderer\raylib\rlutils.h">
       <Filter>Renderer\raylib</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Renderer\raylib\rlutil.h" />
+    <ClInclude Include="Source\GUI\imgui\imgui_internal.h" />
+    <ClInclude Include="Source\GUI\imgui\imstb_rectpack.h" />
+    <ClInclude Include="Source\GUI\imgui\imstb_textedit.h" />
+    <ClInclude Include="Source\GUI\imgui\imstd_truetype.h" />
+    <ClInclude Include="Source\GUI\imgui\backends\imgui_impl_opengl3_loader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\System\Box.cpp">

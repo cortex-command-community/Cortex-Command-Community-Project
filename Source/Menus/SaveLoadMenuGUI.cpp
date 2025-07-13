@@ -21,6 +21,9 @@
 
 #include <execution>
 
+#include "zip.h"
+#include "unzip.h"
+
 using namespace RTE;
 
 SaveLoadMenuGUI::SaveLoadMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool createForPauseMenu) {
@@ -75,6 +78,8 @@ SaveLoadMenuGUI::SaveLoadMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiI
 }
 
 void SaveLoadMenuGUI::PopulateSaveGamesList() {
+	g_ActivityMan.WaitForSaveGameTask();
+	
 	m_SaveGames.clear();
 	m_SaveGameName->SetText("");
 
@@ -82,10 +87,10 @@ void SaveLoadMenuGUI::PopulateSaveGamesList() {
 
 	std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/";
 	for (const auto& entry: std::filesystem::directory_iterator(saveFilePath)) {
-		if (entry.is_directory()) {
+		if (entry.path().extension() == ".ccsave") {
 			SaveRecord record;
 			record.SavePath = entry.path();
-			record.SaveDate = std::filesystem::last_write_time(entry.path() / "Save.ini");
+			record.SaveDate = entry.last_write_time();
 			m_SaveGames.push_back(record);
 		}
 	}
@@ -93,31 +98,48 @@ void SaveLoadMenuGUI::PopulateSaveGamesList() {
 	std::for_each(std::execution::par_unseq,
 	              m_SaveGames.begin(), m_SaveGames.end(),
 	              [](SaveRecord& record) {
-		              Reader reader(record.SavePath.string() + "/Save.ini", true, nullptr, true);
+		              // load zip sav file
+		              std::string filePath = record.SavePath.string();
+		              unzFile zippedSaveFile = unzOpen(filePath.c_str());
+		              if (!zippedSaveFile) {
+			              return;
+		              }
 
-		              bool readActivity = false;
-		              bool readSceneName = false;
+					  // These need to use NULL instead of nullptr to compile on Linux/OSX?
+		              if (unzLocateFile(zippedSaveFile, "Index.ini", NULL) == UNZ_END_OF_LIST_OF_FILE) {
+			              unzClose(zippedSaveFile);
+			              return;
+		              }
 
-		              GAScripted activity;
+					  unz_file_info info;
+		              unzOpenCurrentFile(zippedSaveFile);
+		              unzGetCurrentFileInfo(zippedSaveFile, &info, nullptr, 0, nullptr, 0, nullptr, 0);
 
-		              std::string originalScenePresetName;
+		              char* buffer = (char*)malloc(info.uncompressed_size + 1);
+		              if (!buffer) {
+			              // If this ever hits I've lost all faith in modern OSes, but alas when one is writing C, one must dance along
+			              RTEError::ShowMessageBox("Catastrophic failure! Failed to allocate memory for savegame");
+			              unzClose(zippedSaveFile);
+			              return;
+		              }
+
+		              unzReadCurrentFile(zippedSaveFile, buffer, info.uncompressed_size);
+					  unzCloseCurrentFile(zippedSaveFile);
+					  
+		              buffer[info.uncompressed_size] = 0; // need to null-terminate manually
+
+					  Reader reader(std::make_unique<std::istringstream>(buffer), record.SavePath.string(), true, nullptr, false);
 		              while (reader.NextProperty()) {
 			              std::string propName = reader.ReadPropName();
-			              if (propName == "Activity") {
-				              reader >> activity;
-				              readActivity = true;
+			              if (propName == "ActivityName") {
+				              reader >> record.Activity;
 			              } else if (propName == "OriginalScenePresetName") {
-				              reader >> originalScenePresetName;
-				              readSceneName = true;
-			              }
-
-			              if (readActivity && readSceneName) {
-				              break;
+				              reader >> record.Scene;
 			              }
 		              }
 
-		              record.Activity = activity.GetPresetName();
-		              record.Scene = originalScenePresetName;
+					  unzClose(zippedSaveFile);
+					  free(buffer);
 	              });
 
 	UpdateSaveGamesGUIList();
@@ -191,9 +213,9 @@ void SaveLoadMenuGUI::CreateSave() {
 }
 
 void SaveLoadMenuGUI::DeleteSave() {
-	std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + m_SaveGameName->GetText();
+	std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + m_SaveGameName->GetText() + ".ccsave";
 
-	std::filesystem::remove_all(saveFilePath);
+	std::filesystem::remove(saveFilePath);
 	g_GUISound.ConfirmSound()->Play();
 
 	PopulateSaveGamesList();

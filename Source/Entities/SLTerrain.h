@@ -68,6 +68,10 @@ namespace RTE {
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int SaveData(const std::string& pathBase, bool doAsyncSaves = true) override;
 
+		/// Copies bitmap data into layerInfos.
+		/// @param layerInfos List of SceneLayerInfo to emplace our copied data into.
+		void CopyBitmapData(std::vector<SceneLayerInfo>& layerInfos) const;
+
 		/// Clears out any previously loaded bitmap data from memory.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int ClearData() override;
@@ -85,6 +89,14 @@ namespace RTE {
 		/// Sets the layer of this SLTerrain that should be drawn to the screen when Draw() is called.
 		/// @param layerToDraw The layer that should be drawn. See LayerType enumeration.
 		void SetLayerToDraw(LayerType layerToDraw) { m_LayerToDraw = layerToDraw; }
+
+		/// Gets the foreground scenelayer of this SLTerrain.
+		/// @return A pointer to the foreground scenelayer.
+		SceneLayer* GetFGSceneLayer() { return m_FGColorLayer.get(); }
+
+		/// Gets the background scenelayer of this SLTerrain.
+		/// @return A pointer to the background scenelayer.
+		SceneLayer* GetBGSceneLayer() { return m_BGColorLayer.get(); }
 
 		/// Gets the foreground color bitmap of this SLTerrain.
 		/// @return A pointer to the foreground color bitmap.

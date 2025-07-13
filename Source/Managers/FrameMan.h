@@ -74,7 +74,7 @@ namespace RTE {
 		std::shared_ptr<RenderTarget> GetBackBuffer() const { return m_BackBuffer; }
 #pragma endregion
 
-#pragma region Split - Screen Handling
+#pragma region Split-Screen Handling
 		/// Gets whether the screen is split horizontally across the screen, ie as two splitscreens one above the other.
 		/// @return Whether or not screen has a horizontal split.
 		bool GetHSplit() const { return m_HSplit; }
