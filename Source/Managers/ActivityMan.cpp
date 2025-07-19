@@ -81,8 +81,9 @@ bool ActivityMan::ForceAbortSave() {
 #define HACK_MZ_COMPRESS_METHOD_DEFLATE 8
 
 bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
-	m_SaveGameTask.wait();
-	m_SaveGameTask = std::future<void>();
+	if (m_SaveGameTask.valid()) {
+		m_SaveGameTask.wait();
+	}
 
 	Scene* scene = g_SceneMan.GetScene();
 	GAScripted* activity = dynamic_cast<GAScripted*>(GetActivity());
@@ -258,8 +259,10 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	unzFile zippedSaveFile = unzOpen(saveFilePath.c_str());
 	if (!zippedSaveFile) {
 		// Might be trying to open one we're already saving too, wait until we finish saving and try again
-		m_SaveGameTask.wait();
-		zippedSaveFile = unzOpen(saveFilePath.c_str());
+		if (m_SaveGameTask.valid()) {
+			m_SaveGameTask.wait();
+			zippedSaveFile = unzOpen(saveFilePath.c_str());
+		}
 
 		if (!zippedSaveFile) {
 			// Some other process is stopping us from loading, oh well

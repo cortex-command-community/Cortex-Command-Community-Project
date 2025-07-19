@@ -131,11 +131,15 @@ namespace RTE {
 		bool LoadAndLaunchGame(const std::string& fileName);
 
 		/// Waits for the task that saves the game to complete.
-		void WaitForSaveGameTask() const { m_SaveGameTask.wait(); }
+		void WaitForSaveGameTask() const {
+			if (m_SaveGameTask.valid()) {
+				m_SaveGameTask.wait();
+			}
+		}
 
 		/// Returns whether a save is currently in progress.
 		/// @return Whether or not a save is currently in progress.
-		bool IsCurrentlySaving() const { return m_SaveGameTask.wait_for(std::chrono::seconds(0)) == std::future_status::ready; }
+		bool IsCurrentlySaving() const { return m_SaveGameTask.valid() && m_SaveGameTask.wait_for(std::chrono::seconds(0)) != std::future_status::ready; }
 #pragma endregion
 
 #pragma region Activity Start Handling
