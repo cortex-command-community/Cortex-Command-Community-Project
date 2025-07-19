@@ -66,7 +66,7 @@ namespace RTE {
 		/// @param pathBase The filepath base to the where to save the Bitmap data. This means everything up to the extension. "FG" and "Mat" etc will be added.
 		/// @param doAsyncSaves Whether or not to save asynchronously.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int SaveData(const std::string& pathBase, bool doAsyncSaves = true) override;
+		int SaveData(const std::string& pathBase) override;
 
 		/// Copies bitmap data into layerInfos.
 		/// @param layerInfos List of SceneLayerInfo to emplace our copied data into.

@@ -38,7 +38,7 @@ namespace RTE {
 
 		/// Gets the async save game task.
 		/// @return The savegame task.
-		BS::multi_future<void>& GetSaveGameTask() { return m_SaveGameTask; }
+		std::future<void>& GetSaveGameTask() { return m_SaveGameTask; }
 
 		/// Indicates whether the game is currently running or not (not editing, over or paused).
 		/// @return Whether the game is running or not.
@@ -132,6 +132,10 @@ namespace RTE {
 
 		/// Waits for the task that saves the game to complete.
 		void WaitForSaveGameTask() const { m_SaveGameTask.wait(); }
+
+		/// Returns whether a save is currently in progress.
+		/// @return Whether or not a save is currently in progress.
+		bool IsCurrentlySaving() const { return m_SaveGameTask.wait_for(std::chrono::seconds(0)) == std::future_status::ready; }
 #pragma endregion
 
 #pragma region Activity Start Handling
@@ -198,7 +202,7 @@ namespace RTE {
 		std::unique_ptr<Activity> m_Activity; //!< The currently active Activity.
 		std::unique_ptr<Activity> m_StartActivity; //!< The starting condition of the next Activity to be (re)started.
 
-		BS::multi_future<void> m_SaveGameTask; //!< The current save game task.
+		std::future<void> m_SaveGameTask; //!< The current save game task.
 
 		bool m_InActivity; //!< Whether we are currently in game (as in, not in the main menu or any other out-of-game menus), regardless of its state.
 		bool m_ActivityNeedsRestart; //!< Whether the current Activity needs to be restarted.

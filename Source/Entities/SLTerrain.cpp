@@ -298,13 +298,13 @@ int SLTerrain::LoadData() {
 	return 0;
 }
 
-int SLTerrain::SaveData(const std::string& pathBase, bool doAsyncSaves) {
+int SLTerrain::SaveData(const std::string& pathBase) {
 	if (pathBase.empty()) {
 		return -1;
 	}
-	SceneLayer::SaveData(pathBase + " Mat.png", doAsyncSaves);
-	m_FGColorLayer->SaveData(pathBase + " FG.png", doAsyncSaves);
-	m_BGColorLayer->SaveData(pathBase + " BG.png", doAsyncSaves);
+	SceneLayer::SaveData(pathBase + " Mat.png");
+	m_FGColorLayer->SaveData(pathBase + " FG.png");
+	m_BGColorLayer->SaveData(pathBase + " BG.png");
 	return 0;
 }
 

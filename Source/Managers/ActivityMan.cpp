@@ -48,7 +48,7 @@ void ActivityMan::Clear() {
 	m_DefaultActivityName = "Tutorial Mission";
 	m_Activity = nullptr;
 	m_StartActivity = nullptr;
-	m_SaveGameTask = BS::multi_future<void>();
+	m_SaveGameTask = std::future<void>();
 	m_InActivity = false;
 	m_ActivityNeedsRestart = false;
 	m_ActivityNeedsResume = false;
@@ -82,7 +82,7 @@ bool ActivityMan::ForceAbortSave() {
 
 bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	m_SaveGameTask.wait();
-	m_SaveGameTask = BS::multi_future<void>();
+	m_SaveGameTask = std::future<void>();
 
 	Scene* scene = g_SceneMan.GetScene();
 	GAScripted* activity = dynamic_cast<GAScripted*>(GetActivity());
@@ -241,7 +241,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	};
 
 	// For some reason I can't std::move a unique ptr in, so just releasing and deleting manually...
-	m_SaveGameTask.push_back(g_ThreadMan.GetBackgroundThreadPool().submit(saveWriterData, writer.release()));
+	m_SaveGameTask = g_ThreadMan.GetBackgroundThreadPool().submit(saveWriterData, writer.release());
 
 	// We didn't transfer ownership, so we must be very careful that sceneAltered's deletion doesn't touch the stuff we got from MovableMan.
 	modifiableScene->ClearPlacedObjectSet(Scene::PlacedObjectSets::PLACEONLOAD, false);

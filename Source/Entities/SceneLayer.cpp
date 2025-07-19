@@ -221,7 +221,7 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::LoadData() {
 }
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
-int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::SaveData(const std::string& bitmapPath, bool doAsyncSaves) {
+int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::SaveData(const std::string& bitmapPath) {
 	if (bitmapPath.empty()) {
 		return -1;
 	}
@@ -231,21 +231,14 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::SaveData(const std::string& 
 		BITMAP* outputBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
 		blit(m_MainBitmap, outputBitmap, 0, 0, 0, 0, m_MainBitmap->w, m_MainBitmap->h);
 
-		auto saveLayerBitmap = [bitmapPath, doAsyncSaves](BITMAP* bitmapToSave) {
-			PALETTE palette;
-			get_palette(palette);
-			if (save_png(bitmapPath.c_str(), bitmapToSave, palette) != 0) {
-				RTEAbort(std::string("Failed to save SceneLayerImpl bitmap to path and name: " + bitmapPath));
-			}
-			destroy_bitmap(bitmapToSave);
-		};
-
 		m_BitmapFile.SetDataPath(bitmapPath);
-		if (doAsyncSaves) {
-			g_ActivityMan.GetSaveGameTask().push_back(g_ThreadMan.GetBackgroundThreadPool().submit(saveLayerBitmap, outputBitmap));
-		} else {
-			saveLayerBitmap(outputBitmap);
+
+		PALETTE palette;
+		get_palette(palette);
+		if (save_png(bitmapPath.c_str(), outputBitmap, palette) != 0) {
+			RTEAbort(std::string("Failed to save SceneLayerImpl bitmap to path and name: " + bitmapPath));
 		}
+		destroy_bitmap(outputBitmap);
 	}
 	return 0;
 }
