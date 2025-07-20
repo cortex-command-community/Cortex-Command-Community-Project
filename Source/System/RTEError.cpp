@@ -588,6 +588,7 @@ bool RTEError::DumpAbortSave() {
 	bool success = false;
 	if (g_ActivityMan.GetActivity() && g_ActivityMan.GetActivity()->CanBeUserSaved()) {
 		success = g_ActivityMan.SaveCurrentGame("AbortSave");
+		g_ActivityMan.WaitForSaveGameTask(); // Ensure the save is complete before the user potentially aborts or restarts the game.
 	}
 	return success;
 }
