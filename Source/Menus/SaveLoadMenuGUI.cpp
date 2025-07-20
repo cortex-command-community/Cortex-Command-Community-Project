@@ -266,14 +266,17 @@ void SaveLoadMenuGUI::UpdateButtonEnabledStates() {
 	if (g_ActivityMan.GetActivity()) {
 		if (isSaving) {
 			const char* saveText = "";
-			switch (m_SavingBlinkTimer.StepReal(500, 3)) {
+			switch (m_SavingBlinkTimer.StepReal(500, 4)) {
 				case 0:
-					saveText = "Saving game, please wait.  ";
+					saveText = "Saving game, please wait   ";
 					break;
 				case 1:
-					saveText = "Saving game, please wait.. ";
+					saveText = "Saving game, please wait.  ";
 					break;
 				case 2:
+					saveText = "Saving game, please wait.. ";
+					break;
+				case 3:
 					saveText = "Saving game, please wait...";
 					break;
 			}
