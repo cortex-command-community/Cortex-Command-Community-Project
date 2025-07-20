@@ -950,7 +950,7 @@ float AHuman::EstimateJumpHeight() const {
 	} while (currentVelocity.GetY() < 0.0F);
 
 	float finalCalculatedHeight = totalHeight * -1.0F * c_MPP;
-	float finalHeightMultipler = 0.8f; // Make us think we can do a little less because AI path following is shit
+	float finalHeightMultipler = 0.6f; // Make us think we can do less because AI path following is shit
 	return finalCalculatedHeight * finalHeightMultipler;
 }
 
