@@ -26,6 +26,7 @@ GUIListPanel::GUIListPanel(GUIManager* Manager) :
 	m_CapturedHorz = false;
 	m_CapturedVert = false;
 	m_ExternalCapture = false;
+	m_HighlightAsIfAlwaysFocused = false;
 	m_HotTracking = false;
 	m_HorzScrollEnabled = true;
 	m_VertScrollEnabled = true;
@@ -55,6 +56,7 @@ GUIListPanel::GUIListPanel() :
 	m_CapturedHorz = false;
 	m_CapturedVert = false;
 	m_ExternalCapture = false;
+	m_HighlightAsIfAlwaysFocused = false;
 	m_HotTracking = false;
 	m_HorzScrollEnabled = true;
 	m_VertScrollEnabled = true;
@@ -340,7 +342,7 @@ void GUIListPanel::BuildDrawBitmap() {
 			}
 
 			// Selected item
-			if (I->m_Selected && m_GotFocus) {
+			if (I->m_Selected && (m_GotFocus || m_HighlightAsIfAlwaysFocused)) {
 				m_DrawBitmap->DrawLine(4, itemY + 1, m_Width - (m_VertScroll->_GetVisible() ? m_VertScroll->GetWidth() + 2 : 5), itemY + 1, m_SelectedColorIndex);
 				m_DrawBitmap->DrawLine(4, itemY + itemHeight, m_Width - (m_VertScroll->_GetVisible() ? m_VertScroll->GetWidth() + 2 : 5), itemY + itemHeight, m_SelectedColorIndex);
 				m_Font->SetColor(m_FontSelectColor);
@@ -369,10 +371,10 @@ void GUIListPanel::BuildDrawBitmap() {
 			// Selected item
 			if (I->m_Selected) {
 				m_Font->SetColor(m_SelectedColorIndex);
-				m_DrawBitmap->DrawRectangle(1, itemY, itemWidth - 2, m_Font->GetFontHeight(), m_SelectedColorIndex, m_GotFocus); // Filled if we have focus
+				m_DrawBitmap->DrawRectangle(1, itemY, itemWidth - 2, m_Font->GetFontHeight(), m_SelectedColorIndex, (m_GotFocus || m_HighlightAsIfAlwaysFocused)); // Filled if we have focus
 			}
 
-			if (I->m_Selected && m_GotFocus) {
+			if (I->m_Selected && (m_GotFocus || m_HighlightAsIfAlwaysFocused)) {
 				m_Font->SetColor(m_FontSelectColor);
 				m_Font->DrawAligned(m_DrawBitmap, itemX - 3 + itemWidth - (m_VertScroll->_GetVisible() ? m_VertScroll->GetWidth() : 0), itemY, I->m_RightText, GUIFont::Right);
 				m_Font->Draw(m_DrawBitmap, 4 - itemX, itemY, I->m_Name);

@@ -61,6 +61,10 @@ void GUIListBox::Create(GUIProperties* Props) {
 	bool Multi = false;
 	Props->GetValue("MultiSelect", &Multi);
 	SetMultiSelect(Multi);
+
+	bool highlightAsIfAlwaysFocused = false;
+	Props->GetValue("HighlightAsIfAlwaysFocused", &highlightAsIfAlwaysFocused);
+	SetHighlightAsIfAlwaysFocused(highlightAsIfAlwaysFocused);
 }
 
 void GUIListBox::Destroy() {
@@ -127,6 +131,10 @@ void GUIListBox::ApplyProperties(GUIProperties* Props) {
 	bool Multi = false;
 	m_Properties.GetValue("MultiSelect", &Multi);
 	SetMultiSelect(Multi);
+
+	bool highlightAsIfAlwaysFocused = false;
+	m_Properties.GetValue("HighlightAsIfAlwaysFocused", &highlightAsIfAlwaysFocused);
+	SetHighlightAsIfAlwaysFocused(highlightAsIfAlwaysFocused);
 
 	// Rebuild the bitmap
 	BuildBitmap(true, true);
