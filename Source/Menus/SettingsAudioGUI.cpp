@@ -28,6 +28,9 @@ SettingsAudioGUI::SettingsAudioGUI(GUIControlManager* parentControlManager) :
 	m_SoundMuteCheckbox = dynamic_cast<GUICheckbox*>(m_GUIControlManager->GetControl("CheckboxMuteSound"));
 	m_SoundMuteCheckbox->SetCheck(g_AudioMan.GetSoundsMuted());
 
+	m_MuteOnFocusLossCheckbox = dynamic_cast<GUICheckbox*>(m_GUIControlManager->GetControl("CheckboxMuteAudioOnFocusLoss"));
+	m_MuteOnFocusLossCheckbox->SetCheck(g_AudioMan.GetMuteAudioOnFocusLoss());
+
 	UpdateMasterVolumeControls();
 	UpdateMusicVolumeControls();
 	UpdateSoundVolumeControls();
@@ -81,6 +84,8 @@ void SettingsAudioGUI::HandleInputEvents(GUIEvent& guiEvent) {
 			g_AudioMan.SetMusicMuted(m_MusicMuteCheckbox->GetCheck());
 		} else if (guiEvent.GetControl() == m_SoundMuteCheckbox) {
 			g_AudioMan.SetSoundsMuted(m_SoundMuteCheckbox->GetCheck());
+		} else if (guiEvent.GetControl() == m_MuteOnFocusLossCheckbox) {
+			g_AudioMan.SetMuteAudioOnFocusLoss(m_MuteOnFocusLossCheckbox->GetCheck());
 		}
 	}
 }

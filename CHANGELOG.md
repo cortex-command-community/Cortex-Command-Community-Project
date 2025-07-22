@@ -85,8 +85,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `Attachable` INI and Lua (R/W) properties `InheritsVelWhenDetached` and `InheritsAngularVelWhenDetached`, which determine how much of these velocities an attachable inherits from its parent when detached. Defaults to 1.
 
-- New GPU Renderer using OpenGL+Raylib, draw now takes 0ms in pretty much every instance.
-
 - New Z Order for scene layers and primitives: Background layer sits at z=100, Terrain Background at z=50, Terrain color and MO color at z=0, GUIs sit at z=-100, allowed z range is [-200, +200], in the future this'll be expanded to MO draw as well.
 - Added Lua-accessible bitmap manipulation functions to `MOSprite`s:	
 	```
@@ -138,6 +136,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	```
 	Original bindings with no scale argument are untouched and can be called as they were.
 
+- New option to mute audio when the game window loses focus.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -151,6 +151,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Save files are now compressed and stored in a single file, instead of a directory.
 	Savefiles have the extension `.ccsave`, but their underlying format is really just a `.zip` file. This can be opened and modified as before with any zip file viewer.
 	These savefiles can be safely renamed and moved without breaking the savegame, unlike before.
+
+- New GPU Renderer using now OpenGL + Raylib, dramatically improving draw performance. Draw now takes a negligible amount of time.
 
 - All vanilla scenario activities have had their settings polished, respecting settings which make sense and disabling settings which don't.
 	You can now have fog of war in the test scene, and can no longer require path to orbit in Zero-G Diggers-Only One Man Army.
