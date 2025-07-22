@@ -134,6 +134,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 
 	// Pull all stuff from MovableMan into the Scene for saving, so existing Actors/ADoors are saved, without transferring ownership, so the game can continue.
 	// This is done after the activity is saved, in case the activity wants to add anything to the scene while saving.
+	// TODO- copying may be faster, and lets us move all this actual writing into async
 	modifiableScene->RetrieveSceneObjects(false);
 	for (SceneObject* objectToSave: *modifiableScene->GetPlacedObjects(Scene::PlacedObjectSets::PLACEONLOAD)) {
 		if (MovableObject* objectToSaveAsMovableObject = dynamic_cast<MovableObject*>(objectToSave)) {
