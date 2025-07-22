@@ -28,6 +28,8 @@
 #include "zip.h"
 #include "unzip.h"
 
+#include "tracy/Tracy.hpp"
+
 #include "SDL3/SDL_surface.h"
 #include <SDL3_image/SDL_image.h>
 
@@ -85,6 +87,8 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		m_SaveGameTask.wait();
 	}
 
+	ZoneScopedN("Save Game");
+
 	Scene* scene = g_SceneMan.GetScene();
 	GAScripted* activity = dynamic_cast<GAScripted*>(GetActivity());
 
@@ -92,6 +96,12 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		g_ConsoleMan.PrintString("ERROR: Cannot save when there's no game running, or the game is finished!");
 		return false;
 	}
+
+	// Get BITMAPS so save into our zip, do this async so we can copy the scene info at the same time
+	std::vector<SceneLayerInfo>* sceneLayerInfos = new std::vector<SceneLayerInfo>();
+	std::future<void> copyBitmaps = g_ThreadMan.GetBackgroundThreadPool().submit([&]() {
+		*sceneLayerInfos = std::move(scene->GetCopiedSceneLayerBitmaps());
+	});
 
 	// We need a copy of our scene, because we have to do some fixup to remove PLACEONLOAD items and only keep the current MovableMan state.
 	std::unique_ptr<Scene> modifiableScene(dynamic_cast<Scene*>(scene->Clone()));
@@ -152,11 +162,6 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	Writer* indexWriter = new Writer(std::move(indexStream));
 	indexWriter->NewPropertyWithValue("ActivityName", activity->GetPresetName());
 	indexWriter->NewPropertyWithValue("OriginalScenePresetName", scene->GetPresetName());
-
-	// Get BITMAPS so save into our zip
-	// I tried std::moving this into the function directly but threadpool really doesn't like that
-	std::vector<SceneLayerInfo>* sceneLayerInfos = new std::vector<SceneLayerInfo>();
-	*sceneLayerInfos = std::move(scene->GetCopiedSceneLayerBitmaps());
 
 	auto saveWriterData = [fileName, sceneLayerInfos, indexWriter](Writer* mainWriter) {
 		// Create zip sav file
@@ -241,6 +246,8 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		delete indexWriter;
 		delete sceneLayerInfos;
 	};
+
+	copyBitmaps.wait();
 
 	// For some reason I can't std::move a unique ptr in, so just releasing and deleting manually...
 	m_SaveGameTask = g_ThreadMan.GetBackgroundThreadPool().submit(saveWriterData, writer.release());
