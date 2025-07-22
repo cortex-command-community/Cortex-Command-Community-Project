@@ -155,6 +155,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - All vanilla scenario activities have had their settings polished, respecting settings which make sense and disabling settings which don't.
 	You can now have fog of war in the test scene, and can no longer require path to orbit in Zero-G Diggers-Only One Man Army.
 
+- The "Clear" Preset button in the Buy Menu now clears the currently selected loadout, instead of the last one in the list.
+
 - Conquest activities will once again fall-back to using base dropships and rockets if a random selection of the selected tech's craft can't find one capable of carrying passengers and/or cargo.
 
 - `MovableMan:OpenAllDoors()`, when passed `NOTEAM`, will now open/close doors specifically for `NOTEAM` (instead of all doors).

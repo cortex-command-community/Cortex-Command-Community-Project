@@ -102,6 +102,7 @@ void BuyMenuGUI::Clear() {
 	m_pSaveButton = 0;
 	m_pClearButton = 0;
 	m_Loadouts.clear();
+	m_SelectedLoadoutIndex = -1;
 	m_PurchaseMade = false;
 
 	m_EnforceMaxPassengersConstraint = true;
@@ -118,7 +119,7 @@ void BuyMenuGUI::Clear() {
 	m_LastEquipmentScrollPosition = -1;
 	m_LastMainScrollPosition = -1;
 	m_FirstMainTab = CRAFT;
-	m_LastMainTab = SETS;
+	m_LastMainTab = PRESETS;
 	m_FirstEquipmentTab = TOOLS;
 	m_LastEquipmentTab = SHIELDS;
 }
@@ -183,7 +184,7 @@ int BuyMenuGUI::Create(Controller* pController) {
 	m_pCategoryTabs[GUNS] = dynamic_cast<GUITab*>(m_pGUIController->GetControl("GunsTab"));
 	m_pCategoryTabs[BOMBS] = dynamic_cast<GUITab*>(m_pGUIController->GetControl("BombsTab"));
 	m_pCategoryTabs[SHIELDS] = dynamic_cast<GUITab*>(m_pGUIController->GetControl("ShieldsTab"));
-	m_pCategoryTabs[SETS] = dynamic_cast<GUITab*>(m_pGUIController->GetControl("SetsTab"));
+	m_pCategoryTabs[PRESETS] = dynamic_cast<GUITab*>(m_pGUIController->GetControl("SetsTab"));
 	RefreshTabDisabledStates();
 
 	m_pShopList = dynamic_cast<GUIListBox*>(m_pGUIController->GetControl("CatalogLB"));
@@ -332,6 +333,7 @@ void BuyMenuGUI::DuplicateCartItem(const int itemIndex) {
 bool BuyMenuGUI::LoadAllLoadoutsFromFile() {
 	// First clear out all loadouts
 	m_Loadouts.clear();
+	m_SelectedLoadoutIndex = -1;
 	// Try to load the player's loadout settings from file, if there is one
 	char loadoutPath[256];
 
@@ -724,7 +726,7 @@ void BuyMenuGUI::RefreshTabDisabledStates() {
 	m_pCategoryTabs[GUNS]->SetEnabled(smartBuyMenuNavigationDisabled || m_SelectingEquipment);
 	m_pCategoryTabs[BOMBS]->SetEnabled(smartBuyMenuNavigationDisabled || m_SelectingEquipment);
 	m_pCategoryTabs[SHIELDS]->SetEnabled(smartBuyMenuNavigationDisabled || m_SelectingEquipment);
-	m_pCategoryTabs[SETS]->SetEnabled(smartBuyMenuNavigationDisabled || !m_SelectingEquipment);
+	m_pCategoryTabs[PRESETS]->SetEnabled(smartBuyMenuNavigationDisabled || !m_SelectingEquipment);
 }
 
 void BuyMenuGUI::Update() {
@@ -1020,12 +1022,12 @@ void BuyMenuGUI::Update() {
 	}
 
 	/////////////////////////////////////////
-	// SETS BUTTONS focus
+	// PRESETS BUTTONS focus
 
 	if (m_MenuFocus == SETBUTTONS) {
 		if (m_FocusChange) {
 			// Set the correct special Sets category so the sets buttons show up
-			m_MenuCategory = SETS;
+			m_MenuCategory = PRESETS;
 			CategoryChange();
 			m_pSaveButton->SetFocus();
 			m_FocusChange = 0;
@@ -1034,12 +1036,13 @@ void BuyMenuGUI::Update() {
 		if (m_pController->IsState(PRESS_FACEBUTTON)) {
 			if (m_pSaveButton->HasFocus())
 				SaveCurrentLoadout();
-			else if (m_pClearButton->HasFocus() && m_Loadouts.size() != 0) {
-				m_Loadouts.pop_back();
+			else if (m_pClearButton->HasFocus() && m_Loadouts.size() != 0 && m_SelectedLoadoutIndex != -1) {
+				m_Loadouts.erase(m_Loadouts.begin() + m_SelectedLoadoutIndex);
 				// Update the list of loadout presets so the removal shows up
 				CategoryChange();
 				// Set focus back on the save button (CatChange changed it)
 				m_pClearButton->SetFocus();
+				m_SelectedLoadoutIndex = -1;
 			}
 			g_GUISound.ItemChangeSound()->Play(m_pController->GetPlayer());
 		}
@@ -1222,7 +1225,7 @@ void BuyMenuGUI::Update() {
 				CategoryChange(false);
 			}
 			// User pressed on a loadout set, so load it into the menu
-			else if (pItem && m_MenuCategory == SETS) {
+			else if (pItem && m_MenuCategory == PRESETS) {
 				// Beep if there's an error
 				if (!DeployLoadout(m_ListItemIndex))
 					g_GUISound.UserErrorSound()->Play(m_pController->GetPlayer());
@@ -1506,12 +1509,14 @@ void BuyMenuGUI::Update() {
 			// CLEAR button clicks
 			if (anEvent.GetControl() == m_pClearButton) {
 				m_pClearButton->SetFocus();
-				if (!m_Loadouts.empty())
-					m_Loadouts.pop_back();
-				// Update the list of loadout presets so the removal shows up
-				CategoryChange();
-				// Save new loadout config to file
-				SaveAllLoadoutsToFile();
+				if (m_SelectedLoadoutIndex != -1) {
+					m_Loadouts.erase(m_Loadouts.begin() + m_SelectedLoadoutIndex);
+					// Update the list of loadout presets so the removal shows up
+					CategoryChange();
+					// Save new loadout config to file
+					SaveAllLoadoutsToFile();
+					m_SelectedLoadoutIndex = -1;
+				}
 				// Set focus back on the clear button (CatChange changed it)
 				m_pClearButton->SetFocus();
 				m_MenuFocus = SETBUTTONS;
@@ -1577,7 +1582,7 @@ void BuyMenuGUI::Update() {
 						CategoryChange(false);
 					}
 					// Special case: user clicked on a loadout set, so load it into the menu
-					else if (pItem && m_MenuCategory == SETS) {
+					else if (pItem && m_MenuCategory == PRESETS) {
 						// Beep if there's an error
 						if (!DeployLoadout(m_ListItemIndex))
 							g_GUISound.UserErrorSound()->Play(m_pController->GetPlayer());
@@ -1769,6 +1774,11 @@ void BuyMenuGUI::Update() {
 			}
 		}
 	}
+
+	if (m_MenuCategory == PRESETS) {
+		m_pSaveButton->SetEnabled(!m_pCartList->GetItemList()->empty());
+		m_pClearButton->SetEnabled(m_SelectedLoadoutIndex != -1);
+	}
 }
 
 void BuyMenuGUI::Draw(BITMAP* drawBitmap) const {
@@ -1837,7 +1847,7 @@ void BuyMenuGUI::CategoryChange(bool focusOnCategoryTabs) {
 	m_pShopList->ClearList();
 
 	// Hide/show the logo and special sets category buttons, and add all current presets to the list, and we're done.
-	if (m_MenuCategory == SETS) {
+	if (m_MenuCategory == PRESETS) {
 		m_Logo->SetVisible(false);
 		m_pSaveButton->SetVisible(true);
 		m_pClearButton->SetVisible(true);
@@ -1963,8 +1973,12 @@ void BuyMenuGUI::SaveCurrentLoadout() {
 }
 
 bool BuyMenuGUI::DeployLoadout(int index) {
-	if (index < 0 || index >= m_Loadouts.size())
+	if (index < 0 || index >= m_Loadouts.size()) {
+		m_SelectedLoadoutIndex = -1;
 		return false;
+	}
+
+	m_SelectedLoadoutIndex = index;
 
 	// Clear the cart, we're going to refill it with the selected loadout
 	m_pCartList->ClearList();
@@ -2138,6 +2152,8 @@ void BuyMenuGUI::AddObjectsToItemList(std::vector<std::list<Entity*>>& moduleLis
 }
 
 void BuyMenuGUI::AddPresetsToItemList() {
+	m_SelectedLoadoutIndex = -1;
+	
 	GUIBitmap* pItemBitmap = 0;
 	std::string loadoutLabel;
 	float loadoutCost;
