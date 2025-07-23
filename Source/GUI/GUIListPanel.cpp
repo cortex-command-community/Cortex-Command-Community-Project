@@ -337,7 +337,7 @@ void GUIListPanel::BuildDrawBitmap() {
 					I->m_pBitmap->DrawTrans(m_DrawBitmap, ((thirdWidth / 2) - (bitmapWidth / 2)) - itemX + 2, bitmapY, 0);
 				} else {
 					// No text, just bitmap, so give it more room
-					I->m_pBitmap->DrawTrans(m_DrawBitmap, ((thirdWidth / 2) - (bitmapWidth / 2)) - itemX + 4, bitmapY, 0);
+					I->m_pBitmap->DrawTrans(m_DrawBitmap, ((thirdWidth) - (bitmapWidth / 2)) - itemX + 4, bitmapY, 0);
 				}
 			}
 

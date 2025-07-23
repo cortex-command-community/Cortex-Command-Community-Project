@@ -2159,7 +2159,7 @@ void BuyMenuGUI::AddObjectsToItemList(std::vector<std::list<Entity*>>& moduleLis
 void BuyMenuGUI::AddPresetsToItemList() {
 	m_SelectedLoadoutIndex = -1;
 	
-	GUIBitmap* pItemBitmap = 0;
+	AllegroBitmap* pItemBitmap = 0;
 	std::string loadoutLabel;
 	float loadoutCost;
 	const Actor* pPassenger = 0;
@@ -2172,37 +2172,56 @@ void BuyMenuGUI::AddPresetsToItemList() {
 		pItemBitmap = 0;
 		pPassenger = 0;
 
-		// Add preset name at the begining to differentiate loadouts from user-defined presets
-		if ((*lItr).GetPresetName() != "None")
-			loadoutLabel = (*lItr).GetPresetName() + ":\n";
+		int bitmapHeight = 0;
+		int bitmapWidth = 0;
 
-		// Go through the cargo setup of each loadout and encode a meaningful label for the list item
-		for (std::list<const SceneObject*>::iterator cItr = (*lItr).GetCargoList()->begin(); cItr != (*lItr).GetCargoList()->end(); ++cItr) {
-			// If not the first one, add a comma separator to the label
-			if (cItr != (*lItr).GetCargoList()->begin())
-				loadoutLabel += ", ";
-			// Append the name of the current cargo thing to the label
-			loadoutLabel += (*cItr)->GetPresetName();
-			// Adjust price for foreignness of the items to this player
-			loadoutCost += (*cItr)->GetGoldValue(m_NativeTechModule, m_ForeignCostMult);
-			if (!pPassenger)
-				pPassenger = dynamic_cast<const Actor*>(*cItr);
+		int rowHeight = 0;
+		int rowWidth = 0;
+		for (const SceneObject* sceneObject : *(*lItr).GetCargoList()) {
+			if (dynamic_cast<const Actor*>(sceneObject)) {
+				// start a new row
+				bitmapHeight += rowHeight;
+				bitmapWidth = std::max(bitmapWidth, rowWidth);
+				rowHeight = 0;
+				rowWidth = 0;
+			}
+
+			rowHeight = std::max(rowHeight, sceneObject->GetGraphicalIcon()->h);
+			rowWidth += sceneObject->GetGraphicalIcon()->w;
 		}
 
-		// Add the ship's cost, if there is one defined
-		if ((*lItr).GetDeliveryCraft()) {
-			loadoutLabel += " via " + (*lItr).GetDeliveryCraft()->GetPresetName();
-			// Adjust price for foreignness of the ship to this player
-			loadoutCost += (*lItr).GetDeliveryCraft()->GetGoldValue(m_NativeTechModule, m_ForeignCostMult);
+		// and once more for the last row
+		bitmapHeight += rowHeight;
+		bitmapWidth = std::max(bitmapWidth, rowWidth);
+
+		// Generate our bitmap of all the cargo items in the loadout
+		pItemBitmap = new AllegroBitmap();
+		pItemBitmap->Create(bitmapWidth, bitmapHeight);
+
+		// Now actually draw the stuff in the appropriate places
+		rowHeight = 0;
+		int heightOffset = 0;
+		int widthOffset = 0;
+		for (const SceneObject* sceneObject: *(*lItr).GetCargoList()) {
+			if (dynamic_cast<const Actor*>(sceneObject)) {
+				// start a new row
+				heightOffset += rowHeight;
+				rowHeight = 0;
+				widthOffset = 0;
+			}
+
+			draw_sprite_h_flip(pItemBitmap->GetBitmap(), sceneObject->GetGraphicalIcon(), widthOffset, heightOffset);
+
+			rowHeight = std::max(rowHeight, sceneObject->GetGraphicalIcon()->h);
+			widthOffset += sceneObject->GetGraphicalIcon()->w;
 		}
 
-		// Make the cost label
-		std::snprintf(costString, sizeof(costString), "%.0f", loadoutCost);
-		// Get a good icon and wrap it, while not passing ownership into the AllegroBitmap
-		// We're trying to pick the icon of the first passenger, or the first item if there's no passengers in the loadout
-		pItemBitmap = new AllegroBitmap(pPassenger ? const_cast<Actor*>(pPassenger)->GetGraphicalIcon() : const_cast<SceneObject*>((*lItr).GetCargoList()->front())->GetGraphicalIcon());
+		for (const SceneObject* sceneObject: *(*lItr).GetCargoList()) {
+			loadoutCost += sceneObject->GetGoldValue(m_NativeTechModule, m_ForeignCostMult);
+		}
+
 		// Passing in ownership of the bitmap, but not of the pSpriteObj
-		m_pShopList->AddItem(loadoutLabel, costString, pItemBitmap, 0);
+		m_pShopList->AddItem("", costString, pItemBitmap);
 	}
 }
 
