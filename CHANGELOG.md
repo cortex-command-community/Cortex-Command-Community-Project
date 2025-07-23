@@ -159,6 +159,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - The "Clear" Preset button in the Buy Menu now clears the currently selected loadout, instead of the last one in the list.
 
+- Loadouts are now additive, and append their items into the cart instead of replacing the current cart item list.
+
 - Conquest activities will once again fall-back to using base dropships and rockets if a random selection of the selected tech's craft can't find one capable of carrying passengers and/or cargo.
 
 - `MovableMan:OpenAllDoors()`, when passed `NOTEAM`, will now open/close doors specifically for `NOTEAM` (instead of all doors).

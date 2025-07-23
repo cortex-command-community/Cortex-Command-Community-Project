@@ -1568,6 +1568,19 @@ void BuyMenuGUI::Update() {
 
 					GUIListPanel::Item* pItem = m_pShopList->GetItem(mousePosX, mousePosY);
 
+					if (pItem && m_MenuCategory == PRESETS) {
+						// The presets list must have a mouse-down event to select an item, whereas we implicitly select items on hover in other categories
+						m_LastHoveredMouseIndex = pItem->m_ID;
+
+						// Play select sound if new index
+						if (m_ListItemIndex != pItem->m_ID) {
+							g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
+						}
+
+						m_pShopList->SetSelectedIndex(m_CategoryItemIndex[m_MenuCategory] = m_ListItemIndex = pItem->m_ID);
+					}
+
+
 					// If a module group list item, toggle its expansion and update the list
 					if (pItem && pItem->m_ExtraIndex >= 0) {
 						// Make appropriate sound
@@ -1649,15 +1662,17 @@ void BuyMenuGUI::Update() {
 					// See if it's hovering over any item
 					GUIListPanel::Item* pItem = m_pShopList->GetItem(mousePosX, mousePosY);
 					if (pItem) {
-						// Don't let mouse movement change the index if it's still hovering inside the same item.
-						// This is to avoid erratic selection curosr if using both mouse and keyboard to work the menu
-						if (m_LastHoveredMouseIndex != pItem->m_ID) {
+						// On presets Menu, you must actively click to select an item. Anywhere else, an implicit hover will select
+						if (m_MenuCategory != PRESETS && m_LastHoveredMouseIndex != pItem->m_ID) {
+							// Don't let mouse movement change the index if it's still hovering inside the same item.
+							// This is to avoid erratic selection curosr if using both mouse and keyboard to work the menu
 							m_LastHoveredMouseIndex = pItem->m_ID;
 
 							// Play select sound if new index
-							if (m_ListItemIndex != pItem->m_ID)
+							if (m_ListItemIndex != pItem->m_ID) {
 								g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
-							// Update the seleciton in both the GUI control and our menu
+							}
+
 							m_pShopList->SetSelectedIndex(m_CategoryItemIndex[m_MenuCategory] = m_ListItemIndex = pItem->m_ID);
 						}
 					}
@@ -1851,6 +1866,7 @@ void BuyMenuGUI::CategoryChange(bool focusOnCategoryTabs) {
 		m_Logo->SetVisible(false);
 		m_pSaveButton->SetVisible(true);
 		m_pClearButton->SetVisible(true);
+		m_pShopList->SetHighlightAsIfAlwaysFocused(true);
 		// Add and done!
 		AddPresetsToItemList();
 		return;
@@ -1860,6 +1876,7 @@ void BuyMenuGUI::CategoryChange(bool focusOnCategoryTabs) {
 		m_Logo->SetVisible(true);
 		m_pSaveButton->SetVisible(false);
 		m_pClearButton->SetVisible(false);
+		m_pShopList->SetHighlightAsIfAlwaysFocused(false);
 	}
 
 	// The vector of lists which will be filled with catalog objects, grouped by which data module they were read from
@@ -1980,33 +1997,33 @@ bool BuyMenuGUI::DeployLoadout(int index) {
 
 	m_SelectedLoadoutIndex = index;
 
-	// Clear the cart, we're going to refill it with the selected loadout
-	m_pCartList->ClearList();
-
 	// Check if the craft is available
 	const ACraft* pCraft = m_Loadouts[index].GetDeliveryCraft();
+	bool shouldReplaceCraft = pCraft && (m_pSelectedCraft == nullptr || m_pCartList->GetItemList()->empty());
+	if (shouldReplaceCraft) {
+		if (!IsAlwaysAllowedItem(pCraft->GetModuleAndPresetName())) {
+			if (IsProhibitedItem(pCraft->GetModuleAndPresetName())) {
+				shouldReplaceCraft = false;
+			}
 
-	if (pCraft) {
-		bool craftAvailable = true;
-
-		if (IsAllowedItem(pCraft->GetModuleAndPresetName()))
-			craftAvailable = true;
-
-		if (IsProhibitedItem(pCraft->GetModuleAndPresetName()))
-			craftAvailable = false;
-
-		if (m_OnlyShowOwnedItems && craftAvailable) {
-			if (GetOwnedItemsAmount(pCraft->GetModuleAndPresetName()) > 0)
-				craftAvailable = true;
-			else
-				craftAvailable = false;
+			if (m_OnlyShowOwnedItems && GetOwnedItemsAmount(pCraft->GetModuleAndPresetName()) == 0) {
+				shouldReplaceCraft = false;
+			}
 		}
+	}
 
-		if (IsAlwaysAllowedItem(pCraft->GetModuleAndPresetName()))
-			craftAvailable = true;
+	// Set the craft to what the loadout specifies, if anything
+	if (shouldReplaceCraft) {
+		m_pSelectedCraft = pCraft;
 
-		if (!craftAvailable)
-			return false;
+		// Take into account whether these are native or not, and multiply the cost accordingly
+		m_pCraftBox->SetText(m_pSelectedCraft->GetPresetName());
+		m_pCraftBox->SetRightText(m_pSelectedCraft->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult));
+
+		m_pCraftNameLabel->SetText(m_pSelectedCraft->GetPresetName());
+		m_pCraftPriceLabel->SetText(m_pSelectedCraft->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult));
+		UpdateTotalPassengersLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftPassengersLabel);
+		UpdateTotalMassLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftMassLabel);
 	}
 
 	// Get and add all the stuff in the selected loadout
@@ -2038,18 +2055,6 @@ bool BuyMenuGUI::DeployLoadout(int index) {
 
 		if (canAdd)
 			AddCartItem((*cItr)->GetPresetName(), (*cItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *cItr);
-	}
-	// Now set the craft to what the loadout specifies, if anything
-	if (m_Loadouts[index].GetDeliveryCraft()) {
-		m_pSelectedCraft = m_Loadouts[index].GetDeliveryCraft();
-		// Take into account whether these are native or not, and multiply the cost accordingly
-		m_pCraftBox->SetText(m_pSelectedCraft->GetPresetName());
-		m_pCraftBox->SetRightText(m_pSelectedCraft->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult));
-
-		m_pCraftNameLabel->SetText(m_pSelectedCraft->GetPresetName());
-		m_pCraftPriceLabel->SetText(m_pSelectedCraft->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult));
-		UpdateTotalPassengersLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftPassengersLabel);
-		UpdateTotalMassLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftMassLabel);
 	}
 
 	// Update labels with the new config's values
