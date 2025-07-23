@@ -2189,13 +2189,6 @@ void BuyMenuGUI::AddPresetsToItemList() {
 				pPassenger = dynamic_cast<const Actor*>(*cItr);
 		}
 
-		// Add the ship's cost, if there is one defined
-		if ((*lItr).GetDeliveryCraft()) {
-			loadoutLabel += " via " + (*lItr).GetDeliveryCraft()->GetPresetName();
-			// Adjust price for foreignness of the ship to this player
-			loadoutCost += (*lItr).GetDeliveryCraft()->GetGoldValue(m_NativeTechModule, m_ForeignCostMult);
-		}
-
 		// Make the cost label
 		std::snprintf(costString, sizeof(costString), "%.0f", loadoutCost);
 		// Get a good icon and wrap it, while not passing ownership into the AllegroBitmap
