@@ -1091,7 +1091,7 @@ void Actor::OnNewMovePath() {
 		std::list<Vector>::iterator nextItr = m_MovePath.begin();
 		for (std::list<Vector>::iterator lItr = m_MovePath.begin(); lItr != finalItr; ++lItr) {
 			nextItr++;
-			smashedPoint = g_SceneMan.MovePointToGround((*lItr), m_CharHeight * 0.2, 0, g_SettingsMan.GetPathFinderGridNodeSize() * 2);
+			smashedPoint = g_SceneMan.MovePointToGround((*lItr), m_CharHeight * 0.2, 0, g_SettingsMan.GetPathFinderGridNodeSize() * 2.0f);
 
 			// Only smash if the new location doesn't cause the path to intersect hard terrain ahead or behind of it
 			// Try three times to halve the height to see if that won't intersect
