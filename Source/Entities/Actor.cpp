@@ -1119,7 +1119,7 @@ void Actor::PreControllerUpdate() {
 	}
 
 	// We update this after, because pathing requests are forced to take at least 1 frame for the sake of determinism for now.
-	// In future maybe we can move this back, but it doesn't make much difference (the threadpool submission overhead makes it extremely unlikely that it would complete in less time anyways)
+	// In future maybe we can move this back, but it doesn't make much difference
 	if (m_UpdateMovePath) {
 		UpdateMovePath();
 	}
