@@ -788,11 +788,16 @@ namespace RTE {
 		/// @param from The point to start from. Should be in the air, or the same point will
 		/// be returned (null operation)
 		/// @param maxAltitude The max altitude in px you want the point to be above the ground. (default: 0)
-		/// @param accuracy The accuracy within screen measurement is acceptable. Higher number (default: 0)
-		/// here means less calculation.
+		/// @param accuracy The accuracy within screen measurement is acceptable. Higher number (default: 0) here means less calculation.
+		/// @param maxDistance The maximum distance downwards the point will be moved. Points higher than this will not be moved down.
 		/// @return The new point screen is no higher than accuracy + max altitude over
 		/// the terrain.
-		Vector MovePointToGround(const Vector& from, int maxAltitude = 0, int accuracy = 0);
+		Vector MovePointToGround(const Vector& from, int maxAltitude, int accuracy, int maxDistance);
+
+		// Luabind makes this such a pain
+		Vector MovePointToGround(const Vector& from, int maxAltitude = 0, int accuracy = 0) {
+			return MovePointToGround(from, maxAltitude, accuracy, 0);
+		}
 
 		/// Returns whether the integer coordinates passed in are within the
 		/// bounds of the current Scene, considering its wrapping.

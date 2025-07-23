@@ -2242,7 +2242,7 @@ bool SceneMan::IsPointInNoGravArea(const Vector& point) const {
 	return false;
 }
 
-Vector SceneMan::MovePointToGround(const Vector& from, int maxAltitude, int accuracy) {
+Vector SceneMan::MovePointToGround(const Vector& from, int maxAltitude, int accuracy, int maxDistance) {
 	if (IsPointInNoGravArea(from)) {
 		return from;
 	}
@@ -2253,7 +2253,7 @@ Vector SceneMan::MovePointToGround(const Vector& from, int maxAltitude, int accu
 	float altitude = FindAltitude(temp, g_SceneMan.GetSceneHeight(), accuracy);
 
 	// If there's no ground beneath us, do nothing
-	if (altitude == g_SceneMan.GetSceneHeight()) {
+	if (altitude == g_SceneMan.GetSceneHeight() || (maxDistance != 0 && altitude > maxDistance)) {
 		return temp;
 	}
 

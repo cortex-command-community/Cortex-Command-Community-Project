@@ -1081,6 +1081,34 @@ void Actor::OnNewMovePath() {
 		// Nowhere to gooooo
 		m_MoveTarget = m_PrevPathTarget = m_Pos;
 	}
+
+	if (!m_MovePath.empty()) {
+		// Smash all non-airborne waypoints down to just above the ground, so they more accurately represent the ground path
+		std::list<Vector>::iterator finalItr = m_MovePath.end();
+		finalItr--;
+		Vector smashedPoint;
+		Vector previousPoint = *(m_MovePath.begin());
+		std::list<Vector>::iterator nextItr = m_MovePath.begin();
+		for (std::list<Vector>::iterator lItr = m_MovePath.begin(); lItr != finalItr; ++lItr) {
+			nextItr++;
+			smashedPoint = g_SceneMan.MovePointToGround((*lItr), m_CharHeight * 0.2, 0, g_SettingsMan.GetPathFinderGridNodeSize() * 2);
+
+			// Only smash if the new location doesn't cause the path to intersect hard terrain ahead or behind of it
+			// Try three times to halve the height to see if that won't intersect
+			for (int i = 0; i < 3; i++) {
+				Vector notUsed;
+				if (!g_SceneMan.CastStrengthRay(previousPoint, smashedPoint - previousPoint, 5, notUsed, 3, g_MaterialDoor) &&
+				    nextItr != m_MovePath.end() && !g_SceneMan.CastStrengthRay(smashedPoint, (*nextItr) - smashedPoint, 5, notUsed, 3, g_MaterialDoor)) {
+					(*lItr) = smashedPoint;
+					break;
+				} else {
+					smashedPoint.m_Y -= ((smashedPoint.m_Y - (*lItr).m_Y) / 2);
+				}
+			}
+
+			previousPoint = (*lItr);
+		}
+	}
 }
 
 void Actor::PreControllerUpdate() {
