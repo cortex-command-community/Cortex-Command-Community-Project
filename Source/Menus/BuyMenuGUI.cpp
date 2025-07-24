@@ -1753,6 +1753,7 @@ void BuyMenuGUI::Update() {
 									m_SelectedLoadoutIndex = m_DraggedItemIndex;
 									std::swap((*m_pShopList->GetItemList())[oldIndex], (*m_pShopList->GetItemList())[oldIndex + direction]);
 									std::swap((*m_pShopList->GetItemList())[oldIndex]->m_ID, (*m_pShopList->GetItemList())[oldIndex + direction]->m_ID);
+									std::swap((*m_pShopList->GetItemList())[oldIndex]->m_ExtraIndex, (*m_pShopList->GetItemList())[oldIndex + direction]->m_ExtraIndex);
 									std::swap(m_Loadouts[oldIndex], m_Loadouts[oldIndex + direction]);
 								}
 							}
