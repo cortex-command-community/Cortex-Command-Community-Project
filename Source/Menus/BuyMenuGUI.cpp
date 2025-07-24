@@ -2158,19 +2158,11 @@ void BuyMenuGUI::AddObjectsToItemList(std::vector<std::list<Entity*>>& moduleLis
 
 void BuyMenuGUI::AddPresetsToItemList() {
 	m_SelectedLoadoutIndex = -1;
-	
-	AllegroBitmap* pItemBitmap = 0;
-	std::string loadoutLabel;
-	float loadoutCost;
-	const Actor* pPassenger = 0;
-	char costString[256];
 
 	// Go through all the presets, making intelligible list items from then for the GUI item list
 	for (std::vector<Loadout>::iterator lItr = m_Loadouts.begin(); lItr != m_Loadouts.end(); ++lItr) {
-		loadoutLabel.clear();
-		loadoutCost = 0;
-		pItemBitmap = 0;
-		pPassenger = 0;
+		AllegroBitmap* pItemBitmap = nullptr;
+		float loadoutCost = 0;
 
 		int bitmapHeight = 0;
 		int bitmapWidth = 0;
@@ -2220,8 +2212,8 @@ void BuyMenuGUI::AddPresetsToItemList() {
 			loadoutCost += sceneObject->GetGoldValue(m_NativeTechModule, m_ForeignCostMult);
 		}
 
-		// Passing in ownership of the bitmap, but not of the pSpriteObj
-		m_pShopList->AddItem("", costString, pItemBitmap);
+		// Passing in ownership of the bitmap
+		m_pShopList->AddItem("", std::to_string(loadoutCost), pItemBitmap, 0);
 	}
 }
 
