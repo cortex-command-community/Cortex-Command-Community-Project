@@ -100,7 +100,7 @@ void BuyMenuGUI::Clear() {
 	m_pBuyButton = 0;
 	m_ClearOrderButton = nullptr;
 	m_pSaveButton = 0;
-	m_pClearButton = 0;
+	m_pDeleteButton = 0;
 	m_Loadouts.clear();
 	m_SelectedLoadoutIndex = -1;
 	m_PurchaseMade = false;
@@ -119,7 +119,7 @@ void BuyMenuGUI::Clear() {
 	m_LastEquipmentScrollPosition = -1;
 	m_LastMainScrollPosition = -1;
 	m_FirstMainTab = CRAFT;
-	m_LastMainTab = PRESETS;
+	m_LastMainTab = LOADOUTS;
 	m_FirstEquipmentTab = TOOLS;
 	m_LastEquipmentTab = SHIELDS;
 }
@@ -184,7 +184,7 @@ int BuyMenuGUI::Create(Controller* pController) {
 	m_pCategoryTabs[GUNS] = dynamic_cast<GUITab*>(m_pGUIController->GetControl("GunsTab"));
 	m_pCategoryTabs[BOMBS] = dynamic_cast<GUITab*>(m_pGUIController->GetControl("BombsTab"));
 	m_pCategoryTabs[SHIELDS] = dynamic_cast<GUITab*>(m_pGUIController->GetControl("ShieldsTab"));
-	m_pCategoryTabs[PRESETS] = dynamic_cast<GUITab*>(m_pGUIController->GetControl("SetsTab"));
+	m_pCategoryTabs[LOADOUTS] = dynamic_cast<GUITab*>(m_pGUIController->GetControl("LoadoutsTab"));
 	RefreshTabDisabledStates();
 
 	m_pShopList = dynamic_cast<GUIListBox*>(m_pGUIController->GetControl("CatalogLB"));
@@ -204,9 +204,9 @@ int BuyMenuGUI::Create(Controller* pController) {
 	m_pBuyButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("BuyButton"));
 	m_ClearOrderButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("OrderClearButton"));
 	m_pSaveButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("SaveButton"));
-	m_pClearButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("ClearButton"));
+	m_pDeleteButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("DeleteButton"));
 	m_pSaveButton->SetVisible(false);
-	m_pClearButton->SetVisible(false);
+	m_pDeleteButton->SetVisible(false);
 
 	// If we're not split screen horizontally, then stretch out the layout for all the relevant controls
 	int stretchAmount = g_WindowMan.GetResY() / 2;
@@ -726,7 +726,7 @@ void BuyMenuGUI::RefreshTabDisabledStates() {
 	m_pCategoryTabs[GUNS]->SetEnabled(smartBuyMenuNavigationDisabled || m_SelectingEquipment);
 	m_pCategoryTabs[BOMBS]->SetEnabled(smartBuyMenuNavigationDisabled || m_SelectingEquipment);
 	m_pCategoryTabs[SHIELDS]->SetEnabled(smartBuyMenuNavigationDisabled || m_SelectingEquipment);
-	m_pCategoryTabs[PRESETS]->SetEnabled(smartBuyMenuNavigationDisabled || !m_SelectingEquipment);
+	m_pCategoryTabs[LOADOUTS]->SetEnabled(smartBuyMenuNavigationDisabled || !m_SelectingEquipment);
 }
 
 void BuyMenuGUI::Update() {
@@ -1022,12 +1022,12 @@ void BuyMenuGUI::Update() {
 	}
 
 	/////////////////////////////////////////
-	// PRESETS BUTTONS focus
+	// LOADOUTS BUTTONS focus
 
 	if (m_MenuFocus == SETBUTTONS) {
 		if (m_FocusChange) {
 			// Set the correct special Sets category so the sets buttons show up
-			m_MenuCategory = PRESETS;
+			m_MenuCategory = LOADOUTS;
 			CategoryChange();
 			m_pSaveButton->SetFocus();
 			m_FocusChange = 0;
@@ -1036,12 +1036,12 @@ void BuyMenuGUI::Update() {
 		if (m_pController->IsState(PRESS_FACEBUTTON)) {
 			if (m_pSaveButton->HasFocus())
 				SaveCurrentLoadout();
-			else if (m_pClearButton->HasFocus() && m_Loadouts.size() != 0 && m_SelectedLoadoutIndex != -1) {
+			else if (m_pDeleteButton->HasFocus() && m_Loadouts.size() != 0 && m_SelectedLoadoutIndex != -1) {
 				m_Loadouts.erase(m_Loadouts.begin() + m_SelectedLoadoutIndex);
 				// Update the list of loadout presets so the removal shows up
 				CategoryChange();
 				// Set focus back on the save button (CatChange changed it)
-				m_pClearButton->SetFocus();
+				m_pDeleteButton->SetFocus();
 				m_SelectedLoadoutIndex = -1;
 			}
 			g_GUISound.ItemChangeSound()->Play(m_pController->GetPlayer());
@@ -1052,15 +1052,15 @@ void BuyMenuGUI::Update() {
 			if (m_pSaveButton->HasFocus()) {
 				m_MenuFocus = CATEGORIES;
 				m_FocusChange = 1;
-			} else if (m_pClearButton->HasFocus()) {
+			} else if (m_pDeleteButton->HasFocus()) {
 				m_pSaveButton->SetFocus();
 				g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
 			}
 		} else if (pressDown) {
 			if (m_pSaveButton->HasFocus()) {
-				m_pClearButton->SetFocus();
+				m_pDeleteButton->SetFocus();
 				g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
-			} else if (m_pClearButton->HasFocus())
+			} else if (m_pDeleteButton->HasFocus())
 				g_GUISound.UserErrorSound()->Play(m_pController->GetPlayer());
 		}
 	}
@@ -1115,7 +1115,25 @@ void BuyMenuGUI::Update() {
 		}
 
 		int listSize = m_pShopList->GetItemList()->size();
-		if (pressDown) {
+		if (m_MenuCategory == LOADOUTS && m_DraggedItemIndex != -1) {
+			if (pressDown && m_DraggedItemIndex < listSize - 1) {
+				m_IsDragging = true;
+				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex], (*m_pShopList->GetItemList())[m_DraggedItemIndex + 1]);
+				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex + 1]->m_ID, (*m_pShopList->GetItemList())[m_DraggedItemIndex]->m_ID);
+				m_ListItemIndex = ++m_DraggedItemIndex;
+				m_SelectedLoadoutIndex = -1;
+				m_pShopList->SetSelectedIndex(m_ListItemIndex);
+				g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
+			} else if (pressUp && m_DraggedItemIndex > 0) {
+				m_IsDragging = true;
+				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex], (*m_pShopList->GetItemList())[m_DraggedItemIndex - 1]);
+				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex - 1]->m_ID, (*m_pShopList->GetItemList())[m_DraggedItemIndex]->m_ID);
+				m_ListItemIndex = --m_DraggedItemIndex;
+				m_SelectedLoadoutIndex = -1;
+				m_pShopList->SetSelectedIndex(m_ListItemIndex);
+				g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
+			}
+		} else if (pressDown) {
 			m_ListItemIndex++;
 			// Loop around
 			if (m_ListItemIndex >= listSize)
@@ -1187,7 +1205,7 @@ void BuyMenuGUI::Update() {
 					}
 				}
 			} else if (pItem->m_ExtraIndex != -1) {
-				if (m_MenuCategory == PRESETS) {
+				if (m_MenuCategory == LOADOUTS) {
 					// This is a loadout preset, so get the description from the preset
 					// Add preset name at the begining to differentiate loadouts from user-defined presets
 					Loadout& loadout = m_Loadouts[pItem->m_ExtraIndex];
@@ -1261,7 +1279,7 @@ void BuyMenuGUI::Update() {
 		}
 
 		// User selected to add an item to cart list!
-		if (m_pController->IsState(PRESS_FACEBUTTON)) {
+		if (m_pController->IsState(PRESS_FACEBUTTON) && !m_IsDragging) {
 			// User pressed on a module group item; toggle its expansion!
 			if (pItem && pItem->m_ExtraIndex >= 0) {
 				// Make appropriate sound
@@ -1277,7 +1295,7 @@ void BuyMenuGUI::Update() {
 				CategoryChange(false);
 			}
 			// User pressed on a loadout set, so load it into the menu
-			else if (pItem && m_MenuCategory == PRESETS) {
+			else if (pItem && m_MenuCategory == LOADOUTS) {
 				// Beep if there's an error
 				if (!DeployLoadout(m_ListItemIndex))
 					g_GUISound.UserErrorSound()->Play(m_pController->GetPlayer());
@@ -1313,6 +1331,19 @@ void BuyMenuGUI::Update() {
 
 			UpdateTotalPassengersLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftPassengersLabel);
 			UpdateTotalMassLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftMassLabel);
+		}
+
+		if (m_MenuCategory == LOADOUTS) {
+			bool isKeyboardControlled = !m_pController->IsMouseControlled() && !m_pController->IsGamepadControlled();
+			if (isKeyboardControlled ? m_pController->IsState(AIM_SHARP) : m_pController->IsState(PRESS_FACEBUTTON)) {
+				m_DraggedItemIndex = m_pCartList->GetSelectedIndex();
+			} else if (m_pController->IsState(RELEASE_FACEBUTTON)) {
+				m_DraggedItemIndex = -1;
+				m_IsDragging = false;
+			}
+		} else {
+			m_DraggedItemIndex = -1;
+			m_IsDragging = false;
 		}
 	}
 
@@ -1559,8 +1590,8 @@ void BuyMenuGUI::Update() {
 			}
 
 			// CLEAR button clicks
-			if (anEvent.GetControl() == m_pClearButton) {
-				m_pClearButton->SetFocus();
+			if (anEvent.GetControl() == m_pDeleteButton) {
+				m_pDeleteButton->SetFocus();
 				if (m_SelectedLoadoutIndex != -1) {
 					m_Loadouts.erase(m_Loadouts.begin() + m_SelectedLoadoutIndex);
 					// Update the list of loadout presets so the removal shows up
@@ -1570,7 +1601,7 @@ void BuyMenuGUI::Update() {
 					m_SelectedLoadoutIndex = -1;
 				}
 				// Set focus back on the clear button (CatChange changed it)
-				m_pClearButton->SetFocus();
+				m_pDeleteButton->SetFocus();
 				m_MenuFocus = SETBUTTONS;
 				//                m_FocusChange = -1;
 				g_GUISound.ItemChangeSound()->Play(m_pController->GetPlayer());
@@ -1614,14 +1645,14 @@ void BuyMenuGUI::Update() {
 			// Events on the Shop List
 
 			if (anEvent.GetControl() == m_pShopList) {
-				if (anEvent.GetMsg() == GUIListBox::MouseDown && (anEvent.GetData() & GUIListBox::MOUSE_LEFT)) {
+				if (anEvent.GetMsg() == GUIListBox::MouseUp && (anEvent.GetData() & GUIListBox::MOUSE_LEFT) && !m_IsDragging) {
 					m_pShopList->SetFocus();
 					m_MenuFocus = ITEMS;
 
 					GUIListPanel::Item* pItem = m_pShopList->GetItem(mousePosX, mousePosY);
 
 					// If the player clicked on a loadout preset, deploy it
-					if (pItem && m_MenuCategory == PRESETS) {
+					if (pItem && m_MenuCategory == LOADOUTS) {
 						// Beep if there's an error
 						if (!DeployLoadout(m_ListItemIndex)) {
 							g_GUISound.UserErrorSound()->Play(m_pController->GetPlayer());
@@ -1703,6 +1734,24 @@ void BuyMenuGUI::Update() {
 					GUIListPanel::Item* pItem = m_pShopList->GetItem(mousePosX, mousePosY);
 					if (pItem) {
 						if (m_LastHoveredMouseIndex != pItem->m_ID) {
+							if (m_MenuCategory == LOADOUTS && m_DraggedItemIndex != -1 && m_DraggedItemIndex != pItem->m_ID) {
+								m_IsDragging = true;
+								int start = std::min(m_DraggedItemIndex, pItem->m_ID);
+								int end = std::max(m_DraggedItemIndex, pItem->m_ID);
+								int direction = pItem->m_ID > m_DraggedItemIndex ? 1 : -1;
+								for (int i = start; i < end; i++) {
+									int oldIndex = m_DraggedItemIndex;
+									if (oldIndex + direction < 0 || oldIndex + direction >= m_pShopList->GetItemList()->size()) {
+										break;
+									}
+
+									m_DraggedItemIndex = oldIndex + direction;
+									m_SelectedLoadoutIndex = m_DraggedItemIndex;
+									std::swap((*m_pShopList->GetItemList())[oldIndex], (*m_pShopList->GetItemList())[oldIndex + direction]);
+									std::swap((*m_pShopList->GetItemList())[oldIndex + direction]->m_ID, (*m_pShopList->GetItemList())[oldIndex]->m_ID);
+								}
+							}
+
 							// Don't let mouse movement change the index if it's still hovering inside the same item.
 							// This is to avoid erratic selection curosr if using both mouse and keyboard to work the menu
 							m_LastHoveredMouseIndex = pItem->m_ID;
@@ -1714,6 +1763,17 @@ void BuyMenuGUI::Update() {
 
 							m_pShopList->SetSelectedIndex(m_CategoryItemIndex[m_MenuCategory] = m_ListItemIndex = pItem->m_ID);
 						}
+					}
+				}
+
+				if (anEvent.GetMsg() == GUIListBox::MouseDown) {
+					m_pShopList->SetFocus();
+					m_MenuFocus = ITEMS;
+					m_ListItemIndex = m_pShopList->GetSelectedIndex();
+					m_pShopList->ScrollToSelected();
+					if (m_MenuCategory == LOADOUTS && anEvent.GetData() & GUIListBox::MOUSE_LEFT) {
+						m_DraggedItemIndex = m_pShopList->GetSelectedIndex();
+						m_SelectedLoadoutIndex = m_ListItemIndex;
 					}
 				}
 			}
@@ -1821,17 +1881,25 @@ void BuyMenuGUI::Update() {
 				}
 			}
 
-			// We do this down here, outside the m_pCartList control, because if we have a mouse-up event even outside the cart, we should stop dragging. We also check UInputMan in case the mouse is released entirely outside of the buy menu.
+			// We do this down here, because if we have a mouse-up event even outside the cart, we should stop dragging. We also check UInputMan in case the mouse is released entirely outside of the buy menu.
 			if ((anEvent.GetMsg() == GUIListBox::MouseUp && (anEvent.GetData() & GUIListBox::MOUSE_LEFT)) || g_UInputMan.MouseButtonReleased(MouseButtons::MOUSE_LEFT, m_pController->GetPlayer())) {
+				if (m_MenuCategory == LOADOUTS) {
+					// Might've reordered the loadout list, so we need to save the new order
+					SaveAllLoadoutsToFile();
+				}
 				m_DraggedItemIndex = -1;
 				m_IsDragging = false;
 			}
 		}
 	}
 
-	if (m_MenuCategory == PRESETS) {
+	if (m_MenuCategory == LOADOUTS) {
 		m_pSaveButton->SetEnabled(!m_pCartList->GetItemList()->empty());
-		m_pClearButton->SetEnabled(m_SelectedLoadoutIndex != -1);
+		m_pDeleteButton->SetEnabled(m_SelectedLoadoutIndex != -1);
+		if (m_SelectedLoadoutIndex != -1) {
+			// Always highlight the currently selected loadout as if it's focused
+			m_pShopList->SetSelectedIndex(m_SelectedLoadoutIndex);
+		}
 	}
 }
 
@@ -1901,10 +1969,10 @@ void BuyMenuGUI::CategoryChange(bool focusOnCategoryTabs) {
 	m_pShopList->ClearList();
 
 	// Hide/show the logo and special sets category buttons, and add all current presets to the list, and we're done.
-	if (m_MenuCategory == PRESETS) {
+	if (m_MenuCategory == LOADOUTS) {
 		m_Logo->SetVisible(false);
 		m_pSaveButton->SetVisible(true);
-		m_pClearButton->SetVisible(true);
+		m_pDeleteButton->SetVisible(true);
 		m_pShopList->SetHighlightAsIfAlwaysFocused(true);
 		// Add and done!
 		AddPresetsToItemList();
@@ -1914,7 +1982,7 @@ void BuyMenuGUI::CategoryChange(bool focusOnCategoryTabs) {
 	else {
 		m_Logo->SetVisible(true);
 		m_pSaveButton->SetVisible(false);
-		m_pClearButton->SetVisible(false);
+		m_pDeleteButton->SetVisible(false);
 		m_pShopList->SetHighlightAsIfAlwaysFocused(false);
 	}
 
