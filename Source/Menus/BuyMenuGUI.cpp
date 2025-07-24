@@ -1141,54 +1141,106 @@ void BuyMenuGUI::Update() {
 		GUIListPanel::Item* pItem = m_pShopList->GetItem(m_ListItemIndex);
 		std::string description = "";
 
-		if (pItem && pItem->m_pEntity) {
-			description = ((pItem->m_pEntity->GetDescription().empty()) ? "-No Information Found-" : pItem->m_pEntity->GetDescription()) + "\n";
-			const Entity* currentItem = pItem->m_pEntity;
-			const ACraft* itemAsCraft = dynamic_cast<const ACraft*>(currentItem);
-			if (itemAsCraft) {
-				int craftMaxPassengers = itemAsCraft->GetMaxPassengers();
-				float craftMaxMass = itemAsCraft->GetMaxInventoryMass();
-				if (craftMaxMass == 0) {
-					description += "\nNO CARGO SPACE!";
-				} else if (craftMaxMass > 0) {
-					description += "\nMax Mass: " + RoundFloatToPrecision(craftMaxMass, craftMaxMass < 50.0F ? 1 : 0, 3) + " kg";
-				}
-				if (craftMaxPassengers >= 0 && craftMaxMass != 0) {
-					description += (craftMaxPassengers == 0) ? "\nNO PASSENGER SPACE!" : "\nMax Passengers: " + std::to_string(craftMaxPassengers);
-				}
-			} else {
-				// Items in the BuyMenu always have any remainder rounded up in their masses.
-				const Actor* itemAsActor = dynamic_cast<const Actor*>(currentItem);
-				if (itemAsActor) {
-					description += "\nMass: " + (itemAsActor->GetMass() < 0.1F ? "<0.1 kg" : RoundFloatToPrecision(itemAsActor->GetMass(), itemAsActor->GetMass() < 50.0F ? 1 : 0, 3) + " kg");
-					int passengerSlotsTaken = itemAsActor->GetPassengerSlots();
-					if (passengerSlotsTaken > 1) {
-						description += "\nPassenger Slots: " + std::to_string(passengerSlotsTaken);
+		if (pItem) {
+			if (pItem->m_pEntity) {
+				description = ((pItem->m_pEntity->GetDescription().empty()) ? "-No Information Found-" : pItem->m_pEntity->GetDescription()) + "\n";
+				const Entity* currentItem = pItem->m_pEntity;
+				const ACraft* itemAsCraft = dynamic_cast<const ACraft*>(currentItem);
+				if (itemAsCraft) {
+					int craftMaxPassengers = itemAsCraft->GetMaxPassengers();
+					float craftMaxMass = itemAsCraft->GetMaxInventoryMass();
+					if (craftMaxMass == 0) {
+						description += "\nNO CARGO SPACE!";
+					} else if (craftMaxMass > 0) {
+						description += "\nMax Mass: " + RoundFloatToPrecision(craftMaxMass, craftMaxMass < 50.0F ? 1 : 0, 3) + " kg";
+					}
+					if (craftMaxPassengers >= 0 && craftMaxMass != 0) {
+						description += (craftMaxPassengers == 0) ? "\nNO PASSENGER SPACE!" : "\nMax Passengers: " + std::to_string(craftMaxPassengers);
 					}
 				} else {
-					const MovableObject* itemAsMO = dynamic_cast<const MovableObject*>(currentItem);
-					if (itemAsMO) {
-						const MOSRotating* itemAsMOSRotating = dynamic_cast<const MOSRotating*>(currentItem);
-						float extraMass = 0;
-						if (itemAsMOSRotating) {
-							if (itemAsMOSRotating->NumberValueExists("Grenade Count")) {
-								description += "\nGrenade Count: " + RoundFloatToPrecision(itemAsMOSRotating->GetNumberValue("Grenade Count"), 0, 2);
-							}
-							if (itemAsMOSRotating->NumberValueExists("Replenish Delay") && itemAsMOSRotating->GetNumberValue("Replenish Delay") > 0) {
-								description += "\nReplenish Delay: " + RoundFloatToPrecision(itemAsMOSRotating->GetNumberValue("Replenish Delay") / 1000.0F, 3, 2) + " seconds";
-							}
-							if (itemAsMOSRotating->NumberValueExists("Belt Mass")) {
-								extraMass = itemAsMOSRotating->GetNumberValue("Belt Mass");
-							}
+					// Items in the BuyMenu always have any remainder rounded up in their masses.
+					const Actor* itemAsActor = dynamic_cast<const Actor*>(currentItem);
+					if (itemAsActor) {
+						description += "\nMass: " + (itemAsActor->GetMass() < 0.1F ? "<0.1 kg" : RoundFloatToPrecision(itemAsActor->GetMass(), itemAsActor->GetMass() < 50.0F ? 1 : 0, 3) + " kg");
+						int passengerSlotsTaken = itemAsActor->GetPassengerSlots();
+						if (passengerSlotsTaken > 1) {
+							description += "\nPassenger Slots: " + std::to_string(passengerSlotsTaken);
 						}
-						description += "\nMass: " + (itemAsMO->GetMass() + extraMass < 0.1F ? "<0.1 kg" : RoundFloatToPrecision(itemAsMO->GetMass() + extraMass, itemAsMO->GetMass() + extraMass < 50.0F ? 1 : 0, 3) + " kg");
+					} else {
+						const MovableObject* itemAsMO = dynamic_cast<const MovableObject*>(currentItem);
+						if (itemAsMO) {
+							const MOSRotating* itemAsMOSRotating = dynamic_cast<const MOSRotating*>(currentItem);
+							float extraMass = 0;
+							if (itemAsMOSRotating) {
+								if (itemAsMOSRotating->NumberValueExists("Grenade Count")) {
+									description += "\nGrenade Count: " + RoundFloatToPrecision(itemAsMOSRotating->GetNumberValue("Grenade Count"), 0, 2);
+								}
+								if (itemAsMOSRotating->NumberValueExists("Replenish Delay") && itemAsMOSRotating->GetNumberValue("Replenish Delay") > 0) {
+									description += "\nReplenish Delay: " + RoundFloatToPrecision(itemAsMOSRotating->GetNumberValue("Replenish Delay") / 1000.0F, 3, 2) + " seconds";
+								}
+								if (itemAsMOSRotating->NumberValueExists("Belt Mass")) {
+									extraMass = itemAsMOSRotating->GetNumberValue("Belt Mass");
+								}
+							}
+							description += "\nMass: " + (itemAsMO->GetMass() + extraMass < 0.1F ? "<0.1 kg" : RoundFloatToPrecision(itemAsMO->GetMass() + extraMass, itemAsMO->GetMass() + extraMass < 50.0F ? 1 : 0, 3) + " kg");
+						}
 					}
 				}
-			}
-		} else if (pItem && pItem->m_ExtraIndex >= 0) {
-			const DataModule* pModule = g_PresetMan.GetDataModule(pItem->m_ExtraIndex);
-			if (pModule && !pModule->GetDescription().empty()) {
-				description = pModule->GetDescription();
+			} else if (pItem->m_ExtraIndex != -1) {
+				if (m_MenuCategory == PRESETS) {
+					// This is a loadout preset, so get the description from the preset
+					// Add preset name at the begining to differentiate loadouts from user-defined presets
+					Loadout& loadout = m_Loadouts[pItem->m_ExtraIndex];
+					if (loadout.GetPresetName() != "None") {
+						description += loadout.GetPresetName() + ":\n";
+					}
+
+					// Go through the cargo setup of each loadout and encode a meaningful label for the list item
+					auto lastItr = loadout.GetCargoList()->end();
+					--lastItr;
+
+					auto nextItr = loadout.GetCargoList()->begin();
+
+					bool actorSeen = false;
+					for (std::list<const SceneObject*>::iterator cItr = loadout.GetCargoList()->begin(); cItr != loadout.GetCargoList()->end(); ++cItr) {
+						++nextItr;
+
+						bool isActor = dynamic_cast<const Actor*>(*cItr) != nullptr;
+						actorSeen = actorSeen || isActor;
+
+						// Anything under an actor should be indented
+						if (!isActor && actorSeen) {
+							description += "\t\t";
+						}
+
+						// Append the name of the current cargo thing to the label
+						description += (*cItr)->GetPresetName();
+
+						// If not the last one, add a separator to the label
+						if (cItr != lastItr) {
+							bool nextIsActor = dynamic_cast<const Actor*>(*nextItr) != nullptr;
+							if (isActor && !nextIsActor) {
+								description += ":";
+							}
+
+							if (actorSeen || nextIsActor) {
+								description += "\n";
+							} else {
+								description += ", ";
+							}
+
+							if (nextIsActor) {
+								// Extra space between each actor
+								description += "\n";
+							}
+						}
+					}
+				} else {
+					const DataModule* pModule = g_PresetMan.GetDataModule(pItem->m_ExtraIndex);
+					if (pModule && !pModule->GetDescription().empty()) {
+						description += pModule->GetDescription();
+					}
+				}	
 			}
 		}
 
@@ -2160,22 +2212,30 @@ void BuyMenuGUI::AddPresetsToItemList() {
 	m_SelectedLoadoutIndex = -1;
 
 	// Go through all the presets, making intelligible list items from then for the GUI item list
-	for (std::vector<Loadout>::iterator lItr = m_Loadouts.begin(); lItr != m_Loadouts.end(); ++lItr) {
+	for (int i = 0; i < m_Loadouts.size(); ++i) {
+		Loadout& loadout = m_Loadouts[i];
+		
 		AllegroBitmap* pItemBitmap = nullptr;
 		float loadoutCost = 0;
+
+		const int maxBitmapWidth = 100;
 
 		int bitmapHeight = 0;
 		int bitmapWidth = 0;
 
 		int rowHeight = 0;
 		int rowWidth = 0;
-		for (const SceneObject* sceneObject : *(*lItr).GetCargoList()) {
+		for (const SceneObject* sceneObject: *loadout.GetCargoList()) {
 			if (dynamic_cast<const Actor*>(sceneObject)) {
 				// start a new row
 				bitmapHeight += rowHeight;
 				bitmapWidth = std::max(bitmapWidth, rowWidth);
 				rowHeight = 0;
 				rowWidth = 0;
+			}
+
+			if (rowWidth + sceneObject->GetGraphicalIcon()->w > maxBitmapWidth) {
+				continue; // don't draw anything that would overflow the bitmap
 			}
 
 			rowHeight = std::max(rowHeight, sceneObject->GetGraphicalIcon()->h);
@@ -2194,7 +2254,7 @@ void BuyMenuGUI::AddPresetsToItemList() {
 		rowHeight = 0;
 		int heightOffset = 0;
 		int widthOffset = 0;
-		for (const SceneObject* sceneObject: *(*lItr).GetCargoList()) {
+		for (const SceneObject* sceneObject: *loadout.GetCargoList()) {
 			if (dynamic_cast<const Actor*>(sceneObject)) {
 				// start a new row
 				heightOffset += rowHeight;
@@ -2202,18 +2262,22 @@ void BuyMenuGUI::AddPresetsToItemList() {
 				widthOffset = 0;
 			}
 
-			draw_sprite_h_flip(pItemBitmap->GetBitmap(), sceneObject->GetGraphicalIcon(), widthOffset, heightOffset);
+			if (widthOffset + sceneObject->GetGraphicalIcon()->w > maxBitmapWidth) {
+				continue; // don't draw anything that would overflow the bitmap
+			}
+
+			draw_sprite(pItemBitmap->GetBitmap(), sceneObject->GetGraphicalIcon(), widthOffset, heightOffset);
 
 			rowHeight = std::max(rowHeight, sceneObject->GetGraphicalIcon()->h);
 			widthOffset += sceneObject->GetGraphicalIcon()->w;
 		}
 
-		for (const SceneObject* sceneObject: *(*lItr).GetCargoList()) {
+		for (const SceneObject* sceneObject: *loadout.GetCargoList()) {
 			loadoutCost += sceneObject->GetGoldValue(m_NativeTechModule, m_ForeignCostMult);
 		}
 
 		// Passing in ownership of the bitmap
-		m_pShopList->AddItem("", std::to_string(loadoutCost), pItemBitmap, 0);
+		m_pShopList->AddItem("", std::to_string((int)(loadoutCost + 0.5f)), pItemBitmap, nullptr, i);
 	}
 }
 
