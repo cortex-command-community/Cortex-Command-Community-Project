@@ -2242,7 +2242,7 @@ bool SceneMan::IsPointInNoGravArea(const Vector& point) const {
 	return false;
 }
 
-Vector SceneMan::MovePointToGround(const Vector& from, int maxAltitude, int accuracy, int maxDistance) {
+Vector SceneMan::MovePointToGround(const Vector& from, int heightAboveGround, int accuracy, int maxDistance) {
 	if (IsPointInNoGravArea(from)) {
 		return from;
 	}
@@ -2257,8 +2257,7 @@ Vector SceneMan::MovePointToGround(const Vector& from, int maxAltitude, int accu
 		return temp;
 	}
 
-	// Only move down if we're above the maxAltitude over the ground
-	Vector groundPoint(temp.m_X, temp.m_Y + (altitude > maxAltitude ? altitude - maxAltitude : 0));
+	Vector groundPoint(temp.m_X, temp.m_Y + (altitude - heightAboveGround));
 	return groundPoint;
 }
 
