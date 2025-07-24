@@ -1119,7 +1119,8 @@ void BuyMenuGUI::Update() {
 			if (pressDown && m_DraggedItemIndex < listSize - 1) {
 				m_IsDragging = true;
 				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex], (*m_pShopList->GetItemList())[m_DraggedItemIndex + 1]);
-				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex + 1]->m_ID, (*m_pShopList->GetItemList())[m_DraggedItemIndex]->m_ID);
+				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex]->m_ID, (*m_pShopList->GetItemList())[m_DraggedItemIndex + 1]->m_ID);
+				std::swap(m_Loadouts[m_DraggedItemIndex], m_Loadouts[m_DraggedItemIndex + 1]);
 				m_ListItemIndex = ++m_DraggedItemIndex;
 				m_SelectedLoadoutIndex = -1;
 				m_pShopList->SetSelectedIndex(m_ListItemIndex);
@@ -1127,7 +1128,8 @@ void BuyMenuGUI::Update() {
 			} else if (pressUp && m_DraggedItemIndex > 0) {
 				m_IsDragging = true;
 				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex], (*m_pShopList->GetItemList())[m_DraggedItemIndex - 1]);
-				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex - 1]->m_ID, (*m_pShopList->GetItemList())[m_DraggedItemIndex]->m_ID);
+				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex]->m_ID, (*m_pShopList->GetItemList())[m_DraggedItemIndex - 1]->m_ID);
+				std::swap(m_Loadouts[m_DraggedItemIndex], m_Loadouts[m_DraggedItemIndex - 1]);
 				m_ListItemIndex = --m_DraggedItemIndex;
 				m_SelectedLoadoutIndex = -1;
 				m_pShopList->SetSelectedIndex(m_ListItemIndex);
@@ -1373,7 +1375,7 @@ void BuyMenuGUI::Update() {
 				m_IsDragging = true;
 				itemsChanged = true;
 				std::swap((*m_pCartList->GetItemList())[m_DraggedItemIndex], (*m_pCartList->GetItemList())[m_DraggedItemIndex + 1]);
-				std::swap((*m_pCartList->GetItemList())[m_DraggedItemIndex + 1]->m_ID, (*m_pCartList->GetItemList())[m_DraggedItemIndex]->m_ID);
+				std::swap((*m_pCartList->GetItemList())[m_DraggedItemIndex]->m_ID, (*m_pCartList->GetItemList())[m_DraggedItemIndex + 1]->m_ID);
 				m_ListItemIndex = ++m_DraggedItemIndex;
 				m_pCartList->SetSelectedIndex(m_ListItemIndex);
 				g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
@@ -1381,7 +1383,7 @@ void BuyMenuGUI::Update() {
 				m_IsDragging = true;
 				itemsChanged = true;
 				std::swap((*m_pCartList->GetItemList())[m_DraggedItemIndex], (*m_pCartList->GetItemList())[m_DraggedItemIndex - 1]);
-				std::swap((*m_pCartList->GetItemList())[m_DraggedItemIndex - 1]->m_ID, (*m_pCartList->GetItemList())[m_DraggedItemIndex]->m_ID);
+				std::swap((*m_pCartList->GetItemList())[m_DraggedItemIndex]->m_ID, (*m_pCartList->GetItemList())[m_DraggedItemIndex + 1]->m_ID);
 				m_ListItemIndex = --m_DraggedItemIndex;
 				m_pCartList->SetSelectedIndex(m_ListItemIndex);
 				g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
@@ -1748,7 +1750,8 @@ void BuyMenuGUI::Update() {
 									m_DraggedItemIndex = oldIndex + direction;
 									m_SelectedLoadoutIndex = m_DraggedItemIndex;
 									std::swap((*m_pShopList->GetItemList())[oldIndex], (*m_pShopList->GetItemList())[oldIndex + direction]);
-									std::swap((*m_pShopList->GetItemList())[oldIndex + direction]->m_ID, (*m_pShopList->GetItemList())[oldIndex]->m_ID);
+									std::swap((*m_pShopList->GetItemList())[oldIndex]->m_ID, (*m_pShopList->GetItemList())[oldIndex + direction]->m_ID);
+									std::swap(m_Loadouts[oldIndex], m_Loadouts[oldIndex + direction]);
 								}
 							}
 
@@ -1853,7 +1856,7 @@ void BuyMenuGUI::Update() {
 
 									m_DraggedItemIndex = oldIndex + direction;
 									std::swap((*m_pCartList->GetItemList())[oldIndex], (*m_pCartList->GetItemList())[oldIndex + direction]);
-									std::swap((*m_pCartList->GetItemList())[oldIndex + direction]->m_ID, (*m_pCartList->GetItemList())[oldIndex]->m_ID);
+									std::swap((*m_pCartList->GetItemList())[oldIndex]->m_ID, (*m_pCartList->GetItemList())[oldIndex + direction]->m_ID);
 								}
 								UpdateItemNestingLevels();
 							}
