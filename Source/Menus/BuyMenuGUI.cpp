@@ -871,9 +871,9 @@ void BuyMenuGUI::Update() {
 	}
 
 	// Check if any direction has been held for the starting amount of time to get into repeat mode
-	if (m_RepeatStartTimer.IsPastRealMS(200)) {
+	if (m_RepeatStartTimer.IsPastRealMS(350)) {
 		// Check for the repeat interval
-		if (m_RepeatTimer.IsPastRealMS(75)) {
+		if (m_RepeatTimer.IsPastRealMS(125)) {
 			if (m_pController->IsState(MOVE_RIGHT)) {
 				pressRight = true;
 			} else if (m_pController->IsState(MOVE_LEFT)) {
@@ -2218,7 +2218,7 @@ void BuyMenuGUI::AddPresetsToItemList() {
 		AllegroBitmap* pItemBitmap = nullptr;
 		float loadoutCost = 0;
 
-		const int maxBitmapWidth = 100;
+		const int maxBitmapWidth = 130;
 
 		int bitmapHeight = 0;
 		int bitmapWidth = 0;
