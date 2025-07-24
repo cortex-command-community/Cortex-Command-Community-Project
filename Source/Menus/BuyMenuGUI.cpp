@@ -1383,7 +1383,7 @@ void BuyMenuGUI::Update() {
 				m_IsDragging = true;
 				itemsChanged = true;
 				std::swap((*m_pCartList->GetItemList())[m_DraggedItemIndex], (*m_pCartList->GetItemList())[m_DraggedItemIndex - 1]);
-				std::swap((*m_pCartList->GetItemList())[m_DraggedItemIndex]->m_ID, (*m_pCartList->GetItemList())[m_DraggedItemIndex + 1]->m_ID);
+				std::swap((*m_pCartList->GetItemList())[m_DraggedItemIndex]->m_ID, (*m_pCartList->GetItemList())[m_DraggedItemIndex - 1]->m_ID);
 				m_ListItemIndex = --m_DraggedItemIndex;
 				m_pCartList->SetSelectedIndex(m_ListItemIndex);
 				g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
