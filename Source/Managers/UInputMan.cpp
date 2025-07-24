@@ -1,8 +1,5 @@
 #include "UInputMan.h"
 #include "Constants.h"
-#include "SDL3/SDL_events.h"
-#include "SDL3/SDL_keyboard.h"
-#include "SDL3/SDL_mouse.h"
 #include "SceneMan.h"
 #include "ActivityMan.h"
 #include "MetaMan.h"
@@ -14,6 +11,7 @@
 #include "Icon.h"
 #include "GameActivity.h"
 #include "System.h"
+
 #include <SDL3/SDL.h>
 #include <string>
 #include <unordered_map>
@@ -82,7 +80,7 @@ int UInputMan::Initialize() {
 
 	int controllerIndex = 0;
 	int joystickCount = 0;
-	SDL_JoystickID* joysticks = SDL_GetJoysticks(&joystickCount);
+	SDL_JoystickID* joysticks = SDL_GetGamepads(&joystickCount);
 
 	for (size_t index = 0; index < std::min(joystickCount, static_cast<int>(Players::MaxPlayerCount)); ++index) {
 		if (SDL_IsGamepad(joysticks[index])) {
@@ -997,11 +995,12 @@ int UInputMan::Update() {
 					}
 				}
 				break;
-			case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
-			case SDL_EVENT_GAMEPAD_BUTTON_UP:
 			case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
 			case SDL_EVENT_JOYSTICK_BUTTON_UP:
-				if (std::vector<Gamepad>::iterator device = std::find(s_PrevJoystickStates.begin(), s_PrevJoystickStates.end(), (inputEvent.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || inputEvent.type == SDL_EVENT_GAMEPAD_BUTTON_UP) ? inputEvent.gbutton.which : inputEvent.jbutton.which); device != s_PrevJoystickStates.end()) {
+			case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+			case SDL_EVENT_GAMEPAD_BUTTON_UP: {
+				bool joystickEvent = (inputEvent.type == SDL_EVENT_JOYSTICK_BUTTON_DOWN || inputEvent.type == SDL_EVENT_JOYSTICK_BUTTON_UP);
+				if (std::vector<Gamepad>::iterator device = std::find(s_PrevJoystickStates.begin(), s_PrevJoystickStates.end(), joystickEvent ? inputEvent.jbutton.which : inputEvent.gbutton.which); device != s_PrevJoystickStates.end()) {
 					int button = -1;
 					int down = false;
 					if (SDL_IsGamepad(device->m_DeviceIndex)) {
@@ -1020,10 +1019,14 @@ int UInputMan::Update() {
 					device->m_Buttons[button] = down;
 				}
 				break;
+			}
 			case SDL_EVENT_JOYSTICK_ADDED:
+			case SDL_EVENT_GAMEPAD_ADDED: {
 				HandleGamepadHotPlug(inputEvent.jdevice.which);
 				break;
+			}
 			case SDL_EVENT_JOYSTICK_REMOVED:
+			case SDL_EVENT_GAMEPAD_REMOVED:
 				if (std::vector<Gamepad>::iterator prevDevice = std::find(s_PrevJoystickStates.begin(), s_PrevJoystickStates.end(), inputEvent.jdevice.which); prevDevice != s_PrevJoystickStates.end()) {
 					g_ConsoleMan.PrintString("INFO: Gamepad " + std::to_string(prevDevice->m_DeviceIndex + 1) + " disconnected!");
 					SDL_CloseGamepad(SDL_GetGamepadFromID(prevDevice->m_JoystickID));
@@ -1281,17 +1284,19 @@ void UInputMan::UpdateJoystickDigitalAxis() {
 	}
 }
 
-void UInputMan::HandleGamepadHotPlug(int deviceIndex) {
+void UInputMan::HandleGamepadHotPlug(SDL_JoystickID deviceIndex) {
 	SDL_Joystick* controller = nullptr;
 	int controllerIndex = 0;
 
 	for (controllerIndex = 0; controllerIndex < s_PrevJoystickStates.size(); ++controllerIndex) {
-		if (s_PrevJoystickStates[controllerIndex].m_DeviceIndex == deviceIndex || s_PrevJoystickStates[controllerIndex].m_DeviceIndex == -1) {
+		if (s_PrevJoystickStates[controllerIndex].m_JoystickID == deviceIndex) {
+			return;
+		}
+		if (s_PrevJoystickStates[controllerIndex].m_JoystickID == -1) {
 			if (SDL_IsGamepad(deviceIndex)) {
 				SDL_Gamepad* gameController = SDL_OpenGamepad(deviceIndex);
 				if (!gameController) {
-					std::string connectString = s_PrevJoystickStates[controllerIndex].m_DeviceIndex == deviceIndex ? "reconnect" : "connect";
-					g_ConsoleMan.PrintString("ERROR: Failed to " + connectString + " Gamepad " + std::to_string(controllerIndex + 1));
+					g_ConsoleMan.PrintString("ERROR: Failed to connect Gamepad!");
 					break;
 				}
 				controller = SDL_GetGamepadJoystick(gameController);
@@ -1300,12 +1305,10 @@ void UInputMan::HandleGamepadHotPlug(int deviceIndex) {
 				controller = SDL_OpenJoystick(deviceIndex);
 			}
 			if (!controller) {
-				std::string connectString = s_PrevJoystickStates[controllerIndex].m_DeviceIndex == deviceIndex ? "reconnect" : "connect";
-				g_ConsoleMan.PrintString("ERROR: Failed to " + connectString + " Gamepad " + std::to_string(controllerIndex + 1));
+				g_ConsoleMan.PrintString("ERROR: Failed to connect Gamepad!");
 				break;
 			}
-			std::string connectString = s_PrevJoystickStates[controllerIndex].m_DeviceIndex == deviceIndex ? " reconnected" : " connected";
-			g_ConsoleMan.PrintString("INFO: Gamepad " + std::to_string(controllerIndex + 1) + connectString);
+			g_ConsoleMan.PrintString("INFO: Gamepad " + std::to_string(controllerIndex + 1) + "connected.");
 			break;
 		}
 	}
@@ -1315,7 +1318,6 @@ void UInputMan::HandleGamepadHotPlug(int deviceIndex) {
 	}
 
 	if (controller) {
-		SDL_JoystickID id = SDL_GetJoystickID(controller);
 		int numAxis = 0;
 		int numButtons = 0;
 		if (SDL_IsGamepad(deviceIndex)) {
@@ -1325,8 +1327,8 @@ void UInputMan::HandleGamepadHotPlug(int deviceIndex) {
 			numAxis = SDL_GetNumJoystickAxes(controller);
 			numButtons = SDL_GetNumJoystickButtons(controller);
 		}
-		s_PrevJoystickStates[controllerIndex] = Gamepad(deviceIndex, id, numAxis, numButtons);
-		s_ChangedJoystickStates[controllerIndex] = Gamepad(deviceIndex, id, numAxis, numButtons);
+		s_PrevJoystickStates[controllerIndex] = Gamepad(controllerIndex, deviceIndex, numAxis, numButtons);
+		s_ChangedJoystickStates[controllerIndex] = Gamepad(controllerIndex, deviceIndex, numAxis, numButtons);
 		m_NumJoysticks++;
 	}
 }
