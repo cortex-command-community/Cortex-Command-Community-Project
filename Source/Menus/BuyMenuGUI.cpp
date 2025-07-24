@@ -1620,21 +1620,15 @@ void BuyMenuGUI::Update() {
 
 					GUIListPanel::Item* pItem = m_pShopList->GetItem(mousePosX, mousePosY);
 
+					// If the player clicked on a loadout preset, deploy it
 					if (pItem && m_MenuCategory == PRESETS) {
-						// The presets list must have a mouse-down event to select an item, whereas we implicitly select items on hover in other categories
-						m_LastHoveredMouseIndex = pItem->m_ID;
-
-						// Play select sound if new index
-						if (m_ListItemIndex != pItem->m_ID) {
-							g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
+						// Beep if there's an error
+						if (!DeployLoadout(m_ListItemIndex)) {
+							g_GUISound.UserErrorSound()->Play(m_pController->GetPlayer());
 						}
-
-						m_pShopList->SetSelectedIndex(m_CategoryItemIndex[m_MenuCategory] = m_ListItemIndex = pItem->m_ID);
 					}
-
-
 					// If a module group list item, toggle its expansion and update the list
-					if (pItem && pItem->m_ExtraIndex >= 0) {
+					else if (pItem && pItem->m_ExtraIndex >= 0) {
 						// Make appropriate sound
 						if (!m_aExpandedModules[pItem->m_ExtraIndex])
 							g_GUISound.ItemChangeSound()->Play(m_pController->GetPlayer());
@@ -1645,12 +1639,6 @@ void BuyMenuGUI::Update() {
 						m_aExpandedModules[pItem->m_ExtraIndex] = !m_aExpandedModules[pItem->m_ExtraIndex];
 						// Re-populate the item list with the new module expansion configuation
 						CategoryChange(false);
-					}
-					// Special case: user clicked on a loadout set, so load it into the menu
-					else if (pItem && m_MenuCategory == PRESETS) {
-						// Beep if there's an error
-						if (!DeployLoadout(m_ListItemIndex))
-							g_GUISound.UserErrorSound()->Play(m_pController->GetPlayer());
 					}
 					// Normal: only add an item if there's an entity attached to the list item
 					else if (pItem && pItem->m_pEntity) {
@@ -1714,8 +1702,7 @@ void BuyMenuGUI::Update() {
 					// See if it's hovering over any item
 					GUIListPanel::Item* pItem = m_pShopList->GetItem(mousePosX, mousePosY);
 					if (pItem) {
-						// On presets Menu, you must actively click to select an item. Anywhere else, an implicit hover will select
-						if (m_MenuCategory != PRESETS && m_LastHoveredMouseIndex != pItem->m_ID) {
+						if (m_LastHoveredMouseIndex != pItem->m_ID) {
 							// Don't let mouse movement change the index if it's still hovering inside the same item.
 							// This is to avoid erratic selection curosr if using both mouse and keyboard to work the menu
 							m_LastHoveredMouseIndex = pItem->m_ID;
