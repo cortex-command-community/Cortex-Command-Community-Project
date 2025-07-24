@@ -854,6 +854,7 @@ void BuyMenuGUI::Update() {
 	/////////////////////////////////////////////
 	// Repeating input logic
 
+	bool isKeyboardControlled = !m_pController->IsMouseControlled() && !m_pController->IsGamepadControlled();
 	bool pressLeft = m_pController->IsState(PRESS_LEFT);
 	bool pressRight = m_pController->IsState(PRESS_RIGHT);
 	bool pressUp = m_pController->IsState(PRESS_UP);
@@ -1028,7 +1029,6 @@ void BuyMenuGUI::Update() {
 		if (m_FocusChange) {
 			// Set the correct special Sets category so the sets buttons show up
 			m_MenuCategory = LOADOUTS;
-			CategoryChange();
 			m_pSaveButton->SetFocus();
 			m_FocusChange = 0;
 		}
@@ -1120,6 +1120,7 @@ void BuyMenuGUI::Update() {
 				m_IsDragging = true;
 				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex], (*m_pShopList->GetItemList())[m_DraggedItemIndex + 1]);
 				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex]->m_ID, (*m_pShopList->GetItemList())[m_DraggedItemIndex + 1]->m_ID);
+				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex]->m_ExtraIndex, (*m_pShopList->GetItemList())[m_DraggedItemIndex + 1]->m_ExtraIndex);
 				std::swap(m_Loadouts[m_DraggedItemIndex], m_Loadouts[m_DraggedItemIndex + 1]);
 				m_ListItemIndex = ++m_DraggedItemIndex;
 				m_SelectedLoadoutIndex = -1;
@@ -1129,6 +1130,7 @@ void BuyMenuGUI::Update() {
 				m_IsDragging = true;
 				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex], (*m_pShopList->GetItemList())[m_DraggedItemIndex - 1]);
 				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex]->m_ID, (*m_pShopList->GetItemList())[m_DraggedItemIndex - 1]->m_ID);
+				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex]->m_ExtraIndex, (*m_pShopList->GetItemList())[m_DraggedItemIndex - 1]->m_ExtraIndex);
 				std::swap(m_Loadouts[m_DraggedItemIndex], m_Loadouts[m_DraggedItemIndex - 1]);
 				m_ListItemIndex = --m_DraggedItemIndex;
 				m_SelectedLoadoutIndex = -1;
@@ -1281,12 +1283,14 @@ void BuyMenuGUI::Update() {
 		}
 
 		// User selected to add an item to cart list!
-		if (m_pController->IsState(RELEASE_FACEBUTTON) && !m_IsDragging) {
+		if (isKeyboardControlled ? (m_pController->IsState(PRESS_FACEBUTTON) && !m_pController->IsState(AIM_SHARP)) : (m_pController->IsState(RELEASE_FACEBUTTON) && !m_IsDragging)) {
 			// User pressed on a loadout set, so load it into the menu
 			if (pItem && m_MenuCategory == LOADOUTS) {
 				// Beep if there's an error
 				if (!DeployLoadout(m_ListItemIndex)) {
 					g_GUISound.UserErrorSound()->Play(m_pController->GetPlayer());
+				} else {
+					g_GUISound.ItemChangeSound()->Play(m_pController->GetPlayer());
 				}
 			}
 			// User pressed on a module group item; toggle its expansion!
@@ -1336,15 +1340,13 @@ void BuyMenuGUI::Update() {
 			UpdateTotalMassLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftMassLabel);
 		}
 
-		if (m_MenuCategory == LOADOUTS) {
-			bool isKeyboardControlled = !m_pController->IsMouseControlled() && !m_pController->IsGamepadControlled();
-			if (isKeyboardControlled ? m_pController->IsState(AIM_SHARP) : m_pController->IsState(PRESS_FACEBUTTON)) {
-				m_DraggedItemIndex = m_pCartList->GetSelectedIndex();
-			} else if (m_pController->IsState(RELEASE_FACEBUTTON)) {
-				m_DraggedItemIndex = -1;
-				m_IsDragging = false;
+		if (isKeyboardControlled ? m_pController->IsState(AIM_SHARP) : m_pController->IsState(PRESS_FACEBUTTON)) {
+			m_DraggedItemIndex = m_pShopList->GetSelectedIndex();
+		} else if (m_pController->IsState(RELEASE_FACEBUTTON)) {
+			if (m_MenuCategory == LOADOUTS) {
+				// Might've reordered the loadout list, so we need to save the new order
+				SaveAllLoadoutsToFile();
 			}
-		} else {
 			m_DraggedItemIndex = -1;
 			m_IsDragging = false;
 		}
@@ -1456,7 +1458,6 @@ void BuyMenuGUI::Update() {
 		}
 
 		// Fire button removes items from the order list, including equipment on AHumans
-		bool isKeyboardControlled = !m_pController->IsMouseControlled() && !m_pController->IsGamepadControlled();
 		if (isKeyboardControlled ? (m_pController->IsState(PRESS_FACEBUTTON) && !m_pController->IsState(AIM_SHARP)) : (m_pController->IsState(RELEASE_FACEBUTTON) && !m_IsDragging)) {
 			if (g_UInputMan.FlagShiftState()) {
 				ClearCartList();
@@ -1902,7 +1903,8 @@ void BuyMenuGUI::Update() {
 		m_pDeleteButton->SetEnabled(m_SelectedLoadoutIndex != -1);
 		if (m_SelectedLoadoutIndex != -1) {
 			// Always highlight the currently selected loadout as if it's focused
-			m_pShopList->SetSelectedIndex(m_SelectedLoadoutIndex);
+			// TODO- need something better than this, like a dedicated highlight control
+			//m_pShopList->SetSelectedIndex(m_SelectedLoadoutIndex);
 		}
 	}
 }
@@ -2271,6 +2273,7 @@ void BuyMenuGUI::AddPresetsToItemList() {
 	m_SelectedLoadoutIndex = -1;
 
 	// Go through all the presets, making intelligible list items from then for the GUI item list
+	m_pShopList->ClearList();
 	for (int i = 0; i < m_Loadouts.size(); ++i) {
 		Loadout& loadout = m_Loadouts[i];
 		
