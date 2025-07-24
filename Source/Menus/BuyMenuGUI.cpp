@@ -2266,9 +2266,13 @@ void BuyMenuGUI::AddPresetsToItemList() {
 				continue; // don't draw anything that would overflow the bitmap
 			}
 
-			draw_sprite(pItemBitmap->GetBitmap(), sceneObject->GetGraphicalIcon(), widthOffset, heightOffset);
-
 			rowHeight = std::max(rowHeight, sceneObject->GetGraphicalIcon()->h);
+
+			// TODO: make a smarter row structure so we can properly centre the icons if the actor isn't the tallest item in the row
+			// Vertically center the icon in the row
+			int yOffset = (rowHeight - sceneObject->GetGraphicalIcon()->h) / 2;
+
+			draw_sprite(pItemBitmap->GetBitmap(), sceneObject->GetGraphicalIcon(), widthOffset, heightOffset + yOffset);
 			widthOffset += sceneObject->GetGraphicalIcon()->w;
 		}
 
