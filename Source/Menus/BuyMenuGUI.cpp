@@ -1281,9 +1281,16 @@ void BuyMenuGUI::Update() {
 		}
 
 		// User selected to add an item to cart list!
-		if (m_pController->IsState(PRESS_FACEBUTTON) && !m_IsDragging) {
+		if (m_pController->IsState(RELEASE_FACEBUTTON) && !m_IsDragging) {
+			// User pressed on a loadout set, so load it into the menu
+			if (pItem && m_MenuCategory == LOADOUTS) {
+				// Beep if there's an error
+				if (!DeployLoadout(m_ListItemIndex)) {
+					g_GUISound.UserErrorSound()->Play(m_pController->GetPlayer());
+				}
+			}
 			// User pressed on a module group item; toggle its expansion!
-			if (pItem && pItem->m_ExtraIndex >= 0) {
+			else if (pItem && pItem->m_ExtraIndex >= 0) {
 				// Make appropriate sound
 				if (!m_aExpandedModules[pItem->m_ExtraIndex]) {
 					g_GUISound.ItemChangeSound()->Play(m_pController->GetPlayer());
@@ -1295,12 +1302,6 @@ void BuyMenuGUI::Update() {
 				m_aExpandedModules[pItem->m_ExtraIndex] = !m_aExpandedModules[pItem->m_ExtraIndex];
 				// Re-populate the item list with the new module expansion configuation
 				CategoryChange(false);
-			}
-			// User pressed on a loadout set, so load it into the menu
-			else if (pItem && m_MenuCategory == LOADOUTS) {
-				// Beep if there's an error
-				if (!DeployLoadout(m_ListItemIndex))
-					g_GUISound.UserErrorSound()->Play(m_pController->GetPlayer());
 			}
 			// User mashed button on a regular shop item, add it to cargo, or select craft
 			else if (pItem && pItem->m_pEntity) {
