@@ -2281,63 +2281,71 @@ void BuyMenuGUI::AddPresetsToItemList() {
 		AllegroBitmap* pItemBitmap = nullptr;
 		float loadoutCost = 0;
 
+		std::vector<std::pair<int, int>> rowBounds;
+		rowBounds.resize(loadout.GetCargoList()->size()); // pessimistic but eh
+
 		const int maxBitmapWidth = 130;
-		const int margin = 2;
+		const int horizontalMargin = 2;
+		const int verticalMargin = 3;
 
-		int bitmapHeight = 0;
 		int bitmapWidth = 0;
+		int bitmapHeight = 0;
 
-		int rowHeight = -margin;
-		int rowWidth = 0;
-		for (const SceneObject* sceneObject: *loadout.GetCargoList()) {
-			if (dynamic_cast<const Actor*>(sceneObject)) {
-				// start a new row
-				bitmapHeight += rowHeight + margin;
-				bitmapWidth = std::max(bitmapWidth, rowWidth);
-				rowHeight = 0;
-				rowWidth = 0;
+		int row = -1;
+		int numRows = 0;
+		for (auto itr = loadout.GetCargoList()->begin(), itr_end = loadout.GetCargoList()->end(); itr != itr_end; ++itr) {
+			const SceneObject* sceneObject = *itr;
+			if (itr == loadout.GetCargoList()->begin() || dynamic_cast<const Actor*>(sceneObject)) {
+				++row;
+				++numRows;
 			}
 
-			if (rowWidth + sceneObject->GetGraphicalIcon()->w > maxBitmapWidth) {
-				continue; // don't draw anything that would overflow the bitmap
-			}
-
-			rowHeight = std::max(rowHeight, sceneObject->GetGraphicalIcon()->h);
-			rowWidth += sceneObject->GetGraphicalIcon()->w + margin;
+			rowBounds[row].first += sceneObject->GetGraphicalIcon()->w + horizontalMargin;
+			rowBounds[row].second = std::max(rowBounds[row].second, sceneObject->GetGraphicalIcon()->h + verticalMargin);
 		}
 
-		// and once more for the last row
-		bitmapHeight += rowHeight;
-		bitmapWidth = std::max(bitmapWidth, rowWidth);
+		if (numRows == 0) {
+			// this should never happen, but just in case
+			continue;
+		}
+
+		for (int i = 0; i < numRows; ++i) {
+			bitmapWidth = std::max(bitmapWidth, rowBounds[i].first);
+			bitmapHeight += rowBounds[i].second;
+		}
+
+		bitmapWidth = std::min(bitmapWidth, maxBitmapWidth);
 
 		// Generate our bitmap of all the cargo items in the loadout
 		pItemBitmap = new AllegroBitmap();
 		pItemBitmap->Create(bitmapWidth, bitmapHeight);
 
 		// Now actually draw the stuff in the appropriate places
-		rowHeight = -margin;
 		int heightOffset = 0;
 		int widthOffset = 0;
-		for (const SceneObject* sceneObject: *loadout.GetCargoList()) {
-			if (dynamic_cast<const Actor*>(sceneObject)) {
-				// start a new row
-				heightOffset += rowHeight + margin;
-				rowHeight = 0;
+		row = 0;
+		for (auto itr = loadout.GetCargoList()->begin(), itr_end = loadout.GetCargoList()->end(); itr != itr_end; ++itr) {
+			const SceneObject* sceneObject = *itr;
+			int rowWidth = rowBounds[row].first;
+			int rowHeight = rowBounds[row].second;
+			if (itr != loadout.GetCargoList()->begin() && dynamic_cast<const Actor*>(sceneObject)) {
+				heightOffset += rowHeight;
 				widthOffset = 0;
+				++row;
+				rowWidth = rowBounds[row].first;
+				rowHeight = rowBounds[row].second;
 			}
 
 			if (widthOffset + sceneObject->GetGraphicalIcon()->w > maxBitmapWidth) {
 				continue; // don't draw anything that would overflow the bitmap
 			}
 
-			rowHeight = std::max(rowHeight, sceneObject->GetGraphicalIcon()->h);
-
 			// TODO: make a smarter row structure so we can properly centre the icons if the actor isn't the tallest item in the row
 			// Vertically center the icon in the row
 			int yOffset = (rowHeight - sceneObject->GetGraphicalIcon()->h) / 2;
 
 			draw_sprite(pItemBitmap->GetBitmap(), sceneObject->GetGraphicalIcon(), widthOffset, heightOffset + yOffset);
-			widthOffset += sceneObject->GetGraphicalIcon()->w + margin;
+			widthOffset += sceneObject->GetGraphicalIcon()->w + horizontalMargin;
 		}
 
 		for (const SceneObject* sceneObject: *loadout.GetCargoList()) {
