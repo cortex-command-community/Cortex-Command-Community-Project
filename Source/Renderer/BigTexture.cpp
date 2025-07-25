@@ -4,6 +4,8 @@
 #include <cmath>
 #include "Draw.h"
 #include "GLResourceMan.h"
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyOpenGL.hpp"
 
 using namespace RTE;
 int BigTexture::s_MaxGLTextureSize{0};
@@ -14,10 +16,13 @@ BigTexture::BigTexture(BITMAP* bitmap) {
 		s_MaxGLTextureSize /= 2;
 	}
 	int bitsPerPixel = bitmap_color_depth(bitmap);
+	int bytesPerPixel = bitsPerPixel / 8;
 	m_Bitmap = bitmap;
 	GLBitmapInfo* bitmapExtra = g_GLResourceMan.MakeBitmapInfo();
 	bitmap->extra = reinterpret_cast<void*>(bitmapExtra);
 	PixelFormat format = bitsPerPixel == 8 ? PIXELFORMAT_UNCOMPRESSED_GRAYSCALE : PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
+	m_Width = bitmap->w;
+	m_Height = bitmap->h;
 
 	int height = bitmap->h;
 	for (int y = 0; y < bitmap->h; y += s_MaxGLTextureSize) {
@@ -35,6 +40,12 @@ BigTexture::BigTexture(BITMAP* bitmap) {
 			    regionHeight,
 			    1,
 			    format);
+			GLuint uploadBuffer;
+			glGenBuffers(1, &uploadBuffer);
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, uploadBuffer);
+			glBufferData(GL_PIXEL_UNPACK_BUFFER, regionWidth * regionHeight * bytesPerPixel + 1, NULL, GL_STREAM_DRAW);
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+			m_UploadBuffers.emplace_back(uploadBuffer);
 			width -= s_MaxGLTextureSize;
 		}
 		height -= s_MaxGLTextureSize;
@@ -48,6 +59,8 @@ BigTexture::~BigTexture() {
 }
 
 void BigTexture::Draw(Rectangle source, Rectangle dest) {
+	ZoneScoped;
+	TracyGpuZone("BigTexture::Draw");
 	float scaleX = dest.width / source.width;
 	float scaleY = dest.height / source.height;
 	Box sourceBox(Vector(source.x, source.y), source.width, source.height);
@@ -85,6 +98,8 @@ void BigTexture::Draw(Rectangle source, Rectangle dest) {
 }
 
 void BigTexture::Update(const Box& updateRegion) {
+	ZoneScoped;
+	TracyGpuZone("BigTexture Upload");
 	if (!m_Bitmap->extra) {
 		m_Bitmap->extra = reinterpret_cast<void*>(g_GLResourceMan.MakeBitmapInfo());
 	}
@@ -93,16 +108,22 @@ void BigTexture::Update(const Box& updateRegion) {
 	for (int i = 0; i < m_Regions.size(); ++i) {
 		Box intersect = updateRegion.GetIntersection(m_Regions[i]);
 		if (!intersect.IsEmpty()) {
-			std::vector<unsigned char> pixels(std::ceil(intersect.m_Width) * std::ceil(intersect.m_Height) * bytesPerPixel);
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_UploadBuffers[i]);
+			size_t pixelsSize = std::ceil(intersect.m_Width) * std::ceil(intersect.m_Height) * bytesPerPixel;
+			unsigned char* pixels = (unsigned char*)glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, (intersect.m_Corner.GetFloorIntY() %s_MaxGLTextureSize) * m_Textures[i].width + intersect.m_Corner.GetFloorIntX() % s_MaxGLTextureSize, pixelsSize, GL_MAP_WRITE_BIT|GL_MAP_INVALIDATE_BUFFER_BIT);
+			
 			for (size_t y = 0; y < static_cast<int>(std::ceil(intersect.m_Height)); y++) {
 				memcpy(
-					pixels.data() + y * static_cast<int>(intersect.m_Width) * bytesPerPixel,
+					pixels + y * static_cast<int>(std::ceil(intersect.m_Width)) * bytesPerPixel,
 					m_Bitmap->line[y + intersect.m_Corner.GetFloorIntY()] + intersect.m_Corner.GetFloorIntX(),
 					std::ceil(intersect.m_Width) * bytesPerPixel
 				);
 			}
+			glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+
 
 			glBindTexture(GL_TEXTURE_2D, m_Textures[i].id);
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 			glTexSubImage2D(
 				GL_TEXTURE_2D,
 				0, 
@@ -112,10 +133,11 @@ void BigTexture::Update(const Box& updateRegion) {
 				std::ceil(intersect.m_Height), 
 				bytesPerPixel == 1 ? GL_RED : GL_RGBA, 
 				GL_UNSIGNED_BYTE,
-				pixels.data()
+				reinterpret_cast<void*>((intersect.m_Corner.GetFloorIntY() % s_MaxGLTextureSize) * m_Textures[i].width + intersect.m_Corner.GetFloorIntX() % s_MaxGLTextureSize)
 			);
 
 			glBindTexture(GL_TEXTURE_2D, 0);
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 		}
 	}
 }

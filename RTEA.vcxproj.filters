@@ -484,9 +484,6 @@
     <ClInclude Include="Source\Entities\Round.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\NetworkMessages.h">
-      <Filter>System</Filter>
-    </ClInclude>
     <ClInclude Include="Source\System\InputScheme.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -499,8 +496,8 @@
     <ClInclude Include="Source\Entities\Activity.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\GraphicalPrimitive.h">
-      <Filter>System</Filter>
+    <ClInclude Include="Source\Renderer\GraphicalPrimitive.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Source\Menus\TitleScreen.h">
       <Filter>Menus</Filter>
@@ -657,6 +654,12 @@
     <ClInclude Include="Source\Renderer\raylib\rlutils.h">
       <Filter>Renderer\raylib</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Renderer\raylib\rlutil.h" />
+    <ClInclude Include="Source\GUI\imgui\imgui_internal.h" />
+    <ClInclude Include="Source\GUI\imgui\imstb_rectpack.h" />
+    <ClInclude Include="Source\GUI\imgui\imstb_textedit.h" />
+    <ClInclude Include="Source\GUI\imgui\imstd_truetype.h" />
+    <ClInclude Include="Source\GUI\imgui\backends\imgui_impl_opengl3_loader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\System\Box.cpp">
@@ -1080,8 +1083,8 @@
     <ClCompile Include="Source\Entities\Activity.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Source\System\GraphicalPrimitive.cpp">
-      <Filter>System</Filter>
+    <ClCompile Include="Source\Renderer\GraphicalPrimitive.cpp">
+      <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Source\Menus\TitleScreen.cpp">
       <Filter>Menus</Filter>

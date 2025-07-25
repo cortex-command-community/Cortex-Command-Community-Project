@@ -1,4 +1,6 @@
 #include "WindowMan.h"
+#include "RTEError.h"
+#include "SDL3/SDL.h"
 #include "SettingsMan.h"
 #include "FrameMan.h"
 #include "ActivityMan.h"
@@ -96,7 +98,20 @@ void WindowMan::Destroy() {
 void WindowMan::Initialize() {
 	SDL_free(SDL_GetDisplays(&m_NumDisplays));
 
-	SDL_Rect currentDisplayBounds;
+	m_PrimaryWindowDisplayIndex = SDL_GetPrimaryDisplay();
+	if (m_PrimaryWindowDisplayIndex == 0) {
+		g_ConsoleMan.PrintString("ERROR: Failed to get primary display!" + std::string(SDL_GetError()));
+		int count{0};
+		SDL_DisplayID* displays = SDL_GetDisplays(&count);
+		if (displays) {
+			m_PrimaryWindowDisplayIndex = displays[0];
+		} else {
+			RTEAbort("No displays detetected somehow! " + std::string(SDL_GetError()));
+		}
+		SDL_free(displays);
+	}
+
+	SDL_Rect currentDisplayBounds{};
 	SDL_GetDisplayBounds(m_PrimaryWindowDisplayIndex, &currentDisplayBounds);
 
 	m_PrimaryWindowDisplayWidth = currentDisplayBounds.w;
@@ -109,7 +124,7 @@ void WindowMan::Initialize() {
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 	CreatePrimaryWindow();
 	InitializeOpenGL();
 
@@ -117,7 +132,7 @@ void WindowMan::Initialize() {
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+	io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 
 	ImGui::StyleColorsDark();
 	ImGui_ImplSDL3_InitForOpenGL(m_PrimaryWindow.get(), m_GLContext.get());
@@ -139,6 +154,8 @@ void WindowMan::Initialize() {
 	} else {
 		SetViewportLetterboxed();
 	}
+
+	SDL_AddEventWatch((SDL_EventFilter)WindowMan::HandleWindowExposedEvent, nullptr);
 }
 
 void WindowMan::CreatePrimaryWindow() {
@@ -160,7 +177,6 @@ void WindowMan::CreatePrimaryWindow() {
 
 	int windowPosX = (m_ResX * m_ResMultiplier <= m_PrimaryWindowDisplayWidth) ? SDL_WINDOWPOS_CENTERED : (m_MaxResX - (m_ResX * m_ResMultiplier)) / 2;
 	int windowPosY = SDL_WINDOWPOS_CENTERED;
-	int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 
 	SDL_PropertiesID windowProps = SDL_CreateProperties();
 	RTEAssert(windowProps, "Unable to create window properties! " + std::string(SDL_GetError()));
@@ -659,6 +675,14 @@ void WindowMan::DisplaySwitchOut() const {
 	SDL_SetCursor(nullptr);
 }
 
+void WindowMan::HandleWindowExposedEvent(void *userdata, SDL_Event *event) {
+	if (event->type == SDL_EVENT_WINDOW_EXPOSED) {
+		g_WindowMan.SetViewportLetterboxed();
+		g_WindowMan.ClearBackbuffer(false);
+		g_WindowMan.UploadFrame();
+	}
+}
+
 void WindowMan::QueueWindowEvent(const SDL_Event& windowEvent) {
 	m_EventQueue.emplace_back(windowEvent);
 }
@@ -721,8 +745,6 @@ void WindowMan::ClearBackbuffer(bool clearFrameMan) {
 	if (clearFrameMan) {
 		g_FrameMan.ClearBackBuffer32();
 	}
-	m_ScreenBuffer->Begin(true);
-	m_ScreenBuffer->End();
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
 	GL_CHECK(glActiveTexture(GL_TEXTURE1));
@@ -732,7 +754,7 @@ void WindowMan::ClearBackbuffer(bool clearFrameMan) {
 
 void WindowMan::UploadFrame() {
 
-	m_ScreenBuffer->Begin(false);
+	m_ScreenBuffer->Begin(g_ActivityMan.IsInActivity());
 
 	rlDisableDepthTest();
 	rlDisableColorBlend();

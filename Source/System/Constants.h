@@ -144,6 +144,7 @@ namespace RTE {
 		-1.0f, -1.0f, 0.0f, 1.0f};
 
 	static constexpr float c_GuiDepth = -100.0f;
+	static constexpr float c_PrimitiveDepth = -75.0f;
 	static constexpr float c_DefaultDrawDepth = 0.0f;
 	static constexpr float c_TerrainBGDepth = 50.0f;
 	static constexpr float c_BackgroundDepth = 100.0f;
@@ -364,7 +365,7 @@ namespace RTE {
 		{Directions::Right, 0.0F}};
 #pragma endregion
 
-#pragma region Un - Definitions
+#pragma region Un-Definitions
 // Allegro defines these via define in astdint.h and Boost with stdlib go crazy so we need to undefine them manually.
 #undef int8_t
 #undef uint8_t

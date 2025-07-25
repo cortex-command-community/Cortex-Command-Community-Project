@@ -14,31 +14,35 @@ using namespace RTE;
 RenderTarget::RenderTarget(const FloatRect& size, const FloatRect& defaultViewport, int bitDepth, Texture2D colorTexture, bool defaultFB0) {
 	m_Size = size;
 	m_Viewport = defaultViewport;
-	if (colorTexture.id != 0) {
-		m_Texture = colorTexture;
-		m_ColorTextureOwned = false;
-	} else {
-		m_Texture = {
-		    .id = rlLoadTexture(nullptr, size.w, size.h, bitDepth == 8 ? PIXELFORMAT_UNCOMPRESSED_GRAYSCALE : PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1),
+	if (!defaultFB0) {
+		if (colorTexture.id != 0) {
+			m_Texture = colorTexture;
+			m_ColorTextureOwned = false;
+		} else {
+			m_Texture = {
+			    .id = rlLoadTexture(nullptr, size.w, size.h, bitDepth == 8 ? PIXELFORMAT_UNCOMPRESSED_GRAYSCALE : PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1),
+			    .width = static_cast<int>(size.w),
+			    .height = static_cast<int>(size.h),
+			    .mipmaps = 0,
+			    .format = bitDepth == 8 ? PIXELFORMAT_UNCOMPRESSED_GRAYSCALE : PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
+			};
+		}
+		m_Depth = {
+		    .id = rlLoadTextureDepth(size.w, size.h, false),
 		    .width = static_cast<int>(size.w),
 		    .height = static_cast<int>(size.h),
 		    .mipmaps = 0,
-		    .format = bitDepth == 8 ? PIXELFORMAT_UNCOMPRESSED_GRAYSCALE : PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
+		    .format = GL_DEPTH_COMPONENT,
 		};
-	}
-	m_Depth = {
-	    .id = rlLoadTextureDepth(size.w, size.h, false),
-	    .width = static_cast<int>(size.w),
-	    .height = static_cast<int>(size.h),
-	    .mipmaps = 0,
-	    .format = GL_DEPTH_COMPONENT,
-	};
-	if (!defaultFB0) {
 		m_FBO = rlLoadFramebuffer();
 		rlEnableFramebuffer(m_FBO);
 		rlFramebufferAttach(m_FBO, m_Texture.id, RL_ATTACHMENT_COLOR_CHANNEL0, RL_ATTACHMENT_TEXTURE2D, 0);
 		rlFramebufferAttach(m_FBO, m_Depth.id, RL_ATTACHMENT_DEPTH, RL_ATTACHMENT_TEXTURE2D, 0);
 		rlDisableFramebuffer();
+	} else {
+		m_ColorTextureOwned = false;
+		m_Depth.id = 0;
+		m_Texture.id = 0;
 	}
 }
 
@@ -52,7 +56,7 @@ RenderTarget::~RenderTarget() {
 	rlUnloadTexture(m_Depth.id);
 }
 
-void RenderTarget::Begin(bool clear) {
+void RenderTarget::Begin(bool clear, float zoom) {
 	rlDrawRenderBatchActive();
 	rlResetDrawDepth();
 	rlEnableFramebuffer(m_FBO);
@@ -67,6 +71,9 @@ void RenderTarget::Begin(bool clear) {
 	rlOrtho(0.0f, m_Size.w, m_Size.h, 0.0f, c_NearDepth, c_FarDepth);
 	rlMatrixMode(RL_MODELVIEW);
 	rlLoadIdentity();
+	rlTranslatef(m_Size.w / 2, m_Size.h / 2, 0.0f);
+	rlScalef(zoom, zoom, 1.0f);
+	rlTranslatef(-m_Size.w / 2, -m_Size.h / 2, 0.0f);
 
 	if (clear) {
 		rlClearScreenBuffers();

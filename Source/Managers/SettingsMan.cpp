@@ -121,6 +121,7 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("MuteMusic", { reader >> g_AudioMan.m_MuteMusic; });
 	MatchProperty("SoundVolume", { g_AudioMan.SetSoundsVolume(std::stof(reader.ReadPropValue()) / 100.0F); });
 	MatchProperty("MuteSounds", { reader >> g_AudioMan.m_MuteSounds; });
+	MatchProperty("MuteAudioOnFocusLoss", { reader >> g_AudioMan.m_MuteAudioOnFocusLoss; });
 	MatchProperty("SoundPanningEffectStrength", {
 		reader >> g_AudioMan.m_SoundPanningEffectStrength;
 
@@ -230,6 +231,7 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("MuteMusic", g_AudioMan.m_MuteMusic);
 	writer.NewPropertyWithValue("SoundVolume", g_AudioMan.m_SoundsVolume * 100);
 	writer.NewPropertyWithValue("MuteSounds", g_AudioMan.m_MuteSounds);
+	writer.NewPropertyWithValue("MuteAudioOnFocusLoss", g_AudioMan.m_MuteAudioOnFocusLoss);
 	writer.NewPropertyWithValue("SoundPanningEffectStrength", g_AudioMan.m_SoundPanningEffectStrength);
 
 	//////////////////////////////////////////////////

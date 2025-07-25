@@ -298,14 +298,20 @@ int SLTerrain::LoadData() {
 	return 0;
 }
 
-int SLTerrain::SaveData(const std::string& pathBase, bool doAsyncSaves) {
+int SLTerrain::SaveData(const std::string& pathBase) {
 	if (pathBase.empty()) {
 		return -1;
 	}
-	SceneLayer::SaveData(pathBase + " Mat.png", doAsyncSaves);
-	m_FGColorLayer->SaveData(pathBase + " FG.png", doAsyncSaves);
-	m_BGColorLayer->SaveData(pathBase + " BG.png", doAsyncSaves);
+	SceneLayer::SaveData(pathBase + " Mat.png");
+	m_FGColorLayer->SaveData(pathBase + " FG.png");
+	m_BGColorLayer->SaveData(pathBase + " BG.png");
 	return 0;
+}
+
+void SLTerrain::CopyBitmapData(std::vector<SceneLayerInfo>& layerInfos) const {
+	layerInfos.emplace_back(std::string("Mat"), SceneLayer::CopyBitmap());
+	layerInfos.emplace_back(std::string("FG"), m_FGColorLayer->CopyBitmap());
+	layerInfos.emplace_back(std::string("BG"), m_BGColorLayer->CopyBitmap());
 }
 
 int SLTerrain::ClearData() {

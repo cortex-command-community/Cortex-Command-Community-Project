@@ -148,3 +148,14 @@ void GUIInput::Update() {
 int GUIInput::GetModifier() const {
 	return m_Modifier;
 }
+
+void GUIInput::StartTextInput() {
+	m_TextInputActive++;
+}
+
+void GUIInput::StopTextInput() {
+	m_TextInputActive--;
+	if (m_TextInputActive < 0) {
+		m_TextInputActive = 0;
+	}
+}

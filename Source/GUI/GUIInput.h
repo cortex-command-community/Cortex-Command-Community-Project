@@ -122,6 +122,12 @@ namespace RTE {
 		/// @param enableKeyJoyMouseCursor Whether the keyboard and joysticks also control the mouse or not.
 		void SetKeyJoyMouseCursor(bool enableKeyJoyMouseCursor) { m_KeyJoyMouseCursor = enableKeyJoyMouseCursor; }
 
+		/// Enables receiving text input events.
+		virtual void StartTextInput();
+
+		/// Disables receiving text input events.
+		virtual void StopTextInput();
+
 	protected:
 		enum Constants {
 			KEYBOARD_BUFFER_SIZE = 256
@@ -132,6 +138,7 @@ namespace RTE {
 		unsigned char m_ScanCodeState[KEYBOARD_BUFFER_SIZE];
 		std::string m_TextInput;
 		bool m_HasTextInput;
+		int m_TextInputActive{0};
 
 		// Mouse button states
 		// Order:    Left, Middle, Right

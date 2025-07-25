@@ -7,11 +7,11 @@ in vec4 rteVertexColor;
 out vec2 textureUV;
 out vec4 vertexColor;
 
-uniform mat4 rteModel;
+uniform mat4 rteView;
 uniform mat4 rteProjection;
 
 void main() {
-	gl_Position = rteProjection * rteModel * vec4(rteVertexPosition, 1.0);
+	gl_Position = rteProjection * rteView * vec4(rteVertexPosition, 1.0);
 	vertexColor = rteVertexColor;
 	textureUV = rteVertexTexUV;
 }

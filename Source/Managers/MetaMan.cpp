@@ -319,7 +319,7 @@ int MetaMan::SaveSceneData(std::string pathBase) {
 		// Only save the data of revealed scenes that have already had their layers built and saved into files
 		if ((*sItr)->IsRevealed() && (*sItr)->GetTerrain() && (*sItr)->GetTerrain()->IsLoadedFromDisk()) {
 			// Save the scene data to a good unique prefix for the Scene's layers' bitmap files as they are saved
-			if ((*sItr)->SaveData(pathBase + " - " + (*sItr)->GetPresetName(), false) < 0)
+			if ((*sItr)->SaveData(pathBase + " - " + (*sItr)->GetPresetName()) < 0)
 				return -1;
 		}
 	}

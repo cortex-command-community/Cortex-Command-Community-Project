@@ -168,6 +168,9 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Concrete Methods
+		/// SDL_EventFilter to hadnle window exposed events for live resize.
+		static void HandleWindowExposedEvent(void* userdata, SDL_Event* event);
+
 		/// Adds an SDL_Event to the Event queue for processing on Update.
 		/// @param windowEvent The SDL window event to queue.
 		void QueueWindowEvent(const SDL_Event& windowEvent);
@@ -279,7 +282,7 @@ namespace RTE {
 		void AttemptToRevertToPreviousResolution(bool revertToDefaults = false);
 #pragma endregion
 
-#pragma region Multi - Display Handling
+#pragma region Multi-Display Handling
 		/// Clears all the multi-display data, resetting the game to a single-window-single-display state.
 		void ClearMultiDisplayData();
 

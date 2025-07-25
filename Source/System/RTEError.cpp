@@ -434,9 +434,20 @@ void RTEError::DumpHardwareInfo() {
 	std::string glVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
 	std::string glVendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
 	std::string glRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+
+	std::string glExtentions = "";
+	GLint numExt = 0;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &numExt);
+	for(GLint i = 0; i < numExt; i++) {
+		glExtentions += "\t";
+		glExtentions += reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i));
+		glExtentions += "\n";
+	}
+
 	std::string hwInfo = "GL Version: " + glVersion + "\n" +
 	                     "GL Vendor: " + glVendor + "\n" +
-	                     "GL Renderer: " + glRenderer + "\n";
+	                     "GL Renderer: " + glRenderer + "\n" +
+	                     "Available Extensions: \n" + glExtentions + "\n";
 
 #if defined(_MSC_VER) || defined(__linux__)
 	int vendorRegs[4] = {0};
@@ -577,6 +588,7 @@ bool RTEError::DumpAbortSave() {
 	bool success = false;
 	if (g_ActivityMan.GetActivity() && g_ActivityMan.GetActivity()->CanBeUserSaved()) {
 		success = g_ActivityMan.SaveCurrentGame("AbortSave");
+		g_ActivityMan.WaitForSaveGameTask(); // Ensure the save is complete before the user potentially aborts or restarts the game.
 	}
 	return success;
 }
