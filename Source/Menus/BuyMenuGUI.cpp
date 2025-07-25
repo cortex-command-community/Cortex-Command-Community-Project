@@ -2282,6 +2282,7 @@ void BuyMenuGUI::AddPresetsToItemList() {
 		float loadoutCost = 0;
 
 		const int maxBitmapWidth = 130;
+		const int margin = 2;
 
 		int bitmapHeight = 0;
 		int bitmapWidth = 0;
@@ -2291,7 +2292,7 @@ void BuyMenuGUI::AddPresetsToItemList() {
 		for (const SceneObject* sceneObject: *loadout.GetCargoList()) {
 			if (dynamic_cast<const Actor*>(sceneObject)) {
 				// start a new row
-				bitmapHeight += rowHeight;
+				bitmapHeight += rowHeight + margin;
 				bitmapWidth = std::max(bitmapWidth, rowWidth);
 				rowHeight = 0;
 				rowWidth = 0;
@@ -2302,7 +2303,7 @@ void BuyMenuGUI::AddPresetsToItemList() {
 			}
 
 			rowHeight = std::max(rowHeight, sceneObject->GetGraphicalIcon()->h);
-			rowWidth += sceneObject->GetGraphicalIcon()->w;
+			rowWidth += sceneObject->GetGraphicalIcon()->w + margin;
 		}
 
 		// and once more for the last row
@@ -2320,7 +2321,7 @@ void BuyMenuGUI::AddPresetsToItemList() {
 		for (const SceneObject* sceneObject: *loadout.GetCargoList()) {
 			if (dynamic_cast<const Actor*>(sceneObject)) {
 				// start a new row
-				heightOffset += rowHeight;
+				heightOffset += rowHeight + margin;
 				rowHeight = 0;
 				widthOffset = 0;
 			}
@@ -2336,7 +2337,7 @@ void BuyMenuGUI::AddPresetsToItemList() {
 			int yOffset = (rowHeight - sceneObject->GetGraphicalIcon()->h) / 2;
 
 			draw_sprite(pItemBitmap->GetBitmap(), sceneObject->GetGraphicalIcon(), widthOffset, heightOffset + yOffset);
-			widthOffset += sceneObject->GetGraphicalIcon()->w;
+			widthOffset += sceneObject->GetGraphicalIcon()->w + margin;
 		}
 
 		for (const SceneObject* sceneObject: *loadout.GetCargoList()) {
