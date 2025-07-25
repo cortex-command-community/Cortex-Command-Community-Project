@@ -84,9 +84,9 @@ int UInputMan::Initialize() {
 				g_ConsoleMan.PrintString("ERROR: Failed to connect gamepad " + std::to_string(index) + " " + std::string(SDL_GetError()));
 				continue;
 			}
-			SDL_SetGamepadPlayerIndex(controller, index);
-			s_PrevJoystickStates[controllerIndex] = Gamepad(index, joysticks[index], SDL_GAMEPAD_AXIS_COUNT, SDL_GAMEPAD_BUTTON_COUNT);
-			s_ChangedJoystickStates[controllerIndex] = Gamepad(index, joysticks[index], SDL_GAMEPAD_AXIS_COUNT, SDL_GAMEPAD_BUTTON_COUNT);
+			SDL_SetGamepadPlayerIndex(controller, controllerIndex);
+			s_PrevJoystickStates[controllerIndex] = Gamepad(controllerIndex, joysticks[index], SDL_GAMEPAD_AXIS_COUNT, SDL_GAMEPAD_BUTTON_COUNT);
+			s_ChangedJoystickStates[controllerIndex] = Gamepad(controllerIndex, joysticks[index], SDL_GAMEPAD_AXIS_COUNT, SDL_GAMEPAD_BUTTON_COUNT);
 			auto playerScheme = std::find_if(m_ControlScheme.begin(), m_ControlScheme.end(), [controllerIndex](auto& scheme) { return scheme.GetDevice() == controllerIndex + InputDevice::DEVICE_GAMEPAD_1; });
 			playerScheme->SetDeviceID({.gamepad = joysticks[index]});
 			controllerIndex++;
@@ -97,8 +97,8 @@ int UInputMan::Initialize() {
 				g_ConsoleMan.PrintString("ERROR: Failed to connect joystick.");
 				continue;
 			}
-			s_PrevJoystickStates[controllerIndex] = Gamepad(index, joysticks[index], SDL_GetNumJoystickAxes(joy), SDL_GetNumJoystickButtons(joy));
-			s_ChangedJoystickStates[controllerIndex] = Gamepad(index, joysticks[index], SDL_GetNumJoystickAxes(joy), SDL_GetNumJoystickButtons(joy));
+			s_PrevJoystickStates[controllerIndex] = Gamepad(controllerIndex, joysticks[index], SDL_GetNumJoystickAxes(joy), SDL_GetNumJoystickButtons(joy));
+			s_ChangedJoystickStates[controllerIndex] = Gamepad(controllerIndex, joysticks[index], SDL_GetNumJoystickAxes(joy), SDL_GetNumJoystickButtons(joy));
 			auto playerScheme = std::find_if(m_ControlScheme.begin(), m_ControlScheme.end(), [controllerIndex](auto& scheme) { return scheme.GetDevice() == controllerIndex + InputDevice::DEVICE_GAMEPAD_1; });
 			playerScheme->SetDeviceID({.gamepad = joysticks[index]});
 			controllerIndex++;
@@ -1284,17 +1284,17 @@ void UInputMan::UpdateJoystickDigitalAxis() {
 	}
 }
 
-void UInputMan::HandleGamepadHotPlug(SDL_JoystickID deviceIndex) {
+void UInputMan::HandleGamepadHotPlug(SDL_JoystickID joystickID) {
 	SDL_Joystick* controller = nullptr;
 	int controllerIndex = 0;
 
 	for (controllerIndex = 0; controllerIndex < s_PrevJoystickStates.size(); ++controllerIndex) {
-		if (s_PrevJoystickStates[controllerIndex].m_JoystickID == deviceIndex) {
+		if (s_PrevJoystickStates[controllerIndex].m_JoystickID == joystickID) {
 			return;
 		}
 		if (s_PrevJoystickStates[controllerIndex].m_JoystickID == -1) {
-			if (SDL_IsGamepad(deviceIndex)) {
-				SDL_Gamepad* gameController = SDL_OpenGamepad(deviceIndex);
+			if (SDL_IsGamepad(joystickID)) {
+				SDL_Gamepad* gameController = SDL_OpenGamepad(joystickID);
 				if (!gameController) {
 					g_ConsoleMan.PrintString("ERROR: Failed to connect Gamepad!");
 					break;
@@ -1302,7 +1302,7 @@ void UInputMan::HandleGamepadHotPlug(SDL_JoystickID deviceIndex) {
 				controller = SDL_GetGamepadJoystick(gameController);
 				SDL_SetGamepadPlayerIndex(gameController, controllerIndex);
 			} else {
-				controller = SDL_OpenJoystick(deviceIndex);
+				controller = SDL_OpenJoystick(joystickID);
 			}
 			if (!controller) {
 				g_ConsoleMan.PrintString("ERROR: Failed to connect Gamepad!");
@@ -1320,15 +1320,15 @@ void UInputMan::HandleGamepadHotPlug(SDL_JoystickID deviceIndex) {
 	if (controller) {
 		int numAxis = 0;
 		int numButtons = 0;
-		if (SDL_IsGamepad(deviceIndex)) {
+		if (SDL_IsGamepad(joystickID)) {
 			numAxis = SDL_GAMEPAD_AXIS_COUNT;
 			numButtons = SDL_GAMEPAD_BUTTON_COUNT;
 		} else {
 			numAxis = SDL_GetNumJoystickAxes(controller);
 			numButtons = SDL_GetNumJoystickButtons(controller);
 		}
-		s_PrevJoystickStates[controllerIndex] = Gamepad(controllerIndex, deviceIndex, numAxis, numButtons);
-		s_ChangedJoystickStates[controllerIndex] = Gamepad(controllerIndex, deviceIndex, numAxis, numButtons);
+		s_PrevJoystickStates[controllerIndex] = Gamepad(controllerIndex, joystickID, numAxis, numButtons);
+		s_ChangedJoystickStates[controllerIndex] = Gamepad(controllerIndex, joystickID, numAxis, numButtons);
 		m_NumJoysticks++;
 	}
 }
