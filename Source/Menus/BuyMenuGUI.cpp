@@ -2287,7 +2287,7 @@ void BuyMenuGUI::AddPresetsToItemList() {
 		int bitmapHeight = 0;
 		int bitmapWidth = 0;
 
-		int rowHeight = 0;
+		int rowHeight = -margin;
 		int rowWidth = 0;
 		for (const SceneObject* sceneObject: *loadout.GetCargoList()) {
 			if (dynamic_cast<const Actor*>(sceneObject)) {
@@ -2315,7 +2315,7 @@ void BuyMenuGUI::AddPresetsToItemList() {
 		pItemBitmap->Create(bitmapWidth, bitmapHeight);
 
 		// Now actually draw the stuff in the appropriate places
-		rowHeight = 0;
+		rowHeight = -margin;
 		int heightOffset = 0;
 		int widthOffset = 0;
 		for (const SceneObject* sceneObject: *loadout.GetCargoList()) {
