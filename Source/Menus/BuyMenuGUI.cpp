@@ -100,7 +100,7 @@ void BuyMenuGUI::Clear() {
 	m_pBuyButton = 0;
 	m_ClearOrderButton = nullptr;
 	m_pSaveButton = 0;
-	m_pClearButton = 0;
+	m_pDeleteButton = 0;
 	m_Loadouts.clear();
 	m_SelectedLoadoutIndex = -1;
 	m_PurchaseMade = false;
@@ -119,7 +119,7 @@ void BuyMenuGUI::Clear() {
 	m_LastEquipmentScrollPosition = -1;
 	m_LastMainScrollPosition = -1;
 	m_FirstMainTab = CRAFT;
-	m_LastMainTab = PRESETS;
+	m_LastMainTab = LOADOUTS;
 	m_FirstEquipmentTab = TOOLS;
 	m_LastEquipmentTab = SHIELDS;
 }
@@ -184,7 +184,7 @@ int BuyMenuGUI::Create(Controller* pController) {
 	m_pCategoryTabs[GUNS] = dynamic_cast<GUITab*>(m_pGUIController->GetControl("GunsTab"));
 	m_pCategoryTabs[BOMBS] = dynamic_cast<GUITab*>(m_pGUIController->GetControl("BombsTab"));
 	m_pCategoryTabs[SHIELDS] = dynamic_cast<GUITab*>(m_pGUIController->GetControl("ShieldsTab"));
-	m_pCategoryTabs[PRESETS] = dynamic_cast<GUITab*>(m_pGUIController->GetControl("SetsTab"));
+	m_pCategoryTabs[LOADOUTS] = dynamic_cast<GUITab*>(m_pGUIController->GetControl("LoadoutsTab"));
 	RefreshTabDisabledStates();
 
 	m_pShopList = dynamic_cast<GUIListBox*>(m_pGUIController->GetControl("CatalogLB"));
@@ -204,9 +204,9 @@ int BuyMenuGUI::Create(Controller* pController) {
 	m_pBuyButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("BuyButton"));
 	m_ClearOrderButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("OrderClearButton"));
 	m_pSaveButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("SaveButton"));
-	m_pClearButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("ClearButton"));
+	m_pDeleteButton = dynamic_cast<GUIButton*>(m_pGUIController->GetControl("DeleteButton"));
 	m_pSaveButton->SetVisible(false);
-	m_pClearButton->SetVisible(false);
+	m_pDeleteButton->SetVisible(false);
 
 	// If we're not split screen horizontally, then stretch out the layout for all the relevant controls
 	int stretchAmount = g_WindowMan.GetResY() / 2;
@@ -726,7 +726,7 @@ void BuyMenuGUI::RefreshTabDisabledStates() {
 	m_pCategoryTabs[GUNS]->SetEnabled(smartBuyMenuNavigationDisabled || m_SelectingEquipment);
 	m_pCategoryTabs[BOMBS]->SetEnabled(smartBuyMenuNavigationDisabled || m_SelectingEquipment);
 	m_pCategoryTabs[SHIELDS]->SetEnabled(smartBuyMenuNavigationDisabled || m_SelectingEquipment);
-	m_pCategoryTabs[PRESETS]->SetEnabled(smartBuyMenuNavigationDisabled || !m_SelectingEquipment);
+	m_pCategoryTabs[LOADOUTS]->SetEnabled(smartBuyMenuNavigationDisabled || !m_SelectingEquipment);
 }
 
 void BuyMenuGUI::Update() {
@@ -854,6 +854,7 @@ void BuyMenuGUI::Update() {
 	/////////////////////////////////////////////
 	// Repeating input logic
 
+	bool isKeyboardControlled = !m_pController->IsMouseControlled() && !m_pController->IsGamepadControlled();
 	bool pressLeft = m_pController->IsState(PRESS_LEFT);
 	bool pressRight = m_pController->IsState(PRESS_RIGHT);
 	bool pressUp = m_pController->IsState(PRESS_UP);
@@ -871,9 +872,9 @@ void BuyMenuGUI::Update() {
 	}
 
 	// Check if any direction has been held for the starting amount of time to get into repeat mode
-	if (m_RepeatStartTimer.IsPastRealMS(200)) {
+	if (m_RepeatStartTimer.IsPastRealMS(350)) {
 		// Check for the repeat interval
-		if (m_RepeatTimer.IsPastRealMS(75)) {
+		if (m_RepeatTimer.IsPastRealMS(125)) {
 			if (m_pController->IsState(MOVE_RIGHT)) {
 				pressRight = true;
 			} else if (m_pController->IsState(MOVE_LEFT)) {
@@ -1022,13 +1023,12 @@ void BuyMenuGUI::Update() {
 	}
 
 	/////////////////////////////////////////
-	// PRESETS BUTTONS focus
+	// LOADOUTS BUTTONS focus
 
 	if (m_MenuFocus == SETBUTTONS) {
 		if (m_FocusChange) {
 			// Set the correct special Sets category so the sets buttons show up
-			m_MenuCategory = PRESETS;
-			CategoryChange();
+			m_MenuCategory = LOADOUTS;
 			m_pSaveButton->SetFocus();
 			m_FocusChange = 0;
 		}
@@ -1036,12 +1036,12 @@ void BuyMenuGUI::Update() {
 		if (m_pController->IsState(PRESS_FACEBUTTON)) {
 			if (m_pSaveButton->HasFocus())
 				SaveCurrentLoadout();
-			else if (m_pClearButton->HasFocus() && m_Loadouts.size() != 0 && m_SelectedLoadoutIndex != -1) {
+			else if (m_pDeleteButton->HasFocus() && m_Loadouts.size() != 0 && m_SelectedLoadoutIndex != -1) {
 				m_Loadouts.erase(m_Loadouts.begin() + m_SelectedLoadoutIndex);
 				// Update the list of loadout presets so the removal shows up
 				CategoryChange();
 				// Set focus back on the save button (CatChange changed it)
-				m_pClearButton->SetFocus();
+				m_pDeleteButton->SetFocus();
 				m_SelectedLoadoutIndex = -1;
 			}
 			g_GUISound.ItemChangeSound()->Play(m_pController->GetPlayer());
@@ -1052,15 +1052,15 @@ void BuyMenuGUI::Update() {
 			if (m_pSaveButton->HasFocus()) {
 				m_MenuFocus = CATEGORIES;
 				m_FocusChange = 1;
-			} else if (m_pClearButton->HasFocus()) {
+			} else if (m_pDeleteButton->HasFocus()) {
 				m_pSaveButton->SetFocus();
 				g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
 			}
 		} else if (pressDown) {
 			if (m_pSaveButton->HasFocus()) {
-				m_pClearButton->SetFocus();
+				m_pDeleteButton->SetFocus();
 				g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
-			} else if (m_pClearButton->HasFocus())
+			} else if (m_pDeleteButton->HasFocus())
 				g_GUISound.UserErrorSound()->Play(m_pController->GetPlayer());
 		}
 	}
@@ -1115,7 +1115,29 @@ void BuyMenuGUI::Update() {
 		}
 
 		int listSize = m_pShopList->GetItemList()->size();
-		if (pressDown) {
+		if (m_MenuCategory == LOADOUTS && m_DraggedItemIndex != -1) {
+			if (pressDown && m_DraggedItemIndex < listSize - 1) {
+				m_IsDragging = true;
+				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex], (*m_pShopList->GetItemList())[m_DraggedItemIndex + 1]);
+				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex]->m_ID, (*m_pShopList->GetItemList())[m_DraggedItemIndex + 1]->m_ID);
+				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex]->m_ExtraIndex, (*m_pShopList->GetItemList())[m_DraggedItemIndex + 1]->m_ExtraIndex);
+				std::swap(m_Loadouts[m_DraggedItemIndex], m_Loadouts[m_DraggedItemIndex + 1]);
+				m_ListItemIndex = ++m_DraggedItemIndex;
+				m_SelectedLoadoutIndex = -1;
+				m_pShopList->SetSelectedIndex(m_ListItemIndex);
+				g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
+			} else if (pressUp && m_DraggedItemIndex > 0) {
+				m_IsDragging = true;
+				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex], (*m_pShopList->GetItemList())[m_DraggedItemIndex - 1]);
+				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex]->m_ID, (*m_pShopList->GetItemList())[m_DraggedItemIndex - 1]->m_ID);
+				std::swap((*m_pShopList->GetItemList())[m_DraggedItemIndex]->m_ExtraIndex, (*m_pShopList->GetItemList())[m_DraggedItemIndex - 1]->m_ExtraIndex);
+				std::swap(m_Loadouts[m_DraggedItemIndex], m_Loadouts[m_DraggedItemIndex - 1]);
+				m_ListItemIndex = --m_DraggedItemIndex;
+				m_SelectedLoadoutIndex = -1;
+				m_pShopList->SetSelectedIndex(m_ListItemIndex);
+				g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
+			}
+		} else if (pressDown) {
 			m_ListItemIndex++;
 			// Loop around
 			if (m_ListItemIndex >= listSize)
@@ -1141,54 +1163,106 @@ void BuyMenuGUI::Update() {
 		GUIListPanel::Item* pItem = m_pShopList->GetItem(m_ListItemIndex);
 		std::string description = "";
 
-		if (pItem && pItem->m_pEntity) {
-			description = ((pItem->m_pEntity->GetDescription().empty()) ? "-No Information Found-" : pItem->m_pEntity->GetDescription()) + "\n";
-			const Entity* currentItem = pItem->m_pEntity;
-			const ACraft* itemAsCraft = dynamic_cast<const ACraft*>(currentItem);
-			if (itemAsCraft) {
-				int craftMaxPassengers = itemAsCraft->GetMaxPassengers();
-				float craftMaxMass = itemAsCraft->GetMaxInventoryMass();
-				if (craftMaxMass == 0) {
-					description += "\nNO CARGO SPACE!";
-				} else if (craftMaxMass > 0) {
-					description += "\nMax Mass: " + RoundFloatToPrecision(craftMaxMass, craftMaxMass < 50.0F ? 1 : 0, 3) + " kg";
-				}
-				if (craftMaxPassengers >= 0 && craftMaxMass != 0) {
-					description += (craftMaxPassengers == 0) ? "\nNO PASSENGER SPACE!" : "\nMax Passengers: " + std::to_string(craftMaxPassengers);
-				}
-			} else {
-				// Items in the BuyMenu always have any remainder rounded up in their masses.
-				const Actor* itemAsActor = dynamic_cast<const Actor*>(currentItem);
-				if (itemAsActor) {
-					description += "\nMass: " + (itemAsActor->GetMass() < 0.1F ? "<0.1 kg" : RoundFloatToPrecision(itemAsActor->GetMass(), itemAsActor->GetMass() < 50.0F ? 1 : 0, 3) + " kg");
-					int passengerSlotsTaken = itemAsActor->GetPassengerSlots();
-					if (passengerSlotsTaken > 1) {
-						description += "\nPassenger Slots: " + std::to_string(passengerSlotsTaken);
+		if (pItem) {
+			if (pItem->m_pEntity) {
+				description = ((pItem->m_pEntity->GetDescription().empty()) ? "-No Information Found-" : pItem->m_pEntity->GetDescription()) + "\n";
+				const Entity* currentItem = pItem->m_pEntity;
+				const ACraft* itemAsCraft = dynamic_cast<const ACraft*>(currentItem);
+				if (itemAsCraft) {
+					int craftMaxPassengers = itemAsCraft->GetMaxPassengers();
+					float craftMaxMass = itemAsCraft->GetMaxInventoryMass();
+					if (craftMaxMass == 0) {
+						description += "\nNO CARGO SPACE!";
+					} else if (craftMaxMass > 0) {
+						description += "\nMax Mass: " + RoundFloatToPrecision(craftMaxMass, craftMaxMass < 50.0F ? 1 : 0, 3) + " kg";
+					}
+					if (craftMaxPassengers >= 0 && craftMaxMass != 0) {
+						description += (craftMaxPassengers == 0) ? "\nNO PASSENGER SPACE!" : "\nMax Passengers: " + std::to_string(craftMaxPassengers);
 					}
 				} else {
-					const MovableObject* itemAsMO = dynamic_cast<const MovableObject*>(currentItem);
-					if (itemAsMO) {
-						const MOSRotating* itemAsMOSRotating = dynamic_cast<const MOSRotating*>(currentItem);
-						float extraMass = 0;
-						if (itemAsMOSRotating) {
-							if (itemAsMOSRotating->NumberValueExists("Grenade Count")) {
-								description += "\nGrenade Count: " + RoundFloatToPrecision(itemAsMOSRotating->GetNumberValue("Grenade Count"), 0, 2);
-							}
-							if (itemAsMOSRotating->NumberValueExists("Replenish Delay") && itemAsMOSRotating->GetNumberValue("Replenish Delay") > 0) {
-								description += "\nReplenish Delay: " + RoundFloatToPrecision(itemAsMOSRotating->GetNumberValue("Replenish Delay") / 1000.0F, 3, 2) + " seconds";
-							}
-							if (itemAsMOSRotating->NumberValueExists("Belt Mass")) {
-								extraMass = itemAsMOSRotating->GetNumberValue("Belt Mass");
-							}
+					// Items in the BuyMenu always have any remainder rounded up in their masses.
+					const Actor* itemAsActor = dynamic_cast<const Actor*>(currentItem);
+					if (itemAsActor) {
+						description += "\nMass: " + (itemAsActor->GetMass() < 0.1F ? "<0.1 kg" : RoundFloatToPrecision(itemAsActor->GetMass(), itemAsActor->GetMass() < 50.0F ? 1 : 0, 3) + " kg");
+						int passengerSlotsTaken = itemAsActor->GetPassengerSlots();
+						if (passengerSlotsTaken > 1) {
+							description += "\nPassenger Slots: " + std::to_string(passengerSlotsTaken);
 						}
-						description += "\nMass: " + (itemAsMO->GetMass() + extraMass < 0.1F ? "<0.1 kg" : RoundFloatToPrecision(itemAsMO->GetMass() + extraMass, itemAsMO->GetMass() + extraMass < 50.0F ? 1 : 0, 3) + " kg");
+					} else {
+						const MovableObject* itemAsMO = dynamic_cast<const MovableObject*>(currentItem);
+						if (itemAsMO) {
+							const MOSRotating* itemAsMOSRotating = dynamic_cast<const MOSRotating*>(currentItem);
+							float extraMass = 0;
+							if (itemAsMOSRotating) {
+								if (itemAsMOSRotating->NumberValueExists("Grenade Count")) {
+									description += "\nGrenade Count: " + RoundFloatToPrecision(itemAsMOSRotating->GetNumberValue("Grenade Count"), 0, 2);
+								}
+								if (itemAsMOSRotating->NumberValueExists("Replenish Delay") && itemAsMOSRotating->GetNumberValue("Replenish Delay") > 0) {
+									description += "\nReplenish Delay: " + RoundFloatToPrecision(itemAsMOSRotating->GetNumberValue("Replenish Delay") / 1000.0F, 3, 2) + " seconds";
+								}
+								if (itemAsMOSRotating->NumberValueExists("Belt Mass")) {
+									extraMass = itemAsMOSRotating->GetNumberValue("Belt Mass");
+								}
+							}
+							description += "\nMass: " + (itemAsMO->GetMass() + extraMass < 0.1F ? "<0.1 kg" : RoundFloatToPrecision(itemAsMO->GetMass() + extraMass, itemAsMO->GetMass() + extraMass < 50.0F ? 1 : 0, 3) + " kg");
+						}
 					}
 				}
-			}
-		} else if (pItem && pItem->m_ExtraIndex >= 0) {
-			const DataModule* pModule = g_PresetMan.GetDataModule(pItem->m_ExtraIndex);
-			if (pModule && !pModule->GetDescription().empty()) {
-				description = pModule->GetDescription();
+			} else if (pItem->m_ExtraIndex != -1) {
+				if (m_MenuCategory == LOADOUTS) {
+					// This is a loadout preset, so get the description from the preset
+					// Add preset name at the begining to differentiate loadouts from user-defined presets
+					Loadout& loadout = m_Loadouts[pItem->m_ExtraIndex];
+					if (loadout.GetPresetName() != "None") {
+						description += loadout.GetPresetName() + ":\n";
+					}
+
+					// Go through the cargo setup of each loadout and encode a meaningful label for the list item
+					auto lastItr = loadout.GetCargoList()->end();
+					--lastItr;
+
+					auto nextItr = loadout.GetCargoList()->begin();
+
+					bool actorSeen = false;
+					for (std::list<const SceneObject*>::iterator cItr = loadout.GetCargoList()->begin(); cItr != loadout.GetCargoList()->end(); ++cItr) {
+						++nextItr;
+
+						bool isActor = dynamic_cast<const Actor*>(*cItr) != nullptr;
+						actorSeen = actorSeen || isActor;
+
+						// Anything under an actor should be indented
+						if (!isActor && actorSeen) {
+							description += "\t\t";
+						}
+
+						// Append the name of the current cargo thing to the label
+						description += (*cItr)->GetPresetName();
+
+						// If not the last one, add a separator to the label
+						if (cItr != lastItr) {
+							bool nextIsActor = dynamic_cast<const Actor*>(*nextItr) != nullptr;
+							if (isActor && !nextIsActor) {
+								description += ":";
+							}
+
+							if (actorSeen || nextIsActor) {
+								description += "\n";
+							} else {
+								description += ", ";
+							}
+
+							if (nextIsActor) {
+								// Extra space between each actor
+								description += "\n";
+							}
+						}
+					}
+				} else {
+					const DataModule* pModule = g_PresetMan.GetDataModule(pItem->m_ExtraIndex);
+					if (pModule && !pModule->GetDescription().empty()) {
+						description += pModule->GetDescription();
+					}
+				}	
 			}
 		}
 
@@ -1209,9 +1283,18 @@ void BuyMenuGUI::Update() {
 		}
 
 		// User selected to add an item to cart list!
-		if (m_pController->IsState(PRESS_FACEBUTTON)) {
+		if (isKeyboardControlled ? (m_pController->IsState(PRESS_FACEBUTTON) && !m_pController->IsState(AIM_SHARP)) : (m_pController->IsState(RELEASE_FACEBUTTON) && !m_IsDragging)) {
+			// User pressed on a loadout set, so load it into the menu
+			if (pItem && m_MenuCategory == LOADOUTS) {
+				// Beep if there's an error
+				if (!DeployLoadout(m_ListItemIndex)) {
+					g_GUISound.UserErrorSound()->Play(m_pController->GetPlayer());
+				} else {
+					g_GUISound.ItemChangeSound()->Play(m_pController->GetPlayer());
+				}
+			}
 			// User pressed on a module group item; toggle its expansion!
-			if (pItem && pItem->m_ExtraIndex >= 0) {
+			else if (pItem && pItem->m_ExtraIndex >= 0) {
 				// Make appropriate sound
 				if (!m_aExpandedModules[pItem->m_ExtraIndex]) {
 					g_GUISound.ItemChangeSound()->Play(m_pController->GetPlayer());
@@ -1223,12 +1306,6 @@ void BuyMenuGUI::Update() {
 				m_aExpandedModules[pItem->m_ExtraIndex] = !m_aExpandedModules[pItem->m_ExtraIndex];
 				// Re-populate the item list with the new module expansion configuation
 				CategoryChange(false);
-			}
-			// User pressed on a loadout set, so load it into the menu
-			else if (pItem && m_MenuCategory == PRESETS) {
-				// Beep if there's an error
-				if (!DeployLoadout(m_ListItemIndex))
-					g_GUISound.UserErrorSound()->Play(m_pController->GetPlayer());
 			}
 			// User mashed button on a regular shop item, add it to cargo, or select craft
 			else if (pItem && pItem->m_pEntity) {
@@ -1262,6 +1339,17 @@ void BuyMenuGUI::Update() {
 			UpdateTotalPassengersLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftPassengersLabel);
 			UpdateTotalMassLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftMassLabel);
 		}
+
+		if (isKeyboardControlled ? m_pController->IsState(AIM_SHARP) : m_pController->IsState(PRESS_FACEBUTTON)) {
+			m_DraggedItemIndex = m_pShopList->GetSelectedIndex();
+		} else if (m_pController->IsState(RELEASE_FACEBUTTON)) {
+			if (m_MenuCategory == LOADOUTS) {
+				// Might've reordered the loadout list, so we need to save the new order
+				SaveAllLoadoutsToFile();
+			}
+			m_DraggedItemIndex = -1;
+			m_IsDragging = false;
+		}
 	}
 
 	/////////////////////////////////////////
@@ -1290,7 +1378,7 @@ void BuyMenuGUI::Update() {
 				m_IsDragging = true;
 				itemsChanged = true;
 				std::swap((*m_pCartList->GetItemList())[m_DraggedItemIndex], (*m_pCartList->GetItemList())[m_DraggedItemIndex + 1]);
-				std::swap((*m_pCartList->GetItemList())[m_DraggedItemIndex + 1]->m_ID, (*m_pCartList->GetItemList())[m_DraggedItemIndex]->m_ID);
+				std::swap((*m_pCartList->GetItemList())[m_DraggedItemIndex]->m_ID, (*m_pCartList->GetItemList())[m_DraggedItemIndex + 1]->m_ID);
 				m_ListItemIndex = ++m_DraggedItemIndex;
 				m_pCartList->SetSelectedIndex(m_ListItemIndex);
 				g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
@@ -1298,7 +1386,7 @@ void BuyMenuGUI::Update() {
 				m_IsDragging = true;
 				itemsChanged = true;
 				std::swap((*m_pCartList->GetItemList())[m_DraggedItemIndex], (*m_pCartList->GetItemList())[m_DraggedItemIndex - 1]);
-				std::swap((*m_pCartList->GetItemList())[m_DraggedItemIndex - 1]->m_ID, (*m_pCartList->GetItemList())[m_DraggedItemIndex]->m_ID);
+				std::swap((*m_pCartList->GetItemList())[m_DraggedItemIndex]->m_ID, (*m_pCartList->GetItemList())[m_DraggedItemIndex - 1]->m_ID);
 				m_ListItemIndex = --m_DraggedItemIndex;
 				m_pCartList->SetSelectedIndex(m_ListItemIndex);
 				g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
@@ -1370,7 +1458,6 @@ void BuyMenuGUI::Update() {
 		}
 
 		// Fire button removes items from the order list, including equipment on AHumans
-		bool isKeyboardControlled = !m_pController->IsMouseControlled() && !m_pController->IsGamepadControlled();
 		if (isKeyboardControlled ? (m_pController->IsState(PRESS_FACEBUTTON) && !m_pController->IsState(AIM_SHARP)) : (m_pController->IsState(RELEASE_FACEBUTTON) && !m_IsDragging)) {
 			if (g_UInputMan.FlagShiftState()) {
 				ClearCartList();
@@ -1507,8 +1594,8 @@ void BuyMenuGUI::Update() {
 			}
 
 			// CLEAR button clicks
-			if (anEvent.GetControl() == m_pClearButton) {
-				m_pClearButton->SetFocus();
+			if (anEvent.GetControl() == m_pDeleteButton) {
+				m_pDeleteButton->SetFocus();
 				if (m_SelectedLoadoutIndex != -1) {
 					m_Loadouts.erase(m_Loadouts.begin() + m_SelectedLoadoutIndex);
 					// Update the list of loadout presets so the removal shows up
@@ -1518,7 +1605,7 @@ void BuyMenuGUI::Update() {
 					m_SelectedLoadoutIndex = -1;
 				}
 				// Set focus back on the clear button (CatChange changed it)
-				m_pClearButton->SetFocus();
+				m_pDeleteButton->SetFocus();
 				m_MenuFocus = SETBUTTONS;
 				//                m_FocusChange = -1;
 				g_GUISound.ItemChangeSound()->Play(m_pController->GetPlayer());
@@ -1562,27 +1649,21 @@ void BuyMenuGUI::Update() {
 			// Events on the Shop List
 
 			if (anEvent.GetControl() == m_pShopList) {
-				if (anEvent.GetMsg() == GUIListBox::MouseDown && (anEvent.GetData() & GUIListBox::MOUSE_LEFT)) {
+				if (anEvent.GetMsg() == GUIListBox::MouseUp && (anEvent.GetData() & GUIListBox::MOUSE_LEFT) && !m_IsDragging) {
 					m_pShopList->SetFocus();
 					m_MenuFocus = ITEMS;
 
 					GUIListPanel::Item* pItem = m_pShopList->GetItem(mousePosX, mousePosY);
 
-					if (pItem && m_MenuCategory == PRESETS) {
-						// The presets list must have a mouse-down event to select an item, whereas we implicitly select items on hover in other categories
-						m_LastHoveredMouseIndex = pItem->m_ID;
-
-						// Play select sound if new index
-						if (m_ListItemIndex != pItem->m_ID) {
-							g_GUISound.SelectionChangeSound()->Play(m_pController->GetPlayer());
+					// If the player clicked on a loadout preset, deploy it
+					if (pItem && m_MenuCategory == LOADOUTS) {
+						// Beep if there's an error
+						if (!DeployLoadout(m_ListItemIndex)) {
+							g_GUISound.UserErrorSound()->Play(m_pController->GetPlayer());
 						}
-
-						m_pShopList->SetSelectedIndex(m_CategoryItemIndex[m_MenuCategory] = m_ListItemIndex = pItem->m_ID);
 					}
-
-
 					// If a module group list item, toggle its expansion and update the list
-					if (pItem && pItem->m_ExtraIndex >= 0) {
+					else if (pItem && pItem->m_ExtraIndex >= 0) {
 						// Make appropriate sound
 						if (!m_aExpandedModules[pItem->m_ExtraIndex])
 							g_GUISound.ItemChangeSound()->Play(m_pController->GetPlayer());
@@ -1593,12 +1674,6 @@ void BuyMenuGUI::Update() {
 						m_aExpandedModules[pItem->m_ExtraIndex] = !m_aExpandedModules[pItem->m_ExtraIndex];
 						// Re-populate the item list with the new module expansion configuation
 						CategoryChange(false);
-					}
-					// Special case: user clicked on a loadout set, so load it into the menu
-					else if (pItem && m_MenuCategory == PRESETS) {
-						// Beep if there's an error
-						if (!DeployLoadout(m_ListItemIndex))
-							g_GUISound.UserErrorSound()->Play(m_pController->GetPlayer());
 					}
 					// Normal: only add an item if there's an entity attached to the list item
 					else if (pItem && pItem->m_pEntity) {
@@ -1662,8 +1737,27 @@ void BuyMenuGUI::Update() {
 					// See if it's hovering over any item
 					GUIListPanel::Item* pItem = m_pShopList->GetItem(mousePosX, mousePosY);
 					if (pItem) {
-						// On presets Menu, you must actively click to select an item. Anywhere else, an implicit hover will select
-						if (m_MenuCategory != PRESETS && m_LastHoveredMouseIndex != pItem->m_ID) {
+						if (m_LastHoveredMouseIndex != pItem->m_ID) {
+							if (m_MenuCategory == LOADOUTS && m_DraggedItemIndex != -1 && m_DraggedItemIndex != pItem->m_ID) {
+								m_IsDragging = true;
+								int start = std::min(m_DraggedItemIndex, pItem->m_ID);
+								int end = std::max(m_DraggedItemIndex, pItem->m_ID);
+								int direction = pItem->m_ID > m_DraggedItemIndex ? 1 : -1;
+								for (int i = start; i < end; i++) {
+									int oldIndex = m_DraggedItemIndex;
+									if (oldIndex + direction < 0 || oldIndex + direction >= m_pShopList->GetItemList()->size()) {
+										break;
+									}
+
+									m_DraggedItemIndex = oldIndex + direction;
+									m_SelectedLoadoutIndex = m_DraggedItemIndex;
+									std::swap((*m_pShopList->GetItemList())[oldIndex], (*m_pShopList->GetItemList())[oldIndex + direction]);
+									std::swap((*m_pShopList->GetItemList())[oldIndex]->m_ID, (*m_pShopList->GetItemList())[oldIndex + direction]->m_ID);
+									std::swap((*m_pShopList->GetItemList())[oldIndex]->m_ExtraIndex, (*m_pShopList->GetItemList())[oldIndex + direction]->m_ExtraIndex);
+									std::swap(m_Loadouts[oldIndex], m_Loadouts[oldIndex + direction]);
+								}
+							}
+
 							// Don't let mouse movement change the index if it's still hovering inside the same item.
 							// This is to avoid erratic selection curosr if using both mouse and keyboard to work the menu
 							m_LastHoveredMouseIndex = pItem->m_ID;
@@ -1675,6 +1769,17 @@ void BuyMenuGUI::Update() {
 
 							m_pShopList->SetSelectedIndex(m_CategoryItemIndex[m_MenuCategory] = m_ListItemIndex = pItem->m_ID);
 						}
+					}
+				}
+
+				if (anEvent.GetMsg() == GUIListBox::MouseDown) {
+					m_pShopList->SetFocus();
+					m_MenuFocus = ITEMS;
+					m_ListItemIndex = m_pShopList->GetSelectedIndex();
+					m_pShopList->ScrollToSelected();
+					if (m_MenuCategory == LOADOUTS && anEvent.GetData() & GUIListBox::MOUSE_LEFT) {
+						m_DraggedItemIndex = m_pShopList->GetSelectedIndex();
+						m_SelectedLoadoutIndex = m_ListItemIndex;
 					}
 				}
 			}
@@ -1754,7 +1859,7 @@ void BuyMenuGUI::Update() {
 
 									m_DraggedItemIndex = oldIndex + direction;
 									std::swap((*m_pCartList->GetItemList())[oldIndex], (*m_pCartList->GetItemList())[oldIndex + direction]);
-									std::swap((*m_pCartList->GetItemList())[oldIndex + direction]->m_ID, (*m_pCartList->GetItemList())[oldIndex]->m_ID);
+									std::swap((*m_pCartList->GetItemList())[oldIndex]->m_ID, (*m_pCartList->GetItemList())[oldIndex + direction]->m_ID);
 								}
 								UpdateItemNestingLevels();
 							}
@@ -1782,17 +1887,26 @@ void BuyMenuGUI::Update() {
 				}
 			}
 
-			// We do this down here, outside the m_pCartList control, because if we have a mouse-up event even outside the cart, we should stop dragging. We also check UInputMan in case the mouse is released entirely outside of the buy menu.
+			// We do this down here, because if we have a mouse-up event even outside the cart, we should stop dragging. We also check UInputMan in case the mouse is released entirely outside of the buy menu.
 			if ((anEvent.GetMsg() == GUIListBox::MouseUp && (anEvent.GetData() & GUIListBox::MOUSE_LEFT)) || g_UInputMan.MouseButtonReleased(MouseButtons::MOUSE_LEFT, m_pController->GetPlayer())) {
+				if (m_MenuCategory == LOADOUTS) {
+					// Might've reordered the loadout list, so we need to save the new order
+					SaveAllLoadoutsToFile();
+				}
 				m_DraggedItemIndex = -1;
 				m_IsDragging = false;
 			}
 		}
 	}
 
-	if (m_MenuCategory == PRESETS) {
+	if (m_MenuCategory == LOADOUTS) {
 		m_pSaveButton->SetEnabled(!m_pCartList->GetItemList()->empty());
-		m_pClearButton->SetEnabled(m_SelectedLoadoutIndex != -1);
+		m_pDeleteButton->SetEnabled(m_SelectedLoadoutIndex != -1);
+		if (m_SelectedLoadoutIndex != -1) {
+			// Always highlight the currently selected loadout as if it's focused
+			// TODO- need something better than this, like a dedicated highlight control
+			//m_pShopList->SetSelectedIndex(m_SelectedLoadoutIndex);
+		}
 	}
 }
 
@@ -1862,10 +1976,10 @@ void BuyMenuGUI::CategoryChange(bool focusOnCategoryTabs) {
 	m_pShopList->ClearList();
 
 	// Hide/show the logo and special sets category buttons, and add all current presets to the list, and we're done.
-	if (m_MenuCategory == PRESETS) {
+	if (m_MenuCategory == LOADOUTS) {
 		m_Logo->SetVisible(false);
 		m_pSaveButton->SetVisible(true);
-		m_pClearButton->SetVisible(true);
+		m_pDeleteButton->SetVisible(true);
 		m_pShopList->SetHighlightAsIfAlwaysFocused(true);
 		// Add and done!
 		AddPresetsToItemList();
@@ -1875,7 +1989,7 @@ void BuyMenuGUI::CategoryChange(bool focusOnCategoryTabs) {
 	else {
 		m_Logo->SetVisible(true);
 		m_pSaveButton->SetVisible(false);
-		m_pClearButton->SetVisible(false);
+		m_pDeleteButton->SetVisible(false);
 		m_pShopList->SetHighlightAsIfAlwaysFocused(false);
 	}
 
@@ -2158,44 +2272,88 @@ void BuyMenuGUI::AddObjectsToItemList(std::vector<std::list<Entity*>>& moduleLis
 
 void BuyMenuGUI::AddPresetsToItemList() {
 	m_SelectedLoadoutIndex = -1;
-	
-	GUIBitmap* pItemBitmap = 0;
-	std::string loadoutLabel;
-	float loadoutCost;
-	const Actor* pPassenger = 0;
-	char costString[256];
 
 	// Go through all the presets, making intelligible list items from then for the GUI item list
-	for (std::vector<Loadout>::iterator lItr = m_Loadouts.begin(); lItr != m_Loadouts.end(); ++lItr) {
-		loadoutLabel.clear();
-		loadoutCost = 0;
-		pItemBitmap = 0;
-		pPassenger = 0;
+	m_pShopList->ClearList();
+	for (int i = 0; i < m_Loadouts.size(); ++i) {
+		Loadout& loadout = m_Loadouts[i];
+		
+		AllegroBitmap* pItemBitmap = nullptr;
+		float loadoutCost = 0;
 
-		// Add preset name at the begining to differentiate loadouts from user-defined presets
-		if ((*lItr).GetPresetName() != "None")
-			loadoutLabel = (*lItr).GetPresetName() + ":\n";
+		std::vector<std::pair<int, int>> rowBounds;
+		rowBounds.resize(loadout.GetCargoList()->size()); // pessimistic but eh
 
-		// Go through the cargo setup of each loadout and encode a meaningful label for the list item
-		for (std::list<const SceneObject*>::iterator cItr = (*lItr).GetCargoList()->begin(); cItr != (*lItr).GetCargoList()->end(); ++cItr) {
-			// If not the first one, add a comma separator to the label
-			if (cItr != (*lItr).GetCargoList()->begin())
-				loadoutLabel += ", ";
-			// Append the name of the current cargo thing to the label
-			loadoutLabel += (*cItr)->GetPresetName();
-			// Adjust price for foreignness of the items to this player
-			loadoutCost += (*cItr)->GetGoldValue(m_NativeTechModule, m_ForeignCostMult);
-			if (!pPassenger)
-				pPassenger = dynamic_cast<const Actor*>(*cItr);
+		const int maxBitmapWidth = 130;
+		const int horizontalMargin = 2;
+		const int verticalMargin = 3;
+
+		int bitmapWidth = 0;
+		int bitmapHeight = 0;
+
+		int row = -1;
+		int numRows = 0;
+		for (auto itr = loadout.GetCargoList()->begin(), itr_end = loadout.GetCargoList()->end(); itr != itr_end; ++itr) {
+			const SceneObject* sceneObject = *itr;
+			if (itr == loadout.GetCargoList()->begin() || dynamic_cast<const Actor*>(sceneObject)) {
+				++row;
+				++numRows;
+			}
+
+			rowBounds[row].first += sceneObject->GetGraphicalIcon()->w + horizontalMargin;
+			rowBounds[row].second = std::max(rowBounds[row].second, sceneObject->GetGraphicalIcon()->h + verticalMargin);
 		}
 
-		// Make the cost label
-		std::snprintf(costString, sizeof(costString), "%.0f", loadoutCost);
-		// Get a good icon and wrap it, while not passing ownership into the AllegroBitmap
-		// We're trying to pick the icon of the first passenger, or the first item if there's no passengers in the loadout
-		pItemBitmap = new AllegroBitmap(pPassenger ? const_cast<Actor*>(pPassenger)->GetGraphicalIcon() : const_cast<SceneObject*>((*lItr).GetCargoList()->front())->GetGraphicalIcon());
-		// Passing in ownership of the bitmap, but not of the pSpriteObj
-		m_pShopList->AddItem(loadoutLabel, costString, pItemBitmap, 0);
+		if (numRows == 0) {
+			// this should never happen, but just in case
+			continue;
+		}
+
+		for (int i = 0; i < numRows; ++i) {
+			bitmapWidth = std::max(bitmapWidth, rowBounds[i].first);
+			bitmapHeight += rowBounds[i].second;
+		}
+
+		bitmapWidth = std::min(bitmapWidth, maxBitmapWidth);
+
+		// Generate our bitmap of all the cargo items in the loadout
+		pItemBitmap = new AllegroBitmap();
+		pItemBitmap->Create(bitmapWidth, bitmapHeight);
+
+		// Now actually draw the stuff in the appropriate places
+		int heightOffset = 0;
+		int widthOffset = 0;
+		row = 0;
+		for (auto itr = loadout.GetCargoList()->begin(), itr_end = loadout.GetCargoList()->end(); itr != itr_end; ++itr) {
+			const SceneObject* sceneObject = *itr;
+			int rowWidth = rowBounds[row].first;
+			int rowHeight = rowBounds[row].second;
+			if (itr != loadout.GetCargoList()->begin() && dynamic_cast<const Actor*>(sceneObject)) {
+				heightOffset += rowHeight;
+				widthOffset = 0;
+				++row;
+				rowWidth = rowBounds[row].first;
+				rowHeight = rowBounds[row].second;
+			}
+
+			if (widthOffset + sceneObject->GetGraphicalIcon()->w > maxBitmapWidth) {
+				continue; // don't draw anything that would overflow the bitmap
+			}
+
+			// TODO: make a smarter row structure so we can properly centre the icons if the actor isn't the tallest item in the row
+			// Vertically center the icon in the row
+			int yOffset = (rowHeight - sceneObject->GetGraphicalIcon()->h) / 2;
+
+			draw_sprite(pItemBitmap->GetBitmap(), sceneObject->GetGraphicalIcon(), widthOffset, heightOffset + yOffset);
+			widthOffset += sceneObject->GetGraphicalIcon()->w + horizontalMargin;
+		}
+
+		for (const SceneObject* sceneObject: *loadout.GetCargoList()) {
+			loadoutCost += sceneObject->GetGoldValue(m_NativeTechModule, m_ForeignCostMult);
+		}
+
+		// Passing in ownership of the bitmap
+		m_pShopList->AddItem("", std::to_string((int)(loadoutCost + 0.5f)), pItemBitmap, nullptr, i);
 	}
 }
 

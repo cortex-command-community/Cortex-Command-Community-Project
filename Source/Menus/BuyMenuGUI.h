@@ -364,7 +364,7 @@ namespace RTE {
 			GUNS,
 			BOMBS,
 			SHIELDS,
-			PRESETS,
+			LOADOUTS,
 			CATEGORYCOUNT
 		};
 
@@ -482,7 +482,7 @@ namespace RTE {
 		// The save set button
 		GUIButton* m_pSaveButton;
 		// The clear set button
-		GUIButton* m_pClearButton;
+		GUIButton* m_pDeleteButton;
 		// Sets of user-defined loadouts that can be selected quickly.
 		std::vector<Loadout> m_Loadouts;
 		// The selected loadout index, -1 if no loadout is selected
