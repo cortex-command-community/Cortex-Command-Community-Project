@@ -91,9 +91,8 @@ namespace RTE {
 
 		/// Saves data currently in memory to disk.
 		/// @param bitmapPath The filepath to the where to save the bitmap data.
-		/// @param doAsyncSaves Whether or not to save asynchronously.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		virtual int SaveData(const std::string& bitmapPath, bool doAsyncSaves = true);
+		virtual int SaveData(const std::string& bitmapPath);
 
 		/// Clears out any previously loaded bitmap data from memory.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.

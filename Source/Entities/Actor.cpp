@@ -1081,6 +1081,13 @@ void Actor::OnNewMovePath() {
 		// Nowhere to gooooo
 		m_MoveTarget = m_PrevPathTarget = m_Pos;
 	}
+
+	// Smash all non-airborne waypoints down to just above the ground, so they more accurately represent the ground path
+	std::list<Vector>::iterator finalItr = m_MovePath.end();
+	--finalItr;
+	for (std::list<Vector>::iterator lItr = m_MovePath.begin(); lItr != finalItr; ++lItr) {
+		(*lItr) = g_SceneMan.MovePointToGround((*lItr), m_CharHeight * 0.2, 0, g_SettingsMan.GetPathFinderGridNodeSize() * 2.5f);
+	}
 }
 
 void Actor::PreControllerUpdate() {
@@ -1091,7 +1098,7 @@ void Actor::PreControllerUpdate() {
 	}
 
 	// We update this after, because pathing requests are forced to take at least 1 frame for the sake of determinism for now.
-	// In future maybe we can move this back, but it doesn't make much difference (the threadpool submission overhead makes it extremely unlikely that it would complete in less time anyways)
+	// In future maybe we can move this back, but it doesn't make much difference
 	if (m_UpdateMovePath) {
 		UpdateMovePath();
 	}

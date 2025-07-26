@@ -229,7 +229,7 @@ void PollSDLEvents() {
 			case SDL_EVENT_JOYSTICK_BUTTON_UP :
 			case SDL_EVENT_JOYSTICK_ADDED :
 			case SDL_EVENT_JOYSTICK_REMOVED :
-				g_UInputMan.QueueInputEvent(sdlEvent);
+				g_UInputMan.HandleInputEvent(sdlEvent);
 				break;
 			default:
 				break;
@@ -273,6 +273,7 @@ void RunMenuLoop() {
 		}
 		g_ConsoleMan.Update();
 
+		g_UInputMan.EndFrame();
 		g_WindowMan.GetScreenBuffer()->Begin();
 		g_MenuMan.Draw();
 		g_ConsoleMan.Draw(g_FrameMan.GetBackBuffer32());
@@ -358,6 +359,7 @@ void RunGameLoop() {
 			g_PresetMan.ClearReloadEntityPresetCalledThisUpdate();
 
 			g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::SimTotal);
+			g_UInputMan.EndFrame();
 
 			if (!g_ActivityMan.IsInActivity()) {
 				g_TimerMan.PauseSim(true);
@@ -379,6 +381,7 @@ void RunGameLoop() {
 				g_PerformanceMan.ResetSimUpdateTimer();
 				updateStartTime = g_TimerMan.GetAbsoluteTime();
 			}
+
 		}
 
 		updateEndAndDrawStartTime = g_TimerMan.GetAbsoluteTime();

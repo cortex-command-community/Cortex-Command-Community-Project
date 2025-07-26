@@ -89,7 +89,7 @@ namespace RTE {
 			GUIButton* StartConfigAnalogXBTypeButton;
 		};
 
-		static constexpr int m_KeyboardConfigSteps = 16; //!< The step count for keyboard only manual configuration.
+		static constexpr int m_KeyboardConfigSteps = 18; //!< The step count for keyboard only manual configuration.
 		static constexpr int m_MouseAndKeyboardConfigSteps = 17; //!< The step count for mouse + keyboard manual configuration.
 		static constexpr int m_DPadConfigSteps = 12; //!< The step count for DPad type gamepad manual configuration.
 		static constexpr int m_DualAnalogConfigSteps = 22; //!< The step count for DualAnalog type gamepad manual configuration.

@@ -28,6 +28,8 @@
 #include "zip.h"
 #include "unzip.h"
 
+#include "tracy/Tracy.hpp"
+
 #include "SDL3/SDL_surface.h"
 #include <SDL3_image/SDL_image.h>
 
@@ -48,7 +50,7 @@ void ActivityMan::Clear() {
 	m_DefaultActivityName = "Tutorial Mission";
 	m_Activity = nullptr;
 	m_StartActivity = nullptr;
-	m_SaveGameTask = BS::multi_future<void>();
+	m_SaveGameTask = std::future<void>();
 	m_InActivity = false;
 	m_ActivityNeedsRestart = false;
 	m_ActivityNeedsResume = false;
@@ -81,8 +83,11 @@ bool ActivityMan::ForceAbortSave() {
 #define HACK_MZ_COMPRESS_METHOD_DEFLATE 8
 
 bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
-	m_SaveGameTask.wait();
-	m_SaveGameTask = BS::multi_future<void>();
+	if (m_SaveGameTask.valid()) {
+		m_SaveGameTask.wait();
+	}
+
+	ZoneScopedN("Save Game");
 
 	Scene* scene = g_SceneMan.GetScene();
 	GAScripted* activity = dynamic_cast<GAScripted*>(GetActivity());
@@ -91,6 +96,12 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		g_ConsoleMan.PrintString("ERROR: Cannot save when there's no game running, or the game is finished!");
 		return false;
 	}
+
+	// Get BITMAPS so save into our zip, do this async so we can copy the scene info at the same time
+	std::vector<SceneLayerInfo>* sceneLayerInfos = new std::vector<SceneLayerInfo>();
+	std::future<void> copyBitmaps = g_ThreadMan.GetBackgroundThreadPool().submit([&]() {
+		*sceneLayerInfos = std::move(scene->GetCopiedSceneLayerBitmaps());
+	});
 
 	// We need a copy of our scene, because we have to do some fixup to remove PLACEONLOAD items and only keep the current MovableMan state.
 	std::unique_ptr<Scene> modifiableScene(dynamic_cast<Scene*>(scene->Clone()));
@@ -133,6 +144,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 
 	// Pull all stuff from MovableMan into the Scene for saving, so existing Actors/ADoors are saved, without transferring ownership, so the game can continue.
 	// This is done after the activity is saved, in case the activity wants to add anything to the scene while saving.
+	// TODO- copying may be faster, and lets us move all this actual writing into async
 	modifiableScene->RetrieveSceneObjects(false);
 	for (SceneObject* objectToSave: *modifiableScene->GetPlacedObjects(Scene::PlacedObjectSets::PLACEONLOAD)) {
 		if (MovableObject* objectToSaveAsMovableObject = dynamic_cast<MovableObject*>(objectToSave)) {
@@ -150,11 +162,6 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	Writer* indexWriter = new Writer(std::move(indexStream));
 	indexWriter->NewPropertyWithValue("ActivityName", activity->GetPresetName());
 	indexWriter->NewPropertyWithValue("OriginalScenePresetName", scene->GetPresetName());
-
-	// Get BITMAPS so save into our zip
-	// I tried std::moving this into the function directly but threadpool really doesn't like that
-	std::vector<SceneLayerInfo>* sceneLayerInfos = new std::vector<SceneLayerInfo>();
-	*sceneLayerInfos = std::move(scene->GetCopiedSceneLayerBitmaps());
 
 	auto saveWriterData = [fileName, sceneLayerInfos, indexWriter](Writer* mainWriter) {
 		// Create zip sav file
@@ -185,6 +192,10 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		zipWriteInFileInZip(zippedSaveFile, mainStreamView.data(), mainStreamView.size());
 		zipCloseFileInZip(zippedSaveFile);
 
+		std::vector<SDL_IOStream*> pngStreams;
+		pngStreams.resize(sceneLayerInfos->size());
+
+		// Generates PNGs (this is thread-safe)
 		std::for_each(std::execution::par_unseq,
 		              sceneLayerInfos->begin(), sceneLayerInfos->end(),
 		              [&](const SceneLayerInfo& layerInfo) {
@@ -206,20 +217,28 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 				              return;
 			              }
 
-			              // Actually get the memory
-			              void* buffer = SDL_GetPointerProperty(SDL_GetIOProperties(stream), SDL_PROP_IOSTREAM_DYNAMIC_MEMORY_POINTER, nullptr);
-			              size_t size = static_cast<size_t>(SDL_GetIOSize(stream));
-			              if (!buffer || size < 0) {
-				              g_ConsoleMan.PrintString("ERROR: Failed to save scenelayers to PNG!");
-				              return;
-			              }
-
-			              zipOpenNewFileInZip(zippedSaveFile, ("Save " + layerInfo.name + ".png").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, HACK_MZ_COMPRESS_METHOD_STORE, HACK_MZ_COMPRESS_LEVEL_FAST);
-			              zipWriteInFileInZip(zippedSaveFile, static_cast<const char*>(buffer), size);
-			              zipCloseFileInZip(zippedSaveFile);
-
-			              SDL_CloseIO(stream);
+						  size_t i = &layerInfo - &(*sceneLayerInfos->begin());
+			              pngStreams[i] = stream;
 		              });
+
+		// Actually save to the zip (this bit isn't thread-safe)
+		for (int i = 0; i < pngStreams.size(); ++i) {
+			SDL_IOStream* stream = pngStreams[i];
+			
+			// Actually get the memory
+			void* buffer = SDL_GetPointerProperty(SDL_GetIOProperties(stream), SDL_PROP_IOSTREAM_DYNAMIC_MEMORY_POINTER, nullptr);
+			size_t size = static_cast<size_t>(SDL_GetIOSize(stream));
+			if (!stream || size < 0) {
+				g_ConsoleMan.PrintString("ERROR: Failed to save scenelayers to PNG!");
+				continue;
+			}
+
+			zipOpenNewFileInZip(zippedSaveFile, ("Save " + (*sceneLayerInfos)[i].name + ".png").c_str(), &zfi, nullptr, 0, nullptr, 0, nullptr, HACK_MZ_COMPRESS_METHOD_STORE, HACK_MZ_COMPRESS_LEVEL_FAST);
+			zipWriteInFileInZip(zippedSaveFile, static_cast<const char*>(buffer), size);
+			zipCloseFileInZip(zippedSaveFile);
+
+			SDL_CloseIO(stream);
+		}
 
 		zipClose(zippedSaveFile, fileName.c_str());
 
@@ -228,8 +247,10 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		delete sceneLayerInfos;
 	};
 
+	copyBitmaps.wait();
+
 	// For some reason I can't std::move a unique ptr in, so just releasing and deleting manually...
-	m_SaveGameTask.push_back(g_ThreadMan.GetBackgroundThreadPool().submit(saveWriterData, writer.release()));
+	m_SaveGameTask = g_ThreadMan.GetBackgroundThreadPool().submit(saveWriterData, writer.release());
 
 	// We didn't transfer ownership, so we must be very careful that sceneAltered's deletion doesn't touch the stuff we got from MovableMan.
 	modifiableScene->ClearPlacedObjectSet(Scene::PlacedObjectSets::PLACEONLOAD, false);
@@ -246,8 +267,10 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	unzFile zippedSaveFile = unzOpen(saveFilePath.c_str());
 	if (!zippedSaveFile) {
 		// Might be trying to open one we're already saving too, wait until we finish saving and try again
-		m_SaveGameTask.wait();
-		zippedSaveFile = unzOpen(saveFilePath.c_str());
+		if (m_SaveGameTask.valid()) {
+			m_SaveGameTask.wait();
+			zippedSaveFile = unzOpen(saveFilePath.c_str());
+		}
 
 		if (!zippedSaveFile) {
 			// Some other process is stopping us from loading, oh well

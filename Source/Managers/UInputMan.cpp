@@ -1,8 +1,5 @@
 #include "UInputMan.h"
 #include "Constants.h"
-#include "SDL3/SDL_events.h"
-#include "SDL3/SDL_keyboard.h"
-#include "SDL3/SDL_mouse.h"
 #include "SceneMan.h"
 #include "ActivityMan.h"
 #include "MetaMan.h"
@@ -14,6 +11,7 @@
 #include "Icon.h"
 #include "GameActivity.h"
 #include "System.h"
+
 #include <SDL3/SDL.h>
 #include <string>
 #include <unordered_map>
@@ -34,14 +32,9 @@ UInputMan::~UInputMan() {
 void UInputMan::Clear() {
 	m_SkipHandlingSpecialInput = false;
 	m_TextInput.clear();
-	;
 	m_NumJoysticks = 0;
 	m_OverrideInput = false;
-	m_AbsoluteMousePos.Reset();
-	m_RawMouseMovement.Reset();
-	m_AnalogMouseData.Reset();
 	m_MouseSensitivity = 0.6F;
-	m_MouseWheelChange = 0;
 	m_TrapMousePos = false;
 	m_PlayerScreenMouseBounds = {0, 0, 0, 0};
 	m_MouseTrapRadius = 350;
@@ -82,7 +75,7 @@ int UInputMan::Initialize() {
 
 	int controllerIndex = 0;
 	int joystickCount = 0;
-	SDL_JoystickID* joysticks = SDL_GetJoysticks(&joystickCount);
+	SDL_JoystickID* joysticks = SDL_GetGamepads(&joystickCount);
 
 	for (size_t index = 0; index < std::min(joystickCount, static_cast<int>(Players::MaxPlayerCount)); ++index) {
 		if (SDL_IsGamepad(joysticks[index])) {
@@ -91,9 +84,9 @@ int UInputMan::Initialize() {
 				g_ConsoleMan.PrintString("ERROR: Failed to connect gamepad " + std::to_string(index) + " " + std::string(SDL_GetError()));
 				continue;
 			}
-			SDL_SetGamepadPlayerIndex(controller, index);
-			s_PrevJoystickStates[controllerIndex] = Gamepad(index, joysticks[index], SDL_GAMEPAD_AXIS_COUNT, SDL_GAMEPAD_BUTTON_COUNT);
-			s_ChangedJoystickStates[controllerIndex] = Gamepad(index, joysticks[index], SDL_GAMEPAD_AXIS_COUNT, SDL_GAMEPAD_BUTTON_COUNT);
+			SDL_SetGamepadPlayerIndex(controller, controllerIndex);
+			s_PrevJoystickStates[controllerIndex] = Gamepad(controllerIndex, joysticks[index], SDL_GAMEPAD_AXIS_COUNT, SDL_GAMEPAD_BUTTON_COUNT);
+			s_ChangedJoystickStates[controllerIndex] = Gamepad(controllerIndex, joysticks[index], SDL_GAMEPAD_AXIS_COUNT, SDL_GAMEPAD_BUTTON_COUNT);
 			auto playerScheme = std::find_if(m_ControlScheme.begin(), m_ControlScheme.end(), [controllerIndex](auto& scheme) { return scheme.GetDevice() == controllerIndex + InputDevice::DEVICE_GAMEPAD_1; });
 			playerScheme->SetDeviceID({.gamepad = joysticks[index]});
 			controllerIndex++;
@@ -104,8 +97,8 @@ int UInputMan::Initialize() {
 				g_ConsoleMan.PrintString("ERROR: Failed to connect joystick.");
 				continue;
 			}
-			s_PrevJoystickStates[controllerIndex] = Gamepad(index, joysticks[index], SDL_GetNumJoystickAxes(joy), SDL_GetNumJoystickButtons(joy));
-			s_ChangedJoystickStates[controllerIndex] = Gamepad(index, joysticks[index], SDL_GetNumJoystickAxes(joy), SDL_GetNumJoystickButtons(joy));
+			s_PrevJoystickStates[controllerIndex] = Gamepad(controllerIndex, joysticks[index], SDL_GetNumJoystickAxes(joy), SDL_GetNumJoystickButtons(joy));
+			s_ChangedJoystickStates[controllerIndex] = Gamepad(controllerIndex, joysticks[index], SDL_GetNumJoystickAxes(joy), SDL_GetNumJoystickButtons(joy));
 			auto playerScheme = std::find_if(m_ControlScheme.begin(), m_ControlScheme.end(), [controllerIndex](auto& scheme) { return scheme.GetDevice() == controllerIndex + InputDevice::DEVICE_GAMEPAD_1; });
 			playerScheme->SetDeviceID({.gamepad = joysticks[index]});
 			controllerIndex++;
@@ -165,7 +158,7 @@ Vector UInputMan::AnalogAimValues(int whichPlayer) {
 	Vector aimValues(0, 0);
 	if (device == InputDevice::DEVICE_MOUSE_KEYB) {
 		if (!m_EnableMultiMouseKeyboard) {
-			aimValues = (m_AnalogMouseData / m_MouseTrapRadius);
+			aimValues = (m_MouseStates.at(0).analogAim / m_MouseTrapRadius);
 		} else {
 			if (auto mouse = m_MouseStates.find(m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
 				aimValues = mouse->second.analogAim / m_MouseTrapRadius;
@@ -369,7 +362,7 @@ Vector UInputMan::GetAbsoluteMousePosition(int whichPlayer) const {
 
 void UInputMan::SetAbsoluteMousePosition(const Vector& pos, int whichPlayer) {
 	if (whichPlayer == Players::NoPlayer || !m_EnableMultiMouseKeyboard) {
-		m_AbsoluteMousePos = pos;
+		m_MouseStates.at(0).position = pos;
 	} else if (m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
 		if (auto mouse = m_MouseStates.find(m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
 			mouse->second.position = pos;
@@ -455,6 +448,20 @@ void UInputMan::ClearMouseButtons() {
 	}
 }
 
+int UInputMan::MouseWheelMovedByPlayer(int player) const {
+	if (player == Players::NoPlayer || player < Players::PlayerOne || player >= Players::MaxPlayerCount || !m_EnableMultiMouseKeyboard) {
+		return m_MouseStates.at(0).wheelChange;
+	}
+	InputDevice playerInput = m_ControlScheme.at(player).GetDevice();
+	if (playerInput == InputDevice::DEVICE_MOUSE_KEYB) {
+		DeviceID playerDevice = m_ControlScheme.at(player).GetDeviceID();
+		if (auto mouse = m_MouseStates.find(playerDevice.mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
+			return mouse->second.wheelChange;
+		}
+	}
+	return m_MouseStates.at(0).wheelChange;
+}
+
 bool UInputMan::AnyMouseButtonPress(SDL_MouseID mouseID) const {
 	for (int button = MouseButtons::MOUSE_LEFT; button < MouseButtons::MAX_MOUSE_BUTTONS; ++button) {
 		if (MouseButtonPressed(button, NoPlayer, mouseID)) {
@@ -492,9 +499,9 @@ void UInputMan::ForceMouseWithinBox(int x, int y, int width, int height, int whi
 			rightMostPos = std::clamp(leftPos + width, leftPos, rightMostPos - 1);
 			bottomMostPos = std::clamp(topPos + height, topPos, bottomMostPos - 1);
 
-			if (!WithinBox(m_AbsoluteMousePos, static_cast<float>(leftPos), static_cast<float>(topPos), static_cast<float>(rightMostPos), static_cast<float>(bottomMostPos))) {
-				int limitX = std::clamp(m_AbsoluteMousePos.GetFloorIntX(), leftPos, rightMostPos);
-				int limitY = std::clamp(m_AbsoluteMousePos.GetFloorIntY(), topPos, bottomMostPos);
+			if (!WithinBox(m_MouseStates[0].position, static_cast<float>(leftPos), static_cast<float>(topPos), static_cast<float>(rightMostPos), static_cast<float>(bottomMostPos))) {
+				int limitX = std::clamp(m_MouseStates[0].position.GetFloorIntX(), leftPos, rightMostPos);
+				int limitY = std::clamp(m_MouseStates[0].position.GetFloorIntY(), topPos, bottomMostPos);
 				SDL_WarpMouseInWindow(g_WindowMan.GetWindow(), limitX, limitY);
 			}
 		} else {
@@ -836,11 +843,199 @@ bool UInputMan::GetJoystickDirectionState(int whichJoy, int whichAxis, int which
 	return false;
 }
 
-void UInputMan::QueueInputEvent(const SDL_Event& inputEvent) {
-	m_EventQueue.emplace_back(inputEvent);
+void UInputMan::HandleInputEvent(const SDL_Event& inputEvent) {
+	switch (inputEvent.type) {
+		case SDL_EVENT_KEY_UP:
+		case SDL_EVENT_KEY_DOWN: {
+			Keyboard& keyboard = m_KeyboardStates[inputEvent.key.which];
+			keyboard.id = inputEvent.key.which;
+			keyboard.changedKeyStates[inputEvent.key.scancode] = (inputEvent.key.down != keyboard.keyStates[inputEvent.key.scancode]);
+			keyboard.keyStates[inputEvent.key.scancode] = inputEvent.key.down;
+
+			if (inputEvent.key.which != 0) {
+				m_KeyboardStates[0].changedKeyStates[inputEvent.key.scancode] = (inputEvent.key.down != m_KeyboardStates[0].keyStates[inputEvent.key.scancode]);
+				m_KeyboardStates[0].keyStates[inputEvent.key.scancode] = inputEvent.key.down;
+			}
+
+			break;
+		}
+		case SDL_EVENT_KEYBOARD_REMOVED: {
+			SDL_KeyboardID keyboardID = inputEvent.kdevice.which;
+			m_KeyboardStates.erase(keyboardID);
+			bool playerKeyboardDisconnected{false};
+			for (int player = PlayerOne; player < MaxPlayerCount; player++) {
+				DeviceID playerDeviceID = m_ControlScheme[player].GetDeviceID();
+				if (m_ControlScheme[player].GetDevice() == DEVICE_MOUSE_KEYB) {
+					if (playerDeviceID.mouseKeyboard.keyboard == keyboardID) {
+						playerDeviceID.mouseKeyboard.keyboard = 0;
+						playerKeyboardDisconnected = true;
+					}
+				} else if (m_ControlScheme[player].GetDevice() == DEVICE_KEYB_ONLY) {
+					if (playerDeviceID.keyboard == keyboardID) {
+						playerDeviceID.keyboard = 0;
+						playerKeyboardDisconnected = true;
+					}
+				}
+				if (playerKeyboardDisconnected) {
+					g_ConsoleMan.PrintString("INFO: Player " + std::to_string(player + 1) + " keyboard disconnected!");
+					m_PlayerMouseKeyboardKnown = false;
+				}
+			}
+			if (playerKeyboardDisconnected && g_ActivityMan.IsInActivity()) {
+				g_ActivityMan.PauseActivity();
+			}
+			break;
+		}
+		case SDL_EVENT_TEXT_INPUT: {
+			char input = inputEvent.text.text[0];
+			size_t i = 0;
+			while (input != 0 && i < 32) {
+				++i;
+				if (input <= 127) {
+					m_TextInput += input;
+				}
+				input = inputEvent.text.text[i];
+			}
+			break;
+		}
+		case SDL_EVENT_MOUSE_MOTION: {
+			if (m_DisableMouseMoving) {
+				break;
+			}
+
+			Mouse& mouse = m_MouseStates[inputEvent.motion.which];
+			mouse.id = inputEvent.motion.which;
+			mouse.position = {inputEvent.motion.x, inputEvent.motion.y};
+			mouse.relativeMotion += {inputEvent.motion.xrel, inputEvent.motion.yrel};
+
+			m_MouseStates[0].position = {inputEvent.motion.x, inputEvent.motion.y};
+			m_MouseStates[0].relativeMotion += {inputEvent.motion.xrel, inputEvent.motion.yrel};
+
+			if (g_WindowMan.FullyCoversAllDisplays()) {
+				int windowPosX = 0;
+				int windowPosY = 0;
+				SDL_GetWindowPosition(SDL_GetWindowFromID(inputEvent.motion.windowID), &windowPosX, &windowPosY);
+				Vector windowCoord(static_cast<float>(g_WindowMan.GetDisplayArrangementAbsOffsetX() + windowPosX), static_cast<float>(g_WindowMan.GetDisplayArrangementAbsOffsetY() + windowPosY));
+				mouse.position += windowCoord;
+				m_MouseStates[0].position += windowCoord;
+			}
+			break;
+		}
+		case SDL_EVENT_MOUSE_BUTTON_UP:
+		case SDL_EVENT_MOUSE_BUTTON_DOWN: {
+			if (inputEvent.button.button > SDL_BUTTON_RIGHT) {
+				break;
+			}
+			Mouse& mouse = m_MouseStates[inputEvent.motion.which];
+			mouse.id = inputEvent.button.which;
+			mouse.change[inputEvent.button.button] = inputEvent.button.down != mouse.state[inputEvent.button.button];
+			mouse.state[inputEvent.button.button] = inputEvent.button.down;
+			if (inputEvent.button.which != 0) {
+				m_MouseStates[0].change[inputEvent.button.button] = inputEvent.button.down != m_MouseStates[0].state[inputEvent.button.button];
+				m_MouseStates[0].state[inputEvent.button.button] = inputEvent.button.down;
+			}
+			break;
+		}
+		case SDL_EVENT_MOUSE_WHEEL: {
+			m_MouseStates[inputEvent.wheel.which].wheelChange += inputEvent.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? inputEvent.wheel.y : -inputEvent.wheel.y;
+			m_MouseStates[0].wheelChange += inputEvent.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? inputEvent.wheel.y : -inputEvent.wheel.y;
+			break;
+		}
+		case SDL_EVENT_MOUSE_REMOVED: {
+			SDL_MouseID mouseID = inputEvent.mdevice.which;
+			m_MouseStates.erase(mouseID);
+			bool playerMouseDisconnected{false};
+			for (int player = PlayerOne; player < MaxPlayerCount; player++) {
+				if (m_ControlScheme[player].GetDevice() == DEVICE_MOUSE_KEYB) {
+					DeviceID playerDeviceID = m_ControlScheme[player].GetDeviceID();
+					if (playerDeviceID.mouseKeyboard.mouse == mouseID) {
+						playerMouseDisconnected = true;
+						playerDeviceID.mouseKeyboard.mouse = 0;
+						m_ControlScheme[player].SetDeviceID(playerDeviceID);
+						g_ConsoleMan.PrintString("INFO: Player " + std::to_string(player + 1) + " mouse disconnected!");
+						m_PlayerMouseKeyboardKnown = false;
+					}
+				}
+			}
+			if (playerMouseDisconnected && g_ActivityMan.IsInActivity()) {
+				g_ActivityMan.PauseActivity();
+			}
+			break;
+		}
+		case SDL_EVENT_GAMEPAD_AXIS_MOTION:
+		case SDL_EVENT_JOYSTICK_AXIS_MOTION:
+			if (std::vector<Gamepad>::iterator device = std::find(s_PrevJoystickStates.begin(), s_PrevJoystickStates.end(), inputEvent.type == SDL_EVENT_GAMEPAD_AXIS_MOTION ? inputEvent.gaxis.which : inputEvent.jaxis.which); device != s_PrevJoystickStates.end()) {
+				if (SDL_IsGamepad(device->m_JoystickID) && inputEvent.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
+					UpdateJoystickAxis(device, inputEvent.gaxis.axis, inputEvent.gaxis.value);
+				} else if (!SDL_IsGamepad(device->m_JoystickID)) {
+					UpdateJoystickAxis(device, inputEvent.jaxis.axis, inputEvent.jaxis.value);
+				}
+			}
+			break;
+		case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+		case SDL_EVENT_JOYSTICK_BUTTON_UP:
+		case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+		case SDL_EVENT_GAMEPAD_BUTTON_UP: {
+			bool joystickEvent = (inputEvent.type == SDL_EVENT_JOYSTICK_BUTTON_DOWN || inputEvent.type == SDL_EVENT_JOYSTICK_BUTTON_UP);
+			if (std::vector<Gamepad>::iterator device = std::find(s_PrevJoystickStates.begin(), s_PrevJoystickStates.end(), joystickEvent ? inputEvent.jbutton.which : inputEvent.gbutton.which); device != s_PrevJoystickStates.end()) {
+				int button = -1;
+				int down = false;
+				if (SDL_IsGamepad(device->m_JoystickID)) {
+					if (inputEvent.type == SDL_EVENT_GAMEPAD_BUTTON_UP || inputEvent.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
+						button = inputEvent.gbutton.button;
+						down = inputEvent.gbutton.down;
+					} else {
+						break;
+					}
+				} else {
+					button = inputEvent.jbutton.button;
+					down = inputEvent.jbutton.down;
+				}
+				size_t index = device - s_PrevJoystickStates.begin();
+				s_ChangedJoystickStates[index].m_Buttons[button] = down != device->m_Buttons[button];
+				device->m_Buttons[button] = down;
+			}
+			break;
+		}
+		case SDL_EVENT_JOYSTICK_ADDED:
+		case SDL_EVENT_GAMEPAD_ADDED: {
+			HandleGamepadHotPlug(inputEvent.jdevice.which);
+			break;
+		}
+		case SDL_EVENT_JOYSTICK_REMOVED:
+		case SDL_EVENT_GAMEPAD_REMOVED:
+			if (std::vector<Gamepad>::iterator prevDevice = std::find(s_PrevJoystickStates.begin(), s_PrevJoystickStates.end(), inputEvent.jdevice.which); prevDevice != s_PrevJoystickStates.end()) {
+				g_ConsoleMan.PrintString("INFO: Gamepad " + std::to_string(prevDevice - s_PrevJoystickStates.begin() + 1) + " disconnected!");
+				SDL_CloseGamepad(SDL_GetGamepadFromID(prevDevice->m_JoystickID));
+				prevDevice->m_JoystickID = -1;
+				std::fill(prevDevice->m_Axis.begin(), prevDevice->m_Axis.end(), 0);
+				std::fill(prevDevice->m_Buttons.begin(), prevDevice->m_Buttons.end(), false);
+				m_NumJoysticks--;
+			}
+			if (std::vector<Gamepad>::iterator changedDevice = std::find(s_ChangedJoystickStates.begin(), s_ChangedJoystickStates.end(), inputEvent.jdevice.which); changedDevice != s_ChangedJoystickStates.end()) {
+				changedDevice->m_JoystickID = -1;
+				std::fill(changedDevice->m_Axis.begin(), changedDevice->m_Axis.end(), false);
+				std::fill(changedDevice->m_Buttons.begin(), changedDevice->m_Buttons.end(), false);
+			}
+			break;
+		default:
+			break;
+	}
 }
 
 int UInputMan::Update() {
+	for (auto& [mouseID, mouse]: m_MouseStates) {
+		mouse.relativeMotion *= m_MouseSensitivity;
+	}
+
+	UpdateMouseInput();
+	UpdateJoystickDigitalAxis();
+	HandleSpecialInput();
+
+	return 0;
+}
+
+void UInputMan::EndFrame() {
 	m_LastDeviceWhichControlledGUICursor = InputDevice::DEVICE_KEYB_ONLY;
 
 	for (auto& [keyboardID, keyboard] : m_KeyboardStates) {
@@ -854,205 +1049,11 @@ int UInputMan::Update() {
 	}
 
 	m_TextInput.clear();
-	m_MouseWheelChange = 0;
-	m_RawMouseMovement.Reset();
 	for (auto& [mouseID, mouse]: m_MouseStates) {
 		mouse.wheelChange = 0;
 		mouse.relativeMotion.Reset();
 		mouse.change.fill(false);
 	}
-
-	SDL_Event inputEvent;
-	for (std::vector<SDL_Event>::const_iterator eventIterator = m_EventQueue.begin(); eventIterator != m_EventQueue.end(); eventIterator++) {
-		inputEvent = *eventIterator;
-
-		switch (inputEvent.type) {
-			case SDL_EVENT_KEY_UP:
-			case SDL_EVENT_KEY_DOWN: {
-				Keyboard& keyboard = m_KeyboardStates[inputEvent.key.which];
-				keyboard.id = inputEvent.key.which;
-				keyboard.changedKeyStates[inputEvent.key.scancode] = (inputEvent.key.down != keyboard.keyStates[inputEvent.key.scancode]);
-				keyboard.keyStates[inputEvent.key.scancode] = inputEvent.key.down;
-
-				if (inputEvent.key.which != 0) {
-					m_KeyboardStates[0].changedKeyStates[inputEvent.key.scancode] = (inputEvent.key.down != m_KeyboardStates[0].keyStates[inputEvent.key.scancode]);
-					m_KeyboardStates[0].keyStates[inputEvent.key.scancode] = inputEvent.key.down;
-				}
-
-				break;
-			}
-			case SDL_EVENT_KEYBOARD_REMOVED: {
-				SDL_KeyboardID keyboardID = inputEvent.kdevice.which;
-				m_KeyboardStates.erase(keyboardID);
-				bool playerKeyboardDisconnected{false};
-				for (int player = PlayerOne; player < MaxPlayerCount; player++) {
-					DeviceID playerDeviceID = m_ControlScheme[player].GetDeviceID();
-					if (m_ControlScheme[player].GetDevice() == DEVICE_MOUSE_KEYB) {
-						if (playerDeviceID.mouseKeyboard.keyboard == keyboardID) {
-							playerDeviceID.mouseKeyboard.keyboard = 0;
-							playerKeyboardDisconnected = true;
-						}
-					} else if (m_ControlScheme[player].GetDevice() == DEVICE_KEYB_ONLY) {
-						if (playerDeviceID.keyboard == keyboardID) {
-							playerDeviceID.keyboard = 0;
-							playerKeyboardDisconnected = true;
-						}
-					}
-					if (playerKeyboardDisconnected) {
-						g_ConsoleMan.PrintString("INFO: Player " + std::to_string(player + 1) + " keyboard disconnected!");
-						m_PlayerMouseKeyboardKnown = false;
-					}
-				}
-				if (playerKeyboardDisconnected && g_ActivityMan.IsInActivity()) {
-					g_ActivityMan.PauseActivity();
-				}
-				break;
-			}
-			case SDL_EVENT_TEXT_INPUT: {
-				char input = inputEvent.text.text[0];
-				size_t i = 0;
-				while (input != 0 && i < 32) {
-					++i;
-					if (input <= 127) {
-						m_TextInput += input;
-					}
-					input = inputEvent.text.text[i];
-				}
-				break;
-			}
-			case SDL_EVENT_MOUSE_MOTION: {
-				if (m_DisableMouseMoving) {
-					break;
-				}
-
-				Mouse& mouse = m_MouseStates[inputEvent.motion.which];
-				mouse.id = inputEvent.motion.which;
-				mouse.position = {inputEvent.motion.x, inputEvent.motion.y};
-				mouse.relativeMotion += {inputEvent.motion.xrel, inputEvent.motion.yrel};
-
-				m_MouseStates[0].position = {inputEvent.motion.x, inputEvent.motion.y};
-				m_MouseStates[0].relativeMotion += {inputEvent.motion.xrel, inputEvent.motion.yrel};
-
-				m_RawMouseMovement += Vector(static_cast<float>(inputEvent.motion.xrel), static_cast<float>(inputEvent.motion.yrel));
-				m_AbsoluteMousePos.SetXY(static_cast<float>(inputEvent.motion.x), static_cast<float>(inputEvent.motion.y));
-
-				if (g_WindowMan.FullyCoversAllDisplays()) {
-					int windowPosX = 0;
-					int windowPosY = 0;
-					SDL_GetWindowPosition(SDL_GetWindowFromID(inputEvent.motion.windowID), &windowPosX, &windowPosY);
-					Vector windowCoord(static_cast<float>(g_WindowMan.GetDisplayArrangementAbsOffsetX() + windowPosX), static_cast<float>(g_WindowMan.GetDisplayArrangementAbsOffsetY() + windowPosY));
-					m_AbsoluteMousePos += windowCoord;
-				}
-				break;
-			}
-			case SDL_EVENT_MOUSE_BUTTON_UP:
-			case SDL_EVENT_MOUSE_BUTTON_DOWN: {
-				if (inputEvent.button.button > SDL_BUTTON_RIGHT) {
-					break;
-				}
-				Mouse& mouse = m_MouseStates[inputEvent.motion.which];
-				mouse.id = inputEvent.button.which;
-				mouse.change[inputEvent.button.button] = inputEvent.button.down != mouse.state[inputEvent.button.button];
-				mouse.state[inputEvent.button.button] = inputEvent.button.down;
-				if (inputEvent.button.which != 0) {
-					m_MouseStates[0].change[inputEvent.button.button] = inputEvent.button.down != m_MouseStates[0].state[inputEvent.button.button];
-					m_MouseStates[0].state[inputEvent.button.button] = inputEvent.button.down;
-				}
-				break;
-			}
-			case SDL_EVENT_MOUSE_WHEEL: {
-				m_MouseWheelChange += inputEvent.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? inputEvent.wheel.y : -inputEvent.wheel.y;
-				m_MouseStates[inputEvent.wheel.which].wheelChange += inputEvent.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? inputEvent.wheel.y : -inputEvent.wheel.y;
-				m_MouseStates[0].wheelChange += inputEvent.wheel.direction == SDL_MOUSEWHEEL_NORMAL ? inputEvent.wheel.y : -inputEvent.wheel.y;
-				break;
-			}
-			case SDL_EVENT_MOUSE_REMOVED: {
-				SDL_MouseID mouseID = inputEvent.mdevice.which;
-				m_MouseStates.erase(mouseID);
-				bool playerMouseDisconnected{false};
-				for (int player = PlayerOne; player < MaxPlayerCount; player++) {
-					if (m_ControlScheme[player].GetDevice() == DEVICE_MOUSE_KEYB) {
-						DeviceID playerDeviceID = m_ControlScheme[player].GetDeviceID();
-						if (playerDeviceID.mouseKeyboard.mouse == mouseID) {
-							playerMouseDisconnected = true;
-							playerDeviceID.mouseKeyboard.mouse = 0;
-							m_ControlScheme[player].SetDeviceID(playerDeviceID);
-							g_ConsoleMan.PrintString("INFO: Player " + std::to_string(player + 1) + " mouse disconnected!");
-							m_PlayerMouseKeyboardKnown = false;
-						}
-					}
-				}
-				if (playerMouseDisconnected && g_ActivityMan.IsInActivity()) {
-					g_ActivityMan.PauseActivity();
-				}
-				break;
-			}
-			case SDL_EVENT_GAMEPAD_AXIS_MOTION:
-			case SDL_EVENT_JOYSTICK_AXIS_MOTION:
-				if (std::vector<Gamepad>::iterator device = std::find(s_PrevJoystickStates.begin(), s_PrevJoystickStates.end(), inputEvent.type == SDL_EVENT_GAMEPAD_AXIS_MOTION ? inputEvent.gaxis.which : inputEvent.jaxis.which); device != s_PrevJoystickStates.end()) {
-					if (SDL_IsGamepad(device->m_DeviceIndex) && inputEvent.type == SDL_EVENT_GAMEPAD_AXIS_MOTION) {
-						UpdateJoystickAxis(device, inputEvent.gaxis.axis, inputEvent.gaxis.value);
-					} else if (!SDL_IsGamepad(device->m_DeviceIndex)) {
-						UpdateJoystickAxis(device, inputEvent.jaxis.axis, inputEvent.jaxis.value);
-					}
-				}
-				break;
-			case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
-			case SDL_EVENT_GAMEPAD_BUTTON_UP:
-			case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
-			case SDL_EVENT_JOYSTICK_BUTTON_UP:
-				if (std::vector<Gamepad>::iterator device = std::find(s_PrevJoystickStates.begin(), s_PrevJoystickStates.end(), (inputEvent.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN || inputEvent.type == SDL_EVENT_GAMEPAD_BUTTON_UP) ? inputEvent.gbutton.which : inputEvent.jbutton.which); device != s_PrevJoystickStates.end()) {
-					int button = -1;
-					int down = false;
-					if (SDL_IsGamepad(device->m_DeviceIndex)) {
-						if (inputEvent.type == SDL_EVENT_GAMEPAD_BUTTON_UP || inputEvent.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
-							button = inputEvent.gbutton.button;
-							down = inputEvent.gbutton.down;
-						} else {
-							break;
-						}
-					} else {
-						button = inputEvent.jbutton.button;
-						down = inputEvent.jbutton.down;
-					}
-					size_t index = device - s_PrevJoystickStates.begin();
-					s_ChangedJoystickStates[index].m_Buttons[button] = down != device->m_Buttons[button];
-					device->m_Buttons[button] = down;
-				}
-				break;
-			case SDL_EVENT_JOYSTICK_ADDED:
-				HandleGamepadHotPlug(inputEvent.jdevice.which);
-				break;
-			case SDL_EVENT_JOYSTICK_REMOVED:
-				if (std::vector<Gamepad>::iterator prevDevice = std::find(s_PrevJoystickStates.begin(), s_PrevJoystickStates.end(), inputEvent.jdevice.which); prevDevice != s_PrevJoystickStates.end()) {
-					g_ConsoleMan.PrintString("INFO: Gamepad " + std::to_string(prevDevice->m_DeviceIndex + 1) + " disconnected!");
-					SDL_CloseGamepad(SDL_GetGamepadFromID(prevDevice->m_JoystickID));
-					prevDevice->m_JoystickID = -1;
-					std::fill(prevDevice->m_Axis.begin(), prevDevice->m_Axis.end(), 0);
-					std::fill(prevDevice->m_Buttons.begin(), prevDevice->m_Buttons.end(), false);
-					m_NumJoysticks--;
-				}
-				if (std::vector<Gamepad>::iterator changedDevice = std::find(s_ChangedJoystickStates.begin(), s_ChangedJoystickStates.end(), inputEvent.jdevice.which); changedDevice != s_ChangedJoystickStates.end()) {
-					changedDevice->m_JoystickID = -1;
-					std::fill(changedDevice->m_Axis.begin(), changedDevice->m_Axis.end(), false);
-					std::fill(changedDevice->m_Buttons.begin(), changedDevice->m_Buttons.end(), false);
-				}
-				break;
-			default:
-				break;
-		}
-	}
-	m_EventQueue.clear();
-	m_RawMouseMovement *= m_MouseSensitivity;
-	for (auto& [mouseID, mouse]: m_MouseStates) {
-		mouse.relativeMotion *= m_MouseSensitivity;
-	}
-
-	UpdateMouseInput();
-	UpdateJoystickDigitalAxis();
-	HandleSpecialInput();
-
-	return 0;
 }
 
 void UInputMan::HandleSpecialInput() {
@@ -1167,9 +1168,6 @@ void UInputMan::HandleSpecialInput() {
 void UInputMan::UpdateMouseInput() {
 	// Detect and store mouse movement input, translated to analog stick emulation
 	// TODO: Figure out a less shit solution to updating the mouse in GUIs when there are no mouse players configured, i.e. no player input scheme is using mouse+keyboard. For not just check if we're out of Activity.
-	m_AnalogMouseData.m_X += m_RawMouseMovement.m_X * 3;
-	m_AnalogMouseData.m_Y += m_RawMouseMovement.m_Y * 3;
-	m_AnalogMouseData.CapMagnitude(m_MouseTrapRadius);
 	for (auto& [mouseID, mouse]: m_MouseStates) {
 		mouse.analogAim += mouse.relativeMotion * 3;
 		mouse.analogAim.CapMagnitude(m_MouseTrapRadius);
@@ -1187,8 +1185,8 @@ void UInputMan::UpdateMouseInput() {
 
 	// Enable the mouse cursor positioning again after having been disabled. Only do this when the mouse is within the drawing area so it
 	// won't cause the whole window to move if the user clicks the title bar and unintentionally drags it due to programmatic positioning.
-	int mousePosX = m_AbsoluteMousePos.m_X / g_WindowMan.GetResMultiplier();
-	int mousePosY = m_AbsoluteMousePos.m_Y / g_WindowMan.GetResMultiplier();
+	int mousePosX = m_MouseStates.at(0).position.m_X / g_WindowMan.GetResMultiplier();
+	int mousePosY = m_MouseStates.at(0).position.m_Y / g_WindowMan.GetResMultiplier();
 	if (m_DisableMouseMoving && m_PrepareToEnableMouseMoving && (mousePosX >= 0 && mousePosX < g_WindowMan.GetResX() && mousePosY >= 0 && mousePosY < g_WindowMan.GetResY())) {
 		m_DisableMouseMoving = m_PrepareToEnableMouseMoving = false;
 	}
@@ -1281,31 +1279,31 @@ void UInputMan::UpdateJoystickDigitalAxis() {
 	}
 }
 
-void UInputMan::HandleGamepadHotPlug(int deviceIndex) {
+void UInputMan::HandleGamepadHotPlug(SDL_JoystickID joystickID) {
 	SDL_Joystick* controller = nullptr;
 	int controllerIndex = 0;
 
 	for (controllerIndex = 0; controllerIndex < s_PrevJoystickStates.size(); ++controllerIndex) {
-		if (s_PrevJoystickStates[controllerIndex].m_DeviceIndex == deviceIndex || s_PrevJoystickStates[controllerIndex].m_DeviceIndex == -1) {
-			if (SDL_IsGamepad(deviceIndex)) {
-				SDL_Gamepad* gameController = SDL_OpenGamepad(deviceIndex);
+		if (s_PrevJoystickStates[controllerIndex].m_JoystickID == joystickID) {
+			return;
+		}
+		if (s_PrevJoystickStates[controllerIndex].m_JoystickID == -1) {
+			if (SDL_IsGamepad(joystickID)) {
+				SDL_Gamepad* gameController = SDL_OpenGamepad(joystickID);
 				if (!gameController) {
-					std::string connectString = s_PrevJoystickStates[controllerIndex].m_DeviceIndex == deviceIndex ? "reconnect" : "connect";
-					g_ConsoleMan.PrintString("ERROR: Failed to " + connectString + " Gamepad " + std::to_string(controllerIndex + 1));
+					g_ConsoleMan.PrintString("ERROR: Failed to connect Gamepad!");
 					break;
 				}
 				controller = SDL_GetGamepadJoystick(gameController);
 				SDL_SetGamepadPlayerIndex(gameController, controllerIndex);
 			} else {
-				controller = SDL_OpenJoystick(deviceIndex);
+				controller = SDL_OpenJoystick(joystickID);
 			}
 			if (!controller) {
-				std::string connectString = s_PrevJoystickStates[controllerIndex].m_DeviceIndex == deviceIndex ? "reconnect" : "connect";
-				g_ConsoleMan.PrintString("ERROR: Failed to " + connectString + " Gamepad " + std::to_string(controllerIndex + 1));
+				g_ConsoleMan.PrintString("ERROR: Failed to connect Gamepad!");
 				break;
 			}
-			std::string connectString = s_PrevJoystickStates[controllerIndex].m_DeviceIndex == deviceIndex ? " reconnected" : " connected";
-			g_ConsoleMan.PrintString("INFO: Gamepad " + std::to_string(controllerIndex + 1) + connectString);
+			g_ConsoleMan.PrintString("INFO: Gamepad " + std::to_string(controllerIndex + 1) + " connected.");
 			break;
 		}
 	}
@@ -1315,18 +1313,17 @@ void UInputMan::HandleGamepadHotPlug(int deviceIndex) {
 	}
 
 	if (controller) {
-		SDL_JoystickID id = SDL_GetJoystickID(controller);
 		int numAxis = 0;
 		int numButtons = 0;
-		if (SDL_IsGamepad(deviceIndex)) {
+		if (SDL_IsGamepad(joystickID)) {
 			numAxis = SDL_GAMEPAD_AXIS_COUNT;
 			numButtons = SDL_GAMEPAD_BUTTON_COUNT;
 		} else {
 			numAxis = SDL_GetNumJoystickAxes(controller);
 			numButtons = SDL_GetNumJoystickButtons(controller);
 		}
-		s_PrevJoystickStates[controllerIndex] = Gamepad(deviceIndex, id, numAxis, numButtons);
-		s_ChangedJoystickStates[controllerIndex] = Gamepad(deviceIndex, id, numAxis, numButtons);
+		s_PrevJoystickStates[controllerIndex] = Gamepad(controllerIndex, joystickID, numAxis, numButtons);
+		s_ChangedJoystickStates[controllerIndex] = Gamepad(controllerIndex, joystickID, numAxis, numButtons);
 		m_NumJoysticks++;
 	}
 }

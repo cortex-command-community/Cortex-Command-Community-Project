@@ -59,13 +59,14 @@ SaveLoadMenuGUI::SaveLoadMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiI
 	m_SaveGamesListBox->SetMouseScrolling(true);
 	m_SaveGamesListBox->SetScrollBarThickness(15);
 	m_SaveGamesListBox->SetScrollBarPadding(2);
+	m_SaveGamesListBox->SetHighlightAsIfAlwaysFocused(true);
 
 	m_SaveGameName = dynamic_cast<GUITextBox*>(m_GUIControlManager->GetControl("SaveGameName"));
 	m_LoadButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonLoad"));
 	m_CreateButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonCreate"));
 	m_OverwriteButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonOverwrite"));
 	m_DeleteButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonDelete"));
-	m_ActivityCannotBeSavedLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("ActivityCannotBeSavedWarning"));
+	m_DescriptionLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("DescriptionLabel"));
 
 	m_ConfirmationBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("ConfirmDialog"));
 	m_ConfirmationBox->CenterInParent(true, true);
@@ -74,14 +75,19 @@ SaveLoadMenuGUI::SaveLoadMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiI
 	m_ConfirmationButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ConfirmButton"));
 	m_CancelButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("CancelButton"));
 
+	m_SaveGamesFetched = false;
+	m_WasSaving = false;
+	m_SavingBlinkTimer.SetRealTimeLimitS(1.5f);
+
 	SwitchToConfirmDialogMode(ConfirmDialogMode::None);
 }
 
 void SaveLoadMenuGUI::PopulateSaveGamesList() {
-	g_ActivityMan.WaitForSaveGameTask();
-	
+	if (g_ActivityMan.IsCurrentlySaving() || m_SaveGamesFetched) {
+		return;
+	}
+
 	m_SaveGames.clear();
-	m_SaveGameName->SetText("");
 
 	m_GUIControlManager->GetManager()->SetFocus(nullptr);
 
@@ -143,6 +149,7 @@ void SaveLoadMenuGUI::PopulateSaveGamesList() {
 	              });
 
 	UpdateSaveGamesGUIList();
+	m_SaveGamesFetched = true;
 }
 
 void SaveLoadMenuGUI::UpdateSaveGamesGUIList() {
@@ -209,7 +216,7 @@ void SaveLoadMenuGUI::CreateSave() {
 		g_GUISound.UserErrorSound()->Play();
 	}
 
-	PopulateSaveGamesList();
+	m_SaveGamesFetched = false;
 }
 
 void SaveLoadMenuGUI::DeleteSave() {
@@ -218,7 +225,7 @@ void SaveLoadMenuGUI::DeleteSave() {
 	std::filesystem::remove(saveFilePath);
 	g_GUISound.ConfirmSound()->Play();
 
-	PopulateSaveGamesList();
+	m_SaveGamesFetched = false;
 }
 
 void SaveLoadMenuGUI::UpdateButtonEnabledStates() {
@@ -248,8 +255,44 @@ void SaveLoadMenuGUI::UpdateButtonEnabledStates() {
 
 	m_LoadButton->SetEnabled(saveExists);
 	m_DeleteButton->SetEnabled(saveExists);
+	
+	m_DescriptionLabel->SetText("");
 
-	m_ActivityCannotBeSavedLabel->SetVisible(g_ActivityMan.GetActivity() && !g_ActivityMan.GetActivity()->GetAllowsUserSaving());
+	bool isSaving = g_ActivityMan.IsCurrentlySaving();
+	if (isSaving != m_WasSaving) {
+		m_SavingBlinkTimer.Reset();
+	}
+
+	if (g_ActivityMan.GetActivity()) {
+		if (isSaving) {
+			const char* saveText = "";
+			switch (m_SavingBlinkTimer.StepReal(500, 4)) {
+				case 0:
+					saveText = "Saving game, please wait   ";
+					break;
+				case 1:
+					saveText = "Saving game, please wait.  ";
+					break;
+				case 2:
+					saveText = "Saving game, please wait.. ";
+					break;
+				case 3:
+					saveText = "Saving game, please wait...";
+					break;
+			}
+
+			m_DescriptionLabel->SetText(saveText);
+		} else if (!m_SavingBlinkTimer.IsPastRealTimeLimit()) {
+			// Show "Saved!" for a little while after saving
+			m_DescriptionLabel->SetText("Game saved successfully!");
+		} else if (!g_ActivityMan.GetActivity()->GetAllowsUserSaving()) {
+			m_DescriptionLabel->SetText("The currently played activity does not allow saving.");
+		} else if (m_SaveGameName->GetText().empty()) {
+			m_DescriptionLabel->SetText("Enter a name for your savegame.");
+		}
+	}
+
+	m_WasSaving = isSaving;
 }
 
 void SaveLoadMenuGUI::SwitchToConfirmDialogMode(ConfirmDialogMode mode) {
@@ -271,6 +314,8 @@ void SaveLoadMenuGUI::SwitchToConfirmDialogMode(ConfirmDialogMode mode) {
 }
 
 bool SaveLoadMenuGUI::HandleInputEvents(PauseMenuGUI* pauseMenu) {
+	PopulateSaveGamesList();
+	
 	m_GUIControlManager->Update();
 
 	GUIEvent guiEvent;
@@ -324,7 +369,7 @@ bool SaveLoadMenuGUI::HandleInputEvents(PauseMenuGUI* pauseMenu) {
 }
 
 void SaveLoadMenuGUI::Refresh() {
-	PopulateSaveGamesList();
+	m_SaveGamesFetched = false;
 	UpdateButtonEnabledStates();
 }
 

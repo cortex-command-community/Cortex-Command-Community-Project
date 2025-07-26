@@ -29,6 +29,8 @@ int Loadout::Create(const Loadout& reference) {
 	m_Complete = reference.m_Complete;
 	// These are preset instances, not owned by the reference or this.
 	m_pDeliveryCraft = reference.m_pDeliveryCraft;
+
+	m_CargoItems.clear();
 	for (std::list<const SceneObject*>::const_iterator itr = reference.m_CargoItems.begin(); itr != reference.m_CargoItems.end(); ++itr)
 		m_CargoItems.push_back(*itr);
 
