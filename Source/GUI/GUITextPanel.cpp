@@ -141,10 +141,12 @@ void GUITextPanel::Draw(GUIScreen* Screen) {
 }
 
 void GUITextPanel::OnGainFocus() {
+	GUIPanel::OnGainFocus();
 	m_Manager->GetInputController()->StartTextInput();
 }
 
 void GUITextPanel::OnLoseFocus() {
+	GUIPanel::OnLoseFocus();
 	m_Manager->GetInputController()->StopTextInput();
 }
 

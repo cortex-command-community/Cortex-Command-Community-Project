@@ -64,11 +64,14 @@ namespace RTE {
 
 		/// Adds an (input) SDL_Event to the Event queue for processing on Update.
 		/// @param inputEvent The SDL input event to queue.
-		void QueueInputEvent(const SDL_Event& inputEvent);
+		void HandleInputEvent(const SDL_Event& inputEvent);
 
 		/// Updates the state of this UInputMan. Supposed to be done every frame.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Update();
+
+		/// Resets the changed states for keyboard and mouse events.
+		void EndFrame();
 #pragma endregion
 
 #pragma region Control Scheme and Input Mapping Handling
