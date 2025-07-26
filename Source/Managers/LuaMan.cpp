@@ -33,6 +33,7 @@ void LuaStateWrapper::Clear() {
 
 void LuaStateWrapper::Initialize() {
 	m_State = luaL_newstate();
+
 	luabind::open(m_State);
 	tracy::LuaRegister(m_State);
 
@@ -52,7 +53,7 @@ void LuaStateWrapper::Initialize() {
 	    {LUA_BITLIBNAME, luaopen_bit},
 	    {LUA_JITLIBNAME, luaopen_jit},
 	    {LUA_FFILIBNAME, luaopen_ffi},
-	    {"socket", luaopen_socket_core},
+	    {"socket", luaopen_socket_core}, // why doesn't this work?!
 	    {NULL, NULL} // End of array
 	};
 
