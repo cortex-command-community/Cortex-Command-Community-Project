@@ -83,6 +83,9 @@ end
 function NativeHumanAI:Update(Owner)
 	self.Ctrl = Owner:GetController();
 
+  require('mobdebug').start()
+  require('mobdebug').coro()
+
 	-- Our jetpack might have thrust balancing enabled, so update for our current mass
 	if Owner.Jetpack then		
 		self.jetImpulseFactor = Owner.Jetpack:EstimateImpulse(false) * GetPPM() / TimerMan.DeltaTimeSecs;

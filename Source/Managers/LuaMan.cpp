@@ -38,14 +38,23 @@ void LuaStateWrapper::Initialize() {
 	// lua_gc(m_State, LUA_GCSTOP, 0);
 
 	const luaL_Reg libsToLoad[] = {
+	    // Basic Lua libraries
 	    {LUA_COLIBNAME, luaopen_base},
 	    {LUA_LOADLIBNAME, luaopen_package},
 	    {LUA_TABLIBNAME, luaopen_table},
 	    {LUA_STRLIBNAME, luaopen_string},
 	    {LUA_MATHLIBNAME, luaopen_math},
 	    {LUA_DBLIBNAME, luaopen_debug},
+
+		// These were removed for "security reasons" but we need them for debugger integration
+	    {LUA_IOLIBNAME, luaopen_io},
+	    {LUA_OSLIBNAME, luaopen_os},
+
+		// LuaJIT libraries
 	    {LUA_BITLIBNAME, luaopen_bit},
+	    {LUA_FFILIBNAME, luaopen_ffi},
 	    {LUA_JITLIBNAME, luaopen_jit},
+
 	    {NULL, NULL} // End of array
 	};
 
@@ -238,6 +247,9 @@ void LuaStateWrapper::Initialize() {
 	m_RandomGenerator.Seed(seed);
 
 	luaL_dostring(m_State,
+	              "package.path = package.path .. \";Data/Base.rte/LuaIntegration/?.lua;Data/Base.rte/LuaIntegration/?/?.lua;\"\n"
+	              "package.cpath = package.cpath .. \";Data/Base.rte/LuaIntegration/?.dll;Data/Base.rte/LuaIntegration/?/?.dll;\"\n"
+	              "package.cpath = package.cpath .. \";Data/Base.rte/LuaIntegration/?.so;Data/Base.rte/LuaIntegration/?/?.so;\"\n"
 	              // Add cls() as a shortcut to ConsoleMan:Clear().
 	              "cls = function() ConsoleMan:Clear(); end\n"
 	              // Override "print" in the lua state to output to the console.
