@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Condition="'$(Platform)'=='x64'" Label="LuaPlat">
+    <LUAPLAT>$(Platform)/$(Configuration)</LUAPLAT>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Platform)'=='Win32'" Label="LuaPlat">
+    <LUAPLAT>$(Configuration)</LUAPLAT>
+  </PropertyGroup>
+  <PropertyGroup Label="UserMacros">
+    <LUAV>LuaJIT-2.1</LUAV>
+    <LUAPREFIX>$(ProjectDir)..\</LUAPREFIX>
+    <LUALIB>$(LUAPREFIX)\$(LUAV)\_Bin</LUALIB>
+    <LUACDIR>$(LUAPREFIX)\$(LUAV)\src</LUACDIR>
+    <LUALDIR>$(LUAPREFIX)\$(LUAV)\_Bin</LUALDIR>
+    <LUAINC>$(LUAPREFIX)\$(LUAV)\src</LUAINC>
+    <LUALIBNAME>luajit-release.lib</LUALIBNAME>
+  </PropertyGroup>
+  <PropertyGroup>
+    <_PropertySheetDisplayName>Lua</_PropertySheetDisplayName>
+  </PropertyGroup>
+  <ItemDefinitionGroup />
+  <ItemGroup>
+    <BuildMacro Include="LUAPLAT">
+      <Value>$(LUAPLAT)</Value>
+    </BuildMacro>
+    <BuildMacro Include="LUAPREFIX">
+      <Value>$(LUAPREFIX)</Value>
+    </BuildMacro>
+    <BuildMacro Include="LUAV">
+      <Value>$(LUAV)</Value>
+    </BuildMacro>
+    <BuildMacro Include="LUALIB">
+      <Value>$(LUALIB)</Value>
+    </BuildMacro>
+    <BuildMacro Include="LUAINC">
+      <Value>$(LUAINC)</Value>
+    </BuildMacro>
+    <BuildMacro Include="LUACDIR">
+      <Value>$(LUACDIR)</Value>
+    </BuildMacro>
+    <BuildMacro Include="LUALDIR">
+      <Value>$(LUALDIR)</Value>
+    </BuildMacro>
+    <BuildMacro Include="LUALIBNAME">
+      <Value>$(LUALIBNAME)</Value>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
