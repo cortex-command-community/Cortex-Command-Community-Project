@@ -9,7 +9,7 @@
   </PropertyGroup>
   <PropertyGroup Label="UserMacros">
     <LUAV>LuaJIT-2.1</LUAV>
-    <LUAPREFIX>$(ProjectDir)..\</LUAPREFIX>
+    <LUAPREFIX>$(ProjectDir)..\..\</LUAPREFIX>
     <LUALIB>$(LUAPREFIX)\$(LUAV)\_Bin</LUALIB>
     <LUACDIR>$(LUAPREFIX)\$(LUAV)\src</LUACDIR>
     <LUALDIR>$(LUAPREFIX)\$(LUAV)\_Bin</LUALDIR>

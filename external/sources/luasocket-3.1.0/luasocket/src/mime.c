@@ -167,7 +167,7 @@ static const UC b64unbase[] = {
 /*-------------------------------------------------------------------------*\
 * Initializes module
 \*-------------------------------------------------------------------------*/
-LUASOCKET_API int luaopen_mime_core(lua_State *L)
+int luaopen_mime_core(lua_State *L)
 {
     lua_newtable(L);
     luaL_setfuncs(L, func, 0);

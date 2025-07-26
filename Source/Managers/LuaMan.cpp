@@ -8,6 +8,9 @@
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyLua.hpp"
 
+#define LUASOCKET_API extern "C"
+#include "luasocket\src\luasocket.h"
+
 using namespace RTE;
 
 const std::unordered_set<std::string> LuaMan::c_FileAccessModes = {"r", "r+", "w", "w+", "a", "a+", "rt", "wt"};
@@ -44,8 +47,12 @@ void LuaStateWrapper::Initialize() {
 	    {LUA_STRLIBNAME, luaopen_string},
 	    {LUA_MATHLIBNAME, luaopen_math},
 	    {LUA_DBLIBNAME, luaopen_debug},
+	    {LUA_DBLIBNAME, luaopen_os},
+	    {LUA_DBLIBNAME, luaopen_io},
 	    {LUA_BITLIBNAME, luaopen_bit},
 	    {LUA_JITLIBNAME, luaopen_jit},
+	    {LUA_FFILIBNAME, luaopen_ffi},
+	    {"socket", luaopen_socket_core},
 	    {NULL, NULL} // End of array
 	};
 

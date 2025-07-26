@@ -17,12 +17,8 @@
 * This macro prefixes all exported API functions
 \*-------------------------------------------------------------------------*/
 #ifndef LUASOCKET_API
-#ifdef _WIN32
-#define LUASOCKET_API __declspec(dllexport)
-#else
-#define LUASOCKET_API __attribute__ ((visibility ("default")))
-#endif
-#endif
+#define LUASOCKET_API extern
+#endif 
 
 #include "lua.h"
 #include "lauxlib.h"
