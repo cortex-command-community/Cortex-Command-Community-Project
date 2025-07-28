@@ -728,10 +728,13 @@ void MovableObject::AddAbsForce(const Vector& force, const Vector& absPos) {
 }
 
 void MovableObject::AddAbsImpulseForce(const Vector& impulse, const Vector& absPos) {
+	if (impulse.IsZero()) {
+		return;
+	}
+
 #ifndef RELEASE_BUILD
 	RTEAssert(impulse.GetLargest() < 500000, "HUEG IMPULSE FORCE");
 #endif
-
 	m_ImpulseForces.push_back(std::make_pair(impulse, g_SceneMan.ShortestDistance(m_Pos, absPos) * c_MPP));
 }
 

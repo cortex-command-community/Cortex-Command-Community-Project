@@ -628,12 +628,14 @@ namespace RTE {
 		/// @param offset A Vector with the offset, in METERS, of where the impulse is being (default: Vector())
 		/// applied relative to the center of this MovableObject.
 		void AddImpulseForce(const Vector& impulse, const Vector& offset = Vector()) {
+			if (impulse.IsZero()) {
+				return;
+			}
 
 #ifndef RELEASE_BUILD
 			RTEAssert(impulse.MagnitudeIsLessThan(500000.0F), "HUEG IMPULSE FORCE");
 			RTEAssert(offset.MagnitudeIsLessThan(5000.0F), "HUGE IMPULSE FORCE OFFSET");
 #endif
-
 			m_ImpulseForces.push_back({impulse, offset});
 		}
 
