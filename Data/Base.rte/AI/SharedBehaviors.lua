@@ -438,8 +438,6 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 	local NeedsNewPath, Waypoint, HasMovePath, Dist, CurrDist;
 	NeedsNewPath = true;
 
-  require("mobdebug").start()
-
 	Owner:RemoveNumberValue("AI_StuckForTime");
 
 	while true do
