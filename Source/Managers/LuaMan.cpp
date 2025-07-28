@@ -272,6 +272,12 @@ void LuaStateWrapper::Initialize() {
 	              "_AsyncPathCallbacks = {};\n"
 	              "_AddAsyncPathCallback = function(id, callback) _AsyncPathCallbacks[id] = callback; end\n"
 	              "_TriggerAsyncPathCallback = function(id, param) if _AsyncPathCallbacks[id] ~= nil then _AsyncPathCallbacks[id](param); _AsyncPathCallbacks[id] = nil; end end\n");
+
+	if (g_SettingsMan.EnableLuaDebugging()) {
+		// Enable Lua debugging
+		// Right now we're not requiring the mobdebug module because it doesn't play well with multithreading- we need this to additionally push everything into one Lua state.
+		luaL_dostring(m_State, "require(\"mobdebug\").coro(); --require(\"mobdebug\").start();");
+	}
 }
 
 void LuaStateWrapper::Destroy() {
