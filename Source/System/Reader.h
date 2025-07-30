@@ -227,6 +227,7 @@ namespace RTE {
 
 		std::string m_FilePath; //!< Currently used stream's filepath.
 		std::string m_FileName; //!< Only the name of the currently read file, excluding the path.
+		std::unique_ptr<char> m_Buffer; //!< Buffer if we're reading an in-memory stream, so we can read from it as if it were a file.
 
 		std::string m_DataModuleName; //!< The current name of the data module being read from, including the .rte extension.
 		int m_DataModuleID; //!< The current ID of the data module being read from.

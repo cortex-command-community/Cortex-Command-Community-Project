@@ -4,6 +4,8 @@
 #include "SettingsMan.h"
 #include "System.h"
 
+#include "unzip.h"
+
 #include <fstream>
 
 using namespace RTE;
@@ -56,8 +58,46 @@ int Reader::Create(const std::string& fileName, bool overwrites, const ProgressC
 		m_DataModuleName = g_PresetMan.GetModuleNameFromPath(m_FilePath);
 		m_DataModuleID = g_PresetMan.GetModuleID(m_DataModuleName);
 	}
+
+	// First try loading the raw file
+	std::string zipFilePath = g_PresetMan.GetFullModulePath(m_DataModuleName) + ".zip";
+
+	std::unique_ptr<std::istream> fileStream = nullptr;
+	if (m_NonModulePath || !std::filesystem::exists(zipFilePath)) {
+		fileStream = std::make_unique<std::ifstream>(m_FilePath);
+	} else {
+		// Otherwise load it as a .rte/(zip)
+		//std::string zipFilePath = g_PresetMan.GetFullModulePath(m_DataModuleName) + ".zip";
+		unzFile zippedFile = unzOpen(zipFilePath.c_str());
+		if (!zippedFile) {
+			return -1;
+		}
+		
+		// These need to use NULL instead of nullptr to compile on Linux/OSX?
+		std::string zippedFilePath = m_FilePath.substr(m_FilePath.find(m_DataModuleName) + m_DataModuleName.length() + 1);
+		if (unzLocateFile(zippedFile, zippedFilePath.c_str(), NULL) == UNZ_END_OF_LIST_OF_FILE) {
+			unzClose(zippedFile);
+			return -1;
+		}
+
+		unz_file_info info;
+		unzOpenCurrentFile(zippedFile);
+		unzGetCurrentFileInfo(zippedFile, &info, nullptr, 0, nullptr, 0, nullptr, 0);
+
+		m_Buffer.reset((char*)malloc(info.uncompressed_size + 1));
+		if (!m_Buffer) {
+			unzClose(zippedFile);
+			return -1;
+		}
+
+		unzReadCurrentFile(zippedFile, m_Buffer.get(), info.uncompressed_size);
+		unzCloseCurrentFile(zippedFile);
+
+		m_Buffer.get()[info.uncompressed_size] = 0; // need to null-terminate manually
+		fileStream = std::make_unique<std::stringstream>(m_Buffer.get());
+	}
 	
-	return Create(std::make_unique<std::ifstream>(m_FilePath), fileName, overwrites, progressCallback, failOK);
+	return Create(std::move(fileStream), fileName, overwrites, progressCallback, failOK);
 }
 
 int Reader::Create(std::unique_ptr<std::istream>&& stream, const std::string& fileName, bool overwrites, const ProgressCallback& progressCallback, bool failOK) {
