@@ -1728,7 +1728,7 @@ void GameActivity::Update() {
 			g_FrameMan.SetScreenText("Press [SPACE] or [START] to continue!", ScreenOfPlayer(player), 750);
 
 			// Actually end on space
-			if (m_GameOverTimer.IsPastSimMS(55000) || g_UInputMan.AnyStartPress()) {
+			if (g_UInputMan.AnyStartPress()) {
 				g_ActivityMan.EndActivity();
 				g_ActivityMan.SetInActivity(false);
 			}
