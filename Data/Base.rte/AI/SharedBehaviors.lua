@@ -726,11 +726,11 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 											if math.abs(angDiff) < 0.1 then
 												AI.Ctrl.AnalogAim = DigTarget.Normalized; -- aim in the direction of the next waypoint
 												sweepCW = not sweepCW;
+											else
+												local sweepSpeed = 2.5;
+												local sweepDir = sweepCW and 1 or -1;
+												AI.Ctrl.AnalogAim = (Vector(AimVec.X, AimVec.Y):RadRotate(sweepDir*TimerMan.AIDeltaTimeSecs*sweepSpeed)).Normalized;
 											end
-
-											local sweepSpeed = 2.5;
-											local sweepDir = sweepCW and 1 or -1;
-											AI.Ctrl.AnalogAim = (Vector(AimVec.X, AimVec.Y):RadRotate(sweepDir*TimerMan.AIDeltaTimeSecs*sweepSpeed)).Normalized;
 
 											-- check if we are done when we get close enough to the waypoint
 											if Owner.AIMode == Actor.AIMODE_GOLDDIG then
