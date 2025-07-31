@@ -704,7 +704,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 												obstacleState = Actor.DIGPAUSING; -- tunnel cavity not clear yet, so stay put and dig some more
 											end
 
-											local aimAngle = Owner:GetAimAngle(false);
+											local aimAngle = Owner:GetAimAngle(true);
 											local AimVec = Vector(1, 0):RadRotate(aimAngle);
 
 											local angDiff = math.asin(AimVec:Cross(CurrDist.Normalized)); -- the angle between CurrDist and AimVec
