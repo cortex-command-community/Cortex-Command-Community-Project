@@ -85,7 +85,7 @@ void MovableObject::Clear() {
 	m_NumberValueMap.clear();
 	m_ObjectValueMap.clear();
 	m_ThreadedLuaState = nullptr;
-	m_ForceIntoMasterLuaState = false;
+	m_ForceIntoMasterLuaState = g_SettingsMan.EnableLuaDebugging();
 	m_ScriptObjectName.clear();
 	m_ScreenEffectFile.Reset();
 	m_pScreenEffect = 0;

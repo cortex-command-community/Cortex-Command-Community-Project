@@ -1341,6 +1341,14 @@ void MovableMan::Update() {
 
 		const std::string threadedUpdate = "ThreadedUpdate"; // avoid string reconstruction
 
+		g_LuaMan.SetThreadLuaStateOverride(&g_LuaMan.GetMasterScriptState());
+		for (MovableObject* mo: g_LuaMan.GetMasterScriptState().GetRegisteredMOs()) {
+			if (ValidMO(mo->GetRootParent())) {
+				mo->RunScriptedFunctionInAppropriateScripts(threadedUpdate, false, false, {}, {}, {});
+			}
+		}
+		g_LuaMan.SetThreadLuaStateOverride(nullptr);
+
 		LuaStatesArray& luaStates = g_LuaMan.GetThreadedScriptStates();
 		g_ThreadMan.GetPriorityThreadPool().parallelize_loop(luaStates.size(),
 		                                                     [&](int start, int end) {
@@ -1363,6 +1371,14 @@ void MovableMan::Update() {
 		ZoneScopedN("Multithreaded Scripts SyncedUpdate");
 
 		const std::string syncedUpdate = "SyncedUpdate"; // avoid string reconstruction
+
+		g_LuaMan.SetThreadLuaStateOverride(&g_LuaMan.GetMasterScriptState());
+		for (MovableObject* mo: g_LuaMan.GetMasterScriptState().GetRegisteredMOs()) {
+			if (ValidMO(mo->GetRootParent())) {
+				mo->RunScriptedFunctionInAppropriateScripts(syncedUpdate, false, false, {}, {}, {});
+			}
+		}
+		g_LuaMan.SetThreadLuaStateOverride(nullptr);
 
 		for (LuaStateWrapper& luaState: g_LuaMan.GetThreadedScriptStates()) {
 			g_LuaMan.SetThreadLuaStateOverride(&luaState);
@@ -1753,6 +1769,14 @@ void MovableMan::UpdateControllers() {
 		for (Actor* actor: m_Actors) {
 			actor->GetController()->Update();
 		}
+
+		g_LuaMan.SetThreadLuaStateOverride(&g_LuaMan.GetMasterScriptState());
+		for (Actor* actor: m_Actors) {
+			if (actor->GetLuaState() == &g_LuaMan.GetMasterScriptState() && actor->GetController()->ShouldUpdateAIThisFrame()) {
+				actor->RunScriptedFunctionInAppropriateScripts("ThreadedUpdateAI", false, true, {}, {}, {});
+			}
+		}
+		g_LuaMan.SetThreadLuaStateOverride(nullptr);
 
 		LuaStatesArray& luaStates = g_LuaMan.GetThreadedScriptStates();
 		g_ThreadMan.GetPriorityThreadPool().parallelize_loop(luaStates.size(),

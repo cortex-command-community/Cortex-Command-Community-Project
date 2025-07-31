@@ -276,7 +276,7 @@ void LuaStateWrapper::Initialize() {
 	if (g_SettingsMan.EnableLuaDebugging()) {
 		// Enable Lua debugging
 		// Right now we're not requiring the mobdebug module because it doesn't play well with multithreading- we need this to additionally push everything into one Lua state.
-		luaL_dostring(m_State, "require(\"mobdebug\").coro(); --require(\"mobdebug\").start();");
+		luaL_dostring(m_State, "require(\"mobdebug\").coro(); require(\"mobdebug\").start();");
 	}
 }
 
@@ -327,7 +327,9 @@ void LuaMan::Initialize() {
 	m_MasterScriptState.Initialize();
 
 	int luaStateCount = std::thread::hardware_concurrency();
-	if (g_SettingsMan.GetNumberOfLuaStatesOverride() != -1) {
+	if (g_SettingsMan.EnableLuaDebugging()) {
+		luaStateCount = 0;
+	} else if (g_SettingsMan.GetNumberOfLuaStatesOverride() != -1) {
 		luaStateCount = g_SettingsMan.GetNumberOfLuaStatesOverride();
 	}
 
