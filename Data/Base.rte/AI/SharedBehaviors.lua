@@ -468,9 +468,8 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 						AI.deviceState = AHuman.DIGGING;
 						obstacleState = Actor.DIGPAUSING;
 						nextLatMove = Actor.LAT_STILL;
-						sweepRange = math.min(math.pi*0.2, Owner.AimRange);
+						sweepRange = math.min(math.pi*0.25, Owner.AimRange);
 						StuckTimer:SetSimTimeLimitMS(6000);
-						AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false).Normalized; -- aim in the direction of the next waypoint
 					else
 						digState = AHuman.NOTDIGGING;
 						obstacleState = Actor.PROCEEDING;
@@ -705,7 +704,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 												obstacleState = Actor.DIGPAUSING; -- tunnel cavity not clear yet, so stay put and dig some more
 											end
 
-											local aimAngle = Owner:GetAimAngle(true);
+											local aimAngle = Owner:GetAimAngle(false);
 											local AimVec = Vector(1, 0):RadRotate(aimAngle);
 
 											local angDiff = math.asin(AimVec:Cross(CurrDist.Normalized)); -- the angle between CurrDist and AimVec
@@ -725,10 +724,13 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 
 											angDiff = math.asin(AimVec:Cross(DigTarget.Normalized)); -- The angle between DigTarget and AimVec
 											if math.abs(angDiff) < 0.1 then
-												sweepCW = not sweepCW; -- this is close enough, go in the other direction next frame
-											else
-												AI.Ctrl.AnalogAim = (Vector(AimVec.X, AimVec.Y):RadRotate(-angDiff*0.15)).Normalized;
+												AI.Ctrl.AnalogAim = DigTarget.Normalized; -- aim in the direction of the next waypoint
+												sweepCW = not sweepCW;
 											end
+
+											local sweepSpeed = 2.5;
+											local sweepDir = sweepCW and 1 or -1;
+											AI.Ctrl.AnalogAim = (Vector(AimVec.X, AimVec.Y):RadRotate(sweepDir*TimerMan.AIDeltaTimeSecs*sweepSpeed)).Normalized;
 
 											-- check if we are done when we get close enough to the waypoint
 											if Owner.AIMode == Actor.AIMODE_GOLDDIG then
