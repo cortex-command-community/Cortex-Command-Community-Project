@@ -129,6 +129,12 @@ void MenuMan::HandleTransitionIntoMenuLoop() {
 }
 
 bool MenuMan::Update() {
+	// If we're in the menu but the activity isn't set as paused, then exit
+	// This can mismatch sometimes like when loading a saved game
+	if (m_ActiveMenu != ActiveMenu::MenusDisabled && !g_ActivityMan.ActivityPaused()) {
+		return true;
+	}
+
 	m_TitleScreen->Update();
 	SetActiveMenu();
 

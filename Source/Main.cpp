@@ -271,6 +271,7 @@ void RunMenuLoop() {
 		if (g_MenuMan.Update()) {
 			break;
 		}
+
 		g_ConsoleMan.Update();
 
 		g_UInputMan.EndFrame();
@@ -381,7 +382,6 @@ void RunGameLoop() {
 				g_PerformanceMan.ResetSimUpdateTimer();
 				updateStartTime = g_TimerMan.GetAbsoluteTime();
 			}
-
 		}
 
 		updateEndAndDrawStartTime = g_TimerMan.GetAbsoluteTime();
