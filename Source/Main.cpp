@@ -269,6 +269,7 @@ void RunMenuLoop() {
 		}
 
 		if (g_MenuMan.Update()) {
+			g_UInputMan.EndFrame();
 			break;
 		}
 
