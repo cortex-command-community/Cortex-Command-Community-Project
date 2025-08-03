@@ -665,6 +665,7 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 			local prevMoveTarget, prevSceneWaypoint;
 			if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
 				prevMoveTarget = Owner.MOMoveTarget;
+				Owner.MOMoveTarget = nil;
 			else
 				prevSceneWaypoint = SceneMan:MovePointToGround(Owner:GetLastAIWaypoint(), Owner.Height/5, 4); -- last wpt or current pos
 			end
@@ -780,6 +781,7 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 			local prevMoveTarget, prevSceneWaypoint;
 			if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
 				prevMoveTarget = Owner.MOMoveTarget;
+				Owner.MOMoveTarget = nil;
 			else
 				prevSceneWaypoint = SceneMan:MovePointToGround(Owner:GetLastAIWaypoint(), Owner.Height/5, 4); -- last wpt or current pos
 			end

@@ -120,7 +120,7 @@ function SharedBehaviors.FaceAlarm(AI, Owner, Abort)
 end
 
 -- find the closest enemy brain
-function SharedBehaviors.BrainSearch(AI, Owner, Abort)
+function SharedBehaviors.BrainSearch(AI, Owner, Abort) 
 	if AI.PlayerPreferredHD then
 		Owner:EquipNamedDevice(AI.PlayerPreferredHD, true);
 	end
@@ -145,9 +145,6 @@ function SharedBehaviors.BrainSearch(AI, Owner, Abort)
 	end
 
 	if #Brains > 0 then
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
-
 		if #Brains == 1 then
 			if MovableMan:IsActor(Brains[1]) then
 				Owner:ClearAIWaypoints();
@@ -214,9 +211,6 @@ function SharedBehaviors.BrainSearch(AI, Owner, Abort)
 						minDist = score;
 						ClosestBrain = Act;
 					end
-
-					local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-					if _abrt then return true end
 				end
 			end
 
