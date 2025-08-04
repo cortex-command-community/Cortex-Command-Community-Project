@@ -174,7 +174,7 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 
 	// How high up we can jump from this node
 	s_JumpHeightVertical = std::max(1, static_cast<int>(jumpHeight / (m_NodeDimension * c_MPP))); // min of 1 so automovers work a bit better
-	s_JumpHeightDiagonal = static_cast<int>((jumpHeight * 0.7F) / (m_NodeDimension * c_MPP));
+	s_JumpHeightDiagonal = std::max(1, static_cast<int>((jumpHeight * 0.7F) / (m_NodeDimension * c_MPP)));
 
 	// Actors capable of digging can use s_DigStrength to modify the node adjacency cost.
 	s_DigStrength = digStrength;
@@ -206,10 +206,8 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 		}
 
 		// Adjust the last point to be exactly where the end is supposed to be (really?).
-		if (pathResult.size() > 2) {
-			pathResult.pop_back();
-			pathResult.push_back(end);
-		}
+		pathResult.pop_back();
+		pathResult.push_back(end);
 	} else {
 		// Empty path, give exact start and end.
 		pathResult.push_back(start);

@@ -612,6 +612,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 					if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
 						local Trace = SceneMan:ShortestDistance(Owner.Pos, Owner.MOMoveTarget.Pos, false);
 
+						-- WTF is the following code for? It causes us to idle and do nothing forever??
 						if Owner.MOMoveTarget.Team == Owner.Team then
 							if Trace.Largest > Owner.Height * 0.3 + (Owner.MOMoveTarget.Height or 100) * 0.3 then
 								Waypoint.Pos = Owner.MOMoveTarget.Pos;
@@ -1008,7 +1009,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 		end
 
 		-- movement commands
-		if (AI.Target and AI.BehaviorName ~= "AttackTarget") or (Owner.AIMode ~= Actor.AIMODE_SQUAD and (AI.BehaviorName == "ShootArea" or AI.BehaviorName == "FaceAlarm")) then
+		if (AI.Target and AI.BehaviorName ~= "AttackTarget" and not AI.PickupHD) or (Owner.AIMode ~= Actor.AIMODE_SQUAD and (AI.BehaviorName == "ShootArea" or AI.BehaviorName == "FaceAlarm")) then
 			if Owner.aggressive then	-- the aggressive behavior setting makes the AI pursue waypoint at all times
 				AI.lateralMoveState = nextLatMove;
 			else

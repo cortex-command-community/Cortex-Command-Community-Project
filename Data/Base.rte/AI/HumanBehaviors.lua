@@ -670,7 +670,7 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 				prevSceneWaypoint = SceneMan:MovePointToGround(Owner:GetLastAIWaypoint(), Owner.Height/5, 4); -- last wpt or current pos
 			end
 
-			Owner:ClearMovePath();
+			Owner:ClearAIWaypoints();
 			Owner:AddAIMOWaypoint(AI.PickupHD);
 
 			if prevMoveTarget then
@@ -786,7 +786,7 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 				prevSceneWaypoint = SceneMan:MovePointToGround(Owner:GetLastAIWaypoint(), Owner.Height/5, 4); -- last wpt or current pos
 			end
 
-			Owner:ClearMovePath();
+			Owner:ClearAIWaypoints();
 			Owner:AddAIMOWaypoint(AI.PickupHD);
 
 			if Owner.AIMode ~= Actor.AIMODE_GOLDDIG then
