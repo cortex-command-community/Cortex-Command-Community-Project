@@ -365,25 +365,29 @@ namespace RTE {
 
 		/// Gets this HDFirearm's reload progress as a scalar from 0 to 1.
 		/// @return The reload progress as a scalar from 0 to 1.
-		float GetReloadProgress() const { return IsReloading() && m_BaseReloadTime > 0 ? static_cast<float>(m_ReloadTmr.SimTimeLimitProgress()) : 1.0F; }
+		float GetReloadProgress() const { return IsReloading() && m_BaseReloadTime > 0 ? static_cast<float>(m_ReloadTmr.GetSimTimeLimitProgress()) : 1.0F; }
+
+		/// Sets this HDFirearm's reload progress as a scalar from 0 to 1.
+		/// @param progress The reload progress as a scalar from 0 to 1.
+		void SetReloadProgress(float progress) { m_ReloadTmr.SetSimTimeLimitProgress(progress); }
+
+		/// Gets this HDFirearm's underlying reload timer.
+		/// @return This firearm's reload timer.
+		Timer& GetReloadTimer() { return m_ReloadTmr; }
 
 		/// Does the calculations necessary to detect whether this HDFirearm is at rest or not. IsAtRest() retrieves the answer.
 		void RestDetection() override;
 
-		/// Activates one of this HDFirearm's features. Analogous to 'pulling
-		/// the trigger'.
+		/// Activates one of this HDFirearm's features. Analogous to 'pulling the trigger'.
 		void Activate() override;
 
-		/// Deactivates one of this HDFirearm's features. Analogous to 'releasing
-		/// the trigger'.
+		/// Deactivates one of this HDFirearm's features. Analogous to 'releasing the trigger'.
 		void Deactivate() override;
 
-		/// Aborts playing of active sound no matter what. Used to silence spinning
-		/// weapons when weapons swapped
+		/// Aborts playing of active sound no matter what. Used to silence spinning weapons when weapons swapped
 		void StopActivationSound();
 
-		/// Throws out the currently used Magazine, if any, and puts in a new one
-		/// after the reload delay is up.
+		/// Throws out the currently used Magazine, if any, and puts in a new one after the reload delay is up.
 		void Reload() override;
 
 		/// Tells whether the device is curtrently being reloaded.
@@ -398,11 +402,12 @@ namespace RTE {
 		/// @return Whetehr in need of reloading (ie not full).
 		bool NeedsReloading() const override;
 
-		/// Tells whether the device is curtrently full and reloading won't have
-		/// any effect.
-		/// @return Whetehr magazine is full or not.
+		/// Tells whether the device is currently full and reloading won't have any effect.
+		/// @return Whether magazine is full or not.
 		bool IsFull() const override;
 
+		/// Tells whether the device is currently empty and attempting to fire won't have any effect.
+		/// @return Whether magazine is empty or not.
 		bool IsEmpty() const override;
 
 		/// Tells whether the device is fully automatic or not.
@@ -427,8 +432,7 @@ namespace RTE {
 		/// Updates this MovableObject. Supposed to be done every frame.
 		void Update() override;
 
-		/// Draws this HDFirearm's current graphical representation to a
-		/// BITMAP of choice.
+		/// Draws this HDFirearm's current graphical representation to a BITMAP of choice.
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene. (default: Vector())
 		/// @param mode In which mode to draw in. See the DrawMode enumeration for the modes. (default: g_DrawColor)
@@ -439,8 +443,7 @@ namespace RTE {
 		/// Draws an aiming aid in front of this HeldDevice.
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene. (default: Vector())
-		/// @param whichScreen Which player's screen this is being drawn to. May affect what HUD elements (default: 0)
-		/// get drawn etc.
+		/// @param whichScreen Which player's screen this is being drawn to. May affect what HUD elements get drawn etc. (default: 0)
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
 
 		/// Estimates what material strength one round in the magazine can destroy.
@@ -475,7 +478,6 @@ namespace RTE {
 		/// @param newValue Manual animation flag value.
 		void SetAnimatedManually(bool newValue) { m_IsAnimatedManually = newValue; }
 
-		/// Protected member variable and method declarations
 	protected:
 		/// Sets this Attachable's parent MOSRotating, and also sets its Team based on its parent and, if the Attachable is set to collide, adds/removes Atoms to its new/old parent.
 		/// Additionally, sets this HDFirearm as not firing or reloading, and resets its reload timer.
