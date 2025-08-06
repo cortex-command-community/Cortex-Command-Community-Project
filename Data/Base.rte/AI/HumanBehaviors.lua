@@ -571,7 +571,7 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 
 	local maxSearchDistance;
 	if AI.isPlayerOwned then
-		maxSearchDistance = 100; -- don't move player actors too far
+		maxSearchDistance = 160; -- don't move player actors too far
 	else
 		maxSearchDistance = FrameMan.PlayerScreenWidth * 0.45;
 	end
@@ -705,7 +705,7 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	if Owner.AIMode == Actor.AIMODE_GOLDDIG then
 		maxSearchDistance = FrameMan.PlayerScreenWidth * 0.5; -- move up to half a screen when digging
 	elseif AI.isPlayerOwned then
-		maxSearchDistance = 60; -- don't move player actors too far
+		maxSearchDistance = 160; -- don't move player actors too far
 	else
 		maxSearchDistance = FrameMan.PlayerScreenWidth * 0.3;
 	end
