@@ -557,7 +557,7 @@ function NativeHumanAI:Update(Owner)
 		if self.PickupHD then
 			if not MovableMan:IsDevice(self.PickupHD) or self.PickupHD.ID ~= self.PickupHD.RootID then
 				self.PickupHD = nil; -- the HeldDevice has been destroyed or picked up
-			elseif SceneMan:ShortestDistance(Owner.Pos, self.PickupHD.Pos, false):MagnitudeIsLessThan(Owner.Height) then
+			elseif SceneMan:ShortestDistance(Owner.Pos, self.PickupHD.Pos, false):MagnitudeIsLessThan(Owner.Height * GetMPP()) then
 				self.Ctrl:SetState(Controller.WEAPON_PICKUP, true);
 			end
 		end
