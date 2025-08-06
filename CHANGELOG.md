@@ -138,7 +138,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New option to mute audio when the game window loses focus.
 
-- `ReloadTimer` on `HDFirearm` is now exposed to Lua.
+- New `GetReloadTimer()` on `HDFirearm` to get the underlying reload timer.
 
 - `ReloadProgress` on `HDFirearm` is now a writable property in Lua, and not only readable.
 

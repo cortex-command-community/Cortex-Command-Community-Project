@@ -654,7 +654,6 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HDFirearm) {
 	    .property("DeactivationDelay", &HDFirearm::GetDeactivationDelay, &HDFirearm::SetDeactivationDelay)
 	    .property("BaseReloadTime", &HDFirearm::GetBaseReloadTime, &HDFirearm::SetBaseReloadTime)
 	    .property("ReloadTime", &HDFirearm::GetReloadTime)
-	    .property("ReloadTimer", &HDFirearm::GetReloadTimer)
 	    .property("ReloadProgress", &HDFirearm::GetReloadProgress, &HDFirearm::SetReloadProgress)
 	    .property("ShakeRange", &HDFirearm::GetShakeRange, &HDFirearm::SetShakeRange)
 	    .property("SharpShakeRange", &HDFirearm::GetSharpShakeRange, &HDFirearm::SetSharpShakeRange)
@@ -668,6 +667,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HDFirearm) {
 	    .property("IsAnimatedManually", &HDFirearm::IsAnimatedManually, &HDFirearm::SetAnimatedManually)
 	    .property("RecoilTransmission", &HDFirearm::GetJointStiffness, &HDFirearm::SetJointStiffness)
 
+	    .def("GetReloadTimer", &HDFirearm::GetReloadTimer)
 	    .def("GetAIFireVel", &HDFirearm::GetAIFireVel)
 	    .def("GetAIBulletLifeTime", &HDFirearm::GetAIBulletLifeTime)
 	    .def("GetBulletAccScalar", &HDFirearm::GetBulletAccScalar)
