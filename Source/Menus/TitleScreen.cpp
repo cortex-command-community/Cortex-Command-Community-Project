@@ -560,8 +560,11 @@ void TitleScreen::Draw() {
 		} else if (m_IntroSequenceState == IntroSequence::SlideshowEnd) {
 			m_PreGameLogoText.Draw(g_FrameMan.GetBackBuffer32());
 			int blendAmount = 220 + RandomNum(-35, 35);
-			set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
+			g_FrameMan.SetCurrentAlpha(blendAmount);
+			rlSetBlendMode(RL_BLEND_SCREEN);
 			m_PreGameLogoTextGlow.Draw(g_FrameMan.GetBackBuffer32(), Vector(), DrawMode::g_DrawTrans);
+			rlSetBlendMode(RL_BLEND_ALPHA);
+			g_FrameMan.SetCurrentAlpha(255);
 		}
 	} else {
 		DrawTitleScreenScene();
