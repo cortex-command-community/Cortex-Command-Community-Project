@@ -260,6 +260,7 @@ namespace RTE {
 		return false;
 	}
 
+	__attribute__((no_sanitize_address))
 	void* Entity::ClassInfo::GetPoolMemory() {
 		std::lock_guard<std::mutex> guard(m_Mutex);
 
@@ -282,6 +283,7 @@ namespace RTE {
 		return foundMemory;
 	}
 
+	__attribute__((no_sanitize_address))
 	int Entity::ClassInfo::ReturnPoolMemory(void* returnedMemory) {
 		if (!returnedMemory) {
 			return 0;
