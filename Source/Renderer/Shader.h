@@ -7,6 +7,34 @@
 #include "raylib/rlgl.h"
 
 namespace RTE {
+	class UniformValueType {
+	public:
+		UniformValueType(GLint uniformLocation): m_UniformLocation(uniformLocation) {}
+		virtual ~UniformValueType() = default;
+		virtual void Enable() = 0;
+	protected:
+		GLint m_UniformLocation{0};
+	};
+
+	template <typename T>
+	class UniformValue: public UniformValueType {
+	public:
+		UniformValue<T>(GLint uniformLocation, T value): UniformValueType(uniformLocation), m_Value(value) {}
+		void Enable() override;
+	private:
+		T m_Value{};
+	};
+
+
+	using BoolValue = UniformValue<bool>;
+	using IntValue = UniformValue<int>;
+	using FloatValue = UniformValue<float>;
+	using Matrix4fValue = UniformValue<glm::mat4>;
+	using Vector2fValue = UniformValue<glm::vec2>;
+	using Vector3fValue = UniformValue<glm::vec3>;
+	using Vector4fValue = UniformValue<glm::vec4>;
+	using Matrix4fvValue = UniformValue<std::vector<glm::mat4>>;
+
 	class Shader: public Entity {
 	public:
 		EntityAllocation(Shader);

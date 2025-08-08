@@ -114,17 +114,52 @@ GLint Shader::GetUniformLocation(const std::string& name) const { return glGetUn
 
 void Shader::SetBool(const std::string& name, bool value) const { GL_CHECK(glUniform1i(glGetUniformLocation(m_ProgramID, name.c_str()), static_cast<int>(value))); }
 
+template <>
+void BoolValue::Enable() {
+	GL_CHECK(glUniform1i(m_UniformLocation, m_Value));
+}
+
 void Shader::SetInt(const std::string& name, int value) const { GL_CHECK(glUniform1i(glGetUniformLocation(m_ProgramID, name.c_str()), value)); }
+
+template <>
+void IntValue::Enable() {
+	GL_CHECK(glUniform1i(m_UniformLocation, m_Value));
+}
 
 void Shader::SetFloat(const std::string& name, float value) const { GL_CHECK(glUniform1f(glGetUniformLocation(m_ProgramID, name.c_str()), value)); }
 
+template <>
+void FloatValue::Enable() {
+	GL_CHECK(glUniform1f(m_UniformLocation, m_Value));
+}
+
 void Shader::SetMatrix4f(const std::string& name, const glm::mat4& value) const { GL_CHECK(glUniformMatrix4fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value))); }
+
+template <>
+void Matrix4fValue::Enable() {
+	GL_CHECK(glUniformMatrix4fv(m_UniformLocation, 1, GL_FALSE, glm::value_ptr(m_Value)));
+}
 
 void Shader::SetVector2f(const std::string& name, const glm::vec2& value) const { GL_CHECK(glUniform2fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, glm::value_ptr(value))); }
 
+template <>
+void Vector2fValue::Enable() {
+	GL_CHECK(glUniform2fv(m_UniformLocation, 1, glm::value_ptr(m_Value)));
+}
+
 void Shader::SetVector3f(const std::string& name, const glm::vec3& value) const { GL_CHECK(glUniform3fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, glm::value_ptr(value))); }
 
+template <>
+void Vector3fValue::Enable() {
+	GL_CHECK(glUniform3fv(m_UniformLocation, 1, glm::value_ptr(m_Value)));
+}
+
 void Shader::SetVector4f(const std::string& name, const glm::vec4& value) const { GL_CHECK(glUniform4fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, glm::value_ptr(value))); }
+
+template <>
+void Vector4fValue::Enable() {
+	GL_CHECK(glUniform4fv(m_UniformLocation, 1, glm::value_ptr(m_Value)));
+}
 
 void Shader::SetBool(int32_t uniformLoc, bool value) const { GL_CHECK(glUniform1i(uniformLoc, value)); }
 
