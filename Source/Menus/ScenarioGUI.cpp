@@ -20,6 +20,8 @@
 #include "GUIComboBox.h"
 #include "GUIButton.h"
 #include "GUILabel.h"
+#include "raylib/rlgl.h"
+#include "Shader.h"
 
 using namespace RTE;
 
@@ -546,12 +548,22 @@ void ScenarioGUI::DrawSitePoints(BITMAP* drawBitmap) const {
 
 		blendAmount = 70 + RandomNum(0, 40);
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
-		circlefill(drawBitmap, sitePosX, sitePosY, 4, drawColor);
-		circlefill(drawBitmap, sitePosX, sitePosY, 2, drawColor);
+		rlSetBlendMode(RL_BLEND_SCREEN);
+		glUniform4f(rlGetLocationUniformCurrent("rteColor"), blendAmount / 255.0f, blendAmount / 255.0f, blendAmount / 255.0f, blendAmount / 255.0f);
+		DrawCircle(sitePosX, sitePosY, 4.5, RLColor(getr(drawColor), getg(drawColor), getb(drawColor), 128));
+		DrawCircle(sitePosX, sitePosY, 3.5, RLColor(getr(drawColor), getg(drawColor), getb(drawColor), 255));
+		// circlefill(drawBitmap, sitePosX, sitePosY, 4, drawColor);
+		// circlefill(drawBitmap, sitePosX, sitePosY, 2, drawColor);
 
+		rlDrawRenderBatchActive();
 		blendAmount = 145 + RandomNum(0, 110);
+		glUniform4f(rlGetLocationUniformCurrent("rteColor"), blendAmount / 255.0f, blendAmount / 255.0f, blendAmount / 255.0f, blendAmount / 255.0f);
+		DrawCircle(sitePosX, sitePosY, 2, RLColor(getr(drawColor), getg(drawColor), getb(drawColor), 64));
+		DrawCircle(sitePosX, sitePosY, 0.5, RLColor(getr(drawColor), getg(drawColor), getb(drawColor), 255));
+		rlDrawRenderBatchActive();
+		glUniform4f(rlGetLocationUniformCurrent("rteColor"), 1.0f, 1.0f, 1.0f, 1.0f);
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
-		circlefill(drawBitmap, sitePosX, sitePosY, 1, drawColor);
+		// circlefill(drawBitmap, sitePosX, sitePosY, 1, drawColor);
 	}
 }
 
