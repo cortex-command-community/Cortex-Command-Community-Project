@@ -210,6 +210,8 @@ namespace RTE {
 		/// @return Integer between 0-255 of alpha value.
 		unsigned char GetCurrentAlpha() {return m_CurrentAlpha;}
 
+		void SetCurrentAlpha(int alpha) { m_CurrentAlpha = alpha; }
+
 		/// Flashes any of the players' screen with the specified color for this frame.
 		/// @param screen Which screen to flash.
 		/// @param color What color to flash it. -1 means no color or flash.

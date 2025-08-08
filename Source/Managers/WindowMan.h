@@ -65,6 +65,8 @@ namespace RTE {
 		/// @return Pointer to the primary game window.
 		SDL_Window* GetWindow() const { return m_PrimaryWindow.get(); }
 
+		SDL_GLContextState* GetGLContext() const { return m_GLContext.get(); }
+
 		/// Gets whether any of the game windows is currently in focus.
 		/// @return Whether any of the game windows is currently in focus.
 		bool AnyWindowHasFocus() const { return m_AnyWindowHasFocus; }

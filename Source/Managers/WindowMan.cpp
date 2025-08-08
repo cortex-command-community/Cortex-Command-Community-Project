@@ -124,7 +124,7 @@ void WindowMan::Initialize() {
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	CreatePrimaryWindow();
 	InitializeOpenGL();
 
@@ -228,6 +228,7 @@ void WindowMan::InitializeOpenGL() {
 	}
 
 	if (!gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress)) {
+		m_GLContext = nullptr;
 		RTEAbort("Failed to load GL functions!");
 	}
 
@@ -803,6 +804,7 @@ void WindowMan::UploadFrame() {
 			rlDrawRenderBatchActive();
 		}
 	}
+	ImGui::ShowDemoWindow();
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	Present();
