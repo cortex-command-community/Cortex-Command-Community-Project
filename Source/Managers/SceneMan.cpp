@@ -50,7 +50,6 @@ void SceneMan::Clear() {
 	m_PlaceObjects = true;
 	m_PlaceUnits = true;
 	m_pCurrentScene = nullptr;
-	m_pMOColorLayer = nullptr;
 	m_pDebugLayer = nullptr;
 
 	m_LayerDrawMode = g_LayerNormal;
@@ -150,25 +149,16 @@ int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 
 	//    m_pCurrentScene->GetTerrain()->CleanAir();
 
-	// Re-create the MoveableObject's color SceneLayer
-	delete m_pMOColorLayer;
-	BITMAP* pBitmap = create_bitmap_ex(8, GetSceneWidth(), GetSceneHeight());
-	clear_to_color(pBitmap, g_MaskColor);
-	m_pMOColorLayer = new SceneLayerTracked();
-	m_pMOColorLayer->Create(pBitmap, true, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0));
-	pBitmap = 0;
-
 	const int cellSize = 20;
 	m_MOIDsGrid = SpatialPartitionGrid(GetSceneWidth(), GetSceneHeight(), cellSize);
 
 	// Create the Debug SceneLayer
 	if (m_DrawRayCastVisualizations || m_DrawPixelCheckVisualizations) {
 		delete m_pDebugLayer;
-		pBitmap = create_bitmap_ex(8, GetSceneWidth(), GetSceneHeight());
+		BITMAP* pBitmap = create_bitmap_ex(8, GetSceneWidth(), GetSceneHeight());
 		clear_to_color(pBitmap, g_MaskColor);
 		m_pDebugLayer = new SceneLayer();
 		m_pDebugLayer->Create(pBitmap, true, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0));
-		pBitmap = nullptr;
 	}
 
 	// Finally draw the ID:s of the MO:s to the MOID layers for the first time
@@ -289,7 +279,6 @@ void SceneMan::Destroy() {
 
 	delete m_pCurrentScene;
 	delete m_pDebugLayer;
-	delete m_pMOColorLayer;
 	delete m_pUnseenRevealSound;
 
 	destroy_bitmap(m_pOrphanSearchBitmap);
@@ -355,10 +344,6 @@ SLTerrain* SceneMan::GetTerrain() {
 	return nullptr;
 }
 
-BITMAP* SceneMan::GetMOColorBitmap() const {
-	return m_pMOColorLayer->GetBitmap();
-}
-
 BITMAP* SceneMan::GetDebugBitmap() const {
 	RTEAssert(m_pDebugLayer, "Tried to get debug bitmap but debug layer doesn't exist. Note that the debug layer is only created under certain circumstances.");
 	return m_pDebugLayer->GetBitmap();
@@ -417,12 +402,14 @@ Vector SceneMan::GetGlobalAcc() const {
 	return m_pCurrentScene->GetGlobalAcc();
 }
 
+// The way we do this MOID registering through draw is really just ultra fucked
+// Alas, it's a consequence of old terrible code
 void SceneMan::RegisterDrawing(const BITMAP* bitmap, int moid, int left, int top, int right, int bottom) {
-	if (m_pMOColorLayer && m_pMOColorLayer->GetBitmap() == bitmap) {
-		m_pMOColorLayer->RegisterDrawing(left, top, right, bottom);
-	} else if (const MovableObject* mo = g_MovableMan.GetMOFromID(moid)) {
-		IntRect rect(left, top, right, bottom);
-		m_MOIDsGrid.Add(rect, *mo);
+	if (bitmap == nullptr) {
+		if (const MovableObject* mo = g_MovableMan.GetMOFromID(moid)) {
+			IntRect rect(left, top, right, bottom);
+			m_MOIDsGrid.Add(rect, *mo);
+		}
 	}
 }
 
@@ -2549,7 +2536,6 @@ void SceneMan::Update(int screenId) {
 	m_LastUpdatedScreen = screenId;
 
 	const Vector& offset = g_CameraMan.GetOffset(screenId);
-	m_pMOColorLayer->SetOffset(offset);
 	if (m_pDebugLayer) {
 		m_pDebugLayer->SetOffset(offset);
 	}
@@ -2614,7 +2600,9 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 				terrain->SetLayerToDraw(SLTerrain::LayerType::BackgroundLayer);
 				terrain->Draw(targetDimensions, targetBox);
 			}
-			m_pMOColorLayer->Draw(targetDimensions, targetBox);
+
+			// Draw MOs
+			g_MovableMan.Draw(targetBitmap, targetPos);
 
 			if (!skipTerrain) {
 				terrain->SetLayerToDraw(SLTerrain::LayerType::ForegroundLayer);
@@ -2664,13 +2652,6 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 			}
 
 			break;
-	}
-}
-
-void SceneMan::ClearMOColorLayer() {
-	m_pMOColorLayer->ClearBitmap(g_MaskColor);
-	if (m_pDebugLayer) {
-		m_pDebugLayer->ClearBitmap(g_MaskColor);
 	}
 }
 

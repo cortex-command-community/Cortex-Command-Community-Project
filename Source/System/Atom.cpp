@@ -698,7 +698,7 @@ int Atom::Travel(float travelTime, bool autoTravel) {
 
 		// Get trail bitmap and put first pixel.
 		if (m_TrailLength) {
-			trailBitmap = g_SceneMan.GetMOColorBitmap();
+			//trailBitmap = g_SceneMan.GetMOColorBitmap();
 			trailPoints.push_back({intPos[X], intPos[Y]});
 		}
 		// Compute and scale the actual on-screen travel trajectory for this segment, based on the velocity, the travel time and the pixels-per-meter constant.
@@ -908,11 +908,6 @@ int Atom::Travel(float travelTime, bool autoTravel) {
 				hitPos[Y] = intPos[Y];
 				++hitCount;
 
-#ifdef DEBUG_BUILD
-				if (m_TrailLength) {
-					putpixel(trailBitmap, intPos[X], intPos[Y], 199);
-				}
-#endif
 				// Try penetration of the terrain.
 				if (hitMaterial->GetIndex() != g_MaterialOutOfBounds && g_SceneMan.TryPenetrate(intPos[X], intPos[Y], velocity * mass * sharpness, velocity, retardation, 0.65F, m_NumPenetrations, removeOrphansRadius, removeOrphansMaxArea, removeOrphansRate)) {
 					hit[dom] = hit[sub] = sinkHit = true;
@@ -1047,15 +1042,9 @@ int Atom::Travel(float travelTime, bool autoTravel) {
 
 		int length = static_cast<int>(static_cast<float>(m_TrailLength) * RandomNum(1.0F - m_TrailLengthVariation, 1.0F));
 		for (int i = trailPoints.size() - std::min(length, static_cast<int>(trailPoints.size())); i < trailPoints.size(); ++i) {
-			putpixel(trailBitmap, trailPoints[i].first, trailPoints[i].second, m_TrailColor.GetIndex());
-
-			topLeftExtent.m_X = std::min(topLeftExtent.m_X, static_cast<float>(trailPoints[i].first));
-			topLeftExtent.m_Y = std::min(topLeftExtent.m_Y, static_cast<float>(trailPoints[i].second));
-			bottomRightExtent.m_X = std::max(bottomRightExtent.m_X, static_cast<float>(trailPoints[i].first));
-			bottomRightExtent.m_Y = std::max(bottomRightExtent.m_Y, static_cast<float>(trailPoints[i].second));
+			// todo, figure this shit out.
+			//putpixel(trailBitmap, trailPoints[i].first, trailPoints[i].second, m_TrailColor.GetIndex());
 		}
-
-		g_SceneMan.RegisterDrawing(trailBitmap, g_NoMOID, topLeftExtent.m_X, topLeftExtent.m_Y, bottomRightExtent.m_X + 1.0F, bottomRightExtent.m_Y + 1.0F);
 	}
 
 	// Extract Atom offset.

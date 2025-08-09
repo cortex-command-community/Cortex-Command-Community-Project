@@ -199,12 +199,6 @@ namespace RTE {
 		/// @return A pointer to the SLTerrain. Ownership is NOT transferred!
 		SLTerrain* GetTerrain();
 
-		/// Gets the bitmap of the intermediary collection SceneLayer that all
-		/// MovableObject:s draw themselves onto before it itself gets drawn onto
-		/// the screen back buffer.
-		/// @return A BITMAP pointer to the MO bitmap. Ownership is NOT transferred!
-		BITMAP* GetMOColorBitmap() const;
-
 		/// Gets the bitmap of the SceneLayer that debug graphics is drawn onto.
 		/// Will only return valid BITMAP if building with DEBUG_BUILD.
 		/// @return A BITMAP pointer to the debug bitmap. Ownership is NOT transferred!
@@ -939,9 +933,6 @@ namespace RTE {
 		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner is located.
 		void Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector& targetPos = Vector(), bool skipBackgroundLayers = false, bool skipTerrain = false);
 
-		/// Clears the color MO layer. Should be done every frame.
-		void ClearMOColorLayer();
-
 		/// Clears the list of pixels on the unseen map that have been revealed.
 		void ClearSeenPixels();
 
@@ -982,8 +973,6 @@ namespace RTE {
 
 		// Current scene being used
 		Scene* m_pCurrentScene;
-		// Color MO layer
-		SceneLayerTracked* m_pMOColorLayer;
 		// A spatial partitioning grid of MOIDs, used to optimize collision and distance queries
 		SpatialPartitionGrid m_MOIDsGrid;
 
