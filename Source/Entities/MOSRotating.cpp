@@ -1607,6 +1607,18 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 	RTEAssert(!m_aSprite.empty(), "No sprite bitmaps loaded to draw!");
 	RTEAssert(m_Frame >= 0 && m_Frame < m_FrameCount, "Frame is out of bounds!");
 
+	Vector spritePos(m_Pos.GetRounded() - targetPos);
+
+	if (pTargetBitmap) {
+		// Don't bother drawing at all if this is out of bounds
+		const Vector corner = Vector(m_SpriteRadius, m_SpriteRadius) * m_Scale;
+		const Box spriteBounds(spritePos - corner, spritePos + corner);
+		const Box targetBounds(Vector(0, 0), Vector(pTargetBitmap->w, pTargetBitmap->h));
+		if (!spriteBounds.IntersectsBox(targetBounds)) {
+			return;
+		}
+	}
+
 	// Only draw MOID if this has a valid MOID assigned to it
 	if (mode == g_DrawMOID && m_MOID == g_NoMOID) {
 		return;
@@ -1636,8 +1648,6 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 	BITMAP* pTempBitmap = m_pTempBitmap;
 	BITMAP* pFlipBitmap = m_pFlipBitmap;
 	int keyColor = g_MaskColor;
-
-	Vector spritePos(m_Pos.GetRounded() - targetPos);
 
 	if (m_Recoiled) {
 		spritePos += m_RecoilOffset;
