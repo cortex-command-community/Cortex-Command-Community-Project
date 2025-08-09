@@ -142,7 +142,7 @@ namespace RTE {
 		/// Sets how much progress has been made toward the set time limit previously set by SetRealTimeLimitMS.
 		/// 0 means no progress, 1.0 means the timer is at the limit, greater is beyond the limit.
 		/// @param progress A normalized scalar between 0.0 - 1.0 of the progress toward the limit.
-		void SetRealTimeLimitProgress(double progress) { m_StartRealTime = g_TimerMan.GetSimTickCount() - static_cast<long long>(round(m_RealTimeLimit * progress)); }
+		void SetRealTimeLimitProgress(double progress) { m_StartRealTime = g_TimerMan.GetSimTickCount() - static_cast<long long>(std::round(m_RealTimeLimit * progress)); }
 
 		/// Returns true or false, depending on whether the elapsed time falls in one of two repeating intervals which divide it.
 		/// This is useful for blink animations etc.
@@ -236,7 +236,7 @@ namespace RTE {
 		/// Sets how much progress has been made toward the set time limit previously set by SetSimTimeLimitMS.
 		/// 0 means no progress, 1.0 means the timer is at the limit, greater is beyond the limit.
 		/// @param progress A normalized scalar between 0.0 - 1.0 of the progress toward the limit.
-		void SetSimTimeLimitProgress(double progress) { m_StartSimTime = g_TimerMan.GetSimTickCount() - static_cast <long long>(round(m_SimTimeLimit * progress)); }
+		void SetSimTimeLimitProgress(double progress) { m_StartSimTime = g_TimerMan.GetSimTickCount() - static_cast <long long>(std::round(m_SimTimeLimit * progress)); }
 
 		/// Returns true or false, depending on whether the elapsed time falls in one of two repeating intervals which divide it.
 		/// This is useful for blink animations etc.
