@@ -852,6 +852,7 @@ void FrameMan::Draw() {
 		AllegroBitmap playerGUIBitmap(drawScreenGUI);
 
 		// Update the scene view to line up with a specific screen and then draw it onto the intermediate screen
+		g_CameraMan.Update(playerScreen);
 		g_SceneMan.Update(playerScreen);
 
 		Vector targetPos = g_CameraMan.GetOffset(playerScreen);
