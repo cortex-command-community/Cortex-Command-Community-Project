@@ -1292,10 +1292,9 @@ void MovableMan::Update() {
 	// ---TEMP---
 
 	// Reset the draw HUD roster line settings
-	m_SortTeamRoster[Activity::TeamOne] = false;
-	m_SortTeamRoster[Activity::TeamTwo] = false;
-	m_SortTeamRoster[Activity::TeamThree] = false;
-	m_SortTeamRoster[Activity::TeamFour] = false;
+	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
+		m_SortTeamRoster[team] = false;
+	}
 
 	// Move all last frame's alarm events into the proper buffer, and clear out the new one to fill up with this frame's
 	for (AlarmEvent* alarmEvent: m_AlarmEvents) {
@@ -1683,28 +1682,16 @@ void MovableMan::Update() {
 	// We've finished stuff that can interact with lua script, so it's the ideal time to start a gc run
 	g_LuaMan.StartAsyncGarbageCollection();
 
-	////////////////////////////////////////////////////////////////////////
 	// Draw the MO matter and IDs to their layers for next frame
 	m_DrawMOIDsTask = g_ThreadMan.GetPriorityThreadPool().submit([this]() {
 		UpdateDrawMOIDs();
 	});
 
-	////////////////////////////////////////////////////////////////////
-	// Draw the MO colors ONLY if this is a drawn update!
-
-	if (g_TimerMan.DrawnSimUpdate())
-		Draw(g_SceneMan.GetMOColorBitmap());
-
 	// Sort team rosters if necessary
-	{
-		if (m_SortTeamRoster[Activity::TeamOne])
-			m_ActorRoster[Activity::TeamOne].sort(MOXPosComparison());
-		if (m_SortTeamRoster[Activity::TeamTwo])
-			m_ActorRoster[Activity::TeamTwo].sort(MOXPosComparison());
-		if (m_SortTeamRoster[Activity::TeamThree])
-			m_ActorRoster[Activity::TeamThree].sort(MOXPosComparison());
-		if (m_SortTeamRoster[Activity::TeamFour])
-			m_ActorRoster[Activity::TeamFour].sort(MOXPosComparison());
+	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
+		if (m_SortTeamRoster[Activity::TeamOne]) {
+			m_ActorRoster[team].sort(MOXPosComparison());
+		}
 	}
 }
 
