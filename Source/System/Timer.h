@@ -2,6 +2,8 @@
 
 #include "TimerMan.h"
 
+#include <cmath>
+
 namespace RTE {
 
 	/// A precise timer for FPS sync etc.

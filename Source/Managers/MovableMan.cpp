@@ -1679,6 +1679,13 @@ void MovableMan::Update() {
 		UpdateDrawMOIDs();
 	});
 
+	////////////////////////////////////////////////////////////////////
+	// Draw the MO colors ONLY if this is a drawn update!
+
+	if (g_TimerMan.DrawnSimUpdate()) {
+		Draw(g_SceneMan.GetMOColorBitmap());
+	}
+
 	// Sort team rosters if necessary
 	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
 		if (m_SortTeamRoster[Activity::TeamOne]) {
