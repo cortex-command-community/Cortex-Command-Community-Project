@@ -311,7 +311,6 @@ void RunGameLoop() {
 	long long drawTotalTime = 0;
 
 	while (!System::IsSetToQuit()) {
-		bool serverUpdated = false;
 		updateStartTime = g_TimerMan.GetAbsoluteTime();
 
 		PollSDLEvents();
@@ -323,8 +322,6 @@ void RunGameLoop() {
 		// Simulation update, as many times as the fixed update step allows in the span since last frame draw.
 		while (g_TimerMan.TimeForSimUpdate()) {
 			ZoneScopedN("Simulation Update");
-
-			serverUpdated = false;
 
 			g_PerformanceMan.NewPerformanceSample();
 			g_PerformanceMan.UpdateMSPSU();
