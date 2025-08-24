@@ -237,6 +237,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed the palette being mangled to 6bit/color on load.
 
 - Fixed allegro not loading alpha of image with alpha by using SDL_image instead.
+
 - Fixed `MOSprite:UnRotateOffset()` giving the wrong results on HFLipped sprites.
 
 - Various fixes and improvements to inventory management when dual-wielding or carrying a shield, to stop situations where the actor unexpectedly puts their items away.
