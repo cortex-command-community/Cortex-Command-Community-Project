@@ -72,7 +72,6 @@ int UInputMan::Initialize() {
 
 	m_MouseStates[0] = {};
 
-
 	int controllerIndex = 0;
 	int joystickCount = 0;
 	SDL_JoystickID* joysticks = SDL_GetGamepads(&joystickCount);
@@ -1049,7 +1048,7 @@ void UInputMan::EndFrame() {
 	}
 
 	m_TextInput.clear();
-	for (auto& [mouseID, mouse]: m_MouseStates) {
+	for (auto& [mouseID, mouse] : m_MouseStates) {
 		mouse.wheelChange = 0;
 		mouse.relativeMotion.Reset();
 		mouse.change.fill(false);

@@ -541,14 +541,6 @@ void PieMenu::Update() {
 		SetPos(affectedObjectAsActor ? affectedObjectAsActor->GetCPUPos() : m_AffectedObject->GetPos());
 	}
 
-	if (m_MenuMode == MenuMode::Wobble) {
-		UpdateWobbling();
-	} else if (m_MenuMode == MenuMode::Freeze) {
-		m_EnabledState = EnabledState::Enabling;
-	} else if (m_EnabledState == EnabledState::Enabling || m_EnabledState == EnabledState::Disabling) {
-		UpdateEnablingAndDisablingProgress();
-	}
-
 	if (controller->IsDisabled()) {
 		SetEnabled(false);
 		return;
@@ -624,6 +616,14 @@ void PieMenu::Update() {
 		if (!IsSubPieMenu()) {
 			SetEnabled(controller->IsState(ControlState::PIE_MENU_ACTIVE));
 		}
+	}
+
+	if (m_MenuMode == MenuMode::Wobble) {
+		UpdateWobbling();
+	} else if (m_MenuMode == MenuMode::Freeze) {
+		m_EnabledState = EnabledState::Enabling;
+	} else if (m_EnabledState == EnabledState::Enabling || m_EnabledState == EnabledState::Disabling) {
+		UpdateEnablingAndDisablingProgress();
 	}
 
 	if (m_BGBitmapNeedsRedrawing && m_EnabledState != EnabledState::Disabled) {
