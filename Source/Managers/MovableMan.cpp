@@ -1399,13 +1399,13 @@ void MovableMan::Update() {
 		                                                                            [&](int start, int end) {
 			                                                                            ZoneScopedN("Actors See");
 			                                                                            for (int i = start; i < end; ++i) {
-																							// TODO - this null check really shouldn't be required. There's almost definitely an issue where the actor update can somehow fuck with this mid-update
-																							// this is VERY bad, and needs investigation!
-																							if (m_Actors[i]) { 
-																								m_Actors[i]->CastSeeRays();
-																							}
+																							m_Actors[i]->CastSeeRays();
 			                                                                            }
 		                                                                            });
+
+		// TODO- right now RemoveActor just removes to actor directly (instead of setting it disabled and delaying the actual remoal), meaning that actorsSeeFuture must be finished immediately
+		// This isn't ideal, as we'd prefer to be able to run the actor/items/particle update in parallel
+		actorsSeeFuture.wait();
 
 		{
 			ZoneScopedN("Actors Update");
@@ -1478,8 +1478,9 @@ void MovableMan::Update() {
 				particle->PostUpdate();
 			}
 		}
-
-		actorsSeeFuture.wait();
+		
+		// See above TODO - this is only commented out because of how RemoveActor currently works
+		//actorsSeeFuture.wait();
 	} // namespace RTE
 
 	//////////////////////////////////////////////////////////////////////
