@@ -579,7 +579,7 @@ void PieMenu::Update() {
 						m_CursorInVisiblePosition = true;
 					} else {
 						bool shouldClearHoveredSlice = controller->IsState(ControlState::PIE_MENU_ACTIVE_ANALOG);
-						
+
 						// If a keyboard-only sub-PieMenu is exited by going off the sides, the parent PieMenu should handle input so the next PieSlice can be naturally stepped to.
 						if (activeSubPieMenuDirection != Directions::None) {
 							for (const auto& [controlState, controlStateDirection]: c_ControlStateDirections) {
@@ -609,10 +609,6 @@ void PieMenu::Update() {
 			if (anyInput) {
 				m_HoverTimer.Reset();
 			}
-
-			if (!IsSubPieMenu() && m_HoverTimer.IsPastRealTimeLimit()) {
-				SetHoveredPieSlice(nullptr);
-			}
 		}
 
 		if (m_HoveredPieSlice && m_EnabledState != EnabledState::Disabled && !m_ActiveSubPieMenu) {
@@ -621,6 +617,10 @@ void PieMenu::Update() {
 
 		if (!IsSubPieMenu()) {
 			SetEnabled(controller->IsState(ControlState::PIE_MENU_ACTIVE));
+
+			if (m_HoverTimer.IsPastRealTimeLimit()) {
+				SetHoveredPieSlice(nullptr);
+			}
 		}
 	}
 
