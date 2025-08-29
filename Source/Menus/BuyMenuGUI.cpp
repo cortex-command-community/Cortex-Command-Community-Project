@@ -487,6 +487,7 @@ void BuyMenuGUI::SetEnabled(bool enable) {
 		g_UInputMan.SetMousePos(mousePos, m_pController->GetPlayer());
 
 		// Default focus to the menu button
+		m_LastHoveredMouseIndex = 0;
 		m_MenuFocus = OK;
 		m_FocusChange = true;
 		UpdateTotalCostLabel(m_pController->GetTeam());
