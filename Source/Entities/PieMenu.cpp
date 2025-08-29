@@ -558,13 +558,16 @@ void PieMenu::Update() {
 
 			bool anyInput = false;
 			bool skipInputBecauseActiveSubPieMenuWasJustDisabled = false;
+
 			if (m_ActiveSubPieMenu) {
 				m_CursorAngle = m_HoveredPieSlice->GetMidAngle() + GetRotAngle();
 				m_CursorInVisiblePosition = false;
 				m_HoverTimer.Reset();
+
 				if (m_ActiveSubPieMenu->IsVisible()) {
 					m_ActiveSubPieMenu->Update();
 				}
+
 				if (!m_ActiveSubPieMenu->IsEnabled()) {
 					m_ActivatedPieSlice = m_ActiveSubPieMenu->m_ActivatedPieSlice;
 					Directions activeSubPieMenuDirection = m_ActiveSubPieMenu->m_DirectionIfSubPieMenu;
@@ -576,6 +579,7 @@ void PieMenu::Update() {
 						m_CursorInVisiblePosition = true;
 					} else {
 						bool shouldClearHoveredSlice = controller->IsState(ControlState::PIE_MENU_ACTIVE_ANALOG);
+						
 						// If a keyboard-only sub-PieMenu is exited by going off the sides, the parent PieMenu should handle input so the next PieSlice can be naturally stepped to.
 						if (activeSubPieMenuDirection != Directions::None) {
 							for (const auto& [controlState, controlStateDirection]: c_ControlStateDirections) {
@@ -585,6 +589,7 @@ void PieMenu::Update() {
 								}
 							}
 						}
+
 						if (shouldClearHoveredSlice) {
 							SetHoveredPieSlice(nullptr);
 							skipInputBecauseActiveSubPieMenuWasJustDisabled = true;
@@ -592,6 +597,7 @@ void PieMenu::Update() {
 					}
 				}
 			}
+
 			if (!m_ActiveSubPieMenu && !skipInputBecauseActiveSubPieMenuWasJustDisabled) {
 				if (controller->IsState(PIE_MENU_ACTIVE_ANALOG)) {
 					anyInput = HandleAnalogInput(controller->GetAnalogCursor());
