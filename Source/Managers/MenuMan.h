@@ -44,6 +44,16 @@ namespace RTE {
 		void Draw() const;
 #pragma endregion
 
+#pragma region Getters/Setters
+		/// Checks if we're currently in a menu screen.
+		/// @return True if in a menu screen; false otherwise.
+		bool GetIsInMenuScreen() const { return m_IsInMenuScreen; }
+
+		/// Sets if we're currently in a menu screen.
+		/// @param isInMenuScreen Whether we're in any menu screen.
+		void SetIsInMenuScreen(bool isInMenuScreen) { m_IsInMenuScreen = isInMenuScreen; }
+#pragma endregion
+
 	private:
 		/// Enumeration for the different menu screens that are active based on transition states.
 		enum ActiveMenu {
@@ -54,6 +64,7 @@ namespace RTE {
 			PauseMenuActive,
 		};
 
+		bool m_IsInMenuScreen; //!< Whether we're currently in a menu screen.
 		ActiveMenu m_ActiveMenu; //!< The currently active menu screen that is being updated and drawn. See ActiveMenu enumeration.
 
 		std::unique_ptr<GUIInputWrapper> m_GUIInput; //!< The GUIInput interface of this MenuMan.

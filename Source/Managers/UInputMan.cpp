@@ -8,6 +8,7 @@
 #include "ConsoleMan.h"
 #include "PresetMan.h"
 #include "PerformanceMan.h"
+#include "MenuMan.h"
 #include "Icon.h"
 #include "GameActivity.h"
 #include "System.h"
@@ -71,7 +72,6 @@ int UInputMan::Initialize() {
 	std::copy(keyboardState, keyboardState + numKeys, m_KeyboardStates[0].keyStates.begin());
 
 	m_MouseStates[0] = {};
-
 
 	int controllerIndex = 0;
 	int joystickCount = 0;
@@ -1049,7 +1049,7 @@ void UInputMan::EndFrame() {
 	}
 
 	m_TextInput.clear();
-	for (auto& [mouseID, mouse]: m_MouseStates) {
+	for (auto& [mouseID, mouse] : m_MouseStates) {
 		mouse.wheelChange = 0;
 		mouse.relativeMotion.Reset();
 		mouse.change.fill(false);
@@ -1178,7 +1178,7 @@ void UInputMan::UpdateMouseInput() {
 		// The mouse cursor is visible and can move about the screen/window, but it should still be contained within the mouse player's part of the window
 		for (int player = PlayerOne; player < MaxPlayerCount; player++) {
 			if (m_ControlScheme[player].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
-				ForceMouseWithinPlayerScreen(g_ActivityMan.IsInActivity(), player);
+				ForceMouseWithinPlayerScreen(g_ActivityMan.IsInActivity() && !g_MenuMan.GetIsInMenuScreen(), player);
 			}
 		}
 	}

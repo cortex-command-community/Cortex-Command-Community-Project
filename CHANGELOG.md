@@ -237,6 +237,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed the palette being mangled to 6bit/color on load.
 
 - Fixed allegro not loading alpha of image with alpha by using SDL_image instead.
+
 - Fixed `MOSprite:UnRotateOffset()` giving the wrong results on HFLipped sprites.
 
 - Various fixes and improvements to inventory management when dual-wielding or carrying a shield, to stop situations where the actor unexpectedly puts their items away.
@@ -246,6 +247,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed a crash on launch when the `SupportedGameVersion` INI property was not set.
 
 - Fixed several issues with the way pie menus and aiming interacts between players, such as opening the pie menu always resetting the M&KB player's aim and pie selection, as well as another issue where the pie menu would fail to appear entirely for some players.
+
+- Fixed an issue where pie menu selection could become unresponsive at low framerates.
 
 - Fixed issue where scripts applied to `MovableObject`s could become disordered in certain circumstances.
 

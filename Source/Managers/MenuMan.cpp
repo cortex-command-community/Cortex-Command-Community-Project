@@ -29,6 +29,7 @@ void MenuMan::Initialize(bool firstTimeInit) {
 	m_GUIInput = std::make_unique<GUIInputWrapper>(-1, g_UInputMan.GetJoystickCount() > 0);
 
 	if (firstTimeInit) {
+		m_IsInMenuScreen = false;
 		g_LoadingScreen.Create(m_GUIScreen.get(), m_GUIInput.get(), g_SettingsMan.GetLoadingScreenProgressReportDisabled());
 	}
 
@@ -129,12 +130,6 @@ void MenuMan::HandleTransitionIntoMenuLoop() {
 }
 
 bool MenuMan::Update() {
-	// If we're in the menu but the activity isn't set as paused, then exit
-	// This can mismatch sometimes like when loading a saved game
-	if (m_ActiveMenu != ActiveMenu::MenusDisabled && !g_ActivityMan.ActivityPaused()) {
-		return true;
-	}
-
 	m_TitleScreen->Update();
 	SetActiveMenu();
 

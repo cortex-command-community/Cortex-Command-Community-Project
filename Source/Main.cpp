@@ -245,6 +245,7 @@ void PollSDLEvents() {
 /// Game menus loop.
 /// </summary>
 void RunMenuLoop() {
+	g_MenuMan.SetIsInMenuScreen(true);
 	g_UInputMan.DisableKeys(false);
 	g_UInputMan.TrapMousePos(false);
 
@@ -282,6 +283,8 @@ void RunMenuLoop() {
 		g_WindowMan.GetScreenBuffer()->End();
 		g_WindowMan.UploadFrame();
 	}
+
+	g_MenuMan.SetIsInMenuScreen(false);
 }
 
 /// <summary>
