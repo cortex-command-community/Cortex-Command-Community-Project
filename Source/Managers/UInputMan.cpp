@@ -8,6 +8,7 @@
 #include "ConsoleMan.h"
 #include "PresetMan.h"
 #include "PerformanceMan.h"
+#include "MenuMan.h"
 #include "Icon.h"
 #include "GameActivity.h"
 #include "System.h"
@@ -1177,7 +1178,7 @@ void UInputMan::UpdateMouseInput() {
 		// The mouse cursor is visible and can move about the screen/window, but it should still be contained within the mouse player's part of the window
 		for (int player = PlayerOne; player < MaxPlayerCount; player++) {
 			if (m_ControlScheme[player].GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
-				ForceMouseWithinPlayerScreen(g_ActivityMan.IsInActivity(), player);
+				ForceMouseWithinPlayerScreen(g_ActivityMan.IsInActivity() && !g_MenuMan.GetIsInMenuScreen(), player);
 			}
 		}
 	}
