@@ -254,6 +254,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed a minor inconsistency where `ACDropShip`s were frequently referred to as `ACDropship`s in Lua, the lower case 's' invalidating keywords where the typo occured.
 
+- Fixed an issue where the buy menu GUI could ignore mouse hover events until you clicked to reset the focus.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
