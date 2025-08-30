@@ -147,7 +147,84 @@ jobs:
           path: CortexCommand.AppImage
           if-no-files-found: error
 
-  build-macos:
+  build-macos-arm:
+    runs-on: macos-latest
+    name: MacOS Build
+
+    env:
+      MACOSX_DEPLOYMENT_TARGET: ${{inputs.macosx-deployment-target}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: "Install Dependencies"
+        run: |
+          brew install ccache pkg-config sdl2 sdl2_image minizip lz4 flac luajit lua libpng tbb ninja meson dylibbundler
+
+      - name: Set Version
+        if: ${{inputs.new_release_version}}
+        uses: ./.github/actions/set_version
+        with:
+          new_release_version: ${{inputs.new_release_version}}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: ${{ github.job }}-${{ matrix.os }}
+
+      - name: Setup Meson
+        env:
+          LDFLAGS: "-static-libgcc -static-libstdc++"
+          CC: "gcc-14"
+          CXX: "g++-14"
+        run: |
+          meson setup --buildtype=${{inputs.build_type}} -Ddebug_type=${{inputs.debug_level}} -Db_lto=false build
+
+      - name: Configure for App Bundle
+        if: ${{inputs.upload_artefacts}}
+        env:
+          LDFLAGS: "-static-libgcc -static-libstdc++"
+        run: |
+          meson configure \
+          -Dinstall_data=false -Dinstall_runner=false -Dfmod_dir=Contents/Frameworks \
+          --bindir=Contents/MacOS \
+          --prefix="/" \
+          -Ddylibbundler_args="-ns" \
+          build
+
+      - name: Build
+        env:
+          LDFLAGS: "-static-libgcc -static-libstdc++"
+        run: |
+          meson compile -C build
+
+      - name: Create App Bundle
+        if: ${{inputs.upload_artefacts}}
+        run: |
+          meson install --destdir="/tmp/Cortex Command.app" -C build
+
+      - name: Tar files
+        if: ${{inputs.upload_artefacts}}
+        run: |
+          cd /tmp/
+          tar -cvf CortexCommand.tar "Cortex Command.app"
+
+      - name: Move artefact
+        if: ${{inputs.upload_artefacts}}
+        run: cp /tmp/CortexCommand.tar .
+
+      - name: Artifact Deploy
+        if: ${{inputs.upload_artefacts}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: CortexCommand (macOS)
+          path: |
+            CortexCommand.tar
+          if-no-files-found: error
+
+  build-macos-x86:
     runs-on: ubuntu-latest
     name: MacOS Build
 

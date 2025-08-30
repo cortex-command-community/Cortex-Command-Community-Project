@@ -200,10 +200,11 @@ if host_machine.system() in ['linux','darwin']
     dependency('liblz4'),
     dependency('libpng'),
     dependency('tbb'),
-    dependency('gl')
   ]
-  if host_machine.system()=='darwin'
-    deps += dependency('appleframeworks', modules: ['Foundation'])  
+  if host_machine.system() == 'linux'
+    deps += dependency('gl')
+  elif host_machine.system()=='darwin'
+    deps += dependency('appleframeworks', modules: ['Foundation', 'OpenGL'])  
   endif
   bfd = compiler.find_library('bfd', required: false)
   if bfd.found()
