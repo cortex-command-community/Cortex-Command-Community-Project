@@ -20,7 +20,7 @@ runs:
         zip --must-match -j CortexCommand.windows.zip \
           release/Cortex\ Command*/Cortex\ Command*.exe \
           release/Cortex\ Command*/Cortex\ Command*.pdb \
-          external/lib/win/{fmod,SDL2}.dll
+          external/lib/win/fmod.dll
 
     - name: Compress Linux Release
       shell: bash
