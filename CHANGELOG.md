@@ -268,7 +268,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
 
 - Removed `GAScripted` Lua script method `SceneTest()` as the new Lua function `IsCompatibleScene(scene)` is more capable.
-	Removed `GAScripted` C++ functionality that would scan the  Lua script file to determine which areas are required. `AddRequiredArea` in the INI should be used instead.
+	Removed `GAScripted` C++ functionality that would scan the Lua script file to determine which areas are required. `AddRequiredArea` in the INI should be used instead.
 	Removed `Scene` Lua function `GetOptionalArea` as it functioned identically to `GetArea` aside from triggering the aforementioned (and now removed) Lua script file scanning.
 
 - Removed `AHuman` property `MaxCrouchRotation`. `CrouchRotAngleTarget` is now used instead.
