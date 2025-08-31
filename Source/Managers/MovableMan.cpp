@@ -12,7 +12,6 @@
 #include "Controller.h"
 #include "AtomGroup.h"
 #include "Actor.h"
-#include "HeldDevice.h"
 #include "ADoor.h"
 #include "Atom.h"
 #include "Scene.h"
@@ -1306,6 +1305,9 @@ void MovableMan::Update() {
 		g_SceneMan.GetScene()->BlockUntilAllPathingRequestsComplete();
 	}
 
+	// Finish our Seeing rays from last frame
+	m_ActorsSeeFuture.wait();
+
 	// Prior to controller/AI update, execute lua callbacks
 	g_LuaMan.ExecuteLuaScriptCallbacks();
 
@@ -1387,18 +1389,6 @@ void MovableMan::Update() {
 	g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
 
 	{
-		auto actorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
-		                                                                            [&](int start, int end) {
-			                                                                            ZoneScopedN("Actors See");
-			                                                                            for (int i = start; i < end; ++i) {
-																							// TODO - this null check really shouldn't be required. There's almost definitely an issue where the actor update can somehow fuck with this mid-update
-																							// this is VERY bad, and needs investigation!
-																							if (m_Actors[i]) { 
-																								m_Actors[i]->CastSeeRays();
-																							}
-			                                                                            }
-		                                                                            });
-
 		{
 			ZoneScopedN("Actors Update");
 
@@ -1470,8 +1460,6 @@ void MovableMan::Update() {
 				particle->PostUpdate();
 			}
 		}
-
-		actorsSeeFuture.wait();
 	} // namespace RTE
 
 	//////////////////////////////////////////////////////////////////////
@@ -1670,6 +1658,15 @@ void MovableMan::Update() {
 			m_Particles.erase(midIt, m_Particles.end());
 		}
 	}
+
+	// Run seeing rays for all actors
+	m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
+	                                                                         [&](int start, int end) {
+		                                                                         ZoneScopedN("Actors See");
+		                                                                         for (int i = start; i < end; ++i) {
+			                                                                         m_Actors[i]->CastSeeRays();
+		                                                                         }
+	                                                                         });
 
 	// We've finished stuff that can interact with lua script, so it's the ideal time to start a gc run
 	g_LuaMan.StartAsyncGarbageCollection();

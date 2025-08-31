@@ -370,13 +370,15 @@ void Controller::UpdatePlayerPieMenuInput(std::array<bool, ControlState::CONTROL
 	}
 
 	// PIE MENU ACTIVE
-	if (g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PIEMENU_ANALOG) || g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PIEMENU_DIGITAL)) {
+	const bool activeAnalog = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PIEMENU_ANALOG) || g_UInputMan.ElementReleased(m_Player, InputElements::INPUT_PIEMENU_ANALOG);
+	const bool activeDigital = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PIEMENU_DIGITAL) || g_UInputMan.ElementReleased(m_Player, InputElements::INPUT_PIEMENU_DIGITAL);
+	if (activeAnalog || activeDigital) {
 		if (m_ControlledActor && m_ControlledActor->GetPieMenu()->IsInNormalAnimationMode() && !m_ControlledActor->GetPieMenu()->IsVisible()) {
 			m_ControlStates[ControlState::PIE_MENU_OPENED] = true;
 		}
 		m_ControlStates[ControlState::PIE_MENU_ACTIVE] = true;
-		m_ControlStates[ControlState::PIE_MENU_ACTIVE_ANALOG] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PIEMENU_ANALOG);
-		m_ControlStates[ControlState::PIE_MENU_ACTIVE_DIGITAL] = g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PIEMENU_DIGITAL);
+		m_ControlStates[ControlState::PIE_MENU_ACTIVE_ANALOG] = activeAnalog;
+		m_ControlStates[ControlState::PIE_MENU_ACTIVE_DIGITAL] = activeDigital;
 
 		// Make sure that firing and aiming are ignored while the pie menu is open, since it consumes those inputs.
 		m_ControlStates[ControlState::WEAPON_FIRE] = false;
