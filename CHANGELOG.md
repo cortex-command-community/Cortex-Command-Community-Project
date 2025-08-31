@@ -260,7 +260,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Removed</b></summary>
 
-- Removed multiplayer. The existing multiplayer implementation was awful and broken, and can be done better with multiple keyboard+mouse support plus an external client like Parsec or Steam Remote Play Together.
+- Removed multiplayer. The existing multiplayer implementation was terrible and broken, and can be done better with multiple keyboard+mouse support plus an external client like Parsec or Steam Remote Play Together. In future, we will investigate whether it's feasible to build in a proper and more capable multiplayer solution.
 
 - All music-related functionality from AudioMan has been removed due to the addition of the MusicMan. Generic DynamicSongs have been put in to use instead.
 	Mod activities that used to queue up all the vanilla music should now instead call, for example, `MusicMan:PlayDynamicSong("Generic Battle Music")`
