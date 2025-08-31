@@ -256,6 +256,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue where the buy menu GUI could ignore mouse hover events until you clicked to reset the focus.
 
+- Fixed an issue where if the first objects in the buy cart are items instead of an actor, they would be added to the first actor's inventory- even if it was an actor without an inventory (i.e a crab)
+
 </details>
 
 <details><summary><b>Removed</b></summary>
