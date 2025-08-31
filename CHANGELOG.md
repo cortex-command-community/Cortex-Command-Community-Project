@@ -260,13 +260,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Removed</b></summary>
 
+- Removed multiplayer. The existing multiplayer implementation was terrible and broken, and can be done better with multiple keyboard+mouse support plus an external client like Parsec or Steam Remote Play Together. In future, we will investigate whether it's feasible to build in a proper and more capable multiplayer solution.
+
 - All music-related functionality from AudioMan has been removed due to the addition of the MusicMan. Generic DynamicSongs have been put in to use instead.
 	Mod activities that used to queue up all the vanilla music should now instead call, for example, `MusicMan:PlayDynamicSong("Generic Battle Music")`
 
 - The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
 
-- Removed `GAScripted` Lua script method `SceneTest()` as the new Lua function `IsCompatibleScene(scene)` is more capable.
-	Removed `GAScripted` C++ functionality that would scan the  Lua script file to determine which areas are required. `AddRequiredArea` in the INI should be used instead.
+- Removed `GAScripted` Lua script method `SceneTest()` as the new Lua function `IsCompatibleScene(scene)` is more capable.  
+	Removed `GAScripted` C++ functionality that would scan the Lua script file to determine which areas are required. `AddRequiredArea` in the INI should be used instead.  
 	Removed `Scene` Lua function `GetOptionalArea` as it functioned identically to `GetArea` aside from triggering the aforementioned (and now removed) Lua script file scanning.
 
 - Removed `AHuman` property `MaxCrouchRotation`. `CrouchRotAngleTarget` is now used instead.
