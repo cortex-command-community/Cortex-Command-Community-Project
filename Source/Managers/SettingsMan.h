@@ -104,6 +104,10 @@ namespace RTE {
 		/// Gets whether pathing requests will be forced to immediately complete for the next frame, or if they can take multiple frames to calculate.
 		/// @return Whether pathing requests will be forced to immediately complete for the next frame
 		bool GetForceImmediatePathingRequestCompletion() const { return m_ForceImmediatePathingRequestCompletion; }
+
+		/// Gets whether Lua multithreaded garbage collection is disabled.
+		/// @return Whether Lua multithreaded garbage collection is disabled.
+		bool LuaMultithreadedGarbageCollectionDisabled() const { return m_LuaMultithreadedGarbageCollectionDisabled; }
 #pragma endregion
 
 #pragma region Gameplay Settings
@@ -398,6 +402,7 @@ namespace RTE {
 		int m_AIUpdateInterval; //!< How often actor's AI should be updated, i.e. every n simulation updates.
 		int m_NumberOfLuaStatesOverride; //!< Overrides how many threaded Lua states we'll use. -1 for no override, which defaults to the maximum number of concurrent hardware threads.
 		bool m_ForceImmediatePathingRequestCompletion; //!< Whether pathing requests will be forced to immediately complete for the next frame, or if they can take multiple frames to calculate.
+		bool m_LuaMultithreadedGarbageCollectionDisabled; //!< Whether Lua multithreaded garbage collection is disabled.
 
 		bool m_SkipIntro; //!< Whether to play the intro of the game or skip directly to the main menu.
 		bool m_ShowToolTips; //!< Whether ToolTips are enabled or not.

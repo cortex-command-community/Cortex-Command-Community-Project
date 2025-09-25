@@ -49,9 +49,9 @@ void SettingsMan::Clear() {
 	m_DisableFactionBuyMenuThemeCursors = false;
 	m_PathFinderGridNodeSize = SCENEGRIDSIZE;
 	m_AIUpdateInterval = 2;
-
 	m_NumberOfLuaStatesOverride = -1;
 	m_ForceImmediatePathingRequestCompletion = false;
+	m_LuaMultithreadedGarbageCollectionDisabled = false;
 
 	m_SkipIntro = false;
 	m_ShowToolTips = true;
@@ -168,6 +168,7 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("AIUpdateInterval", { reader >> m_AIUpdateInterval; });
 	MatchProperty("NumberOfLuaStatesOverride", { reader >> m_NumberOfLuaStatesOverride; });
 	MatchProperty("ForceImmediatePathingRequestCompletion", { reader >> m_ForceImmediatePathingRequestCompletion; });
+	MatchProperty("LuaMultithreadedGarbageCollectionDisabled", { reader >> m_LuaMultithreadedGarbageCollectionDisabled; });
 	MatchProperty("EnableParticleSettling", { reader >> g_MovableMan.m_SettlingEnabled; });
 	MatchProperty("EnableMOSubtraction", { reader >> g_MovableMan.m_MOSubtractionEnabled; });
 	MatchProperty("DeltaTime", { g_TimerMan.SetDeltaTimeSecs(std::stof(reader.ReadPropValue())); });
@@ -294,6 +295,7 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("PathFinderGridNodeSize", m_PathFinderGridNodeSize);
 	writer.NewPropertyWithValue("AIUpdateInterval", m_AIUpdateInterval);
 	writer.NewPropertyWithValue("NumberOfLuaStatesOverride", m_NumberOfLuaStatesOverride);
+	writer.NewPropertyWithValue("LuaMultithreadedGarbageCollectionDisabled", m_LuaMultithreadedGarbageCollectionDisabled);
 	writer.NewPropertyWithValue("ForceImmediatePathingRequestCompletion", m_ForceImmediatePathingRequestCompletion);
 	writer.NewPropertyWithValue("EnableParticleSettling", g_MovableMan.m_SettlingEnabled);
 	writer.NewPropertyWithValue("EnableMOSubtraction", g_MovableMan.m_MOSubtractionEnabled);

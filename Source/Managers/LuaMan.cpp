@@ -33,9 +33,12 @@ void LuaStateWrapper::Initialize() {
 	luabind::open(m_State);
 	tracy::LuaRegister(m_State);
 
-	// Disable gc. We do this manually, so we can thread it to occur parallel with non-lua updates
-	// Not doing this for now... see StartAsyncGarbageCollection()
-	// lua_gc(m_State, LUA_GCSTOP, 0);
+	if (!g_SettingsMan.LuaMultithreadedGarbageCollectionDisabled())
+	{
+		// Disable gc. We do this manually, so we can thread it to occur parallel with non-lua updates
+		// See LuaMan::StartAsyncGarbageCollection()
+		lua_gc(m_State, LUA_GCSTOP, 0);
+	}
 
 	const luaL_Reg libsToLoad[] = {
 	    // Basic Lua libraries
@@ -1279,10 +1282,10 @@ void LuaMan::Update() {
 void LuaMan::StartAsyncGarbageCollection() {
 	ZoneScoped;
 
-	// For now we're not doing this... because it's slower than normal (blocking) GC collection during the update
-	// This is because Lua is trash and basically GCSTEP is meaningless and can cause memory leak runaway, whereas GCCOLLECT is ultra-expensive
-	// So for now we do normal GC collection :(
-	return;
+	if (g_SettingsMan.LuaMultithreadedGarbageCollectionDisabled())
+	{
+		return;
+	}
 
 	std::vector<LuaStateWrapper*> allStates;
 	allStates.reserve(m_ScriptStates.size() + 1);
@@ -1298,7 +1301,7 @@ void LuaMan::StartAsyncGarbageCollection() {
 		    g_ThreadMan.GetPriorityThreadPool().submit([luaState]() {
 			    ZoneScopedN("Lua Garbage Collection");
 			    std::lock_guard<std::recursive_mutex> lock(luaState->GetMutex());
-			    lua_gc(luaState->GetLuaState(), LUA_GCCOLLECT, 0); // we'd use GCSTEP but fuck lua it's trash
+			    lua_gc(luaState->GetLuaState(), LUA_GCCOLLECT, 0);
 			    lua_gc(luaState->GetLuaState(), LUA_GCSTOP, 0);
 		    }));
 	}
