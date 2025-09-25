@@ -51,7 +51,6 @@ void SettingsMan::Clear() {
 	m_AIUpdateInterval = 2;
 	m_NumberOfLuaStatesOverride = -1;
 	m_ForceImmediatePathingRequestCompletion = false;
-	m_LuaMultithreadedGarbageCollectionDisabled = true;
 
 	m_SkipIntro = false;
 	m_ShowToolTips = true;
@@ -168,7 +167,6 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("AIUpdateInterval", { reader >> m_AIUpdateInterval; });
 	MatchProperty("NumberOfLuaStatesOverride", { reader >> m_NumberOfLuaStatesOverride; });
 	MatchProperty("ForceImmediatePathingRequestCompletion", { reader >> m_ForceImmediatePathingRequestCompletion; });
-	MatchProperty("LuaMultithreadedGarbageCollectionDisabled", { reader >> m_LuaMultithreadedGarbageCollectionDisabled; });
 	MatchProperty("EnableParticleSettling", { reader >> g_MovableMan.m_SettlingEnabled; });
 	MatchProperty("EnableMOSubtraction", { reader >> g_MovableMan.m_MOSubtractionEnabled; });
 	MatchProperty("DeltaTime", { g_TimerMan.SetDeltaTimeSecs(std::stof(reader.ReadPropValue())); });
