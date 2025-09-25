@@ -51,7 +51,7 @@ void SettingsMan::Clear() {
 	m_AIUpdateInterval = 2;
 	m_NumberOfLuaStatesOverride = -1;
 	m_ForceImmediatePathingRequestCompletion = false;
-	m_LuaMultithreadedGarbageCollectionDisabled = false;
+	m_LuaMultithreadedGarbageCollectionDisabled = true;
 
 	m_SkipIntro = false;
 	m_ShowToolTips = true;
@@ -296,7 +296,6 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("AIUpdateInterval", m_AIUpdateInterval);
 	writer.NewPropertyWithValue("NumberOfLuaStatesOverride", m_NumberOfLuaStatesOverride);
 	writer.NewPropertyWithValue("ForceImmediatePathingRequestCompletion", m_ForceImmediatePathingRequestCompletion);
-	writer.NewPropertyWithValue("LuaMultithreadedGarbageCollectionDisabled", m_LuaMultithreadedGarbageCollectionDisabled);
 	writer.NewPropertyWithValue("EnableParticleSettling", g_MovableMan.m_SettlingEnabled);
 	writer.NewPropertyWithValue("EnableMOSubtraction", g_MovableMan.m_MOSubtractionEnabled);
 	writer.NewPropertyWithValue("DeltaTime", g_TimerMan.GetDeltaTimeSecs());
