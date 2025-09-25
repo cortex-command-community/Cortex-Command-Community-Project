@@ -295,8 +295,8 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("PathFinderGridNodeSize", m_PathFinderGridNodeSize);
 	writer.NewPropertyWithValue("AIUpdateInterval", m_AIUpdateInterval);
 	writer.NewPropertyWithValue("NumberOfLuaStatesOverride", m_NumberOfLuaStatesOverride);
-	writer.NewPropertyWithValue("LuaMultithreadedGarbageCollectionDisabled", m_LuaMultithreadedGarbageCollectionDisabled);
 	writer.NewPropertyWithValue("ForceImmediatePathingRequestCompletion", m_ForceImmediatePathingRequestCompletion);
+	writer.NewPropertyWithValue("LuaMultithreadedGarbageCollectionDisabled", m_LuaMultithreadedGarbageCollectionDisabled);
 	writer.NewPropertyWithValue("EnableParticleSettling", g_MovableMan.m_SettlingEnabled);
 	writer.NewPropertyWithValue("EnableMOSubtraction", g_MovableMan.m_MOSubtractionEnabled);
 	writer.NewPropertyWithValue("DeltaTime", g_TimerMan.GetDeltaTimeSecs());
