@@ -618,7 +618,7 @@ int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functio
 
 	// Function object may be deleted during the Lua call, making `path` above invalid.
 	// Find and store the script timings entry now and write to it afterward.
-	PerformanceMan::ScriptTiming* timing = NULL;
+	PerformanceMan::ScriptTiming* timing = nullptr;
 
 	// only track time in non-MT scripts, for now
 	if (&g_LuaMan.GetMasterScriptState() == this) {
@@ -640,7 +640,7 @@ int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functio
 	}
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-	if (timing != NULL) {
+	if (timing) {
 		timing->m_Time += std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
 		timing->m_CallCount++;
 	}
