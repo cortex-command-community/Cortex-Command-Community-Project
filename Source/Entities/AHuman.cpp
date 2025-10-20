@@ -717,6 +717,7 @@ bool AHuman::EquipDeviceInGroup(std::string group, bool doEquip) {
 
 				// Erase the inventory entry containing the device we now have switched to
 				*m_Inventory.begin() = 0;
+				m_Inventory.pop_front();
 
 				// Now put the device we were looking for and found into the hand
 				m_pFGArm->SetHeldDevice(pDevice);
@@ -762,9 +763,11 @@ bool AHuman::EquipLoadedFirearmInGroup(std::string group, std::string excludeGro
 
 				// We want to preserve inventory order, so rotate it to the device in question.
 				std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
+				m_Inventory.pop_front();
 
 				// Erase the inventory entry containing the device we now have switched to
 				*m_Inventory.begin() = 0;
+				m_Inventory.pop_front();
 
 				// Now put the device we were looking for and found into the hand
 				m_pFGArm->SetHeldDevice(pFirearm);
@@ -866,6 +869,7 @@ bool AHuman::EquipThrowable(bool doEquip) {
 
 				// Erase the inventory entry containing the device we now have switched to
 				*m_Inventory.begin() = 0;
+				m_Inventory.pop_front();
 
 				// Now put the device we were looking for and found into the hand
 				m_pFGArm->SetHeldDevice(pThrown);
@@ -993,6 +997,7 @@ bool AHuman::EquipShield() {
 
 			// Erase the inventory entry containing the device we now have switched to
 			*m_Inventory.begin() = 0;
+			m_Inventory.pop_front();
 
 			// Now put the device we were looking for and found into the hand
 			m_pFGArm->SetHeldDevice(pShield);
@@ -1055,6 +1060,7 @@ bool AHuman::EquipShieldInBGArm(bool depositToFront) {
 
 			// We want to preserve inventory order, so rotate it to the device in question.
 			std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
+			m_Inventory.pop_front();
 
 			// Erase the inventory entry containing the device we now have switched to
 			*m_Inventory.begin() = 0;
