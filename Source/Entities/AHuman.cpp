@@ -654,7 +654,7 @@ bool AHuman::EquipFirearm(bool doEquip) {
 					AddToInventoryBack(m_pFGArm->RemoveAttachable(heldDevice));
 				}
 
-				// We want to preserve inventory order, so rotate it to the device in question.
+				// We want to preserve inventory order, so rotate to the device in question.
 				std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
 
 				// Erase the inventory entry containing the device we now have switched to
@@ -673,7 +673,6 @@ bool AHuman::EquipFirearm(bool doEquip) {
 				if (m_DeviceSwitchSound) {
 					m_DeviceSwitchSound->Play(m_Pos);
 				}
-
 			}
 
 			return true;
@@ -698,10 +697,6 @@ bool AHuman::EquipDeviceInGroup(std::string group, bool doEquip) {
 		// Found proper device to equip, so make the switch!
 		if (pDevice && pDevice->IsInGroup(group)) {
 			if (doEquip) {
-				// Erase the inventory entry containing the device we now have switched to
-				*itr = 0;
-				m_Inventory.erase(itr);
-
 				// Put back into the inventory what we had in our hands, if anything
 				if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
 					heldDevice->Deactivate();
@@ -716,6 +711,12 @@ bool AHuman::EquipDeviceInGroup(std::string group, bool doEquip) {
 						AddToInventoryBack(previouslyHeldItem);
 					}
 				}
+
+				// We want to preserve inventory order, so rotate it to the device in question.
+				std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
+
+				// Erase the inventory entry containing the device we now have switched to
+				*m_Inventory.begin() = 0;
 
 				// Now put the device we were looking for and found into the hand
 				m_pFGArm->SetHeldDevice(pDevice);
@@ -753,15 +754,17 @@ bool AHuman::EquipLoadedFirearmInGroup(std::string group, std::string excludeGro
 		// Found proper device to equip, so make the switch!
 		if (pFirearm && !pFirearm->NeedsReloading() && pFirearm->IsInGroup(group) && !pFirearm->IsInGroup(excludeGroup)) {
 			if (doEquip) {
-				// Erase the inventory entry containing the device we now have switched to
-				*itr = 0;
-				m_Inventory.erase(itr);
-
 				// Put back into the inventory what we had in our hands, if anything
 				if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
 					m_pFGArm->GetHeldDevice()->Deactivate();
 					AddToInventoryBack(m_pFGArm->RemoveAttachable(heldDevice));
 				}
+
+				// We want to preserve inventory order, so rotate it to the device in question.
+				std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
+
+				// Erase the inventory entry containing the device we now have switched to
+				*m_Inventory.begin() = 0;
 
 				// Now put the device we were looking for and found into the hand
 				m_pFGArm->SetHeldDevice(pFirearm);
@@ -806,7 +809,7 @@ bool AHuman::EquipNamedDevice(const std::string& moduleName, const std::string& 
 					AddToInventoryBack(m_pFGArm->RemoveAttachable(heldDevice));
 				}
 
-				// We want to preserve inventory order in case the player expects it to be some way.
+				// We want to preserve inventory order, so rotate to the device in question.
 				std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
 
 				// Erase the inventory entry containing the device we now have switched to
@@ -851,15 +854,18 @@ bool AHuman::EquipThrowable(bool doEquip) {
 		if (pThrown) // && pThrown->IsWeapon())
 		{
 			if (doEquip) {
-				// Erase the inventory entry containing the device we now have switched to
-				*itr = 0;
-				m_Inventory.erase(itr);
 
 				// Put back into the inventory what we had in our hands, if anything
 				if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
 					heldDevice->Deactivate();
 					AddToInventoryBack(m_pFGArm->RemoveAttachable(heldDevice));
 				}
+
+				// We want to preserve inventory order, so rotate it to the device in question.
+				std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
+
+				// Erase the inventory entry containing the device we now have switched to
+				*m_Inventory.begin() = 0;
 
 				// Now put the device we were looking for and found into the hand
 				m_pFGArm->SetHeldDevice(pThrown);
@@ -975,15 +981,18 @@ bool AHuman::EquipShield() {
 		HeldDevice* pShield = dynamic_cast<HeldDevice*>(*itr);
 		// Found proper device to equip, so make the switch!
 		if (pShield && pShield->IsShield()) {
-			// Erase the inventory entry containing the device we now have switched to
-			*itr = 0;
-			m_Inventory.erase(itr);
 
 			// Put back into the inventory what we had in our hands, if anything
 			if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
 				heldDevice->Deactivate();
 				AddToInventoryBack(m_pFGArm->RemoveAttachable(heldDevice));
 			}
+
+			// We want to preserve inventory order, so rotate it to the device in question.
+			std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
+
+			// Erase the inventory entry containing the device we now have switched to
+			*m_Inventory.begin() = 0;
 
 			// Now put the device we were looking for and found into the hand
 			m_pFGArm->SetHeldDevice(pShield);
@@ -1034,10 +1043,6 @@ bool AHuman::EquipShieldInBGArm(bool depositToFront) {
 		HeldDevice* pShield = dynamic_cast<HeldDevice*>(*itr);
 		// Found proper device to equip, so make the switch!
 		if (pShield && (pShield->IsShield() || pShield->IsDualWieldable())) {
-			// Erase the inventory entry containing the device we now have switched to
-			*itr = 0;
-			m_Inventory.erase(itr);
-
 			// Put back into the inventory what we had in our hands, if anything
 			if (HeldDevice* heldDevice = m_pBGArm->GetHeldDevice()) {
 				heldDevice->Deactivate();
@@ -1047,6 +1052,12 @@ bool AHuman::EquipShieldInBGArm(bool depositToFront) {
 					AddToInventoryBack(m_pBGArm->RemoveAttachable(heldDevice));
 				}
 			}
+
+			// We want to preserve inventory order, so rotate it to the device in question.
+			std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
+
+			// Erase the inventory entry containing the device we now have switched to
+			*m_Inventory.begin() = 0;
 
 			// Now put the device we were looking for and found into the hand
 			m_pBGArm->SetHeldDevice(pShield);
