@@ -800,15 +800,18 @@ bool AHuman::EquipNamedDevice(const std::string& moduleName, const std::string& 
 		// Found proper device to equip, so make the switch!
 		if (pDevice && (moduleName.empty() || pDevice->GetModuleName() == moduleName) && pDevice->GetPresetName() == presetName) {
 			if (doEquip) {
-				// Erase the inventory entry containing the device we now have switched to
-				*itr = 0;
-				m_Inventory.erase(itr);
-
 				// Put back into the inventory what we had in our hands, if anything
 				if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
 					heldDevice->Deactivate();
 					AddToInventoryBack(m_pFGArm->RemoveAttachable(heldDevice));
 				}
+
+				// We want to preserve inventory order in case the player expects it to be some way.
+				std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
+
+				// Erase the inventory entry containing the device we now have switched to
+				*m_Inventory.begin() = 0;
+				m_Inventory.pop_front();
 
 				// Now put the device we were looking for and found into the hand
 				m_pFGArm->SetHeldDevice(pDevice);
