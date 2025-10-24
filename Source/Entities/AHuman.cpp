@@ -648,6 +648,10 @@ bool AHuman::EquipFirearm(bool doEquip) {
 		// Found proper device to equip, so make the switch!
 		if (pWeapon && pWeapon->IsWeapon()) {
 			if (doEquip) {
+				// The next code may cause reallocation, so we can't just use the same pointer.
+				// Store how far into the inventory the device is, memory wise.
+				size_t device_offset = itr - m_Inventory.begin();
+
 				// Put back into the inventory what we had in our hands, if anything
 				if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
 					heldDevice->Deactivate();
@@ -655,7 +659,7 @@ bool AHuman::EquipFirearm(bool doEquip) {
 				}
 
 				// We want to preserve inventory order, so rotate to the device in question.
-				std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
+				std::rotate(m_Inventory.begin(), m_Inventory.begin() + device_offset, m_Inventory.end());
 
 				// Erase the inventory entry containing the device we now have switched to
 				*m_Inventory.begin() = 0;
@@ -697,6 +701,10 @@ bool AHuman::EquipDeviceInGroup(std::string group, bool doEquip) {
 		// Found proper device to equip, so make the switch!
 		if (pDevice && pDevice->IsInGroup(group)) {
 			if (doEquip) {
+				// The next code may cause reallocation, so we can't just use the same pointer.
+				// Store how far into the inventory the device is, memory wise.
+				size_t device_offset = itr - m_Inventory.begin();
+
 				// Put back into the inventory what we had in our hands, if anything
 				if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
 					heldDevice->Deactivate();
@@ -713,7 +721,7 @@ bool AHuman::EquipDeviceInGroup(std::string group, bool doEquip) {
 				}
 
 				// We want to preserve inventory order, so rotate it to the device in question.
-				std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
+				std::rotate(m_Inventory.begin(), m_Inventory.begin() + device_offset, m_Inventory.end());
 
 				// Erase the inventory entry containing the device we now have switched to
 				*m_Inventory.begin() = 0;
@@ -755,6 +763,10 @@ bool AHuman::EquipLoadedFirearmInGroup(std::string group, std::string excludeGro
 		// Found proper device to equip, so make the switch!
 		if (pFirearm && !pFirearm->NeedsReloading() && pFirearm->IsInGroup(group) && !pFirearm->IsInGroup(excludeGroup)) {
 			if (doEquip) {
+				// The next code may cause reallocation, so we can't just use the same pointer.
+				// Store how far into the inventory the device is, memory wise.
+				size_t device_offset = itr - m_Inventory.begin();
+
 				// Put back into the inventory what we had in our hands, if anything
 				if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
 					m_pFGArm->GetHeldDevice()->Deactivate();
@@ -762,7 +774,7 @@ bool AHuman::EquipLoadedFirearmInGroup(std::string group, std::string excludeGro
 				}
 
 				// We want to preserve inventory order, so rotate it to the device in question.
-				std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
+				std::rotate(m_Inventory.begin(), m_Inventory.begin() + device_offset, m_Inventory.end());
 				m_Inventory.pop_front();
 
 				// Erase the inventory entry containing the device we now have switched to
@@ -806,6 +818,10 @@ bool AHuman::EquipNamedDevice(const std::string& moduleName, const std::string& 
 		// Found proper device to equip, so make the switch!
 		if (pDevice && (moduleName.empty() || pDevice->GetModuleName() == moduleName) && pDevice->GetPresetName() == presetName) {
 			if (doEquip) {
+				// The next code may cause reallocation, so we can't just use the same pointer.
+				// Store how far into the inventory the device is, memory wise.
+				size_t device_offset = itr - m_Inventory.begin();
+
 				// Put back into the inventory what we had in our hands, if anything
 				if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
 					heldDevice->Deactivate();
@@ -813,9 +829,9 @@ bool AHuman::EquipNamedDevice(const std::string& moduleName, const std::string& 
 				}
 
 				// We want to preserve inventory order, so rotate to the device in question.
-				std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
+				std::rotate(m_Inventory.begin(), m_Inventory.begin() + device_offset, m_Inventory.end());
 
-				// Erase the inventory entry containing the device we now have switched to
+				// Erase the inventory entry containing the device.
 				*m_Inventory.begin() = 0;
 				m_Inventory.pop_front();
 
@@ -857,6 +873,9 @@ bool AHuman::EquipThrowable(bool doEquip) {
 		if (pThrown) // && pThrown->IsWeapon())
 		{
 			if (doEquip) {
+				// The next code may cause reallocation, so we can't just use the same pointer.
+				// Store how far into the inventory the device is, memory wise.
+				size_t device_offset = itr - m_Inventory.begin();
 
 				// Put back into the inventory what we had in our hands, if anything
 				if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
@@ -865,7 +884,7 @@ bool AHuman::EquipThrowable(bool doEquip) {
 				}
 
 				// We want to preserve inventory order, so rotate it to the device in question.
-				std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
+				std::rotate(m_Inventory.begin(), m_Inventory.begin() + device_offset, m_Inventory.end());
 
 				// Erase the inventory entry containing the device we now have switched to
 				*m_Inventory.begin() = 0;
@@ -985,6 +1004,9 @@ bool AHuman::EquipShield() {
 		HeldDevice* pShield = dynamic_cast<HeldDevice*>(*itr);
 		// Found proper device to equip, so make the switch!
 		if (pShield && pShield->IsShield()) {
+			// The next code may cause reallocation, so we can't just use the same pointer.
+			// Store how far into the inventory the device is, memory wise.
+			size_t device_offset = itr - m_Inventory.begin();
 
 			// Put back into the inventory what we had in our hands, if anything
 			if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
@@ -993,7 +1015,7 @@ bool AHuman::EquipShield() {
 			}
 
 			// We want to preserve inventory order, so rotate it to the device in question.
-			std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
+			std::rotate(m_Inventory.begin(), m_Inventory.begin() + device_offset, m_Inventory.end());
 
 			// Erase the inventory entry containing the device we now have switched to
 			*m_Inventory.begin() = 0;
@@ -1048,6 +1070,10 @@ bool AHuman::EquipShieldInBGArm(bool depositToFront) {
 		HeldDevice* pShield = dynamic_cast<HeldDevice*>(*itr);
 		// Found proper device to equip, so make the switch!
 		if (pShield && (pShield->IsShield() || pShield->IsDualWieldable())) {
+			// The next code may cause reallocation, so we can't just use the same pointer.
+			// Store how far into the inventory the device is, memory wise.
+			size_t device_offset = itr - m_Inventory.begin();
+
 			// Put back into the inventory what we had in our hands, if anything
 			if (HeldDevice* heldDevice = m_pBGArm->GetHeldDevice()) {
 				heldDevice->Deactivate();
@@ -1059,7 +1085,7 @@ bool AHuman::EquipShieldInBGArm(bool depositToFront) {
 			}
 
 			// We want to preserve inventory order, so rotate it to the device in question.
-			std::rotate(m_Inventory.begin(), itr, m_Inventory.end());
+			std::rotate(m_Inventory.begin(), m_Inventory.begin() + device_offset, m_Inventory.end());
 
 			// Erase the inventory entry containing the device we now have switched to
 			*m_Inventory.begin() = 0;
