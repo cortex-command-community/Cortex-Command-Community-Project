@@ -403,6 +403,10 @@ PieSlice* PieMenu::RemovePieSlice(const PieSlice* pieSliceToRemove) {
 			if (PieMenu* removedPieSliceSubPieMenu = removedPieSlice->GetSubPieMenu()) {
 				removedPieSliceSubPieMenu->SetEnabled(false);
 				removedPieSliceSubPieMenu->SetOwner(nullptr);
+
+				if (removedPieSliceSubPieMenu == m_ActiveSubPieMenu) {
+					m_ActiveSubPieMenu = nullptr;
+				}
 			}
 			RepopulateAndRealignCurrentPieSlices();
 		}
