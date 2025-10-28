@@ -614,8 +614,17 @@ int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functio
 			functionObjectArgument->GetLuabindObject()->push(m_State);
 		}
 	}
-
 	const std::string& path = functionObject->GetFilePath();
+
+	// Function object may be deleted during the Lua call, making `path` above invalid.
+	// Find and store the script timings entry now and write to it afterward.
+	PerformanceMan::ScriptTiming* timing = nullptr;
+
+	// only track time in non-MT scripts, for now
+	if (&g_LuaMan.GetMasterScriptState() == this) {
+		timing = &m_ScriptTimings[path];
+	}
+
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	{
 		ZoneScoped;
@@ -631,10 +640,9 @@ int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functio
 	}
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-	// only track time in non-MT scripts, for now
-	if (&g_LuaMan.GetMasterScriptState() == this) {
-		m_ScriptTimings[path].m_Time += std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
-		m_ScriptTimings[path].m_CallCount++;
+	if (timing) {
+		timing->m_Time += std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+		timing->m_CallCount++;
 	}
 
 	lua_pop(m_State, 1);
