@@ -967,27 +967,61 @@ float AHuman::EstimateJumpHeight() const {
 		return 0.0F;
 	}
 
+	// Estimate by "simulating" the character velocity frame by frame as the jetpack is used.
+	// In pixels per second. Positive value means moving upward.
+	//
+	// Start with zero, for now.
+	float currentYVelocity = 0.0F;
+
+	// Upward acceleration per frame.
+	float yGravity = -(g_SceneMan.GetGlobalAcc().GetY() * g_TimerMan.GetDeltaTimeSecs());
+
 	float totalMass = GetMass();
-	float fuelTime = m_pJetpack->GetJetTimeTotal();
-	float fuelUseMultiplier = m_pJetpack->GetThrottleFactor();
 	float impulseBurst = m_pJetpack->EstimateImpulse(true) / totalMass;
 	float impulseThrust = m_pJetpack->EstimateImpulse(false) / totalMass;
+	float fuelTime = m_pJetpack->GetJetTimeTotal();
+	float fuelUseMultiplierThrust = m_pJetpack->GetThrottleFactor();
+	float fuelUseMultiplierBurst = fuelUseMultiplierThrust * impulseBurst / impulseThrust;
 
-	Vector globalAcc = g_SceneMan.GetGlobalAcc() * g_TimerMan.GetDeltaTimeSecs();
-	Vector currentVelocity = Vector(0.0F, -impulseBurst);
-	float totalHeight = currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
-	do {
-		currentVelocity += globalAcc;
-		totalHeight += currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
-		if (fuelTime > 0.0F) {
-			currentVelocity.m_Y -= impulseThrust;
-			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplier;
+	bool hasBursted = false;
+
+	float totalHeight = 0.0F;
+
+	// Simulate up until we start falling.
+	while (true) {
+		// Account for the forces upon us.
+		if (!hasBursted && fuelTime > 0.0F) {
+			currentYVelocity += impulseBurst;
+			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplierBurst;
+			hasBursted = true;
 		}
-	} while (currentVelocity.GetY() < 0.0F);
 
-	float finalCalculatedHeight = totalHeight * -1.0F * c_MPP;
+		if (fuelTime > 0.0F) {
+			currentYVelocity += impulseThrust;
+			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplierThrust;
+		}
+
+		if (currentYVelocity + yGravity >= currentYVelocity) {
+			// Velocity is too big or gravity is too small. Either way, this will loop forever now.
+			// Just assume that we can reach the stars.
+			totalHeight = g_SceneMan.GetSceneHeight() * c_MPP;
+			break;
+		}
+
+		currentYVelocity += yGravity;
+
+		if (currentYVelocity > 0.0F) {
+			// If we're still flying up, that means more height.
+			totalHeight += currentYVelocity * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
+		} else {
+			// If we're not, that means we're done simulating.
+			break;
+		}
+	}
+
 	float finalHeightMultipler = 0.6f; // Make us think we can do less because AI path following is shit
-	return finalCalculatedHeight * finalHeightMultipler;
+
+	return totalHeight * c_MPP * finalHeightMultipler;
 }
 
 bool AHuman::EquipShield() {
