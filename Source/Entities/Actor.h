@@ -6,6 +6,7 @@
 /// http://www.datarealms.com
 /// Inclusions of header files
 #include "MOSRotating.h"
+#include "PathFinder.h"
 
 namespace RTE {
 
