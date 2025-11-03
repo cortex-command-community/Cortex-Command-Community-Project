@@ -1212,6 +1212,11 @@ bool PieMenu::SetHoveredPieSlice(const PieSlice* pieSliceToSelect, bool moveCurs
 		return false;
 	}
 
+	if (m_ActiveSubPieMenu) {
+		m_ActiveSubPieMenu->SetEnabled(false, false);
+		m_ActiveSubPieMenu = nullptr;
+	}
+
 	m_HoveredPieSlice = pieSliceToSelect;
 	m_SubPieMenuHoverOpenTimer.Reset();
 	m_BGBitmapNeedsRedrawing = true;
