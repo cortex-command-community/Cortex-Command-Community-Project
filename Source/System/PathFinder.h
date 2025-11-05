@@ -3,6 +3,7 @@
 #include "Box.h"
 #include "System/MicroPather/micropather.h"
 
+#include <array>
 #include <atomic>
 #include <list>
 #include <memory>

@@ -12,6 +12,7 @@
 #include "WindowMan.h"
 #include "SoundSet.h"
 
+#include <array>
 #include <cstring>
 
 using namespace RTE;

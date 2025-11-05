@@ -18,6 +18,8 @@
 #include "SettingsMan.h"
 #include "System.h"
 
+#include <array>
+
 using namespace RTE;
 
 const std::array<std::string, 10> PresetMan::c_OfficialModules = {"Base.rte", "Coalition.rte", "Imperatus.rte", "Techion.rte", "Dummy.rte", "Ronin.rte", "Browncoats.rte", "Uzira.rte", "MuIlaak.rte", "Missions.rte"};

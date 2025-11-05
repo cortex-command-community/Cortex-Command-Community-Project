@@ -8,6 +8,8 @@
 #include "MOSRotating.h"
 #include "PathFinder.h"
 
+#include <array>
+
 namespace RTE {
 
 #pragma region Global Macro Definitions

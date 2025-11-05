@@ -8,6 +8,7 @@
 
 #include "tracy/Tracy.hpp"
 
+#include <array>
 #include <execution>
 
 using namespace RTE;
