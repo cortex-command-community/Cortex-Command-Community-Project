@@ -21,7 +21,9 @@
 
 #include "PrimitiveMan.h"
 
+#include "TimerMan.h"
 #include "tracy/Tracy.hpp"
+#include <limits>
 
 using namespace RTE;
 
@@ -2057,7 +2059,7 @@ void AHuman::PreControllerUpdate() {
 	}
 
 	// Item currently set to be within reach has expired or is now out of range
-	if (m_pItemInReach && (!m_pItemInReach->IsPickupableBy(this) || !g_MovableMan.IsDevice(m_pItemInReach) || g_SceneMan.ShortestDistance(reachPoint, m_pItemInReach->GetPos(), g_SceneMan.SceneWrapsX()).MagnitudeIsGreaterThan(reach + m_pItemInReach->GetRadius()))) {
+	if (m_pItemInReach && (m_pItemInReach->ToDelete() || !m_pItemInReach->IsPickupableBy(this) || !g_MovableMan.IsDevice(m_pItemInReach) || g_SceneMan.ShortestDistance(reachPoint, m_pItemInReach->GetPos(), g_SceneMan.SceneWrapsX()).MagnitudeIsGreaterThan(reach + m_pItemInReach->GetRadius()))) {
 		m_pItemInReach = nullptr;
 	}
 
