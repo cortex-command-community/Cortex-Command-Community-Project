@@ -14,6 +14,8 @@
 #include "GUIFont.h"
 #include "AllegroBitmap.h"
 
+#include <array>
+
 using namespace RTE;
 
 ConcreteClassInfo(PieMenu, Entity, 20);

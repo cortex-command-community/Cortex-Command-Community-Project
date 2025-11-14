@@ -6,6 +6,8 @@
 #include "Actor.h"
 #include "PieMenu.h"
 
+#include <array>
+
 using namespace RTE;
 
 void Controller::Clear() {

@@ -6,6 +6,8 @@
 #include "SettingsGUI.h"
 #include "ModManagerGUI.h"
 
+#include <array>
+
 namespace RTE {
 
 	class AllegroScreen;
