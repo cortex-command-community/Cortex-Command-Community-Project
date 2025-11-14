@@ -174,8 +174,8 @@ void GUILabel::Draw(GUIBitmap* Bitmap, bool overwiteFontColorAndKerning) {
 						m_OverflowScrollState = OverflowScrollState::WaitAtEnd;
 						break;
 					}
-					xPos -= modifyXPos ? static_cast<int>(static_cast<double>(textFullWidth - m_Width) * m_OverflowScrollTimer.RealTimeLimitProgress()) : 0;
-					yPos -= modifyYPos ? static_cast<int>(static_cast<double>(textFullHeight - m_Height) * m_OverflowScrollTimer.RealTimeLimitProgress()) : 0;
+					xPos -= modifyXPos ? static_cast<int>(static_cast<double>(textFullWidth - m_Width) * m_OverflowScrollTimer.GetRealTimeLimitProgress()) : 0;
+					yPos -= modifyYPos ? static_cast<int>(static_cast<double>(textFullHeight - m_Height) * m_OverflowScrollTimer.GetRealTimeLimitProgress()) : 0;
 					break;
 				case OverflowScrollState::WaitAtEnd:
 					if (m_OverflowScrollTimer.GetRealTimeLimitMS() == -1) {

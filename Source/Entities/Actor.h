@@ -6,6 +6,9 @@
 /// http://www.datarealms.com
 /// Inclusions of header files
 #include "MOSRotating.h"
+#include "PathFinder.h"
+
+#include <array>
 
 namespace RTE {
 
@@ -445,9 +448,19 @@ namespace RTE {
 		/// @param m_MovePath.push_back(newCoordinate The new coordinate to add to the end of the MovePath.
 		void AddToMovePathEnd(Vector newCoordinate) { m_MovePath.push_back(newCoordinate); }
 
-		/// Gets the last position in this Actor's move path.
-		/// @return The last position in this Actor's move path.
-		Vector GetMovePathEnd() const { return m_MovePath.back(); }
+		/// Gets the last position in this Actor's move path, or otherwise the current move target.
+		/// @return The last position in this Actor's move path, or otherwise the current move target.
+		Vector GetMovePathEnd() const {
+			if (!m_MovePath.empty()) {
+				return m_MovePath.back();
+			}
+			// In case move path is empty, check our own path request.
+			if (m_PathRequest) {
+				return const_cast<Vector&>(m_PathRequest->targetPos);
+			}
+			// In case *that* is empty, just return the move target.
+			return m_MoveTarget;
+		}
 
 		/// Removes a coordinate from the beginning of the MovePath, meaning the
 		/// one closest to this Actor.

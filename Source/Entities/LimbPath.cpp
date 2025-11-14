@@ -517,8 +517,8 @@ void LimbPath::Draw(BITMAP* pTargetBitmap,
 	for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr) {
 		nextPoint += *itr;
 
-		Vector prevWorldPosition = m_JointPos + (RotatePoint(prevPoint * GetTotalScaleMultiplier()));
-		Vector nextWorldPosition = m_JointPos + (RotatePoint(nextPoint * GetTotalScaleMultiplier()));
+		Vector prevWorldPosition = m_JointPos + (RotatePoint(prevPoint * GetTotalScaleMultiplier()) - targetPos);
+		Vector nextWorldPosition = m_JointPos + (RotatePoint(nextPoint * GetTotalScaleMultiplier()) - targetPos);
 		line(pTargetBitmap, prevWorldPosition.m_X, prevWorldPosition.m_Y, nextWorldPosition.m_X, nextWorldPosition.m_Y, color);
 
 		Vector min(std::min(prevWorldPosition.m_X, nextWorldPosition.m_X), std::min(prevWorldPosition.m_Y, nextWorldPosition.m_Y));
@@ -528,3 +528,4 @@ void LimbPath::Draw(BITMAP* pTargetBitmap,
 		prevPoint += *itr;
 	}
 }
+

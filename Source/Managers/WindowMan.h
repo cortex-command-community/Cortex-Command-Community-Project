@@ -14,6 +14,7 @@ struct SDL_Window;
 struct SDL_Renderer;
 struct SDL_Texture;
 struct SDL_Rect;
+struct SDL_GLContextState;
 union SDL_Event;
 }
 
@@ -35,7 +36,7 @@ namespace RTE {
 	};
 
 	struct SDLContextDeleter {
-		void operator()(void* context) const;
+		void operator()(SDL_GLContextState* context) const;
 	};
 
 	/// The singleton manager over the game window and display of frames.
@@ -131,6 +132,8 @@ namespace RTE {
 		/// Get the screen buffer texture.
 		/// @return The screen buffer texture.
 		std::shared_ptr<RenderTarget> GetScreenBuffer() const { return m_ScreenBuffer; }
+
+		void RefocusWindow() const;
 #pragma endregion
 
 #pragma region Resolution Change Handling
@@ -165,6 +168,9 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Concrete Methods
+		/// SDL_EventFilter to hadnle window exposed events for live resize.
+		static void HandleWindowExposedEvent(void* userdata, SDL_Event* event);
+
 		/// Adds an SDL_Event to the Event queue for processing on Update.
 		/// @param windowEvent The SDL window event to queue.
 		void QueueWindowEvent(const SDL_Event& windowEvent);
@@ -200,7 +206,7 @@ namespace RTE {
 		std::vector<glm::mat4> m_MultiDisplayProjections; //!< Projection Matrices for MultiDisplay.
 		std::vector<glm::mat4> m_MultiDisplayTextureOffsets; //!< Texture offsets for multi-display fullscreen.
 
-		std::unique_ptr<void, SDLContextDeleter> m_GLContext; //!< OpenGL context.
+		std::unique_ptr<SDL_GLContextState, SDLContextDeleter> m_GLContext; //!< OpenGL context.
 		GLuint m_ScreenVAO; //!< Vertex Array Object for the screen quad.
 		GLuint m_ScreenVBO; //!< Vertex Buffer Object for the screen quad.
 
@@ -276,7 +282,7 @@ namespace RTE {
 		void AttemptToRevertToPreviousResolution(bool revertToDefaults = false);
 #pragma endregion
 
-#pragma region Multi - Display Handling
+#pragma region Multi-Display Handling
 		/// Clears all the multi-display data, resetting the game to a single-window-single-display state.
 		void ClearMultiDisplayData();
 

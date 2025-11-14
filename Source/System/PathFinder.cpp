@@ -8,6 +8,7 @@
 
 #include "tracy/Tracy.hpp"
 
+#include <array>
 #include <execution>
 
 using namespace RTE;
@@ -174,7 +175,7 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 
 	// How high up we can jump from this node
 	s_JumpHeightVertical = std::max(1, static_cast<int>(jumpHeight / (m_NodeDimension * c_MPP))); // min of 1 so automovers work a bit better
-	s_JumpHeightDiagonal = static_cast<int>((jumpHeight * 0.7F) / (m_NodeDimension * c_MPP));
+	s_JumpHeightDiagonal = std::max(1, static_cast<int>((jumpHeight * 0.7F) / (m_NodeDimension * c_MPP)));
 
 	// Actors capable of digging can use s_DigStrength to modify the node adjacency cost.
 	s_DigStrength = digStrength;
@@ -206,10 +207,8 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 		}
 
 		// Adjust the last point to be exactly where the end is supposed to be (really?).
-		if (pathResult.size() > 2) {
-			pathResult.pop_back();
-			pathResult.push_back(end);
-		}
+		pathResult.pop_back();
+		pathResult.push_back(end);
 	} else {
 		// Empty path, give exact start and end.
 		pathResult.push_back(start);
@@ -361,7 +360,10 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 					break;
 				}
 
-				totalMaterialCost += 1.0F + extraUpCost + (GetMaterialTransitionCost(*currentNode->UpMaterial) * 3.0F) + radiatedCost;
+				float f = i + 2; // Exponential cost increase for jumping higher
+				float extraJumpCost = f * f * 0.5F; // Exponential cost increase for jumping higher
+
+				totalMaterialCost += 1.0F + extraUpCost + extraJumpCost + (GetMaterialTransitionCost(*currentNode->UpMaterial) * 3.0F) + radiatedCost;
 
 				adjCost.cost = totalMaterialCost;
 				adjCost.state = static_cast<void*>(currentNode->Up);
@@ -385,7 +387,10 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 					break;
 				}
 
-				totalMaterialCost += 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*currentNode->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost;
+				float f = i + 2; // Exponential cost increase for jumping higher
+				float extraJumpCost = f * f * 0.5F; // Exponential cost increase for jumping higher
+
+				totalMaterialCost += 1.4F + (extraUpCost * 1.4F) + (extraJumpCost * 1.4f) + (GetMaterialTransitionCost(*currentNode->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost;
 
 				adjCost.cost = totalMaterialCost;
 				adjCost.state = static_cast<void*>(currentNode->UpRight);
@@ -404,7 +409,10 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 					break;
 				}
 
-				totalMaterialCost += 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*currentNode->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost;
+				float f = i + 2; // Exponential cost increase for jumping higher
+				float extraJumpCost = f * f * 0.5F; // Exponential cost increase for jumping higher
+
+				totalMaterialCost += 1.4F + (extraUpCost * 1.4F) + (extraJumpCost * 1.4f) + (GetMaterialTransitionCost(*currentNode->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost;
 
 				adjCost.cost = totalMaterialCost;
 				adjCost.state = static_cast<void*>(currentNode->LeftUp);

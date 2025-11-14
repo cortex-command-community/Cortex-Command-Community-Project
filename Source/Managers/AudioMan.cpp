@@ -9,8 +9,10 @@
 #include "SoundContainer.h"
 #include "GUISound.h"
 #include "PresetMan.h"
+#include "WindowMan.h"
 #include "SoundSet.h"
 
+#include <array>
 #include <cstring>
 
 using namespace RTE;
@@ -138,8 +140,13 @@ void AudioMan::Destroy() {
 
 void AudioMan::Update() {
 	if (m_AudioEnabled) {
-
 		FMOD_RESULT status = FMOD_OK;
+
+		if (m_MuteAudioOnFocusLoss && !g_WindowMan.AnyWindowHasFocus()) {
+			m_MasterChannelGroup->setMute(true);
+		} else {
+			m_MasterChannelGroup->setMute(m_MuteMaster);
+		}
 
 		float globalPitch = 1.0F;
 

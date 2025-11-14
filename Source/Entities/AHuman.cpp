@@ -648,15 +648,22 @@ bool AHuman::EquipFirearm(bool doEquip) {
 		// Found proper device to equip, so make the switch!
 		if (pWeapon && pWeapon->IsWeapon()) {
 			if (doEquip) {
-				// Erase the inventory entry containing the device we now have switched to
-				*itr = 0;
-				m_Inventory.erase(itr);
+				// The next code may cause reallocation, so we can't just use the same pointer.
+				// Store how far into the inventory the device is, memory wise.
+				size_t device_offset = itr - m_Inventory.begin();
 
 				// Put back into the inventory what we had in our hands, if anything
 				if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
 					heldDevice->Deactivate();
 					AddToInventoryBack(m_pFGArm->RemoveAttachable(heldDevice));
 				}
+
+				// We want to preserve inventory order, so rotate to the device in question.
+				std::rotate(m_Inventory.begin(), m_Inventory.begin() + device_offset, m_Inventory.end());
+
+				// Erase the inventory entry containing the device we now have switched to
+				*m_Inventory.begin() = 0;
+				m_Inventory.pop_front();
 
 				// Now put the device we were looking for and found into the hand
 				m_pFGArm->SetHeldDevice(pWeapon);
@@ -694,9 +701,9 @@ bool AHuman::EquipDeviceInGroup(std::string group, bool doEquip) {
 		// Found proper device to equip, so make the switch!
 		if (pDevice && pDevice->IsInGroup(group)) {
 			if (doEquip) {
-				// Erase the inventory entry containing the device we now have switched to
-				*itr = 0;
-				m_Inventory.erase(itr);
+				// The next code may cause reallocation, so we can't just use the same pointer.
+				// Store how far into the inventory the device is, memory wise.
+				size_t device_offset = itr - m_Inventory.begin();
 
 				// Put back into the inventory what we had in our hands, if anything
 				if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
@@ -712,6 +719,13 @@ bool AHuman::EquipDeviceInGroup(std::string group, bool doEquip) {
 						AddToInventoryBack(previouslyHeldItem);
 					}
 				}
+
+				// We want to preserve inventory order, so rotate it to the device in question.
+				std::rotate(m_Inventory.begin(), m_Inventory.begin() + device_offset, m_Inventory.end());
+
+				// Erase the inventory entry containing the device we now have switched to
+				*m_Inventory.begin() = 0;
+				m_Inventory.pop_front();
 
 				// Now put the device we were looking for and found into the hand
 				m_pFGArm->SetHeldDevice(pDevice);
@@ -749,15 +763,23 @@ bool AHuman::EquipLoadedFirearmInGroup(std::string group, std::string excludeGro
 		// Found proper device to equip, so make the switch!
 		if (pFirearm && !pFirearm->NeedsReloading() && pFirearm->IsInGroup(group) && !pFirearm->IsInGroup(excludeGroup)) {
 			if (doEquip) {
-				// Erase the inventory entry containing the device we now have switched to
-				*itr = 0;
-				m_Inventory.erase(itr);
+				// The next code may cause reallocation, so we can't just use the same pointer.
+				// Store how far into the inventory the device is, memory wise.
+				size_t device_offset = itr - m_Inventory.begin();
 
 				// Put back into the inventory what we had in our hands, if anything
 				if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
 					m_pFGArm->GetHeldDevice()->Deactivate();
 					AddToInventoryBack(m_pFGArm->RemoveAttachable(heldDevice));
 				}
+
+				// We want to preserve inventory order, so rotate it to the device in question.
+				std::rotate(m_Inventory.begin(), m_Inventory.begin() + device_offset, m_Inventory.end());
+				m_Inventory.pop_front();
+
+				// Erase the inventory entry containing the device we now have switched to
+				*m_Inventory.begin() = 0;
+				m_Inventory.pop_front();
 
 				// Now put the device we were looking for and found into the hand
 				m_pFGArm->SetHeldDevice(pFirearm);
@@ -796,15 +818,22 @@ bool AHuman::EquipNamedDevice(const std::string& moduleName, const std::string& 
 		// Found proper device to equip, so make the switch!
 		if (pDevice && (moduleName.empty() || pDevice->GetModuleName() == moduleName) && pDevice->GetPresetName() == presetName) {
 			if (doEquip) {
-				// Erase the inventory entry containing the device we now have switched to
-				*itr = 0;
-				m_Inventory.erase(itr);
+				// The next code may cause reallocation, so we can't just use the same pointer.
+				// Store how far into the inventory the device is, memory wise.
+				size_t device_offset = itr - m_Inventory.begin();
 
 				// Put back into the inventory what we had in our hands, if anything
 				if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
 					heldDevice->Deactivate();
 					AddToInventoryBack(m_pFGArm->RemoveAttachable(heldDevice));
 				}
+
+				// We want to preserve inventory order, so rotate to the device in question.
+				std::rotate(m_Inventory.begin(), m_Inventory.begin() + device_offset, m_Inventory.end());
+
+				// Erase the inventory entry containing the device.
+				*m_Inventory.begin() = 0;
+				m_Inventory.pop_front();
 
 				// Now put the device we were looking for and found into the hand
 				m_pFGArm->SetHeldDevice(pDevice);
@@ -844,15 +873,22 @@ bool AHuman::EquipThrowable(bool doEquip) {
 		if (pThrown) // && pThrown->IsWeapon())
 		{
 			if (doEquip) {
-				// Erase the inventory entry containing the device we now have switched to
-				*itr = 0;
-				m_Inventory.erase(itr);
+				// The next code may cause reallocation, so we can't just use the same pointer.
+				// Store how far into the inventory the device is, memory wise.
+				size_t device_offset = itr - m_Inventory.begin();
 
 				// Put back into the inventory what we had in our hands, if anything
 				if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
 					heldDevice->Deactivate();
 					AddToInventoryBack(m_pFGArm->RemoveAttachable(heldDevice));
 				}
+
+				// We want to preserve inventory order, so rotate it to the device in question.
+				std::rotate(m_Inventory.begin(), m_Inventory.begin() + device_offset, m_Inventory.end());
+
+				// Erase the inventory entry containing the device we now have switched to
+				*m_Inventory.begin() = 0;
+				m_Inventory.pop_front();
 
 				// Now put the device we were looking for and found into the hand
 				m_pFGArm->SetHeldDevice(pThrown);
@@ -931,27 +967,61 @@ float AHuman::EstimateJumpHeight() const {
 		return 0.0F;
 	}
 
+	// Estimate by "simulating" the character velocity frame by frame as the jetpack is used.
+	// In pixels per second. Positive value means moving upward.
+	//
+	// Start with zero, for now.
+	float currentYVelocity = 0.0F;
+
+	// Upward acceleration per frame.
+	float yGravity = -(g_SceneMan.GetGlobalAcc().GetY() * g_TimerMan.GetDeltaTimeSecs());
+
 	float totalMass = GetMass();
-	float fuelTime = m_pJetpack->GetJetTimeTotal();
-	float fuelUseMultiplier = m_pJetpack->GetThrottleFactor();
 	float impulseBurst = m_pJetpack->EstimateImpulse(true) / totalMass;
 	float impulseThrust = m_pJetpack->EstimateImpulse(false) / totalMass;
+	float fuelTime = m_pJetpack->GetJetTimeTotal();
+	float fuelUseMultiplierThrust = m_pJetpack->GetThrottleFactor();
+	float fuelUseMultiplierBurst = fuelUseMultiplierThrust * impulseBurst / impulseThrust;
 
-	Vector globalAcc = g_SceneMan.GetGlobalAcc() * g_TimerMan.GetDeltaTimeSecs();
-	Vector currentVelocity = Vector(0.0F, -impulseBurst);
-	float totalHeight = currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
-	do {
-		currentVelocity += globalAcc;
-		totalHeight += currentVelocity.GetY() * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
-		if (fuelTime > 0.0F) {
-			currentVelocity.m_Y -= impulseThrust;
-			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplier;
+	bool hasBursted = false;
+
+	float totalHeight = 0.0F;
+
+	// Simulate up until we start falling.
+	while (true) {
+		// Account for the forces upon us.
+		if (!hasBursted && fuelTime > 0.0F) {
+			currentYVelocity += impulseBurst;
+			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplierBurst;
+			hasBursted = true;
 		}
-	} while (currentVelocity.GetY() < 0.0F);
 
-	float finalCalculatedHeight = totalHeight * -1.0F * c_MPP;
-	float finalHeightMultipler = 0.8f; // Make us think we can do a little less because AI path following is shit
-	return finalCalculatedHeight * finalHeightMultipler;
+		if (fuelTime > 0.0F) {
+			currentYVelocity += impulseThrust;
+			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplierThrust;
+		}
+
+		if (currentYVelocity + yGravity >= currentYVelocity) {
+			// Velocity is too big or gravity is too small. Either way, this will loop forever now.
+			// Just assume that we can reach the stars.
+			totalHeight = g_SceneMan.GetSceneHeight() * c_MPP;
+			break;
+		}
+
+		currentYVelocity += yGravity;
+
+		if (currentYVelocity > 0.0F) {
+			// If we're still flying up, that means more height.
+			totalHeight += currentYVelocity * g_TimerMan.GetDeltaTimeSecs() * c_PPM;
+		} else {
+			// If we're not, that means we're done simulating.
+			break;
+		}
+	}
+
+	float finalHeightMultipler = 0.6f; // Make us think we can do less because AI path following is shit
+
+	return totalHeight * c_MPP * finalHeightMultipler;
 }
 
 bool AHuman::EquipShield() {
@@ -968,15 +1038,22 @@ bool AHuman::EquipShield() {
 		HeldDevice* pShield = dynamic_cast<HeldDevice*>(*itr);
 		// Found proper device to equip, so make the switch!
 		if (pShield && pShield->IsShield()) {
-			// Erase the inventory entry containing the device we now have switched to
-			*itr = 0;
-			m_Inventory.erase(itr);
+			// The next code may cause reallocation, so we can't just use the same pointer.
+			// Store how far into the inventory the device is, memory wise.
+			size_t device_offset = itr - m_Inventory.begin();
 
 			// Put back into the inventory what we had in our hands, if anything
 			if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice()) {
 				heldDevice->Deactivate();
 				AddToInventoryBack(m_pFGArm->RemoveAttachable(heldDevice));
 			}
+
+			// We want to preserve inventory order, so rotate it to the device in question.
+			std::rotate(m_Inventory.begin(), m_Inventory.begin() + device_offset, m_Inventory.end());
+
+			// Erase the inventory entry containing the device we now have switched to
+			*m_Inventory.begin() = 0;
+			m_Inventory.pop_front();
 
 			// Now put the device we were looking for and found into the hand
 			m_pFGArm->SetHeldDevice(pShield);
@@ -1027,9 +1104,9 @@ bool AHuman::EquipShieldInBGArm(bool depositToFront) {
 		HeldDevice* pShield = dynamic_cast<HeldDevice*>(*itr);
 		// Found proper device to equip, so make the switch!
 		if (pShield && (pShield->IsShield() || pShield->IsDualWieldable())) {
-			// Erase the inventory entry containing the device we now have switched to
-			*itr = 0;
-			m_Inventory.erase(itr);
+			// The next code may cause reallocation, so we can't just use the same pointer.
+			// Store how far into the inventory the device is, memory wise.
+			size_t device_offset = itr - m_Inventory.begin();
 
 			// Put back into the inventory what we had in our hands, if anything
 			if (HeldDevice* heldDevice = m_pBGArm->GetHeldDevice()) {
@@ -1040,6 +1117,13 @@ bool AHuman::EquipShieldInBGArm(bool depositToFront) {
 					AddToInventoryBack(m_pBGArm->RemoveAttachable(heldDevice));
 				}
 			}
+
+			// We want to preserve inventory order, so rotate it to the device in question.
+			std::rotate(m_Inventory.begin(), m_Inventory.begin() + device_offset, m_Inventory.end());
+
+			// Erase the inventory entry containing the device we now have switched to
+			*m_Inventory.begin() = 0;
+			m_Inventory.pop_front();
 
 			// Now put the device we were looking for and found into the hand
 			m_pBGArm->SetHeldDevice(pShield);
@@ -2664,8 +2748,6 @@ void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 	waypoint = m_MoveTarget - targetPos;
 	circlefill(pTargetBitmap, waypoint.m_X, waypoint.m_Y, 3, g_RedColor);
 	lastPoint = m_PrevPathTarget - targetPos;
-	circlefill(pTargetBitmap, lastPoint.m_X, lastPoint.m_Y, 2, g_YellowGlowColor);
-	lastPoint = m_DigTunnelEndPos - targetPos;
 	circlefill(pTargetBitmap, lastPoint.m_X, lastPoint.m_Y, 2, g_YellowGlowColor);
 	// Radius
 //    waypoint = m_Pos - targetPos;

@@ -140,6 +140,16 @@ void GUITextPanel::Draw(GUIScreen* Screen) {
 	Screen->GetBitmap()->SetClipRect(nullptr);
 }
 
+void GUITextPanel::OnGainFocus() {
+	GUIPanel::OnGainFocus();
+	m_Manager->GetInputController()->StartTextInput();
+}
+
+void GUITextPanel::OnLoseFocus() {
+	GUIPanel::OnLoseFocus();
+	m_Manager->GetInputController()->StopTextInput();
+}
+
 void GUITextPanel::OnKeyPress(int KeyCode, int Modifier) {
 	// TODO: Figure out what the "performance bitching" is.
 	// Condition here to stop the compiler bitching about performance

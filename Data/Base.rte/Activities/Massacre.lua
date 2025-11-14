@@ -261,7 +261,7 @@ function Massacre:UpdateActivity()
 			if shipMaxMass < 0 then
 				shipMaxMass = math.huge;
 			elseif shipMaxMass < 1 then
-				if Craft.ClassName == "ACDropship" then
+				if Craft.ClassName == "ACDropShip" then
 					DeleteEntity(ship);
 					Craft = RandomACDropShip("Craft", 0); -- MaxMass not defined
 				else

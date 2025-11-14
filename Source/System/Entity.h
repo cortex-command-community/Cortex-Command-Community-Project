@@ -3,6 +3,7 @@
 #include "Serializable.h"
 #include "RTEError.h"
 
+#include <mutex>
 #include <list>
 #include <unordered_set>
 

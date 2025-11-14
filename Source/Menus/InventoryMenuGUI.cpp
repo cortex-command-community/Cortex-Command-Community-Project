@@ -215,11 +215,7 @@ int InventoryMenuGUI::SetupFullOrTransferMode() {
 		s_CursorBitmap = cursorFile.GetAsBitmap();
 	}
 
-	if (g_FrameMan.IsInMultiplayerMode()) {
-		dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("base"))->SetSize(g_FrameMan.GetPlayerFrameBufferWidth(m_MenuController->GetPlayer()), g_FrameMan.GetPlayerFrameBufferHeight(m_MenuController->GetPlayer()));
-	} else {
-		dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("base"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
-	}
+	dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("base"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
 
 	m_GUITopLevelBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBox_InventoryMenuGUI"));
 	m_GUITopLevelBox->SetPositionAbs(g_FrameMan.GetPlayerFrameBufferWidth(m_MenuController->GetPlayer()), 0);
@@ -473,7 +469,7 @@ void InventoryMenuGUI::UpdateCarouselMode() {
 void InventoryMenuGUI::UpdateCarouselItemBoxSizesAndPositions() {
 	float halfMassFontHeight = static_cast<float>(m_SmallFont->GetFontHeight() / 2);
 	int carouselIndex = 0;
-	float carouselAnimationProgress = static_cast<float>(m_CarouselAnimationTimer.RealTimeLimitProgress());
+	float carouselAnimationProgress = static_cast<float>(m_CarouselAnimationTimer.GetRealTimeLimitProgress());
 	float directionalAnimationProgress = carouselAnimationProgress * static_cast<float>(m_CarouselAnimationDirection);
 	float currentBoxHorizontalOffset = (directionalAnimationProgress <= 0 ? directionalAnimationProgress : -(1.0F - directionalAnimationProgress)) * m_CarouselExitingItemBox->FullSize.GetX();
 
@@ -1320,7 +1316,7 @@ void InventoryMenuGUI::DrawCarouselMode(BITMAP* targetBitmap, const Vector& draw
 	clear_to_color(m_CarouselBitmap.get(), g_MaskColor);
 	clear_to_color(m_CarouselBGBitmap.get(), g_MaskColor);
 	AllegroBitmap carouselAllegroBitmap(m_CarouselBitmap.get());
-	float enableDisableProgress = static_cast<float>(m_EnableDisableAnimationTimer.RealTimeLimitProgress());
+	float enableDisableProgress = static_cast<float>(m_EnableDisableAnimationTimer.GetRealTimeLimitProgress());
 
 	for (const std::unique_ptr<CarouselItemBox>& carouselItemBox: m_CarouselItemBoxes) {
 		if ((carouselItemBox->Item && carouselItemBox->Item->GetUniqueID() != 0) || (carouselItemBox->IsForEquippedItems && !m_InventoryActorEquippedItems.empty())) {
@@ -1356,7 +1352,7 @@ void InventoryMenuGUI::DrawCarouselMode(BITMAP* targetBitmap, const Vector& draw
 	for (const IntRect& wrappedRectangle: wrappedRectangles) {
 		g_GLResourceMan.UpdateDynamicBitmap(m_CarouselBGBitmap.get(), true);
 		g_GLResourceMan.UpdateDynamicBitmap(m_CarouselBitmap.get(), true);
-		if (m_CarouselBackgroundTransparent && !g_FrameMan.IsInMultiplayerMode()) {
+		if (m_CarouselBackgroundTransparent) {
 			g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
 			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_CarouselBGBitmap.get()), wrappedRectangle.m_Left - m_CarouselBGBitmap->w / 2, wrappedRectangle.m_Top - m_CarouselBGBitmap->h / 2, {255, 255, 255, 75});
 			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_CarouselBitmap.get()), wrappedRectangle.m_Left - m_CarouselBitmap->w / 2, wrappedRectangle.m_Top - m_CarouselBitmap->h / 2, {255, 255, 255, 255});
@@ -1432,7 +1428,7 @@ void InventoryMenuGUI::DrawFullMode(BITMAP* targetBitmap, const Vector& drawPos)
 	m_GUITopLevelBox->SetPositionAbs(drawPos.GetFloorIntX(), drawPos.GetFloorIntY());
 
 	if (IsEnablingOrDisabling()) {
-		float enableDisableProgress = static_cast<float>(m_EnableDisableAnimationTimer.RealTimeLimitProgress());
+		float enableDisableProgress = static_cast<float>(m_EnableDisableAnimationTimer.GetRealTimeLimitProgress());
 		if (m_EnabledState == EnabledState::Disabling) {
 			enableDisableProgress = 1.0F - enableDisableProgress;
 		}

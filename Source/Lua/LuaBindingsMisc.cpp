@@ -43,3 +43,14 @@ LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, DrawBlendMode) {
 	                            luabind::value("Transparency", DrawBlendMode::BlendTransparency),
 	                            luabind::value("BlendModeCount", DrawBlendMode::BlendModeCount)];
 }
+
+LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, DrawDepth) {
+	return luabind::class_<draw_depths>("DrawDepth")
+		.enum_("DrawDepth")[
+			luabind::value("Default", c_DefaultDrawDepth),
+			luabind::value("GUI", c_GuiDepth),
+			luabind::value("Primitive", c_PrimitiveDepth),
+			luabind::value("TerrainBackground", c_TerrainBGDepth),
+			luabind::value("Background", c_BackgroundDepth)
+		];
+}

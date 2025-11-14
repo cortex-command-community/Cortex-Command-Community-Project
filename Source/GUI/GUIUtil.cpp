@@ -1,6 +1,6 @@
 #include "GUIUtil.h"
 
-#include "SDL_clipboard.h"
+#include <SDL3/SDL_clipboard.h>
 
 using namespace RTE;
 

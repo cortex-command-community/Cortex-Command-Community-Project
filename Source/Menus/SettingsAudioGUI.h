@@ -43,6 +43,7 @@ namespace RTE {
 		GUILabel* m_SoundVolumeLabel;
 		GUISlider* m_SoundVolumeSlider;
 		GUICheckbox* m_SoundMuteCheckbox;
+		GUICheckbox* m_MuteOnFocusLossCheckbox;
 
 #pragma region Audio Settings Handling
 		/// Updates the position of the master volume slider and volume value label, based on what the AudioMan is currently set to.

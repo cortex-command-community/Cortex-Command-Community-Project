@@ -4,6 +4,8 @@
 #include "Draw.h"
 #include "FrameMan.h"
 
+#include <array>
+
 using namespace RTE;
 
 ConcreteClassInfo(TerrainObject, SceneObject, 0);
@@ -293,10 +295,8 @@ void TerrainObject::DrawToTerrain(SLTerrain* terrain) {
 	}
 	if (HasBGColorBitmap()) {
 		draw_sprite(terrainBGBitmap, m_BGColorBitmap, posOnScene.GetFloorIntX(), posOnScene.GetFloorIntY());
-		g_SceneMan.RegisterTerrainChange(posOnScene.GetFloorIntX(), posOnScene.GetFloorIntY(), m_BGColorBitmap->w, m_BGColorBitmap->h, ColorKeys::g_MaskColor, true);
 	}
 	if (HasFGColorBitmap()) {
 		draw_sprite(terrainFGBitmap, m_FGColorBitmap, posOnScene.GetFloorIntX(), posOnScene.GetFloorIntY());
-		g_SceneMan.RegisterTerrainChange(posOnScene.GetFloorIntX(), posOnScene.GetFloorIntY(), m_FGColorBitmap->w, m_FGColorBitmap->h, ColorKeys::g_MaskColor, false);
 	}
 }

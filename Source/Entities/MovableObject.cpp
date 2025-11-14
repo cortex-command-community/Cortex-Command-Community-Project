@@ -85,7 +85,7 @@ void MovableObject::Clear() {
 	m_NumberValueMap.clear();
 	m_ObjectValueMap.clear();
 	m_ThreadedLuaState = nullptr;
-	m_ForceIntoMasterLuaState = false;
+	m_ForceIntoMasterLuaState = g_SettingsMan.EnableLuaDebugging();
 	m_ScriptObjectName.clear();
 	m_ScreenEffectFile.Reset();
 	m_pScreenEffect = 0;
@@ -728,10 +728,13 @@ void MovableObject::AddAbsForce(const Vector& force, const Vector& absPos) {
 }
 
 void MovableObject::AddAbsImpulseForce(const Vector& impulse, const Vector& absPos) {
+	if (impulse.IsZero()) {
+		return;
+	}
+
 #ifndef RELEASE_BUILD
 	RTEAssert(impulse.GetLargest() < 500000, "HUEG IMPULSE FORCE");
 #endif
-
 	m_ImpulseForces.push_back(std::make_pair(impulse, g_SceneMan.ShortestDistance(m_Pos, absPos) * c_MPP));
 }
 
@@ -1112,14 +1115,12 @@ bool MovableObject::DrawToTerrain(SLTerrain* terrain) {
 		wrappedMaskedBlit(terrain->GetMaterialBitmap(), tempBitmap, tempBitmapPos, true);
 
 		terrain->AddUpdatedMaterialArea(Box(tempBitmapPos, static_cast<float>(tempBitmap->w), static_cast<float>(tempBitmap->h)));
-		g_SceneMan.RegisterTerrainChange(tempBitmapPos.GetFloorIntX(), tempBitmapPos.GetFloorIntY(), tempBitmap->w, tempBitmap->h, ColorKeys::g_MaskColor, false);
 	} else {
 		Draw(terrain->GetFGColorBitmap(), Vector(), DrawMode::g_DrawColor, true);
 		Material const* terrMat = g_SceneMan.GetMaterialFromID(g_SceneMan.GetTerrain()->GetMaterialPixel(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY()));
 		if (GetMaterial()->GetPriority() > terrMat->GetPriority()) {
 			Draw(terrain->GetMaterialBitmap(), Vector(), DrawMode::g_DrawMaterial, true);
 		}
-		g_SceneMan.RegisterTerrainChange(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY(), 1, 1, DrawMode::g_DrawColor, false);
 	}
 	return true;
 }

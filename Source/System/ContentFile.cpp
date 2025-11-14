@@ -10,8 +10,9 @@
 #include "png.h"
 #include "fmod/fmod.hpp"
 #include "fmod/fmod_errors.h"
-#include "SDL_image.h"
+#include <SDL3_image/SDL_image.h>
 
+#include <array>
 #include <cstring>
 
 using namespace RTE;
@@ -19,6 +20,7 @@ using namespace RTE;
 const std::string ContentFile::c_ClassName = "ContentFile";
 
 std::array<std::unordered_map<std::string, BITMAP*>, ContentFile::BitDepths::BitDepthCount> ContentFile::s_LoadedBitmaps;
+std::unordered_map<std::string, SDL_Surface*> ContentFile::s_MemoryPNGs;
 std::unordered_map<std::string, FMOD::Sound*> ContentFile::s_LoadedSamples;
 std::unordered_map<size_t, std::string> ContentFile::s_PathHashes;
 
@@ -30,6 +32,7 @@ void ContentFile::Clear() {
 	m_FormattedReaderPosition.clear();
 	m_DataPathAndReaderPosition.clear();
 	m_DataModuleID = 0;
+	m_IsMemoryPNG = false;
 
 	m_ImageFileInfo.fill(-1);
 }
@@ -60,7 +63,9 @@ void ContentFile::FreeAllLoaded() {
 int ContentFile::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
-	MatchForwards("FilePath") MatchProperty("Path", { SetDataPath(reader.ReadPropValue()); });
+	MatchForwards("FilePath") 
+	MatchProperty("Path", { SetDataPath(reader.ReadPropValue()); });
+	MatchProperty("IsMemoryPNG", { reader >> m_IsMemoryPNG; });
 
 	EndPropertyList;
 }
@@ -71,6 +76,7 @@ int ContentFile::Save(Writer& writer) const {
 	if (!m_DataPath.empty()) {
 		writer.NewPropertyWithValue("FilePath", m_DataPath);
 	}
+	writer.NewPropertyWithValue("IsMemoryPNG", m_IsMemoryPNG);
 
 	return 0;
 }
@@ -110,6 +116,15 @@ int ContentFile::GetImageFileInfo(ImageFileInfoType infoTypeToGet) {
 		}
 	}
 	if (fetchFileInfo) {
+		if (m_IsMemoryPNG) {
+			if (const SDL_Surface* png = s_MemoryPNGs[m_DataPath]) {
+				m_ImageFileInfo[ImageFileInfoType::ImageBitDepth] = static_cast<int>(SDL_BITSPERPIXEL(png->format));
+				m_ImageFileInfo[ImageFileInfoType::ImageWidth] = static_cast<int>(png->w);
+				m_ImageFileInfo[ImageFileInfoType::ImageHeight] = static_cast<int>(png->h);
+				return m_ImageFileInfo[infoTypeToGet];
+			}
+		}
+
 		FILE* imageFile = fopen(m_DataPath.c_str(), "rb");
 		RTEAssert(imageFile, "Failed to open file prior to reading info of image file with following path and name:\n\n" + m_DataPath + "\n\nThe file may not exist or be corrupt.");
 
@@ -182,6 +197,22 @@ void ContentFile::ReadAndStoreBMPFileInfo(FILE* imageFile) {
 	}
 }
 
+void ContentFile::ManuallyLoadDataPNG(const std::string& filePath, SDL_Surface* surface) {
+	s_MemoryPNGs[filePath] = surface;
+
+	int bitDepth = SDL_GetPixelFormatDetails(surface->format)->bits_per_pixel;
+	BITMAP* bitmap = create_bitmap_ex(bitDepth, surface->w, surface->h);
+
+	// Allegro doesn't align lines, SDL does 4byte alignment
+	for (int y = 0; y < surface->h; y++) {
+		memcpy(bitmap->line[y],
+		       static_cast<unsigned char*>(surface->pixels) + surface->pitch * y,
+		       surface->w * SDL_BYTESPERPIXEL(surface->format));
+	}
+
+	s_LoadedBitmaps[BitDepths::Eight].try_emplace(filePath, bitmap);
+}
+
 void ContentFile::ReloadAllBitmaps() {
 	for (const std::unordered_map<std::string, BITMAP*>& bitmapCache: s_LoadedBitmaps) {
 		for (const auto& [filePath, oldBitmap]: bitmapCache) {
@@ -205,9 +236,22 @@ BITMAP* ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std
 
 	// Check if the file has already been read and loaded from the disk and, if so, use that data.
 	std::unordered_map<std::string, BITMAP*>::iterator foundBitmap = s_LoadedBitmaps[bitDepth].find(dataPathToLoad);
-	if (storeBitmap && foundBitmap != s_LoadedBitmaps[bitDepth].end()) {
-		returnBitmap = (*foundBitmap).second;
-	} else {
+	if (foundBitmap != s_LoadedBitmaps[bitDepth].end()) {
+		if (storeBitmap) {
+			returnBitmap = (*foundBitmap).second;
+		} else if (SDL_Surface* surface = s_MemoryPNGs[dataPathToLoad]) {
+			std::unordered_map<std::string, BITMAP*>::iterator foundBitmap = s_LoadedBitmaps[BitDepths::Eight].find(dataPathToLoad);
+			if (foundBitmap != s_LoadedBitmaps[BitDepths::Eight].end()) {
+				returnBitmap = foundBitmap->second;
+				s_LoadedBitmaps[BitDepths::Eight].erase(dataPathToLoad);
+			}
+
+			SDL_DestroySurface(surface);
+			s_MemoryPNGs.erase(dataPathToLoad);
+		}
+	} 
+	
+	if (returnBitmap == nullptr) {
 		if (!System::PathExistsCaseSensitive(dataPathToLoad)) {
 			const std::string dataPathWithoutExtension = dataPathToLoad.substr(0, dataPathToLoad.length() - m_DataPathExtension.length());
 			const std::string altFileExtension = (m_DataPathExtension == ".png") ? ".bmp" : ".png";
@@ -227,6 +271,7 @@ BITMAP* ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std
 			s_LoadedBitmaps[bitDepth].try_emplace(dataPathToLoad, returnBitmap);
 		}
 	}
+
 	return returnBitmap;
 }
 
@@ -258,46 +303,41 @@ void ContentFile::GetAsAnimation(std::vector<BITMAP*>& vectorToFill, int frameCo
 	}
 }
 SDL_Palette* ContentFile::DefaultPaletteToSDL() {
-		SDL_Palette* palette = SDL_AllocPalette(256);
-		std::array<SDL_Color, 256> paletteColor;
-		PALETTE currentPalette;
-		get_palette(currentPalette);
-		paletteColor[0] = {.r = 0, .g = 0, .b = 0, .a = 0};
-		for (size_t i = 1; i < paletteColor.size(); ++i) {
-			paletteColor[i].r = currentPalette[i].r;
-			paletteColor[i].g = currentPalette[i].g;
-			paletteColor[i].b = currentPalette[i].b;
-			paletteColor[i].a = 255;
-		}
-		SDL_SetPaletteColors(palette, paletteColor.data(), 0, 256);
-		return palette;
+	SDL_Palette* palette = SDL_CreatePalette(256);
+	std::array<SDL_Color, 256> paletteColor;
+	const PALETTE& defaultPalette = g_FrameMan.GetDefaultPalette();
+	paletteColor[0] = {.r = 0, .g = 0, .b = 0, .a = 0};
+	for (size_t i = 1; i < paletteColor.size(); ++i) {
+		paletteColor[i].r = defaultPalette[i].r;
+		paletteColor[i].g = defaultPalette[i].g;
+		paletteColor[i].b = defaultPalette[i].b;
+		paletteColor[i].a = 255;
+	}
+	SDL_SetPaletteColors(palette, paletteColor.data(), 0, 256);
+	return palette;
 }
 
 SDL_Surface* ContentFile::LoadImageAsSurface(int conversionMode, const std::string& dataPathToLoad) {
 	SDL_Surface* image = IMG_Load(dataPathToLoad.c_str());
 	bool convert8To32 = conversionMode & COLORCONV_8_TO_32;
 	bool convertTo8 = conversionMode & COLORCONV_REDUCE_TO_256;
-	int bitDepth = image->format->BitsPerPixel;
+	int bitDepth = SDL_GetPixelFormatDetails(image->format)->bits_per_pixel;
 	if (convertTo8 && bitDepth != 8) {
 		SDL_Palette* palette = DefaultPaletteToSDL();
-		SDL_PixelFormat* format = SDL_AllocFormat(SDL_PIXELFORMAT_INDEX8);
-		SDL_SetPixelFormatPalette(format, palette);
-		SDL_Surface* newImage = SDL_ConvertSurface(image, format, 0);
-		SDL_FreeFormat(format);
-		SDL_FreePalette(palette);
-		SDL_FreeSurface(image);
+		SDL_Surface* newImage = SDL_ConvertSurfaceAndColorspace(image, SDL_PIXELFORMAT_INDEX8, palette, SDL_COLORSPACE_UNKNOWN, 0);
+		SDL_DestroyPalette(palette);
+		SDL_DestroySurface(image);
 		image = newImage;
 		bitDepth = 8;
 	} else if (bitDepth != 8 || convert8To32) {
-		
 		SDL_Palette* palette = DefaultPaletteToSDL();
-		if (image->format->BitsPerPixel == 8) {
+		if (SDL_GetPixelFormatDetails(image->format)->bits_per_pixel == 8) {
 			SDL_SetSurfacePalette(image, palette);
-			SDL_SetColorKey(image, SDL_TRUE, 0);
+			SDL_SetSurfaceColorKey(image, true, 0);
 		}
-		SDL_FreePalette(palette);
-		SDL_Surface* newImage = SDL_ConvertSurfaceFormat(image, SDL_PIXELFORMAT_RGBA32, 0);
-		SDL_FreeSurface(image);
+		SDL_DestroyPalette(palette);
+		SDL_Surface* newImage = SDL_ConvertSurface(image, SDL_PIXELFORMAT_RGBA32);
+		SDL_DestroySurface(image);
 		image = newImage;
 		bitDepth = 32;
 	}
@@ -312,15 +352,15 @@ BITMAP* ContentFile::LoadAndReleaseBitmap(int conversionMode, const std::string&
 	const std::string dataPathToLoad = dataPathToSpecificFrame.empty() ? m_DataPath : dataPathToSpecificFrame;
 
 	SDL_Surface* image = LoadImageAsSurface(conversionMode, dataPathToLoad);
-	int bitDepth = image->format->BitsPerPixel;
+	int bitDepth = SDL_GetPixelFormatDetails(image->format)->bits_per_pixel;
 
 	BITMAP* returnBitmap = create_bitmap_ex(bitDepth, image->w, image->h);
-	
+
 	// allegro doesn't (always) align lines to 4byte, so copy line by line. SDL_Surface.pitch is the size in bytes per line + alignment padding.
 	for (int y = 0; y < image->h; ++y) {
-		memcpy(returnBitmap->line[y], static_cast<unsigned char*>(image->pixels) + image->pitch * y, image->w * image->format->BytesPerPixel);
+		memcpy(returnBitmap->line[y], static_cast<unsigned char*>(image->pixels) + image->pitch * y, image->w * SDL_GetPixelFormatDetails(image->format)->bytes_per_pixel);
 	}
-	SDL_FreeSurface(image);
+	SDL_DestroySurface(image);
 
 	RTEAssert(returnBitmap, "Failed to load image file with following path and name:\n\n" + m_DataPathAndReaderPosition + "\nThe file may be corrupt, incorrectly converted or saved with unsupported parameters.");
 
@@ -404,11 +444,11 @@ void ContentFile::ReloadBitmap(const std::string& filePath, int conversionMode) 
 	SDL_Surface* newImage = LoadImageAsSurface(conversionMode, filePath);
 
 
-	BITMAP* newBitmap = create_bitmap_ex(newImage->format->BitsPerPixel, newImage->w, newImage->h);
+	BITMAP* newBitmap = create_bitmap_ex(SDL_GetPixelFormatDetails(newImage->format)->bits_per_pixel, newImage->w, newImage->h);
 
 	// allegro doesn't (always) align lines to 4byte, so copy line by line. SDL_Surface.pitch is the size in bytes per line + alignment padding.
 	for (int y = 0; y < newImage->h; y++) {
-		memcpy(newBitmap->line[y], static_cast<unsigned char*>(newImage->pixels) + y * newImage->pitch, newImage->w * newImage->format->BytesPerPixel); 
+		memcpy(newBitmap->line[y], static_cast<unsigned char*>(newImage->pixels) + y * newImage->pitch, newImage->w * SDL_GetPixelFormatDetails(newImage->format)->bytes_per_pixel); 
 	}
 
 	//AddAlphaChannel(newBitmap);

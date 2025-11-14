@@ -364,7 +364,7 @@ namespace RTE {
 			GUNS,
 			BOMBS,
 			SHIELDS,
-			SETS,
+			LOADOUTS,
 			CATEGORYCOUNT
 		};
 
@@ -482,9 +482,11 @@ namespace RTE {
 		// The save set button
 		GUIButton* m_pSaveButton;
 		// The clear set button
-		GUIButton* m_pClearButton;
+		GUIButton* m_pDeleteButton;
 		// Sets of user-defined loadouts that can be selected quickly.
 		std::vector<Loadout> m_Loadouts;
+		// The selected loadout index, -1 if no loadout is selected
+		int m_SelectedLoadoutIndex;
 		// Purchase has been made
 		bool m_PurchaseMade;
 		int m_DeliveryWidth; //!< The width of the currently selected delivery craft, which will determine the width of the LZ marker.

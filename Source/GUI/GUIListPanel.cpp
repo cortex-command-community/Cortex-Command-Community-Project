@@ -26,6 +26,7 @@ GUIListPanel::GUIListPanel(GUIManager* Manager) :
 	m_CapturedHorz = false;
 	m_CapturedVert = false;
 	m_ExternalCapture = false;
+	m_HighlightAsIfAlwaysFocused = false;
 	m_HotTracking = false;
 	m_HorzScrollEnabled = true;
 	m_VertScrollEnabled = true;
@@ -55,6 +56,7 @@ GUIListPanel::GUIListPanel() :
 	m_CapturedHorz = false;
 	m_CapturedVert = false;
 	m_ExternalCapture = false;
+	m_HighlightAsIfAlwaysFocused = false;
 	m_HotTracking = false;
 	m_HorzScrollEnabled = true;
 	m_VertScrollEnabled = true;
@@ -327,20 +329,20 @@ void GUIListPanel::BuildDrawBitmap() {
 
 			// Draw the associated bitmap
 			if (I->m_pBitmap) {
-				if (bitmapWidth == thirdWidth) {
+				if (I->m_Name.empty()) {
+					// No text, just bitmap, so give it more room
+					I->m_pBitmap->DrawTrans(m_DrawBitmap, ((thirdWidth * 1.3f) - (bitmapWidth / 2)) - itemX + 4, bitmapY, 0);
+				} else if (bitmapWidth == thirdWidth) {
 					// If it was deemed too large, draw it scaled
 					I->m_pBitmap->DrawTransScaled(m_DrawBitmap, 3 - itemX, bitmapY, bitmapWidth, bitmapHeight);
-				} else if (!I->m_Name.empty()) {
+				} else {
 					// There's text to compete for space with
 					I->m_pBitmap->DrawTrans(m_DrawBitmap, ((thirdWidth / 2) - (bitmapWidth / 2)) - itemX + 2, bitmapY, 0);
-				} else {
-					// No text, just bitmap, so give it more room
-					I->m_pBitmap->DrawTrans(m_DrawBitmap, ((thirdWidth / 2) - (bitmapWidth / 2)) - itemX + 4, bitmapY, 0);
 				}
 			}
 
 			// Selected item
-			if (I->m_Selected && m_GotFocus) {
+			if (I->m_Selected && (m_GotFocus || m_HighlightAsIfAlwaysFocused)) {
 				m_DrawBitmap->DrawLine(4, itemY + 1, m_Width - (m_VertScroll->_GetVisible() ? m_VertScroll->GetWidth() + 2 : 5), itemY + 1, m_SelectedColorIndex);
 				m_DrawBitmap->DrawLine(4, itemY + itemHeight, m_Width - (m_VertScroll->_GetVisible() ? m_VertScroll->GetWidth() + 2 : 5), itemY + itemHeight, m_SelectedColorIndex);
 				m_Font->SetColor(m_FontSelectColor);
@@ -369,10 +371,10 @@ void GUIListPanel::BuildDrawBitmap() {
 			// Selected item
 			if (I->m_Selected) {
 				m_Font->SetColor(m_SelectedColorIndex);
-				m_DrawBitmap->DrawRectangle(1, itemY, itemWidth - 2, m_Font->GetFontHeight(), m_SelectedColorIndex, m_GotFocus); // Filled if we have focus
+				m_DrawBitmap->DrawRectangle(1, itemY, itemWidth - 2, m_Font->GetFontHeight(), m_SelectedColorIndex, (m_GotFocus || m_HighlightAsIfAlwaysFocused)); // Filled if we have focus
 			}
 
-			if (I->m_Selected && m_GotFocus) {
+			if (I->m_Selected && (m_GotFocus || m_HighlightAsIfAlwaysFocused)) {
 				m_Font->SetColor(m_FontSelectColor);
 				m_Font->DrawAligned(m_DrawBitmap, itemX - 3 + itemWidth - (m_VertScroll->_GetVisible() ? m_VertScroll->GetWidth() : 0), itemY, I->m_RightText, GUIFont::Right);
 				m_Font->Draw(m_DrawBitmap, 4 - itemX, itemY, I->m_Name);
@@ -989,10 +991,15 @@ GUIListPanel::Item* GUIListPanel::GetItem(int Index) {
 	if (Index >= 0 && Index < m_Items.size()) {
 		return m_Items.at(Index);
 	}
-	return 0;
+	return nullptr;
 }
 
 GUIListPanel::Item* GUIListPanel::GetItem(int X, int Y) {
+	// If outside of X bounds, return nothing
+	if (X < m_X || X >= m_X + m_Width) {
+		return nullptr;
+	}
+	
 	int Height = m_Height;
 	if (m_HorzScroll->_GetVisible()) {
 		Height -= m_HorzScroll->GetHeight();
@@ -1002,6 +1009,7 @@ GUIListPanel::Item* GUIListPanel::GetItem(int X, int Y) {
 	if (m_VertScroll->_GetVisible()) {
 		y -= m_VertScroll->GetValue();
 	}
+
 	int Count = 0;
 	for (std::vector<Item*>::iterator it = m_Items.begin(); it != m_Items.end(); it++, Count++) {
 		Item* pItem = *it;
@@ -1017,7 +1025,8 @@ GUIListPanel::Item* GUIListPanel::GetItem(int X, int Y) {
 			break;
 		}
 	}
-	return 0;
+
+	return nullptr;
 }
 
 int GUIListPanel::GetItemHeight(Item* pItem) {

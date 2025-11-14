@@ -787,12 +787,17 @@ namespace RTE {
 		/// down at a certain maximum distance from the ground.
 		/// @param from The point to start from. Should be in the air, or the same point will
 		/// be returned (null operation)
-		/// @param maxAltitude The max altitude in px you want the point to be above the ground. (default: 0)
-		/// @param accuracy The accuracy within screen measurement is acceptable. Higher number (default: 0)
-		/// here means less calculation.
+		/// @param heightAboveGround The altitude in px you want the point to be above the ground. (default: 0)
+		/// @param accuracy The accuracy within screen measurement is acceptable. Higher number (default: 0) here means less calculation.
+		/// @param maxDistance The maximum distance downwards the point will be moved. Points higher than this will not be moved down.
 		/// @return The new point screen is no higher than accuracy + max altitude over
 		/// the terrain.
-		Vector MovePointToGround(const Vector& from, int maxAltitude = 0, int accuracy = 0);
+		Vector MovePointToGround(const Vector& from, int heightAboveGround, int accuracy, int maxDistance);
+
+		// Luabind makes this such a pain
+		Vector MovePointToGround(const Vector& from, int heightAboveGround = 0, int accuracy = 0) {
+			return MovePointToGround(from, heightAboveGround, accuracy, 0);
+		}
 
 		/// Returns whether the integer coordinates passed in are within the
 		/// bounds of the current Scene, considering its wrapping.
@@ -945,12 +950,6 @@ namespace RTE {
 		/// @param mat Material to add.
 		/// @return Pointer to stored material.
 		Material* AddMaterialCopy(Material* mat);
-
-		/// Registers terrain change event for the network server to be then sent to clients.
-		/// @param x,y - scene coordinates of change, w,h - size of the changed region,
-		/// color - changed color for one-pixel events,
-		/// back - if true, then background bitmap was changed if false then foreground.
-		void RegisterTerrainChange(int x, int y, int w, int h, unsigned char color, bool back);
 
 		/// Gets an intermediate bitmap that is used for drawing a settled MovableObject into the terrain.
 		/// @param moDiameter The diameter of the MovableObject to calculate the required bitmap size.

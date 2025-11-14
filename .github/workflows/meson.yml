@@ -36,7 +36,7 @@ on:
       macosx-deployment-target:
         type: string
         required: false
-        default: "10.15"
+        default: "11.1"
 
   # Triggers the workflow when called by a top-level workflow
   workflow_call:
@@ -63,7 +63,7 @@ on:
       macosx-deployment-target:
         type: string
         required: false
-        default: "10.15"
+        default: "11.1"
 
 jobs:
   build-linux:
@@ -178,7 +178,7 @@ jobs:
           echo "::group::Installing pkg-config"
           sudo apt install pkg-config
           echo "::group::Installing mac deps"
-          omp install libsdl2 libsdl2_image onetbb lz4 libpng minizip luajit flac
+          omp install SDL3 onetbb lz4 libpng minizip luajit flac
           echo "OSXCROSS_PKG_CONFIG_PATH=${{env.OSXCROSS_TARGET}}/macports/pkgs/opt/local/libexec/onetbb/lib/pkgconfig" >> $GITHUB_ENV
           echo "::endgroup::"
           echo "::group::Installing meson"

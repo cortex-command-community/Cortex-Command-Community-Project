@@ -2592,7 +2592,7 @@ void MetagameGUI::CompletedActivity() {
 			// However, don't suck up actors of any non-winning team, and don't save the brains if we autoresolved, because that took care of placing the resident brains already
 			pAlteredScene->RetrieveSceneObjects(true, winningTeam, autoResolved);
 			// Save out the altered scene before clearing out its data from memory
-			pAlteredScene->SaveData(METASAVEPATH + std::string(AUTOSAVENAME) + " - " + pAlteredScene->GetPresetName(), false);
+			pAlteredScene->SaveData(METASAVEPATH + std::string(AUTOSAVENAME) + " - " + pAlteredScene->GetPresetName());
 			// Clear the bitmap data etc of the altered scene, we don't need to copy that over
 			pAlteredScene->ClearData();
 
@@ -5535,7 +5535,7 @@ void MetagameGUI::UpdatePlayerBars() {
 			if (!m_apFundsChangeTimer[metaPlayer].IsPastRealTimeLimit()) {
 				// Animate downward if value is negative, upward if positive
 				int animDir = m_apFundsChangeLabel[metaPlayer]->GetText()[2] == '-' ? 1 : -1;
-				int heightChange = EaseOut(0, 25, m_apFundsChangeTimer[metaPlayer].RealTimeLimitProgress());
+				int heightChange = EaseOut(0, 25, m_apFundsChangeTimer[metaPlayer].GetRealTimeLimitProgress());
 				// Use the height of the label to keep track of the animation progress over several frames
 				m_apFundsChangeLabel[metaPlayer]->SetPositionAbs(m_apFundsChangeLabel[metaPlayer]->GetXPos(), m_apFundsChangeLabel[metaPlayer]->GetYPos() + animDir * (heightChange - m_apFundsChangeLabel[metaPlayer]->GetHeight() + 16));
 				m_apFundsChangeLabel[metaPlayer]->Resize(m_apFundsChangeLabel[metaPlayer]->GetWidth(), 16 + heightChange);
@@ -5551,7 +5551,7 @@ void MetagameGUI::UpdatePlayerBars() {
 			if (!m_apBrainsChangeTimer[metaPlayer].IsPastRealTimeLimit()) {
 				// Animate downward if value is negative, upward if positive
 				int animDir = m_apBrainChangeLabel[metaPlayer]->GetText()[1] == '-' ? 1 : -1;
-				int heightChange = EaseOut(0, 25, m_apBrainsChangeTimer[metaPlayer].RealTimeLimitProgress());
+				int heightChange = EaseOut(0, 25, m_apBrainsChangeTimer[metaPlayer].GetRealTimeLimitProgress());
 				// Use the height of the label to keep track of the animation progress over several frames
 				m_apBrainChangeLabel[metaPlayer]->SetPositionAbs(m_apBrainChangeLabel[metaPlayer]->GetXPos(), m_apBrainChangeLabel[metaPlayer]->GetYPos() + animDir * (heightChange - m_apBrainChangeLabel[metaPlayer]->GetHeight() + 16));
 				m_apBrainChangeLabel[metaPlayer]->Resize(m_apBrainChangeLabel[metaPlayer]->GetWidth(), 16 + heightChange);

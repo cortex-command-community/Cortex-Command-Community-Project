@@ -20,6 +20,8 @@
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
 
+#include <array>
+
 using namespace RTE;
 
 PostProcessMan::PostProcessMan() {
@@ -144,11 +146,6 @@ void PostProcessMan::AdjustEffectsPosToPlayerScreen(int playerScreen, BITMAP* ta
 	int occludedOffsetX = targetBitmap->w + screenOcclusionOffsetX;
 	int occludedOffsetY = targetBitmap->h + screenOcclusionOffsetY;
 
-	// Copy post effects received by client if in network mode
-	if (g_FrameMan.GetDrawNetworkBackBuffer()) {
-		GetNetworkPostEffectsList(0, screenRelativeEffectsList);
-	}
-
 	// Adjust for the player screen's position on the final buffer
 	for (const PostEffect& postEffect: screenRelativeEffectsList) {
 		// Make sure we won't be adding any effects to a part of the screen that is occluded by menus and such
@@ -253,24 +250,6 @@ bool PostProcessMan::GetGlowAreasWrapped(const Vector& boxPos, int boxWidth, int
 	return foundAny;
 }
 
-void PostProcessMan::GetNetworkPostEffectsList(int whichScreen, std::list<PostEffect>& outputList) {
-	ScreenRelativeEffectsMutex.at(whichScreen).lock();
-	outputList.clear();
-	for (const PostEffect& postEffect: m_ScreenRelativeEffects.at(whichScreen)) {
-		outputList.push_back(PostEffect(postEffect.m_Pos, postEffect.m_Bitmap, postEffect.m_BitmapHash, postEffect.m_Strength, postEffect.m_Angle));
-	}
-	ScreenRelativeEffectsMutex.at(whichScreen).unlock();
-}
-
-void PostProcessMan::SetNetworkPostEffectsList(int whichScreen, std::list<PostEffect>& inputList) {
-	ScreenRelativeEffectsMutex.at(whichScreen).lock();
-	m_ScreenRelativeEffects.at(whichScreen).clear();
-	for (const PostEffect& postEffect: inputList) {
-		m_ScreenRelativeEffects.at(whichScreen).push_back(PostEffect(postEffect.m_Pos, postEffect.m_Bitmap, postEffect.m_BitmapHash, postEffect.m_Strength, postEffect.m_Angle));
-	}
-	ScreenRelativeEffectsMutex.at(whichScreen).unlock();
-}
-
 bool PostProcessMan::GetPostScreenEffects(Vector boxPos, int boxWidth, int boxHeight, std::list<PostEffect>& effectsList, int team) {
 	bool found = false;
 	bool unseen = false;
@@ -349,7 +328,7 @@ void PostProcessMan::PostProcess() {
 	UpdatePalette();
 
 	// First copy the current 8bpp backbuffer to the 32bpp buffer; we'll add effects to it
-	m_PostProcessFramebuffer->Begin(false);
+	m_PostProcessFramebuffer->Begin(true);
 	//m_Blit8->Begin();
 	//int paletteUniform = m_Blit8->GetUniformLocation("rtePalette");
 	//rlSetUniformSampler(paletteUniform, m_Palette8Texture);
@@ -363,6 +342,8 @@ void PostProcessMan::PostProcess() {
 	rlEnableColorBlend();
 	rlSetBlendFactorsSeparate(GL_ONE, GL_ONE_MINUS_SRC_COLOR, GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_FUNC_ADD, GL_FUNC_ADD);
 	rlSetBlendMode(RL_BLEND_CUSTOM_SEPARATE);
+	m_PostProcessFramebuffer->End();
+	m_PostProcessFramebuffer->Begin(false);
 
 	m_PostProcessShader->Begin();
 

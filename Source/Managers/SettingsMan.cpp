@@ -8,8 +8,6 @@
 #include "AudioMan.h"
 #include "PerformanceMan.h"
 #include "UInputMan.h"
-#include "NetworkClient.h"
-#include "NetworkServer.h"
 #include "System.h"
 
 using namespace RTE;
@@ -44,13 +42,13 @@ void SettingsMan::Clear() {
 	m_ShowMetaScenes = false;
 
 	m_DisableLuaJIT = false;
+	m_EnableLuaDebugging = false;
 	m_RecommendedMOIDCount = 512;
 	m_SceneBackgroundAutoScaleMode = 1;
 	m_DisableFactionBuyMenuThemes = false;
 	m_DisableFactionBuyMenuThemeCursors = false;
 	m_PathFinderGridNodeSize = SCENEGRIDSIZE;
 	m_AIUpdateInterval = 2;
-
 	m_NumberOfLuaStatesOverride = -1;
 	m_ForceImmediatePathingRequestCompletion = false;
 
@@ -123,6 +121,7 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("MuteMusic", { reader >> g_AudioMan.m_MuteMusic; });
 	MatchProperty("SoundVolume", { g_AudioMan.SetSoundsVolume(std::stof(reader.ReadPropValue()) / 100.0F); });
 	MatchProperty("MuteSounds", { reader >> g_AudioMan.m_MuteSounds; });
+	MatchProperty("MuteAudioOnFocusLoss", { reader >> g_AudioMan.m_MuteAudioOnFocusLoss; });
 	MatchProperty("SoundPanningEffectStrength", {
 		reader >> g_AudioMan.m_SoundPanningEffectStrength;
 
@@ -159,6 +158,7 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("DefaultActivityName", { reader >> g_ActivityMan.m_DefaultActivityName; });
 	MatchProperty("DefaultSceneName", { reader >> g_SceneMan.m_DefaultSceneName; });
 	MatchProperty("DisableLuaJIT", { reader >> m_DisableLuaJIT; });
+	MatchProperty("EnableLuaDebugging", { reader >> m_EnableLuaDebugging; });
 	MatchProperty("RecommendedMOIDCount", { reader >> m_RecommendedMOIDCount; });
 	MatchProperty("SceneBackgroundAutoScaleMode", { SetSceneBackgroundAutoScaleMode(std::stoi(reader.ReadPropValue())); });
 	MatchProperty("DisableFactionBuyMenuThemes", { reader >> m_DisableFactionBuyMenuThemes; });
@@ -188,29 +188,10 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("DrawPixelCheckVisualizations", { reader >> g_SceneMan.m_DrawPixelCheckVisualizations; });
 	MatchProperty("PrintDebugInfo", { reader >> m_PrintDebugInfo; });
 	MatchProperty("MeasureModuleLoadTime", { reader >> m_MeasureModuleLoadTime; });
-	MatchProperty("PlayerNetworkName", { reader >> m_PlayerNetworkName; });
-	MatchProperty("NetworkServerName", { reader >> m_NetworkServerAddress; });
-	MatchProperty("UseNATService", { reader >> g_NetworkServer.m_UseNATService; });
-	MatchProperty("NATServiceAddress", { reader >> m_NATServiceAddress; });
-	MatchProperty("NATServerName", { reader >> m_NATServerName; });
-	MatchProperty("NATServerPassword", { reader >> m_NATServerPassword; });
-	MatchProperty("UseExperimentalMultiplayerSpeedBoosts", { reader >> m_UseExperimentalMultiplayerSpeedBoosts; });
-	MatchProperty("ClientInputFps", { reader >> g_NetworkClient.m_ClientInputFps; });
-	MatchProperty("ServerTransmitAsBoxes", { reader >> g_NetworkServer.m_TransmitAsBoxes; });
-	MatchProperty("ServerBoxWidth", { reader >> g_NetworkServer.m_BoxWidth; });
-	MatchProperty("ServerBoxHeight", { reader >> g_NetworkServer.m_BoxHeight; });
-	MatchProperty("ServerUseHighCompression", { reader >> g_NetworkServer.m_UseHighCompression; });
-	MatchProperty("ServerUseFastCompression", { reader >> g_NetworkServer.m_UseFastCompression; });
-	MatchProperty("ServerUseDeltaCompression", { reader >> g_NetworkServer.m_UseDeltaCompression; });
-	MatchProperty("ServerHighCompressionLevel", { reader >> g_NetworkServer.m_HighCompressionLevel; });
-	MatchProperty("ServerFastAccelerationFactor", { reader >> g_NetworkServer.m_FastAccelerationFactor; });
-	MatchProperty("ServerUseInterlacing", { reader >> g_NetworkServer.m_UseInterlacing; });
-	MatchProperty("ServerEncodingFps", { reader >> g_NetworkServer.m_EncodingFps; });
-	MatchProperty("ServerSleepWhenIdle", { reader >> g_NetworkServer.m_SleepWhenIdle; });
-	MatchProperty("ServerSimSleepWhenIdle", { reader >> g_NetworkServer.m_SimSleepWhenIdle; });
 	MatchProperty("VisibleAssemblyGroup", { m_VisibleAssemblyGroupsList.push_back(reader.ReadPropValue()); });
 	MatchProperty("DisableMod", { m_DisabledMods.try_emplace(reader.ReadPropValue(), true); });
 	MatchProperty("EnableGlobalScript", { m_EnabledGlobalScripts.try_emplace(reader.ReadPropValue(), true); });
+	MatchProperty("ForceDisableMultimouse", { reader >> g_UInputMan.m_ForceDisableMultiMouseKeyboard; });
 	MatchProperty("MouseSensitivity", { reader >> g_UInputMan.m_MouseSensitivity; });
 	MatchForwards("Player1Scheme") MatchForwards("Player2Scheme") MatchForwards("Player3Scheme") MatchProperty("Player4Scheme", {
 		for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
@@ -251,6 +232,7 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("MuteMusic", g_AudioMan.m_MuteMusic);
 	writer.NewPropertyWithValue("SoundVolume", g_AudioMan.m_SoundsVolume * 100);
 	writer.NewPropertyWithValue("MuteSounds", g_AudioMan.m_MuteSounds);
+	writer.NewPropertyWithValue("MuteAudioOnFocusLoss", g_AudioMan.m_MuteAudioOnFocusLoss);
 	writer.NewPropertyWithValue("SoundPanningEffectStrength", g_AudioMan.m_SoundPanningEffectStrength);
 
 	//////////////////////////////////////////////////
@@ -303,6 +285,7 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewLineString("// Engine Settings", false);
 	writer.NewLine(false);
 	writer.NewPropertyWithValue("DisableLuaJIT", m_DisableLuaJIT);
+	writer.NewPropertyWithValue("EnableLuaDebugging", m_EnableLuaDebugging);
 	writer.NewPropertyWithValue("RecommendedMOIDCount", m_RecommendedMOIDCount);
 	writer.NewPropertyWithValue("SceneBackgroundAutoScaleMode", m_SceneBackgroundAutoScaleMode);
 	writer.NewPropertyWithValue("DisableFactionBuyMenuThemes", m_DisableFactionBuyMenuThemes);
@@ -355,36 +338,6 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("PrintDebugInfo", m_PrintDebugInfo);
 	writer.NewPropertyWithValue("MeasureModuleLoadTime", m_MeasureModuleLoadTime);
 
-	writer.NewLine(false, 2);
-	writer.NewDivider(false);
-	writer.NewLineString("// Network Settings", false);
-	writer.NewLine(false);
-	writer.NewPropertyWithValue("PlayerNetworkName", m_PlayerNetworkName);
-	writer.NewPropertyWithValue("NetworkServerName", m_NetworkServerAddress);
-	writer.NewPropertyWithValue("UseNATService", g_NetworkServer.m_UseNATService);
-	writer.NewPropertyWithValue("NATServiceAddress", m_NATServiceAddress);
-	writer.NewPropertyWithValue("NATServerName", m_NATServerName);
-	writer.NewPropertyWithValue("NATServerPassword", m_NATServerPassword);
-	writer.NewPropertyWithValue("UseExperimentalMultiplayerSpeedBoosts", m_UseExperimentalMultiplayerSpeedBoosts);
-
-	writer.NewLine(false, 2);
-	writer.NewDivider(false);
-	writer.NewLineString("// Advanced Network Settings", false);
-	writer.NewLine(false);
-	writer.NewPropertyWithValue("ClientInputFps", g_NetworkClient.m_ClientInputFps);
-	writer.NewPropertyWithValue("ServerTransmitAsBoxes", g_NetworkServer.m_TransmitAsBoxes);
-	writer.NewPropertyWithValue("ServerBoxWidth", g_NetworkServer.m_BoxWidth);
-	writer.NewPropertyWithValue("ServerBoxHeight", g_NetworkServer.m_BoxHeight);
-	writer.NewPropertyWithValue("ServerUseHighCompression", g_NetworkServer.m_UseHighCompression);
-	writer.NewPropertyWithValue("ServerUseFastCompression", g_NetworkServer.m_UseFastCompression);
-	writer.NewPropertyWithValue("ServerUseDeltaCompression", g_NetworkServer.m_UseDeltaCompression);
-	writer.NewPropertyWithValue("ServerHighCompressionLevel", g_NetworkServer.m_HighCompressionLevel);
-	writer.NewPropertyWithValue("ServerFastAccelerationFactor", g_NetworkServer.m_FastAccelerationFactor);
-	writer.NewPropertyWithValue("ServerUseInterlacing", g_NetworkServer.m_UseInterlacing);
-	writer.NewPropertyWithValue("ServerEncodingFps", g_NetworkServer.m_EncodingFps);
-	writer.NewPropertyWithValue("ServerSleepWhenIdle", g_NetworkServer.m_SleepWhenIdle);
-	writer.NewPropertyWithValue("ServerSimSleepWhenIdle", g_NetworkServer.m_SimSleepWhenIdle);
-
 	if (!m_VisibleAssemblyGroupsList.empty()) {
 		writer.NewLine(false, 2);
 		writer.NewDivider(false);
@@ -423,6 +376,7 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewDivider(false);
 	writer.NewLineString("// Input Mapping", false);
 	writer.NewLine(false);
+	writer.NewPropertyWithValue("ForceDisableMultimouse", g_UInputMan.m_ForceDisableMultiMouseKeyboard);
 	writer.NewPropertyWithValue("MouseSensitivity", g_UInputMan.m_MouseSensitivity);
 
 	writer.NewLine(false);

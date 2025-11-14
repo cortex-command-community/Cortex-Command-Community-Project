@@ -655,8 +655,9 @@ void Actor::RestDetection() {
 }
 
 void Actor::AddAIMOWaypoint(const MovableObject* pMOWaypoint) {
-	if (g_MovableMan.ValidMO(pMOWaypoint))
+	if (g_MovableMan.ValidMO(pMOWaypoint) && (m_Waypoints.empty() || m_Waypoints.back().second != pMOWaypoint)) {
 		m_Waypoints.push_back(std::pair<Vector, const MovableObject*>(pMOWaypoint->GetPos(), pMOWaypoint));
+	}
 }
 
 void Actor::AlarmPoint(const Vector& alarmPoint) {
@@ -1081,6 +1082,13 @@ void Actor::OnNewMovePath() {
 		// Nowhere to gooooo
 		m_MoveTarget = m_PrevPathTarget = m_Pos;
 	}
+
+	// Smash all non-airborne waypoints down to just above the ground, so they more accurately represent the ground path
+	std::list<Vector>::iterator finalItr = m_MovePath.end();
+	--finalItr;
+	for (std::list<Vector>::iterator lItr = m_MovePath.begin(); lItr != finalItr; ++lItr) {
+		(*lItr) = g_SceneMan.MovePointToGround((*lItr), m_CharHeight * 0.2, 0, g_SettingsMan.GetPathFinderGridNodeSize() * 2.5f);
+	}
 }
 
 void Actor::PreControllerUpdate() {
@@ -1091,7 +1099,7 @@ void Actor::PreControllerUpdate() {
 	}
 
 	// We update this after, because pathing requests are forced to take at least 1 frame for the sake of determinism for now.
-	// In future maybe we can move this back, but it doesn't make much difference (the threadpool submission overhead makes it extremely unlikely that it would complete in less time anyways)
+	// In future maybe we can move this back, but it doesn't make much difference
 	if (m_UpdateMovePath) {
 		UpdateMovePath();
 	}
@@ -1379,8 +1387,8 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 	}
 
 	// Draw the alarm exclamation mark if we are alarmed!
-	if (m_AlarmTimer.SimTimeLimitProgress() < 0.25) {
-		draw_sprite(pTargetBitmap, m_apAlarmExclamation[m_AgeTimer.AlternateSim(100)], cpuPos.m_X - 3, EaseOut(drawPos.m_Y + m_HUDStack - 10, drawPos.m_Y + m_HUDStack - 25, m_AlarmTimer.SimTimeLimitProgress() / 0.25f));
+	if (m_AlarmTimer.GetSimTimeLimitProgress() < 0.25) {
+		draw_sprite(pTargetBitmap, m_apAlarmExclamation[m_AgeTimer.AlternateSim(100)], cpuPos.m_X - 3, EaseOut(drawPos.m_Y + m_HUDStack - 10, drawPos.m_Y + m_HUDStack - 25, m_AlarmTimer.GetSimTimeLimitProgress() / 0.25f));
 	}
 
 	if (pSmallFont && pSymbolFont) {
@@ -1389,23 +1397,6 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 		if (!m_Controller.IsState(PIE_MENU_ACTIVE) || actorScreen != whichScreen) {
 			// If we're still alive, show the team colors
 			if (m_Health > 0) {
-				if (IsPlayerControlled() && g_FrameMan.IsInMultiplayerMode()) {
-					m_pControllerIcon = nullptr;
-					if (m_Team == 0) {
-						m_pControllerIcon = g_UInputMan.GetDeviceIcon(DEVICE_GAMEPAD_1);
-					} else if (m_Team == 1) {
-						m_pControllerIcon = g_UInputMan.GetDeviceIcon(DEVICE_GAMEPAD_2);
-					} else if (m_Team == 2) {
-						m_pControllerIcon = g_UInputMan.GetDeviceIcon(DEVICE_GAMEPAD_3);
-					} else if (m_Team == 3) {
-						m_pControllerIcon = g_UInputMan.GetDeviceIcon(DEVICE_GAMEPAD_4);
-					}
-
-					if (m_pControllerIcon) {
-						std::vector<BITMAP*> apControllerBitmaps = m_pControllerIcon->GetBitmaps8();
-						masked_blit(apControllerBitmaps[0], pTargetBitmap, 0, 0, drawPos.m_X - apControllerBitmaps[0]->w - 2 + 10, drawPos.m_Y + m_HUDStack - (apControllerBitmaps[0]->h / 2) + 8, apControllerBitmaps[0]->w, apControllerBitmaps[0]->h);
-					}
-				}
 
 				// Get the Icon bitmaps of this Actor's team, if any
 				std::vector<BITMAP*> apIconBitmaps;
@@ -1446,13 +1437,6 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 					pSmallFont->DrawAligned(&bitmapInt, drawPos.GetFloorIntX() - 0, drawPos.GetFloorIntY() + m_HUDStack + 2, str, GUIFont::Left);
 
 					m_HUDStack -= 11;
-				}
-				// Player name
-				if (g_FrameMan.IsInMultiplayerMode()) {
-					if (GameActivity* gameActivity = dynamic_cast<GameActivity*>(g_ActivityMan.GetActivity())) {
-						pSmallFont->DrawAligned(&bitmapInt, drawPos.GetFloorIntX(), drawPos.GetFloorIntY() + m_HUDStack + 2, gameActivity->GetNetworkPlayerName(m_Controller.GetPlayer()).c_str(), GUIFont::Centre);
-						m_HUDStack -= 11;
-					}
 				}
 			}
 		}
