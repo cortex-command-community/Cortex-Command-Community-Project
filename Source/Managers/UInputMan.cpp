@@ -14,6 +14,7 @@
 #include "System.h"
 
 #include <SDL3/SDL.h>
+#include <array>
 #include <string>
 #include <unordered_map>
 

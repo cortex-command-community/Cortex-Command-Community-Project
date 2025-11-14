@@ -7,6 +7,8 @@
 
 #include "BS_thread_pool.hpp"
 
+#include <array>
+
 #define g_LuaMan LuaMan::Instance()
 
 struct lua_State;

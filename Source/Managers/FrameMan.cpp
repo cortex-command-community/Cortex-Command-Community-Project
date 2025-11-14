@@ -32,6 +32,8 @@
 #include "tracy/TracyOpenGL.hpp"
 #include <SDL3_image/SDL_image.h>
 
+#include <array>
+
 using namespace RTE;
 
 void BitmapDeleter::operator()(BITMAP* bitmap) const { destroy_bitmap(bitmap); }
