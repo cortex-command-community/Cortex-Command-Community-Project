@@ -20,7 +20,6 @@ GUIBanner::GUIBanner() {
 	m_BannerPosY = 240;
 	m_FlySpeed = 1500;
 	m_FlySpacing = 100;
-	m_BannerChars.clear();
 	m_AnimMode = BLINKING;
 	m_AnimState = NOTSTARTED;
 	m_TotalAnimTimer.Reset();
@@ -328,8 +327,6 @@ void GUIBanner::Draw(BITMAP* pTargetBitmap) {
 			}
 			if (c == '\t') {
 			}
-			if (c < 0)
-				c += m_CharIndexCap;
 			if (c < 32 || c >= m_CharIndexCap)
 				continue;
 
@@ -362,8 +359,6 @@ int GUIBanner::CalculateWidth(const std::string text, FontMode mode) const {
 			*/
 			continue;
 		}
-		if (c < 0)
-			c += m_CharIndexCap;
 		if (c < 32 || c >= m_CharIndexCap)
 			continue;
 

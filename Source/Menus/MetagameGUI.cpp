@@ -157,7 +157,7 @@ void MetagameGUI::Clear() {
 	m_AnimMetaPlayer = Players::NoPlayer;
 	m_AnimDefenseTeam = Activity::NoTeam;
 	m_AnimActivityChange = false;
-	Scene* m_pAnimScene = 0;
+	m_pAnimScene = 0;
 	m_AnimRatio = 0;
 	m_AnimProgress = 0;
 	m_AnimTotalFunds = 0;
@@ -4965,24 +4965,19 @@ void MetagameGUI::UpdatePostBattleResidents(float progress) {
 				m_apPlayerBrainTravelLabel[mp]->SetVisible(progress <= 0);
 
 				if (progress <= 0) {
-					// Death mask
-					if (progress > 0)
-						std::snprintf(str, sizeof(str), "%c", -26);
 					// Brain with line blinking over it and the funds still showing
-					else {
-						if (quadIndex <= 1) {
-							if (m_aAnimDestroyed[mp])
-								std::snprintf(str, sizeof(str), "%c %.0f oz     ", -58, m_aBattleFunds[mp]);
-							else
-								std::snprintf(str, sizeof(str), "%c %.0f oz %c%c", -58, m_aBattleFunds[mp], m_aBattleAttacker[mp] ? -46 : -47, -26);
-							//                            std::snprintf(str, sizeof(str), "%c %.0f oz %c", -58, m_aBattleFunds[mp], m_AnimTimer2.AlternateReal(200) ? -39 : -26);
-						} else {
-							if (m_aAnimDestroyed[mp])
-								std::snprintf(str, sizeof(str), "     %c %.0f oz", -58, m_aBattleFunds[mp]);
-							else
-								std::snprintf(str, sizeof(str), "%c%c %c %.0f oz", m_aAnimDestroyed[mp] ? ' ' : -26, m_aBattleAttacker[mp] ? -46 : -47, -58, m_aBattleFunds[mp]);
-							//                            std::snprintf(str, sizeof(str), "%c %c %.0f oz", m_AnimTimer2.AlternateReal(200) ? -39 : -26, -58, m_aBattleFunds[mp]);
-						}
+					if (quadIndex <= 1) {
+						if (m_aAnimDestroyed[mp])
+							std::snprintf(str, sizeof(str), "%c %.0f oz     ", -58, m_aBattleFunds[mp]);
+						else
+							std::snprintf(str, sizeof(str), "%c %.0f oz %c%c", -58, m_aBattleFunds[mp], m_aBattleAttacker[mp] ? -46 : -47, -26);
+						//                            std::snprintf(str, sizeof(str), "%c %.0f oz %c", -58, m_aBattleFunds[mp], m_AnimTimer2.AlternateReal(200) ? -39 : -26);
+					} else {
+						if (m_aAnimDestroyed[mp])
+							std::snprintf(str, sizeof(str), "     %c %.0f oz", -58, m_aBattleFunds[mp]);
+						else
+							std::snprintf(str, sizeof(str), "%c%c %c %.0f oz", m_aAnimDestroyed[mp] ? ' ' : -26, m_aBattleAttacker[mp] ? -46 : -47, -58, m_aBattleFunds[mp]);
+						//                            std::snprintf(str, sizeof(str), "%c %c %.0f oz", m_AnimTimer2.AlternateReal(200) ? -39 : -26, -58, m_aBattleFunds[mp]);
 					}
 					m_apPlayerBrainTravelLabel[mp]->SetText(str);
 					m_apPlayerBrainTravelLabel[mp]->SetToolTip("The specific brain that is being sent in to attack this place, and the funds he has been budgeted to do so with.");
@@ -5634,7 +5629,7 @@ void MetagameGUI::PlayerTextIndication(int metaPlayer, std::string text, const V
 
 void MetagameGUI::FundsChangeIndication(int metaPlayer, float change, const Vector& screenPos, double animLengthMS) {
 	char str[256];
-	std::snprintf(str, sizeof(str), change >= 1.0 ? "%c +%.0f oz" : (change <= -1.0 ? "%c %.0f oz" : "%c %.0f oz"), -58, change);
+	std::snprintf(str, sizeof(str), change >= 1.0 ? "%c +%.0f oz" : "%c %.0f oz", -58, change);
 	m_apFundsChangeLabel[metaPlayer]->SetText(str);
 	m_apFundsChangeLabel[metaPlayer]->SetHAlignment(GUIFont::Right);
 	m_apFundsChangeLabel[metaPlayer]->SetVAlignment(GUIFont::Top);

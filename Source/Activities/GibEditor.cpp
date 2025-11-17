@@ -462,7 +462,7 @@ void GibEditor::Update() {
 				}
 				// Open the save object dialog to ask user where to save it then
 				else {
-					m_PreviousMode = m_PreviousMode;
+					m_PreviousMode = m_EditorMode;
 					m_EditorMode = EditorActivity::SAVEDIALOG;
 					m_ModeChange = true;
 				}

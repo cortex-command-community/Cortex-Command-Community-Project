@@ -532,7 +532,7 @@ void SceneEditorGUI::Update() {
 		}
 
 		// Apply the team to the current actor, if applicable
-		if (m_pCurrentObject && m_DrawCurrentObject) {
+		if (m_DrawCurrentObject) {
 			// Set the team of SceneObject based on what's been selected
 			// Only if full featured mode, otherwise it's based on the controller when placed
 			if (m_FeatureSet == ONLOADEDIT)

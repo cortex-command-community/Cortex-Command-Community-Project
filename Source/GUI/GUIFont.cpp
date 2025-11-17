@@ -134,9 +134,6 @@ void GUIFont::Draw(GUIBitmap* Bitmap, int X, int Y, const std::string& Text, uns
 		if (c == '\t') {
 			X += m_Characters[' '].m_Width * 4;
 		}
-		if (c < 0) {
-			c += m_CharIndexCap;
-		}
 		if (c < 32 || c >= m_CharIndexCap) {
 			continue;
 		}
@@ -269,9 +266,6 @@ int GUIFont::CalculateWidth(const std::string& Text) {
 			}
 			Width = 0;
 			continue;
-		}
-		if (c < 0) {
-			c += m_CharIndexCap;
 		}
 
 		if (c < 32 || c >= m_CharIndexCap) {

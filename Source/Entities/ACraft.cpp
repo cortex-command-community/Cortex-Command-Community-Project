@@ -405,9 +405,6 @@ bool ACraft::HandlePieCommand(PieSliceType pieSliceIndex) {
 		} else if (pieSliceIndex == PieSliceType::Sentry) {
 			m_AIMode = AIMODE_SENTRY;
 			m_DeliveryState = FALL;
-		} else if (pieSliceIndex == PieSliceType::Return) {
-			m_AIMode = AIMODE_RETURN;
-			m_DeliveryState = LAUNCH;
 		} else if (pieSliceIndex == PieSliceType::GoTo) {
 			m_AIMode = AIMODE_GOTO;
 			m_DeliveryState = FALL;
@@ -552,7 +549,6 @@ void ACraft::DropAllInventory() {
 				m_Inventory.erase(exitee);
 				// Reset timer interval and quit until next one is due
 				m_ExitTimer.Reset();
-				break;
 			} else {
 				(*exitee)->SetVel(m_Vel + exitVel * antiGravBoost);
 				(*exitee)->SetAngularVel(5.0F * RandomNormalNum());
@@ -566,9 +562,7 @@ void ACraft::DropAllInventory() {
 				m_Inventory.erase(exitee);
 				// Reset timer interval and quit until next one is due
 				m_ExitTimer.Reset();
-				break;
 			}
-			droppedSomething = true;
 		}
 
 		if (m_Inventory.empty()) {
