@@ -74,6 +74,7 @@ luac.out
 *.x86_64
 *.hex
 *.bat
+*.sh
 CortexCommand
 CortexCommand_debug
 CortexCommand.AppImage
