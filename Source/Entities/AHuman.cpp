@@ -1865,7 +1865,7 @@ void AHuman::PreControllerUpdate() {
 			}
 		} else {
 			m_CanActivateBGItem = true;
-			if (thrownDevice = dynamic_cast<ThrownDevice*>(device)) {
+			if ((thrownDevice = dynamic_cast<ThrownDevice*>(device))) {
 				thrownDevice->SetSharpAim(isSharpAiming ? 1.0F : 0);
 				if (m_Controller.IsState(WEAPON_FIRE)) {
 					if (m_ArmsState != THROWING_PREP) {
@@ -2718,7 +2718,7 @@ void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 		return;
 	}
 
-	Actor::DrawHUD(pTargetBitmap, targetPos, whichScreen);
+	Actor::DrawHUD(pTargetBitmap, targetPos, whichScreen, playerControlled);
 
 	if (!m_HUDVisible) {
 		return;

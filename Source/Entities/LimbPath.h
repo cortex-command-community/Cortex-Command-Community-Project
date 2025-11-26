@@ -375,7 +375,7 @@ namespace RTE {
 		// The number of starting segments, counting into the path from its beginning,
 		// that upon restart of this path will be tried in reverse order till one which
 		// yields a starting position that is clear of terrain is found.
-		int m_StartSegCount;
+		size_t m_StartSegCount;
 
 		// Array containing the actual 'waypoints' or segments for the path.
 		std::deque<Vector> m_Segments;

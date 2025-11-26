@@ -358,7 +358,7 @@ namespace RTE {
 
 		/// Gets the class name of this Entity.
 		/// @return A string with the friendly-formatted type name of this Entity.
-		virtual const std::string& GetClassName() const { return m_sClass.GetName(); }
+		virtual const std::string& GetClassName() const override { return m_sClass.GetName(); }
 #pragma endregion
 
 	protected:

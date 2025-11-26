@@ -397,7 +397,7 @@ bool LimbPath::RestartFree(Vector& limbPos, MOID MOIDToIgnore, int ignoreTeam) {
 		m_CurrentSegment = m_Segments.begin();
 
 		// Find the first start segment that has an obstacle on it
-		int i = 0;
+		size_t i = 0;
 		for (; i < m_StartSegCount; ++i) {
 			Vector segmentStart = GetProgressPos();
 			++m_CurrentSegment;

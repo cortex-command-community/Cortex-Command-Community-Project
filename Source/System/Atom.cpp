@@ -518,7 +518,7 @@ int Atom::SetupSeg(Vector startPos, Vector trajectory, float stepRatio) {
 	return m_Delta[m_Dom] - m_DomSteps;
 }
 
-bool Atom::StepForward(int numSteps) {
+bool Atom::StepForward() {
 	RTEAssert(m_OwnerMO, "Stepping an Atom without a parent MO!");
 
 	// Only take the step if the step ratio permits it
@@ -1046,7 +1046,7 @@ int Atom::Travel(float travelTime, bool autoTravel) {
 		Vector bottomRightExtent = topLeftExtent + Vector(1.0F, 1.0F);
 
 		int length = static_cast<int>(static_cast<float>(m_TrailLength) * RandomNum(1.0F - m_TrailLengthVariation, 1.0F));
-		for (int i = trailPoints.size() - std::min(length, static_cast<int>(trailPoints.size())); i < trailPoints.size(); ++i) {
+		for (size_t i = trailPoints.size() - std::min(length, static_cast<int>(trailPoints.size())); i < trailPoints.size(); ++i) {
 			putpixel(trailBitmap, trailPoints[i].first, trailPoints[i].second, m_TrailColor.GetIndex());
 
 			topLeftExtent.m_X = std::min(topLeftExtent.m_X, static_cast<float>(trailPoints[i].first));

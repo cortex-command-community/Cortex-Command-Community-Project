@@ -39,6 +39,15 @@ namespace RTE {
 			Create(reference);
 		}
 
+		/// Copy assignment operator for Timers.
+		/// @param rhs A Timer reference.
+		/// @return A reference to the changed Timer.
+		inline Timer& operator=(const Timer& rhs) {
+			Clear();
+			Create(rhs);
+			return *this;
+		}
+
 		/// Makes the Timer object ready for use.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create();
