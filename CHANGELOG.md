@@ -171,6 +171,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Conquest activities will once again fall-back to using base dropships and rockets if a random selection of the selected tech's craft can't find one capable of carrying passengers and/or cargo.
 
+- Actor inventory order is now preserved when AI switches weapons.
+
+- Constructors now dig sparse terrain more reliably, mostly preventing stray tiny pixels in dug areas.
+
 - `MovableMan:OpenAllDoors()`, when passed `NOTEAM`, will now open/close doors specifically for `NOTEAM` (instead of all doors).
 
 - MOs now only play the BurstSound of the first Wound they receive in a frame, which not only solves audio spam during e.g. explosions but also preserves intended audio when firing guns with a high ParticleCount at them.
