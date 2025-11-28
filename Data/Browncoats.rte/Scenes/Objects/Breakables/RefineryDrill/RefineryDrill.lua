@@ -33,6 +33,6 @@ function ThreadedUpdate(self)
 	end
 end
 
-function OnDestroy(self)
+function Destroy(self)
 	self.loopSound:Stop(-1);
 end
