@@ -79,10 +79,7 @@ void Box::Unflip() {
 }
 
 bool Box::IsWithinBox(const Vector& point) const {
-	return !IsEmpty() && (((m_Width > 0 && point.m_X >= m_Corner.m_X && point.m_X < (m_Corner.m_X + m_Width)) ||
-	                       (m_Width < 0 && point.m_X < m_Corner.m_X && point.m_X >= (m_Corner.m_X + m_Width))) &&
-	                          (m_Height > 0 && point.m_Y >= m_Corner.m_Y && point.m_Y < (m_Corner.m_Y + m_Height)) ||
-	                      (m_Height < 0 && point.m_Y < m_Corner.m_Y && point.m_Y <= (m_Corner.m_Y + m_Height)));
+	return !IsEmpty() && IsWithinBoxX(point.m_X) && IsWithinBoxY(point.m_Y);
 }
 
 bool Box::IsWithinBoxX(float pointX) const {

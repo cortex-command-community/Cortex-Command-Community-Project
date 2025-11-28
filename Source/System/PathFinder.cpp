@@ -4,7 +4,6 @@
 #include "Scene.h"
 #include "SceneMan.h"
 #include "ThreadMan.h"
-#include "ConsoleMan.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -259,14 +258,14 @@ void PathFinder::RecalculateAllCosts() {
 	// I hate this copy, but fuck it.
 	std::vector<int> pathNodesIdsVec;
 	pathNodesIdsVec.reserve(m_NodeGrid.size());
-	for (int i = 0; i < m_NodeGrid.size(); ++i) {
+	for (size_t i = 0; i < m_NodeGrid.size(); ++i) {
 		pathNodesIdsVec.push_back(i);
 	}
 
 	UpdateNodeList(pathNodesIdsVec);
 }
 
-std::vector<int> PathFinder::RecalculateAreaCosts(std::deque<Box>& boxList, int nodeUpdateLimit) {
+std::vector<int> PathFinder::RecalculateAreaCosts(std::deque<Box>& boxList, size_t nodeUpdateLimit) {
 	ZoneScoped;
 
 	std::unordered_set<int> nodeIDsToUpdate;
@@ -611,7 +610,7 @@ void PathFinder::MarkBoxNavigable(Box box, bool navigable) {
 void PathFinder::MarkAllNodesNavigable(bool navigable) {
 	std::vector<int> pathNodesIdsVec;
 	pathNodesIdsVec.reserve(m_NodeGrid.size());
-	for (int i = 0; i < m_NodeGrid.size(); ++i) {
+	for (size_t i = 0; i < m_NodeGrid.size(); ++i) {
 		pathNodesIdsVec.push_back(i);
 	}
 
@@ -648,7 +647,7 @@ int PathFinder::ConvertCoordsToNodeId(int x, int y) const {
 	return (y * m_GridWidth) + x;
 }
 
-void PathFinder::DebugRender(BITMAP* targetBitmap, const Vector& targetPos, int whichScreen) const {
+void PathFinder::DebugRender(BITMAP* targetBitmap, const Vector& targetPos) const {
 	for (int x = 0; x < m_GridWidth; ++x) {
 		Vector startPos = (m_NodeGrid[ConvertCoordsToNodeId(x, 0)].Pos - m_Offset) - targetPos;
 		Vector endPos = startPos + Vector(0.0F, m_NodeDimension * m_GridHeight);

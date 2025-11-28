@@ -157,7 +157,7 @@ void MetagameGUI::Clear() {
 	m_AnimMetaPlayer = Players::NoPlayer;
 	m_AnimDefenseTeam = Activity::NoTeam;
 	m_AnimActivityChange = false;
-	Scene* m_pAnimScene = 0;
+	m_pAnimScene = 0;
 	m_AnimRatio = 0;
 	m_AnimProgress = 0;
 	m_AnimTotalFunds = 0;
@@ -594,7 +594,7 @@ void MetagameGUI::MoveLocationsIntoTheScreen() {
 
 	// We need to calculate planet center manually because m_PlanetCenter reflects coords of moving planet
 	// which is outside the screen when this is called first time
-	Vector planetCenter = Vector(m_RootBoxMaxWidth / 2, g_WindowMan.GetResY() / 2);
+	Vector planetCenter = Vector(m_RootBoxMaxWidth / 2.0, g_WindowMan.GetResY() / 2.0);
 	// Correct planet pos a bit when it's location is known
 	if (!m_PlanetCenter.IsZero())
 		planetCenter = m_PlanetCenter;
@@ -828,33 +828,32 @@ void MetagameGUI::SwitchToScreen(int newScreen) {
 }
 
 std::string MetagameGUI::GetRoundName(int roundNumber) {
-	if (roundNumber < 12) {
-		if (roundNumber == 0)
-			return "ONE";
-		else if (roundNumber == 1)
-			return "TWO";
-		else if (roundNumber == 2)
-			return "THREE";
-		else if (roundNumber == 3)
-			return "FOUR";
-		else if (roundNumber == 4)
-			return "FIVE";
-		else if (roundNumber == 5)
-			return "SIX";
-		else if (roundNumber == 6)
-			return "SEVEN";
-		else if (roundNumber == 7)
-			return "EIGHT";
-		else if (roundNumber == 8)
-			return "NINE";
-		else if (roundNumber == 9)
-			return "TEN";
-		else if (roundNumber == 10)
-			return "ELEVEN";
-		else if (roundNumber == 11)
-			return "TWELVE";
-	}
-	char numStr[8];
+	if (roundNumber == 0)
+		return "ONE";
+	else if (roundNumber == 1)
+		return "TWO";
+	else if (roundNumber == 2)
+		return "THREE";
+	else if (roundNumber == 3)
+		return "FOUR";
+	else if (roundNumber == 4)
+		return "FIVE";
+	else if (roundNumber == 5)
+		return "SIX";
+	else if (roundNumber == 6)
+		return "SEVEN";
+	else if (roundNumber == 7)
+		return "EIGHT";
+	else if (roundNumber == 8)
+		return "NINE";
+	else if (roundNumber == 9)
+		return "TEN";
+	else if (roundNumber == 10)
+		return "ELEVEN";
+	else if (roundNumber == 11)
+		return "TWELVE";
+
+	char numStr[11];
 	std::snprintf(numStr, sizeof(numStr), "%d", roundNumber + 1);
 	return std::string(numStr);
 }
@@ -1059,7 +1058,7 @@ bool MetagameGUI::LoadGame() {
 			UpdateIncomeCounting(true);
 
 			// Reconstruct the player action lines - they are important!
-			for (int metaPlayer = Players::PlayerOne; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer)
+			for (size_t metaPlayer = Players::PlayerOne; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer)
 				UpdatePlayerActionLines(metaPlayer);
 
 			// Re-init some other GUI elements
@@ -1574,7 +1573,6 @@ void MetagameGUI::Update() {
 		if (!m_pDraggedBox && (mousePos - m_PlanetCenter).MagnitudeIsLessThan(m_PlanetRadius)) {
 			// If unlocked, detect any Scene close to the mouse and highlight it
 			bool foundAnyHover = false;
-			bool foundNewHover = false;
 			std::vector<Scene*>::iterator sItr;
 			std::vector<Scene*>::iterator newCandidateItr = g_MetaMan.m_Scenes.end();
 
@@ -1607,7 +1605,6 @@ void MetagameGUI::Update() {
 			// Set new hovered scene to be the one now closest to the cursor, if there is any and if it is different the a currently hovered one
 			if (newCandidateItr != g_MetaMan.m_Scenes.end() && (*newCandidateItr) != m_pHoveredScene) {
 				m_pHoveredScene = (*newCandidateItr);
-				foundNewHover = true;
 				g_GUISound.SelectionChangeSound()->Play();
 			}
 
@@ -1698,7 +1695,7 @@ void MetagameGUI::Draw(BITMAP* drawBitmap) {
 			// Make sure team is within bounds to show an icon
 			pIcon = g_MetaMan.IsActiveTeam(team) ? g_MetaMan.GetTeamIcon(team).GetBitmaps32()[0] : 0;
 			if (pIcon)
-				masked_blit(pIcon, drawBitmap, 0, 0, screenLocation.m_X - (pIcon->w / 2), screenLocation.m_Y - (pIcon->h / 2), pIcon->w, pIcon->h);
+				masked_blit(pIcon, drawBitmap, 0, 0, screenLocation.m_X - (pIcon->w / 2.0), screenLocation.m_Y - (pIcon->h / 2.0), pIcon->w, pIcon->h);
 			// Ownership not known, so place nondescript dot instead
 			else {
 				// Make it flicker more if it's currently being fought over
@@ -1714,7 +1711,7 @@ void MetagameGUI::Draw(BITMAP* drawBitmap) {
 
 		// Draw the lines etc pointing at the selected Scene from the Scene Info box
 		if (m_pSelectedScene && m_pSceneInfoPopup->GetVisible() && !m_PreTurn) {
-			Vector sceneInfoBoxPos(m_pSceneInfoPopup->GetXPos() + (m_pSceneInfoPopup->GetWidth() / 2), m_pSceneInfoPopup->GetYPos() + (m_pSceneInfoPopup->GetHeight() / 2));
+			Vector sceneInfoBoxPos(m_pSceneInfoPopup->GetXPos() + (m_pSceneInfoPopup->GetWidth() / 2.0), m_pSceneInfoPopup->GetYPos() + (m_pSceneInfoPopup->GetHeight() / 2.0));
 			DrawScreenLineToSitePoint(drawBitmap, sceneInfoBoxPos, m_pSelectedScene->GetLocation() + m_pSelectedScene->GetLocationOffset(), c_GUIColorWhite, -1, -1, (m_pSceneInfoPopup->GetHeight() / 2) + CHAMFERSIZE + 6, 1.0, g_MetaMan.IsActiveTeam(m_pSelectedScene->GetTeamOwnership()));
 		}
 
@@ -1738,7 +1735,7 @@ void MetagameGUI::Draw(BITMAP* drawBitmap) {
 		// Action lines
 		// If during a player's round phase, and not showing any income lines
 		if (!m_PreTurn && !g_MetaMan.m_StateChanged && g_MetaMan.m_GameState >= MetaMan::PLAYER1TURN && g_MetaMan.m_GameState <= MetaMan::BUILDBASES && m_ActivePlayerIncomeLines == Players::NoPlayer) {
-			int metaPlayer = 0;
+			size_t metaPlayer = 0;
 			// Show the lines of the relevant player during turns
 			if (g_MetaMan.m_GameState >= MetaMan::PLAYER1TURN && g_MetaMan.m_GameState <= MetaMan::PLAYER4TURN)
 				metaPlayer = g_MetaMan.m_GameState - MetaMan::PLAYER1TURN;
@@ -1746,7 +1743,7 @@ void MetagameGUI::Draw(BITMAP* drawBitmap) {
 			else if (g_MetaMan.m_GameState == MetaMan::BUILDBASES && m_AnimMetaPlayer < g_MetaMan.m_Players.size())
 				metaPlayer = m_AnimMetaPlayer;
 
-			for (int slI = 0; slI < m_ActionSiteLines[metaPlayer].size(); ++slI) {
+			for (size_t slI = 0; slI < m_ActionSiteLines[metaPlayer].size(); ++slI) {
 				// Only draw the lines of the active player
 				//                if (m_ActionSiteLines[metaPlayer][slI].m_Player != m_ActivePlayerIncomeLines)
 				//                    continue;
@@ -1779,7 +1776,7 @@ void MetagameGUI::Draw(BITMAP* drawBitmap) {
 
 			// Draw the attack lines that are currently being revealed by possibly multiple attackers
 			for (int metaPlayer = Players::PlayerOne; metaPlayer < Players::MaxPlayerCount; ++metaPlayer) {
-				for (int slI = 0; slI < m_ActionSiteLines[metaPlayer].size(); ++slI) {
+				for (size_t slI = 0; slI < m_ActionSiteLines[metaPlayer].size(); ++slI) {
 					DrawPlayerLineToSitePoint(drawBitmap, m_ActionSiteLines[metaPlayer][slI], m_ActionMeterDrawOverride);
 				}
 			}
@@ -2118,7 +2115,6 @@ void MetagameGUI::UpdateInput() {
 			if (anEvent.GetControl() == m_apMetaButton[SCENEACTION] && m_pSelectedScene) {
 				// Set up site scan of it (for a price)
 				int metaPlayer = g_MetaMan.GetPlayerTurn();
-				int team = g_MetaMan.m_Players[metaPlayer]->GetTeam();
 				// Check if we have enough money for this!
 				if (g_MetaMan.GetRemainingFundsOfPlayer(metaPlayer, 0, false, false) < SCANCOST) {
 					m_apMetaButton[SCENEACTION]->SetText("NOT ENOUGH FUNDS!");
@@ -2678,8 +2674,9 @@ bool MetagameGUI::AutoResolveOffensive(GAScripted* pOffensive, Scene* pScene, bo
 			// NOTE: Brain pool resource counter gets adjusted down in FinalizeOffense
 
 			// Find the player's tech's brain, and instantiate it
-			if (pLoadout = dynamic_cast<const Loadout*>(g_PresetMan.GetEntityPreset("Loadout", "Infantry Brain", pMetaPlayer->GetNativeTechModule())))
+			if ((pLoadout = dynamic_cast<const Loadout*>(g_PresetMan.GetEntityPreset("Loadout", "Infantry Brain", pMetaPlayer->GetNativeTechModule()))))
 				pBrain = pLoadout->CreateFirstActor(pMetaPlayer->GetNativeTechModule(), pMetaPlayer->GetForeignCostMultiplier(), pMetaPlayer->GetNativeCostMultiplier(), cost);
+
 			// Pass the instance and ownership thereof to the scene as a resident
 			if (pBrain) {
 				// Set a pos outside the Scene so it'll be gracefully placed later when Scene's Terrain is actually loaded
@@ -2791,8 +2788,10 @@ bool MetagameGUI::AutoResolveOffensive(GAScripted* pOffensive, Scene* pScene, bo
 							// NOTE: Brain pool resource counter gets adjusted down in FinalizeOffense
 
 							// Find the player's tech's brain, and instantiate it
-							if (pLoadout = dynamic_cast<const Loadout*>(g_PresetMan.GetEntityPreset("Loadout", "Infantry Brain", aMetaPlayers[player]->GetNativeTechModule())))
+
+							if ((pLoadout = dynamic_cast<const Loadout*>(g_PresetMan.GetEntityPreset("Loadout", "Infantry Brain", aMetaPlayers[player]->GetNativeTechModule()))))
 								pBrain = pLoadout->CreateFirstActor(aMetaPlayers[player]->GetNativeTechModule(), aMetaPlayers[player]->GetForeignCostMultiplier(), aMetaPlayers[player]->GetNativeCostMultiplier(), cost);
+
 							// Pass the instance and ownership thereof to the scene as a resident
 							if (pBrain) {
 								// Set a pos outside the Scene so it'll be gracefully placed later when Scene's Terrain is actually loaded
@@ -2853,7 +2852,7 @@ void MetagameGUI::UpdateSiteRevealing() {
 		// Reset the extra to 0 now after we've applied it
 		g_MetaMan.m_RevealExtra = 0;
 		// Don't reveal more than there are scenes!
-		if ((int)std::floor(g_MetaMan.m_RevealedScenes) >= g_MetaMan.m_Scenes.size())
+		if ((size_t)std::floor(g_MetaMan.m_RevealedScenes) >= g_MetaMan.m_Scenes.size())
 			g_MetaMan.m_RevealedScenes = g_MetaMan.m_Scenes.size();
 		// Figure out how many new sites we gots this round
 		int delta = (int)std::floor(g_MetaMan.m_RevealedScenes) - m_AnimCountStart;
@@ -2891,7 +2890,7 @@ void MetagameGUI::UpdateSiteRevealing() {
 	// Animate the existing crosshairs
 	double shrinkTime = 0;
 	double shrinkInterval = 600;
-	for (int i = 0; i < (m_AnimCountCurrent - m_AnimCountStart); ++i) {
+	for (size_t i = 0; i < (m_AnimCountCurrent - m_AnimCountStart); ++i) {
 		// How long have we been animating this one?
 		shrinkTime = m_AnimTimer2.GetElapsedRealTimeMS() - m_NewSiteIndicators[i].m_StartTime;
 		// If it's still in the shrink interval, keep doing it
@@ -2962,7 +2961,7 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 
 		// Init all the SiteLine:s and make them hidden; we will reveal each one sequentially with an animation
 		m_IncomeSiteLines.clear();
-		for (int metaPlayer = 0; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer)
+		for (size_t metaPlayer = 0; metaPlayer < g_MetaMan.m_Players.size(); ++metaPlayer)
 			m_aStationIncomeLineIndices[metaPlayer] = -1;
 		m_AnimMetaPlayer = m_ActivePlayerIncomeLines = Players::PlayerOne;
 		m_pAnimScene = 0;
@@ -2997,7 +2996,7 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 			// SCENE INCOME
 			// Loop through the scenes owned by that player, setting up the site line for each
 			if (!initOverride) {
-				while (m_pAnimScene = g_MetaMan.GetNextSceneOfPlayer(m_AnimMetaPlayer, m_pAnimScene)) {
+				while ((m_pAnimScene = g_MetaMan.GetNextSceneOfPlayer(m_AnimMetaPlayer, m_pAnimScene))) {
 					m_IncomeSiteLines.push_back(SiteLine(m_AnimMetaPlayer, 1.0, 0, m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), m_pAnimScene->GetPresetName(), m_pAnimScene, c_GUIColorYellow, -1, 0, channelHeight, 1.0f, g_MetaMan.IsActiveTeam(m_pAnimScene->GetTeamOwnership())));
 					// Star them at 0, make them go to the round income for this base
 					m_IncomeSiteLines.back().m_FundsAmount = 0;
@@ -3222,7 +3221,7 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 				// Check if there's more lines to draw, and if so, if the next one is of a different player
 				// OR if there's no lines left at all, just retract the last player's lines we just finished
 				// Then pause to retract all the lines of the just finished player
-				if ((m_AnimIncomeLineIndex + 1) >= static_cast<int>(m_IncomeSiteLines.size()) || m_IncomeSiteLines[m_AnimIncomeLineIndex + 1].m_Player != m_AnimMetaPlayer) {
+				if ((m_AnimIncomeLineIndex + 1) >= m_IncomeSiteLines.size() || m_IncomeSiteLines[m_AnimIncomeLineIndex + 1].m_Player != m_AnimMetaPlayer) {
 					// Wait for a little bit when we've displayed all sites of a player
 					if (m_AnimTimer2.IsPastRealMS(500))
 						ChangeAnimMode(RETRACTLINES);
@@ -3244,12 +3243,12 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 				// Show the change, if any
 				if (fabs(m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsTarget - m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount) > 0) {
 					// Show why we are paying money
-					PlayerTextIndication(m_AnimMetaPlayer, "TradeStar brain storage rent", Vector(m_apPlayerBarLabel[m_AnimMetaPlayer]->GetXPos() + (m_apPlayerBarLabel[m_AnimMetaPlayer]->GetWidth() / 2), m_apPlayerBarLabel[m_AnimMetaPlayer]->GetYPos() + (m_apPlayerBarLabel[m_AnimMetaPlayer]->GetHeight() / 2)), m_AnimModeDuration);
+					PlayerTextIndication(m_AnimMetaPlayer, "TradeStar brain storage rent", Vector(m_apPlayerBarLabel[m_AnimMetaPlayer]->GetXPos() + (m_apPlayerBarLabel[m_AnimMetaPlayer]->GetWidth() / 2.0), m_apPlayerBarLabel[m_AnimMetaPlayer]->GetYPos() + (m_apPlayerBarLabel[m_AnimMetaPlayer]->GetHeight() / 2.0)), m_AnimModeDuration);
 					FundsChangeIndication(m_AnimMetaPlayer, m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsTarget - m_IncomeSiteLines[m_AnimIncomeLineIndex].m_FundsAmount, Vector(m_apPlayerBarLabel[m_AnimMetaPlayer]->GetXPos() + m_apPlayerBarLabel[m_AnimMetaPlayer]->GetWidth(), m_apPlayerBarLabel[m_AnimMetaPlayer]->GetYPos()), m_AnimModeDuration);
 				}
 				// Indicate why we're not paying anything
 				else
-					PlayerTextIndication(m_AnimMetaPlayer, "No brains; no rent!", Vector(m_apPlayerBarLabel[m_AnimMetaPlayer]->GetXPos() + (m_apPlayerBarLabel[m_AnimMetaPlayer]->GetWidth() / 2), m_apPlayerBarLabel[m_AnimMetaPlayer]->GetYPos() + (m_apPlayerBarLabel[m_AnimMetaPlayer]->GetHeight() / 2)), m_AnimModeDuration);
+					PlayerTextIndication(m_AnimMetaPlayer, "No brains; no rent!", Vector(m_apPlayerBarLabel[m_AnimMetaPlayer]->GetXPos() + (m_apPlayerBarLabel[m_AnimMetaPlayer]->GetWidth() / 2.0), m_apPlayerBarLabel[m_AnimMetaPlayer]->GetYPos() + (m_apPlayerBarLabel[m_AnimMetaPlayer]->GetHeight() / 2.0)), m_AnimModeDuration);
 
 				/* This is done above on init now
 				                // Only charge rent if we've still got brains at the tradestar
@@ -3331,13 +3330,13 @@ void MetagameGUI::UpdateIncomeCounting(bool initOverride) {
 	}
 
 	// If no more lines, DONE, continue phase to next
-	if (m_AnimIncomeLineIndex >= static_cast<int>(m_IncomeSiteLines.size()) && !initOverride)
+	if (m_AnimIncomeLineIndex >= m_IncomeSiteLines.size() && !initOverride)
 		m_ContinuePhase = true;
 
 	// Phase ending, make sure everything is set up to continue
 	if (m_ContinuePhase || initOverride) {
 		// Set all lines' fund amounts to their targets and reset their segment animations so we can see them
-		int lineIndex = 0;
+		size_t lineIndex = 0;
 		for (std::vector<SiteLine>::iterator slItr = m_IncomeSiteLines.begin(); slItr != m_IncomeSiteLines.end(); ++slItr) {
 			(*slItr).m_FundsAmount = (*slItr).m_FundsTarget;
 			(*slItr).m_OnlyFirstSegments = -1;
@@ -3461,7 +3460,7 @@ void MetagameGUI::UpdateBaseBuilding() {
 		//            ChangeAnimMode(PAUSEANIM);
 
 		// Find the next green defense line of this player
-		while (m_AnimActionLine < static_cast<int>(m_ActionSiteLines[m_AnimMetaPlayer].size()) && m_ActionSiteLines[m_AnimMetaPlayer][m_AnimActionLine].m_Color != c_GUIColorGreen)
+		while (m_AnimActionLine < m_ActionSiteLines[m_AnimMetaPlayer].size() && m_ActionSiteLines[m_AnimMetaPlayer][m_AnimActionLine].m_Color != c_GUIColorGreen)
 			m_AnimActionLine++;
 
 		// Regular site line, start with bar bracket and line appearing toward the site
@@ -3474,7 +3473,7 @@ void MetagameGUI::UpdateBaseBuilding() {
 
 	// Animate defense spending sitelines into view, and then count them away one by one
 	//    for (vector<SiteLine>::iterator slItr = m_ActionSiteLines[m_AnimMetaPlayer].begin(); slItr != m_ActionSiteLines[m_AnimMetaPlayer].end(); ++slItr)
-	if (!m_ActionSiteLines[m_AnimMetaPlayer].empty() && m_AnimActionLine < static_cast<int>(m_ActionSiteLines[m_AnimMetaPlayer].size())) {
+	if (!m_ActionSiteLines[m_AnimMetaPlayer].empty() && m_AnimActionLine < m_ActionSiteLines[m_AnimMetaPlayer].size()) {
 		if (m_AnimMode == BLINKMETER) {
 			if (NewAnimMode()) {
 				m_AnimTimer1.Reset();
@@ -3598,7 +3597,7 @@ void MetagameGUI::UpdateBaseBuilding() {
 	}
 
 	// If no more lines, DONE, continue to next player, and if no more players, continue to next phase of the round
-	if (m_AnimActionLine >= static_cast<int>(m_ActionSiteLines[m_AnimMetaPlayer].size())) {
+	if (m_AnimActionLine >= m_ActionSiteLines[m_AnimMetaPlayer].size()) {
 		m_AnimActionLineChange = true;
 		m_AnimActionLine = 0;
 
@@ -3834,7 +3833,7 @@ void MetagameGUI::UpdateOffensives() {
 					// Find out how much gold this player has left after all allocations and previous battles this turn
 					float remainingFunds = g_MetaMan.GetRemainingFundsOfPlayer(mp);
 					// UPDATE the contributed funds of the defending player to whatever gold he has left after all (if any) previous battles this turn!
-					bool updated = g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->UpdatePlayerFundsContribution(g_MetaMan.m_Players[mp]->GetInGamePlayer(), remainingFunds);
+					g_MetaMan.m_RoundOffensives[g_MetaMan.m_CurrentOffensive]->UpdatePlayerFundsContribution(g_MetaMan.m_Players[mp]->GetInGamePlayer(), remainingFunds);
 					// Add the unused build budget FOR THIS SCENE to the battle funds display - doesn't do anyhting now because build budgets are set to 0 in UpdateBaseBuilding
 					m_aBattleFunds[mp] += m_pAnimScene->GetBuildBudget(g_MetaMan.m_Players[mp]->GetInGamePlayer());
 					// Add the unallocated funds meter, even if there's 0 left.. it shows why there's 0, and also the meter can grow after battle if the defending player digs up gold

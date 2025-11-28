@@ -1302,7 +1302,7 @@ namespace RTE {
 		// Unique ID of particle hit this MO
 		long int m_ParticleUniqueIDHit;
 		// Number of sim update frame when last collision was detected
-		int m_LastCollisionSimFrameNumber;
+		unsigned int m_LastCollisionSimFrameNumber;
 		int m_SimUpdatesBetweenScriptedUpdates; //!< The number of Sim updates between each scripted update for this MovableObject.
 		int m_SimUpdatesSinceLastScriptedUpdate; //!< The counter for the current number of Sim updates since this MovableObject last ran a scripted update.
 
