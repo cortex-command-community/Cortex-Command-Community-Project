@@ -1047,7 +1047,8 @@ float Actor::EstimateDigStrength() const {
 }
 
 float Actor::EstimateJumpHeight() const {
-	return FLT_MAX;
+	// By default, assume actors can jump as far as the scene stretches upward, twice over.
+	return g_SceneMan.GetSceneHeight() * c_MPP * 2;
 }
 
 void Actor::VerifyMOIDs() {
