@@ -452,7 +452,7 @@ namespace RTE {
 
 		/// Sets network player name
 		/// @param player Player number, player name
-		void SetNetworkPlayerName(int player, const std::string& name);
+		void SetNetworkPlayerName(int player, std::string name);
 
 		/// Protected member variable and method declarations
 	protected:

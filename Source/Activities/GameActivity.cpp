@@ -2481,7 +2481,7 @@ const std::string& GameActivity::GetNetworkPlayerName(int player) {
 		return m_NetworkPlayerNames[0];
 }
 
-void GameActivity::SetNetworkPlayerName(int player, const std::string& name) {
+void GameActivity::SetNetworkPlayerName(int player, std::string name) {
 	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount)
 		m_NetworkPlayerNames[player] = std::move(name);
 }
