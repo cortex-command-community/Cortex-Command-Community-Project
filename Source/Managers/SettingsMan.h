@@ -203,7 +203,7 @@ namespace RTE {
 #pragma region Network Settings
 		/// Gets the player name that is used in network multiplayer matches.
 		/// @return String with the network player name.
-		std::string GetPlayerNetworkName() const { return m_PlayerNetworkName; }
+		const std::string& GetPlayerNetworkName() const { return m_PlayerNetworkName; }
 
 		/// Sets the player name that will be used in network multiplayer matches.
 		/// @param newName String with the new player name to use.
@@ -211,7 +211,7 @@ namespace RTE {
 
 		/// Gets the LAN server address to connect to.
 		/// @return The current LAN server address to connect to.
-		std::string GetNetworkServerAddress() const { return m_NetworkServerAddress; }
+		const std::string& GetNetworkServerAddress() const { return m_NetworkServerAddress; }
 
 		/// Sets the LAN server address to connect to.
 		/// @param newName New LAN server address to connect to.
@@ -219,7 +219,7 @@ namespace RTE {
 
 		/// Gets the NAT punch-through server address.
 		/// @return The current NAT punch-through server address to connect to.
-		std::string& GetNATServiceAddress() { return m_NATServiceAddress; }
+		const std::string& GetNATServiceAddress() { return m_NATServiceAddress; }
 
 		/// Sets the NAT punch-through server address.
 		/// @param newValue New NAT punch-through server address to connect to.
@@ -227,7 +227,7 @@ namespace RTE {
 
 		/// Gets the server name used when connecting via NAT punch-through service.
 		/// @return Name of the NAT punch-through server.
-		std::string& GetNATServerName() { return m_NATServerName; }
+		const std::string& GetNATServerName() { return m_NATServerName; }
 
 		/// Sets the server name to use when connecting via NAT punch-through service.
 		/// @param newValue New NAT punch-through server name.
@@ -235,7 +235,7 @@ namespace RTE {
 
 		/// Gets the server password to use when connecting via NAT punch-through service.
 		/// @return The server password to use when connecting via NAT punch-through service.
-		std::string& GetNATServerPassword() { return m_NATServerPassword; }
+		const std::string& GetNATServerPassword() { return m_NATServerPassword; }
 
 		/// Sets the server password to use when connecting via NAT punch-through service.
 		/// @param newValue New password to use when connecting via NAT punch-through service.
@@ -253,7 +253,7 @@ namespace RTE {
 #pragma region Editor Settings
 		/// Returns the list of visible assembly groups.
 		/// @return List of visible assembly groups.
-		std::list<std::string> GetVisibleAssemblyGroupsList() const { return m_VisibleAssemblyGroupsList; }
+		const std::list<std::string>& GetVisibleAssemblyGroupsList() const { return m_VisibleAssemblyGroupsList; }
 
 		/// Whether editors will allow to select Base.rte as a module to save in
 		/// @return True of editors are allowed to select Base.rte as a module to save in.

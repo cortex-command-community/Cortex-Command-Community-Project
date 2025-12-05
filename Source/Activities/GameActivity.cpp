@@ -282,7 +282,7 @@ void GameActivity::Destroy(bool notInherited) {
 	Clear();
 }
 
-void GameActivity::SetTeamTech(int team, std::string tech) {
+void GameActivity::SetTeamTech(int team, const std::string& tech) {
 	if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) {
 		if (tech == "-All-" || tech == "-Random-")
 			m_TeamTech[team] = tech;
@@ -388,7 +388,7 @@ void GameActivity::SwitchToPrevActor(int player, int team, Actor* pSkip) {
 	}
 }
 
-void GameActivity::AddObjectivePoint(std::string description, Vector objPos, int whichTeam, ObjectiveArrowDir arrowDir) {
+void GameActivity::AddObjectivePoint(const std::string& description, Vector objPos, int whichTeam, ObjectiveArrowDir arrowDir) {
 	m_Objectives.push_back(ObjectivePoint(description, objPos, whichTeam, arrowDir));
 }
 
@@ -468,7 +468,7 @@ int GameActivity::SetOverridePurchaseList(const Loadout* pLoadout, int player) {
 	return finalListCost;
 }
 
-int GameActivity::SetOverridePurchaseList(std::string loadoutName, int player) {
+int GameActivity::SetOverridePurchaseList(const std::string& loadoutName, int player) {
 	// Find out the native module of this player
 	int nativeModule = 0;
 	MetaPlayer* pMetaPlayer = g_MetaMan.GetMetaPlayerOfInGamePlayer(player);
@@ -664,7 +664,7 @@ void GameActivity::SetupPlayers() {
 
 int GameActivity::Start() {
 	// Set the split screen config before the Scene (and it SceneLayers, specifially) are loaded
-	int humanCount = GetHumanCount();
+	uint8_t humanCount = GetHumanCount();
 	// Depending on the resolution aspect ratio, split first horizontally (if wide screen)
 	if (((float)g_WindowMan.GetResX() / (float)g_WindowMan.GetResY()) >= 1.6)
 		g_FrameMan.ResetSplitScreens(humanCount > 1, humanCount > 2);
@@ -2474,14 +2474,14 @@ void GameActivity::ObjectivePoint::Draw(BITMAP* pTargetBitmap, BITMAP* pArrowBit
 	}
 }
 
-std::string& GameActivity::GetNetworkPlayerName(int player) {
+const std::string& GameActivity::GetNetworkPlayerName(int player) {
 	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount)
 		return m_NetworkPlayerNames[player];
 	else
 		return m_NetworkPlayerNames[0];
 }
 
-void GameActivity::SetNetworkPlayerName(int player, std::string name) {
+void GameActivity::SetNetworkPlayerName(int player, const std::string& name) {
 	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount)
-		m_NetworkPlayerNames[player] = name;
+		m_NetworkPlayerNames[player] = std::move(name);
 }

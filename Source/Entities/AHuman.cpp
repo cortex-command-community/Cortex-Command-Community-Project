@@ -686,7 +686,7 @@ bool AHuman::EquipFirearm(bool doEquip) {
 	return false;
 }
 
-bool AHuman::EquipDeviceInGroup(std::string group, bool doEquip) {
+bool AHuman::EquipDeviceInGroup(const std::string& group, bool doEquip) {
 	if (!(m_pFGArm && m_pFGArm->IsAttached())) {
 		return false;
 	}
@@ -748,7 +748,7 @@ bool AHuman::EquipDeviceInGroup(std::string group, bool doEquip) {
 	return false;
 }
 
-bool AHuman::EquipLoadedFirearmInGroup(std::string group, std::string excludeGroup, bool doEquip) {
+bool AHuman::EquipLoadedFirearmInGroup(const std::string& group, const std::string& excludeGroup, bool doEquip) {
 	if (!(m_pFGArm && m_pFGArm->IsAttached())) {
 		return false;
 	}

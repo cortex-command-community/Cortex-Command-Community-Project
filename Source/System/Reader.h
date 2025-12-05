@@ -65,7 +65,7 @@ namespace RTE {
 
 		/// Gets the path of the current file this reader is reading from.
 		/// @return A string with the path, relative from the working directory.
-		std::string GetCurrentFilePath() const { return m_FilePath; }
+		const std::string& GetCurrentFilePath() const { return m_FilePath; }
 
 		/// Gets the line of the current file line this reader is reading from.
 		/// @return A string with the line number that will be read from next.

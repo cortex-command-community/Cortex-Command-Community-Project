@@ -143,7 +143,7 @@ namespace RTE {
 	/// @param endRot The end rotation of your Lerp.
 	/// @param progressScalar How far your Lerp has progressed. Automatically normalized through use of scaleStart and scaleEnd.
 	/// @return Interpolated value.
-	Matrix Lerp(float scaleStart, float scaleEnd, Matrix startRot, Matrix endRot, float progressScalar);
+	Matrix Lerp(float scaleStart, float scaleEnd, const Matrix& startRot, const Matrix& endRot, float progressScalar);
 
 	/// Nonlinear ease-in interpolation. Starts slow.
 	/// @param start Start value.

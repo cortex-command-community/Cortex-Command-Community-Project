@@ -57,7 +57,7 @@ namespace RTE {
 		std::string GetToolTip();
 
 		/// Returns a string representing the control's ID
-		std::string GetID() const;
+		const std::string& GetID() const;
 
 		/// Returns the anchor flags.
 		int GetAnchor();
@@ -122,7 +122,7 @@ namespace RTE {
 
 		/// Removes a child based on name.
 		/// @param Name Child Name.
-		void RemoveChild(const std::string Name);
+		void RemoveChild(const std::string& Name);
 
 		/// Removes all the children.
 		void RemoveChildren();
