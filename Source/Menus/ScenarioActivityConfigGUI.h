@@ -65,16 +65,16 @@ namespace RTE {
 
 		GUIControlManager* m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
 
-		const GameActivity* m_SelectedActivity = nullptr; //!< The Activity this ScenarioActivityConfigGUI is configuring.
-		const GameActivity* m_PreviouslySelectedActivity = nullptr; //!< The Activity this ScenarioActivityConfigGUI was configuring last, before it got was disabled.
-		Scene* m_SelectedScene = nullptr; //!< The Scene the selected Activity will be using.
-		int m_LockedCPUTeam = Activity::Teams::NoTeam; //!< Which team the CPU is locked to, if any.
+		const GameActivity* m_SelectedActivity {}; //!< The Activity this ScenarioActivityConfigGUI is configuring.
+		const GameActivity* m_PreviouslySelectedActivity {}; //!< The Activity this ScenarioActivityConfigGUI was configuring last, before it got was disabled.
+		Scene* m_SelectedScene {}; //!< The Scene the selected Activity will be using.
+		int m_LockedCPUTeam { Activity::Teams::NoTeam }; //!< Which team the CPU is locked to, if any.
 
-		bool m_StartingGoldAdjustedManually = false; //!< Whether the player adjusted the starting gold, meaning it should stop automatically adjusting to the difficulty setting default starting gold where applicable.
+		bool m_StartingGoldAdjustedManually {}; //!< Whether the player adjusted the starting gold, meaning it should stop automatically adjusting to the difficulty setting default starting gold where applicable.
 
 		Timer m_StartGameButtonBlinkTimer; //!< Timer for blinking the start game button.
 
-		bool m_TechListFetched = false; //!< Whether the tech list was fetched and each team's ComboBox was populated with it, even if no valid tech modules were added.
+		bool m_TechListFetched {}; //!< Whether the tech list was fetched and each team's ComboBox was populated with it, even if no valid tech modules were added.
 
 		/// GUI elements that compose the Activity setup box.
 		GUICollectionBox* m_ActivityConfigBox;
