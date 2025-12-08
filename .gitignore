@@ -18,6 +18,10 @@ compile_commands.json
 
 **/build*
 
+# Meson Wrap cache stuff
+/external/sources/packagecache
+/external/sources/.wraplock
+
 /enc_temp_folder
 
 .vs/
