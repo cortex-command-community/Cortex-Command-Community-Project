@@ -15,8 +15,12 @@ compile_commands.json
 **/.cache
 **/.clangd
 
-
+# Ignore build directories
 **/build*
+# ...But not ignore code file that start with "build"
+!**/build*.c
+!**/build*.cpp
+!**/build*.h
 
 # Meson Wrap cache stuff
 /external/sources/packagecache
