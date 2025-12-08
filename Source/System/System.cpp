@@ -265,7 +265,7 @@ std::string System::ExtractZippedDataModule(const std::string& zippedModulePath)
 	std::array<char, s_FileBufferSize> fileBuffer;
 
 	// Go through and extract every file inside this zip, overwriting every colliding file that already exists in the install directory.
-	for (int i = 0; i < zippedModuleInfo.number_entry && !abortExtract; ++i) {
+	for (size_t i = 0; i < zippedModuleInfo.number_entry && !abortExtract; ++i) {
 		unz_file_info currentFileInfo;
 		std::array<char, s_MaxFileName> outputFileInfoData;
 		if (unzGetCurrentFileInfo(zippedModule, &currentFileInfo, outputFileInfoData.data(), s_MaxFileName, nullptr, 0, nullptr, 0) != UNZ_OK) {
@@ -348,10 +348,11 @@ std::string System::ExtractZippedDataModule(const std::string& zippedModulePath)
 				} while (bytesRead > 0 && outputFile);
 
 				fclose(outputFile);
-				unzCloseCurrentFile(zippedModule);
-
-				extractionProgressReport << "\tExtracted file: " + outputFileName + "\n";
 			}
+
+			unzCloseCurrentFile(zippedModule);
+
+			extractionProgressReport << "\tExtracted file: " + outputFileName + "\n";
 		}
 
 		if ((i + 1) < zippedModuleInfo.number_entry && unzGoToNextFile(zippedModule) != UNZ_OK) {
