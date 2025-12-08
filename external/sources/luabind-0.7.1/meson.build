@@ -5,7 +5,7 @@ luabind_include = include_directories('.', 'luabind')
 
 luabind_args = ['-D_HAS_AUTO_PTR_ETC=1', '-D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES']
 
-luabind_dependencies = [dependency('luajit', 'LuaJIT-2.1'), dependency('boost-175')]
+luabind_dependencies = [dependency('luajit'), dependency('boost-175')]
 
 cpp_args = []
 cpp_options = []
