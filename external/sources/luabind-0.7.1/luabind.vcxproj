@@ -231,6 +231,7 @@
     <ClInclude Include="luabind\weak_ref.hpp" />
     <ClInclude Include="luabind\wrapper_base.hpp" />
     <ClInclude Include="luabind\yield_policy.hpp" />
+    <ClInclude Include="../LuaJIT-04dca7911ea255f37be799c18d74c305b921c1a6/src/lua.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
