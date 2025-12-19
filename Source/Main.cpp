@@ -18,6 +18,7 @@
 /// Cortex Command Community Project Discord - https://discord.gg/TSU6StNQUG
 /// </summary>
 
+#include "SDL3/SDL_hints.h"
 #include "allegro.h"
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
@@ -44,7 +45,7 @@
 #include "SceneMan.h"
 #include "MetaMan.h"
 #include "WindowMan.h"
-#include "GLResourceMan.h"
+#include "GLStateMan.h"
 #include "CameraMan.h"
 #include "ActivityMan.h"
 #include "PrimitiveMan.h"
@@ -77,7 +78,7 @@ void InitializeManagers() {
 	PresetMan::Construct();
 	SettingsMan::Construct();
 	WindowMan::Construct();
-	GLResourceMan::Construct();
+	GLStateMan::Construct();
 	LuaMan::Construct();
 	FrameMan::Construct();
 	PerformanceMan::Construct();
@@ -99,7 +100,7 @@ void InitializeManagers() {
 	g_ThreadMan.Initialize();
 	g_SettingsMan.Initialize();
 	g_WindowMan.Initialize();
-	g_GLResourceMan.Initialize();
+	g_GLStateMan.Initialize();
 
 	g_LuaMan.Initialize();
 	g_TimerMan.Initialize();
@@ -146,7 +147,7 @@ void DestroyManagers() {
 	g_LuaMan.Destroy();
 	ContentFile::FreeAllLoaded();
 	g_ConsoleMan.Destroy();
-	g_GLResourceMan.Destroy();
+	g_GLStateMan.Destroy();
 	g_WindowMan.Destroy();
 
 #ifdef DEBUG_BUILD
@@ -413,7 +414,7 @@ int main(int argc, char** argv) {
 
 	SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
 	SDL_SetHint("SDL_ALLOW_TOPMOST", "0");
-	SDL_HideCursor();
+	// SDL_HideCursor();
 
 	if (std::filesystem::exists("Base.rte/gamecontrollerdb.txt")) {
 		SDL_AddGamepadMappingsFromFile("Base.rte/gamecontrollerdb.txt");

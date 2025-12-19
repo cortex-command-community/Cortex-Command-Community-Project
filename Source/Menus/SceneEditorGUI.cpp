@@ -24,7 +24,7 @@
 #include "Deployment.h"
 #include "BunkerAssemblyScheme.h"
 
-#include "GLResourceMan.h"
+#include "GLStateMan.h"
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
 #include "BigTexture.h"

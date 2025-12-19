@@ -9,7 +9,7 @@
 #include "PresetMan.h"
 #include "PostProcessMan.h"
 #include "RenderTarget.h"
-#include "GLResourceMan.h"
+#include "GLStateMan.h"
 
 #include "GLCheck.h"
 #include <SDL3/SDL.h>

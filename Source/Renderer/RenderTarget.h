@@ -1,6 +1,4 @@
 #pragma once
-#include <unordered_map>
-#include <string>
 #include "Rectangles.h"
 #include "glad/gl.h"
 #include "raylib/raylib.h"

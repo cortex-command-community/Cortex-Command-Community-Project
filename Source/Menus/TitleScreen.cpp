@@ -3,7 +3,7 @@
 #include "WindowMan.h"
 #include "FrameMan.h"
 #include "UInputMan.h"
-#include "GLResourceMan.h"
+#include "GLStateMan.h"
 #include "ActivityMan.h"
 #include "SettingsMan.h"
 
@@ -603,7 +603,7 @@ void TitleScreen::DrawTitleScreenScene() {
 		int intensity = star.Intensity + RandomNum(0, (star.Size == Star::StarSize::StarSmall) ? 35 : 70);
 		//set_screen_blender(intensity, intensity, intensity, intensity);
 		int starPosY = static_cast<int>(star.Position.GetY() - (m_ScrollOffset.GetY() * (m_Nebula.GetScrollRatio().GetY() * ((star.Size == Star::StarSize::StarSmall) ? 0.8F : 1.0F))));
-		DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(star.Bitmap), star.Position.m_X, starPosY, RLColor(intensity, intensity, intensity, intensity));
+		DrawTexture(g_GLStateMan.GetStaticTextureFromBitmap(star.Bitmap), star.Position.m_X, starPosY, RLColor(intensity, intensity, intensity, intensity));
 		//draw_trans_sprite(g_FrameMan.GetBackBuffer32(), star.Bitmap, star.Position.GetFloorIntX(), starPosY);
 	}
 
@@ -614,19 +614,19 @@ void TitleScreen::DrawTitleScreenScene() {
 	// m_Moon.Draw(g_FrameMan.GetBackBuffer32(), Vector(), DrawMode::g_DrawAlpha);
 	m_Planet.SetPos(m_PlanetPos);
 	// m_Planet.Draw(g_FrameMan.GetBackBuffer32(), Vector(), DrawMode::g_DrawAlpha);
-	DrawTextureV(g_GLResourceMan.GetStaticTextureFromBitmap(m_Moon.GetSpriteFrame(0)), m_Moon.GetPos() + m_Moon.GetSpriteOffset(), {255, 255, 255, 255});
-	DrawTextureV(g_GLResourceMan.GetStaticTextureFromBitmap(m_Planet.GetSpriteFrame(0)), m_Planet.GetPos() + m_Planet.GetSpriteOffset(), {255, 255, 255, 255});
+	DrawTextureV(g_GLStateMan.GetStaticTextureFromBitmap(m_Moon.GetSpriteFrame(0)), m_Moon.GetPos() + m_Moon.GetSpriteOffset(), {255, 255, 255, 255});
+	DrawTextureV(g_GLStateMan.GetStaticTextureFromBitmap(m_Planet.GetSpriteFrame(0)), m_Planet.GetPos() + m_Planet.GetSpriteOffset(), {255, 255, 255, 255});
 
 	m_StationOffset.SetXY(m_OrbitRadius, 0);
 	m_StationOffset.RadRotate(m_StationOrbitRotation);
 	m_Station.SetPos(m_PlanetPos + m_StationOffset);
 	m_Station.SetRotAngle(-c_HalfPI + m_StationOrbitRotation);
 	//m_Station.Draw(g_FrameMan.GetBackBuffer32());
-	DrawTextureEx(g_GLResourceMan.GetStaticTextureFromBitmap(m_Station.GetSpriteFrame(0)), m_Station.GetPos() + m_Station.GetSpriteOffset() + Vector(m_Station.GetSpriteFrame(0)->w / 2, m_Station.GetSpriteFrame(0)->h / 2), m_StationOrbitRotation - c_HalfPI, 1.0f, {255, 255, 255, 255});
+	DrawTextureEx(g_GLStateMan.GetStaticTextureFromBitmap(m_Station.GetSpriteFrame(0)), m_Station.GetPos() + m_Station.GetSpriteOffset() + Vector(m_Station.GetSpriteFrame(0)->w / 2, m_Station.GetSpriteFrame(0)->h / 2), m_StationOrbitRotation - c_HalfPI, 1.0f, {255, 255, 255, 255});
 }
 
 void TitleScreen::DrawGameLogo() {
-	DrawTextureV(g_GLResourceMan.GetStaticTextureFromBitmap(m_GameLogo.GetSpriteFrame(0)), m_GameLogo.GetPos() + m_GameLogo.GetSpriteOffset(), {255, 255, 255, 255});
+	DrawTextureV(g_GLStateMan.GetStaticTextureFromBitmap(m_GameLogo.GetSpriteFrame(0)), m_GameLogo.GetPos() + m_GameLogo.GetSpriteOffset(), {255, 255, 255, 255});
 	//m_GameLogo.Draw(g_FrameMan.GetBackBuffer32());
 	m_GameLogoGlow.SetPos(m_GameLogo.GetPos());
 	rlEnableColorBlend();
@@ -635,7 +635,7 @@ void TitleScreen::DrawGameLogo() {
 	int glowIntensity = 220 + RandomNum(-35, 35);
 	//set_screen_blender(glowIntensity, glowIntensity, glowIntensity, glowIntensity);
 	//m_GameLogoGlow.Draw(g_FrameMan.GetBackBuffer32(), Vector(), DrawMode::g_DrawTrans);
-	DrawTextureV(g_GLResourceMan.GetStaticTextureFromBitmap(m_GameLogoGlow.GetSpriteFrame(0)), m_GameLogoGlow.GetPos() + m_GameLogoGlow.GetSpriteOffset(), RLColor(glowIntensity, glowIntensity, glowIntensity, glowIntensity));
+	DrawTextureV(g_GLStateMan.GetStaticTextureFromBitmap(m_GameLogoGlow.GetSpriteFrame(0)), m_GameLogoGlow.GetPos() + m_GameLogoGlow.GetSpriteOffset(), RLColor(glowIntensity, glowIntensity, glowIntensity, glowIntensity));
 }
 
 void TitleScreen::DrawSlideshowSlide() {

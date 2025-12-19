@@ -3,7 +3,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "GLCheck.h"
-#include "GLResourceMan.h"
+#include "GLStateMan.h"
 #include "PresetMan.h"
 #include "ConsoleMan.h"
 #include "System.h"
@@ -21,7 +21,7 @@ Shader::Shader() :
     m_ProgramID(0), m_TextureUniform(-1), m_ColorUniform(-1), m_TransformUniform(-1), m_ProjectionUniform(-1) {}
 
 Shader::Shader(const std::string& vertexFilename, const std::string& fragPath) :
-    m_ProgramID(g_GLResourceMan.MakeGLProgram()), m_TextureUniform(-1), m_ColorUniform(-1), m_TransformUniform(-1), m_ProjectionUniform(-1) {
+    m_ProgramID(g_GLStateMan.MakeGLProgram()), m_TextureUniform(-1), m_ColorUniform(-1), m_TransformUniform(-1), m_ProjectionUniform(-1) {
 	Compile(vertexFilename, fragPath);
 }
 
@@ -45,7 +45,7 @@ int Shader::Create() {
 	if (m_FragmentPath.empty() || m_VertexPath.empty()) {
 		return -1;
 	}
-	m_ProgramID = g_GLResourceMan.MakeGLProgram();
+	m_ProgramID = g_GLStateMan.MakeGLProgram();
 	Compile(m_VertexPath, m_FragmentPath);
 	return 0;
 }
@@ -73,9 +73,10 @@ bool Shader::Compile(const std::string& vertexPath, const std::string& fragPath)
 	std::string error;
 	result = CompileShader(vertexShader, g_PresetMan.GetFullModulePath(vertexPath), error) && CompileShader(fragmentShader, g_PresetMan.GetFullModulePath(fragPath), error);
 	if (result) {
-		GL_CHECK(glBindAttribLocation(m_ProgramID, 0, "rteVertexPosition"));
-		GL_CHECK(glBindAttribLocation(m_ProgramID, 1, "rteVertexTexUV"));
-		GL_CHECK(glBindAttribLocation(m_ProgramID, 3, "rteVertexColor"));
+		GL_CHECK(glBindAttribLocation(m_ProgramID, VertexAttribLocation::VERTEX, "rteVertexPosition"));
+		GL_CHECK(glBindAttribLocation(m_ProgramID, VertexAttribLocation::TEXTURECOORDINATE, "rteVertexTexUV"));
+		GL_CHECK(glBindAttribLocation(m_ProgramID, VertexAttribLocation::NORMAL, "rteNormal"));
+		GL_CHECK(glBindAttribLocation(m_ProgramID, VertexAttribLocation::COLOR, "rteVertexColor"));
 		if (Link(vertexShader, fragmentShader)) {
 			m_TextureUniform = GetUniformLocation("rteTexture");
 			m_ColorUniform = GetUniformLocation("rteColor");

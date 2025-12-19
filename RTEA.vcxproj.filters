@@ -648,7 +648,7 @@
     <ClInclude Include="Source\Renderer\BigTexture.h">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Managers\GLResourceMan.h">
+    <ClInclude Include="Source\Managers\GLStateMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
     <ClInclude Include="Source\Renderer\raylib\rlutils.h">
@@ -1250,7 +1250,7 @@
     <ClCompile Include="Source\Renderer\BigTexture.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Managers\GLResourceMan.cpp">
+    <ClCompile Include="Source\Managers\GLStateMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
     <ClCompile Include="Source\Renderer\raylib\rlgl.c">

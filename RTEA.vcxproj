@@ -760,7 +760,7 @@
     <ClInclude Include="Source\Lua\LuaBindingRegisterDefinitions.h" />
     <ClInclude Include="Source\GUI\GUIWriter.h" />
     <ClInclude Include="Source\Managers\CameraMan.h" />
-    <ClInclude Include="Source\Managers\GLResourceMan.h" />
+    <ClInclude Include="Source\Managers\GLStateMan.h" />
     <ClInclude Include="Source\Managers\MusicMan.h" />
     <ClInclude Include="Source\Managers\MenuMan.h" />
     <ClInclude Include="Source\Managers\PerformanceMan.h" />
@@ -999,7 +999,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <LanguageStandard Condition="'$(VisualStudioVersion)'=='16.0'">stdcpp17</LanguageStandard>
     </ClCompile>
-    <ClCompile Include="Source\Managers\GLResourceMan.cpp" />
+    <ClCompile Include="Source\Managers\GLStateMan.cpp" />
     <ClCompile Include="Source\Managers\MusicMan.cpp" />
     <ClCompile Include="Source\Managers\LuaMan.cpp">
       <ConformanceMode>false</ConformanceMode>

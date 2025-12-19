@@ -5,7 +5,7 @@
 #include "SettingsMan.h"
 #include "ActivityMan.h"
 #include "ThreadMan.h"
-#include "GLResourceMan.h"
+#include "GLStateMan.h"
 #include "BigTexture.h"
 
 #include "Draw.h"
@@ -463,7 +463,7 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::UpdateTargetRegion(const Bo
 		for (auto& region: updateRegions) {
 			m_MainTexture->Update(region);
 		}
-		// g_GLResourceMan.UpdateDynamicBitmap(m_MainBitmap, true, updateRegions);
+		// g_GLStateMan.UpdateDynamicBitmap(m_MainBitmap, true, updateRegions);
 
 	} else {}
 }
@@ -528,7 +528,7 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::DrawTiled(const Box& target
 			float destY = targetBox.GetCorner().GetFloorIntY() + tiledOffsetY - m_Offset.GetFloorIntY();
 			if constexpr (STATIC_TEXTURE) {
 				DrawTexturePro(
-				    g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap),
+				    g_GLStateMan.GetStaticTextureFromBitmap(m_MainBitmap),
 				    {0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
 				    {destX, destY, bitmapWidth, bitmapHeight},
 				    {0.0f, 0.0f}, 0.0f, {255, 255, 255, 255});

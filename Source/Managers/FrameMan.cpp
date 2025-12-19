@@ -11,7 +11,7 @@
 #include "ConsoleMan.h"
 #include "SettingsMan.h"
 #include "UInputMan.h"
-#include "GLResourceMan.h"
+#include "GLStateMan.h"
 
 #include "SLTerrain.h"
 #include "SLBackground.h"
@@ -919,13 +919,13 @@ void FrameMan::Draw() {
 
 	rlEnableDepthTest();
 	rlZDepth(c_GuiDepth - 1.0f);
-	g_GLResourceMan.UpdateDynamicBitmap(m_BackBuffer8.get(), true);
+	g_GLStateMan.UpdateDynamicBitmap(m_BackBuffer8.get(), true);
 	backgroundShader.Begin();
 	backgroundShader.Enable();
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
 	backgroundShader.SetInt("drawMasked", 1);
 	m_BackBuffer->Begin(false);
-	DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_BackBuffer8.get()), 0.0f, 0.0f, {255, 255, 255, 255});
+	DrawTexture(g_GLStateMan.GetStaticTextureFromBitmap(m_BackBuffer8.get()), 0.0f, 0.0f, {255, 255, 255, 255});
 	m_BackBuffer->End();
 	backgroundShader.End();
 	rlZDepth(0);

@@ -1,4 +1,4 @@
-#include "GLResourceMan.h"
+#include "GLStateMan.h"
 
 #include "ContentFile.h"
 #include "RTEError.h"
@@ -6,6 +6,7 @@
 #include "GLCheck.h"
 #include "allegro.h"
 #include <algorithm>
+#include <memory>
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
@@ -15,11 +16,13 @@
 
 using namespace RTE;
 
-GLResourceMan::GLResourceMan() = default;
+GLStateMan::GLStateMan() {
+	m_State = std::make_unique<GLState>();
+};
 
-GLResourceMan::~GLResourceMan() = default;
+GLStateMan::~GLStateMan() = default;
 
-void GLResourceMan::Clear() {
+void GLStateMan::Clear() {
 	for (auto prog: m_Shaders) {
 		GL_CHECK(glDeleteProgram(prog));
 	}
@@ -31,18 +34,18 @@ void GLResourceMan::Clear() {
 	}
 }
 
-void GLResourceMan::Destroy() { Clear(); }
-void GLResourceMan::Initialize() { Clear(); }
+void GLStateMan::Destroy() { Clear(); }
+void GLStateMan::Initialize() { Clear(); }
 
-GLuint GLResourceMan::CompileShader(const std::string& filename, ShaderType type) {
+GLuint GLStateMan::CompileShader(const std::string& filename, ShaderType type) {
 	return 0;
 }
 
-GLuint GLResourceMan::MakeGLProgram() {
+GLuint GLStateMan::MakeGLProgram() {
 	return glCreateProgram();
 }
 
-// std::shared_ptr<Shader> GLResourceMan::MakeShaderProgram(const std::string& name, const std::string& vertexShaderPath, const std::string& fragmentShaderPath) {
+// std::shared_ptr<Shader> GLStateMan::MakeShaderProgram(const std::string& name, const std::string& vertexShaderPath, const std::string& fragmentShaderPath) {
 // 	if (m_Shaders.find(name) != m_Shaders.end()) {
 // 		RTEAbort("Attempted to reregister Shader: " + name);
 // 	} else {
@@ -52,22 +55,22 @@ GLuint GLResourceMan::MakeGLProgram() {
 // 	return nullptr;
 // }
 
-GLBitmapInfo* GLResourceMan::GetBitmapInfo(BITMAP* bitmap) {
+GLBitmapInfo* GLStateMan::GetBitmapInfo(BITMAP* bitmap) {
 	return reinterpret_cast<GLBitmapInfo*>(bitmap->extra);
 }
 
-Texture2D GLResourceMan::GetStaticTextureFromFile(const std::string& filename) {
+Texture2D GLStateMan::GetStaticTextureFromFile(const std::string& filename) {
 	BITMAP* bitmap = ContentFile(filename.c_str()).GetAsBitmap();
 	return GetStaticTextureFromBitmap(bitmap);
 }
 
-GLBitmapInfo* GLResourceMan::MakeBitmapInfo() {
+GLBitmapInfo* GLStateMan::MakeBitmapInfo() {
 	m_StaticTextures.emplace_back(new GLBitmapInfo);
 	m_StaticTextures.back()->m_ID = m_StaticTextures.size();
 	return m_StaticTextures.back().get();
 }
 
-Texture2D GLResourceMan::GetStaticTextureFromBitmap(BITMAP* bitmap) {
+Texture2D GLStateMan::GetStaticTextureFromBitmap(BITMAP* bitmap) {
 	if (!bitmap->extra) {
 		m_StaticTextures.emplace_back(new GLBitmapInfo);
 		m_StaticTextures.back()->m_ID = m_StaticTextures.size();
@@ -93,7 +96,7 @@ Texture2D GLResourceMan::GetStaticTextureFromBitmap(BITMAP* bitmap) {
 }
 
 
-GLuint GLResourceMan::GetDynamicUploadBuffer(BITMAP* bitmap) {
+GLuint GLStateMan::GetDynamicUploadBuffer(BITMAP* bitmap) {
 	if (!bitmap->extra) {
 		GetStaticTextureFromBitmap(bitmap);
 	}
@@ -110,7 +113,7 @@ GLuint GLResourceMan::GetDynamicUploadBuffer(BITMAP* bitmap) {
 	return info->m_UpdateBuffer;
 }
 
-GLuint GLResourceMan::UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const std::vector<Box>& updateRegions) {
+GLuint GLStateMan::UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const std::vector<Box>& updateRegions) {
 	ZoneScopedN("Bitmap Upload");
 	GLuint texture = GetStaticTextureFromBitmap(bitmap).id;
 	if (updated) {
@@ -152,7 +155,7 @@ GLuint GLResourceMan::UpdateDynamicBitmap(BITMAP* bitmap, bool updated, const st
 	return texture;
 }
 
-void GLResourceMan::DestroyBitmapInfo(BITMAP* bitmap) {
+void GLStateMan::DestroyBitmapInfo(BITMAP* bitmap) {
 	GLBitmapInfo* info = GetBitmapInfo(bitmap);
 	if (info) {
 		rlUnloadTexture(info->m_Texture);

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include "Draw.h"
-#include "GLResourceMan.h"
+#include "GLStateMan.h"
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
 
@@ -18,7 +18,7 @@ BigTexture::BigTexture(BITMAP* bitmap) {
 	int bitsPerPixel = bitmap_color_depth(bitmap);
 	int bytesPerPixel = bitsPerPixel / 8;
 	m_Bitmap = bitmap;
-	GLBitmapInfo* bitmapExtra = g_GLResourceMan.MakeBitmapInfo();
+	GLBitmapInfo* bitmapExtra = g_GLStateMan.MakeBitmapInfo();
 	bitmap->extra = reinterpret_cast<void*>(bitmapExtra);
 	PixelFormat format = bitsPerPixel == 8 ? PIXELFORMAT_UNCOMPRESSED_GRAYSCALE : PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 	m_Width = bitmap->w;
@@ -101,7 +101,7 @@ void BigTexture::Update(const Box& updateRegion) {
 	ZoneScoped;
 	TracyGpuZone("BigTexture Upload");
 	if (!m_Bitmap->extra) {
-		m_Bitmap->extra = reinterpret_cast<void*>(g_GLResourceMan.MakeBitmapInfo());
+		m_Bitmap->extra = reinterpret_cast<void*>(g_GLStateMan.MakeBitmapInfo());
 	}
 	int bytesPerPixel = bitmap_color_depth(m_Bitmap) / 8;
 	glPixelStorei(GL_UNPACK_ALIGNMENT, bitmap_color_depth(m_Bitmap) == 8 ? 1 : 4);

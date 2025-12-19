@@ -10,24 +10,27 @@
 #include <optional>
 #include "Shader.h"
 #include "Box.h"
+#include "GLState.h"
 
 #include "raylib/raylib.h"
+#define g_GLStateMan GLStateMan::Instance()
 namespace RTE {
-#define g_GLResourceMan GLResourceMan::Instance()
 	enum class ShaderType {
 		Fragment,
 		Vertex
 	};
+
 	struct GLBitmapInfo {
 		GLuint m_Texture{0};
 		GLuint* m_Textures{nullptr};
 		size_t m_ID{0};
 		GLuint m_UpdateBuffer{0};
 	};
-	class GLResourceMan : public Singleton<GLResourceMan> {
+
+	class GLStateMan : public Singleton<GLStateMan> {
 	public:
-		GLResourceMan();
-		~GLResourceMan();
+		GLStateMan();
+		~GLStateMan();
 
 		void Initialize();
 		void Destroy();
@@ -49,12 +52,14 @@ namespace RTE {
 
 		GLBitmapInfo* MakeBitmapInfo();
 
+		const GLState* GetState() { return m_State.get(); }
 
 	private:
-		std::vector<std::unique_ptr<GLBitmapInfo>> m_StaticTextures;
-		std::vector<GLuint> m_DynamicBitmapUploadBuffers;
-		std::unordered_map<std::string, std::pair<ShaderType, GLuint>> m_ShaderCache;
-		std::vector<GLuint> m_Shaders;
+		std::vector<std::unique_ptr<GLBitmapInfo>> m_StaticTextures{};
+		std::vector<GLuint> m_DynamicBitmapUploadBuffers{};
+		std::unordered_map<std::string, std::pair<ShaderType, GLuint>> m_ShaderCache{};
+		std::vector<GLuint> m_Shaders{};
+		std::unique_ptr<GLState> m_State{nullptr};
 	};
 
 } // namespace RTE

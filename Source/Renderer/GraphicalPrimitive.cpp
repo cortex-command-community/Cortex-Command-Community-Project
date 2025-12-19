@@ -2,7 +2,7 @@
 #include "Matrix.h"
 #include "FrameMan.h"
 #include "SceneMan.h"
-#include "GLResourceMan.h"
+#include "GLStateMan.h"
 #include "SLTerrain.h"
 
 #include "GUI.h"
@@ -250,7 +250,7 @@ void TextPrimitive::Draw(BITMAP* drawScreen, const Vector& targetPos) {
 
 TextPrimitive::~TextPrimitive() {
 	if (m_TextBitmap) {
-		g_GLResourceMan.DestroyBitmapInfo(m_TextBitmap);
+		g_GLStateMan.DestroyBitmapInfo(m_TextBitmap);
 		destroy_bitmap(m_TextBitmap);
 	}
 }

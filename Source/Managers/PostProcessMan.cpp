@@ -8,7 +8,7 @@
 #include "Matrix.h"
 
 #include "PresetMan.h"
-#include "GLResourceMan.h"
+#include "GLStateMan.h"
 #include "RenderTarget.h"
 
 #include "GLCheck.h"
@@ -361,7 +361,7 @@ void PostProcessMan::DrawDotGlowEffects() {
 	int endY = 0;
 	int testpixel = 0;
 
-	Texture2D yellowGlow = g_GLResourceMan.GetStaticTextureFromBitmap(m_YellowGlow);
+	Texture2D yellowGlow = g_GLStateMan.GetStaticTextureFromBitmap(m_YellowGlow);
 
 	// Randomly sample the entire backbuffer, looking for pixels to put a glow on.
 	for (const Box& glowBox: m_PostScreenGlowBoxes) {
@@ -423,7 +423,7 @@ void PostProcessMan::DrawPostScreenEffects() {
 			effectStrength = postEffect.m_Strength;
 			effectPosX = postEffect.m_Pos.m_X - postEffect.m_Bitmap->w / 2;
 			effectPosY = postEffect.m_Pos.m_Y - postEffect.m_Bitmap->h / 2;
-			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(postEffect.m_Bitmap), effectPosX, effectPosY, {.r=effectStrength, .g=effectStrength, .b=effectStrength, .a=255});
+			DrawTexture(g_GLStateMan.GetStaticTextureFromBitmap(postEffect.m_Bitmap), effectPosX, effectPosY, {.r=effectStrength, .g=effectStrength, .b=effectStrength, .a=255});
 		}
 	}
 }
