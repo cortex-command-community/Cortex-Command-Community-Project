@@ -7,7 +7,11 @@ sources += files(
 'raylib/rshapes.c',
 'raylib/rtextures.c',
 'raylib/rlutils.c',
+'BlendMode.cpp',
 'GLCheck.cpp',
+'GLState.cpp',
 'GraphicalPrimitive.cpp',
 'Draw.cpp',
+'RenderBatch.cpp',
+'Texture.cpp',
 )
