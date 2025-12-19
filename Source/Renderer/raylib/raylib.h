@@ -269,25 +269,23 @@ typedef struct Image {
 } Image;
 
 // Texture, tex data stored in GPU memory (VRAM)
-typedef struct Texture {
+typedef struct Texture2D {
     unsigned int id;        // OpenGL texture id
     int width;              // Texture base width
     int height;             // Texture base height
     int mipmaps;            // Mipmap levels, 1 by default
     int format;             // Data format (PixelFormat type)
-} Texture;
+} Texture2D;
 
-// Texture2D, same as Texture
-typedef Texture Texture2D;
 
 // TextureCubemap, same as Texture
-typedef Texture TextureCubemap;
+typedef Texture2D TextureCubemap;
 
 // RenderTexture, fbo for texture rendering
 typedef struct RenderTexture {
     unsigned int id;        // OpenGL framebuffer object id
-    Texture texture;        // RLColor buffer attachment texture
-    Texture depth;          // Depth buffer attachment texture
+    Texture2D texture;        // RLColor buffer attachment texture
+    Texture2D depth;          // Depth buffer attachment texture
 } RenderTexture;
 
 // RenderTexture2D, same as RenderTexture
@@ -903,7 +901,7 @@ typedef enum {
     BLEND_ALPHA_PREMULTIPLY,        // Blend premultiplied textures considering alpha
     BLEND_CUSTOM,                   // Blend textures using custom src/dst factors (use rlSetBlendFactors())
     BLEND_CUSTOM_SEPARATE           // Blend textures using custom rgb/alpha separate src/dst factors (use rlSetBlendFactorsSeparate())
-} BlendMode;
+} rlBlendModeType;
 
 // // Gesture
 // // NOTE: Provided as bit-wise flags to enable only desired gestures
