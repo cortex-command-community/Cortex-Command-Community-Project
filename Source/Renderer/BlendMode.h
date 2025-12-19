@@ -38,6 +38,9 @@ namespace RTE {
 		BlendMode(GLint srcFuncRGB, GLint srcFuncAlpha, GLint destFuncRGB, GLint destFuncAlpha, GLint equationRGB, GLint equationAlpha);
 
 		void Enable();
+
+		Blend GetBlendMode() { return m_BlendMode; }
+
 	private:
 		Blend m_BlendMode{Blend::ALPHA};
 		GLint m_SrcFunc{GL_SRC_ALPHA}; //!< glBlendFunc source function.
@@ -48,6 +51,6 @@ namespace RTE {
 		GLint m_SrcFuncAlpha{0}; //!< glBlendFuncSeparate source alpha function.
 		GLint m_DestFuncAlpha{0}; //!< glBlendFuncSeparate dest alpha function.
 		GLint m_EquationRGB{0}; //!< glBlendEquationSeparate RGB equation.
-		GLint EquationAlpha{0}; //!< glBlendEquationSeparate alpha equation.
+		GLint m_EquationAlpha{0}; //!< glBlendEquationSeparate alpha equation.
 	};
-}
+} // namespace RTE
