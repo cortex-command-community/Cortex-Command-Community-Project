@@ -38,6 +38,9 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Graphics Constants
+	static constexpr int c_DefaultBatchVAOElements = 8192;
+	static constexpr int c_DefaultBatchDrawCalls = 1024;
+
 	static constexpr int c_DefaultResX = 960; //!< Default game window width.
 	static constexpr int c_DefaultResY = 540; //!< Default game window height.
 
