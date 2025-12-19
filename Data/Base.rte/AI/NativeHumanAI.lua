@@ -723,6 +723,12 @@ function NativeHumanAI:CreateGoldDigBehavior(Owner)
 end
 
 function NativeHumanAI:CreateBrainSearchBehavior(Owner)
+  	if self.PickupHD then
+		-- We're currently trying to pickup a weapon, do that instead
+		self.Target = nil;
+		return;
+	end
+
 	self.NextBehavior = coroutine.create(SharedBehaviors.BrainSearch);
 	self.NextCleanup = nil;
 	self.NextBehaviorName = "BrainSearch";
@@ -760,8 +766,13 @@ function NativeHumanAI:CreateAttackBehavior(Owner)
 	self.ReloadTimer:Reset();
 	self.TargetLostTimer:Reset();
 
+	if self.PickupHD then
+		-- We're currently trying to pickup a weapon, do that instead
+		self.Target = nil;
+		return;
+	end
+		
 	local dist = SceneMan:ShortestDistance(Owner.Pos, self.Target.Pos, false);
-
 	if IsADoor(self.Target) and Owner.AIMode ~= Actor.AIMODE_SQUAD then
 		--TODO: Include other explosive weapons with varying effective ranges!
 		if Owner:EquipDeviceInGroup("Tools - Breaching", true) then

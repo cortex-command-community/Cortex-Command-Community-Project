@@ -50,19 +50,6 @@ namespace RTE {
 		float angleDelta = std::fmod(endRot.GetRadAngle() - startRot.GetRadAngle(), fullTurn);
 		float angleDistance = std::fmod(angleDelta * 2.0F, fullTurn) - angleDelta;
 		return Matrix(startRot.GetRadAngle() + (angleDistance * Lerp(scaleStart, scaleEnd, 0.0F, 1.0F, progressScalar)));
-
-		float startRad = startRot.GetRadAngle();
-		float endRad = endRot.GetRadAngle();
-		float diff = startRad - endRad;
-		if (diff > c_PI) {
-			std::swap(startRad, endRad);
-			diff -= c_PI;
-		} else if (diff < -c_PI) {
-			std::swap(startRad, endRad);
-			diff += c_PI;
-		}
-
-		return Matrix(startRad + (diff * Lerp(scaleStart, scaleEnd, 0.0F, 1.0F, progressScalar)));
 	}
 
 	float EaseIn(float start, float end, float progressScalar) {

@@ -1,7 +1,6 @@
 #include "Entity.h"
 #include "RTETools.h"
 #include "PresetMan.h"
-#include "ConsoleMan.h"
 #include "DataModule.h"
 
 namespace RTE {
@@ -64,7 +63,7 @@ namespace RTE {
 		MatchForwards("PresetName") MatchProperty("InstanceName", {
 			SetPresetName(reader.ReadPropValue());
 			// Preset name might have "[ModuleName]/" preceding it, detect it here and select proper module!
-			int slashPos = m_PresetName.find_first_of('/');
+			size_t slashPos = m_PresetName.find_first_of('/');
 			if (slashPos != std::string::npos) {
 				m_PresetName = m_PresetName.substr(slashPos + 1);
 			}

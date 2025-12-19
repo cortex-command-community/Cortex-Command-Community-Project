@@ -12,6 +12,7 @@
 #include "fmod/fmod_errors.h"
 #include <SDL3_image/SDL_image.h>
 
+#include <array>
 #include <cstring>
 
 using namespace RTE;

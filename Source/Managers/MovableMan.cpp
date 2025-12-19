@@ -12,7 +12,6 @@
 #include "Controller.h"
 #include "AtomGroup.h"
 #include "Actor.h"
-#include "HeldDevice.h"
 #include "ADoor.h"
 #include "Atom.h"
 #include "Scene.h"
@@ -1292,10 +1291,9 @@ void MovableMan::Update() {
 	// ---TEMP---
 
 	// Reset the draw HUD roster line settings
-	m_SortTeamRoster[Activity::TeamOne] = false;
-	m_SortTeamRoster[Activity::TeamTwo] = false;
-	m_SortTeamRoster[Activity::TeamThree] = false;
-	m_SortTeamRoster[Activity::TeamFour] = false;
+	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
+		m_SortTeamRoster[team] = false;
+	}
 
 	// Move all last frame's alarm events into the proper buffer, and clear out the new one to fill up with this frame's
 	for (AlarmEvent* alarmEvent: m_AlarmEvents) {
@@ -1314,6 +1312,9 @@ void MovableMan::Update() {
 	if (g_SettingsMan.GetForceImmediatePathingRequestCompletion() && g_SceneMan.GetScene()) {
 		g_SceneMan.GetScene()->BlockUntilAllPathingRequestsComplete();
 	}
+
+	// Finish our Seeing rays from last frame
+	m_ActorsSeeFuture.wait();
 
 	// Prior to controller/AI update, execute lua callbacks
 	g_LuaMan.ExecuteLuaScriptCallbacks();
@@ -1341,6 +1342,14 @@ void MovableMan::Update() {
 
 		const std::string threadedUpdate = "ThreadedUpdate"; // avoid string reconstruction
 
+		g_LuaMan.SetThreadLuaStateOverride(&g_LuaMan.GetMasterScriptState());
+		for (MovableObject* mo: g_LuaMan.GetMasterScriptState().GetRegisteredMOs()) {
+			if (ValidMO(mo->GetRootParent())) {
+				mo->RunScriptedFunctionInAppropriateScripts(threadedUpdate, false, false, {}, {}, {});
+			}
+		}
+		g_LuaMan.SetThreadLuaStateOverride(nullptr);
+
 		LuaStatesArray& luaStates = g_LuaMan.GetThreadedScriptStates();
 		g_ThreadMan.GetPriorityThreadPool().parallelize_loop(luaStates.size(),
 		                                                     [&](int start, int end) {
@@ -1364,6 +1373,14 @@ void MovableMan::Update() {
 
 		const std::string syncedUpdate = "SyncedUpdate"; // avoid string reconstruction
 
+		g_LuaMan.SetThreadLuaStateOverride(&g_LuaMan.GetMasterScriptState());
+		for (MovableObject* mo: g_LuaMan.GetMasterScriptState().GetRegisteredMOs()) {
+			if (ValidMO(mo->GetRootParent())) {
+				mo->RunScriptedFunctionInAppropriateScripts(syncedUpdate, false, false, {}, {}, {});
+			}
+		}
+		g_LuaMan.SetThreadLuaStateOverride(nullptr);
+
 		for (LuaStateWrapper& luaState: g_LuaMan.GetThreadedScriptStates()) {
 			g_LuaMan.SetThreadLuaStateOverride(&luaState);
 
@@ -1380,18 +1397,6 @@ void MovableMan::Update() {
 	g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
 
 	{
-		auto actorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
-		                                                                            [&](int start, int end) {
-			                                                                            ZoneScopedN("Actors See");
-			                                                                            for (int i = start; i < end; ++i) {
-																							// TODO - this null check really shouldn't be required. There's almost definitely an issue where the actor update can somehow fuck with this mid-update
-																							// this is VERY bad, and needs investigation!
-																							if (m_Actors[i]) { 
-																								m_Actors[i]->CastSeeRays();
-																							}
-			                                                                            }
-		                                                                            });
-
 		{
 			ZoneScopedN("Actors Update");
 
@@ -1463,8 +1468,6 @@ void MovableMan::Update() {
 				particle->PostUpdate();
 			}
 		}
-
-		actorsSeeFuture.wait();
 	} // namespace RTE
 
 	//////////////////////////////////////////////////////////////////////
@@ -1481,8 +1484,6 @@ void MovableMan::Update() {
 				if (!(*aIt)->IsSetToDelete())
 					m_Actors.push_back(*aIt);
 				else {
-					m_ValidActors.erase(*aIt);
-
 					// Also remove actor from the roster
 					if ((*aIt)->GetTeam() >= 0) {
 						// m_ActorRoster[(*aIt)->GetTeam()].remove(*aIt);
@@ -1491,6 +1492,8 @@ void MovableMan::Update() {
 
 					(*aIt)->DestroyScriptState();
 					delete (*aIt);
+
+					m_ValidActors.erase(*aIt);
 				}
 			}
 			m_AddedActors.clear();
@@ -1501,9 +1504,9 @@ void MovableMan::Update() {
 				if (!(*iIt)->IsSetToDelete()) {
 					m_Items.push_back(*iIt);
 				} else {
-					m_ValidItems.erase(*iIt);
 					(*iIt)->DestroyScriptState();
 					delete (*iIt);
+					m_ValidItems.erase(*iIt);
 				}
 			}
 			m_AddedItems.clear();
@@ -1514,9 +1517,9 @@ void MovableMan::Update() {
 				if (!(*parIt)->IsSetToDelete()) {
 					m_Particles.push_back(*parIt);
 				} else {
-					m_ValidParticles.erase(*parIt);
 					(*parIt)->DestroyScriptState();
 					delete (*parIt);
+					m_ValidParticles.erase(*parIt);
 				}
 			}
 			m_AddedParticles.clear();
@@ -1568,8 +1571,8 @@ void MovableMan::Update() {
 					if ((*iIt)->GetRestThreshold() < 0) {
 						(*iIt)->SetRestThreshold(500);
 					}
-					m_ValidItems.erase(*iIt);
 					m_Particles.push_back(*iIt);
+					m_ValidItems.erase(*iIt);
 					iIt++;
 				}
 				m_Items.erase(imidIt, m_Items.end());
@@ -1597,9 +1600,9 @@ void MovableMan::Update() {
 					RemoveActorFromTeamRoster(*aIt);
 
 				// Delete
-				m_ValidActors.erase(*aIt);
 				(*aIt)->DestroyScriptState();
 				delete (*aIt);
+				m_ValidActors.erase(*aIt);
 				aIt++;
 			}
 			// Try to set the existing iterator to a safer value, erase can crash in debug mode otherwise?
@@ -1611,9 +1614,9 @@ void MovableMan::Update() {
 			imidIt = iIt;
 
 			while (iIt != m_Items.end()) {
-				m_ValidItems.erase(*iIt);
 				(*iIt)->DestroyScriptState();
 				delete (*iIt);
+				m_ValidItems.erase(*iIt);
 				iIt++;
 			}
 			m_Items.erase(imidIt, m_Items.end());
@@ -1623,9 +1626,9 @@ void MovableMan::Update() {
 			midIt = parIt;
 
 			while (parIt != m_Particles.end()) {
-				m_ValidParticles.erase(*parIt);
 				(*parIt)->DestroyScriptState();
 				delete (*parIt);
+				m_ValidParticles.erase(*parIt);
 				parIt++;
 			}
 			m_Particles.erase(midIt, m_Particles.end());
@@ -1655,19 +1658,27 @@ void MovableMan::Update() {
 				if ((*parIt)->GetDrawPriority() >= terrMat->GetPriority()) {
 					(*parIt)->DrawToTerrain(g_SceneMan.GetTerrain());
 				}
-				m_ValidParticles.erase(*parIt);
 				(*parIt)->DestroyScriptState();
 				delete (*parIt);
+				m_ValidParticles.erase(*parIt);
 				parIt++;
 			}
 			m_Particles.erase(midIt, m_Particles.end());
 		}
 	}
 
+	// Run seeing rays for all actors
+	m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
+	                                                                         [&](int start, int end) {
+		                                                                         ZoneScopedN("Actors See");
+		                                                                         for (int i = start; i < end; ++i) {
+			                                                                         m_Actors[i]->CastSeeRays();
+		                                                                         }
+	                                                                         });
+
 	// We've finished stuff that can interact with lua script, so it's the ideal time to start a gc run
 	g_LuaMan.StartAsyncGarbageCollection();
 
-	////////////////////////////////////////////////////////////////////////
 	// Draw the MO matter and IDs to their layers for next frame
 	m_DrawMOIDsTask = g_ThreadMan.GetPriorityThreadPool().submit([this]() {
 		UpdateDrawMOIDs();
@@ -1676,19 +1687,15 @@ void MovableMan::Update() {
 	////////////////////////////////////////////////////////////////////
 	// Draw the MO colors ONLY if this is a drawn update!
 
-	if (g_TimerMan.DrawnSimUpdate())
+	if (g_TimerMan.DrawnSimUpdate()) {
 		Draw(g_SceneMan.GetMOColorBitmap());
+	}
 
 	// Sort team rosters if necessary
-	{
-		if (m_SortTeamRoster[Activity::TeamOne])
-			m_ActorRoster[Activity::TeamOne].sort(MOXPosComparison());
-		if (m_SortTeamRoster[Activity::TeamTwo])
-			m_ActorRoster[Activity::TeamTwo].sort(MOXPosComparison());
-		if (m_SortTeamRoster[Activity::TeamThree])
-			m_ActorRoster[Activity::TeamThree].sort(MOXPosComparison());
-		if (m_SortTeamRoster[Activity::TeamFour])
-			m_ActorRoster[Activity::TeamFour].sort(MOXPosComparison());
+	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
+		if (m_SortTeamRoster[Activity::TeamOne]) {
+			m_ActorRoster[team].sort(MOXPosComparison());
+		}
 	}
 }
 
@@ -1753,6 +1760,14 @@ void MovableMan::UpdateControllers() {
 		for (Actor* actor: m_Actors) {
 			actor->GetController()->Update();
 		}
+
+		g_LuaMan.SetThreadLuaStateOverride(&g_LuaMan.GetMasterScriptState());
+		for (Actor* actor: m_Actors) {
+			if (actor->GetLuaState() == &g_LuaMan.GetMasterScriptState() && actor->GetController()->ShouldUpdateAIThisFrame()) {
+				actor->RunScriptedFunctionInAppropriateScripts("ThreadedUpdateAI", false, true, {}, {}, {});
+			}
+		}
+		g_LuaMan.SetThreadLuaStateOverride(nullptr);
 
 		LuaStatesArray& luaStates = g_LuaMan.GetThreadedScriptStates();
 		g_ThreadMan.GetPriorityThreadPool().parallelize_loop(luaStates.size(),

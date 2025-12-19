@@ -293,7 +293,7 @@ namespace RTE {
 		/// @return
 		/// Whether anything was hit during the steps or not. MO hits will only be reported if this Atom is set to hit them, and the MO hit is not ignored by this Atom (if the segment started on that MO).
 		/// Also if terrain hits are temporarily disabled, they will not be reported.
-		bool StepForward(int numSteps = 1);
+		bool StepForward();
 
 		/// Takes one step back, or undos the step, if any, previously taken along the trajectory segment set up by SetupSeg().
 		/// @remark CAUTION: The previous HitWhat vars are not reset to what they previously were!

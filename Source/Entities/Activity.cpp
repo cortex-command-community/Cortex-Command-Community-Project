@@ -583,7 +583,7 @@ float Activity::GetPlayerFundsShare(int player) const {
 }
 
 void Activity::SetPlayerBrain(Actor* newBrain, int player) {
-	if ((player >= Players::PlayerOne || player < Players::MaxPlayerCount) && newBrain) {
+	if ((player >= Players::PlayerOne && player < Players::MaxPlayerCount) && newBrain) {
 		if (newBrain->GetTeam() != m_Team[player]) {
 			newBrain->SetTeam(m_Team[player]);
 		}

@@ -146,8 +146,8 @@ LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Timer) {
 	    .property("StartSimTimeMS", &Timer::GetStartSimTimeMS, &Timer::SetStartSimTimeMS)
 	    .property("ElapsedSimTimeS", &Timer::GetElapsedSimTimeS, &Timer::SetElapsedSimTimeS)
 	    .property("ElapsedSimTimeMS", &Timer::GetElapsedSimTimeMS, &Timer::SetElapsedSimTimeMS)
-	    .property("RealTimeLimitProgress", &Timer::RealTimeLimitProgress)
-	    .property("SimTimeLimitProgress", &Timer::SimTimeLimitProgress)
+	    .property("RealTimeLimitProgress", &Timer::GetRealTimeLimitProgress, &Timer::SetRealTimeLimitProgress)
+	    .property("SimTimeLimitProgress", &Timer::GetSimTimeLimitProgress, &Timer::SetSimTimeLimitProgress)
 
 	    .def("Reset", &Timer::Reset)
 	    .def("SetRealTimeLimitMS", &Timer::SetRealTimeLimitMS)

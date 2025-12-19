@@ -326,11 +326,19 @@ function Update(self)
 					end
 				else
 					for i = 1, self.RoundsFired do
-						local trace = Vector(self.digLength, 0):RadRotate(angle + RangeRand(-1, 1) * self.spreadRange);
-						local digPos = ConstructorTerrainRay(self.MuzzlePos, trace, 0);
 
-						if SceneMan:GetTerrMatter(digPos.X, digPos.Y) ~= rte.airID then
+						local trace, digPos, diggingAir
+						for _ = 1, 5 do
+							-- Try up to 5 times to find a pixel to dig
+							trace = Vector(self.digLength, 0):RadRotate(angle + RangeRand(-1, 1) * self.spreadRange);
+							digPos = ConstructorTerrainRay(self.MuzzlePos, trace, 0);
+							diggingAir = SceneMan:GetTerrMatter(digPos.X, digPos.Y) == rte.airID
+							if not diggingAir then
+								break
+							end
+						end
 
+						if not diggingAir then
 							local digWeightTotal = 0;
 							local totalVel = Vector();
 							local found = 0;

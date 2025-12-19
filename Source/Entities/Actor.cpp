@@ -655,8 +655,9 @@ void Actor::RestDetection() {
 }
 
 void Actor::AddAIMOWaypoint(const MovableObject* pMOWaypoint) {
-	if (g_MovableMan.ValidMO(pMOWaypoint))
+	if (g_MovableMan.ValidMO(pMOWaypoint) && (m_Waypoints.empty() || m_Waypoints.back().second != pMOWaypoint)) {
 		m_Waypoints.push_back(std::pair<Vector, const MovableObject*>(pMOWaypoint->GetPos(), pMOWaypoint));
+	}
 }
 
 void Actor::AlarmPoint(const Vector& alarmPoint) {
@@ -1386,8 +1387,8 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 	}
 
 	// Draw the alarm exclamation mark if we are alarmed!
-	if (m_AlarmTimer.SimTimeLimitProgress() < 0.25) {
-		draw_sprite(pTargetBitmap, m_apAlarmExclamation[m_AgeTimer.AlternateSim(100)], cpuPos.m_X - 3, EaseOut(drawPos.m_Y + m_HUDStack - 10, drawPos.m_Y + m_HUDStack - 25, m_AlarmTimer.SimTimeLimitProgress() / 0.25f));
+	if (m_AlarmTimer.GetSimTimeLimitProgress() < 0.25) {
+		draw_sprite(pTargetBitmap, m_apAlarmExclamation[m_AgeTimer.AlternateSim(100)], cpuPos.m_X - 3, EaseOut(drawPos.m_Y + m_HUDStack - 10, drawPos.m_Y + m_HUDStack - 25, m_AlarmTimer.GetSimTimeLimitProgress() / 0.25f));
 	}
 
 	if (pSmallFont && pSymbolFont) {

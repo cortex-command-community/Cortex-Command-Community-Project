@@ -6,6 +6,8 @@
 #include "raylib/raylib.h"
 #include "raylib/rlgl.h"
 
+#include <array>
+
 namespace RTE {
 	class UniformValueType {
 	public:

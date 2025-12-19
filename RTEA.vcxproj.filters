@@ -622,9 +622,6 @@
     <ClInclude Include="Source\Renderer\GLCheck.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Menus\SaveLoadMenuGUI.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
     <ClInclude Include="Source\System\Base64\base64.h">
       <Filter>System\Base64</Filter>
     </ClInclude>
@@ -635,7 +632,6 @@
       <Filter>Managers</Filter>
     </ClInclude>
     <ClInclude Include="Source\Entities\DynamicSong.h" />
-    <ClInclude Include="Source\Managers\MusicMan.h" />
     <ClInclude Include="Source\Renderer\Draw.h">
       <Filter>Renderer</Filter>
     </ClInclude>
@@ -660,6 +656,12 @@
     <ClInclude Include="Source\GUI\imgui\imstb_textedit.h" />
     <ClInclude Include="Source\GUI\imgui\imstd_truetype.h" />
     <ClInclude Include="Source\GUI\imgui\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="Source\Menus\SaveLoadMenuGUI.h">
+      <Filter>Menus</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Managers\MusicMan.h">
+      <Filter>Managers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\System\Box.cpp">
@@ -1224,9 +1226,6 @@
     <ClCompile Include="Source\Entities\AEJetpack.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Menus\SaveLoadMenuGUI.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="Source\System\Base64\base64.cpp">
       <Filter>System\Base64</Filter>
     </ClCompile>
@@ -1236,8 +1235,6 @@
     <ClCompile Include="Source\Managers\ThreadMan.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Entities\DynamicSong.cpp" />
-    <ClCompile Include="Source\Managers\MusicMan.cpp" />
     <ClCompile Include="Source\Renderer\RenderTarget.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
@@ -1264,6 +1261,15 @@
     </ClCompile>
     <ClCompile Include="Source\Renderer\raylib\rtextures.c">
       <Filter>Renderer\raylib</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Menus\SaveLoadMenuGUI.cpp">
+      <Filter>Menus</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Managers\MusicMan.cpp">
+      <Filter>Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Entities\DynamicSong.cpp">
+      <Filter>Entities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

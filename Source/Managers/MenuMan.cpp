@@ -29,6 +29,7 @@ void MenuMan::Initialize(bool firstTimeInit) {
 	m_GUIInput = std::make_unique<GUIInputWrapper>(-1, g_UInputMan.GetJoystickCount() > 0);
 
 	if (firstTimeInit) {
+		m_IsInMenuScreen = false;
 		g_LoadingScreen.Create(m_GUIScreen.get(), m_GUIInput.get(), g_SettingsMan.GetLoadingScreenProgressReportDisabled());
 	}
 

@@ -9,6 +9,8 @@
 #include "Singleton.h"
 #include "Activity.h"
 
+#include "BS_thread_pool.hpp"
+
 #include <mutex>
 #include <map>
 #include <future>
@@ -595,6 +597,9 @@ namespace RTE {
 
 		// Async to draw MOIDs while rendering
 		std::future<void> m_DrawMOIDsTask;
+
+		// Async to have actors see in parallel
+		BS::multi_future<void> m_ActorsSeeFuture;
 
 		// Roster of each team's actors, sorted by their X positions in the scene. Actors not owned here
 		std::list<Actor*> m_ActorRoster[Activity::MaxTeamCount];

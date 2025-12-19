@@ -42,13 +42,13 @@ void SettingsMan::Clear() {
 	m_ShowMetaScenes = false;
 
 	m_DisableLuaJIT = false;
+	m_EnableLuaDebugging = false;
 	m_RecommendedMOIDCount = 512;
 	m_SceneBackgroundAutoScaleMode = 1;
 	m_DisableFactionBuyMenuThemes = false;
 	m_DisableFactionBuyMenuThemeCursors = false;
 	m_PathFinderGridNodeSize = SCENEGRIDSIZE;
 	m_AIUpdateInterval = 2;
-
 	m_NumberOfLuaStatesOverride = -1;
 	m_ForceImmediatePathingRequestCompletion = false;
 
@@ -158,6 +158,7 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("DefaultActivityName", { reader >> g_ActivityMan.m_DefaultActivityName; });
 	MatchProperty("DefaultSceneName", { reader >> g_SceneMan.m_DefaultSceneName; });
 	MatchProperty("DisableLuaJIT", { reader >> m_DisableLuaJIT; });
+	MatchProperty("EnableLuaDebugging", { reader >> m_EnableLuaDebugging; });
 	MatchProperty("RecommendedMOIDCount", { reader >> m_RecommendedMOIDCount; });
 	MatchProperty("SceneBackgroundAutoScaleMode", { SetSceneBackgroundAutoScaleMode(std::stoi(reader.ReadPropValue())); });
 	MatchProperty("DisableFactionBuyMenuThemes", { reader >> m_DisableFactionBuyMenuThemes; });
@@ -284,6 +285,7 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewLineString("// Engine Settings", false);
 	writer.NewLine(false);
 	writer.NewPropertyWithValue("DisableLuaJIT", m_DisableLuaJIT);
+	writer.NewPropertyWithValue("EnableLuaDebugging", m_EnableLuaDebugging);
 	writer.NewPropertyWithValue("RecommendedMOIDCount", m_RecommendedMOIDCount);
 	writer.NewPropertyWithValue("SceneBackgroundAutoScaleMode", m_SceneBackgroundAutoScaleMode);
 	writer.NewPropertyWithValue("DisableFactionBuyMenuThemes", m_DisableFactionBuyMenuThemes);

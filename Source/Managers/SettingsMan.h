@@ -49,6 +49,10 @@ namespace RTE {
 		/// @return Whether LuaJIT is disabled or not.
 		bool DisableLuaJIT() const { return m_DisableLuaJIT; }
 
+		/// Returns whether Lua debugging is disabled or not.
+		/// @return Whether Lua debugging is disabled or not.
+		bool EnableLuaDebugging() const { return m_EnableLuaDebugging; }
+
 		/// Returns the recommended MOID count. If this amount is exceeded then some units may be removed at the start of the activity.
 		/// @return Recommended MOID count.
 		int RecommendedMOIDCount() const { return m_RecommendedMOIDCount; }
@@ -385,6 +389,7 @@ namespace RTE {
 		bool m_ShowMetaScenes; //!< Show MetaScenes in editors and activities.
 
 		bool m_DisableLuaJIT; //!< Whether to disable LuaJIT or not. Disabling will skip loading the JIT library entirely as just setting 'jit.off()' seems to have no visible effect.
+		bool m_EnableLuaDebugging; //!< Whether the Lua debugger mode is enabled or not. This will disable MT and attempt to connect to a debugger on launch.
 		int m_RecommendedMOIDCount; //!< Recommended max MOID's before removing actors from scenes.
 		int m_SceneBackgroundAutoScaleMode; //!< Scene background layer auto-scaling mode. 0 for off, 1 for fit screen dimensions and 2 for always upscaled to x2.
 		bool m_DisableFactionBuyMenuThemes; //!< Whether faction BuyMenu theme support is disabled.

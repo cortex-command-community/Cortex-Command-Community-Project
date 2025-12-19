@@ -542,12 +542,10 @@ bool GameActivity::CreateDelivery(int player, int mode, Vector& waypoint, Actor*
 				totalCost = pDeliveryCraft->GetGoldValue(nativeModule, foreignCostMult, nativeCostMult);
 		}
 
-		// Go through the list of things ordered, and give any actors all the items that is present after them,
-		// until the next actor. Also, the first actor gets all stuff in the list above him.
-		MovableObject* pInventoryObject = 0;
-		Actor* pPassenger = 0;
-		Actor* pLastPassenger = 0;
-		std::list<MovableObject*> cargoItems;
+		// Go through the list of things ordered, and give any actors all the items that is present after them, until the next actor.
+		MovableObject* pInventoryObject = nullptr;
+		Actor* pPassenger = nullptr;
+		Actor* pLastPassenger = nullptr;
 
 		for (std::list<const SceneObject*>::iterator itr = purchaseList.begin(); itr != purchaseList.end(); ++itr) {
 			bool purchaseItem = true;
@@ -568,64 +566,35 @@ bool GameActivity::CreateDelivery(int player, int mode, Vector& waypoint, Actor*
 			if (purchaseItem) {
 				// Make copy of the preset instance in the list
 				pInventoryObject = dynamic_cast<MovableObject*>((*itr)->Clone());
-				// See if it's actually a passenger, as opposed to a regular item
+
+				if (pPassenger) {
+					pLastPassenger = pPassenger;
+				}
+
 				pPassenger = dynamic_cast<Actor*>(pInventoryObject);
+
 				// If it's an actor, then set its team and add it to the Craft's inventory!
 				if (pPassenger) {
-					if (dynamic_cast<AHuman*>(pPassenger)) {
-						// If this is the first passenger, then give him all the shit found in the list before him
-						if (!pLastPassenger) {
-							for (std::list<MovableObject*>::iterator iItr = cargoItems.begin(); iItr != cargoItems.end(); ++iItr)
-								pPassenger->AddInventoryItem(*iItr);
-						}
-						// This isn't the first passenger, so give the previous guy all the stuff that was found since processing him
-						else {
-							for (std::list<MovableObject*>::iterator iItr = cargoItems.begin(); iItr != cargoItems.end(); ++iItr)
-								pLastPassenger->AddInventoryItem(*iItr);
-						}
-
-						// Now set the current passenger as the 'last passenger' so he'll eventually get everything found after him.
-						pLastPassenger = pPassenger;
-					} else if (pLastPassenger) {
-						for (MovableObject* cargoItem: cargoItems) {
-							pLastPassenger->AddInventoryItem(cargoItem);
-						}
-						pLastPassenger = nullptr;
-					}
-					// Clear out the temporary cargo list since we've assign all the stuff in it to a passenger
-					cargoItems.clear();
 					// Set the team etc for the current passenger and stuff him into the craft
 					pPassenger->SetTeam(team);
 					pPassenger->SetControllerMode(Controller::CIM_AI);
 					pPassenger->SetAIMode((Actor::AIMode)mode);
 
-					if (pTargetMO != NULL) {
-						Actor* pTarget = dynamic_cast<Actor*>(pTargetMO);
-						if (pTarget)
-							pPassenger->AddAIMOWaypoint(pTarget);
+					if (Actor* pTarget = dynamic_cast<Actor*>(pTargetMO)) {
+						pPassenger->AddAIMOWaypoint(pTarget);
 					} else if (waypoint.m_X > 0 && waypoint.m_Y > 0) {
 						pPassenger->AddAISceneWaypoint(waypoint);
 					}
 
 					pDeliveryCraft->AddInventoryItem(pPassenger);
+				} else if (dynamic_cast<AHuman*>(pLastPassenger)) {
+					// Add ourselves to the last passenger's inventory
+					pLastPassenger->AddInventoryItem(pInventoryObject);
+				} else {
+					// No valid AHuman actor before us, just add ourself to the craft inventory
+					pDeliveryCraft->AddInventoryItem(pInventoryObject);
 				}
-				// If not, then add it to the temp list of items which will be added to the last passenger's inventory
-				else
-					cargoItems.push_back(pInventoryObject);
 			}
-		}
-
-		pPassenger = 0;
-
-		// If there was a last passenger and things after him, stuff all the items into his inventory
-		if (pLastPassenger) {
-			for (std::list<MovableObject*>::iterator iItr = cargoItems.begin(); iItr != cargoItems.end(); ++iItr)
-				pLastPassenger->AddInventoryItem(*iItr);
-		}
-		// Otherwise, stuff it all stuff directly into the craft instead
-		else {
-			for (std::list<MovableObject*>::iterator iItr = cargoItems.begin(); iItr != cargoItems.end(); ++iItr)
-				pDeliveryCraft->AddInventoryItem(*iItr);
 		}
 
 		float spawnY = 0.0f;
@@ -1728,7 +1697,7 @@ void GameActivity::Update() {
 			g_FrameMan.SetScreenText("Press [SPACE] or [START] to continue!", ScreenOfPlayer(player), 750);
 
 			// Actually end on space
-			if (m_GameOverTimer.IsPastSimMS(55000) || g_UInputMan.AnyStartPress()) {
+			if (g_UInputMan.AnyStartPress()) {
 				g_ActivityMan.EndActivity();
 				g_ActivityMan.SetInActivity(false);
 			}
