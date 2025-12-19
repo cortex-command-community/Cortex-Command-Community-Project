@@ -35,6 +35,13 @@ namespace RTE {
 	using Vector4fValue = UniformValue<glm::vec4>;
 	using Matrix4fvValue = UniformValue<std::vector<glm::mat4>>;
 
+	enum VertexAttribLocation:GLuint {
+		VERTEX,
+		TEXTURECOORDINATE,
+		NORMAL,
+		COLOR
+	};
+
 	class Shader: public Entity {
 	public:
 		EntityAllocation(Shader);
