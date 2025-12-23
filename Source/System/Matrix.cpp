@@ -136,12 +136,13 @@ Vector Matrix::operator/(const Vector& rhs) {
 	}
 
 	Vector retVec = rhs;
-	// Apply flipping as set.
-	retVec.m_X = m_Flipped[X] ? -retVec.m_X : retVec.m_X;
-	retVec.m_Y = m_Flipped[Y] ? -retVec.m_Y : retVec.m_Y;
 
 	// Do the matrix multiplication.
 	retVec.SetXY(m_Elements[0][0] * retVec.m_X + m_Elements[1][0] * retVec.m_Y, m_Elements[0][1] * retVec.m_X + m_Elements[1][1] * retVec.m_Y);
+
+	// Apply flipping as set.
+	retVec.m_X = m_Flipped[X] ? -retVec.m_X : retVec.m_X;
+	retVec.m_Y = m_Flipped[Y] ? -retVec.m_Y : retVec.m_Y;
 
 	return retVec;
 }

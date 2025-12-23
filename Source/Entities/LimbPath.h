@@ -109,7 +109,7 @@ namespace RTE {
 
 		/// Gets the APPROXIMATE scene position that the limb was reported to be
 		/// last frame. This really shouldn't be used by external clients.
-		/// @return A Vector with the APPROXIAMTE scene/world coordinates of the limb as
+		/// @return A Vector with the APPROXIMATE scene/world coordinates of the limb as
 		/// reported last.
 		Vector GetProgressPos();
 
@@ -383,7 +383,9 @@ namespace RTE {
 		// The iterator to the segment of the path that the limb ended up on the end of
 		std::deque<Vector>::iterator m_CurrentSegment;
 
-		int m_FootCollisionsDisabledSegment; //!< The segment after which foot collisions will be disabled for this limbpath, if it's for legs.
+		// Count of segments at the end of the segments list for which foot collisions should be disabled
+		// for this limbpath, if it's for legs.
+		int m_FootCollisionsDisabledSegment;
 
 		// Normalized measure of how far the limb has progressed toward the
 		// current segment's target. 0.0 means its farther away than the
@@ -449,6 +451,26 @@ namespace RTE {
 		/// @param point The point to rotate.
 		/// @return The rotated point.
 		Vector RotatePoint(const Vector& point) const;
+
+		/// Inverse of RotatePoint.
+		/// @param point The rotated point
+		/// @return The point pre-rotation.
+		Vector InverseRotatePoint(const Vector& point) const;
+
+		/// Converts an input position, absolute and in scene/world space, to local space for this LimbPath,
+		/// taking into account rotation and scaling.
+		/// @param position World space position
+		/// @returns Local space position
+		Vector ToLocalSpace(const Vector& position) const;
+
+		/// Converts an input position, in local space for this LimbPath, into scene/world space,
+		/// taking into account rotation and scaling.
+		/// @param position Local space position
+		/// @returns World space position
+		Vector ToWorldSpace(const Vector& position) const;
+
+		// Gets the current segment's starting position (i.e. last segment's target) in local space.
+		Vector GetCurrentSegStartLocal() const;
 	};
 
 } // namespace RTE

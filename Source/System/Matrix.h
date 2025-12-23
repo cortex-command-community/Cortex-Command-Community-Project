@@ -238,6 +238,7 @@ namespace RTE {
 		}
 
 		/// Division operator overload for a Matrix and a Vector. The vector will be transformed according to the Matrix's elements.
+		/// Flipping, if set, is performed after rotating.
 		/// @param rhs A Vector reference as the right hand side operand.
 		/// @return The resulting transformed Vector.
 		Vector operator/(const Vector& rhs);
@@ -246,7 +247,10 @@ namespace RTE {
 		/// @param lhs A Vector reference as the left hand side operand.
 		/// @param rhs A Matrix reference as the right hand side operand.
 		/// @return A reference to the resulting Vector.
-		friend Vector operator/(const Vector& lhs, Matrix& rhs) { return rhs / lhs; }
+		friend Vector operator/(const Vector& lhs, const Matrix& rhs) {
+			Matrix m(rhs);
+			return m / lhs;
+		}
 
 		/// Self-multiplication operator overload for Vector with a Matrix.
 		/// @param lhs A Vector reference as the left hand side operand.
