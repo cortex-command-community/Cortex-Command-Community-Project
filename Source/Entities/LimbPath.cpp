@@ -313,11 +313,16 @@ void LimbPath::ReportProgress(const Vector& limbPos) {
 	} else if (m_CurrentSegment == m_Segments.end()) {
 		// Current path has already come to an end. Compute progress and m_Ended based on last segment's target.
 		Vector distVec = g_SceneMan.ShortestDistance(limbPos, GetCurrentSegTarget());
-		float distance = distVec.GetMagnitude();
-		float segMag = (*m_CurrentSegment * GetTotalScaleMultiplier()).GetMagnitude();
+		float distanceSqr = distVec.GetSqrMagnitude();
+		float segMagSqr = (*m_CurrentSegment * GetTotalScaleMultiplier()).GetSqrMagnitude();
 
 		// Get normalized progress measure toward the target.
-		m_SegProgress = distance > segMag ? 0.0F : (1.0F - (distance / segMag));
+
+		if (distanceSqr > segMagSqr)
+			// We're too far away from this target.
+			m_SegProgress = 0.0;
+		else
+			m_SegProgress = (1.0F - (std::sqrt(distanceSqr) / std::sqrt(segMagSqr)));
 
 		m_Ended = distVec.MagnitudeIsLessThan(m_SegmentEndedThreshold);
 	} else {
@@ -346,8 +351,10 @@ void LimbPath::ReportProgress(const Vector& limbPos) {
 
 		for (std::deque<Vector>::iterator itr = m_CurrentSegment; itr != m_Segments.end(); ++itr) {
 			if (itr != m_CurrentSegment) {
-				if (m_FootCollisionsDisabledSegment >= 0 && GetSegCount() - (itr - m_Segments.begin()) <= m_FootCollisionsDisabledSegment) {
-					// We've already picked a segment, and the remaining ones are ones with collisions disabled.
+				if (m_FootCollisionsDisabledSegment >= 0 &&
+						m_Segments.size() - (itr - m_Segments.begin()) <= m_FootCollisionsDisabledSegment) {
+					// We've already picked a segment (at least the current one),
+					// and the remaining ones are ones with collisions disabled.
 					// Ignore these.
 					break;
 				}
@@ -370,7 +377,7 @@ void LimbPath::ReportProgress(const Vector& limbPos) {
 		}
 
 		// We will want to compute progress to whatever the new segment is.
-		float distanceToCurrentSegmentTarget;
+		float distanceToCurrentSegmentTargetSqr;
 
 
 		if (closestSegmentTargetDistanceSqr < m_SegmentEndedThreshold * m_SegmentEndedThreshold) {
@@ -382,7 +389,7 @@ void LimbPath::ReportProgress(const Vector& limbPos) {
 				m_Ended = true;
 				m_CurrentSegment = closestSegment;
 
-				distanceToCurrentSegmentTarget = std::sqrt(closestSegmentTargetDistanceSqr);
+				distanceToCurrentSegmentTargetSqr = closestSegmentTargetDistanceSqr;
 
 			} else {
 				// Time to switch to next segment!
@@ -391,7 +398,7 @@ void LimbPath::ReportProgress(const Vector& limbPos) {
 				m_CurrentSegment = closestSegment + 1;
 
 				Vector currentSegmentTarget = closestSegmentStartPos + *closestSegment + *m_CurrentSegment;
-				distanceToCurrentSegmentTarget = (currentSegmentTarget - limbPosLocal).GetMagnitude();
+				distanceToCurrentSegmentTargetSqr = (currentSegmentTarget - limbPosLocal).GetSqrMagnitude();
 			}
 		} else {
 			// We're not close enough to that closest segment's target, but we can still try to do better.
@@ -406,23 +413,23 @@ void LimbPath::ReportProgress(const Vector& limbPos) {
 
 				m_CurrentSegment = closestSegment;
 
-				distanceToCurrentSegmentTarget = std::sqrt(closestSegmentTargetDistanceSqr);
+				distanceToCurrentSegmentTargetSqr = closestSegmentTargetDistanceSqr;
 			} else {
 				// Just get the distance to current segment's target.
 				Vector currentSegmentTarget = currentSegmentStartPos + *m_CurrentSegment;
-				distanceToCurrentSegmentTarget = (currentSegmentTarget - limbPosLocal).GetMagnitude();
+				distanceToCurrentSegmentTargetSqr = (currentSegmentTarget - limbPosLocal).GetSqrMagnitude();
 			}
 		}
 
 		// Now compute a normalized progress measure towards the current segment.
 
-		float currentSegmentMagnitude = m_CurrentSegment->GetMagnitude();
+		float currentSegmentMagnitudeSqr = m_CurrentSegment->GetSqrMagnitude();
 
-		if (distanceToCurrentSegmentTarget > currentSegmentMagnitude)
+		if (distanceToCurrentSegmentTargetSqr > currentSegmentMagnitudeSqr)
 			// We're too far away from this target.
 			m_SegProgress = 0.0;
 		else
-			m_SegProgress = (1.0F - (distanceToCurrentSegmentTarget / currentSegmentMagnitude));
+			m_SegProgress = (1.0F - (std::sqrt(distanceToCurrentSegmentTargetSqr) / std::sqrt(currentSegmentMagnitudeSqr)));
 	}
 }
 
