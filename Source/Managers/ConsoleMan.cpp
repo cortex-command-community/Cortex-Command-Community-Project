@@ -153,9 +153,8 @@ void ConsoleMan::AddLoadWarningLogExtensionMismatchEntry(const std::string& path
 		PrintString(newEntry);
 	} else {
 		std::transform(newEntry.begin(), newEntry.end(), newEntry.begin(), ::tolower);
-		if (m_LoadWarningLog.find(newEntry) == m_LoadWarningLog.end()) {
-			m_LoadWarningLog.emplace(newEntry);
-		}
+		// Emplace inserts only if there is no existing entry.
+		m_LoadWarningLog.emplace(newEntry);
 	}
 }
 

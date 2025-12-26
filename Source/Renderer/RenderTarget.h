@@ -30,9 +30,9 @@ namespace RTE {
 		/// @return The FBO.
 		GLuint GetFramebuffer() { return m_FBO; }
 		/// Getter for the color buffer
-		Texture2D GetColorTexture() { return m_Texture; }
+		const Texture2D& GetColorTexture() { return m_Texture; }
 		/// Getter for the depth buffer.
-		Texture2D GetDepthTexture() { return m_Depth; }
+		const Texture2D& GetDepthTexture() { return m_Depth; }
 
 		/// Getter for the size of this target.
 		const FloatRect& GetSize() { return m_Size; }

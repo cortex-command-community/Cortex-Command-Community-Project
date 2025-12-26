@@ -283,7 +283,7 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	unz_file_info info;
 	char* buffer = nullptr;
 
-	auto unzipFileIntoBuffer = [&](std::string fullFileName) {
+	auto unzipFileIntoBuffer = [&](const std::string& fullFileName) {
 		// These need to use NULL instead of nullptr to compile on Linux/OSX?
 		if (unzLocateFile(zippedSaveFile, fullFileName.c_str(), NULL) == UNZ_END_OF_LIST_OF_FILE) {
 			return false;

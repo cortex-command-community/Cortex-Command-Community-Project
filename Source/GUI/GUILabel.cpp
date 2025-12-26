@@ -4,18 +4,20 @@
 using namespace RTE;
 
 GUILabel::GUILabel(GUIManager* Manager, GUIControlManager* ControlManager) :
-    GUIControl(), GUIPanel(Manager) {
+	GUIControl(),
+	GUIPanel(Manager),
+	m_Text(""),
+	m_HAlignment(GUIFont::Left),
+	m_VAlignment(GUIFont::Middle),
+	m_HorizontalOverflowScroll(false),
+	m_VerticalOverflowScroll(false),
+	m_OverflowScrollState(OverflowScrollState::Deactivated),
+	m_OverflowScrollTimer(Timer()) {
+
 	m_ControlID = "LABEL";
 	m_ControlManager = ControlManager;
 	m_Font = nullptr;
 	m_FontColor = 0;
-	m_Text = "";
-	m_HAlignment = GUIFont::Left;
-	m_VAlignment = GUIFont::Middle;
-	m_HorizontalOverflowScroll = false;
-	m_VerticalOverflowScroll = false;
-	m_OverflowScrollState = OverflowScrollState::Deactivated;
-	m_OverflowScrollTimer = Timer();
 }
 
 void GUILabel::Create(const std::string& Name, int X, int Y, int Width, int Height) {

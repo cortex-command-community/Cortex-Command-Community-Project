@@ -305,11 +305,11 @@ namespace RTE {
 
 		/// Sets entry wound emitter for this MOSprite
 		/// @param presetName Emitter preset name and module name
-		void SetEntryWound(std::string presetName, std::string moduleName);
+		void SetEntryWound(const std::string& presetName, std::string moduleName);
 
 		/// Sets exit wound emitter for this MOSprite
 		/// @param presetName Emitter preset name and module name
-		void SetExitWound(std::string presetName, std::string moduleName);
+		void SetExitWound(const std::string& presetName, std::string moduleName);
 
 		/// Returns entry wound emitter preset name for this MOSprite
 		/// @return Wound emitter preset name

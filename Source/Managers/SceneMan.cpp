@@ -86,7 +86,7 @@ void SceneMan::Initialize() const {
 	    {512, create_bitmap_ex(8, 512, 512)}};
 }
 
-int SceneMan::Create(std::string readerFile) {
+int SceneMan::Create(const std::string& readerFile) {
 	Reader* reader = new Reader();
 	if (reader->Create(readerFile.c_str()))
 		g_ConsoleMan.PrintString("ERROR: Could not find Scene definition file!");
@@ -171,7 +171,7 @@ int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 	return 0;
 }
 
-int SceneMan::SetSceneToLoad(std::string sceneName, bool placeObjects, bool placeUnits) {
+int SceneMan::SetSceneToLoad(const std::string& sceneName, bool placeObjects, bool placeUnits) {
 	// Use the name passed in to load the preset requested
 	const Scene* pSceneRef = dynamic_cast<const Scene*>(g_PresetMan.GetEntityPreset("Scene", sceneName));
 
@@ -203,7 +203,7 @@ int SceneMan::LoadScene() {
 	return LoadScene(dynamic_cast<Scene*>(m_pSceneToLoad->Clone()), m_PlaceObjects, m_PlaceUnits);
 }
 
-int SceneMan::LoadScene(std::string sceneName, bool placeObjects, bool placeUnits) {
+int SceneMan::LoadScene(const std::string& sceneName, bool placeObjects, bool placeUnits) {
 	// First retrieve and set up the preset reference
 	int error = SetSceneToLoad(sceneName, placeObjects, placeUnits);
 	if (error < 0)
@@ -897,7 +897,7 @@ void SceneMan::MakeAllUnseen(Vector pixelSize, const int team) {
 	m_pCurrentScene->FillUnseenLayer(pixelSize, team);
 }
 
-bool SceneMan::LoadUnseenLayer(std::string bitmapPath, int team) {
+bool SceneMan::LoadUnseenLayer(const std::string& bitmapPath, int team) {
 	ContentFile bitmapFile(bitmapPath.c_str());
 	SceneLayer* pUnseenLayer = new SceneLayer();
 	if (pUnseenLayer->Create(bitmapFile.GetAsBitmap(COLORCONV_NONE, false), true, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0)) < 0) {

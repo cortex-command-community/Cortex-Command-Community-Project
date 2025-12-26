@@ -129,11 +129,11 @@ namespace RTE {
 
 		/// Gets the name of the scheme symmetric to this one.
 		/// @return Symmetric scheme name.
-		std::string GetSymmetricSchemeName() const { return m_SymmetricScheme; }
+		const std::string& GetSymmetricSchemeName() const { return m_SymmetricScheme; }
 
 		/// Gets the name of group to which assemblies linked with this scheme must be added.
 		/// @return Assembly group name.
-		std::string GetAssemblyGroup() const { return m_AssemblyGroup; }
+		const std::string& GetAssemblyGroup() const { return m_AssemblyGroup; }
 
 		/// Returns the limit of these schemes per scene. 0 - no limit.
 		/// @return Scheme limit.

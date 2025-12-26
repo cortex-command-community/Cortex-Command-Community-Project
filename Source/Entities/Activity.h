@@ -129,7 +129,7 @@ namespace RTE {
 
 		/// Gets the user-friendly description of this Activity.
 		/// @return A string with the user-friendly description of this Activity.
-		std::string GetDescription() const { return m_Description; }
+		const std::string& GetDescription() const { return m_Description; }
 
 		/// Gets the max number of players supported by this Activity.
 		/// @return The max number of players supported by this Activity.
@@ -156,11 +156,11 @@ namespace RTE {
 
 		/// Gets the name of the current scene.
 		/// @return A string with the instance name of the scene.
-		std::string GetSceneName() const { return m_SceneName; }
+		const std::string& GetSceneName() const { return m_SceneName; }
 
 		/// Sets the name of the scene this is associated with.
 		/// @param sceneName The new name of the scene to load next game.
-		void SetSceneName(const std::string sceneName) { m_SceneName = sceneName; }
+		void SetSceneName(std::string sceneName) { m_SceneName = std::move(sceneName); }
 
 		/// Gets whether craft must be considered orbited if they reach the map border on non-wrapped maps.
 		/// @return Whether craft are considered orbited when at the border of a non-wrapping map.
@@ -228,7 +228,7 @@ namespace RTE {
 
 		/// Gets the total number of human players in the current Activity.
 		/// @return The total number of players in the current Activity.
-		int GetHumanCount() const;
+		uint8_t GetHumanCount() const;
 
 		/// Indicates whether a specific player is human in the current game, ie not an AI player and has a screen etc.
 		/// @param player Which player index to check.

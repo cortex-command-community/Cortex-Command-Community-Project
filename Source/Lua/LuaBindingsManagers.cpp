@@ -204,8 +204,8 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PresetMan) {
 	    .def("GetTotalModuleCount", &PresetMan::GetTotalModuleCount)
 	    .def("GetOfficialModuleCount", &PresetMan::GetOfficialModuleCount)
 	    .def("AddPreset", &PresetMan::AddEntityPreset)
-	    .def("GetPreset", (const Entity* (PresetMan::*)(std::string, std::string, int)) & PresetMan::GetEntityPreset)
-	    .def("GetPreset", (const Entity* (PresetMan::*)(std::string, std::string, std::string)) & PresetMan::GetEntityPreset)
+	    .def("GetPreset", (const Entity* (PresetMan::*)(const std::string&, std::string, int)) & PresetMan::GetEntityPreset)
+	    .def("GetPreset", (const Entity* (PresetMan::*)(const std::string&, std::string, std::string)) & PresetMan::GetEntityPreset)
 	    .def("GetLoadout", (Actor * (PresetMan::*)(std::string, std::string, bool)) & PresetMan::GetLoadout, luabind::adopt(luabind::result))
 	    .def("GetLoadout", (Actor * (PresetMan::*)(std::string, int, bool)) & PresetMan::GetLoadout, luabind::adopt(luabind::result))
 	    .def("GetRandomOfGroup", &PresetMan::GetRandomOfGroup)
@@ -305,8 +305,8 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SceneMan) {
 	    .property("KgPerOz", &SceneMan::GetKgPerOz)
 	    .property("ScrapCompactingHeight", &SceneMan::GetScrapCompactingHeight, &SceneMan::SetScrapCompactingHeight)
 
-	    .def("LoadScene", (int(SceneMan::*)(std::string, bool, bool)) & SceneMan::LoadScene)
-	    .def("LoadScene", (int(SceneMan::*)(std::string, bool)) & SceneMan::LoadScene)
+	    .def("LoadScene", (int(SceneMan::*)(const std::string&, bool, bool)) & SceneMan::LoadScene)
+	    .def("LoadScene", (int(SceneMan::*)(const std::string&, bool)) & SceneMan::LoadScene)
 
 	    .def("GetTerrain", &SceneMan::GetTerrain)
 	    .def("GetMaterial", &SceneMan::GetMaterial)

@@ -32,15 +32,15 @@ int GUIWriter::Create(const std::string& fileName, bool append) {
 	return 0;
 }
 
-std::string GUIWriter::GetFilePath() const {
+const std::string& GUIWriter::GetFilePath() const {
 	return m_FilePath;
 }
 
-std::string GUIWriter::GetFileName() const {
+const std::string& GUIWriter::GetFileName() const {
 	return m_FileName;
 }
 
-std::string GUIWriter::GetFolderPath() const {
+const std::string& GUIWriter::GetFolderPath() const {
 	return m_FolderPath;
 }
 

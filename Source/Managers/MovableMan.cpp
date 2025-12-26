@@ -27,11 +27,10 @@
 
 using namespace RTE;
 
-AlarmEvent::AlarmEvent(const Vector& pos, int team, float range) {
-	m_ScenePos = pos;
-	m_Team = (Activity::Teams)team;
-	m_Range = range * g_FrameMan.GetPlayerScreenWidth() * 0.51F;
-}
+AlarmEvent::AlarmEvent(const Vector& pos, int team, float range) :
+	m_ScenePos(pos),
+	m_Team((Activity::Teams)team),
+	m_Range(range * g_FrameMan.GetPlayerScreenWidth() * 0.51F) {}
 
 const std::string MovableMan::c_ClassName = "MovableMan";
 

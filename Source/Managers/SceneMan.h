@@ -69,26 +69,26 @@ namespace RTE {
 		/// Makes the SceneMan object ready for use.
 		/// @param readerFile A string with the filepath to a Reader file from screen this SceneMan's
 		/// data should be created.
-		/// @return An error return value signaling sucess or any particular failure.
+		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
-		int Create(std::string readerFile);
+		int Create(const std::string& readerFile);
 
 		/// Sets the instance name of the default Scene to be loaded if nothing
 		/// else is available.
 		/// @param defaultSceneName The default scene instance name.
-		void SetDefaultSceneName(std::string defaultSceneName) { m_DefaultSceneName = defaultSceneName; }
+		void SetDefaultSceneName(std::string defaultSceneName) { m_DefaultSceneName = std::move(defaultSceneName); }
 
 		/// Gets the name of the default A to be loaded if nothing
 		/// else is available.
 		/// @return The default Scene instance name.
-		std::string GetDefaultSceneName() const { return m_DefaultSceneName; }
+		const std::string& GetDefaultSceneName() const { return m_DefaultSceneName; }
 
 		/// Actually loads a new Scene into memory. has to be done before using
 		/// this object.
 		/// @param pNewScene The instance of the Scene, ownership IS transferred!
 		/// @param placeObjects Whether the scene should actually apply all its SceneObject:s placed (default: true)
 		/// in its definition.
-		/// @return An error return value signaling sucess or any particular failure.
+		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
 		int LoadScene(Scene* pNewScene, bool placeObjects = true, bool placeUnits = true);
 
@@ -106,9 +106,9 @@ namespace RTE {
 		/// @param sceneName The name of the Scene preset instance to load.
 		/// @param placeObjects Whether the scene should actually apply all its SceneObject:s placed (default: true)
 		/// in its definition.
-		/// @return An error return value signaling sucess or any particular failure.
+		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
-		int SetSceneToLoad(std::string sceneName, bool placeObjects = true, bool placeUnits = true);
+		int SetSceneToLoad(const std::string& sceneName, bool placeObjects = true, bool placeUnits = true);
 
 		/// Gets the stored Scene reference to be loaded later into the SceneMan.
 		/// @return The instance reference of the Scene, ownership IS NOT (!!) transferred!
@@ -123,7 +123,7 @@ namespace RTE {
 		bool GetPlaceUnitsOnLoad() const { return m_PlaceUnits; }
 
 		/// Actually loads the Scene set to be loaded in SetSceneToLoad.
-		/// @return An error return value signaling sucess or any particular failure.
+		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
 		int LoadScene();
 
@@ -132,17 +132,17 @@ namespace RTE {
 		/// @param placeObjects Whether the scene should actually apply all its SceneObject:s placed (default: true)
 		/// in its definition.
 		/// @param placeUnits Whether the scene should actually deploy all units placed in its definition. (default: true)
-		/// @return An error return value signaling sucess or any particular failure.
+		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
-		int LoadScene(std::string sceneName, bool placeObjects = true, bool placeUnits = true);
+		int LoadScene(const std::string& sceneName, bool placeObjects = true, bool placeUnits = true);
 
 		/// Loads a Scene right now, by preset name.
 		/// @param sceneName The name of the Scene preset instance to load.
 		/// @param placeObjects Whether the scene should actually apply all its SceneObject:s placed (default: true) { return LoadScene(sceneName)
 		/// in its definition.
-		/// @return An error return value signaling sucess or any particular failure.
+		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
-		int LoadScene(std::string sceneName, bool placeObjects = true) { return LoadScene(sceneName, placeObjects, true); }
+		int LoadScene(const std::string& sceneName, bool placeObjects = true) { return LoadScene(sceneName, placeObjects, true); }
 
 		/// Resets the entire SceneMan, including its inherited members, to
 		/// their default settings or values.
@@ -440,7 +440,7 @@ namespace RTE {
 		/// @param bitmapPath The path to the bitmap to use as the unseen layer.
 		/// @param team Which team we're talking about.
 		/// @return Whether the loading was successful or not.
-		bool LoadUnseenLayer(std::string bitmapPath, const int team);
+		bool LoadUnseenLayer(const std::string& bitmapPath, const int team);
 
 		/// Tells whether a team has anything still unseen on the scene.
 		/// @param team The team we're talking about.

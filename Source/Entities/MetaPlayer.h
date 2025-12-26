@@ -54,11 +54,11 @@ namespace RTE {
 #pragma region Getters and Setters
 		/// Gets the name of the MetaPlayer.
 		/// @return The name of the player.
-		std::string GetName() const { return m_Name; }
+		const std::string& GetName() const { return m_Name; }
 
 		/// Sets the name of the MetaPlayer.
 		/// @param newName The new name to set.
-		void SetName(std::string newName) { m_Name = newName; }
+		void SetName(std::string newName) { m_Name = std::move(newName); }
 
 		/// Gets the Team of this MetaPlayer.
 		/// @return The Team of this player.
@@ -107,11 +107,11 @@ namespace RTE {
 
 		/// Gets the name of the scene this MetaPlayer is targeting for offensive.
 		/// @return The name of the Scene this MetaPlayer is targeting.
-		std::string GetOffensiveTargetName() const { return m_OffensiveTarget; }
+		const std::string& GetOffensiveTargetName() const { return m_OffensiveTarget; }
 
 		/// Sets the name of the scene this MetaPlayer is targeting for offensive.
 		/// @param targetName The name of the Scene this MetaPlayer is targeting.
-		void SetOffensiveTargetName(std::string targetName) { m_OffensiveTarget = targetName; }
+		void SetOffensiveTargetName(std::string targetName) { m_OffensiveTarget = std::move(targetName); }
 #pragma endregion
 
 #pragma region Funds and Costs

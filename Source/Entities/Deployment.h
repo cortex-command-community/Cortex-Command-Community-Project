@@ -79,7 +79,7 @@ namespace RTE {
 
 		/// Gets a bitmap showing a good identifyable icon of this.
 		/// @return The Icon that represents this graphically.
-		Icon GetIcon() { return m_Icon; }
+		const Icon& GetIcon() { return m_Icon; }
 
 		/// Gets the radius around this deployment that gets checked if another
 		/// actor/item of the same type and name already exists and will block
