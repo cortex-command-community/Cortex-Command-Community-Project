@@ -301,5 +301,35 @@ namespace RTE {
 	template <typename Type> int Sign(const Type& value) {
 		return (Type(0) < value) - (Type(0) > value);
 	}
+
+	/// Exponential decay function. Allows decaying a value from A to B at the same rate regardless of delta time. Always stable.
+	///
+	/// As an example, assuming variables like this:
+	/// float current = 1.0f;
+	/// float target = 0.0f;
+	/// float decay = 10.0f;
+	///
+	/// Then running this:
+	///
+	/// current = ExpDecay(current, target, decay, 1.0f / 30.0f);
+	///
+	/// Preduces the same result (barring precision errors) as:
+	/// 
+	/// current = ExpDecay(current, target, decay, 1.0f / 60.0f);
+	/// current = ExpDecay(current, target, decay, 1.0f / 60.0f);
+	///
+	/// In both cases, "current" will be equal to about 0.716531310573789.
+	/// 
+	/// Lecture on the topic: https://youtube.com/watch?v=LSNQuFEDOyQ
+	///
+	/// @param current The current value that we're decaying.
+	/// @param target Target we're decaying to.
+	/// @param decay Rate of decay. For example, with 0.7 the value will be decayed about halfway there in 1 second.
+	/// @param deltaTime Amount of time of decay to simulate.
+	/// @returns The decayed value.
+	inline float ExpDecay(float current, float target, float decay, float deltaTime) {
+		return target + (current - target) * std::exp(-decay * deltaTime);
+	}
+		
 #pragma endregion
 } // namespace RTE
