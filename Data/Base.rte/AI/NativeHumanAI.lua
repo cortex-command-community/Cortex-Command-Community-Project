@@ -260,14 +260,7 @@ function NativeHumanAI:Update(Owner)
 			end
 		end
 
-		local newFlying = false;
-		if not (Owner.FGLeg and Owner.BGLeg) then
-			newFlying = true;
-		end
-
-		if self.groundContact < 0 then
-			newFlying = true;
-		end
+		local newFlying = self.groundContact < 0;
 
 		if self.flying ~= newFlying then
 			Owner:SendMessage("AI_IsFlying", newFlying);
