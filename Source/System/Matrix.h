@@ -233,6 +233,15 @@ namespace RTE {
 		/// @param rhs A Matrix reference as the right hand side operand.
 		/// @return A reference to the resulting Vector.
 		friend Vector operator*(const Vector& lhs, const Matrix& rhs) {
+			// Multiplication might call Matrix::UpdateElements and therefore
+			// needs to modify it.
+			//
+			// However, this function signature uses const ref for the matrix.
+			//
+			// Therefore, the only way to perform this as needed
+			// without changing it to mut ref is by copying the matrix.
+			//
+			// TODO: see if we can unjank this?
 			Matrix m(rhs);
 			return m * lhs;
 		}
@@ -248,6 +257,15 @@ namespace RTE {
 		/// @param rhs A Matrix reference as the right hand side operand.
 		/// @return A reference to the resulting Vector.
 		friend Vector operator/(const Vector& lhs, const Matrix& rhs) {
+			// Division might call Matrix::UpdateElements and therefore
+			// needs to modify it.
+			//
+			// However, this function signature uses const ref for the matrix.
+			//
+			// Therefore, the only way to perform this as needed
+			// without changing it to mut ref is by copying the matrix.
+			//
+			// TODO: see if we can unjank this?
 			Matrix m(rhs);
 			return m / lhs;
 		}
