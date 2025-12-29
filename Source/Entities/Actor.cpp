@@ -1047,8 +1047,8 @@ float Actor::EstimateDigStrength() const {
 }
 
 float Actor::EstimateJumpHeight() const {
-	// By default, assume actors can jump as far as the scene stretches upward, twice over.
-	return g_SceneMan.GetSceneHeight() * c_MPP * 2;
+	// Sentinel value that is explicitly checked for within pathfinder code.
+	return FLT_MAX;
 }
 
 void Actor::VerifyMOIDs() {
