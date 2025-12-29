@@ -675,12 +675,14 @@ void WindowMan::DisplaySwitchOut() const {
 	SDL_SetCursor(nullptr);
 }
 
-void WindowMan::HandleWindowExposedEvent(void *userdata, SDL_Event *event) {
+bool WindowMan::HandleWindowExposedEvent(void *userdata, SDL_Event *event) {
 	if (event->type == SDL_EVENT_WINDOW_EXPOSED) {
 		g_WindowMan.SetViewportLetterboxed();
 		g_WindowMan.ClearBackbuffer(false);
 		g_WindowMan.UploadFrame();
 	}
+
+	return true;
 }
 
 void WindowMan::QueueWindowEvent(const SDL_Event& windowEvent) {

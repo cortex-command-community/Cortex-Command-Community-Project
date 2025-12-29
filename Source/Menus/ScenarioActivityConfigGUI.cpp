@@ -65,8 +65,6 @@ ScenarioActivityConfigGUI::ScenarioActivityConfigGUI(GUIControlManager* parentCo
 	m_CPULockLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelCPUTeamLock"));
 	m_StartErrorLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelStartError"));
 	m_StartGameButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonStartGame"));
-
-	m_TechListFetched = false;
 }
 
 void ScenarioActivityConfigGUI::PopulateTechComboBoxes() {

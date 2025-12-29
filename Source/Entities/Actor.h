@@ -668,7 +668,7 @@ namespace RTE {
 		/// @return The actor's dig strength.
 		virtual float EstimateDigStrength() const;
 
-		/// Estimates how high this actor can jump.
+		/// Estimates how high this actor can jump. Default implementation returns FLT_MAX.
 		/// @return The actor's jump height.
 		virtual float EstimateJumpHeight() const;
 
