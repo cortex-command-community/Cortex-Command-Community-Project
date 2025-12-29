@@ -337,9 +337,9 @@ void LimbPath::ReportProgress(const Vector& limbPos) {
 		// This rest of the code will be working in local space, so convert input limb pos to that.
 		Vector limbPosLocal = ToLocalSpace(limbPos);
 
-		//
+
 		// Iterate over all segments and find one whose target is closest to the limb position.
-		//
+
 
 		// Segment positions are accumulative, so keep an accumulator.
 		Vector currentSegmentStartPos = GetCurrentSegStartLocal(); // Will be needed later.
@@ -350,12 +350,27 @@ void LimbPath::ReportProgress(const Vector& limbPos) {
 		std::deque<Vector>::iterator closestSegment = m_CurrentSegment;
 
 		for (std::deque<Vector>::iterator itr = m_CurrentSegment; itr != m_Segments.end(); ++itr) {
-			if (itr != m_CurrentSegment) {
+
+			// We want to find a closest segment to work off of, but we don't want to
+			// snap from collision-enabled segments to collision-disabled segments,
+			// because doing so tends to produce erratic foot behavior.
+
+			// If the current segment of the limbpath is collision-enabled...
+			if (!FootCollisionsShouldBeDisabled()) {
+				// If the currently looked at segment is collision-disabled...
 				if (m_FootCollisionsDisabledSegment >= 0 &&
 						m_Segments.size() - (itr - m_Segments.begin()) <= m_FootCollisionsDisabledSegment) {
-					// We've already picked a segment (at least the current one),
-					// and the remaining ones are ones with collisions disabled.
-					// Ignore these.
+
+					// ...Then break.
+
+					// Note: if the first of the above two checks has passed,
+					// this means that the current segment is collision-enabled.
+					// And, since this iterator starts with it, this means that
+					// *at least* the current segment was picked as closest already.
+					//
+					// In other words, if this break was hit, then closest segment vars have
+					// been properly initialized already. Therefore, it's safe to break.
+
 					break;
 				}
 			}
@@ -369,16 +384,13 @@ void LimbPath::ReportProgress(const Vector& limbPos) {
 				closestSegmentStartPos = thisSegmentStartPos;
 				closestSegmentTargetDistanceSqr = thisSegmentDistanceSqr;
 				closestSegment = itr;
-			} else {
-				// This one is *farther* than the last one.
-				// Assuming next segments will be only farther and farther, just break now.
-				break;
 			}
 		}
 
-		// We will want to compute progress to whatever the new segment is.
-		float distanceToCurrentSegmentTargetSqr;
 
+		// Branches below will determine the new current segment and write the distance to it here.
+		// We need this distance to compute progress towards it, whatever it ends up being.
+		float distanceToCurrentSegmentTargetSqr;
 
 		if (closestSegmentTargetDistanceSqr < m_SegmentEndedThreshold * m_SegmentEndedThreshold) {
 			// We're sufficiently close to this segment's target to go on.
