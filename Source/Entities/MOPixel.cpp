@@ -222,10 +222,8 @@ void MOPixel::Update() {
 }
 
 void MOPixel::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode, bool onlyPhysical) const {
-	// Don't draw color if this isn't a drawing frame
-	if (!g_TimerMan.DrawnSimUpdate() && mode == g_DrawColor) {
-		return;
-	}
+	// Note: don't skip this drawing even if it's not a drawn sim update and
+	// the DrawMode is g_DrawColor, because this might be a draw to a scene terrain.
 
 	int drawColor = -1;
 
