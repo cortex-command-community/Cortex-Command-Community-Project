@@ -13,6 +13,7 @@
 #include "GUILabel.h"
 #include "GUIButton.h"
 #include "GUIListBox.h"
+#include "System.h"
 
 using namespace RTE;
 
@@ -49,6 +50,7 @@ ModManagerGUI::ModManagerGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput
 	m_ScriptsListBox->SetScrollBarPadding(2);
 
 	m_ToggleModButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonToggleMod"));
+	m_AddModButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonAddMods"));
 	m_ToggleScriptButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonToggleScript"));
 	m_ModOrScriptDescriptionLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelDescription"));
 
@@ -175,6 +177,8 @@ bool ModManagerGUI::HandleInputEvents() {
 				ToggleMod();
 			} else if (guiEvent.GetControl() == m_ToggleScriptButton) {
 				ToggleScript();
+			} else if (guiEvent.GetControl() == m_AddModButton) {
+				System::OpenDirectory(System::GetModDirectory());
 			}
 		} else if (guiEvent.GetType() == GUIEvent::Notification) {
 			if (guiEvent.GetMsg() == GUIButton::Focused && dynamic_cast<GUIButton*>(guiEvent.GetControl())) {

@@ -10,6 +10,8 @@
 
 #ifdef _WIN32
 #include "Windows.h"
+#include "combaseapi.h"
+#incldue "shlobj_core.h"
 #elif defined _LINUX_OR_MACOSX_
 #include <unistd.h>
 #include <sys/stat.h>
@@ -19,6 +21,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
+#include "SDL3/SDL.h"
 #include <algorithm>
 #include <array>
 #include <filesystem>
@@ -51,6 +54,7 @@ void System::Initialize(const char* thisExePathAndName) {
 	s_ThisExePathAndName = std::filesystem::path(thisExePathAndName).generic_string();
 
 	s_WorkingDirectory = std::filesystem::current_path().generic_string();
+	std::cout << s_WorkingDirectory << std::endl;
 
 #ifdef __APPLE__
 	// Get a reference to the main bundle
@@ -132,6 +136,14 @@ bool System::MakeDirectory(const std::string& pathToMake) {
 		std::filesystem::permissions(pathToMake, std::filesystem::perms::owner_all | std::filesystem::perms::group_read | std::filesystem::perms::group_exec | std::filesystem::perms::others_read | std::filesystem::perms::others_exec, std::filesystem::perm_options::add);
 	}
 	return createResult;
+}
+
+bool System::OpenDirectory(const std::string& path) {
+	std::filesystem::path dir(s_WorkingDirectory);
+	dir /= path;
+	RTEAssert(std::filesystem::exists(dir) && std::filesystem::is_directory(dir), "");
+	SDL_OpenURL(dir.c_str());
+	return false;
 }
 
 bool System::PathExistsCaseSensitive(const std::string& pathToCheck) {

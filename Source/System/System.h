@@ -67,6 +67,11 @@ namespace RTE {
 		/// @param path Path to create.
 		/// @return Returns 0 if successful.
 		static bool MakeDirectory(const std::string& pathToMake);
+
+		/// Open a directory in the working directory in a file explorer.
+		/// @param path The Path to open.
+		/// @return Whether the path was opened.
+		static bool OpenDirectory(const std::string& path);
 #pragma endregion
 
 #pragma region Filesystem

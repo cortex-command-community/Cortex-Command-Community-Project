@@ -79,6 +79,7 @@ namespace RTE {
 		/// GUI elements that compose the Mod Manager menu screen.
 		GUIButton* m_BackToMainButton;
 		GUIButton* m_ToggleModButton;
+		GUIButton* m_AddModButton;
 		GUIButton* m_ToggleScriptButton;
 		GUIListBox* m_ModsListBox;
 		GUIListBox* m_ScriptsListBox;
