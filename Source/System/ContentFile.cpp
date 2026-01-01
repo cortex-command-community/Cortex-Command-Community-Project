@@ -63,7 +63,7 @@ void ContentFile::FreeAllLoaded() {
 int ContentFile::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
-	MatchForwards("FilePath") 
+	MatchForwards("FilePath")
 	MatchProperty("Path", { SetDataPath(reader.ReadPropValue()); });
 	MatchProperty("IsMemoryPNG", { reader >> m_IsMemoryPNG; });
 
@@ -249,8 +249,8 @@ BITMAP* ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std
 			SDL_DestroySurface(surface);
 			s_MemoryPNGs.erase(dataPathToLoad);
 		}
-	} 
-	
+	}
+
 	if (returnBitmap == nullptr) {
 		if (!System::PathExistsCaseSensitive(dataPathToLoad)) {
 			const std::string dataPathWithoutExtension = dataPathToLoad.substr(0, dataPathToLoad.length() - m_DataPathExtension.length());
@@ -302,11 +302,19 @@ void ContentFile::GetAsAnimation(std::vector<BITMAP*>& vectorToFill, int frameCo
 		}
 	}
 }
-SDL_Palette* ContentFile::DefaultPaletteToSDL() {
+SDL_Palette* ContentFile::DefaultPaletteToSDL(bool preMask) {
 	SDL_Palette* palette = SDL_CreatePalette(256);
 	std::array<SDL_Color, 256> paletteColor;
 	const PALETTE& defaultPalette = g_FrameMan.GetDefaultPalette();
-	paletteColor[0] = {.r = 0, .g = 0, .b = 0, .a = 0};
+	if (preMask) {
+		paletteColor[0] = {.r = 0, .g = 0, .b = 0, .a = 0};
+	} else {
+		paletteColor[0] = {.r = defaultPalette[0].r,
+			               .g = defaultPalette[0].g,
+			               .b = defaultPalette[0].b,
+						   .a = 255
+			               };
+	}
 	for (size_t i = 1; i < paletteColor.size(); ++i) {
 		paletteColor[i].r = defaultPalette[i].r;
 		paletteColor[i].g = defaultPalette[i].g;
@@ -330,7 +338,7 @@ SDL_Surface* ContentFile::LoadImageAsSurface(int conversionMode, const std::stri
 		image = newImage;
 		bitDepth = 8;
 	} else if (bitDepth != 8 || convert8To32) {
-		SDL_Palette* palette = DefaultPaletteToSDL();
+		SDL_Palette* palette = DefaultPaletteToSDL(true);
 		if (SDL_GetPixelFormatDetails(image->format)->bits_per_pixel == 8) {
 			SDL_SetSurfacePalette(image, palette);
 			SDL_SetSurfaceColorKey(image, true, 0);
@@ -391,7 +399,7 @@ FMOD::Sound* ContentFile::LoadAndReleaseSound(bool abortGameForInvalidSound, boo
 	}
 	if (!System::PathExistsCaseSensitive(m_DataPath)) {
 		bool foundAltExtension = false;
-		for (const std::string& altFileExtension: c_SupportedAudioFormats) {
+		for (const char* altFileExtension: c_SupportedAudioFormats) {
 			const std::string altDataPathToLoad = m_DataPathWithoutExtension + altFileExtension;
 			if (System::PathExistsCaseSensitive(altDataPathToLoad)) {
 				g_ConsoleMan.AddLoadWarningLogExtensionMismatchEntry(m_DataPath, m_FormattedReaderPosition, altFileExtension);
@@ -443,15 +451,14 @@ void ContentFile::ReloadBitmap(const std::string& filePath, int conversionMode) 
 
 	SDL_Surface* newImage = LoadImageAsSurface(conversionMode, filePath);
 
-
 	BITMAP* newBitmap = create_bitmap_ex(SDL_GetPixelFormatDetails(newImage->format)->bits_per_pixel, newImage->w, newImage->h);
 
 	// allegro doesn't (always) align lines to 4byte, so copy line by line. SDL_Surface.pitch is the size in bytes per line + alignment padding.
 	for (int y = 0; y < newImage->h; y++) {
-		memcpy(newBitmap->line[y], static_cast<unsigned char*>(newImage->pixels) + y * newImage->pitch, newImage->w * SDL_GetPixelFormatDetails(newImage->format)->bytes_per_pixel); 
+		memcpy(newBitmap->line[y], static_cast<unsigned char*>(newImage->pixels) + y * newImage->pitch, newImage->w * SDL_GetPixelFormatDetails(newImage->format)->bytes_per_pixel);
 	}
 
-	//AddAlphaChannel(newBitmap);
+	// AddAlphaChannel(newBitmap);
 	BITMAP swap;
 
 	std::memcpy(&swap, loadedBitmap, sizeof(BITMAP));
