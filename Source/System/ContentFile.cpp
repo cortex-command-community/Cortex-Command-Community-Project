@@ -63,7 +63,7 @@ void ContentFile::FreeAllLoaded() {
 int ContentFile::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
-	MatchForwards("FilePath");
+	MatchForwards("FilePath")
 	MatchProperty("Path", { SetDataPath(reader.ReadPropValue()); });
 	MatchProperty("IsMemoryPNG", { reader >> m_IsMemoryPNG; });
 
