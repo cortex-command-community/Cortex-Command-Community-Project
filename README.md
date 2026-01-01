@@ -72,7 +72,6 @@ The Linux build uses the meson build system, and builds against system libraries
 * [`meson`](https://www.mesonbuild.com)`>= 1.6.0` (`pip install meson`/`brew install meson` if your distro doesn't include a recent version)
 * `ninja`
 * `gcc`, `g++` (>=13, clang unsupported) 
-* `sdl3`
 * `opengl` (usually provided by the gpu driver)
 * `flac`
 * `luajit`
@@ -119,10 +118,10 @@ If you want to change the buildtype afterwards, you can use `meson configure --b
 `brew install pkg-config sdl3 minizip lz4 flac luajit lua libpng tbb gcc@13 ninja meson dylibbundler`
 
 **Arch Linux:**  
-`sudo pacman -S sdl3 tbb flac luajit lua minizip lz4 libpng meson ninja base-devel`  
+`sudo pacman -S tbb flac luajit lua minizip lz4 libpng meson ninja base-devel`  
 
 **Ubuntu >=22.04:**  
-`sudo apt-get install build-essential libsdl2-dev libsdl2-image-dev libloadpng4-dev libflac++-dev luajit-5.1-dev liblua5.1-dev libminizip-dev liblz4-dev libpng++-dev libtbb-dev ninja-build python3-pip`  
+`sudo apt-get install build-essential libflac++-dev luajit-5.1-dev liblua5.1-dev libminizip-dev liblz4-dev libpng++-dev libtbb-dev ninja-build python3-pip`  
 `sudo python3 -m pip install meson`
 
 **Fedora:**  
