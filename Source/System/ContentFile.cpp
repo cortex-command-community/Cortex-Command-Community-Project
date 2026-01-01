@@ -63,8 +63,8 @@ void ContentFile::FreeAllLoaded() {
 int ContentFile::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
-	MatchForwards("FilePath")
-	    MatchProperty("Path", { SetDataPath(reader.ReadPropValue()); });
+	MatchForwards("FilePath");
+	MatchProperty("Path", { SetDataPath(reader.ReadPropValue()); });
 	MatchProperty("IsMemoryPNG", { reader >> m_IsMemoryPNG; });
 
 	EndPropertyList;
@@ -199,10 +199,8 @@ void ContentFile::ReadAndStoreBMPFileInfo(FILE* imageFile) {
 
 void ContentFile::ManuallyLoadDataPNG(const std::string& filePath, SDL_Surface* surface) {
 	s_MemoryPNGs[filePath] = surface;
-	std::cout << filePath << " ";
 
 	int bitDepth = SDL_GetPixelFormatDetails(surface->format)->bits_per_pixel;
-	std::cout << bitDepth << std::endl;
 	BITMAP* bitmap = create_bitmap_ex(bitDepth, surface->w, surface->h);
 
 	// Allegro doesn't align lines, SDL does 4byte alignment
@@ -401,7 +399,7 @@ FMOD::Sound* ContentFile::LoadAndReleaseSound(bool abortGameForInvalidSound, boo
 	}
 	if (!System::PathExistsCaseSensitive(m_DataPath)) {
 		bool foundAltExtension = false;
-		for (const std::string& altFileExtension: c_SupportedAudioFormats) {
+		for (const char* altFileExtension: c_SupportedAudioFormats) {
 			const std::string altDataPathToLoad = m_DataPathWithoutExtension + altFileExtension;
 			if (System::PathExistsCaseSensitive(altDataPathToLoad)) {
 				g_ConsoleMan.AddLoadWarningLogExtensionMismatchEntry(m_DataPath, m_FormattedReaderPosition, altFileExtension);
