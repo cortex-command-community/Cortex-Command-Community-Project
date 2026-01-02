@@ -276,7 +276,7 @@ float AEmitter::EstimateImpulse(bool burst) {
 		for (Emission* emission: m_EmissionList) {
 			// Only check emissions that push the emitter
 			if (emission->PushesEmitter()) {
-				// Todo... we're not checking emission start/stop times here, so this will always calculate the impulse as if the emission was active.
+				// TODO: we're not checking emission start/stop times here, so this will always calculate the impulse as if the emission was active.
 				// There's not really an easy way to do this, since the emission rate is not necessarily constant over time.
 				float emissionsPerFrame = (emission->GetRate() / 60.0f) * g_TimerMan.GetDeltaTimeSecs();
 				float scale = 1.0F;
