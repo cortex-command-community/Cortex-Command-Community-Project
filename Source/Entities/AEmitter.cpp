@@ -276,28 +276,25 @@ float AEmitter::EstimateImpulse(bool burst) {
 		for (Emission* emission: m_EmissionList) {
 			// Only check emissions that push the emitter
 			if (emission->PushesEmitter()) {
-				// TODO: we're not checking emission start/stop times here, so this will always calculate the impulse as if the emission was active.
+				// Todo... we're not checking emission start/stop times here, so this will always calculate the impulse as if the emission was active.
 				// There's not really an easy way to do this, since the emission rate is not necessarily constant over time.
-
-				// TODO: burst emissions shouldn't be affected by delta time, but they were.
-				// However our values were tuned for 60hz, so hack in constant 60Hz deltatime in milliseconds.
-				float deltaTimeSecs = burst ? 1.0f / 60.0f : g_TimerMan.GetDeltaTimeSecs();
-
-				float emissions = (emission->GetRate() / 60.0f) * deltaTimeSecs;
+				float emissionsPerFrame = (emission->GetRate() / 60.0f) * g_TimerMan.GetDeltaTimeSecs();
 				float scale = 1.0F;
+
+				// Get all the particles emitted this frame
+				emissionsPerFrame *= emission->GetParticleCount();
+
+				// When bursting, add on all the bursted emissions
+				// We also use m_BurstScale on ALL emissions, not just the extra bursted ones
+				// This is a bit funky but consistent with the code that applies the impulse
 				if (burst) {
-					emissions *= emission->GetBurstSize();
+					emissionsPerFrame += emission->GetBurstSize();
 					scale = m_BurstScale;
 				}
 
-				if (emissions > 0) {
-				    int extraEmissions = emission->GetParticleCount() - 1;
-				    emissions += extraEmissions;
-			    }
-
 				float velMin = emission->GetMinVelocity() * scale;
-			    float velRange = (emission->GetMaxVelocity() - emission->GetMinVelocity()) * scale * 0.5f;
-			    float spread = (std::max(static_cast<float>(c_PI) - (emission->GetSpread() * scale), 0.0F) / c_PI); // A large spread will cause the forces to cancel eachother out
+				float velRange = (emission->GetMaxVelocity() - emission->GetMinVelocity()) * scale * 0.5f;
+				float spread = (std::max(static_cast<float>(c_PI) - (emission->GetSpread() * scale), 0.0F) / c_PI); // A large spread will cause the forces to cancel eachother out
 
 				// Add to accumulative recoil impulse generated, F = m * a.
 				impulse += (velMin + velRange) * spread * emission->m_pEmission->GetMass() * emissions;
@@ -458,17 +455,18 @@ void AEmitter::Update() {
 				} else {
 					emission->m_Accumulator = 0;
 				}
+
 				float scale = 1.0F;
 				// Add extra emissions if bursting.
 				if (m_BurstTriggered) {
 					emissionCount += emission->GetBurstSize();
 					scale = m_BurstScale;
 				}
+				
+				// We don't consider extra particles for our emission count, so add prior to multiply
 				emissionCountTotal += emissionCount;
-				if (emissionCount > 0) {
-					int extraEmissions = emission->GetParticleCount() - 1;
-					emissionCount += extraEmissions;
-				}
+				emissionCount *= emission->GetParticleCount();
+
 				pParticle = 0;
 				emitVel.Reset();
 				parentVel = pRootParent->GetVel() * emission->InheritsVelocity();

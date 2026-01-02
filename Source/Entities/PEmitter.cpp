@@ -234,16 +234,18 @@ float PEmitter::EstimateImpulse(bool burst) {
 			if (emission->PushesEmitter()) {
 				// Todo... we're not checking emission start/stop times here, so this will always calculate the impulse as if the emission was active.
 				// There's not really an easy way to do this, since the emission rate is not necessarily constant over time.
-				float emissions = (emission->GetRate() / 60.0f) * g_TimerMan.GetDeltaTimeSecs();
+				float emissionsPerFrame = (emission->GetRate() / 60.0f) * g_TimerMan.GetDeltaTimeSecs();
 				float scale = 1.0F;
-				if (burst) {
-					emissions *= emission->GetBurstSize();
-					scale = m_BurstScale;
-				}
 
-				if (emissions > 0) {
-					int extraEmissions = emission->GetParticleCount() - 1;
-					emissions += extraEmissions;
+				// Get all the particles emitted this frame
+				emissionsPerFrame *= emission->GetParticleCount();
+
+				// When bursting, add on all the bursted emissions
+				// We also use m_BurstScale on ALL emissions, not just the extra bursted ones
+				// This is a bit funky but consistent with the code that applies the impulse
+				if (burst) {
+					emissionsPerFrame += emission->GetBurstSize();
+					scale = m_BurstScale;
 				}
 
 				float velMin = emission->GetMinVelocity() * scale;
@@ -320,7 +322,7 @@ void PEmitter::Update() {
 		else
 			m_BurstTriggered = false;
 
-		int emissions = 0;
+		int emissionCountTotal = 0;
 		float velMin, velRange, spread;
 		double currentPPM, SPE;
 		MovableObject* pParticle = 0;
@@ -331,7 +333,7 @@ void PEmitter::Update() {
 			if (emission->IsEmissionTime()) {
 				// Apply the throttle factor to the emission rate
 				currentPPM = emission->GetRate() * throttleFactor;
-				emissions = 0;
+				int emissionCount = 0;
 
 				// Only do all this if the PPM is acutally above zero
 				if (currentPPM > 0) {
@@ -342,25 +344,32 @@ void PEmitter::Update() {
 					emission->m_Accumulator += m_LastEmitTmr.GetElapsedSimTimeS();
 
 					// Now figure how many full emissions can fit in the current accumulator
-					emissions = std::floor(emission->m_Accumulator / SPE);
+					emissionCount = std::floor(emission->m_Accumulator / SPE);
 					// Deduct the about to be emitted emissions from the accumulator
 					emission->m_Accumulator -= emissions * SPE;
 
 					RTEAssert(emission->m_Accumulator >= 0, "Emission accumulator negative!");
 				}
 
+				float scale = 1.0F;
 				// Add extra emissions if bursting.
-				if (m_BurstTriggered)
-					emissions += emission->GetBurstSize() * std::floor(throttleFactor);
+				if (m_BurstTriggered) {
+					emissionCount += emission->GetBurstSize();
+					scale = m_BurstScale;
+				}
+
+				// We don't consider extra particles for our emission count, so add prior to multiply
+				emissionCountTotal += emissionCount;
+				emissionCount *= emission->GetParticleCount();
 
 				pParticle = 0;
 				emitVel.Reset();
 				parentVel = pRootParent->GetVel() * emission->InheritsVelocity();
 
-				for (int i = 0; i < emissions; ++i) {
-					velMin = emission->GetMinVelocity() * (m_BurstTriggered ? m_BurstScale : 1.0);
-					velRange = emission->GetMaxVelocity() - emission->GetMinVelocity() * (m_BurstTriggered ? m_BurstScale : 1.0);
-					spread = emission->GetSpread() * (m_BurstTriggered ? m_BurstScale : 1.0);
+				for (int i = 0; i < emissionCount; ++i) {
+					velMin = emission->GetMinVelocity() * scale;
+					velRange = emission->GetMaxVelocity() - emission->GetMinVelocity() * scale;
+					spread = emission->GetSpread() * scale;
 					// Make a copy after the reference particle
 					pParticle = dynamic_cast<MovableObject*>(emission->GetEmissionParticlePreset()->Clone());
 					// Set up its position and velocity according to the parameters of this.
@@ -405,7 +414,7 @@ void PEmitter::Update() {
 		m_LastEmitTmr.Reset();
 
 		// Count the total emissions since enabling, and stop emitting if beyong limit (and limit is also enabled)
-		m_EmitCount += emissions;
+		m_EmitCount += emissionCountTotal;
 		if (m_EmitCountLimit > 0 && m_EmitCount > m_EmitCountLimit)
 			EnableEmission(false);
 
