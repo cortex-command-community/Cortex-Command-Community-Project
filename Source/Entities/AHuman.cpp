@@ -993,8 +993,8 @@ float AHuman::EstimateJumpHeight() const {
 		// Account for the forces upon us.
 		if (!hasBursted && fuelTime > 0.0F) {
 			currentYVelocity += impulseBurst;
-			// TODO: burst emissions shouldn't be affected by delta time, but they sort of are.
-			// Hack here to use constant 60Hz deltatime in milliseconds.
+			// TODO: burst emissions shouldn't be affected by delta time, but they were.
+			// However our values were tuned for 60hz, so hack in constant 60Hz deltatime in milliseconds.
 			fuelTime -= (1000.0f / 60.0f) * fuelUseMultiplierBurst;
 			hasBursted = true;
 		}

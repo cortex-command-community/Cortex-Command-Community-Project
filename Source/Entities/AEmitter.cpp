@@ -279,8 +279,8 @@ float AEmitter::EstimateImpulse(bool burst) {
 				// TODO: we're not checking emission start/stop times here, so this will always calculate the impulse as if the emission was active.
 				// There's not really an easy way to do this, since the emission rate is not necessarily constant over time.
 
-				// TODO: burst emissions shouldn't be affected by delta time, but they sort of are.
-				// Hack here to use constant 60Hz deltatime in seconds.
+				// TODO: burst emissions shouldn't be affected by delta time, but they were.
+				// However our values were tuned for 60hz, so hack in constant 60Hz deltatime in milliseconds.
 				float deltaTimeSecs = burst ? 1.0f / 60.0f : g_TimerMan.GetDeltaTimeSecs();
 
 				float emissions = (emission->GetRate() / 60.0f) * deltaTimeSecs;

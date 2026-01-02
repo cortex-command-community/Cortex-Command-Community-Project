@@ -195,9 +195,8 @@ void AEJetpack::Burst(Actor& parentActor, float fuelUseMultiplier) {
 	EnableEmission(true);
 	AlarmOnEmit(m_Team); // Jetpacks are noisy!
 
-	// TODO: burst emissions shouldn't be affected by delta time, but they sort of are.
-	// Hack here to use constant 60Hz deltatime in milliseconds.
-
+	// TODO: burst emissions shouldn't be affected by delta time, but they were.
+	// However our values were tuned for 60hz, so hack in constant 60Hz deltatime in milliseconds.
 	float fuelUsage = (1000.0f / 60.0f) * static_cast<float>(std::max(GetTotalBurstSize(), 2)) * (CanTriggerBurst() ? 1.0F : 0.5F) * fuelUseMultiplier; // burst fuel
 
 	fuelUsage += g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplier; // emit fuel
