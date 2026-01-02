@@ -253,7 +253,7 @@ float PEmitter::EstimateImpulse(bool burst) {
 				float spread = (std::max(static_cast<float>(c_PI) - (emission->GetSpread() * scale), 0.0F) / c_PI); // A large spread will cause the forces to cancel eachother out
 
 				// Add to accumulative recoil impulse generated, F = m * a.
-				impulse += (velMin + velRange) * spread * emission->m_pEmission->GetMass() * emissions;
+				impulse += (velMin + velRange) * spread * emission->m_pEmission->GetMass() * emissionsPerFrame;
 			}
 		}
 
@@ -346,7 +346,7 @@ void PEmitter::Update() {
 					// Now figure how many full emissions can fit in the current accumulator
 					emissionCount = std::floor(emission->m_Accumulator / SPE);
 					// Deduct the about to be emitted emissions from the accumulator
-					emission->m_Accumulator -= emissions * SPE;
+					emission->m_Accumulator -= emissionCount * SPE;
 
 					RTEAssert(emission->m_Accumulator >= 0, "Emission accumulator negative!");
 				}

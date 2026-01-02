@@ -297,7 +297,7 @@ float AEmitter::EstimateImpulse(bool burst) {
 				float spread = (std::max(static_cast<float>(c_PI) - (emission->GetSpread() * scale), 0.0F) / c_PI); // A large spread will cause the forces to cancel eachother out
 
 				// Add to accumulative recoil impulse generated, F = m * a.
-				impulse += (velMin + velRange) * spread * emission->m_pEmission->GetMass() * emissions;
+				impulse += (velMin + velRange) * spread * emission->m_pEmission->GetMass() * emissionsPerFrame;
 			}
 		}
 
