@@ -42,6 +42,7 @@ namespace RTE {
 	struct gamepad_axis : public luabind::enum_wrapper {};
 	struct directions : public luabind::enum_wrapper {};
 	struct blend_modes : public luabind::enum_wrapper {};
+	struct draw_depths : public luabind::enum_wrapper {};
 
 	/// Special callback function for adding file name and line number to error messages when calling functions incorrectly.
 	/// @param luaState The Lua master state.

@@ -84,7 +84,7 @@ namespace RTE {
 
 		/// Gets the currently displayed text string.
 		/// @return The currently displayed text string.
-		std::string GetBannerText() const { return m_BannerText; }
+		const std::string& GetBannerText() const { return m_BannerText; }
 
 		/// Gets the current state of the overall animation of this banner.
 		/// @return The current state of the animation.
@@ -96,7 +96,7 @@ namespace RTE {
 
 		/// Calculates the width of a piece of text.
 		/// @param Text Text.
-		int CalculateWidth(const std::string Text, FontMode mode) const;
+		int CalculateWidth(const std::string& Text, FontMode mode) const;
 
 		/// Calculates the width of a piece of text.
 		/// @param Character Character.

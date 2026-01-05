@@ -62,11 +62,11 @@ namespace RTE {
 
 		/// Gets the array of 8-bit bitmaps of this Icon, as many as GetFrameCount says. Neither the array nor the BITMAPs are transferred ownership!
 		/// @return The BITMAPs in 8bpp of this Icon.
-		std::vector<BITMAP*> GetBitmaps8() const { return m_BitmapsIndexed; }
+		const std::vector<BITMAP*>& GetBitmaps8() const { return m_BitmapsIndexed; }
 
 		/// Gets the array of 32-bit bitmaps of this Icon, as many as GetFrameCount says. Neither the array nor the BITMAPs are transferred ownership!
 		/// @return The BITMAPs in 32bpp of this Icon.
-		std::vector<BITMAP*> GetBitmaps32() const { return m_BitmapsTrueColor; }
+		const std::vector<BITMAP*>& GetBitmaps32() const { return m_BitmapsTrueColor; }
 #pragma endregion
 
 #pragma region Operator Overloads

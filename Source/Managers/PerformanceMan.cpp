@@ -6,6 +6,8 @@
 #include "GUI.h"
 #include "AllegroBitmap.h"
 
+#include <array>
+
 using namespace RTE;
 
 const std::array<std::string, PerformanceMan::PerformanceCounters::PerfCounterCount> PerformanceMan::m_PerfCounterNames = {"Total", "Act AI", "Act Travel", "Act Update", "Prt Travel", "Prt Update", "Activity", "Scripts"};
@@ -122,11 +124,11 @@ void PerformanceMan::Draw(BITMAP* bitmapToDrawTo) {
 		std::snprintf(str, sizeof(str), "Frame: %.1fms | Update: %.1fms | Draw: %.1fms", m_MSPFAverage, m_MSPUAverage, m_MSPDAverage);
 		guiFont->DrawAligned(&drawBitmap, c_StatsOffsetX, c_StatsHeight + 10, str, GUIFont::Left);
 
-		std::snprintf(str, sizeof(str), "Time Scale: x%.2f ([1]-, [2]+, [Ctrl+1]Rst) | Sim Speed: x%.2f", g_TimerMan.GetTimeScale(), g_TimerMan.GetSimSpeed());
+		std::snprintf(str, sizeof(str), "Time Scale: x%.2f ([1]-, [2]+, [RAlt+1]Rst) | Sim Speed: x%.2f", g_TimerMan.GetTimeScale(), g_TimerMan.GetSimSpeed());
 		guiFont->DrawAligned(&drawBitmap, c_StatsOffsetX, c_StatsHeight + 20, str, GUIFont::Left);
 
 		float deltaTime = g_TimerMan.GetDeltaTimeMS();
-		std::snprintf(str, sizeof(str), "DeltaTime: %.2f ms ([5]-, [6]+, [Ctrl+5]Rst)", deltaTime);
+		std::snprintf(str, sizeof(str), "DeltaTime: %.2f ms ([5]-, [6]+, [RAlt+5]Rst)", deltaTime);
 		guiFont->DrawAligned(&drawBitmap, c_StatsOffsetX, c_StatsHeight + 30, str, GUIFont::Left);
 
 		std::snprintf(str, sizeof(str), "Actors: %li", g_MovableMan.GetActorCount());

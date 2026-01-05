@@ -42,7 +42,7 @@ std::istream* GUIReader::GetStream() const {
 	return m_Stream.get();
 }
 
-std::string GUIReader::GetCurrentFilePath() const {
+const std::string& GUIReader::GetCurrentFilePath() const {
 	return m_FilePath;
 }
 

@@ -4,10 +4,10 @@
 #include "Scene.h"
 #include "SceneMan.h"
 #include "ThreadMan.h"
-#include "ConsoleMan.h"
 
 #include "tracy/Tracy.hpp"
 
+#include <array>
 #include <execution>
 
 using namespace RTE;
@@ -172,9 +172,16 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 	// Actors capable of jumping/jetpacking can jump upwards.
 	s_JumpHeight = jumpHeight;
 
-	// How high up we can jump from this node
-	s_JumpHeightVertical = std::max(1, static_cast<int>(jumpHeight / (m_NodeDimension * c_MPP))); // min of 1 so automovers work a bit better
-	s_JumpHeightDiagonal = static_cast<int>((jumpHeight * 0.7F) / (m_NodeDimension * c_MPP));
+	// How high up we can jump from this node.
+	if(jumpHeight == FLT_MAX) {
+		// Probably quite high.
+		s_JumpHeightVertical = INT_MAX;
+		s_JumpHeightDiagonal = INT_MAX;
+	} else {
+		// Assume at least 1 so automovers work a bit better
+		s_JumpHeightVertical = std::max(1, static_cast<int>(jumpHeight / (m_NodeDimension * c_MPP)));
+		s_JumpHeightDiagonal = std::max(1, static_cast<int>((jumpHeight * 0.7F) / (m_NodeDimension * c_MPP)));
+	}
 
 	// Actors capable of digging can use s_DigStrength to modify the node adjacency cost.
 	s_DigStrength = digStrength;
@@ -206,10 +213,8 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 		}
 
 		// Adjust the last point to be exactly where the end is supposed to be (really?).
-		if (pathResult.size() > 2) {
-			pathResult.pop_back();
-			pathResult.push_back(end);
-		}
+		pathResult.pop_back();
+		pathResult.push_back(end);
 	} else {
 		// Empty path, give exact start and end.
 		pathResult.push_back(start);
@@ -260,14 +265,14 @@ void PathFinder::RecalculateAllCosts() {
 	// I hate this copy, but fuck it.
 	std::vector<int> pathNodesIdsVec;
 	pathNodesIdsVec.reserve(m_NodeGrid.size());
-	for (int i = 0; i < m_NodeGrid.size(); ++i) {
+	for (size_t i = 0; i < m_NodeGrid.size(); ++i) {
 		pathNodesIdsVec.push_back(i);
 	}
 
 	UpdateNodeList(pathNodesIdsVec);
 }
 
-std::vector<int> PathFinder::RecalculateAreaCosts(std::deque<Box>& boxList, int nodeUpdateLimit) {
+std::vector<int> PathFinder::RecalculateAreaCosts(std::deque<Box>& boxList, size_t nodeUpdateLimit) {
 	ZoneScoped;
 
 	std::unordered_set<int> nodeIDsToUpdate;
@@ -361,7 +366,10 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 					break;
 				}
 
-				totalMaterialCost += 1.0F + extraUpCost + (GetMaterialTransitionCost(*currentNode->UpMaterial) * 3.0F) + radiatedCost;
+				float f = i + 2; // Exponential cost increase for jumping higher
+				float extraJumpCost = f * f * 0.5F; // Exponential cost increase for jumping higher
+
+				totalMaterialCost += 1.0F + extraUpCost + extraJumpCost + (GetMaterialTransitionCost(*currentNode->UpMaterial) * 3.0F) + radiatedCost;
 
 				adjCost.cost = totalMaterialCost;
 				adjCost.state = static_cast<void*>(currentNode->Up);
@@ -385,7 +393,10 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 					break;
 				}
 
-				totalMaterialCost += 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*currentNode->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost;
+				float f = i + 2; // Exponential cost increase for jumping higher
+				float extraJumpCost = f * f * 0.5F; // Exponential cost increase for jumping higher
+
+				totalMaterialCost += 1.4F + (extraUpCost * 1.4F) + (extraJumpCost * 1.4f) + (GetMaterialTransitionCost(*currentNode->UpRightMaterial) * 1.4F * 3.0F) + radiatedCost;
 
 				adjCost.cost = totalMaterialCost;
 				adjCost.state = static_cast<void*>(currentNode->UpRight);
@@ -404,7 +415,10 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 					break;
 				}
 
-				totalMaterialCost += 1.4F + (extraUpCost * 1.4F) + (GetMaterialTransitionCost(*currentNode->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost;
+				float f = i + 2; // Exponential cost increase for jumping higher
+				float extraJumpCost = f * f * 0.5F; // Exponential cost increase for jumping higher
+
+				totalMaterialCost += 1.4F + (extraUpCost * 1.4F) + (extraJumpCost * 1.4f) + (GetMaterialTransitionCost(*currentNode->LeftUpMaterial) * 1.4F * 3.0F) + radiatedCost;
 
 				adjCost.cost = totalMaterialCost;
 				adjCost.state = static_cast<void*>(currentNode->LeftUp);
@@ -603,7 +617,7 @@ void PathFinder::MarkBoxNavigable(Box box, bool navigable) {
 void PathFinder::MarkAllNodesNavigable(bool navigable) {
 	std::vector<int> pathNodesIdsVec;
 	pathNodesIdsVec.reserve(m_NodeGrid.size());
-	for (int i = 0; i < m_NodeGrid.size(); ++i) {
+	for (size_t i = 0; i < m_NodeGrid.size(); ++i) {
 		pathNodesIdsVec.push_back(i);
 	}
 
@@ -640,7 +654,7 @@ int PathFinder::ConvertCoordsToNodeId(int x, int y) const {
 	return (y * m_GridWidth) + x;
 }
 
-void PathFinder::DebugRender(BITMAP* targetBitmap, const Vector& targetPos, int whichScreen) const {
+void PathFinder::DebugRender(BITMAP* targetBitmap, const Vector& targetPos) const {
 	for (int x = 0; x < m_GridWidth; ++x) {
 		Vector startPos = (m_NodeGrid[ConvertCoordsToNodeId(x, 0)].Pos - m_Offset) - targetPos;
 		Vector endPos = startPos + Vector(0.0F, m_NodeDimension * m_GridHeight);

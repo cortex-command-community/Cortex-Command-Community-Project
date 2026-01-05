@@ -20,7 +20,7 @@ namespace RTE {
 
 		/// Public member variable, method and friend function declarations
 	public:
-		// Concrete allocation and cloning definitions
+		/// Concrete allocation and cloning definitions
 		EntityAllocation(LimbPath);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -92,7 +92,7 @@ namespace RTE {
 
 		/// Gets the number of Vector:s the internal array of 'waypoints' or
 		/// segments of this LimbPath.
-		/// @return An int with he count.
+		/// @return An int with the count.
 		int GetSegCount() const { return m_Segments.size(); }
 
 		/// Gets a pointer to the segment at the given index. Ownership is NOT transferred.
@@ -118,7 +118,7 @@ namespace RTE {
 
 		/// Gets the APPROXIMATE scene position that the limb was reported to be
 		/// last frame. This really shouldn't be used by external clients.
-		/// @return A Vector with the APPROXIAMTE scene/world coordinates of the limb as
+		/// @return A Vector with the APPROXIMATE scene/world coordinates of the limb as
 		/// reported last.
 		Vector GetProgressPos();
 
@@ -378,75 +378,62 @@ namespace RTE {
 	protected:
 		static Entity::ClassInfo m_sClass;
 
-		// The starting point of the path.
-		Vector m_Start;
+		Vector m_Start; //!< The starting point of the path.
 
-		// The number of starting segments, counting into the path from its beginning,
-		// that upon restart of this path will be tried in reverse order till one which
-		// yields a starting position that is clear of terrain is found.
-		int m_StartSegCount;
+		/// The number of starting segments, counting into the path from its beginning,
+		/// that upon restart of this path will be tried in reverse order till one which
+		/// yields a starting position that is clear of terrain is found.
+		size_t m_StartSegCount;
 
-		// Array containing the actual 'waypoints' or segments for the path.
-		std::deque<Vector> m_Segments;
+		std::deque<Vector> m_Segments; //!< Array containing the actual 'waypoints' or segments for the path.
 
-		// The iterator to the segment of the path that the limb ended up on the end of
+		/// The iterator to the segment of the path that the limb ended up on the end of.
 		std::deque<Vector>::iterator m_CurrentSegment;
 
-		int m_FootCollisionsDisabledSegment; //!< The segment after which foot collisions will be disabled for this limbpath, if it's for legs.
+		/// Count of segments at the end of the segments list for which foot collisions should be disabled
+		/// for this limbpath, if it's for legs.
+		int m_FootCollisionsDisabledSegment;
 
-		// Normalized measure of how far the limb has progressed toward the
-		// current segment's target. 0.0 means its farther away than the
-		// magnitude of the entire segment. 0.5 means it's half the mag of the segment
-		// away from the target.
+		/// Normalized measure of how far the limb has progressed toward the current
+		/// segment's target.
+		///
+		/// 0.0 means its farther away than the magnitude of the entire segment.
+		/// 0.5 means it's half the mag of the segment away from the target.
 		float m_SegProgress;
 
-		// The constant speed that the limb traveling this path has in m/s.
-		float m_TravelSpeed;
+		float m_TravelSpeed; //!< The constant speed that the limb traveling this path has in m/s.
 
-		// How close we must get to the end of each segment to consider it finished
-		float m_SegmentEndedThreshold;
+		float m_SegmentEndedThreshold; //!< How close we must get to the end of each segment to consider it finished
 
-		// The base/current travel speed multiplier
-		float m_BaseTravelSpeedMultiplier;
-		float m_CurrentTravelSpeedMultiplier;
+		float m_BaseTravelSpeedMultiplier; //!< The base travel speed multiplier
+		float m_CurrentTravelSpeedMultiplier; //!< The current travel speed multiplier
 
-		// The base/current scale multiplier (we extend the walkpath when running fast to take longer strides)
-		// This is a vector to allow scaling on seperate axis
+		/// The base scale multiplier for both axes.
 		Vector m_BaseScaleMultiplier;
+		/// The current scale multiplier for both axes. (we extend the walkpath when running fast to take longer strides)
 		Vector m_CurrentScaleMultiplier;
 
-		// The max force that a limb travelling along this path can push.
-		// In kg * m/(s^2)
-		float m_PushForce;
+		float m_PushForce; //!< The max force that a limb travelling along this path can push, in kg * m/(s^2).
 
-		// The latest known position of the owning actor's joint in world coordinates.
-		Vector m_JointPos;
-		// The latest known velocity of the owning actor's joint in world coordinates.
-		Vector m_JointVel;
-		// The rotation applied to this walkpath.
-		Matrix m_Rotation;
-		// The point we should be rotated around, in local space.
-		Vector m_RotationOffset;
-		// The offset to apply to our walkpath position, in local space.
-		Vector m_PositionOffset;
+		Vector m_JointPos; //!< The latest known position of the owning actor's joint in world coordinates.
+		Vector m_JointVel; //!< The latest known velocity of the owning actor's joint in world coordinates.
+		Matrix m_Rotation; //!< The rotation applied to this walkpath.
+		Vector m_RotationOffset; //!< The point we should be rotated around, in local space.
+		Vector m_PositionOffset; //!< The offset to apply to our walkpath position, in local space.
 
-		// If GetNextTimeSeg() couldn't use up all frame time because the current segment
-		// ended,this var stores the remainder of time that should be used to progress
-		// on the next segment during the same frame.
+		/// If GetNextTimeSeg() couldn't use up all frame time because the current segment
+		/// ended, this var stores the remainder of time that should be used to progress
+		/// on the next segment during the same frame.
 		float m_TimeLeft;
 
-		// Times the amount of sim time spent since the last path traversal was started
-		Timer m_PathTimer;
-		// Times the amount of sim time spent pursuing the current segment's target.
-		Timer m_SegTimer;
+		Timer m_PathTimer; //!< Records the amount of sim time spent since the last path traversal was started.
+		Timer m_SegTimer; //!< Records the amount of sim time spent pursuing the current segment's target.
 
-		// Total length of this LimbPath, including the alternative starting segments, in pixel units
-		float m_TotalLength;
-		// Length of this LimbPath, excluding the alternative starting segments.
-		float m_RegularLength;
-		bool m_SegmentDone;
-		bool m_Ended;
-		bool m_HFlipped;
+		float m_TotalLength; //!< Total length of this LimbPath, including the alternative starting segments, in pixel units
+		float m_RegularLength; //!< Length of this LimbPath, excluding the alternative starting segments.
+		bool m_SegmentDone; //!< Unused?
+		bool m_Ended; //!< True if this path has ended. See method `PathEnded` for more information.
+		bool m_HFlipped; //!< True if this path is horizontally flipped.
 
 		/// Private member variable and method declarations
 	private:
@@ -458,6 +445,26 @@ namespace RTE {
 		/// @param point The point to rotate.
 		/// @return The rotated point.
 		Vector RotatePoint(const Vector& point) const;
+
+		/// Inverse of RotatePoint.
+		/// @param point The rotated point
+		/// @return The point pre-rotation.
+		Vector InverseRotatePoint(const Vector& point) const;
+
+		/// Converts an input position, absolute and in scene/world space, to local space for this LimbPath,
+		/// taking into account rotation and scaling.
+		/// @param position World space position
+		/// @returns Local space position
+		Vector ToLocalSpace(const Vector& position) const;
+
+		/// Converts an input position, in local space for this LimbPath, into scene/world space,
+		/// taking into account rotation and scaling.
+		/// @param position Local space position
+		/// @returns World space position
+		Vector ToWorldSpace(const Vector& position) const;
+
+		/// Gets the current segment's starting position (i.e. last segment's target) in local space.
+		Vector GetCurrentSegStartLocal() const;
 	};
 
 } // namespace RTE

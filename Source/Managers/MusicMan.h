@@ -66,7 +66,7 @@ namespace RTE {
 
 		/// Gets the current DynamicSongSectionType being played.
 		/// @return The current DynamicSongSectionType being played.
-		std::string GetCurrentSongSectionType() const { return m_CurrentSongSectionType; }
+		const std::string& GetCurrentSongSectionType() const { return m_CurrentSongSectionType; }
 
 		/// Sets the current playing dynamic music to end, disabling further playback of new music.
 		/// @param fadeOutCurrent Whether to also fade out the current playing music or not.

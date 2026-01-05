@@ -1,8 +1,9 @@
-project('Cortex-Command-Community-Project', ['cpp','c'], subproject_dir: 'external/sources', default_options:['cpp_std=c++20', 'buildtype=release', 'default_library=static'], version:'0.1.0-Pre-4.1', meson_version:'>=1.0.0')
+project('Cortex-Command-Community-Project', ['cpp','c'], subproject_dir: 'external/sources', default_options:['cpp_std=c++20', 'buildtype=release', 'default_library=static'], version:'7.0.0-dev', meson_version:'>=1.6.0')
 
 #### Build environment Setup ####
 
 compiler = meson.get_compiler('cpp')
+cmake = import('cmake')
 deps=[]
 
 elfname = 'CortexCommand'
@@ -23,19 +24,6 @@ endif
 
 if get_option('debug') and get_option('b_lto')
   warning('Link time optimization enabled in debug mode, debug symbols may not be fully available. Disable b_lto with "meson configure -Db_lto=false".')
-endif
-
-use_pch = get_option('use_pch').enabled()
-
-if get_option('use_pch').auto()
-  ccache = find_program('ccache', required : false)
-  if ccache.found()
-    message('Detected ccache, disabling precompiled headers')
-    use_pch = false
-  else
-    message('Using precompiled headers')
-    use_pch = true
-  endif
 endif
 
 if compiler.get_argument_syntax()== 'gcc' # used for gcc compatible compilers
@@ -191,8 +179,8 @@ endif
 #### Platform Common External Libraries ####
 if host_machine.system() in ['linux','darwin']
   deps += [
-    dependency(['sdl2']),
-    dependency('SDL2_image'),
+    #dependency(['sdl3']),
+    #dependency('SDL3_image'),
     dependency('flac'),
     dependency('minizip'),
     dependency('threads'),
@@ -210,10 +198,6 @@ if host_machine.system() in ['linux','darwin']
     deps += bfd
   endif
 elif host_machine.system() == 'windows'
-  sdl2 = subproject('SDL2-2.26.3')
-  sdl2_dep = dependency('sdl2')
-  sdl2_image = subproject('SDL2_image-2.8.2')
-  sdl2_image_dep = dependency('SDL2_image')
   zlib = subproject('zlib-ng-2.1.3')
   zlib_dep = dependency('zlib')
   minizip = subproject('minizip-ng-4.0.0')
@@ -222,7 +206,7 @@ elif host_machine.system() == 'windows'
   libpng_dep = dependency('libpng')
   # Windows Libraries
   opengl = compiler.find_library('opengl32')
-  deps += [sdl2_dep, sdl2_image_dep, zlib_dep, minizip_dep, libpng_dep, opengl]
+  deps += [zlib_dep, minizip_dep, libpng_dep, opengl]
 endif
 
 
@@ -230,9 +214,25 @@ external_objects = []
 external_libs = []
 subdir('external')
 
+sdl3_opt = cmake.subproject_options()
+sdl3_opt.add_cmake_defines({'CMAKE_POSITION_INDEPENDENT_CODE': get_option('b_staticpic'), 'BUILD_SHARED_LIBS':false, 'BUILD_STATIC_LIBS': true})
+sdl3_opt.append_compile_args('c','-DUSE_XINPUT2_KEYBOARD')
+if host_machine.system() == 'darwin'
+  sdl3_dep = dependency('sdl3')
+else
+  sdl3_proj = cmake.subproject('SDL3-3.2.10', options: sdl3_opt)
+  sdl3_dep = sdl3_proj.dependency('SDL3-static')
+  meson.override_dependency('sdl3', sdl3_dep)
+endif
+
+sdl3_image_proj = subproject('SDL3_image-3.2.4')
+sdl3_image_dep = sdl3_image_proj.get_variable('sdl3_image_dep')
+
 boost_dep = declare_dependency(include_directories: include_directories('external/include/boost_1_75'))
 meson.override_dependency('boost-175', boost_dep)
 install_rpath = prefix/get_option('fmod_dir')
+tracy_proj = subproject('tracy')
+tracy_dep = dependency('tracy')
 allegro_proj = subproject('allegro 4.4.3.1-custom')
 luajit_proj = subproject('LuaJIT-2.1')
 luajit_dep = dependency('luajit')
@@ -243,9 +243,7 @@ luabind_proj = subproject('luabind-0.7.1')
 luabind_dep = dependency('luabind')
 raknet_proj = subproject('RakNet')
 raknet_dep = dependency('RakNet')
-tracy_proj = subproject('tracy')
-tracy_dep = dependency('tracy')
-deps += [allegro_dep, luajit_dep, loadpng_dep, raknet_dep, boost_dep, tracy_dep]
+deps += [sdl3_dep, sdl3_image_dep, allegro_dep, luajit_dep, loadpng_dep, raknet_dep, boost_dep, tracy_dep]
 
 #### Sources Setup ####
 source_inc_dirs = []

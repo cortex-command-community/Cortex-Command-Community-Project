@@ -2,6 +2,8 @@
 
 #include "TimerMan.h"
 
+#include <cmath>
+
 namespace RTE {
 
 	/// A precise timer for FPS sync etc.
@@ -35,6 +37,15 @@ namespace RTE {
 		Timer(const Timer& reference) {
 			Clear();
 			Create(reference);
+		}
+
+		/// Copy assignment operator for Timers.
+		/// @param rhs A Timer reference.
+		/// @return A reference to the changed Timer.
+		inline Timer& operator=(const Timer& rhs) {
+			Clear();
+			Create(rhs);
+			return *this;
 		}
 
 		/// Makes the Timer object ready for use.
@@ -137,13 +148,28 @@ namespace RTE {
 		/// Returns how much progress has been made toward the set time limit previously set by SetRealTimeLimitMS.
 		/// 0 means no progress, 1.0 means the timer has reached, or is beyond the limit.
 		/// @return A normalized scalar between 0.0 - 1.0 showing the progress toward the limit.
-		double RealTimeLimitProgress() const { return (m_RealTimeLimit == 0) ? 1.0 : (std::min(1.0, GetElapsedRealTimeMS() / (m_RealTimeLimit / m_TicksPerMS))); }
+		double GetRealTimeLimitProgress() const { return (m_RealTimeLimit == 0) ? 1.0 : (std::min(1.0, GetElapsedRealTimeMS() / (m_RealTimeLimit / m_TicksPerMS))); }
+
+		/// Sets how much progress has been made toward the set time limit previously set by SetRealTimeLimitMS.
+		/// 0 means no progress, 1.0 means the timer is at the limit, greater is beyond the limit.
+		/// @param progress A normalized scalar between 0.0 - 1.0 of the progress toward the limit.
+		void SetRealTimeLimitProgress(double progress) { m_StartRealTime = g_TimerMan.GetSimTickCount() - static_cast<long long>(std::round(m_RealTimeLimit * progress)); }
 
 		/// Returns true or false, depending on whether the elapsed time falls in one of two repeating intervals which divide it.
 		/// This is useful for blink animations etc.
 		/// @param period An int with the alternating period in ms. The time specified here is how long it will take for the switch to alternate.
 		/// @return Whether the elapsed time is in the first state or not.
 		bool AlternateReal(int period) const { return (static_cast<int>(GetElapsedRealTimeMS()) % (period * 2)) > period; }
+
+		/// Returns an incrementing int, depending on whether the elapsed time falls in repeating intervals which divide it.
+		/// This is useful for blink animations etc, for example ".", "..", "...", etc.
+		/// @param period An int with the period in ms. The time specified here is how long it will take for the int to increment
+		/// @param steps The number of steps to increment the int by. For example, if period is 1000 and steps is 5, then the int will increment every 200 ms.
+		/// @return Whether the elapsed time is in the first state or not.
+		int StepReal(int period, int steps) const { 
+			int elapsed = static_cast<int>(GetElapsedRealTimeMS());
+			return (elapsed / period) % steps; 
+		}
 #pragma endregion
 
 #pragma region Simulation Time
@@ -216,7 +242,12 @@ namespace RTE {
 		/// Returns how much progress has been made toward the set time limit previously set by SetSimTimeLimitMS.
 		/// 0 means no progress, 1.0 means the timer has reached, or is beyond the limit.
 		/// @return A normalized scalar between 0.0 - 1.0 showing the progress toward the limit.
-		double SimTimeLimitProgress() const { return (m_SimTimeLimit == 0) ? 1.0 : (std::min(1.0, GetElapsedSimTimeMS() / (m_SimTimeLimit / m_TicksPerMS))); }
+		double GetSimTimeLimitProgress() const { return (m_SimTimeLimit == 0) ? 1.0 : (std::min(1.0, GetElapsedSimTimeMS() / (m_SimTimeLimit / m_TicksPerMS))); }
+
+		/// Sets how much progress has been made toward the set time limit previously set by SetSimTimeLimitMS.
+		/// 0 means no progress, 1.0 means the timer is at the limit, greater is beyond the limit.
+		/// @param progress A normalized scalar between 0.0 - 1.0 of the progress toward the limit.
+		void SetSimTimeLimitProgress(double progress) { m_StartSimTime = g_TimerMan.GetSimTickCount() - static_cast <long long>(std::round(m_SimTimeLimit * progress)); }
 
 		/// Returns true or false, depending on whether the elapsed time falls in one of two repeating intervals which divide it.
 		/// This is useful for blink animations etc.

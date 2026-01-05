@@ -1,4 +1,4 @@
-#version 130
+#version 330 core
 
 in vec2 textureUV;
 in vec4 vertexColor;
@@ -9,7 +9,7 @@ uniform sampler2D rteTexture;
 uniform vec4 rteColor;
 
 
-vec4 texture2DAA(sampler2D tex, vec2 uv) {
+vec4 textureAA(sampler2D tex, vec2 uv) {
 	vec2 texsize = vec2(textureSize(tex, 0));
 	vec2 uv_texspace = uv * texsize;
 	vec2 seam = floor(uv_texspace + .5);
@@ -19,5 +19,5 @@ vec4 texture2DAA(sampler2D tex, vec2 uv) {
 }
 
 void main() {
-	FragColor = texture2DAA(rteTexture, textureUV) * rteColor * vertexColor;
+	FragColor = textureAA(rteTexture, textureUV) * rteColor * vertexColor;
 }

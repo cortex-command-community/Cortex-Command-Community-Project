@@ -31,6 +31,14 @@ namespace RTE {
 		/// @param inputY Float defining the initial Y value of this Vector.
 		inline Vector(const float inputX, const float inputY) :
 		    m_X(inputX), m_Y(inputY){};
+
+		/// Copy constructor method used to instantiate a Vector object
+		/// identical to an already existing one.
+		/// @param reference A Vector object which is passed in by reference.
+		Vector(const Vector& reference) {
+			m_X = reference.m_X;
+			m_Y = reference.m_Y;
+		}
 #pragma endregion
 
 #pragma region Destruction

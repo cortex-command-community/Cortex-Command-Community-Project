@@ -53,7 +53,7 @@ namespace RTE {
 #pragma region Getters
 		/// Gets the full path to the ini file that stores the state of the MetaMan this is associated with.
 		/// @return The path to the ini with the MetaMan state info.
-		std::string GetSavePath() const { return m_SavePath; }
+		const std::string& GetSavePath() const { return m_SavePath; }
 
 		/// Gets the total number of players this game has (including AIs).
 		/// @return The player count.

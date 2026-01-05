@@ -21,6 +21,9 @@
 
 #include <execution>
 
+#include "zip.h"
+#include "unzip.h"
+
 using namespace RTE;
 
 SaveLoadMenuGUI::SaveLoadMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool createForPauseMenu) {
@@ -56,13 +59,14 @@ SaveLoadMenuGUI::SaveLoadMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiI
 	m_SaveGamesListBox->SetMouseScrolling(true);
 	m_SaveGamesListBox->SetScrollBarThickness(15);
 	m_SaveGamesListBox->SetScrollBarPadding(2);
+	m_SaveGamesListBox->SetHighlightAsIfAlwaysFocused(true);
 
 	m_SaveGameName = dynamic_cast<GUITextBox*>(m_GUIControlManager->GetControl("SaveGameName"));
 	m_LoadButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonLoad"));
 	m_CreateButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonCreate"));
 	m_OverwriteButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonOverwrite"));
 	m_DeleteButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonDelete"));
-	m_ActivityCannotBeSavedLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("ActivityCannotBeSavedWarning"));
+	m_DescriptionLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("DescriptionLabel"));
 
 	m_ConfirmationBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("ConfirmDialog"));
 	m_ConfirmationBox->CenterInParent(true, true);
@@ -71,21 +75,28 @@ SaveLoadMenuGUI::SaveLoadMenuGUI(AllegroScreen* guiScreen, GUIInputWrapper* guiI
 	m_ConfirmationButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ConfirmButton"));
 	m_CancelButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("CancelButton"));
 
+	m_SaveGamesFetched = false;
+	m_WasSaving = false;
+	m_SavingBlinkTimer.SetRealTimeLimitS(1.5f);
+
 	SwitchToConfirmDialogMode(ConfirmDialogMode::None);
 }
 
 void SaveLoadMenuGUI::PopulateSaveGamesList() {
+	if (g_ActivityMan.IsCurrentlySaving() || m_SaveGamesFetched) {
+		return;
+	}
+
 	m_SaveGames.clear();
-	m_SaveGameName->SetText("");
 
 	m_GUIControlManager->GetManager()->SetFocus(nullptr);
 
 	std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/";
 	for (const auto& entry: std::filesystem::directory_iterator(saveFilePath)) {
-		if (entry.is_directory()) {
+		if (entry.path().extension() == ".ccsave") {
 			SaveRecord record;
 			record.SavePath = entry.path();
-			record.SaveDate = std::filesystem::last_write_time(entry.path() / "Save.ini");
+			record.SaveDate = entry.last_write_time();
 			m_SaveGames.push_back(record);
 		}
 	}
@@ -93,34 +104,52 @@ void SaveLoadMenuGUI::PopulateSaveGamesList() {
 	std::for_each(std::execution::par_unseq,
 	              m_SaveGames.begin(), m_SaveGames.end(),
 	              [](SaveRecord& record) {
-		              Reader reader(record.SavePath.string() + "/Save.ini", true, nullptr, true);
+		              // load zip sav file
+		              std::string filePath = record.SavePath.string();
+		              unzFile zippedSaveFile = unzOpen(filePath.c_str());
+		              if (!zippedSaveFile) {
+			              return;
+		              }
 
-		              bool readActivity = false;
-		              bool readSceneName = false;
+					  // These need to use NULL instead of nullptr to compile on Linux/OSX?
+		              if (unzLocateFile(zippedSaveFile, "Index.ini", NULL) == UNZ_END_OF_LIST_OF_FILE) {
+			              unzClose(zippedSaveFile);
+			              return;
+		              }
 
-		              GAScripted activity;
+					  unz_file_info info;
+		              unzOpenCurrentFile(zippedSaveFile);
+		              unzGetCurrentFileInfo(zippedSaveFile, &info, nullptr, 0, nullptr, 0, nullptr, 0);
 
-		              std::string originalScenePresetName;
+		              char* buffer = (char*)malloc(info.uncompressed_size + 1);
+		              if (!buffer) {
+			              // If this ever hits I've lost all faith in modern OSes, but alas when one is writing C, one must dance along
+			              RTEError::ShowMessageBox("Catastrophic failure! Failed to allocate memory for savegame");
+			              unzClose(zippedSaveFile);
+			              return;
+		              }
+
+		              unzReadCurrentFile(zippedSaveFile, buffer, info.uncompressed_size);
+					  unzCloseCurrentFile(zippedSaveFile);
+					  
+		              buffer[info.uncompressed_size] = 0; // need to null-terminate manually
+
+					  Reader reader(std::make_unique<std::istringstream>(buffer), record.SavePath.string(), true, nullptr, false);
 		              while (reader.NextProperty()) {
 			              std::string propName = reader.ReadPropName();
-			              if (propName == "Activity") {
-				              reader >> activity;
-				              readActivity = true;
+			              if (propName == "ActivityName") {
+				              reader >> record.Activity;
 			              } else if (propName == "OriginalScenePresetName") {
-				              reader >> originalScenePresetName;
-				              readSceneName = true;
-			              }
-
-			              if (readActivity && readSceneName) {
-				              break;
+				              reader >> record.Scene;
 			              }
 		              }
 
-		              record.Activity = activity.GetDisplayName();
-		              record.Scene = originalScenePresetName;
+					  unzClose(zippedSaveFile);
+					  free(buffer);
 	              });
 
 	UpdateSaveGamesGUIList();
+	m_SaveGamesFetched = true;
 }
 
 void SaveLoadMenuGUI::UpdateSaveGamesGUIList() {
@@ -187,16 +216,16 @@ void SaveLoadMenuGUI::CreateSave() {
 		g_GUISound.UserErrorSound()->Play();
 	}
 
-	PopulateSaveGamesList();
+	m_SaveGamesFetched = false;
 }
 
 void SaveLoadMenuGUI::DeleteSave() {
-	std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + m_SaveGameName->GetText();
+	std::string saveFilePath = g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + m_SaveGameName->GetText() + ".ccsave";
 
-	std::filesystem::remove_all(saveFilePath);
+	std::filesystem::remove(saveFilePath);
 	g_GUISound.ConfirmSound()->Play();
 
-	PopulateSaveGamesList();
+	m_SaveGamesFetched = false;
 }
 
 void SaveLoadMenuGUI::UpdateButtonEnabledStates() {
@@ -226,8 +255,44 @@ void SaveLoadMenuGUI::UpdateButtonEnabledStates() {
 
 	m_LoadButton->SetEnabled(saveExists);
 	m_DeleteButton->SetEnabled(saveExists);
+	
+	m_DescriptionLabel->SetText("");
 
-	m_ActivityCannotBeSavedLabel->SetVisible(g_ActivityMan.GetActivity() && !g_ActivityMan.GetActivity()->GetAllowsUserSaving());
+	bool isSaving = g_ActivityMan.IsCurrentlySaving();
+	if (isSaving != m_WasSaving) {
+		m_SavingBlinkTimer.Reset();
+	}
+
+	if (g_ActivityMan.GetActivity()) {
+		if (isSaving) {
+			const char* saveText = "";
+			switch (m_SavingBlinkTimer.StepReal(500, 4)) {
+				case 0:
+					saveText = "Saving game, please wait   ";
+					break;
+				case 1:
+					saveText = "Saving game, please wait.  ";
+					break;
+				case 2:
+					saveText = "Saving game, please wait.. ";
+					break;
+				case 3:
+					saveText = "Saving game, please wait...";
+					break;
+			}
+
+			m_DescriptionLabel->SetText(saveText);
+		} else if (!m_SavingBlinkTimer.IsPastRealTimeLimit()) {
+			// Show "Saved!" for a little while after saving
+			m_DescriptionLabel->SetText("Game saved successfully!");
+		} else if (!g_ActivityMan.GetActivity()->GetAllowsUserSaving()) {
+			m_DescriptionLabel->SetText("The currently played activity does not allow saving.");
+		} else if (m_SaveGameName->GetText().empty()) {
+			m_DescriptionLabel->SetText("Enter a name for your savegame.");
+		}
+	}
+
+	m_WasSaving = isSaving;
 }
 
 void SaveLoadMenuGUI::SwitchToConfirmDialogMode(ConfirmDialogMode mode) {
@@ -249,6 +314,8 @@ void SaveLoadMenuGUI::SwitchToConfirmDialogMode(ConfirmDialogMode mode) {
 }
 
 bool SaveLoadMenuGUI::HandleInputEvents(PauseMenuGUI* pauseMenu) {
+	PopulateSaveGamesList();
+	
 	m_GUIControlManager->Update();
 
 	GUIEvent guiEvent;
@@ -302,7 +369,7 @@ bool SaveLoadMenuGUI::HandleInputEvents(PauseMenuGUI* pauseMenu) {
 }
 
 void SaveLoadMenuGUI::Refresh() {
-	PopulateSaveGamesList();
+	m_SaveGamesFetched = false;
 	UpdateButtonEnabledStates();
 }
 

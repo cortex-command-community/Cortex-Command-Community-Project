@@ -571,7 +571,7 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 
 	local maxSearchDistance;
 	if AI.isPlayerOwned then
-		maxSearchDistance = 100; -- don't move player actors too far
+		maxSearchDistance = 160; -- don't move player actors too far
 	else
 		maxSearchDistance = FrameMan.PlayerScreenWidth * 0.45;
 	end
@@ -615,26 +615,26 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 		for _, deviceEntry in pairs(devices) do
 			local device = deviceEntry.device;
 			if MovableMan:ValidMO(device) then
-				local pathMultipler = 1;
+				local pathMultiplier = 1;
 				if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
-					pathMultipler = 0.4; -- prioritize primary or heavy weapons
+					pathMultiplier = 0.4; -- prioritize primary or heavy weapons
 				elseif device.ClassName == "TDExplosive" then
-					pathMultipler = 1.4; -- avoid grenades if there are other weapons
+					pathMultiplier = 1.4; -- avoid grenades if there are other weapons
 				elseif device:IsTool() then
 					if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
-						pathMultipler = 1.8; -- avoid diggers if there are other weapons
+						pathMultiplier = 1.8; -- avoid diggers if there are other weapons
 					else
-						pathMultipler = -1; -- disregard non-digger tools
+						pathMultiplier = -1; -- disregard non-digger tools
 					end
 				end
 
-				if pathMultipler ~= -1 then
+				if pathMultiplier ~= -1 then
 					local deviceID = device.UniqueID;
 					SceneMan.Scene:CalculatePathAsync(
 						function(pathRequest)
 							local pathLength = pathRequest.PathLength;
 							if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
-								local score = pathLength * pathMultipler;
+								local score = pathLength * pathMultiplier;
 								table.insert(devicesToPickUp, {deviceId = deviceID, score = score});
 							end
 							searchesRemaining = searchesRemaining - 1;
@@ -665,11 +665,12 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 			local prevMoveTarget, prevSceneWaypoint;
 			if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
 				prevMoveTarget = Owner.MOMoveTarget;
+				Owner.MOMoveTarget = nil;
 			else
 				prevSceneWaypoint = SceneMan:MovePointToGround(Owner:GetLastAIWaypoint(), Owner.Height/5, 4); -- last wpt or current pos
 			end
 
-			Owner:ClearMovePath();
+			Owner:ClearAIWaypoints();
 			Owner:AddAIMOWaypoint(AI.PickupHD);
 
 			if prevMoveTarget then
@@ -704,7 +705,7 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	if Owner.AIMode == Actor.AIMODE_GOLDDIG then
 		maxSearchDistance = FrameMan.PlayerScreenWidth * 0.5; -- move up to half a screen when digging
 	elseif AI.isPlayerOwned then
-		maxSearchDistance = 60; -- don't move player actors too far
+		maxSearchDistance = 160; -- don't move player actors too far
 	else
 		maxSearchDistance = FrameMan.PlayerScreenWidth * 0.3;
 	end
@@ -780,11 +781,12 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 			local prevMoveTarget, prevSceneWaypoint;
 			if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
 				prevMoveTarget = Owner.MOMoveTarget;
+				Owner.MOMoveTarget = nil;
 			else
 				prevSceneWaypoint = SceneMan:MovePointToGround(Owner:GetLastAIWaypoint(), Owner.Height/5, 4); -- last wpt or current pos
 			end
 
-			Owner:ClearMovePath();
+			Owner:ClearAIWaypoints();
 			Owner:AddAIMOWaypoint(AI.PickupHD);
 
 			if Owner.AIMode ~= Actor.AIMODE_GOLDDIG then

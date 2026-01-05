@@ -35,6 +35,14 @@ namespace RTE {
 		/// @param Screen Screen class
 		void Draw(GUIScreen* Screen) override;
 
+		/// Called when this panel gains focus.
+		/// Start text input events.
+		void OnGainFocus() override;
+
+		/// Called when this panel loses focus.
+		/// Stops text input events.
+		void OnLoseFocus() override;
+
 		/// Called when the mouse goes down on the panel
 		/// @param X Mouse Position, Mouse Buttons, Modifier.
 		void OnMouseDown(int X, int Y, int Buttons, int Modifier) override;
@@ -51,6 +59,7 @@ namespace RTE {
 		/// @param KeyCode KeyCode, Modifier.
 		void OnKeyPress(int KeyCode, int Modifier) override;
 
+		/// Called when text input is received
 		void OnTextInput(std::string_view inputText) override;
 
 		/// Sets the text in the textpanel.
@@ -62,10 +71,10 @@ namespace RTE {
 		void SetRightText(const std::string& rightText);
 
 		/// Gets the text in the textpanel.
-		std::string GetText() const { return m_Text; }
+		const std::string& GetText() const { return m_Text; }
 
 		/// Gets the extra text which appears right-justified in the textpanel.
-		std::string GetRightText() const { return m_RightText; }
+		const std::string& GetRightText() const { return m_RightText; }
 
 		/// Sets the start and end indexes of the selection text.
 		/// @param Start Start, End.

@@ -178,7 +178,7 @@ int MOSRotating::Create(ContentFile spriteFile,
                         const Vector& position,
                         const Vector& velocity,
                         const unsigned long lifetime) {
-	MOSprite::Create(spriteFile, frameCount, mass, position, velocity, lifetime);
+	MOSprite::Create(std::move(spriteFile), frameCount, mass, position, velocity, lifetime);
 
 	if (!m_pFlipBitmap && m_aSprite[0]) {
 		m_pFlipBitmap = create_bitmap_ex(8, m_aSprite[0]->w, m_aSprite[0]->h);

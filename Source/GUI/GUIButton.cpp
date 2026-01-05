@@ -6,15 +6,17 @@
 using namespace RTE;
 
 GUIButton::GUIButton(GUIManager* Manager, GUIControlManager* ControlManager) :
-    GUIControl(), GUIPanel(Manager) {
-	m_ControlID = "BUTTON";
-	m_DrawBitmap = nullptr;
+	GUIControl(),
+	GUIPanel(Manager),
+	m_DrawBitmap(nullptr),
+	m_Pushed(false),
+	m_Over(false),
+	m_Text(nullptr),
+	m_Icon(nullptr),
+	m_BorderSizes(nullptr) {
+
 	m_ControlManager = ControlManager;
-	m_Pushed = false;
-	m_Over = false;
-	m_Text = nullptr;
-	m_Icon = nullptr;
-	m_BorderSizes = nullptr;
+	m_ControlID = "BUTTON";
 }
 
 void GUIButton::Create(const std::string& Name, int X, int Y, int Width, int Height) {

@@ -245,7 +245,7 @@ namespace RTE {
 		/// @param doEquip Whether to actually equip any matching item found in the inventory, (default: true)
 		/// or just report that it's there or not.
 		/// @return Whether a firearm was successfully switched to, or already held.
-		bool EquipDeviceInGroup(std::string group, bool doEquip = true);
+		bool EquipDeviceInGroup(const std::string& group, bool doEquip = true);
 
 		/// Switches the currently held device (if any) to the first loaded HDFirearm
 		/// of the specified group in the inventory. If no such weapon is in the
@@ -255,7 +255,7 @@ namespace RTE {
 		/// @param doEquip Whether to actually equip any matching item found in the inventory, (default: true)
 		/// or just report that it's there or not.
 		/// @return Whether a firearm was successfully switched to, or already held.
-		bool EquipLoadedFirearmInGroup(std::string group, std::string exludeGroup, bool doEquip = true);
+		bool EquipLoadedFirearmInGroup(const std::string& group, const std::string& exludeGroup, bool doEquip = true);
 
 		/// Switches the equipped HeldDevice (if any) to the first found device with the specified preset name in the inventory.
 		/// If the equipped HeldDevice is of that module and preset name, nothing happens.

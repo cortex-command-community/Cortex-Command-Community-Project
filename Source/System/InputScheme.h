@@ -2,12 +2,23 @@
 
 #include "InputMapping.h"
 #include "Constants.h"
+#include <SDL3/SDL_joystick.h>
+#include <SDL3/SDL_mouse.h>
+#include <SDL3/SDL_keyboard.h>
 
 #include <array>
 #include <string>
 
 namespace RTE {
 
+	union DeviceID {
+		SDL_JoystickID gamepad;
+		SDL_KeyboardID keyboard;
+		struct {
+			SDL_MouseID mouse;
+			SDL_KeyboardID keyboard;
+		} mouseKeyboard{0,0};
+	};
 	/// A complete input configuration scheme description for a single player.
 	class InputScheme : public Serializable {
 
@@ -28,7 +39,6 @@ namespace RTE {
 			PresetGamepadXbox360,
 			InputPresetCount
 		};
-
 #pragma region Creation
 		/// Constructor method used to instantiate an InputScheme object in system memory. Create() should be called before using the object.
 		InputScheme() { Clear(); }
@@ -55,7 +65,13 @@ namespace RTE {
 
 		/// Sets the InputDevice this scheme is supposed to use.
 		/// @param activeDevice The InputDevice this scheme should use. See InputDevice enumeration.
-		void SetDevice(InputDevice activeDevice = InputDevice::DEVICE_KEYB_ONLY) { m_ActiveDevice = activeDevice; }
+		void SetDevice(InputDevice activeDevice = InputDevice::DEVICE_KEYB_ONLY);
+
+		DeviceID GetDeviceID() const { return m_DeviceID; }
+
+		void SetDeviceID(DeviceID deviceID) { m_DeviceID = deviceID; }
+
+		void ResetDeviceID();
 
 		/// Gets the InputPreset that this scheme is using.
 		/// @return The InputPreset of this scheme. See InputPreset enumeration.
@@ -132,10 +148,13 @@ namespace RTE {
 		/// @param whichInput Which input element to map for.
 		/// @return Whether there were any button or stick presses this frame and therefore whether a mapping was successfully captured or not.
 		bool CaptureJoystickMapping(int whichJoy, int whichInput);
+
+		bool CaptureDeviceMapping(bool mouse = true, bool keyboard = false);
 #pragma endregion
 
 	protected:
 		InputDevice m_ActiveDevice; //!< The currently active device for this scheme.
+		DeviceID m_DeviceID; //!< Device ID of the in use input device.
 		InputPreset m_SchemePreset; //!< The preset this scheme was last set to, if any.
 
 		DeadZoneType m_JoystickDeadzoneType; //!< Which deadzone type is used.

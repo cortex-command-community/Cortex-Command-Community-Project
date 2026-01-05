@@ -265,7 +265,7 @@ std::string System::ExtractZippedDataModule(const std::string& zippedModulePath)
 	std::array<char, s_FileBufferSize> fileBuffer;
 
 	// Go through and extract every file inside this zip, overwriting every colliding file that already exists in the install directory.
-	for (int i = 0; i < zippedModuleInfo.number_entry && !abortExtract; ++i) {
+	for (size_t i = 0; i < zippedModuleInfo.number_entry && !abortExtract; ++i) {
 		unz_file_info currentFileInfo;
 		std::array<char, s_MaxFileName> outputFileInfoData;
 		if (unzGetCurrentFileInfo(zippedModule, &currentFileInfo, outputFileInfoData.data(), s_MaxFileName, nullptr, 0, nullptr, 0) != UNZ_OK) {
@@ -323,32 +323,33 @@ std::string System::ExtractZippedDataModule(const std::string& zippedModulePath)
 			FILE* outputFile = fopen(outputFileName.c_str(), "wb");
 			if (outputFile == nullptr) {
 				extractionProgressReport << "\tSkipped file: " + outputFileName + " - Could not open/create destination file!\n";
+			} else {
+				// Write the entire file out, reading in buffer size chunks and spitting them out to the output stream.
+				bool abortWrite = false;
+				int bytesRead = 0;
+				int totalBytesRead = 0;
+				do {
+					bytesRead = unzReadCurrentFile(zippedModule, fileBuffer.data(), s_FileBufferSize);
+					totalBytesRead += bytesRead;
+
+					if (bytesRead < 0) {
+						extractionProgressReport << "\tSkipped file: " + outputFileName + " - File is empty or corrupt!\n";
+						abortWrite = true;
+						// Sanity check how damn big this file we're writing is becoming. could prevent zip bomb exploits: http://en.wikipedia.org/wiki/Zip_bomb
+					} else if (totalBytesRead >= s_MaxUnzippedFileSize) {
+						extractionProgressReport << "\tSkipped file: " + outputFileName + " - File is too large, extract it manually!\n";
+						abortWrite = true;
+					}
+					if (abortWrite) {
+						break;
+					}
+					fwrite(fileBuffer.data(), bytesRead, 1, outputFile);
+					// Keep going while bytes are still being read (0 means end of file).
+				} while (bytesRead > 0 && outputFile);
+
+				fclose(outputFile);
 			}
 
-			// Write the entire file out, reading in buffer size chunks and spitting them out to the output stream.
-			bool abortWrite = false;
-			int bytesRead = 0;
-			int totalBytesRead = 0;
-			do {
-				bytesRead = unzReadCurrentFile(zippedModule, fileBuffer.data(), s_FileBufferSize);
-				totalBytesRead += bytesRead;
-
-				if (bytesRead < 0) {
-					extractionProgressReport << "\tSkipped file: " + outputFileName + " - File is empty or corrupt!\n";
-					abortWrite = true;
-					// Sanity check how damn big this file we're writing is becoming. could prevent zip bomb exploits: http://en.wikipedia.org/wiki/Zip_bomb
-				} else if (totalBytesRead >= s_MaxUnzippedFileSize) {
-					extractionProgressReport << "\tSkipped file: " + outputFileName + " - File is too large, extract it manually!\n";
-					abortWrite = true;
-				}
-				if (abortWrite) {
-					break;
-				}
-				fwrite(fileBuffer.data(), bytesRead, 1, outputFile);
-				// Keep going while bytes are still being read (0 means end of file).
-			} while (bytesRead > 0 && outputFile);
-
-			fclose(outputFile);
 			unzCloseCurrentFile(zippedModule);
 
 			extractionProgressReport << "\tExtracted file: " + outputFileName + "\n";

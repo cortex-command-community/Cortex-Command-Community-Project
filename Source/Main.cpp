@@ -19,8 +19,8 @@
 /// </summary>
 
 #include "allegro.h"
-#include "SDL.h"
-#include "SDL_image.h"
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 
 #include "GUI.h"
 #include "GUIInputWrapper.h"
@@ -55,6 +55,8 @@
 
 #include "RenderTarget.h"
 #include "tracy/Tracy.hpp"
+
+#include "imgui_impl_sdl3.h"
 
 #ifdef _WIN32
 #include "windows.h"
@@ -206,35 +208,35 @@ void PollSDLEvents() {
 	SDL_Event sdlEvent;
 	while (SDL_PollEvent(&sdlEvent)) {
 		switch (sdlEvent.type) {
-			case SDL_QUIT:
+			case SDL_EVENT_QUIT :
 				System::SetQuit(true);
 				return;
-			case SDL_WINDOWEVENT:
-				if (sdlEvent.window.event == SDL_WINDOWEVENT_CLOSE) {
-					System::SetQuit(true);
-					return;
-				}
-				g_WindowMan.QueueWindowEvent(sdlEvent);
-				break;
-			case SDL_KEYUP:
-			case SDL_KEYDOWN:
-			case SDL_TEXTINPUT:
-			case SDL_MOUSEMOTION:
-			case SDL_MOUSEBUTTONUP:
-			case SDL_MOUSEBUTTONDOWN:
-			case SDL_MOUSEWHEEL:
-			case SDL_CONTROLLERAXISMOTION:
-			case SDL_CONTROLLERBUTTONDOWN:
-			case SDL_CONTROLLERBUTTONUP:
-			case SDL_JOYAXISMOTION:
-			case SDL_JOYBUTTONDOWN:
-			case SDL_JOYBUTTONUP:
-			case SDL_JOYDEVICEADDED:
-			case SDL_JOYDEVICEREMOVED:
-				g_UInputMan.QueueInputEvent(sdlEvent);
+			case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+				System::SetQuit(true);
+				return;
+			case SDL_EVENT_KEY_UP :
+			case SDL_EVENT_KEY_DOWN :
+			case SDL_EVENT_TEXT_INPUT :
+			case SDL_EVENT_MOUSE_MOTION :
+			case SDL_EVENT_MOUSE_BUTTON_UP :
+			case SDL_EVENT_MOUSE_BUTTON_DOWN :
+			case SDL_EVENT_MOUSE_WHEEL :
+			case SDL_EVENT_GAMEPAD_AXIS_MOTION :
+			case SDL_EVENT_GAMEPAD_BUTTON_DOWN :
+			case SDL_EVENT_GAMEPAD_BUTTON_UP :
+			case SDL_EVENT_JOYSTICK_AXIS_MOTION :
+			case SDL_EVENT_JOYSTICK_BUTTON_DOWN :
+			case SDL_EVENT_JOYSTICK_BUTTON_UP :
+			case SDL_EVENT_JOYSTICK_ADDED :
+			case SDL_EVENT_JOYSTICK_REMOVED :
+				g_UInputMan.HandleInputEvent(sdlEvent);
 				break;
 			default:
 				break;
+		}
+		ImGui_ImplSDL3_ProcessEvent(&sdlEvent);
+		if (sdlEvent.type >= SDL_EVENT_WINDOW_FIRST && sdlEvent.type <= SDL_EVENT_WINDOW_LAST) {
+			g_WindowMan.QueueWindowEvent(sdlEvent);
 		}
 	}
 }
@@ -243,6 +245,7 @@ void PollSDLEvents() {
 /// Game menus loop.
 /// </summary>
 void RunMenuLoop() {
+	g_MenuMan.SetIsInMenuScreen(true);
 	g_UInputMan.DisableKeys(false);
 	g_UInputMan.TrapMousePos(false);
 
@@ -267,16 +270,21 @@ void RunMenuLoop() {
 		}
 
 		if (g_MenuMan.Update()) {
+			g_UInputMan.EndFrame();
 			break;
 		}
+
 		g_ConsoleMan.Update();
 
+		g_UInputMan.EndFrame();
 		g_WindowMan.GetScreenBuffer()->Begin();
 		g_MenuMan.Draw();
 		g_ConsoleMan.Draw(g_FrameMan.GetBackBuffer32());
 		g_WindowMan.GetScreenBuffer()->End();
 		g_WindowMan.UploadFrame();
 	}
+
+	g_MenuMan.SetIsInMenuScreen(false);
 }
 
 /// <summary>
@@ -356,6 +364,7 @@ void RunGameLoop() {
 			g_PresetMan.ClearReloadEntityPresetCalledThisUpdate();
 
 			g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::SimTotal);
+			g_UInputMan.EndFrame();
 
 			if (!g_ActivityMan.IsInActivity()) {
 				g_TimerMan.PauseSim(true);
@@ -407,18 +416,14 @@ int main(int argc, char** argv) {
 	install_allegro(SYSTEM_NONE, &errno, std::atexit);
 	loadpng_init();
 
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER);
-	IMG_Init(IMG_INIT_PNG);
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMEPAD );
 
-#if SDL_MINOR_VERSION > 22
 	SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
-#endif
-
-	SDL_ShowCursor(SDL_DISABLE);
 	SDL_SetHint("SDL_ALLOW_TOPMOST", "0");
+	SDL_HideCursor();
 
 	if (std::filesystem::exists("Base.rte/gamecontrollerdb.txt")) {
-		SDL_GameControllerAddMappingsFromFile("Base.rte/gamecontrollerdb.txt");
+		SDL_AddGamepadMappingsFromFile("Base.rte/gamecontrollerdb.txt");
 	}
 
 #ifdef WIN32

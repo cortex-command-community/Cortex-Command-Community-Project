@@ -4,20 +4,19 @@
 
 using namespace RTE;
 
-GUIFont::GUIFont(const std::string& Name) {
-	m_Screen = nullptr;
-	m_Font = nullptr;
-	m_FontHeight = 0;
-	m_Name = Name;
-	m_Kerning = 0;
-	m_Leading = 0;
+GUIFont::GUIFont(const std::string& Name) :
+	m_Font(nullptr),
+	m_Screen(nullptr),
+	m_FontHeight(0),
+	m_MainColor(15),
+	m_CurrentColor(m_MainColor),
+	m_CurrentBitmap(nullptr),
+	m_Name(Name), // Color index of the main font color
+	m_CharIndexCap(256),
+	m_Kerning(0),
+	m_Leading(0) {
+
 	m_ColorCache.clear();
-
-	m_MainColor = 15; // Color index of the main font color
-	m_CurrentColor = m_MainColor;
-	m_CurrentBitmap = nullptr;
-
-	m_CharIndexCap = 256;
 }
 
 bool GUIFont::Load(GUIScreen* Screen, const std::string& Filename) {

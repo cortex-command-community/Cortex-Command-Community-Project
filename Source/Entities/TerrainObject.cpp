@@ -4,6 +4,8 @@
 #include "Draw.h"
 #include "FrameMan.h"
 
+#include <array>
+
 using namespace RTE;
 
 ConcreteClassInfo(TerrainObject, SceneObject, 0);

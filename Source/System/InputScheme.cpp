@@ -1,5 +1,6 @@
 #include "InputScheme.h"
 #include "UInputMan.h"
+#include <SDL3/SDL.h>
 
 using namespace RTE;
 
@@ -135,18 +136,22 @@ void InputScheme::ResetToPlayerDefaults(Players player) {
 	switch (player) {
 		case Players::PlayerOne:
 			m_ActiveDevice = InputDevice::DEVICE_MOUSE_KEYB;
+			m_DeviceID.mouseKeyboard = {0, 0};
 			SetPreset(InputPreset::PresetMouseWASDKeys);
 			break;
 		case Players::PlayerTwo:
 			m_ActiveDevice = InputDevice::DEVICE_KEYB_ONLY;
+			m_DeviceID.keyboard = {0};
 			SetPreset(InputPreset::PresetArrowKeys);
 			break;
 		case Players::PlayerThree:
 			m_ActiveDevice = InputDevice::DEVICE_GAMEPAD_1;
+			m_DeviceID.gamepad = 0;
 			SetPreset(InputPreset::PresetGenericDualAnalog);
 			break;
 		case Players::PlayerFour:
 			m_ActiveDevice = InputDevice::DEVICE_GAMEPAD_2;
+			m_DeviceID.gamepad = 0;
 			SetPreset(InputPreset::PresetGenericDualAnalog);
 			break;
 		default:
@@ -156,6 +161,36 @@ void InputScheme::ResetToPlayerDefaults(Players player) {
 	m_JoystickDeadzoneType = DeadZoneType::CIRCLE;
 	m_JoystickDeadzone = 0.01F;
 	m_DigitalAimSpeed = 1.0F;
+}
+
+void InputScheme::SetDevice(InputDevice activeDevice) {
+	m_ActiveDevice = activeDevice;
+	if (m_ActiveDevice >= InputDevice::DEVICE_GAMEPAD_1) {
+		m_DeviceID.gamepad = g_UInputMan.GetGamepadID(m_ActiveDevice);
+	} else if (m_ActiveDevice == InputDevice::DEVICE_KEYB_ONLY) {
+		m_DeviceID.keyboard = 0;
+	} else if (m_ActiveDevice == InputDevice::DEVICE_MOUSE_KEYB) {
+		m_DeviceID.mouseKeyboard = {0, 0};
+	}
+}
+
+void InputScheme::ResetDeviceID() {
+	switch(m_ActiveDevice) {
+		case DEVICE_KEYB_ONLY:
+			m_DeviceID.keyboard = 0;
+			break;
+		case DEVICE_MOUSE_KEYB:
+			m_DeviceID.mouseKeyboard = {0, 0};
+			break;
+		case DEVICE_GAMEPAD_1:
+		case DEVICE_GAMEPAD_2:
+		case DEVICE_GAMEPAD_3:
+		case DEVICE_GAMEPAD_4:
+			m_DeviceID.gamepad = 0;
+			break;
+		default:
+			break;
+	}
 }
 
 void InputScheme::SetPreset(InputPreset schemePreset) {
@@ -242,20 +277,20 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			break;
 		case InputPreset::PresetGenericDPad:
 			// TODO: Don't have any SNES style controllers to test with so no idea what would work or make sense here.
-			m_InputMappings[InputElements::INPUT_L_UP].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_UP);
-			m_InputMappings[InputElements::INPUT_L_DOWN].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_DOWN);
-			m_InputMappings[InputElements::INPUT_L_LEFT].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_LEFT);
-			m_InputMappings[InputElements::INPUT_L_RIGHT].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
-			m_InputMappings[InputElements::INPUT_AIM_UP].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_UP);
-			m_InputMappings[InputElements::INPUT_AIM_DOWN].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_DOWN);
-			m_InputMappings[InputElements::INPUT_FIRE].SetJoyButton(SDL_CONTROLLER_BUTTON_B);
-			m_InputMappings[InputElements::INPUT_AIM].SetJoyButton(SDL_CONTROLLER_BUTTON_Y);
-			m_InputMappings[InputElements::INPUT_PIEMENU_DIGITAL].SetJoyButton(SDL_CONTROLLER_BUTTON_A);
-			m_InputMappings[InputElements::INPUT_JUMP].SetJoyButton(SDL_CONTROLLER_BUTTON_X);
-			m_InputMappings[InputElements::INPUT_MOVE_FAST].SetJoyButton(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
-			m_InputMappings[InputElements::INPUT_PREV].SetJoyButton(SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
-			m_InputMappings[InputElements::INPUT_START].SetJoyButton(SDL_CONTROLLER_BUTTON_START);
-			m_InputMappings[InputElements::INPUT_BACK].SetJoyButton(SDL_CONTROLLER_BUTTON_BACK);
+			m_InputMappings[InputElements::INPUT_L_UP].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_UP);
+			m_InputMappings[InputElements::INPUT_L_DOWN].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_DOWN);
+			m_InputMappings[InputElements::INPUT_L_LEFT].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_LEFT);
+			m_InputMappings[InputElements::INPUT_L_RIGHT].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
+			m_InputMappings[InputElements::INPUT_AIM_UP].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_UP);
+			m_InputMappings[InputElements::INPUT_AIM_DOWN].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_DOWN);
+			m_InputMappings[InputElements::INPUT_FIRE].SetJoyButton(SDL_GAMEPAD_BUTTON_EAST);
+			m_InputMappings[InputElements::INPUT_AIM].SetJoyButton(SDL_GAMEPAD_BUTTON_NORTH);
+			m_InputMappings[InputElements::INPUT_PIEMENU_DIGITAL].SetJoyButton(SDL_GAMEPAD_BUTTON_SOUTH);
+			m_InputMappings[InputElements::INPUT_JUMP].SetJoyButton(SDL_GAMEPAD_BUTTON_WEST);
+			m_InputMappings[InputElements::INPUT_MOVE_FAST].SetJoyButton(SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
+			m_InputMappings[InputElements::INPUT_PREV].SetJoyButton(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
+			m_InputMappings[InputElements::INPUT_START].SetJoyButton(SDL_GAMEPAD_BUTTON_START);
+			m_InputMappings[InputElements::INPUT_BACK].SetJoyButton(SDL_GAMEPAD_BUTTON_BACK);
 			// m_InputMappings[InputElements::INPUT_WEAPON_RELOAD].SetKey();
 			// m_InputMappings[InputElements::INPUT_WEAPON_PICKUP].SetKey();
 			// m_InputMappings[InputElements::INPUT_WEAPON_DROP].SetKey();
@@ -270,137 +305,137 @@ void InputScheme::SetPreset(InputPreset schemePreset) {
 			SetPreset(InputPreset::PresetGenericDPad);
 			break;
 		case InputPreset::PresetGamepadDS4:
-			m_InputMappings[InputElements::INPUT_FIRE].SetJoyButton(SDL_CONTROLLER_BUTTON_A);
+			m_InputMappings[InputElements::INPUT_FIRE].SetJoyButton(SDL_GAMEPAD_BUTTON_SOUTH);
 			m_InputMappings[InputElements::INPUT_FIRE].SetPresetDescription("Cross Button");
 			// Hold down X to enter aim mode, then can use d-pad up/down to finely aim while sniping.
-			m_InputMappings[InputElements::INPUT_AIM].SetJoyButton(SDL_CONTROLLER_BUTTON_X);
+			m_InputMappings[InputElements::INPUT_AIM].SetJoyButton(SDL_GAMEPAD_BUTTON_WEST);
 			m_InputMappings[InputElements::INPUT_AIM].SetPresetDescription("Square Button");
 			// Pie menu also cancels buy menu, which makes sense for the B button.
-			m_InputMappings[InputElements::INPUT_PIEMENU_DIGITAL].SetJoyButton(SDL_CONTROLLER_BUTTON_B);
+			m_InputMappings[InputElements::INPUT_PIEMENU_DIGITAL].SetJoyButton(SDL_GAMEPAD_BUTTON_EAST);
 			m_InputMappings[InputElements::INPUT_PIEMENU_DIGITAL].SetPresetDescription("Circle Button");
-			m_InputMappings[InputElements::INPUT_JUMP].SetJoyButton(SDL_CONTROLLER_BUTTON_Y);
+			m_InputMappings[InputElements::INPUT_JUMP].SetJoyButton(SDL_GAMEPAD_BUTTON_NORTH);
 			m_InputMappings[InputElements::INPUT_JUMP].SetPresetDescription("Triangle Button");
-			m_InputMappings[InputElements::INPUT_NEXT].SetJoyButton(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
+			m_InputMappings[InputElements::INPUT_NEXT].SetJoyButton(SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
 			m_InputMappings[InputElements::INPUT_NEXT].SetPresetDescription("R. Bumper");
-			m_InputMappings[InputElements::INPUT_PREV].SetJoyButton(SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
+			m_InputMappings[InputElements::INPUT_PREV].SetJoyButton(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
 			m_InputMappings[InputElements::INPUT_PREV].SetPresetDescription("L. Bumper");
-			m_InputMappings[InputElements::INPUT_START].SetJoyButton(SDL_CONTROLLER_BUTTON_START);
+			m_InputMappings[InputElements::INPUT_START].SetJoyButton(SDL_GAMEPAD_BUTTON_START);
 			m_InputMappings[InputElements::INPUT_START].SetPresetDescription("Start Button");
-			m_InputMappings[InputElements::INPUT_BACK].SetJoyButton(SDL_CONTROLLER_BUTTON_BACK);
+			m_InputMappings[InputElements::INPUT_BACK].SetJoyButton(SDL_GAMEPAD_BUTTON_BACK);
 			m_InputMappings[InputElements::INPUT_BACK].SetPresetDescription("Select Button");
-			m_InputMappings[InputElements::INPUT_MOVE_FAST_TOGGLE].SetJoyButton(SDL_CONTROLLER_BUTTON_LEFTSTICK);
+			m_InputMappings[InputElements::INPUT_MOVE_FAST_TOGGLE].SetJoyButton(SDL_GAMEPAD_BUTTON_LEFT_STICK);
 			m_InputMappings[InputElements::INPUT_MOVE_FAST_TOGGLE].SetPresetDescription("Click L. Stick");
-			m_InputMappings[InputElements::INPUT_PRONE].SetJoyButton(SDL_CONTROLLER_BUTTON_RIGHTSTICK);
+			m_InputMappings[InputElements::INPUT_PRONE].SetJoyButton(SDL_GAMEPAD_BUTTON_RIGHT_STICK);
 			m_InputMappings[InputElements::INPUT_PRONE].SetPresetDescription("Click R. Stick");
 			// Set up the default xbox joy direction bindings.
-			m_InputMappings[InputElements::INPUT_L_UP].SetDirection(SDL_CONTROLLER_AXIS_LEFTY, JoyDirections::JOYDIR_ONE);
+			m_InputMappings[InputElements::INPUT_L_UP].SetDirection(SDL_GAMEPAD_AXIS_LEFTY, JoyDirections::JOYDIR_ONE);
 			m_InputMappings[InputElements::INPUT_L_UP].SetPresetDescription("L. Stick Up");
-			m_InputMappings[InputElements::INPUT_L_DOWN].SetDirection(SDL_CONTROLLER_AXIS_LEFTY, JoyDirections::JOYDIR_TWO);
+			m_InputMappings[InputElements::INPUT_L_DOWN].SetDirection(SDL_GAMEPAD_AXIS_LEFTY, JoyDirections::JOYDIR_TWO);
 			m_InputMappings[InputElements::INPUT_L_DOWN].SetPresetDescription("L. Stick Down");
-			m_InputMappings[InputElements::INPUT_L_LEFT].SetDirection(SDL_CONTROLLER_AXIS_LEFTX, JoyDirections::JOYDIR_ONE);
+			m_InputMappings[InputElements::INPUT_L_LEFT].SetDirection(SDL_GAMEPAD_AXIS_LEFTX, JoyDirections::JOYDIR_ONE);
 			m_InputMappings[InputElements::INPUT_L_LEFT].SetPresetDescription("L. Stick Left");
-			m_InputMappings[InputElements::INPUT_L_RIGHT].SetDirection(SDL_CONTROLLER_AXIS_LEFTX, JoyDirections::JOYDIR_TWO);
+			m_InputMappings[InputElements::INPUT_L_RIGHT].SetDirection(SDL_GAMEPAD_AXIS_LEFTX, JoyDirections::JOYDIR_TWO);
 			m_InputMappings[InputElements::INPUT_L_RIGHT].SetPresetDescription("L. Stick Right");
-			m_InputMappings[InputElements::INPUT_R_UP].SetDirection(SDL_CONTROLLER_AXIS_RIGHTY, JoyDirections::JOYDIR_ONE);
+			m_InputMappings[InputElements::INPUT_R_UP].SetDirection(SDL_GAMEPAD_AXIS_RIGHTY, JoyDirections::JOYDIR_ONE);
 			m_InputMappings[InputElements::INPUT_R_UP].SetPresetDescription("R. Stick Up");
-			m_InputMappings[InputElements::INPUT_R_DOWN].SetDirection(SDL_CONTROLLER_AXIS_RIGHTY, JoyDirections::JOYDIR_TWO);
+			m_InputMappings[InputElements::INPUT_R_DOWN].SetDirection(SDL_GAMEPAD_AXIS_RIGHTY, JoyDirections::JOYDIR_TWO);
 			m_InputMappings[InputElements::INPUT_R_DOWN].SetPresetDescription("R. Stick Down");
-			m_InputMappings[InputElements::INPUT_R_LEFT].SetDirection(SDL_CONTROLLER_AXIS_RIGHTX, JoyDirections::JOYDIR_ONE);
+			m_InputMappings[InputElements::INPUT_R_LEFT].SetDirection(SDL_GAMEPAD_AXIS_RIGHTX, JoyDirections::JOYDIR_ONE);
 			m_InputMappings[InputElements::INPUT_R_LEFT].SetPresetDescription("R. Stick Left");
-			m_InputMappings[InputElements::INPUT_R_RIGHT].SetDirection(SDL_CONTROLLER_AXIS_RIGHTX, JoyDirections::JOYDIR_TWO);
+			m_InputMappings[InputElements::INPUT_R_RIGHT].SetDirection(SDL_GAMEPAD_AXIS_RIGHTX, JoyDirections::JOYDIR_TWO);
 			m_InputMappings[InputElements::INPUT_R_RIGHT].SetPresetDescription("R. Stick Right");
-			m_InputMappings[InputElements::INPUT_FIRE].SetDirection(SDL_CONTROLLER_AXIS_TRIGGERRIGHT, JoyDirections::JOYDIR_TWO);
+			m_InputMappings[InputElements::INPUT_FIRE].SetDirection(SDL_GAMEPAD_AXIS_RIGHT_TRIGGER, JoyDirections::JOYDIR_TWO);
 			m_InputMappings[InputElements::INPUT_FIRE].SetPresetDescription("R. Trigger");
-			m_InputMappings[InputElements::INPUT_PIEMENU_ANALOG].SetDirection(SDL_CONTROLLER_AXIS_TRIGGERLEFT, JoyDirections::JOYDIR_TWO);
+			m_InputMappings[InputElements::INPUT_PIEMENU_ANALOG].SetDirection(SDL_GAMEPAD_AXIS_LEFT_TRIGGER, JoyDirections::JOYDIR_TWO);
 			m_InputMappings[InputElements::INPUT_PIEMENU_ANALOG].SetPresetDescription("L. Trigger");
-			m_InputMappings[InputElements::INPUT_JUMP].SetDirection(SDL_CONTROLLER_AXIS_LEFTY, JoyDirections::JOYDIR_ONE);
+			m_InputMappings[InputElements::INPUT_JUMP].SetDirection(SDL_GAMEPAD_AXIS_LEFTY, JoyDirections::JOYDIR_ONE);
 			m_InputMappings[InputElements::INPUT_JUMP].SetPresetDescription("L. Stick Up");
-			m_InputMappings[InputElements::INPUT_CROUCH].SetDirection(SDL_CONTROLLER_AXIS_LEFTY, JoyDirections::JOYDIR_TWO);
+			m_InputMappings[InputElements::INPUT_CROUCH].SetDirection(SDL_GAMEPAD_AXIS_LEFTY, JoyDirections::JOYDIR_TWO);
 			m_InputMappings[InputElements::INPUT_CROUCH].SetPresetDescription("L. Stick Down");
 			// Fine aiming can be done with the d-pad while holding down X.
-			m_InputMappings[InputElements::INPUT_AIM_UP].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_UP);
+			m_InputMappings[InputElements::INPUT_AIM_UP].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_UP);
 			m_InputMappings[InputElements::INPUT_AIM_UP].SetPresetDescription("D-Pad Up");
-			m_InputMappings[InputElements::INPUT_AIM_DOWN].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+			m_InputMappings[InputElements::INPUT_AIM_DOWN].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_DOWN);
 			m_InputMappings[InputElements::INPUT_AIM_DOWN].SetPresetDescription("D-Pad Down");
-			m_InputMappings[InputElements::INPUT_AIM_LEFT].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+			m_InputMappings[InputElements::INPUT_AIM_LEFT].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_LEFT);
 			m_InputMappings[InputElements::INPUT_AIM_LEFT].SetPresetDescription("D-Pad Left");
-			m_InputMappings[InputElements::INPUT_AIM_RIGHT].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+			m_InputMappings[InputElements::INPUT_AIM_RIGHT].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
 			m_InputMappings[InputElements::INPUT_AIM_RIGHT].SetPresetDescription("D-Pad Right");
 			// Hotkey buttons when not fine-aiming.
-			m_InputMappings[InputElements::INPUT_ACTOR_PRIMARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_UP);
+			m_InputMappings[InputElements::INPUT_ACTOR_PRIMARY_HOTKEY].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_UP);
 			m_InputMappings[InputElements::INPUT_ACTOR_PRIMARY_HOTKEY].SetPresetDescription("D-Pad Up");
-			m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+			m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_DOWN);
 			m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY].SetPresetDescription("D-Pad Down");
-			m_InputMappings[InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+			m_InputMappings[InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_LEFT);
 			m_InputMappings[InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY].SetPresetDescription("D-Pad Left");
-			m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+			m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
 			m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY].SetPresetDescription("D-Pad Right");
 			break;
 		case InputPreset::PresetGamepadXbox360:
-			m_InputMappings[InputElements::INPUT_FIRE].SetJoyButton(SDL_CONTROLLER_BUTTON_A);
+			m_InputMappings[InputElements::INPUT_FIRE].SetJoyButton(SDL_GAMEPAD_BUTTON_SOUTH);
 			m_InputMappings[InputElements::INPUT_FIRE].SetPresetDescription("A Button");
 			// Hold down X to enter aim mode, then can use d-pad up/down to finely aim while sniping.
-			m_InputMappings[InputElements::INPUT_AIM].SetJoyButton(SDL_CONTROLLER_BUTTON_X);
+			m_InputMappings[InputElements::INPUT_AIM].SetJoyButton(SDL_GAMEPAD_BUTTON_WEST);
 			m_InputMappings[InputElements::INPUT_AIM].SetPresetDescription("X Button");
 			// Pie menu also cancels buy menu, which makes sense for the B button.
-			m_InputMappings[InputElements::INPUT_PIEMENU_DIGITAL].SetJoyButton(SDL_CONTROLLER_BUTTON_B);
+			m_InputMappings[InputElements::INPUT_PIEMENU_DIGITAL].SetJoyButton(SDL_GAMEPAD_BUTTON_EAST);
 			m_InputMappings[InputElements::INPUT_PIEMENU_DIGITAL].SetPresetDescription("B Button");
-			m_InputMappings[InputElements::INPUT_JUMP].SetJoyButton(SDL_CONTROLLER_BUTTON_Y);
+			m_InputMappings[InputElements::INPUT_JUMP].SetJoyButton(SDL_GAMEPAD_BUTTON_NORTH);
 			m_InputMappings[InputElements::INPUT_JUMP].SetPresetDescription("Y Button");
-			m_InputMappings[InputElements::INPUT_NEXT].SetJoyButton(SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
+			m_InputMappings[InputElements::INPUT_NEXT].SetJoyButton(SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
 			m_InputMappings[InputElements::INPUT_NEXT].SetPresetDescription("R. Bumper");
-			m_InputMappings[InputElements::INPUT_PREV].SetJoyButton(SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
+			m_InputMappings[InputElements::INPUT_PREV].SetJoyButton(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
 			m_InputMappings[InputElements::INPUT_PREV].SetPresetDescription("L. Bumper");
-			m_InputMappings[InputElements::INPUT_START].SetJoyButton(SDL_CONTROLLER_BUTTON_START);
+			m_InputMappings[InputElements::INPUT_START].SetJoyButton(SDL_GAMEPAD_BUTTON_START);
 			m_InputMappings[InputElements::INPUT_START].SetPresetDescription("Start Button");
-			m_InputMappings[InputElements::INPUT_BACK].SetJoyButton(SDL_CONTROLLER_BUTTON_BACK);
+			m_InputMappings[InputElements::INPUT_BACK].SetJoyButton(SDL_GAMEPAD_BUTTON_BACK);
 			m_InputMappings[InputElements::INPUT_BACK].SetPresetDescription("Back Button");
-			m_InputMappings[InputElements::INPUT_MOVE_FAST_TOGGLE].SetJoyButton(SDL_CONTROLLER_BUTTON_LEFTSTICK);
+			m_InputMappings[InputElements::INPUT_MOVE_FAST_TOGGLE].SetJoyButton(SDL_GAMEPAD_BUTTON_LEFT_STICK);
 			m_InputMappings[InputElements::INPUT_MOVE_FAST_TOGGLE].SetPresetDescription("Click L. Stick");
-			m_InputMappings[InputElements::INPUT_PRONE].SetJoyButton(SDL_CONTROLLER_BUTTON_RIGHTSTICK);
+			m_InputMappings[InputElements::INPUT_PRONE].SetJoyButton(SDL_GAMEPAD_BUTTON_RIGHT_STICK);
 			m_InputMappings[InputElements::INPUT_PRONE].SetPresetDescription("Click R. Stick");
 			// Set up the default xbox joy direction bindings.
-			m_InputMappings[InputElements::INPUT_L_UP].SetDirection(SDL_CONTROLLER_AXIS_LEFTY, JoyDirections::JOYDIR_ONE);
+			m_InputMappings[InputElements::INPUT_L_UP].SetDirection(SDL_GAMEPAD_AXIS_LEFTY, JoyDirections::JOYDIR_ONE);
 			m_InputMappings[InputElements::INPUT_L_UP].SetPresetDescription("L. Stick Up");
-			m_InputMappings[InputElements::INPUT_L_DOWN].SetDirection(SDL_CONTROLLER_AXIS_LEFTY, JoyDirections::JOYDIR_TWO);
+			m_InputMappings[InputElements::INPUT_L_DOWN].SetDirection(SDL_GAMEPAD_AXIS_LEFTY, JoyDirections::JOYDIR_TWO);
 			m_InputMappings[InputElements::INPUT_L_DOWN].SetPresetDescription("L. Stick Down");
-			m_InputMappings[InputElements::INPUT_L_LEFT].SetDirection(SDL_CONTROLLER_AXIS_LEFTX, JoyDirections::JOYDIR_ONE);
+			m_InputMappings[InputElements::INPUT_L_LEFT].SetDirection(SDL_GAMEPAD_AXIS_LEFTX, JoyDirections::JOYDIR_ONE);
 			m_InputMappings[InputElements::INPUT_L_LEFT].SetPresetDescription("L. Stick Left");
-			m_InputMappings[InputElements::INPUT_L_RIGHT].SetDirection(SDL_CONTROLLER_AXIS_LEFTX, JoyDirections::JOYDIR_TWO);
+			m_InputMappings[InputElements::INPUT_L_RIGHT].SetDirection(SDL_GAMEPAD_AXIS_LEFTX, JoyDirections::JOYDIR_TWO);
 			m_InputMappings[InputElements::INPUT_L_RIGHT].SetPresetDescription("L. Stick Right");
-			m_InputMappings[InputElements::INPUT_R_UP].SetDirection(SDL_CONTROLLER_AXIS_RIGHTY, JoyDirections::JOYDIR_ONE);
+			m_InputMappings[InputElements::INPUT_R_UP].SetDirection(SDL_GAMEPAD_AXIS_RIGHTY, JoyDirections::JOYDIR_ONE);
 			m_InputMappings[InputElements::INPUT_R_UP].SetPresetDescription("R. Stick Up");
-			m_InputMappings[InputElements::INPUT_R_DOWN].SetDirection(SDL_CONTROLLER_AXIS_RIGHTY, JoyDirections::JOYDIR_TWO);
+			m_InputMappings[InputElements::INPUT_R_DOWN].SetDirection(SDL_GAMEPAD_AXIS_RIGHTY, JoyDirections::JOYDIR_TWO);
 			m_InputMappings[InputElements::INPUT_R_DOWN].SetPresetDescription("R. Stick Down");
-			m_InputMappings[InputElements::INPUT_R_LEFT].SetDirection(SDL_CONTROLLER_AXIS_RIGHTX, JoyDirections::JOYDIR_ONE);
+			m_InputMappings[InputElements::INPUT_R_LEFT].SetDirection(SDL_GAMEPAD_AXIS_RIGHTX, JoyDirections::JOYDIR_ONE);
 			m_InputMappings[InputElements::INPUT_R_LEFT].SetPresetDescription("R. Stick Left");
-			m_InputMappings[InputElements::INPUT_R_RIGHT].SetDirection(SDL_CONTROLLER_AXIS_RIGHTX, JoyDirections::JOYDIR_TWO);
+			m_InputMappings[InputElements::INPUT_R_RIGHT].SetDirection(SDL_GAMEPAD_AXIS_RIGHTX, JoyDirections::JOYDIR_TWO);
 			m_InputMappings[InputElements::INPUT_R_RIGHT].SetPresetDescription("R. Stick Right");
-			m_InputMappings[InputElements::INPUT_FIRE].SetDirection(SDL_CONTROLLER_AXIS_TRIGGERRIGHT, JoyDirections::JOYDIR_TWO);
+			m_InputMappings[InputElements::INPUT_FIRE].SetDirection(SDL_GAMEPAD_AXIS_RIGHT_TRIGGER, JoyDirections::JOYDIR_TWO);
 			m_InputMappings[InputElements::INPUT_FIRE].SetPresetDescription("R. Trigger");
-			m_InputMappings[InputElements::INPUT_PIEMENU_ANALOG].SetDirection(SDL_CONTROLLER_AXIS_TRIGGERLEFT, JoyDirections::JOYDIR_TWO);
+			m_InputMappings[InputElements::INPUT_PIEMENU_ANALOG].SetDirection(SDL_GAMEPAD_AXIS_LEFT_TRIGGER, JoyDirections::JOYDIR_TWO);
 			m_InputMappings[InputElements::INPUT_PIEMENU_ANALOG].SetPresetDescription("L. Trigger");
-			m_InputMappings[InputElements::INPUT_JUMP].SetDirection(SDL_CONTROLLER_AXIS_LEFTY, JoyDirections::JOYDIR_ONE);
+			m_InputMappings[InputElements::INPUT_JUMP].SetDirection(SDL_GAMEPAD_AXIS_LEFTY, JoyDirections::JOYDIR_ONE);
 			m_InputMappings[InputElements::INPUT_JUMP].SetPresetDescription("L. Stick Up");
-			m_InputMappings[InputElements::INPUT_CROUCH].SetDirection(SDL_CONTROLLER_AXIS_LEFTY, JoyDirections::JOYDIR_TWO);
+			m_InputMappings[InputElements::INPUT_CROUCH].SetDirection(SDL_GAMEPAD_AXIS_LEFTY, JoyDirections::JOYDIR_TWO);
 			m_InputMappings[InputElements::INPUT_CROUCH].SetPresetDescription("L. Stick Down");
 			// Fine aiming can be done with the d-pad while holding down X.
-			m_InputMappings[InputElements::INPUT_AIM_UP].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_UP);
+			m_InputMappings[InputElements::INPUT_AIM_UP].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_UP);
 			m_InputMappings[InputElements::INPUT_AIM_UP].SetPresetDescription("D-Pad Up");
-			m_InputMappings[InputElements::INPUT_AIM_DOWN].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+			m_InputMappings[InputElements::INPUT_AIM_DOWN].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_DOWN);
 			m_InputMappings[InputElements::INPUT_AIM_DOWN].SetPresetDescription("D-Pad Down");
-			m_InputMappings[InputElements::INPUT_AIM_LEFT].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+			m_InputMappings[InputElements::INPUT_AIM_LEFT].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_LEFT);
 			m_InputMappings[InputElements::INPUT_AIM_LEFT].SetPresetDescription("D-Pad Left");
-			m_InputMappings[InputElements::INPUT_AIM_RIGHT].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+			m_InputMappings[InputElements::INPUT_AIM_RIGHT].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
 			m_InputMappings[InputElements::INPUT_AIM_RIGHT].SetPresetDescription("D-Pad Right");
 			// Hotkey buttons when not fine-aiming.
-			m_InputMappings[InputElements::INPUT_ACTOR_PRIMARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_UP);
+			m_InputMappings[InputElements::INPUT_ACTOR_PRIMARY_HOTKEY].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_UP);
 			m_InputMappings[InputElements::INPUT_ACTOR_PRIMARY_HOTKEY].SetPresetDescription("D-Pad Up");
-			m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_DOWN);
+			m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_DOWN);
 			m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY].SetPresetDescription("D-Pad Down");
-			m_InputMappings[InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+			m_InputMappings[InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_LEFT);
 			m_InputMappings[InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY].SetPresetDescription("D-Pad Left");
-			m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY].SetJoyButton(SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+			m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY].SetJoyButton(SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
 			m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY].SetPresetDescription("D-Pad Right");
 			break;
 		default:
@@ -430,14 +465,14 @@ std::string InputScheme::GetMappingName(int whichElement) const {
 	} else if (m_ActiveDevice >= InputDevice::DEVICE_GAMEPAD_1) {
 		if (inputElement->GetJoyButton() != JoyButtons::JOY_NONE) {
 			if (g_UInputMan.GetJoystickCount() > 0) {
-				std::string buttonName = SDL_GameControllerGetStringForButton(static_cast<SDL_GameControllerButton>(inputElement->GetJoyButton()));
+				std::string buttonName = SDL_GetGamepadStringForButton(static_cast<SDL_GamepadButton>(inputElement->GetJoyButton()));
 				return (buttonName != "unused") ? buttonName : "";
 			} else {
 				// If no joysticks connected the joystick handler can't resolve names because it's not installed, so just return generics (which it does anyway).
 				return "Button " + std::to_string(inputElement->GetJoyButton() + 1);
 			}
 		} else if (inputElement->JoyDirMapped()) {
-			std::string axisName = SDL_GameControllerGetStringForAxis(static_cast<SDL_GameControllerAxis>(inputElement->GetAxis()));
+			std::string axisName = SDL_GetGamepadStringForAxis(static_cast<SDL_GamepadAxis>(inputElement->GetAxis()));
 			axisName += inputElement->GetDirection() == JoyDirections::JOYDIR_ONE ? '-' : '+';
 			return axisName;
 		}
@@ -446,7 +481,7 @@ std::string InputScheme::GetMappingName(int whichElement) const {
 }
 
 bool InputScheme::CaptureKeyMapping(int whichInput) {
-	for (int whichKey = SDL_SCANCODE_A; whichKey < SDL_NUM_SCANCODES; ++whichKey) {
+	for (int whichKey = SDL_SCANCODE_A; whichKey < SDL_SCANCODE_COUNT; ++whichKey) {
 		// Don't allow mapping special keys used by UInputMan.
 		if (whichKey == SDL_SCANCODE_ESCAPE || whichKey == SDL_SCANCODE_GRAVE || whichKey == SDL_SCANCODE_PRINTSCREEN || whichKey == SDL_SCANCODE_F1 || whichKey == SDL_SCANCODE_F2 || whichKey == SDL_SCANCODE_F3 || whichKey == SDL_SCANCODE_F4 || whichKey == SDL_SCANCODE_F5) {
 			continue;
@@ -482,4 +517,45 @@ bool InputScheme::CaptureJoystickMapping(int whichJoy, int whichInput) {
 		}
 	}
 	return false;
+}
+
+bool InputScheme::CaptureDeviceMapping(bool mouse, bool keyboard) {
+	// Ignore Gamepad mapping for now, these are already handled by UInputMan
+	if (m_ActiveDevice >= InputDevice::DEVICE_GAMEPAD_1) {
+		return false;
+	}
+	bool deviceMapped = false;
+	if (m_ActiveDevice == InputDevice::DEVICE_MOUSE_KEYB) {
+		if (mouse) {
+			int mouseCount = 0;
+			SDL_MouseID* mice = SDL_GetMice(&mouseCount);
+			for (int i = 0; i < mouseCount; i++) {
+				if (g_UInputMan.AnyMouseButtonPress(mice[i])) {
+					m_DeviceID.mouseKeyboard.mouse = mice[i];
+					deviceMapped = true;
+					break;
+				}
+			}
+			SDL_free(mice);
+		}
+	}
+	if (m_ActiveDevice == InputDevice::DEVICE_KEYB_ONLY || m_ActiveDevice == InputDevice::DEVICE_MOUSE_KEYB) {
+		if (keyboard) {
+			int keyboardCount = 0;
+			SDL_KeyboardID* keyboards = SDL_GetKeyboards(&keyboardCount);
+			for (int i = 0; i < keyboardCount; i++) {
+				if (g_UInputMan.AnyKeyPress(keyboards[i]) && !g_UInputMan.KeyPressed(SDLK_ESCAPE) && !g_UInputMan.KeyPressed(SDLK_DELETE)) {
+					if (m_ActiveDevice == InputDevice::DEVICE_KEYB_ONLY) {
+						m_DeviceID.keyboard = keyboards[i];
+					} else {
+						m_DeviceID.mouseKeyboard.keyboard = keyboards[i];
+					}
+					deviceMapped = true;
+					break;
+				}
+			}
+			SDL_free(keyboards);
+		}
+	}
+	return deviceMapped;
 }

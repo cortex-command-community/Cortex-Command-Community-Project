@@ -183,6 +183,8 @@ bool SettingsGUI::HandleInputEvents() {
 			m_InputSettingsMenu->HandleMappingConfigManualConfiguration();
 		} else if (m_InputSettingsMenu->InputConfigWizardIsConfiguringManually()) {
 			m_InputSettingsMenu->HandleConfigWizardManualConfiguration();
+		} else if (m_InputSettingsMenu->InputConfigIsConfiguringDevice()) {
+			m_InputSettingsMenu->HandleConfigDeviceMapping();
 		}
 	}
 	return false;
