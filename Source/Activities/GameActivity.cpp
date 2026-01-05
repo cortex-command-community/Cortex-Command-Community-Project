@@ -269,7 +269,7 @@ int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader)
 
 	//
 
-	MatchForwards("Team1Tech") MatchForwards("Team2Tech") MatchForwards("Team3Tech") MatchForwards("Team4Tech", {
+	MatchForwards("Team1Tech") MatchForwards("Team2Tech") MatchForwards("Team3Tech") MatchProperty("Team4Tech", {
 		for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 			if (propName == "Team" + std::to_string(team + 1) + "Tech") {
 				reader >> m_TeamTech[team];
