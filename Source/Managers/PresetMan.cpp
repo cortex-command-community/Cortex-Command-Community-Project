@@ -417,7 +417,7 @@ const Entity* PresetMan::GetEntityPresetFromCharacteristic(Reader& reader, bool 
 
 				if (pReturnPreset != nullptr) {
 					RTEAssert(false, "Could not find preset \"" + PresetName + "\" of type \"" + ClassName + "\" in module \"" + ModuleName + "\", for constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine() + 
-						"\nA preset of this type and name was found in module \"" + pReturnPreset->GetModuleName() + "\", which will be used if this assertion is ignored, though the reference should be corrected if this is acceptable.", std::source_location::current());
+						"\nA preset of this type and name was found in module \"" + pReturnPreset->GetModuleName() + "\", which will be used if this assertion is ignored, though the reference should be corrected if this is acceptable.");
 
 					return pReturnPreset;
 				}

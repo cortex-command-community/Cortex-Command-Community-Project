@@ -1127,6 +1127,12 @@ float AHuman::EstimateJumpHeight() const {
 		return 0.0F;
 	}
 
+	// Estimate by "simulating" the character velocity frame by frame as the jetpack is used.
+	// In pixels per second. Positive value means moving upward.
+	//
+	// Start with zero, for now.
+	float currentYVelocity = 0.0F;
+
 	// Use magnitude because whatever direction constant force is in is the direction we'd be thrusting to resist.
 	float globalAcc = g_SceneMan.GetGlobalAcc().GetMagnitude() * g_TimerMan.GetDeltaTimeSecs();
 
@@ -1162,14 +1168,14 @@ float AHuman::EstimateJumpHeight() const {
 			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplierThrust;
 		}
 
-		if (currentYVelocity + yGravity >= currentYVelocity) {
+		if (currentYVelocity + globalAcc >= currentYVelocity) {
 			// Velocity is too big or gravity is too small. Either way, this will loop forever now.
 			// Just assume that we can reach the stars.
 			totalHeight = g_SceneMan.GetSceneHeight() * c_MPP;
 			break;
 		}
 
-		currentYVelocity += yGravity;
+		currentYVelocity += globalAcc;
 
 		if (currentYVelocity > 0.0F) {
 			// If we're still flying up, that means more height.

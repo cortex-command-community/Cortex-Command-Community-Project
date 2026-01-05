@@ -198,7 +198,7 @@ int LimbPath::Save(Writer& writer) const {
 	if (!m_BaseScaleMultiplier.IsZero())
 		writer.NewPropertyWithValue("StartOffset", m_Start);
 
-	writer.NewDistinctProperty("StartSegCount", m_StartSegCount, 0);
+	writer.NewDistinctProperty("StartSegCount", m_StartSegCount, (size_t) 0);
 
 	for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr) {
 		writer.NewPropertyWithValue("_AddSegment", *itr);
