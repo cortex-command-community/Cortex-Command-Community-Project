@@ -35,7 +35,7 @@
       }
     },
     {
-      "name": "meson Debug (Release) & Launch",
+      "name": "meson Configure Debug (Release) & Launch",
       "type": "cppdbg",
       "osx": {
         "MIMode": "lldb"
@@ -50,7 +50,7 @@
       }
     },
     {
-      "name": "meson Debug (Minimal) & Launch",
+      "name": "meson Configure Debug (Minimal) & Launch",
       "type": "cppdbg",
       "osx": {
         "MIMode": "lldb"
@@ -65,7 +65,7 @@
       }
     },
     {
-      "name": "meson Debug (Full) & Launch",
+      "name": "meson Configure Debug (Full) & Launch",
       "type": "cppdbg",
       "osx": {
         "MIMode": "lldb"
