@@ -13,7 +13,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/${config:mesonbuild.buildFolder}/CortexCommand",
       "cwd": "${workspaceFolder}",
-      "preLaunchTask": "Meson: Build all targets",
+      "preLaunchTask": "meson Build Release",
       "envFile": "${workspaceFolder}/${config:mesonbuild.buildFolder}/meson-vscode.env",
       "presentation": {
         "group": "unix"
@@ -26,7 +26,7 @@
         "MIMode": "lldb"
       },
       "request": "launch",
-      "program": "${workspaceFolder}/${config:mesonbuild.buildFolder}/CortexCommand_debug",
+      "program": "${workspaceFolder}/${config:mesonbuild.buildFolder}/CortexCommand.debug.release",
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "meson Build Debug (Release)",
       "envFile": "${workspaceFolder}/${config:mesonbuild.buildFolder}/meson-vscode.env",
@@ -41,7 +41,7 @@
         "MIMode": "lldb"
       },
       "request": "launch",
-      "program": "${workspaceFolder}/${config:mesonbuild.buildFolder}/CortexCommand_debug",
+      "program": "${workspaceFolder}/${config:mesonbuild.buildFolder}/CortexCommand.debug.minimal",
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "meson Build Debug (Minimal)",
       "envFile": "${workspaceFolder}/${config:mesonbuild.buildFolder}/meson-vscode.env",
@@ -56,7 +56,7 @@
         "MIMode": "lldb"
       },
       "request": "launch",
-      "program": "${workspaceFolder}/${config:mesonbuild.buildFolder}/CortexCommand_debug",
+      "program": "${workspaceFolder}/${config:mesonbuild.buildFolder}/CortexCommand.debug.full",
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "meson Build Debug (Full)",
       "envFile": "${workspaceFolder}/${config:mesonbuild.buildFolder}/meson-vscode.env",

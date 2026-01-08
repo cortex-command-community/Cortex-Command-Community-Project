@@ -51,12 +51,16 @@ if compiler.get_argument_syntax()== 'gcc' # used for gcc compatible compilers
       extra_args += ['-Wno-sign-compare', '-Wno-non-virtual-dtor', '-Wno-parentheses', '-Wno-overloaded-virtual', '-Wno-unused-variable', '-Wno-unused-function']
     endif
 
+    elfname += '.debug'
     debug_type = get_option('debug_type')
     if debug_type == 'release'
+      elfname += '.release'
       preprocessor_flags += ['-DRELEASE_BUILD'] # enable minimal debug features
     elif debug_type == 'minimal'
+      elfname += '.minimal'
       preprocessor_flags += ['-DMIN_DEBUG_BUILD', '-DDEBUGMODE'] # enable some debug features
     elif debug_type == 'full'
+      elfname += '.full'
       preprocessor_flags += ['-DDEBUG_BUILD', '-DDEBUGMODE'] # enable all debug features; may slow down game
     endif
   else
