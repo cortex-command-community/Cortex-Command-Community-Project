@@ -127,7 +127,7 @@ int Leg::Write(Writer& writer, const Entity& entityReference, HashingData& hashD
 }
 
 HashingData Leg::Hash() const {
-	HashingData hashData(std::move(Attachable::Hash()));
+	HashingData hashData(Attachable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	bool footDef = m_Foot != nullptr;

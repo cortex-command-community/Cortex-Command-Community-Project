@@ -321,7 +321,7 @@ int Activity::Write(Writer& writer, const Entity& entityReference, HashingData& 
 }
 
 HashingData Activity::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= RTE::Hash(m_Description) << 0;

@@ -55,7 +55,7 @@ int TerrainFrosting::Save(Writer& writer) const {
 }
 
 HashingData TerrainFrosting::Hash() const {
-	HashingData hashData(std::move(Serializable::Hash()));
+	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= RTE::Hash(m_FrostingMaterial->GetEntityCharacteristic());

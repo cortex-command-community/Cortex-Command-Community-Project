@@ -72,7 +72,7 @@ int TDExplosive::Write(Writer& writer, const Entity& entityReference, HashingDat
 }
 
 HashingData TDExplosive::Hash() const {
-	HashingData hashData(std::move(ThrownDevice::Hash()));
+	HashingData hashData(ThrownDevice::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= static_cast<uint64_t>(m_IsAnimatedManually) << 1;

@@ -59,7 +59,7 @@ int Shader::Write(Writer& writer, const Entity& entityReference, HashingData& ha
 }
 
 HashingData Shader::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	RTE::Hash(m_VertexPath) << 0;

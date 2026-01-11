@@ -87,7 +87,7 @@ int SoundSet::Save(Writer& writer) const {
 }
 
 HashingData SoundSet::Hash() const {
-	HashingData hashData(std::move(Serializable::Hash()));
+	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= static_cast<uint64_t>(m_SoundSelectionCycleMode) << 0;

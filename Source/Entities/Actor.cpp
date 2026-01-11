@@ -507,7 +507,7 @@ int Actor::Write(Writer& writer, const Entity& entityReference, HashingData& has
 }
 
 HashingData Actor::Hash() const {
-	HashingData hashData(std::move(MOSRotating::Hash()));
+	HashingData hashData(MOSRotating::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= static_cast<uint64_t>(m_PlayerControllable) << 1;

@@ -139,7 +139,7 @@ int Emission::Write(Writer& writer, const Entity& entityReference, HashingData& 
 }
 
 HashingData Emission::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= (m_pEmission ? RTE::Hash(m_pEmission->GetEntityCharacteristic()) : 0) << 0;

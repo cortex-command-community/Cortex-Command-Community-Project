@@ -147,7 +147,7 @@ int Round::Write(Writer& writer, const Entity& entityReference, HashingData& has
 }
 
 HashingData Round::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= (m_Particle ? RTE::Hash(m_Particle->GetEntityCharacteristic()) : 0) << 0;

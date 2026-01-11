@@ -100,7 +100,7 @@ int Scene::Area::Save(Writer& writer) const {
 }
 
 HashingData Scene::Area::Hash() const {
-	HashingData hashData(std::move(Serializable::Hash()));
+	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= RTE::Hash(m_Name) << 0;
@@ -1299,7 +1299,7 @@ int Scene::Write(Writer& writer, const Entity& entityReference, HashingData& has
 }
 
 HashingData Scene::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= m_Location.Hash().m_Hash << 0;

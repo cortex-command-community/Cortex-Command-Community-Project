@@ -213,7 +213,7 @@ int SLTerrain::Write(Writer& writer, const Entity& entityReference, HashingData&
 }
 
 HashingData SLTerrain::Hash() const {
-	HashingData hashData(std::move(SceneLayer::Hash()));
+	HashingData hashData(SceneLayer::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	uint64_t backgroundDefaultHash = m_DefaultBGTextureFile.Hash().m_Hash;

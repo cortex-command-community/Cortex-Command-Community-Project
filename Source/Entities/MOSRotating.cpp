@@ -436,7 +436,7 @@ int MOSRotating::Write(Writer& writer, const Entity& entityReference, HashingDat
 }
 
 HashingData MOSRotating::Hash() const {
-	HashingData hashData(std::move(MOSprite::Hash()));
+	HashingData hashData(MOSprite::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	bool atomGroupDef = m_pAtomGroup != nullptr;

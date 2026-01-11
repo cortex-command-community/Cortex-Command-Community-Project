@@ -221,7 +221,7 @@ int AtomGroup::Write(Writer& writer, const Entity& entityReference, HashingData&
 }
 
 HashingData AtomGroup::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= RTE::Hash(m_Material->GetEntityCharacteristic()) << 0;

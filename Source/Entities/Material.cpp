@@ -149,7 +149,7 @@ int Material::Write(Writer& writer, const Entity& entityReference, HashingData& 
 }
 
 HashingData Material::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= static_cast<uint64_t>(m_Priority) << 0;

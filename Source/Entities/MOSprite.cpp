@@ -259,7 +259,7 @@ int MOSprite::Write(Writer& writer, const Entity& entityReference, HashingData& 
 }
 
 HashingData MOSprite::Hash() const {
-	HashingData hashData(std::move(MovableObject::Hash()));
+	HashingData hashData(MovableObject::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	uint64_t spriteHash = m_SpriteFile.Hash().m_Hash;

@@ -252,7 +252,7 @@ int Attachable::Write(Writer& writer, const Entity& entityReference, HashingData
 }
 
 HashingData Attachable::Hash() const {
-	HashingData hashData(std::move(MOSRotating::Hash()));
+	HashingData hashData(MOSRotating::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= m_ParentOffset.Hash().m_Hash << 1;

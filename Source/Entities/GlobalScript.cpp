@@ -94,7 +94,7 @@ int GlobalScript::Write(Writer& writer, const Entity& entityReference, HashingDa
 }
 
 HashingData GlobalScript::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= static_cast<uint64_t>(m_LateUpdate) << 0;

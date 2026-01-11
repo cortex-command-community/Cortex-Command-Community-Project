@@ -92,7 +92,7 @@ int Loadout::Write(Writer& writer, const Entity& entityReference, HashingData& h
 
 
 HashingData Loadout::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 	
 	hash ^= (m_pDeliveryCraft ? RTE::Hash(m_pDeliveryCraft->GetEntityCharacteristic()) : 0) << 0;

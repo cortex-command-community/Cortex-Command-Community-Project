@@ -80,7 +80,7 @@ int Icon::Write(Writer& writer, const Entity& entityReference, HashingData& hash
 }
 
 HashingData Icon::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	uint64_t fileHash = m_BitmapFile.Hash().m_Hash;

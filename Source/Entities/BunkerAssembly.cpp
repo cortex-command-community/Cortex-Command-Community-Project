@@ -259,7 +259,7 @@ int BunkerAssembly::Save(Writer& writer) const {
 }
 
 HashingData BunkerAssembly::Hash() const {
-	HashingData hashData(std::move(TerrainObject::Hash()));
+	HashingData hashData(TerrainObject::Hash());
 
 	// TODO: FINISH
 

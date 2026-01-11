@@ -172,7 +172,7 @@ int Atom::Save(Writer& writer) const {
 }
 
 HashingData Atom::Hash() const {
-	HashingData hashData(std::move(Serializable::Hash()));
+	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= m_Offset.Hash().m_Hash << 0;

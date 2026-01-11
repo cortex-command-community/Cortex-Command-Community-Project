@@ -212,7 +212,7 @@ namespace RTE {
 	}
 
 	HashingData Entity::Hash() const {
-		HashingData hashData(std::move(Serializable::Hash()));
+		HashingData hashData(Serializable::Hash());
 		uint64_t& hash = hashData.m_Hash;
 
 		hash ^= RTE::Hash(m_PresetName) << 0;

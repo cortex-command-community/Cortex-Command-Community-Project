@@ -159,7 +159,7 @@ int GAScripted::Write(Writer& writer, const Entity& entityReference, HashingData
 }
 
 HashingData GAScripted::Hash() const {
-	HashingData hashData(std::move(GameActivity::Hash()));
+	HashingData hashData(GameActivity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 	
 	hash ^= RTE::Hash(m_ScriptPath) << 0;

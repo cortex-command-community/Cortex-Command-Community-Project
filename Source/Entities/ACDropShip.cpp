@@ -161,7 +161,7 @@ int ACDropShip::Write(Writer& writer, const Entity& entityReference, HashingData
 }
 
 HashingData ACDropShip::Hash() const {
-	HashingData hashData(std::move(ACraft::Hash()));
+	HashingData hashData(ACraft::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	bool rThrusterDef = m_pRThruster != nullptr;

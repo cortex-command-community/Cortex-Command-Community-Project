@@ -190,7 +190,7 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Write(Writer& writer, const 
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 HashingData SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	uint64_t bitmapHash = m_BitmapFile.Hash().m_Hash;

@@ -93,7 +93,7 @@ int ACraft::Exit::Save(Writer& writer) const {
 }
 
 HashingData ACraft::Exit::Hash() const {
-	HashingData hashData(std::move(Serializable::Hash()));
+	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= m_Offset.Hash().m_Hash << 0;
@@ -358,7 +358,7 @@ int ACraft::Write(Writer& writer, const Entity& entityReference, HashingData& ha
 }
 
 HashingData ACraft::Hash() const {
-	HashingData hashData(std::move(Actor::Hash()));
+	HashingData hashData(Actor::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	bool hatchOpenSoundDef = m_HatchOpenSound != nullptr;

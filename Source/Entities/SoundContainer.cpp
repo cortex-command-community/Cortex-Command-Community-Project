@@ -243,7 +243,7 @@ int SoundContainer::Write(Writer& writer, const Entity& entityReference, Hashing
 }
 
 HashingData SoundContainer::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	uint64_t topLevelSoundSetHash = m_TopLevelSoundSet->Hash().m_Hash;

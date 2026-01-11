@@ -363,7 +363,7 @@ int GameActivity::Write(Writer& writer, const Entity& entityReference, HashingDa
 }
 
 HashingData GameActivity::Hash() const {
-	HashingData hashData(std::move(Activity::Hash()));
+	HashingData hashData(Activity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= static_cast<uint64_t>(m_CPUTeam) << 0;

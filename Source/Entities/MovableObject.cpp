@@ -561,7 +561,7 @@ int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingD
 }
 
 HashingData MovableObject::Hash() const {
-	HashingData hashData(std::move(SceneObject::Hash()));
+	HashingData hashData(SceneObject::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	// TODO: These are all written under the assumption that the reading and writing functions are already approximately accurate.

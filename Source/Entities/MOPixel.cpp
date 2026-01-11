@@ -116,7 +116,7 @@ int MOPixel::Write(Writer& writer, const Entity& entityReference, HashingData& h
 }
 
 HashingData MOPixel::Hash() const {
-	HashingData hashData(std::move(MovableObject::Hash()));
+	HashingData hashData(MovableObject::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	uint64_t atomHash = m_Atom->Hash().m_Hash;

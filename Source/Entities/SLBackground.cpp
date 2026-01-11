@@ -155,7 +155,7 @@ int SLBackground::Write(Writer& writer, const Entity& entityReference, HashingDa
 }
 
 HashingData SLBackground::Hash() const {
-	HashingData hashData(std::move(StaticSceneLayer::Hash()));
+	HashingData hashData(StaticSceneLayer::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= static_cast<uint64_t>(m_FrameCount) << 1;

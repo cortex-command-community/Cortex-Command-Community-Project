@@ -152,7 +152,7 @@ int TerrainDebris::Write(Writer& writer, const Entity& entityReference, HashingD
 }
 
 HashingData TerrainDebris::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	uint64_t fileHash = m_DebrisFile.Hash().m_Hash;

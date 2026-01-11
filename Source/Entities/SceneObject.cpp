@@ -87,7 +87,7 @@ int SceneObject::SOPlacer::Save(Writer& writer) const {
 }
 
 HashingData SceneObject::SOPlacer::Hash() const {
-	HashingData hashData(std::move(Serializable::Hash()));
+	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= (m_pObjectReference ? RTE::Hash(m_pObjectReference->GetEntityCharacteristic()) : 0) << 0;
@@ -233,7 +233,7 @@ int SceneObject::Write(Writer& writer, const Entity& entityReference, HashingDat
 }
 
 HashingData SceneObject::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= m_Pos.Hash().m_Hash << 0;

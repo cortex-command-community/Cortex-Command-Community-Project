@@ -130,7 +130,7 @@ int DynamicSongSection::Write(Writer& writer, const Entity& entityReference, Has
 }
 
 HashingData DynamicSongSection::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= std::hash<unsigned int>{}(m_LastTransitionSoundContainerIndex) << 0;
@@ -318,7 +318,7 @@ int DynamicSong::Write(Writer& writer, const Entity& entityReference, HashingDat
 }
 
 HashingData DynamicSong::Hash() const {
-	HashingData hashData(std::move(Entity::Hash()));
+	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	uint64_t defaultHash = m_DefaultSongSection.Hash().m_Hash;

@@ -353,7 +353,7 @@ int HDFirearm::Write(Writer& writer, const Entity& entityReference, HashingData&
 }
 
 HashingData HDFirearm::Hash() const {
-	HashingData hashData(std::move(HeldDevice::Hash()));
+	HashingData hashData(HeldDevice::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	bool magazineDef = m_pMagazine != nullptr;

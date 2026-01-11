@@ -71,7 +71,7 @@ int Matrix::Save(Writer& writer) const {
 }
 
 HashingData Matrix::Hash() const {
-	HashingData hashData(std::move(Serializable::Hash()));
+	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	// TODO: Check if this is actually a proper mapping, since the whole point is to compare whether two orientations are functionally identical
