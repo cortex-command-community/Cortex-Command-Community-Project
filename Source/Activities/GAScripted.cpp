@@ -94,6 +94,7 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("LuaClassName", {
 		reader >> m_LuaClassName;
 	});
+
 	MatchProperty("_ClearPieSlices", {
 		reader.ReadPropValue();
 		for (std::unique_ptr<PieSlice>& pieSlice: m_PieSlicesToAdd) {
@@ -104,6 +105,7 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchForwards("AddPieSlice") MatchProperty("_AddPieSlice", {
 		m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader))));
 	});
+
 	MatchProperty("_ClearRequiredAres", {
 		reader.ReadPropValue();
 		m_RequiredAreas.clear();
@@ -118,9 +120,6 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 }
 
 int GAScripted::Save(Writer& writer) const {
-	// Hmm. We should probably be calling this prior to the writer Save, instead of const-casting.
-	const_cast<GAScripted*>(this)->RunLuaFunction("OnSave");
-
 	GameActivity::Save(writer);
 
 	writer.NewPropertyWithValue("ScriptPath", m_ScriptPath);

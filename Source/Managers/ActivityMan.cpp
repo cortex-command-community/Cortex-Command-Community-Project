@@ -94,11 +94,9 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	GAScripted* activity = dynamic_cast<GAScripted*>(GetActivity());
 
 	if (!scene || !activity || (activity && activity->GetActivityState() == Activity::ActivityState::Over)) {
-		g_ConsoleMan.PrintString("ERROR: Cannot save when there's no game running, or the game is finished!");
+		g_ConsoleMan.PrintString("ERROR: Cannot save when there's no game running, or the game is finished! Or, also, if the game happens not to be scripted.");
 		return false;
 	}
-
-	activity->RunLuaFunction("OnSave");
 
 	activity->RunLuaFunction("OnSave");
 
