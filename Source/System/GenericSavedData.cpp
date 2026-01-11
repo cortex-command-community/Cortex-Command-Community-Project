@@ -50,8 +50,10 @@ HashingData GenericSavedData::Hash() const {
 }
 
 GenericSavedData::~GenericSavedData() {
-	for (auto& [_, entity]: m_SavedEntities.m_Data)
-		delete entity;
+	// Evidently this was a memory leak, or, double deletion, I guess.
+	// Loading a save with this caused the saved entities to be eviscerated, crashing the game by seg-fault whenever an entity was loaded.
+	// for (auto& [_, entity]: m_SavedEntities.m_Data)
+	// 	delete entity;
 }
 
 void GenericSavedData::SaveString(const std::string& key, const std::string& value) {
@@ -107,8 +109,13 @@ void GenericSavedData::SaveEntity(const std::string& key, const Entity* value) {
 };
 
 Entity* GenericSavedData::LoadEntity(const std::string& key) {
-	// If it doesn't exist, reeturn nothing instead of a clone.
-	return m_SavedEntities.m_Data.at(key) ? m_SavedEntities.m_Data[key]->Clone() : nullptr;
+	if (!m_SavedEntities.m_Data.contains(key)) {
+		return nullptr;
+	}
+
+	Entity* entitySaved = m_SavedEntities.m_Data.at(key);
+
+	return entitySaved->Clone();
 };
 
 int GenericSavedData::GenericSavedEncodedStrings::ReadProperty(const std::string_view& propName, Reader& reader) {
@@ -215,7 +222,7 @@ int GenericSavedData::GenericSavedEntities::Save(Writer& writer) const {
 }
 
 HashingData GenericSavedData::GenericSavedEntities::Hash() const {
-	HashingData hashData(std::move(Serializable::Hash()));
+	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
 	for (const auto& [key, value]: m_Data) {
