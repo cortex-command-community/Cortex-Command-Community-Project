@@ -82,7 +82,9 @@ void GameActivity::Clear() {
 	m_DefaultGoldHardDifficulty = -1;
 	m_DefaultGoldNutsDifficulty = -1;
 	m_DefaultGoldMaxDifficulty = -1;
-	m_DefaultManuallyAdjustedGold = -1;
+
+	m_ManuallyAdjustedGold = -1;
+
 	m_DefaultFogOfWar = -1;
 	m_DefaultRequireClearPathToOrbit = -1;
 	m_DefaultDeployUnits = 1;
@@ -99,6 +101,7 @@ void GameActivity::Clear() {
 		m_Deliveries[team].clear();
 		m_TeamTech[team] = "";
 		m_TeamTechSwitchEnabled[team] = true;
+		m_TeamDefaultAISkill[team] = -1;
 		m_TeamAISwitchEnabled[team] = true;
 		m_LandingZoneArea[team].Reset();
 		m_aLZCursor[team].clear();
@@ -164,6 +167,7 @@ int GameActivity::Create(const GameActivity& reference) {
 		m_LandingZoneArea[team] = reference.m_LandingZoneArea[team];
 		m_TeamTech[team] = reference.m_TeamTech[team];
 		m_TeamTechSwitchEnabled[team] = reference.m_TeamTechSwitchEnabled[team];
+		m_TeamDefaultAISkill[team] = reference.m_TeamDefaultAISkill[team];
 		m_TeamAISwitchEnabled[team] = reference.m_TeamAISwitchEnabled[team];
 		m_TeamIsCPU[team] = reference.m_TeamIsCPU[team];
 	}
@@ -214,7 +218,6 @@ int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader)
 	MatchProperty("DefaultGoldHardDifficulty", { reader >> m_DefaultGoldHardDifficulty; });
 	MatchProperty("DefaultGoldNutsDifficulty", { reader >> m_DefaultGoldNutsDifficulty; });
 	MatchProperty("DefaultGoldMaxDifficulty", { reader >> m_DefaultGoldMaxDifficulty; });
-	MatchProperty("DefaultManuallyAdjustedGold", { reader >> m_DefaultManuallyAdjustedGold; });
 	MatchProperty("GoldSwitchEnabled", { reader >> m_GoldSwitchEnabled; });
 	MatchForwards("SpecialBehaviour_StartingGold") MatchProperty("_StartingGold", { reader >> m_StartingGold; });
 
@@ -230,17 +233,6 @@ int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader)
 	MatchProperty("DeployUnitsSwitchEnabled", { reader >> m_DeployUnitsSwitchEnabled; });
 	MatchProperty("_DeployUnitsEnabled", { reader >> m_DeployUnits; });
 
-	// TODO: Perhaps eventually, default configuration state and more thorough restrictions for players as well
-	// Difficult to strike reasonable balance between basically telling activities what they have to support
-	// (any player configuration state, currently), and what the activity should be able to tell the player it can't support
-	// "you can't turn on fog of war because it's meaningless in this activity" but for player configurations, we have a little bit of this
-	// It should be possible to mandate that teams 2-4 are all CPU, as is you can only default+restrict one of them at a time through this prop
-	// All of this is ultimately ignorable by activity script, this is about communication to the player, although it also allows intentional misdirection
-	// "you COULD play with player 2 and player 4 both on team 1 but player 2 is going to have to control the menus even though 4 has a keyboard"
-	// activity ultimately can not be agnostic on player ordering and setups if roles within the activity are even slightly heterogynous,
-	// has to pick something
-	//
-	// I am stressing this too much
 	MatchProperty("CPUTeam", {
 		reader >> m_CPUTeam;
 		SetCPUTeam(m_CPUTeam);
@@ -301,11 +293,11 @@ int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader)
 	//
 
 	MatchForwards("Team1DefaultAISkill") MatchForwards("Team2DefaultAISkill") MatchForwards("Team3DefaultAISkill") MatchProperty("Team4DefaultAISkill", {
-		/*for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-			if (propName == "Team" + std::to_string(team + 1) + "Tech") {
-				reader >> m_TeamTech[team];
+		for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
+			if (propName == "Team" + std::to_string(team + 1) + "DefaultAISkill") {
+				reader >> m_TeamDefaultAISkill[team];
 			}
-		}*/
+		}
 	});
 	MatchForwards("Team1AISkillSwitchEnabled") MatchForwards("Team2AISkillSwitchEnabled") MatchForwards("Team3AISkillSwitchEnabled") MatchProperty("Team4AISkillSwitchEnabled", {
 		for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {

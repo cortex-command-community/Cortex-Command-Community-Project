@@ -252,30 +252,24 @@ int Activity::Save(Writer& writer) const {
 
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
 		std::string playerNum = std::to_string(player + 1);
+
 		if (m_IsActive[player]) {
-			writer.NewProperty("TeamOfPlayer" + playerNum);
-			writer << m_Team[player];
-			writer.NewProperty("FundsContributionOfPlayer" + playerNum);
-			writer << m_FundsContribution[player];
-			writer.NewProperty("TeamFundsShareOfPlayer" + playerNum);
-			writer << m_TeamFundsShare[player];
-			writer.NewProperty("Player" + playerNum + "IsHuman");
-			writer << m_IsHuman[player];
+			writer.NewPropertyWithValue("TeamOfPlayer" + playerNum, m_Team[player]);
+			writer.NewPropertyWithValue("FundsContributionOfPlayer" + playerNum, m_FundsContribution[player]);
+			writer.NewPropertyWithValue("TeamFundsShareOfPlayer" + playerNum, m_TeamFundsShare[player]);
+			writer.NewPropertyWithValue("Player" + playerNum + "IsHuman", m_IsHuman[player]);
 		} else {
-			writer.NewProperty("TeamOfPlayer" + playerNum);
-			writer << Teams::NoTeam;
+			writer.NewPropertyWithValue("TeamOfPlayer" + playerNum, Teams::NoTeam);
 		}
 	}
 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 		std::string teamNum = std::to_string(team + 1);
+		
 		if (m_TeamActive[team]) {
-			writer.NewProperty("Team" + teamNum + "Funds");
-			writer << m_TeamFunds[team];
-			writer.NewProperty("Team" + teamNum + "Name");
-			writer << m_TeamNames[team];
-			writer.NewProperty("Team" + teamNum + "Icon");
-			writer << m_TeamIcons[team];
+			writer.NewPropertyWithValue("Team" + teamNum + "Funds", m_TeamFunds[team]);
+			writer.NewPropertyWithValue("Team" + teamNum + "Name", m_TeamNames[team]);
+			writer.NewPropertyWithValue("Team" + teamNum + "Icon", m_TeamIcons[team]);
 		}
 	}
 

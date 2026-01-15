@@ -66,11 +66,8 @@ namespace RTE {
 		GUIControlManager* m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
 
 		GameActivity* m_SelectedActivity {}; //!< The Activity this ScenarioActivityConfigGUI is configuring.
-		const GameActivity* m_PreviouslySelectedActivity {}; //!< The Activity this ScenarioActivityConfigGUI was configuring last, before it got was disabled.
 		Scene* m_SelectedScene {}; //!< The Scene the selected Activity will be using.
 		int m_LockedCPUTeam { Activity::Teams::NoTeam }; //!< Which team the CPU is locked to, if any.
-
-		bool m_StartingGoldAdjustedManually {}; //!< Whether the player adjusted the starting gold, meaning it should stop automatically adjusting to the difficulty setting default starting gold where applicable.
 
 		Timer m_StartGameButtonBlinkTimer; //!< Timer for blinking the start game button.
 
@@ -111,17 +108,13 @@ namespace RTE {
 		/// Sets up and starts the currently selected Activity with the configured settings.
 		void StartGame();
 
-		/// Updates the starting gold slider to the Activity difficulty setting (when applicable) and updates the value in the label according to the value in the slider.
+		/// Updates the value in the label according to the value in the slider.
 		/// @return
-		void UpdateStartingGoldSliderAndLabel();
+		void UpdateStartingGoldLabel();
 
-		/// Updates the starting difficulty slider to the Activity difficulty setting (when applicable) and updates the value in the label according to the value in the slider.
+		/// Updates the slider according to difficulty.
 		/// @return
-		void UpdateStartingDifficultySliderAndLabel();
-
-		/// Updates the starting AI skill sliders to the Activity difficulty setting (when applicable) and updates the value in the label according to the value in the slider.
-		/// @return
-		void UpdateStartingAISkillSlidersAndLabels();
+		void UpdateStartingGoldRegardingDifficulty();
 
 		/// Updates the currently hovered cell in the players and teams config box to apply the hovered visual and removes the hovered visual from any other cells. Also handles clicking on cells.
 		/// @param mouseX Mouse X position.

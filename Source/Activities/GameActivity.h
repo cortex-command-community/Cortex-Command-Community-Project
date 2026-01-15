@@ -424,8 +424,8 @@ namespace RTE {
 		void SetDefaultGoldMaxDifficulty(int gold) { m_DefaultGoldMaxDifficulty = gold; }
 
 		bool GetGoldSwitchEnabled() const { return m_GoldSwitchEnabled; }
-		int GetDefaultManuallyAdjustedGold() const { return m_DefaultManuallyAdjustedGold; }
-		void SetDefaultManuallyAdjustedGold(int adjusted) { m_DefaultManuallyAdjustedGold = adjusted; }
+		int GetManuallyAdjustedGold() const { return m_ManuallyAdjustedGold; }
+		void SetManuallyAdjustedGold(int adjusted) { m_ManuallyAdjustedGold = adjusted; }
 
 		bool GetFogOfWarSwitchEnabled() const { return m_FogOfWarSwitchEnabled; }
 		int GetDefaultFogOfWar() const { return m_DefaultFogOfWar; }
@@ -640,7 +640,7 @@ namespace RTE {
 		int m_DefaultGoldNutsDifficulty;
 		int m_DefaultGoldMaxDifficulty;
 		// If we contain configuration state, so we do. Whether or not the starting gold on this activity was adjusted manually.
-		int m_DefaultManuallyAdjustedGold;
+		int m_ManuallyAdjustedGold;
 		// Whether those switches are enabled or disabled in scenario setup dialog, true by default
 		bool m_FogOfWarSwitchEnabled;
 		bool m_DeployUnitsSwitchEnabled;

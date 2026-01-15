@@ -110,7 +110,7 @@ void ScenarioActivityConfigGUI::SetEnabled(bool enable, Activity* selectedActivi
 	if (enable) {
 		m_SelectedActivity = dynamic_cast<GameActivity*>(selectedActivity);
 		m_SelectedScene = selectedScene;
-		RTEAssert(m_SelectedActivity && m_SelectedScene, "Trying to start a scenario game without an Activity and a Scene!");
+		RTEAssert(m_SelectedActivity && m_SelectedScene, "Trying to start a scenario game without a GameActivity and a Scene!");
 
 		ResetActivityConfigBox();
 	} else {
@@ -119,16 +119,11 @@ void ScenarioActivityConfigGUI::SetEnabled(bool enable, Activity* selectedActivi
 		m_SelectedActivity->SetDefaultDeployUnits(m_DeployUnitsCheckbox->GetCheck());
 		m_SelectedActivity->SetDefaultDifficulty(m_ActivityDifficultySlider->GetValue());
 
-		if (m_StartingGoldAdjustedManually) {
-			m_SelectedActivity->SetDefaultManuallyAdjustedGold(m_StartingGoldSlider->GetValue());
-		}
-
 		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 			m_SelectedActivity->SetDefaultAISkill(team, m_TeamAISkillSliders[team]->GetValue());
 			m_SelectedActivity->SetDefaultTeamTech(team, m_TeamTechComboBoxes[team]->GetSelectedItem()->m_Name);
 		}
 
-		m_PreviouslySelectedActivity = m_SelectedActivity;
 		m_SelectedActivity = nullptr;
 		m_SelectedScene = nullptr;
 	}
@@ -139,13 +134,14 @@ void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 		PopulateTechComboBoxes();
 	}
 
-	m_ActivityDifficultyLabel->SetText(" " + Activity::GetDifficultyString(m_ActivityDifficultySlider->GetValue()));
-	UpdateStartingDifficultySliderAndLabel();
-	m_ActivityDifficultySlider->SetEnabled(m_SelectedActivity->GetDifficultySwitchEnabled());
+	if (m_SelectedActivity->GetDefaultDifficulty() > -1) {
+		m_ActivityDifficultySlider->SetValue(m_SelectedActivity->GetDefaultDifficulty());
+	} else {
+		m_ActivityDifficultySlider->SetValue(50);
+	}
 
-	m_StartingGoldAdjustedManually = false;
-	UpdateStartingGoldSliderAndLabel();
-	m_StartingGoldSlider->SetEnabled(m_SelectedActivity->GetGoldSwitchEnabled());
+	m_ActivityDifficultyLabel->SetText(" " + Activity::GetDifficultyString(m_ActivityDifficultySlider->GetValue()));
+	m_ActivityDifficultySlider->SetEnabled(m_SelectedActivity->GetDifficultySwitchEnabled());
 
 	m_FogOfWarCheckbox->SetCheck(m_SelectedActivity->GetDefaultFogOfWar() > 0);
 	m_FogOfWarCheckbox->SetEnabled(m_SelectedActivity->GetFogOfWarSwitchEnabled());
@@ -168,10 +164,12 @@ void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 			if (const Icon* playerDeviceIcon = g_UInputMan.GetSchemeIcon(player)) {
 				m_PlayerBoxes[player][TeamRows::DisabledTeam]->SetDrawImage(new AllegroBitmap(playerDeviceIcon->GetBitmaps32()[0]));
 			}
+
 			m_PlayerBoxes[player][TeamRows::DisabledTeam]->SetDrawType(GUICollectionBox::Image);
 		} else {
 			int cpuInitialTeam = TeamRows::DisabledTeam;
 			m_LockedCPUTeam = m_SelectedActivity->GetCPUTeam();
+
 			if (m_LockedCPUTeam != Activity::Teams::NoTeam) {
 				cpuInitialTeam = m_LockedCPUTeam;
 				m_CPULockLabel->SetPositionAbs(m_CPULockLabel->GetXPos(), m_TeamNameLabels.at(m_LockedCPUTeam)->GetYPos());
@@ -179,7 +177,9 @@ void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 			} else {
 				m_CPULockLabel->SetVisible(false);
 			}
+
 			m_PlayerBoxes.at(player).at(cpuInitialTeam)->SetDrawType(GUICollectionBox::Image);
+
 			if (const Icon* cpuIcon = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Device CPU"))) {
 				m_PlayerBoxes.at(PlayerColumns::PlayerCPU).at(cpuInitialTeam)->SetDrawImage(new AllegroBitmap(cpuIcon->GetBitmaps32()[0]));
 			}
@@ -188,11 +188,14 @@ void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 
 	for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 		const Icon* teamIcon = nullptr;
+
 		if (m_SelectedActivity->TeamActive(team)) {
 			teamIcon = m_SelectedActivity->GetTeamIcon(team);
+
 			if (!teamIcon) {
 				teamIcon = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Team " + std::to_string(team + 1) + " Default"));
 			}
+
 			m_TeamNameLabels.at(team)->SetText(m_SelectedActivity->GetTeamName(team));
 		} else {
 			teamIcon = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Locked Team"));
@@ -209,6 +212,7 @@ void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 
 		if (teamModuleID != -1) {
 			auto items = m_TeamTechComboBoxes.at(team)->GetListPanel()->GetItemList();
+
 			for (int i = 0; i < items->size(); i++) {
 				if (teamModuleID == items->at(i)->m_ExtraIndex) {
 					m_TeamTechComboBoxes.at(team)->SetSelectedIndex(i);
@@ -219,23 +223,44 @@ void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 			m_TeamTechComboBoxes.at(team)->SetSelectedIndex(0);
 		}
 
+		int teamSkill = m_SelectedActivity->GetDefaultAISkill(team);
+
+		if (teamSkill >= 0) {
+			m_TeamAISkillSliders.at(team)->SetValue(teamSkill);
+		} 
+
 		m_TeamTechComboBoxes.at(team)->SetEnabled(m_SelectedActivity->GetTeamTechSwitchEnabled(team));
 		m_TeamAISkillSliders.at(team)->SetEnabled(m_SelectedActivity->GetTeamAISwitchEnabled(team));
 
 		m_TeamAISkillSliders.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
 		m_TeamAISkillLabels.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
 	}
+	
 	if (const Icon* disabledTeamIcon = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Disabled Team"))) {
 		m_TeamIconBoxes.at(TeamRows::DisabledTeam)->SetDrawImage(new AllegroBitmap(disabledTeamIcon->GetBitmaps32()[0]));
 	}
 
-	int startingGoldOverride = m_SelectedActivity->GetDefaultManuallyAdjustedGold();
+	for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
+		if (m_SelectedActivity->GetDefaultAISkill(team) > -1) {
+			m_TeamAISkillSliders[team]->SetValue(m_SelectedActivity->GetDefaultAISkill(team));
+		} else {
+			m_TeamAISkillSliders[team]->SetValue(50);
+		}
 
-	if (startingGoldOverride >= 0) {
-		m_StartingGoldSlider->SetValue(startingGoldOverride);
-		m_StartingGoldAdjustedManually = true;
-		UpdateStartingGoldSliderAndLabel();
+		m_TeamAISkillLabels[team]->SetText(Activity::GetAISkillString(m_TeamAISkillSliders[team]->GetValue()));
 	}
+
+	int manualGold = m_SelectedActivity->GetManuallyAdjustedGold();
+
+	if (manualGold > -1) {
+		m_StartingGoldSlider->SetValue(manualGold);
+	} else {
+		UpdateStartingGoldRegardingDifficulty();
+	}
+
+	m_StartingGoldSlider->SetEnabled(m_SelectedActivity->GetGoldSwitchEnabled());
+
+	UpdateStartingGoldLabel();
 }
 
 void ScenarioActivityConfigGUI::StartGame() {
@@ -331,50 +356,40 @@ bool ScenarioActivityConfigGUI::Update(int mouseX, int mouseY) {
 	return HandleInputEvents();
 }
 
-void ScenarioActivityConfigGUI::UpdateStartingGoldSliderAndLabel() {
-	if (!m_StartingGoldAdjustedManually) {
-		if (m_ActivityDifficultySlider->GetValue() <= Activity::DifficultySetting::CakeDifficulty && m_SelectedActivity->GetDefaultGoldCakeDifficulty() > -1) {
-			m_StartingGoldSlider->SetValue(m_SelectedActivity->GetDefaultGoldCakeDifficulty());
-		} else if (m_ActivityDifficultySlider->GetValue() <= Activity::DifficultySetting::EasyDifficulty && m_SelectedActivity->GetDefaultGoldEasyDifficulty() > -1) {
-			m_StartingGoldSlider->SetValue(m_SelectedActivity->GetDefaultGoldEasyDifficulty());
-		} else if (m_ActivityDifficultySlider->GetValue() <= Activity::DifficultySetting::MediumDifficulty && m_SelectedActivity->GetDefaultGoldMediumDifficulty() > -1) {
-			m_StartingGoldSlider->SetValue(m_SelectedActivity->GetDefaultGoldMediumDifficulty());
-		} else if (m_ActivityDifficultySlider->GetValue() <= Activity::DifficultySetting::HardDifficulty && m_SelectedActivity->GetDefaultGoldHardDifficulty() > -1) {
-			m_StartingGoldSlider->SetValue(m_SelectedActivity->GetDefaultGoldHardDifficulty());
-		} else if (m_ActivityDifficultySlider->GetValue() <= Activity::DifficultySetting::NutsDifficulty && m_SelectedActivity->GetDefaultGoldNutsDifficulty() > -1) {
-			m_StartingGoldSlider->SetValue(m_SelectedActivity->GetDefaultGoldNutsDifficulty());
-		} else if (m_ActivityDifficultySlider->GetValue() <= Activity::DifficultySetting::MaxDifficulty && m_SelectedActivity->GetDefaultGoldMaxDifficulty() > -1) {
-			m_StartingGoldSlider->SetValue(m_SelectedActivity->GetDefaultGoldMaxDifficulty());
-		} else if (m_SelectedActivity->GetDefaultGoldMaxDifficulty() > -1) {
-			m_StartingGoldSlider->SetValue(m_SelectedActivity->GetDefaultGoldMaxDifficulty());
-		} else {
-			m_StartingGoldSlider->SetValue(2000);
-		}
-	}
+void ScenarioActivityConfigGUI::UpdateStartingGoldLabel() {
 	std::string goldString(16, '\0');
+
 	if (m_StartingGoldSlider->GetValue() == m_StartingGoldSlider->GetMaximum()) {
 		std::snprintf(goldString.data(), goldString.size(), " %c Infinite", -58);
 	} else {
 		int startGold = m_StartingGoldSlider->GetValue();
 		std::snprintf(goldString.data(), goldString.size(), " %c %d oz", -58, startGold);
 	}
+
 	m_StartingGoldLabel->SetText(goldString);
 }
 
-void ScenarioActivityConfigGUI::UpdateStartingDifficultySliderAndLabel() {
-	if (m_SelectedActivity->GetDefaultDifficulty() > -1) {
-		m_ActivityDifficultySlider->SetValue(m_SelectedActivity->GetDefaultDifficulty());
+void ScenarioActivityConfigGUI::UpdateStartingGoldRegardingDifficulty() {
+	int prescribedGold = 2000;
+	int difficulty = m_ActivityDifficultySlider->GetValue();
+	
+	if (difficulty <= Activity::DifficultySetting::CakeDifficulty && m_SelectedActivity->GetDefaultGoldCakeDifficulty() > -1) {
+		prescribedGold = m_SelectedActivity->GetDefaultGoldCakeDifficulty();
+	} else if (difficulty <= Activity::DifficultySetting::EasyDifficulty && m_SelectedActivity->GetDefaultGoldEasyDifficulty() > -1) {
+		prescribedGold = m_SelectedActivity->GetDefaultGoldEasyDifficulty();
+	} else if (difficulty <= Activity::DifficultySetting::MediumDifficulty && m_SelectedActivity->GetDefaultGoldMediumDifficulty() > -1) {
+		prescribedGold = m_SelectedActivity->GetDefaultGoldMediumDifficulty();
+	} else if (difficulty <= Activity::DifficultySetting::HardDifficulty && m_SelectedActivity->GetDefaultGoldHardDifficulty() > -1) {
+		prescribedGold = m_SelectedActivity->GetDefaultGoldHardDifficulty();
+	} else if (difficulty <= Activity::DifficultySetting::NutsDifficulty && m_SelectedActivity->GetDefaultGoldNutsDifficulty() > -1) {
+		prescribedGold = m_SelectedActivity->GetDefaultGoldNutsDifficulty();
+	} else if (difficulty <= Activity::DifficultySetting::MaxDifficulty && m_SelectedActivity->GetDefaultGoldMaxDifficulty() > -1) {
+		prescribedGold = m_SelectedActivity->GetDefaultGoldMaxDifficulty();
+	} else if (m_SelectedActivity->GetDefaultGoldMaxDifficulty() > -1) {
+		prescribedGold = m_SelectedActivity->GetDefaultGoldMaxDifficulty();
 	}
-	m_ActivityDifficultyLabel->SetText(" " + Activity::GetDifficultyString(m_ActivityDifficultySlider->GetValue()));
-}
 
-void ScenarioActivityConfigGUI::UpdateStartingAISkillSlidersAndLabels() {
-	for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
-		if (m_SelectedActivity->GetDefaultAISkill(team) > -1) {
-			m_TeamAISkillSliders[team]->SetValue(m_SelectedActivity->GetDefaultAISkill(team));
-		}
-		m_TeamAISkillLabels[team]->SetText(Activity::GetAISkillString(m_TeamAISkillSliders[team]->GetValue()));
-	}
+	m_StartingGoldSlider->SetValue(prescribedGold);
 }
 
 void ScenarioActivityConfigGUI::UpdatePlayerTeamSetupCell(int mouseX, int mouseY) {
@@ -478,15 +493,13 @@ bool ScenarioActivityConfigGUI::HandleInputEvents() {
 			}
 		} else if (guiEvent.GetType() == GUIEvent::Notification) {
 			if (guiEvent.GetControl() == m_ActivityDifficultySlider) {
+				m_SelectedActivity->SetManuallyAdjustedGold(-1);
 				m_ActivityDifficultyLabel->SetText(" " + Activity::GetDifficultyString(m_ActivityDifficultySlider->GetValue()));
-				if (!m_StartingGoldAdjustedManually) {
-					UpdateStartingGoldSliderAndLabel();
-				}
+				UpdateStartingGoldRegardingDifficulty();
+				UpdateStartingGoldLabel();
 			} else if (guiEvent.GetControl() == m_StartingGoldSlider) {
-				if (guiEvent.GetMsg() == GUISlider::Clicked) {
-					m_StartingGoldAdjustedManually = true;
-				}
-				UpdateStartingGoldSliderAndLabel();
+				m_SelectedActivity->SetManuallyAdjustedGold(m_StartingGoldSlider->GetValue());
+				UpdateStartingGoldLabel();
 			} else if (guiEvent.GetMsg() == GUISlider::Changed) {
 				for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; team++) {
 					if (guiEvent.GetControl() == m_TeamAISkillSliders.at(team)) {
