@@ -12,7 +12,6 @@
 namespace RTE {
 
 	class Box;
-	struct IntRect;
 	class MovableObject;
 
 	/// A spatial partitioning grid, used to optimize MOID collision checks.

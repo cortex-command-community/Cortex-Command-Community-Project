@@ -4,7 +4,8 @@ using namespace RTE;
 
 const std::string Box::c_ClassName = "Box";
 
-bool IntRect::IntersectionCut(const IntRect& rhs) {
+template <typename T>
+bool Rectangle2Point<T>::IntersectionCut(const Rectangle2Point& rhs) {
 	if (Intersects(rhs)) {
 		m_Left = std::max(m_Left, rhs.m_Left);
 		m_Right = std::min(m_Right, rhs.m_Right);
