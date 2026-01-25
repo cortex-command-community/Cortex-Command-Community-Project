@@ -7,6 +7,8 @@
 #include "System.h"
 #include "FrameMan.h"
 
+#include "Texture.h"
+
 #include "png.h"
 #include "fmod/fmod.hpp"
 #include "fmod/fmod_errors.h"
@@ -63,8 +65,8 @@ void ContentFile::FreeAllLoaded() {
 int ContentFile::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
-	MatchForwards("FilePath") 
-	MatchProperty("Path", { SetDataPath(reader.ReadPropValue()); });
+	MatchForwards("FilePath")
+	    MatchProperty("Path", { SetDataPath(reader.ReadPropValue()); });
 	MatchProperty("IsMemoryPNG", { reader >> m_IsMemoryPNG; });
 
 	EndPropertyList;
@@ -249,8 +251,8 @@ BITMAP* ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std
 			SDL_DestroySurface(surface);
 			s_MemoryPNGs.erase(dataPathToLoad);
 		}
-	} 
-	
+	}
+
 	if (returnBitmap == nullptr) {
 		if (!System::PathExistsCaseSensitive(dataPathToLoad)) {
 			const std::string dataPathWithoutExtension = dataPathToLoad.substr(0, dataPathToLoad.length() - m_DataPathExtension.length());
@@ -273,6 +275,43 @@ BITMAP* ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std
 	}
 
 	return returnBitmap;
+}
+
+std::shared_ptr<Texture> ContentFile::GetAsTexture(int conversionMode, bool storeBitmap, const std::string& dataPathToSpecificFrame) {
+	if (m_DataPath.empty()) {
+		return nullptr;
+	}
+	std::shared_ptr<Texture> returnTexture;
+
+	std::string dataPathToLoad = dataPathToSpecificFrame.empty() ? m_DataPath : dataPathToSpecificFrame;
+
+	auto foundTexture = s_LoadedTextures.find(dataPathToLoad);
+	if (foundTexture != s_LoadedTextures.end()) {
+		if (storeBitmap) {
+			returnTexture = foundTexture->second;
+		}
+	}
+
+	if (!returnTexture) {
+		if (!System::PathExistsCaseSensitive(dataPathToLoad)) {
+			const std::string dataPathWithoutExtension = dataPathToLoad.substr(0, dataPathToLoad.length() - m_DataPathExtension.length());
+			const std::string altFileExtension = (m_DataPathExtension == ".png") ? ".bmp" : ".png";
+
+			if (System::PathExistsCaseSensitive(dataPathWithoutExtension + altFileExtension)) {
+				g_ConsoleMan.AddLoadWarningLogExtensionMismatchEntry(m_DataPath, m_FormattedReaderPosition, altFileExtension);
+				SetDataPath(m_DataPathWithoutExtension + altFileExtension);
+				dataPathToLoad = dataPathWithoutExtension + altFileExtension;
+			} else {
+				RTEAbort("Failed to find image file with following path and name:\n\n" + dataPathToLoad + " or " + altFileExtension + "\n" + m_FormattedReaderPosition);
+			}
+		}
+		returnTexture = std::make_shared<Texture>(std::unique_ptr<BITMAP, BitmapDeleter>(LoadAndReleaseBitmap(conversionMode, dataPathToLoad)));
+		if (storeBitmap) {
+			s_LoadedTextures[dataPathToLoad] = returnTexture;
+		}
+	}
+
+	return returnTexture;
 }
 
 void ContentFile::GetAsAnimation(std::vector<BITMAP*>& vectorToFill, int frameCount, int conversionMode) {
@@ -302,6 +341,7 @@ void ContentFile::GetAsAnimation(std::vector<BITMAP*>& vectorToFill, int frameCo
 		}
 	}
 }
+
 SDL_Palette* ContentFile::DefaultPaletteToSDL() {
 	SDL_Palette* palette = SDL_CreatePalette(256);
 	std::array<SDL_Color, 256> paletteColor;
@@ -443,15 +483,14 @@ void ContentFile::ReloadBitmap(const std::string& filePath, int conversionMode) 
 
 	SDL_Surface* newImage = LoadImageAsSurface(conversionMode, filePath);
 
-
 	BITMAP* newBitmap = create_bitmap_ex(SDL_GetPixelFormatDetails(newImage->format)->bits_per_pixel, newImage->w, newImage->h);
 
 	// allegro doesn't (always) align lines to 4byte, so copy line by line. SDL_Surface.pitch is the size in bytes per line + alignment padding.
 	for (int y = 0; y < newImage->h; y++) {
-		memcpy(newBitmap->line[y], static_cast<unsigned char*>(newImage->pixels) + y * newImage->pitch, newImage->w * SDL_GetPixelFormatDetails(newImage->format)->bytes_per_pixel); 
+		memcpy(newBitmap->line[y], static_cast<unsigned char*>(newImage->pixels) + y * newImage->pitch, newImage->w * SDL_GetPixelFormatDetails(newImage->format)->bytes_per_pixel);
 	}
 
-	//AddAlphaChannel(newBitmap);
+	// AddAlphaChannel(newBitmap);
 	BITMAP swap;
 
 	std::memcpy(&swap, loadedBitmap, sizeof(BITMAP));
