@@ -1,5 +1,6 @@
 #include "Color.h"
 #include "allegro/color.h"
+#include "glm/glm.hpp"
 
 using namespace RTE;
 
@@ -57,3 +58,5 @@ void Color::SetRGBWithIndex(int index) {
 int Color::RecalculateIndex() {
 	return m_Index = makecol8(m_R, m_G, m_B);
 }
+
+Color::operator glm::ivec4() const { return glm::ivec4(m_R, m_G, m_B, m_A); }

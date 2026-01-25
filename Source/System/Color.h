@@ -2,9 +2,9 @@
 
 #include "Serializable.h"
 #include <algorithm>
+#include "glm/fwd.hpp"
 
 namespace RTE {
-
 	/// A class representing a RGB color value.
 	class Color : public Serializable {
 
@@ -24,6 +24,8 @@ namespace RTE {
 			Clear();
 			Create(R, G, B);
 		}
+
+		Color(int R, int G, int B, int A): m_R(R), m_G(G), m_B(B), m_A(A), m_Index(0) {}
 
 		/// Constructor method used to instantiate a Color object from an entry in the current color palette.
 		/// @param index Palette index entry to create this color from.
@@ -98,6 +100,9 @@ namespace RTE {
 			m_Index = 0;
 		}
 
+		int GetA() const { return m_A; }
+		void SetA(int newA) { m_A = std::clamp(newA, 0, 255); }
+
 		/// Sets all three RGB values of this Color.
 		/// @param newR Integer value that the Red value will be set to, between 0 and 255.
 		/// @param newG Integer value that the Green value will be set to, between 0 and 255.
@@ -106,6 +111,7 @@ namespace RTE {
 			SetR(newR);
 			SetG(newG);
 			SetB(newB);
+			m_A = 255;
 			m_Index = 0;
 		}
 #pragma endregion
@@ -116,11 +122,13 @@ namespace RTE {
 		int RecalculateIndex();
 #pragma endregion
 
+		operator glm::ivec4() const;
 	protected:
-		int m_R; //!< Red value of this color.
-		int m_G; //!< Green value of this color.
-		int m_B; //!< Blue value of this color.
-		int m_Index; //!< The closest matching index in the current color palette. If 0, this needs to be recalculated and updated.
+		int m_R{0}; //!< Red value of this color.
+		int m_G{0}; //!< Green value of this color.
+		int m_B{0}; //!< Blue value of this color.
+		int m_A{0}; //!< Alpha value of this color.
+		int m_Index{0}; //!< The closest matching index in the current color palette. If 0, this needs to be recalculated and updated.
 
 	private:
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this.
