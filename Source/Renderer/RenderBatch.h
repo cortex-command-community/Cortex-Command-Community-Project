@@ -1,26 +1,19 @@
 #pragma once
 #include "Shader.h"
-#include "glad/gl.h"
-#include <optional>
-#include <vector>
 #include "BlendMode.h"
 #include "Constants.h"
+#include "DrawCall.h"
 
+#include "glad/gl.h"
 #include "glm/fwd.hpp"
+#include <optional>
+#include <vector>
 
 
 namespace RTE {
 	class Shader;
 
 
-	struct DrawCall {
-		int m_VertexCount{0};
-		int m_VertexAlignment{0};
-		GLuint textureId{0};
-		BlendMode m_BlendMode{};
-		Shader* m_Shader{nullptr};
-		std::optional<std::vector<UniformValueType>> m_UniformValues{std::nullopt};
-	};
 
 	struct VertexBuffer {
 		std::vector<glm::vec3> m_Vertices{c_DefaultBatchVAOElements * 4};
@@ -47,7 +40,7 @@ namespace RTE {
 	struct RenderBatch {
 	public:
 		VertexBuffer m_VertexBuffers{};
-		std::vector<DrawCall> m_DrawCalls{};
+		std::vector<std::shared_ptr<DrawCall>> m_DrawCalls{};
 		int m_VertexCount{0};
 		float m_CurrentDepth{0.0f};
 		float m_CurrentZ{0.0f};
@@ -55,6 +48,7 @@ namespace RTE {
 		RenderBatch();
 
 		void BeginFrame();
+		void EndFrame();
 		void Render();
 
 	private:
