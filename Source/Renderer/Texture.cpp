@@ -2,11 +2,11 @@
 
 using namespace RTE;
 
-void Texture::Draw(Box source, Box dest, glm::vec2 origin, float angle, Color color) {
+std::shared_ptr<DrawCall> Texture::Draw(Box source, Box dest, glm::vec2 origin, float angle, Color color) {
 	bool flipX = false;
 	bool flipY = false;
 
-	if (source.GetHeight() < 0) {
-
+	if (source.IsEmpty() || dest.IsEmpty()) {
+		return nullptr;
 	}
 }
