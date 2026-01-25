@@ -12,6 +12,7 @@ namespace RTE {
 
 	class AEmitter;
 
+	class Texture;
 	/// A movable object with mass that is graphically represented by a
 	/// BITMAP.
 	class MOSprite : public MovableObject {
@@ -339,6 +340,8 @@ namespace RTE {
 		/// indicator arrows or hovering HUD text and so on.
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
 
+		void Draw(Camera camera) const override;
+
 		/// Returns a positive or negative number value to multiply with for external calculations.
 		/// @return 1 for not flipped, -1 for flipped.
 		float GetFlipFactor() const { return m_HFlipped ? -1.0F : 1.0F; }
@@ -355,6 +358,7 @@ namespace RTE {
 		ContentFile m_SpriteFile;
 		// Vector of pointers to BITMAPs representing the multiple frames of this sprite.
 		std::vector<BITMAP*> m_aSprite;
+		std::vector<std::shared_ptr<Texture>> m_Sprites;
 		ContentFile m_IconFile; //!< The file containing the GUI icon.
 		BITMAP* m_GraphicalIcon; //!< The GUI representation of this MOSprite as a BITMAP.
 		// Number of frames, or elements in the m_aSprite array.
