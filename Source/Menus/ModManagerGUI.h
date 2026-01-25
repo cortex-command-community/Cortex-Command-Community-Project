@@ -54,24 +54,48 @@ namespace RTE {
 
 		/// Struct containing information about a valid GlobalScript.
 		struct ScriptRecord {
-			std::string PresetName; //!< Script PresetName.
+			std::string DisplayName;
+			std::string ModuleAndPresetName;
 			std::string Description; //!< Script description.
 			bool Enabled; //!< Whether the script is enabled through the settings file or not.
 
 			/// Makes GUI displayable string with script info.
 			/// @return String with script info.
-			std::string GetDisplayString() const { return (!Enabled ? "- " : "+ ") + PresetName; }
+			std::string GetDisplayString() const {
+				return (!Enabled ? "    - " : "    + ") + DisplayName;
+			}
 
 			/// Comparison operator for sorting the KnownScripts list alphabetically by PresetName with std::sort.
 			/// @param rhs ScriptRecord to compare with.
 			/// @return Bool with result of the alphabetical comparison.
-			bool operator<(const ScriptRecord& rhs) const { return PresetName < rhs.PresetName; }
+			bool operator<(const ScriptRecord& rhs) const { return DisplayName < rhs.DisplayName; }
+		};
+
+		struct ScriptRecordsInAModule {
+			std::string ModuleName;
+			std::string Description;
+			std::vector<ScriptRecord> Records;
+			bool Collapsed = false;
+
+			ScriptRecordsInAModule(std::string moduleName, std::string description) {
+				ModuleName = moduleName;
+				Description = description;
+			}
+
+			ScriptRecord& operator[](int i) {
+				return Records[i];
+			}
+
+			std::string GetDisplayString() const {
+				return (Collapsed ? "+ " : "- ") + ModuleName;
+			}
 		};
 
 		std::unique_ptr<GUIControlManager> m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of the ModManagerGUI.
 
 		std::vector<ModRecord> m_KnownMods; //!< Contains ModRecords for all valid mod DataModules.
 		std::vector<ScriptRecord> m_KnownScripts; //!< Contains ScriptRecords for all valid GlobalScripts.
+		std::vector<ScriptRecordsInAModule> m_KnownScriptsPerModule;
 
 		bool m_ModsListFetched; //!< Whether the known mods list was fetched, even if no valid mod DataModules were added to it.
 		bool m_ScriptsListFetched; //!< Whether the known scripts list was fetched, even if no valid GlobalScripts were added to it.
@@ -84,6 +108,9 @@ namespace RTE {
 		GUIListBox* m_ScriptsListBox;
 		GUILabel* m_ModOrScriptDescriptionLabel;
 
+		//todo
+		std::string m_DisclaimerText;
+
 #pragma region Mod and Script Handling
 		/// Gets whether both lists were fetched, even if nothing valid was added to them.
 		/// @return Whether both lists were fetched, even if nothing valid was added to them.
@@ -92,14 +119,25 @@ namespace RTE {
 		/// Fills the KnownMods list with all valid mod DataModules, then fills the ModsListBox using it.
 		void PopulateKnownModsList();
 
-		/// Fills the KnownScripts list with all valid GlobalScripts, then fills the ScriptsListBox using it.
-		void PopulateKnownScriptsList();
+		void InitializeKnownScripts();
+
+		int ScriptListEntryEncodeExtraIndex(const int, const int);
+		std::pair<int, int> ScriptListEntryDecodeExtraIndex(const int);
+
+		const int EXTRA_INDEX_IS_A_MODULE_LABEL_MASK = 1 << 24;
+
+		void PopulateKnownScriptsList(bool);
+
+		void ResetSelectionsAndGoToTop();
 
 		/// Turns currently selected mod on and off and changes GUI elements accordingly.
 		void ToggleMod();
 
-		/// Turns currently selected script on and off and changes GUI elements accordingly.
-		void ToggleScript();
+		//todo
+		ScriptRecord* ScriptListExtraIndexToScriptRecord(int);
+
+		/// todo Turns currently selected script on and off and changes GUI elements accordingly.
+		void ToggleInScriptList();
 #pragma endregion
 
 		// Disallow the use of some implicit methods.
