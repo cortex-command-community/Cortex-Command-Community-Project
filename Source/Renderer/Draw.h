@@ -1,6 +1,10 @@
 #pragma once
 #include "raylib/raylib.h"
 #include "raylib/rlgl.h"
+#include "Camera.h"
+#include "Vertex.h"
+#include "Shapes.h"
+#include "Texture.h"
 
 struct BITMAP;
 namespace RTE {
@@ -25,6 +29,7 @@ namespace RTE {
 	/// @param scale Scale.
 	/// @param tint Tint color
 	void DrawTextureEx(BITMAP* bitmap, Vector2 pos, float rotation, float scale, RLColor tint);
+
 	/// @brief Draw part of a bitmap to pos.
 	/// @param bitmap The Bitmap
 	/// @param source The Source rectangle inside bitmap.
@@ -40,4 +45,12 @@ namespace RTE {
 	/// @param rotation Rotation angle in radians.
 	/// @param tint tint color.
 	void DrawTexturePro(BITMAP* bitmap, Rectangle source, Rectangle dest, Vector2 origin, float rotation, RLColor tint);
+
+	namespace Draw {
+		void DrawTexture(Texture* texture, int posX, int posY, Color tint);
+		void DrawTexture(Texture* texture, Vector pos, Color tint = {255, 255, 255, 255});
+		void DrawTexture(Texture* texture, Vector pos, float rotation, float scale, Color tint);
+		void DrawTexture(Texture* texture, Box source, Vector pos, Color tint);
+		void DrawTexture(Texture* bitmap, Box source, Box dest, Vector origin, float rotation, Color tint);
+	}
 }
