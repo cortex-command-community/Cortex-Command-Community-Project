@@ -8,6 +8,7 @@
 #include <array>
 #include <unordered_map>
 #include "glad/gl.h"
+#include "AllegroTools.h"
 
 #define g_FrameMan FrameMan::Instance()
 
@@ -18,9 +19,6 @@ namespace RTE {
 	class GUIFont;
 	class Shader;
 	class RenderTarget;
-	struct BitmapDeleter {
-		void operator()(BITMAP* bitmap) const;
-	};
 	struct SurfaceDeleter {
 		void operator()(SDL_Surface* surface) const;
 	};

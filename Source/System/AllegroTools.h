@@ -10,5 +10,10 @@ namespace RTE {
 	unsigned long TrueAlphaBlender(unsigned long x, unsigned long y, unsigned long n);
 	/// Sets the 32bit allegro blender mode to TrueAlphaBlender
 	void SetTrueAlphaBlender();
+
+	class BitmapDeleter {
+	public:
+		void operator()(BITMAP* bitmap);
+	};
 #pragma endregion
 } // namespace RTE
