@@ -21,7 +21,7 @@ namespace RTE {
 	template <typename T>
 	class UniformValue: public UniformValueType {
 	public:
-		UniformValue<T>(GLint uniformLocation, T value): UniformValueType(uniformLocation), m_Value(value) {}
+		UniformValue(GLint uniformLocation, T value): UniformValueType(uniformLocation), m_Value(value) {}
 		void Enable() override;
 	private:
 		T m_Value{};
