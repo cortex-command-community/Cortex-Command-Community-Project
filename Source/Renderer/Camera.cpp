@@ -9,17 +9,9 @@ bool Camera::IsVisible(Vector center, float radius) {
 }
 
 void Camera::Enable() {
-	rlMatrixMode(RL_MODELVIEW);
-	rlLoadIdentity();
-	rlTranslatef(m_Viewport.GetWidth() / 2, m_Viewport.GetHeight() / 2, 0.0f);
-	rlScalef(m_Scale, m_Scale, 1.0f);
-	rlRotatef(m_ViewUp.GetAbsDegAngle() + 90, 0.0f, 0.0f, 1.0f);
-	rlTranslatef(-m_Viewport.GetWidth() / 2, -m_Viewport.GetHeight() / 2, 0.0f);
 }
 
 void Camera::Disable() {
-	rlMatrixMode(RL_MODELVIEW);
-	rlLoadIdentity();
 }
 
 void Camera::Draw() {
