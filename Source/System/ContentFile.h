@@ -138,6 +138,7 @@ namespace RTE {
 		/// @param frameCount The number of frames to attempt to load, more than 1 frame will mean 00# is appended to DataPath to handle naming conventions.
 		/// @param conversionMode The Allegro color conversion mode to use when loading this bitmap.
 		void GetAsAnimation(std::vector<BITMAP*>& vectorToFill, int frameCount = 1, int conversionMode = 0);
+		void GetAsAnimation(std::vector<std::shared_ptr<Texture>>& vectorToFill, int frameCount = 1, int conversionMode = 0);
 
 		/// Gets the data represented by this ContentFile object as a vector of Allegro BITMAPs, each representing a frame in the animation.
 		/// It loads the BITMAPs into the static maps if they're not already loaded. Ownership of the BITMAPs is NOT transferred!
