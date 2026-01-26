@@ -1,6 +1,7 @@
 #include "AHuman.h"
 
 #include "AtomGroup.h"
+#include "RTETools.h"
 #include "ThrownDevice.h"
 #include "Arm.h"
 #include "Leg.h"
@@ -686,7 +687,7 @@ bool AHuman::EquipFirearm(bool doEquip) {
 	return false;
 }
 
-bool AHuman::EquipDeviceInGroup(std::string group, bool doEquip) {
+bool AHuman::EquipDeviceInGroup(const std::string& group, bool doEquip) {
 	if (!(m_pFGArm && m_pFGArm->IsAttached())) {
 		return false;
 	}
@@ -748,7 +749,7 @@ bool AHuman::EquipDeviceInGroup(std::string group, bool doEquip) {
 	return false;
 }
 
-bool AHuman::EquipLoadedFirearmInGroup(std::string group, std::string excludeGroup, bool doEquip) {
+bool AHuman::EquipLoadedFirearmInGroup(const std::string& group, const std::string& excludeGroup, bool doEquip) {
 	if (!(m_pFGArm && m_pFGArm->IsAttached())) {
 		return false;
 	}
@@ -992,7 +993,9 @@ float AHuman::EstimateJumpHeight() const {
 		// Account for the forces upon us.
 		if (!hasBursted && fuelTime > 0.0F) {
 			currentYVelocity += impulseBurst;
-			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplierBurst;
+			// TODO: burst emissions shouldn't be affected by delta time, but they were.
+			// However our values were tuned for 60hz, so hack in constant 60Hz deltatime in milliseconds.
+			fuelTime -= (1000.0f / 60.0f) * fuelUseMultiplierBurst;
 			hasBursted = true;
 		}
 
@@ -2563,8 +2566,8 @@ void AHuman::Update() {
 			if (m_ProneState == GOPRONE) {
 				if (!m_ProneTimer.IsPastSimMS(333)) {
 					if (std::abs(rotDiff) > 0.1F && std::abs(rotDiff) < c_PI) {
-						m_AngularVel += rotDiff * 0.4F;
-						m_Vel.m_X += (m_HFlipped ? -std::abs(rotDiff) : std::abs(rotDiff)) / std::max(m_Vel.GetMagnitude(), 4.0F);
+						m_AngularVel += rotDiff * 24.0F * g_TimerMan.GetDeltaTimeSecs();
+						m_Vel.m_X += (m_HFlipped ? -std::abs(rotDiff) : std::abs(rotDiff)) / std::max(m_Vel.GetMagnitude(), 4.0F) * 60.0F * g_TimerMan.GetDeltaTimeSecs();
 					}
 				} else {
 					// Done going down, now stay down without spring.
@@ -2574,9 +2577,9 @@ void AHuman::Update() {
 			} else if (m_ProneState == LAYINGPRONE) {
 				// If down, try to keep flat against the ground.
 				if (std::abs(rotDiff) > c_SixteenthPI && std::abs(rotDiff) < c_HalfPI) {
-					m_AngularVel += rotDiff * 0.65F;
+					m_AngularVel += rotDiff * 39.0F * g_TimerMan.GetDeltaTimeSecs();
 				} else if (std::abs(m_AngularVel) > 0.3F) {
-					m_AngularVel *= 0.85F;
+					m_AngularVel = ExpDecay(m_AngularVel, 0, 10, g_TimerMan.GetDeltaTimeSecs());
 				}
 			}
 		} else {
@@ -2596,6 +2599,7 @@ void AHuman::Update() {
 				rot = rotTarget;
 			} else {
 				// Lerp towards the angle
+				// TODO: make framerate independent
 				m_AngularVel = m_AngularVel * (0.98F - 0.06F * (m_Health / m_MaxHealth)) - (rotDiff * 0.5F);
 			}
 			
@@ -2612,14 +2616,14 @@ void AHuman::Update() {
 
 		float rotDiff = rotTarget - rot;
 		if (std::abs(rotDiff) > 0.1F && std::abs(rotDiff) < c_PI) {
-			m_AngularVel += rotDiff * 0.05F;
+			m_AngularVel += rotDiff * 3.0F * g_TimerMan.GetDeltaTimeSecs();
 		}
 	} else if (m_Status == DYING) {
 		float rotTarget = m_Vel.m_X - (rot + m_AngularVel) > 0 ? -c_HalfPI : c_HalfPI;
 		float rotDiff = rotTarget - rot;
 		if (!m_DeathTmr.IsPastSimMS(125) && std::abs(rotDiff) > 0.1F && std::abs(rotDiff) < c_PI) {
 			// TODO: finetune this for situations like low gravity!
-			float velScalar = 0.5F; //* (g_SceneMan.GetGlobalAcc().GetY() * m_GlobalAccScalar) / c_PPM;
+			float velScalar = 30.0F * g_TimerMan.GetDeltaTimeSecs(); //* (g_SceneMan.GetGlobalAcc().GetY() * m_GlobalAccScalar) / c_PPM;
 			m_AngularVel += rotDiff * velScalar;
 			m_Vel.m_X += (rotTarget > 0 ? -std::abs(rotDiff) : std::abs(rotDiff)) * velScalar * 0.5F;
 		} else {
@@ -2634,7 +2638,7 @@ void AHuman::Update() {
 	if (!m_pHead && m_Status != DYING && m_Status != DEAD) {
 		m_Health -= m_MaxHealth + 1.0F;
 	} else if (!m_pFGArm && !m_pBGArm && !m_pFGLeg && !m_pBGLeg && m_Status != DYING && m_Status != DEAD) {
-		m_Health -= 0.1F;
+		m_Health -= 6.0F * g_TimerMan.GetDeltaTimeSecs();
 	}
 
 	if (m_Status == DYING) {

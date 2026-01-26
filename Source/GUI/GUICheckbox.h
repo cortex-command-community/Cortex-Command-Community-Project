@@ -87,7 +87,7 @@ namespace RTE {
 		void SetText(const std::string& Text);
 
 		/// Gets the text.
-		std::string GetText() const;
+		const std::string& GetText() const;
 
 		/// Sets the check state.
 		/// @param Check Check state.

@@ -172,9 +172,16 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 	// Actors capable of jumping/jetpacking can jump upwards.
 	s_JumpHeight = jumpHeight;
 
-	// How high up we can jump from this node
-	s_JumpHeightVertical = std::max(1, static_cast<int>(jumpHeight / (m_NodeDimension * c_MPP))); // min of 1 so automovers work a bit better
-	s_JumpHeightDiagonal = std::max(1, static_cast<int>((jumpHeight * 0.7F) / (m_NodeDimension * c_MPP)));
+	// How high up we can jump from this node.
+	if(jumpHeight == FLT_MAX) {
+		// Probably quite high.
+		s_JumpHeightVertical = INT_MAX;
+		s_JumpHeightDiagonal = INT_MAX;
+	} else {
+		// Assume at least 1 so automovers work a bit better
+		s_JumpHeightVertical = std::max(1, static_cast<int>(jumpHeight / (m_NodeDimension * c_MPP)));
+		s_JumpHeightDiagonal = std::max(1, static_cast<int>((jumpHeight * 0.7F) / (m_NodeDimension * c_MPP)));
+	}
 
 	// Actors capable of digging can use s_DigStrength to modify the node adjacency cost.
 	s_DigStrength = digStrength;

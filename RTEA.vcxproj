@@ -50,6 +50,7 @@
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset Condition="'$(VisualStudioVersion)'=='16.0'">v142</PlatformToolset>
     <PlatformToolset Condition="'$(VisualStudioVersion)'=='17.0'">v143</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)'=='18.0'">v145</PlatformToolset>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <IntDir>_Bin\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>.\</OutDir>
@@ -236,6 +237,7 @@
       <IncludeInUnityFile>false</IncludeInUnityFile>
       <AddCodeAfterSourceInclude>#undef GetClassName</AddCodeAfterSourceInclude>
       <OmitFramePointers>false</OmitFramePointers>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;ws2_32.lib;dinput8.lib;ddraw.lib;dxguid.lib;dsound.lib;imm32.lib;setupapi.lib;version.lib;zlibstatic.lib;libminizip.lib;libpng16-static.lib;fmod_vc.lib;allegro-debug.lib;loadpng-debug.lib;liblz4_debug_static.lib;luajit-debug.lib;luabind-debug.lib;raknet-debug.lib;SDL3_image-static-debug.lib;SDL3-static-debug.lib;opengl32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -342,6 +344,7 @@
       <IncludeInUnityFile>false</IncludeInUnityFile>
       <AddCodeAfterSourceInclude>#undef GetClassName</AddCodeAfterSourceInclude>
       <OmitFramePointers>false</OmitFramePointers>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;ws2_32.lib;dinput8.lib;ddraw.lib;dxguid.lib;dsound.lib;imm32.lib;setupapi.lib;version.lib;zlibstatic.lib;libminizip.lib;libpng16-static.lib;fmod_vc.lib;allegro-debug.lib;loadpng-debug.lib;liblz4_debug_static.lib;luajit-debug-release.lib;luabind-debug.lib;raknet-debug.lib;SDL3-static-debug.lib;SDL3_image-static-debug.lib;opengl32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -525,6 +528,7 @@
       <ConformanceMode>true</ConformanceMode>
       <IncludeInUnityFile>false</IncludeInUnityFile>
       <AddCodeAfterSourceInclude>#undef GetClassName</AddCodeAfterSourceInclude>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;ws2_32.lib;dinput8.lib;ddraw.lib;dxguid.lib;dsound.lib;imm32.lib;setupapi.lib;version.lib;zlibstatic.lib;libminizip.lib;libpng16-static.lib;fmod_vc.lib;allegro-debug-release.lib;loadpng-debug-release.lib;liblz4_release_static.lib;luajit-debug-release.lib;luabind-debug-release.lib;raknet-release.lib;opengl32.lib;SDL3-static.lib;SDL3_image-static.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -587,6 +591,7 @@
       <ConformanceMode>true</ConformanceMode>
       <IncludeInUnityFile>false</IncludeInUnityFile>
       <AddCodeAfterSourceInclude>#undef GetClassName</AddCodeAfterSourceInclude>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;ws2_32.lib;dinput8.lib;ddraw.lib;dxguid.lib;dsound.lib;imm32.lib;setupapi.lib;version.lib;zlibstatic.lib;libminizip.lib;libpng16-static.lib;fmod_vc.lib;allegro-debug-release.lib;loadpng-debug-release.lib;liblz4_release_static.lib;luajit-debug-release.lib;luabind-debug-release.lib;raknet-release.lib;opengl32.lib;SDL3-static.lib;SDL3_image-static.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -707,6 +712,7 @@
       <ConformanceMode>true</ConformanceMode>
       <IncludeInUnityFile>false</IncludeInUnityFile>
       <AddCodeAfterSourceInclude>#undef GetClassName</AddCodeAfterSourceInclude>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;ws2_32.lib;dinput8.lib;ddraw.lib;dxguid.lib;dsound.lib;imm32.lib;setupapi.lib;version.lib;zlibstatic.lib;libminizip.lib;libpng16-static.lib;fmod_vc.lib;allegro-release.lib;loadpng-release.lib;liblz4_release_static.lib;luajit-release.lib;luabind-release.lib;raknet-release.lib;opengl32.lib;SDL3-static.lib;SDL3_image-static.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>

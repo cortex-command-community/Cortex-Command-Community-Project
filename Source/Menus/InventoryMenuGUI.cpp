@@ -1421,7 +1421,7 @@ void InventoryMenuGUI::DrawCarouselItemBoxForeground(const CarouselItemBox& item
 	});
 
 	std::string massString = totalItemMass < 0.1F ? "<0.1 kg" : RoundFloatToPrecision(std::fminf(999, totalItemMass), (totalItemMass < 9.95F ? 1 : 0)) + (totalItemMass > 999 ? "+ " : " ") + "kg";
-	m_SmallFont->DrawAligned(carouselAllegroBitmap, itemBoxToDraw.IconCenterPosition.GetFloorIntX(), itemBoxToDraw.IconCenterPosition.GetFloorIntY() - ((itemBoxToDraw.CurrentSize.GetFloorIntY() + m_SmallFont->GetFontHeight()) / 2) + 1, massString.c_str(), GUIFont::Centre);
+	m_SmallFont->DrawAligned(carouselAllegroBitmap, itemBoxToDraw.IconCenterPosition.GetFloorIntX(), itemBoxToDraw.IconCenterPosition.GetFloorIntY() - ((itemBoxToDraw.CurrentSize.GetFloorIntY() + m_SmallFont->GetFontHeight()) / 2) + 1, massString, GUIFont::Centre);
 }
 
 void InventoryMenuGUI::DrawFullMode(BITMAP* targetBitmap, const Vector& drawPos) const {

@@ -136,7 +136,7 @@ void WindowMan::Initialize() {
 
 	ImGui::StyleColorsDark();
 	ImGui_ImplSDL3_InitForOpenGL(m_PrimaryWindow.get(), m_GLContext.get());
-	ImGui_ImplOpenGL3_Init("#version 130");
+	ImGui_ImplOpenGL3_Init("#version 330 core");
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL3_NewFrame();
 	ImGui::NewFrame();
@@ -676,12 +676,14 @@ void WindowMan::DisplaySwitchOut() const {
 	SDL_SetCursor(nullptr);
 }
 
-void WindowMan::HandleWindowExposedEvent(void *userdata, SDL_Event *event) {
+bool WindowMan::HandleWindowExposedEvent(void *userdata, SDL_Event *event) {
 	if (event->type == SDL_EVENT_WINDOW_EXPOSED) {
 		g_WindowMan.SetViewportLetterboxed();
 		g_WindowMan.ClearBackbuffer(false);
 		g_WindowMan.UploadFrame();
 	}
+
+	return true;
 }
 
 void WindowMan::QueueWindowEvent(const SDL_Event& windowEvent) {

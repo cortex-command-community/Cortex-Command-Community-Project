@@ -24,15 +24,15 @@ namespace RTE {
 #pragma region Getters
 		/// Gets the path to the file being written.
 		/// @return The full path to the file being written.
-		std::string GetFilePath() const;
+		const std::string& GetFilePath() const;
 
 		/// Gets the name (without path) of the file being written.
 		/// @return The name of file being written.
-		std::string GetFileName() const;
+		const std::string& GetFileName() const;
 
 		/// Gets the folder path (without filename) to where the file is being written.
 		/// @return The name of folder being written in.
-		std::string GetFolderPath() const;
+		const std::string& GetFolderPath() const;
 #pragma endregion
 
 #pragma region Writing Operations

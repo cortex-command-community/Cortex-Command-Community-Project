@@ -467,8 +467,8 @@ void Activity::ClearPlayers(bool resetFunds) {
 	m_PlayerCount = m_TeamCount = 0;
 }
 
-int Activity::GetHumanCount() const {
-	int humans = 0;
+uint8_t Activity::GetHumanCount() const {
+	uint8_t humans = 0;
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 		if (m_IsActive[player] && m_IsHuman[player]) {
 			humans++;

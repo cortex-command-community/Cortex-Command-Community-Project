@@ -29,7 +29,7 @@ namespace RTE {
 #pragma region Getters and Setters
 		/// Gets the description of the input scheme preset that this element is part of, if any preset has been set for this element's scheme.
 		/// @return The description associated with this element by the scheme preset, if any has been set. This string is empty otherwise.
-		std::string GetPresetDescription() const { return m_PresetDescription; }
+		const std::string& GetPresetDescription() const { return m_PresetDescription; }
 
 		/// Sets the description of the input scheme preset that this element is part of, if any preset has been set for this element's scheme.
 		/// @param presetDescription The description associated with this element by the scheme preset, if any has been set. This string should be empty otherwise.

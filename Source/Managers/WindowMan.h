@@ -170,8 +170,8 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// SDL_EventFilter to hadnle window exposed events for live resize.
-		static void HandleWindowExposedEvent(void* userdata, SDL_Event* event);
+		/// SDL_EventFilter to handle window exposed events for live resize.
+		static bool HandleWindowExposedEvent(void* userdata, SDL_Event* event);
 
 		/// Adds an SDL_Event to the Event queue for processing on Update.
 		/// @param windowEvent The SDL window event to queue.

@@ -38,13 +38,7 @@ You may also want to check out the list of recommended Visual Studio plugins [he
 
 2. Clone this Repository into a folder.  
 
-3. Copy the following libraries from `Cortex-Command-Community-Project\external\lib\win` into the root directory:
-* `fmod.dll`
-* `SDL2.dll`
-
-  For 32-bit builds, copy the following libraries from the `x86` folder inside `...\lib\win` as well:
-* `fmodL.dll`
-* `SDL2-32.dll`
+3. Copy the `fmod.dll` library from `Cortex-Command-Community-Project\external\lib\win` into the root directory.
 
 Now you're ready to build and launch the game.  
 Simply open `RTEA.sln` with Visual Studio, choose your target platform (x86 or x64) and configuration, and run the project.
@@ -75,10 +69,9 @@ The Linux build uses the meson build system, and builds against system libraries
 
 ## Dependencies
 
-* [`meson`](https://www.mesonbuild.com)`>= 1.0.0` (`pip install meson` if your distro doesn't include a recent version)
+* [`meson`](https://www.mesonbuild.com)`>= 1.6.0` (`pip install meson`/`brew install meson` if your distro doesn't include a recent version)
 * `ninja`
-* `gcc`, `g++` (>=12, clang unsupported) 
-* `sdl2`
+* `gcc`, `g++` (>=13, clang unsupported) 
 * `opengl` (usually provided by the gpu driver)
 * `flac`
 * `luajit`
@@ -88,7 +81,6 @@ The Linux build uses the meson build system, and builds against system libraries
 * `lz4>=1.9.0`
 * `libpng`
 * `dylibbundler` (required only if installing on macOS)
-* `SDL2_image` (linux only)
 
 For unspecified versions assume compatibility with the latest ubuntu LTS release.
 
@@ -123,13 +115,13 @@ If you want to change the buildtype afterwards, you can use `meson configure --b
 - `Xcode` or `Command Line Tools for Xcode` (if you need to, you can also generate an xcode project from meson using the `--backend=xcode` option on setup)
 
 **Homebrew (macOS):**  
-`brew install pkg-config sdl2 minizip lz4 flac luajit lua libpng tbb gcc@13 ninja meson dylibbundler`
+`brew install pkg-config sdl3 minizip lz4 flac luajit lua libpng tbb gcc@13 ninja meson dylibbundler`
 
 **Arch Linux:**  
-`sudo pacman -S sdl2 sdl2_image tbb flac luajit lua minizip lz4 libpng meson ninja base-devel`  
+`sudo pacman -S tbb flac luajit lua minizip lz4 libpng meson ninja base-devel`  
 
 **Ubuntu >=22.04:**  
-`sudo apt-get install build-essential libsdl2-dev libsdl2-image-dev libloadpng4-dev libflac++-dev luajit-5.1-dev liblua5.1-dev libminizip-dev liblz4-dev libpng++-dev libtbb-dev ninja-build python3-pip`  
+`sudo apt-get install build-essential libflac++-dev luajit-5.1-dev liblua5.1-dev libminizip-dev liblz4-dev libpng++-dev libtbb-dev ninja-build python3-pip`  
 `sudo python3 -m pip install meson`
 
 **Fedora:**  

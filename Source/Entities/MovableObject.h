@@ -391,7 +391,7 @@ namespace RTE {
 
 		/// Gets the file path of this MovableObject's current screen effect.
 		/// @param pathToFile A string containing the file path of the new screen effect.
-		void SetScreenEffectPath(std::string pathToFile) {
+		void SetScreenEffectPath(std::string& pathToFile) {
 			m_ScreenEffectFile.SetDataPath(pathToFile);
 			m_pScreenEffect = m_ScreenEffectFile.GetAsBitmap();
 			m_ScreenEffectHash = m_ScreenEffectFile.GetHash();

@@ -120,7 +120,7 @@ void AreaEditorGUI::SetCurrentArea(Scene::Area* pArea) {
 	}
 }
 
-void AreaEditorGUI::UpdatePickerList(std::string selectAreaName) {
+void AreaEditorGUI::UpdatePickerList(const std::string& selectAreaName) {
 	m_pPicker->UpdateAreasList(selectAreaName);
 }
 

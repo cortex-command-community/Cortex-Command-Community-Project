@@ -799,7 +799,7 @@ void MetagameGUI::SelectScene(Scene* pScene) {
 	}
 }
 
-bool MetagameGUI::SelectScene(std::string sceneName) {
+bool MetagameGUI::SelectScene(const std::string& sceneName) {
 	for (std::vector<Scene*>::iterator sItr = g_MetaMan.m_Scenes.begin(); sItr != g_MetaMan.m_Scenes.end(); ++sItr) {
 		// Only allow selection if the Scene is revealed yet!
 		if ((*sItr)->GetPresetName() == sceneName && (*sItr)->IsRevealed()) {
@@ -1089,7 +1089,7 @@ bool MetagameGUI::LoadGame() {
 	return false;
 }
 
-bool MetagameGUI::SaveGame(std::string saveName, std::string savePath, bool resaveSceneData) {
+bool MetagameGUI::SaveGame(const std::string& saveName, const std::string& savePath, bool resaveSceneData) {
 	const std::string fullSavePath = g_PresetMan.GetFullModulePath(savePath);
 	// If specified, first load all bitmap data of all Scenes in the current Metagame that have once saved em, so we can re-save them to the new files
 	if (resaveSceneData)
@@ -1103,7 +1103,7 @@ bool MetagameGUI::SaveGame(std::string saveName, std::string savePath, bool resa
 	g_MetaMan.SaveSceneData(METASAVEPATH + saveName);
 
 	// Whichever new or existing, create a writer with the path
-	Writer metaWriter(fullSavePath.c_str());
+	Writer metaWriter(fullSavePath);
 	// Now that all the updated data files have been written to disk and their paths updated, send the MetaMan state for actual writing to an ini
 	if (g_MetaMan.Save(metaWriter) < 0)
 		return false;
@@ -5594,7 +5594,7 @@ void MetagameGUI::UpdatePlayerBars() {
 	}
 }
 
-void MetagameGUI::UpdateSiteNameLabel(bool visible, std::string text, const Vector& location, float height) {
+void MetagameGUI::UpdateSiteNameLabel(bool visible, const std::string& text, const Vector& location, float height) {
 	// Set up the hover label to appear over any hovered scene location
 	m_pScenePlanetLabel->SetVisible(visible);
 	if (visible) {
@@ -5617,7 +5617,7 @@ void MetagameGUI::UpdateSiteNameLabel(bool visible, std::string text, const Vect
 	}
 }
 
-void MetagameGUI::PlayerTextIndication(int metaPlayer, std::string text, const Vector& screenPos, double animLengthMS) {
+void MetagameGUI::PlayerTextIndication(int metaPlayer, const std::string& text, const Vector& screenPos, double animLengthMS) {
 	m_apFundsChangeLabel[metaPlayer]->SetText(text);
 	m_apFundsChangeLabel[metaPlayer]->SetHAlignment(GUIFont::Centre);
 	m_apFundsChangeLabel[metaPlayer]->SetVAlignment(GUIFont::Middle);

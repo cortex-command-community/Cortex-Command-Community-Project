@@ -80,20 +80,20 @@ namespace RTE {
 			         int onlyLastSegments = -1,
 			         int channelHeight = 60,
 			         float circleSize = 1.0f,
-			         bool squareSite = false) {
-				m_Player = player;
-				m_StartMeterAt = startMeterAt;
-				m_MeterAmount = meterAmount;
-				m_PlanetPoint = planetPoint;
-				m_SiteName = siteName;
-				m_pScene = pScene;
-				m_Color = color;
-				m_OnlyFirstSegments = onlyFirstSegments;
-				m_OnlyLastSegments = onlyLastSegments;
-				m_ChannelHeight = channelHeight;
-				m_CircleSize = circleSize;
-				m_Square = squareSite;
-			}
+			         bool squareSite = false) :
+
+				m_Player(player),
+				m_StartMeterAt(startMeterAt),
+				m_MeterAmount(meterAmount),
+				m_PlanetPoint(planetPoint),
+				m_SiteName(std::move(siteName)),
+				m_pScene(pScene),
+				m_Color(color),
+				m_OnlyFirstSegments(onlyFirstSegments),
+				m_OnlyLastSegments(onlyLastSegments),
+				m_ChannelHeight(channelHeight),
+				m_CircleSize(circleSize),
+				m_Square(squareSite) {}
 		};
 
 		// For storing info about target crosshairs over sites
@@ -128,14 +128,14 @@ namespace RTE {
 			           float animProgress,
 			           int style,
 			           int color,
-			           double startTime = 0) {
-				m_CenterPos = centerPos;
-				m_AnimProgress = animProgress;
-				m_Style = style;
-				m_Color = color;
-				m_StartTime = startTime;
-				m_AnimTimer.Reset();
-			}
+			           double startTime = 0) :
+				m_CenterPos(centerPos),
+				m_AnimProgress(animProgress),
+				m_Style(style),
+				m_Color(color),
+				m_StartTime(startTime) {
+					m_AnimTimer.Reset();
+				}
 
 			/// Draws this SiteTarget onto a bitmap of choice.
 			/// @param drawBitmap The bitmap to draw to.
@@ -200,7 +200,7 @@ namespace RTE {
 		/// Tries to select a specifically named scene on the metagame field.
 		/// @param sceneName The name of the Scene to try to find and select.
 		/// @return Whether mission was found and selected.
-		bool SelectScene(std::string sceneName);
+		bool SelectScene(const std::string& sceneName);
 
 		/// Reports whether the player has decided to continue to next phase of the
 		/// round of the current game.
@@ -241,7 +241,7 @@ namespace RTE {
 		/// @param resaveSceneData Whether to load all the scene data that is on disk first so it will (default: false)
 		/// be re-saved to the new location here.
 		/// @return Whether the game was able to be saved there.
-		bool SaveGame(std::string saveName, std::string savePath, bool resaveSceneData = false);
+		bool SaveGame(const std::string& saveName, const std::string& savePath, bool resaveSceneData = false);
 
 		/// Attempts to save a Metagame to disk using the settings set in the
 		/// Save Game dialog box.
@@ -405,7 +405,7 @@ namespace RTE {
 		/// @param text Text to show above the location. (default: "")
 		/// @param location The location in planetary coords. (default: Vector())
 		/// @param height How high above the location to show the text, adjustment from a good default. (default: 1.0)
-		void UpdateSiteNameLabel(bool visible, std::string text = "", const Vector& location = Vector(), float height = 1.0);
+		void UpdateSiteNameLabel(bool visible, const std::string& text = "", const Vector& location = Vector(), float height = 1.0);
 
 		/// Starts an animation of a label showing a text string over a player bar
 		/// @param player Which player the indication is relevant to
@@ -413,7 +413,7 @@ namespace RTE {
 		/// @param screenPos Where, in screen coords the change should be indicated. The CENTER of
 		/// the floating label will line up with this pos.
 		/// @param animLengthMS How long, in MS, that the animation should linger
-		void PlayerTextIndication(int player, std::string text, const Vector& screenPos, double animLengthMS);
+		void PlayerTextIndication(int player, const std::string& text, const Vector& screenPos, double animLengthMS);
 
 		/// Starts an animation of a label showing funds changing for a player
 		/// @param player Which player the change is relevant to

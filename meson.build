@@ -1,4 +1,4 @@
-project('Cortex-Command-Community-Project', ['cpp','c'], subproject_dir: 'external/sources', default_options:['cpp_std=c++20', 'buildtype=release', 'default_library=static'], version:'0.1.0-Pre-4.1', meson_version:'>=1.0.0')
+project('Cortex-Command-Community-Project', ['cpp','c'], subproject_dir: 'external/sources', default_options:['cpp_std=c++20', 'buildtype=release', 'default_library=static'], version:'7.0.0-dev', meson_version:'>=1.6.0')
 
 #### Build environment Setup ####
 
@@ -120,16 +120,12 @@ elif compiler.get_argument_syntax()== 'msvc'
   link_args+=['-ignore:4099', '-ignore:4217']
   buildtype_debug = get_option('debug')
   if buildtype_debug
-    elfname+='.debug'
     debug_type = get_option('debug_type')
     if debug_type == 'release'
-      elfname+='.release'
       preprocessor_flags += ['-DDEBUG_RELEASE_BUILD'] # enable minimal debug features
     elif debug_type == 'minimal'
-      elfname += '.minimal'
       preprocessor_flags += ['-DDEBUGMODE'] # enable some debug features
     elif debug_type == 'full'
-      elfname += '.full'
       preprocessor_flags += ['-DDEBUG_BUILD', '-DDEBUGMODE'] # enable all debug features; may slow down game
     endif
   else
@@ -231,6 +227,8 @@ sdl3_image_dep = sdl3_image_proj.get_variable('sdl3_image_dep')
 boost_dep = declare_dependency(include_directories: include_directories('external/include/boost_1_75'))
 meson.override_dependency('boost-175', boost_dep)
 install_rpath = prefix/get_option('fmod_dir')
+tracy_proj = subproject('tracy')
+tracy_dep = dependency('tracy')
 allegro_proj = subproject('allegro 4.4.3.1-custom')
 luajit_proj = subproject('LuaJIT-2.1')
 luajit_dep = dependency('luajit')
@@ -241,8 +239,6 @@ luabind_proj = subproject('luabind-0.7.1')
 luabind_dep = dependency('luabind')
 raknet_proj = subproject('RakNet')
 raknet_dep = dependency('RakNet')
-tracy_proj = subproject('tracy')
-tracy_dep = dependency('tracy')
 deps += [sdl3_dep, sdl3_image_dep, allegro_dep, luajit_dep, loadpng_dep, raknet_dep, boost_dep, tracy_dep]
 
 #### Sources Setup ####

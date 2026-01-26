@@ -206,6 +206,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 
 			              SDL_Palette* palette = ContentFile::DefaultPaletteToSDL();
 			              SDL_SetSurfacePalette(image, palette);
+						  SDL_SetSurfaceColorKey(image, false, 0);
 
 			              bool result = IMG_SavePNG_IO(image, stream, false);
 			              SDL_FlushIO(stream);
@@ -283,7 +284,7 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	unz_file_info info;
 	char* buffer = nullptr;
 
-	auto unzipFileIntoBuffer = [&](std::string fullFileName) {
+	auto unzipFileIntoBuffer = [&](const std::string& fullFileName) {
 		// These need to use NULL instead of nullptr to compile on Linux/OSX?
 		if (unzLocateFile(zippedSaveFile, fullFileName.c_str(), NULL) == UNZ_END_OF_LIST_OF_FILE) {
 			return false;
@@ -310,11 +311,16 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 		SDL_Surface* image = stream ? IMG_LoadPNG_IO(stream) : nullptr;
 		SDL_CloseIO(stream);
 
+		int bitDepth = SDL_GetPixelFormatDetails(image->format)->bits_per_pixel;
 		SDL_Palette* palette = ContentFile::DefaultPaletteToSDL();
-		SDL_Surface* newImage = SDL_ConvertSurfaceAndColorspace(image, SDL_PIXELFORMAT_INDEX8, palette, SDL_COLORSPACE_UNKNOWN, 0);
+		if (bitDepth != 8) {
+			SDL_Surface* newImage = SDL_ConvertSurfaceAndColorspace(image, SDL_PIXELFORMAT_INDEX8, palette, SDL_COLORSPACE_UNKNOWN, 0);
+			SDL_DestroySurface(image);
+			image = newImage;
+		} else {
+			SDL_SetSurfacePalette(image, palette);
+		}
 		SDL_DestroyPalette(palette);
-		SDL_DestroySurface(image);
-		image = newImage;
 
 		free(buffer);
 		return image;

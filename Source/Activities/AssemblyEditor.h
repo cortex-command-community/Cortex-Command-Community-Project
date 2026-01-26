@@ -107,7 +107,7 @@ namespace RTE {
 		/// it's pointer. Owhership IS transfered.
 		/// @param saveAsName New assembly name.
 		/// @return Built BunkerAssembly
-		BunkerAssembly* BuildAssembly(std::string saveAsName);
+		BunkerAssembly* BuildAssembly(const std::string& saveAsName);
 
 		/// Saves the current BunkerAssembly to an appropriate ini file, and asks user if they want to overwrite first if a BunkerAssembly of this name exists.
 		/// @param saveAsName The name of the new BunkerAssembly to be saved.
