@@ -3,6 +3,7 @@
 #include "AudioMan.h"
 #include "ConsoleMan.h"
 #include "PresetMan.h"
+#include <memory>
 
 using namespace RTE;
 
@@ -171,11 +172,14 @@ bool MusicMan::CyclePlayingSoundContainers(bool smoothFade) {
 			m_PreviousSoundContainer->Stop();
 			m_PreviousSoundContainer = nullptr;
 		}
-		m_PreviousSoundContainer = std::unique_ptr<SoundContainer>(m_CurrentSoundContainer.release());
+		m_PreviousSoundContainer = m_CurrentSoundContainer;
+		m_CurrentSoundContainer = nullptr;
 	}
 
 	// Clone instead of just point to because we might wanna keep this around even if the DynamicSong is gone
-	m_CurrentSoundContainer = std::unique_ptr<SoundContainer>(dynamic_cast<SoundContainer*>(m_NextSoundContainer->Clone()));
+	m_CurrentSoundContainer = std::make_shared<SoundContainer>();
+	m_NextSoundContainer->Clone(&*m_CurrentSoundContainer);
+
 	SelectNextSoundContainer();
 	m_MusicTimer.Reset();
 	float exitTime = m_CurrentSoundContainer->GetMusicExitTime();
@@ -215,7 +219,7 @@ bool MusicMan::EndDynamicMusic(bool fadeOutCurrent) {
 	return true;
 }
 
-void MusicMan::PlayInterruptingMusic(const SoundContainer* soundContainer) {
+void MusicMan::PlayInterruptingMusic(const SoundContainer& soundContainer) {
 	if (m_InterruptingMusicSoundContainer != nullptr) {
 		m_InterruptingMusicSoundContainer->Stop();
 	}
@@ -232,7 +236,7 @@ void MusicMan::PlayInterruptingMusic(const SoundContainer* soundContainer) {
 		m_NextSoundContainer->SetPaused(true);
 	}
 
-	m_InterruptingMusicSoundContainer = std::unique_ptr<SoundContainer>(dynamic_cast<SoundContainer*>(soundContainer->Clone()));
+	m_InterruptingMusicSoundContainer = std::make_shared<SoundContainer>(soundContainer);
 	m_InterruptingMusicSoundContainer->Play();
 	if (m_IsPlayingDynamicMusic) {
 		m_ReturnToDynamicMusic = true;
@@ -284,8 +288,8 @@ void MusicMan::SelectNextSongSection() {
 
 void MusicMan::SelectNextSoundContainer(bool playTransition) {
 	if (playTransition) {
-		m_NextSoundContainer = &m_NextSongSection->SelectTransitionSoundContainer();
+		m_NextSoundContainer = m_NextSongSection->SelectTransitionSoundContainer();
 	} else {
-		m_NextSoundContainer = &m_NextSongSection->SelectSoundContainer();
+		m_NextSoundContainer = m_NextSongSection->SelectSoundContainer();
 	}
 }

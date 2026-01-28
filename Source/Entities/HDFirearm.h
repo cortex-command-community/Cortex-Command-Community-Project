@@ -6,6 +6,7 @@
 /// http://www.datarealms.com
 /// Inclusions of header files
 #include "HeldDevice.h"
+#include <memory>
 
 namespace RTE {
 
@@ -290,71 +291,111 @@ namespace RTE {
 		/// @param newOffset New offset value.
 		void SetEjectionOffset(Vector newOffset) { m_EjectOff = newOffset; }
 
-		/// Gets this HDFirearm's pre fire sound. Ownership is NOT transferred!
+		/// Gets this HDFirearm's pre fire sound.
 		/// @return The SoundContainer for this HDFirearm's pre fire sound.
-		SoundContainer* GetPreFireSound() const { return m_PreFireSound; }
+		std::shared_ptr<SoundContainer> GetPreFireSound() const { return m_PreFireSound; }
 
-		/// Sets this HDFirearm's pre fire sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this HDFirearm's pre fire sound.
-		void SetPreFireSound(SoundContainer* newSound) { m_PreFireSound = newSound; }
+		/// Sets this HDFirearm's pre fire sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this HDFirearm's pre fire sound to copy.
+		void SetPreFireSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_PreFireSound = nullptr;
+			else
+				m_PreFireSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this HDFirearm's fire sound. Ownership is NOT transferred!
+		/// Gets this HDFirearm's fire sound.
 		/// @return The SoundContainer for this HDFirearm's fire sound.
-		SoundContainer* GetFireSound() const { return m_FireSound; }
+		std::shared_ptr<SoundContainer> GetFireSound() const { return m_FireSound; }
 
-		/// Sets this HDFirearm's fire sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this HDFirearm's fire sound.
-		void SetFireSound(SoundContainer* newSound) { m_FireSound = newSound; }
+		/// Sets this HDFirearm's fire sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this HDFirearm's fire sound to copy.
+		void SetFireSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_FireSound = nullptr;
+			else
+				m_FireSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this HDFirearm's fire echo sound. Ownership is NOT transferred!
+		/// Gets this HDFirearm's fire echo sound.
 		/// @return The SoundContainer for this HDFirearm's fire echo sound.
-		SoundContainer* GetFireEchoSound() const { return m_FireEchoSound; }
+		std::shared_ptr<SoundContainer> GetFireEchoSound() const { return m_FireEchoSound; }
 
-		/// Sets this HDFirearm's fire echo sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this HDFirearm's fire echo sound.
-		void SetFireEchoSound(SoundContainer* newSound) { m_FireEchoSound = newSound; }
+		/// Sets this HDFirearm's fire echo sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this HDFirearm's fire echo sound to copy.
+		void SetFireEchoSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_FireEchoSound = nullptr;
+			else
+				m_FireEchoSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this HDFirearm's active sound. Ownership is NOT transferred!
+		/// Gets this HDFirearm's active sound.
 		/// @return The SoundContainer for this HDFirearm's active sound.
-		SoundContainer* GetActiveSound() const { return m_ActiveSound; }
+		std::shared_ptr<SoundContainer> GetActiveSound() const { return m_ActiveSound; }
 
-		/// Sets this HDFirearm's active sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this HDFirearm's active sound.
-		void SetActiveSound(SoundContainer* newSound) { m_ActiveSound = newSound; }
+		/// Sets this HDFirearm's active sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this HDFirearm's active sound to copy.
+		void SetActiveSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_ActiveSound = nullptr;
+			else
+				m_ActiveSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this HDFirearm's deactivation sound. Ownership is NOT transferred!
+		/// Gets this HDFirearm's deactivation sound.
 		/// @return The SoundContainer for this HDFirearm's deactivation sound.
-		SoundContainer* GetDeactivationSound() const { return m_DeactivationSound; }
+		std::shared_ptr<SoundContainer> GetDeactivationSound() const { return m_DeactivationSound; }
 
-		/// Sets this HDFirearm's deactivation sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this HDFirearm's deactivation sound.
-		void SetDeactivationSound(SoundContainer* newSound) { m_DeactivationSound = newSound; }
+		/// Sets this HDFirearm's deactivation sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this HDFirearm's deactivation sound to copy.
+		void SetDeactivationSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_DeactivationSound = nullptr;
+			else
+				m_DeactivationSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this HDFirearm's empty sound. Ownership is NOT transferred!
+		/// Gets this HDFirearm's empty sound.
 		/// @return The SoundContainer for this HDFirearm's empty sound.
-		SoundContainer* GetEmptySound() const { return m_EmptySound; }
+		std::shared_ptr<SoundContainer> GetEmptySound() const { return m_EmptySound; }
 
-		/// Sets this HDFirearm's empty sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this HDFirearm's empty sound.
-		void SetEmptySound(SoundContainer* newSound) { m_EmptySound = newSound; }
+		/// Sets this HDFirearm's empty sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this HDFirearm's empty sound to copy.
+		void SetEmptySound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_EmptySound = nullptr;
+			else
+				m_EmptySound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this HDFirearm's reload start sound. Ownership is NOT transferred!
+		/// Gets this HDFirearm's reload start sound.
 		/// @return The SoundContainer for this HDFirearm's reload start sound.
-		SoundContainer* GetReloadStartSound() const { return m_ReloadStartSound; }
+		std::shared_ptr<SoundContainer> GetReloadStartSound() const { return m_ReloadStartSound; }
 
-		/// Sets this HDFirearm's reload start sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this HDFirearm's reload start sound.
-		void SetReloadStartSound(SoundContainer* newSound) { m_ReloadStartSound = newSound; }
+		/// Sets this HDFirearm's reload start sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this HDFirearm's reload start sound to copy.
+		void SetReloadStartSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_ReloadStartSound = nullptr;
+			else
+				m_ReloadStartSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this HDFirearm's reload end sound. Ownership is NOT transferred!
+		/// Gets this HDFirearm's reload end sound.
 		/// @return The SoundContainer for this HDFirearm's reload end sound.
-		SoundContainer* GetReloadEndSound() const { return m_ReloadEndSound; }
+		std::shared_ptr<SoundContainer> GetReloadEndSound() const { return m_ReloadEndSound; }
 
-		/// Sets this HDFirearm's reload end sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this HDFirearm's reload end sound.
-		void SetReloadEndSound(SoundContainer* newSound) { m_ReloadEndSound = newSound; }
+		/// Sets this HDFirearm's reload end sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this HDFirearm's reload end sound to copy.
+		void SetReloadEndSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_ReloadEndSound = nullptr;
+			else
+				m_ReloadEndSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Resest all the timers used by this. Can be emitters, etc. This is to
+		/// Reset all the timers used by this. Can be emitters, etc. This is to
 		/// prevent backed up emissions to come out all at once while this has been
 		/// held dormant in an inventory.
 		void ResetAllTimers() override {
@@ -500,19 +541,19 @@ namespace RTE {
 		// Muzzle Flash Attachable. Owned
 		Attachable* m_pFlash;
 
-		SoundContainer* m_PreFireSound; //!< The sound this HDFirearm should play before it starts firing. Distinct from activation sound in that it will play exactly once per trigger pull and not pitch up.
+		std::shared_ptr<SoundContainer> m_PreFireSound; //!< The sound this HDFirearm should play before it starts firing. Distinct from activation sound in that it will play exactly once per trigger pull and not pitch up.
 		// The audio of this FireArm being fired.
-		SoundContainer* m_FireSound;
-		SoundContainer* m_FireEchoSound; //!< The audio that is played as the echo for the gun. Each shot will restart this sound, so it doesn't ever overlap.
+		std::shared_ptr<SoundContainer> m_FireSound;
+		std::shared_ptr<SoundContainer> m_FireEchoSound; //!< The audio that is played as the echo for the gun. Each shot will restart this sound, so it doesn't ever overlap.
 		// The audio that is played immediately upon activation, but perhaps before actual first firing, if there's a pre-delay
-		SoundContainer* m_ActiveSound;
+		std::shared_ptr<SoundContainer> m_ActiveSound;
 		// The audio that is played immediately upon cease of activation
-		SoundContainer* m_DeactivationSound;
+		std::shared_ptr<SoundContainer> m_DeactivationSound;
 		// The audio of this FireArm being fired empty.
-		SoundContainer* m_EmptySound;
+		std::shared_ptr<SoundContainer> m_EmptySound;
 		// The audio of this FireArm being reloaded.
-		SoundContainer* m_ReloadStartSound;
-		SoundContainer* m_ReloadEndSound;
+		std::shared_ptr<SoundContainer> m_ReloadStartSound;
+		std::shared_ptr<SoundContainer> m_ReloadEndSound;
 		// The offset of how long before the reload finishes the sound plays
 		float m_ReloadEndOffset;
 		// Whether or not the end-of-relaod sound has already been played or not.

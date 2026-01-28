@@ -1,6 +1,7 @@
 // Make sure that binding definition files are always set to NOT use pre-compiled headers and conformance mode (/permissive) otherwise everything will be on fire!
 
 #include "LuaBindingRegisterDefinitions.h"
+#include <memory>
 
 using namespace RTE;
 
@@ -35,9 +36,9 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, AudioMan) {
 	    .def("IsMusicPlaying", &AudioMan::IsMusicPlaying)
 	    .def("SetMusicPitch", &AudioMan::SetMusicPitch)
 	    .def("SetMusicMuffledState", &AudioMan::SetMusicMuffledState)
-	    .def("PlaySound", (SoundContainer * (AudioMan::*)(const std::string& filePath)) & AudioMan::PlaySound, luabind::adopt(luabind::result))
-	    .def("PlaySound", (SoundContainer * (AudioMan::*)(const std::string& filePath, const Vector& position)) & AudioMan::PlaySound, luabind::adopt(luabind::result))
-	    .def("PlaySound", (SoundContainer * (AudioMan::*)(const std::string& filePath, const Vector& position, int player)) & AudioMan::PlaySound, luabind::adopt(luabind::result));
+	    .def("PlaySound", (std::shared_ptr<SoundContainer> (AudioMan::*)(const std::string& filePath)) & AudioMan::PlaySound)
+	    .def("PlaySound", (std::shared_ptr<SoundContainer> (AudioMan::*)(const std::string& filePath, const Vector& position)) & AudioMan::PlaySound)
+	    .def("PlaySound", (std::shared_ptr<SoundContainer> (AudioMan::*)(const std::string& filePath, const Vector& position, int player)) & AudioMan::PlaySound);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, MusicMan) {

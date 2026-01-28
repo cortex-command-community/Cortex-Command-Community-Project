@@ -739,7 +739,7 @@ bool Activity::SwitchToActor(Actor* actor, int player, int team) {
 	m_ControlledActor[player]->SetControllerMode(Controller::CIM_PLAYER, player);
 	m_ControlledActor[player]->GetController()->SetDisabled(false);
 
-	SoundContainer* actorSwitchSoundToPlay = (m_ControlledActor[player] == m_Brain[player]) ? g_GUISound.BrainSwitchSound() : g_GUISound.ActorSwitchSound();
+	auto actorSwitchSoundToPlay = (m_ControlledActor[player] == m_Brain[player]) ? g_GUISound.BrainSwitchSound() : g_GUISound.ActorSwitchSound();
 	actorSwitchSoundToPlay->Play(player);
 
 	// If out of frame from the POV of the preswitch actor, play the camera travel noise

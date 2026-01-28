@@ -8,6 +8,7 @@
 
 #include "fmod/fmod.hpp"
 #include "fmod/fmod_errors.h"
+#include <memory>
 
 #define g_AudioMan AudioMan::Instance()
 
@@ -276,19 +277,19 @@ namespace RTE {
 		/// Starts playing a certain sound file.
 		/// @param filePath The path to the sound file to play.
 		/// @return The new SoundContainer being played. OWNERSHIP IS TRANSFERRED!
-		SoundContainer* PlaySound(const std::string& filePath) { return PlaySound(filePath, Vector(), -1); }
+		std::shared_ptr<SoundContainer> PlaySound(const std::string& filePath) { return PlaySound(filePath, Vector(), -1); }
 
 		/// Starts playing a certain sound file at a certain position for all players.
 		/// @param filePath The path to the sound file to play.
 		/// @return The new SoundContainer being played. OWNERSHIP IS TRANSFERRED!
-		SoundContainer* PlaySound(const std::string& filePath, const Vector& position) { return PlaySound(filePath, position, -1); }
+		std::shared_ptr<SoundContainer> PlaySound(const std::string& filePath, const Vector& position) { return PlaySound(filePath, position, -1); }
 
 		/// Starts playing a certain sound file at a certain position for a certain player.
 		/// @param filePath The path to the sound file to play.
 		/// @param position The position at which to play the SoundContainer's sounds.
 		/// @param player Which player to play the SoundContainer's sounds for, -1 means all players.
 		/// @return The new SoundContainer being played. OWNERSHIP IS TRANSFERRED!
-		SoundContainer* PlaySound(const std::string& filePath, const Vector& position, int player);
+		std::shared_ptr<SoundContainer> PlaySound(const std::string& filePath, const Vector& position, int player);
 #pragma endregion
 
 #pragma region Network Audio Handling
@@ -359,10 +360,10 @@ namespace RTE {
 	private:
 #pragma region Sound Container Actions and Modifications
 		/// Starts playing the next SoundSet of the given SoundContainer for the give player.
-		/// @param soundContainer Pointer to the SoundContainer to start playing. Ownership is NOT transferred!
+		/// @param soundContainer Pointer to the SoundContainer to start playing.
 		/// @param player Which player to play the SoundContainer's sounds for, -1 means all players. Defaults to -1.
 		/// @return Whether or not playback of the Sound was successful.
-		bool PlaySoundContainer(SoundContainer* soundContainer, int player = -1);
+		bool PlaySoundContainer(std::shared_ptr<SoundContainer> soundContainer, int player = -1);
 
 		/// Sets/updates the position of a SoundContainer's playing sounds.
 		/// @param soundContainer A pointer to a SoundContainer object. Ownership IS NOT transferred!

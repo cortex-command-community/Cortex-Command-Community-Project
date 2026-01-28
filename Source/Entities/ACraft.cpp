@@ -230,12 +230,15 @@ int ACraft::Create(const ACraft& reference) {
 	m_HatchState = reference.m_HatchState;
 	m_HatchDelay = reference.m_HatchDelay;
 	if (reference.m_HatchOpenSound) {
-		m_HatchOpenSound = dynamic_cast<SoundContainer*>(reference.m_HatchOpenSound->Clone());
+		m_HatchOpenSound = std::make_shared<SoundContainer>();
+		reference.m_HatchOpenSound->Clone(&*m_HatchOpenSound);
 	}
 	if (reference.m_HatchCloseSound) {
-		m_HatchCloseSound = dynamic_cast<SoundContainer*>(reference.m_HatchCloseSound->Clone());
+		m_HatchCloseSound = std::make_shared<SoundContainer>();
+		reference.m_HatchCloseSound->Clone(&*m_HatchCloseSound);
 	} else if (reference.m_HatchOpenSound) {
-		m_HatchCloseSound = dynamic_cast<SoundContainer*>(reference.m_HatchOpenSound->Clone());
+		m_HatchCloseSound = std::make_shared<SoundContainer>();
+		reference.m_HatchOpenSound->Clone(&*m_HatchCloseSound);
 	}
 	for (std::deque<MovableObject*>::const_iterator niItr = reference.m_CollectedInventory.begin(); niItr != reference.m_CollectedInventory.end(); ++niItr)
 		m_CollectedInventory.push_back(dynamic_cast<MovableObject*>((*niItr)->Clone()));
@@ -246,7 +249,8 @@ int ACraft::Create(const ACraft& reference) {
 	m_HasDelivered = reference.m_HasDelivered;
 	m_LandingCraft = reference.m_LandingCraft;
 	if (reference.m_CrashSound) {
-		m_CrashSound = dynamic_cast<SoundContainer*>(reference.m_CrashSound->Clone());
+		m_CrashSound = std::make_shared<SoundContainer>();
+		reference.m_CrashSound->Clone(&*m_CrashSound);
 	}
 
 	m_DeliveryState = reference.m_DeliveryState;
@@ -267,16 +271,16 @@ int ACraft::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 	MatchProperty("HatchDelay", { reader >> m_HatchDelay; });
 	MatchProperty("HatchOpenSound", {
-		m_HatchOpenSound = new SoundContainer;
-		reader >> m_HatchOpenSound;
+		m_HatchOpenSound = std::make_shared<SoundContainer>();
+		reader >> *m_HatchOpenSound;
 	});
 	MatchProperty("HatchCloseSound", {
-		m_HatchCloseSound = new SoundContainer;
-		reader >> m_HatchCloseSound;
+		m_HatchCloseSound = std::make_shared<SoundContainer>();
+		reader >> *m_HatchCloseSound;
 	});
 	MatchProperty("CrashSound", {
-		m_CrashSound = new SoundContainer;
-		reader >> m_CrashSound;
+		m_CrashSound = std::make_shared<SoundContainer>();
+		reader >> *m_CrashSound;
 	});
 	MatchProperty("AddExit",
 	              {
@@ -301,9 +305,9 @@ int ACraft::Save(Writer& writer) const {
 	writer.NewProperty("HatchDelay");
 	writer << m_HatchDelay;
 	writer.NewProperty("HatchOpenSound");
-	writer << m_HatchOpenSound;
+	writer << *m_HatchOpenSound;
 	writer.NewProperty("HatchCloseSound");
-	writer << m_HatchCloseSound;
+	writer << *m_HatchCloseSound;
 	for (std::list<Exit>::const_iterator itr = m_Exits.begin(); itr != m_Exits.end(); ++itr) {
 		writer.NewProperty("AddExit");
 		writer << (*itr);
@@ -316,7 +320,7 @@ int ACraft::Save(Writer& writer) const {
 	writer << m_LandingCraft;
 
 	writer.NewProperty("CrashSound");
-	writer << m_CrashSound;
+	writer << *m_CrashSound;
 	
 	writer.NewProperty("CanEnterOrbit");
 	writer << m_CanEnterOrbit;
@@ -332,10 +336,6 @@ int ACraft::Save(Writer& writer) const {
 }
 
 void ACraft::Destroy(bool notInherited) {
-	delete m_HatchOpenSound;
-	delete m_HatchCloseSound;
-	delete m_CrashSound;
-
 	if (!notInherited)
 		Actor::Destroy();
 	Clear();

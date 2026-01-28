@@ -108,28 +108,36 @@ int HDFirearm::Create(const HDFirearm& reference) {
 
 	m_pMagazineReference = reference.m_pMagazineReference;
 	if (reference.m_PreFireSound) {
-		m_PreFireSound = dynamic_cast<SoundContainer*>(reference.m_PreFireSound->Clone());
+		m_PreFireSound = std::make_shared<SoundContainer>();
+		reference.m_PreFireSound->Clone(&*m_PreFireSound);
 	}
 	if (reference.m_FireSound) {
-		m_FireSound = dynamic_cast<SoundContainer*>(reference.m_FireSound->Clone());
+		m_FireSound = std::make_shared<SoundContainer>();
+		reference.m_FireSound->Clone(&*m_FireSound);
 	}
 	if (reference.m_FireEchoSound) {
-		m_FireEchoSound = dynamic_cast<SoundContainer*>(reference.m_FireEchoSound->Clone());
+		m_FireEchoSound = std::make_shared<SoundContainer>();
+		reference.m_FireEchoSound->Clone(&*m_FireEchoSound);
 	}
 	if (reference.m_ActiveSound) {
-		m_ActiveSound = dynamic_cast<SoundContainer*>(reference.m_ActiveSound->Clone());
+		m_ActiveSound = std::make_shared<SoundContainer>();
+		reference.m_ActiveSound->Clone(&*m_ActiveSound);
 	}
 	if (reference.m_DeactivationSound) {
-		m_DeactivationSound = dynamic_cast<SoundContainer*>(reference.m_DeactivationSound->Clone());
+		m_DeactivationSound = std::make_shared<SoundContainer>();
+		reference.m_DeactivationSound->Clone(&*m_DeactivationSound);
 	}
 	if (reference.m_EmptySound) {
-		m_EmptySound = dynamic_cast<SoundContainer*>(reference.m_EmptySound->Clone());
+		m_EmptySound = std::make_shared<SoundContainer>();
+		reference.m_EmptySound->Clone(&*m_EmptySound);
 	}
 	if (reference.m_ReloadStartSound) {
-		m_ReloadStartSound = dynamic_cast<SoundContainer*>(reference.m_ReloadStartSound->Clone());
+		m_ReloadStartSound = std::make_shared<SoundContainer>();
+		reference.m_ReloadStartSound->Clone(&*m_ReloadStartSound);
 	}
 	if (reference.m_ReloadEndSound) {
-		m_ReloadEndSound = dynamic_cast<SoundContainer*>(reference.m_ReloadEndSound->Clone());
+		m_ReloadEndSound = std::make_shared<SoundContainer>();
+		reference.m_ReloadEndSound->Clone(&*m_ReloadEndSound);
 	}
 	m_ReloadEndOffset = reference.m_ReloadEndOffset;
 	m_RateOfFire = reference.m_RateOfFire;
@@ -173,37 +181,37 @@ int HDFirearm::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("Magazine", { SetMagazine(dynamic_cast<Magazine*>(g_PresetMan.ReadReflectedPreset(reader))); });
 	MatchProperty("Flash", { SetFlash(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
 	MatchProperty("PreFireSound", {
-		m_PreFireSound = new SoundContainer;
-		reader >> m_PreFireSound;
+		m_PreFireSound = std::make_shared<SoundContainer>();
+		reader >> *m_PreFireSound;
 	});
 	MatchProperty("FireSound", {
-		m_FireSound = new SoundContainer;
-		reader >> m_FireSound;
+		m_FireSound = std::make_shared<SoundContainer>();
+		reader >> *m_FireSound;
 	});
 	MatchProperty("FireEchoSound", {
-		m_FireEchoSound = new SoundContainer;
-		reader >> m_FireEchoSound;
+		m_FireEchoSound = std::make_shared<SoundContainer>();
+		reader >> *m_FireEchoSound;
 		m_FireEchoSound->SetSoundOverlapMode(SoundContainer::SoundOverlapMode::RESTART);
 	});
 	MatchProperty("ActiveSound", {
-		m_ActiveSound = new SoundContainer;
-		reader >> m_ActiveSound;
+		m_ActiveSound = std::make_shared<SoundContainer>();
+		reader >> *m_ActiveSound;
 	});
 	MatchProperty("DeactivationSound", {
-		m_DeactivationSound = new SoundContainer;
-		reader >> m_DeactivationSound;
+		m_DeactivationSound = std::make_shared<SoundContainer>();
+		reader >> *m_DeactivationSound;
 	});
 	MatchProperty("EmptySound", {
-		m_EmptySound = new SoundContainer;
-		reader >> m_EmptySound;
+		m_EmptySound = std::make_shared<SoundContainer>();
+		reader >> *m_EmptySound;
 	});
 	MatchProperty("ReloadStartSound", {
-		m_ReloadStartSound = new SoundContainer;
-		reader >> m_ReloadStartSound;
+		m_ReloadStartSound = std::make_shared<SoundContainer>();
+		reader >> *m_ReloadStartSound;
 	});
 	MatchProperty("ReloadEndSound", {
-		m_ReloadEndSound = new SoundContainer;
-		reader >> m_ReloadEndSound;
+		m_ReloadEndSound = std::make_shared<SoundContainer>();
+		reader >> *m_ReloadEndSound;
 	});
 	MatchProperty("ReloadEndOffset", { reader >> m_ReloadEndOffset; });
 	MatchProperty("RateOfFire", { reader >> m_RateOfFire; });
@@ -258,21 +266,21 @@ int HDFirearm::Save(Writer& writer) const {
 	writer.NewProperty("Flash");
 	writer << m_pFlash;
 	writer.NewProperty("PreFireSound");
-	writer << m_PreFireSound;
+	writer << *m_PreFireSound;
 	writer.NewProperty("FireSound");
-	writer << m_FireSound;
+	writer << *m_FireSound;
 	writer.NewProperty("FireEchoSound");
-	writer << m_FireEchoSound;
+	writer << *m_FireEchoSound;
 	writer.NewProperty("ActiveSound");
-	writer << m_ActiveSound;
+	writer << *m_ActiveSound;
 	writer.NewProperty("DeactivationSound");
-	writer << m_DeactivationSound;
+	writer << *m_DeactivationSound;
 	writer.NewProperty("EmptySound");
-	writer << m_EmptySound;
+	writer << *m_EmptySound;
 	writer.NewProperty("ReloadStartSound");
-	writer << m_ReloadStartSound;
+	writer << *m_ReloadStartSound;
 	writer.NewProperty("ReloadEndSound");
-	writer << m_ReloadEndSound;
+	writer << *m_ReloadEndSound;
 	writer.NewPropertyWithValue("ReloadEndOffset", m_ReloadEndOffset);
 	writer.NewProperty("RateOfFire");
 	writer << m_RateOfFire;
@@ -349,15 +357,6 @@ void HDFirearm::Destroy(bool notInherited) {
 	if (m_ReloadEndSound) {
 		m_ReloadEndSound->Stop();
 	}
-
-	delete m_PreFireSound;
-	delete m_FireSound;
-	delete m_FireEchoSound;
-	delete m_ActiveSound;
-	delete m_DeactivationSound;
-	delete m_EmptySound;
-	delete m_ReloadStartSound;
-	delete m_ReloadEndSound;
 
 	if (!notInherited)
 		HeldDevice::Destroy();

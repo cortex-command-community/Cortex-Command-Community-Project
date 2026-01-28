@@ -27,6 +27,7 @@
 #include "AllegroBitmap.h"
 
 #include "tracy/Tracy.hpp"
+#include <memory>
 
 using namespace RTE;
 
@@ -175,19 +176,24 @@ int Actor::Create(const Actor& reference) {
 	m_PlayerControllable = reference.m_PlayerControllable;
 
 	if (reference.m_BodyHitSound) {
-		m_BodyHitSound = dynamic_cast<SoundContainer*>(reference.m_BodyHitSound->Clone());
+		m_BodyHitSound = std::make_shared<SoundContainer>();
+		reference.m_BodyHitSound->Clone(&*m_BodyHitSound);
 	}
 	if (reference.m_AlarmSound) {
-		m_AlarmSound = dynamic_cast<SoundContainer*>(reference.m_AlarmSound->Clone());
+		m_AlarmSound = std::make_shared<SoundContainer>();
+		reference.m_AlarmSound->Clone(&*m_AlarmSound);
 	}
 	if (reference.m_PainSound) {
-		m_PainSound = dynamic_cast<SoundContainer*>(reference.m_PainSound->Clone());
+		m_PainSound = std::make_shared<SoundContainer>();
+		reference.m_PainSound->Clone(&*m_PainSound);
 	}
 	if (reference.m_DeathSound) {
-		m_DeathSound = dynamic_cast<SoundContainer*>(reference.m_DeathSound->Clone());
+		m_DeathSound = std::make_shared<SoundContainer>();
+		reference.m_DeathSound->Clone(&*m_DeathSound);
 	}
 	if (reference.m_DeviceSwitchSound) {
-		m_DeviceSwitchSound = dynamic_cast<SoundContainer*>(reference.m_DeviceSwitchSound->Clone());
+		m_DeviceSwitchSound = std::make_shared<SoundContainer>();
+		reference.m_DeviceSwitchSound->Clone(&*m_DeviceSwitchSound);
 	}
 	//    m_FacingRight = reference.m_FacingRight;
 	m_Status = reference.m_Status;
@@ -293,24 +299,24 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 	MatchProperty("PlayerControllable", { reader >> m_PlayerControllable; });
 	MatchProperty("BodyHitSound", {
-		m_BodyHitSound = new SoundContainer;
-		reader >> m_BodyHitSound;
+		m_BodyHitSound = std::make_shared<SoundContainer>();
+		reader >> *m_BodyHitSound;
 	});
 	MatchProperty("AlarmSound", {
-		m_AlarmSound = new SoundContainer;
-		reader >> m_AlarmSound;
+		m_AlarmSound = std::make_shared<SoundContainer>();
+		reader >> *m_AlarmSound;
 	});
 	MatchProperty("PainSound", {
-		m_PainSound = new SoundContainer;
-		reader >> m_PainSound;
+		m_PainSound = std::make_shared<SoundContainer>();
+		reader >> *m_PainSound;
 	});
 	MatchProperty("DeathSound", {
-		m_DeathSound = new SoundContainer;
-		reader >> m_DeathSound;
+		m_DeathSound = std::make_shared<SoundContainer>();
+		reader >> *m_DeathSound;
 	});
 	MatchProperty("DeviceSwitchSound", {
-		m_DeviceSwitchSound = new SoundContainer;
-		reader >> m_DeviceSwitchSound;
+		m_DeviceSwitchSound = std::make_shared<SoundContainer>();
+		reader >> *m_DeviceSwitchSound;
 	});
 	MatchProperty("Status", { reader >> m_Status; });
 	MatchProperty("DeploymentID", { reader >> m_DeploymentID; });
@@ -385,15 +391,15 @@ int Actor::Save(Writer& writer) const {
 
 	writer.NewPropertyWithValue("PlayerControllable", m_PlayerControllable);
 	writer.NewProperty("BodyHitSound");
-	writer << m_BodyHitSound;
+	writer << *m_BodyHitSound;
 	writer.NewProperty("AlarmSound");
-	writer << m_AlarmSound;
+	writer << *m_AlarmSound;
 	writer.NewProperty("PainSound");
-	writer << m_PainSound;
+	writer << *m_PainSound;
 	writer.NewProperty("DeathSound");
-	writer << m_DeathSound;
+	writer << *m_DeathSound;
 	writer.NewProperty("DeviceSwitchSound");
-	writer << m_DeviceSwitchSound;
+	writer << *m_DeviceSwitchSound;
 	writer.NewProperty("Status");
 	writer << m_Status;
 	writer.NewProperty("Health");
@@ -464,12 +470,6 @@ void Actor::DestroyScriptState() {
 }
 
 void Actor::Destroy(bool notInherited) {
-	delete m_DeviceSwitchSound;
-	delete m_BodyHitSound;
-	delete m_PainSound;
-	delete m_DeathSound;
-	delete m_AlarmSound;
-
 	for (std::deque<MovableObject*>::const_iterator itr = m_Inventory.begin(); itr != m_Inventory.end(); ++itr) {
 		delete (*itr);
 	}

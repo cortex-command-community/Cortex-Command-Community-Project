@@ -202,7 +202,8 @@ int ACrab::Create(const ACrab& reference) {
 	m_BackupRBGFootGroup->SetLimbPos(atomGroupToUseAsFootGroupLFG->GetLimbPos());
 
 	if (reference.m_StrideSound) {
-		m_StrideSound = dynamic_cast<SoundContainer*>(reference.m_StrideSound->Clone());
+		m_StrideSound = std::make_shared<SoundContainer>();
+		reference.m_StrideSound->Clone(&*m_StrideSound);
 	}
 
 	m_MovementState = reference.m_MovementState;
@@ -297,8 +298,8 @@ int ACrab::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_BackupRBGFootGroup->RemoveAllAtoms();
 	});
 	MatchProperty("StrideSound", {
-		m_StrideSound = new SoundContainer;
-		reader >> m_StrideSound;
+		m_StrideSound = std::make_shared<SoundContainer>();
+		reader >> *m_StrideSound;
 	});
 	MatchForwards("LStandLimbPath") MatchProperty("LeftStandLimbPath", { reader >> m_Paths[LEFTSIDE][FGROUND][STAND]; });
 	MatchForwards("LWalkLimbPath") MatchProperty("LeftWalkLimbPath", { reader >> m_Paths[LEFTSIDE][FGROUND][WALK]; });
@@ -337,7 +338,7 @@ int ACrab::Save(Writer& writer) const {
 	writer.NewProperty("RBGFootGroup");
 	writer << m_pRBGFootGroup;
 	writer.NewProperty("StrideSound");
-	writer << m_StrideSound;
+	writer << *m_StrideSound;
 
 	writer.NewProperty("LStandLimbPath");
 	writer << m_Paths[LEFTSIDE][FGROUND][STAND];
@@ -368,7 +369,6 @@ void ACrab::Destroy(bool notInherited) {
 	delete m_pRFGFootGroup;
 	delete m_pRBGFootGroup;
 
-	delete m_StrideSound;
 	//    for (deque<LimbPath *>::iterator itr = m_WalkPaths.begin();
 	//         itr != m_WalkPaths.end(); ++itr)
 	//        delete *itr;

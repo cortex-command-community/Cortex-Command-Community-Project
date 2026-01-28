@@ -7,6 +7,7 @@
 /// Inclusions of header files
 #include "Attachable.h"
 #include "Emission.h"
+#include <memory>
 
 namespace RTE {
 
@@ -333,29 +334,44 @@ namespace RTE {
 		/// @param newValue New number of emissions left
 		void SetEmitCountLimit(long newValue) { m_EmitCountLimit = newValue; }
 
-		/// Gets this AEmitter's emission sound. Ownership is NOT transferred!
+		/// Gets this AEmitter's emission sound.
 		/// @return The SoundContainer for this AEmitter's emission sound.
-		SoundContainer* GetEmissionSound() const { return m_EmissionSound; }
+		std::shared_ptr<SoundContainer> GetEmissionSound() const { return m_EmissionSound; }
 
-		/// Sets this AEmitter's emission sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this AEmitter's emission sound.
-		void SetEmissionSound(SoundContainer* newSound) { m_EmissionSound = newSound; }
+		/// Sets this AEmitter's emission sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this AEmitter's emission sound to copy.
+		void SetEmissionSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_EmissionSound = nullptr;
+			else
+				m_EmissionSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this AEmitter's burst sound. Ownership is NOT transferred!
+		/// Gets this AEmitter's burst sound.
 		/// @return The SoundContainer for this AEmitter's burst sound.
-		SoundContainer* GetBurstSound() const { return m_BurstSound; }
+		std::shared_ptr<SoundContainer> GetBurstSound() const { return m_BurstSound; }
 
-		/// Sets this AEmitter's burst sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this AEmitter's burst sound.
-		void SetBurstSound(SoundContainer* newSound) { m_BurstSound = newSound; }
+		/// Sets this AEmitter's burst sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this AEmitter's burst sound to copy.
+		void SetBurstSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_BurstSound = nullptr;
+			else
+				m_BurstSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this AEmitter's end sound. Ownership is NOT transferred!
+		/// Gets this AEmitter's end sound.
 		/// @return The SoundContainer for this AEmitter's end sound.
-		SoundContainer* GetEndSound() const { return m_EndSound; }
+		std::shared_ptr<SoundContainer> GetEndSound() const { return m_EndSound; }
 
-		/// Sets this AEmitter's end sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this AEmitter's end sound.
-		void SetEndSound(SoundContainer* newSound) { m_EndSound = newSound; }
+		/// Sets this AEmitter's end sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this AEmitter's end sound to copy.
+		void SetEndSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_EndSound = nullptr;
+			else
+				m_EndSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
 		/// Returns whether this emitter just started emitting this frame.
 		/// @return Whether this emitter just started emitting this frame.
@@ -369,9 +385,9 @@ namespace RTE {
 		// The list of MO instances that get emitted
 		std::list<Emission*> m_EmissionList;
 		// Sounds
-		SoundContainer* m_EmissionSound;
-		SoundContainer* m_BurstSound;
-		SoundContainer* m_EndSound;
+		std::shared_ptr<SoundContainer> m_EmissionSound;
+		std::shared_ptr<SoundContainer> m_BurstSound;
+		std::shared_ptr<SoundContainer> m_EndSound;
 		// Whether emitting is currently enabled or not.
 		bool m_EmitEnabled;
 		// Whether or not the it was emitting last frame or not.

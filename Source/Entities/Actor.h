@@ -740,45 +740,70 @@ namespace RTE {
 		/// @param value Threshold for taking damage from travel impulses, in kg * m/s
 		void SetTravelImpulseDamage(float value) { m_TravelImpulseDamage = value; }
 
-		/// Gets this Actor's body hit sound. Ownership is NOT transferred!
+		/// Gets this Actor's body hit sound.
 		/// @return The SoundContainer for this Actor's body hit sound.
-		SoundContainer* GetBodyHitSound() const { return m_BodyHitSound; }
+		std::shared_ptr<SoundContainer> GetBodyHitSound() const { return m_BodyHitSound; }
 
-		/// Sets this Actor's body hit sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this Actor's body hit sound.
-		void SetBodyHitSound(SoundContainer* newSound) { m_BodyHitSound = newSound; }
+		/// Sets this Actor's body hit sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this Actor's body hit sound to copy.
+		void SetBodyHitSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_BodyHitSound = nullptr;
+			else
+				m_BodyHitSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this Actor's alarm sound. Ownership is NOT transferred!
+		/// Gets this Actor's alarm sound.
 		/// @return The SoundContainer for this Actor's alarm sound.
-		SoundContainer* GetAlarmSound() const { return m_AlarmSound; }
+		std::shared_ptr<SoundContainer> GetAlarmSound() const { return m_AlarmSound; }
 
-		/// Sets this Actor's alarm sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this Actor's alarm sound.
-		void SetAlarmSound(SoundContainer* newSound) { m_AlarmSound = newSound; }
+		/// Sets this Actor's alarm sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this Actor's alarm sound to copy.
+		void SetAlarmSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_AlarmSound = nullptr;
+			else
+				m_AlarmSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this Actor's pain sound. Ownership is NOT transferred!
+		/// Gets this Actor's pain sound.
 		/// @return The SoundContainer for this Actor's pain sound.
-		SoundContainer* GetPainSound() const { return m_PainSound; }
+		std::shared_ptr<SoundContainer> GetPainSound() const { return m_PainSound; }
 
-		/// Sets this Actor's pain sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this Actor's pain sound.
-		void SetPainSound(SoundContainer* newSound) { m_PainSound = newSound; }
+		/// Sets this Actor's pain sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this Actor's pain sound to copy.
+		void SetPainSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_PainSound = nullptr;
+			else
+				m_PainSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this Actor's death sound. Ownership is NOT transferred!
+		/// Gets this Actor's death sound.
 		/// @return The SoundContainer for this Actor's death sound.
-		SoundContainer* GetDeathSound() const { return m_DeathSound; }
+		std::shared_ptr<SoundContainer> GetDeathSound() const { return m_DeathSound; }
 
-		/// Sets this Actor's death sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this Actor's death sound.
-		void SetDeathSound(SoundContainer* newSound) { m_DeathSound = newSound; }
+		/// Sets this Actor's death sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this Actor's death sound to copy.
+		void SetDeathSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_DeathSound = nullptr;
+			else
+				m_DeathSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this Actor's device switch sound. Ownership is NOT transferred!
+		/// Gets this Actor's device switch sound.
 		/// @return The SoundContainer for this Actor's device switch sound.
-		SoundContainer* GetDeviceSwitchSound() const { return m_DeviceSwitchSound; }
+		std::shared_ptr<SoundContainer> GetDeviceSwitchSound() const { return m_DeviceSwitchSound; }
 
-		/// Sets this Actor's device switch sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this Actor's device switch sound.
-		void SetDeviceSwitchSound(SoundContainer* newSound) { m_DeviceSwitchSound = newSound; }
+		/// Sets this Actor's device switch sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this Actor's device switch sound to copy.
+		void SetDeviceSwitchSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_DeviceSwitchSound = nullptr;
+			else
+				m_DeviceSwitchSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
 		/// Gets the X and Y thresholds for how fast the actor can travel before losing stability.
 		/// @return A Vector with the X and Y thresholds for how fast the actor can travel before losing stability.
@@ -884,11 +909,11 @@ namespace RTE {
 		bool m_PlayerControllable; //!< Whether or not this Actor can be controlled by human players.
 
 		// Sounds
-		SoundContainer* m_BodyHitSound;
-		SoundContainer* m_AlarmSound;
-		SoundContainer* m_PainSound;
-		SoundContainer* m_DeathSound;
-		SoundContainer* m_DeviceSwitchSound;
+		std::shared_ptr<SoundContainer> m_BodyHitSound;
+		std::shared_ptr<SoundContainer> m_AlarmSound;
+		std::shared_ptr<SoundContainer> m_PainSound;
+		std::shared_ptr<SoundContainer> m_DeathSound;
+		std::shared_ptr<SoundContainer> m_DeviceSwitchSound;
 
 		int m_Status;
 		float m_Health;

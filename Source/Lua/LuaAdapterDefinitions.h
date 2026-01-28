@@ -102,6 +102,15 @@ namespace RTE {
 	static TYPE* Random##TYPE(std::string groupName, std::string dataModuleName); \
 	static TYPE* Random##TYPE(std::string groupName)
 
+		
+// Same as `LuaEntityCreateFunctionsDeclarationsForType` but using shared_ptr return types.
+#define LuaEntityCreateFunctionsDeclarationsForTypeUsingSharedPtr(TYPE) \
+	static std::shared_ptr<TYPE> Create##TYPE(std::string preseName, std::string moduleName); \
+	static std::shared_ptr<TYPE> Create##TYPE(std::string preset); \
+	static std::shared_ptr<TYPE> Random##TYPE(std::string groupName, int moduleSpaceID); \
+	static std::shared_ptr<TYPE> Random##TYPE(std::string groupName, std::string dataModuleName); \
+	static std::shared_ptr<TYPE> Random##TYPE(std::string groupName)
+
 		LuaEntityCreateFunctionsDeclarationsForType(SoundContainer);
 		LuaEntityCreateFunctionsDeclarationsForType(Attachable);
 		LuaEntityCreateFunctionsDeclarationsForType(Arm);
@@ -136,6 +145,10 @@ namespace RTE {
 /// Convenience macro to generate a preset clone adapter function for a type.
 #define LuaEntityCloneFunctionDeclarationForType(TYPE) \
 	static TYPE* Clone##TYPE(const TYPE* thisEntity)
+
+// Same as `LuaEntityCloneFunctionDeclarationForType` but using shared_ptr return type.
+#define LuaEntityCloneFunctionDeclarationForTypeUsingSharedPtr(TYPE) \
+	static std::shared_ptr<TYPE> Clone##TYPE(const std::shared_ptr<TYPE> thisEntity)
 
 		LuaEntityCloneFunctionDeclarationForType(Entity);
 		LuaEntityCloneFunctionDeclarationForType(SoundContainer);
@@ -177,6 +190,13 @@ namespace RTE {
 	static TYPE* To##TYPE(Entity* entity); \
 	static const TYPE* ToConst##TYPE(const Entity* entity); \
 	static bool Is##TYPE(Entity* entity); \
+	static LuabindObjectWrapper* ToLuabindObject##TYPE(Entity* entity, lua_State* luaState)
+
+// Same as `LuaEntityCastFunctionsDeclarationsForType(TYPE)` but using shared_ptr types.
+#define LuaEntityCastFunctionsDeclarationsForTypeUsingSharedPtr(TYPE) \
+	static std::shared_ptr<TYPE> To##TYPE(std::shared_ptr<Entity> entity); \
+	static const std::shared_ptr<TYPE> ToConst##TYPE(const std::shared_ptr<Entity> entity); \
+	static bool Is##TYPE(std::shared_ptr<Entity> entity); \
 	static LuabindObjectWrapper* ToLuabindObject##TYPE(Entity* entity, lua_State* luaState)
 
 		static std::unordered_map<std::string, std::function<LuabindObjectWrapper*(Entity*, lua_State*)>> s_EntityToLuabindObjectCastFunctions; //!< Map of preset names to casting methods for ensuring objects are downcast properly when passed into Lua.
@@ -226,26 +246,13 @@ namespace RTE {
 #define LuaPropertyOwnershipSafetyFakerFunctionDeclaration(OBJECTTYPE, PROPERTYTYPE, SETTERFUNCTION) \
 	static void OBJECTTYPE##SETTERFUNCTION(OBJECTTYPE* luaSelfObject, PROPERTYTYPE* objectToSet)
 
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(MOSRotating, SoundContainer, SetGibSound);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(Attachable, AEmitter, SetBreakWound);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(Attachable, AEmitter, SetParentBreakWound);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AEmitter, Attachable, SetFlash);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AEmitter, SoundContainer, SetEmissionSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AEmitter, SoundContainer, SetBurstSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AEmitter, SoundContainer, SetEndSound);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ADoor, Attachable, SetDoor);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(Arm, HeldDevice, SetHeldDevice);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(Leg, Attachable, SetFoot);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(Actor, PieMenu, SetPieMenu);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(Actor, SoundContainer, SetBodyHitSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(Actor, SoundContainer, SetAlarmSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(Actor, SoundContainer, SetPainSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(Actor, SoundContainer, SetDeathSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(Actor, SoundContainer, SetDeviceSwitchSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ADoor, SoundContainer, SetDoorMoveStartSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ADoor, SoundContainer, SetDoorMoveSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ADoor, SoundContainer, SetDoorDirectionChangeSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ADoor, SoundContainer, SetDoorMoveEndSound);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AHuman, Attachable, SetHead);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AHuman, AEJetpack, SetJetpack);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AHuman, Arm, SetFGArm);
@@ -254,18 +261,13 @@ namespace RTE {
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AHuman, Leg, SetBGLeg);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AHuman, Attachable, SetFGFoot);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AHuman, Attachable, SetBGFoot);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(AHuman, SoundContainer, SetStrideSound);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACrab, Turret, SetTurret);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACrab, AEJetpack, SetJetpack);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACrab, Leg, SetLeftFGLeg);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACrab, Leg, SetLeftBGLeg);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACrab, Leg, SetRightFGLeg);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACrab, Leg, SetRightBGLeg);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACrab, SoundContainer, SetStrideSound);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(Turret, HeldDevice, SetFirstMountedDevice);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACraft, SoundContainer, SetHatchOpenSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACraft, SoundContainer, SetHatchCloseSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACraft, SoundContainer, SetCrashSound);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACDropShip, AEmitter, SetRightThruster);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACDropShip, AEmitter, SetLeftThruster);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACDropShip, AEmitter, SetURightThruster);
@@ -281,14 +283,6 @@ namespace RTE {
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(ACRocket, AEmitter, SetURightThruster);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(HDFirearm, Magazine, SetMagazine);
 		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(HDFirearm, Attachable, SetFlash);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(HDFirearm, SoundContainer, SetPreFireSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(HDFirearm, SoundContainer, SetFireSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(HDFirearm, SoundContainer, SetFireEchoSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(HDFirearm, SoundContainer, SetActiveSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(HDFirearm, SoundContainer, SetDeactivationSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(HDFirearm, SoundContainer, SetEmptySound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(HDFirearm, SoundContainer, SetReloadStartSound);
-		LuaPropertyOwnershipSafetyFakerFunctionDeclaration(HDFirearm, SoundContainer, SetReloadEndSound);
 	};
 #pragma endregion
 

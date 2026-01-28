@@ -19,6 +19,7 @@
 #include "SoundContainer.h"
 
 #include "tracy/Tracy.hpp"
+#include <memory>
 
 using namespace RTE;
 
@@ -139,8 +140,10 @@ int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 	}
 
 	// Get the unseen reveal sound
-	if (!m_pUnseenRevealSound)
-		m_pUnseenRevealSound = dynamic_cast<SoundContainer*>(g_PresetMan.GetEntityPreset("SoundContainer", "Unseen Reveal Blip")->Clone());
+	if (!m_pUnseenRevealSound) {
+		m_pUnseenRevealSound = std::make_shared<SoundContainer>();
+		g_PresetMan.GetEntityPreset("SoundContainer", "Unseen Reveal Blip")->Clone(&*m_pUnseenRevealSound);
+	}
 
 	//    m_pCurrentScene->GetTerrain()->CleanAir();
 
@@ -284,7 +287,6 @@ void SceneMan::Destroy() {
 	delete m_pCurrentScene;
 	delete m_pDebugLayer;
 	delete m_pMOColorLayer;
-	delete m_pUnseenRevealSound;
 
 	destroy_bitmap(m_pOrphanSearchBitmap);
 	m_pOrphanSearchBitmap = 0;

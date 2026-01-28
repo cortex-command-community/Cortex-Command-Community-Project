@@ -1004,7 +1004,7 @@ namespace RTE {
 		std::vector<Material*> m_MaterialCopiesVector;
 
 		// Sound of an unseen pixel on an unseen layer being revealed.
-		SoundContainer* m_pUnseenRevealSound;
+		std::shared_ptr<SoundContainer> m_pUnseenRevealSound;
 
 		bool m_DrawRayCastVisualizations; //!< Whether to visibly draw RayCasts to the Scene debug Bitmap.
 		bool m_DrawPixelCheckVisualizations; //!< Whether to visibly draw pixel checks (GetTerrMatter and GetMOIDPixel) to the Scene debug Bitmap.

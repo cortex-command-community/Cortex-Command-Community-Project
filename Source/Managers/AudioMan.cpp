@@ -11,6 +11,7 @@
 
 #include <array>
 #include <cstring>
+#include <memory>
 
 using namespace RTE;
 
@@ -260,12 +261,12 @@ void AudioMan::FinishIngameLoopingSounds() {
 	}
 }
 
-SoundContainer* AudioMan::PlaySound(const std::string& filePath, const Vector& position, int player) {
+std::shared_ptr<SoundContainer> AudioMan::PlaySound(const std::string& filePath, const Vector& position, int player) {
 	if (m_IsInMultiplayerMode) {
 		return nullptr;
 	}
 
-	SoundContainer* newSoundContainer = new SoundContainer();
+	auto newSoundContainer = std::make_shared<SoundContainer>();
 	newSoundContainer->SetPosition(position);
 	newSoundContainer->GetTopLevelSoundSet().AddSound(filePath);
 	if (newSoundContainer->HasAnySounds()) {
@@ -356,11 +357,18 @@ void AudioMan::ClearSoundEvents(int player) {
 	}
 }
 
-bool AudioMan::PlaySoundContainer(SoundContainer* soundContainer, int player) {
-	if (!m_AudioEnabled || !soundContainer || soundContainer->GetPlayingChannels()->size() >= c_MaxPlayingSoundsPerContainer) {
+bool AudioMan::PlaySoundContainer(std::shared_ptr<SoundContainer> soundContainerInput, int player) {
+	if (!m_AudioEnabled || !soundContainerInput || soundContainerInput->GetPlayingChannels()->size() >= c_MaxPlayingSoundsPerContainer) {
 		return false;
 	}
 	FMOD_RESULT result = FMOD_OK;
+
+	// Put the shared_ptr on the heap for FMOD to hold onto it as user data.
+	std::shared_ptr<SoundContainer>* soundContainerShared = new std::shared_ptr<SoundContainer>();
+	*soundContainerShared = std::move(soundContainerInput);
+
+	// ...But use a pointer for most of these, because the get() semantics are annoying.
+	SoundContainer* soundContainer = soundContainerShared->get();
 
 	if (!soundContainer->SoundPropertiesUpToDate()) {
 		result = soundContainer->UpdateSoundProperties();
@@ -394,7 +402,7 @@ bool AudioMan::PlaySoundContainer(SoundContainer* soundContainer, int player) {
 		result = (result == FMOD_OK) ? m_AudioSystem->playSound(soundData->SoundObject, channelGroupToPlayIn, true, &channel) : result;
 		result = (result == FMOD_OK) ? channel->getIndex(&channelIndex) : result;
 
-		result = (result == FMOD_OK) ? channel->setUserData(soundContainer) : result;
+		result = (result == FMOD_OK) ? channel->setUserData(soundContainerShared) : result;
 		result = (result == FMOD_OK) ? channel->setCallback(SoundChannelEndedCallback) : result;
 		result = (result == FMOD_OK) ? channel->setPriority(soundContainer->GetPriority()) : result;
 		float pitchVariationMultiplier = pitchVariationFactor == 1.0F ? 1.0F : RandomNum(1.0F / pitchVariationFactor, 1.0F * pitchVariationFactor);
@@ -674,7 +682,7 @@ void AudioMan::Update3DEffectsForSFXChannels() {
 				void* userData;
 				result = result == FMOD_OK ? soundChannel->getUserData(&userData) : result;
 				if (result == FMOD_OK) {
-					const SoundContainer* soundContainer = static_cast<SoundContainer*>(userData);
+					const SoundContainer* soundContainer = static_cast<std::shared_ptr<SoundContainer>*>(userData)->get();
 					if (sqrDistanceToPlayer < (m_MinimumDistanceForPanning * m_MinimumDistanceForPanning) || soundContainer->GetCustomPanValue() != 0.0f) {
 						result = soundChannel->set3DLevel(0);
 					} else if (sqrDistanceToPlayer < (doubleMinimumDistanceForPanning * doubleMinimumDistanceForPanning)) {
@@ -701,7 +709,7 @@ FMOD_RESULT AudioMan::UpdatePositionalEffectsForSoundChannel(FMOD::Channel* soun
 		return result;
 	}
 
-	const SoundContainer* channelSoundContainer = static_cast<SoundContainer*>(userData);
+	const SoundContainer* channelSoundContainer = static_cast<std::shared_ptr<SoundContainer>*>(userData)->get();
 
 	bool sceneWraps = g_SceneMan.SceneWrapsX();
 
@@ -801,7 +809,8 @@ FMOD_RESULT F_CALLBACK AudioMan::SoundChannelEndedCallback(FMOD_CHANNELCONTROL* 
 		void* userData;
 		result = (result == FMOD_OK) ? channel->getUserData(&userData) : result;
 		if (result == FMOD_OK) {
-			SoundContainer* channelSoundContainer = static_cast<SoundContainer*>(userData);
+			// Make sure to get ahold of the shared_ptr to delete it.
+			std::shared_ptr<SoundContainer> channelSoundContainer = *static_cast<std::shared_ptr<SoundContainer>*>(userData);
 			if (channelSoundContainer->IsBeingPlayed()) {
 				channelSoundContainer->RemovePlayingChannel(channelIndex);
 			}

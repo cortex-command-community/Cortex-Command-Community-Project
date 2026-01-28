@@ -2,6 +2,7 @@
 
 #include "Entity.h"
 #include "SoundContainer.h"
+#include <memory>
 
 namespace RTE {
 	/// A typed SongSection containing one or more SoundContainers to play.
@@ -53,13 +54,17 @@ namespace RTE {
 #pragma endregion
 
 #pragma region SoundContainer Addition
-		/// Adds a new TransitionSoundContainer to this DynamicSongSection.
+		/// Copies and adds a new TransitionSoundContainer to this DynamicSongSection.
 		/// @param soundContainerToAdd The new SoundContainer to add.
-		void AddTransitionSoundContainer(const SoundContainer& soundContainerToAdd) { m_TransitionSoundContainers.push_back(soundContainerToAdd); }
+		void AddTransitionSoundContainer(const SoundContainer& soundContainerToAdd) {
+			m_TransitionSoundContainers.push_back(std::make_shared<SoundContainer>(soundContainerToAdd));
+		}
 
-		/// Adds a new SoundContainer to this DynamicSongSection.
+		/// Copies and adds a new SoundContainer to this DynamicSongSection.
 		/// @param soundContainerToAdd The new SoundContainer to add.
-		void AddSoundContainer(const SoundContainer& soundContainerToAdd) { m_SoundContainers.push_back(soundContainerToAdd); }
+		void AddSoundContainer(const SoundContainer& soundContainerToAdd) {
+			m_SoundContainers.push_back(std::make_shared<SoundContainer>(soundContainerToAdd));
+		}
 #pragma endregion
 
 #pragma region INI Handling
@@ -72,11 +77,11 @@ namespace RTE {
 #pragma region Getters and Setters
 		/// Gets the vector of TransitionSoundContainers for this DynamicSongSection.
 		/// @return The vector of TransitionSoundContainers for this DynamicSongSection.
-		std::vector<SoundContainer>& GetTransitionSoundContainers() { return m_TransitionSoundContainers; }
+		std::vector<std::shared_ptr<SoundContainer>>& GetTransitionSoundContainers() { return m_TransitionSoundContainers; }
 
 		/// Gets the vector of SoundContainers for this DynamicSongSection.
 		/// @return The vector of SoundContainers for this DynamicSongSection.
-		std::vector<SoundContainer>& GetSoundContainers() { return m_SoundContainers; }
+		std::vector<std::shared_ptr<SoundContainer>>& GetSoundContainers() { return m_SoundContainers; }
 
 		/// Gets the SoundContainerSelectionCycleMode of this DynamicSongSection.
 		/// @return The SoundContainerSelectionCycleMode of this DynamicSongSection.
@@ -108,21 +113,21 @@ namespace RTE {
 
 		/// Selects a random transitional SoundContainer with no repeats.
 		/// @return The selected transitional SoundContainer.
-		SoundContainer& SelectTransitionSoundContainer();
+		std::shared_ptr<SoundContainer> SelectTransitionSoundContainer();
 
 		/// Selects a random SoundContainer with no repeats.
 		/// @return The selected SoundContainer.
-		SoundContainer& SelectSoundContainer();
+		std::shared_ptr<SoundContainer> SelectSoundContainer();
 #pragma endregion
 
 	private:
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
 		static const std::unordered_map<std::string, SoundContainerSelectionCycleMode> c_SoundContainerSelectionCycleModeMap; //!< A map of strings to SoundContainerSelectionCycleModes to support string parsing for the SoundContainerSelectionCycleMode enum. Populated in the implementing cpp file.
 
-		std::vector<SoundContainer> m_TransitionSoundContainers; //!< The SoundContainers that will play when first switching to this DynamicSongSection.
+		std::vector<std::shared_ptr<SoundContainer>> m_TransitionSoundContainers; //!< The SoundContainers that will play when first switching to this DynamicSongSection.
 		unsigned int m_LastTransitionSoundContainerIndex; //!< The last index used to select a TransitionSoundContainer.
 		std::vector<unsigned int> m_TransitionShuffleUnplayedIndices; //!< Indices left to play if in Shuffle mode.
-		std::vector<SoundContainer> m_SoundContainers; //!< The SoundContainers making up this DynamicSongSection.
+		std::vector<std::shared_ptr<SoundContainer>> m_SoundContainers; //!< The SoundContainers making up this DynamicSongSection.
 		unsigned int m_LastSoundContainerIndex; //!< The last index used to select a SoundContainer.
 		std::vector<unsigned int> m_ShuffleUnplayedIndices; //!< Indices left to play if in Shuffle mode.
 

@@ -301,7 +301,7 @@ void InventoryMenuGUI::SetEnabled(bool enable) {
 			for (const auto& [inventoryItem, inventoryItemButton]: m_GUIInventoryItemButtons) {
 				inventoryItemButton->OnMouseLeave(0, 0, 0, 0);
 			}
-			SoundContainer* soundToPlay = enable ? g_GUISound.EnterMenuSound() : g_GUISound.ExitMenuSound();
+			auto soundToPlay = enable ? g_GUISound.EnterMenuSound() : g_GUISound.ExitMenuSound();
 			soundToPlay->Play();
 		}
 	}

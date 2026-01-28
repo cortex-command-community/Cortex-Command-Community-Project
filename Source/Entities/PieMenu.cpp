@@ -278,7 +278,7 @@ void PieMenu::SetEnabled(bool enable, bool playSounds) {
 		PrepareAnalogCursorForEnableOrDisable(enable);
 
 		if (playSounds) {
-			SoundContainer* soundToPlay = enable ? g_GUISound.PieMenuEnterSound() : g_GUISound.PieMenuExitSound();
+			auto soundToPlay = enable ? g_GUISound.PieMenuEnterSound() : g_GUISound.PieMenuExitSound();
 			soundToPlay->Play();
 		}
 
@@ -843,7 +843,7 @@ void PieMenu::UpdateSliceActivation() {
 		if (m_HoveredPieSlice->GetSubPieMenu() && controller->IsState(ControlState::RELEASE_SECONDARY)) {
 			g_GUISound.UserErrorSound()->Play();
 		} else {
-			SoundContainer* soundToPlay = m_HoveredPieSlice->IsEnabled() ? g_GUISound.SlicePickedSound() : g_GUISound.DisabledPickedSound();
+			auto soundToPlay = m_HoveredPieSlice->IsEnabled() ? g_GUISound.SlicePickedSound() : g_GUISound.DisabledPickedSound();
 			soundToPlay->Play();
 		}
 	}
@@ -1229,7 +1229,7 @@ bool PieMenu::SetHoveredPieSlice(const PieSlice* pieSliceToSelect, bool moveCurs
 			m_CursorAngle = GetRotAngle() + m_HoveredPieSlice->GetMidAngle();
 		}
 
-		SoundContainer* soundToPlay = pieSliceToSelect->IsEnabled() ? g_GUISound.HoverChangeSound() : g_GUISound.HoverDisabledSound();
+		auto soundToPlay = pieSliceToSelect->IsEnabled() ? g_GUISound.HoverChangeSound() : g_GUISound.HoverDisabledSound();
 		soundToPlay->Play();
 	} else {
 		m_CursorInVisiblePosition = false;

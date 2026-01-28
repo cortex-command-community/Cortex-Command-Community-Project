@@ -3,6 +3,7 @@
 #include "Reader.h"
 #include "Writer.h"
 
+#include <memory>
 #include <string>
 #include <filesystem>
 
@@ -10,7 +11,7 @@ namespace RTE {
 
 	/// This base class specifies common creation/destruction patterns associated with reading and writing member data from disk.
 	/// Is only intended to be inherited from in one level.
-	class Serializable {
+	class Serializable: public std::enable_shared_from_this<Serializable> {
 
 	public:
 #pragma region Global Macro Definitions

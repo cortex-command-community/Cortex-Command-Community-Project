@@ -202,7 +202,8 @@ int AHuman::Create(const AHuman& reference) {
 	m_MaxWalkPathCrouchShift = reference.m_MaxWalkPathCrouchShift;
 
 	if (reference.m_StrideSound) {
-		m_StrideSound = dynamic_cast<SoundContainer*>(reference.m_StrideSound->Clone());
+		m_StrideSound = std::make_shared<SoundContainer>();
+		reference.m_StrideSound->Clone(&*m_StrideSound);
 	}
 
 	m_ArmsState = reference.m_ArmsState;
@@ -272,8 +273,8 @@ int AHuman::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("MaxWalkPathCrouchShift", { reader >> m_MaxWalkPathCrouchShift; });
 	MatchProperty("StrideSound", {
-		m_StrideSound = new SoundContainer;
-		reader >> m_StrideSound;
+		m_StrideSound = std::make_shared<SoundContainer>();
+		reader >> *m_StrideSound;
 	});
 	MatchProperty("StandLimbPath", { reader >> m_Paths[FGROUND][STAND]; });
 	MatchProperty("StandLimbPathBG", { reader >> m_Paths[BGROUND][STAND]; });
@@ -331,7 +332,7 @@ int AHuman::Save(Writer& writer) const {
 	writer.NewProperty("MaxWalkPathCrouchShift");
 	writer << m_MaxWalkPathCrouchShift;
 	writer.NewProperty("StrideSound");
-	writer << m_StrideSound;
+	writer << &*m_StrideSound;
 
 	writer.NewProperty("StandLimbPath");
 	writer << m_Paths[FGROUND][STAND];
@@ -368,8 +369,6 @@ void AHuman::Destroy(bool notInherited) {
 	delete m_pBGHandGroup;
 	delete m_pFGFootGroup;
 	delete m_pBGFootGroup;
-
-	delete m_StrideSound;
 
 	if (!notInherited) {
 		Actor::Destroy();

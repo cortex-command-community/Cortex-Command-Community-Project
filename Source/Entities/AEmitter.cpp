@@ -68,13 +68,16 @@ int AEmitter::Create(const AEmitter& reference) {
 		m_EmissionList.push_back(static_cast<Emission*>(emission->Clone()));
 	}
 	if (reference.m_EmissionSound) {
-		m_EmissionSound = dynamic_cast<SoundContainer*>(reference.m_EmissionSound->Clone());
+		m_EmissionSound = std::make_shared<SoundContainer>();
+		reference.m_EmissionSound->Clone(&*m_EmissionSound);
 	}
 	if (reference.m_BurstSound) {
-		m_BurstSound = dynamic_cast<SoundContainer*>(reference.m_BurstSound->Clone());
+		m_BurstSound = std::make_shared<SoundContainer>();
+		reference.m_BurstSound->Clone(&*m_BurstSound);
 	}
 	if (reference.m_EndSound) {
-		m_EndSound = dynamic_cast<SoundContainer*>(reference.m_EndSound->Clone());
+		m_EndSound = std::make_shared<SoundContainer>();
+		reference.m_EndSound->Clone(&*m_EndSound);
 	}
 	m_EmitEnabled = reference.m_EmitEnabled;
 	m_EmitCount = reference.m_EmitCount;
@@ -110,16 +113,16 @@ int AEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_EmissionList.push_back(emission);
 	});
 	MatchProperty("EmissionSound", {
-		m_EmissionSound = new SoundContainer;
-		reader >> m_EmissionSound;
+		m_EmissionSound = std::make_shared<SoundContainer>();
+		reader >> *m_EmissionSound;
 	});
 	MatchProperty("BurstSound", {
-		m_BurstSound = new SoundContainer;
-		reader >> m_BurstSound;
+		m_BurstSound = std::make_shared<SoundContainer>();
+		reader >> *m_BurstSound;
 	});
 	MatchProperty("EndSound", {
-		m_EndSound = new SoundContainer;
-		reader >> m_EndSound;
+		m_EndSound = std::make_shared<SoundContainer>();
+		reader >> *m_EndSound;
 	});
 	MatchProperty("EmissionEnabled", { reader >> m_EmitEnabled; });
 	MatchProperty("EmissionCount", { reader >> m_EmitCount; });
@@ -171,11 +174,11 @@ int AEmitter::Save(Writer& writer) const {
 		writer << *emission;
 	}
 	writer.NewProperty("EmissionSound");
-	writer << m_EmissionSound;
+	writer << *m_EmissionSound;
 	writer.NewProperty("BurstSound");
-	writer << m_BurstSound;
+	writer << *m_BurstSound;
 	writer.NewProperty("EndSound");
-	writer << m_EndSound;
+	writer << *m_EndSound;
 	writer.NewProperty("EmissionEnabled");
 	writer << m_EmitEnabled;
 	writer.NewProperty("EmissionCount");
@@ -236,10 +239,6 @@ void AEmitter::Destroy(bool notInherited) {
 	for (Emission* emission: m_EmissionList) {
 		delete emission;
 	}
-
-	delete m_EmissionSound;
-	delete m_BurstSound;
-	delete m_EndSound;
 
 	//    m_BurstSound.Stop();
 

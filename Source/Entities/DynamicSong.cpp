@@ -38,17 +38,17 @@ void DynamicSongSection::Clear() {
 int DynamicSongSection::Create(const DynamicSongSection& reference) {
 	Entity::Create(reference);
 
-	for (const SoundContainer& referenceSoundContainer: reference.m_TransitionSoundContainers) {
-		SoundContainer soundContainer;
-		soundContainer.Create(referenceSoundContainer);
-		m_TransitionSoundContainers.push_back(soundContainer);
+	for (auto reference: reference.m_TransitionSoundContainers) {
+		auto newSound = std::make_shared<SoundContainer>();
+		reference->Clone(&*newSound);
+		m_TransitionSoundContainers.push_back(newSound);
 	}
 	m_LastTransitionSoundContainerIndex = reference.m_LastTransitionSoundContainerIndex;
 
-	for (const SoundContainer& referenceSoundContainer: reference.m_SoundContainers) {
-		SoundContainer soundContainer;
-		soundContainer.Create(referenceSoundContainer);
-		m_SoundContainers.push_back(soundContainer);
+	for (auto reference: reference.m_SoundContainers) {
+		auto newSound = std::make_shared<SoundContainer>();
+		reference->Clone(&*newSound);
+		m_SoundContainers.push_back(newSound);
 	}
 	m_LastSoundContainerIndex = reference.m_LastSoundContainerIndex;
 
@@ -62,14 +62,14 @@ int DynamicSongSection::ReadProperty(const std::string_view& propName, Reader& r
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 	MatchProperty("AddTransitionSoundContainer", {
-		SoundContainer soundContainerToAdd;
-		reader >> soundContainerToAdd;
-		m_TransitionSoundContainers.push_back(soundContainerToAdd);
+		auto newSound = std::make_shared<SoundContainer>();
+		reader >> *newSound;
+		m_TransitionSoundContainers.push_back(newSound);
 	});
 	MatchProperty("AddSoundContainer", {
-		SoundContainer soundContainerToAdd;
-		reader >> soundContainerToAdd;
-		m_SoundContainers.push_back(soundContainerToAdd);
+		auto newSound = std::make_shared<SoundContainer>();
+		reader >> *newSound;
+		m_SoundContainers.push_back(newSound);
 	});
 	MatchProperty("SoundContainerSelectionCycleMode", {
 		std::string soundContainerSelectionCycleModeString = reader.ReadPropValue();
@@ -100,18 +100,18 @@ void DynamicSongSection::SaveSoundContainerSelectionCycleMode(Writer& writer, So
 int DynamicSongSection::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	for (const SoundContainer& soundContainer: m_TransitionSoundContainers) {
+	for (auto soundContainer: m_TransitionSoundContainers) {
 		writer.NewProperty("AddTransitionSoundContainer");
 		writer.ObjectStart("SoundContainer");
-		writer << soundContainer;
+		writer << *soundContainer;
 		writer.ObjectEnd();
 	}
 	writer.NewProperty("LastTransitionSoundContainerIndex");
 	writer << m_LastTransitionSoundContainerIndex;
-	for (const SoundContainer& soundContainer: m_SoundContainers) {
+	for (auto soundContainer: m_SoundContainers) {
 		writer.NewProperty("AddSoundContainer");
 		writer.ObjectStart("SoundContainer");
-		writer << soundContainer;
+		writer << *soundContainer;
 		writer.ObjectEnd();
 	}
 	writer.NewProperty("LastSoundContainerIndex");
@@ -124,7 +124,7 @@ int DynamicSongSection::Save(Writer& writer) const {
 	return 0;
 }
 
-SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
+std::shared_ptr<SoundContainer> DynamicSongSection::SelectTransitionSoundContainer() {
 	if (m_TransitionSoundContainers.empty()) {
 		return SelectSoundContainer();
 	}
@@ -166,7 +166,7 @@ SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
 	return m_TransitionSoundContainers[0];
 }
 
-SoundContainer& DynamicSongSection::SelectSoundContainer() {
+std::shared_ptr<SoundContainer> DynamicSongSection::SelectSoundContainer() {
 	RTEAssert(!m_SoundContainers.empty(), "Tried to get a SoundContainer from a DynamicSongSection with none to choose from!");
 	
 	// Shuffle between our options if we have multiple

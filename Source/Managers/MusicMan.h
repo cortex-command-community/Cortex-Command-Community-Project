@@ -3,6 +3,7 @@
 #include "DynamicSong.h"
 #include "Timer.h"
 #include "Singleton.h"
+#include <memory>
 
 #define g_MusicMan MusicMan::Instance()
 
@@ -77,7 +78,7 @@ namespace RTE {
 		/// Used for hardcoded music like the intro and main menu.
 		/// This is exposed to Lua, but the above hardcoded calls will happily override the Lua. Something to keep in mind.
 		/// @param soundContainer The SoundContainer to play as interrupting music.
-		void PlayInterruptingMusic(const SoundContainer* soundContainer);
+		void PlayInterruptingMusic(const SoundContainer& soundContainer);
 
 		/// Signals the end of hardcoded music, resuming dynamic music if needed.
 		void EndInterruptingMusic();
@@ -86,16 +87,16 @@ namespace RTE {
 	protected:
 		bool m_IsPlayingDynamicMusic; //!< Whether this is actively playing dynamic music or not.
 
-		std::unique_ptr<SoundContainer> m_InterruptingMusicSoundContainer; //!< Current interrupting music being played.
+		std::shared_ptr<SoundContainer> m_InterruptingMusicSoundContainer; //!< Current interrupting music being played.
 
-		std::unique_ptr<DynamicSong> m_CurrentSong; //!< The current DynamicSong being played.
+		std::shared_ptr<DynamicSong> m_CurrentSong; //!< The current DynamicSong being played.
 		std::string m_NextSongSectionType; //!< The type of DynamicSongSection we will try to play next.
 		std::string m_CurrentSongSectionType; //!< The current type of DynamicSongSection we are actually playing.
 		DynamicSongSection* m_NextSongSection; //!< The DynamicSongSection we will try to play next.
 
-		std::unique_ptr<SoundContainer> m_PreviousSoundContainer; //!< The previous SoundContainer that was played as music. We keep it to allow it to play out while Current ramps up.
-		std::unique_ptr<SoundContainer> m_CurrentSoundContainer; //!< The current selected SoundContainer playing as music.
-		SoundContainer* m_NextSoundContainer; //!< The next selected SoundContainer to play as music.
+		std::shared_ptr<SoundContainer> m_PreviousSoundContainer; //!< The previous SoundContainer that was played as music. We keep it to allow it to play out while Current ramps up.
+		std::shared_ptr<SoundContainer> m_CurrentSoundContainer; //!< The current selected SoundContainer playing as music.
+		std::shared_ptr<SoundContainer> m_NextSoundContainer; //!< The next selected SoundContainer to play as music.
 
 		Timer m_MusicFadeTimer; //!< Timer for timing the start of music fading if a piece is cycled prematurely.
 		bool m_PreviousSoundContainerSetToFade; //!< Whether this is waiting to fade out the PreviousSoundContainer in case of premature cycling.

@@ -243,7 +243,8 @@ int MOSRotating::Create(const MOSRotating& reference) {
 	m_DetachAttachablesBeforeGibbingFromWounds = reference.m_DetachAttachablesBeforeGibbingFromWounds;
 	m_GibAtEndOfLifetime = reference.m_GibAtEndOfLifetime;
 	if (reference.m_GibSound) {
-		m_GibSound = dynamic_cast<SoundContainer*>(reference.m_GibSound->Clone());
+		m_GibSound = std::make_shared<SoundContainer>();
+		reference.m_GibSound->Clone(&*m_GibSound);
 	}
 	m_EffectOnGib = reference.m_EffectOnGib;
 	m_LoudnessOnGib = reference.m_LoudnessOnGib;
@@ -317,10 +318,8 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("DetachAttachablesBeforeGibbingFromWounds", { reader >> m_DetachAttachablesBeforeGibbingFromWounds; });
 	MatchProperty("GibAtEndOfLifetime", { reader >> m_GibAtEndOfLifetime; });
 	MatchProperty("GibSound", {
-		if (!m_GibSound) {
-			m_GibSound = new SoundContainer;
-		}
-		reader >> m_GibSound;
+		m_GibSound = std::make_shared<SoundContainer>();
+		reader >> *m_GibSound;
 	});
 	MatchProperty("EffectOnGib", { reader >> m_EffectOnGib; });
 	MatchProperty("LoudnessOnGib", { reader >> m_LoudnessOnGib; });
@@ -588,8 +587,6 @@ void MOSRotating::Destroy(bool notInherited) {
 
 	// Not anymore; point to shared static bitmaps
 	//    destroy_bitmap(m_pTempBitmap);
-
-	delete m_GibSound;
 
 	if (!notInherited)
 		MOSprite::Destroy();

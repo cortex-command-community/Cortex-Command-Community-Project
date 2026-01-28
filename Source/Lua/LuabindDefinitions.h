@@ -23,6 +23,13 @@ namespace luabind {
 		return ptr.get();
 	}
 
+	/// Function that extracts the raw pointer from the smart pointer. This is needed when Lua calls member functions on held types, the 'this' pointer must be a raw pointer, it is also needed to allow the smart_pointer to raw_pointer conversion from Lua to C++.
+	/// @param ptr The smart pointer to get raw pointer for.
+	/// @return Raw pointer of the passed in smart pointer.
+	template <class Type> Type* get_pointer(std::shared_ptr<Type>& ptr) {
+		return ptr.get();
+	}
+
 	/// Can't have global enums in the master state so we use this dummy struct as a class and register the enums under it.
 	struct enum_wrapper {};
 } // namespace luabind

@@ -2,6 +2,7 @@
 
 #include "Actor.h"
 #include "ADSensor.h"
+#include <memory>
 
 namespace RTE {
 
@@ -78,37 +79,57 @@ namespace RTE {
 		/// @return Whether or not this ADoor's door material has been drawn.
 		bool GetDoorMaterialDrawn() const { return m_DoorMaterialDrawn; }
 
-		/// Gets this ADoor's door move start sound. Ownership is NOT transferred!
+		/// Gets this ADoor's door move start sound.
 		/// @return The SoundContainer for this ADoor's door move start sound.
-		SoundContainer* GetDoorMoveStartSound() const { return m_DoorMoveStartSound.get(); }
+		std::shared_ptr<SoundContainer> GetDoorMoveStartSound() const { return m_DoorMoveStartSound; }
 
-		/// Sets this ADoor's door move start sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this ADoor's door move start sound.
-		void SetDoorMoveStartSound(SoundContainer* newSound);
+		/// Sets this ADoor's door move start sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this ADoor's door move start sound to copy.
+		void SetDoorMoveStartSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_DoorMoveStartSound = nullptr;
+			else
+				m_DoorMoveStartSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this ADoor's door move sound. Ownership is NOT transferred!
+		/// Gets this ADoor's door move sound.
 		/// @return The SoundContainer for this ADoor's door move sound.
-		SoundContainer* GetDoorMoveSound() const { return m_DoorMoveSound.get(); }
+		std::shared_ptr<SoundContainer> GetDoorMoveSound() const { return m_DoorMoveSound; }
 
-		/// Sets this ADoor's door move sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this ADoor's door move sound.
-		void SetDoorMoveSound(SoundContainer* newSound);
+		/// Sets this ADoor's door move sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this ADoor's door move sound to copy.
+		void SetDoorMoveSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_DoorMoveSound = nullptr;
+			else
+				m_DoorMoveSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this ADoor's door direction change sound. Ownership is NOT transferred!
+		/// Gets this ADoor's door direction change sound.
 		/// @return The SoundContainer for this ADoor's door direction change sound.
-		SoundContainer* GetDoorDirectionChangeSound() const { return m_DoorDirectionChangeSound.get(); }
+		std::shared_ptr<SoundContainer> GetDoorDirectionChangeSound() const { return m_DoorDirectionChangeSound; }
 
-		/// Sets this ADoor's door direction change sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this ADoor's door direction change sound.
-		void SetDoorDirectionChangeSound(SoundContainer* newSound);
+		/// Sets this ADoor's door direction change sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this ADoor's door direction change sound to copy.
+		void SetDoorDirectionChangeSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_DoorDirectionChangeSound = nullptr;
+			else
+				m_DoorDirectionChangeSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this ADoor's door move end sound. Ownership is NOT transferred!
+		/// Gets this ADoor's door move end sound.
 		/// @return The SoundContainer for this ADoor's door move end sound.
-		SoundContainer* GetDoorMoveEndSound() const { return m_DoorMoveEndSound.get(); }
+		std::shared_ptr<SoundContainer> GetDoorMoveEndSound() const { return m_DoorMoveEndSound; }
 
-		/// Sets this ADoor's door move end sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this ADoor's door move end sound.
-		void SetDoorMoveEndSound(SoundContainer* newSound);
+		/// Sets this ADoor's door move end sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this ADoor's door move end sound to copy.
+		void SetDoorMoveEndSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_DoorMoveEndSound = nullptr;
+			else
+				m_DoorMoveEndSound = std::make_shared<SoundContainer>(*newSound);
+		}
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -191,10 +212,10 @@ namespace RTE {
 		Timer m_DoorMaterialRedrawTimer; //!< Timer for redrawing the door material layer from time-to-time. Without this, the door's material can be dug through, screwing with its collisions.
 		Vector m_LastDoorMaterialPos; //!< The position the door attachable had when its material was drawn to the material bitmap. This is used to erase the previous material representation.
 
-		std::unique_ptr<SoundContainer> m_DoorMoveStartSound; //!< Sound played when the door starts moving from fully open/closed position towards the opposite end.
-		std::unique_ptr<SoundContainer> m_DoorMoveSound; //!< Sound played while the door is moving between open/closed position.
-		std::unique_ptr<SoundContainer> m_DoorDirectionChangeSound; //!< Sound played when the door is interrupted while moving and changes directions.
-		std::unique_ptr<SoundContainer> m_DoorMoveEndSound; //!< Sound played when the door stops moving and is at fully open/closed position.
+		std::shared_ptr<SoundContainer> m_DoorMoveStartSound; //!< Sound played when the door starts moving from fully open/closed position towards the opposite end.
+		std::shared_ptr<SoundContainer> m_DoorMoveSound; //!< Sound played while the door is moving between open/closed position.
+		std::shared_ptr<SoundContainer> m_DoorDirectionChangeSound; //!< Sound played when the door is interrupted while moving and changes directions.
+		std::shared_ptr<SoundContainer> m_DoorMoveEndSound; //!< Sound played when the door stops moving and is at fully open/closed position.
 
 	private:
 #pragma region Update Breakdown

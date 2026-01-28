@@ -55,6 +55,59 @@ std::unordered_map<std::string, std::function<LuabindObjectWrapper*(Entity*, lua
 		return Random##TYPE(groupName, "All"); \
 	}
 
+
+
+#define LuaEntityCreateFunctionsDefinitionsForTypeUsingSharedPtr(TYPE) \
+	std::shared_ptr<TYPE> LuaAdaptersEntityCreate::Create##TYPE(std::string preseName, std::string moduleName) { \
+		const Entity* entityPreset = g_PresetMan.GetEntityPreset(#TYPE, preseName, moduleName); \
+		if (!entityPreset) { \
+			g_ConsoleMan.PrintString(std::string("ERROR: There is no ") + std::string(#TYPE) + std::string(" of the Preset name \"") + preseName + std::string("\" defined in the \"") + moduleName + std::string("\" Data Module!")); \
+			return nullptr; \
+		} \
+		auto outEnt = std::make_shared<TYPE>(); \
+		entityPreset->Clone(&*outEnt); \
+		return outEnt; \
+	} \
+	std::shared_ptr<TYPE> LuaAdaptersEntityCreate::Create##TYPE(std::string preset) { \
+		return Create##TYPE(preset, "All"); \
+	} \
+	std::shared_ptr<TYPE> LuaAdaptersEntityCreate::Random##TYPE(std::string groupName, int moduleSpaceID) { \
+		const Entity* entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, moduleSpaceID); \
+		if (!entityPreset) { \
+			entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, g_PresetMan.GetModuleID("Base.rte")); \
+		} \
+		if (!entityPreset) { \
+			entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech("Any", #TYPE, moduleSpaceID); \
+		} \
+		if (!entityPreset) { \
+			g_ConsoleMan.PrintString(std::string("WARNING: Could not find any ") + std::string(#TYPE) + std::string(" defined in a Group called \"") + groupName + std::string("\" in module ") + g_PresetMan.GetDataModuleName(moduleSpaceID) + "!"); \
+			return nullptr; \
+		} \
+		auto outEnt = std::make_shared<TYPE>(); \
+		entityPreset->Clone(&*outEnt); \
+		return outEnt; \
+	} \
+	std::shared_ptr<TYPE> LuaAdaptersEntityCreate::Random##TYPE(std::string groupName, std::string dataModuleName) { \
+		int moduleSpaceID = g_PresetMan.GetModuleID(dataModuleName); \
+		const Entity* entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, moduleSpaceID); \
+		if (!entityPreset) { \
+			entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech(groupName, #TYPE, g_PresetMan.GetModuleID("Base.rte")); \
+		} \
+		if (!entityPreset) { \
+			entityPreset = g_PresetMan.GetRandomBuyableOfGroupFromTech("Any", #TYPE, moduleSpaceID); \
+		} \
+		if (!entityPreset) { \
+			g_ConsoleMan.PrintString(std::string("WARNING: Could not find any ") + std::string(#TYPE) + std::string(" defined in a Group called \"") + groupName + std::string("\" in module ") + dataModuleName + "!"); \
+			return nullptr; \
+		} \
+		auto outEnt = std::make_shared<TYPE>(); \
+		entityPreset->Clone(&*outEnt); \
+		return outEnt; \
+	} \
+	std::shared_ptr<TYPE> LuaAdaptersEntityCreate::Random##TYPE(std::string groupName) { \
+		return Random##TYPE(groupName, "All"); \
+	}
+
 LuaEntityCreateFunctionsDefinitionsForType(SoundContainer);
 LuaEntityCreateFunctionsDefinitionsForType(Attachable);
 LuaEntityCreateFunctionsDefinitionsForType(Arm);
@@ -92,6 +145,18 @@ LuaEntityCreateFunctionsDefinitionsForType(PieMenu);
 		g_ConsoleMan.PrintString(std::string("ERROR: Tried to clone a ") + std::string(#TYPE) + std::string(" reference that is nil!")); \
 		return nullptr; \
 	}
+
+#define LuaEntityCloneFunctionDefinitionForTypeUsingSharedPtr(TYPE) \
+	std::shared_ptr<TYPE> LuaAdaptersEntityClone::Clone##TYPE(const std::shared_ptr<TYPE> thisEntity) { \
+		if (thisEntity) { \
+			auto newEntity = std::make_shared<TYPE>(); \
+			thisEntity->Clone(&*newEntity); \
+			return newEntity; \
+		} \
+		g_ConsoleMan.PrintString(std::string("ERROR: Tried to clone a ") + std::string(#TYPE) + std::string(" reference that is nil!")); \
+		return nullptr; \
+	}
+
 
 LuaEntityCloneFunctionDefinitionForType(Entity);
 LuaEntityCloneFunctionDefinitionForType(SoundContainer);
@@ -153,6 +218,32 @@ LuaEntityCloneFunctionDefinitionForType(PieMenu);
 		return true; \
 	}()
 
+#define LuaEntityCastFunctionsDefinitionsForTypeUsingSharedPtr(TYPE) \
+	std::shared_ptr<TYPE> LuaAdaptersEntityCast::To##TYPE(std::shared_ptr<Entity> entity) { \
+		std::shared_ptr<TYPE> targetType = dynamic_pointer_cast<TYPE>(entity); \
+		if (!targetType) { \
+			g_ConsoleMan.PrintString(std::string("ERROR: Tried to convert a non-") + std::string(#TYPE) + std::string(" Entity reference to an ") + std::string(#TYPE) + std::string(" reference! Entity was ") + (entity ? entity->GetPresetName() : "nil")); \
+		} \
+		return targetType; \
+	} \
+	const std::shared_ptr<TYPE> LuaAdaptersEntityCast::ToConst##TYPE(const std::shared_ptr<Entity> entity) { \
+		const std::shared_ptr<TYPE> targetType = dynamic_pointer_cast<TYPE>(entity); \
+		if (!targetType) { \
+			g_ConsoleMan.PrintString(std::string("ERROR: Tried to convert a non-") + std::string(#TYPE) + std::string(" Entity reference to an ") + std::string(#TYPE) + std::string(" reference! Entity was ") + (entity ? entity->GetPresetName() : "nil")); \
+		} \
+		return targetType; \
+	} \
+	bool LuaAdaptersEntityCast::Is##TYPE(std::shared_ptr<Entity> entity) { \
+		return dynamic_pointer_cast<TYPE>(entity) ? true : false; \
+	} \
+	LuabindObjectWrapper* LuaAdaptersEntityCast::ToLuabindObject##TYPE(Entity* entity, lua_State* luaState) { \
+		return new LuabindObjectWrapper(new luabind::object(luaState, dynamic_cast<TYPE*>(entity)), ""); \
+	} \
+	/* Bullshit semi-hack to automatically populate the Luabind Object cast function map that is used in LuaMan::RunScriptFunctionObject */ \
+	static const bool EntityToLuabindObjectCastMapAutoInserterForType##TYPE = []() { \
+		LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions.try_emplace(std::string(#TYPE), &LuaAdaptersEntityCast::ToLuabindObject##TYPE); \
+		return true; \
+	}()
 LuaEntityCastFunctionsDefinitionsForType(Entity);
 LuaEntityCastFunctionsDefinitionsForType(SoundContainer);
 LuaEntityCastFunctionsDefinitionsForType(SceneObject);
@@ -196,26 +287,13 @@ LuaEntityCastFunctionsDefinitionsForType(PieMenu);
 		luaSelfObject->SETTERFUNCTION(objectToSet ? dynamic_cast<PROPERTYTYPE*>(objectToSet->Clone()) : nullptr); \
 	}
 
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(MOSRotating, SoundContainer, SetGibSound);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(Attachable, AEmitter, SetBreakWound);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(Attachable, AEmitter, SetParentBreakWound);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(AEmitter, Attachable, SetFlash);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(AEmitter, SoundContainer, SetEmissionSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(AEmitter, SoundContainer, SetBurstSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(AEmitter, SoundContainer, SetEndSound);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, Attachable, SetDoor);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(Arm, HeldDevice, SetHeldDevice);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(Leg, Attachable, SetFoot);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, PieMenu, SetPieMenu);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, SoundContainer, SetBodyHitSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, SoundContainer, SetAlarmSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, SoundContainer, SetPainSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, SoundContainer, SetDeathSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(Actor, SoundContainer, SetDeviceSwitchSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorMoveStartSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorMoveSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorDirectionChangeSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(ADoor, SoundContainer, SetDoorMoveEndSound);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Attachable, SetHead);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, AEJetpack, SetJetpack);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Arm, SetFGArm);
@@ -224,18 +302,13 @@ LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Leg, SetFGLeg);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Leg, SetBGLeg);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Attachable, SetFGFoot);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, Attachable, SetBGFoot);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(AHuman, SoundContainer, SetStrideSound);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Turret, SetTurret);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, AEJetpack, SetJetpack);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetLeftFGLeg);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetLeftBGLeg);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetRightFGLeg);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, Leg, SetRightBGLeg);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACrab, SoundContainer, SetStrideSound);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(Turret, HeldDevice, SetFirstMountedDevice);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACraft, SoundContainer, SetHatchOpenSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACraft, SoundContainer, SetHatchCloseSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACraft, SoundContainer, SetCrashSound);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACDropShip, AEmitter, SetRightThruster);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACDropShip, AEmitter, SetLeftThruster);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACDropShip, AEmitter, SetURightThruster);
@@ -251,14 +324,6 @@ LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, AEmitter, SetULeftTh
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(ACRocket, AEmitter, SetURightThruster);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, Magazine, SetMagazine);
 LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, Attachable, SetFlash);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetPreFireSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetFireSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetFireEchoSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetActiveSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetDeactivationSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetEmptySound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetReloadStartSound);
-LuaPropertyOwnershipSafetyFakerFunctionDefinition(HDFirearm, SoundContainer, SetReloadEndSound);
 
 void LuaAdaptersEntity::SetPresetName(Entity* luaSelfObject, const std::string& presetName) {
 	luaSelfObject->SetPresetName(presetName, true);

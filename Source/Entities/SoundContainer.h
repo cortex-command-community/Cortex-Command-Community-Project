@@ -278,20 +278,24 @@ namespace RTE {
 
 #pragma region Playback Controls
 		/// Plays the next sound of this SoundContainer at its current position for all players.
+		/// MUST be called from a shared_ptr<SoundContainer>!
 		/// @return Whether this SoundContainer successfully started playing on any channels.
 		bool Play() { return Play(-1); }
 
 		/// Plays the next sound of this container at its current position.
+		/// MUST be called from a shared_ptr<SoundContainer>!
 		/// @param player The player to start playback of this SoundContainer's sounds for.
 		/// @return Whether there were sounds to play and they were able to be played.
 		bool Play(int player);
 
 		/// Plays the next sound of this SoundContainer at the given position for all players.
+		/// MUST be called from a shared_ptr<SoundContainer>!
 		/// @param position The position at which to play the SoundContainer's sounds.
 		/// @return Whether this SoundContainer successfully started playing on any channels.
 		bool Play(const Vector& position) { return Play(position, -1); }
 
 		/// Plays the next sound of this SoundContainer with the given attenuation for a specific player.
+		/// MUST be called from a shared_ptr<SoundContainer>!
 		/// @param position The position at which to play the SoundContainer's sounds.
 		/// @param player The player to start playback of this SoundContainer's sounds for.
 		/// @return Whether this SoundContainer successfully started playing on any channels.
@@ -310,10 +314,12 @@ namespace RTE {
 		bool Stop(int player);
 
 		/// Restarts playback of this SoundContainer for all players.
+		/// MUST be called from a shared_ptr<SoundContainer>!
 		/// @return Whether this SoundContainer successfully restarted its playback.
 		bool Restart() { return Restart(-1); }
 
 		/// Restarts playback of this SoundContainer for a specific player.
+		/// MUST be called from a shared_ptr<SoundContainer>!
 		/// @param player Player to restart playback of this SoundContainer for.
 		/// @return Whether this SoundContainer successfully restarted its playback.
 		bool Restart(int player);

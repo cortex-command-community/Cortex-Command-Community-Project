@@ -91,19 +91,23 @@ int ADoor::Create(const ADoor& reference) {
 	m_DoorMaterialID = reference.m_DoorMaterialID;
 
 	if (reference.m_DoorMoveStartSound) {
-		m_DoorMoveStartSound.reset(dynamic_cast<SoundContainer*>(reference.m_DoorMoveStartSound->Clone()));
+		m_DoorMoveStartSound = std::make_shared<SoundContainer>();
+		reference.m_DoorMoveStartSound->Clone(&*m_DoorMoveStartSound);
 	}
 
 	if (reference.m_DoorMoveSound) {
-		m_DoorMoveSound.reset(dynamic_cast<SoundContainer*>(reference.m_DoorMoveSound->Clone()));
+		m_DoorMoveSound = std::make_shared<SoundContainer>();
+		reference.m_DoorMoveSound->Clone(&*m_DoorMoveSound);
 	}
 
 	if (reference.m_DoorDirectionChangeSound) {
-		m_DoorDirectionChangeSound.reset(dynamic_cast<SoundContainer*>(reference.m_DoorDirectionChangeSound->Clone()));
+		m_DoorDirectionChangeSound = std::make_shared<SoundContainer>();
+		reference.m_DoorDirectionChangeSound->Clone(&*m_DoorDirectionChangeSound);
 	}
 
 	if (reference.m_DoorMoveEndSound) {
-		m_DoorMoveEndSound.reset(dynamic_cast<SoundContainer*>(reference.m_DoorMoveEndSound->Clone()));
+		m_DoorMoveEndSound = std::make_shared<SoundContainer>();
+		reference.m_DoorMoveEndSound->Clone(&*m_DoorMoveEndSound);
 	}
 
 	return 0;
@@ -152,10 +156,22 @@ int ADoor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("DrawMaterialLayerWhenOpen", { reader >> m_DrawMaterialLayerWhenOpen; });
 	MatchProperty("DrawMaterialLayerWhenClosed", { reader >> m_DrawMaterialLayerWhenClosed; });
-	MatchProperty("DoorMoveStartSound", { m_DoorMoveStartSound.reset(dynamic_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("DoorMoveSound", { m_DoorMoveSound.reset(dynamic_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("DoorDirectionChangeSound", { m_DoorDirectionChangeSound.reset(dynamic_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("DoorMoveEndSound", { m_DoorMoveEndSound.reset(dynamic_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("DoorMoveStartSound", {
+		m_DoorMoveStartSound = std::make_shared<SoundContainer>();
+		reader >> *m_DoorMoveStartSound;
+	});
+	MatchProperty("DoorMoveSound", {
+		m_DoorMoveSound = std::make_shared<SoundContainer>();
+		reader >> *m_DoorMoveSound;
+	});
+	MatchProperty("DoorDirectionChangeSound", {
+		m_DoorDirectionChangeSound = std::make_shared<SoundContainer>();
+		reader >> *m_DoorDirectionChangeSound;
+	});
+	MatchProperty("DoorMoveEndSound", {
+		m_DoorMoveEndSound = std::make_shared<SoundContainer>();
+		reader >> *m_DoorMoveEndSound;
+	});
 
 	EndPropertyList;
 }
@@ -190,13 +206,13 @@ int ADoor::Save(Writer& writer) const {
 	writer.NewProperty("DrawMaterialLayerWhenClosed");
 	writer << m_DrawMaterialLayerWhenClosed;
 	writer.NewProperty("DoorMoveStartSound");
-	writer << m_DoorMoveStartSound.get();
+	writer << *m_DoorMoveStartSound;
 	writer.NewProperty("DoorMoveSound");
-	writer << m_DoorMoveSound.get();
+	writer << *m_DoorMoveSound;
 	writer.NewProperty("DoorDirectionChangeSound");
-	writer << m_DoorDirectionChangeSound.get();
+	writer << *m_DoorDirectionChangeSound;
 	writer.NewProperty("DoorMoveEndSound");
-	writer << m_DoorMoveEndSound.get();
+	writer << *m_DoorMoveEndSound;
 
 	return 0;
 }
@@ -296,22 +312,6 @@ bool ADoor::EraseDoorMaterial(bool updateMaterialArea) {
 	}
 
 	return false;
-}
-
-void ADoor::SetDoorMoveStartSound(SoundContainer* newSound) {
-	m_DoorMoveStartSound.reset(newSound);
-}
-
-void ADoor::SetDoorMoveSound(SoundContainer* newSound) {
-	m_DoorMoveSound.reset(newSound);
-}
-
-void ADoor::SetDoorDirectionChangeSound(SoundContainer* newSound) {
-	m_DoorDirectionChangeSound.reset(newSound);
-}
-
-void ADoor::SetDoorMoveEndSound(SoundContainer* newSound) {
-	m_DoorMoveEndSound.reset(newSound);
 }
 
 void ADoor::TempEraseOrRedrawDoorMaterial(bool erase) {

@@ -3,6 +3,8 @@
 #include "LuabindDefinitions.h"
 #include "LuaAdapterDefinitions.h"
 
+#include <memory>
+
 namespace RTE {
 
 // Should be ordered with most-derived classes first
@@ -150,6 +152,12 @@ namespace RTE {
 	    .def("Clone", &LuaAdaptersEntityClone::Clone##TYPE, luabind::adopt(luabind::result)) \
 	    .property("ClassName", &TYPE::GetClassName)
 
+// Same as `ConcreteTypeLuaClassDefinition` but using std::shared_ptr
+#define ConcreteTypeLuaClassDefinitionUsingSharedPtr(TYPE, PARENTTYPE) \
+	luabind::class_<TYPE, PARENTTYPE, std::shared_ptr<TYPE>>(#TYPE) \
+	    .def("Clone", &LuaAdaptersEntityClone::Clone##TYPE) \
+	    .property("ClassName", &TYPE::GetClassName)
+
 /// Convenience macro for calling a register function of a type.
 #define RegisterLuaBindingsOfType(OWNINGSCOPE, TYPE) \
 	OWNINGSCOPE::Register##TYPE##LuaBindings()
@@ -169,9 +177,22 @@ namespace RTE {
 	    luabind::def((std::string("Random") + std::string(#TYPE)).c_str(), (TYPE * (*)(std::string, std::string)) & LuaAdaptersEntityCreate::Random##TYPE, luabind::adopt(luabind::result)), \
 	    luabind::def((std::string("Random") + std::string(#TYPE)).c_str(), (TYPE * (*)(std::string)) & LuaAdaptersEntityCreate::Random##TYPE, luabind::adopt(luabind::result)), \
 	    luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (TYPE * (*)(Entity*)) & LuaAdaptersEntityCast::To##TYPE), \
-	    luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (const TYPE* (*)(const Entity*)) & LuaAdaptersEntityCast::ToConst##TYPE), \
+	    luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (const TYPE * (*)(const Entity*)) & LuaAdaptersEntityCast::ToConst##TYPE), \
 	    luabind::def((std::string("Is") + std::string(#TYPE)).c_str(), (bool (*)(const Entity*)) & LuaAdaptersEntityCast::Is##TYPE), \
 	    OWNINGSCOPE::Register##TYPE##LuaBindings()
+
+/// Convenience macro for calling a register function of a concrete type, along with registering global bindings for adapters relevant to the type, using shared_ptr.
+#define RegisterLuaBindingsOfConcreteTypeWithSharedPtr(OWNINGSCOPE, TYPE) \
+	luabind::def((std::string("Create") + std::string(#TYPE)).c_str(), (std::shared_ptr<TYPE> (*)(std::string, std::string)) & LuaAdaptersEntityCreate::Create##TYPE), \
+	    luabind::def((std::string("Create") + std::string(#TYPE)).c_str(), (std::shared_ptr<TYPE> (*)(std::string)) & LuaAdaptersEntityCreate::Create##TYPE), \
+	    luabind::def((std::string("Random") + std::string(#TYPE)).c_str(), (std::shared_ptr<TYPE> (*)(std::string, int)) & LuaAdaptersEntityCreate::Random##TYPE), \
+	    luabind::def((std::string("Random") + std::string(#TYPE)).c_str(), (std::shared_ptr<TYPE> (*)(std::string, std::string)) & LuaAdaptersEntityCreate::Random##TYPE), \
+	    luabind::def((std::string("Random") + std::string(#TYPE)).c_str(), (std::shared_ptr<TYPE> (*)(std::string)) & LuaAdaptersEntityCreate::Random##TYPE), \
+	    luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (std::shared_ptr<TYPE> (*)(Entity*)) & LuaAdaptersEntityCast::To##TYPE), \
+	    luabind::def((std::string("To") + std::string(#TYPE)).c_str(), (const std::shared_ptr<TYPE> (*)(const std::shared_ptr<TYPE>)) & LuaAdaptersEntityCast::ToConst##TYPE), \
+	    luabind::def((std::string("Is") + std::string(#TYPE)).c_str(), (bool (*)(const Entity*)) & LuaAdaptersEntityCast::Is##TYPE), \
+	    OWNINGSCOPE::Register##TYPE##LuaBindings()
+
 #pragma endregion
 
 	/// Struct that contains Lua binding registration functions for System classes.

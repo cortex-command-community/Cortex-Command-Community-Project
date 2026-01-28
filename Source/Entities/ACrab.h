@@ -8,6 +8,7 @@
 #include "Actor.h"
 #include "LimbPath.h"
 #include "Leg.h"
+#include <memory>
 
 struct BITMAP;
 
@@ -243,13 +244,18 @@ namespace RTE {
 		/// @param newForce New push force value in kg * m/s^2.
 		void SetLimbPathPushForce(MovementState movementState, float newForce);
 
-		/// Gets this ACrab's stride sound. Ownership is NOT transferred!
+		/// Gets this ACrab's stride sound.
 		/// @return The SoundContainer for this ACrab's stride sound.
-		SoundContainer* GetStrideSound() const { return m_StrideSound; }
+		std::shared_ptr<SoundContainer> GetStrideSound() const { return m_StrideSound; }
 
-		/// Sets this ACrab's stride sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this ACrab's stride sound.
-		void SetStrideSound(SoundContainer* newSound) { m_StrideSound = newSound; }
+		/// Sets this ACrab's stride sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this ACrab's stride sound to copy.
+		void SetStrideSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_StrideSound = nullptr;
+			else
+				m_StrideSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
 		/// Gets the upper limit of this ACrab's aim range.
 		/// @return The upper limit of this ACrab's aim range.
@@ -301,7 +307,7 @@ namespace RTE {
 		AtomGroup* m_pRBGFootGroup;
 		AtomGroup* m_BackupRBGFootGroup;
 		// The sound of the actor taking a step (think robot servo)
-		SoundContainer* m_StrideSound;
+		std::shared_ptr<SoundContainer> m_StrideSound;
 		// Jetpack booster.
 		AEJetpack* m_pJetpack;
 		// Blink timer

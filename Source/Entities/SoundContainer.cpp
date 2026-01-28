@@ -318,7 +318,13 @@ bool SoundContainer::Play(int player) {
 				return false;
 			}
 		}
-		return g_AudioMan.PlaySoundContainer(this, player);
+
+		try {
+			auto shared = dynamic_pointer_cast<SoundContainer>(this->shared_from_this());
+			return g_AudioMan.PlaySoundContainer(shared, player);
+		} catch (std::bad_weak_ptr& e) {
+			RTEAbort("SoundContainer::Play called from a SoundContainer not in a shared_ptr!");
+		}
 	}
 	return false;
 }
@@ -328,7 +334,18 @@ bool SoundContainer::Stop(int player) {
 }
 
 bool SoundContainer::Restart(int player) {
-	return (HasAnySounds() && IsBeingPlayed()) ? g_AudioMan.StopSoundContainerPlayingChannels(this, player) && g_AudioMan.PlaySoundContainer(this, player) : false;
+	if(HasAnySounds() && IsBeingPlayed() && g_AudioMan.StopSoundContainerPlayingChannels(this, player)) {
+		try {
+			auto shared = dynamic_pointer_cast<SoundContainer>(this->shared_from_this());
+
+			return g_AudioMan.PlaySoundContainer(shared, player);
+
+		} catch (std::bad_weak_ptr& e) {
+			RTEAbort("SoundContainer::Restart called from a SoundContainer not in a shared_ptr!");
+		}
+	}
+
+	return false;
 }
 
 void SoundContainer::FadeOut(int fadeOutTime) {

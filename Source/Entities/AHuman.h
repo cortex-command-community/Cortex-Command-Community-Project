@@ -11,6 +11,7 @@
 #include "LimbPath.h"
 
 #include <array>
+#include <memory>
 
 struct BITMAP;
 
@@ -535,13 +536,18 @@ namespace RTE {
 		/// @param newValue The new value for this AHuman's current crouch amount override.
 		void SetCrouchAmountOverride(float newValue) { m_CrouchAmountOverride = newValue; }
 
-		/// Gets this AHuman's stride sound. Ownership is NOT transferred!
+		/// Gets this AHuman's stride sound.
 		/// @return The SoundContainer for this AHuman's stride sound.
-		SoundContainer* GetStrideSound() const { return m_StrideSound; }
+		std::shared_ptr<SoundContainer> GetStrideSound() const { return m_StrideSound; }
 
-		/// Sets this AHuman's stride sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this AHuman's stride sound.
-		void SetStrideSound(SoundContainer* newSound) { m_StrideSound = newSound; }
+		/// Sets this AHuman's stride sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this AHuman's stride sound to copy.
+		void SetStrideSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_StrideSound = nullptr;
+			else
+				m_StrideSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
 		/// Protected member variable and method declarations
 	protected:
@@ -587,7 +593,7 @@ namespace RTE {
 		AtomGroup* m_pBGFootGroup;
 		AtomGroup* m_BackupBGFootGroup;
 		// The sound of the actor taking a step (think robot servo)
-		SoundContainer* m_StrideSound;
+		std::shared_ptr<SoundContainer> m_StrideSound;
 		// Jetpack booster.
 		AEJetpack* m_pJetpack;
 		bool m_CanActivateBGItem; //!< A flag for whether or not the BG item is waiting to be activated separately. Used for dual-wielding. TODO: Should this be able to be toggled off per actor, device, or controller?

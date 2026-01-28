@@ -8,6 +8,7 @@
 #include "MOSprite.h"
 #include "Gib.h"
 
+#include <memory>
 #include <unordered_set>
 
 namespace RTE {
@@ -478,13 +479,18 @@ namespace RTE {
 		/// @param impulse New impulse value
 		void SetTravelImpulse(Vector impulse) { m_TravelImpulse = impulse; }
 
-		/// Gets this MOSRotating's gib sound. Ownership is NOT transferred!
+		/// Gets this MOSRotating's gib sound.
 		/// @return The SoundContainer for this MOSRotating's gib sound.
-		SoundContainer* GetGibSound() const { return m_GibSound; }
+		std::shared_ptr<SoundContainer> GetGibSound() const { return m_GibSound; }
 
-		/// Sets this MOSRotating's gib sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this MOSRotating's gib sound.
-		void SetGibSound(SoundContainer* newSound) { m_GibSound = newSound; }
+		/// Sets this MOSRotating's gib sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this MOSRotating's gib sound to copy.
+		void SetGibSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_GibSound = nullptr;
+			else
+				m_GibSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
 		/// Ensures all attachables and wounds are positioned and rotated correctly. Must be run when this MOSRotating is added to MovableMan to avoid issues with Attachables spawning in at (0, 0).
 		virtual void CorrectAttachableAndWoundPositionsAndRotations() const;
@@ -569,7 +575,7 @@ namespace RTE {
 		bool m_DetachAttachablesBeforeGibbingFromWounds; //!< Whether to detach any Attachables of this MOSRotating when it should gib from hitting its wound limit, instead of gibbing the MOSRotating itself.
 		bool m_GibAtEndOfLifetime; //!< Whether or not this MOSRotating should gib when it reaches the end of its lifetime, instead of just deleting.
 		// Gib sound effect
-		SoundContainer* m_GibSound;
+		std::shared_ptr<SoundContainer> m_GibSound;
 		// Whether to flash effect on gib
 		bool m_EffectOnGib;
 		// How far this is audiable (in screens) when gibbing

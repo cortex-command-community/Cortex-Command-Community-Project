@@ -7,6 +7,7 @@
 /// Inclusions of header files
 #include "Actor.h"
 #include "LimbPath.h"
+#include <memory>
 
 struct BITMAP;
 
@@ -305,29 +306,44 @@ namespace RTE {
 		/// @param movableObjectToIgnore A pointer to an MO which the Gibs and Attachables should not be colliding with.
 		void GibThis(const Vector& impactImpulse = Vector(), MovableObject* movableObjectToIgnore = nullptr) override;
 
-		/// Gets this ACraft's hatch opening sound. Ownership is NOT transferred!
+		/// Gets this ACraft's hatch opening sound.
 		/// @return The SoundContainer for this ACraft's hatch opening sound.
-		SoundContainer* GetHatchOpenSound() const { return m_HatchOpenSound; }
+		std::shared_ptr<SoundContainer> GetHatchOpenSound() const { return m_HatchOpenSound; }
 
-		/// Sets this ACraft's hatch opening sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this ACraft's hatch opening sound.
-		void SetHatchOpenSound(SoundContainer* newSound) { m_HatchOpenSound = newSound; }
+		/// Sets this ACraft's hatch opening sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this ACraft's hatch opening sound to copy.
+		void SetHatchOpenSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_HatchOpenSound = nullptr;
+			else
+				m_HatchOpenSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this ACraft's hatch closing sound. Ownership is NOT transferred!
+		/// Gets this ACraft's hatch closing sound.
 		/// @return The SoundContainer for this ACraft's hatch closing sound.
-		SoundContainer* GetHatchCloseSound() const { return m_HatchCloseSound; }
+		std::shared_ptr<SoundContainer> GetHatchCloseSound() const { return m_HatchCloseSound; }
 
-		/// Sets this ACraft's hatch closing sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this ACraft's hatch closing sound.
-		void SetHatchCloseSound(SoundContainer* newSound) { m_HatchCloseSound = newSound; }
+		/// Sets this ACraft's hatch closing sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this ACraft's hatch closing sound to copy.
+		void SetHatchCloseSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_HatchCloseSound = nullptr;
+			else
+				m_HatchCloseSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
-		/// Gets this ACraft's crash sound. Ownership is NOT transferred!
+		/// Gets this ACraft's crash sound.
 		/// @return The SoundContainer for this ACraft's crash sound.
-		SoundContainer* GetCrashSound() const { return m_CrashSound; }
+		std::shared_ptr<SoundContainer> GetCrashSound() const { return m_CrashSound; }
 
-		/// Sets this ACraft's crash sound. Ownership IS transferred!
-		/// @param newSound The new SoundContainer for this ACraft's crash sound.
-		void SetCrashSound(SoundContainer* newSound) { m_CrashSound = newSound; }
+		/// Sets this ACraft's crash sound to a copy of the input.
+		/// @param newSound The new SoundContainer for this ACraft's crash sound to copy.
+		void SetCrashSound(const SoundContainer* newSound) {
+			if (!newSound)
+				m_CrashSound = nullptr;
+			else
+				m_CrashSound = std::make_shared<SoundContainer>(*newSound);
+		}
 
 		/// Protected member variable and method declarations
 	protected:
@@ -340,9 +356,9 @@ namespace RTE {
 		// The time it takes to open or close the hatch, in ms.
 		int m_HatchDelay;
 		// Sound for opening the hatch
-		SoundContainer* m_HatchOpenSound;
+		std::shared_ptr<SoundContainer> m_HatchOpenSound;
 		// Sound for closing the hatch
-		SoundContainer* m_HatchCloseSound;
+		std::shared_ptr<SoundContainer> m_HatchCloseSound;
 		std::deque<MovableObject*> m_CollectedInventory; //!< A separate inventory to temporarily store newly collected items, so that they don't get immediately ejected from the main inventory while the hatch is still open.
 		// All the possible exits for when ejecting stuff out of this.
 		std::list<Exit> m_Exits;
@@ -363,7 +379,7 @@ namespace RTE {
 		// Timer to measure how long ago a crash sound was played
 		Timer m_CrashTimer;
 		// Crash sound
-		SoundContainer* m_CrashSound;
+		std::shared_ptr<SoundContainer> m_CrashSound;
 		// Whether this can enter orbit and refund the owning team. If false, will use default out-of-bounds deletion behavior.
 		bool m_CanEnterOrbit;
 		// The maximum number of actors that fit in the inventory
