@@ -42,6 +42,8 @@ namespace RTE {
 		/// @param height Height of this box.
 		Box(const Vector& corner, float width, float height) { Create(corner, width, height); }
 
+		Box(const FloatRect& rectangle): m_Corner(rectangle.x, rectangle.y), m_Width(rectangle.w), m_Height(rectangle.h) {}
+
 		/// Copy constructor method used to instantiate a Box object identical to an already existing one.
 		/// @param reference A Box object which is passed in by reference.
 		Box(const Box& reference) { Create(reference); }
@@ -196,6 +198,7 @@ namespace RTE {
 		friend bool operator!=(const Box& lhs, const Box& rhs) { return lhs.m_Corner != rhs.m_Corner || lhs.m_Width != rhs.m_Width || lhs.m_Height != rhs.m_Height; }
 
 		operator Rectangle() { return {m_Corner.m_X, m_Corner.m_Y, m_Width, m_Height}; }
+		operator FloatRect() { return {m_Corner.m_X, m_Corner.m_Y, m_Width, m_Height}; }
 #pragma endregion
 
 	private:
