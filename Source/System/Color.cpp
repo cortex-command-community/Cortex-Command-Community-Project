@@ -53,10 +53,11 @@ void Color::SetRGBWithIndex(int index) {
 	m_R = rgbColor.r;
 	m_G = rgbColor.g;
 	m_B = rgbColor.b;
+	m_A = 255;
 }
 
 int Color::RecalculateIndex() {
 	return m_Index = makecol8(m_R, m_G, m_B);
 }
 
-Color::operator glm::ivec4() const { return glm::ivec4(m_R, m_G, m_B, m_A); }
+Color::operator glm::u8vec4() const { return glm::ivec4(m_R, m_G, m_B, m_A); }

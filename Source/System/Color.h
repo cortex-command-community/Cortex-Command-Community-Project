@@ -122,18 +122,18 @@ namespace RTE {
 		int RecalculateIndex();
 #pragma endregion
 
-		operator glm::ivec4() const;
+		operator glm::u8vec4() const;
 	protected:
 		int m_R{0}; //!< Red value of this color.
 		int m_G{0}; //!< Green value of this color.
 		int m_B{0}; //!< Blue value of this color.
-		int m_A{0}; //!< Alpha value of this color.
+		int m_A{255}; //!< Alpha value of this color.
 		int m_Index{0}; //!< The closest matching index in the current color palette. If 0, this needs to be recalculated and updated.
 
 	private:
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this.
 
 		/// Clears all the member variables of this Color, effectively resetting the members of this abstraction level only.
-		void Clear() { m_R = m_G = m_B = m_Index = 0; }
+		void Clear() { m_R = m_G = m_B = m_Index = 0; m_A = 255; }
 	};
 } // namespace RTE
