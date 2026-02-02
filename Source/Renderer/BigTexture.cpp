@@ -1,9 +1,12 @@
 #include "BigTexture.h"
+#include "AllegroTools.h"
+#include "Draw.h"
+#include "GLStateMan.h"
+#include "DebugMan.h"
+
 #include "glad/gl.h"
 #include <algorithm>
 #include <cmath>
-#include "Draw.h"
-#include "GLStateMan.h"
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
 
@@ -13,14 +16,10 @@ int BigTexture::s_MaxGLTextureSize{0};
 BigTexture::BigTexture(BITMAP* bitmap) {
 	if (!s_MaxGLTextureSize) {
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &s_MaxGLTextureSize);
-		s_MaxGLTextureSize /= 2;
 	}
 	int bitsPerPixel = bitmap_color_depth(bitmap);
 	int bytesPerPixel = bitsPerPixel / 8;
 	m_Bitmap = bitmap;
-	GLBitmapInfo* bitmapExtra = g_GLStateMan.MakeBitmapInfo();
-	bitmap->extra = reinterpret_cast<void*>(bitmapExtra);
-	PixelFormat format = bitsPerPixel == 8 ? PIXELFORMAT_UNCOMPRESSED_GRAYSCALE : PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 	m_Width = bitmap->w;
 	m_Height = bitmap->h;
 
@@ -31,15 +30,11 @@ BigTexture::BigTexture(BITMAP* bitmap) {
 			int regionWidth = std::min(width, s_MaxGLTextureSize);
 			int regionHeight = std::min(height, s_MaxGLTextureSize);
 			m_Regions.emplace_back(
-			    Vector(x, y),
-			    regionWidth,
-			    regionHeight);
-			m_Textures.emplace_back(
-			    rlLoadTexture(nullptr, regionWidth, regionHeight, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE, 1),
-			    regionWidth,
-			    regionHeight,
-			    1,
-			    format);
+				Vector(x, y),
+				regionWidth,
+				regionHeight);
+			std::unique_ptr <BITMAP, BitmapDeleter> targetRegionPixels = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(bitmap_color_depth(bitmap), regionWidth, regionHeight));
+			m_Textures.emplace_back(std::make_shared<BitmapTexture>(std::move(targetRegionPixels), Filter::Nearest));
 			GLuint uploadBuffer;
 			glGenBuffers(1, &uploadBuffer);
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, uploadBuffer);
@@ -52,47 +47,17 @@ BigTexture::BigTexture(BITMAP* bitmap) {
 	}
 }
 
-BigTexture::~BigTexture() {
-	for (Texture2D& texture: m_Textures) {
-		glDeleteTextures(1, &texture.id);
-	}
-}
 
-void BigTexture::Draw(Rectangle source, Rectangle dest) {
+void BigTexture::Draw(Rectangle source, Rectangle dest) {}
+void BigTexture::Draw(const Box& source, const Box& dest) {
 	ZoneScoped;
 	TracyGpuZone("BigTexture::Draw");
-	float scaleX = dest.width / source.width;
-	float scaleY = dest.height / source.height;
-	Box sourceBox(Vector(source.x, source.y), source.width, source.height);
+	float scaleX = dest.m_Width / source.m_Width;
+	float scaleY = dest.m_Height / source.m_Height;
 	for (int i = 0; i < m_Regions.size(); ++i){
-		Box sourceIntersect = sourceBox.GetIntersection(m_Regions[i]);
+		Box sourceIntersect = source.GetIntersection(m_Regions[i]);
 		if (!sourceIntersect.IsEmpty()) {
-#ifdef DEBUG_BUILD
-			DrawRectangleLines(dest.x + sourceIntersect.m_Corner.m_X * scaleX,
-				dest.y + sourceIntersect.m_Corner.m_Y * scaleY,
-				sourceIntersect.m_Width * scaleX,
-				sourceIntersect.m_Height * scaleY,
-				{5, 0, 0, 255}
-			);
-			DrawRectangleLines(
-				dest.x + sourceIntersect.m_Corner.m_X * scaleX + 10,
-				dest.y + sourceIntersect.m_Corner.m_Y * scaleY + 10,
-				sourceIntersect.m_Width * scaleX - 20,
-				sourceIntersect.m_Height * scaleY - 20,
-				{5, 0, 0, 255}
-			);
-#endif
-			DrawTexturePro(
-			    m_Textures[i],
-			    sourceIntersect,
-			    {dest.x + sourceIntersect.m_Corner.m_X * scaleX,
-			     dest.y + sourceIntersect.m_Corner.m_Y * scaleY,
-			     sourceIntersect.m_Width * scaleX,
-			     sourceIntersect.m_Height * scaleY},
-			    {0.0f, 0.0f},
-			    0.0f,
-			    {255, 255, 255, 255}
-			);
+			Draw::DrawTexture(m_Textures[i].get(), sourceIntersect, Box(dest.m_Corner + Vector(sourceIntersect.m_Corner.m_X * scaleX, sourceIntersect.m_Corner.m_Y * scaleY), sourceIntersect.m_Width * scaleX, sourceIntersect.m_Height * scaleY));
 		}
 	}
 }
@@ -100,9 +65,7 @@ void BigTexture::Draw(Rectangle source, Rectangle dest) {
 void BigTexture::Update(const Box& updateRegion) {
 	ZoneScoped;
 	TracyGpuZone("BigTexture Upload");
-	if (!m_Bitmap->extra) {
-		m_Bitmap->extra = reinterpret_cast<void*>(g_GLStateMan.MakeBitmapInfo());
-	}
+	std::cout << updateRegion.m_Corner << " " << updateRegion.m_Width << " " << updateRegion.m_Height << std::endl;
 	int bytesPerPixel = bitmap_color_depth(m_Bitmap) / 8;
 	glPixelStorei(GL_UNPACK_ALIGNMENT, bitmap_color_depth(m_Bitmap) == 8 ? 1 : 4);
 	for (int i = 0; i < m_Regions.size(); ++i) {
@@ -110,8 +73,8 @@ void BigTexture::Update(const Box& updateRegion) {
 		if (!intersect.IsEmpty()) {
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_UploadBuffers[i]);
 			size_t pixelsSize = std::ceil(intersect.m_Width) * std::ceil(intersect.m_Height) * bytesPerPixel;
-			unsigned char* pixels = (unsigned char*)glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, (intersect.m_Corner.GetFloorIntY() %s_MaxGLTextureSize) * m_Textures[i].width + intersect.m_Corner.GetFloorIntX() % s_MaxGLTextureSize, pixelsSize, GL_MAP_WRITE_BIT|GL_MAP_INVALIDATE_BUFFER_BIT);
-			
+			unsigned char* pixels = (unsigned char*)glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, (intersect.m_Corner.GetFloorIntY() %s_MaxGLTextureSize) * m_Textures[i]->GetDimensions().w + intersect.m_Corner.GetFloorIntX() % s_MaxGLTextureSize, pixelsSize, GL_MAP_WRITE_BIT|GL_MAP_INVALIDATE_BUFFER_BIT);
+
 			for (size_t y = 0; y < static_cast<int>(std::ceil(intersect.m_Height)); y++) {
 				memcpy(
 					pixels + y * static_cast<int>(std::ceil(intersect.m_Width)) * bytesPerPixel,
@@ -122,18 +85,20 @@ void BigTexture::Update(const Box& updateRegion) {
 			glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 
 
-			glBindTexture(GL_TEXTURE_2D, m_Textures[i].id);
+			glBindTexture(GL_TEXTURE_2D, m_Textures[i]->GetTextureId());
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			assert(m_Textures[i]->GetDimensions().w >= intersect.m_Width);
+			assert(m_Textures[i]->GetDimensions().h >= intersect.m_Height);
 			glTexSubImage2D(
 				GL_TEXTURE_2D,
-				0, 
-				intersect.m_Corner.GetFloorIntX() % s_MaxGLTextureSize, 
-				intersect.m_Corner.GetFloorIntY() % s_MaxGLTextureSize, 
-				std::ceil(intersect.m_Width), 
-				std::ceil(intersect.m_Height), 
-				bytesPerPixel == 1 ? GL_RED : GL_RGBA, 
+				0,
+				intersect.m_Corner.GetFloorIntX() % s_MaxGLTextureSize,
+				intersect.m_Corner.GetFloorIntY() % s_MaxGLTextureSize,
+				std::ceil(intersect.m_Width),
+				std::ceil(intersect.m_Height),
+				bytesPerPixel == 1 ? GL_RED : GL_RGBA,
 				GL_UNSIGNED_BYTE,
-				reinterpret_cast<void*>((intersect.m_Corner.GetFloorIntY() % s_MaxGLTextureSize) * m_Textures[i].width + intersect.m_Corner.GetFloorIntX() % s_MaxGLTextureSize)
+				(GLvoid*)((intersect.m_Corner.GetFloorIntY() % s_MaxGLTextureSize) * static_cast<int>(m_Textures[i]->GetDimensions().w) + intersect.m_Corner.GetFloorIntX() % s_MaxGLTextureSize)
 			);
 
 			glBindTexture(GL_TEXTURE_2D, 0);

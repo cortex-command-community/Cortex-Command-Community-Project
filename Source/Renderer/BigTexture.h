@@ -8,10 +8,10 @@ namespace RTE {
 	struct BigTexture {
 		/// Constructs a BigTexture from a bitmap, generating extra textures as needed.
 		BigTexture(BITMAP* bitmap);
-		
+
 		/// Destructs this BigTexture.
-		~BigTexture();
-		
+		~BigTexture() = default;
+
 		/// Update a region of this BigTexture.
 		/// @param region the region to update, must be inside the texture.
 		void Update(const Box& region);
@@ -20,7 +20,8 @@ namespace RTE {
 		/// @param source The source rectangle inside this texture.
 		/// @param dest The destination rectangle on the screen.
 		void Draw(Rectangle source, Rectangle dest);
-		std::vector<Texture2D> m_Textures{}; //!< The tiles of this BigTexture.
+		void Draw(const Box& source, const Box& dest);
+		std::vector<std::shared_ptr<BitmapTexture>> m_Textures{}; //!< The tiles of this BigTexture.
 		std::vector<unsigned int> m_UploadBuffers{}; //!< Upload buffers to reduce wait time on big uploads.
 		std::vector<Box> m_Regions{}; //!< The offset regions of each tile.
 		BITMAP* m_Bitmap{nullptr}; //!< The memory BITMAP, not owned.
