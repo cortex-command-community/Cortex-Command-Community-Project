@@ -16,34 +16,37 @@ namespace RTE {
 
 
 	struct VertexBuffer {
-		std::vector<glm::vec3> m_Vertices{c_DefaultBatchVAOElements * 4};
-		std::vector<glm::vec2> m_TexCoords{c_DefaultBatchVAOElements * 4};
-		std::vector<glm::vec3> m_Normals{c_DefaultBatchVAOElements * 4};
-		std::vector<glm::vec<4, unsigned char>> m_Colors{c_DefaultBatchVAOElements * 4};
-		std::vector<unsigned int> m_Indices{c_DefaultBatchVAOElements * 6};
+		std::vector<Vertex> m_Vertices{};
+		std::vector<unsigned int> m_Indices{};
 		GLuint m_VertexArray{0};
 		GLuint m_VertexBuffer{0};
-		GLuint m_TexCoordBuffer{0};
-		GLuint m_NormalsBuffer{0};
-		GLuint m_ColorsBuffer{0};
 		GLuint m_IndexBuffer{0};
 		int m_BufferElements{c_DefaultBatchVAOElements};
 		~VertexBuffer();
 		VertexBuffer();
 		VertexBuffer(int bufferSize);
+		VertexBuffer(VertexBuffer&& vertexBuffer) = default;
 
+		void UpdateBuffers();
+
+		VertexBuffer& operator=(VertexBuffer&& rhs) = default;
 	private:
 		void InitializeBuffers();
+		VertexBuffer(const VertexBuffer&) =delete;
+		VertexBuffer& operator=(const VertexBuffer&) = delete;
 	};
 
 	/// Render batch based on raysan5's raylib
 	struct RenderBatch {
 	public:
+		constexpr static float c_DrawDepthIncrement = 1.0f/20000.0f;
 		VertexBuffer m_VertexBuffers{};
 		std::vector<std::shared_ptr<DrawCall>> m_DrawCalls{};
-		int m_VertexCount{0};
 		float m_CurrentDepth{0.0f};
 		float m_CurrentZ{0.0f};
+		const Shader* m_DefaultShader{nullptr};
+		glm::mat4 m_CurrentView{1.0f};
+		glm::mat4 m_CurrentProjection{1.0f};
 
 		RenderBatch();
 
@@ -51,7 +54,10 @@ namespace RTE {
 		void EndFrame();
 		void Render();
 
+		/// Collect draw calls and render.
+		void Flush() { EndFrame(); Render(); }
+
 	private:
-		void SetupBuffers();
+		void ApplyDrawCalls();
 	};
 }

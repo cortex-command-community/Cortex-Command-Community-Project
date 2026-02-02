@@ -41,11 +41,13 @@
 #include "UInputMan.h"
 #include "PerformanceMan.h"
 #include "FrameMan.h"
+#include "DebugMan.h"
 #include "PostProcessMan.h"
 #include "SceneMan.h"
 #include "MetaMan.h"
 #include "WindowMan.h"
 #include "GLStateMan.h"
+#include "RenderMan.h"
 #include "CameraMan.h"
 #include "ActivityMan.h"
 #include "PrimitiveMan.h"
@@ -81,6 +83,8 @@ void InitializeManagers() {
 	GLStateMan::Construct();
 	LuaMan::Construct();
 	FrameMan::Construct();
+	RenderMan::Construct();
+	DebugMan::Construct();
 	PerformanceMan::Construct();
 	PostProcessMan::Construct();
 	PrimitiveMan::Construct();
@@ -105,6 +109,7 @@ void InitializeManagers() {
 	g_LuaMan.Initialize();
 	g_TimerMan.Initialize();
 	g_FrameMan.Initialize();
+	g_RenderMan.Initialize();
 	g_PostProcessMan.Initialize();
 	g_PerformanceMan.Initialize();
 
@@ -147,6 +152,7 @@ void DestroyManagers() {
 	g_LuaMan.Destroy();
 	ContentFile::FreeAllLoaded();
 	g_ConsoleMan.Destroy();
+	g_RenderMan.Destroy();
 	g_GLStateMan.Destroy();
 	g_WindowMan.Destroy();
 
