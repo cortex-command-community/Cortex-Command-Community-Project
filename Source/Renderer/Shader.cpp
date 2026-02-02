@@ -8,6 +8,7 @@
 #include "ConsoleMan.h"
 #include "System.h"
 #include "RTEError.h"
+#include "RenderMan.h"
 
 #include "raylib/rlgl.h"
 
@@ -22,6 +23,8 @@ Shader::Shader() :
 
 Shader::Shader(const std::string& vertexFilename, const std::string& fragPath) :
     m_ProgramID(g_GLStateMan.MakeGLProgram()), m_TextureUniform(-1), m_ColorUniform(-1), m_TransformUniform(-1), m_ProjectionUniform(-1) {
+	std::cout << m_ProgramID << std::endl;
+	RTEAssert(m_ProgramID, "");
 	Compile(vertexFilename, fragPath);
 }
 
@@ -79,8 +82,10 @@ bool Shader::Compile(const std::string& vertexPath, const std::string& fragPath)
 		GL_CHECK(glBindAttribLocation(m_ProgramID, VertexAttribLocation::COLOR, "rteVertexColor"));
 		if (Link(vertexShader, fragmentShader)) {
 			m_TextureUniform = GetUniformLocation("rteTexture");
+			m_PaletteUniform = GetUniformLocation("rtePalette");
 			m_ColorUniform = GetUniformLocation("rteColor");
 			m_TransformUniform = GetUniformLocation("rteTransform");
+			m_ViewUniform = GetUniformLocation("rteView");
 			m_UVTransformUniform = GetUniformLocation("rteUVTransform");
 			m_ProjectionUniform = GetUniformLocation("rteProjection");
 		} else {
@@ -98,17 +103,18 @@ bool Shader::Compile(const std::string& vertexPath, const std::string& fragPath)
 	return true;
 }
 
-void Shader::Enable() {
+void Shader::Enable() const {
 	rlEnableShader(m_ProgramID);
 }
 void Shader::Begin() const {
-	rlSetShader(m_ProgramID, m_Locations.data());
+	//rlSetShader(m_ProgramID, m_Locations.data());
+	g_RenderMan.SetCurrentShader(this);
 	glUseProgram(m_ProgramID);
 }
 void Shader::End() const {
-	rlSetShader(rlGetShaderIdDefault(), rlGetShaderLocsDefault());
-	rlDisableShader();
-	rlClearActiveTextures();
+	//rlSetShader(rlGetShaderIdDefault(), rlGetShaderLocsDefault());
+	//rlDisableShader();
+	//rlClearActiveTextures();
 }
 
 GLint Shader::GetUniformLocation(const std::string& name) const { return glGetUniformLocation(m_ProgramID, name.c_str()); }
@@ -210,6 +216,9 @@ bool Shader::CompileShader(GLuint shaderID, const std::string& filename, std::st
 }
 
 bool Shader::Link(GLuint vtxShader, GLuint fragShader) {
+	assert(glLinkProgram);
+	assert(vtxShader);
+	assert(fragShader);
 	GL_CHECK(glAttachShader(m_ProgramID, vtxShader));
 	GL_CHECK(glAttachShader(m_ProgramID, fragShader));
 
