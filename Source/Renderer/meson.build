@@ -1,4 +1,8 @@
 sources += files(
+'raylib/rlgl.c',
+'raylib/rlutils.c',
+'raylib/rshapes.c',
+'raylib/rtextures.c',
 'glad/gl.c',
 'BigTexture.cpp',
 'BlendMode.cpp',
@@ -8,6 +12,7 @@ sources += files(
 'GLState.cpp',
 'GraphicalPrimitive.cpp',
 'RenderBatch.cpp',
+'RenderMan.cpp',
 'RenderTarget.cpp',
 'Shader.cpp',
 'Shapes.cpp',
