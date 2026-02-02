@@ -25,6 +25,7 @@ std::array<std::unordered_map<std::string, BITMAP*>, ContentFile::BitDepths::Bit
 std::unordered_map<std::string, SDL_Surface*> ContentFile::s_MemoryPNGs;
 std::unordered_map<std::string, FMOD::Sound*> ContentFile::s_LoadedSamples;
 std::unordered_map<size_t, std::string> ContentFile::s_PathHashes;
+std::unordered_map<std::string, std::shared_ptr<BitmapTexture>> ContentFile::s_LoadedTextures;
 
 void ContentFile::Clear() {
 	m_DataPath.clear();
@@ -277,11 +278,11 @@ BITMAP* ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std
 	return returnBitmap;
 }
 
-std::shared_ptr<Texture> ContentFile::GetAsTexture(int conversionMode, bool storeBitmap, const std::string& dataPathToSpecificFrame) {
+std::shared_ptr<BitmapTexture> ContentFile::GetAsTexture(int conversionMode, bool storeBitmap, const std::string& dataPathToSpecificFrame) {
 	if (m_DataPath.empty()) {
 		return nullptr;
 	}
-	std::shared_ptr<Texture> returnTexture;
+	std::shared_ptr<BitmapTexture> returnTexture;
 
 	std::string dataPathToLoad = dataPathToSpecificFrame.empty() ? m_DataPath : dataPathToSpecificFrame;
 
@@ -305,7 +306,7 @@ std::shared_ptr<Texture> ContentFile::GetAsTexture(int conversionMode, bool stor
 				RTEAbort("Failed to find image file with following path and name:\n\n" + dataPathToLoad + " or " + altFileExtension + "\n" + m_FormattedReaderPosition);
 			}
 		}
-		returnTexture = std::make_shared<Texture>(std::unique_ptr<BITMAP, BitmapDeleter>(LoadAndReleaseBitmap(conversionMode, dataPathToLoad)));
+		returnTexture = std::make_shared<BitmapTexture>(std::unique_ptr<BITMAP, BitmapDeleter>(LoadAndReleaseBitmap(conversionMode, dataPathToLoad)));
 		if (storeBitmap) {
 			s_LoadedTextures[dataPathToLoad] = returnTexture;
 		}
@@ -342,7 +343,7 @@ void ContentFile::GetAsAnimation(std::vector<BITMAP*>& vectorToFill, int frameCo
 	}
 }
 
-void ContentFile::GetAsAnimation(std::vector<std::shared_ptr<Texture>>& vectorToFill, int frameCount, int conversionMode) {
+void ContentFile::GetAsAnimation(std::vector<std::shared_ptr<BitmapTexture>>& vectorToFill, int frameCount, int conversionMode) {
 	if (m_DataPath.empty() || frameCount < 1) {
 		return;
 	}
