@@ -41,6 +41,7 @@ namespace RTE {
 
 		Blend GetBlendMode() { return m_BlendMode; }
 
+		bool operator==(const BlendMode& rhs) const = default;
 	private:
 		Blend m_BlendMode{Blend::ALPHA};
 		GLint m_SrcFunc{GL_SRC_ALPHA}; //!< glBlendFunc source function.
