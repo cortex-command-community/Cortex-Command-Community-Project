@@ -3,24 +3,31 @@
 #include "Box.h"
 #include "Vector.h"
 #include <vector>
+#include "glm/glm.hpp"
 
 namespace RTE {
 	class Camera{
 	public:
 		Camera(Vector viewCenter, Box viewport, float zoom = 1.0f, Vector viewUp = {0.0f, 1.0f}) :
-			m_ViewCenter{viewCenter}, m_Viewport{viewport}, m_Scale{zoom}, m_ViewUp{viewUp} {}
+			m_ViewCenter{viewCenter}, m_Viewport{viewport}, m_Scale{zoom}, m_ViewUp{viewUp} { UpdateView(); }
 
 		/// Set the view center of this camera.
 		void SetViewCenter(Vector viewCenter) { m_ViewCenter = viewCenter; }
 
 		/// Get the view center of this camera.
-		const Vector& GetViewCenter() { return m_ViewCenter; }
+		const Vector& GetViewCenter() const { return m_ViewCenter; }
 
 		/// Get the viewport of this camera.
-		const Box& GetViewport() { return m_Viewport; }
+		const Box& GetViewport() const { return m_Viewport; }
 
 		/// Set the view box of the camera.
-		void SetViewport(const Box& viewport) { m_Viewport = viewport; }
+		void SetViewport(const Box& viewport);
+
+		const glm::mat4 GetView() { return m_View; }
+
+		const glm::mat4 GetProjection() { return m_Projection; }
+
+		void SetViewUp(Vector viewUp) { m_ViewUp = viewUp; }
 
 		/// Set the post viewport scaling.
 		void SetZoom(float zoom) { m_Scale = zoom; }
@@ -30,20 +37,24 @@ namespace RTE {
 		/// @param center Center point of the object to test.
 		/// @param radius Radius of the object to test.
 		/// @return Whether the object is visible.
-		bool IsVisible(Vector center, float radius);
+		bool IsVisible(Vector center, float radius) const;
 
-		/// Set up the view matrix so it corresponds to this camera.
-		/// @remark Replaces the current view matrix.
-		void Enable();
+		Activity::Teams GetTeam() const { return m_Team; }
 
-		/// Reset the modelview matrix to identity;
-		void Disable();
+		bool IsShowHUD() const { return m_ShowHUD; }
+
+		void UpdateView();
 
 		void Draw();
 	private:
-		Vector m_ViewCenter;
-		Box m_Viewport;
-		float m_Scale;
-		Vector m_ViewUp;
+		glm::mat4 m_View{1.0f};
+		glm::mat4 m_Projection{1.0f};
+		Vector m_ViewCenter{0.0f, 1.0f};
+		Box m_Viewport{};
+		float m_Scale{1.0f};
+		Vector m_ViewUp{};
+		Activity::Teams m_Team{Activity::NoTeam};
+		bool m_ShowHUD{true};
+		bool m_ViewUpdated{true};
 	};
 }
