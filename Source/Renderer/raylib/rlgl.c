@@ -1512,7 +1512,7 @@ static void GLAPIENTRY rlDebugMessageCallback(GLenum source, GLenum type, GLuint
 // Initialize rlgl: OpenGL extensions, default buffers/shaders/textures, OpenGL states
 void rlglInit(int width, int height) {
 	// Enable OpenGL debug context if required
-#if defined(RLGL_ENABLE_OPENGL_DEBUG_CONTEXT) 
+#if false && defined(RLGL_ENABLE_OPENGL_DEBUG_CONTEXT)
 	if (RLGL.ExtSupported.debug_output && (glDebugMessageCallback != NULL) && (glDebugMessageControl != NULL)) {
 		glDebugMessageCallback(rlDebugMessageCallback, 0);
 		// glDebugMessageControl(GL_DEBUG_SOURCE_API, GL_DEBUG_TYPE_ERROR, GL_DEBUG_SEVERITY_HIGH, 0, 0, GL_TRUE);
