@@ -3,7 +3,7 @@
 #include "allegro/internal/aintern.h"
 
 using namespace RTE;
-unsigned long TrueAlphaBlender(unsigned long x, unsigned long y, unsigned long n) {
+unsigned long RTE::TrueAlphaBlender(unsigned long x, unsigned long y, unsigned long n) {
 	// This is the original allegro alpha blender with added alpha component blending.
 	unsigned long res;
 	unsigned long green;
@@ -31,10 +31,10 @@ unsigned long TrueAlphaBlender(unsigned long x, unsigned long y, unsigned long n
 	return res | green | alpha;
 }
 
-void SetTrueAlphaBlender() {
+void RTE::SetTrueAlphaBlender() {
 	set_blender_mode_ex(_blender_black, _blender_black, _blender_black, TrueAlphaBlender, _blender_black, _blender_black, _blender_black, 0, 0, 0, 0);
 }
 
-void BitmapDeleter::operator()(BITMAP * bitmap) {
+void RTE::BitmapDeleter::operator()(BITMAP * bitmap) {
 	destroy_bitmap(bitmap);
 }
