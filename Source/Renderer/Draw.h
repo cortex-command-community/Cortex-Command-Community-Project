@@ -5,6 +5,7 @@
 #include "Vertex.h"
 #include "Shapes.h"
 #include "Texture.h"
+#include "Rectangles.h"
 
 struct BITMAP;
 namespace RTE {
@@ -47,10 +48,11 @@ namespace RTE {
 	void DrawTexturePro(BITMAP* bitmap, Rectangle source, Rectangle dest, Vector2 origin, float rotation, RLColor tint);
 
 	namespace Draw {
-		void DrawTexture(Texture* texture, int posX, int posY, Color tint);
-		void DrawTexture(Texture* texture, Vector pos, Color tint = {255, 255, 255, 255});
-		void DrawTexture(Texture* texture, Vector pos, float rotation, float scale, Color tint);
-		void DrawTexture(Texture* texture, Box source, Vector pos, Color tint);
-		void DrawTexture(Texture* bitmap, Box source, Box dest, Vector origin, float rotation, Color tint);
+		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, int posX, int posY, Color tint);
+		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, glm::vec2 pos, Color tint = {255, 255, 255, 255});
+		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, glm::vec2 pos, glm::vec2 origin, float angle, glm::vec2 scale, Color tint = {255, 255, 255, 255});
+		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, FloatRect source, glm::vec2 pos, Color tint);
+		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, const FloatRect& source, const FloatRect& dest, const Color& tint = {255, 255, 255, 255});
+		std::shared_ptr<DrawCall> DrawTexture(Texture* bitmap, FloatRect source, FloatRect dest, glm::vec2 origin, float rotation, Color tint);
 	}
 }
