@@ -8,9 +8,10 @@ out vec2 textureUV;
 out vec4 vertexColor;
 uniform mat4 rteView;
 uniform mat4 rteProjection;
+uniform mat4 rteTransform;
 
 void main() {
-	gl_Position = rteProjection * rteView * vec4(rteVertexPosition, 1.0);
+	gl_Position = rteProjection * rteView * rteTransform * vec4(rteVertexPosition, 1.0);
 	textureUV = rteVertexTexUV;
 	vertexColor = rteVertexColor;
 }
