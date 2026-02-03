@@ -2703,8 +2703,6 @@ void SceneMan::Draw(const Camera& camera) {
 			}
 		}
 	}
-
-
 }
 
 void SceneMan::ClearMOColorLayer() {

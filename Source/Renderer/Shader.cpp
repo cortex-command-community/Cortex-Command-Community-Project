@@ -112,9 +112,7 @@ void Shader::Begin() const {
 	glUseProgram(m_ProgramID);
 }
 void Shader::End() const {
-	//rlSetShader(rlGetShaderIdDefault(), rlGetShaderLocsDefault());
-	//rlDisableShader();
-	//rlClearActiveTextures();
+	g_RenderMan.SetCurrentShader(g_RenderMan.GetDefaultShader());
 }
 
 GLint Shader::GetUniformLocation(const std::string& name) const { return glGetUniformLocation(m_ProgramID, name.c_str()); }

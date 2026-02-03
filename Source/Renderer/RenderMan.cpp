@@ -5,6 +5,7 @@
 #include "SDL3/SDL.h"
 
 #include "FrameMan.h"
+#include "tracy/Tracy.hpp"
 
 using namespace RTE;
 
@@ -28,19 +29,24 @@ void RenderMan::Destroy() {
 }
 
 std::shared_ptr<DrawCall> RenderMan::BeginDraw() {
+	ZoneScoped;
 	std::shared_ptr<DrawCall> drawCall = m_RenderBatch->m_DrawCalls.emplace_back(new DrawCall(m_RenderBatch->m_DrawCalls.size(), m_CurrentCamera));
 	drawCall->m_Shader = m_RenderBatch->m_CurrentShader;
 	drawCall->m_TextureId = m_ShapesTexture->GetTextureId();
+	drawCall->m_BlendMode = m_RenderBatch->m_CurrentBlendMode;
 	m_RenderBatch->m_CurrentDepth += RenderBatch::c_DrawDepthIncrement;
 	return drawCall;
 }
 
 void RenderMan::BeginFrame(Camera* camera) {
+	ZoneScoped;
 	m_CurrentCamera = camera;
 	m_RenderBatch->m_CurrentShader = m_DefaultShader.get();
+	m_RenderBatch->m_CurrentBlendMode = Blend::ALPHA;
 	m_RenderBatch->BeginFrame();
 }
 
 void RenderMan::DrawActiveBatch() {
+	ZoneScoped;
 	m_RenderBatch->Flush();
 }

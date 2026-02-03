@@ -45,6 +45,8 @@ namespace RTE {
 
 		const Shader* GetCurrentShader() { return m_RenderBatch->m_CurrentShader ? m_RenderBatch->m_CurrentShader : GetDefaultShader(); }
 
+		void SetActiveBlendMode(BlendMode mode) { m_RenderBatch->m_CurrentBlendMode = std::move(mode); }
+
 		/// Add a uniform value to be set on upcoming draw calls.
 		/// @param uniform The unform value to enable.
 		void PushUniform(std::shared_ptr<UniformValueType> uniform) { m_RenderBatch->m_CurrentUniforms.push_back(uniform); }
