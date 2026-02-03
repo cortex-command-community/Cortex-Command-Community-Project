@@ -5,7 +5,7 @@
 
 using namespace RTE;
 
-Texture::Texture(): m_Dimensions() {
+Texture::Texture() : m_Dimensions() {
 	glGenTextures(1, &m_TextureID);
 }
 
@@ -13,14 +13,14 @@ Texture::~Texture() {
 	glDeleteTextures(1, &m_TextureID);
 }
 
-Texture::Texture(GLuint textureId): m_TextureID(textureId), m_Dimensions() {
+Texture::Texture(GLuint textureId) : m_TextureID(textureId), m_Dimensions() {
 	glBindTexture(GL_TEXTURE_2D, m_TextureID);
 	glGetTexLevelParameterfv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &m_Dimensions.w);
 	glGetTexLevelParameterfv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &m_Dimensions.h);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-Texture::Texture(FloatRect dimensions, int bitDepth) : m_Dimensions(std::move(dimensions)) {
+Texture::Texture(FloatRect dimensions, Filter filtering, WrapType wrapType, int bitDepth) : m_BitDepth(bitDepth), m_Dimensions(std::move(dimensions)) {
 	glGenTextures(1, &m_TextureID);
 
 	Bind();
@@ -31,13 +31,42 @@ Texture::Texture(FloatRect dimensions, int bitDepth) : m_Dimensions(std::move(di
 		glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
 	} else {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Dimensions.w, m_Dimensions.h, 0, bitDepth == 32 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-
 	}
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
+	GLint wrap;
+	switch (wrapType) {
+		case WrapType::ClampToBorder:
+			wrap = GL_CLAMP_TO_BORDER;
+			break;
+		case WrapType::ClampToEdge:
+			wrap = GL_CLAMP_TO_EDGE;
+			break;
+		case RTE::WrapType::Repeat:
+			wrap = GL_REPEAT;
+			break;
+	}
+
+	GLint textureMagFilter;
+	GLint textureMinFilter;
+	switch (filtering) {
+		case Filter::Linear:
+			textureMagFilter = GL_LINEAR;
+			textureMinFilter = GL_LINEAR;
+			break;
+		case Filter::LinearMipmap:
+			textureMagFilter = GL_LINEAR;
+			textureMinFilter = GL_LINEAR_MIPMAP_LINEAR;
+			break;
+		case Filter::Nearest:
+			textureMagFilter = GL_NEAREST;
+			textureMinFilter = GL_NEAREST;
+			break;
+	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, textureMagFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, textureMinFilter);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -49,8 +78,8 @@ BitmapTexture::BitmapTexture(std::unique_ptr<BITMAP, BitmapDeleter> bitmap, Filt
 	m_Dimensions = FloatRect(0.0f, 0.0f, m_Pixels->w, m_Pixels->h);
 	Bind();
 
-	int bitDepth = bitmap_color_depth(m_Pixels.get());
-	if (bitDepth == 8) {
+	m_BitDepth = bitmap_color_depth(m_Pixels.get());
+	if (m_BitDepth == 8) {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, m_Pixels->w, m_Pixels->h, 0, GL_RED, GL_UNSIGNED_BYTE, m_Pixels->dat);
 		GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
@@ -58,7 +87,7 @@ BitmapTexture::BitmapTexture(std::unique_ptr<BITMAP, BitmapDeleter> bitmap, Filt
 		filtering = Filter::Nearest;
 	} else {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Pixels->w, m_Pixels->h, 0, bitDepth == 32 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, m_Pixels->dat);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Pixels->w, m_Pixels->h, 0, m_BitDepth == 32 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, m_Pixels->dat);
 	}
 
 	GLint wrap;
@@ -104,7 +133,7 @@ BitmapTexture::BitmapTexture(std::unique_ptr<BITMAP, BitmapDeleter> bitmap, Filt
 }
 
 void BitmapTexture::Update(const FloatRect& region) {
-	RTEAssert((region.x >= 0) && (region.y>= 0) && (region.x + region.w) <= m_Dimensions.w && (region.y + region.h) <= m_Dimensions.h, "Update area out of BITMAP bounds!");
+	RTEAssert((region.x >= 0) && (region.y >= 0) && (region.x + region.w) <= m_Dimensions.w && (region.y + region.h) <= m_Dimensions.h, "Update area out of BITMAP bounds!");
 	Bind();
 	int bitDepth = bitmap_color_depth(m_Pixels.get());
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, m_Dimensions.w);

@@ -12,32 +12,36 @@ typedef struct BITMAP BITMAP;
 }
 
 namespace RTE {
-	/// Abstraction for rectangular textures.
-	class Texture {
-	public:
-		Texture();
-		Texture(GLuint textureId);
-		Texture(FloatRect dimensions, int bitDepth = 32);
-		virtual ~Texture();
-		void Bind();
-		GLuint GetTextureId() const { return m_TextureID; }
-		const FloatRect& GetDimensions() const { return m_Dimensions; }
-
-	protected:
-		GLuint m_TextureID{0};
-		FloatRect m_Dimensions;
-	};
-
 	enum class Filter {
 		Linear,
 		LinearMipmap,
 		Nearest
 	};
+
 	enum class WrapType {
 		ClampToBorder,
 		ClampToEdge,
 		Repeat
 	};
+
+	/// Abstraction for rectangular textures.
+	class Texture {
+	public:
+		Texture();
+		Texture(GLuint textureId);
+		Texture(FloatRect dimensions, Filter filtering = Filter::Linear, WrapType wrap = WrapType::ClampToEdge, int bitDepth = 32);
+		virtual ~Texture();
+		void Bind();
+		GLuint GetTextureId() const { return m_TextureID; }
+		const FloatRect& GetDimensions() const { return m_Dimensions; }
+		int GetBitDepth() { return m_BitDepth; }
+
+	protected:
+		GLuint m_TextureID{0};
+		int m_BitDepth{32};
+		FloatRect m_Dimensions;
+	};
+
 	class BitmapTexture : public Texture {
 	public:
 		/// Constructs a texture from an allegro BITMAP.
