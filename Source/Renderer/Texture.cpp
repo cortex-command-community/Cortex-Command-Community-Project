@@ -55,6 +55,7 @@ BitmapTexture::BitmapTexture(std::unique_ptr<BITMAP, BitmapDeleter> bitmap, Filt
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, m_Pixels->w, m_Pixels->h, 0, GL_RED, GL_UNSIGNED_BYTE, m_Pixels->dat);
 		GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
 		glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+		filtering = Filter::Nearest;
 	} else {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Pixels->w, m_Pixels->h, 0, bitDepth == 32 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, m_Pixels->dat);
@@ -62,6 +63,9 @@ BitmapTexture::BitmapTexture(std::unique_ptr<BITMAP, BitmapDeleter> bitmap, Filt
 
 	GLint wrap;
 	switch (clamp) {
+		case WrapType::ClampToBorder:
+			wrap = GL_CLAMP_TO_BORDER;
+			break;
 		case WrapType::ClampToEdge:
 			wrap = GL_CLAMP_TO_EDGE;
 			break;
@@ -96,6 +100,22 @@ BitmapTexture::BitmapTexture(std::unique_ptr<BITMAP, BitmapDeleter> bitmap, Filt
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
 
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void BitmapTexture::Update(const FloatRect& region) {
+	RTEAssert((region.x >= 0) && (region.y>= 0) && (region.x + region.w) <= m_Dimensions.w && (region.y + region.h) <= m_Dimensions.h, "Update area out of BITMAP bounds!");
+	Bind();
+	int bitDepth = bitmap_color_depth(m_Pixels.get());
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, m_Dimensions.w);
+	if (bitDepth == 8) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, region.x, region.y, region.w, region.h, GL_RED, GL_UNSIGNED_BYTE, m_Pixels->line[static_cast<int>(region.y)] + static_cast<int>(region.x));
+	} else {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, region.x, region.y, region.w, region.h, GL_RGBA, GL_UNSIGNED_BYTE, m_Pixels->line[static_cast<int>(region.y)] + (static_cast<int>(region.x) * 4));
+	}
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 

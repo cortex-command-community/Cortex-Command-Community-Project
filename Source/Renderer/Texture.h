@@ -34,14 +34,28 @@ namespace RTE {
 		Nearest
 	};
 	enum class WrapType {
+		ClampToBorder,
 		ClampToEdge,
 		Repeat
 	};
 	class BitmapTexture : public Texture {
 	public:
+		/// Constructs a texture from an allegro BITMAP.
+		/// @param bitmap Unique pointer to the BITMAP representing this texture's pixels.
+		/// @param filtering A Filter mode which is applied to the GL texture. Always set to Nearest for indexed images.
+		/// @param clamp The texture wrapping mode.
 		BitmapTexture(std::unique_ptr<BITMAP, BitmapDeleter> bitmap, Filter filtering = Filter::Linear, WrapType clamp = WrapType::ClampToEdge);
+
+		/// Destructor.
 		~BitmapTexture() = default;
+
+		/// Returns the pixels of this BitmapTexture.
+		/// If the bitmap is modified, call Update to update the texture on the GPU as well.
+		/// @return (Non owning) Bitmap to the pixels.
 		BITMAP* GetBitmap() const { return m_Pixels.get(); }
+
+		/// Update the pixels on GPU.
+		void Update(const FloatRect& region);
 
 	private:
 		std::unique_ptr<BITMAP, BitmapDeleter> m_Pixels;
