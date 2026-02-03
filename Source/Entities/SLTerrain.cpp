@@ -8,6 +8,7 @@
 #include "Atom.h"
 #include "DataModule.h"
 #include "PresetMan.h"
+#include "Draw.h"
 
 #include <array>
 #include <execution>
@@ -503,4 +504,21 @@ void SLTerrain::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNee
 			RTEAbort("Invalid LayerType was set to draw in SLTerrain::Draw!");
 			break;
 	}
+}
+
+void SLTerrain::Draw(const Camera& camera) {
+	switch (m_LayerToDraw) {
+		case LayerType::MaterialLayer:
+			SceneLayer::Draw(camera);
+			break;
+		case LayerType::ForegroundLayer:
+			m_FGColorLayer->Draw(camera);
+			break;
+		case LayerType::BackgroundLayer:
+			m_BGColorLayer->Draw(camera);
+			break;
+		default:
+			RTEAbort("Invalid LayerType was set to draw in SLTerrain::Draw");
+			break;
+		}
 }
