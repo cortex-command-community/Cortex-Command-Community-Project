@@ -5,7 +5,6 @@ in vec2 textureUV;
 out vec4 FragColor;
 
 uniform sampler2D rteTexture;
-uniform sampler2D rteGUITexture;
 
 vec4 textureAA(sampler2D tex, vec2 uv) {
 	vec2 texsize = vec2(textureSize(tex, 0));
@@ -17,8 +16,7 @@ vec4 textureAA(sampler2D tex, vec2 uv) {
 }
 
 void main() {
-	vec4 guiColor = textureAA(rteGUITexture, vec2(textureUV.x, -textureUV.y));
+	vec4 guiColor = textureAA(rteTexture, vec2(textureUV.x, -textureUV.y));
 	float guiSolid = float((guiColor.r + guiColor.g + guiColor.b) > 0.0);
-	float blendRatio = max(guiColor.a, guiSolid);
-	FragColor = (textureAA(rteTexture, textureUV) * (1.0F - blendRatio)) + guiColor * blendRatio;
+	FragColor = vec4(guiColor.rgb, guiSolid);
 }
