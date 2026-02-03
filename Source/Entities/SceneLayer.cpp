@@ -36,7 +36,8 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Clear() {
 	m_BitmapFile.Reset();
 	m_MainBitmap = nullptr;
 	m_BackBitmap = nullptr;
-	m_MainTexture.reset();
+	m_MainStreamTexture.reset();
+	m_StaticTexture = nullptr;
 	m_LastClearColor = ColorKeys::g_InvalidColor;
 	m_Drawings.clear();
 	m_MainBitmapOwned = false;
@@ -55,7 +56,8 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Clear() {
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Create(const ContentFile& bitmapFile, bool drawMasked, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo) {
 	m_BitmapFile = bitmapFile;
-	m_MainBitmap = m_BitmapFile.GetAsBitmap();
+	m_StaticTexture = m_BitmapFile.GetAsTexture();
+	m_MainBitmap = m_StaticTexture->GetBitmap();
 	Create(m_MainBitmap, drawMasked, offset, wrapX, wrapY, scrollInfo);
 
 	m_MainBitmapOwned = false;
@@ -65,7 +67,8 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Create(const ContentFile& bi
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Create(BITMAP* bitmap, bool drawMasked, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo) {
-	m_MainBitmap = bitmap;
+	m_StaticTexture = std::make_shared<BitmapTexture>(std::unique_ptr<BITMAP, BitmapDeleter>(bitmap));
+	m_MainBitmap = m_StaticTexture->GetBitmap();
 	RTEAssert(m_MainBitmap, "Null bitmap passed in when creating SceneLayerImpl!");
 
 	m_MainBitmapOwned = true;
@@ -73,7 +76,7 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Create(BITMAP* bitmap, bool 
 	m_BackBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
 	m_LastClearColor = ColorKeys::g_InvalidColor;
 	if constexpr (!STATIC_TEXTURE) {
-		m_MainTexture = std::make_unique<BigTexture>(m_MainBitmap);
+		m_MainStreamTexture = std::make_unique<BigTexture>(m_MainBitmap);
 	}
 
 	m_DrawMasked = drawMasked;
@@ -101,28 +104,35 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Create(const SceneLayerImpl&
 	m_ScaleFactor = reference.m_ScaleFactor;
 	m_ScaledDimensions = reference.m_ScaledDimensions;
 
-	if (reference.m_MainBitmap) {
-		// Make a copy of the bitmap because it can be modified in some use cases.
-		BITMAP* bitmapToCopy = reference.m_MainBitmap;
-		RTEAssert(bitmapToCopy, "Couldn't load the bitmap file specified for SceneLayerImpl!");
+	if constexpr (!STATIC_TEXTURE) {
+		if (reference.m_MainBitmap) {
+			// Make a copy of the bitmap because it can be modified in some use cases.
+			BITMAP* bitmapToCopy = reference.m_MainBitmap;
+			RTEAssert(bitmapToCopy, "Couldn't load the bitmap file specified for SceneLayerImpl!");
 
-		m_MainBitmap = create_bitmap_ex(bitmap_color_depth(bitmapToCopy), bitmapToCopy->w, bitmapToCopy->h);
-		RTEAssert(m_MainBitmap, "Failed to allocate BITMAP in SceneLayerImpl::Create");
-		blit(bitmapToCopy, m_MainBitmap, 0, 0, 0, 0, bitmapToCopy->w, bitmapToCopy->h);
+			m_StaticTexture = std::make_shared<BitmapTexture>(std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(bitmap_color_depth(bitmapToCopy), bitmapToCopy->w, bitmapToCopy->h)));
+			m_MainBitmap = m_StaticTexture->GetBitmap();
+			RTEAssert(m_MainBitmap, "Failed to allocate BITMAP in SceneLayerImpl::Create");
+			blit(bitmapToCopy, m_MainBitmap, 0, 0, 0, 0, bitmapToCopy->w, bitmapToCopy->h);
 
-		m_BackBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
-		m_LastClearColor = ColorKeys::g_InvalidColor;
+			m_BackBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
+			m_LastClearColor = ColorKeys::g_InvalidColor;
 
-		if constexpr (!STATIC_TEXTURE) {
-			m_MainTexture = std::make_unique<BigTexture>(m_MainBitmap);
+			if constexpr (!STATIC_TEXTURE) {
+				m_MainStreamTexture = std::make_unique<BigTexture>(m_MainBitmap);
+			}
+
+			InitScrollRatios();
+
+			m_MainBitmapOwned = true;
+		} else {
+			// If no bitmap to copy, then it has to be loaded with LoadData.
+			m_MainBitmapOwned = false;
 		}
-
-		InitScrollRatios();
-
-		m_MainBitmapOwned = true;
 	} else {
-		// If no bitmap to copy, then it has to be loaded with LoadData.
-		m_MainBitmapOwned = false;
+		if (reference.m_StaticTexture) {
+			m_StaticTexture = reference.m_StaticTexture;
+		}
 	}
 	return 0;
 }
@@ -151,9 +161,6 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Save(Writer& writer) const {
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Destroy(bool notInherited) {
-	if (m_MainBitmapOwned) {
-		destroy_bitmap(m_MainBitmap);
-	}
 	if (m_BackBitmap) {
 		destroy_bitmap(m_BackBitmap);
 	}
@@ -201,18 +208,14 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::InitScrollRatios(bool initF
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::LoadData() {
-	if (m_MainBitmapOwned) {
-		destroy_bitmap(m_MainBitmap);
-		m_MainBitmap = nullptr;
-	}
-
 	// Load from disk and take ownership. Don't cache because the bitmap will be modified.
-	m_MainBitmap = m_BitmapFile.GetAsBitmap(COLORCONV_NONE, false);
+	m_StaticTexture = m_BitmapFile.GetAsTexture(COLORCONV_NONE, STATIC_TEXTURE);
+	m_MainBitmap = m_StaticTexture->GetBitmap();
 	m_MainBitmapOwned = true;
 
 	m_BackBitmap = create_bitmap_ex(bitmap_color_depth(m_MainBitmap), m_MainBitmap->w, m_MainBitmap->h);
 	if constexpr (!STATIC_TEXTURE) {
-		m_MainTexture = std::make_unique<BigTexture>(m_MainBitmap);
+		m_MainStreamTexture = std::make_unique<BigTexture>(m_MainBitmap);
 	}
 	m_LastClearColor = ColorKeys::g_InvalidColor;
 
@@ -255,11 +258,9 @@ std::unique_ptr<BITMAP> SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::CopyBitm
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::ClearData() {
-	if (m_MainBitmap && m_MainBitmapOwned) {
-		destroy_bitmap(m_MainBitmap);
-	}
+	m_StaticTexture = nullptr;
 	m_MainBitmap = nullptr;
-	m_MainTexture.reset();
+	m_MainStreamTexture.reset();
 	m_MainBitmapOwned = false;
 
 	if (m_BackBitmap) {
@@ -426,7 +427,7 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::RegisterDrawing(const Vecto
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::UpdateTargetRegion(const Box& targetBox) {
 	if constexpr (TRACK_DRAWINGS) {
-		m_MainTexture->m_Bitmap = m_MainBitmap;
+		m_MainStreamTexture->m_Bitmap = m_MainBitmap;
 	}
 	if constexpr (!STATIC_TEXTURE) {
 		RTEAssert(bitmap_color_depth(m_MainBitmap) == 8, "Truecolor scenelayer used for non gpu drawing!");
@@ -461,7 +462,7 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::UpdateTargetRegion(const Bo
 		}
 
 		for (auto& region: updateRegions) {
-			m_MainTexture->Update(region);
+			m_MainStreamTexture->Update(region);
 		}
 		// g_GLStateMan.UpdateDynamicBitmap(m_MainBitmap, true, updateRegions);
 
@@ -472,7 +473,7 @@ template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 	RTEAssert(m_MainBitmap, "Data of this SceneLayerImpl has not been loaded before trying to draw!");
 	if constexpr(!STATIC_TEXTURE) {
-		RTEAssert(m_MainTexture, "Texture of this SceneLayerImpl has not been created before trying to draw!");
+		RTEAssert(m_MainStreamTexture, "Texture of this SceneLayerImpl has not been created before trying to draw!");
 	}
 	ZoneScoped;
 	TracyGpuZone("SceneLayer::Draw");
@@ -506,13 +507,16 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Draw(const Box& targetDimen
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Draw(const Camera& camera) {
 	if constexpr (!STATIC_TEXTURE) {
-		RTEAssert(m_MainTexture, "Texture of this SceneLayerImpl has not been created before trying to draw!");
+		RTEAssert(m_MainStreamTexture, "Texture of this SceneLayerImpl has not been created before trying to draw!");
 		if (m_MainBitmapOwned) {
 			UpdateTargetRegion(camera.GetViewport());
 		}
 		m_MainBitmapUpdated = false;
 
-		m_MainTexture->Draw(Box(Vector(0.0f, 0.0f), m_MainBitmap->w, m_MainBitmap->h), Box(-m_OriginOffset, m_MainBitmap->w * m_ScaleFactor.m_X, m_MainBitmap->h * m_ScaleFactor.m_Y));
+		m_MainStreamTexture->Draw(Box(Vector(0.0f, 0.0f), m_MainBitmap->w, m_MainBitmap->h), Box(-m_OriginOffset, m_MainBitmap->w * m_ScaleFactor.m_X, m_MainBitmap->h * m_ScaleFactor.m_Y));
+	} else {
+		RTEAssert(m_StaticTexture, "Static Texture of this scene layer not initialized! " + m_PresetName);
+		Draw::DrawTexture(m_StaticTexture.get(), m_OriginOffset);
 	}
 }
 

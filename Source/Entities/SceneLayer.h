@@ -10,6 +10,7 @@
 namespace RTE {
 
 	struct BigTexture;
+	class Texture;
 
 	struct SceneLayerInfo {
 		std::string name;
@@ -221,8 +222,9 @@ namespace RTE {
 	protected:
 		ContentFile m_BitmapFile; //!< ContentFile containing the path to this SceneLayer's sprite file.
 
-		std::unique_ptr<BigTexture> m_MainTexture; //!< The Main texture of this SceneLayer, may be tiled for very large scenes.
+		std::unique_ptr<BigTexture> m_MainStreamTexture; //!< The Main texture of this SceneLayer, may be tiled for very large scenes.
 		BITMAP* m_MainBitmap; //!< The main BITMAP of this SceneLayer.
+		std::shared_ptr<BitmapTexture> m_StaticTexture; //!< The Main texture for static Scene Layers.
 		BITMAP* m_BackBitmap; //!< The backbuffer BITMAP of this SceneLayer.
 
 		// We use two bitmaps, as a backbuffer. While the main bitmap is being used, the secondary bitmap will be cleared on a separate thread. This is because we tend to want to clear some scene layers every frame and that is costly.
