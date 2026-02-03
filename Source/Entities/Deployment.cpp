@@ -616,3 +616,5 @@ void Deployment::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode m
 		}
 	}
 }
+
+void Deployment::Draw(const Camera& camera) const {}

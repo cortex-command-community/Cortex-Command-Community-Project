@@ -602,3 +602,16 @@ void AEmitter::Draw(BITMAP* pTargetBitmap,
 	    !onlyPhysical && mode == g_DrawColor && m_EmitEnabled && (!m_FlashOnlyOnBurst || m_BurstTriggered))
 		m_pFlash->Draw(pTargetBitmap, targetPos, mode, onlyPhysical);
 }
+
+void AEmitter::Draw(const Camera& camera) const {
+
+	// Draw flash if there is one
+	if (m_pFlash && !m_pFlash->IsDrawnAfterParent() && m_EmitEnabled && (!m_FlashOnlyOnBurst || m_BurstTriggered))
+		m_pFlash->Draw(camera);
+
+	Attachable::Draw(camera);
+
+	// Update and Draw flash if there is one
+	if (m_pFlash && m_pFlash->IsDrawnAfterParent() && m_EmitEnabled && (!m_FlashOnlyOnBurst || m_BurstTriggered))
+		m_pFlash->Draw(camera);
+}

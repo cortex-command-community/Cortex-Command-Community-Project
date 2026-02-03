@@ -7,6 +7,7 @@
 namespace RTE {
 
 	class HeldDevice;
+	class Texture;
 
 	/// A detachable arm that can hold HeldDevices.
 	class Arm : public Attachable {
@@ -190,6 +191,7 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene.
 		/// @param mode Which mode to draw in. See the DrawMode enumeration for available modes.
 		void DrawHand(BITMAP* targetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor) const;
+		void DrawHand(const Camera& camera) const;
 #pragma endregion
 
 #pragma region Override Methods
@@ -210,6 +212,7 @@ namespace RTE {
 		/// @param mode Which mode to draw in. See the DrawMode enumeration for the modes.
 		/// @param onlyPhysical Whether to not draw any extra 'ghost' items of this Arm. In this case, that means the hand sprite.
 		void Draw(BITMAP* targetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
+		void Draw(const Camera& camera) const override;
 #pragma endregion
 
 	private:
@@ -241,6 +244,7 @@ namespace RTE {
 
 		ContentFile m_HandSpriteFile; //!< The ContentFile containing this Arm's hand bitmap.
 		BITMAP* m_HandSpriteBitmap; //!< An unowned pointer to the Bitmap held by the hand sprite ContentFile.
+		std::shared_ptr<Texture> m_HandSpriteTexture; //!< Pointer to the Texture held by the hand sprite ContentFile.
 
 		float m_GripStrength; //!< The strength with which this Arm will grip its HeldDevice. Effectively supersedes the HeldDevice's JointStrength.
 		float m_ThrowStrength; //!< The strength with which this Arm will throw a ThrownDevice. Effectively supersedes the ThrownDevice's ThrowVelocity values.

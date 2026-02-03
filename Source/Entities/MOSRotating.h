@@ -339,6 +339,7 @@ namespace RTE {
 		/// @param onlyPhysical Whether to not draw any extra 'ghost' items of this MovableObject, (default: false)
 		/// indicator arrows or hovering HUD text and so on.
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
+		void Draw(const Camera& camera) const override;
 
 		/// Gets the gib impulse limit for this MOSRotating, i.e. the amount of impulse force required in a frame to gib this MOSRotating.
 		/// @return The gib impulse limit of this MOSRotating.

@@ -13,7 +13,13 @@
 #include "SoundContainer.h"
 #include "PostProcessMan.h"
 #include "FrameMan.h"
+#include "DebugMan.h"
 #include "Draw.h"
+
+#include "glm/gtx/transform.hpp"
+#include "glm/ext/matrix_transform.hpp"
+
+#include "tracy/Tracy.hpp"
 
 #include "RTEError.h"
 
@@ -1783,6 +1789,61 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 	if (mode == g_DrawColor && !onlyPhysical && m_pAtomGroup && g_SettingsMan.DrawAtomGroupVisualizations() && GetRootParent() == this) {
 		m_pAtomGroup->Draw(pTargetBitmap, targetPos, false, 122);
 		// m_pDeepGroup->Draw(pTargetBitmap, targetPos, false, 13);
+	}
+}
+
+void MOSRotating::Draw(const Camera& camera) const {
+	ZoneScoped;
+	if (g_DebugMan.DrawSpriteBounds()) {
+		Draw::CircleLines(m_Pos + m_RecoilOffset, m_SpriteRadius, camera.IsVisible(m_Pos, m_SpriteRadius) ? g_YellowGlowColor : g_RedColor);
+	}
+
+	for (const AEmitter* woundToDraw: m_Wounds) {
+		if (!woundToDraw->IsDrawnAfterParent()) {
+			woundToDraw->Draw(camera);
+		}
+	}
+
+	// Draw all the attached attachables
+	for (const Attachable* attachableToDraw: m_Attachables) {
+		if (!attachableToDraw->IsDrawnAfterParent() && attachableToDraw->IsDrawnNormallyByParent()) {
+			attachableToDraw->Draw(camera);
+		}
+	}
+	if (!camera.IsVisible(m_Pos, m_SpriteRadius)) {
+		return;
+	}
+	Vector spritePos(m_Pos.GetRounded());
+	Vector offset(m_SpriteOffset.GetRounded());
+
+	if (m_Recoiled) {
+		spritePos += m_RecoilOffset;
+	}
+
+	Draw::Rectangle(Box(m_Pos, 1.0f, 1.0f), g_YellowGlowColor);
+	Draw::Rectangle(Box(m_Pos + m_SpriteOffset, 1.0f, 1.0f), g_RedColor);
+
+	Vector scale(1.0f, 1.0f);
+
+	if (m_HFlipped) {
+		scale.m_X *= -1;
+	}
+
+	Draw::DrawTexture(m_Sprites[m_Frame].get(), spritePos, offset, m_Rotation.GetRadAngle(), scale);
+
+	// Draw all the attached wound emitters, and only if the mode is g_DrawColor and not onlyphysical
+	// Only draw attachables and emitters which are not drawn after parent, so we draw them before
+	for (const AEmitter* woundToDraw: m_Wounds) {
+		if (woundToDraw->IsDrawnAfterParent()) {
+			woundToDraw->Draw(camera);
+		}
+	}
+
+	// Draw all the attached attachables
+	for (const Attachable* attachableToDraw: m_Attachables) {
+		if (attachableToDraw->IsDrawnAfterParent() && attachableToDraw->IsDrawnNormallyByParent()) {
+			attachableToDraw->Draw(camera);
+		}
 	}
 }
 

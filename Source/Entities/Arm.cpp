@@ -4,6 +4,7 @@
 #include "AHuman.h"
 #include "PresetMan.h"
 #include "SceneMan.h"
+#include "Draw.h"
 
 using namespace RTE;
 
@@ -76,6 +77,7 @@ int Arm::Create(const Arm& reference) {
 
 	m_HandSpriteFile = reference.m_HandSpriteFile;
 	m_HandSpriteBitmap = m_HandSpriteFile.GetAsBitmap();
+	m_HandSpriteTexture = m_HandSpriteFile.GetAsTexture();
 	RTEAssert(m_HandSpriteBitmap, "Failed to load hand bitmap in Arm::Create.");
 
 	m_GripStrength = reference.m_GripStrength;
@@ -97,6 +99,7 @@ int Arm::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchForwards("HandSprite") MatchProperty("Hand", {
 		reader >> m_HandSpriteFile;
 		m_HandSpriteBitmap = m_HandSpriteFile.GetAsBitmap();
+		m_HandSpriteTexture = m_HandSpriteFile.GetAsTexture();
 	});
 	MatchProperty("GripStrength", { reader >> m_GripStrength; });
 	MatchProperty("ThrowStrength", { reader >> m_ThrowStrength; });
@@ -355,6 +358,14 @@ void Arm::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode, boo
 	}
 }
 
+void Arm::Draw(const Camera& camera) const {
+	Attachable::Draw(camera);
+	DrawHand(camera);
+	if (m_HeldDevice && m_HeldDevice->IsDrawnAfterParent()) {
+		m_HeldDevice->Draw(camera);
+	}
+}
+
 void Arm::DrawHand(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode) const {
 	Vector handPos(m_JointPos + m_HandCurrentOffset + (m_Recoiled ? m_RecoilOffset : Vector()) - targetPos);
 	handPos -= Vector(static_cast<float>(m_HandSpriteBitmap->w / 2), static_cast<float>(m_HandSpriteBitmap->h / 2));
@@ -372,5 +383,16 @@ void Arm::DrawHand(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode)
 		} else {
 			draw_sprite_h_flip(targetBitmap, m_HandSpriteBitmap, handPos.GetFloorIntX(), handPos.GetFloorIntY());
 		}
+	}
+}
+
+void Arm::DrawHand(const Camera& camera) const {
+	Vector handPos(m_JointPos + m_HandCurrentOffset + (m_Recoiled ? m_RecoilOffset : Vector()));
+	handPos -= Vector(static_cast<float>(m_HandSpriteTexture->GetDimensions().w / 2), static_cast<float>(m_HandSpriteTexture->GetDimensions().h / 2));
+
+	if (m_HFlipped) {
+		Draw::DrawTexture(m_HandSpriteTexture.get(), FloatRect(handPos, -m_HandSpriteTexture->GetDimensions().w, m_HandSpriteTexture->GetDimensions().h));
+	} else {
+		Draw::DrawTexture(m_HandSpriteTexture.get(), handPos);
 	}
 }

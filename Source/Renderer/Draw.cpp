@@ -36,6 +36,15 @@ namespace RTE {
 			return draw;
 		}
 
+		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, FloatRect dest, Color tint) {
+			std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
+			draw->m_TextureId = texture->GetTextureId();
+			Shape::Shape rect = Shape::Rectangle(dest, tint);
+			draw->m_Vertices = std::move(rect.m_Vertices);
+			draw->m_Indices = std::move(rect.m_Indices);
+			return draw;
+		}
+
 		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, glm::vec2 pos, glm::vec2 origin, float angle, glm::vec2 scale, Color tint) {
 			std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
 			draw->m_TextureId = texture->GetTextureId();

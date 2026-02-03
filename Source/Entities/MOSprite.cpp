@@ -55,6 +55,8 @@ int MOSprite::Create() {
 	m_aSprite.clear();
 	m_SpriteFile.GetAsAnimation(m_aSprite, m_FrameCount);
 
+	m_SpriteFile.GetAsAnimation(m_Sprites, m_FrameCount);
+
 	if (!m_aSprite.empty() && m_aSprite[0]) {
 		// Set default sprite offset
 		if (m_SpriteOffset.IsZero()) {
@@ -84,6 +86,7 @@ int MOSprite::Create(ContentFile spriteFile,
 	m_FrameCount = frameCount;
 	m_aSprite.clear();
 	m_SpriteFile.GetAsAnimation(m_aSprite, m_FrameCount);
+	m_SpriteFile.GetAsAnimation(m_Sprites, m_FrameCount);
 	m_SpriteOffset.SetXY(static_cast<float>(-m_aSprite[0]->w) / 2.0F, static_cast<float>(-m_aSprite[0]->h) / 2.0F);
 
 	m_HFlipped = false;
@@ -113,6 +116,7 @@ int MOSprite::Create(const MOSprite& reference) {
 	m_FrameCount = reference.m_FrameCount;
 	m_Frame = reference.m_Frame;
 	m_aSprite = reference.m_aSprite;
+	m_Sprites = reference.m_Sprites;
 	m_SpriteOffset = reference.m_SpriteOffset;
 	m_SpriteAnimMode = reference.m_SpriteAnimMode;
 	m_SpriteAnimDuration = reference.m_SpriteAnimDuration;
@@ -573,7 +577,7 @@ void MOSprite::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mod
 	}
 }
 
-void MOSprite::Draw(Camera camera) const {
+void MOSprite::Draw(const Camera& camera) const {
 
 	if (g_DebugMan.DrawSpriteBounds()) {
 		Draw::CircleLines(m_Pos, m_SpriteRadius, g_YellowGlowColor);

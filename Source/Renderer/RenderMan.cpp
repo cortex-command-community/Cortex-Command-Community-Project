@@ -29,14 +29,15 @@ void RenderMan::Destroy() {
 
 std::shared_ptr<DrawCall> RenderMan::BeginDraw() {
 	std::shared_ptr<DrawCall> drawCall = m_RenderBatch->m_DrawCalls.emplace_back(new DrawCall(m_RenderBatch->m_DrawCalls.size(), m_CurrentCamera));
-	drawCall->m_Shader = m_RenderBatch->m_DefaultShader;
+	drawCall->m_Shader = m_RenderBatch->m_CurrentShader;
+	drawCall->m_TextureId = m_ShapesTexture->GetTextureId();
 	m_RenderBatch->m_CurrentDepth += RenderBatch::c_DrawDepthIncrement;
 	return drawCall;
 }
 
 void RenderMan::BeginFrame(Camera* camera) {
 	m_CurrentCamera = camera;
-	m_RenderBatch->m_DefaultShader = m_DefaultShader.get();
+	m_RenderBatch->m_CurrentShader = m_DefaultShader.get();
 	m_RenderBatch->BeginFrame();
 }
 

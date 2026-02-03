@@ -465,6 +465,7 @@ namespace RTE {
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector());
+		void Draw(const Camera& camera);
 
 		/// Draws the HUDs of all MovableObject:s of this MovableMan to a BITMAP of choice.
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
@@ -472,6 +473,7 @@ namespace RTE {
 		/// @param which Which player's screen is being drawn. Tis affects which actor's HUDs (default: 0)
 		/// get drawn.
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int which = 0, bool playerControlled = false);
+		void DrawHUD(const Camera& camera);
 
 		/// Verifieis whether all elements of MOID index has correct ID. Should be used in Debug mode only.
 		void VerifyMOIDIndex();

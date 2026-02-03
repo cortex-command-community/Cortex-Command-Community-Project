@@ -938,6 +938,7 @@ namespace RTE {
 		/// @param targetBitmap A pointer to a BITMAP to draw on, appropriately sized for the split screen segment.
 		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner is located.
 		void Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector& targetPos = Vector(), bool skipBackgroundLayers = false, bool skipTerrain = false);
+		void Draw(const Camera& camera);
 
 		/// Clears the color MO layer. Should be done every frame.
 		void ClearMOColorLayer();

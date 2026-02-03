@@ -44,18 +44,28 @@ namespace RTE {
 		std::vector<std::shared_ptr<DrawCall>> m_DrawCalls{};
 		float m_CurrentDepth{0.0f};
 		float m_CurrentZ{0.0f};
-		const Shader* m_DefaultShader{nullptr};
+		const Shader* m_CurrentShader{nullptr};
+		std::vector<std::shared_ptr<UniformValueType>> m_CurrentUniforms{};
 		glm::mat4 m_CurrentView{1.0f};
 		glm::mat4 m_CurrentProjection{1.0f};
 
+		/// Constructor.
 		RenderBatch();
 
+		/// Resets DrawDepth, draw calls, vertices and indices and resets to default values.
 		void BeginFrame();
+
+		/// Collects draw calls, uploads vertices. TODO: split drawcalls by shader/alpha.
 		void EndFrame();
+
+		/// Draws current draw calls.
 		void Render();
 
-		/// Collect draw calls and render.
-		void Flush() { EndFrame(); Render(); }
+		/// Clears draw calls and vertex buffer.
+		void ClearDraws();
+
+		/// Collect draw calls, render and clear.
+		void Flush() { EndFrame(); Render(); ClearDraws();}
 
 	private:
 		void ApplyDrawCalls();

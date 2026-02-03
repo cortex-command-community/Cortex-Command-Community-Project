@@ -654,3 +654,4 @@ void LimbPath::Draw(BITMAP* pTargetBitmap,
 	}
 }
 
+void LimbPath::Draw(const Camera& camera, Color color) const {}

@@ -6,6 +6,8 @@
 #include "LimbPath.h"
 #include "ConsoleMan.h"
 
+#include "Draw.h"
+
 #include "tracy/Tracy.hpp"
 
 using namespace RTE;
@@ -1606,6 +1608,24 @@ void AtomGroup::Draw(BITMAP* targetBitmap, const Vector& targetPos, bool useLimb
 			line(targetBitmap, atomPos.GetFloorIntX() - targetPos.GetFloorIntX(), atomPos.GetFloorIntY() - targetPos.GetFloorIntY(), atomPos.GetFloorIntX() - targetPos.GetFloorIntX(), atomPos.GetFloorIntY() - targetPos.GetFloorIntY(), 244);
 		}
 		putpixel(targetBitmap, atomPos.GetFloorIntX() - targetPos.GetFloorIntX(), atomPos.GetFloorIntY() - targetPos.GetFloorIntY(), color);
+	}
+}
+
+void AtomGroup::Draw(const Camera& camera, bool useLimbPos, Color color) const {
+	Vector atomPos;
+	Vector normal;
+
+	for (const Atom* atom: m_Atoms) {
+		if (!useLimbPos) {
+			atomPos = m_OwnerMOSR->GetPos() + GetAdjustedAtomOffset(atom);
+		} else {
+			atomPos = m_LimbPos + GetAdjustedAtomOffset(atom);
+		}
+		if (!atom->GetNormal().IsZero()) {
+			normal = atom->GetNormal().GetXFlipped(m_OwnerMOSR->m_HFlipped) * 5;
+			Draw::Lines::VectorArrow(atomPos, normal, 244);
+		}
+		Draw::Pixel(atomPos.GetFloored(), color);
 	}
 }
 

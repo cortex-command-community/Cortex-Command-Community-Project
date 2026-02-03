@@ -439,6 +439,7 @@ namespace RTE {
 		/// @param onlyPhysical Whether to not draw any extra 'ghost' items of this MovableObject, (default: false)
 		/// indicator arrows or hovering HUD text and so on.
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
+		void Draw(const Camera& camera) const override;
 
 		/// Draws an aiming aid in front of this HeldDevice.
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.

@@ -877,6 +877,7 @@ namespace RTE {
 		void Update() override;
 
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
+		void Draw(const Camera& camera) const override;
 
 		/// Updates this MovableObject's Lua scripts.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.

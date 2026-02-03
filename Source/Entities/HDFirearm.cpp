@@ -1027,6 +1027,18 @@ void HDFirearm::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mo
 	}
 }
 
+void HDFirearm::Draw(const Camera& camera) const {
+	if (m_pFlash && m_FireFrame && !m_pFlash->IsDrawnAfterParent()) {
+		m_pFlash->Draw(camera);
+	}
+
+	HeldDevice::Draw(camera);
+
+	if (m_pFlash && m_FireFrame && m_pFlash->IsDrawnAfterParent()) {
+		m_pFlash->Draw(camera);
+	}
+}
+
 void HDFirearm::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScreen, bool playerControlled) {
 	if (!m_HUDVisible)
 		return;

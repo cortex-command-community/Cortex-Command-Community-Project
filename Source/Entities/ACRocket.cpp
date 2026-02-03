@@ -571,3 +571,13 @@ void ACRocket::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mod
 		m_pLFootGroup->Draw(pTargetBitmap, targetPos, true, 13);
 	}
 }
+
+void ACRocket::Draw(const Camera& camera) const {
+
+	ACraft::Draw(camera);
+
+	if (g_SettingsMan.DrawHandAndFootGroupVisualizations()) {
+		m_pRFootGroup->Draw(camera, true, 13);
+		m_pLFootGroup->Draw(camera, true, 13);
+	}
+}

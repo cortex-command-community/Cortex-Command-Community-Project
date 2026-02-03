@@ -908,6 +908,8 @@ void MovableObject::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode
 	g_SceneMan.RegisterDrawing(targetBitmap, m_MOID, m_Pos - targetPos, 1.0F);
 }
 
+void MovableObject::Draw(const Camera& camera) const {}
+
 int MovableObject::UpdateScripts() {
 	m_SimUpdatesSinceLastScriptedUpdate++;
 

@@ -17,6 +17,8 @@
 #include "Atom.h"
 #include "Material.h"
 #include "SoundContainer.h"
+#include "Draw.h"
+#include "DebugMan.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -2661,6 +2663,48 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 
 			break;
 	}
+}
+
+void SceneMan::Draw(const Camera& camera) {
+	ZoneScoped;
+	if (!m_pCurrentScene) {
+		return;
+	}
+
+	for (auto backgroundLayer: m_pCurrentScene->GetBackLayers()) {
+		backgroundLayer->Draw(camera);
+	}
+
+	SLTerrain* terrainLayer = m_pCurrentScene->GetTerrain();
+
+	terrainLayer->SetLayerToDraw(SLTerrain::LayerType::BackgroundLayer);
+	terrainLayer->Draw(camera);
+
+	g_MovableMan.Draw(camera);
+
+	terrainLayer->SetLayerToDraw(SLTerrain::LayerType::ForegroundLayer);
+	terrainLayer->Draw(camera);
+
+	int teamId = camera.GetTeam();
+	if (teamId != Activity::NoTeam) {
+		m_pCurrentScene->GetUnseenLayer(teamId)->Draw(camera);
+	}
+
+	if (camera.IsShowHUD()) {
+		g_MovableMan.DrawHUD(camera);
+		g_ActivityMan.GetActivity()->DrawGUI(camera);
+	}
+
+	if (g_DebugMan.DrawNoGravBoxes()) {
+		if (Scene::Area* noGravArea = m_pCurrentScene->GetArea("NoGravityArea")) {
+			const std::vector<Box*>& boxList = noGravArea->GetBoxes();
+			for (auto box: boxList) {
+				Draw::Rectangle(*box, g_RedColor);
+			}
+		}
+	}
+
+
 }
 
 void SceneMan::ClearMOColorLayer() {

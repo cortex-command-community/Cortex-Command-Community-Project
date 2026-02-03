@@ -364,6 +364,7 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene. (default: Vector())
 		/// @param color The color to draw the path's pixels as. (default: 34)
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), unsigned char color = 34) const;
+		void Draw(const Camera& cameram, Color color) const;
 
 		/// Protected member variable and method declarations
 	protected:

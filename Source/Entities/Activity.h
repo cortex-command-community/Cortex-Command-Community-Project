@@ -187,11 +187,13 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene.
 		/// @param whichScreen Which screen's GUI to draw onto the bitmap.
 		virtual void DrawGUI(BITMAP* targetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0) {}
+		virtual void DrawGUI(const Camera& camera) {}
 
 		/// Draws this Activity's current graphical representation to a BITMAP of choice. This includes all game-related graphics.
 		/// @param targetBitmap A pointer to a BITMAP to draw on.
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene.
 		virtual void Draw(BITMAP* targetBitmap, const Vector& targetPos = Vector()) {}
+		virtual void Draw(const Camera& camera) {}
 #pragma endregion
 
 #pragma region Player Handling

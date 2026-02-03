@@ -3,6 +3,7 @@
 #include "Atom.h"
 #include "PostProcessMan.h"
 #include "FrameMan.h"
+#include "Draw.h"
 
 using namespace RTE;
 
@@ -242,4 +243,8 @@ void MOPixel::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode,
 	}
 
 	g_SceneMan.RegisterDrawing(targetBitmap, m_MOID, pixelPos, 1.0F);
+}
+
+void MOPixel::Draw(const Camera& camera) const {
+	Draw::Pixel(m_Pos, m_Color);
 }

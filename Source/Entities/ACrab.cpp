@@ -1311,6 +1311,25 @@ void ACrab::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode, 
 	}
 }
 
+void ACrab::Draw(const Camera& camera) const {
+
+	Actor::Draw(camera);
+
+	if (g_SettingsMan.DrawHandAndFootGroupVisualizations()) {
+		m_pLFGFootGroup->Draw(camera, true, 13);
+		m_pLBGFootGroup->Draw(camera, true, 13);
+		m_pRFGFootGroup->Draw(camera, true, 13);
+		m_pRBGFootGroup->Draw(camera, true, 13);
+	}
+
+	if (g_SettingsMan.DrawLimbPathVisualizations()) {
+		m_Paths[LEFTSIDE][BGROUND][WALK].Draw(camera, 122);
+		m_Paths[LEFTSIDE][FGROUND][WALK].Draw(camera, 122);
+		m_Paths[RIGHTSIDE][BGROUND][WALK].Draw(camera, 122);
+		m_Paths[RIGHTSIDE][FGROUND][WALK].Draw(camera, 122);
+	}
+}
+
 void ACrab::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScreen, bool playerControlled) {
 	m_HUDStack = -m_CharHeight / 2;
 

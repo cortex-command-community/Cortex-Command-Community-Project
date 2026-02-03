@@ -8,6 +8,8 @@ out vec4 FragColor;
 uniform sampler2D rteTexture;
 uniform sampler2D rtePalette;
 uniform bool rteIndexed;
+uniform vec4 rteColor;
+uniform bool rteReplaceColor;
 
 vec4 textureAA(sampler2D tex, vec2 uv) {
 	vec2 texsize = vec2(textureSize(tex, 0));
@@ -20,14 +22,14 @@ vec4 textureAA(sampler2D tex, vec2 uv) {
 
 void main() {
 	if (rteIndexed) {
-		float colorIndex = textureAA(rteTexture, vec2(textureUV.x, textureUV.y)).r;
+		float colorIndex = texture(rteTexture, vec2(textureUV.x, textureUV.y)).r;
 		FragColor = texture(rtePalette, vec2(colorIndex, 0.0F)) * vertexColor;
 	} else {
 		FragColor = textureAA(rteTexture, textureUV) * vertexColor;
 	}
 	if (FragColor.a == 0.0) {
 		discard;
+	} else if (rteReplaceColor) {
+		FragColor.rgba = rteColor;
 	}
-	//FragColor = vec4(vec3(texture(rteTexture, vec2(textureUV.x, textureUV.y)).r), 1.0);
-	//FragColor = vertexColor;
 }

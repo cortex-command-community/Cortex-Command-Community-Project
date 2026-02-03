@@ -50,6 +50,7 @@ namespace RTE {
 	namespace Draw {
 		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, int posX, int posY, Color tint);
 		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, glm::vec2 pos, Color tint = {255, 255, 255, 255});
+		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, FloatRect dest, Color tint = {255, 255, 255, 255});
 		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, glm::vec2 pos, glm::vec2 origin, float angle, glm::vec2 scale, Color tint = {255, 255, 255, 255});
 		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, FloatRect source, glm::vec2 pos, Color tint);
 		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, const FloatRect& source, const FloatRect& dest, const Color& tint = {255, 255, 255, 255});

@@ -284,6 +284,7 @@ namespace RTE {
 		/// @param useLimbPos Whether to use the limb position of this AtomGroup, or the owner's position.
 		/// @param color The color to draw the Atoms' pixels as.
 		void Draw(BITMAP* targetBitmap, const Vector& targetPos, bool useLimbPos = false, unsigned char color = 34) const;
+		void Draw(const Camera& camera, bool useLimbPos = false, Color color = 34) const;
 #pragma endregion
 
 	protected:

@@ -18,7 +18,7 @@ namespace RTE {
 		GLuint m_TextureId{0};
 		BlendMode m_BlendMode{};
 		const Shader* m_Shader{nullptr};
-		std::vector<std::unique_ptr<UniformValueType>> m_UniformValues;
+		std::vector<std::shared_ptr<UniformValueType>> m_UniformValues;
 		Camera* m_Camera;
 		std::optional<FloatRect> m_Scissor{std::nullopt};
 		GLenum m_DrawMode{GL_TRIANGLES};

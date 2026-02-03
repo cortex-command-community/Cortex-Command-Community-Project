@@ -160,6 +160,9 @@ void RenderBatch::Render() {
 		GL_CHECK(glDrawElements(GL_TRIANGLES, drawCall->m_Indices.size(), GL_UNSIGNED_INT, (GLvoid*)(indexOffset * sizeof(GLuint))));
 		indexOffset += drawCall->m_Indices.size();
 	}
+}
+
+void RenderBatch::ClearDraws() {
 	m_DrawCalls.clear();
 	m_VertexBuffers.m_Vertices.clear();
 	m_VertexBuffers.m_Indices.clear();

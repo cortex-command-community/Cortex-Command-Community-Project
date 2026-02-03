@@ -21,6 +21,8 @@
 #include "AllegroBitmap.h"
 
 #include "PrimitiveMan.h"
+#include "RenderMan.h"
+#include "Draw.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -2705,6 +2707,47 @@ void AHuman::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode,
 
 	if (mode == g_DrawColor && !onlyPhysical && g_SettingsMan.DrawLimbPathVisualizations()) {
 		m_Paths[m_HFlipped][m_MovementState].Draw(pTargetBitmap, targetPos, 122);
+	}
+}
+
+void AHuman::Draw(const Camera& camera) const {
+	Actor::Draw(camera);
+
+	if (m_FlashWhiteTimer.IsPastRealTimeLimit()) {
+		g_RenderMan.PushUniform(std::make_shared<BoolValue>(g_RenderMan.GetCurrentShader()->GetUniformLocation("rteReplaceColor"), 1));
+		g_RenderMan.PushUniform(std::make_shared<Vector4fValue>(g_RenderMan.GetCurrentShader()->GetColorUniform(), glm::vec4(1.0f)));
+	}
+
+	// Note: For some reason the ordering of the attachables list can get messed up. The most important thing here is that the FGArm is on top of everything else.
+	if (m_pHead && m_pHead->IsDrawnAfterParent()) {
+		m_pHead->Draw(camera);
+	}
+
+	if (m_pFGArm) {
+		m_pFGArm->Draw(camera);
+	}
+
+	// Draw background Arm's hand after the HeldDevice of FGArm is drawn if the FGArm is holding a weapon.
+	if (m_pFGArm && m_pBGArm && m_pBGArm->GetHandHasReachedCurrentTarget() && !GetEquippedBGItem()) {
+		if (HeldDevice* heldDevice = m_pFGArm->GetHeldDevice(); heldDevice && !dynamic_cast<ThrownDevice*>(heldDevice) && !heldDevice->IsReloading() && !heldDevice->IsShield()) {
+			m_pBGArm->DrawHand(camera);
+		}
+	}
+
+	if (m_FlashWhiteTimer.IsPastRealTimeLimit()) {
+		g_RenderMan.ClearUniforms();
+		g_RenderMan.PushUniform(std::make_shared<BoolValue>(g_RenderMan.GetCurrentShader()->GetUniformLocation("rteReplaceColor"), 1));
+	}
+
+	if (g_SettingsMan.DrawHandAndFootGroupVisualizations()) {
+		m_pFGFootGroup->Draw(camera, true, 13);
+		m_pBGFootGroup->Draw(camera, true, 13);
+		m_pFGHandGroup->Draw(camera, true, 13);
+		m_pBGHandGroup->Draw(camera, true, 13);
+	}
+
+	if (g_SettingsMan.DrawLimbPathVisualizations()) {
+		m_Paths[m_HFlipped][m_MovementState].Draw(camera, 122);
 	}
 }
 
