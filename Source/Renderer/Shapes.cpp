@@ -145,10 +145,13 @@ Shape::Shape Shape::Polygon(std::vector<glm::vec2> points, Color color) {
 Shape::Shape Shape::Lines::VectorArrow(glm::vec2 pos, glm::vec2 vector, Color color) {
 	Shape arrow;
 	arrow.m_Vertices = {
-		Vertex(pos, color),
-		Vertex(pos + vector, color),
-		Vertex(pos + vector )
-	};
+	    Vertex(pos, color),
+	    Vertex(pos + vector, color),
+	    Vertex(pos + vector, color),
+	    Vertex(pos + vector - (std::sqrt(2.0f) / 10.0f * glm::vec2(vector.x - vector.y, vector.x + vector.y)), color),
+	    Vertex(pos + vector - (std::sqrt(2.0f) / 10.0f * glm::vec2(vector.x + vector.y, -vector.x + vector.y)), color)};
+
+	return arrow;
 }
 
 std::shared_ptr<DrawCall> Draw::Pixel(glm::vec2 position, Color color) {
@@ -204,12 +207,15 @@ std::shared_ptr<DrawCall> Draw::Ellipse(glm::vec2 center, float radiusH, float r
 std::shared_ptr<DrawCall> Draw::EllipseLines(glm::vec2 center, float radiusH, float radiusV, Color color) {
 	return nullptr;
 }
+
 std::shared_ptr<DrawCall> Draw::Ring(glm::vec2 center, float innerRadius, float outerRadius, float startAngle, float endAngle, Color color) {
 	return nullptr;
 }
+
 std::shared_ptr<DrawCall> Draw::RingLines(glm::vec2 center, float innerRadius, float outerRadius, float startAngle, float endAngle, Color color) {
 	return nullptr;
 }
+
 std::shared_ptr<DrawCall> Draw::Rectangle(FloatRect rect, Color color) {
 	std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
 	Shape::Shape rectangle = Shape::Rectangle(rect, color);
@@ -219,6 +225,7 @@ std::shared_ptr<DrawCall> Draw::Rectangle(FloatRect rect, Color color) {
 	draw->m_Indexed = false;
 	return draw;
 }
+
 std::shared_ptr<DrawCall> Draw::RectangleLines(FloatRect rect, Color color) {
 	std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
 	Shape::Shape rectangle = Shape::RectangleLines(rect, color);
@@ -228,31 +235,38 @@ std::shared_ptr<DrawCall> Draw::RectangleLines(FloatRect rect, Color color) {
 	draw->m_Indexed = false;
 	return draw;
 }
+
 std::shared_ptr<DrawCall> Draw::RoundedRectangle(FloatRect rect, float cornerRadius, Color color) {
 	return nullptr;
 }
+
 std::shared_ptr<DrawCall> Draw::RoundedRectangleLines(FloatRect rect, float cornerRadius, Color color) {
 	return nullptr;
 }
+
 std::shared_ptr<DrawCall> Draw::RoundedRectangleLines(FloatRect rect, float cornerRadius, float thickness, Color color) {
 	return nullptr;
 }
+
 std::shared_ptr<DrawCall> Draw::Triangle(glm::vec2 point1, glm::vec2 point2, glm::vec2 point3, Color color) {
 	return nullptr;
 }
+
 std::shared_ptr<DrawCall> Draw::TriangleLines(glm::vec2 point1, glm::vec2 point2, glm::vec2 point3, Color color) {
 	return nullptr;
 }
+
 std::shared_ptr<DrawCall> Draw::TriangleStrip(std::vector<glm::vec2> points, Color color) {
 	return nullptr;
 }
+
 std::shared_ptr<DrawCall> Draw::Polygon(std::vector<glm::vec2> points, Color color) {
 	return nullptr;
 }
 
-std::shared_ptr<DrawCall> Draw::Lines::VectorArrow(glm::vec2 vector, Color color) {
+std::shared_ptr<DrawCall> Draw::Lines::VectorArrow(glm::vec2 pos, glm::vec2 vector, Color color) {
 	std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
-	Shape::Shape arrow = Shape::Lines::VectorArrow(vector, color);
+	Shape::Shape arrow = Shape::Lines::VectorArrow(pos, vector, color);
 	draw->m_DrawMode = GL_LINES;
 	draw->m_Vertices = std::move(arrow.m_Vertices);
 	draw->m_Indices = std::move(arrow.m_Indices);
