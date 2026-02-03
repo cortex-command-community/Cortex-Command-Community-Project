@@ -142,6 +142,15 @@ Shape::Shape Shape::Polygon(std::vector<glm::vec2> points, Color color) {
 	return {};
 }
 
+Shape::Shape Shape::Lines::VectorArrow(glm::vec2 pos, glm::vec2 vector, Color color) {
+	Shape arrow;
+	arrow.m_Vertices = {
+		Vertex(pos, color),
+		Vertex(pos + vector, color),
+		Vertex(pos + vector )
+	};
+}
+
 std::shared_ptr<DrawCall> Draw::Pixel(glm::vec2 position, Color color) {
 	return nullptr;
 }
@@ -239,4 +248,13 @@ std::shared_ptr<DrawCall> Draw::TriangleStrip(std::vector<glm::vec2> points, Col
 }
 std::shared_ptr<DrawCall> Draw::Polygon(std::vector<glm::vec2> points, Color color) {
 	return nullptr;
+}
+
+std::shared_ptr<DrawCall> Draw::Lines::VectorArrow(glm::vec2 vector, Color color) {
+	std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
+	Shape::Shape arrow = Shape::Lines::VectorArrow(vector, color);
+	draw->m_DrawMode = GL_LINES;
+	draw->m_Vertices = std::move(arrow.m_Vertices);
+	draw->m_Indices = std::move(arrow.m_Indices);
+	return draw;
 }
