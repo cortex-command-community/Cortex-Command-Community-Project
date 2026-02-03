@@ -23,13 +23,14 @@ void RTE::DrawTexturePro(BITMAP* bitmap, Rectangle source, Rectangle dest, Vecto
 }
 namespace RTE {
 	namespace Draw {
-		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, int posX, int posY, Color tint) {
+		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, float posX, float posY, Color tint) {
 			return DrawTexture(texture, glm::vec2(posX, posY), tint);
 		}
 
 		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, glm::vec2 pos, Color tint) {
 			std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
 			draw->m_TextureId = texture->GetTextureId();
+			draw->m_Indexed = texture->GetBitDepth() == 8;
 			Shape::Shape rect = Shape::Rectangle(FloatRect(pos.x, pos.y, texture->GetDimensions().w, texture->GetDimensions().h), tint);
 			draw->m_Vertices = std::move(rect.m_Vertices);
 			draw->m_Indices = std::move(rect.m_Indices);
@@ -39,6 +40,7 @@ namespace RTE {
 		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, FloatRect dest, Color tint) {
 			std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
 			draw->m_TextureId = texture->GetTextureId();
+			draw->m_Indexed = texture->GetBitDepth() == 8;
 			Shape::Shape rect = Shape::Rectangle(dest, tint);
 			draw->m_Vertices = std::move(rect.m_Vertices);
 			draw->m_Indices = std::move(rect.m_Indices);
@@ -48,6 +50,7 @@ namespace RTE {
 		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, glm::vec2 pos, glm::vec2 origin, float angle, glm::vec2 scale, Color tint) {
 			std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
 			draw->m_TextureId = texture->GetTextureId();
+			draw->m_Indexed = texture->GetBitDepth() == 8;
 			Shape::Shape rect = Shape::Rectangle(FloatRect(0, 0, texture->GetDimensions().w, texture->GetDimensions().h), tint);
 			draw->m_Vertices = std::move(rect.m_Vertices);
 			draw->m_Indices = std::move(rect.m_Indices);
@@ -63,6 +66,7 @@ namespace RTE {
 		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, const FloatRect& source, const FloatRect& dest, const Color& tint) {
 			std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
 			draw->m_TextureId = texture->GetTextureId();
+			draw->m_Indexed = texture->GetBitDepth() == 8;
 			FloatRect uv = FloatRect(
 			    source.x / texture->GetDimensions().w,
 			    source.y / texture->GetDimensions().h,
