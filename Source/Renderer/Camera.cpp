@@ -7,7 +7,10 @@
 using namespace RTE;
 
 bool Camera::IsVisible(Vector center, float radius) const {
-	return true;
+	// https://yal.cc/rectangle-circle-intersection-test/
+	float deltaX = center.m_X - std::max(m_Viewport.m_Corner.m_X, std::min(center.m_X, m_Viewport.m_Corner.m_X + m_Viewport.m_Width));
+	float deltaY = center.m_Y - std::max(m_Viewport.m_Corner.m_Y, std::min(center.m_Y, m_Viewport.m_Corner.m_Y + m_Viewport.m_Height));
+	return (deltaX * deltaX + deltaY * deltaY) < (radius * radius);
 }
 
 void Camera::SetViewport(const Box& viewport) {
