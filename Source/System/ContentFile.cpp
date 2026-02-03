@@ -61,6 +61,7 @@ void ContentFile::FreeAllLoaded() {
 			destroy_bitmap(bitmapPtr);
 		}
 	}
+	s_LoadedTextures.clear();
 }
 
 int ContentFile::ReadProperty(const std::string_view& propName, Reader& reader) {
