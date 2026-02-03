@@ -1829,7 +1829,7 @@ void MOSRotating::Draw(const Camera& camera) const {
 		scale.m_X *= -1;
 	}
 
-	Draw::DrawTexture(m_Sprites[m_Frame].get(), spritePos, offset, m_Rotation.GetRadAngle(), scale);
+	Draw::DrawTexture(m_Sprites[m_Frame].get(), spritePos, offset, -m_Rotation.GetRadAngle(), scale);
 
 	// Draw all the attached wound emitters, and only if the mode is g_DrawColor and not onlyphysical
 	// Only draw attachables and emitters which are not drawn after parent, so we draw them before

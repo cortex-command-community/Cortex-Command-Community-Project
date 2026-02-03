@@ -587,5 +587,11 @@ void MOSprite::Draw(const Camera& camera) const {
 		return;
 	}
 
-	Draw::DrawTexture(m_Sprites[m_Frame].get(), m_Pos);
+	Vector spritePos = m_Pos - m_SpriteOffset;
+
+	if (!m_HFlipped) {
+		Draw::DrawTexture(m_Sprites[m_Frame].get(), spritePos);
+	} else {
+		Draw::DrawTexture(m_Sprites[m_Frame].get(), FloatRect(spritePos, -m_Sprites[m_Frame]->GetDimensions().w, m_Sprites[m_Frame]->GetDimensions().h));
+	}
 }
