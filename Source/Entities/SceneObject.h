@@ -273,7 +273,7 @@ namespace RTE {
 		/// like indicator arrows or hovering HUD text and so on.
 		virtual void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const = 0;
 
-		virtual void Draw(Camera camera) const = 0;
+		virtual void Draw(const Camera& camera) const = 0;
 
 		/// Draws team sign this terrain object belongs to.
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.

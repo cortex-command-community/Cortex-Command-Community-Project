@@ -25,6 +25,7 @@ namespace RTE {
 	class PieMenu;
 	class SLTerrain;
 	class LuaStateWrapper;
+	class Texture;
 
 	/// A movable object with mass.
 	class MovableObject : public SceneObject {
@@ -357,7 +358,7 @@ namespace RTE {
 		/// Gets the screen effect this has loaded, which can be applied to post
 		/// rendering. Ownership is NOT transferred!
 		/// @return The 32bpp screen effect BITMAP. Ownership is NOT transferred!
-		BITMAP* GetScreenEffect() const { return m_pScreenEffect; }
+		std::shared_ptr<BitmapTexture> GetScreenEffect() const { return m_ScreenEffect; }
 
 		/// Gets the hash of the path of this object's screen effect file. Used to
 		/// transfer glow effects over network. The hash itself is calculated during
@@ -1253,6 +1254,7 @@ namespace RTE {
 		ContentFile m_ScreenEffectFile;
 		// Not owned by this, owned by the contentfiles
 		BITMAP* m_pScreenEffect;
+		std::shared_ptr<BitmapTexture> m_ScreenEffect;
 
 		size_t m_ScreenEffectHash;
 

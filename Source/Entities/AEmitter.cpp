@@ -4,6 +4,7 @@
 #include "PresetMan.h"
 #include "SoundContainer.h"
 #include "PostProcessMan.h"
+#include "Texture.h"
 
 using namespace RTE;
 
@@ -577,7 +578,7 @@ void AEmitter::Update() {
 	// Set the screen flash effect to draw at the final post processing stage
 	if (m_EmitEnabled && (!m_FlashOnlyOnBurst || m_BurstTriggered) && m_pFlash && m_pFlash->GetScreenEffect()) {
 		// Fudge the glow pos forward a bit so it aligns nicely with the flash
-		Vector emitPos(m_pFlash->GetScreenEffect()->w * 0.3F * m_FlashScale, 0);
+		Vector emitPos(m_pFlash->GetScreenEffect()->GetDimensions().w * 0.3F * m_FlashScale, 0);
 		emitPos.RadRotate(m_HFlipped ? c_PI + m_Rotation.GetRadAngle() - m_EmitAngle.GetRadAngle() : m_Rotation.GetRadAngle() + m_EmitAngle.GetRadAngle());
 		emitPos = m_Pos + RotateOffset(m_EmissionOffset) + emitPos;
 		if (m_EffectAlwaysShows || !g_SceneMan.ObscuredPoint(emitPos)) {

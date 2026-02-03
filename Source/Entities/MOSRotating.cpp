@@ -908,7 +908,7 @@ void MOSRotating::GibThis(const Vector& impactImpulse, MovableObject* movableObj
 	}
 
 	if (m_pScreenEffect && m_EffectOnGib && (m_EffectAlwaysShows || !g_SceneMan.ObscuredPoint(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY()))) {
-		g_PostProcessMan.RegisterPostEffect(m_Pos, m_pScreenEffect, m_ScreenEffectHash, 255, m_EffectRotAngle);
+		g_PostProcessMan.RegisterPostEffect(m_Pos, m_ScreenEffect, m_ScreenEffectHash, 255, m_EffectRotAngle);
 	}
 
 	if (m_LoudnessOnGib > 0) {

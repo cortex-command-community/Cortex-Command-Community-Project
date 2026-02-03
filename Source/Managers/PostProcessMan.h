@@ -21,14 +21,14 @@ namespace RTE {
 
 	/// Structure for storing a post-process screen effect to be applied at the last stage of 32bpp rendering.
 	struct PostEffect {
-		BITMAP* m_Bitmap = nullptr; //!< The bitmap to blend, not owned.
+		std::shared_ptr<BitmapTexture> m_Bitmap = nullptr; //!< The bitmap to blend, not owned.
 		size_t m_BitmapHash = 0; //!< Hash used to transmit glow events over the network.
 		float m_Angle = 0.0F; // Post effect angle in radians.
 		int m_Strength = 128; //!< Scalar float for how hard to blend it in, 0 - 255.
 		Vector m_Pos; //!< Post effect position. Can be relative to the scene, or to the screen, depending on context.
 
 		/// Constructor method used to instantiate a PostEffect object in system memory.
-		PostEffect(const Vector& pos, BITMAP* bitmap, size_t bitmapHash, int strength, float angle) :
+		PostEffect(const Vector& pos, std::shared_ptr<BitmapTexture> bitmap, size_t bitmapHash, int strength, float angle) :
 		    m_Bitmap(bitmap), m_BitmapHash(bitmapHash), m_Angle(angle), m_Strength(strength), m_Pos(pos) {}
 	};
 
@@ -88,7 +88,7 @@ namespace RTE {
 		/// @param hash Hash value of the effect for transmitting over the network.
 		/// @param strength The intensity level this effect should have when blended in post. 0 - 255.
 		/// @param angle The angle this effect should be rotated at in radians.
-		void RegisterPostEffect(const Vector& effectPos, BITMAP* effect, size_t hash, int strength = 255, float angle = 0);
+		void RegisterPostEffect(const Vector& effectPos, std::shared_ptr<BitmapTexture> effect, size_t hash, int strength = 255, float angle = 0);
 
 		/// Gets all screen effects that are located within a box in the scene.
 		/// Their coordinates will be returned relative to the upper left corner of the box passed in here. Wrapping of the box will be taken care of.
@@ -155,9 +155,9 @@ namespace RTE {
 		std::array<std::list<PostEffect>, c_MaxScreenCount> m_ScreenRelativeEffects; //!< List of screen relative effects for each player in online multiplayer.
 		std::array<std::mutex, c_MaxScreenCount> ScreenRelativeEffectsMutex; //!< Mutex for the ScreenRelativeEffects list when accessed by multiple threads in online multiplayer.
 
-		BITMAP* m_YellowGlow; //!< Bitmap for the yellow dot glow effect.
-		BITMAP* m_RedGlow; //!< Bitmap for the red dot glow effect.
-		BITMAP* m_BlueGlow; //!< Bitmap for the blue dot glow effect.
+		std::shared_ptr<BitmapTexture> m_YellowGlow; //!< Bitmap for the yellow dot glow effect.
+		std::shared_ptr<BitmapTexture> m_RedGlow; //!< Bitmap for the red dot glow effect.
+		std::shared_ptr<BitmapTexture> m_BlueGlow; //!< Bitmap for the blue dot glow effect.
 
 		size_t m_YellowGlowHash; //!< Hash value for the yellow dot glow effect bitmap.
 		size_t m_RedGlowHash; //!< Hash value for the red dot glow effect bitmap.
@@ -201,7 +201,7 @@ namespace RTE {
 		/// Gets a specific standard dot glow effect for making pixels glow.
 		/// @param which Which of the dot glow colors to get, see the DotGlowColor enumerator.
 		/// @return The requested glow dot BITMAP.
-		BITMAP* GetDotGlowEffect(DotGlowColor whichColor) const;
+		std::shared_ptr<BitmapTexture> GetDotGlowEffect(DotGlowColor whichColor) const;
 
 		/// Gets the hash value of a specific standard dot glow effect for making pixels glow.
 		/// @param which Which of the dot glow colors to get, see the DotGlowColor enumerator.

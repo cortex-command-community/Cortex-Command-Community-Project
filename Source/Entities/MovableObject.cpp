@@ -18,6 +18,7 @@
 #include "tracy/Tracy.hpp"
 
 #include <array>
+#include "Texture.h"
 
 using namespace RTE;
 
@@ -233,6 +234,7 @@ int MovableObject::Create(const MovableObject& reference) {
 	if (reference.m_pScreenEffect) {
 		m_ScreenEffectFile = reference.m_ScreenEffectFile;
 		m_pScreenEffect = m_ScreenEffectFile.GetAsBitmap();
+		m_ScreenEffect = m_ScreenEffectFile.GetAsTexture();
 	}
 	m_EffectRotAngle = reference.m_EffectRotAngle;
 	m_InheritEffectRotAngle = reference.m_InheritEffectRotAngle;
@@ -343,6 +345,7 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("ScreenEffect", {
 		reader >> m_ScreenEffectFile;
 		m_pScreenEffect = m_ScreenEffectFile.GetAsBitmap();
+		m_ScreenEffect = m_ScreenEffectFile.GetAsTexture();
 		m_ScreenEffectHash = m_ScreenEffectFile.GetHash();
 	});
 	MatchProperty("PostEffectEnabled", { reader >> m_PostEffectEnabled; });
@@ -895,7 +898,7 @@ void MovableObject::Update() {
 		m_EffectRotAngle = c_PI * 2.0F * RandomNormalNum();
 	}
 
-	if (m_pScreenEffect && m_PostEffectEnabled) {
+	if (m_ScreenEffect && m_PostEffectEnabled) {
 		SetPostScreenEffectToDraw();
 	}
 }
@@ -1130,7 +1133,7 @@ bool MovableObject::DrawToTerrain(SLTerrain* terrain) {
 void MovableObject::SetPostScreenEffectToDraw() const {
 	if (m_AgeTimer.GetElapsedSimTimeMS() >= m_EffectStartTime && (m_EffectStopTime == 0 || !m_AgeTimer.IsPastSimMS(m_EffectStopTime))) {
 		if (m_EffectAlwaysShows || !g_SceneMan.ObscuredPoint(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY())) {
-			g_PostProcessMan.RegisterPostEffect(m_Pos, m_pScreenEffect, m_ScreenEffectHash, Lerp(m_EffectStartTime, m_EffectStopTime, m_EffectStartStrength, m_EffectStopStrength, m_AgeTimer.GetElapsedSimTimeMS()), m_EffectRotAngle);
+			g_PostProcessMan.RegisterPostEffect(m_Pos, m_ScreenEffect, m_ScreenEffectHash, Lerp(m_EffectStartTime, m_EffectStopTime, m_EffectStartStrength, m_EffectStopStrength, m_AgeTimer.GetElapsedSimTimeMS()), m_EffectRotAngle);
 		}
 	}
 }
