@@ -199,8 +199,8 @@ namespace RTE {
 		bool m_FocusEventsDispatchedByDisplaySwitchIn; //!< Whether queued events were dispatched due to raising windows when taking focus of any game window in the previous update.
 
 		std::shared_ptr<SDL_Window> m_PrimaryWindow; //!< The main window.
-		GLuint m_BackBuffer32Texture; //!< Streaming texture for the software rendered stuff.
-		
+		std::unique_ptr<Texture> m_BackBuffer32Texture; //!< Streaming texture for the software rendered stuff.
+
 		std::shared_ptr<RenderTarget> m_ScreenBuffer{};
 		std::unique_ptr<SDL_Rect> m_PrimaryWindowViewport; //!< Viewport for the main window.
 

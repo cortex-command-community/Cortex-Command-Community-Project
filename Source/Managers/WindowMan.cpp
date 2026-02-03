@@ -92,9 +92,6 @@ void WindowMan::Destroy() {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplSDL3_Shutdown();
 	ImGui::DestroyContext();
-	GL_CHECK(glDeleteTextures(1, &m_BackBuffer32Texture));
-	GL_CHECK(glDeleteBuffers(1, &m_ScreenVBO));
-	GL_CHECK(glDeleteVertexArrays(1, &m_ScreenVAO));
 }
 
 void WindowMan::Initialize() {
@@ -345,24 +342,12 @@ void WindowMan::InitializeOpenGL() {
 
 	rlLoadExtensions((void*)SDL_GL_GetProcAddress);
 	rlglInit(m_ResX, m_ResY);
-
-	GL_CHECK(glEnable(GL_BLEND));
-	GL_CHECK(glEnable(GL_DEPTH_TEST));
-	GL_CHECK(glGenBuffers(1, &m_ScreenVBO));
-	GL_CHECK(glGenVertexArrays(1, &m_ScreenVAO));
-	GL_CHECK(glBindVertexArray(m_ScreenVAO));
-	GL_CHECK(glGenTextures(1, &m_BackBuffer32Texture));
 	TracyGpuContext;
-	Texture2D shapesTexture = {rlGetTextureIdDefault(), 1, 1, 1, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8};
-	SetShapesTexture(shapesTexture, {0.0f, 0.0f, 1.0f, 1.0f});
 }
 
 void WindowMan::CreateBackBufferTexture() {
 	m_ScreenBuffer = std::make_unique<RenderTarget>(FloatRect(0, 0, m_ResX, m_ResY), FloatRect(0, 0, m_ResX, m_ResY));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer32Texture));
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_ResX, m_ResY, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	m_BackBuffer32Texture = std::make_unique<Texture>(FloatRect(0, 0, m_ResX, m_ResY));
 }
 
 int WindowMan::GetWindowResX() {
@@ -863,33 +848,30 @@ void WindowMan::ClearBackbuffer(bool clearFrameMan) {
 void WindowMan::UploadFrame() {
 
 	m_ScreenBuffer->Begin(g_ActivityMan.IsInActivity());
-	Camera viewport(Vector(m_ResX/2, m_ResY / 2), m_ScreenBuffer->GetSize());
+	Camera viewport(Vector(m_ResX / 2, m_ResY / 2), m_ScreenBuffer->GetSize());
 	g_RenderMan.BeginFrame(&viewport);
 
-	rlDisableDepthTest();
-	rlDisableColorBlend();
-	//rlSetBlendMode(RL_BLEND_ALPHA);
-
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer32Texture));
+	glActiveTexture(GL_TEXTURE2);
+	m_BackBuffer32Texture->Bind();
 	GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 4));
 	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_FrameMan.GetBackBuffer32()->w, g_FrameMan.GetBackBuffer32()->h, GL_RGBA, GL_UNSIGNED_BYTE, g_FrameMan.GetBackBuffer32()->line[0]));
 
-	m_ScreenBlitShader->Begin();
-	rlSetUniformSampler(m_ScreenBlitShader->GetUniformLocation("rteGUITexture"), m_BackBuffer32Texture);
 	if (m_DrawPostProcessBuffer) {
 		Texture* postBuffer = g_PostProcessMan.GetPostProcessColorBuffer()->GetColorTexture().lock().get();
 		Draw::DrawTexture(postBuffer, {0.0f, 0.0f});
 	} else {
-		Draw::DrawTexture(m_ScreenBuffer->GetColorTexture().lock().get(), {0.0f, 0.0f}, {255, 255, 255, 255});
+		Draw::DrawTexture(m_ScreenBuffer->GetColorTexture().lock().get(), {0.0f, 0.0f});
 	}
+	m_ScreenBlitShader->Begin();
+	//Draw::DrawTexture(m_BackBuffer32Texture.get(), 0.0f, 0.0f);
 	m_ScreenBlitShader->End();
 	m_ScreenBuffer->End();
 
 	glDisable(GL_BLEND);
 	if (m_MultiDisplayWindows.empty()) {
-		g_RenderMan.BeginFrame(&viewport);
+		g_RenderMan.BeginFrame(nullptr);
 		GL_CHECK(glViewport(m_PrimaryWindowViewport->x, m_PrimaryWindowViewport->y, m_PrimaryWindowViewport->w, m_PrimaryWindowViewport->h));
-		Draw::DrawTexture(m_ScreenBuffer->GetColorTexture().lock().get(), {0.0f, 0.0f});
+		Draw::DrawTexture(m_ScreenBuffer->GetColorTexture().lock().get(), {-1.0f, 1.0f, 2.0f, -2.0f});
 		g_RenderMan.DrawActiveBatch();
 	} else {
 		for (size_t i = 0; i < m_MultiDisplayWindows.size(); ++i) {
