@@ -62,6 +62,7 @@ void VertexBuffer::InitializeBuffers() {
 RenderBatch::RenderBatch() = default;
 
 void RenderBatch::BeginFrame() {
+	ZoneScoped;
 	m_CurrentDepth = 0;
 	m_CurrentZ = c_DefaultDrawDepth;
 	m_VertexBuffers.m_Vertices.clear();
@@ -81,7 +82,7 @@ void RenderBatch::Render() {
 	glBindVertexArray(m_VertexBuffers.m_VertexArray);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VertexBuffers.m_IndexBuffer);
 
-	const Shader* currentShader = g_RenderMan.GetDefaultShader();
+	const Shader* currentShader = g_RenderMan.GetCurrentShader();
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, g_RenderMan.GetPaletteTexture());
@@ -111,13 +112,14 @@ void RenderBatch::Render() {
 	BlendMode activeBlendMode(Blend::ALPHA);
 	activeBlendMode.Enable();
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
+	glDisable(GL_BLEND);
 	glDisable(GL_MULTISAMPLE);
 	for (auto& drawCall: m_DrawCalls) {
 		if (drawCall->m_Shader && drawCall->m_Shader != currentShader) {
 			currentShader = drawCall->m_Shader;
 			currentShader->Enable();
-			currentShader->SetInt(currentShader->GetTextureUniform(), 0);
+			currentShader->SetInt(currentShader->GetTextureUniform(), 1);
+			currentShader->SetInt(currentShader->GetPaletteUniform(), 0);
 			if (currentCamera) {
 				currentShader->SetMatrix4f(currentShader->GetProjectionUniform(), currentCamera->GetProjection());
 				currentShader->SetMatrix4f(currentShader->GetViewUniform(), currentCamera->GetView());
@@ -163,6 +165,7 @@ void RenderBatch::Render() {
 }
 
 void RenderBatch::ClearDraws() {
+	ZoneScoped;
 	m_DrawCalls.clear();
 	m_VertexBuffers.m_Vertices.clear();
 	m_VertexBuffers.m_Indices.clear();
@@ -172,7 +175,7 @@ void RenderBatch::ApplyDrawCalls() {
 	ZoneScoped;
 
 	// TODO: Sort and batch DrawCalls by shader and transparency.
-	//std::stable_sort(m_DrawCalls.begin(), m_DrawCalls.end(), [](auto r, auto l) { return r->m_TextureId < l->m_TextureId; });
+	// std::stable_sort(m_DrawCalls.begin(), m_DrawCalls.end(), [](auto r, auto l) { return r->m_TextureId < l->m_TextureId; });
 
 	for (auto drawCall: m_DrawCalls) {
 		RTEAssert(drawCall.use_count() == 2, "DrawCall still in use on EndFrame!");

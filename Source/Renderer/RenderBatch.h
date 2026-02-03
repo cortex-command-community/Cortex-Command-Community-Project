@@ -9,11 +9,8 @@
 #include <optional>
 #include <vector>
 
-
 namespace RTE {
 	class Shader;
-
-
 
 	struct VertexBuffer {
 		std::vector<Vertex> m_Vertices{};
@@ -30,16 +27,17 @@ namespace RTE {
 		void UpdateBuffers();
 
 		VertexBuffer& operator=(VertexBuffer&& rhs) = default;
+
 	private:
 		void InitializeBuffers();
-		VertexBuffer(const VertexBuffer&) =delete;
+		VertexBuffer(const VertexBuffer&) = delete;
 		VertexBuffer& operator=(const VertexBuffer&) = delete;
 	};
 
 	/// Render batch based on raysan5's raylib
 	struct RenderBatch {
 	public:
-		constexpr static float c_DrawDepthIncrement = 1.0f/20000.0f;
+		constexpr static float c_DrawDepthIncrement = 1.0f / 20000.0f;
 		VertexBuffer m_VertexBuffers{};
 		std::vector<std::shared_ptr<DrawCall>> m_DrawCalls{};
 		float m_CurrentDepth{0.0f};
@@ -48,6 +46,7 @@ namespace RTE {
 		std::vector<std::shared_ptr<UniformValueType>> m_CurrentUniforms{};
 		glm::mat4 m_CurrentView{1.0f};
 		glm::mat4 m_CurrentProjection{1.0f};
+		BlendMode m_CurrentBlendMode{Blend::ALPHA};
 
 		/// Constructor.
 		RenderBatch();
@@ -65,9 +64,13 @@ namespace RTE {
 		void ClearDraws();
 
 		/// Collect draw calls, render and clear.
-		void Flush() { EndFrame(); Render(); ClearDraws();}
+		void Flush() {
+			EndFrame();
+			Render();
+			ClearDraws();
+		}
 
 	private:
 		void ApplyDrawCalls();
 	};
-}
+} // namespace RTE
