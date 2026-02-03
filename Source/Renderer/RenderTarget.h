@@ -21,10 +21,10 @@ namespace RTE {
 
 		/// Enables this RenderTarget for drawing and sets up projection matrix. Draws current batch, resets draw depth and model matrix.
 		/// @param clear Whether to clear the target.
-		void Begin(bool clear = true, float zoom = 1.0f);
+		void Begin(bool clear = true, bool drawBatch = true);
 
 		/// Disables this RenderTarget and flushes the active batch.
-		void End();
+		void End(bool drawBatch = true);
 
 		/// @brief Getter for the FBO
 		/// @return The FBO.
