@@ -3,6 +3,7 @@
 #include "SceneMan.h"
 #include "SettingsMan.h"
 #include <algorithm>
+#include "Draw.h"
 
 #include "raylib/raylib.h"
 #include "raylib/rlgl.h"
@@ -48,7 +49,9 @@ int SLBackground::Create() {
 
 	m_Bitmaps.clear();
 	m_BitmapFile.GetAsAnimation(m_Bitmaps, m_FrameCount);
+	m_BitmapFile.GetAsAnimation(m_Textures, m_FrameCount);
 	m_MainBitmap = m_Bitmaps[0];
+	m_StaticTexture = m_Textures[0];
 
 	if (m_FrameCount == 1) {
 		m_SpriteAnimMode = SpriteAnimMode::NOANIM;
@@ -242,4 +245,8 @@ void SLBackground::Draw(const Box& targetDimensions, Box& targetBox, bool offset
 		}
 	}
 	rlZDepth(c_DefaultDrawDepth);
+}
+
+void SLBackground::Draw(const Camera& camera) {
+	StaticSceneLayer::Draw(camera);
 }
