@@ -12,6 +12,7 @@
 #include "SettingsMan.h"
 #include "UInputMan.h"
 #include "GLStateMan.h"
+#include "RenderMan.h"
 
 #include "SLTerrain.h"
 #include "SLBackground.h"
@@ -36,7 +37,6 @@
 
 using namespace RTE;
 
-void BitmapDeleter::operator()(BITMAP* bitmap) const { destroy_bitmap(bitmap); }
 void SurfaceDeleter::operator()(SDL_Surface* surface) const { SDL_DestroySurface(surface); }
 
 const std::array<std::function<void(int r, int g, int b, int a)>, DrawBlendMode::BlendModeCount> FrameMan::c_BlenderSetterFunctions = {
@@ -301,7 +301,7 @@ int FrameMan::CalculateTextHeight(const std::string& text, int maxWidth, bool is
 
 std::string FrameMan::SplitStringToFitWidth(const std::string& stringToSplit, int widthLimit, bool useSmallFont) {
 	GUIFont* fontToUse = GetFont(useSmallFont, false);
-	auto SplitSingleLineAsNeeded = [this, &widthLimit, &fontToUse](std::string& lineToSplitAsNeeded) {
+	auto SplitSingleLineAsNeeded = [&widthLimit, &fontToUse](std::string& lineToSplitAsNeeded) {
 		int numberOfScreenWidthsForText = static_cast<int>(std::ceil(static_cast<float>(fontToUse->CalculateWidth(lineToSplitAsNeeded)) / static_cast<float>(widthLimit)));
 		if (numberOfScreenWidthsForText > 1) {
 			int splitInterval = static_cast<int>(std::ceil(static_cast<float>(lineToSplitAsNeeded.size()) / static_cast<float>(numberOfScreenWidthsForText)));
@@ -619,7 +619,7 @@ void FrameMan::SaveScreenToBitmap() {
 	}
 
 	glPixelStorei(GL_PACK_ALIGNMENT, 4);
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, g_WindowMan.GetScreenBuffer()->GetColorTexture().id));
+	g_WindowMan.GetScreenBuffer()->GetColorTexture().lock()->Bind();
 	GL_CHECK(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, m_ScreenDumpBuffer->pixels));
 
 	// Flip the pixels
@@ -829,19 +829,23 @@ void FrameMan::Draw() {
 	std::list<Box> screenRelativeGlowBoxes;
 
 	const Activity* pActivity = g_ActivityMan.GetActivity();
+	Actor* brain = g_MovableMan.GetFirstBrainActor(Activity::TeamOne);
+	Camera camera(brain->GetPos().GetFloored(), Box());
 
 	for (int playerScreen = 0; playerScreen < screenCount; ++playerScreen) {
+		glDisable(GL_CULL_FACE);
 		screenRelativeEffects.clear();
 		screenRelativeGlowBoxes.clear();
-		rlEnableColorBlend();
-		rlSetBlendMode(RL_BLEND_ALPHA);
-		rlEnableDepthTest();
+		glEnable(GL_BLEND);
+		BlendMode alpha(Blend::ALPHA);
+		alpha.Enable();
+		glEnable(GL_DEPTH_TEST);
 
 		m_PlayerScreen->Begin(true, 1.0f);
-		backgroundShader.Begin();
-		backgroundShader.Enable();
-		rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
-		backgroundShader.SetInt("drawMasked", 1);
+		FloatRect viewport(m_PlayerScreen->GetSize());
+		camera.SetViewport(Box(camera.GetViewCenter(), viewport.w, viewport.h));
+		camera.UpdateView();
+		g_RenderMan.BeginFrame(&camera);
 
 		// rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
 		BITMAP* drawScreen = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
@@ -869,7 +873,8 @@ void FrameMan::Draw() {
 		}
 
 		// Draw the scene
-		g_SceneMan.Draw(drawScreen, drawScreenGUI, targetPos);
+		//g_SceneMan.Draw(drawScreen, drawScreenGUI, targetPos);
+		g_SceneMan.Draw(camera);
 
 		g_PrimitiveMan.DrawPrimitives(playerScreen, drawScreenGUI, targetPos);
 
@@ -901,7 +906,8 @@ void FrameMan::Draw() {
 		backgroundShader.End();
 		if (screenCount > 1) {
 			m_BackBuffer->Begin(false);
-			DrawTextureRec(m_PlayerScreen->GetColorTexture(), {0, 0, static_cast<float>(m_PlayerScreen8->w), -static_cast<float>(m_PlayerScreen8->h)}, {screenOffset.m_X, screenOffset.m_Y}, {255, 255, 255, 255});
+			g_RenderMan.BeginFrame(&camera);
+			//DrawTextureRec(m_PlayerScreen->GetColorTexture(), {0, 0, static_cast<float>(m_PlayerScreen8->w), -static_cast<float>(m_PlayerScreen8->h)}, {screenOffset.m_X, screenOffset.m_Y}, {255, 255, 255, 255});
 			m_BackBuffer->End();
 		}
 		g_PostProcessMan.AdjustEffectsPosToPlayerScreen(playerScreen, drawScreen, screenOffset, screenRelativeEffects, screenRelativeGlowBoxes);
@@ -928,7 +934,8 @@ void FrameMan::Draw() {
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
 	backgroundShader.SetInt("drawMasked", 1);
 	m_BackBuffer->Begin(false);
-	DrawTexture(g_GLStateMan.GetStaticTextureFromBitmap(m_BackBuffer8.get()), 0.0f, 0.0f, {255, 255, 255, 255});
+	g_RenderMan.BeginFrame(&camera);
+	//DrawTexture(g_GLStateMan.GetStaticTextureFromBitmap(m_BackBuffer8.get()), 0.0f, 0.0f, {255, 255, 255, 255});
 	m_BackBuffer->End();
 	backgroundShader.End();
 	rlZDepth(0);
@@ -1075,7 +1082,7 @@ void FrameMan::DrawWorldDump(bool drawForScenePreview) const {
 		g_PostProcessMan.GetPostScreenEffectsWrapped(targetPos, worldBitmapWidth, worldBitmapHeight, postEffectsList, -1);
 
 		for (const PostEffect& postEffect: postEffectsList) {
-			effectBitmap = postEffect.m_Bitmap;
+			effectBitmap = postEffect.m_Bitmap->GetBitmap();
 			effectStrength = postEffect.m_Strength;
 			set_screen_blender(effectStrength, effectStrength, effectStrength, effectStrength);
 			effectPosX = postEffect.m_Pos.GetFloorIntX() - (effectBitmap->w / 2);
