@@ -433,10 +433,10 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::UpdateTargetRegion(const Bo
 		std::vector<Box> updateRegions{};
 		float bitmapWidth = m_MainBitmap->w;
 		float bitmapHeight = m_MainBitmap->h;
-		int areaToCoverX = (m_Offset.GetFloorIntX() + targetBox.GetCorner().GetFloorIntX() + targetBox.GetWidth()) / m_ScaleFactor.m_X;
-		int areaToCoverY = (m_Offset.GetFloorIntY() + targetBox.GetCorner().GetFloorIntY() + targetBox.GetHeight()) / m_ScaleFactor.m_Y;
+		int areaToCoverX = (targetBox.GetCorner().GetFloorIntX() + targetBox.GetWidth()) / m_ScaleFactor.m_X;
+		int areaToCoverY = (targetBox.GetCorner().GetFloorIntY() + targetBox.GetHeight()) / m_ScaleFactor.m_Y;
 		Box scaledTarget(targetBox.m_Corner / m_ScaleFactor, targetBox.m_Width / m_ScaleFactor.m_X, targetBox.m_Height / m_ScaleFactor.m_Y);
-		Vector scaledOffset(m_Offset/m_ScaleFactor);
+		Vector scaledOffset(targetBox.GetCorner()/m_ScaleFactor);
 		Box bitmapDimensions(Vector(), bitmapWidth, bitmapHeight);
 
 		for (int tiledOffsetX = 0; tiledOffsetX < areaToCoverX;) {
@@ -472,7 +472,7 @@ template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 	RTEAssert(m_MainBitmap, "Data of this SceneLayerImpl has not been loaded before trying to draw!");
 	if constexpr(!STATIC_TEXTURE) {
-		RTEAssert(m_MainTexture, "Texture of this SceneLayerImpl has not bee created before trying to draw!");
+		RTEAssert(m_MainTexture, "Texture of this SceneLayerImpl has not been created before trying to draw!");
 	}
 	ZoneScoped;
 	TracyGpuZone("SceneLayer::Draw");
@@ -504,6 +504,19 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Draw(const Box& targetDimen
 }
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Draw(const Camera& camera) {
+	if constexpr (!STATIC_TEXTURE) {
+		RTEAssert(m_MainTexture, "Texture of this SceneLayerImpl has not been created before trying to draw!");
+		if (m_MainBitmapOwned) {
+			UpdateTargetRegion(camera.GetViewport());
+		}
+		m_MainBitmapUpdated = false;
+
+		m_MainTexture->Draw(Box(Vector(0.0f, 0.0f), m_MainBitmap->w, m_MainBitmap->h), Box(-m_OriginOffset, m_MainBitmap->w * m_ScaleFactor.m_X, m_MainBitmap->h * m_ScaleFactor.m_Y));
+	}
+}
+
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::DrawTiled(const Box& targetDimensions, const Box& targetBox, bool drawScaled) const {
 	ZoneScoped;
 	TracyGpuZone("SceneLayer::DrawTiled");
@@ -527,15 +540,15 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::DrawTiled(const Box& target
 		for (int tiledOffsetY = 0; tiledOffsetY < areaToCoverY;) {
 			float destY = targetBox.GetCorner().GetFloorIntY() + tiledOffsetY - m_Offset.GetFloorIntY();
 			if constexpr (STATIC_TEXTURE) {
-				DrawTexturePro(
-				    g_GLStateMan.GetStaticTextureFromBitmap(m_MainBitmap),
-				    {0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
-				    {destX, destY, bitmapWidth, bitmapHeight},
-				    {0.0f, 0.0f}, 0.0f, {255, 255, 255, 255});
+				// DrawTexturePro(
+				//     g_GLStateMan.GetStaticTextureFromBitmap(m_MainBitmap),
+				//     {0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
+				//     {destX, destY, bitmapWidth, bitmapHeight},
+				//     {0.0f, 0.0f}, 0.0f, {255, 255, 255, 255});
 			} else {
-				m_MainTexture->Draw(
-				    {0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
-				    {destX, destY, bitmapWidth, bitmapHeight});
+				// m_MainTexture->Draw(
+				//     {0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
+				//     {destX, destY, bitmapWidth, bitmapHeight});
 			}
 			if (!m_WrapY) {
 				break;
