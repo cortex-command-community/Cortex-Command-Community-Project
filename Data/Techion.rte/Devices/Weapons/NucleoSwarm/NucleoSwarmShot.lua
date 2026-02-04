@@ -21,7 +21,7 @@ function Create(self)
 			local moCheck = SceneMan:GetMOIDPixel(checkPos.X, checkPos.Y);
 			if moCheck ~= rte.NoMOID then
 				local actor = MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID);
-				if actor and actor.Team ~= self.Team then
+				if actor and actor.Team ~= self.Team and actor.GetsHitByMOs then
 					self.target = actor;
 					break;
 				end
@@ -81,7 +81,7 @@ function Update(self)
 	if self.lifeTimer:IsPastSimMS(8000) then
 		self:GibThis();
 	end
-	
+
 	--TODO: Add wounds through Lua like the other disintegrator weapons
 	if SceneMan:GetTerrMatter(self.Pos.X, self.Pos.Y) == rte.airID then
 		local moCheck = SceneMan:GetMOIDPixel(self.Pos.X, self.Pos.Y);
