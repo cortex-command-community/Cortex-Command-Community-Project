@@ -66,7 +66,7 @@ function Update(self)
 			self.seekerTimer:Reset();
 			self.seekerDelay = 1000 - math.random(1000);
 			for actor in MovableMan.Actors do
-				if actor.Team ~= self.Team then
+				if actor.Team ~= self.Team and actor.GetsHitByMOs then
 					self.potentialtargetdist = SceneMan:ShortestDistance(self.Pos, actor.Pos, SceneMan.SceneWrapsX);
 					if (self.lastdist == nil or (self.lastdist ~= nil and self.potentialtargetdist:MagnitudeIsLessThan(self.lastdist))) and not self.potentialtargetdist:MagnitudeIsGreaterThan(500) and SceneMan:CastStrengthRay(self.Pos, self.potentialtargetdist:SetMagnitude(self.potentialtargetdist.Magnitude - actor.Radius), 0, Vector(), 5, rte.airID, SceneMan.SceneWrapsX) == false then
 						self.lastdist = self.potentialtargetdist.Magnitude;
