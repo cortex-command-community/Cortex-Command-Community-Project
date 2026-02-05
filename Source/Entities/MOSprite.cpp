@@ -78,7 +78,7 @@ int MOSprite::Create(ContentFile spriteFile,
                      const unsigned long lifetime) {
 	MovableObject::Create(mass, position, velocity, 0, 0, lifetime);
 
-	m_SpriteFile = spriteFile;
+	m_SpriteFile = std::move(spriteFile);
 	m_FrameCount = frameCount;
 	m_aSprite.clear();
 	m_SpriteFile.GetAsAnimation(m_aSprite, m_FrameCount);
@@ -180,18 +180,18 @@ int MOSprite::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-void MOSprite::SetEntryWound(std::string presetName, std::string moduleName) {
+void MOSprite::SetEntryWound(const std::string& presetName, std::string moduleName) {
 	if (presetName == "")
 		m_pEntryWound = 0;
 	else
-		m_pEntryWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset("AEmitter", presetName, moduleName));
+		m_pEntryWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset("AEmitter", presetName, std::move(moduleName)));
 }
 
-void MOSprite::SetExitWound(std::string presetName, std::string moduleName) {
+void MOSprite::SetExitWound(const std::string& presetName, std::string moduleName) {
 	if (presetName == "")
 		m_pExitWound = 0;
 	else
-		m_pExitWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset("AEmitter", presetName, moduleName));
+		m_pExitWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset("AEmitter", presetName, std::move(moduleName)));
 }
 
 std::string MOSprite::GetEntryWoundPresetName() const {

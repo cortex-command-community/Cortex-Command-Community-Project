@@ -414,7 +414,7 @@ std::string HDFirearm::GetNextMagazineName() const {
 	return m_pMagazineReference->GetPresetName();
 }
 
-bool HDFirearm::SetNextMagazineName(std::string magName) {
+bool HDFirearm::SetNextMagazineName(const std::string& magName) {
 	const Magazine* pNewMag = dynamic_cast<const Magazine*>(g_PresetMan.GetEntityPreset("Magazine", magName));
 	if (pNewMag) {
 		m_pMagazineReference = pNewMag;

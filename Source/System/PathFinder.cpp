@@ -4,10 +4,10 @@
 #include "Scene.h"
 #include "SceneMan.h"
 #include "ThreadMan.h"
-#include "ConsoleMan.h"
 
 #include "tracy/Tracy.hpp"
 
+#include <array>
 #include <execution>
 
 using namespace RTE;
@@ -172,9 +172,16 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 	// Actors capable of jumping/jetpacking can jump upwards.
 	s_JumpHeight = jumpHeight;
 
-	// How high up we can jump from this node
-	s_JumpHeightVertical = std::max(1, static_cast<int>(jumpHeight / (m_NodeDimension * c_MPP))); // min of 1 so automovers work a bit better
-	s_JumpHeightDiagonal = std::max(1, static_cast<int>((jumpHeight * 0.7F) / (m_NodeDimension * c_MPP)));
+	// How high up we can jump from this node.
+	if(jumpHeight == FLT_MAX) {
+		// Probably quite high.
+		s_JumpHeightVertical = INT_MAX;
+		s_JumpHeightDiagonal = INT_MAX;
+	} else {
+		// Assume at least 1 so automovers work a bit better
+		s_JumpHeightVertical = std::max(1, static_cast<int>(jumpHeight / (m_NodeDimension * c_MPP)));
+		s_JumpHeightDiagonal = std::max(1, static_cast<int>((jumpHeight * 0.7F) / (m_NodeDimension * c_MPP)));
+	}
 
 	// Actors capable of digging can use s_DigStrength to modify the node adjacency cost.
 	s_DigStrength = digStrength;
@@ -258,14 +265,14 @@ void PathFinder::RecalculateAllCosts() {
 	// I hate this copy, but fuck it.
 	std::vector<int> pathNodesIdsVec;
 	pathNodesIdsVec.reserve(m_NodeGrid.size());
-	for (int i = 0; i < m_NodeGrid.size(); ++i) {
+	for (size_t i = 0; i < m_NodeGrid.size(); ++i) {
 		pathNodesIdsVec.push_back(i);
 	}
 
 	UpdateNodeList(pathNodesIdsVec);
 }
 
-std::vector<int> PathFinder::RecalculateAreaCosts(std::deque<Box>& boxList, int nodeUpdateLimit) {
+std::vector<int> PathFinder::RecalculateAreaCosts(std::deque<Box>& boxList, size_t nodeUpdateLimit) {
 	ZoneScoped;
 
 	std::unordered_set<int> nodeIDsToUpdate;
@@ -610,7 +617,7 @@ void PathFinder::MarkBoxNavigable(Box box, bool navigable) {
 void PathFinder::MarkAllNodesNavigable(bool navigable) {
 	std::vector<int> pathNodesIdsVec;
 	pathNodesIdsVec.reserve(m_NodeGrid.size());
-	for (int i = 0; i < m_NodeGrid.size(); ++i) {
+	for (size_t i = 0; i < m_NodeGrid.size(); ++i) {
 		pathNodesIdsVec.push_back(i);
 	}
 
@@ -647,7 +654,7 @@ int PathFinder::ConvertCoordsToNodeId(int x, int y) const {
 	return (y * m_GridWidth) + x;
 }
 
-void PathFinder::DebugRender(BITMAP* targetBitmap, const Vector& targetPos, int whichScreen) const {
+void PathFinder::DebugRender(BITMAP* targetBitmap, const Vector& targetPos) const {
 	for (int x = 0; x < m_GridWidth; ++x) {
 		Vector startPos = (m_NodeGrid[ConvertCoordsToNodeId(x, 0)].Pos - m_Offset) - targetPos;
 		Vector endPos = startPos + Vector(0.0F, m_NodeDimension * m_GridHeight);

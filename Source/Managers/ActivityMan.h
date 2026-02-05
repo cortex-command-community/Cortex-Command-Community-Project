@@ -83,7 +83,7 @@ namespace RTE {
 #pragma region Default Activity Handling
 		/// Gets the type name of the default Activity to be loaded if nothing else is available.
 		/// @return The default Activity type name.
-		std::string GetDefaultActivityType() const { return m_DefaultActivityType; }
+		const std::string& GetDefaultActivityType() const { return m_DefaultActivityType; }
 
 		/// Sets the type name of the default Activity to be loaded if nothing else is available.
 		/// @param defaultActivityType The default Activity type name.
@@ -91,7 +91,7 @@ namespace RTE {
 
 		/// Gets the name of the default Activity to be loaded if nothing else is available.
 		/// @return The default Activity preset name.
-		std::string GetDefaultActivityName() const { return m_DefaultActivityName; }
+		const std::string& GetDefaultActivityName() const { return m_DefaultActivityName; }
 
 		/// Sets the preset name of the default Activity to be loaded if nothing else is available.
 		/// @param defaultActivityName The default Activity preset name.

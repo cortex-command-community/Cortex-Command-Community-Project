@@ -157,7 +157,8 @@ namespace RTE {
 #pragma endregion
 
 		/// Copies the default palette to an sdl palette.
-		static SDL_Palette* DefaultPaletteToSDL();
+		/// @param preMask Whether to replace mask color with 0 alpha (necessary for loading indexed to 32-bit image)
+		static SDL_Palette* DefaultPaletteToSDL(bool preMask = false);
 
 	private:
 		/// Enumeration for loading BITMAPs by bit depth. NOTE: This can't be lower down because s_LoadedBitmaps relies on this definition.

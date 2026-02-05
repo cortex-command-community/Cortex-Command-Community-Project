@@ -1100,7 +1100,7 @@ bool MovableObject::DrawToTerrain(SLTerrain* terrain) {
 			}
 		};
 		BITMAP* tempBitmap = g_SceneMan.GetIntermediateBitmapForSettlingIntoTerrain(static_cast<int>(GetDiameter()));
-		Vector tempBitmapPos = m_Pos.GetFloored() - Vector(static_cast<float>(tempBitmap->w / 2), static_cast<float>(tempBitmap->w / 2));
+		Vector tempBitmapPos = m_Pos.GetFloored() - Vector(static_cast<float>(tempBitmap->w) / 2, static_cast<float>(tempBitmap->w) / 2);
 
 		clear_bitmap(tempBitmap);
 		// Draw the object to the temp bitmap, then draw the foreground layer on top of it, then draw it to the foreground layer.

@@ -46,7 +46,18 @@ function Create(self)
 		end
 	end
 	
-	self.captureProgress = self:NumberValueExists("captureProgress") and self:GetNumberValue("captureProgress") or 1;
+	-- If we have a saved value, use that.
+	if self:NumberValueExists("captureProgress") then
+		self.captureProgress = self:GetNumberValue("captureProgress")
+	else
+		-- Otherwise, initialize properly according to whether we are captured by a real team or not by default.
+		if self.Team == -1 then
+			self.captureProgress = 0.0;
+		else
+			self.captureProgress = 1.0;
+		end
+	end
+	
 	self.capturingTeam = self:NumberValueExists("capturingTeam") and self:GetNumberValue("capturingTeam") or self.Team;
 	self.dominantTeam = self:NumberValueExists("dominantTeam") and self:GetNumberValue("dominantTeam") or self.Team;
 	

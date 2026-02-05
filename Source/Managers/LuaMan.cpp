@@ -33,9 +33,8 @@ void LuaStateWrapper::Initialize() {
 	luabind::open(m_State);
 	tracy::LuaRegister(m_State);
 
-	// Disable gc. We do this manually, so we can thread it to occur parallel with non-lua updates
-	// Not doing this for now... see StartAsyncGarbageCollection()
-	// lua_gc(m_State, LUA_GCSTOP, 0);
+	// We do async GC, but we still keep the normal GC on so it can catch any big spikes or runaway allocs
+	//lua_gc(m_State, LUA_GCSTOP, 0);
 
 	const luaL_Reg libsToLoad[] = {
 	    // Basic Lua libraries
@@ -106,7 +105,7 @@ void LuaStateWrapper::Initialize() {
 	                         luabind::def("LERP", (float (*)(float, float, float, float, float))&Lerp),
 	                         luabind::def("Lerp", (float (*)(float, float, float, float, float))&Lerp),
 	                         luabind::def("Lerp", (Vector(*)(float, float, Vector, Vector, float))&Lerp),
-	                         luabind::def("Lerp", (Matrix(*)(float, float, Matrix, Matrix, float))&Lerp),
+	                         luabind::def("Lerp", (Matrix(*)(float, float, const Matrix&, const Matrix&, float))&Lerp),
 	                         luabind::def("EaseIn", &EaseIn),
 	                         luabind::def("EaseOut", &EaseOut),
 	                         luabind::def("EaseInOut", &EaseInOut),
@@ -615,8 +614,17 @@ int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functio
 			functionObjectArgument->GetLuabindObject()->push(m_State);
 		}
 	}
-
 	const std::string& path = functionObject->GetFilePath();
+
+	// Function object may be deleted during the Lua call, making `path` above invalid.
+	// Find and store the script timings entry now and write to it afterward.
+	PerformanceMan::ScriptTiming* timing = nullptr;
+
+	// only track time in non-MT scripts, for now
+	if (&g_LuaMan.GetMasterScriptState() == this) {
+		timing = &m_ScriptTimings[path];
+	}
+
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	{
 		ZoneScoped;
@@ -632,10 +640,9 @@ int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functio
 	}
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-	// only track time in non-MT scripts, for now
-	if (&g_LuaMan.GetMasterScriptState() == this) {
-		m_ScriptTimings[path].m_Time += std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
-		m_ScriptTimings[path].m_CallCount++;
+	if (timing) {
+		timing->m_Time += std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+		timing->m_CallCount++;
 	}
 
 	lua_pop(m_State, 1);
@@ -1279,11 +1286,6 @@ void LuaMan::Update() {
 void LuaMan::StartAsyncGarbageCollection() {
 	ZoneScoped;
 
-	// For now we're not doing this... because it's slower than normal (blocking) GC collection during the update
-	// This is because Lua is trash and basically GCSTEP is meaningless and can cause memory leak runaway, whereas GCCOLLECT is ultra-expensive
-	// So for now we do normal GC collection :(
-	return;
-
 	std::vector<LuaStateWrapper*> allStates;
 	allStates.reserve(m_ScriptStates.size() + 1);
 
@@ -1298,7 +1300,7 @@ void LuaMan::StartAsyncGarbageCollection() {
 		    g_ThreadMan.GetPriorityThreadPool().submit([luaState]() {
 			    ZoneScopedN("Lua Garbage Collection");
 			    std::lock_guard<std::recursive_mutex> lock(luaState->GetMutex());
-			    lua_gc(luaState->GetLuaState(), LUA_GCCOLLECT, 0); // we'd use GCSTEP but fuck lua it's trash
+			    lua_gc(luaState->GetLuaState(), LUA_GCSTEP, 100);
 			    lua_gc(luaState->GetLuaState(), LUA_GCSTOP, 0);
 		    }));
 	}

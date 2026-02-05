@@ -27,11 +27,10 @@
 
 using namespace RTE;
 
-AlarmEvent::AlarmEvent(const Vector& pos, int team, float range) {
-	m_ScenePos = pos;
-	m_Team = (Activity::Teams)team;
-	m_Range = range * g_FrameMan.GetPlayerScreenWidth() * 0.51F;
-}
+AlarmEvent::AlarmEvent(const Vector& pos, int team, float range) :
+	m_ScenePos(pos),
+	m_Team((Activity::Teams)team),
+	m_Range(range * g_FrameMan.GetPlayerScreenWidth() * 0.51F) {}
 
 const std::string MovableMan::c_ClassName = "MovableMan";
 
@@ -1476,8 +1475,6 @@ void MovableMan::Update() {
 				if (!(*aIt)->IsSetToDelete())
 					m_Actors.push_back(*aIt);
 				else {
-					m_ValidActors.erase(*aIt);
-
 					// Also remove actor from the roster
 					if ((*aIt)->GetTeam() >= 0) {
 						// m_ActorRoster[(*aIt)->GetTeam()].remove(*aIt);
@@ -1486,6 +1483,8 @@ void MovableMan::Update() {
 
 					(*aIt)->DestroyScriptState();
 					delete (*aIt);
+
+					m_ValidActors.erase(*aIt);
 				}
 			}
 			m_AddedActors.clear();
@@ -1496,9 +1495,9 @@ void MovableMan::Update() {
 				if (!(*iIt)->IsSetToDelete()) {
 					m_Items.push_back(*iIt);
 				} else {
-					m_ValidItems.erase(*iIt);
 					(*iIt)->DestroyScriptState();
 					delete (*iIt);
+					m_ValidItems.erase(*iIt);
 				}
 			}
 			m_AddedItems.clear();
@@ -1509,9 +1508,9 @@ void MovableMan::Update() {
 				if (!(*parIt)->IsSetToDelete()) {
 					m_Particles.push_back(*parIt);
 				} else {
-					m_ValidParticles.erase(*parIt);
 					(*parIt)->DestroyScriptState();
 					delete (*parIt);
+					m_ValidParticles.erase(*parIt);
 				}
 			}
 			m_AddedParticles.clear();
@@ -1563,8 +1562,8 @@ void MovableMan::Update() {
 					if ((*iIt)->GetRestThreshold() < 0) {
 						(*iIt)->SetRestThreshold(500);
 					}
-					m_ValidItems.erase(*iIt);
 					m_Particles.push_back(*iIt);
+					m_ValidItems.erase(*iIt);
 					iIt++;
 				}
 				m_Items.erase(imidIt, m_Items.end());
@@ -1592,9 +1591,9 @@ void MovableMan::Update() {
 					RemoveActorFromTeamRoster(*aIt);
 
 				// Delete
-				m_ValidActors.erase(*aIt);
 				(*aIt)->DestroyScriptState();
 				delete (*aIt);
+				m_ValidActors.erase(*aIt);
 				aIt++;
 			}
 			// Try to set the existing iterator to a safer value, erase can crash in debug mode otherwise?
@@ -1606,9 +1605,9 @@ void MovableMan::Update() {
 			imidIt = iIt;
 
 			while (iIt != m_Items.end()) {
-				m_ValidItems.erase(*iIt);
 				(*iIt)->DestroyScriptState();
 				delete (*iIt);
+				m_ValidItems.erase(*iIt);
 				iIt++;
 			}
 			m_Items.erase(imidIt, m_Items.end());
@@ -1618,9 +1617,9 @@ void MovableMan::Update() {
 			midIt = parIt;
 
 			while (parIt != m_Particles.end()) {
-				m_ValidParticles.erase(*parIt);
 				(*parIt)->DestroyScriptState();
 				delete (*parIt);
+				m_ValidParticles.erase(*parIt);
 				parIt++;
 			}
 			m_Particles.erase(midIt, m_Particles.end());
@@ -1650,9 +1649,9 @@ void MovableMan::Update() {
 				if ((*parIt)->GetDrawPriority() >= terrMat->GetPriority()) {
 					(*parIt)->DrawToTerrain(g_SceneMan.GetTerrain());
 				}
-				m_ValidParticles.erase(*parIt);
 				(*parIt)->DestroyScriptState();
 				delete (*parIt);
+				m_ValidParticles.erase(*parIt);
 				parIt++;
 			}
 			m_Particles.erase(midIt, m_Particles.end());

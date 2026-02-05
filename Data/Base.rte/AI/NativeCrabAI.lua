@@ -321,14 +321,7 @@ function NativeCrabAI:Update(Owner)
 			end
 		end
 
-		local newFlying = false;
-		if not (Owner.LeftFGLeg and Owner.RightFGLeg and Owner.LeftBGLeg and Owner.RightBGLeg) then
-			newFlying = true;
-		end
-
-		if self.groundContact < 0 then
-			newFlying = true;
-		end
+		local newFlying = self.groundContact < 0;
 
 		if self.flying ~= newFlying then
 			Owner:SendMessage("AI_IsFlying", newFlying);

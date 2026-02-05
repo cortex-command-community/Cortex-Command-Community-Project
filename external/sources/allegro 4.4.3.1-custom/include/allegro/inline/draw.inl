@@ -320,6 +320,7 @@ AL_INLINE(void, draw_trans_sprite, (BITMAP *bmp, BITMAP *sprite, int x, int y),
               (sprite->vtable->color_depth == 8)));
       bmp->vtable->draw_trans_sprite(bmp, sprite, x, y);
    }
+   TracyCZoneEnd(ctx);
 })
 
 

@@ -14,6 +14,8 @@
 #include "GUIFont.h"
 #include "AllegroBitmap.h"
 
+#include <array>
+
 using namespace RTE;
 
 ConcreteClassInfo(PieMenu, Entity, 20);
@@ -403,6 +405,10 @@ PieSlice* PieMenu::RemovePieSlice(const PieSlice* pieSliceToRemove) {
 			if (PieMenu* removedPieSliceSubPieMenu = removedPieSlice->GetSubPieMenu()) {
 				removedPieSliceSubPieMenu->SetEnabled(false);
 				removedPieSliceSubPieMenu->SetOwner(nullptr);
+
+				if (removedPieSliceSubPieMenu == m_ActiveSubPieMenu) {
+					m_ActiveSubPieMenu = nullptr;
+				}
 			}
 			RepopulateAndRealignCurrentPieSlices();
 		}
@@ -1206,6 +1212,11 @@ void PieMenu::DrawBackgroundPieSliceSeparator(BITMAP* backgroundBitmapToDrawTo, 
 bool PieMenu::SetHoveredPieSlice(const PieSlice* pieSliceToSelect, bool moveCursorIconToSlice) {
 	if (pieSliceToSelect == m_HoveredPieSlice) {
 		return false;
+	}
+
+	if (m_ActiveSubPieMenu) {
+		m_ActiveSubPieMenu->SetEnabled(false, false);
+		m_ActiveSubPieMenu = nullptr;
 	}
 
 	m_HoveredPieSlice = pieSliceToSelect;

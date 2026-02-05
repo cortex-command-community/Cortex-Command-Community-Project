@@ -152,11 +152,11 @@ namespace RTE {
 
 		/// Returns the name of currently edited assembly
 		/// @return Name of currently edited assembly.
-		std::string GetCurrentAssemblyName() { return m_CurrentAssemblyName; }
+		const std::string& GetCurrentAssemblyName() { return m_CurrentAssemblyName; }
 
 		/// Sets new name of currently edited assembly
 		/// @param newName New name for assembly.
-		void SetCurrentAssemblyName(std::string newName) { m_CurrentAssemblyName = newName; }
+		void SetCurrentAssemblyName(std::string newName) { m_CurrentAssemblyName = std::move(newName); }
 
 		/// Protected member variable and method declarations
 	protected:

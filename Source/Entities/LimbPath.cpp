@@ -172,6 +172,23 @@ Vector LimbPath::RotatePoint(const Vector& point) const {
 	return (((point - offset) * m_Rotation) + offset) + m_PositionOffset;
 }
 
+Vector LimbPath::InverseRotatePoint(const Vector& point) const {
+	Vector offset = (m_RotationOffset).GetXFlipped(m_HFlipped);
+	return (((point - m_PositionOffset) - offset) / m_Rotation) + offset;
+}
+
+Vector LimbPath::ToLocalSpace(const Vector& position) const {
+	// The position might be on one side of a border of a wrapping scene while the joint is on another.
+	// Account for that.
+	Vector posWrapped = m_JointPos + g_SceneMan.ShortestDistance(m_JointPos, position);
+
+	return InverseRotatePoint(posWrapped - m_JointPos) / GetTotalScaleMultiplier();
+}
+
+Vector LimbPath::ToWorldSpace(const Vector& position) const {
+	return m_JointPos + (RotatePoint(position * GetTotalScaleMultiplier()));
+}
+
 int LimbPath::Save(Writer& writer) const {
 	Entity::Save(writer);
 
@@ -199,43 +216,44 @@ void LimbPath::Destroy(bool notInherited) {
 	Clear();
 }
 
-Vector LimbPath::GetProgressPos() {
+Vector LimbPath::GetCurrentSegStartLocal() const {
 	Vector returnVec(m_Start);
-	if (IsStaticPoint()) {
-		return m_JointPos + (RotatePoint(returnVec * GetTotalScaleMultiplier()));
+
+	if (!IsStaticPoint()) {
+		// Add all the segments before the current one
+		std::deque<Vector>::const_iterator itr;
+		for (itr = m_Segments.begin(); itr != m_CurrentSegment; ++itr) {
+			returnVec += *itr;
+		}
 	}
 
-	// Add all the segments before the current one
-	std::deque<Vector>::const_iterator itr;
-	for (itr = m_Segments.begin(); itr != m_CurrentSegment; ++itr) {
-		returnVec += *itr;
+	return returnVec;
+}
+
+Vector LimbPath::GetProgressPos() {
+	Vector returnVec = GetCurrentSegStartLocal();
+
+	if (!IsStaticPoint()) {
+		if (m_CurrentSegment != m_Segments.end()) {
+			// Add approximation based on progress.
+			returnVec += *m_CurrentSegment * m_SegProgress;
+		}
 	}
 
-	// Add any from the progress made on the current one
-	if (itr != m_Segments.end()) {
-		returnVec += *m_CurrentSegment * m_SegProgress;
-	}
-
-	return m_JointPos + (RotatePoint(returnVec * GetTotalScaleMultiplier()));
+	return ToWorldSpace(returnVec);
 }
 
 Vector LimbPath::GetCurrentSegTarget() {
-	Vector returnVec(m_Start);
-	if (IsStaticPoint()) {
-		return m_JointPos + (RotatePoint(returnVec * GetTotalScaleMultiplier()));
+	Vector returnVec = GetCurrentSegStartLocal();
+
+	if (!IsStaticPoint()) {
+		if (m_CurrentSegment != m_Segments.end()) {
+			// Add the current one as well.
+			returnVec += *m_CurrentSegment;
+		}
 	}
 
-	std::deque<Vector>::const_iterator itr;
-
-	for (itr = m_Segments.begin(); itr != m_CurrentSegment; ++itr) {
-		returnVec += *itr;
-	}
-
-	if (itr != m_Segments.end()) {
-		returnVec += *m_CurrentSegment;
-	}
-
-	return m_JointPos + (RotatePoint(returnVec * GetTotalScaleMultiplier()));
+	return ToWorldSpace(returnVec);
 }
 
 Vector LimbPath::GetCurrentVel(const Vector& limbPos) {
@@ -292,29 +310,138 @@ void LimbPath::ReportProgress(const Vector& limbPos) {
 	if (IsStaticPoint()) {
 		const float staticPointEndedThreshold = 1.0F;
 		m_Ended = g_SceneMan.ShortestDistance(limbPos, GetCurrentSegTarget()).MagnitudeIsLessThan(staticPointEndedThreshold);
-	} else {
-		// Check if we are sufficiently close to the target to start going after the next one.
+	} else if (m_CurrentSegment == m_Segments.end()) {
+		// Current path has already come to an end. Compute progress and m_Ended based on last segment's target.
 		Vector distVec = g_SceneMan.ShortestDistance(limbPos, GetCurrentSegTarget());
-		float distance = distVec.GetMagnitude();
-		float segMag = (*m_CurrentSegment * GetTotalScaleMultiplier()).GetMagnitude();
+		float distanceSqr = distVec.GetSqrMagnitude();
+		float segMagSqr = (*m_CurrentSegment * GetTotalScaleMultiplier()).GetSqrMagnitude();
 
-		if (distance < m_SegmentEndedThreshold) {
-			if (++(m_CurrentSegment) == m_Segments.end()) {
-				--(m_CurrentSegment);
-				// Get normalized progress measure toward the target.
-				m_SegProgress = distance > segMag ? 0.0F : (1.0F - (distance / segMag));
-				m_Ended = true;
+		// Get normalized progress measure toward the target.
+
+		if (distanceSqr > segMagSqr)
+			// We're too far away from this target.
+			m_SegProgress = 0.0;
+		else
+			m_SegProgress = (1.0F - (std::sqrt(distanceSqr) / std::sqrt(segMagSqr)));
+
+		m_Ended = distVec.MagnitudeIsLessThan(m_SegmentEndedThreshold);
+	} else {
+		// Presume we're not done with all path segments until proven otherwise.
+		m_Ended = false;
+
+		// Check if we are sufficiently close to the current target, or any of the next ones,
+		// to start going to whatever target is after that one.
+		//
+		// The limb might have been yanked and is closer to one of the future targets, so check them too.
+
+		// This rest of the code will be working in local space, so convert input limb pos to that.
+		Vector limbPosLocal = ToLocalSpace(limbPos);
+
+
+		// Iterate over all segments and find one whose target is closest to the limb position.
+
+
+		// Segment positions are accumulative, so keep an accumulator.
+		Vector currentSegmentStartPos = GetCurrentSegStartLocal(); // Will be needed later.
+		Vector segmentPosAccumulator = currentSegmentStartPos;
+
+		Vector closestSegmentStartPos;
+		float closestSegmentTargetDistanceSqr = std::numeric_limits<float>::max();
+		std::deque<Vector>::iterator closestSegment = m_CurrentSegment;
+
+		for (std::deque<Vector>::iterator itr = m_CurrentSegment; itr != m_Segments.end(); ++itr) {
+
+			// We want to find a closest segment to work off of, but we don't want to
+			// snap from collision-enabled segments to collision-disabled segments,
+			// because doing so tends to produce erratic foot behavior.
+
+			// If the current segment of the limbpath is collision-enabled...
+			if (!FootCollisionsShouldBeDisabled()) {
+				// If the currently looked at segment is collision-disabled...
+				if (m_FootCollisionsDisabledSegment >= 0 &&
+						m_Segments.size() - (itr - m_Segments.begin()) <= m_FootCollisionsDisabledSegment) {
+
+					// ...Then break.
+
+					// Note: if the first of the above two checks has passed,
+					// this means that the current segment is collision-enabled.
+					// And, since this iterator starts with it, this means that
+					// *at least* the current segment was picked as closest already.
+					//
+					// In other words, if this break was hit, then closest segment vars have
+					// been properly initialized already. Therefore, it's safe to break.
+
+					break;
+				}
 			}
-			// Next segment!
-			else {
-				m_SegProgress = 0.0F;
+
+			Vector thisSegmentStartPos = segmentPosAccumulator;
+			segmentPosAccumulator += *itr; // The accumulator's value is now the target pos of this segment.
+			float thisSegmentDistanceSqr = (segmentPosAccumulator - limbPosLocal).GetSqrMagnitude();
+
+			if (thisSegmentDistanceSqr < closestSegmentTargetDistanceSqr) {
+				// This one's closer.
+				closestSegmentStartPos = thisSegmentStartPos;
+				closestSegmentTargetDistanceSqr = thisSegmentDistanceSqr;
+				closestSegment = itr;
+			}
+		}
+
+
+		// Branches below will determine the new current segment and write the distance to it here.
+		// We need this distance to compute progress towards it, whatever it ends up being.
+		float distanceToCurrentSegmentTargetSqr;
+
+		if (closestSegmentTargetDistanceSqr < m_SegmentEndedThreshold * m_SegmentEndedThreshold) {
+			// We're sufficiently close to this segment's target to go on.
+			// Either declare this path ended, or continue from the next segment.
+
+			if (closestSegment + 1 == m_Segments.end()) {
+				// Closest segment is the last segment and we are at its target. Declare done.
+				m_Ended = true;
+				m_CurrentSegment = closestSegment;
+
+				distanceToCurrentSegmentTargetSqr = closestSegmentTargetDistanceSqr;
+
+			} else {
+				// Time to switch to next segment!
 				m_SegTimer.Reset();
-				m_Ended = false;
+
+				m_CurrentSegment = closestSegment + 1;
+
+				Vector currentSegmentTarget = closestSegmentStartPos + *closestSegment + *m_CurrentSegment;
+				distanceToCurrentSegmentTargetSqr = (currentSegmentTarget - limbPosLocal).GetSqrMagnitude();
 			}
 		} else {
-			m_SegProgress = distance > segMag ? 0.0F : (1.0F - (distance / segMag));
-			m_Ended = false;
+			// We're not close enough to that closest segment's target, but we can still try to do better.
+
+			Vector currentSegmentTargetPos = currentSegmentStartPos + *m_CurrentSegment;
+			float currentSegmentDistanceSqr = (currentSegmentTargetPos - limbPosLocal).GetSqrMagnitude();
+
+			if (closestSegmentTargetDistanceSqr < currentSegmentDistanceSqr) {
+				// The target for this closest segment is closer than the current segment's.
+				// Fast-forward to it.
+				m_SegTimer.Reset();
+
+				m_CurrentSegment = closestSegment;
+
+				distanceToCurrentSegmentTargetSqr = closestSegmentTargetDistanceSqr;
+			} else {
+				// Just get the distance to current segment's target.
+				Vector currentSegmentTarget = currentSegmentStartPos + *m_CurrentSegment;
+				distanceToCurrentSegmentTargetSqr = (currentSegmentTarget - limbPosLocal).GetSqrMagnitude();
+			}
 		}
+
+		// Now compute a normalized progress measure towards the current segment.
+
+		float currentSegmentMagnitudeSqr = m_CurrentSegment->GetSqrMagnitude();
+
+		if (distanceToCurrentSegmentTargetSqr > currentSegmentMagnitudeSqr)
+			// We're too far away from this target.
+			m_SegProgress = 0.0;
+		else
+			m_SegProgress = (1.0F - (std::sqrt(distanceToCurrentSegmentTargetSqr) / std::sqrt(currentSegmentMagnitudeSqr)));
 	}
 }
 
@@ -343,13 +470,11 @@ float LimbPath::GetRegularProgress() const {
 }
 
 int LimbPath::GetCurrentSegmentNumber() const {
-	int progress = 0;
-	if (!m_Ended && !IsStaticPoint()) {
-		for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_CurrentSegment; ++itr) {
-			progress++;
-		}
+	if (m_Ended || IsStaticPoint()) {
+		return 0;
+	} else {
+		return m_CurrentSegment - m_Segments.begin();
 	}
-	return progress;
 }
 
 void LimbPath::Terminate() {
@@ -379,7 +504,7 @@ bool LimbPath::RestartFree(Vector& limbPos, MOID MOIDToIgnore, int ignoreTeam) {
 
 	if (IsStaticPoint()) {
 		Vector notUsed;
-		Vector targetPos = m_JointPos + (RotatePoint(m_Start * GetTotalScaleMultiplier()));
+		Vector targetPos = ToWorldSpace(m_Start);
 		Vector beginPos = targetPos;
 		// TODO: don't hardcode the beginpos
 		beginPos.m_Y -= 24;
@@ -397,7 +522,7 @@ bool LimbPath::RestartFree(Vector& limbPos, MOID MOIDToIgnore, int ignoreTeam) {
 		m_CurrentSegment = m_Segments.begin();
 
 		// Find the first start segment that has an obstacle on it
-		int i = 0;
+		size_t i = 0;
 		for (; i < m_StartSegCount; ++i) {
 			Vector segmentStart = GetProgressPos();
 			++m_CurrentSegment;
@@ -517,8 +642,8 @@ void LimbPath::Draw(BITMAP* pTargetBitmap,
 	for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr) {
 		nextPoint += *itr;
 
-		Vector prevWorldPosition = m_JointPos + (RotatePoint(prevPoint * GetTotalScaleMultiplier()));
-		Vector nextWorldPosition = m_JointPos + (RotatePoint(nextPoint * GetTotalScaleMultiplier()));
+		Vector prevWorldPosition = ToWorldSpace(prevPoint) - targetPos;
+		Vector nextWorldPosition = ToWorldSpace(nextPoint) - targetPos;
 		line(pTargetBitmap, prevWorldPosition.m_X, prevWorldPosition.m_Y, nextWorldPosition.m_X, nextWorldPosition.m_Y, color);
 
 		Vector min(std::min(prevWorldPosition.m_X, nextWorldPosition.m_X), std::min(prevWorldPosition.m_Y, nextWorldPosition.m_Y));
@@ -528,3 +653,4 @@ void LimbPath::Draw(BITMAP* pTargetBitmap,
 		prevPoint += *itr;
 	}
 }
+

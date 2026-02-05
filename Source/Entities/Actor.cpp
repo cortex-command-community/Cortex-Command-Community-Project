@@ -1047,6 +1047,7 @@ float Actor::EstimateDigStrength() const {
 }
 
 float Actor::EstimateJumpHeight() const {
+	// Sentinel value that is explicitly checked for within pathfinder code.
 	return FLT_MAX;
 }
 

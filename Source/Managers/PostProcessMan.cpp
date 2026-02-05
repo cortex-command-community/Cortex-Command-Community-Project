@@ -20,6 +20,8 @@
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
 
+#include <array>
+
 using namespace RTE;
 
 PostProcessMan::PostProcessMan() {

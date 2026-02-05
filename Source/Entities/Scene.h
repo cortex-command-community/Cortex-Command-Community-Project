@@ -67,7 +67,7 @@ namespace RTE {
 			}
 			Area(std::string name) {
 				Clear();
-				m_Name = name;
+				m_Name = std::move(name);
 				Create();
 			}
 			Area(const Area& reference) {
@@ -164,7 +164,7 @@ namespace RTE {
 
 			/// Gets the name of the Area
 			/// @return The name used to ID this Area.
-			std::string GetName() const { return m_Name; }
+			const std::string& GetName() const { return m_Name; }
 
 			/// Protected member variable and method declarations
 		protected:
@@ -244,7 +244,7 @@ namespace RTE {
 		/// everything up to the extension. "FG" and "Mat" etc will be added.
 		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
-		int SaveData(std::string pathBase);
+		int SaveData(const std::string& pathBase);
 
 		// Gets copied bitmaps of our scene layers, for saving.
 		// @return A list of SceneLayerInfo including our name and a copied bitmap.
@@ -549,7 +549,7 @@ namespace RTE {
 
 		/// Returns parent scene name of this metascene.
 		/// @return Name of a parent scene.
-		std::string GetMetasceneParent() const { return m_MetasceneParent; }
+		const std::string& GetMetasceneParent() const { return m_MetasceneParent; }
 
 		/// Sets the specified location of this Scene in the scene
 		/// @param newLocation A Vector with the desired location of this Scene in the scene.
