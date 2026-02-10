@@ -1007,8 +1007,7 @@ float AHuman::EstimateJumpHeight() const {
 		if (currentYVelocity + yGravity >= currentYVelocity) {
 			// Velocity is too big or gravity is too small. Either way, this will loop forever now.
 			// Just assume that we can reach the stars.
-			totalHeight = g_SceneMan.GetSceneHeight() * c_MPP;
-			break;
+			return FLT_MAX;
 		}
 
 		currentYVelocity += yGravity;
@@ -1022,9 +1021,7 @@ float AHuman::EstimateJumpHeight() const {
 		}
 	}
 
-	float finalHeightMultipler = 0.6f; // Make us think we can do less because AI path following is shit
-
-	return totalHeight * c_MPP * finalHeightMultipler;
+	return totalHeight * c_MPP;
 }
 
 bool AHuman::EquipShield() {

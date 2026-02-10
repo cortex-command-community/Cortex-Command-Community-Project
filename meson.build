@@ -120,16 +120,12 @@ elif compiler.get_argument_syntax()== 'msvc'
   link_args+=['-ignore:4099', '-ignore:4217']
   buildtype_debug = get_option('debug')
   if buildtype_debug
-    elfname+='.debug'
     debug_type = get_option('debug_type')
     if debug_type == 'release'
-      elfname+='.release'
       preprocessor_flags += ['-DDEBUG_RELEASE_BUILD'] # enable minimal debug features
     elif debug_type == 'minimal'
-      elfname += '.minimal'
       preprocessor_flags += ['-DDEBUGMODE'] # enable some debug features
     elif debug_type == 'full'
-      elfname += '.full'
       preprocessor_flags += ['-DDEBUG_BUILD', '-DDEBUGMODE'] # enable all debug features; may slow down game
     endif
   else
