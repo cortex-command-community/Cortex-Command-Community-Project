@@ -352,7 +352,7 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 
 	buffer[info.uncompressed_size] = 0; // null terminate
 
-	Reader reader(std::make_unique<std::istringstream>(buffer), filePath + "/Save.ini", true, nullptr, false);
+	Reader reader(std::make_unique<std::istringstream>(buffer), filePath + "/Save.ini", true, false);
 
 	std::unique_ptr<Scene> scene(std::make_unique<Scene>());
 	std::unique_ptr<GAScripted> activity(std::make_unique<GAScripted>());
