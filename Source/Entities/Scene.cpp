@@ -372,6 +372,7 @@ void Scene::Clear() {
 	m_MetasceneParent.clear();
 	m_IsMetagameInternal = false;
 	m_IsSavedGameInternal = false;
+	m_VariantName = "";
 }
 
 /*
@@ -396,6 +397,7 @@ int Scene::Create(const Scene& reference) {
 	Entity::Create(reference);
 
 	m_Location = reference.m_Location;
+	m_VariantName = reference.m_VariantName; 
 	m_LocationOffset = reference.m_LocationOffset;
 	m_MetagamePlayable = reference.m_MetagamePlayable;
 	m_Revealed = reference.m_Revealed;
@@ -976,6 +978,7 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 	MatchProperty("LocationOnPlanet", { reader >> m_Location; });
+	MatchProperty("VariantName", { reader >> m_VariantName; });
 	MatchProperty("MetagamePlayable", { reader >> m_MetagamePlayable; });
 	MatchProperty("Revealed", { reader >> m_Revealed; });
 	MatchProperty("MetasceneParent", { reader >> m_MetasceneParent; });

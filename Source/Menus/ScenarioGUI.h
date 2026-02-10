@@ -60,17 +60,27 @@ namespace RTE {
 #pragma endregion
 
 	private:
+		bool m_FetchedActivitiesAndScenes = false; //todo
+
 		int m_RootBoxMaxWidth; //!< The maximum width the root CollectionBox that holds all this menu's GUI elements. This is to constrain this menu to the primary window's display (left-most) while in multi-display fullscreen, otherwise positioning can get stupid.
 
 		std::unique_ptr<GUIControlManager> m_GUIControlManager; //!< The GUIControlManager which owns all the GUIControls of the ScenarioGUI.
 		ScenarioMenuUpdateResult m_UpdateResult; //!< The result of the ScenarioGUI update. See ScenarioMenuUpdateResult enumeration.
 
-		std::map<Activity*, std::vector<Scene*>> m_ScenarioActivities; //!< The map of Activities and the Scenes compatible with each, neither of which are owned here.
+		struct LocationAndItsScenes {
+			RTE::Vector Location;
+			std::vector<Scene*> Scenes;
+		};
+		using ScenesByLocationVector = std::vector<LocationAndItsScenes>;
+
+		std::map<Activity*, ScenesByLocationVector> m_ScenarioActivities; //!< The map of Activities and the Scenes compatible with each, neither of which are owned here.
 		const Activity* m_SelectedActivity; //!< The currently selected Activity. Not owned.
 
-		std::vector<Scene*>* m_ActivityScenes; //!< Pointer to the current set of Scenes being displayed. Not owned, and neither are the Scenes.
+		ScenesByLocationVector* m_ActivityLocations; //!< TODO REDO Pointer to the current set of Scenes being displayed. Not owned, and neither are the Scenes.
 		Scene* m_SelectedScene; //!< The scene preset currently selected. Not owned.
-		Scene* m_HoveredScene; //!< The scene preset currently hovered. Not owned.
+		//Scene* m_HoveredScene; //!< The scene preset currently hovered. Not owned.
+		LocationAndItsScenes* m_SelectedLocation;
+		LocationAndItsScenes* m_HoveredLocation;
 
 		Vector m_PlanetCenter; //!< The absolute screen position of the planet center.
 		float m_PlanetRadius; //!< The screen radius of the planet.
@@ -103,6 +113,10 @@ namespace RTE {
 		std::unique_ptr<AllegroBitmap> m_ScenePreviewBitmap;
 		GUIButton* m_StartActivityConfigButton;
 		GUILabel* m_SitePointNameLabel;
+		GUILabel* m_SceneVariantLabel;
+		GUIComboBox* m_SceneVariantComboBox;
+
+		int m_SceneDescriptionLabelInitialY;
 
 #pragma region Create Breakdown
 		/// Creates all the elements that compose the Activity info box.
@@ -125,6 +139,9 @@ namespace RTE {
 		/// Sets the currently selected Scene and updates the Scene info box appropriately.
 		/// @param newSelectedScene The new selected Scene.
 		void SetSelectedScene(Scene* newSelectedScene);
+
+		//todo
+		void SetSelectedLocation(LocationAndItsScenes* newSelectedLocation);
 
 		/// Moves the CollectionBox that is selected as being dragged, if any.
 		/// @param mouseX Mouse X position to calculate box position.
