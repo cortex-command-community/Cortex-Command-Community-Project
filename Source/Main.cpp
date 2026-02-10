@@ -443,7 +443,7 @@ int main(int argc, char** argv) {
 
 	HandleMainArgs(argc, argv);
 
-	g_PresetMan.LoadAllDataModules();
+	g_PresetMan.LoadAllDataModules(PollSDLEvents);
 
 	if (!System::IsInExternalModuleValidationMode()) {
 		// Load the different input device icons. This can't be done during UInputMan::Create() because the icon presets don't exist so we need to do this after modules are loaded.
