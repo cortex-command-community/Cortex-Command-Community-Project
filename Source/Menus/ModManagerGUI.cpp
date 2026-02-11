@@ -298,6 +298,7 @@ bool ModManagerGUI::HandleInputEvents() {
 		if (guiEvent.GetType() == GUIEvent::Command) {
 			if (guiEvent.GetControl() == m_BackToMainButton) {
 				ResetSelectionsAndGoToTop();
+				toggleToggleEntryButton(false);
 				return true;
 			} 
 			else if (guiEvent.GetControl() == m_OpenModsFolderButton) {
