@@ -472,7 +472,7 @@ template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 	RTEAssert(m_MainBitmap, "Data of this SceneLayerImpl has not been loaded before trying to draw!");
 	if constexpr(!STATIC_TEXTURE) {
-		RTEAssert(m_MainTexture, "Texture of this SceneLayerImpl has not bee created before trying to draw!");
+		RTEAssert(m_MainTexture, "Texture of this SceneLayerImpl has not been created before trying to draw!");
 	}
 	ZoneScoped;
 	TracyGpuZone("SceneLayer::Draw");

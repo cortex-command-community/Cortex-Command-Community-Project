@@ -362,7 +362,8 @@ LuaStateWrapper* LuaMan::GetAndLockFreeScriptState() {
 	if (s_luaStateOverride) {
 		// We're creating this object in a multithreaded environment, ensure that it's assigned to the same script state as us
 		bool success = s_luaStateOverride->GetMutex().try_lock();
-		RTEAssert(success, "Our lua state override for our thread already belongs to another thread!") return s_luaStateOverride;
+		RTEAssert(success, "Our lua state override for our thread already belongs to another thread!");
+		return s_luaStateOverride;
 	}
 
 	// TODO

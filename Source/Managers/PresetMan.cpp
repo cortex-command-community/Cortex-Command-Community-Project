@@ -188,7 +188,7 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) 
 					} else if (spinlockDetected) {
 						spinlockDetected = false;
 						SpinlockAssert(toDoProgressPrintOut, loadingDone);
-						RTEAssert(false, to_string(mainThreadHeartbeat))
+						RTEAssert(false, to_string(mainThreadHeartbeat));
 					}
 				}
 				LoadingScreen::LoadingSplashProgressReport(entry.first, entry.second);
@@ -1015,9 +1015,6 @@ void PresetMan::SpinlockAssert(bool toDoProgressPrintOut, ModuleLoadResult loadi
 void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::atomic<ModuleLoadResult>& loadingDone, std::chrono::milliseconds& moduleLoadElapsedTime) {
 	try {
 		auto timerModuleLoadingThreadStart = std::chrono::steady_clock::now();
-		// auto ProgressCallback = g_SettingsMan.GetLoadingScreenProgressReportDisabled()
-		//     ? nullptr
-		//     : PresetMan::PushToProgressDisplayQueue;
 		// Load all the official modules first!
 		for (const std::string& officialModule: c_OfficialModules) {
 			if (st.stop_requested()) {

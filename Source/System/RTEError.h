@@ -90,7 +90,10 @@ namespace RTE {
 	}
 
 #define RTEAssert(expression, description) \
-	if (!(expression)) { \
-		RTEError::AssertFunc(description, std::source_location::current()); \
-	}
+	do { \
+		if (!(expression)) { \
+			RTEError::AssertFunc(description, std::source_location::current()); \
+		} \
+		_Analysis_assume_(expression); \
+	} while (0)
 } // namespace RTE
