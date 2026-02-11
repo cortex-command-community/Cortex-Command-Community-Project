@@ -357,18 +357,24 @@ namespace RTE {
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
 		/// @param createNow Whether to create the unseen layers now, or wait until next time (default: true)
 		/// LoadData is called on this.
-		void FillUnseenLayer(Vector pixelSize, int team = Activity::TeamOne, bool createNow = true);
+		void FillUnseenLayerMask(Vector pixelSize, int team = Activity::TeamOne, bool createNow = true);
 
 		/// Sets the unseen layer of a specific team.
 		/// @param pNewLayer The new SceneLayer to use as the new unseen layer, Ownership IS XFERRED!
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
-		void SetUnseenLayer(SceneLayer* pNewLayer, int team = Activity::TeamOne);
+		void SetUnseenLayerMask(SceneLayer* pNewLayer, int team = Activity::TeamOne);
 
-		/// Gets the unseen layer of a specific team.
+		/// TODO: Write here
+		void SetUnseenLayerTerrain(SceneLayer* pNewLayer, int team = Activity::TeamOne);
+
+		/// Gets the unseen layer mask of a specific team.
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
 		/// @return A pointer to the SceneLayer representing what hasn't been seen by a
 		/// specific team yet. Ownership is NOT transferred!
-		SceneLayer* GetUnseenLayer(int team = Activity::TeamOne) const { return team != Activity::NoTeam ? m_apUnseenLayer[team] : 0; }
+		SceneLayer* GetUnseenLayerMask(int team = Activity::TeamOne) const { return team != Activity::NoTeam ? m_apUnseenLayerMask[team] : nullptr; }
+
+		/// TODO: Name this
+		SceneLayer* GetUnseenLayerTerrain(int team = Activity::TeamOne) const { return team != Activity::NoTeam ? m_apUnseenLayerTerrain[team] : nullptr; }
 
 		/// Gets the list of pixels that have been seen on a team's unseen layer.
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
@@ -377,7 +383,7 @@ namespace RTE {
 
 		/// Clears the pixels that have been seen on a team's unseen layer.
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
-		void ClearSeenPixels(int team = Activity::TeamOne);
+		void ClearSeenMaskPixels(int team = Activity::TeamOne);
 
 		/// Checks a specific unseen pixel for only having two or less unseen
 		/// neighbors, and if so, makes it seen.
@@ -386,7 +392,7 @@ namespace RTE {
 		/// already assume is seen without poking at the unseen map.
 		/// @param checkingFrom Which team's unseen layer to check the pixel on. (default: NODIR)
 		/// @return Whether the pixel was deemed to be orphan and thus cleaned up.
-		bool CleanOrphanPixel(int posX, int posY, NeighborDirection checkingFrom = NODIR, int team = Activity::TeamOne);
+		bool CleanOrphanUnseenLayerMaskPixel(int posX, int posY, NeighborDirection checkingFrom = NODIR, int team = Activity::TeamOne);
 
 		/// Gets the total dimensions (width and height) of the scene, in pixels.
 		/// @return A Vector describing the scene dimensions.
@@ -760,8 +766,10 @@ namespace RTE {
 		std::list<SLBackground*> m_BackLayerList;
 		// Dimensions of the pixels of the unseen layers, when they are dynamically generated. If 0, the layer was not generated
 		Vector m_UnseenPixelSize[Activity::MaxTeamCount];
-		// Layers representing the unknown areas for each team
-		SceneLayer* m_apUnseenLayer[Activity::MaxTeamCount];
+		// Layers representing the unknown areas for each team, binarily
+		SceneLayer* m_apUnseenLayerMask[Activity::MaxTeamCount];
+		// Layers representing last seen terrain for each team, for drawing two stage fog of war
+		SceneLayer* m_apUnseenLayerTerrain[Activity::MaxTeamCount];
 		// Which pixels of the unseen map have just been revealed this frame, in the coordinates of the unseen map
 		std::list<Vector> m_SeenPixels[Activity::MaxTeamCount];
 		// Pixels on the unseen map deemed to be orphans and cleaned up, will be moved to seen pixels next update

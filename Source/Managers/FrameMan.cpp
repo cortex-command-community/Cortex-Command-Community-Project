@@ -908,7 +908,7 @@ void FrameMan::Draw() {
 	}
 
 	// Clears the pixels that have been revealed from the unseen layers
-	g_SceneMan.ClearSeenPixels();
+	g_SceneMan.ClearSeenMaskPixels();
 
 	// Draw separating lines for split-screens
 	if (m_HSplit) {

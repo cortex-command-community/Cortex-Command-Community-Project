@@ -129,12 +129,21 @@ int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 
 	// Set the proper scales of the unseen obscuring SceneLayers
 	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
-		if (!g_ActivityMan.GetActivity()->TeamActive(team))
+		if (!g_ActivityMan.GetActivity()->TeamActive(team)) {
 			continue;
-		SceneLayer* pUnseenLayer = m_pCurrentScene->GetUnseenLayer(team);
-		if (pUnseenLayer && pUnseenLayer->GetBitmap()) {
+		}
+		SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team);
+		SceneLayer* pUnseenLayerTerrain = m_pCurrentScene->GetUnseenLayerTerrain(team);
+		RTEAssert(
+		    ~((pUnseenLayerMask == nullptr) ^ (pUnseenLayerTerrain == nullptr)),
+		    "SceneMan::LoadScene, unseen layer, only one of mask and terrain SL's exist, weird!"
+		);
+		if (pUnseenLayerMask) {
 			// Calculate how many times smaller the unseen map is compared to the entire terrain's dimensions, and set it as the scale factor on the Unseen layer
-			pUnseenLayer->SetScaleFactor(Vector((float)m_pCurrentScene->GetTerrain()->GetBitmap()->w / (float)pUnseenLayer->GetBitmap()->w, (float)m_pCurrentScene->GetTerrain()->GetBitmap()->h / (float)pUnseenLayer->GetBitmap()->h));
+			float sX = (float)m_pCurrentScene->GetTerrain()->GetBitmap()->w / (float)pUnseenLayerMask->GetBitmap()->w;
+			float sY = (float)m_pCurrentScene->GetTerrain()->GetBitmap()->h / (float)pUnseenLayerMask->GetBitmap()->h;
+			pUnseenLayerMask->SetScaleFactor(Vector(sX, sY));
+			pUnseenLayerTerrain->SetScaleFactor(Vector(sX, sY));
 		}
 	}
 
@@ -894,26 +903,27 @@ void SceneMan::MakeAllUnseen(Vector pixelSize, const int team) {
 	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return;
 
-	m_pCurrentScene->FillUnseenLayer(pixelSize, team);
+	m_pCurrentScene->FillUnseenLayerMask(pixelSize, team);
 }
 
-bool SceneMan::LoadUnseenLayer(const std::string& bitmapPath, int team) {
-	ContentFile bitmapFile(bitmapPath.c_str());
-	SceneLayer* pUnseenLayer = new SceneLayer();
-	if (pUnseenLayer->Create(bitmapFile.GetAsBitmap(COLORCONV_NONE, false), true, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0)) < 0) {
-		g_ConsoleMan.PrintString("ERROR: Loading background layer " + pUnseenLayer->GetPresetName() + "\'s data failed!");
+bool SceneMan::LoadUnseenLayer(const std::string& maskBitmapPath, int team) {
+	ContentFile maskBitmapFile(maskBitmapPath.c_str());
+	SceneLayer* pUnseenLayerMask = new SceneLayer();
+	if (pUnseenLayerMask->Create(maskBitmapFile.GetAsBitmap(COLORCONV_NONE, false), true, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0)) < 0) {
+		g_ConsoleMan.PrintString("ERROR: Loading background layer " + pUnseenLayerMask->GetPresetName() + "\'s data failed!");
 		return false;
 	}
 
 	// Pass in ownership here
-	m_pCurrentScene->SetUnseenLayer(pUnseenLayer, team);
+	m_pCurrentScene->SetUnseenLayerMask(pUnseenLayerMask, team);
+
 	return true;
 }
 
 bool SceneMan::AnythingUnseen(const int team) {
 	RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when checking if anything is unseen!");
 
-	return m_pCurrentScene->GetUnseenLayer(team) != 0;
+	return m_pCurrentScene->GetUnseenLayerMask(team) != 0;
 	// TODO: Actually check all pixels on the map too?
 }
 
@@ -922,9 +932,10 @@ Vector SceneMan::GetUnseenResolution(const int team) const {
 	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return Vector(1, 1);
 
-	SceneLayer* pUnseenLayer = m_pCurrentScene->GetUnseenLayer(team);
-	if (pUnseenLayer)
+	SceneLayer* pUnseenLayer = m_pCurrentScene->GetUnseenLayerMask(team);
+	if (pUnseenLayer) {
 		return pUnseenLayer->GetScaleFactor();
+	}
 
 	return Vector(1, 1);
 }
@@ -934,7 +945,7 @@ bool SceneMan::IsUnseen(const int posX, const int posY, const int team) {
 	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return false;
 
-	SceneLayer* pUnseenLayer = m_pCurrentScene->GetUnseenLayer(team);
+	SceneLayer* pUnseenLayer = m_pCurrentScene->GetUnseenLayerMask(team);
 	if (pUnseenLayer) {
 		// Translate to the scaled unseen layer's coordinates
 		Vector scale = pUnseenLayer->GetScaleFactor();
@@ -951,7 +962,7 @@ bool SceneMan::RevealUnseen(const int posX, const int posY, const int team) {
 	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return false;
 
-	SceneLayer* pUnseenLayer = m_pCurrentScene->GetUnseenLayer(team);
+	SceneLayer* pUnseenLayer = m_pCurrentScene->GetUnseenLayerMask(team);
 	if (pUnseenLayer) {
 		// Translate to the scaled unseen layer's coordinates
 		Vector scale = pUnseenLayer->GetScaleFactor();
@@ -966,8 +977,9 @@ bool SceneMan::RevealUnseen(const int posX, const int posY, const int team) {
 			// Clear to key color that pixel on the map so it won't be detected as unseen again
 			putpixel(pUnseenLayer->GetBitmap(), scaledX, scaledY, g_MaskColor);
 			// Play the reveal sound, if there's not too many already revealed this frame
-			if (g_SettingsMan.BlipOnRevealUnseen() && m_pUnseenRevealSound && m_pCurrentScene->GetSeenPixels(team).size() < 5)
+			if (g_SettingsMan.BlipOnRevealUnseen() && m_pUnseenRevealSound && m_pCurrentScene->GetSeenPixels(team).size() < 5) {
 				m_pUnseenRevealSound->Play(Vector(posX, posY));
+			}
 			// Show that we actually cleared an unseen pixel
 			return true;
 		}
@@ -981,7 +993,7 @@ bool SceneMan::RestoreUnseen(const int posX, const int posY, const int team) {
 	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return false;
 
-	SceneLayer* pUnseenLayer = m_pCurrentScene->GetUnseenLayer(team);
+	SceneLayer* pUnseenLayer = m_pCurrentScene->GetUnseenLayerMask(team);
 	if (pUnseenLayer) {
 		// Translate to the scaled unseen layer's coordinates
 		Vector scale = pUnseenLayer->GetScaleFactor();
@@ -1006,17 +1018,17 @@ void SceneMan::RevealUnseenBox(const int posX, const int posY, const int width, 
 	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return;
 
-	SceneLayer* pUnseenLayer = m_pCurrentScene->GetUnseenLayer(team);
-	if (pUnseenLayer) {
+	SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team);
+	if (pUnseenLayerMask) {
 		// Translate to the scaled unseen layer's coordinates
-		Vector scale = pUnseenLayer->GetScaleFactor();
+		Vector scale = pUnseenLayerMask->GetScaleFactor();
 		int scaledX = posX / scale.m_X;
 		int scaledY = posY / scale.m_Y;
 		int scaledW = width / scale.m_X;
 		int scaledH = height / scale.m_Y;
 
 		// Fill the box
-		rectfill(pUnseenLayer->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
+		rectfill(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
 	}
 }
 
@@ -1025,17 +1037,17 @@ void SceneMan::RestoreUnseenBox(const int posX, const int posY, const int width,
 	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return;
 
-	SceneLayer* pUnseenLayer = m_pCurrentScene->GetUnseenLayer(team);
-	if (pUnseenLayer) {
+	SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team);
+	if (pUnseenLayerMask) {
 		// Translate to the scaled unseen layer's coordinates
-		Vector scale = pUnseenLayer->GetScaleFactor();
+		Vector scale = pUnseenLayerMask->GetScaleFactor();
 		int scaledX = posX / scale.m_X;
 		int scaledY = posY / scale.m_Y;
 		int scaledW = width / scale.m_X;
 		int scaledH = height / scale.m_Y;
 
 		// Fill the box
-		rectfill(pUnseenLayer->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_BlackColor);
+		rectfill(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_BlackColor);
 	}
 }
 
@@ -1129,8 +1141,9 @@ bool SceneMan::CastTerrainPenetrationRay(const Vector& start, const Vector& ray,
 
 // TODO Every raycast should use some shared line drawing method (or maybe something more efficient if it exists, that needs looking into) instead of having a ton of duplicated code.
 bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal) {
-	if (!m_pCurrentScene->GetUnseenLayer(team))
+	if (!m_pCurrentScene->GetUnseenLayerMask(team)) {
 		return false;
+	}
 
 	int error, dom, sub, domSteps, skipped = skip;
 	int size = 40 - GetUnseenResolution(team).GetLargest();
@@ -2562,9 +2575,11 @@ void SceneMan::Update(int screenId) {
 	}
 
 	// Update the unseen obstruction layer for this team's screen view, if there is one.
-	const int teamId = g_CameraMan.GetScreenTeam(screenId);
-	if (SceneLayer* unseenLayer = (teamId != Activity::NoTeam) ? m_pCurrentScene->GetUnseenLayer(teamId) : nullptr) {
-		unseenLayer->SetOffset(offset);
+	if (const int teamId = g_CameraMan.GetScreenTeam(screenId); teamId != Activity::NoTeam) {
+		if (m_pCurrentScene->GetUnseenLayerMask(teamId)) {
+			m_pCurrentScene->GetUnseenLayerMask(teamId)->SetOffset(offset);
+			m_pCurrentScene->GetUnseenLayerTerrain(teamId)->SetOffset(offset);
+		}
 	}
 
 	if (m_CleanTimer.GetElapsedSimTimeMS() > CLEANAIRINTERVAL) {
@@ -2616,9 +2631,12 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 				terrain->SetLayerToDraw(SLTerrain::LayerType::ForegroundLayer);
 				terrain->Draw(targetDimensions, targetBox);
 			}
-			int teamId = g_CameraMan.GetScreenTeam(m_LastUpdatedScreen);
-			if (SceneLayer* unseenLayer = (teamId != Activity::NoTeam) ? m_pCurrentScene->GetUnseenLayer(teamId) : nullptr) {
-				unseenLayer->Draw(targetDimensions, targetBox);
+			// Draw fog of war
+			if (const int teamId = g_CameraMan.GetScreenTeam(m_LastUpdatedScreen); teamId != Activity::NoTeam) {
+				if (m_pCurrentScene->GetUnseenLayerMask(teamId)) {
+					m_pCurrentScene->GetUnseenLayerMask(teamId)->Draw(targetDimensions, targetBox);
+				}
+				//m_pCurrentScene->GetUnseenLayerTerrain(teamId)->Draw(targetDimensions, targetBox);
 			}
 
 			bool shouldDrawHUD = !g_FrameMan.IsHudDisabled(m_LastUpdatedScreen);
@@ -2670,12 +2688,13 @@ void SceneMan::ClearMOColorLayer() {
 	}
 }
 
-void SceneMan::ClearSeenPixels() {
-	if (!m_pCurrentScene)
+void SceneMan::ClearSeenMaskPixels() {
+	if (!m_pCurrentScene) {
 		return;
+	}
 
 	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team)
-		m_pCurrentScene->ClearSeenPixels(team);
+		m_pCurrentScene->ClearSeenMaskPixels(team);
 }
 
 void SceneMan::ClearCurrentScene() {

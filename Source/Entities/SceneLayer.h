@@ -86,7 +86,7 @@ namespace RTE {
 		ContentFile& GetContentFile() { return m_BitmapFile; }
 
 		/// Loads previously specified/created data into memory. Has to be done before using this SceneLayer if the bitmap was not generated at runtime.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		/// @return TODO: This SHOULD return an error on fail, but DOES NOT.
 		virtual int LoadData();
 
 		/// Saves data currently in memory to disk.

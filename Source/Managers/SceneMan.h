@@ -436,13 +436,13 @@ namespace RTE {
 		/// @param team The team we're talking about.
 		void MakeAllSeen(const int team);
 
-		/// Loads a bitmap from file and use it as the unseen layer for a team.
+		/// Loads a bitmap from file and use it as the unseen layer MASK for a team.
 		/// @param bitmapPath The path to the bitmap to use as the unseen layer.
 		/// @param team Which team we're talking about.
 		/// @return Whether the loading was successful or not.
-		bool LoadUnseenLayer(const std::string& bitmapPath, const int team);
+		bool LoadUnseenLayer(const std::string& maskBitmapPath, const int team);
 
-		/// Tells whether a team has anything still unseen on the scene.
+		/// TODO: This is NOT implemented. Tells whether a team has anything still unseen on the scene.
 		/// @param team The team we're talking about.
 		/// @return A bool indicating whether that team has anyhting yet unseen.
 		bool AnythingUnseen(const int team);
@@ -943,7 +943,7 @@ namespace RTE {
 		void ClearMOColorLayer();
 
 		/// Clears the list of pixels on the unseen map that have been revealed.
-		void ClearSeenPixels();
+		void ClearSeenMaskPixels();
 
 		/// Creates a copy of passed material and stores it into internal vector
 		/// to make sure there's only one material owner
