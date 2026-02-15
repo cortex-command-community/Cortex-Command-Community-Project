@@ -8,8 +8,10 @@
 namespace RTE {
 	class Camera{
 	public:
-		Camera(Vector viewCenter, Box viewport, float zoom = 1.0f, Vector viewUp = {0.0f, 1.0f}) :
-			m_ViewCenter{viewCenter}, m_Viewport{viewport}, m_Scale{zoom}, m_ViewUp{viewUp} { UpdateView(); }
+		Camera(Vector viewCorner, Box viewport, float zoom = 1.0f, Vector viewUp = {0.0f, 1.0f}) :
+			m_ViewCorner{viewCorner}, m_Viewport{viewport}, m_Scale{zoom}, m_ViewUp{viewUp} { UpdateView(); }
+
+		Camera(const Box& viewBox, Vector viewUp = {0.0f, 1.0f}, float zoom = 1.0f);
 
 		/// Set the view center of this camera.
 		void SetViewCenter(Vector viewCenter) { m_ViewCenter = viewCenter; }
@@ -49,7 +51,8 @@ namespace RTE {
 	private:
 		glm::mat4 m_View{1.0f};
 		glm::mat4 m_Projection{1.0f};
-		Vector m_ViewCenter{0.0f, 1.0f};
+		Vector m_ViewCorner{0.0f, 0.0f};
+		Vector m_ViewCenter{0.0f, 0.0f};
 		Box m_Viewport{};
 		float m_Scale{1.0f};
 		Vector m_ViewUp{};
