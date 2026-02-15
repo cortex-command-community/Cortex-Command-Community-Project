@@ -239,7 +239,9 @@ void PrimitiveMan::DrawPrimitives(int player, BITMAP* targetBitmap, const Vector
 	rlDrawRenderBatchActive();
 	if (GLAD_GL_KHR_blend_equation_advanced_coherent){
 		glBlendBarrierKHR();
-		rlEnableAdvancedColorBlend();
+		if (GLAD_GL_KHR_blend_equation_advanced_coherent) {
+			glEnable(GL_BLEND_ADVANCED_COHERENT_KHR);
+		}
 	}
 	const Shader* background = dynamic_cast<const Shader*>(g_PresetMan.GetEntityPreset("Shader", "Background"));
 	rlEnableColorBlend();
@@ -251,7 +253,6 @@ void PrimitiveMan::DrawPrimitives(int player, BITMAP* targetBitmap, const Vector
 					if (lastBlendMode == BlendDissolve) {
 						background->Begin();
 					}
-					rlEnableShader(rlGetShaderCurrent());
 					g_FrameMan.SetBlendMode(blendMode);
 					GLint colorUniform = glGetUniformLocation(rlGetShaderCurrent(), "rteColor");
 					glUniform4f(colorUniform, blendAmounts[0] / static_cast<float>(MaxBlend), blendAmounts[1] / static_cast<float>(MaxBlend), blendAmounts[2] / static_cast<float>(MaxBlend), blendAmounts[3] / static_cast<float>(MaxBlend));
@@ -260,7 +261,6 @@ void PrimitiveMan::DrawPrimitives(int player, BITMAP* targetBitmap, const Vector
 				}
 			} else {
 				g_FrameMan.SetBlendMode(BlendTransparency);
-				rlEnableShader(currentShader);
 				GLint colorUniform = glGetUniformLocation(rlGetShaderCurrent(), "rteColor");
 				glUniform4f(colorUniform, 1.0f, 1.0f, 1.0f, 1.0f);
 				lastBlendMode = DrawBlendMode::NoBlend;
@@ -269,10 +269,9 @@ void PrimitiveMan::DrawPrimitives(int player, BITMAP* targetBitmap, const Vector
 				glBlendBarrierKHR();
 			}
 			rlZDepth(primitive->m_Depth);
-			primitive->DrawTiled(targetBitmap, targetPos);
+			//primitive->DrawTiled(targetBitmap, targetPos);
 		}
 	}
-	rlDrawRenderBatchActive();
 	if (GLAD_GL_KHR_blend_equation_advanced_coherent) {
 		rlDisableAdvancedColorBlend();
 	}
