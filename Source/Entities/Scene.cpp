@@ -858,10 +858,9 @@ std::vector<SceneLayerInfo> Scene::GetCopiedSceneLayerBitmaps() const {
 	// Save unseen layers' data
 	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team)
 	{
-	    if (m_apUnseenLayer[team])
-	    {
+		if (m_apUnseenLayer[team]) {
 			layerInfos.emplace_back(std::format("UST{}", team), m_apUnseenLayer[team]->CopyBitmap());
-	    }
+		}
 	}
 
 	return layerInfos;
