@@ -32,6 +32,7 @@
 #include <sys/sysctl.h>
 #endif
 
+#include "allegro.h"
 #include "backward/backward.hpp"
 
 
