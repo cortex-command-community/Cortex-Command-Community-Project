@@ -674,6 +674,8 @@ void PieMenu::Draw(BITMAP* targetBitmap, const Vector& targetPos) const {
 	rlZDepth(c_DefaultDrawDepth);
 }
 
+void PieMenu::Draw(const Camera& camera) const {}
+
 void PieMenu::UpdateWobbling() {
 	float innerRadiusChange = static_cast<float>(m_EnableDisableAnimationTimer.GetElapsedRealTimeMS()) / 6.0F;
 

@@ -217,3 +217,9 @@ void MOSParticle::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode m
 		g_SceneMan.RegisterDrawing(targetBitmap, m_MOID, spriteX, spriteY, spriteX + m_aSprite[m_Frame]->w, spriteY + m_aSprite[m_Frame]->h);
 	}
 }
+
+void MOSParticle::Draw(const Camera& camera) const {
+	RTEAssert(!m_Sprites.empty(), "No sprite bitmaps loaded to draw " + GetPresetName());
+	RTEAssert(m_Frame >= 0 && m_Frame < m_FrameCount, "Frame is out of bounds for " + GetPresetName());
+	Vector spritePos(m_Pos + m_SpriteOffset);
+}

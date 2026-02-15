@@ -431,3 +431,5 @@ void PEmitter::Draw(BITMAP* pTargetBitmap,
                     bool onlyPhysical) const {
 	MOSParticle::Draw(pTargetBitmap, targetPos, mode, onlyPhysical);
 }
+
+void PEmitter::Draw(const Camera& camera) const {}

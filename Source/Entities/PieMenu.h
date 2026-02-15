@@ -270,6 +270,7 @@ namespace RTE {
 		/// @param targetBitmap A pointer to a BITMAP to draw on. Generally a screen BITMAP.
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene.
 		void Draw(BITMAP* targetBitmap, const Vector& targetPos = Vector()) const;
+		void Draw(const Camera& camera) const;
 #pragma endregion
 
 #pragma region Event Handling

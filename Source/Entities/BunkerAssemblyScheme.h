@@ -121,6 +121,7 @@ namespace RTE {
 		/// @param onlyPhysical Whether to not draw any extra 'ghost' items of this MovableObject, (default: false)
 		/// like indicator arrows or hovering HUD text and so on.
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
+		void Draw(const Camera& camera) const override;
 
 		/// Returns whether sceneman should select just a single assembly for this scheme
 		/// and use it everywhere on the scene.

@@ -397,3 +397,5 @@ void BunkerAssembly::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMo
 		}
 	}
 }
+
+void BunkerAssembly::Draw(const Camera& camera) const {}

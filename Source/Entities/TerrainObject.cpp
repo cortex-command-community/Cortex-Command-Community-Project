@@ -236,6 +236,8 @@ void TerrainObject::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode
 	}
 }
 
+void TerrainObject::Draw(const Camera& camera) const {}
+
 void TerrainObject::DrawToTerrain(SLTerrain* terrain) {
 	BITMAP* terrainMatBitmap = terrain->GetMaterialBitmap();
 	BITMAP* terrainBGBitmap = terrain->GetBGColorBitmap();

@@ -81,6 +81,7 @@ namespace RTE {
 		/// @param mode In which mode to draw in. See the DrawMode enumeration for the modes.
 		/// @param onlyPhysical Whether to not draw any extra 'ghost' items of this MovableObject, indicator arrows or hovering HUD text and so on.
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), DrawMode mode = g_DrawColor, bool onlyPhysical = false) const override;
+		void Draw(const Camera& camera) const override;
 #pragma endregion
 
 	protected:

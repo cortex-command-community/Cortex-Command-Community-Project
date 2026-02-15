@@ -202,3 +202,5 @@ void Magazine::Draw(BITMAP* pTargetBitmap,
                     bool onlyPhysical) const {
 	Attachable::Draw(pTargetBitmap, targetPos, mode, onlyPhysical);
 }
+
+void Magazine::Draw(const Camera& camera) const {}

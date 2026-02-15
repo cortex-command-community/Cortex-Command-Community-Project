@@ -299,3 +299,5 @@ void BunkerAssemblyScheme::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, 
 			DrawTexture(m_pPresentationBitmap, aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 	}
 }
+
+void BunkerAssemblyScheme::Draw(const Camera& camera) const {}

@@ -130,6 +130,8 @@ void Turret::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode mode,
 	}
 }
 
+void Turret::Draw(const Camera& camera) const {}
+
 void Turret::SetParent(MOSRotating* newParent) {
 	Attachable::SetParent(newParent);
 	for (HeldDevice* mountedDevice: m_MountedDevices) {
