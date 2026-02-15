@@ -1,5 +1,9 @@
 #pragma once
 
+extern "C" {
+	typedef struct BITMAP BITMAP;
+}
+
 /// Contains hacks and workarounds for missing or wrong allegro functionality.
 /// Note: Prefer fixing in allegro itself over adding hacks here.
 namespace RTE {
