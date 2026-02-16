@@ -227,9 +227,11 @@ void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 	glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
 	glViewport(0, 0, viewWidth, viewHeight);
 
-	Shader shader("Data/Base.rte/Shaders/SDF/SDF_vert.vert", "Data/Base.rte/Shaders/SDF/SDF_1_SeedTexture.frag");
-	GLuint program = shader.m_ProgramID;
-	glUseProgram(program);
+	Shader shaderMask("Data/Base.rte/Shaders/SDF/SDF_vert.vert", "Data/Base.rte/Shaders/SDF/SDF_1_SeedTexture.frag");
+	Shader shaderJFA("Data/Base.rte/Shaders/SDF/SDF_vert.vert", "Data/Base.rte/Shaders/SDF/SDF_1_SeedTexture.frag");
+	GLuint programMask = shaderMask.m_ProgramID;
+	GLuint programJFA = shaderJFA.m_ProgramID;
+	glUseProgram(programMask);
 
 	/* GLint count;
 	glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &count);
@@ -248,11 +250,18 @@ void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 	//}
 	//glUniform1f(locMask, (float)rand());
 
-	// Set uniform
-	shader.SetFloat("uTime", timeInSecs);
+	// Set uniforms
+	SceneLayer* terrainSL = g_SceneMan.GetTerrain();
+	shaderMask.SetFloat("uTime", timeInSecs);
+	shaderMask.SetVector2f("uViewOrigin", g_CameraMan.GetOffset(0));
+	shaderMask.SetVector2f("uViewSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
+	shaderMask.SetVector2f("uSceneSize", Vector(terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
 
 	// Set Sampler2D
-	GLint loc = glGetUniformLocation(program, "uMask");
+	GLint loc = glGetUniformLocation(programMask, "uMask");
+	if (loc == -1) {
+		RTEAbort("asda");
+	}
 	glUniform1i(loc, 0);
 	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_2D, fowMaskTex.id);

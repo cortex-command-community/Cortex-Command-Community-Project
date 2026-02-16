@@ -88,8 +88,8 @@ void main() {
 		FragColor = vec4(1.0, 0.0, 1.0, 1.0);
 		return;
 	}
-	vec2 sdfVal = texture(sdfTex, textureUV).rg;
-	FragColor = vec4(sdfVal, 0.5, 1.0);
+	//vec2 sdfVal = texture(sdfTex, textureUV).rg;
+	FragColor = texture(sdfTex, textureUV);
 	return;
 	
 	vec2 sceneUV = (uViewOrigin + textureUV * uViewSize) / uSceneSize;
