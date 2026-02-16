@@ -900,8 +900,9 @@ std::vector<MOPixel*>* SceneMan::DislodgePixelLineNoBool(const Vector& start, co
 
 void SceneMan::MakeAllUnseen(Vector pixelSize, const int team) {
 	RTEAssert(m_pCurrentScene, "Messing with scene before the scene exists!");
-	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
+	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount) {
 		return;
+	}
 
 	m_pCurrentScene->FillUnseenLayerMask(pixelSize, team);
 }
@@ -957,6 +958,7 @@ bool SceneMan::IsUnseen(const int posX, const int posY, const int team) {
 	return false;
 }
 
+// TODO - implement this for terrain (should reveal a scale-factor-sized box for it instead)
 bool SceneMan::RevealUnseen(const int posX, const int posY, const int team) {
 	RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when revealing an unseen position!");
 	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
@@ -993,18 +995,23 @@ bool SceneMan::RestoreUnseen(const int posX, const int posY, const int team) {
 	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return false;
 
-	SceneLayer* pUnseenLayer = m_pCurrentScene->GetUnseenLayerMask(team);
-	if (pUnseenLayer) {
+	if (SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team); pUnseenLayerMask) {
 		// Translate to the scaled unseen layer's coordinates
-		Vector scale = pUnseenLayer->GetScaleFactor();
+		Vector scale = pUnseenLayerMask->GetScaleFactor();
 		int scaledX = posX / scale.m_X;
 		int scaledY = posY / scale.m_Y;
 
 		// Make sure we're actually hiding a seen pixel that is ON the bitmap!
-		int pixel = getpixel(pUnseenLayer->GetBitmap(), scaledX, scaledY);
+		int pixel = getpixel(pUnseenLayerMask->GetBitmap(), scaledX, scaledY);
 		if (pixel != g_BlackColor && pixel != -1) {
 			// Restore that pixel on the map so it won't be detected as seen again
-			putpixel(pUnseenLayer->GetBitmap(), scaledX, scaledY, g_BlackColor);
+			putpixel(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, g_BlackColor);
+
+			// Blit for previously seen terrain
+			SceneLayer* pUnseenLayerTerrain = m_pCurrentScene->GetUnseenLayerTerrain(team);
+			int rescaledX = scaledX * scale.m_X;
+			int rescaledY = scaledY * scale.m_Y;
+			blit(m_pCurrentScene->GetTerrain()->GetFGColorBitmap(), pUnseenLayerTerrain->GetBitmap(), rescaledX, rescaledY, rescaledX, rescaledY, scale.GetX(), scale.GetY());
 			// Show that we actually restored a seen pixel
 			return true;
 		}
@@ -1015,11 +1022,11 @@ bool SceneMan::RestoreUnseen(const int posX, const int posY, const int team) {
 
 void SceneMan::RevealUnseenBox(const int posX, const int posY, const int width, const int height, const int team) {
 	RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when revealing an unseen area!");
-	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
+	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount) {
 		return;
+	}
 
-	SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team);
-	if (pUnseenLayerMask) {
+	if (SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team); pUnseenLayerMask) {
 		// Translate to the scaled unseen layer's coordinates
 		Vector scale = pUnseenLayerMask->GetScaleFactor();
 		int scaledX = posX / scale.m_X;
@@ -1027,8 +1034,16 @@ void SceneMan::RevealUnseenBox(const int posX, const int posY, const int width, 
 		int scaledW = width / scale.m_X;
 		int scaledH = height / scale.m_Y;
 
-		// Fill the box
+		// Fill the box for the unseen mask
 		rectfill(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
+		// Blit for previously seen terrain
+		SceneLayer* pUnseenLayerTerrain = m_pCurrentScene->GetUnseenLayerTerrain(team);
+		//rectfill(pUnseenLayerTerrain->GetBitmap(), posX, posY, width, height, g_RedColor);
+		int rescaledX = scaledX * scale.m_X;
+		int rescaledY = scaledY * scale.m_Y;
+		int rescaledW = scaledW * scale.m_X;
+		int rescaledH = scaledH * scale.m_Y;
+		blit(m_pCurrentScene->GetTerrain()->GetFGColorBitmap(), pUnseenLayerTerrain->GetBitmap(), rescaledX, rescaledY, rescaledX, rescaledY, rescaledW, rescaledH);
 	}
 }
 
@@ -1047,7 +1062,11 @@ void SceneMan::RestoreUnseenBox(const int posX, const int posY, const int width,
 		int scaledH = height / scale.m_Y;
 
 		// Fill the box
-		rectfill(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_BlackColor);
+		int rescaledX = scaledX * scale.m_X;
+		int rescaledY = scaledY * scale.m_Y;
+		int rescaledW = scaledW * scale.m_X;
+		int rescaledH = scaledH * scale.m_Y;
+		rectfill(pUnseenLayerMask->GetBitmap(), rescaledX, rescaledY, rescaledX + rescaledW, rescaledY + rescaledH, g_BlackColor);
 	}
 }
 
@@ -2588,7 +2607,7 @@ void SceneMan::Update(int screenId) {
 	}
 }
 
-void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector& targetPos, bool skipBackgroundLayers, bool skipTerrain) {
+void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, BITMAP* targetMOColorBitmap, BITMAP* targetBgLayersBitmap, BITMAP* targetBgTerrainBitmap, BITMAP* targetFgTerrainBitmap, const Vector& targetPos, bool skipBackgroundLayers, bool skipTerrain) {
 	ZoneScoped;
 
 	if (!m_pCurrentScene) {
@@ -2612,31 +2631,44 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 
 	switch (m_LayerDrawMode) {
 		case LayerDrawMode::g_LayerTerrainMatter:
-			terrain->SetLayerToDraw(SLTerrain::LayerType::MaterialLayer);
-			terrain->Draw(targetDimensions, targetBox);
+			//terrain->SetLayerToDraw(SLTerrain::LayerType::MaterialLayer);
+			//terrain->Draw(targetDimensions, targetBox);
 			break;
 		default:
+			Vector viewOrigin = g_CameraMan.GetOffset(0);
+			// Background layers
 			if (!skipBackgroundLayers) {
-				for (std::list<SLBackground*>::reverse_iterator backgroundLayer = m_pCurrentScene->GetBackLayers().rbegin(); backgroundLayer != m_pCurrentScene->GetBackLayers().rend(); ++backgroundLayer) {
-					(*backgroundLayer)->Draw(targetDimensions, targetBox);
-				}
-			}
-			if (!skipTerrain) {
-				terrain->SetLayerToDraw(SLTerrain::LayerType::BackgroundLayer);
-				terrain->Draw(targetDimensions, targetBox);
-			}
-			m_pMOColorLayer->Draw(targetDimensions, targetBox);
+				BITMAP* BGLayersBm = terrain->GetBitmap();
+				//clear_to_color(BGLayersBm, g_MaskColor);
 
-			if (!skipTerrain) {
-				terrain->SetLayerToDraw(SLTerrain::LayerType::ForegroundLayer);
-				terrain->Draw(targetDimensions, targetBox);
-			}
-			// Draw fog of war
-			if (const int teamId = g_CameraMan.GetScreenTeam(m_LastUpdatedScreen); teamId != Activity::NoTeam) {
-				if (m_pCurrentScene->GetUnseenLayerMask(teamId)) {
-					m_pCurrentScene->GetUnseenLayerMask(teamId)->Draw(targetDimensions, targetBox);
+				for (std::list<SLBackground*>::reverse_iterator backgroundLayer = m_pCurrentScene->GetBackLayers().rbegin(); backgroundLayer != m_pCurrentScene->GetBackLayers().rend(); ++backgroundLayer) {
+					Shader backgroundShader;
+					g_PresetMan.GetEntityPreset("Shader", "Background")->Clone(&backgroundShader);
+					backgroundShader.SetVector2f("uLayerWorldOffset", (*backgroundLayer)->m_Offset);
+					backgroundShader.SetVector2f("uLayerWorldSize", (*backgroundLayer)->m_ScaledDimensions);
+					(*backgroundLayer)->Draw(targetDimensions, targetBox);
+					//masked_blit(backgroundLayerBM, targetBgLayersBitmap, viewOrigin.GetX(), viewOrigin.GetY(), 0, 0, targetBgLayersBitmap->w, targetBgLayersBitmap->h);
 				}
-				//m_pCurrentScene->GetUnseenLayerTerrain(teamId)->Draw(targetDimensions, targetBox);
+			}
+
+			// Background terrain
+			if (!skipTerrain) {
+				//terrain->SetLayerToDraw(SLTerrain::LayerType::BackgroundLayer);
+				//terrain->Draw(targetDimensions, targetBox);
+				BITMAP* BGTerrainBm = terrain->GetBGColorBitmap();
+				blit(BGTerrainBm, targetBgTerrainBitmap, viewOrigin.GetX(), viewOrigin.GetY(), 0, 0, targetBgTerrainBitmap->w, targetBgTerrainBitmap->h);
+			}
+
+			// Color MO's
+			BITMAP* MOColorLayerBm = m_pMOColorLayer->GetBitmap();
+			blit(MOColorLayerBm, targetMOColorBitmap, viewOrigin.GetX(), viewOrigin.GetY(), 0, 0, targetMOColorBitmap->w, targetMOColorBitmap->h);
+
+			// Foreground terrain
+			if (!skipTerrain) {
+				//terrain->SetLayerToDraw(SLTerrain::LayerType::ForegroundLayer);
+				//terrain->Draw(targetDimensions, targetBox);
+				BITMAP* FGTerrainBm = terrain->GetFGColorBitmap();
+				blit(FGTerrainBm, targetFgTerrainBitmap, viewOrigin.GetX(), viewOrigin.GetY(), 0, 0, targetFgTerrainBitmap->w, targetFgTerrainBitmap->h);
 			}
 
 			bool shouldDrawHUD = !g_FrameMan.IsHudDisabled(m_LastUpdatedScreen);
@@ -2662,7 +2694,7 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 
 						for (std::list<Box>::iterator wItr = wrappedBoxes.begin(); wItr != wrappedBoxes.end(); ++wItr) {
 							Vector adjCorner = (*wItr).GetCorner() - targetPos;
-							rectfill(targetBitmap, adjCorner.m_X, adjCorner.m_Y, adjCorner.m_X + (*wItr).GetWidth(), adjCorner.m_Y + (*wItr).GetHeight(), g_RedColor);
+							//rectfill(targetBitmap, adjCorner.m_X, adjCorner.m_Y, adjCorner.m_X + (*wItr).GetWidth(), adjCorner.m_Y + (*wItr).GetHeight(), g_RedColor);
 						}
 					}
 				}
@@ -2670,11 +2702,11 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 
 			static int s_drawPathfinderDebugForTeam = -2;
 			if (s_drawPathfinderDebugForTeam > -2) {
-				m_pCurrentScene->GetPathFinder(static_cast<Activity::Teams>(s_drawPathfinderDebugForTeam)).DebugRender(targetBitmap, targetPos);
+				//m_pCurrentScene->GetPathFinder(static_cast<Activity::Teams>(s_drawPathfinderDebugForTeam)).DebugRender(targetBitmap, targetPos);
 			}
 
 			if (m_pDebugLayer) {
-				m_pDebugLayer->Draw(targetDimensions, targetBox);
+				//m_pDebugLayer->Draw(targetDimensions, targetBox);
 			}
 
 			break;

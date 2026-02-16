@@ -485,8 +485,8 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 			// Create the bitmaps to make the unseen scene layers out of
 			BITMAP* pUnseenMaskBitmap = create_bitmap_ex(8, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
 			clear_to_color(pUnseenMaskBitmap, g_BlackColor);
-			BITMAP* pUnseenTerrainBitmap = create_bitmap_ex(8, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
-			clear_to_color(pUnseenTerrainBitmap, g_MaskColor);
+			BITMAP* pUnseenTerrainBitmap = create_bitmap_ex(8, GetWidth(), GetHeight()); // 1-to-1, as is regular terrain
+			clear_to_color(pUnseenTerrainBitmap, g_BlackColor);
 			// Replace any old unseen layer with the new one that is generated
 			delete m_apUnseenLayerMask[team];
 			delete m_apUnseenLayerTerrain[team];
@@ -495,7 +495,7 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 			m_apUnseenLayerMask[team]->SetScaleFactor(m_UnseenPixelSize[team]);
 			m_apUnseenLayerTerrain[team] = new SceneLayer();
 			m_apUnseenLayerTerrain[team]->Create(pUnseenTerrainBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
-			m_apUnseenLayerTerrain[team]->SetScaleFactor(m_UnseenPixelSize[team]);
+			m_apUnseenLayerTerrain[team]->SetScaleFactor(Vector(1, 1)); // Same as regular terrain
 		}
 		// If not dynamically generated, was it custom loaded?
 		else if (m_apUnseenLayerMask[team]) {
@@ -707,24 +707,27 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 								);
 								// Assume next that unseen mask present == unseen terrain present
 								if (unseenLayerMaskPresent) {
-									RTEAssert(
-									    m_apUnseenLayerMask[ownerTeam]->GetScaleFactor() == m_apUnseenLayerTerrain[ownerTeam]->GetScaleFactor(),
-									    "Scene::LoadData, scale factors of unseenLayerMask and unseenLayerTerrain don't equal, weird!"
-									);
 									Vector scale = m_apUnseenLayerMask[ownerTeam]->GetScaleFactor();
 									// Translate to the scaled unseen layer's coordinates
-									int scaledX = std::floor((pTO->GetPos().m_X - (float)(terrainObjectBitmap->w / 2)) / scale.m_X);
-									int scaledY = std::floor((pTO->GetPos().m_Y - (float)(terrainObjectBitmap->h / 2)) / scale.m_Y);
+									int unscaledX = pTO->GetPos().m_X - (float)(terrainObjectBitmap->w / 2);
+									int unscaledY = pTO->GetPos().m_Y - (float)(terrainObjectBitmap->h / 2);
+									int scaledX = std::floor(unscaledX) / scale.m_X;
+									int scaledY = std::floor(unscaledY) / scale.m_Y;
 									int scaledW = std::ceil(terrainObjectBitmap->w / scale.m_X);
 									int scaledH = std::ceil(terrainObjectBitmap->h / scale.m_Y);
 									// Fill the box with key color for the owner ownerTeam, revealing the area that this thing is on
 									rectfill(m_apUnseenLayerMask[ownerTeam]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
-									rectfill(m_apUnseenLayerTerrain[ownerTeam]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_RedColor);
 									// Expand the box a little so the whole placed object is going to be hidden
 									scaledX -= 1;
 									scaledY -= 1;
 									scaledW += 2;
 									scaledH += 2;
+									// GTODO document this
+									int rescaledX = scaledX * scale.m_X;
+									int rescaledY = scaledY * scale.m_Y;
+									int rescaledW = scaledW * scale.m_X;
+									int rescaledH = scaledH * scale.m_Y;
+									rectfill(m_apUnseenLayerTerrain[ownerTeam]->GetBitmap(), rescaledX, rescaledY, rescaledW, rescaledH, g_BlackColor);
 									// Fill the box with BLACK for all the other teams so they can't see the new developments here!
 									for (int t = Activity::TeamOne; t < Activity::MaxTeamCount; ++t) {
 										if (t != ownerTeam && m_apUnseenLayerMask[t]) {
@@ -732,8 +735,9 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 												m_apUnseenLayerTerrain[t], 
 												"Scene::LoadData, other team has unseen layer mask but not terrain, weird!"
 											);
+											// GTODO - maybe for when only the team is a player team?
 											rectfill(m_apUnseenLayerMask[t]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_BlackColor);
-											rectfill(m_apUnseenLayerTerrain[t]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_BlackColor);
+											rectfill(m_apUnseenLayerTerrain[ownerTeam]->GetBitmap(), rescaledX, rescaledY, rescaledW, rescaledH, g_BlackColor);
 										}
 									}
 								}
@@ -1612,11 +1616,12 @@ void Scene::FillUnseenLayerMask(Vector pixelSize, int team, bool createNow) {
 
 		// Unseen terrain SL might now exist yet - create if so
 		if (!m_apUnseenLayerTerrain[team]) {
-			BITMAP* pUnseenTerrainBitmap = create_bitmap_ex(8, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
-			clear_to_color(pUnseenTerrainBitmap, g_MaskColor);
+			// Same size as regular terrain
+			BITMAP* pUnseenTerrainBitmap = create_bitmap_ex(8, GetWidth(), GetHeight());
+			clear_to_color(pUnseenTerrainBitmap, g_BlackColor);
 			m_apUnseenLayerTerrain[team] = new SceneLayer();
 			m_apUnseenLayerTerrain[team]->Create(pUnseenTerrainBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
-			m_apUnseenLayerTerrain[team]->SetScaleFactor(m_apUnseenLayerMask[team]->GetScaleFactor());
+			m_apUnseenLayerTerrain[team]->SetScaleFactor(Vector(1, 1));
 		}
 	}
 }
@@ -1646,7 +1651,7 @@ void Scene::SetUnseenLayerTerrain(SceneLayer* pNewLayer, int team) {
 	// Replace any old unseen layer with the new one that is generated
 	delete m_apUnseenLayerTerrain[team];
 	m_apUnseenLayerTerrain[team] = pNewLayer;
-	m_apUnseenLayerTerrain[team]->SetScaleFactor(m_apUnseenLayerMask[team]->GetScaleFactor());
+	m_apUnseenLayerTerrain[team]->SetScaleFactor(Vector(1, 1));
 }
 
 void Scene::ClearSeenMaskPixels(int team) {
@@ -1684,15 +1689,17 @@ void Scene::ClearSeenMaskPixels(int team) {
 // "Support" variable float -> int, weights of 2 and 1, threshold of 5
 // Stop using getpixel and access bitmap directly
 bool Scene::CleanOrphanUnseenLayerMaskPixel(int posX, int posY, NeighborDirection checkingFrom, int team) {
-	if (team == Activity::NoTeam || !m_apUnseenLayerMask[team])
+	if (team == Activity::NoTeam || !m_apUnseenLayerMask[team]) {
 		return false;
+	}
 
 	// Do any necessary wrapping
 	m_apUnseenLayerMask[team]->WrapPosition(posX, posY);
 
 	// First check the actual position of the checked pixel, it may already been seen.
-	if (getpixel(m_apUnseenLayerMask[team]->GetBitmap(), posX, posY) == g_MaskColor)
+	if (getpixel(m_apUnseenLayerMask[team]->GetBitmap(), posX, posY) == g_MaskColor) {
 		return false;
+	}
 
 	// Ok, not seen, so check surrounding pixels for 'support', ie unseen ones that will keep this also unseen
 	float support = 0;

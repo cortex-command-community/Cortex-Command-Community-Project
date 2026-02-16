@@ -213,8 +213,8 @@ void SLBackground::Update() {
 	}
 }
 
-void SLBackground::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
-	StaticSceneLayer::Draw(targetDimensions, targetBox, !IsAutoScrolling());
+void SLBackground::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment, BITMAP* bm) {
+	StaticSceneLayer::Draw(targetDimensions, targetBox, !IsAutoScrolling(), bm);
 
 	int bitmapWidth = m_ScaledDimensions.GetFloorIntX();
 	int bitmapHeight = m_ScaledDimensions.GetFloorIntY();

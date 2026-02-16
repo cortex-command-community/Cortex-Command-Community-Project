@@ -38,7 +38,7 @@ Vector GraphicalPrimitive::WrapCoordinates(Vector targetPos, const Vector& scene
 	return targetPos + scenePos;
 }
 
-void GraphicalPrimitive::DrawTiled(BITMAP* drawScreen, const Vector& targetPos) {
+void GraphicalPrimitive::DrawTiled(BITMAP* drawScreen, const Vector& targetPos, BITMAP* bm) {
 	Vector tiledTarget{targetPos};
 	if (g_SceneMan.SceneWrapsX()) {
 		tiledTarget.m_X = std::fmod(targetPos.m_X, g_SceneMan.GetSceneWidth());

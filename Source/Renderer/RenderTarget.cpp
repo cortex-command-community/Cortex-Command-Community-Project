@@ -19,8 +19,19 @@ RenderTarget::RenderTarget(const FloatRect& size, const FloatRect& defaultViewpo
 			m_Texture = std::move(colorTexture);
 			m_ColorTextureOwned = false;
 		} else {
+			PixelFormat format;
+			if (bitDepth == 8) {
+				format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE;
+			} else if (bitDepth == 32) {
+				format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
+			} else if (bitDepth == 999) {
+				format = PIXELFORMAT_UNCOMPRESSED_R32G32B32A32;
+			} else {
+				RTEAbort("wut the heeell");
+			}
 			m_Texture = {
-			    .id = rlLoadTexture(nullptr, size.w, size.h, bitDepth == 8 ? PIXELFORMAT_UNCOMPRESSED_GRAYSCALE : PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1),
+			
+			    .id = rlLoadTexture(nullptr, size.w, size.h, format, 1),
 			    .width = static_cast<int>(size.w),
 			    .height = static_cast<int>(size.h),
 			    .mipmaps = 0,

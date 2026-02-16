@@ -185,7 +185,11 @@ namespace RTE {
 		static Entity::ClassInfo m_sClass;
 		std::string m_FragmentPath{};
 		std::string m_VertexPath{};
+
+	public:
 		GLuint m_ProgramID{0};
+
+	protected:
 
 		/// Compiles a shader component from a data string.
 		/// @param shaderID

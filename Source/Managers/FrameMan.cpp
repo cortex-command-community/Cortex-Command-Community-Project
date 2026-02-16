@@ -74,6 +74,9 @@ void FrameMan::Clear() {
 	m_ScenePreviewDumpGradient.reset();
 	m_ScreenDumpNamePlaceholder.reset();
 	m_BackBuffer8.reset();
+	m_BackBuffer8GUI.reset();
+	m_BackBuffer8MOColor.reset();
+	m_SDFBufferBm.reset();
 	m_BackBuffer32.reset();
 	m_OverlayBitmap32.reset();
 	m_PaletteFile = ContentFile("Base.rte/palette.bmp");
@@ -96,6 +99,247 @@ void FrameMan::Clear() {
 		m_FlashedLastFrame[screenCount] = false;
 		m_FlashTimer[screenCount].Reset();
 	}
+}
+
+void RTE::FrameMan::FogOfWarSetup(Shader& backgroundShader) {
+	Scene* currentScene = g_SceneMan.GetCurrentScene();
+	if (!currentScene || !currentScene->GetUnseenLayerMask()) {
+		return;
+	}
+
+	SceneLayer* maskSL = currentScene->GetUnseenLayerMask();
+	SceneLayer* lastSeenTerrainSL = currentScene->GetUnseenLayerTerrain();
+	int currentSceneW = currentScene->GetWidth();
+	int currentSceneH = currentScene->GetHeight();
+	int scaleFactorX = maskSL->GetScaleFactor().GetX();
+	int scaleFactorY = maskSL->GetScaleFactor().GetY();
+
+	fowMaskBM.Destroy();
+	lastSeenBM.Destroy();
+	fowMaskBM.Create(currentSceneW / scaleFactorX, currentSceneH / scaleFactorY);
+	lastSeenBM.Create(currentSceneW, currentSceneH);
+
+	AllegroBitmap fowMaskBMOld(maskSL->GetBitmap());
+	AllegroBitmap lastSeenBMOld(lastSeenTerrainSL->GetBitmap());
+	GUIRect srcPosAndSizeRectFowMask =
+	    {0, 0, fowMaskBMOld.GetWidth(), fowMaskBMOld.GetHeight()};
+	GUIRect srcPosAndSizeRectLastSeen =
+	    {0, 0, lastSeenBMOld.GetWidth(), lastSeenBMOld.GetHeight()};
+	fowMaskBMOld.Draw(&fowMaskBM, 0, 0, &srcPosAndSizeRectFowMask);
+	lastSeenBMOld.Draw(&lastSeenBM, 0, 0, &srcPosAndSizeRectLastSeen);
+
+	// Update/make textures
+	{ // Fog of war mask
+		BITMAP* bm = fowMaskBM.GetBitmap();
+
+		if (fowMaskTex.id == 0) {
+			LoadTextureFromBitmap8(&fowMaskTex, bm);
+		} else {
+			rlUpdateTexture(fowMaskTex.id, 0, 0, bm->w, bm->h, fowMaskTex.format, bm->line[0]);
+		}
+	}
+
+	{ // Fog of war last-seen terrain
+		BITMAP* bm = lastSeenBM.GetBitmap();
+
+		if (lastSeenTex.id == 0) {
+			LoadTextureFromBitmap8(&lastSeenTex, bm);
+		} else {
+			rlUpdateTexture(lastSeenTex.id, 0, 0, bm->w, bm->h, lastSeenTex.format, bm->line[0]);
+		}
+	}
+
+	{ // GUI
+		BITMAP* bm = m_BackBuffer8GUI.get();
+
+		if (GUITex.id == 0) {
+			LoadTextureFromBitmap8(&GUITex, bm);
+		} else {
+			rlUpdateTexture(GUITex.id, 0, 0, bm->w, bm->h, GUITex.format, bm->line[0]);
+		}
+	}
+
+	{ // MOColor
+		BITMAP* bm = MOColorBM.GetBitmap();
+
+		if (MOColorTex.id == 0) {
+			LoadTextureFromBitmap8(&MOColorTex, bm);
+		} else {
+			rlUpdateTexture(MOColorTex.id, 0, 0, bm->w, bm->h, MOColorTex.format, bm->line[0]);
+		}
+	}
+
+	{ // BgLayers
+		BITMAP* bm = BgLayersBM.GetBitmap();
+
+		if (BgLayersTex.id == 0) {
+			LoadTextureFromBitmap8(&BgLayersTex, bm);
+		} else {
+			rlUpdateTexture(BgLayersTex.id, 0, 0, bm->w, bm->h, BgLayersTex.format, bm->line[0]);
+		}
+	}
+
+	{ // BgTerrain
+		BITMAP* bm = BgTerrainBM.GetBitmap();
+
+		if (BgTerrainTex.id == 0) {
+			LoadTextureFromBitmap8(&BgTerrainTex, bm);
+		} else {
+			rlUpdateTexture(BgTerrainTex.id, 0, 0, bm->w, bm->h, BgTerrainTex.format, bm->line[0]);
+		}
+	}
+
+	{ // FgTerrain
+		BITMAP* bm = FgTerrainBM.GetBitmap();
+
+		if (FgTerrainTex.id == 0) {
+			LoadTextureFromBitmap8(&FgTerrainTex, bm);
+		} else {
+			rlUpdateTexture(FgTerrainTex.id, 0, 0, bm->w, bm->h, FgTerrainTex.format, bm->line[0]);
+		}
+	}
+	
+	/* { // fowMaskSDFTex
+		BITMAP* bm = FgTerrainBM.GetBitmap();
+
+		if (FgTerrainTex.id == 0) {
+			LoadTextureFromBitmap8(&fowMaskSDFTex, bm);
+		} else {
+			rlUpdateTexture(fowMaskSDFTex.id, 0, 0, bm->w, bm->h, fowMaskSDFTex.format, bm->line[0]);
+		}
+	}*/
+
+}
+
+// Chunky fog of war mask -> SDF!
+void RTE::FrameMan::FogOfWarSetup_DoSDF() {
+#define prnt(str) g_ConsoleMan.PrintString(std::to_string(str))
+	float timeInSecs = (float)g_TimerMan.GetAbsoluteTime() / 1000000;
+	int viewWidth = m_BackBuffer8->w;
+	int viewHeight = m_BackBuffer8->h;
+
+	static bool wasInit = false;
+	if (!wasInit) {
+		wasInit = true;
+		InitFowSDF(viewWidth, viewHeight);
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
+	glViewport(0, 0, viewWidth, viewHeight);
+
+	Shader shader("Data/Base.rte/Shaders/SDF/SDF_vert.vert", "Data/Base.rte/Shaders/SDF/SDF_1_SeedTexture.frag");
+	GLuint program = shader.m_ProgramID;
+	glUseProgram(program);
+
+	/* GLint count;
+	glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &count);
+	RTEAssert(false, std::format("uniform count == {}", count));
+	for (int i = 0; i < count; i++) {
+		char name[256];
+		int size;
+		GLenum type;
+		glGetActiveUniform(program, i, sizeof(name), nullptr, &size, &type, name);
+		RTEAssert(false, std::format("{}: {} (type {})\n", i, name, type));
+	}*/
+
+	//GLint locMask = glGetUniformLocation(program, "uTime");
+	//if (locMask == -1) {
+	//	RTEAbort("wut the heeeel");
+	//}
+	//glUniform1f(locMask, (float)rand());
+
+	// Set uniform
+	shader.SetFloat("uTime", timeInSecs);
+
+	// Set Sampler2D
+	GLint loc = glGetUniformLocation(program, "uMask");
+	glUniform1i(loc, 0);
+	glActiveTexture(GL_TEXTURE0 + 0);
+	glBindTexture(GL_TEXTURE_2D, fowMaskTex.id);
+
+	// Finally draw!
+	glBindVertexArray(m_SdfVao);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void RTE::FrameMan::InitFowSDF(int w, int h) {
+	g_ConsoleMan.PrintString("InitFowSDF() called!");
+	// Create the render textures
+	glGenTextures(1, &m_SdfTexPing);
+	glGenTextures(1, &m_SdfTexPong);
+	glGenTextures(1, &m_SdfTexDist);
+
+	auto alloc_rg32f = [&](GLuint tex) {
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, w, h, 0, GL_RG, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	};
+
+	auto alloc_r32f = [&](GLuint tex) {
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, w, h, 0, GL_RED, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	};
+
+	alloc_rg32f(m_SdfTexPing);
+	alloc_rg32f(m_SdfTexPong);
+	alloc_r32f(m_SdfTexDist);
+
+	// Create framebuffer
+	glGenFramebuffers(1, &m_SdfFbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER,
+	                       GL_COLOR_ATTACHMENT0,
+	                       GL_TEXTURE_2D,
+	                       m_SdfTexPing,
+	                       0);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		RTEAbort("FBO broken");
+	}
+
+	float tri[] = {
+	    -1.0f, -1.0f,
+	    3.0f, -1.0f,
+	    -1.0f, 3.0f
+	};
+
+	glGenVertexArrays(1, &m_SdfVao);
+	glGenBuffers(1, &m_SdfVbo);
+
+	glBindVertexArray(m_SdfVao);
+	glBindBuffer(GL_ARRAY_BUFFER, m_SdfVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(tri), tri, GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+}
+
+void RTE::FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader) {
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("rteTextureLastSeen"), lastSeenTex.id); // TODO: not just force first player screen
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("fowMaskTexture"), fowMaskTex.id);
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("guiTexture"), GUITex.id);
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("moColor"), MOColorTex.id);
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("bgTerrainTex"), BgTerrainTex.id);
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("fgTerrainTex"), FgTerrainTex.id);
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("sdfTex"), m_SdfTexPing);
+
+	//rlTexture
+
+	SceneLayer* terrainSL = g_SceneMan.GetTerrain();
+	backgroundShader.SetVector2f("uViewOrigin", g_CameraMan.GetOffset(0));
+	backgroundShader.SetVector2f("uViewSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
+	backgroundShader.SetVector2f("uSceneSize", Vector(terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
+	backgroundShader.SetFloat("uNoiseSeed", static_cast<float>(rand()));
 }
 
 int FrameMan::Initialize() {
@@ -121,6 +365,9 @@ int FrameMan::Initialize() {
 	// Use fastest compression in save_png().
 	_png_compression_level = 1;
 
+	// GTODO
+
+
 	return 0;
 }
 
@@ -131,12 +378,26 @@ int FrameMan::CreateBackBuffers() {
 	// Create the back buffer, this is still in 8bpp, we will do any post-processing on the PostProcessing bitmap
 	m_BackBuffer8 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX, resY));
 	ClearBackBuffer8();
+	g_ConsoleMan.PrintString("AAA");
+	// GTODO
+	m_BackBuffer8GUI = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX, resY));
+	ClearBackBuffer8GUI();
+	m_BackBuffer8MOColor = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, 3200, 600));
+	m_SDFBufferBm = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX, resY));
+	/*if (SceneLayer* terrainSL = g_SceneMan.GetTerrain(); terrainSL) {
+		m_BackBuffer8MOColor = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
+	} else {
+		m_BackBuffer8MOColor = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX, resY));
+	} /**/
+	ClearBackBuffer8MOColor();
 
 	// Create the post-processing buffer, it'll be used for glow effects etc
 	m_BackBuffer32 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(c_BPP, resX, resY));
 	ClearBackBuffer32();
 
-	m_BackBuffer = std::make_unique<RenderTarget>(FloatRect(0, 0, resX, resY), FloatRect(0, 0, resX, resY));
+	m_BackBuffer = std::make_unique<RenderTarget>(FloatRect(0, 0, resX, resY), FloatRect(0, 0, resX, resY), 32);
+	// GTODO
+	m_SDFBuffer = std::make_unique<RenderTarget>(FloatRect(0, 0, resX, resY), FloatRect(0, 0, resX, resY), 8);
 
 	m_OverlayBitmap32 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(c_BPP, resX, resY));
 	clear_to_color(m_OverlayBitmap32.get(), 0);
@@ -816,6 +1077,8 @@ void FrameMan::Draw() {
 	g_PresetMan.GetEntityPreset("Shader", "Background")->Clone(&backgroundShader);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	clear_to_color(m_BackBuffer8.get(), 0);
+	clear_to_color(m_BackBuffer8GUI.get(), 0);
+	clear_to_color(m_BackBuffer8MOColor.get(), 0);
 	m_BackBuffer->Begin(true);
 
 	// Count how many split screens we'll need
@@ -831,6 +1094,7 @@ void FrameMan::Draw() {
 	const Activity* pActivity = g_ActivityMan.GetActivity();
 
 	for (int playerScreen = 0; playerScreen < screenCount; ++playerScreen) {
+
 		screenRelativeEffects.clear();
 		screenRelativeGlowBoxes.clear();
 		rlEnableColorBlend();
@@ -845,7 +1109,7 @@ void FrameMan::Draw() {
 
 		// rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
 		BITMAP* drawScreen = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
-		BITMAP* drawScreenGUI = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
+		BITMAP* drawScreenGUI = (screenCount == 1) ? m_BackBuffer8GUI.get() : m_PlayerScreen8.get(); // GTODO
 		// Need to clear the backbuffers because Scene background layers can be too small to fill the whole backbuffer or drawn masked resulting in artifacts from the previous frame.
 		clear_to_color(drawScreenGUI, ColorKeys::g_MaskColor);
 		// If in online multiplayer mode clear to mask color otherwise the scene background layers will get drawn over.
@@ -869,7 +1133,19 @@ void FrameMan::Draw() {
 		}
 
 		// Draw the scene
-		g_SceneMan.Draw(drawScreen, drawScreenGUI, targetPos);
+		MOColorBM.Destroy();
+		MOColorBM.Create(drawScreen->w, drawScreen->h, 8);
+		BgLayersBM.Destroy();
+		BgLayersBM.Create(drawScreen->w, drawScreen->h, 8);
+		FgTerrainBM.Destroy();
+		FgTerrainBM.Create(drawScreen->w, drawScreen->h, 8);
+		BgTerrainBM.Destroy();
+		BgTerrainBM.Create(drawScreen->w, drawScreen->h, 8);
+		clear_to_color(MOColorBM.GetBitmap(), g_RedColor);
+		clear_to_color(BgLayersBM.GetBitmap(), g_RedColor);
+		clear_to_color(BgTerrainBM.GetBitmap(), g_RedColor);
+
+		g_SceneMan.Draw(drawScreen, drawScreenGUI, MOColorBM.GetBitmap(), BgLayersBM.GetBitmap(), BgTerrainBM.GetBitmap(), FgTerrainBM.GetBitmap(), targetPos);
 
 		g_PrimitiveMan.DrawPrimitives(playerScreen, drawScreenGUI, targetPos);
 
@@ -923,14 +1199,39 @@ void FrameMan::Draw() {
 	rlEnableDepthTest();
 	rlZDepth(c_GuiDepth - 1.0f);
 	g_GLResourceMan.UpdateDynamicBitmap(m_BackBuffer8.get(), true);
+
+	// Fog of war things!
+	FogOfWarSetup(backgroundShader);
+	FogOfWarSetup_DoSDF();
+
+	// Drawing begins!
 	backgroundShader.Begin();
 	backgroundShader.Enable();
+
+	BackgroundShaderSetUniforms(backgroundShader);
+
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
+
+	// Drawing to back buffer!
 	backgroundShader.SetInt("drawMasked", 1);
+	backgroundShader.SetInt("toDrawFow", 1);
+	backgroundShader.SetInt("drawingForeground", 1);
+	
 	m_BackBuffer->Begin(false);
-	DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_BackBuffer8.get()), 0.0f, 0.0f, {255, 255, 255, 255});
+	// Terrain!
+	DrawTexture(
+	    g_GLResourceMan.GetStaticTextureFromBitmap(m_BackBuffer8.get()), 
+		0.0f, 
+		0.0f, 
+		{255, 255, 255, 255}
+	);
 	m_BackBuffer->End();
+
+	backgroundShader.SetInt("toDrawFow", 0);
+	backgroundShader.SetInt("drawingForeground", 0);
+
 	backgroundShader.End();
+
 	rlZDepth(0);
 	if (g_ActivityMan.IsInActivity()) {
 		g_PostProcessMan.PostProcess();
@@ -1093,4 +1394,23 @@ void FrameMan::DrawWorldDump(bool drawForScenePreview) const {
 			}
 		}
 	}
+}
+
+void FrameMan::LoadTextureFromBitmap8(Texture2D* tex, BITMAP* bm) {
+	tex->width = bm->w;
+	tex->height = bm->h;
+	tex->mipmaps = 1;
+	tex->format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE;
+
+	tex->id = rlLoadTexture(
+	    bm->line[0],
+	    tex->width,
+	    tex->height,
+	    tex->format,
+	    tex->mipmaps);
+
+	rlTextureParameters(tex->id, RL_TEXTURE_MIN_FILTER, RL_TEXTURE_FILTER_NEAREST);
+	rlTextureParameters(tex->id, RL_TEXTURE_MAG_FILTER, RL_TEXTURE_FILTER_NEAREST);
+	rlTextureParameters(tex->id, RL_TEXTURE_WRAP_S, RL_TEXTURE_WRAP_REPEAT);
+	rlTextureParameters(tex->id, RL_TEXTURE_WRAP_T, RL_TEXTURE_WRAP_REPEAT);
 }

@@ -299,6 +299,9 @@ int Activity::Start() {
 	g_UInputMan.DisableMouseMoving(false);
 	g_UInputMan.DisableKeys(false);
 
+	// GTODO fog of war
+	g_FrameMan.ClearTextures();
+
 	int error = g_SceneMan.LoadScene();
 	if (error < 0) {
 		return error;

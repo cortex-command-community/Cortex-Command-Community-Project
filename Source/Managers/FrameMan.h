@@ -8,13 +8,15 @@
 #include <array>
 #include <unordered_map>
 #include "glad/gl.h"
+#include "GLResourceMan.h"
+
+#include "AllegroBitmap.h"
 
 #define g_FrameMan FrameMan::Instance()
 
 namespace RTE {
 
 	class AllegroScreen;
-	class AllegroBitmap;
 	class GUIFont;
 	class Shader;
 	class RenderTarget;
@@ -188,6 +190,11 @@ namespace RTE {
 		/// Clears the 8bpp backbuffer with black.
 		void ClearBackBuffer8() { clear_to_color(m_BackBuffer8.get(), 0); }
 
+		/// GTODO
+		void ClearBackBuffer8GUI() { clear_to_color(m_BackBuffer8GUI.get(), 0); }
+
+		void ClearBackBuffer8MOColor() { clear_to_color(m_BackBuffer8MOColor.get(), 0); }
+
 		/// Clears the 32bpp backbuffer with black.
 		void ClearBackBuffer32() { clear_to_color(m_BackBuffer32.get(), 0); }
 
@@ -308,6 +315,25 @@ namespace RTE {
 		int SaveWorldPreviewToPNG(const char* nameBase) { return SaveBitmap(ScenePreviewDump, nameBase); }
 #pragma endregion
 
+		void ClearTextures() {
+			if (fowMaskTex.id) {
+				rlUnloadTexture(fowMaskTex.id);
+				fowMaskTex.id = 0;
+			}
+			if (lastSeenTex.id) {
+				rlUnloadTexture(lastSeenTex.id);
+				lastSeenTex.id = 0;
+			}
+			if (GUITex.id) {
+				rlUnloadTexture(GUITex.id);
+				GUITex.id = 0;
+			}
+			if (MOColorTex.id) {
+				rlUnloadTexture(MOColorTex.id);
+				MOColorTex.id = 0;
+			}
+		}
+
 	private:
 		/// Enumeration with different settings for the SaveBitmap() method.
 		enum SaveBitmapMode {
@@ -361,6 +387,9 @@ namespace RTE {
 
 		std::string m_ScreenDumpName; //!< The filename of the screenshot to save.
 		std::shared_ptr<BITMAP> m_BackBuffer8; //!< Screen backbuffer, always 8bpp, gets copied to the 32bpp buffer for post-processing.
+		std::shared_ptr<BITMAP> m_BackBuffer8GUI; //!< GTODO.
+		std::shared_ptr<BITMAP> m_BackBuffer8MOColor; //!< GTODO.
+		std::shared_ptr<BITMAP> m_SDFBufferBm; //!< GTODO
 		std::unique_ptr<BITMAP, BitmapDeleter> m_BackBuffer32; //!< 32bpp backbuffer, only used for post-processing.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_OverlayBitmap32; //!< 32bpp bitmap used for overlaying (fading in/out or darkening) the screen.
 		std::unique_ptr<SDL_Surface, SurfaceDeleter> m_ScreenDumpBuffer; //!< Temporary buffer for making quick screencaps. This is used for color conversion between 32bpp and 24bpp so we can save the file.
@@ -369,6 +398,23 @@ namespace RTE {
 		std::unique_ptr<BITMAP, BitmapDeleter> m_ScreenDumpNamePlaceholder; //!< Dummy BITMAP for keeping naming continuity when saving ScreenDumps with multi-threading.
 
 		std::shared_ptr<RenderTarget> m_BackBuffer; //!< Main render backbuffer.
+		std::shared_ptr<RenderTarget> m_SDFBuffer; //!< GTODO
+
+		// Fog of war shit
+		AllegroBitmap lastSeenBM;
+		AllegroBitmap fowMaskBM;
+		AllegroBitmap MOColorBM;
+		AllegroBitmap BgLayersBM;
+		AllegroBitmap BgTerrainBM;
+		AllegroBitmap FgTerrainBM;
+		Texture2D lastSeenTex = {0};
+		Texture2D fowMaskTex = {0};
+		Texture2D fowMaskSDFTex = {0};
+		Texture2D GUITex = {0};
+		Texture2D MOColorTex = {0};
+		Texture2D BgLayersTex = {0};
+		Texture2D FgTerrainTex = {0};
+		Texture2D BgTerrainTex = {0};
 
 #pragma region Initialize Breakdown
 		/// Creates all the frame buffer bitmaps to be used by FrameMan. This is called during Initialize().
@@ -400,6 +446,8 @@ namespace RTE {
 		/// Draws the current frame of the whole scene to a temporary buffer that is later saved as a screenshot.
 		/// @param drawForScenePreview If true will skip drawing objects, post-effects and sky gradient in the WorldDump. To be used for dumping scene preview images.
 		void DrawWorldDump(bool drawForScenePreview = false) const;
+
+		void LoadTextureFromBitmap8(Texture2D* tex, BITMAP* bm);
 
 		/// Shared method for saving screenshots or individual bitmaps.
 		/// @param modeToSave What is being saved. See SaveBitmapMode enumeration for a list of modes.
@@ -446,6 +494,26 @@ namespace RTE {
 
 		/// Clears all the member variables of this FrameMan, effectively resetting the members of this abstraction level only.
 		void Clear();
+
+		void FogOfWarSetup(Shader& backgroundShader);
+
+		void FogOfWarSetup_DoSDF();
+
+		void InitFowSDF(int w, int h);
+
+		void BackgroundShaderSetUniforms(Shader& backgroundShader);
+
+		GLuint m_SdfFbo = 0;
+		GLuint m_SdfTexPing = 0;
+		GLuint m_SdfTexPong = 0;
+		GLuint m_SdfTexDist = 0;
+		GLuint finalNearestTex = 0;
+		GLuint m_SdfVao = 0;
+		GLuint m_SdfVbo = 0;
+		unsigned m_SdfWidth = -1;
+		unsigned m_SdfHeight = -1;
+		GLuint m_SdfSeedFrag = 0;
+		GLuint m_SdfSeedVert = 0;
 
 		// Disallow the use of some implicit methods.
 		FrameMan(const FrameMan& reference) = delete;

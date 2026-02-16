@@ -214,15 +214,20 @@ namespace RTE {
 		/// @param targetDimensions Dimensions of the draw target.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param offsetNeedsScrollRatioAdjustment Whether the offset of this SceneLayer or the passed in offset override need to be adjusted to scroll ratio.
-		virtual void Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false);
+		virtual void Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false, BITMAP* bm = nullptr);
 #pragma endregion
 
 	protected:
 		ContentFile m_BitmapFile; //!< ContentFile containing the path to this SceneLayer's sprite file.
 
 		std::unique_ptr<BigTexture> m_MainTexture; //!< The Main texture of this SceneLayer, may be tiled for very large scenes.
+	public:
 		BITMAP* m_MainBitmap; //!< The main BITMAP of this SceneLayer.
+	protected:
 		BITMAP* m_BackBitmap; //!< The backbuffer BITMAP of this SceneLayer.
+	public:
+		BITMAP* m_MOColorBitmap; // GTODO
+	protected:
 
 		// We use two bitmaps, as a backbuffer. While the main bitmap is being used, the secondary bitmap will be cleared on a separate thread. This is because we tend to want to clear some scene layers every frame and that is costly.
 		std::future<void> m_BitmapClearTask; //!< Task for clearing BITMAP async in background.
@@ -233,17 +238,21 @@ namespace RTE {
 		bool m_MainBitmapUpdated; //!< Whether the main bitmap was updated since the last draw.
 		bool m_DrawMasked; //!< Whether pixels marked as transparent (index 0, magenta) are skipped when drawing or not (masked drawing).
 
+	public:
 		bool m_WrapX; //!< Whether wrapping is enabled on the X axis.
 		bool m_WrapY; //!< Whether wrapping is enable on the Y axis.
-
+	public:
 		Vector m_OriginOffset; //!< Offset of this SceneLayer off the top left edge of the screen.
 		Vector m_Offset; //!< The current scrolled offset of this SceneLayer, before being adjusted with the origin offset.
+	protected:
 		float m_ZOrder{0.0F}; //!< The depth this SceneLayer should be drawn at.
 
 		Vector m_ScrollInfo; //!< The initial scrolling ratio of this SceneLayer as set in INI. Used to calculate the actual scrolling ratios.
 		Vector m_ScrollRatio; //!< The scrolling ratios of this SceneLayer, adjusted to the Scene, player screen dimensions and scaling factor as necessary.
 		Vector m_ScaleFactor; //!< The scaling factor of this SceneLayer. Used for scaled drawing and adjusting scrolling ratios.
+	public:
 		Vector m_ScaledDimensions; //!< The dimensions of this SceneLayer adjusted to the scaling factor.
+	protected:
 
 		/// Initialize the scroll ratios from the scroll info. Must be done after the bitmap has been created.
 		/// @param initForNetworkPlayer
@@ -266,7 +275,7 @@ namespace RTE {
 		/// @param targetBitmap The bitmap to draw to.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param drawScaled Whether to use scaled drawing routines or not.
-		void DrawTiled(const Box& targetDim, const Box& targetBox, bool drawScaled) const;
+		void DrawTiled(const Box& targetDim, const Box& targetBox, bool drawScaled, BITMAP* bm = nullptr) const;
 #pragma endregion
 
 	private:

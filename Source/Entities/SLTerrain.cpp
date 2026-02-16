@@ -488,7 +488,7 @@ void SLTerrain::Update() {
 	m_BGColorLayer->SetOffset(m_Offset);
 }
 
-void SLTerrain::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
+void SLTerrain::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment, BITMAP* bm) {
 	switch (m_LayerToDraw) {
 		case LayerType::MaterialLayer:
 			SceneLayer::Draw(targetDimensions, targetBox);

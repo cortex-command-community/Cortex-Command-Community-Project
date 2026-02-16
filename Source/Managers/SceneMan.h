@@ -937,7 +937,7 @@ namespace RTE {
 		/// Draws this SceneMan's current graphical representation to a BITMAP of choice.
 		/// @param targetBitmap A pointer to a BITMAP to draw on, appropriately sized for the split screen segment.
 		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner is located.
-		void Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector& targetPos = Vector(), bool skipBackgroundLayers = false, bool skipTerrain = false);
+		void Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, BITMAP* targetMOColorBitmap, BITMAP* targetBgLayersBitmap, BITMAP* targetBgTerrainBitmap, BITMAP* targetFgTerrainBitmap, const Vector& targetPos = Vector(), bool skipBackgroundLayers = false, bool skipTerrain = false);
 
 		/// Clears the color MO layer. Should be done every frame.
 		void ClearMOColorLayer();
@@ -966,6 +966,8 @@ namespace RTE {
 		/// Sets the maximum height of a column of scrap terrain to collapse, when the bottom pixel is knocked loose.
 		/// @param newHeight The new compacting height, in pixels.
 		void SetScrapCompactingHeight(int newHeight) { m_ScrapCompactingHeight = newHeight; }
+
+		Scene* GetCurrentScene() { return m_pCurrentScene; }
 
 		/// Protected member variable and method declarations
 	protected:
