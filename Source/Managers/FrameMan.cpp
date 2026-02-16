@@ -214,6 +214,7 @@ void RTE::FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 // Chunky fog of war mask -> SDF!
 void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 #define prnt(str) g_ConsoleMan.PrintString(std::to_string(str))
+#define prnt2(str) g_ConsoleMan.PrintString(str)
 	float timeInSecs = (float)g_TimerMan.GetAbsoluteTime() / 1000000;
 	int viewWidth = m_BackBuffer8->w;
 	int viewHeight = m_BackBuffer8->h;
@@ -265,6 +266,9 @@ void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 	glUniform1i(loc, 0);
 	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_2D, fowMaskTex.id);
+
+	loc = glGetFragDataLocation(programMask, "FragNearest");
+	prnt2(std::format("FragNearest location: {}", loc));
 
 	// Finally draw!
 	glBindVertexArray(m_SdfVao);
