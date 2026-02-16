@@ -7,16 +7,19 @@ uniform vec2 uViewOrigin;
 uniform vec2 uViewSize;
 uniform vec2 uSceneSize;
 
-const vec2 padding = vec2(1.0, 1.0);
-
 void main()
 {
-	vec2 sceneUV = (uViewOrigin + textureUV * uViewSize) / uSceneSize;
+	/*vec2 sceneUV = (uViewOrigin + textureUV * uViewSize) / uSceneSize;
     float mask = texture(uMask, sceneUV).r;
     if (mask > 0.5) {
-        vec2 worldPos = uViewOrigin + textureUV * uViewSize;
-        FragNearest = vec4(worldPos, padding);
+		vec2 uv = gl_FragCoord.xy / uViewSize;
+        FragNearest = vec4(uv, 0.0, 1.0);
     } else {
-        FragNearest = vec4(-1.0, -1.0, padding);
-    }
+        FragNearest = vec4(-1.0, -1.0, 0.0, 1.0);
+    }*/
+	if (textureUV.x > 0.5) {
+		FragNearest = vec4(1.0, 0.0, 0.0, 1.0);
+	} else {
+		FragNearest = vec4(0.0, 1.0, 0.0, 1.0);
+	}
 }

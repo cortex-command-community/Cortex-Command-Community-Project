@@ -225,31 +225,15 @@ void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 		InitFowSDF(viewWidth, viewHeight);
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
-	glViewport(0, 0, viewWidth, viewHeight);
-
 	Shader shaderMask("Data/Base.rte/Shaders/SDF/SDF_vert.vert", "Data/Base.rte/Shaders/SDF/SDF_1_SeedTexture.frag");
-	Shader shaderJFA("Data/Base.rte/Shaders/SDF/SDF_vert.vert", "Data/Base.rte/Shaders/SDF/SDF_1_SeedTexture.frag");
+	Shader shaderJFA("Data/Base.rte/Shaders/SDF/SDF_vert.vert", "Data/Base.rte/Shaders/SDF/SDF_2_JFA.frag");
 	GLuint programMask = shaderMask.m_ProgramID;
 	GLuint programJFA = shaderJFA.m_ProgramID;
+
+		// 1. Mask!
+	glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
+	glViewport(0, 0, viewWidth, viewHeight);
 	glUseProgram(programMask);
-
-	/* GLint count;
-	glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &count);
-	RTEAssert(false, std::format("uniform count == {}", count));
-	for (int i = 0; i < count; i++) {
-		char name[256];
-		int size;
-		GLenum type;
-		glGetActiveUniform(program, i, sizeof(name), nullptr, &size, &type, name);
-		RTEAssert(false, std::format("{}: {} (type {})\n", i, name, type));
-	}*/
-
-	//GLint locMask = glGetUniformLocation(program, "uTime");
-	//if (locMask == -1) {
-	//	RTEAbort("wut the heeeel");
-	//}
-	//glUniform1f(locMask, (float)rand());
 
 	// Set uniforms
 	SceneLayer* terrainSL = g_SceneMan.GetTerrain();
@@ -260,19 +244,52 @@ void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 
 	// Set Sampler2D
 	GLint loc = glGetUniformLocation(programMask, "uMask");
-	if (loc == -1) {
-		RTEAbort("asda");
-	}
 	glUniform1i(loc, 0);
 	glActiveTexture(GL_TEXTURE0 + 0);
 	glBindTexture(GL_TEXTURE_2D, fowMaskTex.id);
 
 	loc = glGetFragDataLocation(programMask, "FragNearest");
-	prnt2(std::format("FragNearest location: {}", loc));
+	//prnt2(std::format("FragNearest location: {}", loc));
 
 	// Finally draw!
 	glBindVertexArray(m_SdfVao);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		//2. JFA!
+	GLuint src = m_SdfTexPing, dst = m_SdfTexPong;
+	//for (int step = std::ceil(std::max(viewWidth, viewHeight) / 2); step >= 1; step /= 2) {
+		//glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
+		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst, 0);
+
+	    /* if (src == dst) {
+		    RTEAbort("wut the heeeeeeeeeeeeeeel");
+	    }
+	    GLenum st = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	    if (st != GL_FRAMEBUFFER_COMPLETE) {
+		    RTEAbort(std::format("FBO not complete: 0x{:X}", st));
+	    }*/
+
+		glViewport(0, 0, viewWidth, viewHeight);
+		glUseProgram(programJFA);
+
+	    loc = glGetUniformLocation(programJFA, "uPrev");
+	    glUniform1i(loc, 0); // sampler unit 0
+	    glActiveTexture(GL_TEXTURE0);
+	    glBindTexture(GL_TEXTURE_2D, src);
+
+		shaderJFA.SetVector2f("uViewSize", Vector(viewWidth, viewHeight));
+	    shaderJFA.SetInt("uStep", 1); //todo
+
+		shaderJFA.SetVector2f("uViewOrigin", g_CameraMan.GetOffset(0));
+		shaderJFA.SetVector2f("uViewSize", Vector(viewWidth, viewHeight));
+		shaderJFA.SetVector2f("uSceneSize", Vector(terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
+
+		glBindVertexArray(m_SdfVao);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		//std::swap(src, dst);/**/
+	//}
+	finalNearestTex = src;
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -344,7 +361,7 @@ void RTE::FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader) {
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("moColor"), MOColorTex.id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("bgTerrainTex"), BgTerrainTex.id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("fgTerrainTex"), FgTerrainTex.id);
-	rlSetUniformSampler(backgroundShader.GetUniformLocation("sdfTex"), m_SdfTexPing);
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("sdfTex"), finalNearestTex);
 
 	//rlTexture
 
