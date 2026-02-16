@@ -264,15 +264,14 @@ void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 
 		//2. JFA!
 	GLuint src = m_SdfTexPing, dst = m_SdfTexPong;
-	//for (int step = std::ceil(std::max(viewWidth, viewHeight) / 2); step >= 1; step /= 2) {
-		//glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_SdfTexPong, 0);
+	for (int step = std::ceil(std::max(viewWidth, viewHeight) / 2); step >= 1; step /= 2) {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst, 0);
 
 		//GLenum drawBuf = GL_COLOR_ATTACHMENT0;
 		//glDrawBuffers(1, &drawBuf);
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, m_SdfTexPing);
+		glBindTexture(GL_TEXTURE_2D, src);
 	    glUniform1i(glGetUniformLocation(programJFA, "uPrev"), 0);
 
 		glViewport(0, 0, viewWidth, viewHeight);
@@ -281,9 +280,9 @@ void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 		glBindVertexArray(m_SdfVao);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
-		//std::swap(src, dst);/**/
-	//}
-	    finalNearestTex = m_SdfTexPong;
+		std::swap(src, dst);/**/
+	}
+	finalNearestTex = src;
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

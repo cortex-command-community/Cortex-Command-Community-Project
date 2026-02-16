@@ -7,7 +7,7 @@ uniform vec2 uViewSize;
 uniform int uStep;
 
 void main() {
-	FragColor = vec4(texture(uPrev, textureUV).rg - vec2(0.1, 0.2), 0.0, 1.0);
+	FragColor = vec4(texture(uPrev, textureUV).rg, 0.0, 1.0);
 	return;
 	//FragColor.a += 1.0;
 	
