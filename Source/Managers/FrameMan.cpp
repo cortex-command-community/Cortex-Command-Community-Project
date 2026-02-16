@@ -232,6 +232,13 @@ void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 
 		// 1. Mask!
 	glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER,
+	                       GL_COLOR_ATTACHMENT0,
+	                       GL_TEXTURE_2D,
+	                       m_SdfTexPing, 0);
+
+	GLenum buf = GL_COLOR_ATTACHMENT0;
+	glDrawBuffers(1, &buf);
 	glViewport(0, 0, viewWidth, viewHeight);
 	glUseProgram(programMask);
 
@@ -244,9 +251,9 @@ void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 
 	// Set Sampler2D
 	GLint loc = glGetUniformLocation(programMask, "uMask");
-	glUniform1i(loc, 0);
-	glActiveTexture(GL_TEXTURE0 + 0);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, fowMaskTex.id);
+	glUniform1i(loc, 0);
 
 	loc = glGetFragDataLocation(programMask, "FragNearest");
 	//prnt2(std::format("FragNearest location: {}", loc));
@@ -259,37 +266,24 @@ void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 	GLuint src = m_SdfTexPing, dst = m_SdfTexPong;
 	//for (int step = std::ceil(std::max(viewWidth, viewHeight) / 2); step >= 1; step /= 2) {
 		//glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
-		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_SdfTexPong, 0);
 
-	    /* if (src == dst) {
-		    RTEAbort("wut the heeeeeeeeeeeeeeel");
-	    }
-	    GLenum st = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	    if (st != GL_FRAMEBUFFER_COMPLETE) {
-		    RTEAbort(std::format("FBO not complete: 0x{:X}", st));
-	    }*/
+		//GLenum drawBuf = GL_COLOR_ATTACHMENT0;
+		//glDrawBuffers(1, &drawBuf);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_SdfTexPing);
+	    glUniform1i(glGetUniformLocation(programJFA, "uPrev"), 0);
 
 		glViewport(0, 0, viewWidth, viewHeight);
 		glUseProgram(programJFA);
-
-	    loc = glGetUniformLocation(programJFA, "uPrev");
-	    glUniform1i(loc, 0); // sampler unit 0
-	    glActiveTexture(GL_TEXTURE0);
-	    glBindTexture(GL_TEXTURE_2D, src);
-
-		shaderJFA.SetVector2f("uViewSize", Vector(viewWidth, viewHeight));
-	    shaderJFA.SetInt("uStep", 1); //todo
-
-		shaderJFA.SetVector2f("uViewOrigin", g_CameraMan.GetOffset(0));
-		shaderJFA.SetVector2f("uViewSize", Vector(viewWidth, viewHeight));
-		shaderJFA.SetVector2f("uSceneSize", Vector(terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
 
 		glBindVertexArray(m_SdfVao);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		//std::swap(src, dst);/**/
 	//}
-	finalNearestTex = src;
+	    finalNearestTex = m_SdfTexPong;
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
