@@ -225,10 +225,16 @@ void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 		InitFowSDF(viewWidth, viewHeight);
 	}
 
+	glBindTexture(GL_TEXTURE_2D, fowMaskTex.id);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 	Shader shaderMask("Data/Base.rte/Shaders/SDF/SDF_vert.vert", "Data/Base.rte/Shaders/SDF/SDF_1_SeedTexture.frag");
 	Shader shaderJFA("Data/Base.rte/Shaders/SDF/SDF_vert.vert", "Data/Base.rte/Shaders/SDF/SDF_2_JFA.frag");
+	Shader shaderUnsignedSDF("Data/Base.rte/Shaders/SDF/SDF_vert.vert", "Data/Base.rte/Shaders/SDF/SDF_3_UnsignedSDF.frag");
 	GLuint programMask = shaderMask.m_ProgramID;
 	GLuint programJFA = shaderJFA.m_ProgramID;
+	GLuint programUnsignedSDF = shaderUnsignedSDF.m_ProgramID;
 
 		// 1. Mask!
 	glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
@@ -256,34 +262,53 @@ void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 	glUniform1i(loc, 0);
 
 	loc = glGetFragDataLocation(programMask, "FragNearest");
-	//prnt2(std::format("FragNearest location: {}", loc));
 
 	// Finally draw!
 	glBindVertexArray(m_SdfVao);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
-
+	
 		//2. JFA!
 	GLuint src = m_SdfTexPing, dst = m_SdfTexPong;
+
 	for (int step = std::ceil(std::max(viewWidth, viewHeight) / 2); step >= 1; step /= 2) {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst, 0);
 
-		//GLenum drawBuf = GL_COLOR_ATTACHMENT0;
-		//glDrawBuffers(1, &drawBuf);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, src);
-	    glUniform1i(glGetUniformLocation(programJFA, "uPrev"), 0);
-
 		glViewport(0, 0, viewWidth, viewHeight);
 		glUseProgram(programJFA);
+		
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, src);
+		glUniform1i(glGetUniformLocation(programJFA, "uPrev"), 0);
+
+		shaderJFA.SetFloat("uStep", step);
+		shaderJFA.SetVector2f("uViewSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
 
 		glBindVertexArray(m_SdfVao);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
-		std::swap(src, dst);/**/
+		std::swap(src, dst);
 	}
-	finalNearestTex = src;
 
+		// 3. Unsigned SDF!
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst, 0);
+
+	glViewport(0, 0, viewWidth, viewHeight);
+	glUseProgram(programUnsignedSDF);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, src);
+	glUniform1i(glGetUniformLocation(programUnsignedSDF, "uNearest"), 0);
+
+	shaderUnsignedSDF.SetFloat("uMaxDist", std::sqrt(m_BackBuffer8->w * m_BackBuffer8->w + m_BackBuffer8->h * m_BackBuffer8->h));
+	shaderUnsignedSDF.SetVector2f("uViewSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
+
+	glBindVertexArray(m_SdfVao);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	std::swap(src, dst);
+
+	// done, pushout!
+	finalNearestTex = src;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -349,12 +374,11 @@ void RTE::FrameMan::InitFowSDF(int w, int h) {
 
 void RTE::FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader) {
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("rteTextureLastSeen"), lastSeenTex.id); // TODO: not just force first player screen
-	rlSetUniformSampler(backgroundShader.GetUniformLocation("fowMaskTexture"), fowMaskTex.id);
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("fowMaskTexture"), finalNearestTex); //GTODO toggle for smooth and not in settings
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("guiTexture"), GUITex.id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("moColor"), MOColorTex.id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("bgTerrainTex"), BgTerrainTex.id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("fgTerrainTex"), FgTerrainTex.id);
-	rlSetUniformSampler(backgroundShader.GetUniformLocation("sdfTex"), finalNearestTex);
 
 	//rlTexture
 

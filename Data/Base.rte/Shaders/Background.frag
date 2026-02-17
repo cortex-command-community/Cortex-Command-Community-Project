@@ -28,7 +28,6 @@ uniform sampler2D guiTexture;
 uniform sampler2D moColor;
 uniform sampler2D bgTerrainTex;
 uniform sampler2D fgTerrainTex;
-uniform sampler2D sdfTex;
 
 const vec3 luminosityFactors = vec3(0.299, 0.587, 0.114);
 
@@ -83,18 +82,15 @@ void main() {
 	
 	const float PALETTE_COLOR_BLACK = 245.0 / 255.0;
 	const float PALETTE_COLOR_MASK = 0.0;
-	
-	if (!drawingForeground) {
-		FragColor = vec4(1.0, 0.0, 1.0, 1.0);
-		return;
-	}
-	vec4 sdfVal = texture(sdfTex, textureUV);
-	FragColor = vec4(texture(sdfTex, textureUV).rg, 0.1, 1.0);
-	return;
+
+	//vec4 sdfVal = texture(fowMaskTexture, textureUV);
+	//FragColor = vec4(texture(fowMaskTexture, textureUV).rg, 0.1, 1.0);
+	//return;
+	bool fragmentNotInFow = (texture(fowMaskTexture, textureUV).r == 1.0);
 	
 	vec2 sceneUV = (uViewOrigin + textureUV * uViewSize) / uSceneSize;
 	
-	bool fragmentNotInFow = texture(fowMaskTexture, sceneUV).r == PALETTE_COLOR_MASK;
+	//bool fragmentNotInFow = texture(fowMaskTexture, sceneUV).r == PALETTE_COLOR_MASK;
 	float guiVal = texture(guiTexture, textureUV).r;
 	bool fragmentIsGui = guiVal != PALETTE_COLOR_MASK;
 	float moVal = texture(moColor, textureUV).r;
