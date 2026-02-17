@@ -1667,13 +1667,15 @@ void MovableMan::Update() {
 	}
 
 	// Run seeing rays for all actors
+	// GTODO: resetting currently visible FOW here with this
 	for (int playerIt = PlayerOne; playerIt < MaxPlayerCount; playerIt++) {
-		Activity* currentActivity = g_ActivityMan.GetActivity(); 
+		Activity* currentActivity = g_ActivityMan.GetActivity();
 		if (currentActivity->PlayerActive(playerIt) && currentActivity->PlayerHuman(playerIt)) {
 			int team = currentActivity->GetTeamOfPlayer(playerIt);
 			g_SceneMan.MakeAllUnseen(g_SceneMan.GetUnseenResolution(team), team);
 		}
 	}
+	// GTODO: shouldnt i only do this for player actors?
 	m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
 	                                                                         [&](int start, int end) {
 		                                                                         ZoneScopedN("Actors See");

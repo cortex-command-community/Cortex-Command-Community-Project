@@ -1344,6 +1344,7 @@ bool AHuman::IsWithinRange(Vector& point) const {
 	return sqrDistance <= (range * range);
 }
 
+// GTODO: i gutted this. rewrite
 bool AHuman::Look(float FOVSpread, float range) {
 	if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false) {
 		return false;
@@ -1369,16 +1370,25 @@ bool AHuman::Look(float FOVSpread, float range) {
 	Matrix aimMatrix(m_HFlipped ? -m_AimAngle : m_AimAngle);
 	aimMatrix.SetXFlipped(m_HFlipped);
 	lookVector *= aimMatrix;
-	// Add the spread
-	lookVector.DegRotate(FOVSpread * RandomNormalNum());
 
 	// The smallest dimension of the fog block, divided by two, but always at least one, as the step for the casts
 	int step = (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2;
+	Vector ignored(0, 0);
 
+	lookVector.DegRotate(-FOVSpread / 2);
+	int rayNum = 10;
+	if (GetTeam() == 0) {
+		rayNum = 80;
+		// GTODO: oops hardcoded
+		g_SceneMan.RevealUnseenBox(GetPos().GetX() - 30, GetPos().GetY() - 32, 60, 67, 0);
+	}
+	for (int rayIt = 0; rayIt < rayNum; rayIt++) {
+		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, step);
+		lookVector.DegRotate(FOVSpread / rayNum);
+	}
 	// TODO: generate an alarm event if we spot an enemy actor?
 
-	Vector ignored(0, 0);
-	return g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, step);
+	return 0;
 }
 
 bool AHuman::LookForGold(float FOVSpread, float range, Vector& foundLocation) const {

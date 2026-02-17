@@ -590,20 +590,6 @@ bool Actor::Look(float FOVSpread, float range) {
 
 	// Use the 'eyes' on the 'head', if applicable
 	Vector aimPos = GetEyePos();
-	/*
-	    Matrix aimMatrix(m_HFlipped ? -m_AimAngle : m_AimAngle);
-	    aimMatrix.SetXFlipped(m_HFlipped);
-	    // Get the langth of the look vector
-	    Vector aimDistance = m_ViewPoint - aimPos;
-	    // Add half the screen width
-	    Vector lookVector(fabs(aimDistance.m_X) + range, 0);
-	    // Set the rotation to the acutal aiming angle
-	    lookVector *= aimMatrix;
-	    // Add the spread
-	    lookVector.DegRotate(FOVSpread * NormalRand());
-	// TEST: Really need so far?
-	    lookVector /= 2;
-	*/
 	Vector lookVector = m_Vel;
 	// If there is no vel, just look in all directions
 	if (lookVector.GetLargest() < 0.01) {
@@ -1309,7 +1295,9 @@ void Actor::Update() {
 void RTE::Actor::CastSeeRays() {
 	// "See" the location and surroundings of this actor on the unseen map
 	if (m_Status != Actor::INACTIVE) {
-		const int lookIterations = 6; // How many see rays to cast per frame
+		// GTODO: this was 6. i gutted this, rewrite later
+		// GTODO: constexpr this?
+		const int lookIterations = 1; // How many see rays to cast per frame
 		for (int i = 0; i < lookIterations; ++i) {
 			Look(45 * m_Perceptiveness, g_FrameMan.GetPlayerScreenWidth() * 0.51 * m_Perceptiveness);
 		}
