@@ -4,7 +4,7 @@ in vec2 textureUV;
 out vec4 FragNearest;
 
 uniform sampler2D uPrev;
-uniform vec2 uViewSize
+uniform vec2 uViewSize;
 uniform float uStep;
 
 void main()

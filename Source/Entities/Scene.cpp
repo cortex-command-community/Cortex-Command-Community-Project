@@ -359,6 +359,7 @@ void Scene::Clear() {
 		m_UnseenPixelSize[team].Reset();
 		m_apUnseenLayerMask[team] = nullptr; // TODO: Doesn't this leak?
 		m_apUnseenLayerTerrain[team] = nullptr;
+		m_apUnseenLayerTerrainMask[team] = nullptr;
 		m_SeenPixels[team].clear();
 		m_CleanedPixels[team].clear();
 		m_ScanScheduled[team] = false;
@@ -428,6 +429,7 @@ int Scene::Create(const Scene& reference) {
 			RTEAssert(reference.m_apUnseenLayerTerrain[team], "Scene::Create, reference unseen layer mask exists, but not terrain, weird!");
 			m_apUnseenLayerMask[team] = dynamic_cast<SceneLayer*>(reference.m_apUnseenLayerMask[team]->Clone());
 			m_apUnseenLayerTerrain[team] = dynamic_cast<SceneLayer*>(reference.m_apUnseenLayerTerrain[team]->Clone());
+			m_apUnseenLayerTerrainMask[team] = dynamic_cast<SceneLayer*>(reference.m_apUnseenLayerTerrainMask[team]->Clone());
 		}
 		else {
 			m_UnseenPixelSize[team] = reference.m_UnseenPixelSize[team];
@@ -487,15 +489,21 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 			clear_to_color(pUnseenMaskBitmap, g_BlackColor);
 			BITMAP* pUnseenTerrainBitmap = create_bitmap_ex(8, GetWidth(), GetHeight()); // 1-to-1, as is regular terrain
 			clear_to_color(pUnseenTerrainBitmap, g_BlackColor);
+			BITMAP* pUnseenTerrainMaskBitmap = create_bitmap_ex(8, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
+			clear_to_color(pUnseenTerrainMaskBitmap, g_BlackColor);
 			// Replace any old unseen layer with the new one that is generated
 			delete m_apUnseenLayerMask[team];
 			delete m_apUnseenLayerTerrain[team];
+			delete m_apUnseenLayerTerrainMask[team];
 			m_apUnseenLayerMask[team] = new SceneLayer();
 			m_apUnseenLayerMask[team]->Create(pUnseenMaskBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
 			m_apUnseenLayerMask[team]->SetScaleFactor(m_UnseenPixelSize[team]);
 			m_apUnseenLayerTerrain[team] = new SceneLayer();
 			m_apUnseenLayerTerrain[team]->Create(pUnseenTerrainBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
 			m_apUnseenLayerTerrain[team]->SetScaleFactor(Vector(1, 1)); // Same as regular terrain
+			m_apUnseenLayerTerrainMask[team] = new SceneLayer();
+			m_apUnseenLayerTerrainMask[team]->Create(pUnseenTerrainMaskBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
+			m_apUnseenLayerTerrainMask[team]->SetScaleFactor(m_UnseenPixelSize[team]);
 		}
 		// If not dynamically generated, was it custom loaded?
 		else if (m_apUnseenLayerMask[team]) {
@@ -510,6 +518,10 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 			}
 			if (m_apUnseenLayerTerrain[team]->LoadData() < 0) {
 				g_ConsoleMan.PrintString("ERROR: Loading unseen layer terrain " + m_apUnseenLayerTerrain[team]->GetPresetName() + "\'s data failed!");
+				return -1;
+			}
+			if (m_apUnseenLayerTerrainMask[team]->LoadData() < 0) {
+				g_ConsoleMan.PrintString("ERROR: Loading unseen layer terrain mask " + m_apUnseenLayerTerrainMask[team]->GetPresetName() + "\'s data failed!");
 				return -1;
 			}
 		}
@@ -701,9 +713,10 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 							if (ownerTeam != Activity::NoTeam) {
 								bool unseenLayerMaskPresent = m_apUnseenLayerMask[ownerTeam];// && m_apUnseenLayerMask[ownerTeam]->GetBitmap();
 								bool unseenLayerTerrainPresent = m_apUnseenLayerTerrain[ownerTeam];// && m_apUnseenLayerTerrain[ownerTeam]->GetBitmap();
+								bool unseenLayerTerrainMaskPresent = m_apUnseenLayerTerrainMask[ownerTeam];
 								RTEAssert(
-									~(unseenLayerMaskPresent ^ unseenLayerTerrainPresent),
-									"Scene::LoadData, only one of unseenLayerMask and unseenLayerTerrain are present, weird!"
+								    (unseenLayerMaskPresent > 0 == unseenLayerTerrainPresent > 0) && (unseenLayerMaskPresent > 0 == unseenLayerTerrainMaskPresent > 0),
+									"Scene::LoadData, only some of unseenLayerMask and unseenLayerTerrain and unseenLayerTerrainMaskPresent are present, weird!"
 								);
 								// Assume next that unseen mask present == unseen terrain present
 								if (unseenLayerMaskPresent) {
@@ -717,6 +730,7 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 									int scaledH = std::ceil(terrainObjectBitmap->h / scale.m_Y);
 									// Fill the box with key color for the owner ownerTeam, revealing the area that this thing is on
 									rectfill(m_apUnseenLayerMask[ownerTeam]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
+									rectfill(m_apUnseenLayerTerrainMask[ownerTeam]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
 									// Expand the box a little so the whole placed object is going to be hidden
 									scaledX -= 1;
 									scaledY -= 1;
@@ -737,6 +751,7 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 											);
 											// GTODO - maybe for when only the team is a player team?
 											rectfill(m_apUnseenLayerMask[t]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_BlackColor);
+											rectfill(m_apUnseenLayerTerrainMask[t]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_BlackColor);
 											rectfill(m_apUnseenLayerTerrain[ownerTeam]->GetBitmap(), rescaledX, rescaledY, rescaledW, rescaledH, g_BlackColor);
 										}
 									}
@@ -885,6 +900,10 @@ int Scene::SaveData(const std::string& pathBase) {
 				m_apUnseenLayerTerrain[team], 
 				"Scene::SaveData(), unseen layer mask present but terrain is not, weird!"
 			);
+			RTEAssert(
+			    m_apUnseenLayerTerrainMask[team],
+			    "Scene::SaveData(), unseen layer mask present but terrain mask is not, weird!"
+			);
 			std::snprintf(str, sizeof(str), "T%d", team);
 			// Save unseen layer data to disk
 			if (m_apUnseenLayerMask[team]->SaveData(fullPathBase + " US" + str + ".png") < 0) {
@@ -893,6 +912,10 @@ int Scene::SaveData(const std::string& pathBase) {
 			}
 			if (m_apUnseenLayerTerrain[team]->SaveData(fullPathBase + " US" + str + ".png") < 0) {
 				g_ConsoleMan.PrintString("ERROR: Saving unseen layer terrain " + m_apUnseenLayerTerrain[team]->GetPresetName() + "\'s data failed!");
+				return -1;
+			}
+			if (m_apUnseenLayerTerrainMask[team]->SaveData(fullPathBase + " US" + str + ".png") < 0) {
+				g_ConsoleMan.PrintString("ERROR: Saving unseen layer terrain mask " + m_apUnseenLayerTerrainMask[team]->GetPresetName() + "\'s data failed!");
 				return -1;
 			}
 		}
@@ -912,13 +935,18 @@ std::vector<SceneLayerInfo> Scene::GetCopiedSceneLayerBitmaps() const {
 	// Save unseen layers' data
 	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team)
 	{
-	    if (m_apUnseenLayerMask[team]){
+		if (m_apUnseenLayerMask[team]) {
 			RTEAssert(
 				m_apUnseenLayerTerrain[team], 
 				"Scene::GetCopiedSceneLayerBitmaps(), unseen layer mask present but terrain is not, weird!"
 			);
+			RTEAssert(
+			    m_apUnseenLayerTerrainMask[team],
+			    "Scene::GetCopiedSceneLayerBitmaps(), unseen layer mask present but terrain mask is not, weird!"
+			);
 			layerInfos.emplace_back(std::format("UST{}", team), m_apUnseenLayerMask[team]->CopyBitmap());
 			layerInfos.emplace_back(std::format("UST{}", team), m_apUnseenLayerTerrain[team]->CopyBitmap());
+			layerInfos.emplace_back(std::format("UST{}", team), m_apUnseenLayerTerrainMask[team]->CopyBitmap());
 	    }
 	}
 
@@ -1023,6 +1051,10 @@ int Scene::ClearData() {
 			    m_apUnseenLayerTerrain[team],
 			    "Scene::ClearData(), unseen layer mask present but terrain is not, weird!"
 			);
+			RTEAssert(
+			    m_apUnseenLayerTerrainMask[team],
+			    "Scene::ClearData(), unseen layer mask present but terrain maskis not, weird!"
+			);
 			// Clear unseen layer data from memory
 			if (m_apUnseenLayerMask[team]->ClearData() < 0) {
 				g_ConsoleMan.PrintString("ERROR: Clearing unseen layer mask " + m_apUnseenLayerMask[team]->GetPresetName() + "\'s data failed!");
@@ -1030,6 +1062,10 @@ int Scene::ClearData() {
 			}
 			if (m_apUnseenLayerTerrain[team]->ClearData() < 0) {
 				g_ConsoleMan.PrintString("ERROR: Clearing unseen layer terrain " + m_apUnseenLayerTerrain[team]->GetPresetName() + "\'s data failed!");
+				return -1;
+			}
+			if (m_apUnseenLayerTerrainMask[team]->ClearData() < 0) {
+				g_ConsoleMan.PrintString("ERROR: Clearing unseen layer terrain mask " + m_apUnseenLayerTerrainMask[team]->GetPresetName() + "\'s data failed!");
 				return -1;
 			}
 		}
@@ -1133,6 +1169,18 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("UnseenLayerTerrainTeam4",
 	              delete m_apUnseenLayerTerrain[Activity::TeamFour];
 	              m_apUnseenLayerTerrain[Activity::TeamFour] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
+	MatchProperty("UnseenLayerTerrainMaskTeam1",
+	              delete m_apUnseenLayerTerrainMask[Activity::TeamOne];
+	              m_apUnseenLayerTerrainMask[Activity::TeamOne] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
+	MatchProperty("UnseenLayerTerrainMaskTeam2",
+	              delete m_apUnseenLayerTerrainMask[Activity::TeamTwo];
+	              m_apUnseenLayerTerrainMask[Activity::TeamTwo] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
+	MatchProperty("UnseenLayerTerrainMaskTeam3",
+	              delete m_apUnseenLayerTerrainMask[Activity::TeamThree];
+	              m_apUnseenLayerTerrainMask[Activity::TeamThree] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
+	MatchProperty("UnseenLayerTerrainMaskTeam4",
+	              delete m_apUnseenLayerTerrainMask[Activity::TeamFour];
+	              m_apUnseenLayerTerrainMask[Activity::TeamFour] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
 	MatchProperty("ScanScheduledTeam1", { reader >> m_ScanScheduled[Activity::TeamOne]; });
 	MatchProperty("ScanScheduledTeam2", { reader >> m_ScanScheduled[Activity::TeamTwo]; });
 	MatchProperty("ScanScheduledTeam3", { reader >> m_ScanScheduled[Activity::TeamThree]; });
@@ -1232,6 +1280,8 @@ int Scene::Save(Writer& writer) const {
 		writer << m_apUnseenLayerMask[Activity::TeamOne];
 		writer.NewProperty("UnseenLayerTerrainTeam1");
 		writer << m_apUnseenLayerTerrain[Activity::TeamOne];
+		writer.NewProperty("UnseenLayerTerrainMaskTeam1");
+		writer << m_apUnseenLayerTerrainMask[Activity::TeamOne];
 	}
 	if (m_apUnseenLayerMask[Activity::TeamTwo]) {
 		RTEAssert(
@@ -1242,6 +1292,8 @@ int Scene::Save(Writer& writer) const {
 		writer << m_apUnseenLayerMask[Activity::TeamTwo];
 		writer.NewProperty("UnseenLayerTerrainTeam2");
 		writer << m_apUnseenLayerTerrain[Activity::TeamTwo];
+		writer.NewProperty("UnseenLayerTerrainMaskTeam2");
+		writer << m_apUnseenLayerTerrainMask[Activity::TeamTwo];
 	}
 	if (m_apUnseenLayerMask[Activity::TeamThree]) {
 		RTEAssert(
@@ -1252,6 +1304,8 @@ int Scene::Save(Writer& writer) const {
 		writer << m_apUnseenLayerMask[Activity::TeamThree];
 		writer.NewProperty("UnseenLayerTerrainTeam3");
 		writer << m_apUnseenLayerTerrain[Activity::TeamThree];
+		writer.NewProperty("UnseenLayerTerrainMaskTeam3");
+		writer << m_apUnseenLayerTerrainMask[Activity::TeamThree];
 	}
 	if (m_apUnseenLayerMask[Activity::TeamFour]) {
 		RTEAssert(
@@ -1262,6 +1316,8 @@ int Scene::Save(Writer& writer) const {
 		writer << m_apUnseenLayerMask[Activity::TeamFour];
 		writer.NewProperty("UnseenLayerTerrainTeam4");
 		writer << m_apUnseenLayerTerrain[Activity::TeamFour];
+		writer.NewProperty("UnseenLayerTerrainMaskTeam4");
+		writer << m_apUnseenLayerTerrainMask[Activity::TeamFour];
 	}
 	if (m_ScanScheduled[Activity::TeamOne]) {
 		writer.NewProperty("ScanScheduledTeam1");
@@ -1577,6 +1633,10 @@ void Scene::Destroy(bool notInherited) {
 	delete m_apUnseenLayerTerrain[Activity::TeamTwo];
 	delete m_apUnseenLayerTerrain[Activity::TeamThree];
 	delete m_apUnseenLayerTerrain[Activity::TeamFour];
+	delete m_apUnseenLayerTerrainMask[Activity::TeamOne];
+	delete m_apUnseenLayerTerrainMask[Activity::TeamTwo];
+	delete m_apUnseenLayerTerrainMask[Activity::TeamThree];
+	delete m_apUnseenLayerTerrainMask[Activity::TeamFour];
 
 	// if (m_PreviewBitmapOwned)
 	destroy_bitmap(m_pPreviewBitmap);
@@ -1623,6 +1683,14 @@ void Scene::FillUnseenLayerMask(Vector pixelSize, int team, bool createNow) {
 			m_apUnseenLayerTerrain[team]->Create(pUnseenTerrainBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
 			m_apUnseenLayerTerrain[team]->SetScaleFactor(Vector(1, 1));
 		}
+
+		if (!m_apUnseenLayerTerrainMask[team]) {
+			BITMAP* pUnseenTerrainMaskBitmap = create_bitmap_ex(8, pUnseenMaskBitmap->w, pUnseenMaskBitmap->h);
+			clear_to_color(pUnseenTerrainMaskBitmap, g_BlackColor);
+			m_apUnseenLayerTerrainMask[team] = new SceneLayer();
+			m_apUnseenLayerTerrainMask[team]->Create(pUnseenTerrainMaskBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
+			m_apUnseenLayerTerrainMask[team]->SetScaleFactor(m_apUnseenLayerMask[team]->GetScaleFactor());
+		}
 	}
 }
 
@@ -1654,35 +1722,49 @@ void Scene::SetUnseenLayerTerrain(SceneLayer* pNewLayer, int team) {
 	m_apUnseenLayerTerrain[team]->SetScaleFactor(Vector(1, 1));
 }
 
-void Scene::ClearSeenMaskPixels(int team) {
-	if (team != Activity::NoTeam) {
-		// Clear all the pixels off the map, set them to key color
-		if (m_apUnseenLayerMask[team]) {
-			for (std::list<Vector>::iterator itr = m_SeenPixels[team].begin(); itr != m_SeenPixels[team].end(); ++itr) {
-				putpixel(m_apUnseenLayerMask[team]->GetBitmap(), (*itr).m_X, (*itr).m_Y, g_MaskColor);
-
-				// Clean up around the removed pixels too
-				CleanOrphanUnseenLayerMaskPixel((*itr).m_X + 1, (*itr).m_Y, W, team);
-				CleanOrphanUnseenLayerMaskPixel((*itr).m_X - 1, (*itr).m_Y, E, team);
-				CleanOrphanUnseenLayerMaskPixel((*itr).m_X, (*itr).m_Y + 1, N, team);
-				CleanOrphanUnseenLayerMaskPixel((*itr).m_X, (*itr).m_Y - 1, S, team);
-				CleanOrphanUnseenLayerMaskPixel((*itr).m_X + 1, (*itr).m_Y + 1, NW, team);
-				CleanOrphanUnseenLayerMaskPixel((*itr).m_X - 1, (*itr).m_Y + 1, NE, team);
-				CleanOrphanUnseenLayerMaskPixel((*itr).m_X - 1, (*itr).m_Y - 1, SE, team);
-				CleanOrphanUnseenLayerMaskPixel((*itr).m_X + 1, (*itr).m_Y - 1, SW, team);
-			}
-		}
-
-		// Now actually clear the list too
-		m_SeenPixels[team].clear();
-
-		// Transfer all cleaned pixels from orphans to the seen pixels for next frame
-		for (std::list<Vector>::iterator itr = m_CleanedPixels[team].begin(); itr != m_CleanedPixels[team].end(); ++itr)
-			m_SeenPixels[team].push_back(*itr);
-
-		// We have moved the cleaned pixels to the seen pixels list, now clean up the list for next frame
-		m_CleanedPixels[team].clear();
+void Scene::SetUnseenLayerTerrainMask(SceneLayer* pNewLayer, int team) {
+	if (team == Activity::NoTeam || !pNewLayer) {
+		return;
 	}
+
+	// Replace any old unseen layer with the new one that is generated
+	delete m_apUnseenLayerTerrainMask[team];
+	m_apUnseenLayerTerrainMask[team] = pNewLayer;
+	// Calculate how many times smaller the unseen map is compared to the entire terrain's dimensions, and set it as the scale factor on the Unseen layer
+	m_apUnseenLayerTerrainMask[team]->SetScaleFactor(Vector((float)GetTerrain()->GetBitmap()->w / (float)m_apUnseenLayerTerrainMask[team]->GetBitmap()->w, (float)GetTerrain()->GetBitmap()->h / (float)m_apUnseenLayerTerrainMask[team]->GetBitmap()->h));
+}
+
+void Scene::ClearSeenMaskPixels(int team) {
+	if (team == Activity::NoTeam) {
+		return;
+	}
+
+	// Clear all the pixels off the map, set them to key color
+	if (m_apUnseenLayerMask[team]) {
+		for (std::list<Vector>::iterator itr = m_SeenPixels[team].begin(); itr != m_SeenPixels[team].end(); ++itr) {
+			putpixel(m_apUnseenLayerMask[team]->GetBitmap(), (*itr).m_X, (*itr).m_Y, g_MaskColor);
+
+			// Clean up around the removed pixels too
+			CleanOrphanUnseenLayerMaskPixel((*itr).m_X + 1, (*itr).m_Y, W, team);
+			CleanOrphanUnseenLayerMaskPixel((*itr).m_X - 1, (*itr).m_Y, E, team);
+			CleanOrphanUnseenLayerMaskPixel((*itr).m_X, (*itr).m_Y + 1, N, team);
+			CleanOrphanUnseenLayerMaskPixel((*itr).m_X, (*itr).m_Y - 1, S, team);
+			CleanOrphanUnseenLayerMaskPixel((*itr).m_X + 1, (*itr).m_Y + 1, NW, team);
+			CleanOrphanUnseenLayerMaskPixel((*itr).m_X - 1, (*itr).m_Y + 1, NE, team);
+			CleanOrphanUnseenLayerMaskPixel((*itr).m_X - 1, (*itr).m_Y - 1, SE, team);
+			CleanOrphanUnseenLayerMaskPixel((*itr).m_X + 1, (*itr).m_Y - 1, SW, team);
+		}
+	}
+
+	// Now actually clear the list too
+	m_SeenPixels[team].clear();
+
+	// Transfer all cleaned pixels from orphans to the seen pixels for next frame
+	for (std::list<Vector>::iterator itr = m_CleanedPixels[team].begin(); itr != m_CleanedPixels[team].end(); ++itr)
+		m_SeenPixels[team].push_back(*itr);
+
+	// We have moved the cleaned pixels to the seen pixels list, now clean up the list for next frame
+	m_CleanedPixels[team].clear();
 }
 
 // TODO: Precheck if wrapping is needed. Do this also in other places

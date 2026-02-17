@@ -132,6 +132,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	for (int i = 0; i < Activity::MaxTeamCount; ++i) {
 		SceneLayer* unseenLayerMask = modifiableScene->GetUnseenLayerMask(i);
 		SceneLayer* unseenLayerTerrain = modifiableScene->GetUnseenLayerTerrain(i);
+		SceneLayer* unseenLayerTerrainMask = modifiableScene->GetUnseenLayerTerrainMask(i); // GTODO check save loading??
 		RTEAssert(
 		    ~((unseenLayerMask == nullptr) ^ (unseenLayerTerrain == nullptr)),
 		    "ActivityMan::SaveCurrentGame, unseen layer, only one of mask and terrain SL's exist, weird!"

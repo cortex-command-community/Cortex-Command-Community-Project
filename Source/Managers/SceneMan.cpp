@@ -134,6 +134,7 @@ int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 		}
 		SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team);
 		SceneLayer* pUnseenLayerTerrain = m_pCurrentScene->GetUnseenLayerTerrain(team);
+		SceneLayer* pUnseenLayerTerrainMask = m_pCurrentScene->GetUnseenLayerTerrainMask(team);
 		RTEAssert(
 		    ~((pUnseenLayerMask == nullptr) ^ (pUnseenLayerTerrain == nullptr)),
 		    "SceneMan::LoadScene, unseen layer, only one of mask and terrain SL's exist, weird!"
@@ -143,7 +144,8 @@ int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 			float sX = (float)m_pCurrentScene->GetTerrain()->GetBitmap()->w / (float)pUnseenLayerMask->GetBitmap()->w;
 			float sY = (float)m_pCurrentScene->GetTerrain()->GetBitmap()->h / (float)pUnseenLayerMask->GetBitmap()->h;
 			pUnseenLayerMask->SetScaleFactor(Vector(sX, sY));
-			pUnseenLayerTerrain->SetScaleFactor(Vector(sX, sY));
+			pUnseenLayerTerrain->SetScaleFactor(Vector(1, 1));
+			pUnseenLayerTerrainMask->SetScaleFactor(Vector(sX, sY));
 		}
 	}
 
@@ -1007,11 +1009,12 @@ bool SceneMan::RestoreUnseen(const int posX, const int posY, const int team) {
 			// Restore that pixel on the map so it won't be detected as seen again
 			putpixel(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, g_BlackColor);
 
+			// GTODO: remove! this is for hiding stuff! previously seen should be untouched!
 			// Blit for previously seen terrain
-			SceneLayer* pUnseenLayerTerrain = m_pCurrentScene->GetUnseenLayerTerrain(team);
-			int rescaledX = scaledX * scale.m_X;
-			int rescaledY = scaledY * scale.m_Y;
-			blit(m_pCurrentScene->GetTerrain()->GetFGColorBitmap(), pUnseenLayerTerrain->GetBitmap(), rescaledX, rescaledY, rescaledX, rescaledY, scale.GetX(), scale.GetY());
+			//SceneLayer* pUnseenLayerTerrain = m_pCurrentScene->GetUnseenLayerTerrain(team);
+			//int rescaledX = scaledX * scale.m_X;
+			//int rescaledY = scaledY * scale.m_Y;
+			//blit(m_pCurrentScene->GetTerrain()->GetFGColorBitmap(), pUnseenLayerTerrain->GetBitmap(), rescaledX, rescaledY, rescaledX, rescaledY, scale.GetX(), scale.GetY());
 			// Show that we actually restored a seen pixel
 			return true;
 		}
@@ -1034,8 +1037,10 @@ void SceneMan::RevealUnseenBox(const int posX, const int posY, const int width, 
 		int scaledW = width / scale.m_X;
 		int scaledH = height / scale.m_Y;
 
-		// Fill the box for the unseen mask
+		// Fill the box for the unseen masks (plural)
+		SceneLayer* pUnseenLayerTerrainMask = m_pCurrentScene->GetUnseenLayerTerrainMask(team);
 		rectfill(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
+		rectfill(pUnseenLayerTerrainMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
 		// Blit for previously seen terrain
 		SceneLayer* pUnseenLayerTerrain = m_pCurrentScene->GetUnseenLayerTerrain(team);
 		//rectfill(pUnseenLayerTerrain->GetBitmap(), posX, posY, width, height, g_RedColor);
@@ -2594,10 +2599,12 @@ void SceneMan::Update(int screenId) {
 	}
 
 	// Update the unseen obstruction layer for this team's screen view, if there is one.
+	// GTODO: check if this is ok with
 	if (const int teamId = g_CameraMan.GetScreenTeam(screenId); teamId != Activity::NoTeam) {
 		if (m_pCurrentScene->GetUnseenLayerMask(teamId)) {
 			m_pCurrentScene->GetUnseenLayerMask(teamId)->SetOffset(offset);
 			m_pCurrentScene->GetUnseenLayerTerrain(teamId)->SetOffset(offset);
+			m_pCurrentScene->GetUnseenLayerTerrainMask(teamId)->SetOffset(offset);
 		}
 	}
 

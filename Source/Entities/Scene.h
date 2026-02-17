@@ -364,8 +364,11 @@ namespace RTE {
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
 		void SetUnseenLayerMask(SceneLayer* pNewLayer, int team = Activity::TeamOne);
 
-		/// TODO: Write here
+		/// GTODO: Write here
+		// GTODO actually call these
 		void SetUnseenLayerTerrain(SceneLayer* pNewLayer, int team = Activity::TeamOne);
+
+		void SetUnseenLayerTerrainMask(SceneLayer* pNewLayer, int team = Activity::TeamOne);
 
 		/// Gets the unseen layer mask of a specific team.
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
@@ -373,8 +376,9 @@ namespace RTE {
 		/// specific team yet. Ownership is NOT transferred!
 		SceneLayer* GetUnseenLayerMask(int team = Activity::TeamOne) const { return team != Activity::NoTeam ? m_apUnseenLayerMask[team] : nullptr; }
 
-		/// TODO: Name this
+		/// GTODO: Name these
 		SceneLayer* GetUnseenLayerTerrain(int team = Activity::TeamOne) const { return team != Activity::NoTeam ? m_apUnseenLayerTerrain[team] : nullptr; }
+		SceneLayer* GetUnseenLayerTerrainMask(int team = Activity::TeamOne) const { return team != Activity::NoTeam ? m_apUnseenLayerTerrainMask[team] : nullptr; }
 
 		/// Gets the list of pixels that have been seen on a team's unseen layer.
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
@@ -770,6 +774,8 @@ namespace RTE {
 		SceneLayer* m_apUnseenLayerMask[Activity::MaxTeamCount];
 		// Layers representing last seen terrain for each team, for drawing two stage fog of war
 		SceneLayer* m_apUnseenLayerTerrain[Activity::MaxTeamCount];
+		//GTODO
+		SceneLayer* m_apUnseenLayerTerrainMask[Activity::MaxTeamCount];
 		// Which pixels of the unseen map have just been revealed this frame, in the coordinates of the unseen map
 		std::list<Vector> m_SeenPixels[Activity::MaxTeamCount];
 		// Pixels on the unseen map deemed to be orphans and cleaned up, will be moved to seen pixels next update

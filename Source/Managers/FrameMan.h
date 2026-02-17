@@ -403,13 +403,14 @@ namespace RTE {
 		// Fog of war shit
 		AllegroBitmap lastSeenBM;
 		AllegroBitmap fowMaskBM;
+		AllegroBitmap fowMaskLastSeenBM;
 		AllegroBitmap MOColorBM;
 		AllegroBitmap BgLayersBM;
 		AllegroBitmap BgTerrainBM;
 		AllegroBitmap FgTerrainBM;
 		Texture2D lastSeenTex = {0};
 		Texture2D fowMaskTex = {0};
-		Texture2D fowMaskSDFTex = {0};
+		Texture2D fowMaskLastSeenTex = {0};
 		Texture2D GUITex = {0};
 		Texture2D MOColorTex = {0};
 		Texture2D BgLayersTex = {0};

@@ -108,6 +108,7 @@ void RTE::FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 	}
 
 	SceneLayer* maskSL = currentScene->GetUnseenLayerMask();
+	SceneLayer* lastSeenTerrainMaskSL = currentScene->GetUnseenLayerTerrainMask();
 	SceneLayer* lastSeenTerrainSL = currentScene->GetUnseenLayerTerrain();
 	int currentSceneW = currentScene->GetWidth();
 	int currentSceneH = currentScene->GetHeight();
@@ -115,17 +116,21 @@ void RTE::FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 	int scaleFactorY = maskSL->GetScaleFactor().GetY();
 
 	fowMaskBM.Destroy();
+	fowMaskLastSeenBM.Destroy();
 	lastSeenBM.Destroy();
 	fowMaskBM.Create(currentSceneW / scaleFactorX, currentSceneH / scaleFactorY);
+	fowMaskLastSeenBM.Create(currentSceneW / scaleFactorX, currentSceneH / scaleFactorY);
 	lastSeenBM.Create(currentSceneW, currentSceneH);
 
 	AllegroBitmap fowMaskBMOld(maskSL->GetBitmap());
+	AllegroBitmap fowMaskLastSeenBMOld(lastSeenTerrainMaskSL->GetBitmap()); // GTODO
 	AllegroBitmap lastSeenBMOld(lastSeenTerrainSL->GetBitmap());
 	GUIRect srcPosAndSizeRectFowMask =
 	    {0, 0, fowMaskBMOld.GetWidth(), fowMaskBMOld.GetHeight()};
 	GUIRect srcPosAndSizeRectLastSeen =
 	    {0, 0, lastSeenBMOld.GetWidth(), lastSeenBMOld.GetHeight()};
 	fowMaskBMOld.Draw(&fowMaskBM, 0, 0, &srcPosAndSizeRectFowMask);
+	fowMaskLastSeenBMOld.Draw(&fowMaskLastSeenBM, 0, 0, &srcPosAndSizeRectFowMask);
 	lastSeenBMOld.Draw(&lastSeenBM, 0, 0, &srcPosAndSizeRectLastSeen);
 
 	// Update/make textures
@@ -138,7 +143,7 @@ void RTE::FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 			rlUpdateTexture(fowMaskTex.id, 0, 0, bm->w, bm->h, fowMaskTex.format, bm->line[0]);
 		}
 	}
-
+	
 	{ // Fog of war last-seen terrain
 		BITMAP* bm = lastSeenBM.GetBitmap();
 
@@ -146,6 +151,16 @@ void RTE::FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 			LoadTextureFromBitmap8(&lastSeenTex, bm);
 		} else {
 			rlUpdateTexture(lastSeenTex.id, 0, 0, bm->w, bm->h, lastSeenTex.format, bm->line[0]);
+		}
+	}
+
+	{ // Fog of war last-seen terrain chunky 1-0 mask
+		BITMAP* bm = fowMaskLastSeenBM.GetBitmap();
+
+		if (fowMaskLastSeenTex.id == 0) {
+			LoadTextureFromBitmap8(&fowMaskLastSeenTex, bm);
+		} else {
+			rlUpdateTexture(fowMaskLastSeenTex.id, 0, 0, bm->w, bm->h, fowMaskLastSeenTex.format, bm->line[0]);
 		}
 	}
 
@@ -198,16 +213,6 @@ void RTE::FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 			rlUpdateTexture(FgTerrainTex.id, 0, 0, bm->w, bm->h, FgTerrainTex.format, bm->line[0]);
 		}
 	}
-	
-	/* { // fowMaskSDFTex
-		BITMAP* bm = FgTerrainBM.GetBitmap();
-
-		if (FgTerrainTex.id == 0) {
-			LoadTextureFromBitmap8(&fowMaskSDFTex, bm);
-		} else {
-			rlUpdateTexture(fowMaskSDFTex.id, 0, 0, bm->w, bm->h, fowMaskSDFTex.format, bm->line[0]);
-		}
-	}*/
 
 }
 
