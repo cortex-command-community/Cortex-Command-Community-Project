@@ -498,7 +498,7 @@ namespace RTE {
 
 		void FogOfWarSetup(Shader& backgroundShader);
 
-		GLuint FogOfWarSetup_DoSDF(const GLuint inputTex);
+		void FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex);
 
 		void InitFowSDF(int w, int h);
 

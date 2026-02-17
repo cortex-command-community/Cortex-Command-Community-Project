@@ -83,11 +83,9 @@ void main() {
 	
 	const float PALETTE_COLOR_BLACK = 245.0 / 255.0;
 	const float PALETTE_COLOR_MASK = 0.0;
-
-	//vec4 testVal = texture(fowLastSeenMaskTexture, textureUV);
-	//FragColor = vec4(testVal.rgb, 1.0);
-	//return;
-	bool fragmentNotInFow = (texture(fowMaskTexture, textureUV).r == 1.0);
+	const float USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND = 0.011;
+	
+	bool fragmentNotInFow = (texture(fowMaskTexture, textureUV).r > USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND);
 	
 	vec2 sceneUV = (uViewOrigin + textureUV * uViewSize) / uSceneSize;
 	
@@ -105,13 +103,6 @@ void main() {
 		}
 		FragColor = ApplyPalette(rteVal);
 		return;
-		
-		/*if (texture(fowMaskTexture, bklUV).r == PALETTE_COLOR_MASK) {
-			FragColor = ApplyPalette(rteVal);
-			return;
-		}
-		FragColor = ApplyPaletteAndDesat(rteVal, tex);
-		return;*/
 	}
 	
 	if (fragmentIsGui) {
@@ -137,12 +128,21 @@ void main() {
 			return;
 		}
 		// Bkgr layers, here was drawn in a previous pass
+		// big TODO
 		discard;
 	}
 	// Fog-of-war pixel
 	else {
-		float red = texture(rteTextureLastSeen, sceneUV).r;
-		if (red == PALETTE_COLOR_MASK && drawMasked) {
+		bool fragmentWasLastSeen = (texture(fowLastSeenMaskTexture, textureUV).r > USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND);
+		
+		if (!fragmentWasLastSeen) {
+			FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+			return;
+		}
+		
+		float lastSeenTerrainColor = texture(rteTextureLastSeen, sceneUV).r;
+		
+		if (lastSeenTerrainColor == PALETTE_COLOR_MASK && drawMasked) {
 			// Background terrain
 			if (bgTerrainVal != PALETTE_COLOR_MASK) {
 				FragColor = ApplyPaletteAndDesat(bgTerrainVal, textureUV, 0.5, 0.68);
@@ -151,13 +151,8 @@ void main() {
 			discard;
 		}
 		
-		if (red == PALETTE_COLOR_BLACK) {
-			FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-			return;
-		}
-		
 		// Palette lookup
-		FragColor = ApplyPaletteAndDesat(red, sceneUV, 0.8, 0.8);
+		FragColor = ApplyPaletteAndDesat(lastSeenTerrainColor, sceneUV, 0.8, 0.8);
 		return;
 	}
 }

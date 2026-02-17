@@ -17,11 +17,7 @@ void main() {
     vec2 fragPx = gl_FragCoord.xy;
     float dist = length(nearestPx - fragPx); // Distance in pixels
 
-    // Normalize for display (0..1)
+    // Normalize for display (0-1)
     float outVal = clamp(dist / uMaxDist, 0.0, 1.0);	
-	if (outVal < 0.01) {
-		FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-	} else {
-		FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-	}
+	FragColor = vec4(outVal, 0.0, 0.0, 1.0);
 }

@@ -217,7 +217,7 @@ void RTE::FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 }
 
 // Chunky fog of war mask -> SDF!
-GLuint RTE::FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex) {
+void RTE::FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 #define prnt(str) g_ConsoleMan.PrintString(std::to_string(str))
 #define prnt2(str) g_ConsoleMan.PrintString(str)
 	float timeInSecs = (float)g_TimerMan.GetAbsoluteTime() / 1000000;
@@ -234,12 +234,15 @@ GLuint RTE::FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	Shader shaderMask("Data/Base.rte/Shaders/SDF/SDF_vert.vert", "Data/Base.rte/Shaders/SDF/SDF_1_SeedTexture.frag");
-	Shader shaderJFA("Data/Base.rte/Shaders/SDF/SDF_vert.vert", "Data/Base.rte/Shaders/SDF/SDF_2_JFA.frag");
-	Shader shaderUnsignedSDF("Data/Base.rte/Shaders/SDF/SDF_vert.vert", "Data/Base.rte/Shaders/SDF/SDF_3_UnsignedSDF.frag");
+	Shader shaderMask, shaderJFA, shaderUnsignedSDF, shaderPassthrough;
+	g_PresetMan.GetEntityPreset("Shader", "SDF_1_SeedTexture")->Clone(&shaderMask);
+	g_PresetMan.GetEntityPreset("Shader", "SDF_2_JFA")->Clone(&shaderJFA);
+	g_PresetMan.GetEntityPreset("Shader", "SDF_3_UnsignedSDF")->Clone(&shaderUnsignedSDF);
+	g_PresetMan.GetEntityPreset("Shader", "Passthrough")->Clone(&shaderPassthrough);
 	GLuint programMask = shaderMask.m_ProgramID;
 	GLuint programJFA = shaderJFA.m_ProgramID;
 	GLuint programUnsignedSDF = shaderUnsignedSDF.m_ProgramID;
+	GLuint programPassthrough = shaderPassthrough.m_ProgramID;
 
 		// 1. Mask!
 	glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
@@ -266,8 +269,6 @@ GLuint RTE::FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex) {
 	glBindTexture(GL_TEXTURE_2D, inputTex);
 	glUniform1i(loc, 0);
 
-	loc = glGetFragDataLocation(programMask, "FragNearest");
-
 	// Finally draw!
 	glBindVertexArray(m_SdfVao);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -276,11 +277,13 @@ GLuint RTE::FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex) {
 	GLuint src = m_SdfTexPing, dst = m_SdfTexPong;
 
 	for (int step = std::ceil(std::max(viewWidth, viewHeight) / 2); step >= 1; step /= 2) {
+		// Drawing to DST
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst, 0);
 
 		glViewport(0, 0, viewWidth, viewHeight);
 		glUseProgram(programJFA);
 		
+		// Setting sampler2d as SRC
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, src);
 		glUniform1i(glGetUniformLocation(programJFA, "uPrev"), 0);
@@ -288,7 +291,6 @@ GLuint RTE::FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex) {
 		shaderJFA.SetFloat("uStep", step);
 		shaderJFA.SetVector2f("uViewSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
 
-		glBindVertexArray(m_SdfVao);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		std::swap(src, dst);
@@ -307,14 +309,23 @@ GLuint RTE::FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex) {
 	shaderUnsignedSDF.SetFloat("uMaxDist", std::sqrt(m_BackBuffer8->w * m_BackBuffer8->w + m_BackBuffer8->h * m_BackBuffer8->h));
 	shaderUnsignedSDF.SetVector2f("uViewSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
 
-	glBindVertexArray(m_SdfVao);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
-	std::swap(src, dst);
+	// Result now in DST! 
+	// Passthrough it to outputTex
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outputTex, 0);
 
-	// done, pushout!
+	glViewport(0, 0, viewWidth, viewHeight);
+	glUseProgram(programPassthrough);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, dst);
+	glUniform1i(glGetUniformLocation(programPassthrough, "texToPassthrough"), 0);
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	// Done, wrapup!
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	return src;
 }
 
 void RTE::FrameMan::InitFowSDF(int w, int h) {
@@ -322,6 +333,8 @@ void RTE::FrameMan::InitFowSDF(int w, int h) {
 	// Create the render textures
 	glGenTextures(1, &m_SdfTexPing);
 	glGenTextures(1, &m_SdfTexPong);
+	glGenTextures(1, &m_SdfResultFowMask);
+	glGenTextures(1, &m_SdfResultFowLastSeenTerrainMask);
 
 	auto alloc_rg32f = [&](GLuint tex) {
 		glBindTexture(GL_TEXTURE_2D, tex);
@@ -334,6 +347,8 @@ void RTE::FrameMan::InitFowSDF(int w, int h) {
 
 	alloc_rg32f(m_SdfTexPing);
 	alloc_rg32f(m_SdfTexPong);
+	alloc_rg32f(m_SdfResultFowMask);
+	alloc_rg32f(m_SdfResultFowLastSeenTerrainMask);
 
 	// Create framebuffer
 	glGenFramebuffers(1, &m_SdfFbo);
@@ -1244,7 +1259,8 @@ void FrameMan::Draw() {
 
 	// Fog of war things!
 	FogOfWarSetup(backgroundShader);
-	m_SdfResultFowMask = FogOfWarSetup_DoSDF(fowMaskTex.id);
+	FogOfWarSetup_DoSDF(fowMaskTex.id, m_SdfResultFowMask);
+	FogOfWarSetup_DoSDF(fowMaskLastSeenTex.id, m_SdfResultFowLastSeenTerrainMask);
 
 	// Drawing begins!
 	backgroundShader.Begin();
