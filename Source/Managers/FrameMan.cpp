@@ -217,7 +217,7 @@ void RTE::FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 }
 
 // Chunky fog of war mask -> SDF!
-void RTE::FrameMan::FogOfWarSetup_DoSDF() {
+GLuint RTE::FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex) {
 #define prnt(str) g_ConsoleMan.PrintString(std::to_string(str))
 #define prnt2(str) g_ConsoleMan.PrintString(str)
 	float timeInSecs = (float)g_TimerMan.GetAbsoluteTime() / 1000000;
@@ -230,7 +230,7 @@ void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 		InitFowSDF(viewWidth, viewHeight);
 	}
 
-	glBindTexture(GL_TEXTURE_2D, fowMaskTex.id);
+	glBindTexture(GL_TEXTURE_2D, inputTex);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -263,7 +263,7 @@ void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 	// Set Sampler2D
 	GLint loc = glGetUniformLocation(programMask, "uMask");
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, fowMaskTex.id);
+	glBindTexture(GL_TEXTURE_2D, inputTex);
 	glUniform1i(loc, 0);
 
 	loc = glGetFragDataLocation(programMask, "FragNearest");
@@ -313,8 +313,8 @@ void RTE::FrameMan::FogOfWarSetup_DoSDF() {
 	std::swap(src, dst);
 
 	// done, pushout!
-	finalNearestTex = src;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	return src;
 }
 
 void RTE::FrameMan::InitFowSDF(int w, int h) {
@@ -322,7 +322,6 @@ void RTE::FrameMan::InitFowSDF(int w, int h) {
 	// Create the render textures
 	glGenTextures(1, &m_SdfTexPing);
 	glGenTextures(1, &m_SdfTexPong);
-	glGenTextures(1, &m_SdfTexDist);
 
 	auto alloc_rg32f = [&](GLuint tex) {
 		glBindTexture(GL_TEXTURE_2D, tex);
@@ -333,18 +332,8 @@ void RTE::FrameMan::InitFowSDF(int w, int h) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	};
 
-	auto alloc_r32f = [&](GLuint tex) {
-		glBindTexture(GL_TEXTURE_2D, tex);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, w, h, 0, GL_RED, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	};
-
 	alloc_rg32f(m_SdfTexPing);
 	alloc_rg32f(m_SdfTexPong);
-	alloc_r32f(m_SdfTexDist);
 
 	// Create framebuffer
 	glGenFramebuffers(1, &m_SdfFbo);
@@ -379,7 +368,8 @@ void RTE::FrameMan::InitFowSDF(int w, int h) {
 
 void RTE::FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader) {
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("rteTextureLastSeen"), lastSeenTex.id); // TODO: not just force first player screen
-	rlSetUniformSampler(backgroundShader.GetUniformLocation("fowMaskTexture"), finalNearestTex); //GTODO toggle for smooth and not in settings
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("fowMaskTexture"), m_SdfResultFowMask); // GTODO toggle for smooth and not in settings
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("fowLastSeenMaskTexture"), m_SdfResultFowLastSeenTerrainMask); // GTODO toggle for smooth and not in settings
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("guiTexture"), GUITex.id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("moColor"), MOColorTex.id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("bgTerrainTex"), BgTerrainTex.id);
@@ -1254,7 +1244,7 @@ void FrameMan::Draw() {
 
 	// Fog of war things!
 	FogOfWarSetup(backgroundShader);
-	FogOfWarSetup_DoSDF();
+	m_SdfResultFowMask = FogOfWarSetup_DoSDF(fowMaskTex.id);
 
 	// Drawing begins!
 	backgroundShader.Begin();

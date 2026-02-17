@@ -28,6 +28,7 @@ uniform sampler2D guiTexture;
 uniform sampler2D moColor;
 uniform sampler2D bgTerrainTex;
 uniform sampler2D fgTerrainTex;
+uniform sampler2D fowLastSeenMaskTexture;
 
 const vec3 luminosityFactors = vec3(0.299, 0.587, 0.114);
 
@@ -83,8 +84,8 @@ void main() {
 	const float PALETTE_COLOR_BLACK = 245.0 / 255.0;
 	const float PALETTE_COLOR_MASK = 0.0;
 
-	//vec4 sdfVal = texture(fowMaskTexture, textureUV);
-	//FragColor = vec4(texture(fowMaskTexture, textureUV).rg, 0.1, 1.0);
+	//vec4 testVal = texture(fowLastSeenMaskTexture, textureUV);
+	//FragColor = vec4(testVal.rgb, 1.0);
 	//return;
 	bool fragmentNotInFow = (texture(fowMaskTexture, textureUV).r == 1.0);
 	

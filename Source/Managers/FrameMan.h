@@ -498,7 +498,7 @@ namespace RTE {
 
 		void FogOfWarSetup(Shader& backgroundShader);
 
-		void FogOfWarSetup_DoSDF();
+		GLuint FogOfWarSetup_DoSDF(const GLuint inputTex);
 
 		void InitFowSDF(int w, int h);
 
@@ -507,8 +507,8 @@ namespace RTE {
 		GLuint m_SdfFbo = 0;
 		GLuint m_SdfTexPing = 0;
 		GLuint m_SdfTexPong = 0;
-		GLuint m_SdfTexDist = 0;
-		GLuint finalNearestTex = 0;
+		GLuint m_SdfResultFowMask = 0;
+		GLuint m_SdfResultFowLastSeenTerrainMask = 0;
 		GLuint m_SdfVao = 0;
 		GLuint m_SdfVbo = 0;
 		unsigned m_SdfWidth = -1;
