@@ -100,7 +100,7 @@ function ThreadedUpdate(self)
 				end
 			end
 
-			local smoke = CreatePEmitter("Plasma Flame Hurt Short Float", "MuIlaak.rte");
+			local smoke = CreatePEmitter("Plasma Flame Hurt Short Solaris", "MuIlaak.rte");
 			smoke.Pos = gapPos;
 			smoke.Vel = Vector(trace.X, trace.Y):SetMagnitude(6);
 			smoke.Lifetime = smoke.Lifetime * strengthFactor;
