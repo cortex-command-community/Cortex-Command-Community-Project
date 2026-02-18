@@ -1364,6 +1364,14 @@ bool AHuman::Look(float FOVSpread, float range) {
 		aimPos = GetEyePos();
 	}
 
+	float unseenResolution = (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest();
+	if ((m_LastLookFrom - aimPos).MagnitudeIsLessThan(unseenResolution))
+	{
+		aimPos = m_LastLookFrom;
+	}
+
+	m_LastLookFrom = aimPos;
+
 	// Create the vector to trace along
 	Vector lookVector(aimDistance, 0);
 
@@ -1371,7 +1379,7 @@ bool AHuman::Look(float FOVSpread, float range) {
 	float aimAngle = m_AimAngle - RTE::DegreesToRadians(FOVSpread * (m_HFlipped ? -0.5f : 0.5f));
 
 	// Quantize it also, so it's not so exact and flickery
-	const float degreesPerRotationSegment = 2.5f;
+	const float degreesPerRotationSegment = 2.0f;
 	const float numRotationalSegmentsPerSide = 180.0f / degreesPerRotationSegment;
 	const float quantization = numRotationalSegmentsPerSide / c_PI;
 	aimAngle = std::round(aimAngle * quantization) / quantization;
@@ -1381,7 +1389,7 @@ bool AHuman::Look(float FOVSpread, float range) {
 	lookVector *= aimMatrix;
 
 	// The smallest dimension of the fog block, divided by two, but always at least one, as the step for the casts
-	int step = (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2;
+	int step = (int)unseenResolution / 2;
 	Vector ignored(0, 0);
 
 	// Pathfinding dig strength is suitable to dig through light debris and corpses, so is a good value for sight too

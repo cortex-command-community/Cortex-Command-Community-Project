@@ -974,6 +974,8 @@ namespace RTE {
 		// should be centered on if tracking this Actor's view.
 		// In absolute scene coordinates.
 		Vector m_ViewPoint;
+		// The last position we looked from (so we can do some hysterisis here to avoid flickering)
+		Vector m_LastLookFrom;
 		// The inventory of carried MovableObjects of this Actor. They are also Owned by this.
 		std::deque<MovableObject*> m_Inventory;
 		float m_MaxInventoryMass; //!< The mass limit for this Actor's inventory. -1 means there's no limit.
