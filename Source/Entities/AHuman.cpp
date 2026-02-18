@@ -1377,15 +1377,16 @@ bool AHuman::Look(float FOVSpread, float range) {
 
 	int rayNum = 10;
 	if (GetTeam() == 0) {
-		rayNum = 90;
-		FOVSpread *= 1.4;
+		rayNum = 100;
+		FOVSpread *= 1.2;
 		// GTODO: oops hardcoded
 		g_SceneMan.RevealUnseenBox(GetPos().GetX() - 36, GetPos().GetY() - 37, 63, 70, 0);
+		step = 0;
 	}
 	lookVector.DegRotate(-FOVSpread / 2);
 	for (int rayIt = 0; rayIt < rayNum; rayIt++) {
 		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, step);
-		lookVector.DegRotate(FOVSpread / rayNum);
+		lookVector.DegRotate(FOVSpread / (rayNum - 1));
 	}
 	// TODO: generate an alarm event if we spot an enemy actor?
 

@@ -1314,6 +1314,14 @@ void MovableMan::Update() {
 
 	// Finish our Seeing rays from last frame
 	m_ActorsSeeFuture.wait();
+	// GTODO: resetting currently visible FOW here with this
+	for (int playerIt = PlayerOne; playerIt < MaxPlayerCount; playerIt++) {
+		Activity* currentActivity = g_ActivityMan.GetActivity();
+		if (currentActivity->PlayerActive(playerIt) && currentActivity->PlayerHuman(playerIt)) {
+			int team = currentActivity->GetTeamOfPlayer(playerIt);
+			g_SceneMan.MakeAllUnseen(g_SceneMan.GetUnseenResolution(team), team);
+		}
+	}
 
 	// Prior to controller/AI update, execute lua callbacks
 	g_LuaMan.ExecuteLuaScriptCallbacks();
@@ -1667,22 +1675,21 @@ void MovableMan::Update() {
 	}
 
 	// Run seeing rays for all actors
-	// GTODO: resetting currently visible FOW here with this
-	for (int playerIt = PlayerOne; playerIt < MaxPlayerCount; playerIt++) {
-		Activity* currentActivity = g_ActivityMan.GetActivity();
-		if (currentActivity->PlayerActive(playerIt) && currentActivity->PlayerHuman(playerIt)) {
-			int team = currentActivity->GetTeamOfPlayer(playerIt);
-			g_SceneMan.MakeAllUnseen(g_SceneMan.GetUnseenResolution(team), team);
-		}
-	}
 	// GTODO: shouldnt i only do this for player actors?
-	m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
+	/* m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
 	                                                                         [&](int start, int end) {
 		                                                                         ZoneScopedN("Actors See");
 		                                                                         for (int i = start; i < end; ++i) {
 			                                                                         m_Actors[i]->CastSeeRays();
 		                                                                         }
-	                                                                         });
+	                                                                         });*/
+
+	for (int i = 0; i < m_Actors.size(); ++i) {
+		if (m_Actors[i]->GetTeam() != 0) {
+			continue;
+		}
+		m_Actors[i]->CastSeeRays();
+	}
 
 	// We've finished stuff that can interact with lua script, so it's the ideal time to start a gc run
 	g_LuaMan.StartAsyncGarbageCollection();

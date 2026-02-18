@@ -61,8 +61,8 @@ vec4 ApplyPaletteAndDesat(float red, vec2 uv, float desat, float darken) {
     vec4 col = ApplyPalette(red);
 	
 	float texelY = uv.y * uSceneSize.y;
-	float scan = sin(texelY	 * 3.14159 / 2) * 0.03;
-	float noise = (rand(gl_FragCoord.xy + uNoiseSeed) * 2.0 - 1.0) * 0.025;
+	float scan = sin(texelY * 3.14159 / 2) * 0.12;
+	float noise = (rand(gl_FragCoord.xy + uNoiseSeed) * 2.0 - 1.0) * 0.075;
 	
 	float lum = dot(col.rgb, luminosityFactors);
 	vec3 grayColor = vec3(lum);
@@ -145,14 +145,14 @@ void main() {
 		if (lastSeenTerrainColor == PALETTE_COLOR_MASK && drawMasked) {
 			// Background terrain
 			if (bgTerrainVal != PALETTE_COLOR_MASK) {
-				FragColor = ApplyPaletteAndDesat(bgTerrainVal, textureUV, 0.5, 0.68);
+				FragColor = ApplyPaletteAndDesat(bgTerrainVal, sceneUV, 0.5, 0.68);
 				return;
 			}
 			discard;
 		}
 		
 		// Palette lookup
-		FragColor = ApplyPaletteAndDesat(lastSeenTerrainColor, sceneUV, 0.8, 0.8);
+		FragColor = ApplyPaletteAndDesat(lastSeenTerrainColor, sceneUV, 0.7, 0.85);
 		return;
 	}
 }
