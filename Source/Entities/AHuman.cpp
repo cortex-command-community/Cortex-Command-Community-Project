@@ -1377,12 +1377,20 @@ bool AHuman::Look(float FOVSpread, float range) {
 
 	int rayNum = 10;
 	if (GetTeam() == 0) {
-		rayNum = 60;
-		FOVSpread *= 1.3;
+		rayNum = 40;
+		FOVSpread *= 1.4;
 		// GTODO: oops hardcoded
-		g_SceneMan.RevealUnseenBox(GetPos().GetX() - 36, GetPos().GetY() - 37, 63, 70, 0);
+		Vector bubbleAroundActorLookVector(32, 0);
+		int bubbleRayNum = 9;
+		for (int rayIt = 0; rayIt < rayNum; rayIt++) {
+			g_SceneMan.CastSeeRay(m_Team, aimPos, bubbleAroundActorLookVector, ignored, 25, step);
+			bubbleAroundActorLookVector.RadRotate(2 * PI / bubbleRayNum);
+		}
+		//g_SceneMan.RevealUnseenBox(GetPos().GetX() - 36, GetPos().GetY() - 37, 63, 70, 0);
 	}
-	lookVector.DegRotate(-FOVSpread / 2);
+	// We snap the angle to closest five degrees
+	float initDegRotation = round(- FOVSpread / 2 / 5) * 5;
+	lookVector.DegRotate(initDegRotation);
 	for (int rayIt = 0; rayIt < rayNum; rayIt++) {
 		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, step);
 		lookVector.DegRotate(FOVSpread / (rayNum - 1));
