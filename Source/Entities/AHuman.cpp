@@ -1366,8 +1366,17 @@ bool AHuman::Look(float FOVSpread, float range) {
 
 	// Create the vector to trace along
 	Vector lookVector(aimDistance, 0);
+
 	// Set the rotation to the actual aiming angle
-	Matrix aimMatrix(m_HFlipped ? -m_AimAngle : m_AimAngle);
+	// Quantize it also, so it's not so exact and flickery
+	const float numRotationalSegmentsPerSide = 180.0f; // 1 per every degree
+	const float quantization = numRotationalSegmentsPerSide / c_PI;
+	float aimAngle = std::round(m_AimAngle * quantization) / quantization;
+
+	// Now move it back to the start the FoV
+	aimAngle -= RTE::DegreesToRadians(FOVSpread * (m_HFlipped ? -0.5f : 0.5f));
+
+	Matrix aimMatrix(m_HFlipped ? -aimAngle : aimAngle);
 	aimMatrix.SetXFlipped(m_HFlipped);
 	lookVector *= aimMatrix;
 
@@ -1378,21 +1387,19 @@ bool AHuman::Look(float FOVSpread, float range) {
 	int rayNum = 10;
 	if (GetTeam() == 0) {
 		rayNum = 40;
-		FOVSpread *= 1.4;
 		// GTODO: oops hardcoded
-		Vector bubbleAroundActorLookVector(32, 0);
-		int bubbleRayNum = 9;
+		float bubblePixelRadius = 50.0f;
+		Vector bubbleAroundActorLookVector(bubblePixelRadius, 0);
+		int bubbleRayNum = 16;
 		for (int rayIt = 0; rayIt < rayNum; rayIt++) {
-			g_SceneMan.CastSeeRay(m_Team, aimPos, bubbleAroundActorLookVector, ignored, 25, step);
+			g_SceneMan.CastSeeRay(m_Team, aimPos, bubbleAroundActorLookVector, ignored, 500, step);
 			bubbleAroundActorLookVector.RadRotate(2 * PI / bubbleRayNum);
 		}
 		//g_SceneMan.RevealUnseenBox(GetPos().GetX() - 36, GetPos().GetY() - 37, 63, 70, 0);
 	}
-	// We snap the angle to closest five degrees
-	float initDegRotation = round(- FOVSpread / 2 / 5) * 5;
-	lookVector.DegRotate(initDegRotation);
+
 	for (int rayIt = 0; rayIt < rayNum; rayIt++) {
-		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 25, step);
+		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 500, step);
 		lookVector.DegRotate(FOVSpread / (rayNum - 1));
 	}
 	// TODO: generate an alarm event if we spot an enemy actor?
