@@ -71,6 +71,28 @@ void SceneMan::Clear() {
 	m_ScrapCompactingHeight = 25;
 }
 
+void SceneMan::WrappedBlit(BITMAP* source, BITMAP* dest, int source_x, int source_y) {
+	int worldW = source->w;
+	int worldH = source->h;
+	int screenW = dest->w;
+	int screenH = dest->h;
+
+	int srcX = (source_x % worldW + worldW) % worldW;
+	int srcY = (source_y % worldH + worldH) % worldH;
+
+	int partW1 = std::min(screenW, worldW - srcX);
+	int partH1 = std::min(screenH, worldH - srcY);
+
+	int partW2 = screenW - partW1;
+	int partH2 = screenH - partH1;
+
+	blit(source, dest, srcX, srcY, 0, 0, partW1, partH1);
+
+	if (partW2 > 0) {
+		blit(source, dest, 0, srcY, partW1, 0, partW2, partH1);
+	}
+}
+
 void SceneMan::Initialize() const {
 	// Can't create these earlier in the static declaration because allegro_init needs to be called before create_bitmap
 	m_IntermediateSettlingBitmaps = {
@@ -2663,19 +2685,19 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, BITMAP* targe
 				//terrain->SetLayerToDraw(SLTerrain::LayerType::BackgroundLayer);
 				//terrain->Draw(targetDimensions, targetBox);
 				BITMAP* BGTerrainBm = terrain->GetBGColorBitmap();
-				blit(BGTerrainBm, targetBgTerrainBitmap, viewOrigin.GetX(), viewOrigin.GetY(), 0, 0, targetBgTerrainBitmap->w, targetBgTerrainBitmap->h);
+				WrappedBlit(BGTerrainBm, targetBgTerrainBitmap, viewOrigin.GetX(), viewOrigin.GetY());
 			}
 
 			// Color MO's
 			BITMAP* MOColorLayerBm = m_pMOColorLayer->GetBitmap();
-			blit(MOColorLayerBm, targetMOColorBitmap, viewOrigin.GetX(), viewOrigin.GetY(), 0, 0, targetMOColorBitmap->w, targetMOColorBitmap->h);
+			WrappedBlit(MOColorLayerBm, targetMOColorBitmap, viewOrigin.GetX(), viewOrigin.GetY());
 
 			// Foreground terrain
 			if (!skipTerrain) {
 				//terrain->SetLayerToDraw(SLTerrain::LayerType::ForegroundLayer);
 				//terrain->Draw(targetDimensions, targetBox);
 				BITMAP* FGTerrainBm = terrain->GetFGColorBitmap();
-				blit(FGTerrainBm, targetFgTerrainBitmap, viewOrigin.GetX(), viewOrigin.GetY(), 0, 0, targetFgTerrainBitmap->w, targetFgTerrainBitmap->h);
+				WrappedBlit(FGTerrainBm, targetFgTerrainBitmap, viewOrigin.GetX(), viewOrigin.GetY());
 			}
 
 			bool shouldDrawHUD = !g_FrameMan.IsHudDisabled(m_LastUpdatedScreen);

@@ -57,11 +57,11 @@ float rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898,78.233))) * 43758.5453);
 }
 	
-vec4 ApplyPaletteAndDesat(float red, vec2 uv, float desat, float darken) {
+vec4 ApplyPaletteAndDesat(float red, vec2 uv, float desat, float darken, float scanlinePhaseOffset) {
     vec4 col = ApplyPalette(red);
 	
 	float texelY = uv.y * uSceneSize.y;
-	float scan = sin(texelY * 3.14159 / 2) * 0.12;
+	float scan = sin(texelY * 3.14159 / 2 + scanlinePhaseOffset) * 0.12;
 	float noise = (rand(gl_FragCoord.xy + uNoiseSeed) * 2.0 - 1.0) * 0.075;
 	
 	float lum = dot(col.rgb, luminosityFactors);
@@ -145,14 +145,14 @@ void main() {
 		if (lastSeenTerrainColor == PALETTE_COLOR_MASK && drawMasked) {
 			// Background terrain
 			if (bgTerrainVal != PALETTE_COLOR_MASK) {
-				FragColor = ApplyPaletteAndDesat(bgTerrainVal, sceneUV, 0.5, 0.68);
+				FragColor = ApplyPaletteAndDesat(bgTerrainVal, sceneUV, 0.5, 0.68, 0.1);
 				return;
 			}
 			discard;
 		}
 		
 		// Palette lookup
-		FragColor = ApplyPaletteAndDesat(lastSeenTerrainColor, sceneUV, 0.7, 0.85);
+		FragColor = ApplyPaletteAndDesat(lastSeenTerrainColor, sceneUV, 0.7, 0.85, 0);
 		return;
 	}
 }

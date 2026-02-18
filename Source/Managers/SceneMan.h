@@ -1037,6 +1037,8 @@ namespace RTE {
 		/// resetting the members of this abstraction level only.
 		void Clear();
 
+		void WrappedBlit(BITMAP* source, BITMAP* dest, int source_x, int source_y);
+
 		// Disallow the use of some implicit methods.
 		SceneMan(const SceneMan& reference) = delete;
 		SceneMan& operator=(const SceneMan& rhs) = delete;

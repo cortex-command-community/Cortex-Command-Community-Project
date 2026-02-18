@@ -15,7 +15,11 @@ void main() {
     }
     vec2 nearestPx = n.xy * uViewSize;
     vec2 fragPx = gl_FragCoord.xy;
-    float dist = length(nearestPx - fragPx); // Distance in pixels
+	
+    vec2 d = abs(nearestPx - fragPx);
+	d = min(d, uViewSize - d); // toroidal wrap so we done have a seam
+
+	float dist = length(d);
 
     // Normalize for display (0-1)
     float outVal = clamp(dist / uMaxDist, 0.0, 1.0);	
