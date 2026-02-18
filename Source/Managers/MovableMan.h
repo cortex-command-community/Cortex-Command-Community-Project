@@ -599,8 +599,7 @@ namespace RTE {
 		std::future<void> m_DrawMOIDsTask;
 
 		// Async to have actors see in parallel
-		// BS::multi_future<void> m_ActorsSeeFuture;
-		std::future<void> m_ActorsSeeFuture;
+		BS::multi_future<void> m_ActorsSeeFuture;
 
 		// Roster of each team's actors, sorted by their X positions in the scene. Actors not owned here
 		std::list<Actor*> m_ActorRoster[Activity::MaxTeamCount];
