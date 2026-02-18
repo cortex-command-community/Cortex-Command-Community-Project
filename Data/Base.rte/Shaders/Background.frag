@@ -83,7 +83,7 @@ void main() {
 	
 	const float PALETTE_COLOR_BLACK = 245.0 / 255.0;
 	const float PALETTE_COLOR_MASK = 0.0;
-	const float USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND = 0.011;
+	const float USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND = 0.013;
 	
 	bool fragmentNotInFow = (texture(fowMaskTexture, textureUV).r > USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND);
 	

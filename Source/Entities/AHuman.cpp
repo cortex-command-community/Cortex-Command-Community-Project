@@ -1384,22 +1384,25 @@ bool AHuman::Look(float FOVSpread, float range) {
 	int step = (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest() / 2;
 	Vector ignored(0, 0);
 
+	// Pathfinding dig strength is suitable to dig through light debris and corpses, so is a good value for sight too
+	const float strength = c_PathFindingDefaultDigStrength;
+
 	int rayNum = 10;
 	if (GetTeam() == 0) {
 		rayNum = 40;
 		// GTODO: oops hardcoded
-		float bubblePixelRadius = 50.0f;
+		float bubblePixelRadius = 36.0f;
 		Vector bubbleAroundActorLookVector(bubblePixelRadius, 0);
 		int bubbleRayNum = 16;
 		for (int rayIt = 0; rayIt < rayNum; rayIt++) {
-			g_SceneMan.CastSeeRay(m_Team, aimPos, bubbleAroundActorLookVector, ignored, 500, step);
+			g_SceneMan.CastSeeRay(m_Team, aimPos, bubbleAroundActorLookVector, ignored, strength, step);
 			bubbleAroundActorLookVector.RadRotate(2 * PI / bubbleRayNum);
 		}
 		//g_SceneMan.RevealUnseenBox(GetPos().GetX() - 36, GetPos().GetY() - 37, 63, 70, 0);
 	}
 
 	for (int rayIt = 0; rayIt < rayNum; rayIt++) {
-		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, 500, step);
+		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, strength, step);
 		lookVector.DegRotate(FOVSpread / (rayNum - 1));
 	}
 	// TODO: generate an alarm event if we spot an enemy actor?

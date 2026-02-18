@@ -1200,7 +1200,7 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 	bool affectedAny = false;
 	unsigned char materialID;
 	Material const* foundMaterial;
-	int totalStrength = 0;
+
 	// Save the projected end of the ray pos
 	endPos = start + ray;
 
@@ -1280,10 +1280,8 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 			materialID = GetTerrMatter(intPos[X], intPos[Y]);
 			// Get the material object
 			foundMaterial = GetMaterialFromID(materialID);
-			// Add the encountered material's strength to the tally
-			totalStrength += foundMaterial->GetIntegrity();
 			// See if we have hit the limits of our ray's strength
-			if (totalStrength >= strengthLimit) {
+			if (foundMaterial->GetIntegrity() >= strengthLimit) {
 				// Save the position of the end of the ray where blocked
 				endPos.SetXY(intPos[X], intPos[Y]);
 				break;
