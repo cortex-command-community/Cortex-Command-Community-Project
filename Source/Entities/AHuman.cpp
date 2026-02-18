@@ -1377,11 +1377,10 @@ bool AHuman::Look(float FOVSpread, float range) {
 
 	int rayNum = 10;
 	if (GetTeam() == 0) {
-		rayNum = 100;
-		FOVSpread *= 1.2;
+		rayNum = 60;
+		FOVSpread *= 1.3;
 		// GTODO: oops hardcoded
 		g_SceneMan.RevealUnseenBox(GetPos().GetX() - 36, GetPos().GetY() - 37, 63, 70, 0);
-		step = 0;
 	}
 	lookVector.DegRotate(-FOVSpread / 2);
 	for (int rayIt = 0; rayIt < rayNum; rayIt++) {
