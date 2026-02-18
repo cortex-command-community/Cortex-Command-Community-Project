@@ -2739,7 +2739,7 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, BITMAP* targe
 			}
 
 			if (m_pDebugLayer) {
-				//m_pDebugLayer->Draw(targetDimensions, targetBox);
+				m_pDebugLayer->Draw(targetDimensions, targetBox);
 			}
 
 			break;

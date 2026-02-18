@@ -1367,14 +1367,14 @@ bool AHuman::Look(float FOVSpread, float range) {
 	// Create the vector to trace along
 	Vector lookVector(aimDistance, 0);
 
-	// Set the rotation to the actual aiming angle
-	// Quantize it also, so it's not so exact and flickery
-	const float numRotationalSegmentsPerSide = 180.0f; // 1 per every degree
-	const float quantization = numRotationalSegmentsPerSide / c_PI;
-	float aimAngle = std::round(m_AimAngle * quantization) / quantization;
+	// Calculate aim angle from the start of FoV
+	float aimAngle = m_AimAngle - RTE::DegreesToRadians(FOVSpread * (m_HFlipped ? -0.5f : 0.5f));
 
-	// Now move it back to the start the FoV
-	aimAngle -= RTE::DegreesToRadians(FOVSpread * (m_HFlipped ? -0.5f : 0.5f));
+	// Quantize it also, so it's not so exact and flickery
+	const float degreesPerRotationSegment = 2.5f;
+	const float numRotationalSegmentsPerSide = 180.0f / degreesPerRotationSegment;
+	const float quantization = numRotationalSegmentsPerSide / c_PI;
+	aimAngle = std::round(aimAngle * quantization) / quantization;
 
 	Matrix aimMatrix(m_HFlipped ? -aimAngle : aimAngle);
 	aimMatrix.SetXFlipped(m_HFlipped);
@@ -1386,10 +1386,9 @@ bool AHuman::Look(float FOVSpread, float range) {
 
 	// Pathfinding dig strength is suitable to dig through light debris and corpses, so is a good value for sight too
 	const float strength = c_PathFindingDefaultDigStrength;
-
-	int rayNum = 10;
+	
+	int rayNum = FOVSpread / degreesPerRotationSegment; 
 	if (GetTeam() == 0) {
-		rayNum = 40;
 		// GTODO: oops hardcoded
 		float bubblePixelRadius = 36.0f;
 		Vector bubbleAroundActorLookVector(bubblePixelRadius, 0);
