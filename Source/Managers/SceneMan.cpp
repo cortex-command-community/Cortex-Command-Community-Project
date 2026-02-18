@@ -1191,8 +1191,11 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 		return false;
 	}
 
+	const int revealSize = 40;
+	const int resolution = GetUnseenResolution(team).GetLargest();
+
 	int error, dom, sub, domSteps, skipped = skip;
-	int size = 40 - GetUnseenResolution(team).GetLargest();
+	int size = revealSize - resolution;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	bool affectedAny = false;
 	unsigned char materialID;
@@ -1201,10 +1204,12 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 	// Save the projected end of the ray pos
 	endPos = start + ray;
 
-	intPos[X] = std::floor(start.m_X);
-	intPos[Y] = std::floor(start.m_Y);
-	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
-	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
+	// Quantize to a coarser grid- this stops single-pixel flickers constantly occuring
+	const int quantization = resolution;
+	intPos[X] = std::floor(start.m_X / quantization) * quantization;
+	intPos[Y] = std::floor(start.m_Y / quantization) * quantization;
+	delta[X] = std::floor(intPos[X] + ray.m_X) - intPos[X];
+	delta[Y] = std::floor(intPos[Y] + ray.m_Y) - intPos[Y];
 
 	if (delta[X] == 0 && delta[Y] == 0)
 		return false;
