@@ -1313,7 +1313,11 @@ void MovableMan::Update() {
 	}
 
 	// Finish our Seeing rays from last frame
-	m_ActorsSeeFuture.wait();
+	if (m_ActorsSeeFuture.valid())
+	{
+		m_ActorsSeeFuture.wait();
+	}
+
 	// GTODO: resetting currently visible FOW here with this
 	for (int playerIt = PlayerOne; playerIt < MaxPlayerCount; playerIt++) {
 		Activity* currentActivity = g_ActivityMan.GetActivity();
@@ -1676,20 +1680,24 @@ void MovableMan::Update() {
 
 	// Run seeing rays for all actors
 	// GTODO: shouldnt i only do this for player actors?
-	/* m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
+
+	// RIght now I'm not properly multithreading, because allegro is fucking with stuff due to it's dumb use of members as statics
+	/*m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
 	                                                                         [&](int start, int end) {
 		                                                                         ZoneScopedN("Actors See");
 		                                                                         for (int i = start; i < end; ++i) {
 			                                                                         m_Actors[i]->CastSeeRays();
 		                                                                         }
 	                                                                         });*/
-
-	for (int i = 0; i < m_Actors.size(); ++i) {
-		if (m_Actors[i]->GetTeam() != 0) {
-			continue;
-		}
-		m_Actors[i]->CastSeeRays();
-	}
+	m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().submit([&]() {
+		                                                               ZoneScopedN("Actors See");
+		                                                               for (int i = 0; i < m_Actors.size(); ++i) {
+																		   if (m_Actors[i]->GetTeam() != 0) {
+																			   continue;
+																		   }
+			                                                               m_Actors[i]->CastSeeRays();
+		                                                               }
+	                                                                });
 
 	// We've finished stuff that can interact with lua script, so it's the ideal time to start a gc run
 	g_LuaMan.StartAsyncGarbageCollection();
