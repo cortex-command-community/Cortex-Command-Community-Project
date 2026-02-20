@@ -316,9 +316,9 @@ namespace RTE {
 #pragma endregion
 
 		void ClearTextures() {
-			if (fowMaskTex.id) {
-				rlUnloadTexture(fowMaskTex.id);
-				fowMaskTex.id = 0;
+			if (instantVisibleFowMaskTex.id) {
+				rlUnloadTexture(instantVisibleFowMaskTex.id);
+				instantVisibleFowMaskTex.id = 0;
 			}
 			if (lastSeenTex.id) {
 				rlUnloadTexture(lastSeenTex.id);

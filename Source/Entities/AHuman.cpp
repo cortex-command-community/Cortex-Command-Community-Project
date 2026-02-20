@@ -1401,8 +1401,9 @@ bool AHuman::Look(float FOVSpread, float range) {
 		float bubblePixelRadius = 36.0f;
 		Vector bubbleAroundActorLookVector(bubblePixelRadius, 0);
 		int bubbleRayNum = 16;
+		Vector bubbleCenterPos = GetPos();
 		for (int rayIt = 0; rayIt < rayNum; rayIt++) {
-			g_SceneMan.CastSeeRay(m_Team, aimPos, bubbleAroundActorLookVector, ignored, strength, step);
+			g_SceneMan.CastSeeRay(m_Team, bubbleCenterPos, bubbleAroundActorLookVector, ignored, strength, step);
 			bubbleAroundActorLookVector.RadRotate(2 * PI / bubbleRayNum);
 		}
 		//g_SceneMan.RevealUnseenBox(GetPos().GetX() - 36, GetPos().GetY() - 37, 63, 70, 0);

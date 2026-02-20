@@ -1029,7 +1029,8 @@ bool SceneMan::RestoreUnseen(const int posX, const int posY, const int team) {
 		int pixel = getpixel(pUnseenLayerMask->GetBitmap(), scaledX, scaledY);
 		if (pixel != g_BlackColor && pixel != -1) {
 			// Restore that pixel on the map so it won't be detected as seen again
-			putpixel(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, 1);
+			// 255 so it becomes 1.0 at compositing stage
+			putpixel(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, 255);
 
 			// GTODO: remove! this is for hiding stuff! previously seen should be untouched!
 			// Blit for previously seen terrain
