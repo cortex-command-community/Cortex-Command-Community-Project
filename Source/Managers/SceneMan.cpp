@@ -931,6 +931,86 @@ void SceneMan::MakeAllUnseen(Vector pixelSize, const int team) {
 	m_pCurrentScene->FillUnseenLayerMask(pixelSize, team);
 }
 
+void SceneMan::CommitToLastSeenTerrainWithFowMask(const int team) {
+	// To minimize blit calls we do a greedy vertical merge of the immediately-seeing mask
+	// From that we get rectangles
+	BITMAP* fowMaskBm = m_pCurrentScene->GetUnseenLayerMask(team)->GetBitmap();
+	int fowMaskWidth = fowMaskBm->w;
+	int fowMaskHeight = fowMaskBm->h;
+
+	struct Run {
+		int x0, x1;
+	};
+	struct Rect {
+		int x0, x1, y0, y1;
+	};
+
+	std::vector<Rect> active;
+	std::vector<Rect> next;
+	std::vector<Rect> output;
+
+	auto FindRuns = [](unsigned char* row, int W, std::vector<Run>& runs) {
+		runs.clear();
+
+		for (int x = 0; x < W;) {
+			if (!row[x]) {
+				x++;
+				continue;
+			}
+
+			int x0 = x;
+			while (x < W && row[x])
+				x++;
+
+			runs.push_back({x0, x});
+		}
+	};
+
+	for (int y = 0; y < fowMaskHeight; y++) {
+		std::vector<Run> runs;
+		FindRuns(fowMaskBm->line[y], fowMaskWidth, runs);
+
+		next.clear();
+
+		int i = 0, j = 0;
+
+		while (i < runs.size() || j < active.size()) {
+			if (i < runs.size() && j < active.size() &&
+			    runs[i].x0 == active[j].x0 &&
+			    runs[i].x1 == active[j].x1) {
+				active[j].y1 = y + 1;
+				next.push_back(active[j]);
+				i++;
+				j++;
+			} else if (j < active.size() &&
+			           (i == runs.size() || active[j].x0 < runs[i].x0)) {
+				output.push_back(active[j]);
+				j++;
+			} else {
+				next.push_back({runs[i].x0, runs[i].x1, y, y + 1});
+				i++;
+			}
+		}
+
+		active.swap(next);
+	}
+
+	// Done!
+	output.insert(output.end(), active.begin(), active.end());
+
+	// Finally blit for previously seen terrain
+	SceneLayer* pUnseenLayerTerrain = m_pCurrentScene->GetUnseenLayerTerrain(team);
+	Vector scale = m_pCurrentScene->GetUnseenLayerMask(team)->GetScaleFactor();
+	for (auto& rect: output) {
+		int x = rect.x0 * scale.m_X;
+		int y = rect.y0 * scale.m_Y;
+		int w = (rect.x1 - rect.x0) * scale.m_X;
+		int h = (rect.y1 - rect.y0) * scale.m_Y;
+		blit(m_pCurrentScene->GetTerrain()->GetFGColorBitmap(), pUnseenLayerTerrain->GetBitmap(), x, y, x, y, w, h);
+	}
+
+}
+
 // GTODO: a team may have several human players. Iterate over all of them
 // CastSeeRay already quantizes its positions, so no need to worry here
 void SceneMan::CastSeeRaysFromSky(const int team) {
@@ -1122,14 +1202,6 @@ void SceneMan::RevealUnseenBox(const int posX, const int posY, const int width, 
 		SceneLayer* pUnseenLayerTerrainMask = m_pCurrentScene->GetUnseenLayerTerrainMask(team);
 		rectfill(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
 		rectfill(pUnseenLayerTerrainMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
-		// Blit for previously seen terrain
-		SceneLayer* pUnseenLayerTerrain = m_pCurrentScene->GetUnseenLayerTerrain(team);
-		//rectfill(pUnseenLayerTerrain->GetBitmap(), posX, posY, width, height, g_RedColor);
-		int rescaledX = scaledX * scale.m_X;
-		int rescaledY = scaledY * scale.m_Y;
-		int rescaledW = scaledW * scale.m_X;
-		int rescaledH = scaledH * scale.m_Y;
-		blit(m_pCurrentScene->GetTerrain()->GetFGColorBitmap(), pUnseenLayerTerrain->GetBitmap(), rescaledX, rescaledY, rescaledX, rescaledY, rescaledW, rescaledH);
 	}
 }
 

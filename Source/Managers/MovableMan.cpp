@@ -1323,7 +1323,9 @@ void MovableMan::Update() {
 		for (int playerIt = PlayerOne; playerIt < MaxPlayerCount; playerIt++) {
 			if (currentActivity->PlayerActive(playerIt) && currentActivity->PlayerHuman(playerIt)) {
 				int team = currentActivity->GetTeamOfPlayer(playerIt);
-				// Clear what was immediatelly seen
+				// Cast what's immediately seen to last-seen-terrain
+				g_SceneMan.CommitToLastSeenTerrainWithFowMask(team);
+				// Clear what was immediately seen
 				// GTODO: make this not eat a fow resolution, tweak functions accordingly
 				g_SceneMan.MakeAllUnseen(g_SceneMan.GetUnseenResolution(team), team);
 				// Reveal what's being seen from orbit

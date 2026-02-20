@@ -435,6 +435,8 @@ namespace RTE {
 		// GTODO: add desc and make work with differing angles and exit in enclosed maps
 		void CastSeeRaysFromSky(const int team);
 
+		void CommitToLastSeenTerrainWithFowMask(const int team);
+
 		/// Sets one team's view of the scene to be all seen.
 		/// @param team The team we're talking about.
 		void MakeAllSeen(const int team);
