@@ -658,6 +658,8 @@ namespace RTE {
 		/// Ideally we wouldn't need this, but this is all very fragile code and I'd prefer to avoid breaking things.
 		void PreControllerUpdate();
 
+		void DecayFogOfWarMask();
+
 		// Disallow the use of some implicit methods.
 		MovableMan(const MovableMan& reference) = delete;
 		MovableMan& operator=(const MovableMan& rhs) = delete;

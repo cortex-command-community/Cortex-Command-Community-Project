@@ -487,10 +487,11 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 			// Create the bitmaps to make the unseen scene layers out of
 			BITMAP* pUnseenMaskBitmap = create_bitmap_ex(8, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
 			clear_to_color(pUnseenMaskBitmap, g_BlackColor);
+			// We clear these to 255 to get them to be 1.0 in the compositing step
 			BITMAP* pUnseenTerrainBitmap = create_bitmap_ex(8, GetWidth(), GetHeight()); // 1-to-1, as is regular terrain
-			clear_to_color(pUnseenTerrainBitmap, g_BlackColor);
+			clear_to_color(pUnseenTerrainBitmap, 255);
 			BITMAP* pUnseenTerrainMaskBitmap = create_bitmap_ex(8, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
-			clear_to_color(pUnseenTerrainMaskBitmap, g_BlackColor);
+			clear_to_color(pUnseenTerrainMaskBitmap, 255);
 			// Replace any old unseen layer with the new one that is generated
 			delete m_apUnseenLayerMask[team];
 			delete m_apUnseenLayerTerrain[team];
@@ -1662,11 +1663,13 @@ void Scene::FillUnseenLayerMask(Vector pixelSize, int team, bool createNow) {
 
 	m_UnseenPixelSize[team] = pixelSize;
 
+	// We clear the masks here to 255 so they're 1.0 at compositing step
+	
 	// Dynamically create the unseen layer
 	// Create the bitmap to make the unseen scene layer out of
 	if (createNow) {
 		BITMAP* pUnseenMaskBitmap = create_bitmap_ex(8, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
-		clear_to_color(pUnseenMaskBitmap, g_BlackColor);
+		clear_to_color(pUnseenMaskBitmap, 255);
 		// Replace any old unseen layer with the new one that is generated
 		delete m_apUnseenLayerMask[team];
 		m_apUnseenLayerMask[team] = new SceneLayer();
@@ -1686,7 +1689,7 @@ void Scene::FillUnseenLayerMask(Vector pixelSize, int team, bool createNow) {
 
 		if (!m_apUnseenLayerTerrainMask[team]) {
 			BITMAP* pUnseenTerrainMaskBitmap = create_bitmap_ex(8, pUnseenMaskBitmap->w, pUnseenMaskBitmap->h);
-			clear_to_color(pUnseenTerrainMaskBitmap, g_BlackColor);
+			clear_to_color(pUnseenTerrainMaskBitmap, 255);
 			m_apUnseenLayerTerrainMask[team] = new SceneLayer();
 			m_apUnseenLayerTerrainMask[team]->Create(pUnseenTerrainMaskBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
 			m_apUnseenLayerTerrainMask[team]->SetScaleFactor(m_apUnseenLayerMask[team]->GetScaleFactor());

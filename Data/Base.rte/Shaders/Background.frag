@@ -83,13 +83,12 @@ void main() {
 	
 	const float PALETTE_COLOR_BLACK = 245.0 / 255.0;
 	const float PALETTE_COLOR_MASK = 0.0;
-	const float USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND = 0.013;
+	const float USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND = 0.011;
 	
 	bool fragmentNotInFow = (texture(fowMaskTexture, textureUV).r > USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND);
 	
 	vec2 sceneUV = (uViewOrigin + textureUV * uViewSize) / uSceneSize;
 	
-	//bool fragmentNotInFow = texture(fowMaskTexture, sceneUV).r == PALETTE_COLOR_MASK;
 	float guiVal = texture(guiTexture, textureUV).r;
 	bool fragmentIsGui = guiVal != PALETTE_COLOR_MASK;
 	float moVal = texture(moColor, textureUV).r;

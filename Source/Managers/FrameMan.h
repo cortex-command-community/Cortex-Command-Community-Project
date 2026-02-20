@@ -409,7 +409,7 @@ namespace RTE {
 		AllegroBitmap BgTerrainBM;
 		AllegroBitmap FgTerrainBM;
 		Texture2D lastSeenTex = {0};
-		Texture2D fowMaskTex = {0};
+		Texture2D instantVisibleFowMaskTex = {0};
 		Texture2D fowMaskLastSeenTex = {0};
 		Texture2D GUITex = {0};
 		Texture2D MOColorTex = {0};
@@ -496,25 +496,36 @@ namespace RTE {
 		/// Clears all the member variables of this FrameMan, effectively resetting the members of this abstraction level only.
 		void Clear();
 
+		void RenderFogOfWarTextureWithTimeDecay();
+
 		void FogOfWarSetup(Shader& backgroundShader);
 
 		void FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex);
 
-		void InitFowSDF(int w, int h);
+		void InitFowOglThings();
 
 		void BackgroundShaderSetUniforms(Shader& backgroundShader);
+
+		int fowMaskWidth = -1;
+		int fowMaskHeight = -1;
 
 		GLuint m_SdfFbo = 0;
 		GLuint m_SdfTexPing = 0;
 		GLuint m_SdfTexPong = 0;
 		GLuint m_SdfResultFowMask = 0;
 		GLuint m_SdfResultFowLastSeenTerrainMask = 0;
+		GLuint m_fowMaskTex;
+		GLuint m_fowMaskTexTempCopy;
 		GLuint m_SdfVao = 0;
 		GLuint m_SdfVbo = 0;
 		unsigned m_SdfWidth = -1;
 		unsigned m_SdfHeight = -1;
 		GLuint m_SdfSeedFrag = 0;
 		GLuint m_SdfSeedVert = 0;
+
+		// -1 on scene start
+		// GTODO: actually enforce this
+		long long fowDecayTimestampPrev = -1;
 
 		// Disallow the use of some implicit methods.
 		FrameMan(const FrameMan& reference) = delete;
