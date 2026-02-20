@@ -1344,7 +1344,6 @@ bool AHuman::IsWithinRange(Vector& point) const {
 	return sqrDistance <= (range * range);
 }
 
-// GTODO: i gutted this. rewrite
 bool AHuman::Look(float FOVSpread, float range) {
 	if (!g_SceneMan.AnythingUnseen(m_Team) || m_CanRevealUnseen == false) {
 		return false;
@@ -1397,7 +1396,6 @@ bool AHuman::Look(float FOVSpread, float range) {
 	
 	int rayNum = FOVSpread / degreesPerRotationSegment; 
 	if (GetTeam() == 0) {
-		// GTODO: oops hardcoded
 		float bubblePixelRadius = 36.0f;
 		Vector bubbleAroundActorLookVector(bubblePixelRadius, 0);
 		int bubbleRayNum = 16;
@@ -1406,7 +1404,6 @@ bool AHuman::Look(float FOVSpread, float range) {
 			g_SceneMan.CastSeeRay(m_Team, bubbleCenterPos, bubbleAroundActorLookVector, ignored, strength, step);
 			bubbleAroundActorLookVector.RadRotate(2 * PI / bubbleRayNum);
 		}
-		//g_SceneMan.RevealUnseenBox(GetPos().GetX() - 36, GetPos().GetY() - 37, 63, 70, 0);
 	}
 
 	for (int rayIt = 0; rayIt < rayNum; rayIt++) {

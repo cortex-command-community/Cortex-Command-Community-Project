@@ -20,6 +20,7 @@
 #include "SettingsMan.h"
 #include "LuaMan.h"
 #include "ThreadMan.h"
+#include "GameActivity.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -1315,12 +1316,19 @@ void MovableMan::Update() {
 	// Finish our Seeing rays from last frame
 	m_ActorsSeeFuture.wait();
 
-	// GTODO: resetting currently visible FOW here with this
-	for (int playerIt = PlayerOne; playerIt < MaxPlayerCount; playerIt++) {
-		Activity* currentActivity = g_ActivityMan.GetActivity();
-		if (currentActivity->PlayerActive(playerIt) && currentActivity->PlayerHuman(playerIt)) {
-			int team = currentActivity->GetTeamOfPlayer(playerIt);
-			g_SceneMan.MakeAllUnseen(g_SceneMan.GetUnseenResolution(team), team);
+	// If fog of war is enabled, then...
+	Activity* currentActivity = g_ActivityMan.GetActivity();
+	if (dynamic_cast<GameActivity*>(currentActivity)->GetFogOfWarEnabled()) {
+		// For each human player...
+		for (int playerIt = PlayerOne; playerIt < MaxPlayerCount; playerIt++) {
+			if (currentActivity->PlayerActive(playerIt) && currentActivity->PlayerHuman(playerIt)) {
+				int team = currentActivity->GetTeamOfPlayer(playerIt);
+				// Clear what was immediatelly seen
+				// GTODO: make this not eat a fow resolution, tweak functions accordingly
+				g_SceneMan.MakeAllUnseen(g_SceneMan.GetUnseenResolution(team), team);
+				// Reveal what's being seen from orbit
+				g_SceneMan.CastSeeRaysFromSky(team); 
+			}
 		}
 	}
 

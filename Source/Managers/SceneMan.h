@@ -432,6 +432,9 @@ namespace RTE {
 		/// @param team The team we're talking about.
 		void MakeAllUnseen(Vector pixelSize, const int team);
 
+		// GTODO: add desc and make work with differing angles and exit in enclosed maps
+		void CastSeeRaysFromSky(const int team);
+
 		/// Sets one team's view of the scene to be all seen.
 		/// @param team The team we're talking about.
 		void MakeAllSeen(const int team);
@@ -1028,6 +1031,15 @@ namespace RTE {
 		BITMAP* m_pOrphanSearchBitmap;
 
 		int m_ScrapCompactingHeight; //!< The maximum height of a column of scrap terrain to collapse, when the bottom pixel is knocked loose.
+
+		enum SkySeeRaysAngle {
+			StraightDown,
+			FromLeft,
+			FromRight,
+			Count
+		};
+
+		SkySeeRaysAngle m_SkySeeRaysAngle = SkySeeRaysAngle::StraightDown;
 
 		/// Private member variable and method declarations
 	private:

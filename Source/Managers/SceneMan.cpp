@@ -931,6 +931,70 @@ void SceneMan::MakeAllUnseen(Vector pixelSize, const int team) {
 	m_pCurrentScene->FillUnseenLayerMask(pixelSize, team);
 }
 
+// GTODO: a team may have several human players. Iterate over all of them
+// CastSeeRay already quantizes its positions, so no need to worry here
+void SceneMan::CastSeeRaysFromSky(const int team) {
+	int screenId = 0;
+
+	float spacing = GetUnseenResolution(team).GetX();
+	int rayX = g_CameraMan.GetOffset(screenId).GetX();
+	int rayCount = static_cast<int>(g_CameraMan.GetFrameSize(screenId).GetX() / spacing);
+
+	// The +50 is arbitrary to account for rotation during next step, and for if panning down fast
+	float bottomOfCameraY = g_CameraMan.GetOffset(screenId).GetY() + g_CameraMan.GetFrameSize(screenId).GetY();
+	Vector seeRay = Vector(0, bottomOfCameraY + 50);
+	
+	// Having sky rays just be straight down sucks, makes vertical walls ugly among things
+	// So, having hysteresis for FOW, we alternate between three angles
+	const float rotationAngle = 10.0f;
+	const float rotationAngleRad = rotationAngle * PI / 180.0f;
+	if (m_SkySeeRaysAngle != SkySeeRaysAngle::StraightDown) {
+		// Being lower on the map will fuck up tilted rays,
+		// so we shift them on X depending on how much down the scene is the camera.
+		// tan = opposite (needed X shift) / adjacent (offset from top of camera) 
+		int yShiftDueToBeingLowerInScene = static_cast<int>(tan(rotationAngleRad) * g_CameraMan.GetOffset(screenId).GetY());
+
+		// We also get a triangle of NO vision in a bottom corner
+		// We calc its length at bottom and add extra rays for there
+		float extraXToCover = tan(rotationAngleRad) * g_CameraMan.GetFrameSize(screenId).GetY();
+		int extraRayCount = static_cast<int>(extraXToCover / spacing);
+
+		if (m_SkySeeRaysAngle == SkySeeRaysAngle::FromLeft) {
+			seeRay.DegRotate(rotationAngle);
+			rayX -= yShiftDueToBeingLowerInScene;
+			rayX -= static_cast<int>(extraXToCover);
+			rayCount += extraRayCount;
+		} else if (m_SkySeeRaysAngle == SkySeeRaysAngle::FromRight) {
+			seeRay.DegRotate(-rotationAngle);
+			rayX += yShiftDueToBeingLowerInScene;
+			rayCount += extraRayCount;
+		}
+	}
+	// Make the next call sweep another angle
+	m_SkySeeRaysAngle = static_cast<SkySeeRaysAngle>((m_SkySeeRaysAngle + 1) % SkySeeRaysAngle::Count);
+
+	// If camera pans fast there can be black bars on sides of screen, so we do this:
+	float cameraXDelta = g_CameraMan.GetDeltaOffset(screenId).GetX();
+	if (cameraXDelta > 20.0f) {
+		rayCount += static_cast<int>(cameraXDelta / spacing);
+	} else if (cameraXDelta < -20.0f) {
+		rayX += static_cast<int>(cameraXDelta);
+		rayCount += static_cast<int>(-cameraXDelta / spacing);
+	}
+
+	// These are the same as for AHuman::Look()
+	const float strength = c_PathFindingDefaultDigStrength;
+	float unseenResolution = (int)g_SceneMan.GetUnseenResolution(team).GetSmallest();
+	int step = (int)unseenResolution / 2;
+	Vector ignored(0, 0);
+
+	while (rayCount) {
+		rayX = (rayX + static_cast<int>(spacing)) % GetSceneWidth();
+		CastSeeRay(team, Vector(static_cast<float>(rayX), 0), seeRay, ignored, strength, step);
+		rayCount--;
+	}
+}
+
 bool SceneMan::LoadUnseenLayer(const std::string& maskBitmapPath, int team) {
 	ContentFile maskBitmapFile(maskBitmapPath.c_str());
 	SceneLayer* pUnseenLayerMask = new SceneLayer();
@@ -1032,12 +1096,6 @@ bool SceneMan::RestoreUnseen(const int posX, const int posY, const int team) {
 			// 255 so it becomes 1.0 at compositing stage
 			putpixel(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, 255);
 
-			// GTODO: remove! this is for hiding stuff! previously seen should be untouched!
-			// Blit for previously seen terrain
-			//SceneLayer* pUnseenLayerTerrain = m_pCurrentScene->GetUnseenLayerTerrain(team);
-			//int rescaledX = scaledX * scale.m_X;
-			//int rescaledY = scaledY * scale.m_Y;
-			//blit(m_pCurrentScene->GetTerrain()->GetFGColorBitmap(), pUnseenLayerTerrain->GetBitmap(), rescaledX, rescaledY, rescaledX, rescaledY, scale.GetX(), scale.GetY());
 			// Show that we actually restored a seen pixel
 			return true;
 		}
@@ -1205,7 +1263,7 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 	// Save the projected end of the ray pos
 	endPos = start + ray;
 
-	// Quantize to a coarser grid- this stops single-pixel flickers constantly occuring
+	// Quantize to a coarser grid - this stops single-pixel flickers constantly occuring
 	const int quantization = resolution;
 	intPos[X] = std::floor(start.m_X / quantization) * quantization;
 	intPos[Y] = std::floor(start.m_Y / quantization) * quantization;
@@ -2681,7 +2739,6 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, BITMAP* targe
 					backgroundShader.SetVector2f("uLayerWorldOffset", (*backgroundLayer)->m_Offset);
 					backgroundShader.SetVector2f("uLayerWorldSize", (*backgroundLayer)->m_ScaledDimensions);
 					(*backgroundLayer)->Draw(targetDimensions, targetBox);
-					//masked_blit(backgroundLayerBM, targetBgLayersBitmap, viewOrigin.GetX(), viewOrigin.GetY(), 0, 0, targetBgLayersBitmap->w, targetBgLayersBitmap->h);
 				}
 			}
 
