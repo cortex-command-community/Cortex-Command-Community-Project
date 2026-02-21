@@ -953,13 +953,13 @@ void SceneMan::CommitToLastSeenTerrainWithFowMask(const int team) {
 		runs.clear();
 
 		for (int x = 0; x < W;) {
-			if (!row[x]) {
+			if (row[x]) {
 				x++;
 				continue;
 			}
 
 			int x0 = x;
-			while (x < W && row[x])
+			while (x < W && !row[x])
 				x++;
 
 			runs.push_back({x0, x});
@@ -1008,7 +1008,6 @@ void SceneMan::CommitToLastSeenTerrainWithFowMask(const int team) {
 		int h = (rect.y1 - rect.y0) * scale.m_Y;
 		blit(m_pCurrentScene->GetTerrain()->GetFGColorBitmap(), pUnseenLayerTerrain->GetBitmap(), x, y, x, y, w, h);
 	}
-
 }
 
 // GTODO: a team may have several human players. Iterate over all of them
