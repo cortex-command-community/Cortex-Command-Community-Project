@@ -502,9 +502,11 @@ namespace RTE {
 
 		void FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex);
 
-		void InitFowOglThings();
+		void ClearFowTextures();
 
-		void BackgroundShaderSetUniforms(Shader& backgroundShader);
+		void InitOrReinitFowOglThings(Scene* currentScene);
+
+		void BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEnabled);
 
 		int fowMaskWidth = -1;
 		int fowMaskHeight = -1;
@@ -522,6 +524,8 @@ namespace RTE {
 		unsigned m_SdfHeight = -1;
 		GLuint m_SdfSeedFrag = 0;
 		GLuint m_SdfSeedVert = 0;
+
+		Scene* m_ScenePreviouslyUsedForOglSetup = nullptr;
 
 		// -1 on scene start
 		// GTODO: actually enforce this

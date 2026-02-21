@@ -1688,7 +1688,13 @@ void MovableMan::Update() {
 	// Run seeing rays for all actors
 	// GTODO: shouldnt i only do this for player actors?
 
-	// RIght now I'm not properly multithreading, because allegro is fucking with stuff due to it's dumb use of members as statics
+	// Right now I'm not properly multithreading, because allegro is fucking with stuff due to it's dumb use of members as statics
+	// Make work with this please! >:D
+	// i know that i just need to if (future.valid()) {future.wait()} but i dont dont want to half ass it:
+	//bool fowEnabled = false;
+	//Activity* currentActivity = g_ActivityMan.GetActivity();
+	//fowEnabled = dynamic_cast<GameActivity*>(currentActivity)->GetFogOfWarEnabled();
+	//if (fowEnabled) {
 	m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
 	                                                                         [&](int start, int end) {
 		                                                                         ZoneScopedN("Actors See");

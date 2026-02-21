@@ -138,13 +138,12 @@ void FrameMan::RenderFogOfWarTextureWithTimeDecay() {
 	glViewport(0, 0, fowMaskWidth, fowMaskHeight);
 	glUseProgram(programDecayAllPixels);
 
-	float elapsedSecondsSinceLastCall = 0; 
+	// Arbitrarily high so there is no everything-vision at activity start
+	float elapsedSecondsSinceLastCall = 10000;  
 	long long timestampCur = g_TimerMan.GetAbsoluteTime();
 	if (fowDecayTimestampPrev != -1) {
 		elapsedSecondsSinceLastCall 
 			= static_cast<float>(timestampCur - fowDecayTimestampPrev) / 1000000.0f;
-		g_ConsoleMan.PrintString(std::to_string(elapsedSecondsSinceLastCall));
-
 	}
 	fowDecayTimestampPrev = timestampCur;
 
@@ -392,18 +391,62 @@ void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void FrameMan::InitFowOglThings() {
-	g_ConsoleMan.PrintString("InitFowSDF() called!");
+void FrameMan::ClearFowTextures() {
+	auto clearTextureIfNeeded = [](Texture2D& tex) {
+		if (tex.id != 0) {
+			rlUnloadTexture(tex.id);
+			tex.id = 0;
+		}
+	};
+	clearTextureIfNeeded(instantVisibleFowMaskTex);
+	clearTextureIfNeeded(lastSeenTex);
+	clearTextureIfNeeded(fowMaskLastSeenTex);
+	clearTextureIfNeeded(GUITex);
+	clearTextureIfNeeded(MOColorTex);
+	clearTextureIfNeeded(BgLayersTex);
+	clearTextureIfNeeded(BgTerrainTex);
+	clearTextureIfNeeded(FgTerrainTex);
+}
 
-	// Create the render textures
-	glGenTextures(1, &m_SdfTexPing);
-	glGenTextures(1, &m_SdfTexPong);
-	glGenTextures(1, &m_SdfResultFowMask);
-	glGenTextures(1, &m_SdfResultFowLastSeenTerrainMask);
-	glGenTextures(1, &m_fowMaskTex);
-	glGenTextures(1, &m_fowMaskTexTempCopy);
+void FrameMan::InitOrReinitFowOglThings(Scene* currentScene) {
+	g_ConsoleMan.PrintString("InitOrReinitFowOglThings() called!");
 
-	// GTODO: 
+	static bool initHappened = false;
+
+	// We create handles and buffers only once
+	if (!initHappened) {
+		initHappened = true;
+
+		// Create the render textures
+		glGenTextures(1, &m_SdfTexPing);
+		glGenTextures(1, &m_SdfTexPong);
+		glGenTextures(1, &m_SdfResultFowMask);
+		glGenTextures(1, &m_SdfResultFowLastSeenTerrainMask);
+		glGenTextures(1, &m_fowMaskTex);
+		glGenTextures(1, &m_fowMaskTexTempCopy);
+
+		// Create framebuffer
+		glGenFramebuffers(1, &m_SdfFbo);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
+
+		float tri[] = {
+		    -1.0f, -1.0f,
+		    3.0f, -1.0f,
+		    -1.0f, 3.0f};
+
+		glGenVertexArrays(1, &m_SdfVao);
+		glGenBuffers(1, &m_SdfVbo);
+
+		glBindVertexArray(m_SdfVao);
+		glBindBuffer(GL_ARRAY_BUFFER, m_SdfVbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(tri), tri, GL_STATIC_DRAW);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	} 
+	
+	// But make/remake textures with differing wrapping and sizes each time
+	// GTODO:
 	auto alloc_rg32f_viewSized = [&](GLuint tex) {
 		const int viewWidth = m_BackBuffer8->w;
 		const int viewHeight = m_BackBuffer8->h;
@@ -411,12 +454,11 @@ void FrameMan::InitFowOglThings() {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, viewWidth, viewHeight, 0, GL_RG, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	};
 
 	auto alloc_rg32f_fowMaskSized = [&](GLuint tex) {
-		Scene* currentScene = g_SceneMan.GetCurrentScene();
 		SceneLayer* maskSL = currentScene->GetUnseenLayerMask();
 		const int currentSceneW = currentScene->GetWidth();
 		const int currentSceneH = currentScene->GetHeight();
@@ -428,8 +470,16 @@ void FrameMan::InitFowOglThings() {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, fowMaskWidth, fowMaskHeight, 0, GL_RG, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		if (currentScene->WrapsX()) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		} else {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		}
+		if (currentScene->WrapsY()) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		} else {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		}
 	};
 
 	alloc_rg32f_viewSized(m_SdfTexPing);
@@ -438,42 +488,9 @@ void FrameMan::InitFowOglThings() {
 	alloc_rg32f_viewSized(m_SdfResultFowLastSeenTerrainMask);
 	alloc_rg32f_fowMaskSized(m_fowMaskTex);
 	alloc_rg32f_fowMaskSized(m_fowMaskTexTempCopy);
-
-	// Create framebuffer
-	glGenFramebuffers(1, &m_SdfFbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER,
-	                       GL_COLOR_ATTACHMENT0,
-	                       GL_TEXTURE_2D,
-	                       m_SdfTexPing,
-	                       0);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		RTEAbort("FBO broken");
-	}
-
-	float tri[] = {
-	    -1.0f, -1.0f,
-	    3.0f, -1.0f,
-	    -1.0f, 3.0f
-	};
-
-	glGenVertexArrays(1, &m_SdfVao);
-	glGenBuffers(1, &m_SdfVbo);
-
-	glBindVertexArray(m_SdfVao);
-	glBindBuffer(GL_ARRAY_BUFFER, m_SdfVbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(tri), tri, GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
 }
 
-void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader) {
-	rlSetUniformSampler(backgroundShader.GetUniformLocation("rteTextureLastSeen"), lastSeenTex.id); // TODO: not just force first player screen
-	rlSetUniformSampler(backgroundShader.GetUniformLocation("fowMaskTexture"), m_SdfResultFowMask); // GTODO toggle for smooth and not in settings
-	rlSetUniformSampler(backgroundShader.GetUniformLocation("fowLastSeenMaskTexture"), m_SdfResultFowLastSeenTerrainMask); // GTODO toggle for smooth and not in settings
+void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEnabled) {
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("guiTexture"), GUITex.id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("moColor"), MOColorTex.id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("bgTerrainTex"), BgTerrainTex.id);
@@ -486,6 +503,13 @@ void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader) {
 	backgroundShader.SetVector2f("uViewSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
 	backgroundShader.SetVector2f("uSceneSize", Vector(terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
 	backgroundShader.SetFloat("uNoiseSeed", static_cast<float>(rand()));
+	backgroundShader.SetBool("fowEnabled", fowEnabled);
+
+	if (fowEnabled) {
+		rlSetUniformSampler(backgroundShader.GetUniformLocation("rteTextureLastSeen"), lastSeenTex.id); // GTODO: not just force first player screen
+		rlSetUniformSampler(backgroundShader.GetUniformLocation("fowMaskTexture"), m_SdfResultFowMask); // GTODO toggle for smooth and not in settings
+		rlSetUniformSampler(backgroundShader.GetUniformLocation("fowLastSeenMaskTexture"), m_SdfResultFowLastSeenTerrainMask);
+	}
 }
 
 int FrameMan::Initialize() {
@@ -600,6 +624,10 @@ void FrameMan::Destroy() {
 	for (const GUIFont* guiFont: m_SmallFonts) {
 		delete guiFont;
 	}
+
+	// We don't need to destroy opengl things because
+	// their lifetime matches the game's
+
 	Clear();
 }
 
@@ -1347,22 +1375,28 @@ void FrameMan::Draw() {
 	g_GLResourceMan.UpdateDynamicBitmap(m_BackBuffer8.get(), true);
 
 	// Fog of war things!
-	// GTODO: redo on reentry to different scenes
-	static bool oglTexturesWereInit = false;
-	if (!oglTexturesWereInit) {
-		oglTexturesWereInit = true;
-		InitFowOglThings();
+	bool fowEnabled = false;
+	Activity* currentActivity = g_ActivityMan.GetActivity();
+	fowEnabled = dynamic_cast<GameActivity*>(currentActivity)->GetFogOfWarEnabled();
+	if (fowEnabled) {
+		Scene* currentScene = g_SceneMan.GetCurrentScene();
+		if (currentScene != m_ScenePreviouslyUsedForOglSetup) {
+			m_ScenePreviouslyUsedForOglSetup = currentScene;
+			ClearFowTextures();
+			InitOrReinitFowOglThings(currentScene);
+		}
+
+		FogOfWarSetup(backgroundShader);
+		RenderFogOfWarTextureWithTimeDecay();
+		FogOfWarSetup_DoSDF(m_fowMaskTex, m_SdfResultFowMask);
+		FogOfWarSetup_DoSDF(fowMaskLastSeenTex.id, m_SdfResultFowLastSeenTerrainMask);
 	}
-	FogOfWarSetup(backgroundShader);
-	RenderFogOfWarTextureWithTimeDecay();
-	FogOfWarSetup_DoSDF(m_fowMaskTex, m_SdfResultFowMask);
-	FogOfWarSetup_DoSDF(fowMaskLastSeenTex.id, m_SdfResultFowLastSeenTerrainMask);
 
 	// Drawing begins!
 	backgroundShader.Begin();
 	backgroundShader.Enable();
 
-	BackgroundShaderSetUniforms(backgroundShader);
+	BackgroundShaderSetUniforms(backgroundShader, fowEnabled);
 
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
 

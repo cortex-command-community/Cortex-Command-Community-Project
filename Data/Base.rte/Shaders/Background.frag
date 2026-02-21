@@ -15,6 +15,7 @@ uniform vec4 rteColor = vec4(1.0);
 uniform bool rteBlendInvert = false;
 uniform bool drawMasked = false;
 uniform bool drawingForeground = false;
+uniform bool fowEnabled;
 
 uniform vec2 uViewOrigin;
 uniform vec2 uViewSize;
@@ -110,7 +111,7 @@ void main() {
 	}
 
 	// Non-hidden pixel
-	if (fragmentNotInFow) {
+	if (fragmentNotInFow || !fowEnabled) {
 		// Terrain
 		if (fgTerrainVal != PALETTE_COLOR_MASK) {
 			FragColor = ApplyPalette(fgTerrainVal);
