@@ -54,14 +54,11 @@ vec4 ApplyPalette(float red) {
     return col;
 }
 
-
 float rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898,78.233))) * 43758.5453);
 }
 	
-vec4 ApplyPaletteAndDesat(float red, vec2 uv, float desat, float darken, float scanlinePhaseOffset) {
-    vec4 col = ApplyPalette(red);
-	
+vec4 ApplyDarkenAndDesat(vec4 col, vec2 uv, float desat, float darken, float scanlinePhaseOffset) {
 	float texelY = uv.y * uSceneSize.y;
 	float scan = sin(texelY * 3.14159 / 2 + scanlinePhaseOffset) * 0.12;
 	float noise = (rand(gl_FragCoord.xy + uNoiseSeed) * 2.0 - 1.0) * 0.075;
@@ -87,7 +84,7 @@ void main() {
 	const float PALETTE_COLOR_MASK = 0.0;
 	const float USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND = 0.011;
 	
-	bool fragmentNotInFow = (texture(fowMaskTexture, textureUV).r > USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND);
+	bool fragmentInFow = (texture(fowMaskTexture, textureUV).r > USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND);
 	
 	vec2 sceneUV = (uViewOrigin + textureUV * uViewSize) / uSceneSize;
 	
@@ -114,7 +111,7 @@ void main() {
 	}
 
 	// Non-hidden pixel
-	if (fragmentNotInFow || !fowEnabled) {
+	if (fragmentInFow || !fowEnabled) {
 		// Terrain
 		if (fgTerrainVal != PALETTE_COLOR_MASK) {
 			FragColor = ApplyPalette(fgTerrainVal);
@@ -148,15 +145,18 @@ void main() {
 		if (lastSeenTerrainColor == PALETTE_COLOR_MASK && drawMasked) {
 			// Background terrain
 			if (bgTerrainVal != PALETTE_COLOR_MASK) {
-				FragColor = ApplyPaletteAndDesat(bgTerrainVal, sceneUV, 0.5, 0.68, 0.1);
+				FragColor = ApplyPalette(bgTerrainVal);
+				FragColor = ApplyDarkenAndDesat(FragColor, sceneUV, 0.5, 0.68, 0.1);
 				return;
 			}
-			FragColor = ApplyPaletteAndDesat(bgLayersVal, sceneUV, 0.5, 0.68, 0.1);
+			FragColor = ApplyPalette(bgLayersVal);
+			FragColor = ApplyDarkenAndDesat(FragColor, sceneUV, 0.5, 0.68, 0.1);
 			return;
 		}
 		
 		// Palette lookup
-		FragColor = ApplyPaletteAndDesat(lastSeenTerrainColor, sceneUV, 0.7, 0.85, 0);
+		FragColor = ApplyPalette(lastSeenTerrainColor);
+		FragColor = ApplyDarkenAndDesat(FragColor, sceneUV, 0.7, 0.85, 0);
 		return;
 	}
 }
