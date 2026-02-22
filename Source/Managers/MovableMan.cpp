@@ -1686,29 +1686,20 @@ void MovableMan::Update() {
 	}
 
 	// Run seeing rays for all actors
-	// GTODO: shouldnt i only do this for player actors?
-
-	// Right now I'm not properly multithreading, because allegro is fucking with stuff due to it's dumb use of members as statics
-	// Make work with this please! >:D
-	// i know that i just need to if (future.valid()) {future.wait()} but i dont dont want to half ass it:
-	//bool fowEnabled = false;
-	//Activity* currentActivity = g_ActivityMan.GetActivity();
-	//fowEnabled = dynamic_cast<GameActivity*>(currentActivity)->GetFogOfWarEnabled();
-	//if (fowEnabled) {
-	m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
-	                                                                         [&](int start, int end) {
-		                                                                         ZoneScopedN("Actors See");
-		                                                                         for (int i = start; i < end; ++i) {
-			                                                                         if (m_Actors[i]->GetTeam() != 0) {
-				                                                                         continue;
+	// Todo- maybe use a simplified approach that only takes 1-stage FoW into account for non-AI (and/or casts less rays)
+	const GameActivity* gameActivity = dynamic_cast<GameActivity*>(g_ActivityMan.GetActivity());
+	if (gameActivity && gameActivity->GetFogOfWarEnabled()) {
+		m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
+		                                                                         [&](int start, int end) {
+			                                                                         ZoneScopedN("Actors See");
+			                                                                         for (int i = start; i < end; ++i) {
+				                                                                         if (m_Actors[i]->GetTeam() != 0) {
+					                                                                         continue;
+				                                                                         }
+				                                                                         m_Actors[i]->CastSeeRays();
 			                                                                         }
-			                                                                         m_Actors[i]->CastSeeRays();
-		                                                                         }
-	                                                                         });
-
-	// temporary...
-	m_ActorsSeeFuture.wait();
-
+		                                                                         });
+	}
 
 	// We've finished stuff that can interact with lua script, so it's the ideal time to start a gc run
 	g_LuaMan.StartAsyncGarbageCollection();

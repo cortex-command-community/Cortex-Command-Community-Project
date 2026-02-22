@@ -373,7 +373,7 @@ namespace RTE {
 
 		/// Returns how much starting gold was selected in scenario setup dialog. 20000 - infinite amount.
 		/// @return How much starting gold must be given to human players.
-		int GetStartingGold() { return m_StartingGold; }
+		int GetStartingGold() const { return m_StartingGold; }
 
 		/// Changes whether fog of war must be enabled for this activity or not.
 		/// Never hides or reveals anything, just changes internal flag.
@@ -384,7 +384,7 @@ namespace RTE {
 		/// Returns whether fog of war must be enabled for this activity or not.
 		/// Call it to determine whether you should call MakeAllUnseen or not at the start of activity.
 		/// @return Whether Fog of war flag was checked during scenario setup dialog.
-		bool GetFogOfWarEnabled() { return m_FogOfWarEnabled; }
+		bool GetFogOfWarEnabled() const { return m_FogOfWarEnabled; }
 
 		/// Tells whether player activity requires a cleat path to orbit to place brain
 		/// Return value:	Whether we need a clear path to orbit to place brains.
