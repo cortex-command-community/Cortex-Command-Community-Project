@@ -101,6 +101,33 @@ void FrameMan::Clear() {
 	}
 }
 
+void FrameMan::RenderBackgroundLayersBmToTexture() {
+	Shader shaderPassthrough;
+	g_PresetMan.GetEntityPreset("Shader", "Passthrough")->Clone(&shaderPassthrough);
+	GLuint programPassthrough = shaderPassthrough.m_ProgramID;
+	const Texture2D& backLayersTex = m_BackBuffer.get()->GetColorTexture();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER,
+	                       GL_COLOR_ATTACHMENT0,
+	                       GL_TEXTURE_2D,
+	                       m_bgLayersTex, 0);
+
+	GLenum buf = GL_COLOR_ATTACHMENT0;
+	glDrawBuffers(1, &buf);
+	glViewport(0, 0, backLayersTex.width, backLayersTex.height);
+	glUseProgram(programPassthrough);
+
+	GLint loc = glGetUniformLocation(programPassthrough, "texToPassthrough");
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, backLayersTex.id);
+	glUniform1i(loc, 0);
+
+	glBindVertexArray(m_SdfVao);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+}
+
 void FrameMan::RenderFogOfWarTextureWithTimeDecay() {
 	Shader shaderDecayAllPixels, shaderPassthrough;
 	g_PresetMan.GetEntityPreset("Shader", "FowMaskDecayAllPixels")->Clone(&shaderDecayAllPixels);
@@ -424,7 +451,8 @@ void FrameMan::InitOrReinitFowOglThings(Scene* currentScene) {
 		glGenTextures(1, &m_SdfResultFowLastSeenTerrainMask);
 		glGenTextures(1, &m_fowMaskTex);
 		glGenTextures(1, &m_fowMaskTexTempCopy);
-
+		glGenTextures(1, &m_bgLayersTex);
+		
 		// Create framebuffer
 		glGenFramebuffers(1, &m_SdfFbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
@@ -486,6 +514,7 @@ void FrameMan::InitOrReinitFowOglThings(Scene* currentScene) {
 	alloc_rg32f_viewSized(m_SdfTexPong);
 	alloc_rg32f_viewSized(m_SdfResultFowMask);
 	alloc_rg32f_viewSized(m_SdfResultFowLastSeenTerrainMask);
+	alloc_rg32f_viewSized(m_bgLayersTex);
 	alloc_r16f_fowMaskSized(m_fowMaskTex);
 	alloc_r16f_fowMaskSized(m_fowMaskTexTempCopy);
 }
@@ -495,6 +524,7 @@ void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEna
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("moColor"), MOColorTex.id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("bgTerrainTex"), BgTerrainTex.id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("fgTerrainTex"), FgTerrainTex.id);
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("bgLayersTexture"), m_bgLayersTex);
 
 	//rlTexture
 
@@ -1358,6 +1388,7 @@ void FrameMan::Draw() {
 	}
 
 	// Clears the pixels that have been revealed from the unseen layers
+	// GTODO: Examine
 	g_SceneMan.ClearSeenMaskPixels();
 
 	// Draw separating lines for split-screens
@@ -1385,6 +1416,7 @@ void FrameMan::Draw() {
 			ClearFowTextures();
 			InitOrReinitFowOglThings(currentScene);
 		}
+		RenderBackgroundLayersBmToTexture();
 
 		FogOfWarSetup(backgroundShader);
 		RenderFogOfWarTextureWithTimeDecay();
