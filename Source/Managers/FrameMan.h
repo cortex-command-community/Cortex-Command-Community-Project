@@ -496,6 +496,8 @@ namespace RTE {
 		/// Clears all the member variables of this FrameMan, effectively resetting the members of this abstraction level only.
 		void Clear();
 
+		void RenderBackgroundLayersBmToTexture();
+
 		void RenderFogOfWarTextureWithTimeDecay();
 
 		void FogOfWarSetup(Shader& backgroundShader);
@@ -518,6 +520,7 @@ namespace RTE {
 		GLuint m_SdfResultFowLastSeenTerrainMask = 0;
 		GLuint m_fowMaskTex;
 		GLuint m_fowMaskTexTempCopy;
+		GLuint m_bgLayersTex;
 		GLuint m_SdfVao = 0;
 		GLuint m_SdfVbo = 0;
 		unsigned m_SdfWidth = -1;

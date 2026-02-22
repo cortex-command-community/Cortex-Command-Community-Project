@@ -30,6 +30,7 @@ uniform sampler2D moColor;
 uniform sampler2D bgTerrainTex;
 uniform sampler2D fgTerrainTex;
 uniform sampler2D fowLastSeenMaskTexture;
+uniform sampler2D bgLayersTexture;
 
 const vec3 luminosityFactors = vec3(0.299, 0.587, 0.114);
 
@@ -96,12 +97,14 @@ void main() {
 	float bgTerrainVal = texture(bgTerrainTex, textureUV).r;
 	float fgTerrainVal = texture(fgTerrainTex, textureUV).r;
 	float rteVal = texture(rteTexture, textureUV).r;
+	vec2 textureUV_vFlipped = vec2(textureUV.x, 1.0 - textureUV.y);
+	float bgLayersVal = texture(bgLayersTexture, textureUV_vFlipped).r;
 	
 	if (!drawingForeground) {
 		if (rteVal == 0.0 && drawMasked) {
 			discard;
 		}
-		FragColor = ApplyPalette(rteVal);
+		FragColor = vec4(rteVal, 0.0, 0.0, 1.0);
 		return;
 	}
 	
@@ -128,8 +131,8 @@ void main() {
 			return;
 		}
 		// Bkgr layers, here was drawn in a previous pass
-		// big TODO
-		discard;
+		FragColor = ApplyPalette(bgLayersVal);
+		return;
 	}
 	// Fog-of-war pixel
 	else {
@@ -148,7 +151,8 @@ void main() {
 				FragColor = ApplyPaletteAndDesat(bgTerrainVal, sceneUV, 0.5, 0.68, 0.1);
 				return;
 			}
-			discard;
+			FragColor = ApplyPaletteAndDesat(bgLayersVal, sceneUV, 0.5, 0.68, 0.1);
+			return;
 		}
 		
 		// Palette lookup
