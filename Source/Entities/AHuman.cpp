@@ -1388,25 +1388,23 @@ bool AHuman::Look(float FOVSpread, float range) {
 	lookVector *= aimMatrix;
 
 	// The smallest dimension of the fog block, divided by two, but always at least one, as the step for the casts
-	int step = (int)unseenResolution / 2;
+	const int step = (int)unseenResolution / 2;
 	Vector ignored(0, 0);
 
 	// Pathfinding dig strength is suitable to dig through light debris and corpses, so is a good value for sight too
 	const float strength = c_PathFindingDefaultDigStrength;
-	
-	int rayNum = FOVSpread / degreesPerRotationSegment; 
-	if (GetTeam() == 0) {
-		float bubblePixelRadius = 36.0f;
-		Vector bubbleAroundActorLookVector(bubblePixelRadius, 0);
-		int bubbleRayNum = 16;
-		Vector bubbleCenterPos = GetPos();
-		for (int rayIt = 0; rayIt < rayNum; rayIt++) {
-			g_SceneMan.CastSeeRay(m_Team, bubbleCenterPos, bubbleAroundActorLookVector, ignored, strength, step);
-			bubbleAroundActorLookVector.RadRotate(2 * PI / bubbleRayNum);
-		}
+
+	const float bubblePixelRadius = 36.0f;
+	const int bubbleRayNum = 16;
+	const Vector bubbleCenterPos = GetPos();
+	Vector bubbleAroundActorLookVector(bubblePixelRadius, 0);
+	for (int i = 0; i < bubbleRayNum; ++i) {
+		g_SceneMan.CastSeeRay(m_Team, bubbleCenterPos, bubbleAroundActorLookVector, ignored, strength, step);
+		bubbleAroundActorLookVector.RadRotate(2 * PI / bubbleRayNum);
 	}
 
-	for (int rayIt = 0; rayIt < rayNum; rayIt++) {
+	const int rayNum = FOVSpread / degreesPerRotationSegment; 
+	for (int i = 0; i < rayNum; ++i) {
 		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, strength, step);
 		lookVector.DegRotate(FOVSpread / (rayNum - 1));
 	}

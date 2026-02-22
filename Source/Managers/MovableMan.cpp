@@ -1690,10 +1690,10 @@ void MovableMan::Update() {
 	const GameActivity* gameActivity = dynamic_cast<GameActivity*>(g_ActivityMan.GetActivity());
 	if (gameActivity && gameActivity->GetFogOfWarEnabled()) {
 		m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
-		                                                                         [&](int start, int end) {
+		                                                                         [this, gameActivity](int start, int end) {
 			                                                                         ZoneScopedN("Actors See");
 			                                                                         for (int i = start; i < end; ++i) {
-				                                                                         if (m_Actors[i]->GetTeam() != 0) {
+				                                                                         if (!gameActivity->IsHumanTeam(m_Actors[i]->GetTeam())) {
 					                                                                         continue;
 				                                                                         }
 				                                                                         m_Actors[i]->CastSeeRays();
