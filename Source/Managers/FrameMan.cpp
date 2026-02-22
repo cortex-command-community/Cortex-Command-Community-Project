@@ -458,7 +458,7 @@ void FrameMan::InitOrReinitFowOglThings(Scene* currentScene) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	};
 
-	auto alloc_rg32f_fowMaskSized = [&](GLuint tex) {
+	auto alloc_r16f_fowMaskSized = [&](GLuint tex) {
 		SceneLayer* maskSL = currentScene->GetUnseenLayerMask();
 		const int currentSceneW = currentScene->GetWidth();
 		const int currentSceneH = currentScene->GetHeight();
@@ -467,7 +467,7 @@ void FrameMan::InitOrReinitFowOglThings(Scene* currentScene) {
 		fowMaskWidth = currentSceneW / scaleFactorX;
 		fowMaskHeight = currentSceneH / scaleFactorY;
 		glBindTexture(GL_TEXTURE_2D, tex);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, fowMaskWidth, fowMaskHeight, 0, GL_RG, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, fowMaskWidth, fowMaskHeight, 0, GL_RG, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		if (currentScene->WrapsX()) {
@@ -486,8 +486,8 @@ void FrameMan::InitOrReinitFowOglThings(Scene* currentScene) {
 	alloc_rg32f_viewSized(m_SdfTexPong);
 	alloc_rg32f_viewSized(m_SdfResultFowMask);
 	alloc_rg32f_viewSized(m_SdfResultFowLastSeenTerrainMask);
-	alloc_rg32f_fowMaskSized(m_fowMaskTex);
-	alloc_rg32f_fowMaskSized(m_fowMaskTexTempCopy);
+	alloc_r16f_fowMaskSized(m_fowMaskTex);
+	alloc_r16f_fowMaskSized(m_fowMaskTexTempCopy);
 }
 
 void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEnabled) {
@@ -1375,7 +1375,7 @@ void FrameMan::Draw() {
 	g_GLResourceMan.UpdateDynamicBitmap(m_BackBuffer8.get(), true);
 
 	// Fog of war things!
-	bool fowEnabled = false;
+	bool fowEnabled;
 	Activity* currentActivity = g_ActivityMan.GetActivity();
 	fowEnabled = dynamic_cast<GameActivity*>(currentActivity)->GetFogOfWarEnabled();
 	if (fowEnabled) {
