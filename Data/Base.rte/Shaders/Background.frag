@@ -57,36 +57,44 @@ vec4 ApplyPalette(float red) {
 float rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898,78.233))) * 43758.5453);
 }
-	
-vec4 ApplyDarkenAndDesat(vec4 col, vec2 uv, float desat, float darken, float scanlinePhaseOffset) {
+
+vec4 ApplyScanlineAndNoise(vec4 pix, vec2 uv, float scanlinePhaseOffset, float opacity) {
 	float texelY = uv.y * uSceneSize.y;
 	float scan = sin(texelY * 3.14159 / 2 + scanlinePhaseOffset) * 0.12;
 	float noise = (rand(gl_FragCoord.xy + uNoiseSeed) * 2.0 - 1.0) * 0.075;
-	
-	float lum = dot(col.rgb, luminosityFactors);
+
+	float brightness = 1.0 + ((noise + scan) * opacity);
+	vec3 color = pix.rgb;
+	color *= brightness;
+
+	return vec4(color, 1.0);
+} 
+
+vec4 ApplyDarkenAndDesat(vec4 pix, vec2 uv, float darken, float desat) {
+	float lum = dot(pix.rgb, luminosityFactors);
 	vec3 grayColor = vec3(lum);
 	
 	// 0 = original, 1 = full grayscale
-	vec3 color = mix(col.rgb, grayColor, desat);
+	vec3 color = mix(pix.rgb, grayColor, desat);
 	
 	// 1 = unchanged, <1 darker
 	color *= darken;
-	
-	float brightness = 1.0 + noise + scan;
-	color *= brightness;
 	
 	return vec4(color, 1.0);
 }
 
 void main() {
-	
 	const float PALETTE_COLOR_BLACK = 245.0 / 255.0;
 	const float PALETTE_COLOR_MASK = 0.0;
 	const float USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND = 0.011;
+	const float USDF_OPACITY_SMOOTHING_DISTANCE = 0.016;
+
+	float distanceToUnseen = texture(fowMaskTexture, textureUV).r - USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND;
+	float distanceToNeverSeen = texture(fowLastSeenMaskTexture, textureUV).r - USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND;
 	
-	float distanceToFoW = texture(fowMaskTexture, textureUV).r - USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND;
-	bool fragmentInFow = distanceToFoW > 0.0;
-	
+	bool isWithinFow = distanceToUnseen > 0;
+	bool hasBeenSeen = distanceToNeverSeen > 0;
+
 	vec2 sceneUV = (uViewOrigin + textureUV * uViewSize) / uSceneSize;
 	
 	float guiVal = texture(guiTexture, textureUV).r;
@@ -111,58 +119,44 @@ void main() {
 		return;
 	}
 
-	// Non-hidden pixel
-	if (fragmentInFow || !fowEnabled) {
-		// Terrain
+	if (!fowEnabled || isWithinFow) {
 		if (fgTerrainVal != PALETTE_COLOR_MASK) {
+			// Terrain
 			FragColor = ApplyPalette(fgTerrainVal);
-			return;
-		}
-
-		// MOs
-		if (moVal != PALETTE_COLOR_MASK) {
+		} else if (moVal != PALETTE_COLOR_MASK) {
+			// MOs
 			FragColor = ApplyPalette(moVal);
-			return;
-		}
-
-		// Background terrain
-		if (bgTerrainVal != PALETTE_COLOR_MASK) {
+		} else if (bgTerrainVal != PALETTE_COLOR_MASK) {
+			// Background terrain
 			FragColor = ApplyPalette(bgTerrainVal);
-			return;
+		} else {
+			// Background layers
+			FragColor = ApplyPalette(bgLayersVal);
 		}
-
-		// Bkgr layers, here was drawn in a previous pass
-		FragColor = ApplyPalette(bgLayersVal);
-		return;
-	}
-	// Fog-of-war pixel
-	else {
-		float distanceToLastSeen = texture(fowLastSeenMaskTexture, textureUV).r - USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND;
-		bool fragmentWasLastSeen = distanceToLastSeen > 0.0;
-		
-		// Never seen, full black
-		if (!fragmentWasLastSeen) {
-			FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-			return;
-		}
-		
+	} else {
 		// Seen before, old terrain
 		float lastSeenTerrainColor = texture(rteTextureLastSeen, sceneUV).r;
 		if (lastSeenTerrainColor == PALETTE_COLOR_MASK && drawMasked) {
 			// Background terrain
 			if (bgTerrainVal != PALETTE_COLOR_MASK) {
 				FragColor = ApplyPalette(bgTerrainVal);
-				FragColor = ApplyDarkenAndDesat(FragColor, sceneUV, 0.5, 0.68, 0.1);
-				return;
+			} else {
+				FragColor = ApplyPalette(bgLayersVal);
 			}
-
-			FragColor = ApplyPalette(bgLayersVal);
-			FragColor = ApplyDarkenAndDesat(FragColor, sceneUV, 0.5, 0.68, 0.1);
-			return;
+		} else {
+			FragColor = ApplyPalette(lastSeenTerrainColor);
 		}
-		
-		FragColor = ApplyPalette(lastSeenTerrainColor);
-		FragColor = ApplyDarkenAndDesat(FragColor, sceneUV, 0.7, 0.85, 0);
-		return;
+	}
+
+	if (fowEnabled) {
+		float unseenLerp = clamp(distanceToUnseen / USDF_OPACITY_SMOOTHING_DISTANCE, 0, 1);
+		float darken = mix(0.68, 1, unseenLerp);
+		float desat = mix(0.8, 0, unseenLerp);
+		FragColor = ApplyScanlineAndNoise(FragColor, sceneUV, 0.1, 1 - unseenLerp);
+
+		float neverSeenLerp = clamp(distanceToNeverSeen / USDF_OPACITY_SMOOTHING_DISTANCE, 0, 1);
+		darken = min(darken, mix(0, 1, neverSeenLerp));
+
+		FragColor = ApplyDarkenAndDesat(FragColor, sceneUV, darken, desat);
 	}
 }
