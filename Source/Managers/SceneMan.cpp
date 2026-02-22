@@ -161,10 +161,12 @@ int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 		    ~((pUnseenLayerMask == nullptr) ^ (pUnseenLayerTerrain == nullptr)),
 		    "SceneMan::LoadScene, unseen layer, only one of mask and terrain SL's exist, weird!"
 		);
-		if (pUnseenLayerMask) {
+
+		// TODO, this is all sorta fucked. Let's deprecate manual setting of unseen layer resolution entirely. It shouldn't be per-activity, it should (at most) be a user setting
+		if (pUnseenLayerTerrain) {
 			// Calculate how many times smaller the unseen map is compared to the entire terrain's dimensions, and set it as the scale factor on the Unseen layer
-			float sX = (float)m_pCurrentScene->GetTerrain()->GetBitmap()->w / (float)pUnseenLayerMask->GetBitmap()->w;
-			float sY = (float)m_pCurrentScene->GetTerrain()->GetBitmap()->h / (float)pUnseenLayerMask->GetBitmap()->h;
+			float sX = (float)m_pCurrentScene->GetTerrain()->GetBitmap()->w / (float)pUnseenLayerTerrain->GetBitmap()->w;
+			float sY = (float)m_pCurrentScene->GetTerrain()->GetBitmap()->h / (float)pUnseenLayerTerrain->GetBitmap()->h;
 			pUnseenLayerMask->SetScaleFactor(Vector(sX, sY));
 			pUnseenLayerTerrain->SetScaleFactor(Vector(1, 1));
 			pUnseenLayerTerrainMask->SetScaleFactor(Vector(sX, sY));

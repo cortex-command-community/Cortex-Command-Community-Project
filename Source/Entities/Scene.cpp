@@ -507,16 +507,9 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 			m_apUnseenLayerTerrainMask[team]->SetScaleFactor(m_UnseenPixelSize[team]);
 		}
 		// If not dynamically generated, was it custom loaded?
-		else if (m_apUnseenLayerMask[team]) {
-			RTEAssert(
-			    m_apUnseenLayerTerrain[team],
-			    "Scene::LoadData(), unseen layer mask present but terrain is not, weird!"
-			);
+		else if (m_apUnseenLayerTerrain[team]) {
+			RTEAssert(m_apUnseenLayerTerrainMask[team], "Scene::LoadData(), unseen layer mask present but terrain is not, weird!" );
 			// Load unseen layer data from file
-			if (m_apUnseenLayerMask[team]->LoadData() < 0) {
-				g_ConsoleMan.PrintString("ERROR: Loading unseen layer mask " + m_apUnseenLayerMask[team]->GetPresetName() + "\'s data failed!");
-				return -1;
-			}
 			if (m_apUnseenLayerTerrain[team]->LoadData() < 0) {
 				g_ConsoleMan.PrintString("ERROR: Loading unseen layer terrain " + m_apUnseenLayerTerrain[team]->GetPresetName() + "\'s data failed!");
 				return -1;
@@ -937,18 +930,13 @@ std::vector<SceneLayerInfo> Scene::GetCopiedSceneLayerBitmaps() const {
 	// Save unseen layers' data
 	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team)
 	{
-		if (m_apUnseenLayerMask[team]) {
-			RTEAssert(
-				m_apUnseenLayerTerrain[team], 
-				"Scene::GetCopiedSceneLayerBitmaps(), unseen layer mask present but terrain is not, weird!"
-			);
+		if (m_apUnseenLayerTerrain[team]) {
 			RTEAssert(
 			    m_apUnseenLayerTerrainMask[team],
-			    "Scene::GetCopiedSceneLayerBitmaps(), unseen layer mask present but terrain mask is not, weird!"
+			    "Scene::GetCopiedSceneLayerBitmaps(), unseen layer terrain present but terrain mask is not, weird!"
 			);
-			layerInfos.emplace_back(std::format("UST{}", team), m_apUnseenLayerMask[team]->CopyBitmap());
-			layerInfos.emplace_back(std::format("UST{}", team), m_apUnseenLayerTerrain[team]->CopyBitmap());
-			layerInfos.emplace_back(std::format("UST{}", team), m_apUnseenLayerTerrainMask[team]->CopyBitmap());
+			layerInfos.emplace_back(std::format("UST T{}", team), m_apUnseenLayerTerrain[team]->CopyBitmap());
+			layerInfos.emplace_back(std::format("USTM T{}", team), m_apUnseenLayerTerrainMask[team]->CopyBitmap());
 	    }
 	}
 

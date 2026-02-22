@@ -130,18 +130,18 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	modifiableScene->GetTerrain()->GetBGSceneLayer()->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/Save BG.png");
 
 	for (int i = 0; i < Activity::MaxTeamCount; ++i) {
-		SceneLayer* unseenLayerMask = modifiableScene->GetUnseenLayerMask(i);
 		SceneLayer* unseenLayerTerrain = modifiableScene->GetUnseenLayerTerrain(i);
-		SceneLayer* unseenLayerTerrainMask = modifiableScene->GetUnseenLayerTerrainMask(i); // GTODO check save loading??
-		RTEAssert(
-		    ~((unseenLayerMask == nullptr) ^ (unseenLayerTerrain == nullptr)),
-		    "ActivityMan::SaveCurrentGame, unseen layer, only one of mask and terrain SL's exist, weird!"
-		);
-		if (unseenLayerMask) {
-			unseenLayerMask->GetContentFile().SetIsMemoryFile(true);
-			unseenLayerMask->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save UST{}.png", i));
-			unseenLayerMask->GetContentFile().SetIsMemoryFile(true);
-			unseenLayerMask->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save UST{}.png", i));
+		SceneLayer* unseenLayerTerrainMask = modifiableScene->GetUnseenLayerTerrainMask(i);
+		RTEAssert(static_cast<bool>(unseenLayerTerrain) == static_cast<bool>(unseenLayerTerrainMask), "ActivityMan::SaveCurrentGame, unseen layer, only one of mask and terrain SLs exist, weird!");
+
+		if (unseenLayerTerrain) {
+			unseenLayerTerrain->GetContentFile().SetIsMemoryFile(true);
+			unseenLayerTerrain->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save UST T{}.png", i));
+		}
+
+		if (unseenLayerTerrainMask) {
+			unseenLayerTerrainMask->GetContentFile().SetIsMemoryFile(true);
+			unseenLayerTerrainMask->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save USTM T{}.png", i));
 		}
 	}
 
@@ -348,8 +348,12 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	}
 
 	for (int i = 0; i < Activity::MaxTeamCount; ++i) {
-		if (unzipFileIntoBuffer(std::format("Save UST{}.png", i))) {
-			ContentFile::ManuallyLoadDataPNG(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save UST{}.png", i), loadMemPng(buffer, info.uncompressed_size));
+		if (unzipFileIntoBuffer(std::format("Save UST T{}.png", i))) {
+			ContentFile::ManuallyLoadDataPNG(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save UST T{}.png", i), loadMemPng(buffer, info.uncompressed_size));
+		}
+
+		if (unzipFileIntoBuffer(std::format("Save USTM T{}.png", i))) {
+			ContentFile::ManuallyLoadDataPNG(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save USTM T{}.png", i), loadMemPng(buffer, info.uncompressed_size));
 		}
 	}
 
