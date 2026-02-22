@@ -1393,6 +1393,8 @@ bool AHuman::Look(float FOVSpread, float range) {
 
 	// Pathfinding dig strength is suitable to dig through light debris and corpses, so is a good value for sight too
 	const float strength = c_PathFindingDefaultDigStrength;
+
+	const std::vector<int> MOIDsToIgnore = {GetID()};
 	
 	int rayNum = FOVSpread / degreesPerRotationSegment; 
 	if (GetTeam() == 0) {
@@ -1401,13 +1403,13 @@ bool AHuman::Look(float FOVSpread, float range) {
 		int bubbleRayNum = 16;
 		Vector bubbleCenterPos = GetPos();
 		for (int rayIt = 0; rayIt < rayNum; rayIt++) {
-			g_SceneMan.CastSeeRay(m_Team, bubbleCenterPos, bubbleAroundActorLookVector, ignored, strength, step);
+			g_SceneMan.CastSeeRay(m_Team, bubbleCenterPos, bubbleAroundActorLookVector, ignored, strength, step, MOIDsToIgnore);
 			bubbleAroundActorLookVector.RadRotate(2 * PI / bubbleRayNum);
 		}
 	}
 
 	for (int rayIt = 0; rayIt < rayNum; rayIt++) {
-		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, strength, step);
+		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, strength, step, MOIDsToIgnore);
 		lookVector.DegRotate(FOVSpread / (rayNum - 1));
 	}
 	// TODO: generate an alarm event if we spot an enemy actor?

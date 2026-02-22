@@ -513,7 +513,7 @@ namespace RTE {
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @param reveal Whether the ray should reveal or restore unseen layer
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
-		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal);
+		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal, const std::vector<MOID>& ignoredMOIDs = emptyIgnoredMOIDVector);
 
 		/// Traces a box along a vector and reveals pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
@@ -527,7 +527,7 @@ namespace RTE {
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
-		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0);
+		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0, const std::vector<MOID>& ignoredMOIDs = emptyIgnoredMOIDVector);
 
 		/// Traces a box along a vector and hides pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
@@ -541,7 +541,7 @@ namespace RTE {
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
-		bool CastUnseeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0);
+		bool CastUnseeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0, const std::vector<MOID>& ignoredMOIDs = emptyIgnoredMOIDVector);
 
 		/// Traces along a vector and gets the location of the first encountered
 		/// pixel of a specific material in the terrain.
@@ -1046,6 +1046,8 @@ namespace RTE {
 		/// Private member variable and method declarations
 	private:
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
+
+		static const std::vector<int> emptyIgnoredMOIDVector;
 
 		/// Clears all the member variables of this SceneMan, effectively
 		/// resetting the members of this abstraction level only.
