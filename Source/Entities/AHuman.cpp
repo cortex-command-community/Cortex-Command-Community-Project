@@ -1376,10 +1376,11 @@ bool AHuman::Look(float FOVSpread, float range) {
 
 	// Calculate aim angle from the start of FoV
 	float aimAngle = m_AimAngle - RTE::DegreesToRadians(FOVSpread * (m_HFlipped ? -0.5f : 0.5f));
+	
+	const float degreesPerRotationSegment = 2.0f;
 
 	// Not needed anymore as now we have hysteresis!
 	/* // Quantize it also, so it's not so exact and flickery
-	const float degreesPerRotationSegment = 2.0f;
 	const float numRotationalSegmentsPerSide = 180.0f / degreesPerRotationSegment;
 	const float quantization = numRotationalSegmentsPerSide / c_PI;
 	aimAngle = std::round(aimAngle * quantization) / quantization;*/
