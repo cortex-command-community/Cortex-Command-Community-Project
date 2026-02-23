@@ -1450,6 +1450,12 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 						}
 					}
 				}*/
+
+				if (reveal) {
+					RevealUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
+				} else {
+					RestoreUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
+				}
 			}
 
 			// Check the strength of the terrain to see if we can penetrate further
@@ -1470,29 +1476,41 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 		}
 	}
 
+	// TODO... this should be doable, just need to think about it...
+	/*
+	const int startLeftX  = posStartX - size / 2;
+	const int startRightX = posStartX + size / 2;
+	const int startUpperY = posStartY - size / 2;
+	const int startLowerY = posStartY + size / 2;
+
+	const int endLeftX = intPos[X] - size / 2;
+	const int endRightX = intPos[X] + size / 2;
+	const int endUpperY = intPos[Y] - size / 2;
+	const int endLowerY = intPos[Y] + size / 2;
+
 	// Reveal box around start
 	if (reveal) {
-		RevealUnseenBox(posStartX - size / 2, posStartY - size / 2, size, size, team);
+		RevealUnseenBox(startLeftX, startUpperY, size, size, team);
 	} else {
-		RestoreUnseenBox(posStartX - size / 2, posStartY - size / 2, size, size, team);
+		RestoreUnseenBox(startLeftX, startUpperY, size, size, team);
 	}
 
 	// Reveal rotated rect from start-> end (via tris)
-	Vector right = ray.GetNormalized().GetPerpendicular();
 	if (reveal) {
-		RevealUnseenTri(Vector(posStartX, posStartY) + (right * size / 2), Vector(posStartX, posStartY) - (right * size / 2), Vector(intPos[X], intPos[Y]) + (right * size / 2), team);
-		RevealUnseenTri(Vector(intPos[X], intPos[Y]) + (right * size / 2), Vector(intPos[X], intPos[Y]) - (right * size / 2), Vector(posStartX, posStartY) + (right * size / 2), team);
+		RevealUnseenTri(Vector(startLeftX, startUpperY), Vector(startLeftX, startLowerY), Vector(endLeftX, endUpperY), team);
+		RevealUnseenTri(Vector(startLeftX, startLowerY), Vector(endLeftX, endUpperY), Vector(endRightX, endLowerY), team);
 	} else {
-		RestoreUnseenTri(Vector(posStartX, posStartY) + (right * size / 2), Vector(posStartX, posStartY) - (right * size / 2), Vector(intPos[X], intPos[Y]) + (right * size / 2), team);
-		RestoreUnseenTri(Vector(intPos[X], intPos[Y]) + (right * size / 2), Vector(intPos[X], intPos[Y]) - (right * size / 2), Vector(posStartX, posStartY) + (right * size / 2), team);
+		RestoreUnseenTri(Vector(startLeftX, startUpperY), Vector(startLeftX, startLowerY), Vector(endLeftX, endUpperY), team);
+		RestoreUnseenTri(Vector(startLeftX, startLowerY), Vector(endLeftX, endUpperY), Vector(endRightX, endLowerY), team);
 	}
 
 	// Reveal the box around the end
 	if (reveal) {
-		RevealUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
+		RevealUnseenBox(endLeftX, endUpperY, size, size, team);
 	} else {
-		RestoreUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
+		RestoreUnseenBox(endLeftX, endUpperY, size, size, team);
 	}
+	*/
 
 	return true;
 }
