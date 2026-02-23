@@ -433,7 +433,7 @@ namespace RTE {
 		void MakeAllUnseen(Vector pixelSize, const int team);
 
 		// GTODO: add desc and make work with differing angles and exit in enclosed maps
-		void CastSeeRaysFromSky(const int team);
+		void CastSeeRaysFromSky(const int screenId);
 
 		void CommitToLastSeenTerrainWithFowMask(const int team);
 

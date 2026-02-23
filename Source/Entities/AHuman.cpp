@@ -1364,12 +1364,6 @@ bool AHuman::Look(float FOVSpread, float range) {
 	}
 
 	float unseenResolution = (int)g_SceneMan.GetUnseenResolution(m_Team).GetSmallest();
-	if ((m_LastLookFrom - aimPos).MagnitudeIsLessThan(unseenResolution))
-	{
-		aimPos = m_LastLookFrom;
-	}
-
-	m_LastLookFrom = aimPos;
 
 	// Create the vector to trace along
 	Vector lookVector(aimDistance, 0);

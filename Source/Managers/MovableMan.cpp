@@ -1328,8 +1328,6 @@ void MovableMan::Update() {
 				// Clear what was immediately seen
 				// GTODO: make this not eat a fow resolution, tweak functions accordingly
 				g_SceneMan.MakeAllUnseen(g_SceneMan.GetUnseenResolution(team), team);
-				// Reveal what's being seen from orbit
-				g_SceneMan.CastSeeRaysFromSky(team); 
 			}
 		}
 	}
@@ -1699,6 +1697,14 @@ void MovableMan::Update() {
 				                                                                         m_Actors[i]->CastSeeRays();
 			                                                                         }
 		                                                                         });
+		// Reveal what's being seen from orbit
+		for (int screenId = 0; screenId < g_FrameMan.GetScreenCount(); ++screenId) {
+			m_ActorsSeeFuture.push_back(
+			    g_ThreadMan.GetPriorityThreadPool().submit([screenId]() {
+					g_SceneMan.CastSeeRaysFromSky(screenId);
+				})
+			);
+		}
 	}
 
 	// We've finished stuff that can interact with lua script, so it's the ideal time to start a gc run

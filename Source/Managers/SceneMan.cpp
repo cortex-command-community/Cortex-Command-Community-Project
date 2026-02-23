@@ -1014,8 +1014,8 @@ void SceneMan::CommitToLastSeenTerrainWithFowMask(const int team) {
 
 // GTODO: a team may have several human players. Iterate over all of them
 // CastSeeRay already quantizes its positions, so no need to worry here
-void SceneMan::CastSeeRaysFromSky(const int team) {
-	int screenId = 0;
+void SceneMan::CastSeeRaysFromSky(const int screenId) {
+	int team = g_CameraMan.GetScreenTeam(screenId);
 
 	float spacing = GetUnseenResolution(team).GetX();
 	int rayX = g_CameraMan.GetOffset(screenId).GetX();
@@ -1069,10 +1069,9 @@ void SceneMan::CastSeeRaysFromSky(const int team) {
 	int step = (int)unseenResolution / 2;
 	Vector ignored(0, 0);
 
-	while (rayCount) {
+	for (int i = 0; i < rayCount; ++i) {
 		rayX = (rayX + static_cast<int>(spacing)) % GetSceneWidth();
 		CastSeeRay(team, Vector(static_cast<float>(rayX), 0), seeRay, ignored, strength, step);
-		rayCount--;
 	}
 }
 

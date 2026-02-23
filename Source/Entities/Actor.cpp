@@ -1300,7 +1300,7 @@ void RTE::Actor::CastSeeRays() {
 		const int lookIterations = 1; // How many see rays to cast per frame
 		for (int i = 0; i < lookIterations; ++i) {
 			// TODO: perceptiveness should increase bubble awareness
-			Look(100, g_FrameMan.GetPlayerScreenWidth() * 0.51 * m_Perceptiveness);
+			Look(100, g_FrameMan.GetPlayerScreenWidth() * 0.7 * m_Perceptiveness);
 		}
 	}
 }
