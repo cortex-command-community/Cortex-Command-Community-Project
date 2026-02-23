@@ -180,8 +180,8 @@ int gui_bg_color = 0;
 
 
 /* a block of temporary working memory */
-void *_scratch_mem = NULL;
-int _scratch_mem_size = 0;
+thread_local void *_scratch_mem = NULL;
+thread_local int _scratch_mem_size = 0;
 
 
 /* SVGA bank switching tables */

@@ -16,6 +16,8 @@
  */
 
 
+#include <threads.h>
+
 #ifndef AINTERN_H
 #define AINTERN_H
 
@@ -69,11 +71,9 @@ AL_FUNC(void *, _al_realloc, (void *mem, size_t size));
 AL_FUNC(char *, _al_strdup, (AL_CONST char *string));
 AL_FUNC(char *, _al_ustrdup, (AL_CONST char *string));
 
-
-
 /* some Allegro functions need a block of scratch memory */
-AL_VAR(void *, _scratch_mem);
-AL_VAR(int, _scratch_mem_size);
+AL_VAR(thread_local void*, _scratch_mem);
+AL_VAR(thread_local int, _scratch_mem_size);
 
 
 AL_INLINE(void, _grow_scratch_mem, (int size),
