@@ -86,8 +86,13 @@ vec4 ApplyDarkenAndDesat(vec4 pix, vec2 uv, float darken, float desat) {
 void main() {
 	const float PALETTE_COLOR_BLACK = 245.0 / 255.0;
 	const float PALETTE_COLOR_MASK = 0.0;
-	const float USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND = 0.016;
-	const float USDF_OPACITY_SMOOTHING_DISTANCE = 0.016;
+	const float USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND = 0.02;
+
+	// Three values for low/medium/high smoothing (this'll become an option)
+	//const float USDF_OPACITY_SMOOTHING_DISTANCE = 0.004; // low, just barely enough to hide the jaggies
+	const float USDF_OPACITY_SMOOTHING_DISTANCE = 0.014; // standard setting, just enough to hide the grid
+	//const float USDF_OPACITY_SMOOTHING_DISTANCE = 0.020; // super smooth
+
 	const float SCANLINE_OPACITY_SMOOTHING_DISTANCE = 0.1;
 
 	float distanceToUnseen = texture(fowMaskTexture, textureUV).r - USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND;
