@@ -86,8 +86,9 @@ vec4 ApplyDarkenAndDesat(vec4 pix, vec2 uv, float darken, float desat) {
 void main() {
 	const float PALETTE_COLOR_BLACK = 245.0 / 255.0;
 	const float PALETTE_COLOR_MASK = 0.0;
-	const float USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND = 0.011;
+	const float USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND = 0.016;
 	const float USDF_OPACITY_SMOOTHING_DISTANCE = 0.016;
+	const float SCANLINE_OPACITY_SMOOTHING_DISTANCE = 0.1;
 
 	float distanceToUnseen = texture(fowMaskTexture, textureUV).r - USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND;
 	float distanceToNeverSeen = texture(fowLastSeenMaskTexture, textureUV).r - USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND;
