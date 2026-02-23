@@ -198,9 +198,13 @@ void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 		return;
 	}
 
-	SceneLayer* maskSL = currentScene->GetUnseenLayerMask();
-	SceneLayer* lastSeenTerrainMaskSL = currentScene->GetUnseenLayerTerrainMask();
-	SceneLayer* lastSeenTerrainSL = currentScene->GetUnseenLayerTerrain();
+	// TODO: HACK
+	int team = g_ActivityMan.GetActivity()->GetTeamOfPlayer(0);
+
+	SceneLayer* maskSL = currentScene->GetUnseenLayerMask(team);
+	SceneLayer* lastSeenTerrainMaskSL = currentScene->GetUnseenLayerTerrainMask(team);
+	SceneLayer* lastSeenTerrainSL = currentScene->GetUnseenLayerTerrain(team);
+
 	int currentSceneW = currentScene->GetWidth();
 	int currentSceneH = currentScene->GetHeight();
 	int scaleFactorX = maskSL->GetScaleFactor().GetX();
@@ -1418,6 +1422,7 @@ void FrameMan::Draw() {
 		}
 		RenderBackgroundLayersBmToTexture();
 
+		// TODO- this needs to be done above, per screen! Right now splitscreen is fucked
 		FogOfWarSetup(backgroundShader);
 		RenderFogOfWarTextureWithTimeDecay();
 		FogOfWarSetup_DoSDF(m_fowMaskTex, m_SdfResultFowMask);
