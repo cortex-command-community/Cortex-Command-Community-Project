@@ -477,16 +477,26 @@ namespace RTE {
 		bool RestoreUnseen(const int posX, const int posY, const int team);
 
 		/// Reveals a box on the unseen map for a specific team, if there is any.
-		/// @param posX The X and Y coords of the upper left corner of the box to be revealed.
-		/// @param posY The width and height of the box to be revealed, in scene units (pixels)
-		/// @param width The team to reveal for.
+		/// @param posX, posY The X and Y coords of the upper left corner of the box to be revealed.
+		/// @param width, height The width and height of the box to be revealed, in scene units (pixels)
+		/// @param team The team to reveal for.
 		void RevealUnseenBox(const int posX, const int posY, const int width, const int height, const int team);
 
 		/// Restores a box on the unseen map for a specific team, if there is any.
-		/// @param posX The X and Y coords of the upper left corner of the box to be revealed.
-		/// @param posY The width and height of the box to be restored, in scene units (pixels)
-		/// @param width The team to restore for.
+		/// @param posX, posY The X and Y coords of the upper left corner of the box to be revealed.
+		/// @param width, height The width and height of the box to be restored, in scene units (pixels)
+		/// @param team The team to restore for.
 		void RestoreUnseenBox(const int posX, const int posY, const int width, const int height, const int team);
+
+		/// Reveals a tri on the unseen map for a specific team, if there is any.
+		/// @param pos1, pos2, pos3 The three corners of the tri.
+		/// @param team The team to reveal for.
+		void RevealUnseenTri(const Vector pos1, const Vector pos2, const Vector pos3, const int team);
+
+		/// Restores a tri on the unseen map for a specific team, if there is any.
+		/// @param pos1, pos2, pos3 The three corners of the tri.
+		/// @param team The team to restore for.
+		void RestoreUnseenTri(const Vector pos1, const Vector pos2, const Vector pos3, const int team);
 
 		/// Traces along a vector and stops when the accumulated material strengths of the
 		/// traced-through terrain meets or exceeds a given value.

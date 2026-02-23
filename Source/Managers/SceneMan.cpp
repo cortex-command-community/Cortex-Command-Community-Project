@@ -1191,7 +1191,7 @@ void SceneMan::RevealUnseenBox(const int posX, const int posY, const int width, 
 		return;
 	}
 
-	if (SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team); pUnseenLayerMask) {
+	if (SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team)) {
 		// Translate to the scaled unseen layer's coordinates
 		Vector scale = pUnseenLayerMask->GetScaleFactor();
 		int scaledX = posX / scale.m_X;
@@ -1211,8 +1211,7 @@ void SceneMan::RestoreUnseenBox(const int posX, const int posY, const int width,
 	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return;
 
-	SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team);
-	if (pUnseenLayerMask) {
+	if (SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team)) {
 		// Translate to the scaled unseen layer's coordinates
 		Vector scale = pUnseenLayerMask->GetScaleFactor();
 		int scaledX = posX / scale.m_X;
@@ -1226,6 +1225,43 @@ void SceneMan::RestoreUnseenBox(const int posX, const int posY, const int width,
 		int rescaledW = scaledW * scale.m_X;
 		int rescaledH = scaledH * scale.m_Y;
 		rectfill(pUnseenLayerMask->GetBitmap(), rescaledX, rescaledY, rescaledX + rescaledW, rescaledY + rescaledH, g_BlackColor);
+	}
+}
+
+void RTE::SceneMan::RevealUnseenTri(const Vector pos1, const Vector pos2, const Vector pos3, const int team) {
+	RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when making an area unseen!");
+	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
+		return;
+
+	if (SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team)) {
+		// Translate to the scaled unseen layer's coordinates
+		Vector scale = pUnseenLayerMask->GetScaleFactor();
+		Vector pos1Scaled = pos1 / scale;
+		Vector pos2Scaled = pos2 / scale;
+		Vector pos3Scaled = pos3 / scale;
+
+		// Fill the tri for the unseen masks (plural)
+		SceneLayer* pUnseenLayerTerrainMask = m_pCurrentScene->GetUnseenLayerTerrainMask(team);
+		triangle(pUnseenLayerMask->GetBitmap(), (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), g_MaskColor);
+		triangle(pUnseenLayerTerrainMask->GetBitmap(), (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), g_MaskColor);
+	}
+}
+
+void RTE::SceneMan::RestoreUnseenTri(const Vector pos1, const Vector pos2, const Vector pos3, const int team) {
+	RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when making an area unseen!");
+	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
+		return;
+
+	if (SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team)) {
+		// Translate to the scaled unseen layer's coordinates
+		Vector scale = pUnseenLayerMask->GetScaleFactor();
+		Vector pos1Scaled = pos1 / scale;
+		Vector pos2Scaled = pos2 / scale;
+		Vector pos3Scaled = pos3 / scale;
+
+		// Fill the tri for the unseen mask
+		SceneLayer* pUnseenLayerTerrainMask = m_pCurrentScene->GetUnseenLayerTerrainMask(team);
+		triangle(pUnseenLayerMask->GetBitmap(), (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), g_BlackColor);
 	}
 }
 
@@ -1342,6 +1378,10 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 	const int quantization = resolution;
 	intPos[X] = std::floor(start.m_X / quantization) * quantization;
 	intPos[Y] = std::floor(start.m_Y / quantization) * quantization;
+
+	int posStartX = intPos[X];
+	int posStartY = intPos[Y];
+
 	delta[X] = std::floor(intPos[X] + ray.m_X) - intPos[X];
 	delta[Y] = std::floor(intPos[Y] + ray.m_Y) - intPos[Y];
 
@@ -1400,32 +1440,16 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 				bool is_unseen = true; // IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y], team) || IsUnseen(intPos[X] + size, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - size, team) || IsUnseen(intPos[X], intPos[Y] + size, team);
 
 				// Detect MOIDs
-				// If a ray hits a MOID that is vision-blocking, 
-				// then continue the ray but don't reveal anything with it.
-				// This is needed for seeing glowing objects through smoke (eg fire, muzzle flashes)
+				// If a ray hits a MOID that is vision-blocking, then finish the ray
+				// TODO: Maybe something is needed for seeing glowing objects through smoke (eg fire, muzzle flashes)
 				/* MOID hitMOID = GetMOIDPixel(intPos[X], intPos[Y], Activity::NoTeam);
 				if (hitMOID != g_NoMOID) {
 					for (auto ignoredMOID: ignoredMOIDs) {
 						if (hitMOID != ignoredMOID && g_MovableMan.GetRootMOID(hitMOID) != ignoredMOID) {
-							MOIDWasHit = true;
-							goto skipRevealing;
+							break;
 						}
 					}
-				}/**/
-				
-				// Reveal if we can, save the result
-				if (reveal) {
-					if (is_unseen) {
-						RevealUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
-						affectedAny = true;
-					}
-				} else {
-					if (!is_unseen) {
-						RestoreUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
-						affectedAny = true;
-					}
-				}
-			skipRevealing:;
+				}*/
 			}
 
 			// Check the strength of the terrain to see if we can penetrate further
@@ -1446,7 +1470,31 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 		}
 	}
 
-	return affectedAny;
+	// Reveal box around start
+	if (reveal) {
+		RevealUnseenBox(posStartX - size / 2, posStartY - size / 2, size, size, team);
+	} else {
+		RestoreUnseenBox(posStartX - size / 2, posStartY - size / 2, size, size, team);
+	}
+
+	// Reveal rotated rect from start-> end (via tris)
+	Vector right = ray.GetNormalized().GetPerpendicular();
+	if (reveal) {
+		RevealUnseenTri(Vector(posStartX, posStartY) + (right * size / 2), Vector(posStartX, posStartY) - (right * size / 2), Vector(intPos[X], intPos[Y]) + (right * size / 2), team);
+		RevealUnseenTri(Vector(intPos[X], intPos[Y]) + (right * size / 2), Vector(intPos[X], intPos[Y]) - (right * size / 2), Vector(posStartX, posStartY) + (right * size / 2), team);
+	} else {
+		RestoreUnseenTri(Vector(posStartX, posStartY) + (right * size / 2), Vector(posStartX, posStartY) - (right * size / 2), Vector(intPos[X], intPos[Y]) + (right * size / 2), team);
+		RestoreUnseenTri(Vector(intPos[X], intPos[Y]) + (right * size / 2), Vector(intPos[X], intPos[Y]) - (right * size / 2), Vector(posStartX, posStartY) + (right * size / 2), team);
+	}
+
+	// Reveal the box around the end
+	if (reveal) {
+		RevealUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
+	} else {
+		RestoreUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
+	}
+
+	return true;
 }
 
 bool SceneMan::CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, const std::vector<MOID>& ignoredMOIDs) {
