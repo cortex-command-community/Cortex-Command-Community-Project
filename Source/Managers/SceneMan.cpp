@@ -1487,17 +1487,26 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 	}
 
 	// Reveal rotated rect from start-> end (via tris)
-	// Dumb, can use some simple logic to avoid doing all 4 tris, only need 2. But my brain is stupid and slow right now
+	const bool whichRects = posStartX < intPos[X] && posStartY < intPos[Y] ? false :
+	                        posStartX > intPos[X] && posStartY < intPos[Y] ? true  :
+	                        posStartX < intPos[X] && posStartY > intPos[Y] ? true  :
+	                      /*posStartX > intPos[X] && posStartY > intPos[Y]*/ false;
 	if (reveal) {
-		RevealUnseenTri(Vector(startMinX, startMinY), Vector(startMaxX, startMaxY), Vector(endMinX, endMinY), team);
-		RevealUnseenTri(Vector(endMaxX, endMaxY),     Vector(startMaxX, startMaxY), Vector(endMinX, endMinY), team);
-		RevealUnseenTri(Vector(endMinX, endMaxY),     Vector(endMaxX, endMinY),     Vector(startMinX, startMaxY), team);
-		RevealUnseenTri(Vector(startMaxX, startMinY), Vector(endMaxX, endMinY),     Vector(startMinX, startMaxY), team);
+		if (whichRects) {
+			RevealUnseenTri(Vector(startMinX, startMinY), Vector(startMaxX, startMaxY), Vector(endMinX, endMinY), team);
+			RevealUnseenTri(Vector(endMaxX, endMaxY),     Vector(startMaxX, startMaxY), Vector(endMinX, endMinY), team);
+		} else {
+			RevealUnseenTri(Vector(endMinX, endMaxY),     Vector(endMaxX, endMinY),     Vector(startMinX, startMaxY), team);
+			RevealUnseenTri(Vector(startMaxX, startMinY), Vector(endMaxX, endMinY),     Vector(startMinX, startMaxY), team);
+		}
 	} else {
-		RestoreUnseenTri(Vector(startMinX, startMinY), Vector(startMaxX, startMaxY), Vector(endMinX, endMinY), team);
-		RestoreUnseenTri(Vector(endMaxX, endMaxY),     Vector(startMaxX, startMaxY), Vector(endMinX, endMinY), team);
-		RestoreUnseenTri(Vector(endMinX, endMaxY),     Vector(endMaxX, endMinY),     Vector(startMinX, startMaxY), team);
-		RestoreUnseenTri(Vector(startMaxX, startMinY), Vector(endMaxX, endMinY),     Vector(startMinX, startMaxY), team);
+		if (whichRects) {
+			RestoreUnseenTri(Vector(startMinX, startMinY), Vector(startMaxX, startMaxY), Vector(endMinX, endMinY), team);
+			RestoreUnseenTri(Vector(endMaxX, endMaxY),     Vector(startMaxX, startMaxY), Vector(endMinX, endMinY), team);
+		} else {
+			RestoreUnseenTri(Vector(endMinX, endMaxY),     Vector(endMaxX, endMinY),     Vector(startMinX, startMaxY), team);
+			RestoreUnseenTri(Vector(startMaxX, startMinY), Vector(endMaxX, endMinY),     Vector(startMinX, startMaxY), team);
+		}
 	}
 
 	// Reveal the box around the end
