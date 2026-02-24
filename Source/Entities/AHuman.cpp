@@ -1353,13 +1353,13 @@ bool AHuman::Look(float FOVSpread, float range) {
 	float aimDistance = m_AimDistance + range;
 	Vector aimPos = m_Pos;
 
-	// If aiming down the barrel, look through that
+	// If aiming down the barrel, extend aim length
 	if (m_Controller.IsState(AIM_SHARP) && m_pFGArm && m_pFGArm->IsAttached() && m_pFGArm->GetHeldDevice()) {
-		aimPos = m_pFGArm->GetHeldDevice()->GetPos();
 		aimDistance += m_pFGArm->GetHeldDevice()->GetSharpLength();
 	}
-	// If just looking, use the eyes on the head instead
-	else if (m_pHead && m_pHead->IsAttached()) {
+
+	// If we have a head, use the eyes instead
+	if (m_pHead && m_pHead->IsAttached()) {
 		aimPos = GetEyePos();
 	}
 
@@ -1374,10 +1374,10 @@ bool AHuman::Look(float FOVSpread, float range) {
 	const float degreesPerRotationSegment = 2.0f;
 
 	// Not needed anymore as now we have hysteresis!
-	/* // Quantize it also, so it's not so exact and flickery
+	// Quantize it also, so it's not so exact and flickery
 	const float numRotationalSegmentsPerSide = 180.0f / degreesPerRotationSegment;
 	const float quantization = numRotationalSegmentsPerSide / c_PI;
-	aimAngle = std::round(aimAngle * quantization) / quantization;*/
+	aimAngle = std::round(aimAngle * quantization) / quantization;
 
 	Matrix aimMatrix(m_HFlipped ? -aimAngle : aimAngle);
 	aimMatrix.SetXFlipped(m_HFlipped);
