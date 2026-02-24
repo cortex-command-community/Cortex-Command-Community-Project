@@ -167,7 +167,7 @@ void FrameMan::RenderFogOfWarTextureWithTimeDecay() {
 
 	// Arbitrarily high so there is no everything-vision at activity start
 	float elapsedSecondsSinceLastCall = 10000;  
-	long long timestampCur = g_TimerMan.GetAbsoluteTime();
+	long long timestampCur = g_TimerMan.GetSimTickCount();
 	if (fowDecayTimestampPrev != -1) {
 		elapsedSecondsSinceLastCall = static_cast<float>(timestampCur - fowDecayTimestampPrev) / 1000000.0f;
 	}
@@ -317,7 +317,7 @@ void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 #define prnt(str) g_ConsoleMan.PrintString(std::to_string(str))
 #define prnt2(str) g_ConsoleMan.PrintString(str)
-	const float timeInSecs = (float)g_TimerMan.GetAbsoluteTime() / 1000000;
+	const float timeInSecs = (float)g_TimerMan.GetSimTickCount() / 1000000;
 	const int viewWidth = m_BackBuffer8->w;
 	const int viewHeight = m_BackBuffer8->h;
 
