@@ -2,12 +2,12 @@
 in vec2 textureUV;
 out vec4 FragColor;
 
-uniform sampler2D uNearest;
+uniform sampler2D uSampler;
 uniform vec2 uViewSize;
 uniform float uMaxDist;
 
 void main() {
-    vec4 n = texture(uNearest, textureUV);
+    vec4 n = texture(uSampler, textureUV);
     if (n.x < 0.0) {
         // No seed in view (treat as far away)
         FragColor = vec4(1.0,1.0,1.0,1.0); // White = far

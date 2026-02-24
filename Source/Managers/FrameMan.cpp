@@ -397,7 +397,7 @@ void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, src);
-	glUniform1i(glGetUniformLocation(programUnsignedSDF, "uNearest"), 0);
+	glUniform1i(glGetUniformLocation(programUnsignedSDF, "uSampler"), 0);
 
 	shaderUnsignedSDF.SetFloat("uMaxDist", std::sqrt(m_BackBuffer8->w * m_BackBuffer8->w + m_BackBuffer8->h * m_BackBuffer8->h));
 	shaderUnsignedSDF.SetVector2f("uViewSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
