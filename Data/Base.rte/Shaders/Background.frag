@@ -22,6 +22,7 @@ uniform vec2 uViewSize;
 uniform vec2 uSceneSize;
 
 uniform float uNoiseSeed;
+uniform float usdfOpacitySmoothingDistance;
 
 uniform sampler2D rteTextureLastSeen;
 uniform sampler2D fowMaskTexture;
@@ -61,11 +62,13 @@ float rand(vec2 co) {
 vec4 ApplyScanlineAndNoise(vec4 pix, vec2 uv, float scanlinePhaseOffset, float opacity) {
 	float texelY = uv.y * uSceneSize.y;
 	float scan = sin(texelY * 3.14159 / 2 + scanlinePhaseOffset) * 0.12;
-	float noise = (rand(gl_FragCoord.xy + uNoiseSeed) * 2.0 - 1.0) * 0.075;
+	vec2 quantizedXY = vec2(floor(gl_FragCoord.x / 4), floor(gl_FragCoord.y / 4));
+	float noise = (rand(quantizedXY + uNoiseSeed) * 2.0 - 1.0) * 0.0175;
 
-	float brightness = 1.0 + ((noise + scan) * opacity);
+	float brightness = 1.0 + (scan * opacity);
 	vec3 color = pix.rgb;
 	color *= brightness;
+	color += vec3(noise, noise, noise) * opacity;
 
 	return vec4(color, 1.0);
 } 
@@ -90,7 +93,7 @@ void main() {
 
 	// Three values for low/medium/high smoothing (this'll become an option)
 	//const float USDF_OPACITY_SMOOTHING_DISTANCE = 0.004; // low, just barely enough to hide the jaggies
-	const float USDF_OPACITY_SMOOTHING_DISTANCE = 0.014; // standard setting, just enough to hide the grid
+	//const float USDF_OPACITY_SMOOTHING_DISTANCE = 0.014; // standard setting, just enough to hide the grid
 	//const float USDF_OPACITY_SMOOTHING_DISTANCE = 0.020; // super smooth
 
 	const float SCANLINE_OPACITY_SMOOTHING_DISTANCE = 0.1;
@@ -155,12 +158,12 @@ void main() {
 	}
 
 	if (fowEnabled) {
-		float unseenLerp = clamp(distanceToUnseen / USDF_OPACITY_SMOOTHING_DISTANCE, 0, 1);
+		float unseenLerp = clamp(distanceToUnseen / usdfOpacitySmoothingDistance, 0, 1);
 		float darken = mix(0.68, 1, unseenLerp);
 		float desat = mix(0.8, 0, unseenLerp);
 		FragColor = ApplyScanlineAndNoise(FragColor, sceneUV, 0.1, 1 - unseenLerp);
 
-		float neverSeenLerp = clamp(distanceToNeverSeen / USDF_OPACITY_SMOOTHING_DISTANCE, 0, 1);
+		float neverSeenLerp = clamp(distanceToNeverSeen / usdfOpacitySmoothingDistance, 0, 1);
 		darken = min(darken, mix(0, 1, neverSeenLerp));
 
 		FragColor = ApplyDarkenAndDesat(FragColor, sceneUV, darken, desat);

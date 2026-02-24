@@ -536,7 +536,8 @@ void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEna
 	backgroundShader.SetVector2f("uViewOrigin", g_CameraMan.GetOffset(0));
 	backgroundShader.SetVector2f("uViewSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
 	backgroundShader.SetVector2f("uSceneSize", Vector(terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
-	backgroundShader.SetFloat("uNoiseSeed", static_cast<float>(rand()));
+	backgroundShader.SetFloat("uNoiseSeed", static_cast<float>(rand()) * 0.01f);
+	backgroundShader.SetFloat("usdfOpacitySmoothingDistance", 0.014f);
 	backgroundShader.SetBool("fowEnabled", fowEnabled);
 
 	if (fowEnabled) {

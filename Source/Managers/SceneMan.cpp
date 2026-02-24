@@ -1052,6 +1052,7 @@ void SceneMan::CastSeeRaysFromSky(const int screenId) {
 		}
 	}
 	// Make the next call sweep another angle
+	// TODO: make this store a value per-screen!
 	m_SkySeeRaysAngle = static_cast<SkySeeRaysAngle>((m_SkySeeRaysAngle + 1) % SkySeeRaysAngle::Count);
 
 	// If camera pans fast there can be black bars on sides of screen, so we do this:
