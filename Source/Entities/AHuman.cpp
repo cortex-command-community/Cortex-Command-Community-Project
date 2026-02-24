@@ -1371,7 +1371,7 @@ bool AHuman::Look(float FOVSpread, float range) {
 	// Calculate aim angle from the start of FoV
 	float aimAngle = m_AimAngle - RTE::DegreesToRadians(FOVSpread * (m_HFlipped ? -0.5f : 0.5f));
 	
-	const float degreesPerRotationSegment = 2.0f;
+	static float degreesPerRotationSegment = 0.5f;
 
 	// Not needed anymore as now we have hysteresis!
 	// Quantize it also, so it's not so exact and flickery
@@ -1384,7 +1384,7 @@ bool AHuman::Look(float FOVSpread, float range) {
 	lookVector *= aimMatrix;
 
 	// The smallest dimension of the fog block, divided by two, but always at least one, as the step for the casts
-	const int step = (int)unseenResolution / 2;
+	const int step = 0;
 	Vector ignored(0, 0);
 
 	// Pathfinding dig strength is suitable to dig through light debris and corpses, so is a good value for sight too
@@ -1393,7 +1393,7 @@ bool AHuman::Look(float FOVSpread, float range) {
 	const std::vector<int> MOIDsToIgnore = {GetID()};
 
 	const float bubblePixelRadius = 36.0f;
-	const int bubbleRayNum = 16;
+	static int bubbleRayNum = 32;
 	const Vector bubbleCenterPos = GetPos();
 	Vector bubbleAroundActorLookVector(bubblePixelRadius, 0);
 	for (int i = 0; i < bubbleRayNum; ++i) {

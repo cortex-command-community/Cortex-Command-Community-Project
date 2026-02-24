@@ -1359,7 +1359,7 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 		return false;
 	}
 
-	const int revealSize = 65;
+	static int revealSize = 40;
 	const int resolution = GetUnseenResolution(team).GetLargest();
 
 	bool MOIDWasHit = false;
@@ -1511,9 +1511,9 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 
 	// Reveal the box around the end
 	if (reveal) {
-		RevealUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
+		RevealUnseenBox(endMinX, endMinY, size, size, team);
 	} else {
-		RestoreUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
+		RestoreUnseenBox(endMinX, endMinY, size, size, team);
 	}
 
 	return true;

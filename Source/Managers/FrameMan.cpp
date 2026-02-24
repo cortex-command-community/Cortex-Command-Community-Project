@@ -531,13 +531,23 @@ void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEna
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("bgLayersTexture"), m_bgLayersTex);
 
 	//rlTexture
-
 	SceneLayer* terrainSL = g_SceneMan.GetTerrain();
 	backgroundShader.SetVector2f("uViewOrigin", g_CameraMan.GetOffset(0));
 	backgroundShader.SetVector2f("uViewSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
 	backgroundShader.SetVector2f("uSceneSize", Vector(terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
 	backgroundShader.SetFloat("uNoiseSeed", static_cast<float>(rand()) * 0.01f);
-	backgroundShader.SetFloat("usdfOpacitySmoothingDistance", 0.014f);
+
+	static float usdfOpacitySmoothingDistance = 0.008f;
+	static float usdfThresoldUnderWhichItIsGround = 0.006f;
+	static float scanlineAndNoiseOpacitySmoothingDistance = 0.02f;
+	static float unseenNoiseIntensity = 0.006f;
+	backgroundShader.SetFloat("usdfOpacitySmoothingDistance", usdfOpacitySmoothingDistance);
+	backgroundShader.SetFloat("usdfThresoldUnderWhichItIsGround", usdfThresoldUnderWhichItIsGround);
+	backgroundShader.SetFloat("scanlineAndNoiseOpacitySmoothingDistance", scanlineAndNoiseOpacitySmoothingDistance);
+	backgroundShader.SetFloat("unseenNoiseIntensity", unseenNoiseIntensity);
+
+	static bool treatUnseenAsNeverSeen = false;
+	backgroundShader.SetBool("treatUnseenAsNeverSeen", treatUnseenAsNeverSeen);
 	backgroundShader.SetBool("fowEnabled", fowEnabled);
 
 	if (fowEnabled) {

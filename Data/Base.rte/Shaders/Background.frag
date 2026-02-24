@@ -15,6 +15,7 @@ uniform vec4 rteColor = vec4(1.0);
 uniform bool rteBlendInvert = false;
 uniform bool drawMasked = false;
 uniform bool drawingForeground = false;
+uniform bool treatUnseenAsNeverSeen = false;
 uniform bool fowEnabled;
 
 uniform vec2 uViewOrigin;
@@ -22,7 +23,11 @@ uniform vec2 uViewSize;
 uniform vec2 uSceneSize;
 
 uniform float uNoiseSeed;
+
+uniform float usdfThresoldUnderWhichItIsGround;
 uniform float usdfOpacitySmoothingDistance;
+uniform float scanlineAndNoiseOpacitySmoothingDistance;
+uniform float unseenNoiseIntensity;
 
 uniform sampler2D rteTextureLastSeen;
 uniform sampler2D fowMaskTexture;
@@ -63,7 +68,7 @@ vec4 ApplyScanlineAndNoise(vec4 pix, vec2 uv, float scanlinePhaseOffset, float o
 	float texelY = uv.y * uSceneSize.y;
 	float scan = sin(texelY * 3.14159 / 2 + scanlinePhaseOffset) * 0.12;
 	vec2 quantizedXY = vec2(floor(gl_FragCoord.x / 4), floor(gl_FragCoord.y / 4));
-	float noise = (rand(quantizedXY + uNoiseSeed) * 2.0 - 1.0) * 0.0175;
+	float noise = (rand(quantizedXY + uNoiseSeed) * 2.0 - 1.0) * unseenNoiseIntensity;
 
 	float brightness = 1.0 + (scan * opacity);
 	vec3 color = pix.rgb;
@@ -89,17 +94,17 @@ vec4 ApplyDarkenAndDesat(vec4 pix, vec2 uv, float darken, float desat) {
 void main() {
 	const float PALETTE_COLOR_BLACK = 245.0 / 255.0;
 	const float PALETTE_COLOR_MASK = 0.0;
-	const float USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND = 0.02;
+	//const float USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND = 0.005;
 
 	// Three values for low/medium/high smoothing (this'll become an option)
 	//const float USDF_OPACITY_SMOOTHING_DISTANCE = 0.004; // low, just barely enough to hide the jaggies
 	//const float USDF_OPACITY_SMOOTHING_DISTANCE = 0.014; // standard setting, just enough to hide the grid
 	//const float USDF_OPACITY_SMOOTHING_DISTANCE = 0.020; // super smooth
 
-	const float SCANLINE_OPACITY_SMOOTHING_DISTANCE = 0.1;
+	//const float SCANLINE_OPACITY_SMOOTHING_DISTANCE = 0.05f;
 
-	float distanceToUnseen = texture(fowMaskTexture, textureUV).r - USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND;
-	float distanceToNeverSeen = texture(fowLastSeenMaskTexture, textureUV).r - USDF_THRESHOLD_UNDER_WHICH_IT_IS_GROUND;
+	float distanceToUnseen = texture(fowMaskTexture, textureUV).r - usdfThresoldUnderWhichItIsGround;
+	float distanceToNeverSeen = texture(fowLastSeenMaskTexture, textureUV).r - usdfThresoldUnderWhichItIsGround;
 	
 	bool isWithinFow = distanceToUnseen > 0;
 	bool hasBeenSeen = distanceToNeverSeen > 0;
@@ -158,12 +163,19 @@ void main() {
 	}
 
 	if (fowEnabled) {
+		float distanceToUnseenMidpoint = distanceToUnseen + (usdfOpacitySmoothingDistance * 0.5f);
+		float scanlineAndNoiseLerp = clamp((distanceToUnseen + distanceToUnseenMidpoint) / scanlineAndNoiseOpacitySmoothingDistance, 0, 1);
+		FragColor = ApplyScanlineAndNoise(FragColor, sceneUV, 0.1, 1 - scanlineAndNoiseLerp);
+
 		float unseenLerp = clamp(distanceToUnseen / usdfOpacitySmoothingDistance, 0, 1);
 		float darken = mix(0.68, 1, unseenLerp);
 		float desat = mix(0.8, 0, unseenLerp);
-		FragColor = ApplyScanlineAndNoise(FragColor, sceneUV, 0.1, 1 - unseenLerp);
 
 		float neverSeenLerp = clamp(distanceToNeverSeen / usdfOpacitySmoothingDistance, 0, 1);
+		if (treatUnseenAsNeverSeen) {
+			neverSeenLerp = min(neverSeenLerp, unseenLerp);
+		}
+
 		darken = min(darken, mix(0, 1, neverSeenLerp));
 
 		FragColor = ApplyDarkenAndDesat(FragColor, sceneUV, darken, desat);
