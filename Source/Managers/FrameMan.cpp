@@ -167,10 +167,9 @@ void FrameMan::RenderFogOfWarTextureWithTimeDecay() {
 
 	// Arbitrarily high so there is no everything-vision at activity start
 	float elapsedSecondsSinceLastCall = 10000;  
-	long long timestampCur = g_TimerMan.GetAbsoluteTime();
+	long long timestampCur = g_TimerMan.GetSimTimeMS();
 	if (fowDecayTimestampPrev != -1) {
-		elapsedSecondsSinceLastCall 
-			= static_cast<float>(timestampCur - fowDecayTimestampPrev) / 1000000.0f;
+		elapsedSecondsSinceLastCall = static_cast<float>(timestampCur - fowDecayTimestampPrev) / 1000000.0f;
 	}
 	fowDecayTimestampPrev = timestampCur;
 
@@ -318,7 +317,7 @@ void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 #define prnt(str) g_ConsoleMan.PrintString(std::to_string(str))
 #define prnt2(str) g_ConsoleMan.PrintString(str)
-	const float timeInSecs = (float)g_TimerMan.GetAbsoluteTime() / 1000000;
+	const float timeInSecs = (float)g_TimerMan.GetSimTimeMS() / 1000000;
 	const int viewWidth = m_BackBuffer8->w;
 	const int viewHeight = m_BackBuffer8->h;
 
@@ -367,7 +366,7 @@ void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 	glBindVertexArray(m_SdfVao);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 	
-		//2. JFA!
+	//2. JFA!
 	GLuint src = m_SdfTexPing, dst = m_SdfTexPong;
 
 	for (int step = std::ceil(std::max(viewWidth, viewHeight) / 2); step >= 1; step /= 2) {
@@ -390,7 +389,7 @@ void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 		std::swap(src, dst);
 	}
 
-		// 3. Unsigned SDF!
+	// 3. Unsigned SDF!
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst, 0);
 
 	glViewport(0, 0, viewWidth, viewHeight);
