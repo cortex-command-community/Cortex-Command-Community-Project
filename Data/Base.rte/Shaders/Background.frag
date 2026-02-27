@@ -103,11 +103,11 @@ void main() {
 
 	//const float SCANLINE_OPACITY_SMOOTHING_DISTANCE = 0.05f;
 
-	float distanceToUnseen = texture(fowMaskTexture, textureUV).r - usdfThresoldUnderWhichItIsGround;
-	float distanceToNeverSeen = texture(fowLastSeenMaskTexture, textureUV).r - usdfThresoldUnderWhichItIsGround;
+	float distanceToFoW = texture(fowMaskTexture, textureUV).r - usdfThresoldUnderWhichItIsGround;
+	float distanceToSeenBefore = texture(fowLastSeenMaskTexture, textureUV).r - usdfThresoldUnderWhichItIsGround;
 	
-	bool isWithinFow = distanceToUnseen > 0;
-	bool hasBeenSeen = distanceToNeverSeen > 0;
+	bool isWithinFow = distanceToFoW < 0;
+	bool hasBeenSeen = distanceToSeenBefore < 0;
 
 	vec2 sceneUV = (uViewOrigin + textureUV * uViewSize) / uSceneSize;
 	
@@ -163,15 +163,15 @@ void main() {
 	}
 
 	if (fowEnabled) {
-		float distanceToUnseenMidpoint = distanceToUnseen + (usdfOpacitySmoothingDistance * 0.5f);
-		float scanlineAndNoiseLerp = clamp((distanceToUnseen + distanceToUnseenMidpoint) / scanlineAndNoiseOpacitySmoothingDistance, 0, 1);
-		FragColor = ApplyScanlineAndNoise(FragColor, sceneUV, 0.1, 1 - scanlineAndNoiseLerp);
+		float distanceToFoWMidpoint = distanceToFoW + (usdfOpacitySmoothingDistance * 0.5f);
+		float scanlineAndNoiseLerp = clamp((distanceToFoW + distanceToFoWMidpoint) / scanlineAndNoiseOpacitySmoothingDistance, 0, 1);
+		FragColor = ApplyScanlineAndNoise(FragColor, sceneUV, 0.1, scanlineAndNoiseLerp);
 
-		float unseenLerp = clamp(distanceToUnseen / usdfOpacitySmoothingDistance, 0, 1);
+		float unseenLerp = 1 - clamp(distanceToFoW / usdfOpacitySmoothingDistance, 0, 1);
 		float darken = mix(0.68, 1, unseenLerp);
 		float desat = mix(0.8, 0, unseenLerp);
 
-		float neverSeenLerp = clamp(distanceToNeverSeen / usdfOpacitySmoothingDistance, 0, 1);
+		float neverSeenLerp = 1 - clamp(distanceToSeenBefore / usdfOpacitySmoothingDistance, 0, 1);
 		if (treatUnseenAsNeverSeen) {
 			neverSeenLerp = min(neverSeenLerp, unseenLerp);
 		}
