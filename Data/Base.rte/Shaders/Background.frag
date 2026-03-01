@@ -68,15 +68,14 @@ float rand(vec2 co) {
 }
 
 vec4 ApplyScanlineAndNoise(vec4 pix, vec2 uv, float scanlinePhaseOffset, float opacity) {
-	float texelY = uv.y * uSceneSize.y;
-	float scan = sin(texelY * 3.14159 / 2 + scanlinePhaseOffset) * 0.12;
-	vec2 quantizedXY = vec2(floor(gl_FragCoord.x / 4), floor(gl_FragCoord.y / 4));
+	float texelX = floor(uv.x * uSceneSize.x);
+	float texelY = floor(uv.y * uSceneSize.y);
+	float scan = sin(texelY * 3.14159 / 2 + scanlinePhaseOffset) * 0.01;
+	vec2 quantizedXY = vec2(texelX, texelY);
 	float noise = (rand(quantizedXY + uNoiseSeed) * 2.0 - 1.0) * unseenNoiseIntensity;
 
-	float brightness = 1.0 + (scan * opacity);
 	vec3 color = pix.rgb;
-	color *= brightness;
-	color += vec3(noise, noise, noise) * opacity;
+	color += vec3(noise + scan, noise + scan, noise + scan) * opacity;
 
 	return vec4(color, 1.0);
 } 
@@ -166,8 +165,7 @@ void main() {
 	}
 
 	if (fowEnabled) {
-		float distanceToFoVMidpoint = distanceToFoV + (scanlineAndNoiseOpacitySmoothingDistance * 0.5f);
-		float scanlineAndNoiseLerp = clamp((distanceToFoV + distanceToFoVMidpoint) / scanlineAndNoiseOpacitySmoothingDistance, 0, 1);
+		float scanlineAndNoiseLerp = clamp(distanceToFoV / scanlineAndNoiseOpacitySmoothingDistance, 0, 1);
 		FragColor = ApplyScanlineAndNoise(FragColor, sceneUV, 0.1, scanlineAndNoiseLerp);
 
 		float unseenLerp = 1 - clamp(distanceToFoV / usdfOpacitySmoothingDistanceForFoV, 0, 1);
