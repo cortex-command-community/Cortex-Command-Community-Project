@@ -15,7 +15,7 @@ uniform vec4 rteColor = vec4(1.0);
 uniform bool rteBlendInvert = false;
 uniform bool drawMasked = false;
 uniform bool drawingForeground = false;
-uniform bool treatUnseenAsNeverSeen = false;
+uniform bool treatUnseenAsNeverSeen;
 uniform bool fowEnabled;
 uniform bool useOneStageFoW = true;
 
@@ -166,7 +166,7 @@ void main() {
 	}
 
 	if (fowEnabled) {
-		float distanceToFoVMidpoint = distanceToFoV + (usdfOpacitySmoothingDistanceForFoV * 0.5f);
+		float distanceToFoVMidpoint = distanceToFoV + (scanlineAndNoiseOpacitySmoothingDistance * 0.5f);
 		float scanlineAndNoiseLerp = clamp((distanceToFoV + distanceToFoVMidpoint) / scanlineAndNoiseOpacitySmoothingDistance, 0, 1);
 		FragColor = ApplyScanlineAndNoise(FragColor, sceneUV, 0.1, scanlineAndNoiseLerp);
 
