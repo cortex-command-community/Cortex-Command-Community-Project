@@ -535,10 +535,10 @@ void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEna
 	backgroundShader.SetVector2f("uSceneSize", Vector(terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
 	backgroundShader.SetFloat("uNoiseSeed", static_cast<float>(rand()) * 0.0001f);
 
-	static float usdfThresoldForFoV = 0.016f;
-	static float usdfOpacitySmoothingDistanceForFoV = 0.015f;
-	static float usdfThresoldForNeverSeen = 0.016f;
-	static float usdfOpacitySmoothingDistanceForNeverSeen = 0.015f;
+	static float usdfThresoldForFoV = 0.02f;
+	static float usdfOpacitySmoothingDistanceForFoV = 0.02f;
+	static float usdfThresoldForNeverSeen = 0.015f;
+	static float usdfOpacitySmoothingDistanceForNeverSeen = 0.01f;
 	static float scanlineAndNoiseOpacitySmoothingDistance = 0.015f;
 	static float unseenNoiseIntensity = 0.02f;
 	backgroundShader.SetFloat("usdfThresoldForFoV", usdfThresoldForFoV);
