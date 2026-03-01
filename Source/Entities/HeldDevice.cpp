@@ -420,11 +420,6 @@ void HeldDevice::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whi
 			if (viewingPlayer == -1) {
 				return;
 			}
-			// Only draw if the team viewing this has seen the space where this is located.
-			int viewingTeam = g_ActivityMan.GetActivity()->GetTeamOfPlayer(viewingPlayer);
-			if (viewingTeam == Activity::NoTeam || g_SceneMan.IsUnseen(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY(), viewingTeam)) {
-				return;
-			}
 
 			Vector drawPos = m_Pos - targetPos;
 			// Adjust the draw position to work if drawn to a target screen bitmap that is straddling a scene seam.
