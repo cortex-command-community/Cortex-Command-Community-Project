@@ -103,7 +103,7 @@ void main() {
 
 	//const float SCANLINE_OPACITY_SMOOTHING_DISTANCE = 0.05f;
 
-	float distanceToFoW = texture(fowMaskTexture, textureUV).r - usdfThresoldUnderWhichItIsGround;
+	float distanceToFoV = texture(fowMaskTexture, textureUV).r - usdfThresoldUnderWhichItIsGround;
 	float distanceToSeenBefore = texture(fowLastSeenMaskTexture, textureUV).r - usdfThresoldUnderWhichItIsGround;
 	
 	bool isWithinFow = distanceToFoW < 0;
@@ -163,11 +163,11 @@ void main() {
 	}
 
 	if (fowEnabled) {
-		float distanceToFoWMidpoint = distanceToFoW + (usdfOpacitySmoothingDistance * 0.5f);
-		float scanlineAndNoiseLerp = clamp((distanceToFoW + distanceToFoWMidpoint) / scanlineAndNoiseOpacitySmoothingDistance, 0, 1);
+		float distanceToFoVMidpoint = distanceToFoV + (usdfOpacitySmoothingDistance * 0.5f);
+		float scanlineAndNoiseLerp = clamp((distanceToFoV + distanceToFoVMidpoint) / scanlineAndNoiseOpacitySmoothingDistance, 0, 1);
 		FragColor = ApplyScanlineAndNoise(FragColor, sceneUV, 0.1, scanlineAndNoiseLerp);
 
-		float unseenLerp = 1 - clamp(distanceToFoW / usdfOpacitySmoothingDistance, 0, 1);
+		float unseenLerp = 1 - clamp(distanceToFoV / usdfOpacitySmoothingDistance, 0, 1);
 		float darken = mix(0.68, 1, unseenLerp);
 		float desat = mix(0.8, 0, unseenLerp);
 
