@@ -106,7 +106,7 @@ void main() {
 	float distanceToFoV = texture(fowMaskTexture, textureUV).r - usdfThresoldUnderWhichItIsGround;
 	float distanceToSeenBefore = texture(fowLastSeenMaskTexture, textureUV).r - usdfThresoldUnderWhichItIsGround;
 	
-	bool isWithinFow = distanceToFoW < 0;
+	bool isWithinFow = distanceToFoV < 0;
 	bool hasBeenSeen = distanceToSeenBefore < 0;
 
 	vec2 sceneUV = (uViewOrigin + textureUV * uViewSize) / uSceneSize;
