@@ -1687,7 +1687,7 @@ void MovableMan::Update() {
 	// Todo- maybe use a simplified approach that only takes 1-stage FoW into account for non-AI (and/or casts less rays)
 	const GameActivity* gameActivity = dynamic_cast<GameActivity*>(g_ActivityMan.GetActivity());
 	if (gameActivity && gameActivity->GetFogOfWarEnabled()) {
-		/*m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
+		m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
 		                                                                         [this, gameActivity](int start, int end) {
 			                                                                         ZoneScopedN("Actors See");
 			                                                                         for (int i = start; i < end; ++i) {
@@ -1704,11 +1704,13 @@ void MovableMan::Update() {
 					g_SceneMan.CastSeeRaysFromSky(screenId);
 				})
 			);
-		}*/
+		}
 
+		// EDIT: Maybe it's not fucked! Might actually just be a timing issue between sim and render
+		// Todo- maybe makes sense to cast see rays in render step instead of sim? But need to be very careful about any situation where it affects perf
 		// MT draw is fucked, something probably wrong with drawing tris in allegro
 		// Also there appears to be async issue
-		ZoneScopedN("Actors See");
+		/*ZoneScopedN("Actors See");
 		for (int i = 0; i < m_Actors.size(); ++i) {
 			if (!gameActivity->IsHumanTeam(m_Actors[i]->GetTeam())) {
 				continue;
@@ -1718,7 +1720,7 @@ void MovableMan::Update() {
 
 		for (int screenId = 0; screenId < g_FrameMan.GetScreenCount(); ++screenId) {
 			g_SceneMan.CastSeeRaysFromSky(screenId);
-		}
+		}*/
 	}
 
 	// We've finished stuff that can interact with lua script, so it's the ideal time to start a gc run
