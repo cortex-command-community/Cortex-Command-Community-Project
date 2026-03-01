@@ -537,7 +537,10 @@ namespace RTE {
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
-		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0, const std::vector<MOID>& ignoredMOIDs = emptyIgnoredMOIDVector);
+		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, const std::vector<MOID>& ignoredMOIDs);
+		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0) {
+			return CastSeeRay(team, start, ray, endPos, strengthLimit, skip, emptyIgnoredMOIDVector);
+		}
 
 		/// Traces a box along a vector and hides pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
@@ -551,7 +554,10 @@ namespace RTE {
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
-		bool CastUnseeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0, const std::vector<MOID>& ignoredMOIDs = emptyIgnoredMOIDVector);
+		bool CastUnseeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, const std::vector<MOID>& ignoredMOIDs);
+		bool CastUnseeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0) {
+			return CastUnseeRay(team, start, ray, endPos, strengthLimit, skip, emptyIgnoredMOIDVector);
+		}
 
 		/// Traces along a vector and gets the location of the first encountered
 		/// pixel of a specific material in the terrain.
