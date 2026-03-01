@@ -43,11 +43,6 @@ void main()
                              float(di.y) * (uStep / uViewSize.y));
 
         vec2 sampleUV = textureUV + offsetUV;
-
-        // Skip out-of-range samples (optional but avoids sampling outside)
-        if (sampleUV.x < 0.0 || sampleUV.x > 1.0 || sampleUV.y < 0.0 || sampleUV.y > 1.0)
-            continue;
-
         vec4 s = texture(uPrev, sampleUV);
 
         // s.xy is the candidate seed position (normalized) or (-1,-1) sentinel
