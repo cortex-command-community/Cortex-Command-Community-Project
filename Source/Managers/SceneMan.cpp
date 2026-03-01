@@ -1116,7 +1116,7 @@ bool SceneMan::IsUnseen(const int posX, const int posY, const int team) {
 	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return false;
 
-	SceneLayer* pUnseenLayer = m_pCurrentScene->GetUnseenLayerMask(team);
+	SceneLayer* pUnseenLayer = m_pCurrentScene->GetUnseenLayerTerrainMask(team);
 	if (pUnseenLayer) {
 		// Translate to the scaled unseen layer's coordinates
 		Vector scale = pUnseenLayer->GetScaleFactor();
