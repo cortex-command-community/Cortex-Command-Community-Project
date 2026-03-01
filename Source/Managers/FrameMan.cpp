@@ -536,12 +536,16 @@ void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEna
 	backgroundShader.SetVector2f("uSceneSize", Vector(terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
 	backgroundShader.SetFloat("uNoiseSeed", static_cast<float>(rand()) * 0.01f);
 
-	static float usdfOpacitySmoothingDistance = 0.01f;
-	static float usdfThresoldUnderWhichItIsGround = 0.025f;
+	static float usdfThresoldForFoV = 0.0125f;
+	static float usdfOpacitySmoothingDistanceForFoV = 0.005f;
+	static float usdfThresoldForNeverSeen = 0.016f;
+	static float usdfOpacitySmoothingDistanceForNeverSeen = 0.005f;
 	static float scanlineAndNoiseOpacitySmoothingDistance = 0.02f;
 	static float unseenNoiseIntensity = 0.006f;
-	backgroundShader.SetFloat("usdfOpacitySmoothingDistance", usdfOpacitySmoothingDistance);
-	backgroundShader.SetFloat("usdfThresoldUnderWhichItIsGround", usdfThresoldUnderWhichItIsGround);
+	backgroundShader.SetFloat("usdfThresoldForFoV", usdfThresoldForFoV);
+	backgroundShader.SetFloat("usdfOpacitySmoothingDistanceForFoV", usdfOpacitySmoothingDistanceForFoV);
+	backgroundShader.SetFloat("usdfThresoldForNeverSeen", usdfThresoldForNeverSeen);
+	backgroundShader.SetFloat("usdfOpacitySmoothingDistanceForNeverSeen", usdfOpacitySmoothingDistanceForNeverSeen);
 	backgroundShader.SetFloat("scanlineAndNoiseOpacitySmoothingDistance", scanlineAndNoiseOpacitySmoothingDistance);
 	backgroundShader.SetFloat("unseenNoiseIntensity", unseenNoiseIntensity);
 

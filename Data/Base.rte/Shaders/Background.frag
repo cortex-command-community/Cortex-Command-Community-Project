@@ -17,6 +17,7 @@ uniform bool drawMasked = false;
 uniform bool drawingForeground = false;
 uniform bool treatUnseenAsNeverSeen = false;
 uniform bool fowEnabled;
+uniform bool useOneStageFoW = true;
 
 uniform vec2 uViewOrigin;
 uniform vec2 uViewSize;
@@ -24,8 +25,10 @@ uniform vec2 uSceneSize;
 
 uniform float uNoiseSeed;
 
-uniform float usdfThresoldUnderWhichItIsGround;
-uniform float usdfOpacitySmoothingDistance;
+uniform float usdfThresoldForFoV;
+uniform float usdfOpacitySmoothingDistanceForFoV;
+uniform float usdfThresoldForNeverSeen;
+uniform float usdfOpacitySmoothingDistanceForNeverSeen;
 uniform float scanlineAndNoiseOpacitySmoothingDistance;
 uniform float unseenNoiseIntensity;
 
@@ -103,8 +106,8 @@ void main() {
 
 	//const float SCANLINE_OPACITY_SMOOTHING_DISTANCE = 0.05f;
 
-	float distanceToFoV = texture(fowMaskTexture, textureUV).r - usdfThresoldUnderWhichItIsGround;
-	float distanceToSeenBefore = texture(fowLastSeenMaskTexture, textureUV).r - usdfThresoldUnderWhichItIsGround;
+	float distanceToFoV = texture(fowMaskTexture, textureUV).r - usdfThresoldForFoV;
+	float distanceToSeenBefore = texture(fowLastSeenMaskTexture, textureUV).r - usdfThresoldForNeverSeen;
 	
 	bool isWithinFow = distanceToFoV < 0;
 	bool hasBeenSeen = distanceToSeenBefore < 0;
@@ -133,7 +136,7 @@ void main() {
 		return;
 	}
 
-	if (!fowEnabled || isWithinFow) {
+	if (useOneStageFoW || !fowEnabled || isWithinFow) {
 		if (fgTerrainVal != PALETTE_COLOR_MASK) {
 			// Terrain
 			FragColor = ApplyPalette(fgTerrainVal);
@@ -163,15 +166,15 @@ void main() {
 	}
 
 	if (fowEnabled) {
-		float distanceToFoVMidpoint = distanceToFoV + (usdfOpacitySmoothingDistance * 0.5f);
+		float distanceToFoVMidpoint = distanceToFoV + (usdfOpacitySmoothingDistanceForFoV * 0.5f);
 		float scanlineAndNoiseLerp = clamp((distanceToFoV + distanceToFoVMidpoint) / scanlineAndNoiseOpacitySmoothingDistance, 0, 1);
 		FragColor = ApplyScanlineAndNoise(FragColor, sceneUV, 0.1, scanlineAndNoiseLerp);
 
-		float unseenLerp = 1 - clamp(distanceToFoV / usdfOpacitySmoothingDistance, 0, 1);
+		float unseenLerp = 1 - clamp(distanceToFoV / usdfOpacitySmoothingDistanceForFoV, 0, 1);
 		float darken = mix(0.68, 1, unseenLerp);
 		float desat = mix(0.8, 0, unseenLerp);
 
-		float neverSeenLerp = 1 - clamp(distanceToSeenBefore / usdfOpacitySmoothingDistance, 0, 1);
+		float neverSeenLerp = 1 - clamp(distanceToSeenBefore / usdfOpacitySmoothingDistanceForNeverSeen, 0, 1);
 		if (treatUnseenAsNeverSeen) {
 			neverSeenLerp = min(neverSeenLerp, unseenLerp);
 		}

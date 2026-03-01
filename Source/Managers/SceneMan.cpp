@@ -1359,7 +1359,7 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 		return false;
 	}
 
-	static int revealSize = 40;
+	static int revealSize = 5;
 	const int resolution = GetUnseenResolution(team).GetLargest();
 
 	bool MOIDWasHit = false;
