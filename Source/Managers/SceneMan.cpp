@@ -1017,7 +1017,7 @@ void SceneMan::CommitToLastSeenTerrainWithFowMask(const int team) {
 void SceneMan::CastSeeRaysFromSky(const int screenId) {
 	int team = g_CameraMan.GetScreenTeam(screenId);
 
-	float spacing = GetUnseenResolution(team).GetX();
+	const int spacing = GetUnseenResolution(team).GetX();
 	int rayX = g_CameraMan.GetOffset(screenId).GetX();
 	int rayCount = static_cast<int>(g_CameraMan.GetFrameSize(screenId).GetX() / spacing);
 
@@ -1064,15 +1064,16 @@ void SceneMan::CastSeeRaysFromSky(const int screenId) {
 		rayCount += static_cast<int>(-cameraXDelta / spacing);
 	}
 
+	const int quantization = spacing * 2;
+	rayX = (rayX / quantization) * quantization;
+
 	// These are the same as for AHuman::Look()
 	const float strength = c_PathFindingDefaultDigStrength;
-	float unseenResolution = (int)g_SceneMan.GetUnseenResolution(team).GetSmallest();
-	int step = (int)unseenResolution / 2;
 	Vector ignored(0, 0);
 
 	for (int i = 0; i < rayCount; ++i) {
 		rayX = (rayX + static_cast<int>(spacing)) % GetSceneWidth();
-		CastSeeRay(team, Vector(static_cast<float>(rayX), 0), seeRay, ignored, strength, step);
+		CastSeeRay(team, Vector(static_cast<float>(rayX), 0), seeRay, ignored, strength);
 	}
 }
 
@@ -1374,10 +1375,8 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 	// Save the projected end of the ray pos
 	endPos = start + ray;
 
-	// Quantize to a coarser grid - this stops single-pixel flickers constantly occuring
-	const int quantization = resolution;
-	intPos[X] = std::floor(start.m_X / quantization) * quantization;
-	intPos[Y] = std::floor(start.m_Y / quantization) * quantization;
+	intPos[X] = std::floor(start.m_X);
+	intPos[Y] = std::floor(start.m_Y);
 
 	int posStartX = intPos[X];
 	int posStartY = intPos[Y];

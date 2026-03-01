@@ -137,7 +137,7 @@ void FrameMan::RenderFogOfWarTextureWithTimeDecay() {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
 
-		// 1. Current fog texture -> temp copy!
+	// 1. Current fog texture -> temp copy!
 	glFramebufferTexture2D(GL_FRAMEBUFFER,
 	                       GL_COLOR_ATTACHMENT0,
 	                       GL_TEXTURE_2D,
@@ -156,7 +156,7 @@ void FrameMan::RenderFogOfWarTextureWithTimeDecay() {
 	glBindVertexArray(m_SdfVao);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
-		// 2. Update current fog!
+	// 2. Update current fog!
 	glFramebufferTexture2D(GL_FRAMEBUFFER,
 	                       GL_COLOR_ATTACHMENT0,
 	                       GL_TEXTURE_2D,
@@ -188,7 +188,6 @@ void FrameMan::RenderFogOfWarTextureWithTimeDecay() {
 
 	glBindVertexArray(m_SdfVao);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
-
 }
 
 void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
@@ -536,10 +535,10 @@ void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEna
 	backgroundShader.SetVector2f("uSceneSize", Vector(terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
 	backgroundShader.SetFloat("uNoiseSeed", static_cast<float>(rand()) * 0.01f);
 
-	static float usdfThresoldForFoV = 0.0125f;
-	static float usdfOpacitySmoothingDistanceForFoV = 0.005f;
-	static float usdfThresoldForNeverSeen = 0.016f;
-	static float usdfOpacitySmoothingDistanceForNeverSeen = 0.005f;
+	static float usdfThresoldForFoV = 0.014f;
+	static float usdfOpacitySmoothingDistanceForFoV = 0.0075f;
+	static float usdfThresoldForNeverSeen = 0.014f;
+	static float usdfOpacitySmoothingDistanceForNeverSeen = 0.0075f;
 	static float scanlineAndNoiseOpacitySmoothingDistance = 0.02f;
 	static float unseenNoiseIntensity = 0.006f;
 	backgroundShader.SetFloat("usdfThresoldForFoV", usdfThresoldForFoV);

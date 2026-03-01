@@ -1382,13 +1382,10 @@ bool AHuman::Look(float FOVSpread, float range) {
 	Matrix aimMatrix(m_HFlipped ? -aimAngle : aimAngle);
 	aimMatrix.SetXFlipped(m_HFlipped);
 	lookVector *= aimMatrix;
-
-	// The smallest dimension of the fog block, divided by two, but always at least one, as the step for the casts
-	const int step = 0;
-	Vector ignored(0, 0);
-
+	
 	// Pathfinding dig strength is suitable to dig through light debris and corpses, so is a good value for sight too
 	const float strength = c_PathFindingDefaultDigStrength;
+	Vector ignored(0, 0);
 
 	const std::vector<int> MOIDsToIgnore = {GetID()};
 
@@ -1397,13 +1394,13 @@ bool AHuman::Look(float FOVSpread, float range) {
 	const Vector bubbleCenterPos = GetPos();
 	Vector bubbleAroundActorLookVector(bubblePixelRadius, 0);
 	for (int i = 0; i < bubbleRayNum; ++i) {
-		g_SceneMan.CastSeeRay(m_Team, bubbleCenterPos, bubbleAroundActorLookVector, ignored, strength, step);
+		g_SceneMan.CastSeeRay(m_Team, bubbleCenterPos, bubbleAroundActorLookVector, ignored, strength, 0);
 		bubbleAroundActorLookVector.RadRotate(2 * PI / bubbleRayNum);
 	}
 
 	const int rayNum = FOVSpread / degreesPerRotationSegment; 
 	for (int i = 0; i < rayNum; ++i) {
-		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, strength, step, MOIDsToIgnore);
+		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, strength, 0, MOIDsToIgnore);
 		lookVector.DegRotate(FOVSpread / (rayNum - 1));
 	}
 	// TODO: generate an alarm event if we spot an enemy actor?

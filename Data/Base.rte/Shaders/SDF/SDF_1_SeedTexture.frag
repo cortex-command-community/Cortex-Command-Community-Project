@@ -12,7 +12,7 @@ void main()
 	vec2 sceneUV = (uViewOrigin + textureUV * uViewSize) / uSceneSize;
 	float mask = texture(uMask, sceneUV).r;
     
-    if (mask == 0.0) {
+    if (mask != 1.0) {
 		vec2 uv = gl_FragCoord.xy / uViewSize;
         FragNearest = vec4(uv, 0.0, 1.0);
     } else {
