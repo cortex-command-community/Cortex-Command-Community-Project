@@ -84,16 +84,6 @@ function KeepieUppie:StartNewGame()
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), Activity.TEAM_1);
 
-		-- Reveal outside areas for everyone.
-		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
-			local altitude = Vector(0, 0);
-			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
-			if altitude.Y > 1 then
-				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
-				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, Activity.TEAM_1);
-			end
-		end
-
 		for Act in MovableMan.AddedActors do
 			if not IsADoor(Act) then
 				for angle = 0, math.pi * 2, 0.05 do

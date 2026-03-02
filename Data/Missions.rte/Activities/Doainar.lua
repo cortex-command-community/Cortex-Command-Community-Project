@@ -92,16 +92,6 @@ function DoainarMission:SetupFogOfWar()
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.PlayerTeam);
 		SceneMan:MakeAllUnseen(Vector(fogResolution, fogResolution), self.CPUTeam);
 
-		-- Reveal above ground for everyone.
-		for x = 0, SceneMan.SceneWidth - 1, fogResolution do
-			local altitude = Vector(0, 0);
-			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
-			if altitude.Y > 1 then
-				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.PlayerTeam);
-				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.CPUTeam);
-			end
-		end
-
 		-- Reveal a circle around actors.
 		for Act in MovableMan.AddedActors do
 			if not IsADoor(Act) then

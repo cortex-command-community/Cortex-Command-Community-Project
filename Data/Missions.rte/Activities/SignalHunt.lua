@@ -97,16 +97,6 @@ function SignalHunt:StartNewGame()
 			break;
 		end
 
-		-- Reveal outside areas for the investigator and ambushers.
-		for x = topRightCornerOfCave.X + 27, SceneMan.SceneWidth - 1, fogResolution do
-			local altitude = Vector(0, 0);
-			SceneMan:CastTerrainPenetrationRay(Vector(x, 0), Vector(0, SceneMan.Scene.Height), altitude, 50, 0);
-			if altitude.Y > 1 then
-				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.humanTeam);
-				SceneMan:RevealUnseenBox(x - 10, 0, fogResolution + 20, altitude.Y + 10, self.ambusherTeam);
-			end
-		end
-
 		-- Zombies are dumb so they get NO advance knowledge.
 	end
 
