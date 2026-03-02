@@ -1744,6 +1744,9 @@ void MovableMan::Update() {
 			m_ActorRoster[team].sort(MOXPosComparison());
 		}
 	}
+
+	// TODO, temp until we double buffer the FoW
+	m_ActorsSeeFuture.wait();
 }
 
 void MovableMan::Travel() {
