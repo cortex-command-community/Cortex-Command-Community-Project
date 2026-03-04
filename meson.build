@@ -224,8 +224,8 @@ endif
 sdl3_image_proj = subproject('SDL3_image-3.2.4')
 sdl3_image_dep = sdl3_image_proj.get_variable('sdl3_image_dep')
 
-boost_dep = declare_dependency(include_directories: include_directories('external/include/boost_1_75'))
-meson.override_dependency('boost-175', boost_dep)
+boost_dep = declare_dependency(include_directories: include_directories('external/include/boost_1_90_0'))
+meson.override_dependency('boost-190', boost_dep)
 install_rpath = prefix/get_option('fmod_dir')
 tracy_proj = subproject('tracy')
 tracy_dep = dependency('tracy')
@@ -235,8 +235,19 @@ luajit_dep = dependency('luajit')
 external_inc_dirs += luajit_proj.get_variable('luajit_source_dir')
 allegro_dep = dependency('allegro')
 loadpng_dep = dependency('loadpng')
-luabind_proj = subproject('luabind-0.7.1')
+
+
+#luabind_opt = cmake.subproject_options()
+#luabind_opt.add_cmake_defines({'LUA_FOUND': true, 'LUA51_FOUND': true})
+#
+##luabind_proj = subproject('luabind-0.7.1')
+##luabind_dep = dependency('luabind')
+#luabind_proj = cmake.subproject('luabind-oberon00-49814f6', options: luabind_opt)
+#luabind_dep = luabind_proj.dependency('luabind')
+
+luabind_proj = subproject('luabind-oberon00-49814f6')
 luabind_dep = dependency('luabind')
+
 raknet_proj = subproject('RakNet')
 raknet_dep = dependency('RakNet')
 deps += [sdl3_dep, sdl3_image_dep, allegro_dep, luajit_dep, loadpng_dep, raknet_dep, boost_dep, tracy_dep]

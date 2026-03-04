@@ -1,4 +1,4 @@
-external_inc_dirs = [include_directories('boost_1_75',
+external_inc_dirs = [include_directories('boost_1_90_0',
                                          'fmod-2.2.13',
                                          'fmod-2.2.13',
                                          'glad-2.0.0-beta',
