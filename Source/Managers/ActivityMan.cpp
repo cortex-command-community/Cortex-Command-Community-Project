@@ -25,8 +25,8 @@
 
 #include "MusicMan.h"
 
-#include "zip.h"
-#include "unzip.h"
+#include "minizip/zip.h"
+#include "minizip/unzip.h"
 
 #include "tracy/Tracy.hpp"
 
