@@ -1,4 +1,4 @@
-project('luabind', 'cpp')
+project('luabind', 'cpp', default_options:['cpp_std=c++11'])
 subdir('src')
 
 luabind_include = include_directories('.', 'luabind')
