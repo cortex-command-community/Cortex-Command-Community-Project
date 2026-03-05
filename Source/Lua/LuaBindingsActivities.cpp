@@ -18,6 +18,7 @@ LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, Activity) {
 	    .property("HumanCount", &Activity::GetHumanCount)
 	    .property("TeamCount", &Activity::GetTeamCount)
 	    .property("Difficulty", &Activity::GetDifficulty, &Activity::SetDifficulty)
+	    .property("CraftsOrbitAtTheEdge", &Activity::GetCraftOrbitAtTheEdge, &Activity::SetCraftOrbitAtTheEdge)
 
 	    .def("DeactivatePlayer", &Activity::DeactivatePlayer)
 	    .def("PlayerActive", &Activity::PlayerActive)
@@ -118,7 +119,6 @@ LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, GameActivity) {
 	    .property("CPUTeam", &GameActivity::GetCPUTeam, &GameActivity::SetCPUTeam)
 	    .property("DeliveryDelay", &GameActivity::GetDeliveryDelay, &GameActivity::SetDeliveryDelay)
 	    .property("BuyMenuEnabled", &GameActivity::GetBuyMenuEnabled, &GameActivity::SetBuyMenuEnabled)
-	    .property("CraftsOrbitAtTheEdge", &GameActivity::GetCraftOrbitAtTheEdge, &GameActivity::SetCraftOrbitAtTheEdge)
 
 	    //.def_readwrite("ActorCursor", &GameActivity::m_ActorCursor)
 	    .def_readwrite("CursorTimer", &GameActivity::m_CursorTimer)

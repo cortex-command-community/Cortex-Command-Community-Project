@@ -2,6 +2,7 @@
 
 #include "LuaBindingRegisterDefinitions.h"
 
+#include "MovableObject.h"
 #include "PieSlice.h"
 #include "SoundSet.h"
 
@@ -921,7 +922,6 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 
 	    .property("Material", &MovableObject::GetMaterial)
 	    .property("Mass", &MovableObject::GetMass, &MovableObject::SetMass)
-	    .property("Pos", &MovableObject::GetPos, &MovableObject::SetPos)
 	    .property("Vel", &MovableObject::GetVel, &MovableObject::SetVel)
 	    .property("PrevPos", &MovableObject::GetPrevPos)
 	    .property("PrevVel", &MovableObject::GetPrevVel)
