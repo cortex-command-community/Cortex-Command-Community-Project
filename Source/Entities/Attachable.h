@@ -10,6 +10,7 @@ namespace RTE {
 	/// An articulated, detachable part of an Actor's body.
 	class Attachable : public MOSRotating {
 		friend class MOSRotating;
+		friend struct EntityLuaBindings;
 
 	public:
 		EntityAllocation(Attachable);

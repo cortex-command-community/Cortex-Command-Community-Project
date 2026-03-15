@@ -12,6 +12,7 @@ namespace RTE {
 
 	/// A container for sounds that represent a specific sound effect.
 	class SoundContainer : public Entity {
+		friend struct EntityLuaBindings;
 
 	public:
 		EntityAllocation(SoundContainer);

@@ -538,11 +538,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Arm) {
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Attachable) {
 	return ConcreteTypeLuaClassDefinition(Attachable, MOSRotating)
 
-	    .property("ParentOffset", &Attachable::GetParentOffset, &Attachable::SetParentOffset)
 	    .property("JointStrength", &Attachable::GetJointStrength, &Attachable::SetJointStrength)
 	    .property("JointStiffness", &Attachable::GetJointStiffness, &Attachable::SetJointStiffness)
-	    .property("JointOffset", &Attachable::GetJointOffset, &Attachable::SetJointOffset)
-	    .property("JointPos", &Attachable::GetJointPos)
 	    .property("DeleteWhenRemovedFromParent", &Attachable::GetDeleteWhenRemovedFromParent, &Attachable::SetDeleteWhenRemovedFromParent)
 	    .property("GibWhenRemovedFromParent", &Attachable::GetGibWhenRemovedFromParent, &Attachable::SetGibWhenRemovedFromParent)
 	    .property("ApplyTransferredForcesAtOffset", &Attachable::GetApplyTransferredForcesAtOffset, &Attachable::SetApplyTransferredForcesAtOffset)
@@ -559,6 +556,10 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Attachable) {
 	    .property("InheritsFrame", &Attachable::InheritsFrame, &Attachable::SetInheritsFrame)
 	    .property("InheritsVelWhenDetached", &Attachable::InheritsVelocityWhenDetached, &Attachable::SetInheritsVelocityWhenDetached)
 	    .property("InheritsAngularVelWhenDetached", &Attachable::InheritsAngularVelocityWhenDetached, &Attachable::SetInheritsAngularVelocityWhenDetached)
+
+	    .def_readwrite("ParentOffset", &Attachable::m_ParentOffset)
+	    .def_readwrite("JointOffset", &Attachable::m_JointOffset)
+	    .def_readwrite("JointPos", &Attachable::m_JointPos)
 
 	    .def("IsAttached", &Attachable::IsAttached)
 	    .def("IsAttachedTo", &Attachable::IsAttachedTo)
@@ -740,11 +741,12 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Leg) {
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, LimbPath) {
 	return luabind::class_<LimbPath>("LimbPath")
 
-	    .property("StartOffset", &LimbPath::GetStartOffset, &LimbPath::SetStartOffset)
 	    .property("SegmentCount", &LimbPath::GetSegCount)
 	    .property("BaseTravelSpeedMultiplier", &LimbPath::GetBaseTravelSpeedMultiplier, &LimbPath::SetBaseTravelSpeedMultiplier)
 	    .property("TravelSpeed", &LimbPath::GetTravelSpeed, &LimbPath::SetTravelSpeed)
 	    .property("PushForce", &LimbPath::GetPushForce, &LimbPath::SetPushForce)
+
+	    .def_readwrite("StartOffset", &LimbPath::m_Start)
 
 	    .def("GetSegment", &LimbPath::GetSegment);
 }
@@ -865,8 +867,6 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSRotating) {
 	    .property("IndividualRadius", &MOSRotating::GetIndividualRadius)
 	    .property("IndividualDiameter", &MOSRotating::GetIndividualDiameter)
 	    .property("IndividualMass", &MOSRotating::GetIndividualMass)
-	    .property("RecoilForce", &MOSRotating::GetRecoilForce)
-	    .property("RecoilOffset", &MOSRotating::GetRecoilOffset)
 	    .property("TravelImpulse", &MOSRotating::GetTravelImpulse, &MOSRotating::SetTravelImpulse)
 	    .property("GibWoundLimit", (int(MOSRotating::*)() const) & MOSRotating::GetGibWoundLimit, &MOSRotating::SetGibWoundLimit)
 	    .property("GibSound", &MOSRotating::GetGibSound, &LuaAdaptersPropertyOwnershipSafetyFaker::MOSRotatingSetGibSound)
@@ -877,6 +877,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSRotating) {
 	    .property("WoundCount", (int(MOSRotating::*)() const) & MOSRotating::GetWoundCount)
 	    .property("OrientToVel", &MOSRotating::GetOrientToVel, &MOSRotating::SetOrientToVel)
 
+	    .def_readwrite("RecoilForce", &MOSRotating::m_RecoilForce)
+	    .def_readwrite("RecoilOffset", &MOSRotating::m_RecoilOffset)
 	    .def_readonly("Attachables", &MOSRotating::m_Attachables, luabind::return_stl_iterator)
 	    .def_readonly("Wounds", &MOSRotating::m_Wounds, luabind::return_stl_iterator)
 	    .def_readonly("Gibs", &MOSRotating::m_Gibs, luabind::return_stl_iterator)
@@ -920,9 +922,9 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MOSRotating) {
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	return AbstractTypeLuaClassDefinition(MovableObject, SceneObject)
 
+
 	    .property("Material", &MovableObject::GetMaterial)
 	    .property("Mass", &MovableObject::GetMass, &MovableObject::SetMass)
-	    .property("Vel", &MovableObject::GetVel, &MovableObject::SetVel)
 	    .property("PrevPos", &MovableObject::GetPrevPos)
 	    .property("PrevVel", &MovableObject::GetPrevVel)
 	    .property("DistanceTravelled", &MovableObject::GetDistanceTravelled)
@@ -968,6 +970,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, MovableObject) {
 	    .property("ApplyWoundBurstDamageOnCollision", &MovableObject::GetApplyWoundBurstDamageOnCollision, &MovableObject::SetApplyWoundBurstDamageOnCollision)
 	    .property("SimUpdatesBetweenScriptedUpdates", &MovableObject::GetSimUpdatesBetweenScriptedUpdates, &MovableObject::SetSimUpdatesBetweenScriptedUpdates)
 	    .property("PostEffectEnabled", &MovableObject::GetPostEffectEnabled, &MovableObject::SetPostEffectEnabled)
+
+	    .def_readwrite("Vel", &MovableObject::m_Vel)
 
 	    .def("GetParent", (MOSRotating * (MovableObject::*)()) & MovableObject::GetParent)
 	    .def("GetParent", (const MOSRotating* (MovableObject::*)() const) & MovableObject::GetParent)
@@ -1259,7 +1263,6 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, StaticSceneLayer)
 LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneObject) {
 	return AbstractTypeLuaClassDefinition(SceneObject, Entity)
 
-	    .property("Pos", &SceneObject::GetPos, &SceneObject::SetPos)
 	    .property("HFlipped", &SceneObject::IsHFlipped, &SceneObject::SetHFlipped)
 	    .property("RotAngle", &SceneObject::GetRotAngle, &SceneObject::SetRotAngle)
 	    .property("Team", &SceneObject::GetTeam, &SceneObject::SetTeam)
@@ -1267,6 +1270,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SceneObject) {
 	    .property("Buyable", &SceneObject::IsBuyable)
 
 	    .property("BuyableMode", &LuaAdaptersSceneObject::GetBuyableMode)
+
+	    .def_readwrite("Pos", &SceneObject::m_Pos)
 
 	    .def("IsOnScenePoint", &SceneObject::IsOnScenePoint)
 	    .def("GetGoldValue", &SceneObject::GetGoldValueOld)
@@ -1305,6 +1310,8 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundContainer) {
 
 	    .def(luabind::constructor<>())
 
+	    .def_readwrite("Pos", &SoundContainer::m_Pos)
+
 	    .property("SoundOverlapMode", &SoundContainer::GetSoundOverlapMode, &SoundContainer::SetSoundOverlapMode)
 	    .property("BusRouting", &SoundContainer::GetBusRouting, &SoundContainer::SetBusRouting)
 	    .property("Immobile", &SoundContainer::IsImmobile, &SoundContainer::SetImmobile)
@@ -1314,7 +1321,6 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, SoundContainer) {
 	    .property("Loops", &SoundContainer::GetLoopSetting, &SoundContainer::SetLoopSetting)
 	    .property("Priority", &SoundContainer::GetPriority, &SoundContainer::SetPriority)
 	    .property("AffectedByGlobalPitch", &SoundContainer::IsAffectedByGlobalPitch, &SoundContainer::SetAffectedByGlobalPitch)
-	    .property("Pos", &SoundContainer::GetPosition, &SoundContainer::SetPosition)
 	    .property("Volume", &SoundContainer::GetVolume, &SoundContainer::SetVolume)
 	    .property("Pitch", &SoundContainer::GetPitch, &SoundContainer::SetPitch)
 	    .property("Paused", &SoundContainer::IsPaused, &SoundContainer::SetPaused)

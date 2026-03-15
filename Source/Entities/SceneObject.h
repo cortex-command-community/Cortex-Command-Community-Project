@@ -15,6 +15,7 @@ namespace RTE {
 	/// The base class shared by Both TerrainObject:s and MovableObject:s, ie
 	/// anything that can be places in a scene.
 	class SceneObject : public Entity {
+		friend struct EntityLuaBindings;
 
 		/// Public member variable, method and friend function declarations
 	public:
@@ -285,6 +286,7 @@ namespace RTE {
 
 		// Member variables
 		static Entity::ClassInfo m_sClass;
+
 		// Absolute position of the center of this in the scene, in pixels
 		Vector m_Pos;
 		// How much this SceneObject costs to purchase, in oz's of gold.
