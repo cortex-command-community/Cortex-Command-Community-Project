@@ -420,8 +420,7 @@ static const bool RTESetExceptionHandlers = []() {
 /// Implementation of the main function.
 /// </summary>
 int main(int argc, char** argv) {
-	install_allegro(SYSTEM_NONE, &errno, std::atexit);
-	loadpng_init();
+	install_allegro(SYSTEM_NONE, &errno, nullptr);
 
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMEPAD );
 
@@ -480,7 +479,6 @@ int main(int argc, char** argv) {
 
 	DestroyManagers();
 
-	allegro_exit();
 	SDL_Quit();
 
 	return EXIT_SUCCESS;
