@@ -1,5 +1,7 @@
 #include "NetworkClient.h"
 
+#ifndef __EMSCRIPTEN__  // Entire implementation disabled for web build — stub class used instead
+
 #include "ConsoleMan.h"
 #include "WindowMan.h"
 #include "FrameMan.h"
@@ -1251,3 +1253,5 @@ void NetworkClient::HandleNetworkPackets() {
 		}
 	}
 }
+
+#endif // !__EMSCRIPTEN__

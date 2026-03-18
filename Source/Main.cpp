@@ -20,7 +20,14 @@
 
 #include "allegro.h"
 #include <SDL3/SDL.h>
+#ifndef __EMSCRIPTEN__
 #include <SDL3_image/SDL_image.h>
+#endif
+
+#ifdef __EMSCRIPTEN__
+#include "EmscriptenMain.h"
+#include "WebPlatform.h"
+#endif
 
 #include "GUI.h"
 #include "GUIInputWrapper.h"
@@ -416,10 +423,12 @@ int main(int argc, char** argv) {
 	install_allegro(SYSTEM_NONE, &errno, std::atexit);
 	loadpng_init();
 
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMEPAD );
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMEPAD);
 
 	SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
+#ifndef __EMSCRIPTEN__
 	SDL_SetHint("SDL_ALLOW_TOPMOST", "0");
+#endif
 	SDL_HideCursor();
 
 	if (std::filesystem::exists("Base.rte/gamecontrollerdb.txt")) {
@@ -427,15 +436,10 @@ int main(int argc, char** argv) {
 	}
 
 #ifdef WIN32
-	// Stops framespiking from our child threads being sat on for too long
-	// TODO: use a better thread system that'll do what we want ASAP instead of letting the OS schedule all over us
-	// Disabled for now because windows is great and this means when the game lags out it freezes the entire computer. Which we wouldn't expect with anything but REALTIME priority.
-	// Because apparently high priority class is preferred over "processing mouse input"?!
-	// SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-#endif // WIN32
+	// SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS); // disabled, see comments above
+#endif
 
-	// argv[0] actually unreliable for exe path and name, because of course, why would it be, why would anything be simple and make sense.
-	// Just use it anyway until some dumb edge case pops up and it becomes a problem.
+	// argv[0] is unreliable for exe path but we use it until a better solution is needed.
 	System::Initialize(argv[0]);
 	SeedRNG();
 
@@ -446,28 +450,47 @@ int main(int argc, char** argv) {
 	g_PresetMan.LoadAllDataModules();
 
 	if (!System::IsInExternalModuleValidationMode()) {
-		// Load the different input device icons. This can't be done during UInputMan::Create() because the icon presets don't exist so we need to do this after modules are loaded.
 		g_UInputMan.LoadDeviceIcons();
 
 		if (g_ConsoleMan.LoadWarningsExist()) {
 			g_ConsoleMan.PrintString("WARNING: Encountered non-fatal errors during module loading!\nSee \"LogLoadingWarning.txt\" for information.");
 			g_ConsoleMan.SaveLoadWarningLog("LogLoadingWarning.txt");
-			// Open the console so the user is aware there are loading warnings.
 			g_ConsoleMan.SetEnabled(true);
 		} else {
-			// Delete an existing log if there are no warnings so there's less junk in the root folder.
 			if (std::filesystem::exists(System::GetWorkingDirectory() + "LogLoadingWarning.txt")) {
 				std::remove("LogLoadingWarning.txt");
 			}
 		}
 
+#ifdef __EMSCRIPTEN__
+		// Browser build — enter the menu first, then let emscripten_set_main_loop
+		// drive per-frame callbacks. We never return from this function; the browser
+		// event loop takes over.
+		if (!g_ActivityMan.Initialize()) {
+			// Start with the menu loop state
+			RTE::s_WebLoopState = RTE::WebLoopState::Menu;
+			g_MenuMan.SetIsInMenuScreen(true);
+			g_UInputMan.DisableKeys(false);
+			g_UInputMan.TrapMousePos(false);
+		} else {
+			// Activity was set to launch directly — skip menu
+			RTE::s_WebLoopState = RTE::WebLoopState::Game;
+			g_TimerMan.PauseSim(false);
+		}
+		// Hand control to the browser event loop. Never returns.
+		RTE::WebPlatform_StartMainLoop(0, true);
+		// Unreachable on web, but keeps the compiler happy.
+		return EXIT_SUCCESS;
+#else
+		// Native build — original blocking loops.
 		if (!g_ActivityMan.Initialize()) {
 			RunMenuLoop();
 		}
-
 		RunGameLoop();
+#endif // __EMSCRIPTEN__
 	}
 
+#ifndef __EMSCRIPTEN__
 	g_ThreadMan.GetPriorityThreadPool().wait_for_tasks();
 	g_ThreadMan.GetBackgroundThreadPool().wait_for_tasks();
 
@@ -475,6 +498,7 @@ int main(int argc, char** argv) {
 
 	allegro_exit();
 	SDL_Quit();
+#endif
 
 	return EXIT_SUCCESS;
 }

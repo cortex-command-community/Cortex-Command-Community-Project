@@ -131,6 +131,44 @@ elif compiler.get_argument_syntax()== 'msvc'
   else
     preprocessor_flags += ['-DRELEASE_BUILD', '-DNDEBUG']
   endif
+elif host_machine.system() == 'emscripten'
+  # -------------------------------------------------------------------------
+  # Emscripten / WebAssembly build
+  # -------------------------------------------------------------------------
+  message('Emscripten/WASM build detected')
+  elfname = 'CortexCommand'
+
+  # Emscripten link flags — mirror what emscripten/build.sh passes
+  em_link_flags = [
+    '-sUSE_SDL=2',
+    '-sUSE_WEBGL2=1',
+    '-sFULL_ES3=1',
+    '-sALLOW_MEMORY_GROWTH=1',
+    '-sINITIAL_MEMORY=268435456',
+    '-sMAXIMUM_MEMORY=2147483648',
+    '-sEXPORTED_RUNTIME_METHODS=[\'FS\',\'callMain\',\'ccall\',\'cwrap\']',
+    '-sEXPORTED_FUNCTIONS=[\'_main\']',
+    '-sENVIRONMENT=web',
+    '-sEXIT_RUNTIME=0',
+    '-sASYNCIFY=1',
+    '-sASYNCIFY_STACK_SIZE=65536',
+    '--preload-file', 'Data/Base.rte@/Data/Base.rte',
+    '--shell-file', meson.source_root() / 'emscripten/shell.html',
+    '--pre-js',     meson.source_root() / 'emscripten/pre.js',
+  ]
+  link_args += em_link_flags
+
+  extra_args += [
+    '-w',               # Suppress warnings (too noisy during porting)
+    '-DEMSCRIPTEN_PORT', # Our own guard macro for Emscripten-specific code paths
+    '-DRELEASE_BUILD',
+    '-DNDEBUG',
+  ]
+  preprocessor_flags += ['-DRELEASE_BUILD', '-DNDEBUG', '-DEMSCRIPTEN_PORT']
+
+  # Emscripten uses .html output suffix
+  suffix = 'html'
+
 else
   error('Using unknown compiler, please use gcc or msvc compatible compilers')
 endif
@@ -186,7 +224,7 @@ if host_machine.system() in ['linux','darwin']
     dependency('gl')
   ]
   if host_machine.system()=='darwin'
-    deps += dependency('appleframeworks', modules: ['Foundation'])  
+    deps += dependency('appleframeworks', modules: ['Foundation'])
   endif
   bfd = compiler.find_library('bfd', required: false)
   if bfd.found()
@@ -203,6 +241,17 @@ elif host_machine.system() == 'windows'
   # Windows Libraries
   opengl = compiler.find_library('opengl32')
   deps += [zlib_dep, minizip_dep, libpng_dep, opengl]
+elif host_machine.system() == 'emscripten'
+  # Emscripten provides SDL2, WebGL, libpng, and zlib via its own ports.
+  # We use the subproject versions for the ones not in the Emscripten port system.
+  zlib_proj    = subproject('zlib-ng-2.1.3')
+  minizip_proj = subproject('minizip-ng-4.0.0')
+  libpng_proj  = subproject('libpng-1.6.40')
+  deps += [
+    dependency('zlib'),
+    dependency('minizip'),
+    dependency('libpng'),
+  ]
 endif
 
 
@@ -210,36 +259,92 @@ external_objects = []
 external_libs = []
 subdir('external')
 
-sdl3_opt = cmake.subproject_options()
-sdl3_opt.add_cmake_defines({'CMAKE_POSITION_INDEPENDENT_CODE': get_option('b_staticpic'), 'BUILD_SHARED_LIBS':false, 'BUILD_STATIC_LIBS': true})
-sdl3_opt.append_compile_args('c','-DUSE_XINPUT2_KEYBOARD')
-if host_machine.system() == 'darwin'
-  sdl3_dep = dependency('sdl3')
-else
-  sdl3_proj = cmake.subproject('SDL3-3.2.10', options: sdl3_opt)
-  sdl3_dep = sdl3_proj.dependency('SDL3-static')
-  meson.override_dependency('sdl3', sdl3_dep)
-endif
-
-sdl3_image_proj = subproject('SDL3_image-3.2.4')
-sdl3_image_dep = sdl3_image_proj.get_variable('sdl3_image_dep')
-
 boost_dep = declare_dependency(include_directories: include_directories('external/include/boost_1_75'))
 meson.override_dependency('boost-175', boost_dep)
-install_rpath = prefix/get_option('fmod_dir')
-tracy_proj = subproject('tracy')
-tracy_dep = dependency('tracy')
-allegro_proj = subproject('allegro 4.4.3.1-custom')
-luajit_proj = subproject('LuaJIT-2.1')
-luajit_dep = dependency('luajit')
-external_inc_dirs += luajit_proj.get_variable('luajit_source_dir')
-allegro_dep = dependency('allegro')
-loadpng_dep = dependency('loadpng')
-luabind_proj = subproject('luabind-0.7.1')
-luabind_dep = dependency('luabind')
-raknet_proj = subproject('RakNet')
-raknet_dep = dependency('RakNet')
-deps += [sdl3_dep, sdl3_image_dep, allegro_dep, luajit_dep, loadpng_dep, raknet_dep, boost_dep, tracy_dep]
+
+if host_machine.system() == 'emscripten'
+  # -------------------------------------------------------------------------
+  # Emscripten dependency configuration:
+  #
+  # - SDL2 is provided by Emscripten's own port (-sUSE_SDL=2 in link flags)
+  # - Allegro 4 is replaced by AllegroCompat.h/cpp (our typed-array shim)
+  # - FMOD is replaced by fmod_stub/ (no-op stub; real audio TBD)
+  # - LuaJIT → compile without JIT, or replace with PUC-Lua (TBD Phase 3)
+  # - RakNet → disabled; network multiplayer not available in web build
+  # - Tracy → disabled (requires native OS profiling APIs)
+  # - SDL3_image → not needed; we use libpng directly
+  # -------------------------------------------------------------------------
+
+  # SDL2 via Emscripten port — no subproject needed, emcc provides it
+  sdl2_em_dep = declare_dependency(
+    compile_args: ['-sUSE_SDL=2'],
+    link_args:    ['-sUSE_SDL=2'],
+  )
+  deps += [sdl2_em_dep, boost_dep]
+
+  # LuaJIT (interpreter-only mode — JIT disabled for WASM)
+  luajit_proj = subproject('LuaJIT-2.1')
+  luajit_dep  = dependency('luajit')
+  external_inc_dirs += luajit_proj.get_variable('luajit_source_dir')
+  luabind_proj = subproject('luabind-0.7.1')
+  luabind_dep  = dependency('luabind')
+  deps += [luajit_dep]
+
+  # Allegro compat shim — included as source files (not a subproject dep)
+  allegro_compat_inc = include_directories(
+    'Source/System/allegro_web_compat'   # provides allegro.h redirect
+  )
+  external_inc_dirs += allegro_compat_inc
+
+  # FMOD stub — provides fmod.hpp / fmod_errors.h no-op headers
+  fmod_stub_inc = include_directories('Source/System/fmod_stub')
+  external_inc_dirs += fmod_stub_inc
+
+  # RakNet → stub dependency (empty; NetworkClient/Server compile conditionally)
+  raknet_dep = declare_dependency()
+
+  # Tracy → disabled
+  tracy_dep = declare_dependency(compile_args: ['-DTRACY_ENABLE=0'])
+  deps += [tracy_dep]
+
+else
+  # -------------------------------------------------------------------------
+  # Native build — original dependency resolution
+  # -------------------------------------------------------------------------
+  sdl3_opt = cmake.subproject_options()
+  sdl3_opt.add_cmake_defines({'CMAKE_POSITION_INDEPENDENT_CODE': get_option('b_staticpic'), 'BUILD_SHARED_LIBS':false, 'BUILD_STATIC_LIBS': true})
+  sdl3_opt.append_compile_args('c','-DUSE_XINPUT2_KEYBOARD')
+  if host_machine.system() == 'darwin'
+    sdl3_dep = dependency('sdl3')
+  else
+    sdl3_proj = cmake.subproject('SDL3-3.2.10', options: sdl3_opt)
+    sdl3_dep  = sdl3_proj.dependency('SDL3-static')
+    meson.override_dependency('sdl3', sdl3_dep)
+  endif
+
+  sdl3_image_proj = subproject('SDL3_image-3.2.4')
+  sdl3_image_dep  = sdl3_image_proj.get_variable('sdl3_image_dep')
+
+  install_rpath = prefix/get_option('fmod_dir')
+  tracy_proj = subproject('tracy')
+  tracy_dep  = dependency('tracy')
+
+  allegro_proj = subproject('allegro 4.4.3.1-custom')
+  allegro_dep  = dependency('allegro')
+  loadpng_dep  = dependency('loadpng')
+
+  luajit_proj = subproject('LuaJIT-2.1')
+  luajit_dep  = dependency('luajit')
+  external_inc_dirs += luajit_proj.get_variable('luajit_source_dir')
+
+  luabind_proj = subproject('luabind-0.7.1')
+  luabind_dep  = dependency('luabind')
+
+  raknet_proj = subproject('RakNet')
+  raknet_dep  = dependency('RakNet')
+
+  deps += [sdl3_dep, sdl3_image_dep, allegro_dep, luajit_dep, loadpng_dep, raknet_dep, boost_dep, tracy_dep]
+endif
 
 #### Sources Setup ####
 source_inc_dirs = []

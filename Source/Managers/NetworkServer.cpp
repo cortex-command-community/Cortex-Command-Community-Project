@@ -1,5 +1,7 @@
 #include "NetworkServer.h"
 
+#ifndef __EMSCRIPTEN__  // Entire implementation disabled for web build — stub class used instead
+
 #include "GUI.h"
 #include "GUIInput.h"
 #include "AllegroBitmap.h"
@@ -1906,3 +1908,5 @@ void NetworkServer::HandleNetworkPackets() {
 		}
 	}
 }
+
+#endif // !__EMSCRIPTEN__

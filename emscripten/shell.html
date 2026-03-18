@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Cortex Command Community Project</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0d0d0d;
+      color: #ccc;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    #title-bar {
+      font-size: 11px;
+      color: #555;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    /* Container that holds both the WebGL canvas (game) and the 2D overlay canvas */
+    #canvas-container {
+      position: relative;
+      display: inline-block;
+      border: 1px solid #222;
+      /* Will be resized by JS to match game resolution */
+    }
+
+    /*
+     * PRIMARY CANVAS: WebGL rendering target.
+     * This is where SDL/OpenGL draws. Emscripten uses this by default when
+     * a canvas with id="canvas" is present.
+     */
+    #canvas {
+      display: block;
+      image-rendering: pixelated;   /* nearest-neighbor for pixel-perfect upscale */
+      image-rendering: crisp-edges;
+    }
+
+    /*
+     * OVERLAY CANVAS: Canvas2D layer for fast typed-array blitting.
+     *
+     * The Allegro 8bpp→32bpp CPU rendering pipeline produces a raw RGBA
+     * pixel buffer in WASM linear memory. Rather than round-tripping through
+     * WebGL textures, we expose this buffer as an ImageData and use
+     * ctx.putImageData() which goes through a highly optimised browser path
+     * (often a direct memcpy to the compositor).
+     *
+     * This canvas sits on top of the WebGL canvas and is used exclusively
+     * for the 8bpp scene backbuffer upload.  The GL canvas handles post-
+     * processing and GUI overlays.
+     *
+     * When the game's rendering moves fully to GL (Phase 4+) this overlay
+     * can be removed or repurposed for a HUD.
+     */
+    #overlay-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      /* Start transparent so the WebGL canvas shows through */
+      opacity: 1;
+      pointer-events: none;  /* Let mouse events fall through to the GL canvas */
+    }
+
+    #loading-screen {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0d0d0d;
+      z-index: 100;
+    }
+
+    #loading-logo {
+      font-size: 13px;
+      color: #8b0000;
+      letter-spacing: 3px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px #8b0000;
+    }
+
+    #loading-bar-outer {
+      width: 300px;
+      height: 6px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+    }
+
+    #loading-bar-inner {
+      height: 100%;
+      width: 0%;
+      background: #8b0000;
+      transition: width 0.15s ease;
+    }
+
+    #loading-status {
+      font-size: 9px;
+      color: #444;
+      letter-spacing: 1px;
+      margin-top: 10px;
+      text-transform: uppercase;
+    }
+
+    #status-bar {
+      font-size: 9px;
+      color: #333;
+      letter-spacing: 1px;
+      margin-top: 6px;
+      text-transform: uppercase;
+    }
+
+    #error-overlay {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.9);
+      color: #cc3333;
+      font-size: 11px;
+      padding: 20px;
+      white-space: pre-wrap;
+      overflow: auto;
+      z-index: 200;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="title-bar">Cortex Command Community Project &mdash; Web Build</div>
+
+  <div id="canvas-container" style="width:960px;height:600px;">
+    <!-- WebGL canvas — SDL3/Emscripten renders here via OpenGL ES 3 -->
+    <canvas id="canvas" width="960" height="600" tabindex="0"></canvas>
+
+    <!--
+      Overlay canvas — Canvas2D fast path for the 8bpp CPU raster buffer.
+      Dimensions match the game resolution and are updated by ccBlit8ToCanvas()
+      in pre.js when the C++ side calls into JS.
+    -->
+    <canvas id="overlay-canvas" width="960" height="600"></canvas>
+
+    <div id="loading-screen">
+      <div id="loading-logo">Cortex Command</div>
+      <div id="loading-bar-outer">
+        <div id="loading-bar-inner" id="loading-bar"></div>
+      </div>
+      <div id="loading-status">Initializing...</div>
+    </div>
+
+    <div id="error-overlay"></div>
+  </div>
+
+  <div id="status-bar">Ready</div>
+
+  <!--
+    Emscripten injects the Module object and the generated JS loader here.
+    The {{{ SCRIPT }}} placeholder is replaced by Emscripten's output JS tag.
+  -->
+  <script>
+    // =========================================================================
+    // Module configuration — must be set BEFORE the Emscripten JS is loaded.
+    // =========================================================================
+    var Module = {
+      canvas: document.getElementById('canvas'),
+
+      // Print / err go to the browser console and the status bar
+      print: function(text) {
+        console.log('[CC]', text);
+      },
+      printErr: function(text) {
+        console.error('[CC:ERR]', text);
+        // Show critical errors in the overlay
+        if (text.indexOf('Aborted') !== -1 || text.indexOf('FATAL') !== -1) {
+          var overlay = document.getElementById('error-overlay');
+          overlay.style.display = 'block';
+          overlay.textContent += text + '\n';
+        }
+      },
+
+      // Called when Emscripten finishes loading the WASM module and is ready
+      // to call main(). We hide the loading screen at this point.
+      onRuntimeInitialized: function() {
+        console.log('[CC] Runtime initialized');
+        document.getElementById('loading-status').textContent = 'Loading game data...';
+      },
+
+      // Progress callback for --preload-file asset loading
+      setStatus: function(text) {
+        var bar   = document.getElementById('loading-bar-inner');
+        var label = document.getElementById('loading-status');
+        if (!text) {
+          // Loading complete — hide loading screen
+          setTimeout(function() {
+            var ls = document.getElementById('loading-screen');
+            if (ls) ls.style.display = 'none';
+            document.getElementById('canvas').focus();
+          }, 200);
+          return;
+        }
+        var match = text.match(/([^(]+)\((\d+)\/(\d+)\)/);
+        if (match) {
+          var pct = (parseInt(match[2]) / parseInt(match[3])) * 100;
+          bar.style.width = pct + '%';
+          label.textContent = match[1].trim();
+        } else {
+          label.textContent = text;
+        }
+        document.getElementById('status-bar').textContent = text;
+      },
+
+      // Total memory — matches -sINITIAL_MEMORY in build.sh
+      INITIAL_MEMORY: 268435456,
+
+      // Prevent Emscripten from calling exit() on main() return
+      noExitRuntime: true,
+
+      // Locate the .wasm file (same directory as the .html)
+      locateFile: function(path) {
+        return path;
+      }
+    };
+
+    // =========================================================================
+    // Canvas2D typed-array blitting helpers
+    //
+    // The game's CPU-side Allegro-compatible software rasterizer writes an
+    // 8bpp indexed-color buffer. Before uploading to WebGL we need to expand
+    // it to RGBA using the current palette.
+    //
+    // ccBlit8ToCanvas(ptr8, width, height, palettePtr)
+    //   ptr8       — byte offset in WASM linear memory of the 8bpp pixel data
+    //   width      — image width in pixels
+    //   height     — image height in pixels
+    //   palettePtr — byte offset of a 256-entry * 4-byte RGBA palette
+    //
+    // The function is called from C++ via EM_ASM / emscripten_run_script.
+    // It uses ImageData + Uint8ClampedArray for a near-zero-copy path:
+    //   1. Wrap WASM heap as Uint8Array — zero copy, no alloc
+    //   2. Expand palette inline into the ImageData buffer
+    //   3. ctx.putImageData() — browser optimises this to a compositor blit
+    // =========================================================================
+    (function() {
+      var _overlayCanvas = null;
+      var _ctx2d         = null;
+      var _imageData     = null;  // reused ImageData to avoid per-frame GC
+      var _imgW = 0, _imgH = 0;
+
+      function getCtx(w, h) {
+        if (!_overlayCanvas) {
+          _overlayCanvas = document.getElementById('overlay-canvas');
+          _ctx2d = _overlayCanvas.getContext('2d', { alpha: true });
+        }
+        // Reallocate ImageData only on resolution change
+        if (_imgW !== w || _imgH !== h) {
+          _imgW = w; _imgH = h;
+          _overlayCanvas.width  = w;
+          _overlayCanvas.height = h;
+          _imageData = _ctx2d.createImageData(w, h);
+        }
+        return _ctx2d;
+      }
+
+      /**
+       * Expand an 8bpp indexed buffer into RGBA and blit via Canvas2D.
+       *
+       * @param {number} src8ptr    Byte offset in WASM heap of 8bpp pixel data
+       * @param {number} width      Pixel width
+       * @param {number} height     Pixel height
+       * @param {number} palPtr     Byte offset in WASM heap of 256-colour RGBA palette
+       */
+      window.ccBlit8ToCanvas = function(src8ptr, width, height, palPtr) {
+        var ctx = getCtx(width, height);
+        if (!ctx) return;
+
+        // View WASM linear memory — zero allocation, zero copy
+        var heap = Module.HEAPU8;
+
+        // RGBA destination (pre-allocated ImageData buffer)
+        var dst  = _imageData.data;       // Uint8ClampedArray, length = w*h*4
+        var src  = heap.subarray(src8ptr, src8ptr + width * height);
+        var pal  = heap;                  // palette is also in the heap
+        var n    = width * height;
+        var di   = 0;
+
+        // Inner loop: palette lookup expand.
+        // Browsers JIT this loop to SIMD on modern engines (V8 turbofan,
+        // SpiderMonkey ion) making it competitive with a native memcpy.
+        for (var i = 0; i < n; i++) {
+          var ci  = src[i];            // colour index 0-255
+          var pi  = palPtr + ci * 4;   // palette entry: R,G,B,A
+          dst[di    ] = pal[pi    ];   // R
+          dst[di + 1] = pal[pi + 1];   // G
+          dst[di + 2] = pal[pi + 2];   // B
+          dst[di + 3] = pal[pi + 3];   // A
+          di += 4;
+        }
+
+        ctx.putImageData(_imageData, 0, 0);
+      };
+
+      /**
+       * Direct RGBA blit — for the 32bpp post-processed backbuffer.
+       * Faster than ccBlit8ToCanvas for the GUI overlay path.
+       *
+       * @param {number} src32ptr   Byte offset of RGBA pixel data in WASM heap
+       * @param {number} width
+       * @param {number} height
+       */
+      window.ccBlit32ToCanvas = function(src32ptr, width, height) {
+        var ctx = getCtx(width, height);
+        if (!ctx) return;
+
+        var heap = Module.HEAPU8;
+        var n    = width * height * 4;
+        // Use set() for a bulk typed-array copy — near memcpy speed
+        _imageData.data.set(heap.subarray(src32ptr, src32ptr + n));
+        ctx.putImageData(_imageData, 0, 0);
+      };
+
+      /**
+       * Clear the overlay canvas (called between frames).
+       */
+      window.ccClearOverlay = function() {
+        if (_ctx2d && _imgW && _imgH) {
+          _ctx2d.clearRect(0, 0, _imgW, _imgH);
+        }
+      };
+
+      /**
+       * Resize both canvases to match a new game resolution.
+       */
+      window.ccResizeCanvases = function(w, h) {
+        var container = document.getElementById('canvas-container');
+        var glCanvas  = document.getElementById('canvas');
+        var ovCanvas  = document.getElementById('overlay-canvas');
+        if (container) { container.style.width = w + 'px'; container.style.height = h + 'px'; }
+        if (glCanvas)  { glCanvas.width = w;  glCanvas.height = h; }
+        if (ovCanvas)  { ovCanvas.width = w;  ovCanvas.height = h; }
+        // Invalidate cached ImageData
+        _imgW = 0; _imgH = 0; _imageData = null;
+      };
+    })();
+  </script>
+
+  {{{ SCRIPT }}}
+
+</body>
+</html>

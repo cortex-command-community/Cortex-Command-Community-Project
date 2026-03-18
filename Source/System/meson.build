@@ -28,4 +28,13 @@ sources += files(
 'Serializable.cpp',
 'PieQuadrant.cpp',
 'SpatialPartitionGrid.cpp',
+'WebPlatform.cpp',
 )
+
+if host_machine.system() == 'emscripten'
+  sources += files(
+    'AllegroCompat.cpp',
+  )
+  # Provide the allegro_web_compat directory early in include search
+  source_inc_dirs += include_directories('allegro_web_compat')
+endif

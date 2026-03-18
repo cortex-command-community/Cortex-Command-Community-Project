@@ -64,14 +64,32 @@ int Shader::Create(const Shader& ref) {
 	return 0;
 }
 
+/// Returns the ES 3.00 variant of a shader path if running in a WebGL2 context.
+/// e.g. "Base.rte/Shaders/Blit8.vert" → "Base.rte/Shaders/Blit8.es.vert"
+static std::string GetWebGLVariantPath(const std::string& path) {
+#ifdef __EMSCRIPTEN__
+	// Insert ".es" before the final extension.
+	// e.g. ".vert" → ".es.vert",  ".frag" → ".es.frag"
+	auto dotPos = path.rfind('.');
+	if (dotPos != std::string::npos) {
+		return path.substr(0, dotPos) + ".es" + path.substr(dotPos);
+	}
+#endif
+	return path;
+}
+
 bool Shader::Compile(const std::string& vertexPath, const std::string& fragPath) {
 	assert(m_ProgramID != 0);
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	bool result{false};
 
+	// On Emscripten use the GLSL ES 3.00 shader variants (*.es.vert / *.es.frag)
+	const std::string resolvedVert = GetWebGLVariantPath(vertexPath);
+	const std::string resolvedFrag = GetWebGLVariantPath(fragPath);
+
 	std::string error;
-	result = CompileShader(vertexShader, g_PresetMan.GetFullModulePath(vertexPath), error) && CompileShader(fragmentShader, g_PresetMan.GetFullModulePath(fragPath), error);
+	result = CompileShader(vertexShader, g_PresetMan.GetFullModulePath(resolvedVert), error) && CompileShader(fragmentShader, g_PresetMan.GetFullModulePath(resolvedFrag), error);
 	if (result) {
 		GL_CHECK(glBindAttribLocation(m_ProgramID, 0, "rteVertexPosition"));
 		GL_CHECK(glBindAttribLocation(m_ProgramID, 1, "rteVertexTexUV"));

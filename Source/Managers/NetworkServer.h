@@ -1,11 +1,13 @@
 #pragma once
 
+#ifndef __EMSCRIPTEN__
 // TODO: Figure out how to deal with anything that is defined by these and include them in implementation only to remove Windows.h macro pollution from our headers.
 #include "RakPeerInterface.h"
 #include "NatPunchthroughClient.h"
 
 // RakNet includes Windows.h so we need to undefine macros that conflict with our method names.
 #undef GetClassName
+#endif // __EMSCRIPTEN__
 
 #include "Singleton.h"
 #include "NetworkMessages.h"
@@ -27,6 +29,23 @@ namespace RTE {
 
 	class Timer;
 
+#ifdef __EMSCRIPTEN__
+	/// Stub NetworkServer for Emscripten builds — network multiplayer not supported.
+	class NetworkServer : public Singleton<NetworkServer> {
+	public:
+		NetworkServer() = default;
+		~NetworkServer() = default;
+		int  Initialize() { return 0; }
+		void Destroy() {}
+		bool IsServerModeEnabled() const { return false; }
+		void SetServerMode(bool) {}
+		bool IsInMultiplayerMode() const { return false; }
+		void Update() {}
+		void Clear() {}
+		NetworkServer(const NetworkServer&) = delete;
+		NetworkServer& operator=(const NetworkServer&) = delete;
+	};
+#else
 	/// The centralized singleton manager of the network multiplayer server.
 	class NetworkServer : public Singleton<NetworkServer> {
 		friend class SettingsMan;
@@ -475,4 +494,5 @@ namespace RTE {
 		NetworkServer(const NetworkServer& reference) = delete;
 		NetworkServer& operator=(const NetworkServer& rhs) = delete;
 	};
+#endif // __EMSCRIPTEN__
 } // namespace RTE

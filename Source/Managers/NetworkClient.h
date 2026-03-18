@@ -1,11 +1,13 @@
 #pragma once
 
+#ifndef __EMSCRIPTEN__
 // TODO: Figure out how to deal with anything that is defined by these and include them in implementation only to remove Windows.h macro pollution from our headers.
 #include "RakPeerInterface.h"
 #include "NatPunchthroughClient.h"
 
 // RakNet includes Windows.h so we need to undefine macros that conflict with our method names.
 #undef GetClassName
+#endif // __EMSCRIPTEN__
 
 #include "Singleton.h"
 #include "NetworkMessages.h"
@@ -21,6 +23,29 @@
 namespace RTE {
 
 	class SoundContainer;
+
+#ifdef __EMSCRIPTEN__
+	/// Stub NetworkClient for Emscripten builds — network multiplayer not supported.
+	class NetworkClient : public Singleton<NetworkClient> {
+	public:
+		NetworkClient() = default;
+		~NetworkClient() = default;
+		int  Initialize() { return 0; }
+		void Destroy() {}
+		bool IsConnectedAndRegistered() const { return false; }
+		int  GetSceneWidth()  const { return 0; }
+		int  GetSceneHeight() const { return 0; }
+		bool IsInMultiplayerMode() const { return false; }
+		void SetMultiplayerMode(bool) {}
+		void Update() {}
+		void Draw(BITMAP*) {}
+		void DrawFrame(int, bool, bool) {}
+		int  GetPing() const { return 0; }
+		void Clear() {}
+		NetworkClient(const NetworkClient&) = delete;
+		NetworkClient& operator=(const NetworkClient&) = delete;
+	};
+#else
 
 	/// The centralized singleton manager of the network multiplayer client.
 	class NetworkClient : public Singleton<NetworkClient> {
@@ -267,4 +292,5 @@ namespace RTE {
 		NetworkClient(const NetworkClient& reference) = delete;
 		NetworkClient& operator=(const NetworkClient& rhs) = delete;
 	};
+#endif // __EMSCRIPTEN__
 } // namespace RTE
