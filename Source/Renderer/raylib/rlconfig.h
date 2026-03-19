@@ -106,7 +106,11 @@
 #define RLGL_SHOW_GL_DETAILS_INFO              1
 #endif
 
+// GPU skinning uses bone matrix vertex attributes at locations 8-11,
+// which exceed the 8-attribute limit in GLES2/WebGL2. Disable on Emscripten.
+#ifndef __EMSCRIPTEN__
 #define RL_SUPPORT_MESH_GPU_SKINNING           1      // GPU skinning, comment if your GPU does not support more than 8 VBOs
+#endif
 
 //#define RL_DEFAULT_BATCH_BUFFER_ELEMENTS    4096    // Default internal render batch elements limits
 #define RL_DEFAULT_BATCH_BUFFERS               1      // Default number of batch buffers (multi-buffering)
