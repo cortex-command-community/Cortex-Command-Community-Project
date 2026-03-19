@@ -94,11 +94,17 @@
 // Module: rlgl - Configuration values
 //------------------------------------------------------------------------------------
 
-// Enable OpenGL Debug Context (only available on OpenGL 4.3)
+// Enable OpenGL Debug Context (only available on OpenGL 4.3 / desktop)
+// Disabled for Emscripten/WebGL2 — KHR_debug extension not available in WebGL2
+#ifndef __EMSCRIPTEN__
 #define RLGL_ENABLE_OPENGL_DEBUG_CONTEXT       1
+#endif
 
 // Show OpenGL extensions and capabilities detailed logs on init
+// Disabled for Emscripten — too noisy and may fail with desktop-only GL queries
+#ifndef __EMSCRIPTEN__
 #define RLGL_SHOW_GL_DETAILS_INFO              1
+#endif
 
 #define RL_SUPPORT_MESH_GPU_SKINNING           1      // GPU skinning, comment if your GPU does not support more than 8 VBOs
 

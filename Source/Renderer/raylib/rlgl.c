@@ -69,6 +69,74 @@
 #include <GLES3/gl3.h> // OpenGL ES 3.0 library
 #define GL_GLEXT_PROTOTYPES
 #include <GLES2/gl2ext.h> // OpenGL ES 2.0 extensions library
+
+// ---- Emscripten / WebGL2 compatibility stubs ----
+// Provide desktop-only GL enums and function stubs missing from GLES3 headers.
+#ifndef GLAPIENTRY
+#define GLAPIENTRY
+#endif
+#ifndef GL_DEBUG_OUTPUT
+#define GL_DEBUG_OUTPUT           0x92E0
+#define GL_DEBUG_OUTPUT_SYNCHRONOUS 0x8242
+#endif
+#ifndef GL_MAX_UNIFORM_LOCATIONS
+#define GL_MAX_UNIFORM_LOCATIONS  0x826E
+#endif
+// glDebugMessageCallback not available in WebGL2 — stub it
+typedef void (GLAPIENTRY *GLDEBUGPROC)(GLenum,GLenum,GLuint,GLenum,GLsizei,const GLchar*,const void*);
+static inline void glDebugMessageCallback(GLDEBUGPROC cb, const void* p) { (void)cb; (void)p; }
+static inline void glDebugMessageControl(GLenum s,GLenum t,GLenum e,GLsizei n,const GLuint* ids,GLboolean en)
+    { (void)s;(void)t;(void)e;(void)n;(void)ids;(void)en; }
+// glClearDepth → glClearDepthf in GLES3
+#ifndef glClearDepth
+#define glClearDepth(d) glClearDepthf((float)(d))
+#endif
+// GL_TEXTURE_CUBE_MAP_SEAMLESS not in GLES3
+#ifndef GL_TEXTURE_CUBE_MAP_SEAMLESS
+#define GL_TEXTURE_CUBE_MAP_SEAMLESS 0x884F
+#endif
+// Blend equation advanced KHR (stubs if extension not present)
+#ifndef GL_BLEND_ADVANCED_COHERENT_KHR
+#define GL_BLEND_ADVANCED_COHERENT_KHR 0x9285
+#define GL_MULTIPLY_KHR                0x9294
+#define GL_SCREEN_KHR                  0x9295
+#define GL_OVERLAY_KHR                 0x9296
+#define GL_DARKEN_KHR                  0x9297
+#define GL_LIGHTEN_KHR                 0x9298
+#define GL_COLORDODGE_KHR              0x9299
+#define GL_COLORBURN_KHR               0x929A
+#define GL_HARDLIGHT_KHR               0x929B
+#define GL_SOFTLIGHT_KHR               0x929C
+#define GL_DIFFERENCE_KHR              0x929E
+#define GL_EXCLUSION_KHR               0x92A0
+#define GL_HSL_HUE_KHR                 0x92AD
+#define GL_HSL_SATURATION_KHR          0x92AE
+#define GL_HSL_COLOR_KHR               0x92AF
+#define GL_HSL_LUMINOSITY_KHR          0x92B0
+#endif
+// glBlendBarrierKHR is declared in gl2ext.h as an extern function.
+// It may not be implemented in WebGL2 but we can safely leave it as no-op via the extension check.
+// GL_MAX_DRAW_BUFFERS may not be in strict GLES3 headers
+#ifndef GL_MAX_DRAW_BUFFERS
+#define GL_MAX_DRAW_BUFFERS 0x8824
+#endif
+// GL_POLYGON_MODE etc. — desktop only, just define constants
+#ifndef GL_LINE
+#define GL_LINE  0x1B01
+#define GL_POINT 0x1B00
+#define GL_FILL  0x1B02
+#endif
+static inline void glPolygonMode(GLenum f, GLenum m) { (void)f; (void)m; }
+// GL_TEXTURE_LOD_BIAS — desktop only
+#ifndef GL_TEXTURE_LOD_BIAS
+#define GL_TEXTURE_LOD_BIAS 0x8501
+#endif
+// GL_LINE_SMOOTH — desktop only
+#ifndef GL_LINE_SMOOTH
+#define GL_LINE_SMOOTH   0x0B20
+#define GL_POLYGON_SMOOTH 0x0B41
+#endif
+// ----- End Emscripten stubs -----
 #elif defined(GRAPHICS_API_OPENGL_ES2)
 // NOTE: OpenGL ES 2.0 can be enabled on Desktop platforms,
 // in that case, functions are loaded from a custom glad for OpenGL ES 2.0
@@ -94,6 +162,9 @@ typedef void(GL_APIENTRYP PFNGLVERTEXATTRIBDIVISOREXTPROC)(GLuint index, GLuint 
 #include <stdlib.h> // Required for: malloc(), free()
 #include <string.h> // Required for: strcmp(), strlen() [Used in rlglInit(), on extensions loading]
 #include <math.h> // Required for: sqrtf(), sinf(), cosf(), floor(), log()
+#ifdef __EMSCRIPTEN__
+#include <stdio.h> // For fprintf debug output
+#endif
 
 //----------------------------------------------------------------------------------
 // Defines and Macros
@@ -1525,7 +1596,7 @@ void rlglInit(int width, int height) {
 	}
 #endif
 
-#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
+#if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2) || defined(GRAPHICS_API_OPENGL_ES3)
 	// Init default white texture
 	unsigned char pixels[4] = {255, 255, 255, 255}; // 1 pixel RGBA (4 bytes)
 	RLGL.State.defaultTextureId = rlLoadTexture(pixels, 1, 1, RL_PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1);
@@ -1535,7 +1606,7 @@ void rlglInit(int width, int height) {
 	else
 		TRACELOG(RL_LOG_WARNING, "TEXTURE: Failed to load default texture");
 
-	// Init default Shader (customized for GL 3.3 and ES2)
+	// Init default Shader (customized for GL 3.3, ES2, and ES3/WebGL2)
 	// Loaded: RLGL.State.defaultShaderId + RLGL.State.defaultShaderLocs
 	rlLoadShaderDefault();
 	RLGL.State.currentShaderId = RLGL.State.defaultShaderId;
@@ -3604,6 +3675,10 @@ unsigned int rlCompileShader(const char* shaderCode, int type) {
 
 #if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
 	shader = glCreateShader(type);
+#ifdef __EMSCRIPTEN__
+	fprintf(stderr, "[rlgl] rlCompileShader type=%d createShader->%u glErr=%d\n",
+	        type, shader, (int)glGetError());
+#endif
 	glShaderSource(shader, 1, &shaderCode, NULL);
 
 	GLint success = 0;
@@ -3640,6 +3715,9 @@ unsigned int rlCompileShader(const char* shaderCode, int type) {
 			char* log = (char*)RL_CALLOC(maxLength, sizeof(char));
 			glGetShaderInfoLog(shader, maxLength, &length, log);
 			TRACELOG(RL_LOG_WARNING, "SHADER: [ID %i] Compile error: %s", shader, log);
+#ifdef __EMSCRIPTEN__
+			fprintf(stderr, "[rlgl] Shader compile FAILED (type=%d id=%u): %s\n", type, shader, log);
+#endif
 			RL_FREE(log);
 		}
 
@@ -4504,6 +4582,10 @@ static void rlLoadShaderDefault(void) {
 	// they are kept for re-use as default shaders in case some shader loading fails
 	RLGL.State.defaultVShaderId = rlCompileShader(defaultVShaderCode, GL_VERTEX_SHADER); // Compile default vertex shader
 	RLGL.State.defaultFShaderId = rlCompileShader(defaultFShaderCode, GL_FRAGMENT_SHADER); // Compile default fragment shader
+#ifdef __EMSCRIPTEN__
+	fprintf(stderr, "[rlgl] defaultVShaderId=%u defaultFShaderId=%u\n",
+	        RLGL.State.defaultVShaderId, RLGL.State.defaultFShaderId);
+#endif
 
 	RLGL.State.defaultShaderId = rlLoadShaderProgram(RLGL.State.defaultVShaderId, RLGL.State.defaultFShaderId);
 

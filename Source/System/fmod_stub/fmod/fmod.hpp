@@ -67,6 +67,13 @@ enum FMOD_SPEAKERMODE {
 #define FMOD_ERR_HEADER_MISMATCH (-100)
 
 // ---------------------------------------------------------------------------
+// Additional FMOD mode flags used in AudioMan/SoundContainer
+// ---------------------------------------------------------------------------
+#define FMOD_LOOP_OFF           0x00000001
+#define FMOD_3D_INVERSEROLLOFF  0x00100000
+#define FMOD_3D_CUSTOMROLLOFF   0x04000000
+
+// ---------------------------------------------------------------------------
 // FMOD result codes
 // ---------------------------------------------------------------------------
 typedef int FMOD_RESULT;
@@ -106,7 +113,9 @@ typedef FMOD_RESULT (F_CALLBACK *FMOD_CHANNEL_CALLBACK)(void*, int, int, void*, 
 // ---------------------------------------------------------------------------
 enum FMOD_CHANNELCONTROL_TYPE { FMOD_CHANNELCONTROL_CHANNEL = 0, FMOD_CHANNELCONTROL_CHANNELGROUP = 1 };
 enum FMOD_CHANNELCONTROL_CALLBACK_TYPE { FMOD_CHANNELCONTROL_CALLBACK_END = 0 };
-typedef FMOD_RESULT (F_CALLBACK *FMOD_CHANNELCONTROL_CALLBACK)(void*, FMOD_CHANNELCONTROL_TYPE, FMOD_CHANNELCONTROL_CALLBACK_TYPE, void*, void*);
+// FMOD_CHANNELCONTROL is the opaque base type for Channel/ChannelGroup callbacks
+typedef void FMOD_CHANNELCONTROL;
+typedef FMOD_RESULT (F_CALLBACK *FMOD_CHANNELCONTROL_CALLBACK)(FMOD_CHANNELCONTROL*, FMOD_CHANNELCONTROL_TYPE, FMOD_CHANNELCONTROL_CALLBACK_TYPE, void*, void*);
 
 // ---------------------------------------------------------------------------
 // FMOD namespace stubs
@@ -182,6 +191,9 @@ namespace FMOD {
         FMOD_RESULT getSubSound(int, Sound** s){ if (s) *s = nullptr; return FMOD_OK; }
         FMOD_RESULT getUserData(void** d)     { if (d) *d = nullptr; return FMOD_OK; }
         FMOD_RESULT setUserData(void*)        { return FMOD_OK; }
+        FMOD_RESULT setLoopCount(int)         { return FMOD_OK; }
+        FMOD_RESULT getLoopCount(int* n)      { if (n) *n = 0; return FMOD_OK; }
+        FMOD_RESULT setLoopPoints(unsigned int, FMOD_TIMEUNIT, unsigned int, FMOD_TIMEUNIT) { return FMOD_OK; }
     };
 
     // ------------------------------------------------------------------

@@ -26,10 +26,14 @@
 
 #ifdef __EMSCRIPTEN__
 
+#include <emscripten.h>
+#include <emscripten/html5.h>
+
 #include "System.h"
 #include "TimerMan.h"
 #include "WindowMan.h"
 #include "FrameMan.h"
+#include "RenderTarget.h"
 #include "UInputMan.h"
 #include "AudioMan.h"
 #include "MusicMan.h"
@@ -55,8 +59,7 @@ enum class WebLoopState {
 
 static WebLoopState s_WebLoopState = WebLoopState::Menu;
 
-// Forward declarations of the loop body helpers defined in Main.cpp
-void PollSDLEvents();
+// PollSDLEvents is defined at global scope in Main.cpp (included before this header)
 
 /// Called once per animation frame by emscripten_set_main_loop().
 /// Dispatches to the appropriate menu or game loop body.
@@ -185,9 +188,7 @@ inline void WebMainLoopIteration_Impl() {
 
 } // namespace RTE
 
-// Called from WebPlatform.cpp (forward-declared there)
-inline void WebMainLoopIteration() {
-    RTE::WebMainLoopIteration_Impl();
-}
+// WebMainLoopIteration() is defined in Main.cpp (which includes this header).
+// It's forward-declared in WebPlatform.cpp — defined in Main.cpp's TU.
 
 #endif // __EMSCRIPTEN__

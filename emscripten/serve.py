@@ -27,8 +27,12 @@ class COOPCOEPHandler(SimpleHTTPRequestHandler):
         super().end_headers()
 
     def guess_type(self, path):
-        mime, enc = super().guess_type(path)
-        if path.endswith(".wasm"):
+        result = super().guess_type(path)
+        if isinstance(result, tuple):
+            mime, enc = result[0], result[1] if len(result) > 1 else None
+        else:
+            mime, enc = result, None
+        if str(path).endswith(".wasm"):
             return "application/wasm", enc
         return mime, enc
 

@@ -25,8 +25,8 @@
 #endif
 
 #ifdef __EMSCRIPTEN__
-#include "EmscriptenMain.h"
 #include "WebPlatform.h"
+// EmscriptenMain.h included AFTER PollSDLEvents definition below
 #endif
 
 #include "GUI.h"
@@ -69,9 +69,11 @@
 #include "windows.h"
 #endif
 
+#ifdef _WIN32
 extern "C" {
 FILE __iob_func[3] = {*stdin, *stdout, *stderr};
 }
+#endif
 
 using namespace RTE;
 
@@ -247,6 +249,17 @@ void PollSDLEvents() {
 		}
 	}
 }
+
+// EmscriptenMain.h uses PollSDLEvents — include it here after the function is defined.
+#ifdef __EMSCRIPTEN__
+#include "EmscriptenMain.h"
+// WebPlatform.cpp forward-declares RTE::WebMainLoopIteration() — define it here.
+namespace RTE {
+void WebMainLoopIteration() {
+    WebMainLoopIteration_Impl();
+}
+} // namespace RTE
+#endif
 
 /// <summary>
 /// Game menus loop.
@@ -468,17 +481,17 @@ int main(int argc, char** argv) {
 		// event loop takes over.
 		if (!g_ActivityMan.Initialize()) {
 			// Start with the menu loop state
-			RTE::s_WebLoopState = RTE::WebLoopState::Menu;
+			s_WebLoopState = WebLoopState::Menu;
 			g_MenuMan.SetIsInMenuScreen(true);
 			g_UInputMan.DisableKeys(false);
 			g_UInputMan.TrapMousePos(false);
 		} else {
 			// Activity was set to launch directly — skip menu
-			RTE::s_WebLoopState = RTE::WebLoopState::Game;
+			s_WebLoopState = WebLoopState::Game;
 			g_TimerMan.PauseSim(false);
 		}
 		// Hand control to the browser event loop. Never returns.
-		RTE::WebPlatform_StartMainLoop(0, true);
+		WebPlatform_StartMainLoop(0, true);
 		// Unreachable on web, but keeps the compiler happy.
 		return EXIT_SUCCESS;
 #else

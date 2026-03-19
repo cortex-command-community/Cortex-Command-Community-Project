@@ -10,7 +10,10 @@
 #include "png.h"
 #include "fmod/fmod.hpp"
 #include "fmod/fmod_errors.h"
+#include <SDL3/SDL.h>  // SDL_Surface, SDL_Palette, SDL_Color etc.
+#ifndef __EMSCRIPTEN__
 #include <SDL3_image/SDL_image.h>
+#endif
 
 #include <array>
 #include <cstring>

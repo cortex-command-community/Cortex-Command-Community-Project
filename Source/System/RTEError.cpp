@@ -24,7 +24,7 @@
 #include <cpuid.h>
 #endif
 
-#ifdef __linux__
+#if defined(__linux__) && !defined(__EMSCRIPTEN__)
 #include <sys/utsname.h>
 #include <fstream>
 #include <filesystem>
@@ -501,7 +501,7 @@ void RTEError::DumpHardwareInfo() {
 
 	g_ConsoleMan.PrintString(hwInfo);
 
-#ifdef __unix__
+#if defined(__unix__) && !defined(__EMSCRIPTEN__)
 	struct utsname unameData;
 	if (uname(&unameData) == 0) {
 		std::string osInfo = "uname: " + std::string(unameData.sysname) + " " + std::string(unameData.release) + " " + std::string(unameData.version);

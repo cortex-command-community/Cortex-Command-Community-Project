@@ -11,3 +11,5 @@ sources += files(
 'GraphicalPrimitive.cpp',
 'Draw.cpp',
 )
+
+# Emscripten renderer flags are added to the project compile args in the root meson.build

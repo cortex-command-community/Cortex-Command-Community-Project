@@ -31,7 +31,9 @@
 #include "tracy/Tracy.hpp"
 
 #include "SDL3/SDL_surface.h"
+#ifndef __EMSCRIPTEN__
 #include <SDL3_image/SDL_image.h>
+#endif
 
 #include <array>
 #include <execution>
@@ -83,6 +85,7 @@ bool ActivityMan::ForceAbortSave() {
 #define HACK_MZ_COMPRESS_LEVEL_FAST 2
 #define HACK_MZ_COMPRESS_METHOD_DEFLATE 8
 
+#ifndef __EMSCRIPTEN__  // Save/load uses SDL3_image PNG encoding — not available on web yet
 bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	if (m_SaveGameTask.valid()) {
 		m_SaveGameTask.wait();
@@ -393,6 +396,18 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 
 	return true;
 }
+
+#else // __EMSCRIPTEN__
+// Save/load not available on web build
+bool ActivityMan::SaveCurrentGame(const std::string&) {
+    g_ConsoleMan.PrintString("WARNING: Save/Load not available in web build.");
+    return false;
+}
+bool ActivityMan::LoadAndLaunchGame(const std::string&) {
+    g_ConsoleMan.PrintString("WARNING: Save/Load not available in web build.");
+    return false;
+}
+#endif // __EMSCRIPTEN__
 
 void ActivityMan::SetStartActivity(Activity* newActivity) {
 	RTEAssert(newActivity, "Trying to replace an activity with a null one!");

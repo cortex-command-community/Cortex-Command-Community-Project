@@ -1,7 +1,9 @@
 #pragma once
 
 #include "allegro.h"
+#ifndef __EMSCRIPTEN__
 #include "loadpng.h"
+#endif
 
 #ifdef _WIN32
 #define DebuggerBreak IsDebuggerPresent() ? __debugbreak() : std::abort();

@@ -30,7 +30,9 @@
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
+#ifndef __EMSCRIPTEN__
 #include <SDL3_image/SDL_image.h>
+#endif
 
 #include <array>
 
@@ -485,6 +487,7 @@ void FrameMan::SetTransTableFromPreset(TransparencyPreset transPreset) {
 }
 
 bool FrameMan::LoadPalette(const std::string& palettePath) {
+#ifndef __EMSCRIPTEN__
 	const std::string fullPalettePath = g_PresetMan.GetFullModulePath(palettePath);
 	SDL_Surface* paletteImage = IMG_Load(palettePath.c_str());
 	RTEAssert(paletteImage && SDL_GetSurfacePalette(paletteImage), ("Failed to load palette from bitmap with following path:\n\n" + fullPalettePath).c_str());
@@ -498,6 +501,25 @@ bool FrameMan::LoadPalette(const std::string& palettePath) {
 		    0};
 	}
 	SDL_DestroySurface(paletteImage);
+#else
+	// Emscripten: SDL3_image not available. Load palette using libpng directly.
+	// For now, use the ContentFile PNG-loading path which goes through libpng.
+	// The palette file is an 8bpp indexed PNG; we read the palette from its PLTE chunk.
+	BITMAP* palBmp = ContentFile(palettePath.c_str()).GetAsBitmap(COLORCONV_NONE, false);
+	if (palBmp && palBmp->depth == 8) {
+		// The palette is stored in g_AllegroCurrentPalette by the ContentFile loader.
+		std::memcpy(m_Palette, g_AllegroCurrentPalette, sizeof(m_Palette));
+	} else {
+		// Fallback: generate a simple greyscale palette if the file isn't available yet.
+		for (int i = 0; i < 256; i++) {
+			m_Palette[i][0] = (uint8_t)i;
+			m_Palette[i][1] = (uint8_t)i;
+			m_Palette[i][2] = (uint8_t)i;
+			m_Palette[i][3] = 0;
+		}
+	}
+	if (palBmp) destroy_bitmap(palBmp);
+#endif
 
 	set_palette(m_Palette);
 

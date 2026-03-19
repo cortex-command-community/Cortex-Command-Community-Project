@@ -82,6 +82,14 @@ bool Shader::Compile(const std::string& vertexPath, const std::string& fragPath)
 	assert(m_ProgramID != 0);
 	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+#ifdef __EMSCRIPTEN__
+	if (!vertexShader || !fragmentShader) {
+		g_ConsoleMan.PrintString("ERROR: glCreateShader returned 0! vertexShader=" +
+		    std::to_string(vertexShader) + " fragShader=" + std::to_string(fragmentShader) +
+		    " for " + vertexPath + " / " + fragPath);
+		return false;
+	}
+#endif
 	bool result{false};
 
 	// On Emscripten use the GLSL ES 3.00 shader variants (*.es.vert / *.es.frag)
@@ -161,8 +169,15 @@ void Shader::SetVector4f(int32_t uniformLoc, const glm::vec4& value) const { GL_
 bool Shader::CompileShader(GLuint shaderID, const std::string& filename, std::string& error) {
 	if (!System::PathExistsCaseSensitive(filename)) {
 		error += "File " + filename + " doesn't exist.";
+#ifdef __EMSCRIPTEN__
+		g_ConsoleMan.PrintString("ERROR: Shader file not found: " + filename);
+		fprintf(stderr, "[CC] Shader file NOT FOUND: %s\n", filename.c_str());
+#endif
 		return false;
 	}
+#ifdef __EMSCRIPTEN__
+	fprintf(stderr, "[CC] Compiling shader: %s (shaderID=%u)\n", filename.c_str(), shaderID);
+#endif
 
 	std::ifstream file(filename);
 	std::ostringstream dataStream;

@@ -29,7 +29,14 @@
 
 #ifdef __linux__
 #include "Resources/cccp.xpm"
+#ifndef __EMSCRIPTEN__
 #include <SDL3_image/SDL_image.h>
+#endif
+#endif
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#include <emscripten/html5.h>
 #endif
 
 using namespace RTE;
@@ -95,6 +102,13 @@ void WindowMan::Destroy() {
 	GL_CHECK(glDeleteVertexArrays(1, &m_ScreenVAO));
 }
 
+#ifdef __EMSCRIPTEN__
+// GLAD debug callback no-ops for Emscripten/WebGL2.
+// Must be actual C-style variadic functions (no lambda conversions on Emscripten Clang).
+static void emscripten_glad_pre_callback(const char*, GLADapiproc, int, ...) {}
+static void emscripten_glad_post_callback(void*, const char*, GLADapiproc, int, ...) {}
+#endif
+
 void WindowMan::Initialize() {
 	SDL_free(SDL_GetDisplays(&m_NumDisplays));
 
@@ -122,9 +136,16 @@ void WindowMan::Initialize() {
 	ValidateResolution(m_ResX, m_ResY, m_ResMultiplier);
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+#ifdef __EMSCRIPTEN__
+	// WebGL 2 = OpenGL ES 3.0 — must request ES profile, not desktop core
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#else
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#endif
 	CreatePrimaryWindow();
 	InitializeOpenGL();
 
@@ -136,7 +157,11 @@ void WindowMan::Initialize() {
 
 	ImGui::StyleColorsDark();
 	ImGui_ImplSDL3_InitForOpenGL(m_PrimaryWindow.get(), m_GLContext.get());
+#ifdef __EMSCRIPTEN__
+	ImGui_ImplOpenGL3_Init("#version 300 es");
+#else
 	ImGui_ImplOpenGL3_Init("#version 330 core");
+#endif
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL3_NewFrame();
 	ImGui::NewFrame();
@@ -227,9 +252,53 @@ void WindowMan::InitializeOpenGL() {
 		RTEAbort("Failed to create OpenGL context because:\n" + std::string(SDL_GetError()));
 	}
 
+#ifdef __EMSCRIPTEN__
+	// WebGL2: Replace GLAD debug callbacks with no-ops BEFORE loading.
+	gladSetGLPreCallback(emscripten_glad_pre_callback);
+	gladSetGLPostCallback(emscripten_glad_post_callback);
+
+	// Load WebGL2 function pointers via GLAD.
+	int gladVer = gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
+	fprintf(stderr, "[CC] gladLoadGL version=0x%x glad_glCreateShader=%s\n",
+	        gladVer, glad_glCreateShader ? "LOADED" : "NULL");
+
+	// SDL3 built from source does NOT register its WebGL2 context with Emscripten's
+	// GL binding layer (GL.currentContext). Manually register it.
+	// This is needed because glVertexAttribPointer and other functions access
+	// GL.currentContext internally in Emscripten's GL.js binding.
+	emscripten_run_script(
+	    "var _cc_canvas = document.getElementById('canvas') || Module['canvas'];"
+	    "if (_cc_canvas && typeof GL !== 'undefined') {"
+	    "  var _cc_ctx = _cc_canvas.getContext('webgl2') || _cc_canvas.getContext('experimental-webgl2');"
+	    "  if (_cc_ctx && !GL.currentContext) {"
+	    "    var _cc_h = GL.registerContext(_cc_ctx, {majorVersion:3,minorVersion:0,antialias:false});"
+	    "    GL.makeContextCurrent(_cc_h);"
+	    "    console.log('[CC] Registered WebGL2 context with Emscripten GL, handle='+_cc_h);"
+	    "  }"
+	    "  function _cc_ensureClientBuffers() {"
+	    "    if (GL.currentContext) {"
+	    "      if (!GL.currentContext.clientBuffers) GL.currentContext.clientBuffers = [];"
+	    "      for (var _i = 0; _i < 32; _i++) {"
+	    "        if (!GL.currentContext.clientBuffers[_i]) GL.currentContext.clientBuffers[_i] = {};"
+	    "      }"
+	    "    }"
+	    "  }"
+	    "  _cc_ensureClientBuffers();"
+	    "  if (typeof GL !== 'undefined' && GL.makeContextCurrent) {"
+	    "    var _cc_orig = GL.makeContextCurrent;"
+	    "    GL.makeContextCurrent = function(h) {"
+	    "      _cc_orig(h);"
+	    "      _cc_ensureClientBuffers();"
+	    "    };"
+	    "    console.log('[CC] Hooked GL.makeContextCurrent for clientBuffers guard');"
+	    "  }"
+	    "}"
+	);
+#else
 	if (!gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress)) {
 		RTEAbort("Failed to load GL functions!");
 	}
+#endif
 
 #ifndef _WIN32
 	SDL_GL_SetSwapInterval(m_EnableVSync ? 1 : 0);
@@ -237,7 +306,11 @@ void WindowMan::InitializeOpenGL() {
 	SDL_GL_SetSwapInterval(m_Fullscreen && m_EnableVSync ? 1 : 0);
 #endif
 
+#ifndef __EMSCRIPTEN__
+	// rlLoadExtensions calls gladLoadGL again and queries desktop-only GL enums.
+	// On Emscripten/WebGL2, we skip it — GLAD was already loaded above.
 	rlLoadExtensions((void*)SDL_GL_GetProcAddress);
+#endif
 	rlglInit(m_ResX, m_ResY);
 
 	GL_CHECK(glEnable(GL_BLEND));
@@ -246,7 +319,9 @@ void WindowMan::InitializeOpenGL() {
 	GL_CHECK(glGenVertexArrays(1, &m_ScreenVAO));
 	GL_CHECK(glBindVertexArray(m_ScreenVAO));
 	GL_CHECK(glGenTextures(1, &m_BackBuffer32Texture));
+#ifndef __EMSCRIPTEN__
 	TracyGpuContext;
+#endif
 	Texture2D shapesTexture = {rlGetTextureIdDefault(), 1, 1, 1, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8};
 	SetShapesTexture(shapesTexture, {0.0f, 0.0f, 1.0f, 1.0f});
 }

@@ -148,7 +148,11 @@
 #define RL_FREE(p) free(p)
 #endif
 
+// Default to OpenGL 3.3, but only if no other API is explicitly requested.
+// For Emscripten/WebGL2 builds, GRAPHICS_API_OPENGL_ES3 is passed via compiler flags.
+#if !defined(GRAPHICS_API_OPENGL_ES3) && !defined(GRAPHICS_API_OPENGL_ES2)
 #define GRAPHICS_API_OPENGL_33
+#endif
 
 // Security check in case no GRAPHICS_API_OPENGL_* defined
 #if !defined(GRAPHICS_API_OPENGL_11) && \

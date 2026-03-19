@@ -4,7 +4,15 @@
 #include "LuabindObjectWrapper.h"
 #include "LuaMan.h"
 
+#ifndef __EMSCRIPTEN__
 #include "lj_obj.h"
+#else
+// PUC-Lua 5.1: provide stubs for LuaJIT internal macros used in this file.
+// mainthread(G(L)) gets the main lua_State; in PUC-Lua we just return L since
+// luabind's callback.interpreter() already returns the correct thread state.
+#define G(L) (L)
+#define mainthread(g) (g)
+#endif
 
 using namespace RTE;
 

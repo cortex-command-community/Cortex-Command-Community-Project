@@ -42,7 +42,54 @@
 #include <array>
 #include <filesystem>
 #include <atomic>
+// POSIX / Emscripten: stricmp is not standard, use strcasecmp
+#ifdef __EMSCRIPTEN__
+#include <strings.h>
+#ifndef stricmp
+#define stricmp strcasecmp
+#endif
+#ifndef strnicmp
+#define strnicmp strncasecmp
+#endif
+#endif
+
+#ifndef __EMSCRIPTEN__
 #include <execution>
+#else
+// Emscripten doesn't support std::execution parallel policies.
+// Redirect parallel for_each/transform/sort etc. to sequential execution.
+#include <algorithm>
+namespace std {
+    namespace execution {
+        struct _EmExecPolicy {};
+        struct sequenced_policy            : _EmExecPolicy {};
+        struct parallel_policy             : _EmExecPolicy {};
+        struct parallel_unsequenced_policy : _EmExecPolicy {};
+        struct unsequenced_policy          : _EmExecPolicy {};
+        inline constexpr sequenced_policy              seq{};
+        inline constexpr parallel_policy               par{};
+        inline constexpr parallel_unsequenced_policy   par_unseq{};
+        inline constexpr unsequenced_policy            unseq{};
+    }
+    // Drop the execution policy argument and run sequentially
+    template<class FwdIt, class Fn>
+    void for_each(execution::_EmExecPolicy, FwdIt first, FwdIt last, Fn fn) {
+        for (; first != last; ++first) fn(*first);
+    }
+    template<class FwdIt1, class FwdIt2, class Fn>
+    FwdIt2 transform(execution::_EmExecPolicy, FwdIt1 first, FwdIt1 last, FwdIt2 dst, Fn fn) {
+        return std::transform(first, last, dst, fn);
+    }
+    template<class FwdIt>
+    void sort(execution::_EmExecPolicy, FwdIt first, FwdIt last) {
+        std::sort(first, last);
+    }
+    template<class FwdIt, class Cmp>
+    void sort(execution::_EmExecPolicy, FwdIt first, FwdIt last, Cmp cmp) {
+        std::sort(first, last, cmp);
+    }
+}
+#endif
 #include <source_location>
 #include <regex>
 #include <future>

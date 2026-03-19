@@ -38,7 +38,13 @@ std::string System::s_ThisExePathAndName = "";
 std::string System::s_WorkingDirectory = ".";
 std::vector<size_t> System::s_WorkingTree;
 std::filesystem::file_time_type System::s_ProgramStartTime = std::filesystem::file_time_type::clock::now();
+// Emscripten MEMFS is already case-sensitive and doesn't support recursive_directory_iterator
+// over the whole tree without errors. Disable the whole-tree scan and use std::filesystem::exists directly.
+#ifdef __EMSCRIPTEN__
+bool System::s_CaseSensitive = false;
+#else
 bool System::s_CaseSensitive = true;
+#endif
 const std::string System::s_DataDirectory = "Data/";
 const std::string System::s_ScreenshotDirectory = "ScreenShots/";
 const std::string System::s_ModDirectory = "Mods/";

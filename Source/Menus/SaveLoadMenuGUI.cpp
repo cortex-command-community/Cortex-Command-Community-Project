@@ -173,6 +173,9 @@ void SaveLoadMenuGUI::UpdateSaveGamesGUIList() {
 #if defined(_MSC_VER) || __GNUC__ > 12
 		const auto saveFsTime = std::chrono::clock_cast<std::chrono::system_clock>(save.SaveDate);
 		const auto saveTime = std::chrono::system_clock::to_time_t(saveFsTime);
+#elif defined(__EMSCRIPTEN__)
+		// Emscripten: use 0 as a fallback since file_clock conversion is broken
+		const auto saveTime = static_cast<std::time_t>(0);
 #else
 		// TODO - kill this monstrosity when we move to GCC13
 		auto saveFsTime = std::chrono::system_clock::time_point(save.SaveDate.time_since_epoch());

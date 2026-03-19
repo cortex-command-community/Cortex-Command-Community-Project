@@ -6,7 +6,9 @@
 #include "System.h"
 
 #include "tracy/Tracy.hpp"
+#ifndef __EMSCRIPTEN__
 #include "tracy/TracyLua.hpp"
+#endif
 
 using namespace RTE;
 
@@ -31,45 +33,50 @@ void LuaStateWrapper::Clear() {
 void LuaStateWrapper::Initialize() {
 	m_State = luaL_newstate();
 	luabind::open(m_State);
+#ifndef __EMSCRIPTEN__
 	tracy::LuaRegister(m_State);
+#endif
 
 	// We do async GC, but we still keep the normal GC on so it can catch any big spikes or runaway allocs
 	//lua_gc(m_State, LUA_GCSTOP, 0);
 
 	const luaL_Reg libsToLoad[] = {
-	    // Basic Lua libraries
-	    {LUA_COLIBNAME, luaopen_base},
+	    // Standard Lua libraries (available in both LuaJIT and PUC-Lua 5.1)
+	    {LUA_COLIBNAME,   luaopen_base},
 	    {LUA_LOADLIBNAME, luaopen_package},
-	    {LUA_TABLIBNAME, luaopen_table},
-	    {LUA_STRLIBNAME, luaopen_string},
+	    {LUA_TABLIBNAME,  luaopen_table},
+	    {LUA_STRLIBNAME,  luaopen_string},
 	    {LUA_MATHLIBNAME, luaopen_math},
-	    {LUA_DBLIBNAME, luaopen_debug},
-
-		// These were removed for "security reasons" but we need them for debugger integration
-	    {LUA_IOLIBNAME, luaopen_io},
-	    {LUA_OSLIBNAME, luaopen_os},
-
-		// LuaJIT libraries
-	    {LUA_BITLIBNAME, luaopen_bit},
-	    {LUA_FFILIBNAME, luaopen_ffi},
-	    {LUA_JITLIBNAME, luaopen_jit},
-
+	    {LUA_DBLIBNAME,   luaopen_debug},
+	    // IO/OS: needed for debugger integration
+	    {LUA_IOLIBNAME,   luaopen_io},
+	    {LUA_OSLIBNAME,   luaopen_os},
+#ifndef __EMSCRIPTEN__
+		// LuaJIT-only libraries — not available in PUC-Lua 5.1
+	    {LUA_BITLIBNAME,  luaopen_bit},
+	    {LUA_FFILIBNAME,  luaopen_ffi},
+	    {LUA_JITLIBNAME,  luaopen_jit},
+#endif
 	    {NULL, NULL} // End of array
 	};
 
 	for (const luaL_Reg* lib = libsToLoad; lib->func; lib++) {
+#ifndef __EMSCRIPTEN__
 		if (g_SettingsMan.DisableLuaJIT() && strcmp(lib->name, LUA_JITLIBNAME) == 0) {
 			continue;
 		}
+#endif
 		lua_pushcfunction(m_State, lib->func);
 		lua_pushstring(m_State, lib->name);
 		lua_call(m_State, 1, 0);
 	}
 
+#ifndef __EMSCRIPTEN__
 	// LuaJIT should start automatically after we load the library (if we loaded it) but we're making sure it did anyway.
 	if (!g_SettingsMan.DisableLuaJIT() && !luaJIT_setmode(m_State, 0, LUAJIT_MODE_ENGINE | LUAJIT_MODE_ON)) {
 		RTEAbort("Failed to initialize LuaJIT!\nIf this error persists, please disable LuaJIT with \"Settings.ini\" property \"DisableLuaJIT\".");
 	}
+#endif
 
 	// From LuaBind documentation:
 	// As mentioned in the Lua documentation, it is possible to pass an error handler function to lua_pcall(). LuaBind makes use of lua_pcall() internally when calling member functions and free functions.

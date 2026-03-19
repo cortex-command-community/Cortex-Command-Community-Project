@@ -14,6 +14,65 @@
 
 using namespace RTE;
 
+#ifdef __EMSCRIPTEN__
+// ============================================================================
+// Emscripten / Web Audio stub implementation of AudioMan.
+// FMOD is not available; audio is disabled (no-op). Real Web Audio API
+// integration (via OpenAL Soft or SDL_mixer) is Phase 3 work.
+// ============================================================================
+
+AudioMan::AudioMan() { Clear(); }
+AudioMan::~AudioMan() { Destroy(); }
+
+void AudioMan::Clear() {
+    m_AudioEnabled = false;
+    m_CurrentActivityHumanPlayerPositions.clear();
+    m_SoundChannelMinimumAudibleDistances.clear();
+    m_MuteMaster = false; m_MuteMusic = false; m_MuteSounds = false;
+    m_MasterVolume = 0.5F; m_MusicVolume = 1.0F; m_SoundsVolume = 1.0F;
+    m_GlobalPitch = 1.0F; m_SoundPanningEffectStrength = 0.5F;
+    m_ListenerZOffset = 400; m_MinimumDistanceForPanning = 30.0F;
+    m_MusicMuffled = false; m_MuteAudioOnFocusLoss = false;
+    m_IsInMultiplayerMode = false;
+    for (int i = 0; i < c_MaxClients; i++) m_SoundEvents[i].clear();
+    m_AudioSystem = nullptr;
+    m_MasterChannelGroup = nullptr;
+    m_SFXChannelGroup = nullptr;
+    m_UIChannelGroup = nullptr;
+    m_MusicChannelGroup = nullptr;
+}
+
+bool AudioMan::Initialize() { return false; } // audio disabled on web for now
+void AudioMan::Destroy() { Clear(); }
+void AudioMan::Update() {}
+
+void AudioMan::SetGlobalPitch(float pitch, bool, bool) { m_GlobalPitch = pitch; }
+bool AudioMan::SetMusicPitch(float) { return false; }
+FMOD_RESULT AudioMan::SetMusicMuffledState(bool) { return FMOD_OK; }
+SoundContainer* AudioMan::PlaySound(const std::string&, const Vector&, int) { return nullptr; }
+void AudioMan::GetSoundEvents(int, std::list<NetworkSoundData>&) {}
+void AudioMan::RegisterSoundEvent(int, NetworkSoundState, const SoundContainer*, int) {}
+void AudioMan::ClearSoundEvents(int) {}
+void AudioMan::FinishIngameLoopingSounds() {}
+
+// Private methods called from friend class SoundContainer — stub implementations
+bool AudioMan::PlaySoundContainer(SoundContainer*, int)              { return false; }
+bool AudioMan::ChangeSoundContainerPlayingChannelsPosition(const SoundContainer*) { return false; }
+float AudioMan::GetSoundContainerAudibleVolume(const SoundContainer*) { return 0.0f; }
+bool AudioMan::ChangeSoundContainerPlayingChannelsVolume(const SoundContainer*, float) { return false; }
+bool AudioMan::ChangeSoundContainerPlayingChannelsPitch(const SoundContainer*) { return false; }
+bool AudioMan::ChangeSoundContainerPlayingChannelsCustomPanValue(const SoundContainer*) { return false; }
+bool AudioMan::StopSoundContainerPlayingChannels(SoundContainer*, int) { return false; }
+void AudioMan::FadeOutSoundContainerPlayingChannels(SoundContainer*, int) {}
+void AudioMan::SetPausedSoundContainerPlayingChannels(SoundContainer*, bool) const {}
+void AudioMan::Update3DEffectsForSFXChannels() {}
+FMOD_RESULT AudioMan::UpdatePositionalEffectsForSoundChannel(FMOD::Channel*, const FMOD_VECTOR*) const { return FMOD_OK; }
+FMOD_RESULT AudioMan::SoundChannelEndedCallback(FMOD_CHANNELCONTROL*, FMOD_CHANNELCONTROL_TYPE, FMOD_CHANNELCONTROL_CALLBACK_TYPE, void*, void*) { return FMOD_OK; }
+FMOD_VECTOR AudioMan::GetAsFMODVector(const Vector&, float z) const { return {0, 0, z}; }
+Vector AudioMan::GetAsVector(FMOD_VECTOR) const { return Vector(); }
+
+#else  // !__EMSCRIPTEN__ — full native FMOD implementation follows
+
 AudioMan::AudioMan() {
 	Clear();
 }
@@ -848,3 +907,5 @@ Vector AudioMan::GetAsVector(FMOD_VECTOR fmodVector) const {
 	Vector sceneDimensions = g_SceneMan.GetScene() ? g_SceneMan.GetSceneDim() : Vector();
 	return sceneDimensions.IsZero() ? Vector() : Vector(fmodVector.x, sceneDimensions.m_Y - fmodVector.y);
 }
+
+#endif // !__EMSCRIPTEN__
