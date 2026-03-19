@@ -2169,8 +2169,11 @@ rlRenderBatch rlLoadRenderBatch(int numBuffers, int bufferElements) {
 		glGenBuffers(1, &batch.vertexBuffer[i].vboId[2]);
 		glBindBuffer(GL_ARRAY_BUFFER, batch.vertexBuffer[i].vboId[2]);
 		glBufferData(GL_ARRAY_BUFFER, bufferElements * 3 * 4 * sizeof(float), batch.vertexBuffer[i].normals, GL_DYNAMIC_DRAW);
-		glEnableVertexAttribArray(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL]);
-		glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL], 3, GL_FLOAT, 0, 0, 0);
+		// Guard against location = -1 (attribute not used in current shader)
+		if (RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL] >= 0) {
+		    glEnableVertexAttribArray(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL]);
+		    glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL], 3, GL_FLOAT, 0, 0, 0);
+		}
 
 		// Vertex color buffer (shader-location = 3)
 		glGenBuffers(1, &batch.vertexBuffer[i].vboId[3]);
@@ -2390,10 +2393,12 @@ void rlDrawRenderBatch(rlRenderBatch* batch) {
 				glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_TEXCOORD01], 2, GL_FLOAT, 0, 0, 0);
 				glEnableVertexAttribArray(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_TEXCOORD01]);
 
-				// Bind vertex attrib: normal (shader-location = 2)
+				// Bind vertex attrib: normal (shader-location = 2, may be -1 if not in shader)
 				glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[2]);
-				glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL], 3, GL_FLOAT, 0, 0, 0);
-				glEnableVertexAttribArray(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL]);
+				if (RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL] >= 0) {
+				    glVertexAttribPointer(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL], 3, GL_FLOAT, 0, 0, 0);
+				    glEnableVertexAttribArray(RLGL.State.currentShaderLocs[RL_SHADER_LOC_VERTEX_NORMAL]);
+				}
 
 				// Bind vertex attrib: color (shader-location = 3)
 				glBindBuffer(GL_ARRAY_BUFFER, batch->vertexBuffer[batch->currentBuffer].vboId[3]);
