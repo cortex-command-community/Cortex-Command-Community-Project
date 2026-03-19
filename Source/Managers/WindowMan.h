@@ -198,7 +198,8 @@ namespace RTE {
 
 		std::shared_ptr<SDL_Window> m_PrimaryWindow; //!< The main window.
 		GLuint m_BackBuffer32Texture; //!< Streaming texture for the software rendered stuff.
-		
+		GLuint m_ScreenBufferStaging; //!< Staging texture — copy of m_ScreenBuffer used as sample source to avoid framebuffer feedback loops.
+
 		std::shared_ptr<RenderTarget> m_ScreenBuffer{};
 		std::unique_ptr<SDL_Rect> m_PrimaryWindowViewport; //!< Viewport for the main window.
 

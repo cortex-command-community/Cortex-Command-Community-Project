@@ -3680,10 +3680,6 @@ unsigned int rlCompileShader(const char* shaderCode, int type) {
 
 #if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
 	shader = glCreateShader(type);
-#ifdef __EMSCRIPTEN__
-	fprintf(stderr, "[rlgl] rlCompileShader type=%d createShader->%u glErr=%d\n",
-	        type, shader, (int)glGetError());
-#endif
 	glShaderSource(shader, 1, &shaderCode, NULL);
 
 	GLint success = 0;
@@ -3720,9 +3716,6 @@ unsigned int rlCompileShader(const char* shaderCode, int type) {
 			char* log = (char*)RL_CALLOC(maxLength, sizeof(char));
 			glGetShaderInfoLog(shader, maxLength, &length, log);
 			TRACELOG(RL_LOG_WARNING, "SHADER: [ID %i] Compile error: %s", shader, log);
-#ifdef __EMSCRIPTEN__
-			fprintf(stderr, "[rlgl] Shader compile FAILED (type=%d id=%u): %s\n", type, shader, log);
-#endif
 			RL_FREE(log);
 		}
 
@@ -4587,11 +4580,6 @@ static void rlLoadShaderDefault(void) {
 	// they are kept for re-use as default shaders in case some shader loading fails
 	RLGL.State.defaultVShaderId = rlCompileShader(defaultVShaderCode, GL_VERTEX_SHADER); // Compile default vertex shader
 	RLGL.State.defaultFShaderId = rlCompileShader(defaultFShaderCode, GL_FRAGMENT_SHADER); // Compile default fragment shader
-#ifdef __EMSCRIPTEN__
-	fprintf(stderr, "[rlgl] defaultVShaderId=%u defaultFShaderId=%u\n",
-	        RLGL.State.defaultVShaderId, RLGL.State.defaultFShaderId);
-#endif
-
 	RLGL.State.defaultShaderId = rlLoadShaderProgram(RLGL.State.defaultVShaderId, RLGL.State.defaultFShaderId);
 
 	if (RLGL.State.defaultShaderId > 0) {

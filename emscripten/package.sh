@@ -99,37 +99,6 @@ emcc \
     -o "$OUTPUT" \
     2>&1
 
-# ---------------------------------------------------------------------------
-# Post-process: patch _glVertexAttribPointer to guard against missing
-# clientBuffers entries. SDL3 built from source doesn't pre-populate these,
-# causing "Cannot set properties of undefined (setting 'clientside')".
-# ---------------------------------------------------------------------------
-echo "==> Patching _glVertexAttribPointer in generated JS..."
-JS_FILE="$BUILD_DIR/CortexCommand.js"
-# The original: var cb=GL.currentContext.clientBuffers[index];
-# We add: if(!cb)cb=GL.currentContext.clientBuffers[index]={};
-python3 - "$BUILD_DIR/CortexCommand.js" <<'PYEOF'
-import sys, re
-js_file = sys.argv[1]
-with open(js_file, 'r') as f:
-    js = f.read()
-
-# Patch _glVertexAttribPointer to guard missing clientBuffers entry
-old = ('_glVertexAttribPointer=(index,size,type,normalized,stride,ptr)=>'
-       '{var cb=GL.currentContext.clientBuffers[index];')
-new = ('_glVertexAttribPointer=(index,size,type,normalized,stride,ptr)=>'
-       '{var cb=GL.currentContext.clientBuffers[index];'
-       'if(!cb){cb=GL.currentContext.clientBuffers[index]={}}')
-
-if old in js:
-    js = js.replace(old, new)
-    with open(js_file, 'w') as f:
-        f.write(js)
-    print('[patch] Patched _glVertexAttribPointer guard')
-else:
-    print('[patch] WARNING: _glVertexAttribPointer pattern not found, may already be patched or changed')
-PYEOF
-
 echo ""
 echo "==> Done!"
 echo "    $OUTPUT"

@@ -55,6 +55,7 @@ void WindowMan::Clear() {
 
 	m_PrimaryWindow.reset();
 	m_BackBuffer32Texture = 0;
+	m_ScreenBufferStaging = 0;
 	m_ScreenVAO = 0;
 	m_ScreenVBO = 0;
 	ClearMultiDisplayData();
@@ -99,15 +100,18 @@ void WindowMan::Destroy() {
 	ImGui_ImplSDL3_Shutdown();
 	ImGui::DestroyContext();
 	GL_CHECK(glDeleteTextures(1, &m_BackBuffer32Texture));
+	GL_CHECK(glDeleteTextures(1, &m_ScreenBufferStaging));
 	GL_CHECK(glDeleteBuffers(1, &m_ScreenVBO));
 	GL_CHECK(glDeleteVertexArrays(1, &m_ScreenVAO));
 }
 
 #ifdef __EMSCRIPTEN__
-// GLAD debug callback no-ops for Emscripten/WebGL2.
-// Must be actual C-style variadic functions (no lambda conversions on Emscripten Clang).
-static void emscripten_glad_pre_callback(const char*, GLADapiproc, int, ...) {}
-static void emscripten_glad_post_callback(void*, const char*, GLADapiproc, int, ...) {}
+// Suppress GLAD's default debug callbacks on WebGL2.
+// The default callbacks call glGetIntegerv(GL_CONTEXT_PROFILE_MASK) which generates
+// GL_INVALID_ENUM on WebGL2 (desktop-only enum). Must use C-style functions since
+// Emscripten's Clang cannot convert lambdas to variadic C function pointers.
+static void webgl2_glad_pre_callback(const char*, GLADapiproc, int, ...) {}
+static void webgl2_glad_post_callback(void*, const char*, GLADapiproc, int, ...) {}
 #endif
 
 void WindowMan::Initialize() {
@@ -254,47 +258,24 @@ void WindowMan::InitializeOpenGL() {
 	}
 
 #ifdef __EMSCRIPTEN__
-	// WebGL2: Replace GLAD debug callbacks with no-ops BEFORE loading.
-	gladSetGLPreCallback(emscripten_glad_pre_callback);
-	gladSetGLPostCallback(emscripten_glad_post_callback);
+	// Suppress GLAD's default debug callbacks before loading — they issue
+	// GL queries using desktop-only enums (GL_CONTEXT_PROFILE_MASK) that
+	// generate GL_INVALID_ENUM on WebGL2.
+	gladSetGLPreCallback(webgl2_glad_pre_callback);
+	gladSetGLPostCallback(webgl2_glad_post_callback);
 
-	// Load WebGL2 function pointers via GLAD.
-	int gladVer = gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
-	fprintf(stderr, "[CC] gladLoadGL version=0x%x glad_glCreateShader=%s\n",
-	        gladVer, glad_glCreateShader ? "LOADED" : "NULL");
+	// Load WebGL2 function pointers. SDL3 built from source provides
+	// SDL_GL_GetProcAddress which resolves all ES 3.0 function addresses.
+	// gladLoadGL returns the detected version (0x3000 = ES 3.0), not 0x3300.
+	gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
 
-	// SDL3 built from source does NOT register its WebGL2 context with Emscripten's
-	// GL binding layer (GL.currentContext). Manually register it.
-	// This is needed because glVertexAttribPointer and other functions access
-	// GL.currentContext internally in Emscripten's GL.js binding.
-	emscripten_run_script(
-	    "var _cc_canvas = document.getElementById('canvas') || Module['canvas'];"
-	    "if (_cc_canvas && typeof GL !== 'undefined') {"
-	    "  var _cc_ctx = _cc_canvas.getContext('webgl2') || _cc_canvas.getContext('experimental-webgl2');"
-	    "  if (_cc_ctx && !GL.currentContext) {"
-	    "    var _cc_h = GL.registerContext(_cc_ctx, {majorVersion:3,minorVersion:0,antialias:false});"
-	    "    GL.makeContextCurrent(_cc_h);"
-	    "    console.log('[CC] Registered WebGL2 context with Emscripten GL, handle='+_cc_h);"
-	    "  }"
-	    "  function _cc_ensureClientBuffers() {"
-	    "    if (GL.currentContext) {"
-	    "      if (!GL.currentContext.clientBuffers) GL.currentContext.clientBuffers = [];"
-	    "      for (var _i = 0; _i < 32; _i++) {"
-	    "        if (!GL.currentContext.clientBuffers[_i]) GL.currentContext.clientBuffers[_i] = {};"
-	    "      }"
-	    "    }"
-	    "  }"
-	    "  _cc_ensureClientBuffers();"
-	    "  if (typeof GL !== 'undefined' && GL.makeContextCurrent) {"
-	    "    var _cc_orig = GL.makeContextCurrent;"
-	    "    GL.makeContextCurrent = function(h) {"
-	    "      _cc_orig(h);"
-	    "      _cc_ensureClientBuffers();"
-	    "    };"
-	    "    console.log('[CC] Hooked GL.makeContextCurrent for clientBuffers guard');"
-	    "  }"
-	    "}"
-	);
+	// SDL3 (built from source) creates its WebGL2 context via Browser.createContext
+	// in Emscripten's SDL layer, which calls GL.makeContextCurrent() — so
+	// GL.currentContext is already registered. Calling SDL_GL_MakeCurrent here
+	// ensures Emscripten's GL binding is fully synchronized before we issue
+	// any GL calls, including pre-populating the clientBuffers array that
+	// _glVertexAttribPointer requires (see rlgl render batch setup).
+	SDL_GL_MakeCurrent(m_PrimaryWindow.get(), m_GLContext.get());
 #else
 	if (!gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress)) {
 		RTEAbort("Failed to load GL functions!");
@@ -329,10 +310,26 @@ void WindowMan::InitializeOpenGL() {
 
 void WindowMan::CreateBackBufferTexture() {
 	m_ScreenBuffer = std::make_unique<RenderTarget>(FloatRect(0, 0, m_ResX, m_ResY), FloatRect(0, 0, m_ResX, m_ResY));
+
+	// GUI overlay texture — streamed from the CPU-rendered 32bpp backbuffer each frame.
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer32Texture));
 	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_ResX, m_ResY, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+	// Staging texture — a copy of m_ScreenBuffer's colour attachment used as the
+	// read-side of the ScreenBlit composite pass.  Without this staging copy, the
+	// composite step would sample from the same texture it is rendering into, which
+	// is undefined behaviour on desktop GL and explicitly forbidden on WebGL2.
+	GL_CHECK(glGenTextures(1, &m_ScreenBufferStaging));
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_ScreenBufferStaging));
+	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_ResX, m_ResY, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
 }
 
 int WindowMan::GetWindowResX() {
@@ -831,55 +828,62 @@ void WindowMan::ClearBackbuffer(bool clearFrameMan) {
 }
 
 void WindowMan::UploadFrame() {
-
-	// Upload the 32bpp GUI backbuffer to GL texture
+	// --- Step 1: Stream the CPU-rendered GUI overlay to GPU ---
+	// The 32bpp backbuffer is filled each frame by AllegroBitmap/GUI drawing calls.
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer32Texture));
 	GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 4));
-	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_FrameMan.GetBackBuffer32()->w, g_FrameMan.GetBackBuffer32()->h, GL_RGBA, GL_UNSIGNED_BYTE, g_FrameMan.GetBackBuffer32()->line[0]));
+	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+	                          g_FrameMan.GetBackBuffer32()->w,
+	                          g_FrameMan.GetBackBuffer32()->h,
+	                          GL_RGBA, GL_UNSIGNED_BYTE,
+	                          g_FrameMan.GetBackBuffer32()->line[0]));
 
-#ifdef __EMSCRIPTEN__
-	// WebGL2: Framebuffer feedback loops are forbidden (desktop GL allows undefined behavior).
-	// The original code renders m_ScreenBuffer TO itself via ScreenBlitShader, which WebGL2
-	// rejects. Instead: fill m_ScreenBuffer with the GUI texture directly (no feedback),
-	// then blit m_ScreenBuffer to the default framebuffer.
-	//
-	// This is a simplified path: just render m_BackBuffer32Texture directly to screen,
-	// bypassing the ScreenBlit composite step (the game will add the 8bpp scene layer later).
+	// --- Step 2: Copy screen buffer to staging texture (breaks the feedback loop) ---
+	// Reading from a render target while simultaneously rendering into it is
+	// undefined behaviour in desktop GL and explicitly forbidden in WebGL2.
+	// We copy the screen buffer's colour attachment into a separate staging
+	// texture here, BEFORE Begin(), so ScreenBlitShader can safely sample it.
+	GL_CHECK(glBindFramebuffer(GL_READ_FRAMEBUFFER, m_ScreenBuffer->GetFramebuffer()));
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_ScreenBufferStaging));
+	GL_CHECK(glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, m_ResX, m_ResY));
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
+	GL_CHECK(glBindFramebuffer(GL_READ_FRAMEBUFFER, 0));
 
+	// --- Step 3: Composite scene + GUI into the screen buffer ---
 	m_ScreenBuffer->Begin(g_ActivityMan.IsInActivity());
 	rlDisableDepthTest();
 	rlDisableColorBlend();
 
-	// Render GUI texture to the screen buffer FBO (no feedback - BackBuffer32 ≠ ScreenBuffer)
 	m_ScreenBlitShader->Begin();
 	rlSetUniformSampler(m_ScreenBlitShader->GetUniformLocation("rteGUITexture"), m_BackBuffer32Texture);
 	if (m_DrawPostProcessBuffer) {
 		Texture2D postBuffer = g_PostProcessMan.GetPostProcessColorBuffer()->GetColorTexture();
 		DrawTextureRec(postBuffer, Rectangle(0.0f, 0.0f, postBuffer.width, -postBuffer.height), {0.0f, 0.0f}, {255, 255, 255, 255});
 	} else {
-		// Use the GUI texture itself as the primary scene (no separate 8bpp scene in menu)
-		Texture2D guiTex; guiTex.id = m_BackBuffer32Texture; guiTex.width = m_ResX; guiTex.height = m_ResY; guiTex.mipmaps = 1; guiTex.format = 7;
-		DrawTextureRec(guiTex, {0.0f, 0.0f, static_cast<float>(m_ResX), -static_cast<float>(m_ResY)}, {0, 0}, {255, 255, 255, 255});
+		// Use the staging copy as the scene source — no feedback loop.
+		Texture2D stagingTex;
+		stagingTex.id      = m_ScreenBufferStaging;
+		stagingTex.width   = m_ResX;
+		stagingTex.height  = m_ResY;
+		stagingTex.mipmaps = 1;
+		stagingTex.format  = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
+		DrawTextureRec(stagingTex, {0.0f, 0.0f, static_cast<float>(m_ResX), -static_cast<float>(m_ResY)}, {0, 0}, {255, 255, 255, 255});
 	}
 	m_ScreenBlitShader->End();
 	rlDrawRenderBatchActive();
 	m_ScreenBuffer->End();
-#else
-	m_ScreenBuffer->Begin(g_ActivityMan.IsInActivity());
 
-	rlDisableDepthTest();
-	rlDisableColorBlend();
-
-	m_ScreenBlitShader->Begin();
-	rlSetUniformSampler(m_ScreenBlitShader->GetUniformLocation("rteGUITexture"), m_BackBuffer32Texture);
-	if (m_DrawPostProcessBuffer) {
-		Texture2D postBuffer = g_PostProcessMan.GetPostProcessColorBuffer()->GetColorTexture();
-		DrawTextureRec(postBuffer, Rectangle(0.0f, 0.0f, postBuffer.width, -postBuffer.height), {0.0f, 0.0f}, {255, 255, 255, 255});
-	} else {
-		DrawTextureRec(m_ScreenBuffer->GetColorTexture(), {0.0f, 0.0f, static_cast<float>(m_ResX), -static_cast<float>(m_ResY)}, {0, 0}, {255, 255, 255, 255});
+	// --- Step 4: On Emscripten, also push the GUI buffer to the Canvas2D overlay ---
+	// The game's 8bpp indexed-colour scene is a CPU rasterizer output. On web the
+	// Canvas2D putImageData() path provides a fast, zero-copy route from the RGBA
+	// backbuffer to the compositor without involving the WebGL pipeline.
+#ifdef __EMSCRIPTEN__
+	{
+		BITMAP* bb32 = g_FrameMan.GetBackBuffer32();
+		if (bb32 && !bb32->pixels.empty()) {
+			RTE::WebPlatform_Blit32ToCanvas(bb32->pixels.data(), bb32->w, bb32->h);
+		}
 	}
-	m_ScreenBlitShader->End();
-	m_ScreenBuffer->End();
 #endif
 
 	rlDisableColorBlend();
@@ -892,15 +896,6 @@ void WindowMan::UploadFrame() {
 		GL_CHECK(glViewport(m_PrimaryWindowViewport->x, m_PrimaryWindowViewport->y, m_PrimaryWindowViewport->w, m_PrimaryWindowViewport->h));
 		DrawTextureRec(m_ScreenBuffer->GetColorTexture(), {0.0f, 0.0f, static_cast<float>(m_ResX), static_cast<float>(-m_ResY)}, {0.0f, 0.0f}, {255, 255, 255, 255});
 		rlDrawRenderBatchActive();
-#ifdef __EMSCRIPTEN__
-		// Debug: directly blit 32bpp buffer to Canvas2D overlay to verify content
-		{
-		    BITMAP* bb = g_FrameMan.GetBackBuffer32();
-		    if (bb && !bb->pixels.empty()) {
-		        RTE::WebPlatform_Blit32ToCanvas(bb->pixels.data(), bb->w, bb->h);
-		    }
-		}
-#endif
 	} else {
 		for (size_t i = 0; i < m_MultiDisplayWindows.size(); ++i) {
 			SDL_GL_MakeCurrent(m_MultiDisplayWindows.at(i).get(), m_GLContext.get());

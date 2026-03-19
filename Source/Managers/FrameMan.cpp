@@ -506,28 +506,16 @@ bool FrameMan::LoadPalette(const std::string& palettePath) {
 	// SDL3 has built-in BMP loading via SDL_LoadBMP — no SDL_image needed.
 	const std::string fullPalettePath = g_PresetMan.GetFullModulePath(palettePath);
 	SDL_Surface* paletteImage = SDL_LoadBMP(fullPalettePath.c_str());
-	if (paletteImage && SDL_GetSurfacePalette(paletteImage)) {
-		SDL_Palette* sdlPal = SDL_GetSurfacePalette(paletteImage);
-		for (int i = 0; i < 256 && i < sdlPal->ncolors; i++) {
-			m_Palette[i].r = sdlPal->colors[i].r;
-			m_Palette[i].g = sdlPal->colors[i].g;
-			m_Palette[i].b = sdlPal->colors[i].b;
-			m_Palette[i].filler = 0;
-		}
-		SDL_DestroySurface(paletteImage);
-		fprintf(stderr, "[CC] Palette loaded from BMP: %s\n", fullPalettePath.c_str());
-	} else {
-		fprintf(stderr, "[CC] WARNING: Failed to load palette BMP '%s': %s\n",
-		        fullPalettePath.c_str(), SDL_GetError());
-		// Fallback greyscale palette
-		for (int i = 0; i < 256; i++) {
-			m_Palette[i].r = (uint8_t)i;
-			m_Palette[i].g = (uint8_t)i;
-			m_Palette[i].b = (uint8_t)i;
-			m_Palette[i].filler = 0;
-		}
-		if (paletteImage) SDL_DestroySurface(paletteImage);
+	RTEAssert(paletteImage && SDL_GetSurfacePalette(paletteImage),
+	          ("Failed to load palette from BMP: " + fullPalettePath).c_str());
+	SDL_Palette* sdlPal = SDL_GetSurfacePalette(paletteImage);
+	for (int i = 0; i < 256 && i < sdlPal->ncolors; i++) {
+		m_Palette[i].r      = sdlPal->colors[i].r;
+		m_Palette[i].g      = sdlPal->colors[i].g;
+		m_Palette[i].b      = sdlPal->colors[i].b;
+		m_Palette[i].filler = 0;
 	}
+	SDL_DestroySurface(paletteImage);
 #endif
 
 	set_palette(m_Palette);

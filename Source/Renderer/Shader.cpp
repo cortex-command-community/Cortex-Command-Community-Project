@@ -169,15 +169,8 @@ void Shader::SetVector4f(int32_t uniformLoc, const glm::vec4& value) const { GL_
 bool Shader::CompileShader(GLuint shaderID, const std::string& filename, std::string& error) {
 	if (!System::PathExistsCaseSensitive(filename)) {
 		error += "File " + filename + " doesn't exist.";
-#ifdef __EMSCRIPTEN__
-		g_ConsoleMan.PrintString("ERROR: Shader file not found: " + filename);
-		fprintf(stderr, "[CC] Shader file NOT FOUND: %s\n", filename.c_str());
-#endif
 		return false;
 	}
-#ifdef __EMSCRIPTEN__
-	fprintf(stderr, "[CC] Compiling shader: %s (shaderID=%u)\n", filename.c_str(), shaderID);
-#endif
 
 	std::ifstream file(filename);
 	std::ostringstream dataStream;
