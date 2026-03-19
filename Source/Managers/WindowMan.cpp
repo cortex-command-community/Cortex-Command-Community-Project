@@ -37,6 +37,7 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #include <emscripten/html5.h>
+#include "WebPlatform.h"
 #endif
 
 using namespace RTE;
@@ -831,15 +832,43 @@ void WindowMan::ClearBackbuffer(bool clearFrameMan) {
 
 void WindowMan::UploadFrame() {
 
+	// Upload the 32bpp GUI backbuffer to GL texture
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer32Texture));
+	GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 4));
+	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_FrameMan.GetBackBuffer32()->w, g_FrameMan.GetBackBuffer32()->h, GL_RGBA, GL_UNSIGNED_BYTE, g_FrameMan.GetBackBuffer32()->line[0]));
+
+#ifdef __EMSCRIPTEN__
+	// WebGL2: Framebuffer feedback loops are forbidden (desktop GL allows undefined behavior).
+	// The original code renders m_ScreenBuffer TO itself via ScreenBlitShader, which WebGL2
+	// rejects. Instead: fill m_ScreenBuffer with the GUI texture directly (no feedback),
+	// then blit m_ScreenBuffer to the default framebuffer.
+	//
+	// This is a simplified path: just render m_BackBuffer32Texture directly to screen,
+	// bypassing the ScreenBlit composite step (the game will add the 8bpp scene layer later).
+
+	m_ScreenBuffer->Begin(g_ActivityMan.IsInActivity());
+	rlDisableDepthTest();
+	rlDisableColorBlend();
+
+	// Render GUI texture to the screen buffer FBO (no feedback - BackBuffer32 ≠ ScreenBuffer)
+	m_ScreenBlitShader->Begin();
+	rlSetUniformSampler(m_ScreenBlitShader->GetUniformLocation("rteGUITexture"), m_BackBuffer32Texture);
+	if (m_DrawPostProcessBuffer) {
+		Texture2D postBuffer = g_PostProcessMan.GetPostProcessColorBuffer()->GetColorTexture();
+		DrawTextureRec(postBuffer, Rectangle(0.0f, 0.0f, postBuffer.width, -postBuffer.height), {0.0f, 0.0f}, {255, 255, 255, 255});
+	} else {
+		// Use the GUI texture itself as the primary scene (no separate 8bpp scene in menu)
+		Texture2D guiTex; guiTex.id = m_BackBuffer32Texture; guiTex.width = m_ResX; guiTex.height = m_ResY; guiTex.mipmaps = 1; guiTex.format = 7;
+		DrawTextureRec(guiTex, {0.0f, 0.0f, static_cast<float>(m_ResX), -static_cast<float>(m_ResY)}, {0, 0}, {255, 255, 255, 255});
+	}
+	m_ScreenBlitShader->End();
+	rlDrawRenderBatchActive();
+	m_ScreenBuffer->End();
+#else
 	m_ScreenBuffer->Begin(g_ActivityMan.IsInActivity());
 
 	rlDisableDepthTest();
 	rlDisableColorBlend();
-	//rlSetBlendMode(RL_BLEND_ALPHA);
-
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer32Texture));
-	GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 4));
-	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_FrameMan.GetBackBuffer32()->w, g_FrameMan.GetBackBuffer32()->h, GL_RGBA, GL_UNSIGNED_BYTE, g_FrameMan.GetBackBuffer32()->line[0]));
 
 	m_ScreenBlitShader->Begin();
 	rlSetUniformSampler(m_ScreenBlitShader->GetUniformLocation("rteGUITexture"), m_BackBuffer32Texture);
@@ -847,12 +876,11 @@ void WindowMan::UploadFrame() {
 		Texture2D postBuffer = g_PostProcessMan.GetPostProcessColorBuffer()->GetColorTexture();
 		DrawTextureRec(postBuffer, Rectangle(0.0f, 0.0f, postBuffer.width, -postBuffer.height), {0.0f, 0.0f}, {255, 255, 255, 255});
 	} else {
-		Texture2D empty(rlGetTextureIdDefault(), m_ResX, m_ResY, 1, 0);
-		//rlSetUniformSampler(m_ScreenBlitShader->GetTextureUniform(), 0);
 		DrawTextureRec(m_ScreenBuffer->GetColorTexture(), {0.0f, 0.0f, static_cast<float>(m_ResX), -static_cast<float>(m_ResY)}, {0, 0}, {255, 255, 255, 255});
 	}
 	m_ScreenBlitShader->End();
 	m_ScreenBuffer->End();
+#endif
 
 	rlDisableColorBlend();
 	if (m_MultiDisplayWindows.empty()) {
@@ -864,6 +892,15 @@ void WindowMan::UploadFrame() {
 		GL_CHECK(glViewport(m_PrimaryWindowViewport->x, m_PrimaryWindowViewport->y, m_PrimaryWindowViewport->w, m_PrimaryWindowViewport->h));
 		DrawTextureRec(m_ScreenBuffer->GetColorTexture(), {0.0f, 0.0f, static_cast<float>(m_ResX), static_cast<float>(-m_ResY)}, {0.0f, 0.0f}, {255, 255, 255, 255});
 		rlDrawRenderBatchActive();
+#ifdef __EMSCRIPTEN__
+		// Debug: directly blit 32bpp buffer to Canvas2D overlay to verify content
+		{
+		    BITMAP* bb = g_FrameMan.GetBackBuffer32();
+		    if (bb && !bb->pixels.empty()) {
+		        RTE::WebPlatform_Blit32ToCanvas(bb->pixels.data(), bb->w, bb->h);
+		    }
+		}
+#endif
 	} else {
 		for (size_t i = 0; i < m_MultiDisplayWindows.size(); ++i) {
 			SDL_GL_MakeCurrent(m_MultiDisplayWindows.at(i).get(), m_GLContext.get());

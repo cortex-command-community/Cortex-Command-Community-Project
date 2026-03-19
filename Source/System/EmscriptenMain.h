@@ -101,6 +101,24 @@ inline void WebMainLoopIteration_Impl() {
         g_MenuMan.Draw();
         g_ConsoleMan.Draw(g_FrameMan.GetBackBuffer32());
         g_WindowMan.GetScreenBuffer()->End();
+
+#ifdef __EMSCRIPTEN__
+        // Debug: check backbuffer pixel content after menu draw
+        static int s_dbgFrame = 0;
+        if (++s_dbgFrame == 60) {
+            BITMAP* bb32 = g_FrameMan.GetBackBuffer32();
+            int nonzero = 0;
+            if (bb32 && !bb32->pixels.empty()) {
+                const uint8_t* p = bb32->pixels.data();
+                int total = bb32->w * bb32->h;
+                for (int pi = 0; pi < total; pi++) {
+                    if (p[pi*4] || p[pi*4+1] || p[pi*4+2]) nonzero++;
+                }
+            }
+            fprintf(stderr, "[CC] Menu frame 60 BackBuffer32: %dx%d nonzero=%d\n",
+                    bb32 ? bb32->w : 0, bb32 ? bb32->h : 0, nonzero);
+        }
+#endif
         g_WindowMan.UploadFrame();
 
         if (doneWithMenu) {
