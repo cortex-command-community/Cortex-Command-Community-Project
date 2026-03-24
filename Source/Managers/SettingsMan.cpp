@@ -8,6 +8,7 @@
 #include "AudioMan.h"
 #include "PerformanceMan.h"
 #include "UInputMan.h"
+#include "DebugMan.h"
 #include "System.h"
 
 using namespace RTE;
@@ -187,6 +188,7 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("DrawRaycastVisualizations", { reader >> g_SceneMan.m_DrawRayCastVisualizations; });
 	MatchProperty("DrawPixelCheckVisualizations", { reader >> g_SceneMan.m_DrawPixelCheckVisualizations; });
 	MatchProperty("PrintDebugInfo", { reader >> m_PrintDebugInfo; });
+	MatchProperty("EnableDebugMenus", { reader >> g_DebugMan.m_ShowDebugWindow; });
 	MatchProperty("MeasureModuleLoadTime", { reader >> m_MeasureModuleLoadTime; });
 	MatchProperty("VisibleAssemblyGroup", { m_VisibleAssemblyGroupsList.push_back(reader.ReadPropValue()); });
 	MatchProperty("DisableMod", { m_DisabledMods.try_emplace(reader.ReadPropValue(), true); });
