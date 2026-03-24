@@ -848,8 +848,8 @@ void WindowMan::ClearBackbuffer(bool clearFrameMan) {
 void WindowMan::UploadFrame() {
 
 	m_ScreenBuffer->Begin(g_ActivityMan.IsInActivity());
-	Camera viewport(Vector(m_ResX / 2, m_ResY / 2), m_ScreenBuffer->GetSize());
-	g_RenderMan.BeginFrame(&viewport);
+	//Camera viewport(Vector(m_ResX / 2, m_ResY / 2), m_ScreenBuffer->GetSize());
+	g_RenderMan.BeginFrame(nullptr);
 
 	glActiveTexture(GL_TEXTURE2);
 	m_BackBuffer32Texture->Bind();
@@ -858,14 +858,15 @@ void WindowMan::UploadFrame() {
 
 	if (m_DrawPostProcessBuffer) {
 		Texture* postBuffer = g_PostProcessMan.GetPostProcessColorBuffer()->GetColorTexture().lock().get();
-		Draw::DrawTexture(postBuffer, {0.0f, 0.0f});
+		Draw::DrawTexture(postBuffer, {-1.0f, -1.0f, 2.0f, 2.0f});
 	} else {
-		Draw::DrawTexture(m_ScreenBuffer->GetColorTexture().lock().get(), {0.0f, 0.0f});
+		Draw::DrawTexture(m_ScreenBuffer->GetColorTexture().lock().get(), {-1.0f, -1.0f, 2.0f, 2.0f});
 	}
 	m_ScreenBlitShader->Begin();
-	//Draw::DrawTexture(m_BackBuffer32Texture.get(), 0.0f, 0.0f);
+	Draw::DrawTexture(m_BackBuffer32Texture.get(), {-1.0f, -1.0f, 2.0f, 2.0f});
 	m_ScreenBlitShader->End();
 	m_ScreenBuffer->End();
+	g_RenderMan.BeginFrame(nullptr);
 
 	glDisable(GL_BLEND);
 	if (m_MultiDisplayWindows.empty()) {
@@ -881,11 +882,7 @@ void WindowMan::UploadFrame() {
 			SDL_GetWindowSizeInPixels(m_MultiDisplayWindows.at(i).get(), &windowW, &windowH);
 			GL_CHECK(glViewport(0, 0, windowW, windowH));
 
-			rlMatrixMode(RL_PROJECTION);
-			rlLoadIdentity();
-			rlOrtho(0, windowW, windowH, 0, -1.0, 1.0);
-
-			Draw::DrawTexture(m_ScreenBuffer->GetColorTexture().lock().get(), 0, 0, {255, 255, 255, 255});
+			Draw::DrawTexture(m_ScreenBuffer->GetColorTexture().lock().get(), {-1.0f, 1.0f, 2.0f, -2.0f});
 			g_RenderMan.DrawActiveBatch();
 		}
 	}

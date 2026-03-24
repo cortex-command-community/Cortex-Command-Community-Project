@@ -16,7 +16,9 @@ vec4 textureAA(sampler2D tex, vec2 uv) {
 }
 
 void main() {
-	vec4 guiColor = textureAA(rteTexture, vec2(textureUV.x, -textureUV.y));
-	float guiSolid = float((guiColor.r + guiColor.g + guiColor.b) > 0.0);
-	FragColor = vec4(guiColor.rgb, guiSolid);
+	vec4 guiColor = textureAA(rteTexture, vec2(textureUV.x, textureUV.y));
+	if (guiColor.rgb == vec3(0.0)) {
+		discard;
+	}
+	FragColor = vec4(guiColor.rgb, 1.0);
 }
