@@ -129,7 +129,7 @@ int FrameMan::CreateBackBuffers() {
 	int resY = g_WindowMan.GetResY();
 
 	// Create the back buffer, this is still in 8bpp, we will do any post-processing on the PostProcessing bitmap
-	m_BackBuffer8 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX, resY));
+	m_BackBuffer8 = std::make_unique<BitmapTexture>(std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX, resY)));
 	ClearBackBuffer8();
 
 	// Create the post-processing buffer, it'll be used for glow effects etc
@@ -141,14 +141,14 @@ int FrameMan::CreateBackBuffers() {
 	m_OverlayBitmap32 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(c_BPP, resX, resY));
 	clear_to_color(m_OverlayBitmap32.get(), 0);
 
-	m_PlayerScreenWidth = m_BackBuffer8->w;
-	m_PlayerScreenHeight = m_BackBuffer8->h;
+	m_PlayerScreenWidth = m_BackBuffer8->GetDimensions().w;
+	m_PlayerScreenHeight = m_BackBuffer8->GetDimensions().h;
 
 	// Create the splitscreen buffer
 	if (m_HSplit || m_VSplit) {
-		m_PlayerScreen8 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)));
-		clear_to_color(m_PlayerScreen8.get(), 0);
-		set_clip_state(m_PlayerScreen8.get(), 1);
+		m_PlayerScreen8 = std::make_unique<BitmapTexture>(std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1))));
+		clear_to_color(m_PlayerScreen8->GetBitmap(), 0);
+		set_clip_state(m_PlayerScreen8->GetBitmap(), 1);
 
 		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)), FloatRect(0, 0, resX / (m_VSplit ? 2 : 1), resY / (m_HSplit ? 2 : 1)));
 
@@ -160,7 +160,7 @@ int FrameMan::CreateBackBuffers() {
 		m_PlayerScreen = m_BackBuffer;
 	}
 
-	m_ScreenDumpBuffer = std::unique_ptr<SDL_Surface, SurfaceDeleter>(SDL_CreateSurface(m_BackBuffer8->w, m_BackBuffer8->h, SDL_PIXELFORMAT_RGB24));
+	m_ScreenDumpBuffer = std::unique_ptr<SDL_Surface, SurfaceDeleter>(SDL_CreateSurface(m_BackBuffer8->GetDimensions().w, m_BackBuffer8->GetDimensions().h, SDL_PIXELFORMAT_RGB24));
 
 	return 0;
 }
@@ -242,9 +242,9 @@ void FrameMan::ResetSplitScreens(bool hSplit, bool vSplit) {
 
 	// Create the splitscreen buffer
 	if (m_HSplit || m_VSplit) {
-		m_PlayerScreen8 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)));
-		clear_to_color(m_PlayerScreen8.get(), 0);
-		set_clip_state(m_PlayerScreen8.get(), 1);
+		m_PlayerScreen8 = std::make_unique<BitmapTexture>(std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1))));
+		clear_to_color(m_PlayerScreen8->GetBitmap(), 0);
+		set_clip_state(m_PlayerScreen8->GetBitmap(), 1);
 
 		m_PlayerScreen = std::make_unique<RenderTarget>(FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)), FloatRect(0, 0, g_WindowMan.GetResX() / (m_VSplit ? 2 : 1), g_WindowMan.GetResY() / (m_HSplit ? 2 : 1)));
 
@@ -255,8 +255,8 @@ void FrameMan::ResetSplitScreens(bool hSplit, bool vSplit) {
 		m_PlayerScreen8 = m_BackBuffer8;
 		m_PlayerScreen = m_BackBuffer;
 		// No splits, so set the screen dimensions equal to the back buffer
-		m_PlayerScreenWidth = m_BackBuffer8->w;
-		m_PlayerScreenHeight = m_BackBuffer8->h;
+		m_PlayerScreenWidth = m_BackBuffer8->GetDimensions().w;
+		m_PlayerScreenHeight = m_BackBuffer8->GetDimensions().h;
 	}
 	for (int i = 0; i < c_MaxScreenCount; ++i) {
 		m_FlashScreenColor[i] = -1;
@@ -361,6 +361,8 @@ void FrameMan::ClearScreenText(int whichScreen) {
 		m_TextBlinking[whichScreen] = 0;
 	}
 }
+
+void FrameMan::ClearBackBuffer8() { clear_to_color(m_BackBuffer8->GetBitmap(), 0); }
 
 void FrameMan::SetBlendMode(DrawBlendMode blendMode) {
 	GLint invertLoc = rlGetLocationUniformCurrent("rteBlendInvert");
@@ -750,7 +752,7 @@ GUIFont* FrameMan::GetFont(bool isSmall, bool trueColor) {
 	size_t colorIndex = trueColor ? 1 : 0;
 
 	if (!m_GUIScreens[colorIndex]) {
-		m_GUIScreens[colorIndex] = new AllegroScreen(trueColor ? m_BackBuffer32.get() : m_BackBuffer8.get());
+		m_GUIScreens[colorIndex] = new AllegroScreen(trueColor ? m_BackBuffer32.get() : m_BackBuffer8->GetBitmap());
 	}
 
 	if (isSmall) {
@@ -815,7 +817,7 @@ void FrameMan::Draw() {
 	Shader backgroundShader;
 	g_PresetMan.GetEntityPreset("Shader", "Background")->Clone(&backgroundShader);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	clear_to_color(m_BackBuffer8.get(), 0);
+	clear_to_color(m_BackBuffer8->GetBitmap(), 0);
 	m_BackBuffer->Begin(true);
 
 	// Count how many split screens we'll need
@@ -829,88 +831,79 @@ void FrameMan::Draw() {
 	std::list<Box> screenRelativeGlowBoxes;
 
 	const Activity* pActivity = g_ActivityMan.GetActivity();
-	Actor* brain = g_MovableMan.GetFirstBrainActor(Activity::TeamOne);
-	Camera camera(brain->GetPos().GetFloored(), Box());
 
 	for (int playerScreen = 0; playerScreen < screenCount; ++playerScreen) {
-		glDisable(GL_CULL_FACE);
+		g_CameraMan.Update(playerScreen);
+		g_CameraMan.SetCameraZoom(1.0f, playerScreen);
+		g_SceneMan.Update(playerScreen);
 		screenRelativeEffects.clear();
 		screenRelativeGlowBoxes.clear();
-		glEnable(GL_BLEND);
-		BlendMode alpha(Blend::ALPHA);
-		alpha.Enable();
-		glEnable(GL_DEPTH_TEST);
-
-		m_PlayerScreen->Begin(true, 1.0f);
-		FloatRect viewport(m_PlayerScreen->GetSize());
-		camera.SetViewport(Box(camera.GetViewCenter(), viewport.w, viewport.h));
-		camera.UpdateView();
-		g_RenderMan.BeginFrame(&camera);
-
 		// rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
-		BITMAP* drawScreen = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
-		BITMAP* drawScreenGUI = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
+		BITMAP* drawScreen = (screenCount == 1) ? m_BackBuffer8->GetBitmap() : m_PlayerScreen8->GetBitmap();
+		BITMAP* drawScreenGUI = (screenCount == 1) ? m_BackBuffer8->GetBitmap() : m_PlayerScreen8->GetBitmap();
 		// Need to clear the backbuffers because Scene background layers can be too small to fill the whole backbuffer or drawn masked resulting in artifacts from the previous frame.
 		clear_to_color(drawScreenGUI, ColorKeys::g_MaskColor);
 		// If in online multiplayer mode clear to mask color otherwise the scene background layers will get drawn over.
 		clear_to_color(drawScreen, 0);
 
 		AllegroBitmap playerGUIBitmap(drawScreenGUI);
+		m_PlayerScreen->Begin(true, 1.0f);
+		for (const Camera& camera: g_CameraMan.GetPlayerCameras(playerScreen)) {
+			g_RenderMan.BeginFrame(&camera);
 
-		// Update the scene view to line up with a specific screen and then draw it onto the intermediate screen
-		g_CameraMan.Update(playerScreen);
-		g_SceneMan.Update(playerScreen);
+			// Update the scene view to line up with a specific screen and then draw it onto the intermediate screen
 
-		Vector targetPos = g_CameraMan.GetOffset(playerScreen);
+			Vector targetPos = g_CameraMan.GetOffset(playerScreen);
 
-		// Adjust the drawing position on the target screen for if the target screen is larger than the scene in non-wrapping dimension.
-		// Scene needs to be displayed centered on the target bitmap then, and that has to be adjusted for when drawing to the screen
-		if (!g_SceneMan.SceneWrapsX() && drawScreen->w > g_SceneMan.GetSceneWidth()) {
-			targetPos.m_X += (drawScreen->w - g_SceneMan.GetSceneWidth()) / 2;
+			// Adjust the drawing position on the target screen for if the target screen is larger than the scene in non-wrapping dimension.
+			// Scene needs to be displayed centered on the target bitmap then, and that has to be adjusted for when drawing to the screen
+			if (!g_SceneMan.SceneWrapsX() && drawScreen->w > g_SceneMan.GetSceneWidth()) {
+				targetPos.m_X += (drawScreen->w - g_SceneMan.GetSceneWidth()) / 2;
+			}
+			if (!g_SceneMan.SceneWrapsY() && drawScreen->h > g_SceneMan.GetSceneHeight()) {
+				targetPos.m_Y += (drawScreen->h - g_SceneMan.GetSceneHeight()) / 2;
+			}
+
+			// Draw the scene
+			// g_SceneMan.Draw(drawScreen, drawScreenGUI, targetPos);
+			g_SceneMan.Draw(camera);
+
+			g_PrimitiveMan.DrawPrimitives(playerScreen, drawScreenGUI, targetPos);
+
+			// Get only the scene-relative post effects that affect this player's screen
+			if (pActivity) {
+				g_PostProcessMan.GetPostScreenEffectsWrapped(targetPos, drawScreen->w, drawScreen->h, screenRelativeEffects, pActivity->GetTeamOfPlayer(pActivity->PlayerOfScreen(playerScreen)));
+				g_PostProcessMan.GetGlowAreasWrapped(targetPos, drawScreen->w, drawScreen->h, screenRelativeGlowBoxes);
+			}
+
+			// TODO: Find out what keeps disabling the clipping on the draw bitmap
+			// Enable clipping on the draw bitmap
+			set_clip_state(drawScreen, 1);
+
+			DrawScreenText(playerScreen, playerGUIBitmap);
+
+			// The position of the current draw screen on the backbuffer
+			Vector screenOffset;
+
+			// If we are dealing with split screens, then deal with the fact that we need to draw the player screens to different locations on the final buffer
+			if (screenCount > 1) {
+				UpdateScreenOffsetForSplitScreen(playerScreen, screenOffset);
+			}
+
+			DrawScreenFlash(playerScreen, drawScreenGUI);
+
+			// Draw the intermediate draw splitscreen to the appropriate spot on the back buffer
+			blit(drawScreen, m_BackBuffer8->GetBitmap(), 0, 0, screenOffset.GetFloorIntX(), screenOffset.GetFloorIntY(), drawScreen->w, drawScreen->h);
+			m_PlayerScreen->End();
 		}
-		if (!g_SceneMan.SceneWrapsY() && drawScreen->h > g_SceneMan.GetSceneHeight()) {
-			targetPos.m_Y += (drawScreen->h - g_SceneMan.GetSceneHeight()) / 2;
-		}
-
-		// Draw the scene
-		//g_SceneMan.Draw(drawScreen, drawScreenGUI, targetPos);
-		g_SceneMan.Draw(camera);
-
-		g_PrimitiveMan.DrawPrimitives(playerScreen, drawScreenGUI, targetPos);
-
-		// Get only the scene-relative post effects that affect this player's screen
-		if (pActivity) {
-			g_PostProcessMan.GetPostScreenEffectsWrapped(targetPos, drawScreen->w, drawScreen->h, screenRelativeEffects, pActivity->GetTeamOfPlayer(pActivity->PlayerOfScreen(playerScreen)));
-			g_PostProcessMan.GetGlowAreasWrapped(targetPos, drawScreen->w, drawScreen->h, screenRelativeGlowBoxes);
-		}
-
-		// TODO: Find out what keeps disabling the clipping on the draw bitmap
-		// Enable clipping on the draw bitmap
-		set_clip_state(drawScreen, 1);
-
-		DrawScreenText(playerScreen, playerGUIBitmap);
-
-		// The position of the current draw screen on the backbuffer
-		Vector screenOffset;
-
-		// If we are dealing with split screens, then deal with the fact that we need to draw the player screens to different locations on the final buffer
-		if (screenCount > 1) {
-			UpdateScreenOffsetForSplitScreen(playerScreen, screenOffset);
-		}
-
-		DrawScreenFlash(playerScreen, drawScreenGUI);
-
-		// Draw the intermediate draw splitscreen to the appropriate spot on the back buffer
-		blit(drawScreen, m_BackBuffer8.get(), 0, 0, screenOffset.GetFloorIntX(), screenOffset.GetFloorIntY(), drawScreen->w, drawScreen->h);
-		m_PlayerScreen->End();
 		backgroundShader.End();
 		if (screenCount > 1) {
 			m_BackBuffer->Begin(false);
-			g_RenderMan.BeginFrame(&camera);
+			g_RenderMan.BeginFrame(nullptr);
 			//DrawTextureRec(m_PlayerScreen->GetColorTexture(), {0, 0, static_cast<float>(m_PlayerScreen8->w), -static_cast<float>(m_PlayerScreen8->h)}, {screenOffset.m_X, screenOffset.m_Y}, {255, 255, 255, 255});
 			m_BackBuffer->End();
 		}
-		g_PostProcessMan.AdjustEffectsPosToPlayerScreen(playerScreen, drawScreen, screenOffset, screenRelativeEffects, screenRelativeGlowBoxes);
+		//g_PostProcessMan.AdjustEffectsPosToPlayerScreen(playerScreen, drawScreen, screenOffset, screenRelativeEffects, screenRelativeGlowBoxes);
 	}
 
 	// Clears the pixels that have been revealed from the unseen layers
@@ -918,24 +911,19 @@ void FrameMan::Draw() {
 
 	// Draw separating lines for split-screens
 	if (m_HSplit) {
-		hline(m_BackBuffer8.get(), 0, (m_BackBuffer8->h / 2) - 1, m_BackBuffer8->w - 1, m_AlmostBlackColor);
-		hline(m_BackBuffer8.get(), 0, (m_BackBuffer8->h / 2), m_BackBuffer8->w - 1, m_AlmostBlackColor);
+		hline(m_BackBuffer8->GetBitmap(), 0, (m_BackBuffer8->GetDimensions().h / 2) - 1, m_BackBuffer8->GetDimensions().w - 1, m_AlmostBlackColor);
+		hline(m_BackBuffer8->GetBitmap(), 0, (m_BackBuffer8->GetDimensions().h / 2), m_BackBuffer8->GetDimensions().w - 1, m_AlmostBlackColor);
 	}
 	if (m_VSplit) {
-		vline(m_BackBuffer8.get(), (m_BackBuffer8->w / 2) - 1, 0, m_BackBuffer8->h - 1, m_AlmostBlackColor);
-		vline(m_BackBuffer8.get(), (m_BackBuffer8->w / 2), 0, m_BackBuffer8->h - 1, m_AlmostBlackColor);
+		vline(m_BackBuffer8->GetBitmap(), (m_BackBuffer8->GetDimensions().w / 2) - 1, 0, m_BackBuffer8->GetDimensions().h - 1, m_AlmostBlackColor);
+		vline(m_BackBuffer8->GetBitmap(), (m_BackBuffer8->GetDimensions().w / 2), 0, m_BackBuffer8->GetDimensions().h - 1, m_AlmostBlackColor);
 	}
 
-	rlEnableDepthTest();
-	rlZDepth(c_GuiDepth - 1.0f);
-	g_GLStateMan.UpdateDynamicBitmap(m_BackBuffer8.get(), true);
-	backgroundShader.Begin();
-	backgroundShader.Enable();
-	rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
-	backgroundShader.SetInt("drawMasked", 1);
 	m_BackBuffer->Begin(false);
-	g_RenderMan.BeginFrame(&camera);
-	//DrawTexture(g_GLStateMan.GetStaticTextureFromBitmap(m_BackBuffer8.get()), 0.0f, 0.0f, {255, 255, 255, 255});
+	g_RenderMan.BeginFrame();
+	g_RenderMan.SetCurrentZOffset(c_GuiDepth - 1.0f);
+	m_BackBuffer8->Update();
+	Draw::DrawTexture(m_BackBuffer8.get(), {-1.0f, -1.0f, 2.0f, 2.0f})->m_Indexed = true;
 	m_BackBuffer->End();
 	backgroundShader.End();
 	rlZDepth(0);
@@ -952,6 +940,8 @@ void FrameMan::Draw() {
 	vline(m_BackBuffer8.get(), 0, 0, g_SceneMan.GetSceneHeight(), 5);
 #endif
 }
+
+BITMAP* FrameMan::GetBackBuffer8() const { return m_BackBuffer8->GetBitmap(); }
 
 void FrameMan::DrawScreenText(int playerScreen, AllegroBitmap playerGUIBitmap) {
 	int textPosY = 0;

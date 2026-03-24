@@ -9,6 +9,9 @@
 #include <unordered_map>
 #include "glad/gl.h"
 #include "AllegroTools.h"
+#include "allegro/color.h"
+#include "allegro/palette.h"
+
 
 #define g_FrameMan FrameMan::Instance()
 
@@ -59,7 +62,7 @@ namespace RTE {
 #pragma region Getters
 		/// Gets the 8bpp backbuffer bitmap.
 		/// @return A pointer to the BITMAP 8bpp backbuffer. OWNERSHIP IS NOT TRANSFERRED!
-		BITMAP* GetBackBuffer8() const { return m_BackBuffer8.get(); }
+		BITMAP* GetBackBuffer8() const;
 
 		/// Gets the 32bpp backbuffer bitmap. Make sure you don't do any blending stuff to the 8bpp one!
 		/// @return A pointer to the BITMAP 32bpp backbuffer. OWNERSHIP IS NOT TRANSFERRED!
@@ -184,7 +187,7 @@ namespace RTE {
 
 #pragma region Drawing
 		/// Clears the 8bpp backbuffer with black.
-		void ClearBackBuffer8() { clear_to_color(m_BackBuffer8.get(), 0); }
+		void ClearBackBuffer8();
 
 		/// Clears the 32bpp backbuffer with black.
 		void ClearBackBuffer32() { clear_to_color(m_BackBuffer32.get(), 0); }
@@ -337,7 +340,7 @@ namespace RTE {
 		Timer m_ColorTablePruneTimer; //!< Timer for pruning unused color tables to prevent ridiculous memory usage.
 		int m_CurrentAlpha; //!< Current alpha level for emulating trans colortables.
 
-		std::shared_ptr<BITMAP> m_PlayerScreen8; //!< Intermediary split screen bitmap.
+		std::shared_ptr<BitmapTexture> m_PlayerScreen8; //!< Intermediary split screen bitmap.
 		std::shared_ptr<RenderTarget> m_PlayerScreen; //!< Intermediary split screen bitmap.
 		int m_PlayerScreenWidth; //!< Width of the screen of each player. Will be smaller than resolution only if the screen is split.
 		int m_PlayerScreenHeight; //!< Height of the screen of each player. Will be smaller than resolution only if the screen is split.
@@ -360,7 +363,7 @@ namespace RTE {
 		Timer m_FlashTimer[c_MaxScreenCount]; //!< Flash screen timer.
 
 		std::string m_ScreenDumpName; //!< The filename of the screenshot to save.
-		std::shared_ptr<BITMAP> m_BackBuffer8; //!< Screen backbuffer, always 8bpp, gets copied to the 32bpp buffer for post-processing.
+		std::shared_ptr<BitmapTexture> m_BackBuffer8; //!< Screen backbuffer, always 8bpp, gets copied to the 32bpp buffer for post-processing.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_BackBuffer32; //!< 32bpp backbuffer, only used for post-processing.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_OverlayBitmap32; //!< 32bpp bitmap used for overlaying (fading in/out or darkening) the screen.
 		std::unique_ptr<SDL_Surface, SurfaceDeleter> m_ScreenDumpBuffer; //!< Temporary buffer for making quick screencaps. This is used for color conversion between 32bpp and 24bpp so we can save the file.
