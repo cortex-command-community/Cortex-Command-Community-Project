@@ -112,7 +112,6 @@ int SLBackground::ReadProperty(const std::string_view& propName, Reader& reader)
 	});
 	MatchProperty("SpriteAnimDuration", { reader >> m_SpriteAnimDuration; });
 	MatchProperty("IsAnimatedManually", { reader >> m_IsAnimatedManually; });
-	MatchProperty("DrawTransparent", { reader >> m_DrawMasked; });
 	MatchProperty("ScrollRatio", {
 		// Actually read the ScrollInfo, not the ratio. The ratios will be initialized later.
 		reader >> m_ScrollInfo;
@@ -121,6 +120,7 @@ int SLBackground::ReadProperty(const std::string_view& propName, Reader& reader)
 		reader >> m_ScaleFactor;
 		SetScaleFactor(m_ScaleFactor);
 	});
+	MatchProperty("DrawTransparent", { bool deprecate; reader >> deprecate; } ); // TODO: Remove
 	MatchProperty("IgnoreAutoScaling", { reader >> m_IgnoreAutoScale; });
 	MatchProperty("OriginPointOffset", { reader >> m_OriginOffset; });
 	MatchProperty("CanAutoScrollX", { reader >> m_CanAutoScrollX; });
@@ -138,7 +138,6 @@ int SLBackground::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("SpriteAnimMode", m_SpriteAnimMode);
 	writer.NewPropertyWithValue("SpriteAnimDuration", m_SpriteAnimDuration);
 	writer.NewPropertyWithValue("IsAnimatedManually", m_IsAnimatedManually);
-	writer.NewPropertyWithValue("DrawTransparent", m_DrawMasked);
 	writer.NewPropertyWithValue("ScrollRatio", m_ScrollInfo);
 	writer.NewPropertyWithValue("ScaleFactor", m_ScaleFactor);
 	writer.NewPropertyWithValue("IgnoreAutoScaling", m_IgnoreAutoScale);

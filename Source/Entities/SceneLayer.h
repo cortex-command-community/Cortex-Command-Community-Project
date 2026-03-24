@@ -46,7 +46,7 @@ namespace RTE {
 		/// If wrapping is set to true, the value in scrollInfo is simply the ratio of offset at which any scroll operations will be done in.
 		/// A special command is if wrap is false and the corresponding component is -1.0, that signals that the own width or height should be used as scrollInfo input.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Create(const ContentFile& bitmapFile, bool drawMasked, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo);
+		int Create(const ContentFile& bitmapFile, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo);
 
 		/// Makes the SceneLayer object ready for use.
 		/// @param bitmap The BITMAP to use for this SceneLayer. Ownership IS transferred!
@@ -60,7 +60,7 @@ namespace RTE {
 		/// If wrapping is set to true, the value in scrollInfo is simply the ratio of offset at which any scroll operations will be done in.
 		/// A special command is if wrap is false and the corresponding component is -1.0, that signals that the own width or height should be used as scrollInfo input.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Create(BITMAP* bitmap, bool drawMasked, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo);
+		int Create(BITMAP* bitmap, const Vector& offset, bool wrapX, bool wrapY, const Vector& scrollInfo);
 
 		/// Creates a SceneLayer to be identical to another, by deep copy.
 		/// @param reference A reference to the SceneLayer to deep copy.
@@ -234,7 +234,6 @@ namespace RTE {
 
 		bool m_MainBitmapOwned; //!< Whether the main bitmap is owned by this.
 		bool m_MainBitmapUpdated; //!< Whether the main bitmap was updated since the last draw.
-		bool m_DrawMasked; //!< Whether pixels marked as transparent (index 0, magenta) are skipped when drawing or not (masked drawing).
 
 		bool m_WrapX; //!< Whether wrapping is enabled on the X axis.
 		bool m_WrapY; //!< Whether wrapping is enable on the Y axis.
@@ -269,7 +268,7 @@ namespace RTE {
 		/// @param targetBitmap The bitmap to draw to.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param drawScaled Whether to use scaled drawing routines or not.
-		void DrawTiled(const Box& targetDim, const Box& targetBox, bool drawScaled) const;
+		void DrawTiled(const Camera& camera) const;
 #pragma endregion
 
 	private:

@@ -73,7 +73,7 @@ void LoadingScreen::CreateLoadingSplash(int xOffset) {
 	clear_bitmap(m_LoadingSplashBitmap);
 
 	m_LoadingBackground = std::make_unique<StaticSceneLayer>();
-	m_LoadingBackground->Create(ContentFile("Base.rte/GUIs/Title/LoadingSplash.png").GetAsBitmap(COLORCONV_NONE, false), false, Vector(), true, false, Vector(1.0F, 0));
+	m_LoadingBackground->Create(ContentFile("Base.rte/GUIs/Title/LoadingSplash.png").GetAsBitmap(COLORCONV_NONE, false), Vector(), true, false, Vector(1.0F, 0));
 	m_LoadingBackground->SetOffset(Vector(static_cast<float>(((m_LoadingBackground->GetBitmap()->w - g_WindowMan.GetResX()) / 2) + xOffset), 0));
 
 	Box loadingSplashTargetBox(Vector(0, static_cast<float>((g_WindowMan.GetResY() - g_LoadingScreen.m_LoadingBackground->GetBitmap()->h) / 2)), static_cast<float>(g_WindowMan.GetResX()), static_cast<float>(g_LoadingScreen.m_LoadingBackground->GetBitmap()->h));

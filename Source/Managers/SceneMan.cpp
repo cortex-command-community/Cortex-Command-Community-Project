@@ -151,7 +151,7 @@ int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 	BITMAP* pBitmap = create_bitmap_ex(8, GetSceneWidth(), GetSceneHeight());
 	clear_to_color(pBitmap, g_MaskColor);
 	m_pMOColorLayer = new SceneLayerTracked();
-	m_pMOColorLayer->Create(pBitmap, true, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0));
+	m_pMOColorLayer->Create(pBitmap, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0));
 	pBitmap = 0;
 
 	const int cellSize = 20;
@@ -163,7 +163,7 @@ int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 		pBitmap = create_bitmap_ex(8, GetSceneWidth(), GetSceneHeight());
 		clear_to_color(pBitmap, g_MaskColor);
 		m_pDebugLayer = new SceneLayer();
-		m_pDebugLayer->Create(pBitmap, true, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0));
+		m_pDebugLayer->Create(pBitmap, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0));
 		pBitmap = nullptr;
 	}
 
@@ -902,7 +902,7 @@ void SceneMan::MakeAllUnseen(Vector pixelSize, const int team) {
 bool SceneMan::LoadUnseenLayer(const std::string& bitmapPath, int team) {
 	ContentFile bitmapFile(bitmapPath.c_str());
 	SceneLayer* pUnseenLayer = new SceneLayer();
-	if (pUnseenLayer->Create(bitmapFile.GetAsBitmap(COLORCONV_NONE, false), true, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0)) < 0) {
+	if (pUnseenLayer->Create(bitmapFile.GetAsBitmap(COLORCONV_NONE, false), Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0)) < 0) {
 		g_ConsoleMan.PrintString("ERROR: Loading background layer " + pUnseenLayer->GetPresetName() + "\'s data failed!");
 		return false;
 	}
