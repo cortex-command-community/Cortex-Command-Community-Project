@@ -128,6 +128,8 @@ namespace RTE {
 
 		/// Draws the current ping value to the screen.
 		void DrawCurrentPing() const;
+
+		void ImGui();
 #pragma endregion
 
 		/// Updates m_SortedScriptTimings so PerformanceMan::Draw() can list how long scripts took.

@@ -8,6 +8,9 @@
 
 #include <array>
 
+#include "DebugMan.h"
+#include "imgui/imgui.h"
+
 using namespace RTE;
 
 const std::array<std::string, PerformanceMan::PerformanceCounters::PerfCounterCount> PerformanceMan::m_PerfCounterNames = {"Total", "Act AI", "Act Travel", "Act Update", "Prt Travel", "Prt Update", "Activity", "Scripts"};
@@ -219,6 +222,89 @@ void PerformanceMan::DrawPeformanceGraphs(AllegroBitmap& bitmapToDrawTo) {
 void PerformanceMan::DrawCurrentPing() const {
 	AllegroBitmap allegroBitmap(g_FrameMan.GetBackBuffer8());
 	g_FrameMan.GetLargeFont()->DrawAligned(&allegroBitmap, g_FrameMan.GetBackBuffer8()->w - 25, g_FrameMan.GetBackBuffer8()->h - 14, "PING: " + std::to_string(m_CurrentPing), GUIFont::Right);
+}
+
+void PerformanceMan::ImGui() {
+	CalculateSamplePercentages();
+	if (ImGui::Begin("Performance Statistics")) {
+		float fps = 1.0F / (m_MSPFAverage / 1000.0F);
+		float ups = 1.0F / (m_MSPSUAverage / 1000.0F);
+		ImGui::Text("FPS: %.0f UPS: %.0f", fps, ups);
+		ImGui::Text("Frame: %.2f | Update: %.1f | Draw: %.1f", m_MSPFAverage, m_MSPUAverage, m_MSPDAverage);
+		float timeScale = g_TimerMan.GetTimeScale();
+		ImGui::Text("TimeScale: "); ImGui::SameLine();
+		if (ImGui::InputFloat("##ts", &timeScale, 0.1f, 1.0f, "%.6f")) {
+			if (timeScale < 0) {
+				timeScale = 0;
+			}
+			g_TimerMan.SetTimeScale(timeScale);
+		}
+
+		float deltaTime = g_TimerMan.GetDeltaTimeSecs();
+		ImGui::Text("DeltaTime: "); ImGui::SameLine();
+		if (ImGui::InputFloat("##dt", &deltaTime, 0.0001f, 0.001f, "%.6f")) {
+			if (deltaTime < 0) {
+				deltaTime = 0;
+			}
+			g_TimerMan.SetDeltaTimeSecs(deltaTime);
+		}
+
+		ImGui::Text("Actors: %li", g_MovableMan.GetActorCount());
+		ImGui::Text("Particles: %li", g_MovableMan.GetParticleCount());
+		ImGui::Text("Objects: %i", g_MovableMan.GetKnownObjectsCount());
+		ImGui::Text("MOIDs: %i", g_MovableMan.GetMOIDCount());
+
+
+		if (int totalPlayingChannelCount = 0, realPlayingChannelCount = 0; g_AudioMan.GetPlayingChannelCount(&totalPlayingChannelCount, &realPlayingChannelCount)) {
+			ImGui::Text("Sound Channels: %d / %d Real | %d / %d Virtual", realPlayingChannelCount, g_AudioMan.GetTotalRealChannelCount(), totalPlayingChannelCount - realPlayingChannelCount, g_AudioMan.GetTotalVirtualChannelCount());
+		}
+
+		if (!m_SortedScriptTimings.empty()) {
+			ImGui::Text("ScriptTimings");
+			if (ImGui::BeginChild("script_timings", ImVec2(0, ImGui::GetFontSize() * 5))) {
+				for (auto& [script, timing]: m_SortedScriptTimings) {
+					ImGui::Text("%.1fms | %i calls from: %s", timing.m_Time / 1000.0f, timing.m_CallCount, script.c_str());
+				}
+			}
+			ImGui::EndChild();
+		}
+
+		if (ImGui::TreeNode("Preformance Graphs")) {
+			for (int pc = 0; pc < PerformanceCounters::PerfCounterCount; pc++) {
+				ImGui::PushID(pc);
+				if (ImGui::TreeNode(m_PerfCounterNames[pc].c_str())) {
+					auto& perfData = m_PerfData[pc];
+					std::array<float, c_MaxSamples> floatData;
+					int peak = 0;
+					int sample = m_Sample;
+					for (int i = 0; i < c_MaxSamples; ++i) {
+						if (peak < perfData.at(i)) {
+							peak = perfData.at(i);
+						}
+						floatData[i] = perfData[sample];
+						if (sample == 0) {
+							sample = c_MaxSamples;
+						}
+						sample--;
+					}
+					ImGui::PushID(pc);
+					ImGui::Text("Peak: %i", peak);
+					ImGui::SameLine();
+					int perc = static_cast<int>((static_cast<float>(GetPerformanceCounterAverage(static_cast<PerformanceCounters>(pc))) / static_cast<float>(GetPerformanceCounterAverage(PerformanceCounters::SimTotal)) * 100));
+					ImGui::Text("%%: %i", perc);
+					ImGui::SameLine();
+					ImGui::Text("Average Time: %lu", GetPerformanceCounterAverage(static_cast<PerformanceCounters>(pc)) / 1000);
+					ImGui::PlotHistogram("", floatData.data(), c_MaxSamples, 0, nullptr, 0.0f, g_TimerMan.GetRealToSimCap() * 1E6f);
+					ImGui::PopID();
+
+					ImGui::TreePop();
+				}
+				ImGui::PopID();
+			}
+			ImGui::TreePop();
+		}
+	}
+	ImGui::End();
 }
 
 void PerformanceMan::UpdateSortedScriptTimings(const std::unordered_map<std::string, ScriptTiming>& scriptTimings) {
