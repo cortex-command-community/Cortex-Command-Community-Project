@@ -182,6 +182,7 @@ void LuaStateWrapper::Initialize() {
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, MusicMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, CameraMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, ConsoleMan),
+							 RegisterLuaBindingsOfType(ManagerLuaBindings, DebugMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, FrameMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, MetaMan),
 	                         RegisterLuaBindingsOfType(ManagerLuaBindings, MovableMan),
@@ -239,6 +240,7 @@ void LuaStateWrapper::Initialize() {
 	luabind::globals(m_State)["MovableMan"] = &g_MovableMan;
 	luabind::globals(m_State)["CameraMan"] = &g_CameraMan;
 	luabind::globals(m_State)["ConsoleMan"] = &g_ConsoleMan;
+	luabind::globals(m_State)["DebugMan"] = &g_DebugMan;
 	luabind::globals(m_State)["LuaMan"] = this;
 	luabind::globals(m_State)["SettingsMan"] = &g_SettingsMan;
 
