@@ -480,7 +480,7 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 			// Replace any old unseen layer with the new one that is generated
 			delete m_apUnseenLayer[team];
 			m_apUnseenLayer[team] = new SceneLayer();
-			m_apUnseenLayer[team]->Create(pUnseenBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
+			m_apUnseenLayer[team]->Create(pUnseenBitmap, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
 			m_apUnseenLayer[team]->SetScaleFactor(m_UnseenPixelSize[team]);
 		}
 		// If not dynamically generated, was it custom loaded?
@@ -1502,7 +1502,7 @@ void Scene::FillUnseenLayer(Vector pixelSize, int team, bool createNow) {
 		// Replace any old unseen layer with the new one that is generated
 		delete m_apUnseenLayer[team];
 		m_apUnseenLayer[team] = new SceneLayer();
-		m_apUnseenLayer[team]->Create(pUnseenBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
+		m_apUnseenLayer[team]->Create(pUnseenBitmap, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
 		// Calculate how many times smaller the unseen map is compared to the entire terrain's dimensions, and set it as the scale factor on the Unseen layer
 		m_apUnseenLayer[team]->SetScaleFactor(Vector((float)GetTerrain()->GetBitmap()->w / (float)m_apUnseenLayer[team]->GetBitmap()->w, (float)GetTerrain()->GetBitmap()->h / (float)m_apUnseenLayer[team]->GetBitmap()->h));
 	}
