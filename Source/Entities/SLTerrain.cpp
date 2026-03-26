@@ -9,6 +9,7 @@
 #include "DataModule.h"
 #include "PresetMan.h"
 #include "Draw.h"
+#include "tracy/Tracy.hpp"
 
 #include <array>
 #include <execution>
@@ -296,6 +297,13 @@ int SLTerrain::LoadData() {
 		}
 		CleanAir();
 	}
+
+	m_ScrollInfo.SetXY(0, 0);
+	m_ScrollRatio.SetXY(0, 0);
+
+	m_FGColorLayer->SetScrollRatio(Vector(0, 0));
+	m_BGColorLayer->SetScrollRatio(Vector(0, 0));
+
 	return 0;
 }
 
@@ -507,6 +515,7 @@ void SLTerrain::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNee
 }
 
 void SLTerrain::Draw(const Camera& camera) {
+	ZoneScoped;
 	switch (m_LayerToDraw) {
 		case LayerType::MaterialLayer:
 			SceneLayer::Draw(camera);
