@@ -48,6 +48,7 @@ int SLBackground::Create() {
 	StaticSceneLayer::Create();
 
 	m_Bitmaps.clear();
+	m_Textures.clear();
 	m_BitmapFile.GetAsAnimation(m_Bitmaps, m_FrameCount);
 	m_BitmapFile.GetAsAnimation(m_Textures, m_FrameCount);
 	m_MainBitmap = m_Bitmaps[0];
@@ -73,13 +74,13 @@ int SLBackground::Create() {
 int SLBackground::Create(const SLBackground& reference) {
 	StaticSceneLayer::Create(reference);
 
-	// The main bitmap is created and owned by SceneLayer because it can be modified. We need to destroy it to avoid a leak because the bitmaps we'll be using here are owned by ContentFile static maps and are unmodifiable.
-	destroy_bitmap(m_MainBitmap);
 	m_MainBitmapOwned = false;
 
 	m_Bitmaps.clear();
 	m_Bitmaps = reference.m_Bitmaps;
+	m_Textures = reference.m_Textures;
 	m_MainBitmap = m_Bitmaps[0];
+	m_StaticTexture = m_Textures[0];
 
 	m_FillColorLeft = reference.m_FillColorLeft;
 	m_FillColorRight = reference.m_FillColorRight;
@@ -198,7 +199,9 @@ void SLBackground::Update() {
 			m_SpriteAnimTimer.Reset();
 		}
 	}
+
 	m_MainBitmap = m_Bitmaps.at(m_Frame);
+	m_StaticTexture = m_Textures.at(m_Frame);
 
 	if (IsAutoScrolling()) {
 		if (m_AutoScrollStepTimer.GetElapsedSimTimeMS() > m_AutoScrollStepInterval) {
