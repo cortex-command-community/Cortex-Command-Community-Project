@@ -2,6 +2,7 @@
 #include "GLStateMan.h"
 #include "RenderMan.h"
 #include "glm/gtx/transform.hpp"
+#include "tracy/Tracy.hpp"
 
 using namespace RTE;
 void RTE::DrawTexture(BITMAP* bitmap, int posX, int posY, RLColor tint) {
@@ -24,10 +25,12 @@ void RTE::DrawTexturePro(BITMAP* bitmap, Rectangle source, Rectangle dest, Vecto
 namespace RTE {
 	namespace Draw {
 		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, float posX, float posY, Color tint) {
+			ZoneScoped;
 			return DrawTexture(texture, glm::vec2(posX, posY), tint);
 		}
 
 		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, glm::vec2 pos, Color tint) {
+			ZoneScoped;
 			std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
 			draw->m_TextureId = texture->GetTextureId();
 			draw->m_Indexed = texture->GetBitDepth() == 8;
@@ -38,6 +41,7 @@ namespace RTE {
 		}
 
 		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, FloatRect dest, Color tint) {
+			ZoneScoped;
 			std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
 			draw->m_TextureId = texture->GetTextureId();
 			draw->m_Indexed = texture->GetBitDepth() == 8;
@@ -48,6 +52,7 @@ namespace RTE {
 		}
 
 		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, glm::vec2 pos, glm::vec2 origin, float angle, glm::vec2 scale, Color tint) {
+			ZoneScoped;
 			std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
 			draw->m_TextureId = texture->GetTextureId();
 			draw->m_Indexed = texture->GetBitDepth() == 8;
@@ -64,6 +69,7 @@ namespace RTE {
 		}
 
 		std::shared_ptr<DrawCall> DrawTexture(Texture* texture, const FloatRect& source, const FloatRect& dest, const Color& tint) {
+			ZoneScoped;
 			std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
 			draw->m_TextureId = texture->GetTextureId();
 			draw->m_Indexed = texture->GetBitDepth() == 8;

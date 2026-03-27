@@ -5,7 +5,9 @@
 #include "Vertex.h"
 #include "Shapes.h"
 #include "Texture.h"
+#include "RenderTarget.h"
 #include "Rectangles.h"
+#include "RenderMan.h"
 
 struct BITMAP;
 namespace RTE {
