@@ -18,7 +18,6 @@ RenderTarget::RenderTarget(const FloatRect& size, const FloatRect& defaultViewpo
 	if (!defaultFB0) {
 		if (colorTexture) {
 			m_Texture = colorTexture;
-			m_ColorTextureOwned = false;
 		} else {
 			m_Texture = std::make_shared<Texture>(size, Filter::Linear, WrapType::ClampToEdge, bitDepth);
 		}
@@ -31,9 +30,14 @@ RenderTarget::RenderTarget(const FloatRect& size, const FloatRect& defaultViewpo
 
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	} else {
-		m_ColorTextureOwned = false;
 		m_Depth = nullptr;
 		m_Texture = nullptr;
+	}
+}
+
+RenderTarget::RenderTarget(bool defaultFB0) {
+	if (!defaultFB0) {
+		glGenFramebuffers(1, &m_FBO);
 	}
 }
 
@@ -63,4 +67,8 @@ void RenderTarget::End(bool drawBatch) {
 		g_RenderMan.DrawActiveBatch();
 	}
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+}
+
+void RenderTarget::Bind() {
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_FBO);
 }

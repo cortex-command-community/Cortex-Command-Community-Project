@@ -16,6 +16,9 @@ namespace RTE {
 		/// @param colorTexture Optional color texture, if specified, bitDepth will be ignored.
 		/// @param defaultFB0 Make this target for the window backbuffer.
 		RenderTarget(const FloatRect& size, const FloatRect& defaultViewport, int bitDepth = 32, std::shared_ptr<BitmapTexture> colorTexture = nullptr, bool defaultFB0 = false);
+
+
+		RenderTarget(bool defaultFB0);
 		/// Destructor.
 		virtual ~RenderTarget();
 
@@ -25,6 +28,8 @@ namespace RTE {
 
 		/// Disables this RenderTarget and flushes the active batch.
 		void End(bool drawBatch = true);
+
+		void Bind();
 
 		/// @brief Getter for the FBO
 		/// @return The FBO.
@@ -45,6 +50,5 @@ namespace RTE {
 	private:
 		std::shared_ptr<Texture> m_Texture{nullptr};
 		std::shared_ptr<DepthTexture> m_Depth{nullptr};
-		bool m_ColorTextureOwned{true};
 	};
 } // namespace RTE
