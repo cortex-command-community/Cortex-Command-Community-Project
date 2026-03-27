@@ -2546,7 +2546,7 @@ void SceneMan::Update(int screenId) {
 
 	m_LastUpdatedScreen = screenId;
 
-	const Vector& offset = g_CameraMan.GetOffset(screenId);
+	Vector offset(0.0f, 0.0f); //g_CameraMan.GetOffset(screenId);
 	m_pMOColorLayer->SetOffset(offset);
 	if (m_pDebugLayer) {
 		m_pDebugLayer->SetOffset(offset);
@@ -2559,7 +2559,7 @@ void SceneMan::Update(int screenId) {
 	// Background layers may scroll in fractions of the real offset and need special care to avoid jumping after having traversed wrapped edges, so they need the total offset without taking wrapping into account.
 	const Vector& unwrappedOffset = g_CameraMan.GetUnwrappedOffset(screenId);
 	for (SLBackground* backgroundLayer: m_pCurrentScene->GetBackLayers()) {
-		backgroundLayer->SetOffset(unwrappedOffset);
+		//backgroundLayer->SetOffset(unwrappedOffset);
 		backgroundLayer->Update();
 	}
 
@@ -2671,8 +2671,8 @@ void SceneMan::Draw(const Camera& camera) {
 		return;
 	}
 
-	for (auto backgroundLayer: m_pCurrentScene->GetBackLayers()) {
-		backgroundLayer->Draw(camera);
+	for (std::list<SLBackground*>::reverse_iterator backgroundLayer = m_pCurrentScene->GetBackLayers().rbegin(); backgroundLayer != m_pCurrentScene->GetBackLayers().rend(); backgroundLayer++) {
+		(*backgroundLayer)->Draw(camera);
 	}
 
 	SLTerrain* terrainLayer = m_pCurrentScene->GetTerrain();
