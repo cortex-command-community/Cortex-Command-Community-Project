@@ -151,6 +151,12 @@ namespace RTE {
 			return returnBitmaps;
 		}
 
+		std::vector<std::shared_ptr<BitmapTexture>> GetAsTextureAnimation(int frameCount = 1, int conversionMode = 0) {
+			std::vector<std::shared_ptr<BitmapTexture>> returnArray;
+			GetAsAnimation(returnArray, frameCount, conversionMode);
+			return returnArray;
+		}
+
 		/// Gets the data represented by this ContentFile object as an FMOD FSOUND_SAMPLE, loading it into the static maps if it's not already loaded. Ownership of the FSOUND_SAMPLE is NOT transferred!
 		/// @param abortGameForInvalidSound Whether to abort the game if the sound couldn't be added, or just show a console error. Default true.
 		/// @param asyncLoading Whether to enable FMOD asynchronous loading or not. Should be disabled for loading audio files with Lua AddSound.
