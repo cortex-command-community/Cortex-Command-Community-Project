@@ -197,8 +197,8 @@ namespace RTE {
 		/// @return A boolean indicating whether the two operands are unequal or not.
 		friend bool operator!=(const Box& lhs, const Box& rhs) { return lhs.m_Corner != rhs.m_Corner || lhs.m_Width != rhs.m_Width || lhs.m_Height != rhs.m_Height; }
 
-		operator Rectangle() { return {m_Corner.m_X, m_Corner.m_Y, m_Width, m_Height}; }
-		operator FloatRect() { return {m_Corner.m_X, m_Corner.m_Y, m_Width, m_Height}; }
+		operator Rectangle() const { return {m_Corner.m_X, m_Corner.m_Y, m_Width, m_Height}; }
+		operator FloatRect() const { return {m_Corner.m_X, m_Corner.m_Y, m_Width, m_Height}; }
 #pragma endregion
 
 	private:
