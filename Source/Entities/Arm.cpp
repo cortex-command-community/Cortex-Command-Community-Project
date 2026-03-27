@@ -360,7 +360,9 @@ void Arm::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode, boo
 
 void Arm::Draw(const Camera& camera) const {
 	Attachable::Draw(camera);
-	DrawHand(camera);
+	if (camera.IsVisible(m_Pos, m_SpriteRadius)) {
+		DrawHand(camera);
+	}
 	if (m_HeldDevice && m_HeldDevice->IsDrawnAfterParent()) {
 		m_HeldDevice->Draw(camera);
 	}
