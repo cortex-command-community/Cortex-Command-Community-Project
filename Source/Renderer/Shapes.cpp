@@ -1,6 +1,7 @@
 #include "Shapes.h"
 #include "DrawCall.h"
 #include "RenderMan.h"
+#include "tracy/Tracy.hpp"
 
 using namespace RTE;
 
@@ -23,6 +24,7 @@ Shape::Shape Shape::LineBezier(glm::vec2 start, glm::vec2 end, Color color) {
 	return {};
 }
 Shape::Shape Shape::Circle(glm::vec2 center, float radius, Color color) {
+	ZoneScoped;
 	Shape circle;
 	circle.m_Vertices.emplace_back(center, color);
 	int segments = 180;
@@ -43,6 +45,7 @@ Shape::Shape Shape::CircleSector(glm::vec2 center, float radius, float startAngl
 	return {};
 }
 Shape::Shape Shape::CircleLines(glm::vec2 center, float radius, Color color) {
+	ZoneScoped;
 	Shape circle;
 	int segments = std::ceil(PI * radius);
 	circle.m_Vertices.emplace_back(center + glm::vec2(radius - 0.5f, 0.0f), color);
@@ -79,6 +82,7 @@ Shape::Shape Shape::Rectangle(FloatRect rect, Color color) {
 }
 
 Shape::Shape Shape::Rectangle(FloatRect rect, FloatRect uv, Color color) {
+	ZoneScoped;
 	Shape rectangle;
 	rectangle.m_Vertices = {
 	    Vertex(glm::vec2(rect.x, rect.y), glm::vec2(uv.x, uv.y), color),
@@ -95,6 +99,7 @@ Shape::Shape Shape::Rectangle(FloatRect rect, FloatRect uv, Color color) {
 }
 
 Shape::Shape Shape::RectangleLines(FloatRect rect, Color color) {
+	ZoneScoped;
 	Shape rectangle;
 	rectangle.m_Vertices = {
 		Vertex(glm::vec2(rect.x, rect.y), {0.0f, 0.0f}, color),
@@ -143,15 +148,30 @@ Shape::Shape Shape::Polygon(std::vector<glm::vec2> points, Color color) {
 }
 
 Shape::Shape Shape::Lines::VectorArrow(glm::vec2 pos, glm::vec2 vector, Color color) {
+	ZoneScoped;
 	Shape arrow;
 	arrow.m_Vertices = {
 	    Vertex(pos, color),
 	    Vertex(pos + vector, color),
-	    Vertex(pos + vector, color),
 	    Vertex(pos + vector - (std::sqrt(2.0f) / 10.0f * glm::vec2(vector.x - vector.y, vector.x + vector.y)), color),
 	    Vertex(pos + vector - (std::sqrt(2.0f) / 10.0f * glm::vec2(vector.x + vector.y, -vector.x + vector.y)), color)};
 
+	arrow.m_Indices = {0, 1, 1, 2, 1, 3};
+
 	return arrow;
+}
+
+Shape::Shape Shape::Lines::Rectangle(const FloatRect& rect, Color color) {
+	Shape rectangle;
+	rectangle.m_Vertices = {
+	    Vertex(glm::vec2(rect.x, rect.y), color),
+	    Vertex(glm::vec2(rect.x + rect.w, rect.y), color),
+	    Vertex(glm::vec2(rect.x + rect.w, rect.y + rect.h), color),
+	    Vertex(glm::vec2(rect.x, rect.y + rect.h), color),
+	};
+
+	rectangle.m_Indices = {0, 1, 2, 3};
+	return rectangle;
 }
 
 std::shared_ptr<DrawCall> Draw::Pixel(glm::vec2 position, Color color) {
@@ -187,6 +207,7 @@ std::shared_ptr<DrawCall> Draw::CircleSector(glm::vec2 center, float radius, flo
 }
 
 std::shared_ptr<DrawCall> Draw::CircleLines(glm::vec2 center, float radius, Color color) {
+	ZoneScoped;
 	std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
 	Shape::Shape circle = Shape::CircleLines(center, radius, color);
 	draw->m_Vertices = std::move(circle.m_Vertices);
@@ -217,6 +238,7 @@ std::shared_ptr<DrawCall> Draw::RingLines(glm::vec2 center, float innerRadius, f
 }
 
 std::shared_ptr<DrawCall> Draw::Rectangle(FloatRect rect, Color color) {
+	ZoneScoped;
 	std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
 	Shape::Shape rectangle = Shape::Rectangle(rect, color);
 	draw->m_Vertices = std::move(rectangle.m_Vertices);
@@ -227,6 +249,7 @@ std::shared_ptr<DrawCall> Draw::Rectangle(FloatRect rect, Color color) {
 }
 
 std::shared_ptr<DrawCall> Draw::RectangleLines(FloatRect rect, Color color) {
+	ZoneScoped;
 	std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
 	Shape::Shape rectangle = Shape::RectangleLines(rect, color);
 	draw->m_Vertices = std::move(rectangle.m_Vertices);
@@ -265,10 +288,22 @@ std::shared_ptr<DrawCall> Draw::Polygon(std::vector<glm::vec2> points, Color col
 }
 
 std::shared_ptr<DrawCall> Draw::Lines::VectorArrow(glm::vec2 pos, glm::vec2 vector, Color color) {
+	ZoneScoped;
 	std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
 	Shape::Shape arrow = Shape::Lines::VectorArrow(pos, vector, color);
 	draw->m_DrawMode = GL_LINES;
 	draw->m_Vertices = std::move(arrow.m_Vertices);
 	draw->m_Indices = std::move(arrow.m_Indices);
+	draw->m_Indexed = false;
+	return draw;
+}
+
+std::shared_ptr<DrawCall> Draw::Lines::Rectangle(const FloatRect& rect, Color color) {
+	std::shared_ptr<DrawCall> draw = g_RenderMan.BeginDraw();
+	Shape::Shape rectangle = Shape::Lines::Rectangle(rect, color);
+	draw->m_DrawMode = GL_LINE_LOOP;
+	draw->m_Vertices = std::move(rectangle.m_Vertices);
+	draw->m_Indices = std::move(rectangle.m_Indices);
+	draw->m_Indexed = false;
 	return draw;
 }

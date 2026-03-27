@@ -37,8 +37,10 @@ namespace RTE {
 		Shape TriangleLines(glm::vec2 point1, glm::vec2 point2, glm::vec2 point3, Color color);
 		Shape TriangleStrip(std::vector<glm::vec2> points, Color color);
 		Shape Polygon(std::vector<glm::vec2> points, Color color);
+		/// Lines mode shapes. Don't use for primitives.
 		namespace Lines {
 			Shape VectorArrow(glm::vec2 pos, glm::vec2 vector, Color color);
+			Shape Rectangle(const FloatRect& rect, Color color);
 		}
 	} // namespace Shape
 	namespace Draw {
@@ -67,6 +69,7 @@ namespace RTE {
 		std::shared_ptr<DrawCall> Polygon(std::vector<glm::vec2> points, Color color);
 		namespace Lines {
 			std::shared_ptr<DrawCall> VectorArrow(glm::vec2 pos, glm::vec2 vector, Color color);
+			std::shared_ptr<DrawCall> Rectangle(const FloatRect& rect, Color color);
 		}
 	} // namespace Draw
 } // namespace RTE
