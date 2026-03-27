@@ -13,6 +13,9 @@
 #define AbortAction std::abort()
 #endif
 
+#include "allegro.h" //FIXME: Evil
+#include "loadpng.h" //FIXME: Evil
+
 #include <source_location>
 #include <string>
 
