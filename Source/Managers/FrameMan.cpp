@@ -8,6 +8,7 @@
 #include "PerformanceMan.h"
 #include "ActivityMan.h"
 #include "CameraMan.h"
+#include "DebugMan.h"
 #include "ConsoleMan.h"
 #include "SettingsMan.h"
 #include "UInputMan.h"
@@ -894,6 +895,10 @@ void FrameMan::Draw() {
 
 			// Draw the intermediate draw splitscreen to the appropriate spot on the back buffer
 			blit(drawScreen, m_BackBuffer8->GetBitmap(), 0, 0, screenOffset.GetFloorIntX(), screenOffset.GetFloorIntY(), drawScreen->w, drawScreen->h);
+			if (g_DebugMan.FreeCamEnabled()) {
+				g_RenderMan.GetActiveBatch()->m_CurrentCamera = g_DebugMan.GetFreeCam();
+				camera.Draw();
+			}
 			m_PlayerScreen->End();
 		}
 		backgroundShader.End();
