@@ -25,7 +25,9 @@ namespace RTE {
 
 		/// Returns the active RenderBatch.
 		/// @return The active RenderBatch.
-		const RenderBatch* GetActiveBatch() { return m_RenderBatch.get(); }
+		RenderBatch* GetActiveBatch() { return m_ActiveBatch; }
+		void SetActiveBatch(RenderBatch* batch) { m_ActiveBatch = batch; }
+		void ResetActiveBatch() { m_ActiveBatch = m_RenderBatch.get(); }
 
 		/// Returns the current RenderDepth to be set on new Vertices.
 		/// @return Depth value to use for the current draw call.
@@ -37,7 +39,7 @@ namespace RTE {
 
 		/// Set the current depth offset, this can be used to change draw order without sorting.
 		/// @param depth The new offset.
-		void SetCurrentZOffset(float depth) { m_RenderBatch->m_CurrentDepth = depth; }
+		void SetCurrentZOffset(float depth) { m_RenderBatch->m_CurrentZ = depth; }
 
 		/// Set the default shader for upcoming draw calls.
 		/// @param shader (non owning) pointer to the new shader.
@@ -68,19 +70,20 @@ namespace RTE {
 		const Shader* GetDefaultShader() { return m_DefaultShader.get(); }
 
 		/// Returns the camera the was set at BeginFrame.
-		Camera* GetActiveCamera() { return m_CurrentCamera; }
+		const Camera* GetActiveCamera() { return m_ActiveBatch->m_CurrentCamera; }
 
 		/// Begin a set of draws with camera. Clears batched draw calls.
-		void BeginFrame(Camera* camera);
+		void BeginFrame(const Camera* camera = nullptr);
 
 		/// Draws current draw calls to the active target and clears the batch for new draws.
 		void DrawActiveBatch();
 	private:
+		RenderBatch* m_ActiveBatch;
 		std::unique_ptr<RenderBatch> m_RenderBatch{nullptr};
 		std::unique_ptr<GLState> m_GLState{nullptr};
 		std::shared_ptr<BitmapTexture> m_ShapesTexture{nullptr};
 		std::shared_ptr<BitmapTexture> m_PaletteTexture{nullptr};
 		std::shared_ptr<Shader> m_DefaultShader{nullptr};
-		Camera* m_CurrentCamera{nullptr};
+		Camera m_DefaultCamera{{-1.0f, -1.0f}, {{0.0f, 0.0f}, {2.0f, 2.0f}}};
 	};
 }
