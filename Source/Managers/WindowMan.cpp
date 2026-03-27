@@ -11,6 +11,7 @@
 #include "RenderTarget.h"
 #include "GLStateMan.h"
 #include "RenderMan.h"
+#include "DebugMan.h"
 #include "Draw.h"
 
 #include "GLCheck.h"
