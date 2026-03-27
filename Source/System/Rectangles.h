@@ -1,4 +1,5 @@
 #pragma once
+#include "glm/fwd.hpp"
 namespace RTE {
 	/// A simple rectangle from 2 points.
 	template <typename T>
@@ -31,6 +32,7 @@ namespace RTE {
 		RectangleWidthHeight() = default;
 		RectangleWidthHeight(T x, T y, T width, T height) : x(x), y(y), w(width), h(height) {}
 		RectangleWidthHeight(Vector pos, T width, T height) : x(pos.m_X), y(pos.m_Y), w(width), h(height) {}
+		RectangleWidthHeight(glm::vec<2, T, glm::defaultp> pos, T width, T height) : x(pos.x), y(pos.y), w(width), h(height) {}
 		T x{0.0f};
 		T y{0.0f};
 		T w{0.0f};
