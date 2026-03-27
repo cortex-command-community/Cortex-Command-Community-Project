@@ -59,6 +59,7 @@ namespace RTE {
 		BITMAP* GetBitmap() const { return m_Pixels.get(); }
 
 		/// Update the pixels on GPU.
+		void Update();
 		void Update(const FloatRect& region);
 
 	private:

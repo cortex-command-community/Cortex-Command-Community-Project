@@ -132,6 +132,18 @@ BitmapTexture::BitmapTexture(std::unique_ptr<BITMAP, BitmapDeleter> bitmap, Filt
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void BitmapTexture::Update() {
+	Bind();
+	if (bitmap_color_depth(m_Pixels.get()) == 8) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, m_Pixels->w, m_Pixels->h, 0, GL_RED, GL_UNSIGNED_BYTE, m_Pixels->dat);
+	} else {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Pixels->w, m_Pixels->h, 0, m_BitDepth == 32 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, m_Pixels->dat);
+	}
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void BitmapTexture::Update(const FloatRect& region) {
 	RTEAssert((region.x >= 0) && (region.y >= 0) && (region.x + region.w) <= m_Dimensions.w && (region.y + region.h) <= m_Dimensions.h, "Update area out of BITMAP bounds!");
 	Bind();
