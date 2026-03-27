@@ -82,13 +82,13 @@ void RenderBatch::Render() {
 	glBindVertexArray(m_VertexBuffers.m_VertexArray);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VertexBuffers.m_IndexBuffer);
 
-	const Shader* currentShader = g_RenderMan.GetCurrentShader();
+	const Shader* currentShader = m_CurrentShader ? m_CurrentShader : g_RenderMan.GetDefaultShader();
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, g_RenderMan.GetPaletteTexture());
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, g_RenderMan.GetShapeTexture());
-	Camera* currentCamera = g_RenderMan.GetActiveCamera();
+	const Camera* currentCamera = m_CurrentCamera;
 	currentShader->Enable();
 	currentShader->SetInt(currentShader->GetTextureUniform(), 1);
 	currentShader->SetInt(currentShader->GetPaletteUniform(), 0);
@@ -114,6 +114,7 @@ void RenderBatch::Render() {
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
 	glDisable(GL_MULTISAMPLE);
+	glDisable(GL_CULL_FACE);
 	for (auto& drawCall: m_DrawCalls) {
 		if (drawCall->m_Shader && drawCall->m_Shader != currentShader) {
 			currentShader = drawCall->m_Shader;
@@ -130,12 +131,6 @@ void RenderBatch::Render() {
 
 		currentShader->SetMatrix4f(currentShader->GetTransformUniform(), glm::mat4(1.0f));
 		currentShader->SetMatrix4f(currentShader->GetUVTransformUniform(), glm::mat4(1.0f));
-
-		if (drawCall->m_Camera && drawCall->m_Camera != currentCamera) {
-			currentCamera = drawCall->m_Camera;
-			currentShader->SetMatrix4f(currentShader->GetProjectionUniform(), currentCamera->GetProjection());
-			currentShader->SetMatrix4f(currentShader->GetViewUniform(), currentCamera->GetView());
-		}
 
 		for (auto& uniform: drawCall->m_UniformValues) {
 			uniform->Enable();
@@ -159,7 +154,7 @@ void RenderBatch::Render() {
 		}
 
 		currentShader->SetBool("rteIndexed", drawCall->m_Indexed);
-		GL_CHECK(glDrawElements(GL_TRIANGLES, drawCall->m_Indices.size(), GL_UNSIGNED_INT, (GLvoid*)(indexOffset * sizeof(GLuint))));
+		GL_CHECK(glDrawElements(drawCall->m_DrawMode, drawCall->m_Indices.size(), GL_UNSIGNED_INT, (GLvoid*)(indexOffset * sizeof(GLuint))));
 		indexOffset += drawCall->m_Indices.size();
 	}
 }

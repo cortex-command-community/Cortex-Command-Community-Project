@@ -37,7 +37,7 @@ namespace RTE {
 	/// Render batch based on raysan5's raylib
 	struct RenderBatch {
 	public:
-		constexpr static float c_DrawDepthIncrement = 1.0f / 20000.0f;
+		constexpr static float c_DrawDepthIncrement = -(c_FarDepth - c_NearDepth) / 16777216.0f;
 		VertexBuffer m_VertexBuffers{};
 		std::vector<std::shared_ptr<DrawCall>> m_DrawCalls{};
 		float m_CurrentDepth{0.0f};
@@ -46,6 +46,7 @@ namespace RTE {
 		std::vector<std::shared_ptr<UniformValueType>> m_CurrentUniforms{};
 		glm::mat4 m_CurrentView{1.0f};
 		glm::mat4 m_CurrentProjection{1.0f};
+		const Camera* m_CurrentCamera{nullptr};
 		BlendMode m_CurrentBlendMode{Blend::ALPHA};
 
 		/// Constructor.
