@@ -48,7 +48,6 @@ BigTexture::BigTexture(BITMAP* bitmap) {
 }
 
 
-void BigTexture::Draw(Rectangle source, Rectangle dest) {}
 void BigTexture::Draw(const Box& source, const Box& dest) {
 	ZoneScoped;
 	TracyGpuZone("BigTexture::Draw");

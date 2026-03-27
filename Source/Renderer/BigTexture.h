@@ -19,7 +19,6 @@ namespace RTE {
 		/// @brief Draw this texture (or part of it) to the screen
 		/// @param source The source rectangle inside this texture.
 		/// @param dest The destination rectangle on the screen.
-		void Draw(Rectangle source, Rectangle dest);
 		void Draw(const Box& source, const Box& dest);
 		std::vector<std::shared_ptr<BitmapTexture>> m_Textures{}; //!< The tiles of this BigTexture.
 		std::vector<unsigned int> m_UploadBuffers{}; //!< Upload buffers to reduce wait time on big uploads.
