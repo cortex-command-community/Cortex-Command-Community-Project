@@ -38,6 +38,9 @@ void SLTerrain::Clear() {
 	m_TerrainObjects.clear();
 	m_UpdatedMaterialAreas.clear();
 	m_OrbitDirection = Directions::Up;
+
+	m_ScrollInfo = Vector(0.0f, 0.0f);
+	m_ScrollRatio = Vector(0.0f, 0.0f);
 }
 
 int SLTerrain::Create() {
@@ -298,11 +301,11 @@ int SLTerrain::LoadData() {
 		CleanAir();
 	}
 
-	m_ScrollInfo.SetXY(0, 0);
-	m_ScrollRatio.SetXY(0, 0);
+	m_ScrollInfo.SetXY(0.0f, 0.0f);
+	m_ScrollRatio.SetXY(0.0f, 0.0f);
 
-	m_FGColorLayer->SetScrollRatio(Vector(0, 0));
-	m_BGColorLayer->SetScrollRatio(Vector(0, 0));
+	m_FGColorLayer->SetScrollRatio(Vector(0.0f, 0.0f));
+	m_BGColorLayer->SetScrollRatio(Vector(0.0f, 0.0f));
 
 	return 0;
 }
