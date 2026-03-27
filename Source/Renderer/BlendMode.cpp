@@ -90,6 +90,11 @@ BlendMode::BlendMode(GLint srcFuncRGB, GLint srcFuncAlpha, GLint destFuncRGB, GL
     m_BlendMode(Blend::CUSTOM), m_SrcFunc(0), m_DestFunc(0), m_Equation(0), m_SrcFuncRGB(srcFuncRGB), m_DestFuncRGB(destFuncRGB), m_SrcFuncAlpha(srcFuncAlpha), m_DestFuncAlpha(destFuncAlpha), m_EquationRGB(equationRGB), m_EquationAlpha(equationAlpha) {}
 
 void BlendMode::Enable() {
+	if (m_BlendMode == Blend::NONE) {
+		glDisable(GL_BLEND);
+		return;
+	}
+	glEnable(GL_BLEND);
 	if (m_Equation) {
 		glBlendEquation(m_Equation);
 		if (std::find(c_KhrBlendEquations.cbegin(), c_KhrBlendEquations.cend(), m_Equation) != c_KhrBlendEquations.cend()) {

@@ -5,6 +5,7 @@ namespace RTE {
 	/// Blend Modes
 	/// see https://en.wikipedia.org/wiki/Blend_modes
 	enum class Blend {
+		NONE, //!< Disable Color blending
 		ALPHA,
 		ALPHA_PREMULTIPLY,
 		BURN, //!< Requires GL_KHR_blend_equation_advanced
@@ -43,7 +44,7 @@ namespace RTE {
 
 		bool operator==(const BlendMode& rhs) const = default;
 	private:
-		Blend m_BlendMode{Blend::ALPHA};
+		Blend m_BlendMode{Blend::NONE};
 		GLint m_SrcFunc{GL_SRC_ALPHA}; //!< glBlendFunc source function.
 		GLint m_DestFunc{GL_ONE_MINUS_SRC_ALPHA}; //!< glBlendFunc dest function.
 		GLint m_Equation{GL_FUNC_ADD}; //!< glBlendEquation.
