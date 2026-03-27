@@ -23,8 +23,6 @@ Shader::Shader() :
 
 Shader::Shader(const std::string& vertexFilename, const std::string& fragPath) :
     m_ProgramID(g_GLStateMan.MakeGLProgram()), m_TextureUniform(-1), m_ColorUniform(-1), m_TransformUniform(-1), m_ProjectionUniform(-1) {
-	std::cout << m_ProgramID << std::endl;
-	RTEAssert(m_ProgramID, "");
 	Compile(vertexFilename, fragPath);
 }
 
