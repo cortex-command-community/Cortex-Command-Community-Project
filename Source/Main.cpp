@@ -61,6 +61,11 @@
 
 #include "imgui_impl_sdl3.h"
 
+#ifdef RENDERDOC_DEBUG
+#include "renderdoc_app.h"
+#include <dlfcn.h>
+#endif
+
 #ifdef _WIN32
 #include "windows.h"
 #endif
@@ -294,6 +299,23 @@ void RunMenuLoop() {
 	g_MenuMan.SetIsInMenuScreen(false);
 }
 
+void LoadRenderDoc() {
+#ifdef RENDERDOC_DEBUG
+	RENDERDOC_API_1_1_2 *rdoc_api = NULL;
+	// At init, on linux/android.
+	// For android replace librenderdoc.so with libVkLayer_GLES_RenderDoc.so
+	if (void* mod = dlopen("librenderdoc.so", RTLD_NOW | RTLD_NOLOAD)) {
+		pRENDERDOC_GetAPI RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
+		int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_1_2, (void**)&rdoc_api);
+		assert(ret == 1);
+	}
+	if (rdoc_api) {
+		RENDERDOC_InputButton pause = eRENDERDOC_Key_Pause;
+		rdoc_api->SetCaptureKeys(&pause, 1);
+	}
+#endif
+}
+
 /// <summary>
 /// Game simulation loop.
 /// </summary>
@@ -427,6 +449,7 @@ int main(int argc, char** argv) {
 	SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
 	SDL_SetHint("SDL_ALLOW_TOPMOST", "0");
 	// SDL_HideCursor();
+	LoadRenderDoc();
 
 	if (std::filesystem::exists("Base.rte/gamecontrollerdb.txt")) {
 		SDL_AddGamepadMappingsFromFile("Base.rte/gamecontrollerdb.txt");

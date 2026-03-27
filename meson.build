@@ -172,6 +172,13 @@ if get_option('tracy_debuginfod')
   add_global_arguments('-DTRACY_DEBUGINFOD', language:'cpp')
 endif
 
+
+if get_option('renderdoc')
+  renderdoc = compiler.find_library('renderdoc', required: false)
+  if renderdoc.found()
+    add_global_arguments('-DRENDERDOC_DEBUG', language: 'cpp')
+  endif
+endif
 #### Platform Common External Libraries ####
 if host_machine.system() in ['linux','darwin']
   deps += [
@@ -239,6 +246,7 @@ luabind_proj = subproject('luabind-0.7.1')
 luabind_dep = dependency('luabind')
 raknet_proj = subproject('RakNet')
 raknet_dep = dependency('RakNet')
+
 deps += [sdl3_dep, sdl3_image_dep, allegro_dep, luajit_dep, loadpng_dep, raknet_dep, boost_dep, tracy_dep]
 
 #### Sources Setup ####
