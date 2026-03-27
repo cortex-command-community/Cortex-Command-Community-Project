@@ -21,6 +21,7 @@ namespace RTE {
 
 		bool FreeCamEnabled() { return m_EnableFreeCam; }
 		float FreeCamZoom() { return m_FreeCamZoom; }
+		Camera* GetFreeCam() { return m_FreeCam.get(); }
 
 	private:
 		bool m_ShowDebugWindow{false};
@@ -39,5 +40,6 @@ namespace RTE {
 
 		bool m_EnableFreeCam{false};
 		float m_FreeCamZoom{1.0f};
+		std::unique_ptr<Camera> m_FreeCam;
 	};
 } // namespace RTE

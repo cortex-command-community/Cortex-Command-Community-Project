@@ -2,6 +2,15 @@
 #include "PerformanceMan.h"
 #include "imgui/imgui.h"
 #include "tracy/Tracy.hpp"
+#include "Draw.h"
+#include "RenderTarget.h"
+#include "RenderBatch.h"
+#include "RenderMan.h"
+#include "MovableMan.h"
+#include "CameraMan.h"
+#include "FrameMan.h"
+#include "SceneMan.h"
+#include "tracy/TracyOpenGL.hpp"
 
 using namespace RTE;
 
@@ -38,20 +47,55 @@ void DebugMan::DebugOptionsGUI() {
 				ImGui::Checkbox("Draw frustum tests", &m_DrawSpriteBounds);
 				ImGui::TreePop();
 			}
+
+			if (ImGui::TreeNode("Free Cam")) {
+				ImGui::Checkbox("Enable Free Cam", &m_EnableFreeCam);
+				if (m_EnableFreeCam && g_SceneMan.GetScene()) {
+					ImDrawList* draw_list = ImGui::GetWindowDrawList();
+					ImVec2 p = ImGui::GetCursorScreenPos();
+					float maxWidth = ImGui::GetContentRegionAvail().x;
+					Vector sceneDim = g_SceneMan.GetSceneDim();
+					float aspectRatio = sceneDim.m_Y / sceneDim.m_X;
+					static ImVec2 freeCamPos{0.0f, 0.0f};
+
+					float height = maxWidth * aspectRatio;
+					Box viewport = Box(Vector(0.0f, 0.0f), g_FrameMan.GetPlayerScreenWidth(), g_FrameMan.GetPlayerScreenHeight());
+					float viewToSceneScale = viewport.m_Width / sceneDim.m_X;
+
+					float minimapToSceneScale = sceneDim.m_X / maxWidth;
+
+					m_FreeCam = std::make_unique<Camera>(Vector(freeCamPos.x, freeCamPos.y) * minimapToSceneScale, viewport, m_FreeCamZoom);
+
+					draw_list->AddRectFilled(p, ImVec2(p.x + maxWidth, p.y + height), ImGui::GetColorU32(ImGui::GetStyle().Colors[ImGuiCol_FrameBg]));
+					draw_list->AddRect(p, ImVec2(p.x + maxWidth, p.y + height), ImGui::GetColorU32(ImGui::GetStyle().Colors[ImGuiCol_Border]));
+					draw_list->AddRectFilled(ImVec2(p.x + freeCamPos.x, p.y + freeCamPos.y), ImVec2(p.x + freeCamPos.x + maxWidth * viewToSceneScale, p.y + freeCamPos.y + height * viewToSceneScale), ImGui::GetColorU32(ImGui::GetStyle().Colors[ImGuiCol_Button]));
+					draw_list->AddRect(ImVec2(p.x + freeCamPos.x, p.y + freeCamPos.y), ImVec2(p.x + freeCamPos.x + maxWidth * viewToSceneScale, p.y + freeCamPos.y + height * viewToSceneScale), ImGui::GetColorU32(ImGui::GetStyle().Colors[ImGuiCol_Border]));
+
+					float zoomX = (maxWidth * viewToSceneScale) / 2.0f * (1.f / m_FreeCamZoom - 1.0f);
+					float zoomY = (height * viewToSceneScale) / 2.0f * (1.f / m_FreeCamZoom - 1.0f);
+
+					draw_list->AddRect(ImVec2(p.x + freeCamPos.x - zoomX, p.y + freeCamPos.y - zoomY), ImVec2(p.x + freeCamPos.x + maxWidth * viewToSceneScale + zoomX, p.y + freeCamPos.y + height * viewToSceneScale + zoomY), ImGui::GetColorU32(ImGui::GetStyle().Colors[ImGuiCol_Separator]));
+
+					ImGui::InvisibleButton("##FreeCamMap", ImVec2(maxWidth, height));
+
+					ImGuiIO& io = ImGui::GetIO();
+					if (ImGui::IsItemActive()) {
+						freeCamPos.x = io.MousePos.x - p.x;
+						freeCamPos.y = io.MousePos.y - p.y;
+					}
+					ImGui::Text("FreeCamPos: {%.1f; %.1f}", freeCamPos.x, freeCamPos.y);
+					ImGui::Text("FreeCamPos: {%.1f; %.1f}", freeCamPos.x + maxWidth * viewToSceneScale, freeCamPos.y + height * viewToSceneScale);
+					ImGui::InputFloat("Zoom", &m_FreeCamZoom, 0.1f, 0.5f);
+				}
+				ImGui::TreePop();
+			}
+
 			ImGui::TreePop();
 		}
 	}
 	ImGui::End();
 }
 
-#include "Draw.h"
-#include "RenderTarget.h"
-#include "RenderBatch.h"
-#include "RenderMan.h"
-#include "MovableMan.h"
-#include "CameraMan.h"
-#include "SceneMan.h"
-#include "tracy/TracyOpenGL.hpp"
 
 void DebugMan::ActorDrawDebugGUI() {
 	ZoneScoped;
