@@ -886,7 +886,7 @@ void WindowMan::UploadFrame() {
 			g_RenderMan.DrawActiveBatch();
 		}
 	}
-	ImGui::ShowDemoWindow();
+	g_DebugMan.DrawImGui();
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	Present();
