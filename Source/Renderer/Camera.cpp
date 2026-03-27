@@ -3,6 +3,7 @@
 #include "Constants.h"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/ext/matrix_clip_space.hpp"
+#include "glm/gtx/vector_angle.hpp"
 
 using namespace RTE;
 
@@ -22,16 +23,15 @@ void Camera::SetViewport(const Box& viewport) {
 }
 
 void Camera::UpdateView() {
-	m_Viewport.m_Corner = (m_ViewCenter - Vector(m_Viewport.m_Width / 2, m_Viewport.m_Height / 2).GetFloored()).GetFloored();
-	m_View = glm::lookAt(glm::vec3(static_cast<glm::vec2>(m_ViewCenter), 0.0f), glm::vec3(static_cast<glm::vec2>(m_ViewCenter), c_NearDepth), glm::vec3(static_cast<glm::vec2>(m_ViewUp), 0.0f));
+	m_Viewport.m_Corner = m_ViewCorner.GetFloored();
+	m_View = glm::translate(glm::mat4(1.0f), glm::vec3(m_Viewport.m_Width / 2, m_Viewport.m_Height / 2, 0.0f));
+	m_View = glm::scale(m_View, glm::vec3(m_Scale, m_Scale, -1.0f));
+	m_View = glm::rotate(m_View, glm::angle(static_cast<glm::vec2>(m_ViewUp), glm::vec2(0.0f, 1.0f)), glm::vec3(0.0f, 0.0f, 1.0f));
+	m_View = glm::translate(m_View, -glm::vec3(m_Viewport.m_Width / 2, m_Viewport.m_Height / 2, 0.0f));
+	m_View = glm::translate(m_View, glm::vec3(static_cast<glm::vec2>(-m_ViewCorner), 0.0f));
 	m_Projection = glm::ortho(0.0f, std::floor(m_Viewport.m_Width), 0.0f, std::floor(m_Viewport.m_Height), c_NearDepth, c_FarDepth);
 }
 
-void Camera::Draw() {
-	Box rec;
-	rec.m_Corner.m_X = m_ViewCenter.m_X - m_Viewport.GetWidth() / 2.0f;
-	rec.m_Corner.m_Y = m_ViewCenter.m_Y - m_Viewport.GetHeight() / 2.0f;
-	rec.m_Width = m_Viewport.GetWidth();
-	rec.m_Height = m_Viewport.GetHeight();
-	Draw::RectangleLines(rec, {53, 0, 0, 255});
+void Camera::Draw() const {
+	Draw::Lines::Rectangle(m_Viewport, {69, 245, 255, 255});
 }

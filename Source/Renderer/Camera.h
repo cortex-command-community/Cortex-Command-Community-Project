@@ -13,11 +13,8 @@ namespace RTE {
 
 		Camera(const Box& viewBox, Vector viewUp = {0.0f, 1.0f}, float zoom = 1.0f);
 
-		/// Set the view center of this camera.
-		void SetViewCenter(Vector viewCenter) { m_ViewCenter = viewCenter; }
-
-		/// Get the view center of this camera.
-		const Vector& GetViewCenter() const { return m_ViewCenter; }
+		/// Get the corner of this camera view.
+		const Vector& GetViewCorner() const { return m_ViewCorner; }
 
 		/// Get the viewport of this camera.
 		const Box& GetViewport() const { return m_Viewport; }
@@ -25,9 +22,9 @@ namespace RTE {
 		/// Set the view box of the camera.
 		void SetViewport(const Box& viewport);
 
-		const glm::mat4 GetView() { return m_View; }
+		const glm::mat4& GetView() const { return m_View; }
 
-		const glm::mat4 GetProjection() { return m_Projection; }
+		const glm::mat4& GetProjection() const { return m_Projection; }
 
 		void SetViewUp(Vector viewUp) { m_ViewUp = viewUp; }
 
@@ -47,12 +44,11 @@ namespace RTE {
 
 		void UpdateView();
 
-		void Draw();
+		void Draw() const;
 	private:
 		glm::mat4 m_View{1.0f};
 		glm::mat4 m_Projection{1.0f};
 		Vector m_ViewCorner{0.0f, 0.0f};
-		Vector m_ViewCenter{0.0f, 0.0f};
 		Box m_Viewport{};
 		float m_Scale{1.0f};
 		Vector m_ViewUp{};
