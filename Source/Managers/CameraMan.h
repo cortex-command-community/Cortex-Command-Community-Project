@@ -3,6 +3,7 @@
 #include "Singleton.h"
 #include "Timer.h"
 #include "Vector.h"
+#include "Camera.h"
 
 #include <array>
 
@@ -111,6 +112,13 @@ namespace RTE {
 		/// @param screenId Which screen you want to get frame width/height of.
 		/// @return The frame width (x) and height (y).
 		Vector GetFrameSize(int screenId = 0);
+
+		/// Gets the wrapped Cameras for the given screen.
+		/// @param screen The player screen for which to get the camera(s)
+		/// @return A vector of cameras to be used in drawing this player screen.
+		const std::vector<Camera>& GetPlayerCameras(int screen = 0);
+
+		void SetCameraZoom(float zoom, int screen = 0);
 #pragma endregion
 
 #pragma region Screen Shake Getters and Setters
@@ -196,6 +204,8 @@ namespace RTE {
 			Vector ScreenOcclusion; //!< The amount a screen is occluded or covered by GUI, etc.
 
 			float ScreenShakeMagnitude = 0; //!< The magnitude of screen shake that is currently being applied.
+
+			std::vector<Camera> Cameras;
 		};
 
 		float m_ScreenShakeStrength; //!< A global multiplier applied to screen shaking strength.

@@ -157,6 +157,17 @@ Vector CameraMan::GetFrameSize(int screenId) {
 	return Vector(static_cast<float>(frameWidth), static_cast<float>(frameHeight));
 }
 
+const std::vector<Camera>& CameraMan::GetPlayerCameras(int screen) {
+	return m_Screens.at(screen).Cameras;
+}
+
+void CameraMan::SetCameraZoom(float zoom, int screen) {
+	for (auto& camera: m_Screens.at(screen).Cameras) {
+		camera.SetZoom(zoom);
+		camera.UpdateView();
+	}
+}
+
 void CameraMan::ResetAllScreenShake() {
 	for (int screenId = 0; screenId < g_FrameMan.GetScreenCount(); ++screenId) {
 		Screen& screen = m_Screens[screenId];
@@ -258,4 +269,5 @@ void CameraMan::Update(int screenId) {
 
 	screen.DeltaOffset = screen.Offset - oldOffset;
 	screen.ScrollTimer.Reset();
+	screen.Cameras = {Camera(screen.Offset, Box(Vector(), g_FrameMan.GetPlayerFrameBufferWidth(0), g_FrameMan.GetPlayerFrameBufferHeight(0)))};
 }
