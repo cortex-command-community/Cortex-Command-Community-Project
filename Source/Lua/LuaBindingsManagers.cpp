@@ -397,6 +397,11 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, SettingsMan) {
 	    .property("AutomaticGoldDeposit", &SettingsMan::GetAutomaticGoldDeposit);
 }
 
+LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, DebugMan) {
+	return luabind::class_<DebugMan>("DebugManager")
+		.def("ShowDebugOptions", &DebugMan::ShowDebugOptions);
+}
+
 LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, TimerMan) {
 	return luabind::class_<TimerMan>("TimerManager")
 

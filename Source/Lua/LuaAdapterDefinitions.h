@@ -7,6 +7,7 @@
 #include "MusicMan.h"
 #include "CameraMan.h"
 #include "ConsoleMan.h"
+#include "DebugMan.h"
 #include "FrameMan.h"
 #include "MetaMan.h"
 #include "MovableMan.h"
@@ -75,6 +76,9 @@
 #include "Turret.h"
 #include "PieMenu.h"
 #include "PieSlice.h"
+
+#include "Draw.h"
+#include "RenderTarget.h"
 
 #include "System/MicroPather/micropather.h"
 

@@ -20,6 +20,7 @@ namespace RTE {
 	PER_LUA_BINDING(MusicMan) \
 	PER_LUA_BINDING(CameraMan) \
 	PER_LUA_BINDING(ConsoleMan) \
+	PER_LUA_BINDING(DebugMan) \
 	PER_LUA_BINDING(FrameMan) \
 	PER_LUA_BINDING(MetaMan) \
 	PER_LUA_BINDING(MovableMan) \
@@ -191,6 +192,7 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(MusicMan);
 		LuaBindingRegisterFunctionDeclarationForType(CameraMan);
 		LuaBindingRegisterFunctionDeclarationForType(ConsoleMan);
+		LuaBindingRegisterFunctionDeclarationForType(DebugMan);
 		LuaBindingRegisterFunctionDeclarationForType(FrameMan);
 		LuaBindingRegisterFunctionDeclarationForType(MetaMan);
 		LuaBindingRegisterFunctionDeclarationForType(MovableMan);
