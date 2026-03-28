@@ -9,7 +9,7 @@ namespace RTE {
 	class Camera{
 	public:
 		Camera(Vector viewCorner, Box viewport, float zoom = 1.0f, Vector viewUp = {0.0f, 1.0f}) :
-			m_ViewCorner{viewCorner}, m_Viewport{viewport}, m_Scale{zoom}, m_ViewUp{viewUp} { UpdateView(); }
+			m_ViewCorner{viewCorner}, m_Viewport{viewport}, m_ClipRect{viewport}, m_Scale{zoom}, m_ViewUp{viewUp} { UpdateView(); }
 
 		Camera(const Box& viewBox, Vector viewUp = {0.0f, 1.0f}, float zoom = 1.0f);
 
@@ -42,6 +42,12 @@ namespace RTE {
 
 		bool IsShowHUD() const { return m_ShowHUD; }
 
+		void SetClipRect(const Box& clipRect) { m_ClipRect = clipRect; }
+		void SetClipState(bool clip) { m_EnableClipping = clip; }
+
+		bool GetClipState() { return m_EnableClipping; }
+		const Box& GetClipRect() { return m_ClipRect; }
+
 		void UpdateView();
 
 		void Draw() const;
@@ -50,6 +56,8 @@ namespace RTE {
 		glm::mat4 m_Projection{1.0f};
 		Vector m_ViewCorner{0.0f, 0.0f};
 		Box m_Viewport{};
+		bool m_EnableClipping{false};
+		Box m_ClipRect{};
 		float m_Scale{1.0f};
 		Vector m_ViewUp{};
 		Activity::Teams m_Team{Activity::NoTeam};
