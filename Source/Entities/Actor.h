@@ -728,6 +728,7 @@ namespace RTE {
 		/// @param whichScreen Which player's screen this is being drawn to. May affect what HUD elements (default: 0)
 		/// get drawn etc.
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
+		void DrawHUD(const Camera& camera) override;
 
 		/// Verifieis whether all actor's MO has correct IDs. Should be used in Debug mode only.
 		void VerifyMOIDs();

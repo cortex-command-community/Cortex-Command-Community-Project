@@ -1597,3 +1597,5 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 		}
 	}
 }
+
+void Actor::DrawHUD(const Camera& camera) {}

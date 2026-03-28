@@ -456,6 +456,7 @@ namespace RTE {
 		/// @param whichScreen Which player's screen this is being drawn to. May affect what HUD elements (default: 0)
 		/// get drawn etc.
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
+		void DrawHUD(const Camera& camera) override;
 
 		/// Gets the LimbPath corresponding to the passed in Layer and MovementState values.
 		/// @param layer Whether to get foreground or background LimbPath.

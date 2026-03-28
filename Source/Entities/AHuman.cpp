@@ -2984,6 +2984,8 @@ void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 	}
 }
 
+void AHuman::DrawHUD(const Camera& camera) {}
+
 float AHuman::GetLimbPathTravelSpeed(MovementState movementState) {
 	return m_Paths[FGROUND][movementState].GetTravelSpeed();
 }

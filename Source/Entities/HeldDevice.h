@@ -348,6 +348,7 @@ namespace RTE {
 		/// @param whichScreen Which player's screen this is being drawn to. May affect what HUD elements (default: 0)
 		/// get drawn etc.
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
+		void DrawHUD(const Camera& camera) override;
 
 		/// Resest all the timers used by this. Can be emitters, etc. This is to prevent backed up emissions to come out all at once while this has been held dormant in an inventory.
 		void ResetAllTimers() override {

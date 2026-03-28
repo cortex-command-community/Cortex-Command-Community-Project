@@ -253,6 +253,7 @@ namespace RTE {
 		/// @param whichScreen Which player's screen this is being drawn to. May affect what HUD elements (default: 0)
 		/// get drawn etc.
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
+		void DrawHUD(const Camera& camera) override;
 
 		/// Gets whether this craft can enter orbit and refund the owning team when out of the map. If false,
 		/// only default out-of-bounds deletion logic applies.

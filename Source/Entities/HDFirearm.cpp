@@ -1078,3 +1078,5 @@ void HDFirearm::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whic
 		putpixel(pTargetBitmap, aimPoint.GetFloorIntX(), aimPoint.GetFloorIntY(), g_YellowGlowColor);
 	}
 }
+
+void HDFirearm::DrawHUD(const Camera& camera) {}

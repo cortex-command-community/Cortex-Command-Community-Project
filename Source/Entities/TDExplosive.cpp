@@ -81,3 +81,5 @@ void TDExplosive::DrawHUD(BITMAP* targetBitmap, const Vector& targetPos, int whi
 		ThrownDevice::DrawHUD(targetBitmap, targetPos, whichScreen);
 	}
 }
+
+void TDExplosive::DrawHUD(const Camera& camera) {}

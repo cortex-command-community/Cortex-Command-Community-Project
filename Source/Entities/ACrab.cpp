@@ -1459,6 +1459,8 @@ void ACrab::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 	}
 }
 
+void ACrab::DrawHUD(const Camera& camera) {}
+
 float ACrab::GetLimbPathTravelSpeed(MovementState movementState) {
 	return m_Paths[LEFTSIDE][FGROUND][movementState].GetTravelSpeed();
 }

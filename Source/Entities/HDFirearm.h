@@ -446,6 +446,7 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the Scene. (default: Vector())
 		/// @param whichScreen Which player's screen this is being drawn to. May affect what HUD elements get drawn etc. (default: 0)
 		void DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
+		void DrawHUD(const Camera& camera) override;
 
 		/// Estimates what material strength one round in the magazine can destroy.
 		/// @return The maximum material strength the regular or the tracer round can destroy.

@@ -816,3 +816,7 @@ void ACraft::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 		}
 	}
 }
+
+void ACraft::DrawHUD(const Camera& camera) {
+
+}

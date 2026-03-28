@@ -490,3 +490,5 @@ void HeldDevice::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whi
 		}
 	}
 }
+
+void HeldDevice::DrawHUD(const Camera& camera) {}

@@ -602,3 +602,5 @@ void ADoor::DrawHUD(BITMAP* targetBitmap, const Vector& targetPos, int whichScre
 		return;
 	}
 }
+
+void ADoor::DrawHUD(const Camera& camera) {}

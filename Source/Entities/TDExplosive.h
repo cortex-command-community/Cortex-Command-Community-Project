@@ -66,6 +66,7 @@ namespace RTE {
 		/// @param whichScreen Which player's screen this is being drawn to. May affect what HUD elements get drawn etc.
 		/// @param playerControlled Whether or not this MovableObject is currently player controlled (not applicable for TDExplosive).
 		void DrawHUD(BITMAP* targetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0, bool playerControlled = false) override;
+		void DrawHUD(const Camera& camera) override;
 #pragma endregion
 
 	protected:
