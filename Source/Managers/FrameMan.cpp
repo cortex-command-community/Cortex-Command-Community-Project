@@ -883,29 +883,31 @@ void FrameMan::Draw() {
 
 			DrawScreenText(playerScreen, playerGUIBitmap);
 
-			// The position of the current draw screen on the backbuffer
-			Vector screenOffset;
-
-			// If we are dealing with split screens, then deal with the fact that we need to draw the player screens to different locations on the final buffer
-			if (screenCount > 1) {
-				UpdateScreenOffsetForSplitScreen(playerScreen, screenOffset);
-			}
-
-			DrawScreenFlash(playerScreen, drawScreenGUI);
-
 			// Draw the intermediate draw splitscreen to the appropriate spot on the back buffer
 			blit(drawScreen, m_BackBuffer8->GetBitmap(), 0, 0, screenOffset.GetFloorIntX(), screenOffset.GetFloorIntY(), drawScreen->w, drawScreen->h);
 			if (g_DebugMan.FreeCamEnabled()) {
-				g_RenderMan.GetActiveBatch()->m_CurrentCamera = g_DebugMan.GetFreeCam();
 				camera.Draw();
 			}
-			m_PlayerScreen->End();
 		}
-		backgroundShader.End();
+		g_RenderMan.GetActiveBatch()->EndFrame();
+		if (g_DebugMan.FreeCamEnabled()) {
+			g_RenderMan.GetActiveBatch()->m_CurrentCamera = g_DebugMan.GetFreeCam();
+			g_RenderMan.DrawActiveBatch();
+		} else {
+			for (const Camera& camera: g_CameraMan.GetPlayerCameras(playerScreen)) {
+				g_RenderMan.GetActiveBatch()->m_CurrentCamera = &camera;
+				g_RenderMan.GetActiveBatch()->Render();
+			}
+		}
+		g_RenderMan.GetActiveBatch()->ClearDraws();
+		g_RenderMan.BeginFrame(nullptr);
+		DrawScreenFlash(playerScreen, drawScreenGUI);
+		m_PlayerScreen->End();
 		if (screenCount > 1) {
 			m_BackBuffer->Begin(false);
-			g_RenderMan.BeginFrame(nullptr);
-			//DrawTextureRec(m_PlayerScreen->GetColorTexture(), {0, 0, static_cast<float>(m_PlayerScreen8->w), -static_cast<float>(m_PlayerScreen8->h)}, {screenOffset.m_X, screenOffset.m_Y}, {255, 255, 255, 255});
+			Camera backbufferView(Vector(0.0f, 0.0f), Box(Vector(0.0f, 0.0f), m_BackBuffer->GetSize().w, m_BackBuffer->GetSize().h));
+			g_RenderMan.BeginFrame(&backbufferView);
+			Draw::DrawTexture(m_PlayerScreen->GetColorTexture().lock().get(), screenOffset);
 			m_BackBuffer->End();
 		}
 		//g_PostProcessMan.AdjustEffectsPosToPlayerScreen(playerScreen, drawScreen, screenOffset, screenRelativeEffects, screenRelativeGlowBoxes);
