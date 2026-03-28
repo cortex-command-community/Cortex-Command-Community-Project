@@ -815,8 +815,6 @@ void FrameMan::Draw() {
 	TracyGpuZone("FrameMan::Draw");
 
 	// rlSetShader(rlGetShaderIdDefault(), rlGetShaderLocsDefault());
-	Shader backgroundShader;
-	g_PresetMan.GetEntityPreset("Shader", "Background")->Clone(&backgroundShader);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	clear_to_color(m_BackBuffer8->GetBitmap(), 0);
 	m_BackBuffer->Begin(true);
@@ -938,7 +936,6 @@ void FrameMan::Draw() {
 	m_BackBuffer8->Update();
 	Draw::DrawTexture(m_BackBuffer8.get(), {-1.0f, -1.0f, 2.0f, 2.0f})->m_Indexed = true;
 	m_BackBuffer->End();
-	backgroundShader.End();
 	rlZDepth(0);
 	if (g_ActivityMan.IsInActivity()) {
 		g_PostProcessMan.PostProcess();
