@@ -847,11 +847,17 @@ void FrameMan::Draw() {
 		// If in online multiplayer mode clear to mask color otherwise the scene background layers will get drawn over.
 		clear_to_color(drawScreen, 0);
 
+		// The position of the current draw screen on the backbuffer
+		Vector screenOffset;
+
+		// If we are dealing with split screens, then deal with the fact that we need to draw the player screens to different locations on the final buffer
+		if (screenCount > 1) {
+			UpdateScreenOffsetForSplitScreen(playerScreen, screenOffset);
+		}
 		AllegroBitmap playerGUIBitmap(drawScreenGUI);
 		m_PlayerScreen->Begin(true, 1.0f);
+		g_RenderMan.BeginFrame(nullptr);
 		for (const Camera& camera: g_CameraMan.GetPlayerCameras(playerScreen)) {
-			g_RenderMan.BeginFrame(&camera);
-
 			// Update the scene view to line up with a specific screen and then draw it onto the intermediate screen
 
 			Vector targetPos = g_CameraMan.GetOffset(playerScreen);
