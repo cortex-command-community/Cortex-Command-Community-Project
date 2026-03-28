@@ -29,7 +29,7 @@ namespace RTE {
 		Shape Rectangle(FloatRect rect, Color color);
 		Shape Rectangle(FloatRect rect, float angle, Color color);
 		Shape Rectangle(FloatRect rect, FloatRect uv, Color color);
-		Shape RectangleLines(FloatRect rect, Color color);
+		Shape RectangleLines(FloatRect rect, float thickness, Color color);
 		Shape RoundedRectangle(FloatRect rect, float cornerRadius, Color color);
 		Shape RoundedRectangleLines(FloatRect rect, float cornerRadius, Color color);
 		Shape RoundedRectangleLines(FloatRect rect, float cornerRadius, float thickness, Color color);
@@ -41,6 +41,7 @@ namespace RTE {
 		namespace Lines {
 			Shape VectorArrow(glm::vec2 pos, glm::vec2 vector, Color color);
 			Shape Rectangle(const FloatRect& rect, Color color);
+			Shape Line(const glm::vec2& start, const glm::vec2& end, Color color);
 		}
 	} // namespace Shape
 	namespace Draw {
@@ -59,7 +60,7 @@ namespace RTE {
 		std::shared_ptr<DrawCall> Ring(glm::vec2 center, float innerRadius, float outerRadius, float startAngle, float endAngle, Color color);
 		std::shared_ptr<DrawCall> RingLines(glm::vec2 center, float innerRadius, float outerRadius, float startAngle, float endAngle, Color color);
 		std::shared_ptr<DrawCall> Rectangle(FloatRect rect, Color color);
-		std::shared_ptr<DrawCall> RectangleLines(FloatRect rect, Color color);
+		std::shared_ptr<DrawCall> RectangleLines(const FloatRect& rect, float thickness, Color color);
 		std::shared_ptr<DrawCall> RoundedRectangle(FloatRect rect, float cornerRadius, Color color);
 		std::shared_ptr<DrawCall> RoundedRectangleLines(FloatRect rect, float cornerRadius, Color color);
 		std::shared_ptr<DrawCall> RoundedRectangleLines(FloatRect rect, float cornerRadius, float thickness, Color color);
@@ -70,6 +71,7 @@ namespace RTE {
 		namespace Lines {
 			std::shared_ptr<DrawCall> VectorArrow(glm::vec2 pos, glm::vec2 vector, Color color);
 			std::shared_ptr<DrawCall> Rectangle(const FloatRect& rect, Color color);
+			std::shared_ptr<DrawCall> Line(const glm::vec2& start, const glm::vec2& end, Color color);
 		}
 	} // namespace Draw
 } // namespace RTE
