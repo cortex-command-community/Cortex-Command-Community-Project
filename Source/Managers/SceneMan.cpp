@@ -2546,27 +2546,14 @@ void SceneMan::Update(int screenId) {
 
 	m_LastUpdatedScreen = screenId;
 
-	Vector offset(0.0f, 0.0f); //g_CameraMan.GetOffset(screenId);
-	m_pMOColorLayer->SetOffset(offset);
-	if (m_pDebugLayer) {
-		m_pDebugLayer->SetOffset(offset);
-	}
-
 	SLTerrain* terrain = m_pCurrentScene->GetTerrain();
-	terrain->SetOffset(offset);
 	terrain->Update();
 
 	// Background layers may scroll in fractions of the real offset and need special care to avoid jumping after having traversed wrapped edges, so they need the total offset without taking wrapping into account.
 	const Vector& unwrappedOffset = g_CameraMan.GetUnwrappedOffset(screenId);
 	for (SLBackground* backgroundLayer: m_pCurrentScene->GetBackLayers()) {
-		//backgroundLayer->SetOffset(unwrappedOffset);
+		backgroundLayer->SetOffset(unwrappedOffset);
 		backgroundLayer->Update();
-	}
-
-	// Update the unseen obstruction layer for this team's screen view, if there is one.
-	const int teamId = g_CameraMan.GetScreenTeam(screenId);
-	if (SceneLayer* unseenLayer = (teamId != Activity::NoTeam) ? m_pCurrentScene->GetUnseenLayer(teamId) : nullptr) {
-		unseenLayer->SetOffset(offset);
 	}
 
 	if (m_CleanTimer.GetElapsedSimTimeMS() > CLEANAIRINTERVAL) {
@@ -2663,6 +2650,10 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 
 			break;
 	}
+}
+
+void SceneMan::DrawGUI(const Camera& camera) {
+
 }
 
 void SceneMan::Draw(const Camera& camera) {
