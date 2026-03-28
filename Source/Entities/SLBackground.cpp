@@ -215,6 +215,15 @@ void SLBackground::Update() {
 			m_AutoScrollStepTimer.Reset();
 		}
 		m_Offset.SetXY(std::floor((m_Offset.GetX() * m_ScrollRatio.GetX()) + m_AutoScrollOffset.GetX()), std::floor((m_Offset.GetY() * m_ScrollRatio.GetY()) + m_AutoScrollOffset.GetY()));
+	} else {
+		m_Offset *= m_ScrollRatio;
+	}
+
+	if (m_WrapX) {
+		m_Offset.m_X = std::fmod(m_Offset.m_X, m_ScaledDimensions.m_X);
+	}
+	if (m_WrapY) {
+		m_Offset.m_Y = std::fmod(m_Offset.m_Y, m_ScaledDimensions.m_Y);
 	}
 }
 

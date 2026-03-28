@@ -529,40 +529,51 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::DrawTiled(const Camera& cam
 	ZoneScoped;
 	TracyGpuZone("SceneLayer::DrawTiled");
 	Box targetBox = camera.GetViewport();
+	g_RenderMan.SetCurrentZOffset(m_ZOrder);
 	float bitmapWidth = m_ScaledDimensions.m_X;
 	float bitmapHeight = m_ScaledDimensions.m_Y;
 
-	Vector scrollRatio = m_ScrollRatio;
+	int areaToCoverX = m_Offset.GetFloorIntX() + targetBox.GetCorner().GetFloorIntX() + targetBox.GetWidth();
+	int areaToCoverY = m_Offset.GetFloorIntY() + targetBox.GetCorner().GetFloorIntY() + targetBox.GetHeight();
 
-	int areaToCoverRightX = targetBox.GetCorner().GetFloorIntX() + targetBox.GetWidth();
-	int areaToCoverBottomY = targetBox.GetCorner().GetFloorIntY() + targetBox.GetHeight();
+	int tiledOffsetStartX = targetBox.m_Corner.m_X - m_Offset.m_X;
+	int tiledOffsetStartY = targetBox.m_Corner.m_Y - m_Offset.m_Y;
 
-	int tiledOffsetStartX = m_WrapX ? (targetBox.GetCorner().GetFloorIntX() / bitmapWidth) * bitmapWidth: 0;
-	if (m_WrapX) {
-		tiledOffsetStartX -= targetBox.GetCorner().GetFloorIntX() * scrollRatio.m_X + m_Offset.m_X + m_OriginOffset.m_X;
-	} else {
-		tiledOffsetStartX += targetBox.GetCorner().GetFloorIntX() * scrollRatio.m_X + m_Offset.m_X + m_OriginOffset.m_X;
-	}
-	int tiledOffsetStartY = m_WrapY ? (targetBox.GetCorner().GetFloorIntY() / bitmapHeight) * bitmapHeight : 0;
-	if (m_WrapY) {
-		tiledOffsetStartY -= targetBox.GetCorner().GetFloorIntY() * scrollRatio.m_Y + m_Offset.m_Y + m_OriginOffset.m_Y;
-	} else {
-		tiledOffsetStartY += targetBox.GetCorner().GetFloorIntY() * scrollRatio.m_Y + m_Offset.m_Y + m_OriginOffset.m_Y;
+	int skip = 0;
+	bool tileWrapX = g_SceneMan.WrapPosition(tiledOffsetStartX, skip);
+
+	tiledOffsetStartX /= bitmapWidth;
+	tiledOffsetStartX *= bitmapWidth;
+
+	if (tileWrapX) {
+		tiledOffsetStartX -= g_SceneMan.GetSceneWidth();
 	}
 
-	g_RenderMan.SetCurrentZOffset(m_ZOrder);
+	tiledOffsetStartX += m_Offset.m_X;
 
-	for (int tiledOffsetX = tiledOffsetStartX; tiledOffsetX < areaToCoverRightX; tiledOffsetX += bitmapWidth) {
+	bool tileWrapY = g_SceneMan.WrapPosition(skip, tiledOffsetStartY);
+
+	tiledOffsetStartY /= bitmapHeight;
+	tiledOffsetStartY *= bitmapHeight;
+
+	if (tileWrapY) {
+		tiledOffsetStartY -= g_SceneMan.GetSceneHeight();
+	}
+
+	tiledOffsetStartY += m_Offset.m_Y;
+
+	Draw::Lines::Line(glm::vec2(areaToCoverX, 0.0f), glm::vec2(areaToCoverX, g_SceneMan.GetSceneHeight()), g_RedColor);
+	Draw::Lines::Line(glm::vec2(tiledOffsetStartX, 0.0f), glm::vec2(tiledOffsetStartX, g_SceneMan.GetSceneHeight()), g_YellowGlowColor);
+
+	for (int tiledOffsetX = tiledOffsetStartX; tiledOffsetX < areaToCoverX; tiledOffsetX += bitmapWidth) {
 		int destX =  tiledOffsetX;
 
-		for (int tiledOffsetY = tiledOffsetStartY; tiledOffsetY < areaToCoverBottomY; tiledOffsetY += bitmapHeight) {
+		for (int tiledOffsetY = tiledOffsetStartY; tiledOffsetY < areaToCoverY; tiledOffsetY += bitmapHeight) {
 			int destY = tiledOffsetY;
+			DrawMainTexture(destX, destY);
 			if constexpr (STATIC_TEXTURE) {
 				Draw::DrawTexture(m_StaticTexture.get(), FloatRect(destX, destY, bitmapWidth, bitmapHeight));
 			} else {
-				m_MainStreamTexture->Draw(
-					{{0.0f, 0.0f}, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
-				    {Vector(destX, destY), bitmapWidth, bitmapHeight});
 			}
 			if (!m_WrapY) {
 				break;
@@ -574,6 +585,22 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::DrawTiled(const Camera& cam
 	}
 
 	g_RenderMan.SetCurrentZOffset(c_DefaultDrawDepth);
+}
+
+void SceneLayerTracked::DrawMainTexture(int destX, int destY) const {
+	m_MainStreamTexture->Draw(
+	    {{0.0f, 0.0f}, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
+	    {Vector(destX, destY), m_ScaledDimensions.m_X, m_ScaledDimensions.m_Y});
+}
+
+void SceneLayer::DrawMainTexture(int destX, int destY) const {
+	m_MainStreamTexture->Draw(
+	    {{0.0f, 0.0f}, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
+	    {Vector(destX, destY), m_ScaledDimensions.m_X, m_ScaledDimensions.m_Y});
+}
+
+void StaticSceneLayer::DrawMainTexture(int destX, int destY) const {
+	Draw::DrawTexture(m_StaticTexture.get(), FloatRect(destX, destY, m_ScaledDimensions.m_X, m_ScaledDimensions.m_Y));
 }
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>

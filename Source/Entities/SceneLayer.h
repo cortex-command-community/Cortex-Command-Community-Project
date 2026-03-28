@@ -269,6 +269,8 @@ namespace RTE {
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param drawScaled Whether to use scaled drawing routines or not.
 		void DrawTiled(const Camera& camera) const;
+
+		virtual void DrawMainTexture(int destX, int destY) const {};
 #pragma endregion
 
 	private:
@@ -303,6 +305,7 @@ namespace RTE {
 
 	protected:
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
+		void DrawMainTexture(int destX, int destY) const override;
 	};
 
 	class SceneLayer : public SceneLayerImpl<false> {
@@ -323,6 +326,7 @@ namespace RTE {
 
 	protected:
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
+		void DrawMainTexture(int destX, int destY) const override;
 	};
 
 	/// SceneLayer that promises to never update its MainBitmap.
@@ -336,9 +340,10 @@ namespace RTE {
 
 		/// Gets the BITMAP that this StaticSceneLayer uses.
 		/// The bitmap will only be uploaded to GPU once on the first draw. So any modifcations after that will not be drawn.
-		BITMAP* GetBitmap() const { return m_MainBitmap; }
+		const BITMAP* GetBitmap() const { return m_MainBitmap; }
 
 	protected:
 		static Entity::ClassInfo m_sClass; //!< ClassInfo for this class.
+		void DrawMainTexture(int destX, int destY) const override;
 	};
 } // namespace RTE
