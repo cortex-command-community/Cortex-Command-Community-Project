@@ -1979,4 +1979,13 @@ void MovableMan::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whi
 		(*aIt)->DrawHUD(pTargetBitmap, targetPos, which);
 }
 
-void MovableMan::DrawHUD(const Camera& camera) {}
+void MovableMan::DrawHUD(const Camera& camera) {
+	ZoneScoped;
+	for (auto item: m_Items) {
+		item->DrawHUD(camera);
+	}
+
+	for (auto actor: m_Actors) {
+		actor->DrawHUD(camera);
+	}
+}
