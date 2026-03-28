@@ -48,8 +48,8 @@ void CameraMan::SetOffset(const Vector& offset, int screenId) {
 
 Vector CameraMan::GetUnwrappedOffset(int screenId) const {
 	const Screen& screen = m_Screens[screenId];
-	const SLTerrain* terrain = g_SceneMan.GetScene()->GetTerrain();
-	return Vector(screen.Offset.GetX() + static_cast<float>(terrain->GetBitmap()->w * screen.SeamCrossCount[Axes::X]), screen.Offset.GetY() + static_cast<float>(terrain->GetBitmap()->h * screen.SeamCrossCount[Axes::Y]));
+	Vector terrainSize = g_SceneMan.GetSceneDim();
+	return Vector(screen.Offset.GetX() + static_cast<float>(terrainSize.m_X * screen.SeamCrossCount[Axes::X]), screen.Offset.GetY() + static_cast<float>(terrainSize.m_Y * screen.SeamCrossCount[Axes::Y]));
 }
 
 void CameraMan::SetScroll(const Vector& center, int screenId) {
@@ -269,5 +269,38 @@ void CameraMan::Update(int screenId) {
 
 	screen.DeltaOffset = screen.Offset - oldOffset;
 	screen.ScrollTimer.Reset();
-	screen.Cameras = {Camera(screen.Offset, Box(Vector(), g_FrameMan.GetPlayerFrameBufferWidth(0), g_FrameMan.GetPlayerFrameBufferHeight(0)))};
+
+	Box viewport(screen.Offset, g_FrameMan.GetPlayerScreenWidth(), g_FrameMan.GetPlayerScreenHeight());
+	Box sceneBox(Vector(), g_SceneMan.GetSceneDim());
+
+	screen.Cameras = {Camera(screen.Offset.GetFloored(), viewport)};
+	screen.Cameras[0].SetClipRect(sceneBox.GetIntersection(viewport));
+
+	auto addWrapCamera = [sceneBox, &screen](Box viewport, Vector offset) {
+		viewport.m_Corner = screen.Offset - offset;
+		if (sceneBox.IntersectsBox(viewport)) {
+			screen.Cameras.emplace_back(viewport.m_Corner, viewport);
+			screen.Cameras.back().SetClipRect(sceneBox.GetIntersection(viewport));
+			screen.Cameras.back().SetClipState(true);
+		}
+	};
+
+	if (g_SceneMan.SceneWrapsX()) {
+		addWrapCamera(viewport, Vector(g_SceneMan.GetSceneDim().m_X, 0.0f));
+		addWrapCamera(viewport, -Vector(g_SceneMan.GetSceneDim().m_X, 0.0f));
+	}
+
+	if (g_SceneMan.SceneWrapsY()) {
+		addWrapCamera(viewport, Vector(0.0f, g_SceneMan.GetSceneDim().m_Y));
+		addWrapCamera(viewport, -Vector(0.0f, g_SceneMan.GetSceneDim().m_Y));
+	}
+
+	if (g_SceneMan.SceneWrapsX() && g_SceneMan.SceneWrapsY()) {
+		addWrapCamera(viewport, g_SceneMan.GetSceneDim());
+		addWrapCamera(viewport, Vector(g_SceneMan.GetSceneDim().m_X, -g_SceneMan.GetSceneDim().m_Y));
+		addWrapCamera(viewport, -g_SceneMan.GetSceneDim());
+		addWrapCamera(viewport, Vector(-g_SceneMan.GetSceneDim().m_X, g_SceneMan.GetSceneDim().m_Y));
+	}
+
+	screen.Cameras[0].SetClipState(screen.Cameras.size() > 1);
 }
