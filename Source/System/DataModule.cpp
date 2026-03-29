@@ -45,6 +45,10 @@ void DataModule::Clear() {
 	m_ScriptPath.clear();
 	m_IsFaction = false;
 	m_IsMerchant = false;
+	m_RTEScriptPath.clear();
+	m_LuaClassName.clear();
+	m_RTEPaused = false;
+	m_RTEScriptActive = false;
 }
 
 int DataModule::Create(const std::string& moduleName, const ProgressCallback& progressCallback) {
@@ -70,6 +74,14 @@ int DataModule::Create(const std::string& moduleName, const ProgressCallback& pr
 	if (m_ModuleID >= g_PresetMan.GetOfficialModuleCount() && !m_IsUserdata && ReadModuleProperties(moduleName, progressCallback) >= 0) {
 		CheckSupportedGameVersion();
 	}
+
+	// If one or the other doesn't exist then it's not active.
+	m_RTEScriptActive = !m_RTEScriptPath.empty() && !m_LuaClassName.empty();
+
+	//TODO Possibly don't run it if it's m_RTEScriptActive is false?
+	// They have the check anyway in each function but wondering if it is worth it.
+	LoadRTEScripts();
+	StartRTE();
 
 	if (reader.Create(indexPath, true, progressCallback) >= 0) {
 		int result = Serializable::Create(reader);
@@ -110,6 +122,73 @@ void DataModule::Destroy() {
 	}
 	delete m_SupportedGameVersion;
 	Clear();
+}
+
+int DataModule::LoadRTEScripts() {
+	// Gotto have a script file path and lua class names defined in order to work.
+	// This is repeated from StartRTE, UpdateRTE, PauseRTE.
+	if (!m_RTEScriptActive) {
+		return 0;
+	}
+
+	int error = 0;
+
+	if (!g_LuaMan.GetMasterScriptState().GlobalIsDefined(m_LuaClassName)) {
+		// Define an empty table that will hold the script file definitions.
+		if ((error = g_LuaMan.GetMasterScriptState().RunScriptString(m_LuaClassName + " = {};")) < 0) {
+			return error;
+		}
+	}
+
+	if ((error = g_LuaMan.GetMasterScriptState().RunScriptFile(m_RTEScriptPath, true, false)) < 0) {
+		return error;
+	}
+
+	return 0;
+}
+
+void DataModule::StartRTE() {
+	if (!m_RTEScriptActive) {
+		return;
+	}
+
+	int error = g_LuaMan.GetMasterScriptState().RunScriptString("if " + m_LuaClassName + ".StartRTE then " + m_LuaClassName + ":StartRTE(); end");
+	if (error) {
+		return;
+	}
+}
+
+void DataModule::UpdateRTE() {
+	if (!m_RTEScriptActive) {
+		return;
+	}
+
+	int error = g_LuaMan.GetMasterScriptState().RunScriptString("if " + m_LuaClassName + ".UpdateRTE then " + m_LuaClassName + ":UpdateRTE(); end");
+	if (error) {
+		return;
+	}
+}
+
+void DataModule::PauseRTE(bool pause) {
+	if (!m_RTEScriptActive) {
+		return;
+	}
+
+	//? It doesn't have the check like ActivityMan::PauseActivity
+	//? Refer to line 520 from ActivityMan::PauseActivity and observe for further inspection.
+	//TODO I am not sure if it should return like how when an activity is paused.
+	// i.e.
+	//	if (pause == m_Activity->IsPaused()) {
+	//		return;
+	//	}
+
+	m_RTEPaused = pause;
+
+	// Return true or false if paused
+	int error = g_LuaMan.GetMasterScriptState().RunScriptString("if " + m_LuaClassName + ".PauseRTE then " + m_LuaClassName + ":PauseRTE(" + (pause ? "true" : "false") + "); end");
+	if (error) {
+		return;
+	}
 }
 
 int DataModule::ReadModuleProperties(const std::string& moduleName, const ProgressCallback& progressCallback) {
@@ -183,6 +262,8 @@ int DataModule::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader >> m_ScriptPath;
 		LoadScripts();
 	});
+	MatchProperty("RTEScriptPath", { reader >> m_RTEScriptPath; });
+	MatchProperty("LuaClassName", { reader >> m_LuaClassName; });
 	MatchProperty("Require", {
 		// Check for required dependencies if we're not load properties
 		std::string requiredModule;

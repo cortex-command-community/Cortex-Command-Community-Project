@@ -226,6 +226,20 @@ namespace RTE {
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int LoadScripts() const;
 
+		/// TODO Better description and better name for the function
+		/// Creates a global table for the DataModule
+		int LoadRTEScripts();
+
+		/// The initial start of the DataModule and runs once ever.
+		void StartRTE();
+
+		/// Updates globally without restrictions.
+		void UpdateRTE();
+
+		/// Indicates whether the game is currently paused or not.
+		/// @param pause The pause state of the game.
+		void PauseRTE(bool pause);
+
 		/// Reloads all scripted Entity Presets with the latest version of their respective script files.
 		void ReloadAllScripts() const;
 #pragma endregion
@@ -252,6 +266,10 @@ namespace RTE {
 		std::string m_ScriptPath; //!< Path to script to execute when this module is loaded.
 		bool m_IsFaction; //!< Whether this data module is considered a faction.
 		bool m_IsMerchant; //!< Whether this data module is considered a merchant.
+		std::string m_RTEScriptPath; //!< The path to the lua script file that allows functions to be ran without being in a game.
+		std::string m_LuaClassName; //!< The name of the class (table) defining the logic of this in Lua, as specified in the script file.
+		bool m_RTEPaused; //!< Whether the game is paused or not.
+		bool m_RTEScriptActive; //!< Whether this RTE Script is currently allowed to run.
 		version::Semver200_version* m_SupportedGameVersion; //!< Game version this DataModule supports. Needs to satisfy Caret Version Range for this DataModule to be allowed. Base DataModules don't need this.
 		int m_Version; //!< Version number, starting with 1.
 		int m_ModuleID; //!< ID number assigned to this upon loading, for internal use only, don't reflect in ini's.

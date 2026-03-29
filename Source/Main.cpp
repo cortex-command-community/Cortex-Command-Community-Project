@@ -37,6 +37,7 @@
 #include "ConsoleMan.h"
 #include "SettingsMan.h"
 #include "PresetMan.h"
+#include "DataModule.h"
 #include "UInputMan.h"
 #include "PerformanceMan.h"
 #include "FrameMan.h"
@@ -249,6 +250,9 @@ void RunMenuLoop() {
 	g_UInputMan.DisableKeys(false);
 	g_UInputMan.TrapMousePos(false);
 
+	//? Refer to line 287-299 for usage.
+	long long lastRTEUpdateTime = g_TimerMan.GetRealTickCount();
+
 	while (!System::IsSetToQuit()) {
 		g_WindowMan.ClearBackbuffer();
 		PollSDLEvents();
@@ -275,6 +279,24 @@ void RunMenuLoop() {
 		}
 
 		g_ConsoleMan.Update();
+
+		// The reason why I made this is because I got scared that it was running to fast.
+		// Compared to a script that is running in simulation.
+		// So I have it running at 60 ticks.
+		// This is originally and modified version from Source\Managers\NetworkClient.cpp
+		long long currentTicks = g_TimerMan.GetRealTickCount();
+		if (currentTicks - lastRTEUpdateTime < 0) {
+			lastRTEUpdateTime = currentTicks;
+		}
+
+		if (static_cast<double>((currentTicks - lastRTEUpdateTime)) / static_cast<double>(g_TimerMan.GetTicksPerSecond()) > 1.0 / 60.0) {
+			lastRTEUpdateTime = g_TimerMan.GetRealTickCount();
+			for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); moduleID++) {
+				if (DataModule* dataModule = const_cast<DataModule*>(g_PresetMan.GetDataModule(moduleID))) {
+					dataModule->UpdateRTE();
+				}
+			}
+		}
 
 		g_UInputMan.EndFrame();
 		g_WindowMan.GetScreenBuffer()->Begin();
@@ -344,6 +366,13 @@ void RunGameLoop() {
 			g_MovableMan.CompleteQueuedMOIDDrawings();
 
 			g_ConsoleMan.Update();
+
+			for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); moduleID++) {
+				if (DataModule* dataModule = const_cast<DataModule*>(g_PresetMan.GetDataModule(moduleID))) {
+					dataModule->UpdateRTE();
+				}
+			}
+
 			g_ActivityMan.Update();
 
 			if (g_SceneMan.GetScene()) {
@@ -369,9 +398,23 @@ void RunGameLoop() {
 			if (!g_ActivityMan.IsInActivity()) {
 				g_TimerMan.PauseSim(true);
 
+				//TODO Possible way to improve this, I guessed out my ass and it works but I do not trust it.
+				// This is done exactly in line 414-418 but set to false.
+				for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); moduleID++) {
+					if (DataModule* dataModule = const_cast<DataModule*>(g_PresetMan.GetDataModule(moduleID))) {
+						dataModule->PauseRTE(true);
+					}
+				}
+
 				if (!g_ActivityMan.ActivitySetToRestart()) {
 					g_MenuMan.HandleTransitionIntoMenuLoop();
 					RunMenuLoop();
+				}
+
+				for (int moduleID = 0; moduleID < g_PresetMan.GetTotalModuleCount(); moduleID++) {
+					if (DataModule* dataModule = const_cast<DataModule*>(g_PresetMan.GetDataModule(moduleID))) {
+						dataModule->PauseRTE(false);
+					}
 				}
 			}
 			if (g_ActivityMan.ActivitySetToRestart()) {
