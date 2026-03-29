@@ -7,6 +7,7 @@
 #include "raylib/rlgl.h"
 
 #include <array>
+#include <unordered_map>
 
 namespace RTE {
 	class Shader: public Entity {
@@ -186,6 +187,7 @@ namespace RTE {
 		std::string m_FragmentPath{};
 		std::string m_VertexPath{};
 		GLuint m_ProgramID{0};
+		mutable std::unordered_map<std::string, GLint> m_UniformCache{};
 
 		/// Compiles a shader component from a data string.
 		/// @param shaderID

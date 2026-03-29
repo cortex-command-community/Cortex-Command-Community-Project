@@ -61,6 +61,7 @@ int Shader::Create(const Shader& ref) {
 	m_UVTransformUniform = ref.m_UVTransformUniform;
 	m_ProjectionUniform = ref.m_ProjectionUniform;
 	std::copy(ref.m_Locations.begin(), ref.m_Locations.end(), m_Locations.begin());
+	m_UniformCache = ref.m_UniformCache;
 	return 0;
 }
 
@@ -110,21 +111,29 @@ void Shader::End() const {
 	rlClearActiveTextures();
 }
 
-GLint Shader::GetUniformLocation(const std::string& name) const { return glGetUniformLocation(m_ProgramID, name.c_str()); }
+GLint Shader::GetUniformLocation(const std::string& name) const {
+	auto it = m_UniformCache.find(name);
+	if (it != m_UniformCache.end()) {
+		return it->second;
+	}
+	GLint location = glGetUniformLocation(m_ProgramID, name.c_str());
+	m_UniformCache[name] = location;
+	return location;
+}
 
-void Shader::SetBool(const std::string& name, bool value) const { GL_CHECK(glUniform1i(glGetUniformLocation(m_ProgramID, name.c_str()), static_cast<int>(value))); }
+void Shader::SetBool(const std::string& name, bool value) const { GL_CHECK(glUniform1i(GetUniformLocation(name), static_cast<int>(value))); }
 
-void Shader::SetInt(const std::string& name, int value) const { GL_CHECK(glUniform1i(glGetUniformLocation(m_ProgramID, name.c_str()), value)); }
+void Shader::SetInt(const std::string& name, int value) const { GL_CHECK(glUniform1i(GetUniformLocation(name), value)); }
 
-void Shader::SetFloat(const std::string& name, float value) const { GL_CHECK(glUniform1f(glGetUniformLocation(m_ProgramID, name.c_str()), value)); }
+void Shader::SetFloat(const std::string& name, float value) const { GL_CHECK(glUniform1f(GetUniformLocation(name), value)); }
 
-void Shader::SetMatrix4f(const std::string& name, const glm::mat4& value) const { GL_CHECK(glUniformMatrix4fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value))); }
+void Shader::SetMatrix4f(const std::string& name, const glm::mat4& value) const { GL_CHECK(glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, glm::value_ptr(value))); }
 
-void Shader::SetVector2f(const std::string& name, const glm::vec2& value) const { GL_CHECK(glUniform2fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, glm::value_ptr(value))); }
+void Shader::SetVector2f(const std::string& name, const glm::vec2& value) const { GL_CHECK(glUniform2fv(GetUniformLocation(name), 1, glm::value_ptr(value))); }
 
-void Shader::SetVector3f(const std::string& name, const glm::vec3& value) const { GL_CHECK(glUniform3fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, glm::value_ptr(value))); }
+void Shader::SetVector3f(const std::string& name, const glm::vec3& value) const { GL_CHECK(glUniform3fv(GetUniformLocation(name), 1, glm::value_ptr(value))); }
 
-void Shader::SetVector4f(const std::string& name, const glm::vec4& value) const { GL_CHECK(glUniform4fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, glm::value_ptr(value))); }
+void Shader::SetVector4f(const std::string& name, const glm::vec4& value) const { GL_CHECK(glUniform4fv(GetUniformLocation(name), 1, glm::value_ptr(value))); }
 
 void Shader::SetBool(int32_t uniformLoc, bool value) const { GL_CHECK(glUniform1i(uniformLoc, value)); }
 
@@ -183,6 +192,8 @@ bool Shader::Link(GLuint vtxShader, GLuint fragShader) {
 	GL_CHECK(glDetachShader(m_ProgramID, fragShader));
 	GL_CHECK(glDeleteShader(vtxShader));
 	GL_CHECK(glDeleteShader(fragShader));
+
+	m_UniformCache.clear();
 
 	return true;
 }
