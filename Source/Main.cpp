@@ -346,6 +346,8 @@ void RunGameLoop() {
 			g_ConsoleMan.Update();
 			g_ActivityMan.Update();
 
+			g_UInputMan.HandleSpecialInput();
+
 			if (g_SceneMan.GetScene()) {
 				g_SceneMan.GetScene()->Update();
 			}

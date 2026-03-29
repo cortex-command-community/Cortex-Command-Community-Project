@@ -583,9 +583,11 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Update Breakdown
+	public:
 		/// Capture and handle special key shortcuts and combinations. This is called from Update().
 		void HandleSpecialInput();
 
+	protected:
 		/// Handles the mouse input in network multiplayer. This is called from Update().
 		void UpdateNetworkMouseMovement();
 

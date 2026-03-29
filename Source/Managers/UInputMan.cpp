@@ -1031,7 +1031,6 @@ int UInputMan::Update() {
 
 	UpdateMouseInput();
 	UpdateJoystickDigitalAxis();
-	HandleSpecialInput();
 
 	return 0;
 }
