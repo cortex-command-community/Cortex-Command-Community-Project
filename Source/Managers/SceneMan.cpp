@@ -18,6 +18,8 @@
 #include "Material.h"
 #include "SoundContainer.h"
 
+#include "System/BresenhamLine.h"
+
 #include "tracy/Tracy.hpp"
 
 using namespace RTE;
@@ -818,69 +820,24 @@ std::vector<MOPixel*>* SceneMan::DislodgePixelBoxNoBool(const Vector& upperLeftC
 
 std::vector<MOPixel*>* SceneMan::DislodgePixelLine(const Vector& start, const Vector& ray, int skip, bool deletePixels) {
 	std::vector<MOPixel*>* pixelList = new std::vector<MOPixel*>();
-	int error, dom, sub, domSteps, skipped = skip;
-	int intPos[2], delta[2], delta2[2], increment[2];
 
-	intPos[X] = std::floor(start.m_X);
-	intPos[Y] = std::floor(start.m_Y);
-	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
-	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
+	int endX = std::floor(start.m_X + ray.m_X);
+	int endY = std::floor(start.m_Y + ray.m_Y);
 
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm preparation
+	TraverseBresenhamLine(
+	    std::floor(start.m_X), std::floor(start.m_Y),
+	    endX, endY,
+	    skip,
+	    [&](int& x, int& y, int) -> bool {
+		g_SceneMan.WrapPosition(x, y);
 
-	if (delta[X] < 0) {
-		increment[X] = -1;
-		delta[X] = -delta[X];
-	} else
-		increment[X] = 1;
-
-	if (delta[Y] < 0) {
-		increment[Y] = -1;
-		delta[Y] = -delta[Y];
-	} else
-		increment[Y] = 1;
-
-	// Scale by 2, for better accuracy of the error at the first pixel
-	delta2[X] = delta[X] << 1;
-	delta2[Y] = delta[Y] << 1;
-
-	// If X is dominant, Y is submissive, and vice versa.
-	if (delta[X] > delta[Y]) {
-		dom = X;
-		sub = Y;
-	} else {
-		dom = Y;
-		sub = X;
-	}
-
-	error = delta2[sub] - delta[dom];
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm execution
-
-	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
-		intPos[dom] += increment[dom];
-		if (error >= 0) {
-			intPos[sub] += increment[sub];
-			error -= delta2[dom];
+		MOPixel* px = DislodgePixelBool(x, y, deletePixels);
+		if (px) {
+			pixelList->push_back(px);
 		}
-		error += delta2[sub];
 
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
-		if (++skipped > skip || domSteps + 1 == delta[dom]) {
-			// Scene wrapping
-			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
-
-			MOPixel* px = DislodgePixelBool(intPos[X], intPos[Y], deletePixels);
-			if (px) {
-				pixelList->push_back(px);
-			}
-
-			// Reset skip counter
-			skipped = 0;
-		}
-	}
+		return true;
+	    });
 
 	return pixelList;
 }
@@ -1040,196 +997,77 @@ void SceneMan::RestoreUnseenBox(const int posX, const int posY, const int width,
 }
 
 bool SceneMan::CastTerrainPenetrationRay(const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip) {
-	int error, dom, sub, domSteps, skipped = skip;
-	int intPos[2], delta[2], delta2[2], increment[2];
-	bool stopped = false;
-	unsigned char materialID;
-	Material const* foundMaterial;
 	int totalStrength = 0;
-	// Save the projected end of the ray pos
 	endPos = start + ray;
 
-	intPos[X] = std::floor(start.m_X);
-	intPos[Y] = std::floor(start.m_Y);
-	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
-	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
+	bool stopped = TraverseBresenhamLine(
+	    std::floor(start.m_X), std::floor(start.m_Y),
+	    std::floor(start.m_X + ray.m_X), std::floor(start.m_Y + ray.m_Y),
+	    skip,
+	    [&](int& x, int& y, int) -> bool {
+		g_SceneMan.WrapPosition(x, y);
 
-	if (delta[X] == 0 && delta[Y] == 0)
-		return false;
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm preparation
-
-	if (delta[X] < 0) {
-		increment[X] = -1;
-		delta[X] = -delta[X];
-	} else
-		increment[X] = 1;
-
-	if (delta[Y] < 0) {
-		increment[Y] = -1;
-		delta[Y] = -delta[Y];
-	} else
-		increment[Y] = 1;
-
-	// Scale by 2, for better accuracy of the error at the first pixel
-	delta2[X] = delta[X] << 1;
-	delta2[Y] = delta[Y] << 1;
-
-	// If X is dominant, Y is submissive, and vice versa.
-	if (delta[X] > delta[Y]) {
-		dom = X;
-		sub = Y;
-	} else {
-		dom = Y;
-		sub = X;
-	}
-
-	error = delta2[sub] - delta[dom];
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm execution
-
-	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
-		intPos[dom] += increment[dom];
-		if (error >= 0) {
-			intPos[sub] += increment[sub];
-			error -= delta2[dom];
+		Material const* foundMaterial = GetMaterialFromID(GetTerrMatter(x, y));
+		totalStrength += foundMaterial->GetIntegrity();
+		if (totalStrength >= strengthLimit) {
+			endPos.SetXY(x, y);
+			return false;
 		}
-		error += delta2[sub];
 
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
-		if (++skipped > skip || domSteps + 1 == delta[dom]) {
-			// Scene wrapping
-			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
-
-			// Check the strength of the terrain to see if we can penetrate further
-			materialID = GetTerrMatter(intPos[X], intPos[Y]);
-			// Get the material object
-			foundMaterial = GetMaterialFromID(materialID);
-			// Add the encountered material's strength to the tally
-			totalStrength += foundMaterial->GetIntegrity();
-			// See if we have hit the limits of our ray's strength
-			if (totalStrength >= strengthLimit) {
-				// Save the position of the end of the ray where blocked
-				endPos.SetXY(intPos[X], intPos[Y]);
-				stopped = true;
-				break;
-			}
-			// Reset skip counter
-			skipped = 0;
-			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
-				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
-			}
+		if (m_pDebugLayer && m_DrawRayCastVisualizations) {
+			m_pDebugLayer->SetPixel(x, y, 13);
 		}
-	}
+		return true;
+	    });
 
 	return stopped;
 }
 
-// TODO Every raycast should use some shared line drawing method (or maybe something more efficient if it exists, that needs looking into) instead of having a ton of duplicated code.
 bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal) {
 	if (!m_pCurrentScene->GetUnseenLayer(team))
 		return false;
 
-	int error, dom, sub, domSteps, skipped = skip;
-	int size = 40 - GetUnseenResolution(team).GetLargest();
-	int intPos[2], delta[2], delta2[2], increment[2];
-	bool affectedAny = false;
-	unsigned char materialID;
-	Material const* foundMaterial;
-	int totalStrength = 0;
-	// Save the projected end of the ray pos
-	endPos = start + ray;
-
-	intPos[X] = std::floor(start.m_X);
-	intPos[Y] = std::floor(start.m_Y);
-	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
-	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-
-	if (delta[X] == 0 && delta[Y] == 0)
+	if (!m_pCurrentScene)
 		return false;
 
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm preparation
+	int size = 40 - GetUnseenResolution(team).GetLargest();
+	bool affectedAny = false;
+	int totalStrength = 0;
+	endPos = start + ray;
 
-	if (delta[X] < 0) {
-		increment[X] = -1;
-		delta[X] = -delta[X];
-	} else
-		increment[X] = 1;
+	TraverseBresenhamLine(
+	    std::floor(start.m_X), std::floor(start.m_Y),
+	    std::floor(start.m_X + ray.m_X), std::floor(start.m_Y + ray.m_Y),
+	    skip,
+	    [&](int& x, int& y, int) -> bool {
+		WrapPosition(x, y);
 
-	if (delta[Y] < 0) {
-		increment[Y] = -1;
-		delta[Y] = -delta[Y];
-	} else
-		increment[Y] = 1;
+		bool is_unseen = IsUnseen(x, y, team) || IsUnseen(x - size, y - size, team) || IsUnseen(x + size, y - size, team) || IsUnseen(x + size, y + size, team) || IsUnseen(x - size, y + size, team) || IsUnseen(x - size, y, team) || IsUnseen(x + size, y, team) || IsUnseen(x, y - size, team) || IsUnseen(x, y + size, team);
 
-	// Scale by 2, for better accuracy of the error at the first pixel
-	delta2[X] = delta[X] << 1;
-	delta2[Y] = delta[Y] << 1;
-
-	// If X is dominant, Y is submissive, and vice versa.
-	if (delta[X] > delta[Y]) {
-		dom = X;
-		sub = Y;
-	} else {
-		dom = Y;
-		sub = X;
-	}
-
-	error = delta2[sub] - delta[dom];
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm execution
-
-	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
-		intPos[dom] += increment[dom];
-		if (error >= 0) {
-			intPos[sub] += increment[sub];
-			error -= delta2[dom];
-		}
-		error += delta2[sub];
-
-		// Only check space if we're not due to skip any, or if this is the last step
-		if (++skipped > skip || domSteps + 1 == delta[dom]) {
-			// Scene wrapping
-			WrapPosition(intPos[X], intPos[Y]);
-
-			bool is_unseen = IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y], team) || IsUnseen(intPos[X] + size, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - size, team) || IsUnseen(intPos[X], intPos[Y] + size, team);
-
-			// Reveal if we can, save the result
-			if (reveal) {
-				if (is_unseen) {
-					RevealUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
-					affectedAny = true;
-				}
-			} else {
-				if (!is_unseen) {
-					RestoreUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
-					affectedAny = true;
-				}
+		if (reveal) {
+			if (is_unseen) {
+				RevealUnseenBox(x - size / 2, y - size / 2, size, size, team);
+				affectedAny = true;
 			}
-
-			// Check the strength of the terrain to see if we can penetrate further
-			materialID = GetTerrMatter(intPos[X], intPos[Y]);
-			// Get the material object
-			foundMaterial = GetMaterialFromID(materialID);
-			// Add the encountered material's strength to the tally
-			totalStrength += foundMaterial->GetIntegrity();
-			// See if we have hit the limits of our ray's strength
-			if (totalStrength >= strengthLimit) {
-				// Save the position of the end of the ray where blocked
-				endPos.SetXY(intPos[X], intPos[Y]);
-				break;
-			}
-			// Reset skip counter
-			skipped = 0;
-			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
-				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
+		} else {
+			if (!is_unseen) {
+				RestoreUnseenBox(x - size / 2, y - size / 2, size, size, team);
+				affectedAny = true;
 			}
 		}
-	}
+
+		Material const* foundMaterial = GetMaterialFromID(GetTerrMatter(x, y));
+		totalStrength += foundMaterial->GetIntegrity();
+		if (totalStrength >= strengthLimit) {
+			endPos.SetXY(x, y);
+			return false;
+		}
+
+		if (m_pDebugLayer && m_DrawRayCastVisualizations) {
+			m_pDebugLayer->SetPixel(x, y, 13);
+		}
+		return true;
+	    });
 
 	return affectedAny;
 }
@@ -1243,83 +1081,31 @@ bool SceneMan::CastUnseeRay(int team, const Vector& start, const Vector& ray, Ve
 }
 
 bool SceneMan::CastMaterialRay(const Vector& start, const Vector& ray, unsigned char material, Vector& result, int skip, bool wrap) {
-
-	int error, dom, sub, domSteps, skipped = skip;
-	int intPos[2], delta[2], delta2[2], increment[2];
-	bool foundPixel = false;
-
-	intPos[X] = std::floor(start.m_X);
-	intPos[Y] = std::floor(start.m_Y);
-	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
-	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-
-	if (delta[X] == 0 && delta[Y] == 0)
+	if (std::floor(start.m_X + ray.m_X) == std::floor(start.m_X) && std::floor(start.m_Y + ray.m_Y) == std::floor(start.m_Y))
 		return false;
 
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm preparation
+	bool foundPixel = false;
 
-	if (delta[X] < 0) {
-		increment[X] = -1;
-		delta[X] = -delta[X];
-	} else
-		increment[X] = 1;
+	TraverseBresenhamLine(
+	    std::floor(start.m_X), std::floor(start.m_Y),
+	    std::floor(start.m_X + ray.m_X), std::floor(start.m_Y + ray.m_Y),
+	    skip,
+	    [&](int& x, int& y, int) -> bool {
+		if (wrap)
+			g_SceneMan.WrapPosition(x, y);
 
-	if (delta[Y] < 0) {
-		increment[Y] = -1;
-		delta[Y] = -delta[Y];
-	} else
-		increment[Y] = 1;
-
-	// Scale by 2, for better accuracy of the error at the first pixel
-	delta2[X] = delta[X] << 1;
-	delta2[Y] = delta[Y] << 1;
-
-	// If X is dominant, Y is submissive, and vice versa.
-	if (delta[X] > delta[Y]) {
-		dom = X;
-		sub = Y;
-	} else {
-		dom = Y;
-		sub = X;
-	}
-
-	error = delta2[sub] - delta[dom];
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm execution
-
-	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
-		intPos[dom] += increment[dom];
-		if (error >= 0) {
-			intPos[sub] += increment[sub];
-			error -= delta2[dom];
+		if (GetTerrMatter(x, y) == material) {
+			result.SetXY(x, y);
+			s_LastRayHitPos.SetXY(x, y);
+			foundPixel = true;
+			return false;
 		}
-		error += delta2[sub];
 
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
-		if (++skipped > skip || domSteps + 1 == delta[dom]) {
-			// Scene wrapping, if necessary
-			if (wrap)
-				g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
-
-			// See if we found the looked-for pixel of the correct material
-			if (GetTerrMatter(intPos[X], intPos[Y]) == material) {
-				// Save result and report success
-				foundPixel = true;
-				result.SetXY(intPos[X], intPos[Y]);
-				// Save last ray pos
-				s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
-				break;
-			}
-
-			skipped = 0;
-
-			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
-				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
-			}
+		if (m_pDebugLayer && m_DrawRayCastVisualizations) {
+			m_pDebugLayer->SetPixel(x, y, 13);
 		}
-	}
+		return true;
+	    });
 
 	return foundPixel;
 }
@@ -1337,82 +1123,31 @@ float SceneMan::CastMaterialRay(const Vector& start, const Vector& ray, unsigned
 }
 
 bool SceneMan::CastNotMaterialRay(const Vector& start, const Vector& ray, unsigned char material, Vector& result, int skip, bool checkMOs) {
-	int error, dom, sub, domSteps, skipped = skip;
-	int intPos[2], delta[2], delta2[2], increment[2];
-	bool foundPixel = false;
-
-	intPos[X] = std::floor(start.m_X);
-	intPos[Y] = std::floor(start.m_Y);
-	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
-	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-
-	if (delta[X] == 0 && delta[Y] == 0)
+	if (std::floor(start.m_X + ray.m_X) == std::floor(start.m_X) && std::floor(start.m_Y + ray.m_Y) == std::floor(start.m_Y))
 		return false;
 
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm preparation
+	bool foundPixel = false;
 
-	if (delta[X] < 0) {
-		increment[X] = -1;
-		delta[X] = -delta[X];
-	} else
-		increment[X] = 1;
+	TraverseBresenhamLine(
+	    std::floor(start.m_X), std::floor(start.m_Y),
+	    std::floor(start.m_X + ray.m_X), std::floor(start.m_Y + ray.m_Y),
+	    skip,
+	    [&](int& x, int& y, int) -> bool {
+		g_SceneMan.WrapPosition(x, y);
 
-	if (delta[Y] < 0) {
-		increment[Y] = -1;
-		delta[Y] = -delta[Y];
-	} else
-		increment[Y] = 1;
-
-	// Scale by 2, for better accuracy of the error at the first pixel
-	delta2[X] = delta[X] << 1;
-	delta2[Y] = delta[Y] << 1;
-
-	// If X is dominant, Y is submissive, and vice versa.
-	if (delta[X] > delta[Y]) {
-		dom = X;
-		sub = Y;
-	} else {
-		dom = Y;
-		sub = X;
-	}
-
-	error = delta2[sub] - delta[dom];
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm execution
-
-	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
-		intPos[dom] += increment[dom];
-		if (error >= 0) {
-			intPos[sub] += increment[sub];
-			error -= delta2[dom];
+		if (GetTerrMatter(x, y) != material ||
+		    (checkMOs && g_SceneMan.GetMOIDPixel(x, y, Activity::NoTeam) != g_NoMOID)) {
+			result.SetXY(x, y);
+			s_LastRayHitPos.SetXY(x, y);
+			foundPixel = true;
+			return false;
 		}
-		error += delta2[sub];
 
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
-		if (++skipped > skip || domSteps + 1 == delta[dom]) {
-			// Scene wrapping, if necessary
-			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
-
-			// See if we found the looked-for pixel of the correct material,
-			// Or an MO is blocking the way
-			if (GetTerrMatter(intPos[X], intPos[Y]) != material ||
-			    (checkMOs && g_SceneMan.GetMOIDPixel(intPos[X], intPos[Y], Activity::NoTeam) != g_NoMOID)) {
-				// Save result and report success
-				foundPixel = true;
-				result.SetXY(intPos[X], intPos[Y]);
-				// Save last ray pos
-				s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
-				break;
-			}
-
-			skipped = 0;
-			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
-				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
-			}
+		if (m_pDebugLayer && m_DrawRayCastVisualizations) {
+			m_pDebugLayer->SetPixel(x, y, 13);
 		}
-	}
+		return true;
+	    });
 
 	return foundPixel;
 }
@@ -1433,78 +1168,26 @@ float SceneMan::CastStrengthSumRay(const Vector& start, const Vector& end, int s
 	Vector ray = g_SceneMan.ShortestDistance(start, end);
 	float strengthSum = 0;
 
-	int error, dom, sub, domSteps, skipped = skip;
-	int intPos[2], delta[2], delta2[2], increment[2];
-	unsigned char materialID;
-	Material foundMaterial;
-
-	intPos[X] = std::floor(start.m_X);
-	intPos[Y] = std::floor(start.m_Y);
-	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
-	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-
-	if (delta[X] == 0 && delta[Y] == 0)
+	if (std::floor(start.m_X + ray.m_X) == std::floor(start.m_X) && std::floor(start.m_Y + ray.m_Y) == std::floor(start.m_Y))
 		return false;
 
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm preparation
+	TraverseBresenhamLine(
+	    std::floor(start.m_X), std::floor(start.m_Y),
+	    std::floor(start.m_X + ray.m_X), std::floor(start.m_Y + ray.m_Y),
+	    skip,
+	    [&](int& x, int& y, int) -> bool {
+		g_SceneMan.WrapPosition(x, y);
 
-	if (delta[X] < 0) {
-		increment[X] = -1;
-		delta[X] = -delta[X];
-	} else
-		increment[X] = 1;
-
-	if (delta[Y] < 0) {
-		increment[Y] = -1;
-		delta[Y] = -delta[Y];
-	} else
-		increment[Y] = 1;
-
-	// Scale by 2, for better accuracy of the error at the first pixel
-	delta2[X] = delta[X] << 1;
-	delta2[Y] = delta[Y] << 1;
-
-	// If X is dominant, Y is submissive, and vice versa.
-	if (delta[X] > delta[Y]) {
-		dom = X;
-		sub = Y;
-	} else {
-		dom = Y;
-		sub = X;
-	}
-
-	error = delta2[sub] - delta[dom];
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm execution
-
-	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
-		intPos[dom] += increment[dom];
-		if (error >= 0) {
-			intPos[sub] += increment[sub];
-			error -= delta2[dom];
+		unsigned char matID = GetTerrMatter(x, y);
+		if (matID != g_MaterialAir && matID != ignoreMaterial) {
+			strengthSum += GetMaterialFromID(matID)->GetIntegrity();
 		}
-		error += delta2[sub];
 
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
-		if (++skipped > skip || domSteps + 1 == delta[dom]) {
-			// Scene wrapping, if necessary
-			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
-
-			// Sum all strengths
-			materialID = GetTerrMatter(intPos[X], intPos[Y]);
-			if (materialID != g_MaterialAir && materialID != ignoreMaterial) {
-				strengthSum += GetMaterialFromID(materialID)->GetIntegrity();
-			}
-
-			skipped = 0;
-
-			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
-				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
-			}
+		if (m_pDebugLayer && m_DrawRayCastVisualizations) {
+			m_pDebugLayer->SetPixel(x, y, 13);
 		}
-	}
+		return true;
+	    });
 
 	return strengthSum;
 }
@@ -1517,678 +1200,284 @@ const Material* SceneMan::CastMaxStrengthRayMaterial(const Vector& start, const 
 	Vector ray = g_SceneMan.ShortestDistance(start, end);
 	const Material* strongestMaterial = GetMaterialFromID(MaterialColorKeys::g_MaterialAir);
 
-	int error, dom, sub, domSteps, skipped = skip;
-	int intPos[2], delta[2], delta2[2], increment[2];
-
-	intPos[X] = std::floor(start.m_X);
-	intPos[Y] = std::floor(start.m_Y);
-	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
-	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-
-	if (delta[X] == 0 && delta[Y] == 0) {
+	if (std::floor(start.m_X + ray.m_X) == std::floor(start.m_X) && std::floor(start.m_Y + ray.m_Y) == std::floor(start.m_Y)) {
 		return strongestMaterial;
 	}
 
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm preparation
+	TraverseBresenhamLine(
+	    std::floor(start.m_X), std::floor(start.m_Y),
+	    std::floor(start.m_X + ray.m_X), std::floor(start.m_Y + ray.m_Y),
+	    skip,
+	    [&](int& x, int& y, int) -> bool {
+		g_SceneMan.WrapPosition(x, y);
 
-	if (delta[X] < 0) {
-		increment[X] = -1;
-		delta[X] = -delta[X];
-	} else
-		increment[X] = 1;
-
-	if (delta[Y] < 0) {
-		increment[Y] = -1;
-		delta[Y] = -delta[Y];
-	} else
-		increment[Y] = 1;
-
-	// Scale by 2, for better accuracy of the error at the first pixel
-	delta2[X] = delta[X] << 1;
-	delta2[Y] = delta[Y] << 1;
-
-	// If X is dominant, Y is submissive, and vice versa.
-	if (delta[X] > delta[Y]) {
-		dom = X;
-		sub = Y;
-	} else {
-		dom = Y;
-		sub = X;
-	}
-
-	error = delta2[sub] - delta[dom];
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm execution
-
-	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
-		intPos[dom] += increment[dom];
-		if (error >= 0) {
-			intPos[sub] += increment[sub];
-			error -= delta2[dom];
-		}
-		error += delta2[sub];
-
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
-		if (++skipped > skip || domSteps + 1 == delta[dom]) {
-			// Scene wrapping, if necessary
-			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
-
-			// Sum all strengths
-			unsigned char materialID = GetTerrMatter(intPos[X], intPos[Y]);
-			if (materialID != g_MaterialAir && materialID != ignoreMaterial) {
-				const Material* foundMaterial = GetMaterialFromID(materialID);
-				if (foundMaterial->GetIntegrity() > strongestMaterial->GetIntegrity()) {
-					strongestMaterial = foundMaterial;
-				}
-			}
-
-			skipped = 0;
-
-			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
-				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
+		unsigned char matID = GetTerrMatter(x, y);
+		if (matID != g_MaterialAir && matID != ignoreMaterial) {
+			const Material* foundMaterial = GetMaterialFromID(matID);
+			if (foundMaterial->GetIntegrity() > strongestMaterial->GetIntegrity()) {
+				strongestMaterial = foundMaterial;
 			}
 		}
-	}
+
+		if (m_pDebugLayer && m_DrawRayCastVisualizations) {
+			m_pDebugLayer->SetPixel(x, y, 13);
+		}
+		return true;
+	    });
 
 	return strongestMaterial;
 }
 
 bool SceneMan::CastStrengthRay(const Vector& start, const Vector& ray, float strength, Vector& result, int skip, unsigned char ignoreMaterial, bool wrap) {
-	int error, dom, sub, domSteps, skipped = skip;
-	int intPos[2], delta[2], delta2[2], increment[2];
-	bool foundPixel = false;
-	unsigned char materialID;
-	Material const* foundMaterial;
-
-	intPos[X] = std::floor(start.m_X);
-	intPos[Y] = std::floor(start.m_Y);
-	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
-	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-
-	if (delta[X] == 0 && delta[Y] == 0)
+	if (std::floor(start.m_X + ray.m_X) == std::floor(start.m_X) && std::floor(start.m_Y + ray.m_Y) == std::floor(start.m_Y))
 		return false;
 
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm preparation
+	bool foundPixel = false;
+	int lastX = std::floor(start.m_X);
+	int lastY = std::floor(start.m_Y);
 
-	if (delta[X] < 0) {
-		increment[X] = -1;
-		delta[X] = -delta[X];
-	} else
-		increment[X] = 1;
+	TraverseBresenhamLine(
+	    std::floor(start.m_X), std::floor(start.m_Y),
+	    std::floor(start.m_X + ray.m_X), std::floor(start.m_Y + ray.m_Y),
+	    skip,
+	    [&](int& x, int& y, int) -> bool {
+		lastX = x;
+		lastY = y;
 
-	if (delta[Y] < 0) {
-		increment[Y] = -1;
-		delta[Y] = -delta[Y];
-	} else
-		increment[Y] = 1;
+		if (wrap)
+			g_SceneMan.WrapPosition(x, y);
 
-	// Scale by 2, for better accuracy of the error at the first pixel
-	delta2[X] = delta[X] << 1;
-	delta2[Y] = delta[Y] << 1;
-
-	// If X is dominant, Y is submissive, and vice versa.
-	if (delta[X] > delta[Y]) {
-		dom = X;
-		sub = Y;
-	} else {
-		dom = Y;
-		sub = X;
-	}
-
-	error = delta2[sub] - delta[dom];
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm execution
-
-	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
-		intPos[dom] += increment[dom];
-		if (error >= 0) {
-			intPos[sub] += increment[sub];
-			error -= delta2[dom];
-		}
-		error += delta2[sub];
-
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
-		if (++skipped > skip || domSteps + 1 == delta[dom]) {
-			// Scene wrapping, if necessary
-			if (wrap)
-				g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
-
-			materialID = GetTerrMatter(intPos[X], intPos[Y]);
-			// Ignore the ignore material
-			if (materialID != ignoreMaterial) {
-				// Get the material object
-				foundMaterial = GetMaterialFromID(materialID);
-
-				// See if we found a pixel of equal or more strength than the threshold
-				if (foundMaterial->GetIntegrity() >= strength) {
-					// Save result and report success
-					foundPixel = true;
-					result.SetXY(intPos[X], intPos[Y]);
-					// Save last ray pos
-					s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
-					break;
-				}
-			}
-			skipped = 0;
-
-			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
-				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
+		unsigned char matID = GetTerrMatter(x, y);
+		if (matID != ignoreMaterial) {
+			Material const* foundMaterial = GetMaterialFromID(matID);
+			if (foundMaterial->GetIntegrity() >= strength) {
+				result.SetXY(x, y);
+				s_LastRayHitPos.SetXY(x, y);
+				foundPixel = true;
+				return false;
 			}
 		}
-	}
 
-	// If no pixel of sufficient strength was found, set the result to the final tried position
+		if (m_pDebugLayer && m_DrawRayCastVisualizations) {
+			m_pDebugLayer->SetPixel(x, y, 13);
+		}
+		return true;
+	    });
+
 	if (!foundPixel)
-		result.SetXY(intPos[X], intPos[Y]);
+		result.SetXY(lastX, lastY);
 
 	return foundPixel;
 }
 
 bool SceneMan::CastWeaknessRay(const Vector& start, const Vector& ray, float strength, Vector& result, int skip, bool wrap) {
-	int error, dom, sub, domSteps, skipped = skip;
-	int intPos[2], delta[2], delta2[2], increment[2];
-	bool foundPixel = false;
-	unsigned char materialID;
-	Material const* foundMaterial;
-
-	intPos[X] = std::floor(start.m_X);
-	intPos[Y] = std::floor(start.m_Y);
-	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
-	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-
-	if (delta[X] == 0 && delta[Y] == 0)
+	if (std::floor(start.m_X + ray.m_X) == std::floor(start.m_X) && std::floor(start.m_Y + ray.m_Y) == std::floor(start.m_Y))
 		return false;
 
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm preparation
+	bool foundPixel = false;
+	int lastX = std::floor(start.m_X);
+	int lastY = std::floor(start.m_Y);
 
-	if (delta[X] < 0) {
-		increment[X] = -1;
-		delta[X] = -delta[X];
-	} else
-		increment[X] = 1;
+	TraverseBresenhamLine(
+	    std::floor(start.m_X), std::floor(start.m_Y),
+	    std::floor(start.m_X + ray.m_X), std::floor(start.m_Y + ray.m_Y),
+	    skip,
+	    [&](int& x, int& y, int) -> bool {
+		lastX = x;
+		lastY = y;
 
-	if (delta[Y] < 0) {
-		increment[Y] = -1;
-		delta[Y] = -delta[Y];
-	} else
-		increment[Y] = 1;
+		if (wrap)
+			g_SceneMan.WrapPosition(x, y);
 
-	// Scale by 2, for better accuracy of the error at the first pixel
-	delta2[X] = delta[X] << 1;
-	delta2[Y] = delta[Y] << 1;
+		Material const* foundMaterial = GetMaterialFromID(GetTerrMatter(x, y));
 
-	// If X is dominant, Y is submissive, and vice versa.
-	if (delta[X] > delta[Y]) {
-		dom = X;
-		sub = Y;
-	} else {
-		dom = Y;
-		sub = X;
-	}
-
-	error = delta2[sub] - delta[dom];
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm execution
-
-	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
-		intPos[dom] += increment[dom];
-		if (error >= 0) {
-			intPos[sub] += increment[sub];
-			error -= delta2[dom];
+		if (foundMaterial->GetIntegrity() <= strength) {
+			result.SetXY(x, y);
+			s_LastRayHitPos.SetXY(x, y);
+			foundPixel = true;
+			return false;
 		}
-		error += delta2[sub];
 
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
-		if (++skipped > skip || domSteps + 1 == delta[dom]) {
-			// Scene wrapping, if necessary
-			if (wrap)
-				g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
-
-			materialID = GetTerrMatter(intPos[X], intPos[Y]);
-			foundMaterial = GetMaterialFromID(materialID);
-
-			// See if we found a pixel of equal or less strength than the threshold
-			if (foundMaterial->GetIntegrity() <= strength) {
-				// Save result and report success
-				foundPixel = true;
-				result.SetXY(intPos[X], intPos[Y]);
-				// Save last ray pos
-				s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
-				break;
-			}
-
-			skipped = 0;
-
-			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
-				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
-			}
+		if (m_pDebugLayer && m_DrawRayCastVisualizations) {
+			m_pDebugLayer->SetPixel(x, y, 13);
 		}
-	}
+		return true;
+	    });
 
-	// If no pixel of sufficient strength was found, set the result to the final tried position
 	if (!foundPixel)
-		result.SetXY(intPos[X], intPos[Y]);
+		result.SetXY(lastX, lastY);
 
 	return foundPixel;
 }
 
 MOID SceneMan::CastMORay(const Vector& start, const Vector& ray, const std::vector<MOID>& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
-	int error, dom, sub, domSteps, skipped = skip;
-	int intPos[2], delta[2], delta2[2], increment[2];
-	MOID hitMOID = g_NoMOID;
-	unsigned char hitTerrain = 0;
-
-	intPos[X] = std::floor(start.m_X);
-	intPos[Y] = std::floor(start.m_Y);
-	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
-	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-
-	if (delta[X] == 0 && delta[Y] == 0)
+	if (std::floor(start.m_X + ray.m_X) == std::floor(start.m_X) && std::floor(start.m_Y + ray.m_Y) == std::floor(start.m_Y))
 		return g_NoMOID;
 
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm preparation
+	TraverseBresenhamLine(
+	    std::floor(start.m_X), std::floor(start.m_Y),
+	    std::floor(start.m_X + ray.m_X), std::floor(start.m_Y + ray.m_Y),
+	    skip,
+	    [&](int& x, int& y, int) -> bool {
+		g_SceneMan.WrapPosition(x, y);
 
-	if (delta[X] < 0) {
-		increment[X] = -1;
-		delta[X] = -delta[X];
-	} else
-		increment[X] = 1;
+		MOID hitMOID = GetMOIDPixel(x, y, ignoreTeam);
 
-	if (delta[Y] < 0) {
-		increment[Y] = -1;
-		delta[Y] = -delta[Y];
-	} else
-		increment[Y] = 1;
-
-	// Scale by 2, for better accuracy of the error at the first pixel
-	delta2[X] = delta[X] << 1;
-	delta2[Y] = delta[Y] << 1;
-
-	// If X is dominant, Y is submissive, and vice versa.
-	if (delta[X] > delta[Y]) {
-		dom = X;
-		sub = Y;
-	} else {
-		dom = Y;
-		sub = X;
-	}
-
-	error = delta2[sub] - delta[dom];
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm execution
-
-	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
-		intPos[dom] += increment[dom];
-		if (error >= 0) {
-			intPos[sub] += increment[sub];
-			error -= delta2[dom];
-		}
-		error += delta2[sub];
-
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
-		if (++skipped > skip || domSteps + 1 == delta[dom]) {
-
-			// Scene wrapping, if necessary
-			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
-
-			// Detect MOIDs
-			hitMOID = GetMOIDPixel(intPos[X], intPos[Y], ignoreTeam);
-
-			// Loop through ignored MOIDs to see if the one we found is ignored
-			bool ignoredMOIDHit = false;
-			for (auto ignoredMOID : ignoreMOIDs) {
-				if (hitMOID == ignoredMOID || g_MovableMan.GetRootMOID(hitMOID) == ignoredMOID) {
-					ignoredMOIDHit = true;
-					break;
-				}
-			}
-			
-			if (hitMOID != g_NoMOID && !ignoredMOIDHit) {
-				// Save last ray pos
-				s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
-				return hitMOID;
-			}
-
-			// Detect terrain hits
-			if (!ignoreAllTerrain) {
-				hitTerrain = g_SceneMan.GetTerrMatter(intPos[X], intPos[Y]);
-				if (hitTerrain != g_MaterialAir && hitTerrain != ignoreMaterial) {
-					// Save last ray pos
-					s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
-					return g_NoMOID;
-				}
-			}
-
-			skipped = 0;
-
-			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
-				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
+		bool ignoredMOIDHit = false;
+		for (auto ignoredMOID : ignoreMOIDs) {
+			if (hitMOID == ignoredMOID || g_MovableMan.GetRootMOID(hitMOID) == ignoredMOID) {
+				ignoredMOIDHit = true;
+				break;
 			}
 		}
-	}
 
-	// Didn't hit anything but air
+		if (hitMOID != g_NoMOID && !ignoredMOIDHit) {
+			s_LastRayHitPos.SetXY(x, y);
+			return false;
+		}
+
+		if (!ignoreAllTerrain) {
+			unsigned char hitTerrain = g_SceneMan.GetTerrMatter(x, y);
+			if (hitTerrain != g_MaterialAir && hitTerrain != ignoreMaterial) {
+				s_LastRayHitPos.SetXY(x, y);
+				return false;
+			}
+		}
+
+		if (m_pDebugLayer && m_DrawRayCastVisualizations) {
+			m_pDebugLayer->SetPixel(x, y, 13);
+		}
+		return true;
+	    });
+
 	return g_NoMOID;
 }
 
 bool SceneMan::CastFindMORay(const Vector& start, const Vector& ray, MOID targetMOID, Vector& resultPos, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip, bool findChildMOIDs) {
-	int error, dom, sub, domSteps, skipped = skip;
-	int intPos[2], delta[2], delta2[2], increment[2];
-	MOID hitMOID = g_NoMOID;
-	unsigned char hitTerrain = 0;
+	if (std::floor(start.m_X + ray.m_X) == std::floor(start.m_X) && std::floor(start.m_Y + ray.m_Y) == std::floor(start.m_Y))
+		return false;
 
-	intPos[X] = std::floor(start.m_X);
-	intPos[Y] = std::floor(start.m_Y);
-	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
-	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
+	TraverseBresenhamLine(
+	    std::floor(start.m_X), std::floor(start.m_Y),
+	    std::floor(start.m_X + ray.m_X), std::floor(start.m_Y + ray.m_Y),
+	    skip,
+	    [&](int& x, int& y, int) -> bool {
+		g_SceneMan.WrapPosition(x, y);
 
-	if (delta[X] == 0 && delta[Y] == 0)
-		return g_NoMOID;
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm preparation
-
-	if (delta[X] < 0) {
-		increment[X] = -1;
-		delta[X] = -delta[X];
-	} else
-		increment[X] = 1;
-
-	if (delta[Y] < 0) {
-		increment[Y] = -1;
-		delta[Y] = -delta[Y];
-	} else
-		increment[Y] = 1;
-
-	// Scale by 2, for better accuracy of the error at the first pixel
-	delta2[X] = delta[X] << 1;
-	delta2[Y] = delta[Y] << 1;
-
-	// If X is dominant, Y is submissive, and vice versa.
-	if (delta[X] > delta[Y]) {
-		dom = X;
-		sub = Y;
-	} else {
-		dom = Y;
-		sub = X;
-	}
-
-	error = delta2[sub] - delta[dom];
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm execution
-
-	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
-		intPos[dom] += increment[dom];
-		if (error >= 0) {
-			intPos[sub] += increment[sub];
-			error -= delta2[dom];
+		MOID hitMOID = GetMOIDPixel(x, y, Activity::NoTeam);
+		if (hitMOID == targetMOID || (findChildMOIDs && hitMOID == g_MovableMan.GetRootMOID(targetMOID))) {
+			resultPos.SetXY(x, y);
+			s_LastRayHitPos.SetXY(x, y);
+			return false;
 		}
-		error += delta2[sub];
 
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
-		if (++skipped > skip || domSteps + 1 == delta[dom]) {
-			// Scene wrapping, if necessary
-			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
-
-			// Detect MOIDs
-			hitMOID = GetMOIDPixel(intPos[X], intPos[Y], Activity::NoTeam);
-			if (hitMOID == targetMOID || (findChildMOIDs && hitMOID == g_MovableMan.GetRootMOID(targetMOID))) {
-				// Found target MOID, so save result and report success
-				resultPos.SetXY(intPos[X], intPos[Y]);
-				// Save last ray pos
-				s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
-				return true;
-			}
-
-			// Detect terrain hits
-			if (!ignoreAllTerrain) {
-				hitTerrain = g_SceneMan.GetTerrMatter(intPos[X], intPos[Y]);
-				if (hitTerrain != g_MaterialAir && hitTerrain != ignoreMaterial) {
-					// Save last ray pos
-					s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
-					return false;
-				}
-			}
-
-			skipped = 0;
-
-			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
-				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
+		if (!ignoreAllTerrain) {
+			unsigned char hitTerrain = g_SceneMan.GetTerrMatter(x, y);
+			if (hitTerrain != g_MaterialAir && hitTerrain != ignoreMaterial) {
+				s_LastRayHitPos.SetXY(x, y);
+				return false;
 			}
 		}
-	}
 
-	// Didn't hit the target
+		if (m_pDebugLayer && m_DrawRayCastVisualizations) {
+			m_pDebugLayer->SetPixel(x, y, 13);
+		}
+		return true;
+	    });
+
 	return false;
 }
 
-const std::vector<MovableObject*>*  SceneMan::CastAllMOsRay(const Vector& start, const Vector& ray, const std::vector<MOID>& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) const {
+const std::vector<MovableObject*>* SceneMan::CastAllMOsRay(const Vector& start, const Vector& ray, const std::vector<MOID>& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) const {
 	std::vector<MovableObject*>* vectorForLua = new std::vector<MovableObject*>();
-
 	const SpatialPartitionGrid& partitionGrid = GetMOIDGrid();
 
-	int error, dom, sub, domSteps, skipped = skip;
-	int intPos[2], delta[2], delta2[2], increment[2];
-	unsigned char hitTerrain = 0;
+	int endX = std::floor(start.m_X + ray.m_X);
+	int endY = std::floor(start.m_Y + ray.m_Y);
 
-	intPos[X] = std::floor(start.m_X);
-	intPos[Y] = std::floor(start.m_Y);
-	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
-	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
+	TraverseBresenhamLine(start.m_X, start.m_Y, endX, endY, skip, [&](int& x, int& y, int) -> bool {
+		g_SceneMan.WrapPosition(x, y);
 
-	if (delta[X] == 0 && delta[Y] == 0)
-		return vectorForLua;
+		std::vector<MovableObject*> hitMOs;
+		hitMOs = partitionGrid.GetMOsAtPosition(x, y, ignoreTeam, false);
 
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm preparation
-
-	if (delta[X] < 0) {
-		increment[X] = -1;
-		delta[X] = -delta[X];
-	} else
-		increment[X] = 1;
-
-	if (delta[Y] < 0) {
-		increment[Y] = -1;
-		delta[Y] = -delta[Y];
-	} else
-		increment[Y] = 1;
-
-	// Scale by 2, for better accuracy of the error at the first pixel
-	delta2[X] = delta[X] << 1;
-	delta2[Y] = delta[Y] << 1;
-
-	// If X is dominant, Y is submissive, and vice versa.
-	if (delta[X] > delta[Y]) {
-		dom = X;
-		sub = Y;
-	} else {
-		dom = Y;
-		sub = X;
-	}
-
-	error = delta2[sub] - delta[dom];
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm execution
-
-	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
-		intPos[dom] += increment[dom];
-		if (error >= 0) {
-			intPos[sub] += increment[sub];
-			error -= delta2[dom];
-		}
-		error += delta2[sub];
-
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
-		if (++skipped > skip || domSteps + 1 == delta[dom]) {
-
-			// Scene wrapping, if necessary
-			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
-				
-			// Detect MOs
-			std::vector<MovableObject*> hitMOs;
-			hitMOs = partitionGrid.GetMOsAtPosition(intPos[X], intPos[Y], ignoreTeam, false);
-
-			// Loop through the gotten MOs and check if we're ignoring their IDs - if not, put them onto our return vector
-			for (MovableObject* mo : hitMOs) {
-				MOID moid = mo->GetID();
-				for (auto ignoredMOID : ignoreMOIDs) {
-					if (moid != ignoredMOID && g_MovableMan.GetRootMOID(moid) != ignoredMOID) {
-						// Save last ray pos
-						s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
-						vectorForLua->push_back(mo);
-					}
+		for (MovableObject* mo : hitMOs) {
+			MOID moid = mo->GetID();
+			for (auto ignoredMOID : ignoreMOIDs) {
+				if (moid != ignoredMOID && g_MovableMan.GetRootMOID(moid) != ignoredMOID) {
+					s_LastRayHitPos.SetXY(x, y);
+					vectorForLua->push_back(mo);
 				}
 			}
+		}
 
-			// Detect terrain hits
-			if (!ignoreAllTerrain) {
-				hitTerrain = g_SceneMan.GetTerrMatter(intPos[X], intPos[Y]);
-				if (hitTerrain != g_MaterialAir && hitTerrain != ignoreMaterial) {
-					// Save last ray pos
-					s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
-					return vectorForLua;
-				}
-			}
-
-			skipped = 0;
-
-			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
-				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
+		if (!ignoreAllTerrain) {
+			unsigned char hitTerrain = g_SceneMan.GetTerrMatter(x, y);
+			if (hitTerrain != g_MaterialAir && hitTerrain != ignoreMaterial) {
+				s_LastRayHitPos.SetXY(x, y);
+				return false;
 			}
 		}
-	}
 
-	// Didn't hit anything but air
+		if (m_pDebugLayer && m_DrawRayCastVisualizations) {
+			m_pDebugLayer->SetPixel(x, y, 13);
+		}
+		return true;
+	});
+
 	return vectorForLua;
 }
 
 float SceneMan::CastObstacleRay(const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, const std::vector<MOID>& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
-	int error, dom, sub, domSteps, skipped = skip;
-	int intPos[2], delta[2], delta2[2], increment[2];
 	bool hitObstacle = false;
+	int lastStep = 0;
+	int endX = std::floor(start.m_X + ray.m_X);
+	int endY = std::floor(start.m_Y + ray.m_Y);
+	Vector startFraction(start.m_X - std::floor(start.m_X), start.m_Y - std::floor(start.m_Y));
 
-	intPos[X] = std::floor(start.m_X);
-	intPos[Y] = std::floor(start.m_Y);
-	delta[X] = std::floor(start.m_X + ray.m_X) - intPos[X];
-	delta[Y] = std::floor(start.m_Y + ray.m_Y) - intPos[Y];
-	// The fraction of a pixel that we start from, to be added to the integer result positions for accuracy
-	Vector startFraction(start.m_X - intPos[X], start.m_Y - intPos[Y]);
+	TraverseBresenhamLine(start.m_X, start.m_Y, endX, endY, skip, [&](int& x, int& y, int domStep) -> bool {
+		lastStep = domStep;
+		g_SceneMan.WrapPosition(x, y);
 
-	if (delta[X] == 0 && delta[Y] == 0) {
-		return -1.0f;
-	}
+		unsigned char checkMat = GetTerrMatter(x, y);
+		MOID checkMOID = GetMOIDPixel(x, y, ignoreTeam);
 
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm preparation
-
-	if (delta[X] < 0) {
-		increment[X] = -1;
-		delta[X] = -delta[X];
-	} else {
-		increment[X] = 1;
-	}
-
-	if (delta[Y] < 0) {
-		increment[Y] = -1;
-		delta[Y] = -delta[Y];
-	} else {
-		increment[Y] = 1;
-	}
-
-	// Scale by 2, for better accuracy of the error at the first pixel
-	delta2[X] = delta[X] * 2;
-	delta2[Y] = delta[Y] * 2;
-
-	// If X is dominant, Y is submissive, and vice versa.
-	if (delta[X] > delta[Y]) {
-		dom = X;
-		sub = Y;
-	} else {
-		dom = Y;
-		sub = X;
-	}
-
-	error = delta2[sub] - delta[dom];
-
-	/////////////////////////////////////////////////////
-	// Bresenham's line drawing algorithm execution
-
-	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
-		intPos[dom] += increment[dom];
-		if (error >= 0) {
-			intPos[sub] += increment[sub];
-			error -= delta2[dom];
-		}
-		error += delta2[sub];
-
-		// Only check pixel if we're not due to skip any, or if this is the last pixel
-		if (++skipped > skip || domSteps + 1 == delta[dom]) {
-			// Scene wrapping, if necessary
-			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
-
-			unsigned char checkMat = GetTerrMatter(intPos[X], intPos[Y]);
-			MOID checkMOID = GetMOIDPixel(intPos[X], intPos[Y], ignoreTeam);
-
-			// Loop through ignored MOIDs to see if the one we found is ignored
-			bool ignoredMOIDHit = false;
-			for (auto ignoredMOID : ignoreMOIDs) {
-				if (checkMOID == ignoredMOID || g_MovableMan.GetRootMOID(checkMOID) == ignoredMOID) {
-					ignoredMOIDHit = true;
-					break;
-				}
-			}
-
-			// See if we found the looked-for pixel of the correct material,
-			// Or an MO is blocking the way
-			if ((checkMat != g_MaterialAir && checkMat != ignoreMaterial) || (checkMOID != g_NoMOID && !ignoredMOIDHit)) {
-				hitObstacle = true;
-				obstaclePos.SetXY(intPos[X], intPos[Y]);
-				// Save last ray pos
-				s_LastRayHitPos.SetXY(intPos[X], intPos[Y]);
+		bool ignoredMOIDHit = false;
+		for (auto ignoredMOID : ignoreMOIDs) {
+			if (checkMOID == ignoredMOID || g_MovableMan.GetRootMOID(checkMOID) == ignoredMOID) {
+				ignoredMOIDHit = true;
 				break;
-			} else {
-				freePos.SetXY(intPos[X], intPos[Y]);
 			}
-
-			skipped = 0;
-
-			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
-				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
-			}
-		} else {
-			freePos.SetXY(intPos[X], intPos[Y]);
 		}
-	}
 
-	// Add the pixel fraction to the free position if there were any free pixels
-	if (domSteps != 0) {
+		if ((checkMat != g_MaterialAir && checkMat != ignoreMaterial) || (checkMOID != g_NoMOID && !ignoredMOIDHit)) {
+			hitObstacle = true;
+			obstaclePos.SetXY(x, y);
+			s_LastRayHitPos.SetXY(x, y);
+			return false;
+		}
+
+		freePos.SetXY(x, y);
+
+		if (m_pDebugLayer && m_DrawRayCastVisualizations) {
+			m_pDebugLayer->SetPixel(x, y, 13);
+		}
+		return true;
+	});
+
+	if (lastStep != 0) {
 		freePos += startFraction;
 	}
 
 	if (hitObstacle) {
-		// Add the pixel fraction to the obstacle position, to acoid losing precision
 		obstaclePos += startFraction;
-		if (domSteps == 0) {
-			// If there was an obstacle on the start position, return 0 as the distance to obstacle
+		if (lastStep == 0) {
 			return 0.0F;
 		} else {
-			// Calculate the length between the start and the found material pixel coords
 			return g_SceneMan.ShortestDistance(obstaclePos, start).GetMagnitude();
 		}
 	}
 
-	// Didn't hit anything but air
 	return -1.0F;
 }
 

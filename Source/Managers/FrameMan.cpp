@@ -17,6 +17,7 @@
 #include "SLBackground.h"
 #include "Scene.h"
 #include "System.h"
+#include "System/BresenhamLine.h"
 
 #include "RenderTarget.h"
 
@@ -653,94 +654,49 @@ int FrameMan::SharedDrawLine(BITMAP* bitmap, const Vector& start, const Vector& 
 		RTEAssert(dot, "Trying to draw line of dots without specifying a dot Bitmap");
 	}
 
-	int error = 0;
-	int dom = 0;
-	int sub = 0;
-	int domSteps = 0;
 	int skipped = skip + (skipStart - skip);
-	int intPos[2];
-	int delta[2];
-	int delta2[2];
-	int increment[2];
 	bool drawAlt = false;
 
 	int dotHeight = drawDot ? dot->h : 0;
 	int dotWidth = drawDot ? dot->w : 0;
-
-	// acquire_bitmap(bitmap);
 
 	// Just make the alt the same color as the main one if no one was specified
 	if (altColor == 0) {
 		altColor = color;
 	}
 
-	intPos[X] = start.GetFloorIntX();
-	intPos[Y] = start.GetFloorIntY();
+	int startX = start.GetFloorIntX();
+	int startY = start.GetFloorIntY();
+	int endX = shortestWrap ? g_SceneMan.ShortestDistance(start, end, false).GetFloorIntX() : end.GetFloorIntX();
+	int endY = shortestWrap ? g_SceneMan.ShortestDistance(start, end, false).GetFloorIntY() : end.GetFloorIntY();
 
-	// Wrap line around the scene if it makes it shorter
-	if (shortestWrap) {
-		Vector deltaVec = g_SceneMan.ShortestDistance(start, end, false);
-		delta[X] = deltaVec.GetFloorIntX();
-		delta[Y] = deltaVec.GetFloorIntY();
-	} else {
-		delta[X] = end.GetFloorIntX() - intPos[X];
-		delta[Y] = end.GetFloorIntY() - intPos[Y];
-	}
-	if (delta[X] == 0 && delta[Y] == 0) {
+	if (startX == endX && startY == endY) {
 		return 0;
 	}
 
-	// Bresenham's line drawing algorithm preparation
-	if (delta[X] < 0) {
-		increment[X] = -1;
-		delta[X] = -delta[X];
-	} else {
-		increment[X] = 1;
-	}
-	if (delta[Y] < 0) {
-		increment[Y] = -1;
-		delta[Y] = -delta[Y];
-	} else {
-		increment[Y] = 1;
-	}
+	drawAlt = false;
+	skipped = skipStart;
 
-	// Scale by 2, for better accuracy of the error at the first pixel
-	delta2[X] = delta[X] << 1;
-	delta2[Y] = delta[Y] << 1;
-
-	// If X is dominant, Y is submissive, and vice versa.
-	if (delta[X] > delta[Y]) {
-		dom = X;
-		sub = Y;
-	} else {
-		dom = Y;
-		sub = X;
-	}
-	error = delta2[sub] - delta[dom];
-
-	// Bresenham's line drawing algorithm execution
-	for (domSteps = 0; domSteps < delta[dom]; ++domSteps) {
-		intPos[dom] += increment[dom];
-		if (error >= 0) {
-			intPos[sub] += increment[sub];
-			error -= delta2[dom];
-		}
-		error += delta2[sub];
-
-		// Only draw pixel if we're not due to skip any
+	TraverseBresenhamLine(
+	    startX, startY,
+	    endX, endY,
+	    skip,
+	    [&](int& x, int& y, int) -> bool {
 		if (++skipped > skip) {
-			// Scene wrapping, if necessary
-			g_SceneMan.WrapPosition(intPos[X], intPos[Y]);
+			if (shortestWrap) {
+				g_SceneMan.WrapPosition(x, y);
+			}
 
 			if (drawDot) {
-				masked_blit(dot, bitmap, 0, 0, intPos[X] - (dotWidth / 2), intPos[Y] - (dotHeight / 2), dot->w, dot->h);
+				masked_blit(dot, bitmap, 0, 0, x - (dotWidth / 2), y - (dotHeight / 2), dot->w, dot->h);
 			} else {
-				putpixel(bitmap, intPos[X], intPos[Y], drawAlt ? color : altColor);
+				putpixel(bitmap, x, y, drawAlt ? altColor : color);
 			}
 			drawAlt = !drawAlt;
 			skipped = 0;
 		}
-	}
+		return true;
+	    });
 
 	// Return the end phase state of the skipping
 	return skipped;
