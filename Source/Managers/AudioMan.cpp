@@ -170,14 +170,14 @@ void AudioMan::Update() {
 					if (IsInMultiplayerMode()) {
 						humanPlayerPosition += (Vector(static_cast<float>(g_FrameMan.GetPlayerFrameBufferWidth(screen)), static_cast<float>(g_FrameMan.GetPlayerFrameBufferHeight(screen))) / 2);
 					}
-					m_CurrentActivityHumanPlayerPositions.push_back(std::make_unique<const Vector>(humanPlayerPosition));
+					m_CurrentActivityHumanPlayerPositions.push_back(humanPlayerPosition);
 				}
 			}
 
 			int listenerNumber = 0;
-			for (const std::unique_ptr<const Vector>& humanPlayerPosition: m_CurrentActivityHumanPlayerPositions) {
+			for (const Vector& humanPlayerPosition: m_CurrentActivityHumanPlayerPositions) {
 				if (status == FMOD_OK) {
-					FMOD_VECTOR playerPosition = GetAsFMODVector(*(humanPlayerPosition.get()), m_ListenerZOffset);
+					FMOD_VECTOR playerPosition = GetAsFMODVector(humanPlayerPosition, m_ListenerZOffset);
 					status = m_AudioSystem->set3DListenerAttributes(listenerNumber, &playerPosition, nullptr, &c_FMODForward, &c_FMODUp);
 				}
 				listenerNumber++;
@@ -669,7 +669,7 @@ void AudioMan::Update3DEffectsForSFXChannels() {
 			float channel3dLevel;
 			result = (result == FMOD_OK) ? soundChannel->get3DLevel(&channel3dLevel) : result;
 			if (result == FMOD_OK && m_CurrentActivityHumanPlayerPositions.size() == 1) {
-				float sqrDistanceToPlayer = (*(m_CurrentActivityHumanPlayerPositions[0].get()) - GetAsVector(channelPosition)).GetSqrMagnitude();
+				float sqrDistanceToPlayer = (m_CurrentActivityHumanPlayerPositions[0] - GetAsVector(channelPosition)).GetSqrMagnitude();
 				float doubleMinimumDistanceForPanning = m_MinimumDistanceForPanning * 2.0F;
 				void* userData;
 				result = result == FMOD_OK ? soundChannel->getUserData(&userData) : result;
@@ -730,9 +730,9 @@ FMOD_RESULT AudioMan::UpdatePositionalEffectsForSoundChannel(FMOD::Channel* soun
 
 	float sqrShortestDistance = c_SoundMaxAudibleDistance * c_SoundMaxAudibleDistance;
 	float sqrLongestDistance = 0.0F;
-	for (const std::unique_ptr<const Vector>& humanPlayerPosition: m_CurrentActivityHumanPlayerPositions) {
+	for (const Vector& humanPlayerPosition: m_CurrentActivityHumanPlayerPositions) {
 		for (const FMOD_VECTOR& wrappedChannelPosition: wrappedChannelPositions) {
-			float sqrDistanceToChannelPosition = (*(humanPlayerPosition.get()) - GetAsVector(wrappedChannelPosition)).GetSqrMagnitude();
+			float sqrDistanceToChannelPosition = (humanPlayerPosition - GetAsVector(wrappedChannelPosition)).GetSqrMagnitude();
 			if (sqrDistanceToChannelPosition < sqrShortestDistance) {
 				sqrShortestDistance = sqrDistanceToChannelPosition;
 				channelPosition = wrappedChannelPosition;
