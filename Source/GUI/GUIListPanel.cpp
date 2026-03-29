@@ -697,6 +697,9 @@ void GUIListPanel::SetMouseScrolling(bool mouseScroll) {
 
 void GUIListPanel::ScrollBarScrolling(int mouseWheelChange) {
 	int newValue = 0;
+	if (GetItemList()->empty()) {
+		return;
+	}
 	Item* lastItem = GetItem(GetItemList()->size() - 1);
 	int avgItemHeight = static_cast<int>((GetStackHeight(lastItem) + GetItemHeight(lastItem)) / GetItemList()->size());
 	if (mouseWheelChange < 0) {
