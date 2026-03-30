@@ -827,15 +827,14 @@ void WindowMan::UploadFrame() {
 
 	// --- Step 3: Composite scene + GUI into the screen buffer ---
 	if (m_DrawPostProcessBuffer || g_ActivityMan.IsInActivity()) {
-		// In-activity path: composite the GPU-rendered scene (terrain, backgrounds,
-		// entities via Background shader) + GUI overlay into m_ScreenBuffer.
-		// g_FrameMan.GetBackBuffer() has the full composited scene from FrameMan::Draw().
+		// In-activity path: the PostProcess FBO contains the full scene
+		// (GPU BackBuffer + Blit8 overlay + glow effects). Composite it
+		// with the 32bpp GUI overlay via the ScreenBlit shader.
+		// This matches the desktop pipeline exactly.
 		m_ScreenBuffer->Begin(g_ActivityMan.IsInActivity());
 		rlDisableDepthTest();
 		rlDisableColorBlend();
 
-		// Draw the PostProcess result (GPU scene + 8bpp overlay + glows) through
-		// the ScreenBlit shader which composites it with the 32bpp GUI overlay.
 		m_ScreenBlitShader->Begin();
 		rlSetUniformSampler(m_ScreenBlitShader->GetUniformLocation("rteGUITexture"), m_BackBuffer32Texture);
 		if (m_DrawPostProcessBuffer) {
@@ -882,45 +881,19 @@ void WindowMan::UploadFrame() {
 		bool inActivity = g_ActivityMan.IsInActivity();
 
 		if (inActivity) {
-			// Layer 1: 8bpp scene (only meaningful during gameplay)
-			if (bb8 && !bb8->pixels.empty()) {
-				std::array<uint32_t, 256> pal;
-				for (int i = 0; i < 256; ++i)
-					pal[i] = (i == g_MaskColor) ? 0u : makeacol32(getr8(i), getg8(i), getb8(i), 255);
-
-				// DEBUG: check 8bpp buffer content and palette
-				{
-					static int dbgF = 0;
-					if (++dbgF % 120 == 1) {
-						int nonZero = 0, nonMask = 0;
-						for (int i = 0; i < (int)bb8->pixels.size(); i += 4) {
-							if (bb8->pixels[i] != 0) nonZero++;
-							if (bb8->pixels[i] != 0 && bb8->pixels[i] != g_MaskColor) nonMask++;
-						}
-						// Check palette entries
-						int palNonBlack = 0;
-						for (int i = 1; i < 256; i++) {
-							if (pal[i] != 0) palNonBlack++;
-						}
-						EM_ASM({ console.log('[CC] 8bpp: size=' + $0 + ' nonZero=' + $1 +
-						         ' nonMask=' + $2 + ' palNonBlack=' + $3 +
-						         ' maskColor=' + $4 + ' pal[1]=' + $5.toString(16)); },
-						       (int)bb8->pixels.size(), nonZero, nonMask, palNonBlack,
-						       g_MaskColor, (int)pal[1]);
-					}
-				}
-
-				RTE::WebPlatform_Blit8ToCanvas(bb8->pixels.data(),
-				                               reinterpret_cast<const uint8_t*>(pal.data()),
-				                               bb8->w, bb8->h);
-			}
+			// During gameplay, the WebGL pipeline handles ALL rendering
+			// (GPU scene via PostProcess + GUI via ScreenBlit shader).
+			// Clear the Canvas2D overlay so it doesn't occlude or duplicate
+			// the WebGL output. The 8bpp CPU buffer has very little content
+			// during gameplay (entities are GPU-rendered via Background shader).
+			EM_ASM({ if (typeof ccClearOverlay === 'function') ccClearOverlay(); });
 		} else {
 			// Menu mode: clear overlay so WebGL scene (planet, stars) shows through
 			EM_ASM({ if (typeof ccClearOverlay === 'function') ccClearOverlay(); });
 		}
 
-		// Layer 2: 32bpp GUI
-		if (bb32 && !bb32->pixels.empty()) {
+		// Layer 2: 32bpp GUI (only for menu — gameplay uses ScreenBlit shader)
+		if (!inActivity && bb32 && !bb32->pixels.empty()) {
 			RTE::WebPlatform_Blit32ToCanvas(bb32->pixels.data(), bb32->w, bb32->h);
 		}
 	}
@@ -934,7 +907,44 @@ void WindowMan::UploadFrame() {
 		rlMatrixMode(RL_MODELVIEW);
 		rlLoadIdentity();
 		GL_CHECK(glViewport(m_PrimaryWindowViewport->x, m_PrimaryWindowViewport->y, m_PrimaryWindowViewport->w, m_PrimaryWindowViewport->h));
+#ifdef __EMSCRIPTEN__
+		// DEBUG: arrow keys toggle X/Y flip for the final blit to find correct orientation
+		{
+			static int flipMode = 0; // 0=default(-Y), 1=(+Y), 2=(-X,-Y), 3=(-X,+Y)
+			static bool keyWasDown[4] = {};
+			bool keys[4];
+			EM_ASM({
+				var k = window._ccFlipKeys || {};
+				HEAP8[$0] = k.up ? 1 : 0;
+				HEAP8[$1] = k.down ? 1 : 0;
+				HEAP8[$2] = k.left ? 1 : 0;
+				HEAP8[$3] = k.right ? 1 : 0;
+			}, &keys[0], &keys[1], &keys[2], &keys[3]);
+
+			// Track key state for edge detection
+			for (int i = 0; i < 4; i++) {
+				if (keys[i] && !keyWasDown[i]) {
+					flipMode = i;
+					EM_ASM({ console.log('[CC] Flip mode: ' + $0 +
+					         ' (0=default -Y, 1=+Y, 2=-X-Y, 3=-X+Y)'); }, flipMode);
+				}
+				keyWasDown[i] = keys[i];
+			}
+
+			float fw = static_cast<float>(m_ResX);
+			float fh = static_cast<float>(m_ResY);
+			float sx = fw, sy = -fh; // default: positive X, negative Y (desktop convention)
+			switch (flipMode) {
+				case 0: sx = fw;  sy = -fh; break; // default desktop
+				case 1: sx = fw;  sy = fh;  break; // flip Y
+				case 2: sx = -fw; sy = -fh; break; // flip X
+				case 3: sx = -fw; sy = fh;  break; // flip both
+			}
+			DrawTextureRec(m_ScreenBuffer->GetColorTexture(), {0.0f, 0.0f, sx, sy}, {0.0f, 0.0f}, {255, 255, 255, 255});
+		}
+#else
 		DrawTextureRec(m_ScreenBuffer->GetColorTexture(), {0.0f, 0.0f, static_cast<float>(m_ResX), static_cast<float>(-m_ResY)}, {0.0f, 0.0f}, {255, 255, 255, 255});
+#endif
 		rlDrawRenderBatchActive();
 	} else {
 		for (size_t i = 0; i < m_MultiDisplayWindows.size(); ++i) {

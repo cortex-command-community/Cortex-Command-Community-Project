@@ -62,6 +62,7 @@ enum class WebLoopState {
 
 static WebLoopState s_WebLoopState = WebLoopState::Menu;
 static bool s_AutoStartChecked = false;
+static bool s_BuildTimestampLogged = false;
 
 /// Check URL ?autostart parameter and launch directly into a skirmish game.
 /// Usage: CortexCommand.html?autostart
@@ -113,6 +114,11 @@ inline bool CheckAutoStart() {
 /// Called once per animation frame by emscripten_set_main_loop().
 /// Dispatches to the appropriate menu or game loop body.
 inline void WebMainLoopIteration_Impl() {
+    if (!s_BuildTimestampLogged) {
+        s_BuildTimestampLogged = true;
+        EM_ASM({ console.log('[CC] Build: ' + UTF8ToString($0) + ' ' + UTF8ToString($1)); },
+               __DATE__, __TIME__);
+    }
     if (System::IsSetToQuit()) {
         s_WebLoopState = WebLoopState::Quit;
         emscripten_cancel_main_loop();

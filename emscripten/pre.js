@@ -22,6 +22,20 @@ Module['postRun'].push(function() {
   }
 });
 
+// DEBUG: F1-F4 keys toggle flip modes for diagnosing coordinate issues.
+// F1=default(-Y), F2=(+Y), F3=(-X,-Y), F4=(-X,+Y)
+// Read from C++ via window._ccFlipKeys
+window._ccFlipKeys = {up:false, down:false, left:false, right:false};
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'F1') { window._ccFlipKeys = {up:true, down:false, left:false, right:false}; console.log('[CC] Flip: F1 = default -Y'); }
+  if (e.key === 'F2') { window._ccFlipKeys = {up:false, down:true, left:false, right:false}; console.log('[CC] Flip: F2 = +Y'); }
+  if (e.key === 'F3') { window._ccFlipKeys = {up:false, down:false, left:true, right:false}; console.log('[CC] Flip: F3 = -X,-Y'); }
+  if (e.key === 'F4') { window._ccFlipKeys = {up:false, down:false, left:false, right:true}; console.log('[CC] Flip: F4 = -X,+Y'); }
+});
+document.addEventListener('keyup', function(e) {
+  // Keep the last pressed mode (don't reset on keyup)
+});
+
 // ---------------------------------------------------------------------------
 // Audio context unlock — browsers require a user gesture before audio plays.
 // ---------------------------------------------------------------------------

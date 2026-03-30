@@ -342,28 +342,21 @@ void PostProcessMan::PostProcess() {
 	                          g_FrameMan.GetBackBuffer8()->line[0]));
 	GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 4));
 
-	// --- Draw GPU scene as base layer ---
-	// FrameMan::Draw renders terrain, backgrounds, and entity sprites into
-	// GetBackBuffer() via the Background shader.  Draw that into the PostProcess
-	// FBO first so the full scene is present before glows are added.
-	// Use POSITIVE height: both FBOs use rlOrtho(0,w,h,0) so they share the
-	// same orientation.  No vertex-level flip needed for FBO-to-FBO copies.
-	// (The Blit8 CPU texture below uses negative height because CPU-uploaded
-	// textures have opposite row order from FBO-rendered content.)
+	// Draw the full GPU scene from FrameMan's BackBuffer into the PostProcess FBO.
+	// Negative height for FBO-to-FBO Y-flip (GL stores FBO textures bottom-up).
+	// This matches the desktop pipeline exactly — no platform-specific changes here.
 	m_PostProcessFramebuffer->Begin(true);
 	rlDisableColorBlend();
 	rlDisableDepthTest();
 	{
 		Texture2D sceneTex = g_FrameMan.GetBackBuffer()->GetColorTexture();
 		DrawTextureRec(sceneTex,
-		               {0.0f, 0.0f, static_cast<float>(sceneTex.width), static_cast<float>(sceneTex.height)},
+		               {0.0f, 0.0f, static_cast<float>(sceneTex.width), -static_cast<float>(sceneTex.height)},
 		               {0.0f, 0.0f}, {255, 255, 255, 255});
 		rlDrawRenderBatchActive();
 	}
 
-	// --- Overlay 8bpp CPU content (entity sprites, HUD markers) ---
-	// Use the Blit8 shader to convert 8bpp indexed → RGBA using the palette texture,
-	// then alpha-blend on top of the GPU scene.
+	// Overlay the 8bpp CPU content (entity sprites, HUD markers) via Blit8 shader.
 	rlEnableColorBlend();
 	rlSetBlendMode(RL_BLEND_ALPHA);
 	m_Blit8->Begin();
