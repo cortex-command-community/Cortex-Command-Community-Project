@@ -57,6 +57,10 @@ EM_FLAGS=(
     "-sINITIAL_MEMORY=268435456"
     "-sMAXIMUM_MEMORY=2147483648"
     "-sIMPORTED_MEMORY"
+    # Function pointer cast emulation — required for Luabind's heavy use of
+    # virtual dispatch and function pointer casting that breaks under WASM's
+    # strict indirect call type checking.
+    "-sEMULATE_FUNCTION_POINTER_CASTS=1"
     # Exports
     "-sEXPORTED_RUNTIME_METHODS=[FS,callMain,ccall,cwrap]"
     "-sEXPORTED_FUNCTIONS=[_main]"

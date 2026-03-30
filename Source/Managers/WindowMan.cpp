@@ -924,16 +924,6 @@ void WindowMan::UploadFrame() {
 		GL_CHECK(glViewport(m_PrimaryWindowViewport->x, m_PrimaryWindowViewport->y, m_PrimaryWindowViewport->w, m_PrimaryWindowViewport->h));
 		DrawTextureRec(m_ScreenBuffer->GetColorTexture(), {0.0f, 0.0f, static_cast<float>(m_ResX), static_cast<float>(-m_ResY)}, {0.0f, 0.0f}, {255, 255, 255, 255});
 		rlDrawRenderBatchActive();
-#ifdef __EMSCRIPTEN__
-		// DEBUG: Draw a small red rectangle at rlgl position (10,10) — should appear
-		// at the TOP-LEFT corner of the screen if rlOrtho Y=0 is at top.
-		// If it appears at BOTTOM-LEFT, the default FB has inverted Y.
-		rlEnableColorBlend();
-		DrawRectangle(10, 10, 60, 30, {255, 0, 0, 255});
-		// Green rectangle at (10, resY-40) — should appear at BOTTOM-LEFT.
-		DrawRectangle(10, m_ResY - 40, 60, 30, {0, 255, 0, 255});
-		rlDrawRenderBatchActive();
-#endif
 	} else {
 		for (size_t i = 0; i < m_MultiDisplayWindows.size(); ++i) {
 			SDL_GL_MakeCurrent(m_MultiDisplayWindows.at(i).get(), m_GLContext.get());

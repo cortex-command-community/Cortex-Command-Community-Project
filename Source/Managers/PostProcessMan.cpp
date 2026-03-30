@@ -359,16 +359,6 @@ void PostProcessMan::PostProcess() {
 		float sh = static_cast<float>(sceneTex.height);
 		DrawTextureRec(sceneTex, {0.0f, 0.0f, sw, -sh}, {0.0f, 0.0f}, {255, 255, 255, 255});
 		rlDrawRenderBatchActive();
-#ifdef __EMSCRIPTEN__
-		// DEBUG: Draw markers in PostProcess FBO after scene copy.
-		// Blue at (10,10) = should be TOP-LEFT if PostProcess FBO is right-side-up.
-		// Yellow at (10, height-40) = should be BOTTOM-LEFT.
-		rlEnableColorBlend();
-		DrawRectangle(10, 10, 40, 20, {0, 0, 255, 255});
-		DrawRectangle(10, (int)sh - 40, 40, 20, {255, 255, 0, 255});
-		rlDrawRenderBatchActive();
-		rlDisableColorBlend();
-#endif
 	}
 
 	// Overlay the 8bpp CPU content (entity sprites, HUD markers) via Blit8 shader.

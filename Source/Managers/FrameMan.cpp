@@ -969,21 +969,6 @@ void FrameMan::Draw() {
 	backgroundShader.End();
 	rlZDepth(0);
 
-#ifdef __EMSCRIPTEN__
-	// DEBUG: Draw markers in BackBuffer FBO BEFORE PostProcess runs.
-	// Cyan at (70,10) = should be TOP-LEFT of scene.
-	// Magenta at (70, height-40) = should be BOTTOM-LEFT of scene.
-	{
-		m_BackBuffer->Begin(false);
-		rlDisableDepthTest();
-		rlEnableColorBlend();
-		DrawRectangle(70, 10, 40, 20, {0, 255, 255, 255});         // Cyan = top
-		DrawRectangle(70, m_BackBuffer8->h - 40, 40, 20, {255, 0, 255, 255}); // Magenta = bottom
-		rlDrawRenderBatchActive();
-		m_BackBuffer->End();
-	}
-#endif
-
 	if (g_ActivityMan.IsInActivity()) {
 		g_PostProcessMan.PostProcess();
 	}
