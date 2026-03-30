@@ -837,13 +837,28 @@ void WindowMan::UploadFrame() {
 
 		m_ScreenBlitShader->Begin();
 		rlSetUniformSampler(m_ScreenBlitShader->GetUniformLocation("rteGUITexture"), m_BackBuffer32Texture);
-		if (m_DrawPostProcessBuffer) {
-			Texture2D postBuffer = g_PostProcessMan.GetPostProcessColorBuffer()->GetColorTexture();
-			DrawTextureRec(postBuffer, Rectangle(0.0f, 0.0f, postBuffer.width, -postBuffer.height), {0.0f, 0.0f}, {255, 255, 255, 255});
-		} else {
-			DrawTextureRec(g_FrameMan.GetBackBuffer()->GetColorTexture(),
-			               {0.0f, 0.0f, static_cast<float>(m_ResX), -static_cast<float>(m_ResY)},
-			               {0, 0}, {255, 255, 255, 255});
+		{
+			Texture2D srcTex;
+			if (m_DrawPostProcessBuffer) {
+				srcTex = g_PostProcessMan.GetPostProcessColorBuffer()->GetColorTexture();
+			} else {
+				srcTex = g_FrameMan.GetBackBuffer()->GetColorTexture();
+			}
+			float tw = static_cast<float>(srcTex.width);
+			float th = static_cast<float>(srcTex.height);
+#ifdef __EMSCRIPTEN__
+			int sbMode = EM_ASM_INT({ return (window._ccFlipDebug || {}).screenBlit || 0; });
+			float sx = tw, sy = -th;
+			switch (sbMode) {
+				case 0: sx = tw;  sy = -th; break;
+				case 1: sx = tw;  sy = th;  break;
+				case 2: sx = -tw; sy = -th; break;
+				case 3: sx = -tw; sy = th;  break;
+			}
+			DrawTextureRec(srcTex, Rectangle(0.0f, 0.0f, sx, sy), {0.0f, 0.0f}, {255, 255, 255, 255});
+#else
+			DrawTextureRec(srcTex, Rectangle(0.0f, 0.0f, tw, -th), {0.0f, 0.0f}, {255, 255, 255, 255});
+#endif
 		}
 		m_ScreenBlitShader->End();
 		rlDrawRenderBatchActive();
@@ -907,45 +922,18 @@ void WindowMan::UploadFrame() {
 		rlMatrixMode(RL_MODELVIEW);
 		rlLoadIdentity();
 		GL_CHECK(glViewport(m_PrimaryWindowViewport->x, m_PrimaryWindowViewport->y, m_PrimaryWindowViewport->w, m_PrimaryWindowViewport->h));
-#ifdef __EMSCRIPTEN__
-		// DEBUG: arrow keys toggle X/Y flip for the final blit to find correct orientation
-		{
-			static int flipMode = 0; // 0=default(-Y), 1=(+Y), 2=(-X,-Y), 3=(-X,+Y)
-			static bool keyWasDown[4] = {};
-			bool keys[4];
-			EM_ASM({
-				var k = window._ccFlipKeys || {};
-				HEAP8[$0] = k.up ? 1 : 0;
-				HEAP8[$1] = k.down ? 1 : 0;
-				HEAP8[$2] = k.left ? 1 : 0;
-				HEAP8[$3] = k.right ? 1 : 0;
-			}, &keys[0], &keys[1], &keys[2], &keys[3]);
-
-			// Track key state for edge detection
-			for (int i = 0; i < 4; i++) {
-				if (keys[i] && !keyWasDown[i]) {
-					flipMode = i;
-					EM_ASM({ console.log('[CC] Flip mode: ' + $0 +
-					         ' (0=default -Y, 1=+Y, 2=-X-Y, 3=-X+Y)'); }, flipMode);
-				}
-				keyWasDown[i] = keys[i];
-			}
-
-			float fw = static_cast<float>(m_ResX);
-			float fh = static_cast<float>(m_ResY);
-			float sx = fw, sy = -fh; // default: positive X, negative Y (desktop convention)
-			switch (flipMode) {
-				case 0: sx = fw;  sy = -fh; break; // default desktop
-				case 1: sx = fw;  sy = fh;  break; // flip Y
-				case 2: sx = -fw; sy = -fh; break; // flip X
-				case 3: sx = -fw; sy = fh;  break; // flip both
-			}
-			DrawTextureRec(m_ScreenBuffer->GetColorTexture(), {0.0f, 0.0f, sx, sy}, {0.0f, 0.0f}, {255, 255, 255, 255});
-		}
-#else
 		DrawTextureRec(m_ScreenBuffer->GetColorTexture(), {0.0f, 0.0f, static_cast<float>(m_ResX), static_cast<float>(-m_ResY)}, {0.0f, 0.0f}, {255, 255, 255, 255});
-#endif
 		rlDrawRenderBatchActive();
+#ifdef __EMSCRIPTEN__
+		// DEBUG: Draw a small red rectangle at rlgl position (10,10) — should appear
+		// at the TOP-LEFT corner of the screen if rlOrtho Y=0 is at top.
+		// If it appears at BOTTOM-LEFT, the default FB has inverted Y.
+		rlEnableColorBlend();
+		DrawRectangle(10, 10, 60, 30, {255, 0, 0, 255});
+		// Green rectangle at (10, resY-40) — should appear at BOTTOM-LEFT.
+		DrawRectangle(10, m_ResY - 40, 60, 30, {0, 255, 0, 255});
+		rlDrawRenderBatchActive();
+#endif
 	} else {
 		for (size_t i = 0; i < m_MultiDisplayWindows.size(); ++i) {
 			SDL_GL_MakeCurrent(m_MultiDisplayWindows.at(i).get(), m_GLContext.get());

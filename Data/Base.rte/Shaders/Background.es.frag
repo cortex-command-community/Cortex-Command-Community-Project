@@ -24,7 +24,7 @@ vec4 textureAA(sampler2D tex, vec2 uv) {
 }
 
 void main() {
-    float colorIndex = texture(rteTexture, vec2(textureUV.x, 1.0 - textureUV.y)).r;
+    float colorIndex = texture(rteTexture, textureUV).r;
     vec4 pal = textureAA(rtePalette, vec2(colorIndex, 0.5));
     if (drawMasked && pal.a < 0.01) discard;
     vec4 col = pal * rteColor * vertexColor;

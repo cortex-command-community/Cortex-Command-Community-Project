@@ -1,5 +1,8 @@
 #include "FrameMan.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 #include "SDL3/SDL_surface.h"
 #include "WindowMan.h"
 #include "PostProcessMan.h"
@@ -887,6 +890,20 @@ void FrameMan::Draw() {
 			targetPos.m_Y += (drawScreen->h - g_SceneMan.GetSceneHeight()) / 2;
 		}
 
+#ifdef __EMSCRIPTEN__
+		{
+			static int camDbg = 0;
+			if (++camDbg % 120 == 1) {
+				EM_ASM({ console.log('[CC] Camera: offset=(' + $0.toFixed(1) + ',' + $1.toFixed(1) +
+				         ') sceneSize=(' + $2 + ',' + $3 +
+				         ') screenSize=(' + $4 + ',' + $5 + ')'); },
+				       targetPos.m_X, targetPos.m_Y,
+				       g_SceneMan.GetSceneWidth(), g_SceneMan.GetSceneHeight(),
+				       drawScreen->w, drawScreen->h);
+			}
+		}
+#endif
+
 		// Draw the scene
 		g_SceneMan.Draw(drawScreen, drawScreenGUI, targetPos);
 
@@ -951,6 +968,22 @@ void FrameMan::Draw() {
 	m_BackBuffer->End();
 	backgroundShader.End();
 	rlZDepth(0);
+
+#ifdef __EMSCRIPTEN__
+	// DEBUG: Draw markers in BackBuffer FBO BEFORE PostProcess runs.
+	// Cyan at (70,10) = should be TOP-LEFT of scene.
+	// Magenta at (70, height-40) = should be BOTTOM-LEFT of scene.
+	{
+		m_BackBuffer->Begin(false);
+		rlDisableDepthTest();
+		rlEnableColorBlend();
+		DrawRectangle(70, 10, 40, 20, {0, 255, 255, 255});         // Cyan = top
+		DrawRectangle(70, m_BackBuffer8->h - 40, 40, 20, {255, 0, 255, 255}); // Magenta = bottom
+		rlDrawRenderBatchActive();
+		m_BackBuffer->End();
+	}
+#endif
+
 	if (g_ActivityMan.IsInActivity()) {
 		g_PostProcessMan.PostProcess();
 	}
