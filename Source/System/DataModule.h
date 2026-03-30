@@ -240,6 +240,9 @@ namespace RTE {
 		/// @param pause The pause state of the game.
 		void PauseRTE(bool pause);
 
+		/// The function to run right before data module gets destroyed and cleared.
+		void EndRTE();
+
 		/// Reloads all scripted Entity Presets with the latest version of their respective script files.
 		void ReloadAllScripts() const;
 #pragma endregion

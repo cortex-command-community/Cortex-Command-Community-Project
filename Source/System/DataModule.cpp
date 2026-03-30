@@ -117,6 +117,9 @@ bool DataModule::CreateOnDiskAsUserdata(const std::string& moduleName, const std
 }
 
 void DataModule::Destroy() {
+	// Run any last scripts you need to clear up before the module gets destroyed.
+	EndRTE();
+
 	for (const PresetEntry& preset: m_PresetList) {
 		delete preset.m_EntityPreset;
 	}
@@ -209,6 +212,17 @@ int DataModule::ReadModuleProperties(const std::string& moduleName, const Progre
 		return result;
 	}
 	return -1;
+}
+
+void DataModule::EndRTE() {
+	if (!m_RTEScriptActive) {
+		return;
+	}
+
+	int error = g_LuaMan.GetMasterScriptState().RunScriptString("if " + m_LuaClassName + ".EndRTE then " + m_LuaClassName + ":EndRTE(); end");
+	if (error) {
+		return;
+	}
 }
 
 int DataModule::ReadProperty(const std::string_view& propName, Reader& reader) {
