@@ -140,5 +140,8 @@ echo "==> Done!"
 echo "    $OUTPUT"
 echo "    $(ls -lh "$BUILD_DIR"/CortexCommand.{html,js,wasm,data} 2>/dev/null | awk '{print $5, $9}')"
 echo ""
+# Copy extra web assets
+cp "$(dirname "$0")/touchpad.js" "$BUILD_DIR/touchpad.js" 2>/dev/null || true
+
 echo "==> To test: bash emscripten/serve.py build-web 8080"
 echo "    Then open http://localhost:8080/CortexCommand.html"
