@@ -191,6 +191,72 @@
     <button class="ctrl-btn" onclick="ccFullscreen()">⛶ Fullscreen</button>
   </div>
 
+  <!-- Mobile debug console -->
+  <div id="mobile-console" style="
+    background: #111; color: #0f0; font-family: monospace; font-size: 10px;
+    padding: 6px; max-height: 200px; overflow-y: auto; white-space: pre-wrap;
+    word-break: break-all; border-top: 1px solid #333;
+  "></div>
+  <script>
+  (function() {
+    var mc = document.getElementById('mobile-console');
+    var maxLines = 200;
+    var logBuffer = [];
+    var STORAGE_KEY = 'cc_crash_log';
+
+    // On load, show any crash log from previous session
+    try {
+      var prev = localStorage.getItem(STORAGE_KEY);
+      if (prev) {
+        var header = document.createElement('div');
+        header.style.color = '#f90';
+        header.style.fontWeight = 'bold';
+        header.textContent = '=== PREVIOUS SESSION CRASH LOG ===';
+        mc.appendChild(header);
+        prev.split('\n').forEach(function(line) {
+          if (!line) return;
+          var d = document.createElement('div');
+          d.style.color = '#f90';
+          d.textContent = line;
+          mc.appendChild(d);
+        });
+        var sep = document.createElement('div');
+        sep.style.color = '#f90';
+        sep.textContent = '=== END PREVIOUS LOG — NEW SESSION ===';
+        mc.appendChild(sep);
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch(e) {}
+
+    function addLine(level, args) {
+      var text = Array.prototype.slice.call(args).map(function(a) {
+        return typeof a === 'object' ? JSON.stringify(a) : String(a);
+      }).join(' ');
+      var entry = '[' + level + '] ' + text;
+
+      // Save to buffer for crash persistence
+      logBuffer.push(entry);
+      if (logBuffer.length > maxLines) logBuffer.shift();
+      try { localStorage.setItem(STORAGE_KEY, logBuffer.join('\n')); } catch(e) {}
+
+      var colors = {log:'#0f0', warn:'#ff0', error:'#f33', info:'#0af'};
+      var line = document.createElement('div');
+      line.style.color = colors[level] || '#0f0';
+      line.textContent = entry;
+      mc.appendChild(line);
+      if (mc.children.length > maxLines * 2) mc.removeChild(mc.firstChild);
+      mc.scrollTop = mc.scrollHeight;
+    }
+    var orig = {log: console.log, warn: console.warn, error: console.error, info: console.info};
+    console.log = function() { orig.log.apply(console, arguments); addLine('log', arguments); };
+    console.warn = function() { orig.warn.apply(console, arguments); addLine('warn', arguments); };
+    console.error = function() { orig.error.apply(console, arguments); addLine('error', arguments); };
+    console.info = function() { orig.info.apply(console, arguments); addLine('info', arguments); };
+    window.addEventListener('error', function(e) { addLine('error', ['Uncaught: ' + e.message + ' at ' + e.filename + ':' + e.lineno]); });
+    window.addEventListener('unhandledrejection', function(e) { addLine('error', ['Unhandled rejection: ' + e.reason]); });
+  })();
+  </script>
+
   <!--
     Emscripten injects the Module object and the generated JS loader here.
     The {{{ SCRIPT }}} placeholder is replaced by Emscripten's output JS tag.

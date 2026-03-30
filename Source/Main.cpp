@@ -105,34 +105,61 @@ void InitializeManagers() {
 	ActivityMan::Construct();
 	LoadingScreen::Construct();
 
+#ifdef __EMSCRIPTEN__
+#define INIT_LOG(msg) EM_ASM({ console.log('[CC] Init: ' + UTF8ToString($0)); }, msg)
+#else
+#define INIT_LOG(msg) (void)0
+#endif
+
+	INIT_LOG("ThreadMan...");
 	g_ThreadMan.Initialize();
+	INIT_LOG("SettingsMan...");
 	g_SettingsMan.Initialize();
+	INIT_LOG("WindowMan...");
 	g_WindowMan.Initialize();
+	INIT_LOG("GLResourceMan...");
 	g_GLResourceMan.Initialize();
 
+	INIT_LOG("LuaMan...");
 	g_LuaMan.Initialize();
+	INIT_LOG("TimerMan...");
 	g_TimerMan.Initialize();
+	INIT_LOG("FrameMan...");
 	g_FrameMan.Initialize();
+	INIT_LOG("PostProcessMan...");
 	g_PostProcessMan.Initialize();
+	INIT_LOG("PerformanceMan...");
 	g_PerformanceMan.Initialize();
 
+	INIT_LOG("AudioMan...");
 	if (g_AudioMan.Initialize()) {
+		INIT_LOG("GUISound...");
 		g_GUISound.Initialize();
+		INIT_LOG("MusicMan...");
 		g_MusicMan.Initialize();
 	}
 
+	INIT_LOG("UInputMan...");
 	g_UInputMan.Initialize();
+	INIT_LOG("ConsoleMan...");
 	g_ConsoleMan.Initialize();
+	INIT_LOG("SceneMan...");
 	g_SceneMan.Initialize();
+	INIT_LOG("MovableMan...");
 	g_MovableMan.Initialize();
+	INIT_LOG("MetaMan...");
 	g_MetaMan.Initialize();
+	INIT_LOG("MenuMan...");
 	g_MenuMan.Initialize();
+	INIT_LOG("All managers initialized!");
 
 	// Overwrite Settings.ini after all the managers are created to fully populate the file. Up until this moment Settings.ini is populated only with minimal required properties to run.
 	// If Settings.ini already exists and is fully populated, this will deal with overwriting it to apply any overrides performed by the managers at boot (e.g resolution validation).
 	if (g_SettingsMan.SettingsNeedOverwrite()) {
 		g_SettingsMan.UpdateSettingsFile();
 	}
+
+#undef INIT_LOG
 }
 
 /// <summary>
@@ -465,9 +492,18 @@ int main(int argc, char** argv) {
 
 	InitializeManagers();
 
+#ifdef __EMSCRIPTEN__
+	EM_ASM({ console.log('[CC] Post-init: HandleMainArgs...'); });
+#endif
 	HandleMainArgs(argc, argv);
 
+#ifdef __EMSCRIPTEN__
+	EM_ASM({ console.log('[CC] Post-init: LoadAllDataModules...'); });
+#endif
 	g_PresetMan.LoadAllDataModules();
+#ifdef __EMSCRIPTEN__
+	EM_ASM({ console.log('[CC] Post-init: Modules loaded!'); });
+#endif
 
 	if (!System::IsInExternalModuleValidationMode()) {
 		g_UInputMan.LoadDeviceIcons();
@@ -486,6 +522,7 @@ int main(int argc, char** argv) {
 		// Browser build — enter the menu first, then let emscripten_set_main_loop
 		// drive per-frame callbacks. We never return from this function; the browser
 		// event loop takes over.
+		EM_ASM({ console.log('[CC] Entering main loop...'); });
 		if (!g_ActivityMan.Initialize()) {
 			// Start with the menu loop state
 			s_WebLoopState = WebLoopState::Menu;

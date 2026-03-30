@@ -80,10 +80,12 @@ EM_FLAGS=(
     # Dependencies via ports
     "-sUSE_ZLIB=1"
     "-sUSE_LIBPNG=1"
-    # Base.rte is preloaded with ALL files including audio.
-    # This makes the initial download larger (~115MB) but ensures all Base.rte
-    # sounds are available immediately for the menu and core gameplay.
+    # Base.rte preloaded WITHOUT audio to keep the .data file small (~34MB).
+    # Audio files are too large for mobile (114MB total). Sound loading
+    # gracefully handles missing files on Emscripten.
     "--preload-file" "$DATA_DIR/Base.rte@/Data/Base.rte"
+    "--exclude-file" "*.flac"
+    "--exclude-file" "*.ogg"
     # Shell and pre.js
     "--shell-file" "$SHELL_HTML"
     "--pre-js"     "$PRE_JS"
