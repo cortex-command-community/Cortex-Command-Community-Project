@@ -400,6 +400,11 @@ FMOD::Sound* ContentFile::LoadAndReleaseSound(bool abortGameForInvalidSound, boo
 	if (m_DataPath.empty() || !g_AudioMan.IsAudioEnabled()) {
 		return nullptr;
 	}
+#ifdef __EMSCRIPTEN__
+	// On Emscripten, audio files may not be available (lazy loading, download
+	// failures, etc.). Never abort for missing audio — just return nullptr.
+	abortGameForInvalidSound = false;
+#endif
 	if (!System::PathExistsCaseSensitive(m_DataPath)) {
 		bool foundAltExtension = false;
 		for (const char* altFileExtension: c_SupportedAudioFormats) {

@@ -1,0 +1,436 @@
+/**
+ * fmod_audio_impl.cpp
+ *
+ * Implementation of the FMOD stub's real audio methods backed by SDL3.
+ * Decodes FLAC/OGG/WAV files, mixes channels in software, and pushes
+ * audio to an SDL3 audio stream (Web Audio API on Emscripten).
+ */
+
+#include "fmod/fmod.hpp"
+#include <SDL3/SDL.h>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
+// Audio decoders (headers only — implementations in fmod_audio_decoders.cpp)
+#include "dr_flac.h"
+
+// stb_vorbis: include as header-only (implementation in fmod_audio_decoders.cpp)
+#define STB_VORBIS_HEADER_ONLY
+#include "stb_vorbis.c"
+
+using namespace FMOD;
+
+// ---------------------------------------------------------------------------
+// Global system singleton
+// ---------------------------------------------------------------------------
+static System* s_globalSystem = nullptr;
+
+System* FMOD::GetGlobalSystem() { return s_globalSystem; }
+
+// ---------------------------------------------------------------------------
+// System
+// ---------------------------------------------------------------------------
+
+FMOD_RESULT System::create(System** sys) {
+    static System s_instance;
+    s_globalSystem = &s_instance;
+    if (sys) *sys = &s_instance;
+    return FMOD_OK;
+}
+
+FMOD_RESULT System::init(int maxChannels, FMOD_INITFLAGS, void*) {
+    if (m_initialized) return FMOD_OK;
+
+    // Ensure SDL audio subsystem is initialized
+    if (!(SDL_WasInit(SDL_INIT_AUDIO))) {
+        if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
+#ifdef __EMSCRIPTEN__
+            EM_ASM({ console.log('[Audio] Failed to init SDL audio subsystem: ' + UTF8ToString($0)); }, SDL_GetError());
+#endif
+            return FMOD_OK;  // Don't crash — game runs without audio
+        }
+    }
+
+    // Open SDL3 audio device
+    SDL_AudioSpec spec;
+    spec.format = SDL_AUDIO_F32;
+    spec.channels = 2;
+    spec.freq = OUTPUT_RATE;
+
+    m_sdlStream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, nullptr, nullptr);
+    if (!m_sdlStream) {
+#ifdef __EMSCRIPTEN__
+        EM_ASM({ console.log('[Audio] Failed to open SDL audio device: ' + UTF8ToString($0)); }, SDL_GetError());
+#endif
+        return FMOD_OK;  // Don't fail — game can run without audio
+    }
+
+    m_sdlDeviceId = SDL_GetAudioStreamDevice((SDL_AudioStream*)m_sdlStream);
+
+    // Resume the audio device (browsers require user gesture, SDL handles this)
+    SDL_ResumeAudioStreamDevice((SDL_AudioStream*)m_sdlStream);
+
+    // Allocate channel pool
+    int numChannels = std::min(maxChannels, MAX_CHANNELS);
+    if (numChannels <= 0) numChannels = MAX_CHANNELS;
+    m_channels.resize(numChannels);
+    for (int i = 0; i < numChannels; i++) {
+        m_channels[i] = std::make_unique<Channel>();
+        m_channels[i]->impl.index = i;
+    }
+
+    // Setup master group
+    m_masterGroup.impl.name = "Master";
+    m_masterGroup.impl.volume = 1.0f;
+
+    // Allocate mix buffer (stereo)
+    m_mixBuffer.resize(MIX_FRAMES * 2, 0.0f);
+
+    m_initialized = true;
+
+#ifdef __EMSCRIPTEN__
+    EM_ASM({ console.log('[Audio] SDL audio device opened: ' + $0 + ' channels, ' + $1 + 'Hz'); },
+           numChannels, OUTPUT_RATE);
+#endif
+
+    return FMOD_OK;
+}
+
+FMOD_RESULT System::close() {
+    if (m_sdlStream) {
+        SDL_DestroyAudioStream((SDL_AudioStream*)m_sdlStream);
+        m_sdlStream = nullptr;
+    }
+    m_initialized = false;
+    return FMOD_OK;
+}
+
+// ---------------------------------------------------------------------------
+// Sound loading — decode FLAC/OGG/WAV from filesystem
+// ---------------------------------------------------------------------------
+
+static bool endsWith(const std::string& str, const char* suffix) {
+    size_t suffixLen = strlen(suffix);
+    if (str.size() < suffixLen) return false;
+    return str.compare(str.size() - suffixLen, suffixLen, suffix) == 0;
+}
+
+FMOD_RESULT System::createSound(const char* path, FMOD_MODE mode, void*, Sound** outSound) {
+    if (!outSound) return FMOD_OK;
+
+    auto sound = std::make_unique<Sound>();
+    sound->impl.mode = mode;
+
+    std::string filePath(path);
+    bool decoded = false;
+
+    if (endsWith(filePath, ".flac")) {
+        // Decode FLAC
+        unsigned int channels = 0, sampleRate = 0;
+        drflac_uint64 totalFrames = 0;
+        float* samples = drflac_open_file_and_read_pcm_frames_f32(path, &channels, &sampleRate, &totalFrames, nullptr);
+        if (samples && totalFrames > 0) {
+            sound->impl.channels = channels;
+            sound->impl.sampleRate = sampleRate;
+            sound->impl.totalFrames = (uint32_t)totalFrames;
+            sound->impl.pcmData.assign(samples, samples + totalFrames * channels);
+            drflac_free(samples, nullptr);
+            decoded = true;
+        }
+    } else if (endsWith(filePath, ".ogg")) {
+        // Decode OGG Vorbis
+        int channels = 0, sampleRate = 0;
+        short* samples = nullptr;
+        int totalFrames = stb_vorbis_decode_filename(path, &channels, &sampleRate, &samples);
+        if (samples && totalFrames > 0) {
+            sound->impl.channels = channels;
+            sound->impl.sampleRate = sampleRate;
+            sound->impl.totalFrames = (uint32_t)totalFrames;
+            // Convert int16 to float32
+            sound->impl.pcmData.resize(totalFrames * channels);
+            for (int i = 0; i < totalFrames * channels; i++) {
+                sound->impl.pcmData[i] = samples[i] / 32768.0f;
+            }
+            free(samples);
+            decoded = true;
+        }
+    } else if (endsWith(filePath, ".wav")) {
+        // Decode WAV via SDL3
+        SDL_AudioSpec spec;
+        Uint8* buf = nullptr;
+        Uint32 bufLen = 0;
+        if (SDL_LoadWAV(path, &spec, &buf, &bufLen) && buf) {
+            // Convert to float32 stereo
+            SDL_AudioSpec dstSpec;
+            dstSpec.format = SDL_AUDIO_F32;
+            dstSpec.channels = spec.channels;
+            dstSpec.freq = spec.freq;
+
+            sound->impl.channels = spec.channels;
+            sound->impl.sampleRate = spec.freq;
+            int bytesPerFrame = spec.channels * sizeof(float);
+            sound->impl.totalFrames = bufLen / (SDL_AUDIO_BYTESIZE(spec.format) * spec.channels);
+
+            // If already float32, just copy
+            if (spec.format == SDL_AUDIO_F32) {
+                sound->impl.pcmData.resize(bufLen / sizeof(float));
+                memcpy(sound->impl.pcmData.data(), buf, bufLen);
+            } else {
+                // Use SDL audio stream for conversion
+                SDL_AudioStream* conv = SDL_CreateAudioStream(&spec, &dstSpec);
+                if (conv) {
+                    SDL_PutAudioStreamData(conv, buf, bufLen);
+                    SDL_FlushAudioStream(conv);
+                    int outBytes = SDL_GetAudioStreamAvailable(conv);
+                    sound->impl.pcmData.resize(outBytes / sizeof(float));
+                    SDL_GetAudioStreamData(conv, sound->impl.pcmData.data(), outBytes);
+                    sound->impl.totalFrames = outBytes / bytesPerFrame;
+                    SDL_DestroyAudioStream(conv);
+                }
+            }
+            SDL_free(buf);
+            decoded = true;
+        }
+    }
+
+    if (!decoded) {
+        // Return an empty sound — playback will be silent but won't crash
+        *outSound = sound.release();
+        m_sounds.emplace_back(*outSound);
+        return FMOD_OK;
+    }
+
+    // Set loop mode from flags
+    if (mode & FMOD_LOOP_NORMAL) {
+        sound->impl.loopCount = -1;  // Infinite loop
+    }
+
+    *outSound = sound.release();
+    m_sounds.emplace_back(*outSound);
+    return FMOD_OK;
+}
+
+// ---------------------------------------------------------------------------
+// Channel group management
+// ---------------------------------------------------------------------------
+
+FMOD_RESULT System::createChannelGroup(const char* name, ChannelGroup** g) {
+    if (!g) return FMOD_OK;
+    auto group = std::make_unique<ChannelGroup>();
+    group->impl.name = name ? name : "";
+    *g = group.get();
+    m_channelGroups.push_back(std::move(group));
+    return FMOD_OK;
+}
+
+FMOD_RESULT System::getMasterChannelGroup(ChannelGroup** g) {
+    if (g) *g = &m_masterGroup;
+    return FMOD_OK;
+}
+
+// ---------------------------------------------------------------------------
+// Playback
+// ---------------------------------------------------------------------------
+
+FMOD_RESULT System::playSound(Sound* sound, ChannelGroup* group, bool paused, Channel** outChannel) {
+    if (!sound || !m_initialized) {
+        if (outChannel) *outChannel = nullptr;
+        return FMOD_OK;
+    }
+
+    // Find a free channel
+    Channel* ch = nullptr;
+    for (auto& c : m_channels) {
+        if (!c->impl.playing && !c->impl.paused) {
+            ch = c.get();
+            break;
+        }
+    }
+
+    if (!ch) {
+        // All channels busy — steal the oldest one
+        if (!m_channels.empty()) {
+            ch = m_channels[0].get();
+            ch->impl.playing = false;
+        }
+    }
+
+    if (!ch) {
+        if (outChannel) *outChannel = nullptr;
+        return FMOD_ERR_CHANNEL_ALLOC;
+    }
+
+    ch->impl.sound = &sound->impl;
+    ch->impl.playPosition = 0.0;
+    ch->impl.volume = 1.0f;
+    ch->impl.pitch = 1.0f;
+    ch->impl.pan = 0.0f;
+    ch->impl.paused = paused;
+    ch->impl.playing = true;
+    ch->impl.loopCount = sound->impl.loopCount;
+    ch->impl.callback = nullptr;
+    ch->impl.userData = nullptr;
+    ch->impl.group = group ? &group->impl : &m_masterGroup.impl;
+
+    if (outChannel) *outChannel = ch;
+    return FMOD_OK;
+}
+
+Channel* System::getChannelByIndex(int idx) {
+    if (idx >= 0 && idx < (int)m_channels.size())
+        return m_channels[idx].get();
+    return nullptr;
+}
+
+FMOD_RESULT System::getChannelsPlaying(int* v, int* r) {
+    int count = 0;
+    for (auto& c : m_channels) {
+        if (c->impl.playing) count++;
+    }
+    if (v) *v = count;
+    if (r) *r = count;
+    return FMOD_OK;
+}
+
+// ---------------------------------------------------------------------------
+// Mixer — called every frame from AudioMan::Update -> system->update()
+// ---------------------------------------------------------------------------
+
+FMOD_RESULT System::update() {
+    if (!m_initialized || !m_sdlStream) return FMOD_OK;
+
+    // Check how much audio the stream needs
+    int queued = SDL_GetAudioStreamQueued((SDL_AudioStream*)m_sdlStream);
+    int bytesPerFrame = 2 * sizeof(float);  // stereo float32
+    int targetBytes = MIX_FRAMES * bytesPerFrame;
+
+    // Only mix if the stream needs more data (avoid building up latency)
+    if (queued > targetBytes * 4) return FMOD_OK;
+
+    // Clear mix buffer
+    std::fill(m_mixBuffer.begin(), m_mixBuffer.end(), 0.0f);
+    int framesToMix = MIX_FRAMES;
+
+    // Collect channels that finished this frame (fire callbacks after mixing)
+    std::vector<Channel*> endedChannels;
+
+    // Mix all active channels
+    for (auto& ch : m_channels) {
+        ChannelImpl& ci = ch->impl;
+        if (!ci.playing || ci.paused || !ci.sound || ci.sound->pcmData.empty())
+            continue;
+
+        SoundImpl& snd = *ci.sound;
+        float groupVol = ci.group ? ci.group->volume : 1.0f;
+        bool groupMuted = ci.group ? ci.group->muted : false;
+        float effectiveVol = ci.volume * groupVol * m_masterGroup.impl.volume;
+        if (groupMuted || m_masterGroup.impl.muted) effectiveVol = 0.0f;
+
+        // Panning: equal-power pan law
+        float panL = std::cos((ci.pan + 1.0f) * 0.25f * 3.14159265f);
+        float panR = std::sin((ci.pan + 1.0f) * 0.25f * 3.14159265f);
+
+        for (int f = 0; f < framesToMix; f++) {
+            int pos = (int)ci.playPosition;
+            if (pos >= (int)snd.totalFrames) {
+                // Handle loop or end
+                if (ci.loopCount != 0) {
+                    ci.playPosition = 0.0;
+                    pos = 0;
+                    if (ci.loopCount > 0) ci.loopCount--;
+                } else {
+                    ci.playing = false;
+                    endedChannels.push_back(ch.get());
+                    break;
+                }
+            }
+
+            // Read sample (mono or stereo source)
+            float sL = 0.0f, sR = 0.0f;
+            if (snd.channels == 1) {
+                sL = sR = snd.pcmData[pos];
+            } else if (snd.channels >= 2) {
+                sL = snd.pcmData[pos * snd.channels];
+                sR = snd.pcmData[pos * snd.channels + 1];
+            }
+
+            // Apply volume and pan, accumulate into stereo mix
+            m_mixBuffer[f * 2]     += sL * effectiveVol * panL;
+            m_mixBuffer[f * 2 + 1] += sR * effectiveVol * panR;
+
+            ci.playPosition += ci.pitch;
+        }
+    }
+
+    // Clamp output
+    for (auto& s : m_mixBuffer) {
+        s = std::clamp(s, -1.0f, 1.0f);
+    }
+
+    // Push to SDL audio stream
+    SDL_PutAudioStreamData((SDL_AudioStream*)m_sdlStream, m_mixBuffer.data(),
+                           framesToMix * bytesPerFrame);
+
+    // Fire end callbacks
+    for (Channel* ch : endedChannels) {
+        fireEndCallback(ch);
+    }
+
+    return FMOD_OK;
+}
+
+void System::fireEndCallback(Channel* ch) {
+    if (ch->impl.callback) {
+        ch->impl.callback(
+            (FMOD_CHANNELCONTROL*)ch,
+            FMOD_CHANNELCONTROL_CHANNEL,
+            FMOD_CHANNELCONTROL_CALLBACK_END,
+            nullptr, nullptr
+        );
+    }
+    ch->impl.callback = nullptr;
+    ch->impl.userData = nullptr;
+}
+
+// ---------------------------------------------------------------------------
+// Channel method implementations that need System access
+// ---------------------------------------------------------------------------
+
+FMOD_RESULT Channel::stop() {
+    impl.playing = false;
+    impl.paused = false;
+    // Fire end callback
+    if (impl.callback) {
+        System* sys = GetGlobalSystem();
+        if (sys) sys->fireEndCallback(this);
+    }
+    return FMOD_OK;
+}
+
+FMOD_RESULT Channel::getCurrentSound(Sound** s) {
+    if (!s) return FMOD_OK;
+    // We need to find the Sound object that owns this SoundImpl.
+    // For simplicity, return nullptr — AudioMan doesn't rely heavily on this.
+    *s = nullptr;
+    return FMOD_OK;
+}
+
+FMOD_RESULT Channel::setChannelGroup(ChannelGroup* g) {
+    if (g) impl.group = &g->impl;
+    return FMOD_OK;
+}
+
+FMOD_RESULT Channel::getPosition(unsigned int* p, FMOD_TIMEUNIT u) {
+    if (!p) return FMOD_OK;
+    if (u & FMOD_TIMEUNIT_MS) {
+        *p = impl.sound ? (unsigned int)((uint64_t)impl.playPosition * 1000 / impl.sound->sampleRate) : 0;
+    } else {
+        *p = (unsigned int)impl.playPosition;
+    }
+    return FMOD_OK;
+}

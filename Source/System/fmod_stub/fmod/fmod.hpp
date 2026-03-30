@@ -1,20 +1,26 @@
 /**
  * FMOD Core API stub for Emscripten / WebAssembly builds.
  *
- * Provides empty/no-op implementations of the FMOD types and methods used
- * by AudioMan so the codebase compiles without the proprietary FMOD SDK.
+ * Provides REAL audio playback backed by SDL3's audio API (which uses the
+ * Web Audio API on Emscripten).  Audio files are decoded from FLAC/OGG/WAV
+ * via dr_flac and stb_vorbis into float32 PCM, then mixed in software and
+ * pushed to an SDL3 audio stream.
  *
- * AudioMan itself is compiled out on Emscripten and replaced by
- * AudioManWeb.cpp which uses the Web Audio API via OpenAL Soft or SDL_mixer.
- *
- * NOTE: Do NOT ship this header on native builds.  The real FMOD SDK must be
- * present in external/include/fmod/ for Windows/Linux/macOS targets.
+ * The public API surface matches the subset of FMOD used by AudioMan,
+ * MusicMan, SoundContainer, and ContentFile — so no game code changes
+ * are needed.
  */
 
 #pragma once
 
 #include <cstdint>
 #include <cstring>
+#include <cmath>
+#include <string>
+#include <vector>
+#include <memory>
+#include <algorithm>
+#include <mutex>
 
 // ---------------------------------------------------------------------------
 // Additional FMOD structs and enums used in AudioMan.cpp
@@ -95,11 +101,14 @@ typedef int            FMOD_BOOL;
 #define FMOD_LOOP_NORMAL        0x00000002
 #define FMOD_2D                 0x00000008
 #define FMOD_3D                 0x00000010
+#define FMOD_CREATESAMPLE       0x00000100
 #define FMOD_3D_LINEARROLLOFF   0x00400000
 #define FMOD_NONBLOCKING        0x00010000
 #define FMOD_TIMEUNIT_MS        0x00000001
 #define FMOD_TIMEUNIT_PCM       0x00000002
-#define FMOD_INIT_NORMAL        0x00000000
+#define FMOD_INIT_NORMAL                  0x00000000
+#define FMOD_INIT_VOL0_BECOMES_VIRTUAL    0x00000200
+#define FMOD_INIT_PROFILE_ENABLE          0x00010000
 #define FMOD_CHANNELMASK_ALL    0xFFFFFFFF
 
 struct FMOD_VECTOR { float x, y, z; };
@@ -113,12 +122,47 @@ typedef FMOD_RESULT (F_CALLBACK *FMOD_CHANNEL_CALLBACK)(void*, int, int, void*, 
 // ---------------------------------------------------------------------------
 enum FMOD_CHANNELCONTROL_TYPE { FMOD_CHANNELCONTROL_CHANNEL = 0, FMOD_CHANNELCONTROL_CHANNELGROUP = 1 };
 enum FMOD_CHANNELCONTROL_CALLBACK_TYPE { FMOD_CHANNELCONTROL_CALLBACK_END = 0 };
-// FMOD_CHANNELCONTROL is the opaque base type for Channel/ChannelGroup callbacks
 typedef void FMOD_CHANNELCONTROL;
 typedef FMOD_RESULT (F_CALLBACK *FMOD_CHANNELCONTROL_CALLBACK)(FMOD_CHANNELCONTROL*, FMOD_CHANNELCONTROL_TYPE, FMOD_CHANNELCONTROL_CALLBACK_TYPE, void*, void*);
 
 // ---------------------------------------------------------------------------
-// FMOD namespace stubs
+// Internal implementation types (opaque to game code)
+// ---------------------------------------------------------------------------
+struct SoundImpl {
+    std::vector<float> pcmData;     // Interleaved float32 PCM samples
+    uint32_t totalFrames = 0;       // Number of sample frames
+    uint32_t channels = 0;          // 1 = mono, 2 = stereo
+    uint32_t sampleRate = 44100;    // Original sample rate
+    int loopCount = 0;              // -1 = infinite, 0 = no loop
+    FMOD_MODE mode = 0;
+};
+
+struct ChannelGroupImpl;
+
+struct ChannelImpl {
+    SoundImpl* sound = nullptr;
+    double playPosition = 0.0;       // Current frame position (double for pitch interpolation)
+    float volume = 1.0f;
+    float pitch = 1.0f;
+    float pan = 0.0f;                // -1 left, 0 center, +1 right
+    bool paused = false;
+    bool playing = false;
+    int loopCount = 0;               // Remaining loops
+    void* userData = nullptr;
+    FMOD_CHANNELCONTROL_CALLBACK callback = nullptr;
+    ChannelGroupImpl* group = nullptr;
+    int index = -1;                  // Stable index in the channel pool
+};
+
+struct ChannelGroupImpl {
+    float volume = 1.0f;
+    bool muted = false;
+    bool paused = false;
+    std::string name;
+};
+
+// ---------------------------------------------------------------------------
+// FMOD namespace — real implementations backed by SDL3 audio
 // ---------------------------------------------------------------------------
 namespace FMOD {
 
@@ -126,25 +170,30 @@ namespace FMOD {
     class Channel;
     class ChannelGroup;
     class DSP;
+    class System;
+
+    // Global system pointer for access from Channel/Sound methods
+    System* GetGlobalSystem();
 
     // ------------------------------------------------------------------
     // ChannelControl — shared interface for Channel and ChannelGroup
     // ------------------------------------------------------------------
     class ChannelControl {
     public:
-        FMOD_RESULT setVolume(float)          { return FMOD_OK; }
-        FMOD_RESULT getVolume(float* v)       { if (v) *v = 1.0f; return FMOD_OK; }
-        FMOD_RESULT setPaused(bool)           { return FMOD_OK; }
-        FMOD_RESULT setMute(bool)             { return FMOD_OK; }
-        FMOD_RESULT getMute(bool* m)          { if (m) *m = false; return FMOD_OK; }
-        FMOD_RESULT setPitch(float)           { return FMOD_OK; }
-        FMOD_RESULT isPlaying(bool* p)        { if (p) *p = false; return FMOD_OK; }
-        FMOD_RESULT stop()                    { return FMOD_OK; }
-        FMOD_RESULT addDSP(int, DSP*)         { return FMOD_OK; }
+        virtual ~ChannelControl() = default;
+        virtual FMOD_RESULT setVolume(float) = 0;
+        virtual FMOD_RESULT getVolume(float* v) = 0;
+        virtual FMOD_RESULT setPaused(bool) = 0;
+        virtual FMOD_RESULT setMute(bool) = 0;
+        virtual FMOD_RESULT getMute(bool* m) = 0;
+        virtual FMOD_RESULT setPitch(float) = 0;
+        virtual FMOD_RESULT isPlaying(bool* p) = 0;
+        virtual FMOD_RESULT stop() = 0;
+        FMOD_RESULT addDSP(int, DSP*)         { return FMOD_OK; }  // DSP: no-op for now
         FMOD_RESULT removeDSP(DSP*)           { return FMOD_OK; }
-        FMOD_RESULT setCallback(FMOD_CHANNELCONTROL_CALLBACK) { return FMOD_OK; }
-        FMOD_RESULT setUserData(void*)        { return FMOD_OK; }
-        FMOD_RESULT getUserData(void** d)     { if (d) *d = nullptr; return FMOD_OK; }
+        virtual FMOD_RESULT setCallback(FMOD_CHANNELCONTROL_CALLBACK) = 0;
+        virtual FMOD_RESULT setUserData(void*) = 0;
+        virtual FMOD_RESULT getUserData(void** d) = 0;
     };
 
     // ------------------------------------------------------------------
@@ -152,19 +201,42 @@ namespace FMOD {
     // ------------------------------------------------------------------
     class Channel : public ChannelControl {
     public:
+        ChannelImpl impl;
+
+        FMOD_RESULT setVolume(float v) override        { impl.volume = v; return FMOD_OK; }
+        FMOD_RESULT getVolume(float* v) override       { if (v) *v = impl.volume; return FMOD_OK; }
+        FMOD_RESULT setPaused(bool p) override         { impl.paused = p; return FMOD_OK; }
+        FMOD_RESULT setMute(bool) override             { return FMOD_OK; }
+        FMOD_RESULT getMute(bool* m) override          { if (m) *m = false; return FMOD_OK; }
+        FMOD_RESULT setPitch(float p) override         { impl.pitch = std::max(0.01f, p); return FMOD_OK; }
+        FMOD_RESULT isPlaying(bool* p) override        { if (p) *p = impl.playing; return FMOD_OK; }
+        FMOD_RESULT stop() override;
+        FMOD_RESULT setCallback(FMOD_CHANNELCONTROL_CALLBACK cb) override { impl.callback = cb; return FMOD_OK; }
+        FMOD_RESULT setUserData(void* d) override      { impl.userData = d; return FMOD_OK; }
+        FMOD_RESULT getUserData(void** d) override     { if (d) *d = impl.userData; return FMOD_OK; }
+
+        // 3D audio — no-op for now, store values for future use
         FMOD_RESULT set3DAttributes(const FMOD_VECTOR*, const FMOD_VECTOR*) { return FMOD_OK; }
-        FMOD_RESULT get3DAttributes(FMOD_VECTOR*, FMOD_VECTOR*)             { return FMOD_OK; }
+        FMOD_RESULT get3DAttributes(FMOD_VECTOR* p, FMOD_VECTOR* v)        { if (p) *p = {0,0,0}; if (v) *v = {0,0,0}; return FMOD_OK; }
         FMOD_RESULT set3DMinMaxDistance(float, float)                       { return FMOD_OK; }
-        FMOD_RESULT setPan(float)                                           { return FMOD_OK; }
-        FMOD_RESULT setFrequency(float)                                     { return FMOD_OK; }
-        FMOD_RESULT getFrequency(float* f)    { if (f) *f = 44100.0f; return FMOD_OK; }
-        FMOD_RESULT setLoopCount(int)                                       { return FMOD_OK; }
-        FMOD_RESULT getCurrentSound(Sound** s){ if (s) *s = nullptr; return FMOD_OK; }
-        FMOD_RESULT setChannelGroup(ChannelGroup*)                          { return FMOD_OK; }
-        FMOD_RESULT addFadePoint(unsigned long long, float)                 { return FMOD_OK; }
-        FMOD_RESULT setFadePointRamp(unsigned long long, float)             { return FMOD_OK; }
-        FMOD_RESULT getPosition(unsigned int* p, FMOD_TIMEUNIT)             { if (p) *p = 0; return FMOD_OK; }
-        FMOD_RESULT getIndex(int* i)          { if (i) *i = 0; return FMOD_OK; }
+        FMOD_RESULT get3DMinMaxDistance(float* mn, float* mx)               { if (mn) *mn = 1.0f; if (mx) *mx = 10000.0f; return FMOD_OK; }
+        FMOD_RESULT set3DLevel(float)                                       { return FMOD_OK; }
+        FMOD_RESULT get3DLevel(float* l)                                    { if (l) *l = 1.0f; return FMOD_OK; }
+        FMOD_RESULT getDSP(int, DSP** d); // Defined after DSP class
+        FMOD_RESULT setPan(float p)                    { impl.pan = std::clamp(p, -1.0f, 1.0f); return FMOD_OK; }
+        FMOD_RESULT setFrequency(float f)              { if (impl.sound && impl.sound->sampleRate > 0) impl.pitch = f / (float)impl.sound->sampleRate; return FMOD_OK; }
+        FMOD_RESULT getFrequency(float* f)             { if (f) *f = impl.sound ? (float)impl.sound->sampleRate * impl.pitch : 44100.0f; return FMOD_OK; }
+        FMOD_RESULT setLoopCount(int n)                { impl.loopCount = n; return FMOD_OK; }
+        FMOD_RESULT getCurrentSound(Sound** s);
+        FMOD_RESULT setChannelGroup(ChannelGroup* g);
+        FMOD_RESULT addFadePoint(unsigned long long, float) { return FMOD_OK; }  // Fade: no-op
+        FMOD_RESULT setFadePointRamp(unsigned long long, float) { return FMOD_OK; }
+        FMOD_RESULT getPosition(unsigned int* p, FMOD_TIMEUNIT u);
+        FMOD_RESULT getIndex(int* i)                   { if (i) *i = impl.index; return FMOD_OK; }
+        FMOD_RESULT getDSPClock(unsigned long long* c, unsigned long long* p) { if (c) *c = 0; if (p) *p = 0; return FMOD_OK; }
+        FMOD_RESULT setPriority(int)                                        { return FMOD_OK; }
+        FMOD_RESULT getAudibility(float* a)                                 { if (a) *a = impl.playing ? 1.0f : 0.0f; return FMOD_OK; }
+        FMOD_RESULT getMode(FMOD_MODE* m)                                   { if (m) *m = impl.sound ? impl.sound->mode : 0; return FMOD_OK; }
     };
 
     // ------------------------------------------------------------------
@@ -172,8 +244,24 @@ namespace FMOD {
     // ------------------------------------------------------------------
     class ChannelGroup : public ChannelControl {
     public:
-        FMOD_RESULT getNumChannels(int* n)    { if (n) *n = 0; return FMOD_OK; }
-        FMOD_RESULT getChannel(int, Channel** c) { if (c) *c = nullptr; return FMOD_OK; }
+        ChannelGroupImpl impl;
+
+        FMOD_RESULT setVolume(float v) override        { impl.volume = v; return FMOD_OK; }
+        FMOD_RESULT getVolume(float* v) override       { if (v) *v = impl.volume; return FMOD_OK; }
+        FMOD_RESULT setPaused(bool p) override         { impl.paused = p; return FMOD_OK; }
+        FMOD_RESULT setMute(bool m) override           { impl.muted = m; return FMOD_OK; }
+        FMOD_RESULT getMute(bool* m) override          { if (m) *m = impl.muted; return FMOD_OK; }
+        FMOD_RESULT setPitch(float) override           { return FMOD_OK; }
+        FMOD_RESULT isPlaying(bool* p) override        { if (p) *p = false; return FMOD_OK; }
+        FMOD_RESULT stop() override                    { return FMOD_OK; }
+        FMOD_RESULT setCallback(FMOD_CHANNELCONTROL_CALLBACK) override { return FMOD_OK; }
+        FMOD_RESULT setUserData(void*) override        { return FMOD_OK; }
+        FMOD_RESULT getUserData(void** d) override     { if (d) *d = nullptr; return FMOD_OK; }
+
+        FMOD_RESULT getNumChannels(int* n)             { if (n) *n = 0; return FMOD_OK; }
+        FMOD_RESULT getChannel(int, Channel** c)       { if (c) *c = nullptr; return FMOD_OK; }
+        FMOD_RESULT addGroup(ChannelGroup*, bool = true, void* = nullptr) { return FMOD_OK; }
+        FMOD_RESULT getDSP(int, DSP**); // Defined after DSP class
     };
 
     // ------------------------------------------------------------------
@@ -181,23 +269,32 @@ namespace FMOD {
     // ------------------------------------------------------------------
     class Sound {
     public:
-        FMOD_RESULT getLength(unsigned int* l, FMOD_TIMEUNIT) { if (l) *l = 0; return FMOD_OK; }
-        FMOD_RESULT release()                 { return FMOD_OK; }
-        FMOD_RESULT setMode(FMOD_MODE)        { return FMOD_OK; }
-        FMOD_RESULT set3DMinMaxDistance(float, float) { return FMOD_OK; }
-        FMOD_RESULT getDefaults(float* f, int*) { if (f) *f = 44100.0f; return FMOD_OK; }
-        FMOD_RESULT setDefaults(float, int)   { return FMOD_OK; }
-        FMOD_RESULT getNumSubSounds(int* n)   { if (n) *n = 0; return FMOD_OK; }
-        FMOD_RESULT getSubSound(int, Sound** s){ if (s) *s = nullptr; return FMOD_OK; }
-        FMOD_RESULT getUserData(void** d)     { if (d) *d = nullptr; return FMOD_OK; }
-        FMOD_RESULT setUserData(void*)        { return FMOD_OK; }
-        FMOD_RESULT setLoopCount(int)         { return FMOD_OK; }
-        FMOD_RESULT getLoopCount(int* n)      { if (n) *n = 0; return FMOD_OK; }
+        SoundImpl impl;
+
+        FMOD_RESULT getLength(unsigned int* l, FMOD_TIMEUNIT u) {
+            if (!l) return FMOD_OK;
+            if (u & FMOD_TIMEUNIT_MS)
+                *l = impl.sampleRate > 0 ? (unsigned int)((uint64_t)impl.totalFrames * 1000 / impl.sampleRate) : 0;
+            else
+                *l = impl.totalFrames;
+            return FMOD_OK;
+        }
+        FMOD_RESULT release()                          { return FMOD_OK; }
+        FMOD_RESULT setMode(FMOD_MODE m)               { impl.mode = m; return FMOD_OK; }
+        FMOD_RESULT set3DMinMaxDistance(float, float)   { return FMOD_OK; }
+        FMOD_RESULT getDefaults(float* f, int*)         { if (f) *f = (float)impl.sampleRate; return FMOD_OK; }
+        FMOD_RESULT setDefaults(float f, int)           { impl.sampleRate = (uint32_t)f; return FMOD_OK; }
+        FMOD_RESULT getNumSubSounds(int* n)             { if (n) *n = 0; return FMOD_OK; }
+        FMOD_RESULT getSubSound(int, Sound** s)         { if (s) *s = nullptr; return FMOD_OK; }
+        FMOD_RESULT getUserData(void** d)               { if (d) *d = nullptr; return FMOD_OK; }
+        FMOD_RESULT setUserData(void*)                  { return FMOD_OK; }
+        FMOD_RESULT setLoopCount(int n)                 { impl.loopCount = n; return FMOD_OK; }
+        FMOD_RESULT getLoopCount(int* n)                { if (n) *n = impl.loopCount; return FMOD_OK; }
         FMOD_RESULT setLoopPoints(unsigned int, FMOD_TIMEUNIT, unsigned int, FMOD_TIMEUNIT) { return FMOD_OK; }
     };
 
     // ------------------------------------------------------------------
-    // DSP
+    // DSP — no-op (effects not implemented)
     // ------------------------------------------------------------------
     class DSP {
     public:
@@ -207,66 +304,86 @@ namespace FMOD {
         FMOD_RESULT setBypass(bool)                        { return FMOD_OK; }
     };
 
+    // Deferred inline definitions (need complete types)
+    inline FMOD_RESULT Channel::getDSP(int, DSP** d) { static DSP stub; if (d) *d = &stub; return FMOD_OK; }
+    inline FMOD_RESULT ChannelGroup::getDSP(int, DSP** d) { static DSP stub; if (d) *d = &stub; return FMOD_OK; }
+
     // ------------------------------------------------------------------
-    // System — the main FMOD context
+    // System — the main audio context backed by SDL3
     // ------------------------------------------------------------------
     class System {
     public:
-        // Factory — returns a stub System pointer (allocated once, never freed)
-        static FMOD_RESULT create(System** sys) {
-            static System s_instance;
-            if (sys) *sys = &s_instance;
-            return FMOD_OK;
-        }
+        static constexpr int MAX_CHANNELS = 128;
+        static constexpr int OUTPUT_RATE = 48000;
+        static constexpr int MIX_FRAMES = 1024;   // Frames per mix pass
 
-        FMOD_RESULT init(int, FMOD_INITFLAGS, void*)                       { return FMOD_OK; }
-        FMOD_RESULT close()                                               { return FMOD_OK; }
-        FMOD_RESULT release()                                             { return FMOD_OK; }
-        FMOD_RESULT update()                                              { return FMOD_OK; }
+        // Factory
+        static FMOD_RESULT create(System** sys);
+
+        FMOD_RESULT init(int maxChannels, FMOD_INITFLAGS flags, void* extraDriverData);
+        FMOD_RESULT close();
+        FMOD_RESULT release()                                             { return close(); }
+        FMOD_RESULT update();
         FMOD_RESULT getAdvancedSettings(FMOD_ADVANCEDSETTINGS*)           { return FMOD_OK; }
         FMOD_RESULT setAdvancedSettings(FMOD_ADVANCEDSETTINGS*)           { return FMOD_OK; }
         FMOD_RESULT setOutput(FMOD_OUTPUTTYPE)                            { return FMOD_OK; }
         FMOD_RESULT setSpeakerMode(FMOD_SPEAKERMODE)                      { return FMOD_OK; }
         FMOD_RESULT getSpeakerMode(FMOD_SPEAKERMODE* m)                   { if (m) *m = FMOD_SPEAKERMODE_STEREO; return FMOD_OK; }
         FMOD_RESULT getVersion(unsigned int* v)                           { if (v) *v = 0x00020213; return FMOD_OK; }
+        FMOD_RESULT getSoftwareFormat(int* rate, void*, int*) { if (rate) *rate = OUTPUT_RATE; return FMOD_OK; }
 
-        FMOD_RESULT createStream(const char*, FMOD_MODE, void*, Sound** s) {
-            static Sound stub; if (s) *s = &stub; return FMOD_OK;
+        FMOD_RESULT createStream(const char* path, FMOD_MODE mode, void*, Sound** s) {
+            return createSound(path, mode, nullptr, s);
         }
-        FMOD_RESULT createSound(const char*, FMOD_MODE, void*, Sound** s) {
-            static Sound stub; if (s) *s = &stub; return FMOD_OK;
-        }
-        FMOD_RESULT createChannelGroup(const char*, ChannelGroup** g) {
-            static ChannelGroup stub; if (g) *g = &stub; return FMOD_OK;
-        }
+        FMOD_RESULT createSound(const char* path, FMOD_MODE mode, void* exinfo, Sound** outSound);
+        FMOD_RESULT createChannelGroup(const char* name, ChannelGroup** g);
         FMOD_RESULT createDSPByType(int, DSP** d) {
             static DSP stub; if (d) *d = &stub; return FMOD_OK;
         }
 
-        FMOD_RESULT getMasterChannelGroup(ChannelGroup** g) {
-            static ChannelGroup stub; if (g) *g = &stub; return FMOD_OK;
-        }
-        FMOD_RESULT playSound(Sound*, ChannelGroup*, bool, Channel** c) {
-            static Channel stub; if (c) *c = &stub; return FMOD_OK;
-        }
+        FMOD_RESULT getMasterChannelGroup(ChannelGroup** g);
+        FMOD_RESULT playSound(Sound* sound, ChannelGroup* group, bool paused, Channel** outChannel);
         FMOD_RESULT set3DNumListeners(int)                     { return FMOD_OK; }
         FMOD_RESULT set3DListenerAttributes(int, const FMOD_VECTOR*, const FMOD_VECTOR*, const FMOD_VECTOR*, const FMOD_VECTOR*) { return FMOD_OK; }
         FMOD_RESULT set3DSettings(float, float, float)         { return FMOD_OK; }
         FMOD_RESULT setSoftwareChannels(int)                   { return FMOD_OK; }
-        FMOD_RESULT getSoftwareChannels(int* n)                { if (n) *n = 128; return FMOD_OK; }
-        FMOD_RESULT getChannelsPlaying(int* v, int* r)         { if (v) *v = 0; if (r) *r = 0; return FMOD_OK; }
+        FMOD_RESULT getSoftwareChannels(int* n)                { if (n) *n = MAX_CHANNELS; return FMOD_OK; }
+        FMOD_RESULT getChannelsPlaying(int* v, int* r);
         FMOD_RESULT setDSPBufferSize(unsigned int, int)        { return FMOD_OK; }
+        FMOD_RESULT getChannel(int idx, Channel** c) {
+            Channel* ch = getChannelByIndex(idx);
+            if (c) *c = ch;
+            return ch ? FMOD_OK : FMOD_ERR_INVALID_HANDLE;
+        }
+
+        // Internal: get channel by index
+        Channel* getChannelByIndex(int idx);
+
+    // Made public so Channel::stop() can access it from fmod_audio_impl.cpp
+    public:
+        bool m_initialized = false;
+        uint32_t m_sdlDeviceId = 0;
+        void* m_sdlStream = nullptr;  // SDL_AudioStream*
+
+        ChannelGroup m_masterGroup;
+        std::vector<std::unique_ptr<ChannelGroup>> m_channelGroups;
+        std::vector<std::unique_ptr<Channel>> m_channels;
+        std::vector<std::unique_ptr<Sound>> m_sounds;
+
+        std::vector<float> m_mixBuffer;  // Stereo interleaved mix output
+
+        // Fire end callback for a channel
+        void fireEndCallback(Channel* ch);
     };
 
 } // namespace FMOD
 
 // ---------------------------------------------------------------------------
-// FMOD free functions (C-style API used by AudioMan)
+// FMOD free functions
 // ---------------------------------------------------------------------------
 inline FMOD_RESULT FMOD_System_Create(FMOD::System** system, unsigned int) {
     return FMOD::System::create(system);
 }
-// AudioMan calls FMOD::System_Create (C++ namespace version)
 namespace FMOD {
     inline FMOD_RESULT System_Create(System** sys, unsigned int = 0x00020213) {
         return System::create(sys);
@@ -274,7 +391,7 @@ namespace FMOD {
 }
 
 // ---------------------------------------------------------------------------
-// FMOD_RESULT constant used as FMOD_VECTOR type in some callbacks
+// FMOD_CREATESOUNDEXINFO and callback types
 // ---------------------------------------------------------------------------
 typedef void* FMOD_SOUND_PCMREAD_CALLBACK;
 typedef void* FMOD_SOUND_PCMSETPOS_CALLBACK;

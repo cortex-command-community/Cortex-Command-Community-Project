@@ -150,23 +150,14 @@ bool PresetMan::LoadAllDataModules() {
 	Destroy();
 
 #ifdef __EMSCRIPTEN__
-	// On Emscripten, game modules are not prebaked into the binary — they are
-	// served as per-module zip files and fetched in parallel before loading.
-	// Base.rte is already available (preloaded with the binary for shader init);
-	// all other official modules are fetched here.
-	{
-		std::vector<std::string> modulesToFetch;
-		for (const std::string& mod : c_OfficialModules) {
-			if (mod != "Base.rte" && !std::filesystem::exists("Data/" + mod)) {
-				modulesToFetch.push_back(mod);
-			}
-		}
-		if (!modulesToFetch.empty()) {
-			WebPlatform_FetchModules(modulesToFetch);
-		}
+	// On Emscripten, only load Base.rte (preloaded with the binary).
+	// Other modules require separate downloads that may fail via Cloudflare.
+	// Skip fetching and loading non-Base modules entirely for now.
+	FindAndExtractZippedModules();
+	if (!LoadDataModule("Base.rte", true, false, LoadingScreen::LoadingSplashProgressReport)) {
+		return false;
 	}
-#endif
-
+#else
 	FindAndExtractZippedModules();
 
 	// Load all the official modules first!
@@ -175,7 +166,9 @@ bool PresetMan::LoadAllDataModules() {
 			return false;
 		}
 	}
+#endif
 
+#ifndef __EMSCRIPTEN__
 	// If a single module is specified, skip loading all other unofficial modules and load specified module only.
 	if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad)) {
 		if (!LoadDataModule(m_SingleModuleToLoad, false, false, LoadingScreen::LoadingSplashProgressReport)) {
@@ -214,6 +207,7 @@ bool PresetMan::LoadAllDataModules() {
 			}
 		}
 	}
+#endif // !__EMSCRIPTEN__
 
 	if (g_SettingsMan.IsMeasuringModuleLoadTime()) {
 		std::chrono::milliseconds moduleLoadElapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - moduleLoadTimerStart);

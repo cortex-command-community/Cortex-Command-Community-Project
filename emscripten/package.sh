@@ -76,13 +76,10 @@ EM_FLAGS=(
     # Dependencies via ports
     "-sUSE_ZLIB=1"
     "-sUSE_LIBPNG=1"
-    # Base.rte is preloaded because WindowMan loads shaders from it before
-    # PresetMan::LoadAllDataModules() runs.  All other modules are fetched at
-    # runtime as per-module zip files (see WebPlatform_FetchModules).
-    # Audio excluded — FMOD is stubbed on the web build.
+    # Base.rte is preloaded with ALL files including audio.
+    # This makes the initial download larger (~115MB) but ensures all Base.rte
+    # sounds are available immediately for the menu and core gameplay.
     "--preload-file" "$DATA_DIR/Base.rte@/Data/Base.rte"
-    "--exclude-file" "*.flac"
-    "--exclude-file" "*.ogg"
     # Shell and pre.js
     "--shell-file" "$SHELL_HTML"
     "--pre-js"     "$PRE_JS"
@@ -120,20 +117,17 @@ for MODULE in "${LAZY_MODULES[@]}"; do
   ZIP="$BUILD_DIR/Data/${MODULE}.zip"
   SRC="$DATA_DIR/${MODULE}"
   if [[ -d "$SRC" ]]; then
-    echo "    Zipping $MODULE (excluding audio)..."
-    # Zip with paths relative to the Data/ parent so extraction at /Data/<module>/
-    # works correctly from minizip-ng's perspective.
-    # Audio (flac/ogg) excluded — FMOD is stubbed on the web build.
-    # Use find+pipe because zip's -x glob doesn't cross directory separators.
-    # Remove old zip first — zip -@ appends rather than replaces.
+    echo "    Zipping $MODULE (with audio)..."
     rm -f "$ZIP"
-    (cd "$DATA_DIR" && find "$MODULE" -type f ! -name "*.flac" ! -name "*.ogg" | zip -q "$ZIP" -@)
+    (cd "$DATA_DIR" && find "$MODULE" -type f | zip -q "$ZIP" -@)
     SIZE=$(du -sh "$ZIP" 2>/dev/null | awk '{print $1}')
     echo "    $ZIP ($SIZE)"
   else
     echo "    WARNING: $SRC not found, skipping"
   fi
 done
+
+# Base.rte audio is included in the preload .data file — no separate zip needed.
 
 echo ""
 echo "==> Done!"

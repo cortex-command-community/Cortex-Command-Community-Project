@@ -340,9 +340,11 @@ if host_machine.system() == 'emscripten'
   )
   external_inc_dirs += allegro_compat_inc
 
-  # FMOD stub — provides fmod.hpp / fmod_errors.h no-op headers
+  # FMOD stub — provides fmod.hpp / fmod_errors.h backed by SDL3 audio
   fmod_stub_inc = include_directories('Source/System/fmod_stub')
   external_inc_dirs += fmod_stub_inc
+  # Audio decoder headers (dr_flac, stb_vorbis) in external/include/
+  external_inc_dirs += include_directories('external/include')
 
   # RakNet → stub dependency (empty; NetworkClient/Server compile conditionally)
   raknet_dep = declare_dependency()

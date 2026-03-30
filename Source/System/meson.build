@@ -34,6 +34,8 @@ sources += files(
 if host_machine.system() == 'emscripten'
   sources += files(
     'AllegroCompat.cpp',
+    'fmod_stub/fmod_audio_decoders.cpp',
+    'fmod_stub/fmod_audio_impl.cpp',
   )
   # Provide the allegro_web_compat directory early in include search
   source_inc_dirs += include_directories('allegro_web_compat')

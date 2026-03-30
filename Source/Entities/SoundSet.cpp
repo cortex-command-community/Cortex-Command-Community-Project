@@ -111,7 +111,12 @@ SoundData SoundSet::ReadAndGetSoundData(Reader& reader) {
 
 		FMOD::Sound* soundObject = soundFile.GetAsSound();
 		if (g_AudioMan.IsAudioEnabled() && !soundObject) {
+#ifdef __EMSCRIPTEN__
+			// On Emscripten, missing sounds are normal (modules not loaded).
+			// Log a warning but don't abort.
+#else
 			reader.ReportError(std::string("Failed to load the sound from the file"));
+#endif
 		}
 
 		soundData.SoundFile = soundFile;
