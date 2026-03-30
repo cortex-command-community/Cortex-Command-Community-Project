@@ -490,11 +490,15 @@ void WindowMan::ValidateResolution(int& resX, int& resY, float& resMultiplier) c
 		resX = c_MinResX;
 		resY = c_MinResY;
 		resMultiplier = 1.0f;
+#ifndef __EMSCRIPTEN__
 		RTEError::ShowMessageBox("Resolution too low, overriding to fit!");
+#endif
 		g_SettingsMan.SetSettingsNeedOverwrite();
 	} else if (resMultiplier > m_MaxResMultiplier) {
 		resMultiplier = 1.0f;
+#ifndef __EMSCRIPTEN__
 		RTEError::ShowMessageBox("Resolution multiplier too high, overriding to fit!");
+#endif
 		g_SettingsMan.SetSettingsNeedOverwrite();
 	}
 }
