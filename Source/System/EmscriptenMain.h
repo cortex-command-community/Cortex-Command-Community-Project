@@ -278,11 +278,13 @@ inline void WebMainLoopIteration_Impl() {
             EM_ASM({ console.log('[CC] Sim: MovableMan.Update...'); });
             g_LuaMan.ClearScriptTimings();
             g_MovableMan.Update();
-            EM_ASM({ console.log('[CC] Sim: post-MovableMan (audio, music, late scripts)...'); });
             g_PerformanceMan.UpdateSortedScriptTimings(g_LuaMan.GetScriptTimings());
+            EM_ASM({ console.log('[CC] Sim: AudioMan.Update...'); });
             g_AudioMan.Update();
+            EM_ASM({ console.log('[CC] Sim: MusicMan.Update...'); });
             g_MusicMan.Update();
             g_ActivityMan.LateUpdateGlobalScripts();
+            EM_ASM({ console.log('[CC] Sim: ClearReloadEntity...'); });
             g_PresetMan.ClearReloadEntityPresetCalledThisUpdate();
 
             g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::SimTotal);

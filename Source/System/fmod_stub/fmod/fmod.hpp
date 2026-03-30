@@ -176,24 +176,14 @@ namespace FMOD {
     System* GetGlobalSystem();
 
     // ------------------------------------------------------------------
-    // ChannelControl — shared interface for Channel and ChannelGroup
+    // ChannelControl — non-virtual base to avoid WASM call_indirect
+    // signature mismatches on WebKit/iOS. Methods are re-declared in
+    // both Channel and ChannelGroup (no virtual dispatch).
     // ------------------------------------------------------------------
     class ChannelControl {
     public:
-        virtual ~ChannelControl() = default;
-        virtual FMOD_RESULT setVolume(float) = 0;
-        virtual FMOD_RESULT getVolume(float* v) = 0;
-        virtual FMOD_RESULT setPaused(bool) = 0;
-        virtual FMOD_RESULT setMute(bool) = 0;
-        virtual FMOD_RESULT getMute(bool* m) = 0;
-        virtual FMOD_RESULT setPitch(float) = 0;
-        virtual FMOD_RESULT isPlaying(bool* p) = 0;
-        virtual FMOD_RESULT stop() = 0;
-        FMOD_RESULT addDSP(int, DSP*)         { return FMOD_OK; }  // DSP: no-op for now
+        FMOD_RESULT addDSP(int, DSP*)         { return FMOD_OK; }
         FMOD_RESULT removeDSP(DSP*)           { return FMOD_OK; }
-        virtual FMOD_RESULT setCallback(FMOD_CHANNELCONTROL_CALLBACK) = 0;
-        virtual FMOD_RESULT setUserData(void*) = 0;
-        virtual FMOD_RESULT getUserData(void** d) = 0;
     };
 
     // ------------------------------------------------------------------
@@ -203,17 +193,17 @@ namespace FMOD {
     public:
         ChannelImpl impl;
 
-        FMOD_RESULT setVolume(float v) override        { impl.volume = v; return FMOD_OK; }
-        FMOD_RESULT getVolume(float* v) override       { if (v) *v = impl.volume; return FMOD_OK; }
-        FMOD_RESULT setPaused(bool p) override         { impl.paused = p; return FMOD_OK; }
-        FMOD_RESULT setMute(bool) override             { return FMOD_OK; }
-        FMOD_RESULT getMute(bool* m) override          { if (m) *m = false; return FMOD_OK; }
-        FMOD_RESULT setPitch(float p) override         { impl.pitch = std::max(0.01f, p); return FMOD_OK; }
-        FMOD_RESULT isPlaying(bool* p) override        { if (p) *p = impl.playing; return FMOD_OK; }
-        FMOD_RESULT stop() override;
-        FMOD_RESULT setCallback(FMOD_CHANNELCONTROL_CALLBACK cb) override { impl.callback = cb; return FMOD_OK; }
-        FMOD_RESULT setUserData(void* d) override      { impl.userData = d; return FMOD_OK; }
-        FMOD_RESULT getUserData(void** d) override     { if (d) *d = impl.userData; return FMOD_OK; }
+        FMOD_RESULT setVolume(float v)        { impl.volume = v; return FMOD_OK; }
+        FMOD_RESULT getVolume(float* v)       { if (v) *v = impl.volume; return FMOD_OK; }
+        FMOD_RESULT setPaused(bool p)         { impl.paused = p; return FMOD_OK; }
+        FMOD_RESULT setMute(bool)             { return FMOD_OK; }
+        FMOD_RESULT getMute(bool* m)          { if (m) *m = false; return FMOD_OK; }
+        FMOD_RESULT setPitch(float p)         { impl.pitch = std::max(0.01f, p); return FMOD_OK; }
+        FMOD_RESULT isPlaying(bool* p)        { if (p) *p = impl.playing; return FMOD_OK; }
+        FMOD_RESULT stop();
+        FMOD_RESULT setCallback(FMOD_CHANNELCONTROL_CALLBACK cb) { impl.callback = cb; return FMOD_OK; }
+        FMOD_RESULT setUserData(void* d)      { impl.userData = d; return FMOD_OK; }
+        FMOD_RESULT getUserData(void** d)     { if (d) *d = impl.userData; return FMOD_OK; }
 
         // 3D audio — no-op for now, store values for future use
         FMOD_RESULT set3DAttributes(const FMOD_VECTOR*, const FMOD_VECTOR*) { return FMOD_OK; }
@@ -246,17 +236,17 @@ namespace FMOD {
     public:
         ChannelGroupImpl impl;
 
-        FMOD_RESULT setVolume(float v) override        { impl.volume = v; return FMOD_OK; }
-        FMOD_RESULT getVolume(float* v) override       { if (v) *v = impl.volume; return FMOD_OK; }
-        FMOD_RESULT setPaused(bool p) override         { impl.paused = p; return FMOD_OK; }
-        FMOD_RESULT setMute(bool m) override           { impl.muted = m; return FMOD_OK; }
-        FMOD_RESULT getMute(bool* m) override          { if (m) *m = impl.muted; return FMOD_OK; }
-        FMOD_RESULT setPitch(float) override           { return FMOD_OK; }
-        FMOD_RESULT isPlaying(bool* p) override        { if (p) *p = false; return FMOD_OK; }
-        FMOD_RESULT stop() override                    { return FMOD_OK; }
-        FMOD_RESULT setCallback(FMOD_CHANNELCONTROL_CALLBACK) override { return FMOD_OK; }
-        FMOD_RESULT setUserData(void*) override        { return FMOD_OK; }
-        FMOD_RESULT getUserData(void** d) override     { if (d) *d = nullptr; return FMOD_OK; }
+        FMOD_RESULT setVolume(float v)        { impl.volume = v; return FMOD_OK; }
+        FMOD_RESULT getVolume(float* v)       { if (v) *v = impl.volume; return FMOD_OK; }
+        FMOD_RESULT setPaused(bool p)         { impl.paused = p; return FMOD_OK; }
+        FMOD_RESULT setMute(bool m)           { impl.muted = m; return FMOD_OK; }
+        FMOD_RESULT getMute(bool* m)          { if (m) *m = impl.muted; return FMOD_OK; }
+        FMOD_RESULT setPitch(float)           { return FMOD_OK; }
+        FMOD_RESULT isPlaying(bool* p)        { if (p) *p = false; return FMOD_OK; }
+        FMOD_RESULT stop()                    { return FMOD_OK; }
+        FMOD_RESULT setCallback(FMOD_CHANNELCONTROL_CALLBACK) { return FMOD_OK; }
+        FMOD_RESULT setUserData(void*)        { return FMOD_OK; }
+        FMOD_RESULT getUserData(void** d)     { if (d) *d = nullptr; return FMOD_OK; }
 
         FMOD_RESULT getNumChannels(int* n)             { if (n) *n = 0; return FMOD_OK; }
         FMOD_RESULT getChannel(int, Channel** c)       { if (c) *c = nullptr; return FMOD_OK; }
