@@ -2282,6 +2282,7 @@ void rlUnloadRenderBatch(rlRenderBatch batch) {
 void rlDrawRenderBatch(rlRenderBatch* batch) {
 #if defined(GRAPHICS_API_OPENGL_33) || defined(GRAPHICS_API_OPENGL_ES2)
 	TRACELOGD("FLUSH");
+
 	// Update batch vertex buffers
 	//------------------------------------------------------------------------------------------------------------
 	// NOTE: If there is not vertex data, buffers doesn't need to be updated (vertexCount > 0)
@@ -2695,9 +2696,17 @@ unsigned int rlLoadTextureDepth(int width, int height, bool useRenderBuffer) {
 	// Possible formats: GL_DEPTH_COMPONENT16, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT32 and GL_DEPTH_COMPONENT32F
 	unsigned int glInternalFormat = GL_DEPTH_COMPONENT;
 
-#if (defined(GRAPHICS_API_OPENGL_ES2) || defined(GRAPHICS_API_OPENGL_ES3))
-	// WARNING: WebGL platform requires unsized internal format definition (GL_DEPTH_COMPONENT)
-	// while other platforms using OpenGL ES 2.0 require/support sized internal formats depending on the GPU capabilities
+#if defined(GRAPHICS_API_OPENGL_ES3)
+	// WebGL2 requires sized internal formats for depth textures.
+	// GL_DEPTH_COMPONENT (unsized) is invalid for texImage2D on WebGL2/ANGLE.
+	if (RLGL.ExtSupported.maxDepthBits == 32)
+		glInternalFormat = GL_DEPTH_COMPONENT32F;
+	else if (RLGL.ExtSupported.maxDepthBits == 24)
+		glInternalFormat = GL_DEPTH_COMPONENT24;
+	else
+		glInternalFormat = GL_DEPTH_COMPONENT16;
+#elif defined(GRAPHICS_API_OPENGL_ES2)
+	// OpenGL ES 2.0: use sized internal formats when not using WebGL unsized path
 	if (!RLGL.ExtSupported.texDepthWebGL || useRenderBuffer) {
 		if (RLGL.ExtSupported.maxDepthBits == 32)
 			glInternalFormat = GL_DEPTH_COMPONENT32_OES;
@@ -2857,14 +2866,26 @@ void rlGetGlTextureFormats(int format, unsigned int* glInternalFormat, unsigned 
 	switch (format) {
 #if defined(GRAPHICS_API_OPENGL_11) || defined(GRAPHICS_API_OPENGL_21) || defined(GRAPHICS_API_OPENGL_ES2)
 		// NOTE: on OpenGL ES 2.0 (WebGL), internalFormat must match format and options allowed are: GL_LUMINANCE, GL_RGB, GL_RGBA
+		// NOTE: on OpenGL ES 3.0 (WebGL2), GL_LUMINANCE is removed; use GL_R8/GL_RED instead.
+		//       Sized internal formats (GL_R8, GL_RGBA8) are required for strict WebGL2 compatibility.
 		case RL_PIXELFORMAT_UNCOMPRESSED_GRAYSCALE:
+#if defined(GRAPHICS_API_OPENGL_ES3)
+			*glInternalFormat = GL_R8;
+			*glFormat = GL_RED;
+#else
 			*glInternalFormat = GL_LUMINANCE;
 			*glFormat = GL_LUMINANCE;
+#endif
 			*glType = GL_UNSIGNED_BYTE;
 			break;
 		case RL_PIXELFORMAT_UNCOMPRESSED_GRAY_ALPHA:
+#if defined(GRAPHICS_API_OPENGL_ES3)
+			*glInternalFormat = GL_RG8;
+			*glFormat = GL_RG;
+#else
 			*glInternalFormat = GL_LUMINANCE_ALPHA;
 			*glFormat = GL_LUMINANCE_ALPHA;
+#endif
 			*glType = GL_UNSIGNED_BYTE;
 			break;
 		case RL_PIXELFORMAT_UNCOMPRESSED_R5G6B5:
@@ -2873,7 +2894,11 @@ void rlGetGlTextureFormats(int format, unsigned int* glInternalFormat, unsigned 
 			*glType = GL_UNSIGNED_SHORT_5_6_5;
 			break;
 		case RL_PIXELFORMAT_UNCOMPRESSED_R8G8B8:
+#if defined(GRAPHICS_API_OPENGL_ES3)
+			*glInternalFormat = GL_RGB8;
+#else
 			*glInternalFormat = GL_RGB;
+#endif
 			*glFormat = GL_RGB;
 			*glType = GL_UNSIGNED_BYTE;
 			break;
@@ -2888,7 +2913,11 @@ void rlGetGlTextureFormats(int format, unsigned int* glInternalFormat, unsigned 
 			*glType = GL_UNSIGNED_SHORT_4_4_4_4;
 			break;
 		case RL_PIXELFORMAT_UNCOMPRESSED_R8G8B8A8:
+#if defined(GRAPHICS_API_OPENGL_ES3)
+			*glInternalFormat = GL_RGBA8;  // sized — required by strict WebGL2/ANGLE
+#else
 			*glInternalFormat = GL_RGBA;
+#endif
 			*glFormat = GL_RGBA;
 			*glType = GL_UNSIGNED_BYTE;
 			break;
@@ -4594,6 +4623,12 @@ static void rlLoadShaderDefault(void) {
 		RLGL.State.defaultShaderLocs[RL_SHADER_LOC_MATRIX_MVP] = glGetUniformLocation(RLGL.State.defaultShaderId, RL_DEFAULT_SHADER_UNIFORM_NAME_MVP);
 		RLGL.State.defaultShaderLocs[RL_SHADER_LOC_COLOR_DIFFUSE] = glGetUniformLocation(RLGL.State.defaultShaderId, RL_DEFAULT_SHADER_UNIFORM_NAME_COLOR);
 		RLGL.State.defaultShaderLocs[RL_SHADER_LOC_MAP_DIFFUSE] = glGetUniformLocation(RLGL.State.defaultShaderId, RL_DEFAULT_SHADER_SAMPLER2D_NAME_TEXTURE0);
+
+		// Initialize colDiffuse to white — GLSL ES 300/100 don't support uniform
+		// initializers, so without this the default value is vec4(0) which makes
+		// all rendering output black.
+		glUseProgram(RLGL.State.defaultShaderId);
+		glUniform4f(RLGL.State.defaultShaderLocs[RL_SHADER_LOC_COLOR_DIFFUSE], 1.0f, 1.0f, 1.0f, 1.0f);
 	} else
 		TRACELOG(RL_LOG_WARNING, "SHADER: [ID %i] Failed to load default shader", RLGL.State.defaultShaderId);
 }

@@ -23,18 +23,16 @@ class COOPCOEPHandler(SimpleHTTPRequestHandler):
         self.send_header("Cross-Origin-Opener-Policy", "same-origin")
         self.send_header("Cross-Origin-Embedder-Policy", "require-corp")
         # Allow wasm MIME type
-        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
         super().end_headers()
 
     def guess_type(self, path):
-        result = super().guess_type(path)
-        if isinstance(result, tuple):
-            mime, enc = result[0], result[1] if len(result) > 1 else None
-        else:
-            mime, enc = result, None
+        mime = super().guess_type(path)
+        if isinstance(mime, tuple):
+            mime = mime[0]
         if str(path).endswith(".wasm"):
-            return "application/wasm", enc
-        return mime, enc
+            return "application/wasm"
+        return mime
 
     def log_message(self, fmt, *args):
         # Suppress asset request noise; only log errors

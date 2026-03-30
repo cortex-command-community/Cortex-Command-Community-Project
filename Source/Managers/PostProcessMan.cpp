@@ -97,9 +97,13 @@ void PostProcessMan::DestroyGLPointers() {
 
 void PostProcessMan::CreateGLBackBuffers() {
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer8));
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, g_FrameMan.GetBackBuffer8()->w, g_FrameMan.GetBackBuffer8()->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	// GL_R8: each texel is a single byte — the 8bpp palette index.
+	// The Blit8 shader reads the .r channel and looks up the palette texture.
+	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, g_FrameMan.GetBackBuffer8()->w, g_FrameMan.GetBackBuffer8()->h, 0, GL_RED, GL_UNSIGNED_BYTE, 0));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_Palette8Texture));
 	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, c_PaletteEntriesNumber, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
@@ -327,15 +331,53 @@ void PostProcessMan::PostProcess() {
 	TracyGpuZone("PostProcess");
 	UpdatePalette();
 
-	// First copy the current 8bpp backbuffer to the 32bpp buffer; we'll add effects to it
+	// Upload the 8bpp indexed backbuffer to the GPU as a single-channel (GL_R8) texture.
+	// The Blit8 shader expands it to RGBA by sampling the palette texture.
+	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer8));
+	GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+	GL_CHECK(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+	                          g_FrameMan.GetBackBuffer8()->w,
+	                          g_FrameMan.GetBackBuffer8()->h,
+	                          GL_RED, GL_UNSIGNED_BYTE,
+	                          g_FrameMan.GetBackBuffer8()->line[0]));
+	GL_CHECK(glPixelStorei(GL_UNPACK_ALIGNMENT, 4));
+
+	// --- Draw GPU scene as base layer ---
+	// FrameMan::Draw renders terrain, backgrounds, and entity sprites into
+	// GetBackBuffer() via the Background shader.  Draw that into the PostProcess
+	// FBO first so the full scene is present before glows are added.
+	// Use POSITIVE height: both FBOs use rlOrtho(0,w,h,0) so they share the
+	// same orientation.  No vertex-level flip needed for FBO-to-FBO copies.
+	// (The Blit8 CPU texture below uses negative height because CPU-uploaded
+	// textures have opposite row order from FBO-rendered content.)
 	m_PostProcessFramebuffer->Begin(true);
-	//m_Blit8->Begin();
-	//int paletteUniform = m_Blit8->GetUniformLocation("rtePalette");
-	//rlSetUniformSampler(paletteUniform, m_Palette8Texture);
 	rlDisableColorBlend();
 	rlDisableDepthTest();
-	DrawTextureRec(g_FrameMan.GetBackBuffer()->GetColorTexture(), {0, 0, g_FrameMan.GetBackBuffer()->GetSize().w, -g_FrameMan.GetBackBuffer()->GetSize().h}, {0.0f, 0.0f}, {255, 255, 255, 255});
-	//m_Blit8->End();
+	{
+		Texture2D sceneTex = g_FrameMan.GetBackBuffer()->GetColorTexture();
+		DrawTextureRec(sceneTex,
+		               {0.0f, 0.0f, static_cast<float>(sceneTex.width), static_cast<float>(sceneTex.height)},
+		               {0.0f, 0.0f}, {255, 255, 255, 255});
+		rlDrawRenderBatchActive();
+	}
+
+	// --- Overlay 8bpp CPU content (entity sprites, HUD markers) ---
+	// Use the Blit8 shader to convert 8bpp indexed → RGBA using the palette texture,
+	// then alpha-blend on top of the GPU scene.
+	rlEnableColorBlend();
+	rlSetBlendMode(RL_BLEND_ALPHA);
+	m_Blit8->Begin();
+	int paletteUniform = m_Blit8->GetUniformLocation("rtePalette");
+	rlSetUniformSampler(paletteUniform, m_Palette8Texture);
+
+	Texture2D blit8Tex;
+	blit8Tex.id      = m_BackBuffer8;
+	blit8Tex.width   = g_FrameMan.GetBackBuffer8()->w;
+	blit8Tex.height  = g_FrameMan.GetBackBuffer8()->h;
+	blit8Tex.mipmaps = 1;
+	blit8Tex.format  = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE; // single-channel
+	DrawTextureRec(blit8Tex, {0, 0, static_cast<float>(blit8Tex.width), -static_cast<float>(blit8Tex.height)}, {0.0f, 0.0f}, {255, 255, 255, 255});
+	m_Blit8->End();
 
 	// Set the screen blender mode for glows
 	set_screen_blender(128, 128, 128, 128);

@@ -162,6 +162,7 @@ elif host_machine.system() == 'emscripten'
     '-DEMSCRIPTEN_PORT', # Our own guard macro for Emscripten-specific code paths
     '-DRELEASE_BUILD',
     '-DNDEBUG',
+    '-sFETCH=1',        # Enable emscripten_fetch API for HTTP module loading
     # Raylib's rlgl.h/c uses OPENGL_33||OPENGL_ES2 guards throughout.
     # For WebGL2 (= OpenGL ES 3.0), define BOTH ES2 and ES3:
     # - ES3 controls shader version (#version 300 es in rlgl.c defaultVShaderCode)
@@ -355,6 +356,15 @@ if host_machine.system() == 'emscripten'
   )
   external_inc_dirs += tracy_inc
   deps += [tracy_dep]
+
+  # emscripten_fetch API — required for HTTP module lazy loading.
+  # declare_dependency is the reliable way to get link_args into the
+  # final executable link step in Meson's Emscripten cross compilation.
+  fetch_dep = declare_dependency(
+    compile_args: ['-sFETCH=1'],
+    link_args:    ['-sFETCH=1', '-sERROR_ON_UNDEFINED_SYMBOLS=0'],
+  )
+  deps += [fetch_dep]
 
 else
   # -------------------------------------------------------------------------

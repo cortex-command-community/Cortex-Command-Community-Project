@@ -1,4 +1,6 @@
 #include "WindowMan.h"
+#include "System/AllegroCompat.h"
+#include "System/Constants.h"
 #include "RTEError.h"
 #include "SDL3/SDL.h"
 #include "SettingsMan.h"
@@ -55,7 +57,6 @@ void WindowMan::Clear() {
 
 	m_PrimaryWindow.reset();
 	m_BackBuffer32Texture = 0;
-	m_ScreenBufferStaging = 0;
 	m_ScreenVAO = 0;
 	m_ScreenVBO = 0;
 	ClearMultiDisplayData();
@@ -100,7 +101,6 @@ void WindowMan::Destroy() {
 	ImGui_ImplSDL3_Shutdown();
 	ImGui::DestroyContext();
 	GL_CHECK(glDeleteTextures(1, &m_BackBuffer32Texture));
-	GL_CHECK(glDeleteTextures(1, &m_ScreenBufferStaging));
 	GL_CHECK(glDeleteBuffers(1, &m_ScreenVBO));
 	GL_CHECK(glDeleteVertexArrays(1, &m_ScreenVAO));
 }
@@ -288,11 +288,10 @@ void WindowMan::InitializeOpenGL() {
 	SDL_GL_SetSwapInterval(m_Fullscreen && m_EnableVSync ? 1 : 0);
 #endif
 
-#ifndef __EMSCRIPTEN__
-	// rlLoadExtensions calls gladLoadGL again and queries desktop-only GL enums.
-	// On Emscripten/WebGL2, we skip it — GLAD was already loaded above.
+	// rlLoadExtensions sets RLGL.ExtSupported flags (VAO, instancing, etc.).
+	// Must be called BEFORE rlglInit so the render batch is created with VAO support.
+	// WebGL2 requires a VAO for all draw calls — without this, rlgl draws nothing.
 	rlLoadExtensions((void*)SDL_GL_GetProcAddress);
-#endif
 	rlglInit(m_ResX, m_ResY);
 
 	GL_CHECK(glEnable(GL_BLEND));
@@ -313,21 +312,9 @@ void WindowMan::CreateBackBufferTexture() {
 
 	// GUI overlay texture — streamed from the CPU-rendered 32bpp backbuffer each frame.
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_BackBuffer32Texture));
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_ResX, m_ResY, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
+	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_ResX, m_ResY, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-
-	// Staging texture — a copy of m_ScreenBuffer's colour attachment used as the
-	// read-side of the ScreenBlit composite pass.  Without this staging copy, the
-	// composite step would sample from the same texture it is rendering into, which
-	// is undefined behaviour on desktop GL and explicitly forbidden on WebGL2.
-	GL_CHECK(glGenTextures(1, &m_ScreenBufferStaging));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_ScreenBufferStaging));
-	GL_CHECK(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_ResX, m_ResY, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 
 	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
 }
@@ -838,48 +825,101 @@ void WindowMan::UploadFrame() {
 	                          GL_RGBA, GL_UNSIGNED_BYTE,
 	                          g_FrameMan.GetBackBuffer32()->line[0]));
 
-	// --- Step 2: Copy screen buffer to staging texture (breaks the feedback loop) ---
-	// Reading from a render target while simultaneously rendering into it is
-	// undefined behaviour in desktop GL and explicitly forbidden in WebGL2.
-	// We copy the screen buffer's colour attachment into a separate staging
-	// texture here, BEFORE Begin(), so ScreenBlitShader can safely sample it.
-	GL_CHECK(glBindFramebuffer(GL_READ_FRAMEBUFFER, m_ScreenBuffer->GetFramebuffer()));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, m_ScreenBufferStaging));
-	GL_CHECK(glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, m_ResX, m_ResY));
-	GL_CHECK(glBindTexture(GL_TEXTURE_2D, 0));
-	GL_CHECK(glBindFramebuffer(GL_READ_FRAMEBUFFER, 0));
-
 	// --- Step 3: Composite scene + GUI into the screen buffer ---
-	m_ScreenBuffer->Begin(g_ActivityMan.IsInActivity());
-	rlDisableDepthTest();
-	rlDisableColorBlend();
+	if (m_DrawPostProcessBuffer || g_ActivityMan.IsInActivity()) {
+		// In-activity path: composite the GPU-rendered scene (terrain, backgrounds,
+		// entities via Background shader) + GUI overlay into m_ScreenBuffer.
+		// g_FrameMan.GetBackBuffer() has the full composited scene from FrameMan::Draw().
+		m_ScreenBuffer->Begin(g_ActivityMan.IsInActivity());
+		rlDisableDepthTest();
+		rlDisableColorBlend();
 
-	m_ScreenBlitShader->Begin();
-	rlSetUniformSampler(m_ScreenBlitShader->GetUniformLocation("rteGUITexture"), m_BackBuffer32Texture);
-	if (m_DrawPostProcessBuffer) {
-		Texture2D postBuffer = g_PostProcessMan.GetPostProcessColorBuffer()->GetColorTexture();
-		DrawTextureRec(postBuffer, Rectangle(0.0f, 0.0f, postBuffer.width, -postBuffer.height), {0.0f, 0.0f}, {255, 255, 255, 255});
+		// Draw the PostProcess result (GPU scene + 8bpp overlay + glows) through
+		// the ScreenBlit shader which composites it with the 32bpp GUI overlay.
+		m_ScreenBlitShader->Begin();
+		rlSetUniformSampler(m_ScreenBlitShader->GetUniformLocation("rteGUITexture"), m_BackBuffer32Texture);
+		if (m_DrawPostProcessBuffer) {
+			Texture2D postBuffer = g_PostProcessMan.GetPostProcessColorBuffer()->GetColorTexture();
+			DrawTextureRec(postBuffer, Rectangle(0.0f, 0.0f, postBuffer.width, -postBuffer.height), {0.0f, 0.0f}, {255, 255, 255, 255});
+		} else {
+			DrawTextureRec(g_FrameMan.GetBackBuffer()->GetColorTexture(),
+			               {0.0f, 0.0f, static_cast<float>(m_ResX), -static_cast<float>(m_ResY)},
+			               {0, 0}, {255, 255, 255, 255});
+		}
+		m_ScreenBlitShader->End();
+		rlDrawRenderBatchActive();
+		m_ScreenBuffer->End();
 	} else {
-		// Use the staging copy as the scene source — no feedback loop.
-		Texture2D stagingTex;
-		stagingTex.id      = m_ScreenBufferStaging;
-		stagingTex.width   = m_ResX;
-		stagingTex.height  = m_ResY;
-		stagingTex.mipmaps = 1;
-		stagingTex.format  = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
-		DrawTextureRec(stagingTex, {0.0f, 0.0f, static_cast<float>(m_ResX), -static_cast<float>(m_ResY)}, {0, 0}, {255, 255, 255, 255});
-	}
-	m_ScreenBlitShader->End();
-	rlDrawRenderBatchActive();
-	m_ScreenBuffer->End();
+		// Menu path: the caller (MenuMan::Draw) already rendered the title
+		// screen scene directly into m_ScreenBuffer.  We only need to overlay
+		// the 32bpp GUI texture (menu text, console) on top with alpha blending.
+		m_ScreenBuffer->Begin(false);
+		rlDisableDepthTest();
+		rlEnableColorBlend();
+		rlSetBlendMode(RL_BLEND_ALPHA);
 
-	// --- Step 4: On Emscripten, also push the GUI buffer to the Canvas2D overlay ---
-	// The game's 8bpp indexed-colour scene is a CPU rasterizer output. On web the
-	// Canvas2D putImageData() path provides a fast, zero-copy route from the RGBA
-	// backbuffer to the compositor without involving the WebGL pipeline.
+		Texture2D guiTex;
+		guiTex.id = m_BackBuffer32Texture;
+		guiTex.width = g_FrameMan.GetBackBuffer32()->w;
+		guiTex.height = g_FrameMan.GetBackBuffer32()->h;
+		guiTex.mipmaps = 1;
+		guiTex.format = RL_PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
+		DrawTextureRec(guiTex,
+		               {0.0f, 0.0f, static_cast<float>(guiTex.width), static_cast<float>(guiTex.height)},
+		               {0, 0}, {255, 255, 255, 255});
+		rlDrawRenderBatchActive();
+		m_ScreenBuffer->End();
+	}
+
+	// --- Step 4: Canvas2D overlay ---
+	// In-activity: blit 8bpp scene + 32bpp GUI to overlay canvas.
+	// In-menu: scene is on WebGL canvas, so clear overlay to transparent and
+	//          only draw 32bpp GUI text so the WebGL scene shows through.
 #ifdef __EMSCRIPTEN__
 	{
+		BITMAP* bb8  = g_FrameMan.GetBackBuffer8();
 		BITMAP* bb32 = g_FrameMan.GetBackBuffer32();
+		bool inActivity = g_ActivityMan.IsInActivity();
+
+		if (inActivity) {
+			// Layer 1: 8bpp scene (only meaningful during gameplay)
+			if (bb8 && !bb8->pixels.empty()) {
+				std::array<uint32_t, 256> pal;
+				for (int i = 0; i < 256; ++i)
+					pal[i] = (i == g_MaskColor) ? 0u : makeacol32(getr8(i), getg8(i), getb8(i), 255);
+
+				// DEBUG: check 8bpp buffer content and palette
+				{
+					static int dbgF = 0;
+					if (++dbgF % 120 == 1) {
+						int nonZero = 0, nonMask = 0;
+						for (int i = 0; i < (int)bb8->pixels.size(); i += 4) {
+							if (bb8->pixels[i] != 0) nonZero++;
+							if (bb8->pixels[i] != 0 && bb8->pixels[i] != g_MaskColor) nonMask++;
+						}
+						// Check palette entries
+						int palNonBlack = 0;
+						for (int i = 1; i < 256; i++) {
+							if (pal[i] != 0) palNonBlack++;
+						}
+						EM_ASM({ console.log('[CC] 8bpp: size=' + $0 + ' nonZero=' + $1 +
+						         ' nonMask=' + $2 + ' palNonBlack=' + $3 +
+						         ' maskColor=' + $4 + ' pal[1]=' + $5.toString(16)); },
+						       (int)bb8->pixels.size(), nonZero, nonMask, palNonBlack,
+						       g_MaskColor, (int)pal[1]);
+					}
+				}
+
+				RTE::WebPlatform_Blit8ToCanvas(bb8->pixels.data(),
+				                               reinterpret_cast<const uint8_t*>(pal.data()),
+				                               bb8->w, bb8->h);
+			}
+		} else {
+			// Menu mode: clear overlay so WebGL scene (planet, stars) shows through
+			EM_ASM({ if (typeof ccClearOverlay === 'function') ccClearOverlay(); });
+		}
+
+		// Layer 2: 32bpp GUI
 		if (bb32 && !bb32->pixels.empty()) {
 			RTE::WebPlatform_Blit32ToCanvas(bb32->pixels.data(), bb32->w, bb32->h);
 		}

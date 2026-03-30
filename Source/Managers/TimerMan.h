@@ -143,6 +143,11 @@ namespace RTE {
 		/// Gets the duration the thread should be put to sleep. This is used when ServerSimSleepWhenIdle is true to put the thread to sleep if the sim frame is finished faster than it usually should.
 		/// @return The duration the thread should be put to sleep.
 		long long GetTimeToSleep() const { return (m_DeltaTime - m_SimAccumulator) / 2; };
+
+		// Debug accessors for Emscripten diagnostics
+		long long GetSimAccumulator() const { return m_SimAccumulator; }
+		long long GetRealTimeTicks() const { return m_RealTimeTicks; }
+		bool IsSimPaused() const { return m_SimPaused; }
 #pragma endregion
 
 	protected:

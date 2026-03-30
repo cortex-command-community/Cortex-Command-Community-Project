@@ -13,6 +13,10 @@
 #include "GameActivity.h"
 #include "System.h"
 
+#ifdef __EMSCRIPTEN__
+#include "WebPlatform.h"
+#endif
+
 #include <SDL3/SDL.h>
 #include <array>
 #include <string>
@@ -476,6 +480,12 @@ void UInputMan::TrapMousePos(bool trap, int whichPlayer) {
 	if (whichPlayer == Players::NoPlayer) {
 		m_TrapMousePos = trap;
 		SDL_SetWindowRelativeMouseMode(g_WindowMan.GetWindow(), trap);
+#ifdef __EMSCRIPTEN__
+		// On web, SDL3's relative mouse mode maps to the Pointer Lock API.
+		// We call it explicitly here to ensure it fires in a user-gesture context.
+		if (trap) RTE::WebPlatform_RequestPointerLock();
+		else      RTE::WebPlatform_ReleasePointerLock();
+#endif
 	} else if (m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
 		m_TrapMousePos = trap;
 		SDL_SetWindowRelativeMouseMode(g_WindowMan.GetWindow(), m_TrapMousePos || m_EnableMultiMouseKeyboard);

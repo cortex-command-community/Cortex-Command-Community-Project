@@ -35,7 +35,7 @@ BigTexture::BigTexture(BITMAP* bitmap) {
 			    regionWidth,
 			    regionHeight);
 			m_Textures.emplace_back(
-			    rlLoadTexture(nullptr, regionWidth, regionHeight, PIXELFORMAT_UNCOMPRESSED_GRAYSCALE, 1),
+			    rlLoadTexture(nullptr, regionWidth, regionHeight, format, 1),
 			    regionWidth,
 			    regionHeight,
 			    1,

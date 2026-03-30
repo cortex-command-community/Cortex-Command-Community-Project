@@ -123,6 +123,29 @@
       text-transform: uppercase;
     }
 
+    #controls-bar {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .ctrl-btn {
+      font-family: 'Courier New', monospace;
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: #111;
+      color: #555;
+      border: 1px solid #333;
+      padding: 3px 8px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .ctrl-btn:hover {
+      color: #aaa;
+      border-color: #666;
+    }
+
     #error-overlay {
       display: none;
       position: absolute;
@@ -164,6 +187,9 @@
   </div>
 
   <div id="status-bar">Ready</div>
+  <div id="controls-bar">
+    <button class="ctrl-btn" onclick="ccFullscreen()">⛶ Fullscreen</button>
+  </div>
 
   <!--
     Emscripten injects the Module object and the generated JS loader here.
@@ -312,22 +338,34 @@
       };
 
       /**
-       * Direct RGBA blit — for the 32bpp post-processed backbuffer.
-       * Faster than ccBlit8ToCanvas for the GUI overlay path.
+       * Composite 32bpp GUI on top of whatever is already on the overlay canvas.
+       * Uses an offscreen canvas + drawImage (source-over) so that transparent
+       * pixels in the GUI layer show the 8bpp scene drawn by ccBlit8ToCanvas.
        *
        * @param {number} src32ptr   Byte offset of RGBA pixel data in WASM heap
        * @param {number} width
        * @param {number} height
        */
+      var _guiCanvas = null, _guiCtx = null, _guiData = null;
       window.ccBlit32ToCanvas = function(src32ptr, width, height) {
         var ctx = getCtx(width, height);
         if (!ctx) return;
 
-        var heap = Module.HEAPU8;
-        var n    = width * height * 4;
-        // Use set() for a bulk typed-array copy — near memcpy speed
-        _imageData.data.set(heap.subarray(src32ptr, src32ptr + n));
-        ctx.putImageData(_imageData, 0, 0);
+        // Reuse an offscreen canvas (avoids per-frame allocation)
+        if (!_guiCanvas || _guiCanvas.width !== width || _guiCanvas.height !== height) {
+          _guiCanvas = document.createElement('canvas');
+          _guiCanvas.width  = width;
+          _guiCanvas.height = height;
+          _guiCtx   = _guiCanvas.getContext('2d');
+          _guiData  = _guiCtx.createImageData(width, height);
+        }
+
+        // Copy 32bpp pixels into the offscreen ImageData
+        _guiData.data.set(Module.HEAPU8.subarray(src32ptr, src32ptr + width * height * 4));
+        _guiCtx.putImageData(_guiData, 0, 0);
+
+        // Composite (source-over) onto the overlay canvas: GUI sits on top of scene
+        ctx.drawImage(_guiCanvas, 0, 0);
       };
 
       /**
@@ -353,6 +391,30 @@
         _imgW = 0; _imgH = 0; _imageData = null;
       };
     })();
+
+    // =========================================================================
+    // Fullscreen helper — must be called from a user gesture (button click).
+    // =========================================================================
+    window.ccFullscreen = function() {
+      var canvas = document.getElementById('canvas');
+      if (canvas) {
+        var req = canvas.requestFullscreen || canvas.webkitRequestFullscreen || canvas.mozRequestFullScreen;
+        if (req) req.call(canvas);
+      }
+    };
+
+    // Keep overlay canvas sized to match the GL canvas during fullscreen changes.
+    document.addEventListener('fullscreenchange', function() {
+      var gl  = document.getElementById('canvas');
+      var ov  = document.getElementById('overlay-canvas');
+      var con = document.getElementById('canvas-container');
+      if (document.fullscreenElement && gl) {
+        var w = gl.clientWidth, h = gl.clientHeight;
+        if (ov) { ov.style.width = w + 'px'; ov.style.height = h + 'px'; }
+      } else if (gl && con) {
+        if (ov) { ov.style.width = ''; ov.style.height = ''; }
+      }
+    });
   </script>
 
   {{{ SCRIPT }}}

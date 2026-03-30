@@ -13,10 +13,11 @@ ThreadMan::~ThreadMan() {
 
 void ThreadMan::Clear() {
 #ifdef __EMSCRIPTEN__
-	// Emscripten: std::thread requires -pthread + SharedArrayBuffer (COOP/COEP headers).
-	// For Phase 1, run fully single-threaded with 0-thread pools (tasks run inline).
-	m_PriorityThreadPool.reset(0);
-	m_BackgroundThreadPool.reset(0);
+	// Emscripten without pthreads: std::thread is unavailable (Asyncify and
+	// pthreads are mutually exclusive).  BS::thread_pool::reset(0) still
+	// creates 1+ thread via determine_thread_count(), which would fail.
+	// Leave pools at default-constructed state (no threads, no task queue).
+	// All submit()+wait() call sites must be guarded to run tasks inline.
 #else
 	m_PriorityThreadPool.reset();
 	m_BackgroundThreadPool.reset(std::thread::hardware_concurrency() / 2);

@@ -248,9 +248,10 @@ public:
      *
      * @param thread_count_ The number of threads to use. The default value is the total number of hardware threads available, as reported by the implementation. This is usually determined by the number of cores in the CPU. If a core is hyperthreaded, it will count as two threads.
      */
-    thread_pool(const concurrency_t thread_count_ = 0) : thread_count(determine_thread_count(thread_count_)), threads(std::make_unique<std::thread[]>(determine_thread_count(thread_count_)))
+    thread_pool(const concurrency_t thread_count_ = 0) : thread_count(determine_thread_count(thread_count_)), threads(determine_thread_count(thread_count_) > 0 ? std::make_unique<std::thread[]>(determine_thread_count(thread_count_)) : nullptr)
     {
-        create_threads();
+        if (thread_count > 0)
+            create_threads();
     }
 
     /**
@@ -258,8 +259,10 @@ public:
      */
     ~thread_pool()
     {
-        wait_for_tasks();
-        destroy_threads();
+        if (thread_count > 0) {
+            wait_for_tasks();
+            destroy_threads();
+        }
     }
 
     // =======================
@@ -454,12 +457,16 @@ public:
         const bool was_paused = paused;
         paused = true;
         tasks_lock.unlock();
-        wait_for_tasks();
-        destroy_threads();
+        if (thread_count > 0) {
+            wait_for_tasks();
+            destroy_threads();
+        }
         thread_count = determine_thread_count(thread_count_);
-        threads = std::make_unique<std::thread[]>(thread_count);
-        paused = was_paused;
-        create_threads();
+        if (thread_count > 0) {
+            threads = std::make_unique<std::thread[]>(thread_count);
+            paused = was_paused;
+            create_threads();
+        }
     }
 
     /**
@@ -475,6 +482,22 @@ public:
     template <typename F, typename... A, typename R = std::invoke_result_t<std::decay_t<F>, std::decay_t<A>...>>
     [[nodiscard]] std::future<R> submit(F&& task, A&&... args)
     {
+#ifdef __EMSCRIPTEN__
+        // Emscripten (no pthreads): execute task synchronously and return a ready future.
+        // The thread pool has no worker threads, so queued tasks would never execute.
+        std::promise<R> sync_promise;
+        try {
+            if constexpr (std::is_void_v<R>) {
+                std::invoke(std::forward<F>(task), std::forward<A>(args)...);
+                sync_promise.set_value();
+            } else {
+                sync_promise.set_value(std::invoke(std::forward<F>(task), std::forward<A>(args)...));
+            }
+        } catch (...) {
+            sync_promise.set_exception(std::current_exception());
+        }
+        return sync_promise.get_future();
+#endif
         std::shared_ptr<std::promise<R>> task_promise = std::make_shared<std::promise<R>>();
         push_task(
             [task_function = std::bind(std::forward<F>(task), std::forward<A>(args)...), task_promise]
@@ -605,6 +628,11 @@ private:
      */
     [[nodiscard]] concurrency_t determine_thread_count(const concurrency_t thread_count_) const
     {
+#ifdef __EMSCRIPTEN__
+        // Emscripten without pthreads: no threads available.
+        // submit() runs tasks inline; no worker threads needed.
+        return 0;
+#endif
         if (thread_count_ > 0)
             return thread_count_;
         else

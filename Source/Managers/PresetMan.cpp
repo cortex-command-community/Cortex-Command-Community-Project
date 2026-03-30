@@ -20,6 +20,10 @@
 
 #include <array>
 
+#ifdef __EMSCRIPTEN__
+#include "WebPlatform.h"
+#endif
+
 using namespace RTE;
 
 const std::array<std::string, 10> PresetMan::c_OfficialModules = {"Base.rte", "Coalition.rte", "Imperatus.rte", "Techion.rte", "Dummy.rte", "Ronin.rte", "Browncoats.rte", "Uzira.rte", "MuIlaak.rte", "Missions.rte"};
@@ -109,6 +113,29 @@ bool PresetMan::LoadDataModule(const std::string& moduleName, bool official, boo
 	}
 
 	if (newModule->Create(moduleName, progressCallback) < 0) {
+#ifdef __EMSCRIPTEN__
+		// Debug: check what's in Data/ and print the path DataModule tried
+		const std::string dbgPath = System::GetWorkingDirectory() + System::GetDataDirectory() + moduleName;
+		const bool exists = std::filesystem::exists(dbgPath);
+		g_ConsoleMan.PrintString("DEBUG: Looking for '" + dbgPath + "' exists=" + (exists ? "YES" : "NO") +
+		                         " workdir='" + System::GetWorkingDirectory() + "'");
+		EM_ASM({
+		    var modPath = '/Data/' + UTF8ToString($0);
+		    try {
+		        var entries = FS.readdir(modPath);
+		        console.log('[CC] ' + modPath + ' contains: ' + entries.join(', '));
+		    } catch(e) {
+		        console.log('[CC] Cannot read ' + modPath + ':', e.message);
+		    }
+		    var indexPath = modPath + '/Index.ini';
+		    try {
+		        var content = FS.readFile(indexPath, {encoding: 'utf8'});
+		        console.log('[CC] ' + indexPath + ' exists, length=' + content.length);
+		    } catch(e) {
+		        console.log('[CC] ' + indexPath + ' NOT found:', e.message);
+		    }
+		}, moduleName.c_str());
+#endif
 		RTEAbort("Failed to find the " + moduleName + " Data Module!");
 		return false;
 	}
@@ -121,6 +148,24 @@ bool PresetMan::LoadAllDataModules() {
 
 	// Destroy any possible loaded modules
 	Destroy();
+
+#ifdef __EMSCRIPTEN__
+	// On Emscripten, game modules are not prebaked into the binary — they are
+	// served as per-module zip files and fetched in parallel before loading.
+	// Base.rte is already available (preloaded with the binary for shader init);
+	// all other official modules are fetched here.
+	{
+		std::vector<std::string> modulesToFetch;
+		for (const std::string& mod : c_OfficialModules) {
+			if (mod != "Base.rte" && !std::filesystem::exists("Data/" + mod)) {
+				modulesToFetch.push_back(mod);
+			}
+		}
+		if (!modulesToFetch.empty()) {
+			WebPlatform_FetchModules(modulesToFetch);
+		}
+	}
+#endif
 
 	FindAndExtractZippedModules();
 

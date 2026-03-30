@@ -30,6 +30,7 @@ if host_machine.system() == 'emscripten'
     '-DMZ_ZIP_NO_LZMA',        # Disable lzma
     '-DMZ_COMPAT_VERSION=110', # Enable minizip 1.x compat layer
     '-DZLIB_COMPAT',           # Use standard zlib.h (not zlib-ng.h) with Emscripten port
+    '-DHAVE_ZLIB',             # Enable DEFLATE support in mz_zip.c
     '-sUSE_ZLIB=1',            # Use Emscripten's zlib port
   ]
   zlib_dep = dependency('zlib')

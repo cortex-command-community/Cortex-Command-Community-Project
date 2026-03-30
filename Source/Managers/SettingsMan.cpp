@@ -10,6 +10,10 @@
 #include "UInputMan.h"
 #include "System.h"
 
+#ifdef __EMSCRIPTEN__
+#include "WebPlatform.h"
+#endif
+
 using namespace RTE;
 
 const std::string SettingsMan::c_ClassName = "SettingsMan";
@@ -102,6 +106,10 @@ int SettingsMan::Initialize() {
 void SettingsMan::UpdateSettingsFile() const {
 	Writer settingsWriter(m_SettingsPath);
 	g_SettingsMan.Save(settingsWriter);
+#ifdef __EMSCRIPTEN__
+	// Flush /Userdata writes to IndexedDB so settings survive page reloads.
+	RTE::WebPlatform_SyncSavesToDisk();
+#endif
 }
 
 int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) {

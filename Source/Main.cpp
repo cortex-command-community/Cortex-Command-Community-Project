@@ -456,6 +456,13 @@ int main(int argc, char** argv) {
 	System::Initialize(argv[0]);
 	SeedRNG();
 
+#ifdef __EMSCRIPTEN__
+	// Mount /Userdata on IndexedDB for settings and save game persistence.
+	// Called here (after SDL init) so Asyncify's event loop integration is active.
+	// If IDBFS sync hasn't completed by the time settings are read, defaults are used.
+	RTE::WebPlatform_MountPersistentStorage();
+#endif
+
 	InitializeManagers();
 
 	HandleMainArgs(argc, argv);
