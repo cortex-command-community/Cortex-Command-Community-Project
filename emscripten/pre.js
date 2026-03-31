@@ -78,21 +78,40 @@ window._ccFlipDebug = {
 
 // ---------------------------------------------------------------------------
 // Audio context unlock — browsers require a user gesture before audio plays.
+// Resumes the game's _ccAudioCtx and SDL's AudioContext on first interaction.
 // ---------------------------------------------------------------------------
 (function() {
   var unlocked = false;
   function unlock() {
     if (unlocked) return;
     unlocked = true;
-    if (typeof AudioContext !== 'undefined') {
-      var ac = new AudioContext();
-      if (ac.state === 'suspended') ac.resume();
+    console.log('[Audio] User gesture detected — resuming audio contexts');
+
+    // Resume the game's Web Audio context
+    if (window._ccAudioCtx && window._ccAudioCtx.state === 'suspended') {
+      window._ccAudioCtx.resume().then(function() {
+        console.log('[Audio] Game AudioContext resumed: ' + window._ccAudioCtx.state);
+      });
     }
-    document.removeEventListener('click',    unlock);
-    document.removeEventListener('keydown',  unlock);
-    document.removeEventListener('touchend', unlock);
+
+    // Resume SDL's audio context (used by the software mixer)
+    if (typeof SDL !== 'undefined' && SDL.audioContext && SDL.audioContext.state === 'suspended') {
+      SDL.audioContext.resume();
+    }
+
+    // Also try to resume any AudioContext created by Emscripten's SDL3 port
+    try {
+      var allContexts = document.querySelectorAll('audio');
+      allContexts.forEach(function(a) { a.play().catch(function(){}); });
+    } catch(e) {}
+
+    document.removeEventListener('click',     unlock);
+    document.removeEventListener('keydown',   unlock);
+    document.removeEventListener('touchstart', unlock);
+    document.removeEventListener('touchend',  unlock);
   }
-  document.addEventListener('click',    unlock);
-  document.addEventListener('keydown',  unlock);
-  document.addEventListener('touchend', unlock);
+  document.addEventListener('click',     unlock);
+  document.addEventListener('keydown',   unlock);
+  document.addEventListener('touchstart', unlock);
+  document.addEventListener('touchend',  unlock);
 })();
