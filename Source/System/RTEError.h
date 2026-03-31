@@ -11,7 +11,11 @@
 #define DebuggerBreak std::abort()
 #endif
 
-#ifndef RELEASE_BUILD
+#ifdef __EMSCRIPTEN__
+// On Emscripten, never abort — missing content from unloaded modules is
+// expected. Log the error and continue rather than killing the page.
+#define AbortAction ((void)0)
+#elif !defined(RELEASE_BUILD)
 #define AbortAction DebuggerBreak
 #else
 #define AbortAction std::abort()
