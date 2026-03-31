@@ -84,10 +84,11 @@ EM_FLAGS=(
     # Dependencies via ports
     "-sUSE_ZLIB=1"
     "-sUSE_LIBPNG=1"
-    # Base.rte preloaded WITHOUT audio to keep the .data file small (~34MB).
+    # Base.rte + Missions.rte preloaded WITHOUT audio.
     # Audio files are too large for mobile (114MB total). Sound loading
     # gracefully handles missing files on Emscripten.
     "--preload-file" "$DATA_DIR/Base.rte@/Data/Base.rte"
+    "--preload-file" "$DATA_DIR/Missions.rte@/Data/Missions.rte"
     "--exclude-file" "*.flac"
     "--exclude-file" "*.ogg"
     # Shell and pre.js

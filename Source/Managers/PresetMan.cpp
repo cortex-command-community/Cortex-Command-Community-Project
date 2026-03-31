@@ -150,13 +150,14 @@ bool PresetMan::LoadAllDataModules() {
 	Destroy();
 
 #ifdef __EMSCRIPTEN__
-	// On Emscripten, only load Base.rte (preloaded with the binary).
+	// On Emscripten, load Base.rte + Missions.rte (both preloaded with the binary).
 	// Other modules require separate downloads that may fail via Cloudflare.
-	// Skip fetching and loading non-Base modules entirely for now.
 	FindAndExtractZippedModules();
 	if (!LoadDataModule("Base.rte", true, false, LoadingScreen::LoadingSplashProgressReport)) {
 		return false;
 	}
+	// Missions.rte contains the Tutorial scene and other mission-specific content.
+	LoadDataModule("Missions.rte", true, false, LoadingScreen::LoadingSplashProgressReport);
 #else
 	FindAndExtractZippedModules();
 
