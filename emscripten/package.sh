@@ -85,13 +85,16 @@ EM_FLAGS=(
     # Dependencies via ports
     "-sUSE_ZLIB=1"
     "-sUSE_LIBPNG=1"
-    # Base.rte + Missions.rte + Dummy.rte preloaded WITH audio (OGG only).
-    # FLAC files are converted to OGG Vorbis at build time (see below).
-    # The game's ContentFile tries alternate extensions, so .flac→.ogg works
-    # without changing any .ini files.
+    # Base.rte + Missions.rte + Dummy.rte preloaded.
+    # Audio (OGG) included for Base.rte only — keeps data file ~50MB.
+    # Dummy.rte and Missions.rte audio excluded (non-essential for gameplay).
     "--preload-file" "$WEB_DATA_DIR/Base.rte@/Data/Base.rte"
-    "--preload-file" "$WEB_DATA_DIR/Missions.rte@/Data/Missions.rte"
-    "--preload-file" "$WEB_DATA_DIR/Dummy.rte@/Data/Dummy.rte"
+    "--preload-file" "$DATA_DIR/Missions.rte@/Data/Missions.rte"
+    "--preload-file" "$DATA_DIR/Dummy.rte@/Data/Dummy.rte"
+    "--exclude-file" "*/Missions.rte/*.flac"
+    "--exclude-file" "*/Missions.rte/*.ogg"
+    "--exclude-file" "*/Dummy.rte/*.flac"
+    "--exclude-file" "*/Dummy.rte/*.ogg"
     # Shell and pre.js
     "--shell-file" "$SHELL_HTML"
     "--pre-js"     "$PRE_JS"

@@ -204,10 +204,15 @@ FMOD_RESULT System::createSound(const char* path, FMOD_MODE mode, void*, Sound**
     std::string filePath(path);
     bool decoded = false;
 
-    // Try browser-native decoding first (faster, supports OGG/FLAC/WAV/MP3)
+    // Try browser-native decoding first (faster, supports OGG/FLAC/WAV/MP3).
+    // Skip on mobile/iOS — hundreds of concurrent decodeAudioData() Promises
+    // overwhelm memory. Use synchronous C++ decoders instead.
     if (!decoded && (endsWith(filePath, ".ogg") || endsWith(filePath, ".flac") ||
                      endsWith(filePath, ".wav") || endsWith(filePath, ".mp3"))) {
-        decoded = browserDecodeAudio(path, sound->impl);
+        bool isMobile = EM_ASM_INT({ return /iPhone|iPad|Android/i.test(navigator.userAgent) ? 1 : 0; });
+        if (!isMobile) {
+            decoded = browserDecodeAudio(path, sound->impl);
+        }
     }
 
     // Fallback: C++ decoders for FLAC
