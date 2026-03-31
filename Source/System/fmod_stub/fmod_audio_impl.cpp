@@ -204,16 +204,32 @@ FMOD_RESULT System::createSound(const char* path, FMOD_MODE mode, void*, Sound**
     std::string filePath(path);
     bool decoded = false;
 
-    // Try browser-native decoding first (faster, supports OGG/FLAC/WAV/MP3).
-    // Skip on mobile/iOS — hundreds of concurrent decodeAudioData() Promises
-    // overwhelm memory. Use synchronous C++ decoders instead.
+#ifdef __EMSCRIPTEN__
+    // Web Audio path: just store the compressed file data. No decoding here.
+    // playSound() will pass the bytes to JS for on-demand decoding + playback.
+    // This uses almost no memory (stores compressed OGG, not decoded PCM).
     if (!decoded && (endsWith(filePath, ".ogg") || endsWith(filePath, ".flac") ||
                      endsWith(filePath, ".wav") || endsWith(filePath, ".mp3"))) {
-        bool isMobile = EM_ASM_INT({ return /iPhone|iPad|Android/i.test(navigator.userAgent) ? 1 : 0; });
-        if (!isMobile) {
-            decoded = browserDecodeAudio(path, sound->impl);
+        FILE* fp = fopen(path, "rb");
+        if (fp) {
+            fseek(fp, 0, SEEK_END);
+            long fileSize = ftell(fp);
+            if (fileSize > 0) {
+                fseek(fp, 0, SEEK_SET);
+                sound->impl.fileData.resize(fileSize);
+                fread(sound->impl.fileData.data(), 1, fileSize, fp);
+                sound->impl.filePath = path;
+                sound->impl.useWebAudio = true;
+                sound->impl.sampleRate = 44100;
+                sound->impl.channels = 2;
+                // Estimate duration from file size (~112kbps OGG)
+                sound->impl.totalFrames = (uint32_t)((float)fileSize / 14000.0f * 44100.0f);
+                decoded = true;
+            }
+            fclose(fp);
         }
     }
+#endif
 
     // Fallback: C++ decoders for FLAC
     if (!decoded && endsWith(filePath, ".flac")) {
@@ -365,6 +381,50 @@ FMOD_RESULT System::playSound(Sound* sound, ChannelGroup* group, bool paused, Ch
     ch->impl.callback = nullptr;
     ch->impl.userData = nullptr;
     ch->impl.group = group ? &group->impl : &m_masterGroup.impl;
+    ch->impl.webAudioId = -1;
+
+#ifdef __EMSCRIPTEN__
+    // Web Audio path: pass compressed bytes to JS for native decode+play.
+    // The browser decodes and plays without storing full PCM in WASM memory.
+    if (sound->impl.useWebAudio && !sound->impl.fileData.empty() && !paused) {
+        float groupVol = ch->impl.group ? ch->impl.group->volume : 1.0f;
+        float vol = ch->impl.volume * groupVol * m_masterGroup.impl.volume;
+        bool loop = (ch->impl.loopCount != 0);
+        ch->impl.webAudioId = EM_ASM_INT({
+            var data = Module.HEAPU8.slice($0, $0 + $1);
+            var vol = $2;
+            var loop = $3;
+            var chanIdx = $4;
+            if (!window._ccAudioCtx) {
+                window._ccAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            var ctx = window._ccAudioCtx;
+            if (!window._ccAudioNodes) window._ccAudioNodes = {};
+
+            ctx.decodeAudioData(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength)).then(function(audioBuffer) {
+                var source = ctx.createBufferSource();
+                source.buffer = audioBuffer;
+                source.loop = loop;
+
+                var gainNode = ctx.createGain();
+                gainNode.gain.value = vol;
+
+                source.connect(gainNode);
+                gainNode.connect(ctx.destination);
+                source.start(0);
+
+                window._ccAudioNodes[chanIdx] = { source: source, gain: gainNode };
+                source.onended = function() {
+                    delete window._ccAudioNodes[chanIdx];
+                };
+            }).catch(function(err) {
+                // Silent fail — sound just won't play
+            });
+            return chanIdx;
+        }, sound->impl.fileData.data(), (int)sound->impl.fileData.size(),
+           (double)ch->impl.volume, (int)(ch->impl.loopCount != 0), ch->impl.index);
+    }
+#endif
 
     if (outChannel) *outChannel = ch;
     return FMOD_OK;
@@ -408,10 +468,12 @@ FMOD_RESULT System::update() {
     // Collect channels that finished this frame (fire callbacks after mixing)
     std::vector<Channel*> endedChannels;
 
-    // Mix all active channels
+    // Mix all active channels (skip Web Audio channels — handled by browser)
     for (auto& ch : m_channels) {
         ChannelImpl& ci = ch->impl;
-        if (!ci.playing || ci.paused || !ci.sound || ci.sound->pcmData.empty())
+        if (!ci.playing || ci.paused || !ci.sound)
+            continue;
+        if (ci.sound->useWebAudio || ci.sound->pcmData.empty())
             continue;
 
         SoundImpl& snd = *ci.sound;
@@ -493,6 +555,19 @@ void System::fireEndCallback(Channel* ch) {
 FMOD_RESULT Channel::stop() {
     impl.playing = false;
     impl.paused = false;
+#ifdef __EMSCRIPTEN__
+    // Stop Web Audio source node if active
+    if (impl.webAudioId >= 0) {
+        EM_ASM({
+            var nodes = window._ccAudioNodes;
+            if (nodes && nodes[$0]) {
+                try { nodes[$0].source.stop(); } catch(e) {}
+                delete nodes[$0];
+            }
+        }, impl.webAudioId);
+        impl.webAudioId = -1;
+    }
+#endif
     // Fire end callback
     if (impl.callback) {
         System* sys = GetGlobalSystem();

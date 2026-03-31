@@ -85,15 +85,16 @@ EM_FLAGS=(
     # Dependencies via ports
     "-sUSE_ZLIB=1"
     "-sUSE_LIBPNG=1"
-    # Base.rte + Missions.rte + Dummy.rte preloaded WITHOUT audio.
-    # Audio excluded to keep data file ~39MB (iOS crashes with larger).
-    # Sound loading gracefully handles missing audio files on Emscripten.
-    # Desktop users get audio via the converted OGG files if served separately.
-    "--preload-file" "$DATA_DIR/Base.rte@/Data/Base.rte"
+    # Base.rte (with OGG audio) + Missions.rte + Dummy.rte preloaded.
+    # Audio files are stored as compressed OGG and played via Web Audio API
+    # directly — no PCM decode into WASM memory, so mobile-safe.
+    "--preload-file" "$WEB_DATA_DIR/Base.rte@/Data/Base.rte"
     "--preload-file" "$DATA_DIR/Missions.rte@/Data/Missions.rte"
     "--preload-file" "$DATA_DIR/Dummy.rte@/Data/Dummy.rte"
-    "--exclude-file" "*.flac"
-    "--exclude-file" "*.ogg"
+    "--exclude-file" "*/Missions.rte/*.flac"
+    "--exclude-file" "*/Missions.rte/*.ogg"
+    "--exclude-file" "*/Dummy.rte/*.flac"
+    "--exclude-file" "*/Dummy.rte/*.ogg"
     # Shell and pre.js
     "--shell-file" "$SHELL_HTML"
     "--pre-js"     "$PRE_JS"

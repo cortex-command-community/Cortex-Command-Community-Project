@@ -129,12 +129,15 @@ typedef FMOD_RESULT (F_CALLBACK *FMOD_CHANNELCONTROL_CALLBACK)(FMOD_CHANNELCONTR
 // Internal implementation types (opaque to game code)
 // ---------------------------------------------------------------------------
 struct SoundImpl {
-    std::vector<float> pcmData;     // Interleaved float32 PCM samples
+    std::vector<float> pcmData;     // Interleaved float32 PCM samples (software mixer)
+    std::string filePath;           // Path to compressed file (for Web Audio playback)
+    std::vector<uint8_t> fileData;  // Compressed file data (for Web Audio playback)
     uint32_t totalFrames = 0;       // Number of sample frames
     uint32_t channels = 0;          // 1 = mono, 2 = stereo
     uint32_t sampleRate = 44100;    // Original sample rate
     int loopCount = 0;              // -1 = infinite, 0 = no loop
     FMOD_MODE mode = 0;
+    bool useWebAudio = false;       // True = play via Web Audio API (no PCM decode)
 };
 
 struct ChannelGroupImpl;
@@ -151,6 +154,7 @@ struct ChannelImpl {
     void* userData = nullptr;
     FMOD_CHANNELCONTROL_CALLBACK callback = nullptr;
     ChannelGroupImpl* group = nullptr;
+    int webAudioId = -1;             // JS-side Web Audio source node ID
     int index = -1;                  // Stable index in the channel pool
 };
 
