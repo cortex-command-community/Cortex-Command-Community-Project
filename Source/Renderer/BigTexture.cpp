@@ -108,36 +108,65 @@ void BigTexture::Update(const Box& updateRegion) {
 	for (int i = 0; i < m_Regions.size(); ++i) {
 		Box intersect = updateRegion.GetIntersection(m_Regions[i]);
 		if (!intersect.IsEmpty()) {
-			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_UploadBuffers[i]);
-			size_t pixelsSize = std::ceil(intersect.m_Width) * std::ceil(intersect.m_Height) * bytesPerPixel;
-			unsigned char* pixels = (unsigned char*)glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, (intersect.m_Corner.GetFloorIntY() %s_MaxGLTextureSize) * m_Textures[i].width + intersect.m_Corner.GetFloorIntX() % s_MaxGLTextureSize, pixelsSize, GL_MAP_WRITE_BIT|GL_MAP_INVALIDATE_BUFFER_BIT);
-			
-			for (size_t y = 0; y < static_cast<int>(std::ceil(intersect.m_Height)); y++) {
+			int iw = static_cast<int>(std::ceil(intersect.m_Width));
+			int ih = static_cast<int>(std::ceil(intersect.m_Height));
+			int srcX = intersect.m_Corner.GetFloorIntX();
+			int srcY = intersect.m_Corner.GetFloorIntY();
+
+#ifdef __EMSCRIPTEN__
+			// WebGL2 does not support glMapBufferRange for PBO. Upload directly
+			// from CPU memory via glTexSubImage2D with GL_UNPACK_ROW_LENGTH.
+			std::vector<unsigned char> stagingBuf(iw * ih * bytesPerPixel);
+			for (int y = 0; y < ih; y++) {
 				memcpy(
-					pixels + y * static_cast<int>(std::ceil(intersect.m_Width)) * bytesPerPixel,
-					m_Bitmap->line[y + intersect.m_Corner.GetFloorIntY()] + intersect.m_Corner.GetFloorIntX(),
-					std::ceil(intersect.m_Width) * bytesPerPixel
+					stagingBuf.data() + y * iw * bytesPerPixel,
+					m_Bitmap->line[y + srcY] + srcX * bytesPerPixel,
+					iw * bytesPerPixel
+				);
+			}
+			glBindTexture(GL_TEXTURE_2D, m_Textures[i].id);
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			glTexSubImage2D(
+				GL_TEXTURE_2D,
+				0,
+				srcX % s_MaxGLTextureSize,
+				srcY % s_MaxGLTextureSize,
+				iw, ih,
+				bytesPerPixel == 1 ? GL_RED : GL_RGBA,
+				GL_UNSIGNED_BYTE,
+				stagingBuf.data()
+			);
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+#else
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_UploadBuffers[i]);
+			size_t pixelsSize = iw * ih * bytesPerPixel;
+			unsigned char* pixels = (unsigned char*)glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, (srcY % s_MaxGLTextureSize) * m_Textures[i].width + srcX % s_MaxGLTextureSize, pixelsSize, GL_MAP_WRITE_BIT|GL_MAP_INVALIDATE_BUFFER_BIT);
+
+			for (int y = 0; y < ih; y++) {
+				memcpy(
+					pixels + y * iw * bytesPerPixel,
+					m_Bitmap->line[y + srcY] + srcX * bytesPerPixel,
+					iw * bytesPerPixel
 				);
 			}
 			glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-
 
 			glBindTexture(GL_TEXTURE_2D, m_Textures[i].id);
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 			glTexSubImage2D(
 				GL_TEXTURE_2D,
-				0, 
-				intersect.m_Corner.GetFloorIntX() % s_MaxGLTextureSize, 
-				intersect.m_Corner.GetFloorIntY() % s_MaxGLTextureSize, 
-				std::ceil(intersect.m_Width), 
-				std::ceil(intersect.m_Height), 
-				bytesPerPixel == 1 ? GL_RED : GL_RGBA, 
+				0,
+				srcX % s_MaxGLTextureSize,
+				srcY % s_MaxGLTextureSize,
+				iw, ih,
+				bytesPerPixel == 1 ? GL_RED : GL_RGBA,
 				GL_UNSIGNED_BYTE,
 				reinterpret_cast<void*>((intersect.m_Corner.GetFloorIntY() % s_MaxGLTextureSize) * m_Textures[i].width + intersect.m_Corner.GetFloorIntX() % s_MaxGLTextureSize)
 			);
 
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+#endif // !__EMSCRIPTEN__
 		}
 	}
 }
