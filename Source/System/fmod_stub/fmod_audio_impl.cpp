@@ -406,35 +406,42 @@ FMOD_RESULT System::playSound(Sound* sound, ChannelGroup* group, bool paused, Ch
                     console.log('[Audio] Created AudioContext, state=' + window._ccAudioCtx.state);
                 }
                 var ctx = window._ccAudioCtx;
-                // Resume context if suspended (iOS requires user gesture)
-                if (ctx.state === 'suspended') {
-                    ctx.resume();
-                }
                 if (!window._ccAudioNodes) window._ccAudioNodes = {};
+                if (!window._ccAudioQueue) window._ccAudioQueue = [];
 
                 // Make a proper ArrayBuffer copy for decodeAudioData
                 var arrayBuf = new ArrayBuffer(data.length);
                 new Uint8Array(arrayBuf).set(data);
 
-                ctx.decodeAudioData(arrayBuf).then(function(audioBuffer) {
-                    var source = ctx.createBufferSource();
-                    source.buffer = audioBuffer;
-                    source.loop = loop ? true : false;
+                var playFn = function() {
+                    ctx.decodeAudioData(arrayBuf.slice(0)).then(function(audioBuffer) {
+                        var source = ctx.createBufferSource();
+                        source.buffer = audioBuffer;
+                        source.loop = loop ? true : false;
 
-                    var gainNode = ctx.createGain();
-                    gainNode.gain.value = vol;
+                        var gainNode = ctx.createGain();
+                        gainNode.gain.value = vol;
 
-                    source.connect(gainNode);
-                    gainNode.connect(ctx.destination);
-                    source.start(0);
+                        source.connect(gainNode);
+                        gainNode.connect(ctx.destination);
+                        source.start(0);
 
-                    window._ccAudioNodes[chanIdx] = { source: source, gain: gainNode };
-                    source.onended = function() {
-                        delete window._ccAudioNodes[chanIdx];
-                    };
-                }).catch(function(err) {
-                    console.warn('[Audio] decodeAudioData failed for chan ' + chanIdx + ': ' + err.message);
-                });
+                        window._ccAudioNodes[chanIdx] = { source: source, gain: gainNode };
+                        source.onended = function() {
+                            delete window._ccAudioNodes[chanIdx];
+                        };
+                    }).catch(function(err) {});
+                };
+
+                // If context is running, play immediately. Otherwise queue.
+                if (ctx.state === 'running' || window._ccAudioUnlocked) {
+                    playFn();
+                } else {
+                    // Only queue looping/music sounds — skip one-shot SFX before unlock
+                    if (loop) {
+                        window._ccAudioQueue.push(playFn);
+                    }
+                }
             } catch(e) {
                 console.warn('[Audio] playSound error: ' + e.message);
             }

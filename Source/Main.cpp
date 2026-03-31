@@ -511,7 +511,11 @@ int main(int argc, char** argv) {
 		if (g_ConsoleMan.LoadWarningsExist()) {
 			g_ConsoleMan.PrintString("WARNING: Encountered non-fatal errors during module loading!\nSee \"LogLoadingWarning.txt\" for information.");
 			g_ConsoleMan.SaveLoadWarningLog("LogLoadingWarning.txt");
+#ifndef __EMSCRIPTEN__
+			// On Emscripten, missing content from unloaded modules is expected.
+			// Don't pop open the in-game console for these warnings.
 			g_ConsoleMan.SetEnabled(true);
+#endif
 		} else {
 			if (std::filesystem::exists(System::GetWorkingDirectory() + "LogLoadingWarning.txt")) {
 				std::remove("LogLoadingWarning.txt");

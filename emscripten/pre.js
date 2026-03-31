@@ -91,8 +91,15 @@ window._ccFlipDebug = {
     if (window._ccAudioCtx && window._ccAudioCtx.state === 'suspended') {
       window._ccAudioCtx.resume().then(function() {
         console.log('[Audio] Game AudioContext resumed: ' + window._ccAudioCtx.state);
+        // Replay any sounds that were queued while suspended
+        if (window._ccAudioQueue && window._ccAudioQueue.length > 0) {
+          console.log('[Audio] Playing ' + window._ccAudioQueue.length + ' queued sounds');
+          window._ccAudioQueue.forEach(function(fn) { try { fn(); } catch(e) {} });
+          window._ccAudioQueue = [];
+        }
       });
     }
+    window._ccAudioUnlocked = true;
 
     // Resume SDL's audio context (used by the software mixer)
     if (typeof SDL !== 'undefined' && SDL.audioContext && SDL.audioContext.state === 'suspended') {
