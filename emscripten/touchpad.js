@@ -1,62 +1,96 @@
 /**
  * Touch gamepad overlay for Cortex Command on mobile.
  *
- * Creates virtual controls:
- * - Left side: movement joystick (WASD)
- * - Right side: aim joystick (mouse relative motion)
- * - Fire button (left mouse click)
- * - Jump button (W key)
- * - Pie menu button (right mouse click)
+ * Left side: D-pad joystick (movement via SDL scancodes)
+ * Right side: FIRE (left click), JUMP (spacebar), PIE (right click)
  *
- * Injects keyboard/mouse events into the canvas element so SDL picks them up.
+ * Uses SDL scancodes injected directly into Emscripten's input system
+ * via Module.SDL3 or falling back to KeyboardEvent dispatch.
  */
 (function() {
   'use strict';
 
-  // Only show on touch devices
   if (!('ontouchstart' in window)) return;
 
   var canvas = null;
   var gamepad = null;
+  var audioUnlocked = false;
 
-  // Wait for canvas to exist
+  function unlockAudio() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    console.log('[Audio] Touch gamepad unlocking audio...');
+    // Resume game's Web Audio context
+    if (window._ccAudioCtx) {
+      window._ccAudioCtx.resume();
+    }
+    // Also trigger the pre.js unlock handler
+    if (!window._ccAudioUnlocked) {
+      window._ccAudioUnlocked = true;
+      if (window._ccAudioQueue) {
+        window._ccAudioQueue.forEach(function(fn) { try { fn(); } catch(e) {} });
+        window._ccAudioQueue = [];
+      }
+    }
+    // Resume any Emscripten SDL audio contexts
+    try {
+      var allCtx = [window._ccAudioCtx];
+      if (typeof Module !== 'undefined' && Module.SDL3 && Module.SDL3.audioContext) {
+        allCtx.push(Module.SDL3.audioContext);
+      }
+      allCtx.forEach(function(ctx) {
+        if (ctx && ctx.state === 'suspended') ctx.resume();
+      });
+    } catch(e) {}
+  }
+
   function init() {
     canvas = document.getElementById('canvas');
     if (!canvas) { setTimeout(init, 500); return; }
     createGamepad();
   }
 
-  // --- Key event injection ---
-  function sendKey(code, key, down) {
-    canvas.dispatchEvent(new KeyboardEvent(down ? 'keydown' : 'keyup', {
-      code: code, key: key, bubbles: true, cancelable: true
+  // --- SDL key codes (matching SDL_SCANCODE values) ---
+  var SDL_KEYS = {
+    w: 'KeyW', a: 'KeyA', s: 'KeyS', d: 'KeyD',
+    space: 'Space',
+  };
+
+  // Track which keys are currently held to avoid duplicate events
+  var heldKeys = {};
+
+  function pressKey(code, key) {
+    if (heldKeys[code]) return;
+    heldKeys[code] = true;
+    // Dispatch to the canvas — SDL3 Emscripten listens on the canvas element
+    canvas.dispatchEvent(new KeyboardEvent('keydown', {
+      code: code, key: key, bubbles: true, cancelable: true, keyCode: keyCodeFor(key)
     }));
   }
 
-  function sendMouse(type, button, x, y) {
+  function releaseKey(code, key) {
+    if (!heldKeys[code]) return;
+    heldKeys[code] = false;
+    canvas.dispatchEvent(new KeyboardEvent('keyup', {
+      code: code, key: key, bubbles: true, cancelable: true, keyCode: keyCodeFor(key)
+    }));
+  }
+
+  function keyCodeFor(key) {
+    var map = { 'w': 87, 'a': 65, 's': 83, 'd': 68, ' ': 32 };
+    return map[key] || 0;
+  }
+
+  function sendMouse(type, button) {
     var rect = canvas.getBoundingClientRect();
-    canvas.dispatchEvent(new PointerEvent(type, {
-      clientX: rect.left + (x || rect.width/2),
-      clientY: rect.top + (y || rect.height/2),
-      button: button || 0,
-      bubbles: true,
-      pointerId: 9999 + (button || 0)
+    var x = rect.left + rect.width / 2;
+    var y = rect.top + rect.height / 2;
+    canvas.dispatchEvent(new MouseEvent(type, {
+      clientX: x, clientY: y, button: button, buttons: button === 0 ? 1 : 2,
+      bubbles: true, cancelable: true
     }));
   }
 
-  function sendMouseMove(dx, dy) {
-    var rect = canvas.getBoundingClientRect();
-    canvas.dispatchEvent(new PointerEvent('pointermove', {
-      clientX: rect.left + rect.width/2 + dx,
-      clientY: rect.top + rect.height/2 + dy,
-      movementX: dx,
-      movementY: dy,
-      bubbles: true,
-      pointerId: 9998
-    }));
-  }
-
-  // --- Gamepad creation ---
   function createGamepad() {
     gamepad = document.createElement('div');
     gamepad.id = 'touch-gamepad';
@@ -64,90 +98,82 @@
       <style>
         #touch-gamepad {
           position: fixed; bottom: 0; left: 0; right: 0;
-          height: 200px; z-index: 10000;
+          height: 220px; z-index: 10000;
           pointer-events: none;
           user-select: none; -webkit-user-select: none;
         }
         .tp-stick {
           position: absolute; bottom: 20px;
-          width: 120px; height: 120px;
+          width: 130px; height: 130px;
           border-radius: 50%;
-          background: rgba(255,255,255,0.15);
-          border: 2px solid rgba(255,255,255,0.3);
+          background: rgba(255,255,255,0.12);
+          border: 2px solid rgba(255,255,255,0.25);
           pointer-events: auto;
           touch-action: none;
         }
         .tp-stick-knob {
           position: absolute;
-          width: 50px; height: 50px;
+          width: 55px; height: 55px;
           border-radius: 50%;
-          background: rgba(255,255,255,0.5);
+          background: rgba(255,255,255,0.45);
           top: 50%; left: 50%;
           transform: translate(-50%, -50%);
           pointer-events: none;
         }
         .tp-btn {
           position: absolute;
-          width: 56px; height: 56px;
+          width: 64px; height: 64px;
           border-radius: 50%;
-          border: 2px solid rgba(255,255,255,0.4);
+          border: 2px solid rgba(255,255,255,0.35);
           pointer-events: auto;
           touch-action: none;
           display: flex; align-items: center; justify-content: center;
-          font-family: monospace; font-size: 12px; font-weight: bold;
+          font-family: monospace; font-size: 13px; font-weight: bold;
           color: rgba(255,255,255,0.7);
         }
         .tp-btn.active { background: rgba(255,255,255,0.4); }
-        #tp-move { left: 20px; }
-        #tp-aim { right: 20px; }
-        #tp-fire { right: 160px; bottom: 30px; background: rgba(255,80,80,0.25); }
-        #tp-jump { right: 100px; bottom: 100px; background: rgba(80,180,255,0.25); }
-        #tp-pie  { right: 160px; bottom: 110px; background: rgba(255,200,80,0.25); font-size: 10px; width: 48px; height: 48px; }
-        #tp-crouch { right: 100px; bottom: 20px; background: rgba(80,255,80,0.25); font-size: 10px; }
+        #tp-move { left: 15px; }
+        #tp-fire { right: 20px; bottom: 20px; background: rgba(255,80,80,0.3); }
+        #tp-jump { right: 95px; bottom: 80px; background: rgba(80,180,255,0.3); }
+        #tp-pie  { right: 95px; bottom: 15px; background: rgba(255,200,80,0.3); }
       </style>
       <div id="tp-move" class="tp-stick"><div class="tp-stick-knob" id="tp-move-knob"></div></div>
-      <div id="tp-aim" class="tp-stick"><div class="tp-stick-knob" id="tp-aim-knob"></div></div>
       <div id="tp-fire" class="tp-btn">FIRE</div>
       <div id="tp-jump" class="tp-btn">JUMP</div>
       <div id="tp-pie" class="tp-btn">PIE</div>
-      <div id="tp-crouch" class="tp-btn">DOWN</div>
     `;
     document.body.appendChild(gamepad);
 
     // --- Movement joystick (left) ---
     setupStick('tp-move', 'tp-move-knob', function(dx, dy) {
-      // Map to WASD
-      sendKey('KeyA', 'a', dx < -0.3);
-      sendKey('KeyD', 'd', dx > 0.3);
-      sendKey('KeyW', 'w', dy < -0.3);
-      sendKey('KeyS', 's', dy > 0.3);
+      if (dx < -0.3) pressKey('KeyA', 'a'); else releaseKey('KeyA', 'a');
+      if (dx > 0.3)  pressKey('KeyD', 'd'); else releaseKey('KeyD', 'd');
+      if (dy < -0.3) pressKey('KeyW', 'w'); else releaseKey('KeyW', 'w');
+      if (dy > 0.3)  pressKey('KeyS', 's'); else releaseKey('KeyS', 's');
     }, function() {
-      sendKey('KeyA', 'a', false);
-      sendKey('KeyD', 'd', false);
-      sendKey('KeyW', 'w', false);
-      sendKey('KeyS', 's', false);
+      releaseKey('KeyA', 'a');
+      releaseKey('KeyD', 'd');
+      releaseKey('KeyW', 'w');
+      releaseKey('KeyS', 's');
     });
-
-    // --- Aim joystick (right) ---
-    setupStick('tp-aim', 'tp-aim-knob', function(dx, dy) {
-      // Send as mouse relative motion for aiming
-      sendMouseMove(dx * 8, dy * 8);
-    }, function() {});
 
     // --- Buttons ---
+    // FIRE = left mouse click (also unlocks audio on first tap)
     setupButton('tp-fire', function(down) {
-      if (down) sendMouse('pointerdown', 0);
-      else sendMouse('pointerup', 0);
+      unlockAudio();
+      sendMouse(down ? 'mousedown' : 'mouseup', 0);
     });
+
+    // JUMP = spacebar
     setupButton('tp-jump', function(down) {
-      sendKey('KeyW', 'w', down);
+      unlockAudio();
+      if (down) pressKey('Space', ' '); else releaseKey('Space', ' ');
     });
+
+    // PIE = right mouse click
     setupButton('tp-pie', function(down) {
-      if (down) sendMouse('pointerdown', 2);
-      else sendMouse('pointerup', 2);
-    });
-    setupButton('tp-crouch', function(down) {
-      sendKey('ControlLeft', 'Control', down);
+      unlockAudio();
+      sendMouse(down ? 'mousedown' : 'mouseup', 2);
     });
   }
 
@@ -178,7 +204,7 @@
         var dy = (t.clientY - centerY) / radius;
         var len = Math.sqrt(dx*dx + dy*dy);
         if (len > 1) { dx /= len; dy /= len; }
-        knob.style.transform = 'translate(' + (dx * radius * 0.4 - 25) + 'px, ' + (dy * radius * 0.4 - 25) + 'px)';
+        knob.style.transform = 'translate(' + (dx * radius * 0.4 - 27) + 'px, ' + (dy * radius * 0.4 - 27) + 'px)';
         onMove(dx, dy);
       }
     }, {passive: true});
@@ -220,7 +246,6 @@
     });
   }
 
-  // Start when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
