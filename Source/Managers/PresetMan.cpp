@@ -401,8 +401,14 @@ const Entity* PresetMan::GetEntityPreset(Reader& reader) {
 		// Try to read in the preset instance's data from the reader
 		if (pNewInstance && pNewInstance->Create(reader, false) < 0) {
 			// Abort loading if we can't create entity and it's not in a module that allows ignoring missing items.
+#ifdef __EMSCRIPTEN__
+			g_ConsoleMan.PrintString("WARNING: Failed to read preset \"" + pNewInstance->GetPresetName() + "\" of class " + pNewInstance->GetClassName() + " in " + reader.GetCurrentFilePath());
+			delete pNewInstance;
+			pNewInstance = nullptr;
+#else
 			if (!g_PresetMan.GetDataModule(whichModule)->GetIgnoreMissingItems())
 				RTEAbort("Reading of a preset instance \"" + pNewInstance->GetPresetName() + "\" of class " + pNewInstance->GetClassName() + " failed in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
+#endif
 		} else if (pNewInstance) {
 			// Try to add the instance to the collection
 			m_pDataModules[whichModule]->AddEntityPreset(pNewInstance, reader.GetPresetOverwriting(), entityFilePath);
@@ -446,8 +452,14 @@ Entity* PresetMan::ReadReflectedPreset(Reader& reader) {
 
 		// Try to read in the preset instance's data from the reader
 		if (pNewInstance && pNewInstance->Create(reader, false) < 0) {
+#ifdef __EMSCRIPTEN__
+			g_ConsoleMan.PrintString("WARNING: Failed to read preset \"" + pNewInstance->GetPresetName() + "\" of class " + pNewInstance->GetClassName() + " in " + reader.GetCurrentFilePath());
+			delete pNewInstance;
+			pNewInstance = nullptr;
+#else
 			if (!g_PresetMan.GetDataModule(whichModule)->GetIgnoreMissingItems())
 				RTEAbort("Reading of a preset instance \"" + pNewInstance->GetPresetName() + "\" of class " + pNewInstance->GetClassName() + " failed in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
+#endif
 		} else {
 			// Try to add the instance to the collection.
 			// Note that we'll return this instance regardless of whether the adding was succesful or not
