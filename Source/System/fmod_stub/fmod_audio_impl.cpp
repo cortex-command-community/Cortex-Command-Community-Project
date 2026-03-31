@@ -225,6 +225,11 @@ FMOD_RESULT System::createSound(const char* path, FMOD_MODE mode, void*, Sound**
                 // Estimate duration from file size (~112kbps OGG)
                 sound->impl.totalFrames = (uint32_t)((float)fileSize / 14000.0f * 44100.0f);
                 decoded = true;
+                static int loadCount = 0;
+                if (++loadCount <= 5 || loadCount % 100 == 0) {
+                    EM_ASM({ console.log('[Audio] Loaded sound #' + $0 + ': ' + UTF8ToString($1) + ' (' + $2 + ' bytes)'); },
+                           loadCount, path, (int)fileSize);
+                }
             }
             fclose(fp);
         }
@@ -395,31 +400,44 @@ FMOD_RESULT System::playSound(Sound* sound, ChannelGroup* group, bool paused, Ch
             var vol = $2;
             var loop = $3;
             var chanIdx = $4;
-            if (!window._ccAudioCtx) {
-                window._ccAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            try {
+                if (!window._ccAudioCtx) {
+                    window._ccAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    console.log('[Audio] Created AudioContext, state=' + window._ccAudioCtx.state);
+                }
+                var ctx = window._ccAudioCtx;
+                // Resume context if suspended (iOS requires user gesture)
+                if (ctx.state === 'suspended') {
+                    ctx.resume();
+                }
+                if (!window._ccAudioNodes) window._ccAudioNodes = {};
+
+                // Make a proper ArrayBuffer copy for decodeAudioData
+                var arrayBuf = new ArrayBuffer(data.length);
+                new Uint8Array(arrayBuf).set(data);
+
+                ctx.decodeAudioData(arrayBuf).then(function(audioBuffer) {
+                    var source = ctx.createBufferSource();
+                    source.buffer = audioBuffer;
+                    source.loop = loop ? true : false;
+
+                    var gainNode = ctx.createGain();
+                    gainNode.gain.value = vol;
+
+                    source.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+                    source.start(0);
+
+                    window._ccAudioNodes[chanIdx] = { source: source, gain: gainNode };
+                    source.onended = function() {
+                        delete window._ccAudioNodes[chanIdx];
+                    };
+                }).catch(function(err) {
+                    console.warn('[Audio] decodeAudioData failed for chan ' + chanIdx + ': ' + err.message);
+                });
+            } catch(e) {
+                console.warn('[Audio] playSound error: ' + e.message);
             }
-            var ctx = window._ccAudioCtx;
-            if (!window._ccAudioNodes) window._ccAudioNodes = {};
-
-            ctx.decodeAudioData(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength)).then(function(audioBuffer) {
-                var source = ctx.createBufferSource();
-                source.buffer = audioBuffer;
-                source.loop = loop;
-
-                var gainNode = ctx.createGain();
-                gainNode.gain.value = vol;
-
-                source.connect(gainNode);
-                gainNode.connect(ctx.destination);
-                source.start(0);
-
-                window._ccAudioNodes[chanIdx] = { source: source, gain: gainNode };
-                source.onended = function() {
-                    delete window._ccAudioNodes[chanIdx];
-                };
-            }).catch(function(err) {
-                // Silent fail — sound just won't play
-            });
             return chanIdx;
         }, sound->impl.fileData.data(), (int)sound->impl.fileData.size(),
            (double)ch->impl.volume, (int)(ch->impl.loopCount != 0), ch->impl.index);
