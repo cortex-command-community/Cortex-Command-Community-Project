@@ -120,6 +120,81 @@ static bool endsWith(const std::string& str, const char* suffix) {
     return str.compare(str.size() - suffixLen, suffixLen, suffix) == 0;
 }
 
+// Browser-native audio decoding via Web Audio API decodeAudioData.
+// Falls back to C++ decoders (stb_vorbis, dr_flac) if browser decode fails.
+static bool browserDecodeAudio(const char* path, SoundImpl& impl) {
+#ifdef __EMSCRIPTEN__
+    FILE* fp = fopen(path, "rb");
+    if (!fp) return false;
+    fseek(fp, 0, SEEK_END);
+    long fileSize = ftell(fp);
+    if (fileSize <= 0) { fclose(fp); return false; }
+    fseek(fp, 0, SEEK_SET);
+    std::vector<uint8_t> fileData(fileSize);
+    fread(fileData.data(), 1, fileSize, fp);
+    fclose(fp);
+
+    // Use EM_ASM to decode via browser's AudioContext.decodeAudioData.
+    // This is synchronous from C++ perspective — we poll a flag via emscripten_sleep.
+    struct DecodeResult {
+        float* pcm = nullptr;
+        int frames = 0;
+        int channels = 0;
+        int sampleRate = 0;
+        int done = 0;  // 0=pending, 1=success, -1=error
+    };
+    static DecodeResult result;
+    result = {};
+
+    EM_ASM({
+        var data = Module.HEAPU8.slice($0, $0 + $1);
+        var resultPtr = $2;
+        var ctx = window._ccAudioCtx;
+        if (!ctx) {
+            ctx = new (window.AudioContext || window.webkitAudioContext)();
+            window._ccAudioCtx = ctx;
+        }
+        ctx.decodeAudioData(data.buffer).then(function(audioBuffer) {
+            var frames = audioBuffer.length;
+            var channels = audioBuffer.numberOfChannels;
+            var pcmSize = frames * channels * 4;
+            var pcmPtr = Module._malloc(pcmSize);
+            // Interleave channel data into the WASM heap
+            for (var c = 0; c < channels; c++) {
+                var chanData = audioBuffer.getChannelData(c);
+                for (var i = 0; i < frames; i++) {
+                    Module.HEAPF32[(pcmPtr >> 2) + i * channels + c] = chanData[i];
+                }
+            }
+            Module.HEAP32[(resultPtr >> 2)] = pcmPtr;
+            Module.HEAP32[(resultPtr >> 2) + 1] = frames;
+            Module.HEAP32[(resultPtr >> 2) + 2] = channels;
+            Module.HEAP32[(resultPtr >> 2) + 3] = audioBuffer.sampleRate;
+            Module.HEAP32[(resultPtr >> 2) + 4] = 1; // done=success
+        }).catch(function(err) {
+            console.warn('[Audio] Browser decode failed:', err.message);
+            Module.HEAP32[(resultPtr >> 2) + 4] = -1; // done=error
+        });
+    }, fileData.data(), (int)fileSize, &result);
+
+    // Wait for async decode to complete (Asyncify yields to browser)
+    while (result.done == 0) {
+        emscripten_sleep(1);
+    }
+
+    if (result.done == 1 && result.pcm && result.frames > 0) {
+        impl.channels = result.channels;
+        impl.sampleRate = result.sampleRate;
+        impl.totalFrames = result.frames;
+        impl.pcmData.assign(result.pcm, result.pcm + result.frames * result.channels);
+        free(result.pcm);
+        return true;
+    }
+    if (result.pcm) free(result.pcm);
+#endif
+    return false;
+}
+
 FMOD_RESULT System::createSound(const char* path, FMOD_MODE mode, void*, Sound** outSound) {
     if (!outSound) return FMOD_OK;
 
@@ -129,8 +204,14 @@ FMOD_RESULT System::createSound(const char* path, FMOD_MODE mode, void*, Sound**
     std::string filePath(path);
     bool decoded = false;
 
-    if (endsWith(filePath, ".flac")) {
-        // Decode FLAC
+    // Try browser-native decoding first (faster, supports OGG/FLAC/WAV/MP3)
+    if (!decoded && (endsWith(filePath, ".ogg") || endsWith(filePath, ".flac") ||
+                     endsWith(filePath, ".wav") || endsWith(filePath, ".mp3"))) {
+        decoded = browserDecodeAudio(path, sound->impl);
+    }
+
+    // Fallback: C++ decoders for FLAC
+    if (!decoded && endsWith(filePath, ".flac")) {
         unsigned int channels = 0, sampleRate = 0;
         drflac_uint64 totalFrames = 0;
         float* samples = drflac_open_file_and_read_pcm_frames_f32(path, &channels, &sampleRate, &totalFrames, nullptr);
@@ -142,8 +223,10 @@ FMOD_RESULT System::createSound(const char* path, FMOD_MODE mode, void*, Sound**
             drflac_free(samples, nullptr);
             decoded = true;
         }
-    } else if (endsWith(filePath, ".ogg")) {
-        // Decode OGG Vorbis
+    }
+
+    // Fallback: C++ decoder for OGG
+    if (!decoded && endsWith(filePath, ".ogg")) {
         int channels = 0, sampleRate = 0;
         short* samples = nullptr;
         int totalFrames = stb_vorbis_decode_filename(path, &channels, &sampleRate, &samples);
@@ -151,7 +234,6 @@ FMOD_RESULT System::createSound(const char* path, FMOD_MODE mode, void*, Sound**
             sound->impl.channels = channels;
             sound->impl.sampleRate = sampleRate;
             sound->impl.totalFrames = (uint32_t)totalFrames;
-            // Convert int16 to float32
             sound->impl.pcmData.resize(totalFrames * channels);
             for (int i = 0; i < totalFrames * channels; i++) {
                 sound->impl.pcmData[i] = samples[i] / 32768.0f;
@@ -159,7 +241,9 @@ FMOD_RESULT System::createSound(const char* path, FMOD_MODE mode, void*, Sound**
             free(samples);
             decoded = true;
         }
-    } else if (endsWith(filePath, ".wav")) {
+    }
+
+    if (!decoded && endsWith(filePath, ".wav")) {
         // Decode WAV via SDL3
         SDL_AudioSpec spec;
         Uint8* buf = nullptr;

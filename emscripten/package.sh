@@ -21,6 +21,7 @@ BUILD_DIR="$REPO_ROOT/build-web"
 SHELL_HTML="$REPO_ROOT/emscripten/shell.html"
 PRE_JS="$REPO_ROOT/emscripten/pre.js"
 DATA_DIR="$REPO_ROOT/Data"
+WEB_DATA_DIR="$BUILD_DIR/DataWeb"
 
 # Activate emsdk if emcc isn't on PATH
 if ! command -v emcc &>/dev/null; then
@@ -84,20 +85,60 @@ EM_FLAGS=(
     # Dependencies via ports
     "-sUSE_ZLIB=1"
     "-sUSE_LIBPNG=1"
-    # Base.rte + Missions.rte preloaded WITHOUT audio.
-    # Audio files are too large for mobile (114MB total). Sound loading
-    # gracefully handles missing files on Emscripten.
-    "--preload-file" "$DATA_DIR/Base.rte@/Data/Base.rte"
-    "--preload-file" "$DATA_DIR/Missions.rte@/Data/Missions.rte"
-    "--preload-file" "$DATA_DIR/Dummy.rte@/Data/Dummy.rte"
-    "--exclude-file" "*.flac"
-    "--exclude-file" "*.ogg"
+    # Base.rte + Missions.rte + Dummy.rte preloaded WITH audio (OGG only).
+    # FLAC files are converted to OGG Vorbis at build time (see below).
+    # The game's ContentFile tries alternate extensions, so .flac→.ogg works
+    # without changing any .ini files.
+    "--preload-file" "$WEB_DATA_DIR/Base.rte@/Data/Base.rte"
+    "--preload-file" "$WEB_DATA_DIR/Missions.rte@/Data/Missions.rte"
+    "--preload-file" "$WEB_DATA_DIR/Dummy.rte@/Data/Dummy.rte"
     # Shell and pre.js
     "--shell-file" "$SHELL_HTML"
     "--pre-js"     "$PRE_JS"
     # Optimisation
     "-O2"
 )
+
+# ---------------------------------------------------------------------------
+# Convert FLAC → OGG Vorbis for web delivery (~80% smaller).
+# Creates a staging copy of the Data directory with .flac replaced by .ogg.
+# The game's ContentFile tries alternate extensions automatically.
+# ---------------------------------------------------------------------------
+PRELOAD_MODULES=("Base.rte" "Missions.rte" "Dummy.rte")
+
+echo "==> Converting FLAC → OGG for web delivery..."
+for MODULE in "${PRELOAD_MODULES[@]}"; do
+  SRC="$DATA_DIR/$MODULE"
+  DST="$WEB_DATA_DIR/$MODULE"
+  if [[ ! -d "$SRC" ]]; then continue; fi
+
+  # Sync non-audio files
+  mkdir -p "$DST"
+  rsync -a --exclude="*.flac" "$SRC/" "$DST/"
+
+  # Convert FLAC → OGG Vorbis (quality 3 ≈ ~112kbps, good for game SFX)
+  # Uses parallel conversion via xargs -P for speed.
+  FLAC_COUNT=$(find "$SRC" -name "*.flac" 2>/dev/null | wc -l)
+  if [[ "$FLAC_COUNT" -gt 0 ]]; then
+    echo "    $MODULE: converting $FLAC_COUNT FLAC files (parallel)..."
+    # Create all destination directories first
+    find "$SRC" -name "*.flac" -exec dirname {} \; | sort -u | while read -r d; do
+      mkdir -p "$DST/${d#$SRC/}"
+    done
+    # Parallel conversion: skip if OGG already exists and is newer than FLAC
+    find "$SRC" -name "*.flac" -print0 | xargs -0 -P "$(nproc)" -I{} bash -c '
+      flac="$1"; src="$2"; dst="$3"
+      rel="${flac#$src/}"
+      ogg="$dst/${rel%.flac}.ogg"
+      if [[ ! -f "$ogg" || "$flac" -nt "$ogg" ]]; then
+        ffmpeg -i "$flac" -c:a libvorbis -q:a 3 -y "$ogg" 2>/dev/null
+      fi
+    ' _ {} "$SRC" "$DST"
+    OGG_SIZE=$(du -sh "$DST" 2>/dev/null | awk '{print $1}')
+    ORIG_SIZE=$(du -sh "$SRC" 2>/dev/null | awk '{print $1}')
+    echo "    $MODULE: $ORIG_SIZE → $OGG_SIZE (with OGG audio)"
+  fi
+done
 
 OUTPUT="$BUILD_DIR/CortexCommand.html"
 
