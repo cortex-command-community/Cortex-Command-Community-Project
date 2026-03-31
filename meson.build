@@ -164,6 +164,7 @@ elif host_machine.system() == 'emscripten'
     '-DNDEBUG',
     '-sFETCH=1',        # Enable emscripten_fetch API for HTTP module loading
     '-sEMULATE_FUNCTION_POINTER_CASTS=1',  # Luabind casts fn ptrs between types
+    '-fexceptions',                        # Enable C++ exception support in WASM
     # Raylib's rlgl.h/c uses OPENGL_33||OPENGL_ES2 guards throughout.
     # For WebGL2 (= OpenGL ES 3.0), define BOTH ES2 and ES3:
     # - ES3 controls shader version (#version 300 es in rlgl.c defaultVShaderCode)

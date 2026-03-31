@@ -61,6 +61,10 @@ EM_FLAGS=(
     # virtual dispatch and function pointer casting that breaks under WASM's
     # strict indirect call type checking.
     "-sEMULATE_FUNCTION_POINTER_CASTS=1"
+    # Enable C++ exception catching — without this, throw/catch becomes
+    # uncatchable WASM traps (shown as "Uncaught <integer>" in console).
+    "-fexceptions"
+    "-sDISABLE_EXCEPTION_CATCHING=0"
     # Exports
     "-sEXPORTED_RUNTIME_METHODS=[FS,callMain,ccall,cwrap]"
     "-sEXPORTED_FUNCTIONS=[_main]"

@@ -260,8 +260,9 @@ static inline void rotateCore(BITMAP* dst, const BITMAP* src,
 }
 
 void rotate_sprite(BITMAP* dst, const BITMAP* src, int x, int y, fixed angle) {
-    // Allegro: angle 0x100000 = full turn (2π)
-    float a = static_cast<float>(angle) / 1048576.0f * 2.0f * static_cast<float>(M_PI);
+    // Allegro fixed-point angle: 256 units = full turn, in 16.16 format.
+    // Full circle as fixed = 256 * 65536 = 16777216.
+    float a = static_cast<float>(angle) / 16777216.0f * 2.0f * static_cast<float>(M_PI);
     float sin_a = std::sin(a), cos_a = std::cos(a);
     float cx = src->w / 2.0f, cy = src->h / 2.0f;
     rotateCore(dst, src, x + (int)cx, y + (int)cy, cx, cy, sin_a, cos_a);
@@ -269,7 +270,8 @@ void rotate_sprite(BITMAP* dst, const BITMAP* src, int x, int y, fixed angle) {
 
 void pivot_sprite(BITMAP* dst, const BITMAP* src,
                   int x, int y, int cx, int cy, fixed angle) {
-    float a = static_cast<float>(angle) / 1048576.0f * 2.0f * static_cast<float>(M_PI);
+    // Allegro fixed-point angle: 256 units = full turn, in 16.16 format.
+    float a = static_cast<float>(angle) / 16777216.0f * 2.0f * static_cast<float>(M_PI);
     float sin_a = std::sin(a), cos_a = std::cos(a);
     rotateCore(dst, src, x, y, static_cast<float>(cx), static_cast<float>(cy), sin_a, cos_a);
 }
@@ -599,7 +601,7 @@ static void rotateScaleCore(BITMAP* dst, const BITMAP* src,
 }
 
 void rotate_scaled_sprite(BITMAP* dst, const BITMAP* src, int x, int y, fixed angle, fixed scale) {
-    float a = static_cast<float>(angle) / 1048576.0f * 2.0f * static_cast<float>(M_PI);
+    float a = static_cast<float>(angle) / 16777216.0f * 2.0f * static_cast<float>(M_PI);
     float sc = static_cast<float>(scale) / 65536.0f;
     float inv_sc = (sc > 0.001f) ? (1.0f / sc) : 1.0f;
     rotateScaleCore(dst, src, x + (int)(src->w * sc * 0.5f), y + (int)(src->h * sc * 0.5f),
@@ -607,7 +609,7 @@ void rotate_scaled_sprite(BITMAP* dst, const BITMAP* src, int x, int y, fixed an
 }
 
 void rotate_scaled_sprite_v_flip(BITMAP* dst, const BITMAP* src, int x, int y, fixed angle, fixed scale) {
-    float a = static_cast<float>(angle) / 1048576.0f * 2.0f * static_cast<float>(M_PI);
+    float a = static_cast<float>(angle) / 16777216.0f * 2.0f * static_cast<float>(M_PI);
     float sc = static_cast<float>(scale) / 65536.0f;
     float inv_sc = (sc > 0.001f) ? (1.0f / sc) : 1.0f;
     rotateScaleCore(dst, src, x + (int)(src->w * sc * 0.5f), y + (int)(src->h * sc * 0.5f),
@@ -615,7 +617,9 @@ void rotate_scaled_sprite_v_flip(BITMAP* dst, const BITMAP* src, int x, int y, f
 }
 
 void pivot_scaled_sprite(BITMAP* dst, const BITMAP* src, int x, int y, int cx, int cy, fixed angle, fixed scale) {
-    float a = static_cast<float>(angle) / 1048576.0f * 2.0f * static_cast<float>(M_PI);
+    // Allegro fixed-point angle: 256 units = full turn, in 16.16 format.
+    // Full circle as fixed = 256 * 65536 = 16777216.
+    float a = static_cast<float>(angle) / 16777216.0f * 2.0f * static_cast<float>(M_PI);
     float sc = static_cast<float>(scale) / 65536.0f;
     float inv_sc = (sc > 0.001f) ? (1.0f / sc) : 1.0f;
     rotateScaleCore(dst, src, x, y, static_cast<float>(cx), static_cast<float>(cy),
