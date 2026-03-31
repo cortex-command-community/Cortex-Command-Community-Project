@@ -157,6 +157,8 @@ bool PresetMan::LoadAllDataModules() {
 		return false;
 	}
 	// Missions.rte contains the Tutorial scene and other mission-specific content.
+	// Dummy.rte contains dummy actor sprites used by the Tutorial.
+	LoadDataModule("Dummy.rte", true, false, LoadingScreen::LoadingSplashProgressReport);
 	LoadDataModule("Missions.rte", true, false, LoadingScreen::LoadingSplashProgressReport);
 #else
 	FindAndExtractZippedModules();

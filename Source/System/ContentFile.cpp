@@ -264,7 +264,13 @@ BITMAP* ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std
 				SetDataPath(m_DataPathWithoutExtension + altFileExtension);
 				dataPathToLoad = dataPathWithoutExtension + altFileExtension;
 			} else {
+#ifdef __EMSCRIPTEN__
+				// On Emscripten, missing files from unloaded modules are expected.
+				g_ConsoleMan.PrintString("WARNING: Missing image: " + dataPathToLoad);
+				return nullptr;
+#else
 				RTEAbort("Failed to find image file with following path and name:\n\n" + dataPathToLoad + " or " + altFileExtension + "\n" + m_FormattedReaderPosition);
+#endif
 			}
 		}
 		returnBitmap = LoadAndReleaseBitmap(conversionMode, dataPathToLoad); // NOTE: This takes ownership of the bitmap file

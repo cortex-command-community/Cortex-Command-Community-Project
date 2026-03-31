@@ -89,6 +89,7 @@ EM_FLAGS=(
     # gracefully handles missing files on Emscripten.
     "--preload-file" "$DATA_DIR/Base.rte@/Data/Base.rte"
     "--preload-file" "$DATA_DIR/Missions.rte@/Data/Missions.rte"
+    "--preload-file" "$DATA_DIR/Dummy.rte@/Data/Dummy.rte"
     "--exclude-file" "*.flac"
     "--exclude-file" "*.ogg"
     # Shell and pre.js
