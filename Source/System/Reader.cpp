@@ -325,6 +325,14 @@ bool Reader::DiscardEmptySpace() {
 }
 
 void Reader::ReportError(const std::string& errorDesc) const {
+#ifdef __EMSCRIPTEN__
+	// On Emscripten, not all modules are loaded — missing preset references
+	// from unloaded modules are expected. Log and continue instead of aborting.
+	if (!m_CanFail) {
+		g_ConsoleMan.PrintString("WARNING: " + errorDesc + "\n  in " + m_FilePath + " at line " + std::to_string(m_CurrentLine));
+		return;
+	}
+#endif
 	if (!m_CanFail) {
 		RTEAbort(errorDesc + "\nError happened in " + m_FilePath + " at line " + std::to_string(m_CurrentLine) + "!");
 	} else {
