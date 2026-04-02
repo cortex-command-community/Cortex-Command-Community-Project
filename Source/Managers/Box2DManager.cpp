@@ -476,7 +476,11 @@ void Box2DManager::DrawDebug() {
 
         b2ShapeId shapes[4];
         int shapeCount = b2Body_GetShapes(bodyId, shapes, 4);
-        b2Rot rot = b2Body_GetRotation(bodyId);
+
+        // Use the CC object's rotation (not Box2D's) so debug shapes match sprites
+        MovableObject* mo = static_cast<MovableObject*>(b2Body_GetUserData(bodyId));
+        float ccAngle = mo ? mo->GetRotAngle() : 0.0f;
+        b2Rot rot = b2MakeRot(ccAngle); // CC rotation in screen coordinates
 
         for (int s = 0; s < shapeCount; s++) {
             if (!b2Shape_IsValid(shapes[s])) continue;
@@ -492,22 +496,27 @@ void Box2DManager::DrawDebug() {
                     drawLine32((int)(sx + cosf(a1) * radius), (int)(sy + sinf(a1) * radius),
                                (int)(sx + cosf(a2) * radius), (int)(sy + sinf(a2) * radius), green);
                 }
-                drawLine32((int)sx, (int)sy, (int)(sx + rot.c * radius), (int)(sy - rot.s * radius), yellow);
+                drawLine32((int)sx, (int)sy, (int)(sx + rot.c * radius), (int)(sy + rot.s * radius), yellow);
             } else if (type == b2_polygonShape) {
                 b2Polygon poly = b2Shape_GetPolygon(shapes[s]);
                 for (int i = 0; i < poly.count; i++) {
                     int j = (i + 1) % poly.count;
-                    // Rotate vertices by body rotation and convert to screen
-                    float vx1 = poly.vertices[i].x * rot.c - poly.vertices[i].y * rot.s;
-                    float vy1 = poly.vertices[i].x * rot.s + poly.vertices[i].y * rot.c;
-                    float vx2 = poly.vertices[j].x * rot.c - poly.vertices[j].y * rot.s;
-                    float vy2 = poly.vertices[j].x * rot.s + poly.vertices[j].y * rot.c;
-                    drawLine32((int)(sx + MetersToPixels(vx1)), (int)(sy - MetersToPixels(vy1)),
-                               (int)(sx + MetersToPixels(vx2)), (int)(sy - MetersToPixels(vy2)), green);
+                    // Vertices are in Box2D local space (Y-up).
+                    // Negate Y to convert to CC screen space, then rotate by CC angle.
+                    float lx1 = MetersToPixels(poly.vertices[i].x);
+                    float ly1 = MetersToPixels(-poly.vertices[i].y); // Negate Y for CC
+                    float lx2 = MetersToPixels(poly.vertices[j].x);
+                    float ly2 = MetersToPixels(-poly.vertices[j].y);
+                    // Rotate by CC angle (screen coords, Y-down)
+                    float rx1 = lx1 * rot.c - ly1 * rot.s;
+                    float ry1 = lx1 * rot.s + ly1 * rot.c;
+                    float rx2 = lx2 * rot.c - ly2 * rot.s;
+                    float ry2 = lx2 * rot.s + ly2 * rot.c;
+                    drawLine32((int)(sx + rx1), (int)(sy + ry1),
+                               (int)(sx + rx2), (int)(sy + ry2), green);
                 }
-                // Rotation indicator from center
                 drawLine32((int)sx, (int)sy,
-                           (int)(sx + rot.c * 8.0f), (int)(sy - rot.s * 8.0f), yellow);
+                           (int)(sx + rot.c * 8.0f), (int)(sy + rot.s * 8.0f), yellow);
             }
         }
     }
