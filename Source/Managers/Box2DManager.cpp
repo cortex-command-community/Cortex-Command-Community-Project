@@ -71,12 +71,13 @@ b2BodyId Box2DManager::CreateBody(MOSRotating* owner) {
 
     b2BodyDef bodyDef = b2DefaultBodyDef();
     bodyDef.type = b2_dynamicBody;
-    // Use CC coordinates directly — atoms are in CC space, so body transform
-    // should match CC space. No Y or rotation negation needed.
+    // Position and velocity in CC space. Rotation negated because Box2D's
+    // positive rotation is counter-clockwise, but in CC's Y-down space
+    // positive rotation appears clockwise. Negating makes them match visually.
     bodyDef.position = ToB2Vec(owner->GetPos().GetX(), owner->GetPos().GetY());
-    bodyDef.rotation = b2MakeRot(owner->GetRotAngle());
+    bodyDef.rotation = b2MakeRot(-owner->GetRotAngle());
     bodyDef.linearVelocity = {owner->GetVel().GetX(), owner->GetVel().GetY()};
-    bodyDef.angularVelocity = owner->GetAngularVel();
+    bodyDef.angularVelocity = -owner->GetAngularVel();
     bodyDef.linearDamping = 0.0f;  // CC handles damping in ApplyForces()
     bodyDef.angularDamping = 0.0f;
     bodyDef.gravityScale = 0.0f;   // CC applies gravity in ApplyForces()
@@ -347,9 +348,9 @@ void Box2DManager::SyncToBox2D() {
             while (pos.x >= m_SceneWidthMeters) pos.x -= m_SceneWidthMeters;
         }
 
-        b2Body_SetTransform(bodyId, pos, b2MakeRot(mo->GetRotAngle()));
+        b2Body_SetTransform(bodyId, pos, b2MakeRot(-mo->GetRotAngle()));
         b2Body_SetLinearVelocity(bodyId, {mo->GetVel().GetX(), mo->GetVel().GetY()});
-        b2Body_SetAngularVelocity(bodyId, mo->GetAngularVel());
+        b2Body_SetAngularVelocity(bodyId, -mo->GetAngularVel());
     }
 }
 
@@ -478,11 +479,10 @@ void Box2DManager::DrawDebug() {
         b2ShapeId shapes[4];
         int shapeCount = b2Body_GetShapes(bodyId, shapes, 4);
 
-        // Use the CC object's rotation for debug draw.
-        // Atoms are in CC space (Y-down), rotation matches directly.
-        MovableObject* mo = static_cast<MovableObject*>(b2Body_GetUserData(bodyId));
-        float ccAngle = mo ? mo->GetRotAngle() : 0.0f;
-        b2Rot rot = b2MakeRot(ccAngle);
+        // Use the Box2D body's actual rotation for debug draw.
+        // This shows where Box2D thinks the shape is — should match the sprite
+        // since we negate rotation when syncing CC→Box2D.
+        b2Rot rot = b2Body_GetRotation(bodyId);
 
         for (int s = 0; s < shapeCount; s++) {
             if (!b2Shape_IsValid(shapes[s])) continue;
@@ -588,7 +588,7 @@ void Box2DManager::SyncFromBox2D() {
 
         float angVel = b2Body_GetAngularVelocity(bodyId);
         if (MOSRotating* mosr = dynamic_cast<MOSRotating*>(mo)) {
-            mosr->SetAngularVel(angVel);
+            mosr->SetAngularVel(-angVel); // Negate back to CC convention
         }
     }
 }
