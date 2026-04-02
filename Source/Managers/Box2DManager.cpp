@@ -6,7 +6,9 @@
 
 #include "Box2DManager.h"
 #include "MOSRotating.h"
+#include "MovableObject.h"
 #include "SceneMan.h"
+#include "TimerMan.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -135,8 +137,8 @@ void Box2DManager::PostStep() {
 #endif
     }
 
-    // Phase 2+: SyncFromBox2D() will read back positions/velocities
-    // SyncFromBox2D();
+    // Read back Box2D contact events and body positions to CC
+    SyncFromBox2D();
 }
 
 void Box2DManager::SyncToBox2D() {
@@ -161,6 +163,52 @@ void Box2DManager::SyncToBox2D() {
 }
 
 void Box2DManager::SyncFromBox2D() {
-    // Phase 2+: Read Box2D contact events and body positions back to CC
-    // For now, this is a no-op — Box2D world steps but doesn't affect gameplay
+    // Process contact events — fire CC collision callbacks
+    b2ContactEvents events = b2World_GetContactEvents(m_WorldId);
+
+    for (int i = 0; i < events.hitCount; ++i) {
+        b2ContactHitEvent* hit = &events.hitEvents[i];
+
+        b2BodyId bodyA = b2Shape_GetBody(hit->shapeIdA);
+        b2BodyId bodyB = b2Shape_GetBody(hit->shapeIdB);
+        if (!b2Body_IsValid(bodyA) || !b2Body_IsValid(bodyB)) continue;
+
+        MovableObject* moA = static_cast<MovableObject*>(b2Body_GetUserData(bodyA));
+        MovableObject* moB = static_cast<MovableObject*>(b2Body_GetUserData(bodyB));
+        if (!moA || !moB) continue;
+
+        // Apply collision impulse to both objects
+        // hit->normal points from A to B, hit->approachSpeed is the closing speed
+        float impulseMag = hit->approachSpeed * 0.5f; // Simplified impulse
+        Vector hitNormal(hit->normal.x, -hit->normal.y); // Convert Y back to CC convention
+        Vector impulse = hitNormal * impulseMag;
+
+        moA->AddImpulseForce(impulse * -1.0f);
+        moB->AddImpulseForce(impulse);
+    }
+
+    // Sync body positions/velocities back from Box2D to CC
+    b2BodyEvents bodyEvents = b2World_GetBodyEvents(m_WorldId);
+    for (int i = 0; i < bodyEvents.moveCount; ++i) {
+        b2BodyMoveEvent* event = &bodyEvents.moveEvents[i];
+        MovableObject* mo = static_cast<MovableObject*>(event->userData);
+        if (!mo || event->fellAsleep) continue;
+
+        // Update CC position from Box2D (convert back to CC Y-down convention)
+        b2Vec2 pos = event->transform.p;
+        mo->SetPos(Vector(MetersToPixels(pos.x), MetersToPixels(-pos.y)));
+
+        // Update velocity
+        b2BodyId bodyId = m_BodyMap[mo->GetUniqueID()];
+        if (b2Body_IsValid(bodyId)) {
+            b2Vec2 vel = b2Body_GetLinearVelocity(bodyId);
+            mo->SetVel(Vector(vel.x, -vel.y));
+
+            float angVel = b2Body_GetAngularVelocity(bodyId);
+            // Only update rotation for MOSRotating
+            if (MOSRotating* mosr = dynamic_cast<MOSRotating*>(mo)) {
+                mosr->SetAngularVel(-angVel);
+            }
+        }
+    }
 }

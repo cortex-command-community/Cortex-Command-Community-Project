@@ -44,6 +44,7 @@ MOSRotating::~MOSRotating() {
 }
 
 void MOSRotating::Clear() {
+	m_Box2DBodyId = b2_nullBodyId;
 	m_pAtomGroup = 0;
 	m_pDeepGroup = 0;
 	m_DeepCheck = false;
@@ -566,6 +567,12 @@ void MOSRotating::DestroyScriptState() {
 }
 
 void MOSRotating::Destroy(bool notInherited) {
+	// Clean up Box2D body if it exists
+	if (b2Body_IsValid(m_Box2DBodyId)) {
+		// Box2DManager will handle the actual destruction
+		m_Box2DBodyId = b2_nullBodyId;
+	}
+
 	delete m_pAtomGroup;
 	delete m_pDeepGroup;
 

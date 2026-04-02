@@ -1,4 +1,6 @@
 #include "MovableMan.h"
+#include "Box2DManager.h"
+#include "TimerMan.h"
 
 #include "PrimitiveMan.h"
 #include "PostProcessMan.h"
@@ -1700,6 +1702,31 @@ void MovableMan::Update() {
 
 void MovableMan::Travel() {
 	ZoneScoped;
+
+	// --- Box2D Phase: Sync, Step, Process contacts ---
+	if (g_Box2DMan.IsActive()) {
+		// Register any new actors/items that don't have Box2D bodies yet
+		for (Actor* actor : m_Actors) {
+			if (!g_Box2DMan.HasBody(actor)) {
+				g_Box2DMan.CreateBody(actor);
+			}
+		}
+		for (MovableObject* item : m_Items) {
+			MOSRotating* mosr = dynamic_cast<MOSRotating*>(item);
+			if (mosr && !g_Box2DMan.HasBody(mosr)) {
+				g_Box2DMan.CreateBody(mosr);
+			}
+		}
+
+		// Set scene width for wrapping
+		if (g_SceneMan.GetScene()) {
+			g_Box2DMan.SetSceneWidth((float)g_SceneMan.GetSceneWidth());
+		}
+
+		g_Box2DMan.PreStep();
+		g_Box2DMan.Step(g_TimerMan.GetDeltaTimeSecs());
+		g_Box2DMan.PostStep();
+	}
 
 	// Travel Actors
 	{

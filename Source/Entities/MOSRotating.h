@@ -1,5 +1,7 @@
 #pragma once
 
+#include "box2d/box2d.h"
+
 /// Header file for the MOSRotating class.
 /// @author Daniel Tabar
 /// data@datarealms.com
@@ -20,6 +22,7 @@ namespace RTE {
 
 	/// A sprite movable object that can rotate.
 	class MOSRotating : public MOSprite {
+		friend class Box2DManager;
 
 		/// Public member variable, method and friend function declarations
 	public:
@@ -522,6 +525,10 @@ namespace RTE {
 		static Entity::ClassInfo m_sClass;
 		//    float m_Torque; // In kg * r/s^2 (Newtons).
 		//    float m_ImpulseTorque; // In kg * r/s.
+		// Box2D body ID for hybrid physics (object-to-object collision via Box2D).
+		// b2_nullBodyId when not registered with Box2DManager.
+		b2BodyId m_Box2DBodyId;
+
 		// The group of Atom:s that will be the physical reperesentation of this MOSRotating.
 		AtomGroup* m_pAtomGroup;
 		// The group of Atom:s that will serve as a means to detect deep terrain penetration.
