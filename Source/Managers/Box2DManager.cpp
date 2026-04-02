@@ -9,7 +9,9 @@
 #include "MovableObject.h"
 #include "MovableMan.h"
 #include "SceneMan.h"
+#include "SLTerrain.h"
 #include "TimerMan.h"
+#include "TerrainChainBuilder.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -19,6 +21,9 @@ using namespace RTE;
 
 void Box2DManager::Clear() {
     m_WorldId = b2_nullWorldId;
+    m_TerrainBodyId = b2_nullBodyId;
+    m_TerrainChains.clear();
+    m_TerrainBuilt = false;
     m_SceneWidthMeters = 0.0f;
     m_BodyMap.clear();
 }
@@ -143,6 +148,16 @@ bool Box2DManager::HasBody(const MOSRotating* owner) const {
 void Box2DManager::PreStep() {
     if (!b2World_IsValid(m_WorldId)) return;
 
+    // Build terrain chains on first frame of a new scene
+    if (!m_TerrainBuilt && g_SceneMan.GetScene() && g_SceneMan.GetTerrain()) {
+        BuildTerrainChains();
+    }
+
+    // Update terrain chains if terrain was modified (explosions, digging)
+    if (m_TerrainBuilt) {
+        UpdateDirtyTerrainChains();
+    }
+
     // Clean up bodies whose owners have been removed from the game
     std::vector<long> toRemove;
     for (auto& [uid, bodyId] : m_BodyMap) {
@@ -220,6 +235,81 @@ void Box2DManager::SyncToBox2D() {
         b2Body_SetTransform(bodyId, pos, b2MakeRot(-mo->GetRotAngle()));
         b2Body_SetLinearVelocity(bodyId, {mo->GetVel().GetX(), -mo->GetVel().GetY()});
         b2Body_SetAngularVelocity(bodyId, -mo->GetAngularVel());
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Terrain chain shapes
+// ---------------------------------------------------------------------------
+
+void Box2DManager::BuildTerrainChains() {
+    if (!b2World_IsValid(m_WorldId)) return;
+    if (!g_SceneMan.GetScene() || !g_SceneMan.GetTerrain()) return;
+
+    // Destroy existing terrain chains
+    for (auto& chainId : m_TerrainChains) {
+        if (b2Chain_IsValid(chainId)) {
+            b2DestroyChain(chainId);
+        }
+    }
+    m_TerrainChains.clear();
+
+    // Create or reuse static terrain body
+    if (!b2Body_IsValid(m_TerrainBodyId)) {
+        b2BodyDef bodyDef = b2DefaultBodyDef();
+        bodyDef.type = b2_staticBody;
+        bodyDef.position = {0.0f, 0.0f};
+        m_TerrainBodyId = b2CreateBody(m_WorldId, &bodyDef);
+    }
+
+    // Extract terrain surface contour
+    SLTerrain* terrain = g_SceneMan.GetTerrain();
+    std::vector<b2Vec2> surface = TerrainChainBuilder::ExtractSurface(terrain, 8);
+
+    if (surface.size() < 4) {
+        m_TerrainBuilt = true;
+        return;
+    }
+
+    // Simplify the contour (reduce vertex count)
+    std::vector<b2Vec2> simplified = TerrainChainBuilder::Simplify(surface, 0.15f);
+
+    if (simplified.size() < 4) simplified = surface; // Fallback if over-simplified
+
+    // Create chain shape
+    b2ChainDef chainDef = b2DefaultChainDef();
+    chainDef.points = simplified.data();
+    chainDef.count = (int)simplified.size();
+    chainDef.isLoop = false;
+
+    b2ChainId chainId = b2CreateChain(m_TerrainBodyId, &chainDef);
+    m_TerrainChains.push_back(chainId);
+
+    m_TerrainBuilt = true;
+
+#ifdef __EMSCRIPTEN__
+    EM_ASM({ console.log('[Box2D] Terrain chain: ' + $0 + ' raw points → ' + $1 + ' simplified'); },
+           (int)surface.size(), (int)simplified.size());
+#endif
+}
+
+void Box2DManager::UpdateDirtyTerrainChains() {
+    if (!b2World_IsValid(m_WorldId) || !m_TerrainBuilt) return;
+    if (!g_SceneMan.GetScene() || !g_SceneMan.GetTerrain()) return;
+
+    SLTerrain* terrain = g_SceneMan.GetTerrain();
+    std::deque<Box>& dirtyAreas = terrain->GetUpdatedMaterialAreas();
+
+    if (dirtyAreas.empty()) return;
+
+    // For now, rebuild the entire terrain if any dirty regions exist.
+    // Future optimization: only rebuild chain segments near dirty regions.
+    static int dirtyFrameCount = 0;
+    dirtyFrameCount++;
+
+    // Batch updates: only rebuild every 30 frames to avoid per-frame rebuilds
+    if (dirtyFrameCount % 30 == 0) {
+        BuildTerrainChains();
     }
 }
 

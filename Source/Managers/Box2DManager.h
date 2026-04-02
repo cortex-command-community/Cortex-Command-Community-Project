@@ -70,6 +70,13 @@ public:
     /// Set scene width for X-wrapping support.
     void SetSceneWidth(float widthPixels);
 
+    /// Build terrain chain shapes from the terrain surface contour.
+    /// Call once when a scene loads.
+    void BuildTerrainChains();
+
+    /// Rebuild terrain chains in dirty regions (after explosions/digging).
+    void UpdateDirtyTerrainChains();
+
     /// Get the world ID for direct Box2D API access.
     b2WorldId GetWorldId() const { return m_WorldId; }
 
@@ -82,6 +89,11 @@ private:
 
     // Map MO unique IDs → Box2D body IDs
     std::unordered_map<long, b2BodyId> m_BodyMap;
+
+    // Terrain static body and chain shapes
+    b2BodyId m_TerrainBodyId;
+    std::vector<b2ChainId> m_TerrainChains;
+    bool m_TerrainBuilt = false;
 
     void Clear();
 
