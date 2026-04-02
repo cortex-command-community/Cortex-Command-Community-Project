@@ -21,6 +21,7 @@
 
 namespace RTE {
 
+class Vector;
 class MovableObject;
 class MOSRotating;
 
@@ -60,6 +61,11 @@ public:
 
     /// Check if a MOSRotating has a Box2D body.
     bool HasBody(const MOSRotating* owner) const;
+
+    /// Create a weld joint between parent and child bodies.
+    b2JointId CreateWeldJoint(MOSRotating* parent, MOSRotating* child,
+                              const Vector& parentOffset, const Vector& jointOffset,
+                              float stiffness, float breakForce);
 
     /// Set scene width for X-wrapping support.
     void SetSceneWidth(float widthPixels);

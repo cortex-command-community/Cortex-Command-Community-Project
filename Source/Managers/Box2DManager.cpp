@@ -103,6 +103,34 @@ void Box2DManager::DestroyBody(MOSRotating* owner) {
     }
 }
 
+b2JointId Box2DManager::CreateWeldJoint(MOSRotating* parent, MOSRotating* child,
+                                        const Vector& parentOffset, const Vector& jointOffset,
+                                        float stiffness, float breakForce) {
+    if (!b2World_IsValid(m_WorldId)) return b2_nullJointId;
+
+    auto parentIt = m_BodyMap.find(parent->GetUniqueID());
+    auto childIt = m_BodyMap.find(child->GetUniqueID());
+    if (parentIt == m_BodyMap.end() || childIt == m_BodyMap.end()) return b2_nullJointId;
+    if (!b2Body_IsValid(parentIt->second) || !b2Body_IsValid(childIt->second)) return b2_nullJointId;
+
+    b2WeldJointDef weldDef = b2DefaultWeldJointDef();
+    weldDef.bodyIdA = parentIt->second;
+    weldDef.bodyIdB = childIt->second;
+    weldDef.localAnchorA = ToB2Vec(parentOffset.GetX(), -parentOffset.GetY());
+    weldDef.localAnchorB = ToB2Vec(jointOffset.GetX(), -jointOffset.GetY());
+
+    // Map stiffness to weld joint spring parameters
+    if (stiffness < 1.0f) {
+        weldDef.linearHertz = 5.0f * stiffness + 0.5f;
+        weldDef.angularHertz = 5.0f * stiffness + 0.5f;
+        weldDef.linearDampingRatio = 0.7f;
+        weldDef.angularDampingRatio = 0.7f;
+    }
+
+    b2JointId jointId = b2CreateWeldJoint(m_WorldId, &weldDef);
+    return jointId;
+}
+
 bool Box2DManager::HasBody(const MOSRotating* owner) const {
     if (!owner) return false;
     return m_BodyMap.count(owner->GetUniqueID()) > 0;

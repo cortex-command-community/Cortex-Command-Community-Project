@@ -1,4 +1,5 @@
 #include "Attachable.h"
+#include "Box2DManager.h"
 
 #include "AtomGroup.h"
 #include "PresetMan.h"
@@ -37,6 +38,7 @@ void Attachable::Clear() {
 	m_JointStrength = 10.0F;
 	m_JointStiffness = 1.0F;
 	m_JointOffset.Reset();
+	m_Box2DJointId = b2_nullJointId;
 	m_JointPos.Reset();
 
 	m_DamageCount = 0.0F;
@@ -511,6 +513,16 @@ void Attachable::SetParent(MOSRotating* newParent) {
 			m_AngularVel = 0.0F;
 		}
 		UpdatePositionAndJointPositionBasedOnOffsets();
+
+		// Create Box2D weld joint between parent and this attachable
+		if (g_Box2DMan.IsActive() && g_Box2DMan.HasBody(newParent)) {
+			// Ensure this attachable has a body too
+			if (!g_Box2DMan.HasBody(this)) {
+				g_Box2DMan.CreateBody(this);
+			}
+			m_Box2DJointId = g_Box2DMan.CreateWeldJoint(newParent, this,
+				m_ParentOffset, m_JointOffset, m_JointStiffness, m_JointStrength);
+		}
 		if (CanCollideWithTerrain()) {
 			AddOrRemoveAtomsFromRootParentAtomGroup(true, true);
 		}
@@ -521,6 +533,12 @@ void Attachable::SetParent(MOSRotating* newParent) {
 			}
 		}
 	} else {
+		// Destroy Box2D weld joint on detachment
+		if (b2Joint_IsValid(m_Box2DJointId)) {
+			b2DestroyJoint(m_Box2DJointId);
+			m_Box2DJointId = b2_nullJointId;
+		}
+
 		m_RootMOID = m_MOID;
 		m_RestTimer.Reset();
 		m_Team = -1;
