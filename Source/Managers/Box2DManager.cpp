@@ -10,10 +10,10 @@
 #include "MovableMan.h"
 #include "SceneMan.h"
 #include "CameraMan.h"
+#include "FrameMan.h"
 #include "SLTerrain.h"
 #include "TimerMan.h"
 #include "TerrainChainBuilder.h"
-#include "raylib/raylib.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -323,87 +323,93 @@ void Box2DManager::UpdateDirtyTerrainChains() {
 void Box2DManager::DrawDebug() {
     if (!m_DebugDraw || !b2World_IsValid(m_WorldId)) return;
 
-    // Get camera offset to convert world coords to screen coords
+    BITMAP* target = g_FrameMan.GetBackBuffer32();
+    if (!target) return;
+
     Vector cameraOffset = g_CameraMan.GetOffset(0);
 
-    // Draw body outlines (circles) in green for dynamic, blue for static
+    // Helper: draw a line on the 32bpp bitmap
+    auto drawLine32 = [&](int x1, int y1, int x2, int y2, uint32_t color) {
+        // Bresenham line
+        int dx = abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
+        int dy = -abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
+        int err = dx + dy;
+        for (;;) {
+            if (x1 >= 0 && x1 < target->w && y1 >= 0 && y1 < target->h) {
+                uint8_t* p = target->line[y1] + x1 * 4;
+                p[0] = (color >> 0) & 0xFF;
+                p[1] = (color >> 8) & 0xFF;
+                p[2] = (color >> 16) & 0xFF;
+                p[3] = (color >> 24) & 0xFF;
+            }
+            if (x1 == x2 && y1 == y2) break;
+            int e2 = 2 * err;
+            if (e2 >= dy) { err += dy; x1 += sx; }
+            if (e2 <= dx) { err += dx; y1 += sy; }
+        }
+    };
+
+    uint32_t green  = 0xC000FF00; // ABGR
+    uint32_t yellow = 0xC800FFFF;
+    uint32_t red    = 0xC80000FF;
+    uint32_t cyan   = 0xA0FFFF00;
+
+    // Draw body outlines (circles) in green
     for (auto& [uid, bodyId] : m_BodyMap) {
         if (!b2Body_IsValid(bodyId)) continue;
 
         b2Vec2 pos = b2Body_GetPosition(bodyId);
-        float screenX = MetersToPixels(pos.x) - cameraOffset.GetX();
-        float screenY = MetersToPixels(-pos.y) - cameraOffset.GetY(); // Negate Y back to CC
+        float sx = MetersToPixels(pos.x) - cameraOffset.GetX();
+        float sy = MetersToPixels(-pos.y) - cameraOffset.GetY();
 
-        // Get the shape to find the radius
         b2ShapeId shapes[1];
         int shapeCount = b2Body_GetShapes(bodyId, shapes, 1);
-        float radius = 10.0f; // Default fallback
+        float radius = 10.0f;
         if (shapeCount > 0 && b2Shape_IsValid(shapes[0])) {
-            b2ShapeType type = b2Shape_GetType(shapes[0]);
-            if (type == b2_circleShape) {
+            if (b2Shape_GetType(shapes[0]) == b2_circleShape) {
                 b2Circle circle = b2Shape_GetCircle(shapes[0]);
                 radius = MetersToPixels(circle.radius);
             }
         }
 
-        // Draw circle outline using rlgl lines
         int segments = 16;
         for (int i = 0; i < segments; i++) {
-            float a1 = (float)i / segments * 2.0f * 3.14159f;
-            float a2 = (float)(i + 1) / segments * 2.0f * 3.14159f;
-            float x1 = screenX + cosf(a1) * radius;
-            float y1 = screenY + sinf(a1) * radius;
-            float x2 = screenX + cosf(a2) * radius;
-            float y2 = screenY + sinf(a2) * radius;
-
-            // Green circles for dynamic bodies
-            DrawLine((int)x1, (int)y1, (int)x2, (int)y2, {0, 255, 0, 180});
+            float a1 = (float)i / segments * 6.2832f;
+            float a2 = (float)(i + 1) / segments * 6.2832f;
+            drawLine32((int)(sx + cosf(a1) * radius), (int)(sy + sinf(a1) * radius),
+                       (int)(sx + cosf(a2) * radius), (int)(sy + sinf(a2) * radius), green);
         }
 
-        // Draw rotation indicator line
+        // Rotation indicator
         b2Rot rot = b2Body_GetRotation(bodyId);
-        float dirX = screenX + rot.c * radius;
-        float dirY = screenY - rot.s * radius; // Negate sine for CC Y convention
-        DrawLine((int)screenX, (int)screenY, (int)dirX, (int)dirY, {255, 255, 0, 200});
+        drawLine32((int)sx, (int)sy, (int)(sx + rot.c * radius), (int)(sy - rot.s * radius), yellow);
     }
 
     // Draw terrain chain in red
-    if (!m_TerrainDebugPoints.empty()) {
-        for (size_t i = 0; i + 1 < m_TerrainDebugPoints.size(); i++) {
-            float x1 = MetersToPixels(m_TerrainDebugPoints[i].x) - cameraOffset.GetX();
-            float y1 = MetersToPixels(-m_TerrainDebugPoints[i].y) - cameraOffset.GetY();
-            float x2 = MetersToPixels(m_TerrainDebugPoints[i + 1].x) - cameraOffset.GetX();
-            float y2 = MetersToPixels(-m_TerrainDebugPoints[i + 1].y) - cameraOffset.GetY();
-
-            DrawLine((int)x1, (int)y1, (int)x2, (int)y2, {255, 50, 50, 200});
-        }
+    for (size_t i = 0; i + 1 < m_TerrainDebugPoints.size(); i++) {
+        float x1 = MetersToPixels(m_TerrainDebugPoints[i].x) - cameraOffset.GetX();
+        float y1 = MetersToPixels(-m_TerrainDebugPoints[i].y) - cameraOffset.GetY();
+        float x2 = MetersToPixels(m_TerrainDebugPoints[i + 1].x) - cameraOffset.GetX();
+        float y2 = MetersToPixels(-m_TerrainDebugPoints[i + 1].y) - cameraOffset.GetY();
+        drawLine32((int)x1, (int)y1, (int)x2, (int)y2, red);
     }
 
     // Draw joints in cyan
     for (auto& [uid, bodyId] : m_BodyMap) {
         if (!b2Body_IsValid(bodyId)) continue;
-
-        // Check for joints on this body
         b2JointId joints[8];
         int jointCount = b2Body_GetJoints(bodyId, joints, 8);
         for (int j = 0; j < jointCount; j++) {
             if (!b2Joint_IsValid(joints[j])) continue;
-            b2Vec2 anchorA = b2Joint_GetLocalAnchorA(joints[j]);
-            b2Vec2 anchorB = b2Joint_GetLocalAnchorB(joints[j]);
-
             b2BodyId bodyA = b2Joint_GetBodyA(joints[j]);
             b2BodyId bodyB = b2Joint_GetBodyB(joints[j]);
             if (!b2Body_IsValid(bodyA) || !b2Body_IsValid(bodyB)) continue;
-
             b2Vec2 posA = b2Body_GetPosition(bodyA);
             b2Vec2 posB = b2Body_GetPosition(bodyB);
-
-            float ax = MetersToPixels(posA.x) - cameraOffset.GetX();
-            float ay = MetersToPixels(-posA.y) - cameraOffset.GetY();
-            float bx = MetersToPixels(posB.x) - cameraOffset.GetX();
-            float by = MetersToPixels(-posB.y) - cameraOffset.GetY();
-
-            DrawLine((int)ax, (int)ay, (int)bx, (int)by, {0, 255, 255, 150});
+            drawLine32((int)(MetersToPixels(posA.x) - cameraOffset.GetX()),
+                       (int)(MetersToPixels(-posA.y) - cameraOffset.GetY()),
+                       (int)(MetersToPixels(posB.x) - cameraOffset.GetX()),
+                       (int)(MetersToPixels(-posB.y) - cameraOffset.GetY()), cyan);
         }
     }
 }

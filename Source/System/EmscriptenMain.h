@@ -340,15 +340,9 @@ inline void WebMainLoopIteration_Impl() {
             g_Box2DMan.SetDebugDraw(f9Down);
         }
 
-        // Box2D debug overlay — draws body outlines, terrain chain, joints
-        // into the BackBuffer FBO on top of the scene
+        // Box2D debug overlay — draws onto the 32bpp GUI buffer
         if (g_Box2DMan.IsActive() && g_Box2DMan.IsDebugDrawEnabled()) {
-            g_FrameMan.GetBackBuffer()->Begin(false);
-            rlDisableDepthTest();
-            rlEnableColorBlend();
             g_Box2DMan.DrawDebug();
-            rlDrawRenderBatchActive();
-            g_FrameMan.GetBackBuffer()->End();
         }
 
         g_WindowMan.DrawPostProcessBuffer();

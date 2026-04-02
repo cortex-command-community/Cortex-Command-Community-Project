@@ -73,9 +73,8 @@ window._ccFlipDebug = {
       window._ccFlipDebug.guiShaderFlip = 1 - window._ccFlipDebug.guiShaderFlip;
       console.log('[CC] GUI shader Y flip: ' + (window._ccFlipDebug.guiShaderFlip ? 'DISABLED' : 'normal'));
     }
-    // F9: toggle Box2D debug draw
-    if (e.key === 'F9') {
-      e.preventDefault();
+    // B key: toggle Box2D debug draw
+    if (e.key === 'b' || e.key === 'B') {
       if (window._ccBox2DDebug === undefined) window._ccBox2DDebug = 1;
       window._ccBox2DDebug = window._ccBox2DDebug ? 0 : 1;
       console.log('[CC] Box2D debug draw: ' + (window._ccBox2DDebug ? 'ON' : 'OFF'));
