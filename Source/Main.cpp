@@ -58,6 +58,7 @@
 #include "ThreadMan.h"
 #include "LuaMan.h"
 #include "MusicMan.h"
+#include "Box2DManager.h"
 #include "System.h"
 
 #include "RenderTarget.h"
@@ -99,6 +100,7 @@ void InitializeManagers() {
 	ConsoleMan::Construct();
 	SceneMan::Construct();
 	MovableMan::Construct();
+	Box2DManager::Construct();
 	MetaMan::Construct();
 	MenuMan::Construct();
 	CameraMan::Construct();
@@ -147,6 +149,8 @@ void InitializeManagers() {
 	g_SceneMan.Initialize();
 	INIT_LOG("MovableMan...");
 	g_MovableMan.Initialize();
+	INIT_LOG("Box2DManager...");
+	g_Box2DMan.Initialize();
 	INIT_LOG("MetaMan...");
 	g_MetaMan.Initialize();
 	INIT_LOG("MenuMan...");
@@ -169,6 +173,7 @@ void DestroyManagers() {
 	g_MetaMan.Destroy();
 	g_PerformanceMan.Destroy();
 	g_MovableMan.Destroy();
+	g_Box2DMan.Destroy();
 	g_SceneMan.Destroy();
 	g_ActivityMan.Destroy();
 	g_GUISound.Destroy();
