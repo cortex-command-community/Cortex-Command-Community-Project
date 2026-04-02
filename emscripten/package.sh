@@ -44,6 +44,7 @@ LIBS=(
     "$BUILD_DIR/external/sources/lua-5.1.5/liblua51.a"
     "$BUILD_DIR/external/sources/luabind-0.7.1/libluabind071.a"
     "$BUILD_DIR/external/sources/minizip-ng-4.0.0/libminizip.a"
+    "$BUILD_DIR/external/sources/box2d-3.1.0/libbox2d.a"
     "/tmp/sdl3-wasm/libSDL3.a"
 )
 
