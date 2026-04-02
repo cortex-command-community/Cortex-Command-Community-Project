@@ -38,11 +38,8 @@ void Box2DManager::Initialize() {
     }
 
     b2WorldDef worldDef = b2DefaultWorldDef();
-    // Match CC's gravity — GetGlobalAcc() returns acceleration in m/s²
-    // CC's Y-axis: positive = down (screen convention)
-    // Box2D's Y-axis: positive = up (physics convention)
-    // So we negate Y for Box2D
-    worldDef.gravity = (b2Vec2){0.0f, -g_SceneMan.GetGlobalAcc().GetY()};
+    // Match CC's gravity — using CC coordinates directly (Y-down).
+    worldDef.gravity = (b2Vec2){0.0f, g_SceneMan.GetGlobalAcc().GetY()};
     worldDef.enableSleep = true;
     worldDef.enableContinuous = true;
 
@@ -74,10 +71,12 @@ b2BodyId Box2DManager::CreateBody(MOSRotating* owner) {
 
     b2BodyDef bodyDef = b2DefaultBodyDef();
     bodyDef.type = b2_dynamicBody;
-    bodyDef.position = ToB2Vec(owner->GetPos().GetX(), -owner->GetPos().GetY()); // Negate Y
-    bodyDef.rotation = b2MakeRot(-owner->GetRotAngle()); // Negate for Box2D convention
-    bodyDef.linearVelocity = {owner->GetVel().GetX(), -owner->GetVel().GetY()};
-    bodyDef.angularVelocity = -owner->GetAngularVel();
+    // Use CC coordinates directly — atoms are in CC space, so body transform
+    // should match CC space. No Y or rotation negation needed.
+    bodyDef.position = ToB2Vec(owner->GetPos().GetX(), owner->GetPos().GetY());
+    bodyDef.rotation = b2MakeRot(owner->GetRotAngle());
+    bodyDef.linearVelocity = {owner->GetVel().GetX(), owner->GetVel().GetY()};
+    bodyDef.angularVelocity = owner->GetAngularVel();
     bodyDef.linearDamping = 0.0f;  // CC handles damping in ApplyForces()
     bodyDef.angularDamping = 0.0f;
     bodyDef.gravityScale = 0.0f;   // CC applies gravity in ApplyForces()
@@ -113,8 +112,10 @@ b2BodyId Box2DManager::CreateBody(MOSRotating* owner) {
             int step = std::max(1, (int)atoms.size() / 24);
             for (size_t i = 0; i < atoms.size(); i += step) {
                 Vector offset = atoms[i]->GetOffset();
+                // Keep atom offsets in CC convention (Y-down).
+                // The body rotation handles the Y-axis conversion.
                 b2Vec2 pt = {PixelsToMeters(offset.GetX()),
-                             PixelsToMeters(-offset.GetY())};
+                             PixelsToMeters(offset.GetY())};
                 // Skip near-duplicates
                 bool duplicate = false;
                 for (const auto& existing : points) {
@@ -239,8 +240,8 @@ b2JointId Box2DManager::CreateWeldJoint(MOSRotating* parent, MOSRotating* child,
     b2WeldJointDef weldDef = b2DefaultWeldJointDef();
     weldDef.bodyIdA = parentIt->second;
     weldDef.bodyIdB = childIt->second;
-    weldDef.localAnchorA = ToB2Vec(parentOffset.GetX(), -parentOffset.GetY());
-    weldDef.localAnchorB = ToB2Vec(jointOffset.GetX(), -jointOffset.GetY());
+    weldDef.localAnchorA = ToB2Vec(parentOffset.GetX(), parentOffset.GetY());
+    weldDef.localAnchorB = ToB2Vec(jointOffset.GetX(), jointOffset.GetY());
 
     // Map stiffness to weld joint spring parameters
     if (stiffness < 1.0f) {
@@ -338,7 +339,7 @@ void Box2DManager::SyncToBox2D() {
         if (!mo || !g_MovableMan.ValidMO(mo)) continue;
 
         // Push CC position/velocity → Box2D body
-        b2Vec2 pos = ToB2Vec(mo->GetPos().GetX(), -mo->GetPos().GetY());
+        b2Vec2 pos = ToB2Vec(mo->GetPos().GetX(), mo->GetPos().GetY());
 
         // Handle scene X-wrapping
         if (m_SceneWidthMeters > 0.0f) {
@@ -346,9 +347,9 @@ void Box2DManager::SyncToBox2D() {
             while (pos.x >= m_SceneWidthMeters) pos.x -= m_SceneWidthMeters;
         }
 
-        b2Body_SetTransform(bodyId, pos, b2MakeRot(-mo->GetRotAngle()));
-        b2Body_SetLinearVelocity(bodyId, {mo->GetVel().GetX(), -mo->GetVel().GetY()});
-        b2Body_SetAngularVelocity(bodyId, -mo->GetAngularVel());
+        b2Body_SetTransform(bodyId, pos, b2MakeRot(mo->GetRotAngle()));
+        b2Body_SetLinearVelocity(bodyId, {mo->GetVel().GetX(), mo->GetVel().GetY()});
+        b2Body_SetAngularVelocity(bodyId, mo->GetAngularVel());
     }
 }
 
@@ -472,16 +473,15 @@ void Box2DManager::DrawDebug() {
 
         b2Vec2 pos = b2Body_GetPosition(bodyId);
         float sx = MetersToPixels(pos.x) - cameraOffset.GetX();
-        float sy = MetersToPixels(-pos.y) - cameraOffset.GetY();
+        float sy = MetersToPixels(pos.y) - cameraOffset.GetY();
 
         b2ShapeId shapes[4];
         int shapeCount = b2Body_GetShapes(bodyId, shapes, 4);
 
         // Use the CC object's rotation for debug draw.
-        // Negate because atom offsets were Y-negated when building the hull,
-        // which effectively mirrors the shape. Negating the rotation compensates.
+        // Atoms are in CC space (Y-down), rotation matches directly.
         MovableObject* mo = static_cast<MovableObject*>(b2Body_GetUserData(bodyId));
-        float ccAngle = mo ? -mo->GetRotAngle() : 0.0f;
+        float ccAngle = mo ? mo->GetRotAngle() : 0.0f;
         b2Rot rot = b2MakeRot(ccAngle);
 
         for (int s = 0; s < shapeCount; s++) {
@@ -503,12 +503,11 @@ void Box2DManager::DrawDebug() {
                 b2Polygon poly = b2Shape_GetPolygon(shapes[s]);
                 for (int i = 0; i < poly.count; i++) {
                     int j = (i + 1) % poly.count;
-                    // Vertices are in Box2D local space (Y-up).
-                    // Negate Y to convert to CC screen space, then rotate by CC angle.
+                    // Vertices are in CC local space (Y-down, matching atoms).
                     float lx1 = MetersToPixels(poly.vertices[i].x);
-                    float ly1 = MetersToPixels(-poly.vertices[i].y); // Negate Y for CC
+                    float ly1 = MetersToPixels(poly.vertices[i].y);
                     float lx2 = MetersToPixels(poly.vertices[j].x);
-                    float ly2 = MetersToPixels(-poly.vertices[j].y);
+                    float ly2 = MetersToPixels(poly.vertices[j].y);
                     // Rotate by CC angle (screen coords, Y-down)
                     float rx1 = lx1 * rot.c - ly1 * rot.s;
                     float ry1 = lx1 * rot.s + ly1 * rot.c;
@@ -566,7 +565,7 @@ void Box2DManager::SyncFromBox2D() {
         if (!g_MovableMan.ValidMO(moA) || !g_MovableMan.ValidMO(moB)) continue;
 
         float impulseMag = hit->approachSpeed * 0.5f;
-        Vector hitNormal(hit->normal.x, -hit->normal.y);
+        Vector hitNormal(hit->normal.x, hit->normal.y);
         Vector impulse = hitNormal * impulseMag;
 
         moA->AddImpulseForce(impulse * -1.0f);
@@ -582,14 +581,14 @@ void Box2DManager::SyncFromBox2D() {
         if (b2Body_IsAwake(bodyId) == false) continue;
 
         b2Vec2 pos = b2Body_GetPosition(bodyId);
-        mo->SetPos(Vector(MetersToPixels(pos.x), MetersToPixels(-pos.y)));
+        mo->SetPos(Vector(MetersToPixels(pos.x), MetersToPixels(pos.y)));
 
         b2Vec2 vel = b2Body_GetLinearVelocity(bodyId);
-        mo->SetVel(Vector(vel.x, -vel.y));
+        mo->SetVel(Vector(vel.x, vel.y));
 
         float angVel = b2Body_GetAngularVelocity(bodyId);
         if (MOSRotating* mosr = dynamic_cast<MOSRotating*>(mo)) {
-            mosr->SetAngularVel(-angVel);
+            mosr->SetAngularVel(angVel);
         }
     }
 }
