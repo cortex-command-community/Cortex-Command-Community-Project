@@ -411,6 +411,11 @@ void RTEError::AssertFunc(const std::string& description, const std::source_loca
 	bool storeAssertInfo = false;
 
 	if (!s_IgnoreAllAsserts) {
+#ifdef __EMSCRIPTEN__
+		// On Emscripten, skip the message box dialog (causes page crash).
+		// Just log and continue.
+		storeAssertInfo = true;
+#else
 		std::string assertMessage =
 		    "Assertion in file '" + fileName + "', line " + lineNum + ",\nin function '" + funcName + "'\nbecause:\n\n" + description + "\n\n" +
 		    "You may choose to ignore this and crash immediately\nor at some unexpected point later on.\n\nProceed at your own risk!";
@@ -420,6 +425,7 @@ void RTEError::AssertFunc(const std::string& description, const std::source_loca
 		} else {
 			storeAssertInfo = true;
 		}
+#endif
 	} else {
 		storeAssertInfo = true;
 	}
