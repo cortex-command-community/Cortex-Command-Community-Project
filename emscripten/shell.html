@@ -255,7 +255,29 @@
     console.warn = function() { orig.warn.apply(console, arguments); addLine('warn', arguments); };
     console.error = function() { orig.error.apply(console, arguments); addLine('error', arguments); };
     console.info = function() { orig.info.apply(console, arguments); addLine('info', arguments); };
-    window.addEventListener('error', function(e) { addLine('error', ['Uncaught: ' + e.message + ' at ' + e.filename + ':' + e.lineno]); });
+    window.addEventListener('error', function(e) {
+      var msg = 'Uncaught: ' + e.message;
+      if (e.filename) msg += ' at ' + e.filename + ':' + e.lineno;
+      // Check if this is a WASM integer exception (C++ throw)
+      if (typeof e.error === 'number') {
+        msg += ' [C++ exception ptr: 0x' + e.error.toString(16) + ']';
+        // Try to read exception message from WASM memory
+        try {
+          if (Module && Module.HEAPU8) {
+            var ptr = e.error;
+            // C++ exceptions often have a what() string nearby
+            var str = '';
+            for (var i = 0; i < 200; i++) {
+              var c = Module.HEAPU8[ptr + i];
+              if (c === 0) break;
+              if (c >= 32 && c < 127) str += String.fromCharCode(c);
+            }
+            if (str.length > 5) msg += ' msg="' + str + '"';
+          }
+        } catch(ex) {}
+      }
+      addLine('error', [msg]);
+    });
     window.addEventListener('unhandledrejection', function(e) { addLine('error', ['Unhandled rejection: ' + e.reason]); });
   })();
   </script>
