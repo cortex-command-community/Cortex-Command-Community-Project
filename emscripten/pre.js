@@ -73,8 +73,18 @@ window._ccFlipDebug = {
       window._ccFlipDebug.guiShaderFlip = 1 - window._ccFlipDebug.guiShaderFlip;
       console.log('[CC] GUI shader Y flip: ' + (window._ccFlipDebug.guiShaderFlip ? 'DISABLED' : 'normal'));
     }
+    // F9: toggle Box2D debug draw
+    if (e.key === 'F9') {
+      e.preventDefault();
+      if (window._ccBox2DDebug === undefined) window._ccBox2DDebug = 1;
+      window._ccBox2DDebug = window._ccBox2DDebug ? 0 : 1;
+      console.log('[CC] Box2D debug draw: ' + (window._ccBox2DDebug ? 'ON' : 'OFF'));
+    }
   });
 })();
+
+// Box2D debug draw starts ON
+window._ccBox2DDebug = 1;
 
 // ---------------------------------------------------------------------------
 // Audio context unlock — browsers require a user gesture before audio plays.

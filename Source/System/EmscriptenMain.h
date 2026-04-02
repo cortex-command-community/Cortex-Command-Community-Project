@@ -50,6 +50,7 @@
 #include "LoadingScreen.h"
 #include "GameActivity.h"
 #include "CameraMan.h"
+#include "Box2DManager.h"
 #include "Constants.h"
 
 namespace RTE {
@@ -327,6 +328,29 @@ inline void WebMainLoopIteration_Impl() {
 
         // Render frame
         g_FrameMan.Draw();
+
+        // Toggle Box2D debug draw with F9 key
+        {
+            static bool f9WasDown = false;
+            bool f9Down = EM_ASM_INT({ return window._ccBox2DDebug !== undefined ? window._ccBox2DDebug : 1; });
+            if (!f9Down && f9WasDown) {
+                // Key was released — toggle handled in JS
+            }
+            f9WasDown = f9Down;
+            g_Box2DMan.SetDebugDraw(f9Down);
+        }
+
+        // Box2D debug overlay — draws body outlines, terrain chain, joints
+        // into the BackBuffer FBO on top of the scene
+        if (g_Box2DMan.IsActive() && g_Box2DMan.IsDebugDrawEnabled()) {
+            g_FrameMan.GetBackBuffer()->Begin(false);
+            rlDisableDepthTest();
+            rlEnableColorBlend();
+            g_Box2DMan.DrawDebug();
+            rlDrawRenderBatchActive();
+            g_FrameMan.GetBackBuffer()->End();
+        }
+
         g_WindowMan.DrawPostProcessBuffer();
         g_WindowMan.UploadFrame();
         {

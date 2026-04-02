@@ -77,6 +77,14 @@ public:
     /// Rebuild terrain chains in dirty regions (after explosions/digging).
     void UpdateDirtyTerrainChains();
 
+    /// Draw debug visualization of Box2D bodies, joints, and terrain chains.
+    /// Call after the scene is rendered but before final framebuffer blit.
+    void DrawDebug();
+
+    /// Toggle debug drawing.
+    void SetDebugDraw(bool enable) { m_DebugDraw = enable; }
+    bool IsDebugDrawEnabled() const { return m_DebugDraw; }
+
     /// Get the world ID for direct Box2D API access.
     b2WorldId GetWorldId() const { return m_WorldId; }
 
@@ -94,6 +102,10 @@ private:
     b2BodyId m_TerrainBodyId;
     std::vector<b2ChainId> m_TerrainChains;
     bool m_TerrainBuilt = false;
+    bool m_DebugDraw = true; // Start with debug on
+
+    // Cache terrain surface points for debug drawing
+    std::vector<b2Vec2> m_TerrainDebugPoints;
 
     void Clear();
 

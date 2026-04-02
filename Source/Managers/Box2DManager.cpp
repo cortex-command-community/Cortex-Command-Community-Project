@@ -9,9 +9,11 @@
 #include "MovableObject.h"
 #include "MovableMan.h"
 #include "SceneMan.h"
+#include "CameraMan.h"
 #include "SLTerrain.h"
 #include "TimerMan.h"
 #include "TerrainChainBuilder.h"
+#include "raylib/raylib.h"
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -286,6 +288,7 @@ void Box2DManager::BuildTerrainChains() {
     m_TerrainChains.push_back(chainId);
 
     m_TerrainBuilt = true;
+    m_TerrainDebugPoints = simplified; // Cache for debug drawing
 
 #ifdef __EMSCRIPTEN__
     EM_ASM({ console.log('[Box2D] Terrain chain: ' + $0 + ' raw points → ' + $1 + ' simplified'); },
@@ -310,6 +313,98 @@ void Box2DManager::UpdateDirtyTerrainChains() {
     // Batch updates: only rebuild every 30 frames to avoid per-frame rebuilds
     if (dirtyFrameCount % 30 == 0) {
         BuildTerrainChains();
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Debug visualization
+// ---------------------------------------------------------------------------
+
+void Box2DManager::DrawDebug() {
+    if (!m_DebugDraw || !b2World_IsValid(m_WorldId)) return;
+
+    // Get camera offset to convert world coords to screen coords
+    Vector cameraOffset = g_CameraMan.GetOffset(0);
+
+    // Draw body outlines (circles) in green for dynamic, blue for static
+    for (auto& [uid, bodyId] : m_BodyMap) {
+        if (!b2Body_IsValid(bodyId)) continue;
+
+        b2Vec2 pos = b2Body_GetPosition(bodyId);
+        float screenX = MetersToPixels(pos.x) - cameraOffset.GetX();
+        float screenY = MetersToPixels(-pos.y) - cameraOffset.GetY(); // Negate Y back to CC
+
+        // Get the shape to find the radius
+        b2ShapeId shapes[1];
+        int shapeCount = b2Body_GetShapes(bodyId, shapes, 1);
+        float radius = 10.0f; // Default fallback
+        if (shapeCount > 0 && b2Shape_IsValid(shapes[0])) {
+            b2ShapeType type = b2Shape_GetType(shapes[0]);
+            if (type == b2_circleShape) {
+                b2Circle circle = b2Shape_GetCircle(shapes[0]);
+                radius = MetersToPixels(circle.radius);
+            }
+        }
+
+        // Draw circle outline using rlgl lines
+        int segments = 16;
+        for (int i = 0; i < segments; i++) {
+            float a1 = (float)i / segments * 2.0f * 3.14159f;
+            float a2 = (float)(i + 1) / segments * 2.0f * 3.14159f;
+            float x1 = screenX + cosf(a1) * radius;
+            float y1 = screenY + sinf(a1) * radius;
+            float x2 = screenX + cosf(a2) * radius;
+            float y2 = screenY + sinf(a2) * radius;
+
+            // Green circles for dynamic bodies
+            DrawLine((int)x1, (int)y1, (int)x2, (int)y2, {0, 255, 0, 180});
+        }
+
+        // Draw rotation indicator line
+        b2Rot rot = b2Body_GetRotation(bodyId);
+        float dirX = screenX + rot.c * radius;
+        float dirY = screenY - rot.s * radius; // Negate sine for CC Y convention
+        DrawLine((int)screenX, (int)screenY, (int)dirX, (int)dirY, {255, 255, 0, 200});
+    }
+
+    // Draw terrain chain in red
+    if (!m_TerrainDebugPoints.empty()) {
+        for (size_t i = 0; i + 1 < m_TerrainDebugPoints.size(); i++) {
+            float x1 = MetersToPixels(m_TerrainDebugPoints[i].x) - cameraOffset.GetX();
+            float y1 = MetersToPixels(-m_TerrainDebugPoints[i].y) - cameraOffset.GetY();
+            float x2 = MetersToPixels(m_TerrainDebugPoints[i + 1].x) - cameraOffset.GetX();
+            float y2 = MetersToPixels(-m_TerrainDebugPoints[i + 1].y) - cameraOffset.GetY();
+
+            DrawLine((int)x1, (int)y1, (int)x2, (int)y2, {255, 50, 50, 200});
+        }
+    }
+
+    // Draw joints in cyan
+    for (auto& [uid, bodyId] : m_BodyMap) {
+        if (!b2Body_IsValid(bodyId)) continue;
+
+        // Check for joints on this body
+        b2JointId joints[8];
+        int jointCount = b2Body_GetJoints(bodyId, joints, 8);
+        for (int j = 0; j < jointCount; j++) {
+            if (!b2Joint_IsValid(joints[j])) continue;
+            b2Vec2 anchorA = b2Joint_GetLocalAnchorA(joints[j]);
+            b2Vec2 anchorB = b2Joint_GetLocalAnchorB(joints[j]);
+
+            b2BodyId bodyA = b2Joint_GetBodyA(joints[j]);
+            b2BodyId bodyB = b2Joint_GetBodyB(joints[j]);
+            if (!b2Body_IsValid(bodyA) || !b2Body_IsValid(bodyB)) continue;
+
+            b2Vec2 posA = b2Body_GetPosition(bodyA);
+            b2Vec2 posB = b2Body_GetPosition(bodyB);
+
+            float ax = MetersToPixels(posA.x) - cameraOffset.GetX();
+            float ay = MetersToPixels(-posA.y) - cameraOffset.GetY();
+            float bx = MetersToPixels(posB.x) - cameraOffset.GetX();
+            float by = MetersToPixels(-posB.y) - cameraOffset.GetY();
+
+            DrawLine((int)ax, (int)ay, (int)bx, (int)by, {0, 255, 255, 150});
+        }
     }
 }
 
