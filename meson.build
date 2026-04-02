@@ -336,6 +336,11 @@ if host_machine.system() == 'emscripten'
   minizip_dep  = dependency('minizip')
   deps += [minizip_dep]
 
+  # Box2D v3 physics engine (hybrid: object-to-object collision + joints)
+  box2d_proj = subproject('box2d-3.1.0')
+  box2d_dep  = dependency('box2d')
+  deps += [box2d_dep]
+
   # Allegro compat shim — included as source files (not a subproject dep)
   allegro_compat_inc = include_directories(
     'Source/System/allegro_web_compat'   # provides allegro.h redirect
