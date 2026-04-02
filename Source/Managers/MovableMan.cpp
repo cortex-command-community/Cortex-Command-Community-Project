@@ -1713,7 +1713,14 @@ void MovableMan::Travel() {
 		}
 		for (MovableObject* item : m_Items) {
 			MOSRotating* mosr = dynamic_cast<MOSRotating*>(item);
-			if (mosr && !g_Box2DMan.HasBody(mosr)) {
+			if (mosr && mosr->GetAtomGroup() && !g_Box2DMan.HasBody(mosr)) {
+				g_Box2DMan.CreateBody(mosr);
+			}
+		}
+		// Also register particles that are MOSRotating (rockets, etc.)
+		for (MovableObject* par : m_Particles) {
+			MOSRotating* mosr = dynamic_cast<MOSRotating*>(par);
+			if (mosr && mosr->GetAtomGroup() && mosr->GetsHitByMOs() && !g_Box2DMan.HasBody(mosr)) {
 				g_Box2DMan.CreateBody(mosr);
 			}
 		}

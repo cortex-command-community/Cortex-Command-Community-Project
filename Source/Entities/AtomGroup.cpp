@@ -1,4 +1,5 @@
 #include "AtomGroup.h"
+#include "Box2DManager.h"
 
 #include "Actor.h"
 #include "SLTerrain.h"
@@ -343,7 +344,7 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 	const float segRotLimit = c_PI / 6.0F;
 
 	// Skip MO-to-MO collision if this object has a Box2D body — Box2D handles it
-	bool hitsMOs = m_OwnerMOSR->m_HitsMOs && !b2Body_IsValid(m_OwnerMOSR->m_Box2DBodyId);
+	bool hitsMOs = m_OwnerMOSR->m_HitsMOs && !g_Box2DMan.HasBody(m_OwnerMOSR);
 	bool hitStep = false;
 	bool halted = false;
 
