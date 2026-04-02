@@ -179,34 +179,12 @@ inline void WebMainLoopIteration_Impl() {
 
     // -----------------------------------------------------------------------
     case WebLoopState::Game: {
-        {
-            static int loopCallCount = 0;
-            ++loopCallCount;
-            if (loopCallCount <= 5 || loopCallCount % 120 == 0) {
-                EM_ASM({ console.log('[CC] Game loop call #' + $0); }, loopCallCount);
-            }
-        }
         PollSDLEvents();
         if (System::IsSetToQuit()) break;
 
         g_WindowMan.Update();
         g_WindowMan.ClearBackbuffer();
         g_TimerMan.Update();
-
-        // Debug: log timer state after Update
-        {
-            static int timerDbg = 0;
-            if (++timerDbg <= 10 || timerDbg % 300 == 0) {
-                EM_ASM({ console.log('[CC] Timer: accum=' + $0 +
-                         ' delta=' + $1 + ' paused=' + $2 +
-                         ' realTicks=' + $3 + ' timeScale=' + $4); },
-                       (double)g_TimerMan.GetSimAccumulator(),
-                       (double)g_TimerMan.GetDeltaTimeTicks(),
-                       (int)g_TimerMan.IsSimPaused(),
-                       (double)g_TimerMan.GetRealTimeTicks(),
-                       (double)g_TimerMan.GetTimeScale());
-            }
-        }
 
         // Handle pending activity restart (e.g. from autostart or scene change).
         // This must happen before the sim loop since TimeForSimUpdate() may be
@@ -227,24 +205,6 @@ inline void WebMainLoopIteration_Impl() {
             break;  // yield to browser, render next frame
         }
 
-        // Debug: log game loop state periodically
-        {
-            static int gameFrameCount = 0;
-            if (++gameFrameCount % 120 == 1) {
-                bool simPaused = !g_TimerMan.TimeForSimUpdate(); // approximate check
-                bool inActivity = g_ActivityMan.IsInActivity();
-                bool activityRunning = g_ActivityMan.ActivityRunning();
-                bool timeForSim = g_TimerMan.TimeForSimUpdate();
-                bool restartSet = g_ActivityMan.ActivitySetToRestart();
-                EM_ASM({ console.log('[CC] Game frame=' + $0 +
-                         ' simPaused=' + $1 + ' inActivity=' + $2 +
-                         ' running=' + $3 + ' timeForSim=' + $4 +
-                         ' restart=' + $5); },
-                       gameFrameCount, (int)simPaused, (int)inActivity,
-                       (int)activityRunning, (int)timeForSim, (int)restartSet);
-            }
-        }
-
         // Fixed-timestep simulation (all ticks that fit in one render frame).
         // Limit to a few ticks per frame to prevent the browser from stalling
         // when the accumulator is large (e.g. after a long loading screen).
@@ -252,7 +212,6 @@ inline void WebMainLoopIteration_Impl() {
         const int maxSimTicksPerFrame = 4;
         while (g_TimerMan.TimeForSimUpdate() && simTicksThisFrame < maxSimTicksPerFrame) {
             ++simTicksThisFrame;
-            EM_ASM({ console.log('[CC] Sim tick #' + $0 + ' starting...'); }, simTicksThisFrame);
 
             g_PerformanceMan.NewPerformanceSample();
             g_PerformanceMan.UpdateMSPSU();
@@ -260,37 +219,25 @@ inline void WebMainLoopIteration_Impl() {
 
             g_PerformanceMan.StartPerformanceMeasurement(PerformanceMan::SimTotal);
 
-            EM_ASM({ console.log('[CC] Sim: LuaMan.Update...'); });
             g_LuaMan.Update();
-            EM_ASM({ console.log('[CC] Sim: UInputMan.Update...'); });
             g_UInputMan.Update();
-            EM_ASM({ console.log('[CC] Sim: FrameMan.Update...'); });
             g_FrameMan.Update();
-            EM_ASM({ console.log('[CC] Sim: MovableMan.CompleteQueuedMOIDDrawings...'); });
             g_MovableMan.CompleteQueuedMOIDDrawings();
-            EM_ASM({ console.log('[CC] Sim: ConsoleMan.Update...'); });
             g_ConsoleMan.Update();
-            EM_ASM({ console.log('[CC] Sim: ActivityMan.Update...'); });
             g_ActivityMan.Update();
 
-            EM_ASM({ console.log('[CC] Sim: Scene.Update...'); });
             if (g_SceneMan.GetScene()) g_SceneMan.GetScene()->Update();
 
-            EM_ASM({ console.log('[CC] Sim: MovableMan.Update...'); });
             g_LuaMan.ClearScriptTimings();
             g_MovableMan.Update();
             g_PerformanceMan.UpdateSortedScriptTimings(g_LuaMan.GetScriptTimings());
-            EM_ASM({ console.log('[CC] Sim: AudioMan.Update...'); });
             g_AudioMan.Update();
-            EM_ASM({ console.log('[CC] Sim: MusicMan.Update...'); });
             g_MusicMan.Update();
             g_ActivityMan.LateUpdateGlobalScripts();
-            EM_ASM({ console.log('[CC] Sim: ClearReloadEntity...'); });
             g_PresetMan.ClearReloadEntityPresetCalledThisUpdate();
 
             g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::SimTotal);
             g_UInputMan.EndFrame();
-            EM_ASM({ console.log('[CC] Sim tick #' + $0 + ' complete'); }, simTicksThisFrame);
 
             // Transition back to menu if the activity ended
             if (!g_ActivityMan.IsInActivity()) {
@@ -318,14 +265,6 @@ inline void WebMainLoopIteration_Impl() {
         }
 
         // Log sim tick count
-        {
-            static int renderFrameCount = 0;
-            if (++renderFrameCount % 120 == 1) {
-                EM_ASM({ console.log('[CC] Render: simTicks=' + $0 + ' inActivity=' + $1); },
-                       simTicksThisFrame, (int)g_ActivityMan.IsInActivity());
-            }
-        }
-
         // Render frame
         g_FrameMan.Draw();
 
@@ -347,13 +286,6 @@ inline void WebMainLoopIteration_Impl() {
 
         g_WindowMan.DrawPostProcessBuffer();
         g_WindowMan.UploadFrame();
-        {
-            static int frameCompleteCount = 0;
-            ++frameCompleteCount;
-            if (frameCompleteCount <= 5 || frameCompleteCount % 120 == 0) {
-                EM_ASM({ console.log('[CC] Game frame complete #' + $0); }, frameCompleteCount);
-            }
-        }
         break;
     }
 

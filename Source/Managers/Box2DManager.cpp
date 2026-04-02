@@ -93,20 +93,96 @@ b2BodyId Box2DManager::CreateBody(MOSRotating* owner) {
 
     // Try to create a convex hull from AtomGroup atom positions
     AtomGroup* ag = owner->GetAtomGroup();
+#ifdef __EMSCRIPTEN__
+    {
+        static int hullDbg = 0;
+        if (++hullDbg <= 10) {
+            int atomCount = ag ? (int)ag->GetAtomList().size() : -1;
+            EM_ASM({ console.log('[Box2D] CreateBody: atoms=' + $0 + ' radius=' + $1.toFixed(1)); },
+                   atomCount, owner->GetIndividualRadius());
+        }
+    }
+#endif
     if (ag) {
         const std::vector<Atom*>& atoms = ag->GetAtomList();
         if (atoms.size() >= 3) {
-            // Collect atom offsets as Box2D points
+            // Collect atom offsets as Box2D points.
+            // Subsample if too many (b2ComputeHull works best with <=32 points).
+            // Also remove near-duplicate points to avoid degenerate hulls.
             std::vector<b2Vec2> points;
-            points.reserve(atoms.size());
-            for (const Atom* atom : atoms) {
-                Vector offset = atom->GetOffset();
-                points.push_back({PixelsToMeters(offset.GetX()),
-                                  PixelsToMeters(-offset.GetY())}); // Negate Y
+            int step = std::max(1, (int)atoms.size() / 24);
+            for (size_t i = 0; i < atoms.size(); i += step) {
+                Vector offset = atoms[i]->GetOffset();
+                b2Vec2 pt = {PixelsToMeters(offset.GetX()),
+                             PixelsToMeters(-offset.GetY())};
+                // Skip near-duplicates
+                bool duplicate = false;
+                for (const auto& existing : points) {
+                    float dx = pt.x - existing.x;
+                    float dy = pt.y - existing.y;
+                    if (dx * dx + dy * dy < 0.001f) { duplicate = true; break; }
+                }
+                if (!duplicate) points.push_back(pt);
             }
 
-            // Box2D v3 computes a convex hull (max 8 vertices)
-            b2Hull hull = b2ComputeHull(points.data(), (int)std::min(points.size(), (size_t)B2_MAX_POLYGON_VERTICES * 4));
+            // Need at least 3 unique non-collinear points for a hull.
+            // If hull fails (thin objects like rockets), use a bounding box instead.
+            b2Hull hull = {0};
+            if (points.size() >= 3) {
+                hull = b2ComputeHull(points.data(), (int)points.size());
+            }
+
+            // Fallback: if hull failed, create a bounding box from min/max extents
+            if (hull.count < 3 && points.size() >= 2) {
+                float minX = points[0].x, maxX = points[0].x;
+                float minY = points[0].y, maxY = points[0].y;
+                for (const auto& p : points) {
+                    if (p.x < minX) minX = p.x;
+                    if (p.x > maxX) maxX = p.x;
+                    if (p.y < minY) minY = p.y;
+                    if (p.y > maxY) maxY = p.y;
+                }
+                // Ensure minimum thickness
+                float w = maxX - minX;
+                float h = maxY - minY;
+                if (w < 0.05f) { minX -= 0.025f; maxX += 0.025f; w = 0.05f; }
+                if (h < 0.05f) { minY -= 0.025f; maxY += 0.025f; h = 0.05f; }
+                float cx = (minX + maxX) * 0.5f;
+                float cy = (minY + maxY) * 0.5f;
+                b2Polygon box = b2MakeOffsetBox(w * 0.5f, h * 0.5f, (b2Vec2){cx, cy}, b2MakeRot(0));
+                shapeDef.density = owner->GetMass() / (w * h);
+                b2CreatePolygonShape(bodyId, &shapeDef, &box);
+                shapeCreated = true;
+#ifdef __EMSCRIPTEN__
+                {
+                    static int boxDbg = 0;
+                    if (++boxDbg <= 10) {
+                        EM_ASM({ console.log('[Box2D] BBox fallback: ' + $0.toFixed(2) + 'x' + $1.toFixed(2) + 'm'); },
+                               (double)w, (double)h);
+                    }
+                }
+#endif
+            }
+#ifdef __EMSCRIPTEN__
+            {
+                static int hullDbg2 = 0;
+                if (++hullDbg2 <= 10) {
+                    bool valid = hull.count >= 3 && b2ValidateHull(&hull);
+                    // Log first few points for debugging
+                    if (!valid && points.size() >= 2) {
+                        EM_ASM({ console.log('[Box2D] Hull FAILED: pts=' + $0 + ' hullCount=' + $1 +
+                                 ' p0=(' + $2.toFixed(3) + ',' + $3.toFixed(3) + ')' +
+                                 ' p1=(' + $4.toFixed(3) + ',' + $5.toFixed(3) + ')'); },
+                               (int)points.size(), hull.count,
+                               (double)points[0].x, (double)points[0].y,
+                               (double)points[1].x, (double)points[1].y);
+                    } else {
+                        EM_ASM({ console.log('[Box2D] Hull OK: pts=' + $0 + ' hullVerts=' + $1); },
+                               (int)points.size(), hull.count);
+                    }
+                }
+            }
+#endif
             if (hull.count >= 3 && b2ValidateHull(&hull)) {
                 b2Polygon poly = b2MakePolygon(&hull, 0.0f);
                 // Calculate density from mass and approximate area
