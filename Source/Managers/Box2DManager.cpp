@@ -7,6 +7,7 @@
 #include "Box2DManager.h"
 #include "MOSRotating.h"
 #include "MovableObject.h"
+#include "MovableMan.h"
 #include "SceneMan.h"
 #include "TimerMan.h"
 
@@ -76,9 +77,9 @@ b2BodyId Box2DManager::CreateBody(MOSRotating* owner) {
 
     b2BodyId bodyId = b2CreateBody(m_WorldId, &bodyDef);
 
-    // Create a circle shape approximating the object's collision radius
-    float radius = PixelsToMeters(owner->GetIndividualRadius());
-    if (radius < 0.1f) radius = 0.1f; // Minimum size
+    // Create a circle shape — use half the sprite radius for tighter fit
+    float radius = PixelsToMeters(owner->GetIndividualRadius() * 0.5f);
+    if (radius < 0.05f) radius = 0.05f; // Minimum size
 
     b2Circle circle = {{0.0f, 0.0f}, radius};
     b2ShapeDef shapeDef = b2DefaultShapeDef();
@@ -113,12 +114,44 @@ bool Box2DManager::HasBody(const MOSRotating* owner) const {
 
 void Box2DManager::PreStep() {
     if (!b2World_IsValid(m_WorldId)) return;
+
+    // Clean up bodies whose owners have been removed from the game
+    std::vector<long> toRemove;
+    for (auto& [uid, bodyId] : m_BodyMap) {
+        if (!b2Body_IsValid(bodyId)) {
+            toRemove.push_back(uid);
+            continue;
+        }
+        MovableObject* mo = static_cast<MovableObject*>(b2Body_GetUserData(bodyId));
+        if (!mo || !g_MovableMan.ValidMO(mo)) {
+            b2DestroyBody(bodyId);
+            toRemove.push_back(uid);
+        }
+    }
+    for (long uid : toRemove) {
+        m_BodyMap.erase(uid);
+    }
+
     SyncToBox2D();
 }
 
 void Box2DManager::Step(float deltaTime) {
     if (!b2World_IsValid(m_WorldId)) return;
     if (deltaTime <= 0.0f) return;
+
+    // Cap body count to prevent overload crashes
+    b2Counters counters = b2World_GetCounters(m_WorldId);
+    if (counters.bodyCount > 200) {
+        // Too many bodies — skip step to prevent crash
+#ifdef __EMSCRIPTEN__
+        static bool warned = false;
+        if (!warned) {
+            EM_ASM({ console.warn('[Box2D] Too many bodies (' + $0 + '), skipping step'); }, counters.bodyCount);
+            warned = true;
+        }
+#endif
+        return;
+    }
 
     // 4 sub-steps for accuracy (Box2D v3 recommendation)
     b2World_Step(m_WorldId, deltaTime, 4);
