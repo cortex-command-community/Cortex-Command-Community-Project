@@ -7,6 +7,8 @@
 #include "Box2DManager.h"
 #include "MOSRotating.h"
 #include "MovableObject.h"
+#include "AtomGroup.h"
+#include "Atom.h"
 #include "MovableMan.h"
 #include "SceneMan.h"
 #include "CameraMan.h"
@@ -84,16 +86,54 @@ b2BodyId Box2DManager::CreateBody(MOSRotating* owner) {
 
     b2BodyId bodyId = b2CreateBody(m_WorldId, &bodyDef);
 
-    // Create a circle shape — use half the sprite radius for tighter fit
-    float radius = PixelsToMeters(owner->GetIndividualRadius() * 0.5f);
-    if (radius < 0.05f) radius = 0.05f; // Minimum size
-
-    b2Circle circle = {{0.0f, 0.0f}, radius};
     b2ShapeDef shapeDef = b2DefaultShapeDef();
-    shapeDef.density = owner->GetMass() / (3.14159f * radius * radius);
+    shapeDef.density = 1.0f;
     shapeDef.enableContactEvents = true;
+    bool shapeCreated = false;
 
-    b2CreateCircleShape(bodyId, &shapeDef, &circle);
+    // Try to create a convex hull from AtomGroup atom positions
+    AtomGroup* ag = owner->GetAtomGroup();
+    if (ag) {
+        const std::vector<Atom*>& atoms = ag->GetAtomList();
+        if (atoms.size() >= 3) {
+            // Collect atom offsets as Box2D points
+            std::vector<b2Vec2> points;
+            points.reserve(atoms.size());
+            for (const Atom* atom : atoms) {
+                Vector offset = atom->GetOffset();
+                points.push_back({PixelsToMeters(offset.GetX()),
+                                  PixelsToMeters(-offset.GetY())}); // Negate Y
+            }
+
+            // Box2D v3 computes a convex hull (max 8 vertices)
+            b2Hull hull = b2ComputeHull(points.data(), (int)std::min(points.size(), (size_t)B2_MAX_POLYGON_VERTICES * 4));
+            if (hull.count >= 3 && b2ValidateHull(&hull)) {
+                b2Polygon poly = b2MakePolygon(&hull, 0.0f);
+                // Calculate density from mass and approximate area
+                float area = 0.0f;
+                for (int i = 0; i < poly.count; i++) {
+                    int j = (i + 1) % poly.count;
+                    area += poly.vertices[i].x * poly.vertices[j].y;
+                    area -= poly.vertices[j].x * poly.vertices[i].y;
+                }
+                area = fabsf(area) * 0.5f;
+                if (area > 0.001f) {
+                    shapeDef.density = owner->GetMass() / area;
+                }
+                b2CreatePolygonShape(bodyId, &shapeDef, &poly);
+                shapeCreated = true;
+            }
+        }
+    }
+
+    // Fallback: circle shape if hull failed
+    if (!shapeCreated) {
+        float radius = PixelsToMeters(owner->GetIndividualRadius() * 0.5f);
+        if (radius < 0.05f) radius = 0.05f;
+        b2Circle circle = {{0.0f, 0.0f}, radius};
+        shapeDef.density = owner->GetMass() / (3.14159f * radius * radius);
+        b2CreateCircleShape(bodyId, &shapeDef, &circle);
+    }
 
     m_BodyMap[owner->GetUniqueID()] = bodyId;
     return bodyId;
@@ -150,15 +190,11 @@ bool Box2DManager::HasBody(const MOSRotating* owner) const {
 void Box2DManager::PreStep() {
     if (!b2World_IsValid(m_WorldId)) return;
 
-    // Build terrain chains on first frame of a new scene
-    if (!m_TerrainBuilt && g_SceneMan.GetScene() && g_SceneMan.GetTerrain()) {
-        BuildTerrainChains();
-    }
-
-    // Update terrain chains if terrain was modified (explosions, digging)
-    if (m_TerrainBuilt) {
-        UpdateDirtyTerrainChains();
-    }
+    // NOTE: Terrain chain shapes disabled — the Atom system handles pixel-perfect
+    // terrain collision far more accurately than a simplified chain surface.
+    // The chain was only the topmost solid pixel per column (missed caves,
+    // overhangs, interior terrain). Keeping BuildTerrainChains() for future
+    // use but not calling it in the active loop.
 
     // Clean up bodies whose owners have been removed from the game
     std::vector<long> toRemove;
@@ -362,37 +398,46 @@ void Box2DManager::DrawDebug() {
         float sx = MetersToPixels(pos.x) - cameraOffset.GetX();
         float sy = MetersToPixels(-pos.y) - cameraOffset.GetY();
 
-        b2ShapeId shapes[1];
-        int shapeCount = b2Body_GetShapes(bodyId, shapes, 1);
-        float radius = 10.0f;
-        if (shapeCount > 0 && b2Shape_IsValid(shapes[0])) {
-            if (b2Shape_GetType(shapes[0]) == b2_circleShape) {
-                b2Circle circle = b2Shape_GetCircle(shapes[0]);
-                radius = MetersToPixels(circle.radius);
+        b2ShapeId shapes[4];
+        int shapeCount = b2Body_GetShapes(bodyId, shapes, 4);
+        b2Rot rot = b2Body_GetRotation(bodyId);
+
+        for (int s = 0; s < shapeCount; s++) {
+            if (!b2Shape_IsValid(shapes[s])) continue;
+            b2ShapeType type = b2Shape_GetType(shapes[s]);
+
+            if (type == b2_circleShape) {
+                b2Circle circle = b2Shape_GetCircle(shapes[s]);
+                float radius = MetersToPixels(circle.radius);
+                int segments = 16;
+                for (int i = 0; i < segments; i++) {
+                    float a1 = (float)i / segments * 6.2832f;
+                    float a2 = (float)(i + 1) / segments * 6.2832f;
+                    drawLine32((int)(sx + cosf(a1) * radius), (int)(sy + sinf(a1) * radius),
+                               (int)(sx + cosf(a2) * radius), (int)(sy + sinf(a2) * radius), green);
+                }
+                drawLine32((int)sx, (int)sy, (int)(sx + rot.c * radius), (int)(sy - rot.s * radius), yellow);
+            } else if (type == b2_polygonShape) {
+                b2Polygon poly = b2Shape_GetPolygon(shapes[s]);
+                for (int i = 0; i < poly.count; i++) {
+                    int j = (i + 1) % poly.count;
+                    // Rotate vertices by body rotation and convert to screen
+                    float vx1 = poly.vertices[i].x * rot.c - poly.vertices[i].y * rot.s;
+                    float vy1 = poly.vertices[i].x * rot.s + poly.vertices[i].y * rot.c;
+                    float vx2 = poly.vertices[j].x * rot.c - poly.vertices[j].y * rot.s;
+                    float vy2 = poly.vertices[j].x * rot.s + poly.vertices[j].y * rot.c;
+                    drawLine32((int)(sx + MetersToPixels(vx1)), (int)(sy - MetersToPixels(vy1)),
+                               (int)(sx + MetersToPixels(vx2)), (int)(sy - MetersToPixels(vy2)), green);
+                }
+                // Rotation indicator from center
+                drawLine32((int)sx, (int)sy,
+                           (int)(sx + rot.c * 8.0f), (int)(sy - rot.s * 8.0f), yellow);
             }
         }
-
-        int segments = 16;
-        for (int i = 0; i < segments; i++) {
-            float a1 = (float)i / segments * 6.2832f;
-            float a2 = (float)(i + 1) / segments * 6.2832f;
-            drawLine32((int)(sx + cosf(a1) * radius), (int)(sy + sinf(a1) * radius),
-                       (int)(sx + cosf(a2) * radius), (int)(sy + sinf(a2) * radius), green);
-        }
-
-        // Rotation indicator
-        b2Rot rot = b2Body_GetRotation(bodyId);
-        drawLine32((int)sx, (int)sy, (int)(sx + rot.c * radius), (int)(sy - rot.s * radius), yellow);
     }
 
-    // Draw terrain chain in red
-    for (size_t i = 0; i + 1 < m_TerrainDebugPoints.size(); i++) {
-        float x1 = MetersToPixels(m_TerrainDebugPoints[i].x) - cameraOffset.GetX();
-        float y1 = MetersToPixels(-m_TerrainDebugPoints[i].y) - cameraOffset.GetY();
-        float x2 = MetersToPixels(m_TerrainDebugPoints[i + 1].x) - cameraOffset.GetX();
-        float y2 = MetersToPixels(-m_TerrainDebugPoints[i + 1].y) - cameraOffset.GetY();
-        drawLine32((int)x1, (int)y1, (int)x2, (int)y2, red);
-    }
+    // Terrain chain debug drawing disabled — chain shapes not in use
+    // (Atom system handles terrain collision pixel-perfectly)
 
     // Draw joints in cyan
     for (auto& [uid, bodyId] : m_BodyMap) {
