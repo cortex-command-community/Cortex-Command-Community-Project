@@ -342,7 +342,8 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 	// TODO: Make this dependent on AtomGroup radius!, not hardcoded
 	const float segRotLimit = c_PI / 6.0F;
 
-	bool hitsMOs = m_OwnerMOSR->m_HitsMOs;
+	// Skip MO-to-MO collision if this object has a Box2D body — Box2D handles it
+	bool hitsMOs = m_OwnerMOSR->m_HitsMOs && !b2Body_IsValid(m_OwnerMOSR->m_Box2DBodyId);
 	bool hitStep = false;
 	bool halted = false;
 

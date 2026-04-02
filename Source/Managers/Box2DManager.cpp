@@ -477,10 +477,12 @@ void Box2DManager::DrawDebug() {
         b2ShapeId shapes[4];
         int shapeCount = b2Body_GetShapes(bodyId, shapes, 4);
 
-        // Use the CC object's rotation (not Box2D's) so debug shapes match sprites
+        // Use the CC object's rotation for debug draw.
+        // Negate because atom offsets were Y-negated when building the hull,
+        // which effectively mirrors the shape. Negating the rotation compensates.
         MovableObject* mo = static_cast<MovableObject*>(b2Body_GetUserData(bodyId));
-        float ccAngle = mo ? mo->GetRotAngle() : 0.0f;
-        b2Rot rot = b2MakeRot(ccAngle); // CC rotation in screen coordinates
+        float ccAngle = mo ? -mo->GetRotAngle() : 0.0f;
+        b2Rot rot = b2MakeRot(ccAngle);
 
         for (int s = 0; s < shapeCount; s++) {
             if (!b2Shape_IsValid(shapes[s])) continue;
