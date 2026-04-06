@@ -24,3 +24,12 @@ index 3e87735..5c48e4e 100755
      "$CACHE/$file.rmd160" "$CACHE/$file" 1>/dev/null
  
    if [ $? -ne 0 ]; then
+@@ -360,7 +362,7 @@ getPkgUrl()
+                grep -o -E '"version":"[^"]+"' | \
+                cut -d'"' -f4)
+ 
+-  pkgs=$(getFileStdout "$MIRROR/$pkgname/?C=M;O=A" | \
++  pkgs=$(getFileStdout "$MIRROR/$pkgname/?C=M;O=D" | \
+          grep -o -E 'href="([^"#]+)"' | \
+          cut -d'"' -f2 | grep '.tbz2$' | uniq)
+ 

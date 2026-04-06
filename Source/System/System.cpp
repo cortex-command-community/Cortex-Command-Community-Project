@@ -1,7 +1,11 @@
 #include "System.h"
 
 #include "RTETools.h"
-#include "minizip/unzip.h"
+#ifdef SYSTEM_MINIZIP
+#include <minizip/unzip.h>
+#else
+#include "unzip.h"
+#endif
 
 #include "RTEError.h"
 

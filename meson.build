@@ -185,6 +185,7 @@ if host_machine.system() in ['linux','darwin']
     dependency('tbb'),
     dependency('gl')
   ]
+  preprocessor_flags+=['-DSYSTEM_MINIZIP']
   if host_machine.system()=='darwin'
     deps += dependency('appleframeworks', modules: ['Foundation'])  
   endif
