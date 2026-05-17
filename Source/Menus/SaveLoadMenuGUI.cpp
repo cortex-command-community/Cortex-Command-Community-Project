@@ -21,8 +21,13 @@
 
 #include <execution>
 
+#ifdef SYSTEM_MINIZIP
+#include <minizip/zip.h>
+#include <minizip/unzip.h>
+#else
 #include "zip.h"
 #include "unzip.h"
+#endif
 
 using namespace RTE;
 
