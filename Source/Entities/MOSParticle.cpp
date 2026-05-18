@@ -159,7 +159,8 @@ void MOSParticle::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode m
 		return;
 	}
 
-	Vector spritePos(Lerp(m_PrevPos, m_Pos, g_TimerMan.GetSimUpdateProportion()) + m_SpriteOffset - targetPos);
+	const float fLerp = mode == g_DrawMOID ? 1.0f : g_TimerMan.GetSimUpdateProportion();
+	Vector spritePos(Lerp(m_PrevPos, m_Pos, fLerp) + m_SpriteOffset - targetPos);
 
 	// TODO I think this is an array with 4 elements to account for Y wrapping. Y wrapping is not really handled in this game, so this can probably be knocked down to 2 elements. Also, I'm sure this code can be simplified.
 	std::array<Vector, 4> drawPositions = {spritePos};

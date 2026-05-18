@@ -1607,7 +1607,8 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 	RTEAssert(!m_aSprite.empty(), "No sprite bitmaps loaded to draw!");
 	RTEAssert(m_Frame >= 0 && m_Frame < m_FrameCount, "Frame is out of bounds!");
 
-	Vector spritePos(Lerp(m_PrevPos, m_Pos, g_TimerMan.GetSimUpdateProportion()) - targetPos);
+	const float fLerp = mode == g_DrawMOID ? 1.0f : g_TimerMan.GetSimUpdateProportion();
+	Vector spritePos(Lerp(m_PrevPos, m_Pos, fLerp) - targetPos);
 
 	if (pTargetBitmap) {
 		// Don't bother drawing at all if this is out of bounds
