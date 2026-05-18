@@ -233,6 +233,7 @@ namespace RTE {
 		Vector m_HandIdleOffset; //!< The default offset that this Arm's hand should move to when not moving towards anything else, relative to its joint position. Other offsets are used under certain circumstances.
 		float m_HandIdleRotation; //!< The rotation to be applied to the idle offset, when it's being used. Resets every update to avoid locking it.
 
+		Vector m_HandPreviousOffset; //!< The previous offset of this Arm's hand, relative to its joint position.
 		Vector m_HandCurrentOffset; //!< The current offset of this Arm's hand, relative to its joint position.
 
 		std::queue<HandTarget> m_HandTargets; // A queue of target positions this Arm's hand is reaching towards. If it's empty, the Arm isn't reaching towards anything.

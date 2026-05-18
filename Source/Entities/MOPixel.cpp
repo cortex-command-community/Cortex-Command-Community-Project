@@ -236,12 +236,13 @@ void MOPixel::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode,
 			break;
 	}
 
-	Vector pixelPos = m_Pos - targetPos;
+	const float fLerp = mode == g_DrawMOID ? 1.0f : g_TimerMan.GetSimUpdateProportion();
+	Vector spritePos(Lerp(m_PrevPos, m_Pos, fLerp) - targetPos);
 	if (mode != DrawMode::g_DrawMOID) {
-		putpixel(targetBitmap, pixelPos.GetFloorIntX(), pixelPos.GetFloorIntY(), drawColor);
+		putpixel(targetBitmap, spritePos.GetFloorIntX(), spritePos.GetFloorIntY(), drawColor);
 	}
 
-	g_SceneMan.RegisterDrawing(targetBitmap, m_MOID, pixelPos, 1.0F);
+	g_SceneMan.RegisterDrawing(targetBitmap, m_MOID, spritePos, 1.0F);
 
 	if (m_Atom && mode != g_DrawMOID) {
 		m_Atom->DrawTrail(targetBitmap, targetPos);

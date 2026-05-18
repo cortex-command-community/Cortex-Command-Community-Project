@@ -24,6 +24,7 @@ void Arm::Clear() {
 	m_HandIdleOffset.Reset();
 	m_HandIdleRotation = 0;
 
+	m_HandPreviousOffset.Reset();
 	m_HandCurrentOffset.Reset();
 
 	m_HandTargets = {};
@@ -68,6 +69,7 @@ int Arm::Create(const Arm& reference) {
 	m_HandIdleOffset = reference.m_HandIdleOffset;
 	m_HandIdleRotation = reference.m_HandIdleRotation;
 
+	m_HandPreviousOffset = reference.m_HandPreviousOffset;
 	m_HandCurrentOffset = reference.m_HandCurrentOffset;
 
 	m_HandTargets = reference.m_HandTargets;
@@ -219,6 +221,8 @@ void Arm::Update() {
 }
 
 void Arm::UpdateHandCurrentOffset(bool armHasParent, bool heldDeviceIsAThrownDevice) {
+	m_HandPreviousOffset = m_HandCurrentOffset;
+	
 	if (armHasParent) {
 		Vector targetOffset;
 		if (m_HandTargets.empty()) {
@@ -356,7 +360,12 @@ void Arm::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode, boo
 }
 
 void Arm::DrawHand(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode) const {
-	Vector handPos(m_JointPos + m_HandCurrentOffset + (m_Recoiled ? m_RecoilOffset : Vector()) - targetPos);
+	// Ugly, and bad... we should be saving the pos somewhere in the Arm after it's calculated in Update
+	const float fLerp = mode == g_DrawMOID ? 1.0f : g_TimerMan.GetSimUpdateProportion();
+	const Vector jointPos = Lerp(m_PrevJointPos, m_JointPos, fLerp);
+	const Vector handOffset = Lerp(m_HandPreviousOffset, m_HandCurrentOffset, fLerp);
+
+	Vector handPos(jointPos + handOffset + (m_Recoiled ? m_RecoilOffset : Vector()) - targetPos);
 	handPos -= Vector(static_cast<float>(m_HandSpriteBitmap->w / 2), static_cast<float>(m_HandSpriteBitmap->h / 2));
 
 	if (!m_HFlipped) {
