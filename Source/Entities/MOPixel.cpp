@@ -242,4 +242,8 @@ void MOPixel::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode mode,
 	}
 
 	g_SceneMan.RegisterDrawing(targetBitmap, m_MOID, pixelPos, 1.0F);
+
+	if (m_Atom && mode != g_DrawMOID) {
+		m_Atom->DrawTrail(targetBitmap, targetPos);
+	}
 }

@@ -199,6 +199,8 @@ namespace RTE {
 		/// @param spriteCenter Where on the bitmap the center of the object is. This atom's offset will be applied automatically before checking for its normal.
 		/// @return Whether normal was successfully derived from the bitmap. If not, then a provisional one is derived from the offset.
 		bool CalculateNormal(BITMAP* sprite, Vector spriteCenter);
+
+		void DrawTrail(BITMAP* targetBitmap, const Vector& targetPos) const;
 #pragma endregion
 
 #pragma region Collision
@@ -374,6 +376,9 @@ namespace RTE {
 		MOID m_IgnoreMOID; //!< Special ignored MOID.
 		std::vector<MOID> m_IgnoreMOIDs; //!< ignore hits with MOs of these IDs.
 		std::vector<MOID> const* m_IgnoreMOIDsByGroup; //!< Also ignore hits with MOs of these IDs. This one may be set externally by atom group.
+
+		std::vector<std::pair<int, int>> m_LastTrailPoints; //!< Every point in our trail during the last sim update.
+		std::vector<std::pair<int, int>> m_TrailPoints; //!< Every point in our trail during the current sim update.
 
 		HitData m_LastHit; //!< Data containing information on the last collision experienced by this Atom.
 		MOID m_MOIDHit; //!< The MO, if any, this Atom hit on the last step.

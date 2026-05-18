@@ -254,6 +254,39 @@ bool Atom::CalculateNormal(BITMAP* sprite, Vector spriteCenter) {
 	return true;
 }
 
+void Atom::DrawTrail(BITMAP* targetBitmap, const Vector& targetPos) const {
+	if (m_TrailLength == 0 || (m_LastTrailPoints.size() + m_TrailPoints.size()) == 0) {
+		return;
+	}
+
+	if (!targetBitmap) {
+		return;
+	}
+
+	Vector topLeftExtent = Vector(FLT_MAX, FLT_MAX);
+	Vector bottomRightExtent = Vector(-FLT_MAX, -FLT_MAX);
+
+	// This should probably only be set in the sim update and cached
+	int length = static_cast<int>(static_cast<float>(m_TrailLength) * RandomNum(1.0F - m_TrailLengthVariation, 1.0F));
+
+	// Might be better to have one list for the trailpoints and keep track of the divide between last and current, but this is simpler
+	// TODO, improve this so that we don't suddenly have the trail dissapear when the atom despawns, we need to continue rendering this for one extra sim update
+	int endPoint = m_LastTrailPoints.size() + (m_TrailPoints.size() * g_TimerMan.GetSimUpdateProportion());
+	std::vector<std::pair<int, int>> allTrailPoints = m_LastTrailPoints;
+	allTrailPoints.insert(allTrailPoints.end(), m_TrailPoints.begin(), m_TrailPoints.end());
+	for (int i = endPoint - std::min(length, static_cast<int>(endPoint)); i < endPoint; ++i) {
+		Vector trailPointPos = Vector(allTrailPoints[i].first, allTrailPoints[i].second) - targetPos;
+		putpixel(targetBitmap, allTrailPoints[i].first, allTrailPoints[i].second, m_TrailColor.GetIndex());
+
+		topLeftExtent.m_X = std::min(topLeftExtent.m_X, static_cast<float>(allTrailPoints[i].first));
+		topLeftExtent.m_Y = std::min(topLeftExtent.m_Y, static_cast<float>(allTrailPoints[i].second));
+		bottomRightExtent.m_X = std::max(bottomRightExtent.m_X, static_cast<float>(allTrailPoints[i].first));
+		bottomRightExtent.m_Y = std::max(bottomRightExtent.m_Y, static_cast<float>(allTrailPoints[i].second));
+	}
+
+	g_SceneMan.RegisterDrawing(targetBitmap, g_NoMOID, topLeftExtent.m_X, topLeftExtent.m_Y, bottomRightExtent.m_X + 1.0F, bottomRightExtent.m_Y + 1.0F);
+}
+
 bool Atom::IsIgnoringMOID(MOID whichMOID) {
 	if (whichMOID == m_IgnoreMOID) {
 		return true;
@@ -678,10 +711,8 @@ int Atom::Travel(float travelTime, bool autoTravel) {
 	Vector segTraj;
 	Vector hitAccel;
 
-	// Static buffer to avoid having to realloc with every atom's travel
-	// This saves us time because Atom::Travel does a lot of allocations and reallocations if you have a lot of particles.
-	thread_local std::vector<std::pair<int, int>> trailPoints;
-	trailPoints.clear();
+	m_LastTrailPoints = m_TrailPoints;
+	m_TrailPoints.clear();
 
 	didWrap = false;
 	int removeOrphansRadius = m_OwnerMO->m_RemoveOrphanTerrainRadius;
@@ -698,8 +729,7 @@ int Atom::Travel(float travelTime, bool autoTravel) {
 
 		// Get trail bitmap and put first pixel.
 		if (m_TrailLength) {
-			trailBitmap = g_SceneMan.GetMOColorBitmap();
-			trailPoints.push_back({intPos[X], intPos[Y]});
+			m_TrailPoints.push_back({intPos[X], intPos[Y]});
 		}
 		// Compute and scale the actual on-screen travel trajectory for this segment, based on the velocity, the travel time and the pixels-per-meter constant.
 		segTraj = velocity * timeLeft * c_PPM;
@@ -1000,7 +1030,7 @@ int Atom::Travel(float travelTime, bool autoTravel) {
 					}
 				}
 			} else if (m_TrailLength) {
-				trailPoints.push_back({intPos[X], intPos[Y]});
+				m_TrailPoints.push_back({intPos[X], intPos[Y]});
 			}
 
 			///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1039,24 +1069,6 @@ int Atom::Travel(float travelTime, bool autoTravel) {
 	} while ((hit[X] || hit[Y]) && /* !segTraj.GetFloored().IsZero() && */ hitCount < 100 && !m_LastHit.Terminate[HITOR]);
 
 	// RTEAssert(hitCount < 100, "Atom travel resulted in more than 100 segments!!");
-
-	// Draw the trail
-	if (g_TimerMan.DrawnSimUpdate() && m_TrailLength && trailPoints.size() > 0) {
-		Vector topLeftExtent = Vector(trailPoints[0].first, trailPoints[0].second);
-		Vector bottomRightExtent = topLeftExtent + Vector(1.0F, 1.0F);
-
-		int length = static_cast<int>(static_cast<float>(m_TrailLength) * RandomNum(1.0F - m_TrailLengthVariation, 1.0F));
-		for (size_t i = trailPoints.size() - std::min(length, static_cast<int>(trailPoints.size())); i < trailPoints.size(); ++i) {
-			putpixel(trailBitmap, trailPoints[i].first, trailPoints[i].second, m_TrailColor.GetIndex());
-
-			topLeftExtent.m_X = std::min(topLeftExtent.m_X, static_cast<float>(trailPoints[i].first));
-			topLeftExtent.m_Y = std::min(topLeftExtent.m_Y, static_cast<float>(trailPoints[i].second));
-			bottomRightExtent.m_X = std::max(bottomRightExtent.m_X, static_cast<float>(trailPoints[i].first));
-			bottomRightExtent.m_Y = std::max(bottomRightExtent.m_Y, static_cast<float>(trailPoints[i].second));
-		}
-
-		g_SceneMan.RegisterDrawing(trailBitmap, g_NoMOID, topLeftExtent.m_X, topLeftExtent.m_Y, bottomRightExtent.m_X + 1.0F, bottomRightExtent.m_Y + 1.0F);
-	}
 
 	// Extract Atom offset.
 	position -= m_Offset;
