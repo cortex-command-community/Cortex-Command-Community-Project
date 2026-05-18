@@ -125,6 +125,13 @@ namespace RTE {
 	/// @return Interpolated value.
 	float Lerp(float scaleStart, float scaleEnd, float startValue, float endValue, float progressScalar);
 
+	/// Simple Linear Interpolation
+	/// @param startValue The start value of your Lerp.
+	/// @param endValue The end value of your Lerp.
+	/// @param progressScalar How far your Lerp has progressed.
+	/// @return Interpolated value.
+	float Lerp(float startValue, float endValue, float progressScalar);
+
 	/// Simple Linear Interpolation, with an added bonus: scaleStart and scaleEnd let you define your scale, where 0 and 1 would be standard scale.
 	/// This scale is used to normalize your progressScalar value and Lerp accordingly.
 	/// @param scaleStart The start of the scale to Lerp along.
@@ -135,6 +142,14 @@ namespace RTE {
 	/// @return Interpolated value.
 	Vector Lerp(float scaleStart, float scaleEnd, Vector startPos, Vector endPos, float progressScalar);
 
+	/// Simple Linear Interpolation
+	/// This scale is used to normalize your progressScalar value and Lerp accordingly.
+	/// @param startValue The start position of your Lerp.
+	/// @param endValue The end position of your Lerp.
+	/// @param progressScalar How far your Lerp has progressed.
+	/// @return Interpolated value.
+	Vector Lerp(Vector startPos, Vector endPos, float progressScalar);
+
 	/// Simple Linear Interpolation, with an added bonus: scaleStart and scaleEnd let you define your scale, where 0 and 1 would be standard scale.
 	/// This scale is used to normalize your progressScalar value and Lerp accordingly.
 	/// @param scaleStart The start of the scale to Lerp along.
@@ -144,6 +159,13 @@ namespace RTE {
 	/// @param progressScalar How far your Lerp has progressed. Automatically normalized through use of scaleStart and scaleEnd.
 	/// @return Interpolated value.
 	Matrix Lerp(float scaleStart, float scaleEnd, const Matrix& startRot, const Matrix& endRot, float progressScalar);
+
+	/// Simple Linear Interpolation
+	/// @param startRot The start rotation of your Lerp.
+	/// @param endRot The end rotation of your Lerp.
+	/// @param progressScalar How far your Lerp has progressed.
+	/// @return Interpolated value.
+	Matrix Lerp(const Matrix& startRot, const Matrix& endRot, float progressScalar);
 
 	/// Nonlinear ease-in interpolation. Starts slow.
 	/// @param start Start value.

@@ -44,6 +44,10 @@ float TimerMan::GetRealToSimCap() const {
 	return c_RealToSimCap;
 }
 
+float TimerMan::GetSimUpdateProportion() const {
+	return m_SimAccumulator / static_cast<float>(m_DeltaTime);
+}
+
 float TimerMan::GetAIDeltaTimeSecs() const {
 	return m_DeltaTimeS * static_cast<float>(g_SettingsMan.GetAIUpdateInterval());
 }

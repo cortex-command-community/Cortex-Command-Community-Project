@@ -73,6 +73,11 @@ namespace RTE {
 		/// @return A float describing the current cap in seconds.
 		float GetRealToSimCap() const;
 
+		/// Gets proportion of time between the last and current simulation update.
+		/// 0 = last update, 1 = next update, 0.5 = halfway between the two, etc. This is used for interpolation of render positions between physics updates.
+		/// @return A float describing the proportion of time between the last and current simulation update.
+		float GetSimUpdateProportion() const;
+
 		/// Gets the number of ticks per second (the resolution of the timer).
 		/// @return The number of ticks per second.
 		long long GetTicksPerSecond() const { return m_TicksPerSecond; }

@@ -40,9 +40,18 @@ namespace RTE {
 		return startValue + ((progressScalar - scaleStart) * ((endValue - startValue) / (scaleEnd - scaleStart)));
 	}
 
+	float Lerp(float startValue, float endValue, float progressScalar) {
+		return startValue + (progressScalar * (endValue - startValue));
+	}
+
 	Vector Lerp(float scaleStart, float scaleEnd, Vector startPos, Vector endPos, float progressScalar) {
 		Vector startToEnd = endPos - startPos;
 		return startPos + (startToEnd * Lerp(scaleStart, scaleEnd, 0.0F, 1.0F, progressScalar));
+	}
+
+	Vector Lerp(Vector startPos, Vector endPos, float progressScalar) {
+		Vector startToEnd = endPos - startPos;
+		return startPos + (startToEnd * progressScalar);
 	}
 
 	Matrix Lerp(float scaleStart, float scaleEnd, const Matrix& startRot, const Matrix& endRot, float progressScalar) {
@@ -50,6 +59,13 @@ namespace RTE {
 		float angleDelta = std::fmod(endRot.GetRadAngle() - startRot.GetRadAngle(), fullTurn);
 		float angleDistance = std::fmod(angleDelta * 2.0F, fullTurn) - angleDelta;
 		return Matrix(startRot.GetRadAngle() + (angleDistance * Lerp(scaleStart, scaleEnd, 0.0F, 1.0F, progressScalar)));
+	}
+
+	Matrix Lerp(const Matrix& startRot, const Matrix& endRot, float progressScalar) {
+		const float fullTurn = c_PI * 2.0F;
+		float angleDelta = std::fmod(endRot.GetRadAngle() - startRot.GetRadAngle(), fullTurn);
+		float angleDistance = std::fmod(angleDelta * 2.0F, fullTurn) - angleDelta;
+		return Matrix(startRot.GetRadAngle() + (angleDistance * progressScalar));
 	}
 
 	float EaseIn(float start, float end, float progressScalar) {
