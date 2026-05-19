@@ -231,11 +231,7 @@ void WindowMan::InitializeOpenGL() {
 		RTEAbort("Failed to load GL functions!");
 	}
 
-#ifndef _WIN32
 	SDL_GL_SetSwapInterval(m_EnableVSync ? 1 : 0);
-#else
-	SDL_GL_SetSwapInterval(m_Fullscreen && m_EnableVSync ? 1 : 0);
-#endif
 
 	rlLoadExtensions((void*)SDL_GL_GetProcAddress);
 	rlglInit(m_ResX, m_ResY);
@@ -274,14 +270,7 @@ int WindowMan::GetWindowResY() {
 void WindowMan::SetVSyncEnabled(bool enable) {
 	m_EnableVSync = enable;
 
-	// Workaround for DWM frame stutter
-	// See https://github.com/libsdl-org/SDL/issues/5797
-#ifndef _WIN32
 	int sdlEnableVSync = m_EnableVSync ? 1 : 0;
-#else
-	int sdlEnableVSync = m_Fullscreen && m_EnableVSync ? 1 : 0;
-#endif
-
 	SDL_GL_SetSwapInterval(sdlEnableVSync);
 }
 
@@ -548,9 +537,7 @@ void WindowMan::ChangeResolution(int newResX, int newResY, float newResMultiplie
 		SetViewportLetterboxed();
 		CreateBackBufferTexture();
 	}
-#ifdef _WIN32
-	SDL_GL_SetSwapInterval(m_Fullscreen && m_EnableVSync ? 1 : 0);
-#endif
+
 	g_ConsoleMan.PrintString("SYSTEM: " + std::string(!recoveredToPreviousSettings ? "Switched to different resolution." : "Failed to switch to different resolution. Reverted to previous settings."));
 }
 
@@ -577,9 +564,6 @@ void WindowMan::ToggleFullscreen() {
 	}
 	m_Fullscreen = fullscreen;
 
-#ifdef _WIN32
-	SDL_GL_SetSwapInterval(m_Fullscreen && m_EnableVSync ? 1 : 0);
-#endif
 	SetViewportLetterboxed();
 }
 
