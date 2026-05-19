@@ -89,7 +89,6 @@ namespace RTE {
 		void SetHandCurrentOffset(const Vector& newHandOffset) {
 			m_HandCurrentOffset = newHandOffset;
 			m_HandCurrentOffset.CapMagnitude(m_MaxLength);
-			m_HandPos = m_JointPos + m_HandCurrentOffset + (m_Recoiled ? m_RecoilOffset : Vector());
 		}
 
 		/// Gets the current position of this Arm's hand in absolute Scene coordinates.
