@@ -1511,7 +1511,7 @@ void AHuman::UpdateCrouching() {
 		}
 	}
 
-	float finalWalkPathYOffset = std::clamp(Lerp(0.0F, 1.0F, -m_WalkPathOffset.m_Y, desiredWalkPathYOffset, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
+	float finalWalkPathYOffset = std::clamp(Lerp(-m_WalkPathOffset.m_Y, desiredWalkPathYOffset, 0.3F), 0.0F, m_MaxWalkPathCrouchShift);
 	m_CrouchAmount = std::clamp(finalWalkPathYOffset / (m_MaxWalkPathCrouchShift - 0.1f), 0.0F, 1.0F); // because it's lerped, it never hits 1 exactly. thus the -0.1F
 	m_WalkPathOffset.m_Y = -finalWalkPathYOffset;
 
@@ -1528,7 +1528,7 @@ void AHuman::UpdateLimbPathSpeed() {
 		
 		// If crouching, move at reduced speed
 		if (m_MovementState == WALK) {
-			travelSpeedMultiplier *= Lerp(0.0F, 1.0F, 1.0F, m_CrouchWalkSpeedMultiplier, m_CrouchAmount);
+			travelSpeedMultiplier *= Lerp(1.0F, m_CrouchWalkSpeedMultiplier, m_CrouchAmount);
 		}
 
 		// If we're moving slowly horizontally, move at reduced speed (otherwise our legs kick about wildly as we're not yet up to speed)
@@ -2587,7 +2587,7 @@ void AHuman::Update() {
 				// In crouch state the above is rotated already, but in any other state we do the incremental lean here
 				float crouchAngleAdjust = m_HFlipped ? -m_RotAngleTargets[CROUCH] : m_RotAngleTargets[CROUCH];
 				float difference = crouchAngleAdjust - rotTarget;
-				rotTarget += Lerp(0.0F, 1.0F, 0.0F, difference, m_CrouchAmount);
+				rotTarget += Lerp(0.0F, difference, m_CrouchAmount);
 			}
 			
 			float rotDiff = rot - rotTarget;
