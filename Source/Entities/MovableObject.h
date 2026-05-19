@@ -156,7 +156,7 @@ namespace RTE {
 
 		/// Gets the previous position vector of this MovableObject, prior to this frame.
 		/// @return A Vector describing the previous position vector.
-		const Vector& GetPrevPos() const { return m_PrevPos; }
+		const Vector& GetPrevPos() const { return m_PrevPos.IsZero() ? m_Pos : m_PrevPos; } // if PrevPos is zero we've just spawned, so return current pos to avoid interps from 0,0
 
 		/// Gets the velocity vector of this MovableObject.
 		/// @return A Vector describing the current velocity vector.

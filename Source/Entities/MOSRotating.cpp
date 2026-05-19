@@ -1290,6 +1290,14 @@ bool MOSRotating::DeepCheck(bool makeMOPs, int skipMOP, int maxMOPs) {
 	return false;
 }
 
+void MOSRotating::PreTravel() {
+	MOSprite::PreTravel();
+
+	for (Attachable* attachable: m_Attachables) {
+		attachable->PreTravel();
+	}
+}
+
 void MOSRotating::Travel() {
 	MOSprite::Travel();
 
@@ -1608,7 +1616,7 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 	RTEAssert(m_Frame >= 0 && m_Frame < m_FrameCount, "Frame is out of bounds!");
 
 	const float fLerp = mode == g_DrawMOID ? 1.0f : g_TimerMan.GetSimUpdateProportion();
-	Vector spritePos(Lerp(m_PrevPos, m_Pos, fLerp) - targetPos);
+	Vector spritePos(Lerp(GetPrevPos(), GetPos(), fLerp) - targetPos);
 
 	if (pTargetBitmap) {
 		// Don't bother drawing at all if this is out of bounds

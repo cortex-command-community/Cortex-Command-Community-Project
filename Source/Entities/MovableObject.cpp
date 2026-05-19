@@ -745,7 +745,7 @@ void MovableObject::RestDetection() {
 	} else {
 		m_VelOscillations = 0;
 	}
-	if ((m_Pos - m_PrevPos).MagnitudeIsGreaterThan(1.0F)) {
+	if ((m_Pos - GetPrevPos()).MagnitudeIsGreaterThan(1.0F)) {
 		m_RestTimer.Reset();
 	}
 }

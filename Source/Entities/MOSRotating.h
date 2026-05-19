@@ -319,6 +319,9 @@ namespace RTE {
 		/// @return Whether deep penetration was detected and erasure was done.
 		bool DeepCheck(bool makeMOPs = true, int skipMOP = 2, int maxMOP = 100);
 
+		/// Does stuff that needs to be done before Travel(). Always call before calling Travel.
+		virtual void PreTravel();
+
 		/// Travels this MOSRotating, using its physical representation.
 		void Travel() override;
 

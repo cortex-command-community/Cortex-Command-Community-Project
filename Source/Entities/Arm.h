@@ -89,11 +89,16 @@ namespace RTE {
 		void SetHandCurrentOffset(const Vector& newHandOffset) {
 			m_HandCurrentOffset = newHandOffset;
 			m_HandCurrentOffset.CapMagnitude(m_MaxLength);
+			m_HandPos = m_JointPos + m_HandCurrentOffset + (m_Recoiled ? m_RecoilOffset : Vector());
 		}
 
 		/// Gets the current position of this Arm's hand in absolute Scene coordinates.
 		/// @return The current position of this Arm's hand in absolute Scene coordinates.
-		Vector GetHandPos() const { return m_JointPos + m_HandCurrentOffset; }
+		Vector GetHandPos() const { return m_HandPos; }
+
+		/// Gets the previous position of this Arm's hand in absolute Scene coordinates.
+		/// @return The previous position of this Arm's hand in absolute Scene coordinates.
+		Vector GetHandPrevPos() const { return m_HandPrevPos.IsZero() ? m_HandPos : m_HandPrevPos; }
 
 		/// Sets the current position of this Arm's hand to an absolute scene coordinate. If needed, the set position is modified so its distance from the joint position of the Arm is capped to the max length of the Arm.
 		/// @param newHandPos The new current position of this Arm's hand as absolute scene coordinate.
@@ -233,8 +238,9 @@ namespace RTE {
 		Vector m_HandIdleOffset; //!< The default offset that this Arm's hand should move to when not moving towards anything else, relative to its joint position. Other offsets are used under certain circumstances.
 		float m_HandIdleRotation; //!< The rotation to be applied to the idle offset, when it's being used. Resets every update to avoid locking it.
 
-		Vector m_HandPreviousOffset; //!< The previous offset of this Arm's hand, relative to its joint position.
 		Vector m_HandCurrentOffset; //!< The current offset of this Arm's hand, relative to its joint position.
+		Vector m_HandPrevPos; //!< The position of this Arm's hand in the previous update
+		Vector m_HandPos; //!< The current position of this Arm's hand in absolute Scene coordinates.
 
 		std::queue<HandTarget> m_HandTargets; // A queue of target positions this Arm's hand is reaching towards. If it's empty, the Arm isn't reaching towards anything.
 		Timer m_HandMovementDelayTimer; //!< A Timer for making the hand wait at its current HandTarget.

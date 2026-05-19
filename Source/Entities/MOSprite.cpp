@@ -510,7 +510,7 @@ void MOSprite::Draw(BITMAP* pTargetBitmap,
 		spriteOffset = m_SpriteOffset;
 
 	const float fLerp = mode == g_DrawMOID ? 1.0f : g_TimerMan.GetSimUpdateProportion();
-	Vector spritePos(Lerp(m_PrevPos, m_Pos, fLerp) + spriteOffset - targetPos);
+	Vector spritePos(Lerp(GetPrevPos(), GetPos(), fLerp) + spriteOffset - targetPos);
 
 	// Take care of wrapping situations
 	Vector aDrawPos[4];

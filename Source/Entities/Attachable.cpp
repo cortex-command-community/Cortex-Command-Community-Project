@@ -37,7 +37,6 @@ void Attachable::Clear() {
 	m_JointStrength = 10.0F;
 	m_JointStiffness = 1.0F;
 	m_JointOffset.Reset();
-	m_PrevJointPos.Reset();
 	m_JointPos.Reset();
 
 	m_DamageCount = 0.0F;
@@ -90,7 +89,6 @@ int Attachable::Create(const Attachable& reference) {
 	m_JointStrength = reference.m_JointStrength;
 	m_JointStiffness = reference.m_JointStiffness;
 	m_JointOffset = reference.m_JointOffset;
-	m_PrevJointPos = reference.m_PrevJointPos;
 	m_JointPos = reference.m_JointPos;
 
 	m_DamageCount = reference.m_DamageCount;
@@ -563,11 +561,8 @@ void Attachable::SetParent(MOSRotating* newParent) {
 }
 
 void Attachable::UpdatePositionAndJointPositionBasedOnOffsets() {
-	m_PrevJointPos = m_JointPos;
-	
 	if (m_Parent) {
 		m_JointPos = m_Parent->GetPos() + m_Parent->RotateOffset(GetParentOffset());
-		m_PrevPos = m_Pos;
 		m_Pos = m_JointPos - RotateOffset(m_JointOffset);
 	} else {
 		m_JointPos = m_Pos + RotateOffset(m_JointOffset);
