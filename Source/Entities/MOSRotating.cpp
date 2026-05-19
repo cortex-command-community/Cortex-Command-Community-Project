@@ -1170,8 +1170,6 @@ void MOSRotating::RestDetection() {
 			m_ToSettle = false;
 		}
 	}
-	m_PrevRotation = m_Rotation;
-	m_PrevAngVel = m_AngularVel;
 }
 
 bool MOSRotating::IsAtRest() {
@@ -1292,6 +1290,9 @@ bool MOSRotating::DeepCheck(bool makeMOPs, int skipMOP, int maxMOPs) {
 
 void MOSRotating::PreTravel() {
 	MOSprite::PreTravel();
+
+	m_PrevRotation = m_Rotation;
+	m_PrevAngVel = m_AngularVel;
 
 	for (Attachable* attachable: m_Attachables) {
 		attachable->PreTravel();
@@ -1615,8 +1616,10 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 	RTEAssert(!m_aSprite.empty(), "No sprite bitmaps loaded to draw!");
 	RTEAssert(m_Frame >= 0 && m_Frame < m_FrameCount, "Frame is out of bounds!");
 
-	const float fLerp = mode == g_DrawMOID ? 1.0f : g_TimerMan.GetSimUpdateProportion();
-	Vector spritePos(Lerp(GetPrevPos(), GetPos(), fLerp) - targetPos);
+	const float fLerp = g_TimerMan.GetSimUpdateProportion();
+	Matrix currentRotation = Lerp(GetPrevRotMatrix(), GetRotMatrix(), fLerp);
+	Vector currentPos = Lerp(GetPrevPos(), GetPos(), fLerp);
+	Vector spritePos(currentPos - targetPos);
 
 	if (pTargetBitmap) {
 		// Don't bother drawing at all if this is out of bounds
@@ -1738,7 +1741,7 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 				DrawTexturePro(m_aSprite[m_Frame],
 					{0.0f, 0.0f, -1.0f * m_aSprite[m_Frame]->w, static_cast<float>(m_aSprite[m_Frame]->h)},
 					{aDrawPos[i].m_X, aDrawPos[i].m_Y, static_cast<float>(m_aSprite[m_Frame]->w), static_cast<float>(m_aSprite[m_Frame]->h)},
-					{m_aSprite[m_Frame]->w + m_SpriteOffset.m_X , -m_SpriteOffset.m_Y}, m_Rotation.GetRadAngle(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
+					{m_aSprite[m_Frame]->w + m_SpriteOffset.m_X , -m_SpriteOffset.m_Y}, currentRotation.GetRadAngle(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 				g_SceneMan.RegisterDrawing(pTargetBitmap, g_NoMOID, spriteX, spriteY, spriteX + pTempBitmap->w, spriteY + pTempBitmap->h);
 			}
 		} else {
@@ -1752,7 +1755,7 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 				}
 
 				// Take into account the h-flipped pivot point
-				pivot_scaled_sprite(pTargetBitmap, pFlipBitmap, spriteX, spriteY, pFlipBitmap->w + m_SpriteOffset.GetFloorIntX(), -(m_SpriteOffset.GetFloorIntY()), ftofix(m_Rotation.GetAllegroAngle()), ftofix(m_Scale));
+				pivot_scaled_sprite(pTargetBitmap, pFlipBitmap, spriteX, spriteY, pFlipBitmap->w + m_SpriteOffset.GetFloorIntX(), -(m_SpriteOffset.GetFloorIntY()), ftofix(currentRotation.GetAllegroAngle()), ftofix(m_Scale));
 			}
 		}
 	} else {
@@ -1763,7 +1766,7 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 				DrawTexturePro(m_aSprite[m_Frame],
 					{0.0f, 0.0f, static_cast<float>(m_aSprite[m_Frame]->w), static_cast<float>(m_aSprite[m_Frame]->h)},
 					{aDrawPos[i].m_X, aDrawPos[i].m_Y, static_cast<float>(m_aSprite[m_Frame]->w), static_cast<float>(m_aSprite[m_Frame]->h)},
-					-m_SpriteOffset, m_Rotation.GetRadAngle(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
+					-m_SpriteOffset, currentRotation.GetRadAngle(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 				int spriteX = aDrawPos[i].GetFloorIntX() - (pTempBitmap->w / 2);
 				int spriteY = aDrawPos[i].GetFloorIntY() - (pTempBitmap->h / 2);
 				g_SceneMan.RegisterDrawing(pTargetBitmap, g_NoMOID, spriteX, spriteY, spriteX + pTempBitmap->w, spriteY + pTempBitmap->h);
@@ -1777,7 +1780,7 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 					continue;
 				}
 
-				pivot_scaled_sprite(pTargetBitmap, mode == g_DrawColor ? m_aSprite[m_Frame] : pTempBitmap, spriteX, spriteY, -m_SpriteOffset.GetFloorIntX(), -m_SpriteOffset.GetFloorIntY(), ftofix(m_Rotation.GetAllegroAngle()), ftofix(m_Scale));
+				pivot_scaled_sprite(pTargetBitmap, mode == g_DrawColor ? m_aSprite[m_Frame] : pTempBitmap, spriteX, spriteY, -m_SpriteOffset.GetFloorIntX(), -m_SpriteOffset.GetFloorIntY(), ftofix(currentRotation.GetAllegroAngle()), ftofix(m_Scale));
 			}
 		}
 	}

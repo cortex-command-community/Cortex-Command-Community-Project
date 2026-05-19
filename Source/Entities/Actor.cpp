@@ -1342,7 +1342,9 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 
 	GUIFont* pSymbolFont = g_FrameMan.GetLargeFont();
 	GUIFont* pSmallFont = g_FrameMan.GetSmallFont();
-	Vector drawPos = m_Pos - targetPos;
+
+	Vector currentPos = Lerp(GetPrevPos(), GetPos(), g_TimerMan.GetSimUpdateProportion());
+	Vector drawPos(currentPos - targetPos);
 	Vector cpuPos = GetCPUPos() - targetPos;
 
 	// If we have something to draw, adjust the draw position to work if drawn to a target screen bitmap that is straddling a scene seam
@@ -1350,10 +1352,10 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 		// Spans vertical scene seam
 		int sceneWidth = g_SceneMan.GetSceneWidth();
 		if (g_SceneMan.SceneWrapsX() && pTargetBitmap->w < sceneWidth) {
-			if ((targetPos.m_X < 0) && (m_Pos.m_X > (sceneWidth - pTargetBitmap->w))) {
+			if ((targetPos.m_X < 0) && (currentPos.m_X > (sceneWidth - pTargetBitmap->w))) {
 				drawPos.m_X -= sceneWidth;
 				cpuPos.m_X -= sceneWidth;
-			} else if (((targetPos.m_X + pTargetBitmap->w) > sceneWidth) && (m_Pos.m_X < pTargetBitmap->w)) {
+			} else if (((targetPos.m_X + pTargetBitmap->w) > sceneWidth) && (currentPos.m_X < pTargetBitmap->w)) {
 				drawPos.m_X += sceneWidth;
 				cpuPos.m_X += sceneWidth;
 			}
@@ -1362,10 +1364,10 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 		// Spans horizontal scene seam
 		int sceneHeight = g_SceneMan.GetSceneHeight();
 		if (g_SceneMan.SceneWrapsY() && pTargetBitmap->h < sceneHeight) {
-			if ((targetPos.m_Y < 0) && (m_Pos.m_Y > (sceneHeight - pTargetBitmap->h))) {
+			if ((targetPos.m_Y < 0) && (currentPos.m_Y > (sceneHeight - pTargetBitmap->h))) {
 				drawPos.m_Y -= sceneHeight;
 				cpuPos.m_Y -= sceneHeight;
-			} else if (((targetPos.m_Y + pTargetBitmap->h) > sceneHeight) && (m_Pos.m_Y < pTargetBitmap->h)) {
+			} else if (((targetPos.m_Y + pTargetBitmap->h) > sceneHeight) && (currentPos.m_Y < pTargetBitmap->h)) {
 				drawPos.m_Y += sceneHeight;
 				cpuPos.m_Y += sceneHeight;
 			}

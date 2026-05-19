@@ -801,14 +801,19 @@ void ACraft::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 			}
 		}
 
+		const float fLerp = g_TimerMan.GetSimUpdateProportion();
+		Matrix currentRotation = Lerp(GetPrevRotMatrix(), GetRotMatrix(), fLerp);
+		Vector currentPos = Lerp(GetPrevPos(), GetPos(), fLerp);
+		Vector drawPos(currentPos - targetPos);
+
 		// Draw the actual dotted lines
 		for (std::list<Exit>::iterator exit = m_Exits.begin(); exit != m_Exits.end(); ++exit) {
-			if (!exit->CheckIfClear(m_Pos, m_Rotation, 18)) {
+			if (!exit->CheckIfClear(drawPos, currentRotation, 18)) {
 				continue;
 			}
 
 			Vector exitRadius = RotateOffset(exit->GetVelocity().GetPerpendicular().SetMagnitude(exit->GetRadius()));
-			Vector exitCorner = m_Pos - targetPos + RotateOffset(exit->GetOffset()) + exitRadius;
+			Vector exitCorner = drawPos - targetPos + RotateOffset(exit->GetOffset()) + exitRadius;
 			Vector arrowVec = RotateOffset(exit->GetVelocity().SetMagnitude(exit->GetRange()));
 			g_FrameMan.DrawLine(pTargetBitmap, exitCorner, exitCorner + arrowVec, 120, 120, EXITLINESPACING, m_ExitLinePhase);
 			exitCorner -= exitRadius * 2;

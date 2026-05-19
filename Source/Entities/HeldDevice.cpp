@@ -420,28 +420,31 @@ void HeldDevice::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whi
 			if (viewingPlayer == -1) {
 				return;
 			}
+
+			Vector currentPos = Lerp(GetPrevPos(), GetPos(), g_TimerMan.GetSimUpdateProportion());
+			Vector drawPos(currentPos - targetPos);
+
 			// Only draw if the team viewing this has seen the space where this is located.
 			int viewingTeam = g_ActivityMan.GetActivity()->GetTeamOfPlayer(viewingPlayer);
-			if (viewingTeam == Activity::NoTeam || g_SceneMan.IsUnseen(m_Pos.GetFloorIntX(), m_Pos.GetFloorIntY(), viewingTeam)) {
+			if (viewingTeam == Activity::NoTeam || g_SceneMan.IsUnseen(currentPos.GetFloorIntX(), currentPos.GetFloorIntY(), viewingTeam)) {
 				return;
 			}
 
-			Vector drawPos = m_Pos - targetPos;
 			// Adjust the draw position to work if drawn to a target screen bitmap that is straddling a scene seam.
 			if (!targetPos.IsZero()) {
 				int sceneWidth = g_SceneMan.GetSceneWidth();
 				if (g_SceneMan.SceneWrapsX() && pTargetBitmap->w < sceneWidth) {
-					if ((targetPos.GetFloorIntX() < 0) && (m_Pos.GetFloorIntX() > (sceneWidth - pTargetBitmap->w))) {
+					if ((targetPos.GetFloorIntX() < 0) && (currentPos.GetFloorIntX() > (sceneWidth - pTargetBitmap->w))) {
 						drawPos.m_X -= static_cast<float>(sceneWidth);
-					} else if ((targetPos.GetFloorIntX() + pTargetBitmap->w > sceneWidth) && (m_Pos.GetFloorIntX() < pTargetBitmap->w)) {
+					} else if ((targetPos.GetFloorIntX() + pTargetBitmap->w > sceneWidth) && (currentPos.GetFloorIntX() < pTargetBitmap->w)) {
 						drawPos.m_X += static_cast<float>(sceneWidth);
 					}
 				}
 				int sceneHeight = g_SceneMan.GetSceneHeight();
 				if (g_SceneMan.SceneWrapsY() && pTargetBitmap->h < sceneHeight) {
-					if ((targetPos.GetFloorIntY() < 0) && (m_Pos.GetFloorIntY() > (sceneHeight - pTargetBitmap->h))) {
+					if ((targetPos.GetFloorIntY() < 0) && (currentPos.GetFloorIntY() > (sceneHeight - pTargetBitmap->h))) {
 						drawPos.m_Y -= static_cast<float>(sceneHeight);
-					} else if ((targetPos.GetFloorIntY() + pTargetBitmap->h > sceneHeight) && (m_Pos.GetFloorIntY() < pTargetBitmap->h)) {
+					} else if ((targetPos.GetFloorIntY() + pTargetBitmap->h > sceneHeight) && (currentPos.GetFloorIntY() < pTargetBitmap->h)) {
 						drawPos.m_Y += static_cast<float>(sceneHeight);
 					}
 				}
