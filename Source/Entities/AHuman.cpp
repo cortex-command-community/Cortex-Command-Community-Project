@@ -2783,7 +2783,7 @@ void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 		            m_pFGArm->GetHeldDevice()->DrawHUD(pTargetBitmap, targetPos, whichScreen);*/
 
 		const float fLerp = g_TimerMan.GetSimUpdateProportion();
-		Vector currentPos = Lerp(GetPrevPos(), GetPos(), fLerp);
+		Vector currentPos = GetRenderPos();
 		Vector drawPos(currentPos - targetPos);
 
 		// Adjust the draw position to work if drawn to a target screen bitmap that is straddling a scene seam

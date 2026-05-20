@@ -509,6 +509,10 @@ void MovableObject::DestroyScriptState() {
 	}
 }
 
+const Vector& MovableObject::GetRenderPos() const {
+	return Lerp(GetPrevPos(), GetPos(), g_TimerMan.GetSimUpdateProportion());
+}
+
 void MovableObject::Destroy(bool notInherited) {
 	// Unfortunately, shit can still get destroyed at random from Lua states having ownership and their GC deciding to delete it.
 	// This skips the DestroyScriptState call... so there's leftover stale script state that we just can't do shit about.

@@ -421,7 +421,7 @@ void HeldDevice::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whi
 				return;
 			}
 
-			Vector currentPos = Lerp(GetPrevPos(), GetPos(), g_TimerMan.GetSimUpdateProportion());
+			Vector currentPos = GetRenderPos();
 			Vector drawPos(currentPos - targetPos);
 
 			// Only draw if the team viewing this has seen the space where this is located.

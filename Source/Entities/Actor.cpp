@@ -1343,7 +1343,7 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 	GUIFont* pSymbolFont = g_FrameMan.GetLargeFont();
 	GUIFont* pSmallFont = g_FrameMan.GetSmallFont();
 
-	Vector currentPos = Lerp(GetPrevPos(), GetPos(), g_TimerMan.GetSimUpdateProportion());
+	Vector currentPos = GetRenderPos();
 	Vector drawPos(currentPos - targetPos);
 	Vector cpuPos = GetCPUPos() - targetPos;
 

@@ -1346,7 +1346,7 @@ void ACrab::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 	if (m_Controller.IsPlayerControlled() && g_ActivityMan.GetActivity()->ScreenOfPlayer(m_Controller.GetPlayer()) == whichScreen && pSmallFont && pSymbolFont) {
 		AllegroBitmap allegroBitmap(pTargetBitmap);
 
-		Vector currentPos = Lerp(GetPrevPos(), GetPos(), g_TimerMan.GetSimUpdateProportion());
+		Vector currentPos = GetRenderPos();
 		Vector drawPos(currentPos - targetPos);
 
 		// Adjust the draw position to work if drawn to a target screen bitmap that is straddling a scene seam

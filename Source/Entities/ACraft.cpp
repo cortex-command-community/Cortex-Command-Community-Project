@@ -803,7 +803,7 @@ void ACraft::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 
 		const float fLerp = g_TimerMan.GetSimUpdateProportion();
 		Matrix currentRotation = Lerp(GetPrevRotMatrix(), GetRotMatrix(), fLerp);
-		Vector currentPos = Lerp(GetPrevPos(), GetPos(), fLerp);
+		Vector currentPos = GetRenderPos();
 		Vector drawPos(currentPos - targetPos);
 
 		// Draw the actual dotted lines

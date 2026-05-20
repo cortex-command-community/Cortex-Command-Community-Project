@@ -1618,7 +1618,7 @@ void MOSRotating::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, DrawMode 
 
 	const float fLerp = g_TimerMan.GetSimUpdateProportion();
 	Matrix currentRotation = Lerp(GetPrevRotMatrix(), GetRotMatrix(), fLerp);
-	Vector currentPos = Lerp(GetPrevPos(), GetPos(), fLerp);
+	Vector currentPos = GetRenderPos();
 	Vector spritePos(currentPos - targetPos);
 
 	if (pTargetBitmap) {
