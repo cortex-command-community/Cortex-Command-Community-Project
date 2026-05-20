@@ -195,8 +195,11 @@ namespace RTE {
 		/// Only updates Global Scripts of the current activity with LateUpdate flag enabled.
 		void LateUpdateGlobalScripts() const;
 
-		/// Updates the state of this and the current Activity. Supposed to be done every frame before drawing.
+		/// Updates the state of this and the current Activity.
 		void Update();
+
+		/// Updates the render/realtime state of this and the current Activity. Supposed to be done every frame before drawing.
+		void RenderUpdate();
 #pragma endregion
 
 	private:

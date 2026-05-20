@@ -329,9 +329,11 @@ namespace RTE {
 		/// scene.
 		void UpdateEditing();
 
-		/// Updates the state of this ActivityMan. Supposed to be done every frame
-		/// before drawing.
-		void Update() override;
+		/// Updates the state of this Activity.
+		virtual void Update();
+
+		/// Updates the render/realtime state of this Activity. Supposed to be done every frame before drawing.
+		virtual void RenderUpdate();
 
 		/// Draws the currently active GUI of a screen to a BITMAP of choice.
 		/// @param pTargetBitmap A pointer to a screen-sized BITMAP to draw on.

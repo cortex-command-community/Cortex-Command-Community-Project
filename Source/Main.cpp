@@ -334,8 +334,6 @@ void RunGameLoop() {
 
 			g_LuaMan.Update();
 
-			g_UInputMan.Update();
-
 			g_FrameMan.Update();
 
 			g_MovableMan.CompleteQueuedMOIDDrawings();
@@ -361,7 +359,6 @@ void RunGameLoop() {
 			g_PresetMan.ClearReloadEntityPresetCalledThisUpdate();
 
 			g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::SimTotal);
-			g_UInputMan.EndFrame();
 
 			if (!g_ActivityMan.IsInActivity()) {
 				g_TimerMan.PauseSim(true);
@@ -388,6 +385,10 @@ void RunGameLoop() {
 		updateEndAndDrawStartTime = g_TimerMan.GetAbsoluteTime();
 		updateTotalTime = updateEndAndDrawStartTime - updateStartTime;
 		drawStartTime = updateEndAndDrawStartTime;
+
+		g_UInputMan.Update();
+		g_ActivityMan.RenderUpdate();
+		g_UInputMan.EndFrame();
 
 		g_MovableMan.Draw(g_SceneMan.GetMOColorBitmap());
 		g_FrameMan.Draw();

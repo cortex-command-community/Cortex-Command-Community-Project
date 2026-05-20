@@ -1048,6 +1048,10 @@ void GameActivity::UpdateEditing() {
 
 void GameActivity::Update() {
 	Activity::Update();
+}
+
+void GameActivity::RenderUpdate() {
+	Activity::RenderUpdate();
 
 	// Avoid game logic when we're editing
 	if (m_ActivityState == ActivityState::Editing) {

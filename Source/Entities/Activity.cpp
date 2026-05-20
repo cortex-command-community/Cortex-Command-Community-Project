@@ -869,10 +869,15 @@ void Activity::SwitchToPrevOrNextActor(bool nextActor, int player, int team, con
 }
 
 void Activity::Update() {
+
+}
+
+void Activity::RenderUpdate() {
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
-		if (m_MessageTimer[player].IsPastSimMS(5000)) {
+		if (m_MessageTimer[player].LeftTillSimMS(5000)) {
 			g_FrameMan.ClearScreenText(ScreenOfPlayer(player));
 		}
+
 		if (m_IsActive[player]) {
 			m_PlayerController[player].Update();
 		}

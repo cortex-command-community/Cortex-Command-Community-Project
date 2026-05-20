@@ -179,8 +179,11 @@ namespace RTE {
 		/// Forces this Activity to end.
 		virtual void End();
 
-		/// Updates the state of this Activity. Supposed to be done every frame before drawing.
+		/// Updates the state of this Activity.
 		virtual void Update();
+
+		/// Updates the render/realtime state of this Activity. Supposed to be done every frame before drawing.
+		virtual void RenderUpdate();
 
 		/// Draws the currently active GUI of a screen to a BITMAP of choice.
 		/// @param targetBitmap A pointer to a screen-sized BITMAP to draw on.

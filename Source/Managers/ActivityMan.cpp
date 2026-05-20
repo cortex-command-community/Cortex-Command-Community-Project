@@ -617,3 +617,9 @@ void ActivityMan::Update() {
 	}
 	g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ActivityUpdate);
 }
+
+void ActivityMan::RenderUpdate() {
+	if (m_Activity) {
+		m_Activity->RenderUpdate();
+	}
+}
