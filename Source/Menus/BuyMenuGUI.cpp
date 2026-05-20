@@ -828,22 +828,22 @@ void BuyMenuGUI::Update() {
 	// Notification blinking logic
 
 	if (m_BlinkMode == NOFUNDS) {
-		m_pCostLabel->SetVisible(m_BlinkTimer.AlternateSim(250));
+		m_pCostLabel->SetVisible(m_BlinkTimer.AlternateReal(250));
 	} else if (m_BlinkMode == NOCRAFT) {
-		bool blink = m_BlinkTimer.AlternateSim(250);
+		bool blink = m_BlinkTimer.AlternateReal(250);
 		m_pCraftLabel->SetVisible(blink);
 		m_pCraftBox->SetVisible(blink);
 		m_pCraftCollectionBox->SetVisible(blink);
 	} else if (m_BlinkMode == MAXMASS) {
-		m_pCraftMassLabel->SetVisible(m_BlinkTimer.AlternateSim(250));
-		m_pCraftMassCaptionLabel->SetVisible(m_BlinkTimer.AlternateSim(250));
+		m_pCraftMassLabel->SetVisible(m_BlinkTimer.AlternateReal(250));
+		m_pCraftMassCaptionLabel->SetVisible(m_BlinkTimer.AlternateReal(250));
 	} else if (m_BlinkMode == MAXPASSENGERS) {
-		m_pCraftPassengersLabel->SetVisible(m_BlinkTimer.AlternateSim(250));
-		m_pCraftPassengersCaptionLabel->SetVisible(m_BlinkTimer.AlternateSim(250));
+		m_pCraftPassengersLabel->SetVisible(m_BlinkTimer.AlternateReal(250));
+		m_pCraftPassengersCaptionLabel->SetVisible(m_BlinkTimer.AlternateReal(250));
 	}
 
 	// Time out the blinker
-	if (m_BlinkMode != NOBLINK && m_BlinkTimer.IsPastSimMS(1500)) {
+	if (m_BlinkMode != NOBLINK && m_BlinkTimer.IsPastRealMS(1500)) {
 		m_pCostLabel->SetVisible(true);
 		m_pCraftLabel->SetVisible(true);
 		m_pCraftBox->SetVisible(true);
