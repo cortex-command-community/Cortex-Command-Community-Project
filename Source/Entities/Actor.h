@@ -220,6 +220,10 @@ namespace RTE {
 		/// @return A Vector with the absolute position of this' brain.
 		virtual Vector GetCPUPos() const { return m_Pos; }
 
+		/// Gets the render position of this' brain, or equivalent.
+		/// @return A Vector with the render position of this' brain.
+		virtual Vector GetRenderCPUPos() const { return GetRenderPos(); }
+
 		/// Gets the absoltue position of this' eye, or equivalent, where look
 		/// vector starts from.
 		/// @return A Vector with the absolute position of this' eye or view point.

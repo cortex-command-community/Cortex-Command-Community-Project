@@ -112,6 +112,10 @@ namespace RTE {
 		/// @return A Vector with the absolute position of this' brain.
 		Vector GetCPUPos() const override;
 
+		/// Gets the render position of this' brain, or equivalent.
+		/// @return A Vector with the render position of this' brain.
+		Vector GetRenderCPUPos() const override;
+
 		/// Gets the absoltue position of this' eye, or equivalent, where look
 		/// vector starts from.
 		/// @return A Vector with the absolute position of this' eye or view point.

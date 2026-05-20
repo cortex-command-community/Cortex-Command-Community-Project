@@ -1173,7 +1173,7 @@ void GameActivity::RenderUpdate() {
 						// Give switched from actor an AI controller
 						m_ControlledActor[player]->SetControllerMode(Controller::CIM_AI);
 						m_ControlledActor[player]->GetController()->SetDisabled(false);
-						m_ActorCursor[player] = m_ControlledActor[player]->GetCPUPos();
+						m_ActorCursor[player] = m_ControlledActor[player]->GetRenderCPUPos();
 						m_CursorTimer.Reset();
 					}
 

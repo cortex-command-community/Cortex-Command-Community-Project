@@ -1345,7 +1345,7 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 
 	Vector currentPos = GetRenderPos();
 	Vector drawPos(currentPos - targetPos);
-	Vector cpuPos = GetCPUPos() - targetPos;
+	Vector cpuPos = GetRenderCPUPos() - targetPos;
 
 	// If we have something to draw, adjust the draw position to work if drawn to a target screen bitmap that is straddling a scene seam
 	if ((m_HUDVisible || m_PieMenu->IsVisible()) && !targetPos.IsZero()) {
@@ -1576,19 +1576,19 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 					pNextAdj = *nextItr;
 					if (pPrevAdj != pNextAdj) {
 						// Only draw both lines if they're not pointing to the same thing
-						g_FrameMan.DrawLine(pTargetBitmap, cpuPos, pPrevAdj->GetCPUPos() - targetPos, prevColor, prevColor, prevSpacing, 0, true);
-						g_FrameMan.DrawLine(pTargetBitmap, cpuPos, pNextAdj->GetCPUPos() - targetPos, nextColor, nextColor, nextSpacing, 0, true);
+						g_FrameMan.DrawLine(pTargetBitmap, cpuPos, pPrevAdj->GetRenderCPUPos() - targetPos, prevColor, prevColor, prevSpacing, 0, true);
+						g_FrameMan.DrawLine(pTargetBitmap, cpuPos, pNextAdj->GetRenderCPUPos() - targetPos, nextColor, nextColor, nextSpacing, 0, true);
 					} else {
 						// If only one other available Actor, only draw one yellow line to it
-						g_FrameMan.DrawLine(pTargetBitmap, cpuPos, pNextAdj->GetCPUPos() - targetPos, 122, 122, 3, 0, true);
+						g_FrameMan.DrawLine(pTargetBitmap, cpuPos, pNextAdj->GetRenderCPUPos() - targetPos, 122, 122, 3, 0, true);
 					}
 
 					// Prev selected icon
-					iconPos = pPrevAdj->GetCPUPos() - targetPos;
+					iconPos = pPrevAdj->GetRenderCPUPos() - targetPos;
 					draw_sprite(pTargetBitmap, pPrevAdj->GetAIModeIcon(), iconPos.m_X - 6, iconPos.m_Y - 6);
 
 					// Next selected icon
-					iconPos = pNextAdj->GetCPUPos() - targetPos;
+					iconPos = pNextAdj->GetRenderCPUPos() - targetPos;
 					draw_sprite(pTargetBitmap, pNextAdj->GetAIModeIcon(), iconPos.m_X - 6, iconPos.m_Y - 6);
 				}
 

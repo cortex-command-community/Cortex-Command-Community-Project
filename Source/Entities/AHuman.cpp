@@ -418,6 +418,13 @@ Vector AHuman::GetCPUPos() const {
 	return m_Pos;
 }
 
+Vector AHuman::GetRenderCPUPos() const {
+	if (m_pHead && m_pHead->IsAttached())
+		return GetRenderPos() + ((m_pHead->GetParentOffset().GetXFlipped(m_HFlipped) * m_Rotation) * 1.5);
+
+	return GetRenderPos();
+}
+
 Vector AHuman::GetEyePos() const {
 	if (m_pHead && m_pHead->IsAttached()) {
 		return m_Pos + m_pHead->GetParentOffset() * 1.2F;
