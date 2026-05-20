@@ -541,10 +541,10 @@ void PieMenu::Update() {
 	m_ActivatedPieSlice = nullptr;
 
 	if (m_Owner) {
-		SetPos(m_Owner->GetCPUPos());
+		SetPos(m_Owner->GetRenderCPUPos());
 	} else if (m_AffectedObject) {
 		const Actor* affectedObjectAsActor = dynamic_cast<Actor*>(m_AffectedObject);
-		SetPos(affectedObjectAsActor ? affectedObjectAsActor->GetCPUPos() : m_AffectedObject->GetPos());
+		SetPos(affectedObjectAsActor ? affectedObjectAsActor->GetRenderCPUPos() : m_AffectedObject->GetRenderPos());
 	}
 
 	if (controller->IsDisabled()) {

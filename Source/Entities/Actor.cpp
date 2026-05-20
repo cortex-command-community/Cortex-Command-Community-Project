@@ -1113,8 +1113,6 @@ void Actor::Update() {
 	// Hit Body update and handling
 	MOSRotating::Update();
 
-	m_PieMenu->Update();
-
 	// Update the viewpoint to be at least what the position is
 	m_ViewPoint = m_Pos;
 
@@ -1373,6 +1371,9 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 			}
 		}
 	}
+
+	// Ugly having in Draw instead of a seperate UpdateRender(), but hey, I'm a busy man
+	m_PieMenu->Update();
 
 	int actorScreen = g_ActivityMan.GetActivity() ? g_ActivityMan.GetActivity()->ScreenOfPlayer(m_Controller.GetPlayer()) : -1;
 	bool screenTeamIsSameAsActorTeam = g_ActivityMan.GetActivity() ? g_ActivityMan.GetActivity()->GetTeamOfPlayer(g_ActivityMan.GetActivity()->PlayerOfScreen(whichScreen)) == m_Team : true;
