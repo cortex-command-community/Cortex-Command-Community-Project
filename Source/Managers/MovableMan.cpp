@@ -1683,6 +1683,12 @@ void MovableMan::Update() {
 	}
 }
 
+void MovableMan::RenderUpdate() {
+	for (Actor* actor : m_Actors) {
+		actor->GetController()->RenderUpdate();
+	}
+}
+
 void MovableMan::Travel() {
 	ZoneScoped;
 

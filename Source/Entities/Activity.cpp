@@ -879,7 +879,7 @@ void Activity::RenderUpdate() {
 		}
 
 		if (m_IsActive[player]) {
-			m_PlayerController[player].Update();
+			m_PlayerController[player].RenderUpdate();
 		}
 	}
 }

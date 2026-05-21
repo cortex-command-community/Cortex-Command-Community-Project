@@ -447,8 +447,11 @@ namespace RTE {
 		/// @return Whether enabled or not.
 		bool IsMOSubtractionEnabled() { return m_MOSubtractionEnabled; }
 
-		/// Updates the state of this MovableMan. Supposed to be done every frame.
+		/// Updates the state of this MovableMan.
 		void Update();
+
+		/// Updates the state of this MovableMan every render update.
+		void RenderUpdate();
 
 		/// Draws this MovableMan's all MO's current material representations to a BITMAP of choice.
 		/// @param pTargetBitmap A pointer to a BITMAP to draw on.
