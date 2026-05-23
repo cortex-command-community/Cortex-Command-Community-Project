@@ -1284,6 +1284,8 @@ void LuaMan::Update() {
 }
 
 void LuaMan::StartAsyncGarbageCollection() {
+	return; // disabled to not do stuff during activity render update. TODO, activity should be queuing these operations to occur in the update itself
+	
 	ZoneScoped;
 
 	std::vector<LuaStateWrapper*> allStates;
