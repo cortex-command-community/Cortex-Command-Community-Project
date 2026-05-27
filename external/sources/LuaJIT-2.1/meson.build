@@ -20,23 +20,14 @@ dynasm = files('dynasm/dynasm.lua')
 
 subdir('src')
 
-if not get_option('use_prebuilt_libraries') or host_machine.system() in ['linux', 'darwin']
-    libluajit = library(lj_libname, ljlib_sources + ljcore_sources + buildvm_headers,
-        include_directories: luajit_source_dir,
-        c_args: lj_defines,
-        name_prefix: lj_libprefix,
-        dependencies: luajit_dependencies,
-        build_by_default: false,
-        install: true
-    )
-else
-    libluajit = []
-    if get_option('debug')
-        luajit_dependencies += cc.find_library('luajit-debug', dirs: meson.current_source_dir()/'_Bin')
-    else
-        luajit_dependencies += cc.find_library('luajit-release', dirs: meson.current_source_dir()/'_Bin')
-    endif
-endif
+libluajit = library(lj_libname, ljlib_sources + ljcore_sources + buildvm_headers,
+    include_directories: luajit_source_dir,
+    c_args: lj_defines,
+    name_prefix: lj_libprefix,
+    dependencies: luajit_dependencies,
+    build_by_default: false,
+    install: true
+)
 
 luajit_dep = declare_dependency(
     dependencies : luajit_dependencies,
