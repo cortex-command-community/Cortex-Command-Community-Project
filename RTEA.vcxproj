@@ -1486,6 +1486,11 @@
     <None Include="cpp.hint" />
     <None Include="Source\System\Semver200\version.inl" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="external\sources\LuaJIT-2.1\libluajit.vcxproj">
+      <Project>{9C341649-AA1F-35E8-81E3-228A6A09B2BB}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -14,6 +14,7 @@ src/*.lib
 buildvm_arch.h
 
 _Bin/libluajit*
+_Bin/luajit-*
 
 
 #cmake
