@@ -59,6 +59,9 @@
     <Filter Include="Renderer\raylib">
       <UniqueIdentifier>{5aa83e16-d772-476c-b51a-72480c976207}</UniqueIdentifier>
     </Filter>
+    <Filter Include="external\nlohmann_json">
+      <UniqueIdentifier>{c4e07ab0-2a3a-4b1f-9c9d-7e0a6f9c2e04}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\System\Box.h">
@@ -1271,6 +1274,11 @@
     <ClCompile Include="Source\Entities\DynamicSong.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="external\sources\nlohmann_json-3.12.0\nlohmann\json.hpp">
+      <Filter>external\nlohmann_json</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\ccicon.ico">
