@@ -73,7 +73,7 @@ int SettingsMan::Initialize() {
 		m_SettingsPath = std::string(settingsTempPath);
 	}
 
-	Reader settingsReader(m_SettingsPath, false, nullptr, true, true);
+	Reader settingsReader(m_SettingsPath, false, true, true);
 
 	if (!settingsReader.ReaderOK()) {
 		Writer settingsWriter(m_SettingsPath);
@@ -85,7 +85,7 @@ int SettingsMan::Initialize() {
 
 		m_SettingsNeedOverwrite = true;
 
-		Reader newSettingsReader(m_SettingsPath, false, nullptr, false, true);
+		Reader newSettingsReader(m_SettingsPath, false, false, true);
 		return Serializable::Create(newSettingsReader);
 	}
 

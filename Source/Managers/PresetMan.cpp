@@ -67,7 +67,7 @@ void PresetMan::Destroy() {
 	Clear();
 }
 
-bool PresetMan::LoadDataModule(const std::string& moduleName, bool official, bool userdata, const ProgressCallback& progressCallback) {
+bool PresetMan::LoadDataModule(const std::string& moduleName, bool official, bool userdata) {
 	if (moduleName.empty()) {
 		return false;
 	}
@@ -87,9 +87,6 @@ bool PresetMan::LoadDataModule(const std::string& moduleName, bool official, boo
 
 	// Official modules are stacked in the beginning of the vector.
 	if (official && !userdata) {
-		// Halt if an official module is being loaded after any non-official ones!
-		// RTEAssert(m_pDataModules.size() == m_OfficialModuleCount, "Trying to load an official module after a non-official one has been loaded!");
-
 		// Find where the official modules end in the vector.
 		std::vector<DataModule*>::iterator moduleItr = m_pDataModules.begin();
 		size_t newModuleID = 0;
@@ -108,7 +105,7 @@ bool PresetMan::LoadDataModule(const std::string& moduleName, bool official, boo
 		m_DataModuleIDs.try_emplace(lowercaseName, m_pDataModules.size() - 1);
 	}
 
-	if (newModule->Create(moduleName, progressCallback) < 0) {
+	if (newModule->Create(moduleName) < 0) {
 		RTEAbort("Failed to find the " + moduleName + " Data Module!");
 		return false;
 	}
@@ -116,64 +113,116 @@ bool PresetMan::LoadDataModule(const std::string& moduleName, bool official, boo
 	return true;
 }
 
-bool PresetMan::LoadAllDataModules() {
-	auto moduleLoadTimerStart = std::chrono::steady_clock::now();
+bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) {
+	auto timerTotalFunctionStart = std::chrono::steady_clock::now();
+	std::chrono::milliseconds moduleLoadElapsedTime = {};
 
 	// Destroy any possible loaded modules
 	Destroy();
 
 	FindAndExtractZippedModules();
 
-	// Load all the official modules first!
-	for (const std::string& officialModule: c_OfficialModules) {
-		if (!LoadDataModule(officialModule, true, false, LoadingScreen::LoadingSplashProgressReport)) {
-			return false;
+	// No callback passing by a trickle, instead shove needed
+	// functions into statics of classes that will use them
+	DataModule::AssertFromWorkerAndShutdownAll = AssertFromModuleLoadingWorkerAndShutdownAll;
+	Reader::AssertFromWorkerAndShutdownAll = AssertFromModuleLoadingWorkerAndShutdownAll;
+	if (!g_SettingsMan.GetLoadingScreenProgressReportDisabled()) {
+		Reader::PushToProgressDisplayQueue = PushToProgressDisplayQueue;
+		DataModule::PushToProgressDisplayQueue = PushToProgressDisplayQueue;
+	}
+
+	// Module loading Thread
+	std::atomic<ModuleLoadResult> loadingDone = ModuleLoadResult::StillWorking;
+	bool toDoProgressPrintOut = !g_SettingsMan.GetLoadingScreenProgressReportDisabled();
+	std::jthread moduleLoadingThread([&](std::stop_token st) {
+		ModuleLoadingThreadFunction(st, loadingDone, moduleLoadElapsedTime);
+	});		
+
+	// Spinlock watchdog thread
+	std::atomic<int> mainThreadHeartbeat = 0;
+	std::atomic<bool> spinlockDetected = false;
+	std::jthread spinlockWatchdogThread([&](std::stop_token st) {
+		SpinlockWatchdogThreadFunction(st, mainThreadHeartbeat, spinlockDetected);
+	});
+	
+	// Main thread - we drain display queue and poll SDL events
+	//
+	// We do this so the window does not freeze, and to handle
+	// the close button on the window being hit / Alt+F4 pressed
+	{
+		while (1) {
+			mainThreadHeartbeat++;
+			PollSDLEventsCallback();
+			if (true) {
+				ProgressDisplayEntry entry;
+				{
+					std::unique_lock lk(m_ProgressDisplayMutex);
+
+					// Sleep until there is work to do or 16 ms pass
+					m_ProgressDisplayCv.wait_for(lk, std::chrono::milliseconds(16), [&] {
+						return 
+							!m_ProgressDisplayDeque.empty() 
+							|| loadingDone != ModuleLoadResult::StillWorking
+							|| m_WorkerFailed 
+							|| spinlockDetected
+							|| System::IsSetToQuit();
+					});
+
+					if (System::IsSetToQuit() 
+						|| loadingDone == ModuleLoadResult::Failure
+						|| m_WorkerFailed)
+					{
+						moduleLoadingThread.request_stop();
+						break;
+					}
+
+					if (loadingDone == ModuleLoadResult::Success
+						&& m_ProgressDisplayDeque.empty()) 
+					{
+						break;
+					}
+
+					if (!m_ProgressDisplayDeque.empty()) {
+						entry = std::move(m_ProgressDisplayDeque.front());
+						m_ProgressDisplayDeque.pop_front();
+					} else if (spinlockDetected) {
+						spinlockDetected = false;
+						SpinlockAssert(toDoProgressPrintOut, loadingDone);
+						RTEAssert(false, to_string(mainThreadHeartbeat))
+					}
+				}
+				LoadingScreen::LoadingSplashProgressReport(entry.first, entry.second);
+			}
 		}
 	}
 
-	// If a single module is specified, skip loading all other unofficial modules and load specified module only.
-	if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad)) {
-		if (!LoadDataModule(m_SingleModuleToLoad, false, false, LoadingScreen::LoadingSplashProgressReport)) {
-			g_ConsoleMan.PrintString("ERROR: Failed to load DataModule \"" + m_SingleModuleToLoad + "\"! Only official modules were loaded!");
-			return false;
-		}
-	} else {
-		std::vector<std::filesystem::directory_entry> modDirectoryFolders;
-		const std::string modDirectory = System::GetWorkingDirectory() + System::GetModDirectory();
-		std::copy_if(std::filesystem::directory_iterator(modDirectory), std::filesystem::directory_iterator(), std::back_inserter(modDirectoryFolders),
-		             [](auto dirEntry) { return std::filesystem::is_directory(dirEntry); });
-		std::sort(modDirectoryFolders.begin(), modDirectoryFolders.end());
+	moduleLoadingThread.join();
+	spinlockWatchdogThread.request_stop();
+	m_SpinlockWdCv.notify_all();
+	spinlockWatchdogThread.join();
 
-		for (const std::filesystem::directory_entry& directoryEntry: modDirectoryFolders) {
-			std::string directoryEntryPath = directoryEntry.path().generic_string();
-			if (directoryEntryPath.ends_with(".rte")) {
-				std::string moduleName = directoryEntryPath.substr(directoryEntryPath.find_last_of('/') + 1, std::string::npos);
-				if (!g_SettingsMan.IsModDisabled(moduleName) && !IsModuleOfficial(moduleName) && !IsModuleUserdata(moduleName)) {
-					int moduleID = GetModuleID(moduleName);
-					// NOTE: LoadDataModule can return false (especially since it may try to load already loaded modules, which is okay) and shouldn't cause stop, so we can ignore its return value here.
-					if (moduleID < 0 || moduleID >= GetOfficialModuleCount()) {
-						LoadDataModule(moduleName, false, false, LoadingScreen::LoadingSplashProgressReport);
-					}
-				}
-			}
-		}
+	if (System::IsSetToQuit()) {
+		return false;
+	}
 
-		// Load userdata modules AFTER all other techs etc are loaded; might be referring to stuff in user mods.
-		for (const auto& [userdataModuleName, userdataModuleFriendlyName]: c_UserdataModules) {
-			if (!std::filesystem::exists(System::GetWorkingDirectory() + System::GetUserdataDirectory() + userdataModuleName)) {
-				bool scanContentsAndIgnoreMissing = userdataModuleName == c_UserScenesModuleName;
-				DataModule::CreateOnDiskAsUserdata(userdataModuleName, userdataModuleFriendlyName, scanContentsAndIgnoreMissing, scanContentsAndIgnoreMissing);
-			}
-			if (!LoadDataModule(userdataModuleName, false, true, LoadingScreen::LoadingSplashProgressReport)) {
-				return false;
-			}
-		}
+	if (loadingDone == ModuleLoadResult::Failure) {
+		RTEAssert(false, m_WorkerErrorMessage);
+	}
+
+	// Compile the shaders we've deferred
+	for (auto* shader: m_ShadersToCompile) {
+		shader->Create();
 	}
 
 	if (g_SettingsMan.IsMeasuringModuleLoadTime()) {
-		std::chrono::milliseconds moduleLoadElapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - moduleLoadTimerStart);
-		g_ConsoleMan.PrintString("Module load duration is: " + std::to_string(moduleLoadElapsedTime.count()) + "ms");
+		std::chrono::milliseconds totalFunctionElapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerTotalFunctionStart);
+		std::string coutString = "Total loading time was " + std::to_string(totalFunctionElapsedTime.count()) + "ms";
+		if (!g_SettingsMan.GetLoadingScreenProgressReportDisabled()) {
+			coutString += " (module load duration: " + std::to_string(moduleLoadElapsedTime.count()) + "ms)";
+		}
+		g_ConsoleMan.PrintString(coutString);
 	}
+
 	return true;
 }
 
@@ -350,6 +399,9 @@ const Entity* PresetMan::GetEntityPreset(Reader& reader) {
 	// Load class name and then preset instance
 	reader >> ClassName;
 	pClass = Entity::ClassInfo::GetClass(ClassName);
+	if (ClassName == "Shader") {
+		int a = 5;
+	}
 
 	if (pClass && pClass->IsConcrete()) {
 		// Instantiate
@@ -917,5 +969,160 @@ void PresetMan::FindAndExtractZippedModules() const {
 			LoadingScreen::LoadingSplashProgressReport("Extracting Data Module from: " + directoryEntry.path().filename().generic_string(), true);
 			LoadingScreen::LoadingSplashProgressReport(System::ExtractZippedDataModule(zippedModulePath), true);
 		}
+	}
+}
+
+void PresetMan::DeferShaderCompilationToBeDoneOnMainThread(Shader* shader) {
+	m_ShadersToCompile.push_back(shader);
+}
+
+void PresetMan::PushToProgressDisplayQueue(const std::string& string, bool newItem) {
+	{
+		std::lock_guard lg(g_PresetMan.m_ProgressDisplayMutex);
+		g_PresetMan.m_ProgressDisplayDeque.push_back({string, newItem});
+	}
+	g_PresetMan.m_ProgressDisplayCv.notify_one();
+}
+
+void PresetMan::AssertFromModuleLoadingWorkerAndShutdownAll(const std::string& assertString) {
+	g_PresetMan.m_WorkerFailed = true;
+	g_PresetMan.m_ProgressDisplayCv.notify_all();
+}
+
+void PresetMan::SpinlockAssert(bool toDoProgressPrintOut, ModuleLoadResult loadingDone) {
+
+	auto loadingDoneValueString = [](auto& loadingDone) -> const std::string {
+		switch (loadingDone) {
+			case ModuleLoadResult::Failure:
+				return "Failure";
+			case ModuleLoadResult::Success:
+				return "Success";
+			case ModuleLoadResult::StillWorking:
+				return "StillWorking";
+			default:
+				return "Unknown";
+		}
+	};
+	std::string assertString =
+		"Main thread spinlock during module loading!\n"
+		+ std::string("toDoProgressPrintOut = ") + std::to_string(toDoProgressPrintOut)
+		+ std::string("\nloadingDone = ") + loadingDoneValueString(loadingDone)
+		+ std::string("\nm_WorkerFailed = ") + std::to_string(m_WorkerFailed)
+		+ std::string("\nm_ProgressDisplayDeque.size() = ") + std::to_string(m_ProgressDisplayDeque.size());
+	RTEAssert(false, assertString);
+}
+
+void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::atomic<ModuleLoadResult>& loadingDone, std::chrono::milliseconds& moduleLoadElapsedTime) {
+	try {
+		auto timerModuleLoadingThreadStart = std::chrono::steady_clock::now();
+		// auto ProgressCallback = g_SettingsMan.GetLoadingScreenProgressReportDisabled()
+		//     ? nullptr
+		//     : PresetMan::PushToProgressDisplayQueue;
+		// Load all the official modules first!
+		for (const std::string& officialModule: c_OfficialModules) {
+			if (st.stop_requested()) {
+				return;
+			}
+			if (!LoadDataModule(officialModule, true, false)) {
+				loadingDone = ModuleLoadResult::Failure;
+				m_ProgressDisplayCv.notify_all();
+				return;
+			}
+		}
+
+		// If a single module is specified, skip loading all other unofficial modules and load specified module only.
+		if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad)) {
+			if (!LoadDataModule(m_SingleModuleToLoad, false, false)) {
+				g_ConsoleMan.PrintString("ERROR: Failed to load DataModule \"" + m_SingleModuleToLoad + "\"! Only official modules were loaded!");
+				loadingDone = ModuleLoadResult::Failure;
+				m_ProgressDisplayCv.notify_all();
+				return;
+			}
+		} else {
+			std::vector<std::filesystem::directory_entry> modDirectoryFolders;
+			const std::string modDirectory = System::GetWorkingDirectory() + System::GetModDirectory();
+			std::copy_if(std::filesystem::directory_iterator(modDirectory), std::filesystem::directory_iterator(), std::back_inserter(modDirectoryFolders),
+			             [](auto dirEntry) { return std::filesystem::is_directory(dirEntry); });
+			std::sort(modDirectoryFolders.begin(), modDirectoryFolders.end());
+
+			for (const std::filesystem::directory_entry& directoryEntry: modDirectoryFolders) {
+				if (st.stop_requested()) {
+					return;
+				}
+				std::string directoryEntryPath = directoryEntry.path().generic_string();
+				if (directoryEntryPath.ends_with(".rte")) {
+					std::string moduleName = directoryEntryPath.substr(directoryEntryPath.find_last_of('/') + 1, std::string::npos);
+					if (!g_SettingsMan.IsModDisabled(moduleName) && !IsModuleOfficial(moduleName) && !IsModuleUserdata(moduleName)) {
+						int moduleID = GetModuleID(moduleName);
+						// NOTE: LoadDataModule can return false (especially since it may try to load already loaded modules, which is okay) and shouldn't cause stop, so we can ignore its return value here.
+						if (moduleID < 0 || moduleID >= GetOfficialModuleCount()) {
+							LoadDataModule(moduleName, false, false);
+						}
+					}
+				}
+			}
+
+			// Load userdata modules AFTER all other techs etc are loaded; might be referring to stuff in user mods.
+			for (const auto& [userdataModuleName, userdataModuleFriendlyName]: c_UserdataModules) {
+				if (st.stop_requested()) {
+					return;
+				}
+				if (!std::filesystem::exists(System::GetWorkingDirectory() + System::GetUserdataDirectory() + userdataModuleName)) {
+					bool scanContentsAndIgnoreMissing = userdataModuleName == c_UserScenesModuleName;
+					DataModule::CreateOnDiskAsUserdata(userdataModuleName, userdataModuleFriendlyName, scanContentsAndIgnoreMissing, scanContentsAndIgnoreMissing);
+				}
+				if (!LoadDataModule(userdataModuleName, false, true)) {
+					loadingDone = ModuleLoadResult::Failure;
+					m_ProgressDisplayCv.notify_all();
+					return;
+				}
+			}
+		}
+
+		moduleLoadElapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerModuleLoadingThreadStart);
+
+		loadingDone = ModuleLoadResult::Success;
+		m_ProgressDisplayCv.notify_all();
+		return;
+	} catch (const std::exception& e) {
+		AssertFromModuleLoadingWorkerAndShutdownAll(std::string("Module loader exception!\n") + e.what());
+		m_ToStopSpinlockWatchdog = true;
+		loadingDone = ModuleLoadResult::Failure;
+		m_ProgressDisplayCv.notify_all();
+	} catch (...) {
+		AssertFromModuleLoadingWorkerAndShutdownAll("Module loader unknown exception!");
+		m_ToStopSpinlockWatchdog = true;
+		loadingDone = ModuleLoadResult::Failure;
+		m_ProgressDisplayCv.notify_all();
+	}
+
+	// We only reach here if we've caught an exception
+	loadingDone = ModuleLoadResult::Failure;
+	m_ProgressDisplayCv.notify_all();
+}
+
+void PresetMan::SpinlockWatchdogThreadFunction(std::stop_token st, std::atomic<int>& mainThreadHeartbeat, std::atomic<bool>& spinlockDetected) {
+	int previousHeartbeat = 0;
+	while (!st.stop_requested()) {
+		if (m_ToStopSpinlockWatchdog) {
+			return;
+		}
+
+		std::unique_lock lk(m_SpinlockWdMutex);
+		m_SpinlockWdCv.wait_for(lk, std::chrono::milliseconds(1000), [&] {
+			return st.stop_requested();
+		});
+		if (st.stop_requested()) {
+			return;
+		}
+
+		int newHeartbeat = mainThreadHeartbeat;
+		if (newHeartbeat == previousHeartbeat) {
+			// Spinlock, report!
+			spinlockDetected = true;
+			m_ProgressDisplayCv.notify_all();
+			return;
+		}
+		previousHeartbeat = newHeartbeat;
 	}
 }
