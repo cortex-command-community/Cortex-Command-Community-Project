@@ -450,7 +450,7 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 		}
 
 		for (Atom* atom: m_Atoms) {
-			atom->SetStepRatio(static_cast<float>(atom->GetStepsLeft()) / static_cast<float>(stepsOnSeg));
+			atom->SetStepRatio(stepsOnSeg != 0 ? static_cast<float>(atom->GetStepsLeft()) / static_cast<float>(stepsOnSeg) : 0.0F);
 		}
 
 		// STEP LOOP ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
