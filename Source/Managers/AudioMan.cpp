@@ -603,6 +603,19 @@ bool AudioMan::StopSoundContainerPlayingChannels(SoundContainer* soundContainer,
 	return result == FMOD_OK;
 }
 
+void AudioMan::DisownSoundContainerPlayingChannels(const SoundContainer* soundContainer) {
+	if (!m_AudioEnabled || !soundContainer || !soundContainer->IsBeingPlayed()) {
+		return;
+	}
+	// Leave the channels playing, but null their back-reference so the positional/ended passes don't read the freed container.
+	FMOD::Channel* soundChannel;
+	for (int channelIndex: *soundContainer->GetPlayingChannels()) {
+		if (m_AudioSystem->getChannel(channelIndex, &soundChannel) == FMOD_OK) {
+			soundChannel->setUserData(nullptr);
+		}
+	}
+}
+
 void AudioMan::FadeOutSoundContainerPlayingChannels(SoundContainer* soundContainer, int fadeOutTime) {
 	if (!m_AudioEnabled || !soundContainer || !soundContainer->IsBeingPlayed()) {
 		return;
@@ -673,7 +686,7 @@ void AudioMan::Update3DEffectsForSFXChannels() {
 				float doubleMinimumDistanceForPanning = m_MinimumDistanceForPanning * 2.0F;
 				void* userData;
 				result = result == FMOD_OK ? soundChannel->getUserData(&userData) : result;
-				if (result == FMOD_OK) {
+				if (result == FMOD_OK && userData != nullptr) {
 					const SoundContainer* soundContainer = static_cast<SoundContainer*>(userData);
 					if (sqrDistanceToPlayer < (m_MinimumDistanceForPanning * m_MinimumDistanceForPanning) || soundContainer->GetCustomPanValue() != 0.0f) {
 						result = soundChannel->set3DLevel(0);
@@ -702,6 +715,9 @@ FMOD_RESULT AudioMan::UpdatePositionalEffectsForSoundChannel(FMOD::Channel* soun
 	}
 
 	const SoundContainer* channelSoundContainer = static_cast<SoundContainer*>(userData);
+	if (channelSoundContainer == nullptr) {
+		return FMOD_OK; // The owning SoundContainer was destroyed; leave the channel playing where it is.
+	}
 
 	bool sceneWraps = g_SceneMan.SceneWrapsX();
 
@@ -802,7 +818,7 @@ FMOD_RESULT F_CALLBACK AudioMan::SoundChannelEndedCallback(FMOD_CHANNELCONTROL* 
 		result = (result == FMOD_OK) ? channel->getUserData(&userData) : result;
 		if (result == FMOD_OK) {
 			SoundContainer* channelSoundContainer = static_cast<SoundContainer*>(userData);
-			if (channelSoundContainer->IsBeingPlayed()) {
+			if (channelSoundContainer != nullptr && channelSoundContainer->IsBeingPlayed()) {
 				channelSoundContainer->RemovePlayingChannel(channelIndex);
 			}
 			result = (result == FMOD_OK) ? channel->setUserData(nullptr) : result;
@@ -812,7 +828,8 @@ FMOD_RESULT F_CALLBACK AudioMan::SoundChannelEndedCallback(FMOD_CHANNELCONTROL* 
 			}
 
 			if (result != FMOD_OK) {
-				g_ConsoleMan.PrintString("ERROR: An error occurred when Ending a sound in SoundContainer " + channelSoundContainer->GetPresetName() + ": " + std::string(FMOD_ErrorString(result)));
+				const std::string containerName = channelSoundContainer != nullptr ? channelSoundContainer->GetPresetName() : "<destroyed>";
+				g_ConsoleMan.PrintString("ERROR: An error occurred when Ending a sound in SoundContainer " + containerName + ": " + std::string(FMOD_ErrorString(result)));
 				return result;
 			}
 		} else {

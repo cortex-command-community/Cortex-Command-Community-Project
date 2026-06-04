@@ -396,6 +396,10 @@ namespace RTE {
 		/// @return
 		bool StopSoundContainerPlayingChannels(SoundContainer* soundContainer, int player);
 
+		/// Clears the back-reference from a destroyed SoundContainer's still-playing channels so they don't dangle.
+		/// @param soundContainer A pointer to the SoundContainer being destroyed. Ownership is NOT transferred!
+		void DisownSoundContainerPlayingChannels(const SoundContainer* soundContainer);
+
 		/// Fades out playback a SoundContainer.
 		/// @param soundContainer A pointer to a SoundContainer object. Ownership is NOT transferred!
 		/// @param fadeOutTime The amount of time, in ms, to fade out over.
