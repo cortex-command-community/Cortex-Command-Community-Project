@@ -75,7 +75,7 @@ if compiler.get_argument_syntax()== 'gcc' # used for gcc compatible compilers
       preprocessor_flags += ['-DDEBUG_BUILD', '-DDEBUGMODE'] # enable all debug features; may slow down game
     endif
   else
-    extra_args = ['-w'] # Disable all warnings for release builds
+    extra_args += ['-w'] # Disable all warnings for release builds
     preprocessor_flags += ['-DRELEASE_BUILD', '-DNDEBUG'] # disable all debug features
   endif
   if compiler.get_id() =='gcc' and compiler.version().version_compare('<9')
