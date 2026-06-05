@@ -1891,7 +1891,7 @@ void Profiler::Worker()
 
                     lastBroadcast = t;
                     const auto ts = std::chrono::duration_cast<std::chrono::seconds>( std::chrono::system_clock::now().time_since_epoch() ).count();
-                    broadcastMsg.activeTime = int32_t( ts - m_epoch );
+                    broadcastMsg.activeTime = ts > m_epoch ? int32_t( ts - m_epoch ) : 0;
                     assert( broadcastMsg.activeTime >= 0 );
                     m_broadcast->Send( broadcastPort, &broadcastMsg, broadcastLen );
                 }
