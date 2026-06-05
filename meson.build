@@ -49,6 +49,18 @@ if compiler.get_argument_syntax()== 'gcc' # used for gcc compatible compilers
     build_rpath = '$ORIGIN:$ORIGIN/../external/lib/linux/x86_64' # Set RUNPATH so that CCCP can find libfmod.so without needing to set LD_LIBRARY_PATH
   elif host_machine.system()=='darwin'
     build_rpath = '@executable_path/../external/lib/macos' # Add a new R_PATH CCCP can find libfmod.dylib on Darwin TODO: Confirm and validate this.
+    # Apple libc++ dropped the C++17-removed APIs that vendored luabind 0.7.1 + boost 1.75 still use; re-enable them.
+    add_global_arguments(
+      '-D_LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR',
+      '-D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION',
+      '-D_LIBCPP_ENABLE_CXX17_REMOVED_BINDERS',
+      '-D_LIBCPP_ENABLE_CXX17_REMOVED_RANDOM_SHUFFLE',
+      '-D_LIBCPP_ENABLE_CXX17_REMOVED_UNEXPECTED_FUNCTIONS',
+      '-D_LIBCPP_ENABLE_CXX20_REMOVED_BINDER_TYPEDEFS',
+      '-D_LIBCPP_ENABLE_CXX20_REMOVED_NEGATORS',
+      '-D_LIBCPP_ENABLE_EXPERIMENTAL',
+      '-D_LIBCPP_PSTL_BACKEND_SERIAL',
+      language: 'cpp')
   endif
 
   #suffix = 'x86_64'
