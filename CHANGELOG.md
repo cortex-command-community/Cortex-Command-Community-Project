@@ -220,6 +220,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Updated SDL2 to SDL3
 
+- Swapped LuaJIT to the [WohlSoft fork](https://github.com/WohlSoft/LuaJIT). Vendored from [dfcb8651](https://github.com/WohlSoft/LuaJIT/commit/dfcb8651).
+
+- LuaJIT is now built from source on Windows as part of the solution, instead of shipping prebuilt libraries.
+
+- Vendored [nlohmann/json](https://github.com/nlohmann/json) 3.12.0.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
