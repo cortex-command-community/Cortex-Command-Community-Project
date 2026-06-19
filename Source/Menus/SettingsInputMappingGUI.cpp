@@ -15,7 +15,7 @@ using namespace RTE;
 std::array<InputElements, 7> SettingsInputMappingGUI::m_InputElementsUsedByMouse = {InputElements::INPUT_FIRE, InputElements::INPUT_PIEMENU_ANALOG, InputElements::INPUT_AIM, InputElements::INPUT_AIM_UP, InputElements::INPUT_AIM_DOWN, InputElements::INPUT_AIM_LEFT, InputElements::INPUT_AIM_RIGHT};
 
 SettingsInputMappingGUI::SettingsInputMappingGUI(GUIControlManager* parentControlManager) :
-    m_GUIControlManager(parentControlManager) {
+	m_GUIControlManager(parentControlManager) {
 	m_InputMappingSettingsBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxPlayerInputMapping"));
 	m_InputMappingSettingsBox->SetVisible(false);
 
@@ -31,9 +31,19 @@ SettingsInputMappingGUI::SettingsInputMappingGUI(GUIControlManager* parentContro
 
 	for (int i = 0; i < InputElements::INPUT_COUNT; ++i) {
 		m_InputMapLabel[i] = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelInputName" + std::to_string(i + 1)));
-		m_InputMapLabel[i]->SetText(c_InputElementNames[i]);
+
+		// Add null check to prevent crash
+		if (m_InputMapLabel[i]) {
+			m_InputMapLabel[i]->SetText(c_InputElementNames[i]);
+		}
+
 		m_InputMapButton[i] = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonInputKey" + std::to_string(i + 1)));
+		// Add null check to prevent crash
+		if (m_InputMapButton[i]) {
+			// Optionally, initialize button text or state here if needed
+		}
 	}
+
 	m_InputMappingCaptureBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("CollectionBoxInputCapture"));
 	m_InputMappingCaptureBox->SetVisible(false);
 
