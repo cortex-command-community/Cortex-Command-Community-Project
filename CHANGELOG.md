@@ -67,6 +67,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `AEmitter` and `PEmitter` INI and Lua (R/W) property `PlayBurstSound` which denotes whether the BurstSound should play when appropriate. This should not be confused for a trigger - it's just a enable/disable toggle to avoid having to remove and add BurstSound altogether.
 
+- New `Attachable` INI and Lua (R/W) property `AffectsRadius` which determines whether an attachable is liable to affect the radius of it's parent.
+
 - New `MOSprite` INI and Lua (R/W) integer property `ForcedHFlip` which forces a certain flippedness and disallows anything else from ever changing it without clearing the forced value first. 0 is forced not flipped, 1 forced flipped, and -1 is no force.
 	
 - New `Controller` state `WEAPON_RELOADHELD`, which is true every frame reload input is held (as opposed to `WEAPON_RELOAD` which is only true once when pressed).

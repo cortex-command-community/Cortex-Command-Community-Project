@@ -1790,6 +1790,9 @@ bool MOSRotating::HandlePotentialRadiusAffectingAttachable(const Attachable* att
 	if (!attachable->IsAttachedTo(this) && !attachable->IsWound()) {
 		return false;
 	}
+	if (!attachable->AffectsRadius()) {
+		return false;
+	}
 	const HDFirearm* thisAsFirearm = dynamic_cast<HDFirearm*>(this);
 	const AEmitter* thisAsEmitter = dynamic_cast<AEmitter*>(this);
 	if ((thisAsFirearm && attachable == thisAsFirearm->GetFlash()) || (thisAsEmitter && attachable == thisAsEmitter->GetFlash())) {
