@@ -27,7 +27,6 @@ SoundContainer::SoundContainer(const SoundContainer& reference) {
 }
 
 SoundContainer::~SoundContainer() {
-	g_AudioMan.DisownSoundContainerPlayingChannels(this);
 	Destroy(true);
 }
 
