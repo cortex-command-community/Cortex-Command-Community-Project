@@ -30,10 +30,30 @@ if compiler.get_argument_syntax()== 'gcc' # used for gcc compatible compilers
   # Build against system libraries on linux
   message('gcc detected')
 
+  # Pin floating-point so the same source gives bit-identical results across platforms.
+  if host_machine.cpu_family() in ['x86', 'x86_64']
+    extra_args += ['-msse2']         # baseline ISA — no x87 80-bit drift on Windows
+  endif
+  extra_args += [
+    '-ffp-contract=off',             # forbid FMA/contraction — required on ARM, harmless on x86
+    '-fno-fast-math',
+    '-fno-finite-math-only',
+    '-fno-associative-math',
+    '-fno-reciprocal-math',
+    '-fno-unsafe-math-optimizations',
+    '-frounding-math',
+    '-fsignaling-nans',
+  ]
+
   if host_machine.system() == 'linux'
     build_rpath = '$ORIGIN:$ORIGIN/../external/lib/linux/x86_64' # Set RUNPATH so that CCCP can find libfmod.so without needing to set LD_LIBRARY_PATH
   elif host_machine.system()=='darwin'
     build_rpath = '@executable_path/../external/lib/macos' # Add a new R_PATH CCCP can find libfmod.dylib on Darwin TODO: Confirm and validate this.
+  endif
+
+  # Apple's libc++ needs these to expose <execution> (std::execution::par_unseq).
+  if compiler.get_id() == 'clang'
+    extra_args += ['-D_LIBCPP_ENABLE_EXPERIMENTAL', '-D_LIBCPP_PSTL_BACKEND_SERIAL']
   endif
 
   #suffix = 'x86_64'
@@ -60,7 +80,7 @@ if compiler.get_argument_syntax()== 'gcc' # used for gcc compatible compilers
       preprocessor_flags += ['-DDEBUG_BUILD', '-DDEBUGMODE'] # enable all debug features; may slow down game
     endif
   else
-    extra_args = ['-w'] # Disable all warnings for release builds
+    extra_args += ['-w'] # Disable all warnings for release builds
     preprocessor_flags += ['-DRELEASE_BUILD', '-DNDEBUG'] # disable all debug features
   endif
   if compiler.get_id() =='gcc' and compiler.version().version_compare('<9')
@@ -70,7 +90,8 @@ elif compiler.get_argument_syntax()== 'msvc'
 #TODO: add MSVC related arguments and stuff in here
   message('cl detected')
   elfname = 'Cortex Command'
-  extra_args += ['-D_HAS_ITERATOR_DEBUGGING=0', '-D_HAS_AUTO_PTR_ETC=1', '-bigobj']
+  # /fp:precise stops MSVC rearranging FP ops; /arch:SSE2 keeps x86 off x87's 80-bit registers.
+  extra_args += ['-D_HAS_ITERATOR_DEBUGGING=0', '-D_HAS_AUTO_PTR_ETC=1', '-bigobj', '/fp:precise', '/arch:SSE2']
   add_global_arguments('-D_ITERATOR_DEBUG_LEVEL=0', language:'cpp')
   add_project_link_arguments(['winmm.lib', 'ws2_32.lib', 'dinput8.lib', 'ddraw.lib', 'dxguid.lib', 'dsound.lib', 'dbghelp.lib'], language:'cpp')
   if host_machine.cpu_family() == 'x86'

@@ -3,7 +3,8 @@ subdir('src')
 
 luabind_include = include_directories('.', 'luabind')
 
-luabind_args = ['-D_HAS_AUTO_PTR_ETC=1', '-D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES']
+# libc++ 19 dropped the CXX17-removed umbrella; re-enable the two APIs luabind 0.7.1 + boost 1.75 use.
+luabind_args = ['-D_HAS_AUTO_PTR_ETC=1', '-D_LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR', '-D_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION']
 
 luabind_dependencies = [dependency('luajit', 'LuaJIT-2.1'), dependency('boost-175')]
 

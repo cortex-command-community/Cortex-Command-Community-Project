@@ -354,8 +354,8 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 
 	HitData hitData;
 
-	// Thread locals for performance (avoid memory allocs)
-	thread_local std::unordered_map<MOID, std::vector<Atom*>> hitMOAtoms;
+	// std::map keeps hitMOAtoms iteration MOID-ascending so impulse accumulation order is deterministic.
+	thread_local std::map<MOID, std::vector<Atom*>> hitMOAtoms;
 	hitMOAtoms.clear();
 	thread_local std::vector<Atom*> hitTerrAtoms;
 	hitTerrAtoms.clear();
@@ -450,7 +450,7 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 		}
 
 		for (Atom* atom: m_Atoms) {
-			atom->SetStepRatio(static_cast<float>(atom->GetStepsLeft()) / static_cast<float>(stepsOnSeg));
+			atom->SetStepRatio(stepsOnSeg != 0 ? static_cast<float>(atom->GetStepsLeft()) / static_cast<float>(stepsOnSeg) : 0.0F);
 		}
 
 		// STEP LOOP ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -800,7 +800,8 @@ Vector AtomGroup::PushTravel(Vector& position, const Vector& velocity, float pus
 	// Thread locals for performance reasons (avoid memory allocs)
 	thread_local std::unordered_map<MOID, std::unordered_set<Atom*>> MOIgnoreMap;
 	MOIgnoreMap.clear();
-	thread_local std::unordered_map<MOID, std::vector<std::pair<Atom*, Vector>>> hitMOAtoms;
+	// std::map keeps hitMOAtoms iteration MOID-ascending so impulse accumulation order is deterministic.
+	thread_local std::map<MOID, std::vector<std::pair<Atom*, Vector>>> hitMOAtoms;
 	hitMOAtoms.clear();
 	thread_local std::deque<std::pair<Atom*, Vector>> hitTerrAtoms;
 	hitTerrAtoms.clear();

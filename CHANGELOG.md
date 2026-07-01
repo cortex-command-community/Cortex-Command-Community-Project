@@ -264,6 +264,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue where if the first objects in the buy cart are items instead of an actor, they would be added to the first actor's inventory- even if it was an actor without an inventory (i.e a crab)
 
+- Fixed a macOS worker-thread message box that could hang, and a libc++ build error formatting save-game timestamps.
+
+- Fixed a divide-by-zero on `AtomGroup` segments with no steps, which could feed bad values into the physics.
+
+- Fixed a couple of uninitialized values (Atom step state and the simulation frame counter) that could cause inconsistent behavior between runs.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
