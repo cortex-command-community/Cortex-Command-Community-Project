@@ -181,10 +181,9 @@ std::string Reader::ReadPropName() {
 }
 
 std::string Reader::ReadPropValue() {
-	std::string fullLine = ReadLine();
-	size_t valuePos = fullLine.find_first_of('=');
-	std::string propValue = (valuePos == std::string::npos) ? fullLine : fullLine.substr(valuePos + 1);
-	return TrimString(propValue);
+	std::string valueStr = ReadLine();
+
+	return TrimString(valueStr);
 }
 
 bool Reader::NextProperty() {
@@ -201,13 +200,6 @@ bool Reader::NextProperty() {
 }
 
 std::string Reader::TrimString(const std::string& stringToTrim) const {
-	/* if (stringToTrim.empty()) {
-		return "";
-	}
-	size_t start = stringToTrim.find_first_not_of(' ');
-	size_t end = stringToTrim.find_last_not_of(' ');
-
-	return stringToTrim.substr(start, (end - start + 1)); /**/
 	if (stringToTrim.empty()) {
 		return "";
 	}
