@@ -127,10 +127,11 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) 
 	// functions into statics of classes that will use them
 	DataModule::AssertFromWorkerAndShutdownAll = AssertFromModuleLoadingWorkerAndShutdownAll;
 	Reader::AssertFromWorkerAndShutdownAll = AssertFromModuleLoadingWorkerAndShutdownAll;
-	if (!g_SettingsMan.GetLoadingScreenProgressReportDisabled()) {
-		Reader::PushToProgressDisplayQueue = PushToProgressDisplayQueue;
-		DataModule::PushToProgressDisplayQueue = PushToProgressDisplayQueue;
-	}
+	// gtodo
+	/* if (!g_SettingsMan.GetLoadingScreenProgressReportDisabled()) {
+		//Reader::PushToProgressDisplayQueue = PushToProgressDisplayQueue;
+		//DataModule::PushToProgressDisplayQueue = PushToProgressDisplayQueue;
+	}*/
 
 	// Module loading Thread
 	std::atomic<ModuleLoadResult> loadingDone = ModuleLoadResult::StillWorking;

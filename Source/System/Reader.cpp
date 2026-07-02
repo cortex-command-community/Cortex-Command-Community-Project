@@ -107,28 +107,26 @@ std::string Reader::ReadLine() {
 	DiscardEmptySpace();
 
 	std::string retString;
-	char temp;
-	char peek = static_cast<char>(m_Stream->peek());
 
-	while (peek != '\n' && peek != '\r' && peek != '\t') {
-		temp = static_cast<char>(m_Stream->get());
-
-		// Check for line comment "//"
-		if (peek == '/' && m_Stream->peek() == '/') {
+	char ch;
+	while (m_Stream->get(ch)) {
+		if (ch == '\n' || ch == '\r' || ch == '\t') {
 			m_Stream->unget();
 			break;
 		}
-
-		if (m_Stream->eof()) {
-			break;
+		if (ch == '/') {
+			if (m_Stream->peek() == '/') {
+				m_Stream->unget();
+				break;
+			}
 		}
-		if (!m_Stream->good()) {
-			ReportError("Stream failed for some reason");
-		}
-
-		retString.append(1, temp);
-		peek = static_cast<char>(m_Stream->peek());
+		retString += ch;
 	}
+
+	if (!m_Stream->good() && !m_Stream->eof()) {
+		ReportError("Stream failed for some reason");
+	}
+
 	return TrimString(retString);
 }
 
@@ -203,66 +201,70 @@ bool Reader::NextProperty() {
 }
 
 std::string Reader::TrimString(const std::string& stringToTrim) const {
-	if (stringToTrim.empty()) {
+	/* if (stringToTrim.empty()) {
 		return "";
 	}
 	size_t start = stringToTrim.find_first_not_of(' ');
 	size_t end = stringToTrim.find_last_not_of(' ');
 
-	return stringToTrim.substr(start, (end - start + 1));
+	return stringToTrim.substr(start, (end - start + 1)); /**/
+	if (stringToTrim.empty()) {
+		return "";
+	}
+
+	const char* s = stringToTrim.data();
+	const char* e = s + stringToTrim.size();
+
+	// trim left
+	while (s < e && (*s == ' ')) {
+		++s;
+	}
+
+	// trim right
+	while (e > s && (*(e - 1) == ' ')) {
+		--e;
+	}
+
+	return std::string(s, e);
 }
 
 bool Reader::DiscardEmptySpace() {
-	char peek;
 	int indent = 0;
 	int leadingSpaceCount = 0;
 	bool discardedLine = false;
 
-	while (true) {
-		peek = static_cast<char>(m_Stream->peek());
-
-		// If we have hit the end and don't have any files 
-		// to resume, then quit and indicate that
-		if (m_Stream->eof()) {
-			return EndIncludeFile();
-		}
-		// Not end-of-file but still got junk back... something went to shit
-		if (peek == -1) {
-			ReportError("Something went wrong reading the line; make sure it is providing the expected type");
-		}
-
+	char ch;
+	while (m_Stream->get(ch)) {
 		// Discard spaces
-		if (peek == ' ') {
+		if (ch == ' ') {
 			leadingSpaceCount++;
-			m_Stream->ignore(1);
-			// Discard tabs, and count them
-		} else if (peek == '\t') {
+		}
+		// Discard tabs, and count them
+		else if (ch == '\t') {
 			indent++;
-			m_Stream->ignore(1);
-			// Discard newlines and reset the tab count for 
-			// the new line, also count the lines
-		} else if (peek == '\n' || peek == '\r') {
-			// So we don't count lines twice when there are 
+		} 
+		// Discard newlines and reset the tab count for
+		// the new line, also count the lines
+		else if (ch == '\n' || ch == '\r') {
+			// So we don't count lines twice when there are
 			// both newline and carriage return at the end of lines
-			if (peek == '\n') {
+			if (ch == '\n') {
 				m_CurrentLine++;
 			}
 			indent = 0;
 			leadingSpaceCount = 0;
 			discardedLine = true;
-			m_Stream->ignore(1);
-
-			// Comment line?
-		} else if (m_Stream->peek() == '/') {
-			char temp = static_cast<char>(m_Stream->get());
-
-			// Confirm that it's a comment line, if so discard it and continue
+		}
+		// Comment line?
+		else if (ch == '/') {
+			// "//" comment
 			if (m_Stream->peek() == '/') {
 				while (m_Stream->peek() != '\n' && m_Stream->peek() != '\r' && !m_Stream->eof()) {
 					m_Stream->ignore(1);
 				}
-				// Block comment
-			} else if (m_Stream->peek() == '*') {
+			} 
+			// "/**/" comment
+			else if (m_Stream->peek() == '*') {
 				int openBlockComments = 1;
 				m_BlockCommentOpenTagLines.emplace(m_CurrentLine);
 
@@ -292,14 +294,25 @@ bool Reader::DiscardEmptySpace() {
 					ReportError("File stream ended with an open block comment!\nCouldn't find closing tag for block comment opened on line " + std::to_string(m_BlockCommentOpenTagLines.top()) + ".\n");
 				}
 
-				// Not a comment, so it's data, so quit.
-			} else {
-				m_Stream->putback(temp);
+				
+			} 
+			// Not a comment, quit.
+			else {
+				m_Stream->unget();
 				break;
 			}
-		} else {
+		} 
+		// Non-space and non-comment character
+		else {
+			m_Stream->unget();
 			break;
 		}
+	}
+	
+	if (m_Stream->eof()) {
+		return EndIncludeFile();
+	} else if (!m_Stream->good()) {
+		ReportError("Something went wrong reading the line; make sure it is providing the expected type");
 	}
 
 	// This precaution enables us to use DiscardEmptySpace repeatedly without messing up the indentation tracking logic
