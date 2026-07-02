@@ -49,19 +49,16 @@ int Reader::Create(const std::string& fileName, bool overwrites, bool failOK) {
 	
 	if (m_NonModulePath) {
 		m_FilePath = std::filesystem::path(fileName).generic_string();
-		// Associate non-module paths with Base to prevent implosions when dealing with creating Entities.
-		m_DataModuleName = "Base.rte";
-		m_DataModuleID = 0;
 	} else {
 		m_FilePath = g_PresetMan.GetFullModulePath(fileName);
-
-		// Extract the file name and module name from the path
-		m_FileName = m_FilePath.substr(m_FilePath.find_last_of("/\\") + 1);
-		m_DataModuleName = g_PresetMan.GetModuleNameFromPath(m_FilePath);
-		m_DataModuleID = g_PresetMan.GetModuleID(m_DataModuleName);
 	}
 	
-	return Create(std::make_unique<std::ifstream>(m_FilePath), fileName, overwrites, failOK);
+	return Create(
+		std::make_unique<std::ifstream>(m_FilePath), 
+		fileName, 
+		overwrites, 
+		failOK
+	);
 }
 
 int Reader::Create(std::unique_ptr<std::istream>&& stream, const std::string& fileName, bool overwrites, bool failOK) {
@@ -93,11 +90,6 @@ int Reader::Create(std::unique_ptr<std::istream>&& stream, const std::string& fi
 	}
 
 	m_OverwriteExisting = overwrites;
-
-	// Report that we're starting a new file
-	if (Reader::PushToProgressDisplayQueue && m_Stream->good()) {
-		Reader::PushToProgressDisplayQueue("\t" + m_FileName + " on line " + std::to_string(m_CurrentLine), true);
-	}
 
 	return m_Stream->good() ? 0 : -1;
 }

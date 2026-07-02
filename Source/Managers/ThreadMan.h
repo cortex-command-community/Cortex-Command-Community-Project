@@ -20,7 +20,7 @@ namespace RTE {
 		/// memory. Create() should be called before using the object.
 		ThreadMan();
 
-		/// Makes the TimerMan object ready for use.
+		/// Makes the ThreadMan object ready for use.
 		void Initialize(){};
 
 		/// Destructor method used to clean up a ThreadMan object before deletion
@@ -43,6 +43,8 @@ namespace RTE {
 
 		BS::thread_pool& GetBackgroundThreadPool() { return m_BackgroundThreadPool; }
 
+		bool IsMainThread() { return std::this_thread::get_id() == m_MainThreadID; }
+
 		/// Protected member variable and method declarations
 	protected:
 		/// Private member variable and method declarations
@@ -60,6 +62,8 @@ namespace RTE {
 
 		// For background tasks that we can just let happen whenever over multiple frames
 		BS::thread_pool m_BackgroundThreadPool;
+
+		std::thread::id m_MainThreadID = std::this_thread::get_id();
 	};
 
 } // namespace RTE

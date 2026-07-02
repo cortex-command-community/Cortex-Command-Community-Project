@@ -78,7 +78,8 @@ bool PresetMan::LoadDataModule(const std::string& moduleName, bool official, boo
 	// Make sure we don't add the same module twice.
 	for (const DataModule* dataModule: m_pDataModules) {
 		if (dataModule->GetFileName() == moduleName) {
-			return false;
+			RTEAbort("Trying to load module " + moduleName + " twice!");
+			//return false;
 		}
 	}
 
@@ -109,7 +110,7 @@ bool PresetMan::LoadDataModule(const std::string& moduleName, bool official, boo
 		RTEAbort("Failed to find the " + moduleName + " Data Module!");
 		return false;
 	}
-	newModule = nullptr;
+
 	return true;
 }
 
@@ -240,48 +241,26 @@ int PresetMan::GetModuleID(std::string moduleName) {
 	// Lower-case search name so we can match up against the already-lowercase names in m_DataModuleIDs
 	std::transform(moduleName.begin(), moduleName.end(), moduleName.begin(), ::tolower);
 
-	// First pass
+	// Look for match in m_DataModuleIDs
 	std::map<std::string, size_t>::iterator itr = m_DataModuleIDs.find(moduleName);
-	if (itr != m_DataModuleIDs.end())
+	if (itr != m_DataModuleIDs.end()) {
 		return (*itr).second;
+	}
 
-	// Try with or without the .rte on the end before giving up
+	// Try again! Now with/without .rte at the end
 	size_t dotPos = moduleName.find_last_of('.');
-	// Wasnt, so try adding it
-	if (dotPos == std::string::npos)
+	if (dotPos == std::string::npos) {
 		moduleName = moduleName + System::GetModulePackageExtension();
-	// There was ".rte", so try to shave it off the name
-	else
+	} else {
 		moduleName.resize(dotPos);
-
-	// Try to find the module again!
+	}
+	
 	itr = m_DataModuleIDs.find(moduleName);
-	if (itr != m_DataModuleIDs.end())
+	if (itr != m_DataModuleIDs.end()) {
 		return (*itr).second;
+	}
 
-	/* No need to do this second pass now; we immediately do the case-agnostic search
-	    // Add .rte and try to find the module in case-agnostic fashion
-	    moduleName += ".rte";
-	    std::transform(moduleName.begin(), moduleName.end(), moduleName.begin(), ::tolower);
-
-	    itr = m_DataModuleIDs.find(moduleName);
-	    if (itr != m_DataModuleIDs.end())
-	        return (*itr).second;
-
-	    // Try with or without the .rte on the end before giving up
-	    dotPos = moduleName.find_last_of('.');
-	    // Wasnt, so try adding it
-	    if (dotPos == string::npos)
-	        moduleName = moduleName + System::GetModulePackageExtension();
-	    // There was ".rte", so try to shave it off the name
-	    else
-	        moduleName = moduleName.substr(0, dotPos);
-
-	    // Try to find the module again!
-	    itr = m_DataModuleIDs.find(moduleName);
-	    if (itr != m_DataModuleIDs.end())
-	        return (*itr).second;
-	*/
+	// Oop, module wasn't found
 	return -1;
 }
 
@@ -1027,7 +1006,9 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::atomic<Modu
 			}
 		}
 
+		// Load mod modules
 		// If a single module is specified, skip loading all other unofficial modules and load specified module only.
+		// gtodo: sack m_SingleModuleToLoad
 		if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad)) {
 			if (!LoadDataModule(m_SingleModuleToLoad, false, false)) {
 				g_ConsoleMan.PrintString("ERROR: Failed to load DataModule \"" + m_SingleModuleToLoad + "\"! Only official modules were loaded!");
@@ -1036,25 +1017,36 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::atomic<Modu
 				return;
 			}
 		} else {
-			std::vector<std::filesystem::directory_entry> modDirectoryFolders;
+			// Gather mod folder names
+			std::vector<std::string> modModuleNames;
 			const std::string modDirectory = System::GetWorkingDirectory() + System::GetModDirectory();
-			std::copy_if(std::filesystem::directory_iterator(modDirectory), std::filesystem::directory_iterator(), std::back_inserter(modDirectoryFolders),
-			             [](auto dirEntry) { return std::filesystem::is_directory(dirEntry); });
-			std::sort(modDirectoryFolders.begin(), modDirectoryFolders.end());
+			for (auto const& dirEntry: std::filesystem::directory_iterator{modDirectory}) {
+				if (!std::filesystem::is_directory(dirEntry))
+					continue;
+				const std::string dirEntryStr = dirEntry.path().generic_string();
+				if (!dirEntryStr.ends_with(".rte"))
+					continue;
+				std::string moduleName = dirEntryStr.substr(dirEntryStr.find_last_of('/') + 1, std::string::npos);
+				modModuleNames.push_back(moduleName);
+			}
+			std::sort(modModuleNames.begin(), modModuleNames.end());
 
-			for (const std::filesystem::directory_entry& directoryEntry: modDirectoryFolders) {
+			for (auto const& modModuleName: modModuleNames) {
 				if (st.stop_requested()) {
 					return;
 				}
-				std::string directoryEntryPath = directoryEntry.path().generic_string();
-				if (directoryEntryPath.ends_with(".rte")) {
-					std::string moduleName = directoryEntryPath.substr(directoryEntryPath.find_last_of('/') + 1, std::string::npos);
-					if (!g_SettingsMan.IsModDisabled(moduleName) && !IsModuleOfficial(moduleName) && !IsModuleUserdata(moduleName)) {
-						int moduleID = GetModuleID(moduleName);
-						// NOTE: LoadDataModule can return false (especially since it may try to load already loaded modules, which is okay) and shouldn't cause stop, so we can ignore its return value here.
-						if (moduleID < 0 || moduleID >= GetOfficialModuleCount()) {
-							LoadDataModule(moduleName, false, false);
-						}
+				
+				if (!g_SettingsMan.IsModDisabled(modModuleName) 
+					&& !IsModuleOfficial(modModuleName) 
+					&& !IsModuleUserdata(modModuleName)) 
+				{
+					const int moduleID = GetModuleID(modModuleName);
+					const bool moduleWasntLoadedYet = moduleID < 0 || moduleID >= GetOfficialModuleCount();
+					// NOTE: LoadDataModule can return false (especially since it may try to load
+					// already loaded modules, which is okay) and shouldn't cause stop, so we can 
+					// ignore its return value here.
+					if (moduleWasntLoadedYet) {
+						LoadDataModule(modModuleName, false, false);
 					}
 				}
 			}

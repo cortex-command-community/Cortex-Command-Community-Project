@@ -4,6 +4,7 @@
 #include "FrameMan.h"
 #include "ConsoleMan.h"
 #include "ActivityMan.h"
+#include "ThreadMan.h"
 #include "System.h"
 
 #include <SDL3/SDL_messagebox.h>
@@ -431,6 +432,10 @@ void RTEError::AssertFunc(const std::string& description, const std::source_loca
 }
 
 void RTEError::DumpHardwareInfo() {
+	if (!g_ThreadMan.IsMainThread()) {
+		g_ConsoleMan.PrintString("RTEAbort called from non-main thread - unable to dump hardware info");
+		return;
+	}
 	std::string glVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
 	std::string glVendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
 	std::string glRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
