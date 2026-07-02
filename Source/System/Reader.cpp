@@ -9,7 +9,6 @@
 using namespace RTE;
 
 // Defining statics
-std::function<void(const std::string&, bool)> Reader::PushToProgressDisplayQueue = nullptr;
 std::function<void(const std::string&)> Reader::AssertFromWorkerAndShutdownAll = nullptr;
 
 void Reader::Clear() {
@@ -54,9 +53,9 @@ int Reader::Create(const std::string& fileName, bool overwrites, bool failOK) {
 	}
 	
 	return Create(
-		std::make_unique<std::ifstream>(m_FilePath), 
-		fileName, 
-		overwrites, 
+		std::make_unique<std::ifstream>(m_FilePath),
+		fileName,
+		overwrites,
 		failOK
 	);
 }
@@ -137,35 +136,33 @@ std::string Reader::ReadPropName() {
 	DiscardEmptySpace();
 
 	std::string retString;
-	char temp;
-	char peek;
+	retString.reserve(32);
 
-	while (true) {
-		peek = static_cast<char>(m_Stream->peek());
-		if (peek == '=') {
-			m_Stream->ignore(1);
+	char ch;
+	while (m_Stream->get(ch)) {
+		if (ch == '=') {
 			break;
 		}
-		if (peek == '\n' || peek == '\r' || peek == '\t') {
+		if (ch == '\n' || ch == '\r' || ch == '\t') {
 			ReportError("Property name wasn't followed by a value");
 		}
-
-		temp = static_cast<char>(m_Stream->get());
-		if (m_Stream->eof()) {
-			EndIncludeFile();
-			break;
-		}
-		if (!m_Stream->good() || temp == -1) {
-			ReportError("Stream failed for some reason");
-			EndIncludeFile();
-			break;
-		}
-		retString.append(1, temp);
+		retString += ch;
 	}
+
+	// Handle EOF / include file end
+	if (m_Stream->eof()) {
+		EndIncludeFile();
+	} else if (!m_Stream->good()) {
+		ReportError("Stream failed for some reason");
+		EndIncludeFile();
+	}
+
 	// Trim the string of whitespace
 	retString = TrimString(retString);
 
-	// If the property name turns out to be the special IncludeFile,and we're not skipping include files then open that file and read the first property from it instead.
+	// If the property name turns out to be the special IncludeFile,
+	// and we're not skipping include files then open that file and 
+	// read the first property from it instead.
 	if (retString == "IncludeFile") {
 		if (m_SkipIncludes) {
 			// Discard IncludeFile value
@@ -174,8 +171,11 @@ std::string Reader::ReadPropName() {
 			retString = ReadPropName();
 		} else {
 			StartIncludeFile();
-			// Return the first property name in the new file, this is to make the file inclusion seamless.
-			// Alternatively, if StartIncludeFile failed, this will just grab the next prop name and ignore the failed IncludeFile property.
+			// Return the first property name in the new file, this 
+			// is to make the file inclusion seamless.
+			// Alternatively, if StartIncludeFile failed, 
+			// this will just grab the next prop name and ignore 
+			// the failed IncludeFile property.
 			retString = ReadPropName();
 		}
 	}
@@ -221,7 +221,8 @@ bool Reader::DiscardEmptySpace() {
 	while (true) {
 		peek = static_cast<char>(m_Stream->peek());
 
-		// If we have hit the end and don't have any files to resume, then quit and indicate that
+		// If we have hit the end and don't have any files 
+		// to resume, then quit and indicate that
 		if (m_Stream->eof()) {
 			return EndIncludeFile();
 		}
@@ -238,15 +239,13 @@ bool Reader::DiscardEmptySpace() {
 		} else if (peek == '\t') {
 			indent++;
 			m_Stream->ignore(1);
-			// Discard newlines and reset the tab count for the new line, also count the lines
+			// Discard newlines and reset the tab count for 
+			// the new line, also count the lines
 		} else if (peek == '\n' || peek == '\r') {
-			// So we don't count lines twice when there are both newline and carriage return at the end of lines
+			// So we don't count lines twice when there are 
+			// both newline and carriage return at the end of lines
 			if (peek == '\n') {
 				m_CurrentLine++;
-				// Only report every few lines
-				if (Reader::PushToProgressDisplayQueue && (m_CurrentLine % g_SettingsMan.LoadingScreenProgressReportPrecision() == 0)) {
-					Reader::PushToProgressDisplayQueue(m_ReportTabs + m_FileName + " reading line " + std::to_string(m_CurrentLine), false);
-				}
 			}
 			indent = 0;
 			leadingSpaceCount = 0;
@@ -322,19 +321,10 @@ bool Reader::DiscardEmptySpace() {
 void Reader::ReportError(const std::string& errorDesc) const {
 	if (!m_CanFail) {
 		RTEAbort(errorDesc + "\nError happened in " + m_FilePath + " at line " + std::to_string(m_CurrentLine) + "!");
-	} else {
-		if (Reader::PushToProgressDisplayQueue) {
-			Reader::PushToProgressDisplayQueue(errorDesc + ", skipping!", true);
-		}
 	}
 }
 
 bool Reader::StartIncludeFile() {
-	// Report that we're including a file
-	if (Reader::PushToProgressDisplayQueue) {
-		Reader::PushToProgressDisplayQueue(m_ReportTabs + m_FileName + " on line " + std::to_string(m_CurrentLine) + " includes:", false);
-	}
-
 	// Get the file path from the current stream before pushing it into the StreamStack, otherwise we can't open a new stream after releasing it because we can't read.
 	std::string includeFilePath = g_PresetMan.GetFullModulePath(ReadPropValue());
 
@@ -365,23 +355,11 @@ bool Reader::StartIncludeFile() {
 
 	m_FileName = m_FilePath.substr(m_FilePath.find_first_of("/\\") + 1);
 
-	// Report that we're starting a new file
-	if (Reader::PushToProgressDisplayQueue) {
-		m_ReportTabs = "\t";
-		for (int i = 0; i < m_StreamStack.size(); ++i) {
-			m_ReportTabs.append("\t");
-		}
-		Reader::PushToProgressDisplayQueue(m_ReportTabs + m_FileName + " on line " + std::to_string(m_CurrentLine), true);
-	}
 	DiscardEmptySpace();
 	return true;
 }
 
 bool Reader::EndIncludeFile() {
-	if (Reader::PushToProgressDisplayQueue) {
-		Reader::PushToProgressDisplayQueue(m_ReportTabs + m_FileName + " - done! " + static_cast<char>(-42), false);
-	}
-
 	if (m_StreamStack.empty()) {
 		m_EndOfStreams = true;
 		return false;
@@ -399,14 +377,6 @@ bool Reader::EndIncludeFile() {
 
 	m_FileName = m_FilePath.substr(m_FilePath.find_first_of("/\\") + 1);
 
-	// Report that we're going back a file
-	if (Reader::PushToProgressDisplayQueue) {
-		m_ReportTabs = "\t";
-		for (int i = 0; i < m_StreamStack.size(); ++i) {
-			m_ReportTabs.append("\t");
-		}
-		Reader::PushToProgressDisplayQueue(m_ReportTabs + m_FileName + " on line " + std::to_string(m_CurrentLine), true);
-	}
 	DiscardEmptySpace();
 	return true;
 }

@@ -213,7 +213,6 @@ namespace RTE {
 		}
 #pragma endregion
 
-		static std::function<void(const std::string&, bool)> PushToProgressDisplayQueue;
 		static std::function<void(const std::string&)> AssertFromWorkerAndShutdownAll;
 
 	protected:

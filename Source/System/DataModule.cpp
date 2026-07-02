@@ -10,7 +10,6 @@
 using namespace RTE;
 
 // Defining statics
-std::function<void(const std::string&, bool)> DataModule::PushToProgressDisplayQueue = nullptr;
 std::function<void(const std::string&)> DataModule::AssertFromWorkerAndShutdownAll = nullptr;
 
 const std::string DataModule::c_ClassName = "DataModule";
@@ -106,10 +105,6 @@ int DataModule::ReadModuleProperties(const std::string& moduleName) {
 	m_ModuleID = g_PresetMan.GetModuleID(moduleName);
 	m_CrabToHumanSpawnRatio = 0;
 
-	// Report that we're starting to read a new DataModule
-	if (DataModule::PushToProgressDisplayQueue) {
-		DataModule::PushToProgressDisplayQueue(m_FileName + " " + static_cast<char>(-43) + " reading properties:", true);
-	}
 	Reader reader;
 	std::string indexPath(m_FileName + "/Index.ini");
 
@@ -439,9 +434,6 @@ int DataModule::FindAndRead() {
 			Reader iniReader;
 			if (iniReader.Create(directoryToScan + "/" + directoryEntry.path().filename().generic_string(), false) >= 0) {
 				result = Serializable::CreateSerializable(iniReader, false, true, true);
-				if (DataModule::PushToProgressDisplayQueue) {
-					DataModule::PushToProgressDisplayQueue(" ", true);
-				}
 			}
 		}
 	}

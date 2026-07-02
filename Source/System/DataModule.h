@@ -230,7 +230,6 @@ namespace RTE {
 		void ReloadAllScripts() const;
 #pragma endregion
 
-		static std::function<void(const std::string&, bool)> PushToProgressDisplayQueue;
 		static std::function<void(const std::string&)> AssertFromWorkerAndShutdownAll;
 
 	protected:
