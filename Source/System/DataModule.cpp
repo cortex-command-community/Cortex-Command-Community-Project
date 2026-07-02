@@ -43,6 +43,7 @@ void DataModule::Clear() {
 	m_EntityList.clear();
 	m_TypeMap.clear();
 	m_MaterialMappings.fill(0);
+	m_ScanFolderContents = false;
 	m_IgnoreMissingItems = false;
 	m_CrabToHumanSpawnRatio = 0;
 	m_ScriptPath.clear();
@@ -64,7 +65,13 @@ int DataModule::Create(const std::string& moduleName) {
 	}
 
 	if (Reader reader; reader.Create(indexPath, true) >= 0) {
-		return Serializable::Create(reader);
+		int result = Serializable::Create(reader);
+
+		if (m_ScanFolderContents) {
+			result = FindAndRead();
+		}
+
+		return result;
 	} else {
 		return -1;
 	}
@@ -77,6 +84,7 @@ bool DataModule::CreateOnDiskAsUserdata(const std::string& moduleName, const std
 		newModule.m_IsUserdata = true;
 		newModule.m_FriendlyName = friendlyName;
 		newModule.m_IgnoreMissingItems = ignoreMissingItems;
+		newModule.m_ScanFolderContents = scanFolderContents;
 		newModule.Save(writer);
 		writer.EndWrite();
 	} else {
@@ -158,6 +166,7 @@ int DataModule::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("Version", { reader >> m_Version; });
 	MatchProperty("IgnoreMissingItems", { reader >> m_IgnoreMissingItems; });
+	MatchProperty("ScanFolderContents", { reader >> m_ScanFolderContents; });
 	MatchProperty("CrabToHumanSpawnRatio", { reader >> m_CrabToHumanSpawnRatio; });
 	MatchProperty("ScriptPath", {
 		reader >> m_ScriptPath;
@@ -215,6 +224,7 @@ int DataModule::Save(Writer& writer) const {
 		// Will need the writer to be able to open different files and append to them as needed, probably done in NewEntity()
 		// writer.NewEntity()
 	} else {
+		writer.NewPropertyWithValue("ScanFolderContents", m_ScanFolderContents);
 		writer.NewPropertyWithValue("IgnoreMissingItems", m_IgnoreMissingItems);
 	}
 
@@ -419,6 +429,23 @@ void DataModule::ReloadAllScripts() const {
 		presetListEntry.m_EntityPreset->ReloadScripts();
 	}
 	LoadScripts();
+}
+
+int DataModule::FindAndRead() {
+	int result = 0;
+	const std::string directoryToScan = g_PresetMan.GetFullModulePath(m_FileName);
+	for (const std::filesystem::directory_entry& directoryEntry: std::filesystem::directory_iterator(System::GetWorkingDirectory() + directoryToScan)) {
+		if (directoryEntry.path().extension() == ".ini" && directoryEntry.path().filename() != "Index.ini") {
+			Reader iniReader;
+			if (iniReader.Create(directoryToScan + "/" + directoryEntry.path().filename().generic_string(), false) >= 0) {
+				result = Serializable::CreateSerializable(iniReader, false, true, true);
+				if (DataModule::PushToProgressDisplayQueue) {
+					DataModule::PushToProgressDisplayQueue(" ", true);
+				}
+			}
+		}
+	}
+	return result;
 }
 
 // TODO: This method is almost identical to GetEntityPreset, except it doesn't return a const Entity *.

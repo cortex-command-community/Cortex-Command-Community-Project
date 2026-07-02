@@ -245,6 +245,7 @@ namespace RTE {
 		};
 
 		bool m_IsUserdata; //!< Whether this DataModule contains userdata written by the game (e.g saved games or editor scenes), meaning it is not an official nor a 3rd party module and is ignored anywhere where that is relevant.
+		bool m_ScanFolderContents; //!< Indicates whether module loader should scan for any .ini's inside module folder instead of loading files defined in IncludeFile only.
 		bool m_IgnoreMissingItems; //!< Indicates whether module loader should ignore missing items in this module.
 
 		std::string m_FileName; //!< File/folder name of the data module, eg "MyMod.rte".
@@ -287,6 +288,10 @@ namespace RTE {
 		/// Checks the module's supported game version against the current game version to ensure compatibility.
 		void CheckSupportedGameVersion() const;
 
+		/// If ScanFolderContents is enabled in this DataModule's Index.ini, looks for any ini files in the top-level directory of the module and reads all of them in alphabetical order.
+		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		int FindAndRead();
 #pragma endregion
 
 #pragma region Entity Mapping
