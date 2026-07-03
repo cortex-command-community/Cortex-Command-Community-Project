@@ -252,6 +252,7 @@ namespace RTE {
 		std::string m_Author; //!< Name of the author of this module.
 		std::string m_Description; //!< Brief description of what this module is and contains.
 		std::string m_ScriptPath; //!< Path to script to execute when this module is loaded.
+		std::vector<std::string> m_RequiredModules; //!< Modules that must have loaded .
 		bool m_IsFaction; //!< Whether this data module is considered a faction.
 		bool m_IsMerchant; //!< Whether this data module is considered a merchant.
 		version::Semver200_version* m_SupportedGameVersion; //!< Game version this DataModule supports. Needs to satisfy Caret Version Range for this DataModule to be allowed. Base DataModules don't need this.

@@ -5,6 +5,8 @@
 #include "GameVersion.h"
 #include "System.h"
 
+#include <algorithm>
+
 #include <System/Semver200/semver200.h>
 
 using namespace RTE;
@@ -59,8 +61,11 @@ int DataModule::Create(const std::string& moduleName) {
 	std::string indexPath = g_PresetMan.GetFullModulePath(m_FileName + "/Index.ini");
 
 	// If the module is a mod, read only its `index.ini` to validate its SupportedGameVersion.
-	if (m_ModuleID >= g_PresetMan.GetOfficialModuleCount() && !m_IsUserdata && ReadModuleProperties(moduleName) >= 0) {
-		CheckSupportedGameVersion(); //!!!!!!!!!!!!
+	if (m_ModuleID >= g_PresetMan.GetOfficialModuleCount()
+		&& !m_IsUserdata 
+		&& ReadModuleProperties(moduleName) >= 0)
+	{
+		CheckSupportedGameVersion();
 	}
 
 	if (Reader reader; reader.Create(indexPath, true) >= 0) {
@@ -171,9 +176,19 @@ int DataModule::ReadProperty(const std::string_view& propName, Reader& reader) {
 		// Check for required dependencies if we're not load properties
 		std::string requiredModule;
 		reader >> requiredModule;
-		if (!reader.GetSkipIncludes() && g_PresetMan.GetModuleID(requiredModule) == -1) {
-			reader.ReportError("\"" + m_FileName + "\" requires \"" + requiredModule + "\" in order to load!\n");
+		// Lower-casen it
+		std::transform(requiredModule.begin(), requiredModule.end(), requiredModule.begin(), ::tolower);
+		// Abort if doesn't end in .rte
+		if (!requiredModule.ends_with(".rte")) {
+			reader.ReportError("\"" + m_FileName + "\" requires \"" + requiredModule + "\", which should end in .rte but doesn't!\n");
 		}
+		// Abort if a require repeats
+		if (std::find(m_RequiredModules.begin(), m_RequiredModules.end(), requiredModule) 
+			!= m_RequiredModules.end()) 
+		{
+			reader.ReportError("\"" + m_FileName + "\" requires \"" + requiredModule + "\" more than once, shouldn't!\n");
+		}
+		m_RequiredModules.push_back(requiredModule);
 	});
 	MatchProperty("IconFile", {
 		reader >> m_IconFile;
