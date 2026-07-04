@@ -84,6 +84,7 @@ namespace RTE {
 		static bool DumpAbortSave();
 	};
 
+	//gtodo this is NOT thread friendly
 #define RTEAbort(description) \
 	if (!RTEError::s_CurrentlyAborting) { \
 		RTEError::AbortFunc(description, std::source_location::current()); \

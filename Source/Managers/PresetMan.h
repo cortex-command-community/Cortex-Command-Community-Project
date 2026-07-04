@@ -57,14 +57,15 @@ namespace RTE {
 		/// @param userdata Whether this module is a userdata module. If true, will be treated as an unofficial module.
 		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		/// @return Whether the DataModule was read and added correctly.
-		bool LoadDataModule(const std::string& moduleName, bool official, bool userdata = false);
+		/// gtodo
+		DataModule* InitDataModule(const std::string& moduleName, bool official, bool userdata = false);
 
 		/// Reads an entire DataModule and adds it to this. NOTE that official modules can't be loaded after any non-official ones!
 		/// @param moduleName The module name to read, e.g. "Base.rte".
 		/// @return Whether the DataModule was read and added correctly.
-		bool LoadDataModule(const std::string& moduleName) { return LoadDataModule(moduleName, false); }
+		DataModule* InitDataModule(const std::string& moduleName) { return InitDataModule(moduleName, false); }
 
-		/// Loads all the official data modules individually with LoadDataModule, then proceeds to look for any non-official modules and loads them as well.
+		/// NOTE: to be called from main thread only. Loads all the official data modules individually with LoadDataModule, then proceeds to look for any non-official modules and loads them as well.
 		/// @return
 		bool LoadAllDataModules(std::function<void()> PollSDLEventsCallback);
 

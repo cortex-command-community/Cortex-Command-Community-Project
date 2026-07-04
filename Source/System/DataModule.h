@@ -48,12 +48,15 @@ namespace RTE {
 		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		DataModule(const std::string& moduleName);
 
+		// gtodo
+		int Init(const std::string& moduleName);
+
 		/// Makes the DataModule object ready for use. This needs to be called after PresetMan is created.
 		/// This looks for an "index.ini" within the specified .rte directory and loads all the defined objects in that index file.
 		/// @param moduleName A string defining the name of this DataModule, e.g. "MyModule.rte".
 		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Create(const std::string& moduleName);
+		int Create();
 
 		/// Creates a new DataModule directory with "Index.ini" on disk to be used for userdata. Does NOT instantiate the newly created DataModule.
 		/// @param moduleName File/folder name of the data module, e.g. "MyMod.rte".
@@ -258,6 +261,8 @@ namespace RTE {
 		version::Semver200_version* m_SupportedGameVersion; //!< Game version this DataModule supports. Needs to satisfy Caret Version Range for this DataModule to be allowed. Base DataModules don't need this.
 		int m_Version; //!< Version number, starting with 1.
 		int m_ModuleID; //!< ID number assigned to this upon loading, for internal use only, don't reflect in ini's.
+
+		bool m_WasInitialized; //!< Whether Init() was called. Needs to equal true before calling Create().
 
 		ContentFile m_IconFile; //!< File to the icon/symbol bitmap.
 		BITMAP* m_Icon; //!< Bitmap with the icon loaded from above file.

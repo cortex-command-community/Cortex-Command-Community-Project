@@ -67,9 +67,9 @@ void PresetMan::Destroy() {
 	Clear();
 }
 
-bool PresetMan::LoadDataModule(const std::string& moduleName, bool official, bool userdata) {
+DataModule* PresetMan::InitDataModule(const std::string& moduleName, bool official, bool userdata) {
 	if (moduleName.empty()) {
-		return false;
+		RTEAbort("Trying to init a module with an empty module name!");
 	}
 	// Make a lowercase-version of the module name so it makes it easier to compare to and find case-agnostically.
 	std::string lowercaseName = moduleName;
@@ -78,7 +78,7 @@ bool PresetMan::LoadDataModule(const std::string& moduleName, bool official, boo
 	// Make sure we don't add the same module twice.
 	for (const DataModule* dataModule: m_pDataModules) {
 		if (dataModule->GetFileName() == moduleName) {
-			RTEAbort("Trying to load module " + moduleName + " twice!");
+			RTEAbort("Trying to init module with a name (" + moduleName + ") that's already registered!");
 			//return false;
 		}
 	}
@@ -106,12 +106,12 @@ bool PresetMan::LoadDataModule(const std::string& moduleName, bool official, boo
 		m_DataModuleIDs.try_emplace(lowercaseName, m_pDataModules.size() - 1);
 	}
 
-	if (newModule->Create(moduleName) < 0) {
-		RTEAbort("Failed to find the " + moduleName + " Data Module!");
-		return false;
-	}
-
-	return true;
+	//if ( < 0) {
+		//RTEAbort("Failed to init the " + moduleName + " Data Module!");
+		//return false; // gtodo just so many redundant unused return values, and returns after aborts
+	//}
+	newModule->Init(moduleName);
+	return newModule;
 }
 
 bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) {
@@ -995,12 +995,19 @@ void PresetMan::SpinlockAssert(bool toDoProgressPrintOut, ModuleLoadResult loadi
 void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::atomic<ModuleLoadResult>& loadingDone, std::chrono::milliseconds& moduleLoadElapsedTime) {
 	try {
 		auto timerModuleLoadingThreadStart = std::chrono::steady_clock::now();
-		// Load all the official modules first!
-		for (const std::string& officialModule: c_OfficialModules) {
+		// Init all
+		// Load Base.rte first!
+		if (!InitDataModule("Base.rte", true, false)->Create()) {
+			loadingDone = ModuleLoadResult::Failure;
+			m_ProgressDisplayCv.notify_all();
+			return;
+		}
+		// Then load all the other official modules!
+		for (auto officialModuleIt = c_OfficialModules.begin() + 1; officialModuleIt != c_OfficialModules.end(); ++officialModuleIt) {
 			if (st.stop_requested()) {
 				return;
 			}
-			if (!LoadDataModule(officialModule, true, false)) {
+			if (!InitDataModule(*officialModuleIt, true, false)->Create()) {
 				loadingDone = ModuleLoadResult::Failure;
 				m_ProgressDisplayCv.notify_all();
 				return;
@@ -1011,7 +1018,7 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::atomic<Modu
 		// If a single module is specified, skip loading all other unofficial modules and load specified module only.
 		// gtodo: sack m_SingleModuleToLoad
 		if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad)) {
-			if (!LoadDataModule(m_SingleModuleToLoad, false, false)) {
+			if (!InitDataModule(m_SingleModuleToLoad, false, false)->Create()) {
 				g_ConsoleMan.PrintString("ERROR: Failed to load DataModule \"" + m_SingleModuleToLoad + "\"! Only official modules were loaded!");
 				loadingDone = ModuleLoadResult::Failure;
 				m_ProgressDisplayCv.notify_all();
@@ -1032,6 +1039,7 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::atomic<Modu
 			}
 			std::sort(modModuleNames.begin(), modModuleNames.end());
 
+			// Now go over them
 			for (auto const& modModuleName: modModuleNames) {
 				if (st.stop_requested()) {
 					return;
@@ -1047,7 +1055,7 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::atomic<Modu
 					// already loaded modules, which is okay) and shouldn't cause stop, so we can 
 					// ignore its return value here.
 					if (moduleWasntLoadedYet) {
-						LoadDataModule(modModuleName, false, false);
+						InitDataModule(modModuleName, false, false)->Create();
 					}
 				}
 			}
@@ -1061,7 +1069,7 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::atomic<Modu
 					bool scanContentsAndIgnoreMissing = userdataModuleName == c_UserScenesModuleName;
 					DataModule::CreateOnDiskAsUserdata(userdataModuleName, userdataModuleFriendlyName, scanContentsAndIgnoreMissing, scanContentsAndIgnoreMissing);
 				}
-				if (!LoadDataModule(userdataModuleName, false, true)) {
+				if (!InitDataModule(userdataModuleName, false, true)->Create()) {
 					loadingDone = ModuleLoadResult::Failure;
 					m_ProgressDisplayCv.notify_all();
 					return;

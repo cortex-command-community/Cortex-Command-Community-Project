@@ -22,7 +22,8 @@ DataModule::DataModule() {
 
 DataModule::DataModule(const std::string& moduleName) {
 	Clear();
-	Create(moduleName);
+	Init(moduleName);
+	Create();
 }
 
 DataModule::~DataModule() {
@@ -51,9 +52,15 @@ void DataModule::Clear() {
 	m_IsFaction = false;
 	m_IsMerchant = false;
 	AssertFromWorkerAndShutdownAll = nullptr;
+	m_WasInitialized = false;
+	m_RequiredModules.clear();
 }
 
-int DataModule::Create(const std::string& moduleName) {
+int DataModule::Init(const std::string& moduleName) {
+	if (m_WasInitialized) {
+		RTEAbort("DataModule::Init() called twice for module \"" + m_FileName + "\"!");
+	}
+
 	m_FileName = std::filesystem::path(moduleName).generic_string();
 	m_ModuleID = g_PresetMan.GetModuleID(moduleName);
 	m_CrabToHumanSpawnRatio = 0;
@@ -61,12 +68,20 @@ int DataModule::Create(const std::string& moduleName) {
 	std::string indexPath = g_PresetMan.GetFullModulePath(m_FileName + "/Index.ini");
 
 	// If the module is a mod, read only its `index.ini` to validate its SupportedGameVersion.
-	if (m_ModuleID >= g_PresetMan.GetOfficialModuleCount()
-		&& !m_IsUserdata 
-		&& ReadModuleProperties(moduleName) >= 0)
-	{
+	if (m_ModuleID >= g_PresetMan.GetOfficialModuleCount() && !m_IsUserdata && ReadModuleProperties(moduleName) >= 0) {
 		CheckSupportedGameVersion();
 	}
+
+	m_WasInitialized = true;
+	return true;
+}
+
+int DataModule::Create() {
+	if (!m_WasInitialized) {
+		RTEAbort("DataModule::Create() called for a module before initializing it!");
+	}
+
+	std::string indexPath = g_PresetMan.GetFullModulePath(m_FileName + "/Index.ini");
 
 	if (Reader reader; reader.Create(indexPath, true) >= 0) {
 		int result = Serializable::Create(reader);
