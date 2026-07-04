@@ -56,7 +56,7 @@ namespace RTE {
 		/// @param moduleName A string defining the name of this DataModule, e.g. "MyModule.rte".
 		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Create();
+		int Finalize();
 
 		/// Creates a new DataModule directory with "Index.ini" on disk to be used for userdata. Does NOT instantiate the newly created DataModule.
 		/// @param moduleName File/folder name of the data module, e.g. "MyMod.rte".

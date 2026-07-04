@@ -81,14 +81,12 @@ int DataModule::Init(const std::string& moduleName) {
 	return true;
 }
 
-int DataModule::Create() {
+int DataModule::Finalize() {
 	if (m_CreationStatus == NOT_INITIALIZED) {
 		RTEAbort("DataModule::Create() called for a module before initializing it!");
 	} else if (m_CreationStatus == FINALLY_CREATED) {
 		RTEAbort("DataModule::Create() called for an already created module!");
 	}
-
-	const std::string moduleName = "Base.rte";
 
 	std::string indexPath = g_PresetMan.GetFullModulePath(m_FileName + "/Index.ini");
 

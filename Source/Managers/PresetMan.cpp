@@ -997,7 +997,7 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::atomic<Modu
 		auto timerModuleLoadingThreadStart = std::chrono::steady_clock::now();
 		// Init all
 		// Load Base.rte first!
-		if (!InitDataModule("Base.rte", true, false)->Create()) {
+		if (!InitDataModule("Base.rte", true, false)->Finalize()) {
 			loadingDone = ModuleLoadResult::Failure;
 			m_ProgressDisplayCv.notify_all();
 			return;
@@ -1007,7 +1007,7 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::atomic<Modu
 			if (st.stop_requested()) {
 				return;
 			}
-			if (!InitDataModule(*officialModuleIt, true, false)->Create()) {
+			if (!InitDataModule(*officialModuleIt, true, false)->Finalize()) {
 				loadingDone = ModuleLoadResult::Failure;
 				m_ProgressDisplayCv.notify_all();
 				return;
@@ -1018,7 +1018,7 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::atomic<Modu
 		// If a single module is specified, skip loading all other unofficial modules and load specified module only.
 		// gtodo: sack m_SingleModuleToLoad
 		if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad)) {
-			if (!InitDataModule(m_SingleModuleToLoad, false, false)->Create()) {
+			if (!InitDataModule(m_SingleModuleToLoad, false, false)->Finalize()) {
 				g_ConsoleMan.PrintString("ERROR: Failed to load DataModule \"" + m_SingleModuleToLoad + "\"! Only official modules were loaded!");
 				loadingDone = ModuleLoadResult::Failure;
 				m_ProgressDisplayCv.notify_all();
@@ -1055,7 +1055,7 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::atomic<Modu
 					// already loaded modules, which is okay) and shouldn't cause stop, so we can 
 					// ignore its return value here.
 					if (moduleWasntLoadedYet) {
-						InitDataModule(modModuleName, false, false)->Create();
+						InitDataModule(modModuleName, false, false)->Finalize();
 					}
 				}
 			}
@@ -1069,7 +1069,7 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::atomic<Modu
 					bool scanContentsAndIgnoreMissing = userdataModuleName == c_UserScenesModuleName;
 					DataModule::CreateOnDiskAsUserdata(userdataModuleName, userdataModuleFriendlyName, scanContentsAndIgnoreMissing, scanContentsAndIgnoreMissing);
 				}
-				if (!InitDataModule(userdataModuleName, false, true)->Create()) {
+				if (!InitDataModule(userdataModuleName, false, true)->Finalize()) {
 					loadingDone = ModuleLoadResult::Failure;
 					m_ProgressDisplayCv.notify_all();
 					return;
