@@ -65,12 +65,12 @@ int DataModule::Init(const std::string& moduleName) {
 	m_ModuleID = g_PresetMan.GetModuleID(moduleName);
 	m_CrabToHumanSpawnRatio = 0;
 
-	std::string indexPath = g_PresetMan.GetFullModulePath(m_FileName + "/Index.ini");
+	bool modulePropertiesReadSuccess = ReadModuleProperties(moduleName) >= 0;
 
 	// If the module is a mod, read only its `index.ini` to validate its SupportedGameVersion.
 	if (m_ModuleID >= g_PresetMan.GetOfficialModuleCount() 
 		&& !m_IsUserdata 
-		&& ReadModuleProperties(moduleName) >= 0) 
+		&& modulePropertiesReadSuccess) 
 	{
 		CheckSupportedGameVersion();
 	}
@@ -83,6 +83,8 @@ int DataModule::Create() {
 	if (!m_WasInitialized) {
 		RTEAbort("DataModule::Create() called for a module before initializing it!");
 	}
+
+	const std::string moduleName = "Base.rte";
 
 	std::string indexPath = g_PresetMan.GetFullModulePath(m_FileName + "/Index.ini");
 
@@ -128,10 +130,9 @@ int DataModule::ReadModuleProperties(const std::string& moduleName) {
 	m_ModuleID = g_PresetMan.GetModuleID(moduleName);
 	m_CrabToHumanSpawnRatio = 0;
 
-	Reader reader;
 	std::string indexPath(m_FileName + "/Index.ini");
 
-	if (reader.Create(indexPath, true) >= 0) {
+	if (Reader reader; reader.Create(indexPath, true) >= 0) {
 		reader.SetSkipIncludes(true);
 		int result = Serializable::Create(reader);
 		return result;
