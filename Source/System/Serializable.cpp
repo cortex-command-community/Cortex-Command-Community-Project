@@ -24,7 +24,7 @@ namespace RTE {
 			}
 		}
 		if (GetClassName() == "Shader") {
-			return 2;
+			return 2; //gtodo make cleaner
 		} else {
 			return doCreate ? Create() : 0;
 		}

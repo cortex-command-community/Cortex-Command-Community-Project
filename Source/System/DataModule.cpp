@@ -68,7 +68,10 @@ int DataModule::Init(const std::string& moduleName) {
 	std::string indexPath = g_PresetMan.GetFullModulePath(m_FileName + "/Index.ini");
 
 	// If the module is a mod, read only its `index.ini` to validate its SupportedGameVersion.
-	if (m_ModuleID >= g_PresetMan.GetOfficialModuleCount() && !m_IsUserdata && ReadModuleProperties(moduleName) >= 0) {
+	if (m_ModuleID >= g_PresetMan.GetOfficialModuleCount() 
+		&& !m_IsUserdata 
+		&& ReadModuleProperties(moduleName) >= 0) 
+	{
 		CheckSupportedGameVersion();
 	}
 

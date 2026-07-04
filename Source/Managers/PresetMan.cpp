@@ -72,7 +72,7 @@ DataModule* PresetMan::InitDataModule(const std::string& moduleName, bool offici
 		RTEAbort("Trying to init a module with an empty module name!");
 	}
 	// Make a lowercase-version of the module name so it makes it easier to compare to and find case-agnostically.
-	std::string lowercaseName = moduleName;
+	std::string lowercaseName = moduleName; //gtodo do this in the other ::transform place too
 	std::transform(lowercaseName.begin(), lowercaseName.end(), lowercaseName.begin(), ::tolower);
 
 	// Make sure we don't add the same module twice.
@@ -110,7 +110,7 @@ DataModule* PresetMan::InitDataModule(const std::string& moduleName, bool offici
 		//RTEAbort("Failed to init the " + moduleName + " Data Module!");
 		//return false; // gtodo just so many redundant unused return values, and returns after aborts
 	//}
-	newModule->Init(moduleName);
+	newModule->Init(moduleName); //gtodo, init should be private
 	return newModule;
 }
 
