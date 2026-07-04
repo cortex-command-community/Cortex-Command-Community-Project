@@ -262,7 +262,13 @@ namespace RTE {
 		int m_Version; //!< Version number, starting with 1.
 		int m_ModuleID; //!< ID number assigned to this upon loading, for internal use only, don't reflect in ini's.
 
-		bool m_WasInitialized; //!< Whether Init() was called. Needs to equal true before calling Create().
+		enum CreationStatus {
+			NOT_INITIALIZED,
+			INITIALIZED_NOT_CREATED,
+			FINALLY_CREATED
+		};
+
+		CreationStatus m_CreationStatus; //!< gtodo
 
 		ContentFile m_IconFile; //!< File to the icon/symbol bitmap.
 		BITMAP* m_Icon; //!< Bitmap with the icon loaded from above file.

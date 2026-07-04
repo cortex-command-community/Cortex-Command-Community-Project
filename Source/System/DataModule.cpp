@@ -52,19 +52,21 @@ void DataModule::Clear() {
 	m_IsFaction = false;
 	m_IsMerchant = false;
 	AssertFromWorkerAndShutdownAll = nullptr;
-	m_WasInitialized = false;
+	m_CreationStatus = NOT_INITIALIZED;
 	m_RequiredModules.clear();
 }
 
 int DataModule::Init(const std::string& moduleName) {
-	if (m_WasInitialized) {
-		RTEAbort("DataModule::Init() called twice for module \"" + m_FileName + "\"!");
+	if (m_CreationStatus != NOT_INITIALIZED) {
+		RTEAbort("DataModule::Init() called for an already initialized/created module \"" + m_FileName + "\"!");
 	}
 
 	m_FileName = std::filesystem::path(moduleName).generic_string();
 	m_ModuleID = g_PresetMan.GetModuleID(moduleName);
 	m_CrabToHumanSpawnRatio = 0;
 
+	// Here we set properties from module's Index.ini (pretty name, requires, etc) 
+	// We do it like this so short-circuit eval of && doesnt skip the func call
 	bool modulePropertiesReadSuccess = ReadModuleProperties(moduleName) >= 0;
 
 	// If the module is a mod, read only its `index.ini` to validate its SupportedGameVersion.
@@ -75,13 +77,15 @@ int DataModule::Init(const std::string& moduleName) {
 		CheckSupportedGameVersion();
 	}
 
-	m_WasInitialized = true;
+	m_CreationStatus = INITIALIZED_NOT_CREATED;
 	return true;
 }
 
 int DataModule::Create() {
-	if (!m_WasInitialized) {
+	if (m_CreationStatus == NOT_INITIALIZED) {
 		RTEAbort("DataModule::Create() called for a module before initializing it!");
+	} else if (m_CreationStatus == FINALLY_CREATED) {
+		RTEAbort("DataModule::Create() called for an already created module!");
 	}
 
 	const std::string moduleName = "Base.rte";
@@ -95,8 +99,10 @@ int DataModule::Create() {
 			result = FindAndRead();
 		}
 
+		m_CreationStatus == FINALLY_CREATED;
 		return result;
 	} else {
+		//getc figure these out. should i just abort here?
 		return -1;
 	}
 }
@@ -126,18 +132,15 @@ void DataModule::Destroy() {
 }
 
 int DataModule::ReadModuleProperties(const std::string& moduleName) {
-	m_FileName = moduleName;
-	m_ModuleID = g_PresetMan.GetModuleID(moduleName);
-	m_CrabToHumanSpawnRatio = 0;
-
 	std::string indexPath(m_FileName + "/Index.ini");
 
 	if (Reader reader; reader.Create(indexPath, true) >= 0) {
 		reader.SetSkipIncludes(true);
-		int result = Serializable::Create(reader);
+		int result = Serializable::Create(reader, true, false);
 		return result;
+	} else {
+		return -1;
 	}
-	return -1;
 }
 
 int DataModule::ReadProperty(const std::string_view& propName, Reader& reader) {
