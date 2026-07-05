@@ -77,14 +77,14 @@ int DataModule::Init(const std::string& moduleName) {
 		CheckSupportedGameVersion();
 	}
 
-	m_CreationStatus = INITIALIZED_NOT_CREATED;
+	m_CreationStatus = INITIALIZED_NOT_FINALIZED;
 	return true;
 }
 
 int DataModule::Finalize() {
 	if (m_CreationStatus == NOT_INITIALIZED) {
 		RTEAbort("DataModule::Create() called for a module before initializing it!");
-	} else if (m_CreationStatus == FINALLY_CREATED) {
+	} else if (m_CreationStatus == FINALIZED) {
 		RTEAbort("DataModule::Create() called for an already created module!");
 	}
 
@@ -97,7 +97,7 @@ int DataModule::Finalize() {
 			result = FindAndRead();
 		}
 
-		m_CreationStatus == FINALLY_CREATED;
+		m_CreationStatus == FINALIZED;
 		return result;
 	} else {
 		//getc figure these out. should i just abort here?

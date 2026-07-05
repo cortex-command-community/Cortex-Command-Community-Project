@@ -8,6 +8,7 @@
 #include "Entity.h"
 #include "Singleton.h"
 #include "shader.h"
+#include "RTEError.h"
 
 #include <array>
 #include <list>
@@ -28,6 +29,7 @@ namespace RTE {
 	/// and unique and initial runtime data.
 	class PresetMan : public Singleton<PresetMan> {
 		friend struct ManagerLuaBindings;
+		friend class RTEError;
 
 		/// Public member variable, method and friend function declarations
 	public:
@@ -398,6 +400,8 @@ namespace RTE {
 		std::array<std::string, 3> m_LastReloadedEntityPresetInfo; //!< Array storing the last reloaded Entity preset info (ClassName, PresetName and DataModule). Used for quick reloading via key combination.
 		bool m_ReloadEntityPresetCalledThisUpdate; //!< A flag for whether or not ReloadEntityPreset was called this update.
 
+		bool m_GameInitModuleLoadingIsHappening = false;
+
 		std::mutex m_ProgressDisplayMutex;
 		std::condition_variable m_ProgressDisplayCv;
 		using ProgressDisplayEntry = std::pair<std::string, bool>;
@@ -408,12 +412,15 @@ namespace RTE {
 		std::atomic<bool> m_ToStopSpinlockWatchdog = false;
 
 		std::atomic<bool> m_WorkerFailed = false;
-		std::mutex m_WorkerErrorMutex;
-		std::string m_WorkerErrorMessage;
+		std::atomic<ModuleLoadResult>* m_LoadingDone;
+		std::mutex m_GameInitModuleLoadingErrorMutex;
+		std::string m_GameInitModuleLoadingErrorMessage;
 
-		void ModuleLoadingThreadFunction(std::stop_token st, std::atomic<ModuleLoadResult>& loadingDone, std::chrono::milliseconds& moduleLoadElapsedTime);
+		void GameInitModuleLoadingAbort(const std::string& description, std::source_location srcLocation);
+
+		void ModuleLoadingThreadFunction(std::stop_token st, std::atomic<ModuleLoadResult>* loadingDone, std::chrono::milliseconds& moduleLoadElapsedTime);
 		void SpinlockWatchdogThreadFunction(std::stop_token st, std::atomic<int>& mainThreadHeartbeat, std::atomic<bool>& spinlockDetected);
-
+		
 		std::vector<Shader*> m_ShadersToCompile;
 
 		/// Iterates through the working directory to find any files matching the zipped module package extension (.rte.zip) and proceeds to extract them.

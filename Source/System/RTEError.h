@@ -24,8 +24,8 @@ namespace RTE {
 	class RTEError {
 
 	public:
-		static bool s_CurrentlyAborting; //!< Flag to prevent a potential recursive fault while attempting to save the game when aborting.
-		static bool s_IgnoreAllAsserts; //!< Whether to skip the assert dialog and just let everything burn at whatever point that happens.
+		static std::atomic<bool> s_CurrentlyAborting; //!< Flag to prevent a potential recursive fault while attempting to save the game when aborting.
+		static std::atomic<bool> s_IgnoreAllAsserts; //!< Whether to skip the assert dialog and just let everything burn at whatever point that happens.
 		static std::string s_LastIgnoredAssertDescription; //!< The last ignored assert message.
 		static std::source_location s_LastIgnoredAssertLocation; //!< The last ignored assert call site.
 
@@ -54,6 +54,11 @@ namespace RTE {
 		/// Formats function signatures so they're slightly more sane.
 		/// @param funcSig Reference to the function signature to format.
 		static void FormatFunctionSignature(std::string& funcSig);
+
+		static void TriggerGameInitModuleLoadingAbort(const std::string& description);
+
+		// gtodo
+		static bool IsMainThread();
 
 	private:
 		/// Pops up the abort message box dialog in the OS, notifying the user about a runtime error.
@@ -84,10 +89,13 @@ namespace RTE {
 		static bool DumpAbortSave();
 	};
 
-	//gtodo this is NOT thread friendly
 #define RTEAbort(description) \
-	if (!RTEError::s_CurrentlyAborting) { \
-		RTEError::AbortFunc(description, std::source_location::current()); \
+	if (RTEError::IsMainThread()) { \
+		if (!RTEError::s_CurrentlyAborting) { \
+			RTEError::AbortFunc(description, std::source_location::current()); \
+		} \
+	} else { \
+		RTEError::TriggerGameInitModuleLoadingAbort(description); \
 	}
 
 #define RTEAssert(expression, description) \

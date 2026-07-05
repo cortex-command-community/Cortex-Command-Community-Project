@@ -5,6 +5,7 @@
 #include "ConsoleMan.h"
 #include "ActivityMan.h"
 #include "ThreadMan.h"
+#include "PresetMan.h"
 #include "System.h"
 
 #include <SDL3/SDL_messagebox.h>
@@ -38,8 +39,8 @@
 
 using namespace RTE;
 
-bool RTEError::s_CurrentlyAborting = false;
-bool RTEError::s_IgnoreAllAsserts = false;
+std::atomic<bool> RTEError::s_CurrentlyAborting = false;
+std::atomic<bool> RTEError::s_IgnoreAllAsserts = false;
 std::string RTEError::s_LastIgnoredAssertDescription = "";
 std::source_location RTEError::s_LastIgnoredAssertLocation = {};
 
@@ -598,6 +599,10 @@ bool RTEError::DumpAbortSave() {
 	return success;
 }
 
+bool RTEError::IsMainThread() {
+	return g_ThreadMan.IsMainThread();
+}
+
 void RTEError::FormatFunctionSignature(std::string& symbolName) {
 	// TODO: Expand this with more dumb signatures, or make something that makes more sense.
 	static const std::array<std::pair<std::regex, std::string>, 3> stlSigs{
@@ -617,4 +622,8 @@ void RTEError::FormatFunctionSignature(std::string& symbolName) {
 			break;
 		}
 	}
+}
+
+void RTEError::TriggerGameInitModuleLoadingAbort(const std::string& description) {
+	g_PresetMan.GameInitModuleLoadingAbort(description, std::source_location::current());
 }

@@ -264,8 +264,8 @@ namespace RTE {
 
 		enum CreationStatus {
 			NOT_INITIALIZED,
-			INITIALIZED_NOT_CREATED,
-			FINALLY_CREATED
+			INITIALIZED_NOT_FINALIZED,
+			FINALIZED
 		};
 
 		CreationStatus m_CreationStatus; //!< gtodo
