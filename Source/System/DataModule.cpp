@@ -100,7 +100,7 @@ void DataModule::Finalize() {
 				+ "' due to a reader error! Code " + std::to_string(result) + ".");
 		}
 
-		m_CreationStatus == FINALIZED;
+		m_CreationStatus = FINALIZED;
 	} else {
 		RTEAbort("Couldn't finalize module '" + GetFileName() 
 			+ "' due to reader creation failure!");

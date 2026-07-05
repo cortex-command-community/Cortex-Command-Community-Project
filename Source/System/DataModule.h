@@ -234,6 +234,19 @@ namespace RTE {
 		void ReloadAllScripts() const;
 #pragma endregion
 
+		//gtodo
+		enum CreationStatus {
+			NOT_INITIALIZED,
+			INITIALIZED_NOT_FINALIZED,
+			FINALIZED
+		};
+
+		CreationStatus GetCreationStatus() const { return m_CreationStatus; }
+
+		const std::vector<std::string>& GetRequiredModules() { return m_RequiredModules; }
+
+		int GetModuleID() const { return m_ModuleID; }
+
 	protected:
 		/// Holds and owns the actual object instance pointer, and the location of the data file it was read from, as well as where in that file.
 		struct PresetEntry {
@@ -260,12 +273,6 @@ namespace RTE {
 		version::Semver200_version* m_SupportedGameVersion; //!< Game version this DataModule supports. Needs to satisfy Caret Version Range for this DataModule to be allowed. Base DataModules don't need this.
 		int m_Version; //!< Version number, starting with 1.
 		int m_ModuleID; //!< ID number assigned to this upon loading, for internal use only, don't reflect in ini's.
-
-		enum CreationStatus {
-			NOT_INITIALIZED,
-			INITIALIZED_NOT_FINALIZED,
-			FINALIZED
-		};
 
 		CreationStatus m_CreationStatus; //!< gtodo
 

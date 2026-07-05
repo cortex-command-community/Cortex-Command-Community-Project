@@ -938,6 +938,50 @@ Actor* PresetMan::GetLoadout(std::string loadoutName, int moduleNumber, bool spa
 	return 0;
 }
 
+void RTE::PresetMan::MLTF_WorkerFunction(std::stop_token st) {
+	while (!st.stop_requested()) {
+		// Try to acquire a module to finalize
+		DataModule* moduleToFinalize = nullptr;
+		{
+			std::lock_guard lg(m_MLTFMutex);
+			MLTFWorkerStruct::Status& status = m_MLTFWorkerStruct.status;
+
+			// Take first available base modules until all are finalized
+			if (status == MLTFWorkerStruct::Status::FinalizingBaseModules) {
+				bool allBaseModulesFinalized = true;
+				for (auto& possibleModule: m_MLTFWorkerStruct.BaseGameModulesToFinalize) {
+					if (!possibleModule.IsTaken) {
+						moduleToFinalize = possibleModule.Module;
+						possibleModule.IsTaken = true;
+						goto found_a_module;
+					} else {
+						if (possibleModule.Module->GetCreationStatus() 
+							!= DataModule::CreationStatus::FINALIZED) 
+						{
+							allBaseModulesFinalized = false;
+						}
+					}
+				}
+				if (allBaseModulesFinalized) {
+					status = MLTFWorkerStruct::Status::AllBaseModulesFinalized;
+				} else {
+					using namespace std::chrono_literals;
+					std::this_thread::sleep_for(2ms);
+					continue;
+				}
+			}
+			if (status == MLTFWorkerStruct::Status::AllBaseModulesFinalized) {
+				return;
+			}
+			if (status == MLTFWorkerStruct::Status::EverythingDone) {
+			}
+			
+		}
+	found_a_module:
+		moduleToFinalize->Finalize();
+	}
+}
+
 void PresetMan::FindAndExtractZippedModules() const {
 	for (const std::filesystem::directory_entry& directoryEntry: std::filesystem::directory_iterator(System::GetWorkingDirectory() + System::GetModDirectory())) {
 		std::string zippedModulePath = std::filesystem::path(directoryEntry).generic_string();
@@ -1032,17 +1076,30 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 	InitDataModule("Base.rte", true, false)->Finalize();
 
 	// Init all the other official modules
-	std::vector<DataModule*> officialModulesToFinalize;
+	std::vector<DataModule*> BaseGameModulesToFinalize;
 	for (auto officialModuleIt = c_OfficialModules.begin() + 1; 
 		officialModuleIt != c_OfficialModules.end(); 
 		++officialModuleIt) 
 	{
-		officialModulesToFinalize.push_back(InitDataModule(*officialModuleIt, true, false));
+		m_MLTFWorkerStruct.BaseGameModulesToFinalize
+			.push_back(InitDataModule(*officialModuleIt, true, false));
 	}
+	m_MLTFWorkerStruct.PrecalculateModuleDependencyIndexesForMods();
 	// And then finalize them
-	for (auto* officialModule: officialModulesToFinalize) {
-		officialModule->Finalize();
+	// Dispatch worker threads
+	const int moduleFinalizingWorkerThreadCount = 1;
+	for (int i = 0; i < moduleFinalizingWorkerThreadCount; ++i) {
+		m_MLTFThreads.emplace_back(
+			std::thread([this](std::stop_token st) {
+				MLTF_WorkerFunction(st);
+			}, st)
+		);
 	}
+	// Join worker threads
+	for (int i = 0; i < moduleFinalizingWorkerThreadCount; ++i) {
+		m_MLTFThreads[i].join();
+	}
+	RTEAbort("ass");
 
 	// Load mod modules
 	// If a single module is specified, skip loading all other unofficial modules and load specified module only.
@@ -1123,4 +1180,38 @@ void PresetMan::SpinlockWatchdogThreadFunction(std::stop_token st, std::atomic<i
 		}
 		previousHeartbeat = newHeartbeat;
 	}
+}
+
+void PresetMan::MLTFWorkerStruct::PrecalculateModuleDependencyIndexesForMods() {
+	if (m_DependenciesPrecalced) {
+		RTEAbort("PrecalculateModuleDependencyIndexesForMods() is called twice, shouldn't be.");
+	}
+	// For each of the mod modules to finalize
+	for (auto& modModule: ModModulesToFinalize) {
+		const std::vector<std::string>& requiredModuleNames = modModule.Module->GetRequiredModules();
+		// We go through their required modules
+		for (auto& requiredModuleName: requiredModuleNames) {
+			const int requiredModuleID =
+			    g_PresetMan.GetModuleID(requiredModuleName);
+			if (requiredModuleID == -1) {
+				RTEAbort("Mod module '" + modModule.Module->GetFileName() + "' sets a requirement for a missing module '" + requiredModuleName + "' in index.ini!");
+			}
+			if (requiredModuleID < g_PresetMan.GetOfficialModuleCount()) {
+				RTEAbort("Mod module '" + modModule.Module->GetFileName() + "' sets a requirement for a base game module '" + requiredModuleName + "' in index.ini, shouldn't!");
+			}
+			if (requiredModuleID == modModule.Module->GetModuleID()) {
+				RTEAbort("Mod module '" + modModule.Module->GetFileName() + "' requires itself in index.ini, what? '");
+			}
+			// And if valid, we put them in a vector
+			modModule.RequiredModules.push_back(g_PresetMan.GetDataModule(requiredModuleID));
+		}
+	}
+	m_DependenciesPrecalced = true;
+}
+
+PresetMan::MLTFWorkerStructModule::MLTFWorkerStructModule(DataModule* module) {
+	if (module->GetCreationStatus() != DataModule::CreationStatus::INITIALIZED_NOT_FINALIZED) {
+		RTEAbort("Trying to construct MLTFWorkerStructModule with a non-initialized or already finalized module!");
+	}
+	Module = module;
 }

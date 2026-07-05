@@ -419,6 +419,41 @@ namespace RTE {
 		void ModuleLoadingThreadFunction(std::stop_token st, std::chrono::milliseconds& moduleLoadElapsedTime);
 		void SpinlockWatchdogThreadFunction(std::stop_token st, std::atomic<int>& mainThreadHeartbeat, std::atomic<bool>& spinlockDetected);
 		
+		// A module to finalize in the ModuleLoadingThreadFunction worker struct
+		struct MLTFWorkerStructModule {
+			MLTFWorkerStructModule(DataModule* module);
+			DataModule* Module = nullptr;
+			bool IsTaken = false;
+			std::vector<const DataModule*> RequiredModules;
+		};
+		// ModuleLoadingThreadFunction worker struct, shared between finalizing workers
+		struct MLTFWorkerStruct {
+			std::vector<MLTFWorkerStructModule> BaseGameModulesToFinalize;
+			std::vector<MLTFWorkerStructModule> ModModulesToFinalize;
+
+			enum Status {
+				FinalizingBaseModules,
+				AllBaseModulesFinalized,
+				EverythingDone
+			};
+			Status status = FinalizingBaseModules;
+
+			void PrecalculateModuleDependencyIndexesForMods();
+
+		private:
+			bool m_DependenciesPrecalced = false;
+
+		} m_MLTFWorkerStruct;
+
+		// ModuleLoadingThreadFunction threads vector
+		std::vector<std::thread> m_MLTFThreads;
+
+		// ModuleLoadingThreadFunction mutex
+		std::mutex m_MLTFMutex;
+
+		// ModuleLoadingThreadFunction worker function
+		void MLTF_WorkerFunction(std::stop_token st);
+
 		std::vector<Shader*> m_ShadersToCompile;
 
 		/// Iterates through the working directory to find any files matching the zipped module package extension (.rte.zip) and proceeds to extract them.
