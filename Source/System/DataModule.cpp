@@ -52,7 +52,7 @@ void DataModule::Clear() {
 	m_RequiredModules.clear();
 }
 
-int DataModule::Init(const std::string& moduleName) {
+void DataModule::Init(const std::string& moduleName) {
 	if (m_CreationStatus != NOT_INITIALIZED) {
 		RTEAbort("DataModule::Init() called for an already initialized/created module \"" + m_FileName + "\"!");
 	}
@@ -74,10 +74,9 @@ int DataModule::Init(const std::string& moduleName) {
 	}
 
 	m_CreationStatus = INITIALIZED_NOT_FINALIZED;
-	return true;
 }
 
-int DataModule::Finalize() {
+void DataModule::Finalize() {
 	if (m_CreationStatus == NOT_INITIALIZED) {
 		RTEAbort("DataModule::Create() called for a module before initializing it!");
 	} else if (m_CreationStatus == FINALIZED) {
@@ -86,6 +85,9 @@ int DataModule::Finalize() {
 
 	std::string indexPath = g_PresetMan.GetFullModulePath(m_FileName + "/Index.ini");
 
+	// Hack - empty out module requires as to not dupe them from the init phase
+	m_RequiredModules.clear();
+
 	if (Reader reader; reader.Create(indexPath, true) >= 0) {
 		int result = Serializable::Create(reader);
 
@@ -93,11 +95,15 @@ int DataModule::Finalize() {
 			result = FindAndRead();
 		}
 
+		if (result < 0) {
+			RTEAbort("Couldn't finalize module '" + GetFileName() 
+				+ "' due to a reader error! Code " + std::to_string(result) + ".");
+		}
+
 		m_CreationStatus == FINALIZED;
-		return result;
 	} else {
-		//getc figure these out. should i just abort here?
-		return -1;
+		RTEAbort("Couldn't finalize module '" + GetFileName() 
+			+ "' due to reader creation failure!");
 	}
 }
 
@@ -193,18 +199,26 @@ int DataModule::ReadProperty(const std::string_view& propName, Reader& reader) {
 		std::string requiredModule;
 		reader >> requiredModule;
 		// Lower-casen it
-		std::transform(requiredModule.begin(), requiredModule.end(), requiredModule.begin(), ::tolower);
+		std::string requiredModuleLowercase(requiredModule);
+		std::transform(
+			requiredModuleLowercase.begin(), 
+			requiredModuleLowercase.end(), 
+			requiredModuleLowercase.begin(), 
+			::tolower
+		);
 		// Abort if doesn't end in .rte
-		if (!requiredModule.ends_with(".rte")) {
-			reader.ReportError("\"" + m_FileName + "\" requires \"" + requiredModule + "\", which should end in .rte but doesn't!\n");
+		if (!requiredModuleLowercase.ends_with(".rte")) {
+			reader.ReportError("\"" + m_FileName + "\" requires \"" 
+				+ requiredModule + "\", which should end in .rte but doesn't!\n");
 		}
 		// Abort if a require repeats
-		if (std::find(m_RequiredModules.begin(), m_RequiredModules.end(), requiredModule) 
+		if (std::find(m_RequiredModules.begin(), m_RequiredModules.end(), requiredModuleLowercase) 
 			!= m_RequiredModules.end()) 
 		{
-			reader.ReportError("\"" + m_FileName + "\" requires \"" + requiredModule + "\" more than once, shouldn't!\n");
+			reader.ReportError("\"" + m_FileName + "\" requires \"" 
+				+ requiredModule + "\" more than once, shouldn't!\n");
 		}
-		m_RequiredModules.push_back(requiredModule);
+		m_RequiredModules.push_back(requiredModuleLowercase);
 	});
 	MatchProperty("IconFile", {
 		reader >> m_IconFile;

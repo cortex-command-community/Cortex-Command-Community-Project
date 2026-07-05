@@ -80,7 +80,6 @@ DataModule* PresetMan::InitDataModule(const std::string& moduleName, bool offici
 	for (const DataModule* dataModule: m_pDataModules) {
 		if (dataModule->GetFileName() == moduleName) {
 			RTEAbort("Trying to init module with a name (" + moduleName + ") that's already registered!");
-			//return false;
 		}
 	}
 
@@ -107,10 +106,6 @@ DataModule* PresetMan::InitDataModule(const std::string& moduleName, bool offici
 		m_DataModuleIDs.try_emplace(lowercaseName, m_pDataModules.size() - 1);
 	}
 
-	//if ( < 0) {
-		//RTEAbort("Failed to init the " + moduleName + " Data Module!");
-		//return false; // gtodo just so many redundant unused return values, and returns after aborts
-	//}
 	newModule->Init(moduleName); //gtodo, init should be private
 	return newModule;
 }
@@ -1029,30 +1024,28 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 		RTEAbort("PresetMan::ModuleLoadingThreadFunction called from the main thread! Bad!");
 	}
 	auto timerModuleLoadingThreadStart = std::chrono::steady_clock::now();
-	// Init all
+
 	// Load Base.rte first!
-	if (!InitDataModule("Base.rte", true, false)->Finalize()) {
-		RTEAbort("ass");
+	InitDataModule("Base.rte", true, false)->Finalize();
+
+	// Init all the other official modules
+	std::vector<DataModule*> officialModulesToFinalize;
+	for (auto officialModuleIt = c_OfficialModules.begin() + 1; 
+		officialModuleIt != c_OfficialModules.end(); 
+		++officialModuleIt) 
+	{
+		officialModulesToFinalize.push_back(InitDataModule(*officialModuleIt, true, false));
 	}
-	int a = 0;
-	RTEAbort("ass");
-	// Then load all the other official modules!
-	for (auto officialModuleIt = c_OfficialModules.begin() + 1; officialModuleIt != c_OfficialModules.end(); ++officialModuleIt) {
-		if (st.stop_requested()) {
-			return;
-		}
-		if (!InitDataModule(*officialModuleIt, true, false)->Finalize()) {
-			RTEAbort("ass");
-		}
+	// And then finalize them
+	for (auto* officialModule: officialModulesToFinalize) {
+		officialModule->Finalize();
 	}
 
 	// Load mod modules
 	// If a single module is specified, skip loading all other unofficial modules and load specified module only.
 	// gtodo: sack m_SingleModuleToLoad
 	if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad)) {
-		if (!InitDataModule(m_SingleModuleToLoad, false, false)->Finalize()) {
-			RTEAbort("ass");
-		}
+		InitDataModule(m_SingleModuleToLoad, false, false)->Finalize();
 	} else {
 		// Gather mod folder names
 		std::vector<std::string> modModuleNames;
@@ -1080,6 +1073,7 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 			{
 				const int moduleID = GetModuleID(modModuleName);
 				const bool moduleWasntLoadedYet = moduleID < 0 || moduleID >= GetOfficialModuleCount();
+				//gtodo what?
 				// NOTE: LoadDataModule can return false (especially since it may try to load
 				// already loaded modules, which is okay) and shouldn't cause stop, so we can 
 				// ignore its return value here.
@@ -1098,9 +1092,7 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 				bool scanContentsAndIgnoreMissing = userdataModuleName == c_UserScenesModuleName;
 				DataModule::CreateOnDiskAsUserdata(userdataModuleName, userdataModuleFriendlyName, scanContentsAndIgnoreMissing, scanContentsAndIgnoreMissing);
 			}
-			if (!InitDataModule(userdataModuleName, false, true)->Finalize()) {
-				RTEAbort("ass");
-			}
+			InitDataModule(userdataModuleName, false, true)->Finalize();
 		}
 	}
 

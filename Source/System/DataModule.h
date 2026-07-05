@@ -49,14 +49,15 @@ namespace RTE {
 		DataModule(const std::string& moduleName);
 
 		// gtodo
-		int Init(const std::string& moduleName);
+		void Init(const std::string& moduleName);
 
+		//gtodo
 		/// Makes the DataModule object ready for use. This needs to be called after PresetMan is created.
 		/// This looks for an "index.ini" within the specified .rte directory and loads all the defined objects in that index file.
 		/// @param moduleName A string defining the name of this DataModule, e.g. "MyModule.rte".
 		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Finalize();
+		void Finalize();
 
 		/// Creates a new DataModule directory with "Index.ini" on disk to be used for userdata. Does NOT instantiate the newly created DataModule.
 		/// @param moduleName File/folder name of the data module, e.g. "MyMod.rte".
