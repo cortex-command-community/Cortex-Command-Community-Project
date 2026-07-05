@@ -364,12 +364,12 @@ namespace RTE {
 
 		static void PushToProgressDisplayQueue(const std::string&, bool);
 		
-		enum ModuleLoadResult {
+		enum GameInitModuleLoadingStatus {
 			StillWorking,
 			Success,
 			Failure
 		};
-		void SpinlockAssert(bool, ModuleLoadResult);
+		void SpinlockAssert(bool, GameInitModuleLoadingStatus);
 
 		/// Protected member variable and method declarations
 	protected:
@@ -409,8 +409,8 @@ namespace RTE {
 		std::condition_variable m_SpinlockWdCv;
 		std::atomic<bool> m_ToStopSpinlockWatchdog = false;
 
-		std::atomic<bool> m_WorkerFailed = false;
-		std::atomic<ModuleLoadResult> m_LoadingDone;
+		std::atomic<bool> m_GameInitModuleLoadingThreadFailed = false;
+		std::atomic<GameInitModuleLoadingStatus> m_GameInitModuleLoadingStatus;
 		std::mutex m_GameInitModuleLoadingErrorMutex;
 		std::string m_GameInitModuleLoadingErrorMessage;
 

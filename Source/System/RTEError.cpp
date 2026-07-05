@@ -280,7 +280,7 @@ void RTEError::UnhandledExceptionFunc(const std::string& description, const std:
 
 	//gtodo: are these needed?
 	//g_PresetMan.m_ToStopSpinlockWatchdog = true;
-	//g_PresetMan.m_WorkerFailed = true;
+	//g_PresetMan.m_GameInitModuleLoadingThreadFailed = true;
 
 	std::string exceptionMessage = "Runtime Error due to unhandled exception!\n\n" + description;
 
