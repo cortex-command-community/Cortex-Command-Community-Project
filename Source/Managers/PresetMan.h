@@ -438,6 +438,12 @@ namespace RTE {
 			};
 			Status status = FinalizingBaseModules;
 
+			void Clear() {
+				BaseGameModulesToFinalize.clear();
+				ModModulesToFinalize.clear();
+				status = FinalizingBaseModules;
+			}
+
 			void PrecalculateModuleDependencyIndexesForMods();
 
 		private:

@@ -1076,7 +1076,6 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 	InitDataModule("Base.rte", true, false)->Finalize();
 
 	// Init all the other official modules
-	std::vector<DataModule*> BaseGameModulesToFinalize;
 	for (auto officialModuleIt = c_OfficialModules.begin() + 1; 
 		officialModuleIt != c_OfficialModules.end(); 
 		++officialModuleIt) 
@@ -1084,29 +1083,15 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 		m_MLTFWorkerStruct.BaseGameModulesToFinalize
 			.push_back(InitDataModule(*officialModuleIt, true, false));
 	}
-	m_MLTFWorkerStruct.PrecalculateModuleDependencyIndexesForMods();
-	// And then finalize them
-	// Dispatch worker threads
-	const int moduleFinalizingWorkerThreadCount = 1;
-	for (int i = 0; i < moduleFinalizingWorkerThreadCount; ++i) {
-		m_MLTFThreads.emplace_back(
-			std::thread([this](std::stop_token st) {
-				MLTF_WorkerFunction(st);
-			}, st)
-		);
-	}
-	// Join worker threads
-	for (int i = 0; i < moduleFinalizingWorkerThreadCount; ++i) {
-		m_MLTFThreads[i].join();
-	}
-	RTEAbort("ass");
 
-	// Load mod modules
-	// If a single module is specified, skip loading all other unofficial modules and load specified module only.
+	// Init mod modules
+	// If a single module is specified, skip loading all other unofficial modules
+	// and load specified module only.
 	if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad)) {
-		InitDataModule(m_SingleModuleToLoad, false, false)->Finalize();
+		m_MLTFWorkerStruct.ModModulesToFinalize
+		    .push_back(InitDataModule(m_SingleModuleToLoad, false, false));
 	} else {
-		// Gather mod folder names
+		// Gather mod folders
 		std::vector<std::string> modModuleNames;
 		const std::string modDirectory = System::GetWorkingDirectory() + System::GetModDirectory();
 		for (auto const& dirEntry: std::filesystem::directory_iterator{modDirectory}) {
@@ -1118,35 +1103,55 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 				continue;
 			}
 			std::string moduleName = dirEntryStr.substr(dirEntryStr.find_last_of('/') + 1, std::string::npos);
-			
-			if (!g_SettingsMan.IsModDisabled(moduleName) 
-				&& !IsModuleOfficial(moduleName) 
-				&& !IsModuleUserdata(moduleName)) 
-			{
+
+			if (!g_SettingsMan.IsModDisabled(moduleName) && !IsModuleOfficial(moduleName) && !IsModuleUserdata(moduleName)) {
 				modModuleNames.push_back(moduleName);
 			}
 		}
 		std::sort(modModuleNames.begin(), modModuleNames.end());
 
-		// Now go over mod folders
+		// Now initialize them
 		for (auto const& modModuleName: modModuleNames) {
 			if (st.stop_requested()) {
 				return;
 			}
-			InitDataModule(modModuleName, false, false)->Finalize();
+			m_MLTFWorkerStruct.ModModulesToFinalize
+			    .push_back(InitDataModule(modModuleName, false, false));
 		}
 
-		// Load userdata modules AFTER all other techs etc are loaded; might be referring to stuff in user mods.
+		// Init userdata modules AFTER all other techs etc are loaded;
+		// might be referring to stuff in user mods.
 		for (const auto& [userdataModuleName, userdataModuleFriendlyName]: c_UserdataModules) {
 			if (st.stop_requested()) {
 				return;
 			}
 			if (!std::filesystem::exists(System::GetWorkingDirectory() + System::GetUserdataDirectory() + userdataModuleName)) {
 				bool scanContentsAndIgnoreMissing = userdataModuleName == c_UserScenesModuleName;
-				DataModule::CreateOnDiskAsUserdata(userdataModuleName, userdataModuleFriendlyName, scanContentsAndIgnoreMissing, scanContentsAndIgnoreMissing);
+				DataModule::CreateOnDiskAsUserdata(
+				    userdataModuleName,
+				    userdataModuleFriendlyName,
+				    scanContentsAndIgnoreMissing,
+				    scanContentsAndIgnoreMissing);
 			}
-			InitDataModule(userdataModuleName, false, true)->Finalize();
+			m_MLTFWorkerStruct.ModModulesToFinalize
+			    .push_back(InitDataModule(userdataModuleName, false, true));
 		}
+	}
+
+	// NOW we finalize all the modules
+	// Dispatch worker threads
+	m_MLTFWorkerStruct.PrecalculateModuleDependencyIndexesForMods();
+	const int moduleFinalizingWorkerThreadCount = 1;
+	for (int i = 0; i < moduleFinalizingWorkerThreadCount; ++i) {
+		m_MLTFThreads.emplace_back(
+			std::thread([this](std::stop_token st) {
+				MLTF_WorkerFunction(st);
+			}, st)
+		);
+	}
+	// Join worker threads
+	for (int i = 0; i < moduleFinalizingWorkerThreadCount; ++i) {
+		m_MLTFThreads[i].join();
 	}
 
 	moduleLoadElapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerModuleLoadingThreadStart);
