@@ -1043,7 +1043,6 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 
 	// Load mod modules
 	// If a single module is specified, skip loading all other unofficial modules and load specified module only.
-	// gtodo: sack m_SingleModuleToLoad
 	if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad)) {
 		InitDataModule(m_SingleModuleToLoad, false, false)->Finalize();
 	} else {
@@ -1051,36 +1050,30 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 		std::vector<std::string> modModuleNames;
 		const std::string modDirectory = System::GetWorkingDirectory() + System::GetModDirectory();
 		for (auto const& dirEntry: std::filesystem::directory_iterator{modDirectory}) {
-			if (!std::filesystem::is_directory(dirEntry))
+			if (!std::filesystem::is_directory(dirEntry)) {
 				continue;
+			}
 			const std::string dirEntryStr = dirEntry.path().generic_string();
-			if (!dirEntryStr.ends_with(".rte"))
+			if (!dirEntryStr.ends_with(".rte")) {
 				continue;
+			}
 			std::string moduleName = dirEntryStr.substr(dirEntryStr.find_last_of('/') + 1, std::string::npos);
-			modModuleNames.push_back(moduleName);
+			
+			if (!g_SettingsMan.IsModDisabled(moduleName) 
+				&& !IsModuleOfficial(moduleName) 
+				&& !IsModuleUserdata(moduleName)) 
+			{
+				modModuleNames.push_back(moduleName);
+			}
 		}
 		std::sort(modModuleNames.begin(), modModuleNames.end());
 
-		// Now go over them
+		// Now go over mod folders
 		for (auto const& modModuleName: modModuleNames) {
 			if (st.stop_requested()) {
 				return;
 			}
-				
-			if (!g_SettingsMan.IsModDisabled(modModuleName) 
-				&& !IsModuleOfficial(modModuleName) 
-				&& !IsModuleUserdata(modModuleName)) 
-			{
-				const int moduleID = GetModuleID(modModuleName);
-				const bool moduleWasntLoadedYet = moduleID < 0 || moduleID >= GetOfficialModuleCount();
-				//gtodo what?
-				// NOTE: LoadDataModule can return false (especially since it may try to load
-				// already loaded modules, which is okay) and shouldn't cause stop, so we can 
-				// ignore its return value here.
-				if (moduleWasntLoadedYet) {
-					InitDataModule(modModuleName, false, false)->Finalize();
-				}
-			}
+			InitDataModule(modModuleName, false, false)->Finalize();
 		}
 
 		// Load userdata modules AFTER all other techs etc are loaded; might be referring to stuff in user mods.
