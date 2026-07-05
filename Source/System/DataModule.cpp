@@ -11,9 +11,6 @@
 
 using namespace RTE;
 
-// Defining statics
-std::function<void(const std::string&)> DataModule::AssertFromWorkerAndShutdownAll = nullptr;
-
 const std::string DataModule::c_ClassName = "DataModule";
 
 DataModule::DataModule() {
@@ -51,7 +48,6 @@ void DataModule::Clear() {
 	m_ScriptPath.clear();
 	m_IsFaction = false;
 	m_IsMerchant = false;
-	AssertFromWorkerAndShutdownAll = nullptr;
 	m_CreationStatus = NOT_INITIALIZED;
 	m_RequiredModules.clear();
 }

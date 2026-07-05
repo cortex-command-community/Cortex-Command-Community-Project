@@ -233,8 +233,6 @@ namespace RTE {
 		void ReloadAllScripts() const;
 #pragma endregion
 
-		static std::function<void(const std::string&)> AssertFromWorkerAndShutdownAll;
-
 	protected:
 		/// Holds and owns the actual object instance pointer, and the location of the data file it was read from, as well as where in that file.
 		struct PresetEntry {

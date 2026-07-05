@@ -213,8 +213,6 @@ namespace RTE {
 		}
 #pragma endregion
 
-		static std::function<void(const std::string&)> AssertFromWorkerAndShutdownAll;
-
 	protected:
 		/// A struct containing information from the currently used stream.
 		struct StreamInfo {

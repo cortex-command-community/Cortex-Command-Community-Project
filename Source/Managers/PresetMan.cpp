@@ -124,10 +124,6 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) 
 
 	FindAndExtractZippedModules();
 
-	// No callback passing by a trickle, instead shove needed
-	// functions into statics of classes that will use them
-	DataModule::AssertFromWorkerAndShutdownAll = AssertFromModuleLoadingWorkerAndShutdownAll;
-	Reader::AssertFromWorkerAndShutdownAll = AssertFromModuleLoadingWorkerAndShutdownAll;
 	// gtodo
 	/* if (!g_SettingsMan.GetLoadingScreenProgressReportDisabled()) {
 		//Reader::PushToProgressDisplayQueue = PushToProgressDisplayQueue;
@@ -137,10 +133,10 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) 
 	m_GameInitModuleLoadingIsHappening = true;
 
 	// Module loading Thread
-	std::atomic<ModuleLoadResult> loadingDone = ModuleLoadResult::StillWorking;
+	m_LoadingDone = ModuleLoadResult::StillWorking;
 	bool toDoProgressPrintOut = !g_SettingsMan.GetLoadingScreenProgressReportDisabled();
 	std::jthread moduleLoadingThread([&](std::stop_token st) {
-		ModuleLoadingThreadFunction(st, &loadingDone, moduleLoadElapsedTime);
+		ModuleLoadingThreadFunction(st, moduleLoadElapsedTime);
 	});		
 
 	// Spinlock watchdog thread
@@ -167,21 +163,21 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) 
 					m_ProgressDisplayCv.wait_for(lk, std::chrono::milliseconds(16), [&] {
 						return 
 							!m_ProgressDisplayDeque.empty() 
-							|| loadingDone != ModuleLoadResult::StillWorking
+							|| m_LoadingDone != ModuleLoadResult::StillWorking
 							|| m_WorkerFailed 
 							|| spinlockDetected
 							|| System::IsSetToQuit();
 					});
 
 					if (System::IsSetToQuit() 
-						|| loadingDone == ModuleLoadResult::Failure
+						|| m_LoadingDone == ModuleLoadResult::Failure
 						|| m_WorkerFailed)
 					{
 						moduleLoadingThread.request_stop();
 						break;
 					}
 
-					if (loadingDone == ModuleLoadResult::Success
+					if (m_LoadingDone == ModuleLoadResult::Success
 						&& m_ProgressDisplayDeque.empty()) //gtodo repurpose deque
 					{
 						break;
@@ -192,7 +188,7 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) 
 						m_ProgressDisplayDeque.pop_front();
 					} else if (spinlockDetected) {
 						spinlockDetected = false;
-						SpinlockAssert(toDoProgressPrintOut, loadingDone);
+						SpinlockAssert(toDoProgressPrintOut, m_LoadingDone);
 						RTEAssert(false, to_string(mainThreadHeartbeat));
 					}
 				}
@@ -206,7 +202,7 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) 
 	spinlockWatchdogThread.join();
 	m_GameInitModuleLoadingIsHappening = false;
 
-	if (loadingDone == ModuleLoadResult::Failure) {
+	if (m_LoadingDone == ModuleLoadResult::Failure) {
 		RTEAbort(m_GameInitModuleLoadingErrorMessage);
 	}
 
@@ -969,12 +965,6 @@ void PresetMan::PushToProgressDisplayQueue(const std::string& string, bool newIt
 	g_PresetMan.m_ProgressDisplayCv.notify_one();
 }
 
-//gtodo sack this
-void PresetMan::AssertFromModuleLoadingWorkerAndShutdownAll(const std::string& assertString) {
-	g_PresetMan.m_WorkerFailed = true;
-	g_PresetMan.m_ProgressDisplayCv.notify_all();
-}
-
 //gtodo should this be spinlockabort?
 void PresetMan::SpinlockAssert(bool toDoProgressPrintOut, ModuleLoadResult loadingDone) {
 
@@ -990,10 +980,11 @@ void PresetMan::SpinlockAssert(bool toDoProgressPrintOut, ModuleLoadResult loadi
 				return "Unknown";
 		}
 	};
+	//gtodo rename these
 	std::string assertString =
 		"Main thread spinlock during module loading!\n"
 		+ std::string("toDoProgressPrintOut = ") + std::to_string(toDoProgressPrintOut)
-		+ std::string("\nloadingDone = ") + loadingDoneValueString(loadingDone)
+		+ std::string("\nm_LoadingDone = ") + loadingDoneValueString(loadingDone)
 		+ std::string("\nm_WorkerFailed = ") + std::to_string(m_WorkerFailed)
 		+ std::string("\nm_ProgressDisplayDeque.size() = ") + std::to_string(m_ProgressDisplayDeque.size());
 	RTEAssert(false, assertString);
@@ -1009,8 +1000,9 @@ void PresetMan::GameInitModuleLoadingAbort(const std::string& description, std::
 			RTEError::AbortFunc("RTEAbort called from non-main thread NOT during game launch module loading: " + description, std::source_location::current());
 		}
 		if (!m_WorkerFailed) {
-			*m_LoadingDone = ModuleLoadResult::Failure;
+			m_LoadingDone = ModuleLoadResult::Failure;
 			m_WorkerFailed = true;
+			m_ToStopSpinlockWatchdog = true;
 
 			std::filesystem::path filePath = srcLocation.file_name();
 			std::string fileName =
@@ -1021,8 +1013,8 @@ void PresetMan::GameInitModuleLoadingAbort(const std::string& description, std::
 			const std::string funcName = srcLocation.function_name();
 
 			m_GameInitModuleLoadingErrorMessage =
-			    "Abort called for the module loading thread, file '" 
-				+ fileName + "', line " + lineNum + ",\nin function '" 
+			    "RTEAbort called from one of the module loading threads, file '" 
+				+ fileName + "', line " + lineNum + ",\nfunction '" 
 				+ funcName + "':\n" + description;
 			m_ProgressDisplayCv.notify_all();
 		}
@@ -1032,106 +1024,91 @@ void PresetMan::GameInitModuleLoadingAbort(const std::string& description, std::
 	}
 }
 
-void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::atomic<ModuleLoadResult>* loadingDone, std::chrono::milliseconds& moduleLoadElapsedTime) {
+void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::milliseconds& moduleLoadElapsedTime) {
 	if (g_ThreadMan.IsMainThread()) {
-		RTEAbort("PresetMan::ModuleLoadingThreadFunction called from the main thread!");
+		RTEAbort("PresetMan::ModuleLoadingThreadFunction called from the main thread! Bad!");
 	}
-	try {
-		m_LoadingDone = loadingDone; //gtodo just have it be a member variable fully
-		auto timerModuleLoadingThreadStart = std::chrono::steady_clock::now();
-		// Init all
-		// Load Base.rte first!
-		if (!InitDataModule("Base.rte", true, false)->Finalize()) {
+	auto timerModuleLoadingThreadStart = std::chrono::steady_clock::now();
+	// Init all
+	// Load Base.rte first!
+	if (!InitDataModule("Base.rte", true, false)->Finalize()) {
+		RTEAbort("ass");
+	}
+	int a = 0;
+	RTEAbort("ass");
+	// Then load all the other official modules!
+	for (auto officialModuleIt = c_OfficialModules.begin() + 1; officialModuleIt != c_OfficialModules.end(); ++officialModuleIt) {
+		if (st.stop_requested()) {
+			return;
+		}
+		if (!InitDataModule(*officialModuleIt, true, false)->Finalize()) {
 			RTEAbort("ass");
 		}
-		int a = 0;
-		RTEAbort("ass");
-		// Then load all the other official modules!
-		for (auto officialModuleIt = c_OfficialModules.begin() + 1; officialModuleIt != c_OfficialModules.end(); ++officialModuleIt) {
+	}
+
+	// Load mod modules
+	// If a single module is specified, skip loading all other unofficial modules and load specified module only.
+	// gtodo: sack m_SingleModuleToLoad
+	if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad)) {
+		if (!InitDataModule(m_SingleModuleToLoad, false, false)->Finalize()) {
+			RTEAbort("ass");
+		}
+	} else {
+		// Gather mod folder names
+		std::vector<std::string> modModuleNames;
+		const std::string modDirectory = System::GetWorkingDirectory() + System::GetModDirectory();
+		for (auto const& dirEntry: std::filesystem::directory_iterator{modDirectory}) {
+			if (!std::filesystem::is_directory(dirEntry))
+				continue;
+			const std::string dirEntryStr = dirEntry.path().generic_string();
+			if (!dirEntryStr.ends_with(".rte"))
+				continue;
+			std::string moduleName = dirEntryStr.substr(dirEntryStr.find_last_of('/') + 1, std::string::npos);
+			modModuleNames.push_back(moduleName);
+		}
+		std::sort(modModuleNames.begin(), modModuleNames.end());
+
+		// Now go over them
+		for (auto const& modModuleName: modModuleNames) {
 			if (st.stop_requested()) {
 				return;
 			}
-			if (!InitDataModule(*officialModuleIt, true, false)->Finalize()) {
-				RTEAbort("ass");
-			}
-		}
-
-		// Load mod modules
-		// If a single module is specified, skip loading all other unofficial modules and load specified module only.
-		// gtodo: sack m_SingleModuleToLoad
-		if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad)) {
-			if (!InitDataModule(m_SingleModuleToLoad, false, false)->Finalize()) {
-				RTEAbort("ass");
-			}
-		} else {
-			// Gather mod folder names
-			std::vector<std::string> modModuleNames;
-			const std::string modDirectory = System::GetWorkingDirectory() + System::GetModDirectory();
-			for (auto const& dirEntry: std::filesystem::directory_iterator{modDirectory}) {
-				if (!std::filesystem::is_directory(dirEntry))
-					continue;
-				const std::string dirEntryStr = dirEntry.path().generic_string();
-				if (!dirEntryStr.ends_with(".rte"))
-					continue;
-				std::string moduleName = dirEntryStr.substr(dirEntryStr.find_last_of('/') + 1, std::string::npos);
-				modModuleNames.push_back(moduleName);
-			}
-			std::sort(modModuleNames.begin(), modModuleNames.end());
-
-			// Now go over them
-			for (auto const& modModuleName: modModuleNames) {
-				if (st.stop_requested()) {
-					return;
-				}
 				
-				if (!g_SettingsMan.IsModDisabled(modModuleName) 
-					&& !IsModuleOfficial(modModuleName) 
-					&& !IsModuleUserdata(modModuleName)) 
-				{
-					const int moduleID = GetModuleID(modModuleName);
-					const bool moduleWasntLoadedYet = moduleID < 0 || moduleID >= GetOfficialModuleCount();
-					// NOTE: LoadDataModule can return false (especially since it may try to load
-					// already loaded modules, which is okay) and shouldn't cause stop, so we can 
-					// ignore its return value here.
-					if (moduleWasntLoadedYet) {
-						InitDataModule(modModuleName, false, false)->Finalize();
-					}
-				}
-			}
-
-			// Load userdata modules AFTER all other techs etc are loaded; might be referring to stuff in user mods.
-			for (const auto& [userdataModuleName, userdataModuleFriendlyName]: c_UserdataModules) {
-				if (st.stop_requested()) {
-					return;
-				}
-				if (!std::filesystem::exists(System::GetWorkingDirectory() + System::GetUserdataDirectory() + userdataModuleName)) {
-					bool scanContentsAndIgnoreMissing = userdataModuleName == c_UserScenesModuleName;
-					DataModule::CreateOnDiskAsUserdata(userdataModuleName, userdataModuleFriendlyName, scanContentsAndIgnoreMissing, scanContentsAndIgnoreMissing);
-				}
-				if (!InitDataModule(userdataModuleName, false, true)->Finalize()) {
-					RTEAbort("ass");
+			if (!g_SettingsMan.IsModDisabled(modModuleName) 
+				&& !IsModuleOfficial(modModuleName) 
+				&& !IsModuleUserdata(modModuleName)) 
+			{
+				const int moduleID = GetModuleID(modModuleName);
+				const bool moduleWasntLoadedYet = moduleID < 0 || moduleID >= GetOfficialModuleCount();
+				// NOTE: LoadDataModule can return false (especially since it may try to load
+				// already loaded modules, which is okay) and shouldn't cause stop, so we can 
+				// ignore its return value here.
+				if (moduleWasntLoadedYet) {
+					InitDataModule(modModuleName, false, false)->Finalize();
 				}
 			}
 		}
 
-		moduleLoadElapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerModuleLoadingThreadStart);
-
-		*loadingDone = ModuleLoadResult::Success;
-		m_ProgressDisplayCv.notify_all();
-		return;
-	} catch (const std::exception& e) {
-		AssertFromModuleLoadingWorkerAndShutdownAll(std::string("Module loader exception!\n") + e.what());
-		m_ToStopSpinlockWatchdog = true;
-		RTEAbort("ass");
-	} catch (...) {
-		AssertFromModuleLoadingWorkerAndShutdownAll("Module loader unknown exception!");
-		m_ToStopSpinlockWatchdog = true;
-		RTEAbort("ass");
+		// Load userdata modules AFTER all other techs etc are loaded; might be referring to stuff in user mods.
+		for (const auto& [userdataModuleName, userdataModuleFriendlyName]: c_UserdataModules) {
+			if (st.stop_requested()) {
+				return;
+			}
+			if (!std::filesystem::exists(System::GetWorkingDirectory() + System::GetUserdataDirectory() + userdataModuleName)) {
+				bool scanContentsAndIgnoreMissing = userdataModuleName == c_UserScenesModuleName;
+				DataModule::CreateOnDiskAsUserdata(userdataModuleName, userdataModuleFriendlyName, scanContentsAndIgnoreMissing, scanContentsAndIgnoreMissing);
+			}
+			if (!InitDataModule(userdataModuleName, false, true)->Finalize()) {
+				RTEAbort("ass");
+			}
+		}
 	}
 
-	// We only reach here if we've caught an exception
-	//gtodo just rewire this all
-	RTEAbort("ass");
+	moduleLoadElapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerModuleLoadingThreadStart);
+
+	m_LoadingDone = ModuleLoadResult::Success;
+	m_ProgressDisplayCv.notify_all();
+	return;
 }
 
 void PresetMan::SpinlockWatchdogThreadFunction(std::stop_token st, std::atomic<int>& mainThreadHeartbeat, std::atomic<bool>& spinlockDetected) {

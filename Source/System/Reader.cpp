@@ -8,9 +8,6 @@
 
 using namespace RTE;
 
-// Defining statics
-std::function<void(const std::string&)> Reader::AssertFromWorkerAndShutdownAll = nullptr;
-
 void Reader::Clear() {
 	m_Stream = nullptr;
 	m_FilePath.clear();
@@ -27,7 +24,6 @@ void Reader::Clear() {
 	m_SkipIncludes = false;
 	m_CanFail = false;
 	m_NonModulePath = false;
-	AssertFromWorkerAndShutdownAll = nullptr;
 }
 
 Reader::Reader(const std::string& fileName, bool overwrites, bool failOK, bool nonModulePath) {

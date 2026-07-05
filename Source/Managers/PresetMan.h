@@ -363,8 +363,6 @@ namespace RTE {
 		};
 
 		static void PushToProgressDisplayQueue(const std::string&, bool);
-
-		static void AssertFromModuleLoadingWorkerAndShutdownAll(const std::string&);
 		
 		enum ModuleLoadResult {
 			StillWorking,
@@ -412,13 +410,13 @@ namespace RTE {
 		std::atomic<bool> m_ToStopSpinlockWatchdog = false;
 
 		std::atomic<bool> m_WorkerFailed = false;
-		std::atomic<ModuleLoadResult>* m_LoadingDone;
+		std::atomic<ModuleLoadResult> m_LoadingDone;
 		std::mutex m_GameInitModuleLoadingErrorMutex;
 		std::string m_GameInitModuleLoadingErrorMessage;
 
 		void GameInitModuleLoadingAbort(const std::string& description, std::source_location srcLocation);
 
-		void ModuleLoadingThreadFunction(std::stop_token st, std::atomic<ModuleLoadResult>* loadingDone, std::chrono::milliseconds& moduleLoadElapsedTime);
+		void ModuleLoadingThreadFunction(std::stop_token st, std::chrono::milliseconds& moduleLoadElapsedTime);
 		void SpinlockWatchdogThreadFunction(std::stop_token st, std::atomic<int>& mainThreadHeartbeat, std::atomic<bool>& spinlockDetected);
 		
 		std::vector<Shader*> m_ShadersToCompile;

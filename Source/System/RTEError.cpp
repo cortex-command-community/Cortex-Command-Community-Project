@@ -278,6 +278,10 @@ bool RTEError::ShowAssertMessageBox(const std::string& message) {
 void RTEError::UnhandledExceptionFunc(const std::string& description, const std::string& callstack) {
 	s_CurrentlyAborting = true;
 
+	//gtodo: are these needed?
+	//g_PresetMan.m_ToStopSpinlockWatchdog = true;
+	//g_PresetMan.m_WorkerFailed = true;
+
 	std::string exceptionMessage = "Runtime Error due to unhandled exception!\n\n" + description;
 
 	if (!s_LastIgnoredAssertDescription.empty()) {
