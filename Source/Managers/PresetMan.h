@@ -390,6 +390,8 @@ namespace RTE {
 		// This is just a handy total of all the groups registered in all the individual DataModule:s
 		std::list<std::string> m_TotalGroupRegister;
 
+		std::mutex m_TotalGroupRegisterMutex;
+
 		/// Private member variable and method declarations
 	private:
 		static const std::array<std::string, 10> c_OfficialModules; // Array storing the names of all the official modules.
@@ -417,23 +419,28 @@ namespace RTE {
 		void GameInitModuleLoadingAbort(const std::string& description, std::source_location srcLocation);
 
 		void ModuleLoadingThreadFunction(std::stop_token st, std::chrono::milliseconds& moduleLoadElapsedTime);
+		void ModuleLoadingThreadFunction_InitModules(std::stop_token st);
 		void SpinlockWatchdogThreadFunction(std::stop_token st, std::atomic<int>& mainThreadHeartbeat, std::atomic<bool>& spinlockDetected);
 		
 		// A module to finalize in the ModuleLoadingThreadFunction worker struct
 		struct MLTFWorkerStructModule {
 			MLTFWorkerStructModule(DataModule* module);
 			DataModule* Module = nullptr;
-			bool IsTaken = false;
 			std::vector<const DataModule*> RequiredModules;
+			bool IsTaken = false;
 		};
 		// ModuleLoadingThreadFunction worker struct, shared between finalizing workers
 		struct MLTFWorkerStruct {
 			std::vector<MLTFWorkerStructModule> BaseGameModulesToFinalize;
+			std::unique_ptr<MLTFWorkerStructModule> MissionsRteModule;
 			std::vector<MLTFWorkerStructModule> ModModulesToFinalize;
+			std::vector<MLTFWorkerStructModule> UserdataModulesToFinalize;
 
 			enum Status {
 				FinalizingBaseModules,
-				AllBaseModulesFinalized,
+				FinalizingMissionsRte,
+				FinalizingMods,
+				FinalizingUserdata,
 				EverythingDone
 			};
 			Status status = FinalizingBaseModules;
@@ -444,10 +451,10 @@ namespace RTE {
 				status = FinalizingBaseModules;
 			}
 
-			void PrecalculateModuleDependencyIndexesForMods();
+			// Precalculates module dependency indexes for mods
+			void FinishSetup();
 
-		private:
-			bool m_DependenciesPrecalced = false;
+			bool m_SetupDone = false;
 
 		} m_MLTFWorkerStruct;
 

@@ -196,6 +196,8 @@ namespace RTE {
 		int m_DataModuleID; //!< Data Module ID of where this was loaded from.
 		bool m_IsMemoryPNG; //!< If true, we will not attempt to read this file on disk, and instead will let external code set us up.
 
+		static std::mutex m_ContentFileStaticsMutex; //gtodo
+
 #pragma region Image Info Getters
 		/// Gets the specified image info from this ContentFile's data file on disk.
 		/// @param infoTypeToGet The image info type to get. See ImageFileInfoType enumeration.

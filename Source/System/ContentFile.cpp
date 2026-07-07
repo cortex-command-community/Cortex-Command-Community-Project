@@ -23,6 +23,7 @@ std::array<std::unordered_map<std::string, BITMAP*>, ContentFile::BitDepths::Bit
 std::unordered_map<std::string, SDL_Surface*> ContentFile::s_MemoryPNGs;
 std::unordered_map<std::string, FMOD::Sound*> ContentFile::s_LoadedSamples;
 std::unordered_map<size_t, std::string> ContentFile::s_PathHashes;
+std::mutex ContentFile::m_ContentFileStaticsMutex;
 
 void ContentFile::Clear() {
 	m_DataPath.clear();
@@ -223,6 +224,8 @@ void ContentFile::ReloadAllBitmaps() {
 }
 
 BITMAP* ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std::string& dataPathToSpecificFrame) {
+	std::lock_guard lg(m_ContentFileStaticsMutex);
+
 	if (m_DataPath.empty()) {
 		return nullptr;
 	}
