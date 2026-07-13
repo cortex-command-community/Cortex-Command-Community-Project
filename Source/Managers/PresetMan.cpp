@@ -23,10 +23,20 @@
 
 using namespace RTE;
 
-const std::array<std::string, 10> PresetMan::c_OfficialModules = {"Base.rte", "Coalition.rte", "Imperatus.rte", "Techion.rte", "Dummy.rte", "Ronin.rte", "Browncoats.rte", "Uzira.rte", "MuIlaak.rte", "Missions.rte"};
-const std::array<std::pair<std::string, std::string>, 3> PresetMan::c_UserdataModules = {{{c_UserScenesModuleName, "User Scenes"},
-                                                                                          {c_UserConquestSavesModuleName, "Conquest Saves"},
-                                                                                          {c_UserScriptedSavesModuleName, "Scripted Activity Saves"}}};
+const std::array<std::string, 10> PresetMan::c_OfficialModules 
+	= {"Base.rte", "Coalition.rte", "Imperatus.rte", "Techion.rte", "Dummy.rte", 
+	"Ronin.rte", "Browncoats.rte", "Uzira.rte", "MuIlaak.rte", "Missions.rte"};
+
+// This is a variant for testing whether base modules are interdependent
+// (which they shouldn't be)
+/* const std::array<std::string, 10> PresetMan::c_OfficialModules 
+	= {"Base.rte", "MuIlaak.rte", "Uzira.rte", "Browncoats.rte", "Ronin.rte", "Dummy.rte",
+	"Techion.rte", "Imperatus.rte", "Coalition.rte", "Missions.rte"};/**/
+
+const std::array<std::pair<std::string, std::string>, 3> PresetMan::c_UserdataModules 
+	= {{{c_UserScenesModuleName, "User Scenes"},
+		{c_UserConquestSavesModuleName, "Conquest Saves"},
+		{c_UserScriptedSavesModuleName, "Scripted Activity Saves"}}};
 
 PresetMan::PresetMan() {
 	Clear();
@@ -149,46 +159,45 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) 
 		while (1) {
 			mainThreadHeartbeat++;
 			PollSDLEventsCallback();
-			if (true) {
-				ProgressDisplayEntry entry;
+
+			ProgressDisplayEntry entry;
+			{
+				std::unique_lock lk(m_ProgressDisplayMutex);
+
+				// Sleep until there is work to do or 16 ms pass
+				m_ProgressDisplayCv.wait_for(lk, std::chrono::milliseconds(16), [&] {
+					return 
+						!m_ProgressDisplayDeque.empty() 
+						|| m_GameInitModuleLoadingStatus != GameInitModuleLoadingStatus::StillWorking
+						|| m_GameInitModuleLoadingThreadFailed 
+						|| spinlockDetected
+						|| System::IsSetToQuit();
+				});
+
+				if (System::IsSetToQuit() 
+					|| m_GameInitModuleLoadingStatus == GameInitModuleLoadingStatus::Failure
+					|| m_GameInitModuleLoadingThreadFailed)
 				{
-					std::unique_lock lk(m_ProgressDisplayMutex);
-
-					// Sleep until there is work to do or 16 ms pass
-					m_ProgressDisplayCv.wait_for(lk, std::chrono::milliseconds(16), [&] {
-						return 
-							!m_ProgressDisplayDeque.empty() 
-							|| m_GameInitModuleLoadingStatus != GameInitModuleLoadingStatus::StillWorking
-							|| m_GameInitModuleLoadingThreadFailed 
-							|| spinlockDetected
-							|| System::IsSetToQuit();
-					});
-
-					if (System::IsSetToQuit() 
-						|| m_GameInitModuleLoadingStatus == GameInitModuleLoadingStatus::Failure
-						|| m_GameInitModuleLoadingThreadFailed)
-					{
-						moduleLoadingThread.request_stop();
-						break;
-					}
-
-					if (m_GameInitModuleLoadingStatus == GameInitModuleLoadingStatus::Success
-						&& m_ProgressDisplayDeque.empty()) //gtodo repurpose deque
-					{
-						break;
-					}
-
-					if (!m_ProgressDisplayDeque.empty()) {
-						entry = std::move(m_ProgressDisplayDeque.front());
-						m_ProgressDisplayDeque.pop_front();
-					} else if (spinlockDetected) {
-						spinlockDetected = false;
-						SpinlockAssert(toDoProgressPrintOut, m_GameInitModuleLoadingStatus);
-						RTEAssert(false, to_string(mainThreadHeartbeat));
-					}
+					moduleLoadingThread.request_stop();
+					break;
 				}
-				LoadingScreen::LoadingSplashProgressReport(entry.first, entry.second);
+
+				if (m_GameInitModuleLoadingStatus == GameInitModuleLoadingStatus::Success
+					&& m_ProgressDisplayDeque.empty()) //gtodo repurpose deque
+				{
+					break;
+				}
+
+				if (!m_ProgressDisplayDeque.empty()) {
+					entry = std::move(m_ProgressDisplayDeque.front());
+					m_ProgressDisplayDeque.pop_front();
+				} else if (spinlockDetected) {
+					spinlockDetected = false;
+					SpinlockAssert(toDoProgressPrintOut, m_GameInitModuleLoadingStatus);
+					RTEAssert(false, to_string(mainThreadHeartbeat));
+				}
 			}
+			LoadingScreen::LoadingSplashProgressReport(entry.first, entry.second);
 		}
 	}
 
@@ -213,11 +222,16 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) 
 	}
 
 	if (g_SettingsMan.IsMeasuringModuleLoadTime()) {
-		std::chrono::milliseconds totalFunctionElapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerTotalFunctionStart);
-		std::string coutString = "Total loading time was " + std::to_string(totalFunctionElapsedTime.count()) + "ms";
-		if (!g_SettingsMan.GetLoadingScreenProgressReportDisabled()) {
-			coutString += " (module load duration: " + std::to_string(moduleLoadElapsedTime.count()) + "ms)";
-		}
+		std::chrono::milliseconds totalFunctionElapsedTime 
+			= std::chrono::duration_cast<std::chrono::milliseconds>(
+				std::chrono::steady_clock::now() - timerTotalFunctionStart);
+		std::string coutString 
+			= "Total loading time was " 
+			+ std::to_string(totalFunctionElapsedTime.count()) 
+			+ "ms"
+			+ " (module load duration: " 
+			+ std::to_string(moduleLoadElapsedTime.count()) 
+			+ "ms)";
 		g_ConsoleMan.PrintString(coutString);
 	}
 
@@ -1104,16 +1118,17 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 	if (g_ThreadMan.IsMainThread()) {
 		RTEAbort("PresetMan::ModuleLoadingThreadFunction called from the main thread! Bad!");
 	}
+
 	auto timerModuleLoadingThreadStart = std::chrono::steady_clock::now();
 
 	ModuleLoadingThreadFunction_InitModules(st);
 	if (st.stop_requested()) {
 		return;
 	}
-
+	
 	// NOW we finalize all the modules
 	// Dispatch worker threads
-	const int moduleFinalizingWorkerThreadCount = 1;
+	const int moduleFinalizingWorkerThreadCount = 4;
 	for (int i = 0; i < moduleFinalizingWorkerThreadCount; ++i) {
 		m_MLTFThreads.emplace_back(
 			std::thread([this](std::stop_token st) {
@@ -1125,8 +1140,10 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 	for (int i = 0; i < moduleFinalizingWorkerThreadCount; ++i) {
 		m_MLTFThreads[i].join();
 	}
-
-	moduleLoadElapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - timerModuleLoadingThreadStart);
+	
+	moduleLoadElapsedTime 
+		= std::chrono::duration_cast<std::chrono::milliseconds>
+		(std::chrono::steady_clock::now() - timerModuleLoadingThreadStart);
 
 	m_GameInitModuleLoadingStatus = GameInitModuleLoadingStatus::Success;
 	m_ProgressDisplayCv.notify_all();

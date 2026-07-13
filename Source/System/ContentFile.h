@@ -83,7 +83,10 @@ namespace RTE {
 		/// Converts hash values into file paths to ContentFiles.
 		/// @param hash Hash value to get file path from.
 		/// @return Path to ContentFile.
-		static std::string GetPathFromHash(size_t hash) { return (s_PathHashes.find(hash) == s_PathHashes.end()) ? "" : s_PathHashes[hash]; }
+		static std::string GetPathFromHash(size_t hash) { 
+			std::lock_guard lg(s_PathHashesMutex);
+			return (s_PathHashes.find(hash) == s_PathHashes.end()) ? "" : s_PathHashes[hash]; 
+		}
 
 		/// Sets this ContentFile to be a memory file, meaning we won't try loading from disk and instead will let external code set us up.
 		/// @param isMemoryFile Whether we'll be considered a memory file.
@@ -196,7 +199,10 @@ namespace RTE {
 		int m_DataModuleID; //!< Data Module ID of where this was loaded from.
 		bool m_IsMemoryPNG; //!< If true, we will not attempt to read this file on disk, and instead will let external code set us up.
 
-		static std::mutex m_ContentFileStaticsMutex; //gtodo
+		static std::mutex s_LoadedBitmapsMutex;
+		static std::mutex s_MemoryPNGsMutex;
+		static std::mutex s_LoadedSamplesMutex;
+		static std::mutex s_PathHashesMutex;
 
 #pragma region Image Info Getters
 		/// Gets the specified image info from this ContentFile's data file on disk.

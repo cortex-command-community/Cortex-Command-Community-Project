@@ -100,7 +100,8 @@ SoundData SoundSet::ReadAndGetSoundData(Reader& reader) {
 	SoundData soundData;
 
 	/// <summary>
-	/// Internal lambda function to load an audio file by path in as a ContentFile, which in turn loads it into FMOD, then returns SoundData for it in the outParam outSoundData.
+	/// Internal lambda function to load an audio file by path in as a ContentFile, 
+	/// which in turn loads it into FMOD, then returns SoundData for it in the outParam outSoundData.
 	/// </summary>
 	/// <param name="soundPath">The path to the sound file.</param>
 	auto readSoundFromPath = [&soundData, &reader](const std::string& soundPath) {

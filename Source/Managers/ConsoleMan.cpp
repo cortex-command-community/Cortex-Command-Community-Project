@@ -154,6 +154,7 @@ void ConsoleMan::AddLoadWarningLogExtensionMismatchEntry(const std::string& path
 	} else {
 		std::transform(newEntry.begin(), newEntry.end(), newEntry.begin(), ::tolower);
 		// Emplace inserts only if there is no existing entry.
+		//gtodo thread safe
 		m_LoadWarningLog.emplace(newEntry);
 	}
 }

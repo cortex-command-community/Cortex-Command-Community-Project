@@ -19,11 +19,16 @@ using namespace RTE;
 
 const std::string ContentFile::c_ClassName = "ContentFile";
 
-std::array<std::unordered_map<std::string, BITMAP*>, ContentFile::BitDepths::BitDepthCount> ContentFile::s_LoadedBitmaps;
+std::array<std::unordered_map<std::string, BITMAP*>, ContentFile::BitDepths::BitDepthCount> 
+	ContentFile::s_LoadedBitmaps;
 std::unordered_map<std::string, SDL_Surface*> ContentFile::s_MemoryPNGs;
 std::unordered_map<std::string, FMOD::Sound*> ContentFile::s_LoadedSamples;
 std::unordered_map<size_t, std::string> ContentFile::s_PathHashes;
-std::mutex ContentFile::m_ContentFileStaticsMutex;
+
+std::mutex ContentFile::s_LoadedBitmapsMutex;
+std::mutex ContentFile::s_MemoryPNGsMutex;
+std::mutex ContentFile::s_LoadedSamplesMutex;
+std::mutex ContentFile::s_PathHashesMutex;
 
 void ContentFile::Clear() {
 	m_DataPath.clear();
@@ -54,6 +59,7 @@ int ContentFile::Create(const ContentFile& reference) {
 }
 
 void ContentFile::FreeAllLoaded() {
+	std::lock_guard lg(s_LoadedBitmapsMutex);
 	for (int depth = BitDepths::Eight; depth < BitDepths::BitDepthCount; ++depth) {
 		for (const auto& [bitmapPath, bitmapPtr]: s_LoadedBitmaps[depth]) {
 			destroy_bitmap(bitmapPtr);
@@ -95,7 +101,10 @@ void ContentFile::SetDataPath(const std::string& newDataPath) {
 	m_DataPathIsImageFile = m_DataPathExtension == ".png" || m_DataPathExtension == ".bmp";
 
 	m_DataPathWithoutExtension = m_DataPath.substr(0, m_DataPath.length() - m_DataPathExtension.length());
-	s_PathHashes[GetHash()] = m_DataPath;
+	{
+		std::lock_guard lg(s_PathHashesMutex);
+		s_PathHashes[GetHash()] = m_DataPath;
+	}
 	m_DataModuleID = g_PresetMan.GetModuleIDFromPath(m_DataPath);
 }
 
@@ -118,7 +127,12 @@ int ContentFile::GetImageFileInfo(ImageFileInfoType infoTypeToGet) {
 	}
 	if (fetchFileInfo) {
 		if (m_IsMemoryPNG) {
-			if (const SDL_Surface* png = s_MemoryPNGs[m_DataPath]) {
+			const SDL_Surface* png;
+			{
+				std::lock_guard lg(s_MemoryPNGsMutex);
+				png = s_MemoryPNGs[m_DataPath];
+			}
+			if (png) {
 				m_ImageFileInfo[ImageFileInfoType::ImageBitDepth] = static_cast<int>(SDL_BITSPERPIXEL(png->format));
 				m_ImageFileInfo[ImageFileInfoType::ImageWidth] = static_cast<int>(png->w);
 				m_ImageFileInfo[ImageFileInfoType::ImageHeight] = static_cast<int>(png->h);
@@ -199,7 +213,10 @@ void ContentFile::ReadAndStoreBMPFileInfo(FILE* imageFile) {
 }
 
 void ContentFile::ManuallyLoadDataPNG(const std::string& filePath, SDL_Surface* surface) {
-	s_MemoryPNGs[filePath] = surface;
+	{
+		std::lock_guard lg(s_MemoryPNGsMutex);
+		s_MemoryPNGs[filePath] = surface;
+	}
 
 	int bitDepth = SDL_GetPixelFormatDetails(surface->format)->bits_per_pixel;
 	BITMAP* bitmap = create_bitmap_ex(bitDepth, surface->w, surface->h);
@@ -211,10 +228,14 @@ void ContentFile::ManuallyLoadDataPNG(const std::string& filePath, SDL_Surface* 
 		       surface->w * SDL_BYTESPERPIXEL(surface->format));
 	}
 
-	s_LoadedBitmaps[BitDepths::Eight].try_emplace(filePath, bitmap);
+	{
+		std::lock_guard lg(s_LoadedBitmapsMutex);
+		s_LoadedBitmaps[BitDepths::Eight].try_emplace(filePath, bitmap);
+	}
 }
 
 void ContentFile::ReloadAllBitmaps() {
+	std::lock_guard lg(s_LoadedBitmapsMutex);
 	for (const std::unordered_map<std::string, BITMAP*>& bitmapCache: s_LoadedBitmaps) {
 		for (const auto& [filePath, oldBitmap]: bitmapCache) {
 			ReloadBitmap(filePath);
@@ -224,8 +245,6 @@ void ContentFile::ReloadAllBitmaps() {
 }
 
 BITMAP* ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std::string& dataPathToSpecificFrame) {
-	std::lock_guard lg(m_ContentFileStaticsMutex);
-
 	if (m_DataPath.empty()) {
 		return nullptr;
 	}
@@ -238,19 +257,24 @@ BITMAP* ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std
 	}
 
 	// Check if the file has already been read and loaded from the disk and, if so, use that data.
-	std::unordered_map<std::string, BITMAP*>::iterator foundBitmap = s_LoadedBitmaps[bitDepth].find(dataPathToLoad);
-	if (foundBitmap != s_LoadedBitmaps[bitDepth].end()) {
-		if (storeBitmap) {
-			returnBitmap = (*foundBitmap).second;
-		} else if (SDL_Surface* surface = s_MemoryPNGs[dataPathToLoad]) {
-			std::unordered_map<std::string, BITMAP*>::iterator foundBitmap = s_LoadedBitmaps[BitDepths::Eight].find(dataPathToLoad);
-			if (foundBitmap != s_LoadedBitmaps[BitDepths::Eight].end()) {
-				returnBitmap = foundBitmap->second;
-				s_LoadedBitmaps[BitDepths::Eight].erase(dataPathToLoad);
-			}
+	{
+		std::scoped_lock(s_MemoryPNGsMutex, s_LoadedBitmapsMutex);
+		std::unordered_map<std::string, BITMAP*>::iterator foundBitmap 
+			= s_LoadedBitmaps[bitDepth].find(dataPathToLoad);
+		if (foundBitmap != s_LoadedBitmaps[bitDepth].end()) {
+			if (storeBitmap) {
+				returnBitmap = (*foundBitmap).second;
+			} else if (SDL_Surface* surface = s_MemoryPNGs[dataPathToLoad]) {
+				std::unordered_map<std::string, BITMAP*>::iterator foundBitmap 
+					= s_LoadedBitmaps[BitDepths::Eight].find(dataPathToLoad);
+				if (foundBitmap != s_LoadedBitmaps[BitDepths::Eight].end()) {
+					returnBitmap = foundBitmap->second;
+					s_LoadedBitmaps[BitDepths::Eight].erase(dataPathToLoad);
+				}
 
-			SDL_DestroySurface(surface);
-			s_MemoryPNGs.erase(dataPathToLoad);
+				SDL_DestroySurface(surface);
+				s_MemoryPNGs.erase(dataPathToLoad);
+			}
 		}
 	}
 
@@ -271,6 +295,7 @@ BITMAP* ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std
 
 		// Insert the bitmap into the map, PASSING OVER OWNERSHIP OF THE LOADED DATAFILE
 		if (storeBitmap) {
+			std::lock_guard lg(s_LoadedBitmapsMutex);
 			s_LoadedBitmaps[bitDepth].try_emplace(dataPathToLoad, returnBitmap);
 		}
 	}
@@ -382,18 +407,36 @@ FMOD::Sound* ContentFile::GetAsSound(bool abortGameForInvalidSound, bool asyncLo
 	if (m_DataPath.empty() || !g_AudioMan.IsAudioEnabled()) {
 		return nullptr;
 	}
-	FMOD::Sound* returnSample = nullptr;
 
-	std::unordered_map<std::string, FMOD::Sound*>::iterator foundSound = s_LoadedSamples.find(m_DataPath);
-	if (foundSound != s_LoadedSamples.end()) {
-		returnSample = (*foundSound).second;
-	} else {
-		returnSample = LoadAndReleaseSound(abortGameForInvalidSound, asyncLoading); // NOTE: This takes ownership of the sample file
+	{
+		std::lock_guard lg(s_LoadedSamplesMutex);
 
-		// Insert the Sound object into the map, PASSING OVER OWNERSHIP OF THE LOADED FILE
-		s_LoadedSamples.try_emplace(m_DataPath, returnSample);
+		std::unordered_map<std::string, FMOD::Sound*>::iterator foundSound 
+			= s_LoadedSamples.find(m_DataPath);
+		if (foundSound != s_LoadedSamples.end()) {
+			return foundSound->second;
+		}
 	}
-	return returnSample;
+
+	// NOTE: This takes ownership of the sample file
+	FMOD::Sound* returnSample 
+		= LoadAndReleaseSound(abortGameForInvalidSound, asyncLoading);
+
+	// Insert the Sound object into the map, PASSING OVER OWNERSHIP OF THE LOADED FILE
+	// But only if another thread hasn't already loaded the same sound file!
+	{
+		std::lock_guard lg(s_LoadedSamplesMutex);
+
+		std::unordered_map<std::string, FMOD::Sound*>::iterator foundSound 
+			= s_LoadedSamples.find(m_DataPath);
+		if (foundSound != s_LoadedSamples.end()) {
+			returnSample->release();
+			return foundSound->second;
+		} else {
+			s_LoadedSamples.try_emplace(m_DataPath, returnSample);
+			return returnSample;
+		}
+	}
 }
 
 FMOD::Sound* ContentFile::LoadAndReleaseSound(bool abortGameForInvalidSound, bool asyncLoading) {
@@ -441,9 +484,13 @@ FMOD::Sound* ContentFile::LoadAndReleaseSound(bool abortGameForInvalidSound, boo
 void ContentFile::ReloadBitmap(const std::string& filePath, int conversionMode) {
 	const int bitDepth = (conversionMode == COLORCONV_8_TO_32) ? BitDepths::ThirtyTwo : BitDepths::Eight;
 
-	auto bmpItr = s_LoadedBitmaps[bitDepth].find(filePath);
-	if (bmpItr == s_LoadedBitmaps[bitDepth].end()) {
-		return;
+	std::unordered_map<std::string, BITMAP*>::iterator bmpItr;
+	{
+		std::lock_guard lg(s_LoadedBitmapsMutex);
+		bmpItr = s_LoadedBitmaps[bitDepth].find(filePath);
+		if (bmpItr == s_LoadedBitmaps[bitDepth].end()) {
+			return;
+		}
 	}
 
 	PALETTE currentPalette;
