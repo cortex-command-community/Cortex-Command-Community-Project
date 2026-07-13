@@ -371,6 +371,8 @@ namespace RTE {
 		};
 		void SpinlockAssert(bool, GameInitModuleLoadingStatus);
 
+		bool GameInitModuleLoadingIsHappening() const;
+
 		/// Protected member variable and method declarations
 	protected:
 		// Owned and loaded DataModule:s

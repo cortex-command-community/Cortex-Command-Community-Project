@@ -258,7 +258,7 @@ BITMAP* ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std
 
 	// Check if the file has already been read and loaded from the disk and, if so, use that data.
 	{
-		std::scoped_lock(s_MemoryPNGsMutex, s_LoadedBitmapsMutex);
+		std::scoped_lock sl(s_MemoryPNGsMutex, s_LoadedBitmapsMutex);
 		std::unordered_map<std::string, BITMAP*>::iterator foundBitmap 
 			= s_LoadedBitmaps[bitDepth].find(dataPathToLoad);
 		if (foundBitmap != s_LoadedBitmaps[bitDepth].end()) {

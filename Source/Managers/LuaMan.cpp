@@ -360,7 +360,8 @@ LuaStateWrapper* LuaMan::GetThreadCurrentLuaState() const {
 
 LuaStateWrapper* LuaMan::GetAndLockFreeScriptState() {
 	if (s_luaStateOverride) {
-		// We're creating this object in a multithreaded environment, ensure that it's assigned to the same script state as us
+		// We're creating this object in a multithreaded environment, 
+		// ensure that it's assigned to the same script state as us
 		bool success = s_luaStateOverride->GetMutex().try_lock();
 		RTEAssert(success, "Our lua state override for our thread already belongs to another thread!");
 		return s_luaStateOverride;
@@ -380,8 +381,15 @@ LuaStateWrapper* LuaMan::GetAndLockFreeScriptState() {
 	int ourState = m_LastAssignedLuaState;
 	m_LastAssignedLuaState = (m_LastAssignedLuaState + 1) % m_ScriptStates.size();
 
-	bool success = m_ScriptStates[ourState].GetMutex().try_lock();
-	RTEAssert(success, "Script mutex was already locked while in a non-multithreaded environment!");
+	if (g_PresetMan.GameInitModuleLoadingIsHappening()) {
+		m_ScriptStates[ourState].GetMutex().lock();
+	} else {
+		bool success = m_ScriptStates[ourState].GetMutex().try_lock();
+		RTEAssert(
+			success, 
+			"Script mutex was already locked while in a non-multithreaded environment!"
+		);
+	}
 
 	return &m_ScriptStates[ourState];
 }

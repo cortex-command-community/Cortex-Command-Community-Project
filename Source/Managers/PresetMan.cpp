@@ -1080,6 +1080,10 @@ void PresetMan::SpinlockAssert(bool toDoProgressPrintOut, GameInitModuleLoadingS
 	RTEAssert(false, assertString);
 }
 
+bool RTE::PresetMan::GameInitModuleLoadingIsHappening() {
+	return m_GameInitModuleLoadingIsHappening;
+}
+
 void PresetMan::GameInitModuleLoadingAbort(const std::string& description, std::source_location srcLocation) {
 	if (g_ThreadMan.IsMainThread()) {
 		RTEAbort("PresetMan::ModuleLoadingThreadAbort called from the main thread! What!");
@@ -1128,7 +1132,7 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 	
 	// NOW we finalize all the modules
 	// Dispatch worker threads
-	const int moduleFinalizingWorkerThreadCount = 4;
+	const int moduleFinalizingWorkerThreadCount = 1;
 	for (int i = 0; i < moduleFinalizingWorkerThreadCount; ++i) {
 		m_MLTFThreads.emplace_back(
 			std::thread([this](std::stop_token st) {
