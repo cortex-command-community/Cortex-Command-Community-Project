@@ -413,6 +413,8 @@ static const bool RTESetExceptionHandlers = []() {
 /// Implementation of the main function.
 /// </summary>
 int main(int argc, char** argv) {
+	auto mainStartTimePoint = std::chrono::steady_clock::now();
+
 	install_allegro(SYSTEM_NONE, &errno, std::atexit);
 	loadpng_init();
 
@@ -443,7 +445,7 @@ int main(int argc, char** argv) {
 
 	HandleMainArgs(argc, argv);
 
-	g_PresetMan.LoadAllDataModules(PollSDLEvents);
+	g_PresetMan.LoadAllDataModules(PollSDLEvents, mainStartTimePoint);
 
 	if (!System::IsInExternalModuleValidationMode()) {
 		// Load the different input device icons. This can't be done during UInputMan::Create() because the icon presets don't exist so we need to do this after modules are loaded.

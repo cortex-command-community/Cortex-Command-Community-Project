@@ -120,8 +120,7 @@ DataModule* PresetMan::InitDataModule(const std::string& moduleName, bool offici
 	return newModule;
 }
 
-bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) {\
-	auto timerTotalFunctionStart = std::chrono::steady_clock::now();
+bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback, std::chrono::steady_clock::time_point mainStartTimePoint) {
 	std::chrono::milliseconds moduleLoadElapsedTime = {};
 
 	// Destroy any possible loaded modules
@@ -221,13 +220,14 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) 
 		shader->Create();
 	}
 
+	//gtodo rename all this shit
 	if (g_SettingsMan.IsMeasuringModuleLoadTime()) {
-		std::chrono::milliseconds totalFunctionElapsedTime 
+		std::chrono::milliseconds totalGameLaunchTime 
 			= std::chrono::duration_cast<std::chrono::milliseconds>(
-				std::chrono::steady_clock::now() - timerTotalFunctionStart);
+		    std::chrono::steady_clock::now() - mainStartTimePoint);
 		std::string coutString 
 			= "Total loading time was " 
-			+ std::to_string(totalFunctionElapsedTime.count()) 
+			+ std::to_string(totalGameLaunchTime.count()) 
 			+ "ms"
 			+ " (module load duration: " 
 			+ std::to_string(moduleLoadElapsedTime.count()) 
@@ -967,6 +967,9 @@ void RTE::PresetMan::MLTF_WorkerFunction(std::stop_token st) {
 		RTEAbort("MLTF_WorkerFunction called without finishing setup on the worker struct.");
 	}
 
+	using namespace std::chrono_literals;
+	static auto noWorkSleepTime = 1ms; 
+
 	while (!st.stop_requested()) {
 		// Try to acquire a module to finalize
 		DataModule* moduleToFinalize = nullptr;
@@ -993,8 +996,7 @@ void RTE::PresetMan::MLTF_WorkerFunction(std::stop_token st) {
 				if (allBaseModulesButMissionsRteFinalized) {
 					status = MLTFWorkerStruct::Status::FinalizingMissionsRte;
 				} else {
-					using namespace std::chrono_literals;
-					std::this_thread::sleep_for(2ms);
+					std::this_thread::sleep_for(noWorkSleepTime);
 					continue;
 				}
 			}
@@ -1009,13 +1011,42 @@ void RTE::PresetMan::MLTF_WorkerFunction(std::stop_token st) {
 				{
 					status = MLTFWorkerStruct::Status::FinalizingMods;
 				} else {
-					using namespace std::chrono_literals;
-					std::this_thread::sleep_for(2ms);
+					std::this_thread::sleep_for(noWorkSleepTime);
 					continue;
 				}
 			}
 			if (status == MLTFWorkerStruct::Status::FinalizingMods) {
-				return;
+				bool allModsFinalized = true;
+				for (auto& possibleModule: m_MLTFWorkerStruct.ModModulesToFinalize) {
+					if (!possibleModule.IsTaken) {
+						bool allRequiredModulesFinalized = true;
+						for (auto* requiredModule : possibleModule.RequiredModules) {
+							if (requiredModule->GetCreationStatus() 
+								!= DataModule::CreationStatus::FINALIZED)
+							{
+								allRequiredModulesFinalized = false;
+								break;
+							}
+						}
+						if (allRequiredModulesFinalized) {
+							moduleToFinalize = possibleModule.Module;
+							possibleModule.IsTaken = true;
+							goto found_a_module_to_finalize;
+						}
+					} else {
+						if (possibleModule.Module->GetCreationStatus() 
+							!= DataModule::CreationStatus::FINALIZED) 
+						{
+							allModsFinalized = false;
+						}
+					}
+				}
+				if (allModsFinalized) {
+					status = MLTFWorkerStruct::Status::FinalizingMissionsRte;
+				} else {
+					std::this_thread::sleep_for(noWorkSleepTime);
+					continue;
+				}
 			}
 			if (status == MLTFWorkerStruct::Status::FinalizingUserdata) {
 				return;
@@ -1080,7 +1111,7 @@ void PresetMan::SpinlockAssert(bool toDoProgressPrintOut, GameInitModuleLoadingS
 	RTEAssert(false, assertString);
 }
 
-bool RTE::PresetMan::GameInitModuleLoadingIsHappening() {
+bool RTE::PresetMan::GameInitModuleLoadingIsHappening() const {
 	return m_GameInitModuleLoadingIsHappening;
 }
 
@@ -1130,20 +1161,7 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 		return;
 	}
 	
-	// NOW we finalize all the modules
-	// Dispatch worker threads
-	const int moduleFinalizingWorkerThreadCount = 1;
-	for (int i = 0; i < moduleFinalizingWorkerThreadCount; ++i) {
-		m_MLTFThreads.emplace_back(
-			std::thread([this](std::stop_token st) {
-				MLTF_WorkerFunction(st);
-			}, st)
-		);
-	}
-	// Join worker threads
-	for (int i = 0; i < moduleFinalizingWorkerThreadCount; ++i) {
-		m_MLTFThreads[i].join();
-	}
+	ModuleLoadingThreadFunction_FinalizeModules(st);
 	
 	moduleLoadElapsedTime 
 		= std::chrono::duration_cast<std::chrono::milliseconds>
@@ -1151,6 +1169,21 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 
 	m_GameInitModuleLoadingStatus = GameInitModuleLoadingStatus::Success;
 	m_ProgressDisplayCv.notify_all();
+}
+
+void RTE::PresetMan::ModuleLoadingThreadFunction_FinalizeModules(std::stop_token st) {
+	const int moduleFinalizingWorkerThreadCount = 1;
+
+	/*for (int i = 0; i < moduleFinalizingWorkerThreadCount; ++i) {
+		m_MLTFThreads.emplace_back(
+		    std::thread([this](std::stop_token st) {
+			    MLTF_WorkerFunction(st);
+		    }, st));
+	}
+	// Join worker threads
+	for (int i = 0; i < moduleFinalizingWorkerThreadCount; ++i) {
+		m_MLTFThreads[i].join();
+	}*/
 }
 
 void RTE::PresetMan::ModuleLoadingThreadFunction_InitModules(std::stop_token st) {

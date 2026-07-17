@@ -69,7 +69,7 @@ namespace RTE {
 
 		/// NOTE: to be called from main thread only. Loads all the official data modules individually with LoadDataModule, then proceeds to look for any non-official modules and loads them as well.
 		/// @return
-		bool LoadAllDataModules(std::function<void()> PollSDLEventsCallback);
+		bool LoadAllDataModules(std::function<void()> PollSDLEventsCallback, std::chrono::steady_clock::time_point mainStartTimePoint);
 
 		/// Sets the single module to be loaded after the official modules. This will be the ONLY non-official module to be loaded.
 		/// @param moduleName Name of the module to load.
@@ -421,6 +421,7 @@ namespace RTE {
 		void GameInitModuleLoadingAbort(const std::string& description, std::source_location srcLocation);
 
 		void ModuleLoadingThreadFunction(std::stop_token st, std::chrono::milliseconds& moduleLoadElapsedTime);
+		void ModuleLoadingThreadFunction_FinalizeModules(std::stop_token st);
 		void ModuleLoadingThreadFunction_InitModules(std::stop_token st);
 		void SpinlockWatchdogThreadFunction(std::stop_token st, std::atomic<int>& mainThreadHeartbeat, std::atomic<bool>& spinlockDetected);
 		
