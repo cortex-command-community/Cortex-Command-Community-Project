@@ -137,26 +137,24 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) 
 	//
 	// We do this so the window does not freeze, and to handle
 	// the close button on the window being hit / Alt+F4 pressed
-	{
-		while (1) {
-			PollSDLEventsCallback();
+	while (1) {
+		PollSDLEventsCallback();
 
-			// Sleep until there is work to do or 16 ms pass
-			using namespace std::chrono_literals;
-			std::this_thread::sleep_for(16ms);
+		// Sleep until there is work to do or 16 ms pass
+		using namespace std::chrono_literals;
+		std::this_thread::sleep_for(16ms);
 
-			if (System::IsSetToQuit()) {
-				moduleLoadingThread.request_stop();
-				break;
-				//gtodo: display "quitting"?
-			}
-
-			if (m_MLTFWorkerStruct.status == MLTFWorkerStruct::Status::EverythingDone) {
-				break;
-			}
-
-			//LoadingScreen::LoadingSplashProgressReport(entry.first, entry.second);
+		if (System::IsSetToQuit()) {
+			moduleLoadingThread.request_stop();
+			break;
+			//gtodo: display "quitting"?
 		}
+
+		if (m_MLTFWorkerStruct.status == MLTFWorkerStruct::Status::EverythingDone) {
+			break;
+		}
+
+		//LoadingScreen::LoadingSplashProgressReport(entry.first, entry.second);
 	}
 
 	moduleLoadingThread.join();
