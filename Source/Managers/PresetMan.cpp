@@ -962,105 +962,6 @@ Actor* PresetMan::GetLoadout(std::string loadoutName, int moduleNumber, bool spa
 	return 0;
 }
 
-void RTE::PresetMan::MLTF_WorkerFunction(std::stop_token st) {
-	if (!m_MLTFWorkerStruct.m_SetupDone) {
-		RTEAbort("MLTF_WorkerFunction called without finishing setup on the worker struct.");
-	}
-
-	using namespace std::chrono_literals;
-	static auto noWorkSleepTime = 1ms; 
-
-	while (!st.stop_requested()) {
-		// Try to acquire a module to finalize
-		DataModule* moduleToFinalize = nullptr;
-		{
-			std::lock_guard lg(m_MLTFMutex);
-			MLTFWorkerStruct::Status& status = m_MLTFWorkerStruct.status;
-
-			// Take first available base modules until all are finalized
-			if (status == MLTFWorkerStruct::Status::FinalizingBaseModules) {
-				bool allBaseModulesButMissionsRteFinalized = true;
-				for (auto& possibleModule: m_MLTFWorkerStruct.BaseGameModulesToFinalize) {
-					if (!possibleModule.IsTaken) {
-						moduleToFinalize = possibleModule.Module;
-						possibleModule.IsTaken = true;
-						goto found_a_module_to_finalize;
-					} else {
-						if (possibleModule.Module->GetCreationStatus() 
-							!= DataModule::CreationStatus::FINALIZED) 
-						{
-							allBaseModulesButMissionsRteFinalized = false;
-						}
-					}
-				}
-				if (allBaseModulesButMissionsRteFinalized) {
-					status = MLTFWorkerStruct::Status::FinalizingMissionsRte;
-				} else {
-					std::this_thread::sleep_for(noWorkSleepTime);
-					continue;
-				}
-			}
-			if (status == MLTFWorkerStruct::Status::FinalizingMissionsRte) {
-				if (!m_MLTFWorkerStruct.MissionsRteModule->IsTaken) {
-					moduleToFinalize = m_MLTFWorkerStruct.MissionsRteModule->Module;
-					m_MLTFWorkerStruct.MissionsRteModule->IsTaken = true;
-					goto found_a_module_to_finalize;
-				} else if (
-				    m_MLTFWorkerStruct.MissionsRteModule->Module->GetCreationStatus() 
-					== DataModule::CreationStatus::FINALIZED) 
-				{
-					status = MLTFWorkerStruct::Status::FinalizingMods;
-				} else {
-					std::this_thread::sleep_for(noWorkSleepTime);
-					continue;
-				}
-			}
-			if (status == MLTFWorkerStruct::Status::FinalizingMods) {
-				bool allModsFinalized = true;
-				for (auto& possibleModule: m_MLTFWorkerStruct.ModModulesToFinalize) {
-					if (!possibleModule.IsTaken) {
-						bool allRequiredModulesFinalized = true;
-						for (auto* requiredModule : possibleModule.RequiredModules) {
-							if (requiredModule->GetCreationStatus() 
-								!= DataModule::CreationStatus::FINALIZED)
-							{
-								allRequiredModulesFinalized = false;
-								break;
-							}
-						}
-						if (allRequiredModulesFinalized) {
-							moduleToFinalize = possibleModule.Module;
-							possibleModule.IsTaken = true;
-							goto found_a_module_to_finalize;
-						}
-					} else {
-						if (possibleModule.Module->GetCreationStatus() 
-							!= DataModule::CreationStatus::FINALIZED) 
-						{
-							allModsFinalized = false;
-						}
-					}
-				}
-				if (allModsFinalized) {
-					status = MLTFWorkerStruct::Status::FinalizingMissionsRte;
-				} else {
-					std::this_thread::sleep_for(noWorkSleepTime);
-					continue;
-				}
-			}
-			if (status == MLTFWorkerStruct::Status::FinalizingUserdata) {
-				return;
-			}
-			if (status == MLTFWorkerStruct::Status::EverythingDone) {
-				return;
-			}
-			
-		}
-	found_a_module_to_finalize:
-		moduleToFinalize->Finalize();
-	}
-}
-
 void PresetMan::FindAndExtractZippedModules() const {
 	for (const std::filesystem::directory_entry& directoryEntry: std::filesystem::directory_iterator(System::GetWorkingDirectory() + System::GetModDirectory())) {
 		std::string zippedModulePath = std::filesystem::path(directoryEntry).generic_string();
@@ -1157,7 +1058,7 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 	auto timerModuleLoadingThreadStart = std::chrono::steady_clock::now();
 
 	ModuleLoadingThreadFunction_InitModules(st);
-	if (st.stop_requested()) {
+	if (st.stop_requested()) { //gtodo, rip out fully?
 		return;
 	}
 	
@@ -1172,18 +1073,38 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 }
 
 void RTE::PresetMan::ModuleLoadingThreadFunction_FinalizeModules(std::stop_token st) {
-	const int moduleFinalizingWorkerThreadCount = 1;
-
-	/*for (int i = 0; i < moduleFinalizingWorkerThreadCount; ++i) {
-		m_MLTFThreads.emplace_back(
-		    std::thread([this](std::stop_token st) {
-			    MLTF_WorkerFunction(st);
-		    }, st));
+	if (!m_MLTFWorkerStruct.m_SetupDone) {
+		RTEAbort("Finalizing modules without finishing setup on the worker struct.");
 	}
-	// Join worker threads
-	for (int i = 0; i < moduleFinalizingWorkerThreadCount; ++i) {
-		m_MLTFThreads[i].join();
-	}*/
+
+	const int moduleFinalizingWorkerThreadCount = 4;
+
+	BS::thread_pool tpool(moduleFinalizingWorkerThreadCount);
+
+	// Finalizing base modules first!
+	for (auto* module: m_MLTFWorkerStruct.BaseGameModulesToFinalize) {
+		tpool.push_task([module]() { module->Finalize(); });
+	}
+
+	tpool.wait_for_tasks();
+	
+	// Finalizing Missions.rte
+	m_MLTFWorkerStruct.MissionsRteModule->Finalize();
+
+	// Finalizing mods in waves
+	for (auto& batch: m_MLTFWorkerStruct.ModModuleFinalizationBatches) {
+		for (auto* mod: batch) {
+			tpool.push_task([mod]() { mod->Finalize(); });
+		}
+		tpool.wait_for_tasks();
+	}
+
+	// Finalizing userdata modules
+	for (auto* userdataModule: m_MLTFWorkerStruct.UserdataModulesToFinalize) {
+		tpool.push_task([userdataModule]() { userdataModule->Finalize(); });
+	}
+
+	tpool.wait_for_tasks();
 }
 
 void RTE::PresetMan::ModuleLoadingThreadFunction_InitModules(std::stop_token st) {
@@ -1204,14 +1125,19 @@ void RTE::PresetMan::ModuleLoadingThreadFunction_InitModules(std::stop_token st)
 		m_MLTFWorkerStruct.BaseGameModulesToFinalize
 		    .push_back(InitDataModule(*officialModuleIt, true, false));
 	}
-	m_MLTFWorkerStruct.MissionsRteModule = std::make_unique<MLTFWorkerStructModule>(InitDataModule("Missions.rte", true, false));
+	m_MLTFWorkerStruct.MissionsRteModule = 
+		InitDataModule("Missions.rte", true, false);
 
+	
 	// Init mod modules
+	std::vector<DataModule*> ModModulesToFinalize;
+
 	// If a single module is specified, skip loading all other unofficial modules
 	// and load specified module only.
 	if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad)) {
-		m_MLTFWorkerStruct.ModModulesToFinalize
-		    .push_back(InitDataModule(m_SingleModuleToLoad, false, false));
+		m_MLTFWorkerStruct.ModModuleFinalizationBatches.push_back({});
+		m_MLTFWorkerStruct.ModModuleFinalizationBatches[0].
+			push_back(InitDataModule(m_SingleModuleToLoad, false, false));
 	} else {
 		// Gather mod folders
 		std::vector<std::string> modModuleNames;
@@ -1237,7 +1163,7 @@ void RTE::PresetMan::ModuleLoadingThreadFunction_InitModules(std::stop_token st)
 			if (st.stop_requested()) {
 				return;
 			}
-			m_MLTFWorkerStruct.ModModulesToFinalize
+			ModModulesToFinalize
 			    .push_back(InitDataModule(modModuleName, false, false));
 		}
 
@@ -1247,7 +1173,10 @@ void RTE::PresetMan::ModuleLoadingThreadFunction_InitModules(std::stop_token st)
 			if (st.stop_requested()) {
 				return;
 			}
-			if (!std::filesystem::exists(System::GetWorkingDirectory() + System::GetUserdataDirectory() + userdataModuleName)) {
+			bool userdataModuleExists = std::filesystem::exists(
+				System::GetWorkingDirectory() + System::GetUserdataDirectory() + userdataModuleName
+			);
+			if (!userdataModuleExists) {
 				bool scanContentsAndIgnoreMissing = userdataModuleName == c_UserScenesModuleName;
 				DataModule::CreateOnDiskAsUserdata(
 				    userdataModuleName,
@@ -1255,12 +1184,12 @@ void RTE::PresetMan::ModuleLoadingThreadFunction_InitModules(std::stop_token st)
 				    scanContentsAndIgnoreMissing,
 				    scanContentsAndIgnoreMissing);
 			}
-			m_MLTFWorkerStruct.ModModulesToFinalize
+			m_MLTFWorkerStruct.UserdataModulesToFinalize
 			    .push_back(InitDataModule(userdataModuleName, false, true));
 		}
-	}
 
-	m_MLTFWorkerStruct.FinishSetup();
+		m_MLTFWorkerStruct.FinishSetup(ModModulesToFinalize);
+	}
 }
 
 void PresetMan::SpinlockWatchdogThreadFunction(std::stop_token st, std::atomic<int>& mainThreadHeartbeat, std::atomic<bool>& spinlockDetected) {
@@ -1289,36 +1218,93 @@ void PresetMan::SpinlockWatchdogThreadFunction(std::stop_token st, std::atomic<i
 	}
 }
 
-void PresetMan::MLTFWorkerStruct::FinishSetup() {
+void PresetMan::MLTFWorkerStruct::FinishSetup(std::vector<DataModule*>& ModModulesToFinalize) {
 	if (m_SetupDone) {
 		RTEAbort("MLTFWorkerStruct::FinishSetup() is called twice, shouldn't be.");
 	}
-	// For each of the mod modules to finalize
-	// we go through their required modules
-	// and if valid, we put them in a vector
-	for (auto& modModule: ModModulesToFinalize) {
-		const std::vector<std::string>& requiredModuleNames = modModule.Module->GetRequiredModules();
+
+	struct ModuleAndRequireIds {
+		ModuleAndRequireIds(DataModule* ptr) :
+		    ptr(ptr) {};
+		DataModule* ptr;
+		std::vector<int> requireIds;
+	};
+
+	std::unordered_map<int, bool> ModuleIdAndLoadednessMap;
+	
+	// First pass
+	// We: 1) check validity of requires; 2) add require-less modules to first load wave;
+	// 3) populate modulesAndRequireIds
+	ModModuleFinalizationBatches.push_back({});
+	std::vector<ModuleAndRequireIds> modulesAndRequireIds;
+	for (auto* modModule: ModModulesToFinalize) {
+		const std::vector<std::string>& requiredModuleNames 
+			= modModule->GetRequiredModules();
+		const int modModuleId = modModule->GetModuleID();
+		if (requiredModuleNames.size() == 0) {
+			ModModuleFinalizationBatches[0].push_back(modModule);
+			ModuleIdAndLoadednessMap[modModuleId] = true;
+			continue;
+		} else {
+			ModuleIdAndLoadednessMap[modModuleId] = false;
+		}
+		ModuleAndRequireIds& moduleAndRequireIds 
+			= modulesAndRequireIds.emplace_back(modModule);
 		for (auto& requiredModuleName: requiredModuleNames) {
 			const int requiredModuleID =
 			    g_PresetMan.GetModuleID(requiredModuleName);
 			if (requiredModuleID == -1) {
-				RTEAbort("Mod module '" + modModule.Module->GetFileName() + "' sets a requirement for a missing module '" + requiredModuleName + "' in index.ini!");
+				RTEAbort("Mod module '" + modModule->GetFileName() + "' sets a requirement for a missing module '" + requiredModuleName + "' in index.ini!");
 			}
 			if (requiredModuleID < g_PresetMan.GetOfficialModuleCount()) {
-				RTEAbort("Mod module '" + modModule.Module->GetFileName() + "' sets a requirement for a base game module '" + requiredModuleName + "' in index.ini, shouldn't!");
+				RTEAbort("Mod module '" + modModule->GetFileName() + "' sets a requirement for a base game module '" + requiredModuleName + "' in index.ini, shouldn't!");
 			}
-			if (requiredModuleID == modModule.Module->GetModuleID()) {
-				RTEAbort("Mod module '" + modModule.Module->GetFileName() + "' requires itself in index.ini, what? '");
+			if (requiredModuleID == modModule->GetModuleID()) {
+				RTEAbort("Mod module '" + modModule->GetFileName() + "' requires itself in index.ini, what?");
 			}
-			modModule.RequiredModules.push_back(g_PresetMan.GetDataModule(requiredModuleID));
+			moduleAndRequireIds.requireIds.push_back(requiredModuleID);
 		}
 	}
-	m_SetupDone = true;
-}
 
-PresetMan::MLTFWorkerStructModule::MLTFWorkerStructModule(DataModule* module) {
-	if (module->GetCreationStatus() != DataModule::CreationStatus::INITIALIZED_NOT_FINALIZED) {
-		RTEAbort("Trying to construct MLTFWorkerStructModule with a non-initialized or already finalized module!");
+	if (modulesAndRequireIds.size() == 0) {
+		m_SetupDone = true;
+		return;
 	}
-	Module = module;
+
+	// Iterative passes after
+	// gtodo
+	for (int batch = 1;; ++batch) {
+
+		bool anythingWasBatched = false;
+		ModModuleFinalizationBatches.push_back({});
+
+		for (int it = modulesAndRequireIds.size() - 1; it >= 0; --it) {
+			bool allRequiresSatisfied = true;
+			ModuleAndRequireIds& module = modulesAndRequireIds[it];
+
+			for (int require: module.requireIds) {
+				if (!ModuleIdAndLoadednessMap[require]) {
+					allRequiresSatisfied = false;
+					break;
+				}
+			}
+			if (allRequiresSatisfied) {
+				ModModuleFinalizationBatches[batch].push_back(module.ptr);
+				ModuleIdAndLoadednessMap[module.ptr->GetModuleID()] = true;
+				anythingWasBatched = true;
+				modulesAndRequireIds.erase(modulesAndRequireIds.begin() + it);
+			}
+		}
+
+		if (!anythingWasBatched) {
+			// gtodo: tell which
+			RTEAbort("Cyclical mod module dependencies, bad!");
+		}
+
+		if (modulesAndRequireIds.size() == 0) {
+			break;
+		}
+	}
+
+	m_SetupDone = true;
 }

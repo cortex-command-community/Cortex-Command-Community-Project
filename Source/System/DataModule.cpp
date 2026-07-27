@@ -54,7 +54,8 @@ void DataModule::Clear() {
 
 void DataModule::Init(const std::string& moduleName) {
 	if (m_CreationStatus != NOT_INITIALIZED) {
-		RTEAbort("DataModule::Init() called for an already initialized/created module \"" + m_FileName + "\"!");
+		RTEAbort("DataModule::Init() called for an already initialized/created module \"" 
+			+ m_FileName + "\"!");
 	}
 
 	m_FileName = std::filesystem::path(moduleName).generic_string();
@@ -78,9 +79,11 @@ void DataModule::Init(const std::string& moduleName) {
 
 void DataModule::Finalize() {
 	if (m_CreationStatus == NOT_INITIALIZED) {
-		RTEAbort("DataModule::Create() called for a module before initializing it!");
+		RTEAbort("DataModule::Create() called for module '" + m_FileName + 
+			"' before initializing it!");
 	} else if (m_CreationStatus == FINALIZED) {
-		RTEAbort("DataModule::Create() called for an already created module!");
+		RTEAbort("DataModule::Create() called for module '" + m_FileName  + 
+			"' that has already been created!");
 	}
 
 	std::string indexPath = g_PresetMan.GetFullModulePath(m_FileName + "/Index.ini");

@@ -425,19 +425,12 @@ namespace RTE {
 		void ModuleLoadingThreadFunction_InitModules(std::stop_token st);
 		void SpinlockWatchdogThreadFunction(std::stop_token st, std::atomic<int>& mainThreadHeartbeat, std::atomic<bool>& spinlockDetected);
 		
-		// A module to finalize in the ModuleLoadingThreadFunction worker struct
-		struct MLTFWorkerStructModule {
-			MLTFWorkerStructModule(DataModule* module);
-			DataModule* Module = nullptr;
-			std::vector<const DataModule*> RequiredModules;
-			bool IsTaken = false;
-		};
 		// ModuleLoadingThreadFunction worker struct, shared between finalizing workers
 		struct MLTFWorkerStruct {
-			std::vector<MLTFWorkerStructModule> BaseGameModulesToFinalize;
-			std::unique_ptr<MLTFWorkerStructModule> MissionsRteModule;
-			std::vector<MLTFWorkerStructModule> ModModulesToFinalize;
-			std::vector<MLTFWorkerStructModule> UserdataModulesToFinalize;
+			std::vector<DataModule*> BaseGameModulesToFinalize;
+			DataModule* MissionsRteModule;
+			std::vector<std::vector<DataModule*>> ModModuleFinalizationBatches;
+			std::vector<DataModule*> UserdataModulesToFinalize;
 
 			enum Status {
 				FinalizingBaseModules,
@@ -448,14 +441,14 @@ namespace RTE {
 			};
 			Status status = FinalizingBaseModules;
 
-			void Clear() {
+			/*void Clear() {
 				BaseGameModulesToFinalize.clear();
-				ModModulesToFinalize.clear();
+				ModModuleFinalizationBatches.clear();
 				status = FinalizingBaseModules;
-			}
+			}*/
 
 			// Precalculates module dependency indexes for mods
-			void FinishSetup();
+			void FinishSetup(std::vector<DataModule*>& ModModulesToFinalize);
 
 			bool m_SetupDone = false;
 

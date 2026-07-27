@@ -127,6 +127,7 @@ namespace RTE {
 		/// Because we're often used as a parent for basic types (i.e, Vector, Matrix, Color), where we don't want to spend any time doing string construction we don't actually store this data here.
 		/// This just acts as an abstract base for child classes to implement.
 		/// @param newPosition A string containing the currently read file path and the line being read.
+		//gtodo rip this out? seems to be a lot
 		virtual void SetFormattedReaderPosition(const std::string& newPosition) {}
 #pragma endregion
 
