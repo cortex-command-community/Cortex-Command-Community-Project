@@ -121,7 +121,7 @@ DataModule* PresetMan::InitDataModule(const std::string& moduleName, bool offici
 }
 
 bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback, std::chrono::steady_clock::time_point mainStartTimePoint) {
-	std::chrono::milliseconds moduleLoadElapsedTime = {};
+	auto timerFunctionStart = std::chrono::steady_clock::now();
 
 	// Destroy any possible loaded modules
 	Destroy();
@@ -140,7 +140,7 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback, 
 	m_GameInitModuleLoadingStatus = GameInitModuleLoadingStatus::StillWorking;
 	bool toDoProgressPrintOut = !g_SettingsMan.GetLoadingScreenProgressReportDisabled();
 	std::jthread moduleLoadingThread([&](std::stop_token st) {
-		ModuleLoadingThreadFunction(st, moduleLoadElapsedTime);
+		ModuleLoadingThreadFunction(st);
 	});		
 
 	// Spinlock watchdog thread
@@ -220,20 +220,20 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback, 
 		shader->Create();
 	}
 
-	//gtodo rename all this shit
-	if (g_SettingsMan.IsMeasuringModuleLoadTime()) {
-		std::chrono::milliseconds totalGameLaunchTime 
-			= std::chrono::duration_cast<std::chrono::milliseconds>(
-		    std::chrono::steady_clock::now() - mainStartTimePoint);
-		std::string coutString 
-			= "Total loading time was " 
-			+ std::to_string(totalGameLaunchTime.count()) 
-			+ "ms"
-			+ " (module load duration: " 
-			+ std::to_string(moduleLoadElapsedTime.count()) 
-			+ "ms)";
-		g_ConsoleMan.PrintString(coutString);
-	}
+	std::chrono::milliseconds moduleLoadElapsedTime 
+		= std::chrono::duration_cast<std::chrono::milliseconds>(
+		std::chrono::steady_clock::now() - timerFunctionStart);
+	std::chrono::milliseconds totalGameLaunchTime 
+		= std::chrono::duration_cast<std::chrono::milliseconds>(
+		std::chrono::steady_clock::now() - mainStartTimePoint);
+	std::string coutString 
+		= "Total game launch time was " 
+		+ std::to_string(totalGameLaunchTime.count()) 
+		+ "ms"
+		+ " (module load duration: " 
+		+ std::to_string(moduleLoadElapsedTime.count()) 
+		+ "ms)";
+	g_ConsoleMan.PrintString(coutString);
 
 	return true;
 }
@@ -1050,12 +1050,10 @@ void PresetMan::GameInitModuleLoadingAbort(const std::string& description, std::
 	}
 }
 
-void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::milliseconds& moduleLoadElapsedTime) {
+void PresetMan::ModuleLoadingThreadFunction(std::stop_token st) {
 	if (g_ThreadMan.IsMainThread()) {
 		RTEAbort("PresetMan::ModuleLoadingThreadFunction called from the main thread! Bad!");
 	}
-
-	auto timerModuleLoadingThreadStart = std::chrono::steady_clock::now();
 
 	ModuleLoadingThreadFunction_InitModules(st);
 	if (st.stop_requested()) { //gtodo, rip out fully?
@@ -1063,10 +1061,6 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st, std::chrono::mil
 	}
 	
 	ModuleLoadingThreadFunction_FinalizeModules(st);
-	
-	moduleLoadElapsedTime 
-		= std::chrono::duration_cast<std::chrono::milliseconds>
-		(std::chrono::steady_clock::now() - timerModuleLoadingThreadStart);
 
 	m_GameInitModuleLoadingStatus = GameInitModuleLoadingStatus::Success;
 	m_ProgressDisplayCv.notify_all();

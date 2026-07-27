@@ -355,6 +355,7 @@ namespace RTE {
 
 		/// Gets whether the duration of module loading (extraction included) is being measured or not. For benchmarking purposes.
 		/// @return Whether duration is being measured or not.
+		/// gtodo rip this out
 		bool IsMeasuringModuleLoadTime() const { return m_MeasureModuleLoadTime; }
 
 		/// Sets whether the duration of module loading (extraction included) should be measured or not. For benchmarking purposes.
