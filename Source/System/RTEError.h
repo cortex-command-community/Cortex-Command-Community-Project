@@ -55,7 +55,7 @@ namespace RTE {
 		/// @param funcSig Reference to the function signature to format.
 		static void FormatFunctionSignature(std::string& funcSig);
 
-		static void TriggerGameInitModuleLoadingAbort(const std::string& description, std::source_location sourceLoc);
+		static void TriggerGameInitModuleLoadingThreadAbort(const std::string& description, std::source_location sourceLoc);
 
 		// gtodo
 		static bool IsMainThread();
@@ -95,7 +95,7 @@ namespace RTE {
 			RTEError::AbortFunc(description, std::source_location::current()); \
 		} \
 	} else { \
-		RTEError::TriggerGameInitModuleLoadingAbort(description, std::source_location::current()); \
+		RTEError::TriggerGameInitModuleLoadingThreadAbort(description, std::source_location::current()); \
 	}
 
 #define RTEAssert(expression, description) \

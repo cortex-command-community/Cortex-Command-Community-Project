@@ -445,9 +445,24 @@ int main(int argc, char** argv) {
 
 	HandleMainArgs(argc, argv);
 
-	g_PresetMan.LoadAllDataModules(PollSDLEvents, mainStartTimePoint);
+	auto moduleLoadingFuncStartTimePoint = std::chrono::steady_clock::now();
 
-	if (!System::IsInExternalModuleValidationMode()) {
+	g_PresetMan.LoadAllDataModules(PollSDLEvents);
+
+	// Print game launch / module load times in console
+	if (!System::IsSetToQuit()) {
+		std::chrono::milliseconds moduleLoadElapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+		    std::chrono::steady_clock::now() - moduleLoadingFuncStartTimePoint);
+		std::chrono::milliseconds totalGameLaunchTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+		    std::chrono::steady_clock::now() - mainStartTimePoint);
+		std::string coutString = "Total game launch time was " + std::to_string(totalGameLaunchTime.count()) + "ms" + " (module load duration: " + std::to_string(moduleLoadElapsedTime.count()) + "ms)";
+		g_ConsoleMan.PrintString(coutString);
+	} else {
+		g_ConsoleMan.PrintString("Game launch was aborted!");
+	}
+
+
+	if (!System::IsInExternalModuleValidationMode() && !System::IsSetToQuit()) {
 		// Load the different input device icons. This can't be done during UInputMan::Create() because the icon presets don't exist so we need to do this after modules are loaded.
 		g_UInputMan.LoadDeviceIcons();
 

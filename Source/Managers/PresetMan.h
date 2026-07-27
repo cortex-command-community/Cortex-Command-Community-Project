@@ -69,7 +69,7 @@ namespace RTE {
 
 		/// NOTE: to be called from main thread only. Loads all the official data modules individually with LoadDataModule, then proceeds to look for any non-official modules and loads them as well.
 		/// @return
-		bool LoadAllDataModules(std::function<void()> PollSDLEventsCallback, std::chrono::steady_clock::time_point mainStartTimePoint);
+		bool LoadAllDataModules(std::function<void()> PollSDLEventsCallback);
 
 		/// Sets the single module to be loaded after the official modules. This will be the ONLY non-official module to be loaded.
 		/// @param moduleName Name of the module to load.
@@ -361,15 +361,12 @@ namespace RTE {
 			int Integer;
 			std::string String;
 		};
-
-		static void PushToProgressDisplayQueue(const std::string&, bool);
 		
 		enum GameInitModuleLoadingStatus {
 			StillWorking,
 			Success,
 			Failure
 		};
-		void SpinlockAssert(bool, GameInitModuleLoadingStatus);
 
 		bool GameInitModuleLoadingIsHappening() const;
 
@@ -404,26 +401,13 @@ namespace RTE {
 
 		bool m_GameInitModuleLoadingIsHappening = false;
 
-		std::mutex m_ProgressDisplayMutex;
-		std::condition_variable m_ProgressDisplayCv;
-		using ProgressDisplayEntry = std::pair<std::string, bool>;
-		std::deque<ProgressDisplayEntry> m_ProgressDisplayDeque;
-
-		std::mutex m_SpinlockWdMutex;
-		std::condition_variable m_SpinlockWdCv;
-		std::atomic<bool> m_ToStopSpinlockWatchdog = false;
-
-		std::atomic<bool> m_GameInitModuleLoadingThreadFailed = false;
-		std::atomic<GameInitModuleLoadingStatus> m_GameInitModuleLoadingStatus;
 		std::mutex m_GameInitModuleLoadingErrorMutex;
-		std::string m_GameInitModuleLoadingErrorMessage;
 
-		void GameInitModuleLoadingAbort(const std::string& description, std::source_location srcLocation);
+		void GameInitModuleLoadingThreadAbort(const std::string& description, std::source_location srcLocation);
 
-		void ModuleLoadingThreadFunction(std::stop_token st, std::chrono::milliseconds& moduleLoadElapsedTime);
+		void ModuleLoadingThreadFunction(std::stop_token st);
 		void ModuleLoadingThreadFunction_FinalizeModules(std::stop_token st);
 		void ModuleLoadingThreadFunction_InitModules(std::stop_token st);
-		void SpinlockWatchdogThreadFunction(std::stop_token st, std::atomic<int>& mainThreadHeartbeat, std::atomic<bool>& spinlockDetected);
 		
 		// ModuleLoadingThreadFunction worker struct, shared between finalizing workers
 		struct MLTFWorkerStruct {
@@ -433,13 +417,15 @@ namespace RTE {
 			std::vector<DataModule*> UserdataModulesToFinalize;
 
 			enum Status {
+				SetupNotDone,
+				SetupDoneNotYetFinalizing,
 				FinalizingBaseModules,
 				FinalizingMissionsRte,
 				FinalizingMods,
-				FinalizingUserdata,
+				FinalizingUserdataModules,
 				EverythingDone
 			};
-			Status status = FinalizingBaseModules;
+			Status status = SetupNotDone;
 
 			/*void Clear() {
 				BaseGameModulesToFinalize.clear();
@@ -449,8 +435,6 @@ namespace RTE {
 
 			// Precalculates module dependency indexes for mods
 			void FinishSetup(std::vector<DataModule*>& ModModulesToFinalize);
-
-			bool m_SetupDone = false;
 
 		} m_MLTFWorkerStruct;
 

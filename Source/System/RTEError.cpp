@@ -628,6 +628,6 @@ void RTEError::FormatFunctionSignature(std::string& symbolName) {
 	}
 }
 
-void RTEError::TriggerGameInitModuleLoadingAbort(const std::string& description, std::source_location sourceLoc) {
-	g_PresetMan.GameInitModuleLoadingAbort(description, sourceLoc);
+void RTEError::TriggerGameInitModuleLoadingThreadAbort(const std::string& description, std::source_location sourceLoc) {
+	g_PresetMan.GameInitModuleLoadingThreadAbort(description, sourceLoc);
 }

@@ -120,93 +120,43 @@ DataModule* PresetMan::InitDataModule(const std::string& moduleName, bool offici
 	return newModule;
 }
 
-bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback, std::chrono::steady_clock::time_point mainStartTimePoint) {
-	auto timerFunctionStart = std::chrono::steady_clock::now();
+bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) {
+	
+	m_GameInitModuleLoadingIsHappening = true;
 
 	// Destroy any possible loaded modules
 	Destroy();
 
 	FindAndExtractZippedModules();
 
-	// gtodo
-	/* if (!g_SettingsMan.GetLoadingScreenProgressReportDisabled()) {
-		//Reader::PushToProgressDisplayQueue = PushToProgressDisplayQueue;
-		//DataModule::PushToProgressDisplayQueue = PushToProgressDisplayQueue;
-	}*/
-
-	m_GameInitModuleLoadingIsHappening = true;
-
-	// Module loading Thread
-	m_GameInitModuleLoadingStatus = GameInitModuleLoadingStatus::StillWorking;
-	bool toDoProgressPrintOut = !g_SettingsMan.GetLoadingScreenProgressReportDisabled();
 	std::jthread moduleLoadingThread([&](std::stop_token st) {
 		ModuleLoadingThreadFunction(st);
 	});		
-
-	// Spinlock watchdog thread
-	std::atomic<int> mainThreadHeartbeat = 0;
-	std::atomic<bool> spinlockDetected = false;
-	std::jthread spinlockWatchdogThread([&](std::stop_token st) {
-		SpinlockWatchdogThreadFunction(st, mainThreadHeartbeat, spinlockDetected);
-	});
 	
-	// Main thread - we drain display queue and poll SDL events
+	// Main thread - we poll SDL events and show the progress
 	//
 	// We do this so the window does not freeze, and to handle
 	// the close button on the window being hit / Alt+F4 pressed
 	{
 		while (1) {
-			mainThreadHeartbeat++;
 			PollSDLEventsCallback();
 
-			ProgressDisplayEntry entry;
-			{
-				std::unique_lock lk(m_ProgressDisplayMutex);
+			// Sleep until there is work to do or 16 ms pass
+			using namespace std::chrono_literals;
+			std::this_thread::sleep_for(16ms);
 
-				// Sleep until there is work to do or 16 ms pass
-				m_ProgressDisplayCv.wait_for(lk, std::chrono::milliseconds(16), [&] {
-					return 
-						!m_ProgressDisplayDeque.empty() 
-						|| m_GameInitModuleLoadingStatus != GameInitModuleLoadingStatus::StillWorking
-						|| m_GameInitModuleLoadingThreadFailed 
-						|| spinlockDetected
-						|| System::IsSetToQuit();
-				});
-
-				if (System::IsSetToQuit() 
-					|| m_GameInitModuleLoadingStatus == GameInitModuleLoadingStatus::Failure
-					|| m_GameInitModuleLoadingThreadFailed)
-				{
-					moduleLoadingThread.request_stop();
-					break;
-				}
-
-				if (m_GameInitModuleLoadingStatus == GameInitModuleLoadingStatus::Success
-					&& m_ProgressDisplayDeque.empty()) //gtodo repurpose deque
-				{
-					break;
-				}
-
-				if (!m_ProgressDisplayDeque.empty()) {
-					entry = std::move(m_ProgressDisplayDeque.front());
-					m_ProgressDisplayDeque.pop_front();
-				} else if (spinlockDetected) {
-					spinlockDetected = false;
-					SpinlockAssert(toDoProgressPrintOut, m_GameInitModuleLoadingStatus);
-					RTEAssert(false, to_string(mainThreadHeartbeat));
-				}
+			if (System::IsSetToQuit()) {
+				moduleLoadingThread.request_stop();
+				break;
+				//gtodo: display "quitting"?
 			}
-			LoadingScreen::LoadingSplashProgressReport(entry.first, entry.second);
+
+			if (m_MLTFWorkerStruct.status == MLTFWorkerStruct::Status::EverythingDone) {
+				break;
+			}
+
+			//LoadingScreen::LoadingSplashProgressReport(entry.first, entry.second);
 		}
-	}
-
-	spinlockWatchdogThread.request_stop();
-	m_SpinlockWdCv.notify_all();
-	spinlockWatchdogThread.join();
-	m_GameInitModuleLoadingIsHappening = false;
-
-	if (m_GameInitModuleLoadingStatus == GameInitModuleLoadingStatus::Failure) {
-		RTEAbort(m_GameInitModuleLoadingErrorMessage);
 	}
 
 	moduleLoadingThread.join();
@@ -220,20 +170,7 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback, 
 		shader->Create();
 	}
 
-	std::chrono::milliseconds moduleLoadElapsedTime 
-		= std::chrono::duration_cast<std::chrono::milliseconds>(
-		std::chrono::steady_clock::now() - timerFunctionStart);
-	std::chrono::milliseconds totalGameLaunchTime 
-		= std::chrono::duration_cast<std::chrono::milliseconds>(
-		std::chrono::steady_clock::now() - mainStartTimePoint);
-	std::string coutString 
-		= "Total game launch time was " 
-		+ std::to_string(totalGameLaunchTime.count()) 
-		+ "ms"
-		+ " (module load duration: " 
-		+ std::to_string(moduleLoadElapsedTime.count()) 
-		+ "ms)";
-	g_ConsoleMan.PrintString(coutString);
+	m_GameInitModuleLoadingIsHappening = false;
 
 	return true;
 }
@@ -976,74 +913,24 @@ void PresetMan::DeferShaderCompilationToBeDoneOnMainThread(Shader* shader) {
 	m_ShadersToCompile.push_back(shader);
 }
 
-void PresetMan::PushToProgressDisplayQueue(const std::string& string, bool newItem) {
-	{
-		std::lock_guard lg(g_PresetMan.m_ProgressDisplayMutex);
-		g_PresetMan.m_ProgressDisplayDeque.push_back({string, newItem});
-	}
-	g_PresetMan.m_ProgressDisplayCv.notify_one();
-}
-
-//gtodo should this be spinlockabort?
-void PresetMan::SpinlockAssert(bool toDoProgressPrintOut, GameInitModuleLoadingStatus loadingDone) {
-
-	std::string loadingDoneValueString;
-	switch (loadingDone) {
-	case GameInitModuleLoadingStatus::Failure:
-		loadingDoneValueString = "Failure";
-		break;
-	case GameInitModuleLoadingStatus::Success:
-		loadingDoneValueString = "Success";
-		break;
-	case GameInitModuleLoadingStatus::StillWorking:
-		loadingDoneValueString = "StillWorking";
-		break;
-	default:
-		loadingDoneValueString = "Unknown";
-		break;
-	}
-	//gtodo rename these
-	const std::string assertString =
-		"Main thread spinlock during module loading!\n"
-		+ std::string("toDoProgressPrintOut = ") + std::to_string(toDoProgressPrintOut)
-		+ std::string("\nm_GameInitModuleLoadingStatus = ") + loadingDoneValueString
-		+ std::string("\nm_GameInitModuleLoadingThreadFailed = ") + std::to_string(m_GameInitModuleLoadingThreadFailed)
-		+ std::string("\nm_ProgressDisplayDeque.size() = ") + std::to_string(m_ProgressDisplayDeque.size());
-	RTEAssert(false, assertString);
-}
-
 bool RTE::PresetMan::GameInitModuleLoadingIsHappening() const {
 	return m_GameInitModuleLoadingIsHappening;
 }
 
-void PresetMan::GameInitModuleLoadingAbort(const std::string& description, std::source_location srcLocation) {
+void PresetMan::GameInitModuleLoadingThreadAbort(const std::string& description, std::source_location srcLocation) {
 	if (g_ThreadMan.IsMainThread()) {
 		RTEAbort("PresetMan::ModuleLoadingThreadAbort called from the main thread! What!");
 	}
 	{
 		std::lock_guard lg(m_GameInitModuleLoadingErrorMutex);
 		if (!m_GameInitModuleLoadingIsHappening) {
-			RTEError::AbortFunc("RTEAbort called from non-main thread NOT during game launch module loading: " + description, std::source_location::current());
+			RTEError::AbortFunc("RTEAbort called from non-main thread NOT during game launch module loading: " 
+				+ description, srcLocation);
+		} else {
+			RTEError::AbortFunc("RTEAbort called from one of the module loading threads: " 
+				+ description, srcLocation);
 		}
-		if (!m_GameInitModuleLoadingThreadFailed) {
-			m_GameInitModuleLoadingStatus = GameInitModuleLoadingStatus::Failure;
-			m_GameInitModuleLoadingThreadFailed = true;
-			m_ToStopSpinlockWatchdog = true;
 
-			std::filesystem::path filePath = srcLocation.file_name();
-			std::string fileName =
-			    (filePath.has_root_name() || filePath.has_root_directory())
-			        ? filePath.filename().generic_string()
-			        : srcLocation.file_name();
-			const std::string lineNum = std::to_string(srcLocation.line());
-			const std::string funcName = srcLocation.function_name();
-
-			m_GameInitModuleLoadingErrorMessage =
-			    "RTEAbort called from one of the module loading threads, file '" 
-				+ fileName + "', line " + lineNum + ",\nfunction '" 
-				+ funcName + "':\n" + description;
-			m_ProgressDisplayCv.notify_all();
-		}
 		while (true) {
 			std::this_thread::yield();
 		}
@@ -1056,19 +943,16 @@ void PresetMan::ModuleLoadingThreadFunction(std::stop_token st) {
 	}
 
 	ModuleLoadingThreadFunction_InitModules(st);
-	if (st.stop_requested()) { //gtodo, rip out fully?
+	if (st.stop_requested()) {
 		return;
 	}
 	
 	ModuleLoadingThreadFunction_FinalizeModules(st);
-
-	m_GameInitModuleLoadingStatus = GameInitModuleLoadingStatus::Success;
-	m_ProgressDisplayCv.notify_all();
 }
 
-void RTE::PresetMan::ModuleLoadingThreadFunction_FinalizeModules(std::stop_token st) {
-	if (!m_MLTFWorkerStruct.m_SetupDone) {
-		RTEAbort("Finalizing modules without finishing setup on the worker struct.");
+void PresetMan::ModuleLoadingThreadFunction_FinalizeModules(std::stop_token st) {
+	if (m_MLTFWorkerStruct.status != MLTFWorkerStruct::Status::SetupDoneNotYetFinalizing) {
+		RTEAbort("PresetMan::ModuleLoadingThreadFunction_FinalizeModules called before setup/twice");
 	}
 
 	const int moduleFinalizingWorkerThreadCount = 4;
@@ -1076,29 +960,45 @@ void RTE::PresetMan::ModuleLoadingThreadFunction_FinalizeModules(std::stop_token
 	BS::thread_pool tpool(moduleFinalizingWorkerThreadCount);
 
 	// Finalizing base modules first!
+	m_MLTFWorkerStruct.status = MLTFWorkerStruct::Status::FinalizingBaseModules;
 	for (auto* module: m_MLTFWorkerStruct.BaseGameModulesToFinalize) {
 		tpool.push_task([module]() { module->Finalize(); });
 	}
 
 	tpool.wait_for_tasks();
+	if (st.stop_requested()) {
+		return;
+	}
 	
 	// Finalizing Missions.rte
+	m_MLTFWorkerStruct.status = MLTFWorkerStruct::Status::FinalizingMissionsRte;
 	m_MLTFWorkerStruct.MissionsRteModule->Finalize();
+	if (st.stop_requested()) {
+		return;
+	}
 
 	// Finalizing mods in waves
+	m_MLTFWorkerStruct.status = MLTFWorkerStruct::Status::FinalizingMods;
 	for (auto& batch: m_MLTFWorkerStruct.ModModuleFinalizationBatches) {
 		for (auto* mod: batch) {
 			tpool.push_task([mod]() { mod->Finalize(); });
 		}
 		tpool.wait_for_tasks();
 	}
+	if (st.stop_requested()) {
+		return;
+	}
 
 	// Finalizing userdata modules
+	m_MLTFWorkerStruct.status = MLTFWorkerStruct::Status::FinalizingUserdataModules;
 	for (auto* userdataModule: m_MLTFWorkerStruct.UserdataModulesToFinalize) {
 		tpool.push_task([userdataModule]() { userdataModule->Finalize(); });
 	}
 
 	tpool.wait_for_tasks();
+
+	// Done!
+	m_MLTFWorkerStruct.status = MLTFWorkerStruct::Status::EverythingDone;
 }
 
 void RTE::PresetMan::ModuleLoadingThreadFunction_InitModules(std::stop_token st) {
@@ -1186,34 +1086,8 @@ void RTE::PresetMan::ModuleLoadingThreadFunction_InitModules(std::stop_token st)
 	}
 }
 
-void PresetMan::SpinlockWatchdogThreadFunction(std::stop_token st, std::atomic<int>& mainThreadHeartbeat, std::atomic<bool>& spinlockDetected) {
-	int previousHeartbeat = 0;
-	while (!st.stop_requested()) {
-		if (m_ToStopSpinlockWatchdog) {
-			return;
-		}
-
-		std::unique_lock lk(m_SpinlockWdMutex);
-		m_SpinlockWdCv.wait_for(lk, std::chrono::milliseconds(1000), [&] {
-			return st.stop_requested();
-		});
-		if (st.stop_requested()) {
-			return;
-		}
-
-		int newHeartbeat = mainThreadHeartbeat;
-		if (newHeartbeat == previousHeartbeat) {
-			// Spinlock, report!
-			spinlockDetected = true;
-			m_ProgressDisplayCv.notify_all();
-			return;
-		}
-		previousHeartbeat = newHeartbeat;
-	}
-}
-
 void PresetMan::MLTFWorkerStruct::FinishSetup(std::vector<DataModule*>& ModModulesToFinalize) {
-	if (m_SetupDone) {
+	if (status != MLTFWorkerStruct::Status::SetupNotDone) {
 		RTEAbort("MLTFWorkerStruct::FinishSetup() is called twice, shouldn't be.");
 	}
 
@@ -1261,7 +1135,7 @@ void PresetMan::MLTFWorkerStruct::FinishSetup(std::vector<DataModule*>& ModModul
 	}
 
 	if (modulesAndRequireIds.size() == 0) {
-		m_SetupDone = true;
+		status = MLTFWorkerStruct::Status::SetupDoneNotYetFinalizing;
 		return;
 	}
 
@@ -1300,5 +1174,5 @@ void PresetMan::MLTFWorkerStruct::FinishSetup(std::vector<DataModule*>& ModModul
 		}
 	}
 
-	m_SetupDone = true;
+	status = MLTFWorkerStruct::Status::SetupDoneNotYetFinalizing;
 }
