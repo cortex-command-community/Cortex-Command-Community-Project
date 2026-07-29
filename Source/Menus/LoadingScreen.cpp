@@ -66,6 +66,7 @@ void LoadingScreen::DrawLoadingSplash() {
 void RTE::LoadingScreen::UpdateWithProgressReport_AcquireEntries() {
 	if (System::IsSetToQuit()) {
 		m_ProgressEntries.emplace_back("Quitting!");
+		m_ProgressTextYOffset = 0;
 		return;
 	}
 
@@ -82,31 +83,33 @@ void RTE::LoadingScreen::UpdateWithProgressReport_AcquireEntries() {
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::SetupNotDone_InitOfficialModules) {
 			break;
 		}
-		m_ProgressEntries.emplace_back("Initializing Base.rte");
+		m_ProgressEntries.emplace_back("Initializing base modules");
+		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
+
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::SetupNotDone_InitOfficialModules:
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::SetupNotDone_GatheringModFolders) {
 			break;
 		}
-		m_ProgressEntries.emplace_back("Initializing official modules");
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::SetupNotDone_GatheringModFolders:
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::SetupNotDone_InitModModules) {
 			break;
 		}
-		m_ProgressEntries.emplace_back("Gathering mod folders");
+		m_ProgressEntries.emplace_back("Initializing mod modules");
+		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::SetupNotDone_InitModModules:
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::SetupNotDone_InitUserdataModules) {
 			break;
 		}
-		m_ProgressEntries.emplace_back("Initializing mod modules");
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::SetupNotDone_InitUserdataModules:
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::SetupNotDone_AllInitialized) {
 			break;
 		}
 		m_ProgressEntries.emplace_back("Initializing userdata modules");
+		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::SetupNotDone_AllInitialized:
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::SetupDoneNotYetFinalizing) {
@@ -123,27 +126,32 @@ void RTE::LoadingScreen::UpdateWithProgressReport_AcquireEntries() {
 			break;
 		}
 		m_ProgressEntries.emplace_back("Finalizing base modules");
+		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::FinalizingMissionsRte:
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::FinalizingMods) {
 			break;
 		}
 		m_ProgressEntries.emplace_back("Finalizing Missions.rte");
+		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::FinalizingMods:
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::FinalizingUserdataModules) {
 			break;
 		}
 		m_ProgressEntries.emplace_back("Finalizing mod modules");
+		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::FinalizingUserdataModules:
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::EverythingDone) {
 			break;
 		}
 		m_ProgressEntries.emplace_back("Finalizing userdata modules");
+		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::EverythingDone:
-		m_ProgressEntries.emplace_back("Everything done!");
+		m_ProgressEntries.emplace_back("Everything done!"); // Right now this doesn't have a chance to get shown
+		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
 		break;
 	default:
 		RTEAbort("Bad MLTFWorkerStruct status!");
@@ -172,18 +180,16 @@ void RTE::LoadingScreen::UpdateWithProgressReport_DrawOntoFramebuffer() {
 	clear(g_FrameMan.GetBackBuffer32());
 	clear(m_ProgressBitmap);
 
-	static int m_ProgressTextYOffset = 12;
-
 	int yPos = m_ProgressBitmap->h + m_ProgressTextYOffset;
 	for (int entryIt = m_ProgressEntries.size() - 1; entryIt >= 0; --entryIt) {
 		auto& entry = m_ProgressEntries[entryIt];
 		drawProgressText(entry.str, yPos);
 
-		yPos -= 12;
+		yPos -= m_ProgressTextLineSpacing;
 	}
 
 	if (m_ProgressTextYOffset > 0) {
-		const float popInSpeedMult = 1.0f;
+		const float popInSpeedMult = 1.5f;
 		m_ProgressTextYOffset = std::max(0.0f, m_ProgressTextYOffset - deltaTime * 60.0f * popInSpeedMult);
 	}
 

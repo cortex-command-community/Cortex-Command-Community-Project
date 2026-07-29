@@ -65,6 +65,9 @@ namespace RTE {
 			float opacity = 0.1f;
 		};
 
+		int m_ProgressTextYOffset = 0;
+		const int m_ProgressTextLineSpacing = 12;
+
 		std::vector<ProgressEntry> m_ProgressEntries;
 
 		/// Clears all the member variables of this LoadingScreen, effectively resetting the members of this abstraction level only.
