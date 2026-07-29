@@ -235,6 +235,7 @@ void System::PrintToCLI(const std::string& stringToPrint) {
 #endif
 }
 
+//gtodo kill return report
 std::string System::ExtractZippedDataModule(const std::string& zippedModulePath) {
 	std::string zippedModuleName = System::GetModDirectory() + std::filesystem::path(zippedModulePath).filename().generic_string();
 

@@ -30,6 +30,7 @@ namespace RTE {
 	class PresetMan : public Singleton<PresetMan> {
 		friend struct ManagerLuaBindings;
 		friend class RTEError;
+		friend class LoadingScreen;
 
 		/// Public member variable, method and friend function declarations
 	public:
@@ -67,7 +68,7 @@ namespace RTE {
 		/// @return Whether the DataModule was read and added correctly.
 		DataModule* InitDataModule(const std::string& moduleName) { return InitDataModule(moduleName, false); }
 
-		/// NOTE: to be called from main thread only. Loads all the official data modules individually with LoadDataModule, then proceeds to look for any non-official modules and loads them as well.
+		/// gtodo rewrite NOTE: to be called from main thread only. Loads all the official data modules individually with LoadDataModule, then proceeds to look for any non-official modules and loads them as well.
 		/// @return
 		bool LoadAllDataModules(std::function<void()> PollSDLEventsCallback);
 
@@ -417,7 +418,13 @@ namespace RTE {
 			std::vector<DataModule*> UserdataModulesToFinalize;
 
 			enum Status {
-				SetupNotDone,
+				NotYetStartedAnything,
+				SetupNotDone_InitBaseRte,
+				SetupNotDone_InitOfficialModules,
+				SetupNotDone_GatheringModFolders,
+				SetupNotDone_InitModModules,
+				SetupNotDone_InitUserdataModules,
+				SetupNotDone_AllInitialized,
 				SetupDoneNotYetFinalizing,
 				FinalizingBaseModules,
 				FinalizingMissionsRte,
@@ -425,7 +432,7 @@ namespace RTE {
 				FinalizingUserdataModules,
 				EverythingDone
 			};
-			Status status = SetupNotDone;
+			Status status = NotYetStartedAnything;
 
 			/*void Clear() {
 				BaseGameModulesToFinalize.clear();
@@ -443,9 +450,6 @@ namespace RTE {
 
 		// ModuleLoadingThreadFunction mutex
 		std::mutex m_MLTFMutex;
-
-		// ModuleLoadingThreadFunction worker function
-		void MLTF_WorkerFunction(std::stop_token st);
 
 		std::vector<Shader*> m_ShadersToCompile;
 

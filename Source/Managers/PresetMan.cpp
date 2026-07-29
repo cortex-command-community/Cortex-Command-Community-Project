@@ -14,6 +14,7 @@
 // #include "Atom.h"
 
 #include "ConsoleMan.h"
+#include "WindowMan.h"
 #include "ThreadMan.h"
 #include "LoadingScreen.h"
 #include "SettingsMan.h"
@@ -140,21 +141,20 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) 
 	while (1) {
 		PollSDLEventsCallback();
 
-		// Sleep until there is work to do or 16 ms pass
-		using namespace std::chrono_literals;
-		std::this_thread::sleep_for(16ms);
-
-		if (System::IsSetToQuit()) {
-			moduleLoadingThread.request_stop();
-			break;
-			//gtodo: display "quitting"?
-		}
-
 		if (m_MLTFWorkerStruct.status == MLTFWorkerStruct::Status::EverythingDone) {
 			break;
 		}
 
-		//LoadingScreen::LoadingSplashProgressReport(entry.first, entry.second);
+		g_LoadingScreen.UpdateWithProgressReport();
+		g_WindowMan.UploadFrame();
+
+		if (System::IsSetToQuit()) {
+			moduleLoadingThread.request_stop();
+			break;
+		}
+
+		using namespace std::chrono_literals;
+		std::this_thread::sleep_for(16ms);
 	}
 
 	moduleLoadingThread.join();
@@ -901,8 +901,7 @@ void PresetMan::FindAndExtractZippedModules() const {
 	for (const std::filesystem::directory_entry& directoryEntry: std::filesystem::directory_iterator(System::GetWorkingDirectory() + System::GetModDirectory())) {
 		std::string zippedModulePath = std::filesystem::path(directoryEntry).generic_string();
 		if (zippedModulePath.ends_with(System::GetZippedModulePackageExtension())) {
-			LoadingScreen::LoadingSplashProgressReport("Extracting Data Module from: " + directoryEntry.path().filename().generic_string(), true);
-			LoadingScreen::LoadingSplashProgressReport(System::ExtractZippedDataModule(zippedModulePath), true);
+			System::ExtractZippedDataModule(zippedModulePath);
 		}
 	}
 }
@@ -1005,9 +1004,11 @@ void RTE::PresetMan::ModuleLoadingThreadFunction_InitModules(std::stop_token st)
 	}
 
 	// Fully load Base.rte first!
+	m_MLTFWorkerStruct.status = MLTFWorkerStruct::Status::SetupNotDone_InitBaseRte;
 	InitDataModule("Base.rte", true, false)->Finalize();
 
 	// Init all the other official modules
+	m_MLTFWorkerStruct.status = MLTFWorkerStruct::Status::SetupNotDone_InitOfficialModules;
 	if (*(c_OfficialModules.end() - 1) != "Missions.rte") {
 		RTEAbort("Last module in c_OfficialModules isn't Missions.rte!");
 	}
@@ -1027,11 +1028,13 @@ void RTE::PresetMan::ModuleLoadingThreadFunction_InitModules(std::stop_token st)
 	// If a single module is specified, skip loading all other unofficial modules
 	// and load specified module only.
 	if (!m_SingleModuleToLoad.empty() && !IsModuleOfficial(m_SingleModuleToLoad)) {
+		m_MLTFWorkerStruct.status = MLTFWorkerStruct::Status::SetupNotDone_InitModModules;
 		m_MLTFWorkerStruct.ModModuleFinalizationBatches.push_back({});
 		m_MLTFWorkerStruct.ModModuleFinalizationBatches[0].
 			push_back(InitDataModule(m_SingleModuleToLoad, false, false));
 	} else {
 		// Gather mod folders
+		m_MLTFWorkerStruct.status = MLTFWorkerStruct::Status::SetupNotDone_GatheringModFolders;
 		std::vector<std::string> modModuleNames;
 		const std::string modDirectory = System::GetWorkingDirectory() + System::GetModDirectory();
 		for (auto const& dirEntry: std::filesystem::directory_iterator{modDirectory}) {
@@ -1051,6 +1054,7 @@ void RTE::PresetMan::ModuleLoadingThreadFunction_InitModules(std::stop_token st)
 		std::sort(modModuleNames.begin(), modModuleNames.end());
 
 		// Now initialize them
+		m_MLTFWorkerStruct.status = MLTFWorkerStruct::Status::SetupNotDone_InitModModules;
 		for (auto const& modModuleName: modModuleNames) {
 			if (st.stop_requested()) {
 				return;
@@ -1061,6 +1065,7 @@ void RTE::PresetMan::ModuleLoadingThreadFunction_InitModules(std::stop_token st)
 
 		// Init userdata modules AFTER all other techs etc are loaded;
 		// might be referring to stuff in user mods.
+		m_MLTFWorkerStruct.status = MLTFWorkerStruct::Status::SetupNotDone_InitUserdataModules;
 		for (const auto& [userdataModuleName, userdataModuleFriendlyName]: c_UserdataModules) {
 			if (st.stop_requested()) {
 				return;
@@ -1080,13 +1085,17 @@ void RTE::PresetMan::ModuleLoadingThreadFunction_InitModules(std::stop_token st)
 			    .push_back(InitDataModule(userdataModuleName, false, true));
 		}
 
+		m_MLTFWorkerStruct.status = MLTFWorkerStruct::Status::SetupNotDone_AllInitialized;
 		m_MLTFWorkerStruct.FinishSetup(ModModulesToFinalize);
 	}
 }
 
 void PresetMan::MLTFWorkerStruct::FinishSetup(std::vector<DataModule*>& ModModulesToFinalize) {
-	if (status != MLTFWorkerStruct::Status::SetupNotDone) {
-		RTEAbort("MLTFWorkerStruct::FinishSetup() is called twice, shouldn't be.");
+	if (status < MLTFWorkerStruct::Status::SetupNotDone_AllInitialized) {
+		RTEAbort("MLTFWorkerStruct::FinishSetup() called before initializing everything, bad!");
+	}
+	if (status > MLTFWorkerStruct::Status::SetupNotDone_AllInitialized) {
+		RTEAbort("MLTFWorkerStruct::FinishSetup() called twice, bad!");
 	}
 
 	struct ModuleAndRequireIds {

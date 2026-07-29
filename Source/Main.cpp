@@ -265,7 +265,7 @@ void RunMenuLoop() {
 			g_MenuMan.Reinitialize();
 			g_ConsoleMan.Destroy();
 			g_ConsoleMan.Initialize();
-			g_LoadingScreen.CreateLoadingSplash();
+			g_LoadingScreen.CenterLoadingSplash();
 			g_WindowMan.CompleteResolutionChange();
 		}
 
@@ -431,7 +431,8 @@ int main(int argc, char** argv) {
 #ifdef WIN32
 	// Stops framespiking from our child threads being sat on for too long
 	// TODO: use a better thread system that'll do what we want ASAP instead of letting the OS schedule all over us
-	// Disabled for now because windows is great and this means when the game lags out it freezes the entire computer. Which we wouldn't expect with anything but REALTIME priority.
+	// Disabled for now because windows is great and this means when the game lags out it freezes the entire computer. 
+	// Which we wouldn't expect with anything but REALTIME priority.
 	// Because apparently high priority class is preferred over "processing mouse input"?!
 	// SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 #endif // WIN32
@@ -441,7 +442,7 @@ int main(int argc, char** argv) {
 	System::Initialize(argv[0]);
 	SeedRNG();
 
-	InitializeManagers();
+	InitializeManagers(); //gtodo mt this
 
 	HandleMainArgs(argc, argv);
 
@@ -455,12 +456,12 @@ int main(int argc, char** argv) {
 		    std::chrono::steady_clock::now() - moduleLoadingFuncStartTimePoint);
 		std::chrono::milliseconds totalGameLaunchTime = std::chrono::duration_cast<std::chrono::milliseconds>(
 		    std::chrono::steady_clock::now() - mainStartTimePoint);
-		std::string coutString = "Total game launch time was " + std::to_string(totalGameLaunchTime.count()) + "ms" + " (module load duration: " + std::to_string(moduleLoadElapsedTime.count()) + "ms)";
+		std::string coutString = "Total game launch time was " + std::to_string(totalGameLaunchTime.count()) + "ms" 
+			+ " (module load duration: " + std::to_string(moduleLoadElapsedTime.count()) + "ms)";
 		g_ConsoleMan.PrintString(coutString);
 	} else {
 		g_ConsoleMan.PrintString("Game launch was aborted!");
 	}
-
 
 	if (!System::IsInExternalModuleValidationMode() && !System::IsSetToQuit()) {
 		// Load the different input device icons. This can't be done during UInputMan::Create() because the icon presets don't exist so we need to do this after modules are loaded.

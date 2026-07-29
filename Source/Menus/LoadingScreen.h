@@ -29,14 +29,10 @@ namespace RTE {
 		/// @param progressReportDisabled Whether the loading screen progress report is disabled meaning GUI elements and adjustments relevant to it can be skipped.
 		void Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool progressReportDisabled);
 
-		/// Creates the loading splash screen and draws the composed frame to the LoadingSplashBitmap.
+		/// gtodo Creates the loading splash screen and draws the composed frame to the LoadingSplashBitmap.
 		/// @param xOffset Horizontal offset of the loading splash screen.
-		void CreateLoadingSplash(int xOffset = 0);
+		void CenterLoadingSplash();
 
-		/// Creates the GUIListBox that the progress report will be drawn to, if not disabled through the settings file to speed up loading times.
-		/// As it turned out, a massive amount of time is spent updating the GUI control and flipping the frame buffers.
-		/// @param parentControlManager Pointer to the parent GUIControlManager which owns all the GUIControls of this LoadingScreen. Ownership is NOT transferred!
-		void CreateProgressReportListbox(GUIControlManager* parentControlManager);
 #pragma endregion
 
 #pragma region Destruction
@@ -45,23 +41,31 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// Updates the loading progress report and draws it to the screen if not disabled through the settings file.
+		/// gtodo redesc Updates the loading progress report and draws it to the screen if not disabled through the settings file.
 		/// @param reportString The string to print in the report and log.
 		/// @param newItem Whether to start a new line in the log writer and to scroll the bitmap.
-		static void LoadingSplashProgressReport(const std::string& reportString, bool newItem = false);
+		void UpdateWithProgressReport();
 
 		/// Draws the loading splash to the screen.
 		void DrawLoadingSplash();
 #pragma endregion
 
 	private:
-		std::unique_ptr<Writer> m_LoadingLogWriter; //!< The Writer that generates the loading log.
 
-		BITMAP* m_LoadingSplashBitmap; //!< BITMAP that is used for drawing the splash screen.
-		BITMAP* m_ProgressListboxBitmap; //!< BITMAP that the progress report will be drawn into.
+		void UpdateWithProgressReport_AcquireEntries();
+
+		void UpdateWithProgressReport_DrawOntoFramebuffer();
+
+		BITMAP* m_ProgressBitmap; //!< gtodo 
 		std::unique_ptr<StaticSceneLayer> m_LoadingBackground; //!< Loading Screen Background image.
-		int m_ProgressListboxPosX; //!< Position of the progress report box on X axis.
-		int m_ProgressListboxPosY; //!< Position of the progress report box on Y axis.
+
+		struct ProgressEntry {
+			std::string str;
+			bool done = false;
+			float opacity = 0.1f;
+		};
+
+		std::vector<ProgressEntry> m_ProgressEntries;
 
 		/// Clears all the member variables of this LoadingScreen, effectively resetting the members of this abstraction level only.
 		void Clear();
