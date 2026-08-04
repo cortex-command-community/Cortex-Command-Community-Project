@@ -70,8 +70,20 @@ void RTE::LoadingScreen::UpdateWithProgressReport_AcquireEntries() {
 		return;
 	}
 
+	auto printProgress = [&](const std::string str) {
+		m_ProgressEntries.emplace_back(str);
+		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
+	};
+
 	static PresetMan::MLTFWorkerStruct::Status loadingStatusPrev = PresetMan::MLTFWorkerStruct::Status::NotYetStartedAnything;
 	PresetMan::MLTFWorkerStruct::Status loadingStatusNew = g_PresetMan.m_MLTFWorkerStruct.status;
+
+	if (loadingStatusNew == loadingStatusPrev) {
+		return;
+	}
+
+	// This is just loadingStatusPrev += 1
+	loadingStatusPrev = static_cast<PresetMan::MLTFWorkerStruct::Status>(static_cast<int>(loadingStatusPrev) + 1);
 
 	switch (loadingStatusPrev) {
 	case PresetMan::MLTFWorkerStruct::Status::NotYetStartedAnything:
@@ -80,12 +92,10 @@ void RTE::LoadingScreen::UpdateWithProgressReport_AcquireEntries() {
 		}
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::SetupNotDone_InitBaseRte:
+		printProgress("Initializing base modules");
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::SetupNotDone_InitOfficialModules) {
 			break;
 		}
-		m_ProgressEntries.emplace_back("Initializing base modules");
-		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
-
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::SetupNotDone_InitOfficialModules:
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::SetupNotDone_GatheringModFolders) {
@@ -93,11 +103,10 @@ void RTE::LoadingScreen::UpdateWithProgressReport_AcquireEntries() {
 		}
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::SetupNotDone_GatheringModFolders:
+		printProgress("Initializing mod modules");
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::SetupNotDone_InitModModules) {
 			break;
 		}
-		m_ProgressEntries.emplace_back("Initializing mod modules");
-		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::SetupNotDone_InitModModules:
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::SetupNotDone_InitUserdataModules) {
@@ -105,11 +114,10 @@ void RTE::LoadingScreen::UpdateWithProgressReport_AcquireEntries() {
 		}
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::SetupNotDone_InitUserdataModules:
+		printProgress("Initializing userdata modules");
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::SetupNotDone_AllInitialized) {
 			break;
 		}
-		m_ProgressEntries.emplace_back("Initializing userdata modules");
-		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::SetupNotDone_AllInitialized:
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::SetupDoneNotYetFinalizing) {
@@ -122,36 +130,31 @@ void RTE::LoadingScreen::UpdateWithProgressReport_AcquireEntries() {
 		}
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::FinalizingBaseModules:
+		printProgress("Finalizing base modules");
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::FinalizingMissionsRte) {
 			break;
 		}
-		m_ProgressEntries.emplace_back("Finalizing base modules");
-		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::FinalizingMissionsRte:
+		printProgress("Finalizing Missions.rte");
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::FinalizingMods) {
 			break;
 		}
-		m_ProgressEntries.emplace_back("Finalizing Missions.rte");
-		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::FinalizingMods:
+		printProgress("Finalizing mod modules");
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::FinalizingUserdataModules) {
 			break;
 		}
-		m_ProgressEntries.emplace_back("Finalizing mod modules");
-		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::FinalizingUserdataModules:
+		printProgress("Finalizing userdata modules");
 		if (loadingStatusNew < PresetMan::MLTFWorkerStruct::Status::EverythingDone) {
 			break;
 		}
-		m_ProgressEntries.emplace_back("Finalizing userdata modules");
-		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::EverythingDone:
-		m_ProgressEntries.emplace_back("Everything done!"); // Right now this doesn't have a chance to get shown
-		m_ProgressTextYOffset += m_ProgressTextLineSpacing;
+		printProgress("Everything done!"); // Right now this doesn't have a chance to get shown
 		break;
 	default:
 		RTEAbort("Bad MLTFWorkerStruct status!");
