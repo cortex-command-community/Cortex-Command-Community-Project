@@ -30,7 +30,7 @@ void MenuMan::Initialize(bool firstTimeInit) {
 
 	if (firstTimeInit) {
 		m_IsInMenuScreen = false;
-		g_LoadingScreen.Create(m_GUIScreen.get(), m_GUIInput.get(), g_SettingsMan.GetLoadingScreenProgressReportDisabled());
+		g_LoadingScreen.Create(m_GUIScreen.get(), m_GUIInput.get());
 	}
 
 	m_TitleScreen = std::make_unique<TitleScreen>(m_GUIScreen.get());

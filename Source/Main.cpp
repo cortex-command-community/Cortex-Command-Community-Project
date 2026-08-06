@@ -442,7 +442,7 @@ int main(int argc, char** argv) {
 	System::Initialize(argv[0]);
 	SeedRNG();
 
-	InitializeManagers(); //gtodo mt this
+	InitializeManagers();
 
 	HandleMainArgs(argc, argv);
 

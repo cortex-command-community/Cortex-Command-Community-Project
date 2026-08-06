@@ -36,9 +36,7 @@ namespace RTE {
 		GUICollectionBox* m_MiscSettingsBox;
 		GUICheckbox* m_SkipIntroCheckbox;
 		GUICheckbox* m_ShowToolTipsCheckbox;
-		GUICheckbox* m_ShowLoadingScreenProgressReportCheckbox;
 		GUICheckbox* m_ShowAdvancedPerfStatsCheckbox;
-		GUICheckbox* m_MeasureLoadTimeCheckbox;
 		GUICheckbox* m_UseMonospaceConsoleFontCheckbox;
 		GUICheckbox* m_DisableFactionBuyMenuThemesCheckbox;
 		GUICheckbox* m_DisableFactionBuyMenuThemeCursorsCheckbox;

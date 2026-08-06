@@ -148,14 +148,20 @@ void ConsoleMan::SetConsoleUseMonospaceFont(bool useFont) {
 
 void ConsoleMan::AddLoadWarningLogExtensionMismatchEntry(const std::string& pathToLog, const std::string& readerPosition, const std::string& altFileExtension) {
 	const std::string pathAndAccessLocation = "\"" + pathToLog + "\" referenced " + readerPosition + ". ";
-	std::string newEntry = pathAndAccessLocation + (!altFileExtension.empty() ? "Found and loaded a file with \"" + altFileExtension + "\" extension." : "The file was not loaded.");
+	std::string newEntry = 
+		pathAndAccessLocation + (!altFileExtension.empty() 
+		? "Found and loaded a file with \"" + altFileExtension + "\" extension." 
+		: "The file was not loaded.");
 	if (g_PresetMan.GetReloadEntityPresetCalledThisUpdate()) {
 		PrintString(newEntry);
 	} else {
 		std::transform(newEntry.begin(), newEntry.end(), newEntry.begin(), ::tolower);
 		// Emplace inserts only if there is no existing entry.
-		//gtodo thread safe
-		m_LoadWarningLog.emplace(newEntry);
+		{
+			static std::mutex loadWarningLogMutex;
+			std::lock_guard lg(loadWarningLogMutex);
+			m_LoadWarningLog.emplace(newEntry);
+		}
 	}
 }
 

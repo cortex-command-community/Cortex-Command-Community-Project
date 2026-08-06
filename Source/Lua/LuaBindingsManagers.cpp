@@ -197,8 +197,7 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, PresetMan) {
 
 	    .def_readonly("Modules", &PresetMan::m_pDataModules, luabind::return_stl_iterator)
 
-		// gtodo figure this out lol
-	    //.def("LoadDataModule", (bool(PresetMan::*)(const std::string&)) & PresetMan::LoadDataModule)
+	    .def("LoadDataModule", (void(PresetMan::*)(const std::string&)) & PresetMan::LoadDataModule)
 	    .def("GetDataModule", &PresetMan::GetDataModule)
 	    .def("GetModuleID", &PresetMan::GetModuleID)
 	    .def("GetModuleIDFromPath", &PresetMan::GetModuleIDFromPath)

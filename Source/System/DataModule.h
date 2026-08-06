@@ -48,15 +48,14 @@ namespace RTE {
 		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		DataModule(const std::string& moduleName);
 
-		// gtodo
+		/// Initializes the module, which must then be finalized before usage. This needs to be called after PresetMan is created.
+		/// This just reads "index.ini" within the specified .rte directory and gets module's requires.
+		/// @param moduleName A string defining the name of this DataModule, e.g. "MyModule.rte".
 		void Init(const std::string& moduleName);
 
-		//gtodo
 		/// Makes the DataModule object ready for use. This needs to be called after PresetMan is created.
 		/// This looks for an "index.ini" within the specified .rte directory and loads all the defined objects in that index file.
 		/// @param moduleName A string defining the name of this DataModule, e.g. "MyModule.rte".
-		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		void Finalize();
 
 		/// Creates a new DataModule directory with "Index.ini" on disk to be used for userdata. Does NOT instantiate the newly created DataModule.
@@ -234,17 +233,19 @@ namespace RTE {
 		void ReloadAllScripts() const;
 #pragma endregion
 
-		//gtodo
 		enum CreationStatus {
 			NOT_INITIALIZED,
 			INITIALIZED_NOT_FINALIZED,
 			FINALIZED
 		};
 
+		/// Returns the creation status of the DataModule (not-initalized, initialized, finalized).
 		CreationStatus GetCreationStatus() const { return m_CreationStatus; }
 
-		const std::vector<std::string>& GetRequiredModules() { return m_RequiredModules; }
+		/// Returns this DataModule's dependencies.
+		const std::vector<std::string>& GetRequiredModules() const { return m_RequiredModules; }
 
+		/// Returns this DataModule's id.
 		int GetModuleID() const { return m_ModuleID; }
 
 	protected:
@@ -274,7 +275,7 @@ namespace RTE {
 		int m_Version; //!< Version number, starting with 1.
 		int m_ModuleID; //!< ID number assigned to this upon loading, for internal use only, don't reflect in ini's.
 
-		CreationStatus m_CreationStatus; //!< gtodo
+		CreationStatus m_CreationStatus; //!< Creation status (non-initialized, initialized, finalized and ready to use).
 
 		ContentFile m_IconFile; //!< File to the icon/symbol bitmap.
 		BITMAP* m_Icon; //!< Bitmap with the icon loaded from above file.

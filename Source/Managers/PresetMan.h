@@ -10,6 +10,8 @@
 #include "shader.h"
 #include "RTEError.h"
 
+#include "DataModule.h"
+
 #include <array>
 #include <list>
 #include <map>
@@ -54,21 +56,23 @@ namespace RTE {
 		/// Destroys and resets (through Clear()) the PresetMan entity.
 		void Destroy();
 
-		/// Reads an entire DataModule and adds it to this. NOTE that official modules can't be loaded after any non-official ones!
+		/// Initializes a DataModule, which must then be finalized before use, and adds it to this.
 		/// @param moduleName The module name to read, e.g. "Base.rte".
 		/// @param official Whether this module is 'official' or third party. If official, it has to not have any name conflicts with any other official module.
 		/// @param userdata Whether this module is a userdata module. If true, will be treated as an unofficial module.
-		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
-		/// @return Whether the DataModule was read and added correctly.
-		/// gtodo
+		/// @return Pointer to the initialized DataModule.
 		DataModule* InitDataModule(const std::string& moduleName, bool official, bool userdata = false);
 
-		/// Reads an entire DataModule and adds it to this. NOTE that official modules can't be loaded after any non-official ones!
+		/// Initializes a DataModule, which must then be finalized before use, and adds it to this.
 		/// @param moduleName The module name to read, e.g. "Base.rte".
-		/// @return Whether the DataModule was read and added correctly.
+		/// @return Pointer to the initialized DataModule.
 		DataModule* InitDataModule(const std::string& moduleName) { return InitDataModule(moduleName, false); }
 
-		/// gtodo rewrite NOTE: to be called from main thread only. Loads all the official data modules individually with LoadDataModule, then proceeds to look for any non-official modules and loads them as well.
+		/// Initializes and immediately finalizes a module. NOTE that official modules can't be loaded after any non-official ones!
+		/// @param moduleName The module name to read, e.g. "Base.rte".
+		void LoadDataModule(const std::string& moduleName) { return InitDataModule(moduleName, false)->Finalize(); }
+
+		/// To be called from main thread only, during game launch. Initializes and finalizes all official and non-official modules.
 		/// @return
 		bool LoadAllDataModules(std::function<void()> PollSDLEventsCallback);
 

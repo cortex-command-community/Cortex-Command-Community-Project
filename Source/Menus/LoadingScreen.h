@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Singleton.h"
+#include "AllegroBitmap.h"
 
 #include <memory>
 #include <string>
@@ -26,11 +27,9 @@ namespace RTE {
 		/// Makes the LoadingScreen object ready for use.
 		/// @param guiScreen Pointer to a GUIScreen interface that will be used by this LoadingScreen's GUIControlManager. Ownership is NOT transferred!
 		/// @param guiInput Pointer to a GUIInput interface that will be used by this LoadingScreen's GUIControlManager. Ownership is NOT transferred!
-		/// @param progressReportDisabled Whether the loading screen progress report is disabled meaning GUI elements and adjustments relevant to it can be skipped.
-		void Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool progressReportDisabled);
+		void Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput);
 
-		/// gtodo Creates the loading splash screen and draws the composed frame to the LoadingSplashBitmap.
-		/// @param xOffset Horizontal offset of the loading splash screen.
+		/// Sets the static background layer position to be centered, for use during init and on resolution change
 		void CenterLoadingSplash();
 
 #pragma endregion
@@ -41,9 +40,7 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Concrete Methods
-		/// gtodo redesc Updates the loading progress report and draws it to the screen if not disabled through the settings file.
-		/// @param reportString The string to print in the report and log.
-		/// @param newItem Whether to start a new line in the log writer and to scroll the bitmap.
+		/// Updates the loading progress report bitmap. To be called repeatedly during game loading.
 		void UpdateWithProgressReport();
 
 		/// Draws the loading splash to the screen.
@@ -56,7 +53,8 @@ namespace RTE {
 
 		void UpdateWithProgressReport_DrawOntoFramebuffer();
 
-		BITMAP* m_ProgressBitmap; //!< gtodo 
+		BITMAP* m_ProgressBitmap; //!< Bitmap onto which progress text is drawn.
+		AllegroBitmap* m_ProgressBitmapAllegro; //!< Progress text bitmap wrapper for the drawing functions.
 		std::unique_ptr<StaticSceneLayer> m_LoadingBackground; //!< Loading Screen Background image.
 
 		struct ProgressEntry {

@@ -26,10 +26,11 @@ void LoadingScreen::Clear() {
 	m_ProgressBitmap = nullptr;
 }
 
-void LoadingScreen::Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, bool progressReportDisabled) {
+void LoadingScreen::Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput) {
 	g_WindowMan.ClearBackbuffer();
 
 	m_ProgressBitmap = create_bitmap_ex(32, 200, 180);
+	m_ProgressBitmapAllegro = new AllegroBitmap(m_ProgressBitmap);
 
 	// Create loading splash
 	m_LoadingBackground = std::make_unique<StaticSceneLayer>();
@@ -42,19 +43,18 @@ void LoadingScreen::CenterLoadingSplash() {
 }
 
 void LoadingScreen::Destroy() {
-	if (m_ProgressBitmap) {
-		destroy_bitmap(m_ProgressBitmap);
+	if (m_ProgressBitmapAllegro) {
+		delete m_ProgressBitmapAllegro; // This deletes the underlying bitmap too
+		m_ProgressBitmapAllegro = nullptr;
 	}
 	Clear();
 }
 
-// gtodo kill logging, System::IsLoggingToCLI(), ::PrintLoadingToCLI
 void LoadingScreen::UpdateWithProgressReport() {
 	UpdateWithProgressReport_AcquireEntries();
 	UpdateWithProgressReport_DrawOntoFramebuffer();
 }
 
-//gtodo see how this behaves in loading savefiles
 void LoadingScreen::DrawLoadingSplash() {
 	Vector corner = Vector(0, static_cast<float>((g_WindowMan.GetResY() - g_LoadingScreen.m_LoadingBackground->GetBitmap()->h) / 2));
 	Box loadingSplashTargetBox(corner, static_cast<float>(g_WindowMan.GetResX()), static_cast<float>(g_LoadingScreen.m_LoadingBackground->GetBitmap()->h));
@@ -154,7 +154,8 @@ void RTE::LoadingScreen::UpdateWithProgressReport_AcquireEntries() {
 		}
 		[[fallthrough]];
 	case PresetMan::MLTFWorkerStruct::Status::EverythingDone:
-		printProgress("Everything done!"); // Right now this doesn't have a chance to get shown
+		// This doesn't have a chance to get shown, and so we don't
+		//printProgress("Everything done!"); 
 		break;
 	default:
 		RTEAbort("Bad MLTFWorkerStruct status!");
@@ -174,10 +175,8 @@ void RTE::LoadingScreen::UpdateWithProgressReport_DrawOntoFramebuffer() {
 	const int m_ProgressPosX = g_WindowMan.GetResX() * 0.5 - progressBitmapCenterX;
 	const int m_ProgressPosY = g_WindowMan.GetResY() * 0.75 - progressBitmapCenterY;
 
-	AllegroBitmap drawBitmap(m_ProgressBitmap); // gtodo put into initialize
-
-	auto drawProgressText = [&drawBitmap, &progressBitmapCenterX](const std::string str, int yPos) {
-		g_FrameMan.GetLargeFont(true)->DrawAligned(&drawBitmap, progressBitmapCenterX, yPos, str, GUIFont::Centre, GUIFont::Bottom);
+	auto drawProgressText = [this, &progressBitmapCenterX](const std::string str, int yPos) {
+		g_FrameMan.GetLargeFont(true)->DrawAligned(m_ProgressBitmapAllegro, progressBitmapCenterX, yPos, str, GUIFont::Centre, GUIFont::Bottom);
 	};
 
 	clear(g_FrameMan.GetBackBuffer32());

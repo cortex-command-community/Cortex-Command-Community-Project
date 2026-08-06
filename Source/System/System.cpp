@@ -173,46 +173,6 @@ void System::EnableLoggingToCLI() {
 	s_LogToCLI = true;
 }
 
-void System::PrintLoadingToCLI(const std::string& reportString, bool newItem) {
-	if (newItem) {
-		std::cout << std::endl;
-	}
-	// Overwrite current line
-	std::cout << "\r";
-	size_t startPos = 0;
-	// Just make sure to really overwrite all old output, " - done! ✓" is shorter than "reading line 700"
-	std::string unicodedOutput = reportString + "            ";
-
-#if _LINUX_OR_MACOSX_
-	// Colorize output with ANSI escape code
-	std::string greenTick = "\033[1;32m✓\033[0;0m";
-	std::string yellowDot = "\033[1;33m•\033[0;0m";
-#elif _WIN32
-	// Fancy colors don't work for the Windows console so just replace with blanks
-	std::string greenTick = "";
-	std::string yellowDot = "";
-	// Also replace tab with 4 spaces because tab is super wide in the Windows console
-	size_t tabPos = 0;
-	while ((tabPos = unicodedOutput.find("\t")) != std::string::npos) {
-		unicodedOutput.replace(tabPos, 1, "    ");
-	}
-#endif
-	// Convert all ✓ characters to unicode, it's the 42th from last character in CC's custom font
-	while ((startPos = unicodedOutput.find(-42, startPos)) != std::string::npos) {
-		unicodedOutput.replace(startPos, 1, greenTick);
-		// We don't have to check indices we just overwrote
-		startPos += greenTick.length();
-	}
-	startPos = 0;
-
-	// Convert all • characters to unicode
-	while ((startPos = unicodedOutput.find(-43, startPos)) != std::string::npos) {
-		unicodedOutput.replace(startPos, 1, yellowDot);
-		startPos += yellowDot.length();
-	}
-	std::cout << unicodedOutput << std::flush;
-}
-
 void System::PrintToCLI(const std::string& stringToPrint) {
 #if _LINUX_OR_MACOSX_
 	std::string outputString = stringToPrint;
@@ -235,7 +195,6 @@ void System::PrintToCLI(const std::string& stringToPrint) {
 #endif
 }
 
-//gtodo kill return report
 std::string System::ExtractZippedDataModule(const std::string& zippedModulePath) {
 	std::string zippedModuleName = System::GetModDirectory() + std::filesystem::path(zippedModulePath).filename().generic_string();
 

@@ -84,7 +84,7 @@ DataModule* PresetMan::InitDataModule(const std::string& moduleName, bool offici
 		RTEAbort("Trying to init a module with an empty module name!");
 	}
 	// Make a lowercase-version of the module name so it makes it easier to compare to and find case-agnostically.
-	std::string lowercaseName = moduleName; //gtodo do this in the other ::transform place too
+	std::string lowercaseName = moduleName;
 	std::transform(lowercaseName.begin(), lowercaseName.end(), lowercaseName.begin(), ::tolower);
 
 	// Make sure we don't add the same module twice.
@@ -117,7 +117,7 @@ DataModule* PresetMan::InitDataModule(const std::string& moduleName, bool offici
 		m_DataModuleIDs.try_emplace(lowercaseName, m_pDataModules.size() - 1);
 	}
 
-	newModule->Init(moduleName); //gtodo, init should be private
+	newModule->Init(moduleName);
 	return newModule;
 }
 
@@ -901,6 +901,8 @@ void PresetMan::FindAndExtractZippedModules() const {
 	for (const std::filesystem::directory_entry& directoryEntry: std::filesystem::directory_iterator(System::GetWorkingDirectory() + System::GetModDirectory())) {
 		std::string zippedModulePath = std::filesystem::path(directoryEntry).generic_string();
 		if (zippedModulePath.ends_with(System::GetZippedModulePackageExtension())) {
+			// TODO: Something. This function gets called exactly only here, and returns a progress report std::string,
+			// and that does NOT get used
 			System::ExtractZippedDataModule(zippedModulePath);
 		}
 	}
@@ -1141,15 +1143,14 @@ void PresetMan::MLTFWorkerStruct::FinishSetup(std::vector<DataModule*>& ModModul
 		}
 	}
 
+	// If we have any mod modules that have any requires, then...
 	if (modulesAndRequireIds.size() == 0) {
 		status = MLTFWorkerStruct::Status::SetupDoneNotYetFinalizing;
 		return;
 	}
 
-	// Iterative passes after
-	// gtodo
+	// ...We do iterative passes, and put mods into loading waves based mod requires already loaded
 	for (int batch = 1;; ++batch) {
-
 		bool anythingWasBatched = false;
 		ModModuleFinalizationBatches.push_back({});
 
@@ -1172,8 +1173,12 @@ void PresetMan::MLTFWorkerStruct::FinishSetup(std::vector<DataModule*>& ModModul
 		}
 
 		if (!anythingWasBatched) {
-			// gtodo: tell which
-			RTEAbort("Cyclical mod module dependencies, bad!");
+			std::string badModulesStr;
+			for (auto& module : modulesAndRequireIds) {
+				badModulesStr += "\"" + module.ptr->GetFileName() + "\",";
+			}
+			badModulesStr.pop_back(); // Remove the comma after last module
+			RTEAbort("Cyclical mod module dependencies, bad! (" + badModulesStr + ")");
 		}
 
 		if (modulesAndRequireIds.size() == 0) {

@@ -54,15 +54,12 @@ void SettingsMan::Clear() {
 
 	m_SkipIntro = false;
 	m_ShowToolTips = true;
-	m_DisableLoadingScreenProgressReport = true;
-	m_LoadingScreenProgressReportPrecision = 100;
 	m_MenuTransitionDurationMultiplier = 1.0F;
 
 	m_DrawAtomGroupVisualizations = false;
 	m_DrawHandAndFootGroupVisualizations = false;
 	m_DrawLimbPathVisualizations = false;
 	m_PrintDebugInfo = false;
-	m_MeasureModuleLoadTime = false;
 
 	m_DisabledMods.clear();
 	m_EnabledGlobalScripts.clear();
@@ -175,8 +172,6 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("SkipIntro", { reader >> m_SkipIntro; });
 	MatchProperty("ShowToolTips", { reader >> m_ShowToolTips; });
 	MatchProperty("CaseSensitiveFilePaths", { System::EnableFilePathCaseSensitivity(std::stoi(reader.ReadPropValue())); });
-	MatchProperty("DisableLoadingScreenProgressReport", { reader >> m_DisableLoadingScreenProgressReport; });
-	MatchProperty("LoadingScreenProgressReportPrecision", { reader >> m_LoadingScreenProgressReportPrecision; });
 	MatchProperty("ConsoleScreenRatio", { g_ConsoleMan.SetConsoleScreenSize(std::stof(reader.ReadPropValue())); });
 	MatchProperty("ConsoleUseMonospaceFont", { reader >> g_ConsoleMan.m_ConsoleUseMonospaceFont; });
 	MatchProperty("AdvancedPerformanceStats", { reader >> g_PerformanceMan.m_AdvancedPerfStats; });
@@ -187,7 +182,6 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("DrawRaycastVisualizations", { reader >> g_SceneMan.m_DrawRayCastVisualizations; });
 	MatchProperty("DrawPixelCheckVisualizations", { reader >> g_SceneMan.m_DrawPixelCheckVisualizations; });
 	MatchProperty("PrintDebugInfo", { reader >> m_PrintDebugInfo; });
-	MatchProperty("MeasureModuleLoadTime", { reader >> m_MeasureModuleLoadTime; });
 	MatchProperty("VisibleAssemblyGroup", { m_VisibleAssemblyGroupsList.push_back(reader.ReadPropValue()); });
 	MatchProperty("DisableMod", { m_DisabledMods.try_emplace(reader.ReadPropValue(), true); });
 	MatchProperty("EnableGlobalScript", { m_EnabledGlobalScripts.try_emplace(reader.ReadPropValue(), true); });
@@ -319,8 +313,6 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("SkipIntro", m_SkipIntro);
 	writer.NewPropertyWithValue("ShowToolTips", m_ShowToolTips);
 	writer.NewPropertyWithValue("CaseSensitiveFilePaths", System::FilePathsCaseSensitive());
-	writer.NewPropertyWithValue("DisableLoadingScreenProgressReport", m_DisableLoadingScreenProgressReport);
-	writer.NewPropertyWithValue("LoadingScreenProgressReportPrecision", m_LoadingScreenProgressReportPrecision);
 	writer.NewPropertyWithValue("ConsoleScreenRatio", g_ConsoleMan.m_ConsoleScreenRatio);
 	writer.NewPropertyWithValue("ConsoleUseMonospaceFont", g_ConsoleMan.m_ConsoleUseMonospaceFont);
 	writer.NewPropertyWithValue("AdvancedPerformanceStats", g_PerformanceMan.m_AdvancedPerfStats);
@@ -336,7 +328,6 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("DrawRaycastVisualizations", g_SceneMan.m_DrawRayCastVisualizations);
 	writer.NewPropertyWithValue("DrawPixelCheckVisualizations", g_SceneMan.m_DrawPixelCheckVisualizations);
 	writer.NewPropertyWithValue("PrintDebugInfo", m_PrintDebugInfo);
-	writer.NewPropertyWithValue("MeasureModuleLoadTime", m_MeasureModuleLoadTime);
 
 	if (!m_VisibleAssemblyGroupsList.empty()) {
 		writer.NewLine(false, 2);

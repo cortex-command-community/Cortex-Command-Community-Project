@@ -57,7 +57,7 @@ namespace RTE {
 
 		static void TriggerGameInitModuleLoadingThreadAbort(const std::string& description, std::source_location sourceLoc);
 
-		// gtodo
+		// Returns whether execution is happening on the main thread.
 		static bool IsMainThread();
 
 	private:
