@@ -357,15 +357,6 @@ namespace RTE {
 		Actor* GetLoadout(std::string loadoutName, int moduleNumber, bool spawnDropShip);
 
 		void DeferShaderCompilationToBeDoneOnMainThread(Shader*);
-
-		enum ProgressDisplayMessageType {
-			StartedNewModule,
-		};
-
-		union ProgressDisplayArgument {
-			int Integer;
-			std::string String;
-		};
 		
 		enum GameInitModuleLoadingStatus {
 			StillWorking,
