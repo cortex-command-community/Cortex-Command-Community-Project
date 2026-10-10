@@ -42,7 +42,10 @@ lj_defines = [
     '-D_LARGEFILE_SOURCE',
     '-U_FORTIFY_SOURCE',
     '-DLUA_MULTILIB="lib"',
-    '-DLUA_ROOT="' + get_option('prefix') + '"'
+    '-DLUA_ROOT="' + get_option('prefix') + '"',
+    # Seed LuaJIT's own PRNG with a fixed value instead of from the OS. It decides the IDs that strings are hashed by,
+    # and with that the order pairs() goes through a table in, which would otherwise differ between runs of the game.
+    '-DLUAJIT_SECURITY_PRNG=0'
 ]
 
 if host_machine.system() == 'darwin'
