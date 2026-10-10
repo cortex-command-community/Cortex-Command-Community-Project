@@ -20,6 +20,7 @@
 #include "SettingsMan.h"
 #include "LuaMan.h"
 #include "ThreadMan.h"
+#include "DeterminismChecker.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -654,6 +655,31 @@ Actor* MovableMan::GetUnassignedBrain(int team) const {
 	}
 
 	return 0;
+}
+
+void MovableMan::HashState(StateHasher& hasher) const {
+	auto hashMovableObject = [&hasher](const MovableObject* movableObject) {
+		hasher.Add(movableObject->GetUniqueID());
+		hasher.Add(movableObject->GetPos());
+		hasher.Add(movableObject->GetVel());
+		hasher.Add(movableObject->GetRotAngle());
+		hasher.Add(movableObject->GetAngularVel());
+		hasher.Add(movableObject->IsHFlipped());
+	};
+
+	for (const std::deque<Actor*>* actors: {&m_Actors, &m_AddedActors}) {
+		for (const Actor* actor: *actors) {
+			hashMovableObject(actor);
+			hasher.Add(actor->GetTeam());
+			hasher.Add(actor->GetStatus());
+			hasher.Add(actor->GetHealth());
+		}
+	}
+	for (const std::deque<MovableObject*>* movableObjects: {&m_Items, &m_AddedItems, &m_Particles, &m_AddedParticles}) {
+		for (const MovableObject* movableObject: *movableObjects) {
+			hashMovableObject(movableObject);
+		}
+	}
 }
 
 bool MovableMan::AddMO(MovableObject* movableObjectToAdd) {
@@ -1315,6 +1341,8 @@ void MovableMan::Update() {
 	// Finish our Seeing rays from last frame
 	m_ActorsSeeFuture.wait();
 
+	DeterminismCheckSimState("MOs travelled");
+
 	// Prior to controller/AI update, execute lua callbacks
 	g_LuaMan.ExecuteLuaScriptCallbacks();
 
@@ -1325,6 +1353,8 @@ void MovableMan::Update() {
 
 	// Updates AI/user input
 	UpdateControllers();
+
+	DeterminismCheckSimState("Controllers updated");
 
 	// Will use some common iterators
 	std::deque<Actor*>::iterator aIt;
@@ -1394,6 +1424,8 @@ void MovableMan::Update() {
 		}
 	}
 	g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
+
+	DeterminismCheckSimState("Threaded scripts updated");
 
 	{
 		{
@@ -1468,6 +1500,8 @@ void MovableMan::Update() {
 			}
 		}
 	} // namespace RTE
+
+	DeterminismCheckSimState("MOs updated");
 
 	//////////////////////////////////////////////////////////////////////
 	// TRANSFER ALL MOs ADDED THIS FRAME
@@ -1665,6 +1699,8 @@ void MovableMan::Update() {
 			m_Particles.erase(midIt, m_Particles.end());
 		}
 	}
+
+	DeterminismCheckSimState("MOs added and removed");
 
 	// Run seeing rays for all actors
 	m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),

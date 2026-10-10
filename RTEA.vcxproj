@@ -826,6 +826,7 @@
     <ClInclude Include="Source\System\Reader.h" />
     <ClInclude Include="Source\System\Serializable.h" />
     <ClInclude Include="Source\System\Singleton.h" />
+    <ClInclude Include="Source\System\DeterminismChecker.h" />
     <ClInclude Include="Source\System\System.h" />
     <ClInclude Include="Source\System\Timer.h" />
     <ClInclude Include="Source\System\Vector.h" />
@@ -1362,6 +1363,7 @@
     </ClCompile>
     <ClCompile Include="Source\System\PathFinder.cpp" />
     <ClCompile Include="Source\System\Reader.cpp" />
+    <ClCompile Include="Source\System\DeterminismChecker.cpp" />
     <ClCompile Include="Source\System\System.cpp" />
     <ClCompile Include="Source\System\Timer.cpp" />
     <ClCompile Include="Source\System\Vector.cpp" />

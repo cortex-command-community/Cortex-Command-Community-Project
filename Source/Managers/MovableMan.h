@@ -30,6 +30,7 @@ namespace RTE {
 	class SceneObject;
 	class Box;
 	class LuabindObjectWrapper;
+	class StateHasher;
 
 	/// A struct to keep all data about a an alarming event for the AI Actors.
 	struct AlarmEvent {
@@ -252,6 +253,10 @@ namespace RTE {
 		/// Gets the number of particles (MOPixel:s) currently held.
 		/// @return The number of particles.
 		long GetParticleCount() const { return m_Particles.size(); }
+
+		/// Adds the state of all the MovableObjects currently held to a hash, for checking whether two runs of the simulation match.
+		/// @param hasher The StateHasher to add the state to.
+		void HashState(StateHasher& hasher) const;
 
 		/// Gets the global setting for how much splash MOPixels should be created
 		/// an MO penetrates the terrain deeply.

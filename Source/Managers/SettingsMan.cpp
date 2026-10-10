@@ -9,6 +9,7 @@
 #include "PerformanceMan.h"
 #include "UInputMan.h"
 #include "System.h"
+#include "DeterminismChecker.h"
 
 using namespace RTE;
 
@@ -102,6 +103,14 @@ int SettingsMan::Initialize() {
 void SettingsMan::UpdateSettingsFile() const {
 	Writer settingsWriter(m_SettingsPath);
 	g_SettingsMan.Save(settingsWriter);
+}
+
+int SettingsMan::GetNumberOfLuaStatesOverride() const {
+	constexpr int luaStatesWhenCheckingDeterminism = 4;
+	if (m_NumberOfLuaStatesOverride == -1 && DeterminismChecker::IsActive()) {
+		return luaStatesWhenCheckingDeterminism;
+	}
+	return m_NumberOfLuaStatesOverride;
 }
 
 int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) {

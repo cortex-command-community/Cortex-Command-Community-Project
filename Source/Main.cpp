@@ -52,6 +52,7 @@
 #include "LuaMan.h"
 #include "MusicMan.h"
 #include "System.h"
+#include "DeterminismChecker.h"
 
 #include "RenderTarget.h"
 #include "tracy/Tracy.hpp"
@@ -169,9 +170,14 @@ void HandleEarlyMainArgs(int argCount, char** argValue) {
 	// Skip the first argument because it's always the executable path/name
 	for (int i = 1; i < argCount; ++i) {
 		std::string currentArg = argValue[i];
+		bool lastArg = i + 1 == argCount;
 
 		if (currentArg == "-headless") {
 			System::EnableHeadlessMode();
+		} else if (!lastArg && currentArg == "-determinism-record") {
+			DeterminismChecker::StartRecording(argValue[++i]);
+		} else if (!lastArg && currentArg == "-determinism-verify") {
+			DeterminismChecker::StartVerifying(argValue[++i]);
 		}
 	}
 }
@@ -518,12 +524,14 @@ int main(int argc, char** argv) {
 	g_ThreadMan.GetPriorityThreadPool().wait_for_tasks();
 	g_ThreadMan.GetBackgroundThreadPool().wait_for_tasks();
 
+	DeterminismChecker::Stop();
+
 	DestroyManagers();
 
 	allegro_exit();
 	SDL_Quit();
 
-	return EXIT_SUCCESS;
+	return DeterminismChecker::HasDiverged() ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
 #ifdef _WIN32

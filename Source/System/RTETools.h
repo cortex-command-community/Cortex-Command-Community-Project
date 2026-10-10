@@ -23,6 +23,10 @@ namespace RTE {
 		/// Seed the random number generator.
 		void Seed(uint64_t seed) { m_RNG.seed(seed); };
 
+		/// Gets the next raw number the generator will produce, without advancing it. This can be used to check whether two generators are in the same state.
+		/// @return The next raw number the generator will produce.
+		uint32_t PeekNext() const { return static_cast<uint32_t>(std::mt19937(m_RNG)()); }
+
 		/// Function template which returns a uniformly distributed random number in the range [-1, 1].
 		/// @return Uniformly distributed random number in the range [-1, 1].
 		template <typename floatType = float>

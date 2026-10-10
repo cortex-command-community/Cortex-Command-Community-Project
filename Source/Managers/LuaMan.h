@@ -69,6 +69,10 @@ namespace RTE {
 		/// Gets the currently running script filepath, if applicable.
 		/// @return The currently running script filepath. May return inaccurate values for non-MO scripts due to weirdness in setup.
 		std::string_view GetCurrentlyRunningScriptFilePath() const { return m_CurrentlyRunningScriptPath; }
+
+		/// Gets the random number generator used for this lua state.
+		/// @return The random number generator used for this lua state.
+		const RandomGenerator& GetRandomGenerator() const { return m_RandomGenerator; }
 #pragma endregion
 
 #pragma region Script Responsibility Handling
