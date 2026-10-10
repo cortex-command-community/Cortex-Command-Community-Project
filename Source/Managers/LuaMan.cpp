@@ -341,6 +341,9 @@ void LuaMan::Initialize() {
 		luaStateCount = g_SettingsMan.GetNumberOfLuaStatesOverride();
 	}
 
+	// Each threaded Lua state hands out unique IDs to the MOs made on its thread from a range of its own, and there's only so many of those ranges, with one going to the main thread.
+	luaStateCount = std::min(luaStateCount, (1 << MovableObject::c_UniqueIDThreadBits) - 1);
+
 	m_ScriptStates = std::vector<LuaStateWrapper>(luaStateCount);
 	for (LuaStateWrapper& luaState: m_ScriptStates) {
 		luaState.Initialize();

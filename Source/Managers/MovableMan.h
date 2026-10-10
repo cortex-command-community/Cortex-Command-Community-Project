@@ -492,7 +492,7 @@ namespace RTE {
 		/// Uses a global lookup map to find an object by it's unique id.
 		/// @param id Unique Id to look for.
 		/// @return Object found or 0 if not found any.
-		MovableObject* FindObjectByUniqueID(long int id) {
+		MovableObject* FindObjectByUniqueID(int64_t id) {
 			if (m_KnownObjects.count(id) > 0)
 				return m_KnownObjects[id];
 			else
@@ -640,7 +640,7 @@ namespace RTE {
 		unsigned int m_SimUpdateFrameNumber;
 
 		// Global map which stores all objects so they could be foud by their unique ID
-		std::map<long int, MovableObject*> m_KnownObjects;
+		std::map<int64_t, MovableObject*> m_KnownObjects;
 
 		/// Private member variable and method declarations
 	private:
