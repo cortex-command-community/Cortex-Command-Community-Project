@@ -1797,11 +1797,13 @@ void MovableMan::UpdateControllers() {
 		}
 
 		g_LuaMan.SetThreadLuaStateOverride(&g_LuaMan.GetMasterScriptState());
+		g_LuaMan.GetMasterScriptState().SetRunningAI(true);
 		for (Actor* actor: m_Actors) {
 			if (actor->GetLuaState() == &g_LuaMan.GetMasterScriptState() && actor->GetController()->ShouldUpdateAIThisFrame()) {
 				actor->RunScriptedFunctionInAppropriateScripts("ThreadedUpdateAI", false, true, {}, {}, {});
 			}
 		}
+		g_LuaMan.GetMasterScriptState().SetRunningAI(false);
 		g_LuaMan.SetThreadLuaStateOverride(nullptr);
 
 		LuaStatesArray& luaStates = g_LuaMan.GetThreadedScriptStates();
@@ -1810,18 +1812,23 @@ void MovableMan::UpdateControllers() {
 			                                                     RTEAssert(start + 1 == end, "Threaded script state being updated across multiple threads!");
 			                                                     LuaStateWrapper& luaState = luaStates[start];
 			                                                     g_LuaMan.SetThreadLuaStateOverride(&luaState);
+			                                                     luaState.SetRunningAI(true);
 			                                                     for (Actor* actor: m_Actors) {
 				                                                     if (actor->GetLuaState() == &luaState && actor->GetController()->ShouldUpdateAIThisFrame()) {
 					                                                     actor->RunScriptedFunctionInAppropriateScripts("ThreadedUpdateAI", false, true, {}, {}, {});
 				                                                     }
 			                                                     }
+			                                                     luaState.SetRunningAI(false);
 			                                                     g_LuaMan.SetThreadLuaStateOverride(nullptr);
 		                                                     })
 		    .wait();
 
 		for (Actor* actor: m_Actors) {
-			if (actor->GetController()->ShouldUpdateAIThisFrame()) {
+			LuaStateWrapper* luaState = actor->GetLuaState();
+			if (luaState && actor->GetController()->ShouldUpdateAIThisFrame()) {
+				luaState->SetRunningAI(true);
 				actor->RunScriptedFunctionInAppropriateScripts("UpdateAI", false, true, {}, {}, {});
+				luaState->SetRunningAI(false);
 			}
 		}
 	}

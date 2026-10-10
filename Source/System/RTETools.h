@@ -85,36 +85,45 @@ namespace RTE {
 	/// Seed global the global random number generators.
 	void SeedRNG();
 
+	/// Sets a random number generator for the global random functions to use when called from this thread, instead of the global one.
+	/// This is for keeping whatever is being run from affecting the random numbers that the rest of the simulation gets.
+	/// @param randomGenerator The random number generator to use, or nullptr to go back to the global one. Ownership is NOT transferred!
+	void SetThreadRandomGenerator(RandomGenerator* randomGenerator);
+
+	/// Gets the random number generator that the global random functions use when called from this thread.
+	/// @return The random number generator set for this thread, or the global one if there is none.
+	RandomGenerator& GetThreadRandomGenerator();
+
 	// TODO: Maybe remove these passthrough functions and force the user to manually specify if they want the simulation thread random,
 	// Or, in future, a render-thread random, as right now determinism isn't viable because framerate affects sim updates per draw
 	template <typename floatType = float>
 	typename std::enable_if<std::is_floating_point<floatType>::value, floatType>::type RandomNormalNum() {
-		return g_RandomGenerator.RandomNormalNum();
+		return GetThreadRandomGenerator().RandomNormalNum();
 	}
 
 	template <typename intType>
 	typename std::enable_if<std::is_integral<intType>::value, intType>::type RandomNormalNum() {
-		return g_RandomGenerator.RandomNormalNum();
+		return GetThreadRandomGenerator().RandomNormalNum();
 	}
 
 	template <typename floatType = float>
 	typename std::enable_if<std::is_floating_point<floatType>::value, floatType>::type RandomNum() {
-		return g_RandomGenerator.RandomNum();
+		return GetThreadRandomGenerator().RandomNum();
 	}
 
 	template <typename intType>
 	typename std::enable_if<std::is_integral<intType>::value, intType>::type RandomNum() {
-		return g_RandomGenerator.RandomNum();
+		return GetThreadRandomGenerator().RandomNum();
 	}
 
 	template <typename floatType = float>
 	typename std::enable_if<std::is_floating_point<floatType>::value, floatType>::type RandomNum(floatType min, floatType max) {
-		return g_RandomGenerator.RandomNum(min, max);
+		return GetThreadRandomGenerator().RandomNum(min, max);
 	}
 
 	template <typename intType>
 	typename std::enable_if<std::is_integral<intType>::value, intType>::type RandomNum(intType min, intType max) {
-		return g_RandomGenerator.RandomNum(min, max);
+		return GetThreadRandomGenerator().RandomNum(min, max);
 	}
 #pragma endregion
 

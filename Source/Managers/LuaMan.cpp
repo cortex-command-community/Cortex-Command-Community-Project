@@ -30,6 +30,7 @@ void LuaStateWrapper::Clear() {
 	m_TempEntityVector.clear();
 	m_LastError.clear();
 	m_CurrentlyRunningScriptPath = "";
+	m_RunningAI = false;
 }
 
 void LuaStateWrapper::Initialize() {
@@ -248,6 +249,7 @@ void LuaStateWrapper::Initialize() {
 
 	const uint64_t seed = RandomNum<uint64_t>(0, std::numeric_limits<uint64_t>::max());
 	m_RandomGenerator.Seed(seed);
+	m_AIRandomGenerator.Seed(RandomNum<uint64_t>(0, std::numeric_limits<uint64_t>::max()));
 
 	luaL_dostring(m_State,
 	              "package.path = package.path .. \";Data/Base.rte/LuaIntegration/?.lua;Data/Base.rte/LuaIntegration/?/?.lua;\"\n"
@@ -285,20 +287,25 @@ void LuaStateWrapper::Destroy() {
 	lua_close(m_State);
 }
 
+void LuaStateWrapper::SetRunningAI(bool runningAI) {
+	m_RunningAI = runningAI;
+	SetThreadRandomGenerator(runningAI ? &m_AIRandomGenerator : nullptr);
+}
+
 int LuaStateWrapper::SelectRand(int minInclusive, int maxInclusive) {
-	return m_RandomGenerator.RandomNum<int>(minInclusive, maxInclusive);
+	return GetActiveRandomGenerator().RandomNum<int>(minInclusive, maxInclusive);
 }
 
 double LuaStateWrapper::RangeRand(double minInclusive, double maxInclusive) {
-	return m_RandomGenerator.RandomNum<double>(minInclusive, maxInclusive);
+	return GetActiveRandomGenerator().RandomNum<double>(minInclusive, maxInclusive);
 }
 
 double LuaStateWrapper::NormalRand() {
-	return m_RandomGenerator.RandomNormalNum<double>();
+	return GetActiveRandomGenerator().RandomNormalNum<double>();
 }
 
 double LuaStateWrapper::PosRand() {
-	return m_RandomGenerator.RandomNum<double>();
+	return GetActiveRandomGenerator().RandomNum<double>();
 }
 
 // Passthrough LuaMan Functions

@@ -10,6 +10,16 @@ namespace RTE {
 
 	RandomGenerator g_RandomGenerator;
 
+	thread_local RandomGenerator* s_ThreadRandomGenerator = nullptr;
+
+	void SetThreadRandomGenerator(RandomGenerator* randomGenerator) {
+		s_ThreadRandomGenerator = randomGenerator;
+	}
+
+	RandomGenerator& GetThreadRandomGenerator() {
+		return s_ThreadRandomGenerator ? *s_ThreadRandomGenerator : g_RandomGenerator;
+	}
+
 	void SeedRNG() {
 		// Use a constant seed for determinism.
 		static constexpr uint32_t constSeed = []() {
