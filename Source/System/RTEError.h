@@ -26,7 +26,7 @@ namespace RTE {
 	public:
 		static bool s_CurrentlyAborting; //!< Flag to prevent a potential recursive fault while attempting to save the game when aborting.
 		static bool s_IgnoreAllAsserts; //!< Whether to skip the assert dialog and just let everything burn at whatever point that happens.
-		static bool s_DisableCrashDialogs; //!< Whether to not show a dialog when the game aborts, runs into an unhandled exception or fails an assert, and just log it and quit. This is the DisableCrashDialogs setting.
+		static bool s_DisableCrashDialogs; //!< Whether to not show a dialog when the game aborts, runs into an unhandled exception or fails an assert, and just log it and quit.
 		static std::string s_LastIgnoredAssertDescription; //!< The last ignored assert message.
 		static std::source_location s_LastIgnoredAssertLocation; //!< The last ignored assert call site.
 
