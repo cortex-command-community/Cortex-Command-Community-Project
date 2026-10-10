@@ -81,6 +81,7 @@ namespace RTE {
 	};
 
 	extern RandomGenerator g_RandomGenerator; //!< The global random number generator used in our simulation thread.
+	extern RandomGenerator g_DrawRandomGenerator; //!< The random number generator for drawing and audio code. How much of either goes on is not up to the simulation, so they can't be allowed to use up the simulation's random numbers.
 
 	/// Seed global the global random number generators.
 	void SeedRNG();
@@ -94,8 +95,8 @@ namespace RTE {
 	/// @return The random number generator set for this thread, or the global one if there is none.
 	RandomGenerator& GetThreadRandomGenerator();
 
-	// TODO: Maybe remove these passthrough functions and force the user to manually specify if they want the simulation thread random,
-	// Or, in future, a render-thread random, as right now determinism isn't viable because framerate affects sim updates per draw
+	// These all use the simulation's random number generator, so drawing and audio code have to use g_DrawRandomGenerator instead of them.
+	// TODO: Maybe remove these passthrough functions and force the user to manually specify if they want the simulation random or the draw random.
 	template <typename floatType = float>
 	typename std::enable_if<std::is_floating_point<floatType>::value, floatType>::type RandomNormalNum() {
 		return GetThreadRandomGenerator().RandomNormalNum();

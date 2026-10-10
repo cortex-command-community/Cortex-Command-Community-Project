@@ -60,7 +60,7 @@ bool AudioMan::Initialize() {
 	audioSystemAdvancedSettings.cbSize = sizeof(FMOD_ADVANCEDSETTINGS);
 	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->getAdvancedSettings(&audioSystemAdvancedSettings) : audioSystemSetupResult;
 	audioSystemAdvancedSettings.vol0virtualvol = 0.001F;
-	audioSystemAdvancedSettings.randomSeed = RandomNum(0, INT_MAX);
+	audioSystemAdvancedSettings.randomSeed = g_DrawRandomGenerator.RandomNum(0, INT_MAX);
 
 	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->setAdvancedSettings(&audioSystemAdvancedSettings) : audioSystemSetupResult;
 	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->set3DSettings(1, c_PPM, 1) : audioSystemSetupResult;
@@ -398,7 +398,7 @@ bool AudioMan::PlaySoundContainer(SoundContainer* soundContainer, int player) {
 		result = (result == FMOD_OK) ? channel->setUserData(soundContainer) : result;
 		result = (result == FMOD_OK) ? channel->setCallback(SoundChannelEndedCallback) : result;
 		result = (result == FMOD_OK) ? channel->setPriority(soundContainer->GetPriority()) : result;
-		float pitchVariationMultiplier = pitchVariationFactor == 1.0F ? 1.0F : RandomNum(1.0F / pitchVariationFactor, 1.0F * pitchVariationFactor);
+		float pitchVariationMultiplier = pitchVariationFactor == 1.0F ? 1.0F : g_DrawRandomGenerator.RandomNum(1.0F / pitchVariationFactor, 1.0F * pitchVariationFactor);
 		result = (result == FMOD_OK) ? channel->setPitch(soundContainer->GetPitch() * pitchVariationMultiplier) : result;
 
 		if (soundContainer->GetCustomPanValue() != 0.0f) {

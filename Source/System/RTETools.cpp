@@ -9,6 +9,7 @@
 namespace RTE {
 
 	RandomGenerator g_RandomGenerator;
+	RandomGenerator g_DrawRandomGenerator;
 
 	thread_local RandomGenerator* s_ThreadRandomGenerator = nullptr;
 
@@ -39,6 +40,7 @@ namespace RTE {
 		}();
 
 		g_RandomGenerator.Seed(constSeed);
+		g_DrawRandomGenerator.Seed(constSeed);
 	}
 
 	float Lerp(float scaleStart, float scaleEnd, float startValue, float endValue, float progressScalar) {

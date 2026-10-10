@@ -2669,7 +2669,7 @@ void AHuman::DrawThrowingReticle(BITMAP* targetBitmap, const Vector& targetPos, 
 		points[i].RadRotate(adjustedAimAngle);
 		points[i] += m_pFGArm->GetJointPos();
 
-		g_PostProcessMan.RegisterGlowDotEffect(points[i], YellowDot, RandomNum(63, 127));
+		g_PostProcessMan.RegisterGlowDotEffect(points[i], YellowDot, g_DrawRandomGenerator.RandomNum(63, 127));
 		putpixel(targetBitmap, points[i].GetFloorIntX() - targetPos.GetFloorIntX(), points[i].GetFloorIntY() - targetPos.GetFloorIntY(), g_YellowGlowColor);
 	}
 }
