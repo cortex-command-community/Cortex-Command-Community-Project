@@ -205,10 +205,19 @@ void RTEError::SetExceptionHandlers() {
 }
 
 void RTEError::ShowMessageBox(const std::string& message) {
+	// There's no one around to dismiss a message box when headless, so it would just stall the program.
+	if (System::IsInHeadlessMode()) {
+		System::PrintToCLI(message);
+		return;
+	}
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "RTE Warning! (>_<)", message.c_str(), nullptr);
 }
 
 bool RTEError::ShowAbortMessageBox(const std::string& message) {
+	if (System::IsInHeadlessMode()) {
+		return false;
+	}
+
 	enum AbortMessageButton {
 		ButtonInvalid,
 		ButtonExit,
@@ -242,6 +251,11 @@ bool RTEError::ShowAbortMessageBox(const std::string& message) {
 }
 
 bool RTEError::ShowAssertMessageBox(const std::string& message) {
+	// There's no one around to choose to ignore the assert when headless, so always abort.
+	if (System::IsInHeadlessMode()) {
+		return true;
+	}
+
 	enum AssertMessageButton {
 		ButtonInvalid,
 		ButtonAbort,
@@ -321,7 +335,9 @@ void RTEError::UnhandledExceptionFunc(const std::string& description, const std:
 		SDL_SetWindowFullscreen(g_WindowMan.GetWindow(), 0);
 	}
 
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "RTE CATASTROPHIC ERROR!!! (X_X)", exceptionMessage.c_str(), nullptr);
+	if (!System::IsInHeadlessMode()) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "RTE CATASTROPHIC ERROR!!! (X_X)", exceptionMessage.c_str(), nullptr);
+	}
 	AbortAction;
 }
 
@@ -585,6 +601,11 @@ bool RTEError::DumpAbortScreen() {
 }
 
 bool RTEError::DumpAbortSave() {
+	// Headless runs are automated, so they shouldn't get to overwrite an abort save from an actual play session.
+	if (System::IsInHeadlessMode()) {
+		return false;
+	}
+
 	bool success = false;
 	if (g_ActivityMan.GetActivity() && g_ActivityMan.GetActivity()->CanBeUserSaved()) {
 		success = g_ActivityMan.SaveCurrentGame("AbortSave");
