@@ -651,7 +651,11 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 		end
 		
 		AI.PickupHD = nil;
-		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end);
+		-- Tie-break on deviceId so ordering is stable when scores collide.
+		table.sort(devicesToPickUp, function(A,B)
+			if A.score ~= B.score then return A.score < B.score end
+			return A.deviceId < B.deviceId
+		end);
 		for _, deviceToPickupEntry in ipairs(devicesToPickUp) do
 			local device = MovableMan:FindObjectByUniqueID(deviceToPickupEntry.deviceId);
 			if MovableMan:ValidMO(device) and device:IsDevice() then
@@ -767,7 +771,11 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 		end
 
 		AI.PickupHD = nil;
-		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end); -- sort the items in order of discounted distance
+		-- Tie-break on deviceId so ordering is stable when scores collide.
+		table.sort(devicesToPickUp, function(A,B)
+			if A.score ~= B.score then return A.score < B.score end
+			return A.deviceId < B.deviceId
+		end); -- sort the items in order of discounted distance
 		for _, deviceToPickupEntry in ipairs(devicesToPickUp) do
 			local device = MovableMan:FindObjectByUniqueID(deviceToPickupEntry.deviceId);
 			if MovableMan:ValidMO(device) and device:IsDevice() then
