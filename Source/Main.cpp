@@ -69,6 +69,11 @@ FILE __iob_func[3] = {*stdin, *stdout, *stderr};
 using namespace RTE;
 
 /// <summary>
+/// The number of simulation updates to quit after, as set by command-line argument. Negative means to keep going.
+/// </summary>
+static long long s_SimUpdatesToQuitAfter = -1;
+
+/// <summary>
 /// Initializes all the essential managers.
 /// </summary>
 void InitializeManagers() {
@@ -107,7 +112,8 @@ void InitializeManagers() {
 	g_PostProcessMan.Initialize();
 	g_PerformanceMan.Initialize();
 
-	if (g_AudioMan.Initialize()) {
+	// There's no one to play audio to when headless.
+	if (!System::IsInHeadlessMode() && g_AudioMan.Initialize()) {
 		g_GUISound.Initialize();
 		g_MusicMan.Initialize();
 	}
@@ -155,6 +161,22 @@ void DestroyManagers() {
 }
 
 /// <summary>
+/// Handling of the command-line arguments that affect how the managers are initialized, so have to be dealt with before that happens.
+/// </summary>
+/// <param name="argCount">Argument count.</param>
+/// <param name="argValue">Argument values.</param>
+void HandleEarlyMainArgs(int argCount, char** argValue) {
+	// Skip the first argument because it's always the executable path/name
+	for (int i = 1; i < argCount; ++i) {
+		std::string currentArg = argValue[i];
+
+		if (currentArg == "-headless") {
+			System::EnableHeadlessMode();
+		}
+	}
+}
+
+/// <summary>
 /// Command-line argument handling.
 /// </summary>
 /// <param name="argCount">Argument count.</param>
@@ -188,9 +210,19 @@ void HandleMainArgs(int argCount, char** argValue) {
 				singleModuleSet = true;
 			}
 		}
+		if (!lastArg && currentArg == "-sim-updates") {
+			s_SimUpdatesToQuitAfter = std::atoll(argValue[++i]);
+		}
 		if (!launchModeSet) {
 			if (!lastArg && currentArg == "-editor") {
 				g_ActivityMan.SetEditorToLaunch(argValue[++i]);
+				launchModeSet = true;
+			} else if (!lastArg && currentArg == "-save") {
+				g_ActivityMan.SetSaveGameToLaunch(argValue[++i]);
+				launchModeSet = true;
+			} else if (i + 3 < argCount && currentArg == "-activity") {
+				g_ActivityMan.SetActivityToLaunch(argValue[i + 1], argValue[i + 2], argValue[i + 3]);
+				i += 3;
 				launchModeSet = true;
 			}
 		}
@@ -245,6 +277,12 @@ void PollSDLEvents() {
 /// Game menus loop.
 /// </summary>
 void RunMenuLoop() {
+	// There's no one to use the menus when headless, so ending up here means there's nothing left to do.
+	if (System::IsInHeadlessMode()) {
+		System::SetQuit();
+		return;
+	}
+
 	g_MenuMan.SetIsInMenuScreen(true);
 	g_UInputMan.DisableKeys(false);
 	g_UInputMan.TrapMousePos(false);
@@ -366,6 +404,11 @@ void RunGameLoop() {
 			g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::SimTotal);
 			g_UInputMan.EndFrame();
 
+			if (s_SimUpdatesToQuitAfter >= 0 && g_TimerMan.GetSimUpdateCount() >= s_SimUpdatesToQuitAfter) {
+				System::SetQuit();
+				break;
+			}
+
 			if (!g_ActivityMan.IsInActivity()) {
 				g_TimerMan.PauseSim(true);
 
@@ -392,9 +435,11 @@ void RunGameLoop() {
 		updateTotalTime = updateEndAndDrawStartTime - updateStartTime;
 		drawStartTime = updateEndAndDrawStartTime;
 
-		g_FrameMan.Draw();
-		g_WindowMan.DrawPostProcessBuffer();
-		g_WindowMan.UploadFrame();
+		if (!System::IsInHeadlessMode()) {
+			g_FrameMan.Draw();
+			g_WindowMan.DrawPostProcessBuffer();
+			g_WindowMan.UploadFrame();
+		}
 
 		drawTotalTime = g_TimerMan.GetAbsoluteTime() - drawStartTime;
 		g_PerformanceMan.UpdateMSPF(updateTotalTime, drawTotalTime);
@@ -438,6 +483,8 @@ int main(int argc, char** argv) {
 	// Just use it anyway until some dumb edge case pops up and it becomes a problem.
 	System::Initialize(argv[0]);
 	SeedRNG();
+
+	HandleEarlyMainArgs(argc, argv);
 
 	InitializeManagers();
 
