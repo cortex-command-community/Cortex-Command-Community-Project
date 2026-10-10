@@ -8,6 +8,7 @@
 #include "BS_thread_pool.hpp"
 
 #include <array>
+#include <set>
 
 #define g_LuaMan LuaMan::Instance()
 
@@ -76,6 +77,11 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Script Responsibility Handling
+		/// Orders MOs by their unique ID. This is the order the MOs registered with us have their scripts run in, since their order in memory is different every time the game is run.
+		struct UniqueIDOrder {
+			bool operator()(const MovableObject* lhs, const MovableObject* rhs) const;
+		};
+
 		/// Registers an MO as using us.
 		/// @param moToRegister The MO to register with us. Ownership is NOT transferred!
 		void RegisterMO(MovableObject* moToRegister) { m_AddedRegisteredMOs.insert(moToRegister); }
@@ -89,7 +95,7 @@ namespace RTE {
 
 		/// Gets a list of the MOs registed as using us.
 		/// @return The MOs registed as using us.
-		const std::unordered_set<MovableObject*>& GetRegisteredMOs() const { return m_RegisteredMOs; }
+		const std::set<MovableObject*, UniqueIDOrder>& GetRegisteredMOs() const { return m_RegisteredMOs; }
 #pragma endregion
 
 #pragma region Script Execution Handling
@@ -252,7 +258,7 @@ namespace RTE {
 		/// Clears all the member variables of this LuaStateWrapper, effectively resetting the members of this abstraction level only.
 		void Clear();
 
-		std::unordered_set<MovableObject*> m_RegisteredMOs; //!< The objects using our lua state.
+		std::set<MovableObject*, UniqueIDOrder> m_RegisteredMOs; //!< The objects using our lua state.
 		std::unordered_set<MovableObject*> m_AddedRegisteredMOs; //!< The objects using our lua state that were recently added.
 
 		lua_State* m_State;

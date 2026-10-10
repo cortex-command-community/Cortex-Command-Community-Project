@@ -20,6 +20,10 @@ LuaStateWrapper::~LuaStateWrapper() {
 	Destroy();
 }
 
+bool LuaStateWrapper::UniqueIDOrder::operator()(const MovableObject* lhs, const MovableObject* rhs) const {
+	return lhs->GetUniqueID() < rhs->GetUniqueID();
+}
+
 void LuaStateWrapper::Clear() {
 	m_State = nullptr;
 	m_TempEntity = nullptr;
