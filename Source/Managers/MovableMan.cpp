@@ -1395,6 +1395,8 @@ void MovableMan::Update() {
 			                                                     g_LuaMan.SetThreadLuaStateOverride(nullptr);
 		                                                     })
 		    .wait();
+
+		SortAddedMOs();
 	}
 
 	{
@@ -1734,6 +1736,12 @@ void MovableMan::Update() {
 	}
 }
 
+void MovableMan::SortAddedMOs() {
+	std::sort(m_AddedActors.begin(), m_AddedActors.end(), LuaStateWrapper::UniqueIDOrder());
+	std::sort(m_AddedItems.begin(), m_AddedItems.end(), LuaStateWrapper::UniqueIDOrder());
+	std::sort(m_AddedParticles.begin(), m_AddedParticles.end(), LuaStateWrapper::UniqueIDOrder());
+}
+
 void MovableMan::Travel() {
 	ZoneScoped;
 
@@ -1822,6 +1830,8 @@ void MovableMan::UpdateControllers() {
 			                                                     g_LuaMan.SetThreadLuaStateOverride(nullptr);
 		                                                     })
 		    .wait();
+
+		SortAddedMOs();
 
 		for (Actor* actor: m_Actors) {
 			LuaStateWrapper* luaState = actor->GetLuaState();

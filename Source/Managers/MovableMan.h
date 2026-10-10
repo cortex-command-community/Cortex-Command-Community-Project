@@ -653,6 +653,10 @@ namespace RTE {
 		/// Travels all of our MOs, updating their location/velocity/physical characteristics.
 		void Travel();
 
+		/// Puts the MOs that are waiting to be added in order of their unique IDs.
+		/// This has to be done after any point where several threads could have been adding MOs at once, since which thread gets to add its MOs first is different every time.
+		void SortAddedMOs();
+
 		/// Updates the controllers of all the actors we own.
 		/// This is needed for a tricky reason - we want the controller from the activity to override the normal controller state
 		/// So we need to update the controller state prior to activity, so the changes from activity are layered on top.
