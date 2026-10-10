@@ -130,6 +130,8 @@ bool AudioMan::Initialize() {
 void AudioMan::Destroy() {
 	if (m_AudioEnabled) {
 		StopAll();
+		// FMOD loads sounds on a thread of its own, which crashes if the audio system gets released while it's still at it. That's the case when quitting shortly after launching.
+		ContentFile::WaitForSoundsToFinishLoading();
 		m_AudioSystem->release();
 		Clear();
 	}

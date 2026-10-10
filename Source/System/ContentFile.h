@@ -154,6 +154,9 @@ namespace RTE {
 		/// @param asyncLoading Whether to enable FMOD asynchronous loading or not. Should be disabled for loading audio files with Lua AddSound.
 		/// @return Pointer to the FSOUND_SAMPLE loaded from disk.
 		FMOD::Sound* GetAsSound(bool abortGameForInvalidSound = true, bool asyncLoading = true);
+
+		/// Waits for FMOD to be done with all the sounds it is still loading asynchronously.
+		static void WaitForSoundsToFinishLoading();
 #pragma endregion
 
 		/// Copies the default palette to an sdl palette.

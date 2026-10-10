@@ -14,6 +14,7 @@
 
 #include <array>
 #include <cstring>
+#include <thread>
 
 using namespace RTE;
 
@@ -433,6 +434,15 @@ FMOD::Sound* ContentFile::LoadAndReleaseSound(bool abortGameForInvalidSound, boo
 		return returnSample;
 	}
 	return returnSample;
+}
+
+void ContentFile::WaitForSoundsToFinishLoading() {
+	for (const auto& [soundPath, sound]: s_LoadedSamples) {
+		FMOD_OPENSTATE openState = FMOD_OPENSTATE_READY;
+		while (sound && sound->getOpenState(&openState, nullptr, nullptr, nullptr) == FMOD_OK && openState == FMOD_OPENSTATE_LOADING) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
+	}
 }
 
 void ContentFile::ReloadBitmap(const std::string& filePath, int conversionMode) {
