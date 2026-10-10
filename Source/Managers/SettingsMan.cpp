@@ -168,6 +168,7 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("DefaultSceneName", { reader >> g_SceneMan.m_DefaultSceneName; });
 	MatchProperty("DisableLuaJIT", { reader >> m_DisableLuaJIT; });
 	MatchProperty("EnableLuaDebugging", { reader >> m_EnableLuaDebugging; });
+	MatchProperty("DisableCrashDialogs", { reader >> RTEError::s_DisableCrashDialogs; });
 	MatchProperty("RecommendedMOIDCount", { reader >> m_RecommendedMOIDCount; });
 	MatchProperty("SceneBackgroundAutoScaleMode", { SetSceneBackgroundAutoScaleMode(std::stoi(reader.ReadPropValue())); });
 	MatchProperty("DisableFactionBuyMenuThemes", { reader >> m_DisableFactionBuyMenuThemes; });
@@ -295,6 +296,7 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewLine(false);
 	writer.NewPropertyWithValue("DisableLuaJIT", m_DisableLuaJIT);
 	writer.NewPropertyWithValue("EnableLuaDebugging", m_EnableLuaDebugging);
+	writer.NewPropertyWithValue("DisableCrashDialogs", RTEError::s_DisableCrashDialogs);
 	writer.NewPropertyWithValue("RecommendedMOIDCount", m_RecommendedMOIDCount);
 	writer.NewPropertyWithValue("SceneBackgroundAutoScaleMode", m_SceneBackgroundAutoScaleMode);
 	writer.NewPropertyWithValue("DisableFactionBuyMenuThemes", m_DisableFactionBuyMenuThemes);

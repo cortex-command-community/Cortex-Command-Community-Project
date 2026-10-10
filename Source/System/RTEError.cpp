@@ -39,6 +39,7 @@ using namespace RTE;
 
 bool RTEError::s_CurrentlyAborting = false;
 bool RTEError::s_IgnoreAllAsserts = false;
+bool RTEError::s_DisableCrashDialogs = false;
 std::string RTEError::s_LastIgnoredAssertDescription = "";
 std::source_location RTEError::s_LastIgnoredAssertLocation = {};
 
@@ -214,7 +215,7 @@ void RTEError::ShowMessageBox(const std::string& message) {
 }
 
 bool RTEError::ShowAbortMessageBox(const std::string& message) {
-	if (System::IsInHeadlessMode()) {
+	if (System::IsInHeadlessMode() || s_DisableCrashDialogs) {
 		return false;
 	}
 
@@ -251,8 +252,8 @@ bool RTEError::ShowAbortMessageBox(const std::string& message) {
 }
 
 bool RTEError::ShowAssertMessageBox(const std::string& message) {
-	// There's no one around to choose to ignore the assert when headless, so always abort.
-	if (System::IsInHeadlessMode()) {
+	// There's no one around to choose to ignore the assert when headless, and no asking them when crash dialogs are disabled, so always abort.
+	if (System::IsInHeadlessMode() || s_DisableCrashDialogs) {
 		return true;
 	}
 
@@ -335,7 +336,7 @@ void RTEError::UnhandledExceptionFunc(const std::string& description, const std:
 		SDL_SetWindowFullscreen(g_WindowMan.GetWindow(), 0);
 	}
 
-	if (!System::IsInHeadlessMode()) {
+	if (!System::IsInHeadlessMode() && !s_DisableCrashDialogs) {
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "RTE CATASTROPHIC ERROR!!! (X_X)", exceptionMessage.c_str(), nullptr);
 	}
 	AbortAction;

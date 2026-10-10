@@ -29,6 +29,8 @@ DEFAULT_ACTIVITIES = [
 TEST_SETTINGS = {
     # Pathing requests otherwise complete after however many sim updates the pathfinding threads happen to take.
     "ForceImmediatePathingRequestCompletion": "1",
+    # A windowed run that crashes otherwise waits for someone to click its crash dialog away.
+    "DisableCrashDialogs": "1",
 }
 
 
