@@ -86,6 +86,10 @@ namespace RTE {
 	/// Seed global the global random number generators.
 	void SeedRNG();
 
+	/// Sets a number that SeedRNG adds to the seed of the simulation's random number generator, so that the simulation gets a different stream of random numbers.
+	/// @param seedOffset The number to add to the seed. With 0, the simulation gets its usual random numbers.
+	void SetRNGSeedOffset(uint32_t seedOffset);
+
 	/// Sets a random number generator for the global random functions to use when called from this thread, instead of the global one.
 	/// This is for keeping whatever is being run from affecting the random numbers that the rest of the simulation gets.
 	/// @param randomGenerator The random number generator to use, or nullptr to go back to the global one. Ownership is NOT transferred!

@@ -178,6 +178,8 @@ void HandleEarlyMainArgs(int argCount, char** argValue) {
 			DeterminismChecker::StartRecording(argValue[++i]);
 		} else if (!lastArg && currentArg == "-determinism-verify") {
 			DeterminismChecker::StartVerifying(argValue[++i]);
+		} else if (!lastArg && currentArg == "-seed") {
+			SetRNGSeedOffset(static_cast<uint32_t>(std::atoll(argValue[++i])));
 		}
 	}
 }
@@ -488,9 +490,11 @@ int main(int argc, char** argv) {
 	// argv[0] actually unreliable for exe path and name, because of course, why would it be, why would anything be simple and make sense.
 	// Just use it anyway until some dumb edge case pops up and it becomes a problem.
 	System::Initialize(argv[0]);
-	SeedRNG();
 
 	HandleEarlyMainArgs(argc, argv);
+
+	// This comes after the early arguments because the seed can be set by them, and before the managers because the Lua states get their seeds from it.
+	SeedRNG();
 
 	InitializeManagers();
 
