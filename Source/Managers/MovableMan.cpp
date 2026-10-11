@@ -74,6 +74,8 @@ void MovableMan::Clear() {
 	m_MaxDroppedItems = 100;
 	m_SettlingEnabled = true;
 	m_MOSubtractionEnabled = true;
+	// HitWhatMOID / HitWhatTerrMaterial compare against this each tick; it's otherwise only incremented.
+	m_SimUpdateFrameNumber = 0;
 }
 
 int MovableMan::Initialize() {

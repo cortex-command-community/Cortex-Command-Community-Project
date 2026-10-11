@@ -285,6 +285,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed objects sometimes getting a garbage velocity when the terrain they hit was removed before they got to try and penetrate it, for example by a script's `OnCollideWithTerrain`.
 
+- Fixed a macOS worker-thread message box that could hang, and a libc++ build error formatting save-game timestamps.
+
+- Fixed a divide-by-zero on `AtomGroup` segments with no steps, which could feed bad values into the physics.
+
+- Fixed a couple of uninitialized values (Atom step state and the simulation frame counter) that could cause inconsistent behavior between runs.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
