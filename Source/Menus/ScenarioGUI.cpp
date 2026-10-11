@@ -224,7 +224,7 @@ void ScenarioGUI::FetchActivitiesAndScenesLists() {
 	g_PresetMan.GetAllOfType(presetList, "Activity");
 	int index = 0;
 	for (Entity* presetEntity: presetList) {
-		if (GameActivity* presetActivity = dynamic_cast<GameActivity*>(presetEntity)) {
+		if (GameActivity* presetActivity = dynamic_cast<GameActivity*>(presetEntity); presetActivity && presetActivity->GetShowInMenus()) {
 			std::pair<Activity*, std::vector<Scene*>> activityAndCompatibleScenes(presetActivity, std::vector<Scene*>());
 			for (Scene* filteredScene: filteredScenes) {
 				if (presetActivity->SceneIsCompatible(filteredScene)) {

@@ -131,6 +131,10 @@ namespace RTE {
 		/// @return A string with the user-friendly description of this Activity.
 		const std::string& GetDescription() const { return m_Description; }
 
+		/// Gets whether this Activity is listed in the menus that Activities get picked from. One that isn't can still be started by other means, such as the -activity launch argument.
+		/// @return Whether this Activity is listed in menus.
+		bool GetShowInMenus() const { return m_ShowInMenus; }
+
 		/// Gets the max number of players supported by this Activity.
 		/// @return The max number of players supported by this Activity.
 		int GetMaxPlayerSupport() const { return m_MaxPlayerSupport; }
@@ -572,6 +576,7 @@ namespace RTE {
 		bool m_AllowsUserSaving; //!< Whether or not the current Activity can be saved by the user.
 
 		std::string m_Description; //!< User-friendly description of what this Activity is all about.
+		bool m_ShowInMenus; //!< Whether this Activity is listed in the menus that Activities get picked from.
 		std::string m_SceneName; //!< The name of the Scene in which this Activity takes place.
 
 		int m_MaxPlayerSupport; //!< How many separate players this Activity can support at the same time.
