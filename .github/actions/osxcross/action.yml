@@ -77,7 +77,7 @@ runs:
       if: steps.cache.outputs.cache-hit != 'true'
       env:
         SDK_VERSION: "${{ inputs.osx-version }}"
-        UNATTENDED: "yes"
+        UNATTENDED: "1"
       run: |
         cd ${OSXCROSS_FOLDER}
         echo "::group::Build osxcross"
