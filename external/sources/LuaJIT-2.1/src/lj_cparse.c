@@ -1,6 +1,6 @@
 /*
 ** C declaration parser.
-** Copyright (C) 2005-2022 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #include "lj_obj.h"
@@ -1327,6 +1327,8 @@ static void cp_struct_layout(CPState *cp, CTypeID sid, CTInfo sattr)
 	  ct->info = CTINFO(CT_FIELD, ctype_cid(ct->info));
 	  ct->size = (bofs >> 3);  /* Store field offset. */
 	} else {
+	  if (csz > amask+1 && bsz <= amask+1)
+	    csz = amask+1;  /* Shrink container of packed bitfield. */
 	  ct->info = CTINFO(CT_BITFIELD,
 	    (info & (CTF_QUAL|CTF_UNSIGNED|CTF_BOOL)) +
 	    (csz << (CTSHIFT_BITCSZ-3)) + (bsz << CTSHIFT_BITBSZ));
@@ -1766,9 +1768,11 @@ static void cp_pragma(CPState *cp, BCLine pragmaline)
     cp_check(cp, '(');
     if (cp->tok == CTOK_IDENT) {
       if (cp_str_is(cp->str, "push")) {
-	if (cp->curpack < CPARSE_MAX_PACKSTACK) {
+	if (cp->curpack < CPARSE_MAX_PACKSTACK-1) {
 	  cp->packstack[cp->curpack+1] = cp->packstack[cp->curpack];
 	  cp->curpack++;
+	} else {
+	  cp_errmsg(cp, cp->tok, LJ_ERR_XLEVELS);
 	}
       } else if (cp_str_is(cp->str, "pop")) {
 	if (cp->curpack > 0) cp->curpack--;
