@@ -61,6 +61,9 @@ namespace RTE {
 
 		/// Frees all loaded data used by all ContentFile instances. This should ONLY be done when quitting the app, or after everything else is completely destroyed.
 		static void FreeAllLoaded();
+
+		/// Releases all the sounds loaded by all ContentFile instances, waiting for the ones FMOD is still loading asynchronously. This has to be done before the audio system gets released.
+		static void FreeAllLoadedSounds();
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -154,9 +157,6 @@ namespace RTE {
 		/// @param asyncLoading Whether to enable FMOD asynchronous loading or not. Should be disabled for loading audio files with Lua AddSound.
 		/// @return Pointer to the FSOUND_SAMPLE loaded from disk.
 		FMOD::Sound* GetAsSound(bool abortGameForInvalidSound = true, bool asyncLoading = true);
-
-		/// Waits for FMOD to be done with all the sounds it is still loading asynchronously.
-		static void WaitForSoundsToFinishLoading();
 #pragma endregion
 
 		/// Copies the default palette to an sdl palette.
