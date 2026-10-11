@@ -3,6 +3,7 @@ src/*.lib
 *.so
 *.obj
 *.exp
+*.pdb
 *.dll
 *.exe
 *.manifest
@@ -13,10 +14,12 @@ src/*.lib
 buildvm_arch.h
 
 _Bin/libluajit*
+_Bin/luajit-*
 
 
 #cmake
 /build/
+/build-*/
 cmake_install.cmake
 CmakeCache.txt
 /CMakeFiles*
@@ -27,3 +30,6 @@ INSTALL.vcxproj
 INSTALL.vcxproj.filters
 ZERO_CHECK.vcxproj
 ZERO_CHECK.vcxproj.filters
+
+#Mac OS junk
+.DS_Store
