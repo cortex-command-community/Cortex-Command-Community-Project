@@ -75,6 +75,11 @@ using namespace RTE;
 static long long s_SimUpdatesToQuitAfter = -1;
 
 /// <summary>
+/// Whether to quit once the Activity is over, as set by command-line argument.
+/// </summary>
+static bool s_QuitWhenActivityOver = false;
+
+/// <summary>
 /// Initializes all the essential managers.
 /// </summary>
 void InitializeManagers() {
@@ -220,6 +225,9 @@ void HandleMainArgs(int argCount, char** argValue) {
 		}
 		if (!lastArg && currentArg == "-sim-updates") {
 			s_SimUpdatesToQuitAfter = std::atoll(argValue[++i]);
+		}
+		if (currentArg == "-quit-when-over") {
+			s_QuitWhenActivityOver = true;
 		}
 		if (!launchModeSet) {
 			if (!lastArg && currentArg == "-editor") {
@@ -413,6 +421,10 @@ void RunGameLoop() {
 			g_UInputMan.EndFrame();
 
 			if (s_SimUpdatesToQuitAfter >= 0 && g_TimerMan.GetSimUpdateCount() >= s_SimUpdatesToQuitAfter) {
+				System::SetQuit();
+				break;
+			}
+			if (s_QuitWhenActivityOver && g_ActivityMan.GetActivity() && g_ActivityMan.GetActivity()->IsOver()) {
 				System::SetQuit();
 				break;
 			}
