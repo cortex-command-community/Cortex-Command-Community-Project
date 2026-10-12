@@ -225,7 +225,7 @@ namespace RTE {
 		/// @return A Vector with the absolute position of this' eye or view point.
 		virtual Vector GetEyePos() const { return m_Pos; }
 
-		/// Gets the absoltue position of the top of this' HUD stack.
+		/// Gets the absolute position of the top of this' HUD stack.
 		/// @return A Vector with the absolute position of this' HUD stack top point.
 		Vector GetAboveHUDPos() const override { return m_Pos + Vector(0, m_HUDStack + 6); }
 
