@@ -147,7 +147,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `RealTimeLimitProgress` and `SimTimeLimitProgress` on `Timer` are now both writable properties in Lua, and not only readable.
 
 - New launch arguments for running the game without anyone at the controls:  
-	`-headless` runs it with a hidden window, no drawing and no audio, with the simulation going as fast as it can instead of in real time.  
+	`-headless` runs it with a hidden window and no drawing, with the audio going on as usual but not played to anyone, and with the simulation going as fast as it can instead of in real time.  
 	`-activity <class name> <preset name> <scene name>` and `-save <save name>` skip the menus and launch straight into an Activity or a saved game.  
 	`-sim-updates <count>` quits after that many simulation updates.
 

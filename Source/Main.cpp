@@ -118,8 +118,7 @@ void InitializeManagers() {
 	g_PostProcessMan.Initialize();
 	g_PerformanceMan.Initialize();
 
-	// There's no one to play audio to when headless.
-	if (!System::IsInHeadlessMode() && g_AudioMan.Initialize()) {
+	if (g_AudioMan.Initialize()) {
 		g_GUISound.Initialize();
 		g_MusicMan.Initialize();
 	}

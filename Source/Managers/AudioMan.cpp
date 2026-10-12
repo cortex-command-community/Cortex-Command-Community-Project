@@ -8,6 +8,7 @@
 #include "SoundContainer.h"
 #include "WindowMan.h"
 #include "SoundSet.h"
+#include "System.h"
 
 #include <array>
 #include <cstring>
@@ -65,6 +66,10 @@ bool AudioMan::Initialize() {
 	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->setAdvancedSettings(&audioSystemAdvancedSettings) : audioSystemSetupResult;
 	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->set3DSettings(1, c_PPM, 1) : audioSystemSetupResult;
 	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->setSoftwareChannels(c_MaxSoftwareChannels) : audioSystemSetupResult;
+	if (System::IsInHeadlessMode()) {
+		// Everything to do with audio still goes on as it otherwise would, it just doesn't get played to anyone.
+		audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->setOutput(FMOD_OUTPUTTYPE_NOSOUND) : audioSystemSetupResult;
+	}
 	FMOD_INITFLAGS flags = FMOD_INIT_VOL0_BECOMES_VIRTUAL;
 
 #if !RELEASE_BUILD
