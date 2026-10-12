@@ -252,8 +252,8 @@ namespace RTE {
 		Vector GetViewPoint() const { return m_ViewPoint.IsZero() ? m_Pos : m_ViewPoint; }
 
 		/// Gets the item that is within reach of the Actor at this frame, ready to be be picked up. Ownership is NOT transferred!
-		/// @return A pointer to the item that has been determined to be within reach of this Actor, if any.
-		HeldDevice* GetItemInReach() const { return m_pItemInReach; }
+		/// @return A pointer to the item that has been determined to be within reach of this Actor, if any. An item that has since been deleted or picked up doesn't count.
+		HeldDevice* GetItemInReach() const;
 
 		/// Gets the direction where this is looking/aiming.
 		/// @return A Vector with the direction in which this is looking along.
