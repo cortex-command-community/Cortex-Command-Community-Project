@@ -5,12 +5,16 @@ Each scenario is first run to record a trace of determinism checkpoints, then ru
 The runs are headless unless asked otherwise. A run that doesn't match reports the first checkpoint it diverged at, as the sim update it was made in,
 the hash of the checked state, and a label that says what was checked and where in the update.
 The runs use a copy of the game's settings with what they need set in it, so the game's own settings are left alone.
+A scenario can be run with several seeds, each of which has it play out differently, to cover more of what can happen in it.
+A scenario whose Activity ends without a player, such as the AI Battle, can be run until it does.
 Several scenarios can be run at the same time, to get through many of them sooner.
 
 Run this from the game's working directory. For example:
     python Tools/determinism_test.py
     python Tools/determinism_test.py --activity GAScripted "Wave Defense" "Grasslands" --updates 3000 --verify-windowed
-    python Tools/determinism_test.py --jobs 2
+    python Tools/determinism_test.py --seeds 0 1 2 3
+    python Tools/determinism_test.py --activity GAScripted "AI Battle" "Ketanot Hills" --until-over
+    python Tools/determinism_test.py --seeds 0 1 2 3 4 5 6 7 --jobs 4
 """
 
 import argparse
@@ -46,9 +50,9 @@ def write_test_settings(path):
     path.write_text("\n".join(lines) + "\n")
 
 
-def run_game(exe, scenario_args, updates, checker_args, headless, settings, timeout):
+def run_game(exe, scenario_args, checker_args, headless, settings, timeout):
     """Runs the game through one scenario. Returns whether it finished properly, and what it reported if not."""
-    args = [exe, *scenario_args, "-sim-updates", str(updates), *checker_args]
+    args = [exe, *scenario_args, *checker_args]
     if headless:
         args.append("-headless")
     # This is where the game looks for its settings file, when set.
@@ -71,8 +75,8 @@ def test_scenario(name, scenario_args, options, trace_dir):
 
     mode = "windowed" if options.windowed else "headless"
 
-    print(f"{name}: recording {options.updates} sim updates, {mode}...", flush=True)
-    finished, report = run_game(options.exe, scenario_args, options.updates, ["-determinism-record", str(trace)], mode == "headless", settings, options.timeout)
+    print(f"{name}: recording, {mode}...", flush=True)
+    finished, report = run_game(options.exe, scenario_args, ["-determinism-record", str(trace)], mode == "headless", settings, options.timeout)
     if not finished:
         print(f"{name}: FAILED, the recording run didn't finish properly\n{report}")
         return False
@@ -85,7 +89,7 @@ def test_scenario(name, scenario_args, options, trace_dir):
     verify_runs = [mode] * options.runs + (["windowed"] if options.verify_windowed else [])
     for run, mode in enumerate(verify_runs, start=1):
         print(f"{name}: verifying, {mode} run {run} of {len(verify_runs)}...", flush=True)
-        finished, report = run_game(options.exe, scenario_args, options.updates, ["-determinism-verify", str(trace)], mode == "headless", settings, options.timeout)
+        finished, report = run_game(options.exe, scenario_args, ["-determinism-verify", str(trace)], mode == "headless", settings, options.timeout)
         if not finished:
             print(f"{name}: FAILED\n{report}")
             return False
@@ -97,7 +101,9 @@ def test_scenario(name, scenario_args, options, trace_dir):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--exe", default="Cortex Command.exe", help="the game executable to test (default: %(default)s)")
-    parser.add_argument("--updates", type=int, default=1000, help="how many sim updates to run each scenario for (default: %(default)s)")
+    parser.add_argument("--updates", type=int, help="how many sim updates to run each scenario for (default: 1000, or as many as it takes with --until-over)")
+    parser.add_argument("--until-over", action="store_true", help="stop running a scenario once its Activity is over, for Activities that get there without a player")
+    parser.add_argument("--seeds", type=int, nargs="+", default=[0], metavar="SEED", help="the seeds to run each scenario with, each giving the sim different random numbers (default: 0, which gives it its usual ones)")
     parser.add_argument("--runs", type=int, default=2, help="how many runs to verify against the recorded one (default: %(default)s)")
     parser.add_argument("--jobs", type=int, default=1, help="how many scenarios to run at the same time (default: %(default)s)")
     parser.add_argument("--windowed", action="store_true", help="do the runs with the game window, audio and real time pacing, instead of headless")
@@ -111,6 +117,13 @@ def main():
 
     scenarios =[(f"Save {save}", ["-save", save]) for save in options.save]
     scenarios += [(f"{activity} on {scene}", ["-activity", activity_type, activity, scene]) for activity_type, activity, scene in options.activity or ([] if options.save else DEFAULT_ACTIVITIES)]
+
+    scenarios = [(f"{name}, seed {seed}", [*scenario_args, "-seed", str(seed)]) for name, scenario_args in scenarios for seed in options.seeds]
+
+    if options.updates is None and not options.until_over:
+        options.updates = 1000
+    length_args = (["-sim-updates", str(options.updates)] if options.updates is not None else []) + (["-quit-when-over"] if options.until_over else [])
+    scenarios = [(name, [*scenario_args, *length_args]) for name, scenario_args in scenarios]
 
     with tempfile.TemporaryDirectory() as temp_dir:
         trace_dir = (options.trace_dir or Path(temp_dir)).resolve()
