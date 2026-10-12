@@ -292,6 +292,10 @@ void LuaStateWrapper::SetRunningAI(bool runningAI) {
 	SetThreadRandomGenerator(runningAI ? &m_AIRandomGenerator : nullptr);
 }
 
+void LuaStateWrapper::SetRunningThreadedUpdate(bool runningThreadedUpdate) {
+	SetThreadRandomGenerator(runningThreadedUpdate ? &m_RandomGenerator : nullptr);
+}
+
 int LuaStateWrapper::SelectRand(int minInclusive, int maxInclusive) {
 	return GetActiveRandomGenerator().RandomNum<int>(minInclusive, maxInclusive);
 }

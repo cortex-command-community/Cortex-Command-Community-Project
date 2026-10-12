@@ -1387,6 +1387,7 @@ void MovableMan::Update() {
 			                                                     RTEAssert(start + 1 == end, "Threaded script state being updated across multiple threads!");
 			                                                     LuaStateWrapper& luaState = luaStates[start];
 			                                                     g_LuaMan.SetThreadLuaStateOverride(&luaState);
+			                                                     luaState.SetRunningThreadedUpdate(true);
 
 			                                                     for (MovableObject* mo: luaState.GetRegisteredMOs()) {
 				                                                     if (ValidMO(mo->GetRootParent())) {
@@ -1394,6 +1395,7 @@ void MovableMan::Update() {
 				                                                     }
 			                                                     }
 
+			                                                     luaState.SetRunningThreadedUpdate(false);
 			                                                     g_LuaMan.SetThreadLuaStateOverride(nullptr);
 		                                                     })
 		    .wait();

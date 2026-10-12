@@ -79,6 +79,11 @@ namespace RTE {
 		/// The AI can be left to do as it pleases this way, without it affecting the random numbers that the rest of the simulation gets.
 		/// @param runningAI Whether AI is what is being run on this lua state, by this thread.
 		void SetRunningAI(bool runningAI);
+
+		/// Sets whether what is being run on this lua state is the threaded update of its scripts, which goes on at the same time as that of the other lua states.
+		/// While it is, the global random functions called from this thread use this lua state's random number generator, since the lua states can't all be using the simulation's one at once.
+		/// @param runningThreadedUpdate Whether the threaded update of its scripts is what is being run on this lua state, by this thread.
+		void SetRunningThreadedUpdate(bool runningThreadedUpdate);
 #pragma endregion
 
 #pragma region Script Responsibility Handling
