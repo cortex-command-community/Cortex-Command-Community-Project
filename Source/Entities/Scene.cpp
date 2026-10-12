@@ -2387,6 +2387,12 @@ void Scene::UpdatePathFinding() {
 	constexpr int nodeUpdatesPerCall = 100;
 	constexpr int maxUnupdatedMaterialAreas = 1000;
 
+	// With pathing requests set to complete immediately, they get waited for here as well.
+	// Putting the update off until none of them are active would have it happen on whichever sim update the pathfinding threads happen to be done by.
+	if (g_SettingsMan.GetForceImmediatePathingRequestCompletion()) {
+		BlockUntilAllPathingRequestsComplete();
+	}
+
 	// If any pathing requests are active, don't update things yet, wait till they're finished
 	// TODO: this can indefinitely block updates if pathing requests are made every frame. Figure out a solution for this
 	// Either force-complete pathing requests occasionally, or delay starting new pathing requests if we've not updated in a while
