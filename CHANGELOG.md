@@ -291,6 +291,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed a couple of uninitialized values (Atom step state and the simulation frame counter) that could cause inconsistent behavior between runs.
 
+- Fixed the Techion Nanolyzer never playing its dissipate sound.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
