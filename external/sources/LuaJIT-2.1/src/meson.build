@@ -43,9 +43,11 @@ lj_defines = [
     '-U_FORTIFY_SOURCE',
     '-DLUA_MULTILIB="lib"',
     '-DLUA_ROOT="' + get_option('prefix') + '"',
-    # Seed LuaJIT's own PRNG with a fixed value instead of from the OS. It decides the IDs that strings are hashed by,
-    # and with that the order pairs() goes through a table in, which would otherwise differ between runs of the game.
-    '-DLUAJIT_SECURITY_PRNG=0'
+    # Seed LuaJIT's own PRNG with a fixed value instead of from the OS, and have strings get their IDs in the order they are made in instead of from that PRNG.
+    # Strings are hashed by their IDs, so those decide the order pairs() goes through a table in, which would otherwise differ between runs of the game.
+    # The fixed seed doesn't do it by itself, because LuaJIT also draws from the PRNG when it looks for memory to put compiled code in, and how many times it does that isn't up to us.
+    '-DLUAJIT_SECURITY_PRNG=0',
+    '-DLUAJIT_SECURITY_STRID=0'
 ]
 
 if host_machine.system() == 'darwin'
