@@ -59,7 +59,8 @@ function OnAttach(self, parent)
 		parent = parent:GetRootParent();
 		if IsActor(parent) and MovableMan:IsActor(parent) then
 			local cross = CreateMOSParticle("Particle Heal Effect", "Base.rte");
-			cross.Pos = ToActor(parent).AboveHUDPos + Vector(0, 4);
+			--Not placed by AboveHUDPos, since that goes by how the HUD was last drawn, which can't be allowed to change the simulation
+			cross.Pos = parent.Pos + Vector(0, -ToActor(parent).Height * 0.5 - 2);
 			MovableMan:AddParticle(cross);
 		end
 	end

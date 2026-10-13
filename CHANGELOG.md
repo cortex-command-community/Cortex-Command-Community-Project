@@ -146,6 +146,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `RealTimeLimitProgress` and `SimTimeLimitProgress` on `Timer` are now both writable properties in Lua, and not only readable.
 
+- New launch arguments for running the game without anyone at the controls:  
+	`-headless` runs it with a hidden window and no drawing, with the audio going on as usual but not played to anyone, and with the simulation going as fast as it can instead of in real time.  
+	`-activity <class name> <preset name> <scene name>` and `-save <save name>` skip the menus and launch straight into an Activity or a saved game.  
+	`-sim-updates <count>` quits after that many simulation updates.
+
+- New determinism checker, for finding where two runs of the simulation stop matching. The launch argument `-determinism-record <file>` writes checkpoints of the simulation's state to a trace file as it goes, and `-determinism-verify <file>` checks a run against such a file, reporting the first checkpoint that doesn't match and quitting with a failure code. `Tools/determinism_test.py` runs missions this way and compares the runs.
+
+- New `Settings.ini` property `DisableCrashDialogs = 0/1`. With it on, the game still logs an abort, a failed assert or an unhandled exception, but then quits without showing a dialog. This is for when the game is being run by something automated.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -220,6 +229,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Updated SDL2 to SDL3
 
+- Much of what made two runs of the same mission play out differently is gone. Scripts on a Lua state now run in order of `UniqueID`, objects added by several threads at once get added in order of `UniqueID`, AI and drawing and audio code no longer use the simulation's random numbers, and pathfinding updates go by simulation time instead of real time.
+
+- The `UniqueID` of a `MovableObject` is now 64 bit, with its upper bits saying which thread it was made on. Scripts still get it as a number, but it can be a lot larger than it used to be.
+
+- LuaJIT now goes through a table that has tables, functions or userdata for keys in an order that doesn't depend on where those are in memory, so `pairs` gives the same order every run. This only holds on 64 bit x86 and ARM.
+
+- Numbers saved with `Activity:SaveNumber()` are now kept as doubles instead of floats, and floating point numbers in INI and save files are written out exactly instead of being rounded to 6 digits.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
@@ -264,11 +281,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue where if the first objects in the buy cart are items instead of an actor, they would be added to the first actor's inventory- even if it was an actor without an inventory (i.e a crab)
 
+- Fixed the option to mute audio when the game window loses focus starting out with a garbage value, which then got written to `Settings.ini`.
+
+- Fixed objects sometimes getting a garbage velocity when the terrain they hit was removed before they got to try and penetrate it, for example by a script's `OnCollideWithTerrain`.
+
 - Fixed a macOS worker-thread message box that could hang, and a libc++ build error formatting save-game timestamps.
 
 - Fixed a divide-by-zero on `AtomGroup` segments with no steps, which could feed bad values into the physics.
 
 - Fixed a couple of uninitialized values (Atom step state and the simulation frame counter) that could cause inconsistent behavior between runs.
+
+- Fixed the Techion Nanolyzer never playing its dissipate sound.
 
 </details>
 

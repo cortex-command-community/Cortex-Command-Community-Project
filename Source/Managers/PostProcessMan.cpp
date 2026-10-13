@@ -389,7 +389,7 @@ void PostProcessMan::DrawDotGlowEffects() {
 				testpixel = _getpixel(g_FrameMan.GetBackBuffer8(), x, y);
 
 				// YELLOW
-				if ((testpixel == g_YellowGlowColor && RandomNum() < 0.9F) || testpixel == 98 || (testpixel == 120 && RandomNum() < 0.7F)) {
+				if ((testpixel == g_YellowGlowColor && g_DrawRandomGenerator.RandomNum() < 0.9F) || testpixel == 98 || (testpixel == 120 && g_DrawRandomGenerator.RandomNum() < 0.7F)) {
 					DrawTexture(yellowGlow, x - yellowGlow.width / 2, y - yellowGlow.height / 2, {255, 255, 255, 255});
 				}
 				// TODO: Enable and add more colors once we actually have something that needs these.

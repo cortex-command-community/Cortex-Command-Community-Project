@@ -10,6 +10,7 @@
 #include "lj_gc.h"
 #include "lj_err.h"
 #include "lj_udata.h"
+#include "lj_tab.h"
 
 GCudata *lj_udata_new(lua_State *L, MSize sz, GCtab *env)
 {
@@ -18,6 +19,7 @@ GCudata *lj_udata_new(lua_State *L, MSize sz, GCtab *env)
   newwhite(g, ud);  /* Not finalized. */
   ud->gct = ~LJ_TUDATA;
   ud->udtype = UDTYPE_USERDATA;
+  lj_tab_sethid(g, ud);
   ud->len = sz;
   /* NOBARRIER: The GCudata is new (marked white). */
   setgcrefnull(ud->metatable);

@@ -262,13 +262,13 @@ bool SoundSet::SelectNextSounds() {
 	/// Internal lambda function to pick a random sound that's not the previously played sound. Done to avoid scoping issues inside the switch below.
 	/// </summary>
 	auto selectSoundRandom = [&selectedVectorSize, &unselectedVectorSize, this]() {
-		if (unselectedVectorSize > 0 && (selectedVectorSize == 1 || RandomNum(0, 1) == 1)) {
+		if (unselectedVectorSize > 0 && (selectedVectorSize == 1 || g_DrawRandomGenerator.RandomNum(0, 1) == 1)) {
 			std::swap(selectedVectorSize, unselectedVectorSize);
-			m_CurrentSelection = {!m_CurrentSelection.first, RandomNum(0, selectedVectorSize - 1)};
+			m_CurrentSelection = {!m_CurrentSelection.first, g_DrawRandomGenerator.RandomNum(0, selectedVectorSize - 1)};
 		} else {
-			size_t soundToSelect = RandomNum(0, selectedVectorSize - 1);
+			size_t soundToSelect = g_DrawRandomGenerator.RandomNum(0, selectedVectorSize - 1);
 			while (soundToSelect == m_CurrentSelection.second) {
-				soundToSelect = RandomNum(0, selectedVectorSize - 1);
+				soundToSelect = g_DrawRandomGenerator.RandomNum(0, selectedVectorSize - 1);
 			}
 			m_CurrentSelection.second = soundToSelect;
 		}

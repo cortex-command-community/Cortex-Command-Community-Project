@@ -106,7 +106,7 @@ int GenericSavedData::GenericSavedStrings::Save(Writer& writer) const {
 }
 
 int GenericSavedData::GenericSavedNumbers::ReadProperty(const std::string_view& propName, Reader& reader) {
-	float value;
+	double value;
 	reader >> value;
 	m_Data[std::string(propName)] = value; // until we get P0919R2.
 	return 0;
