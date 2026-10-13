@@ -24,7 +24,7 @@ ljcore_sources = files(
     'lj_mcode.c', 'lj_snap.c', 'lj_record.c', 'lj_crecord.c', 'lj_ffrecord.c',
     'lj_asm.c', 'lj_trace.c', 'lj_gdbjit.c',
     'lj_ctype.c', 'lj_cdata.c', 'lj_cconv.c', 'lj_ccall.c', 'lj_ccallback.c',
-    'lj_carith.c', 'lj_clib.c', 'lj_cparse.c',
+    'lj_carith.c', 'lj_clib.c', 'lj_cparse.c', 'lj_fopen.c',
     'lj_lib.c', 'lj_alloc.c', 'lib_aux.c',
     'lib_init.c')
 ljmain_sources = files('luajit.c')
