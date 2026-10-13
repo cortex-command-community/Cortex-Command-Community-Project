@@ -312,6 +312,10 @@ void LuaAdaptersScene::CalculatePathAsync(Scene* luaSelfObject, const luabind::o
 	luaSelfObject->CalculatePathAsync(start, end, jumpHeight, digStrength, team, callLuaCallback);
 }
 
+bool LuaAdaptersAHuman::EquipShieldInBGArm(AHuman* luaSelfObject) {
+	return luaSelfObject->EquipShieldInBGArm();
+}
+
 void LuaAdaptersAHuman::ReloadFirearms(AHuman* luaSelfObject) {
 	luaSelfObject->ReloadFirearms(false);
 }
