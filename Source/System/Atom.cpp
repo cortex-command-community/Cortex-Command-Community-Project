@@ -91,14 +91,27 @@ void Atom::Clear() {
 	m_StepRatio = 1.0F;
 	m_SegProgress = 0.0F;
 
+	// SetupPos branches on m_IntPos before the first step sets it.
+	m_IntPos[X] = m_IntPos[Y] = 0;
+	m_PrevIntPos[X] = m_PrevIntPos[Y] = 0;
+
 	m_IgnoreMOIDsByGroup = 0;
 
-	// Note: These fields must be cleared to avoid a very edge case bug.
-	// While an AtomGroup is travelling, the OnCollideWithTerrain Lua function can run, which will in turn force Create to run if it hasn't already.
-	// If this Create function adds to an AtomGroup (e.g. adds an Attachable to it), there will be problems.
-	// Setting these values in Clear doesn't help if Atoms are removed at this point, but helps if Atoms are added, since these values mean the added Atoms won't try to step forwards.
-	// m_Dom = 0;
-	// m_Delta[m_Dom] = 0;
+	// Bresenham step state. A fresh Atom can be stepped before SetupSeg runs (an Attachable added
+	// mid-travel by an OnCollideWithTerrain script), so a stale pool value makes StepForward diverge.
+	m_TrailPos[X] = m_TrailPos[Y] = 0;
+	m_HitPos[X] = m_HitPos[Y] = 0;
+	m_Delta[X] = m_Delta[Y] = 0;
+	m_Delta2[X] = m_Delta2[Y] = 0;
+	m_Increment[X] = m_Increment[Y] = 0;
+	m_Error = 0;
+	m_Dom = 0;
+	m_Sub = 0;
+	m_DomSteps = 0;
+	m_SubSteps = 0;
+	m_SubStepped = false;
+	m_StepWasTaken = false;
+	m_SegTraj.Reset();
 }
 
 int Atom::Create(const Vector& offset, Material const* material, MovableObject* owner, Color trailColor, int trailLength) {

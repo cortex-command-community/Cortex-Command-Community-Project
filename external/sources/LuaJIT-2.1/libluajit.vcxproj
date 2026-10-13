@@ -219,6 +219,7 @@
     <ClCompile Include="src\lj_dispatch.c" />
     <ClCompile Include="src\lj_err.c" />
     <ClCompile Include="src\lj_ffrecord.c" />
+    <ClCompile Include="src\lj_fopen.c" />
     <ClCompile Include="src\lj_func.c" />
     <ClCompile Include="src\lj_gc.c" />
     <ClCompile Include="src\lj_ir.c" />
