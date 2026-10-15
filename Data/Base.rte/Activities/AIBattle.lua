@@ -29,8 +29,10 @@ function AIBattle:StartActivity()
 		local brain = PresetMan:GetLoadout("Infantry Brain", PresetMan:GetModuleID(self:GetTeamTech(team)), false);
 		brain.Team = team;
 		brain.AIMode = Actor.AIMODE_SENTRY;
-		-- The brains start out evenly spaced along the scene.
-		brain.Pos = SceneMan:MovePointToGround(Vector(SceneMan.SceneWidth * (index - 0.5) / #teams, 0), brain.Height * 0.3, 2);
+		-- The brains start out evenly spread over the parts of the scene that are open to the sky.
+		local openXs = self:FindXsOpenToSky(brain.Height);
+		local brainX = #openXs > 0 and openXs[math.ceil(#openXs * (index - 0.5) / #teams)] or SceneMan.SceneWidth * (index - 0.5) / #teams;
+		brain.Pos = SceneMan:MovePointToGround(Vector(brainX, 0), brain.Height * 0.3, 2);
 		MovableMan:AddActor(brain);
 		self.brains[team] = brain;
 
@@ -76,6 +78,19 @@ function AIBattle:UpdateActivity()
 		self.WinnerTeam = lastTeamLeft;
 		ActivityMan:EndActivity();
 	end
+end
+
+-- Finds the X positions along the scene that have at least the given height of open air below the top of the scene, in order.
+-- Where the terrain reaches the top of the scene, a brain would otherwise be put on top of it, outside the scene, where nothing can path to or from it.
+-- Being open to the sky also lets the team's reinforcements be dropped off near their brain.
+function AIBattle:FindXsOpenToSky(height)
+	local openXs = {};
+	for x = 0, SceneMan.SceneWidth - 1, 10 do
+		if SceneMan:FindAltitude(Vector(x, 0), height, 2) >= height then
+			table.insert(openXs, x);
+		end
+	end
+	return openXs;
 end
 
 function AIBattle:SendReinforcements(team)
