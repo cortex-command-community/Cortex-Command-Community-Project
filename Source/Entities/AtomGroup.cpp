@@ -371,8 +371,9 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 			const Vector startOff = m_OwnerMOSR->RotateOffset(atom->GetOffset());
 
 			if (atom->SetupPos(position + startOff)) {
-				hitData.Reset();
 				if (atom->IsIgnoringTerrain()) {
+					// The HitData only gets used here for Atoms that are ignoring terrain, so it's only reset for them.
+					hitData.Reset();
 					// Calculate and store the accurate hit radius of the Atom in relation to the CoM.
 					hitData.HitRadius[HITOR] = startOff * c_MPP;
 					// Figure out the pre-collision velocity of the hitting Atom due to body translation and rotation.
