@@ -461,7 +461,6 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 
 			// SCENE COLLISION DETECTION ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-			hitData.Reset();
 			hitMOAtoms.clear();
 			hitTerrAtoms.clear();
 			penetratingAtoms.clear();
@@ -511,6 +510,8 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 			}
 
 			// There are colliding Atoms, therefore the group hit something.
+			// The HitData only gets used from here on, so it's only reset when something was hit, rather than on every step.
+			hitData.Reset();
 			hitStep = true;
 			++hitCount;
 
@@ -695,11 +696,11 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 			// Apply all the collision response impulse forces to the linear and angular velocities of the owner MO.
 			for (Atom* hitResponseAtom: hitResponseAtoms) {
 				// TODO: Investigate damping!
-				hitData = hitResponseAtom->GetHitData();
-				velocity += hitData.ResImpulse[HITOR] / mass;
-				angularVel += hitData.HitRadius[HITOR].GetPerpendicular().Dot(hitData.ResImpulse[HITOR]) / m_MomentOfInertia;
+				const HitData& hitResponse = hitResponseAtom->GetHitData();
+				velocity += hitResponse.ResImpulse[HITOR] / mass;
+				angularVel += hitResponse.HitRadius[HITOR].GetPerpendicular().Dot(hitResponse.ResImpulse[HITOR]) / m_MomentOfInertia;
 				// Accumulate all the impulse forces so the MO can determine if it took damaged as a result
-				totalImpulse += hitData.ResImpulse[HITOR];
+				totalImpulse += hitResponse.ResImpulse[HITOR];
 			}
 
 			// Make sub-pixel progress if there was a hit on the very first step.
