@@ -372,7 +372,10 @@ void RunGameLoop() {
 
 		PollSDLEvents();
 		g_WindowMan.Update();
-		g_WindowMan.ClearBackbuffer();
+		// Nothing gets drawn to the backbuffer when headless, so there's nothing to clear from it either.
+		if (!System::IsInHeadlessMode()) {
+			g_WindowMan.ClearBackbuffer();
+		}
 
 		g_TimerMan.Update();
 
