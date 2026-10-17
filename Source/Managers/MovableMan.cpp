@@ -21,6 +21,7 @@
 #include "LuaMan.h"
 #include "ThreadMan.h"
 #include "DeterminismChecker.h"
+#include "System.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -1306,8 +1307,8 @@ void MovableMan::Update() {
 
 	// ---TEMP ---
 	// These are here for multithreaded AI, but will be unnecessary when multithreaded-sim-and-render is in!
-	// Clear the MO color layer only if this is a drawn update
-	if (g_TimerMan.DrawnSimUpdate()) {
+	// Clear the MO color layer only if this is a drawn update. Nothing gets drawn when headless, so neither is the MO color layer.
+	if (g_TimerMan.DrawnSimUpdate() && !System::IsInHeadlessMode()) {
 		g_SceneMan.ClearMOColorLayer();
 	}
 
@@ -1726,9 +1727,9 @@ void MovableMan::Update() {
 	});
 
 	////////////////////////////////////////////////////////////////////
-	// Draw the MO colors ONLY if this is a drawn update!
+	// Draw the MO colors ONLY if this is a drawn update! Nothing gets drawn when headless, so the MO colors would never be seen.
 
-	if (g_TimerMan.DrawnSimUpdate()) {
+	if (g_TimerMan.DrawnSimUpdate() && !System::IsInHeadlessMode()) {
 		Draw(g_SceneMan.GetMOColorBitmap());
 	}
 
