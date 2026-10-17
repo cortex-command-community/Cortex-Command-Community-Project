@@ -31,9 +31,7 @@ void SoundSet::Clear() {
 int SoundSet::Create(const SoundSet& reference) {
 	m_SoundSelectionCycleMode = reference.m_SoundSelectionCycleMode;
 	m_CurrentSelection = reference.m_CurrentSelection;
-	for (SoundData referenceSoundData: reference.m_SoundData) {
-		m_SoundData.push_back(std::move(referenceSoundData));
-	}
+	m_SoundData.insert(m_SoundData.end(), reference.m_SoundData.begin(), reference.m_SoundData.end());
 	for (const SoundSet* referenceSoundSet: reference.m_SubSoundSets) {
 		SoundSet* soundSet = new SoundSet(*referenceSoundSet);
 		m_SubSoundSets.push_back(soundSet);
