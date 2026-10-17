@@ -223,6 +223,20 @@ void SoundSet::GetFlattenedSoundData(std::vector<SoundData*>& flattenedSoundData
 	}
 }
 
+const SoundData* SoundSet::FindSoundData(const FMOD::Sound* sound) const {
+	for (const SoundData& soundData: m_SoundData) {
+		if (soundData.SoundObject == sound) {
+			return &soundData;
+		}
+	}
+	for (const SoundSet* subSoundSet: m_SubSoundSets) {
+		if (const SoundData* soundData = subSoundSet->FindSoundData(sound)) {
+			return soundData;
+		}
+	}
+	return nullptr;
+}
+
 void SoundSet::GetFlattenedSoundData(std::vector<const SoundData*>& flattenedSoundData, bool onlyGetSelectedSoundData) const {
 	if (!onlyGetSelectedSoundData || m_SoundSelectionCycleMode == SoundSelectionCycleMode::ALL) {
 		for (const SoundData& soundData: m_SoundData) {
