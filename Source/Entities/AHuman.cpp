@@ -1112,7 +1112,10 @@ bool AHuman::EquipShieldInBGArm(bool depositToFront) {
 			if (HeldDevice* heldDevice = m_pBGArm->GetHeldDevice()) {
 				heldDevice->Deactivate();
 				if (depositToFront) {
-					AddToInventoryFront(m_pBGArm->RemoveAttachable(heldDevice));
+					// What goes in at the front moves the device we are after one place further in.
+					if (AddToInventoryFront(m_pBGArm->RemoveAttachable(heldDevice))) {
+						device_offset++;
+					}
 				} else {
 					AddToInventoryBack(m_pBGArm->RemoveAttachable(heldDevice));
 				}

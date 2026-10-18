@@ -152,6 +152,7 @@ jobs:
             --prerelease \
             'CortexCommand.windows.zip#Cortex Command [Nightly Build] (Windows Release)' \
             'CortexCommand.linux.zip#Cortex Command [Nightly Build] (Linux Release)' \
-            'CortexCommand.macos.zip#Cortex Command [Nightly Build] (macOS Release)'
+            'CortexCommand.macos-arm64.zip#Cortex Command [Nightly Build] (macOS ARM64 Release)' \
+            'CortexCommand.macos-x86_64.zip#Cortex Command [Nightly Build] (macOS x86_64 Release)'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

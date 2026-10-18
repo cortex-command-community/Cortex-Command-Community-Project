@@ -155,6 +155,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `Settings.ini` property `DisableCrashDialogs = 0/1`. With it on, the game still logs an abort, a failed assert or an unhandled exception, but then quits without showing a dialog. This is for when the game is being run by something automated.
 
+- New `Settings.ini` property `LaunchMinimised = 0/1` to have the game window start out minimised, so that launching the game doesn't take input focus or cover other windows. Disabled by default.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -292,6 +294,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed a couple of uninitialized values (Atom step state and the simulation frame counter) that could cause inconsistent behavior between runs.
 
 - Fixed the Techion Nanolyzer never playing its dissipate sound.
+
+- Fixed `AHuman:EquipShieldInBGArm()` being able to take the wrong item out of the inventory, which left the device it equipped both held and in the inventory. The device then got dropped twice when its holder died, and the game could crash when quitting.
 
 </details>
 

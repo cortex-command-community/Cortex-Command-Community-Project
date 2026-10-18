@@ -123,6 +123,7 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("EnableVSync", { reader >> g_WindowMan.m_EnableVSync; });
 	MatchProperty("Fullscreen", { reader >> g_WindowMan.m_Fullscreen; });
 	MatchProperty("UseMultiDisplays", { reader >> g_WindowMan.m_UseMultiDisplays; });
+	MatchProperty("LaunchMinimised", { reader >> g_WindowMan.m_LaunchMinimised; });
 	MatchProperty("TwoPlayerSplitscreenVertSplit", { reader >> g_FrameMan.m_TwoPlayerVSplit; });
 	MatchProperty("MasterVolume", { g_AudioMan.SetMasterVolume(std::stof(reader.ReadPropValue()) / 100.0F); });
 	MatchProperty("MuteMaster", { reader >> g_AudioMan.m_MuteMaster; });
@@ -230,6 +231,7 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("Fullscreen", g_WindowMan.m_Fullscreen);
 	writer.NewPropertyWithValue("EnableVSync", g_WindowMan.m_EnableVSync);
 	writer.NewPropertyWithValue("UseMultiDisplays", g_WindowMan.m_UseMultiDisplays);
+	writer.NewPropertyWithValue("LaunchMinimised", g_WindowMan.m_LaunchMinimised);
 	writer.NewPropertyWithValue("TwoPlayerSplitscreenVertSplit", g_FrameMan.m_TwoPlayerVSplit);
 
 	writer.NewLine(false, 2);

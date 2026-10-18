@@ -30,11 +30,18 @@ runs:
           "release/CortexCommand (Linux)/CortexCommand.AppImage" \
           external/lib/linux/x86_64/libfmod.so*
 
-    - name: Compress OSX Release
+    - name: Compress OSX ARM64 Release
       shell: bash
       run: |
-        zip --must-match -j CortexCommand.macos.zip \
-          "release/CortexCommand (macOS)/CortexCommand.tar" \
+        zip --must-match -j CortexCommand.macos-arm64.zip \
+          "release/CortexCommand (macOS ARM64)/CortexCommand-arm64.tar" \
+          external/lib/macos/libfmod.dylib
+
+    - name: Compress OSX x86_64 Release
+      shell: bash
+      run: |
+        zip --must-match -j CortexCommand.macos-x86_64.zip \
+          "release/CortexCommand (macOS x86_64)/CortexCommand-x86_64.tar" \
           external/lib/macos/libfmod.dylib
 
     - name: Package Data files
@@ -42,4 +49,5 @@ runs:
       run: |
         zip --must-match -r -u CortexCommand.windows.zip Data
         zip --must-match -r -u CortexCommand.linux.zip Data
-        zip --must-match -r -u CortexCommand.macos.zip Data
+        zip --must-match -r -u CortexCommand.macos-arm64.zip Data
+        zip --must-match -r -u CortexCommand.macos-x86_64.zip Data
