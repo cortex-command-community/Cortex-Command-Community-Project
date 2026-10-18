@@ -35,7 +35,7 @@ void Activity::Clear() {
 	m_AllowsUserSaving = false;
 	m_Description.clear();
 	m_ShowInMenus = true;
-	m_HumansSpectate = false;
+	m_HumansCanSpectate = false;
 	m_SceneName.clear();
 	m_MaxPlayerSupport = Players::MaxPlayerCount;
 	m_MinTeamsRequired = 2;
@@ -96,7 +96,7 @@ int Activity::Create(const Activity& reference) {
 	m_AllowsUserSaving = reference.m_AllowsUserSaving;
 	m_Description = reference.m_Description;
 	m_ShowInMenus = reference.m_ShowInMenus;
-	m_HumansSpectate = reference.m_HumansSpectate;
+	m_HumansCanSpectate = reference.m_HumansCanSpectate;
 	m_MaxPlayerSupport = reference.m_MaxPlayerSupport;
 	m_MinTeamsRequired = reference.m_MinTeamsRequired;
 	m_Difficulty = reference.m_Difficulty;
@@ -142,7 +142,7 @@ int Activity::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 	MatchProperty("Description", { reader >> m_Description; });
 	MatchProperty("ShowInMenus", { reader >> m_ShowInMenus; });
-	MatchProperty("HumansSpectate", { reader >> m_HumansSpectate; });
+	MatchProperty("HumansCanSpectate", { reader >> m_HumansCanSpectate; });
 	MatchProperty("SceneName", { reader >> m_SceneName; });
 	MatchProperty("MaxPlayerSupport", { reader >> m_MaxPlayerSupport; });
 	MatchProperty("MinTeamsRequired", { reader >> m_MinTeamsRequired; });

@@ -135,9 +135,9 @@ namespace RTE {
 		/// @return Whether this Activity is listed in menus.
 		bool GetShowInMenus() const { return m_ShowInMenus; }
 
-		/// Gets whether human players only watch this Activity, with every team left to the AI. Its setup menu then gives every team to the CPU, and can start it without any human players on a team.
-		/// @return Whether human players only watch this Activity.
-		bool GetHumansSpectate() const { return m_HumansSpectate; }
+		/// Gets whether human players can choose to just watch this Activity, leaving every team to the AI. Its setup menu then starts out with every team given to the CPU, and can start it without any human players on a team. Human players can still be put on a team to play it as usual.
+		/// @return Whether human players can choose to just watch this Activity.
+		bool GetHumansCanSpectate() const { return m_HumansCanSpectate; }
 
 		/// Gets the max number of players supported by this Activity.
 		/// @return The max number of players supported by this Activity.
@@ -581,7 +581,7 @@ namespace RTE {
 
 		std::string m_Description; //!< User-friendly description of what this Activity is all about.
 		bool m_ShowInMenus; //!< Whether this Activity is listed in the menus that Activities get picked from.
-		bool m_HumansSpectate; //!< Whether human players only watch this Activity, with every team left to the AI.
+		bool m_HumansCanSpectate; //!< Whether human players can choose to just watch this Activity, leaving every team to the AI.
 		std::string m_SceneName; //!< The name of the Scene in which this Activity takes place.
 
 		int m_MaxPlayerSupport; //!< How many separate players this Activity can support at the same time.

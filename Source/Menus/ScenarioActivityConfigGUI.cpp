@@ -166,8 +166,8 @@ void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 				m_CPULockLabel->SetVisible(false);
 			}
 			std::vector<int> cpuInitialTeams;
-			if (m_SelectedActivity->GetHumansSpectate()) {
-				// Humans only watch this Activity, so every team starts out given to the CPU.
+			if (m_SelectedActivity->GetHumansCanSpectate()) {
+				// Humans can just watch this Activity, so every team starts out given to the CPU. Putting a human player on a team still takes it over from the CPU as usual.
 				for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 					if (m_SelectedActivity->TeamActive(team)) {
 						cpuInitialTeams.push_back(team);
@@ -241,8 +241,8 @@ void ScenarioActivityConfigGUI::StartGame() {
 	g_SceneMan.SetSceneToLoad(m_SelectedScene, true, m_DeployUnitsCheckbox->GetCheck());
 
 	gameActivity->ClearPlayers(false);
-	// Humans only watch some Activities, but there still has to be a human player to watch from, so player one goes on the first CPU team if no humans were put on a team.
-	if (m_SelectedActivity->GetHumansSpectate() && GetHumanPlayers().empty()) {
+	// Humans can choose to just watch some Activities, but there still has to be a human player to watch from, so player one goes on the first CPU team if no humans were put on a team.
+	if (m_SelectedActivity->GetHumansCanSpectate() && GetHumanPlayers().empty()) {
 		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 			if (m_PlayerBoxes.at(PlayerColumns::PlayerCPU).at(team)->GetDrawType() == GUICollectionBox::Image) {
 				gameActivity->AddPlayer(Players::PlayerOne, true, team, 0);
@@ -312,7 +312,7 @@ bool ScenarioActivityConfigGUI::Update(int mouseX, int mouseY) {
 		errorMessage = "Too many players assigned! Max for this activity is " + std::to_string(maxHumanPlayers);
 	} else if (minTeamsRequired > teamsWithPlayers) {
 		errorMessage = "Assign players to at least " + std::to_string(minTeamsRequired) + " of the teams!";
-	} else if (teamWithHumans == 0 && !m_SelectedActivity->GetHumansSpectate()) {
+	} else if (teamWithHumans == 0 && !m_SelectedActivity->GetHumansCanSpectate()) {
 		errorMessage = "Assign human players to at least one team!";
 	} else if (g_UInputMan.CheckMultiMouseKeyboardEnabled(humanPlayers) && !g_UInputMan.AllPlayerInputDevicesKnown(humanPlayers)) {
 		errorMessage = "Some players have not set keyboard or mouse devices. Please go to input settings to configure!";

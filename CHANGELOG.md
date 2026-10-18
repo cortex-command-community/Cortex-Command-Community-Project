@@ -154,7 +154,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `Activity` INI property `ShowInMenus = 0/1` to hide an Activity from the Scenario menu. Hidden Activities can still be started by other means, such as the `-activity` launch argument. Enabled by default.
 
-- New `Activity` INI property `HumansSpectate = 0/1` for Activities that human players only watch. The setup screen starts out with every team given to the CPU, and the game can be started without any human players on a team, in which case player one watches from the first CPU team. Disabled by default.
+- New `Activity` INI property `HumansCanSpectate = 0/1` for Activities that human players can choose to just watch. The setup screen starts out with every team given to the CPU, and the game can be started without any human players on a team, in which case player one watches from the first CPU team. Spectating is optional: players can still put themselves on a team to play it as usual. Disabled by default.
 
 </details>
 
