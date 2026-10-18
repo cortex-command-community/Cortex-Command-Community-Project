@@ -61,6 +61,9 @@ namespace RTE {
 
 		/// Frees all loaded data used by all ContentFile instances. This should ONLY be done when quitting the app, or after everything else is completely destroyed.
 		static void FreeAllLoaded();
+
+		/// Releases all the sounds loaded by all ContentFile instances, waiting for the ones FMOD is still loading asynchronously. This has to be done before the audio system gets released.
+		static void FreeAllLoadedSounds();
 #pragma endregion
 
 #pragma region Getters and Setters
