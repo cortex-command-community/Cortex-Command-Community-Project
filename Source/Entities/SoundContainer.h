@@ -61,6 +61,10 @@ namespace RTE {
 		/// Destroys and resets (through Clear()) the SoundContainer object. It doesn't delete the Sound files, since they're owned by ContentFile static maps.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override {
+			// The channels that are still playing its sounds can't be left tied to this once it is gone.
+			if (!m_PlayingChannels.empty()) {
+				g_AudioMan.DetachSoundContainerPlayingChannels(this);
+			}
 			if (!notInherited) {
 				Entity::Destroy();
 			}
