@@ -41,22 +41,46 @@ namespace luabind { namespace detail {
     // the non-const version. If the this-pointer is const, there's no 
     // problem, since the non-const function will not match at all.
     
+    namespace
+    {
+        int find_implicit_cast(
+            class_rep const* crep
+          , LUABIND_TYPE_INFO const& type_id
+          , int& pointer_offset)
+        {
+            int offset = 0;
+            if (LUABIND_TYPE_INFO_EQUAL(crep->type(), type_id)) return 0;
+
+            for (std::vector<class_rep::base_info>::const_iterator i = 
+                crep->bases().begin(); i != crep->bases().end(); ++i)
+            {
+                int steps = find_implicit_cast(i->base, type_id, offset);
+                pointer_offset = offset + i->pointer_offset;
+                if (steps >= 0) return steps + 2;
+            }
+            return -1;
+        }
+    }
+
+    // Finding the cast compares type names all the way up the bases, so what was found is kept in the class_rep for each type.
+    // Finding it writes the pointer offset for every base it tries, so the cached result writes it too, unless the class is the type itself or has no bases.
     int implicit_cast(
         class_rep const* crep
       , LUABIND_TYPE_INFO const& type_id
       , int& pointer_offset)
     {
-        int offset = 0;
-        if (LUABIND_TYPE_INFO_EQUAL(crep->type(), type_id)) return 0;
-
-        for (std::vector<class_rep::base_info>::const_iterator i = 
-            crep->bases().begin(); i != crep->bases().end(); ++i)
+        class_rep::implicit_cast_results& results = crep->implicit_casts();
+        class_rep::implicit_cast_results::const_iterator found = results.find(type_id);
+        if (found == results.end())
         {
-            int steps = implicit_cast(i->base, type_id, offset);
-            pointer_offset = offset + i->pointer_offset;
-            if (steps >= 0) return steps + 2;
+            class_rep::implicit_cast_result result;
+            result.pointer_offset = 0;
+            result.steps = find_implicit_cast(crep, type_id, result.pointer_offset);
+            result.writes_pointer_offset = !(LUABIND_TYPE_INFO_EQUAL(crep->type(), type_id)) && !crep->bases().empty();
+            found = results.insert(std::make_pair(type_id, result)).first;
         }
-        return -1;
+        if (found->second.writes_pointer_offset) pointer_offset = found->second.pointer_offset;
+        return found->second.steps;
     }
 }}
 

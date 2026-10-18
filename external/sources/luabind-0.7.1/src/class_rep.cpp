@@ -833,6 +833,8 @@ void luabind::detail::class_rep::add_base_class(const luabind::detail::class_rep
 
 	class_rep* bcrep = binfo.base;
 
+	m_implicit_casts.clear();
+
 	// import all functions from the base
 	typedef std::list<detail::method_rep> methods_t;
 
@@ -1476,10 +1478,19 @@ void* luabind::detail::class_rep::convert_to(
 
 	assert(obj == 0 || obj->crep() == this);
 
+	std::unordered_map<LUABIND_TYPE_INFO, int>::const_iterator holder_conversion = m_holder_conversions.find(target_type);
+	if (holder_conversion == m_holder_conversions.end())
+	{
+		int conversion = (LUABIND_TYPE_INFO_EQUAL(target_type, holder_type()) ? converts_to_holder : 0)
+			| (LUABIND_TYPE_INFO_EQUAL(target_type, const_holder_type()) ? converts_to_const_holder : 0);
+		holder_conversion = m_holder_conversions.insert(std::make_pair(target_type, conversion)).first;
+	}
+	const bool to_holder = (holder_conversion->second & converts_to_holder) != 0;
+	const bool to_const_holder = (holder_conversion->second & converts_to_const_holder) != 0;
+
 	int steps = 0;
 	int offset = 0;
-	if (!(LUABIND_TYPE_INFO_EQUAL(holder_type(), target_type))
-		&& !(LUABIND_TYPE_INFO_EQUAL(const_holder_type(), target_type)))
+	if (!to_holder && !to_const_holder)
 	{
 		steps = implicit_cast(this, target_type, offset);
 	}
@@ -1487,7 +1498,7 @@ void* luabind::detail::class_rep::convert_to(
 	// should never be called with a type that can't be cast
 	assert((steps >= 0) && "internal error, please report");
 
-	if (LUABIND_TYPE_INFO_EQUAL(target_type, holder_type()))
+	if (to_holder)
 	{
 		if (obj == 0)
 		{
@@ -1503,7 +1514,7 @@ void* luabind::detail::class_rep::convert_to(
 		return obj->ptr();
 	}
 
-	if (LUABIND_TYPE_INFO_EQUAL(target_type, const_holder_type()))
+	if (to_const_holder)
 	{
 		if (obj == 0)
 		{

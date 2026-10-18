@@ -165,6 +165,16 @@ namespace luabind { namespace detail
 
 		const std::vector<base_info>& bases() const throw() { return m_bases; }
 
+		// What implicit_cast found out about casting this class to a type, which takes comparing type names all the way up the bases, so it's only done once for each type.
+		struct implicit_cast_result
+		{
+			int steps;
+			bool writes_pointer_offset;
+			int pointer_offset;
+		};
+		typedef std::unordered_map<LUABIND_TYPE_INFO, implicit_cast_result> implicit_cast_results;
+		implicit_cast_results& implicit_casts() const { return m_implicit_casts; }
+
 		void set_type(LUABIND_TYPE_INFO t) { m_type = t; }
 		LUABIND_TYPE_INFO type() const throw() { return m_type; }
 		LUABIND_TYPE_INFO holder_type() const throw() { return m_holder_type; }
@@ -416,6 +426,12 @@ namespace luabind { namespace detail
 			typename name_index<typename Map::mapped_type>::const_iterator i = index.find(name);
 			return i == index.end() ? 0 : i->second;
 		}
+
+		mutable implicit_cast_results m_implicit_casts;
+
+		// Which of the holder types each type that convert_to has been asked to convert to is, so that's only worked out once for each type.
+		enum { converts_to_holder = 1, converts_to_const_holder = 2 };
+		mutable std::unordered_map<LUABIND_TYPE_INFO, int> m_holder_conversions;
 
 		std::vector<operator_callback> m_operators[number_of_operators]; // the operators in lua
 
