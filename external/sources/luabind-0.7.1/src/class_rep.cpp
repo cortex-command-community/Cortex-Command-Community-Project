@@ -261,15 +261,28 @@ int luabind::detail::class_rep::gettable(lua_State* L)
 	}
 	lua_pop(L, 2);
 
-	std::map<const char*, callback, ltstr>::iterator j = m_getters.find(key);
-	if (j != m_getters.end())
+	if (callback* getter = find_property(m_getters, m_getter_index, key))
 	{
 		// the name is a data member
-		return j->second.func(L, j->second.pointer_offset);
+		return getter->func(L, getter->pointer_offset);
 	}
 
 	lua_pushnil(L);
 	return 1;
+}
+
+luabind::detail::class_rep::callback* luabind::detail::class_rep::find_property(property_map& properties, property_index& index, const char* name)
+{
+	if (index.size() != properties.size())
+	{
+		index.clear();
+		for (property_map::iterator i = properties.begin(); i != properties.end(); ++i)
+		{
+			index[i->first] = &i->second;
+		}
+	}
+	property_index::const_iterator i = index.find(name);
+	return i == index.end() ? 0 : i->second;
 }
 
 // called from the metamethod for __newindex
@@ -287,19 +300,18 @@ bool luabind::detail::class_rep::settable(lua_State* L)
 
 	if (std::strlen(key) == lua_strlen(L, 2))
 	{
-		std::map<const char*, callback, ltstr>::iterator j = m_setters.find(key);
-		if (j != m_setters.end())
+		if (callback* setter = find_property(m_setters, m_setter_index, key))
 		{
 			// the name is a data member
 #ifndef LUABIND_NO_ERROR_CHECKING
-			if (j->second.match(L, 3) < 0)
+			if (setter->match(L, 3) < 0)
 			{
 				std::string msg("the attribute '");
 				msg += m_name;
 				msg += ".";
 				msg += key;
 				msg += "' is of type: ";
-				j->second.sig(L, msg);
+				setter->sig(L, msg);
 				msg += "\nand does not match: (";
 				msg += stack_content_by_name(L, 3);
 				msg += ")";
@@ -307,11 +319,11 @@ bool luabind::detail::class_rep::settable(lua_State* L)
 				return false;
 			}
 #endif
-			j->second.func(L, j->second.pointer_offset);
+			setter->func(L, setter->pointer_offset);
 			return true;
 		}
 
-		if (m_getters.find(key) != m_getters.end())
+		if (find_property(m_getters, m_getter_index, key))
 		{
 			// this means that we have a getter but no
 			// setter for an attribute. We will then fail
@@ -1292,11 +1304,10 @@ int luabind::detail::class_rep::lua_class_gettable(lua_State* L)
 		return 1;
 	}
 
-	std::map<const char*, class_rep::callback, ltstr>::iterator j = crep->m_getters.find(key);
-	if (j != crep->m_getters.end())
+	if (class_rep::callback* getter = find_property(crep->m_getters, crep->m_getter_index, key))
 	{
 		// the name is a data member
-		return j->second.func(L, j->second.pointer_offset);
+		return getter->func(L, getter->pointer_offset);
 	}
 
 	lua_pushnil(L);

@@ -29,6 +29,8 @@
 
 #include <utility>
 #include <list>
+#include <cstring>
+#include <unordered_map>
 
 #include <luabind/config.hpp>
 #include <luabind/detail/object_rep.hpp>
@@ -377,6 +379,29 @@ namespace luabind { namespace detail
 		// only have a getter function
 		std::map<const char*, callback, ltstr> m_getters;
 		std::map<const char*, callback, ltstr> m_setters;
+
+		// Every property access from Lua looks the property up by name in m_getters or m_setters, which takes a strcmp at every step down the tree.
+		// So they're also indexed by name in hash maps, which compare names the same way and so find the same properties.
+		// Properties only ever get added, never removed, so an index is brought up to date whenever its map has more of them than it does.
+		struct property_name_hash
+		{
+			std::size_t operator()(const char* name) const
+			{
+				std::size_t hash = 2166136261u;
+				for (; *name; ++name) { hash = (hash ^ static_cast<unsigned char>(*name)) * 16777619u; }
+				return hash;
+			}
+		};
+		struct property_name_equal
+		{
+			bool operator()(const char* a, const char* b) const { return std::strcmp(a, b) == 0; }
+		};
+		typedef std::unordered_map<const char*, callback*, property_name_hash, property_name_equal> property_index;
+		property_index m_getter_index;
+		property_index m_setter_index;
+
+		// Finds the property of the given name, through the index of the map it's in.
+		static callback* find_property(property_map& properties, property_index& index, const char* name);
 
 		std::vector<operator_callback> m_operators[number_of_operators]; // the operators in lua
 
