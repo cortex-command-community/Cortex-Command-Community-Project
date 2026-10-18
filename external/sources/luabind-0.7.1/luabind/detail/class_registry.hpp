@@ -26,6 +26,7 @@
 
 #include <typeinfo>
 #include <map>
+#include <unordered_map>
 
 #include <luabind/config.hpp>
 #include <luabind/open.hpp>
@@ -68,6 +69,10 @@ namespace luabind { namespace detail
 	private:
 
 		std::map<LUABIND_TYPE_INFO, class_rep*, cmp> m_classes;
+
+		// Finding a class in m_classes compares type names, and it's done for every C++ object pushed to Lua, so the class found for each
+		// type_info is also kept by the type_info's address, which is quick to look up. It gets cleared whenever a class is added.
+		mutable std::unordered_map<LUABIND_TYPE_INFO, class_rep*> m_classes_by_type_info_address;
 
 		// this is a lua reference that points to the lua table
 		// that is to be used as meta table for all C++ class 
