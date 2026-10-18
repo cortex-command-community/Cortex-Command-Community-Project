@@ -131,7 +131,7 @@ namespace RTE {
 		/// @return A string with the user-friendly description of this Activity.
 		const std::string& GetDescription() const { return m_Description; }
 
-		/// Gets whether this Activity is listed in the menus that Activities get picked from. One that isn't can still be started by other means, such as the -activity launch argument.
+		/// Gets whether this Activity is listed in the menus that Activities get picked from. One that isn't can still be started by other means, such as from Lua.
 		/// @return Whether this Activity is listed in menus.
 		bool GetShowInMenus() const { return m_ShowInMenus; }
 

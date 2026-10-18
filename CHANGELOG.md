@@ -148,11 +148,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `Settings.ini` property `LaunchMinimised = 0/1` to have the game window start out minimised, so that launching the game doesn't take input focus or cover other windows. Disabled by default.
 
-- New Skirmish activity `AI Battle`, where every team is AI-controlled and fights it out by itself while human players only watch. Useful for testing AI, pathfinding and performance.  
+- New Skirmish activity `AI Battle`, where AI-controlled teams fight it out by themselves. Useful for watching, or for testing AI, pathfinding and performance.  
 	Every team gets a brain and free reinforcements that go after the other teams' brains. A team is out when its brain is gone, and the last team with a brain wins.  
-	It can also be started from the command line with `-activity GAScripted "AI Battle" "Ketanot Hills"`.
+	By default every team is given to the CPU and human players just watch, but players can also take a team for themselves and play it, starting out in control of its brain.
 
-- New `Activity` INI property `ShowInMenus = 0/1` to hide an Activity from the Scenario menu. Hidden Activities can still be started by other means, such as the `-activity` launch argument. Enabled by default.
+- New `Activity` INI property `ShowInMenus = 0/1` to hide an Activity from the Scenario menu. Hidden Activities can still be started by other means, such as from Lua. Enabled by default.
 
 - New `Activity` INI property `HumansCanSpectate = 0/1` for Activities that human players can choose to just watch. The setup screen starts out with every team given to the CPU, and the game can be started without any human players on a team, in which case player one watches from the first CPU team. Spectating is optional: players can still put themselves on a team to play it as usual. Disabled by default.
 

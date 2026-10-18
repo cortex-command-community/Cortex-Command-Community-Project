@@ -4,7 +4,7 @@ A battle between AI teams that plays out by itself, for watching or for testing 
 
 Every active team gets a brain, and reinforcements that keep coming for free and go after the other teams' brains.
 A team is out when its brain is gone, and the last team left wins.
-Human players don't get to control anything, they can only look around.
+Human players can just watch, by leaving every team to the CPU, or take a team for themselves and play it.
 
 --]]
 
@@ -42,9 +42,16 @@ function AIBattle:StartActivity()
 
 	for player = Activity.PLAYER_1, Activity.MAXPLAYERCOUNT - 1 do
 		if self:PlayerActive(player) and self:PlayerHuman(player) then
-			-- Observing is what keeps the player from being given an actor to control, which would then stand around waiting for input.
-			self:SetViewState(Activity.OBSERVE, player);
-			self:SetObservationTarget(self.brains[self:GetTeamOfPlayer(player)].Pos, player);
+			local team = self:GetTeamOfPlayer(player);
+			if self:TeamIsCPU(team) then
+				-- A human player on a CPU team is only there to watch, so they get put in observation mode. That keeps them from being given an actor to control, which would then stand around waiting for input.
+				self:SetViewState(Activity.OBSERVE, player);
+				self:SetObservationTarget(self.brains[team].Pos, player);
+			else
+				-- A human player who took a team for themselves plays it, starting out in control of its brain.
+				self:SetPlayerBrain(self.brains[team], player);
+				self:SwitchToActor(self.brains[team], player, team);
+			end
 		end
 	end
 
