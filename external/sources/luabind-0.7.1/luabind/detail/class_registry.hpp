@@ -41,6 +41,9 @@ namespace luabind { namespace detail
 
 		static class_registry* get_registry(lua_State* L);
 
+		// The registry is also kept in the Lua registry under the address of this, so that getting it doesn't have to make a Lua string to look it up by.
+		static char registry_key;
+
 		int cpp_instance() const { return m_cpp_instance_metatable; }
 		int cpp_class() const { return m_cpp_class_metatable; }
 

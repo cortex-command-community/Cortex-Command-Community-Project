@@ -222,8 +222,8 @@ namespace luabind { namespace detail {
 
 #endif
 
-        lua_pushstring(L, "__luabind_classes");
-        lua_gettable(L, LUA_REGISTRYINDEX);
+        lua_pushlightuserdata(L, &registry_key);
+        lua_rawget(L, LUA_REGISTRYINDEX);
         class_registry* p = static_cast<class_registry*>(lua_touserdata(L, -1));
         lua_pop(L, 1);
 
@@ -245,6 +245,8 @@ namespace luabind { namespace detail {
         m_classes[info] = crep;
         m_classes_by_type_info_address.clear();
     }
+
+    char class_registry::registry_key;
 
     class_rep* class_registry::find_class(LUABIND_TYPE_INFO info) const
     {
