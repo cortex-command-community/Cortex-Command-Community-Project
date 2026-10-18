@@ -146,6 +146,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `RealTimeLimitProgress` and `SimTimeLimitProgress` on `Timer` are now both writable properties in Lua, and not only readable.
 
+- New `Settings.ini` property `LaunchMinimised = 0/1` to have the game window start out minimised, so that launching the game doesn't take input focus or cover other windows. Disabled by default.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
