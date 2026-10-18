@@ -272,6 +272,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed a couple of uninitialized values (Atom step state and the simulation frame counter) that could cause inconsistent behavior between runs.
 
+- Fixed `AHuman:EquipShieldInBGArm()` being able to take the wrong item out of the inventory, which left the device it equipped both held and in the inventory. The device then got dropped twice when its holder died, and the game could crash when quitting.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
