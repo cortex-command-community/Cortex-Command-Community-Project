@@ -396,12 +396,26 @@ namespace luabind { namespace detail
 		{
 			bool operator()(const char* a, const char* b) const { return std::strcmp(a, b) == 0; }
 		};
-		typedef std::unordered_map<const char*, callback*, property_name_hash, property_name_equal> property_index;
-		property_index m_getter_index;
-		property_index m_setter_index;
+		template<class T> using name_index = std::unordered_map<const char*, T*, property_name_hash, property_name_equal>;
+		name_index<callback> m_getter_index;
+		name_index<callback> m_setter_index;
+		name_index<int> m_static_constant_index;
 
-		// Finds the property of the given name, through the index of the map it's in.
-		static callback* find_property(property_map& properties, property_index& index, const char* name);
+		// Finds what has the given name in one of the maps keyed by name, through its index.
+		template<class Map>
+		static typename Map::mapped_type* find_by_name(Map& map, name_index<typename Map::mapped_type>& index, const char* name)
+		{
+			if (index.size() != map.size())
+			{
+				index.clear();
+				for (typename Map::iterator i = map.begin(); i != map.end(); ++i)
+				{
+					index[i->first] = &i->second;
+				}
+			}
+			typename name_index<typename Map::mapped_type>::const_iterator i = index.find(name);
+			return i == index.end() ? 0 : i->second;
+		}
 
 		std::vector<operator_callback> m_operators[number_of_operators]; // the operators in lua
 

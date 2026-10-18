@@ -261,7 +261,7 @@ int luabind::detail::class_rep::gettable(lua_State* L)
 	}
 	lua_pop(L, 2);
 
-	if (callback* getter = find_property(m_getters, m_getter_index, key))
+	if (callback* getter = find_by_name(m_getters, m_getter_index, key))
 	{
 		// the name is a data member
 		return getter->func(L, getter->pointer_offset);
@@ -269,20 +269,6 @@ int luabind::detail::class_rep::gettable(lua_State* L)
 
 	lua_pushnil(L);
 	return 1;
-}
-
-luabind::detail::class_rep::callback* luabind::detail::class_rep::find_property(property_map& properties, property_index& index, const char* name)
-{
-	if (index.size() != properties.size())
-	{
-		index.clear();
-		for (property_map::iterator i = properties.begin(); i != properties.end(); ++i)
-		{
-			index[i->first] = &i->second;
-		}
-	}
-	property_index::const_iterator i = index.find(name);
-	return i == index.end() ? 0 : i->second;
 }
 
 // called from the metamethod for __newindex
@@ -300,7 +286,7 @@ bool luabind::detail::class_rep::settable(lua_State* L)
 
 	if (std::strlen(key) == lua_strlen(L, 2))
 	{
-		if (callback* setter = find_property(m_setters, m_setter_index, key))
+		if (callback* setter = find_by_name(m_setters, m_setter_index, key))
 		{
 			// the name is a data member
 #ifndef LUABIND_NO_ERROR_CHECKING
@@ -323,7 +309,7 @@ bool luabind::detail::class_rep::settable(lua_State* L)
 			return true;
 		}
 
-		if (find_property(m_getters, m_getter_index, key))
+		if (find_by_name(m_getters, m_getter_index, key))
 		{
 			// this means that we have a getter but no
 			// setter for an attribute. We will then fail
@@ -1304,7 +1290,7 @@ int luabind::detail::class_rep::lua_class_gettable(lua_State* L)
 		return 1;
 	}
 
-	if (class_rep::callback* getter = find_property(crep->m_getters, crep->m_getter_index, key))
+	if (class_rep::callback* getter = find_by_name(crep->m_getters, crep->m_getter_index, key))
 	{
 		// the name is a data member
 		return getter->func(L, getter->pointer_offset);
@@ -1412,11 +1398,9 @@ int luabind::detail::class_rep::static_class_gettable(lua_State* L)
 		return 1;
 	}
 
-	std::map<const char*, int, ltstr>::const_iterator j = crep->m_static_constants.find(key);
-
-	if (j != crep->m_static_constants.end())
+	if (const int* constant = find_by_name(crep->m_static_constants, crep->m_static_constant_index, key))
 	{
-		lua_pushnumber(L, j->second);
+		lua_pushnumber(L, *constant);
 		return 1;
 	}
 
