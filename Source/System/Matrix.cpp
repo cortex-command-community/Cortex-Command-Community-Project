@@ -44,7 +44,11 @@ int Matrix::Create(const Matrix& reference) {
 	m_Rotation = reference.m_Rotation;
 	m_Flipped[X] = reference.m_Flipped[X];
 	m_Flipped[Y] = reference.m_Flipped[Y];
-	m_ElementsUpdated = false;
+	m_Elements[0][0] = reference.m_Elements[0][0];
+	m_Elements[0][1] = reference.m_Elements[0][1];
+	m_Elements[1][0] = reference.m_Elements[1][0];
+	m_Elements[1][1] = reference.m_Elements[1][1];
+	m_ElementsUpdated = reference.m_ElementsUpdated;
 
 	return 0;
 }
