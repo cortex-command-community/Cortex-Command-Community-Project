@@ -396,6 +396,11 @@ namespace RTE {
 		/// @return
 		bool StopSoundContainerPlayingChannels(SoundContainer* soundContainer, int player);
 
+		/// Has the channels playing a SoundContainer's sounds no longer be tied to it, for when it is about to be destroyed.
+		/// The sounds get to play out, except for the ones that loop endlessly. Those get stopped, since there would be nothing left to stop them with.
+		/// @param soundContainer A pointer to a SoundContainer object. Ownership is NOT transferred!
+		void DetachSoundContainerPlayingChannels(SoundContainer* soundContainer);
+
 		/// Fades out playback a SoundContainer.
 		/// @param soundContainer A pointer to a SoundContainer object. Ownership is NOT transferred!
 		/// @param fadeOutTime The amount of time, in ms, to fade out over.
