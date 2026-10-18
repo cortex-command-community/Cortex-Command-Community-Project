@@ -250,7 +250,7 @@ namespace luabind { namespace detail {
 
     class_rep* class_registry::find_class(LUABIND_TYPE_INFO info) const
     {
-        std::unordered_map<LUABIND_TYPE_INFO, class_rep*>::const_iterator cached(
+        std::unordered_map<LUABIND_TYPE_INFO, class_rep*, type_info_address_hash>::const_iterator cached(
             m_classes_by_type_info_address.find(info));
         if (cached != m_classes_by_type_info_address.end()) return cached->second;
 

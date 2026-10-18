@@ -172,7 +172,7 @@ namespace luabind { namespace detail
 			bool writes_pointer_offset;
 			int pointer_offset;
 		};
-		typedef std::unordered_map<LUABIND_TYPE_INFO, implicit_cast_result> implicit_cast_results;
+		typedef std::unordered_map<LUABIND_TYPE_INFO, implicit_cast_result, type_info_address_hash> implicit_cast_results;
 		implicit_cast_results& implicit_casts() const { return m_implicit_casts; }
 
 		void set_type(LUABIND_TYPE_INFO t) { m_type = t; }
@@ -431,7 +431,7 @@ namespace luabind { namespace detail
 
 		// Which of the holder types each type that convert_to has been asked to convert to is, so that's only worked out once for each type.
 		enum { converts_to_holder = 1, converts_to_const_holder = 2 };
-		mutable std::unordered_map<LUABIND_TYPE_INFO, int> m_holder_conversions;
+		mutable std::unordered_map<LUABIND_TYPE_INFO, int, type_info_address_hash> m_holder_conversions;
 
 		std::vector<operator_callback> m_operators[number_of_operators]; // the operators in lua
 

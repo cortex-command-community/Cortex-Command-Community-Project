@@ -1478,7 +1478,7 @@ void* luabind::detail::class_rep::convert_to(
 
 	assert(obj == 0 || obj->crep() == this);
 
-	std::unordered_map<LUABIND_TYPE_INFO, int>::const_iterator holder_conversion = m_holder_conversions.find(target_type);
+	std::unordered_map<LUABIND_TYPE_INFO, int, type_info_address_hash>::const_iterator holder_conversion = m_holder_conversions.find(target_type);
 	if (holder_conversion == m_holder_conversions.end())
 	{
 		int conversion = (LUABIND_TYPE_INFO_EQUAL(target_type, holder_type()) ? converts_to_holder : 0)

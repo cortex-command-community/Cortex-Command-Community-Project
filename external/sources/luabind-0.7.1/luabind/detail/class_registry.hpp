@@ -35,6 +35,17 @@ namespace luabind { namespace detail
 {
 	class class_rep;
 
+	// Hashes type_infos by their address. std::hash for pointers goes over each byte of them, which shows up in how long converting things takes.
+	struct type_info_address_hash
+	{
+		std::size_t operator()(LUABIND_TYPE_INFO info) const
+		{
+			std::size_t address = reinterpret_cast<std::size_t>(info);
+			// The higher bits are folded into the lower ones because MSVC's unordered_map picks the bucket from the lower bits, which are always the same for type_infos since they're aligned, so this makes for fewer collisions.
+			return address ^ (address >> 4) ^ (address >> 12);
+		}
+	};
+
 	struct LUABIND_API class_registry
 	{
 		class_registry(lua_State* L);
@@ -75,7 +86,7 @@ namespace luabind { namespace detail
 
 		// Finding a class in m_classes compares type names, and it's done for every C++ object pushed to Lua, so the class found for each
 		// type_info is also kept by the type_info's address, which is quick to look up. It gets cleared whenever a class is added.
-		mutable std::unordered_map<LUABIND_TYPE_INFO, class_rep*> m_classes_by_type_info_address;
+		mutable std::unordered_map<LUABIND_TYPE_INFO, class_rep*, type_info_address_hash> m_classes_by_type_info_address;
 
 		// this is a lua reference that points to the lua table
 		// that is to be used as meta table for all C++ class 
