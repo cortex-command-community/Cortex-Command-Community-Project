@@ -103,8 +103,8 @@ If you want to change the buildtype afterwards, you can use `meson configure --b
 (If you installed the game in step 5 above, it should appear with your regular applications and will just run)
 
 1. (*optional*) Copy (link) all `libfmod` files from `external/lib/[os]/[arch]` into the repository.
-  - Linux: `cd $REPOSITORY; ln -s ../external/lib/linux/x86_64/libfmod.so* .`
-  - macOS: `cd $REPOSITORY; ln -s ../external/lib/macOS/libfmod.dylib .`
+  - Linux: `cd $REPOSITORY; ln -s external/lib/linux/x86_64/libfmod.so* .`
+  - macOS: `cd $REPOSITORY; ln -s external/lib/macos/libfmod.dylib .`
 
 2. Run `./CortexCommand` or `./CortexCommand_debug`.
 
