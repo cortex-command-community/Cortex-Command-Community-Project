@@ -321,6 +321,7 @@ namespace RTE {
 
 #pragma region AHuman Lua Adapters
 	struct LuaAdaptersAHuman {
+		static bool EquipShieldInBGArm(AHuman* luaSelfObject);
 		static void ReloadFirearms(AHuman* luaSelfObject);
 	};
 #pragma endregion

@@ -606,6 +606,28 @@ bool AudioMan::StopSoundContainerPlayingChannels(SoundContainer* soundContainer,
 	return result == FMOD_OK;
 }
 
+void AudioMan::DetachSoundContainerPlayingChannels(SoundContainer* soundContainer) {
+	if (!m_AudioEnabled || !soundContainer) {
+		return;
+	}
+
+	FMOD::Channel* soundChannel;
+	int loopCount;
+
+	// Stopping a channel takes it out of the SoundContainer's own collection of them, so it's a copy that is gone through here.
+	const std::unordered_set<int> channels = *soundContainer->GetPlayingChannels();
+	for (int channel: channels) {
+		if (m_AudioSystem->getChannel(channel, &soundChannel) != FMOD_OK) {
+			continue;
+		}
+		if (soundChannel->getLoopCount(&loopCount) == FMOD_OK && loopCount < 0) {
+			soundChannel->stop();
+		} else {
+			soundChannel->setUserData(nullptr);
+		}
+	}
+}
+
 void AudioMan::FadeOutSoundContainerPlayingChannels(SoundContainer* soundContainer, int fadeOutTime) {
 	if (!m_AudioEnabled || !soundContainer || !soundContainer->IsBeingPlayed()) {
 		return;
@@ -676,7 +698,8 @@ void AudioMan::Update3DEffectsForSFXChannels() {
 				float doubleMinimumDistanceForPanning = m_MinimumDistanceForPanning * 2.0F;
 				void* userData;
 				result = result == FMOD_OK ? soundChannel->getUserData(&userData) : result;
-				if (result == FMOD_OK) {
+				// A sound that is playing out after its SoundContainer got destroyed stays the way it was left.
+				if (result == FMOD_OK && userData) {
 					const SoundContainer* soundContainer = static_cast<SoundContainer*>(userData);
 					if (sqrDistanceToPlayer < (m_MinimumDistanceForPanning * m_MinimumDistanceForPanning) || soundContainer->GetCustomPanValue() != 0.0f) {
 						result = soundChannel->set3DLevel(0);
@@ -705,6 +728,10 @@ FMOD_RESULT AudioMan::UpdatePositionalEffectsForSoundChannel(FMOD::Channel* soun
 	}
 
 	const SoundContainer* channelSoundContainer = static_cast<SoundContainer*>(userData);
+	// A sound that is playing out after its SoundContainer got destroyed stays the way it was left.
+	if (!channelSoundContainer) {
+		return FMOD_OK;
+	}
 
 	bool sceneWraps = g_SceneMan.SceneWrapsX();
 
@@ -801,11 +828,12 @@ FMOD_RESULT F_CALLBACK AudioMan::SoundChannelEndedCallback(FMOD_CHANNELCONTROL* 
 		FMOD_RESULT result = channel->getIndex(&channelIndex);
 
 		// Remove this playing sound index from the SoundContainer if it has any playing sounds, i.e. it hasn't been reset before this callback happened.
+		// There is no SoundContainer to remove it from if that got destroyed while the sound was left to play out.
 		void* userData;
 		result = (result == FMOD_OK) ? channel->getUserData(&userData) : result;
 		if (result == FMOD_OK) {
 			SoundContainer* channelSoundContainer = static_cast<SoundContainer*>(userData);
-			if (channelSoundContainer->IsBeingPlayed()) {
+			if (channelSoundContainer && channelSoundContainer->IsBeingPlayed()) {
 				channelSoundContainer->RemovePlayingChannel(channelIndex);
 			}
 			result = (result == FMOD_OK) ? channel->setUserData(nullptr) : result;
@@ -815,7 +843,7 @@ FMOD_RESULT F_CALLBACK AudioMan::SoundChannelEndedCallback(FMOD_CHANNELCONTROL* 
 			}
 
 			if (result != FMOD_OK) {
-				g_ConsoleMan.PrintString("ERROR: An error occurred when Ending a sound in SoundContainer " + channelSoundContainer->GetPresetName() + ": " + std::string(FMOD_ErrorString(result)));
+				g_ConsoleMan.PrintString("ERROR: An error occurred when Ending a sound in SoundContainer " + (channelSoundContainer ? channelSoundContainer->GetPresetName() : "None") + ": " + std::string(FMOD_ErrorString(result)));
 				return result;
 			}
 		} else {
