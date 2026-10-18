@@ -152,7 +152,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	Every team gets a brain and free reinforcements that go after the other teams' brains. A team is out when its brain is gone, and the last team with a brain wins.  
 	It can also be started from the command line with `-activity GAScripted "AI Battle" "Ketanot Hills"`.
 
-- New `Activity` INI property `ShowInMenus = 0/1` to hide an Activity from the Scenario and multiplayer lobby menus. Hidden Activities can still be started by other means, such as the `-activity` launch argument. Enabled by default.
+- New `Activity` INI property `ShowInMenus = 0/1` to hide an Activity from the Scenario menu. Hidden Activities can still be started by other means, such as the `-activity` launch argument. Enabled by default.
 
 - New `Activity` INI property `HumansSpectate = 0/1` for Activities that human players only watch. The setup screen starts out with every team given to the CPU, and the game can be started without any human players on a team, in which case player one watches from the first CPU team. Disabled by default.
 
