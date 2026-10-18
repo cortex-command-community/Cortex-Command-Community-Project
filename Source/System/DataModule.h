@@ -46,14 +46,14 @@ namespace RTE {
 		/// Create() should therefore not be called after using this constructor.
 		/// @param moduleName A string defining the path to where the content file itself is located, either within the package file, or directly on the disk.
 		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
-		DataModule(const std::string& moduleName, const ProgressCallback& progressCallback = nullptr);
+		DataModule(const std::string& moduleName);
 
 		/// Makes the DataModule object ready for use. This needs to be called after PresetMan is created.
 		/// This looks for an "index.ini" within the specified .rte directory and loads all the defined objects in that index file.
 		/// @param moduleName A string defining the name of this DataModule, e.g. "MyModule.rte".
 		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Create(const std::string& moduleName, const ProgressCallback& progressCallback = nullptr);
+		int Create(const std::string& moduleName);
 
 		/// Creates a new DataModule directory with "Index.ini" on disk to be used for userdata. Does NOT instantiate the newly created DataModule.
 		/// @param moduleName File/folder name of the data module, e.g. "MyMod.rte".
@@ -80,7 +80,7 @@ namespace RTE {
 		/// @param moduleName A string defining the name of this DataModule, e.g. "MyModule.rte".
 		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int ReadModuleProperties(const std::string& moduleName, const ProgressCallback& progressCallback = nullptr);
+		int ReadModuleProperties(const std::string& moduleName);
 
 		/// Returns true if loader should ignore missing items in this module.
 		/// @return True if loader should ignore missing items in this module.
@@ -230,6 +230,9 @@ namespace RTE {
 		void ReloadAllScripts() const;
 #pragma endregion
 
+		static std::function<void(const std::string&, bool)> PushToProgressDisplayQueue;
+		static std::function<void(const std::string&)> AssertFromWorkerAndShutdownAll;
+
 	protected:
 		/// Holds and owns the actual object instance pointer, and the location of the data file it was read from, as well as where in that file.
 		struct PresetEntry {
@@ -288,7 +291,7 @@ namespace RTE {
 		/// If ScanFolderContents is enabled in this DataModule's Index.ini, looks for any ini files in the top-level directory of the module and reads all of them in alphabetical order.
 		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int FindAndRead(const ProgressCallback& progressCallback = nullptr);
+		int FindAndRead();
 #pragma endregion
 
 #pragma region Entity Mapping

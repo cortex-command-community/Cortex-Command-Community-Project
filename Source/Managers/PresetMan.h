@@ -7,12 +7,14 @@
 /// Inclusions of header files
 #include "Entity.h"
 #include "Singleton.h"
+#include "shader.h"
 
 #include <array>
 #include <list>
 #include <map>
 #include <string>
 #include <vector>
+#include <deque>
 
 #define g_PresetMan PresetMan::Instance()
 
@@ -55,7 +57,7 @@ namespace RTE {
 		/// @param userdata Whether this module is a userdata module. If true, will be treated as an unofficial module.
 		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		/// @return Whether the DataModule was read and added correctly.
-		bool LoadDataModule(const std::string& moduleName, bool official, bool userdata = false, const ProgressCallback& progressCallback = nullptr);
+		bool LoadDataModule(const std::string& moduleName, bool official, bool userdata = false);
 
 		/// Reads an entire DataModule and adds it to this. NOTE that official modules can't be loaded after any non-official ones!
 		/// @param moduleName The module name to read, e.g. "Base.rte".
@@ -64,7 +66,7 @@ namespace RTE {
 
 		/// Loads all the official data modules individually with LoadDataModule, then proceeds to look for any non-official modules and loads them as well.
 		/// @return
-		bool LoadAllDataModules();
+		bool LoadAllDataModules(std::function<void()> PollSDLEventsCallback);
 
 		/// Sets the single module to be loaded after the official modules. This will be the ONLY non-official module to be loaded.
 		/// @param moduleName Name of the module to load.
@@ -346,6 +348,28 @@ namespace RTE {
 		/// @return Created actor if matching loadout was found or 0. OWNERSHIP IS TRANSFERED.
 		Actor* GetLoadout(std::string loadoutName, int moduleNumber, bool spawnDropShip);
 
+		void DeferShaderCompilationToBeDoneOnMainThread(Shader*);
+
+		enum ProgressDisplayMessageType {
+			StartedNewModule,
+		};
+
+		union ProgressDisplayArgument {
+			int Integer;
+			std::string String;
+		};
+
+		static void PushToProgressDisplayQueue(const std::string&, bool);
+
+		static void AssertFromModuleLoadingWorkerAndShutdownAll(const std::string&);
+		
+		enum ModuleLoadResult {
+			StillWorking,
+			Success,
+			Failure
+		};
+		void SpinlockAssert(bool, ModuleLoadResult);
+
 		/// Protected member variable and method declarations
 	protected:
 		// Owned and loaded DataModule:s
@@ -372,6 +396,24 @@ namespace RTE {
 
 		std::array<std::string, 3> m_LastReloadedEntityPresetInfo; //!< Array storing the last reloaded Entity preset info (ClassName, PresetName and DataModule). Used for quick reloading via key combination.
 		bool m_ReloadEntityPresetCalledThisUpdate; //!< A flag for whether or not ReloadEntityPreset was called this update.
+
+		std::mutex m_ProgressDisplayMutex;
+		std::condition_variable m_ProgressDisplayCv;
+		using ProgressDisplayEntry = std::pair<std::string, bool>;
+		std::deque<ProgressDisplayEntry> m_ProgressDisplayDeque;
+
+		std::mutex m_SpinlockWdMutex;
+		std::condition_variable m_SpinlockWdCv;
+		std::atomic<bool> m_ToStopSpinlockWatchdog = false;
+
+		std::atomic<bool> m_WorkerFailed = false;
+		std::mutex m_WorkerErrorMutex;
+		std::string m_WorkerErrorMessage;
+
+		void ModuleLoadingThreadFunction(std::stop_token st, std::atomic<ModuleLoadResult>& loadingDone, std::chrono::milliseconds& moduleLoadElapsedTime);
+		void SpinlockWatchdogThreadFunction(std::stop_token st, std::atomic<int>& mainThreadHeartbeat, std::atomic<bool>& spinlockDetected);
+
+		std::vector<Shader*> m_ShadersToCompile;
 
 		/// Iterates through the working directory to find any files matching the zipped module package extension (.rte.zip) and proceeds to extract them.
 		void FindAndExtractZippedModules() const;
