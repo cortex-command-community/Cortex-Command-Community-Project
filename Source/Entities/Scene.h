@@ -710,6 +710,9 @@ namespace RTE {
 		/// @return A reference to the pathfinder for the given team.
 		PathFinder& GetPathFinder(Activity::Teams team);
 
+		// TODO
+		const std::string& GetVariantName() const { return m_VariantName; }
+
 		/// Protected member variable and method declarations
 	protected:
 		// Member variables
@@ -717,6 +720,8 @@ namespace RTE {
 
 		// Position of the site/scene on the planet in the site selection menu view, relative to the center of the planet
 		Vector m_Location;
+		//TODO
+		std::string m_VariantName;
 		// Temporary location offset used to correct scene position when scene dots overlap.
 		Vector m_LocationOffset;
 		// Whether at all eligible for the Metagame
