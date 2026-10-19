@@ -324,6 +324,14 @@ namespace RTE {
 		/// Sets whether this Attachable currently ignores collisions with single-atom particles.
 		/// @param collidesWithTerrainWhileAttached Whether this attachable ignores collisions with single-atom particles.
 		void SetIgnoresParticlesWhileAttached(bool ignoresParticlesWhileAttached) { m_IgnoresParticlesWhileAttached = ignoresParticlesWhileAttached; }
+
+		/// Gets whether this Attachable currently ignores collisions with single-atom particles.
+		/// @return >Whether this attachable ignores collisions with single-atom particles.
+		bool AffectsRadius() const { return m_AffectsRadius; }
+
+		/// Sets whether this Attachable currently ignores collisions with single-atom particles.
+		/// @param collidesWithTerrainWhileAttached Whether this attachable ignores collisions with single-atom particles.
+		void SetAffectsRadius(bool affectsRadius) { m_AffectsRadius = affectsRadius; }
 #pragma endregion
 
 #pragma region Override Methods
@@ -470,6 +478,8 @@ namespace RTE {
 		long m_AtomSubgroupID; //!< The Atom IDs this' atoms will have when attached and added to a parent's AtomGroup.
 		bool m_CollidesWithTerrainWhileAttached; //!< Whether this attachable currently has terrain collisions enabled while it's attached to a parent.
 		bool m_IgnoresParticlesWhileAttached; //!< Whether this Attachable should ignore collisions with single-atom MOs while attached.
+		
+		bool m_AffectsRadius; //!< Whether this Attachable can be considered to increase the radius of it's parent.
 
 		std::vector<std::unique_ptr<PieSlice>> m_PieSlices; //!< The vector of PieSlices belonging to this Attachable. Added to and removed from the RootParent as appropriate, when a parent is set.
 
