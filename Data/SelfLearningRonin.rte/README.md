@@ -5,6 +5,13 @@ Adds the **Ronin Learning Defense** activity (pick it in the Activities menu, 1 
 You place your brain, and a Ronin commander appears on the far side of the map with a small garrison. From then on
 the AI defends its commander, sends squads out to destroy you, and learns from every fight.
 
+## Game version
+
+`Index.ini` contains `SupportedGameVersion = 7.0.0-dev`, which is what this repository builds (see `meson.build`).
+The engine refuses mods whose version does not match a development build exactly. If you play a different build,
+change that line to the version shown in the game (for a release build `X.Y.0`, with X the major version and Y the
+lowest minor version the mod needs).
+
 ## What the AI learns
 
 Every decision is learned separately for 9 situations (how many soldiers you have: 0-2 / 3-5 / 6+, and how far away
