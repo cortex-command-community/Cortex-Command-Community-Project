@@ -1248,6 +1248,7 @@ namespace RTE {
 		std::vector<std::string> m_AllLoadedScripts; //!< A vector of script for scripts applied to this object, in order of insertion.
 		std::unordered_map<std::string, bool> m_EnabledScripts; //!< A map of script paths to the enabled state of the given script.
 		std::unordered_map<std::string, std::vector<LuaFunction>> m_FunctionsAndScripts; //!< A map of function names to vectors of Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
+		bool m_HasOnCollideWithTerrainFunction; //!< Whether any of the scripts has an OnCollideWithTerrain function, so that terrain collisions, which happen all the time, don't have to look it up by name to find out.
 
 		volatile bool m_RequestedSyncedUpdate; //!< For optimisation purposes, scripts explicitly request a synced update if they want one.
 
