@@ -29,6 +29,8 @@
 
 #include <utility>
 #include <list>
+#include <cstring>
+#include <unordered_map>
 
 #include <luabind/config.hpp>
 #include <luabind/detail/object_rep.hpp>
@@ -162,6 +164,16 @@ namespace luabind { namespace detail
 		void add_base_class(const base_info& binfo);
 
 		const std::vector<base_info>& bases() const throw() { return m_bases; }
+
+		// What implicit_cast found out about casting this class to a type, which takes comparing type names all the way up the bases, so it's only done once for each type.
+		struct implicit_cast_result
+		{
+			int steps;
+			bool writes_pointer_offset;
+			int pointer_offset;
+		};
+		typedef std::unordered_map<LUABIND_TYPE_INFO, implicit_cast_result, type_info_address_hash> implicit_cast_results;
+		implicit_cast_results& implicit_casts() const { return m_implicit_casts; }
 
 		void set_type(LUABIND_TYPE_INFO t) { m_type = t; }
 		LUABIND_TYPE_INFO type() const throw() { return m_type; }
@@ -377,6 +389,49 @@ namespace luabind { namespace detail
 		// only have a getter function
 		std::map<const char*, callback, ltstr> m_getters;
 		std::map<const char*, callback, ltstr> m_setters;
+
+		// Every property access from Lua looks the property up by name in m_getters or m_setters, which takes a strcmp at every step down the tree.
+		// So they're also indexed by name in hash maps, which compare names the same way and so find the same properties.
+		// Properties only ever get added, never removed, so an index is brought up to date whenever its map has more of them than it does.
+		struct property_name_hash
+		{
+			std::size_t operator()(const char* name) const
+			{
+				std::size_t hash = 2166136261u;
+				for (; *name; ++name) { hash = (hash ^ static_cast<unsigned char>(*name)) * 16777619u; }
+				return hash;
+			}
+		};
+		struct property_name_equal
+		{
+			bool operator()(const char* a, const char* b) const { return std::strcmp(a, b) == 0; }
+		};
+		template<class T> using name_index = std::unordered_map<const char*, T*, property_name_hash, property_name_equal>;
+		name_index<callback> m_getter_index;
+		name_index<callback> m_setter_index;
+		name_index<int> m_static_constant_index;
+
+		// Finds what has the given name in one of the maps keyed by name, through its index.
+		template<class Map>
+		static typename Map::mapped_type* find_by_name(Map& map, name_index<typename Map::mapped_type>& index, const char* name)
+		{
+			if (index.size() != map.size())
+			{
+				index.clear();
+				for (typename Map::iterator i = map.begin(); i != map.end(); ++i)
+				{
+					index[i->first] = &i->second;
+				}
+			}
+			typename name_index<typename Map::mapped_type>::const_iterator i = index.find(name);
+			return i == index.end() ? 0 : i->second;
+		}
+
+		mutable implicit_cast_results m_implicit_casts;
+
+		// Which of the holder types each type that convert_to has been asked to convert to is, so that's only worked out once for each type.
+		enum { converts_to_holder = 1, converts_to_const_holder = 2 };
+		mutable std::unordered_map<LUABIND_TYPE_INFO, int, type_info_address_hash> m_holder_conversions;
 
 		std::vector<operator_callback> m_operators[number_of_operators]; // the operators in lua
 

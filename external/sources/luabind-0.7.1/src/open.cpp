@@ -56,6 +56,9 @@ namespace luabind {
         lua_setmetatable(L, -2);
 
         new(r) detail::class_registry(L);
+        lua_pushlightuserdata(L, &detail::class_registry::registry_key);
+        lua_pushvalue(L, -2);
+        lua_rawset(L, LUA_REGISTRYINDEX);
         lua_settable(L, LUA_REGISTRYINDEX);
 
         // add functions (class, cast etc...)

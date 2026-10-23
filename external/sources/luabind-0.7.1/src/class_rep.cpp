@@ -261,11 +261,10 @@ int luabind::detail::class_rep::gettable(lua_State* L)
 	}
 	lua_pop(L, 2);
 
-	std::map<const char*, callback, ltstr>::iterator j = m_getters.find(key);
-	if (j != m_getters.end())
+	if (callback* getter = find_by_name(m_getters, m_getter_index, key))
 	{
 		// the name is a data member
-		return j->second.func(L, j->second.pointer_offset);
+		return getter->func(L, getter->pointer_offset);
 	}
 
 	lua_pushnil(L);
@@ -287,19 +286,18 @@ bool luabind::detail::class_rep::settable(lua_State* L)
 
 	if (std::strlen(key) == lua_strlen(L, 2))
 	{
-		std::map<const char*, callback, ltstr>::iterator j = m_setters.find(key);
-		if (j != m_setters.end())
+		if (callback* setter = find_by_name(m_setters, m_setter_index, key))
 		{
 			// the name is a data member
 #ifndef LUABIND_NO_ERROR_CHECKING
-			if (j->second.match(L, 3) < 0)
+			if (setter->match(L, 3) < 0)
 			{
 				std::string msg("the attribute '");
 				msg += m_name;
 				msg += ".";
 				msg += key;
 				msg += "' is of type: ";
-				j->second.sig(L, msg);
+				setter->sig(L, msg);
 				msg += "\nand does not match: (";
 				msg += stack_content_by_name(L, 3);
 				msg += ")";
@@ -307,11 +305,11 @@ bool luabind::detail::class_rep::settable(lua_State* L)
 				return false;
 			}
 #endif
-			j->second.func(L, j->second.pointer_offset);
+			setter->func(L, setter->pointer_offset);
 			return true;
 		}
 
-		if (m_getters.find(key) != m_getters.end())
+		if (find_by_name(m_getters, m_getter_index, key))
 		{
 			// this means that we have a getter but no
 			// setter for an attribute. We will then fail
@@ -835,6 +833,8 @@ void luabind::detail::class_rep::add_base_class(const luabind::detail::class_rep
 
 	class_rep* bcrep = binfo.base;
 
+	m_implicit_casts.clear();
+
 	// import all functions from the base
 	typedef std::list<detail::method_rep> methods_t;
 
@@ -1292,11 +1292,10 @@ int luabind::detail::class_rep::lua_class_gettable(lua_State* L)
 		return 1;
 	}
 
-	std::map<const char*, class_rep::callback, ltstr>::iterator j = crep->m_getters.find(key);
-	if (j != crep->m_getters.end())
+	if (class_rep::callback* getter = find_by_name(crep->m_getters, crep->m_getter_index, key))
 	{
 		// the name is a data member
-		return j->second.func(L, j->second.pointer_offset);
+		return getter->func(L, getter->pointer_offset);
 	}
 
 	lua_pushnil(L);
@@ -1401,11 +1400,9 @@ int luabind::detail::class_rep::static_class_gettable(lua_State* L)
 		return 1;
 	}
 
-	std::map<const char*, int, ltstr>::const_iterator j = crep->m_static_constants.find(key);
-
-	if (j != crep->m_static_constants.end())
+	if (const int* constant = find_by_name(crep->m_static_constants, crep->m_static_constant_index, key))
 	{
-		lua_pushnumber(L, j->second);
+		lua_pushnumber(L, *constant);
 		return 1;
 	}
 
@@ -1481,10 +1478,19 @@ void* luabind::detail::class_rep::convert_to(
 
 	assert(obj == 0 || obj->crep() == this);
 
+	std::unordered_map<LUABIND_TYPE_INFO, int, type_info_address_hash>::const_iterator holder_conversion = m_holder_conversions.find(target_type);
+	if (holder_conversion == m_holder_conversions.end())
+	{
+		int conversion = (LUABIND_TYPE_INFO_EQUAL(target_type, holder_type()) ? converts_to_holder : 0)
+			| (LUABIND_TYPE_INFO_EQUAL(target_type, const_holder_type()) ? converts_to_const_holder : 0);
+		holder_conversion = m_holder_conversions.insert(std::make_pair(target_type, conversion)).first;
+	}
+	const bool to_holder = (holder_conversion->second & converts_to_holder) != 0;
+	const bool to_const_holder = (holder_conversion->second & converts_to_const_holder) != 0;
+
 	int steps = 0;
 	int offset = 0;
-	if (!(LUABIND_TYPE_INFO_EQUAL(holder_type(), target_type))
-		&& !(LUABIND_TYPE_INFO_EQUAL(const_holder_type(), target_type)))
+	if (!to_holder && !to_const_holder)
 	{
 		steps = implicit_cast(this, target_type, offset);
 	}
@@ -1492,7 +1498,7 @@ void* luabind::detail::class_rep::convert_to(
 	// should never be called with a type that can't be cast
 	assert((steps >= 0) && "internal error, please report");
 
-	if (LUABIND_TYPE_INFO_EQUAL(target_type, holder_type()))
+	if (to_holder)
 	{
 		if (obj == 0)
 		{
@@ -1508,7 +1514,7 @@ void* luabind::detail::class_rep::convert_to(
 		return obj->ptr();
 	}
 
-	if (LUABIND_TYPE_INFO_EQUAL(target_type, const_holder_type()))
+	if (to_const_holder)
 	{
 		if (obj == 0)
 		{
