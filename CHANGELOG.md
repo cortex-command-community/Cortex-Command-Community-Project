@@ -282,6 +282,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed `AHuman:EquipShieldInBGArm()` being able to take the wrong item out of the inventory, which left the device it equipped both held and in the inventory. The device then got dropped twice when its holder died, and the game could crash when quitting.
 
+- Fixed the game crashing when a script called a Lua-bound function or method with arguments that don't match it, such as `Vector(1, 2):Dot(5)`, instead of giving the usual "no overload matched" error.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
