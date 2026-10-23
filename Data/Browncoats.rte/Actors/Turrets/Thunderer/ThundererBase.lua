@@ -22,7 +22,7 @@ function ThreadedUpdate(self)
 	-- keep anything from moving us
 	self.Pos = self.pinPos;
 	
-	if not self.Turret or self.Turret.MountedDevice.PresetName == "" then -- for some reason, turrets return a null Entity rather than just nil if they have no mounted device
+	if not self.Turret or not self.Turret.MountedDevice then
 		self:GibThis();
 	end
 end
