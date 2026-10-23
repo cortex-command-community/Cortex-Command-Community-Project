@@ -345,12 +345,6 @@ bool MOSprite::IsOnScenePoint(Vector& scenePoint) const {
 	return false;
 }
 
-Vector MOSprite::RotateOffset(const Vector& offset) const {
-	Vector rotOff(offset.GetXFlipped(m_HFlipped));
-	rotOff *= const_cast<Matrix&>(m_Rotation);
-	return rotOff;
-}
-
 Vector MOSprite::UnRotateOffset(const Vector& offset) const {
 	Vector rotOff(offset);
 	rotOff /= const_cast<Matrix&>(m_Rotation);
