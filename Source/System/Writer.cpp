@@ -1,7 +1,6 @@
 #include "Writer.h"
 #include "System.h"
 
-#include <iomanip>
 #include <fstream>
 
 using namespace RTE;
@@ -36,9 +35,7 @@ int Writer::Create(const std::string& fileName, bool append, bool createDir) {
 		System::MakeDirectory(System::GetWorkingDirectory() + m_FolderPath);
 	}
 
-	auto ofStream = std::make_unique<std::ofstream>(fileName, append ? (std::ios::out | std::ios::app | std::ios::ate) : (std::ios::out | std::ios::trunc));
-	*ofStream << std::fixed << std::setprecision(6);
-	return Create(std::move(ofStream));
+	return Create(std::make_unique<std::ofstream>(fileName, append ? (std::ios::out | std::ios::app | std::ios::ate) : (std::ios::out | std::ios::trunc)));
 }
 
 int Writer::Create(std::unique_ptr<std::ostream>&& stream) {
