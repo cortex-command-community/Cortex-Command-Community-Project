@@ -2048,7 +2048,8 @@ int invoke_member_function(lua_State* L)
 {
     using FnTraits = function_traits<F>;
 
-    LUABRIDGE_ASSERT(isfulluserdata(L, lua_upvalueindex(1)));
+    // Cortex Command: the member function pointer can also be in a light userdata, pointing to memory that's kept outside the Lua heap.
+    LUABRIDGE_ASSERT(lua_isuserdata(L, lua_upvalueindex(1)));
 
     auto ptr = get_member_object<T>(L, false);
     if (! ptr)
@@ -2065,7 +2066,8 @@ int invoke_const_member_function(lua_State* L)
 {
     using FnTraits = function_traits<F>;
 
-    LUABRIDGE_ASSERT(isfulluserdata(L, lua_upvalueindex(1)));
+    // Cortex Command: the member function pointer can also be in a light userdata, pointing to memory that's kept outside the Lua heap.
+    LUABRIDGE_ASSERT(lua_isuserdata(L, lua_upvalueindex(1)));
 
     auto ptr = get_member_object<T>(L, true);
     if (! ptr)
@@ -2175,7 +2177,8 @@ int invoke_proxy_functor(lua_State* L)
 {
     using FnTraits = function_traits<std::remove_reference_t<F>>;
 
-    LUABRIDGE_ASSERT(isfulluserdata(L, lua_upvalueindex(1)));
+    // Cortex Command: the functor can also be in a light userdata, pointing to memory that's kept outside the Lua heap.
+    LUABRIDGE_ASSERT(lua_isuserdata(L, lua_upvalueindex(1)));
 
     auto& func = *align<std::remove_reference_t<F>>(lua_touserdata(L, lua_upvalueindex(1)));
 
