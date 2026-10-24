@@ -306,10 +306,15 @@ struct Stack<int8_t>
         if (lua_type(L, index) != LUA_TNUMBER)
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
+        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
+        return static_cast<int8_t>(static_cast<long long>(lua_tonumber(L, index)));
+#else
         if (! is_integral_representable_by<int8_t>(L, index))
             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
 
         return static_cast<int8_t>(lua_tointeger(L, index));
+#endif
     }
 
     [[nodiscard]] static bool isInstance(lua_State* L, int index)
@@ -347,10 +352,15 @@ struct Stack<unsigned char>
         if (lua_type(L, index) != LUA_TNUMBER)
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
+        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
+        return static_cast<unsigned char>(static_cast<long long>(lua_tonumber(L, index)));
+#else
         if (! is_integral_representable_by<unsigned char>(L, index))
             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
 
         return static_cast<unsigned char>(lua_tointeger(L, index));
+#endif
     }
 
     [[nodiscard]] static bool isInstance(lua_State* L, int index)
@@ -387,10 +397,15 @@ struct Stack<short>
         if (lua_type(L, index) != LUA_TNUMBER)
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
+        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
+        return static_cast<short>(static_cast<long long>(lua_tonumber(L, index)));
+#else
         if (! is_integral_representable_by<short>(L, index))
             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
 
         return static_cast<short>(lua_tointeger(L, index));
+#endif
     }
 
     [[nodiscard]] static bool isInstance(lua_State* L, int index)
@@ -427,10 +442,15 @@ struct Stack<unsigned short>
         if (lua_type(L, index) != LUA_TNUMBER)
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
+        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
+        return static_cast<unsigned short>(static_cast<long long>(lua_tonumber(L, index)));
+#else
         if (! is_integral_representable_by<unsigned short>(L, index))
             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
 
         return static_cast<unsigned short>(lua_tointeger(L, index));
+#endif
     }
 
     [[nodiscard]] static bool isInstance(lua_State* L, int index)
@@ -468,10 +488,15 @@ struct Stack<int>
         if (lua_type(L, index) != LUA_TNUMBER)
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
+        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
+        return static_cast<int>(static_cast<long long>(lua_tonumber(L, index)));
+#else
         if (! is_integral_representable_by<int>(L, index))
             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
 
         return static_cast<int>(lua_tointeger(L, index));
+#endif
     }
 
     [[nodiscard]] static bool isInstance(lua_State* L, int index)
@@ -509,10 +534,15 @@ struct Stack<unsigned int>
         if (lua_type(L, index) != LUA_TNUMBER)
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
+        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
+        return static_cast<unsigned int>(static_cast<long long>(lua_tonumber(L, index)));
+#else
         if (! is_integral_representable_by<unsigned int>(L, index))
             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
 
         return static_cast<unsigned int>(lua_tointeger(L, index));
+#endif
     }
 
     [[nodiscard]] static bool isInstance(lua_State* L, int index)
@@ -550,10 +580,15 @@ struct Stack<long>
         if (lua_type(L, index) != LUA_TNUMBER)
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
+        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
+        return static_cast<long>(static_cast<long long>(lua_tonumber(L, index)));
+#else
         if (! is_integral_representable_by<long>(L, index))
             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
 
         return static_cast<long>(lua_tointeger(L, index));
+#endif
     }
 
     [[nodiscard]] static bool isInstance(lua_State* L, int index)
@@ -591,10 +626,15 @@ struct Stack<unsigned long>
         if (lua_type(L, index) != LUA_TNUMBER)
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
+        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
+        return static_cast<unsigned long>(static_cast<long long>(lua_tonumber(L, index)));
+#else
         if (! is_integral_representable_by<unsigned long>(L, index))
             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
 
         return static_cast<unsigned long>(lua_tointeger(L, index));
+#endif
     }
 
     [[nodiscard]] static bool isInstance(lua_State* L, int index)
@@ -632,10 +672,15 @@ struct Stack<long long>
         if (lua_type(L, index) != LUA_TNUMBER)
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
+        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
+        return static_cast<long long>(static_cast<long long>(lua_tonumber(L, index)));
+#else
         if (! is_integral_representable_by<long long>(L, index))
             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
 
         return static_cast<long long>(lua_tointeger(L, index));
+#endif
     }
 
     [[nodiscard]] static bool isInstance(lua_State* L, int index)
@@ -673,10 +718,15 @@ struct Stack<unsigned long long>
         if (lua_type(L, index) != LUA_TNUMBER)
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
+        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
+        return static_cast<unsigned long long>(static_cast<long long>(lua_tonumber(L, index)));
+#else
         if (! is_integral_representable_by<unsigned long long>(L, index))
             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
 
         return static_cast<unsigned long long>(lua_tointeger(L, index));
+#endif
     }
 
     [[nodiscard]] static bool isInstance(lua_State* L, int index)
@@ -715,10 +765,15 @@ struct Stack<__int128_t>
         if (lua_type(L, index) != LUA_TNUMBER)
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
+        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
+        return static_cast<__int128_t>(static_cast<long long>(lua_tonumber(L, index)));
+#else
         if (! is_integral_representable_by<__int128_t>(L, index))
             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
 
         return static_cast<__int128_t>(lua_tointeger(L, index));
+#endif
     }
 
     [[nodiscard]] static bool isInstance(lua_State* L, int index)
@@ -756,10 +811,15 @@ struct Stack<__uint128_t>
         if (lua_type(L, index) != LUA_TNUMBER)
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
+        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
+        return static_cast<__uint128_t>(static_cast<long long>(lua_tonumber(L, index)));
+#else
         if (! is_integral_representable_by<__uint128_t>(L, index))
             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
 
         return static_cast<__uint128_t>(lua_tointeger(L, index));
+#endif
     }
 
     [[nodiscard]] static bool isInstance(lua_State* L, int index)
@@ -798,8 +858,10 @@ struct Stack<float>
         if (lua_type(L, index) != LUA_TNUMBER)
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+#if !LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
         if (! is_floating_point_representable_by<float>(L, index))
             return makeErrorCode(ErrorCode::FloatingPointDoesntFitIntoLuaNumber);
+#endif
 
         return static_cast<float>(lua_tonumber(L, index));
     }
@@ -839,8 +901,10 @@ struct Stack<double>
         if (lua_type(L, index) != LUA_TNUMBER)
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+#if !LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
         if (! is_floating_point_representable_by<double>(L, index))
             return makeErrorCode(ErrorCode::FloatingPointDoesntFitIntoLuaNumber);
+#endif
 
         return static_cast<double>(lua_tonumber(L, index));
     }
@@ -880,8 +944,10 @@ struct Stack<long double>
         if (lua_type(L, index) != LUA_TNUMBER)
             return makeErrorCode(ErrorCode::InvalidTypeCast);
 
+#if !LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
         if (! is_floating_point_representable_by<long double>(L, index))
             return makeErrorCode(ErrorCode::FloatingPointDoesntFitIntoLuaNumber);
+#endif
 
         return static_cast<long double>(lua_tonumber(L, index));
     }

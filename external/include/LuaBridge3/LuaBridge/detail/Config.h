@@ -103,6 +103,18 @@
 #endif
 
 /**
+ * @brief Convert Lua numbers to C++ numbers the way luabind did. (Cortex Command addition.)
+ *
+ * When enabled, integer `Stack` specializations truncate any `LUA_TNUMBER` towards zero (as `static_cast` from `lua_Number` does) instead of
+ * rejecting numbers with a fractional part or out of the target type's range, and floating point specializations don't range-check.
+ *
+ * @note Default is disabled.
+ */
+#if !defined(LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS)
+#define LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS 0
+#endif
+
+/**
  * @brief Enable safe exception handling when lua is compiled as `C` and exceptions raise during execution of registered `lua_CFunction`.
  * 
  * This is a problem that manifests when exceptions are leaking a CFunction when lua is compiled as `C` because the library will then longjmp
