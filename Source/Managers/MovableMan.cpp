@@ -28,9 +28,9 @@
 using namespace RTE;
 
 AlarmEvent::AlarmEvent(const Vector& pos, int team, float range) :
-	m_ScenePos(pos),
-	m_Team((Activity::Teams)team),
-	m_Range(range * g_FrameMan.GetPlayerScreenWidth() * 0.51F) {}
+    m_ScenePos(pos),
+    m_Team((Activity::Teams)team),
+    m_Range(range * g_FrameMan.GetPlayerScreenWidth() * 0.51F) {}
 
 const std::string MovableMan::c_ClassName = "MovableMan";
 
@@ -1170,7 +1170,7 @@ void MovableMan::RegisterAlarmEvent(const AlarmEvent& newEvent) {
 	m_AddedAlarmEvents.push_back(new AlarmEvent(newEvent));
 }
 
-void callLuaFunctionOnMORecursive(MovableObject* mo, const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
+void callLuaFunctionOnMORecursive(MovableObject* mo, const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuaObjectWrapper*>& functionObjectArguments) {
 	if (MOSRotating* mosr = dynamic_cast<MOSRotating*>(mo)) {
 		for (auto attachablrItr = mosr->GetAttachableList().begin(); attachablrItr != mosr->GetAttachableList().end();) {
 			Attachable* attachable = *attachablrItr;
@@ -1192,7 +1192,7 @@ void callLuaFunctionOnMORecursive(MovableObject* mo, const std::string& function
 	mo->RunScriptedFunctionInAppropriateScripts(functionName, false, false, functionEntityArguments, functionLiteralArguments, functionObjectArguments);
 };
 
-void MovableMan::RunLuaFunctionOnAllMOs(const std::string& functionName, bool includeAdded, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
+void MovableMan::RunLuaFunctionOnAllMOs(const std::string& functionName, bool includeAdded, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuaObjectWrapper*>& functionObjectArguments) {
 	if (includeAdded) {
 		for (Actor* actor: m_AddedActors) {
 			callLuaFunctionOnMORecursive(actor, functionName, functionEntityArguments, functionLiteralArguments, functionObjectArguments);

@@ -66,6 +66,7 @@ This has been tested with WSL2 Ubuntu 22.04 but should work with other distribut
 
 # Linux and macOS Build Instructions
 The Linux build uses the meson build system, and builds against system libraries.
+The Lua bindings use LuaBridge3, which is header only and included in `external/include/LuaBridge3`, with a few changes of our own for compatibility with the scripts written for luabind, which the game used before.
 
 ## Dependencies
 
@@ -125,7 +126,7 @@ If you want to change the buildtype afterwards, you can use `meson configure --b
 `sudo python3 -m pip install meson`
 
 **Fedora:**  
-`# dnf install allegro-loadpng-devel allegro-devel libsdl2-devel SDL2_image-devel lua-devel boost-devel meson ninja-build flac-devel luajit-devel minizip-compat-devel tbb-devel lz4-devel libpng-devel lua-devel gcc gcc-c++`  
+`# dnf install allegro-loadpng-devel allegro-devel libsdl2-devel SDL2_image-devel lua-devel meson ninja-build flac-devel luajit-devel minizip-compat-devel tbb-devel lz4-devel libpng-devel lua-devel gcc gcc-c++`  
 
 ## Troubleshooting
 

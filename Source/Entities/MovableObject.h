@@ -9,7 +9,7 @@
 #include "Vector.h"
 #include "Matrix.h"
 #include "Timer.h"
-#include "LuabindObjectWrapper.h"
+#include "LuaObjectWrapper.h"
 #include "Material.h"
 #include "MovableMan.h"
 
@@ -140,7 +140,7 @@ namespace RTE {
 		/// @param functionEntityArguments Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.
 		/// @param functionLiteralArguments Optional vector of strings, that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int RunScriptedFunctionInAppropriateScripts(const std::string& functionName, bool runOnDisabledScripts = false, bool stopOnError = false, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
+		int RunScriptedFunctionInAppropriateScripts(const std::string& functionName, bool runOnDisabledScripts = false, bool stopOnError = false, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuaObjectWrapper*>& functionObjectArguments = std::vector<LuaObjectWrapper*>());
 
 		/// Cleans up and destroys the script state of this object, calling the Destroy callback in lua
 		virtual void DestroyScriptState();
@@ -869,7 +869,7 @@ namespace RTE {
 		virtual void PostTravel();
 
 		/// Update called prior to controller update. Ugly hack. Supposed to be done every frame.
-		virtual void PreControllerUpdate(){};
+		virtual void PreControllerUpdate() {};
 
 		/// Updates this MovableObject. Supposed to be done every frame. This also
 		/// applies and clear the accumulated impulse forces (impulses), and the
@@ -1233,7 +1233,7 @@ namespace RTE {
 
 		struct LuaFunction {
 			bool m_ScriptIsEnabled; //!< Whether this function is in an enabled script.
-			std::unique_ptr<LuabindObjectWrapper> m_LuaFunction; //!< The lua function itself.
+			std::unique_ptr<LuaObjectWrapper> m_LuaFunction; //!< The lua function itself.
 		};
 
 		std::string m_ScriptObjectName; //!< The name of this object for script usage.

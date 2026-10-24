@@ -5,52 +5,50 @@
 using namespace RTE;
 
 LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, AlarmEvent) {
-	return luabind::class_<AlarmEvent>("AlarmEvent")
+	registry.Class<AlarmEvent>("AlarmEvent")
 
-	    .def(luabind::constructor<>())
-	    .def(luabind::constructor<const Vector&, int, float>())
+	    .addConstructor<>()
+	    .addConstructor<const Vector&, int, float>()
 
-	    .def_readwrite("ScenePos", &AlarmEvent::m_ScenePos)
-	    .def_readwrite("Team", &AlarmEvent::m_Team)
-	    .def_readwrite("Range", &AlarmEvent::m_Range);
+	    .addReadWriteMember("ScenePos", &AlarmEvent::m_ScenePos)
+	    .addReadWriteMember("Team", &AlarmEvent::m_Team)
+	    .addReadWriteMember("Range", &AlarmEvent::m_Range);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, Directions) {
-	return luabind::class_<directions>("Directions")
+	registry.Class<directions>("Directions")
 
-	    .enum_("Directions")[luabind::value("None", Directions::None),
-	                         luabind::value("Up", Directions::Up),
-	                         luabind::value("Down", Directions::Down),
-	                         luabind::value("Left", Directions::Left),
-	                         luabind::value("Right", Directions::Right),
-	                         luabind::value("Any", Directions::Any)];
+	    .addEnum({{"None", Directions::None},
+	              {"Up", Directions::Up},
+	              {"Down", Directions::Down},
+	              {"Left", Directions::Left},
+	              {"Right", Directions::Right},
+	              {"Any", Directions::Any}});
 }
 
 LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, DrawBlendMode) {
-	return luabind::class_<blend_modes>("DrawBlendMode")
+	registry.Class<blend_modes>("DrawBlendMode")
 
-	    .enum_("DrawBlendMode")[luabind::value("NoBlend", DrawBlendMode::NoBlend),
-	                            luabind::value("Burn", DrawBlendMode::BlendBurn),
-	                            luabind::value("Color", DrawBlendMode::BlendColor),
-	                            luabind::value("Difference", DrawBlendMode::BlendDifference),
-	                            luabind::value("Dissolve", DrawBlendMode::BlendDissolve),
-	                            luabind::value("Dodge", DrawBlendMode::BlendDodge),
-	                            luabind::value("Invert", DrawBlendMode::BlendInvert),
-	                            luabind::value("Luminance", DrawBlendMode::BlendLuminance),
-	                            luabind::value("Multiply", DrawBlendMode::BlendMultiply),
-	                            luabind::value("Saturation", DrawBlendMode::BlendSaturation),
-	                            luabind::value("Screen", DrawBlendMode::BlendScreen),
-	                            luabind::value("Transparency", DrawBlendMode::BlendTransparency),
-	                            luabind::value("BlendModeCount", DrawBlendMode::BlendModeCount)];
+	    .addEnum({{"NoBlend", DrawBlendMode::NoBlend},
+	              {"Burn", DrawBlendMode::BlendBurn},
+	              {"Color", DrawBlendMode::BlendColor},
+	              {"Difference", DrawBlendMode::BlendDifference},
+	              {"Dissolve", DrawBlendMode::BlendDissolve},
+	              {"Dodge", DrawBlendMode::BlendDodge},
+	              {"Invert", DrawBlendMode::BlendInvert},
+	              {"Luminance", DrawBlendMode::BlendLuminance},
+	              {"Multiply", DrawBlendMode::BlendMultiply},
+	              {"Saturation", DrawBlendMode::BlendSaturation},
+	              {"Screen", DrawBlendMode::BlendScreen},
+	              {"Transparency", DrawBlendMode::BlendTransparency},
+	              {"BlendModeCount", DrawBlendMode::BlendModeCount}});
 }
 
 LuaBindingRegisterFunctionDefinitionForType(MiscLuaBindings, DrawDepth) {
-	return luabind::class_<draw_depths>("DrawDepth")
-		.enum_("DrawDepth")[
-			luabind::value("Default", c_DefaultDrawDepth),
-			luabind::value("GUI", c_GuiDepth),
-			luabind::value("Primitive", c_PrimitiveDepth),
-			luabind::value("TerrainBackground", c_TerrainBGDepth),
-			luabind::value("Background", c_BackgroundDepth)
-		];
+	registry.Class<draw_depths>("DrawDepth")
+	    .addEnum({{"Default", c_DefaultDrawDepth},
+	              {"GUI", c_GuiDepth},
+	              {"Primitive", c_PrimitiveDepth},
+	              {"TerrainBackground", c_TerrainBGDepth},
+	              {"Background", c_BackgroundDepth}});
 }
