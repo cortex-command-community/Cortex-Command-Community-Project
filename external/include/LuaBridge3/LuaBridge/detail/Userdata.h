@@ -14,6 +14,7 @@
 #include "Result.h"
 #include "Stack.h"
 
+#include <cstddef>
 #include <stdexcept>
 #include <type_traits>
 
@@ -38,6 +39,35 @@ std::error_code getNilBadArgError(lua_State* L, int index)
         luaL_argerror(L, lua_absindex(L, index), message.c_str());
 
     return makeErrorCode(ErrorCode::InvalidTypeCast);
+}
+
+//=================================================================================================
+/**
+ * @brief Every class an object's class can be cast to, stored in its class and const metatables. (Cortex Command addition.)
+ *
+ * When a metatable has one of these under getAncestryInfoKey(), Userdata::get finds out whether the object can be used as a T, and
+ * where the T is within it, with a single lookup and a short loop, instead of going up the parent lists and the cast tables one class
+ * at a time. That matters for deep class hierarchies, where it used to make every access to a member of a base class slow.
+ * LuaBridge never puts these in metatables itself, so it works the same as before without them.
+ */
+struct AncestryInfo
+{
+    static constexpr int MaxAncestors = 24;
+
+    const void* ClassKeys[MaxAncestors]; ///< Class registry keys of the class itself, followed by its bases, nearest first.
+    std::ptrdiff_t Offsets[MaxAncestors]; ///< What to add to a pointer to the class to get a pointer to each of those, in bytes.
+    int Count; ///< How many entries of the arrays are used.
+    bool IsConst; ///< Whether the metatable this is in is a const one.
+};
+
+/**
+ * @brief The key AncestryInfo is stored under in metatables. (Cortex Command addition.)
+ */
+[[nodiscard]] inline const void* getAncestryInfoKey() noexcept
+{
+    // A fixed value like the rest of LuaBridge's keys, rather than the address of something. Tables with keys that are addresses grow at
+    // different times from run to run, which changes when Lua's garbage collector runs, and Cortex Command's simulation has to be deterministic.
+    return reinterpret_cast<void*>(0xa9ce);
 }
 
 //=================================================================================================
@@ -300,6 +330,30 @@ public:
         // Common-case fast path: compare the object's metatable directly against the registry class/const tables.
         if (lua_getmetatable(L, absIndex)) // Stack: ..., mt
         {
+            // Cortex Command: when the metatable says what classes its objects can be cast to, that's all that's needed.
+            lua_rawgetp_x(L, -1, getAncestryInfoKey()); // Stack: ..., mt, ancestry | nil
+            if (const auto* ancestry = static_cast<const AncestryInfo*>(lua_touserdata(L, -1)))
+            {
+                lua_pop(L, 2); // Stack: ...
+                if (! ancestry->IsConst || canBeConst)
+                {
+                    for (int i = 0; i < ancestry->Count; ++i)
+                    {
+                        if (ancestry->ClassKeys[i] == classId)
+                        {
+                            void* rawPtr = static_cast<Userdata*>(lua_touserdata(L, absIndex))->getPointer();
+                            return rawPtr ? reinterpret_cast<T*>(static_cast<char*>(rawPtr) + ancestry->Offsets[i]) : nullptr;
+                        }
+                    }
+                }
+                // It can't be used as a T, so leave it to the rest to report why.
+                lua_getmetatable(L, absIndex); // Stack: ..., mt
+            }
+            else
+            {
+                lua_pop(L, 1); // Stack: ..., mt
+            }
+
             lua_rawgetp_x(L, LUA_REGISTRYINDEX, classId); // Stack: ..., mt, class_mt
             if (lua_rawequal(L, -2, -1))
             {
