@@ -71,7 +71,8 @@ void LuaStateWrapper::Initialize() {
 	}
 
 	// Register all relevant bindings to the state. Note that the order of registration is important, as bindings can't derive from an unregistered type (inheritance and all that).
-	LuaBinding::Registry registry(m_State);
+	m_BindingStorage = std::make_unique<LuaBinding::Storage>();
+	LuaBinding::Registry registry(m_State, *m_BindingStorage);
 
 	registry.Class<LuaStateWrapper>("LuaManager")
 	    .addProperty("TempEntity", &LuaStateWrapper::GetTempEntity)
@@ -277,6 +278,7 @@ void LuaStateWrapper::Initialize() {
 
 void LuaStateWrapper::Destroy() {
 	lua_close(m_State);
+	m_BindingStorage.reset();
 }
 
 int LuaStateWrapper::SelectRand(int minInclusive, int maxInclusive) {

@@ -8,6 +8,7 @@
 #include "BS_thread_pool.hpp"
 
 #include <array>
+#include <memory>
 
 #define g_LuaMan LuaMan::Instance()
 
@@ -17,6 +18,9 @@ namespace RTE {
 
 	class LuaObjectWrapper;
 	class MovableObject;
+	namespace LuaBinding {
+		class Storage;
+	}
 
 	/// A single lua state. Multiple of these can exist at once for multithreaded scripting.
 	class LuaStateWrapper {
@@ -252,6 +256,7 @@ namespace RTE {
 		std::unordered_set<MovableObject*> m_AddedRegisteredMOs; //!< The objects using our lua state that were recently added.
 
 		lua_State* m_State;
+		std::unique_ptr<LuaBinding::Storage> m_BindingStorage; //!< What the Lua bindings of this state call, kept outside the Lua heap. Has to outlive the Lua state.
 		Entity* m_TempEntity; //!< Temporary holder for an Entity object that we want to pass into the Lua state without fuss. Lets you export objects to lua easily.
 		std::vector<Entity*> m_TempEntityVector; //!< Temporary holder for a vector of Entities that we want to pass into the Lua state without a fuss. Usually used to pass arguments to special Lua functions.
 		std::string m_LastError; //!< Description of the last error that occurred in the script execution.

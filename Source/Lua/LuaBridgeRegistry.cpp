@@ -14,6 +14,7 @@
 
 #include "LuaBridgeDefinitions.h"
 
+#include <algorithm>
 #include <climits>
 #include <cstdarg>
 #include <cstdio>
@@ -42,7 +43,7 @@ namespace {
 	};
 
 	/// Calls the overload that best matches the arguments, like luabind did: the arity has to match exactly, the overload with the lowest total score wins, and a tie between the best is an error.
-	/// Upvalues: 1 the DispatchInfo, 2 the table of overload closures, 3 the name for error messages.
+	/// Upvalues: 1 light userdata pointing to the DispatchInfo, 2 the table of overload closures, 3 the name for error messages.
 	int DispatchOverload(lua_State* luaState) {
 		const DispatchInfo* info = static_cast<const DispatchInfo*>(lua_touserdata(luaState, lua_upvalueindex(1)));
 		const int top = lua_gettop(luaState);
@@ -124,7 +125,7 @@ namespace {
 	}
 
 	/// __index of objects. Looks in the object's own values, then the class's methods, then its property getters, like luabind did.
-	/// Upvalues: 1 methods table, 2 property getters table (of PropertyAccessor userdata), 3 instance table marker, 4 the string "__ok".
+	/// Upvalues: 1 methods table, 2 property getters table (of light userdata pointing to PropertyAccessors), 3 instance table marker, 4 the string "__ok".
 	int InstanceIndex(lua_State* luaState) {
 		if (!NormalizeKey(luaState)) {
 			lua_pushnil(luaState);
@@ -159,7 +160,7 @@ namespace {
 	}
 
 	/// __newindex of objects. Calls the property setter if there is one, raises an error for read only properties, and otherwise stores the value in the object's own value table.
-	/// Upvalues: 1 property setters table, 2 property getters table (both of PropertyAccessor userdata), 3 instance table marker, 4 class name.
+	/// Upvalues: 1 property setters table, 2 property getters table (both of light userdata pointing to PropertyAccessors), 3 instance table marker, 4 class name.
 	int InstanceNewIndex(lua_State* luaState) {
 		if (!NormalizeKey(luaState)) {
 			RaiseError(luaState, "Can't set a value with a %s key on a %s!", luaL_typename(luaState, 2), lua_tostring(luaState, lua_upvalueindex(4)));
@@ -254,15 +255,16 @@ namespace {
 	}
 
 	/// Pushes the function that calls a set of overloads: the overload's own closure if there's only one, otherwise a dispatcher that picks between them.
-	void PushOverloadSet(lua_State* luaState, const std::vector<const OverloadRecord*>& overloads, const std::string& name, int firstArgumentIndex) {
+	void PushOverloadSet(lua_State* luaState, Storage& storage, const std::vector<const OverloadRecord*>& overloads, const std::string& name, int firstArgumentIndex) {
 		if (overloads.size() == 1 && firstArgumentIndex == 1) {
 			lua_rawgeti(luaState, LUA_REGISTRYINDEX, overloads.front()->ClosureReference);
 			return;
 		}
 		const int count = static_cast<int>(overloads.size());
-		DispatchInfo* info = static_cast<DispatchInfo*>(lua_newuserdata(luaState, sizeof(DispatchInfo) + sizeof(DispatchEntry) * (count - 1)));
+		DispatchInfo* info = new (storage.Allocate(sizeof(DispatchInfo) + sizeof(DispatchEntry) * (count - 1), alignof(DispatchInfo))) DispatchInfo;
 		info->Count = count;
 		info->FirstArgumentIndex = firstArgumentIndex;
+		lua_pushlightuserdata(luaState, info);
 		lua_createtable(luaState, count, 0);
 		for (int i = 0; i < count; ++i) {
 			info->Entries[i] = {overloads[i]->Arity, overloads[i]->Matcher};
@@ -282,37 +284,40 @@ namespace {
 		lua_rawset(luaState, tableIndex);
 	}
 
-	/// The property accessors that don't need a pointer offset, so classes that inherit a property can share the same accessor userdata.
-	/// The userdata are kept in a Lua array, and found by where their accessor is in memory through a C++ map.
-	/// Keying a Lua table by those addresses instead would make when it grows depend on where the registry's records happened to be allocated, which changes how the Lua heap gets used,
-	/// and with that when garbage collection runs and which strings get remade with new IDs, which the order pairs() goes through tables with string keys in depends on.
-	struct SharedAccessorCache {
-		int TableIndex; //!< Stack index of the Lua array the shared accessor userdata are in.
-		std::unordered_map<const PropertyAccessor*, int> Slots; //!< Where in the array each shared accessor's userdata is.
-	};
+	/// The stored copies of the property accessors that don't need a pointer offset, by the accessor in the registry's records they're copies of. Classes that inherit a property share these.
+	using SharedAccessors = std::unordered_map<const PropertyAccessor*, const PropertyAccessor*>;
 
-	/// Pushes a userdata with a property accessor for a class whose objects need the given offset added to point to the class the property is registered on.
+	/// Pushes a light userdata pointing to a stored property accessor, for a class whose objects need the given offset added to point to the class the property is registered on.
 	/// Accessors without an offset are shared between all the classes that inherit them.
-	void PushPropertyAccessor(lua_State* luaState, SharedAccessorCache& cache, const PropertyAccessor& accessor, std::ptrdiff_t offset) {
+	void PushPropertyAccessor(lua_State* luaState, Storage& storage, SharedAccessors& sharedAccessors, const PropertyAccessor& accessor, std::ptrdiff_t offset) {
+		const PropertyAccessor* stored;
 		if (offset == 0) {
-			if (auto slot = cache.Slots.find(&accessor); slot != cache.Slots.end()) {
-				lua_rawgeti(luaState, cache.TableIndex, slot->second);
-				return;
+			const PropertyAccessor*& shared = sharedAccessors[&accessor];
+			if (!shared) {
+				shared = storage.Emplace<PropertyAccessor>(accessor);
 			}
+			stored = shared;
+		} else {
+			PropertyAccessor* copy = storage.Emplace<PropertyAccessor>(accessor);
+			copy->Offset = offset;
+			stored = copy;
 		}
-		PropertyAccessor* stored = static_cast<PropertyAccessor*>(lua_newuserdata(luaState, sizeof(PropertyAccessor)));
-		*stored = accessor;
-		stored->Offset = offset;
-		if (offset == 0) {
-			const int slot = static_cast<int>(cache.Slots.size()) + 1;
-			cache.Slots.emplace(&accessor, slot);
-			lua_pushvalue(luaState, -1);
-			lua_rawseti(luaState, cache.TableIndex, slot);
-		}
+		lua_pushlightuserdata(luaState, const_cast<PropertyAccessor*>(stored));
 	}
 } // namespace
 
 namespace RTE::LuaBinding {
+	void* Storage::Allocate(std::size_t size, std::size_t alignment) {
+		std::size_t offset = (m_LastBlockUsed + alignment - 1) / alignment * alignment;
+		if (m_Blocks.empty() || offset + size > m_LastBlockSize) {
+			m_LastBlockSize = std::max(size, c_BlockSize);
+			m_Blocks.push_back(std::make_unique<std::byte[]>(m_LastBlockSize));
+			offset = 0;
+		}
+		m_LastBlockUsed = offset + size;
+		return m_Blocks.back().get() + offset;
+	}
+
 	void RaiseError(lua_State* luaState, const char* format, ...) {
 		char message[1024];
 		va_list arguments;
@@ -345,10 +350,7 @@ namespace RTE::LuaBinding {
 		lua_createtable(luaState, classCount * 2, 0);
 		const int allMethodsTablesIndex = lua_gettop(luaState);
 
-		lua_newtable(luaState);
-		const int accessorCacheIndex = lua_gettop(luaState);
-		SharedAccessorCache accessorCache{accessorCacheIndex, {}};
-
+		SharedAccessors sharedAccessors;
 		std::vector<std::vector<int>> descendants(classCount);
 
 		for (int classIndex = 0; classIndex < classCount; ++classIndex) {
@@ -388,8 +390,7 @@ namespace RTE::LuaBinding {
 				const char* persistentName = lua_tostring(luaState, -1);
 				RawSetP(luaState, metatableIndex, c_ClassNameKey);
 
-				ClassTypeInfo* info = static_cast<ClassTypeInfo*>(lua_newuserdata(luaState, sizeof(ClassTypeInfo)));
-				*info = {};
+				ClassTypeInfo* info = m_Storage.Emplace<ClassTypeInfo>();
 				info->Ancestry.Count = static_cast<int>(chain.size());
 				std::ptrdiff_t offset = 0;
 				for (int i = 0; i < info->Ancestry.Count; ++i) {
@@ -400,6 +401,7 @@ namespace RTE::LuaBinding {
 				info->Ancestry.IsConst = metatableIndex == constMetatableIndex;
 				info->Name = persistentName;
 				info->PushPointer = record.PushPointer;
+				lua_pushlightuserdata(luaState, info);
 				RawSetP(luaState, metatableIndex, GetClassTypeInfoKey());
 			}
 
@@ -421,7 +423,7 @@ namespace RTE::LuaBinding {
 			const int constMethodsIndex = lua_gettop(luaState);
 
 			for (const auto& [name, candidates]: methodCandidates) {
-				PushOverloadSet(luaState, RemoveHiddenOverloads(candidates), record.Name + "." + name, 1);
+				PushOverloadSet(luaState, m_Storage, RemoveHiddenOverloads(candidates), record.Name + "." + name, 1);
 				if (name.rfind("__", 0) == 0) {
 					// Operators have to be in the metatables themselves, and the same function in both, or Lua won't compare const and non-const objects with each other.
 					lua_pushvalue(luaState, -1);
@@ -433,7 +435,7 @@ namespace RTE::LuaBinding {
 			}
 			for (const auto& [name, candidates]: constMethodCandidates) {
 				if (name.rfind("__", 0) != 0) {
-					PushOverloadSet(luaState, RemoveHiddenOverloads(candidates), record.Name + "." + name, 1);
+					PushOverloadSet(luaState, m_Storage, RemoveHiddenOverloads(candidates), record.Name + "." + name, 1);
 					lua_setfield(luaState, constMethodsIndex, name.c_str());
 				}
 			}
@@ -450,10 +452,10 @@ namespace RTE::LuaBinding {
 			std::ptrdiff_t ancestorOffset = 0;
 			for (int chainIndex: chain) {
 				for (const PropertyRecord& property: m_Classes[chainIndex].Properties) {
-					PushPropertyAccessor(luaState, accessorCache, property.Getter, ancestorOffset);
+					PushPropertyAccessor(luaState, m_Storage, sharedAccessors, property.Getter, ancestorOffset);
 					RawSetField(luaState, gettersIndex, property.Name.c_str());
 					if (property.Setter.Call) {
-						PushPropertyAccessor(luaState, accessorCache, property.Setter, ancestorOffset);
+						PushPropertyAccessor(luaState, m_Storage, sharedAccessors, property.Setter, ancestorOffset);
 						RawSetField(luaState, settersIndex, property.Name.c_str());
 					}
 				}
@@ -501,11 +503,11 @@ namespace RTE::LuaBinding {
 				for (const OverloadRecord& constructor: record.Constructors) {
 					constructors.push_back(&constructor);
 				}
-				PushOverloadSet(luaState, constructors, record.Name, 2);
+				PushOverloadSet(luaState, m_Storage, constructors, record.Name, 2);
 				RawSetField(luaState, staticMetatableIndex, "__call");
 			}
 
-			lua_settop(luaState, accessorCacheIndex);
+			lua_settop(luaState, allMethodsTablesIndex);
 		}
 
 		// Class tables can only be extended once all the derived classes' method tables exist.
@@ -536,7 +538,7 @@ namespace RTE::LuaBinding {
 			functions[function.Name].push_back(&function);
 		}
 		for (const auto& [name, overloads]: functions) {
-			PushOverloadSet(luaState, overloads, name, 1);
+			PushOverloadSet(luaState, m_Storage, overloads, name, 1);
 			lua_setglobal(luaState, name.c_str());
 		}
 

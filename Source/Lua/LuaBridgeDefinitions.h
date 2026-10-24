@@ -14,6 +14,8 @@
 #include <cstring>
 #include <functional>
 #include <limits>
+#include <memory>
+#include <new>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -77,12 +79,42 @@ namespace RTE::LuaBinding {
 	[[noreturn]] void RaiseError(lua_State* luaState, const char* format, ...);
 #pragma endregion
 
+#pragma region Storage
+	/// Keeps the parts of a Lua state's bindings that never change once they're registered, like the functions that methods call and the property accessors, for as long as the Lua state is open.
+	/// Lua refers to them with light userdata pointing in here, rather than having full userdata of their own. There are thousands of them in every Lua state, and Lua's garbage collector visits every full userdata on every cycle,
+	/// which made garbage collection take much longer than it did with luabind. Light userdata aren't garbage collected at all.
+	class Storage {
+	public:
+		/// Stores a value. It's never destroyed, only freed along with the storage, which has to outlive the Lua state that uses it.
+		/// @return Pointer to the stored value, which never moves.
+		template <class T, class... Args>
+		T* Emplace(Args&&... args) {
+			static_assert(std::is_trivially_destructible_v<T>, "Stored values are never destroyed, so they can't need destructing!");
+			static_assert(alignof(T) <= __STDCPP_DEFAULT_NEW_ALIGNMENT__, "Stored values can't need more alignment than new gives!");
+			return new (Allocate(sizeof(T), alignof(T))) T(std::forward<Args>(args)...);
+		}
+
+		/// Allocates memory that's freed along with the storage.
+		/// @param size How many bytes to allocate.
+		/// @param alignment What the memory has to be aligned to, which can't be more than what new aligns to.
+		/// @return Pointer to the memory, which never moves.
+		void* Allocate(std::size_t size, std::size_t alignment);
+
+	private:
+		static constexpr std::size_t c_BlockSize = 16384; //!< How many bytes each block of memory that values are stored in has, unless a value needs more.
+
+		std::vector<std::unique_ptr<std::byte[]>> m_Blocks; //!< The blocks of memory values are stored in.
+		std::size_t m_LastBlockSize = 0; //!< How many bytes the last block has.
+		std::size_t m_LastBlockUsed = 0; //!< How many bytes of the last block are used.
+	};
+#pragma endregion
+
 #pragma region Class Type Info
 	/// Function that pushes a raw, non-owned pointer to an object of a registered class, given as a void pointer to the exact registered type, into a Lua state.
 	using PushPointerFunction = void (*)(lua_State* luaState, void* object);
 
 	/// Information about a registered class that's stored in each of its metatables, used for working out overload scores, casting objects to their base classes quickly, and copying objects between Lua states.
-	/// It's plain data inside a userdata, so it lives exactly as long as the metatable it's stored in without needing a finalizer.
+	/// It's kept in the bindings' Storage, and the metatables have light userdata pointing to it.
 	/// It starts with LuaBridge's AncestryInfo, which LuaBridge reads to cast objects to their base classes, so it has to stay standard layout.
 	struct ClassTypeInfo {
 		luabridge::detail::AncestryInfo Ancestry; //!< The class registry keys of the class and its bases, nearest first, so the index in there is the luabind cast distance, with the pointer offsets to them. Also says whether the objects are const.
@@ -94,7 +126,7 @@ namespace RTE::LuaBinding {
 	};
 	static_assert(std::is_standard_layout_v<ClassTypeInfo>, "LuaBridge reads ClassTypeInfo as the AncestryInfo it starts with!");
 
-	/// Gets the key ClassTypeInfo userdata are stored under in metatables.
+	/// Gets the key ClassTypeInfo are stored under in metatables.
 	inline const void* GetClassTypeInfoKey() {
 		return luabridge::detail::getAncestryInfoKey();
 	}
@@ -695,7 +727,7 @@ namespace RTE::LuaBinding {
 #pragma endregion
 
 #pragma region Property Accessors
-	/// A property getter or setter, stored in a userdata in a class's property tables, which the class's __index and __newindex call directly.
+	/// A property getter or setter, kept in the bindings' Storage, with light userdata pointing to it in a class's property tables, which the class's __index and __newindex call directly.
 	/// Calling them this way, rather than through Lua closures like LuaBridge's own properties, saves a Lua call and a type check on every property access, which scripts do more of than anything else.
 	struct PropertyAccessor {
 		/// Pushes the property's value for getters, or sets the property to the value at stack index 3 for setters.
@@ -705,7 +737,7 @@ namespace RTE::LuaBinding {
 		using Function = int (*)(lua_State* luaState, void* object, const void* callable);
 
 		Function Call; //!< Calls the getter or setter.
-		const void* Callable; //!< The getter or setter that Call calls, kept alive in a userdata of its own.
+		const void* Callable; //!< The getter or setter that Call calls, also kept in the bindings' Storage.
 		std::ptrdiff_t Offset; //!< What to add to a pointer to an object of the class whose property tables this is in, to get a pointer to the class the property is registered on.
 	};
 
@@ -779,6 +811,43 @@ namespace RTE::LuaBinding {
 		std::vector<PropertyRecord> Properties; //!< The properties registered on this class itself.
 	};
 
+	/// Pushes a closure that calls a functor, which is kept in the storage.
+	template <class F>
+	void PushFunctor(lua_State* luaState, Storage& storage, F functor) {
+		lua_pushlightuserdata(luaState, storage.Emplace<F>(std::move(functor)));
+		lua_pushcclosure(luaState, &luabridge::detail::invoke_proxy_functor<F>, 1);
+	}
+
+	/// Pushes a closure that calls a method of class T, which is either a member function pointer or a functor that takes the object as its first parameter.
+	/// It's the closure LuaBridge's push_member_function makes, except that the member function pointer or functor is kept in the storage rather than in a full userdata of its own.
+	template <class T, class F>
+	void PushMethod(lua_State* luaState, Storage& storage, F method) {
+		if constexpr (std::is_member_function_pointer_v<F>) {
+			lua_pushlightuserdata(luaState, storage.Emplace<F>(method));
+			// The class's metatables, which LuaBridge compares the object's metatable with first, to skip casting objects that are exactly a T.
+			RawGetP(luaState, LUA_REGISTRYINDEX, luabridge::detail::getClassRegistryKey<T>());
+			if constexpr (FunctionSignature<F>::c_IsConst) {
+				RawGetP(luaState, LUA_REGISTRYINDEX, luabridge::detail::getConstRegistryKey<T>());
+				lua_pushcclosure(luaState, &luabridge::detail::invoke_const_member_function<F, T>, 3);
+			} else {
+				lua_pushcclosure(luaState, &luabridge::detail::invoke_member_function<F, T>, 2);
+			}
+		} else {
+			PushFunctor(luaState, storage, std::move(method));
+		}
+	}
+
+	/// Pushes a closure that calls a global function, which is either a function pointer or a functor.
+	template <class F>
+	void PushFunction(lua_State* luaState, Storage& storage, F function) {
+		if constexpr (std::is_pointer_v<F>) {
+			// LuaBridge already keeps function pointers in light userdata.
+			luabridge::detail::push_function(luaState, function, "");
+		} else {
+			PushFunctor(luaState, storage, std::move(function));
+		}
+	}
+
 	template <class T, class Base>
 	class ClassBuilder;
 
@@ -789,8 +858,10 @@ namespace RTE::LuaBinding {
 
 	public:
 		/// Constructor method used to instantiate a Registry object for a Lua state.
-		explicit Registry(lua_State* luaState) :
-		    m_LuaState(luaState) {}
+		/// @param luaState The Lua state to register into.
+		/// @param storage Where to keep what the bindings call, which has to outlive the Lua state.
+		Registry(lua_State* luaState, Storage& storage) :
+		    m_LuaState(luaState), m_Storage(storage) {}
 
 		/// Gets the Lua state being registered into.
 		lua_State* GetLuaState() const { return m_LuaState; }
@@ -805,7 +876,7 @@ namespace RTE::LuaBinding {
 		Registry& Function(const char* name, F function, Policies... policies) {
 			auto wrapped = MakeFunction(function, policies...);
 			using Parameters = typename luabridge::detail::function_traits<decltype(wrapped)>::argument_types;
-			luabridge::detail::push_function(m_LuaState, std::move(wrapped), name);
+			PushFunction(m_LuaState, m_Storage, std::move(wrapped));
 			m_Functions.push_back({name, luaL_ref(m_LuaState, LUA_REGISTRYINDEX), TupleMatcher<Parameters>::c_Arity, &TupleMatcher<Parameters>::Match, &typeid(Parameters), true});
 			return *this;
 		}
@@ -813,26 +884,16 @@ namespace RTE::LuaBinding {
 		/// Sets up the metatables of every registered class, and the global functions, so they behave the way they did with luabind. Has to be called once everything is registered.
 		void Finalize();
 
-		/// Stores a copy of a property getter or setter in a userdata that lives as long as the Lua state.
+		/// Stores a copy of a property getter or setter for as long as the Lua state is open.
 		/// @return Pointer to the stored copy, which never moves.
 		template <class Callable>
 		const void* StoreCallable(Callable callable) {
-			static_assert(std::is_trivially_destructible_v<Callable>, "Property getters and setters are stored without finalizers, so they can't need destructing!");
-			if (m_KeepAliveTableReference == LUA_NOREF) {
-				lua_newtable(m_LuaState);
-				m_KeepAliveTableReference = luaL_ref(m_LuaState, LUA_REGISTRYINDEX);
-			}
-			lua_rawgeti(m_LuaState, LUA_REGISTRYINDEX, m_KeepAliveTableReference);
-			void* storage = lua_newuserdata(m_LuaState, sizeof(Callable));
-			new (storage) Callable(std::move(callable));
-			lua_rawseti(m_LuaState, -2, static_cast<int>(lua_objlen(m_LuaState, -2)) + 1);
-			lua_pop(m_LuaState, 1);
-			return storage;
+			return m_Storage.Emplace<Callable>(std::move(callable));
 		}
 
 	private:
 		lua_State* m_LuaState; //!< The Lua state being registered into.
-		int m_KeepAliveTableReference = LUA_NOREF; //!< Lua registry reference to the table that keeps the stored property getters and setters alive.
+		Storage& m_Storage; //!< Where what the bindings call is kept.
 		std::vector<ClassRecord> m_Classes; //!< Every registered class, bases before their derived classes.
 		std::unordered_map<const void*, int> m_ClassIndices; //!< Index of each class's record, by class registry key.
 		std::vector<OverloadRecord> m_Functions; //!< The global functions.
@@ -1039,7 +1100,7 @@ namespace RTE::LuaBinding {
 			using Parameters = typename LuaParameters<T, F>::Type;
 			using Self = std::tuple_element_t<0, Parameters>;
 			using SelfPointee = std::remove_reference_t<std::remove_pointer_t<Self>>;
-			luabridge::detail::push_member_function<T>(luaState, std::move(function), name);
+			PushMethod<T>(luaState, m_Registry->m_Storage, std::move(function));
 			Record().Methods.push_back({name, luaL_ref(luaState, LUA_REGISTRYINDEX), TupleMatcher<Parameters>::c_Arity, &MethodMatcher<Parameters>::Match, &typeid(TailOf<Parameters>), std::is_const_v<SelfPointee>});
 		}
 
