@@ -18,13 +18,15 @@
 #include <cstdarg>
 #include <cstdio>
 #include <map>
+#include <unordered_map>
 
 using namespace RTE;
 using namespace RTE::LuaBinding;
 
 namespace {
-	const char c_InstanceTableMarkerKey = 0; //!< Registry key of the metatable that marks a userdata environment as the object's own value table.
-	const char c_ClassNameKey = 0; //!< Key the class name string is stored under in metatables, so the name in ClassTypeInfo stays valid.
+	// Light userdata keys are fixed values like LuaBridge's own, rather than the addresses of something, see RawGetP.
+	const void* const c_InstanceTableMarkerKey = reinterpret_cast<void*>(0x1257ab); //!< Registry key of the metatable that marks a userdata environment as the object's own value table.
+	const void* const c_ClassNameKey = reinterpret_cast<void*>(0xc1a55a); //!< Key the class name string is stored under in metatables, so the name in ClassTypeInfo stays valid.
 
 	/// One entry in an overload dispatcher.
 	struct DispatchEntry {
@@ -280,24 +282,32 @@ namespace {
 		lua_rawset(luaState, tableIndex);
 	}
 
+	/// The property accessors that don't need a pointer offset, so classes that inherit a property can share the same accessor userdata.
+	/// The userdata are kept in a Lua array, and found by where their accessor is in memory through a C++ map.
+	/// Keying a Lua table by those addresses instead would make when it grows depend on where the registry's records happened to be allocated, which changes how the Lua heap gets used,
+	/// and with that when garbage collection runs and which strings get remade with new IDs, which the order pairs() goes through tables with string keys in depends on.
+	struct SharedAccessorCache {
+		int TableIndex; //!< Stack index of the Lua array the shared accessor userdata are in.
+		std::unordered_map<const PropertyAccessor*, int> Slots; //!< Where in the array each shared accessor's userdata is.
+	};
+
 	/// Pushes a userdata with a property accessor for a class whose objects need the given offset added to point to the class the property is registered on.
-	/// Accessors without an offset are shared between all the classes that inherit them, through the cache table at the given index.
-	void PushPropertyAccessor(lua_State* luaState, int cacheIndex, const PropertyAccessor& accessor, std::ptrdiff_t offset) {
+	/// Accessors without an offset are shared between all the classes that inherit them.
+	void PushPropertyAccessor(lua_State* luaState, SharedAccessorCache& cache, const PropertyAccessor& accessor, std::ptrdiff_t offset) {
 		if (offset == 0) {
-			lua_pushlightuserdata(luaState, const_cast<PropertyAccessor*>(&accessor));
-			lua_rawget(luaState, cacheIndex);
-			if (!lua_isnil(luaState, -1)) {
+			if (auto slot = cache.Slots.find(&accessor); slot != cache.Slots.end()) {
+				lua_rawgeti(luaState, cache.TableIndex, slot->second);
 				return;
 			}
-			lua_pop(luaState, 1);
 		}
 		PropertyAccessor* stored = static_cast<PropertyAccessor*>(lua_newuserdata(luaState, sizeof(PropertyAccessor)));
 		*stored = accessor;
 		stored->Offset = offset;
 		if (offset == 0) {
-			lua_pushlightuserdata(luaState, const_cast<PropertyAccessor*>(&accessor));
-			lua_pushvalue(luaState, -2);
-			lua_rawset(luaState, cacheIndex);
+			const int slot = static_cast<int>(cache.Slots.size()) + 1;
+			cache.Slots.emplace(&accessor, slot);
+			lua_pushvalue(luaState, -1);
+			lua_rawseti(luaState, cache.TableIndex, slot);
 		}
 	}
 } // namespace
@@ -325,7 +335,7 @@ namespace RTE::LuaBinding {
 		lua_newtable(luaState);
 		const int instanceTableMarkerIndex = lua_gettop(luaState);
 		lua_pushvalue(luaState, instanceTableMarkerIndex);
-		RawSetP(luaState, LUA_REGISTRYINDEX, &c_InstanceTableMarkerKey);
+		RawSetP(luaState, LUA_REGISTRYINDEX, c_InstanceTableMarkerKey);
 		lua_pushstring(luaState, "__ok");
 		const int okKeyIndex = lua_gettop(luaState);
 
@@ -335,9 +345,9 @@ namespace RTE::LuaBinding {
 		lua_createtable(luaState, classCount * 2, 0);
 		const int allMethodsTablesIndex = lua_gettop(luaState);
 
-		// The property accessors that don't need a pointer offset, so classes that inherit a property can share the same accessor userdata.
 		lua_newtable(luaState);
 		const int accessorCacheIndex = lua_gettop(luaState);
+		SharedAccessorCache accessorCache{accessorCacheIndex, {}};
 
 		std::vector<std::vector<int>> descendants(classCount);
 
@@ -376,7 +386,7 @@ namespace RTE::LuaBinding {
 			for (int metatableIndex: {classMetatableIndex, constMetatableIndex}) {
 				lua_pushstring(luaState, record.Name.c_str());
 				const char* persistentName = lua_tostring(luaState, -1);
-				RawSetP(luaState, metatableIndex, &c_ClassNameKey);
+				RawSetP(luaState, metatableIndex, c_ClassNameKey);
 
 				ClassTypeInfo* info = static_cast<ClassTypeInfo*>(lua_newuserdata(luaState, sizeof(ClassTypeInfo)));
 				*info = {};
@@ -440,10 +450,10 @@ namespace RTE::LuaBinding {
 			std::ptrdiff_t ancestorOffset = 0;
 			for (int chainIndex: chain) {
 				for (const PropertyRecord& property: m_Classes[chainIndex].Properties) {
-					PushPropertyAccessor(luaState, accessorCacheIndex, property.Getter, ancestorOffset);
+					PushPropertyAccessor(luaState, accessorCache, property.Getter, ancestorOffset);
 					RawSetField(luaState, gettersIndex, property.Name.c_str());
 					if (property.Setter.Call) {
-						PushPropertyAccessor(luaState, accessorCacheIndex, property.Setter, ancestorOffset);
+						PushPropertyAccessor(luaState, accessorCache, property.Setter, ancestorOffset);
 						RawSetField(luaState, settersIndex, property.Name.c_str());
 					}
 				}

@@ -59,8 +59,8 @@ namespace RTE {
 #pragma endregion
 
 	private:
-		bool m_OwnsObject; //!< Whether or not we own the Lua object reference this is wrapping.
-		luabridge::LuaRef* m_LuaObject; //!< The Lua object reference this is wrapping.
+		bool m_OwnsObject = false; //!< Whether or not we own the Lua object reference this is wrapping.
+		luabridge::LuaRef* m_LuaObject = nullptr; //!< The Lua object reference this is wrapping.
 		std::string m_FilePath; //!< The filepath the wrapped Lua object represents, if it's a function.
 
 		// Disallow the use of some implicit methods.

@@ -56,6 +56,9 @@ namespace RTE::LuaBinding {
 
 #pragma region Raw Lua Helpers
 	/// Pushes the value stored under a light userdata key in the table at the given index. Lua 5.1 has no lua_rawgetp, and LuaBridge's version checks the stack on every call.
+	/// Keys must be fixed values, like LuaBridge's own keys are, and never the address of something.
+	/// Light userdata are hashed by their value, so with addresses for keys, when a table has to grow would differ from run to run. That changes how memory gets used, and with it when the garbage collector runs,
+	/// which changes which strings get collected and made again with new IDs, and so the order pairs() goes through tables with string keys in, which breaks the simulation's determinism.
 	inline void RawGetP(lua_State* luaState, int tableIndex, const void* key) {
 		tableIndex = tableIndex < 0 && tableIndex > LUA_REGISTRYINDEX ? lua_gettop(luaState) + tableIndex + 1 : tableIndex;
 		lua_pushlightuserdata(luaState, const_cast<void*>(key));
@@ -277,15 +280,16 @@ namespace RTE::LuaBinding {
 			}
 			new (lua_newuserdata(luaState, sizeof(StlIteratorState))) StlIteratorState{ownedContainer, container->begin(), container->end()};
 
-			static const char c_MetatableKey = 0;
-			RawGetP(luaState, LUA_REGISTRYINDEX, &c_MetatableKey);
+			// A fixed value for each kind of container, rather than an address, see RawGetP.
+			const void* metatableKey = reinterpret_cast<void*>(luabridge::detail::typeHash<StlIteratorState>());
+			RawGetP(luaState, LUA_REGISTRYINDEX, metatableKey);
 			if (lua_isnil(luaState, -1)) {
 				lua_pop(luaState, 1);
 				lua_createtable(luaState, 0, 1);
 				lua_pushcfunction(luaState, &StlIteratorState::GarbageCollect);
 				lua_setfield(luaState, -2, "__gc");
 				lua_pushvalue(luaState, -1);
-				RawSetP(luaState, LUA_REGISTRYINDEX, &c_MetatableKey);
+				RawSetP(luaState, LUA_REGISTRYINDEX, metatableKey);
 			}
 			lua_setmetatable(luaState, -2);
 			lua_pushcclosure(luaState, &StlIteratorState::Next, 1);
