@@ -2030,6 +2030,10 @@ TypeResult<T*> get_member_object(lua_State* L, bool canBeConst)
         lua_pop(L, 1);
     }
 
+    // Cortex Command: calling a method on nil (e.g. with . instead of :) is a Lua error like it was with luabind, rather than a call through a null pointer.
+    if (lua_isnil(L, selfIndex))
+        raise_lua_error(L, "Tried to call a method on nil instead of an object, use : rather than . to call methods!");
+
     return Userdata::get<T>(L, selfIndex, canBeConst);
 }
 
