@@ -254,10 +254,22 @@ namespace {
 		return result;
 	}
 
+	/// The dispatchers made so far, so that classes with the same set of overloads for a method, like every class that inherits it unchanged, share one dispatcher.
+	struct DispatcherCache {
+		int TableIndex; //!< Stack index of the Lua array the dispatchers are in.
+		std::map<std::pair<std::vector<const OverloadRecord*>, int>, int> Slots; //!< Where in the array the dispatcher for each set of overloads and first argument index is.
+	};
+
 	/// Pushes the function that calls a set of overloads: the overload's own closure if there's only one, otherwise a dispatcher that picks between them.
-	void PushOverloadSet(lua_State* luaState, Storage& storage, const std::vector<const OverloadRecord*>& overloads, const std::string& name, int firstArgumentIndex) {
+	/// A dispatcher is named after the first class it was made for in error messages, which is the class the overloads come from when the others inherited them.
+	void PushOverloadSet(lua_State* luaState, Storage& storage, DispatcherCache& cache, const std::vector<const OverloadRecord*>& overloads, const std::string& name, int firstArgumentIndex) {
 		if (overloads.size() == 1 && firstArgumentIndex == 1) {
 			lua_rawgeti(luaState, LUA_REGISTRYINDEX, overloads.front()->ClosureReference);
+			return;
+		}
+		auto [slot, isNew] = cache.Slots.try_emplace({overloads, firstArgumentIndex}, static_cast<int>(cache.Slots.size()) + 1);
+		if (!isNew) {
+			lua_rawgeti(luaState, cache.TableIndex, slot->second);
 			return;
 		}
 		const int count = static_cast<int>(overloads.size());
@@ -273,6 +285,8 @@ namespace {
 		}
 		lua_pushstring(luaState, name.c_str());
 		lua_pushcclosure(luaState, &DispatchOverload, 3);
+		lua_pushvalue(luaState, -1);
+		lua_rawseti(luaState, cache.TableIndex, slot->second);
 	}
 
 	/// Sets the value at the top of the stack as a field of the table at the given index without invoking metamethods, popping the value.
@@ -350,6 +364,8 @@ namespace RTE::LuaBinding {
 		lua_createtable(luaState, classCount * 2, 0);
 		const int allMethodsTablesIndex = lua_gettop(luaState);
 
+		lua_newtable(luaState);
+		DispatcherCache dispatchers{lua_gettop(luaState), {}};
 		SharedAccessors sharedAccessors;
 		std::vector<std::vector<int>> descendants(classCount);
 
@@ -423,7 +439,7 @@ namespace RTE::LuaBinding {
 			const int constMethodsIndex = lua_gettop(luaState);
 
 			for (const auto& [name, candidates]: methodCandidates) {
-				PushOverloadSet(luaState, m_Storage, RemoveHiddenOverloads(candidates), record.Name + "." + name, 1);
+				PushOverloadSet(luaState, m_Storage, dispatchers, RemoveHiddenOverloads(candidates), record.Name + "." + name, 1);
 				if (name.rfind("__", 0) == 0) {
 					// Operators have to be in the metatables themselves, and the same function in both, or Lua won't compare const and non-const objects with each other.
 					lua_pushvalue(luaState, -1);
@@ -435,7 +451,7 @@ namespace RTE::LuaBinding {
 			}
 			for (const auto& [name, candidates]: constMethodCandidates) {
 				if (name.rfind("__", 0) != 0) {
-					PushOverloadSet(luaState, m_Storage, RemoveHiddenOverloads(candidates), record.Name + "." + name, 1);
+					PushOverloadSet(luaState, m_Storage, dispatchers, RemoveHiddenOverloads(candidates), record.Name + "." + name, 1);
 					lua_setfield(luaState, constMethodsIndex, name.c_str());
 				}
 			}
@@ -503,11 +519,11 @@ namespace RTE::LuaBinding {
 				for (const OverloadRecord& constructor: record.Constructors) {
 					constructors.push_back(&constructor);
 				}
-				PushOverloadSet(luaState, m_Storage, constructors, record.Name, 2);
+				PushOverloadSet(luaState, m_Storage, dispatchers, constructors, record.Name, 2);
 				RawSetField(luaState, staticMetatableIndex, "__call");
 			}
 
-			lua_settop(luaState, allMethodsTablesIndex);
+			lua_settop(luaState, dispatchers.TableIndex);
 		}
 
 		// Class tables can only be extended once all the derived classes' method tables exist.
@@ -538,7 +554,7 @@ namespace RTE::LuaBinding {
 			functions[function.Name].push_back(&function);
 		}
 		for (const auto& [name, overloads]: functions) {
-			PushOverloadSet(luaState, m_Storage, overloads, name, 1);
+			PushOverloadSet(luaState, m_Storage, dispatchers, overloads, name, 1);
 			lua_setglobal(luaState, name.c_str());
 		}
 
