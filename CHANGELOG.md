@@ -249,7 +249,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Numbers saved with `Activity:SaveNumber()` are now kept as doubles instead of floats, and floating point numbers in INI and save files are written out exactly instead of being rounded to 6 digits.
 
-- The Lua bindings now use LuaBridge3 instead of luabind, and the copy of boost that luabind needed is gone. Calls from Lua into the game are faster, especially method calls and property access on objects like `Actor`s.  
+- The Lua bindings now use LuaBridge3 instead of luabind, and the copy of boost that luabind needed is gone. Calls from Lua into the game are faster, especially method calls and property access on objects like `Actor`s. Scripts run around 30% to 45% faster.  
 	Scripts don't need any changes. Everything that worked with luabind works the same, including setting values of their own on objects, overloads, inherited enums, setting things like `actor.Pos.X` in place, and passing numbers with fractions to whole number parameters.  
 	A few things that used to raise an error now don't: functions added to a class from Lua (like `function MovableObject:Foo() end`) are also found on objects of derived classes, comparing two references to the same object with `==` gives `false`, reading something that doesn't exist from a class table gives `nil`, and functions that aren't overloaded convert their arguments the way Lua does (numbers to strings, any value to a boolean, missing arguments to `nil`) and ignore extra ones. Class tables like `Vector` are now tables instead of userdata. Error messages for calls with the wrong arguments are worded differently.
 
