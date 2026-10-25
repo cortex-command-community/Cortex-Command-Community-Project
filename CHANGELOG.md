@@ -309,12 +309,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed AI actors refusing to fire the Coalition Missile Launcher at anything beyond point-blank range, because the AI took the range of its short-lived dummy round instead of the missile's.
 
-- Fixed `PrimitiveMan:DrawPrimitives(transValue, primitivesTable)`, and the `Transparency` blend mode in general, drawing nothing at all. `transValue` goes from 0 (opaque) to 100 (invisible) again, in steps of 5.
-
-- Fixed anything drawn partly transparent during an activity, such as transparent primitives, coming out darker than it should, and darker still in split-screen.
-
-- Fixed the other `DrawBlendMode`s using their blend amount backwards. As documented, 0 is the full effect and 100 is invisible, and modes other than `Transparency` only use the alpha amount, as before.
-
 </details>
 
 <details><summary><b>Removed</b></summary>
