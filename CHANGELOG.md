@@ -146,6 +146,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `RealTimeLimitProgress` and `SimTimeLimitProgress` on `Timer` are now both writable properties in Lua, and not only readable.
 
+- New `Settings.ini` property `LaunchMinimised = 0/1` to have the game window start out minimised, so that launching the game doesn't take input focus or cover other windows. Disabled by default.
+
+- New Skirmish activity `AI Battle`, where AI-controlled teams fight it out by themselves. Useful for watching, or for testing AI, pathfinding and performance.  
+	Every team gets a brain and free reinforcements that go after the other teams' brains. A team is out when its brain is gone, and the last team with a brain wins.  
+	By default every team is given to the CPU and human players just watch, but players can also take a team for themselves and play it, starting out in control of its brain.
+
+- New `Activity` INI property `ShowInMenus = 0/1` to hide an Activity from the Scenario menu. Hidden Activities can still be started by other means, such as from Lua. Enabled by default.
+
+- New `Activity` INI property `HumansCanSpectate = 0/1` for Activities that human players can choose to just watch. The setup screen starts out with every team given to the CPU, and the game can be started without any human players on a team, in which case player one watches from the first CPU team. Spectating is optional: players can still put themselves on a team to play it as usual. Disabled by default.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -263,6 +273,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed an issue where the buy menu GUI could ignore mouse hover events until you clicked to reset the focus.
 
 - Fixed an issue where if the first objects in the buy cart are items instead of an actor, they would be added to the first actor's inventory- even if it was an actor without an inventory (i.e a crab)
+
+- Fixed a macOS worker-thread message box that could hang, and a libc++ build error formatting save-game timestamps.
+
+- Fixed a divide-by-zero on `AtomGroup` segments with no steps, which could feed bad values into the physics.
+
+- Fixed a couple of uninitialized values (Atom step state and the simulation frame counter) that could cause inconsistent behavior between runs.
+
+- Fixed `AHuman:EquipShieldInBGArm()` being able to take the wrong item out of the inventory, which left the device it equipped both held and in the inventory. The device then got dropped twice when its holder died, and the game could crash when quitting.
 
 </details>
 

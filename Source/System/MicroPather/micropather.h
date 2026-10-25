@@ -227,6 +227,7 @@ namespace micropather
 
 		PathNode *child[2];		// Binary search in the hash table. [left, right]
 		PathNode *next, *prev;	// used by open queue
+		float openCost;			// the total cost the open queue has this indexed under
 
 		bool inOpen;
 		bool inClosed;

@@ -60,6 +60,15 @@ void ContentFile::FreeAllLoaded() {
 	}
 }
 
+void ContentFile::FreeAllLoadedSounds() {
+	for (const auto& [soundPath, sound]: s_LoadedSamples) {
+		if (sound) {
+			sound->release();
+		}
+	}
+	s_LoadedSamples.clear();
+}
+
 int ContentFile::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 

@@ -259,8 +259,7 @@ bool MOSprite::HitTestAtPixel(int pixelX, int pixelY, bool validOnly) const {
 
 	// Check the scene position in the current local space of the MO, accounting for Position, Sprite Offset, Angle and HFlipped.
 	// TODO Account for Scale as well someday, maybe.
-	Matrix rotation = m_Rotation; // <- Copy to non-const variable so / operator overload works.
-	Vector entryPos = (distanceBetweenTestPositionAndMO / rotation).GetXFlipped(m_HFlipped) - m_SpriteOffset;
+	Vector entryPos = (distanceBetweenTestPositionAndMO / m_Rotation).GetXFlipped(m_HFlipped) - m_SpriteOffset;
 	int localX = entryPos.GetFloorIntX();
 	int localY = entryPos.GetFloorIntY();
 
@@ -344,12 +343,6 @@ bool MOSprite::IsOnScenePoint(Vector& scenePoint) const {
 	}
 
 	return false;
-}
-
-Vector MOSprite::RotateOffset(const Vector& offset) const {
-	Vector rotOff(offset.GetXFlipped(m_HFlipped));
-	rotOff *= const_cast<Matrix&>(m_Rotation);
-	return rotOff;
 }
 
 Vector MOSprite::UnRotateOffset(const Vector& offset) const {

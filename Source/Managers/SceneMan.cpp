@@ -381,7 +381,8 @@ unsigned char SceneMan::GetTerrMatter(int pixelX, int pixelY) {
 	if (pixelY < 0)
 		return g_MaterialAir;
 
-	return getpixel(pTMatBitmap, pixelX, pixelY);
+	// The material bitmap is a memory bitmap and the position is known to be inside it, so the pixel can be read straight from it, rather than through getpixel's function pointers.
+	return pTMatBitmap->line[pixelY][pixelX];
 }
 
 MOID SceneMan::GetMOIDPixel(int pixelX, int pixelY, int ignoreTeam) {

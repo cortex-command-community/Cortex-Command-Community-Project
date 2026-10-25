@@ -81,6 +81,7 @@ void MovableObject::Clear() {
 	m_AllLoadedScripts.clear();
 	m_EnabledScripts.clear();
 	m_FunctionsAndScripts.clear();
+	m_HasOnCollideWithTerrainFunction = false;
 	m_StringValueMap.clear();
 	m_NumberValueMap.clear();
 	m_ObjectValueMap.clear();
@@ -562,6 +563,9 @@ int MovableObject::LoadScript(const std::string& scriptPath, bool loadAsEnabledS
 		LuaFunction& luaFunction = m_FunctionsAndScripts.at(functionName).emplace_back();
 		luaFunction.m_ScriptIsEnabled = loadAsEnabledScript;
 		luaFunction.m_LuaFunction = std::unique_ptr<LuabindObjectWrapper>(functionObject);
+		if (functionName == "OnCollideWithTerrain") {
+			m_HasOnCollideWithTerrainFunction = true;
+		}
 	}
 
 	if (ObjectScriptsInitialized()) {
@@ -591,6 +595,7 @@ int MovableObject::ReloadScripts() {
 	m_EnabledScripts.clear();
 	m_AllLoadedScripts.clear();
 	m_FunctionsAndScripts.clear();
+	m_HasOnCollideWithTerrainFunction = false;
 	for (const auto& scriptPath: loadedScriptsCopy) {
 		status = LoadScript(scriptPath, enabledScriptsCopy.at(scriptPath));
 		// If the script fails to load because of an error in its Lua, we need to manually add the script path so it's not lost forever.
@@ -767,7 +772,11 @@ bool MovableObject::IsAtRest() {
 
 bool MovableObject::OnMOHit(HitData& hd) {
 	if (hd.RootBody[HITOR] != hd.RootBody[HITEE] && (hd.Body[HITOR] == this || hd.Body[HITEE] == this)) {
-		RunScriptedFunctionInAppropriateScripts("OnCollideWithMO", false, false, {hd.Body[hd.Body[HITOR] == this ? HITEE : HITOR], hd.RootBody[hd.Body[HITOR] == this ? HITEE : HITOR]});
+		static const std::string functionName = "OnCollideWithMO";
+		auto function = m_FunctionsAndScripts.find(functionName);
+		if (function != m_FunctionsAndScripts.end() && !function->second.empty()) {
+			RunScriptedFunctionInAppropriateScripts(functionName, false, false, {hd.Body[hd.Body[HITOR] == this ? HITEE : HITOR], hd.RootBody[hd.Body[HITOR] == this ? HITEE : HITOR]});
+		}
 	}
 	return hd.Terminate[hd.RootBody[HITOR] == this ? HITOR : HITEE] = false;
 }
@@ -779,7 +788,12 @@ unsigned char MovableObject::HitWhatTerrMaterial() const {
 void MovableObject::SetHitWhatTerrMaterial(unsigned char matID) {
 	m_TerrainMatHit = matID;
 	m_LastCollisionSimFrameNumber = g_MovableMan.GetSimUpdateFrameNumber();
-	RunScriptedFunctionInAppropriateScripts("OnCollideWithTerrain", false, false, {}, {std::to_string(m_TerrainMatHit)});
+
+	// This happens for every Atom touching terrain every update, so the function name and arguments only get put together when there's a script to run them.
+	if (m_HasOnCollideWithTerrainFunction) {
+		static const std::string onCollideWithTerrain = "OnCollideWithTerrain";
+		RunScriptedFunctionInAppropriateScripts(onCollideWithTerrain, false, false, {}, {std::to_string(m_TerrainMatHit)});
+	}
 }
 
 Vector MovableObject::GetTotalForce() {
