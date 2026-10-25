@@ -3,6 +3,7 @@
 #include "Constants.h"
 #include "PerformanceMan.h"
 #include "SettingsMan.h"
+#include "System.h"
 
 #include <algorithm>
 #include <limits>
@@ -78,7 +79,12 @@ void TimerMan::UpdateSim() {
 
 void TimerMan::Update() {
 	long long prevTime = m_RealTimeTicks;
-	m_RealTimeTicks = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - m_StartTime).count();
+	if (System::IsInHeadlessMode()) {
+		// With nothing being presented there's no point in waiting on real time, so act as if exactly one sim update's worth of it passes between each update.
+		m_RealTimeTicks += m_DeltaTime;
+	} else {
+		m_RealTimeTicks = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - m_StartTime).count();
+	}
 
 	// Cap timeIncrease if too long (as when the app went out of focus), to c_RealToSimCap.
 	long long timeIncrease = std::min(m_RealTimeTicks - prevTime, static_cast<long long>(c_RealToSimCap * m_TicksPerSecond));

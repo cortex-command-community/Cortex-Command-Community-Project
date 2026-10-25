@@ -17,6 +17,15 @@
 /* -- Object hashing ------------------------------------------------------ */
 
 /* Hash an arbitrary key and return its anchor position in the hash table. */
+#if LJ_HASHID
+/* The backends load the hash ID of any of these from where the sid of a string is. */
+LJ_STATIC_ASSERT(offsetof(GChead, hid) == offsetof(GCstr, sid));
+LJ_STATIC_ASSERT(offsetof(GCtab, hid) == offsetof(GChead, hid));
+LJ_STATIC_ASSERT(offsetof(GCfuncC, hid) == offsetof(GChead, hid));
+LJ_STATIC_ASSERT(offsetof(GCudata, hid) == offsetof(GChead, hid));
+LJ_STATIC_ASSERT(offsetof(lua_State, hid) == offsetof(GChead, hid));
+#endif
+
 static Node *hashkey(const GCtab *t, cTValue *key)
 {
   lj_assertX(!tvisint(key), "attempt to hash integer");
@@ -26,6 +35,10 @@ static Node *hashkey(const GCtab *t, cTValue *key)
     return hashnum(t, key);
   else if (tvisbool(key))
     return hashmask(t, boolV(key));
+#if LJ_HASHID
+  else if (tvistab(key) || tvisfunc(key) || tvisudata(key) || tvisthread(key))
+    return hashmask(t, gcval(key)->gch.hid);
+#endif
   else
     return hashgcref(t, key->gcr);
   /* Only hash 32 bits of lightuserdata on a 64 bit CPU. Good enough? */
@@ -89,6 +102,7 @@ static GCtab *newtab(lua_State *L, uint32_t asize, uint32_t hbits)
     t->gct = ~LJ_TTAB;
     t->nomm = (uint8_t)~0;
     t->colo = (int8_t)asize;
+    lj_tab_sethid(G(L), t);
     setmref(t->array, (TValue *)((char *)t + sizeof(GCtab)));
     setgcrefnull(t->metatable);
     t->asize = asize;
@@ -104,6 +118,7 @@ static GCtab *newtab(lua_State *L, uint32_t asize, uint32_t hbits)
     t->gct = ~LJ_TTAB;
     t->nomm = (uint8_t)~0;
     t->colo = 0;
+    lj_tab_sethid(G(L), t);
     setmref(t->array, NULL);
     setgcrefnull(t->metatable);
     t->asize = 0;  /* In case the array allocation fails. */

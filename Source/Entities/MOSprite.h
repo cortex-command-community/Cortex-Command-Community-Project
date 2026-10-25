@@ -289,7 +289,12 @@ namespace RTE {
 		/// 'local space', if applicable.
 		/// @param offset A vector which is supposed to be offset from this' center when upright.
 		/// @return The resulting vector whihch has been flipped and rotated as appropriate.
-		Vector RotateOffset(const Vector& offset) const override;
+		/// It's final and defined here so that it can be inlined where it's called for every Atom of an MO several times an update.
+		Vector RotateOffset(const Vector& offset) const final {
+			Vector rotOff(offset.GetXFlipped(m_HFlipped));
+			rotOff *= const_cast<Matrix&>(m_Rotation);
+			return rotOff;
+		}
 
 		/// Takes a vector which is offset from the center of this when not rotated
 		/// or flipped, and then rotates and/or flips it to transform it into this'

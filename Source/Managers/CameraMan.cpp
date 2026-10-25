@@ -246,7 +246,7 @@ void CameraMan::Update(int screenId) {
 		const float screenShakeScale = 0.3F;
 
 		Vector screenShakeOffset(1.0F, 0.0F);
-		screenShakeOffset.RadRotate(RandomNormalNum() * c_PI);
+		screenShakeOffset.RadRotate(g_DrawRandomGenerator.RandomNormalNum() * c_PI);
 		screenShakeOffset *= screen.ScreenShakeMagnitude * m_ScreenShakeStrength * screenShakeScale;
 
 		newOffset += screenShakeOffset;

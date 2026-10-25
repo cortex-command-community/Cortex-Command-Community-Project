@@ -197,7 +197,7 @@ static void *mcode_alloc_at_TEST(jit_State *J, uintptr_t hint, size_t sz, int pr
     test_ofs++;
     /* fallthrough */
   case 'R':  /* Randomize any further hints. */
-    hint = lj_prng_u64(&J2G(J)->prng) & ~(uintptr_t)0xffffu;
+    hint = lj_prng_u64(&J->mcprng) & ~(uintptr_t)0xffffu;
     hint &= ((uintptr_t)1 << (LJ_64 ? 47 : 31)) - 1;
     break;
   case 'f':  /* Fail one allocation. */
@@ -314,7 +314,7 @@ static void *mcode_alloc(jit_State *J, size_t sz)
     /* Next try probing 64KB-aligned pseudo-random addresses. */
     j = 0;
     do {
-      hint = J->mcmin + (lj_prng_u64(&J2G(J)->prng) & MCODE_RANGE64);
+      hint = J->mcmin + (lj_prng_u64(&J->mcprng) & MCODE_RANGE64);
       if (++j > 15) goto fail;
     } while (!mcode_inrange(J, hint, sz));
   }

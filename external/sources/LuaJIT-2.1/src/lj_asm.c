@@ -1121,6 +1121,10 @@ static uint32_t ir_khash(ASMState *as, IRIns *ir)
   } else if (irt_ispri(ir->t)) {
     lj_assertA(!irt_isnil(ir->t), "hash of nil key");
     return irt_type(ir->t)-IRT_FALSE;
+#if LJ_HASHID
+  } else if (irt_ishashid(ir->t)) {
+    return ir_kgc(ir)->gch.hid;
+#endif
   } else {
     lj_assertA(irt_isgcv(ir->t), "hash of bad IR type %d", irt_type(ir->t));
     lo = u32ptr(ir_kgc(ir));
