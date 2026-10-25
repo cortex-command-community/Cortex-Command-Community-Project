@@ -6,7 +6,7 @@ It replaced luabind 0.7.1. Most of what makes the bindings behave the way script
 
 ## Changes made to LuaBridge
 
-Every change is marked with a `Cortex Command` comment.
+Every change is marked with a `Cortex Command` comment, and `CortexCommandChanges.patch` has all of them in one place. Any other change made to LuaBridge needs adding to it too.
 
 - `detail/Config.h`: added the `LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS` option, off by default. The game turns it on in `LuaBridgeDefinitions.h`.
 - `detail/Stack.h`: with `LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS` on, the integer `Stack` specializations truncate any Lua number towards zero like luabind did, instead of rejecting numbers that have a fractional part or don't fit, and the floating point ones don't range check. Scripts pass things like `self.Team + 0.5` and `math.floor` results that ended up as floats all over the place.
@@ -16,4 +16,4 @@ Every change is marked with a `Cortex Command` comment.
 
 ## Updating
 
-Copy over `Source/LuaBridge` from the new version, then apply the changes above again, which `git diff` against the previous upstream version shows.
+Copy over `Source/LuaBridge` from the new version and commit it on its own, then apply the changes again by running `git apply --3way external/include/LuaBridge3/CortexCommandChanges.patch` from the root of the repository. Afterwards, make the patch again with `git diff` against that commit, keeping the header at its top, and update the upstream commit given here and in the patch.
