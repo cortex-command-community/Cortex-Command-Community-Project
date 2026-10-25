@@ -1058,7 +1058,7 @@ int Atom::Travel(float travelTime, bool autoTravel) {
 		Vector topLeftExtent = Vector(trailPoints[0].first, trailPoints[0].second);
 		Vector bottomRightExtent = topLeftExtent + Vector(1.0F, 1.0F);
 
-		int length = static_cast<int>(static_cast<float>(m_TrailLength) * RandomNum(1.0F - m_TrailLengthVariation, 1.0F));
+		int length = static_cast<int>(static_cast<float>(m_TrailLength) * g_DrawRandomGenerator.RandomNum(1.0F - m_TrailLengthVariation, 1.0F));
 		for (size_t i = trailPoints.size() - std::min(length, static_cast<int>(trailPoints.size())); i < trailPoints.size(); ++i) {
 			putpixel(trailBitmap, trailPoints[i].first, trailPoints[i].second, m_TrailColor.GetIndex());
 

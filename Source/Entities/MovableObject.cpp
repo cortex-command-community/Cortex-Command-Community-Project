@@ -23,8 +23,21 @@ using namespace RTE;
 
 AbstractClassInfo(MovableObject, SceneObject);
 
-std::atomic<long> MovableObject::m_UniqueIDCounter = 1;
+std::array<std::atomic<int64_t>, 1 << MovableObject::c_UniqueIDThreadBits> MovableObject::m_UniqueIDCounters{};
 std::string MovableObject::ms_EmptyString = "";
+
+int64_t MovableObject::GetNextUniqueID() {
+	// The main thread is number 0, and the thread that is running a threaded Lua state has the number after that state's.
+	int64_t threadNumber = 0;
+	if (const LuaStateWrapper* luaState = g_LuaMan.GetThreadLuaStateOverride(); luaState && luaState != &g_LuaMan.GetMasterScriptState()) {
+		threadNumber = 1 + (luaState - g_LuaMan.GetThreadedScriptStates().data());
+	}
+
+	int64_t count = ++m_UniqueIDCounters[threadNumber];
+	RTEAssert(count < (int64_t(1) << c_UniqueIDCountBits), "Ran out of unique IDs to give to MOs!");
+
+	return (threadNumber << c_UniqueIDCountBits) | count;
+}
 
 MovableObject::MovableObject() {
 	Clear();
@@ -1053,11 +1066,11 @@ void MovableObject::SetHitWhatMOID(MOID id) {
 	m_LastCollisionSimFrameNumber = g_MovableMan.GetSimUpdateFrameNumber();
 }
 
-long int MovableObject::HitWhatParticleUniqueID() const {
+int64_t MovableObject::HitWhatParticleUniqueID() const {
 	return m_LastCollisionSimFrameNumber == g_MovableMan.GetSimUpdateFrameNumber() ? m_ParticleUniqueIDHit : 0;
 }
 
-void MovableObject::SetHitWhatParticleUniqueID(long int id) {
+void MovableObject::SetHitWhatParticleUniqueID(int64_t id) {
 	m_ParticleUniqueIDHit = id;
 	m_LastCollisionSimFrameNumber = g_MovableMan.GetSimUpdateFrameNumber();
 }

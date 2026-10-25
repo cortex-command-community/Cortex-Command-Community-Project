@@ -66,7 +66,8 @@ This has been tested with WSL2 Ubuntu 22.04 but should work with other distribut
 
 # Linux and macOS Build Instructions
 The Linux build uses the meson build system, and builds against system libraries.
-The Lua bindings use LuaBridge3, which is header only and included in `external/include/LuaBridge3`, with a few changes of our own for compatibility with the scripts written for luabind, which the game used before.
+LuaJIT is the exception: it's always built from the copy in `external/sources`, including when cross compiling, because the game relies on changes made to it (such as its deterministic table ordering). So a system `luajit` isn't needed.
+The Lua bindings use LuaBridge3, which is header only and included in `external/include/LuaBridge3`, with a few changes of our own so that existing scripts keep working.
 
 ## Dependencies
 
@@ -75,7 +76,6 @@ The Lua bindings use LuaBridge3, which is header only and included in `external/
 * `gcc`, `g++` (>=13, clang unsupported) 
 * `opengl` (usually provided by the gpu driver)
 * `flac`
-* `luajit`
 * `lua` (maybe optional)
 * `minizip`
 * `tbb`
@@ -116,17 +116,17 @@ If you want to change the buildtype afterwards, you can use `meson configure --b
 - `Xcode` or `Command Line Tools for Xcode` (if you need to, you can also generate an xcode project from meson using the `--backend=xcode` option on setup)
 
 **Homebrew (macOS):**  
-`brew install pkg-config sdl3 minizip lz4 flac luajit lua libpng tbb gcc@13 ninja meson dylibbundler`
+`brew install pkg-config sdl3 minizip lz4 flac lua libpng tbb gcc@13 ninja meson dylibbundler`
 
 **Arch Linux:**  
-`sudo pacman -S tbb flac luajit lua minizip lz4 libpng meson ninja base-devel`  
+`sudo pacman -S tbb flac lua minizip lz4 libpng meson ninja base-devel`  
 
 **Ubuntu >=22.04:**  
-`sudo apt-get install build-essential libflac++-dev luajit-5.1-dev liblua5.1-dev libminizip-dev liblz4-dev libpng++-dev libtbb-dev ninja-build python3-pip`  
+`sudo apt-get install build-essential libflac++-dev liblua5.1-dev libminizip-dev liblz4-dev libpng++-dev libtbb-dev ninja-build python3-pip`  
 `sudo python3 -m pip install meson`
 
 **Fedora:**  
-`# dnf install allegro-loadpng-devel allegro-devel libsdl2-devel SDL2_image-devel lua-devel meson ninja-build flac-devel luajit-devel minizip-compat-devel tbb-devel lz4-devel libpng-devel lua-devel gcc gcc-c++`  
+`# dnf install allegro-loadpng-devel allegro-devel libsdl2-devel SDL2_image-devel lua-devel meson ninja-build flac-devel minizip-compat-devel tbb-devel lz4-devel libpng-devel lua-devel gcc gcc-c++`  
 
 ## Troubleshooting
 

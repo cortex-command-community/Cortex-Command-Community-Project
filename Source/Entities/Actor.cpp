@@ -505,6 +505,11 @@ float Actor::GetBaseMass() {
 	return m_BaseMass;
 }
 
+HeldDevice* Actor::GetItemInReach() const {
+	// The item can get deleted or picked up by someone else at any point after it was found to be in reach, and nothing lets us know when that happens.
+	return g_MovableMan.IsDevice(m_pItemInReach) ? m_pItemInReach : nullptr;
+}
+
 bool Actor::IsPlayerControlled() const {
 	return m_Controller.GetInputMode() == Controller::CIM_PLAYER && m_Controller.GetPlayer() >= 0;
 }

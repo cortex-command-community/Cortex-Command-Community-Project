@@ -85,7 +85,7 @@ int AtomGroup::Create(const AtomGroup& reference, bool onlyCopyOwnerAtoms) {
 			atomCopy->SetIgnoreMOIDsByGroup(&m_IgnoreMOIDs);
 			m_Atoms.push_back(atomCopy);
 
-			long subgroupID = atomCopy->GetSubID();
+			int64_t subgroupID = atomCopy->GetSubID();
 			if (subgroupID != 0) {
 				if (m_SubGroups.find(subgroupID) == m_SubGroups.end()) {
 					m_SubGroups.insert({subgroupID, std::vector<Atom*>()});
@@ -258,7 +258,7 @@ float AtomGroup::GetMomentOfInertia() {
 	return m_MomentOfInertia;
 }
 
-void AtomGroup::AddAtoms(const std::vector<Atom*>& atomList, long subgroupID, const Vector& offset, const Matrix& offsetRotation) {
+void AtomGroup::AddAtoms(const std::vector<Atom*>& atomList, int64_t subgroupID, const Vector& offset, const Matrix& offsetRotation) {
 	if (m_SubGroups.count(subgroupID) == 0) {
 		m_SubGroups.insert({subgroupID, std::vector<Atom*>()});
 	}
@@ -281,7 +281,7 @@ void AtomGroup::AddAtoms(const std::vector<Atom*>& atomList, long subgroupID, co
 	}
 }
 
-bool AtomGroup::RemoveAtoms(long removeID) {
+bool AtomGroup::RemoveAtoms(int64_t removeID) {
 	std::size_t oldSize = m_Atoms.size();
 
 	m_Atoms.erase(
@@ -304,7 +304,7 @@ bool AtomGroup::RemoveAtoms(long removeID) {
 	return removedAny;
 }
 
-bool AtomGroup::UpdateSubAtoms(long subgroupID, const Vector& newOffset, const Matrix& newOffsetRotation) {
+bool AtomGroup::UpdateSubAtoms(int64_t subgroupID, const Vector& newOffset, const Matrix& newOffsetRotation) {
 	if (m_SubGroups.empty() || m_SubGroups.count(subgroupID) == 0) {
 		return false;
 	}

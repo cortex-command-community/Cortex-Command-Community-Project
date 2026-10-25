@@ -146,6 +146,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `RealTimeLimitProgress` and `SimTimeLimitProgress` on `Timer` are now both writable properties in Lua, and not only readable.
 
+- New launch arguments for running the game without anyone at the controls:  
+	`-headless` runs it with a hidden window and no drawing, with the audio going on as usual but not played to anyone, and with the simulation going as fast as it can instead of in real time.  
+	`-activity <class name> <preset name> <scene name>` and `-save <save name>` skip the menus and launch straight into an Activity or a saved game.  
+	`-sim-updates <count>` quits after that many simulation updates.
+
+- New determinism checker, for finding where two runs of the simulation stop matching. The launch argument `-determinism-record <file>` writes checkpoints of the simulation's state to a trace file as it goes, and `-determinism-verify <file>` checks a run against such a file, reporting the first checkpoint that doesn't match and quitting with a failure code. `Tools/determinism_test.py` runs missions this way and compares the runs.
+
+- New `Settings.ini` property `DisableCrashDialogs = 0/1`. With it on, the game still logs an abort, a failed assert or an unhandled exception, but then quits without showing a dialog. This is for when the game is being run by something automated.
+
 - New `Settings.ini` property `LaunchMinimised = 0/1` to have the game window start out minimised, so that launching the game doesn't take input focus or cover other windows. Disabled by default.
 
 - New Skirmish activity `AI Battle`, where AI-controlled teams fight it out by themselves. Useful for watching, or for testing AI, pathfinding and performance.  
@@ -230,6 +239,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Updated SDL2 to SDL3
 
+- Much of what made two runs of the same mission play out differently is gone. Scripts on a Lua state now run in order of `UniqueID`, objects added by several threads at once get added in order of `UniqueID`, AI and drawing and audio code no longer use the simulation's random numbers, and pathfinding updates go by simulation time instead of real time.
+
+- The `UniqueID` of a `MovableObject` is now 64 bit, with its upper bits saying which thread it was made on. Scripts still get it as a number, but it can be a lot larger than it used to be.
+
+- LuaJIT now goes through a table that has tables, functions or userdata for keys in an order that doesn't depend on where those are in memory, so `pairs` gives the same order every run. This only holds on 64 bit x86 and ARM.  
+	Tables that have strings for keys are gone through in an order that only depends on the strings and the order they were put in the table, rather than on how many strings had been made before them, which changed with when the garbage collector happened to run.  
+	LuaJIT's JIT compiler now compiles things at the same points every run, instead of depending on where it happened to find memory for compiled code, so the garbage collector also runs and finalizes objects at the same points every run.
+
+- Numbers saved with `Activity:SaveNumber()` are now kept as doubles instead of floats, and floating point numbers in INI and save files are written out exactly instead of being rounded to 6 digits.
+
 - The Lua bindings now use LuaBridge3 instead of luabind, and the copy of boost that luabind needed is gone. Calls from Lua into the game are faster, especially method calls and property access on objects like `Actor`s.  
 	Scripts don't need any changes. Everything that worked with luabind works the same, including setting values of their own on objects, overloads, inherited enums, setting things like `actor.Pos.X` in place, and passing numbers with fractions to whole number parameters.  
 	A few things that used to raise an error now don't: functions added to a class from Lua (like `function MovableObject:Foo() end`) are also found on objects of derived classes, comparing two references to the same object with `==` gives `false`, reading something that doesn't exist from a class table gives `nil`, and functions that aren't overloaded convert their arguments the way Lua does (numbers to strings, any value to a boolean, missing arguments to `nil`) and ignore extra ones. Class tables like `Vector` are now tables instead of userdata. Error messages for calls with the wrong arguments are worded differently.
@@ -278,11 +297,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an issue where if the first objects in the buy cart are items instead of an actor, they would be added to the first actor's inventory- even if it was an actor without an inventory (i.e a crab)
 
+- Fixed the option to mute audio when the game window loses focus starting out with a garbage value, which then got written to `Settings.ini`.
+
+- Fixed objects sometimes getting a garbage velocity when the terrain they hit was removed before they got to try and penetrate it, for example by a script's `OnCollideWithTerrain`.
+
 - Fixed a macOS worker-thread message box that could hang, and a libc++ build error formatting save-game timestamps.
 
 - Fixed a divide-by-zero on `AtomGroup` segments with no steps, which could feed bad values into the physics.
 
 - Fixed a couple of uninitialized values (Atom step state and the simulation frame counter) that could cause inconsistent behavior between runs.
+
+- Fixed the Techion Nanolyzer never playing its dissipate sound.
 
 - Fixed `AHuman:EquipShieldInBGArm()` being able to take the wrong item out of the inventory, which left the device it equipped both held and in the inventory. The device then got dropped twice when its holder died, and the game could crash when quitting.
 
