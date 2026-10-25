@@ -313,6 +313,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed anything drawn partly transparent during an activity, such as transparent primitives, coming out darker than it should, and darker still in split-screen.
 
+- Fixed the other `DrawBlendMode`s using their blend amount backwards. As documented, 0 is the full effect and 100 is invisible, and modes other than `Transparency` only use the alpha amount, as before.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
