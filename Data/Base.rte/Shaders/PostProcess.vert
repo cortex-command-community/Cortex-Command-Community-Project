@@ -1,14 +1,17 @@
-#version 130
+#version 330 core
 
-in vec2 rteVertexPosition;
-in vec2 rteTexUV;
+in vec3 rteVertexPosition;
+in vec2 rteVertexTexUV;
+in vec4 rteVertexColor;
 
 out vec2 textureUV;
+out vec4 vertexColor;
 
-uniform mat4 rteTransform;
+uniform mat4 rteView;
 uniform mat4 rteProjection;
 
 void main() {
-	gl_Position = rteProjection * rteTransform * vec4(rteVertexPosition, 0.0, 1.0);
-	textureUV = vec2(rteTexUV.x, -rteTexUV.y);
+	gl_Position = rteProjection * rteView * vec4(rteVertexPosition, 1.0);
+	vertexColor = rteVertexColor;
+	textureUV = rteVertexTexUV;
 }

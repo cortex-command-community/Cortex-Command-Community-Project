@@ -571,7 +571,7 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 
 	local maxSearchDistance;
 	if AI.isPlayerOwned then
-		maxSearchDistance = 100; -- don't move player actors too far
+		maxSearchDistance = 160; -- don't move player actors too far
 	else
 		maxSearchDistance = FrameMan.PlayerScreenWidth * 0.45;
 	end
@@ -615,26 +615,26 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 		for _, deviceEntry in pairs(devices) do
 			local device = deviceEntry.device;
 			if MovableMan:ValidMO(device) then
-				local pathMultipler = 1;
+				local pathMultiplier = 1;
 				if device:HasObjectInGroup("Weapons - Primary") or device:HasObjectInGroup("Weapons - Heavy") then
-					pathMultipler = 0.4; -- prioritize primary or heavy weapons
+					pathMultiplier = 0.4; -- prioritize primary or heavy weapons
 				elseif device.ClassName == "TDExplosive" then
-					pathMultipler = 1.4; -- avoid grenades if there are other weapons
+					pathMultiplier = 1.4; -- avoid grenades if there are other weapons
 				elseif device:IsTool() then
 					if pickupDiggers and device:HasObjectInGroup("Tools - Diggers") then
-						pathMultipler = 1.8; -- avoid diggers if there are other weapons
+						pathMultiplier = 1.8; -- avoid diggers if there are other weapons
 					else
-						pathMultipler = -1; -- disregard non-digger tools
+						pathMultiplier = -1; -- disregard non-digger tools
 					end
 				end
 
-				if pathMultipler ~= -1 then
+				if pathMultiplier ~= -1 then
 					local deviceID = device.UniqueID;
 					SceneMan.Scene:CalculatePathAsync(
 						function(pathRequest)
 							local pathLength = pathRequest.PathLength;
 							if pathRequest.Status ~= PathRequest.NoSolution and pathLength < maxPathLength then
-								local score = pathLength * pathMultipler;
+								local score = pathLength * pathMultiplier;
 								table.insert(devicesToPickUp, {deviceId = deviceID, score = score});
 							end
 							searchesRemaining = searchesRemaining - 1;
@@ -651,7 +651,11 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 		end
 		
 		AI.PickupHD = nil;
-		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end);
+		-- Tie-break on deviceId so ordering is stable when scores collide.
+		table.sort(devicesToPickUp, function(A,B)
+			if A.score ~= B.score then return A.score < B.score end
+			return A.deviceId < B.deviceId
+		end);
 		for _, deviceToPickupEntry in ipairs(devicesToPickUp) do
 			local device = MovableMan:FindObjectByUniqueID(deviceToPickupEntry.deviceId);
 			if MovableMan:ValidMO(device) and device:IsDevice() then
@@ -665,11 +669,12 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 			local prevMoveTarget, prevSceneWaypoint;
 			if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
 				prevMoveTarget = Owner.MOMoveTarget;
+				Owner.MOMoveTarget = nil;
 			else
 				prevSceneWaypoint = SceneMan:MovePointToGround(Owner:GetLastAIWaypoint(), Owner.Height/5, 4); -- last wpt or current pos
 			end
 
-			Owner:ClearMovePath();
+			Owner:ClearAIWaypoints();
 			Owner:AddAIMOWaypoint(AI.PickupHD);
 
 			if prevMoveTarget then
@@ -704,7 +709,7 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 	if Owner.AIMode == Actor.AIMODE_GOLDDIG then
 		maxSearchDistance = FrameMan.PlayerScreenWidth * 0.5; -- move up to half a screen when digging
 	elseif AI.isPlayerOwned then
-		maxSearchDistance = 60; -- don't move player actors too far
+		maxSearchDistance = 160; -- don't move player actors too far
 	else
 		maxSearchDistance = FrameMan.PlayerScreenWidth * 0.3;
 	end
@@ -766,7 +771,11 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 		end
 
 		AI.PickupHD = nil;
-		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end); -- sort the items in order of discounted distance
+		-- Tie-break on deviceId so ordering is stable when scores collide.
+		table.sort(devicesToPickUp, function(A,B)
+			if A.score ~= B.score then return A.score < B.score end
+			return A.deviceId < B.deviceId
+		end); -- sort the items in order of discounted distance
 		for _, deviceToPickupEntry in ipairs(devicesToPickUp) do
 			local device = MovableMan:FindObjectByUniqueID(deviceToPickupEntry.deviceId);
 			if MovableMan:ValidMO(device) and device:IsDevice() then
@@ -780,11 +789,12 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 			local prevMoveTarget, prevSceneWaypoint;
 			if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
 				prevMoveTarget = Owner.MOMoveTarget;
+				Owner.MOMoveTarget = nil;
 			else
 				prevSceneWaypoint = SceneMan:MovePointToGround(Owner:GetLastAIWaypoint(), Owner.Height/5, 4); -- last wpt or current pos
 			end
 
-			Owner:ClearMovePath();
+			Owner:ClearAIWaypoints();
 			Owner:AddAIMOWaypoint(AI.PickupHD);
 
 			if Owner.AIMode ~= Actor.AIMODE_GOLDDIG then
@@ -1223,7 +1233,7 @@ function HumanBehaviors.ShootTarget(AI, Owner, Abort)
 				AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, AI.Target.Pos, false).Normalized;
 				if AI.lateralMoveState == Actor.LAT_STILL then
 					AI.proneState = AHuman.PRONE;
-					--AI.Ctrl:SetState(Controller.BODY_CROUCH, true);
+					--AI.Ctrl:SetState(Controller.BODY_PRONE, true);
 				end
 			elseif Owner:EquipFirearm(true) then
 				local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame, just in case the magazine is replenished by another script
@@ -1696,7 +1706,7 @@ function HumanBehaviors.ShootArea(AI, Owner, Abort)
 		if Owner.FirearmIsReady then
 			AI.deviceState = AHuman.AIMING;
 			AI.Ctrl.AnalogAim = Vector(1,0):RadRotate(aim+aimError+RangeRand(-0.02, 0.02)*AI.aimSkill);
-			if ShootTimer:IsPastRealMS(aimTime) then
+			if ShootTimer:IsPastSimMS(aimTime) then
 				if Weapon.FullAuto then
 					AI.fire = true;
 				else
@@ -1722,7 +1732,7 @@ function HumanBehaviors.ShootArea(AI, Owner, Abort)
 		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
 		if _abrt then return true end
 
-		if AI.UnseenTarget and CheckTargetTimer:IsPastRealMS(400*AI.aimSkill) then
+		if AI.UnseenTarget and CheckTargetTimer:IsPastSimMS(400*AI.aimSkill) then
 			if MovableMan:ValidMO(AI.UnseenTarget) and (AI.UnseenTarget.ClassName == "AHuman" or AI.UnseenTarget.ClassName == "ACrab") then
 				CheckTargetTimer:Reset();
 				if AI.UnseenTarget:GetController() and AI.UnseenTarget:GetController():IsState(Controller.WEAPON_FIRE) then

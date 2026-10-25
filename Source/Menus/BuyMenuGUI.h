@@ -198,11 +198,11 @@ namespace RTE {
 		/// If the list is not empty then everything not in the list is removed from the buy menu
 		/// Items will be removed from the buy menu when it's called, category changed or after a ForceRefresh().
 		/// @param presetName Full preset name to add.
-		void AddAllowedItem(std::string presetName) { m_AllowedItems[presetName] = true; };
+		void AddAllowedItem(std::string presetName) { m_AllowedItems[std::move(presetName)] = true; };
 
 		/// Removes an item from the list of allowed items.
 		/// @param m_AllowedItems.erase(presetName Full preset name to remove.
-		void RemoveAllowedItem(std::string presetName) { m_AllowedItems.erase(presetName); };
+		void RemoveAllowedItem(const std::string& presetName) { m_AllowedItems.erase(presetName); };
 
 		/// Clears the list of allowed items
 		void ClearAllowedItems() { m_AllowedItems.clear(); };
@@ -213,11 +213,11 @@ namespace RTE {
 
 		/// Adds an item to the list of always allowed items. This list overrides all previous constraints.
 		/// @param presetName Full preset name to add.
-		void AddAlwaysAllowedItem(std::string presetName) { m_AlwaysAllowedItems[presetName] = true; };
+		void AddAlwaysAllowedItem(std::string presetName) { m_AlwaysAllowedItems[std::move(presetName)] = true; };
 
 		/// Removes an item from the list of always allowed items.
 		/// @param m_AlwaysAllowedItems.erase(presetName Full preset name to remove.
-		void RemoveAlwaysAllowedItem(std::string presetName) { m_AlwaysAllowedItems.erase(presetName); };
+		void RemoveAlwaysAllowedItem(const std::string& presetName) { m_AlwaysAllowedItems.erase(presetName); };
 
 		/// Clears the list of allowed items
 		void ClearAlwaysAllowedItems() { m_AlwaysAllowedItems.clear(); };
@@ -229,11 +229,11 @@ namespace RTE {
 		/// Adds an item prohibited to buy from the buy menu.
 		/// The item will be removed from the buy menu when it's called, category changed or after a ForceRefresh().
 		/// @param presetName Full preset name to add.
-		void AddProhibitedItem(std::string presetName) { m_ProhibitedItems[presetName] = true; };
+		void AddProhibitedItem(std::string presetName) { m_ProhibitedItems[std::move(presetName)] = true; };
 
 		/// Removes item from the list of prohibited items
 		/// @param m_ProhibitedItems.erase(presetName Full preset name to remove.
-		void RemoveProhibitedItem(std::string presetName) { m_ProhibitedItems.erase(presetName); };
+		void RemoveProhibitedItem(const std::string& presetName) { m_ProhibitedItems.erase(presetName); };
 
 		/// Clears the list of prohibited items
 		void ClearProhibitedItems() { m_ProhibitedItems.clear(); };
@@ -273,7 +273,7 @@ namespace RTE {
 
 		/// Sets the amount of specified items to be owned in this buy menu
 		/// @param presetName Full preset name of item to own. Amount of owned items.
-		void SetOwnedItemsAmount(std::string presetName, int amount) { m_OwnedItems[presetName] = amount; };
+		void SetOwnedItemsAmount(std::string presetName, int amount) { m_OwnedItems[std::move(presetName)] = amount; };
 
 		/// Returns the amount of specified items owned in this buy menu
 		/// @param presetName Full preset name of item.
@@ -364,7 +364,7 @@ namespace RTE {
 			GUNS,
 			BOMBS,
 			SHIELDS,
-			SETS,
+			LOADOUTS,
 			CATEGORYCOUNT
 		};
 
@@ -482,9 +482,11 @@ namespace RTE {
 		// The save set button
 		GUIButton* m_pSaveButton;
 		// The clear set button
-		GUIButton* m_pClearButton;
+		GUIButton* m_pDeleteButton;
 		// Sets of user-defined loadouts that can be selected quickly.
 		std::vector<Loadout> m_Loadouts;
+		// The selected loadout index, -1 if no loadout is selected
+		int m_SelectedLoadoutIndex;
 		// Purchase has been made
 		bool m_PurchaseMade;
 		int m_DeliveryWidth; //!< The width of the currently selected delivery craft, which will determine the width of the LZ marker.

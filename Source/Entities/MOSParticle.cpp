@@ -2,7 +2,8 @@
 
 #include "Atom.h"
 #include "PostProcessMan.h"
-
+#include "Draw.h"
+#include "FrameMan.h"
 #include <array>
 
 using namespace RTE;
@@ -201,11 +202,10 @@ void MOSParticle::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode m
 				draw_character_ex(targetBitmap, m_aSprite[m_Frame], spriteX, spriteY, g_WhiteColor, -1);
 				break;
 			case g_DrawTrans:
-				draw_trans_sprite(targetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
+				DrawTexture(m_aSprite[m_Frame], spriteX, spriteY, {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 				break;
 			case g_DrawAlpha:
-				set_alpha_blender();
-				draw_trans_sprite(targetBitmap, m_aSprite[m_Frame], spriteX, spriteY);
+				DrawTexture(m_aSprite[m_Frame], spriteX, spriteY, {255, 255, 255, 255});
 				break;
 			case g_DrawMOID:
 				break;

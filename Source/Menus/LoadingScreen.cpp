@@ -13,11 +13,17 @@
 #include "GUIListBox.h"
 #include "System.h"
 
+#include "raylib/raylib.h"
+#include "raylib/rlgl.h"
+#include "RenderTarget.h"
+
 using namespace RTE;
 
+LoadingScreen::LoadingScreen()  { Clear(); }
 void LoadingScreen::Clear() {
 	m_LoadingLogWriter = nullptr;
 	m_LoadingSplashBitmap = nullptr;
+	m_LoadingBackground.reset();
 	m_ProgressListboxBitmap = nullptr;
 	m_ProgressListboxPosX = 0;
 	m_ProgressListboxPosY = 0;
@@ -28,7 +34,7 @@ void LoadingScreen::Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, 
 	RTEAssert(loadingScreenManager.Create(guiScreen, guiInput, "Base.rte/GUIs/Skins/Menus", "LoadingScreenSkin.ini"), "Failed to create GUI Control Manager and load it from Base.rte/GUIs/Skins/Menus/LoadingScreenSkin.ini");
 	loadingScreenManager.Load("Base.rte/GUIs/LoadingGUI.ini");
 
-	g_WindowMan.ClearRenderer();
+	g_WindowMan.ClearBackbuffer();
 
 	int loadingSplashOffset = 0;
 	if (!progressReportDisabled) {
@@ -45,7 +51,7 @@ void LoadingScreen::Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput, 
 		CreateLoadingSplash();
 	}
 
-	g_WindowMan.UploadFrame();
+	//g_WindowMan.UploadFrame();
 
 	if (!m_LoadingLogWriter) {
 		m_LoadingLogWriter = std::make_unique<Writer>("LogLoading.txt");
@@ -66,12 +72,15 @@ void LoadingScreen::CreateLoadingSplash(int xOffset) {
 	m_LoadingSplashBitmap = create_bitmap_ex(FrameMan::c_BPP, backbuffer->w, backbuffer->h);
 	clear_bitmap(m_LoadingSplashBitmap);
 
-	SceneLayer loadingSplash;
-	loadingSplash.Create(ContentFile("Base.rte/GUIs/Title/LoadingSplash.png").GetAsBitmap(COLORCONV_NONE, false), false, Vector(), true, false, Vector(1.0F, 0));
-	loadingSplash.SetOffset(Vector(static_cast<float>(((loadingSplash.GetBitmap()->w - g_WindowMan.GetResX()) / 2) + xOffset), 0));
+	m_LoadingBackground = std::make_unique<StaticSceneLayer>();
+	m_LoadingBackground->Create(ContentFile("Base.rte/GUIs/Title/LoadingSplash.png").GetAsBitmap(COLORCONV_NONE, false), false, Vector(), true, false, Vector(1.0F, 0));
+	m_LoadingBackground->SetOffset(Vector(static_cast<float>(((m_LoadingBackground->GetBitmap()->w - g_WindowMan.GetResX()) / 2) + xOffset), 0));
 
-	Box loadingSplashTargetBox(Vector(0, static_cast<float>((g_WindowMan.GetResY() - loadingSplash.GetBitmap()->h) / 2)), static_cast<float>(g_WindowMan.GetResX()), static_cast<float>(loadingSplash.GetBitmap()->h));
-	loadingSplash.Draw(m_LoadingSplashBitmap, loadingSplashTargetBox);
+	Box loadingSplashTargetBox(Vector(0, static_cast<float>((g_WindowMan.GetResY() - g_LoadingScreen.m_LoadingBackground->GetBitmap()->h) / 2)), static_cast<float>(g_WindowMan.GetResX()), static_cast<float>(g_LoadingScreen.m_LoadingBackground->GetBitmap()->h));
+	g_WindowMan.ClearBackbuffer(false);
+	g_WindowMan.GetScreenBuffer()->Begin();
+	m_LoadingBackground->Draw(loadingSplashTargetBox, loadingSplashTargetBox);
+	g_WindowMan.UploadFrame();
 }
 
 void LoadingScreen::CreateProgressReportListbox(GUIControlManager* parentControlManager) {
@@ -134,7 +143,11 @@ void LoadingScreen::LoadingSplashProgressReport(const std::string& reportString,
 
 		blit(g_LoadingScreen.m_ProgressListboxBitmap, g_FrameMan.GetBackBuffer32(), 0, 0, g_LoadingScreen.m_ProgressListboxPosX, g_LoadingScreen.m_ProgressListboxPosY, g_LoadingScreen.m_ProgressListboxBitmap->w, g_LoadingScreen.m_ProgressListboxBitmap->h);
 
-		g_WindowMan.ClearRenderer(false);
+		Box loadingSplashTargetBox(Vector(0, static_cast<float>((g_WindowMan.GetResY() - g_LoadingScreen.m_LoadingBackground->GetBitmap()->h) / 2)), static_cast<float>(g_WindowMan.GetResX()), static_cast<float>(g_LoadingScreen.m_LoadingBackground->GetBitmap()->h));
+
+		g_WindowMan.ClearBackbuffer(false);
+		g_WindowMan.GetScreenBuffer()->Begin();
+		g_LoadingScreen.m_LoadingBackground->Draw(loadingSplashTargetBox, loadingSplashTargetBox);
 		g_WindowMan.UploadFrame();
 	}
 }

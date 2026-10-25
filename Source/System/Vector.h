@@ -2,6 +2,8 @@
 
 #include "Serializable.h"
 #include "RTETools.h"
+#include "glm/vec2.hpp"
+#include "raylib/raylib.h"
 
 namespace RTE {
 
@@ -29,6 +31,14 @@ namespace RTE {
 		/// @param inputY Float defining the initial Y value of this Vector.
 		inline Vector(const float inputX, const float inputY) :
 		    m_X(inputX), m_Y(inputY){};
+
+		/// Copy constructor method used to instantiate a Vector object
+		/// identical to an already existing one.
+		/// @param reference A Vector object which is passed in by reference.
+		Vector(const Vector& reference) {
+			m_X = reference.m_X;
+			m_Y = reference.m_Y;
+		}
 #pragma endregion
 
 #pragma region Destruction
@@ -486,6 +496,8 @@ namespace RTE {
 		/// @param rhs An int index indicating which element is requested (X = 0, Y = 1).
 		/// @return The requested element.
 		inline float& operator[](const int& rhs) { return (rhs == 0) ? m_X : m_Y; }
+		inline operator glm::vec2() const { return {m_X, m_Y}; }
+		inline operator Vector2() const { return {m_X, m_Y}; }
 #pragma endregion
 
 	private:

@@ -22,6 +22,7 @@ namespace RTE {
 	class SceneObject;
 	class ObjectPickerGUI;
 	class PieMenu;
+	struct BigTexture;
 
 	/// A full menu system that represents the scene editing GUI for Cortex Command
 	class SceneEditorGUI {
@@ -156,7 +157,7 @@ namespace RTE {
 		/// Draws the editor
 		/// @param pTargetBitmap The bitmap to draw on.
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
-		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) const;
+		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector());
 
 		/// Protected member variable and method declarations
 	protected:
@@ -240,6 +241,14 @@ namespace RTE {
 		static BITMAP* s_pInvalidPathDot;
 		// The current pathfinding request
 		std::shared_ptr<volatile PathRequest> m_PathRequest;
+		
+		struct BitmapDeleter {
+			void operator() (BITMAP* bitmap) {
+				destroy_bitmap(bitmap);
+			}
+		};
+		std::unique_ptr<BITMAP, BitmapDeleter> m_DrawBitmap;
+		std::unique_ptr<BigTexture> m_DrawTexture;
 
 		/// Private member variable and method declarations
 	private:

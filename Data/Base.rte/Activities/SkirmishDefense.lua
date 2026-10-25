@@ -740,7 +740,7 @@ function SkirmishDefense:CreateMediumDrop(xPosLZ, Destination, Team)
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge;
 		elseif craftMaxMass < 1 then
-			if Craft.ClassName == "ACDropship" then
+			if Craft.ClassName == "ACDropShip" then
 				Craft = RandomACDropShip("Craft", 0); -- MaxMass not defined
 			else
 				Craft = RandomACRocket("Craft", 0); -- MaxMass not defined
@@ -798,7 +798,7 @@ function SkirmishDefense:CreateLightDrop(xPosLZ, Destination, Team)
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge;
 		elseif craftMaxMass < 1 then
-			if Craft.ClassName == "ACDropship" then
+			if Craft.ClassName == "ACDropShip" then
 				Craft = RandomACDropShip("Craft", 0); -- MaxMass not defined
 			else
 				Craft = RandomACRocket("Craft", 0); -- MaxMass not defined
@@ -854,7 +854,7 @@ function SkirmishDefense:CreateScoutDrop(xPosLZ, Destination, Team)
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge;
 		elseif craftMaxMass < 1 then
-			if Craft.ClassName == "ACDropship" then
+			if Craft.ClassName == "ACDropShip" then
 				Craft = RandomACDropShip("Craft", 0); -- MaxMass not defined
 			else
 				Craft = RandomACRocket("Craft", 0); -- MaxMass not defined

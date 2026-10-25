@@ -3,9 +3,7 @@
 #include "Reader.h"
 #include "Writer.h"
 
-#include <functional>
 #include <string>
-#include <unordered_map>
 #include <filesystem>
 
 namespace RTE {
@@ -44,10 +42,12 @@ namespace RTE {
 
 #define MatchForwards(propertyName) \
 	sm_Properties[propertyName] = __COUNTER__ + 1; \
+	[[fallthrough]]; \
 	case __COUNTER__:
 
 #define MatchProperty(propertyName, matchedFunction) \
 	sm_Properties[propertyName] = __COUNTER__ + 1; \
+	[[fallthrough]]; \
 	case __COUNTER__: \
 		if (sm_Initialized) { \
 			{matchedFunction}; \

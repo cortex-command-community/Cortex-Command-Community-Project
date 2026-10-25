@@ -93,14 +93,14 @@ function DockingHandler:Initialize(activity, newGame, autoAssignUnknownDropships
 		
 		local i = 1;
 		
-		while SceneMan.Scene:GetOptionalArea("Dropship Dock " .. i) do	
+		while SceneMan.Scene:GetArea("Dropship Dock " .. i) do	
 			self.mainTable.activeDSDockTable[i] = {["dockPosition"] = SceneMan.Scene:GetArea("Dropship Dock " .. i).Center,
 			["activeCraft"] =  nil,
 			["dockingStage"] =  nil};			
 			i = i + 1;
 			-- Jump two if needed, the player may want to avoid overlap as per above instructions
-			if SceneMan.Scene:GetOptionalArea("Dropship Dock " .. i) then
-			elseif SceneMan.Scene:GetOptionalArea("Dropship Dock " .. i + 1) then
+			if SceneMan.Scene:GetArea("Dropship Dock " .. i) then
+			elseif SceneMan.Scene:GetArea("Dropship Dock " .. i + 1) then
 				i = i + 1;
 			end
 				
@@ -111,13 +111,13 @@ function DockingHandler:Initialize(activity, newGame, autoAssignUnknownDropships
 		
 		i = 1;
 		
-		while SceneMan.Scene:GetOptionalArea("Rocket Dock " .. i) do	
+		while SceneMan.Scene:GetArea("Rocket Dock " .. i) do	
 			self.mainTable.activeRocketDockTable[i] = {["dockPosition"] = SceneMan.Scene:GetArea("Rocket Dock " .. i).Center,
 			["activeCraft"] =  nil,
 			["dockingStage"] =  nil};
 			i = i + 1;
-			if SceneMan.Scene:GetOptionalArea("Rocket Dock " .. i) then
-			elseif SceneMan.Scene:GetOptionalArea("Rocket Dock " .. i + 1) then
+			if SceneMan.Scene:GetArea("Rocket Dock " .. i) then
+			elseif SceneMan.Scene:GetArea("Rocket Dock " .. i + 1) then
 				i = i + 1;
 			end
 		end
@@ -232,8 +232,9 @@ function DockingHandler:SpawnUndersideDockingCraft(craft, specificDock)
 			SceneMan:ForceBounds(pos);				
 			craft:AddAISceneWaypoint(pos);
 			craft:AddAISceneWaypoint(dockTable.dockPosition);
-			local direction = dockToDockAt % 2 == 0 and 1 or -1;	
-			craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(275 * direction, 0))
+			local direction = dockToDockAt % 2 == 0 and 1 or -1;
+			print("direction: " .. direction);
+			craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(-275 * direction, 0))
 			
 			dockTable.activeCraft = craft;
 			dockTable.dockingStage = 1;
@@ -341,7 +342,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 							craft:AddAISceneWaypoint(pos);
 							craft:AddAISceneWaypoint(dockTable.dockPosition);
 							local direction = i % 2 == 0 and 1 or -1;	
-							craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(275 * direction, 0))
+							craft:AddAISceneWaypoint(dockTable.dockPosition + Vector(-275 * direction, 0))
 							
 							dockTable.activeCraft = craft;
 							dockTable.dockingStage = 1;
@@ -443,7 +444,7 @@ function DockingHandler:UpdateUndersideDockingCraft()
 				
 					--print(SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition + Vector(200 * direction, 0), true))
 				
-					local distFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition + Vector(275 * direction, 0), true).Magnitude
+					local distFromDockArea = SceneMan:ShortestDistance(craft.Pos, dockTable.dockPosition + Vector(-275 * direction, 0), true).Magnitude
 					--print(distFromDockArea)
 					if distFromDockArea < 20 then
 						craft:OpenHatch();

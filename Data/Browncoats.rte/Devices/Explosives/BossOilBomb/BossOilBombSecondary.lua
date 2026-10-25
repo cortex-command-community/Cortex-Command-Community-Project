@@ -1,4 +1,4 @@
-function Update(self)
+function ThreadedUpdate(self)
 	if self.Age > self.Lifetime - 100 then
 		self:GibThis();
 		local igniter = CreateMOSRotating("Browncoat Boss Oil Bomb Igniter", "Browncoats.rte");

@@ -137,11 +137,11 @@ namespace RTE {
 
 		/// Gets the group ID of this Atom.
 		/// @return The group ID of this Atom.
-		long GetSubID() const { return m_SubgroupID; }
+		int64_t GetSubID() const { return m_SubgroupID; }
 
 		/// Sets the subgroup ID of this Atom.
 		/// @param newID The new subgroup ID of this Atom.
-		void SetSubID(long newID = 0) { m_SubgroupID = newID; }
+		void SetSubID(int64_t newID = 0) { m_SubgroupID = newID; }
 
 		/// Gets the material of this Atom.
 		/// @return The material of this Atom.
@@ -293,7 +293,7 @@ namespace RTE {
 		/// @return
 		/// Whether anything was hit during the steps or not. MO hits will only be reported if this Atom is set to hit them, and the MO hit is not ignored by this Atom (if the segment started on that MO).
 		/// Also if terrain hits are temporarily disabled, they will not be reported.
-		bool StepForward(int numSteps = 1);
+		bool StepForward();
 
 		/// Takes one step back, or undos the step, if any, previously taken along the trajectory segment set up by SetupSeg().
 		/// @remark CAUTION: The previous HitWhat vars are not reset to what they previously were!
@@ -356,7 +356,7 @@ namespace RTE {
 		Vector m_OriginalOffset; //!< This offset is before altering the m_Offset for use in composite groups.
 		Vector m_Normal; //!< The current normalized surface normal Vector of this Atom.
 		Material const* m_Material; //!< The material this Atom is made of.
-		int m_SubgroupID; //!< Identifying ID for adding and removing atoms from AtomGroups.
+		int64_t m_SubgroupID; //!< Identifying ID for adding and removing atoms from AtomGroups.
 
 		bool m_StepWasTaken; //!< Whether the last call to StepForward actually resulted in a step or not.
 		float m_StepRatio; //!< The normalized ratio of how many steps are actually taken to how many calls to TakeStep are made.

@@ -9,6 +9,8 @@
 #include "Singleton.h"
 #include "Activity.h"
 
+#include "BS_thread_pool.hpp"
+
 #include <mutex>
 #include <map>
 #include <future>
@@ -28,6 +30,7 @@ namespace RTE {
 	class SceneObject;
 	class Box;
 	class LuabindObjectWrapper;
+	class StateHasher;
 
 	/// A struct to keep all data about a an alarming event for the AI Actors.
 	struct AlarmEvent {
@@ -251,6 +254,10 @@ namespace RTE {
 		/// @return The number of particles.
 		long GetParticleCount() const { return m_Particles.size(); }
 
+		/// Adds the state of all the MovableObjects currently held to a hash, for checking whether two runs of the simulation match.
+		/// @param hasher The StateHasher to add the state to.
+		void HashState(StateHasher& hasher) const;
+
 		/// Gets the global setting for how much splash MOPixels should be created
 		/// an MO penetrates the terrain deeply.
 		/// @return A float with the global splash amount setting, form 1.0 to 0.0.
@@ -430,7 +437,7 @@ namespace RTE {
 
 		/// Gets the list of AlarmEvent:s from last frame's update.
 		/// @return The const list of AlarmEvent:s.
-		const std::vector<AlarmEvent>& GetAlarmEvents() const { return m_AlarmEvents; }
+		const std::vector<AlarmEvent*>& GetAlarmEvents() const { return m_AlarmEvents; }
 
 		/// Shows whetehr particles are set to get copied to the terrain upon
 		/// settling
@@ -485,7 +492,7 @@ namespace RTE {
 		/// Uses a global lookup map to find an object by it's unique id.
 		/// @param id Unique Id to look for.
 		/// @return Object found or 0 if not found any.
-		MovableObject* FindObjectByUniqueID(long int id) {
+		MovableObject* FindObjectByUniqueID(int64_t id) {
 			if (m_KnownObjects.count(id) > 0)
 				return m_KnownObjects[id];
 			else
@@ -539,6 +546,14 @@ namespace RTE {
 		/// @return Pointers to the MOs that are within the specified radius of the given centre position.
 		const std::vector<MovableObject*>* GetMOsInRadius(const Vector& centre, float radius) const { return GetMOsInRadius(centre, radius, Activity::NoTeam); }
 
+		/// Gets pointers to the MOs that are at a particular position in the Scene.
+		/// @param pixelX The X coordinate of the Scene pixel to test.
+		/// @param pixelY The Y coordinate of the Scene pixel to test.
+		/// @param ignoreTeam The team to ignore.
+		/// @param getsHitByMOsOnly Whether to only include MOs that have GetsHitByMOs enabled, or all MOs.
+		/// @return Pointers to the MOs that are within the specified radius of the given centre position.
+		const std::vector<MovableObject*>* GetMOsAtPosition(int pixelX, int pixelY, int ignoreTeam, bool getsHitByMOsOnly) const;
+		
 		/// Runs a lua function on all MOs in the simulation, including owned child MOs.
 		void RunLuaFunctionOnAllMOs(const std::string& functionName, bool includeAdded, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
 
@@ -588,6 +603,9 @@ namespace RTE {
 		// Async to draw MOIDs while rendering
 		std::future<void> m_DrawMOIDsTask;
 
+		// Async to have actors see in parallel
+		BS::multi_future<void> m_ActorsSeeFuture;
+
 		// Roster of each team's actors, sorted by their X positions in the scene. Actors not owned here
 		std::list<Actor*> m_ActorRoster[Activity::MaxTeamCount];
 		// Whether to draw HUD lines between the actors of a specific team
@@ -597,10 +615,10 @@ namespace RTE {
 
 		// The alarm events on the scene where something alarming happened, for use with AI firings awareness os they react to shots fired etc.
 		// This is the last frame's events, is the one for Actors to poll for events, should be cleaned out and refilled each frame.
-		std::vector<AlarmEvent> m_AlarmEvents;
+		std::vector<AlarmEvent*> m_AlarmEvents;
 		// The alarm events on the scene where something alarming happened, for use with AI firings awareness os they react to shots fired etc.
 		// This is the current frame's events, will be filled up during MovableMan Updates, should be transferred to Last Frame at end of update.
-		std::vector<AlarmEvent> m_AddedAlarmEvents;
+		std::vector<AlarmEvent*> m_AddedAlarmEvents;
 
 		// Mutexes to ensure alarm events aren't being added from separate threads at the same time
 		std::mutex m_AddedAlarmEventsMutex;
@@ -622,7 +640,7 @@ namespace RTE {
 		unsigned int m_SimUpdateFrameNumber;
 
 		// Global map which stores all objects so they could be foud by their unique ID
-		std::map<long int, MovableObject*> m_KnownObjects;
+		std::map<int64_t, MovableObject*> m_KnownObjects;
 
 		/// Private member variable and method declarations
 	private:
@@ -634,6 +652,10 @@ namespace RTE {
 
 		/// Travels all of our MOs, updating their location/velocity/physical characteristics.
 		void Travel();
+
+		/// Puts the MOs that are waiting to be added in order of their unique IDs.
+		/// This has to be done after any point where several threads could have been adding MOs at once, since which thread gets to add its MOs first is different every time.
+		void SortAddedMOs();
 
 		/// Updates the controllers of all the actors we own.
 		/// This is needed for a tricky reason - we want the controller from the activity to override the normal controller state

@@ -7,7 +7,7 @@ function Create(self)
 	self.dots = math.floor(self.raylength/self.rayPixSpace);
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	if self.lifeTimer:IsPastSimMS(4000) then
 		self:GibThis();
 	end

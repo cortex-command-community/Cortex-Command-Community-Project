@@ -261,6 +261,14 @@ namespace RTE {
 		/// @param inheritedRotAngleOffset Thee new rotation angle offset for this Attachable.
 		void SetInheritedRotAngleOffset(float inheritedRotAngleOffset) { m_InheritedRotAngleOffset = inheritedRotAngleOffset; }
 
+		/// Gets the Turret-specific offset in radians for this HeldDevice's rotation.
+		/// @return The rotation void Update() override;ooffset in radians.
+		float GetMountedRotAngleOffset() const { return m_MountedRotAngleOffset; }
+
+		/// Sets the Turret-specific offset in radians for this HeldDevice's rotation.
+		/// @param mountedRotationOffset The new rotation offset in radians.
+		void SetMountedRotAngleOffset(float mountedRotationOffset) { m_MountedRotAngleOffset = mountedRotationOffset; }
+		
 		/// Gets whether or not this Attachable inherits its Frame from its parent, if attached.
 		/// @return Whether or not this Attachable inherits its parent's Frame.
 		bool InheritsFrame() const { return m_InheritsFrame; }
@@ -268,16 +276,33 @@ namespace RTE {
 		/// Sets whether or not this Attachable inherits its Frame from its parent, if attached.
 		/// @param inheritsFrame Whether or not to inherit its parent's Frame.
 		void SetInheritsFrame(bool inheritsFrame) { m_InheritsFrame = inheritsFrame; }
+
+		/// How much of the root parent's velocity this attachable inherits when detached
+		/// @return The proportion of the velocity inherited. 0.1 = 10% inheritance.
+		float InheritsVelocityWhenDetached() const { return m_InheritsVelWhenDetached; }
+
+		/// How much of the root parent's angular velocity this attachable inherits when detached
+		/// @return The proportion of the angular velocity inherited. 0.1 = 10% inheritance.
+		float InheritsAngularVelocityWhenDetached() const { return m_InheritsAngularVelWhenDetached; }
+
+		/// Sets how much of the root parent's velocity this attachable inherits when detached
+		/// @param The proportion of the velocity inherited. 0.1 = 10% inheritance.
+		void SetInheritsVelocityWhenDetached(float newValue) { m_InheritsVelWhenDetached = newValue; }
+
+		/// Sets how much of the root parent's angular velocity this attachable inherits when detached
+		/// @param The proportion of the angular velocity inherited. 0.1 = 10% inheritance.
+		void SetInheritsAngularVelocityWhenDetached(float newValue) { m_InheritsAngularVelWhenDetached = newValue; }
+
 #pragma endregion
 
 #pragma region Collision Management
 		/// Gets the subgroup ID of this' Atoms.
 		/// @return The subgroup ID of this' Atoms.
-		long GetAtomSubgroupID() const { return m_AtomSubgroupID; }
+		int64_t GetAtomSubgroupID() const { return m_AtomSubgroupID; }
 
 		/// Sets the subgroup ID of this' Atoms
 		/// @param newID A long describing the new subgroup id of this' Atoms.
-		void SetAtomSubgroupID(long subgroupID = 0) { m_AtomSubgroupID = subgroupID; }
+		void SetAtomSubgroupID(int64_t subgroupID = 0) { m_AtomSubgroupID = subgroupID; }
 
 		/// Gets whether this Attachable currently has terrain collisions enabled and it's atoms are present in the parent AtomGroup.
 		/// Attachables with Attachable parents that don't collide with terrain will not collide with terrain. This chains up to the root parent.
@@ -361,7 +386,7 @@ namespace RTE {
 		/// Removes the Attachable corresponding to the passed in UniqueID and sets its parent to nullptr. Does not add it to MovableMan or add break wounds.
 		/// @param attachableUniqueID The UniqueID of the Attachable to remove.
 		/// @return A pointer to the removed Attachable. Ownership IS transferred!
-		Attachable* RemoveAttachable(long attachableUniqueID) final { return MOSRotating::RemoveAttachable(attachableUniqueID); }
+		Attachable* RemoveAttachable(int64_t attachableUniqueID) final { return MOSRotating::RemoveAttachable(attachableUniqueID); }
 
 		/// Removes the Attachable corresponding to the passed in UniqueID and sets its parent to nullptr. Optionally adds it to MovableMan and/or adds break wounds.
 		/// If the Attachable is not set to delete or delete when removed from its parent, and addToMovableMan is false, the caller must hang onto a pointer to the Attachable ahead of time to avoid memory leaks.
@@ -369,7 +394,7 @@ namespace RTE {
 		/// @param addToMovableMan Whether or not to add the Attachable to MovableMan once it has been removed.
 		/// @param addBreakWounds Whether or not to add break wounds to the removed Attachable and this Attachable.
 		/// @return A pointer to the removed Attachable, if it wasn't added to MovableMan or nullptr if it was. Ownership IS transferred!
-		Attachable* RemoveAttachable(long attachableUniqueID, bool addToMovableMan, bool addBreakWounds) final { return MOSRotating::RemoveAttachable(attachableUniqueID, addToMovableMan, addBreakWounds); }
+		Attachable* RemoveAttachable(int64_t attachableUniqueID, bool addToMovableMan, bool addBreakWounds) final { return MOSRotating::RemoveAttachable(attachableUniqueID, addToMovableMan, addBreakWounds); }
 
 		/// Removes the passed in Attachable and sets its parent to nullptr. Does not add it to MovableMan or add break wounds.
 		/// @param attachable The Attachable to remove.
@@ -435,9 +460,14 @@ namespace RTE {
 		int m_InheritsHFlipped; //!< Whether this Attachable should inherit its parent's HFlipped. Defaults to 1 (normal inheritance).
 		bool m_InheritsRotAngle; //!< Whether this Attachable should inherit its parent's RotAngle. Defaults to true.
 		float m_InheritedRotAngleOffset; //!< The offset by which this Attachable should be rotated when it's set to inherit its parent's rotation angle. Defaults to 0.
+		// TODO: It really sucks this has to be here just because Turrets are Speshul, we should figure out something better.
+		float m_MountedRotAngleOffset; //!< A relative offset angle (in radians) of this Attachable's rotation that should only be set by Turrets. Defaults to 0.
 		bool m_InheritsFrame; //!< Whether this Attachable should inherit its parent's Frame. Defaults to false.
 
-		long m_AtomSubgroupID; //!< The Atom IDs this' atoms will have when attached and added to a parent's AtomGroup.
+		float m_InheritsVelWhenDetached; //!< How much of the parents velocity this attachable inherits when detached
+		float m_InheritsAngularVelWhenDetached; //!< How much of the parents angular velocity this attachable inherits when detached
+
+		int64_t m_AtomSubgroupID; //!< The Atom IDs this' atoms will have when attached and added to a parent's AtomGroup.
 		bool m_CollidesWithTerrainWhileAttached; //!< Whether this attachable currently has terrain collisions enabled while it's attached to a parent.
 		bool m_IgnoresParticlesWhileAttached; //!< Whether this Attachable should ignore collisions with single-atom MOs while attached.
 

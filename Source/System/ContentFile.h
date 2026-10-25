@@ -11,6 +11,8 @@ namespace FMOD {
 	class Sound;
 }
 struct BITMAP;
+struct SDL_Palette;
+struct SDL_Surface;
 
 namespace RTE {
 
@@ -59,6 +61,9 @@ namespace RTE {
 
 		/// Frees all loaded data used by all ContentFile instances. This should ONLY be done when quitting the app, or after everything else is completely destroyed.
 		static void FreeAllLoaded();
+
+		/// Releases all the sounds loaded by all ContentFile instances, waiting for the ones FMOD is still loading asynchronously. This has to be done before the audio system gets released.
+		static void FreeAllLoadedSounds();
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -82,6 +87,10 @@ namespace RTE {
 		/// @param hash Hash value to get file path from.
 		/// @return Path to ContentFile.
 		static std::string GetPathFromHash(size_t hash) { return (s_PathHashes.find(hash) == s_PathHashes.end()) ? "" : s_PathHashes[hash]; }
+
+		/// Sets this ContentFile to be a memory file, meaning we won't try loading from disk and instead will let external code set us up.
+		/// @param isMemoryFile Whether we'll be considered a memory file.
+		void SetIsMemoryFile(bool isMemoryFile) { m_IsMemoryPNG = isMemoryFile; }
 #pragma endregion
 
 #pragma region Logging
@@ -113,6 +122,8 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Data Handling
+		static void ManuallyLoadDataPNG(const std::string& filePath, SDL_Surface* bitmap);
+
 		/// Reloads all BITMAPs in the cache from disk, allowing any changes to be reflected at runtime.
 		static void ReloadAllBitmaps();
 
@@ -148,6 +159,10 @@ namespace RTE {
 		FMOD::Sound* GetAsSound(bool abortGameForInvalidSound = true, bool asyncLoading = true);
 #pragma endregion
 
+		/// Copies the default palette to an sdl palette.
+		/// @param preMask Whether to replace mask color with 0 alpha (necessary for loading indexed to 32-bit image)
+		static SDL_Palette* DefaultPaletteToSDL(bool preMask = false);
+
 	private:
 		/// Enumeration for loading BITMAPs by bit depth. NOTE: This can't be lower down because s_LoadedBitmaps relies on this definition.
 		enum BitDepths {
@@ -168,6 +183,7 @@ namespace RTE {
 
 		static std::unordered_map<size_t, std::string> s_PathHashes; //!< Static map containing the hash values of paths of all loaded data files.
 		static std::array<std::unordered_map<std::string, BITMAP*>, BitDepths::BitDepthCount> s_LoadedBitmaps; //!< Static map containing all the already loaded BITMAPs and their paths for each bit depth.
+		static std::unordered_map<std::string, SDL_Surface*> s_MemoryPNGs; //!< Static map containing in-memory PNG files for save/load
 		static std::unordered_map<std::string, FMOD::Sound*> s_LoadedSamples; //!< Static map containing all the already loaded FSOUND_SAMPLEs and their paths.
 
 		std::string m_DataPath; //!< The path to this ContentFile's data file. In the case of an animation, this filename/name will be appended with 000, 001, 002 etc.
@@ -181,6 +197,7 @@ namespace RTE {
 		std::string m_DataPathAndReaderPosition; //!< The path to this ContentFile's data file combined with the ini file and line it is being read from. This is used for logging.
 
 		int m_DataModuleID; //!< Data Module ID of where this was loaded from.
+		bool m_IsMemoryPNG; //!< If true, we will not attempt to read this file on disk, and instead will let external code set us up.
 
 #pragma region Image Info Getters
 		/// Gets the specified image info from this ContentFile's data file on disk.
@@ -198,6 +215,16 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Data Handling
+
+		/// Loads the data from dataPahtToLoad as an SDL_Surface.
+		/// This prevents allegro from doing anything to the image colors it'd otherwise be doing, like breaking the palette or removing alpha values.
+		/// Ownership of the SDL_Surface IS transferred!
+		/// Note that this is relatively slow since it reads the data from disk each time.
+		/// @param conversionMode The Allegro color conversion mode to use when loading this bitmap. Only applies the first time a bitmap is loaded from the disk.
+		/// @param dataPathToSpecificFrame Path to a specific frame when loading an animation to avoid overwriting the original preset DataPath when loading each frame.
+		/// @return Pointer to the SDL_Surface loaded from disk.
+		static SDL_Surface* LoadImageAsSurface(int conversionMode, const std::string& dataPathToLoad);
+
 		/// Loads and transfers the data represented by this ContentFile object as an Allegro BITMAP. Ownership of the BITMAP IS transferred!
 		/// Note that this is relatively slow since it reads the data from disk each time.
 		/// @param conversionMode The Allegro color conversion mode to use when loading this bitmap. Only applies the first time a bitmap is loaded from the disk.

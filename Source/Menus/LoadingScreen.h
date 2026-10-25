@@ -13,6 +13,7 @@ namespace RTE {
 	class GUIInputWrapper;
 	class GUIControlManager;
 	class Writer;
+	class StaticSceneLayer;
 
 	/// Handling for the loading screen composition and loading progress box when starting the game.
 	class LoadingScreen : public Singleton<LoadingScreen> {
@@ -20,7 +21,7 @@ namespace RTE {
 	public:
 #pragma region Creation
 		/// Constructor method used to instantiate a LoadingScreen object in system memory.
-		LoadingScreen() { Clear(); }
+		LoadingScreen();
 
 		/// Makes the LoadingScreen object ready for use.
 		/// @param guiScreen Pointer to a GUIScreen interface that will be used by this LoadingScreen's GUIControlManager. Ownership is NOT transferred!
@@ -58,6 +59,7 @@ namespace RTE {
 
 		BITMAP* m_LoadingSplashBitmap; //!< BITMAP that is used for drawing the splash screen.
 		BITMAP* m_ProgressListboxBitmap; //!< BITMAP that the progress report will be drawn into.
+		std::unique_ptr<StaticSceneLayer> m_LoadingBackground; //!< Loading Screen Background image.
 		int m_ProgressListboxPosX; //!< Position of the progress report box on X axis.
 		int m_ProgressListboxPosY; //!< Position of the progress report box on Y axis.
 

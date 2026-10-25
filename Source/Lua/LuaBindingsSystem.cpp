@@ -1,6 +1,7 @@
 // Make sure that binding definition files are always set to NOT use pre-compiled headers and conformance mode (/permissive) otherwise everything will be on fire!
 
 #include "LuaBindingRegisterDefinitions.h"
+#include "return_reference_to_policy.hpp"
 
 using namespace RTE;
 
@@ -66,18 +67,29 @@ LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Controller) {
 	                           luabind::value("MOVE_FAST", ControlState::MOVE_FAST),
 	                           luabind::value("BODY_JUMPSTART", ControlState::BODY_JUMPSTART),
 	                           luabind::value("BODY_JUMP", ControlState::BODY_JUMP),
-	                           luabind::value("BODY_CROUCH", ControlState::BODY_CROUCH),
+	                           luabind::value("BODY_CROUCH", ControlState::BODY_PRONE), // awful, but script compat
+	                           luabind::value("BODY_PRONE", ControlState::BODY_PRONE),
+	                           luabind::value("BODY_WALKCROUCH", ControlState::BODY_CROUCH),
 	                           luabind::value("AIM_UP", ControlState::AIM_UP),
 	                           luabind::value("AIM_DOWN", ControlState::AIM_DOWN),
 	                           luabind::value("AIM_SHARP", ControlState::AIM_SHARP),
 	                           luabind::value("WEAPON_FIRE", ControlState::WEAPON_FIRE),
 	                           luabind::value("WEAPON_RELOAD", ControlState::WEAPON_RELOAD),
+	                           luabind::value("WEAPON_RELOADHELD", ControlState::WEAPON_RELOADHELD),
 	                           luabind::value("PIE_MENU_OPENED", ControlState::PIE_MENU_OPENED),
 	                           luabind::value("PIE_MENU_ACTIVE", ControlState::PIE_MENU_ACTIVE),
 	                           luabind::value("WEAPON_CHANGE_NEXT", ControlState::WEAPON_CHANGE_NEXT),
 	                           luabind::value("WEAPON_CHANGE_PREV", ControlState::WEAPON_CHANGE_PREV),
 	                           luabind::value("WEAPON_PICKUP", ControlState::WEAPON_PICKUP),
 	                           luabind::value("WEAPON_DROP", ControlState::WEAPON_DROP),
+	                           luabind::value("WEAPON_PRIMARY_HOTKEY", ControlState::WEAPON_PRIMARY_HOTKEY),
+	                           luabind::value("WEAPON_AUXILIARY_HOTKEY", ControlState::WEAPON_AUXILIARY_HOTKEY),
+	                           luabind::value("ACTOR_PRIMARY_HOTKEY", ControlState::ACTOR_PRIMARY_HOTKEY),
+	                           luabind::value("ACTOR_AUXILIARY_HOTKEY", ControlState::ACTOR_AUXILIARY_HOTKEY),
+	                           luabind::value("WEAPON_PRIMARY_HOTKEYSTART", ControlState::WEAPON_PRIMARY_HOTKEYSTART),
+	                           luabind::value("WEAPON_AUXILIARY_HOTKEYSTART", ControlState::WEAPON_AUXILIARY_HOTKEYSTART),
+	                           luabind::value("ACTOR_PRIMARY_HOTKEYSTART", ControlState::ACTOR_PRIMARY_HOTKEYSTART),
+	                           luabind::value("ACTOR_AUXILIARY_HOTKEYSTART", ControlState::ACTOR_AUXILIARY_HOTKEYSTART),
 	                           luabind::value("ACTOR_NEXT", ControlState::ACTOR_NEXT),
 	                           luabind::value("ACTOR_PREV", ControlState::ACTOR_PREV),
 	                           luabind::value("ACTOR_BRAIN", ControlState::ACTOR_BRAIN),
@@ -135,8 +147,8 @@ LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Timer) {
 	    .property("StartSimTimeMS", &Timer::GetStartSimTimeMS, &Timer::SetStartSimTimeMS)
 	    .property("ElapsedSimTimeS", &Timer::GetElapsedSimTimeS, &Timer::SetElapsedSimTimeS)
 	    .property("ElapsedSimTimeMS", &Timer::GetElapsedSimTimeMS, &Timer::SetElapsedSimTimeMS)
-	    .property("RealTimeLimitProgress", &Timer::RealTimeLimitProgress)
-	    .property("SimTimeLimitProgress", &Timer::SimTimeLimitProgress)
+	    .property("RealTimeLimitProgress", &Timer::GetRealTimeLimitProgress, &Timer::SetRealTimeLimitProgress)
+	    .property("SimTimeLimitProgress", &Timer::GetSimTimeLimitProgress, &Timer::SetSimTimeLimitProgress)
 
 	    .def("Reset", &Timer::Reset)
 	    .def("SetRealTimeLimitMS", &Timer::SetRealTimeLimitMS)
@@ -195,30 +207,30 @@ LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Vector) {
 
 	    .def("MagnitudeIsGreaterThan", &Vector::MagnitudeIsGreaterThan)
 	    .def("MagnitudeIsLessThan", &Vector::MagnitudeIsLessThan)
-	    .def("SetMagnitude", &Vector::SetMagnitude)
+	    .def("SetMagnitude", &Vector::SetMagnitude, luabind::return_reference_to(_1))
 	    .def("GetXFlipped", &Vector::GetXFlipped)
 	    .def("GetYFlipped", &Vector::GetYFlipped)
-	    .def("CapMagnitude", &Vector::CapMagnitude)
-	    .def("ClampMagnitude", &Vector::ClampMagnitude)
-	    .def("FlipX", &Vector::FlipX)
-	    .def("FlipY", &Vector::FlipY)
+	    .def("CapMagnitude", &Vector::CapMagnitude, luabind::return_reference_to(_1))
+	    .def("ClampMagnitude", &Vector::ClampMagnitude, luabind::return_reference_to(_1))
+	    .def("FlipX", &Vector::FlipX, luabind::return_reference_to(_1))
+	    .def("FlipY", &Vector::FlipY, luabind::return_reference_to(_1))
 	    .def("IsZero", &Vector::IsZero)
 	    .def("IsOpposedTo", &Vector::IsOpposedTo)
 	    .def("Dot", &Vector::Dot)
 	    .def("Cross", &Vector::Cross)
-	    .def("Round", &Vector::Round)
-	    .def("ToHalf", &Vector::ToHalf)
-	    .def("Floor", &Vector::Floor)
-	    .def("Ceiling", &Vector::Ceiling)
-	    .def("Normalize", &Vector::Normalize)
-	    .def("Perpendicularize", &Vector::Perpendicularize)
+	    .def("Round", &Vector::Round, luabind::return_reference_to(_1))
+	    .def("ToHalf", &Vector::ToHalf, luabind::return_reference_to(_1))
+	    .def("Floor", &Vector::Floor, luabind::return_reference_to(_1))
+	    .def("Ceiling", &Vector::Ceiling, luabind::return_reference_to(_1))
+	    .def("Normalize", &Vector::Normalize, luabind::return_reference_to(_1))
+	    .def("Perpendicularize", &Vector::Perpendicularize, luabind::return_reference_to(_1))
 	    .def("Reset", &Vector::Reset)
-	    .def("RadRotate", &Vector::RadRotate)
-	    .def("DegRotate", &Vector::DegRotate)
+	    .def("RadRotate", &Vector::RadRotate, luabind::return_reference_to(_1))
+	    .def("DegRotate", &Vector::DegRotate, luabind::return_reference_to(_1))
 	    .def("GetRadRotatedCopy", &Vector::GetRadRotatedCopy)
 	    .def("GetDegRotatedCopy", &Vector::GetDegRotatedCopy)
-	    .def("AbsRotateTo", &Vector::AbsRotateTo)
-	    .def("SetXY", &Vector::SetXY);
+	    .def("AbsRotateTo", &Vector::AbsRotateTo, luabind::return_reference_to(_1))
+	    .def("SetXY", &Vector::SetXY, luabind::return_reference_to(_1));
 }
 
 LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, PathRequest) {

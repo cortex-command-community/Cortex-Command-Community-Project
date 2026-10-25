@@ -79,10 +79,7 @@ void Box::Unflip() {
 }
 
 bool Box::IsWithinBox(const Vector& point) const {
-	return !IsEmpty() && (((m_Width > 0 && point.m_X >= m_Corner.m_X && point.m_X < (m_Corner.m_X + m_Width)) ||
-	                       (m_Width < 0 && point.m_X < m_Corner.m_X && point.m_X >= (m_Corner.m_X + m_Width))) &&
-	                          (m_Height > 0 && point.m_Y >= m_Corner.m_Y && point.m_Y < (m_Corner.m_Y + m_Height)) ||
-	                      (m_Height < 0 && point.m_Y < m_Corner.m_Y && point.m_Y <= (m_Corner.m_Y + m_Height)));
+	return !IsEmpty() && IsWithinBoxX(point.m_X) && IsWithinBoxY(point.m_Y);
 }
 
 bool Box::IsWithinBoxX(float pointX) const {
@@ -113,7 +110,7 @@ float Box::GetWithinBoxY(float pointY) const {
 	return m_Corner.m_Y;
 }
 
-bool Box::IntersectsBox(const Box& rhs) {
+bool Box::IntersectsBox(const Box& rhs) const {
 	if (IsEmpty() || rhs.IsEmpty()) {
 		return false;
 	}
@@ -123,4 +120,23 @@ bool Box::IntersectsBox(const Box& rhs) {
 	box2.Unflip();
 	return (box1.m_Corner.m_X < box2.m_Corner.m_X + box2.m_Width) && (box1.m_Corner.m_X + box1.m_Width > box2.m_Corner.m_X) &&
 	       (box1.m_Corner.m_Y < box2.m_Corner.m_Y + box2.m_Height) && (box1.m_Corner.m_Y + box1.m_Height > box2.m_Corner.m_Y);
+}
+
+Box Box::GetIntersection(const Box& rhs)  const {
+	if (!IntersectsBox(rhs)) {
+		return Box();
+	}
+	Box box1 = *this;
+	Box box2 = rhs;
+	box1.Unflip();
+	box2.Unflip();
+	Box returnBox(
+		Vector(
+			std::max(box1.m_Corner.m_X, box2.m_Corner.m_X),
+			std::max(box1.m_Corner.m_Y, box2.m_Corner.m_Y)),
+		Vector(
+			std::min(box1.m_Corner.m_X + box1.m_Width, box2.m_Corner.m_X + box2.m_Width),
+			std::min(box1.m_Corner.m_Y + box1.m_Height, box2.m_Corner.m_Y + box2.m_Height)));
+
+	return returnBox;
 }

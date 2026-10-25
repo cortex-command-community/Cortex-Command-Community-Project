@@ -1,6 +1,7 @@
 #include "BunkerAssemblyScheme.h"
 #include "PresetMan.h"
 #include "FrameMan.h"
+#include "Draw.h"
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
@@ -295,6 +296,6 @@ void BunkerAssemblyScheme::Draw(BITMAP* pTargetBitmap, const Vector& targetPos, 
 		else if (mode == g_DrawMaterial)
 			masked_blit(m_pPresentationBitmap, pTargetBitmap, 0, 0, aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY(), m_pPresentationBitmap->w, m_pPresentationBitmap->h);
 		else if (mode == g_DrawTrans)
-			draw_trans_sprite(pTargetBitmap, m_pPresentationBitmap, aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY());
+			DrawTexture(m_pPresentationBitmap, aDrawPos[i].GetFloorIntX(), aDrawPos[i].GetFloorIntY(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 	}
 }

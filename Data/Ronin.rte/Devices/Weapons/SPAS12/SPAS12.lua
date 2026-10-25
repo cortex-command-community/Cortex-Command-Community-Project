@@ -6,7 +6,7 @@ function Create(self)
 	self.cockSound = CreateSoundContainer("Ronin SPAS 12 Cock Sound", "Ronin.rte");
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	local actor = self:GetRootParent();
 	if not (actor and IsAHuman(actor)) then
 		self.pullTimer:Reset();

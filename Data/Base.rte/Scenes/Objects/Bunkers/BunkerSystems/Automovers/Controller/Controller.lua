@@ -1658,7 +1658,7 @@ automoverActorFunctions.updateFrozenActor = function(self, actorData)
 			actor.Vel[axis] = gravityAdjustment[axis];
 			if IsAHuman(actor) then
 				ToAHuman(actor).ProneState = AHuman.NOTPRONE;
-				actor:GetController():SetState(Controller.BODY_CROUCH, false);
+				actor:GetController():SetState(Controller.BODY_PRONE, false);
 			end
 		end
 	end
@@ -1706,7 +1706,7 @@ automoverActorFunctions.updateMovingActor = function(self, actorData, anyCenteri
 					verticalRotationAdjustment = direction == Directions.Down and -actor.FlipFactor or 1;
 					ToAHuman(actor).ProneState = movementTable.aHumanProneState;
 				end
-				actorController:SetState(Controller.BODY_CROUCH, movementTable.aHumanCrouchState);
+				actorController:SetState(Controller.BODY_PRONE, movementTable.aHumanCrouchState);
 			end
 			if actor.RotAngle > rotAngleGoal + self.movementAcceleration then
 				actor.RotAngle = actor.RotAngle - (self.movementAcceleration * 0.25 * verticalRotationAdjustment);

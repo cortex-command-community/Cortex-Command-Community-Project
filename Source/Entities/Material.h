@@ -108,6 +108,10 @@ namespace RTE {
 		/// @return The color of this material.
 		Color GetColor() const { return m_Color; }
 
+		/// Gets the color index of this Material.
+		/// @return The color index of this material.
+		int GetColorIndex() const { return m_Color.GetIndex(); }
+
 		/// Indicates whether or not to use the Material's own color when a pixel of this Material is knocked loose from the terrain.
 		/// @return Whether the Material's color, or the terrain pixel's color should be applied.
 		bool UsesOwnColor() const { return m_UseOwnColor; }

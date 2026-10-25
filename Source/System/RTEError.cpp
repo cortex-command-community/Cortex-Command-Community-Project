@@ -6,15 +6,14 @@
 #include "ActivityMan.h"
 #include "System.h"
 
-#include "SDL_messagebox.h"
+#include <SDL3/SDL_messagebox.h>
 
 #ifdef _WIN32
 #include "Windows.h"
-#include "DbgHelp.h"
-#include "RTEStackTrace.h"
 #endif
 
 #include <array>
+#include <cstdio>
 #include <exception>
 #include <regex>
 #include <utility>
@@ -32,15 +31,30 @@
 #include <filesystem>
 #elif defined(__APPLE__) && defined(__MACH__)
 #include <sys/sysctl.h>
+#include <pthread.h>
 #endif
+
+#if defined(__APPLE__) && defined(__MACH__)
+// Cocoa dispatches message boxes onto the main thread, which deadlocks if a worker fires one while the main thread waits on it.
+static bool IsOnAppMainThread() { return pthread_main_np() != 0; }
+#else
+static bool IsOnAppMainThread() { return true; }
+#endif
+
+#include "backward/backward.hpp"
+
 
 using namespace RTE;
 
 bool RTEError::s_CurrentlyAborting = false;
 bool RTEError::s_IgnoreAllAsserts = false;
+bool RTEError::s_DisableCrashDialogs = false;
 std::string RTEError::s_LastIgnoredAssertDescription = "";
 std::source_location RTEError::s_LastIgnoredAssertLocation = {};
 
+#if (defined(__linux__) || (defined(__APPLE__) && defined(__MACH__)))
+backward::SignalHandling sh;
+#endif
 #ifdef _WIN32
 /// <summary>
 /// Custom exception handler for Windows SEH.
@@ -157,9 +171,13 @@ static LONG WINAPI RTEWindowsExceptionHandler([[maybe_unused]] EXCEPTION_POINTER
 	exceptionDescription << getExceptionDescriptionFromCode(exceptionCode) << " at address 0x" << std::uppercase << std::hex << exceptionAddress << ".\n\n"
 	                     << symbolNameAtAddress << std::endl;
 
-	RTEStackTrace stackTrace;
+	backward::StackTrace st;
+	st.load_here(32, exceptPtr->ContextRecord);
+	backward::Printer printer;
+	std::ostringstream stack;
+	printer.print(st, stack);
 
-	RTEError::UnhandledExceptionFunc(exceptionDescription.str(), stackTrace.GetCallStackAsString(processHandle, exceptPtr->ContextRecord));
+	RTEError::UnhandledExceptionFunc(exceptionDescription.str(), stack.str());
 	return EXCEPTION_EXECUTE_HANDLER;
 #endif
 }
@@ -197,10 +215,26 @@ void RTEError::SetExceptionHandlers() {
 }
 
 void RTEError::ShowMessageBox(const std::string& message) {
+	// There's no one around to dismiss a message box when headless, so it would just stall the program.
+	if (System::IsInHeadlessMode()) {
+		System::PrintToCLI(message);
+		return;
+	}
+	if (!IsOnAppMainThread()) {
+		std::fprintf(stderr, "RTE Warning (from worker thread): %s\n", message.c_str());
+		return;
+	}
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "RTE Warning! (>_<)", message.c_str(), nullptr);
 }
 
 bool RTEError::ShowAbortMessageBox(const std::string& message) {
+	if (System::IsInHeadlessMode() || s_DisableCrashDialogs) {
+		return false;
+	}
+	if (!IsOnAppMainThread()) {
+		std::fprintf(stderr, "RTE Abort (from worker thread): %s\n", message.c_str());
+		return false;
+	}
 	enum AbortMessageButton {
 		ButtonInvalid,
 		ButtonExit,
@@ -234,6 +268,15 @@ bool RTEError::ShowAbortMessageBox(const std::string& message) {
 }
 
 bool RTEError::ShowAssertMessageBox(const std::string& message) {
+	// There's no one around to choose to ignore the assert when headless, and no asking them when crash dialogs are disabled, so always abort.
+	if (System::IsInHeadlessMode() || s_DisableCrashDialogs) {
+		return true;
+	}
+	if (!IsOnAppMainThread()) {
+		// Return false (Ignore-once) so the worker can unwind; the main thread sees the assert on its next pass.
+		std::fprintf(stderr, "RTE Assert (from worker thread): %s\n", message.c_str());
+		return false;
+	}
 	enum AssertMessageButton {
 		ButtonInvalid,
 		ButtonAbort,
@@ -313,7 +356,9 @@ void RTEError::UnhandledExceptionFunc(const std::string& description, const std:
 		SDL_SetWindowFullscreen(g_WindowMan.GetWindow(), 0);
 	}
 
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "RTE CATASTROPHIC ERROR!!! (X_X)", exceptionMessage.c_str(), nullptr);
+	if (!System::IsInHeadlessMode() && !s_DisableCrashDialogs) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "RTE CATASTROPHIC ERROR!!! (X_X)", exceptionMessage.c_str(), nullptr);
+	}
 	AbortAction;
 }
 
@@ -344,10 +389,12 @@ void RTEError::AbortFunc(const std::string& description, const std::source_locat
 
 		std::string callstack = "";
 
-#ifdef _WIN32
-		RTEStackTrace stackTrace;
-		callstack += ("\n\n" + stackTrace.GetCallStackAsString());
-#endif
+		backward::StackTrace st;
+		st.load_here();
+		backward::Printer printer;
+		std::ostringstream stack;
+		printer.print(st, stack);
+		callstack = stack.str();
 
 		std::string consoleSaveMsg;
 		if (!callstack.empty()) {
@@ -424,9 +471,20 @@ void RTEError::DumpHardwareInfo() {
 	std::string glVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
 	std::string glVendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
 	std::string glRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+
+	std::string glExtentions = "";
+	GLint numExt = 0;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &numExt);
+	for(GLint i = 0; i < numExt; i++) {
+		glExtentions += "\t";
+		glExtentions += reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i));
+		glExtentions += "\n";
+	}
+
 	std::string hwInfo = "GL Version: " + glVersion + "\n" +
 	                     "GL Vendor: " + glVendor + "\n" +
-	                     "GL Renderer: " + glRenderer + "\n";
+	                     "GL Renderer: " + glRenderer + "\n" +
+	                     "Available Extensions: \n" + glExtentions + "\n";
 
 #if defined(_MSC_VER) || defined(__linux__)
 	int vendorRegs[4] = {0};
@@ -539,7 +597,7 @@ bool RTEError::DumpAbortScreen() {
 	int success = -1;
 	if (glReadPixels != nullptr) {
 		int w, h;
-		SDL_GL_GetDrawableSize(g_WindowMan.GetWindow(), &w, &h);
+		SDL_GetWindowSizeInPixels(g_WindowMan.GetWindow(), &w, &h);
 		if (!(w > 0 && h > 0)) {
 			return false;
 		}
@@ -564,9 +622,15 @@ bool RTEError::DumpAbortScreen() {
 }
 
 bool RTEError::DumpAbortSave() {
+	// Headless runs are automated, so they shouldn't get to overwrite an abort save from an actual play session.
+	if (System::IsInHeadlessMode()) {
+		return false;
+	}
+
 	bool success = false;
 	if (g_ActivityMan.GetActivity() && g_ActivityMan.GetActivity()->CanBeUserSaved()) {
 		success = g_ActivityMan.SaveCurrentGame("AbortSave");
+		g_ActivityMan.WaitForSaveGameTask(); // Ensure the save is complete before the user potentially aborts or restarts the game.
 	}
 	return success;
 }

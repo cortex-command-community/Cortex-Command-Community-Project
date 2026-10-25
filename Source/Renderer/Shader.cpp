@@ -1,0 +1,210 @@
+#include "Shader.h"
+#include "glad/gl.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "GLCheck.h"
+#include "GLResourceMan.h"
+#include "PresetMan.h"
+#include "ConsoleMan.h"
+#include "System.h"
+#include "RTEError.h"
+
+#include "raylib/rlgl.h"
+
+#include <fstream>
+
+using namespace RTE;
+
+ConcreteClassInfo(Shader, Entity, 0);
+
+Shader::Shader() :
+    m_ProgramID(0), m_TextureUniform(-1), m_ColorUniform(-1), m_TransformUniform(-1), m_ProjectionUniform(-1) {}
+
+Shader::Shader(const std::string& vertexFilename, const std::string& fragPath) :
+    m_ProgramID(g_GLResourceMan.MakeGLProgram()), m_TextureUniform(-1), m_ColorUniform(-1), m_TransformUniform(-1), m_ProjectionUniform(-1) {
+	Compile(vertexFilename, fragPath);
+}
+
+Shader::~Shader() = default;
+
+int Shader::ReadProperty(const std::string_view& propName, Reader& reader) {
+	StartPropertyList(return Entity::ReadProperty(propName, reader));
+	MatchProperty("VertexShader", { reader >> m_VertexPath; });
+	MatchProperty("FragmentShader", { reader >> m_FragmentPath; });
+	EndPropertyList;
+}
+
+int Shader::Save(Writer& writer) const {
+	Entity::Save(writer);
+	writer.NewPropertyWithValue("VertexShader", m_VertexPath);
+	writer.NewPropertyWithValue("FragmentShader", m_FragmentPath);
+	return 0;
+}
+
+int Shader::Create() {
+	if (m_FragmentPath.empty() || m_VertexPath.empty()) {
+		return -1;
+	}
+	m_ProgramID = g_GLResourceMan.MakeGLProgram();
+	Compile(m_VertexPath, m_FragmentPath);
+	return 0;
+}
+
+int Shader::Create(const Shader& ref) {
+	Entity::Create(ref);
+	m_VertexPath = ref.m_VertexPath;
+	m_FragmentPath = ref.m_FragmentPath;
+	m_ProgramID = ref.m_ProgramID;
+	m_TextureUniform = ref.m_TextureUniform;
+	m_ColorUniform = ref.m_ColorUniform;
+	m_TransformUniform = ref.m_TransformUniform;
+	m_UVTransformUniform = ref.m_UVTransformUniform;
+	m_ProjectionUniform = ref.m_ProjectionUniform;
+	std::copy(ref.m_Locations.begin(), ref.m_Locations.end(), m_Locations.begin());
+	return 0;
+}
+
+bool Shader::Compile(const std::string& vertexPath, const std::string& fragPath) {
+	assert(m_ProgramID != 0);
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	bool result{false};
+
+	std::string error;
+	result = CompileShader(vertexShader, g_PresetMan.GetFullModulePath(vertexPath), error) && CompileShader(fragmentShader, g_PresetMan.GetFullModulePath(fragPath), error);
+	if (result) {
+		GL_CHECK(glBindAttribLocation(m_ProgramID, 0, "rteVertexPosition"));
+		GL_CHECK(glBindAttribLocation(m_ProgramID, 1, "rteVertexTexUV"));
+		GL_CHECK(glBindAttribLocation(m_ProgramID, 3, "rteVertexColor"));
+		if (Link(vertexShader, fragmentShader)) {
+			m_TextureUniform = GetUniformLocation("rteTexture");
+			m_ColorUniform = GetUniformLocation("rteColor");
+			m_TransformUniform = GetUniformLocation("rteTransform");
+			m_UVTransformUniform = GetUniformLocation("rteUVTransform");
+			m_ProjectionUniform = GetUniformLocation("rteProjection");
+		} else {
+		}
+	} else {
+		GL_CHECK(glDeleteShader(vertexShader));
+		GL_CHECK(glDeleteShader(fragmentShader));
+
+		RTEAbort("ERROR: Failed to compile shaders:\n" + error);
+		return false;
+	}
+
+	ApplyDefaultUniforms();
+
+	return true;
+}
+
+void Shader::Enable() {
+	rlEnableShader(m_ProgramID);
+}
+void Shader::Begin() const {
+	rlSetShader(m_ProgramID, m_Locations.data());
+	glUseProgram(m_ProgramID);
+}
+void Shader::End() const {
+	rlSetShader(rlGetShaderIdDefault(), rlGetShaderLocsDefault());
+	rlDisableShader();
+	rlClearActiveTextures();
+}
+
+GLint Shader::GetUniformLocation(const std::string& name) const { return glGetUniformLocation(m_ProgramID, name.c_str()); }
+
+void Shader::SetBool(const std::string& name, bool value) const { GL_CHECK(glUniform1i(glGetUniformLocation(m_ProgramID, name.c_str()), static_cast<int>(value))); }
+
+void Shader::SetInt(const std::string& name, int value) const { GL_CHECK(glUniform1i(glGetUniformLocation(m_ProgramID, name.c_str()), value)); }
+
+void Shader::SetFloat(const std::string& name, float value) const { GL_CHECK(glUniform1f(glGetUniformLocation(m_ProgramID, name.c_str()), value)); }
+
+void Shader::SetMatrix4f(const std::string& name, const glm::mat4& value) const { GL_CHECK(glUniformMatrix4fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value))); }
+
+void Shader::SetVector2f(const std::string& name, const glm::vec2& value) const { GL_CHECK(glUniform2fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, glm::value_ptr(value))); }
+
+void Shader::SetVector3f(const std::string& name, const glm::vec3& value) const { GL_CHECK(glUniform3fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, glm::value_ptr(value))); }
+
+void Shader::SetVector4f(const std::string& name, const glm::vec4& value) const { GL_CHECK(glUniform4fv(glGetUniformLocation(m_ProgramID, name.c_str()), 1, glm::value_ptr(value))); }
+
+void Shader::SetBool(int32_t uniformLoc, bool value) const { GL_CHECK(glUniform1i(uniformLoc, value)); }
+
+void Shader::SetInt(int32_t uniformLoc, int value) const { GL_CHECK(glUniform1i(uniformLoc, value)); }
+
+void Shader::SetFloat(int32_t uniformLoc, float value) const { GL_CHECK(glUniform1f(uniformLoc, value)); }
+
+void Shader::SetMatrix4f(int32_t uniformLoc, const glm::mat4& value) const { GL_CHECK(glUniformMatrix4fv(uniformLoc, 1, GL_FALSE, glm::value_ptr(value))); }
+
+void Shader::SetVector2f(int32_t uniformLoc, const glm::vec2& value) const { GL_CHECK(glUniform2fv(uniformLoc, 1, glm::value_ptr(value))); }
+
+void Shader::SetVector3f(int32_t uniformLoc, const glm::vec3& value) const { GL_CHECK(glUniform3fv(uniformLoc, 1, glm::value_ptr(value))); }
+
+void Shader::SetVector4f(int32_t uniformLoc, const glm::vec4& value) const { GL_CHECK(glUniform4fv(uniformLoc, 1, glm::value_ptr(value))); }
+
+bool Shader::CompileShader(GLuint shaderID, const std::string& filename, std::string& error) {
+	if (!System::PathExistsCaseSensitive(filename)) {
+		error += "File " + filename + " doesn't exist.";
+		return false;
+	}
+
+	std::ifstream file(filename);
+	std::ostringstream dataStream;
+
+	dataStream << file.rdbuf();
+
+	std::string dataString = dataStream.str();
+
+	const char* data = dataString.c_str();
+
+	GL_CHECK(glShaderSource(shaderID, 1, &data, nullptr));
+	GL_CHECK(glCompileShader(shaderID));
+	GLint success;
+	GL_CHECK(glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success));
+
+	if (success == GL_FALSE) {
+		GLint infoLength;
+		error += "\nFailed to compile " + filename + ":\n";
+		size_t errorPrevLen = error.size();
+		GL_CHECK(glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &infoLength));
+		error.resize(errorPrevLen + infoLength);
+		GL_CHECK(glGetShaderInfoLog(shaderID, infoLength, &infoLength, error.data() + errorPrevLen));
+		return false;
+	}
+
+	return true;
+}
+
+bool Shader::Link(GLuint vtxShader, GLuint fragShader) {
+	GL_CHECK(glAttachShader(m_ProgramID, vtxShader));
+	GL_CHECK(glAttachShader(m_ProgramID, fragShader));
+
+	GL_CHECK(glLinkProgram(m_ProgramID));
+
+	GL_CHECK(glDetachShader(m_ProgramID, vtxShader));
+	GL_CHECK(glDetachShader(m_ProgramID, fragShader));
+	GL_CHECK(glDeleteShader(vtxShader));
+	GL_CHECK(glDeleteShader(fragShader));
+
+	return true;
+}
+
+void Shader::ApplyDefaultUniforms() {
+	for (int location = 0; location < RL_SHADER_LOC_COUNT; ++location) {
+		m_Locations[location] = -1;
+	}
+	m_Locations[RL_SHADER_LOC_VERTEX_POSITION] = 0;
+	m_Locations[RL_SHADER_LOC_VERTEX_TEXCOORD01] = 1;
+	m_Locations[RL_SHADER_LOC_VERTEX_COLOR] = 2;
+	m_Locations[RL_SHADER_LOC_MATRIX_MVP] = GetUniformLocation("rteModelViewProjection");
+	m_Locations[RL_SHADER_LOC_MATRIX_VIEW] = GetUniformLocation("rteView");
+	m_Locations[RL_SHADER_LOC_MATRIX_PROJECTION] = GetUniformLocation("rteProjection");
+	m_Locations[RL_SHADER_LOC_MATRIX_MODEL] = GetUniformLocation("rteModel");
+	m_Locations[RL_SHADER_LOC_COLOR_DIFFUSE] = GetUniformLocation("rteColor");
+	m_Locations[RL_SHADER_LOC_MAP_DIFFUSE] = GetUniformLocation("rteTexture");
+	Enable();
+	SetMatrix4f(m_Locations[RL_SHADER_LOC_MATRIX_MVP], glm::mat4(1.0f));
+	SetMatrix4f(m_Locations[RL_SHADER_LOC_MATRIX_VIEW], glm::mat4(1.0f));
+	SetMatrix4f(m_Locations[RL_SHADER_LOC_MATRIX_PROJECTION], glm::mat4(1.0f));
+	SetMatrix4f(m_Locations[RL_SHADER_LOC_MATRIX_MODEL], glm::mat4(1.0f));
+	SetVector4f(m_Locations[RL_SHADER_LOC_COLOR_DIFFUSE], glm::vec4(1.0f));
+	SetInt(m_Locations[RL_SHADER_LOC_MAP_DIFFUSE], 0);
+}

@@ -294,12 +294,12 @@ void AreaEditor::Update() {
 						m_pEditorGUI->SetEditorGUIMode(AreaEditorGUI::PREADDMOVEBOX);
 					} else {
 						// Make and name new Area
-						Scene::Area newArea(m_pNewAreaName->GetText());
+						Scene::Area* newArea = new Scene::Area(m_pNewAreaName->GetText());
 						pCurrentScene->m_AreaList.push_back(newArea);
 						// Set the new area as the active one in the GUI, note we're getting the correct one from the scene, it's a copy of the one passed in
-						m_pEditorGUI->SetCurrentArea(pCurrentScene->GetArea(newArea.GetName()));
+						m_pEditorGUI->SetCurrentArea(pCurrentScene->GetArea(newArea->GetName()));
 						// Update teh picker list of the GUI so we can mousewheel between all the Areas, incl the new one
-						m_pEditorGUI->UpdatePickerList(newArea.GetName());
+						m_pEditorGUI->UpdatePickerList(newArea->GetName());
 					}
 
 					// Change mode to start editing the new/newly selected Area

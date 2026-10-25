@@ -8,7 +8,6 @@
 #include "FrameMan.h"
 #include "MetaMan.h"
 #include "SceneMan.h"
-#include "NetworkClient.h"
 
 #include "ACraft.h"
 
@@ -35,6 +34,8 @@ void Activity::Clear() {
 	m_Paused = false;
 	m_AllowsUserSaving = false;
 	m_Description.clear();
+	m_ShowInMenus = true;
+	m_HumansCanSpectate = false;
 	m_SceneName.clear();
 	m_MaxPlayerSupport = Players::MaxPlayerCount;
 	m_MinTeamsRequired = 2;
@@ -94,6 +95,8 @@ int Activity::Create(const Activity& reference) {
 	m_Paused = reference.m_Paused;
 	m_AllowsUserSaving = reference.m_AllowsUserSaving;
 	m_Description = reference.m_Description;
+	m_ShowInMenus = reference.m_ShowInMenus;
+	m_HumansCanSpectate = reference.m_HumansCanSpectate;
 	m_MaxPlayerSupport = reference.m_MaxPlayerSupport;
 	m_MinTeamsRequired = reference.m_MinTeamsRequired;
 	m_Difficulty = reference.m_Difficulty;
@@ -138,6 +141,8 @@ int Activity::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 	MatchProperty("Description", { reader >> m_Description; });
+	MatchProperty("ShowInMenus", { reader >> m_ShowInMenus; });
+	MatchProperty("HumansCanSpectate", { reader >> m_HumansCanSpectate; });
 	MatchProperty("SceneName", { reader >> m_SceneName; });
 	MatchProperty("MaxPlayerSupport", { reader >> m_MaxPlayerSupport; });
 	MatchProperty("MinTeamsRequired", { reader >> m_MinTeamsRequired; });
@@ -296,11 +301,9 @@ int Activity::Start() {
 	m_Paused = false;
 
 	// Reset the mouse moving so that it won't trap the mouse if the window isn't in focus (common after loading)
-	if (!g_FrameMan.IsInMultiplayerMode()) {
-		g_UInputMan.DisableMouseMoving(true);
-		g_UInputMan.DisableMouseMoving(false);
-		g_UInputMan.DisableKeys(false);
-	}
+	g_UInputMan.DisableMouseMoving(true);
+	g_UInputMan.DisableMouseMoving(false);
+	g_UInputMan.DisableKeys(false);
 
 	int error = g_SceneMan.LoadScene();
 	if (error < 0) {
@@ -316,6 +319,7 @@ int Activity::Start() {
 	}
 
 	// Intentionally doing all players, all need controllers
+	std::vector<int> playerControlled;
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 		m_ViewState[player] = ViewState::Normal;
 
@@ -323,6 +327,9 @@ int Activity::Start() {
 		m_PlayerController[player].Create(Controller::CIM_PLAYER, player);
 		m_PlayerController[player].SetTeam(m_Team[player]);
 
+		if (m_IsHuman[player]) {
+			playerControlled.push_back(player);
+		}
 		m_MessageTimer[player].Reset();
 
 		if (int screenId = ScreenOfPlayer(player); screenId != -1) {
@@ -338,6 +345,8 @@ int Activity::Start() {
 			}
 		}
 	}
+
+	g_UInputMan.CheckMultiMouseKeyboardEnabled(playerControlled);
 
 	return 0;
 }
@@ -464,8 +473,8 @@ void Activity::ClearPlayers(bool resetFunds) {
 	m_PlayerCount = m_TeamCount = 0;
 }
 
-int Activity::GetHumanCount() const {
-	int humans = 0;
+uint8_t Activity::GetHumanCount() const {
+	uint8_t humans = 0;
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 		if (m_IsActive[player] && m_IsHuman[player]) {
 			humans++;
@@ -580,7 +589,7 @@ float Activity::GetPlayerFundsShare(int player) const {
 }
 
 void Activity::SetPlayerBrain(Actor* newBrain, int player) {
-	if ((player >= Players::PlayerOne || player < Players::MaxPlayerCount) && newBrain) {
+	if ((player >= Players::PlayerOne && player < Players::MaxPlayerCount) && newBrain) {
 		if (newBrain->GetTeam() != m_Team[player]) {
 			newBrain->SetTeam(m_Team[player]);
 		}
@@ -878,10 +887,6 @@ void Activity::Update() {
 
 bool Activity::CanBeUserSaved() const {
 	if (const Scene* scene = g_SceneMan.GetScene(); (scene && scene->IsMetagameInternal()) || g_MetaMan.GameInProgress()) {
-		return false;
-	}
-
-	if (g_NetworkClient.IsConnectedAndRegistered()) {
 		return false;
 	}
 

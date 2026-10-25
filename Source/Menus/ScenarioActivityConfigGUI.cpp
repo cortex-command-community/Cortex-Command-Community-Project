@@ -65,8 +65,6 @@ ScenarioActivityConfigGUI::ScenarioActivityConfigGUI(GUIControlManager* parentCo
 	m_CPULockLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelCPUTeamLock"));
 	m_StartErrorLabel = dynamic_cast<GUILabel*>(m_GUIControlManager->GetControl("LabelStartError"));
 	m_StartGameButton = dynamic_cast<GUIButton*>(m_GUIControlManager->GetControl("ButtonStartGame"));
-
-	m_TechListFetched = false;
 }
 
 void ScenarioActivityConfigGUI::PopulateTechComboBoxes() {
@@ -167,9 +165,24 @@ void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 			} else {
 				m_CPULockLabel->SetVisible(false);
 			}
-			m_PlayerBoxes.at(player).at(cpuInitialTeam)->SetDrawType(GUICollectionBox::Image);
-			if (const Icon* cpuIcon = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Device CPU"))) {
-				m_PlayerBoxes.at(PlayerColumns::PlayerCPU).at(cpuInitialTeam)->SetDrawImage(new AllegroBitmap(cpuIcon->GetBitmaps32()[0]));
+			std::vector<int> cpuInitialTeams;
+			if (m_SelectedActivity->GetHumansCanSpectate()) {
+				// Humans can just watch this Activity, so every team starts out given to the CPU. Putting a human player on a team still takes it over from the CPU as usual.
+				for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
+					if (m_SelectedActivity->TeamActive(team)) {
+						cpuInitialTeams.push_back(team);
+					}
+				}
+			}
+			if (cpuInitialTeams.empty()) {
+				cpuInitialTeams.push_back(cpuInitialTeam);
+			}
+			const Icon* cpuIcon = dynamic_cast<const Icon*>(g_PresetMan.GetEntityPreset("Icon", "Device CPU"));
+			for (int team: cpuInitialTeams) {
+				m_PlayerBoxes.at(player).at(team)->SetDrawType(GUICollectionBox::Image);
+				if (cpuIcon) {
+					m_PlayerBoxes.at(PlayerColumns::PlayerCPU).at(team)->SetDrawImage(new AllegroBitmap(cpuIcon->GetBitmaps32()[0]));
+				}
 			}
 		}
 	}
@@ -191,6 +204,24 @@ void ScenarioActivityConfigGUI::ResetActivityConfigBox() {
 		}
 
 		m_TeamTechComboBoxes.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
+
+		std::string teamModule = m_SelectedActivity->GetTeamTech(team);
+		int teamModuleID = g_PresetMan.GetModuleID(teamModule);
+
+		if (teamModuleID != -1) {
+			auto items = m_TeamTechComboBoxes.at(team)->GetListPanel()->GetItemList();
+			for (int i = 0; i < items->size(); i++) {
+				if (teamModuleID == items->at(i)->m_ExtraIndex) {
+					teamModuleID = i;
+				}
+			}
+			m_TeamTechComboBoxes.at(team)->SetSelectedIndex(teamModuleID);
+		} else {
+			m_TeamTechComboBoxes.at(team)->SetSelectedIndex(0);
+		}
+
+		m_TeamTechComboBoxes.at(team)->SetEnabled(m_SelectedActivity->GetTeamTechSwitchEnabled(team));
+
 		m_TeamAISkillSliders.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
 		m_TeamAISkillLabels.at(team)->SetVisible(m_SelectedActivity->TeamActive(team));
 	}
@@ -210,6 +241,15 @@ void ScenarioActivityConfigGUI::StartGame() {
 	g_SceneMan.SetSceneToLoad(m_SelectedScene, true, m_DeployUnitsCheckbox->GetCheck());
 
 	gameActivity->ClearPlayers(false);
+	// Humans can choose to just watch some Activities, but there still has to be a human player to watch from, so player one goes on the first CPU team if no humans were put on a team.
+	if (m_SelectedActivity->GetHumansCanSpectate() && GetHumanPlayers().empty()) {
+		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
+			if (m_PlayerBoxes.at(PlayerColumns::PlayerCPU).at(team)->GetDrawType() == GUICollectionBox::Image) {
+				gameActivity->AddPlayer(Players::PlayerOne, true, team, 0);
+				break;
+			}
+		}
+	}
 	for (int player = Players::PlayerOne; player < PlayerColumns::PlayerColumnCount; ++player) {
 		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
 			if (m_PlayerBoxes.at(player).at(team)->GetDrawType() == GUICollectionBox::Image) {
@@ -266,14 +306,18 @@ bool ScenarioActivityConfigGUI::Update(int mouseX, int mouseY) {
 	int maxHumanPlayers = m_SelectedActivity->GetMaxPlayerSupport();
 	int minTeamsRequired = m_SelectedActivity->GetMinTeamsRequired();
 
+	std::vector humanPlayers = GetHumanPlayers();
 	std::string errorMessage = "";
 	if (humansInTeams > maxHumanPlayers) {
 		errorMessage = "Too many players assigned! Max for this activity is " + std::to_string(maxHumanPlayers);
 	} else if (minTeamsRequired > teamsWithPlayers) {
 		errorMessage = "Assign players to at least " + std::to_string(minTeamsRequired) + " of the teams!";
-	} else if (teamWithHumans == 0) {
+	} else if (teamWithHumans == 0 && !m_SelectedActivity->GetHumansCanSpectate()) {
 		errorMessage = "Assign human players to at least one team!";
+	} else if (g_UInputMan.CheckMultiMouseKeyboardEnabled(humanPlayers) && !g_UInputMan.AllPlayerInputDevicesKnown(humanPlayers)) {
+		errorMessage = "Some players have not set keyboard or mouse devices. Please go to input settings to configure!";
 	}
+
 	m_StartErrorLabel->SetText(errorMessage);
 	m_StartErrorLabel->SetVisible(!errorMessage.empty());
 	m_StartGameButton->SetVisible(errorMessage.empty());
@@ -408,6 +452,7 @@ bool ScenarioActivityConfigGUI::HandleInputEvents() {
 				g_GUISound.BackButtonPressSound()->Play();
 				SetEnabled(false);
 			} else if (guiEvent.GetControl() == m_StartGameButton) {
+				// Make sure all players have known input devices if multimouse is enabled.
 				g_GUISound.ButtonPressSound()->Play();
 				StartGame();
 				SetEnabled(false);
@@ -434,6 +479,21 @@ bool ScenarioActivityConfigGUI::HandleInputEvents() {
 		}
 	}
 	return false;
+}
+
+std::vector<int> ScenarioActivityConfigGUI::GetHumanPlayers() {
+	std::vector<int> humanPlayers;
+	for (int player = Players::PlayerOne; player < PlayerColumns::PlayerColumnCount; ++player) {
+		for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
+			if (m_PlayerBoxes.at(player).at(team)->GetDrawType() == GUICollectionBox::Image) {
+				if (player != PlayerColumns::PlayerCPU) {
+					humanPlayers.push_back(player);
+					break;
+				}
+			}
+		}
+	}
+	return humanPlayers;
 }
 
 void ScenarioActivityConfigGUI::Draw() {

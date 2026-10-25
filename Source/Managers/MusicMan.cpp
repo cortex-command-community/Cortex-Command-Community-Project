@@ -1,6 +1,5 @@
 ﻿#include "MusicMan.h"
 
-#include "NetworkClient.h"
 #include "AudioMan.h"
 #include "ConsoleMan.h"
 #include "PresetMan.h"
@@ -100,6 +99,7 @@ void MusicMan::ResetMusicState() {
 
 bool MusicMan::PlayDynamicSong(const std::string& songName, const std::string& songSectionType, bool playImmediately, bool playTransition, bool smoothFade) {
 	if (const DynamicSong* dynamicSongToPlay = dynamic_cast<const DynamicSong*>(g_PresetMan.GetEntityPreset("DynamicSong", songName))) {
+		m_NextSongSection = nullptr;
 		m_CurrentSong = std::unique_ptr<DynamicSong>(dynamic_cast<DynamicSong*>(dynamicSongToPlay->Clone()));
 		SetNextSongSectionType(songSectionType);
 		SelectNextSongSection();
@@ -127,7 +127,7 @@ bool MusicMan::SetNextDynamicSongSection(const std::string& newSongSectionType, 
 	if (m_NextSongSection) {
 		currentDynamicSongSection = m_NextSongSection->GetPresetName();
 	}
-	
+
 	if (!m_IsPlayingDynamicMusic) {
 		return false;
 	}
@@ -139,7 +139,7 @@ bool MusicMan::SetNextDynamicSongSection(const std::string& newSongSectionType, 
 			m_PreviousSoundContainerSetToFade = false;
 			if (m_PreviousSoundContainer) {
 				m_PreviousSoundContainer->Stop();
-				m_PreviousSoundContainer = nullptr;				
+				m_PreviousSoundContainer = nullptr;
 			}
 		}
 		CyclePlayingSoundContainers(smoothFade);
@@ -157,7 +157,7 @@ bool MusicMan::CyclePlayingSoundContainers(bool smoothFade) {
 	if (m_PreviousSoundContainer) {
 		previousSoundContainer = m_PreviousSoundContainer->GetPresetName();
 	}
-	
+
 	if (m_CurrentSoundContainer && m_CurrentSoundContainer->IsBeingPlayed()) {
 		if (smoothFade) {
 			m_CurrentSoundContainer->FadeOut(static_cast<int>(m_NextSoundContainer->GetMusicPreEntryTime()));

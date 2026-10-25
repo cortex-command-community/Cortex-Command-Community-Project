@@ -126,7 +126,7 @@ function ThreadedUpdate(self)
 	end
 end
 
-function OnDestroy(self)
+function Destroy(self)
 	self.flameSwingLoopSound.Volume = 0;
 	self.plumeLoopSound.Volume = 0;
 end

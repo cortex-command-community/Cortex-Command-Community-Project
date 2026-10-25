@@ -3,6 +3,7 @@
 #include "Icon.h"
 #include "Controller.h"
 #include "GenericSavedData.h"
+#include "Entity.h"
 
 namespace RTE {
 
@@ -128,7 +129,15 @@ namespace RTE {
 
 		/// Gets the user-friendly description of this Activity.
 		/// @return A string with the user-friendly description of this Activity.
-		std::string GetDescription() const { return m_Description; }
+		const std::string& GetDescription() const { return m_Description; }
+
+		/// Gets whether this Activity is listed in the menus that Activities get picked from. One that isn't can still be started by other means, such as from Lua.
+		/// @return Whether this Activity is listed in menus.
+		bool GetShowInMenus() const { return m_ShowInMenus; }
+
+		/// Gets whether human players can choose to just watch this Activity, leaving every team to the AI. Its setup menu then starts out with every team given to the CPU, and can start it without any human players on a team. Human players can still be put on a team to play it as usual.
+		/// @return Whether human players can choose to just watch this Activity.
+		bool GetHumansCanSpectate() const { return m_HumansCanSpectate; }
 
 		/// Gets the max number of players supported by this Activity.
 		/// @return The max number of players supported by this Activity.
@@ -155,11 +164,11 @@ namespace RTE {
 
 		/// Gets the name of the current scene.
 		/// @return A string with the instance name of the scene.
-		std::string GetSceneName() const { return m_SceneName; }
+		const std::string& GetSceneName() const { return m_SceneName; }
 
 		/// Sets the name of the scene this is associated with.
 		/// @param sceneName The new name of the scene to load next game.
-		void SetSceneName(const std::string sceneName) { m_SceneName = sceneName; }
+		void SetSceneName(std::string sceneName) { m_SceneName = std::move(sceneName); }
 
 		/// Gets whether craft must be considered orbited if they reach the map border on non-wrapped maps.
 		/// @return Whether craft are considered orbited when at the border of a non-wrapping map.
@@ -227,7 +236,7 @@ namespace RTE {
 
 		/// Gets the total number of human players in the current Activity.
 		/// @return The total number of players in the current Activity.
-		int GetHumanCount() const;
+		uint8_t GetHumanCount() const;
 
 		/// Indicates whether a specific player is human in the current game, ie not an AI player and has a screen etc.
 		/// @param player Which player index to check.
@@ -555,11 +564,11 @@ namespace RTE {
 		/// Saves a number which will be stored in our ini.
 		/// @param key The key of the saved number.
 		/// @param value The number to save.
-		void SaveNumber(const std::string& key, float value) { m_SavedValues.SaveNumber(key, value); };
+		void SaveNumber(const std::string& key, double value) { m_SavedValues.SaveNumber(key, value); };
 
 		/// Loads and returns a previously saved number.
 		/// @param key The key of the string to load.
-		float LoadNumber(const std::string& key) { return m_SavedValues.LoadNumber(key); };
+		double LoadNumber(const std::string& key) { return m_SavedValues.LoadNumber(key); };
 #pragma endregion
 
 	protected:
@@ -571,6 +580,8 @@ namespace RTE {
 		bool m_AllowsUserSaving; //!< Whether or not the current Activity can be saved by the user.
 
 		std::string m_Description; //!< User-friendly description of what this Activity is all about.
+		bool m_ShowInMenus; //!< Whether this Activity is listed in the menus that Activities get picked from.
+		bool m_HumansCanSpectate; //!< Whether human players can choose to just watch this Activity, leaving every team to the AI.
 		std::string m_SceneName; //!< The name of the Scene in which this Activity takes place.
 
 		int m_MaxPlayerSupport; //!< How many separate players this Activity can support at the same time.

@@ -139,7 +139,7 @@ namespace RTE {
 		/// Note, this resets the moment of inertia, which then has to be recalculated.
 		/// @param newAtom A pointer to an Atom that will pushed onto the end of the list. Ownership IS transferred!
 		/// @param subgroupID The subgroup ID that the new Atom will have within the group.
-		void AddAtom(Atom* newAtom, long subgroupID = 0) {
+		void AddAtom(Atom* newAtom, int64_t subgroupID = 0) {
 			newAtom->SetSubID(subgroupID);
 			m_Atoms.push_back(newAtom);
 			m_MomentOfInertia = 0.0F;
@@ -150,12 +150,12 @@ namespace RTE {
 		/// @param subgroupID The desired subgroup ID for the Atoms being added.
 		/// @param offset An offset that should be applied to all added Atoms.
 		/// @param offsetRotation The rotation of the placed Atoms around the specified offset.
-		void AddAtoms(const std::vector<Atom*>& atomList, long subgroupID = 0, const Vector& offset = Vector(), const Matrix& offsetRotation = Matrix());
+		void AddAtoms(const std::vector<Atom*>& atomList, int64_t subgroupID = 0, const Vector& offset = Vector(), const Matrix& offsetRotation = Matrix());
 
 		/// Removes all Atoms of a specific subgroup ID from this AtomGroup.
 		/// @param removeID The ID of the subgroup of Atoms to remove.
 		/// @return Whether any Atoms of that subgroup ID were found and removed.
-		bool RemoveAtoms(long removeID);
+		bool RemoveAtoms(int64_t removeID);
 
 		/// Removes all atoms in this AtomGroup, leaving it empty of Atoms.
 		void RemoveAllAtoms() {
@@ -168,14 +168,14 @@ namespace RTE {
 		/// Gets whether the AtomGroup contains a subgroup with the given subgroupID.
 		/// @param subgroupID The subgroupID to check for.
 		/// @return Whether this AtomGroup contains a subgroup with the given subgroupID.
-		bool ContainsSubGroup(long subgroupID) const { return m_SubGroups.count(subgroupID) != 0; }
+		bool ContainsSubGroup(int64_t subgroupID) const { return m_SubGroups.count(subgroupID) != 0; }
 
 		/// Updates the offsets of a subgroup of Atoms in this AtomGroup. This allows repositioning a subgroup to match the position and rotation of the graphical representation of it's owner MOSR.
 		/// @param subgroupID The desired subgroup ID of the Atoms to update offsets for.
 		/// @param newOffset The change in offset for the Atoms of the specified subgroup.
 		/// @param newOffsetRotation The rotation of the updated Atoms around the specified offset.
 		/// @return Whether any Atoms were found and updated for the specified subgroup.
-		bool UpdateSubAtoms(long subgroupID = 0, const Vector& newOffset = Vector(), const Matrix& newOffsetRotation = Matrix());
+		bool UpdateSubAtoms(int64_t subgroupID = 0, const Vector& newOffset = Vector(), const Matrix& newOffsetRotation = Matrix());
 #pragma endregion
 
 #pragma region Travel
@@ -216,6 +216,7 @@ namespace RTE {
 		/// Makes this AtomGroup travel as a pushing entity relative to the position of the owning MOSRotating.
 		/// If stuff in the scene is hit, resulting forces are be added to the owning MOSRotating's impulse forces.
 		/// @param jointPos A reference to a Vector with the world position of the limb joint which this AtomGroup is being pushed along.
+		/// @param limbRadius The radius/range of the limb this is to simulate.
 		/// @param velocity A Vector with the velocity of the owning MOSRotating.
 		/// @param rotation A Matrix with the rotation of the owning MOSRotating.
 		/// @param limbPath A LimbPath which this AtomGroup should travel along.
@@ -225,7 +226,7 @@ namespace RTE {
 		/// @param rotationOffset The position, relative to the owning actor's position, that we should rotate around.
 		/// @param rotationOffset The positional offset to apply to our limb path.
 		/// @return Whether the LimbPath passed in could start free of terrain or not.
-		bool PushAsLimb(const Vector& jointPos, const Vector& velocity, const Matrix& rotation, LimbPath& limbPath, const float travelTime, bool* restarted = nullptr, bool affectRotation = true, Vector rotationOffset = Vector(), Vector positionOffset = Vector());
+		bool PushAsLimb(const Vector& jointPos, const float limbRadius, const Vector& velocity, const Matrix& rotation, LimbPath& limbPath, const float travelTime, bool* restarted = nullptr, bool affectRotation = true, Vector rotationOffset = Vector(), Vector positionOffset = Vector());
 
 		/// Makes this AtomGroup travel as a lifeless limb, constrained to a radius around the joint pin in the center.
 		/// @param ownerPos A Vector with the world position of the owner MOSRotating.
@@ -300,7 +301,7 @@ namespace RTE {
 		// TODO: It's probably worth trying out changing this from a list to a vector. m_Atoms is iterated over often and we could probably get some big gainz by doing this swap.
 		// The downside is anytime attachables with atoms get added we may have the cost of resizing the vector but that's an uncommon use case while iterating over atoms happens multiple times per frame.
 		std::vector<Atom*> m_Atoms; //!< List of Atoms that constitute the group. Owned by this.
-		std::unordered_map<long, std::vector<Atom*>> m_SubGroups; //!< Sub groupings of Atoms. Points to Atoms owned in m_Atoms. Not owned.
+		std::unordered_map<int64_t, std::vector<Atom*>> m_SubGroups; //!< Sub groupings of Atoms. Points to Atoms owned in m_Atoms. Not owned.
 
 		MOSRotating* m_OwnerMOSR; //!< The owner of this AtomGroup. The owner is obviously not owned by this AtomGroup.
 		float m_StoredOwnerMass; //!< The stored mass for the owner MOSR. Used to figure out when the moment of inertia needs to be recalculated due to significant mass changes.

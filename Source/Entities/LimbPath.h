@@ -14,19 +14,13 @@ namespace RTE {
 
 #define SPEEDCOUNT 3
 
-	enum Speed {
-		SLOW = 0,
-		NORMAL,
-		FAST
-	};
-
 	/// A set of Vector:s making up a motion path for a AtomGroup's limb. The
 	/// path is continuous.
 	class LimbPath : public Entity {
 
 		/// Public member variable, method and friend function declarations
 	public:
-		// Concrete allocation and cloning definitions
+		/// Concrete allocation and cloning definitions
 		EntityAllocation(LimbPath);
 		SerializableOverrideMethods;
 		ClassInfoGetters;
@@ -89,7 +83,7 @@ namespace RTE {
 
 		/// Gets the number of Vector:s the internal array of 'waypoints' or
 		/// segments of this LimbPath.
-		/// @return An int with he count.
+		/// @return An int with the count.
 		int GetSegCount() const { return m_Segments.size(); }
 
 		/// Gets a pointer to the segment at the given index. Ownership is NOT transferred.
@@ -115,7 +109,7 @@ namespace RTE {
 
 		/// Gets the APPROXIMATE scene position that the limb was reported to be
 		/// last frame. This really shouldn't be used by external clients.
-		/// @return A Vector with the APPROXIAMTE scene/world coordinates of the limb as
+		/// @return A Vector with the APPROXIMATE scene/world coordinates of the limb as
 		/// reported last.
 		Vector GetProgressPos();
 
@@ -128,38 +122,51 @@ namespace RTE {
 		/// @return A Vector with the current move velocity.
 		Vector GetCurrentVel(const Vector& limbPos);
 
-		/// Gets the speed that a limb traveling this LimbPath should have.
-		/// @return A float describing the speed in m/s.
-		float GetSpeed() const { return m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier; }
+		/// Gets the base travel speed multiplier.
+		/// @return The base travel speed multiplier.
+		float GetBaseTravelSpeedMultiplier() const { return m_BaseTravelSpeedMultiplier; }
 
-		/// Gets the speed that a limb traveling this LimbPath should have for the specified preset.
-		/// @param speedPreset Predefined speed preset to set the value for.
-		/// @return A float describing the speed in m/s.
-		float GetSpeed(int speedPreset) const {
-			if (speedPreset == SLOW || speedPreset == NORMAL || speedPreset == FAST)
-				return m_TravelSpeed[speedPreset];
-			else
-				return 0;
-		}
-
-		/// Sets the current travel speed multiplier.
-		/// @param newValue The new travel speed multiplier.
-		void SetTravelSpeedMultiplier(float newValue) { m_TravelSpeedMultiplier = newValue; }
+		/// Sets the base travel speed multiplier.
+		/// @param newValue The new base travel speed multiplier.
+		void SetBaseTravelSpeedMultiplier(float newValue) { m_BaseTravelSpeedMultiplier = newValue; }
 
 		/// Gets the current travel speed multiplier.
 		/// @return The current travel speed multiplier.
-		float GetTravelSpeedMultiplier() const { return m_TravelSpeedMultiplier; }
+		float GetTravelSpeedMultiplier() const { return m_CurrentTravelSpeedMultiplier; }
+
+		/// Sets the current travel speed multiplier.
+		/// @param newValue The new travel speed multiplier.
+		void SetTravelSpeedMultiplier(float newValue) { m_CurrentTravelSpeedMultiplier = newValue; }
+
+		/// Gets the total travel speed multiplier including Base and Current.
+		/// @return The total travel speed multiplier.
+		float GetTotalTravelSpeedMultiplier() const { return m_BaseTravelSpeedMultiplier * m_CurrentTravelSpeedMultiplier; }
+
+		/// Gets the base scale multiplier.
+		/// @return The current scale multiplier.
+		Vector GetBaseScaleMultiplier() const { return m_BaseScaleMultiplier; }
+
+		/// Sets the base scale multiplier.
+		/// @param newValue The new base scale multiplier.
+		void SetBaseScaleMultiplier(Vector newValue) { m_BaseScaleMultiplier = newValue; }
+
+		/// Gets the current scale multiplier.
+		/// @return The current scale multiplier.
+		Vector GetScaleMultiplier() const { return m_CurrentScaleMultiplier; }
+
+		/// Sets the current scale multiplier.
+		/// @param newValue The new scale multiplier.
+		void SetScaleMultiplier(Vector newValue) { m_CurrentScaleMultiplier = newValue; }
+
+		/// Gets the total scale multiplier including Base and Current.
+		/// @return The total scale multiplier.
+		Vector GetTotalScaleMultiplier() const { return m_BaseScaleMultiplier * m_CurrentScaleMultiplier; }
 
 		/// Gets the force that a limb traveling this LimbPath can push against
-		/// stuff in the scene with. It will increase to the double if progress
+		/// stuff in the scene with, increasing to double if progress
 		/// isn't made on the segment.
 		/// @return The currently set force maximum, in kg * m/s^2.
-		float GetPushForce() const { return m_PushForce + (m_PushForce * (m_SegTimer.GetElapsedSimTimeMS() / 500)); }
-
-		/// Gets thedefault, unaltered force that a limb traveling this LimbPath can push against
-		/// stuff in the scene with.
-		/// @return The default set force maximum, in kg * m/s^2.
-		float GetDefaultPushForce() const { return m_PushForce; }
+		float GetEffectivePushForce() const { return m_PushForce + (m_PushForce * (m_SegTimer.GetElapsedSimTimeMS() / 500)); }
 
 		/// Gets the time needed to get to the target waypoint of the current
 		/// segment at the current speed, if there are no obstacles. The chunk
@@ -170,15 +177,15 @@ namespace RTE {
 		/// @return A float describing the time chunk in seconds.
 		float GetNextTimeChunk(const Vector& limbPos);
 
-		/// Gets the total time that this entire path should take to travel along
-		/// with the current speed setting, including the start segments.
+		/// Gets the total time that this entire path should take to travel along,
+		/// including the start segments.
 		/// @return The total time (ms) this should take to travel along, if unobstructed.
-		float GetTotalPathTime() const { return ((m_TotalLength * c_MPP) / (m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier)) * 1000; }
+		float GetTotalPathTime() const { return ((m_TotalLength * c_MPP * GetTotalScaleMultiplier().GetMagnitude()) / (m_TravelSpeed * GetTotalTravelSpeedMultiplier())) * 1000; }
 
 		/// Gets the total time that this path should take to travel along
-		/// with the current speed setting, NOT including the start segments.
+		/// NOT including the start segments.
 		/// @return The total time (ms) this should take to travel along, if unobstructed.
-		float GetRegularPathTime() const { return ((m_RegularLength * c_MPP) / (m_TravelSpeed[m_WhichSpeed] * m_TravelSpeedMultiplier)) * 1000; }
+		float GetRegularPathTime() const { return ((m_RegularLength * c_MPP * GetTotalScaleMultiplier().GetMagnitude()) / (m_TravelSpeed * GetTotalTravelSpeedMultiplier())) * 1000; }
 
 		/// Gets the ratio of time since the path was restarted and the total time
 		/// it should take to travel along the path with the current speed setting,
@@ -227,21 +234,27 @@ namespace RTE {
 		/// @param newSpeed An int that is an index to a valid element of the internal segment array.
 		//    void SetCurrentSeg(unsigned int currentSeg) { m_CurrentSegment = currentSeg; }
 
-		/// Sets the speed that a limb traveling this LimbPath should have to one
-		/// of the three predefined speed settings.
-		/// @param newSpeed An int specifying which discrete speed setting to use from the Speed
-		/// enumeration.
-		void SetSpeed(int newSpeed);
+		/// Gets the speed that a limb traveling this LimbPath has, without any multiplications.
+		/// @return A float with the travel speed.
+		float GetTravelSpeed() const { return m_TravelSpeed; }
 
-		/// Sets the speed that a limb traveling this LimbPath with the specified preset should have.
-		/// @param speedPreset An int specifying which discrete speed setting to use from the Speed
-		/// enumeration. New limb travel speed value.
-		void OverrideSpeed(int speedPreset, float newSpeed);
+		/// Sets the speed that a limb traveling this LimbPath should have.
+		/// @param newSpeed A float with the new speed.
+		void SetTravelSpeed(float newSpeed) { m_TravelSpeed = newSpeed; }
 
+		/// Gets the effective speed that a limb traveling this LimbPath has, including all multiplications.
+		/// @return A float with the effective travel speed.
+		float GetEffectiveTravelSpeed() { return m_TravelSpeed * GetTotalTravelSpeedMultiplier(); }
+
+		/// Gets the force that a limb traveling this LimbPath can push against
+		/// stuff in the scene with.
+		/// @return The default set force maximum, in kg * m/s^2.
+		float GetPushForce() const { return m_PushForce; }
+		
 		/// Sets the force that a limb traveling this LimbPath can push against
 		/// stuff in the scene with.
 		/// @param newForce The new push force maximum, in kg * m/s^2.
-		void OverridePushForce(float newForce) { m_PushForce = newForce; };
+		void SetPushForce(float newForce) { m_PushForce = newForce; }
 
 		/// Sets the amount of time that will be used by the limb to travel every
 		/// frame. Defined in seconds.
@@ -356,69 +369,62 @@ namespace RTE {
 	protected:
 		static Entity::ClassInfo m_sClass;
 
-		// The starting point of the path.
-		Vector m_Start;
+		Vector m_Start; //!< The starting point of the path.
 
-		// The number of starting segments, counting into the path from its beginning,
-		// that upon restart of this path will be tried in reverse order till one which
-		// yields a starting position that is clear of terrain is found.
-		int m_StartSegCount;
+		/// The number of starting segments, counting into the path from its beginning,
+		/// that upon restart of this path will be tried in reverse order till one which
+		/// yields a starting position that is clear of terrain is found.
+		size_t m_StartSegCount;
 
-		// Array containing the actual 'waypoints' or segments for the path.
-		std::deque<Vector> m_Segments;
+		std::deque<Vector> m_Segments; //!< Array containing the actual 'waypoints' or segments for the path.
 
-		// The iterator to the segment of the path that the limb ended up on the end of
+		/// The iterator to the segment of the path that the limb ended up on the end of.
 		std::deque<Vector>::iterator m_CurrentSegment;
 
-		int m_FootCollisionsDisabledSegment; //!< The segment after which foot collisions will be disabled for this limbpath, if it's for legs.
+		/// Count of segments at the end of the segments list for which foot collisions should be disabled
+		/// for this limbpath, if it's for legs.
+		int m_FootCollisionsDisabledSegment;
 
-		// Normalized measure of how far the limb has progressed toward the
-		// current segment's target. 0.0 means its farther away than the
-		// magnitude of the entire segment. 0.5 means it's half the mag of the segment
-		// away from the target.
+		/// Normalized measure of how far the limb has progressed toward the current
+		/// segment's target.
+		///
+		/// 0.0 means its farther away than the magnitude of the entire segment.
+		/// 0.5 means it's half the mag of the segment away from the target.
 		float m_SegProgress;
 
-		// The constant speed that the limb traveling this path has in m/s.
-		float m_TravelSpeed[SPEEDCOUNT];
+		float m_TravelSpeed; //!< The constant speed that the limb traveling this path has in m/s.
 
-		// The current travel speed multiplier
-		float m_TravelSpeedMultiplier;
+		float m_SegmentEndedThreshold; //!< How close we must get to the end of each segment to consider it finished
 
-		// The current speed setting.
-		int m_WhichSpeed;
+		float m_BaseTravelSpeedMultiplier; //!< The base travel speed multiplier
+		float m_CurrentTravelSpeedMultiplier; //!< The current travel speed multiplier
 
-		// The max force that a limb travelling along this path can push.
-		// In kg * m/(s^2)
-		float m_PushForce;
+		/// The base scale multiplier for both axes.
+		Vector m_BaseScaleMultiplier;
+		/// The current scale multiplier for both axes. (we extend the walkpath when running fast to take longer strides)
+		Vector m_CurrentScaleMultiplier;
 
-		// The latest known position of the owning actor's joint in world coordinates.
-		Vector m_JointPos;
-		// The latest known velocity of the owning actor's joint in world coordinates.
-		Vector m_JointVel;
-		// The rotation applied to this walkpath.
-		Matrix m_Rotation;
-		// The point we should be rotated around, in local space.
-		Vector m_RotationOffset;
-		// The offset to apply to our walkpath position, in local space.
-		Vector m_PositionOffset;
+		float m_PushForce; //!< The max force that a limb travelling along this path can push, in kg * m/(s^2).
 
-		// If GetNextTimeSeg() couldn't use up all frame time because the current segment
-		// ended,this var stores the remainder of time that should be used to progress
-		// on the next segment during the same frame.
+		Vector m_JointPos; //!< The latest known position of the owning actor's joint in world coordinates.
+		Vector m_JointVel; //!< The latest known velocity of the owning actor's joint in world coordinates.
+		Matrix m_Rotation; //!< The rotation applied to this walkpath.
+		Vector m_RotationOffset; //!< The point we should be rotated around, in local space.
+		Vector m_PositionOffset; //!< The offset to apply to our walkpath position, in local space.
+
+		/// If GetNextTimeSeg() couldn't use up all frame time because the current segment
+		/// ended, this var stores the remainder of time that should be used to progress
+		/// on the next segment during the same frame.
 		float m_TimeLeft;
 
-		// Times the amount of sim time spent since the last path traversal was started
-		Timer m_PathTimer;
-		// Times the amount of sim time spent pursuing the current segment's target.
-		Timer m_SegTimer;
+		Timer m_PathTimer; //!< Records the amount of sim time spent since the last path traversal was started.
+		Timer m_SegTimer; //!< Records the amount of sim time spent pursuing the current segment's target.
 
-		// Total length of this LimbPath, including the alternative starting segments, in pixel units
-		float m_TotalLength;
-		// Length of this LimbPath, excluding the alternative starting segments.
-		float m_RegularLength;
-		bool m_SegmentDone;
-		bool m_Ended;
-		bool m_HFlipped;
+		float m_TotalLength; //!< Total length of this LimbPath, including the alternative starting segments, in pixel units
+		float m_RegularLength; //!< Length of this LimbPath, excluding the alternative starting segments.
+		bool m_SegmentDone; //!< Unused?
+		bool m_Ended; //!< True if this path has ended. See method `PathEnded` for more information.
+		bool m_HFlipped; //!< True if this path is horizontally flipped.
 
 		/// Private member variable and method declarations
 	private:
@@ -430,6 +436,26 @@ namespace RTE {
 		/// @param point The point to rotate.
 		/// @return The rotated point.
 		Vector RotatePoint(const Vector& point) const;
+
+		/// Inverse of RotatePoint.
+		/// @param point The rotated point
+		/// @return The point pre-rotation.
+		Vector InverseRotatePoint(const Vector& point) const;
+
+		/// Converts an input position, absolute and in scene/world space, to local space for this LimbPath,
+		/// taking into account rotation and scaling.
+		/// @param position World space position
+		/// @returns Local space position
+		Vector ToLocalSpace(const Vector& position) const;
+
+		/// Converts an input position, in local space for this LimbPath, into scene/world space,
+		/// taking into account rotation and scaling.
+		/// @param position Local space position
+		/// @returns World space position
+		Vector ToWorldSpace(const Vector& position) const;
+
+		/// Gets the current segment's starting position (i.e. last segment's target) in local space.
+		Vector GetCurrentSegStartLocal() const;
 	};
 
 } // namespace RTE

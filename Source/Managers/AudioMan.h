@@ -151,6 +151,14 @@ namespace RTE {
 			}
 		}
 
+		/// Gets whether to mute all audio when the game loses focus.
+		/// @returns Whether to mute all audio when the game loses focus.
+		bool GetMuteAudioOnFocusLoss() const { return m_MuteAudioOnFocusLoss; }
+
+		/// Sets whether to mute all audio when the game loses focus.
+		/// @param mute Whether to mute all audio when the game loses focus.
+		void SetMuteAudioOnFocusLoss(bool mute) { m_MuteAudioOnFocusLoss = mute; }
+
 		/// Gets the global pitch scalar value for all sounds and music.
 		/// @return The current pitch scalar. Will be > 0.
 		float GetGlobalPitch() const { return m_GlobalPitch; }
@@ -326,6 +334,7 @@ namespace RTE {
 		bool m_MuteMaster; //!< Whether all the audio is muted.
 		bool m_MuteMusic; //!< Whether the music channel is muted.
 		bool m_MuteSounds; //!< Whether all the sound effects channels are muted.
+		bool m_MuteAudioOnFocusLoss; //!< Whether audio should be muted when the game loses focus.
 		float m_MasterVolume; //!< Global volume of all audio.
 		float m_MusicVolume; //!< Global music volume.
 		float m_SoundsVolume; //!< Global sounds effects volume.
@@ -386,6 +395,11 @@ namespace RTE {
 		/// @param player Which player to stop playing the SoundContainer for.
 		/// @return
 		bool StopSoundContainerPlayingChannels(SoundContainer* soundContainer, int player);
+
+		/// Has the channels playing a SoundContainer's sounds no longer be tied to it, for when it is about to be destroyed.
+		/// The sounds get to play out, except for the ones that loop endlessly. Those get stopped, since there would be nothing left to stop them with.
+		/// @param soundContainer A pointer to a SoundContainer object. Ownership is NOT transferred!
+		void DetachSoundContainerPlayingChannels(SoundContainer* soundContainer);
 
 		/// Fades out playback a SoundContainer.
 		/// @param soundContainer A pointer to a SoundContainer object. Ownership is NOT transferred!

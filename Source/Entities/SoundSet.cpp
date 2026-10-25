@@ -31,12 +31,9 @@ void SoundSet::Clear() {
 int SoundSet::Create(const SoundSet& reference) {
 	m_SoundSelectionCycleMode = reference.m_SoundSelectionCycleMode;
 	m_CurrentSelection = reference.m_CurrentSelection;
-	for (SoundData referenceSoundData: reference.m_SoundData) {
-		m_SoundData.push_back(referenceSoundData);
-	}
-	for (const SoundSet& referenceSoundSet: reference.m_SubSoundSets) {
-		SoundSet soundSet;
-		soundSet.Create(referenceSoundSet);
+	m_SoundData.insert(m_SoundData.end(), reference.m_SoundData.begin(), reference.m_SoundData.end());
+	for (const SoundSet* referenceSoundSet: reference.m_SubSoundSets) {
+		SoundSet* soundSet = new SoundSet(*referenceSoundSet);
 		m_SubSoundSets.push_back(soundSet);
 	}
 
@@ -55,6 +52,46 @@ int SoundSet::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 
 	EndPropertyList;
+}
+
+int SoundSet::Save(Writer& writer) const {
+	Serializable::Save(writer);
+
+	writer.NewProperty("SoundSelectionCycleMode");
+	SaveSoundSelectionCycleMode(writer, m_SoundSelectionCycleMode);
+
+	for (const SoundData& soundData: m_SoundData) {
+		writer.NewProperty("AddSound");
+		writer.ObjectStart("ContentFile");
+
+		writer.NewProperty("FilePath");
+		writer << soundData.SoundFile.GetDataPath();
+		writer.NewProperty("Offset");
+		writer << soundData.Offset;
+		writer.NewProperty("MinimumAudibleDistance");
+		writer << soundData.MinimumAudibleDistance;
+		writer.NewProperty("AttenuationStartDistance");
+		writer << soundData.AttenuationStartDistance;
+
+		writer.ObjectEnd();
+	}
+
+	for (const SoundSet* subSoundSet: m_SubSoundSets) {
+		writer.NewProperty("AddSoundSet");
+		writer.ObjectStart("SoundSet");
+		writer << *subSoundSet;
+		writer.ObjectEnd();
+	}
+
+	return 0;
+}
+
+void SoundSet::Destroy() {
+	for (const SoundSet* subSoundSet: m_SubSoundSets) {
+		delete subSoundSet;
+	}
+
+	Clear();
 }
 
 SoundData SoundSet::ReadAndGetSoundData(Reader& reader) {
@@ -123,38 +160,6 @@ SoundSet::SoundSelectionCycleMode SoundSet::ReadSoundSelectionCycleMode(Reader& 
 	return soundSelectionCycleModeToReturn;
 }
 
-int SoundSet::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	writer.NewProperty("SoundSelectionCycleMode");
-	SaveSoundSelectionCycleMode(writer, m_SoundSelectionCycleMode);
-
-	for (const SoundData& soundData: m_SoundData) {
-		writer.NewProperty("AddSound");
-		writer.ObjectStart("ContentFile");
-
-		writer.NewProperty("FilePath");
-		writer << soundData.SoundFile.GetDataPath();
-		writer.NewProperty("Offset");
-		writer << soundData.Offset;
-		writer.NewProperty("MinimumAudibleDistance");
-		writer << soundData.MinimumAudibleDistance;
-		writer.NewProperty("AttenuationStartDistance");
-		writer << soundData.AttenuationStartDistance;
-
-		writer.ObjectEnd();
-	}
-
-	for (const SoundSet& subSoundSet: m_SubSoundSets) {
-		writer.NewProperty("AddSoundSet");
-		writer.ObjectStart("SoundSet");
-		writer << subSoundSet;
-		writer.ObjectEnd();
-	}
-
-	return 0;
-}
-
 void SoundSet::SaveSoundSelectionCycleMode(Writer& writer, SoundSelectionCycleMode soundSelectionCycleMode) {
 	auto cycleModeMapEntry = std::find_if(c_SoundSelectionCycleModeMap.begin(), c_SoundSelectionCycleModeMap.end(), [&soundSelectionCycleMode = soundSelectionCycleMode](auto element) { return element.second == soundSelectionCycleMode; });
 	if (cycleModeMapEntry != c_SoundSelectionCycleModeMap.end()) {
@@ -181,7 +186,7 @@ bool SoundSet::RemoveSound(const std::string& soundFilePath, bool removeFromSubS
 		m_SoundData.erase(soundsToRemove, m_SoundData.end());
 	}
 	if (removeFromSubSoundSets) {
-		for (SoundSet subSoundSet: m_SubSoundSets) {
+		for (SoundSet* subSoundSet: m_SubSoundSets) {
 			anySoundsToRemove |= RemoveSound(soundFilePath, removeFromSubSoundSets);
 		}
 	}
@@ -191,8 +196,8 @@ bool SoundSet::RemoveSound(const std::string& soundFilePath, bool removeFromSubS
 bool SoundSet::HasAnySounds(bool includeSubSoundSets) const {
 	bool hasAnySounds = !m_SoundData.empty();
 	if (!hasAnySounds && includeSubSoundSets) {
-		for (const SoundSet& subSoundSet: m_SubSoundSets) {
-			hasAnySounds = subSoundSet.HasAnySounds();
+		for (const SoundSet* subSoundSet: m_SubSoundSets) {
+			hasAnySounds = subSoundSet->HasAnySounds();
 			if (hasAnySounds) {
 				break;
 			}
@@ -206,16 +211,30 @@ void SoundSet::GetFlattenedSoundData(std::vector<SoundData*>& flattenedSoundData
 		for (SoundData& soundData: m_SoundData) {
 			flattenedSoundData.push_back(&soundData);
 		}
-		for (SoundSet& subSoundSet: m_SubSoundSets) {
-			subSoundSet.GetFlattenedSoundData(flattenedSoundData, onlyGetSelectedSoundData);
+		for (SoundSet* subSoundSet: m_SubSoundSets) {
+			subSoundSet->GetFlattenedSoundData(flattenedSoundData, onlyGetSelectedSoundData);
 		}
 	} else {
 		if (m_CurrentSelection.first == false) {
 			flattenedSoundData.push_back(&m_SoundData[m_CurrentSelection.second]);
 		} else {
-			m_SubSoundSets[m_CurrentSelection.second].GetFlattenedSoundData(flattenedSoundData, onlyGetSelectedSoundData);
+			m_SubSoundSets[m_CurrentSelection.second]->GetFlattenedSoundData(flattenedSoundData, onlyGetSelectedSoundData);
 		}
 	}
+}
+
+const SoundData* SoundSet::FindSoundData(const FMOD::Sound* sound) const {
+	for (const SoundData& soundData: m_SoundData) {
+		if (soundData.SoundObject == sound) {
+			return &soundData;
+		}
+	}
+	for (const SoundSet* subSoundSet: m_SubSoundSets) {
+		if (const SoundData* soundData = subSoundSet->FindSoundData(sound)) {
+			return soundData;
+		}
+	}
+	return nullptr;
 }
 
 void SoundSet::GetFlattenedSoundData(std::vector<const SoundData*>& flattenedSoundData, bool onlyGetSelectedSoundData) const {
@@ -223,22 +242,22 @@ void SoundSet::GetFlattenedSoundData(std::vector<const SoundData*>& flattenedSou
 		for (const SoundData& soundData: m_SoundData) {
 			flattenedSoundData.push_back(&soundData);
 		}
-		for (const SoundSet& subSoundSet: m_SubSoundSets) {
-			subSoundSet.GetFlattenedSoundData(flattenedSoundData, onlyGetSelectedSoundData);
+		for (const SoundSet* subSoundSet: m_SubSoundSets) {
+			subSoundSet->GetFlattenedSoundData(flattenedSoundData, onlyGetSelectedSoundData);
 		}
 	} else {
 		if (m_CurrentSelection.first == false) {
 			flattenedSoundData.push_back(&m_SoundData[m_CurrentSelection.second]);
 		} else {
-			m_SubSoundSets[m_CurrentSelection.second].GetFlattenedSoundData(flattenedSoundData, onlyGetSelectedSoundData);
+			m_SubSoundSets[m_CurrentSelection.second]->GetFlattenedSoundData(flattenedSoundData, onlyGetSelectedSoundData);
 		}
 	}
 }
 
 bool SoundSet::SelectNextSounds() {
 	if (m_SoundSelectionCycleMode == SoundSelectionCycleMode::ALL) {
-		for (SoundSet& subSoundSet: m_SubSoundSets) {
-			if (!subSoundSet.SelectNextSounds()) {
+		for (SoundSet* subSoundSet: m_SubSoundSets) {
+			if (!subSoundSet->SelectNextSounds()) {
 				return false;
 			}
 		}
@@ -255,13 +274,13 @@ bool SoundSet::SelectNextSounds() {
 	/// Internal lambda function to pick a random sound that's not the previously played sound. Done to avoid scoping issues inside the switch below.
 	/// </summary>
 	auto selectSoundRandom = [&selectedVectorSize, &unselectedVectorSize, this]() {
-		if (unselectedVectorSize > 0 && (selectedVectorSize == 1 || RandomNum(0, 1) == 1)) {
+		if (unselectedVectorSize > 0 && (selectedVectorSize == 1 || g_DrawRandomGenerator.RandomNum(0, 1) == 1)) {
 			std::swap(selectedVectorSize, unselectedVectorSize);
-			m_CurrentSelection = {!m_CurrentSelection.first, RandomNum(0, selectedVectorSize - 1)};
+			m_CurrentSelection = {!m_CurrentSelection.first, g_DrawRandomGenerator.RandomNum(0, selectedVectorSize - 1)};
 		} else {
-			size_t soundToSelect = RandomNum(0, selectedVectorSize - 1);
+			size_t soundToSelect = g_DrawRandomGenerator.RandomNum(0, selectedVectorSize - 1);
 			while (soundToSelect == m_CurrentSelection.second) {
-				soundToSelect = RandomNum(0, selectedVectorSize - 1);
+				soundToSelect = g_DrawRandomGenerator.RandomNum(0, selectedVectorSize - 1);
 			}
 			m_CurrentSelection.second = soundToSelect;
 		}
@@ -303,7 +322,7 @@ bool SoundSet::SelectNextSounds() {
 	}
 
 	if (m_CurrentSelection.first == true) {
-		return m_SubSoundSets[m_CurrentSelection.second].SelectNextSounds();
+		return m_SubSoundSets[m_CurrentSelection.second]->SelectNextSounds();
 	}
 
 	return true;

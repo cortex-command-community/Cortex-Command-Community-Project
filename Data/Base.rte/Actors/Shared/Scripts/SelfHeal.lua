@@ -22,7 +22,8 @@ function Update(self)
 					end
 				end
 				local cross = self.healCrossParticle:Clone();
-				cross.Pos = self.AboveHUDPos + Vector(0, 4);
+				--Not placed by AboveHUDPos, since that goes by how the HUD was last drawn, which can't be allowed to change the simulation
+				cross.Pos = self.Pos + Vector(0, -self.Height * 0.5 - 2);
 				MovableMan:AddParticle(cross);
 			else
 				local timerRatio = self.healing.timer.ElapsedSimTimeMS/self.healing.delay;
@@ -52,7 +53,7 @@ function Update(self)
 			for state = 1, 15 do
 				controller:SetState(state, false);
 			end
-			controller:SetState(Controller.BODY_CROUCH, true);
+			controller:SetState(Controller.BODY_PRONE, true);
 		end
 	elseif self:NumberValueExists("SelfHeal") then
 		self.healing = {};

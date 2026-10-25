@@ -86,6 +86,10 @@ namespace RTE {
 		/// @return The proportion of inherited velocity as a scalar from 0 to 1.
 		float InheritsVelocity() const { return m_InheritsVel; }
 
+		/// Gets how much of the gibbing parent's angular velocity this Gib's GibParticles should inherit.
+		/// @return The proportion of inherited velocity as a scalar from 0 to 1.
+		float InheritsAngularVelocity() const { return m_InheritsAngularVel; }
+
 		/// Gets whether this Gib's GibParticles should ignore hits with the team of the gibbing parent.
 		/// @return Whether this Gib's GibParticles should ignore hits with the team of the gibbing parent.
 		bool IgnoresTeamHits() const { return m_IgnoresTeamHits; }
@@ -108,6 +112,7 @@ namespace RTE {
 		float m_MaxVelocity; //!< The maximum velocity a GibParticle object can have when spawned.
 		float m_LifeVariation; //!< The per-Gib variation in Lifetime, in percentage of the existing Lifetime of the gib.
 		float m_InheritsVel; //!< How much of the exploding parent's velocity this Gib should inherit.
+		float m_InheritsAngularVel; //!< How much of the exploding parent's angular velocity this Gib should inherit.
 		bool m_IgnoresTeamHits; //!< Whether this Gib should ignore hits with the team of the exploding parent or not.
 		SpreadMode m_SpreadMode; //!< Determines what kind of logic is used when applying velocity to the GibParticle objects.
 

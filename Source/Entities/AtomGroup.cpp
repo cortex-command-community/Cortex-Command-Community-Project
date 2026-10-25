@@ -85,7 +85,7 @@ int AtomGroup::Create(const AtomGroup& reference, bool onlyCopyOwnerAtoms) {
 			atomCopy->SetIgnoreMOIDsByGroup(&m_IgnoreMOIDs);
 			m_Atoms.push_back(atomCopy);
 
-			long subgroupID = atomCopy->GetSubID();
+			int64_t subgroupID = atomCopy->GetSubID();
 			if (subgroupID != 0) {
 				if (m_SubGroups.find(subgroupID) == m_SubGroups.end()) {
 					m_SubGroups.insert({subgroupID, std::vector<Atom*>()});
@@ -258,7 +258,7 @@ float AtomGroup::GetMomentOfInertia() {
 	return m_MomentOfInertia;
 }
 
-void AtomGroup::AddAtoms(const std::vector<Atom*>& atomList, long subgroupID, const Vector& offset, const Matrix& offsetRotation) {
+void AtomGroup::AddAtoms(const std::vector<Atom*>& atomList, int64_t subgroupID, const Vector& offset, const Matrix& offsetRotation) {
 	if (m_SubGroups.count(subgroupID) == 0) {
 		m_SubGroups.insert({subgroupID, std::vector<Atom*>()});
 	}
@@ -281,7 +281,7 @@ void AtomGroup::AddAtoms(const std::vector<Atom*>& atomList, long subgroupID, co
 	}
 }
 
-bool AtomGroup::RemoveAtoms(long removeID) {
+bool AtomGroup::RemoveAtoms(int64_t removeID) {
 	std::size_t oldSize = m_Atoms.size();
 
 	m_Atoms.erase(
@@ -304,7 +304,7 @@ bool AtomGroup::RemoveAtoms(long removeID) {
 	return removedAny;
 }
 
-bool AtomGroup::UpdateSubAtoms(long subgroupID, const Vector& newOffset, const Matrix& newOffsetRotation) {
+bool AtomGroup::UpdateSubAtoms(int64_t subgroupID, const Vector& newOffset, const Matrix& newOffsetRotation) {
 	if (m_SubGroups.empty() || m_SubGroups.count(subgroupID) == 0) {
 		return false;
 	}
@@ -354,8 +354,8 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 
 	HitData hitData;
 
-	// Thread locals for performance (avoid memory allocs)
-	thread_local std::unordered_map<MOID, std::vector<Atom*>> hitMOAtoms;
+	// std::map keeps hitMOAtoms iteration MOID-ascending so impulse accumulation order is deterministic.
+	thread_local std::map<MOID, std::vector<Atom*>> hitMOAtoms;
 	hitMOAtoms.clear();
 	thread_local std::vector<Atom*> hitTerrAtoms;
 	hitTerrAtoms.clear();
@@ -371,8 +371,9 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 			const Vector startOff = m_OwnerMOSR->RotateOffset(atom->GetOffset());
 
 			if (atom->SetupPos(position + startOff)) {
-				hitData.Reset();
 				if (atom->IsIgnoringTerrain()) {
+					// The HitData only gets used here for Atoms that are ignoring terrain, so it's only reset for them.
+					hitData.Reset();
 					// Calculate and store the accurate hit radius of the Atom in relation to the CoM.
 					hitData.HitRadius[HITOR] = startOff * c_MPP;
 					// Figure out the pre-collision velocity of the hitting Atom due to body translation and rotation.
@@ -450,7 +451,7 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 		}
 
 		for (Atom* atom: m_Atoms) {
-			atom->SetStepRatio(static_cast<float>(atom->GetStepsLeft()) / static_cast<float>(stepsOnSeg));
+			atom->SetStepRatio(stepsOnSeg != 0 ? static_cast<float>(atom->GetStepsLeft()) / static_cast<float>(stepsOnSeg) : 0.0F);
 		}
 
 		// STEP LOOP ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -461,7 +462,6 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 
 			// SCENE COLLISION DETECTION ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-			hitData.Reset();
 			hitMOAtoms.clear();
 			hitTerrAtoms.clear();
 			penetratingAtoms.clear();
@@ -511,6 +511,8 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 			}
 
 			// There are colliding Atoms, therefore the group hit something.
+			// The HitData only gets used from here on, so it's only reset when something was hit, rather than on every step.
+			hitData.Reset();
 			hitStep = true;
 			++hitCount;
 
@@ -695,11 +697,11 @@ float AtomGroup::Travel(Vector& position, Vector& velocity, Matrix& rotation, fl
 			// Apply all the collision response impulse forces to the linear and angular velocities of the owner MO.
 			for (Atom* hitResponseAtom: hitResponseAtoms) {
 				// TODO: Investigate damping!
-				hitData = hitResponseAtom->GetHitData();
-				velocity += hitData.ResImpulse[HITOR] / mass;
-				angularVel += hitData.HitRadius[HITOR].GetPerpendicular().Dot(hitData.ResImpulse[HITOR]) / m_MomentOfInertia;
+				const HitData& hitResponse = hitResponseAtom->GetHitData();
+				velocity += hitResponse.ResImpulse[HITOR] / mass;
+				angularVel += hitResponse.HitRadius[HITOR].GetPerpendicular().Dot(hitResponse.ResImpulse[HITOR]) / m_MomentOfInertia;
 				// Accumulate all the impulse forces so the MO can determine if it took damaged as a result
-				totalImpulse += hitData.ResImpulse[HITOR];
+				totalImpulse += hitResponse.ResImpulse[HITOR];
 			}
 
 			// Make sub-pixel progress if there was a hit on the very first step.
@@ -800,7 +802,8 @@ Vector AtomGroup::PushTravel(Vector& position, const Vector& velocity, float pus
 	// Thread locals for performance reasons (avoid memory allocs)
 	thread_local std::unordered_map<MOID, std::unordered_set<Atom*>> MOIgnoreMap;
 	MOIgnoreMap.clear();
-	thread_local std::unordered_map<MOID, std::vector<std::pair<Atom*, Vector>>> hitMOAtoms;
+	// std::map keeps hitMOAtoms iteration MOID-ascending so impulse accumulation order is deterministic.
+	thread_local std::map<MOID, std::vector<std::pair<Atom*, Vector>>> hitMOAtoms;
 	hitMOAtoms.clear();
 	thread_local std::deque<std::pair<Atom*, Vector>> hitTerrAtoms;
 	hitTerrAtoms.clear();
@@ -1211,7 +1214,7 @@ Vector AtomGroup::PushTravel(Vector& position, const Vector& velocity, float pus
 	return returnPush;
 }
 
-bool AtomGroup::PushAsLimb(const Vector& jointPos, const Vector& velocity, const Matrix& rotation, LimbPath& limbPath, const float travelTime, bool* restarted, bool affectRotation, Vector rotationOffset, Vector positionOffset) {
+bool AtomGroup::PushAsLimb(const Vector& jointPos, const float limbRadius, const Vector& velocity, const Matrix& rotation, LimbPath& limbPath, const float travelTime, bool* restarted, bool affectRotation, Vector rotationOffset, Vector positionOffset) {
 	RTEAssert(m_OwnerMOSR, "Tried to push-as-limb an AtomGroup that has no parent!");
 
 	bool didWrap = false;
@@ -1255,24 +1258,33 @@ bool AtomGroup::PushAsLimb(const Vector& jointPos, const Vector& velocity, const
 				return false;
 			}
 		}
-		pushImpulse = PushTravel(m_LimbPos, limbPath.GetCurrentVel(m_LimbPos), limbPath.GetPushForce(), didWrap, limbPath.GetNextTimeChunk(m_LimbPos), false, false);
+		pushImpulse = PushTravel(m_LimbPos, limbPath.GetCurrentVel(m_LimbPos), limbPath.GetEffectivePushForce(), didWrap, limbPath.GetNextTimeChunk(m_LimbPos), false, false);
 		limbPath.ReportProgress(m_LimbPos);
 	} while (!limbPath.FrameDone() && !limbPath.PathEnded());
+
+	// Todo, right now this doesn't really work well. Need to investigate
+	/*Vector limbRange = m_LimbPos - adjustedJointPos;
+	if (limbRange.MagnitudeIsGreaterThan(limbRadius)) {
+		limbRange.SetMagnitude(limbRadius);
+		m_LimbPos = jointPos + limbRange;
+	}*/
 
 	if (pushImpulse.GetLargest() > 10000.0F) {
 		pushImpulse.Reset();
 	}
 
 	if (Actor* owner = dynamic_cast<Actor*>(m_OwnerMOSR)) {
-		bool againstTravelDirection = owner->GetController()->IsState(MOVE_LEFT) && pushImpulse.m_X > 0.0F ||
-		                              owner->GetController()->IsState(MOVE_RIGHT) && pushImpulse.m_X < 0.0F;
+		bool againstTravelDirection = !owner->GetController()->IsState(BODY_JUMP) && /*owner->EstimateJumpHeight() > 0.0F && // little inefficient for now*/
+		                              ((owner->GetController()->IsState(MOVE_LEFT)  && pushImpulse.m_X > 0.0F) ||
+		                               (owner->GetController()->IsState(MOVE_RIGHT) && pushImpulse.m_X < 0.0F));
 		if (againstTravelDirection) {
 			// Filter some of our impulse out. We're pushing against an obstacle, but we don't want to kick backwards!
-			const float againstIntendedDirectionMultiplier = 0.5F;
+			const float againstIntendedDirectionMultiplier = 0.3F;
 
-			if (!owner->GetController()->IsState(BODY_CROUCH) && !owner->GetController()->IsState(MOVE_DOWN)) {
+			if (!owner->GetController()->IsState(BODY_PRONE) && !owner->GetController()->IsState(MOVE_DOWN)) {
 				// Translate it into to upwards motion to step over what we're walking into instead ;)
-				pushImpulse.m_Y -= std::abs(pushImpulse.m_X * (1.0F - againstIntendedDirectionMultiplier));
+				// Disabled just now.. causes us to jump up at high speeds
+				//pushImpulse.m_Y -= std::abs(pushImpulse.m_X * (1.0F - againstIntendedDirectionMultiplier));
 			}
 
 			pushImpulse.m_X *= againstIntendedDirectionMultiplier;
@@ -1296,11 +1308,11 @@ void AtomGroup::FlailAsLimb(const Vector& ownerPos, const Vector& jointOffset, c
 	Vector pushImpulse = PushTravel(m_LimbPos, totalVel, 100, didWrap, travelTime, false, false);
 
 	Vector limbRange = m_LimbPos - jointPos;
-
 	if (limbRange.MagnitudeIsGreaterThan(limbRadius)) {
 		limbRange.SetMagnitude(limbRadius);
 		m_LimbPos = jointPos + limbRange;
 	}
+
 	return;
 }
 

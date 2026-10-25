@@ -84,7 +84,7 @@ function BunkerBreach:SetupDefenderBrains()
 		end
 
 		defenderBrain = self:CreateBrainBot(self.defenderTeam);
-		defenderBrain.Pos = SceneMan.Scene:GetOptionalArea("Brain"):GetCenterPoint();
+		defenderBrain.Pos = SceneMan.Scene:GetArea("Brain"):GetCenterPoint();
 		MovableMan:AddActor(defenderBrain);
 	else
 		-- Pick the defender brain randomly from among those created by deployments, then delete the others and clean up most of their guards.
@@ -99,7 +99,7 @@ function BunkerBreach:SetupDefenderBrains()
 		table.remove(deploymentBrains, brainIndexToChoose);
 
 		if SceneMan.Scene:HasArea("Brain Chamber") then
-			self.brainChamber = SceneMan.Scene:GetOptionalArea("Brain Chamber");
+			self.brainChamber = SceneMan.Scene:GetArea("Brain Chamber");
 		end
 		for _, unchosenDeploymentBrain in pairs(deploymentBrains) do
 			unchosenDeploymentBrain.ToDelete = true;
@@ -142,16 +142,16 @@ function BunkerBreach:SetupDefenderActors()
 	local crabToHumanSpawnRatio = self:GetCrabToHumanSpawnRatio(techID);
 
 	local loadoutNames = {"Light", "Heavy", "Sniper", "Engineer", "Mecha", "Turret"};
-	
+
 	local hasSpawnAreas = false;
 	for _, loadoutName in pairs(loadoutNames) do
 		if SceneMan.Scene:HasArea(loadoutName .. " Defenders") then
 			hasSpawnAreas = true;
 		end
 	end
-	
+
 	for actor in MovableMan.AddedActors do
-		if not actor:IsInGroup("Brains") and not actor:IsInGroup("Bunker Systems") then
+		if not actor:IsInGroup("Brains") and not actor:IsInGroup("Bunker Systems") and not IsADoor(actor) then
 			if hasSpawnAreas then
 				actor.ToDelete = true;
 			elseif actor.Team ~= self.defenderTeam then
@@ -162,12 +162,12 @@ function BunkerBreach:SetupDefenderActors()
 			actor.Team = self.defenderTeam;
 		end
 	end
-	
+
 	if hasSpawnAreas then
 		for _, loadoutName in pairs({"Light", "Heavy", "Sniper", "Engineer", "Mecha", "Turret"}) do
 			if SceneMan.Scene:HasArea(loadoutName .. " Defenders") then
 				hasSpawnAreas = true;
-				local defenderArea = SceneMan.Scene:GetOptionalArea(loadoutName .. " Defenders");
+				local defenderArea = SceneMan.Scene:GetArea(loadoutName .. " Defenders");
 				if defenderArea ~= nil then
 					for defenderBox in defenderArea.Boxes do
 						local guard;
@@ -226,7 +226,7 @@ end
 
 function BunkerBreach:SetupDefenderInternalReinforcementAreas()
 	if self.AI.isDefenderTeam then
-		local internalReinforcementsArea = SceneMan.Scene:GetOptionalArea("Internal Reinforcements");
+		local internalReinforcementsArea = SceneMan.Scene:GetArea("Internal Reinforcements");
 		if internalReinforcementsArea ~= nil then
 			self.AI.internalReinforcementsDoorParticle = CreateMOSRotating("Background Door", "Base.rte");
 			self.AI.internalReinforcementPositions = {};
@@ -248,7 +248,7 @@ function BunkerBreach:StartActivity(isNewGame)
 	local attackerLZ = SceneMan.Scene:GetArea("LZ Attacker");
 	self:SetLZArea(self.attackerTeam, attackerLZ);
 	if SceneMan.Scene:HasArea("LZ Defender") then
-		self:SetLZArea(self.defenderTeam, SceneMan.Scene:GetOptionalArea("LZ Defender"));
+		self:SetLZArea(self.defenderTeam, SceneMan.Scene:GetArea("LZ Defender"));
 	end
 	self.mainBunkerArea = SceneMan.Scene:GetArea("Main Bunker");
 
@@ -261,7 +261,7 @@ function BunkerBreach:StartActivity(isNewGame)
 			FrameMan:ClearScreenText(self:ScreenOfPlayer(player));
 		end
 	end
-	
+
 	MusicMan:PlayDynamicSong("Generic Battle Music");
 
 	if isNewGame then
@@ -675,7 +675,7 @@ function BunkerBreach:CreateInternalReinforcements(loadout, numberOfReinforcemen
 					numberOfInternalReinforcementsToCreateAtPosition = 3;
 				end
 			end
-			
+
 			for i = 1, numberOfInternalReinforcementsToCreateAtPosition do
 				local internalReinforcement;
 				if loadout then

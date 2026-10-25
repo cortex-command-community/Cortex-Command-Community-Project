@@ -2,6 +2,7 @@
 
 #include "SceneObject.h"
 #include "ContentFile.h"
+#include <algorithm>
 
 namespace RTE {
 

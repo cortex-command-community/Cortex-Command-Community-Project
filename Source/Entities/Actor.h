@@ -6,6 +6,9 @@
 /// http://www.datarealms.com
 /// Inclusions of header files
 #include "MOSRotating.h"
+#include "PathFinder.h"
+
+#include <array>
 
 namespace RTE {
 
@@ -39,11 +42,13 @@ namespace RTE {
 		// TODO - move into ALocomotable intermediate class under ACrab/AHuman
 		enum MovementState {
 			NOMOVE = 0,
+			CROUCH,
 			STAND,
 			WALK,
+			RUN,
 			JUMP,
 			DISLODGE,
-			CROUCH,
+			PRONE,
 			CRAWL,
 			ARMCRAWL,
 			CLIMB,
@@ -64,6 +69,12 @@ namespace RTE {
 			AIMODE_BOMB,
 			AIMODE_SQUAD,
 			AIMODE_COUNT
+		};
+
+		enum ActorHotkeyType {
+			PRIMARYHOTKEY = 0,
+			AUXILIARYHOTKEY,
+			ACTORHOTKEYTYPECOUNT
 		};
 
 		// Concrete allocation and cloning definitions
@@ -214,7 +225,7 @@ namespace RTE {
 		/// @return A Vector with the absolute position of this' eye or view point.
 		virtual Vector GetEyePos() const { return m_Pos; }
 
-		/// Gets the absoltue position of the top of this' HUD stack.
+		/// Gets the absolute position of the top of this' HUD stack.
 		/// @return A Vector with the absolute position of this' HUD stack top point.
 		Vector GetAboveHUDPos() const override { return m_Pos + Vector(0, m_HUDStack + 6); }
 
@@ -241,8 +252,8 @@ namespace RTE {
 		Vector GetViewPoint() const { return m_ViewPoint.IsZero() ? m_Pos : m_ViewPoint; }
 
 		/// Gets the item that is within reach of the Actor at this frame, ready to be be picked up. Ownership is NOT transferred!
-		/// @return A pointer to the item that has been determined to be within reach of this Actor, if any.
-		HeldDevice* GetItemInReach() const { return m_pItemInReach; }
+		/// @return A pointer to the item that has been determined to be within reach of this Actor, if any. An item that has since been deleted or picked up doesn't count.
+		HeldDevice* GetItemInReach() const;
 
 		/// Gets the direction where this is looking/aiming.
 		/// @return A Vector with the direction in which this is looking along.
@@ -278,11 +289,11 @@ namespace RTE {
 
 		/// Gets this Actor's MovementState.
 		/// @return This Actor's MovementState.
-		MovementState GetMovementState() const { return m_MoveState; }
+		MovementState GetMovementState() const { return m_MovementState; }
 
 		/// Sets this Actor's MovementState to the new state.
 		/// @param newMovementState This Actor's new MovementState.
-		void SetMovementState(MovementState newMovementState) { m_MoveState = newMovementState; }
+		void SetMovementState(MovementState newMovementState) { m_MovementState = newMovementState; }
 
 		/// Sets which team this Actor belongs to.
 		/// @param team The assigned team number.
@@ -437,9 +448,19 @@ namespace RTE {
 		/// @param m_MovePath.push_back(newCoordinate The new coordinate to add to the end of the MovePath.
 		void AddToMovePathEnd(Vector newCoordinate) { m_MovePath.push_back(newCoordinate); }
 
-		/// Gets the last position in this Actor's move path.
-		/// @return The last position in this Actor's move path.
-		Vector GetMovePathEnd() const { return m_MovePath.back(); }
+		/// Gets the last position in this Actor's move path, or otherwise the current move target.
+		/// @return The last position in this Actor's move path, or otherwise the current move target.
+		Vector GetMovePathEnd() const {
+			if (!m_MovePath.empty()) {
+				return m_MovePath.back();
+			}
+			// In case move path is empty, check our own path request.
+			if (m_PathRequest) {
+				return const_cast<Vector&>(m_PathRequest->targetPos);
+			}
+			// In case *that* is empty, just return the move target.
+			return m_MoveTarget;
+		}
 
 		/// Removes a coordinate from the beginning of the MovePath, meaning the
 		/// one closest to this Actor.
@@ -647,7 +668,7 @@ namespace RTE {
 		/// @return The actor's dig strength.
 		virtual float EstimateDigStrength() const;
 
-		/// Estimates how high this actor can jump.
+		/// Estimates how high this actor can jump. Default implementation returns FLT_MAX.
 		/// @return The actor's jump height.
 		virtual float EstimateJumpHeight() const;
 
@@ -670,6 +691,19 @@ namespace RTE {
 
 		/// Updates the full state of this object in one call. (PreControllerUpdate(), Controller::Update(), and Update())
 		virtual void FullUpdate() override;
+
+		/// Activates one of this Actor's hotkey features.
+		/// /// @param hotkeyType Which hotkey type to activate.
+		void ActivateHotkeyAction(ActorHotkeyType hotkeyType) { m_HotkeyActivated[hotkeyType] = true; }
+
+		/// Deactivates one of this Actor's hotkey features.
+		/// @param hotkeyType Which hotkey type to deactivate.
+		void DeactivateHotkeyAction(ActorHotkeyType hotkeyType) { m_HotkeyActivated[hotkeyType] = false; }
+
+		/// Tells whether a hotkey action of the actor is currently being activated.
+		/// @param hotkeyType Which hotkey type to check for activation.
+		/// @return Whether hotkey is being activated.
+		bool HotkeyActionIsActivated(ActorHotkeyType hotkeyType) const { return m_HotkeyActivated[hotkeyType]; }
 
 		/// Description:		Sets deployment ID for this actor
 		/// @param newID New deployment id.
@@ -766,6 +800,22 @@ namespace RTE {
 		/// Sets the recovery delay from UNSTABLE to STABLE, in MS.
 		/// @param newRecoverDelay The recovery delay, in MS.
 		void SetStableRecoverDelay(int newRecoverDelay) { m_StableRecoverDelay = newRecoverDelay; }
+
+		/// Gets whether this can run or not.
+		/// @return Whether this can run or not.
+		int GetCanRun() const { return m_CanRun; }
+
+		/// Sets whether this can run or not.
+		/// @param newCanRun The new value for whether this can run or not.
+		void SetCanRun(bool newCanRun) { m_CanRun = newCanRun; }
+
+		/// Gets the crouch walk speed multiplier.
+		/// @return The crouch walk speed multiplier.
+		float GetCrouchWalkSpeedMultiplier() const { return m_CrouchWalkSpeedMultiplier; }
+
+		/// Sets the crouch walk speed multiplier.
+		/// @param newSpeed The new value for the crouch walk speed multiplier.
+		void SetCrouchWalkSpeedMultiplier(float newSpeed) { m_CrouchWalkSpeedMultiplier = newSpeed; }
 
 		/// Gets the distance in which the Actor will have considered itself to have reached it's waypoint.
 		/// @return The move proximity limit.
@@ -873,6 +923,10 @@ namespace RTE {
 		float m_GoldCarried;
 		// Whether or not any gold was picked up this frame.
 		bool m_GoldPicked;
+		// Whether this can engage RUN state or not
+		bool m_CanRun;
+		// Multiplier applied to walking speed at maximum crouch.
+		float m_CrouchWalkSpeedMultiplier;
 		// Aiming state
 		char m_AimState;
 		// The arc range of the aiming angle, in each direction, in radians. Eg if HalfPI, it means full 180 degree range
@@ -925,6 +979,8 @@ namespace RTE {
 		float m_MaxInventoryMass; //!< The mass limit for this Actor's inventory. -1 means there's no limit.
 		// The device that can/will be picked up
 		HeldDevice* m_pItemInReach;
+		// An array that holds activation states for the various hotkey actions of this Actor.
+		std::array<bool, ACTORHOTKEYTYPECOUNT> m_HotkeyActivated;
 		// HUD positioning aid
 		int m_HUDStack;
 		// ID of deployment which spawned this actor
@@ -993,7 +1049,7 @@ namespace RTE {
 		// The minimum range to consider having reached a move target is considered
 		float m_MoveProximityLimit;
 		// Current movement state.
-		MovementState m_MoveState;
+		MovementState m_MovementState;
 
 		bool m_Organic; //!< Flag for whether or not this Actor is organic. Useful for lua purposes and mod support.
 		bool m_Mechanical; //!< Flag for whether or not this Actor is robotic. Useful for lua purposes and mod support.

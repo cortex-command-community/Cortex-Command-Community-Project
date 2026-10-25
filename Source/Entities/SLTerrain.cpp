@@ -46,9 +46,11 @@ int SLTerrain::Create() {
 
 	if (!m_FGColorLayer.get()) {
 		m_FGColorLayer = std::make_unique<SceneLayer>();
+		m_FGColorLayer->SetZOrder(c_DefaultDrawDepth);
 	}
 	if (!m_BGColorLayer.get()) {
 		m_BGColorLayer = std::make_unique<SceneLayer>();
+		m_BGColorLayer->SetZOrder(c_TerrainBGDepth);
 	}
 
 	return 0;
@@ -90,10 +92,12 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("BackgroundTexture", { reader >> m_DefaultBGTextureFile; });
 	MatchProperty("FGColorLayer", {
 		m_FGColorLayer = std::make_unique<SceneLayer>();
+		m_FGColorLayer->SetZOrder(c_DefaultDrawDepth);
 		reader >> m_FGColorLayer.get();
 	});
 	MatchProperty("BGColorLayer", {
 		m_BGColorLayer = std::make_unique<SceneLayer>();
+		m_BGColorLayer->SetZOrder(c_TerrainBGDepth);
 		reader >> m_BGColorLayer.get();
 	});
 	MatchProperty("AddTerrainFrosting", {
@@ -294,14 +298,20 @@ int SLTerrain::LoadData() {
 	return 0;
 }
 
-int SLTerrain::SaveData(const std::string& pathBase, bool doAsyncSaves) {
+int SLTerrain::SaveData(const std::string& pathBase) {
 	if (pathBase.empty()) {
 		return -1;
 	}
-	SceneLayer::SaveData(pathBase + " Mat.png", doAsyncSaves);
-	m_FGColorLayer->SaveData(pathBase + " FG.png", doAsyncSaves);
-	m_BGColorLayer->SaveData(pathBase + " BG.png", doAsyncSaves);
+	SceneLayer::SaveData(pathBase + " Mat.png");
+	m_FGColorLayer->SaveData(pathBase + " FG.png");
+	m_BGColorLayer->SaveData(pathBase + " BG.png");
 	return 0;
+}
+
+void SLTerrain::CopyBitmapData(std::vector<SceneLayerInfo>& layerInfos) const {
+	layerInfos.emplace_back(std::string("Mat"), SceneLayer::CopyBitmap());
+	layerInfos.emplace_back(std::string("FG"), m_FGColorLayer->CopyBitmap());
+	layerInfos.emplace_back(std::string("BG"), m_BGColorLayer->CopyBitmap());
 }
 
 int SLTerrain::ClearData() {
@@ -461,7 +471,6 @@ std::deque<MOPixel*> SLTerrain::EraseSilhouette(BITMAP* sprite, const Vector& po
 				}
 				if (colorPixel != ColorKeys::g_MaskColor) {
 					putpixel(m_FGColorLayer->GetBitmap(), terrX, terrY, ColorKeys::g_MaskColor);
-					g_SceneMan.RegisterTerrainChange(terrX, terrY, 1, 1, ColorKeys::g_MaskColor, false);
 				}
 			}
 		}
@@ -479,16 +488,16 @@ void SLTerrain::Update() {
 	m_BGColorLayer->SetOffset(m_Offset);
 }
 
-void SLTerrain::Draw(BITMAP* targetBitmap, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
+void SLTerrain::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 	switch (m_LayerToDraw) {
 		case LayerType::MaterialLayer:
-			SceneLayer::Draw(targetBitmap, targetBox);
+			SceneLayer::Draw(targetDimensions, targetBox);
 			break;
 		case LayerType::ForegroundLayer:
-			m_FGColorLayer->Draw(targetBitmap, targetBox);
+			m_FGColorLayer->Draw(targetDimensions, targetBox);
 			break;
 		case LayerType::BackgroundLayer:
-			m_BGColorLayer->Draw(targetBitmap, targetBox);
+			m_BGColorLayer->Draw(targetDimensions, targetBox);
 			break;
 		default:
 			RTEAbort("Invalid LayerType was set to draw in SLTerrain::Draw!");

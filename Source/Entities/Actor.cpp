@@ -66,6 +66,8 @@ void Actor::Clear() {
 	m_TravelImpulseDamage = 750.0F;
 	m_StableVel.SetXY(15.0F, 25.0F);
 	m_StableRecoverDelay = 1000;
+	m_CanRun = true;
+	m_CrouchWalkSpeedMultiplier = 0.7F;
 	m_HeartBeat.Reset();
 	m_NewControlTmr.Reset();
 	m_DeathTmr.Reset();
@@ -97,6 +99,7 @@ void Actor::Clear() {
 	m_Inventory.clear();
 	m_MaxInventoryMass = -1.0F;
 	m_pItemInReach = nullptr;
+	m_HotkeyActivated.fill(false);
 	m_HUDStack = 0;
 	m_DeploymentID = 0;
 	m_PassengerSlots = 1;
@@ -198,6 +201,8 @@ int Actor::Create(const Actor& reference) {
 	m_TravelImpulseDamage = reference.m_TravelImpulseDamage;
 	m_StableVel = reference.m_StableVel;
 	m_StableRecoverDelay = reference.m_StableRecoverDelay;
+	m_CanRun = reference.m_CanRun;
+	m_CrouchWalkSpeedMultiplier = reference.m_CrouchWalkSpeedMultiplier;
 	m_GoldCarried = reference.m_GoldCarried;
 	m_AimState = reference.m_AimState;
 	m_AimRange = reference.m_AimRange;
@@ -254,6 +259,7 @@ int Actor::Create(const Actor& reference) {
 
 		m_sIconsLoaded = true;
 	}
+	m_HotkeyActivated = reference.m_HotkeyActivated;
 	m_DeploymentID = reference.m_DeploymentID;
 	m_PassengerSlots = reference.m_PassengerSlots;
 
@@ -327,6 +333,9 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("ImpulseDamageThreshold", { reader >> m_TravelImpulseDamage; });
 	MatchProperty("StableVelocityThreshold", { reader >> m_StableVel; });
 	MatchProperty("StableRecoveryDelay", { reader >> m_StableRecoverDelay; });
+	MatchProperty("CanRun", { reader >> m_CanRun; });
+	MatchProperty("CrouchWalkSpeedMultiplier", { reader >> m_CrouchWalkSpeedMultiplier; });
+	MatchProperty("GoldCarried", { reader >> m_GoldCarried; });
 	MatchProperty("AimAngle", { reader >> m_AimAngle; });
 	MatchProperty("AimRange", { reader >> m_AimRange; });
 	MatchProperty("AimDistance", { reader >> m_AimDistance; });
@@ -401,6 +410,12 @@ int Actor::Save(Writer& writer) const {
 	writer << m_StableVel;
 	writer.NewProperty("StableRecoveryDelay");
 	writer << m_StableRecoverDelay;
+	writer.NewProperty("CanRun");
+	writer << m_CanRun;
+	writer.NewProperty("CrouchWalkSpeedMultiplier");
+	writer << m_CrouchWalkSpeedMultiplier;
+	writer.NewProperty("GoldCarried");
+	writer << m_GoldCarried;
 	writer.NewProperty("AimAngle");
 	writer << m_AimAngle;
 	writer.NewProperty("AimRange");
@@ -488,6 +503,11 @@ float Actor::GetBaseMass() {
 	}
 
 	return m_BaseMass;
+}
+
+HeldDevice* Actor::GetItemInReach() const {
+	// The item can get deleted or picked up by someone else at any point after it was found to be in reach, and nothing lets us know when that happens.
+	return g_MovableMan.IsDevice(m_pItemInReach) ? m_pItemInReach : nullptr;
 }
 
 bool Actor::IsPlayerControlled() const {
@@ -640,8 +660,9 @@ void Actor::RestDetection() {
 }
 
 void Actor::AddAIMOWaypoint(const MovableObject* pMOWaypoint) {
-	if (g_MovableMan.ValidMO(pMOWaypoint))
+	if (g_MovableMan.ValidMO(pMOWaypoint) && (m_Waypoints.empty() || m_Waypoints.back().second != pMOWaypoint)) {
 		m_Waypoints.push_back(std::pair<Vector, const MovableObject*>(pMOWaypoint->GetPos(), pMOWaypoint));
+	}
 }
 
 void Actor::AlarmPoint(const Vector& alarmPoint) {
@@ -1031,6 +1052,7 @@ float Actor::EstimateDigStrength() const {
 }
 
 float Actor::EstimateJumpHeight() const {
+	// Sentinel value that is explicitly checked for within pathfinder code.
 	return FLT_MAX;
 }
 
@@ -1066,6 +1088,13 @@ void Actor::OnNewMovePath() {
 		// Nowhere to gooooo
 		m_MoveTarget = m_PrevPathTarget = m_Pos;
 	}
+
+	// Smash all non-airborne waypoints down to just above the ground, so they more accurately represent the ground path
+	std::list<Vector>::iterator finalItr = m_MovePath.end();
+	--finalItr;
+	for (std::list<Vector>::iterator lItr = m_MovePath.begin(); lItr != finalItr; ++lItr) {
+		(*lItr) = g_SceneMan.MovePointToGround((*lItr), m_CharHeight * 0.2, 0, g_SettingsMan.GetPathFinderGridNodeSize() * 2.5f);
+	}
 }
 
 void Actor::PreControllerUpdate() {
@@ -1076,7 +1105,7 @@ void Actor::PreControllerUpdate() {
 	}
 
 	// We update this after, because pathing requests are forced to take at least 1 frame for the sake of determinism for now.
-	// In future maybe we can move this back, but it doesn't make much difference (the threadpool submission overhead makes it extremely unlikely that it would complete in less time anyways)
+	// In future maybe we can move this back, but it doesn't make much difference
 	if (m_UpdateMovePath) {
 		UpdateMovePath();
 	}
@@ -1268,6 +1297,18 @@ void Actor::Update() {
 			g_FrameMan.FlashScreen(g_ActivityMan.GetActivity()->ScreenOfPlayer(brainOfPlayer), g_WhiteColor, 500);
 		}
 	}
+
+	if (m_Controller.IsState(ACTOR_PRIMARY_HOTKEY)) {
+		ActivateHotkeyAction(PRIMARYHOTKEY);
+	} else {
+		DeactivateHotkeyAction(PRIMARYHOTKEY);
+	}
+
+	if (m_Controller.IsState(ACTOR_AUXILIARY_HOTKEY)) {
+		ActivateHotkeyAction(AUXILIARYHOTKEY);
+	} else {
+		DeactivateHotkeyAction(AUXILIARYHOTKEY);
+	}
 }
 
 void RTE::Actor::CastSeeRays() {
@@ -1337,8 +1378,8 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 	}
 
 	int actorScreen = g_ActivityMan.GetActivity() ? g_ActivityMan.GetActivity()->ScreenOfPlayer(m_Controller.GetPlayer()) : -1;
-	bool screenTeamIsSameAsActorTeam = g_ActivityMan.GetActivity() ? g_ActivityMan.GetActivity()->GetTeamOfPlayer(whichScreen) == m_Team : true;
-	if (m_PieMenu->IsVisible() && screenTeamIsSameAsActorTeam && (!m_PieMenu->IsInNormalAnimationMode() || (m_Controller.IsPlayerControlled() && actorScreen == whichScreen))) {
+	bool screenTeamIsSameAsActorTeam = g_ActivityMan.GetActivity() ? g_ActivityMan.GetActivity()->GetTeamOfPlayer(g_ActivityMan.GetActivity()->PlayerOfScreen(whichScreen)) == m_Team : true;
+	if (m_PieMenu->IsVisible() && screenTeamIsSameAsActorTeam && (!m_PieMenu->IsInNormalAnimationMode() || (actorScreen == whichScreen))) {
 		m_PieMenu->Draw(pTargetBitmap, targetPos);
 	}
 
@@ -1352,8 +1393,8 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 	}
 
 	// Draw the alarm exclamation mark if we are alarmed!
-	if (m_AlarmTimer.SimTimeLimitProgress() < 0.25) {
-		draw_sprite(pTargetBitmap, m_apAlarmExclamation[m_AgeTimer.AlternateSim(100)], cpuPos.m_X - 3, EaseOut(drawPos.m_Y + m_HUDStack - 10, drawPos.m_Y + m_HUDStack - 25, m_AlarmTimer.SimTimeLimitProgress() / 0.25f));
+	if (m_AlarmTimer.GetSimTimeLimitProgress() < 0.25) {
+		draw_sprite(pTargetBitmap, m_apAlarmExclamation[m_AgeTimer.AlternateSim(100)], cpuPos.m_X - 3, EaseOut(drawPos.m_Y + m_HUDStack - 10, drawPos.m_Y + m_HUDStack - 25, m_AlarmTimer.GetSimTimeLimitProgress() / 0.25f));
 	}
 
 	if (pSmallFont && pSymbolFont) {
@@ -1362,23 +1403,6 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 		if (!m_Controller.IsState(PIE_MENU_ACTIVE) || actorScreen != whichScreen) {
 			// If we're still alive, show the team colors
 			if (m_Health > 0) {
-				if (IsPlayerControlled() && g_FrameMan.IsInMultiplayerMode()) {
-					m_pControllerIcon = nullptr;
-					if (m_Team == 0) {
-						m_pControllerIcon = g_UInputMan.GetDeviceIcon(DEVICE_GAMEPAD_1);
-					} else if (m_Team == 1) {
-						m_pControllerIcon = g_UInputMan.GetDeviceIcon(DEVICE_GAMEPAD_2);
-					} else if (m_Team == 2) {
-						m_pControllerIcon = g_UInputMan.GetDeviceIcon(DEVICE_GAMEPAD_3);
-					} else if (m_Team == 3) {
-						m_pControllerIcon = g_UInputMan.GetDeviceIcon(DEVICE_GAMEPAD_4);
-					}
-
-					if (m_pControllerIcon) {
-						std::vector<BITMAP*> apControllerBitmaps = m_pControllerIcon->GetBitmaps8();
-						masked_blit(apControllerBitmaps[0], pTargetBitmap, 0, 0, drawPos.m_X - apControllerBitmaps[0]->w - 2 + 10, drawPos.m_Y + m_HUDStack - (apControllerBitmaps[0]->h / 2) + 8, apControllerBitmaps[0]->w, apControllerBitmaps[0]->h);
-					}
-				}
 
 				// Get the Icon bitmaps of this Actor's team, if any
 				std::vector<BITMAP*> apIconBitmaps;
@@ -1394,7 +1418,7 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 				// Now draw the Icon if we can
 				if (!apIconBitmaps.empty() && m_pTeamIcon && m_pTeamIcon->GetFrameCount() > 0) {
 					// Make team icon blink faster as the health goes down
-					int f = m_HeartBeat.AlternateReal(200 + 800 * (m_Health / 100)) ? 0 : 1;
+					int f = m_HeartBeat.AlternateReal(200 + 800 * (MAX(m_Health, 0) / 100)) ? 0 : 1;
 					f = MIN(f, m_pTeamIcon ? m_pTeamIcon->GetFrameCount() - 1 : 1);
 					masked_blit(apIconBitmaps.at(f), pTargetBitmap, 0, 0, drawPos.m_X - apIconBitmaps.at(f)->w - 2, drawPos.m_Y + m_HUDStack - (apIconBitmaps.at(f)->h / 2) + 8, apIconBitmaps.at(f)->w, apIconBitmaps.at(f)->h);
 				}
@@ -1419,13 +1443,6 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 					pSmallFont->DrawAligned(&bitmapInt, drawPos.GetFloorIntX() - 0, drawPos.GetFloorIntY() + m_HUDStack + 2, str, GUIFont::Left);
 
 					m_HUDStack -= 11;
-				}
-				// Player name
-				if (g_FrameMan.IsInMultiplayerMode()) {
-					if (GameActivity* gameActivity = dynamic_cast<GameActivity*>(g_ActivityMan.GetActivity())) {
-						pSmallFont->DrawAligned(&bitmapInt, drawPos.GetFloorIntX(), drawPos.GetFloorIntY() + m_HUDStack + 2, gameActivity->GetNetworkPlayerName(m_Controller.GetPlayer()).c_str(), GUIFont::Centre);
-						m_HUDStack -= 11;
-					}
 				}
 			}
 		}

@@ -20,14 +20,17 @@ namespace RTE {
 		MOVE_UP,
 		MOVE_DOWN,
 		MOVE_FAST,
+		MOVE_FAST_TOGGLE,
 		BODY_JUMPSTART,
 		BODY_JUMP,
 		BODY_CROUCH,
+		BODY_PRONE,
 		AIM_UP,
 		AIM_DOWN,
 		AIM_SHARP,
 		WEAPON_FIRE,
 		WEAPON_RELOAD,
+		WEAPON_RELOADHELD,
 		PIE_MENU_OPENED,
 		PIE_MENU_ACTIVE,
 		// When using a gamepad, the pie menu can be opened either by left trigger or the right secondary button
@@ -39,6 +42,14 @@ namespace RTE {
 		WEAPON_CHANGE_PREV,
 		WEAPON_PICKUP,
 		WEAPON_DROP,
+		WEAPON_PRIMARY_HOTKEYSTART,
+		WEAPON_AUXILIARY_HOTKEYSTART,
+		ACTOR_PRIMARY_HOTKEYSTART,
+		ACTOR_AUXILIARY_HOTKEYSTART,
+		WEAPON_PRIMARY_HOTKEY,
+		WEAPON_AUXILIARY_HOTKEY,
+		ACTOR_PRIMARY_HOTKEY,
+		ACTOR_AUXILIARY_HOTKEY,
 		ACTOR_NEXT,
 		ACTOR_PREV,
 		ACTOR_BRAIN,
@@ -327,6 +338,7 @@ namespace RTE {
 		bool m_WeaponPickupIgnore;
 		bool m_WeaponDropIgnore;
 		bool m_WeaponReloadIgnore;
+		bool m_WeaponPrimaryHotkeyIgnore;
 
 		Timer m_ReleaseTimer; //!< Timer for measuring release delays.
 		Timer m_JoyAccelTimer; //!< Timer for measuring analog joystick-controlled cursor acceleration.
@@ -340,10 +352,10 @@ namespace RTE {
 #pragma region Update Breakdown
 		/// Updates the player's inputs portion of this Controller. For breaking down Update into more comprehensible chunks.
 		/// This method will call both UpdatePlayerPieMenuInput and UpdatePlayerAnalogInput.
-		void UpdatePlayerInput();
+		void UpdatePlayerInput(std::array<bool, ControlState::CONTROLSTATECOUNT> lastControlStates);
 
 		/// Updates the player's PieMenu inputs portion of this Controller. For breaking down Update into more comprehensible chunks.
-		void UpdatePlayerPieMenuInput();
+		void UpdatePlayerPieMenuInput(std::array<bool, ControlState::CONTROLSTATECOUNT> lastControlStates);
 
 		/// Updates the player's analog inputs portion of this Controller. For breaking down Update into more comprehensible chunks.
 		void UpdatePlayerAnalogInput();

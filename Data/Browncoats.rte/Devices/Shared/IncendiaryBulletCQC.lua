@@ -17,7 +17,7 @@ function Create(self)
 	self.trailAcc = 0;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	local velFactor = math.floor(1 + math.sqrt(self.Vel.Magnitude)/(1 + self.Age * 0.01));
 
 	local particle = CreateMOPixel("Fire Burn Particle");

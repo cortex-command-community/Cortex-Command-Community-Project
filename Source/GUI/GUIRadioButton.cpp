@@ -4,15 +4,17 @@
 using namespace RTE;
 
 GUIRadioButton::GUIRadioButton(GUIManager* Manager, GUIControlManager* ControlManager) :
-    GUIControl(), GUIPanel(Manager) {
+	GUIControl(),
+	GUIPanel(Manager),
+	m_Image(nullptr),
+	m_Checked(false),
+	m_Mouseover(false),
+	m_Text("") {
+
 	m_ControlID = "RADIOBUTTON";
-	m_Image = nullptr;
 	m_ControlManager = ControlManager;
-	m_Checked = false;
 	m_Font = 0;
-	m_Mouseover = false;
 	m_FontColor = 0;
-	m_Text = "";
 }
 
 void GUIRadioButton::Create(const std::string& Name, int X, int Y, int Width, int Height) {
@@ -270,7 +272,7 @@ void GUIRadioButton::SetText(const std::string& Text) {
 	m_Text = Text;
 }
 
-std::string GUIRadioButton::GetText() const {
+const std::string& GUIRadioButton::GetText() const {
 	return m_Text;
 }
 

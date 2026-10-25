@@ -13,6 +13,8 @@
 #include "Material.h"
 #include "MovableMan.h"
 
+#include <array>
+#include <atomic>
 #include <set>
 
 struct BITMAP;
@@ -112,14 +114,14 @@ namespace RTE {
 		/// Checks if the script at the given path is one of the scripts on this MO.
 		/// @param scriptPath The path to the script to check.
 		/// @return Whether or not the script is on this MO.
-		bool HasScript(const std::string& scriptPath) const { return m_AllLoadedScripts.find(scriptPath) != m_AllLoadedScripts.end(); }
+		bool HasScript(const std::string& scriptPath) const { return std::find(m_AllLoadedScripts.begin(), m_AllLoadedScripts.end(), scriptPath) != m_AllLoadedScripts.end(); }
 
 		/// Checks if the script at the given path is one of the enabled scripts on this MO.
 		/// @param scriptPath The path to the script to check.
 		/// @return Whether or not the script is enabled on this MO.
 		bool ScriptEnabled(const std::string& scriptPath) const {
-			auto scriptPathIterator = m_AllLoadedScripts.find(scriptPath);
-			return scriptPathIterator != m_AllLoadedScripts.end() && scriptPathIterator->second == true;
+			auto scriptPathIterator = m_EnabledScripts.find(scriptPath);
+			return scriptPathIterator != m_EnabledScripts.end() && scriptPathIterator->second == true;
 		}
 
 		/// Enables or dsiableds the script at the given path on this MO.
@@ -391,7 +393,7 @@ namespace RTE {
 
 		/// Gets the file path of this MovableObject's current screen effect.
 		/// @param pathToFile A string containing the file path of the new screen effect.
-		void SetScreenEffectPath(std::string pathToFile) {
+		void SetScreenEffectPath(std::string& pathToFile) {
 			m_ScreenEffectFile.SetDataPath(pathToFile);
 			m_pScreenEffect = m_ScreenEffectFile.GetAsBitmap();
 			m_ScreenEffectHash = m_ScreenEffectFile.GetHash();
@@ -588,8 +590,9 @@ namespace RTE {
 		/// Whether a set of X, Y coordinates overlap us (in world space).
 		/// @param pixelX The given X coordinate, in world space.
 		/// @param pixelY The given Y coordinate, in world space.
+		/// @param validOnly Whether to return false if this MO isn't validly owned by MovableMan or not.
 		/// @return Whether the given coordinate overlap us.
-		virtual bool HitTestAtPixel(int pixelX, int pixelY) const { return false; }
+		virtual bool HitTestAtPixel(int pixelX, int pixelY, bool validOnly = true) const { return false; }
 
 		/// Shows whether this is or carries a specifically named object in its
 		/// inventory. Also looks through the inventories of potential passengers,
@@ -627,12 +630,14 @@ namespace RTE {
 		/// @param offset A Vector with the offset, in METERS, of where the impulse is being (default: Vector())
 		/// applied relative to the center of this MovableObject.
 		void AddImpulseForce(const Vector& impulse, const Vector& offset = Vector()) {
+			if (impulse.IsZero()) {
+				return;
+			}
 
 #ifndef RELEASE_BUILD
 			RTEAssert(impulse.MagnitudeIsLessThan(500000.0F), "HUEG IMPULSE FORCE");
 			RTEAssert(offset.MagnitudeIsLessThan(5000.0F), "HUGE IMPULSE FORCE OFFSET");
 #endif
-
 			m_ImpulseForces.push_back({impulse, offset});
 		}
 
@@ -979,13 +984,19 @@ namespace RTE {
 		/// @param newRestThreshold New rest threshold value
 		void SetRestThreshold(int newRestThreshold) { m_RestThreshold = newRestThreshold; }
 
+		static constexpr int c_UniqueIDBits = 46; //!< How many bits a unique ID can take up. Scripts get unique IDs as Lua numbers, which only come out in full when turned into text if they're 14 digits or less.
+		static constexpr int c_UniqueIDThreadBits = 7; //!< How many of the upper bits of a unique ID hold the number of the thread it was handed out on.
+		static constexpr int c_UniqueIDCountBits = c_UniqueIDBits - c_UniqueIDThreadBits; //!< How many bits of a unique ID are left to count with.
+
 		/// Returns the next unique id for MO's and increments unique ID counter
+		/// The upper bits of a unique ID are the number of the thread that it was handed out on, and the rest count up separately for each thread.
+		/// So when several threads make MOs at the same time, as the threaded Lua states do, each MO still gets the same unique ID every time.
 		/// @return Returns the next unique id.
-		static long GetNextUniqueID() { return ++m_UniqueIDCounter; }
+		static int64_t GetNextUniqueID();
 
 		/// Returns this MO's unique persistent ID
 		/// @return Returns this MO's unique persistent ID
-		long GetUniqueID() const { return m_UniqueID; }
+		int64_t GetUniqueID() const { return m_UniqueID; }
 
 		/// Gets the preset name and unique ID of this MO, often useful for error messages.
 		/// @return A string containing the unique ID and preset name of this MO.
@@ -1055,11 +1066,11 @@ namespace RTE {
 
 		/// Returns the unique ID of the particle hit at the previously taken Travel
 		/// @return Unique ID of the particle hit at the previously taken Travel
-		long int HitWhatParticleUniqueID() const;
+		int64_t HitWhatParticleUniqueID() const;
 
 		/// Returns the unique ID of the particle hit at the previously taken Travel
 		/// @param id Unique ID of the particle hit at the previously taken Travel.
-		void SetHitWhatParticleUniqueID(long int id);
+		void SetHitWhatParticleUniqueID(int64_t id);
 
 		/// Returns the terrain material the previously taken Tarvel
 		/// hit, if any.
@@ -1139,8 +1150,8 @@ namespace RTE {
 		/// @param A MovableObject object which is passed in by reference.
 		// Member variables
 		static Entity::ClassInfo m_sClass;
-		// Global counter with unique ID's
-		static std::atomic<long> m_UniqueIDCounter;
+		// Counters with unique ID's, one for each thread number
+		static std::array<std::atomic<int64_t>, 1 << c_UniqueIDThreadBits> m_UniqueIDCounters;
 		// The type of MO this is, either Actor, Item, or Particle
 		int m_MOType;
 		float m_Mass; // In metric kilograms (kg).
@@ -1234,8 +1245,10 @@ namespace RTE {
 		};
 
 		std::string m_ScriptObjectName; //!< The name of this object for script usage.
-		std::unordered_map<std::string, bool> m_AllLoadedScripts; //!< A map of script paths to the enabled state of the given script.
+		std::vector<std::string> m_AllLoadedScripts; //!< A vector of script for scripts applied to this object, in order of insertion.
+		std::unordered_map<std::string, bool> m_EnabledScripts; //!< A map of script paths to the enabled state of the given script.
 		std::unordered_map<std::string, std::vector<LuaFunction>> m_FunctionsAndScripts; //!< A map of function names to vectors of Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
+		bool m_HasOnCollideWithTerrainFunction; //!< Whether any of the scripts has an OnCollideWithTerrain function, so that terrain collisions, which happen all the time, don't have to look it up by name to find out.
 
 		volatile bool m_RequestedSyncedUpdate; //!< For optimisation purposes, scripts explicitly request a synced update if they want one.
 
@@ -1273,7 +1286,7 @@ namespace RTE {
 		bool m_PostEffectEnabled;
 
 		// This object's unique persistent ID
-		long m_UniqueID;
+		int64_t m_UniqueID;
 		// In which radis should we look to remove orphaned terrain on terrain penetration,
 		// must not be greater than SceneMan::ORPHANSIZE, or will be truncated
 		int m_RemoveOrphanTerrainRadius;
@@ -1296,9 +1309,9 @@ namespace RTE {
 		// Terrain material hit during last travel
 		unsigned char m_TerrainMatHit;
 		// Unique ID of particle hit this MO
-		long int m_ParticleUniqueIDHit;
+		int64_t m_ParticleUniqueIDHit;
 		// Number of sim update frame when last collision was detected
-		int m_LastCollisionSimFrameNumber;
+		unsigned int m_LastCollisionSimFrameNumber;
 		int m_SimUpdatesBetweenScriptedUpdates; //!< The number of Sim updates between each scripted update for this MovableObject.
 		int m_SimUpdatesSinceLastScriptedUpdate; //!< The counter for the current number of Sim updates since this MovableObject last ran a scripted update.
 

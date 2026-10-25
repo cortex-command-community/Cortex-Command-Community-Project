@@ -20,6 +20,7 @@
 #define ALLEGRO_GFX_INL
 
 #include "allegro/debug.h"
+#include "tracy/TracyC.h"
 
 #define ALLEGRO_IMPORT_GFX_ASM
 #include "asm.inl"
@@ -95,9 +96,11 @@ AL_INLINE(int, is_windowed_mode, (void),
 
 AL_INLINE(void, clear_to_color, (BITMAP *bitmap, int color),
 {
+   TracyCZone(clear, 1);
    ASSERT(bitmap);
 
    bitmap->vtable->clear_to_color(bitmap, color);
+   TracyCZoneEnd(clear);
 })
 
 

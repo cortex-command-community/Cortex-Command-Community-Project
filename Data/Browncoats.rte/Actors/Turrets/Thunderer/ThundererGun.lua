@@ -1,8 +1,5 @@
--- This script incorporates Filipawn Industries code and the vanilla burstfire script together
--- There is likely better ways of doing a lot of this, potentially even standardizing it so it can be easily used more widely
-
 function OnFire(self)
-	CameraMan:AddScreenShake(7, self.Pos);
+	CameraMan:AddScreenShake(12, self.Pos);
 	
 	local shot = self.Shot:Clone();
 	shot.Pos = self.MuzzlePos;
@@ -14,24 +11,39 @@ function OnFire(self)
 	
 	self.animTimer:Reset();
 	self.firingAnim = true;
+	
+	local casing = self.Casing:Clone();
+	casing.Pos = self.Pos + (self.currentBarrel == 0 and self.bottomEjectorOffset or self.topEjectorOffset);
+	casing.Vel = self.Vel + Vector(0, self.currentBarrel == 0 and 5 or -5):RadRotate(self.RotAngle);
+	casing.Team = self.Team;
+	casing.RotAngle = self.RotAngle;
+	casing.HFlipped = self.HFlipped;
+	casing.AngularVel = self.currentBarrel == 0 and math.random(-3, -5) or math.random(3, 5);
+	MovableMan:AddParticle(casing);
+	
+	-- Set it up for next time, so we're sitting on the right MuzzleOffset rather than the wrong one up until the point of fire
+	self.MuzzleOffset = self.currentBarrel == 1 and self.bottomMuzzleOffset or self.topMuzzleOffset;
 end
 
 function OnReload(self)
 	self.reloadToSmoke = true;
 	self.animTimer:Reset();
-	
-	if self.currentBaseFrame ~= 20 then
-		self.oldFrame = self.Frame;
-	end
 end
 
 function Create(self)
-	-- self.servoLoopSound = CreateSoundContainer("Coalition Bunker Cannon Servo Loop", "Coalition.rte");
-	-- self.servoLoopSound.Volume = 0;
-	-- self.servoLoopSound.Pitch = 1;
-	-- self.servoLoopSound:Play(self.Pos);
+	self.servoStartSound = CreateSoundContainer("Large Generic Servo Start", "Base.rte");
+	self.servoStartSound.Volume = 0.25;
+	self.servoLoopSound = CreateSoundContainer("Large Generic Servo Loop", "Base.rte");
+	self.servoLoopSound.Volume = 0;
+	self.servoLoopSound.Pitch = 1;
+	self.servoLoopSound:Play(self.Pos);
+	self.servoEndSound = CreateSoundContainer("Large Generic Servo End", "Base.rte");
+	self.servoEndSound.Volume = 0.125;
 	
-	self.Shot = CreateAEmitter("Browncoat AA-50 Shot", "Browncoats.rte");
+	self.servoMoving = false;
+	
+	self.Casing= CreateAEmitter("Casing Browncoat AA-50", "Browncoats.rte");
+	self.Shot = CreateAEmitter("Shot Browncoat AA-50", "Browncoats.rte");
 
 	self.firingAnim = false;
 	self.animTimer = Timer();
@@ -40,114 +52,124 @@ function Create(self)
 	
 	self.currentBarrel = 0;
 	
-	self.topMuzzleOffset = Vector(55, -8);
-	self.bottomMuzzleOffset = Vector(55, 6);
+	self.topMuzzleOffset = Vector(42, -4);
+	self.bottomMuzzleOffset = Vector(42, 10);
 	
-	self.MuzzleOffset = self.topMuzzleOffset;
+	self.topEjectorOffset = Vector(-5, -4);
+	self.bottomEjectorOffset = Vector(-5, 10);
+	
+	self.MuzzleOffset = self.bottomMuzzleOffset;
 	
 	for att in self.Attachables do
-		if string.find(att.PresetName, "Top") then	
+		if string.find(att.PresetName, "Barrel Top") then	
 			self.topBarrel = ToAttachable(att);
-		elseif string.find(att.PresetName, "Bottom") then
+		elseif string.find(att.PresetName, "Barrel Bottom") then
 			self.bottomBarrel = ToAttachable(att);
+		end
+		if string.find(att.PresetName, "Ejector Top") then	
+			self.topEjector = ToAttachable(att);
+		elseif string.find(att.PresetName, "Ejector Bottom") then
+			self.bottomEjector = ToAttachable(att);
 		end
 	end
 	
 	self.reloadSmokeTimer = Timer();
 	
-	self.rotationSpeed = 0.10;
-	self.smoothedRotAngle = self.RotAngle;
-	self.InheritedRotAngleTarget = 0;
+	self.rotationSpeed = 0.08;
+	self.rotAngleDeviation = 0;
+	
+	if self.HFlipped then
+		self.RotAngle = math.pi;
+	end
+	
+	self.LastHFlipped = self.HFlipped;
+	self.LastRotAngle = self.RotAngle;
 end
 
 function Update(self)
-	--self.servoLoopSound.Pos = self.Pos;
-
-	self.parent = IsActor(self:GetRootParent()) and ToActor(self:GetRootParent()) or nil;
+	self.servoLoopSound.Pos = self.Pos;
 	
+    if self.LastHFlipped ~= nil then
+        if self.LastHFlipped ~= self.HFlipped then
+            self.LastHFlipped = self.HFlipped
+            self.rotAngleDeviation = 0;
+        end
+    end
+	
+	self.parent = IsActor(self:GetRootParent()) and ToActor(self:GetRootParent()) or nil;
 	self.playerControlled = (self.parent and self.parent:IsPlayerControlled()) and true or false;
 	
-	-- reticule of actual aim line so the gun feels cannon-y rather than unresponsive
-	
-	if self.playerControlled and self.parent.SharpAimProgress > 0.13 then
-		for i = 1, 24 do
-			if i % 3 == 0 then
-				local dotVec = Vector(i*self.FlipFactor, 0):RadRotate(self.RotAngle) + self.Pos + Vector((self.SharpLength + 15) * self.FlipFactor, 0):RadRotate(self.RotAngle)*self.parent.SharpAimProgress;
-				PrimitiveMan:DrawLinePrimitive(dotVec, dotVec, 116, 2);
+	-- Rotation smoothing related stuff
+	if self.parent then	
+		local actingRotAngle = self.parent:GetAimAngle(true)
+		local aimAngle = self.parent:GetAimAngle(false) * self.FlipFactor;
+		
+		-- Reticule
+		if self.playerControlled and self.parent.SharpAimProgress > 0.13 then
+			for i = 1, 24 do
+				if i % 3 == 0 then
+					local dotVec = Vector(i*self.FlipFactor, 0):RadRotate(aimAngle) + self.Pos + Vector((self.SharpLength + 15) * self.FlipFactor, 0):RadRotate(aimAngle)*self.parent.SharpAimProgress;
+					PrimitiveMan:DrawLinePrimitive(dotVec, dotVec, 116, 2);
+				end
 			end
 		end
+		
+		self.rotAngleDeviation = self.rotAngleDeviation + (self.LastRotAngle - actingRotAngle);
+
+		if self.rotAngleDeviation ~= 0 then
+			self.rotAngleDeviation = self.rotAngleDeviation - (self.rotAngleDeviation * self.rotationSpeed);
+			if math.abs(self.rotAngleDeviation) < 0.001 then
+				self.rotAngleDeviation = 0;
+			end
+		end
+		
+		self.InheritedRotAngleOffset = self.rotAngleDeviation * self.FlipFactor;
+		self.LastRotAngle = actingRotAngle;
+		
+		self.servoLoopSoundVolumeTarget = 0 + math.abs(self.rotAngleDeviation)
+		self.servoLoopSound.Volume = self.servoLoopSound.Volume - (0.5 * (self.servoLoopSound.Volume - self.servoLoopSoundVolumeTarget));
+		self.servoLoopSoundPitchTarget = 1 + math.abs(self.rotAngleDeviation)
+		self.servoLoopSound.Pitch = self.servoLoopSound.Pitch - (0.1 * (self.servoLoopSound.Pitch - self.servoLoopSoundPitchTarget));
+		
+		if self.servoMoving then
+			if self.servoLoopSoundVolumeTarget < 0.10 then
+				self.servoStartSound:Stop(-1);
+				self.servoEndSound:Play(self.Pos);
+				self.servoMoving = false;
+			end
+		else
+			if self.servoLoopSoundVolumeTarget > 0.20 then
+				self.servoEndSound:Stop(-1);
+				self.servoStartSound:Play(self.Pos);
+				self.servoMoving = true;
+			end
+		end
+	else
+		self.servoLoopSound.Volume = 0;
 	end
-	-- rotation smoothing, for a cannon-y feel:
-	
-	if self.smoothedRotAngle ~= self.RotAngle then
-		self.smoothedRotAngle = self.smoothedRotAngle - (self.rotationSpeed * (self.smoothedRotAngle - self.RotAngle));
-	end
-	
-	-- self.servoLoopSoundVolumeTarget = 0 + math.abs(self.smoothedRotAngle - self.RotAngle)
-	-- self.servoLoopSound.Volume = self.servoLoopSound.Volume - (0.5 * (self.servoLoopSound.Volume - self.servoLoopSoundVolumeTarget));
-	-- self.servoLoopSoundPitchTarget = 1 + math.abs(self.smoothedRotAngle - self.RotAngle)
-	-- self.servoLoopSound.Pitch = self.servoLoopSound.Pitch - (0.1 * (self.servoLoopSound.Pitch - self.servoLoopSoundPitchTarget));
-	
-	self.InheritedRotAngleOffset = self.smoothedRotAngle - self.RotAngle;
 	
 	if self:DoneReloading() then
 		self.currentBaseFrame = 0;
 		self.Frame = 0;
-	end
-	
-	if self.firingAnim then
-		self:Deactivate();
-	
-		local progress = math.min(1, self.animTimer.ElapsedSimTimeMS / self.firingAnimTime);
-		local frameNum = math.floor(4 * progress);
-		self.Frame = self.currentBaseFrame + frameNum;
-		
-		local barrel = self.currentBarrel == 0 and self.topBarrel or self.bottomBarrel;
-		local jointOffsetX = 10 * math.sin(progress * math.pi);
-		barrel.JointOffset = Vector(jointOffsetX, 0);
-		
-		if progress == 1 then
-			self.MuzzleOffset = self.currentBarrel == 0 and self.bottomMuzzleOffset or self.topMuzzleOffset;
-			barrel.JointOffset = Vector();
-			self.currentBarrel = (self.currentBarrel + 1) % 2;
-			self.firingAnim = false;
-			
-			-- surely this can be done better...
-			if not self:IsReloading() then
-				if self.RoundInMagCount == 1 then
-					self.currentBaseFrame = 20;
-				elseif self.RoundInMagCount == 2 then
-					self.currentBaseFrame = 16;
-				elseif self.RoundInMagCount == 3 then
-					self.currentBaseFrame = 12;
-				elseif self.RoundInMagCount == 4 then
-					self.currentBaseFrame = 8;
-				elseif self.RoundInMagCount == 5 then
-					self.currentBaseFrame = 4;
-				end
-				
-				self.Frame = self.currentBaseFrame;
-			end
-		end
+		self.currentBarrel = 0;
+		self.MuzzleOffset = self.bottomMuzzleOffset;
 	end
 				
 	if self:IsReloading() then
 		-- manually timed
 		
-		if self.currentBaseFrame ~= 20 then
+		if self.currentBaseFrame ~= 22 then
 			local progress = math.min(1, self.animTimer.ElapsedSimTimeMS / (self.firingAnimTime*3));
-			local frameNum = math.floor((20 - self.oldFrame) * progress);
-			self.Frame = self.oldFrame + frameNum;
-			if self.Frame == 20 then
-				self.currentBaseFrame = 20;
-				self.oldFrame = nil;
-				self.Frame = 20;
+			local frameNum = self.currentBaseFrame + math.floor((22 - self.currentBaseFrame) * progress);
+			self.Frame = frameNum;
+			if self.Frame == 22 then
+				self.currentBaseFrame = 22;
 			end
 		end
 		
 		if self.animTimer:IsPastSimMS(self.ReloadTime - 1000) then
 			local progress = math.min(1, (self.animTimer.ElapsedSimTimeMS - (self.ReloadTime - 1000)) / 1000);
-			local frameNum = math.floor(17 * progress);
+			local frameNum = math.floor(21 * progress);
 			self.Frame = self.currentBaseFrame + frameNum;
 		end
 		
@@ -172,9 +194,44 @@ function Update(self)
 				MovableMan:AddParticle(particle);
 			end	
 		end
-	end
-				
+	elseif self.firingAnim then
+		self:Deactivate();
 	
+		local progress = math.min(1, self.animTimer.ElapsedSimTimeMS / self.firingAnimTime);
+		local frameNum = math.floor(4 * progress);
+		self.Frame = self.currentBaseFrame + frameNum;
+		
+		local barrel = self.currentBarrel == 0 and self.bottomBarrel or self.topBarrel;
+		local ejector = self.currentBarrel == 0 and self.bottomEjector or self.topEjector;
+		local jointOffsetX = 10 * math.sin(progress * math.pi);
+		barrel.JointOffset = Vector(jointOffsetX, 0);
+		ejector.JointOffset = Vector(jointOffsetX, 0);
+		if progress == 1 then
+			-- surely this can be done better...
+			if not self:IsReloading() then
+				if self.currentBarrel == 0 then
+					self.currentBaseFrame = 4;
+				else
+					self.currentBaseFrame = 0;
+				end
+				if self.RoundInMagCount == 1 then
+					self.currentBaseFrame = 24;
+				elseif self.RoundInMagCount == 2 then
+					self.currentBaseFrame = 20;
+				elseif self.RoundInMagCount == 3 then
+					self.currentBaseFrame = 16;
+				elseif self.RoundInMagCount == 4 then
+					self.currentBaseFrame = 12;
+				elseif self.RoundInMagCount == 4 then
+					self.currentBaseFrame = 8;
+				end			
+				self.Frame = self.currentBaseFrame;
+			end
+			barrel.JointOffset = Vector();
+			self.currentBarrel = (self.currentBarrel + 1) % 2;
+			self.firingAnim = false;			
+		end
+	end
 end
 
 function Destroy(self)

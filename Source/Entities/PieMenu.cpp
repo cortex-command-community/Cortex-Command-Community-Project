@@ -5,6 +5,7 @@
 #include "PresetMan.h"
 #include "SettingsMan.h"
 #include "LuaMan.h"
+#include "GLResourceMan.h"
 
 #include "AHuman.h"
 #include "ContentFile.h"
@@ -12,6 +13,8 @@
 #include "GUI.h"
 #include "GUIFont.h"
 #include "AllegroBitmap.h"
+
+#include <array>
 
 using namespace RTE;
 
@@ -402,6 +405,10 @@ PieSlice* PieMenu::RemovePieSlice(const PieSlice* pieSliceToRemove) {
 			if (PieMenu* removedPieSliceSubPieMenu = removedPieSlice->GetSubPieMenu()) {
 				removedPieSliceSubPieMenu->SetEnabled(false);
 				removedPieSliceSubPieMenu->SetOwner(nullptr);
+
+				if (removedPieSliceSubPieMenu == m_ActiveSubPieMenu) {
+					m_ActiveSubPieMenu = nullptr;
+				}
 			}
 			RepopulateAndRealignCurrentPieSlices();
 		}
@@ -540,14 +547,6 @@ void PieMenu::Update() {
 		SetPos(affectedObjectAsActor ? affectedObjectAsActor->GetCPUPos() : m_AffectedObject->GetPos());
 	}
 
-	if (m_MenuMode == MenuMode::Wobble) {
-		UpdateWobbling();
-	} else if (m_MenuMode == MenuMode::Freeze) {
-		m_EnabledState = EnabledState::Enabling;
-	} else if (m_EnabledState == EnabledState::Enabling || m_EnabledState == EnabledState::Disabling) {
-		UpdateEnablingAndDisablingProgress();
-	}
-
 	if (controller->IsDisabled()) {
 		SetEnabled(false);
 		return;
@@ -565,13 +564,16 @@ void PieMenu::Update() {
 
 			bool anyInput = false;
 			bool skipInputBecauseActiveSubPieMenuWasJustDisabled = false;
+
 			if (m_ActiveSubPieMenu) {
 				m_CursorAngle = m_HoveredPieSlice->GetMidAngle() + GetRotAngle();
 				m_CursorInVisiblePosition = false;
 				m_HoverTimer.Reset();
+
 				if (m_ActiveSubPieMenu->IsVisible()) {
 					m_ActiveSubPieMenu->Update();
 				}
+
 				if (!m_ActiveSubPieMenu->IsEnabled()) {
 					m_ActivatedPieSlice = m_ActiveSubPieMenu->m_ActivatedPieSlice;
 					Directions activeSubPieMenuDirection = m_ActiveSubPieMenu->m_DirectionIfSubPieMenu;
@@ -583,6 +585,7 @@ void PieMenu::Update() {
 						m_CursorInVisiblePosition = true;
 					} else {
 						bool shouldClearHoveredSlice = controller->IsState(ControlState::PIE_MENU_ACTIVE_ANALOG);
+
 						// If a keyboard-only sub-PieMenu is exited by going off the sides, the parent PieMenu should handle input so the next PieSlice can be naturally stepped to.
 						if (activeSubPieMenuDirection != Directions::None) {
 							for (const auto& [controlState, controlStateDirection]: c_ControlStateDirections) {
@@ -592,6 +595,7 @@ void PieMenu::Update() {
 								}
 							}
 						}
+
 						if (shouldClearHoveredSlice) {
 							SetHoveredPieSlice(nullptr);
 							skipInputBecauseActiveSubPieMenuWasJustDisabled = true;
@@ -599,6 +603,7 @@ void PieMenu::Update() {
 					}
 				}
 			}
+
 			if (!m_ActiveSubPieMenu && !skipInputBecauseActiveSubPieMenuWasJustDisabled) {
 				if (controller->IsState(PIE_MENU_ACTIVE_ANALOG)) {
 					anyInput = HandleAnalogInput(controller->GetAnalogCursor());
@@ -610,10 +615,6 @@ void PieMenu::Update() {
 			if (anyInput) {
 				m_HoverTimer.Reset();
 			}
-
-			if (!IsSubPieMenu() && m_HoverTimer.IsPastRealTimeLimit()) {
-				SetHoveredPieSlice(nullptr);
-			}
 		}
 
 		if (m_HoveredPieSlice && m_EnabledState != EnabledState::Disabled && !m_ActiveSubPieMenu) {
@@ -622,7 +623,19 @@ void PieMenu::Update() {
 
 		if (!IsSubPieMenu()) {
 			SetEnabled(controller->IsState(ControlState::PIE_MENU_ACTIVE));
+
+			if (m_HoverTimer.IsPastRealTimeLimit()) {
+				SetHoveredPieSlice(nullptr);
+			}
 		}
+	}
+
+	if (m_MenuMode == MenuMode::Wobble) {
+		UpdateWobbling();
+	} else if (m_MenuMode == MenuMode::Freeze) {
+		m_EnabledState = EnabledState::Enabling;
+	} else if (m_EnabledState == EnabledState::Enabling || m_EnabledState == EnabledState::Disabling) {
+		UpdateEnablingAndDisablingProgress();
 	}
 
 	if (m_BGBitmapNeedsRedrawing && m_EnabledState != EnabledState::Disabled) {
@@ -631,17 +644,22 @@ void PieMenu::Update() {
 }
 
 void PieMenu::Draw(BITMAP* targetBitmap, const Vector& targetPos) const {
+	rlZDepth(c_GuiDepth);
 	Vector drawPos;
 	CalculateDrawPosition(targetBitmap, targetPos, drawPos);
 
+	rlZDepth(c_GuiDepth);
 	if (m_EnabledState != EnabledState::Disabled) {
-		if (m_DrawBackgroundTransparent && !g_FrameMan.IsInMultiplayerMode()) {
+		if (m_DrawBackgroundTransparent) {
 			g_FrameMan.SetTransTableFromPreset(TransparencyPreset::MoreTrans);
-			draw_trans_sprite(targetBitmap, m_BGBitmap, drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2);
+			g_GLResourceMan.UpdateDynamicBitmap(m_BGBitmap, true);
+			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_BGBitmap), drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2, {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 		} else {
-			draw_sprite(targetBitmap, m_BGBitmap, drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2);
+			g_GLResourceMan.UpdateDynamicBitmap(m_BGBitmap, true);
+			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(m_BGBitmap), drawPos.GetFloorIntX() - m_BGBitmap->w / 2, drawPos.GetFloorIntY() - m_BGBitmap->h / 2, {255, 255, 255, 255});
 		}
 	}
+	rlZDepth(c_DefaultDrawDepth);
 
 	if (m_EnabledState == EnabledState::Enabled) {
 		DrawPieIcons(targetBitmap, drawPos);
@@ -653,6 +671,7 @@ void PieMenu::Draw(BITMAP* targetBitmap, const Vector& targetPos) const {
 	if (m_ActiveSubPieMenu) {
 		m_ActiveSubPieMenu->Draw(targetBitmap, targetPos);
 	}
+	rlZDepth(c_DefaultDrawDepth);
 }
 
 void PieMenu::UpdateWobbling() {
@@ -1193,6 +1212,11 @@ void PieMenu::DrawBackgroundPieSliceSeparator(BITMAP* backgroundBitmapToDrawTo, 
 bool PieMenu::SetHoveredPieSlice(const PieSlice* pieSliceToSelect, bool moveCursorIconToSlice) {
 	if (pieSliceToSelect == m_HoveredPieSlice) {
 		return false;
+	}
+
+	if (m_ActiveSubPieMenu) {
+		m_ActiveSubPieMenu->SetEnabled(false, false);
+		m_ActiveSubPieMenu = nullptr;
 	}
 
 	m_HoveredPieSlice = pieSliceToSelect;

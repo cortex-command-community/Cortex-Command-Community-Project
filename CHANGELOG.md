@@ -9,16 +9,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 <details><summary><b>Added</b></summary>
 
 - Pathfinding and navigation overhaul, including jetpack/jump-aware pathfinding.  
-	Actors will now intelligently choose their path depending on how high they can jump, instead of always taking the shortest flying path. This will reduce instances of the AI getting stuck while trying to take paths that are impossible for them.  
+	Actors will now choose their path depending on how high they can jump, instead of always taking the shortest flying path. This will reduce instances of the AI getting stuck while trying to take paths that are impossible for them.  
 	Improvements to both `ACrab` and `AHuman` navigation. `ACrab`s are now aware of how to pathfind and navigate using their jetpack, and will use it where applicable. Actors are better at using their jetpack, and will use automovers if their jetpack is not sufficient to reach a destination.  
 	Actors are now more capable and responsive when digging. They will dig to their target if they cannot reach it with their jetpack (for example if there is a long vertical shaft in the route they cannot get up), and they preferentially avoid rocks, metal and other hard substances by digging around them. Actors also dig faster and spend less time idle.  
 	In the `CalculatePath` and `CalculatePathAsync` functions, the parameter `movePathToGround` has been replaced with `jumpHeight`, which is the height in metres the pathfind can jump vertically.  
 	New `Actor` Lua property `JumpHeight` (R) to estimate the jump height of the actor (in metres), based on the actor's jetpack and weight. Actors without a jetpack return 0.  
-	The new function `GetPathFindingFlyingJumpHeight()` can be used to get a jumpHeight that allows flying (i.e infinite jump height). This is also the value that `ACRocket`s and `ACDropships` return for `JumpHeight`.
+	The new function `GetPathFindingFlyingJumpHeight()` can be used to get a jumpHeight that allows flying (i.e infinite jump height). This is also the value that `ACRocket`s and `ACDropShip`s return for `JumpHeight`.
+
+- Improved locomotion.  
+	Added the ability to run. When running, you cannot sharpaim whatsoever.  
+	Added the ability to manually crouch. When crouching, your sharpaim distance is slightly increased.  
+	Players on PC can enable running by holding the shift key, or crouch by holding control. Players using the arrow keys can use right ctrl/shift. Controllers can run by clicking in the left stick, or crouch by holding the left stick down. Prone on controllers is now performed by clicking in the right stick. SNES/d-pad controllers run using the right bumper.  
+	Prone input now immediately throws you to the ground instead of crouching first.  
+	Added new `MovementState` type `RUN` for scripts.  
+	Added new `Controller` state `WALKCROUCH` for crouching, and `PRONE` for prone. The existing `CROUCH` state has been deprecated, as it referred to PRONE.  
+	Added new `Actor` INI and Lua (R/W) property `CanRun` which denotes whether the Actor can run or not.  
+	Added new `Actor` INI and Lua (R/W) property `CrouchWalkSpeedMultiplier` which is a walking speed multiplier when at max crouch amount.
+
+- New hotkey system for `Actor` and `HeldDevice`.  
+	Pressing a certain new hotkey will mark it as activated on `Actor` and `HeldDevice`, letting scripts make use of the new bindings easily.  
+	`Enum` binding for `HeldDevice.HeldDeviceHotkeyType`: `PRIMARYHOTKEY = 0, AUXILIARYHOTKEY = 1, HELDDEVICEHOTKEYTYPECOUNT = 2`.  
+	`Enum` binding for `Actor.ActorHotkeyType`: `PRIMARYHOTKEY = 0, AUXILIARYHOTKEY = 1, ACTORHOTKEYTYPECOUNT = 2`.  
+	Both `Actor` and `HeldDevice` have the following functions:  
+	`HotkeyActionIsActivated(hotkeyType)` returns whether a certain hotkey action is being activated or not.  
+	`ActivateHotkeyAction(hotkeyType)` activates a certain hotkey action.  
+	`DeactivateHotkeyAction(hotkeyType)` deactivates a certain hotkey action.
+
+- New hotkey bindings.  
+	On Mouse+KB PC the defaults are: Weapon Primary Hotkey on V, Weapon Auxiliary Hotkey on H, Actor Primary Hotkey on X, Actor Auxiliary Hotkey on O.  
+	Added new `Controller` states `WEAPON_PRIMARY_HOTKEYSTART`, `WEAPON_AUXILIARY_HOTKEYSTART`, `ACTOR_PRIMARY_HOTKEYSTART`, `ACTOR_AUXILIARY_HOTKEYSTART`, `WEAPON_PRIMARY_HOTKEY`, `WEAPON_AUXILIARY_HOTKEY`, `ACTOR_PRIMARY_HOTKEY`, `ACTOR_AUXILIARY_HOTKEY`
+
+- Added multiseat support for multiple mice and keyboards on one computer.
+
+- Added optional player argument to all `UInputMan:Key*` Lua Methods. (e.g. `KeyHeld(keycode, player)`) This allows checking individual player's keyboards, when multiple keyboards are available.
 
 - New music system, including a dynamic horizontal sequencing system, under the new music manager `MusicMan`.  
-	`PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to play a new DynamicSong.
-	`SetNextDynamicSongSection(string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to queue a new DynamicSongSection for the currently playing song.  
+	`PlayDynamicSong(string songName, string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to play a new DynamicSong.  
+	`SetNextDynamicSongSection(string songSectionName, bool playImmediately, bool playTransition, bool smoothFade)` to queue a new DynamicSongSection for the currently playing song.   
 	`PlayInterruptingMusic(SoundContainer soundContainer)` to start an interrupting piece of music which will pause any playing DynamicSong. Note that pause menu music happily overrides this currently.  
 	`EndInterruptingMusic()` to end any playing interrupting music, and resume any paused DynamicSongs.  
 	`EndDynamicMusic(bool fadeOut)` to end any currently playing dynamic music, optionally immediately fading it out. If not fading it out, the currently playing piece will play to completion.  
@@ -31,32 +58,196 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - New `SoundContainer` features.  
 	Lua property `Paused` (R/W) to pause or unpause all sounds of a SoundContainer. Newly played sounds will not begin playback until unpaused.  
 	Lua function `GetAudibleVolume` to get the real audible volume of a SoundContainer's sounds as a float from 0 to 1. This accounts for literally everything, including game volume.
-	
+
+- New `LimbPath` features.  
+	New `LimbPath` INI and Lua (R/W) property `BaseTravelSpeedMultiplier` which is a multiplier on the TravelSpeed of that LimbPath, on top of any other gameplay multipliers like from crouching.  
+	New `LimbPath` INI and Lua (R/W) property `BaseScaleMultiplier`, which is a vector. This will scale the X/Y axes of the limbpath accordingly, allowing for easily adjusting limbpaths to differently sized actors, on top of any other gameplay multipliers like from running.  
+	New `LimbPath` INI property `SegmentEndedThreshold`, which defines the distance the limb must be from the end of the segment before it's considered complete. This defaults to 2.5.  
+	Exposed `LimbPath` properties `TravelSpeed` and `PushForce` to Lua (R/W).
+
 - New `AEmitter` and `PEmitter` INI and Lua (R/W) property `PlayBurstSound` which denotes whether the BurstSound should play when appropriate. This should not be confused for a trigger - it's just a enable/disable toggle to avoid having to remove and add BurstSound altogether.
 
+- New `MOSprite` INI and Lua (R/W) integer property `ForcedHFlip` which forces a certain flippedness and disallows anything else from ever changing it without clearing the forced value first. 0 is forced not flipped, 1 forced flipped, and -1 is no force.
+	
+- New `Controller` state `WEAPON_RELOADHELD`, which is true every frame reload input is held (as opposed to `WEAPON_RELOAD` which is only true once when pressed).
+
+- New `GAScripted` Lua script method `IsCompatibleScene(scene)` to allow Activities to generically decide which Scenes are eligible by returning a boolean value.  
+	New `GAScripted` INI enumerating property `AddRequiredArea`, replacing Lua file scanning, to allow Activities to explicitly state which areas are strictly required.  
+	As before, these work in tandem. Both the required areas, if defined, and script conditional method, if defined, must pass for the scene to qualify.
+
+- New `GameActivity` INI properties `TeamNTechSwitchEnabled` which determine whether activity team factions are configurable by the user. This is most useful for communicating what the player is not intended to change, or what inputs would be ignored otherwise.
+
 - Allow lua scripts to use LuaJIT's BitOp module (see https://bitop.luajit.org/api.html)
-  
+
+- New `Emission` INI and Lua (R/W) property `ParticleCount` which sets how many particles the Emission spawns per emission. Defaults to 1.
+
+- New `Gib` and `Emission` INI and Lua (R/W) property `InheritsAngularVel`, which determines how much of the parent MO's angular velocity they inherit. Defaults to 1 for gibs, 0 for emissions.
+
+- New `Attachable` INI and Lua (R/W) properties `InheritsVelWhenDetached` and `InheritsAngularVelWhenDetached`, which determine how much of these velocities an attachable inherits from its parent when detached. Defaults to 1.
+
+- New Z Order for scene layers and primitives: Background layer sits at z=100, Terrain Background at z=50, Terrain color and MO color at z=0, GUIs sit at z=-100, allowed z range is [-200, +200], in the future this'll be expanded to MO draw as well.
+
+- Added Lua-accessible bitmap manipulation functions to `MOSprite`:  
+	```
+	GetSpritePixelIndex(int x, int y, int whichFrame) - Returns the color index of the pixel at the given coordinate on the given frame of the sprite ((0, 0) is the upper left corner!)
+
+	SetSpritePixelIndex(int x, int y, int whichFrame, int colorIndex, int ignoreIndex, bool invert) - Sets the color of the pixel at the given coordinate on the given frame of the sprite, skipping if the pixel has same color index as given in "ignoreIndex". If "invert" is set to true, only pixels of that color index are set.
+
+	GetAllSpritePixelPositions(const Vector& origin, float angle, bool hflipped, int whichFrame, int ignoreIndex, bool invert, bool includeChildren) - Returns a list of vectors pointing to the absolute positions of all pixels in the given frame of the sprite, rotated to match "angle", flipped to match "hflipped" and positioned around "origin", providing a full silhouette of the MOSprite. "IgnoreIndex" and "invert" are like above, "includeChildren" denotes whether or not to include all children of the MOSprite (no effect if not at least an MOSRotating).
+
+	GetAllVisibleSpritePixelPositions(bool includeChildren) - Simplified version of the above, returning a list of absolute positions of the visible pixels of the current frame of the sprite as it is currently drawn.
+
+	SetAllSpritePixelIndexes(int whichFrame, int colorIndex, int ignoreIndex, bool invert) - Sets all pixels in the given frame of the sprite to the given color index, ignoring and inverting as above.
+ 
+	SetAllVisibleSpritePixelIndexes(int colorIndex) - Simplified version of the above, sets all visible pixels of the currently visible sprite to the given color index.
+	```
+
+- Added `Material` Lua function `GetColorIndex()`, which returns the color index of the calling material.
+
+- New `ACraft` INI and Lua (R/W) property `CanEnterOrbit`, which determines whether a craft can enter orbit (and refund gold appropriately) or not. If false, default out-of-bounds deletion logic applies.
+
+- New `MovableMan` function `GetMOsAtPosition(posX, posY, ignoreTeam, getsHitByMOsOnly)` that will return an iterator with all the `MovableObject`s that intersect that exact position with their sprite.
+
+- New `SceneMan` function `CastAllMOsRay(startVector, rayVector, table ignoreMOIDs, ignoreTeam, ignoreMaterial, bool ignoreAllTerrain, int skip)` which returns an iterator with pointers to all the non-ignored MOs met along the ray.
+
+- New parameter `depth` for all primitives sets draw depth of the drawn primitive. The default depth is -75.0 (lower numbers draw on top, higher numbers in the back). 
+
+- New `DrawDepth` enum for default draw depths:  
+   - `Default` = 0.0f (Main draw depth for MOs)  
+   - `GUI` = -100.0f (Draw Depth of GUI elements)  
+   - `Primitive` = -75.0f (Default Primitive draw depth)  
+   - `TerrainBackground` = 50.0f (Draw Depth of Terrain Background layer)  
+   - `Background` = 100.0f (Draw Depth of Background layer)
+
+- Added scaling capability to Bitmap primitives.  
+	New draw bindings with argument for scale are:
+	```
+	PrimitiveMan:DrawBitmapPrimitive(pos, moSprite, rotAngle, frame, scale)
+	PrimitiveMan:DrawBitmapPrimitive(pos, moSprite, rotAngle, frame, scale, bool hFlipped, bool vFlipped)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, moSprite, rotAngle, frame, scale)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, moSprite, rotAngle, frame, scale, bool hFlipped, bool vFlipped)
+	PrimitiveMan:DrawBitmapPrimitive(pos, filePath, rotAngle, scale)
+	PrimitiveMan:DrawBitmapPrimitive(pos, filePath, rotAngle, scale, bool hFlipped, bool vFlipped)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, filePath, rotAngle, scale)
+	PrimitiveMan:DrawBitmapPrimitive(player, pos, filePath, rotAngle, scale, bool hFlipped, bool vFlipped)
+	```
+	As well as constructors:
+	```
+	BitmapPrimitive(player, pos, moSprite, rotAngle, frame, scale, hFlipped, vFlipped)
+	BitmapPrimitive(player, pos, filePath, rotAngle, scale, hFlipped, vFlipped)
+	```
+	Original bindings with no scale argument are untouched and can be called as they were.
+
+- New option to mute audio when the game window loses focus.
+
+- New `GetReloadTimer()` on `HDFirearm` to get the underlying reload timer.
+
+- `ReloadProgress` on `HDFirearm` is now a writable property in Lua, and not only readable.
+
+- `RealTimeLimitProgress` and `SimTimeLimitProgress` on `Timer` are now both writable properties in Lua, and not only readable.
+
+- New launch arguments for running the game without anyone at the controls:  
+	`-headless` runs it with a hidden window and no drawing, with the audio going on as usual but not played to anyone, and with the simulation going as fast as it can instead of in real time.  
+	`-activity <class name> <preset name> <scene name>` and `-save <save name>` skip the menus and launch straight into an Activity or a saved game.  
+	`-sim-updates <count>` quits after that many simulation updates.
+
+- New determinism checker, for finding where two runs of the simulation stop matching. The launch argument `-determinism-record <file>` writes checkpoints of the simulation's state to a trace file as it goes, and `-determinism-verify <file>` checks a run against such a file, reporting the first checkpoint that doesn't match and quitting with a failure code. `Tools/determinism_test.py` runs missions this way and compares the runs.
+
+- New `Settings.ini` property `DisableCrashDialogs = 0/1`. With it on, the game still logs an abort, a failed assert or an unhandled exception, but then quits without showing a dialog. This is for when the game is being run by something automated.
+
+- New `Settings.ini` property `LaunchMinimised = 0/1` to have the game window start out minimised, so that launching the game doesn't take input focus or cover other windows. Disabled by default.
+
+- New Skirmish activity `AI Battle`, where AI-controlled teams fight it out by themselves. Useful for watching, or for testing AI, pathfinding and performance.  
+	Every team gets a brain and free reinforcements that go after the other teams' brains. A team is out when its brain is gone, and the last team with a brain wins.  
+	By default every team is given to the CPU and human players just watch, but players can also take a team for themselves and play it, starting out in control of its brain.
+
+- New `Activity` INI property `ShowInMenus = 0/1` to hide an Activity from the Scenario menu. Hidden Activities can still be started by other means, such as from Lua. Enabled by default.
+
+- New `Activity` INI property `HumansCanSpectate = 0/1` for Activities that human players can choose to just watch. The setup screen starts out with every team given to the CPU, and the game can be started without any human players on a team, in which case player one watches from the first CPU team. Spectating is optional: players can still put themselves on a team to play it as usual. Disabled by default.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
 
-- Conquest activities will once again fall-back to using base dropships and rockets if a random selection of the selected tech's craft can't find one capable of carrying passengers and/or cargo.
+- Improved navigation, making running and fast walkpaths much more consistent.
 
-- All music-related functionality from AudioMan has been removed due to the addition of the MusicMan. Generic DynamicSongs have been put in to use instead.
-	Mod activities that used to queue up all the vanilla music should now instead call, for example, `MusicMan:PlayDynamicSong("Generic Battle Music")`
-
-- Increased fog-of-war resolution in all vanilla activities, and conquest, from 20x20 to 4x4.
-	The Ronin Scrambler, the basic scanner, and `SceneMan:CastUnseenRay` have been changed to accomodate fog-of-war resolutions as fine as 1x1 and as course as 20x20.
+- Increased fog-of-war resolution in all vanilla activities, and conquest, from 20x20 to 4x4.  
+	The Ronin Scrambler, the basic scanner, and `SceneMan:CastUnseenRay` have been changed to accomodate fog-of-war resolutions as fine as 1x1 and as coarse as 20x20.  
 	The fog-of-war revealing code is now multithreaded to increase performance.
 
-- All vanilla scenario activities have had their settings polished, respecting settings which make sense and disabling settings which don't.
+- Save files are now compressed and stored in a single file, instead of a directory.  
+	Savefiles have the extension `.ccsave`, but their underlying format is really just a `.zip` file. This can be opened and modified as before with any zip file viewer.  
+	These savefiles can be safely renamed and moved without breaking the savegame, unlike before.
+
+- New GPU Renderer using now OpenGL + Raylib, dramatically improving draw performance. Draw now takes a negligible amount of time.
+
+- All vanilla scenario activities have had their settings polished, respecting settings which make sense and disabling settings which don't.  
 	You can now have fog of war in the test scene, and can no longer require path to orbit in Zero-G Diggers-Only One Man Army.
 
-- The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
+- The "Clear" Preset button in the Buy Menu now clears the currently selected loadout, instead of the last one in the list.
+
+- Loadouts are now additive, and append their items into the cart instead of replacing the current cart item list.
+
+- Conquest activities will once again fall-back to using base dropships and rockets if a random selection of the selected tech's craft can't find one capable of carrying passengers and/or cargo.
+
+- Actor inventory order is now preserved when AI switches weapons.
+
+- Constructors now dig sparse terrain more reliably, mostly preventing stray tiny pixels in dug areas.
 
 - `MovableMan:OpenAllDoors()`, when passed `NOTEAM`, will now open/close doors specifically for `NOTEAM` (instead of all doors).
 
 - MOs now only play the BurstSound of the first Wound they receive in a frame, which not only solves audio spam during e.g. explosions but also preserves intended audio when firing guns with a high ParticleCount at them.
+
+- Changed how Get and SetLimbPathSpeed/PushForce work for `AHuman` and `ACrab`. The functions are as following:  
+	`GetLimbPathSpeed` has been renamed to `GetLimbPathTravelSpeed`.  
+	`SetLimbPathSpeed` has been renamed to `SetLimbPathTravelSpeed`.  
+	`GetLimbPathTravelSpeed(Actor.MovementState)` returns the FG/left side (for crabs) limb path travel speed for that specific movement state, instead of being hardcoded to walking only.  
+	`SetLimbPathTravelSpeed(Actor.MovementState, float newValue)` sets the travel speed for all layers and sides of any particular movement state's limb paths, instead of being hardcoded to walking only.  
+	`GetLimbPathPushForce(Actor.MovementState)` returns the FG/left side (for crabs) limb path push force for that specific movement state, instead of being hardcoded to walking only.  
+	`SetLimbPathPushForce(Actor.MovementState, float newValue)` sets the push force for all layers and sides of any particular movement state's limb paths, instead of being hardcoded to walking only.
+	
+- The `LimbPath` property `NormalTravelSpeed` has been renamed to just `TravelSpeed`.
+
+- `GameActivity` INI properties `TeamNTech` values switched to lazy eval, allowing them to be validated once all modules are loaded.  
+	As well, the scenario menu activity configuration screen now respects defaults set in INI, where possible.
+
+- Internal GUI element `ComboBox` no longer displays dropdown combobutton when disabled, to communicate visually that it's setting is not modifiable.
+
+- Almost all ctrl+\* special inputs functionality (i.e restarting activity, world dumps, showing performance stats) are now mapped to right alt, to not interfere with default crouching inputs. The only exception is ctrl+arrow keys for changing console size.
+
+- `Gib`s and detached `Attachable`s now inherit the parent's angular velocity by default.
+
+- `InheritsVel` now accounts for the angular velocity of the parent MO, resulting in offset gibs and emissions being flung further away.
+
+- `InheritsVel` and its ilk have been uncapped, allowing users to set them outside of 0-1.
+
+- Lua renamed `SceneLayer`->`StaticSceneLayer` due to changed SLBackground base class.
+
+- `Scene` Lua functions `AddNavigatableArea(areaName)` and `ClearNavigatableAreas()` have been renamed/corrected to `AddNavigableArea(areaName)` and `ClearNavigableAreas()`, respectively.
+
+- `MOSRotating` Lua function `AddWound` now additionally accepts the format `MOSRotating:AddWound(AEmitter* woundToAdd, const Vector& parentOffsetToSet, bool checkGibWoundLimit, bool isEntryWound, bool isExitWound)`, allowing modders to specify added wounds as entry- or exit wounds, for the purpose of not playing multiple burst sounds on the same frame. These new arguments are optional.
+
+- `SceneMan` function `CastFindMORay` now has an extra bool parameter `findChildMOIDs` that denotes whether it also triggers on child MOIDs or not, which defaults to true for the same default behavior as before.
+
+- `SceneMan` function `CastMORay` now can also accept a table of MOIDs instead of a single MOID, letting you ignore any arbitrary set of MOIDs.
+
+- Techion Laser Rifle now has a constant range rather than being dependent on game resolution.
+
+- Various performance improvements.
+
+- Drop support for macOS < 11.1 (Big Sur) :(
+
+- Updated SDL2 to SDL3
+
+- Much of what made two runs of the same mission play out differently is gone. Scripts on a Lua state now run in order of `UniqueID`, objects added by several threads at once get added in order of `UniqueID`, AI and drawing and audio code no longer use the simulation's random numbers, and pathfinding updates go by simulation time instead of real time.
+
+- The `UniqueID` of a `MovableObject` is now 64 bit, with its upper bits saying which thread it was made on. Scripts still get it as a number, but it can be a lot larger than it used to be.
+
+- LuaJIT now goes through a table that has tables, functions or userdata for keys in an order that doesn't depend on where those are in memory, so `pairs` gives the same order every run. This only holds on 64 bit x86 and ARM.  
+	Tables that have strings for keys are gone through in an order that only depends on the strings and the order they were put in the table, rather than on how many strings had been made before them, which changed with when the garbage collector happened to run.  
+	LuaJIT's JIT compiler now compiles things at the same points every run, instead of depending on where it happened to find memory for compiled code, so the garbage collector also runs and finalizes objects at the same points every run.
+
+- Numbers saved with `Activity:SaveNumber()` are now kept as doubles instead of floats, and floating point numbers in INI and save files are written out exactly instead of being rounded to 6 digits.
 
 </details>
 
@@ -71,6 +262,69 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed a bug in Decision Day that could cause an error when trying to set the camera's scroll target, in addition to the previous issue.
 
 - Fixed a bug in Harvester and Massacre where setting deploy units would auto-assign units of the wrong tech.
+
+- Fixed an issue where an `Actor`'s MovementState wasn't correctly accessible from script.
+
+- Fixed mounted HeldDevices not respecting InheritedRotAngleOffset.
+
+- Fixed an issue where internal Lua functions OriginalDoFile, OriginalLoadFile, and OriginalRequire were polluting the global namespace. They have now been made inaccessible.
+
+- Fixed the palette being mangled to 6bit/color on load.
+
+- Fixed allegro not loading alpha of image with alpha by using SDL_image instead.
+
+- Fixed `MOSprite:UnRotateOffset()` giving the wrong results on HFLipped sprites.
+
+- Various fixes and improvements to inventory management when dual-wielding or carrying a shield, to stop situations where the actor unexpectedly puts their items away.
+
+- Fixed issue where MOSR `Gib`s, `AEmitter` or `PEmitter` `Emission`s, and MetaMan `Player`s were not correctly accessible from script.
+
+- Fixed a crash on launch when the `SupportedGameVersion` INI property was not set.
+
+- Fixed several issues with the way pie menus and aiming interacts between players, such as opening the pie menu always resetting the M&KB player's aim and pie selection, as well as another issue where the pie menu would fail to appear entirely for some players.
+
+- Fixed an issue where pie menu selection could become unresponsive at low framerates.
+
+- Fixed issue where scripts applied to `MovableObject`s could become disordered in certain circumstances.
+
+- Fixed a minor inconsistency where `ACDropShip`s were frequently referred to as `ACDropship`s in Lua, the lower case 's' invalidating keywords where the typo occured.
+
+- Fixed an issue where the buy menu GUI could ignore mouse hover events until you clicked to reset the focus.
+
+- Fixed an issue where if the first objects in the buy cart are items instead of an actor, they would be added to the first actor's inventory- even if it was an actor without an inventory (i.e a crab)
+
+- Fixed the option to mute audio when the game window loses focus starting out with a garbage value, which then got written to `Settings.ini`.
+
+- Fixed objects sometimes getting a garbage velocity when the terrain they hit was removed before they got to try and penetrate it, for example by a script's `OnCollideWithTerrain`.
+
+- Fixed a macOS worker-thread message box that could hang, and a libc++ build error formatting save-game timestamps.
+
+- Fixed a divide-by-zero on `AtomGroup` segments with no steps, which could feed bad values into the physics.
+
+- Fixed a couple of uninitialized values (Atom step state and the simulation frame counter) that could cause inconsistent behavior between runs.
+
+- Fixed the Techion Nanolyzer never playing its dissipate sound.
+
+- Fixed `AHuman:EquipShieldInBGArm()` being able to take the wrong item out of the inventory, which left the device it equipped both held and in the inventory. The device then got dropped twice when its holder died, and the game could crash when quitting.
+
+</details>
+
+<details><summary><b>Removed</b></summary>
+
+- Removed multiplayer. The existing multiplayer implementation was terrible and broken, and can be done better with multiple keyboard+mouse support plus an external client like Parsec or Steam Remote Play Together. In future, we will investigate whether it's feasible to build in a proper and more capable multiplayer solution.
+
+- All music-related functionality from AudioMan has been removed due to the addition of the MusicMan. Generic DynamicSongs have been put in to use instead.
+	Mod activities that used to queue up all the vanilla music should now instead call, for example, `MusicMan:PlayDynamicSong("Generic Battle Music")`
+
+- The Signal Hunt activity no longer has a preview image, as it was not formatted correctly and spoiled the interior structure of the cave.
+
+- Removed `GAScripted` Lua script method `SceneTest()` as the new Lua function `IsCompatibleScene(scene)` is more capable.  
+	Removed `GAScripted` C++ functionality that would scan the Lua script file to determine which areas are required. `AddRequiredArea` in the INI should be used instead.  
+	Removed `Scene` Lua function `GetOptionalArea` as it functioned identically to `GetArea` aside from triggering the aforementioned (and now removed) Lua script file scanning.
+
+- Removed `AHuman` property `MaxCrouchRotation`. `CrouchRotAngleTarget` is now used instead.
+
+- Deprecated `LimbPath` properties `SlowTravelSpeed`, `NormalTravelSpeed` and `FastTravelSpeed`. For the sake of backwards compatibility they will not crash the game and `NormalTravelSpeed` is a valid synonym for the new `TravelSpeed`.
 
 </details>
 
@@ -2585,7 +2839,7 @@ This can be accessed via the new Lua (R/W) `SettingsMan` property `AIUpdateInter
 
 - `TDExplosive.ActivatesWhenReleased` now works properly.
 
-- Various bug fixed related to all the Attachable and Emitter changes, so they can now me affected reliably and safely with lua.
+- Various bugs fixed related to all the Attachable and Emitter changes, so they can again be affected reliably and safely with lua.
 
 - Various minor other things that have gotten lost in the shuffle.
 

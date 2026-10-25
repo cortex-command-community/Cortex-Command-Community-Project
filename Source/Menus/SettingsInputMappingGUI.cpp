@@ -8,6 +8,8 @@
 #include "GUIScrollbar.h"
 #include "GUILabel.h"
 
+#include <array>
+
 using namespace RTE;
 
 std::array<InputElements, 7> SettingsInputMappingGUI::m_InputElementsUsedByMouse = {InputElements::INPUT_FIRE, InputElements::INPUT_PIEMENU_ANALOG, InputElements::INPUT_AIM, InputElements::INPUT_AIM_UP, InputElements::INPUT_AIM_DOWN, InputElements::INPUT_AIM_LEFT, InputElements::INPUT_AIM_RIGHT};
@@ -123,7 +125,7 @@ void SettingsInputMappingGUI::UpdateMappingButtonLabels() {
 		m_InputMapButton[i]->SetText(!inputDescription.empty() ? "[" + inputDescription + "]" : "[Undefined]");
 	}
 	// Adjust the scrolling box scroll range to hide mappings that are only relevant to gamepads.
-	m_InputMapScrollingBoxScrollbar->SetMaximum(m_InputMapScrollingBox->GetHeight() - ((m_ConfiguringPlayerInputScheme->GetDevice() < InputDevice::DEVICE_GAMEPAD_1) ? 141 : -8));
+	m_InputMapScrollingBoxScrollbar->SetMaximum(m_InputMapScrollingBox->GetHeight());
 	m_InputMapScrollingBoxScrollbar->SetPageSize(m_InputMapScrollingBoxScrollbar->GetMaximum() / 2);
 }
 

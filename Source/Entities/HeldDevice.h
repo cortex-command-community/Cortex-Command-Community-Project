@@ -20,6 +20,12 @@ namespace RTE {
 		BOMB,
 	};
 
+	enum HeldDeviceHotkeyType {
+		PRIMARYHOTKEY = 0,
+		AUXILIARYHOTKEY,
+		HELDDEVICEHOTKEYTYPECOUNT
+	};
+
 	/// An articulated device that can be weilded by an Actor.
 	/// 01/31/2007 Made concrete so Shields can be jsut HeldDevice:s
 	class HeldDevice : public Attachable {
@@ -276,13 +282,26 @@ namespace RTE {
 		/// the trigger'.
 		virtual void Deactivate();
 
+		/// Tells whether the device is currently being activated.
+		/// @return Whether being activated.
+		virtual bool IsActivated() const { return m_Activated; }
+
+		/// Activates one of this HDFirearm's hotkey features.
+		/// @param hotkeyType Which hotkey type to activate.
+		virtual void ActivateHotkeyAction(HeldDeviceHotkeyType hotkeyType);
+
+		/// Deactivates one of this HDFirearm's hotkey features.
+		/// @param hotkeyType Which hotkey type to deactivate.
+		virtual void DeactivateHotkeyAction(HeldDeviceHotkeyType hotkeyType);
+
+		/// Tells whether a hotkey action of the device is currently being activated.
+		/// @param hotkeyType Which hotkey type to check for activation.
+		/// @return Whether hotkey is being activated.
+		virtual bool HotkeyActionIsActivated(HeldDeviceHotkeyType hotkeyType) const { return m_HotkeyActivated[hotkeyType]; }
+
 		/// Throws out the currently used Magazine, if any, and puts in a new one
 		/// after the reload delay is up.
 		virtual void Reload() {}
-
-		/// Tells whether the device is curtrently being activated.
-		/// @return Whether being activated.
-		virtual bool IsActivated() const { return m_Activated; }
 
 		/// Gets the activation Timer for this HeldDevice.
 		/// @return The activation Timer for this HeldDevice.
@@ -355,8 +374,12 @@ namespace RTE {
 		int m_HeldDeviceType;
 		// Is this HeldDevice that are currently activated?
 		bool m_Activated;
+		// An array that holds activation states for the various hotkey actions of this HeldDevice.
+		std::array<bool, HELDDEVICEHOTKEYTYPECOUNT> m_HotkeyActivated;
 		// Timer for timing how long a feature has been activated.
 		Timer m_ActivationTimer;
+		// An array that holds activation timers for the various hotkey actions of this HeldDevice.
+		std::array<Timer, HELDDEVICEHOTKEYTYPECOUNT> m_HotkeyActivationTimer;
 		// Can be weilded well with one hand or not
 		bool m_OneHanded;
 		// Can be weilded with bg hand or not

@@ -16,10 +16,8 @@
 #define g_PostProcessMan PostProcessMan::Instance()
 
 namespace RTE {
+	class RenderTarget;
 	/// Struct for storing GL information in the BITMAP->extra field.
-	struct GLBitmapInfo {
-		GLuint m_Texture;
-	};
 
 	/// Structure for storing a post-process screen effect to be applied at the last stage of 32bpp rendering.
 	struct PostEffect {
@@ -141,21 +139,11 @@ namespace RTE {
 		bool GetGlowAreasWrapped(const Vector& boxPos, int boxWidth, int boxHeight, std::list<Box>& areaList) const;
 #pragma endregion
 
-#pragma region Network Post Effect Handling
-		/// Copies the specified player's screen relative post effects list of this PostProcessMan to the referenced list. Used for sending post effect data over the network.
-		/// @param whichScreen Which player screen to get list for.
-		/// @param outputList Reference to the list of post effects to copy into.
-		void GetNetworkPostEffectsList(int whichScreen, std::list<PostEffect>& outputList);
-
-		/// Copies the player's screen relative post effects from the referenced list to the list of this PostProcessMan. Used for receiving post effect data over the network.
-		/// @param whichScreen Which player screen to set list for.
-		/// @param inputList Reference to the list of post effects to copy from.
-		void SetNetworkPostEffectsList(int whichScreen, std::list<PostEffect>& inputList);
-#pragma endregion
-
 		/// Gets the backbuffer texture for indexed drawings.
 		/// @return The opengl backbuffer texture for indexed drawings.
-		GLuint GetPostProcessColorBuffer() { return m_BackBuffer32; }
+		std::shared_ptr<RenderTarget> GetPostProcessColorBuffer() { return m_PostProcessFramebuffer; }
+
+		GLuint GetPaletteTexture() { return m_Palette8Texture; }
 
 	protected:
 		std::list<PostEffect> m_PostScreenEffects; //!< List of effects to apply at the end of each frame. This list gets cleared out and re-filled each frame.
@@ -179,12 +167,9 @@ namespace RTE {
 
 	private:
 		GLuint m_BackBuffer8; //!< Backbuffer texture for incoming indexed drawings.
-		GLuint m_BackBuffer32; //!< Backbuffer texture for the final 32bpp frame.
 		GLuint m_Palette8Texture; //!< Palette texture for incoming indexed drawings.
-		std::vector<std::unique_ptr<GLBitmapInfo>> m_BitmapTextures; //!< Vector of all the GL textures for the bitmaps that have been uploaded so far.
-		GLuint m_BlitFramebuffer; //!< Framebuffer for blitting the 8bpp backbuffer to the 32bpp backbuffer.
-		GLuint m_PostProcessFramebuffer; //!< Framebuffer for post-processing effects.
-		GLuint m_PostProcessDepthBuffer; //!< Depth buffer for post-processing effects.
+		std::shared_ptr<RenderTarget> m_BlitFramebuffer; //!< Framebuffer for blitting the 8bpp backbuffer to the 32bpp backbuffer.
+		std::shared_ptr<RenderTarget> m_PostProcessFramebuffer; //!< Framebuffer for post-processing effects.
 		std::unique_ptr<glm::mat4> m_ProjectionMatrix; //!< Projection matrix for post-processing effects.
 		GLuint m_VertexBuffer; //!< Vertex buffer for post-processing effects.
 		GLuint m_VertexArray; //!< Vertex array for post-processing effects.
@@ -243,10 +228,6 @@ namespace RTE {
 
 		/// Updates the palette texture with the current palette.
 		void UpdatePalette();
-
-		/// Creates and upload a new GL texture. The texture pointer is stored in the BITMAP->extra field.
-		/// @param bitmap The bitmap to create a texture for.
-		void LazyInitBitmap(BITMAP* bitmap);
 
 		// Disallow the use of some implicit methods.
 		PostProcessMan(const PostProcessMan& reference) = delete;

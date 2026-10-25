@@ -70,7 +70,6 @@ void GameActivity::Clear() {
 		m_ReadyToStart[player] = false;
 		m_PurchaseOverride[player].clear();
 		m_BrainLZWidth[player] = BRAINLZWIDTHDEFAULT;
-		m_TeamTech[player] = "";
 		m_NetworkPlayerNames[player] = "";
 	}
 
@@ -95,6 +94,8 @@ void GameActivity::Clear() {
 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
 		m_Deliveries[team].clear();
+		m_TeamTech[team] = "";
+		m_TeamTechSwitchEnabled[team] = true;
 		m_LandingZoneArea[team].Reset();
 		m_aLZCursor[team].clear();
 		m_aObjCursor[team].clear();
@@ -158,6 +159,7 @@ int GameActivity::Create(const GameActivity& reference) {
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
 		m_LandingZoneArea[team] = reference.m_LandingZoneArea[team];
 		m_TeamTech[team] = reference.m_TeamTech[team];
+		m_TeamTechSwitchEnabled[team] = reference.m_TeamTechSwitchEnabled[team];
 		m_TeamIsCPU[team] = reference.m_TeamIsCPU[team];
 	}
 
@@ -220,7 +222,19 @@ int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader)
 		                if (propName == "Team" + std::to_string(team + 1) + "Tech") {
 			                std::string techName;
 			                reader >> techName;
-			                SetTeamTech(team, techName);
+			                m_TeamTech[team] = techName;
+		                }
+	                });
+	MatchForwards("Team1TechSwitchEnabled")
+	    MatchForwards("Team2TechSwitchEnabled")
+	        MatchForwards("Team3TechSwitchEnabled")
+	            MatchProperty(
+	                "Team4TechSwitchEnabled",
+	                for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
+		                if (propName == "Team" + std::to_string(team + 1) + "TechSwitchEnabled") {
+			                bool switchEnabled;
+			                reader >> switchEnabled;
+			                m_TeamTechSwitchEnabled[team] = switchEnabled;
 		                }
 	                });
 	MatchProperty("SpecialBehaviour_StartingGold", { reader >> m_StartingGold; });
@@ -268,7 +282,7 @@ void GameActivity::Destroy(bool notInherited) {
 	Clear();
 }
 
-void GameActivity::SetTeamTech(int team, std::string tech) {
+void GameActivity::SetTeamTech(int team, const std::string& tech) {
 	if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) {
 		if (tech == "-All-" || tech == "-Random-")
 			m_TeamTech[team] = tech;
@@ -374,7 +388,7 @@ void GameActivity::SwitchToPrevActor(int player, int team, Actor* pSkip) {
 	}
 }
 
-void GameActivity::AddObjectivePoint(std::string description, Vector objPos, int whichTeam, ObjectiveArrowDir arrowDir) {
+void GameActivity::AddObjectivePoint(const std::string& description, Vector objPos, int whichTeam, ObjectiveArrowDir arrowDir) {
 	m_Objectives.push_back(ObjectivePoint(description, objPos, whichTeam, arrowDir));
 }
 
@@ -454,7 +468,7 @@ int GameActivity::SetOverridePurchaseList(const Loadout* pLoadout, int player) {
 	return finalListCost;
 }
 
-int GameActivity::SetOverridePurchaseList(std::string loadoutName, int player) {
+int GameActivity::SetOverridePurchaseList(const std::string& loadoutName, int player) {
 	// Find out the native module of this player
 	int nativeModule = 0;
 	MetaPlayer* pMetaPlayer = g_MetaMan.GetMetaPlayerOfInGamePlayer(player);
@@ -528,12 +542,10 @@ bool GameActivity::CreateDelivery(int player, int mode, Vector& waypoint, Actor*
 				totalCost = pDeliveryCraft->GetGoldValue(nativeModule, foreignCostMult, nativeCostMult);
 		}
 
-		// Go through the list of things ordered, and give any actors all the items that is present after them,
-		// until the next actor. Also, the first actor gets all stuff in the list above him.
-		MovableObject* pInventoryObject = 0;
-		Actor* pPassenger = 0;
-		Actor* pLastPassenger = 0;
-		std::list<MovableObject*> cargoItems;
+		// Go through the list of things ordered, and give any actors all the items that is present after them, until the next actor.
+		MovableObject* pInventoryObject = nullptr;
+		Actor* pPassenger = nullptr;
+		Actor* pLastPassenger = nullptr;
 
 		for (std::list<const SceneObject*>::iterator itr = purchaseList.begin(); itr != purchaseList.end(); ++itr) {
 			bool purchaseItem = true;
@@ -554,64 +566,35 @@ bool GameActivity::CreateDelivery(int player, int mode, Vector& waypoint, Actor*
 			if (purchaseItem) {
 				// Make copy of the preset instance in the list
 				pInventoryObject = dynamic_cast<MovableObject*>((*itr)->Clone());
-				// See if it's actually a passenger, as opposed to a regular item
+
+				if (pPassenger) {
+					pLastPassenger = pPassenger;
+				}
+
 				pPassenger = dynamic_cast<Actor*>(pInventoryObject);
+
 				// If it's an actor, then set its team and add it to the Craft's inventory!
 				if (pPassenger) {
-					if (dynamic_cast<AHuman*>(pPassenger)) {
-						// If this is the first passenger, then give him all the shit found in the list before him
-						if (!pLastPassenger) {
-							for (std::list<MovableObject*>::iterator iItr = cargoItems.begin(); iItr != cargoItems.end(); ++iItr)
-								pPassenger->AddInventoryItem(*iItr);
-						}
-						// This isn't the first passenger, so give the previous guy all the stuff that was found since processing him
-						else {
-							for (std::list<MovableObject*>::iterator iItr = cargoItems.begin(); iItr != cargoItems.end(); ++iItr)
-								pLastPassenger->AddInventoryItem(*iItr);
-						}
-
-						// Now set the current passenger as the 'last passenger' so he'll eventually get everything found after him.
-						pLastPassenger = pPassenger;
-					} else if (pLastPassenger) {
-						for (MovableObject* cargoItem: cargoItems) {
-							pLastPassenger->AddInventoryItem(cargoItem);
-						}
-						pLastPassenger = nullptr;
-					}
-					// Clear out the temporary cargo list since we've assign all the stuff in it to a passenger
-					cargoItems.clear();
 					// Set the team etc for the current passenger and stuff him into the craft
 					pPassenger->SetTeam(team);
 					pPassenger->SetControllerMode(Controller::CIM_AI);
 					pPassenger->SetAIMode((Actor::AIMode)mode);
 
-					if (pTargetMO != NULL) {
-						Actor* pTarget = dynamic_cast<Actor*>(pTargetMO);
-						if (pTarget)
-							pPassenger->AddAIMOWaypoint(pTarget);
+					if (Actor* pTarget = dynamic_cast<Actor*>(pTargetMO)) {
+						pPassenger->AddAIMOWaypoint(pTarget);
 					} else if (waypoint.m_X > 0 && waypoint.m_Y > 0) {
 						pPassenger->AddAISceneWaypoint(waypoint);
 					}
 
 					pDeliveryCraft->AddInventoryItem(pPassenger);
+				} else if (dynamic_cast<AHuman*>(pLastPassenger)) {
+					// Add ourselves to the last passenger's inventory
+					pLastPassenger->AddInventoryItem(pInventoryObject);
+				} else {
+					// No valid AHuman actor before us, just add ourself to the craft inventory
+					pDeliveryCraft->AddInventoryItem(pInventoryObject);
 				}
-				// If not, then add it to the temp list of items which will be added to the last passenger's inventory
-				else
-					cargoItems.push_back(pInventoryObject);
 			}
-		}
-
-		pPassenger = 0;
-
-		// If there was a last passenger and things after him, stuff all the items into his inventory
-		if (pLastPassenger) {
-			for (std::list<MovableObject*>::iterator iItr = cargoItems.begin(); iItr != cargoItems.end(); ++iItr)
-				pLastPassenger->AddInventoryItem(*iItr);
-		}
-		// Otherwise, stuff it all stuff directly into the craft instead
-		else {
-			for (std::list<MovableObject*>::iterator iItr = cargoItems.begin(); iItr != cargoItems.end(); ++iItr)
-				pDeliveryCraft->AddInventoryItem(*iItr);
 		}
 
 		float spawnY = 0.0f;
@@ -681,7 +664,7 @@ void GameActivity::SetupPlayers() {
 
 int GameActivity::Start() {
 	// Set the split screen config before the Scene (and it SceneLayers, specifially) are loaded
-	int humanCount = GetHumanCount();
+	uint8_t humanCount = GetHumanCount();
 	// Depending on the resolution aspect ratio, split first horizontally (if wide screen)
 	if (((float)g_WindowMan.GetResX() / (float)g_WindowMan.GetResY()) >= 1.6)
 		g_FrameMan.ResetSplitScreens(humanCount > 1, humanCount > 2);
@@ -772,37 +755,32 @@ int GameActivity::Start() {
 		////////////////////////////////////
 		// GUI split screen setup
 		// If there are split screens, set up the GUIs to draw and their mouses to point correctly
-		if (g_FrameMan.IsInMultiplayerMode()) {
-			m_pEditorGUI[player]->SetPosOnScreen(0, 0);
-			m_pBuyGUI[player]->SetPosOnScreen(0, 0);
-		} else {
-			if (g_FrameMan.GetScreenCount() > 1) {
-				// Screen 1 Always upper left corner
-				if (ScreenOfPlayer(player) == 0) {
-					m_pEditorGUI[player]->SetPosOnScreen(0, 0);
-					m_pBuyGUI[player]->SetPosOnScreen(0, 0);
-				} else if (ScreenOfPlayer(player) == 1) {
-					// If both splits, or just Vsplit, then in upper right quadrant
-					if ((g_FrameMan.GetVSplit() && !g_FrameMan.GetHSplit()) || (g_FrameMan.GetVSplit() && g_FrameMan.GetVSplit())) {
-						m_pEditorGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, 0);
-						m_pBuyGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, 0);
-					}
-					// If only hsplit, then lower left quadrant
-					else {
-						m_pEditorGUI[player]->SetPosOnScreen(0, g_WindowMan.GetResY() / 2);
-						m_pBuyGUI[player]->SetPosOnScreen(0, g_WindowMan.GetResY() / 2);
-					}
+		if (g_FrameMan.GetScreenCount() > 1) {
+			// Screen 1 Always upper left corner
+			if (ScreenOfPlayer(player) == 0) {
+				m_pEditorGUI[player]->SetPosOnScreen(0, 0);
+				m_pBuyGUI[player]->SetPosOnScreen(0, 0);
+			} else if (ScreenOfPlayer(player) == 1) {
+				// If both splits, or just Vsplit, then in upper right quadrant
+				if ((g_FrameMan.GetVSplit() && !g_FrameMan.GetHSplit()) || (g_FrameMan.GetVSplit() && g_FrameMan.GetVSplit())) {
+					m_pEditorGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, 0);
+					m_pBuyGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, 0);
 				}
-				// Screen 3 is lower left quadrant
-				else if (ScreenOfPlayer(player) == 2) {
+				// If only hsplit, then lower left quadrant
+				else {
 					m_pEditorGUI[player]->SetPosOnScreen(0, g_WindowMan.GetResY() / 2);
 					m_pBuyGUI[player]->SetPosOnScreen(0, g_WindowMan.GetResY() / 2);
 				}
-				// Screen 4 is lower right quadrant
-				else if (ScreenOfPlayer(player) == 3) {
-					m_pEditorGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, g_WindowMan.GetResY() / 2);
-					m_pBuyGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, g_WindowMan.GetResY() / 2);
-				}
+			}
+			// Screen 3 is lower left quadrant
+			else if (ScreenOfPlayer(player) == 2) {
+				m_pEditorGUI[player]->SetPosOnScreen(0, g_WindowMan.GetResY() / 2);
+				m_pBuyGUI[player]->SetPosOnScreen(0, g_WindowMan.GetResY() / 2);
+			}
+			// Screen 4 is lower right quadrant
+			else if (ScreenOfPlayer(player) == 3) {
+				m_pEditorGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, g_WindowMan.GetResY() / 2);
+				m_pBuyGUI[player]->SetPosOnScreen(g_WindowMan.GetResX() / 2, g_WindowMan.GetResY() / 2);
 			}
 		}
 
@@ -1055,7 +1033,7 @@ void GameActivity::UpdateEditing() {
 			DisableAIs(false);
 			InitAIs();
 			// Reset the mouse value and pathfinding so it'll know about the newly placed stuff
-			g_UInputMan.SetMouseValueMagnitude(0);
+			g_UInputMan.SetMouseValueMagnitude(0, g_UInputMan.MouseUsedByPlayer());
 			g_SceneMan.GetScene()->ResetPathFinding();
 			// Start the in-game track
 			// g_AudioMan.ClearMusicQueue();
@@ -1235,7 +1213,7 @@ void GameActivity::Update() {
 			if (m_PlayerController[player].IsState(PRESS_SECONDARY)) {
 				// Reset the mouse so the actor doesn't change aim because mouse has been moved
 				if (m_PlayerController[player].IsMouseControlled()) {
-					g_UInputMan.SetMouseValueMagnitude(0);
+					g_UInputMan.SetMouseValueMagnitude(0, player);
 				}
 
 				m_ViewState[player] = ViewState::Normal;
@@ -1254,7 +1232,7 @@ void GameActivity::Update() {
 			else if (m_PlayerController[player].IsState(ACTOR_NEXT) || m_PlayerController[player].IsState(ACTOR_PREV) || m_PlayerController[player].IsState(PRESS_FACEBUTTON) || m_PlayerController[player].IsState(PRESS_PRIMARY)) {
 				// Reset the mouse so the actor doesn't change aim because mouse has been moved
 				if (m_PlayerController[player].IsMouseControlled()) {
-					g_UInputMan.SetMouseValueMagnitude(0);
+					g_UInputMan.SetMouseValueMagnitude(0, player);
 				}
 
 				if (pMarkedActor) {
@@ -1716,13 +1694,10 @@ void GameActivity::Update() {
 		if (m_ActivityState == ActivityState::Over && m_GameOverTimer.IsPastRealMS(m_GameOverPeriod)) {
 			g_FrameMan.ClearScreenText(ScreenOfPlayer(player));
 			// g_FrameMan.SetScreenText("Press [Esc] to leave the battlefield", ScreenOfPlayer(player), 750);
-			if (g_FrameMan.IsInMultiplayerMode())
-				g_FrameMan.SetScreenText("All players must press and hold [BACKSPACE] to continue!", ScreenOfPlayer(player), 750);
-			else
-				g_FrameMan.SetScreenText("Press [SPACE] or [START] to continue!", ScreenOfPlayer(player), 750);
+			g_FrameMan.SetScreenText("Press [SPACE] or [START] to continue!", ScreenOfPlayer(player), 750);
 
 			// Actually end on space
-			if (m_GameOverTimer.IsPastSimMS(55000) || g_UInputMan.AnyStartPress()) {
+			if (g_UInputMan.AnyStartPress()) {
 				g_ActivityMan.EndActivity();
 				g_ActivityMan.SetInActivity(false);
 			}
@@ -2499,7 +2474,7 @@ void GameActivity::ObjectivePoint::Draw(BITMAP* pTargetBitmap, BITMAP* pArrowBit
 	}
 }
 
-std::string& GameActivity::GetNetworkPlayerName(int player) {
+const std::string& GameActivity::GetNetworkPlayerName(int player) {
 	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount)
 		return m_NetworkPlayerNames[player];
 	else
@@ -2508,5 +2483,5 @@ std::string& GameActivity::GetNetworkPlayerName(int player) {
 
 void GameActivity::SetNetworkPlayerName(int player, std::string name) {
 	if (player >= Players::PlayerOne && player < Players::MaxPlayerCount)
-		m_NetworkPlayerNames[player] = name;
+		m_NetworkPlayerNames[player] = std::move(name);
 }

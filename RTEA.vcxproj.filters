@@ -34,7 +34,11 @@
     <Filter Include="GUI\Wrappers">
       <UniqueIdentifier>{14ff3fdb-4366-4bed-8b6e-ddcf72987b81}</UniqueIdentifier>
     </Filter>
-    <Filter Include="System\StackWalker">
+    <Filter Include="GUI\imgui">
+    </Filter>
+    <Filter Include="GUI\imgui\backends">
+    </Filter>
+    <Filter Include="System\backward">
       <UniqueIdentifier>{a8668dc1-51c5-418d-91bf-7ee92f008cb1}</UniqueIdentifier>
     </Filter>
     <Filter Include="external">
@@ -46,8 +50,14 @@
     <Filter Include="System\Base64">
       <UniqueIdentifier>{6f517ec6-8c53-4d34-b320-c408e1fd374d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="System\glad">
+    <Filter Include="Renderer\glad">
       <UniqueIdentifier>{a92cf676-7096-4641-ae98-d02861c1acde}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{456e743f-249a-4e29-91e2-348668548158}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\raylib">
+      <UniqueIdentifier>{5aa83e16-d772-476c-b51a-72480c976207}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -78,6 +88,9 @@
     <ClInclude Include="Source\System\Singleton.h">
       <Filter>System</Filter>
     </ClInclude>
+    <ClInclude Include="Source\System\DeterminismChecker.h">
+      <Filter>System</Filter>
+    </ClInclude>
     <ClInclude Include="Source\System\System.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -92,6 +105,15 @@
     </ClInclude>
     <ClInclude Include="Source\System\MicroPather\micropather.h">
       <Filter>System\MicroPather</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\raylib\raylib.h">
+      <Filter>Renderer\raylib</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\raylib\rlgl.h">
+      <Filter>Renderer\raylib</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\raylib\rlconfig.h">
+      <Filter>Renderer\raylib</Filter>
     </ClInclude>
     <ClInclude Include="Source\Managers\AchievementMan.h">
       <Filter>Managers</Filter>
@@ -218,6 +240,18 @@
     </ClInclude>
     <ClInclude Include="Source\GUI\GUIUtil.h">
       <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\GUI\imgui\imgui.h">
+      <Filter>GUI\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\GUI\imgui\imconfig.h">
+      <Filter>GUI\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\GUI\imgui\backends\imgui_impl_sdl3.h">
+      <Filter>GUI\imgui\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\GUI\imgui\backends\imgui_impl_opengl3.h">
+      <Filter>GUI\imgui\backends</Filter>
     </ClInclude>
     <ClInclude Include="Source\Entities\ACDropShip.h">
       <Filter>Entities</Filter>
@@ -402,18 +436,6 @@
     <ClInclude Include="Source\Entities\PEmitter.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Managers\NetworkClient.h">
-      <Filter>Managers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Managers\NetworkServer.h">
-      <Filter>Managers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Activities\MultiplayerGame.h">
-      <Filter>Activities</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Activities\MultiplayerServerLobby.h">
-      <Filter>Activities</Filter>
-    </ClInclude>
     <ClInclude Include="Source\System\StandardIncludes.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -465,9 +487,6 @@
     <ClInclude Include="Source\Entities\Round.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\NetworkMessages.h">
-      <Filter>System</Filter>
-    </ClInclude>
     <ClInclude Include="Source\System\InputScheme.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -480,8 +499,8 @@
     <ClInclude Include="Source\Entities\Activity.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\GraphicalPrimitive.h">
-      <Filter>System</Filter>
+    <ClInclude Include="Source\Renderer\GraphicalPrimitive.h">
+      <Filter>Renderer</Filter>
     </ClInclude>
     <ClInclude Include="Source\Menus\TitleScreen.h">
       <Filter>Menus</Filter>
@@ -597,23 +616,14 @@
     <ClInclude Include="Source\System\GameVersion.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\StackWalker\StackWalker.h">
-      <Filter>System\StackWalker</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\System\RTEStackTrace.h">
-      <Filter>System</Filter>
+    <ClInclude Include="Source\System\backward\backward.hpp">
+      <Filter>System\backward</Filter>
     </ClInclude>
     <ClInclude Include="Source\Entities\AEJetpack.h">
       <Filter>Entities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\Shader.h">
+    <ClInclude Include="Source\Renderer\GLCheck.h">
       <Filter>System</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\System\GLCheck.h">
-      <Filter>System</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Menus\SaveLoadMenuGUI.h">
-      <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="Source\System\Base64\base64.h">
       <Filter>System\Base64</Filter>
@@ -622,6 +632,37 @@
       <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="Source\Managers\ThreadMan.h">
+      <Filter>Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Entities\DynamicSong.h" />
+    <ClInclude Include="Source\Renderer\Draw.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\RenderTarget.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\Shader.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\BigTexture.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Managers\GLResourceMan.h">
+      <Filter>Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\raylib\rlutils.h">
+      <Filter>Renderer\raylib</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\raylib\rlutil.h" />
+    <ClInclude Include="Source\GUI\imgui\imgui_internal.h" />
+    <ClInclude Include="Source\GUI\imgui\imstb_rectpack.h" />
+    <ClInclude Include="Source\GUI\imgui\imstb_textedit.h" />
+    <ClInclude Include="Source\GUI\imgui\imstd_truetype.h" />
+    <ClInclude Include="Source\GUI\imgui\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="Source\Menus\SaveLoadMenuGUI.h">
+      <Filter>Menus</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Managers\MusicMan.h">
       <Filter>Managers</Filter>
     </ClInclude>
   </ItemGroup>
@@ -645,6 +686,9 @@
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="Source\System\Reader.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\System\DeterminismChecker.cpp">
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="Source\System\System.cpp">
@@ -784,6 +828,27 @@
     </ClCompile>
     <ClCompile Include="Source\GUI\GUIUtil.cpp">
       <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GUI\imgui\imgui.cpp">
+      <Filter>GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GUI\imgui\imgui_demo.cpp">
+      <Filter>GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GUI\imgui\imgui_draw.cpp">
+      <Filter>GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GUI\imgui\imgui_tables.cpp">
+      <Filter>GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GUI\imgui\imgui_widgets.cpp">
+      <Filter>GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GUI\imgui\backends\imgui_impl_sdl3.cpp">
+      <Filter>GUI\imgui\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\GUI\imgui\backends\imgui_impl_opengl3.cpp">
+      <Filter>GUI\imgui\backends</Filter>
     </ClCompile>
     <ClCompile Include="Source\Entities\ACDropShip.cpp">
       <Filter>Entities</Filter>
@@ -969,18 +1034,6 @@
     <ClCompile Include="Source\Entities\PEmitter.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Managers\NetworkClient.cpp">
-      <Filter>Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Managers\NetworkServer.cpp">
-      <Filter>Managers</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Activities\MultiplayerGame.cpp">
-      <Filter>Activities</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Activities\MultiplayerServerLobby.cpp">
-      <Filter>Activities</Filter>
-    </ClCompile>
     <ClCompile Include="Source\System\StandardIncludes.cpp">
       <Filter>System</Filter>
     </ClCompile>
@@ -1038,8 +1091,8 @@
     <ClCompile Include="Source\Entities\Activity.cpp">
       <Filter>Entities</Filter>
     </ClCompile>
-    <ClCompile Include="Source\System\GraphicalPrimitive.cpp">
-      <Filter>System</Filter>
+    <ClCompile Include="Source\Renderer\GraphicalPrimitive.cpp">
+      <Filter>Renderer</Filter>
     </ClCompile>
     <ClCompile Include="Source\Menus\TitleScreen.cpp">
       <Filter>Menus</Filter>
@@ -1167,19 +1220,10 @@
     <ClCompile Include="Source\System\Semver200\Semver200_parser.cpp">
       <Filter>System\Semver200</Filter>
     </ClCompile>
-    <ClCompile Include="Source\System\StackWalker\StackWalker.cpp">
-      <Filter>System\StackWalker</Filter>
+    <ClCompile Include="Source\Renderer\glad\gl.c">
+      <Filter>Renderer\glad</Filter>
     </ClCompile>
-    <ClCompile Include="Source\System\RTEStackTrace.cpp">
-      <Filter>System</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\System\Shader.cpp">
-      <Filter>System</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\System\glad\gl.c">
-      <Filter>System\glad</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\System\GLCheck.cpp">
+    <ClCompile Include="Source\Renderer\GLCheck.cpp">
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="external\sources\tracy\public\TracyClient.cpp">
@@ -1187,9 +1231,6 @@
     </ClCompile>
     <ClCompile Include="Source\Entities\AEJetpack.cpp">
       <Filter>Entities</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Menus\SaveLoadMenuGUI.cpp">
-      <Filter>GUI</Filter>
     </ClCompile>
     <ClCompile Include="Source\System\Base64\base64.cpp">
       <Filter>System\Base64</Filter>
@@ -1199,6 +1240,42 @@
     </ClCompile>
     <ClCompile Include="Source\Managers\ThreadMan.cpp">
       <Filter>Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\RenderTarget.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\Shader.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\Draw.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\BigTexture.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Managers\GLResourceMan.cpp">
+      <Filter>Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\raylib\rlgl.c">
+      <Filter>Renderer\raylib</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\raylib\rlutils.c">
+      <Filter>Renderer\raylib</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\raylib\rshapes.c">
+      <Filter>Renderer\raylib</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\raylib\rtextures.c">
+      <Filter>Renderer\raylib</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Menus\SaveLoadMenuGUI.cpp">
+      <Filter>Menus</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Managers\MusicMan.cpp">
+      <Filter>Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Entities\DynamicSong.cpp">
+      <Filter>Entities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

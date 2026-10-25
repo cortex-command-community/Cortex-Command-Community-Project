@@ -155,6 +155,14 @@ namespace RTE {
 		/// Gets the multi-selection value.
 		bool GetMultiSelect() const;
 
+		/// Sets the highlight as if always focused value.
+		/// @param highlightAsIfAlwaysFocused Whether to highlight as if always focused.
+		void SetHighlightAsIfAlwaysFocused(bool value) { m_HighlightAsIfAlwaysFocused = value; }
+
+		/// Gets the multi-selection value.
+		/// @return Whether to highlight as if always selected.
+		bool GetHighlightAsIfAlwaysFocused() const { return m_HighlightAsIfAlwaysFocused; }
+
 		/// Sets the hot tracking value.
 		/// @param HotTrack HotTrack.
 		void SetHotTracking(bool HotTrack);
@@ -295,6 +303,7 @@ namespace RTE {
 		bool m_CapturedHorz;
 		bool m_CapturedVert;
 		bool m_ExternalCapture;
+		bool m_HighlightAsIfAlwaysFocused; //!< Whether the panel should be highlighted as if it was always focused, even if it doesn't have focus.
 
 		int m_LargestWidth;
 		bool m_MultiSelect;

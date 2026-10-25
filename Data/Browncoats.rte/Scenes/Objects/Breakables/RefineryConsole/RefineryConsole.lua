@@ -6,7 +6,7 @@ function Create(self)
 	self.loopSound:Play(self.Pos);
 end
 
-function OnDestroy(self)
+function Destroy(self)
 
 	self.Activity:SendMessage("RefineryAssault_RefineryConsoleBroken");
 

@@ -104,7 +104,7 @@ void Turret::AddMountedDevice(HeldDevice* newMountedDevice) {
 		                                                  dynamic_cast<Turret*>(parent)->RemoveMountedDevice(castedAttachable);
 	                                                  }});
 
-	newMountedDevice->SetInheritsRotAngle(false);
+	newMountedDevice->SetInheritsRotAngle(true);
 	newMountedDevice->SetUnPickupable(true);
 	newMountedDevice->SetGibWithParentChance(1.0F);
 	// Force weapons mounted on turrets to never be removed due to forces. This doesn't affect them gibbing from hitting their impulse limits though.
@@ -115,7 +115,7 @@ void Turret::AddMountedDevice(HeldDevice* newMountedDevice) {
 
 void Turret::Update() {
 	for (HeldDevice* mountedDevice: m_MountedDevices) {
-		mountedDevice->SetRotAngle(m_Rotation.GetRadAngle() + m_MountedDeviceRotationOffset);
+		mountedDevice->SetMountedRotAngleOffset(m_MountedDeviceRotationOffset);
 	}
 	Attachable::Update();
 }

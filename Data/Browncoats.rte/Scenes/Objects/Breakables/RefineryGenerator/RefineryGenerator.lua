@@ -15,6 +15,6 @@ function ThreadedUpdate(self)
 	end
 end
 
-function OnDestroy(self)
+function Destroy(self)
 	self.Activity:SendMessage("RefineryAssault_RefineryGeneratorBroken");
 end

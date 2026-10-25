@@ -42,6 +42,7 @@ namespace RTE {
 	struct gamepad_axis : public luabind::enum_wrapper {};
 	struct directions : public luabind::enum_wrapper {};
 	struct blend_modes : public luabind::enum_wrapper {};
+	struct draw_depths : public luabind::enum_wrapper {};
 
 	/// Special callback function for adding file name and line number to error messages when calling functions incorrectly.
 	/// @param luaState The Lua master state.
@@ -72,7 +73,11 @@ namespace RTE {
 		std::vector<Type> outVector = {};
 		if (luaObject.is_valid() && luabind::type(luaObject) == LUA_TTABLE) {
 			for (luabind::iterator tableItr(luaObject), tableEnd; tableItr != tableEnd; ++tableItr) {
-				outVector.emplace_back(luabind::object_cast<Type>(*tableItr, luabind::adopt(luabind::result)));
+				if constexpr (std::is_pointer_v<Type>) {
+					outVector.emplace_back(luabind::object_cast<Type>(*tableItr, luabind::adopt(luabind::result)));
+				} else {
+					outVector.emplace_back(luabind::object_cast<Type>(*tableItr));
+				}
 			}
 		}
 		return outVector;

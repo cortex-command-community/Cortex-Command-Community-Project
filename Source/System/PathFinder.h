@@ -3,6 +3,7 @@
 #include "Box.h"
 #include "System/MicroPather/micropather.h"
 
+#include <array>
 #include <atomic>
 #include <list>
 #include <memory>
@@ -36,7 +37,7 @@ namespace RTE {
 
 		Vector Pos; //!< Absolute position of the center of this PathNode in the scene.
 
-		bool m_Navigatable; //!< Whether this node can be navigated through.
+		bool m_Navigable; //!< Whether this node can be navigated through.
 
 		/// Pointers to all adjacent PathNodes, in clockwise order with top first. These are not owned, and may be 0 if adjacent to non-wrapping scene border.
 		std::array<PathNode*, c_MaxAdjacentNodeCount> AdjacentNodes;
@@ -126,7 +127,7 @@ namespace RTE {
 		/// @param boxList The deque of Boxes representing the updated areas.
 		/// @param nodeUpdateLimit The maximum number of PathNodes we'll try to update this frame. True PathNode update count can be higher if we received a big box, as we always do at least 1 box.
 		/// @return The set of PathNode ids that were updated.
-		std::vector<int> RecalculateAreaCosts(std::deque<Box>& boxList, int nodeUpdateLimit);
+		std::vector<int> RecalculateAreaCosts(std::deque<Box>& boxList, size_t nodeUpdateLimit);
 
 		/// Updates a set of PathNodes, adjusting their transitions.
 		/// This does NOT update the pather, which is required if PathNode costs changed.
@@ -153,15 +154,15 @@ namespace RTE {
 		/// @return Whether both coordinates represent the same path node.
 		bool PositionsAreTheSamePathNode(const Vector& pos1, const Vector& pos2) const;
 
-		/// Marks a box as being navigatable or not.
-		/// @param box The Box of which all PathNodes that should have their navigatable status changed.
-		/// @param navigatable Whether or not the nodes in this box should be navigatable.
-		void MarkBoxNavigatable(Box box, bool navigatable);
+		/// Marks a box as being navigable or not.
+		/// @param box The Box of which all PathNodes that should have their navigable status changed.
+		/// @param navigable Whether or not the nodes in this box should be navigable.
+		void MarkBoxNavigable(Box box, bool navigable);
 
-		/// Marks a box as being navigatable or not.
-		/// @param box The Box of which all PathNodes that should have their navigatable status changed.
-		/// @param navigatable Whether or not the nodes in this box should be navigatable.
-		void MarkAllNodesNavigatable(bool navigatable);
+		/// Marks a box as being navigable or not.
+		/// @param box The Box of which all PathNodes that should have their navigable status changed.
+		/// @param navigable Whether or not the nodes in this box should be navigable.
+		void MarkAllNodesNavigable(bool navigable);
 #pragma endregion
 
 #pragma region Misc
@@ -172,8 +173,8 @@ namespace RTE {
 
 		/// Draws a debug rendering for this pathfinder to a BITMAP of choice.
 		/// @param targetBitmap A pointer to a BITMAP to draw on.
-		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner is located.
-		void DebugRender(BITMAP* targetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0) const;
+		/// @param targetPos The offset into the scene where the target bitmap's upper left corner is located.
+		void DebugRender(BITMAP* targetBitmap, const Vector& targetPos = Vector()) const;
 #pragma endregion
 
 	private:

@@ -30,7 +30,7 @@ function Create(self)
 	end
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	self.ToSettle = false;
 	self.ToDelete = false;
 

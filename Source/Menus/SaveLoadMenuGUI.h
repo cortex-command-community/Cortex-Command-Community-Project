@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Timer.h"
+
 #include <filesystem>
 #include <vector>
 #include <string>
@@ -63,7 +65,10 @@ namespace RTE {
 
 		std::vector<SaveRecord> m_SaveGames; //!< Contains all SaveGames.
 
+		bool m_WasSaving; //!< Whether we were just saving or not.
 		bool m_SaveGamesFetched; //!< Whether the savegames list has been fetched.
+
+		Timer m_SavingBlinkTimer; //!< Save text blink timer, to increment text (i.e "Saving...")
 
 		/// GUI elements that compose the Mod Manager menu screen.
 		GUICollectionBox* m_SaveGameMenuBox;
@@ -74,7 +79,7 @@ namespace RTE {
 		GUIButton* m_OverwriteButton;
 		GUIButton* m_DeleteButton;
 		GUIListBox* m_SaveGamesListBox;
-		GUILabel* m_ActivityCannotBeSavedLabel;
+		GUILabel* m_DescriptionLabel;
 		GUIComboBox* m_OrderByComboBox;
 
 		// The confirmation box and its controls

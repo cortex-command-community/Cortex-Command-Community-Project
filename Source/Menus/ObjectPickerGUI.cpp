@@ -79,11 +79,7 @@ int ObjectPickerGUI::Create(Controller* controller, int whichModuleSpace, const 
 		s_Cursor = cursorFile.GetAsBitmap();
 	}
 
-	if (g_FrameMan.IsInMultiplayerMode()) {
-		dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("base"))->SetSize(g_FrameMan.GetPlayerFrameBufferWidth(controller->GetPlayer()), g_FrameMan.GetPlayerFrameBufferHeight(controller->GetPlayer()));
-	} else {
-		dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("base"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
-	}
+	dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("base"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
 
 	if (!m_ParentBox) {
 		m_ParentBox = dynamic_cast<GUICollectionBox*>(m_GUIControlManager->GetControl("PickerGUIBox"));
@@ -102,7 +98,7 @@ int ObjectPickerGUI::Create(Controller* controller, int whichModuleSpace, const 
 	m_ObjectsList->SetAlternateDrawMode(true);
 	m_ObjectsList->SetMultiSelect(false);
 
-	int stretchAmount = g_FrameMan.IsInMultiplayerMode() ? (g_FrameMan.GetPlayerFrameBufferHeight(m_Controller->GetPlayer()) - m_ParentBox->GetHeight()) : (g_FrameMan.GetPlayerScreenHeight() - m_ParentBox->GetHeight());
+	int stretchAmount = g_FrameMan.GetPlayerScreenHeight() - m_ParentBox->GetHeight();
 	if (stretchAmount != 0) {
 		m_ParentBox->SetSize(m_ParentBox->GetWidth(), m_ParentBox->GetHeight() + stretchAmount);
 		m_GroupsList->SetSize(m_GroupsList->GetWidth(), m_GroupsList->GetHeight() + stretchAmount);

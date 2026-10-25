@@ -120,7 +120,7 @@ function SharedBehaviors.FaceAlarm(AI, Owner, Abort)
 end
 
 -- find the closest enemy brain
-function SharedBehaviors.BrainSearch(AI, Owner, Abort)
+function SharedBehaviors.BrainSearch(AI, Owner, Abort) 
 	if AI.PlayerPreferredHD then
 		Owner:EquipNamedDevice(AI.PlayerPreferredHD, true);
 	end
@@ -145,9 +145,6 @@ function SharedBehaviors.BrainSearch(AI, Owner, Abort)
 	end
 
 	if #Brains > 0 then
-		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-		if _abrt then return true end
-
 		if #Brains == 1 then
 			if MovableMan:IsActor(Brains[1]) then
 				Owner:ClearAIWaypoints();
@@ -214,9 +211,6 @@ function SharedBehaviors.BrainSearch(AI, Owner, Abort)
 						minDist = score;
 						ClosestBrain = Act;
 					end
-
-					local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
-					if _abrt then return true end
 				end
 			end
 
@@ -259,7 +253,7 @@ function SharedBehaviors.Patrol(AI, Owner, Abort)
 
 	if Dist:MagnitudeIsGreaterThan(20) then
 		Owner:ClearAIWaypoints();
-		Owner:AddAISceneWaypoint(Free);	
+		Owner:AddAISceneWaypoint(Free);
 		Owner:UpdateMovePath();
 
 		-- wait until movepath is updated
@@ -434,7 +428,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 	local obstacleState = Actor.PROCEEDING;
 	local Obst = {R_LOW = 1, R_FRONT = 2, R_HIGH = 3, R_UP = 5, L_UP = 6, L_HIGH = 8, L_FRONT = 9, L_LOW = 10};
 	local Facings = {{aim=0, facing=0}, {aim=1.4, facing=1.4}, {aim=1.4, facing=math.pi-1.4}, {aim=0, facing=math.pi}};
-	
+
 	local NeedsNewPath, Waypoint, HasMovePath, Dist, CurrDist;
 	NeedsNewPath = true;
 
@@ -468,9 +462,8 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 						AI.deviceState = AHuman.DIGGING;
 						obstacleState = Actor.DIGPAUSING;
 						nextLatMove = Actor.LAT_STILL;
-						sweepRange = math.min(math.pi*0.2, Owner.AimRange);
+						sweepRange = math.min(math.pi*0.25, Owner.AimRange);
 						StuckTimer:SetSimTimeLimitMS(6000);
-						AI.Ctrl.AnalogAim = SceneMan:ShortestDistance(Owner.Pos, Waypoint.Pos, false).Normalized; -- aim in the direction of the next waypoint
 					else
 						digState = AHuman.NOTDIGGING;
 						obstacleState = Actor.PROCEEDING;
@@ -518,7 +511,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 		end
 
 		AverageVel = SharedBehaviors.UpdateAverageVel(Owner, AverageVel);
-		
+
 		local stuckThreshold = 2.5; -- pixels per second of movement we need to be considered not stuck
 
 		-- Cap AverageVel, so if we have a spike in velocity it doesn't take too long to come back down
@@ -619,6 +612,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 					if Owner.MOMoveTarget and MovableMan:ValidMO(Owner.MOMoveTarget) then
 						local Trace = SceneMan:ShortestDistance(Owner.Pos, Owner.MOMoveTarget.Pos, false);
 
+						-- WTF is the following code for? It causes us to idle and do nothing forever??
 						if Owner.MOMoveTarget.Team == Owner.Team then
 							if Trace.Largest > Owner.Height * 0.3 + (Owner.MOMoveTarget.Height or 100) * 0.3 then
 								Waypoint.Pos = Owner.MOMoveTarget.Pos;
@@ -725,9 +719,12 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 
 											angDiff = math.asin(AimVec:Cross(DigTarget.Normalized)); -- The angle between DigTarget and AimVec
 											if math.abs(angDiff) < 0.1 then
-												sweepCW = not sweepCW; -- this is close enough, go in the other direction next frame
+												AI.Ctrl.AnalogAim = DigTarget.Normalized; -- aim in the direction of the next waypoint
+												sweepCW = not sweepCW;
 											else
-												AI.Ctrl.AnalogAim = (Vector(AimVec.X, AimVec.Y):RadRotate(-angDiff*0.15)).Normalized;
+												local sweepSpeed = 2.5;
+												local sweepDir = sweepCW and 1 or -1;
+												AI.Ctrl.AnalogAim = (Vector(AimVec.X, AimVec.Y):RadRotate(sweepDir*TimerMan.AIDeltaTimeSecs*sweepSpeed)).Normalized;
 											end
 
 											-- check if we are done when we get close enough to the waypoint
@@ -848,7 +845,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 										end
 									else
 										-- do we have a target we want to shoot at?
-										if (AI.Target and AI.canHitTarget and AI.BehaviorName ~= "AttackTarget") then
+										if Owner.Head and AI.Target and AI.canHitTarget and AI.BehaviorName ~= "AttackTarget" then
 											-- are we also flying
 											if AI.flying and Owner.Jetpack.JetpackType == AEJetpack.Standard then
 												-- predict jetpack movement when jumping and there is a target (check one direction)
@@ -864,7 +861,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 
 												-- test jumping
 												local JetAccel = Accel + Vector(-jetStrength, 0):RadRotate(Owner.RotAngle+1.375*math.pi+Owner:GetAimAngle(false)*0.25);
-												local JumpPos = Owner.Head.Pos + PixelVel + JetAccel * (t*t*0.5);
+												local JumpPos = (Owner.Head and Owner.Head.Pos or Owner.Pos) + PixelVel + JetAccel * (t*t*0.5);
 
 												-- a burst add a one time boost to acceleration
 												if Owner.Jetpack:CanTriggerBurst() then
@@ -872,8 +869,8 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 												end
 
 												-- check for obstacles from the head
-												Trace = SceneMan:ShortestDistance(Owner.Head.Pos, JumpPos, false);
-												local jumpScore = SceneMan:CastObstacleRay(Owner.Head.Pos, Trace, JumpPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
+												Trace = SceneMan:ShortestDistance((Owner.Head and Owner.Head.Pos or Owner.Pos), JumpPos, false);
+												local jumpScore = SceneMan:CastObstacleRay((Owner.Head and Owner.Head.Pos or Owner.Pos), Trace, JumpPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
 												if jumpScore < 0 then	-- no obstacles: calculate the distance from the future pos to the wpt
 													jumpScore = SceneMan:ShortestDistance(Waypoint.Pos, JumpPos, false).Magnitude;
 												else -- the ray hit terrain or start inside terrain: avoid
@@ -881,11 +878,11 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 												end
 
 												-- test falling
-												local FallPos = Owner.Head.Pos + PixelVel + Accel * (t*t*0.5);
+												local FallPos = (Owner.Head and Owner.Head.Pos or Owner.Pos) + PixelVel + Accel * (t*t*0.5);
 
 												-- check for obstacles when falling/walking
-												local Trace = SceneMan:ShortestDistance(Owner.Head.Pos, FallPos, false);
-												SceneMan:CastObstacleRay(Owner.Head.Pos, Trace, FallPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
+												local Trace = SceneMan:ShortestDistance((Owner.Head and Owner.Head.Pos or Owner.Pos), FallPos, false);
+												SceneMan:CastObstacleRay((Owner.Head and Owner.Head.Pos or Owner.Pos), Trace, FallPos, Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 3);
 
 												if SceneMan:ShortestDistance(Waypoint.Pos, FallPos, false):MagnitudeIsLessThan(jumpScore) then
 													AI.jump = false;
@@ -1012,7 +1009,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 		end
 
 		-- movement commands
-		if (AI.Target and AI.BehaviorName ~= "AttackTarget") or (Owner.AIMode ~= Actor.AIMODE_SQUAD and (AI.BehaviorName == "ShootArea" or AI.BehaviorName == "FaceAlarm")) then
+		if (AI.Target and AI.BehaviorName ~= "AttackTarget" and not AI.PickupHD) or (Owner.AIMode ~= Actor.AIMODE_SQUAD and (AI.BehaviorName == "ShootArea" or AI.BehaviorName == "FaceAlarm")) then
 			if Owner.aggressive then	-- the aggressive behavior setting makes the AI pursue waypoint at all times
 				AI.lateralMoveState = nextLatMove;
 			else
@@ -1089,7 +1086,7 @@ function SharedBehaviors.GetProjectileData(Owner)
 		PrjDat.vqu = PrjDat.vsq^2; -- muzzle velocity quad
 		PrjDat.drg = 1 - Projectile.AirResistance * TimerMan.DeltaTimeSecs; -- AirResistance is stored as the ini-value times 60
 		PrjDat.thr = math.min(Projectile.AirThreshold, PrjDat.vel);
-		PrjDat.pen = (Projectile.Mass * Projectile.Sharpness * PrjDat.vel) * PrjDat.drg;
+		PrjDat.pen = Weapon:GetAIPenetration() * PrjDat.drg;
 
 		PrjDat.blast = Weapon:GetAIBlastRadius();
 		if PrjDat.blast > 0 or Weapon:IsInGroup("Weapons - Explosive") then

@@ -6,6 +6,8 @@
 
 #include "lj_obj.h"
 
+#include <atomic>
+
 using namespace RTE;
 
 std::unordered_map<std::string, std::function<LuabindObjectWrapper*(Entity*, lua_State*)>> LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions = {};
@@ -293,8 +295,8 @@ void LuaAdaptersScene::CalculatePathAsync(Scene* luaSelfObject, const luabind::o
 	// As such, we need to store this function somewhere safely within our Lua state for us to access later when we need it
 	lua_State* luaState = mainthread(G(callback.interpreter())); // Get the main thread for the state, in case we're a temp lua thread
 
-	static int currentCallbackId = 0;
-	int thisCallbackId = currentCallbackId++;
+	static std::atomic<int> currentCallbackId{0};
+	int thisCallbackId = currentCallbackId.fetch_add(1, std::memory_order_relaxed);
 	if (luabind::type(callback) == LUA_TFUNCTION && callback.is_valid()) {
 		luabind::call_function<void>(luaState, "_AddAsyncPathCallback", thisCallbackId, callback);
 	}
@@ -308,6 +310,10 @@ void LuaAdaptersScene::CalculatePathAsync(Scene* luaSelfObject, const luabind::o
 	};
 
 	luaSelfObject->CalculatePathAsync(start, end, jumpHeight, digStrength, team, callLuaCallback);
+}
+
+bool LuaAdaptersAHuman::EquipShieldInBGArm(AHuman* luaSelfObject) {
+	return luaSelfObject->EquipShieldInBGArm();
 }
 
 void LuaAdaptersAHuman::ReloadFirearms(AHuman* luaSelfObject) {
@@ -610,6 +616,31 @@ std::list<Entity*>* LuaAdaptersPresetMan::GetAllEntitiesOfGroup(PresetMan& prese
 	std::list<Entity*>* entityList = new std::list<Entity*>();
 	presetMan.GetAllOfGroup(*entityList, group, type, whichModule);
 	return entityList;
+}
+
+MOID LuaAdaptersSceneMan::CastMORay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
+	std::vector<MOID> ignoreMOIDsVec = ConvertLuaTableToVectorOfType<MOID>(ignoreMOIDs);
+	return sceneMan.CastMORay(start, ray, ignoreMOIDsVec, ignoreTeam, ignoreMaterial, ignoreAllTerrain, skip);
+}
+
+MOID LuaAdaptersSceneMan::CastMORay2(SceneMan& sceneMan, const Vector& start, const Vector& ray, MOID ignoreMOID, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
+	std::vector<MOID> ignoreMOIDs = {ignoreMOID};
+	return sceneMan.CastMORay(start, ray, ignoreMOIDs, ignoreTeam, ignoreMaterial, ignoreAllTerrain, skip);
+}
+
+const std::vector<MovableObject*>* LuaAdaptersSceneMan::CastAllMOsRay(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
+	std::vector<MOID> ignoreMOIDsVec = ConvertLuaTableToVectorOfType<MOID>(ignoreMOIDs);
+	return sceneMan.CastAllMOsRay(start, ray, ignoreMOIDsVec, ignoreTeam, ignoreMaterial, ignoreAllTerrain, skip);
+}
+
+float LuaAdaptersSceneMan::CastObstacleRay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, const luabind::object& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
+	std::vector<MOID> ignoreMOIDsVec = ConvertLuaTableToVectorOfType<MOID>(ignoreMOIDs);
+	return sceneMan.CastObstacleRay(start, ray, obstaclePos, freePos, ignoreMOIDsVec, ignoreTeam, ignoreMaterial, skip);
+}
+
+float LuaAdaptersSceneMan::CastObstacleRay2(SceneMan& sceneMan, const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, MOID ignoreMOID, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
+	std::vector<MOID> ignoreMOIDs = {ignoreMOID};
+	return sceneMan.CastObstacleRay(start, ray, obstaclePos, freePos, ignoreMOIDs, ignoreTeam, ignoreMaterial, skip);
 }
 
 const std::list<Box>* LuaAdaptersSceneMan::WrapBoxes(SceneMan& sceneMan, const Box& boxToWrap) {

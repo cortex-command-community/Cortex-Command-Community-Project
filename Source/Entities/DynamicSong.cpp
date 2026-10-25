@@ -148,12 +148,12 @@ SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
 					}
 				}
 
-				unsigned int randomIndex = validIndices[RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
+				unsigned int randomIndex = validIndices[g_DrawRandomGenerator.RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
 				m_LastTransitionSoundContainerIndex = randomIndex;
 				return m_TransitionSoundContainers[randomIndex];
 			}
 			case SHUFFLE: {
-				unsigned int randomSelection = RandomNum(0, static_cast<int>(m_TransitionShuffleUnplayedIndices.size() - 1));
+				unsigned int randomSelection = g_DrawRandomGenerator.RandomNum(0, static_cast<int>(m_TransitionShuffleUnplayedIndices.size() - 1));
 				unsigned int selectedIndex = m_TransitionShuffleUnplayedIndices[randomSelection];
 				m_TransitionShuffleUnplayedIndices.erase(m_TransitionShuffleUnplayedIndices.begin() + randomSelection);
 				m_LastTransitionSoundContainerIndex = selectedIndex;
@@ -162,12 +162,15 @@ SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
 		}
 	}
 
+	RTEAssert(!m_TransitionSoundContainers.empty(), "Tried to get a transition SoundContainer from a DynamicSongSection with none to choose from!");
 	return m_TransitionSoundContainers[0];
 }
 
 SoundContainer& DynamicSongSection::SelectSoundContainer() {
+	RTEAssert(!m_SoundContainers.empty(), "Tried to get a SoundContainer from a DynamicSongSection with none to choose from!");
+	
 	// Shuffle between our options if we have multiple
-	if (m_SoundContainers.size() != 1) {
+	if (m_SoundContainers.size() > 1) {
 		if (m_ShuffleUnplayedIndices.empty()) {
 			for (unsigned int i = 0; i < m_SoundContainers.size(); i++) {
 				if (i != m_LastSoundContainerIndex) {
@@ -185,12 +188,12 @@ SoundContainer& DynamicSongSection::SelectSoundContainer() {
 					}
 				}
 
-				unsigned int randomIndex = validIndices[RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
+				unsigned int randomIndex = validIndices[g_DrawRandomGenerator.RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
 				m_LastSoundContainerIndex = randomIndex;
 				return m_SoundContainers[randomIndex];
 			}
 			case SHUFFLE: {
-				unsigned int randomSelection = RandomNum(0, static_cast<int>(m_ShuffleUnplayedIndices.size() - 1));
+				unsigned int randomSelection = g_DrawRandomGenerator.RandomNum(0, static_cast<int>(m_ShuffleUnplayedIndices.size() - 1));
 				unsigned int selectedIndex = m_ShuffleUnplayedIndices[randomSelection];
 				m_ShuffleUnplayedIndices.erase(m_ShuffleUnplayedIndices.begin() + randomSelection);
 				m_LastSoundContainerIndex = selectedIndex;
@@ -198,8 +201,7 @@ SoundContainer& DynamicSongSection::SelectSoundContainer() {
 			}
 		}
 	}
-
-	RTEAssert(!m_SoundContainers.empty(), "Tried to get a SoundContainer from a DynamicSongSection with none to choose from!");
+	
 	return m_SoundContainers[0];
 }
 

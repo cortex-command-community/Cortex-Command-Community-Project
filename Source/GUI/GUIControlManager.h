@@ -137,6 +137,8 @@ namespace RTE {
 		/// @return Pointer to the GUIScreen that this GUIControlManager is drawing itself to.
 		GUIScreen* GetScreen() const { return m_Screen; }
 
+		GUIInput* GetInput() const { return m_Input; }
+
 	private:
 		GUIScreen* m_Screen; // Not owned.
 		GUIInput* m_Input; // Not owned.

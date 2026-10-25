@@ -69,26 +69,26 @@ namespace RTE {
 		/// Makes the SceneMan object ready for use.
 		/// @param readerFile A string with the filepath to a Reader file from screen this SceneMan's
 		/// data should be created.
-		/// @return An error return value signaling sucess or any particular failure.
+		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
-		int Create(std::string readerFile);
+		int Create(const std::string& readerFile);
 
 		/// Sets the instance name of the default Scene to be loaded if nothing
 		/// else is available.
 		/// @param defaultSceneName The default scene instance name.
-		void SetDefaultSceneName(std::string defaultSceneName) { m_DefaultSceneName = defaultSceneName; }
+		void SetDefaultSceneName(std::string defaultSceneName) { m_DefaultSceneName = std::move(defaultSceneName); }
 
 		/// Gets the name of the default A to be loaded if nothing
 		/// else is available.
 		/// @return The default Scene instance name.
-		std::string GetDefaultSceneName() const { return m_DefaultSceneName; }
+		const std::string& GetDefaultSceneName() const { return m_DefaultSceneName; }
 
 		/// Actually loads a new Scene into memory. has to be done before using
 		/// this object.
 		/// @param pNewScene The instance of the Scene, ownership IS transferred!
 		/// @param placeObjects Whether the scene should actually apply all its SceneObject:s placed (default: true)
 		/// in its definition.
-		/// @return An error return value signaling sucess or any particular failure.
+		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
 		int LoadScene(Scene* pNewScene, bool placeObjects = true, bool placeUnits = true);
 
@@ -106,9 +106,9 @@ namespace RTE {
 		/// @param sceneName The name of the Scene preset instance to load.
 		/// @param placeObjects Whether the scene should actually apply all its SceneObject:s placed (default: true)
 		/// in its definition.
-		/// @return An error return value signaling sucess or any particular failure.
+		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
-		int SetSceneToLoad(std::string sceneName, bool placeObjects = true, bool placeUnits = true);
+		int SetSceneToLoad(const std::string& sceneName, bool placeObjects = true, bool placeUnits = true);
 
 		/// Gets the stored Scene reference to be loaded later into the SceneMan.
 		/// @return The instance reference of the Scene, ownership IS NOT (!!) transferred!
@@ -123,7 +123,7 @@ namespace RTE {
 		bool GetPlaceUnitsOnLoad() const { return m_PlaceUnits; }
 
 		/// Actually loads the Scene set to be loaded in SetSceneToLoad.
-		/// @return An error return value signaling sucess or any particular failure.
+		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
 		int LoadScene();
 
@@ -132,17 +132,17 @@ namespace RTE {
 		/// @param placeObjects Whether the scene should actually apply all its SceneObject:s placed (default: true)
 		/// in its definition.
 		/// @param placeUnits Whether the scene should actually deploy all units placed in its definition. (default: true)
-		/// @return An error return value signaling sucess or any particular failure.
+		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
-		int LoadScene(std::string sceneName, bool placeObjects = true, bool placeUnits = true);
+		int LoadScene(const std::string& sceneName, bool placeObjects = true, bool placeUnits = true);
 
 		/// Loads a Scene right now, by preset name.
 		/// @param sceneName The name of the Scene preset instance to load.
 		/// @param placeObjects Whether the scene should actually apply all its SceneObject:s placed (default: true) { return LoadScene(sceneName)
 		/// in its definition.
-		/// @return An error return value signaling sucess or any particular failure.
+		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
-		int LoadScene(std::string sceneName, bool placeObjects = true) { return LoadScene(sceneName, placeObjects, true); }
+		int LoadScene(const std::string& sceneName, bool placeObjects = true) { return LoadScene(sceneName, placeObjects, true); }
 
 		/// Resets the entire SceneMan, including its inherited members, to
 		/// their default settings or values.
@@ -440,7 +440,7 @@ namespace RTE {
 		/// @param bitmapPath The path to the bitmap to use as the unseen layer.
 		/// @param team Which team we're talking about.
 		/// @return Whether the loading was successful or not.
-		bool LoadUnseenLayer(std::string bitmapPath, const int team);
+		bool LoadUnseenLayer(const std::string& bitmapPath, const int team);
 
 		/// Tells whether a team has anything still unseen on the scene.
 		/// @param team The team we're talking about.
@@ -662,7 +662,7 @@ namespace RTE {
 		/// first, g_NoMOID will be returned.
 		/// @param start The starting position.
 		/// @param ray The vector to trace along.
-		/// @param ignoreMOID An MOID to ignore. Any child MO's of this MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreMOIDs A vector of MOIDs to ignore. Any child MOs of an MOID will also be ignored. (default: g_NoMOID)
 		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
 		/// team which also has team ignoring enabled itself.
 		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
@@ -670,20 +670,72 @@ namespace RTE {
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @return The MOID of the hit non-ignored MO, or g_NoMOID if terrain or no MO was hit.
-		MOID CastMORay(const Vector& start, const Vector& ray, MOID ignoreMOID = g_NoMOID, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
+		MOID CastMORay(const Vector& start, const Vector& ray, const std::vector<MOID>& ignoreMOIDs = {g_NoMOID}, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
 
+		/// Traces along a vector and returns MOID of the first non-ignored
+		/// non-NoMOID MO encountered. If a non-air terrain pixel is encountered
+		/// first, g_NoMOID will be returned.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param ignoreMOID An MOID to ignore. Any child MOs of this MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
+		/// team which also has team ignoring enabled itself.
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param ignoreAllTerrain Whether to ignore all terrain hits or not. (default: false)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return The MOID of the hit non-ignored MO, or g_NoMOID if terrain or no MO was hit.
+		MOID CastMORay(const Vector& start, const Vector& ray, MOID ignoreMOID = g_NoMOID, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0) {
+			std::vector<MOID> ignoreMOIDs = {ignoreMOID};
+			return CastMORay(start, ray, ignoreMOIDs, ignoreTeam, ignoreMaterial, ignoreAllTerrain, skip);
+		}
+		
 		/// Traces along a vector and shows where a specific MOID has been found.
 		/// @param start The starting position.
 		/// @param ray The vector to trace along.
-		/// @param targetMOID An MOID to find. Any child MO's of this MOID will also be found. ------------ ???
+		/// @param targetMOID An MOID to find.
 		/// @param resultPos A reference to the vector screen will be filled out with the absolute
 		/// location of the found MO pixel of the above MOID.
 		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
 		/// @param ignoreAllTerrain Whether to ignore all terrain hits or not. (default: false)
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// @param findChildMOIDs Whether to also find children of the target MOID.
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @return Whether the target MOID was found along the ray or not.
-		bool CastFindMORay(const Vector& start, const Vector& ray, MOID targetMOID, Vector& resultPos, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
+		bool CastFindMORay(const Vector& start, const Vector& ray, MOID targetMOID, Vector& resultPos, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0, bool findChildMOIDs = true);
+
+		/// Traces along a vector and returns a vector of all MOs encountered.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param ignoreMOIDs A vector of MOIDs to ignore. Any child MOs of an MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific team (default: Activity::NoTeam)
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param ignoreAllTerrain Whether to ignore all terrain hits or not. (default: false)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return A vector of pointers to all MovableObjects met along the ray, who aren't ignored.
+		const std::vector<MovableObject*>* CastAllMOsRay(const Vector& start, const Vector& ray, const std::vector<MOID>& ignoreMOIDs = {g_NoMOID}, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0) const;
+		
+		/// Traces along a vector and returns the length of how far the trace went
+		/// without hitting any non-ignored terrain material or MOID at all.
+		/// @param start The starting position.
+		/// @param ray The vector to trace along.
+		/// @param obstaclePos A reference to the vector screen will be filled out with the absolute
+		/// location of the first obstacle, or the end of the ray if none was hit.
+		/// @param freePos A reference to the vector screen will be filled out with the absolute
+		/// location of the last free position before hitting an obstacle, or the
+		/// end of the ray if none was hit. This is only altered if thre are any
+		/// free pixels encountered.
+		/// @param ignoreMOIDs A vector of MOIDs to ignore. Any child MO's of an MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
+		/// team which also has team ignoring enabled itself.
+		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
+		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
+		/// for optimization reasons. 0 = every pixel is checked.
+		/// @return How far along, in pixel units, the ray the pixel of any obstacle was
+		/// encountered. If no pixel of the right material was found, < 0 is returned.
+		/// If an obstacle on the starting position was encountered, 0 is returned.
+		float CastObstacleRay(const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, const std::vector<MOID>& ignoreMOIDs = {g_NoMOID}, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, int skip = 0);
 
 		/// Traces along a vector and returns the length of how far the trace went
 		/// without hitting any non-ignored terrain material or MOID at all.
@@ -695,7 +747,7 @@ namespace RTE {
 		/// location of the last free position before hitting an obstacle, or the
 		/// end of the ray if none was hit. This is only altered if thre are any
 		/// free pixels encountered.
-		/// @param ignoreMOID An MOID to ignore. Any child MO's of this MOID will also be ignored. (default: g_NoMOID)
+		/// @param ignoreMOID An MOID to ignore. Any child MO of this MOID will also be ignored. (default: g_NoMOID)
 		/// @param ignoreTeam To enable ignoring of all MOIDs associated with an object of a specific (default: Activity::NoTeam)
 		/// team which also has team ignoring enabled itself.
 		/// @param ignoreMaterial A specific material ID to ignore hits with. (default: 0)
@@ -704,8 +756,11 @@ namespace RTE {
 		/// @return How far along, in pixel units, the ray the pixel of any obstacle was
 		/// encountered. If no pixel of the right material was found, < 0 is returned.
 		/// If an obstacle on the starting position was encountered, 0 is returned.
-		float CastObstacleRay(const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, MOID ignoreMOID = g_NoMOID, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, int skip = 0);
-
+		float CastObstacleRay(const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, MOID ignoreMOID = g_NoMOID, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, int skip = 0) {
+			std::vector<MOID> ignoreMOIDs = {ignoreMOID};
+			return CastObstacleRay(start, ray, obstaclePos, freePos, ignoreMOIDs, ignoreTeam, ignoreMaterial, skip);
+		}
+		
 		/// Gets the abosulte pos of where the last cast ray hit somehting.
 		/// @return A vector with the absolute pos of where the last ray cast hit somehting.
 		const Vector& GetLastRayHitPos();
@@ -732,12 +787,17 @@ namespace RTE {
 		/// down at a certain maximum distance from the ground.
 		/// @param from The point to start from. Should be in the air, or the same point will
 		/// be returned (null operation)
-		/// @param maxAltitude The max altitude in px you want the point to be above the ground. (default: 0)
-		/// @param accuracy The accuracy within screen measurement is acceptable. Higher number (default: 0)
-		/// here means less calculation.
+		/// @param heightAboveGround The altitude in px you want the point to be above the ground. (default: 0)
+		/// @param accuracy The accuracy within screen measurement is acceptable. Higher number (default: 0) here means less calculation.
+		/// @param maxDistance The maximum distance downwards the point will be moved. Points higher than this will not be moved down.
 		/// @return The new point screen is no higher than accuracy + max altitude over
 		/// the terrain.
-		Vector MovePointToGround(const Vector& from, int maxAltitude = 0, int accuracy = 0);
+		Vector MovePointToGround(const Vector& from, int heightAboveGround, int accuracy, int maxDistance);
+
+		// Luabind makes this such a pain
+		Vector MovePointToGround(const Vector& from, int heightAboveGround = 0, int accuracy = 0) {
+			return MovePointToGround(from, heightAboveGround, accuracy, 0);
+		}
 
 		/// Returns whether the integer coordinates passed in are within the
 		/// bounds of the current Scene, considering its wrapping.
@@ -890,12 +950,6 @@ namespace RTE {
 		/// @param mat Material to add.
 		/// @return Pointer to stored material.
 		Material* AddMaterialCopy(Material* mat);
-
-		/// Registers terrain change event for the network server to be then sent to clients.
-		/// @param x,y - scene coordinates of change, w,h - size of the changed region,
-		/// color - changed color for one-pixel events,
-		/// back - if true, then background bitmap was changed if false then foreground.
-		void RegisterTerrainChange(int x, int y, int w, int h, unsigned char color, bool back);
 
 		/// Gets an intermediate bitmap that is used for drawing a settled MovableObject into the terrain.
 		/// @param moDiameter The diameter of the MovableObject to calculate the required bitmap size.

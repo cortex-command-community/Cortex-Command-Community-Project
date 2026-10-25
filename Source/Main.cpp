@@ -19,7 +19,8 @@
 /// </summary>
 
 #include "allegro.h"
-#include "SDL.h"
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 
 #include "GUI.h"
 #include "GUIInputWrapper.h"
@@ -39,10 +40,11 @@
 #include "UInputMan.h"
 #include "PerformanceMan.h"
 #include "FrameMan.h"
+#include "PostProcessMan.h"
+#include "SceneMan.h"
 #include "MetaMan.h"
 #include "WindowMan.h"
-#include "NetworkServer.h"
-#include "NetworkClient.h"
+#include "GLResourceMan.h"
 #include "CameraMan.h"
 #include "ActivityMan.h"
 #include "PrimitiveMan.h"
@@ -50,14 +52,32 @@
 #include "LuaMan.h"
 #include "MusicMan.h"
 #include "System.h"
+#include "DeterminismChecker.h"
 
+#include "RenderTarget.h"
 #include "tracy/Tracy.hpp"
+
+#include "imgui_impl_sdl3.h"
+
+#ifdef _WIN32
+#include "windows.h"
+#endif
 
 extern "C" {
 FILE __iob_func[3] = {*stdin, *stdout, *stderr};
 }
 
 using namespace RTE;
+
+/// <summary>
+/// The number of simulation updates to quit after, as set by command-line argument. Negative means to keep going.
+/// </summary>
+static long long s_SimUpdatesToQuitAfter = -1;
+
+/// <summary>
+/// Whether to quit once the Activity is over, as set by command-line argument.
+/// </summary>
+static bool s_QuitWhenActivityOver = false;
 
 /// <summary>
 /// Initializes all the essential managers.
@@ -68,9 +88,8 @@ void InitializeManagers() {
 	PresetMan::Construct();
 	SettingsMan::Construct();
 	WindowMan::Construct();
+	GLResourceMan::Construct();
 	LuaMan::Construct();
-	NetworkServer::Construct();
-	NetworkClient::Construct();
 	FrameMan::Construct();
 	PerformanceMan::Construct();
 	PostProcessMan::Construct();
@@ -91,10 +110,9 @@ void InitializeManagers() {
 	g_ThreadMan.Initialize();
 	g_SettingsMan.Initialize();
 	g_WindowMan.Initialize();
+	g_GLResourceMan.Initialize();
 
 	g_LuaMan.Initialize();
-	g_NetworkServer.Initialize();
-	g_NetworkClient.Initialize();
 	g_TimerMan.Initialize();
 	g_FrameMan.Initialize();
 	g_PostProcessMan.Initialize();
@@ -123,8 +141,6 @@ void InitializeManagers() {
 /// Destroys all the managers and frees all loaded data before termination.
 /// </summary>
 void DestroyManagers() {
-	g_NetworkClient.Destroy();
-	g_NetworkServer.Destroy();
 	g_MetaMan.Destroy();
 	g_PerformanceMan.Destroy();
 	g_MovableMan.Destroy();
@@ -141,11 +157,35 @@ void DestroyManagers() {
 	g_LuaMan.Destroy();
 	ContentFile::FreeAllLoaded();
 	g_ConsoleMan.Destroy();
+	g_GLResourceMan.Destroy();
 	g_WindowMan.Destroy();
 
 #ifdef DEBUG_BUILD
 	Entity::ClassInfo::DumpPoolMemoryInfo(Writer("MemCleanupInfo.txt"));
 #endif
+}
+
+/// <summary>
+/// Handling of the command-line arguments that affect how the managers are initialized, so have to be dealt with before that happens.
+/// </summary>
+/// <param name="argCount">Argument count.</param>
+/// <param name="argValue">Argument values.</param>
+void HandleEarlyMainArgs(int argCount, char** argValue) {
+	// Skip the first argument because it's always the executable path/name
+	for (int i = 1; i < argCount; ++i) {
+		std::string currentArg = argValue[i];
+		bool lastArg = i + 1 == argCount;
+
+		if (currentArg == "-headless") {
+			System::EnableHeadlessMode();
+		} else if (!lastArg && currentArg == "-determinism-record") {
+			DeterminismChecker::StartRecording(argValue[++i]);
+		} else if (!lastArg && currentArg == "-determinism-verify") {
+			DeterminismChecker::StartVerifying(argValue[++i]);
+		} else if (!lastArg && currentArg == "-seed") {
+			SetRNGSeedOffset(static_cast<uint32_t>(std::atoll(argValue[++i])));
+		}
+	}
 }
 
 /// <summary>
@@ -182,13 +222,22 @@ void HandleMainArgs(int argCount, char** argValue) {
 				singleModuleSet = true;
 			}
 		}
+		if (!lastArg && currentArg == "-sim-updates") {
+			s_SimUpdatesToQuitAfter = std::atoll(argValue[++i]);
+		}
+		if (currentArg == "-quit-when-over") {
+			s_QuitWhenActivityOver = true;
+		}
 		if (!launchModeSet) {
-			if (currentArg == "-server") {
-				g_NetworkServer.EnableServerMode();
-				g_NetworkServer.SetServerPort(!lastArg ? argValue[++i] : "8000");
-				launchModeSet = true;
-			} else if (!lastArg && currentArg == "-editor") {
+			if (!lastArg && currentArg == "-editor") {
 				g_ActivityMan.SetEditorToLaunch(argValue[++i]);
+				launchModeSet = true;
+			} else if (!lastArg && currentArg == "-save") {
+				g_ActivityMan.SetSaveGameToLaunch(argValue[++i]);
+				launchModeSet = true;
+			} else if (i + 3 < argCount && currentArg == "-activity") {
+				g_ActivityMan.SetActivityToLaunch(argValue[i + 1], argValue[i + 2], argValue[i + 3]);
+				i += 3;
 				launchModeSet = true;
 			}
 		}
@@ -206,35 +255,35 @@ void PollSDLEvents() {
 	SDL_Event sdlEvent;
 	while (SDL_PollEvent(&sdlEvent)) {
 		switch (sdlEvent.type) {
-			case SDL_QUIT:
+			case SDL_EVENT_QUIT :
 				System::SetQuit(true);
 				return;
-			case SDL_WINDOWEVENT:
-				if (sdlEvent.window.event == SDL_WINDOWEVENT_CLOSE) {
-					System::SetQuit(true);
-					return;
-				}
-				g_WindowMan.QueueWindowEvent(sdlEvent);
-				break;
-			case SDL_KEYUP:
-			case SDL_KEYDOWN:
-			case SDL_TEXTINPUT:
-			case SDL_MOUSEMOTION:
-			case SDL_MOUSEBUTTONUP:
-			case SDL_MOUSEBUTTONDOWN:
-			case SDL_MOUSEWHEEL:
-			case SDL_CONTROLLERAXISMOTION:
-			case SDL_CONTROLLERBUTTONDOWN:
-			case SDL_CONTROLLERBUTTONUP:
-			case SDL_JOYAXISMOTION:
-			case SDL_JOYBUTTONDOWN:
-			case SDL_JOYBUTTONUP:
-			case SDL_JOYDEVICEADDED:
-			case SDL_JOYDEVICEREMOVED:
-				g_UInputMan.QueueInputEvent(sdlEvent);
+			case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+				System::SetQuit(true);
+				return;
+			case SDL_EVENT_KEY_UP :
+			case SDL_EVENT_KEY_DOWN :
+			case SDL_EVENT_TEXT_INPUT :
+			case SDL_EVENT_MOUSE_MOTION :
+			case SDL_EVENT_MOUSE_BUTTON_UP :
+			case SDL_EVENT_MOUSE_BUTTON_DOWN :
+			case SDL_EVENT_MOUSE_WHEEL :
+			case SDL_EVENT_GAMEPAD_AXIS_MOTION :
+			case SDL_EVENT_GAMEPAD_BUTTON_DOWN :
+			case SDL_EVENT_GAMEPAD_BUTTON_UP :
+			case SDL_EVENT_JOYSTICK_AXIS_MOTION :
+			case SDL_EVENT_JOYSTICK_BUTTON_DOWN :
+			case SDL_EVENT_JOYSTICK_BUTTON_UP :
+			case SDL_EVENT_JOYSTICK_ADDED :
+			case SDL_EVENT_JOYSTICK_REMOVED :
+				g_UInputMan.HandleInputEvent(sdlEvent);
 				break;
 			default:
 				break;
+		}
+		ImGui_ImplSDL3_ProcessEvent(&sdlEvent);
+		if (sdlEvent.type >= SDL_EVENT_WINDOW_FIRST && sdlEvent.type <= SDL_EVENT_WINDOW_LAST) {
+			g_WindowMan.QueueWindowEvent(sdlEvent);
 		}
 	}
 }
@@ -243,11 +292,18 @@ void PollSDLEvents() {
 /// Game menus loop.
 /// </summary>
 void RunMenuLoop() {
+	// There's no one to use the menus when headless, so ending up here means there's nothing left to do.
+	if (System::IsInHeadlessMode()) {
+		System::SetQuit();
+		return;
+	}
+
+	g_MenuMan.SetIsInMenuScreen(true);
 	g_UInputMan.DisableKeys(false);
 	g_UInputMan.TrapMousePos(false);
 
 	while (!System::IsSetToQuit()) {
-		g_WindowMan.ClearRenderer();
+		g_WindowMan.ClearBackbuffer();
 		PollSDLEvents();
 
 		g_WindowMan.Update();
@@ -267,14 +323,21 @@ void RunMenuLoop() {
 		}
 
 		if (g_MenuMan.Update()) {
+			g_UInputMan.EndFrame();
 			break;
 		}
+
 		g_ConsoleMan.Update();
 
+		g_UInputMan.EndFrame();
+		g_WindowMan.GetScreenBuffer()->Begin();
 		g_MenuMan.Draw();
 		g_ConsoleMan.Draw(g_FrameMan.GetBackBuffer32());
+		g_WindowMan.GetScreenBuffer()->End();
 		g_WindowMan.UploadFrame();
 	}
+
+	g_MenuMan.SetIsInMenuScreen(false);
 }
 
 /// <summary>
@@ -309,7 +372,10 @@ void RunGameLoop() {
 
 		PollSDLEvents();
 		g_WindowMan.Update();
-		g_WindowMan.ClearRenderer();
+		// Nothing gets drawn to the backbuffer when headless, so there's nothing to clear from it either.
+		if (!System::IsInHeadlessMode()) {
+			g_WindowMan.ClearBackbuffer();
+		}
 
 		g_TimerMan.Update();
 
@@ -328,12 +394,6 @@ void RunGameLoop() {
 			g_LuaMan.Update();
 
 			g_UInputMan.Update();
-
-			// It is vital that server is updated after input manager but before activity because input manager will clear received pressed and released events on next update.
-			if (g_NetworkServer.IsServerModeEnabled()) {
-				g_NetworkServer.Update(true);
-				serverUpdated = true;
-			}
 
 			g_FrameMan.Update();
 
@@ -360,6 +420,16 @@ void RunGameLoop() {
 			g_PresetMan.ClearReloadEntityPresetCalledThisUpdate();
 
 			g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::SimTotal);
+			g_UInputMan.EndFrame();
+
+			if (s_SimUpdatesToQuitAfter >= 0 && g_TimerMan.GetSimUpdateCount() >= s_SimUpdatesToQuitAfter) {
+				System::SetQuit();
+				break;
+			}
+			if (s_QuitWhenActivityOver && g_ActivityMan.GetActivity() && g_ActivityMan.GetActivity()->IsOver()) {
+				System::SetQuit();
+				break;
+			}
 
 			if (!g_ActivityMan.IsInActivity()) {
 				g_TimerMan.PauseSim(true);
@@ -383,30 +453,15 @@ void RunGameLoop() {
 			}
 		}
 
-		if (g_NetworkServer.IsServerModeEnabled()) {
-			// Pause sim while we're waiting for scene transmission or scene will start changing before clients receive them and those changes will be lost.
-			g_TimerMan.PauseSim(!(g_NetworkServer.ReadyForSimulation() && g_ActivityMan.IsInActivity()));
-
-			if (!serverUpdated) {
-				g_NetworkServer.Update();
-			}
-
-			if (g_NetworkServer.GetServerSimSleepWhenIdle()) {
-				long long ticksToSleep = g_TimerMan.GetTimeToSleep();
-				if (ticksToSleep > 0) {
-					double secsToSleep = static_cast<double>(ticksToSleep) / static_cast<double>(g_TimerMan.GetTicksPerSecond());
-					long long milisToSleep = static_cast<long long>(secsToSleep) * 1000;
-					std::this_thread::sleep_for(std::chrono::milliseconds(milisToSleep));
-				}
-			}
-		}
 		updateEndAndDrawStartTime = g_TimerMan.GetAbsoluteTime();
 		updateTotalTime = updateEndAndDrawStartTime - updateStartTime;
 		drawStartTime = updateEndAndDrawStartTime;
 
-		g_FrameMan.Draw();
-		g_WindowMan.DrawPostProcessBuffer();
-		g_WindowMan.UploadFrame();
+		if (!System::IsInHeadlessMode()) {
+			g_FrameMan.Draw();
+			g_WindowMan.DrawPostProcessBuffer();
+			g_WindowMan.UploadFrame();
+		}
 
 		drawTotalTime = g_TimerMan.GetAbsoluteTime() - drawStartTime;
 		g_PerformanceMan.UpdateMSPF(updateTotalTime, drawTotalTime);
@@ -428,17 +483,14 @@ int main(int argc, char** argv) {
 	install_allegro(SYSTEM_NONE, &errno, std::atexit);
 	loadpng_init();
 
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER | SDL_INIT_TIMER);
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_GAMEPAD );
 
-#if SDL_MINOR_VERSION > 22
 	SDL_SetHint(SDL_HINT_MOUSE_AUTO_CAPTURE, "0");
-#endif
-
-	SDL_ShowCursor(SDL_DISABLE);
 	SDL_SetHint("SDL_ALLOW_TOPMOST", "0");
+	SDL_HideCursor();
 
 	if (std::filesystem::exists("Base.rte/gamecontrollerdb.txt")) {
-		SDL_GameControllerAddMappingsFromFile("Base.rte/gamecontrollerdb.txt");
+		SDL_AddGamepadMappingsFromFile("Base.rte/gamecontrollerdb.txt");
 	}
 
 #ifdef WIN32
@@ -452,15 +504,15 @@ int main(int argc, char** argv) {
 	// argv[0] actually unreliable for exe path and name, because of course, why would it be, why would anything be simple and make sense.
 	// Just use it anyway until some dumb edge case pops up and it becomes a problem.
 	System::Initialize(argv[0]);
+
+	HandleEarlyMainArgs(argc, argv);
+
+	// This comes after the early arguments because the seed can be set by them, and before the managers because the Lua states get their seeds from it.
 	SeedRNG();
 
 	InitializeManagers();
 
 	HandleMainArgs(argc, argv);
-
-	if (g_NetworkServer.IsServerModeEnabled()) {
-		SDL_ShowCursor(SDL_ENABLE);
-	}
 
 	g_PresetMan.LoadAllDataModules();
 
@@ -490,12 +542,14 @@ int main(int argc, char** argv) {
 	g_ThreadMan.GetPriorityThreadPool().wait_for_tasks();
 	g_ThreadMan.GetBackgroundThreadPool().wait_for_tasks();
 
+	DeterminismChecker::Stop();
+
 	DestroyManagers();
 
 	allegro_exit();
 	SDL_Quit();
 
-	return EXIT_SUCCESS;
+	return DeterminismChecker::HasDiverged() ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
 #ifdef _WIN32

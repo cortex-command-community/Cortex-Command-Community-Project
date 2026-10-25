@@ -144,7 +144,7 @@ namespace RTE {
 		int m_TitleScreenMaxWidth; //!< The maximum width of the title screen. This is to constrain the title screen to the primary display while in multi-display fullscreen, otherwise positioning can get stupid.
 
 		std::vector<Star> m_BackdropStars; //!< Vector that contains all the individual Stars that are present in the title screen scene background.
-		SceneLayer m_Nebula; //!< The title screen scene nebula background layer.
+		StaticSceneLayer m_Nebula; //!< The title screen scene nebula background layer.
 		MOSParticle m_Moon; //!< The title screen scene moon.
 		MOSParticle m_Planet; //!< The title screen scene planet.
 		Vector m_PlanetPos; //!< The position of the planet on the title screen scene.

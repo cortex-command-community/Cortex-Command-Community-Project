@@ -1,6 +1,10 @@
 #include "TerrainObject.h"
 #include "SLTerrain.h"
 #include "SceneMan.h"
+#include "Draw.h"
+#include "FrameMan.h"
+
+#include <array>
 
 using namespace RTE;
 
@@ -220,10 +224,10 @@ void TerrainObject::Draw(BITMAP* targetBitmap, const Vector& targetPos, DrawMode
 				break;
 			case DrawMode::g_DrawTrans:
 				if (HasFGColorBitmap()) {
-					draw_trans_sprite(targetBitmap, m_FGColorBitmap, drawPos.at(i).GetFloorIntX(), drawPos.at(i).GetFloorIntY());
+					DrawTexture(m_FGColorBitmap, drawPos.at(i).GetFloorIntX(), drawPos.at(i).GetFloorIntY(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 				}
 				if (HasBGColorBitmap()) {
-					draw_trans_sprite(targetBitmap, m_BGColorBitmap, drawPos.at(i).GetFloorIntX(), drawPos.at(i).GetFloorIntY());
+					DrawTexture(m_BGColorBitmap, drawPos.at(i).GetFloorIntX(), drawPos.at(i).GetFloorIntY(), {255, 255, 255, g_FrameMan.GetCurrentAlpha()});
 				}
 				break;
 			default:
@@ -291,10 +295,8 @@ void TerrainObject::DrawToTerrain(SLTerrain* terrain) {
 	}
 	if (HasBGColorBitmap()) {
 		draw_sprite(terrainBGBitmap, m_BGColorBitmap, posOnScene.GetFloorIntX(), posOnScene.GetFloorIntY());
-		g_SceneMan.RegisterTerrainChange(posOnScene.GetFloorIntX(), posOnScene.GetFloorIntY(), m_BGColorBitmap->w, m_BGColorBitmap->h, ColorKeys::g_MaskColor, true);
 	}
 	if (HasFGColorBitmap()) {
 		draw_sprite(terrainFGBitmap, m_FGColorBitmap, posOnScene.GetFloorIntX(), posOnScene.GetFloorIntY());
-		g_SceneMan.RegisterTerrainChange(posOnScene.GetFloorIntX(), posOnScene.GetFloorIntY(), m_FGColorBitmap->w, m_FGColorBitmap->h, ColorKeys::g_MaskColor, false);
 	}
 }

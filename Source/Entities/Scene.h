@@ -9,6 +9,7 @@
 #include "Box.h"
 #include "Activity.h"
 #include "PathFinder.h"
+#include "SceneLayer.h"
 
 #include <array>
 #include <map>
@@ -66,7 +67,7 @@ namespace RTE {
 			}
 			Area(std::string name) {
 				Clear();
-				m_Name = name;
+				m_Name = std::move(name);
 				Create();
 			}
 			Area(const Area& reference) {
@@ -85,6 +86,10 @@ namespace RTE {
 			/// Anything below 0 is an error signal.
 			int Create(const Area& reference);
 
+			/// Destroys and resets (through Clear()) the Area object.
+			/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
+			void Destroy(bool notInherited);
+
 			/// Resets the entire Serializable, including its inherited members, to their
 			/// default settings or values.
 			void Reset() override { Clear(); }
@@ -101,11 +106,11 @@ namespace RTE {
 
 			/// Gets the first Box in this Area.
 			/// @return The first Box in this Area.
-			const Box* GetFirstBox() const { return m_BoxList.empty() ? nullptr : &m_BoxList[0]; }
+			const Box* GetFirstBox() const { return m_BoxList.empty() ? nullptr : m_BoxList[0]; }
 
 			/// Gets the boxes for this area.
 			/// @return The boxes in this Area.
-			const std::vector<Box>& GetBoxes() const { return m_BoxList; }
+			const std::vector<Box*>& GetBoxes() const { return m_BoxList; }
 
 			/// Shows whether this really has no Area at all, ie it doesn't have any
 			/// Box:es with both width and height.
@@ -159,12 +164,12 @@ namespace RTE {
 
 			/// Gets the name of the Area
 			/// @return The name used to ID this Area.
-			std::string GetName() const { return m_Name; }
+			const std::string& GetName() const { return m_Name; }
 
 			/// Protected member variable and method declarations
 		protected:
 			// The list of Box:es defining the Area in the owner Scene
-			std::vector<Box> m_BoxList;
+			std::vector<Box*> m_BoxList;
 			// The name tag of this Area
 			std::string m_Name;
 
@@ -237,10 +242,13 @@ namespace RTE {
 		/// Saves data currently in memory to disk.
 		/// @param pathBase The filepath base to the where to save the Bitmap data. This means
 		/// everything up to the extension. "FG" and "Mat" etc will be added.
-		/// @param doAsyncSaves Whether or not to save asynchronously. (default: true)
 		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
-		int SaveData(std::string pathBase, bool doAsyncSaves = true);
+		int SaveData(const std::string& pathBase);
+
+		// Gets copied bitmaps of our scene layers, for saving.
+		// @return A list of SceneLayerInfo including our name and a copied bitmap.
+		std::vector<SceneLayerInfo> GetCopiedSceneLayerBitmaps() const;
 
 		/// Saves preview bitmap for this scene.
 		/// @param bitmapPath The full filepath the where to save the Bitmap data.
@@ -341,7 +349,7 @@ namespace RTE {
 
 		/// Adds area to the list if this scene's areas.
 		/// @param m_AreaList.push_back(newArea Area to add.
-		void AddArea(Scene::Area& newArea) { m_AreaList.push_back(newArea); }
+		void AddArea(Scene::Area& newArea) { m_AreaList.push_back(new Scene::Area(newArea)); }
 
 		/// Creates a new SceneLayer for a specific team and fills it with black
 		/// pixels that end up being a specific size on the screen.
@@ -501,45 +509,33 @@ namespace RTE {
 		/// This won't throw any errors to the console if the Area isn't found.
 		/// @param areaName The name of the Area to try to find in this Scene.
 		/// @return Whether the specified area is defined in this Scene.
-		bool HasArea(std::string areaName);
-
-		/// Gets a specified Area identified by name. Ownership is NOT transferred!
-		/// @param areaName The name of the Area to try to get.
-		/// @param required Whether the area is required, and should throw an error if not found.
-		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
-		Area* GetArea(const std::string_view& areaName, bool required);
+		bool HasArea(const std::string& areaName);
 
 		/// Gets a specified Area identified by name. Ownership is NOT transferred!
 		/// @param areaName The name of the Area to try to get.
 		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
-		Area* GetArea(const std::string& areaName) { return GetArea(areaName, true); }
+		Area* GetArea(const std::string& areaName);
 
-		/// Gets a specified Area identified by name, showing a Lua warning if it's not found. Ownership is NOT transferred!
-		/// Using this function will not add the area to the list of required areas which Scenario GUI uses to show compatible areas.
-		/// @param areaName The name of the Area to try to get.
-		/// @return A pointer to the Area asked for, or nullptr if no Area of that name was found.
-		Area* GetOptionalArea(const std::string& areaName) { return GetArea(areaName, false); }
-
-		void AddNavigatableArea(const std::string& areaName) {
-			m_NavigatableAreas.push_back(areaName);
-			m_NavigatableAreasUpToDate = false;
+		void AddNavigableArea(const std::string& areaName) {
+			m_NavigableAreas.push_back(areaName);
+			m_NavigableAreasUpToDate = false;
 		}
-		void ClearNavigatableAreas(const std::string& areaName) {
-			m_NavigatableAreas.clear();
-			m_NavigatableAreasUpToDate = false;
+		void ClearNavigableAreas() {
+			m_NavigableAreas.clear();
+			m_NavigableAreasUpToDate = false;
 		}
 
 		/// Removes a specific Area identified by a name.
 		/// @param areaName The name of the Area to try to remove.
 		/// @return Whether an Area of that name was found, and subsequently removed.
-		bool RemoveArea(std::string areaName);
+		bool RemoveArea(const std::string& areaName);
 
 		/// Checks if a point is within a specific named Area of this Scene. If
 		/// no Area of the name is found, this just returns false without error.
 		/// @param areaName The name of the Area to try to check against.
 		/// @param point The point to see if it's within the specified Area.
 		/// @return Whether any Area of that name was found, AND the point falls within it.
-		bool WithinArea(std::string areaName, const Vector& point) const;
+		bool WithinArea(const std::string& areaName, const Vector& point) const;
 
 		/// Gets the global acceleration (in m/s^2) that is applied to all movable
 		/// objects' velocities during every frame. Typically models gravity.
@@ -553,7 +549,7 @@ namespace RTE {
 
 		/// Returns parent scene name of this metascene.
 		/// @return Name of a parent scene.
-		std::string GetMetasceneParent() const { return m_MetasceneParent; }
+		const std::string& GetMetasceneParent() const { return m_MetasceneParent; }
 
 		/// Sets the specified location of this Scene in the scene
 		/// @param newLocation A Vector with the desired location of this Scene in the scene.
@@ -769,11 +765,11 @@ namespace RTE {
 		bool m_ScanScheduled[Activity::MaxTeamCount];
 
 		// List of all the specified Area's of the scene
-		std::list<Area> m_AreaList;
+		std::list<Area*> m_AreaList;
 
-		// List of navigatable areas in the scene. If this list is empty, the entire scene is assumed to be navigatable
-		std::vector<std::string> m_NavigatableAreas;
-		bool m_NavigatableAreasUpToDate;
+		// List of navigable areas in the scene. If this list is empty, the entire scene is assumed to be navigable
+		std::vector<std::string> m_NavigableAreas;
+		bool m_NavigableAreasUpToDate;
 
 		// The global acceleration vector in m/s^2. (think gravity/wind)
 		Vector m_GlobalAcc;

@@ -3,7 +3,7 @@ function Create(self)
 	self.guideSize = 0;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	local actor = MovableMan:GetMOFromID(self.RootID);
 	if MovableMan:IsActor(actor) and ToActor(actor):GetController():IsState(Controller.AIM_SHARP) then
 		if self.delayTimer:IsPastSimMS(50) then

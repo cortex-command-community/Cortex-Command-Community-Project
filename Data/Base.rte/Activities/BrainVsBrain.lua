@@ -625,7 +625,7 @@ function BrainvsBrain:CreateMediumDrop(xPosLZ)
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge;
 		elseif craftMaxMass < 1 then
-			if Craft.ClassName == "ACDropship" then
+			if Craft.ClassName == "ACDropShip" then
 				Craft = RandomACDropShip("Craft", 0); -- MaxMass not defined
 			else
 				Craft = RandomACRocket("Craft", 0);	-- MaxMass not defined
@@ -685,7 +685,7 @@ function BrainvsBrain:CreateLightDrop(xPosLZ)
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge;
 		elseif craftMaxMass < 1 then
-			if Craft.ClassName == "ACDropship" then
+			if Craft.ClassName == "ACDropShip" then
 				Craft = RandomACDropShip("Craft", 0); -- MaxMass not defined
 			else
 				Craft = RandomACRocket("Craft", 0);	-- MaxMass not defined
@@ -743,7 +743,7 @@ function BrainvsBrain:CreateScoutDrop(xPosLZ)
 		if craftMaxMass < 0 then
 			craftMaxMass = math.huge;
 		elseif craftMaxMass < 1 then
-			if Craft.ClassName == "ACDropship" then
+			if Craft.ClassName == "ACDropShip" then
 				Craft = RandomACDropShip("Craft", 0); -- MaxMass not defined
 			else
 				Craft = RandomACRocket("Craft", 0); -- MaxMass not defined

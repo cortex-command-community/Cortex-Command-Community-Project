@@ -238,7 +238,7 @@ namespace RTE {
 		/// @param objPos The very short description of what the objective is (three short words max)
 		/// @param whichTeam The absolute scene coordiante position of the objective. (default: Teams::TeamOne)
 		/// @param arrowDir The desired direction of the arrow when the point is on screen. (default: ARROWDOWN)
-		void AddObjectivePoint(std::string description, Vector objPos, int whichTeam = Teams::TeamOne, ObjectiveArrowDir arrowDir = ARROWDOWN);
+		void AddObjectivePoint(const std::string& description, Vector objPos, int whichTeam = Teams::TeamOne, ObjectiveArrowDir arrowDir = ARROWDOWN);
 
 		/// Sorts all objective points according to their positions on the Y axis.
 		void YSortObjectivePoints();
@@ -265,7 +265,7 @@ namespace RTE {
 		/// @param loadoutName The name of the Loadout preset to set the override purchase list to
 		/// represent.
 		/// @return The new total value of what's in the override purchase list.
-		int SetOverridePurchaseList(std::string loadoutName, int player);
+		int SetOverridePurchaseList(const std::string& loadoutName, int player);
 
 		/// Clears all items from a specific player's override purchase list.
 		/// @param m_PurchaseOverride[player].clear( Which player's override purchase list to clear.
@@ -352,7 +352,7 @@ namespace RTE {
 
 		/// Sets tech module name for specified team. Module must set must be loaded.
 		/// @param team Team to set module, module name, for example Dummy.rte
-		void SetTeamTech(int team, std::string tech);
+		void SetTeamTech(int team, const std::string& tech);
 
 		/// Indicates whether a specific team is assigned a CPU player in the current game.
 		/// @param team Which team index to check.
@@ -423,6 +423,8 @@ namespace RTE {
 
 		bool GetRequireClearPathToOrbitSwitchEnabled() const { return m_RequireClearPathToOrbitSwitchEnabled; }
 
+		bool GetTeamTechSwitchEnabled(int team) const { return m_TeamTechSwitchEnabled[team]; }
+
 		/// Returns CrabToHumanSpawnRatio for specified module
 		/// @return Crab-To-Human spawn ratio value set for specified module, 0.25 is default.
 		float GetCrabToHumanSpawnRatio(int moduleid);
@@ -446,7 +448,7 @@ namespace RTE {
 		/// Returns network player name
 		/// @param player Player
 		/// @return Network player name
-		std::string& GetNetworkPlayerName(int player);
+		const std::string& GetNetworkPlayerName(int player);
 
 		/// Sets network player name
 		/// @param player Player number, player name
@@ -468,12 +470,13 @@ namespace RTE {
 				m_Team = Teams::NoTeam;
 				m_ArrowDir = ARROWDOWN;
 			}
-			ObjectivePoint(const std::string& desc, const Vector& pos, int team = -1, ObjectiveArrowDir arrowDir = ARROWDOWN) {
-				m_Description = desc;
-				m_ScenePos = pos;
-				m_Team = (Teams)team;
-				m_ArrowDir = arrowDir;
-			}
+
+			ObjectivePoint(std::string desc, const Vector& pos, int team = -1, ObjectiveArrowDir arrowDir = ARROWDOWN) :
+				m_Description(std::move(desc)),
+				m_ScenePos(pos),
+				m_Team((Teams)team),
+				m_ArrowDir(arrowDir)
+			{}
 
 			/// Simply draws this' arrow relative to a point on a bitmap.
 			/// @param pTargetBitmap A pointer to the BITMAP to draw on.
@@ -583,6 +586,7 @@ namespace RTE {
 
 		// Tech of player
 		std::string m_TeamTech[Teams::MaxTeamCount];
+		bool m_TeamTechSwitchEnabled[Teams::MaxTeamCount];
 
 		// Initial gold amount selected by player in scenario setup dialog
 		int m_StartingGold;

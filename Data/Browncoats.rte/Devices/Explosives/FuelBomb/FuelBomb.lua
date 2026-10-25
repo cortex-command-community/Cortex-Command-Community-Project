@@ -26,7 +26,7 @@ function Create(self)
 	self.soundCount = 0;
 end
 
-function Update(self)
+function ThreadedUpdate(self)
 	self.ToSettle = false;
 	self.ToDelete = false;
 

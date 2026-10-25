@@ -298,7 +298,6 @@ void GUIControlManager::DrawMouse(GUIScreen* guiScreen) {
 	int MouseX;
 	int MouseY;
 	m_Input->GetMousePosition(&MouseX, &MouseY);
-
 	switch (m_CursorType) {
 		// Pointer
 		case Pointer:
@@ -379,7 +378,7 @@ bool GUIControlManager::Save(GUIWriter* W) {
 bool GUIControlManager::Load(const std::string& Filename, bool keepOld) {
 	GUIReader reader;
 	const std::string pathFile = g_PresetMan.GetFullModulePath(Filename);
-	if (reader.Create(pathFile.c_str()) != 0) {
+	if (reader.Create(pathFile) != 0) {
 		return false;
 	}
 

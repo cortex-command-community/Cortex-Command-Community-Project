@@ -3,14 +3,14 @@
 #include "CameraMan.h"
 #include "ConsoleMan.h"
 #include "FrameMan.h"
-#include "SettingsMan.h"
 #include "SceneMan.h"
 #include "ActivityMan.h"
 #include "SoundContainer.h"
-#include "GUISound.h"
-#include "PresetMan.h"
+#include "WindowMan.h"
 #include "SoundSet.h"
+#include "System.h"
 
+#include <array>
 #include <cstring>
 
 using namespace RTE;
@@ -31,6 +31,7 @@ void AudioMan::Clear() {
 	m_MuteMaster = false;
 	m_MuteMusic = false;
 	m_MuteSounds = false;
+	m_MuteAudioOnFocusLoss = false;
 	m_MasterVolume = 0.5F;
 	m_MusicVolume = 1.0F;
 	m_SoundsVolume = 1.0F;
@@ -60,11 +61,15 @@ bool AudioMan::Initialize() {
 	audioSystemAdvancedSettings.cbSize = sizeof(FMOD_ADVANCEDSETTINGS);
 	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->getAdvancedSettings(&audioSystemAdvancedSettings) : audioSystemSetupResult;
 	audioSystemAdvancedSettings.vol0virtualvol = 0.001F;
-	audioSystemAdvancedSettings.randomSeed = RandomNum(0, INT_MAX);
+	audioSystemAdvancedSettings.randomSeed = g_DrawRandomGenerator.RandomNum(0, INT_MAX);
 
 	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->setAdvancedSettings(&audioSystemAdvancedSettings) : audioSystemSetupResult;
 	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->set3DSettings(1, c_PPM, 1) : audioSystemSetupResult;
 	audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->setSoftwareChannels(c_MaxSoftwareChannels) : audioSystemSetupResult;
+	if (System::IsInHeadlessMode()) {
+		// Everything to do with audio still goes on as it otherwise would, it just doesn't get played to anyone.
+		audioSystemSetupResult = (audioSystemSetupResult == FMOD_OK) ? m_AudioSystem->setOutput(FMOD_OUTPUTTYPE_NOSOUND) : audioSystemSetupResult;
+	}
 	FMOD_INITFLAGS flags = FMOD_INIT_VOL0_BECOMES_VIRTUAL;
 
 #if !RELEASE_BUILD
@@ -131,6 +136,9 @@ bool AudioMan::Initialize() {
 void AudioMan::Destroy() {
 	if (m_AudioEnabled) {
 		StopAll();
+		// FMOD loads sounds on a thread of its own, which crashes if the audio system gets released while it's still at it. That's the case when quitting shortly after launching.
+		// Releasing a sound waits for it to be done loading, and FMOD wants them all released before the audio system anyway.
+		ContentFile::FreeAllLoadedSounds();
 		m_AudioSystem->release();
 		Clear();
 	}
@@ -138,8 +146,13 @@ void AudioMan::Destroy() {
 
 void AudioMan::Update() {
 	if (m_AudioEnabled) {
-
 		FMOD_RESULT status = FMOD_OK;
+
+		if (m_MuteAudioOnFocusLoss && !g_WindowMan.AnyWindowHasFocus()) {
+			m_MasterChannelGroup->setMute(true);
+		} else {
+			m_MasterChannelGroup->setMute(m_MuteMaster);
+		}
 
 		float globalPitch = 1.0F;
 
@@ -152,7 +165,7 @@ void AudioMan::Update() {
 
 		if (!g_ActivityMan.ActivityPaused()) {
 			const Activity* currentActivity = g_ActivityMan.GetActivity();
-			int currentActivityHumanCount = m_IsInMultiplayerMode ? 1 : currentActivity->GetHumanCount();
+			uint8_t currentActivityHumanCount = m_IsInMultiplayerMode ? 1 : currentActivity->GetHumanCount();
 
 			if (m_CurrentActivityHumanPlayerPositions.size() != currentActivityHumanCount) {
 				status = status == FMOD_OK ? m_AudioSystem->set3DNumListeners(currentActivityHumanCount) : status;
@@ -207,11 +220,16 @@ void AudioMan::SetGlobalPitch(float pitch, bool includeImmobileSounds, bool incl
 	}
 
 	m_GlobalPitch = std::clamp(pitch, 0.125F, 8.0F);
+
+	m_SFXChannelGroup->setPitch(m_GlobalPitch);
+
+	if (includeImmobileSounds) {
+		m_UIChannelGroup->setPitch(m_GlobalPitch);
+	}
+
 	if (includeMusic) {
 		m_MusicChannelGroup->setPitch(m_GlobalPitch);
 	}
-
-	m_SFXChannelGroup->setPitch(m_GlobalPitch);
 }
 
 bool AudioMan::SetMusicPitch(float pitch) {
@@ -388,7 +406,7 @@ bool AudioMan::PlaySoundContainer(SoundContainer* soundContainer, int player) {
 		result = (result == FMOD_OK) ? channel->setUserData(soundContainer) : result;
 		result = (result == FMOD_OK) ? channel->setCallback(SoundChannelEndedCallback) : result;
 		result = (result == FMOD_OK) ? channel->setPriority(soundContainer->GetPriority()) : result;
-		float pitchVariationMultiplier = pitchVariationFactor == 1.0F ? 1.0F : RandomNum(1.0F / pitchVariationFactor, 1.0F * pitchVariationFactor);
+		float pitchVariationMultiplier = pitchVariationFactor == 1.0F ? 1.0F : g_DrawRandomGenerator.RandomNum(1.0F / pitchVariationFactor, 1.0F * pitchVariationFactor);
 		result = (result == FMOD_OK) ? channel->setPitch(soundContainer->GetPitch() * pitchVariationMultiplier) : result;
 
 		if (soundContainer->GetCustomPanValue() != 0.0f) {
@@ -579,7 +597,7 @@ bool AudioMan::StopSoundContainerPlayingChannels(SoundContainer* soundContainer,
 		RegisterSoundEvent(player, SOUND_STOP, soundContainer);
 	}
 
-	FMOD_RESULT result;
+	FMOD_RESULT result = FMOD_OK;
 	FMOD::Channel* soundChannel;
 
 	const std::unordered_set<int>* channels = soundContainer->GetPlayingChannels();
@@ -592,6 +610,28 @@ bool AudioMan::StopSoundContainerPlayingChannels(SoundContainer* soundContainer,
 		}
 	}
 	return result == FMOD_OK;
+}
+
+void AudioMan::DetachSoundContainerPlayingChannels(SoundContainer* soundContainer) {
+	if (!m_AudioEnabled || !soundContainer) {
+		return;
+	}
+
+	FMOD::Channel* soundChannel;
+	int loopCount;
+
+	// Stopping a channel takes it out of the SoundContainer's own collection of them, so it's a copy that is gone through here.
+	const std::unordered_set<int> channels = *soundContainer->GetPlayingChannels();
+	for (int channel: channels) {
+		if (m_AudioSystem->getChannel(channel, &soundChannel) != FMOD_OK) {
+			continue;
+		}
+		if (soundChannel->getLoopCount(&loopCount) == FMOD_OK && loopCount < 0) {
+			soundChannel->stop();
+		} else {
+			soundChannel->setUserData(nullptr);
+		}
+	}
 }
 
 void AudioMan::FadeOutSoundContainerPlayingChannels(SoundContainer* soundContainer, int fadeOutTime) {
@@ -653,8 +693,7 @@ void AudioMan::Update3DEffectsForSFXChannels() {
 		result = m_SFXChannelGroup->getChannel(i, &soundChannel);
 		FMOD_MODE mode;
 		result = (result == FMOD_OK) ? soundChannel->getMode(&mode) : result;
-		unsigned modeResult = mode & FMOD_2D;
-		if (modeResult == 0) {
+		if (result == FMOD_OK && (mode & FMOD_2D) == 0) {
 			FMOD_VECTOR channelPosition;
 			result = result == FMOD_OK ? soundChannel->get3DAttributes(&channelPosition, nullptr) : result;
 			result = result == FMOD_OK ? UpdatePositionalEffectsForSoundChannel(soundChannel, &channelPosition) : result;
@@ -665,13 +704,16 @@ void AudioMan::Update3DEffectsForSFXChannels() {
 				float doubleMinimumDistanceForPanning = m_MinimumDistanceForPanning * 2.0F;
 				void* userData;
 				result = result == FMOD_OK ? soundChannel->getUserData(&userData) : result;
-				const SoundContainer* soundContainer = static_cast<SoundContainer*>(userData);
-				if (sqrDistanceToPlayer < (m_MinimumDistanceForPanning * m_MinimumDistanceForPanning) || soundContainer->GetCustomPanValue() != 0.0f) {
-					soundChannel->set3DLevel(0);
-				} else if (sqrDistanceToPlayer < (doubleMinimumDistanceForPanning * doubleMinimumDistanceForPanning)) {
-					soundChannel->set3DLevel(Lerp(0, 1, 0, m_SoundPanningEffectStrength * soundContainer->GetPanningStrengthMultiplier(), channel3dLevel));
-				} else {
-					soundChannel->set3DLevel(m_SoundPanningEffectStrength * soundContainer->GetPanningStrengthMultiplier());
+				// A sound that is playing out after its SoundContainer got destroyed stays the way it was left.
+				if (result == FMOD_OK && userData) {
+					const SoundContainer* soundContainer = static_cast<SoundContainer*>(userData);
+					if (sqrDistanceToPlayer < (m_MinimumDistanceForPanning * m_MinimumDistanceForPanning) || soundContainer->GetCustomPanValue() != 0.0f) {
+						result = soundChannel->set3DLevel(0);
+					} else if (sqrDistanceToPlayer < (doubleMinimumDistanceForPanning * doubleMinimumDistanceForPanning)) {
+						result = soundChannel->set3DLevel(Lerp(0, 1, 0, m_SoundPanningEffectStrength * soundContainer->GetPanningStrengthMultiplier(), channel3dLevel));
+					} else {
+						result = soundChannel->set3DLevel(m_SoundPanningEffectStrength * soundContainer->GetPanningStrengthMultiplier());
+					}
 				}
 			}
 		}
@@ -684,11 +726,18 @@ void AudioMan::Update3DEffectsForSFXChannels() {
 }
 
 FMOD_RESULT AudioMan::UpdatePositionalEffectsForSoundChannel(FMOD::Channel* soundChannel, const FMOD_VECTOR* positionOverride) const {
-	FMOD_RESULT result = FMOD_OK;
-
 	void* userData;
-	result = result == FMOD_OK ? soundChannel->getUserData(&userData) : result;
+	FMOD_RESULT result = soundChannel->getUserData(&userData);
+
+	if (result != FMOD_OK) {
+		return result;
+	}
+
 	const SoundContainer* channelSoundContainer = static_cast<SoundContainer*>(userData);
+	// A sound that is playing out after its SoundContainer got destroyed stays the way it was left.
+	if (!channelSoundContainer) {
+		return FMOD_OK;
+	}
 
 	bool sceneWraps = g_SceneMan.SceneWrapsX();
 
@@ -708,7 +757,11 @@ FMOD_RESULT AudioMan::UpdatePositionalEffectsForSoundChannel(FMOD::Channel* soun
 	if (!sceneWraps) {
 		wrappedChannelPositions = {channelPosition};
 	} else {
-		wrappedChannelPositions = (channelPosition.x <= halfSceneWidth) ? wrappedChannelPositions = {channelPosition, {channelPosition.x + g_SceneMan.GetSceneWidth(), channelPosition.y}} : wrappedChannelPositions = {FMOD_VECTOR({channelPosition.x - g_SceneMan.GetSceneWidth(), channelPosition.y}), channelPosition};
+		if (channelPosition.x <= halfSceneWidth) {
+			wrappedChannelPositions = {channelPosition, {channelPosition.x + g_SceneMan.GetSceneWidth(), channelPosition.y, 0.0}};
+		} else {
+			wrappedChannelPositions = {FMOD_VECTOR({channelPosition.x - g_SceneMan.GetSceneWidth(), channelPosition.y, 0.0}), channelPosition};
+		}
 	}
 
 	float sqrShortestDistance = c_SoundMaxAudibleDistance * c_SoundMaxAudibleDistance;
@@ -732,6 +785,9 @@ FMOD_RESULT AudioMan::UpdatePositionalEffectsForSoundChannel(FMOD::Channel* soun
 
 	int soundChannelIndex;
 	result = result == FMOD_OK ? soundChannel->getIndex(&soundChannelIndex) : result;
+	if (result != FMOD_OK) {
+		return result;
+	}
 
 	float attenuationStartDistance = c_DefaultAttenuationStartDistance;
 	float soundMaxDistance = 0.0F;
@@ -754,7 +810,7 @@ FMOD_RESULT AudioMan::UpdatePositionalEffectsForSoundChannel(FMOD::Channel* soun
 	float minimumAudibleDistance = m_SoundChannelMinimumAudibleDistances.at(soundChannelIndex);
 	if (shortestDistance >= soundMaxDistance) {
 		attenuatedVolume = 0.0F;
-	} else if (m_SoundChannelMinimumAudibleDistances.empty() || m_SoundChannelMinimumAudibleDistances.find(soundChannelIndex) == m_SoundChannelMinimumAudibleDistances.end()) {
+	} else if (m_SoundChannelMinimumAudibleDistances.find(soundChannelIndex) == m_SoundChannelMinimumAudibleDistances.end()) {
 		g_ConsoleMan.PrintString("ERROR: An error occurred when checking to see if the sound at channel " + std::to_string(soundChannelIndex) + " was less than its minimum audible distance away from the farthest listener.");
 	} else if (sqrLongestDistance < (minimumAudibleDistance * minimumAudibleDistance)) {
 		attenuatedVolume = 0.0F;
@@ -771,18 +827,19 @@ FMOD_RESULT AudioMan::UpdatePositionalEffectsForSoundChannel(FMOD::Channel* soun
 	return result;
 }
 
-FMOD_RESULT F_CALLBACK AudioMan::SoundChannelEndedCallback(FMOD_CHANNELCONTROL* channelControl, FMOD_CHANNELCONTROL_TYPE channelControlType, FMOD_CHANNELCONTROL_CALLBACK_TYPE callbackType, void* unusedCommandData1, void* unusedCommandData2) {
+FMOD_RESULT F_CALLBACK AudioMan::SoundChannelEndedCallback(FMOD_CHANNELCONTROL* channelControl, FMOD_CHANNELCONTROL_TYPE channelControlType, FMOD_CHANNELCONTROL_CALLBACK_TYPE callbackType, void*, void*) {
 	if (channelControlType == FMOD_CHANNELCONTROL_CHANNEL && callbackType == FMOD_CHANNELCONTROL_CALLBACK_END) {
 		FMOD::Channel* channel = reinterpret_cast<FMOD::Channel*>(channelControl);
 		int channelIndex;
 		FMOD_RESULT result = channel->getIndex(&channelIndex);
 
 		// Remove this playing sound index from the SoundContainer if it has any playing sounds, i.e. it hasn't been reset before this callback happened.
+		// There is no SoundContainer to remove it from if that got destroyed while the sound was left to play out.
 		void* userData;
 		result = (result == FMOD_OK) ? channel->getUserData(&userData) : result;
 		if (result == FMOD_OK) {
 			SoundContainer* channelSoundContainer = static_cast<SoundContainer*>(userData);
-			if (channelSoundContainer->IsBeingPlayed()) {
+			if (channelSoundContainer && channelSoundContainer->IsBeingPlayed()) {
 				channelSoundContainer->RemovePlayingChannel(channelIndex);
 			}
 			result = (result == FMOD_OK) ? channel->setUserData(nullptr) : result;
@@ -792,7 +849,7 @@ FMOD_RESULT F_CALLBACK AudioMan::SoundChannelEndedCallback(FMOD_CHANNELCONTROL* 
 			}
 
 			if (result != FMOD_OK) {
-				g_ConsoleMan.PrintString("ERROR: An error occurred when Ending a sound in SoundContainer " + channelSoundContainer->GetPresetName() + ": " + std::string(FMOD_ErrorString(result)));
+				g_ConsoleMan.PrintString("ERROR: An error occurred when Ending a sound in SoundContainer " + (channelSoundContainer ? channelSoundContainer->GetPresetName() : "None") + ": " + std::string(FMOD_ErrorString(result)));
 				return result;
 			}
 		} else {

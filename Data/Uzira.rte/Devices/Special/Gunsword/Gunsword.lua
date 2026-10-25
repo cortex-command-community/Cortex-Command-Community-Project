@@ -7,6 +7,9 @@ function Create(self)
 	self.charge = 0;
 	self.throwSpeed = 0;
 	self.swingSound = CreateSoundContainer("Uzira.rte/Swing");
+	--How long the swing sounds are, in MS. The next swing waits for that much sim time, instead of for the audio system to be done playing the sound, since that goes by real time
+	self.swingSoundLength = 500;
+	self.swingSoundTimer = Timer();
 	
 	self.particle = CreateMOPixel("Base.rte/Smack Particle");
 	self.particle.IgnoresTeamHits = true;
@@ -58,7 +61,8 @@ function Update(self)
 						end
 
 						parent.Vel = parent.Vel + Vector(swingSpeed/(5 + self.momentum), 0):RadRotate(parent:GetAimAngle(true));
-						if not self.swingSound:IsBeingPlayed() then
+						if self.swingSoundTimer:IsPastSimMS(self.swingSoundLength/self.swingSound.Pitch) then
+							self.swingSoundTimer:Reset();
 							self.swingSound.Pos = self.Pos;
 							self.swingSound:Play();
 							self:RemoveWounds(1);

@@ -7,6 +7,9 @@
 
 #include "BS_thread_pool.hpp"
 
+#include <array>
+#include <set>
+
 #define g_LuaMan LuaMan::Instance()
 
 struct lua_State;
@@ -67,9 +70,28 @@ namespace RTE {
 		/// Gets the currently running script filepath, if applicable.
 		/// @return The currently running script filepath. May return inaccurate values for non-MO scripts due to weirdness in setup.
 		std::string_view GetCurrentlyRunningScriptFilePath() const { return m_CurrentlyRunningScriptPath; }
+
+		/// Gets the random number generator used for this lua state.
+		/// @return The random number generator used for this lua state.
+		const RandomGenerator& GetRandomGenerator() const { return m_RandomGenerator; }
+
+		/// Sets whether what is being run on this lua state is AI. While it is, this lua state and the global random functions called from this thread use a random number generator that is only for AI.
+		/// The AI can be left to do as it pleases this way, without it affecting the random numbers that the rest of the simulation gets.
+		/// @param runningAI Whether AI is what is being run on this lua state, by this thread.
+		void SetRunningAI(bool runningAI);
+
+		/// Sets whether what is being run on this lua state is the threaded update of its scripts, which goes on at the same time as that of the other lua states.
+		/// While it is, the global random functions called from this thread use this lua state's random number generator, since the lua states can't all be using the simulation's one at once.
+		/// @param runningThreadedUpdate Whether the threaded update of its scripts is what is being run on this lua state, by this thread.
+		void SetRunningThreadedUpdate(bool runningThreadedUpdate);
 #pragma endregion
 
 #pragma region Script Responsibility Handling
+		/// Orders MOs by their unique ID. This is the order the MOs registered with us have their scripts run in, since their order in memory is different every time the game is run.
+		struct UniqueIDOrder {
+			bool operator()(const MovableObject* lhs, const MovableObject* rhs) const;
+		};
+
 		/// Registers an MO as using us.
 		/// @param moToRegister The MO to register with us. Ownership is NOT transferred!
 		void RegisterMO(MovableObject* moToRegister) { m_AddedRegisteredMOs.insert(moToRegister); }
@@ -83,7 +105,7 @@ namespace RTE {
 
 		/// Gets a list of the MOs registed as using us.
 		/// @return The MOs registed as using us.
-		const std::unordered_set<MovableObject*>& GetRegisteredMOs() const { return m_RegisteredMOs; }
+		const std::set<MovableObject*, UniqueIDOrder>& GetRegisteredMOs() const { return m_RegisteredMOs; }
 #pragma endregion
 
 #pragma region Script Execution Handling
@@ -112,6 +134,16 @@ namespace RTE {
 		/// @param functionLiteralArguments Optional vector of strings that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int RunScriptFunctionObject(const LuabindObjectWrapper* functionObjectWrapper, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
+		
+		/// Runs the given Lua function object. The first argument to the function will always be the self object.
+		/// If either argument list has entries, they will be passed into the function in order, with entity arguments first.
+		/// @param functionObjectWrapper The LuabindObjectWrapper containing the Lua function to be run.
+		/// @param selfGlobalTableName The name of the global Lua table that gives access to the self object.
+		/// @param selfGlobalTableKey The key for this object in the respective global Lua table.
+		/// @param functionEntityArguments Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.
+		/// @param functionLiteralArguments Optional vector of strings that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		int RunScriptConditionalTestFunctionObject(const LuabindObjectWrapper* functionObjectWrapper, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, bool& returnParam, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
 
 		/// Opens and loads a file containing a script and runs it on the state.
 		/// @param filePath The path to the file to load and run.
@@ -236,7 +268,7 @@ namespace RTE {
 		/// Clears all the member variables of this LuaStateWrapper, effectively resetting the members of this abstraction level only.
 		void Clear();
 
-		std::unordered_set<MovableObject*> m_RegisteredMOs; //!< The objects using our lua state.
+		std::set<MovableObject*, UniqueIDOrder> m_RegisteredMOs; //!< The objects using our lua state.
 		std::unordered_set<MovableObject*> m_AddedRegisteredMOs; //!< The objects using our lua state that were recently added.
 
 		lua_State* m_State;
@@ -257,6 +289,12 @@ namespace RTE {
 
 		// For determinism, every Lua state has it's own random number generator.
 		RandomGenerator m_RandomGenerator; //!< The random number generator used for this lua state.
+		RandomGenerator m_AIRandomGenerator; //!< The random number generator used for this lua state while it is running AI.
+		bool m_RunningAI; //!< Whether what is being run on this lua state is AI.
+
+		/// Gets the random number generator to use for what is currently being run on this lua state.
+		/// @return The random number generator for AI if that is what's being run, otherwise the regular one.
+		RandomGenerator& GetActiveRandomGenerator() { return m_RunningAI ? m_AIRandomGenerator : m_RandomGenerator; }
 	};
 
 	typedef std::vector<LuaStateWrapper> LuaStatesArray;
@@ -325,7 +363,7 @@ namespace RTE {
 		const std::unordered_map<std::string, PerformanceMan::ScriptTiming> GetScriptTimings() const;
 #pragma endregion
 
-#pragma region File I / O Handling
+#pragma region File I/O Handling
 		/// Returns a vector of all the directories in path, which is relative to the working directory.
 		/// @param path Directory path relative to the working directory.
 		/// @return A vector of the directories in path.

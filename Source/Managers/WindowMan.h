@@ -14,12 +14,14 @@ struct SDL_Window;
 struct SDL_Renderer;
 struct SDL_Texture;
 struct SDL_Rect;
+struct SDL_GLContextState;
 union SDL_Event;
 }
 
 namespace RTE {
 
 	class Shader;
+	class RenderTarget;
 
 	struct SDLWindowDeleter {
 		void operator()(SDL_Window* window) const;
@@ -34,7 +36,7 @@ namespace RTE {
 	};
 
 	struct SDLContextDeleter {
-		void operator()(void* context) const;
+		void operator()(SDL_GLContextState* context) const;
 	};
 
 	/// The singleton manager over the game window and display of frames.
@@ -129,7 +131,9 @@ namespace RTE {
 
 		/// Get the screen buffer texture.
 		/// @return The screen buffer texture.
-		GLuint GetScreenBufferTexture() const { return m_ScreenBufferTexture; }
+		std::shared_ptr<RenderTarget> GetScreenBuffer() const { return m_ScreenBuffer; }
+
+		void RefocusWindow() const;
 #pragma endregion
 
 #pragma region Resolution Change Handling
@@ -164,6 +168,9 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Concrete Methods
+		/// SDL_EventFilter to handle window exposed events for live resize.
+		static bool HandleWindowExposedEvent(void* userdata, SDL_Event* event);
+
 		/// Adds an SDL_Event to the Event queue for processing on Update.
 		/// @param windowEvent The SDL window event to queue.
 		void QueueWindowEvent(const SDL_Event& windowEvent);
@@ -171,14 +178,16 @@ namespace RTE {
 		/// Updates the state of this WindowMan.
 		void Update();
 
-		/// Clears the primary renderer, or all the renderers if in multi-display fullscreen.
-		void ClearRenderer(bool clearFrameMan = true);
+		/// Clears the window framebuffer (FBO0).
+		void ClearBackbuffer(bool clearFrameMan = true);
 
-		/// Set this Frame to draw the game. To be set before UploadFrame. Resets on ClearRenderer.
+		/// Set this Frame to draw the game. To be set before UploadFrame. Resets on ClearBackbuffer.
 		void DrawPostProcessBuffer() { m_DrawPostProcessBuffer = true; }
 
 		/// Copies the BackBuffer32 content to GPU and shows it on screen.
 		void UploadFrame();
+
+		void Present();
 #pragma endregion
 
 	private:
@@ -189,15 +198,15 @@ namespace RTE {
 
 		std::shared_ptr<SDL_Window> m_PrimaryWindow; //!< The main window.
 		GLuint m_BackBuffer32Texture; //!< Streaming texture for the software rendered stuff.
-		GLuint m_ScreenBufferTexture; //!< Internal backbuffer for the final blit and sceenshots, only clear immediately before drawing.
-		GLuint m_ScreenBufferFBO; //!< Framebuffer object for the screen buffer texture.
+		
+		std::shared_ptr<RenderTarget> m_ScreenBuffer{};
 		std::unique_ptr<SDL_Rect> m_PrimaryWindowViewport; //!< Viewport for the main window.
 
 		std::vector<std::shared_ptr<SDL_Window>> m_MultiDisplayWindows; //!< Additional windows for multi-display fullscreen.
 		std::vector<glm::mat4> m_MultiDisplayProjections; //!< Projection Matrices for MultiDisplay.
 		std::vector<glm::mat4> m_MultiDisplayTextureOffsets; //!< Texture offsets for multi-display fullscreen.
 
-		std::unique_ptr<void, SDLContextDeleter> m_GLContext; //!< OpenGL context.
+		std::unique_ptr<SDL_GLContextState, SDLContextDeleter> m_GLContext; //!< OpenGL context.
 		GLuint m_ScreenVAO; //!< Vertex Array Object for the screen quad.
 		GLuint m_ScreenVBO; //!< Vertex Buffer Object for the screen quad.
 
@@ -229,6 +238,7 @@ namespace RTE {
 
 		bool m_EnableVSync; //!< Whether vertical synchronization is enabled.
 		bool m_UseMultiDisplays; //!< Whether the multi-display arrangement should be ignored and only the display the main window is currently positioned at should be used for fullscreen.
+		bool m_LaunchMinimised; //!< Whether the game window starts out minimised, so that launching the game doesn't take input focus or cover other windows.
 
 		bool m_DrawPostProcessBuffer; //!< Whether to draw the PostProcessBuffer while not in Activity. Resets on Frame Clear.
 
@@ -273,7 +283,7 @@ namespace RTE {
 		void AttemptToRevertToPreviousResolution(bool revertToDefaults = false);
 #pragma endregion
 
-#pragma region Multi - Display Handling
+#pragma region Multi-Display Handling
 		/// Clears all the multi-display data, resetting the game to a single-window-single-display state.
 		void ClearMultiDisplayData();
 

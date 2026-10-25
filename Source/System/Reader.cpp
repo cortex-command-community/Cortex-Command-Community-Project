@@ -33,12 +33,35 @@ Reader::Reader(const std::string& fileName, bool overwrites, const ProgressCallb
 	Create(fileName, overwrites, progressCallback, failOK);
 }
 
-Reader::Reader(std::unique_ptr<std::istream>&& stream, bool overwrites, const ProgressCallback& progressCallback, bool failOK) {
+Reader::Reader(std::unique_ptr<std::istream>&& stream, const std::string& fileName, bool overwrites, const ProgressCallback& progressCallback, bool failOK) {
 	Clear();
-	Create(std::move(stream), overwrites, progressCallback, failOK);
+	Create(std::move(stream), fileName, overwrites, progressCallback, failOK);
 }
 
 int Reader::Create(const std::string& fileName, bool overwrites, const ProgressCallback& progressCallback, bool failOK) {
+	if (fileName.empty()) {
+		return -1;
+	}
+	
+	if (m_NonModulePath) {
+		m_FilePath = std::filesystem::path(fileName).generic_string();
+		// Associate non-module paths with Base to prevent implosions when dealing with creating Entities.
+		m_DataModuleName = "Base.rte";
+		m_DataModuleID = 0;
+	} else {
+		m_FilePath = g_PresetMan.GetFullModulePath(fileName);
+
+		// Extract the file name and module name from the path
+		m_FileName = m_FilePath.substr(m_FilePath.find_last_of("/\\") + 1);
+		m_DataModuleName = g_PresetMan.GetModuleNameFromPath(m_FilePath);
+		m_DataModuleID = g_PresetMan.GetModuleID(m_DataModuleName);
+	}
+	
+	return Create(std::make_unique<std::ifstream>(m_FilePath), fileName, overwrites, progressCallback, failOK);
+}
+
+int Reader::Create(std::unique_ptr<std::istream>&& stream, const std::string& fileName, bool overwrites, const ProgressCallback& progressCallback, bool failOK) {
+	// We redundantly do this following block of code in both constructors, which feels really ugly and lazy
 	if (fileName.empty()) {
 		return -1;
 	}
@@ -57,16 +80,12 @@ int Reader::Create(const std::string& fileName, bool overwrites, const ProgressC
 		m_DataModuleID = g_PresetMan.GetModuleID(m_DataModuleName);
 	}
 
-	return Create(std::make_unique<std::ifstream>(m_FilePath), overwrites, progressCallback, failOK);
-}
-
-int Reader::Create(std::unique_ptr<std::istream>&& stream, bool overwrites, const ProgressCallback& progressCallback, bool failOK) {
 	m_CanFail = failOK;
 
 	m_Stream = std::move(stream);
 
 	if (!m_CanFail) {
-		RTEAssert(System::PathExistsCaseSensitive(m_FilePath) && m_Stream->good(), "Failed to open data file \"" + m_FilePath + "\"!");
+		RTEAssert(m_Stream->good(), "Failed to open data file \"" + m_FilePath + "\"!");
 	}
 
 	m_OverwriteExisting = overwrites;

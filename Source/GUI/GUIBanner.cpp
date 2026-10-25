@@ -40,7 +40,7 @@ bool GUIBanner::Create(const std::string fontFilePath, const std::string fontBlu
 	int y, dotColor;
 	for (int mode = REGULAR; mode < FONTMODECOUNT; ++mode) {
 		// Load the font images
-		fontFile.SetDataPath(filePaths[mode].c_str());
+		fontFile.SetDataPath(filePaths[mode]);
 		m_pFontImage[mode] = fontFile.GetAsBitmap(bitDepth == 8 ? COLORCONV_REDUCE_TO_256 : COLORCONV_8_TO_32);
 		RTEAssert(m_pFontImage[mode], "Couldn't load font bitmap for banner font from this file:\n" + fontFilePath);
 
@@ -345,7 +345,7 @@ void GUIBanner::Draw(BITMAP* pTargetBitmap) {
 	}
 }
 
-int GUIBanner::CalculateWidth(const std::string text, FontMode mode) const {
+int GUIBanner::CalculateWidth(const std::string& text, FontMode mode) const {
 	unsigned char c;
 	int Width = 0;
 
