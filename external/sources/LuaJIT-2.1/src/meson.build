@@ -43,9 +43,13 @@ lj_defines = [
     '-U_FORTIFY_SOURCE',
     '-DLUA_MULTILIB="lib"',
     '-DLUA_ROOT="' + get_option('prefix') + '"',
-    # Seed LuaJIT's own PRNG with a fixed value instead of from the OS, and have strings get their IDs in the order they are made in instead of from that PRNG.
+    # Seed LuaJIT's own PRNG with a fixed value instead of from the OS, and have strings get their IDs from a hash of their contents (a change made to lj_str.c) instead of from that PRNG.
     # Strings are hashed by their IDs, so those decide the order pairs() goes through a table in, which would otherwise differ between runs of the game.
     # The fixed seed doesn't do it by itself, because LuaJIT also draws from the PRNG when it looks for memory to put compiled code in, and how many times it does that isn't up to us.
+    # IDs given out in the order strings are made in don't do it either, because strings that the garbage collector frees and that get made again later get new ones, and when it runs isn't up to us either.
+    # The allocator and the JIT compiler's search for memory for compiled code also draw from PRNGs of their own now (changes made to lj_alloc.c, lj_mcode.c and lj_trace.c),
+    # so the global PRNG, which decides when the JIT compiler compiles things, gives the same numbers every run. Otherwise when things got compiled, and with that how much memory
+    # the garbage collector counted and so when it ran and finalized objects, differed from run to run.
     '-DLUAJIT_SECURITY_PRNG=0',
     '-DLUAJIT_SECURITY_STRID=0'
 ]

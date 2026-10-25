@@ -243,7 +243,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - The `UniqueID` of a `MovableObject` is now 64 bit, with its upper bits saying which thread it was made on. Scripts still get it as a number, but it can be a lot larger than it used to be.
 
-- LuaJIT now goes through a table that has tables, functions or userdata for keys in an order that doesn't depend on where those are in memory, so `pairs` gives the same order every run. This only holds on 64 bit x86 and ARM.
+- LuaJIT now goes through a table that has tables, functions or userdata for keys in an order that doesn't depend on where those are in memory, so `pairs` gives the same order every run. This only holds on 64 bit x86 and ARM.  
+	Tables that have strings for keys are gone through in an order that only depends on the strings and the order they were put in the table, rather than on how many strings had been made before them, which changed with when the garbage collector happened to run.  
+	LuaJIT's JIT compiler now compiles things at the same points every run, instead of depending on where it happened to find memory for compiled code, so the garbage collector also runs and finalizes objects at the same points every run.
 
 - Numbers saved with `Activity:SaveNumber()` are now kept as doubles instead of floats, and floating point numbers in INI and save files are written out exactly instead of being rounded to 6 digits.
 
