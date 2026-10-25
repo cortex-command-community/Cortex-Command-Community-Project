@@ -152,6 +152,10 @@ namespace RTE {
 		/// Updates this Lua state.
 		void Update();
 
+		/// Does garbage collection on this Lua state, as much of it as Lua's own collector would have done for what was allocated since the last time this was called, and stops Lua's own collector from doing any in the meantime.
+		/// This way garbage collection only happens here, where it can be done alongside other work, but no more of it is done than is needed to keep up.
+		void StepGarbageCollection();
+
 		/// Clears m_ScriptTimings.
 		void ClearScriptTimings();
 #pragma endregion
@@ -245,6 +249,10 @@ namespace RTE {
 		/// @return A string that describes the current state of the Lua stack.
 		std::string DescribeLuaStack();
 
+		/// Gets the size of this Lua state's heap.
+		/// @return The size of this Lua state's heap, in bytes.
+		size_t GetHeapSize();
+
 		/// Clears all the member variables of this LuaStateWrapper, effectively resetting the members of this abstraction level only.
 		void Clear();
 
@@ -266,6 +274,8 @@ namespace RTE {
 		std::unordered_map<std::string, LuaScriptFunctionObjects> m_ScriptCache;
 
 		std::unordered_map<std::string, PerformanceMan::ScriptTiming> m_ScriptTimings; //!< Internal map of script timings.
+
+		size_t m_HeapSizeAfterGarbageCollectionStep; //!< The size of this Lua state's heap, in bytes, at the end of the last StepGarbageCollection. 0 until it's first called.
 
 		// For determinism, every Lua state has it's own random number generator.
 		RandomGenerator m_RandomGenerator; //!< The random number generator used for this lua state.
