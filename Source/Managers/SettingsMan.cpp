@@ -164,7 +164,13 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("DefaultShakePerUnitOfRecoilEnergy", { reader >> g_CameraMan.m_DefaultShakePerUnitOfRecoilEnergy; });
 	MatchProperty("DefaultShakeFromRecoilMaximum", { reader >> g_CameraMan.m_DefaultShakeFromRecoilMaximum; });
 	MatchProperty("LaunchIntoActivity", { reader >> g_ActivityMan.m_LaunchIntoActivity; });
-	MatchProperty("DefaultActivityType", { reader >> g_ActivityMan.m_DefaultActivityType; });
+	MatchProperty("DefaultActivityType", {
+		reader >> g_ActivityMan.m_DefaultActivityType;
+		// The tutorial was its own Activity type before it became a GAScripted.
+		if (g_ActivityMan.m_DefaultActivityType == "GATutorial") {
+			g_ActivityMan.m_DefaultActivityType = "GAScripted";
+		}
+	});
 	MatchProperty("DefaultActivityName", { reader >> g_ActivityMan.m_DefaultActivityName; });
 	MatchProperty("DefaultSceneName", { reader >> g_SceneMan.m_DefaultSceneName; });
 	MatchProperty("DisableLuaJIT", { reader >> m_DisableLuaJIT; });

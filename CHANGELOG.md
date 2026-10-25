@@ -253,6 +253,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Numbers saved with `Activity:SaveNumber()` are now kept as doubles instead of floats, and floating point numbers in INI and save files are written out exactly instead of being rounded to 6 digits.
 
+- The tutorial mission is now a `GAScripted` activity, `Missions.rte/Activities/Tutorial.lua`, instead of being hardcoded in the engine. Its screens and room signs are drawn as bitmap primitives on the bunker's back wall instead of into the terrain.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
@@ -333,6 +335,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Removed `AHuman` property `MaxCrouchRotation`. `CrouchRotAngleTarget` is now used instead.
 
 - Deprecated `LimbPath` properties `SlowTravelSpeed`, `NormalTravelSpeed` and `FastTravelSpeed`. For the sake of backwards compatibility they will not crash the game and `NormalTravelSpeed` is a valid synonym for the new `TravelSpeed`.
+
+- Removed the `GATutorial` activity type, which only the tutorial mission used. `Settings.ini` files with `DefaultActivityType = GATutorial` are read as `GAScripted`.
 
 </details>
 

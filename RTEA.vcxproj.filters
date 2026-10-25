@@ -388,9 +388,6 @@
     <ClInclude Include="Source\Activities\GAScripted.h">
       <Filter>Activities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Activities\GATutorial.h">
-      <Filter>Activities</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Activities\GibEditor.h">
       <Filter>Activities</Filter>
     </ClInclude>
@@ -983,9 +980,6 @@
       <Filter>Activities</Filter>
     </ClCompile>
     <ClCompile Include="Source\Activities\GAScripted.cpp">
-      <Filter>Activities</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Activities\GATutorial.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
     <ClCompile Include="Source\Activities\GibEditor.cpp">

@@ -52,7 +52,7 @@ ActivityMan::~ActivityMan() {
 }
 
 void ActivityMan::Clear() {
-	m_DefaultActivityType = "GATutorial";
+	m_DefaultActivityType = "GAScripted";
 	m_DefaultActivityName = "Tutorial Mission";
 	m_Activity = nullptr;
 	m_StartActivity = nullptr;
@@ -409,7 +409,7 @@ void ActivityMan::SetStartActivity(Activity* newActivity) {
 }
 
 void ActivityMan::SetStartTutorialActivity() {
-	SetStartActivity(dynamic_cast<Activity*>(g_PresetMan.GetEntityPreset("GATutorial", "Tutorial Mission")->Clone()));
+	SetStartActivity(dynamic_cast<Activity*>(g_PresetMan.GetEntityPreset("GAScripted", "Tutorial Mission")->Clone()));
 	if (GameActivity* gameActivity = dynamic_cast<GameActivity*>(GetStartActivity())) {
 		gameActivity->SetStartingGold(10000);
 	}
