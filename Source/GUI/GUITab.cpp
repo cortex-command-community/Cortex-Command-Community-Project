@@ -4,15 +4,17 @@
 using namespace RTE;
 
 GUITab::GUITab(GUIManager* Manager, GUIControlManager* ControlManager) :
-    GUIControl(), GUIPanel(Manager) {
+	GUIControl(),
+	GUIPanel(Manager),
+	m_Image(nullptr),
+	m_Selected(false),
+	m_Mouseover(false),
+	m_Text("") {
+
 	m_ControlID = "TAB";
-	m_Image = nullptr;
 	m_ControlManager = ControlManager;
-	m_Selected = false;
 	m_Font = nullptr;
-	m_Mouseover = false;
 	m_FontColor = 0;
-	m_Text = "";
 }
 
 void GUITab::Create(const std::string& Name, int X, int Y, int Width, int Height) {
@@ -272,7 +274,7 @@ void GUITab::SetText(const std::string& Text) {
 	m_Text = Text;
 }
 
-std::string GUITab::GetText() const {
+const std::string& GUITab::GetText() const {
 	return m_Text;
 }
 

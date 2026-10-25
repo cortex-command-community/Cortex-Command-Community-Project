@@ -1,6 +1,6 @@
 /*
 ** Table handling.
-** Copyright (C) 2005-2022 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #ifndef _LJ_TAB_H
@@ -41,6 +41,18 @@ static LJ_AINLINE Node *hashmask(const GCtab *t, uint32_t hash)
 /* String IDs are generated when a string is interned. */
 #define hashstr(t, s)		hashmask(t, (s)->sid)
 
+#if LJ_HASHID
+/* The hash ID for a new GC object. It's a count of them that's been scrambled, since a count on its own makes for a poor hash. */
+static LJ_AINLINE uint32_t lj_tab_newhid(global_State *g)
+{
+  uint32_t count = ++g->hidcount;
+  return hashrot(count, count + HASH_BIAS);
+}
+#define lj_tab_sethid(g, o)	((o)->hid = lj_tab_newhid(g))
+#else
+#define lj_tab_sethid(g, o)	UNUSED(o)
+#endif
+
 #define hashlohi(t, lo, hi)	hashmask((t), hashrot((lo), (hi)))
 #define hashnum(t, o)		hashlohi((t), (o)->u32.lo, ((o)->u32.hi << 1))
 #if LJ_GC64
@@ -60,9 +72,6 @@ LJ_FUNC GCtab * LJ_FASTCALL lj_tab_new1(lua_State *L, uint32_t ahsize);
 LJ_FUNCA GCtab * LJ_FASTCALL lj_tab_dup(lua_State *L, const GCtab *kt);
 LJ_FUNC void LJ_FASTCALL lj_tab_clear(GCtab *t);
 LJ_FUNC void LJ_FASTCALL lj_tab_free(global_State *g, GCtab *t);
-#if LJ_HASFFI
-LJ_FUNC void lj_tab_rehash(lua_State *L, GCtab *t);
-#endif
 LJ_FUNC void lj_tab_resize(lua_State *L, GCtab *t, uint32_t asize, uint32_t hbits);
 LJ_FUNCA void lj_tab_reasize(lua_State *L, GCtab *t, uint32_t nasize);
 

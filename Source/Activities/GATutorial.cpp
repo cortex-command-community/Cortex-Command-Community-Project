@@ -35,10 +35,11 @@ GATutorial::~GATutorial() {
 	Destroy(true);
 }
 
-GATutorial::TutStep::TutStep(std::string text, int stepDuration, std::string screensPath, int frameCount, int frameDuration) {
-	m_Text = text;
-	m_Duration = stepDuration;
-	m_FrameDuration = frameDuration;
+GATutorial::TutStep::TutStep(std::string text, int stepDuration, const std::string& screensPath, int frameCount, int frameDuration) :
+	m_Text(std::move(text)),
+	m_Duration(stepDuration),
+	m_FrameDuration(frameDuration)
+	{
 
 	if (!screensPath.empty()) {
 		ContentFile(screensPath.c_str()).GetAsAnimation(m_pScreens, frameCount);
@@ -677,7 +678,7 @@ void GATutorial::DrawGUI(BITMAP* pTargetBitmap, const Vector& targetPos, int whi
 			int timePhase = (int)m_AreaTimer.GetElapsedRealTimeMS() % 1200;
 			revealText = revealText + (timePhase > 900 ? "..." : (timePhase > 600 ? ".. " : (timePhase > 300 ? ".  " : "   ")));
 		}
-		g_FrameMan.GetSmallFont()->DrawAligned(&pBitmapInt, screenTextPos.m_X, screenTextPos.m_Y, revealText.c_str(), GUIFont::Centre);
+		g_FrameMan.GetSmallFont()->DrawAligned(&pBitmapInt, screenTextPos.m_X, screenTextPos.m_Y, revealText, GUIFont::Centre);
 	}
 }
 

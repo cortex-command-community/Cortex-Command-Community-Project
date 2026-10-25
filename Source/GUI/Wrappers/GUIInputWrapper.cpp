@@ -11,9 +11,10 @@
 using namespace RTE;
 
 GUIInputWrapper::GUIInputWrapper(int whichPlayer, bool keyJoyMouseCursor) :
-    GUIInput(whichPlayer, keyJoyMouseCursor) {
-	m_KeyTimer = std::make_unique<Timer>();
-	m_CursorAccelTimer = std::make_unique<Timer>();
+	GUIInput(whichPlayer, keyJoyMouseCursor),
+	m_KeyTimer(std::make_unique<Timer>()),
+	m_CursorAccelTimer(std::make_unique<Timer>())
+	{
 
 	memset(m_KeyboardBuffer, 0, sizeof(uint8_t) * GUIInput::Constants::KEYBOARD_BUFFER_SIZE);
 	memset(m_ScanCodeState, 0, sizeof(uint8_t) * GUIInput::Constants::KEYBOARD_BUFFER_SIZE);
@@ -179,4 +180,6 @@ void GUIInputWrapper::UpdateKeyJoyMouseInput(float keyElapsedTime) {
 		m_MouseButtonsStates[0] = GUIInput::Up;
 		m_MouseButtonsEvents[0] = GUIInput::None;
 	}
+
+    m_MouseWheelChange = g_UInputMan.MouseWheelMovedByPlayer(m_Player);
 }

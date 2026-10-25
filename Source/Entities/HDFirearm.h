@@ -101,7 +101,7 @@ namespace RTE {
 		/// this gun. This changes all future mags that will be reloaded.
 		/// @param magName The preset name of the new Magazine to load into this from now on.
 		/// @return Whether the specified magazine was found and successfully prepared.
-		bool SetNextMagazineName(std::string magName);
+		bool SetNextMagazineName(const std::string& magName);
 
 		/// Gets the number of rounds still in the loaded magazine. Negative value
 		/// means infinite ammo.

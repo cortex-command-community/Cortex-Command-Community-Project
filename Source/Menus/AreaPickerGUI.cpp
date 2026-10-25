@@ -53,7 +53,7 @@ void AreaPickerGUI::Clear() {
 	m_CursorPos.Reset();
 }
 
-int AreaPickerGUI::Create(Controller* pController, std::string onlyOfType) {
+int AreaPickerGUI::Create(Controller* pController, const std::string& onlyOfType) {
 	RTEAssert(pController, "No controller sent to AreaPickerGUI on creation!");
 	m_pController = pController;
 
@@ -77,7 +77,7 @@ int AreaPickerGUI::Create(Controller* pController, std::string onlyOfType) {
 	// Stretch the invisible root box to fill the screen
 	dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("base"))->SetSize(g_WindowMan.GetResX(), g_WindowMan.GetResY());
 
-	// Make sure we have convenient points to teh containing GUI colleciton boxes that we will manipulate the positions of
+	// Make sure we have convenient points to the containing GUI colleciton boxes that we will manipulate the positions of
 	if (!m_pParentBox) {
 		m_pParentBox = dynamic_cast<GUICollectionBox*>(m_pGUIController->GetControl("PickerGUIBox"));
 
@@ -194,7 +194,7 @@ Scene::Area* AreaPickerGUI::GetPrevArea() {
 	return 0;
 }
 
-void AreaPickerGUI::UpdateAreasList(std::string selectAreaName) {
+void AreaPickerGUI::UpdateAreasList(const std::string& selectAreaName) {
 	m_pAreasList->ClearList();
 
 	if (g_SceneMan.GetScene() && !g_SceneMan.GetScene()->m_AreaList.empty()) {

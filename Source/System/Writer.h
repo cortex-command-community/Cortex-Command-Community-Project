@@ -1,5 +1,6 @@
 #pragma once
 
+#include <format>
 #include <string>
 #include <memory>
 #include <ostream>
@@ -40,15 +41,15 @@ namespace RTE {
 #pragma region Getters
 		/// Gets the path to the file being written.
 		/// @return The full path to the file being written.
-		std::string GetFilePath() const { return m_FilePath; }
+		const std::string& GetFilePath() const { return m_FilePath; }
 
 		/// Gets the name (without path) of the file being written.
 		/// @return The name of file being written.
-		std::string GetFileName() const { return m_FileName; }
+		const std::string& GetFileName() const { return m_FileName; }
 
 		/// Gets the folder path (without filename) to where the file is being written.
 		/// @return The name of folder being written in.
-		std::string GetFolderPath() const { return m_FolderPath; }
+		const std::string& GetFolderPath() const { return m_FolderPath; }
 #pragma endregion
 
 #pragma region Writing Operations
@@ -171,12 +172,13 @@ namespace RTE {
 			*m_Stream << var;
 			return *this;
 		}
+		// Floating point numbers get written with as many digits as it takes for them to be read back as exactly the same number, and no more.
 		Writer& operator<<(const float& var) {
-			*m_Stream << var;
+			*m_Stream << std::format("{}", var);
 			return *this;
 		}
 		Writer& operator<<(const double& var) {
-			*m_Stream << var;
+			*m_Stream << std::format("{}", var);
 			return *this;
 		}
 		Writer& operator<<(const char* var) {

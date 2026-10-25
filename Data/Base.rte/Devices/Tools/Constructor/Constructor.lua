@@ -326,11 +326,19 @@ function Update(self)
 					end
 				else
 					for i = 1, self.RoundsFired do
-						local trace = Vector(self.digLength, 0):RadRotate(angle + RangeRand(-1, 1) * self.spreadRange);
-						local digPos = ConstructorTerrainRay(self.MuzzlePos, trace, 0);
 
-						if SceneMan:GetTerrMatter(digPos.X, digPos.Y) ~= rte.airID then
+						local trace, digPos, diggingAir
+						for _ = 1, 5 do
+							-- Try up to 5 times to find a pixel to dig
+							trace = Vector(self.digLength, 0):RadRotate(angle + RangeRand(-1, 1) * self.spreadRange);
+							digPos = ConstructorTerrainRay(self.MuzzlePos, trace, 0);
+							diggingAir = SceneMan:GetTerrMatter(digPos.X, digPos.Y) == rte.airID
+							if not diggingAir then
+								break
+							end
+						end
 
+						if not diggingAir then
 							local digWeightTotal = 0;
 							local totalVel = Vector();
 							local found = 0;
@@ -463,6 +471,8 @@ function Update(self)
 
 			if cursorMovement:MagnitudeIsGreaterThan(0) then
 				self.cursor = self.cursor + (mouseControlled and cursorMovement or cursorMovement:SetMagnitude(self.cursorMoveSpeed * (aiming and 0.5 or 1)));
+
+				SceneMan:ForceBounds(self.cursor);
 			end
 
 			local precise = not mouseControlled and aiming;
@@ -554,21 +564,23 @@ function Update(self)
 					for x = 1, cellSize do
 						for y = 1, cellSize do
 							local pos = Vector(startPos.X + x, startPos.Y + y);
-							local strengthRatio = SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(pos.X, pos.Y)).StructuralIntegrity/self.digStrength;
-							if strengthRatio < 1 and SceneMan:GetMOIDPixel(pos.X, pos.Y) == rte.NoMOID then
-								local name = "";
-								if bx + x == 0 or bx + x == self.buildList[1][4] - 1 or by + y == 0 or by + y == self.buildList[1][4] - 1 then
-									name = "Base.rte/Constructor Border Tile " .. math.random(4);
-								else
-									name = "Base.rte/Constructor Tile " .. math.random(16);
-								end
-								
-								local terrainObject = CreateTerrainObject(name);
-								terrainObject.Pos = pos;
-								SceneMan:AddSceneObject(terrainObject);
+							if SceneMan:IsWithinBounds(pos.X, pos.Y, 0) then
+								local strengthRatio = SceneMan:GetMaterialFromID(SceneMan:GetTerrMatter(pos.X, pos.Y)).StructuralIntegrity/self.digStrength;
+								if strengthRatio < 1 and SceneMan:GetMOIDPixel(pos.X, pos.Y) == rte.NoMOID then
+									local name = "";
+									if bx + x == 0 or bx + x == self.buildList[1][4] - 1 or by + y == 0 or by + y == self.buildList[1][4] - 1 then
+										name = "Base.rte/Constructor Border Tile " .. math.random(4);
+									else
+										name = "Base.rte/Constructor Tile " .. math.random(16);
+									end
 
-								didBuild = true;
-								totalCost = 1 - strengthRatio;
+									local terrainObject = CreateTerrainObject(name);
+									terrainObject.Pos = pos;
+									SceneMan:AddSceneObject(terrainObject);
+
+									didBuild = true;
+									totalCost = 1 - strengthRatio;
+								end
 							end
 						end
 					end

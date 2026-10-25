@@ -72,7 +72,7 @@ LuaBindingRegisterFunctionDefinitionForType(GUILuaBindings, SceneEditorGUI) {
 
 	    .def("SetCursorPos", &SceneEditorGUI::SetCursorPos)
 	    .def("GetCurrentObject", &SceneEditorGUI::GetCurrentObject)
-	    .def("SetCurrentObject", &SceneEditorGUI::SetCurrentObject)
+	    .def("SetCurrentObject", &SceneEditorGUI::SetCurrentObject, luabind::adopt(_2))
 	    .def("SetModuleSpace", &SceneEditorGUI::SetModuleSpace)
 	    .def("SetNativeTechModule", &SceneEditorGUI::SetNativeTechModule)
 	    .def("SetForeignCostMultiplier", &SceneEditorGUI::SetForeignCostMultiplier)

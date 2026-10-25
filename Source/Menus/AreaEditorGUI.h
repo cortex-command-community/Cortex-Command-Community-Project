@@ -107,7 +107,7 @@ namespace RTE {
 		/// Updates the list that the GUI's Area picker has, from the current
 		/// scene state.
 		/// @param selectAreaName The name of the Area to leave selected after the list is updated. (default: "")
-		void UpdatePickerList(std::string selectAreaName = "");
+		void UpdatePickerList(const std::string& selectAreaName = "");
 
 		/// Updates the state of this Menu each frame
 		void Update();

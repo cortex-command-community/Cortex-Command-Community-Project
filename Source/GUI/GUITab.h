@@ -85,7 +85,7 @@ namespace RTE {
 		void SetText(const std::string& Text);
 
 		/// Gets the text.
-		std::string GetText() const;
+		const std::string& GetText() const;
 
 		/// Applies new properties to the control.
 		/// @param Props GUIProperties.

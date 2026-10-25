@@ -61,7 +61,7 @@ namespace RTE {
 
 		/// Description:
 		/// Return value:
-		std::string GetParentAssemblySchemeName() const { return m_ParentAssemblyScheme; }
+		const std::string& GetParentAssemblySchemeName() const { return m_ParentAssemblyScheme; }
 
 		/// Indicates whether this' current graphical representation overlaps
 		/// a point in absolute scene coordinates.
@@ -97,11 +97,11 @@ namespace RTE {
 
 		/// Gets the name of an assembly symmetric to this one.
 		/// @return Symmetric assembly name.
-		std::string GetSymmetricAssemblyName() const { return m_SymmetricAssembly; };
+		const std::string& GetSymmetricAssemblyName() const { return m_SymmetricAssembly; };
 
 		/// Sets the name of an assembly symmetric to this one.
 		/// @param newSymmetricAssembly Symmetric assembly name.
-		void SetSymmetricAssemblyName(std::string newSymmetricAssembly) { m_SymmetricAssembly = newSymmetricAssembly; };
+		void SetSymmetricAssemblyName(std::string newSymmetricAssembly) { m_SymmetricAssembly = std::move(newSymmetricAssembly); };
 
 		/// Draws this TerrainObject's current graphical representation to a
 		/// BITMAP of choice.

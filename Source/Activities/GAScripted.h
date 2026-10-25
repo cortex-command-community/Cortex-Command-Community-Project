@@ -49,8 +49,8 @@ namespace RTE {
 		/// @return An error return value signaling sucess or any particular failure.
 		/// Anything below 0 is an error signal.
 		int Create(std::string scriptPath, std::string scriptClassName) {
-			m_ScriptPath = scriptPath;
-			m_LuaClassName = scriptClassName;
+			m_ScriptPath = std::move(scriptPath);
+			m_LuaClassName = std::move(scriptClassName);
 			return Create();
 		};
 

@@ -298,11 +298,11 @@ namespace RTE {
 #pragma region Collision Management
 		/// Gets the subgroup ID of this' Atoms.
 		/// @return The subgroup ID of this' Atoms.
-		long GetAtomSubgroupID() const { return m_AtomSubgroupID; }
+		int64_t GetAtomSubgroupID() const { return m_AtomSubgroupID; }
 
 		/// Sets the subgroup ID of this' Atoms
 		/// @param newID A long describing the new subgroup id of this' Atoms.
-		void SetAtomSubgroupID(long subgroupID = 0) { m_AtomSubgroupID = subgroupID; }
+		void SetAtomSubgroupID(int64_t subgroupID = 0) { m_AtomSubgroupID = subgroupID; }
 
 		/// Gets whether this Attachable currently has terrain collisions enabled and it's atoms are present in the parent AtomGroup.
 		/// Attachables with Attachable parents that don't collide with terrain will not collide with terrain. This chains up to the root parent.
@@ -394,7 +394,7 @@ namespace RTE {
 		/// Removes the Attachable corresponding to the passed in UniqueID and sets its parent to nullptr. Does not add it to MovableMan or add break wounds.
 		/// @param attachableUniqueID The UniqueID of the Attachable to remove.
 		/// @return A pointer to the removed Attachable. Ownership IS transferred!
-		Attachable* RemoveAttachable(long attachableUniqueID) final { return MOSRotating::RemoveAttachable(attachableUniqueID); }
+		Attachable* RemoveAttachable(int64_t attachableUniqueID) final { return MOSRotating::RemoveAttachable(attachableUniqueID); }
 
 		/// Removes the Attachable corresponding to the passed in UniqueID and sets its parent to nullptr. Optionally adds it to MovableMan and/or adds break wounds.
 		/// If the Attachable is not set to delete or delete when removed from its parent, and addToMovableMan is false, the caller must hang onto a pointer to the Attachable ahead of time to avoid memory leaks.
@@ -402,7 +402,7 @@ namespace RTE {
 		/// @param addToMovableMan Whether or not to add the Attachable to MovableMan once it has been removed.
 		/// @param addBreakWounds Whether or not to add break wounds to the removed Attachable and this Attachable.
 		/// @return A pointer to the removed Attachable, if it wasn't added to MovableMan or nullptr if it was. Ownership IS transferred!
-		Attachable* RemoveAttachable(long attachableUniqueID, bool addToMovableMan, bool addBreakWounds) final { return MOSRotating::RemoveAttachable(attachableUniqueID, addToMovableMan, addBreakWounds); }
+		Attachable* RemoveAttachable(int64_t attachableUniqueID, bool addToMovableMan, bool addBreakWounds) final { return MOSRotating::RemoveAttachable(attachableUniqueID, addToMovableMan, addBreakWounds); }
 
 		/// Removes the passed in Attachable and sets its parent to nullptr. Does not add it to MovableMan or add break wounds.
 		/// @param attachable The Attachable to remove.
@@ -475,7 +475,7 @@ namespace RTE {
 		float m_InheritsVelWhenDetached; //!< How much of the parents velocity this attachable inherits when detached
 		float m_InheritsAngularVelWhenDetached; //!< How much of the parents angular velocity this attachable inherits when detached
 
-		long m_AtomSubgroupID; //!< The Atom IDs this' atoms will have when attached and added to a parent's AtomGroup.
+		int64_t m_AtomSubgroupID; //!< The Atom IDs this' atoms will have when attached and added to a parent's AtomGroup.
 		bool m_CollidesWithTerrainWhileAttached; //!< Whether this attachable currently has terrain collisions enabled while it's attached to a parent.
 		bool m_IgnoresParticlesWhileAttached; //!< Whether this Attachable should ignore collisions with single-atom MOs while attached.
 		

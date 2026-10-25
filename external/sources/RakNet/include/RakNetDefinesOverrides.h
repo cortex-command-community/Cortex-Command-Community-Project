@@ -9,4 +9,7 @@
  */
 
 // USER EDITABLE FILE
+#include <cstdlib>
+#include <cstring>
+#include <cstdint>
 

@@ -9,6 +9,19 @@
 namespace RTE {
 
 	RandomGenerator g_RandomGenerator;
+	RandomGenerator g_DrawRandomGenerator;
+
+	thread_local RandomGenerator* s_ThreadRandomGenerator = nullptr;
+
+	static uint32_t s_SeedOffset = 0;
+
+	void SetThreadRandomGenerator(RandomGenerator* randomGenerator) {
+		s_ThreadRandomGenerator = randomGenerator;
+	}
+
+	RandomGenerator& GetThreadRandomGenerator() {
+		return s_ThreadRandomGenerator ? *s_ThreadRandomGenerator : g_RandomGenerator;
+	}
 
 	void SeedRNG() {
 		// Use a constant seed for determinism.
@@ -28,7 +41,12 @@ namespace RTE {
 			return static_cast<uint32_t>(seedResult);
 		}();
 
-		g_RandomGenerator.Seed(constSeed);
+		g_RandomGenerator.Seed(constSeed + s_SeedOffset);
+		g_DrawRandomGenerator.Seed(constSeed);
+	}
+
+	void SetRNGSeedOffset(uint32_t seedOffset) {
+		s_SeedOffset = seedOffset;
 	}
 
 	float Lerp(float scaleStart, float scaleEnd, float startValue, float endValue, float progressScalar) {
@@ -45,7 +63,7 @@ namespace RTE {
 		return startPos + (startToEnd * Lerp(scaleStart, scaleEnd, 0.0F, 1.0F, progressScalar));
 	}
 
-	Matrix Lerp(float scaleStart, float scaleEnd, Matrix startRot, Matrix endRot, float progressScalar) {
+	Matrix Lerp(float scaleStart, float scaleEnd, const Matrix& startRot, const Matrix& endRot, float progressScalar) {
 		const float fullTurn = c_PI * 2.0F;
 		float angleDelta = std::fmod(endRot.GetRadAngle() - startRot.GetRadAngle(), fullTurn);
 		float angleDistance = std::fmod(angleDelta * 2.0F, fullTurn) - angleDelta;

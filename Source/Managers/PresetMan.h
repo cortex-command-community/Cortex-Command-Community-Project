@@ -68,7 +68,7 @@ namespace RTE {
 
 		/// Sets the single module to be loaded after the official modules. This will be the ONLY non-official module to be loaded.
 		/// @param moduleName Name of the module to load.
-		void SetSingleModuleToLoad(std::string moduleName) { m_SingleModuleToLoad = moduleName; }
+		void SetSingleModuleToLoad(std::string moduleName) { m_SingleModuleToLoad = std::move(moduleName); }
 
 		/// Gets a specific loaded DataModule
 		/// @param whichModule The ID of the module to get. (default: 0)
@@ -134,7 +134,7 @@ namespace RTE {
 		/// @return Whether or not a copy of the passed-in instance was successfully inserted
 		/// into the module. False will be returned if there already was an instance
 		/// of that class and instance name inserted previously, unless overwritten.
-		bool AddEntityPreset(Entity* pEntToAdd, int whichModule = 0, bool overwriteSame = false, std::string readFromFile = "Same");
+		bool AddEntityPreset(Entity* pEntToAdd, int whichModule = 0, bool overwriteSame = false, const std::string& readFromFile = "Same");
 
 		/// Gets a previously read in (defined) Entity, by type and instance name.
 		/// @param type The type name of the derived Entity. Ownership is NOT transferred!
@@ -143,9 +143,9 @@ namespace RTE {
 		/// the official modules will be searched also. -1 means search ALL modules!
 		/// @return A pointer to the requested Entity instance. 0 if no Entity with that
 		/// derived type or instance name was found. Ownership is NOT transferred!
-		const Entity* GetEntityPreset(std::string type, std::string preset, int whichModule = -1);
+		const Entity* GetEntityPreset(const std::string& type, std::string preset, int whichModule = -1);
 		// Helper for passing in string module name instead of ID
-		const Entity* GetEntityPreset(std::string type, std::string preset, std::string module) { return GetEntityPreset(type, preset, GetModuleID(module)); }
+		const Entity* GetEntityPreset(const std::string& type, std::string preset, std::string module) { return GetEntityPreset(type, std::move(preset), GetModuleID(std::move(module))); }
 
 		/// Reads an instance of an Entity that will be used as preset
 		/// to later on be used to generate more instances of the same state.
@@ -173,7 +173,7 @@ namespace RTE {
 		/// @param whichModule The type name of the Entitys you want. (default: -1)
 		/// Whether to only get those of one specific DataModule (0-n), or all (-1).
 		/// @return Whether any Entity:s were found and added to the list.
-		bool GetAllOfType(std::list<Entity*>& entityList, std::string type, int whichModule = -1);
+		bool GetAllOfType(std::list<Entity*>& entityList, const std::string& type, int whichModule = -1);
 
 		/// Adds to a list all previously read in (defined) Entitys which are
 		/// of a specific type, and only exist in a specific module space.
@@ -184,7 +184,7 @@ namespace RTE {
 		/// official modules loaded earlier than the one specified here. -1 means
 		/// get ALL groups ever reg'd.
 		/// @return Whether any Entity:s were found and added to the list.
-		bool GetAllOfTypeInModuleSpace(std::list<Entity*>& entityList, std::string type, int whichModuleSpace);
+		bool GetAllOfTypeInModuleSpace(std::list<Entity*>& entityList, const std::string& type, int whichModuleSpace);
 
 		/// Adds to a list all previously read in (defined) Entities which are associated with a specific group.
 		/// @param entityList Reference to a list which will get all matching Entities added to it. Ownership of the list or the Entities placed in it are NOT transferred!
@@ -225,7 +225,7 @@ namespace RTE {
 		/// "All" will look at all types.
 		/// @param whichModule Whether to only get those of one specific DataModule (0-n), or all (-1). (default: -1)
 		/// @return The Entity preset that was randomly selected. Ownership is NOT transferred!
-		Entity* GetRandomOfGroup(std::string group, std::string type = "All", int whichModule = -1);
+		Entity* GetRandomOfGroup(std::string group, const std::string& type = "All", int whichModule = -1);
 
 		/// Returns a previously read in (defined) Entity which is randomly
 		/// selected from a specific group only if it belongs to some tech.
@@ -235,7 +235,7 @@ namespace RTE {
 		/// @param whichModule Whether to only get those of one specific DataModule (0-n), or all (-1) (default: -1)
 		/// or all modules uncluding non-tech ones.
 		/// @return The Entity preset that was randomly selected. Ownership is NOT transferred!
-		Entity* GetRandomBuyableOfGroupFromTech(std::string group, std::string type = "All", int whichModule = -1);
+		Entity* GetRandomBuyableOfGroupFromTech(std::string group, const std::string& type = "All", int whichModule = -1);
 
 		/// Adds to a list all previously read in (defined) Entitys which are
 		/// associated with a specific group, and only exist in a specific module
@@ -249,7 +249,7 @@ namespace RTE {
 		/// official modules loaded earlier than the one specified here. -1 means
 		/// get ALL groups ever reg'd.
 		/// @return Whether any Entity:s were found and added to the list.
-		bool GetAllOfGroupInModuleSpace(std::list<Entity*>& entityList, std::string group, std::string type, int whichModuleSpace);
+		bool GetAllOfGroupInModuleSpace(std::list<Entity*>& entityList, const std::string& group, const std::string& type, int whichModuleSpace);
 
 		/// Returns a previously read in (defined) Entity which is associated with
 		/// a specific group, randomly selected and only exist in a specific module
@@ -263,7 +263,7 @@ namespace RTE {
 		/// get ALL groups ever reg'd.
 		/// @return The randomly select preset, if any was found with thse search params.
 		/// Ownership is NOT transferred!
-		Entity* GetRandomOfGroupInModuleSpace(std::string group, std::string type, int whichModuleSpace);
+		Entity* GetRandomOfGroupInModuleSpace(const std::string& group, const std::string& type, int whichModuleSpace);
 
 		/// Gets the data file path of a previously read in (defined) Entity.
 		/// @param type The type name of the derived Entity. Ownership is NOT transferred!
@@ -272,7 +272,7 @@ namespace RTE {
 		/// the official modules will be searched also.
 		/// @return The file path of the data file that the specified Entity was read from.
 		/// If no Entity of that description was found, "" is returned.
-		std::string GetEntityDataLocation(std::string type, std::string preset, int whichModule);
+		std::string GetEntityDataLocation(const std::string& type, const std::string& preset, int whichModule);
 
 		/// Reloads all scripted Entity Presets with the latest version of their respective script files.
 		void ReloadAllScripts() const;
@@ -323,7 +323,7 @@ namespace RTE {
 		/// @param withType Pass a type name here and only groups with entitys of that type will be (default: "All")
 		/// be included. "All" means don't consider what types are in the groups.
 		/// @return Whether any groups were found and thus added to the list.
-		bool GetGroups(std::list<std::string>& groupList, int whichModule = -1, std::string withType = "All") const;
+		bool GetGroups(std::list<std::string>& groupList, int whichModule = -1, const std::string& withType = "All") const;
 
 		/// Fills out a list with all groups registered in all official modules,
 		/// PLUS a specific non-official module as well.
@@ -334,7 +334,7 @@ namespace RTE {
 		/// @param withType Pass a type name here and only groups with entitys of that type will be (default: "All")
 		/// be included. "All" means don't consider what types are in the groups.
 		/// @return Whether any groups were found and thus added to the list.
-		bool GetModuleSpaceGroups(std::list<std::string>& groupList, int whichModule, std::string withType = "All") const;
+		bool GetModuleSpaceGroups(std::list<std::string>& groupList, int whichModule, const std::string& withType = "All") const;
 
 		/// Creates and returns actor defined in the specified loadout.
 		/// @param loadoutName Loadout preset name, module name, whether or not spawn delivery craft defined for that loadout

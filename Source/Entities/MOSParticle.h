@@ -31,7 +31,7 @@ namespace RTE {
 		/// @param lifetime The amount of time in ms this MOSParticle will exist. 0 means unlimited.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(ContentFile spriteFile, const int frameCount = 1, const float mass = 1, const Vector& position = Vector(0, 0), const Vector& velocity = Vector(0, 0), const unsigned long lifetime = 0) {
-			MOSprite::Create(spriteFile, frameCount, mass, position, velocity, lifetime);
+			MOSprite::Create(std::move(spriteFile), frameCount, mass, position, velocity, lifetime);
 			return 0;
 		}
 

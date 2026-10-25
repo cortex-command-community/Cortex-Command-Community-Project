@@ -30,26 +30,25 @@ GUITextPanel::GUITextPanel(GUIManager* Manager) :
 // TODO: Both constructors use a common clear function?? Same with other panels
 
 GUITextPanel::GUITextPanel() :
-    GUIPanel() {
+    GUIPanel(),
+	m_FontSelectColor(0),
+	m_Text(""),
+	m_Locked(false),
+	m_WidthMargin(3),
+	m_HeightMargin(0),
+	m_CursorX(m_CursorY = 0),
+	m_CursorIndex(0),
+	m_StartIndex(0),
+	m_GotSelection(false),
+	m_SelectedColorIndex(0),
+	m_MaxTextLength(0),
+	m_NumericOnly(false),
+	m_MaxNumericValue(0) {
+
 	m_Font = nullptr;
-	m_Text = "";
-	m_CursorX = m_CursorY = 0;
-	m_CursorIndex = 0;
 	m_CursorColor = 0;
-	m_BlinkTimer.Reset();
-
 	m_FontColor = 0;
-	m_FontSelectColor = 0;
-	m_StartIndex = 0;
-	m_GotSelection = false;
-	m_SelectedColorIndex = 0;
-	m_Locked = false;
-	m_WidthMargin = 3;
-	m_HeightMargin = 0;
-
-	m_MaxTextLength = 0;
-	m_NumericOnly = false;
-	m_MaxNumericValue = 0;
+	m_BlinkTimer.Reset();
 }
 
 void GUITextPanel::Create(int X, int Y, int Width, int Height) {

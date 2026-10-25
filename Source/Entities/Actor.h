@@ -225,7 +225,7 @@ namespace RTE {
 		/// @return A Vector with the absolute position of this' eye or view point.
 		virtual Vector GetEyePos() const { return m_Pos; }
 
-		/// Gets the absoltue position of the top of this' HUD stack.
+		/// Gets the absolute position of the top of this' HUD stack.
 		/// @return A Vector with the absolute position of this' HUD stack top point.
 		Vector GetAboveHUDPos() const override { return m_Pos + Vector(0, m_HUDStack + 6); }
 
@@ -252,8 +252,8 @@ namespace RTE {
 		Vector GetViewPoint() const { return m_ViewPoint.IsZero() ? m_Pos : m_ViewPoint; }
 
 		/// Gets the item that is within reach of the Actor at this frame, ready to be be picked up. Ownership is NOT transferred!
-		/// @return A pointer to the item that has been determined to be within reach of this Actor, if any.
-		HeldDevice* GetItemInReach() const { return m_pItemInReach; }
+		/// @return A pointer to the item that has been determined to be within reach of this Actor, if any. An item that has since been deleted or picked up doesn't count.
+		HeldDevice* GetItemInReach() const;
 
 		/// Gets the direction where this is looking/aiming.
 		/// @return A Vector with the direction in which this is looking along.
@@ -668,7 +668,7 @@ namespace RTE {
 		/// @return The actor's dig strength.
 		virtual float EstimateDigStrength() const;
 
-		/// Estimates how high this actor can jump.
+		/// Estimates how high this actor can jump. Default implementation returns FLT_MAX.
 		/// @return The actor's jump height.
 		virtual float EstimateJumpHeight() const;
 

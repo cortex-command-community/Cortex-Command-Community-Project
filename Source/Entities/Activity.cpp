@@ -34,6 +34,8 @@ void Activity::Clear() {
 	m_Paused = false;
 	m_AllowsUserSaving = false;
 	m_Description.clear();
+	m_ShowInMenus = true;
+	m_HumansCanSpectate = false;
 	m_SceneName.clear();
 	m_MaxPlayerSupport = Players::MaxPlayerCount;
 	m_MinTeamsRequired = 2;
@@ -93,6 +95,8 @@ int Activity::Create(const Activity& reference) {
 	m_Paused = reference.m_Paused;
 	m_AllowsUserSaving = reference.m_AllowsUserSaving;
 	m_Description = reference.m_Description;
+	m_ShowInMenus = reference.m_ShowInMenus;
+	m_HumansCanSpectate = reference.m_HumansCanSpectate;
 	m_MaxPlayerSupport = reference.m_MaxPlayerSupport;
 	m_MinTeamsRequired = reference.m_MinTeamsRequired;
 	m_Difficulty = reference.m_Difficulty;
@@ -137,6 +141,8 @@ int Activity::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 	MatchProperty("Description", { reader >> m_Description; });
+	MatchProperty("ShowInMenus", { reader >> m_ShowInMenus; });
+	MatchProperty("HumansCanSpectate", { reader >> m_HumansCanSpectate; });
 	MatchProperty("SceneName", { reader >> m_SceneName; });
 	MatchProperty("MaxPlayerSupport", { reader >> m_MaxPlayerSupport; });
 	MatchProperty("MinTeamsRequired", { reader >> m_MinTeamsRequired; });
@@ -467,8 +473,8 @@ void Activity::ClearPlayers(bool resetFunds) {
 	m_PlayerCount = m_TeamCount = 0;
 }
 
-int Activity::GetHumanCount() const {
-	int humans = 0;
+uint8_t Activity::GetHumanCount() const {
+	uint8_t humans = 0;
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 		if (m_IsActive[player] && m_IsHuman[player]) {
 			humans++;
@@ -583,7 +589,7 @@ float Activity::GetPlayerFundsShare(int player) const {
 }
 
 void Activity::SetPlayerBrain(Actor* newBrain, int player) {
-	if ((player >= Players::PlayerOne || player < Players::MaxPlayerCount) && newBrain) {
+	if ((player >= Players::PlayerOne && player < Players::MaxPlayerCount) && newBrain) {
 		if (newBrain->GetTeam() != m_Team[player]) {
 			newBrain->SetTeam(m_Team[player]);
 		}

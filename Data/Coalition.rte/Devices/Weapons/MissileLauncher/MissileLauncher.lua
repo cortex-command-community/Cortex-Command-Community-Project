@@ -43,7 +43,7 @@ function ThreadedUpdate(self)
 					local moCheck = SceneMan:GetMOIDPixel(hitPos.X, hitPos.Y);
 					if moCheck ~= rte.NoMOID then
 						local mo = ToMOSRotating(MovableMan:GetMOFromID(MovableMan:GetMOFromID(moCheck).RootID));
-						if mo and mo.ClassName ~= "ADoor" and mo.Team ~= parent.Team then
+						if mo and mo.ClassName ~= "ADoor" and mo.Team ~= parent.Team and mo.GetsHitByMOs then
 							local movement = (mo.Vel.Magnitude + math.abs(mo.AngularVel) + 0.1) * math.sqrt(mo.Radius);
 							if movement > self.lockThreshold then
 

@@ -25,8 +25,13 @@
 
 #include "MusicMan.h"
 
+#ifdef SYSTEM_MINIZIP
+#include <minizip/zip.h>
+#include <minizip/unzip.h>
+#else
 #include "zip.h"
 #include "unzip.h"
+#endif
 
 #include "tracy/Tracy.hpp"
 
@@ -65,6 +70,10 @@ bool ActivityMan::Initialize() {
 	if (IsSetToLaunchIntoEditor()) {
 		// Evaluate LaunchIntoEditor before LaunchIntoActivity so it takes priority when both are set, otherwise it is ignored and editor is never launched.
 		return SetStartEditorActivitySetToLaunchInto();
+	} else if (!m_SaveGameToLaunch.empty()) {
+		return LoadAndLaunchGame(m_SaveGameToLaunch);
+	} else if (!m_ActivityNameToLaunch.empty()) {
+		return SetStartActivitySetToLaunchInto();
 	} else if (IsSetToLaunchIntoActivity()) {
 		m_ActivityNeedsRestart = true;
 		return true;
@@ -206,6 +215,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 
 			              SDL_Palette* palette = ContentFile::DefaultPaletteToSDL();
 			              SDL_SetSurfacePalette(image, palette);
+						  SDL_SetSurfaceColorKey(image, false, 0);
 
 			              bool result = IMG_SavePNG_IO(image, stream, false);
 			              SDL_FlushIO(stream);
@@ -283,7 +293,7 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 	unz_file_info info;
 	char* buffer = nullptr;
 
-	auto unzipFileIntoBuffer = [&](std::string fullFileName) {
+	auto unzipFileIntoBuffer = [&](const std::string& fullFileName) {
 		// These need to use NULL instead of nullptr to compile on Linux/OSX?
 		if (unzLocateFile(zippedSaveFile, fullFileName.c_str(), NULL) == UNZ_END_OF_LIST_OF_FILE) {
 			return false;
@@ -310,11 +320,16 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 		SDL_Surface* image = stream ? IMG_LoadPNG_IO(stream) : nullptr;
 		SDL_CloseIO(stream);
 
+		int bitDepth = SDL_GetPixelFormatDetails(image->format)->bits_per_pixel;
 		SDL_Palette* palette = ContentFile::DefaultPaletteToSDL();
-		SDL_Surface* newImage = SDL_ConvertSurfaceAndColorspace(image, SDL_PIXELFORMAT_INDEX8, palette, SDL_COLORSPACE_UNKNOWN, 0);
+		if (bitDepth != 8) {
+			SDL_Surface* newImage = SDL_ConvertSurfaceAndColorspace(image, SDL_PIXELFORMAT_INDEX8, palette, SDL_COLORSPACE_UNKNOWN, 0);
+			SDL_DestroySurface(image);
+			image = newImage;
+		} else {
+			SDL_SetSurfacePalette(image, palette);
+		}
 		SDL_DestroyPalette(palette);
-		SDL_DestroySurface(image);
-		image = newImage;
 
 		free(buffer);
 		return image;
@@ -444,6 +459,27 @@ bool ActivityMan::SetStartEditorActivitySetToLaunchInto() {
 		m_LaunchIntoEditor = false;
 		return false;
 	}
+}
+
+bool ActivityMan::SetStartActivitySetToLaunchInto() {
+	const Activity* activityPreset = dynamic_cast<const Activity*>(g_PresetMan.GetEntityPreset(m_ActivityTypeToLaunch, m_ActivityNameToLaunch));
+	if (!activityPreset || g_SceneMan.SetSceneToLoad(m_SceneNameToLaunch) < 0) {
+		g_ConsoleMan.PrintString("ERROR: Invalid Activity or Scene name passed into \"-activity\" argument!");
+		g_ConsoleMan.SetEnabled(true);
+		return false;
+	}
+
+	Activity* activityToStart = dynamic_cast<Activity*>(activityPreset->Clone());
+	if (GameActivity* gameActivityToStart = dynamic_cast<GameActivity*>(activityToStart)) {
+		gameActivityToStart->SetStartingGold(gameActivityToStart->GetDefaultGoldMediumDifficulty());
+		// Activities come set up with just player one, so give them the CPU to play against, unless the Activity decides that by itself.
+		if (gameActivityToStart->GetCPUTeam() == Activity::Teams::NoTeam) {
+			gameActivityToStart->SetCPUTeam(Activity::Teams::TeamTwo);
+		}
+	}
+	SetStartActivity(activityToStart);
+	m_ActivityNeedsRestart = true;
+	return true;
 }
 
 int ActivityMan::StartActivity(Activity* activity) {

@@ -99,7 +99,7 @@ namespace RTE {
 		/// everything up to and including the unique name of the game.
 		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
-		int SaveSceneData(std::string pathBase);
+		int SaveSceneData(const std::string& pathBase);
 
 		/// Loads the bitmap data of all Scenes of this Metagame that have once
 		/// been saved to files.
@@ -123,12 +123,12 @@ namespace RTE {
 		/// Sets the name of the currently played Metagame. It's what's used when
 		/// saving to disk.
 		/// @param newName The Metagame's name.
-		void SetGameName(std::string newName) { m_GameName = newName; }
+		void SetGameName(std::string newName) { m_GameName = std::move(newName); }
 
 		/// Gets the name of the currently played Metagame. It's what's used when
 		/// saving to disk.
 		/// @return The name of the current metagame.
-		std::string GetGameName() const { return m_GameName; }
+		const std::string& GetGameName() const { return m_GameName; }
 
 		/// Gets the GUI controller of this Metagame.
 		/// @return The GUI controller of the metagame.

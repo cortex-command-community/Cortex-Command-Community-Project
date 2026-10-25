@@ -83,7 +83,7 @@ namespace RTE {
 #pragma region Default Activity Handling
 		/// Gets the type name of the default Activity to be loaded if nothing else is available.
 		/// @return The default Activity type name.
-		std::string GetDefaultActivityType() const { return m_DefaultActivityType; }
+		const std::string& GetDefaultActivityType() const { return m_DefaultActivityType; }
 
 		/// Sets the type name of the default Activity to be loaded if nothing else is available.
 		/// @param defaultActivityType The default Activity type name.
@@ -91,7 +91,7 @@ namespace RTE {
 
 		/// Gets the name of the default Activity to be loaded if nothing else is available.
 		/// @return The default Activity preset name.
-		std::string GetDefaultActivityName() const { return m_DefaultActivityName; }
+		const std::string& GetDefaultActivityName() const { return m_DefaultActivityName; }
 
 		/// Sets the preset name of the default Activity to be loaded if nothing else is available.
 		/// @param defaultActivityName The default Activity preset name.
@@ -112,6 +112,20 @@ namespace RTE {
 				m_EditorToLaunch = editorName;
 				m_LaunchIntoEditor = true;
 			}
+		}
+
+		/// Sets the saved game to launch directly into.
+		/// @param saveGameName The file name of the saved game, without its extension.
+		void SetSaveGameToLaunch(const std::string_view& saveGameName) { m_SaveGameToLaunch = saveGameName; }
+
+		/// Sets the Activity and Scene to launch directly into.
+		/// @param activityType The type name of the Activity.
+		/// @param activityName The preset name of the Activity.
+		/// @param sceneName The preset name of the Scene.
+		void SetActivityToLaunch(const std::string_view& activityType, const std::string_view& activityName, const std::string_view& sceneName) {
+			m_ActivityTypeToLaunch = activityType;
+			m_ActivityNameToLaunch = activityName;
+			m_SceneNameToLaunch = sceneName;
 		}
 #pragma endregion
 
@@ -163,6 +177,10 @@ namespace RTE {
 		/// Launch editor Activity specified in command-line argument.
 		/// @return Whether a valid editor name was passed in and set to be launched next time ResetActivity is called.
 		bool SetStartEditorActivitySetToLaunchInto();
+
+		/// Launch Activity and Scene specified in command-line argument, as player one against the CPU.
+		/// @return Whether a valid Activity and Scene were passed in and set to be launched next time ResetActivity is called.
+		bool SetStartActivitySetToLaunchInto();
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -217,6 +235,10 @@ namespace RTE {
 		bool m_LaunchIntoActivity; //!< Whether to skip the intro and main menu and launch directly into the set default Activity instead.
 		bool m_LaunchIntoEditor; //!< Whether to skip the intro and main menu and launch directly into the set editor Activity instead.
 		std::string_view m_EditorToLaunch; //!< The name of the editor Activity to launch directly into.
+		std::string m_SaveGameToLaunch; //!< The file name of the saved game to launch directly into, if any.
+		std::string m_ActivityTypeToLaunch; //!< The type name of the Activity to launch directly into, if any.
+		std::string m_ActivityNameToLaunch; //!< The preset name of the Activity to launch directly into, if any.
+		std::string m_SceneNameToLaunch; //!< The preset name of the Scene to launch the above Activity in.
 
 		/// Clears all the member variables of this ActivityMan, effectively resetting the members of this abstraction level only.
 		void Clear();

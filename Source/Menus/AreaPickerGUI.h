@@ -37,12 +37,12 @@ namespace RTE {
 		~AreaPickerGUI();
 
 		/// Makes the AreaPickerGUI area ready for use.
-		/// @param pController A poitner to a Controller which will control this Menu. Ownership is
+		/// @param pController A pointer to a Controller which will control this Menu. Ownership is
 		/// @param onlyOfType NOT TRANSFERRED! (default: "All")
 		/// Which lowest common denominator type to be showing.
-		/// @return An error return value signaling sucess or any particular failure.
+		/// @return An error return value signaling success or any particular failure.
 		/// Anything below 0 is an error signal.
-		int Create(Controller* pController, std::string onlyOfType = "All");
+		int Create(Controller* pController, const std::string& onlyOfType = "All");
 
 		/// Resets the entire AreaPickerGUI, including its inherited members, to
 		/// their default settings or values.
@@ -98,7 +98,7 @@ namespace RTE {
 
 		/// Adds all areas of the currently selected group to the Areas list.
 		/// @param selectAreaName The name of the Area to leave selected after the list is updated. (default: "")
-		void UpdateAreasList(std::string selectAreaName = "");
+		void UpdateAreasList(const std::string& selectAreaName = "");
 
 		/// Updates the state of this Menu each frame
 		void Update();

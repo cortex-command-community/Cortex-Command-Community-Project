@@ -31,9 +31,7 @@ void SoundSet::Clear() {
 int SoundSet::Create(const SoundSet& reference) {
 	m_SoundSelectionCycleMode = reference.m_SoundSelectionCycleMode;
 	m_CurrentSelection = reference.m_CurrentSelection;
-	for (SoundData referenceSoundData: reference.m_SoundData) {
-		m_SoundData.push_back(referenceSoundData);
-	}
+	m_SoundData.insert(m_SoundData.end(), reference.m_SoundData.begin(), reference.m_SoundData.end());
 	for (const SoundSet* referenceSoundSet: reference.m_SubSoundSets) {
 		SoundSet* soundSet = new SoundSet(*referenceSoundSet);
 		m_SubSoundSets.push_back(soundSet);
@@ -225,6 +223,20 @@ void SoundSet::GetFlattenedSoundData(std::vector<SoundData*>& flattenedSoundData
 	}
 }
 
+const SoundData* SoundSet::FindSoundData(const FMOD::Sound* sound) const {
+	for (const SoundData& soundData: m_SoundData) {
+		if (soundData.SoundObject == sound) {
+			return &soundData;
+		}
+	}
+	for (const SoundSet* subSoundSet: m_SubSoundSets) {
+		if (const SoundData* soundData = subSoundSet->FindSoundData(sound)) {
+			return soundData;
+		}
+	}
+	return nullptr;
+}
+
 void SoundSet::GetFlattenedSoundData(std::vector<const SoundData*>& flattenedSoundData, bool onlyGetSelectedSoundData) const {
 	if (!onlyGetSelectedSoundData || m_SoundSelectionCycleMode == SoundSelectionCycleMode::ALL) {
 		for (const SoundData& soundData: m_SoundData) {
@@ -262,13 +274,13 @@ bool SoundSet::SelectNextSounds() {
 	/// Internal lambda function to pick a random sound that's not the previously played sound. Done to avoid scoping issues inside the switch below.
 	/// </summary>
 	auto selectSoundRandom = [&selectedVectorSize, &unselectedVectorSize, this]() {
-		if (unselectedVectorSize > 0 && (selectedVectorSize == 1 || RandomNum(0, 1) == 1)) {
+		if (unselectedVectorSize > 0 && (selectedVectorSize == 1 || g_DrawRandomGenerator.RandomNum(0, 1) == 1)) {
 			std::swap(selectedVectorSize, unselectedVectorSize);
-			m_CurrentSelection = {!m_CurrentSelection.first, RandomNum(0, selectedVectorSize - 1)};
+			m_CurrentSelection = {!m_CurrentSelection.first, g_DrawRandomGenerator.RandomNum(0, selectedVectorSize - 1)};
 		} else {
-			size_t soundToSelect = RandomNum(0, selectedVectorSize - 1);
+			size_t soundToSelect = g_DrawRandomGenerator.RandomNum(0, selectedVectorSize - 1);
 			while (soundToSelect == m_CurrentSelection.second) {
-				soundToSelect = RandomNum(0, selectedVectorSize - 1);
+				soundToSelect = g_DrawRandomGenerator.RandomNum(0, selectedVectorSize - 1);
 			}
 			m_CurrentSelection.second = soundToSelect;
 		}

@@ -9,6 +9,8 @@
 *.user
 # IDE files
 /.idea
+# Meson files
+*.wraplock
 
 compile_commands.json
 **/.ccls-cache

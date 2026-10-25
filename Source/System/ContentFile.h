@@ -61,6 +61,9 @@ namespace RTE {
 
 		/// Frees all loaded data used by all ContentFile instances. This should ONLY be done when quitting the app, or after everything else is completely destroyed.
 		static void FreeAllLoaded();
+
+		/// Releases all the sounds loaded by all ContentFile instances, waiting for the ones FMOD is still loading asynchronously. This has to be done before the audio system gets released.
+		static void FreeAllLoadedSounds();
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -157,7 +160,8 @@ namespace RTE {
 #pragma endregion
 
 		/// Copies the default palette to an sdl palette.
-		static SDL_Palette* DefaultPaletteToSDL();
+		/// @param preMask Whether to replace mask color with 0 alpha (necessary for loading indexed to 32-bit image)
+		static SDL_Palette* DefaultPaletteToSDL(bool preMask = false);
 
 	private:
 		/// Enumeration for loading BITMAPs by bit depth. NOTE: This can't be lower down because s_LoadedBitmaps relies on this definition.

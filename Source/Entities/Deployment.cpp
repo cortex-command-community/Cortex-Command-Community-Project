@@ -50,7 +50,7 @@ int Deployment::Create() {
 }
 
 int Deployment::Create(std::string loadoutName, const Icon& icon, float spawnRadius) {
-	m_LoadoutName = loadoutName;
+	m_LoadoutName = std::move(loadoutName);
 	m_Icon = icon;
 	m_SpawnRadius = spawnRadius;
 	m_WalkRadius = 250;

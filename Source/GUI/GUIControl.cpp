@@ -57,7 +57,7 @@ std::string GUIControl::GetToolTip() {
 	return tip;
 }
 
-std::string GUIControl::GetID() const {
+const std::string& GUIControl::GetID() const {
 	return m_ControlID;
 }
 
@@ -259,7 +259,7 @@ bool GUIControl::IsContainer() {
 	return m_IsContainer;
 }
 
-void GUIControl::RemoveChild(const std::string Name) {
+void GUIControl::RemoveChild(const std::string& Name) {
 	// Note: We do NOT free the children because they are still linked in through their panels. This merely removes the control from the list.
 	// This will cause a small memory leak, but this is only designed for the GUI Editor and is a bit of a hack.
 	std::vector<GUIControl*>::iterator it;
