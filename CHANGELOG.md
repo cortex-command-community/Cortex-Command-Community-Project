@@ -309,6 +309,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed AI actors refusing to fire the Coalition Missile Launcher at anything beyond point-blank range, because the AI took the range of its short-lived dummy round instead of the missile's.
 
+- Fixed the terrain background layer drawing at the terrain foreground's depth, which hid primitives drawn at a depth between `DrawDepth.Default` and `DrawDepth.TerrainBackground` behind it instead of showing them on top of the background.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
