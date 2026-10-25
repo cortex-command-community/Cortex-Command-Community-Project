@@ -35,6 +35,7 @@ void LuaStateWrapper::Initialize() {
 	tracy::LuaRegister(m_State);
 
 	// Lua's own garbage collector is left on until StepGarbageCollection takes over from it, so it still collects while scripts are being loaded.
+	//lua_gc(m_State, LUA_GCSTOP, 0);
 
 	const luaL_Reg libsToLoad[] = {
 	    // Basic Lua libraries
