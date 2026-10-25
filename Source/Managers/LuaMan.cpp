@@ -1005,6 +1005,7 @@ std::string LuaStateWrapper::DescribeLuaStack() {
 }
 
 size_t LuaStateWrapper::GetHeapSize() {
+	// Lua only gives the heap size in whole kilobytes, plus the bytes left over from that, so they're put back together to get it in bytes.
 	return static_cast<size_t>(lua_gc(m_State, LUA_GCCOUNT, 0)) * 1024 + static_cast<size_t>(lua_gc(m_State, LUA_GCCOUNTB, 0));
 }
 
