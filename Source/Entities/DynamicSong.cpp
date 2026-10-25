@@ -148,12 +148,12 @@ SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
 					}
 				}
 
-				unsigned int randomIndex = validIndices[RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
+				unsigned int randomIndex = validIndices[g_DrawRandomGenerator.RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
 				m_LastTransitionSoundContainerIndex = randomIndex;
 				return m_TransitionSoundContainers[randomIndex];
 			}
 			case SHUFFLE: {
-				unsigned int randomSelection = RandomNum(0, static_cast<int>(m_TransitionShuffleUnplayedIndices.size() - 1));
+				unsigned int randomSelection = g_DrawRandomGenerator.RandomNum(0, static_cast<int>(m_TransitionShuffleUnplayedIndices.size() - 1));
 				unsigned int selectedIndex = m_TransitionShuffleUnplayedIndices[randomSelection];
 				m_TransitionShuffleUnplayedIndices.erase(m_TransitionShuffleUnplayedIndices.begin() + randomSelection);
 				m_LastTransitionSoundContainerIndex = selectedIndex;
@@ -188,12 +188,12 @@ SoundContainer& DynamicSongSection::SelectSoundContainer() {
 					}
 				}
 
-				unsigned int randomIndex = validIndices[RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
+				unsigned int randomIndex = validIndices[g_DrawRandomGenerator.RandomNum(0, static_cast<int>(validIndices.size()) - 1)];
 				m_LastSoundContainerIndex = randomIndex;
 				return m_SoundContainers[randomIndex];
 			}
 			case SHUFFLE: {
-				unsigned int randomSelection = RandomNum(0, static_cast<int>(m_ShuffleUnplayedIndices.size() - 1));
+				unsigned int randomSelection = g_DrawRandomGenerator.RandomNum(0, static_cast<int>(m_ShuffleUnplayedIndices.size() - 1));
 				unsigned int selectedIndex = m_ShuffleUnplayedIndices[randomSelection];
 				m_ShuffleUnplayedIndices.erase(m_ShuffleUnplayedIndices.begin() + randomSelection);
 				m_LastSoundContainerIndex = selectedIndex;

@@ -517,6 +517,7 @@ typedef struct jit_State {
   BCLine prev_line;	/* Previous line. */
   int prof_mode;	/* Profiling mode: 0, 'f', 'l'. */
 #endif
+  PRNGState mcprng;	/* Cortex Command: PRNG for mcode addresses, see lj_trace_initstate. */
 } jit_State;
 
 #ifdef LUA_USE_ASSERT

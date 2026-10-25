@@ -1706,7 +1706,7 @@ function HumanBehaviors.ShootArea(AI, Owner, Abort)
 		if Owner.FirearmIsReady then
 			AI.deviceState = AHuman.AIMING;
 			AI.Ctrl.AnalogAim = Vector(1,0):RadRotate(aim+aimError+RangeRand(-0.02, 0.02)*AI.aimSkill);
-			if ShootTimer:IsPastRealMS(aimTime) then
+			if ShootTimer:IsPastSimMS(aimTime) then
 				if Weapon.FullAuto then
 					AI.fire = true;
 				else
@@ -1732,7 +1732,7 @@ function HumanBehaviors.ShootArea(AI, Owner, Abort)
 		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
 		if _abrt then return true end
 
-		if AI.UnseenTarget and CheckTargetTimer:IsPastRealMS(400*AI.aimSkill) then
+		if AI.UnseenTarget and CheckTargetTimer:IsPastSimMS(400*AI.aimSkill) then
 			if MovableMan:ValidMO(AI.UnseenTarget) and (AI.UnseenTarget.ClassName == "AHuman" or AI.UnseenTarget.ClassName == "ACrab") then
 				CheckTargetTimer:Reset();
 				if AI.UnseenTarget:GetController() and AI.UnseenTarget:GetController():IsState(Controller.WEAPON_FIRE) then

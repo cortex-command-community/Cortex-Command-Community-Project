@@ -23,6 +23,10 @@ namespace RTE {
 		/// Seed the random number generator.
 		void Seed(uint64_t seed) { m_RNG.seed(seed); };
 
+		/// Gets the next raw number the generator will produce, without advancing it. This can be used to check whether two generators are in the same state.
+		/// @return The next raw number the generator will produce.
+		uint32_t PeekNext() const { return static_cast<uint32_t>(std::mt19937(m_RNG)()); }
+
 		/// Function template which returns a uniformly distributed random number in the range [-1, 1].
 		/// @return Uniformly distributed random number in the range [-1, 1].
 		template <typename floatType = float>
@@ -77,40 +81,54 @@ namespace RTE {
 	};
 
 	extern RandomGenerator g_RandomGenerator; //!< The global random number generator used in our simulation thread.
+	extern RandomGenerator g_DrawRandomGenerator; //!< The random number generator for drawing and audio code. How much of either goes on is not up to the simulation, so they can't be allowed to use up the simulation's random numbers.
 
 	/// Seed global the global random number generators.
 	void SeedRNG();
 
-	// TODO: Maybe remove these passthrough functions and force the user to manually specify if they want the simulation thread random,
-	// Or, in future, a render-thread random, as right now determinism isn't viable because framerate affects sim updates per draw
+	/// Sets a number that SeedRNG adds to the seed of the simulation's random number generator, so that the simulation gets a different stream of random numbers.
+	/// @param seedOffset The number to add to the seed. With 0, the simulation gets its usual random numbers.
+	void SetRNGSeedOffset(uint32_t seedOffset);
+
+	/// Sets a random number generator for the global random functions to use when called from this thread, instead of the global one.
+	/// This is for keeping whatever is being run from affecting the random numbers that the rest of the simulation gets.
+	/// @param randomGenerator The random number generator to use, or nullptr to go back to the global one. Ownership is NOT transferred!
+	void SetThreadRandomGenerator(RandomGenerator* randomGenerator);
+
+	/// Gets the random number generator that the global random functions use when called from this thread.
+	/// @return The random number generator set for this thread, or the global one if there is none.
+	RandomGenerator& GetThreadRandomGenerator();
+
+	// These all use the simulation's random number generator, so drawing and audio code have to use g_DrawRandomGenerator instead of them.
+	// TODO: Maybe remove these passthrough functions and force the user to manually specify if they want the simulation random or the draw random.
 	template <typename floatType = float>
 	typename std::enable_if<std::is_floating_point<floatType>::value, floatType>::type RandomNormalNum() {
-		return g_RandomGenerator.RandomNormalNum();
+		return GetThreadRandomGenerator().RandomNormalNum();
 	}
 
 	template <typename intType>
 	typename std::enable_if<std::is_integral<intType>::value, intType>::type RandomNormalNum() {
-		return g_RandomGenerator.RandomNormalNum();
+		return GetThreadRandomGenerator().RandomNormalNum();
 	}
 
 	template <typename floatType = float>
 	typename std::enable_if<std::is_floating_point<floatType>::value, floatType>::type RandomNum() {
-		return g_RandomGenerator.RandomNum();
+		return GetThreadRandomGenerator().RandomNum();
 	}
 
 	template <typename intType>
 	typename std::enable_if<std::is_integral<intType>::value, intType>::type RandomNum() {
-		return g_RandomGenerator.RandomNum();
+		return GetThreadRandomGenerator().RandomNum();
 	}
 
 	template <typename floatType = float>
 	typename std::enable_if<std::is_floating_point<floatType>::value, floatType>::type RandomNum(floatType min, floatType max) {
-		return g_RandomGenerator.RandomNum(min, max);
+		return GetThreadRandomGenerator().RandomNum(min, max);
 	}
 
 	template <typename intType>
 	typename std::enable_if<std::is_integral<intType>::value, intType>::type RandomNum(intType min, intType max) {
-		return g_RandomGenerator.RandomNum(min, max);
+		return GetThreadRandomGenerator().RandomNum(min, max);
 	}
 #pragma endregion
 

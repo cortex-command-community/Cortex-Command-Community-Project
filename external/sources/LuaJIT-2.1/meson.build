@@ -12,10 +12,6 @@ luajit_dependencies = [libm, libdl]
 luajit_source_dir = include_directories('src')
 luajit_abiver = '51'
 
-if not meson.can_run_host_binaries()
-    warning('Can\'t properly build in cross environment, using system library instead!')
-else
-
 dynasm = files('dynasm/dynasm.lua')
 
 subdir('src')
@@ -37,4 +33,3 @@ luajit_dep = declare_dependency(
 )
 
 meson.override_dependency('luajit', luajit_dep)
-endif

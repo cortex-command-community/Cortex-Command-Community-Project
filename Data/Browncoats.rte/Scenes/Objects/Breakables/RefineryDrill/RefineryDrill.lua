@@ -12,6 +12,8 @@ function Create(self)
 	
 	self.overloadExplodeSound = CreateSoundContainer("Yskely Refinery Drill Overload Explode", "Browncoats.rte");
 	self.overloadSound = CreateSoundContainer("Yskely Refinery Drill Overload Start", "Browncoats.rte");
+	-- How long the overload sound is, in MS. The drill blows up once that much sim time has gone by, instead of when the audio system is done playing the sound, since that goes by real time.
+	self.overloadSoundLength = 16165;
 
 	self.loopSound = CreateSoundContainer("Yskely Refinery Drill Idle Loop", "Browncoats.rte");
 	self.loopSound:Play(self.Pos + Vector(0, 200));
@@ -19,7 +21,7 @@ end
 
 function ThreadedUpdate(self)
 	if self.overloading then
-		if not self.overloadSound:IsBeingPlayed() and not self.overloadExploded then
+		if self.overloadFXTimer:IsPastSimMS(self.overloadSoundLength) and not self.overloadExploded then
 			self.overloadExplodeSound:Play(self.Pos + Vector(0, 200));
 			self.overloadExploded = true;
 			self.overloadFXTimer:Reset();
