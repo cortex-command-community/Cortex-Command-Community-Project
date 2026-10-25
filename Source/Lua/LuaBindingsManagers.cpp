@@ -428,6 +428,7 @@ LuaBindingRegisterFunctionDefinitionForType(ManagerLuaBindings, UInputMan) {
 	    .property("FlagShiftState", &UInputMan::FlagShiftState)
 
 	    .def("GetInputDevice", &UInputMan::GetInputDevice)
+	    .def("GetControlScheme", &UInputMan::GetControlScheme)
 	    .def("ElementPressed", &UInputMan::ElementPressed)
 	    .def("ElementReleased", &UInputMan::ElementReleased)
 	    .def("ElementHeld", &UInputMan::ElementHeld)

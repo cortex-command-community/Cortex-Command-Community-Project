@@ -6,7 +6,6 @@ sources += files(
 'EditorActivity.cpp',
 'GameActivity.cpp',
 'GAScripted.cpp',
-'GATutorial.cpp',
 'GibEditor.cpp',
 #'MultiplayerGame.cpp',
 #'MultiplayerServerLobby.cpp',
