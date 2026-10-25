@@ -1,0 +1,35 @@
+function Create(self)
+	--Suffer from fire rate loss when firing rapidly
+	self.fireRatePenaltyPerShot = 500;
+	self.fireRateRevertIncrement = 2;
+	self.fireRateRevertTimer = Timer();
+end
+
+function ThreadedUpdate(self)
+	if not self.origRateOfFire then	--Check original stats on Update() to include global script changes
+		self.origRateOfFire = self.RateOfFire;
+	end
+
+	if self.FiredFrame then
+		local parent = self:GetParent() or self;
+
+		self.InheritedRotAngleOffset = self.InheritedRotAngleOffset + RangeRand(1.8, 1.9)/math.sqrt(1 + parent.Mass + parent.Material.StructuralIntegrity * 0.1);
+		self.RateOfFire = math.max(self.RateOfFire - self.fireRatePenaltyPerShot, 1);
+		CameraMan:AddScreenShake(20, self.Pos);
+
+		self.fireRateRevertTimer:Reset();
+	elseif self.RateOfFire < self.origRateOfFire then
+		self.RateOfFire = math.min(self.RateOfFire * (1 + self.fireRateRevertIncrement * 0.01) + self.fireRateRevertIncrement, self.origRateOfFire);
+		self.fireRateRevertTimer:Reset();
+	end
+
+	if self.InheritedRotAngleOffset > 0 then
+		self.InheritedRotAngleOffset = self.InheritedRotAngleOffset - 0.0001 * (self.RateOfFire/(0.9 + self.InheritedRotAngleOffset));
+		if self.InheritedRotAngleOffset < 0 then
+			self.InheritedRotAngleOffset = 0;
+		end
+	if self.InheritedRotAngleOffset > 0.3 then
+		self:Deactivate();
+		end
+	end
+end

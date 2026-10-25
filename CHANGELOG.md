@@ -309,6 +309,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed a memory leak where every positional sound that played left its lowpass EQ behind in FMOD, never released.
 
+- Fixed AI actors refusing to fire the Coalition Missile Launcher at anything beyond point-blank range, because the AI took the range of its short-lived dummy round instead of the missile's.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
