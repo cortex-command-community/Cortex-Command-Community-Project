@@ -41,6 +41,18 @@ static LJ_AINLINE Node *hashmask(const GCtab *t, uint32_t hash)
 /* String IDs are generated when a string is interned. */
 #define hashstr(t, s)		hashmask(t, (s)->sid)
 
+#if LJ_HASHID
+/* The hash ID for a new GC object. It's a count of them that's been scrambled, since a count on its own makes for a poor hash. */
+static LJ_AINLINE uint32_t lj_tab_newhid(global_State *g)
+{
+  uint32_t count = ++g->hidcount;
+  return hashrot(count, count + HASH_BIAS);
+}
+#define lj_tab_sethid(g, o)	((o)->hid = lj_tab_newhid(g))
+#else
+#define lj_tab_sethid(g, o)	UNUSED(o)
+#endif
+
 #define hashlohi(t, lo, hi)	hashmask((t), hashrot((lo), (hi)))
 #define hashnum(t, o)		hashlohi((t), (o)->u32.lo, ((o)->u32.hi << 1))
 #if LJ_GC64

@@ -1276,7 +1276,8 @@ static void asm_href(ASMState *as, IRIns *ir, IROp merge)
     if (isk) {
       emit_gri(as, XG_ARITHi(XOg_AND), dest, (int32_t)khash);
       emit_rmro(as, XO_MOV, dest, tab, offsetof(GCtab, hmask));
-    } else if (irt_isstr(kt)) {
+    } else if (irt_isstr(kt) || irt_ishashid(kt)) {
+      /* A hash ID is at the same offset as the sid of a string. */
       emit_rmro(as, XO_ARITH(XOg_AND), dest, key, offsetof(GCstr, sid));
       emit_rmro(as, XO_MOV, dest, tab, offsetof(GCtab, hmask));
     } else {  /* Must match with hashrot() in lj_tab.c. */

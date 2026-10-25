@@ -309,6 +309,18 @@ void lj_trace_initstate(global_State *g)
   jit_State *J = G2J(g);
   TValue *tv;
 
+  /*
+  ** Cortex Command: picking addresses for mcode draws from a PRNG of its own,
+  ** rather than from the global one. How many it has to try depends on how
+  ** the process' memory happens to be laid out, and the global PRNG decides
+  ** the hot counts and penalties that decide when things get compiled. With
+  ** those differing from run to run, so did the trace memory the garbage
+  ** collector counts, and so when it ran and finalized objects, and the game's
+  ** simulation has to be deterministic.
+  */
+  J->mcprng = g->prng;
+  (void)lj_prng_u64(&J->mcprng);
+
   /* Initialize aligned SIMD constants. */
   tv = LJ_KSIMD(J, LJ_KSIMD_ABS);
   tv[0].u64 = U64x(7fffffff,ffffffff);

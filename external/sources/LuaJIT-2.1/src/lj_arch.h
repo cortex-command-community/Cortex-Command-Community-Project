@@ -600,6 +600,18 @@
 #define LJ_GC64			0
 #endif
 
+/*
+** Hash tables, functions, userdata and threads by an ID that's kept in them
+** instead of by their address, so that a table with them for keys gets
+** iterated in the same order every run. The ID goes in padding they only
+** have with 64 bit GC references, and the JIT backend has to hash it too.
+*/
+#if LJ_GC64 && (LJ_TARGET_X64 || LJ_TARGET_ARM64)
+#define LJ_HASHID		1
+#else
+#define LJ_HASHID		0
+#endif
+
 /* 2-slot frame info. */
 #if LJ_GC64
 #define LJ_FR2			1

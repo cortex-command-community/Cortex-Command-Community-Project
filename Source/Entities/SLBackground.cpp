@@ -179,7 +179,7 @@ void SLBackground::Update() {
 					break;
 				case SpriteAnimMode::ALWAYSRANDOM:
 					while (m_Frame == prevFrame) {
-						m_Frame = RandomNum(0, m_FrameCount - 1);
+						m_Frame = g_DrawRandomGenerator.RandomNum(0, m_FrameCount - 1);
 					}
 					break;
 				case SpriteAnimMode::ALWAYSPINGPONG:

@@ -1045,7 +1045,7 @@ void HDFirearm::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whic
 	}
 
 	float sharpLength = std::max(m_MaxSharpLength * m_SharpAim, 20.0F);
-	int glowStrength = RandomNum(95, 159);
+	int glowStrength = g_DrawRandomGenerator.RandomNum(95, 159);
 	int pointCount;
 	if (playerControlled && sharpLength > 20.0F) {
 		pointCount = m_SharpAim > 0.5F ? 4 : 3;
