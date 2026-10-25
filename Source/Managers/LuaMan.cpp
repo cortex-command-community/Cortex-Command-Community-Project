@@ -31,6 +31,7 @@ void LuaStateWrapper::Clear() {
 	m_LastError.clear();
 	m_CurrentlyRunningScriptPath = "";
 	m_RunningAI = false;
+  m_HeapSizeAfterGarbageCollectionStep = 0;
 }
 
 void LuaStateWrapper::Initialize() {
@@ -38,7 +39,7 @@ void LuaStateWrapper::Initialize() {
 	luabind::open(m_State);
 	tracy::LuaRegister(m_State);
 
-	// We do async GC, but we still keep the normal GC on so it can catch any big spikes or runaway allocs
+	// Lua's own garbage collector is left on until StepGarbageCollection takes over from it, so it still collects while scripts are being loaded.
 	//lua_gc(m_State, LUA_GCSTOP, 0);
 
 	const luaL_Reg libsToLoad[] = {
@@ -890,6 +891,23 @@ void LuaStateWrapper::Update() {
 	m_AddedRegisteredMOs.clear();
 }
 
+void LuaStateWrapper::StepGarbageCollection() {
+	std::lock_guard<std::recursive_mutex> lock(m_Mutex);
+
+	size_t heapSize = GetHeapSize();
+	if (m_HeapSizeAfterGarbageCollectionStep != 0) {
+		// Lua's own collector does its step multiplier's worth of collecting for each kilobyte allocated, and a step of that many kilobytes does the same, so this keeps up with what was allocated since the last step just as it would have.
+		// With nothing allocated it still does a single step, so that a cycle always gets finished.
+		// Unlike Lua's own collector, it goes straight on from one cycle into the next rather than waiting for the heap to grow first. That wait goes by an estimate of the heap that leaves out what's still to be finalized, which there's no way to get from outside Lua, and going by the whole heap instead lets it grow without end.
+		size_t allocatedSinceLastStep = heapSize > m_HeapSizeAfterGarbageCollectionStep ? heapSize - m_HeapSizeAfterGarbageCollectionStep : 0;
+		lua_gc(m_State, LUA_GCSTEP, static_cast<int>(allocatedSinceLastStep / 1024));
+	}
+
+	// Stop the Lua GC from triggering manually so we don't get spikes in work that the main thread may be waiting on
+	lua_gc(m_State, LUA_GCSTOP, 0);
+	m_HeapSizeAfterGarbageCollectionStep = GetHeapSize();
+}
+
 void LuaStateWrapper::ClearScriptTimings() {
 	m_ScriptTimings.clear();
 }
@@ -1003,6 +1021,11 @@ std::string LuaStateWrapper::DescribeLuaStack() {
 		}
 	}
 	return stackDescription.str();
+}
+
+size_t LuaStateWrapper::GetHeapSize() {
+	// Lua only gives the heap size in whole kilobytes, plus the bytes left over from that, so they're put back together to get it in bytes.
+	return static_cast<size_t>(lua_gc(m_State, LUA_GCCOUNT, 0)) * 1024 + static_cast<size_t>(lua_gc(m_State, LUA_GCCOUNTB, 0));
 }
 
 LuaMan::LuaMan() {
@@ -1317,9 +1340,7 @@ void LuaMan::StartAsyncGarbageCollection() {
 		m_GarbageCollectionTask.push_back(
 		    g_ThreadMan.GetPriorityThreadPool().submit([luaState]() {
 			    ZoneScopedN("Lua Garbage Collection");
-			    std::lock_guard<std::recursive_mutex> lock(luaState->GetMutex());
-			    lua_gc(luaState->GetLuaState(), LUA_GCSTEP, 100);
-			    lua_gc(luaState->GetLuaState(), LUA_GCSTOP, 0);
+			    luaState->StepGarbageCollection();
 		    }));
 	}
 }
