@@ -282,6 +282,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed `AHuman:EquipShieldInBGArm()` being able to take the wrong item out of the inventory, which left the device it equipped both held and in the inventory. The device then got dropped twice when its holder died, and the game could crash when quitting.
 
+- Fixed a memory leak where every positional sound that played left its lowpass EQ behind in FMOD, never released.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
