@@ -67,7 +67,6 @@ This has been tested with WSL2 Ubuntu 22.04 but should work with other distribut
 # Linux and macOS Build Instructions
 The Linux build uses the meson build system, and builds against system libraries.
 LuaJIT is the exception: it's always built from the copy in `external/sources`, including when cross compiling, because the game relies on changes made to it (such as its deterministic table ordering). So a system `luajit` isn't needed.
-The Lua bindings use LuaBridge3, which is header only and included in `external/include/LuaBridge3`, with a few changes of our own so that existing scripts keep working.
 
 ## Dependencies
 
