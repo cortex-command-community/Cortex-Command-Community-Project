@@ -311,6 +311,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed `PrimitiveMan:DrawPrimitives(transValue, primitivesTable)`, and the `Transparency` blend mode in general, drawing nothing at all. `transValue` goes from 0 (opaque) to 100 (invisible) again, in steps of 5.
 
+- Fixed anything drawn partly transparent during an activity, such as transparent primitives, coming out darker than it should, and darker still in split-screen.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
