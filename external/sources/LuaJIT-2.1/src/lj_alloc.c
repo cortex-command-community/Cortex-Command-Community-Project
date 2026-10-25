@@ -540,6 +540,7 @@ struct malloc_state {
   tbinptr    treebins[NTREEBINS];
   msegment   seg;
   PRNGState  *prng;
+  PRNGState  prngstate;	/* Cortex Command: the allocator's own PRNG state, see lj_alloc_setprng. */
 };
 
 typedef struct malloc_state *mstate;
@@ -1251,7 +1252,15 @@ void *lj_alloc_create(PRNGState *rs)
 void lj_alloc_setprng(void *msp, PRNGState *rs)
 {
   mstate ms = (mstate)msp;
-  ms->prng = rs;
+  /*
+  ** Cortex Command: the allocator gets a copy of the PRNG to draw from from
+  ** now on, rather than sharing the global one. How many addresses it has to
+  ** try depends on how the process' memory happens to be laid out, and the
+  ** global PRNG decides when the JIT compiler compiles things, which has to
+  ** be the same on every run of the game for it to be deterministic.
+  */
+  ms->prngstate = *rs;
+  ms->prng = &ms->prngstate;
 }
 
 void lj_alloc_destroy(void *msp)

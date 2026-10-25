@@ -324,6 +324,9 @@ typedef struct GCudata {
   GCHeader;
   uint8_t udtype;	/* Userdata type. */
   uint8_t unused2;
+#if LJ_HASHID
+  uint32_t hid;		/* What tables hash this by. Same offset as GCstr.sid. */
+#endif
   GCRef env;		/* Should be at same offset in GCfunc. */
   MSize len;		/* Size of payload. */
 #if LJ_GC64
@@ -454,9 +457,15 @@ typedef struct GCupval {
 /* -- Function object (closures) ------------------------------------------ */
 
 /* Common header for functions. env should be at same offset in GCudata. */
+#if LJ_HASHID
+#define GCfuncHeader \
+  GCHeader; uint8_t ffid; uint8_t nupvalues; uint32_t hid; \
+  GCRef env; GCRef gclist; MRef pc
+#else
 #define GCfuncHeader \
   GCHeader; uint8_t ffid; uint8_t nupvalues; \
   GCRef env; GCRef gclist; MRef pc
+#endif
 
 typedef struct GCfuncC {
   GCfuncHeader;
@@ -502,6 +511,9 @@ typedef struct GCtab {
   GCHeader;
   uint8_t nomm;		/* Negative cache for fast metamethods. */
   int8_t colo;		/* Array colocation. */
+#if LJ_HASHID
+  uint32_t hid;		/* What tables hash this by. Same offset as GCstr.sid. */
+#endif
   MRef array;		/* Array part. */
   GCRef gclist;
   GCRef metatable;	/* Must be at same offset in GCudata. */
@@ -663,6 +675,9 @@ typedef struct global_State {
   MRef jit_base;	/* Current JIT code L->base or NULL. */
   MRef ctype_state;	/* Pointer to C type state. */
   PRNGState prng;	/* Global PRNG state. */
+#if LJ_HASHID
+  uint32_t hidcount;	/* How many objects have been given a hash ID. */
+#endif
   GCRef gcroot[GCROOT_MAX];  /* GC roots. */
 } global_State;
 
@@ -695,6 +710,9 @@ struct lua_State {
   GCHeader;
   uint8_t dummy_ffid;	/* Fake FF_C for curr_funcisL() on dummy frames. */
   uint8_t status;	/* Thread status. */
+#if LJ_HASHID
+  uint32_t hid;		/* What tables hash this by. Same offset as GCstr.sid. */
+#endif
   MRef glref;		/* Link to global state. */
   GCRef gclist;		/* GC chain. */
   TValue *base;		/* Base of currently executing function. */
@@ -735,6 +753,9 @@ typedef struct GChead {
   GCHeader;
   uint8_t unused1;
   uint8_t unused2;
+#if LJ_HASHID
+  uint32_t hid;		/* What tables hash this by. Same offset as GCstr.sid. */
+#endif
   GCRef env;
   GCRef gclist;
   GCRef metatable;

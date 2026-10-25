@@ -88,6 +88,9 @@
     <ClInclude Include="Source\System\Singleton.h">
       <Filter>System</Filter>
     </ClInclude>
+    <ClInclude Include="Source\System\DeterminismChecker.h">
+      <Filter>System</Filter>
+    </ClInclude>
     <ClInclude Include="Source\System\System.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -683,6 +686,9 @@
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="Source\System\Reader.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\System\DeterminismChecker.cpp">
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="Source\System\System.cpp">
