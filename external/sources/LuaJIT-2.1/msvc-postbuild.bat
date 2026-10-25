@@ -5,6 +5,7 @@
 cd %~dp0\src\
 
 @setlocal
+@set PATH=.;%PATH%
 @set LJCOMPILE=cl /nologo /c /O2 /W3 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_STDIO_INLINE=__declspec(dllexport)__inline
 @set LJLINK=link /nologo
 @set LJMT=mt /nologo

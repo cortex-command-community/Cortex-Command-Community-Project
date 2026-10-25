@@ -150,7 +150,7 @@ namespace RTE {
 			// The duration of one frame
 			int m_FrameDuration;
 
-			TutStep(std::string text, int stepDuration, std::string screensPath = "", int frameCount = 1, int frameDuration = 250);
+			TutStep(std::string text, int stepDuration, const std::string& screensPath = "", int frameCount = 1, int frameDuration = 250);
 		};
 
 		// Member variables

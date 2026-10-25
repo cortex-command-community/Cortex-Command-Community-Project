@@ -78,7 +78,7 @@ int MOSprite::Create(ContentFile spriteFile,
                      const unsigned long lifetime) {
 	MovableObject::Create(mass, position, velocity, 0, 0, lifetime);
 
-	m_SpriteFile = spriteFile;
+	m_SpriteFile = std::move(spriteFile);
 	m_FrameCount = frameCount;
 	m_aSprite.clear();
 	m_SpriteFile.GetAsAnimation(m_aSprite, m_FrameCount);
@@ -180,18 +180,18 @@ int MOSprite::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-void MOSprite::SetEntryWound(std::string presetName, std::string moduleName) {
+void MOSprite::SetEntryWound(const std::string& presetName, std::string moduleName) {
 	if (presetName == "")
 		m_pEntryWound = 0;
 	else
-		m_pEntryWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset("AEmitter", presetName, moduleName));
+		m_pEntryWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset("AEmitter", presetName, std::move(moduleName)));
 }
 
-void MOSprite::SetExitWound(std::string presetName, std::string moduleName) {
+void MOSprite::SetExitWound(const std::string& presetName, std::string moduleName) {
 	if (presetName == "")
 		m_pExitWound = 0;
 	else
-		m_pExitWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset("AEmitter", presetName, moduleName));
+		m_pExitWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset("AEmitter", presetName, std::move(moduleName)));
 }
 
 std::string MOSprite::GetEntryWoundPresetName() const {
@@ -259,8 +259,7 @@ bool MOSprite::HitTestAtPixel(int pixelX, int pixelY, bool validOnly) const {
 
 	// Check the scene position in the current local space of the MO, accounting for Position, Sprite Offset, Angle and HFlipped.
 	// TODO Account for Scale as well someday, maybe.
-	Matrix rotation = m_Rotation; // <- Copy to non-const variable so / operator overload works.
-	Vector entryPos = (distanceBetweenTestPositionAndMO / rotation).GetXFlipped(m_HFlipped) - m_SpriteOffset;
+	Vector entryPos = (distanceBetweenTestPositionAndMO / m_Rotation).GetXFlipped(m_HFlipped) - m_SpriteOffset;
 	int localX = entryPos.GetFloorIntX();
 	int localY = entryPos.GetFloorIntY();
 
@@ -344,12 +343,6 @@ bool MOSprite::IsOnScenePoint(Vector& scenePoint) const {
 	}
 
 	return false;
-}
-
-Vector MOSprite::RotateOffset(const Vector& offset) const {
-	Vector rotOff(offset.GetXFlipped(m_HFlipped));
-	rotOff *= const_cast<Matrix&>(m_Rotation);
-	return rotOff;
 }
 
 Vector MOSprite::UnRotateOffset(const Vector& offset) const {

@@ -4,10 +4,10 @@
 #include "Scene.h"
 #include "SceneMan.h"
 #include "ThreadMan.h"
-#include "ConsoleMan.h"
 
 #include "tracy/Tracy.hpp"
 
+#include <array>
 #include <execution>
 
 using namespace RTE;
@@ -151,8 +151,6 @@ MicroPather* PathFinder::GetPather() {
 int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathResult, float& totalCostResult, float jumpHeight, float digStrength) {
 	ZoneScoped;
 
-	++m_CurrentPathingRequests;
-
 	// Make sure start and end are within scene bounds.
 	g_SceneMan.ForceBounds(start);
 	g_SceneMan.ForceBounds(end);
@@ -172,9 +170,16 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 	// Actors capable of jumping/jetpacking can jump upwards.
 	s_JumpHeight = jumpHeight;
 
-	// How high up we can jump from this node
-	s_JumpHeightVertical = std::max(1, static_cast<int>(jumpHeight / (m_NodeDimension * c_MPP))); // min of 1 so automovers work a bit better
-	s_JumpHeightDiagonal = static_cast<int>((jumpHeight * 0.7F) / (m_NodeDimension * c_MPP));
+	// How high up we can jump from this node.
+	if(jumpHeight == FLT_MAX) {
+		// Probably quite high.
+		s_JumpHeightVertical = INT_MAX;
+		s_JumpHeightDiagonal = INT_MAX;
+	} else {
+		// Assume at least 1 so automovers work a bit better
+		s_JumpHeightVertical = std::max(1, static_cast<int>(jumpHeight / (m_NodeDimension * c_MPP)));
+		s_JumpHeightDiagonal = std::max(1, static_cast<int>((jumpHeight * 0.7F) / (m_NodeDimension * c_MPP)));
+	}
 
 	// Actors capable of digging can use s_DigStrength to modify the node adjacency cost.
 	s_DigStrength = digStrength;
@@ -206,17 +211,13 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 		}
 
 		// Adjust the last point to be exactly where the end is supposed to be (really?).
-		if (pathResult.size() > 2) {
-			pathResult.pop_back();
-			pathResult.push_back(end);
-		}
+		pathResult.pop_back();
+		pathResult.push_back(end);
 	} else {
 		// Empty path, give exact start and end.
 		pathResult.push_back(start);
 		pathResult.push_back(end);
 	}
-
-	--m_CurrentPathingRequests;
 
 	// TODO: Clean up the path, remove series of nodes in the same direction etc?
 	return result;
@@ -227,6 +228,10 @@ std::shared_ptr<volatile PathRequest> PathFinder::CalculatePathAsync(Vector star
 
 	const_cast<Vector&>(pathRequest->startPos) = start;
 	const_cast<Vector&>(pathRequest->targetPos) = end;
+
+	// The request counts as active from when it gets queued up until it has been marked as complete,
+	// so that whatever waits for the requests to be done doesn't miss the ones that haven't been started on yet, or that aren't marked as complete yet.
+	++m_CurrentPathingRequests;
 
 	g_ThreadMan.GetBackgroundThreadPool().push_task(
 	    [this, start, end, jumpHeight, digStrength, callback](std::shared_ptr<volatile PathRequest> volRequest) {
@@ -245,6 +250,8 @@ std::shared_ptr<volatile PathRequest> PathFinder::CalculatePathAsync(Vector star
 		    // Have to set to complete after the callback, so anything that blocks on it knows that the callback will have been called by now
 		    // This has the awkward side-effect that the complete flag is actually false during the callback - but that's fine, if it's called we know it's complete anyways
 		    request.complete = true;
+
+		    --m_CurrentPathingRequests;
 	    },
 	    pathRequest);
 
@@ -260,14 +267,14 @@ void PathFinder::RecalculateAllCosts() {
 	// I hate this copy, but fuck it.
 	std::vector<int> pathNodesIdsVec;
 	pathNodesIdsVec.reserve(m_NodeGrid.size());
-	for (int i = 0; i < m_NodeGrid.size(); ++i) {
+	for (size_t i = 0; i < m_NodeGrid.size(); ++i) {
 		pathNodesIdsVec.push_back(i);
 	}
 
 	UpdateNodeList(pathNodesIdsVec);
 }
 
-std::vector<int> PathFinder::RecalculateAreaCosts(std::deque<Box>& boxList, int nodeUpdateLimit) {
+std::vector<int> PathFinder::RecalculateAreaCosts(std::deque<Box>& boxList, size_t nodeUpdateLimit) {
 	ZoneScoped;
 
 	std::unordered_set<int> nodeIDsToUpdate;
@@ -612,7 +619,7 @@ void PathFinder::MarkBoxNavigable(Box box, bool navigable) {
 void PathFinder::MarkAllNodesNavigable(bool navigable) {
 	std::vector<int> pathNodesIdsVec;
 	pathNodesIdsVec.reserve(m_NodeGrid.size());
-	for (int i = 0; i < m_NodeGrid.size(); ++i) {
+	for (size_t i = 0; i < m_NodeGrid.size(); ++i) {
 		pathNodesIdsVec.push_back(i);
 	}
 
@@ -649,7 +656,7 @@ int PathFinder::ConvertCoordsToNodeId(int x, int y) const {
 	return (y * m_GridWidth) + x;
 }
 
-void PathFinder::DebugRender(BITMAP* targetBitmap, const Vector& targetPos, int whichScreen) const {
+void PathFinder::DebugRender(BITMAP* targetBitmap, const Vector& targetPos) const {
 	for (int x = 0; x < m_GridWidth; ++x) {
 		Vector startPos = (m_NodeGrid[ConvertCoordsToNodeId(x, 0)].Pos - m_Offset) - targetPos;
 		Vector endPos = startPos + Vector(0.0F, m_NodeDimension * m_GridHeight);

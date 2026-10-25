@@ -32,6 +32,8 @@
 #include "tracy/TracyOpenGL.hpp"
 #include <SDL3_image/SDL_image.h>
 
+#include <array>
+
 using namespace RTE;
 
 void BitmapDeleter::operator()(BITMAP* bitmap) const { destroy_bitmap(bitmap); }
@@ -852,6 +854,7 @@ void FrameMan::Draw() {
 		AllegroBitmap playerGUIBitmap(drawScreenGUI);
 
 		// Update the scene view to line up with a specific screen and then draw it onto the intermediate screen
+		g_CameraMan.Update(playerScreen);
 		g_SceneMan.Update(playerScreen);
 
 		Vector targetPos = g_CameraMan.GetOffset(playerScreen);

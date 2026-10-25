@@ -2,6 +2,8 @@
 
 #include "RTETools.h"
 
+#include <array>
+
 using namespace RTE;
 
 void PieQuadrant::Clear() {

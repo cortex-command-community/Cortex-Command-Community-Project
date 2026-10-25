@@ -1,14 +1,14 @@
 function Create(self)
 	self.fireVel = 17;
 	self.spread = math.rad(self.ShakeRange);
-	
+
 	self.searchRange = 100 + FrameMan.PlayerScreenWidth * 0.3;
 	self.searchTimer = Timer();
 	self.searchTimer:SetSimTimeLimitMS(250);
 	self.lockThreshold = 2;
-	
+
 	self.targets = {};
-	
+
 	self.targetLockSound = CreateSoundContainer("Mine Activate", "Base.rte");
 end
 
@@ -45,16 +45,16 @@ function ThreadedUpdate(self)
 			end
 			if self.Magazine.RoundCount > 0 then
 				if controller:IsState(Controller.AIM_SHARP) then
-					
+
 					if self.searchTimer:IsPastSimTimeLimit() then
 						self.searchTimer:Reset();
-						
+
 						local searchPos = parent.ViewPoint;
 						local lastTargetCount = #self.targets;
 						self.targets = {};
 
 						for actor in MovableMan.Actors do
-							if #self.targets < self.RoundInMagCapacity and actor.Team ~= self.Team then
+							if #self.targets < self.RoundInMagCapacity and actor.Team ~= self.Team and actor.GetsHitByMOs then
 
 								if (SceneMan:ShortestDistance(searchPos, actor.Pos, SceneMan.SceneWrapsX).Magnitude - actor.Radius) < self.searchRange
 								and (actor.Vel.Magnitude + math.abs(actor.AngularVel) + 1)/math.sqrt(actor.Radius) < self.lockThreshold
@@ -99,7 +99,7 @@ function ThreadedUpdate(self)
 				if target.actor and target.actor.ID ~= rte.NoMOID then
 					local screen = ActivityMan:GetActivity():ScreenOfPlayer(ToActor(parent):GetController().Player);
 					PrimitiveMan:DrawBoxPrimitive(screen, target.actor.Pos + target.topLeft, target.actor.Pos + target.bottomRight, 149);
-					
+
 					if self.RoundInMagCount == 0 then
 						target.topLeft = target.topLeft * 0.9;
 						target.bottomRight = target.bottomRight * 0.9;

@@ -10,6 +10,9 @@ on:
     types: [checks_requested]
 
   workflow_dispatch:
+  
+  schedule:
+    - cron: '1 0 * * 0'
 
 # Cancel in-progress runs if newer changes to the same branch/PR are pushed.
 concurrency:

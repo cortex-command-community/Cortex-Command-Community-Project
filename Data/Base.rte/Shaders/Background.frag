@@ -1,4 +1,4 @@
-#version 330
+#version 330 core
 #extension GL_KHR_blend_equation_advanced: enable
 #extension GL_ARB_sample_shading: enable
 
@@ -16,7 +16,7 @@ uniform bool rteBlendInvert = false;
 uniform bool drawMasked = false;
 
 
-vec4 texture2DAA(sampler2D tex, vec2 uv) {
+vec4 textureAA(sampler2D tex, vec2 uv) {
 	vec2 texsize = vec2(textureSize(tex, 0));
 	vec2 uv_texspace = uv * texsize;
 	vec2 seam = floor(uv_texspace + .5);
@@ -26,13 +26,13 @@ vec4 texture2DAA(sampler2D tex, vec2 uv) {
 }
 
 void main() {
-	float red = texture2D(rteTexture, textureUV).r;
+	float red = texture(rteTexture, textureUV).r;
 	if (red==0 && drawMasked) {
 		discard;
 	}
 	if (!rteBlendInvert) {
-		FragColor = texture2DAA(rtePalette, vec2(red * vertexColor.r, 0.0)) * vec4(rteColor.rgb, rteColor.a * vertexColor.a);
+		FragColor = textureAA(rtePalette, vec2(red * vertexColor.r, 0.0)) * vec4(rteColor.rgb, rteColor.a * vertexColor.a);
 	} else {
-		FragColor = vec4(vec3(1.0), 0.0) - (texture2DAA(rtePalette, vec2(red * vertexColor.r, 0.0)) * vec4(rteColor.rgb, -rteColor.a * vertexColor.a));
+		FragColor = vec4(vec3(1.0), 0.0) - (textureAA(rtePalette, vec2(red * vertexColor.r, 0.0)) * vec4(rteColor.rgb, -rteColor.a * vertexColor.a));
 	}
 }

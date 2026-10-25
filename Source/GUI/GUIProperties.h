@@ -9,7 +9,7 @@ namespace RTE {
 		/// Constructor method used to instantiate a GUIProperties object in
 		/// system memory.
 		/// @param Name Name of section.
-		explicit GUIProperties(const std::string& Name);
+		explicit GUIProperties(std::string Name);
 
 		/// Constructor method used to instantiate a GUIProperties object in
 		/// system memory.
@@ -79,7 +79,7 @@ namespace RTE {
 		bool GetValue(const std::string& Variable, bool* Value);
 
 		/// Gets the property name
-		std::string GetName() const;
+		const std::string& GetName() const;
 
 		/// Converts the properties to a string
 		std::string ToString();

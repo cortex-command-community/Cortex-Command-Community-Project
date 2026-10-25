@@ -16,7 +16,7 @@ RenderTarget::RenderTarget(const FloatRect& size, const FloatRect& defaultViewpo
 	m_Viewport = defaultViewport;
 	if (!defaultFB0) {
 		if (colorTexture.id != 0) {
-			m_Texture = colorTexture;
+			m_Texture = std::move(colorTexture);
 			m_ColorTextureOwned = false;
 		} else {
 			m_Texture = {

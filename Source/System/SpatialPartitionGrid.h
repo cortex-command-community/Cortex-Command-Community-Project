@@ -7,6 +7,8 @@
 
 #include "tsl/hopscotch_set.h"
 
+#include <array>
+
 namespace RTE {
 
 	class Box;

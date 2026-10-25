@@ -153,9 +153,8 @@ void ConsoleMan::AddLoadWarningLogExtensionMismatchEntry(const std::string& path
 		PrintString(newEntry);
 	} else {
 		std::transform(newEntry.begin(), newEntry.end(), newEntry.begin(), ::tolower);
-		if (m_LoadWarningLog.find(newEntry) == m_LoadWarningLog.end()) {
-			m_LoadWarningLog.emplace(newEntry);
-		}
+		// Emplace inserts only if there is no existing entry.
+		m_LoadWarningLog.emplace(newEntry);
 	}
 }
 
@@ -295,8 +294,10 @@ void ConsoleMan::Update() {
 	}
 
 	if (!m_ReadOnly) {
-		m_InputTextBox->SetEnabled(true);
-		m_InputTextBox->SetFocus();
+		if (!m_InputTextBox->GetEnabled() || !m_InputTextBox->HasFocus()) {
+			m_InputTextBox->SetEnabled(true);
+			m_InputTextBox->SetFocus();
+		}
 
 		if (!m_InputLog.empty() && !g_UInputMan.FlagCtrlState()) {
 			if (g_UInputMan.KeyPressed(SDLK_UP)) {

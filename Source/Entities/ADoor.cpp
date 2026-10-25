@@ -465,11 +465,6 @@ void ADoor::Update() {
 
 	Actor::Update();
 
-	// Start the spinning out of control animation for the motor, start it slow
-	if (!m_Door) {
-		m_SpriteAnimDuration *= 4;
-	}
-
 	if (m_SpriteAnimMode == LOOPWHENOPENCLOSE && m_FrameCount > 1 && (m_DoorState == OPENING || m_DoorState == CLOSING) && m_SpriteAnimTimer.IsPastSimMS(m_SpriteAnimDuration)) {
 		m_Frame = (m_Frame + 1) % m_FrameCount;
 		m_SpriteAnimTimer.Reset();

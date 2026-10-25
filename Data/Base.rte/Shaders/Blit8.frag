@@ -1,5 +1,5 @@
 // Blit8.frag
-#version 130
+#version 330 core
 
 in vec2 textureUV;
 

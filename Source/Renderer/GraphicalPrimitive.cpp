@@ -9,6 +9,8 @@
 #include "AllegroBitmap.h"
 
 #include "Draw.h"
+
+#include <array>
 #include <cmath>
 
 using namespace RTE;

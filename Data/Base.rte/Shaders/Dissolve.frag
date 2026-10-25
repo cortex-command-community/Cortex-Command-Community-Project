@@ -1,4 +1,4 @@
-#version 130
+#version 330 core
 
 in vec2 textureUV;
 in vec4 vertexColor;
@@ -32,7 +32,7 @@ float noise( vec2 U )
 	return mix( C.x, C.y, U.y );
 }
 
-vec4 texture2DAA(sampler2D tex, vec2 uv) {
+vec4 textureAA(sampler2D tex, vec2 uv) {
 	vec2 texsize = vec2(textureSize(tex, 0));
 	vec2 uv_texspace = uv * texsize;
 	vec2 seam = floor(uv_texspace + .5);
@@ -45,8 +45,8 @@ void main() {
 	if (noise(gl_FragCoord.xy + textureUV) < 0.5) {
 		discard;
 	}
-	float red = texture2D(rteTexture, textureUV).r;
-	vec4 color = texture2DAA(rtePalette, vec2(red * vertexColor.r, 0.0)) * vec4(rteColor.rgb, rteColor.a * vertexColor.a);
+	float red = texture(rteTexture, textureUV).r;
+	vec4 color = textureAA(rtePalette, vec2(red * vertexColor.r, 0.0)) * vec4(rteColor.rgb, rteColor.a * vertexColor.a);
 
 	FragColor = color;
 }

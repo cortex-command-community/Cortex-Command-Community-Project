@@ -3,6 +3,7 @@
 #include "Box.h"
 #include "System/MicroPather/micropather.h"
 
+#include <array>
 #include <atomic>
 #include <list>
 #include <memory>
@@ -126,7 +127,7 @@ namespace RTE {
 		/// @param boxList The deque of Boxes representing the updated areas.
 		/// @param nodeUpdateLimit The maximum number of PathNodes we'll try to update this frame. True PathNode update count can be higher if we received a big box, as we always do at least 1 box.
 		/// @return The set of PathNode ids that were updated.
-		std::vector<int> RecalculateAreaCosts(std::deque<Box>& boxList, int nodeUpdateLimit);
+		std::vector<int> RecalculateAreaCosts(std::deque<Box>& boxList, size_t nodeUpdateLimit);
 
 		/// Updates a set of PathNodes, adjusting their transitions.
 		/// This does NOT update the pather, which is required if PathNode costs changed.
@@ -172,8 +173,8 @@ namespace RTE {
 
 		/// Draws a debug rendering for this pathfinder to a BITMAP of choice.
 		/// @param targetBitmap A pointer to a BITMAP to draw on.
-		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner is located.
-		void DebugRender(BITMAP* targetBitmap, const Vector& targetPos = Vector(), int whichScreen = 0) const;
+		/// @param targetPos The offset into the scene where the target bitmap's upper left corner is located.
+		void DebugRender(BITMAP* targetBitmap, const Vector& targetPos = Vector()) const;
 #pragma endregion
 
 	private:

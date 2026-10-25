@@ -71,10 +71,10 @@ namespace RTE {
 		void SetRightText(const std::string& rightText);
 
 		/// Gets the text in the textpanel.
-		std::string GetText() const { return m_Text; }
+		const std::string& GetText() const { return m_Text; }
 
 		/// Gets the extra text which appears right-justified in the textpanel.
-		std::string GetRightText() const { return m_RightText; }
+		const std::string& GetRightText() const { return m_RightText; }
 
 		/// Sets the start and end indexes of the selection text.
 		/// @param Start Start, End.

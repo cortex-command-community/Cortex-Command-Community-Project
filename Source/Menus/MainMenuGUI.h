@@ -6,6 +6,8 @@
 #include "SettingsGUI.h"
 #include "ModManagerGUI.h"
 
+#include <array>
+
 namespace RTE {
 
 	class AllegroScreen;
@@ -74,7 +76,6 @@ namespace RTE {
 		enum MenuButton {
 			MetaGameButton,
 			ScenarioButton,
-			MultiplayerButton,
 			SaveOrLoadGameButton,
 			SettingsButton,
 			ModManagerButton,

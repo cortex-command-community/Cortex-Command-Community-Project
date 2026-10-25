@@ -18,6 +18,8 @@
 #include "SettingsMan.h"
 #include "System.h"
 
+#include <array>
+
 using namespace RTE;
 
 const std::array<std::string, 10> PresetMan::c_OfficialModules = {"Base.rte", "Coalition.rte", "Imperatus.rte", "Techion.rte", "Dummy.rte", "Ronin.rte", "Browncoats.rte", "Uzira.rte", "MuIlaak.rte", "Missions.rte"};
@@ -195,13 +197,13 @@ int PresetMan::GetModuleID(std::string moduleName) {
 		return (*itr).second;
 
 	// Try with or without the .rte on the end before giving up
-	int dotPos = moduleName.find_last_of('.');
+	size_t dotPos = moduleName.find_last_of('.');
 	// Wasnt, so try adding it
 	if (dotPos == std::string::npos)
 		moduleName = moduleName + System::GetModulePackageExtension();
 	// There was ".rte", so try to shave it off the name
 	else
-		moduleName = moduleName.substr(0, dotPos);
+		moduleName.resize(dotPos);
 
 	// Try to find the module again!
 	itr = m_DataModuleIDs.find(moduleName);
@@ -294,19 +296,19 @@ std::string PresetMan::GetFullModulePath(const std::string& modulePath) const {
 	return (pathTopDir == moduleTopDir) ? modulePathGeneric : moduleTopDir + modulePathGeneric;
 }
 
-bool PresetMan::AddEntityPreset(Entity* pEntToAdd, int whichModule, bool overwriteSame, std::string readFromFile) {
+bool PresetMan::AddEntityPreset(Entity* pEntToAdd, int whichModule, bool overwriteSame, const std::string& readFromFile) {
 	RTEAssert(whichModule >= 0 && whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
 
 	return m_pDataModules[whichModule]->AddEntityPreset(pEntToAdd, overwriteSame, readFromFile);
 }
 
-const Entity* PresetMan::GetEntityPreset(std::string type, std::string preset, int whichModule) {
+const Entity* PresetMan::GetEntityPreset(const std::string& type, std::string preset, int whichModule) {
 	RTEAssert(whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
 
 	const Entity* pRetEntity = 0;
 
 	// Preset name might have "[ModuleName]/" preceding it, detect it here and select proper module!
-	int slashPos = preset.find_first_of('/');
+	size_t slashPos = preset.find_first_of('/');
 	if (slashPos != std::string::npos) {
 		// Get the module ID and cut off the module specifier in the string
 		whichModule = GetModuleID(preset.substr(0, slashPos));
@@ -417,7 +419,7 @@ Entity* PresetMan::ReadReflectedPreset(Reader& reader) {
 	return 0;
 }
 
-bool PresetMan::GetAllOfType(std::list<Entity*>& entityList, std::string type, int whichModule) {
+bool PresetMan::GetAllOfType(std::list<Entity*>& entityList, const std::string& type, int whichModule) {
 	if (type.empty())
 		return false;
 
@@ -438,7 +440,7 @@ bool PresetMan::GetAllOfType(std::list<Entity*>& entityList, std::string type, i
 	return foundAny;
 }
 
-bool PresetMan::GetAllOfTypeInModuleSpace(std::list<Entity*>& entityList, std::string type, int whichModuleSpace) {
+bool PresetMan::GetAllOfTypeInModuleSpace(std::list<Entity*>& entityList, const std::string& type, int whichModuleSpace) {
 	if (type.empty())
 		return false;
 
@@ -495,7 +497,7 @@ bool PresetMan::GetAllNotOfGroups(std::list<Entity*>& entityList, const std::vec
 	return foundAny;
 }
 
-Entity* PresetMan::GetRandomOfGroup(std::string group, std::string type, int whichModule) {
+Entity* PresetMan::GetRandomOfGroup(std::string group, const std::string& type, int whichModule) {
 	RTEAssert(!group.empty(), "Looking for empty group!");
 
 	bool foundAny = false;
@@ -532,7 +534,7 @@ Entity* PresetMan::GetRandomOfGroup(std::string group, std::string type, int whi
 	return 0;
 }
 
-Entity* PresetMan::GetRandomBuyableOfGroupFromTech(std::string group, std::string type, int whichModule) {
+Entity* PresetMan::GetRandomBuyableOfGroupFromTech(std::string group, const std::string& type, int whichModule) {
 	RTEAssert(!group.empty(), "Looking for empty group!");
 
 	bool foundAny = false;
@@ -625,7 +627,7 @@ Entity* PresetMan::GetRandomBuyableOfGroupFromTech(std::string group, std::strin
 	return 0;
 }
 
-bool PresetMan::GetAllOfGroupInModuleSpace(std::list<Entity*>& entityList, std::string group, std::string type, int whichModuleSpace) {
+bool PresetMan::GetAllOfGroupInModuleSpace(std::list<Entity*>& entityList, const std::string& group, const std::string& type, int whichModuleSpace) {
 	RTEAssert(!group.empty(), "Looking for empty group!");
 
 	bool foundAny = false;
@@ -646,7 +648,7 @@ bool PresetMan::GetAllOfGroupInModuleSpace(std::list<Entity*>& entityList, std::
 	return foundAny;
 }
 
-Entity* PresetMan::GetRandomOfGroupInModuleSpace(std::string group, std::string type, int whichModuleSpace) {
+Entity* PresetMan::GetRandomOfGroupInModuleSpace(const std::string& group, const std::string& type, int whichModuleSpace) {
 	RTEAssert(!group.empty(), "Looking for empty group!");
 
 	bool foundAny = false;
@@ -683,7 +685,7 @@ Entity* PresetMan::GetRandomOfGroupInModuleSpace(std::string group, std::string 
 	return 0;
 }
 
-std::string PresetMan::GetEntityDataLocation(std::string type, std::string preset, int whichModule) {
+std::string PresetMan::GetEntityDataLocation(const std::string& type, const std::string& preset, int whichModule) {
 	RTEAssert(whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
 
 	std::string pRetPath = "";
@@ -752,7 +754,7 @@ bool PresetMan::ReloadEntityPreset(const std::string& presetName, const std::str
 
 	m_ReloadEntityPresetCalledThisUpdate = true;
 
-	Reader reader(presetDataLocation.c_str(), true);
+	Reader reader(presetDataLocation, true);
 	while (reader.NextProperty()) {
 		reader.ReadPropName();
 		g_PresetMan.GetEntityPreset(reader);
@@ -795,7 +797,7 @@ void PresetMan::RegisterGroup(std::string newGroup, int whichModule) {
 	m_pDataModules[whichModule]->RegisterGroup(newGroup);
 }
 
-bool PresetMan::GetGroups(std::list<std::string>& groupList, int whichModule, std::string withType) const {
+bool PresetMan::GetGroups(std::list<std::string>& groupList, int whichModule, const std::string& withType) const {
 	RTEAssert(whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
 
 	bool foundAny = false;
@@ -833,7 +835,7 @@ bool PresetMan::GetGroups(std::list<std::string>& groupList, int whichModule, st
 	return foundAny;
 }
 
-bool PresetMan::GetModuleSpaceGroups(std::list<std::string>& groupList, int whichModule, std::string withType) const {
+bool PresetMan::GetModuleSpaceGroups(std::list<std::string>& groupList, int whichModule, const std::string& withType) const {
 	RTEAssert(whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
 
 	bool foundAny = false;

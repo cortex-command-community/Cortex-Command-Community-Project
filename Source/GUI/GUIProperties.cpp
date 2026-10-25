@@ -4,13 +4,15 @@
 
 using namespace RTE;
 
-GUIProperties::GUIProperties(const std::string& Name) {
-	m_Name = Name;
+GUIProperties::GUIProperties(std::string Name) :
+	m_Name(std::move(Name)) {
+
 	m_VariableList.clear();
 }
 
-GUIProperties::GUIProperties() {
-	m_Name = "";
+GUIProperties::GUIProperties() :
+	m_Name("") {
+
 	m_VariableList.clear();
 }
 
@@ -234,7 +236,7 @@ bool GUIProperties::GetValue(const std::string& Variable, bool* Value) {
 	return true;
 }
 
-std::string GUIProperties::GetName() const {
+const std::string& GUIProperties::GetName() const {
 	return m_Name;
 }
 

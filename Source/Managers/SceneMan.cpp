@@ -3,7 +3,6 @@
 #include "PresetMan.h"
 #include "FrameMan.h"
 #include "ActivityMan.h"
-#include "UInputMan.h"
 #include "CameraMan.h"
 #include "ConsoleMan.h"
 #include "PrimitiveMan.h"
@@ -14,14 +13,10 @@
 #include "TerrainObject.h"
 #include "MovableObject.h"
 #include "ContentFile.h"
-#include "AHuman.h"
-#include "ACRocket.h"
 #include "MOPixel.h"
 #include "Atom.h"
 #include "Material.h"
 #include "SoundContainer.h"
-// Temp
-#include "Controller.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -91,7 +86,7 @@ void SceneMan::Initialize() const {
 	    {512, create_bitmap_ex(8, 512, 512)}};
 }
 
-int SceneMan::Create(std::string readerFile) {
+int SceneMan::Create(const std::string& readerFile) {
 	Reader* reader = new Reader();
 	if (reader->Create(readerFile.c_str()))
 		g_ConsoleMan.PrintString("ERROR: Could not find Scene definition file!");
@@ -133,7 +128,6 @@ int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 	g_ConsoleMan.PrintString("SYSTEM: Scene \"" + m_pCurrentScene->GetPresetName() + "\" was loaded");
 
 	// Set the proper scales of the unseen obscuring SceneLayers
-	SceneLayer* pUnseenLayer = 0;
 	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
 		if (!g_ActivityMan.GetActivity()->TeamActive(team))
 			continue;
@@ -177,7 +171,7 @@ int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 	return 0;
 }
 
-int SceneMan::SetSceneToLoad(std::string sceneName, bool placeObjects, bool placeUnits) {
+int SceneMan::SetSceneToLoad(const std::string& sceneName, bool placeObjects, bool placeUnits) {
 	// Use the name passed in to load the preset requested
 	const Scene* pSceneRef = dynamic_cast<const Scene*>(g_PresetMan.GetEntityPreset("Scene", sceneName));
 
@@ -209,7 +203,7 @@ int SceneMan::LoadScene() {
 	return LoadScene(dynamic_cast<Scene*>(m_pSceneToLoad->Clone()), m_PlaceObjects, m_PlaceUnits);
 }
 
-int SceneMan::LoadScene(std::string sceneName, bool placeObjects, bool placeUnits) {
+int SceneMan::LoadScene(const std::string& sceneName, bool placeObjects, bool placeUnits) {
 	// First retrieve and set up the preset reference
 	int error = SetSceneToLoad(sceneName, placeObjects, placeUnits);
 	if (error < 0)
@@ -387,7 +381,8 @@ unsigned char SceneMan::GetTerrMatter(int pixelX, int pixelY) {
 	if (pixelY < 0)
 		return g_MaterialAir;
 
-	return getpixel(pTMatBitmap, pixelX, pixelY);
+	// The material bitmap is a memory bitmap and the position is known to be inside it, so the pixel can be read straight from it, rather than through getpixel's function pointers.
+	return pTMatBitmap->line[pixelY][pixelX];
 }
 
 MOID SceneMan::GetMOIDPixel(int pixelX, int pixelY, int ignoreTeam) {
@@ -566,6 +561,8 @@ bool SceneMan::TryPenetrate(int posX,
 	unsigned char materialID = _getpixel(m_pCurrentScene->GetTerrain()->GetMaterialBitmap(), posX, posY);
 	if (materialID == g_MaterialAir) {
 		//        RTEAbort("Why are we penetrating air??");
+		// There's nothing here to slow anything down. Callers go on to use this when we return true, so it can't be left as it was.
+		retardation = 0.0F;
 		return true;
 	}
 	Material const* sceneMat = GetMaterialFromID(materialID);
@@ -903,7 +900,7 @@ void SceneMan::MakeAllUnseen(Vector pixelSize, const int team) {
 	m_pCurrentScene->FillUnseenLayer(pixelSize, team);
 }
 
-bool SceneMan::LoadUnseenLayer(std::string bitmapPath, int team) {
+bool SceneMan::LoadUnseenLayer(const std::string& bitmapPath, int team) {
 	ContentFile bitmapFile(bitmapPath.c_str());
 	SceneLayer* pUnseenLayer = new SceneLayer();
 	if (pUnseenLayer->Create(bitmapFile.GetAsBitmap(COLORCONV_NONE, false), true, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0)) < 0) {
@@ -1046,7 +1043,7 @@ void SceneMan::RestoreUnseenBox(const int posX, const int posY, const int width,
 }
 
 bool SceneMan::CastTerrainPenetrationRay(const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip) {
-	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
+	int error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	bool stopped = false;
 	unsigned char materialID;
@@ -1138,7 +1135,7 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 	if (!m_pCurrentScene->GetUnseenLayer(team))
 		return false;
 
-	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
+	int error, dom, sub, domSteps, skipped = skip;
 	int size = 40 - GetUnseenResolution(team).GetLargest();
 	int intPos[2], delta[2], delta2[2], increment[2];
 	bool affectedAny = false;
@@ -1202,14 +1199,18 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 			// Scene wrapping
 			WrapPosition(intPos[X], intPos[Y]);
 
+			bool is_unseen = IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y], team) || IsUnseen(intPos[X] + size, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - size, team) || IsUnseen(intPos[X], intPos[Y] + size, team);
+
 			// Reveal if we can, save the result
 			if (reveal) {
-				if (affectedAny = IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y], team) || IsUnseen(intPos[X] + size, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - size, team) || IsUnseen(intPos[X], intPos[Y] + size, team)) {
+				if (is_unseen) {
 					RevealUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
+					affectedAny = true;
 				}
 			} else {
-				if (affectedAny = !(IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y], team) || IsUnseen(intPos[X] + size, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - size, team) || IsUnseen(intPos[X], intPos[Y] + size, team))) {
+				if (!is_unseen) {
 					RestoreUnseenBox(intPos[X] - size / 2, intPos[Y] - size / 2, size, size, team);
+					affectedAny = true;
 				}
 			}
 
@@ -1246,7 +1247,7 @@ bool SceneMan::CastUnseeRay(int team, const Vector& start, const Vector& ray, Ve
 
 bool SceneMan::CastMaterialRay(const Vector& start, const Vector& ray, unsigned char material, Vector& result, int skip, bool wrap) {
 
-	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
+	int error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	bool foundPixel = false;
 
@@ -1339,7 +1340,7 @@ float SceneMan::CastMaterialRay(const Vector& start, const Vector& ray, unsigned
 }
 
 bool SceneMan::CastNotMaterialRay(const Vector& start, const Vector& ray, unsigned char material, Vector& result, int skip, bool checkMOs) {
-	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
+	int error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	bool foundPixel = false;
 
@@ -1437,7 +1438,6 @@ float SceneMan::CastStrengthSumRay(const Vector& start, const Vector& end, int s
 
 	int error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
-	bool foundPixel = false;
 	unsigned char materialID;
 	Material foundMaterial;
 
@@ -1522,7 +1522,6 @@ const Material* SceneMan::CastMaxStrengthRayMaterial(const Vector& start, const 
 
 	int error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
-	bool foundPixel = false;
 
 	intPos[X] = std::floor(start.m_X);
 	intPos[Y] = std::floor(start.m_Y);
@@ -1600,7 +1599,7 @@ const Material* SceneMan::CastMaxStrengthRayMaterial(const Vector& start, const 
 }
 
 bool SceneMan::CastStrengthRay(const Vector& start, const Vector& ray, float strength, Vector& result, int skip, unsigned char ignoreMaterial, bool wrap) {
-	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
+	int error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	bool foundPixel = false;
 	unsigned char materialID;
@@ -1693,7 +1692,7 @@ bool SceneMan::CastStrengthRay(const Vector& start, const Vector& ray, float str
 }
 
 bool SceneMan::CastWeaknessRay(const Vector& start, const Vector& ray, float strength, Vector& result, int skip, bool wrap) {
-	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
+	int error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	bool foundPixel = false;
 	unsigned char materialID;
@@ -1783,7 +1782,7 @@ bool SceneMan::CastWeaknessRay(const Vector& start, const Vector& ray, float str
 }
 
 MOID SceneMan::CastMORay(const Vector& start, const Vector& ray, const std::vector<MOID>& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
-	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
+	int error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	MOID hitMOID = g_NoMOID;
 	unsigned char hitTerrain = 0;
@@ -1884,7 +1883,7 @@ MOID SceneMan::CastMORay(const Vector& start, const Vector& ray, const std::vect
 }
 
 bool SceneMan::CastFindMORay(const Vector& start, const Vector& ray, MOID targetMOID, Vector& resultPos, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip, bool findChildMOIDs) {
-	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
+	int error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	MOID hitMOID = g_NoMOID;
 	unsigned char hitTerrain = 0;
@@ -1980,7 +1979,7 @@ const std::vector<MovableObject*>*  SceneMan::CastAllMOsRay(const Vector& start,
 
 	const SpatialPartitionGrid& partitionGrid = GetMOIDGrid();
 
-	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
+	int error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	unsigned char hitTerrain = 0;
 
@@ -2041,7 +2040,7 @@ const std::vector<MovableObject*>*  SceneMan::CastAllMOsRay(const Vector& start,
 				
 			// Detect MOs
 			std::vector<MovableObject*> hitMOs;
-			hitMOs = std::move(partitionGrid.GetMOsAtPosition(intPos[X], intPos[Y], ignoreTeam, false));
+			hitMOs = partitionGrid.GetMOsAtPosition(intPos[X], intPos[Y], ignoreTeam, false);
 
 			// Loop through the gotten MOs and check if we're ignoring their IDs - if not, put them onto our return vector
 			for (MovableObject* mo : hitMOs) {
@@ -2078,7 +2077,7 @@ const std::vector<MovableObject*>*  SceneMan::CastAllMOsRay(const Vector& start,
 }
 
 float SceneMan::CastObstacleRay(const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, const std::vector<MOID>& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
-	int hitCount = 0, error, dom, sub, domSteps, skipped = skip;
+	int error, dom, sub, domSteps, skipped = skip;
 	int intPos[2], delta[2], delta2[2], increment[2];
 	bool hitObstacle = false;
 
@@ -2591,11 +2590,11 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 	Box targetDimensions(Vector(), targetBitmap->w, targetBitmap->h);
 
 	if (!terrain->WrapsX() && targetBitmap->w > GetSceneWidth()) {
-		targetBox.SetCorner(Vector(static_cast<float>((targetBitmap->w - GetSceneWidth()) / 2), targetBox.GetCorner().GetY()));
+		targetBox.SetCorner(Vector(static_cast<float>((targetBitmap->w - GetSceneWidth())) / 2, targetBox.GetCorner().GetY()));
 		targetBox.SetWidth(static_cast<float>(GetSceneWidth()));
 	}
 	if (!terrain->WrapsY() && targetBitmap->h > GetSceneHeight()) {
-		targetBox.SetCorner(Vector(targetBox.GetCorner().GetX(), static_cast<float>((targetBitmap->h - GetSceneHeight()) / 2)));
+		targetBox.SetCorner(Vector(targetBox.GetCorner().GetX(), static_cast<float>((targetBitmap->h - GetSceneHeight())) / 2));
 		targetBox.SetHeight(static_cast<float>(GetSceneHeight()));
 	}
 
@@ -2656,7 +2655,7 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, const Vector&
 
 			static int s_drawPathfinderDebugForTeam = -2;
 			if (s_drawPathfinderDebugForTeam > -2) {
-				m_pCurrentScene->GetPathFinder(static_cast<Activity::Teams>(s_drawPathfinderDebugForTeam)).DebugRender(targetBitmap, targetPos, m_LastUpdatedScreen);
+				m_pCurrentScene->GetPathFinder(static_cast<Activity::Teams>(s_drawPathfinderDebugForTeam)).DebugRender(targetBitmap, targetPos);
 			}
 
 			if (m_pDebugLayer) {

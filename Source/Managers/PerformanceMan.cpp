@@ -6,6 +6,8 @@
 #include "GUI.h"
 #include "AllegroBitmap.h"
 
+#include <array>
+
 using namespace RTE;
 
 const std::array<std::string, PerformanceMan::PerformanceCounters::PerfCounterCount> PerformanceMan::m_PerfCounterNames = {"Total", "Act AI", "Act Travel", "Act Update", "Prt Travel", "Prt Update", "Activity", "Scripts"};

@@ -241,7 +241,7 @@ void GUICheckbox::SetText(const std::string& Text) {
 	m_Text = Text;
 }
 
-std::string GUICheckbox::GetText() const {
+const std::string& GUICheckbox::GetText() const {
 	return m_Text;
 }
 

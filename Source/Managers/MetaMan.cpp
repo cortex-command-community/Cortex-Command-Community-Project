@@ -314,7 +314,7 @@ void MetaMan::Destroy() {
 	Clear();
 }
 
-int MetaMan::SaveSceneData(std::string pathBase) {
+int MetaMan::SaveSceneData(const std::string& pathBase) {
 	for (std::vector<Scene*>::const_iterator sItr = m_Scenes.begin(); sItr != m_Scenes.end(); ++sItr) {
 		// Only save the data of revealed scenes that have already had their layers built and saved into files
 		if ((*sItr)->IsRevealed() && (*sItr)->GetTerrain() && (*sItr)->GetTerrain()->IsLoadedFromDisk()) {

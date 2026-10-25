@@ -505,6 +505,11 @@ float Actor::GetBaseMass() {
 	return m_BaseMass;
 }
 
+HeldDevice* Actor::GetItemInReach() const {
+	// The item can get deleted or picked up by someone else at any point after it was found to be in reach, and nothing lets us know when that happens.
+	return g_MovableMan.IsDevice(m_pItemInReach) ? m_pItemInReach : nullptr;
+}
+
 bool Actor::IsPlayerControlled() const {
 	return m_Controller.GetInputMode() == Controller::CIM_PLAYER && m_Controller.GetPlayer() >= 0;
 }
@@ -655,8 +660,9 @@ void Actor::RestDetection() {
 }
 
 void Actor::AddAIMOWaypoint(const MovableObject* pMOWaypoint) {
-	if (g_MovableMan.ValidMO(pMOWaypoint))
+	if (g_MovableMan.ValidMO(pMOWaypoint) && (m_Waypoints.empty() || m_Waypoints.back().second != pMOWaypoint)) {
 		m_Waypoints.push_back(std::pair<Vector, const MovableObject*>(pMOWaypoint->GetPos(), pMOWaypoint));
+	}
 }
 
 void Actor::AlarmPoint(const Vector& alarmPoint) {
@@ -1046,6 +1052,7 @@ float Actor::EstimateDigStrength() const {
 }
 
 float Actor::EstimateJumpHeight() const {
+	// Sentinel value that is explicitly checked for within pathfinder code.
 	return FLT_MAX;
 }
 
@@ -1386,8 +1393,8 @@ void Actor::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichScr
 	}
 
 	// Draw the alarm exclamation mark if we are alarmed!
-	if (m_AlarmTimer.SimTimeLimitProgress() < 0.25) {
-		draw_sprite(pTargetBitmap, m_apAlarmExclamation[m_AgeTimer.AlternateSim(100)], cpuPos.m_X - 3, EaseOut(drawPos.m_Y + m_HUDStack - 10, drawPos.m_Y + m_HUDStack - 25, m_AlarmTimer.SimTimeLimitProgress() / 0.25f));
+	if (m_AlarmTimer.GetSimTimeLimitProgress() < 0.25) {
+		draw_sprite(pTargetBitmap, m_apAlarmExclamation[m_AgeTimer.AlternateSim(100)], cpuPos.m_X - 3, EaseOut(drawPos.m_Y + m_HUDStack - 10, drawPos.m_Y + m_HUDStack - 25, m_AlarmTimer.GetSimTimeLimitProgress() / 0.25f));
 	}
 
 	if (pSmallFont && pSymbolFont) {

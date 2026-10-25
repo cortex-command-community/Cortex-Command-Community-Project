@@ -6,6 +6,9 @@
 /// http://www.datarealms.com
 /// Inclusions of header files
 #include "MOSRotating.h"
+#include "PathFinder.h"
+
+#include <array>
 
 namespace RTE {
 
@@ -222,7 +225,7 @@ namespace RTE {
 		/// @return A Vector with the absolute position of this' eye or view point.
 		virtual Vector GetEyePos() const { return m_Pos; }
 
-		/// Gets the absoltue position of the top of this' HUD stack.
+		/// Gets the absolute position of the top of this' HUD stack.
 		/// @return A Vector with the absolute position of this' HUD stack top point.
 		Vector GetAboveHUDPos() const override { return m_Pos + Vector(0, m_HUDStack + 6); }
 
@@ -249,8 +252,8 @@ namespace RTE {
 		Vector GetViewPoint() const { return m_ViewPoint.IsZero() ? m_Pos : m_ViewPoint; }
 
 		/// Gets the item that is within reach of the Actor at this frame, ready to be be picked up. Ownership is NOT transferred!
-		/// @return A pointer to the item that has been determined to be within reach of this Actor, if any.
-		HeldDevice* GetItemInReach() const { return m_pItemInReach; }
+		/// @return A pointer to the item that has been determined to be within reach of this Actor, if any. An item that has since been deleted or picked up doesn't count.
+		HeldDevice* GetItemInReach() const;
 
 		/// Gets the direction where this is looking/aiming.
 		/// @return A Vector with the direction in which this is looking along.
@@ -445,9 +448,19 @@ namespace RTE {
 		/// @param m_MovePath.push_back(newCoordinate The new coordinate to add to the end of the MovePath.
 		void AddToMovePathEnd(Vector newCoordinate) { m_MovePath.push_back(newCoordinate); }
 
-		/// Gets the last position in this Actor's move path.
-		/// @return The last position in this Actor's move path.
-		Vector GetMovePathEnd() const { return m_MovePath.back(); }
+		/// Gets the last position in this Actor's move path, or otherwise the current move target.
+		/// @return The last position in this Actor's move path, or otherwise the current move target.
+		Vector GetMovePathEnd() const {
+			if (!m_MovePath.empty()) {
+				return m_MovePath.back();
+			}
+			// In case move path is empty, check our own path request.
+			if (m_PathRequest) {
+				return const_cast<Vector&>(m_PathRequest->targetPos);
+			}
+			// In case *that* is empty, just return the move target.
+			return m_MoveTarget;
+		}
 
 		/// Removes a coordinate from the beginning of the MovePath, meaning the
 		/// one closest to this Actor.
@@ -655,7 +668,7 @@ namespace RTE {
 		/// @return The actor's dig strength.
 		virtual float EstimateDigStrength() const;
 
-		/// Estimates how high this actor can jump.
+		/// Estimates how high this actor can jump. Default implementation returns FLT_MAX.
 		/// @return The actor's jump height.
 		virtual float EstimateJumpHeight() const;
 

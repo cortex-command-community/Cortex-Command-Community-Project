@@ -9,6 +9,8 @@
 #include "Singleton.h"
 #include "Activity.h"
 
+#include "BS_thread_pool.hpp"
+
 #include <mutex>
 #include <map>
 #include <future>
@@ -28,6 +30,7 @@ namespace RTE {
 	class SceneObject;
 	class Box;
 	class LuabindObjectWrapper;
+	class StateHasher;
 
 	/// A struct to keep all data about a an alarming event for the AI Actors.
 	struct AlarmEvent {
@@ -250,6 +253,10 @@ namespace RTE {
 		/// Gets the number of particles (MOPixel:s) currently held.
 		/// @return The number of particles.
 		long GetParticleCount() const { return m_Particles.size(); }
+
+		/// Adds the state of all the MovableObjects currently held to a hash, for checking whether two runs of the simulation match.
+		/// @param hasher The StateHasher to add the state to.
+		void HashState(StateHasher& hasher) const;
 
 		/// Gets the global setting for how much splash MOPixels should be created
 		/// an MO penetrates the terrain deeply.
@@ -485,7 +492,7 @@ namespace RTE {
 		/// Uses a global lookup map to find an object by it's unique id.
 		/// @param id Unique Id to look for.
 		/// @return Object found or 0 if not found any.
-		MovableObject* FindObjectByUniqueID(long int id) {
+		MovableObject* FindObjectByUniqueID(int64_t id) {
 			if (m_KnownObjects.count(id) > 0)
 				return m_KnownObjects[id];
 			else
@@ -596,6 +603,9 @@ namespace RTE {
 		// Async to draw MOIDs while rendering
 		std::future<void> m_DrawMOIDsTask;
 
+		// Async to have actors see in parallel
+		BS::multi_future<void> m_ActorsSeeFuture;
+
 		// Roster of each team's actors, sorted by their X positions in the scene. Actors not owned here
 		std::list<Actor*> m_ActorRoster[Activity::MaxTeamCount];
 		// Whether to draw HUD lines between the actors of a specific team
@@ -630,7 +640,7 @@ namespace RTE {
 		unsigned int m_SimUpdateFrameNumber;
 
 		// Global map which stores all objects so they could be foud by their unique ID
-		std::map<long int, MovableObject*> m_KnownObjects;
+		std::map<int64_t, MovableObject*> m_KnownObjects;
 
 		/// Private member variable and method declarations
 	private:
@@ -642,6 +652,10 @@ namespace RTE {
 
 		/// Travels all of our MOs, updating their location/velocity/physical characteristics.
 		void Travel();
+
+		/// Puts the MOs that are waiting to be added in order of their unique IDs.
+		/// This has to be done after any point where several threads could have been adding MOs at once, since which thread gets to add its MOs first is different every time.
+		void SortAddedMOs();
 
 		/// Updates the controllers of all the actors we own.
 		/// This is needed for a tricky reason - we want the controller from the activity to override the normal controller state

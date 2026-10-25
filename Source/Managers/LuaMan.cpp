@@ -20,12 +20,17 @@ LuaStateWrapper::~LuaStateWrapper() {
 	Destroy();
 }
 
+bool LuaStateWrapper::UniqueIDOrder::operator()(const MovableObject* lhs, const MovableObject* rhs) const {
+	return lhs->GetUniqueID() < rhs->GetUniqueID();
+}
+
 void LuaStateWrapper::Clear() {
 	m_State = nullptr;
 	m_TempEntity = nullptr;
 	m_TempEntityVector.clear();
 	m_LastError.clear();
 	m_CurrentlyRunningScriptPath = "";
+	m_RunningAI = false;
 }
 
 void LuaStateWrapper::Initialize() {
@@ -33,19 +38,27 @@ void LuaStateWrapper::Initialize() {
 	luabind::open(m_State);
 	tracy::LuaRegister(m_State);
 
-	// Disable gc. We do this manually, so we can thread it to occur parallel with non-lua updates
-	// Not doing this for now... see StartAsyncGarbageCollection()
-	// lua_gc(m_State, LUA_GCSTOP, 0);
+	// We do async GC, but we still keep the normal GC on so it can catch any big spikes or runaway allocs
+	//lua_gc(m_State, LUA_GCSTOP, 0);
 
 	const luaL_Reg libsToLoad[] = {
+	    // Basic Lua libraries
 	    {LUA_COLIBNAME, luaopen_base},
 	    {LUA_LOADLIBNAME, luaopen_package},
 	    {LUA_TABLIBNAME, luaopen_table},
 	    {LUA_STRLIBNAME, luaopen_string},
 	    {LUA_MATHLIBNAME, luaopen_math},
 	    {LUA_DBLIBNAME, luaopen_debug},
+
+		// These were removed for "security reasons" but we need them for debugger integration
+	    {LUA_IOLIBNAME, luaopen_io},
+	    {LUA_OSLIBNAME, luaopen_os},
+
+		// LuaJIT libraries
 	    {LUA_BITLIBNAME, luaopen_bit},
+	    {LUA_FFILIBNAME, luaopen_ffi},
 	    {LUA_JITLIBNAME, luaopen_jit},
+
 	    {NULL, NULL} // End of array
 	};
 
@@ -97,7 +110,7 @@ void LuaStateWrapper::Initialize() {
 	                         luabind::def("LERP", (float (*)(float, float, float, float, float))&Lerp),
 	                         luabind::def("Lerp", (float (*)(float, float, float, float, float))&Lerp),
 	                         luabind::def("Lerp", (Vector(*)(float, float, Vector, Vector, float))&Lerp),
-	                         luabind::def("Lerp", (Matrix(*)(float, float, Matrix, Matrix, float))&Lerp),
+	                         luabind::def("Lerp", (Matrix(*)(float, float, const Matrix&, const Matrix&, float))&Lerp),
 	                         luabind::def("EaseIn", &EaseIn),
 	                         luabind::def("EaseOut", &EaseOut),
 	                         luabind::def("EaseInOut", &EaseInOut),
@@ -236,8 +249,12 @@ void LuaStateWrapper::Initialize() {
 
 	const uint64_t seed = RandomNum<uint64_t>(0, std::numeric_limits<uint64_t>::max());
 	m_RandomGenerator.Seed(seed);
+	m_AIRandomGenerator.Seed(RandomNum<uint64_t>(0, std::numeric_limits<uint64_t>::max()));
 
 	luaL_dostring(m_State,
+	              "package.path = package.path .. \";Data/Base.rte/LuaIntegration/?.lua;Data/Base.rte/LuaIntegration/?/?.lua;\"\n"
+	              "package.cpath = package.cpath .. \";Data/Base.rte/LuaIntegration/?.dll;Data/Base.rte/LuaIntegration/?/?.dll;\"\n"
+	              "package.cpath = package.cpath .. \";Data/Base.rte/LuaIntegration/?.so;Data/Base.rte/LuaIntegration/?/?.so;\"\n"
 	              // Add cls() as a shortcut to ConsoleMan:Clear().
 	              "cls = function() ConsoleMan:Clear(); end\n"
 	              // Override "print" in the lua state to output to the console.
@@ -260,26 +277,39 @@ void LuaStateWrapper::Initialize() {
 	              "_AsyncPathCallbacks = {};\n"
 	              "_AddAsyncPathCallback = function(id, callback) _AsyncPathCallbacks[id] = callback; end\n"
 	              "_TriggerAsyncPathCallback = function(id, param) if _AsyncPathCallbacks[id] ~= nil then _AsyncPathCallbacks[id](param); _AsyncPathCallbacks[id] = nil; end end\n");
+
+	if (g_SettingsMan.EnableLuaDebugging()) {
+		luaL_dostring(m_State, "require(\"mobdebug\").coro(); require(\"mobdebug\").start();");
+	}
 }
 
 void LuaStateWrapper::Destroy() {
 	lua_close(m_State);
 }
 
+void LuaStateWrapper::SetRunningAI(bool runningAI) {
+	m_RunningAI = runningAI;
+	SetThreadRandomGenerator(runningAI ? &m_AIRandomGenerator : nullptr);
+}
+
+void LuaStateWrapper::SetRunningThreadedUpdate(bool runningThreadedUpdate) {
+	SetThreadRandomGenerator(runningThreadedUpdate ? &m_RandomGenerator : nullptr);
+}
+
 int LuaStateWrapper::SelectRand(int minInclusive, int maxInclusive) {
-	return m_RandomGenerator.RandomNum<int>(minInclusive, maxInclusive);
+	return GetActiveRandomGenerator().RandomNum<int>(minInclusive, maxInclusive);
 }
 
 double LuaStateWrapper::RangeRand(double minInclusive, double maxInclusive) {
-	return m_RandomGenerator.RandomNum<double>(minInclusive, maxInclusive);
+	return GetActiveRandomGenerator().RandomNum<double>(minInclusive, maxInclusive);
 }
 
 double LuaStateWrapper::NormalRand() {
-	return m_RandomGenerator.RandomNormalNum<double>();
+	return GetActiveRandomGenerator().RandomNormalNum<double>();
 }
 
 double LuaStateWrapper::PosRand() {
-	return m_RandomGenerator.RandomNum<double>();
+	return GetActiveRandomGenerator().RandomNum<double>();
 }
 
 // Passthrough LuaMan Functions
@@ -309,9 +339,14 @@ void LuaMan::Initialize() {
 	m_MasterScriptState.Initialize();
 
 	int luaStateCount = std::thread::hardware_concurrency();
-	if (g_SettingsMan.GetNumberOfLuaStatesOverride() != -1) {
+	if (g_SettingsMan.EnableLuaDebugging()) {
+		luaStateCount = 0;
+	} else if (g_SettingsMan.GetNumberOfLuaStatesOverride() != -1) {
 		luaStateCount = g_SettingsMan.GetNumberOfLuaStatesOverride();
 	}
+
+	// Each threaded Lua state hands out unique IDs to the MOs made on its thread from a range of its own, and there's only so many of those ranges, with one going to the main thread.
+	luaStateCount = std::min(luaStateCount, (1 << MovableObject::c_UniqueIDThreadBits) - 1);
 
 	m_ScriptStates = std::vector<LuaStateWrapper>(luaStateCount);
 	for (LuaStateWrapper& luaState: m_ScriptStates) {
@@ -597,8 +632,17 @@ int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functio
 			functionObjectArgument->GetLuabindObject()->push(m_State);
 		}
 	}
-
 	const std::string& path = functionObject->GetFilePath();
+
+	// Function object may be deleted during the Lua call, making `path` above invalid.
+	// Find and store the script timings entry now and write to it afterward.
+	PerformanceMan::ScriptTiming* timing = nullptr;
+
+	// only track time in non-MT scripts, for now
+	if (&g_LuaMan.GetMasterScriptState() == this) {
+		timing = &m_ScriptTimings[path];
+	}
+
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 	{
 		ZoneScoped;
@@ -614,10 +658,9 @@ int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functio
 	}
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-	// only track time in non-MT scripts, for now
-	if (&g_LuaMan.GetMasterScriptState() == this) {
-		m_ScriptTimings[path].m_Time += std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
-		m_ScriptTimings[path].m_CallCount++;
+	if (timing) {
+		timing->m_Time += std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+		timing->m_CallCount++;
 	}
 
 	lua_pop(m_State, 1);
@@ -1261,11 +1304,6 @@ void LuaMan::Update() {
 void LuaMan::StartAsyncGarbageCollection() {
 	ZoneScoped;
 
-	// For now we're not doing this... because it's slower than normal (blocking) GC collection during the update
-	// This is because Lua is trash and basically GCSTEP is meaningless and can cause memory leak runaway, whereas GCCOLLECT is ultra-expensive
-	// So for now we do normal GC collection :(
-	return;
-
 	std::vector<LuaStateWrapper*> allStates;
 	allStates.reserve(m_ScriptStates.size() + 1);
 
@@ -1280,7 +1318,7 @@ void LuaMan::StartAsyncGarbageCollection() {
 		    g_ThreadMan.GetPriorityThreadPool().submit([luaState]() {
 			    ZoneScopedN("Lua Garbage Collection");
 			    std::lock_guard<std::recursive_mutex> lock(luaState->GetMutex());
-			    lua_gc(luaState->GetLuaState(), LUA_GCCOLLECT, 0); // we'd use GCSTEP but fuck lua it's trash
+			    lua_gc(luaState->GetLuaState(), LUA_GCSTEP, 100);
 			    lua_gc(luaState->GetLuaState(), LUA_GCSTOP, 0);
 		    }));
 	}

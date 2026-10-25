@@ -23,8 +23,21 @@ using namespace RTE;
 
 AbstractClassInfo(MovableObject, SceneObject);
 
-std::atomic<long> MovableObject::m_UniqueIDCounter = 1;
+std::array<std::atomic<int64_t>, 1 << MovableObject::c_UniqueIDThreadBits> MovableObject::m_UniqueIDCounters{};
 std::string MovableObject::ms_EmptyString = "";
+
+int64_t MovableObject::GetNextUniqueID() {
+	// The main thread is number 0, and the thread that is running a threaded Lua state has the number after that state's.
+	int64_t threadNumber = 0;
+	if (const LuaStateWrapper* luaState = g_LuaMan.GetThreadLuaStateOverride(); luaState && luaState != &g_LuaMan.GetMasterScriptState()) {
+		threadNumber = 1 + (luaState - g_LuaMan.GetThreadedScriptStates().data());
+	}
+
+	int64_t count = ++m_UniqueIDCounters[threadNumber];
+	RTEAssert(count < (int64_t(1) << c_UniqueIDCountBits), "Ran out of unique IDs to give to MOs!");
+
+	return (threadNumber << c_UniqueIDCountBits) | count;
+}
 
 MovableObject::MovableObject() {
 	Clear();
@@ -81,11 +94,12 @@ void MovableObject::Clear() {
 	m_AllLoadedScripts.clear();
 	m_EnabledScripts.clear();
 	m_FunctionsAndScripts.clear();
+	m_HasOnCollideWithTerrainFunction = false;
 	m_StringValueMap.clear();
 	m_NumberValueMap.clear();
 	m_ObjectValueMap.clear();
 	m_ThreadedLuaState = nullptr;
-	m_ForceIntoMasterLuaState = false;
+	m_ForceIntoMasterLuaState = g_SettingsMan.EnableLuaDebugging();
 	m_ScriptObjectName.clear();
 	m_ScreenEffectFile.Reset();
 	m_pScreenEffect = 0;
@@ -558,6 +572,9 @@ int MovableObject::LoadScript(const std::string& scriptPath, bool loadAsEnabledS
 		LuaFunction& luaFunction = m_FunctionsAndScripts.at(functionName).emplace_back();
 		luaFunction.m_ScriptIsEnabled = loadAsEnabledScript;
 		luaFunction.m_LuaFunction = std::unique_ptr<LuabindObjectWrapper>(functionObject);
+		if (functionName == "OnCollideWithTerrain") {
+			m_HasOnCollideWithTerrainFunction = true;
+		}
 	}
 
 	if (ObjectScriptsInitialized()) {
@@ -587,6 +604,7 @@ int MovableObject::ReloadScripts() {
 	m_EnabledScripts.clear();
 	m_AllLoadedScripts.clear();
 	m_FunctionsAndScripts.clear();
+	m_HasOnCollideWithTerrainFunction = false;
 	for (const auto& scriptPath: loadedScriptsCopy) {
 		status = LoadScript(scriptPath, enabledScriptsCopy.at(scriptPath));
 		// If the script fails to load because of an error in its Lua, we need to manually add the script path so it's not lost forever.
@@ -728,10 +746,13 @@ void MovableObject::AddAbsForce(const Vector& force, const Vector& absPos) {
 }
 
 void MovableObject::AddAbsImpulseForce(const Vector& impulse, const Vector& absPos) {
+	if (impulse.IsZero()) {
+		return;
+	}
+
 #ifndef RELEASE_BUILD
 	RTEAssert(impulse.GetLargest() < 500000, "HUEG IMPULSE FORCE");
 #endif
-
 	m_ImpulseForces.push_back(std::make_pair(impulse, g_SceneMan.ShortestDistance(m_Pos, absPos) * c_MPP));
 }
 
@@ -760,7 +781,11 @@ bool MovableObject::IsAtRest() {
 
 bool MovableObject::OnMOHit(HitData& hd) {
 	if (hd.RootBody[HITOR] != hd.RootBody[HITEE] && (hd.Body[HITOR] == this || hd.Body[HITEE] == this)) {
-		RunScriptedFunctionInAppropriateScripts("OnCollideWithMO", false, false, {hd.Body[hd.Body[HITOR] == this ? HITEE : HITOR], hd.RootBody[hd.Body[HITOR] == this ? HITEE : HITOR]});
+		static const std::string functionName = "OnCollideWithMO";
+		auto function = m_FunctionsAndScripts.find(functionName);
+		if (function != m_FunctionsAndScripts.end() && !function->second.empty()) {
+			RunScriptedFunctionInAppropriateScripts(functionName, false, false, {hd.Body[hd.Body[HITOR] == this ? HITEE : HITOR], hd.RootBody[hd.Body[HITOR] == this ? HITEE : HITOR]});
+		}
 	}
 	return hd.Terminate[hd.RootBody[HITOR] == this ? HITOR : HITEE] = false;
 }
@@ -772,7 +797,12 @@ unsigned char MovableObject::HitWhatTerrMaterial() const {
 void MovableObject::SetHitWhatTerrMaterial(unsigned char matID) {
 	m_TerrainMatHit = matID;
 	m_LastCollisionSimFrameNumber = g_MovableMan.GetSimUpdateFrameNumber();
-	RunScriptedFunctionInAppropriateScripts("OnCollideWithTerrain", false, false, {}, {std::to_string(m_TerrainMatHit)});
+
+	// This happens for every Atom touching terrain every update, so the function name and arguments only get put together when there's a script to run them.
+	if (m_HasOnCollideWithTerrainFunction) {
+		static const std::string onCollideWithTerrain = "OnCollideWithTerrain";
+		RunScriptedFunctionInAppropriateScripts(onCollideWithTerrain, false, false, {}, {std::to_string(m_TerrainMatHit)});
+	}
 }
 
 Vector MovableObject::GetTotalForce() {
@@ -1036,11 +1066,11 @@ void MovableObject::SetHitWhatMOID(MOID id) {
 	m_LastCollisionSimFrameNumber = g_MovableMan.GetSimUpdateFrameNumber();
 }
 
-long int MovableObject::HitWhatParticleUniqueID() const {
+int64_t MovableObject::HitWhatParticleUniqueID() const {
 	return m_LastCollisionSimFrameNumber == g_MovableMan.GetSimUpdateFrameNumber() ? m_ParticleUniqueIDHit : 0;
 }
 
-void MovableObject::SetHitWhatParticleUniqueID(long int id) {
+void MovableObject::SetHitWhatParticleUniqueID(int64_t id) {
 	m_ParticleUniqueIDHit = id;
 	m_LastCollisionSimFrameNumber = g_MovableMan.GetSimUpdateFrameNumber();
 }
@@ -1097,7 +1127,7 @@ bool MovableObject::DrawToTerrain(SLTerrain* terrain) {
 			}
 		};
 		BITMAP* tempBitmap = g_SceneMan.GetIntermediateBitmapForSettlingIntoTerrain(static_cast<int>(GetDiameter()));
-		Vector tempBitmapPos = m_Pos.GetFloored() - Vector(static_cast<float>(tempBitmap->w / 2), static_cast<float>(tempBitmap->w / 2));
+		Vector tempBitmapPos = m_Pos.GetFloored() - Vector(static_cast<float>(tempBitmap->w) / 2, static_cast<float>(tempBitmap->w) / 2);
 
 		clear_bitmap(tempBitmap);
 		// Draw the object to the temp bitmap, then draw the foreground layer on top of it, then draw it to the foreground layer.

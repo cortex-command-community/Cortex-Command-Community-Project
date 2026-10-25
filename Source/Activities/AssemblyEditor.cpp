@@ -377,7 +377,7 @@ void AssemblyEditor::Draw(BITMAP* pTargetBitmap, const Vector& targetPos) {
 	EditorActivity::Draw(pTargetBitmap, targetPos);
 }
 
-BunkerAssembly* AssemblyEditor::BuildAssembly(std::string saveAsName) {
+BunkerAssembly* AssemblyEditor::BuildAssembly(const std::string& saveAsName) {
 	// Create new bunker assembly to save
 	BunkerAssembly* pBA = new BunkerAssembly();
 	pBA->Create(m_pEditorGUI->GetCurrentAssemblyScheme());

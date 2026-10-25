@@ -31,7 +31,7 @@ int MetaSave::Create(std::string savePath) {
 		g_ConsoleMan.PrintString("ERROR: Tried to save a Metagame that isn't in progress!?");
 		return -1;
 	}
-	m_SavePath = savePath;
+	m_SavePath = std::move(savePath);
 
 	m_PlayerCount = g_MetaMan.m_Players.size();
 	m_Difficulty = g_MetaMan.m_Difficulty;

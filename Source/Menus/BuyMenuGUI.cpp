@@ -487,6 +487,7 @@ void BuyMenuGUI::SetEnabled(bool enable) {
 		g_UInputMan.SetMousePos(mousePos, m_pController->GetPlayer());
 
 		// Default focus to the menu button
+		m_LastHoveredMouseIndex = 0;
 		m_MenuFocus = OK;
 		m_FocusChange = true;
 		UpdateTotalCostLabel(m_pController->GetTeam());
@@ -743,6 +744,9 @@ void BuyMenuGUI::Update() {
 	// Animate the menu into and out of view if enabled or disabled
 
 	if (m_MenuEnabled == ENABLING) {
+		// Make sure that nobody can hoard focus away from us
+		m_pGUIController->GetManager()->ReleaseMouse();
+
 		m_pParentBox->SetEnabled(true);
 		m_pParentBox->SetVisible(true);
 

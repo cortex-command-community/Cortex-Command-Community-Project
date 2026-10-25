@@ -226,18 +226,42 @@ namespace RTE {
 		/// Flipping, if set, is performed before rotating.
 		/// @param rhs A Vector reference as the right hand side operand.
 		/// @return The resulting transformed Vector.
-		Vector operator*(const Vector& rhs);
+		Vector operator*(const Vector& rhs) {
+			if (!m_ElementsUpdated) {
+				UpdateElements();
+			}
+
+			Vector retVec = rhs;
+			// Apply flipping as set.
+			retVec.m_X = m_Flipped[X] ? -retVec.m_X : retVec.m_X;
+			retVec.m_Y = m_Flipped[Y] ? -retVec.m_Y : retVec.m_Y;
+
+			// Do the matrix multiplication.
+			retVec.SetXY(m_Elements[0][0] * retVec.m_X + m_Elements[0][1] * retVec.m_Y, m_Elements[1][0] * retVec.m_X + m_Elements[1][1] * retVec.m_Y);
+
+			return retVec;
+		}
 
 		/// Multiplication operator overload for Vectors with Matrices.
 		/// @param lhs A Vector reference as the left hand side operand.
 		/// @param rhs A Matrix reference as the right hand side operand.
 		/// @return A reference to the resulting Vector.
 		friend Vector operator*(const Vector& lhs, const Matrix& rhs) {
+			// Multiplication might call Matrix::UpdateElements and therefore
+			// needs to modify it.
+			//
+			// However, this function signature uses const ref for the matrix.
+			//
+			// Therefore, the only way to perform this as needed
+			// without changing it to mut ref is by copying the matrix.
+			//
+			// TODO: see if we can unjank this?
 			Matrix m(rhs);
 			return m * lhs;
 		}
 
 		/// Division operator overload for a Matrix and a Vector. The vector will be transformed according to the Matrix's elements.
+		/// Flipping, if set, is performed after rotating.
 		/// @param rhs A Vector reference as the right hand side operand.
 		/// @return The resulting transformed Vector.
 		Vector operator/(const Vector& rhs);
@@ -246,7 +270,19 @@ namespace RTE {
 		/// @param lhs A Vector reference as the left hand side operand.
 		/// @param rhs A Matrix reference as the right hand side operand.
 		/// @return A reference to the resulting Vector.
-		friend Vector operator/(const Vector& lhs, Matrix& rhs) { return rhs / lhs; }
+		friend Vector operator/(const Vector& lhs, const Matrix& rhs) {
+			// Division might call Matrix::UpdateElements and therefore
+			// needs to modify it.
+			//
+			// However, this function signature uses const ref for the matrix.
+			//
+			// Therefore, the only way to perform this as needed
+			// without changing it to mut ref is by copying the matrix.
+			//
+			// TODO: see if we can unjank this?
+			Matrix m(rhs);
+			return m / lhs;
+		}
 
 		/// Self-multiplication operator overload for Vector with a Matrix.
 		/// @param lhs A Vector reference as the left hand side operand.
