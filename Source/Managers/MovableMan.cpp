@@ -20,6 +20,8 @@
 #include "SettingsMan.h"
 #include "LuaMan.h"
 #include "ThreadMan.h"
+#include "DeterminismChecker.h"
+#include "System.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -73,6 +75,8 @@ void MovableMan::Clear() {
 	m_MaxDroppedItems = 100;
 	m_SettlingEnabled = true;
 	m_MOSubtractionEnabled = true;
+	// HitWhatMOID / HitWhatTerrMaterial compare against this each tick; it's otherwise only incremented.
+	m_SimUpdateFrameNumber = 0;
 }
 
 int MovableMan::Initialize() {
@@ -654,6 +658,31 @@ Actor* MovableMan::GetUnassignedBrain(int team) const {
 	}
 
 	return 0;
+}
+
+void MovableMan::HashState(StateHasher& hasher) const {
+	auto hashMovableObject = [&hasher](const MovableObject* movableObject) {
+		hasher.Add(movableObject->GetUniqueID());
+		hasher.Add(movableObject->GetPos());
+		hasher.Add(movableObject->GetVel());
+		hasher.Add(movableObject->GetRotAngle());
+		hasher.Add(movableObject->GetAngularVel());
+		hasher.Add(movableObject->IsHFlipped());
+	};
+
+	for (const std::deque<Actor*>* actors: {&m_Actors, &m_AddedActors}) {
+		for (const Actor* actor: *actors) {
+			hashMovableObject(actor);
+			hasher.Add(actor->GetTeam());
+			hasher.Add(actor->GetStatus());
+			hasher.Add(actor->GetHealth());
+		}
+	}
+	for (const std::deque<MovableObject*>* movableObjects: {&m_Items, &m_AddedItems, &m_Particles, &m_AddedParticles}) {
+		for (const MovableObject* movableObject: *movableObjects) {
+			hashMovableObject(movableObject);
+		}
+	}
 }
 
 bool MovableMan::AddMO(MovableObject* movableObjectToAdd) {
@@ -1278,8 +1307,8 @@ void MovableMan::Update() {
 
 	// ---TEMP ---
 	// These are here for multithreaded AI, but will be unnecessary when multithreaded-sim-and-render is in!
-	// Clear the MO color layer only if this is a drawn update
-	if (g_TimerMan.DrawnSimUpdate()) {
+	// Clear the MO color layer only if this is a drawn update. Nothing gets drawn when headless, so neither is the MO color layer.
+	if (g_TimerMan.DrawnSimUpdate() && !System::IsInHeadlessMode()) {
 		g_SceneMan.ClearMOColorLayer();
 	}
 
@@ -1315,6 +1344,8 @@ void MovableMan::Update() {
 	// Finish our Seeing rays from last frame
 	m_ActorsSeeFuture.wait();
 
+	DeterminismCheckSimState("MOs travelled");
+
 	// Prior to controller/AI update, execute lua callbacks
 	g_LuaMan.ExecuteLuaScriptCallbacks();
 
@@ -1325,6 +1356,8 @@ void MovableMan::Update() {
 
 	// Updates AI/user input
 	UpdateControllers();
+
+	DeterminismCheckSimState("Controllers updated");
 
 	// Will use some common iterators
 	std::deque<Actor*>::iterator aIt;
@@ -1355,6 +1388,7 @@ void MovableMan::Update() {
 			                                                     RTEAssert(start + 1 == end, "Threaded script state being updated across multiple threads!");
 			                                                     LuaStateWrapper& luaState = luaStates[start];
 			                                                     g_LuaMan.SetThreadLuaStateOverride(&luaState);
+			                                                     luaState.SetRunningThreadedUpdate(true);
 
 			                                                     for (MovableObject* mo: luaState.GetRegisteredMOs()) {
 				                                                     if (ValidMO(mo->GetRootParent())) {
@@ -1362,9 +1396,12 @@ void MovableMan::Update() {
 				                                                     }
 			                                                     }
 
+			                                                     luaState.SetRunningThreadedUpdate(false);
 			                                                     g_LuaMan.SetThreadLuaStateOverride(nullptr);
 		                                                     })
 		    .wait();
+
+		SortAddedMOs();
 	}
 
 	{
@@ -1394,6 +1431,8 @@ void MovableMan::Update() {
 		}
 	}
 	g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::ScriptsUpdate);
+
+	DeterminismCheckSimState("Threaded scripts updated");
 
 	{
 		{
@@ -1468,6 +1507,8 @@ void MovableMan::Update() {
 			}
 		}
 	} // namespace RTE
+
+	DeterminismCheckSimState("MOs updated");
 
 	//////////////////////////////////////////////////////////////////////
 	// TRANSFER ALL MOs ADDED THIS FRAME
@@ -1666,6 +1707,8 @@ void MovableMan::Update() {
 		}
 	}
 
+	DeterminismCheckSimState("MOs added and removed");
+
 	// Run seeing rays for all actors
 	m_ActorsSeeFuture = g_ThreadMan.GetPriorityThreadPool().parallelize_loop(m_Actors.size(),
 	                                                                         [&](int start, int end) {
@@ -1684,9 +1727,9 @@ void MovableMan::Update() {
 	});
 
 	////////////////////////////////////////////////////////////////////
-	// Draw the MO colors ONLY if this is a drawn update!
+	// Draw the MO colors ONLY if this is a drawn update! Nothing gets drawn when headless, so the MO colors would never be seen.
 
-	if (g_TimerMan.DrawnSimUpdate()) {
+	if (g_TimerMan.DrawnSimUpdate() && !System::IsInHeadlessMode()) {
 		Draw(g_SceneMan.GetMOColorBitmap());
 	}
 
@@ -1696,6 +1739,12 @@ void MovableMan::Update() {
 			m_ActorRoster[team].sort(MOXPosComparison());
 		}
 	}
+}
+
+void MovableMan::SortAddedMOs() {
+	std::sort(m_AddedActors.begin(), m_AddedActors.end(), LuaStateWrapper::UniqueIDOrder());
+	std::sort(m_AddedItems.begin(), m_AddedItems.end(), LuaStateWrapper::UniqueIDOrder());
+	std::sort(m_AddedParticles.begin(), m_AddedParticles.end(), LuaStateWrapper::UniqueIDOrder());
 }
 
 void MovableMan::Travel() {
@@ -1761,11 +1810,13 @@ void MovableMan::UpdateControllers() {
 		}
 
 		g_LuaMan.SetThreadLuaStateOverride(&g_LuaMan.GetMasterScriptState());
+		g_LuaMan.GetMasterScriptState().SetRunningAI(true);
 		for (Actor* actor: m_Actors) {
 			if (actor->GetLuaState() == &g_LuaMan.GetMasterScriptState() && actor->GetController()->ShouldUpdateAIThisFrame()) {
 				actor->RunScriptedFunctionInAppropriateScripts("ThreadedUpdateAI", false, true, {}, {}, {});
 			}
 		}
+		g_LuaMan.GetMasterScriptState().SetRunningAI(false);
 		g_LuaMan.SetThreadLuaStateOverride(nullptr);
 
 		LuaStatesArray& luaStates = g_LuaMan.GetThreadedScriptStates();
@@ -1774,18 +1825,25 @@ void MovableMan::UpdateControllers() {
 			                                                     RTEAssert(start + 1 == end, "Threaded script state being updated across multiple threads!");
 			                                                     LuaStateWrapper& luaState = luaStates[start];
 			                                                     g_LuaMan.SetThreadLuaStateOverride(&luaState);
+			                                                     luaState.SetRunningAI(true);
 			                                                     for (Actor* actor: m_Actors) {
 				                                                     if (actor->GetLuaState() == &luaState && actor->GetController()->ShouldUpdateAIThisFrame()) {
 					                                                     actor->RunScriptedFunctionInAppropriateScripts("ThreadedUpdateAI", false, true, {}, {}, {});
 				                                                     }
 			                                                     }
+			                                                     luaState.SetRunningAI(false);
 			                                                     g_LuaMan.SetThreadLuaStateOverride(nullptr);
 		                                                     })
 		    .wait();
 
+		SortAddedMOs();
+
 		for (Actor* actor: m_Actors) {
-			if (actor->GetController()->ShouldUpdateAIThisFrame()) {
+			LuaStateWrapper* luaState = actor->GetLuaState();
+			if (luaState && actor->GetController()->ShouldUpdateAIThisFrame()) {
+				luaState->SetRunningAI(true);
 				actor->RunScriptedFunctionInAppropriateScripts("UpdateAI", false, true, {}, {}, {});
+				luaState->SetRunningAI(false);
 			}
 		}
 	}

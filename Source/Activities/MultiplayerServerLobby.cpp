@@ -852,7 +852,7 @@ void MultiplayerServerLobby::GetAllScenesAndActivities() {
 
 		pActivity = dynamic_cast<Activity*>(*pItr);
 		// Only add non-editor and non-special activities
-		if (pActivity /* && pActivity->GetClassName() != "GATutorial" */ && pActivity->GetClassName().find("Editor") == std::string::npos) {
+		if (pActivity /* && pActivity->GetClassName() != "GATutorial" */ && pActivity->GetShowInMenus() && pActivity->GetClassName().find("Editor") == std::string::npos) {
 			// Prepare a new entry in the list of Activity:ies that we have
 			std::pair<Activity*, std::list<Scene*>> newPair(pActivity, std::list<Scene*>());
 			for (std::list<Scene*>::iterator sItr = filteredScenes.begin(); sItr != filteredScenes.end(); ++sItr) {

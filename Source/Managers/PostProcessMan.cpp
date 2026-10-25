@@ -19,6 +19,7 @@
 
 #include "tracy/Tracy.hpp"
 #include "tracy/TracyOpenGL.hpp"
+#include "raylib/raylib.h"
 
 #include <array>
 
@@ -388,7 +389,7 @@ void PostProcessMan::DrawDotGlowEffects() {
 				testpixel = _getpixel(g_FrameMan.GetBackBuffer8(), x, y);
 
 				// YELLOW
-				if ((testpixel == g_YellowGlowColor && RandomNum() < 0.9F) || testpixel == 98 || (testpixel == 120 && RandomNum() < 0.7F)) {
+				if ((testpixel == g_YellowGlowColor && g_DrawRandomGenerator.RandomNum() < 0.9F) || testpixel == 98 || (testpixel == 120 && g_DrawRandomGenerator.RandomNum() < 0.7F)) {
 					DrawTexture(yellowGlow, x - yellowGlow.width / 2, y - yellowGlow.height / 2, {255, 255, 255, 255});
 				}
 				// TODO: Enable and add more colors once we actually have something that needs these.
@@ -408,9 +409,8 @@ void PostProcessMan::DrawDotGlowEffects() {
 }
 
 void PostProcessMan::DrawPostScreenEffects() {
-	BITMAP* effectBitmap = nullptr;
-	float effectPosX = 0;
-	float effectPosY = 0;
+	int effectPosX = 0;
+	int effectPosY = 0;
 	unsigned char effectStrength = 0;
 
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
@@ -421,11 +421,16 @@ void PostProcessMan::DrawPostScreenEffects() {
 
 	for (const PostEffect& postEffect: m_PostScreenEffects) {
 		if (postEffect.m_Bitmap) {
-			effectBitmap = postEffect.m_Bitmap;
 			effectStrength = postEffect.m_Strength;
-			effectPosX = postEffect.m_Pos.m_X - postEffect.m_Bitmap->w / 2;
-			effectPosY = postEffect.m_Pos.m_Y - postEffect.m_Bitmap->h / 2;
-			DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(postEffect.m_Bitmap), effectPosX, effectPosY, {.r=effectStrength, .g=effectStrength, .b=effectStrength, .a=255});
+			effectPosX = postEffect.m_Pos.GetFloorIntX();
+			effectPosY = postEffect.m_Pos.GetFloorIntY();
+			DrawTexturePro(
+			    g_GLResourceMan.GetStaticTextureFromBitmap(postEffect.m_Bitmap),
+			    Rectangle(0, 0, postEffect.m_Bitmap->w, postEffect.m_Bitmap->h),
+			    Rectangle(effectPosX, effectPosY, postEffect.m_Bitmap->w, postEffect.m_Bitmap->h),
+				Vector2(postEffect.m_Bitmap->w / 2, postEffect.m_Bitmap->h / 2),
+			    postEffect.m_Angle,
+			    {.r=effectStrength, .g=effectStrength, .b=effectStrength, .a=255});
 		}
 	}
 }

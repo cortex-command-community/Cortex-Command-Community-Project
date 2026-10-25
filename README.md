@@ -66,6 +66,7 @@ This has been tested with WSL2 Ubuntu 22.04 but should work with other distribut
 
 # Linux and macOS Build Instructions
 The Linux build uses the meson build system, and builds against system libraries.
+LuaJIT and luabind are the exception: they're always built from the copies in `external/sources`, including when cross compiling, because the game relies on changes made to them (such as LuaJIT's deterministic table ordering). So a system `luajit` isn't needed.
 
 ## Dependencies
 
@@ -74,7 +75,6 @@ The Linux build uses the meson build system, and builds against system libraries
 * `gcc`, `g++` (>=13, clang unsupported) 
 * `opengl` (usually provided by the gpu driver)
 * `flac`
-* `luajit`
 * `lua` (maybe optional)
 * `minizip`
 * `tbb`
@@ -103,8 +103,8 @@ If you want to change the buildtype afterwards, you can use `meson configure --b
 (If you installed the game in step 5 above, it should appear with your regular applications and will just run)
 
 1. (*optional*) Copy (link) all `libfmod` files from `external/lib/[os]/[arch]` into the repository.
-  - Linux: `cd $REPOSITORY; ln -s ../external/lib/linux/x86_64/libfmod.so* .`
-  - macOS: `cd $REPOSITORY; ln -s ../external/lib/macOS/libfmod.dylib .`
+  - Linux: `cd $REPOSITORY; ln -s external/lib/linux/x86_64/libfmod.so* .`
+  - macOS: `cd $REPOSITORY; ln -s external/lib/macos/libfmod.dylib .`
 
 2. Run `./CortexCommand` or `./CortexCommand_debug`.
 
@@ -115,17 +115,17 @@ If you want to change the buildtype afterwards, you can use `meson configure --b
 - `Xcode` or `Command Line Tools for Xcode` (if you need to, you can also generate an xcode project from meson using the `--backend=xcode` option on setup)
 
 **Homebrew (macOS):**  
-`brew install pkg-config sdl3 minizip lz4 flac luajit lua libpng tbb gcc@13 ninja meson dylibbundler`
+`brew install pkg-config sdl3 minizip lz4 flac lua libpng tbb gcc@13 ninja meson dylibbundler`
 
 **Arch Linux:**  
-`sudo pacman -S tbb flac luajit lua minizip lz4 libpng meson ninja base-devel`  
+`sudo pacman -S tbb flac lua minizip lz4 libpng meson ninja base-devel`  
 
 **Ubuntu >=22.04:**  
-`sudo apt-get install build-essential libflac++-dev luajit-5.1-dev liblua5.1-dev libminizip-dev liblz4-dev libpng++-dev libtbb-dev ninja-build python3-pip`  
+`sudo apt-get install build-essential libflac++-dev liblua5.1-dev libminizip-dev liblz4-dev libpng++-dev libtbb-dev ninja-build python3-pip`  
 `sudo python3 -m pip install meson`
 
 **Fedora:**  
-`# dnf install allegro-loadpng-devel allegro-devel libsdl2-devel SDL2_image-devel lua-devel boost-devel meson ninja-build flac-devel luajit-devel minizip-compat-devel tbb-devel lz4-devel libpng-devel lua-devel gcc gcc-c++`  
+`# dnf install allegro-loadpng-devel allegro-devel libsdl2-devel SDL2_image-devel lua-devel boost-devel meson ninja-build flac-devel minizip-compat-devel tbb-devel lz4-devel libpng-devel lua-devel gcc gcc-c++`  
 
 ## Troubleshooting
 

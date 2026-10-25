@@ -381,7 +381,8 @@ unsigned char SceneMan::GetTerrMatter(int pixelX, int pixelY) {
 	if (pixelY < 0)
 		return g_MaterialAir;
 
-	return getpixel(pTMatBitmap, pixelX, pixelY);
+	// The material bitmap is a memory bitmap and the position is known to be inside it, so the pixel can be read straight from it, rather than through getpixel's function pointers.
+	return pTMatBitmap->line[pixelY][pixelX];
 }
 
 MOID SceneMan::GetMOIDPixel(int pixelX, int pixelY, int ignoreTeam) {
@@ -560,6 +561,8 @@ bool SceneMan::TryPenetrate(int posX,
 	unsigned char materialID = _getpixel(m_pCurrentScene->GetTerrain()->GetMaterialBitmap(), posX, posY);
 	if (materialID == g_MaterialAir) {
 		//        RTEAbort("Why are we penetrating air??");
+		// There's nothing here to slow anything down. Callers go on to use this when we return true, so it can't be left as it was.
+		retardation = 0.0F;
 		return true;
 	}
 	Material const* sceneMat = GetMaterialFromID(materialID);

@@ -251,7 +251,7 @@ namespace RTE {
 		/// Removes the Attachable corresponding to the passed in UniqueID and sets its parent to nullptr. Does not add it to MovableMan or add break wounds.
 		/// @param attachableUniqueID The UniqueID of the Attachable to remove.
 		/// @return A pointer to the removed Attachable. Ownership IS transferred!
-		virtual Attachable* RemoveAttachable(long attachableUniqueID) { return RemoveAttachable(attachableUniqueID, false, false); }
+		virtual Attachable* RemoveAttachable(int64_t attachableUniqueID) { return RemoveAttachable(attachableUniqueID, false, false); }
 
 		/// Removes the Attachable corresponding to the passed in UniqueID and sets its parent to nullptr. Optionally adds it to MovableMan and/or adds break wounds.
 		/// If the Attachable is not set to delete or delete when removed from its parent, and addToMovableMan is false, the caller must hang onto a pointer to the Attachable ahead of time to avoid memory leaks.
@@ -259,7 +259,7 @@ namespace RTE {
 		/// @param addToMovableMan Whether or not to add the Attachable to MovableMan once it has been removed.
 		/// @param addBreakWounds Whether or not to add break wounds to the removed Attachable and this MOSRotating.
 		/// @return A pointer to the removed Attachable, if it wasn't added to MovableMan or nullptr if it was. Ownership IS transferred!
-		virtual Attachable* RemoveAttachable(long attachableUniqueID, bool addToMovableMan, bool addBreakWounds);
+		virtual Attachable* RemoveAttachable(int64_t attachableUniqueID, bool addToMovableMan, bool addBreakWounds);
 
 		/// Removes the passed in Attachable and sets its parent to nullptr. Does not add it to MovableMan or add break wounds.
 		/// @param attachable The Attachable to remove.
@@ -552,9 +552,9 @@ namespace RTE {
 		bool m_ExitWoundBurstSoundPlayedThisFrame;
 		// The list of Attachables currently attached and Owned by this.
 		std::list<Attachable*> m_Attachables;
-		std::unordered_set<unsigned long> m_ReferenceHardcodedAttachableUniqueIDs; //!< An unordered set is filled with the Unique IDs of all of the reference object's hardcoded Attachables when using the copy Create.
-		std::unordered_map<unsigned long, std::function<void(MOSRotating*, Attachable*)>> m_HardcodedAttachableUniqueIDsAndSetters; //!< An unordered map of Unique IDs to setter lambda functions, used to call the appropriate hardcoded Attachable setter when a hardcoded Attachable is removed.
-		std::unordered_map<unsigned long, std::function<void(MOSRotating*, Attachable*)>> m_HardcodedAttachableUniqueIDsAndRemovers; //!< An unordered map of Unique IDs to remove lambda functions, used to call the appropriate hardcoded Attachable remover when a hardcoded Attachable is removed and calling the setter with nullptr won't work.
+		std::unordered_set<int64_t> m_ReferenceHardcodedAttachableUniqueIDs; //!< An unordered set is filled with the Unique IDs of all of the reference object's hardcoded Attachables when using the copy Create.
+		std::unordered_map<int64_t, std::function<void(MOSRotating*, Attachable*)>> m_HardcodedAttachableUniqueIDsAndSetters; //!< An unordered map of Unique IDs to setter lambda functions, used to call the appropriate hardcoded Attachable setter when a hardcoded Attachable is removed.
+		std::unordered_map<int64_t, std::function<void(MOSRotating*, Attachable*)>> m_HardcodedAttachableUniqueIDsAndRemovers; //!< An unordered map of Unique IDs to remove lambda functions, used to call the appropriate hardcoded Attachable remover when a hardcoded Attachable is removed and calling the setter with nullptr won't work.
 		const Attachable* m_RadiusAffectingAttachable; //!< A pointer to the Attachable that is currently affecting the radius. Used for some efficiency benefits.
 		float m_FarthestAttachableDistanceAndRadius; //!< The distance + radius of the radius affecting Attachable.
 		float m_AttachableAndWoundMass; //!< The mass of all Attachables and wounds on this MOSRotating. Used in combination with its actual mass and any other affecting factors to get its total mass.

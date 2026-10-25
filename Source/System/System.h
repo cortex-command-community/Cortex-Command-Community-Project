@@ -116,6 +116,15 @@ namespace RTE {
 		static void EnableExternalModuleValidationMode() { s_ExternalModuleValidation = true; }
 #pragma endregion
 
+#pragma region Headless Mode
+		/// Gets whether the program is running in headless mode, where nothing is presented to the user and the simulation runs as fast as it can instead of in real time.
+		/// @return Whether the program is running in headless mode.
+		static bool IsInHeadlessMode() { return s_Headless; }
+
+		/// Sets the program to run in headless mode. This has to be done before the managers are initialized.
+		static void EnableHeadlessMode() { s_Headless = true; }
+#pragma endregion
+
 #pragma region Misc
 		/// Fires up the default browser for the current OS on a specific URL.
 		/// @param goToURL A string with the URL to send the browser to.
@@ -132,6 +141,7 @@ namespace RTE {
 		static bool s_Quit; //!< Whether the user requested program termination through GUI or the window close button.
 		static bool s_LogToCLI; //!< Bool to tell whether to print the loading log and anything specified with PrintToCLI to command-line or not.
 		static bool s_ExternalModuleValidation; //!< Whether to run the program in a special mode where it will immediately quit without any messages after either successful loading of all modules or aborting during loading. For use by an external tool.
+		static bool s_Headless; //!< Whether to run the program without presenting anything to the user, and with the simulation running as fast as it can instead of in real time.
 		static std::string s_ThisExePathAndName; //!< String containing the absolute path to this executable. Used for relaunching via abort message.
 		static std::string s_WorkingDirectory; //!< String containing the absolute path to current working directory.
 		static std::vector<size_t> s_WorkingTree; //!< Vector of the hashes of all file paths in the working directory.

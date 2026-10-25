@@ -147,9 +147,87 @@ jobs:
           path: CortexCommand.AppImage
           if-no-files-found: error
 
-  build-macos:
+  build-macos-arm:
+    runs-on: macos-latest
+    name: MacOS Build (ARM64)
+
+    env:
+      MACOSX_DEPLOYMENT_TARGET: ${{inputs.macosx-deployment-target}}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Install Dependencies"
+        run: |
+          brew install pkg-config sdl3 minizip lz4 flac libpng tbb gcc ninja meson dylibbundler
+          # clang is unsupported (see README) and Apple clang builds crash inside FMOD on shutdown
+          GCC_MAJOR=$(brew list --versions gcc | awk '{print $2}' | cut -d. -f1)
+          echo "CC=gcc-${GCC_MAJOR}" >> $GITHUB_ENV
+          echo "CXX=g++-${GCC_MAJOR}" >> $GITHUB_ENV
+
+      - name: Set Version
+        if: ${{inputs.new_release_version}}
+        uses: ./.github/actions/set_version
+        with:
+          new_release_version: ${{inputs.new_release_version}}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: ${{ github.job }}
+
+      - name: Setup Meson
+        run: |
+          meson setup --buildtype=${{inputs.build_type}} -Ddebug_type=${{inputs.debug_level}} -Db_lto=false build
+
+      - name: Configure for App Bundle
+        if: ${{inputs.upload_artefacts}}
+        run: |
+          meson configure \
+          -Dinstall_data=false -Dinstall_runner=false -Dfmod_dir=Contents/Frameworks \
+          --bindir=Contents/MacOS \
+          --prefix="/" \
+          -Ddylibbundler_args="-s $(brew --prefix)/lib" \
+          build
+
+      - name: Build
+        run: |
+          meson compile -C build
+
+      - name: Create App Bundle
+        if: ${{inputs.upload_artefacts}}
+        run: |
+          meson install --skip-subprojects --destdir="/tmp/Cortex Command.app" -C build
+
+      # Apple Silicon refuses to run arm64 code with an invalid signature
+      - name: Sign App Bundle
+        if: ${{inputs.upload_artefacts}}
+        run: |
+          codesign --force --deep --sign - "/tmp/Cortex Command.app"
+          codesign --verify --deep --strict --verbose=2 "/tmp/Cortex Command.app"
+
+      - name: Tar files
+        if: ${{inputs.upload_artefacts}}
+        run: |
+          cd /tmp/
+          tar -cvf CortexCommand-arm64.tar "Cortex Command.app"
+
+      - name: Move artefact
+        if: ${{inputs.upload_artefacts}}
+        run: cp /tmp/CortexCommand-arm64.tar .
+
+      - name: Artifact Deploy
+        if: ${{inputs.upload_artefacts}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: CortexCommand (macOS ARM64)
+          path: |
+            CortexCommand-arm64.tar
+          if-no-files-found: error
+
+  build-macos-x86:
     runs-on: ubuntu-latest
-    name: MacOS Build
+    name: MacOS Build (x86_64)
 
     env:
       MACOSX_DEPLOYMENT_TARGET: ${{inputs.macosx-deployment-target}}
@@ -178,7 +256,7 @@ jobs:
           echo "::group::Installing pkg-config"
           sudo apt install pkg-config
           echo "::group::Installing mac deps"
-          omp install SDL3 onetbb lz4 libpng minizip luajit flac
+          omp --x86_64 install SDL3 onetbb lz4 libpng minizip flac
           echo "OSXCROSS_PKG_CONFIG_PATH=${{env.OSXCROSS_TARGET}}/macports/pkgs/opt/local/libexec/onetbb/lib/pkgconfig" >> $GITHUB_ENV
           echo "::endgroup::"
           echo "::group::Installing meson"
@@ -231,19 +309,19 @@ jobs:
         if: ${{inputs.upload_artefacts}}
         run: |
           cd /tmp/
-          tar -cvf CortexCommand.tar "Cortex Command.app"
+          tar -cvf CortexCommand-x86_64.tar "Cortex Command.app"
 
       - name: Move artefact
         if: ${{inputs.upload_artefacts}}
-        run: cp /tmp/CortexCommand.tar .
+        run: cp /tmp/CortexCommand-x86_64.tar .
 
       - name: Artifact Deploy
         if: ${{inputs.upload_artefacts}}
         uses: actions/upload-artifact@v4
         with:
-          name: CortexCommand (macOS)
+          name: CortexCommand (macOS x86_64)
           path: |
-            CortexCommand.tar
+            CortexCommand-x86_64.tar
           if-no-files-found: error
 
   build-windows:

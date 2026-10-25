@@ -25,8 +25,13 @@
 
 #include "MusicMan.h"
 
+#ifdef SYSTEM_MINIZIP
+#include <minizip/zip.h>
+#include <minizip/unzip.h>
+#else
 #include "zip.h"
 #include "unzip.h"
+#endif
 
 #include "tracy/Tracy.hpp"
 
@@ -65,6 +70,10 @@ bool ActivityMan::Initialize() {
 	if (IsSetToLaunchIntoEditor()) {
 		// Evaluate LaunchIntoEditor before LaunchIntoActivity so it takes priority when both are set, otherwise it is ignored and editor is never launched.
 		return SetStartEditorActivitySetToLaunchInto();
+	} else if (!m_SaveGameToLaunch.empty()) {
+		return LoadAndLaunchGame(m_SaveGameToLaunch);
+	} else if (!m_ActivityNameToLaunch.empty()) {
+		return SetStartActivitySetToLaunchInto();
 	} else if (IsSetToLaunchIntoActivity()) {
 		m_ActivityNeedsRestart = true;
 		return true;
@@ -450,6 +459,27 @@ bool ActivityMan::SetStartEditorActivitySetToLaunchInto() {
 		m_LaunchIntoEditor = false;
 		return false;
 	}
+}
+
+bool ActivityMan::SetStartActivitySetToLaunchInto() {
+	const Activity* activityPreset = dynamic_cast<const Activity*>(g_PresetMan.GetEntityPreset(m_ActivityTypeToLaunch, m_ActivityNameToLaunch));
+	if (!activityPreset || g_SceneMan.SetSceneToLoad(m_SceneNameToLaunch) < 0) {
+		g_ConsoleMan.PrintString("ERROR: Invalid Activity or Scene name passed into \"-activity\" argument!");
+		g_ConsoleMan.SetEnabled(true);
+		return false;
+	}
+
+	Activity* activityToStart = dynamic_cast<Activity*>(activityPreset->Clone());
+	if (GameActivity* gameActivityToStart = dynamic_cast<GameActivity*>(activityToStart)) {
+		gameActivityToStart->SetStartingGold(gameActivityToStart->GetDefaultGoldMediumDifficulty());
+		// Activities come set up with just player one, so give them the CPU to play against, unless the Activity decides that by itself.
+		if (gameActivityToStart->GetCPUTeam() == Activity::Teams::NoTeam) {
+			gameActivityToStart->SetCPUTeam(Activity::Teams::TeamTwo);
+		}
+	}
+	SetStartActivity(activityToStart);
+	m_ActivityNeedsRestart = true;
+	return true;
 }
 
 int ActivityMan::StartActivity(Activity* activity) {
