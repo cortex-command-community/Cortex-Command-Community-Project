@@ -875,7 +875,6 @@ void LuaStateWrapper::Update() {
 void LuaStateWrapper::StepGarbageCollection() {
 	std::lock_guard<std::recursive_mutex> lock(m_Mutex);
 
-	// The first time, there's nothing to go by yet for how much was allocated, since Lua's own collector was what collected while scripts were being loaded.
 	size_t heapSize = GetHeapSize();
 	if (m_HeapSizeAfterGarbageCollectionStep != 0) {
 		// Lua's own collector does its step multiplier's worth of collecting for each kilobyte allocated, and a step of that many kilobytes does the same, so this keeps up with what was allocated since the last step just as it would have.
@@ -885,7 +884,7 @@ void LuaStateWrapper::StepGarbageCollection() {
 		lua_gc(m_State, LUA_GCSTEP, static_cast<int>(allocatedSinceLastStep / 1024));
 	}
 
-	// Lua's own collector would otherwise collect whenever an allocation took it over its threshold, in the middle of whatever script was running.
+	// Stop the Lua GC from triggering manually so we don't get spikes in work that the main thread may be waiting on
 	lua_gc(m_State, LUA_GCSTOP, 0);
 	m_HeapSizeAfterGarbageCollectionStep = GetHeapSize();
 }
