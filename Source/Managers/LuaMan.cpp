@@ -20,13 +20,18 @@ LuaStateWrapper::~LuaStateWrapper() {
 	Destroy();
 }
 
+bool LuaStateWrapper::UniqueIDOrder::operator()(const MovableObject* lhs, const MovableObject* rhs) const {
+	return lhs->GetUniqueID() < rhs->GetUniqueID();
+}
+
 void LuaStateWrapper::Clear() {
 	m_State = nullptr;
 	m_TempEntity = nullptr;
 	m_TempEntityVector.clear();
 	m_LastError.clear();
 	m_CurrentlyRunningScriptPath = "";
-	m_HeapSizeAfterGarbageCollectionStep = 0;
+	m_RunningAI = false;
+  m_HeapSizeAfterGarbageCollectionStep = 0;
 }
 
 void LuaStateWrapper::Initialize() {
@@ -245,6 +250,7 @@ void LuaStateWrapper::Initialize() {
 
 	const uint64_t seed = RandomNum<uint64_t>(0, std::numeric_limits<uint64_t>::max());
 	m_RandomGenerator.Seed(seed);
+	m_AIRandomGenerator.Seed(RandomNum<uint64_t>(0, std::numeric_limits<uint64_t>::max()));
 
 	luaL_dostring(m_State,
 	              "package.path = package.path .. \";Data/Base.rte/LuaIntegration/?.lua;Data/Base.rte/LuaIntegration/?/?.lua;\"\n"
@@ -282,20 +288,29 @@ void LuaStateWrapper::Destroy() {
 	lua_close(m_State);
 }
 
+void LuaStateWrapper::SetRunningAI(bool runningAI) {
+	m_RunningAI = runningAI;
+	SetThreadRandomGenerator(runningAI ? &m_AIRandomGenerator : nullptr);
+}
+
+void LuaStateWrapper::SetRunningThreadedUpdate(bool runningThreadedUpdate) {
+	SetThreadRandomGenerator(runningThreadedUpdate ? &m_RandomGenerator : nullptr);
+}
+
 int LuaStateWrapper::SelectRand(int minInclusive, int maxInclusive) {
-	return m_RandomGenerator.RandomNum<int>(minInclusive, maxInclusive);
+	return GetActiveRandomGenerator().RandomNum<int>(minInclusive, maxInclusive);
 }
 
 double LuaStateWrapper::RangeRand(double minInclusive, double maxInclusive) {
-	return m_RandomGenerator.RandomNum<double>(minInclusive, maxInclusive);
+	return GetActiveRandomGenerator().RandomNum<double>(minInclusive, maxInclusive);
 }
 
 double LuaStateWrapper::NormalRand() {
-	return m_RandomGenerator.RandomNormalNum<double>();
+	return GetActiveRandomGenerator().RandomNormalNum<double>();
 }
 
 double LuaStateWrapper::PosRand() {
-	return m_RandomGenerator.RandomNum<double>();
+	return GetActiveRandomGenerator().RandomNum<double>();
 }
 
 // Passthrough LuaMan Functions
@@ -330,6 +345,9 @@ void LuaMan::Initialize() {
 	} else if (g_SettingsMan.GetNumberOfLuaStatesOverride() != -1) {
 		luaStateCount = g_SettingsMan.GetNumberOfLuaStatesOverride();
 	}
+
+	// Each threaded Lua state hands out unique IDs to the MOs made on its thread from a range of its own, and there's only so many of those ranges, with one going to the main thread.
+	luaStateCount = std::min(luaStateCount, (1 << MovableObject::c_UniqueIDThreadBits) - 1);
 
 	m_ScriptStates = std::vector<LuaStateWrapper>(luaStateCount);
 	for (LuaStateWrapper& luaState: m_ScriptStates) {

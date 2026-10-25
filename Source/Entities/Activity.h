@@ -564,11 +564,11 @@ namespace RTE {
 		/// Saves a number which will be stored in our ini.
 		/// @param key The key of the saved number.
 		/// @param value The number to save.
-		void SaveNumber(const std::string& key, float value) { m_SavedValues.SaveNumber(key, value); };
+		void SaveNumber(const std::string& key, double value) { m_SavedValues.SaveNumber(key, value); };
 
 		/// Loads and returns a previously saved number.
 		/// @param key The key of the string to load.
-		float LoadNumber(const std::string& key) { return m_SavedValues.LoadNumber(key); };
+		double LoadNumber(const std::string& key) { return m_SavedValues.LoadNumber(key); };
 #pragma endregion
 
 	protected:

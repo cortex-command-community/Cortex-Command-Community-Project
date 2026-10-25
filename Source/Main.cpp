@@ -52,6 +52,7 @@
 #include "LuaMan.h"
 #include "MusicMan.h"
 #include "System.h"
+#include "DeterminismChecker.h"
 
 #include "RenderTarget.h"
 #include "tracy/Tracy.hpp"
@@ -67,6 +68,16 @@ FILE __iob_func[3] = {*stdin, *stdout, *stderr};
 }
 
 using namespace RTE;
+
+/// <summary>
+/// The number of simulation updates to quit after, as set by command-line argument. Negative means to keep going.
+/// </summary>
+static long long s_SimUpdatesToQuitAfter = -1;
+
+/// <summary>
+/// Whether to quit once the Activity is over, as set by command-line argument.
+/// </summary>
+static bool s_QuitWhenActivityOver = false;
 
 /// <summary>
 /// Initializes all the essential managers.
@@ -155,6 +166,29 @@ void DestroyManagers() {
 }
 
 /// <summary>
+/// Handling of the command-line arguments that affect how the managers are initialized, so have to be dealt with before that happens.
+/// </summary>
+/// <param name="argCount">Argument count.</param>
+/// <param name="argValue">Argument values.</param>
+void HandleEarlyMainArgs(int argCount, char** argValue) {
+	// Skip the first argument because it's always the executable path/name
+	for (int i = 1; i < argCount; ++i) {
+		std::string currentArg = argValue[i];
+		bool lastArg = i + 1 == argCount;
+
+		if (currentArg == "-headless") {
+			System::EnableHeadlessMode();
+		} else if (!lastArg && currentArg == "-determinism-record") {
+			DeterminismChecker::StartRecording(argValue[++i]);
+		} else if (!lastArg && currentArg == "-determinism-verify") {
+			DeterminismChecker::StartVerifying(argValue[++i]);
+		} else if (!lastArg && currentArg == "-seed") {
+			SetRNGSeedOffset(static_cast<uint32_t>(std::atoll(argValue[++i])));
+		}
+	}
+}
+
+/// <summary>
 /// Command-line argument handling.
 /// </summary>
 /// <param name="argCount">Argument count.</param>
@@ -188,9 +222,22 @@ void HandleMainArgs(int argCount, char** argValue) {
 				singleModuleSet = true;
 			}
 		}
+		if (!lastArg && currentArg == "-sim-updates") {
+			s_SimUpdatesToQuitAfter = std::atoll(argValue[++i]);
+		}
+		if (currentArg == "-quit-when-over") {
+			s_QuitWhenActivityOver = true;
+		}
 		if (!launchModeSet) {
 			if (!lastArg && currentArg == "-editor") {
 				g_ActivityMan.SetEditorToLaunch(argValue[++i]);
+				launchModeSet = true;
+			} else if (!lastArg && currentArg == "-save") {
+				g_ActivityMan.SetSaveGameToLaunch(argValue[++i]);
+				launchModeSet = true;
+			} else if (i + 3 < argCount && currentArg == "-activity") {
+				g_ActivityMan.SetActivityToLaunch(argValue[i + 1], argValue[i + 2], argValue[i + 3]);
+				i += 3;
 				launchModeSet = true;
 			}
 		}
@@ -245,6 +292,12 @@ void PollSDLEvents() {
 /// Game menus loop.
 /// </summary>
 void RunMenuLoop() {
+	// There's no one to use the menus when headless, so ending up here means there's nothing left to do.
+	if (System::IsInHeadlessMode()) {
+		System::SetQuit();
+		return;
+	}
+
 	g_MenuMan.SetIsInMenuScreen(true);
 	g_UInputMan.DisableKeys(false);
 	g_UInputMan.TrapMousePos(false);
@@ -319,7 +372,10 @@ void RunGameLoop() {
 
 		PollSDLEvents();
 		g_WindowMan.Update();
-		g_WindowMan.ClearBackbuffer();
+		// Nothing gets drawn to the backbuffer when headless, so there's nothing to clear from it either.
+		if (!System::IsInHeadlessMode()) {
+			g_WindowMan.ClearBackbuffer();
+		}
 
 		g_TimerMan.Update();
 
@@ -366,6 +422,15 @@ void RunGameLoop() {
 			g_PerformanceMan.StopPerformanceMeasurement(PerformanceMan::SimTotal);
 			g_UInputMan.EndFrame();
 
+			if (s_SimUpdatesToQuitAfter >= 0 && g_TimerMan.GetSimUpdateCount() >= s_SimUpdatesToQuitAfter) {
+				System::SetQuit();
+				break;
+			}
+			if (s_QuitWhenActivityOver && g_ActivityMan.GetActivity() && g_ActivityMan.GetActivity()->IsOver()) {
+				System::SetQuit();
+				break;
+			}
+
 			if (!g_ActivityMan.IsInActivity()) {
 				g_TimerMan.PauseSim(true);
 
@@ -392,9 +457,11 @@ void RunGameLoop() {
 		updateTotalTime = updateEndAndDrawStartTime - updateStartTime;
 		drawStartTime = updateEndAndDrawStartTime;
 
-		g_FrameMan.Draw();
-		g_WindowMan.DrawPostProcessBuffer();
-		g_WindowMan.UploadFrame();
+		if (!System::IsInHeadlessMode()) {
+			g_FrameMan.Draw();
+			g_WindowMan.DrawPostProcessBuffer();
+			g_WindowMan.UploadFrame();
+		}
 
 		drawTotalTime = g_TimerMan.GetAbsoluteTime() - drawStartTime;
 		g_PerformanceMan.UpdateMSPF(updateTotalTime, drawTotalTime);
@@ -437,6 +504,10 @@ int main(int argc, char** argv) {
 	// argv[0] actually unreliable for exe path and name, because of course, why would it be, why would anything be simple and make sense.
 	// Just use it anyway until some dumb edge case pops up and it becomes a problem.
 	System::Initialize(argv[0]);
+
+	HandleEarlyMainArgs(argc, argv);
+
+	// This comes after the early arguments because the seed can be set by them, and before the managers because the Lua states get their seeds from it.
 	SeedRNG();
 
 	InitializeManagers();
@@ -471,12 +542,14 @@ int main(int argc, char** argv) {
 	g_ThreadMan.GetPriorityThreadPool().wait_for_tasks();
 	g_ThreadMan.GetBackgroundThreadPool().wait_for_tasks();
 
+	DeterminismChecker::Stop();
+
 	DestroyManagers();
 
 	allegro_exit();
 	SDL_Quit();
 
-	return EXIT_SUCCESS;
+	return DeterminismChecker::HasDiverged() ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
 #ifdef _WIN32
