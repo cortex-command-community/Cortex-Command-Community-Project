@@ -134,6 +134,26 @@ LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, DataModule) {
 	    .def_readwrite("Presets", &DataModule::m_EntityList, luabind::return_stl_iterator);
 }
 
+LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, InputScheme) {
+	return luabind::class_<InputScheme>("InputScheme")
+
+	    .property("Device", &InputScheme::GetDevice)
+	    .property("Preset", &InputScheme::GetPreset)
+
+	    .def("GetMappingName", &InputScheme::GetMappingName)
+
+	    .enum_("InputPreset")[luabind::value("NoPreset", InputScheme::InputPreset::NoPreset),
+	                          luabind::value("PresetArrowKeys", InputScheme::InputPreset::PresetArrowKeys),
+	                          luabind::value("PresetWASDKeys", InputScheme::InputPreset::PresetWASDKeys),
+	                          luabind::value("PresetMouseWASDKeys", InputScheme::InputPreset::PresetMouseWASDKeys),
+	                          luabind::value("PresetGenericDPad", InputScheme::InputPreset::PresetGenericDPad),
+	                          luabind::value("PresetGenericDualAnalog", InputScheme::InputPreset::PresetGenericDualAnalog),
+	                          luabind::value("PresetGamepadSNES", InputScheme::InputPreset::PresetGamepadSNES),
+	                          luabind::value("PresetGamepadDS4", InputScheme::InputPreset::PresetGamepadDS4),
+	                          luabind::value("PresetGamepadXbox360", InputScheme::InputPreset::PresetGamepadXbox360),
+	                          luabind::value("InputPresetCount", InputScheme::InputPreset::InputPresetCount)];
+}
+
 LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Timer) {
 	return luabind::class_<Timer>("Timer")
 
