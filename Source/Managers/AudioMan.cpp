@@ -27,6 +27,7 @@ void AudioMan::Clear() {
 	m_AudioEnabled = false;
 	m_CurrentActivityHumanPlayerPositions.clear();
 	m_SoundChannelMinimumAudibleDistances.clear();
+	m_SoundChannelLowpassEQs.clear();
 
 	m_MuteMaster = false;
 	m_MuteMusic = false;
@@ -417,7 +418,7 @@ bool AudioMan::PlaySoundContainer(SoundContainer* soundContainer, int player) {
 			result = (result == FMOD_OK) ? channel->setVolume(soundContainer->GetVolume()) : result;
 		} else {
 
-			FMOD::DSP* dsp_multibandeq;
+			FMOD::DSP* dsp_multibandeq = nullptr;
 			result = (result == FMOD_OK) ? m_AudioSystem->createDSPByType(FMOD_DSP_TYPE_MULTIBAND_EQ, &dsp_multibandeq) : result;
 			result = (result == FMOD_OK) ? dsp_multibandeq->setParameterFloat(1, 22000.0f) : result; // Functionally inactive lowpass filter
 			result = (result == FMOD_OK) ? channel->addDSP(0, dsp_multibandeq) : result;
@@ -425,6 +426,9 @@ bool AudioMan::PlaySoundContainer(SoundContainer* soundContainer, int player) {
 			{
 				std::scoped_lock<std::mutex> lock(m_SoundChannelMinimumAudibleDistancesMutex);
 				m_SoundChannelMinimumAudibleDistances.insert({channelIndex, soundData->MinimumAudibleDistance});
+				if (dsp_multibandeq) {
+					m_SoundChannelLowpassEQs.insert({channelIndex, dsp_multibandeq});
+				}
 			}
 
 			result = (result == FMOD_OK) ? channel->set3DLevel(m_SoundPanningEffectStrength * soundContainer->GetPanningStrengthMultiplier()) : result;
@@ -844,8 +848,18 @@ FMOD_RESULT F_CALLBACK AudioMan::SoundChannelEndedCallback(FMOD_CHANNELCONTROL* 
 			}
 			result = (result == FMOD_OK) ? channel->setUserData(nullptr) : result;
 
-			if (g_AudioMan.m_SoundChannelMinimumAudibleDistances.find(channelIndex) != g_AudioMan.m_SoundChannelMinimumAudibleDistances.end()) {
-				g_AudioMan.m_SoundChannelMinimumAudibleDistances.erase(channelIndex);
+			{
+				std::scoped_lock<std::mutex> lock(g_AudioMan.m_SoundChannelMinimumAudibleDistancesMutex);
+				if (g_AudioMan.m_SoundChannelMinimumAudibleDistances.find(channelIndex) != g_AudioMan.m_SoundChannelMinimumAudibleDistances.end()) {
+					g_AudioMan.m_SoundChannelMinimumAudibleDistances.erase(channelIndex);
+				}
+
+				// FMOD takes the lowpass EQ off a positional sound's channel when it ends, but doesn't release it.
+				if (auto lowpassEQ = g_AudioMan.m_SoundChannelLowpassEQs.find(channelIndex); lowpassEQ != g_AudioMan.m_SoundChannelLowpassEQs.end()) {
+					FMOD_RESULT releaseResult = lowpassEQ->second->release();
+					result = (result == FMOD_OK) ? releaseResult : result;
+					g_AudioMan.m_SoundChannelLowpassEQs.erase(lowpassEQ);
+				}
 			}
 
 			if (result != FMOD_OK) {
