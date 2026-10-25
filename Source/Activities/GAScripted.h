@@ -9,7 +9,7 @@
 #include "GlobalScript.h"
 #include "Box.h"
 
-#include "LuabindObjectWrapper.h"
+#include "LuaObjectWrapper.h"
 
 namespace RTE {
 
@@ -131,13 +131,13 @@ namespace RTE {
 		/// @param targetPos The absolute position of the target bitmap's upper left corner in the scene. (default: Vector())
 		void Draw(BITMAP* pTargetBitmap, const Vector& targetPos = Vector()) override;
 
-		int RunLuaFunction(const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
-		int RunLuaConditionalTest(const std::string& functionName, bool& returnParam, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
+		int RunLuaFunction(const std::string& functionName, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuaObjectWrapper*>& functionObjectArguments = std::vector<LuaObjectWrapper*>());
+		int RunLuaConditionalTest(const std::string& functionName, bool& returnParam, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuaObjectWrapper*>& functionObjectArguments = std::vector<LuaObjectWrapper*>());
 
 		/// Protected member variable and method declarations
 	protected:
 		/// Does nothing - we do this in script! Just overrides the base behaviour.
-		void InitAIs() override{};
+		void InitAIs() override {};
 
 		// Member variables
 		static Entity::ClassInfo m_sClass;
@@ -152,7 +152,7 @@ namespace RTE {
 		// The list of global scripts allowed to run during this activity
 		std::vector<GlobalScript*> m_GlobalScriptsList;
 
-		std::unordered_map<std::string, std::unique_ptr<LuabindObjectWrapper>> m_ScriptFunctions; //!< A map of LuabindObjectWrappers that hold Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
+		std::unordered_map<std::string, std::unique_ptr<LuaObjectWrapper>> m_ScriptFunctions; //!< A map of LuaObjectWrappers that hold Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
 
 		/// Private member variable and method declarations
 	private:

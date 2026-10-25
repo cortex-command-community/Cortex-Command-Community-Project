@@ -8,6 +8,7 @@
 #include "BS_thread_pool.hpp"
 
 #include <array>
+#include <memory>
 #include <set>
 
 #define g_LuaMan LuaMan::Instance()
@@ -16,8 +17,11 @@ struct lua_State;
 
 namespace RTE {
 
-	class LuabindObjectWrapper;
+	class LuaObjectWrapper;
 	class MovableObject;
+	namespace LuaBinding {
+		class Storage;
+	}
 
 	/// A single lua state. Multiple of these can exist at once for multithreaded scripting.
 	class LuaStateWrapper {
@@ -127,23 +131,23 @@ namespace RTE {
 
 		/// Runs the given Lua function object. The first argument to the function will always be the self object.
 		/// If either argument list has entries, they will be passed into the function in order, with entity arguments first.
-		/// @param functionObjectWrapper The LuabindObjectWrapper containing the Lua function to be run.
+		/// @param functionObjectWrapper The LuaObjectWrapper containing the Lua function to be run.
 		/// @param selfGlobalTableName The name of the global Lua table that gives access to the self object.
 		/// @param selfGlobalTableKey The key for this object in the respective global Lua table.
 		/// @param functionEntityArguments Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.
 		/// @param functionLiteralArguments Optional vector of strings that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int RunScriptFunctionObject(const LuabindObjectWrapper* functionObjectWrapper, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
-		
+		int RunScriptFunctionObject(const LuaObjectWrapper* functionObjectWrapper, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuaObjectWrapper*>& functionObjectArguments = std::vector<LuaObjectWrapper*>());
+
 		/// Runs the given Lua function object. The first argument to the function will always be the self object.
 		/// If either argument list has entries, they will be passed into the function in order, with entity arguments first.
-		/// @param functionObjectWrapper The LuabindObjectWrapper containing the Lua function to be run.
+		/// @param functionObjectWrapper The LuaObjectWrapper containing the Lua function to be run.
 		/// @param selfGlobalTableName The name of the global Lua table that gives access to the self object.
 		/// @param selfGlobalTableKey The key for this object in the respective global Lua table.
 		/// @param functionEntityArguments Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.
 		/// @param functionLiteralArguments Optional vector of strings that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int RunScriptConditionalTestFunctionObject(const LuabindObjectWrapper* functionObjectWrapper, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, bool& returnParam, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
+		int RunScriptConditionalTestFunctionObject(const LuaObjectWrapper* functionObjectWrapper, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, bool& returnParam, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuaObjectWrapper*>& functionObjectArguments = std::vector<LuaObjectWrapper*>());
 
 		/// Opens and loads a file containing a script and runs it on the state.
 		/// @param filePath The path to the file to load and run.
@@ -155,17 +159,17 @@ namespace RTE {
 		/// Retrieves all of the specified functions that exist into the output map, and refreshes the cache.
 		/// @param filePath The path to the file to load and run.
 		/// @param functionNamesToLookFor The vector of strings defining the function names to be retrieved.
-		/// @param outFunctionNamesAndObjects The map of function names to LuabindObjectWrappers to be retrieved from the script that was run.
+		/// @param outFunctionNamesAndObjects The map of function names to LuaObjectWrappers to be retrieved from the script that was run.
 		/// @return Returns whether functions were successfully retrieved.
-		bool RetrieveFunctions(const std::string& functionObjectName, const std::vector<std::string>& functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper*>& outFunctionNamesAndObjects);
+		bool RetrieveFunctions(const std::string& functionObjectName, const std::vector<std::string>& functionNamesToLookFor, std::unordered_map<std::string, LuaObjectWrapper*>& outFunctionNamesAndObjects);
 
 		/// Opens and loads a file containing a script and runs it on the state, then retrieves all of the specified functions that exist into the output map.
 		/// @param filePath The path to the file to load and run.
 		/// @param functionNamesToLookFor The vector of strings defining the function names to be retrieved.
-		/// @param outFunctionNamesAndObjects The map of function names to LuabindObjectWrappers to be retrieved from the script that was run.
+		/// @param outFunctionNamesAndObjects The map of function names to LuaObjectWrappers to be retrieved from the script that was run.
 		/// @param noCaching Whether caching shouldn't be used.
 		/// @return Returns less than zero if any errors encountered when running this script. To get the actual error string, call GetLastError.
-		int RunScriptFileAndRetrieveFunctions(const std::string& filePath, const std::vector<std::string>& functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper*>& outFunctionNamesAndObjects, bool forceReload = false);
+		int RunScriptFileAndRetrieveFunctions(const std::string& filePath, const std::vector<std::string>& functionNamesToLookFor, std::unordered_map<std::string, LuaObjectWrapper*>& outFunctionNamesAndObjects, bool forceReload = false);
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -272,6 +276,7 @@ namespace RTE {
 		std::unordered_set<MovableObject*> m_AddedRegisteredMOs; //!< The objects using our lua state that were recently added.
 
 		lua_State* m_State;
+		std::unique_ptr<LuaBinding::Storage> m_BindingStorage; //!< What the Lua bindings of this state call, kept outside the Lua heap. Has to outlive the Lua state.
 		Entity* m_TempEntity; //!< Temporary holder for an Entity object that we want to pass into the Lua state without fuss. Lets you export objects to lua easily.
 		std::vector<Entity*> m_TempEntityVector; //!< Temporary holder for a vector of Entities that we want to pass into the Lua state without a fuss. Usually used to pass arguments to special Lua functions.
 		std::string m_LastError; //!< Description of the last error that occurred in the script execution.
@@ -281,7 +286,7 @@ namespace RTE {
 		std::recursive_mutex m_Mutex; //!< Mutex to ensure multiple threads aren't running something in this lua state simultaneously.
 
 		struct LuaScriptFunctionObjects {
-			std::unordered_map<std::string, LuabindObjectWrapper*> functionNamesAndObjects;
+			std::unordered_map<std::string, LuaObjectWrapper*> functionNamesAndObjects;
 		};
 		std::unordered_map<std::string, LuaScriptFunctionObjects> m_ScriptCache;
 

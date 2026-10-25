@@ -1,248 +1,247 @@
 // Make sure that binding definition files are always set to NOT use pre-compiled headers and conformance mode (/permissive) otherwise everything will be on fire!
 
 #include "LuaBindingRegisterDefinitions.h"
-#include "return_reference_to_policy.hpp"
 
 using namespace RTE;
 
 LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Box) {
-	return luabind::class_<Box>("Box")
+	registry.Class<Box>("Box")
 
-	    .def(luabind::constructor<>())
-	    .def(luabind::constructor<const Vector&, const Vector&>())
-	    .def(luabind::constructor<float, float, float, float>())
-	    .def(luabind::constructor<const Vector&, float, float>())
-	    .def(luabind::constructor<const Box&>())
-	    .def(luabind::self == luabind::other<const Box&>())
+	    .addConstructor<>()
+	    .addConstructor<const Vector&, const Vector&>()
+	    .addConstructor<float, float, float, float>()
+	    .addConstructor<const Vector&, float, float>()
+	    .addConstructor<const Box&>()
+	    .addEqualityOperator<const Box&>()
 
-	    .property("ClassName", &Box::GetClassName)
-	    .property("Corner", &Box::GetCorner, &Box::SetCorner)
-	    .property("Width", &Box::GetWidth, &Box::SetWidth)
-	    .property("Height", &Box::GetHeight, &Box::SetHeight)
-	    .property("Center", &Box::GetCenter, &Box::SetCenter)
-	    .property("Area", &Box::GetArea)
+	    .addProperty("ClassName", &Box::GetClassName)
+	    .addProperty("Corner", &Box::GetCorner, &Box::SetCorner)
+	    .addProperty("Width", &Box::GetWidth, &Box::SetWidth)
+	    .addProperty("Height", &Box::GetHeight, &Box::SetHeight)
+	    .addProperty("Center", &Box::GetCenter, &Box::SetCenter)
+	    .addProperty("Area", &Box::GetArea)
 
-	    .def("GetRandomPoint", &Box::GetRandomPoint)
-	    .def("Unflip", &Box::Unflip)
-	    .def("IsWithinBox", &Box::IsWithinBox)
-	    .def("IsWithinBoxX", &Box::IsWithinBoxX)
-	    .def("IsWithinBoxY", &Box::IsWithinBoxY)
-	    .def("GetWithinBoxX", &Box::GetWithinBoxX)
-	    .def("GetWithinBoxY", &Box::GetWithinBoxY)
-	    .def("GetWithinBox", &Box::GetWithinBox)
-	    .def("IntersectsBox", &Box::IntersectsBox);
+	    .addFunction("GetRandomPoint", &Box::GetRandomPoint)
+	    .addFunction("Unflip", &Box::Unflip)
+	    .addFunction("IsWithinBox", &Box::IsWithinBox)
+	    .addFunction("IsWithinBoxX", &Box::IsWithinBoxX)
+	    .addFunction("IsWithinBoxY", &Box::IsWithinBoxY)
+	    .addFunction("GetWithinBoxX", &Box::GetWithinBoxX)
+	    .addFunction("GetWithinBoxY", &Box::GetWithinBoxY)
+	    .addFunction("GetWithinBox", &Box::GetWithinBox)
+	    .addFunction("IntersectsBox", &Box::IntersectsBox);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Controller) {
-	return luabind::class_<Controller>("Controller")
+	registry.Class<Controller>("Controller")
 
-	    .def(luabind::constructor<>())
+	    .addConstructor<>()
 
-	    .property("InputMode", &Controller::GetInputMode, &Controller::SetInputMode)
-	    .property("ControlledActor", &Controller::GetControlledActor, &Controller::SetControlledActor)
-	    .property("Team", &Controller::GetTeam, &Controller::SetTeam)
-	    .property("AnalogMove", &Controller::GetAnalogMove, &Controller::SetAnalogMove)
-	    .property("AnalogAim", &Controller::GetAnalogAim, &Controller::SetAnalogAim)
-	    .property("AnalogCursor", &Controller::GetAnalogCursor, &Controller::SetAnalogCursor)
-	    .property("Player", &Controller::GetPlayer, &Controller::SetPlayer)
-	    .property("MouseMovement", &Controller::GetMouseMovement)
-	    .property("Disabled", &Controller::IsDisabled, &Controller::SetDisabled)
+	    .addProperty("InputMode", &Controller::GetInputMode, &Controller::SetInputMode)
+	    .addProperty("ControlledActor", &Controller::GetControlledActor, &Controller::SetControlledActor)
+	    .addProperty("Team", &Controller::GetTeam, &Controller::SetTeam)
+	    .addProperty("AnalogMove", &Controller::GetAnalogMove, &Controller::SetAnalogMove)
+	    .addProperty("AnalogAim", &Controller::GetAnalogAim, &Controller::SetAnalogAim)
+	    .addProperty("AnalogCursor", &Controller::GetAnalogCursor, &Controller::SetAnalogCursor)
+	    .addProperty("Player", &Controller::GetPlayer, &Controller::SetPlayer)
+	    .addProperty("MouseMovement", &Controller::GetMouseMovement)
+	    .addProperty("Disabled", &Controller::IsDisabled, &Controller::SetDisabled)
 
-	    .def("IsPlayerControlled", &Controller::IsPlayerControlled)
-	    .def("RelativeCursorMovement", &Controller::RelativeCursorMovement)
-	    .def("IsMouseControlled", &Controller::IsMouseControlled)
-	    .def("IsKeyboardOnlyControlled", &Controller::IsKeyboardOnlyControlled)
-	    .def("IsGamepadControlled", &Controller::IsGamepadControlled)
-	    .def("SetState", &Controller::SetState)
-	    .def("IsState", &Controller::IsState)
-	    .def("Override", &Controller::Override)
+	    .addFunction("IsPlayerControlled", &Controller::IsPlayerControlled)
+	    .addFunction("RelativeCursorMovement", &Controller::RelativeCursorMovement)
+	    .addFunction("IsMouseControlled", &Controller::IsMouseControlled)
+	    .addFunction("IsKeyboardOnlyControlled", &Controller::IsKeyboardOnlyControlled)
+	    .addFunction("IsGamepadControlled", &Controller::IsGamepadControlled)
+	    .addFunction("SetState", &Controller::SetState)
+	    .addFunction("IsState", &Controller::IsState)
+	    .addFunction("Override", &Controller::Override)
 
-	    .enum_("ControlState")[luabind::value("PRIMARY_ACTION", ControlState::PRIMARY_ACTION),
-	                           luabind::value("SECONDARY_ACTION", ControlState::SECONDARY_ACTION),
-	                           luabind::value("MOVE_IDLE", ControlState::MOVE_IDLE),
-	                           luabind::value("MOVE_RIGHT", ControlState::MOVE_RIGHT),
-	                           luabind::value("MOVE_LEFT", ControlState::MOVE_LEFT),
-	                           luabind::value("MOVE_UP", ControlState::MOVE_UP),
-	                           luabind::value("MOVE_DOWN", ControlState::MOVE_DOWN),
-	                           luabind::value("MOVE_FAST", ControlState::MOVE_FAST),
-	                           luabind::value("BODY_JUMPSTART", ControlState::BODY_JUMPSTART),
-	                           luabind::value("BODY_JUMP", ControlState::BODY_JUMP),
-	                           luabind::value("BODY_CROUCH", ControlState::BODY_PRONE), // awful, but script compat
-	                           luabind::value("BODY_PRONE", ControlState::BODY_PRONE),
-	                           luabind::value("BODY_WALKCROUCH", ControlState::BODY_CROUCH),
-	                           luabind::value("AIM_UP", ControlState::AIM_UP),
-	                           luabind::value("AIM_DOWN", ControlState::AIM_DOWN),
-	                           luabind::value("AIM_SHARP", ControlState::AIM_SHARP),
-	                           luabind::value("WEAPON_FIRE", ControlState::WEAPON_FIRE),
-	                           luabind::value("WEAPON_RELOAD", ControlState::WEAPON_RELOAD),
-	                           luabind::value("WEAPON_RELOADHELD", ControlState::WEAPON_RELOADHELD),
-	                           luabind::value("PIE_MENU_OPENED", ControlState::PIE_MENU_OPENED),
-	                           luabind::value("PIE_MENU_ACTIVE", ControlState::PIE_MENU_ACTIVE),
-	                           luabind::value("WEAPON_CHANGE_NEXT", ControlState::WEAPON_CHANGE_NEXT),
-	                           luabind::value("WEAPON_CHANGE_PREV", ControlState::WEAPON_CHANGE_PREV),
-	                           luabind::value("WEAPON_PICKUP", ControlState::WEAPON_PICKUP),
-	                           luabind::value("WEAPON_DROP", ControlState::WEAPON_DROP),
-	                           luabind::value("WEAPON_PRIMARY_HOTKEY", ControlState::WEAPON_PRIMARY_HOTKEY),
-	                           luabind::value("WEAPON_AUXILIARY_HOTKEY", ControlState::WEAPON_AUXILIARY_HOTKEY),
-	                           luabind::value("ACTOR_PRIMARY_HOTKEY", ControlState::ACTOR_PRIMARY_HOTKEY),
-	                           luabind::value("ACTOR_AUXILIARY_HOTKEY", ControlState::ACTOR_AUXILIARY_HOTKEY),
-	                           luabind::value("WEAPON_PRIMARY_HOTKEYSTART", ControlState::WEAPON_PRIMARY_HOTKEYSTART),
-	                           luabind::value("WEAPON_AUXILIARY_HOTKEYSTART", ControlState::WEAPON_AUXILIARY_HOTKEYSTART),
-	                           luabind::value("ACTOR_PRIMARY_HOTKEYSTART", ControlState::ACTOR_PRIMARY_HOTKEYSTART),
-	                           luabind::value("ACTOR_AUXILIARY_HOTKEYSTART", ControlState::ACTOR_AUXILIARY_HOTKEYSTART),
-	                           luabind::value("ACTOR_NEXT", ControlState::ACTOR_NEXT),
-	                           luabind::value("ACTOR_PREV", ControlState::ACTOR_PREV),
-	                           luabind::value("ACTOR_BRAIN", ControlState::ACTOR_BRAIN),
-	                           luabind::value("ACTOR_NEXT_PREP", ControlState::ACTOR_NEXT_PREP),
-	                           luabind::value("ACTOR_PREV_PREP", ControlState::ACTOR_PREV_PREP),
-	                           luabind::value("HOLD_RIGHT", ControlState::HOLD_RIGHT),
-	                           luabind::value("HOLD_LEFT", ControlState::HOLD_LEFT),
-	                           luabind::value("HOLD_UP", ControlState::HOLD_UP),
-	                           luabind::value("HOLD_DOWN", ControlState::HOLD_DOWN),
-	                           luabind::value("PRESS_PRIMARY", ControlState::PRESS_PRIMARY),
-	                           luabind::value("PRESS_SECONDARY", ControlState::PRESS_SECONDARY),
-	                           luabind::value("PRESS_RIGHT", ControlState::PRESS_RIGHT),
-	                           luabind::value("PRESS_LEFT", ControlState::PRESS_LEFT),
-	                           luabind::value("PRESS_UP", ControlState::PRESS_UP),
-	                           luabind::value("PRESS_DOWN", ControlState::PRESS_DOWN),
-	                           luabind::value("RELEASE_PRIMARY", ControlState::RELEASE_PRIMARY),
-	                           luabind::value("RELEASE_SECONDARY", ControlState::RELEASE_SECONDARY),
-	                           luabind::value("PRESS_FACEBUTTON", ControlState::PRESS_FACEBUTTON),
-	                           luabind::value("RELEASE_FACEBUTTON", ControlState::RELEASE_FACEBUTTON),
-	                           luabind::value("SCROLL_UP", ControlState::SCROLL_UP),
-	                           luabind::value("SCROLL_DOWN", ControlState::SCROLL_DOWN),
-	                           luabind::value("DEBUG_ONE", ControlState::DEBUG_ONE),
-	                           luabind::value("CONTROLSTATECOUNT", ControlState::CONTROLSTATECOUNT)]
-	    .enum_("InputMode")[luabind::value("CIM_DISABLED", Controller::InputMode::CIM_DISABLED),
-	                        luabind::value("CIM_PLAYER", Controller::InputMode::CIM_PLAYER),
-	                        luabind::value("CIM_AI", Controller::InputMode::CIM_AI),
-	                        luabind::value("CIM_NETWORK", Controller::InputMode::CIM_NETWORK),
-	                        luabind::value("CIM_INPUTMODECOUNT", Controller::InputMode::CIM_INPUTMODECOUNT)];
+	    .addEnum({{"PRIMARY_ACTION", ControlState::PRIMARY_ACTION},
+	              {"SECONDARY_ACTION", ControlState::SECONDARY_ACTION},
+	              {"MOVE_IDLE", ControlState::MOVE_IDLE},
+	              {"MOVE_RIGHT", ControlState::MOVE_RIGHT},
+	              {"MOVE_LEFT", ControlState::MOVE_LEFT},
+	              {"MOVE_UP", ControlState::MOVE_UP},
+	              {"MOVE_DOWN", ControlState::MOVE_DOWN},
+	              {"MOVE_FAST", ControlState::MOVE_FAST},
+	              {"BODY_JUMPSTART", ControlState::BODY_JUMPSTART},
+	              {"BODY_JUMP", ControlState::BODY_JUMP},
+	              {"BODY_CROUCH", ControlState::BODY_PRONE}, // awful, but script compat
+	              {"BODY_PRONE", ControlState::BODY_PRONE},
+	              {"BODY_WALKCROUCH", ControlState::BODY_CROUCH},
+	              {"AIM_UP", ControlState::AIM_UP},
+	              {"AIM_DOWN", ControlState::AIM_DOWN},
+	              {"AIM_SHARP", ControlState::AIM_SHARP},
+	              {"WEAPON_FIRE", ControlState::WEAPON_FIRE},
+	              {"WEAPON_RELOAD", ControlState::WEAPON_RELOAD},
+	              {"WEAPON_RELOADHELD", ControlState::WEAPON_RELOADHELD},
+	              {"PIE_MENU_OPENED", ControlState::PIE_MENU_OPENED},
+	              {"PIE_MENU_ACTIVE", ControlState::PIE_MENU_ACTIVE},
+	              {"WEAPON_CHANGE_NEXT", ControlState::WEAPON_CHANGE_NEXT},
+	              {"WEAPON_CHANGE_PREV", ControlState::WEAPON_CHANGE_PREV},
+	              {"WEAPON_PICKUP", ControlState::WEAPON_PICKUP},
+	              {"WEAPON_DROP", ControlState::WEAPON_DROP},
+	              {"WEAPON_PRIMARY_HOTKEY", ControlState::WEAPON_PRIMARY_HOTKEY},
+	              {"WEAPON_AUXILIARY_HOTKEY", ControlState::WEAPON_AUXILIARY_HOTKEY},
+	              {"ACTOR_PRIMARY_HOTKEY", ControlState::ACTOR_PRIMARY_HOTKEY},
+	              {"ACTOR_AUXILIARY_HOTKEY", ControlState::ACTOR_AUXILIARY_HOTKEY},
+	              {"WEAPON_PRIMARY_HOTKEYSTART", ControlState::WEAPON_PRIMARY_HOTKEYSTART},
+	              {"WEAPON_AUXILIARY_HOTKEYSTART", ControlState::WEAPON_AUXILIARY_HOTKEYSTART},
+	              {"ACTOR_PRIMARY_HOTKEYSTART", ControlState::ACTOR_PRIMARY_HOTKEYSTART},
+	              {"ACTOR_AUXILIARY_HOTKEYSTART", ControlState::ACTOR_AUXILIARY_HOTKEYSTART},
+	              {"ACTOR_NEXT", ControlState::ACTOR_NEXT},
+	              {"ACTOR_PREV", ControlState::ACTOR_PREV},
+	              {"ACTOR_BRAIN", ControlState::ACTOR_BRAIN},
+	              {"ACTOR_NEXT_PREP", ControlState::ACTOR_NEXT_PREP},
+	              {"ACTOR_PREV_PREP", ControlState::ACTOR_PREV_PREP},
+	              {"HOLD_RIGHT", ControlState::HOLD_RIGHT},
+	              {"HOLD_LEFT", ControlState::HOLD_LEFT},
+	              {"HOLD_UP", ControlState::HOLD_UP},
+	              {"HOLD_DOWN", ControlState::HOLD_DOWN},
+	              {"PRESS_PRIMARY", ControlState::PRESS_PRIMARY},
+	              {"PRESS_SECONDARY", ControlState::PRESS_SECONDARY},
+	              {"PRESS_RIGHT", ControlState::PRESS_RIGHT},
+	              {"PRESS_LEFT", ControlState::PRESS_LEFT},
+	              {"PRESS_UP", ControlState::PRESS_UP},
+	              {"PRESS_DOWN", ControlState::PRESS_DOWN},
+	              {"RELEASE_PRIMARY", ControlState::RELEASE_PRIMARY},
+	              {"RELEASE_SECONDARY", ControlState::RELEASE_SECONDARY},
+	              {"PRESS_FACEBUTTON", ControlState::PRESS_FACEBUTTON},
+	              {"RELEASE_FACEBUTTON", ControlState::RELEASE_FACEBUTTON},
+	              {"SCROLL_UP", ControlState::SCROLL_UP},
+	              {"SCROLL_DOWN", ControlState::SCROLL_DOWN},
+	              {"DEBUG_ONE", ControlState::DEBUG_ONE},
+	              {"CONTROLSTATECOUNT", ControlState::CONTROLSTATECOUNT}})
+	    .addEnum({{"CIM_DISABLED", Controller::InputMode::CIM_DISABLED},
+	              {"CIM_PLAYER", Controller::InputMode::CIM_PLAYER},
+	              {"CIM_AI", Controller::InputMode::CIM_AI},
+	              {"CIM_NETWORK", Controller::InputMode::CIM_NETWORK},
+	              {"CIM_INPUTMODECOUNT", Controller::InputMode::CIM_INPUTMODECOUNT}});
 }
 
 LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, DataModule) {
-	return luabind::class_<DataModule>("DataModule")
+	registry.Class<DataModule>("DataModule")
 
-	    .property("FileName", &DataModule::GetFileName)
-	    .property("FriendlyName", &DataModule::GetFriendlyName)
-	    .property("Author", &DataModule::GetAuthor)
-	    .property("Description", &DataModule::GetDescription)
-	    .property("Version", &DataModule::GetVersionNumber)
-	    .property("IsFaction", &DataModule::IsFaction)
-	    .property("IsMerchant", &DataModule::IsMerchant)
+	    .addProperty("FileName", &DataModule::GetFileName)
+	    .addProperty("FriendlyName", &DataModule::GetFriendlyName)
+	    .addProperty("Author", &DataModule::GetAuthor)
+	    .addProperty("Description", &DataModule::GetDescription)
+	    .addProperty("Version", &DataModule::GetVersionNumber)
+	    .addProperty("IsFaction", &DataModule::IsFaction)
+	    .addProperty("IsMerchant", &DataModule::IsMerchant)
 
-	    .def_readwrite("Presets", &DataModule::m_EntityList, luabind::return_stl_iterator);
+	    .addProperty("Presets", &DataModule::m_EntityList, LuaBinding::ReturnStlIterator);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Timer) {
-	return luabind::class_<Timer>("Timer")
+	registry.Class<Timer>("Timer")
 
-	    .def(luabind::constructor<>())
-	    .def(luabind::constructor<double>())
-	    .def(luabind::constructor<double, double>())
+	    .addConstructor<>()
+	    .addConstructor<double>()
+	    .addConstructor<double, double>()
 
-	    .property("StartRealTimeMS", &Timer::GetStartRealTimeMS, &Timer::SetStartRealTimeMS)
-	    .property("ElapsedRealTimeS", &Timer::GetElapsedRealTimeS, &Timer::SetElapsedRealTimeS)
-	    .property("ElapsedRealTimeMS", &Timer::GetElapsedRealTimeMS, &Timer::SetElapsedRealTimeMS)
-	    .property("StartSimTimeMS", &Timer::GetStartSimTimeMS, &Timer::SetStartSimTimeMS)
-	    .property("ElapsedSimTimeS", &Timer::GetElapsedSimTimeS, &Timer::SetElapsedSimTimeS)
-	    .property("ElapsedSimTimeMS", &Timer::GetElapsedSimTimeMS, &Timer::SetElapsedSimTimeMS)
-	    .property("RealTimeLimitProgress", &Timer::GetRealTimeLimitProgress, &Timer::SetRealTimeLimitProgress)
-	    .property("SimTimeLimitProgress", &Timer::GetSimTimeLimitProgress, &Timer::SetSimTimeLimitProgress)
+	    .addProperty("StartRealTimeMS", &Timer::GetStartRealTimeMS, &Timer::SetStartRealTimeMS)
+	    .addProperty("ElapsedRealTimeS", &Timer::GetElapsedRealTimeS, &Timer::SetElapsedRealTimeS)
+	    .addProperty("ElapsedRealTimeMS", &Timer::GetElapsedRealTimeMS, &Timer::SetElapsedRealTimeMS)
+	    .addProperty("StartSimTimeMS", &Timer::GetStartSimTimeMS, &Timer::SetStartSimTimeMS)
+	    .addProperty("ElapsedSimTimeS", &Timer::GetElapsedSimTimeS, &Timer::SetElapsedSimTimeS)
+	    .addProperty("ElapsedSimTimeMS", &Timer::GetElapsedSimTimeMS, &Timer::SetElapsedSimTimeMS)
+	    .addProperty("RealTimeLimitProgress", &Timer::GetRealTimeLimitProgress, &Timer::SetRealTimeLimitProgress)
+	    .addProperty("SimTimeLimitProgress", &Timer::GetSimTimeLimitProgress, &Timer::SetSimTimeLimitProgress)
 
-	    .def("Reset", &Timer::Reset)
-	    .def("SetRealTimeLimitMS", &Timer::SetRealTimeLimitMS)
-	    .def("SetRealTimeLimitS", &Timer::SetRealTimeLimitS)
-	    .def("IsPastRealTimeLimit", &Timer::IsPastRealTimeLimit)
-	    .def("LeftTillRealTimeLimitMS", &Timer::LeftTillRealTimeLimitMS)
-	    .def("LeftTillRealTimeLimitS", &Timer::LeftTillRealTimeLimitS)
-	    .def("LeftTillRealMS", &Timer::LeftTillRealMS)
-	    .def("IsPastRealMS", &Timer::IsPastRealMS)
-	    .def("AlternateReal", &Timer::AlternateReal)
-	    .def("GetSimTimeLimitMS", &Timer::GetSimTimeLimitMS)
-	    .def("SetSimTimeLimitMS", &Timer::SetSimTimeLimitMS)
-	    .def("GetSimTimeLimitS", &Timer::GetSimTimeLimitS)
-	    .def("SetSimTimeLimitS", &Timer::SetSimTimeLimitS)
-	    .def("IsPastSimTimeLimit", &Timer::IsPastSimTimeLimit)
-	    .def("LeftTillSimTimeLimitMS", &Timer::LeftTillSimTimeLimitMS)
-	    .def("LeftTillSimTimeLimitS", &Timer::LeftTillSimTimeLimitS)
-	    .def("LeftTillSimMS", &Timer::LeftTillSimMS)
-	    .def("IsPastSimMS", &Timer::IsPastSimMS)
-	    .def("AlternateSim", &Timer::AlternateSim);
+	    .addFunction("Reset", &Timer::Reset)
+	    .addFunction("SetRealTimeLimitMS", &Timer::SetRealTimeLimitMS)
+	    .addFunction("SetRealTimeLimitS", &Timer::SetRealTimeLimitS)
+	    .addFunction("IsPastRealTimeLimit", &Timer::IsPastRealTimeLimit)
+	    .addFunction("LeftTillRealTimeLimitMS", &Timer::LeftTillRealTimeLimitMS)
+	    .addFunction("LeftTillRealTimeLimitS", &Timer::LeftTillRealTimeLimitS)
+	    .addFunction("LeftTillRealMS", &Timer::LeftTillRealMS)
+	    .addFunction("IsPastRealMS", &Timer::IsPastRealMS)
+	    .addFunction("AlternateReal", &Timer::AlternateReal)
+	    .addFunction("GetSimTimeLimitMS", &Timer::GetSimTimeLimitMS)
+	    .addFunction("SetSimTimeLimitMS", &Timer::SetSimTimeLimitMS)
+	    .addFunction("GetSimTimeLimitS", &Timer::GetSimTimeLimitS)
+	    .addFunction("SetSimTimeLimitS", &Timer::SetSimTimeLimitS)
+	    .addFunction("IsPastSimTimeLimit", &Timer::IsPastSimTimeLimit)
+	    .addFunction("LeftTillSimTimeLimitMS", &Timer::LeftTillSimTimeLimitMS)
+	    .addFunction("LeftTillSimTimeLimitS", &Timer::LeftTillSimTimeLimitS)
+	    .addFunction("LeftTillSimMS", &Timer::LeftTillSimMS)
+	    .addFunction("IsPastSimMS", &Timer::IsPastSimMS)
+	    .addFunction("AlternateSim", &Timer::AlternateSim);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Vector) {
-	return luabind::class_<Vector>("Vector")
+	registry.Class<Vector>("Vector")
 
-	    .def(luabind::constructor<>())
-	    .def(luabind::constructor<float, float>())
-	    .def(luabind::self == luabind::other<const Vector&>())
-	    .def(luabind::const_self + luabind::other<const Vector&>())
-	    .def(luabind::const_self - luabind::other<const Vector&>())
-	    .def(luabind::const_self * float())
-	    .def(luabind::const_self / float())
-	    .def(luabind::tostring(luabind::const_self))
+	    .addConstructor<>()
+	    .addConstructor<float, float>()
+	    .addEqualityOperator<const Vector&>()
+	    .addFunction("__add", +[](const Vector& self, const Vector& other) { return self + other; })
+	    .addFunction("__sub", +[](const Vector& self, const Vector& other) { return self - other; })
+	    .addFunction("__mul", +[](const Vector& self, float scalar) { return self * scalar; })
+	    .addFunction("__div", +[](const Vector& self, float scalar) { return self / scalar; })
+	    .addToString()
 
-	    .property("ClassName", &Vector::GetClassName)
-	    .property("RoundedX", &Vector::GetRoundIntX)
-	    .property("RoundedY", &Vector::GetRoundIntY)
-	    .property("Rounded", &Vector::GetRounded)
-	    .property("FlooredX", &Vector::GetFloorIntX)
-	    .property("FlooredY", &Vector::GetFloorIntY)
-	    .property("Floored", &Vector::GetFloored)
-	    .property("CeilingedX", &Vector::GetCeilingIntX)
-	    .property("CeilingedY", &Vector::GetCeilingIntY)
-	    .property("Ceilinged", &Vector::GetCeilinged)
-	    .property("Magnitude", &Vector::GetMagnitude)
-	    .property("SqrMagnitude", &Vector::GetSqrMagnitude)
-	    .property("Largest", &Vector::GetLargest)
-	    .property("Smallest", &Vector::GetSmallest)
-	    .property("Normalized", &Vector::GetNormalized)
-	    .property("Perpendicular", &Vector::GetPerpendicular)
-	    .property("AbsRadAngle", &Vector::GetAbsRadAngle, &Vector::SetAbsRadAngle)
-	    .property("AbsDegAngle", &Vector::GetAbsDegAngle, &Vector::SetAbsDegAngle)
+	    .addProperty("ClassName", &Vector::GetClassName)
+	    .addProperty("RoundedX", &Vector::GetRoundIntX)
+	    .addProperty("RoundedY", &Vector::GetRoundIntY)
+	    .addProperty("Rounded", &Vector::GetRounded)
+	    .addProperty("FlooredX", &Vector::GetFloorIntX)
+	    .addProperty("FlooredY", &Vector::GetFloorIntY)
+	    .addProperty("Floored", &Vector::GetFloored)
+	    .addProperty("CeilingedX", &Vector::GetCeilingIntX)
+	    .addProperty("CeilingedY", &Vector::GetCeilingIntY)
+	    .addProperty("Ceilinged", &Vector::GetCeilinged)
+	    .addProperty("Magnitude", &Vector::GetMagnitude)
+	    .addProperty("SqrMagnitude", &Vector::GetSqrMagnitude)
+	    .addProperty("Largest", &Vector::GetLargest)
+	    .addProperty("Smallest", &Vector::GetSmallest)
+	    .addProperty("Normalized", &Vector::GetNormalized)
+	    .addProperty("Perpendicular", &Vector::GetPerpendicular)
+	    .addProperty("AbsRadAngle", &Vector::GetAbsRadAngle, &Vector::SetAbsRadAngle)
+	    .addProperty("AbsDegAngle", &Vector::GetAbsDegAngle, &Vector::SetAbsDegAngle)
 
-	    .def_readwrite("X", &Vector::m_X)
-	    .def_readwrite("Y", &Vector::m_Y)
+	    .addReadWriteMember("X", &Vector::m_X)
+	    .addReadWriteMember("Y", &Vector::m_Y)
 
-	    .def("MagnitudeIsGreaterThan", &Vector::MagnitudeIsGreaterThan)
-	    .def("MagnitudeIsLessThan", &Vector::MagnitudeIsLessThan)
-	    .def("SetMagnitude", &Vector::SetMagnitude, luabind::return_reference_to(_1))
-	    .def("GetXFlipped", &Vector::GetXFlipped)
-	    .def("GetYFlipped", &Vector::GetYFlipped)
-	    .def("CapMagnitude", &Vector::CapMagnitude, luabind::return_reference_to(_1))
-	    .def("ClampMagnitude", &Vector::ClampMagnitude, luabind::return_reference_to(_1))
-	    .def("FlipX", &Vector::FlipX, luabind::return_reference_to(_1))
-	    .def("FlipY", &Vector::FlipY, luabind::return_reference_to(_1))
-	    .def("IsZero", &Vector::IsZero)
-	    .def("IsOpposedTo", &Vector::IsOpposedTo)
-	    .def("Dot", &Vector::Dot)
-	    .def("Cross", &Vector::Cross)
-	    .def("Round", &Vector::Round, luabind::return_reference_to(_1))
-	    .def("ToHalf", &Vector::ToHalf, luabind::return_reference_to(_1))
-	    .def("Floor", &Vector::Floor, luabind::return_reference_to(_1))
-	    .def("Ceiling", &Vector::Ceiling, luabind::return_reference_to(_1))
-	    .def("Normalize", &Vector::Normalize, luabind::return_reference_to(_1))
-	    .def("Perpendicularize", &Vector::Perpendicularize, luabind::return_reference_to(_1))
-	    .def("Reset", &Vector::Reset)
-	    .def("RadRotate", &Vector::RadRotate, luabind::return_reference_to(_1))
-	    .def("DegRotate", &Vector::DegRotate, luabind::return_reference_to(_1))
-	    .def("GetRadRotatedCopy", &Vector::GetRadRotatedCopy)
-	    .def("GetDegRotatedCopy", &Vector::GetDegRotatedCopy)
-	    .def("AbsRotateTo", &Vector::AbsRotateTo, luabind::return_reference_to(_1))
-	    .def("SetXY", &Vector::SetXY, luabind::return_reference_to(_1));
+	    .addFunction("MagnitudeIsGreaterThan", &Vector::MagnitudeIsGreaterThan)
+	    .addFunction("MagnitudeIsLessThan", &Vector::MagnitudeIsLessThan)
+	    .addFunction("SetMagnitude", &Vector::SetMagnitude, LuaBinding::ReturnSelf)
+	    .addFunction("GetXFlipped", &Vector::GetXFlipped)
+	    .addFunction("GetYFlipped", &Vector::GetYFlipped)
+	    .addFunction("CapMagnitude", &Vector::CapMagnitude, LuaBinding::ReturnSelf)
+	    .addFunction("ClampMagnitude", &Vector::ClampMagnitude, LuaBinding::ReturnSelf)
+	    .addFunction("FlipX", &Vector::FlipX, LuaBinding::ReturnSelf)
+	    .addFunction("FlipY", &Vector::FlipY, LuaBinding::ReturnSelf)
+	    .addFunction("IsZero", &Vector::IsZero)
+	    .addFunction("IsOpposedTo", &Vector::IsOpposedTo)
+	    .addFunction("Dot", &Vector::Dot)
+	    .addFunction("Cross", &Vector::Cross)
+	    .addFunction("Round", &Vector::Round, LuaBinding::ReturnSelf)
+	    .addFunction("ToHalf", &Vector::ToHalf, LuaBinding::ReturnSelf)
+	    .addFunction("Floor", &Vector::Floor, LuaBinding::ReturnSelf)
+	    .addFunction("Ceiling", &Vector::Ceiling, LuaBinding::ReturnSelf)
+	    .addFunction("Normalize", &Vector::Normalize, LuaBinding::ReturnSelf)
+	    .addFunction("Perpendicularize", &Vector::Perpendicularize, LuaBinding::ReturnSelf)
+	    .addFunction("Reset", &Vector::Reset)
+	    .addFunction("RadRotate", &Vector::RadRotate, LuaBinding::ReturnSelf)
+	    .addFunction("DegRotate", &Vector::DegRotate, LuaBinding::ReturnSelf)
+	    .addFunction("GetRadRotatedCopy", &Vector::GetRadRotatedCopy)
+	    .addFunction("GetDegRotatedCopy", &Vector::GetDegRotatedCopy)
+	    .addFunction("AbsRotateTo", &Vector::AbsRotateTo, LuaBinding::ReturnSelf)
+	    .addFunction("SetXY", &Vector::SetXY, LuaBinding::ReturnSelf);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, PathRequest) {
 	using namespace micropather;
-	return luabind::class_<PathRequest>("PathRequest")
+	registry.Class<PathRequest>("PathRequest")
 
-	    .def_readonly("Path", &PathRequest::path, luabind::return_stl_iterator)
-	    .def_readonly("PathLength", &PathRequest::pathLength)
-	    .def_readonly("Status", &PathRequest::status)
-	    .def_readonly("TotalCost", &PathRequest::totalCost)
+	    .addProperty("Path", &PathRequest::path, LuaBinding::ReturnStlIterator)
+	    .addProperty("PathLength", &PathRequest::pathLength)
+	    .addProperty("Status", &PathRequest::status)
+	    .addProperty("TotalCost", &PathRequest::totalCost)
 
-	    .enum_("Status")[luabind::value("Solved", micropather::MicroPather::SOLVED),
-	                     luabind::value("NoSolution", micropather::MicroPather::NO_SOLUTION),
-	                     luabind::value("StartEndSame", micropather::MicroPather::START_END_SAME)];
+	    .addEnum({{"Solved", micropather::MicroPather::SOLVED},
+	              {"NoSolution", micropather::MicroPather::NO_SOLUTION},
+	              {"StartEndSame", micropather::MicroPather::START_END_SAME}});
 }

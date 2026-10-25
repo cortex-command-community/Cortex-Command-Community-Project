@@ -25,7 +25,7 @@ void PieSlice::Clear() {
 	m_Enabled = true;
 	m_Icon = nullptr;
 
-	m_LuabindFunctionObject.reset();
+	m_LuaFunctionObject.reset();
 	m_FunctionName.clear();
 
 	m_SubPieMenu.reset();
@@ -59,8 +59,8 @@ int PieSlice::Create(const PieSlice& reference) {
 	m_Icon = std::unique_ptr<Icon>(dynamic_cast<Icon*>(reference.m_Icon->Clone()));
 
 	m_FunctionName = reference.m_FunctionName;
-	if (reference.m_LuabindFunctionObject) {
-		m_LuabindFunctionObject = std::make_unique<LuabindObjectWrapper>(nullptr, reference.m_LuabindFunctionObject->GetFilePath());
+	if (reference.m_LuaFunctionObject) {
+		m_LuaFunctionObject = std::make_unique<LuaObjectWrapper>(nullptr, reference.m_LuaFunctionObject->GetFilePath());
 		ReloadScripts();
 	}
 
@@ -105,14 +105,14 @@ int PieSlice::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("ScriptPath", {
 		std::string scriptPath;
 		reader >> scriptPath;
-		m_LuabindFunctionObject = std::make_unique<LuabindObjectWrapper>(nullptr, scriptPath);
+		m_LuaFunctionObject = std::make_unique<LuaObjectWrapper>(nullptr, scriptPath);
 		if (!m_FunctionName.empty()) {
 			ReloadScripts();
 		}
 	});
 	MatchProperty("FunctionName", {
 		reader >> m_FunctionName;
-		if (m_LuabindFunctionObject) {
+		if (m_LuaFunctionObject) {
 			ReloadScripts();
 		}
 	});
@@ -135,8 +135,8 @@ int PieSlice::Save(Writer& writer) const {
 		writer.NewPropertyWithValue("Enabled", m_Enabled);
 	}
 	writer.NewPropertyWithValue("Icon", m_Icon.get());
-	if (m_LuabindFunctionObject && !m_FunctionName.empty()) {
-		writer.NewPropertyWithValue("ScriptPath", m_LuabindFunctionObject->GetFilePath());
+	if (m_LuaFunctionObject && !m_FunctionName.empty()) {
+		writer.NewPropertyWithValue("ScriptPath", m_LuaFunctionObject->GetFilePath());
 		writer.NewPropertyWithValue("FunctionName", m_FunctionName);
 	}
 	if (m_SubPieMenu) {
@@ -170,13 +170,13 @@ void PieSlice::SetSubPieMenu(PieMenu* newSubPieMenu) {
 int PieSlice::ReloadScripts() {
 	int status = 0;
 
-	if (m_LuabindFunctionObject) {
-		std::string filePath = m_LuabindFunctionObject->GetFilePath();
-		std::unordered_map<std::string, LuabindObjectWrapper*> scriptFileFunctions;
+	if (m_LuaFunctionObject) {
+		std::string filePath = m_LuaFunctionObject->GetFilePath();
+		std::unordered_map<std::string, LuaObjectWrapper*> scriptFileFunctions;
 
 		status = g_LuaMan.GetMasterScriptState().RunScriptFileAndRetrieveFunctions(filePath, {m_FunctionName}, scriptFileFunctions, true);
 		if (scriptFileFunctions.find(m_FunctionName) != scriptFileFunctions.end()) {
-			m_LuabindFunctionObject = std::unique_ptr<LuabindObjectWrapper>(scriptFileFunctions.at(m_FunctionName));
+			m_LuaFunctionObject = std::unique_ptr<LuaObjectWrapper>(scriptFileFunctions.at(m_FunctionName));
 		}
 	}
 

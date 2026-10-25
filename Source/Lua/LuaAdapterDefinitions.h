@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LuabindDefinitions.h"
+#include "LuaBridgeDefinitions.h"
 
 #include "ActivityMan.h"
 #include "AudioMan.h"
@@ -87,7 +87,7 @@ struct lua_State;
 
 namespace RTE {
 
-	class LuabindObjectWrapper;
+	class LuaObjectWrapper;
 
 #pragma region Entity Lua Adapter Macros
 	struct LuaAdaptersEntityCreate {
@@ -176,10 +176,10 @@ namespace RTE {
 #define LuaEntityCastFunctionsDeclarationsForType(TYPE) \
 	static TYPE* To##TYPE(Entity* entity); \
 	static const TYPE* ToConst##TYPE(const Entity* entity); \
-	static bool Is##TYPE(Entity* entity); \
-	static LuabindObjectWrapper* ToLuabindObject##TYPE(Entity* entity, lua_State* luaState)
+	static bool Is##TYPE(const Entity* entity); \
+	static void PushAsLuaObject##TYPE(Entity* entity, lua_State* luaState)
 
-		static std::unordered_map<std::string, std::function<LuabindObjectWrapper*(Entity*, lua_State*)>> s_EntityToLuabindObjectCastFunctions; //!< Map of preset names to casting methods for ensuring objects are downcast properly when passed into Lua.
+		static std::unordered_map<std::string, void (*)(Entity*, lua_State*)> s_EntityToLuaObjectPushFunctions; //!< Map of class names to functions that push objects to Lua downcast to their actual class, used for ensuring objects are downcast properly when passed into Lua.
 
 		LuaEntityCastFunctionsDeclarationsForType(Entity);
 		LuaEntityCastFunctionsDeclarationsForType(SoundContainer);
@@ -306,10 +306,10 @@ namespace RTE {
 		}
 		static int CalculatePath(Scene* luaSelfObject, const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team);
 
-		static void CalculatePathAsync1(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, float jumpHeight, float digStrength) {
+		static void CalculatePathAsync1(Scene* luaSelfObject, const luabridge::LuaRef& callback, const Vector& start, const Vector& end, float jumpHeight, float digStrength) {
 			return CalculatePathAsync(luaSelfObject, callback, start, end, jumpHeight, digStrength, Activity::Teams::NoTeam);
 		}
-		static void CalculatePathAsync(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team);
+		static void CalculatePathAsync(Scene* luaSelfObject, const luabridge::LuaRef& callback, const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team);
 	};
 #pragma endregion
 
@@ -342,7 +342,7 @@ namespace RTE {
 #pragma region Activity Lua Adapters
 	struct LuaAdaptersActivity {
 		static void SendMessage1(Activity* luaSelfObject, const std::string& message);
-		static void SendMessage2(Activity* luaSelfObject, const std::string& message, luabind::object context);
+		static void SendMessage2(Activity* luaSelfObject, const std::string& message, luabridge::LuaRef context);
 	};
 #pragma endregion
 
@@ -354,7 +354,7 @@ namespace RTE {
 		static bool DisableScript1(MovableObject* luaSelfObject);
 		static bool DisableScript2(MovableObject* luaSelfObject, const std::string& scriptPath);
 		static void SendMessage1(MovableObject* luaSelfObject, const std::string& message);
-		static void SendMessage2(MovableObject* luaSelfObject, const std::string& message, luabind::object context);
+		static void SendMessage2(MovableObject* luaSelfObject, const std::string& message, luabridge::LuaRef context);
 	};
 #pragma endregion
 
@@ -425,7 +425,7 @@ namespace RTE {
 		static void AddParticle(MovableMan& movableMan, MovableObject* particle);
 
 		static void SendGlobalMessage1(MovableMan& movableMan, const std::string& message);
-		static void SendGlobalMessage2(MovableMan& movableMan, const std::string& message, luabind::object context);
+		static void SendGlobalMessage2(MovableMan& movableMan, const std::string& message, luabridge::LuaRef context);
 	};
 #pragma endregion
 
@@ -526,7 +526,7 @@ namespace RTE {
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @return The MOID of the hit non-ignored MO, or g_NoMOID if terrain or no MO was hit.
-		static MOID CastMORay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoreMOIDs, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
+		static MOID CastMORay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabridge::LuaRef& ignoreMOIDs, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
 
 		/// Traces along a vector and returns MOID of the first non-ignored
 		/// non-NoMOID MO encountered. If a non-air terrain pixel is encountered
@@ -553,8 +553,8 @@ namespace RTE {
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @return A vector of pointers to all MovableObjects met along the ray, who aren't ignored.
-		static const std::vector<MovableObject*>* CastAllMOsRay(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoreMOIDs, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
-		
+		static const std::vector<MovableObject*>* CastAllMOsRay(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabridge::LuaRef& ignoreMOIDs, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, bool ignoreAllTerrain = false, int skip = 0);
+
 		/// Traces along a vector and returns the length of how far the trace went
 		/// without hitting any non-ignored terrain material or MOID at all.
 		/// @param start The starting position.
@@ -574,7 +574,7 @@ namespace RTE {
 		/// @return How far along, in pixel units, the ray the pixel of any obstacle was
 		/// encountered. If no pixel of the right material was found, < 0 is returned.
 		/// If an obstacle on the starting position was encountered, 0 is returned.
-		static float CastObstacleRay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, const luabind::object& ignoreMOIDs, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, int skip = 0);
+		static float CastObstacleRay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, const luabridge::LuaRef& ignoreMOIDs, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, int skip = 0);
 
 		/// Traces along a vector and returns the length of how far the trace went
 		/// without hitting any non-ignored terrain material or MOID at all.
@@ -596,7 +596,7 @@ namespace RTE {
 		/// encountered. If no pixel of the right material was found, < 0 is returned.
 		/// If an obstacle on the starting position was encountered, 0 is returned.
 		static float CastObstacleRay2(SceneMan& sceneMan, const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, MOID ignoreMOID = g_NoMOID, int ignoreTeam = Activity::NoTeam, unsigned char ignoreMaterial = 0, int skip = 0);
-		
+
 		/// Takes a Box and returns a list of Boxes that describe the Box, wrapped appropriately for the current Scene.
 		/// @param boxToWrap The Box to wrap.
 		/// @return A list of Boxes that make up the Box to wrap, wrapped appropriately for the current Scene.
@@ -611,7 +611,7 @@ namespace RTE {
 		/// @param centerPos Position of primitive's center in Scene coordinates.
 		/// @param color Color to draw primitive with.
 		/// @param verticesTable A Lua table that contains the positions of the primitive's vertices, relative to the center position.
-		static void DrawPolygonPrimitive(PrimitiveMan& primitiveMan, const Vector& centerPos, int color, const luabind::object& verticesTable);
+		static void DrawPolygonPrimitive(PrimitiveMan& primitiveMan, const Vector& centerPos, int color, const luabridge::LuaRef& verticesTable);
 
 		/// Schedule to draw a polygon primitive visible only to a specified player.
 		/// @param primitiveMan A reference to PrimitiveMan, provided by Lua.
@@ -619,14 +619,14 @@ namespace RTE {
 		/// @param centerPos Position of primitive's center in Scene coordinates.
 		/// @param color Color to draw primitive with.
 		/// @param verticesTable A Lua table that contains the positions of the primitive's vertices, relative to the center position.
-		static void DrawPolygonPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& centerPos, int color, const luabind::object& verticesTable);
+		static void DrawPolygonPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& centerPos, int color, const luabridge::LuaRef& verticesTable);
 
 		/// Schedule to draw a filled polygon primitive.
 		/// @param primitiveMan A reference to PrimitiveMan, provided by Lua.
 		/// @param startPos Start position of the primitive in Scene coordinates.
 		/// @param color Color to draw primitive with.
 		/// @param verticesTable A Lua table that contains the positions of the primitive's vertices, relative to the center position.
-		static void DrawPolygonFillPrimitive(PrimitiveMan& primitiveMan, const Vector& startPos, int color, const luabind::object& verticesTable);
+		static void DrawPolygonFillPrimitive(PrimitiveMan& primitiveMan, const Vector& startPos, int color, const luabridge::LuaRef& verticesTable);
 
 		/// Schedule to draw a filled polygon primitive visible only to a specified player.
 		/// @param primitiveMan A reference to PrimitiveMan, provided by Lua.
@@ -634,20 +634,20 @@ namespace RTE {
 		/// @param startPos Start position of the primitive in Scene coordinates.
 		/// @param color Color to draw primitive with.
 		/// @param verticesTable A Lua table that contains the positions of the primitive's vertices, relative to the center position.
-		static void DrawPolygonFillPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& startPos, int color, const luabind::object& verticesTable);
+		static void DrawPolygonFillPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& startPos, int color, const luabridge::LuaRef& verticesTable);
 
 		/// Schedules to draw multiple primitives of varying type with transparency enabled.
 		/// @param primitiveMan A reference to PrimitiveMan, provided by Lua.
 		/// @param transValue The transparency value the primitives should be drawn at. From 0 (opaque) to 100 (transparent).
 		/// @param primitivesTable A Lua table of primitives to schedule drawing for.
-		static void DrawPrimitivesWithTransparency(PrimitiveMan& primitiveMan, int transValue, const luabind::object& primitivesTable);
+		static void DrawPrimitivesWithTransparency(PrimitiveMan& primitiveMan, int transValue, const luabridge::LuaRef& primitivesTable);
 
 		/// Schedule to draw multiple primitives of varying type with blending enabled.
 		/// @param primitiveMan A reference to PrimitiveMan, provided by Lua.
 		/// @param blendMode The blending mode the primitives should be drawn with. See DrawBlendMode enumeration.
 		/// @param blendAmount The blending amount for all the channels. 0-100.
 		/// @param primitivesTable A Lua table of primitives to schedule drawing for.
-		static void DrawPrimitivesWithBlending(PrimitiveMan& primitiveMan, int blendMode, int blendAmount, const luabind::object& primitivesTable);
+		static void DrawPrimitivesWithBlending(PrimitiveMan& primitiveMan, int blendMode, int blendAmount, const luabridge::LuaRef& primitivesTable);
 
 		/// Schedule to draw multiple primitives of varying type with blending enabled.
 		/// @param primitiveMan A reference to PrimitiveMan, provided by Lua.
@@ -657,7 +657,7 @@ namespace RTE {
 		/// @param blendAmountB The blending amount for the Blue channel. 0-100.
 		/// @param blendAmountA The blending amount for the Alpha channel. 0-100.
 		/// @param primitivesTable A Lua table of primitives to schedule drawing for.
-		static void DrawPrimitivesWithBlendingPerChannel(PrimitiveMan& primitiveMan, int blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const luabind::object& primitivesTable);
+		static void DrawPrimitivesWithBlendingPerChannel(PrimitiveMan& primitiveMan, int blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const luabridge::LuaRef& primitivesTable);
 	};
 #pragma endregion
 

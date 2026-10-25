@@ -547,7 +547,7 @@
     <ClInclude Include="Source\Menus\InventoryMenuGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Lua\LuabindDefinitions.h">
+    <ClInclude Include="Source\Lua\LuaBridgeDefinitions.h">
       <Filter>Lua</Filter>
     </ClInclude>
     <ClInclude Include="Source\Lua\LuaBindingRegisterDefinitions.h">
@@ -562,7 +562,7 @@
     <ClInclude Include="Source\GUI\GUIWriter.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Lua\LuabindObjectWrapper.h">
+    <ClInclude Include="Source\Lua\LuaObjectWrapper.h">
       <Filter>Lua</Filter>
     </ClInclude>
     <ClInclude Include="Source\Entities\TerrainFrosting.h">
@@ -1148,7 +1148,10 @@
     <ClCompile Include="Source\GUI\GUIWriter.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Lua\LuabindObjectWrapper.cpp">
+    <ClCompile Include="Source\Lua\LuaObjectWrapper.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Lua\LuaBridgeRegistry.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
     <ClCompile Include="Source\Lua\LuaBindingsMisc.cpp">
