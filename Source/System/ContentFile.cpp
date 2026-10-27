@@ -19,6 +19,7 @@ using namespace RTE;
 
 const std::string ContentFile::c_ClassName = "ContentFile";
 
+//using LoadedBitmapsMap = gtl::parallel_flat_hash_map<std::string, BITMAP*>;
 std::array<std::unordered_map<std::string, BITMAP*>, ContentFile::BitDepths::BitDepthCount> 
 	ContentFile::s_LoadedBitmaps;
 std::unordered_map<std::string, SDL_Surface*> ContentFile::s_MemoryPNGs;
@@ -261,6 +262,7 @@ BITMAP* ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std
 		std::scoped_lock sl(s_MemoryPNGsMutex, s_LoadedBitmapsMutex);
 		std::unordered_map<std::string, BITMAP*>::iterator foundBitmap 
 			= s_LoadedBitmaps[bitDepth].find(dataPathToLoad);
+
 		if (foundBitmap != s_LoadedBitmaps[bitDepth].end()) {
 			if (storeBitmap) {
 				returnBitmap = (*foundBitmap).second;
@@ -276,29 +278,33 @@ BITMAP* ContentFile::GetAsBitmap(int conversionMode, bool storeBitmap, const std
 				s_MemoryPNGs.erase(dataPathToLoad);
 			}
 		}
-	}
 
-	if (returnBitmap == nullptr) {
-		if (!System::PathExistsCaseSensitive(dataPathToLoad)) {
-			const std::string dataPathWithoutExtension = dataPathToLoad.substr(0, dataPathToLoad.length() - m_DataPathExtension.length());
-			const std::string altFileExtension = (m_DataPathExtension == ".png") ? ".bmp" : ".png";
+		if (returnBitmap == nullptr) {
+			if (!System::PathExistsCaseSensitive(dataPathToLoad)) {
+				const std::string dataPathWithoutExtension 
+					= dataPathToLoad.substr(0, dataPathToLoad.length() - m_DataPathExtension.length());
+				const std::string altFileExtension 
+					= (m_DataPathExtension == ".png") ? ".bmp" : ".png";
 
-			if (System::PathExistsCaseSensitive(dataPathWithoutExtension + altFileExtension)) {
-				g_ConsoleMan.AddLoadWarningLogExtensionMismatchEntry(m_DataPath, m_FormattedReaderPosition, altFileExtension);
-				SetDataPath(m_DataPathWithoutExtension + altFileExtension);
-				dataPathToLoad = dataPathWithoutExtension + altFileExtension;
-			} else {
-				RTEAbort("Failed to find image file with following path and name:\n\n" + dataPathToLoad + " or " + altFileExtension + "\n" + m_FormattedReaderPosition);
+				if (System::PathExistsCaseSensitive(dataPathWithoutExtension + altFileExtension)) {
+					g_ConsoleMan.AddLoadWarningLogExtensionMismatchEntry(m_DataPath, m_FormattedReaderPosition, altFileExtension);
+					SetDataPath(m_DataPathWithoutExtension + altFileExtension);
+					dataPathToLoad = dataPathWithoutExtension + altFileExtension;
+				} else {
+					RTEAbort("Failed to find image file with following path and name:\n\n" 
+						+ dataPathToLoad + " or " + altFileExtension + "\n" + m_FormattedReaderPosition);
+				}
+			}
+			// NOTE: This takes ownership of the bitmap file
+			returnBitmap = LoadAndReleaseBitmap(conversionMode, dataPathToLoad); 
+
+			// Insert the bitmap into the map, PASSING OVER OWNERSHIP OF THE LOADED DATAFILE
+			if (storeBitmap) {
+				s_LoadedBitmaps[bitDepth].try_emplace(dataPathToLoad, returnBitmap);
 			}
 		}
-		returnBitmap = LoadAndReleaseBitmap(conversionMode, dataPathToLoad); // NOTE: This takes ownership of the bitmap file
-
-		// Insert the bitmap into the map, PASSING OVER OWNERSHIP OF THE LOADED DATAFILE
-		if (storeBitmap) {
-			std::lock_guard lg(s_LoadedBitmapsMutex);
-			s_LoadedBitmaps[bitDepth].try_emplace(dataPathToLoad, returnBitmap);
-		}
 	}
+	
 
 	return returnBitmap;
 }

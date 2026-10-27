@@ -769,7 +769,6 @@ void PresetMan::RegisterGroup(std::string newGroup, int whichModule) {
 	);
 
 	// Register in the handy total list
-	// getc
 	{
 		std::lock_guard lg(m_TotalGroupRegisterMutex);
 		m_TotalGroupRegister.push_back(newGroup);
@@ -954,7 +953,7 @@ void PresetMan::ModuleLoadingThreadFunction_FinalizeModules(std::stop_token st) 
 		RTEAbort("PresetMan::ModuleLoadingThreadFunction_FinalizeModules called before setup/twice");
 	}
 
-	const int moduleFinalizingWorkerThreadCount = 4;
+	static const int moduleFinalizingWorkerThreadCount = 4;
 
 	BS::thread_pool tpool(moduleFinalizingWorkerThreadCount);
 
@@ -1016,7 +1015,8 @@ void RTE::PresetMan::ModuleLoadingThreadFunction_InitModules(std::stop_token st)
 	}
 	for (auto officialModuleIt = c_OfficialModules.begin() + 1;
 	     officialModuleIt != c_OfficialModules.end() - 1;
-	     ++officialModuleIt) {
+	     ++officialModuleIt) 
+	{
 		m_MLTFWorkerStruct.BaseGameModulesToFinalize
 		    .push_back(InitDataModule(*officialModuleIt, true, false));
 	}
