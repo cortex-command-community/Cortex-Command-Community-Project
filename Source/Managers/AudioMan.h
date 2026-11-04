@@ -330,6 +330,7 @@ namespace RTE {
 		bool m_AudioEnabled; //!< Bool to tell whether audio is enabled or not.
 		std::vector<std::unique_ptr<const Vector>> m_CurrentActivityHumanPlayerPositions; //!< The stored positions of each human player in the current activity. Only filled when there's an activity running.
 		std::unordered_map<int, float> m_SoundChannelMinimumAudibleDistances; //!<  An unordered map of sound channel indices to floats representing each Sound Channel's minimum audible distances. This is necessary to keep safe data in case the SoundContainer is destroyed while the sound is still playing, as happens often with TDExplosives.
+		std::unordered_map<int, FMOD::DSP*> m_SoundChannelLowpassEQs; //!< An unordered map of sound channel indices to the lowpass EQ each positional Sound Channel gets, so it can be released when the channel ends.
 
 		bool m_MuteMaster; //!< Whether all the audio is muted.
 		bool m_MuteMusic; //!< Whether the music channel is muted.
@@ -354,7 +355,7 @@ namespace RTE {
 		std::list<NetworkSoundData> m_SoundEvents[c_MaxClients]; //!< Lists of per player sound events.
 
 		std::mutex g_SoundEventsListMutex[c_MaxClients]; //!< A list for locking sound events for multiplayer to avoid race conditions and other such problems.
-		std::mutex m_SoundChannelMinimumAudibleDistancesMutex; //!, As above but for m_SoundChannelMinimumAudibleDistances
+		std::mutex m_SoundChannelMinimumAudibleDistancesMutex; //!< As above but for m_SoundChannelMinimumAudibleDistances and m_SoundChannelLowpassEQs.
 
 	private:
 #pragma region Sound Container Actions and Modifications

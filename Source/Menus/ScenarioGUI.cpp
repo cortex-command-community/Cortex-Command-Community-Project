@@ -235,7 +235,7 @@ void ScenarioGUI::FetchActivitiesAndScenesLists() {
 			// Add to the activity selection ComboBox and attach the activity pointer, not passing in ownership.
 			m_ActivitySelectComboBox->AddItem(presetActivity->GetPresetName(), "", nullptr, presetActivity);
 
-			if (prevSelectedActivityIndex < 0 && presetActivity->GetClassName() == "GATutorial") {
+			if (prevSelectedActivityIndex < 0 && presetActivity->GetPresetName() == "Tutorial Mission") {
 				prevSelectedActivityIndex = index;
 				prevSelectedScene = nullptr;
 			}

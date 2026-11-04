@@ -254,7 +254,15 @@ void PrimitiveMan::DrawPrimitives(int player, BITMAP* targetBitmap, const Vector
 					rlEnableShader(rlGetShaderCurrent());
 					g_FrameMan.SetBlendMode(blendMode);
 					GLint colorUniform = glGetUniformLocation(rlGetShaderCurrent(), "rteColor");
-					glUniform4f(colorUniform, blendAmounts[0] / static_cast<float>(MaxBlend), blendAmounts[1] / static_cast<float>(MaxBlend), blendAmounts[2] / static_cast<float>(MaxBlend), blendAmounts[3] / static_cast<float>(MaxBlend));
+					// Blend amounts go from 0 for the full effect to 100 for invisible. Transparency uses the RGB amounts, averaged since alpha blending can't do each channel separately, and the other modes only use the alpha amount.
+					int blendAmount = (blendMode == BlendTransparency) ? (blendAmounts[0] + blendAmounts[1] + blendAmounts[2]) / 3 : blendAmounts[3];
+					float strength = 1.0f - RoundToNearestMultiple(blendAmount, c_BlendAmountStep) / static_cast<float>(MaxBlend);
+					if (blendMode == BlendTransparency || blendMode == BlendInvert || blendMode == BlendDissolve) {
+						glUniform4f(colorUniform, 1.0f, 1.0f, 1.0f, strength);
+					} else {
+						// The other blend equations take the color premultiplied by its alpha.
+						glUniform4f(colorUniform, strength, strength, strength, strength);
+					}
 					lastBlendMode = blendMode;
 					lastBlendAmounts = blendAmounts;
 				}
