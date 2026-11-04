@@ -66,7 +66,7 @@ This has been tested with WSL2 Ubuntu 22.04 but should work with other distribut
 
 # Linux and macOS Build Instructions
 The Linux build uses the meson build system, and builds against system libraries.
-LuaJIT and luabind are the exception: they're always built from the copies in `external/sources`, including when cross compiling, because the game relies on changes made to them (such as LuaJIT's deterministic table ordering). So a system `luajit` isn't needed.
+LuaJIT is the exception: it's always built from the copy in `external/sources`, including when cross compiling, because the game relies on changes made to it (such as its deterministic table ordering). So a system `luajit` isn't needed.
 
 ## Dependencies
 
@@ -125,7 +125,7 @@ If you want to change the buildtype afterwards, you can use `meson configure --b
 `sudo python3 -m pip install meson`
 
 **Fedora:**  
-`# dnf install allegro-loadpng-devel allegro-devel libsdl2-devel SDL2_image-devel lua-devel boost-devel meson ninja-build flac-devel minizip-compat-devel tbb-devel lz4-devel libpng-devel lua-devel gcc gcc-c++`  
+`# dnf install allegro-loadpng-devel allegro-devel libsdl2-devel SDL2_image-devel lua-devel meson ninja-build flac-devel minizip-compat-devel tbb-devel lz4-devel libpng-devel lua-devel gcc gcc-c++`  
 
 ## Troubleshooting
 
