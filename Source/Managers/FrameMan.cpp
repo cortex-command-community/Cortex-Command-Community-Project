@@ -901,8 +901,11 @@ void FrameMan::Draw() {
 		backgroundShader.End();
 		if (screenCount > 1) {
 			m_BackBuffer->Begin(false);
+			// Copy without blending, otherwise anything drawn translucent comes out darker.
+			rlDisableColorBlend();
 			DrawTextureRec(m_PlayerScreen->GetColorTexture(), {0, 0, static_cast<float>(m_PlayerScreen8->w), -static_cast<float>(m_PlayerScreen8->h)}, {screenOffset.m_X, screenOffset.m_Y}, {255, 255, 255, 255});
 			m_BackBuffer->End();
+			rlEnableColorBlend();
 		}
 		g_PostProcessMan.AdjustEffectsPosToPlayerScreen(playerScreen, drawScreen, screenOffset, screenRelativeEffects, screenRelativeGlowBoxes);
 	}
