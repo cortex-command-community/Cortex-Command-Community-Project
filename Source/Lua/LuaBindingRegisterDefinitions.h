@@ -54,6 +54,7 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(Box);
 		LuaBindingRegisterFunctionDeclarationForType(Controller);
 		LuaBindingRegisterFunctionDeclarationForType(DataModule);
+		LuaBindingRegisterFunctionDeclarationForType(InputScheme);
 		LuaBindingRegisterFunctionDeclarationForType(Timer);
 		LuaBindingRegisterFunctionDeclarationForType(Vector);
 		LuaBindingRegisterFunctionDeclarationForType(PathRequest);

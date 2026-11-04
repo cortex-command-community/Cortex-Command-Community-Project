@@ -32,7 +32,6 @@
 #include "MOSprite.h"
 #include "HeldDevice.h"
 #include "AHuman.h"
-#include "GATutorial.h"
 #include "GAScripted.h"
 #include "BaseEditor.h"
 #include "Scene.h"

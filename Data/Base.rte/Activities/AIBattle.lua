@@ -10,8 +10,10 @@ Human players can just watch, by leaving every team to the CPU, or take a team f
 
 function AIBattle:StartActivity()
 	-- How long a team waits between its reinforcements, and how many units it can have before it stops getting more.
-	self.reinforcementInterval = 20000;
-	self.maxUnitsPerTeam = 8;
+	-- Setting the environment variable CCCP_AI_BATTLE_SCALE to a number multiplies both how often reinforcements come and how many units each team can have, for battles big enough to put the game under load.
+	local scale = tonumber(os.getenv("CCCP_AI_BATTLE_SCALE") or "") or 1;
+	self.reinforcementInterval = 20000 / scale;
+	self.maxUnitsPerTeam = math.floor(8 * scale);
 
 	self.deliveryCreationHandler = require("Activities/Utility/DeliveryCreationHandler");
 	self.deliveryCreationHandler:Initialize(self);

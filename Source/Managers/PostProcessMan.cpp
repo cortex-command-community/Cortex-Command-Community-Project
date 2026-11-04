@@ -337,6 +337,8 @@ void PostProcessMan::PostProcess() {
 	rlDisableDepthTest();
 	DrawTextureRec(g_FrameMan.GetBackBuffer()->GetColorTexture(), {0, 0, g_FrameMan.GetBackBuffer()->GetSize().w, -g_FrameMan.GetBackBuffer()->GetSize().h}, {0.0f, 0.0f}, {255, 255, 255, 255});
 	//m_Blit8->End();
+	// Draw the copy while blending is still off, otherwise anything drawn translucent comes out darker.
+	rlDrawRenderBatchActive();
 
 	// Set the screen blender mode for glows
 	set_screen_blender(128, 128, 128, 128);

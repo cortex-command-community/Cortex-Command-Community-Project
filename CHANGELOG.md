@@ -165,6 +165,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - New `Activity` INI property `HumansCanSpectate = 0/1` for Activities that human players can choose to just watch. The setup screen starts out with every team given to the CPU, and the game can be started without any human players on a team, in which case player one watches from the first CPU team. Spectating is optional: players can still put themselves on a team to play it as usual. Disabled by default.
 
+- New `UInputMan` Lua function `GetControlScheme(player)`, which returns that player's `InputScheme`.  
+	`InputScheme` has the Lua properties `Device` (R) and `Preset` (R), and the function `GetMappingName(inputElement)`, which gives the name of whatever the input is bound to, such as "Mouse Left".  
+	`Enum` binding for `InputScheme.InputPreset`: `NoPreset = 0, PresetArrowKeys = 1, PresetWASDKeys = 2, PresetMouseWASDKeys = 3, PresetGenericDPad = 4, PresetGenericDualAnalog = 5, PresetGamepadSNES = 6, PresetGamepadDS4 = 7, PresetGamepadXbox360 = 8, InputPresetCount = 9`.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -249,6 +253,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Numbers saved with `Activity:SaveNumber()` are now kept as doubles instead of floats, and floating point numbers in INI and save files are written out exactly instead of being rounded to 6 digits.
 
+- The tutorial mission is now a `GAScripted` activity, `Missions.rte/Activities/Tutorial.lua`, instead of being hardcoded in the engine. Its screens and room signs are drawn as bitmap primitives on the bunker's back wall instead of into the terrain.
+
 - The Lua bindings now use LuaBridge3 instead of luabind, and the copy of boost that luabind needed is gone. Calls from Lua into the game are faster, especially method calls and property access on objects like `Actor`s. Scripts run around 30% to 45% faster.  
 	Scripts don't need any changes. Everything that worked with luabind works the same, including setting values of their own on objects, overloads, inherited enums, setting things like `actor.Pos.X` in place, and passing numbers with fractions to whole number parameters.  
 	A few things that used to raise an error now don't: functions added to a class from Lua (like `function MovableObject:Foo() end`) are also found on objects of derived classes, comparing two references to the same object with `==` gives `false`, reading something that doesn't exist from a class table gives `nil`, and functions that aren't overloaded convert their arguments the way Lua does (numbers to strings, any value to a boolean, missing arguments to `nil`) and ignore extra ones. Class tables like `Vector` are now tables instead of userdata. Error messages for calls with the wrong arguments are worded differently.
@@ -311,7 +317,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed `AHuman:EquipShieldInBGArm()` being able to take the wrong item out of the inventory, which left the device it equipped both held and in the inventory. The device then got dropped twice when its holder died, and the game could crash when quitting.
 
+- Fixed a memory leak where every positional sound that played left its lowpass EQ behind in FMOD, never released.
+
 - Fixed AI actors refusing to fire the Coalition Missile Launcher at anything beyond point-blank range, because the AI took the range of its short-lived dummy round instead of the missile's.
+
+- Fixed the terrain background layer drawing at the terrain foreground's depth, which hid primitives drawn at a depth between `DrawDepth.Default` and `DrawDepth.TerrainBackground` behind it instead of showing them on top of the background.
 
 </details>
 
@@ -331,6 +341,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Removed `AHuman` property `MaxCrouchRotation`. `CrouchRotAngleTarget` is now used instead.
 
 - Deprecated `LimbPath` properties `SlowTravelSpeed`, `NormalTravelSpeed` and `FastTravelSpeed`. For the sake of backwards compatibility they will not crash the game and `NormalTravelSpeed` is a valid synonym for the new `TravelSpeed`.
+
+- Removed the `GATutorial` activity type, which only the tutorial mission used. `Settings.ini` files with `DefaultActivityType = GATutorial` are read as `GAScripted`.
 
 </details>
 

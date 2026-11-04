@@ -133,6 +133,26 @@ LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, DataModule) {
 	    .addProperty("Presets", &DataModule::m_EntityList, LuaBinding::ReturnStlIterator);
 }
 
+LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, InputScheme) {
+	registry.Class<InputScheme>("InputScheme")
+
+	    .addProperty("Device", &InputScheme::GetDevice)
+	    .addProperty("Preset", &InputScheme::GetPreset)
+
+	    .addFunction("GetMappingName", &InputScheme::GetMappingName)
+
+	    .addEnum({{"NoPreset", InputScheme::InputPreset::NoPreset},
+	              {"PresetArrowKeys", InputScheme::InputPreset::PresetArrowKeys},
+	              {"PresetWASDKeys", InputScheme::InputPreset::PresetWASDKeys},
+	              {"PresetMouseWASDKeys", InputScheme::InputPreset::PresetMouseWASDKeys},
+	              {"PresetGenericDPad", InputScheme::InputPreset::PresetGenericDPad},
+	              {"PresetGenericDualAnalog", InputScheme::InputPreset::PresetGenericDualAnalog},
+	              {"PresetGamepadSNES", InputScheme::InputPreset::PresetGamepadSNES},
+	              {"PresetGamepadDS4", InputScheme::InputPreset::PresetGamepadDS4},
+	              {"PresetGamepadXbox360", InputScheme::InputPreset::PresetGamepadXbox360},
+	              {"InputPresetCount", InputScheme::InputPreset::InputPresetCount}});
+}
+
 LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Timer) {
 	registry.Class<Timer>("Timer")
 
