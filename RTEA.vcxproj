@@ -935,7 +935,6 @@
     <ClInclude Include="Source\Activities\EditorActivity.h" />
     <ClInclude Include="Source\Activities\GameActivity.h" />
     <ClInclude Include="Source\Activities\GAScripted.h" />
-    <ClInclude Include="Source\Activities\GATutorial.h" />
     <ClInclude Include="Source\Activities\GibEditor.h" />
     <ClInclude Include="Source\Activities\SceneEditor.h" />
     <ClInclude Include="Source\Menus\AreaEditorGUI.h" />
@@ -1463,7 +1462,6 @@
     <ClCompile Include="Source\Activities\EditorActivity.cpp" />
     <ClCompile Include="Source\Activities\GameActivity.cpp" />
     <ClCompile Include="Source\Activities\GAScripted.cpp" />
-    <ClCompile Include="Source\Activities\GATutorial.cpp" />
     <ClCompile Include="Source\Activities\GibEditor.cpp" />
     <ClCompile Include="Source\Activities\SceneEditor.cpp" />
     <ClCompile Include="Source\Menus\AreaEditorGUI.cpp" />

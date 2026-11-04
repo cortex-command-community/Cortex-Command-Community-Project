@@ -278,9 +278,11 @@ int SLTerrain::LoadData() {
 	} else {
 		m_FGColorLayer->Destroy();
 		m_FGColorLayer->Create(create_bitmap_ex(8, m_MainBitmap->w, m_MainBitmap->h), true, m_Offset, m_WrapX, m_WrapY, m_ScrollInfo);
+		m_FGColorLayer->SetZOrder(c_DefaultDrawDepth);
 
 		m_BGColorLayer->Destroy();
 		m_BGColorLayer->Create(create_bitmap_ex(8, m_MainBitmap->w, m_MainBitmap->h), true, m_Offset, m_WrapX, m_WrapY, m_ScrollInfo);
+		m_BGColorLayer->SetZOrder(c_TerrainBGDepth);
 
 		TexturizeTerrain();
 

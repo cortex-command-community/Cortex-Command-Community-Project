@@ -93,6 +93,7 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Create(const SceneLayerImpl&
 
 	m_BitmapFile = reference.m_BitmapFile;
 	m_DrawMasked = reference.m_DrawMasked;
+	m_ZOrder = reference.m_ZOrder;
 	m_WrapX = reference.m_WrapX;
 	m_WrapY = reference.m_WrapY;
 	m_OriginOffset = reference.m_OriginOffset;

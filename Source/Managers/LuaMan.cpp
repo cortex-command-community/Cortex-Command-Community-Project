@@ -175,6 +175,7 @@ void LuaStateWrapper::Initialize() {
 	                         RegisterLuaBindingsOfType(EntityLuaBindings, SLBackground),
 	                         RegisterLuaBindingsOfAbstractType(EntityLuaBindings, Deployment),
 	                         RegisterLuaBindingsOfType(SystemLuaBindings, DataModule),
+	                         RegisterLuaBindingsOfType(SystemLuaBindings, InputScheme),
 	                         RegisterLuaBindingsOfType(ActivityLuaBindings, Activity),
 	                         RegisterLuaBindingsOfAbstractType(ActivityLuaBindings, GameActivity),
 	                         RegisterLuaBindingsOfAbstractType(EntityLuaBindings, GlobalScript),
