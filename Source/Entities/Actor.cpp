@@ -270,7 +270,9 @@ int Actor::Create(const Actor& reference) {
 	m_pMOMoveTarget = reference.m_pMOMoveTarget;
 	m_PrevPathTarget = reference.m_PrevPathTarget;
 	m_MoveVector = reference.m_MoveVector;
-	m_MovePath.clear();
+	// Saving works from a copy, and this is the only record of where it's going once a waypoint is under way.
+	m_MovePath = reference.m_MovePath;
+	m_PathRequest = reference.m_PathRequest;
 	m_UpdateMovePath = reference.m_UpdateMovePath;
 	m_MoveProximityLimit = reference.m_MoveProximityLimit;
 	m_AIBaseDigStrength = reference.m_AIBaseDigStrength;
@@ -372,7 +374,7 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader >> mode;
 		m_AIMode = static_cast<AIMode>(mode);
 	});
-	MatchProperty("SpecialBehaviour_AddAISceneWaypoint", {
+	MatchForwards("SpecialBehaviour_AddAISceneWaypoint") MatchProperty("_AddAISceneWaypoint", {
 		Vector waypointToAdd;
 		reader >> waypointToAdd;
 		AddAISceneWaypoint(waypointToAdd);
@@ -427,7 +429,8 @@ int Actor::Save(Writer& writer) const {
 		writer << **itr;
 	}
 	writer.NewPropertyWithValue("MaxInventoryMass", m_MaxInventoryMass);
-	writer.NewPropertyWithValue("AIMode", m_AIMode);
+	writer.NewPropertyWithValue("AIMode", GetAIModeToWrite());
+	WriteAIWaypoints(writer);
 	writer.NewPropertyWithValue("PieMenu", m_PieMenu.get());
 
 	writer.NewPropertyWithValue("Organic", m_Organic);
@@ -435,6 +438,36 @@ int Actor::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("AIBaseDigStrength", m_AIBaseDigStrength);
 
 	return 0;
+}
+
+Actor::AIMode Actor::GetAIModeToWrite() const {
+	// Who a squad is following can't be saved, only where they are, which makes following them the same as going there.
+	AIMode modeToWrite = m_AIMode == AIMODE_SQUAD ? AIMODE_GOTO : m_AIMode;
+
+	// With nowhere left to go, this is only standing by.
+	if (modeToWrite == AIMODE_GOTO && !m_pMOMoveTarget && m_Waypoints.empty() && m_MovePath.empty() && !m_PathRequest) {
+		modeToWrite = AIMODE_SENTRY;
+	}
+
+	return modeToWrite;
+}
+
+void Actor::WriteAIWaypoints(Writer& writer) const {
+	if (GetAIModeToWrite() != AIMODE_GOTO) {
+		return;
+	}
+
+	const std::string waypointPropertyName = "_AddAISceneWaypoint";
+
+	if (g_MovableMan.ValidMO(m_pMOMoveTarget)) {
+		writer.NewPropertyWithValue(waypointPropertyName, m_pMOMoveTarget->GetPos());
+	} else if (!m_MovePath.empty() || m_PathRequest) {
+		writer.NewPropertyWithValue(waypointPropertyName, GetMovePathEnd());
+	}
+
+	for (const auto& [waypointPosition, waypointObject]: m_Waypoints) {
+		writer.NewPropertyWithValue(waypointPropertyName, g_MovableMan.ValidMO(waypointObject) ? waypointObject->GetPos() : waypointPosition);
+	}
 }
 
 int Actor::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
@@ -471,7 +504,8 @@ int Actor::Write(Writer& writer, const Entity& entityReference, HashingData& has
 	writer.NewDistinctProperty("ReloadOffset", m_ReloadOffset, reference.m_ReloadOffset);
 	writer.NewPointerSequence("_ClearInventory", "_AddInventory", m_Inventory, hashData);
 	writer.NewDistinctProperty("MaxInventoryMass", m_MaxInventoryMass, reference.m_MaxInventoryMass);
-	writer.NewDistinctProperty("AIMode", m_AIMode, reference.m_AIMode);
+	writer.NewDistinctProperty("AIMode", GetAIModeToWrite(), reference.m_AIMode);
+	WriteAIWaypoints(writer);
 	writer.NewOptionalEntityPointerProperty("PieMenu", m_PieMenu.get(), hashData);
 	writer.NewDistinctProperty("Organic", m_Organic, reference.m_Organic);
 	writer.NewDistinctProperty("Mechanical", m_Mechanical, reference.m_Mechanical);

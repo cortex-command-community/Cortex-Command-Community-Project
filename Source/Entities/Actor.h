@@ -861,6 +861,14 @@ namespace RTE {
 		/// This processes and cleans up the movepath.
 		virtual void OnNewMovePath();
 
+		/// Gets the AI mode this should be saved in, which can differ from the current one when the orders behind it can't be saved or have run out.
+		/// @return The AI mode to save.
+		AIMode GetAIModeToWrite() const;
+
+		/// Writes where this is on its way to, for when this is saved.
+		/// @param writer The Writer to write the waypoints to.
+		void WriteAIWaypoints(Writer& writer) const;
+
 		/// Starts updating this Actor's movepath.
 		virtual void UpdateMovePath();
 
