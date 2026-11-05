@@ -169,6 +169,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`InputScheme` has the Lua properties `Device` (R) and `Preset` (R), and the function `GetMappingName(inputElement)`, which gives the name of whatever the input is bound to, such as "Mouse Left".  
 	`Enum` binding for `InputScheme.InputPreset`: `NoPreset = 0, PresetArrowKeys = 1, PresetWASDKeys = 2, PresetMouseWASDKeys = 3, PresetGenericDPad = 4, PresetGenericDualAnalog = 5, PresetGamepadSNES = 6, PresetGamepadDS4 = 7, PresetGamepadXbox360 = 8, InputPresetCount = 9`.
 
+- New `Entity` INI and Lua property `DisplayName`, the name shown to players, as opposed to `PresetName`, which is what data and scripts identify something by.  
+	It defaults to the `PresetName`, and renaming something from a script still shows, unless it has a `DisplayName` of its own.
+
+- New `Activity` Lua functions `SaveEntity(key, entity)` and `LoadEntity(key)`, to keep an `Entity` with a saved game, alongside `SaveNumber` and `SaveString`. `LoadEntity` gives you a copy, which you own.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -255,6 +260,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - The tutorial mission is now a `GAScripted` activity, `Missions.rte/Activities/Tutorial.lua`, instead of being hardcoded in the engine. Its screens and room signs are drawn as bitmap primitives on the bunker's back wall instead of into the terrain.
 
+- **Breaking change:** INI properties that point at a preset are now constant references, written on one line as `Class/Module.rte/Preset Name`, or `None` for nothing.  
+	Something isn't made of a copy of metal, it's made of metal, so these no longer hold a copy that can be changed. This also means two definitions of one preset can no longer quietly disagree.  
+	This covers `EmittedParticle`, `Particle`, `Shell`, `StrikerLever`, `GibParticle`, `EntryWound`, `ExitWound`, `BreakWound`, `ParentBreakWound`, `RegularRound`, `TracerRound`, `Material`, `FrostingMaterial`, `TargetMaterial`, `DebrisMaterial`, `PlacedObject`, `DeliveryCraft` and `AddCargoItem`.
+	```
+	// Before
+	AddGib = Gib
+		GibParticle = MOPixel
+			CopyOf = Spark Yellow 1
+	// After
+	AddGib = Gib
+		GibParticle = MOPixel/Base.rte/Spark Yellow 1
+	```
+	To change anything about what's being pointed at, define a new named preset and point at that. An unnamed `CopyOf` with overrides already had those overrides discarded, as did a second definition of a name that already existed.  
+	The module is its folder name, in any case, with or without `.rte`. Its `ModuleName` or a path won't work. Mods need converting, and mods declaring an older `SupportedGameVersion` won't pass the version check.
+
+- `Loadout` references that could never be valid now cause an assert, which leaves them out of the `Loadout` if ignored, as does a preset that a loaded module doesn't have. A reference to a module that isn't loaded stays silent, so a `Loadout` can outlive a removed mod. Old-format entries in a player's `LoadoutsP*.ini` are dropped, with a message in the console.
+
+- Saved games now only record what differs from each object's preset, which makes them much smaller.
+
+- Menus and prompts now show `DisplayName` instead of `PresetName`.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
@@ -318,6 +344,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed AI actors refusing to fire the Coalition Missile Launcher at anything beyond point-blank range, because the AI took the range of its short-lived dummy round instead of the missile's.
 
 - Fixed the terrain background layer drawing at the terrain foreground's depth, which hid primitives drawn at a depth between `DrawDepth.Default` and `DrawDepth.TerrainBackground` behind it instead of showing them on top of the background.
+
+- Fixed deliveries in transit being lost when saving, after their funds were already spent.
+
+- Fixed Dummy's `Loadout`s having no delivery craft, as they pointed at a preset that doesn't exist.
 
 </details>
 
