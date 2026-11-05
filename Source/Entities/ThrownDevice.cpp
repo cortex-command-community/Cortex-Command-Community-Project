@@ -65,7 +65,15 @@ int ThrownDevice::ReadProperty(const std::string_view& propName, Reader& reader)
 	MatchProperty("MaxThrowVel", { reader >> m_MaxThrowVel; });
 	MatchProperty("TriggerDelay", { reader >> m_TriggerDelay; });
 	MatchProperty("ActivatesWhenReleased", { reader >> m_ActivatesWhenReleased; });
-	MatchProperty("StrikerLever", { m_StrikerLever = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(reader)); });
+	MatchProperty("StrikerLever", {
+		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
+		const MovableObject* reference = dynamic_cast<const MovableObject*>(entityReference);
+		if (entityReference == nullptr || reference != nullptr) {
+			m_StrikerLever = reference;
+		} else {
+			reader.ReportError("Tried to point StrikerLever to a non-MovableObject type!");
+		}
+	});
 
 	EndPropertyList;
 }
@@ -80,7 +88,7 @@ int ThrownDevice::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("MaxThrowVel", m_MaxThrowVel);
 	writer.NewPropertyWithValue("TriggerDelay", m_TriggerDelay);
 	writer.NewPropertyWithValue("ActivatesWhenReleased", m_ActivatesWhenReleased);
-	writer.NewPropertyWithValue("StrikerLever", m_StrikerLever);
+	writer.NewPresetReferenceProperty("StrikerLever", m_StrikerLever, static_cast<const MovableObject*>(nullptr));
 
 	return 0;
 }
