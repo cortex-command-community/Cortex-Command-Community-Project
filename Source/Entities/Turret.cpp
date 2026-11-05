@@ -50,7 +50,8 @@ int Turret::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("MountedDevice", { SetFirstMountedDevice(dynamic_cast<HeldDevice*>(g_PresetMan.ReadReflectedPreset(reader))); });
 	MatchProperty("_ClearMountedDevices", {
 		reader.ReadPropValue();
-		for (HeldDevice* heldDevice : m_MountedDevices) {
+		// Removing a device also takes it out of the list, so go through a copy of it.
+		for (HeldDevice* heldDevice: std::vector<HeldDevice*>(m_MountedDevices)) {
 			delete RemoveAttachable(heldDevice, false, false);
 		}
 	});
