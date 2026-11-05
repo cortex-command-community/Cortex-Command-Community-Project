@@ -277,12 +277,24 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 	});
 	MatchProperty("DeepCheck", { reader >> m_DeepCheck; });
 	MatchProperty("OrientToVel", { reader >> m_OrientToVel; });
-	MatchForwards("SpecialBehaviour_ClearAllAttachables") MatchProperty("_ClearAttachables", {
+	MatchProperty("SpecialBehaviour_ClearAllAttachables", {
+		// The older way of saving removes every Attachable, and then gives the hardcoded ones again through their own properties.
 		reader.ReadPropValue();
 		for (auto attachableIterator = m_Attachables.begin(); attachableIterator != m_Attachables.end();) {
 			Attachable* attachable = *attachableIterator;
 			++attachableIterator;
 			delete RemoveAttachable(attachable);
+		}
+	});
+	MatchProperty("_ClearAttachables", {
+		// Only what _AddAttachable gives back is removed. Hardcoded Attachables have their own properties, which are only written when they differ from the preset's.
+		reader.ReadPropValue();
+		for (auto attachableIterator = m_Attachables.begin(); attachableIterator != m_Attachables.end();) {
+			Attachable* attachable = *attachableIterator;
+			++attachableIterator;
+			if (!AttachableIsHardcoded(attachable)) {
+				delete RemoveAttachable(attachable);
+			}
 		}
 	});
 	MatchForwards("AddAttachable") MatchForwards("AddAEmitter") MatchForwards("AddEmitter") MatchProperty("_AddAttachable", {
