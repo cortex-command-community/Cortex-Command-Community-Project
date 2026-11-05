@@ -295,7 +295,12 @@ int Activity::Write(Writer& writer, const Entity& entityReference, HashingData& 
 
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
 		std::string playerNum = std::to_string(player + 1);
-		writer.NewDistinctProperty("TeamOfPlayer" + playerNum, m_Team[player], reference.m_Team[player]);
+
+		// A player's team is also what marks them active or not when read, so it's written if either differs, and never for a player inactive in both.
+		if (m_IsActive[player] != reference.m_IsActive[player] || (m_IsActive[player] && m_Team[player] != reference.m_Team[player])) {
+			writer.NewPropertyWithValue("TeamOfPlayer" + playerNum, m_IsActive[player] ? m_Team[player] : static_cast<int>(Teams::NoTeam));
+		}
+
 		writer.NewDistinctProperty("FundsContributionOfPlayer" + playerNum, m_FundsContribution[player], reference.m_FundsContribution[player]);
 		writer.NewDistinctProperty("TeamFundsShareOfPlayer" + playerNum, m_TeamFundsShare[player], reference.m_TeamFundsShare[player]);
 		writer.NewDistinctProperty("Player" + playerNum + "IsHuman", m_IsHuman[player], reference.m_IsHuman[player]);
@@ -304,7 +309,12 @@ int Activity::Write(Writer& writer, const Entity& entityReference, HashingData& 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 		std::string teamNum = std::to_string(team + 1);
 		writer.NewDistinctProperty("Team" + teamNum + "Funds", m_TeamFunds[team], reference.m_TeamFunds[team]);
-		writer.NewDistinctProperty("Team" + teamNum + "Name", m_TeamNames[team], reference.m_TeamNames[team]);
+
+		// A team's name is also what marks it active when read, so it's written for a team the reference doesn't have active, and never for an inactive one.
+		if (m_TeamActive[team] && (!reference.m_TeamActive[team] || m_TeamNames[team] != reference.m_TeamNames[team])) {
+			writer.NewPropertyWithValue("Team" + teamNum + "Name", m_TeamNames[team]);
+		}
+
 		writer.NewDistinctHashedProperty("Team" + teamNum + "Icon", m_TeamIcons[team], hashData);
 		writer.NewDistinctProperty("Team" + teamNum + "AISkill", m_TeamAISkillLevels[team], reference.m_TeamAISkillLevels[team]);
 	}
