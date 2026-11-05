@@ -66,11 +66,13 @@ int DynamicSongSection::ReadProperty(const std::string_view& propName, Reader& r
 		reader >> soundContainerToAdd;
 		m_TransitionSoundContainers.push_back(soundContainerToAdd);
 	});
+	MatchProperty("LastTransitionSoundContainerIndex", { reader >> m_LastTransitionSoundContainerIndex; });
 	MatchProperty("AddSoundContainer", {
 		SoundContainer soundContainerToAdd;
 		reader >> soundContainerToAdd;
 		m_SoundContainers.push_back(soundContainerToAdd);
 	});
+	MatchProperty("LastSoundContainerIndex", { reader >> m_LastSoundContainerIndex; });
 	MatchProperty("SoundContainerSelectionCycleMode", {
 		std::string soundContainerSelectionCycleModeString = reader.ReadPropValue();
 		if (c_SoundContainerSelectionCycleModeMap.find(soundContainerSelectionCycleModeString) != c_SoundContainerSelectionCycleModeMap.end()) {
