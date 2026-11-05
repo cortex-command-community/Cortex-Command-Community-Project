@@ -52,12 +52,10 @@ function Test:StartActivity()
 		end
 	end
 
-	--[[
 	local automoverController = CreateActor("Invisible Automover Controller", "Base.rte");
 	automoverController.Pos = Vector();
 	automoverController.Team = 1;
 	MovableMan:AddActor(automoverController);
-	]]
 
 	self.doorMessageTimer = Timer();
 	self.doorMessageTimer:SetSimTimeLimitMS(5000);
