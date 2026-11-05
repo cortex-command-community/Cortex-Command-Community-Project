@@ -3098,7 +3098,7 @@ void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 
 		// Pickup GUI
 		if (const HeldDevice* itemInReach = GetItemInReach(); itemInReach && !m_Controller.IsState(PIE_MENU_ACTIVE)) {
-			std::snprintf(str, sizeof(str), " %c %s", -49, itemInReach->GetPresetName().c_str());
+			std::snprintf(str, sizeof(str), " %c %s", -49, itemInReach->GetDisplayName().c_str());
 			pSmallFont->DrawAligned(&allegroBitmap, drawPos.GetFloorIntX(), drawPos.GetFloorIntY() + m_HUDStack + 3, str, GUIFont::Centre);
 			m_HUDStack -= 9;
 		}
@@ -3141,7 +3141,7 @@ int AHuman::WhilePieMenuOpenListener(const PieMenu* pieMenu) {
 				if (pieSlice->GetType() == PieSliceType::Pickup) {
 					if (m_pFGArm || (m_pBGArm && itemInReach->IsOneHanded())) {
 						pieSlice->SetEnabled(m_Status != INACTIVE);
-						pieSlice->SetDescription("Pick Up " + itemInReach->GetPresetName());
+						pieSlice->SetDescription("Pick Up " + itemInReach->GetDisplayName());
 					} else {
 						pieSlice->SetEnabled(false);
 						pieSlice->SetDescription("No Arm");
@@ -3179,9 +3179,9 @@ int AHuman::WhilePieMenuOpenListener(const PieMenu* pieMenu) {
 			case PieSliceType::Drop:
 				if (const MovableObject* equippedFGItem = GetEquippedItem()) {
 					pieSlice->SetEnabled(m_Status != INACTIVE);
-					pieSlice->SetDescription("Drop " + equippedFGItem->GetPresetName());
+					pieSlice->SetDescription("Drop " + equippedFGItem->GetDisplayName());
 				} else if (const MovableObject* equippedBGItem = GetEquippedBGItem()) {
-					pieSlice->SetDescription("Drop " + equippedBGItem->GetPresetName());
+					pieSlice->SetDescription("Drop " + equippedBGItem->GetDisplayName());
 					pieSlice->SetEnabled(m_Status != INACTIVE);
 				} else if (!IsInventoryEmpty() && !m_pFGArm) {
 					pieSlice->SetEnabled(m_Status != INACTIVE);

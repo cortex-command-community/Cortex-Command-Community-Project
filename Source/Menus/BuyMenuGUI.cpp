@@ -1218,7 +1218,7 @@ void BuyMenuGUI::Update() {
 					// Add preset name at the begining to differentiate loadouts from user-defined presets
 					Loadout& loadout = m_Loadouts[pItem->m_ExtraIndex];
 					if (loadout.GetPresetName() != "None") {
-						description += loadout.GetPresetName() + ":\n";
+						description += loadout.GetDisplayName() + ":\n";
 					}
 
 					// Go through the cargo setup of each loadout and encode a meaningful label for the list item
@@ -1240,7 +1240,7 @@ void BuyMenuGUI::Update() {
 						}
 
 						// Append the name of the current cargo thing to the label
-						description += (*cItr)->GetPresetName();
+						description += (*cItr)->GetDisplayName();
 
 						// If not the last one, add a separator to the label
 						if (cItr != lastItr) {
@@ -2135,10 +2135,10 @@ bool BuyMenuGUI::DeployLoadout(int index) {
 		m_pSelectedCraft = pCraft;
 
 		// Take into account whether these are native or not, and multiply the cost accordingly
-		m_pCraftBox->SetText(m_pSelectedCraft->GetPresetName());
+		m_pCraftBox->SetText(m_pSelectedCraft->GetDisplayName());
 		m_pCraftBox->SetRightText(m_pSelectedCraft->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult));
 
-		m_pCraftNameLabel->SetText(m_pSelectedCraft->GetPresetName());
+		m_pCraftNameLabel->SetText(m_pSelectedCraft->GetDisplayName());
 		m_pCraftPriceLabel->SetText(m_pSelectedCraft->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult));
 		UpdateTotalPassengersLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftPassengersLabel);
 		UpdateTotalMassLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftMassLabel);

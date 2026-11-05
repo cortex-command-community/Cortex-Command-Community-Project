@@ -111,7 +111,7 @@ void ModManagerGUI::InitializeKnownScripts() {
 		for (Entity* globalScriptListEntry: globalScriptListForThisModule) {
 			if (const GlobalScript* globalScript = dynamic_cast<GlobalScript*>(globalScriptListEntry)) {
 				ScriptRecord scriptRecord =
-				    {globalScript->GetPresetName(),
+				    {globalScript->GetDisplayName(),
 				     globalScript->GetModuleAndPresetName(),
 				     globalScript->GetDescription(),
 				     g_SettingsMan.IsGlobalScriptEnabled(globalScript->GetModuleAndPresetName())};

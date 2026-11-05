@@ -568,7 +568,7 @@ function RefineryAssault:UpdateActivity()
 				local gun = CreateHDFirearm("M16A2", "Ronin.rte");
 				gun.Magazine.RoundCount = -1;
 				gun.RateOfFire = 1500;
-				gun.PresetName = "Debug M16A2";
+				gun.DisplayName = "Debug M16A2";
 				gun.Reloadable = false;
 				brain:AddInventoryItem(gun);
 				

@@ -1613,7 +1613,7 @@ void MetagameGUI::Update() {
 
 			// Set up the hover label to appear over any hovered scene location
 			if (m_pHoveredScene)
-				UpdateSiteNameLabel(true, m_pHoveredScene->GetPresetName(), m_pHoveredScene->GetLocation() + m_pHoveredScene->GetLocationOffset());
+				UpdateSiteNameLabel(true, m_pHoveredScene->GetDisplayName(), m_pHoveredScene->GetLocation() + m_pHoveredScene->GetLocationOffset());
 			else if (g_MetaMan.m_GameState != MetaMan::COUNTINCOME && g_MetaMan.m_GameState != MetaMan::BUILDBASES && g_MetaMan.m_GameState != MetaMan::RUNACTIVITIES)
 				UpdateSiteNameLabel(false);
 
@@ -3941,7 +3941,7 @@ void MetagameGUI::UpdateOffensives() {
 		}
 
 		// Keep the name on the attack site, keeping the name high so the contestants' info can fit in the quadrants around the site
-		UpdateSiteNameLabel(true, m_pAnimScene->GetPresetName(), m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), 1.8);
+		UpdateSiteNameLabel(true, m_pAnimScene->GetDisplayName(), m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), 1.8);
 
 		// Keep revealing segments simultaneously from all attackers until they are all revealed
 		if (m_AnimSegment < 15) {
@@ -3997,7 +3997,7 @@ void MetagameGUI::UpdateOffensives() {
 		}
 
 		// Keep the name on the attack site, keeping the name high so the contestants' info can fit in the quadrants around the site
-		UpdateSiteNameLabel(true, m_pAnimScene->GetPresetName(), m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), 1.8);
+		UpdateSiteNameLabel(true, m_pAnimScene->GetDisplayName(), m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), 1.8);
 
 		// Animate the crosshairs subtly
 		m_SiteAttackTarget.m_AnimProgress = 0.975 + 0.025 * cos(c_TwoPI * (float)((int)m_AnimTimer2.GetElapsedRealTimeMS() % 666) / 666.0f);
@@ -4046,7 +4046,7 @@ void MetagameGUI::UpdateOffensives() {
 		}
 
 		// Keep the name on the attack site, keeping the name high so the contestants' info can fit in the quadrants around the site
-		UpdateSiteNameLabel(true, m_pAnimScene->GetPresetName(), m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), 1.8);
+		UpdateSiteNameLabel(true, m_pAnimScene->GetDisplayName(), m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), 1.8);
 
 		// Keep revealing segments simultaneously from all attackers until they are all revealed
 		if (m_AnimSegment < 15) {
@@ -4098,7 +4098,7 @@ void MetagameGUI::UpdateOffensives() {
 		}
 
 		// Keep the name on the attack site, keeping the name high so the contestants' info can fit in the quadrants around the site
-		UpdateSiteNameLabel(true, m_pAnimScene->GetPresetName(), m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), 1.8);
+		UpdateSiteNameLabel(true, m_pAnimScene->GetDisplayName(), m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), 1.8);
 		// Animate the crosshairs subtly
 		m_SiteAttackTarget.m_AnimProgress = 0.975 + 0.025 * cos(c_TwoPI * (float)((int)m_AnimTimer2.GetElapsedRealTimeMS() % 666) / 666.0f);
 
@@ -4191,7 +4191,7 @@ void MetagameGUI::UpdateOffensives() {
 		}
 
 		// Keep the name on the attack site, keeping the name high so the contestants' info can fit in the quadrants around the site
-		UpdateSiteNameLabel(true, m_pAnimScene->GetPresetName(), m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), 1.8);
+		UpdateSiteNameLabel(true, m_pAnimScene->GetDisplayName(), m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), 1.8);
 		// Animate the crosshairs subtly
 		m_SiteAttackTarget.m_AnimProgress = 0.975 + 0.025 * cos(c_TwoPI * (float)((int)m_AnimTimer2.GetElapsedRealTimeMS() % 666) / 666.0f);
 
@@ -4242,7 +4242,7 @@ void MetagameGUI::UpdateOffensives() {
 		}
 
 		// Keep the name on the attack site, keeping the name high so the contestants' info can fit in the quadrants around the site
-		UpdateSiteNameLabel(true, m_pAnimScene->GetPresetName(), m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), 1.8);
+		UpdateSiteNameLabel(true, m_pAnimScene->GetDisplayName(), m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), 1.8);
 		// Animate the crosshairs subtly
 		m_SiteAttackTarget.m_AnimProgress = 0.975 + 0.025 * cos(c_TwoPI * (float)((int)m_AnimTimer2.GetElapsedRealTimeMS() % 666) / 666.0f);
 
@@ -4288,7 +4288,7 @@ void MetagameGUI::UpdateOffensives() {
 		}
 
 		// Keep the name on the attack site, keeping the name high so the contestants' info can fit in the quadrants around the site
-		UpdateSiteNameLabel(true, m_pAnimScene->GetPresetName(), m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), 1.8);
+		UpdateSiteNameLabel(true, m_pAnimScene->GetDisplayName(), m_pAnimScene->GetLocation() + m_pAnimScene->GetLocationOffset(), 1.8);
 		// Animate the crosshairs subtly
 		m_SiteAttackTarget.m_AnimProgress = 0.975 + 0.025 * cos(c_TwoPI * (float)((int)m_AnimTimer2.GetElapsedRealTimeMS() % 666) / 666.0f);
 
@@ -5171,7 +5171,7 @@ void MetagameGUI::UpdateScenesBox(bool sceneChanged) {
 
 		// Set the currently selected scene's texts
 		m_pSceneInfoPopup->SetVisible(true);
-		m_pSceneNameLabel->SetText(m_pSelectedScene->GetPresetName());
+		m_pSceneNameLabel->SetText(m_pSelectedScene->GetDisplayName());
 
 		// Show which team owns this place, and how many resident brains there are here of that team
 		if (m_pSelectedScene->GetTeamOwnership() > Activity::NoTeam && m_pSelectedScene->GetTeamOwnership() < Activity::MaxTeamCount) {
