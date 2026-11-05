@@ -56,9 +56,6 @@ BigTexture::~BigTexture() {
 	for (Texture2D& texture: m_Textures) {
 		glDeleteTextures(1, &texture.id);
 	}
-	for (GLuint buffer : m_UploadBuffers) {
-		glDeleteBuffers(1, &buffer);
-	}
 }
 
 void BigTexture::Draw(Rectangle source, Rectangle dest) {
