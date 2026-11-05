@@ -49,11 +49,32 @@ HashingData GenericSavedData::Hash() const {
 	return hashData;
 }
 
-GenericSavedData::~GenericSavedData() {
-	// Evidently this was a memory leak, or, double deletion, I guess.
-	// Loading a save with this caused the saved entities to be eviscerated, crashing the game by seg-fault whenever an entity was loaded.
-	// for (auto& [_, entity]: m_SavedEntities.m_Data)
-	// 	delete entity;
+GenericSavedData::~GenericSavedData() {}
+
+GenericSavedData::GenericSavedEntities::GenericSavedEntities(const GenericSavedEntities& reference) {
+	for (const auto& [key, entity]: reference.m_Data) {
+		m_Data[key] = entity->Clone();
+	}
+}
+
+GenericSavedData::GenericSavedEntities& GenericSavedData::GenericSavedEntities::operator=(const GenericSavedEntities& rhs) {
+	if (this != &rhs) {
+		for (auto& [key, entity]: m_Data) {
+			delete entity;
+		}
+		m_Data.clear();
+
+		for (const auto& [key, entity]: rhs.m_Data) {
+			m_Data[key] = entity->Clone();
+		}
+	}
+	return *this;
+}
+
+GenericSavedData::GenericSavedEntities::~GenericSavedEntities() {
+	for (auto& [key, entity]: m_Data) {
+		delete entity;
+	}
 }
 
 void GenericSavedData::SaveString(const std::string& key, const std::string& value) {
@@ -207,7 +228,16 @@ HashingData GenericSavedData::GenericSavedNumbers::Hash() const {
 
 int GenericSavedData::GenericSavedEntities::ReadProperty(const std::string_view& propName, Reader& reader) {
 	Entity* value = g_PresetMan.ReadReflectedPreset(reader);
-	m_Data[std::string(propName)] = value; // until we get P0919R2.
+	std::string key(propName); // until we get P0919R2.
+
+	// Whatever was stored under this key is replaced. Nothing is stored for an Entity that couldn't be read.
+	if (auto existing = m_Data.find(key); existing != m_Data.end()) {
+		delete existing->second;
+		m_Data.erase(existing);
+	}
+	if (value) {
+		m_Data[key] = value;
+	}
 	return 0;
 }
 
