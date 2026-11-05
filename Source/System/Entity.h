@@ -7,6 +7,14 @@
 #include <list>
 #include <unordered_set>
 
+// Concoction based on:
+// https://stackoverflow.com/questions/34813412/how-to-detect-if-building-with-address-sanitizer-when-building-with-gcc-4-8#78444624
+#if defined(__has_feature) // MSVC doesn't have this
+#   if __has_feature(address_sanitizer) // for Clang
+#       define __SANITIZE_ADDRESS__ // GCC and MSVC already set this
+#   endif
+#endif
+
 namespace RTE {
 
 	typedef std::function<void*()> MemoryAllocate; //!< Convenient name definition for the memory allocation callback function.
@@ -173,7 +181,9 @@ namespace RTE {
 			int m_PoolAllocBlockCount; //!< The number of instances to fill up the pool of this type with each time it runs dry.
 			int m_InstancesInUse; //!< The number of allocated instances passed out from the pool.
 
+#ifndef __ADDRESS_SANITIZER__ // Unused when ASan is enabled.
 			std::mutex m_Mutex; //!< Mutex to ensure multiple things aren't grabbing/deallocating memory at the same time
+#endif
 
 			// Forbidding copying
 			ClassInfo(const ClassInfo& reference) = delete;

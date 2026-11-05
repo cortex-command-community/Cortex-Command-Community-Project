@@ -180,4 +180,6 @@ void GUIInputWrapper::UpdateKeyJoyMouseInput(float keyElapsedTime) {
 		m_MouseButtonsStates[0] = GUIInput::Up;
 		m_MouseButtonsEvents[0] = GUIInput::None;
 	}
+
+    m_MouseWheelChange = g_UInputMan.MouseWheelMovedByPlayer(m_Player);
 }

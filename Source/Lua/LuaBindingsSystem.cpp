@@ -1,6 +1,7 @@
 // Make sure that binding definition files are always set to NOT use pre-compiled headers and conformance mode (/permissive) otherwise everything will be on fire!
 
 #include "LuaBindingRegisterDefinitions.h"
+#include "return_reference_to_policy.hpp"
 
 using namespace RTE;
 
@@ -206,30 +207,30 @@ LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, Vector) {
 
 	    .def("MagnitudeIsGreaterThan", &Vector::MagnitudeIsGreaterThan)
 	    .def("MagnitudeIsLessThan", &Vector::MagnitudeIsLessThan)
-	    .def("SetMagnitude", &Vector::SetMagnitude)
+	    .def("SetMagnitude", &Vector::SetMagnitude, luabind::return_reference_to(_1))
 	    .def("GetXFlipped", &Vector::GetXFlipped)
 	    .def("GetYFlipped", &Vector::GetYFlipped)
-	    .def("CapMagnitude", &Vector::CapMagnitude)
-	    .def("ClampMagnitude", &Vector::ClampMagnitude)
-	    .def("FlipX", &Vector::FlipX)
-	    .def("FlipY", &Vector::FlipY)
+	    .def("CapMagnitude", &Vector::CapMagnitude, luabind::return_reference_to(_1))
+	    .def("ClampMagnitude", &Vector::ClampMagnitude, luabind::return_reference_to(_1))
+	    .def("FlipX", &Vector::FlipX, luabind::return_reference_to(_1))
+	    .def("FlipY", &Vector::FlipY, luabind::return_reference_to(_1))
 	    .def("IsZero", &Vector::IsZero)
 	    .def("IsOpposedTo", &Vector::IsOpposedTo)
 	    .def("Dot", &Vector::Dot)
 	    .def("Cross", &Vector::Cross)
-	    .def("Round", &Vector::Round)
-	    .def("ToHalf", &Vector::ToHalf)
-	    .def("Floor", &Vector::Floor)
-	    .def("Ceiling", &Vector::Ceiling)
-	    .def("Normalize", &Vector::Normalize)
-	    .def("Perpendicularize", &Vector::Perpendicularize)
+	    .def("Round", &Vector::Round, luabind::return_reference_to(_1))
+	    .def("ToHalf", &Vector::ToHalf, luabind::return_reference_to(_1))
+	    .def("Floor", &Vector::Floor, luabind::return_reference_to(_1))
+	    .def("Ceiling", &Vector::Ceiling, luabind::return_reference_to(_1))
+	    .def("Normalize", &Vector::Normalize, luabind::return_reference_to(_1))
+	    .def("Perpendicularize", &Vector::Perpendicularize, luabind::return_reference_to(_1))
 	    .def("Reset", &Vector::Reset)
-	    .def("RadRotate", &Vector::RadRotate)
-	    .def("DegRotate", &Vector::DegRotate)
+	    .def("RadRotate", &Vector::RadRotate, luabind::return_reference_to(_1))
+	    .def("DegRotate", &Vector::DegRotate, luabind::return_reference_to(_1))
 	    .def("GetRadRotatedCopy", &Vector::GetRadRotatedCopy)
 	    .def("GetDegRotatedCopy", &Vector::GetDegRotatedCopy)
-	    .def("AbsRotateTo", &Vector::AbsRotateTo)
-	    .def("SetXY", &Vector::SetXY);
+	    .def("AbsRotateTo", &Vector::AbsRotateTo, luabind::return_reference_to(_1))
+	    .def("SetXY", &Vector::SetXY, luabind::return_reference_to(_1));
 }
 
 LuaBindingRegisterFunctionDefinitionForType(SystemLuaBindings, PathRequest) {

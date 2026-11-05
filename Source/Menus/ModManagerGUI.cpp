@@ -88,23 +88,79 @@ void ModManagerGUI::PopulateKnownModsList() {
 	m_ModsListFetched = true;
 }
 
-void ModManagerGUI::PopulateKnownScriptsList() {
-	std::list<Entity*> globalScriptList;
-	g_PresetMan.GetAllOfType(globalScriptList, "GlobalScript");
+//todo to fetch
+void ModManagerGUI::InitializeKnownScripts() {
+	int totalModuleCount = g_PresetMan.GetTotalModuleCount();
+	for (int currentModuleIndex = 0; currentModuleIndex < totalModuleCount; ++currentModuleIndex) {
+		// todo: try GetFriendlyName()
+		std::list<Entity*> globalScriptListForThisModule;
+		g_PresetMan.GetAllOfType(globalScriptListForThisModule, "GlobalScript", currentModuleIndex);
 
-	for (Entity* globalScriptListEntry: globalScriptList) {
-		if (const GlobalScript* globalScript = dynamic_cast<GlobalScript*>(globalScriptListEntry)) {
-			ScriptRecord scriptRecord = {globalScript->GetModuleAndPresetName(), globalScript->GetDescription(), g_SettingsMan.IsGlobalScriptEnabled(scriptRecord.PresetName)};
-			m_KnownScripts.emplace_back(scriptRecord);
+		if (globalScriptListForThisModule.empty()) {
+			continue;
 		}
-	}
-	std::sort(m_KnownScripts.begin(), m_KnownScripts.end());
 
-	for (int i = 0; i < m_KnownScripts.size(); i++) {
-		m_ScriptsListBox->AddItem(m_KnownScripts.at(i).GetDisplayString(), std::string(), nullptr, nullptr, i);
+
+		std::vector<ScriptRecord>& currentModuleScripts =
+		    m_KnownScriptsPerModule.emplace_back(
+		        g_PresetMan.GetDataModule(currentModuleIndex)->GetFileName(),
+		        g_PresetMan.GetDataModule(currentModuleIndex)->GetFriendlyName() 
+				+ "\n" + g_PresetMan.GetDataModule(currentModuleIndex)->GetDescription() 
+			).Records;
+
+		for (Entity* globalScriptListEntry: globalScriptListForThisModule) {
+			if (const GlobalScript* globalScript = dynamic_cast<GlobalScript*>(globalScriptListEntry)) {
+				ScriptRecord scriptRecord =
+				    {globalScript->GetPresetName(),
+				     globalScript->GetModuleAndPresetName(),
+				     globalScript->GetDescription(),
+				     g_SettingsMan.IsGlobalScriptEnabled(globalScript->GetModuleAndPresetName())};
+				currentModuleScripts.emplace_back(scriptRecord);
+			}
+		}
+		std::sort(currentModuleScripts.begin(), currentModuleScripts.end());
 	}
 	m_ScriptsListBox->ScrollToTop();
 	m_ScriptsListFetched = true;
+}
+
+int ModManagerGUI::ScriptListEntryEncodeExtraIndex(const int moduleNumber, const int scriptNumber) {
+	return scriptNumber == -1 
+		? (moduleNumber << 10) | EXTRA_INDEX_IS_A_MODULE_LABEL_MASK 
+		: (moduleNumber << 10) + scriptNumber;
+}
+
+std::pair<int, int> ModManagerGUI::ScriptListEntryDecodeExtraIndex(const int extraIndex) {
+	if (extraIndex & EXTRA_INDEX_IS_A_MODULE_LABEL_MASK) {
+		return {(extraIndex ^ EXTRA_INDEX_IS_A_MODULE_LABEL_MASK) >> 10, -1};
+	} else {
+		return {extraIndex >> 10, extraIndex - ((extraIndex >> 10) << 10)};
+	}
+}
+
+void ModManagerGUI::PopulateKnownScriptsList(bool clearBeforehand = false) {
+	if (clearBeforehand) {
+		m_ScriptsListBox->ClearList();
+	}
+
+	for (int moduleIt = 0; moduleIt < m_KnownScriptsPerModule.size(); ++moduleIt) {
+		auto& scriptRecordsInAModule = m_KnownScriptsPerModule[moduleIt];
+
+		//display the module ".rte" thingy
+		m_ScriptsListBox->AddItem(scriptRecordsInAModule.GetDisplayString(), 
+			std::string(), nullptr, nullptr, ScriptListEntryEncodeExtraIndex(moduleIt, -1));
+
+		if (scriptRecordsInAModule.Collapsed) {
+			continue;
+		}
+
+		// then per each .rte display the scripts under:
+		for (int scriptIt = 0; scriptIt < scriptRecordsInAModule.Records.size(); ++scriptIt) {
+			auto& scriptRecord = scriptRecordsInAModule.Records[scriptIt];
+			m_ScriptsListBox->AddItem(scriptRecord.GetDisplayString(), 
+				std::string(), nullptr, nullptr, ScriptListEntryEncodeExtraIndex(moduleIt, scriptIt));
+		}
+	}	
 }
 
 void ModManagerGUI::ToggleMod() {
@@ -133,62 +189,142 @@ void ModManagerGUI::ToggleMod() {
 	}
 }
 
-void ModManagerGUI::ToggleScript() {
-	int index = m_ScriptsListBox->GetSelectedIndex();
-	if (index > -1) {
-		std::unordered_map<std::string, bool>& enabledScriptList = g_SettingsMan.GetEnabledGlobalScriptMap();
-		GUIListPanel::Item* selectedItem = m_ScriptsListBox->GetSelected();
-		ScriptRecord& scriptRecord = m_KnownScripts.at(selectedItem->m_ExtraIndex);
+ModManagerGUI::ScriptRecord* ModManagerGUI::ScriptListExtraIndexToScriptRecord(int extraIndex) {
+	
+	auto [moduleInd, scriptInd] = ScriptListEntryDecodeExtraIndex(extraIndex);
+	// if the list item is a module label header - return nullptr
+	if (scriptInd == -1) {
+		return nullptr;
+	}
+	// else - a script, decode where to access it from the item's extra value
+	return &m_KnownScriptsPerModule.at(moduleInd).Records.at(scriptInd);
+}
 
-		scriptRecord.Enabled = !scriptRecord.Enabled;
-		if (scriptRecord.Enabled) {
+void ModManagerGUI::ToggleInScriptList() {
+	int index = m_ScriptsListBox->GetSelectedIndex();
+	if (index <= -1) {
+		return;
+	}
+
+	GUIListPanel::Item* selectedItem = m_ScriptsListBox->GetSelected();
+	int extraIndex = selectedItem->m_ExtraIndex;
+	auto [moduleInd, scriptInd] = ScriptListEntryDecodeExtraIndex(extraIndex);
+	//if the list item is a module label header then collapse/expand it
+	if (scriptInd == -1) {
+		m_KnownScriptsPerModule[moduleInd].Collapsed ^= 1; //toggle it
+		PopulateKnownScriptsList(true);
+	}
+	// else - it's a script, toggle it:
+	else {
+		std::unordered_map<std::string, bool>& enabledScriptList = g_SettingsMan.GetEnabledGlobalScriptMap();
+
+		ScriptRecord* scriptRecord = ScriptListExtraIndexToScriptRecord(extraIndex);
+		scriptRecord->Enabled = !scriptRecord->Enabled;
+		if (scriptRecord->Enabled) {
 			m_ToggleScriptButton->SetText("Disable Script");
-			if (enabledScriptList.find(scriptRecord.PresetName) != enabledScriptList.end()) {
-				enabledScriptList.at(scriptRecord.PresetName) = true;
+			if (enabledScriptList.find(scriptRecord->ModuleAndPresetName) != enabledScriptList.end()) {
+				enabledScriptList.at(scriptRecord->ModuleAndPresetName) = true;
 			} else {
-				enabledScriptList.try_emplace(scriptRecord.PresetName, true);
+				enabledScriptList.try_emplace(scriptRecord->ModuleAndPresetName, true);
 			}
 		} else {
 			m_ToggleScriptButton->SetText("Enable Script");
-			enabledScriptList.at(scriptRecord.PresetName) = false;
+			enabledScriptList.at(scriptRecord->ModuleAndPresetName) = false;
 		}
-		selectedItem->m_Name = scriptRecord.GetDisplayString();
-		m_ScriptsListBox->SetSelectedIndex(index);
-		m_ScriptsListBox->Invalidate();
-		g_GUISound.ItemChangeSound()->Play();
+
+		selectedItem->m_Name = scriptRecord->GetDisplayString();
 	}
+	m_ScriptsListBox->SetSelectedIndex(index);
+	m_ScriptsListBox->Invalidate();
+	g_GUISound.ItemChangeSound()->Play();
+}
+
+void ModManagerGUI::ResetSelectionsAndGoToTop() {
+	m_ModsListBox->ScrollToTop();
+	m_ScriptsListBox->ScrollToTop();
+
+	m_ModOrScriptDescriptionLabel->SetText(m_DisclaimerText);
 }
 
 bool ModManagerGUI::HandleInputEvents() {
 	if (!ListsFetched()) {
+		m_DisclaimerText = m_ModOrScriptDescriptionLabel->GetText();
 		PopulateKnownModsList();
+		InitializeKnownScripts();
 		PopulateKnownScriptsList();
+		ResetSelectionsAndGoToTop();
 	}
 	m_GUIControlManager->Update();
 
 	GUIEvent guiEvent;
 	while (m_GUIControlManager->GetEvent(&guiEvent)) {
+		// buttons
 		if (guiEvent.GetType() == GUIEvent::Command) {
 			if (guiEvent.GetControl() == m_BackToMainButton) {
+				ResetSelectionsAndGoToTop();
 				return true;
 			} else if (guiEvent.GetControl() == m_ToggleModButton) {
 				ToggleMod();
 			} else if (guiEvent.GetControl() == m_ToggleScriptButton) {
-				ToggleScript();
+				ToggleInScriptList();
 			}
-		} else if (guiEvent.GetType() == GUIEvent::Notification) {
+		} 
+		
+		else if (guiEvent.GetType() == GUIEvent::Notification) {
+			// button hover sound
 			if (guiEvent.GetMsg() == GUIButton::Focused && dynamic_cast<GUIButton*>(guiEvent.GetControl())) {
 				g_GUISound.SelectionChangeSound()->Play();
 			}
 
-			if (guiEvent.GetControl() == m_ModsListBox && (guiEvent.GetMsg() == GUIListBox::Select && m_ModsListBox->GetSelectedIndex() > -1)) {
-				const ModRecord& modRecord = m_KnownMods.at(m_ModsListBox->GetSelected()->m_ExtraIndex);
-				m_ModOrScriptDescriptionLabel->SetText(modRecord.Description);
-				m_ToggleModButton->SetText(modRecord.Disabled ? "Enable Mod" : "Disable Mod");
-			} else if (guiEvent.GetControl() == m_ScriptsListBox && (guiEvent.GetMsg() == GUIListBox::Select && m_ScriptsListBox->GetSelectedIndex() > -1)) {
-				const ScriptRecord& scriptRecord = m_KnownScripts.at(m_ScriptsListBox->GetSelected()->m_ExtraIndex);
-				m_ModOrScriptDescriptionLabel->SetText(scriptRecord.Description);
-				m_ToggleScriptButton->SetText(scriptRecord.Enabled ? "Disable Script" : "Enable Script");
+			// list entries
+			if (guiEvent.GetControl() == m_ModsListBox && m_ModsListBox->GetSelectedIndex() > -1) {
+				switch (guiEvent.GetMsg()) {
+					case GUIListBox::Select: {
+						g_GUISound.SelectionChangeSound()->Play();
+						const ModRecord& modRecord = m_KnownMods.at(m_ModsListBox->GetSelected()->m_ExtraIndex);
+						m_ModOrScriptDescriptionLabel->SetText(modRecord.Description);
+						m_ToggleModButton->SetText(modRecord.Disabled ? "Enable Mod" : "Disable Mod");
+						break;
+					}
+					case GUIListBox::KeyDown:
+						if (guiEvent.GetData() != 13) //enter key but doesnt work, todo
+							break;
+					case GUIListBox::DoubleClick:
+						g_GUISound.SelectionChangeSound()->FadeOut(0);
+						g_GUISound.ItemChangeSound()->Play();
+						ToggleMod();
+						break;
+				}
+			} else if (guiEvent.GetControl() == m_ScriptsListBox && m_ScriptsListBox->GetSelectedIndex() > -1) {
+				switch (guiEvent.GetMsg()) {
+					case GUIListBox::Select: {
+						g_GUISound.SelectionChangeSound()->Play();
+						int extraIndex = m_ScriptsListBox->GetSelected()->m_ExtraIndex;
+						auto [moduleInd, scriptInd] = ScriptListEntryDecodeExtraIndex(extraIndex);
+						// if we're on a script item
+						if (scriptInd != -1) {
+							const ScriptRecord* scriptRecord = ScriptListExtraIndexToScriptRecord(extraIndex);
+							m_ModOrScriptDescriptionLabel->SetText(scriptRecord->Description.empty() ? "No description." : scriptRecord->Description);
+							m_ToggleScriptButton->SetText(scriptRecord->Enabled ? "Disable Script" : "Enable Script");
+						}
+						// if we're on a module label
+						else {
+							ScriptRecordsInAModule* module =
+							    &m_KnownScriptsPerModule[moduleInd];
+							m_ModOrScriptDescriptionLabel->SetText(module->Description);
+							m_ToggleScriptButton->SetText(module->Collapsed ? "Expand Category" : "Collapse Category");
+						}
+						break;
+					}
+					case GUIListBox::KeyDown:
+						if (guiEvent.GetData() != 13) //todo, check above
+							break;
+					case GUIListBox::DoubleClick:
+						g_GUISound.SelectionChangeSound()->FadeOut(0);
+						g_GUISound.ItemChangeSound()->Play();
+						ToggleInScriptList();
+						break;
+				}
 			}
 		}
 	}

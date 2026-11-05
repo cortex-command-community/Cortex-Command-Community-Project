@@ -338,6 +338,11 @@ namespace RTE {
 	}
 
 	void Entity::ClassInfo::FillPool(int fillAmount) {
+#ifdef __SANITIZE_ADDRESS__
+		// If we have ASan, make this a no-op.
+		(void)(fillAmount); // Silence warning about unused variable.
+#else
+
 		// Default to the set block allocation size if fillAmount is 0
 		if (fillAmount <= 0) {
 			fillAmount = m_PoolAllocBlockCount;
@@ -349,6 +354,7 @@ namespace RTE {
 				m_AllocatedPool.push_back(m_Allocate());
 			}
 		}
+#endif
 	}
 
 	bool Entity::ClassInfo::IsClassOrChildClassOf(const ClassInfo* classInfoToCheck) const {
@@ -361,6 +367,13 @@ namespace RTE {
 	}
 
 	void* Entity::ClassInfo::GetPoolMemory() {
+#ifdef __SANITIZE_ADDRESS__
+		// If compiled with ASan, sidestep pooling and just use the allocator normally.
+
+		void* foundMemory = m_Allocate();
+		RTEAssert(foundMemory, "m_Allocate failed! to make memory!");
+#else
+
 		std::lock_guard<std::mutex> guard(m_Mutex);
 
 		RTEAssert(IsConcrete(), "Trying to get pool memory of an abstract Entity class!");
@@ -375,6 +388,7 @@ namespace RTE {
 		m_AllocatedPool.pop_back();
 
 		RTEAssert(foundMemory, "Could not find an available instance in the pool, even after increasing its size!");
+#endif
 
 		// Keep track of the number of instances passed out
 		m_InstancesInUse++;
@@ -386,8 +400,14 @@ namespace RTE {
 		if (!returnedMemory) {
 			return 0;
 		}
+
+#ifdef __SANITIZE_ADDRESS__
+		// If compiled with ASan, sidestep pooling and just use the allocator normally.
+		m_Deallocate(returnedMemory);
+#else
 		std::lock_guard<std::mutex> guard(m_Mutex);
 		m_AllocatedPool.push_back(returnedMemory);
+#endif
 
 		// Keep track of the number of instances passed in
 		m_InstancesInUse--;
