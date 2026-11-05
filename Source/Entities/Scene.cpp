@@ -1056,6 +1056,7 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader.ReadPropValue();
 		for (SLBackground* layer: m_BackLayerList)
 			delete layer;
+		m_BackLayerList.clear();
 	});
 	MatchForwards("AddBackgroundLayer") MatchProperty("_AddBackgroundLayer", {
 		SLBackground* pLayer = dynamic_cast<SLBackground*>(g_PresetMan.ReadReflectedPreset(reader));
