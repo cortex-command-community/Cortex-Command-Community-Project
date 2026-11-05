@@ -44,9 +44,23 @@ namespace RTE {
 		return reader;
 	}
 
+	/// Gets the preset an Entity is to be written against, if it has one.
+	/// @param entity The Entity about to be written.
+	/// @return The preset to write the Entity against, or nullptr if it is to be written in full.
+	static const Entity* GetPresetToWriteAgainst(const Entity& entity) {
+		const Entity* preset = entity.GetPreset();
+
+		// An original preset finds its own definition. Written against that, it would be no more than a copy of itself.
+		if (preset && entity.IsOriginalPreset() && preset->GetModuleID() == entity.GetModuleID()) {
+			return nullptr;
+		}
+
+		return preset;
+	}
+
 	Writer& operator<<(Writer& writer, const Serializable& operand) {
 		if (const Entity* entityOperand = dynamic_cast<const Entity*>(&operand)) {
-			if (const Entity* preset = entityOperand->GetPreset()) {
+			if (const Entity* preset = GetPresetToWriteAgainst(*entityOperand)) {
 				HashingData presetHash(*g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 				entityOperand->Write(writer, *preset, presetHash);
 				writer.ObjectEnd();
@@ -61,7 +75,7 @@ namespace RTE {
 	Writer& operator<<(Writer& writer, const Serializable* operand) {
 		if (operand) {
 			if (const Entity* entityOperand = dynamic_cast<const Entity*>(operand)) {
-				if (const Entity* preset = entityOperand->GetPreset()) {
+				if (const Entity* preset = GetPresetToWriteAgainst(*entityOperand)) {
 					HashingData presetHash(*g_PresetMan.GetEntityHash(preset->GetClassName(), preset->GetPresetName(), preset->GetModuleID()));
 					entityOperand->Write(writer, *preset, presetHash);
 					writer.ObjectEnd();
