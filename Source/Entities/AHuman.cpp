@@ -1133,13 +1133,8 @@ float AHuman::EstimateJumpHeight() const {
 	// Start with zero, for now.
 	float currentYVelocity = 0.0F;
 
-	// Use magnitude because whatever direction constant force is in is the direction we'd be thrusting to resist.
-	float globalAcc = g_SceneMan.GetGlobalAcc().GetMagnitude() * g_TimerMan.GetDeltaTimeSecs();
-
-	// If no force to resist, then we can "jump" anywhere, guaranteed.
-	if (globalAcc == 0.0F) {
-		return std::numeric_limits<float>::max();
-	}
+	// Upward acceleration per frame.
+	float yGravity = -(g_SceneMan.GetGlobalAcc().GetY() * g_TimerMan.GetDeltaTimeSecs());
 
 	float totalMass = GetMass();
 	float impulseBurst = m_pJetpack->EstimateImpulse(true) / totalMass;
@@ -1168,13 +1163,13 @@ float AHuman::EstimateJumpHeight() const {
 			fuelTime -= g_TimerMan.GetDeltaTimeMS() * fuelUseMultiplierThrust;
 		}
 
-		if (currentYVelocity + globalAcc >= currentYVelocity) {
+		if (currentYVelocity + yGravity >= currentYVelocity) {
 			// Velocity is too big or gravity is too small. Either way, this will loop forever now.
 			// Just assume that we can reach the stars.
 			return FLT_MAX;
 		}
 
-		currentYVelocity += globalAcc;
+		currentYVelocity += yGravity;
 
 		if (currentYVelocity > 0.0F) {
 			// If we're still flying up, that means more height.
