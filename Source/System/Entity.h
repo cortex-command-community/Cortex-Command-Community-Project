@@ -237,7 +237,7 @@ namespace RTE {
 		/// Is only applicable to objects that are not original presets and haven't been altered since they were copied from their original.
 		/// @param writer A Writer that the Entity will save itself to.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int SavePresetReference(Writer& writer) const;
+		int SavePresetCopy(Writer& writer) const;
 
 		/// Records an Entity against a reference, expected to be it's preset.
 		/// @param writer A Writer that the Entity will save itself to.

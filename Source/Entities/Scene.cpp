@@ -1183,7 +1183,7 @@ int Scene::Save(Writer& writer) const {
 
 	for (std::list<SLBackground*>::const_iterator slItr = m_BackLayerList.begin(); slItr != m_BackLayerList.end(); ++slItr) {
 		writer.NewProperty("AddBackgroundLayer");
-		(*slItr)->SavePresetReference(writer);
+		(*slItr)->SavePresetCopy(writer);
 	}
 
 	if (!m_UnseenPixelSize[Activity::TeamOne].IsZero()) {

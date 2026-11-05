@@ -229,8 +229,15 @@ namespace RTE {
 		return hashData;
 	}
 
-	int Entity::SavePresetReference(Writer& writer) const {
-		writer << GetEntityCharacteristic();
+	int Entity::SavePresetCopy(Writer& writer) const {
+		// Can only save out copies with this
+		if (m_IsOriginalPreset) {
+			RTEAbort("Tried to save out a pure Preset Copy Reference from an original Preset!");
+			return -1;
+		}
+		writer.ObjectStart(GetClassName());
+		writer.NewPropertyWithValue("CopyOf", GetModuleAndPresetName());
+		writer.ObjectEnd();
 
 		return 0;
 	}

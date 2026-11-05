@@ -263,19 +263,19 @@ int MetaMan::Save(Writer& writer) const {
 
 	if (m_TeamCount >= 1) {
 		writer.NewProperty("Team1Icon");
-		m_TeamIcons[Activity::TeamOne].SavePresetReference(writer);
+		m_TeamIcons[Activity::TeamOne].SavePresetCopy(writer);
 	}
 	if (m_TeamCount >= 2) {
 		writer.NewProperty("Team2Icon");
-		m_TeamIcons[Activity::TeamTwo].SavePresetReference(writer);
+		m_TeamIcons[Activity::TeamTwo].SavePresetCopy(writer);
 	}
 	if (m_TeamCount >= 3) {
 		writer.NewProperty("Team3Icon");
-		m_TeamIcons[Activity::TeamThree].SavePresetReference(writer);
+		m_TeamIcons[Activity::TeamThree].SavePresetCopy(writer);
 	}
 	if (m_TeamCount >= 4) {
 		writer.NewProperty("Team4Icon");
-		m_TeamIcons[Activity::TeamFour].SavePresetReference(writer);
+		m_TeamIcons[Activity::TeamFour].SavePresetCopy(writer);
 	}
 
 	writer.NewPropertyWithValue("CurrentRound", m_CurrentRound);
