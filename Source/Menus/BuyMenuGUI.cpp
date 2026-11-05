@@ -2174,18 +2174,6 @@ bool BuyMenuGUI::DeployLoadout(int index) {
 		if (canAdd)
 			AddCartItem((*cItr)->GetDisplayName(), (*cItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *cItr);
 	}
-	// Now set the craft to what the loadout specifies, if anything
-	if (m_Loadouts[index].GetDeliveryCraft()) {
-		m_pSelectedCraft = m_Loadouts[index].GetDeliveryCraft();
-		// Take into account whether these are native or not, and multiply the cost accordingly
-		m_pCraftBox->SetText(m_pSelectedCraft->GetDisplayName());
-		m_pCraftBox->SetRightText(m_pSelectedCraft->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult));
-
-		m_pCraftNameLabel->SetText(m_pSelectedCraft->GetDisplayName());
-		m_pCraftPriceLabel->SetText(m_pSelectedCraft->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult));
-		UpdateTotalPassengersLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftPassengersLabel);
-		UpdateTotalMassLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftMassLabel);
-	}
 
 	// Update labels with the new config's values
 	UpdateTotalCostLabel();
