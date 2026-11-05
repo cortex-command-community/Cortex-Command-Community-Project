@@ -102,8 +102,7 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("_ClearTerrainFrostings", {
 		reader.ReadPropValue();
-		for (TerrainFrosting* terrainFrosting: m_TerrainFrostings)
-			delete terrainFrosting;
+		// Not deleted: a copied SLTerrain shares these with what it was copied from, see Create(reference).
 		m_TerrainFrostings.clear();
 	});
 	MatchForwards("AddTerrainFrosting") MatchProperty("_AddTerrainFrosting", {
@@ -113,8 +112,7 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("_ClearTerrainDebris", {
 		reader.ReadPropValue();
-		for (TerrainDebris* terrainDebris: m_TerrainDebris)
-			delete terrainDebris;
+		// Not deleted: a copied SLTerrain shares these with what it was copied from, see Create(reference).
 		m_TerrainDebris.clear();
 	});
 	MatchForwards("AddTerrainDebris") MatchProperty("_AddTerrainDebris", {
@@ -124,8 +122,7 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("_ClearTerrainObjects", {
 		reader.ReadPropValue();
-		for (TerrainObject* terrainObject: m_TerrainObjects)
-			delete terrainObject;
+		// Not deleted: a copied SLTerrain shares these with what it was copied from, see Create(reference).
 		m_TerrainObjects.clear();
 	});
 	MatchForwards("PlaceTerrainObject") MatchProperty("_PlaceTerrainObject", {
