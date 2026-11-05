@@ -1278,7 +1278,7 @@ int Scene::Write(Writer& writer, const Entity& entityReference, HashingData& has
 	writer.NewPointerSequence("_ClearSceneObjects", "_PlaceSceneObject", m_PlacedObjects[PlacedObjectSets::PLACEONLOAD], hashData);
 	writer.NewPointerSequence("_ClearBlueprintObjects", "_PlaceBlueprintObject", m_PlacedObjects[PlacedObjectSets::BLUEPRINT], hashData);
 	writer.NewPointerSequence("_ClearAIPlanObjects", "_PlaceAIPlanObject", m_PlacedObjects[PlacedObjectSets::AIPLAN], hashData);
-	writer.NewPresetReferenceSequence("_ClearBackgroundLayers", "_AddBackgroundLayer", m_BackLayerList, hashData);
+	writer.NewPresetCopySequence("_ClearBackgroundLayers", "_AddBackgroundLayer", m_BackLayerList, hashData);
 
 	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
 		std::string teamNumberString = std::to_string(team + 1);

@@ -241,6 +241,54 @@ namespace RTE {
 			hashData.m_ParseValues.pop_front();
 		}
 
+		/// Writes a collection of unaltered copies of presets where order matters, written to assume it has corresponding data in the hash structure provided.
+		/// Each is written as a copy of its preset, for properties which read an object instead of a preset reference.
+		/// @param clearPhrase The the phrase used to wipe the contents of the collection, if the referent's is incompatible.
+		/// @param insertionPhrase The the phrase used to push an element to the back of the collection.
+		/// @param propValue The sequential collection of items in question.
+		/// @param hashData A modifiable reference to the HashingData relevant to writing this object, which should correspond to it's preset's.
+		template <typename Type>
+		void NewPresetCopySequence(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData) {
+			// Taking the optimistic assumption that the items in this list can simply be pasted after the reference's at the point that they diverge, start an iterator at the beginning.
+			bool areItemsConcatenated = true;
+			auto itemItr = propValue.begin();
+
+			// Check the assumption and find where the reference's list diverges.
+			for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.front(); refIndex++) {
+				if (areItemsConcatenated) {
+					if (itemItr != propValue.end()) {
+						if (RTE::Hash((*itemItr)->GetEntityCharacteristic()) != hashData.m_Constituents.front()) {
+							areItemsConcatenated = false;
+						}
+						itemItr++;
+					} else
+						areItemsConcatenated = false;
+				}
+
+				// Iterate through the rest of the list regardless to consume the indicated number of constituent hashes.
+				hashData.m_Constituents.pop_front();
+			}
+
+			// Assumption was wrong: clear the collection out, and start from the beginning again.
+			if (!areItemsConcatenated) {
+				if (hashData.m_ParseValues.front() > 0) {
+					NewPropertyWithValue(clearPhrase, 1);
+				}
+
+				itemItr = propValue.begin();
+			}
+
+			// For all items determined to need specification, do so.
+			while (itemItr != propValue.end()) {
+				NewProperty(insertionPhrase);
+				(*itemItr)->SavePresetCopy(*this);
+				itemItr++;
+			}
+
+			// Value was used for parsing, eject it.
+			hashData.m_ParseValues.pop_front();
+		}
+
 		/// Writes a collection of pointers where order matters, written to assume it has corresponding data in the hash structure provided, and respecting the conditional for consideration.
 		/// @param clearPhrase The the phrase used to wipe the contents of the collection, if the referent's is incompatible.
 		/// @param insertionPhrase The the phrase used to push an element to the back of the collection.
