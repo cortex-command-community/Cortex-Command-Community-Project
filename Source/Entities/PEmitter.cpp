@@ -216,6 +216,8 @@ HashingData PEmitter::Hash() const {
 		hash ^= emissionHash << (i++ % sizeof(uint64_t) * 8);
 	}
 
+	hashData.m_ParseValues.push_back(i);
+
 	uint64_t emissionSoundHash = m_EmissionSound.Hash().m_Hash;
 	hashData.m_Constituents.push_back(emissionSoundHash);
 	hash ^= emissionSoundHash << 1;
