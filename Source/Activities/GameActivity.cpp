@@ -47,6 +47,8 @@ GameActivity::~GameActivity() {
 }
 
 void GameActivity::Clear() {
+	m_CPUTeam = -1;
+
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
 		m_ObservationTarget[player].Reset();
 		m_DeathViewTarget[player].Reset();
@@ -72,8 +74,10 @@ void GameActivity::Clear() {
 	}
 
 	m_StartingGold = 0;
+	m_StartingDifficulty = -1;
 	m_FogOfWarEnabled = false;
 	m_RequireClearPathToOrbit = false;
+	m_DeployUnits = true;
 
 	m_DefaultDifficulty = -1;
 	m_DefaultGoldCakeDifficulty = -1;
@@ -101,6 +105,7 @@ void GameActivity::Clear() {
 		m_Deliveries[team].clear();
 		m_TeamTech[team] = "";
 		m_TeamTechSwitchEnabled[team] = true;
+		m_TeamCPUSwitchEnabled[team] = true;
 		m_TeamDefaultAISkill[team] = -1;
 		m_TeamAISwitchEnabled[team] = true;
 		m_LandingZoneArea[team].Reset();
