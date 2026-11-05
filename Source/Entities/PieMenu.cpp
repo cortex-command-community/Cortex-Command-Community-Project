@@ -201,12 +201,11 @@ int PieMenu::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("SelectedItemBackgroundColor", { reader >> m_SelectedItemBackgroundColor; });
 	MatchProperty("_ClearPieSlices", {
 		reader.ReadPropValue();
-		// TODO: sort out if this is even appropriate to do
-		/*for (PieSlice* pieSlice: m_CurrentPieSlices) {
-			if (pieSlice->GetOriginalSource() == this) {
-				delete pieSlice;
-			}
-		}*/
+		// The slices that are this menu's own are the ones written back after this. Slices put here by something else are left for it to manage.
+		RemovePieSlicesByOriginalSource(this);
+		if (m_Owner) {
+			RemovePieSlicesByOriginalSource(m_Owner);
+		}
 	});
 	MatchForwards("AddPieSlice") MatchProperty("_AddPieSlice", {
 		if (m_CurrentPieSlices.size() == 4 * PieQuadrant::c_PieQuadrantSlotCount) {
