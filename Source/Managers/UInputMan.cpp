@@ -900,17 +900,16 @@ void UInputMan::HandleInputEvent(const SDL_Event& inputEvent) {
 			break;
 		}
 		case SDL_EVENT_MOUSE_MOTION: {
-			if (m_DisableMouseMoving) {
-				break;
-			}
-
 			Mouse& mouse = m_MouseStates[inputEvent.motion.which];
 			mouse.id = inputEvent.motion.which;
 			mouse.position = {inputEvent.motion.x, inputEvent.motion.y};
-			mouse.relativeMotion += {inputEvent.motion.xrel, inputEvent.motion.yrel};
-
 			m_MouseStates[0].position = {inputEvent.motion.x, inputEvent.motion.y};
-			m_MouseStates[0].relativeMotion += {inputEvent.motion.xrel, inputEvent.motion.yrel};
+
+			// The position has to keep updating even while mouse moving is disabled, because it's what decides when to enable it again.
+			if (!m_DisableMouseMoving) {
+				mouse.relativeMotion += {inputEvent.motion.xrel, inputEvent.motion.yrel};
+				m_MouseStates[0].relativeMotion += {inputEvent.motion.xrel, inputEvent.motion.yrel};
+			}
 
 			if (g_WindowMan.FullyCoversAllDisplays()) {
 				int windowPosX = 0;
@@ -1188,7 +1187,8 @@ void UInputMan::UpdateMouseInput() {
 	// won't cause the whole window to move if the user clicks the title bar and unintentionally drags it due to programmatic positioning.
 	int mousePosX = m_MouseStates.at(0).position.m_X / g_WindowMan.GetResMultiplier();
 	int mousePosY = m_MouseStates.at(0).position.m_Y / g_WindowMan.GetResMultiplier();
-	if (m_DisableMouseMoving && m_PrepareToEnableMouseMoving && (mousePosX >= 0 && mousePosX < g_WindowMan.GetResX() && mousePosY >= 0 && mousePosY < g_WindowMan.GetResY())) {
+	// A trapped mouse has no cursor to position and can't grab the title bar, and its position doesn't have to be inside the window. On Wayland it wanders off without limit after a click that leaves a menu and traps the mouse before the button is released.
+	if (m_DisableMouseMoving && m_PrepareToEnableMouseMoving && (m_TrapMousePos || (mousePosX >= 0 && mousePosX < g_WindowMan.GetResX() && mousePosY >= 0 && mousePosY < g_WindowMan.GetResY()))) {
 		m_DisableMouseMoving = m_PrepareToEnableMouseMoving = false;
 	}
 }
