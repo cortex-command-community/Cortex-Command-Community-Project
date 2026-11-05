@@ -152,15 +152,17 @@ int ACRocket::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchForwards("LLeg") MatchProperty("LeftLeg", { SetLeftLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
 	MatchForwards("RFootGroup") MatchProperty("RightFootGroup", {
 		delete m_pRFootGroup;
-		m_pRFootGroup = new AtomGroup();
-		reader >> m_pRFootGroup;
-		m_pRFootGroup->SetOwner(this);
+		m_pRFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		if (m_pRFootGroup) {
+			m_pRFootGroup->SetOwner(this);
+		}
 	});
 	MatchForwards("LFootGroup") MatchProperty("LeftFootGroup", {
 		delete m_pLFootGroup;
-		m_pLFootGroup = new AtomGroup();
-		reader >> m_pLFootGroup;
-		m_pLFootGroup->SetOwner(this);
+		m_pLFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		if (m_pLFootGroup) {
+			m_pLFootGroup->SetOwner(this);
+		}
 	});
 	MatchForwards("MThruster") MatchProperty("MainThruster", { SetMainThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
 	MatchForwards("RThruster") MatchProperty("RightThruster", { SetRightThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });

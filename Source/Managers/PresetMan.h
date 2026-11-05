@@ -173,6 +173,22 @@ namespace RTE {
 		/// error, or the instance name was 'None'. Ownership IS transferred!
 		Entity* ReadReflectedPreset(Reader& reader);
 
+		/// Reads an Entity for a property that owns it, as ReadReflectedPreset does, and makes sure of its type.
+		/// A value of "None" means the property is to hold nothing, as Writer::NewOptionalEntityPointerProperty writes it.
+		/// @param reader The Reader which is about to read the property's value.
+		/// @param propName The name of the property being read, for reporting errors.
+		/// @return The Entity read, or nullptr if the value was "None" or not of the type asked for, which is reported as an error. Ownership IS transferred!
+		template <typename Type> Type* ReadReflectedPresetOfType(Reader& reader, const std::string_view& propName) {
+			Entity* entity = ReadReflectedPreset(reader);
+			Type* entityOfType = dynamic_cast<Type*>(entity);
+
+			if (entity && !entityOfType) {
+				reader.ReportError("Tried to set " + std::string(propName) + " to a " + entity->GetClassName() + "!");
+				delete entity;
+			}
+			return entityOfType;
+		}
+
 		/// Adds to a list all previously read in (defined) Entitys, by type.
 		/// @param entityList Reference to a list which will get all matching Entity:s added to it.
 		/// @param type Ownership of the list or the Entitys placed in it are NOT transferred!

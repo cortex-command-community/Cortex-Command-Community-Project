@@ -294,48 +294,23 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("PlayerControllable", { reader >> m_PlayerControllable; });
 	MatchProperty("BodyHitSound", {
 		delete m_BodyHitSound;
-		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
-		if (SoundContainer* reference = dynamic_cast<SoundContainer*>(entityReference)) {
-			m_BodyHitSound = reference;
-		} else {
-			reader.ReportError("Tried to set BodyHitSound to a non-SoundContainer type!");
-		}
+		m_BodyHitSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("AlarmSound", {
 		delete m_AlarmSound;
-		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
-		if (SoundContainer* reference = dynamic_cast<SoundContainer*>(entityReference)) {
-			m_AlarmSound = reference;
-		} else {
-			reader.ReportError("Tried to set AlarmSound to a non-SoundContainer type!");
-		}
+		m_AlarmSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("PainSound", {
 		delete m_PainSound;
-		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
-		if (SoundContainer* reference = dynamic_cast<SoundContainer*>(entityReference)) {
-			m_PainSound = reference;
-		} else {
-			reader.ReportError("Tried to set PainSound to a non-SoundContainer type!");
-		}
+		m_PainSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("DeathSound", {
 		delete m_DeathSound;
-		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
-		if (SoundContainer* reference = dynamic_cast<SoundContainer*>(entityReference)) {
-			m_DeathSound = reference;
-		} else {
-			reader.ReportError("Tried to set DeathSound to a non-SoundContainer type!");
-		}
+		m_DeathSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("DeviceSwitchSound", {
 		delete m_DeviceSwitchSound;
-		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
-		if (SoundContainer* reference = dynamic_cast<SoundContainer*>(entityReference)) {
-			m_DeviceSwitchSound = reference;
-		} else {
-			reader.ReportError("Tried to set DeviceSwitchSound to a non-SoundContainer type!");
-		}
+		m_DeviceSwitchSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("Status", { reader >> m_Status; });
 	MatchProperty("DeploymentID", { reader >> m_DeploymentID; });
@@ -403,11 +378,10 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		AddAISceneWaypoint(waypointToAdd);
 	});
 	MatchProperty("PieMenu", {
-		m_PieMenu = std::unique_ptr<PieMenu>(static_cast<PieMenu*>(g_PresetMan.ReadReflectedPreset(reader)));
-		if (!m_PieMenu) {
-			reader.ReportError("Failed to set Actor's pie menu. Doublecheck your name and everything is correct.");
+		m_PieMenu.reset(g_PresetMan.ReadReflectedPresetOfType<PieMenu>(reader, propName));
+		if (m_PieMenu) {
+			m_PieMenu->Create(this);
 		}
-		m_PieMenu->Create(this);
 	});
 	MatchProperty("Organic", { reader >> m_Organic; });
 	MatchProperty("Mechanical", { reader >> m_Mechanical; });

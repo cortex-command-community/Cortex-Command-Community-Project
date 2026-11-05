@@ -1019,8 +1019,7 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("Terrain", {
 		delete m_pTerrain;
-		m_pTerrain = new SLTerrain();
-		reader >> m_pTerrain;
+		m_pTerrain = g_PresetMan.ReadReflectedPresetOfType<SLTerrain>(reader, propName);
 	});
 	MatchProperty("_ClearSceneObjects", {
 		reader.ReadPropValue();

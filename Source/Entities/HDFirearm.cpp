@@ -173,37 +173,39 @@ int HDFirearm::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("Magazine", { SetMagazine(dynamic_cast<Magazine*>(g_PresetMan.ReadReflectedPreset(reader))); });
 	MatchProperty("Flash", { SetFlash(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
 	MatchProperty("PreFireSound", {
-		m_PreFireSound = new SoundContainer;
-		reader >> m_PreFireSound;
+		delete m_PreFireSound;
+		m_PreFireSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("FireSound", {
-		m_FireSound = new SoundContainer;
-		reader >> m_FireSound;
+		delete m_FireSound;
+		m_FireSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("FireEchoSound", {
-		m_FireEchoSound = new SoundContainer;
-		reader >> m_FireEchoSound;
-		m_FireEchoSound->SetSoundOverlapMode(SoundContainer::SoundOverlapMode::RESTART);
+		delete m_FireEchoSound;
+		m_FireEchoSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
+		if (m_FireEchoSound) {
+			m_FireEchoSound->SetSoundOverlapMode(SoundContainer::SoundOverlapMode::RESTART);
+		}
 	});
 	MatchProperty("ActiveSound", {
-		m_ActiveSound = new SoundContainer;
-		reader >> m_ActiveSound;
+		delete m_ActiveSound;
+		m_ActiveSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("DeactivationSound", {
-		m_DeactivationSound = new SoundContainer;
-		reader >> m_DeactivationSound;
+		delete m_DeactivationSound;
+		m_DeactivationSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("EmptySound", {
-		m_EmptySound = new SoundContainer;
-		reader >> m_EmptySound;
+		delete m_EmptySound;
+		m_EmptySound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("ReloadStartSound", {
-		m_ReloadStartSound = new SoundContainer;
-		reader >> m_ReloadStartSound;
+		delete m_ReloadStartSound;
+		m_ReloadStartSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("ReloadEndSound", {
-		m_ReloadEndSound = new SoundContainer;
-		reader >> m_ReloadEndSound;
+		delete m_ReloadEndSound;
+		m_ReloadEndSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("ReloadEndOffset", { reader >> m_ReloadEndOffset; });
 	MatchProperty("RateOfFire", { reader >> m_RateOfFire; });

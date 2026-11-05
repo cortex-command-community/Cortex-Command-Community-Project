@@ -247,33 +247,37 @@ int AHuman::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("HandGroup", {
 		delete m_pFGHandGroup;
 		delete m_pBGHandGroup;
-		m_pFGHandGroup = new AtomGroup();
-		m_pBGHandGroup = new AtomGroup();
-		reader >> m_pFGHandGroup;
-		m_pBGHandGroup->Create(*m_pFGHandGroup);
-		m_pFGHandGroup->SetOwner(this);
-		m_pBGHandGroup->SetOwner(this);
+		m_pFGHandGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		m_pBGHandGroup = nullptr;
+		if (m_pFGHandGroup) {
+			m_pBGHandGroup = new AtomGroup();
+			m_pBGHandGroup->Create(*m_pFGHandGroup);
+			m_pFGHandGroup->SetOwner(this);
+			m_pBGHandGroup->SetOwner(this);
+		}
 	});
 	MatchProperty("FGFootGroup", {
 		delete m_pFGFootGroup;
-		m_pFGFootGroup = new AtomGroup();
-		reader >> m_pFGFootGroup;
-		m_pFGFootGroup->SetOwner(this);
-		m_BackupFGFootGroup = new AtomGroup(*m_pFGFootGroup);
-		m_BackupFGFootGroup->RemoveAllAtoms();
+		m_pFGFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		if (m_pFGFootGroup) {
+			m_pFGFootGroup->SetOwner(this);
+			m_BackupFGFootGroup = new AtomGroup(*m_pFGFootGroup);
+			m_BackupFGFootGroup->RemoveAllAtoms();
+		}
 	});
 	MatchProperty("BGFootGroup", {
 		delete m_pBGFootGroup;
-		m_pBGFootGroup = new AtomGroup();
-		reader >> m_pBGFootGroup;
-		m_pBGFootGroup->SetOwner(this);
-		m_BackupBGFootGroup = new AtomGroup(*m_pBGFootGroup);
-		m_BackupBGFootGroup->RemoveAllAtoms();
+		m_pBGFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		if (m_pBGFootGroup) {
+			m_pBGFootGroup->SetOwner(this);
+			m_BackupBGFootGroup = new AtomGroup(*m_pBGFootGroup);
+			m_BackupBGFootGroup->RemoveAllAtoms();
+		}
 	});
 	MatchProperty("MaxWalkPathCrouchShift", { reader >> m_MaxWalkPathCrouchShift; });
 	MatchProperty("StrideSound", {
-		m_StrideSound = new SoundContainer;
-		reader >> m_StrideSound;
+		delete m_StrideSound;
+		m_StrideSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchForwards("StandLimbPath") MatchProperty("StandLimbPathFG", { reader >> m_Paths[FGROUND][STAND]; });
 	MatchProperty("StandLimbPathBG", { reader >> m_Paths[BGROUND][STAND]; });

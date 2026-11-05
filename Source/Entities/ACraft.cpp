@@ -281,18 +281,15 @@ int ACraft::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 	MatchProperty("HatchOpenSound", {
 		delete m_HatchOpenSound;
-		m_HatchOpenSound = new SoundContainer;
-		reader >> m_HatchOpenSound;
+		m_HatchOpenSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("HatchCloseSound", {
 		delete m_HatchCloseSound;
-		m_HatchCloseSound = new SoundContainer;
-		reader >> m_HatchCloseSound;
+		m_HatchCloseSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("CrashSound", {
 		delete m_CrashSound;
-		m_CrashSound = new SoundContainer;
-		reader >> m_CrashSound;
+		m_CrashSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("_ClearExits", {
 		reader.ReadPropValue();

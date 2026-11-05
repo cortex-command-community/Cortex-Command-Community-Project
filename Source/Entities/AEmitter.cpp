@@ -117,16 +117,16 @@ int AEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_EmissionList.push_back(emission);
 	});
 	MatchProperty("EmissionSound", {
-		m_EmissionSound = new SoundContainer;
-		reader >> m_EmissionSound;
+		delete m_EmissionSound;
+		m_EmissionSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("BurstSound", {
-		m_BurstSound = new SoundContainer;
-		reader >> m_BurstSound;
+		delete m_BurstSound;
+		m_BurstSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("EndSound", {
-		m_EndSound = new SoundContainer;
-		reader >> m_EndSound;
+		delete m_EndSound;
+		m_EndSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("EmissionEnabled", { reader >> m_EmitEnabled; });
 	MatchProperty("EmissionCount", { reader >> m_EmitCount; });

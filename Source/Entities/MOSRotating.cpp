@@ -268,26 +268,12 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 	StartPropertyList(return MOSprite::ReadProperty(propName, reader));
 
 	MatchProperty("AtomGroup", {
-		if (m_pAtomGroup) {
-			delete m_pAtomGroup;
-		}
-		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
-		if (AtomGroup* reference = dynamic_cast<AtomGroup*>(entityReference)) {
-			m_pAtomGroup = reference;
-		} else {
-			reader.ReportError("Tried to set AtomGroup to a non-AtomGroup type!");
-		}
+		delete m_pAtomGroup;
+		m_pAtomGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
 	});
 	MatchProperty("DeepGroup", {
-		if (m_pDeepGroup) {
-			delete m_pDeepGroup;
-		}
-		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
-		if (AtomGroup* reference = dynamic_cast<AtomGroup*>(entityReference)) {
-			m_pDeepGroup = reference;
-		} else {
-			reader.ReportError("Tried to set DeepGroup to a non-AtomGroup type!");
-		}
+		delete m_pDeepGroup;
+		m_pDeepGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
 	});
 	MatchProperty("DeepCheck", { reader >> m_DeepCheck; });
 	MatchProperty("OrientToVel", { reader >> m_OrientToVel; });
@@ -339,12 +325,7 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("GibAtEndOfLifetime", { reader >> m_GibAtEndOfLifetime; });
 	MatchProperty("GibSound", {
 		delete m_GibSound;
-		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
-		if (SoundContainer* reference = dynamic_cast<SoundContainer*>(entityReference)) {
-			m_GibSound = reference;
-		} else {
-			reader.ReportError("Tried to set GibSound to a non-SoundContainer type!");
-		}
+		m_GibSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("EffectOnGib", { reader >> m_EffectOnGib; });
 	MatchProperty("LoudnessOnGib", { reader >> m_LoudnessOnGib; });

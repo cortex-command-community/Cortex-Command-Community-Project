@@ -263,42 +263,50 @@ int ACrab::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchForwards("LFGFootGroup") MatchProperty("LeftFGFootGroup", {
 		delete m_pLFGFootGroup;
 		delete m_BackupLFGFootGroup;
-		m_pLFGFootGroup = new AtomGroup();
-		reader >> m_pLFGFootGroup;
-		m_pLFGFootGroup->SetOwner(this);
-		m_BackupLFGFootGroup = new AtomGroup(*m_pLFGFootGroup);
-		m_BackupLFGFootGroup->RemoveAllAtoms();
+		m_pLFGFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		m_BackupLFGFootGroup = nullptr;
+		if (m_pLFGFootGroup) {
+			m_pLFGFootGroup->SetOwner(this);
+			m_BackupLFGFootGroup = new AtomGroup(*m_pLFGFootGroup);
+			m_BackupLFGFootGroup->RemoveAllAtoms();
+		}
 	});
 	MatchForwards("LBGFootGroup") MatchProperty("LeftBGFootGroup", {
 		delete m_pLBGFootGroup;
 		delete m_BackupLBGFootGroup;
-		m_pLBGFootGroup = new AtomGroup();
-		reader >> m_pLBGFootGroup;
-		m_pLBGFootGroup->SetOwner(this);
-		m_BackupLBGFootGroup = new AtomGroup(*m_pLBGFootGroup);
-		m_BackupLBGFootGroup->RemoveAllAtoms();
+		m_pLBGFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		m_BackupLBGFootGroup = nullptr;
+		if (m_pLBGFootGroup) {
+			m_pLBGFootGroup->SetOwner(this);
+			m_BackupLBGFootGroup = new AtomGroup(*m_pLBGFootGroup);
+			m_BackupLBGFootGroup->RemoveAllAtoms();
+		}
 	});
 	MatchForwards("RFGFootGroup") MatchProperty("RightFGFootGroup", {
 		delete m_pRFGFootGroup;
 		delete m_BackupRFGFootGroup;
-		m_pRFGFootGroup = new AtomGroup();
-		reader >> m_pRFGFootGroup;
-		m_pRFGFootGroup->SetOwner(this);
-		m_BackupRFGFootGroup = new AtomGroup(*m_pRFGFootGroup);
-		m_BackupRFGFootGroup->RemoveAllAtoms();
+		m_pRFGFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		m_BackupRFGFootGroup = nullptr;
+		if (m_pRFGFootGroup) {
+			m_pRFGFootGroup->SetOwner(this);
+			m_BackupRFGFootGroup = new AtomGroup(*m_pRFGFootGroup);
+			m_BackupRFGFootGroup->RemoveAllAtoms();
+		}
 	});
 	MatchForwards("RBGFootGroup") MatchProperty("RightBGFootGroup", {
 		delete m_pRBGFootGroup;
 		delete m_BackupRBGFootGroup;
-		m_pRBGFootGroup = new AtomGroup();
-		reader >> m_pRBGFootGroup;
-		m_pRBGFootGroup->SetOwner(this);
-		m_BackupRBGFootGroup = new AtomGroup(*m_pRBGFootGroup);
-		m_BackupRBGFootGroup->RemoveAllAtoms();
+		m_pRBGFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		m_BackupRBGFootGroup = nullptr;
+		if (m_pRBGFootGroup) {
+			m_pRBGFootGroup->SetOwner(this);
+			m_BackupRBGFootGroup = new AtomGroup(*m_pRBGFootGroup);
+			m_BackupRBGFootGroup->RemoveAllAtoms();
+		}
 	});
 	MatchProperty("StrideSound", {
-		m_StrideSound = new SoundContainer;
-		reader >> m_StrideSound;
+		delete m_StrideSound;
+		m_StrideSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchForwards("LStandLimbPath") MatchProperty("LeftStandLimbPath", { reader >> m_Paths[LEFTSIDE][FGROUND][STAND]; });
 	MatchForwards("LWalkLimbPath") MatchProperty("LeftWalkLimbPath", { reader >> m_Paths[LEFTSIDE][FGROUND][WALK]; });
