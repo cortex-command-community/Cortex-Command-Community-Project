@@ -122,6 +122,10 @@ namespace RTE {
 		/// Discards all whitespace, newlines and comment lines (which start with '//') so that the next thing to be read will be actual data.
 		/// @return Whether there is more data to read from the file streams after this eat.
 		bool DiscardEmptySpace();
+
+		/// Discards empty space ahead of a value that can't be empty, like a number, and reports an error if the property being read was given none.
+		/// @return Whether there is a value to read.
+		bool DiscardEmptySpaceBeforeValue();
 #pragma endregion
 
 #pragma region Reader Status
@@ -139,74 +143,87 @@ namespace RTE {
 		/// @param var A reference to the variable that will be filled by the extracted data.
 		/// @return A Reader reference for further use in an expression.
 		Reader& operator>>(bool& var) {
-			DiscardEmptySpace();
-			*m_Stream >> var;
+			if (DiscardEmptySpaceBeforeValue()) {
+				*m_Stream >> var;
+			}
 			return *this;
 		}
 		Reader& operator>>(char& var) {
-			DiscardEmptySpace();
-			*m_Stream >> var;
+			if (DiscardEmptySpaceBeforeValue()) {
+				*m_Stream >> var;
+			}
 			return *this;
 		}
 		Reader& operator>>(unsigned char& var) {
-			DiscardEmptySpace();
-			int temp;
-			*m_Stream >> temp;
-			var = temp;
+			if (DiscardEmptySpaceBeforeValue()) {
+				int temp;
+				*m_Stream >> temp;
+				var = temp;
+			}
 			return *this;
 		}
 		Reader& operator>>(short& var) {
-			DiscardEmptySpace();
-			*m_Stream >> var;
+			if (DiscardEmptySpaceBeforeValue()) {
+				*m_Stream >> var;
+			}
 			return *this;
 		}
 		Reader& operator>>(unsigned short& var) {
-			DiscardEmptySpace();
-			*m_Stream >> var;
+			if (DiscardEmptySpaceBeforeValue()) {
+				*m_Stream >> var;
+			}
 			return *this;
 		}
 		Reader& operator>>(int& var) {
-			DiscardEmptySpace();
-			*m_Stream >> var;
+			if (DiscardEmptySpaceBeforeValue()) {
+				*m_Stream >> var;
+			}
 			return *this;
 		}
 		Reader& operator>>(unsigned int& var) {
-			DiscardEmptySpace();
-			*m_Stream >> var;
+			if (DiscardEmptySpaceBeforeValue()) {
+				*m_Stream >> var;
+			}
 			return *this;
 		}
 		Reader& operator>>(long& var) {
-			DiscardEmptySpace();
-			*m_Stream >> var;
+			if (DiscardEmptySpaceBeforeValue()) {
+				*m_Stream >> var;
+			}
 			return *this;
 		}
 		Reader& operator>>(unsigned long& var) {
-			DiscardEmptySpace();
-			*m_Stream >> var;
+			if (DiscardEmptySpaceBeforeValue()) {
+				*m_Stream >> var;
+			}
 			return *this;
 		}
 		Reader& operator>>(long long& var) {
-			DiscardEmptySpace();
-			*m_Stream >> var;
+			if (DiscardEmptySpaceBeforeValue()) {
+				*m_Stream >> var;
+			}
 			return *this;
 		}
 		Reader& operator>>(unsigned long long& var) {
-			DiscardEmptySpace();
-			*m_Stream >> var;
+			if (DiscardEmptySpaceBeforeValue()) {
+				*m_Stream >> var;
+			}
 			return *this;
 		}
 		// Yeah, this is dumb - read as double and cast.
 		// This is because, for whatever fucking reason, iostream can save out floats at a precision that it's then unable to read...
 		Reader& operator>>(float& var) {
-			DiscardEmptySpace();
-			double var2;
-			*m_Stream >> var2;
-			var = static_cast<float>(var2);
+			if (DiscardEmptySpaceBeforeValue()) {
+				double var2;
+				*m_Stream >> var2;
+				var = static_cast<float>(var2);
+			}
 			return *this;
 		}
 		Reader& operator>>(double& var) {
-			DiscardEmptySpace();
-			*m_Stream >> var;
+			if (DiscardEmptySpaceBeforeValue()) {
+				*m_Stream >> var;
+			}
 			return *this;
 		}
 		Reader& operator>>(std::string& var) {
@@ -250,6 +267,7 @@ namespace RTE {
 		bool m_SkipIncludes; //!< Indicates whether reader should skip included files.
 		bool m_CanFail; //!< Whether it's ok for the Reader to fail reading a file and fail silently instead of aborting.
 		bool m_NonModulePath; //!< Whether this Reader is reading from path that is not a DataModule and should just read it as provided.
+		bool m_PropValueIsEmpty; //!< Whether the property name last read had nothing after it on its line, so its value is empty rather than whatever the next line holds.
 
 		std::stack<int> m_BlockCommentOpenTagLines; //<! Stores lines on which block comment open tags are encountered. Used for error reporting when a file stream ends with an open block comment.
 
@@ -268,6 +286,10 @@ namespace RTE {
 		/// It will destroy the current stream pop the top stream off the stream stack to resume reading from it instead.
 		/// @return Whether there were any stream on the stack to resume.
 		bool EndIncludeFile();
+
+		/// Discards the spacing after a property's '=', without leaving the line, to see if a value follows it.
+		/// @return Whether there is anything left on the line to be the property's value.
+		bool PropValueFollows();
 #pragma endregion
 
 		/// Clears all the member variables of this Reader, effectively resetting the members of this abstraction level only.
