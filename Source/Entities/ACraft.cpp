@@ -295,6 +295,7 @@ int ACraft::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader >> m_CrashSound;
 	});
 	MatchProperty("_ClearExits", {
+		reader.ReadPropValue();
 		m_Exits.clear();
 	});
 	MatchForwards("AddExit") MatchProperty("_AddExit", {

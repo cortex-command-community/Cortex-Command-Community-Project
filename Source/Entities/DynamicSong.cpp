@@ -277,6 +277,7 @@ int DynamicSong::ReadProperty(const std::string_view& propName, Reader& reader) 
 		m_DefaultSongSection = songSection;
 	});
 	MatchProperty("_ClearSongSections", {
+		reader.ReadPropValue();
 		m_SongSections.clear();
 	});
 	MatchForwards("AddSongSection") MatchProperty("_AddSongSection", {

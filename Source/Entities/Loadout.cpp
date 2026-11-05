@@ -50,6 +50,7 @@ int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 		}
 	});
 	MatchProperty("_ClearCargoItems", {
+		reader.ReadPropValue();
 		m_CargoItems.clear();
 	});
 	MatchForwards("AddCargoItem") MatchProperty("_AddCargoItem", {
