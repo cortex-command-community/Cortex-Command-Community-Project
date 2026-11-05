@@ -206,6 +206,7 @@ int Attachable::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("InheritsHFlipped", ((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2));
 	writer.NewPropertyWithValue("InheritsRotAngle", m_InheritsRotAngle);
 	writer.NewPropertyWithValue("InheritedRotAngleOffset", m_InheritedRotAngleOffset);
+	writer.NewPropertyWithValue("InheritsFrame", m_InheritsFrame);
 	writer.NewPropertyWithValue("MountedRotAngleOffset", m_MountedRotAngleOffset);
 	writer.NewPropertyWithValue("InheritsVelWhenDetached", m_InheritsVelWhenDetached);
 	writer.NewPropertyWithValue("InheritsAngularVelWhenDetached", m_InheritsAngularVelWhenDetached);
@@ -241,6 +242,7 @@ int Attachable::Write(Writer& writer, const Entity& entityReference, HashingData
 
 	writer.NewDistinctProperty("InheritsRotAngle", m_InheritsRotAngle, reference.m_InheritsRotAngle);
 	writer.NewDistinctProperty("InheritedRotAngleOffset", m_InheritedRotAngleOffset, reference.m_InheritedRotAngleOffset);
+	writer.NewDistinctProperty("InheritsFrame", m_InheritsFrame, reference.m_InheritsFrame);
 	writer.NewDistinctProperty("MountedRotAngleOffset", m_MountedRotAngleOffset, reference.m_MountedRotAngleOffset);
 	writer.NewDistinctProperty("InheritsVelWhenDetached", m_InheritsVelWhenDetached, reference.m_InheritsVelWhenDetached);
 	writer.NewDistinctProperty("InheritsAngularVelWhenDetached", m_InheritsAngularVelWhenDetached, reference.m_InheritsAngularVelWhenDetached);
@@ -267,6 +269,7 @@ HashingData Attachable::Hash() const {
 	hash ^= (m_ParentBreakWound ? RTE::Hash(m_ParentBreakWound->GetEntityCharacteristic()) : 0) << 10;
 	hash ^= static_cast<uint64_t>((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2) << 11;
 	hash ^= static_cast<uint64_t>(m_InheritsRotAngle) << 12;
+	hash ^= static_cast<uint64_t>(m_InheritsFrame) << 16;
 	hash ^= static_cast<uint64_t>(m_InheritedRotAngleOffset) << 13;
 	hash ^= static_cast<uint64_t>(m_MountedRotAngleOffset) << 14;
 	hash ^= static_cast<uint64_t>(m_InheritsVelWhenDetached) << 15;

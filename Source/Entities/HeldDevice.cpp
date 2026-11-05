@@ -187,8 +187,8 @@ int HeldDevice::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("Loudness", { reader >> m_Loudness; });
 	MatchProperty("GetsHitByMOsWhenHeld", { reader >> m_GetsHitByMOsWhenHeld; });
 	MatchProperty("VisualRecoilMultiplier", { reader >> m_VisualRecoilMultiplier; });
-	MatchProperty("SpecialBehaviour_Activated", { reader >> m_Activated; });
-	MatchProperty("SpecialBehaviour_ActivationTimerElapsedSimTimeMS", {
+	MatchForwards("SpecialBehaviour_Activated") MatchProperty("_Activated", { reader >> m_Activated; });
+	MatchForwards("SpecialBehaviour_ActivationTimerElapsedSimTimeMS") MatchProperty("_ActivationTimerElapsedSimTimeMS", {
 		double elapsedSimTimeMS;
 		reader >> elapsedSimTimeMS;
 		m_ActivationTimer.SetElapsedSimTimeMS(elapsedSimTimeMS);
@@ -232,6 +232,11 @@ int HeldDevice::Write(Writer& writer, const Entity& entityReference, HashingData
 	writer.NewDistinctProperty("GetsHitByMOsWhenHeld", m_GetsHitByMOsWhenHeld, reference.m_GetsHitByMOsWhenHeld);
 	writer.NewDistinctProperty("VisualRecoilMultiplier", m_VisualRecoilMultiplier, reference.m_VisualRecoilMultiplier);
 
+	if (m_Activated) {
+		writer.NewPropertyWithValue("_Activated", m_Activated);
+		writer.NewPropertyWithValue("_ActivationTimerElapsedSimTimeMS", m_ActivationTimer.GetElapsedSimTimeMS());
+	}
+
 	return 0;
 }
 
@@ -240,6 +245,7 @@ HashingData HeldDevice::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	hash ^= static_cast<uint64_t>(m_OneHanded) << 1;
+	hash ^= static_cast<uint64_t>(m_Activated) << 12;
 	hash ^= m_StanceOffset.Hash().m_Hash << 2;
 	hash ^= m_SharpStanceOffset.Hash().m_Hash << 3;
 	hash ^= static_cast<uint64_t>(m_Supportable) << 4;

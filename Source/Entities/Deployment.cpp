@@ -101,6 +101,7 @@ int Deployment::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("SpawnRadius", m_SpawnRadius);
 	writer.NewPropertyWithValue("WalkRadius", m_WalkRadius);
 	writer.NewPropertyWithValue("HFlipped", m_HFlipped);
+	writer.NewPropertyWithValue("ID", m_ID);
 
 	return 0;
 }
@@ -115,6 +116,7 @@ int Deployment::Write(Writer& writer, const Entity& entityReference, HashingData
 	writer.NewDistinctProperty("SpawnRadius", m_SpawnRadius, reference.m_SpawnRadius);
 	writer.NewDistinctProperty("WalkRadius", m_WalkRadius, reference.m_WalkRadius);
 	writer.NewDistinctProperty("HFlipped", m_HFlipped, reference.m_HFlipped);
+	writer.NewDistinctProperty("ID", m_ID, reference.m_ID);
 
 	return 0;
 }
@@ -132,6 +134,7 @@ HashingData Deployment::Hash() const {
 	hash ^= static_cast<uint64_t>(m_SpawnRadius) << 2;
 	hash ^= static_cast<uint64_t>(m_WalkRadius) << 3;
 	hash ^= static_cast<uint64_t>(m_HFlipped) << 4;
+	hash ^= static_cast<uint64_t>(m_ID) << 5;
 
 	return hashData;
 }
