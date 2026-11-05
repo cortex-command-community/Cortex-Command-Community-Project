@@ -36,7 +36,7 @@ namespace RTE {
 		/// @param enable Show and enable or hide and disable the ScenarioActivityConfigGUI.
 		/// @param selectedActivity Pointer to the Activity this ScenarioActivityConfigGUI will be configuring for.
 		/// @param selectedScene Pointer to the Scene the passed in Activity will be using.
-		void SetEnabled(bool enable, Activity* selectedActivity = nullptr, Scene* selectedScene = nullptr);
+		void SetEnabled(bool enable, const Activity* selectedActivity = nullptr, Scene* selectedScene = nullptr);
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -65,9 +65,12 @@ namespace RTE {
 
 		GUIControlManager* m_GUIControlManager; //!< The GUIControlManager which holds all the GUIControls of this menu. Not owned by this.
 
-		GameActivity* m_SelectedActivity {}; //!< The Activity this ScenarioActivityConfigGUI is configuring.
+		const GameActivity* m_SelectedActivity {}; //!< The Activity this ScenarioActivityConfigGUI is configuring.
+		const GameActivity* m_PreviouslySelectedActivity {}; //!< The Activity this ScenarioActivityConfigGUI was configuring last, before it got was disabled.
 		Scene* m_SelectedScene {}; //!< The Scene the selected Activity will be using.
 		int m_LockedCPUTeam { Activity::Teams::NoTeam }; //!< Which team the CPU is locked to, if any.
+
+		bool m_StartingGoldAdjustedManually {}; //!< Whether the player adjusted the starting gold, meaning it should stop automatically adjusting to the difficulty setting default starting gold where applicable.
 
 		Timer m_StartGameButtonBlinkTimer; //!< Timer for blinking the start game button.
 
@@ -93,7 +96,6 @@ namespace RTE {
 		std::array<GUIComboBox*, Activity::Teams::MaxTeamCount> m_TeamTechComboBoxes;
 		std::array<GUILabel*, Activity::Teams::MaxTeamCount> m_TeamAISkillLabels;
 		std::array<GUISlider*, Activity::Teams::MaxTeamCount> m_TeamAISkillSliders;
-		std::array<GUILabel*, Activity::Teams::MaxTeamCount> m_TeamCPULockLabels;
 
 #pragma region Activity Configuration Screen Handling
 		/// Fills each team's Tech ComboBox with all valid Tech DataModules.
@@ -108,13 +110,9 @@ namespace RTE {
 		/// Sets up and starts the currently selected Activity with the configured settings.
 		void StartGame();
 
-		/// Updates the value in the label according to the value in the slider.
+		/// Updates the starting gold slider to the Activity difficulty setting (when applicable) and updates the value in the label according to the value in the slider.
 		/// @return
-		void UpdateStartingGoldLabel();
-
-		/// Updates the slider according to difficulty.
-		/// @return
-		void UpdateStartingGoldRegardingDifficulty();
+		void UpdateStartingGoldSliderAndLabel();
 
 		/// Updates the currently hovered cell in the players and teams config box to apply the hovered visual and removes the hovered visual from any other cells. Also handles clicking on cells.
 		/// @param mouseX Mouse X position.

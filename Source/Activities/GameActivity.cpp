@@ -74,40 +74,28 @@ void GameActivity::Clear() {
 	}
 
 	m_StartingGold = 0;
-	m_StartingDifficulty = -1;
 	m_FogOfWarEnabled = false;
 	m_RequireClearPathToOrbit = false;
-	m_DeployUnits = true;
 
-	m_DefaultDifficulty = -1;
+	m_DefaultFogOfWar = -1;
+	m_DefaultRequireClearPathToOrbit = -1;
+	m_DefaultDeployUnits = 1;
 	m_DefaultGoldCakeDifficulty = -1;
 	m_DefaultGoldEasyDifficulty = -1;
 	m_DefaultGoldMediumDifficulty = -1;
 	m_DefaultGoldHardDifficulty = -1;
 	m_DefaultGoldNutsDifficulty = -1;
 	m_DefaultGoldMaxDifficulty = -1;
-
-	m_ManuallyAdjustedGold = -1;
-
-	m_DefaultFogOfWar = -1;
-	m_DefaultRequireClearPathToOrbit = -1;
-	m_DefaultDeployUnits = 1;
-
-	m_DifficultySwitchEnabled = true;
-	m_GoldSwitchEnabled = true;
 	m_FogOfWarSwitchEnabled = true;
 	m_DeployUnitsSwitchEnabled = false;
+	m_GoldSwitchEnabled = true;
 	m_RequireClearPathToOrbitSwitchEnabled = true;
-
 	m_BuyMenuEnabled = true;
 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
 		m_Deliveries[team].clear();
 		m_TeamTech[team] = "";
 		m_TeamTechSwitchEnabled[team] = true;
-		m_TeamCPUSwitchEnabled[team] = true;
-		m_TeamDefaultAISkill[team] = -1;
-		m_TeamAISwitchEnabled[team] = true;
 		m_LandingZoneArea[team].Reset();
 		m_aLZCursor[team].clear();
 		m_aObjCursor[team].clear();
@@ -172,8 +160,6 @@ int GameActivity::Create(const GameActivity& reference) {
 		m_LandingZoneArea[team] = reference.m_LandingZoneArea[team];
 		m_TeamTech[team] = reference.m_TeamTech[team];
 		m_TeamTechSwitchEnabled[team] = reference.m_TeamTechSwitchEnabled[team];
-		m_TeamDefaultAISkill[team] = reference.m_TeamDefaultAISkill[team];
-		m_TeamAISwitchEnabled[team] = reference.m_TeamAISwitchEnabled[team];
 		m_TeamIsCPU[team] = reference.m_TeamIsCPU[team];
 	}
 
@@ -193,7 +179,6 @@ int GameActivity::Create(const GameActivity& reference) {
 	m_FogOfWarSwitchEnabled = reference.m_FogOfWarSwitchEnabled;
 	m_DeployUnitsSwitchEnabled = reference.m_DeployUnitsSwitchEnabled;
 	m_GoldSwitchEnabled = reference.m_GoldSwitchEnabled;
-	m_DifficultySwitchEnabled = reference.m_DifficultySwitchEnabled;
 	m_RequireClearPathToOrbitSwitchEnabled = reference.m_RequireClearPathToOrbitSwitchEnabled;
 	m_BuyMenuEnabled = reference.m_BuyMenuEnabled;
 
@@ -210,114 +195,50 @@ int GameActivity::Create(const GameActivity& reference) {
 int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Activity::ReadProperty(propName, reader));
 
+	MatchProperty("CPUTeam",
+	              reader >> m_CPUTeam;
+	              SetCPUTeam(m_CPUTeam););
 	MatchProperty("DeliveryDelay", { reader >> m_DeliveryDelay; });
-	MatchProperty("BuyMenuEnabled", { reader >> m_BuyMenuEnabled; });
-
-	MatchProperty("DefaultDifficulty", { reader >> m_DefaultDifficulty; });
-	MatchProperty("DifficultySwitchEnabled", { reader >> m_DifficultySwitchEnabled; });
-	MatchProperty("_StartingDifficulty", { reader >> m_StartingDifficulty; });
-
-	MatchProperty("DefaultGoldCakeDifficulty", { reader >> m_DefaultGoldCakeDifficulty ; });
+	MatchProperty("DefaultFogOfWar", { reader >> m_DefaultFogOfWar; });
+	MatchProperty("DefaultRequireClearPathToOrbit", { reader >> m_DefaultRequireClearPathToOrbit; });
+	MatchProperty("DefaultDeployUnits", { reader >> m_DefaultDeployUnits; });
+	MatchProperty("DefaultGoldCakeDifficulty", { reader >> m_DefaultGoldCakeDifficulty; });
 	MatchProperty("DefaultGoldEasyDifficulty", { reader >> m_DefaultGoldEasyDifficulty; });
 	MatchProperty("DefaultGoldMediumDifficulty", { reader >> m_DefaultGoldMediumDifficulty; });
 	MatchProperty("DefaultGoldHardDifficulty", { reader >> m_DefaultGoldHardDifficulty; });
 	MatchProperty("DefaultGoldNutsDifficulty", { reader >> m_DefaultGoldNutsDifficulty; });
 	MatchProperty("DefaultGoldMaxDifficulty", { reader >> m_DefaultGoldMaxDifficulty; });
-	MatchProperty("GoldSwitchEnabled", { reader >> m_GoldSwitchEnabled; });
-	MatchForwards("SpecialBehaviour_StartingGold") MatchProperty("_StartingGold", { reader >> m_StartingGold; });
-
-	MatchProperty("DefaultRequireClearPathToOrbit", { reader >> m_DefaultRequireClearPathToOrbit; });
-	MatchProperty("RequireClearPathToOrbitSwitchEnabled", { reader >> m_RequireClearPathToOrbitSwitchEnabled; });
-	MatchProperty("_RequireClearPathToOrbitEnabled", { reader >> m_RequireClearPathToOrbit; });
-
-	MatchProperty("DefaultFogOfWar", { reader >> m_DefaultFogOfWar; });
 	MatchProperty("FogOfWarSwitchEnabled", { reader >> m_FogOfWarSwitchEnabled; });
-	MatchForwards("SpecialBehaviour_FogOfWarEnabled") MatchProperty("_FogOfWarEnabled", { reader >> m_FogOfWarEnabled; });
-
-	MatchProperty("DefaultDeployUnits", { reader >> m_DefaultDeployUnits; });
 	MatchProperty("DeployUnitsSwitchEnabled", { reader >> m_DeployUnitsSwitchEnabled; });
-	MatchProperty("_DeployUnitsEnabled", { reader >> m_DeployUnits; });
-
-	MatchProperty("CPUTeam", {
-		reader >> m_CPUTeam;
-		SetCPUTeam(m_CPUTeam);
-	});
-	MatchForwards("Team1DefaultIsCPU") MatchForwards("DefaultTeam2CPU") MatchForwards("DefaultTeam3CPU") MatchProperty("DefaultTeam4CPU", {
-		//for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-		//	/*if (propName == "Team" + std::to_string(team + 1) + "Tech") {
-		//		reader >> m_TeamTech[team];
-		//	}*/
-		//}
-	});
-	MatchForwards("Team1IsCPUSwitchEnabled") MatchForwards("Team2CPUSwitchEnabled") MatchForwards("Team3CPUSwitchEnabled") MatchProperty("Team4CPUSwitchEnabled", {
-		//for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-		//	//if (propName == "Team" + std::to_string(team + 1) + "Tech") {
-		//	//	reader >> m_TeamTech[team];
-		//	//}
-		//}
-	});
-	MatchForwards("_StartingTeam1IsCPU") MatchForwards("_StartingTeam2IsCPU") MatchForwards("_StartingTeam3IsCPU") MatchProperty("_StartingTeam4IsCPU", {
-		//for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-		//	/*if (propName == "Team" + std::to_string(team + 1) + "Tech") {
-		//		reader >> m_TeamTech[team];
-		//	}*/
-		//}
-	});
-
-	//
-
-	MatchForwards("Team1Tech") MatchForwards("Team2Tech") MatchForwards("Team3Tech") MatchProperty("Team4Tech", {
-		for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-			if (propName == "Team" + std::to_string(team + 1) + "Tech") {
-				reader >> m_TeamTech[team];
-			}
-		}
-	});
-	MatchForwards("Team1DefaultTech") MatchForwards("Team2DefaultTech") MatchForwards("Team3DefaultTech") MatchProperty("Team4DefaultTech", {
-		for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-			if (propName == "Team" + std::to_string(team + 1) + "DefaultTech") {
-				reader >> m_TeamTech[team];
-			}
-		}
-	});
-	MatchForwards("Team1TechSwitchEnabled") MatchForwards("Team2TechSwitchEnabled") MatchForwards("Team3TechSwitchEnabled") MatchProperty("Team4TechSwitchEnabled", {
-		for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-			if (propName == "Team" + std::to_string(team + 1) + "TechSwitchEnabled") {
-				reader >> m_TeamTechSwitchEnabled[team];
-			}
-		}
-	});
-	MatchForwards("_StartingTeam1Tech") MatchForwards("_StartingTeam2Tech") MatchForwards("_StartingTeam3Tech") MatchProperty("_StartingTeam4Tech", {
-		//for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-		//	/*if (propName == "Team" + std::to_string(team + 1) + "TechSwitchEnabled") {
-		//		reader >> m_TeamTechSwitchEnabled[team];
-		//	}*/
-		//}
-	});
-
-	//
-
-	MatchForwards("Team1DefaultAISkill") MatchForwards("Team2DefaultAISkill") MatchForwards("Team3DefaultAISkill") MatchProperty("Team4DefaultAISkill", {
-		for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-			if (propName == "Team" + std::to_string(team + 1) + "DefaultAISkill") {
-				reader >> m_TeamDefaultAISkill[team];
-			}
-		}
-	});
-	MatchForwards("Team1AISkillSwitchEnabled") MatchForwards("Team2AISkillSwitchEnabled") MatchForwards("Team3AISkillSwitchEnabled") MatchProperty("Team4AISkillSwitchEnabled", {
-		for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-			if (propName == "Team" + std::to_string(team + 1) + "AISkillSwitchEnabled") {
-				reader >> m_TeamAISwitchEnabled[team];
-			}
-		}
-	});
-	MatchForwards("_StartingTeam1AISkill") MatchForwards("_StartingTeam2AISkill") MatchForwards("_StartingTeam3AISkill") MatchProperty("_StartingTeam4AISkill", {
-		/*for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-			if (propName == "Team" + std::to_string(team + 1) + "Tech") {
-				reader >> m_TeamTech[team];
-			}
-		}*/
-	});
+	MatchProperty("GoldSwitchEnabled", { reader >> m_GoldSwitchEnabled; });
+	MatchProperty("RequireClearPathToOrbitSwitchEnabled", { reader >> m_RequireClearPathToOrbitSwitchEnabled; });
+	MatchProperty("BuyMenuEnabled", { reader >> m_BuyMenuEnabled; });
+	MatchForwards("Team1Tech")
+	    MatchForwards("Team2Tech")
+	        MatchForwards("Team3Tech")
+	            MatchProperty(
+	                "Team4Tech",
+	                for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
+		                if (propName == "Team" + std::to_string(team + 1) + "Tech") {
+			                std::string techName;
+			                reader >> techName;
+			                m_TeamTech[team] = techName;
+		                }
+	                });
+	MatchForwards("Team1TechSwitchEnabled")
+	    MatchForwards("Team2TechSwitchEnabled")
+	        MatchForwards("Team3TechSwitchEnabled")
+	            MatchProperty(
+	                "Team4TechSwitchEnabled",
+	                for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
+		                if (propName == "Team" + std::to_string(team + 1) + "TechSwitchEnabled") {
+			                bool switchEnabled;
+			                reader >> switchEnabled;
+			                m_TeamTechSwitchEnabled[team] = switchEnabled;
+		                }
+	                });
+	MatchForwards("SpecialBehaviour_StartingGold") MatchProperty("_StartingGold", { reader >> m_StartingGold; });
+	MatchForwards("SpecialBehaviour_FogOfWarEnabled") MatchProperty("_FogOfWarEnabled", { reader >> m_FogOfWarEnabled; });
 
 	EndPropertyList;
 }
