@@ -1,7 +1,11 @@
 #include "System.h"
 
 #include "RTETools.h"
+#ifdef SYSTEM_MINIZIP
+#include <minizip/unzip.h>
+#else
 #include "unzip.h"
+#endif
 
 #include "RTEError.h"
 
@@ -34,6 +38,7 @@ using namespace RTE;
 bool System::s_Quit = false;
 bool System::s_LogToCLI = false;
 bool System::s_ExternalModuleValidation = false;
+bool System::s_Headless = false;
 std::string System::s_ThisExePathAndName = "";
 std::string System::s_WorkingDirectory = ".";
 std::vector<size_t> System::s_WorkingTree;

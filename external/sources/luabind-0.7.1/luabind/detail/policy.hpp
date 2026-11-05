@@ -224,6 +224,7 @@ namespace luabind { namespace detail
 	LUABIND_INTEGER_TYPE(short)
 	LUABIND_INTEGER_TYPE(int)
 	LUABIND_INTEGER_TYPE(long)
+	LUABIND_INTEGER_TYPE(long long)
 
 	template<> struct is_primitive<signed char> : boost::mpl::true_ {}; \
 	template<> struct is_primitive<signed char const> : boost::mpl::true_ {}; \
@@ -275,6 +276,8 @@ namespace luabind { namespace detail
 		void apply(lua_State* L, unsigned short v) { lua_pushnumber(L, (lua_Number)v); }
 		void apply(lua_State* L, unsigned char v) { lua_pushnumber(L, (lua_Number)v); }
 		void apply(lua_State* L, unsigned long v) { lua_pushnumber(L, (lua_Number)v); }
+		void apply(lua_State* L, long long v) { lua_pushnumber(L, (lua_Number)v); }
+		void apply(lua_State* L, unsigned long long v) { lua_pushnumber(L, (lua_Number)v); }
 		void apply(lua_State* L, float v) { lua_pushnumber(L, (lua_Number)v); }
 		void apply(lua_State* L, double v) { lua_pushnumber(L, (lua_Number)v); }
 		void apply(lua_State* L, long double v) { lua_pushnumber(L, (lua_Number)v); }
@@ -339,6 +342,12 @@ namespace luabind { namespace detail
 
 		PRIMITIVE_CONVERTER(unsigned long) { return static_cast<unsigned long>(lua_tonumber(L, index)); }
 		PRIMITIVE_MATCHER(unsigned long) { if (lua_type(L, index) == LUA_TNUMBER) return 0; else return -1; }
+
+		PRIMITIVE_CONVERTER(long long) { return static_cast<long long>(lua_tonumber(L, index)); }
+		PRIMITIVE_MATCHER(long long) { if (lua_type(L, index) == LUA_TNUMBER) return 0; else return -1; }
+
+		PRIMITIVE_CONVERTER(unsigned long long) { return static_cast<unsigned long long>(lua_tonumber(L, index)); }
+		PRIMITIVE_MATCHER(unsigned long long) { if (lua_type(L, index) == LUA_TNUMBER) return 0; else return -1; }
 
 		PRIMITIVE_CONVERTER(float) { return static_cast<float>(lua_tonumber(L, index)); }
 		PRIMITIVE_MATCHER(float) { if (lua_type(L, index) == LUA_TNUMBER) return 0; else return -1; }

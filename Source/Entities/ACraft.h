@@ -71,9 +71,13 @@ namespace RTE {
 			/// @return The coordinates relative to the m_Pos of this' ACraft.
 			Vector GetOffset() const { return m_Offset; }
 
-			/// Gets the velocity of anything that exits through this.
+			/// Gets the velocity of anything that exits through this. Its spread is rolled anew every time, with the simulation's random numbers.
 			/// @return The velocity vector for anything exiting through this.
 			Vector GetVelocity() const { return m_Velocity * (1.0F + m_VelSpread * RandomNormalNum()); }
+
+			/// Gets the velocity of anything that exits through this as it is before any spread, which is also the way that this faces.
+			/// @return The velocity vector of this, with no spread to it.
+			Vector GetBaseVelocity() const { return m_Velocity; }
 
 			/// Gets the width from the center tanget created by the velocity vector
 			/// out from the offet point. This times two gives the total width of the

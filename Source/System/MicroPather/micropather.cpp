@@ -29,6 +29,7 @@ distribution.
 #endif
 
 //#include <vector>
+#include <map>
 #include <memory.h>
 #include <stdio.h>
 
@@ -69,11 +70,52 @@ class OpenQueue
   private:
 	OpenQueue( const OpenQueue& );	// undefined and unsupported
 	void operator=( const OpenQueue& );
-  
+
+	// Adds the node to the index, at the position in the list it has been put at.
+	void Index( PathNode* pNode );
+	// Removes the node from the index, before it gets taken out of the list or has its cost changed.
+	void Unindex( PathNode* pNode );
+
+	PathNode* FirstCostingMoreThan( float cost ) {
+		std::map<float, PathNode*>::iterator it = firstOfCost.upper_bound( cost );
+		return it == firstOfCost.end() ? sentinel : it->second;
+	}
+	PathNode* FirstCostingAtLeast( float cost ) {
+		std::map<float, PathNode*>::iterator it = firstOfCost.lower_bound( cost );
+		return it == firstOfCost.end() ? sentinel : it->second;
+	}
+
 	PathNode* sentinel;
 	int sentinelMem[ ( sizeof( PathNode ) + sizeof( int ) ) / sizeof( int ) ];
 	Graph* graph;	// for debugging
+
+	// The list is sorted by total cost. A pushed node goes after the others of the same cost, and a node whose cost drops below the one before it goes before them.
+	// Which of the nodes of the same cost gets popped first decides which of the equally good paths is found, so that order has to be kept exactly.
+	// This is the first node in the list of each cost in it, so that where a node goes in the list can be found without walking along it, which took most of the time spent pathing.
+	std::map<float, PathNode*> firstOfCost;
 };
+
+void OpenQueue::Index( PathNode* pNode )
+{
+	pNode->openCost = pNode->totalCost;
+	// The list is sorted, so the node is the first of its cost unless the one before it costs the same.
+	if ( pNode->prev == sentinel || pNode->prev->openCost != pNode->openCost ) {
+		firstOfCost[ pNode->openCost ] = pNode;
+	}
+}
+
+void OpenQueue::Unindex( PathNode* pNode )
+{
+	std::map<float, PathNode*>::iterator it = firstOfCost.find( pNode->openCost );
+	MPASSERT( it != firstOfCost.end() );
+	if ( it->second == pNode ) {
+		if ( pNode->next != sentinel && pNode->next->openCost == pNode->openCost ) {
+			it->second = pNode->next;
+		} else {
+			firstOfCost.erase( it );
+		}
+	}
+}
 
 
 void OpenQueue::Push( PathNode* pNode )
@@ -91,17 +133,9 @@ void OpenQueue::Push( PathNode* pNode )
 	// Add sorted. Lowest to highest cost path. Note that the sentinel has
 	// a value of std::numeric_limits<float>::max(), so it should always be sorted in.
 	MPASSERT( pNode->totalCost < std::numeric_limits<float>::max() );
-	PathNode* iter = sentinel->next;
-	while ( true )
-	{
-		if ( pNode->totalCost < iter->totalCost ) {
-			iter->AddBefore( pNode );
-			pNode->inOpen = 1;
-			break;
-		}
-		iter = iter->next;
-	}
-	MPASSERT( pNode->inOpen );	// make sure this was actually added.
+	FirstCostingMoreThan( pNode->totalCost )->AddBefore( pNode );
+	Index( pNode );
+	pNode->inOpen = 1;
 #ifdef DEBUG
 	sentinel->CheckList();
 #endif
@@ -111,6 +145,7 @@ PathNode* OpenQueue::Pop()
 {
 	MPASSERT( sentinel->next != sentinel );
 	PathNode* pNode = sentinel->next;
+	Unindex( pNode );
 	pNode->Unlink();
 #ifdef DEBUG
 	sentinel->CheckList();
@@ -139,26 +174,18 @@ void OpenQueue::Update( PathNode* pNode )
 	
 	MPASSERT( pNode->inOpen );
 	
-	// If the node now cost less than the one before it,
-	// move it to the front of the list.
-	if ( pNode->prev != sentinel && pNode->totalCost < pNode->prev->totalCost ) {
+	// If the node now costs less than the one before it, or more than the one after it, it moves to before the first node that costs at least as much.
+	// That is where it used to end up by being moved to the front of the list and then along to the right, or along to the right from where it was.
+	// Otherwise it stays where it is.
+	Unindex( pNode );
+	if ( ( pNode->prev != sentinel && pNode->totalCost < pNode->prev->totalCost ) || pNode->totalCost > pNode->next->totalCost ) {
 		pNode->Unlink();
-		sentinel->next->AddBefore( pNode );
-	}
-	
-	// If the node is too high, move to the right.
-	if ( pNode->totalCost > pNode->next->totalCost ) {
-		PathNode* it = pNode->next;
-		pNode->Unlink();
-		
-		while ( pNode->totalCost > it->totalCost )
-			it = it->next;
-		
-		it->AddBefore( pNode );
+		FirstCostingAtLeast( pNode->totalCost )->AddBefore( pNode );
 #ifdef DEBUG
 		sentinel->CheckList();
 #endif
 	}
+	Index( pNode );
 }
 
 

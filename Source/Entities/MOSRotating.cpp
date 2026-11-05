@@ -1585,7 +1585,7 @@ bool MOSRotating::AttachableIsHardcoded(const Attachable* attachableToCheck) con
 		return false;
 	}
 
-	long attachableUniqueID = attachableToCheck->GetUniqueID();
+	int64_t attachableUniqueID = attachableToCheck->GetUniqueID();
 	return m_HardcodedAttachableUniqueIDsAndRemovers.find(attachableUniqueID) != m_HardcodedAttachableUniqueIDsAndRemovers.end() || m_HardcodedAttachableUniqueIDsAndSetters.find(attachableUniqueID) != m_HardcodedAttachableUniqueIDsAndSetters.end();
 }
 
@@ -1609,7 +1609,7 @@ void MOSRotating::AddAttachable(Attachable* attachable, const Vector& parentOffs
 	}
 }
 
-Attachable* MOSRotating::RemoveAttachable(long attachableUniqueID, bool addToMovableMan, bool addBreakWounds) {
+Attachable* MOSRotating::RemoveAttachable(int64_t attachableUniqueID, bool addToMovableMan, bool addBreakWounds) {
 	if (MovableObject* attachableAsMovableObject = g_MovableMan.FindObjectByUniqueID(attachableUniqueID)) {
 		return RemoveAttachable(dynamic_cast<Attachable*>(attachableAsMovableObject), addToMovableMan, addBreakWounds);
 	}
@@ -1632,7 +1632,7 @@ Attachable* MOSRotating::RemoveAttachable(Attachable* attachable, bool addToMova
 	attachable->SetParent(nullptr);
 	m_AttachableAndWoundMass -= attachable->GetMass();
 
-	std::unordered_map<unsigned long, std::function<void(MOSRotating*, Attachable*)>>::iterator hardcodedAttachableMapEntry = m_HardcodedAttachableUniqueIDsAndSetters.find(attachable->GetUniqueID());
+	std::unordered_map<int64_t, std::function<void(MOSRotating*, Attachable*)>>::iterator hardcodedAttachableMapEntry = m_HardcodedAttachableUniqueIDsAndSetters.find(attachable->GetUniqueID());
 	if (hardcodedAttachableMapEntry != m_HardcodedAttachableUniqueIDsAndSetters.end()) {
 		hardcodedAttachableMapEntry->second(this, nullptr);
 		m_HardcodedAttachableUniqueIDsAndSetters.erase(hardcodedAttachableMapEntry);

@@ -14,6 +14,8 @@
 #ifndef __NATIVE_FEATURE_INCLDUES_OVERRIDES_H
 #define __NATIVE_FEATURE_INCLDUES_OVERRIDES_H
 
-//#define LIBCAT_SECURITY 1
+#include <cstdlib>
+#include <cstring>
+#include <cstdint>
 
 #endif

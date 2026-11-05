@@ -13,6 +13,7 @@
 
 #include "HTTPConnection2.h"
 #include "TCPInterface.h"
+#include <cstdlib>
 
 using namespace RakNet;
 

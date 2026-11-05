@@ -129,20 +129,20 @@ void TitleScreen::CreateTitleElements() {
 	int starCount = (g_WindowMan.GetResX() * m_Nebula.GetBitmap()->h) / 1000;
 	for (int i = 0; i < starCount; ++i) {
 		Star newStar;
-		if (RandomNum() < 0.95F) {
+		if (g_DrawRandomGenerator.RandomNum() < 0.95F) {
 			newStar.Size = Star::StarSize::StarSmall;
-			newStar.Bitmap = starSmallBitmaps.at(RandomNum(0, starSmallBitmapCount - 1));
-			newStar.Intensity = RandomNum(0, 92);
-		} else if (RandomNum() < 0.85F) {
+			newStar.Bitmap = starSmallBitmaps.at(g_DrawRandomGenerator.RandomNum(0, starSmallBitmapCount - 1));
+			newStar.Intensity = g_DrawRandomGenerator.RandomNum(0, 92);
+		} else if (g_DrawRandomGenerator.RandomNum() < 0.85F) {
 			newStar.Size = Star::StarSize::StarLarge;
-			newStar.Bitmap = starLargeBitmaps.at(RandomNum(0, starLargeBitmapCount - 1));
-			newStar.Intensity = RandomNum(111, 185);
+			newStar.Bitmap = starLargeBitmaps.at(g_DrawRandomGenerator.RandomNum(0, starLargeBitmapCount - 1));
+			newStar.Intensity = g_DrawRandomGenerator.RandomNum(111, 185);
 		} else {
 			newStar.Size = Star::StarSize::StarHuge;
-			newStar.Bitmap = starHugeBitmaps.at(RandomNum(0, starHugeBitmapCount - 1));
-			newStar.Intensity = RandomNum(166, 185);
+			newStar.Bitmap = starHugeBitmaps.at(g_DrawRandomGenerator.RandomNum(0, starHugeBitmapCount - 1));
+			newStar.Intensity = g_DrawRandomGenerator.RandomNum(166, 185);
 		}
-		newStar.Position = Vector(RandomNum(0.0F, static_cast<float>(g_WindowMan.GetResX())), RandomNum(-100.0F, static_cast<float>(m_Nebula.GetBitmap()->h)));
+		newStar.Position = Vector(g_DrawRandomGenerator.RandomNum(0.0F, static_cast<float>(g_WindowMan.GetResX())), g_DrawRandomGenerator.RandomNum(-100.0F, static_cast<float>(m_Nebula.GetBitmap()->h)));
 
 		m_BackdropStars.emplace_back(newStar);
 	}
@@ -562,7 +562,7 @@ void TitleScreen::Draw() {
 			DrawSlideshowSlide();
 		} else if (m_IntroSequenceState == IntroSequence::SlideshowEnd) {
 			m_PreGameLogoText.Draw(g_FrameMan.GetBackBuffer32());
-			int blendAmount = 220 + RandomNum(-35, 35);
+			int blendAmount = 220 + g_DrawRandomGenerator.RandomNum(-35, 35);
 			set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 			m_PreGameLogoTextGlow.Draw(g_FrameMan.GetBackBuffer32(), Vector(), DrawMode::g_DrawTrans);
 		}
@@ -596,7 +596,7 @@ void TitleScreen::DrawTitleScreenScene() {
 	rlSetBlendMode(RL_BLEND_CUSTOM_SEPARATE);
 
 	for (const Star& star: m_BackdropStars) {
-		int intensity = star.Intensity + RandomNum(0, (star.Size == Star::StarSize::StarSmall) ? 35 : 70);
+		int intensity = star.Intensity + g_DrawRandomGenerator.RandomNum(0, (star.Size == Star::StarSize::StarSmall) ? 35 : 70);
 		// set_screen_blender(intensity, intensity, intensity, intensity);
 		int starPosY = static_cast<int>(star.Position.GetY() - (m_ScrollOffset.GetY() * (m_Nebula.GetScrollRatio().GetY() * ((star.Size == Star::StarSize::StarSmall) ? 0.8F : 1.0F))));
 		DrawTexture(g_GLResourceMan.GetStaticTextureFromBitmap(star.Bitmap), star.Position.m_X, starPosY, RLColor(intensity, intensity, intensity, intensity));
@@ -628,7 +628,7 @@ void TitleScreen::DrawGameLogo() {
 	rlEnableColorBlend();
 	rlSetBlendFactorsSeparate(GL_ONE, GL_ONE_MINUS_SRC_COLOR, GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_FUNC_ADD, GL_FUNC_ADD);
 	rlSetBlendMode(RL_BLEND_CUSTOM_SEPARATE);
-	int glowIntensity = 220 + RandomNum(-35, 35);
+	int glowIntensity = 220 + g_DrawRandomGenerator.RandomNum(-35, 35);
 	// set_screen_blender(glowIntensity, glowIntensity, glowIntensity, glowIntensity);
 	// m_GameLogoGlow.Draw(g_FrameMan.GetBackBuffer32(), Vector(), DrawMode::g_DrawTrans);
 	DrawTextureV(g_GLResourceMan.GetStaticTextureFromBitmap(m_GameLogoGlow.GetSpriteFrame(0)), m_GameLogoGlow.GetPos() + m_GameLogoGlow.GetSpriteOffset(), RLColor(glowIntensity, glowIntensity, glowIntensity, glowIntensity));

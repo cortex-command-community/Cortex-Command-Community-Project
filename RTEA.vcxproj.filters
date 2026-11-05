@@ -88,6 +88,9 @@
     <ClInclude Include="Source\System\Singleton.h">
       <Filter>System</Filter>
     </ClInclude>
+    <ClInclude Include="Source\System\DeterminismChecker.h">
+      <Filter>System</Filter>
+    </ClInclude>
     <ClInclude Include="Source\System\System.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -383,9 +386,6 @@
       <Filter>Activities</Filter>
     </ClInclude>
     <ClInclude Include="Source\Activities\GAScripted.h">
-      <Filter>Activities</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Activities\GATutorial.h">
       <Filter>Activities</Filter>
     </ClInclude>
     <ClInclude Include="Source\Activities\GibEditor.h">
@@ -685,6 +685,9 @@
     <ClCompile Include="Source\System\Reader.cpp">
       <Filter>System</Filter>
     </ClCompile>
+    <ClCompile Include="Source\System\DeterminismChecker.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
     <ClCompile Include="Source\System\System.cpp">
       <Filter>System</Filter>
     </ClCompile>
@@ -977,9 +980,6 @@
       <Filter>Activities</Filter>
     </ClCompile>
     <ClCompile Include="Source\Activities\GAScripted.cpp">
-      <Filter>Activities</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Activities\GATutorial.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
     <ClCompile Include="Source\Activities\GibEditor.cpp">

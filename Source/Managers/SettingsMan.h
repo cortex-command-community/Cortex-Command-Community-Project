@@ -98,8 +98,9 @@ namespace RTE {
 		void SetAIUpdateInterval(int newAIUpdateInterval) { m_AIUpdateInterval = newAIUpdateInterval; }
 
 		/// Gets how many threaded Lua states we'll use. -1 represents no override, which defaults to the maximum number of concurrent hardware threads.
+		/// There is always an override while determinism is being checked, because scripted objects get spread out over the Lua states, so how many there are can't be left up to the machine.
 		/// @return How many threaded Lua states we'll use.
-		int GetNumberOfLuaStatesOverride() const { return m_NumberOfLuaStatesOverride; }
+		int GetNumberOfLuaStatesOverride() const;
 
 		/// Gets whether pathing requests will be forced to immediately complete for the next frame, or if they can take multiple frames to calculate.
 		/// @return Whether pathing requests will be forced to immediately complete for the next frame

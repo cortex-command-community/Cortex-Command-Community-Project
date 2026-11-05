@@ -1,6 +1,6 @@
 /*
 ** Package library.
-** Copyright (C) 2005-2022 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 **
 ** Major portions taken verbatim or adapted from the Lua interpreter.
 ** Copyright (C) 1994-2012 Lua.org, PUC-Rio. See Copyright Notice in lua.h
@@ -16,6 +16,7 @@
 #include "lj_obj.h"
 #include "lj_err.h"
 #include "lj_lib.h"
+#include "lj_fopen.h"
 
 /* ------------------------------------------------------------------------ */
 
@@ -296,7 +297,7 @@ static int lj_cf_package_unloadlib(lua_State *L)
 
 static int readable(const char *filename)
 {
-  FILE *f = fopen(filename, "r");  /* try to open file */
+  FILE *f = _lua_fopen(filename, "r");  /* try to open file */
   if (f == NULL) return 0;  /* open failed */
   fclose(f);
   return 1;
@@ -425,7 +426,7 @@ static int lj_cf_package_loader_preload(lua_State *L)
 
 /* ------------------------------------------------------------------------ */
 
-#define KEY_SENTINEL	(U64x(80000000,00000000)|'s')
+#define KEY_SENTINEL	(U64x(81000000,00000000)|'s')
 
 static int lj_cf_package_require(lua_State *L)
 {

@@ -1,6 +1,6 @@
 /*
 ** Table handling.
-** Copyright (C) 2005-2022 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 **
 ** Major portions taken verbatim or adapted from the Lua interpreter.
 ** Copyright (C) 1994-2008 Lua.org, PUC-Rio. See Copyright Notice in lua.h
@@ -17,6 +17,15 @@
 /* -- Object hashing ------------------------------------------------------ */
 
 /* Hash an arbitrary key and return its anchor position in the hash table. */
+#if LJ_HASHID
+/* The backends load the hash ID of any of these from where the sid of a string is. */
+LJ_STATIC_ASSERT(offsetof(GChead, hid) == offsetof(GCstr, sid));
+LJ_STATIC_ASSERT(offsetof(GCtab, hid) == offsetof(GChead, hid));
+LJ_STATIC_ASSERT(offsetof(GCfuncC, hid) == offsetof(GChead, hid));
+LJ_STATIC_ASSERT(offsetof(GCudata, hid) == offsetof(GChead, hid));
+LJ_STATIC_ASSERT(offsetof(lua_State, hid) == offsetof(GChead, hid));
+#endif
+
 static Node *hashkey(const GCtab *t, cTValue *key)
 {
   lj_assertX(!tvisint(key), "attempt to hash integer");
@@ -26,6 +35,10 @@ static Node *hashkey(const GCtab *t, cTValue *key)
     return hashnum(t, key);
   else if (tvisbool(key))
     return hashmask(t, boolV(key));
+#if LJ_HASHID
+  else if (tvistab(key) || tvisfunc(key) || tvisudata(key) || tvisthread(key))
+    return hashmask(t, gcval(key)->gch.hid);
+#endif
   else
     return hashgcref(t, key->gcr);
   /* Only hash 32 bits of lightuserdata on a 64 bit CPU. Good enough? */
@@ -89,6 +102,7 @@ static GCtab *newtab(lua_State *L, uint32_t asize, uint32_t hbits)
     t->gct = ~LJ_TTAB;
     t->nomm = (uint8_t)~0;
     t->colo = (int8_t)asize;
+    lj_tab_sethid(G(L), t);
     setmref(t->array, (TValue *)((char *)t + sizeof(GCtab)));
     setgcrefnull(t->metatable);
     t->asize = asize;
@@ -104,6 +118,7 @@ static GCtab *newtab(lua_State *L, uint32_t asize, uint32_t hbits)
     t->gct = ~LJ_TTAB;
     t->nomm = (uint8_t)~0;
     t->colo = 0;
+    lj_tab_sethid(G(L), t);
     setmref(t->array, NULL);
     setgcrefnull(t->metatable);
     t->asize = 0;  /* In case the array allocation fails. */
@@ -194,6 +209,7 @@ GCtab * LJ_FASTCALL lj_tab_dup(lua_State *L, const GCtab *kt)
       Node *next = nextnode(kn);
       /* Don't use copyTV here, since it asserts on a copy of a dead key. */
       n->val = kn->val; n->key = kn->key;
+      if (tvistab(&n->val)) setnilV(&n->val); /* Replace nil value marker. */
       setmref(n->next, next == NULL? next : (Node *)((char *)next + d));
     }
   }
@@ -294,9 +310,9 @@ static uint32_t countint(cTValue *key, uint32_t *bins)
 {
   lj_assertX(!tvisint(key), "bad integer key");
   if (tvisnum(key)) {
-    lua_Number nk = numV(key);
-    int32_t k = lj_num2int(nk);
-    if ((uint32_t)k < LJ_MAX_ASIZE && nk == (lua_Number)k) {
+    int64_t i64;
+    int32_t k;
+    if (lj_num2int_cond(numV(key), i64, k, (uint32_t)i64 < LJ_MAX_ASIZE)) {
       bins[(k > 2 ? lj_fls((uint32_t)(k-1)) : 0)]++;
       return 1;
     }
@@ -367,13 +383,6 @@ static void rehashtab(lua_State *L, GCtab *t, cTValue *ek)
   lj_tab_resize(L, t, asize, hsize2hbits(total));
 }
 
-#if LJ_HASFFI
-void lj_tab_rehash(lua_State *L, GCtab *t)
-{
-  rehashtab(L, t, niltv(L));
-}
-#endif
-
 void lj_tab_reasize(lua_State *L, GCtab *t, uint32_t nasize)
 {
   lj_tab_resize(L, t, nasize+1, t->hmask > 0 ? lj_fls(t->hmask)+1 : 0);
@@ -415,9 +424,9 @@ cTValue *lj_tab_get(lua_State *L, GCtab *t, cTValue *key)
     if (tv)
       return tv;
   } else if (tvisnum(key)) {
-    lua_Number nk = numV(key);
-    int32_t k = lj_num2int(nk);
-    if (nk == (lua_Number)k) {
+    int64_t i64;
+    int32_t k;
+    if (lj_num2int_check(numV(key), i64, k)) {
       cTValue *tv = lj_tab_getint(t, k);
       if (tv)
 	return tv;
@@ -548,9 +557,9 @@ TValue *lj_tab_set(lua_State *L, GCtab *t, cTValue *key)
   } else if (tvisint(key)) {
     return lj_tab_setint(L, t, intV(key));
   } else if (tvisnum(key)) {
-    lua_Number nk = numV(key);
-    int32_t k = lj_num2int(nk);
-    if (nk == (lua_Number)k)
+    int64_t i64;
+    int32_t k;
+    if (lj_num2int_check(numV(key), i64, k))
       return lj_tab_setint(L, t, k);
     if (tvisnan(key))
       lj_err_msg(L, LJ_ERR_NANIDX);
@@ -586,9 +595,9 @@ uint32_t LJ_FASTCALL lj_tab_keyindex(GCtab *t, cTValue *key)
     setnumV(&tmp, (lua_Number)k);
     key = &tmp;
   } else if (tvisnum(key)) {
-    lua_Number nk = numV(key);
-    int32_t k = lj_num2int(nk);
-    if ((uint32_t)k < t->asize && nk == (lua_Number)k)
+    int64_t i64;
+    int32_t k;
+    if (lj_num2int_cond(numV(key), i64, k, (uint32_t)i64 < t->asize))
       return (uint32_t)k + 1;
   }
   if (!tvisnil(key)) {
@@ -642,7 +651,7 @@ LJ_NOINLINE static MSize tab_len_slow(GCtab *t, size_t hi)
   while ((tv = lj_tab_getint(t, (int32_t)hi)) && !tvisnil(tv)) {
     lo = hi;
     hi += hi;
-    if (hi > (size_t)(INT_MAX-2)) {  /* Punt and do a linear search. */
+    if (hi > (size_t)(0x7fffffff - 2)) {  /* Punt and do a linear search. */
       lo = 1;
       while ((tv = lj_tab_getint(t, (int32_t)lo)) && !tvisnil(tv)) lo++;
       return (MSize)(lo - 1);

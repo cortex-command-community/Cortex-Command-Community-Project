@@ -1,6 +1,6 @@
 /*
 ** C data arithmetic.
-** Copyright (C) 2005-2022 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #include "lj_obj.h"
@@ -44,9 +44,13 @@ static int carith_checkarg(lua_State *L, CTState *cts, CDArith *ca)
 	p = (uint8_t *)cdata_getptr(p, ct->size);
 	if (ctype_isref(ct->info)) ct = ctype_rawchild(cts, ct);
       } else if (ctype_isfunc(ct->info)) {
+	CTypeID id0 = i ? ctype_typeid(cts, ca->ct[0]) : 0;
 	p = (uint8_t *)*(void **)p;
 	ct = ctype_get(cts,
 	  lj_ctype_intern(cts, CTINFO(CT_PTR, CTALIGN_PTR|id), CTSIZE_PTR));
+	if (i) {  /* cts->tab may have been reallocated. */
+	  ca->ct[0] = ctype_get(cts, id0);
+	}
       }
       if (ctype_isenum(ct->info)) ct = ctype_child(cts, ct);
       ca->ct[i] = ct;
@@ -116,7 +120,7 @@ static int carith_ptr(lua_State *L, CTState *cts, CDArith *ca, MMS mm)
 	/* All valid pointer differences on x64 are in (-2^47, +2^47),
 	** which fits into a double without loss of precision.
 	*/
-	setintptrV(L->top-1, (int32_t)diff);
+	setintptrV(L->top-1, diff);
 	return 1;
       } else if (mm == MM_lt) {  /* Pointer comparison (unsigned). */
 	setboolV(L->top-1, ((uintptr_t)pp < (uintptr_t)pp2));
@@ -345,9 +349,7 @@ uint64_t lj_carith_check64(lua_State *L, int narg, CTypeID *id)
   if (LJ_LIKELY(tvisint(o))) {
     return (uint32_t)intV(o);
   } else {
-    int32_t i = lj_num2bit(numV(o));
-    if (LJ_DUALNUM) setintV(o, i);
-    return (uint32_t)i;
+    return (uint32_t)lj_num2bit(numV(o));
   }
 }
 

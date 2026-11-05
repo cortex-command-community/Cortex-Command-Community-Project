@@ -151,8 +151,6 @@ MicroPather* PathFinder::GetPather() {
 int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathResult, float& totalCostResult, float jumpHeight, float digStrength) {
 	ZoneScoped;
 
-	++m_CurrentPathingRequests;
-
 	// Make sure start and end are within scene bounds.
 	g_SceneMan.ForceBounds(start);
 	g_SceneMan.ForceBounds(end);
@@ -221,8 +219,6 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 		pathResult.push_back(end);
 	}
 
-	--m_CurrentPathingRequests;
-
 	// TODO: Clean up the path, remove series of nodes in the same direction etc?
 	return result;
 }
@@ -232,6 +228,10 @@ std::shared_ptr<volatile PathRequest> PathFinder::CalculatePathAsync(Vector star
 
 	const_cast<Vector&>(pathRequest->startPos) = start;
 	const_cast<Vector&>(pathRequest->targetPos) = end;
+
+	// The request counts as active from when it gets queued up until it has been marked as complete,
+	// so that whatever waits for the requests to be done doesn't miss the ones that haven't been started on yet, or that aren't marked as complete yet.
+	++m_CurrentPathingRequests;
 
 	g_ThreadMan.GetBackgroundThreadPool().push_task(
 	    [this, start, end, jumpHeight, digStrength, callback](std::shared_ptr<volatile PathRequest> volRequest) {
@@ -250,6 +250,8 @@ std::shared_ptr<volatile PathRequest> PathFinder::CalculatePathAsync(Vector star
 		    // Have to set to complete after the callback, so anything that blocks on it knows that the callback will have been called by now
 		    // This has the awkward side-effect that the complete flag is actually false during the callback - but that's fine, if it's called we know it's complete anyways
 		    request.complete = true;
+
+		    --m_CurrentPathingRequests;
 	    },
 	    pathRequest);
 

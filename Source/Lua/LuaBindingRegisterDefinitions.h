@@ -11,6 +11,7 @@ namespace RTE {
 	PER_LUA_BINDING(Box) \
 	PER_LUA_BINDING(Controller) \
 	PER_LUA_BINDING(DataModule) \
+	PER_LUA_BINDING(InputScheme) \
 	PER_LUA_BINDING(Timer) \
 	PER_LUA_BINDING(Vector) \
 	PER_LUA_BINDING(PathRequest) \
@@ -179,6 +180,7 @@ namespace RTE {
 		LuaBindingRegisterFunctionDeclarationForType(Box);
 		LuaBindingRegisterFunctionDeclarationForType(Controller);
 		LuaBindingRegisterFunctionDeclarationForType(DataModule);
+		LuaBindingRegisterFunctionDeclarationForType(InputScheme);
 		LuaBindingRegisterFunctionDeclarationForType(Timer);
 		LuaBindingRegisterFunctionDeclarationForType(Vector);
 		LuaBindingRegisterFunctionDeclarationForType(PathRequest);

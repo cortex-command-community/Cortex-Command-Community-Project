@@ -651,7 +651,11 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 		end
 		
 		AI.PickupHD = nil;
-		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end);
+		-- Tie-break on deviceId so ordering is stable when scores collide.
+		table.sort(devicesToPickUp, function(A,B)
+			if A.score ~= B.score then return A.score < B.score end
+			return A.deviceId < B.deviceId
+		end);
 		for _, deviceToPickupEntry in ipairs(devicesToPickUp) do
 			local device = MovableMan:FindObjectByUniqueID(deviceToPickupEntry.deviceId);
 			if MovableMan:ValidMO(device) and device:IsDevice() then
@@ -767,7 +771,11 @@ function HumanBehaviors.ToolSearch(AI, Owner, Abort)
 		end
 
 		AI.PickupHD = nil;
-		table.sort(devicesToPickUp, function(A,B) return A.score < B.score end); -- sort the items in order of discounted distance
+		-- Tie-break on deviceId so ordering is stable when scores collide.
+		table.sort(devicesToPickUp, function(A,B)
+			if A.score ~= B.score then return A.score < B.score end
+			return A.deviceId < B.deviceId
+		end); -- sort the items in order of discounted distance
 		for _, deviceToPickupEntry in ipairs(devicesToPickUp) do
 			local device = MovableMan:FindObjectByUniqueID(deviceToPickupEntry.deviceId);
 			if MovableMan:ValidMO(device) and device:IsDevice() then
@@ -1698,7 +1706,7 @@ function HumanBehaviors.ShootArea(AI, Owner, Abort)
 		if Owner.FirearmIsReady then
 			AI.deviceState = AHuman.AIMING;
 			AI.Ctrl.AnalogAim = Vector(1,0):RadRotate(aim+aimError+RangeRand(-0.02, 0.02)*AI.aimSkill);
-			if ShootTimer:IsPastRealMS(aimTime) then
+			if ShootTimer:IsPastSimMS(aimTime) then
 				if Weapon.FullAuto then
 					AI.fire = true;
 				else
@@ -1724,7 +1732,7 @@ function HumanBehaviors.ShootArea(AI, Owner, Abort)
 		local _ai, _ownr, _abrt = coroutine.yield(); -- wait until next frame
 		if _abrt then return true end
 
-		if AI.UnseenTarget and CheckTargetTimer:IsPastRealMS(400*AI.aimSkill) then
+		if AI.UnseenTarget and CheckTargetTimer:IsPastSimMS(400*AI.aimSkill) then
 			if MovableMan:ValidMO(AI.UnseenTarget) and (AI.UnseenTarget.ClassName == "AHuman" or AI.UnseenTarget.ClassName == "ACrab") then
 				CheckTargetTimer:Reset();
 				if AI.UnseenTarget:GetController() and AI.UnseenTarget:GetController():IsState(Controller.WEAPON_FIRE) then
