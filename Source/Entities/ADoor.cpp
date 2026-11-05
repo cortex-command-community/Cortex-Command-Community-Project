@@ -172,7 +172,7 @@ int ADoor::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("ClosedOffset", m_ClosedOffset);
 	writer.NewPropertyWithValue("OpenAngle", Matrix(m_OpenAngle));
 	writer.NewPropertyWithValue("ClosedAngle", Matrix(m_ClosedAngle));
-	writer.NewPropertyWithValue("DoorDelay", m_DoorMoveTime);
+	writer.NewPropertyWithValue("DoorMoveTime", m_DoorMoveTime);
 	writer.NewPropertyWithValue("ClosedByDefault", m_ClosedByDefault);
 	writer.NewPropertyWithValue("ResetDefaultDelay", m_ResetToDefaultStateDelay);
 	writer.NewPropertyWithValue("SensorInterval", m_SensorInterval);
@@ -203,7 +203,7 @@ int ADoor::Write(Writer& writer, const Entity& entityReference, HashingData& has
 	if (m_ClosedAngle != reference.m_ClosedAngle)
 		writer.NewPropertyWithValue("ClosedAngle", Matrix(m_ClosedAngle));
 
-	writer.NewDistinctProperty("DoorDelay", m_DoorMoveTime, reference.m_DoorMoveTime);
+	writer.NewDistinctProperty("DoorMoveTime", m_DoorMoveTime, reference.m_DoorMoveTime);
 	writer.NewDistinctProperty("ClosedByDefault", m_ClosedByDefault, reference.m_ClosedByDefault);
 	writer.NewDistinctProperty("ResetDefaultDelay", m_ResetToDefaultStateDelay, reference.m_ResetToDefaultStateDelay);
 	writer.NewDistinctProperty("SensorInterval", m_SensorInterval, reference.m_SensorInterval);

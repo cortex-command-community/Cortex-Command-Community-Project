@@ -106,7 +106,7 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader))));
 	});
 
-	MatchProperty("_ClearRequiredAres", {
+	MatchProperty("_ClearRequiredAreas", {
 		reader.ReadPropValue();
 		m_RequiredAreas.clear();
 	});
@@ -147,7 +147,7 @@ int GAScripted::Write(Writer& writer, const Entity& entityReference, HashingData
 
 	if (m_RequiredAreas != reference.m_RequiredAreas) {
 		if (reference.m_RequiredAreas.size() > 0) {
-			writer.NewProperty("_ClearRequiredAreas = 1");
+			writer.NewPropertyWithValue("_ClearRequiredAreas", 1);
 		}
 
 		for (auto itr = m_RequiredAreas.begin(); itr != m_RequiredAreas.end(); ++itr) {
