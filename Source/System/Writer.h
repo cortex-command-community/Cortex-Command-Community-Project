@@ -318,6 +318,9 @@ namespace RTE {
 				// This property is null, but the reference's property was not, so clear it.
 				NewProperty(propName);
 				NoObject();
+
+				// The reference's hash for it has nothing to be compared against, eject it.
+				hashData.m_Constituents.pop_front();
 			}
 
 			// Info for parsing has been used, eject it.
