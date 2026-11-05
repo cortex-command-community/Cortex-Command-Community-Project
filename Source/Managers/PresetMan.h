@@ -161,9 +161,11 @@ namespace RTE {
 
 		/// Reads a three token description of a preset, searching known presets immediately.
 		/// @param reader The Reader will read in a constant reference in the form <class/module/preset name>.
-		/// @param failureAcceptable Whether or not a null pointer should be returned if nothing can be found.
+		/// @param moduleMayBeUnloaded Whether the reference is allowed to outlive the module it names, as a loadout does when its mod is removed.
+		/// If so, a reference to a module that isn't loaded is silently null, and any other bad reference is a null the player may choose to ignore an assert for.
+		/// If not, any bad reference aborts, except one that names the wrong module for a preset found elsewhere, which asserts and uses that preset.
 		/// @return A const pointer to the Entity preset requested, if it was located.
-		const Entity* GetEntityPresetFromCharacteristic(Reader& reader, bool failureAcceptable = false);
+		const Entity* GetEntityPresetFromCharacteristic(Reader& reader, bool moduleMayBeUnloaded = false);
 
 		/// Reads a preset of an Entity and tries to add it to the list of
 		/// read-in instances. Regardless of whether there is a name collision,

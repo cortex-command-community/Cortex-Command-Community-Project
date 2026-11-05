@@ -136,6 +136,13 @@ namespace RTE {
 		/// Makes an error message box pop up for the user that tells them something went wrong with the reading, and where.
 		/// @param errorDesc The message describing what's wrong.
 		void ReportError(const std::string& errorDesc) const;
+
+		/// Reports a problem in the data that doesn't stop the read from carrying on. Asserts, so whoever wrote the data can see it and the player can ignore it, or if this Reader is allowed to fail, only notes it in the console.
+		/// @param errorDesc The description of the problem.
+		void ReportRecoverableError(const std::string& errorDesc) const;
+
+		/// Discards any properties nested under the property whose value was just read, leaving this Reader ready for that property's next sibling.
+		void DiscardNestedProperties();
 #pragma endregion
 
 #pragma region Operator Overloads

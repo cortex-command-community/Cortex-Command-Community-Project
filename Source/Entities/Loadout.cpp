@@ -43,11 +43,10 @@ int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("DeliveryCraft", {
 		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader, true);
 		const ACraft* reference = dynamic_cast<const ACraft*>(entityReference);
-		if (entityReference == nullptr || reference != nullptr) {
-			m_pDeliveryCraft = reference;
-		} else {
-			reader.ReportError("Tried to point DeliveryCraft to a non-ACraft type!");
+		if (entityReference != nullptr && reference == nullptr) {
+			reader.ReportRecoverableError("Tried to point DeliveryCraft to a non-ACraft type");
 		}
+		SetDeliveryCraft(reference);
 	});
 	MatchProperty("_ClearCargoItems", {
 		reader.ReadPropValue();
@@ -59,6 +58,9 @@ int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 		if (reference != nullptr) {
 			m_CargoItems.push_back(reference);
 		} else {
+			if (entityReference != nullptr) {
+				reader.ReportRecoverableError("Tried to point a cargo item to a non-MovableObject type");
+			}
 			m_Complete = false;
 		}
 	});

@@ -382,7 +382,7 @@ const Entity* PresetMan::GetEntityPreset(Reader& reader) {
 	return pReturnPreset;
 }
 
-const Entity* PresetMan::GetEntityPresetFromCharacteristic(Reader& reader, bool failureAcceptable) {
+const Entity* PresetMan::GetEntityPresetFromCharacteristic(Reader& reader, bool moduleMayBeUnloaded) {
 	std::string Characteristic;
 	reader >> Characteristic;
 
@@ -394,43 +394,69 @@ const Entity* PresetMan::GetEntityPresetFromCharacteristic(Reader& reader, bool 
 	size_t firstBackslash = Characteristic.find_first_of('/');
 	size_t lastBackslash = Characteristic.find_last_of('/');
 
-	// If two distinct slashes can be located, the string is well formatted.
-	if (firstBackslash != lastBackslash && firstBackslash != std::string::npos && lastBackslash != std::string::npos) {
-		std::string ClassName = Characteristic.substr(0, firstBackslash);
-		std::string PresetName = Characteristic.substr(lastBackslash + 1);
-		std::string ModuleName = Characteristic.substr(firstBackslash + 1, lastBackslash - firstBackslash - 1);
+	std::string ClassName;
+	std::string PresetName;
+	std::string ModuleName;
 
-		int ModuleID = GetModuleID(ModuleName);
+	// Whatever modules are loaded, a reference can only ever point at something with exactly a class, a module and a preset, and modules can't add classes.
+	bool wellFormed = firstBackslash != lastBackslash && firstBackslash != std::string::npos && Characteristic.find('/', firstBackslash + 1) == lastBackslash;
 
-		if (ModuleID >= 0 && ModuleID < (int)m_pDataModules.size()) {
-			const Entity* pReturnPreset = m_pDataModules[ModuleID]->GetEntityPreset(ClassName, PresetName);
-
-			if (pReturnPreset != nullptr) {
-				return pReturnPreset;
-			}
-
-			// In an attempt to be graceful, if failure is not acceptable, and, despite being well formed,
-			// the constant reference points to nothing, query every module for the same specs.
-			if (!failureAcceptable) {
-				for (int i = 0; i < m_DataModuleIDs.size() && !pReturnPreset; ++i)
-					pReturnPreset = m_pDataModules[i]->GetEntityPreset(ClassName, PresetName);
-
-				if (pReturnPreset != nullptr) {
-					RTEAssert(false, "Could not find preset \"" + PresetName + "\" of type \"" + ClassName + "\" in module \"" + ModuleName + "\", for constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine() + 
-						"\nA preset of this type and name was found in module \"" + pReturnPreset->GetModuleName() + "\", which will be used if this assertion is ignored, though the reference should be corrected if this is acceptable.");
-
-					return pReturnPreset;
-				}
-
-				RTEAbort("Could not find preset \"" + PresetName + "\" of type \"" + ClassName + "\" in ANY module, including presented \"" + ModuleName + "\", for constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
-			}
-		}
-
-		if (!failureAcceptable) RTEAbort("Unrecognized module name \"" + ModuleName + "\" while reading constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
+	if (wellFormed) {
+		ClassName = Characteristic.substr(0, firstBackslash);
+		PresetName = Characteristic.substr(lastBackslash + 1);
+		ModuleName = Characteristic.substr(firstBackslash + 1, lastBackslash - firstBackslash - 1);
+		wellFormed = !PresetName.empty() && !ModuleName.empty() && Entity::ClassInfo::GetClass(ClassName) != nullptr;
 	}
 
-	if (!failureAcceptable) RTEAbort("Reading of constant reference \"" + Characteristic + "\" failed in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
-	
+	if (!wellFormed) {
+		const std::string error = "Constant reference \"" + Characteristic + "\" isn't in the form <class/module/preset name>";
+
+		if (!moduleMayBeUnloaded) {
+			RTEAbort(error + ", in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
+		}
+		reader.ReportRecoverableError(error);
+		// A reference written in the old form has its preset name nested under it. If that was read as a property of whatever holds this reference, it would rename it, and throw the Reader's depth off for everything after.
+		reader.DiscardNestedProperties();
+
+		return nullptr;
+	}
+
+	int ModuleID = GetModuleID(ModuleName);
+
+	if (ModuleID < 0 || ModuleID >= (int)m_pDataModules.size()) {
+		if (!moduleMayBeUnloaded) {
+			RTEAbort("Unrecognized module name \"" + ModuleName + "\" while reading constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
+		}
+		// There's no telling this from a module that just isn't loaded right now, which is no fault of the reference.
+		return nullptr;
+	}
+
+	const Entity* pReturnPreset = m_pDataModules[ModuleID]->GetEntityPreset(ClassName, PresetName);
+
+	if (pReturnPreset != nullptr) {
+		return pReturnPreset;
+	}
+
+	if (moduleMayBeUnloaded) {
+		RTEAssert(false, "Could not find preset \"" + PresetName + "\" of type \"" + ClassName + "\" in loaded module \"" + ModuleName + "\", for constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine() +
+			"\nIt will be left out if this assertion is ignored.");
+
+		return nullptr;
+	}
+
+	// In an attempt to be graceful, if, despite being well formed, the constant reference points to nothing, query every module for the same specs.
+	for (int i = 0; i < m_DataModuleIDs.size() && !pReturnPreset; ++i)
+		pReturnPreset = m_pDataModules[i]->GetEntityPreset(ClassName, PresetName);
+
+	if (pReturnPreset != nullptr) {
+		RTEAssert(false, "Could not find preset \"" + PresetName + "\" of type \"" + ClassName + "\" in module \"" + ModuleName + "\", for constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine() +
+			"\nA preset of this type and name was found in module \"" + pReturnPreset->GetModuleName() + "\", which will be used if this assertion is ignored, though the reference should be corrected if this is acceptable.");
+
+		return pReturnPreset;
+	}
+
+	RTEAbort("Could not find preset \"" + PresetName + "\" of type \"" + ClassName + "\" in ANY module, including presented \"" + ModuleName + "\", for constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
+
 	return nullptr;
 }
 
