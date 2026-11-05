@@ -256,11 +256,14 @@ namespace RTE {
 			// Check the assumption and find where the reference's list diverges.
 			for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.front(); refIndex++) {
 				if (areItemsConcatenated) {
+					// Items the conditional rejects have no counterpart in the reference's list, so pass over them without using up one of its hashes.
+					while (itemItr != propValue.end() && !conditional(*itemItr)) {
+						itemItr++;
+					}
+
 					if (itemItr != propValue.end()) {
-						if (conditional(*itemItr)) {
-							if ((*itemItr)->Hash().m_Hash != hashData.m_Constituents.front()) {
-								areItemsConcatenated = false;
-							}
+						if ((*itemItr)->Hash().m_Hash != hashData.m_Constituents.front()) {
+							areItemsConcatenated = false;
 						}
 						itemItr++;
 					} else
