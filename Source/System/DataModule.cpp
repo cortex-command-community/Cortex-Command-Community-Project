@@ -11,6 +11,9 @@ using namespace RTE;
 
 const std::string DataModule::c_ClassName = "DataModule";
 
+DataModule::PresetEntry::PresetEntry(Entity* preset, const std::string& file) :
+    m_EntityPreset(preset), m_FileReadFrom(file), m_Hash(preset->Hash()) {}
+
 DataModule::DataModule() {
 	Clear();
 }

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
+#include <deque>
 #include <functional>
 
 namespace std {

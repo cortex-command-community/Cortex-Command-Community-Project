@@ -6,6 +6,7 @@
 #include <ostream>
 
 #include "Hash.h"
+#include "RTETools.h"
 
 namespace RTE {
 

@@ -4,6 +4,8 @@
 
 namespace RTE {
 
+	class Entity;
+
 	/// Helper class to save generic data.
 	class GenericSavedData : public Serializable {
 
