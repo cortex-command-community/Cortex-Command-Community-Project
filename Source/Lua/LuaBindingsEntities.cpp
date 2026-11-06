@@ -558,6 +558,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, Attachable) {
 	    .property("InheritsFrame", &Attachable::InheritsFrame, &Attachable::SetInheritsFrame)
 	    .property("InheritsVelWhenDetached", &Attachable::InheritsVelocityWhenDetached, &Attachable::SetInheritsVelocityWhenDetached)
 	    .property("InheritsAngularVelWhenDetached", &Attachable::InheritsAngularVelocityWhenDetached, &Attachable::SetInheritsAngularVelocityWhenDetached)
+	    .property("AffectsRadius", &Attachable::AffectsRadius, &Attachable::SetAffectsRadius)
 
 	    .def("IsAttached", &Attachable::IsAttached)
 	    .def("IsAttachedTo", &Attachable::IsAttachedTo)

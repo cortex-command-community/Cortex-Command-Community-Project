@@ -55,6 +55,8 @@ void Attachable::Clear() {
 	m_CollidesWithTerrainWhileAttached = true;
 	m_IgnoresParticlesWhileAttached = false;
 
+	m_AffectsRadius = true;
+
 	m_PieSlices.clear();
 
 	m_PrevParentOffset.Reset();
@@ -107,6 +109,8 @@ int Attachable::Create(const Attachable& reference) {
 	m_CollidesWithTerrainWhileAttached = reference.m_CollidesWithTerrainWhileAttached;
 	m_IgnoresParticlesWhileAttached = reference.m_IgnoresParticlesWhileAttached;
 
+	m_AffectsRadius = reference.m_AffectsRadius;
+
 	for (const std::unique_ptr<PieSlice>& pieSlice: reference.m_PieSlices) {
 		m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(pieSlice->Clone())));
 	}
@@ -155,6 +159,7 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("InheritsAngularVelWhenDetached", { reader >> m_InheritsAngularVelWhenDetached; });
 	MatchProperty("CollidesWithTerrainWhileAttached", { reader >> m_CollidesWithTerrainWhileAttached; });
 	MatchProperty("IgnoresParticlesWhileAttached", { reader >> m_IgnoresParticlesWhileAttached; });
+	MatchProperty("AffectsRadius", { reader >> m_AffectsRadius; });
 	MatchProperty("AddPieSlice", { m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader)))); });
 
 	EndPropertyList;
@@ -179,7 +184,7 @@ int Attachable::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("InheritsHFlipped", ((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2));
 	writer.NewPropertyWithValue("InheritsRotAngle", m_InheritsRotAngle);
 	writer.NewPropertyWithValue("InheritedRotAngleOffset", m_InheritedRotAngleOffset);
-  writer.NewPropertyWithValue("MountedRotAngleOffset", m_MountedRotAngleOffset);
+	writer.NewPropertyWithValue("MountedRotAngleOffset", m_MountedRotAngleOffset);
 	writer.NewPropertyWithValue("InheritsVelWhenDetached", m_InheritsVelWhenDetached);
 	writer.NewPropertyWithValue("InheritsAngularVelWhenDetached", m_InheritsAngularVelWhenDetached);
 
