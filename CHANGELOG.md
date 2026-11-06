@@ -169,8 +169,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`InputScheme` has the Lua properties `Device` (R) and `Preset` (R), and the function `GetMappingName(inputElement)`, which gives the name of whatever the input is bound to, such as "Mouse Left".  
 	`Enum` binding for `InputScheme.InputPreset`: `NoPreset = 0, PresetArrowKeys = 1, PresetWASDKeys = 2, PresetMouseWASDKeys = 3, PresetGenericDPad = 4, PresetGenericDualAnalog = 5, PresetGamepadSNES = 6, PresetGamepadDS4 = 7, PresetGamepadXbox360 = 8, InputPresetCount = 9`.
 
-- New `Entity` INI and Lua property `DisplayName`, the name shown to players, as opposed to `PresetName`, which is what data and scripts identify something by.  
-	It defaults to the `PresetName`, and renaming something from a script still shows, unless it has a `DisplayName` of its own.
+- New `Entity` INI and Lua (R/W) property `DisplayName`, the name players see. It defaults to the `PresetName`, which is still what data and scripts use to refer to something, so several presets can now show the same name.  
+	It's shown in the buy menu, inventory, pickup and drop prompts, the scenario menu, Conquest's site labels, the global script list and the editors' object picker. The editors' lists of scenes, terrains and backgrounds, and the boxes where you name what you're saving, still use `PresetName`.  
+	A script changing an object's `PresetName` changes the name shown, unless that object has a `DisplayName` of its own.
 
 - New `Activity` Lua functions `SaveEntity(key, entity)` and `LoadEntity(key)`, to keep an `Entity` with a saved game, alongside `SaveNumber` and `SaveString`. `LoadEntity` gives you a copy, which you own.
 
@@ -260,7 +261,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - The tutorial mission is now a `GAScripted` activity, `Missions.rte/Activities/Tutorial.lua`, instead of being hardcoded in the engine. Its screens and room signs are drawn as bitmap primitives on the bunker's back wall instead of into the terrain.
 
-- **Breaking change:** INI properties that point at a preset are now constant references, written on one line as `Class/Module.rte/Preset Name`, or `None` for nothing.  
+- INI properties that point at a preset are now constant references, written on one line as `Class/Module.rte/Preset Name`, or `None` for nothing.  
 	Something isn't made of a copy of metal, it's made of metal, so these no longer hold a copy that can be changed. This also means two definitions of one preset can no longer quietly disagree.  
 	This covers `EmittedParticle`, `Particle`, `Shell`, `StrikerLever`, `GibParticle`, `EntryWound`, `ExitWound`, `BreakWound`, `ParentBreakWound`, `RegularRound`, `TracerRound`, `Material`, `FrostingMaterial`, `TargetMaterial`, `DebrisMaterial`, `PlacedObject`, `DeliveryCraft` and `AddCargoItem`.
 	```
@@ -273,16 +274,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 		GibParticle = MOPixel/Base.rte/Spark Yellow 1
 	```
 	To change anything about what's being pointed at, define a new named preset and point at that. An unnamed `CopyOf` with overrides already had those overrides discarded, as did a second definition of a name that already existed.  
-	The module is its folder name, in any case, with or without `.rte`. Its `ModuleName` or a path won't work. Mods need converting, and mods declaring an older `SupportedGameVersion` won't pass the version check.
+	The module is its folder name, in upper or lower case, with or without `.rte`. Its `ModuleName` or a path won't work. Mods need converting.
 
-- Data that can't mean anything is now an error when it's read, rather than being ignored or crashing later. That covers a property owning an object of the wrong class, such as `Magazine = AEmitter`, an unknown class name, a `TerrainDebris` or `TerrainFrosting` without its `Material`s, and any of those or an `Atom` or `AtomGroup` with its `Material` set to `None`. Leaving out an `Atom` or `AtomGroup`'s `Material` still means Air.
+- Data that can't mean anything is now an error when it's read, rather than being ignored or crashing later:  
+	A property holding an object of the wrong class, such as `Magazine = AEmitter`, or a class name that doesn't exist.  
+	A `TerrainDebris` or `TerrainFrosting` missing any of its materials.  
+	`Material = None` on a `TerrainDebris`, `TerrainFrosting`, `Atom` or `AtomGroup`.  
+	Leaving out an `Atom` or `AtomGroup`'s `Material` still means Air, and `None` is still fine for a part an object can go without, such as `Head = None`.
 
-- `Loadout` references that could never be valid now cause an assert, which leaves them out of the `Loadout` if ignored, as does a preset that a loaded module doesn't have. A reference to a module that isn't loaded stays silent, so a `Loadout` can outlive a removed mod. Old-format entries in a player's `LoadoutsP*.ini` are dropped, with a message in the console.
+- A `Loadout` reference that's malformed, of the wrong class, or names a preset that a loaded module doesn't have now causes an assert, and is left out if ignored. A reference to a module that isn't loaded stays silent, so a `Loadout` can outlive a removed mod.  
+	Old-format entries in a player's `LoadoutsP*.ini` are left out when it's read, with a message in the console, and are gone from the file the next time that player's loadouts are saved.
 
-- Saved games now only record what differs from each object's preset, which makes them much smaller.  
-	They also record the version of their format. Loading one in another format, which includes every save made before this, now shows a message rather than crashing the game.
+- Saved games now only record what differs from each object's preset. In Decision Day this makes their data about a third of the size, though the terrain images still make up most of a `.ccsave`.  
+	Anything a script changes on an object now survives saving and loading, where many properties used to go back to their preset's value. A script that multiplies a value in `Create` or when it sees a new object will multiply it again on every load, unless it marks the object to avoid that.  
+	Properties starting with an underscore, such as `_ClearGibs` and `_AddWound`, are what saved games are written with. You shouldn't need them in hand-written data.  
+	Saved games also record the version of their format. One in another format, which includes every save made before this, is refused with a message.
 
-- Menus and prompts now show `DisplayName` instead of `PresetName`.
+- Global scripts that change objects, such as Tough Units and Faster Walking, now cover every actor, including ones inside a craft. They no longer stack when a game is loaded, and they undo their changes if they're turned off partway through a game.
+
+- `InstanceName` now names a single object without making it a preset that anything can refer to. Use `PresetName` to define a preset.
 
 </details>
 
@@ -353,6 +363,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed disabled scripts being enabled again by loading a saved game.
 
 - Fixed Dummy's `Loadout`s having no delivery craft, as they pointed at a preset that doesn't exist.
+
+- Fixed AI actors gaining 20% more jetpack fuel every time a game was loaded.
+
+- Fixed the Lower Gravity global script halving gravity again every time a game was loaded.
 
 </details>
 
