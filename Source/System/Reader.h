@@ -86,6 +86,10 @@ namespace RTE {
 		/// Set whether this reader should skip included files.
 		/// @param skip To make reader skip included files pass true, pass false otherwise.
 		void SetSkipIncludes(bool skip) { m_SkipIncludes = skip; };
+
+		/// Gets whether this Reader is reading something other than a DataModule's data, such as a player's own files.
+		/// @return Whether this Reader is reading from a path that isn't a DataModule.
+		bool GetNonModulePath() const { return m_NonModulePath; }
 #pragma endregion
 
 #pragma region Reading Operations

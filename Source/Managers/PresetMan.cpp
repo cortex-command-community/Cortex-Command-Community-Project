@@ -382,6 +382,27 @@ const Entity* PresetMan::GetEntityPreset(Reader& reader) {
 	return pReturnPreset;
 }
 
+/// Splits a preset reference into its parts.
+/// @param characteristic The reference, in the form <class/module/preset name>.
+/// @param className Set to the name of the class referred to.
+/// @param moduleName Set to the name of the module referred to.
+/// @param presetName Set to the name of the preset referred to.
+/// @return Whether this is a well formed reference. Whatever modules are loaded, one can only ever point at something with a class, a module and a preset, and modules can't add classes.
+static bool SplitPresetReference(const std::string& characteristic, std::string& className, std::string& moduleName, std::string& presetName) {
+	const size_t firstSlash = characteristic.find_first_of('/');
+	const size_t lastSlash = characteristic.find_last_of('/');
+
+	if (firstSlash == lastSlash || firstSlash == std::string::npos || characteristic.find('/', firstSlash + 1) != lastSlash) {
+		return false;
+	}
+
+	className = characteristic.substr(0, firstSlash);
+	moduleName = characteristic.substr(firstSlash + 1, lastSlash - firstSlash - 1);
+	presetName = characteristic.substr(lastSlash + 1);
+
+	return !moduleName.empty() && !presetName.empty() && Entity::ClassInfo::GetClass(className) != nullptr;
+}
+
 const Entity* PresetMan::GetEntityPresetFromCharacteristic(Reader& reader, bool moduleMayBeUnloaded) {
 	std::string characteristic;
 	reader >> characteristic;
@@ -395,24 +416,11 @@ const Entity* PresetMan::GetEntityPresetFromCharacteristic(const std::string& ch
 		return nullptr;
 	}
 
-	size_t firstSlash = characteristic.find_first_of('/');
-	size_t lastSlash = characteristic.find_last_of('/');
-
 	std::string className;
-	std::string presetName;
 	std::string moduleName;
+	std::string presetName;
 
-	// Whatever modules are loaded, a reference can only ever point at something with exactly a class, a module and a preset, and modules can't add classes.
-	bool wellFormed = firstSlash != lastSlash && firstSlash != std::string::npos && characteristic.find('/', firstSlash + 1) == lastSlash;
-
-	if (wellFormed) {
-		className = characteristic.substr(0, firstSlash);
-		presetName = characteristic.substr(lastSlash + 1);
-		moduleName = characteristic.substr(firstSlash + 1, lastSlash - firstSlash - 1);
-		wellFormed = !presetName.empty() && !moduleName.empty() && Entity::ClassInfo::GetClass(className) != nullptr;
-	}
-
-	if (!wellFormed) {
+	if (!SplitPresetReference(characteristic, className, moduleName, presetName)) {
 		const std::string error = "Constant reference \"" + characteristic + "\" isn't in the form <class/module/preset name>";
 
 		if (!moduleMayBeUnloaded) {
@@ -459,6 +467,25 @@ const Entity* PresetMan::GetEntityPresetFromCharacteristic(const std::string& ch
 	RTEAbort("Could not find preset \"" + presetName + "\" of type \"" + className + "\" in ANY module, including presented \"" + moduleName + "\", for constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
 
 	return nullptr;
+}
+
+const Entity* PresetMan::FindPresetForUserdata(const std::string& characteristic) {
+	std::string className;
+	std::string moduleName;
+	std::string presetName;
+
+	if (!SplitPresetReference(characteristic, className, moduleName, presetName)) {
+		return nullptr;
+	}
+
+	int moduleID = GetModuleID(moduleName);
+
+	// Don't go looking elsewhere for something from a module that isn't loaded. It may well come back, and the same name somewhere else needn't be the same thing.
+	if (moduleID < 0 || moduleID >= (int)m_pDataModules.size()) {
+		return nullptr;
+	}
+
+	return GetEntityPreset(className, presetName, moduleID);
 }
 
 Entity* PresetMan::ReadReflectedPreset(Reader& reader) {

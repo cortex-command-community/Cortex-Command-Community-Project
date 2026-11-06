@@ -8,9 +8,10 @@ using namespace RTE;
 ConcreteClassInfo(Loadout, Entity, 0);
 
 void Loadout::Clear() {
-	m_Complete = true;
 	m_pDeliveryCraft = 0;
 	m_CargoItems.clear();
+	m_UnavailableDeliveryCraft = UnavailableReference();
+	m_UnavailableCargoItems.clear();
 }
 
 /*
@@ -26,7 +27,8 @@ int Loadout::Create()
 int Loadout::Create(const Loadout& reference) {
 	Entity::Create(reference);
 
-	m_Complete = reference.m_Complete;
+	m_UnavailableDeliveryCraft = reference.m_UnavailableDeliveryCraft;
+	m_UnavailableCargoItems = reference.m_UnavailableCargoItems;
 	// These are preset instances, not owned by the reference or this.
 	m_pDeliveryCraft = reference.m_pDeliveryCraft;
 
@@ -37,54 +39,84 @@ int Loadout::Create(const Loadout& reference) {
 	return 0;
 }
 
-/// Reads what a Loadout property refers to, from a preset reference or the form player loadouts were saved in before those existed.
-/// @param reader The Reader which is about to read the property's value.
-/// @return The preset referred to, or nullptr if it couldn't be found.
-static const Entity* ReadLoadoutReference(Reader& reader) {
+const Entity* Loadout::ReadReference(Reader& reader, UnavailableReference& asWritten) {
 	std::string value;
 	reader >> value;
 
-	// TODO: This is dumb and requires scrutiny. The old form is a class name with the preset's name nested under it, and nothing but a player's old LoadoutsP*.ini should have it. It's here instead of anywhere shared so that it can go once those have been dealt with properly.
-	if (value != "None" && value.find('/') == std::string::npos && Entity::ClassInfo::GetClass(value) != nullptr) {
-		const std::string nestedProperty = reader.ReadPropName();
+	if (value == "None") {
+		return nullptr;
+	}
+
+	const bool playersFile = reader.GetNonModulePath();
+
+	// This is how a player's loadouts were saved before preset references, as a class with the preset's name nested under it. Anyone's old loadouts should keep working whenever they turn up.
+	if (value.find('/') == std::string::npos && Entity::ClassInfo::GetClass(value) != nullptr) {
+		reader.ReadPropName();
 		const std::string presetName = reader.ReadPropValue();
 		reader.NextProperty();
 
-		if (nestedProperty != "PresetName" && nestedProperty != "CopyOf") {
-			reader.ReportRecoverableError("Expected the preset's name under the old form of a Loadout reference, not " + nestedProperty);
-			return nullptr;
+		if (!playersFile) {
+			reader.ReportRecoverableError("A Loadout in a module should refer to a preset in the form <class/module/preset name>, not with \"" + presetName + "\" nested under " + value);
 		}
-		return g_PresetMan.GetEntityPreset(value, presetName);
+
+		if (presetName.find('/') == std::string::npos) {
+			asWritten.m_Value = value;
+			asWritten.m_NestedPresetName = presetName;
+			return g_PresetMan.GetEntityPreset(value, presetName);
+		}
+
+		value += "/" + presetName;
 	}
 
-	return g_PresetMan.GetEntityPresetFromCharacteristic(value, reader, true);
+	asWritten.m_Value = value;
+	return playersFile ? g_PresetMan.FindPresetForUserdata(value) : g_PresetMan.GetEntityPresetFromCharacteristic(value, reader, true);
+}
+
+void Loadout::SaveUnavailableReference(Writer& writer, const std::string& propName, const UnavailableReference& reference) {
+	if (reference.m_NestedPresetName.empty()) {
+		writer.NewPropertyWithValue(propName, reference.m_Value);
+	} else {
+		writer.NewProperty(propName);
+		writer.ObjectStart(reference.m_Value);
+		writer.NewPropertyWithValue("PresetName", reference.m_NestedPresetName);
+		writer.ObjectEnd();
+	}
 }
 
 int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 	MatchProperty("DeliveryCraft", {
-		const Entity* entityReference = ReadLoadoutReference(reader);
+		UnavailableReference asWritten;
+		const Entity* entityReference = ReadReference(reader, asWritten);
 		const ACraft* reference = dynamic_cast<const ACraft*>(entityReference);
-		if (entityReference != nullptr && reference == nullptr) {
+		if (entityReference != nullptr && reference == nullptr && !reader.GetNonModulePath()) {
 			reader.ReportRecoverableError("Tried to point DeliveryCraft to a non-ACraft type");
 		}
 		SetDeliveryCraft(reference);
+		if (reference == nullptr) {
+			m_UnavailableDeliveryCraft = asWritten;
+		}
 	});
 	MatchProperty("_ClearCargoItems", {
 		reader.ReadPropValue();
 		m_CargoItems.clear();
+		m_UnavailableCargoItems.clear();
 	});
 	MatchProperty("AddCargoItem", {
-		const Entity* entityReference = ReadLoadoutReference(reader);
+		UnavailableReference asWritten;
+		const Entity* entityReference = ReadReference(reader, asWritten);
 		const MovableObject* reference = dynamic_cast<const MovableObject*>(entityReference);
 		if (reference != nullptr) {
 			m_CargoItems.push_back(reference);
 		} else {
-			if (entityReference != nullptr) {
+			if (entityReference != nullptr && !reader.GetNonModulePath()) {
 				reader.ReportRecoverableError("Tried to point a cargo item to a non-MovableObject type");
 			}
-			m_Complete = false;
+			if (!asWritten.m_Value.empty()) {
+				asWritten.m_Position = m_CargoItems.size();
+				m_UnavailableCargoItems.push_back(asWritten);
+			}
 		}
 	});
 
@@ -96,10 +128,21 @@ int Loadout::Save(Writer& writer) const {
 
 	if (m_pDeliveryCraft) {
 		writer.NewPropertyWithValue("DeliveryCraft", m_pDeliveryCraft->GetEntityCharacteristic());
+	} else if (!m_UnavailableDeliveryCraft.m_Value.empty()) {
+		SaveUnavailableReference(writer, "DeliveryCraft", m_UnavailableDeliveryCraft);
 	}
 
-	for (std::list<const SceneObject*>::const_iterator itr = m_CargoItems.begin(); itr != m_CargoItems.end(); ++itr) {
+	// Everything goes back where it was, as a mod coming back should find its items still in order among the rest.
+	std::vector<UnavailableReference>::const_iterator unavailable = m_UnavailableCargoItems.begin();
+	size_t position = 0;
+	for (std::list<const SceneObject*>::const_iterator itr = m_CargoItems.begin(); itr != m_CargoItems.end(); ++itr, ++position) {
+		for (; unavailable != m_UnavailableCargoItems.end() && unavailable->m_Position <= position; ++unavailable) {
+			SaveUnavailableReference(writer, "AddCargoItem", *unavailable);
+		}
 		writer.NewPropertyWithValue("AddCargoItem", (*itr)->GetEntityCharacteristic());
+	}
+	for (; unavailable != m_UnavailableCargoItems.end(); ++unavailable) {
+		SaveUnavailableReference(writer, "AddCargoItem", *unavailable);
 	}
 
 	return 0;

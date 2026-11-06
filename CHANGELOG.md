@@ -282,9 +282,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`Material = None` on a `TerrainDebris`, `TerrainFrosting`, `Atom` or `AtomGroup`.  
 	Leaving out an `Atom` or `AtomGroup`'s `Material` still means Air, and `None` is still fine for a part an object can go without, such as `Head = None`.
 
-- A `Loadout` in a module with a reference that's malformed, of the wrong class, or names a preset that module's data doesn't have now causes an assert, and the reference is left out if ignored.  
-	In a player's `LoadoutsP*.ini`, entries in the old format are still understood and get saved in the new one. A reference to a module that isn't loaded is left out silently, a preset missing from a loaded module causes an assert, and anything else gets a message in the console.  
-	Whatever is left out is gone from the file the next time that player's loadouts are saved, even if the mod comes back.
+- A `Loadout` in a module with a reference that's malformed, of the wrong class, in the old nested form, or names a preset that module's data doesn't have now causes an assert, and the reference is left out if ignored.  
+	Nothing in a player's `LoadoutsP*.ini` is ever reported. Entries in the old format are understood and get saved in the new one. Whatever can't be used right now, such as from a mod that isn't loaded, stays in the file where it was and works again when the mod is back. A loadout with nothing usable in it isn't shown in the buy menu until then.
 
 - Saved games now only record what differs from each object's preset. In Decision Day this makes their data about a third of the size, though the terrain images still make up most of a `.ccsave`.  
 	Most of what a script changes on an object now survives saving and loading, where many properties used to go back to their preset's value. A script that multiplies a value in `Create` or when it sees a new object will multiply it again on every load, unless it marks the object to avoid that.  

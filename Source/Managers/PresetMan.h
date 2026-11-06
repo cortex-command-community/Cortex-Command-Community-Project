@@ -174,6 +174,12 @@ namespace RTE {
 		/// @return A const pointer to the Entity preset requested, if it was located.
 		const Entity* GetEntityPresetFromCharacteristic(const std::string& characteristic, Reader& reader, bool moduleMayBeUnloaded = false);
 
+		/// Finds the preset a reference in a player's own data refers to. Anything may have changed since a player's data was written, which is no fault of theirs, so this reports nothing.
+		/// A preset that's gone from a module that's still loaded may be found in an official module, as it may have moved. A module that isn't loaded is never substituted for.
+		/// @param characteristic The reference, in the form <class/module/preset name>.
+		/// @return A const pointer to the Entity preset requested, or nullptr if it can't be used right now.
+		const Entity* FindPresetForUserdata(const std::string& characteristic);
+
 		/// Reads a preset of an Entity and tries to add it to the list of
 		/// read-in instances. Regardless of whether there is a name collision,
 		/// the read-in preset will be returned, ownership TRANSFERRED!

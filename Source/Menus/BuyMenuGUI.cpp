@@ -102,6 +102,7 @@ void BuyMenuGUI::Clear() {
 	m_pSaveButton = 0;
 	m_pDeleteButton = 0;
 	m_Loadouts.clear();
+	m_UnavailableLoadouts.clear();
 	m_SelectedLoadoutIndex = -1;
 	m_PurchaseMade = false;
 
@@ -333,6 +334,7 @@ void BuyMenuGUI::DuplicateCartItem(const int itemIndex) {
 bool BuyMenuGUI::LoadAllLoadoutsFromFile() {
 	// First clear out all loadouts
 	m_Loadouts.clear();
+	m_UnavailableLoadouts.clear();
 	m_SelectedLoadoutIndex = -1;
 	// Try to load the player's loadout settings from file, if there is one
 	char loadoutPath[256];
@@ -359,10 +361,13 @@ bool BuyMenuGUI::LoadAllLoadoutsFromFile() {
 	while (loadoutFile.ReaderOK() && loadoutFile.NextProperty()) {
 		Loadout newLoad;
 		loadoutFile >> newLoad;
-		// If we successfully found everything this loadout requires, add it to the preset menu
-		// Why be picky?
-		if (!newLoad.GetCargoList()->empty()) // newLoad.IsComplete())
+		// Anything with cargo that can be used goes in the preset menu, even if some of what it refers to can't be used right now.
+		if (!newLoad.GetCargoList()->empty()) {
 			m_Loadouts.push_back(newLoad);
+		} else if (!newLoad.IsComplete()) {
+			// There's nothing to show for this one, but it's still the player's, and it's back when what it refers to is.
+			m_UnavailableLoadouts.emplace_back(m_Loadouts.size(), newLoad);
+		}
 	}
 
 	if (m_NativeTechModule > 0) {
@@ -427,7 +432,7 @@ bool BuyMenuGUI::LoadAllLoadoutsFromFile() {
 
 bool BuyMenuGUI::SaveAllLoadoutsToFile() {
 	// Nothing to save
-	if (m_Loadouts.empty())
+	if (m_Loadouts.empty() && m_UnavailableLoadouts.empty())
 		return true;
 
 	char loadoutPath[256];
@@ -446,12 +451,19 @@ bool BuyMenuGUI::SaveAllLoadoutsToFile() {
 	// Open the file
 	Writer loadoutFile(loadoutPath, false);
 
-	// Write out all the loadouts that are user made.
-	for (const Loadout& loadoutEntry: m_Loadouts) {
-		// Don't write out preset references, they'll be read first from PresetMan on load anyway
-		if (loadoutEntry.GetPresetName() == "None") {
-			loadoutFile.NewPropertyWithValue("AddLoadout", loadoutEntry);
+	// Write out all the loadouts that are user made, with those that can't be used right now back where they were.
+	std::vector<std::pair<size_t, Loadout>>::const_iterator unavailable = m_UnavailableLoadouts.begin();
+	for (size_t i = 0; i < m_Loadouts.size(); ++i) {
+		for (; unavailable != m_UnavailableLoadouts.end() && unavailable->first <= i; ++unavailable) {
+			loadoutFile.NewPropertyWithValue("AddLoadout", unavailable->second);
 		}
+		// Don't write out preset references, they'll be read first from PresetMan on load anyway
+		if (m_Loadouts[i].GetPresetName() == "None") {
+			loadoutFile.NewPropertyWithValue("AddLoadout", m_Loadouts[i]);
+		}
+	}
+	for (; unavailable != m_UnavailableLoadouts.end(); ++unavailable) {
+		loadoutFile.NewPropertyWithValue("AddLoadout", unavailable->second);
 	}
 
 	return true;

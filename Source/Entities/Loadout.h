@@ -72,10 +72,10 @@ namespace RTE {
 		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
 #pragma endregion
 
-		/// Shows whether this loadout is complete, or some Entity within could
-		/// not be found on load.
+		/// Shows whether this loadout is complete, or something it refers to
+		/// can't be used right now. What can't be used is still saved with it.
 		/// @return Complete or not.
-		bool IsComplete() { return m_Complete; }
+		bool IsComplete() const { return m_UnavailableDeliveryCraft.m_Value.empty() && m_UnavailableCargoItems.empty(); }
 
 		/// Creates and returns the first Actor that this Loadout has and equips.
 		/// Ownership IS transferred!! All items of the Loadout of this Deployment
@@ -104,7 +104,7 @@ namespace RTE {
 		/// @param pCraft A pointer to the ACraft preset instance. OWNERSHIP IS NOT TRANSFERRED!
 		void SetDeliveryCraft(const ACraft* pCraft) {
 			m_pDeliveryCraft = pCraft;
-			m_Complete = m_Complete && m_pDeliveryCraft;
+			m_UnavailableDeliveryCraft = UnavailableReference();
 		}
 
 		/// Gets the list of cargo Entity items this Loadout represents.
@@ -122,8 +122,6 @@ namespace RTE {
 	protected:
 		// Member variables
 		static Entity::ClassInfo m_sClass;
-		// Whether this Loadout is the full thing, or something is missing due to unavailable entities on load
-		bool m_Complete;
 		// Preset instance of the delivery craft, not owned by this.
 		const ACraft* m_pDeliveryCraft;
 		// The cargo of this loadout, all preset instances not owned by this
@@ -131,6 +129,29 @@ namespace RTE {
 
 		/// Private member variable and method declarations
 	private:
+		/// A reference this Loadout read but can't use right now, such as into a mod that isn't loaded. It's kept as it was written, as this Loadout isn't what should decide that it's gone.
+		struct UnavailableReference {
+			std::string m_Value; //!< What the property held, which is empty if there's no reference at all.
+			std::string m_NestedPresetName; //!< The preset's name, for an old reference with no module, which can't be put in the current form. Empty otherwise.
+			size_t m_Position = 0; //!< For a cargo item, how many usable cargo items were ahead of it, as what's in a Loadout depends on its order.
+		};
+
+		UnavailableReference m_UnavailableDeliveryCraft; //!< The delivery craft, if there's one and it can't be used right now.
+		std::vector<UnavailableReference> m_UnavailableCargoItems; //!< The cargo items that can't be used right now, in order.
+
+		/// Reads what a Loadout property refers to.
+		/// A player's own file is never reported on, as whatever's wrong with it is most likely just old, and it may be in the form from before preset references. A module's file is held to what the game expects of any data.
+		/// @param reader The Reader which is about to read the property's value.
+		/// @param asWritten Set to what was read, for keeping it if it turns out to be unusable.
+		/// @return The preset referred to, or nullptr if it couldn't be found.
+		static const Entity* ReadReference(Reader& reader, UnavailableReference& asWritten);
+
+		/// Writes a reference that can't be used right now, as it was read.
+		/// @param writer The Writer to write the property with.
+		/// @param propName The name of the property.
+		/// @param reference The reference to write.
+		static void SaveUnavailableReference(Writer& writer, const std::string& propName, const UnavailableReference& reference);
+
 		/// Clears all the member variables of this Loadout, effectively
 		/// resetting the members of this abstraction level only.
 		void Clear();
