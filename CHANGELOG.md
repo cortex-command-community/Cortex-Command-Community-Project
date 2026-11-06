@@ -288,7 +288,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Saved games now only record what differs from each object's preset. In Decision Day this makes their data about a third of the size, though the terrain images still make up most of a `.ccsave`.  
 	Anything a script changes on an object now survives saving and loading, where many properties used to go back to their preset's value. A script that multiplies a value in `Create` or when it sees a new object will multiply it again on every load, unless it marks the object to avoid that.  
 	Properties starting with an underscore, such as `_ClearGibs` and `_Activated`, are what saved games are written with. You shouldn't need them in hand-written data.  
-	Saved games also record the version of their format. One in another format, which includes every save made before this, is refused with a message.
+	Saved games made before this still load, as they only ever named presets with `CopyOf`.
 
 - Global scripts that change objects, such as Tough Units and Faster Walking, now cover every actor, including ones inside a craft. They no longer stack when a game is loaded, and they undo their changes if they're turned off partway through a game.
 
