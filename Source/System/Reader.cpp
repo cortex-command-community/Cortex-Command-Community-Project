@@ -225,17 +225,6 @@ bool Reader::PropValueFollows() {
 	return true;
 }
 
-bool Reader::DiscardEmptySpaceBeforeValue() {
-	if (m_PropValueIsEmpty) {
-		m_PropValueIsEmpty = false;
-		ReportError("Property wasn't given a value");
-		return false;
-	}
-
-	DiscardEmptySpace();
-	return true;
-}
-
 bool Reader::NextProperty() {
 	if (!DiscardEmptySpace() || m_EndOfStreams) {
 		return false;

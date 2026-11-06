@@ -122,10 +122,6 @@ namespace RTE {
 		/// Discards all whitespace, newlines and comment lines (which start with '//') so that the next thing to be read will be actual data.
 		/// @return Whether there is more data to read from the file streams after this eat.
 		bool DiscardEmptySpace();
-
-		/// Discards empty space ahead of a value that can't be empty, like a number, and reports an error if the property being read was given none.
-		/// @return Whether there is a value to read.
-		bool DiscardEmptySpaceBeforeValue();
 #pragma endregion
 
 #pragma region Reader Status
@@ -150,87 +146,74 @@ namespace RTE {
 		/// @param var A reference to the variable that will be filled by the extracted data.
 		/// @return A Reader reference for further use in an expression.
 		Reader& operator>>(bool& var) {
-			if (DiscardEmptySpaceBeforeValue()) {
-				*m_Stream >> var;
-			}
+			DiscardEmptySpace();
+			*m_Stream >> var;
 			return *this;
 		}
 		Reader& operator>>(char& var) {
-			if (DiscardEmptySpaceBeforeValue()) {
-				*m_Stream >> var;
-			}
+			DiscardEmptySpace();
+			*m_Stream >> var;
 			return *this;
 		}
 		Reader& operator>>(unsigned char& var) {
-			if (DiscardEmptySpaceBeforeValue()) {
-				int temp;
-				*m_Stream >> temp;
-				var = temp;
-			}
+			DiscardEmptySpace();
+			int temp;
+			*m_Stream >> temp;
+			var = temp;
 			return *this;
 		}
 		Reader& operator>>(short& var) {
-			if (DiscardEmptySpaceBeforeValue()) {
-				*m_Stream >> var;
-			}
+			DiscardEmptySpace();
+			*m_Stream >> var;
 			return *this;
 		}
 		Reader& operator>>(unsigned short& var) {
-			if (DiscardEmptySpaceBeforeValue()) {
-				*m_Stream >> var;
-			}
+			DiscardEmptySpace();
+			*m_Stream >> var;
 			return *this;
 		}
 		Reader& operator>>(int& var) {
-			if (DiscardEmptySpaceBeforeValue()) {
-				*m_Stream >> var;
-			}
+			DiscardEmptySpace();
+			*m_Stream >> var;
 			return *this;
 		}
 		Reader& operator>>(unsigned int& var) {
-			if (DiscardEmptySpaceBeforeValue()) {
-				*m_Stream >> var;
-			}
+			DiscardEmptySpace();
+			*m_Stream >> var;
 			return *this;
 		}
 		Reader& operator>>(long& var) {
-			if (DiscardEmptySpaceBeforeValue()) {
-				*m_Stream >> var;
-			}
+			DiscardEmptySpace();
+			*m_Stream >> var;
 			return *this;
 		}
 		Reader& operator>>(unsigned long& var) {
-			if (DiscardEmptySpaceBeforeValue()) {
-				*m_Stream >> var;
-			}
+			DiscardEmptySpace();
+			*m_Stream >> var;
 			return *this;
 		}
 		Reader& operator>>(long long& var) {
-			if (DiscardEmptySpaceBeforeValue()) {
-				*m_Stream >> var;
-			}
+			DiscardEmptySpace();
+			*m_Stream >> var;
 			return *this;
 		}
 		Reader& operator>>(unsigned long long& var) {
-			if (DiscardEmptySpaceBeforeValue()) {
-				*m_Stream >> var;
-			}
+			DiscardEmptySpace();
+			*m_Stream >> var;
 			return *this;
 		}
 		// Yeah, this is dumb - read as double and cast.
 		// This is because, for whatever fucking reason, iostream can save out floats at a precision that it's then unable to read...
 		Reader& operator>>(float& var) {
-			if (DiscardEmptySpaceBeforeValue()) {
-				double var2;
-				*m_Stream >> var2;
-				var = static_cast<float>(var2);
-			}
+			DiscardEmptySpace();
+			double var2;
+			*m_Stream >> var2;
+			var = static_cast<float>(var2);
 			return *this;
 		}
 		Reader& operator>>(double& var) {
-			if (DiscardEmptySpaceBeforeValue()) {
-				*m_Stream >> var;
-			}
+			DiscardEmptySpace();
+			*m_Stream >> var;
 			return *this;
 		}
 		Reader& operator>>(std::string& var) {
