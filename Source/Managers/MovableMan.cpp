@@ -112,11 +112,6 @@ int MovableMan::Save(Writer& writer) const {
 	return 0;
 }
 
-HashingData MovableMan::Hash() const {
-	// Nothing compares this against a preset, so there's nothing to hash.
-	return Serializable::Hash();
-}
-
 void MovableMan::Destroy() {
 	for (std::deque<Actor*>::iterator it1 = m_Actors.begin(); it1 != m_Actors.end(); ++it1)
 		delete (*it1);

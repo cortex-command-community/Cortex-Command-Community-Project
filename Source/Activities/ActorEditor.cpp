@@ -66,11 +66,6 @@ int ActorEditor::Save(Writer& writer) const {
 	return 0;
 }
 
-HashingData ActorEditor::Hash() const {
-	// If we don't save any distinguishing characteristics, at all, then this may as well be
-	return EditorActivity::Hash();
-}
-
 void ActorEditor::Destroy(bool notInherited) {
 	delete m_pEditedActor;
 	delete m_pPicker;

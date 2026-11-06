@@ -66,7 +66,3 @@ int InputMapping::Save(Writer& writer) const {
 	return 0;
 }
 
-HashingData InputMapping::Hash() const {
-	// Nothing compares this against a preset, so there's nothing to hash.
-	return Serializable::Hash();
-}

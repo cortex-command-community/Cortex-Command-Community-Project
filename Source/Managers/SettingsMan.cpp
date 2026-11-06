@@ -415,8 +415,3 @@ int SettingsMan::Save(Writer& writer) const {
 
 	return 0;
 }
-
-HashingData SettingsMan::Hash() const {
-	// Nothing compares this against a preset, so there's nothing to hash.
-	return Serializable::Hash();
-}

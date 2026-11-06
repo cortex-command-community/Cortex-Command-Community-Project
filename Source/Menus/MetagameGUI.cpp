@@ -687,11 +687,6 @@ int MetagameGUI::Save(Writer& writer) const {
 	return 0;
 }
 
-HashingData MetagameGUI::Hash() const {
-	// Nothing compares this against a preset, so there's nothing to hash.
-	return Serializable::Hash();
-}
-
 void MetagameGUI::Destroy() {
 	delete m_pGUIController;
 	delete m_pGUIInput;

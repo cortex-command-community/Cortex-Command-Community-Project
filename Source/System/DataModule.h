@@ -27,7 +27,8 @@ namespace RTE {
 
 	public:
 		SerializableClassNameGetter;
-		SerializableOverrideMethods;
+		int ReadProperty(const std::string_view& propName, Reader& reader) override;
+		int Save(Writer& writer) const override;
 
 		/// Struct that holds data about the custom BuyMenu/ObjectPicker theme of this DataModule.
 		/// Themes are used when a DataModule is considered a faction and is selected to be played as in an Activity.
