@@ -207,6 +207,13 @@ int BunkerAssemblyScheme::Save(Writer& writer) const {
 		writer.NewPropertyWithValue("AddChildObject", (*itr));
 	}
 
+	writer.NewDistinctProperty("Limit", m_Limit, 0);
+	writer.NewDistinctProperty("OneTypePerScene", m_IsOneTypePerScene, false);
+	writer.NewDistinctProperty("MaxDeployments", m_MaxDeployments, 1);
+
+	writer.NewDistinctProperty("SymmetricScheme", m_SymmetricScheme, "");
+	writer.NewDistinctProperty("AssemblyGroup", m_AssemblyGroup, "");
+
 	return 0;
 }
 
@@ -217,6 +224,13 @@ int BunkerAssemblyScheme::Write(Writer& writer, const Entity& entityReference, H
 
 	writer.NewDistinctHashedProperty("BitmapFile", m_BitmapFile, hashData);
 	writer.NewSequence("_ClearChildObjects", "AddChildObject", m_ChildObjects, hashData);
+
+	writer.NewDistinctProperty("Limit", m_Limit, reference.m_Limit);
+	writer.NewDistinctProperty("OneTypePerScene", m_IsOneTypePerScene, reference.m_IsOneTypePerScene);
+	writer.NewDistinctProperty("MaxDeployments", m_MaxDeployments, reference.m_MaxDeployments);
+
+	writer.NewDistinctProperty("SymmetricScheme", m_SymmetricScheme, reference.m_SymmetricScheme);
+	writer.NewDistinctProperty("AssemblyGroup", m_AssemblyGroup, reference.m_AssemblyGroup);
 
 	return 0;
 }
@@ -239,6 +253,13 @@ HashingData BunkerAssemblyScheme::Hash() const {
 	}
 
 	hashData.m_ParseValues.push_back(i);
+
+	AddToHash(hash, m_Limit);
+	AddToHash(hash, m_IsOneTypePerScene);
+	AddToHash(hash, m_MaxDeployments);
+
+	AddToHash(hash, RTE::Hash(m_SymmetricScheme));
+	AddToHash(hash, RTE::Hash(m_AssemblyGroup));
 
 	return hashData;
 }

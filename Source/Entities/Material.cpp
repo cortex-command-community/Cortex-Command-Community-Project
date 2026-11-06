@@ -120,6 +120,8 @@ int Material::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("FGTextureFile", m_FGTextureFile);
 	writer.NewPropertyWithValue("BGTextureFile", m_BGTextureFile);
 
+	writer.NewDistinctProperty("Index", m_Index, 0);
+
 	return 0;
 }
 
@@ -144,6 +146,8 @@ int Material::Write(Writer& writer, const Entity& entityReference, HashingData& 
 	writer.NewDistinctProperty("UseOwnColor", m_UseOwnColor, reference.m_UseOwnColor);
 	writer.NewDistinctHashedProperty("FGTextureFile", m_FGTextureFile, hashData);
 	writer.NewDistinctHashedProperty("BGTextureFile", m_BGTextureFile, hashData);
+
+	writer.NewDistinctProperty("Index", m_Index, reference.m_Index);
 
 	return 0;
 }
@@ -178,6 +182,8 @@ HashingData Material::Hash() const {
 	uint64_t bgTextureHash = m_BGTextureFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(bgTextureHash);
 	AddToHash(hash, bgTextureHash);
+
+	AddToHash(hash, m_Index);
 
 	return hashData;
 }

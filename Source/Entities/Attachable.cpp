@@ -209,6 +209,11 @@ int Attachable::Save(Writer& writer) const {
 		writer.NewPropertyWithValue("AddPieSlice", pieSlice.get());
 	}
 
+	writer.NewDistinctProperty("GibWithParentChance", m_GibWithParentChance, 0.0F);
+	writer.NewDistinctProperty("ParentGibBlastStrengthMultiplier", m_ParentGibBlastStrengthMultiplier, 1.0F);
+
+	writer.NewDistinctProperty("InheritedRotAngleDegOffset", RadiansToDegrees(m_InheritedRotAngleOffset), 0.0F);
+
 	return 0;
 }
 
@@ -240,6 +245,13 @@ int Attachable::Write(Writer& writer, const Entity& entityReference, HashingData
 	writer.NewDistinctProperty("CollidesWithTerrainWhileAttached", m_CollidesWithTerrainWhileAttached, reference.m_CollidesWithTerrainWhileAttached);
 	writer.NewDistinctProperty("IgnoresParticlesWhileAttached", m_IgnoresParticlesWhileAttached, reference.m_IgnoresParticlesWhileAttached);
 	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", m_PieSlices, hashData);
+
+	writer.NewDistinctProperty("GibWithParentChance", m_GibWithParentChance, reference.m_GibWithParentChance);
+	writer.NewDistinctProperty("ParentGibBlastStrengthMultiplier", m_ParentGibBlastStrengthMultiplier, reference.m_ParentGibBlastStrengthMultiplier);
+
+	if (m_InheritedRotAngleOffset != reference.m_InheritedRotAngleOffset) {
+		writer.NewPropertyWithValue("InheritedRotAngleDegOffset", RadiansToDegrees(m_InheritedRotAngleOffset));
+	}
 
 	return 0;
 }
@@ -278,6 +290,9 @@ HashingData Attachable::Hash() const {
 	}
 
 	hashData.m_ParseValues.push_back(i);
+
+	AddToHash(hash, m_GibWithParentChance);
+	AddToHash(hash, m_ParentGibBlastStrengthMultiplier);
 
 	return hashData;
 }

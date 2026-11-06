@@ -284,6 +284,9 @@ int Activity::Save(Writer& writer) const {
 
 	writer.NewPropertyWithValue("GenericSavedValues", m_SavedValues);
 
+	writer.NewDistinctProperty("ShowInMenus", m_ShowInMenus, true);
+	writer.NewDistinctProperty("HumansCanSpectate", m_HumansCanSpectate, false);
+
 	return 0;
 }
 
@@ -330,6 +333,9 @@ int Activity::Write(Writer& writer, const Entity& entityReference, HashingData& 
 
 	writer.NewDistinctHashedProperty("GenericSavedValues", m_SavedValues, hashData);
 
+	writer.NewDistinctProperty("ShowInMenus", m_ShowInMenus, reference.m_ShowInMenus);
+	writer.NewDistinctProperty("HumansCanSpectate", m_HumansCanSpectate, reference.m_HumansCanSpectate);
+
 	return 0;
 }
 
@@ -370,6 +376,9 @@ HashingData Activity::Hash() const {
 	uint64_t savedValueHash = m_SavedValues.Hash().m_Hash;
 	hashData.m_Constituents.push_back(savedValueHash);
 	AddToHash(hash, savedValueHash);
+
+	AddToHash(hash, m_ShowInMenus);
+	AddToHash(hash, m_HumansCanSpectate);
 
 	return hashData;
 }

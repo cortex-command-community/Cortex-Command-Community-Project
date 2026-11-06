@@ -197,6 +197,21 @@ int HeldDevice::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
+/// Writes which presets a HeldDevice can be picked up by, in the form it's read.
+/// @param writer The Writer to write with.
+/// @param presetNames The names of the presets that can pick it up.
+template <typename Type> static void WritePickupableBy(Writer& writer, const Type& presetNames) {
+	if (presetNames.empty()) {
+		return;
+	}
+	writer.NewProperty("PickupableBy");
+	writer.ObjectStart("PickupableByEntries");
+	for (const std::string& presetName: presetNames) {
+		writer.NewPropertyWithValue("AddPresetNameEntry", presetName);
+	}
+	writer.ObjectEnd();
+}
+
 int HeldDevice::Save(Writer& writer) const {
 	Attachable::Save(writer);
 
@@ -211,6 +226,18 @@ int HeldDevice::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("Loudness", m_Loudness);
 	writer.NewPropertyWithValue("GetsHitByMOsWhenHeld", m_GetsHitByMOsWhenHeld);
 	writer.NewPropertyWithValue("VisualRecoilMultiplier", m_VisualRecoilMultiplier);
+
+	writer.NewDistinctProperty("HeldDeviceType", m_HeldDeviceType, WEAPON);
+	writer.NewDistinctProperty("DualWieldable", m_DualWieldable, false);
+
+	if (m_IsUnPickupable) {
+		writer.NewPropertyWithValue("PickupableBy", "None");
+	}
+	WritePickupableBy(writer, m_PickupableByPresetNames);
+	if (m_Activated) {
+		writer.NewPropertyWithValue("_Activated", m_Activated);
+		writer.NewPropertyWithValue("_ActivationTimerElapsedSimTimeMS", m_ActivationTimer.GetElapsedSimTimeMS());
+	}
 
 	return 0;
 }
@@ -237,6 +264,16 @@ int HeldDevice::Write(Writer& writer, const Entity& entityReference, HashingData
 		writer.NewPropertyWithValue("_ActivationTimerElapsedSimTimeMS", m_ActivationTimer.GetElapsedSimTimeMS());
 	}
 
+	writer.NewDistinctProperty("HeldDeviceType", m_HeldDeviceType, reference.m_HeldDeviceType);
+	writer.NewDistinctProperty("DualWieldable", m_DualWieldable, reference.m_DualWieldable);
+
+	if (m_IsUnPickupable && !reference.m_IsUnPickupable) {
+		writer.NewPropertyWithValue("PickupableBy", "None");
+	}
+	if (m_PickupableByPresetNames != reference.m_PickupableByPresetNames) {
+		WritePickupableBy(writer, m_PickupableByPresetNames);
+	}
+
 	return 0;
 }
 
@@ -256,6 +293,17 @@ HashingData HeldDevice::Hash() const {
 	AddToHash(hash, m_Loudness);
 	AddToHash(hash, m_GetsHitByMOsWhenHeld);
 	AddToHash(hash, m_VisualRecoilMultiplier);
+
+	AddToHash(hash, m_HeldDeviceType);
+	AddToHash(hash, m_DualWieldable);
+
+	// This list has no order, so what it adds can't depend on one.
+	uint64_t pickupableByHash = 0;
+	for (const std::string& presetName: m_PickupableByPresetNames) {
+		pickupableByHash ^= RTE::Hash(presetName);
+	}
+	AddToHash(hash, pickupableByHash);
+	AddToHash(hash, m_IsUnPickupable);
 
 	return hashData;
 }

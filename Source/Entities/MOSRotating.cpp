@@ -382,6 +382,20 @@ int MOSRotating::Save(Writer& writer) const {
 
 	writer.NewPropertyWithValue("EffectOnGib", m_EffectOnGib);
 
+	writer.NewDistinctProperty("GibBlastStrength", m_GibBlastStrength, 10.0F);
+	writer.NewDistinctProperty("GibScreenShakeAmount", m_GibScreenShakeAmount, -1.0F);
+	writer.NewDistinctProperty("WoundCountAffectsImpulseLimitRatio", m_WoundCountAffectsImpulseLimitRatio, 0.25F);
+	writer.NewDistinctProperty("DetachAttachablesBeforeGibbingFromWounds", m_DetachAttachablesBeforeGibbingFromWounds, true);
+	writer.NewDistinctProperty("LoudnessOnGib", m_LoudnessOnGib, 1);
+
+	if (m_GibSound) {
+		writer.NewPropertyWithValue("GibSound", m_GibSound);
+	}
+	// Left unset, this gets a default for the class when it's created.
+	if (!m_NoSetDamageMultiplier) {
+		writer.NewPropertyWithValue("DamageMultiplier", m_DamageMultiplier);
+	}
+
 	return 0;
 }
 
@@ -406,6 +420,12 @@ int MOSRotating::Write(Writer& writer, const Entity& entityReference, HashingDat
 	writer.NewDistinctProperty("EffectOnGib", m_EffectOnGib, reference.m_EffectOnGib);
 	writer.NewDistinctProperty("DamageMultiplier", m_DamageMultiplier, reference.m_DamageMultiplier);
 	writer.NewDistinctProperty("_NoSetDamageMultiplier", m_NoSetDamageMultiplier, reference.m_NoSetDamageMultiplier);
+
+	writer.NewDistinctProperty("GibBlastStrength", m_GibBlastStrength, reference.m_GibBlastStrength);
+	writer.NewDistinctProperty("GibScreenShakeAmount", m_GibScreenShakeAmount, reference.m_GibScreenShakeAmount);
+	writer.NewDistinctProperty("WoundCountAffectsImpulseLimitRatio", m_WoundCountAffectsImpulseLimitRatio, reference.m_WoundCountAffectsImpulseLimitRatio);
+	writer.NewDistinctProperty("DetachAttachablesBeforeGibbingFromWounds", m_DetachAttachablesBeforeGibbingFromWounds, reference.m_DetachAttachablesBeforeGibbingFromWounds);
+	writer.NewDistinctProperty("LoudnessOnGib", m_LoudnessOnGib, reference.m_LoudnessOnGib);
 
 	return 0;
 }
@@ -483,6 +503,12 @@ HashingData MOSRotating::Hash() const {
 	AddToHash(hash, m_EffectOnGib);
 	AddToHash(hash, m_DamageMultiplier);
 	AddToHash(hash, m_NoSetDamageMultiplier);
+
+	AddToHash(hash, m_GibBlastStrength);
+	AddToHash(hash, m_GibScreenShakeAmount);
+	AddToHash(hash, m_WoundCountAffectsImpulseLimitRatio);
+	AddToHash(hash, m_DetachAttachablesBeforeGibbingFromWounds);
+	AddToHash(hash, m_LoudnessOnGib);
 
 	return hashData;
 }

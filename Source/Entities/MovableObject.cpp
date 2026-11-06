@@ -490,6 +490,14 @@ int MovableObject::Save(Writer& writer) const {
 	// What this defaults to depends on the settings, so leaving it out wouldn't always read back the same.
 	writer.NewPropertyWithValue("ForceIntoMasterLuaState", m_ForceIntoMasterLuaState);
 
+	writer.NewDistinctProperty("RemoveOrphanTerrainRadius", m_RemoveOrphanTerrainRadius, 0);
+	writer.NewDistinctProperty("RemoveOrphanTerrainMaxArea", m_RemoveOrphanTerrainMaxArea, 0);
+	writer.NewDistinctProperty("RemoveOrphanTerrainRate", m_RemoveOrphanTerrainRate, 0.0);
+	writer.NewDistinctProperty("EffectRotAngle", m_EffectRotAngle, 0);
+	writer.NewDistinctProperty("InheritEffectRotAngle", m_InheritEffectRotAngle, false);
+	writer.NewDistinctProperty("RandomizeEffectRotAngle", m_RandomizeEffectRotAngle, false);
+	writer.NewDistinctProperty("RandomizeEffectRotAngleEveryFrame", m_RandomizeEffectRotAngleEveryFrame, false);
+
 	return 0;
 }
 
@@ -584,6 +592,14 @@ int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingD
 
 	writer.NewDistinctProperty("ForceIntoMasterLuaState", m_ForceIntoMasterLuaState, reference.m_ForceIntoMasterLuaState);
 
+	writer.NewDistinctProperty("RemoveOrphanTerrainRadius", m_RemoveOrphanTerrainRadius, reference.m_RemoveOrphanTerrainRadius);
+	writer.NewDistinctProperty("RemoveOrphanTerrainMaxArea", m_RemoveOrphanTerrainMaxArea, reference.m_RemoveOrphanTerrainMaxArea);
+	writer.NewDistinctProperty("RemoveOrphanTerrainRate", m_RemoveOrphanTerrainRate, reference.m_RemoveOrphanTerrainRate);
+	writer.NewDistinctProperty("EffectRotAngle", m_EffectRotAngle, reference.m_EffectRotAngle);
+	writer.NewDistinctProperty("InheritEffectRotAngle", m_InheritEffectRotAngle, reference.m_InheritEffectRotAngle);
+	writer.NewDistinctProperty("RandomizeEffectRotAngle", m_RandomizeEffectRotAngle, reference.m_RandomizeEffectRotAngle);
+	writer.NewDistinctProperty("RandomizeEffectRotAngleEveryFrame", m_RandomizeEffectRotAngleEveryFrame, reference.m_RandomizeEffectRotAngleEveryFrame);
+
 	return 0;
 }
 
@@ -650,6 +666,14 @@ HashingData MovableObject::Hash() const {
 	}
 
 	AddToHash(hash, m_ForceIntoMasterLuaState);
+
+	AddToHash(hash, m_RemoveOrphanTerrainRadius);
+	AddToHash(hash, m_RemoveOrphanTerrainMaxArea);
+	AddToHash(hash, m_RemoveOrphanTerrainRate);
+	AddToHash(hash, m_EffectRotAngle);
+	AddToHash(hash, m_InheritEffectRotAngle);
+	AddToHash(hash, m_RandomizeEffectRotAngle);
+	AddToHash(hash, m_RandomizeEffectRotAngleEveryFrame);
 
 	return hashData;
 }

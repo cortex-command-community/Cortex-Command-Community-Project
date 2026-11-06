@@ -143,6 +143,9 @@ int PieSlice::Save(Writer& writer) const {
 		writer.NewPropertyWithValue("SubPieMenu", m_SubPieMenu.get());
 	}
 
+	writer.NewDistinctProperty("CanBeMiddleSlice", m_CanBeMiddleSlice, true);
+	writer.NewDistinctProperty("DrawFlippedToMatchAbsoluteAngle", m_DrawFlippedToMatchAbsoluteAngle, false);
+
 	return 0;
 }
 
@@ -167,6 +170,9 @@ int PieSlice::Write(Writer& writer, const Entity& entityReference, HashingData& 
 	}
 
 	writer.NewOptionalEntityPointerProperty("SubPieMenu", m_SubPieMenu.get(), hashData);
+
+	writer.NewDistinctProperty("CanBeMiddleSlice", m_CanBeMiddleSlice, reference.m_CanBeMiddleSlice);
+	writer.NewDistinctProperty("DrawFlippedToMatchAbsoluteAngle", m_DrawFlippedToMatchAbsoluteAngle, reference.m_DrawFlippedToMatchAbsoluteAngle);
 
 	return 0;
 }
@@ -193,6 +199,9 @@ HashingData PieSlice::Hash() const {
 		hashData.m_Constituents.push_back(subPieHash);
 		AddToHash(hash, subPieHash);
 	}
+
+	AddToHash(hash, m_CanBeMiddleSlice);
+	AddToHash(hash, m_DrawFlippedToMatchAbsoluteAngle);
 
 	return hashData;
 }

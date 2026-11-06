@@ -223,6 +223,12 @@ int MOSprite::Save(Writer& writer) const {
 	if (m_pExitWound)
 		writer.NewPropertyWithValue("ExitWound", m_pExitWound->GetEntityCharacteristic());
 
+	writer.NewDistinctProperty("ForcedHFlip", m_ForcedHFlip, -1);
+
+	if (!m_IconFile.GetDataPath().empty()) {
+		writer.NewPropertyWithValue("IconFile", m_IconFile);
+	}
+
 	return 0;
 }
 
@@ -242,6 +248,12 @@ int MOSprite::Write(Writer& writer, const Entity& entityReference, HashingData& 
 	writer.NewDistinctProperty("SettleMaterialDisabled", m_SettleMaterialDisabled, reference.m_SettleMaterialDisabled);
 	writer.NewPresetReferenceProperty("EntryWound", m_pEntryWound, reference.m_pEntryWound);
 	writer.NewPresetReferenceProperty("ExitWound", m_pExitWound, reference.m_pExitWound);
+
+	writer.NewDistinctProperty("ForcedHFlip", m_ForcedHFlip, reference.m_ForcedHFlip);
+
+	if (m_IconFile.GetDataPath() != reference.m_IconFile.GetDataPath()) {
+		writer.NewPropertyWithValue("IconFile", m_IconFile);
+	}
 
 	return 0;
 }
@@ -264,6 +276,10 @@ HashingData MOSprite::Hash() const {
 	AddToHash(hash, m_SettleMaterialDisabled);
 	AddToHash(hash, (m_pEntryWound ? RTE::Hash(m_pEntryWound->GetEntityCharacteristic()) : 0));
 	AddToHash(hash, (m_pExitWound ? RTE::Hash(m_pExitWound->GetEntityCharacteristic()) : 0));
+
+	AddToHash(hash, m_ForcedHFlip);
+
+	AddToHash(hash, RTE::Hash(m_IconFile.GetDataPath()));
 
 	return hashData;
 }

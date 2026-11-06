@@ -184,6 +184,8 @@ namespace RTE {
 		    writer.NewPropertyWithValue("AddToGroup", *itr);
 		}
 
+		writer.NewDistinctProperty("RandomWeight", m_RandomWeight, 100);
+
 		return 0;
 	}
 
@@ -214,6 +216,8 @@ namespace RTE {
 				writer.NewPropertyWithValue("AddToGroup", *itr);
 			}
 		}
+
+		writer.NewDistinctProperty("RandomWeight", m_RandomWeight, entityReference.m_RandomWeight);
 
 		return 0;
 	}

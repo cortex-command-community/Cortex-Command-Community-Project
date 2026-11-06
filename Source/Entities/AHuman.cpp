@@ -326,6 +326,7 @@ int AHuman::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("WalkLimbPath", m_Paths[FGROUND][WALK]);
 	writer.NewPropertyWithValue("RunLimbPath", m_Paths[FGROUND][RUN]);
 	writer.NewPropertyWithValue("CrouchLimbPath", m_Paths[FGROUND][PRONE]);
+	writer.NewPropertyWithValue("CrouchLimbPathBG", m_Paths[BGROUND][PRONE]);
 	writer.NewPropertyWithValue("CrawlLimbPath", m_Paths[FGROUND][CRAWL]);
 	writer.NewPropertyWithValue("ArmCrawlLimbPath", m_Paths[FGROUND][ARMCRAWL]);
 	writer.NewPropertyWithValue("ClimbLimbPath", m_Paths[FGROUND][CLIMB]);
@@ -368,6 +369,7 @@ int AHuman::Write(Writer& writer, const Entity& entityReference, HashingData& ha
 	writer.NewDistinctHashedProperty("WalkLimbPath", m_Paths[FGROUND][WALK], hashData);
 	writer.NewDistinctHashedProperty("RunLimbPath", m_Paths[FGROUND][RUN], hashData);
 	writer.NewDistinctHashedProperty("CrouchLimbPath", m_Paths[FGROUND][PRONE], hashData);
+	writer.NewDistinctHashedProperty("CrouchLimbPathBG", m_Paths[BGROUND][PRONE], hashData);
 	writer.NewDistinctHashedProperty("CrawlLimbPath", m_Paths[FGROUND][CRAWL], hashData);
 	writer.NewDistinctHashedProperty("ArmCrawlLimbPath", m_Paths[FGROUND][ARMCRAWL], hashData);
 	writer.NewDistinctHashedProperty("ClimbLimbPath", m_Paths[FGROUND][CLIMB], hashData);
@@ -496,6 +498,10 @@ HashingData AHuman::Hash() const {
 	uint64_t pronePathHash = m_Paths[FGROUND][PRONE].Hash().m_Hash;
 	hashData.m_Constituents.push_back(pronePathHash);
 	AddToHash(hash, pronePathHash);
+
+	uint64_t bgPronePathHash = m_Paths[BGROUND][PRONE].Hash().m_Hash;
+	hashData.m_Constituents.push_back(bgPronePathHash);
+	AddToHash(hash, bgPronePathHash);
 
 	uint64_t crawlPathHash = m_Paths[FGROUND][CRAWL].Hash().m_Hash;
 	hashData.m_Constituents.push_back(crawlPathHash);

@@ -436,6 +436,8 @@ int Actor::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("Mechanical", m_Mechanical);
 	writer.NewPropertyWithValue("AIBaseDigStrength", m_AIBaseDigStrength);
 
+	writer.NewDistinctProperty("PassengerSlots", m_PassengerSlots, 1);
+
 	return 0;
 }
 
@@ -509,6 +511,8 @@ int Actor::Write(Writer& writer, const Entity& entityReference, HashingData& has
 	writer.NewDistinctProperty("Organic", m_Organic, reference.m_Organic);
 	writer.NewDistinctProperty("Mechanical", m_Mechanical, reference.m_Mechanical);
 	writer.NewDistinctProperty("AIBaseDigStrength", m_AIBaseDigStrength, reference.m_AIBaseDigStrength);
+
+	writer.NewDistinctProperty("PassengerSlots", m_PassengerSlots, reference.m_PassengerSlots);
 
 	return 0;
 }
@@ -606,6 +610,8 @@ HashingData Actor::Hash() const {
 	AddToHash(hash, m_Organic);
 	AddToHash(hash, m_Mechanical);
 	AddToHash(hash, m_AIBaseDigStrength);
+
+	AddToHash(hash, m_PassengerSlots);
 
 	return hashData;
 }
