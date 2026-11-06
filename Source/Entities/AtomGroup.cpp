@@ -150,6 +150,7 @@ int AtomGroup::ReadProperty(const std::string_view& propName, Reader& reader) {
 			delete atom;
 		}
 		m_Atoms.clear();
+		m_SubGroups.clear();
 	});
 	MatchForwards("AddAtom") MatchProperty("_AddAtom", {
 		Atom* atom = new Atom;
