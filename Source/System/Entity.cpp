@@ -1,7 +1,10 @@
 #include "Entity.h"
+
 #include "RTETools.h"
 #include "PresetMan.h"
 #include "DataModule.h"
+
+#include <sstream>
 
 namespace RTE {
 
@@ -134,6 +137,30 @@ namespace RTE {
 		EndPropertyList;
 	}
 
+	/// Writes a description in the form it's read. A property's value can only be one line, so anything longer is written as MultiLineText.
+	/// @param writer The Writer to write the description with.
+	/// @param description The description to write.
+	static void WriteDescription(Writer& writer, const std::string& description) {
+		if (description.find('\n') == std::string::npos) {
+			writer.NewPropertyWithValue("Description", description);
+			return;
+		}
+
+		writer.NewProperty("Description");
+		writer.ObjectStart("MultiLineText");
+
+		std::istringstream lines(description);
+		std::string line;
+
+		while (std::getline(lines, line)) {
+			if (!line.empty()) {
+				writer.NewPropertyWithValue("AddLine", line);
+			}
+		}
+
+		writer.ObjectEnd();
+	}
+
 	int Entity::Save(Writer& writer) const {
 		Serializable::Save(writer);
 
@@ -156,7 +183,7 @@ namespace RTE {
 		}
 
 		if (!m_PresetDescription.empty()) {
-			writer.NewPropertyWithValue("Description", m_PresetDescription);
+			WriteDescription(writer, m_PresetDescription);
 		}
 
 		for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {
@@ -183,7 +210,7 @@ namespace RTE {
 		}
 
 		if (m_PresetDescription != entityReference.m_PresetDescription) {
-			writer.NewPropertyWithValue("Description", m_PresetDescription);
+			WriteDescription(writer, m_PresetDescription);
 		}
 		
 		if (m_Groups != entityReference.m_Groups) {
