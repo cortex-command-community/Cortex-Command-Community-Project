@@ -227,7 +227,7 @@ int MOSprite::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("SpriteAnimMode", m_SpriteAnimMode);
 	writer.NewPropertyWithValue("SpriteAnimDuration", m_SpriteAnimDuration);
 	writer.NewPropertyWithValue("HFlipped", m_HFlipped);
-	writer.NewPropertyWithValue("Rotation", m_Rotation.GetRadAngle());
+	writer.NewPropertyWithValue("Rotation", m_Rotation);
 	writer.NewPropertyWithValue("AngularVel", m_AngularVel);
 	writer.NewPropertyWithValue("SettleMaterialDisabled", m_SettleMaterialDisabled);
 	if (m_pEntryWound)
