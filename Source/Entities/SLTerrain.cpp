@@ -149,6 +149,28 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
+/// Writes an orbit direction in the form it's read.
+/// @param writer The Writer to write with.
+/// @param orbitDirection The direction to write.
+static void WriteOrbitDirection(Writer& writer, Directions orbitDirection) {
+	writer.NewProperty("OrbitDirection");
+	switch (orbitDirection) {
+		default:
+		case Directions::Up:
+			writer << "Up";
+			break;
+		case Directions::Down:
+			writer << "Down";
+			break;
+		case Directions::Left:
+			writer << "Left";
+			break;
+		case Directions::Right:
+			writer << "Right";
+			break;
+	}
+}
+
 int SLTerrain::Save(Writer& writer) const {
 	SceneLayer::Save(writer);
 
@@ -173,22 +195,7 @@ int SLTerrain::Save(Writer& writer) const {
 		writer.ObjectEnd();
 	}
 
-	writer.NewProperty("OrbitDirection");
-	switch (m_OrbitDirection) {
-		default:
-		case Directions::Up:
-			writer << "Up";
-			break;
-		case Directions::Down:
-			writer << "Down";
-			break;
-		case Directions::Left:
-			writer << "Left";
-			break;
-		case Directions::Right:
-			writer << "Right";
-			break;
-	}
+	WriteOrbitDirection(writer, m_OrbitDirection);
 
 	return 0;
 }
@@ -204,7 +211,9 @@ int SLTerrain::Write(Writer& writer, const Entity& entityReference, HashingData&
 	writer.NewPointerSequence("_ClearTerrainFrostings", "AddTerrainFrosting", m_TerrainFrostings, hashData);
 	writer.NewPointerSequence("_ClearTerrainDebris", "AddTerrainDebris", m_TerrainDebris, hashData);
 	writer.NewPointerSequence("_ClearTerrainObjects", "PlaceTerrainObject", m_TerrainObjects, hashData);
-	writer.NewDistinctProperty("OrbitDirection", m_OrbitDirection, reference.m_OrbitDirection);
+	if (m_OrbitDirection != reference.m_OrbitDirection) {
+		WriteOrbitDirection(writer, m_OrbitDirection);
+	}
 
 	return 0;
 }
