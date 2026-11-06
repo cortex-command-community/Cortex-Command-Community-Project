@@ -331,10 +331,8 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("MissionCritical", { reader >> m_MissionCritical; });
 	MatchProperty("CanBeSquished", { reader >> m_CanBeSquished; });
 	MatchProperty("HUDVisible", { reader >> m_HUDVisible; });
-	MatchProperty("_ClearScriptPaths", { 
-		// TODO: Implement removal of scripts from MovableObjects, and while we're at it, serializing disabled scripts
-		reader.ReadPropValue();
-	});
+	MatchProperty("_DisableScript", { EnableOrDisableScript(g_PresetMan.GetFullModulePath(reader.ReadPropValue()), false); });
+	MatchProperty("_EnableScript", { EnableOrDisableScript(g_PresetMan.GetFullModulePath(reader.ReadPropValue()), true); });
 	MatchForwards("ScriptPath") MatchProperty("_AddScriptPath", {
 		std::string scriptPath = g_PresetMan.GetFullModulePath(reader.ReadPropValue());
 		switch (LoadScript(scriptPath)) {
@@ -453,6 +451,10 @@ int MovableObject::Save(Writer& writer) const {
 	for (const auto& scriptPath: m_AllLoadedScripts) {
 		if (!scriptPath.empty()) {
 			writer.NewPropertyWithValue("ScriptPath", scriptPath);
+
+			if (!ScriptEnabled(scriptPath)) {
+				writer.NewPropertyWithValue("_DisableScript", scriptPath);
+			}
 		}
 	}
 
@@ -522,8 +524,19 @@ int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingD
 
 	// No need to worry about clearing scripts: you presently can't remove them anyhow, so, no problem?
 	for (const auto& scriptPath: m_AllLoadedScripts) {
-		if (!scriptPath.empty() && !reference.HasScript(scriptPath)) {
+		if (scriptPath.empty()) {
+			continue;
+		}
+
+		const bool referenceHasScript = reference.HasScript(scriptPath);
+
+		if (!referenceHasScript) {
 			writer.NewPropertyWithValue("_AddScriptPath", scriptPath);
+		}
+
+		// A script that's just been added starts out enabled when it's read.
+		if (ScriptEnabled(scriptPath) != (!referenceHasScript || reference.ScriptEnabled(scriptPath))) {
+			writer.NewPropertyWithValue(ScriptEnabled(scriptPath) ? "_EnableScript" : "_DisableScript", scriptPath);
 		}
 	}
 
@@ -606,7 +619,7 @@ HashingData MovableObject::Hash() const {
 
 	for (const auto& scriptPath: m_AllLoadedScripts) {
 		if (!scriptPath.empty()) {
-			hash ^= RTE::Hash(scriptPath) << (i++ % sizeof(uint64_t) * 8);
+			hash ^= RTE::Hash(ScriptEnabled(scriptPath) ? scriptPath : scriptPath + " disabled") << (i++ % sizeof(uint64_t) * 8);
 		}
 	}
 
