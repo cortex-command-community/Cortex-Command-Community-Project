@@ -275,6 +275,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	To change anything about what's being pointed at, define a new named preset and point at that. An unnamed `CopyOf` with overrides already had those overrides discarded, as did a second definition of a name that already existed.  
 	The module is its folder name, in any case, with or without `.rte`. Its `ModuleName` or a path won't work. Mods need converting, and mods declaring an older `SupportedGameVersion` won't pass the version check.
 
+- Data that can't mean anything is now an error when it's read, rather than being ignored or crashing later. That covers a property owning an object of the wrong class, such as `Magazine = AEmitter`, an unknown class name, a `TerrainDebris` or `TerrainFrosting` without its `Material`s, and any of those or an `Atom` or `AtomGroup` with its `Material` set to `None`. Leaving out an `Atom` or `AtomGroup`'s `Material` still means Air.
+
 - `Loadout` references that could never be valid now cause an assert, which leaves them out of the `Loadout` if ignored, as does a preset that a loaded module doesn't have. A reference to a module that isn't loaded stays silent, so a `Loadout` can outlive a removed mod. Old-format entries in a player's `LoadoutsP*.ini` are dropped, with a message in the console.
 
 - Saved games now only record what differs from each object's preset, which makes them much smaller.  
