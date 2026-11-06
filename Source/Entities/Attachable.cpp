@@ -135,6 +135,9 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("JointOffset", { reader >> m_JointOffset; });
 	MatchProperty("BreakWound", {
 		m_BreakWound = g_PresetMan.ReadPresetReferenceOfType<AEmitter>(reader, propName);
+		if (!m_ParentBreakWound) {
+			m_ParentBreakWound = m_BreakWound;
+		}
 	});
 	MatchProperty("ParentBreakWound", {
 		m_ParentBreakWound = g_PresetMan.ReadPresetReferenceOfType<AEmitter>(reader, propName);
