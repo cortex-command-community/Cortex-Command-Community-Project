@@ -481,6 +481,8 @@ HashingData MOSRotating::Hash() const {
 	}
 
 	AddToHash(hash, m_EffectOnGib);
+	AddToHash(hash, m_DamageMultiplier);
+	AddToHash(hash, m_NoSetDamageMultiplier);
 
 	return hashData;
 }

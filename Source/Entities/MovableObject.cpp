@@ -496,7 +496,7 @@ int MovableObject::Save(Writer& writer) const {
 int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
 	SceneObject::Write(writer, entityReference, hashData);
 
-	const MOSprite& reference = static_cast<const MOSprite&>(entityReference);
+	const MovableObject& reference = static_cast<const MovableObject&>(entityReference);
 
 
 	writer.NewDistinctProperty("Mass", m_Mass, reference.m_Mass);

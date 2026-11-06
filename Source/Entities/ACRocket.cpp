@@ -218,8 +218,8 @@ int ACRocket::Write(Writer& writer, const Entity& entityReference, HashingData& 
 	writer.NewOptionalEntityPointerProperty("ULThruster", m_pULThruster, hashData);
 	writer.NewDistinctHashedProperty("RaisedGearLimbPath", m_Paths[RIGHT][RAISED], hashData);
 	writer.NewDistinctHashedProperty("LoweredGearLimbPath", m_Paths[RIGHT][LOWERED], hashData);
-	writer.NewDistinctHashedProperty("RaisingGearLimbPath", m_Paths[RIGHT][RAISING], hashData);
 	writer.NewDistinctHashedProperty("LoweringGearLimbPath", m_Paths[RIGHT][LOWERING], hashData);
+	writer.NewDistinctHashedProperty("RaisingGearLimbPath", m_Paths[RIGHT][RAISING], hashData);
 	
 	if (m_MaxGimbalAngle != reference.m_MaxGimbalAngle)
 		writer.NewPropertyWithValue("MaxGimbalAngle", m_MaxGimbalAngle / (c_PI / 180.0F));

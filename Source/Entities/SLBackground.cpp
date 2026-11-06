@@ -166,6 +166,7 @@ HashingData SLBackground::Hash() const {
 	AddToHash(hash, m_AutoScrollStep.Hash().m_Hash);
 	AddToHash(hash, m_CanAutoScrollX);
 	AddToHash(hash, m_CanAutoScrollY);
+	AddToHash(hash, m_IgnoreAutoScale);
 
 	return hashData;
 }
