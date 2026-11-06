@@ -115,7 +115,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		*sceneLayerInfos = std::move(scene->GetCopiedSceneLayerBitmaps());
 	});
 
-	// We need a copy of our scene, because we have to do some fixup to remove PLACEONLOAD items and only keep the current MovableMan state.
+	// We need a copy of our scene, because saving points its layers at the saved game, and the scene in play has to keep what it has.
 	std::unique_ptr<Scene> modifiableScene(dynamic_cast<Scene*>(scene->Clone()));
 
 	modifiableScene->SetSavedGameInternal(true);

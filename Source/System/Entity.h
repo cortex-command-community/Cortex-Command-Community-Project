@@ -298,7 +298,7 @@ namespace RTE {
 
 		/// Gets a complete description of the entity, first class name, then module name (if defined in module), finally preset name, each seperated with a '/'.
 		/// This is useful for saving written references to a preset in a short and distinct form.
-		/// @return A string with the module and instance name of this Entity.
+		/// @return A string with the class, module and preset name of this Entity.
 		std::string GetEntityCharacteristic() const;
 
 		/// Gets the name of this Entity's data Preset, preceded by the name of the Data Module it was defined in, separated with a '/'.

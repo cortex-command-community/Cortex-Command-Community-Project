@@ -15,7 +15,7 @@ namespace RTE {
 
 	public:
 #pragma region Global Macro Definitions
-	/// Convenience macro to cut down on duplicate ReadProperty and Save methods in classes that extend Serializable.
+	/// Convenience macro to cut down on duplicate ReadProperty, Save and Hash methods in classes that extend Serializable.
 #define SerializableOverrideMethods \
 	int ReadProperty(const std::string_view& propName, Reader& reader) override; \
 	int Save(Writer& writer) const override; \

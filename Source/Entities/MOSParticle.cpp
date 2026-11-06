@@ -68,7 +68,7 @@ int MOSParticle::Save(Writer& writer) const {
 int MOSParticle::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
 	MOSprite::Write(writer, entityReference, hashData);
 
-	writer.NewDistinctHashedProperty("Atom", *m_Atom, hashData);
+	writer.NewEntityPointerProperty("Atom", m_Atom, hashData);
 
 	return 0;
 }
