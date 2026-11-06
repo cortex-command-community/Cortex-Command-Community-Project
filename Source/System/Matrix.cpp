@@ -78,9 +78,9 @@ HashingData Matrix::Hash() const {
 	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	// TODO: Check if this is actually a proper mapping, since the whole point is to compare whether two orientations are functionally identical
-	hash ^= static_cast<uint64_t>(m_Flipped[X] ^ m_Flipped[Y]);
-	hash ^= static_cast<uint64_t>(std::fmod(m_Rotation + PI * m_Flipped[Y], 2 * PI));
+	// This compares what an orientation does, not how it got there: flipping both axes is the same as half a turn.
+	hash ^= static_cast<uint64_t>(m_Flipped[X] != m_Flipped[Y]);
+	hash ^= std::hash<float>{}(NormalizeAngleBetween0And2PI(m_Rotation + PI * m_Flipped[Y])) << 1;
 
 	return hashData;
 }
