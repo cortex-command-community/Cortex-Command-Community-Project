@@ -286,8 +286,6 @@ int GameActivity::Save(Writer& writer) const {
 int GameActivity::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
 	Activity::Write(writer, entityReference, hashData);
 
-	const GameActivity& reference = static_cast<const GameActivity&>(entityReference);
-
 	writer.NewPropertyWithValue("CPUTeam", m_CPUTeam);
 	writer.NewPropertyWithValue("DeliveryDelay", m_DeliveryDelay);
 	writer.NewPropertyWithValue("BuyMenuEnabled", m_BuyMenuEnabled);

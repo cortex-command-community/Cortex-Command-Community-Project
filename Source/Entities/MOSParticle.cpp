@@ -68,8 +68,6 @@ int MOSParticle::Save(Writer& writer) const {
 int MOSParticle::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
 	MOSprite::Write(writer, entityReference, hashData);
 
-	const MOSParticle& reference = static_cast<const MOSParticle&>(entityReference);
-
 	writer.NewDistinctHashedProperty("Atom", *m_Atom, hashData);
 
 	return 0;
