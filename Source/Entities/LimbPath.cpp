@@ -131,6 +131,8 @@ int LimbPath::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("_ClearSegments", {
 		reader.ReadPropValue();
 		m_Segments.clear();
+		m_TotalLength = 0.0F;
+		m_RegularLength = 0.0F;
 	});
 	MatchForwards("AddSegment") MatchProperty("_AddSegment", {
 		Vector segment;
