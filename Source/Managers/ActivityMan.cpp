@@ -12,6 +12,7 @@
 #include "PostProcessMan.h"
 #include "MetaMan.h"
 #include "ThreadMan.h"
+#include "GameVersion.h"
 
 #include "GAScripted.h"
 #include "SLTerrain.h"
@@ -164,6 +165,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	// Save a small little file with index info (activity and original scene name) so we can display info in the samegame menu without needing to decompress and read through the entire zip
 	std::unique_ptr<std::stringstream> indexStream = std::make_unique<std::stringstream>();
 	Writer* indexWriter = new Writer(std::move(indexStream));
+	indexWriter->NewPropertyWithValue("SaveFormatVersion", c_SaveFormatVersion);
 	indexWriter->NewPropertyWithValue("ActivityName", activity->GetPresetName());
 	indexWriter->NewPropertyWithValue("OriginalScenePresetName", scene->GetPresetName());
 
@@ -328,6 +330,29 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 		free(buffer);
 		return image;
 	};
+
+	// Reading a save in another format would abort the game, so this needs checking before anything is read from it. Saves from before there was a marker count as 0.
+	int saveFormatVersion = 0;
+	if (unzipFileIntoBuffer("Index.ini")) {
+		buffer[info.uncompressed_size] = 0; // null terminate
+
+		Reader indexReader(std::make_unique<std::istringstream>(buffer), filePath + "/Index.ini", true, nullptr, false);
+		while (indexReader.NextProperty()) {
+			if (indexReader.ReadPropName() == "SaveFormatVersion") {
+				indexReader >> saveFormatVersion;
+			} else {
+				indexReader.ReadPropValue();
+			}
+		}
+
+		free(buffer);
+	}
+
+	if (saveFormatVersion != c_SaveFormatVersion) {
+		unzClose(zippedSaveFile);
+		RTEError::ShowMessageBox("Game loading failed! \"" + fileName + "\" was made by " + (saveFormatVersion < c_SaveFormatVersion ? "an older" : "a newer") + " version of the game, and its save format can't be read by this one.");
+		return false;
+	}
 
 	// Manually load all our bitmaps into our cache so the activity skips looking for the file and just gets it directly from us
 	if (unzipFileIntoBuffer("Save Mat.png")) {

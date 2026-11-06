@@ -277,7 +277,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `Loadout` references that could never be valid now cause an assert, which leaves them out of the `Loadout` if ignored, as does a preset that a loaded module doesn't have. A reference to a module that isn't loaded stays silent, so a `Loadout` can outlive a removed mod. Old-format entries in a player's `LoadoutsP*.ini` are dropped, with a message in the console.
 
-- Saved games now only record what differs from each object's preset, which makes them much smaller.
+- Saved games now only record what differs from each object's preset, which makes them much smaller.  
+	They also record the version of their format. Loading one in another format, which includes every save made before this, now shows a message rather than crashing the game.
 
 - Menus and prompts now show `DisplayName` instead of `PresetName`.
 
