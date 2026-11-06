@@ -162,11 +162,10 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_PieSlices.clear();
 	});
 	MatchProperty("AddPieSlice", {
-		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
-		if (PieSlice* reference = dynamic_cast<PieSlice*>(entityReference)) {
-			m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(reference));
+		if (PieSlice* pieSlice = g_PresetMan.ReadReflectedPresetOfType<PieSlice>(reader, propName)) {
+			m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(pieSlice));
 		} else {
-			reader.ReportError("Tried to AddPieSlice a non-PieSlice type!");
+			reader.ReportError("Tried to add a pie slice that isn't one!");
 		}
 	});
 

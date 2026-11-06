@@ -147,7 +147,7 @@ int Activity::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("SceneName", { reader >> m_SceneName; });
 	MatchProperty("MaxPlayerSupport", { reader >> m_MaxPlayerSupport; });
 	MatchProperty("MinTeamsRequired", { reader >> m_MinTeamsRequired; });
-	MatchForwards("Difficulty") MatchProperty("_Difficulty", { reader >> m_Difficulty; });
+	MatchProperty("Difficulty", { reader >> m_Difficulty; });
 	MatchProperty("CraftOrbitAtTheEdge", { reader >> m_CraftOrbitAtTheEdge; });
 	MatchProperty("InCampaignStage", { reader >> m_InCampaignStage; });
 	MatchProperty("AllowsUserSaving", { reader >> m_AllowsUserSaving; });

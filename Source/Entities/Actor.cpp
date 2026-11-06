@@ -357,15 +357,8 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_Inventory.clear();
 	});
 	MatchForwards("AddInventoryDevice") MatchProperty("AddInventory", {
-		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
-		if (entityReference != nullptr) {
-			if (MovableObject* reference = dynamic_cast<MovableObject*>(entityReference)) {
-				AddToInventoryBack(reference);
-			} else {
-				reader.ReportError("Tried to AddInventory to a non-MovableObject type!");
-			}
-		} else {
-			reader.ReportError("Tried to AddInventory... nothing?");
+		if (MovableObject* inventoryItem = g_PresetMan.ReadReflectedPresetOfType<MovableObject>(reader, propName)) {
+			AddToInventoryBack(inventoryItem);
 		}
 	});
 	MatchProperty("MaxInventoryMass", { reader >> m_MaxInventoryMass; });

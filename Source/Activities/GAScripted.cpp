@@ -97,9 +97,6 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 	MatchProperty("_ClearPieSlices", {
 		reader.ReadPropValue();
-		for (std::unique_ptr<PieSlice>& pieSlice: m_PieSlicesToAdd) {
-			delete pieSlice.release();
-		}
 		m_PieSlicesToAdd.clear();
 	});
 	MatchProperty("AddPieSlice", {

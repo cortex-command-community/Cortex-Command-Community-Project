@@ -569,7 +569,7 @@ int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingD
 	writer.NewDistinctProperty("SimUpdatesBetweenScriptedUpdates", m_SimUpdatesBetweenScriptedUpdates, reference.m_SimUpdatesBetweenScriptedUpdates);
 
 	if (m_NumberValueMap != reference.m_NumberValueMap) {
-		writer.NewPropertyWithValue("_ClearCustomNumberValues", "1");
+		writer.NewPropertyWithValue("_ClearCustomNumberValues", 1);
 	}
 
 	for (const auto& [key, value]: m_NumberValueMap) {
@@ -580,7 +580,7 @@ int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingD
 	}
 
 	if (m_StringValueMap != reference.m_StringValueMap) {
-		writer.NewPropertyWithValue("_ClearCustomStringValues", "1");
+		writer.NewPropertyWithValue("_ClearCustomStringValues", 1);
 	}
 
 	for (const auto& [key, value]: m_StringValueMap) {

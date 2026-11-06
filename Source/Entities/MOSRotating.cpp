@@ -298,9 +298,8 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 		}
 	});
 	MatchForwards("AddAEmitter") MatchForwards("AddEmitter") MatchProperty("AddAttachable", {
-		Entity* readerEntity = g_PresetMan.ReadReflectedPreset(reader);
-		if (Attachable* readerAttachable = dynamic_cast<Attachable*>(readerEntity)) {
-			AddAttachable(readerAttachable);
+		if (Attachable* attachable = g_PresetMan.ReadReflectedPresetOfType<Attachable>(reader, propName)) {
+			AddAttachable(attachable);
 		} else {
 			reader.ReportError("Tried to AddAttachable a non-Attachable type!");
 		}
@@ -310,11 +309,10 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 		RemoveWounds(GetWoundCount());
 	});
 	MatchForwards("SpecialBehaviour_AddWound") MatchProperty("AddWound", {
-		Entity* readerEntity = g_PresetMan.ReadReflectedPreset(reader);
-		if (AEmitter* readerWound = dynamic_cast<AEmitter*>(readerEntity)) {
-			AddWound(readerWound, readerWound->GetParentOffset());
+		if (AEmitter* wound = g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)) {
+			AddWound(wound, wound->GetParentOffset());
 		} else {
-			reader.ReportError("Tried to AddWound a non-AEmitter (which is the type of a wound) type!");
+			reader.ReportError("Tried to AddWound a non-AEmitter type!");
 		}
 	});
 	MatchProperty("_ClearGibs", { 
