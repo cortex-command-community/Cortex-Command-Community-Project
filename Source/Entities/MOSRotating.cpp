@@ -364,18 +364,17 @@ int MOSRotating::Save(Writer& writer) const {
 	writer.NewProperty("OrientToVel");
 	writer << m_OrientToVel;
 
-	for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr)
-	{
-	    writer.NewProperty("AddEmitter");
-	    writer << (*itr);
+	for (const AEmitter* wound: m_Wounds) {
+		writer.NewPropertyWithValue("_AddWound", wound);
 	}
 
-	for (auto aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr)
-	{
-	    writer.NewProperty("AddAttachable");
-	    writer << (*aItr);
+	// Hardcoded Attachables are written through their own properties.
+	for (const Attachable* attachable: m_Attachables) {
+		if (!AttachableIsHardcoded(attachable)) {
+			writer.NewPropertyWithValue("_AddAttachable", attachable);
+		}
 	}
-	
+
 	for (auto gItr = m_Gibs.begin(); gItr != m_Gibs.end(); ++gItr) {
 		writer.NewProperty("AddGib");
 		writer << (**gItr);
