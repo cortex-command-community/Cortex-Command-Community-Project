@@ -282,12 +282,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`Material = None` on a `TerrainDebris`, `TerrainFrosting`, `Atom` or `AtomGroup`.  
 	Leaving out an `Atom` or `AtomGroup`'s `Material` still means Air, and `None` is still fine for a part an object can go without, such as `Head = None`.
 
-- A `Loadout` reference that's malformed, of the wrong class, or names a preset that a loaded module doesn't have now causes an assert, and is left out if ignored. A reference to a module that isn't loaded stays silent, so a `Loadout` can outlive a removed mod.  
-	Old-format entries in a player's `LoadoutsP*.ini` are left out when it's read, with a message in the console, and are gone from the file the next time that player's loadouts are saved.
+- A `Loadout` in a module with a reference that's malformed, of the wrong class, or names a preset that module's data doesn't have now causes an assert, and the reference is left out if ignored.  
+	In a player's `LoadoutsP*.ini`, a reference to a module that isn't loaded is left out silently, a preset missing from a loaded module causes an assert, and anything else, including the old format, gets a message in the console.  
+	Whatever is left out is gone from the file the next time that player's loadouts are saved, even if the mod comes back.
 
 - Saved games now only record what differs from each object's preset. In Decision Day this makes their data about a third of the size, though the terrain images still make up most of a `.ccsave`.  
-	Anything a script changes on an object now survives saving and loading, where many properties used to go back to their preset's value. A script that multiplies a value in `Create` or when it sees a new object will multiply it again on every load, unless it marks the object to avoid that.  
-	Properties starting with an underscore, such as `_ClearGibs` and `_Activated`, are what saved games are written with. You shouldn't need them in hand-written data.  
+	Most of what a script changes on an object now survives saving and loading, where many properties used to go back to their preset's value. A script that multiplies a value in `Create` or when it sees a new object will multiply it again on every load, unless it marks the object to avoid that.  
+	Properties starting with an underscore, such as `_ClearGibs` and `_Activated`, are for saved games. You shouldn't need them in hand-written data.  
 	Saved games made before this still load, as they only ever named presets with `CopyOf`.
 
 - Global scripts that change objects, such as Tough Units and Faster Walking, now cover every actor, including ones inside a craft. They no longer stack when a game is loaded, and they undo their changes if they're turned off partway through a game.
