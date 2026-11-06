@@ -433,7 +433,7 @@ int MovableObject::Save(Writer& writer) const {
 	if (m_Scale != 1.0F) writer.NewPropertyWithValue("Scale", m_Scale);
 	if (m_GlobalAccScalar != 1.0F) writer.NewPropertyWithValue("GlobalAccScalar", m_GlobalAccScalar);
 	if (m_AirResistance != 0.0F) writer.NewPropertyWithValue("AirResistance", m_AirResistance * 0.01666F); // Backwards compatibility after we made this value scaled over time
-	if (m_AirThreshold != 0.0F) writer.NewPropertyWithValue("AirThreshold", m_AirThreshold);
+	if (m_AirThreshold != 5.0F) writer.NewPropertyWithValue("AirThreshold", m_AirThreshold);
 	if (m_PinStrength != 0.0F) writer.NewPropertyWithValue("PinStrength", m_PinStrength);
 	if (m_RestThreshold != 500) writer.NewPropertyWithValue("RestThreshold", m_RestThreshold);
 	if (m_Lifetime != 0.0F) writer.NewPropertyWithValue("LifeTime", m_Lifetime);
@@ -487,7 +487,8 @@ int MovableObject::Save(Writer& writer) const {
 		writer.ObjectEnd();
 	}
 
-	if (m_ForceIntoMasterLuaState != false) writer.NewPropertyWithValue("ForceIntoMasterLuaState", m_ForceIntoMasterLuaState);
+	// What this defaults to depends on the settings, so leaving it out wouldn't always read back the same.
+	writer.NewPropertyWithValue("ForceIntoMasterLuaState", m_ForceIntoMasterLuaState);
 
 	return 0;
 }

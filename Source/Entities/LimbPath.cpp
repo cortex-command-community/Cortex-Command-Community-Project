@@ -195,8 +195,7 @@ Vector LimbPath::ToWorldSpace(const Vector& position) const {
 int LimbPath::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	if (!m_BaseScaleMultiplier.IsZero())
-		writer.NewPropertyWithValue("StartOffset", m_Start);
+	writer.NewPropertyWithValue("StartOffset", m_Start);
 
 	writer.NewDistinctProperty("StartSegCount", m_StartSegCount, (size_t) 0);
 

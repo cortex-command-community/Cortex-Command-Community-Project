@@ -109,7 +109,7 @@ int Emission::Save(Writer& writer) const {
 	if (m_InheritsAngularVel != 0.0F) writer.NewPropertyWithValue("InheritsAngularVel", m_InheritsAngularVel);
 	if (!m_Offset.IsZero()) writer.NewPropertyWithValue("Offset", m_Offset);
 	if (m_StartTimer.GetSimTimeLimitMS() != 0.0) writer.NewPropertyWithValue("StartTimeMS", m_StartTimer.GetSimTimeLimitMS());
-	if (m_StopTimer.GetSimTimeLimitMS() != 0.0) writer.NewPropertyWithValue("StopTimeMS", m_StopTimer.GetSimTimeLimitMS());
+	if (m_StopTimer.GetSimTimeLimitMS() != 1000000.0) writer.NewPropertyWithValue("StopTimeMS", m_StopTimer.GetSimTimeLimitMS());
 	if (m_ParticleCount != 1) writer.NewPropertyWithValue("ParticleCount", m_ParticleCount);
 
 	return 0;
