@@ -66,13 +66,7 @@ int ThrownDevice::ReadProperty(const std::string_view& propName, Reader& reader)
 	MatchProperty("TriggerDelay", { reader >> m_TriggerDelay; });
 	MatchProperty("ActivatesWhenReleased", { reader >> m_ActivatesWhenReleased; });
 	MatchProperty("StrikerLever", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		const MovableObject* reference = dynamic_cast<const MovableObject*>(entityReference);
-		if (entityReference == nullptr || reference != nullptr) {
-			m_StrikerLever = reference;
-		} else {
-			reader.ReportError("Tried to point StrikerLever to a non-MovableObject type!");
-		}
+		m_StrikerLever = g_PresetMan.ReadPresetReferenceOfType<MovableObject>(reader, propName);
 	});
 
 	EndPropertyList;

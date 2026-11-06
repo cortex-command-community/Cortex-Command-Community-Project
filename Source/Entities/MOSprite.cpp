@@ -175,22 +175,10 @@ int MOSprite::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("AngularVel", { reader >> m_AngularVel; });
 	MatchProperty("SettleMaterialDisabled", { reader >> m_SettleMaterialDisabled; });
 	MatchProperty("EntryWound", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		const AEmitter* reference = dynamic_cast<const AEmitter*>(entityReference);
-		if (entityReference == nullptr || reference != nullptr) {
-			m_pEntryWound = reference;
-		} else {
-			reader.ReportError("Tried to point EntryWound to a non-AEmitter type!");
-		}
+		m_pEntryWound = g_PresetMan.ReadPresetReferenceOfType<AEmitter>(reader, propName);
 	});
 	MatchProperty("ExitWound", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		const AEmitter* reference = dynamic_cast<const AEmitter*>(entityReference);
-		if (entityReference == nullptr || reference != nullptr) {
-			m_pExitWound = reference;
-		} else {
-			reader.ReportError("Tried to point ExitWound to a non-AEmitter type!");
-		}
+		m_pExitWound = g_PresetMan.ReadPresetReferenceOfType<AEmitter>(reader, propName);
 	});
 
 	EndPropertyList;

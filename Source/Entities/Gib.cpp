@@ -48,13 +48,7 @@ int Gib::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
 	MatchProperty("GibParticle", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		const MovableObject* reference = dynamic_cast<const MovableObject*>(entityReference);
-		if (entityReference == nullptr || reference != nullptr) {
-			m_GibParticle = reference;
-		} else {
-			reader.ReportError("Tried to point GibParticle to a non-MovableObject type!");
-		}
+		m_GibParticle = g_PresetMan.ReadPresetReferenceOfType<MovableObject>(reader, propName);
 	});
 	MatchProperty("Offset", { reader >> m_Offset; });
 	MatchProperty("Count", { reader >> m_Count; });

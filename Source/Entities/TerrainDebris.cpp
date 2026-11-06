@@ -84,21 +84,15 @@ int TerrainDebris::ReadProperty(const std::string_view& propName, Reader& reader
 		m_Bitmaps.reserve(m_BitmapCount);
 	});
 	MatchProperty("DebrisMaterial", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		const Material* reference = dynamic_cast<const Material*>(entityReference);
-		if (reference != nullptr) {
-			m_Material = reference;
-		} else {
-			reader.ReportError("Tried to point DebrisMaterial to something that isn't a Material!");
+		m_Material = g_PresetMan.ReadPresetReferenceOfType<Material>(reader, propName);
+		if (m_Material == nullptr) {
+			reader.ReportError("DebrisMaterial can't be None!");
 		}
 	});
 	MatchProperty("TargetMaterial", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		const Material* reference = dynamic_cast<const Material*>(entityReference);
-		if (reference != nullptr) {
-			m_TargetMaterial = reference;
-		} else {
-			reader.ReportError("Tried to point TargetMaterial to something that isn't a Material!");
+		m_TargetMaterial = g_PresetMan.ReadPresetReferenceOfType<Material>(reader, propName);
+		if (m_TargetMaterial == nullptr) {
+			reader.ReportError("TargetMaterial can't be None!");
 		}
 	});
 	MatchProperty("DebrisPlacementMode", {

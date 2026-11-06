@@ -133,12 +133,9 @@ int AtomGroup::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 	MatchProperty("Material", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		const Material* reference = dynamic_cast<const Material*>(entityReference);
-		if (reference != nullptr) {
-			m_Material = reference;
-		} else {
-			reader.ReportError("Tried to point Material to something that isn't a Material!");
+		m_Material = g_PresetMan.ReadPresetReferenceOfType<Material>(reader, propName);
+		if (m_Material == nullptr) {
+			reader.ReportError("Material can't be None!");
 		}
 	});
 	MatchProperty("AutoGenerate", { reader >> m_AutoGenerate; });

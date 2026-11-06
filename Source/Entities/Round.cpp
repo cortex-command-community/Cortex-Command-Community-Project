@@ -75,13 +75,7 @@ int Round::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 	MatchProperty("Particle", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		const MovableObject* reference = dynamic_cast<const MovableObject*>(entityReference);
-		if (entityReference == nullptr || reference != nullptr) {
-			m_Particle = reference;
-		} else {
-			reader.ReportError("Tried to point Particle to a non-MovableObject type!");
-		}
+		m_Particle = g_PresetMan.ReadPresetReferenceOfType<MovableObject>(reader, propName);
 	});
 	MatchProperty("ParticleCount", { reader >> m_ParticleCount; });
 	MatchProperty("FireVelocity", { reader >> m_FireVel; });
@@ -89,13 +83,7 @@ int Round::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("Separation", { reader >> m_Separation; });
 	MatchProperty("LifeVariation", { reader >> m_LifeVariation; });
 	MatchProperty("Shell", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		const MovableObject* reference = dynamic_cast<const MovableObject*>(entityReference);
-		if (entityReference == nullptr || reference != nullptr) {
-			m_Shell = reference;
-		} else {
-			reader.ReportError("Tried to point Shell to a non-MovableObject type!");
-		}
+		m_Shell = g_PresetMan.ReadPresetReferenceOfType<MovableObject>(reader, propName);
 	});
 	MatchProperty("ShellVelocity", { reader >> m_ShellVel; });
 	MatchProperty("FireSound", { reader >> m_FireSound; });

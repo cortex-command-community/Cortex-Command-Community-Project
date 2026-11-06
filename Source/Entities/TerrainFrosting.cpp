@@ -31,21 +31,15 @@ int TerrainFrosting::ReadProperty(const std::string_view& propName, Reader& read
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
 	MatchProperty("FrostingMaterial", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		const Material* reference = dynamic_cast<const Material*>(entityReference);
-		if (reference != nullptr) {
-			m_FrostingMaterial = reference;
-		} else {
-			reader.ReportError("Tried to point FrostingMaterial to something that isn't a Material!");
+		m_FrostingMaterial = g_PresetMan.ReadPresetReferenceOfType<Material>(reader, propName);
+		if (m_FrostingMaterial == nullptr) {
+			reader.ReportError("FrostingMaterial can't be None!");
 		}
 	});
 	MatchProperty("TargetMaterial", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		const Material* reference = dynamic_cast<const Material*>(entityReference);
-		if (reference != nullptr) {
-			m_TargetMaterial = reference;
-		} else {
-			reader.ReportError("Tried to point TargetMaterial to something that isn't a Material!");
+		m_TargetMaterial = g_PresetMan.ReadPresetReferenceOfType<Material>(reader, propName);
+		if (m_TargetMaterial == nullptr) {
+			reader.ReportError("TargetMaterial can't be None!");
 		}
 	});
 	MatchProperty("MinThickness", { reader >> m_MinThickness; });

@@ -61,13 +61,7 @@ int Emission::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 	MatchProperty("EmittedParticle", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		const MovableObject* reference = dynamic_cast<const MovableObject*>(entityReference);
-		if (entityReference == nullptr || reference != nullptr) {
-			m_pEmission = reference;
-		} else {
-			reader.ReportError("Tried to point EmittedParticle to a non-MovableObject type!");
-		}
+		m_pEmission = g_PresetMan.ReadPresetReferenceOfType<MovableObject>(reader, propName);
 	});
 	MatchProperty("ParticlesPerMinute", { reader >> m_PPM; });
 	MatchProperty("BurstSize", { reader >> m_BurstSize; });

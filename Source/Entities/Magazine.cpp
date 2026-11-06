@@ -83,22 +83,10 @@ int Magazine::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("FullCapacity", { reader >> m_FullCapacity; });
 	MatchProperty("RTTRatio", { reader >> m_RTTRatio; });
 	MatchProperty("RegularRound", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		const Round* reference = dynamic_cast<const Round*>(entityReference);
-		if (entityReference == nullptr || reference != nullptr) {
-			m_pRegularRound = reference;
-		} else {
-			reader.ReportError("Tried to point RegularRound to a non-Round type!");
-		}
+		m_pRegularRound = g_PresetMan.ReadPresetReferenceOfType<Round>(reader, propName);
 	});
 	MatchProperty("TracerRound", { 
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		const Round* reference = dynamic_cast<const Round*>(entityReference);
-		if (entityReference == nullptr || reference != nullptr) {
-			m_pTracerRound = reference;
-		} else {
-			reader.ReportError("Tried to point TracerRound to a non-Round type!");
-		}
+		m_pTracerRound = g_PresetMan.ReadPresetReferenceOfType<Round>(reader, propName);
 	});
 	MatchProperty("Discardable", { reader >> m_Discardable; });
 	MatchProperty("AIBlastRadius", { reader >> m_AIBlastRadius; });

@@ -49,13 +49,7 @@ int SceneObject::SOPlacer::ReadProperty(const std::string_view& propName, Reader
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
 	MatchProperty("PlacedObject", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
-		const SceneObject* reference = dynamic_cast<const SceneObject*>(entityReference);
-		if (entityReference == nullptr || reference != nullptr) {
-			m_pObjectReference = reference;
-		} else {
-			reader.ReportError("Tried to point PlacedObject to a non-SceneObject type!");
-		}
+		m_pObjectReference = g_PresetMan.ReadPresetReferenceOfType<SceneObject>(reader, propName);
 	});
 	MatchProperty("Offset", { reader >> m_Offset; });
 	MatchProperty("Rotation", {
