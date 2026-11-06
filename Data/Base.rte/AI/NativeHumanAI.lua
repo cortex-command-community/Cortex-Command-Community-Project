@@ -68,7 +68,9 @@ function NativeHumanAI:Create(Owner)
 
 	-- the native AI assume the jetpack cannot be destroyed
 	if Owner.Jetpack then
-		if not Members.isPlayerOwned then
+		-- The fuel total is saved with the game, and this runs again when one is loaded.
+		if not Members.isPlayerOwned and not Owner.Jetpack:NumberValueExists("NativeAIFuelBonus") then
+			Owner.Jetpack:SetNumberValue("NativeAIFuelBonus", 1);
 			Owner.Jetpack.JetTimeTotal = Owner.Jetpack.JetTimeTotal * 1.2;	-- increase jetpack fuel to compensate for extra fuel spend
 		end
 
