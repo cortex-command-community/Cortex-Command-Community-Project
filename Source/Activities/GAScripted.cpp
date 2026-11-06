@@ -103,7 +103,11 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_PieSlicesToAdd.clear();
 	});
 	MatchForwards("AddPieSlice") MatchProperty("_AddPieSlice", {
-		m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader))));
+		if (PieSlice* pieSlice = g_PresetMan.ReadReflectedPresetOfType<PieSlice>(reader, propName)) {
+			m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(pieSlice));
+		} else {
+			reader.ReportError("Tried to add a pie slice that isn't one!");
+		}
 	});
 
 	MatchProperty("_ClearRequiredAreas", {
