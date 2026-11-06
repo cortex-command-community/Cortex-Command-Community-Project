@@ -165,8 +165,8 @@ HashingData Material::Hash() const {
 	AddToHash(hash, m_VolumeDensity);
 	AddToHash(hash, m_GibImpulseLimitPerLiter);
 	AddToHash(hash, m_GibWoundLimitPerLiter);
-	AddToHash(hash, std::hash<unsigned char>{}(m_SettleMaterialIndex));
-	AddToHash(hash, std::hash<unsigned char>{}(m_SpawnMaterialIndex));
+	AddToHash(hash, m_SettleMaterialIndex);
+	AddToHash(hash, m_SpawnMaterialIndex);
 	AddToHash(hash, m_IsScrap);
 
 	uint64_t colorHash = m_Color.Hash().m_Hash;

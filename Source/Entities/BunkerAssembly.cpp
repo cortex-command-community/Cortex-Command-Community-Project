@@ -270,10 +270,8 @@ HashingData BunkerAssembly::Hash() const {
 	AddToHash(hash, RTE::Hash(m_ParentSchemeGroup));
 	AddToHash(hash, RTE::Hash(m_SymmetricAssembly));
 
-	int i = 0;
 	for (const SceneObject* placedObject: m_PlacedObjects) {
 		AddToHash(hash, placedObject->Hash().m_Hash);
-		i++;
 	}
 
 	return hashData;

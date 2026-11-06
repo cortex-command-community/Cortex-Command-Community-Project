@@ -135,8 +135,8 @@ HashingData DynamicSongSection::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, std::hash<unsigned int>{}(m_LastTransitionSoundContainerIndex));
-	AddToHash(hash, std::hash<unsigned int>{}(m_LastSoundContainerIndex));
+	AddToHash(hash, m_LastTransitionSoundContainerIndex);
+	AddToHash(hash, m_LastSoundContainerIndex);
 	AddToHash(hash, m_SoundContainerSelectionCycleMode);
 	AddToHash(hash, RTE::Hash(m_SectionType));
 

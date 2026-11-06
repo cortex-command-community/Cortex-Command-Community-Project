@@ -616,7 +616,7 @@ HashingData MovableObject::Hash() const {
 	AddToHash(hash, m_AirThreshold);
 	AddToHash(hash, m_PinStrength);
 	AddToHash(hash, m_RestThreshold);
-	AddToHash(hash, std::hash<unsigned long>{}(m_Lifetime));
+	AddToHash(hash, m_Lifetime);
 	AddToHash(hash, m_Sharpness);
 	AddToHash(hash, m_HitsMOs);
 	AddToHash(hash, m_GetsHitByMOs);
@@ -628,12 +628,9 @@ HashingData MovableObject::Hash() const {
 	AddToHash(hash, m_CanBeSquished);
 	AddToHash(hash, m_HUDVisible);
 
-	int i = 0;
-
 	for (const auto& scriptPath: m_AllLoadedScripts) {
 		if (!scriptPath.empty()) {
 			AddToHash(hash, RTE::Hash(ScriptEnabled(scriptPath) ? scriptPath : scriptPath + " disabled"));
-			i++;
 		}
 	}
 

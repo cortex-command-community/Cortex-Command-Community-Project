@@ -151,7 +151,7 @@ HashingData Round::Hash() const {
 	hashData.m_Constituents.push_back(fireSoundHash);
 	AddToHash(hash, fireSoundHash);
 
-	AddToHash(hash, std::hash<unsigned long>{}(m_AILifeTime));
+	AddToHash(hash, m_AILifeTime);
 	AddToHash(hash, m_AIFireVel);
 	AddToHash(hash, m_AIPenetration);
 

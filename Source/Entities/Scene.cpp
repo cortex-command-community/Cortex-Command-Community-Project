@@ -1294,9 +1294,9 @@ HashingData Scene::Hash() const {
 	AddToHash(hash, m_Location.Hash().m_Hash);
 	AddToHash(hash, m_MetagamePlayable);
 
-	uint64_t locationHash = m_PreviewBitmapFile.Hash().m_Hash;
-	hashData.m_Constituents.push_back(locationHash);
-	AddToHash(hash, locationHash);
+	uint64_t previewBitmapHash = m_PreviewBitmapFile.Hash().m_Hash;
+	hashData.m_Constituents.push_back(previewBitmapHash);
+	AddToHash(hash, previewBitmapHash);
 
 	AddToHash(hash, RTE::Hash(m_MetasceneParent));
 	AddToHash(hash, m_IsMetagameInternal);

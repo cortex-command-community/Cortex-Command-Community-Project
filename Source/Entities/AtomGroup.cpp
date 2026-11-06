@@ -249,9 +249,7 @@ HashingData AtomGroup::Hash() const {
 		}
 	}
 
-	uint64_t jointHash = m_JointOffset.Hash().m_Hash;
-	hashData.m_Constituents.push_back(jointHash);
-	AddToHash(hash, jointHash);
+	AddToHash(hash, m_JointOffset.Hash().m_Hash);
 
 	AddToHash(hash, m_AreaDistributionType);
 	AddToHash(hash, m_AreaDistributionSurfaceAreaMultiplier);

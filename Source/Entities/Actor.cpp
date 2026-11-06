@@ -566,7 +566,7 @@ HashingData Actor::Hash() const {
 	AddToHash(hash, m_Status);
 	AddToHash(hash, m_Health);
 	AddToHash(hash, m_MaxHealth);
-	AddToHash(hash, std::hash<unsigned int>{}(m_DeploymentID));
+	AddToHash(hash, m_DeploymentID);
 	AddToHash(hash, m_TravelImpulseDamage);
 	AddToHash(hash, m_StableVel.Hash().m_Hash);
 	AddToHash(hash, m_StableRecoverDelay);

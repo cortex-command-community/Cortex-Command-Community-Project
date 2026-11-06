@@ -212,9 +212,7 @@ HashingData ACDropShip::Hash() const {
 		AddToHash(hash, lHatchHash);
 	}
 
-	uint64_t hatchSwingRangeHash = m_HatchSwingRange.Hash().m_Hash;
-	hashData.m_Constituents.push_back(hatchSwingRangeHash);
-	AddToHash(hash, hatchSwingRangeHash);
+	AddToHash(hash, m_HatchSwingRange.Hash().m_Hash);
 
 	AddToHash(hash, m_AutoStabilize);
 	AddToHash(hash, m_MaxEngineAngle);

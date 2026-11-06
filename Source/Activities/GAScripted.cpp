@@ -180,11 +180,8 @@ HashingData GAScripted::Hash() const {
 
 	hashData.m_ParseValues.push_back(i);
 
-	i = 0;
-
 	for (const std::string& requiredArea: m_RequiredAreas) {
 		AddToHash(hash, RTE::Hash(requiredArea));
-		i++;
 	}
 
 	return hashData;

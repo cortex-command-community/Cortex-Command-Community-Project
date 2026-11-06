@@ -290,17 +290,17 @@ HashingData ACRocket::Hash() const {
 	bool urThrusterDef = m_pURThruster != nullptr;
 	hashData.m_ParseValues.push_back(urThrusterDef);
 	if (urThrusterDef) {
-		uint64_t urFootGroupHash = m_pURThruster->Hash().m_Hash;
-		hashData.m_Constituents.push_back(urFootGroupHash);
-		AddToHash(hash, urFootGroupHash);
+		uint64_t urThrusterHash = m_pURThruster->Hash().m_Hash;
+		hashData.m_Constituents.push_back(urThrusterHash);
+		AddToHash(hash, urThrusterHash);
 	}
 
 	bool ulThrusterDef = m_pULThruster != nullptr;
 	hashData.m_ParseValues.push_back(ulThrusterDef);
 	if (ulThrusterDef) {
-		uint64_t ulFootGroupHash = m_pULThruster->Hash().m_Hash;
-		hashData.m_Constituents.push_back(ulFootGroupHash);
-		AddToHash(hash, ulFootGroupHash);
+		uint64_t ulThrusterHash = m_pULThruster->Hash().m_Hash;
+		hashData.m_Constituents.push_back(ulThrusterHash);
+		AddToHash(hash, ulThrusterHash);
 	}
 
 	uint64_t rightRaisedPathHash = m_Paths[RIGHT][RAISED].Hash().m_Hash;
