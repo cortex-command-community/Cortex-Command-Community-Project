@@ -68,8 +68,7 @@ namespace RTE {
 			// Indicate where this was read from.
 			m_DefinedInModule = reader.GetReadModuleID();
 
-			// Preset name might have "[ModuleName]/" preceding it, detect it here and IGNORE IT!
-			// TODO: don't ignore it
+			// Preset name might have "[ModuleName]/" preceding it. It's deliberately ignored: a module can't define presets in another one, tempting as it is to let modules patch each other.
 			size_t slashPos = m_PresetName.find_first_of('/');
 			if (slashPos != std::string::npos) {
 				m_PresetName = m_PresetName.substr(slashPos + 1);
@@ -86,8 +85,7 @@ namespace RTE {
 			// Indicate where this was read from
 			m_DefinedInModule = reader.GetReadModuleID();
 
-			// Preset name might have "[ModuleName]/" preceding it, detect it here and IGNORE IT!
-			// TODO: don't ignore it
+			// Preset name might have "[ModuleName]/" preceding it. It's deliberately ignored: a module can't define presets in another one, tempting as it is to let modules patch each other.
 			int slashPos = m_PresetName.find_first_of('/');
 			if (slashPos != std::string::npos) {
 				m_PresetName = m_PresetName.substr(slashPos + 1);
@@ -173,13 +171,7 @@ namespace RTE {
 
 		writer.NewPropertyWithValue("CopyOf", entityReference.GetModuleAndPresetName());
 
-		// If this is an original preset, then we're writing a preset relative to it's reference,
-		// we will write both module and preset name, so that when it is read, if ever that behavior is implemented,
-		// it will be read into the module which we wish it were from, instead of the one which it is from.
-		// 
-		// this is exclusively to enable modders to screw with each other's stuff
-		// 
-		// For fun, if our preset name differs from the reference's, somehow, we may state the distinction
+		// If our preset name differs from the reference's, somehow, we may state the distinction.
 		if (m_IsOriginalPreset) {
 			writer.NewPropertyWithValue("PresetName", GetModuleAndPresetName());
 		} else if (m_PresetName != entityReference.m_PresetName) {
@@ -194,10 +186,6 @@ namespace RTE {
 			writer.NewPropertyWithValue("Description", m_PresetDescription);
 		}
 		
-		// There are some specific circumstances where it would be more compact to remove a set rather than clear
-		// when, of the groups including the preset, the number of groups shared plus the clear instruction is greater
-		// than the number of groups not shared.
-		// TODO: That^
 		if (m_Groups != entityReference.m_Groups) {
 			if (entityReference.m_Groups.size() > 0) {
 				writer.NewPropertyWithValue("_ClearGroups", 1);

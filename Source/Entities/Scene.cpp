@@ -1121,9 +1121,6 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Scene::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	// TODO: Have not written a Scene::Write because Scenes are actually saved as original presets, so not technically necessary.
-	// But if, hypothetically, you wanted to serialize a Scene relative to an existant preset (persistent scenes),
-	// you would need more and better save/load serialization to maintain terrain.
 
 	bool doFullGameSave = !dynamic_cast<EditorActivity*>(g_ActivityMan.GetActivity());
 

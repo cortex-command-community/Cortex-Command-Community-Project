@@ -248,7 +248,7 @@ HashingData DataModule::Hash() const {
 	 * ensuring that two connected clients have functionally identical copies of each mod,
 	 * but they actually need to be literally identical as well, due to Lua access to file structures.
 	 * 
-	 * Probably necessary, though, TODO: figure this out (among other things).
+	 * This maybe shouldn't be serialized at all.
 	 */
 
 	return HashingData(0);

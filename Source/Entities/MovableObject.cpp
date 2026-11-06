@@ -497,7 +497,6 @@ int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingD
 
 	const MOSprite& reference = static_cast<const MOSprite&>(entityReference);
 
-	// TODO: This could maybe do with a couple more templates so that fewer things are repeated, dunno, seems good enough
 
 	writer.NewDistinctProperty("Mass", m_Mass, reference.m_Mass);
 	writer.NewDistinctProperty("Velocity", m_Vel, reference.m_Vel);
@@ -591,9 +590,8 @@ HashingData MovableObject::Hash() const {
 	HashingData hashData(SceneObject::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	// TODO: These are all written under the assumption that the reading and writing functions are already approximately accurate.
-	// If the write function doesn't save things correctly, this got it's distinction criteria from that, so it's wrong too.
-	// I guess that's not much of a todo, more like a keep in mind, but you could look at it as an ongoing task.
+	// These are all written under the assumption that the reading and writing functions are already approximately accurate.
+	// If the write function doesn't save things correctly, this got its distinction criteria from that, so it's wrong too.
 
 	hash ^= static_cast<uint64_t>(m_Mass) << 1;
 	hash ^= m_Vel.Hash().m_Hash << 2;

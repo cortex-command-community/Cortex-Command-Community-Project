@@ -417,6 +417,6 @@ int SettingsMan::Save(Writer& writer) const {
 }
 
 HashingData SettingsMan::Hash() const {
-	// TODO: FINISH?
+	// Nothing compares this against a preset, so there's nothing to hash.
 	return Serializable::Hash();
 }
