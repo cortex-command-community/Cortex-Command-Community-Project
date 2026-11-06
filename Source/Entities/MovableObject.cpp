@@ -412,6 +412,9 @@ void MovableObject::ReadCustomValueProperty(Reader& reader) {
 			SetNumberValue(customKey, std::stod(customValue));
 		} catch (const std::invalid_argument) {
 			reader.ReportError("Tried to read a non-number value for SetNumberValue.");
+		} catch (const std::out_of_range) {
+			// Too small to be represented normally, which std::stod refuses even though it was written just fine.
+			SetNumberValue(customKey, 0.0);
 		}
 	} else if (customValueType == "StringValue") {
 		SetStringValue(customKey, customValue);

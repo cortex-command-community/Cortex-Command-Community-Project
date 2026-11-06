@@ -150,7 +150,11 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("InheritsRotAngle", { reader >> m_InheritsRotAngle; });
 	MatchForwards("InheritedRotAngleRadOffset") MatchProperty("InheritedRotAngleOffset", { reader >> m_InheritedRotAngleOffset; });
-	MatchProperty("InheritedRotAngleDegOffset", { m_InheritedRotAngleOffset = DegreesToRadians(std::stof(reader.ReadPropValue())); });
+	MatchProperty("InheritedRotAngleDegOffset", {
+		float inheritedRotAngleDegOffset;
+		reader >> inheritedRotAngleDegOffset;
+		m_InheritedRotAngleOffset = DegreesToRadians(inheritedRotAngleDegOffset);
+	});
 	MatchProperty("MountedRotAngleOffset", { reader >> m_MountedRotAngleOffset; });
 	MatchProperty("InheritsFrame", { reader >> m_InheritsFrame; });
 	MatchProperty("InheritsVelWhenDetached", { reader >> m_InheritsVelWhenDetached; });
