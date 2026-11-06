@@ -70,12 +70,17 @@ int AtomGroup::Create(const AtomGroup& reference, bool onlyCopyOwnerAtoms) {
 
 	m_OwnerMOSR = nullptr; // Needs to be set manually by the new MO owner.
 	m_Material = reference.m_Material;
-	m_AutoGenerate = reference.m_AutoGenerate; // TODO: Investigate if AutoGenerating here can screw something up when copy-creating over an existing AtomGroup.
+	m_AutoGenerate = reference.m_AutoGenerate;
 	m_Resolution = reference.m_Resolution;
 	m_Depth = reference.m_Depth;
 	m_JointOffset = reference.m_JointOffset;
 	m_AreaDistributionType = reference.m_AreaDistributionType;
 	m_AreaDistributionSurfaceAreaMultiplier = reference.m_AreaDistributionSurfaceAreaMultiplier;
+
+	// This can be copying over what's already here, as CopyOf does.
+	for (const Atom* atom: m_Atoms) {
+		delete atom;
+	}
 
 	m_Atoms.clear();
 	m_SubGroups.clear();
@@ -141,6 +146,9 @@ int AtomGroup::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("Depth", { reader >> m_Depth; });
 	MatchProperty("_ClearAtoms", {
 		reader.ReadPropValue();
+		for (const Atom* atom: m_Atoms) {
+			delete atom;
+		}
 		m_Atoms.clear();
 	});
 	MatchForwards("AddAtom") MatchProperty("_AddAtom", {
@@ -196,7 +204,9 @@ int AtomGroup::Write(Writer& writer, const Entity& entityReference, HashingData&
 
 	const AtomGroup& reference = static_cast<const AtomGroup&>(entityReference);
 
-	// TODO: autogeneration gives this more nuance, could be bad
+	// TODO: A manual group's list includes its Attachables' atoms, which they add again when they're loaded, doubling them.
+	// Nothing shipped has a manual main group with Attachables left on it to reach this, but a mod could.
+
 
 	writer.NewPresetReferenceProperty("Material", m_Material, reference.m_Material);
 	writer.NewDistinctProperty("AutoGenerate", m_AutoGenerate, reference.m_AutoGenerate);
