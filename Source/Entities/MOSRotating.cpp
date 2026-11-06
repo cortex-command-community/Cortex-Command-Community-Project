@@ -309,7 +309,7 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 		reader.ReadPropValue();
 		RemoveWounds(GetWoundCount());
 	});
-	MatchForwards("SpecialBehaviourAddWound") MatchProperty("AddWound", {
+	MatchForwards("SpecialBehaviour_AddWound") MatchProperty("AddWound", {
 		Entity* readerEntity = g_PresetMan.ReadReflectedPreset(reader);
 		if (AEmitter* readerWound = dynamic_cast<AEmitter*>(readerEntity)) {
 			AddWound(readerWound, readerWound->GetParentOffset());
