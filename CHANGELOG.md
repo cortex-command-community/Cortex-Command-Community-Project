@@ -347,6 +347,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed deliveries in transit being lost when saving, after their funds were already spent.
 
+- Fixed disabled scripts being enabled again by loading a saved game.
+
 - Fixed Dummy's `Loadout`s having no delivery craft, as they pointed at a preset that doesn't exist.
 
 </details>
