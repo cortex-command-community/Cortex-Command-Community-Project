@@ -152,32 +152,32 @@ HashingData Material::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= static_cast<uint64_t>(m_Priority) << 0;
-	hash ^= static_cast<uint64_t>(m_Piling) << 1;
-	hash ^= static_cast<uint64_t>(m_Integrity) << 2;
-	hash ^= static_cast<uint64_t>(m_Restitution) << 3;
-	hash ^= static_cast<uint64_t>(m_Friction) << 4;
-	hash ^= static_cast<uint64_t>(m_Stickiness) << 5;
-	hash ^= static_cast<uint64_t>(m_VolumeDensity) << 6;
-	hash ^= static_cast<uint64_t>(m_GibImpulseLimitPerLiter) << 7;
-	hash ^= static_cast<uint64_t>(m_GibWoundLimitPerLiter) << 8;
-	hash ^= std::hash<unsigned char>{}(m_SettleMaterialIndex) << 9;
-	hash ^= std::hash<unsigned char>{}(m_SpawnMaterialIndex) << 10;
-	hash ^= static_cast<uint64_t>(m_IsScrap) << 11;
+	AddToHash(hash, m_Priority);
+	AddToHash(hash, m_Piling);
+	AddToHash(hash, m_Integrity);
+	AddToHash(hash, m_Restitution);
+	AddToHash(hash, m_Friction);
+	AddToHash(hash, m_Stickiness);
+	AddToHash(hash, m_VolumeDensity);
+	AddToHash(hash, m_GibImpulseLimitPerLiter);
+	AddToHash(hash, m_GibWoundLimitPerLiter);
+	AddToHash(hash, std::hash<unsigned char>{}(m_SettleMaterialIndex));
+	AddToHash(hash, std::hash<unsigned char>{}(m_SpawnMaterialIndex));
+	AddToHash(hash, m_IsScrap);
 
 	uint64_t colorHash = m_Color.Hash().m_Hash;
 	hashData.m_Constituents.push_back(colorHash);
-	hash ^= colorHash << 12;
+	AddToHash(hash, colorHash);
 
-	hash ^= static_cast<uint64_t>(m_UseOwnColor) << 13;
+	AddToHash(hash, m_UseOwnColor);
 
 	uint64_t fgTextureHash = m_FGTextureFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(fgTextureHash);
-	hash ^= fgTextureHash << 14;
+	AddToHash(hash, fgTextureHash);
 
 	uint64_t bgTextureHash = m_BGTextureFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(bgTextureHash);
-	hash ^= bgTextureHash << 15;
+	AddToHash(hash, bgTextureHash);
 
 	return hashData;
 }

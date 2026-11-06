@@ -228,14 +228,15 @@ HashingData BunkerAssemblyScheme::Hash() const {
 
 	uint64_t bitmapHash = m_BitmapFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(bitmapHash);
-	hash ^= bitmapHash << 0;
+	AddToHash(hash, bitmapHash);
 
 	int i = 0;
 
 	for (std::list<SOPlacer>::const_iterator itr = m_ChildObjects.begin(); itr != m_ChildObjects.end(); ++itr) {
 		uint64_t childHash = (*itr).Hash().m_Hash;
 		hashData.m_Constituents.push_back(childHash);
-		hash ^= childHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, childHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);

@@ -97,11 +97,11 @@ HashingData MetaSave::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= RTE::Hash(m_SavePath) << 0;
-	hash ^= static_cast<uint64_t>(m_PlayerCount) << 1;
-	hash ^= static_cast<uint64_t>(m_Difficulty) << 2;
-	hash ^= static_cast<uint64_t>(m_RoundCount) << 3;
-	hash ^= static_cast<uint64_t>(m_SiteCount) << 4;
+	AddToHash(hash, RTE::Hash(m_SavePath));
+	AddToHash(hash, m_PlayerCount);
+	AddToHash(hash, m_Difficulty);
+	AddToHash(hash, m_RoundCount);
+	AddToHash(hash, m_SiteCount);
 
 	return hashData;
 }

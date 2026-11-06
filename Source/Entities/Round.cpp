@@ -150,22 +150,22 @@ HashingData Round::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= (m_Particle ? RTE::Hash(m_Particle->GetEntityCharacteristic()) : 0) << 0;
-	hash ^= static_cast<uint64_t>(m_ParticleCount) << 1;
-	hash ^= static_cast<uint64_t>(m_FireVel) << 2;
-	hash ^= static_cast<uint64_t>(m_InheritsFirerVelocity) << 3;
-	hash ^= static_cast<uint64_t>(m_Separation) << 4;
-	hash ^= static_cast<uint64_t>(m_LifeVariation) << 5;
-	hash ^= (m_Shell ? RTE::Hash(m_Shell->GetEntityCharacteristic()) : 0) << 6;
-	hash ^= static_cast<uint64_t>(m_ShellVel) << 7;
+	AddToHash(hash, (m_Particle ? RTE::Hash(m_Particle->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, m_ParticleCount);
+	AddToHash(hash, m_FireVel);
+	AddToHash(hash, m_InheritsFirerVelocity);
+	AddToHash(hash, m_Separation);
+	AddToHash(hash, m_LifeVariation);
+	AddToHash(hash, (m_Shell ? RTE::Hash(m_Shell->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, m_ShellVel);
 
 	uint64_t fireSoundHash = m_FireSound.Hash().m_Hash;
 	hashData.m_Constituents.push_back(fireSoundHash);
-	hash ^= fireSoundHash << 8;
+	AddToHash(hash, fireSoundHash);
 
-	hash ^= std::hash<unsigned long>{}(m_AILifeTime) << 9;
-	hash ^= static_cast<uint64_t>(m_AIFireVel) << 10;
-	hash ^= static_cast<uint64_t>(m_AIPenetration) << 11;
+	AddToHash(hash, std::hash<unsigned long>{}(m_AILifeTime));
+	AddToHash(hash, m_AIFireVel);
+	AddToHash(hash, m_AIPenetration);
 
 	return hashData;
 }

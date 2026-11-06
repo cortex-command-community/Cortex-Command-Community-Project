@@ -170,21 +170,21 @@ HashingData TerrainDebris::Hash() const {
 
 	uint64_t fileHash = m_DebrisFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(fileHash);
-	hash ^= fileHash << 0;
+	AddToHash(hash, fileHash);
 
-	hash ^= static_cast<uint64_t>(m_BitmapCount) << 1;
-	hash ^= RTE::Hash(m_Material->GetEntityCharacteristic()) << 2;
-	hash ^= RTE::Hash(m_TargetMaterial->GetEntityCharacteristic()) << 3;
-	hash ^= static_cast<uint64_t>(m_DebrisPlacementMode) << 4;
-	hash ^= static_cast<uint64_t>(m_OnlyBuried) << 5;
-	hash ^= static_cast<uint64_t>(m_MinDepth) << 6;
-	hash ^= static_cast<uint64_t>(m_MaxDepth) << 7;
-	hash ^= static_cast<uint64_t>(m_MinRotation) << 8;
-	hash ^= static_cast<uint64_t>(m_MaxRotation) << 9;
-	hash ^= static_cast<uint64_t>(m_CanHFlip) << 10;
-	hash ^= static_cast<uint64_t>(m_CanVFlip) << 11;
-	hash ^= static_cast<uint64_t>(m_FlipChance) << 12;
-	hash ^= static_cast<uint64_t>(m_Density) << 13;
+	AddToHash(hash, m_BitmapCount);
+	AddToHash(hash, RTE::Hash(m_Material->GetEntityCharacteristic()));
+	AddToHash(hash, RTE::Hash(m_TargetMaterial->GetEntityCharacteristic()));
+	AddToHash(hash, m_DebrisPlacementMode);
+	AddToHash(hash, m_OnlyBuried);
+	AddToHash(hash, m_MinDepth);
+	AddToHash(hash, m_MaxDepth);
+	AddToHash(hash, m_MinRotation);
+	AddToHash(hash, m_MaxRotation);
+	AddToHash(hash, m_CanHFlip);
+	AddToHash(hash, m_CanVFlip);
+	AddToHash(hash, m_FlipChance);
+	AddToHash(hash, m_Density);
 
 	return hashData;
 }

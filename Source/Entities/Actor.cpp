@@ -518,14 +518,14 @@ HashingData Actor::Hash() const {
 	HashingData hashData(MOSRotating::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= static_cast<uint64_t>(m_PlayerControllable) << 1;
+	AddToHash(hash, m_PlayerControllable);
 
 	bool bodyHitSoundDef = m_BodyHitSound != nullptr;
 	hashData.m_ParseValues.push_back(bodyHitSoundDef);
 	if (bodyHitSoundDef) {
 		uint64_t bodyHitSoundHash = m_BodyHitSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(bodyHitSoundHash);
-		hash ^= bodyHitSoundHash << 2;
+		AddToHash(hash, bodyHitSoundHash);
 	}
 
 	bool alarmSoundDef = m_AlarmSound != nullptr;
@@ -533,7 +533,7 @@ HashingData Actor::Hash() const {
 	if (alarmSoundDef) {
 		uint64_t alarmSoundHash = m_AlarmSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(alarmSoundHash);
-		hash ^= alarmSoundHash << 3;
+		AddToHash(hash, alarmSoundHash);
 	}
 
 	bool painSoundDef = m_PainSound != nullptr;
@@ -541,7 +541,7 @@ HashingData Actor::Hash() const {
 	if (painSoundDef) {
 		uint64_t painSoundHash = m_PainSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(painSoundHash);
-		hash ^= painSoundHash << 4;
+		AddToHash(hash, painSoundHash);
 	}
 
 	bool deathSoundDef = m_DeathSound != nullptr;
@@ -549,7 +549,7 @@ HashingData Actor::Hash() const {
 	if (deathSoundDef) {
 		uint64_t deathSoundHash = m_DeathSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(deathSoundHash);
-		hash ^= deathSoundHash << 5;
+		AddToHash(hash, deathSoundHash);
 	}
 
 	bool deviceSwitchSoundDef = m_DeviceSwitchSound != nullptr;
@@ -557,55 +557,56 @@ HashingData Actor::Hash() const {
 	if (deviceSwitchSoundDef) {
 		uint64_t deviceSwitchSoundHash = m_DeviceSwitchSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(deviceSwitchSoundHash);
-		hash ^= deviceSwitchSoundHash << 6;
+		AddToHash(hash, deviceSwitchSoundHash);
 	}
 
-	hash ^= static_cast<uint64_t>(m_Status) << 7;
-	hash ^= static_cast<uint64_t>(m_Health) << 8;
-	hash ^= static_cast<uint64_t>(m_MaxHealth) << 9;
-	hash ^= std::hash<unsigned int>{}(m_DeploymentID) << 10;
-	hash ^= static_cast<uint64_t>(m_TravelImpulseDamage) << 11;
-	hash ^= m_StableVel.Hash().m_Hash << 12;
-	hash ^= static_cast<uint64_t>(m_StableRecoverDelay) << 13;
-	hash ^= static_cast<uint64_t>(m_CanRun) << 14;
-	hash ^= static_cast<uint64_t>(m_CrouchWalkSpeedMultiplier) << 15;
-	hash ^= static_cast<uint64_t>(m_GoldCarried) << 0;
-	hash ^= static_cast<uint64_t>(m_AimAngle) << 1;
-	hash ^= static_cast<uint64_t>(m_AimRange) << 2;
-	hash ^= static_cast<uint64_t>(m_AimDistance) << 3;
-	hash ^= static_cast<uint64_t>(m_SharpAimDelay) << 4;
-	hash ^= static_cast<uint64_t>(m_SightDistance) << 5;
-	hash ^= static_cast<uint64_t>(m_Perceptiveness) << 6;
-	hash ^= static_cast<uint64_t>(m_PainThreshold) << 7;
-	hash ^= static_cast<uint64_t>(m_CanRevealUnseen) << 8;
-	hash ^= static_cast<uint64_t>(m_CharHeight) << 9;
-	hash ^= m_HolsterOffset.Hash().m_Hash << 10;
-	hash ^= m_ReloadOffset.Hash().m_Hash << 11;
+	AddToHash(hash, m_Status);
+	AddToHash(hash, m_Health);
+	AddToHash(hash, m_MaxHealth);
+	AddToHash(hash, std::hash<unsigned int>{}(m_DeploymentID));
+	AddToHash(hash, m_TravelImpulseDamage);
+	AddToHash(hash, m_StableVel.Hash().m_Hash);
+	AddToHash(hash, m_StableRecoverDelay);
+	AddToHash(hash, m_CanRun);
+	AddToHash(hash, m_CrouchWalkSpeedMultiplier);
+	AddToHash(hash, m_GoldCarried);
+	AddToHash(hash, m_AimAngle);
+	AddToHash(hash, m_AimRange);
+	AddToHash(hash, m_AimDistance);
+	AddToHash(hash, m_SharpAimDelay);
+	AddToHash(hash, m_SightDistance);
+	AddToHash(hash, m_Perceptiveness);
+	AddToHash(hash, m_PainThreshold);
+	AddToHash(hash, m_CanRevealUnseen);
+	AddToHash(hash, m_CharHeight);
+	AddToHash(hash, m_HolsterOffset.Hash().m_Hash);
+	AddToHash(hash, m_ReloadOffset.Hash().m_Hash);
 
 	int i = 0;
 
 	for (std::deque<MovableObject*>::const_iterator itr = m_Inventory.begin(); itr != m_Inventory.end(); ++itr) {
 		uint64_t inventoryItemHash = (*itr)->Hash().m_Hash;
 		hashData.m_Constituents.push_back(inventoryItemHash);
-		hash ^= inventoryItemHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, inventoryItemHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);
 
-	hash ^= static_cast<uint64_t>(m_MaxInventoryMass) << 12;
-	hash ^= static_cast<uint64_t>(m_AIMode) << 13;
+	AddToHash(hash, m_MaxInventoryMass);
+	AddToHash(hash, m_AIMode);
 
 	bool pieMenuDef = m_PieMenu != nullptr;
 	hashData.m_ParseValues.push_back(pieMenuDef);
 	if (pieMenuDef) {
 		uint64_t pieHash = m_PieMenu->Hash().m_Hash;
 		hashData.m_Constituents.push_back(pieHash);
-		hash ^= pieHash << 14;
+		AddToHash(hash, pieHash);
 	}
 
-	hash ^= static_cast<uint64_t>(m_Organic) << 15;
-	hash ^= static_cast<uint64_t>(m_Mechanical) << 0;
-	hash ^= static_cast<uint64_t>(m_AIBaseDigStrength) << 1;
+	AddToHash(hash, m_Organic);
+	AddToHash(hash, m_Mechanical);
+	AddToHash(hash, m_AIBaseDigStrength);
 
 	return hashData;
 }

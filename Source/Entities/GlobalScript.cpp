@@ -103,16 +103,17 @@ HashingData GlobalScript::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= static_cast<uint64_t>(m_LateUpdate) << 0;
-	hash ^= RTE::Hash(m_ScriptPath) << 1;
-	hash ^= RTE::Hash(m_LuaClassName) << 2;
+	AddToHash(hash, m_LateUpdate);
+	AddToHash(hash, RTE::Hash(m_ScriptPath));
+	AddToHash(hash, RTE::Hash(m_LuaClassName));
 
 	int i = 0;
 
 	for (const auto& pieSlice: m_PieSlicesToAdd) {
 		uint64_t sliceHash = pieSlice->Hash().m_Hash;
 		hashData.m_Constituents.push_back(sliceHash);
-		hash ^= sliceHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, sliceHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);

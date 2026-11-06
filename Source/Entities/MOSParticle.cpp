@@ -81,7 +81,7 @@ HashingData MOSParticle::Hash() const {
 
 	uint64_t atomHash = m_Atom->Hash().m_Hash;
 	hashData.m_Constituents.push_back(atomHash);
-	hash ^= atomHash << 0;
+	AddToHash(hash, atomHash);
 
 	return hashData;
 }

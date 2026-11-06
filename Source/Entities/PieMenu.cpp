@@ -268,14 +268,14 @@ HashingData PieMenu::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= static_cast<uint64_t>(m_IconSeparatorMode) << 0;
-	hash ^= static_cast<uint64_t>(m_FullInnerRadius) << 1;
-	hash ^= static_cast<uint64_t>(m_BackgroundThickness) << 2;
-	hash ^= static_cast<uint64_t>(m_BackgroundSeparatorSize) << 3;
-	hash ^= static_cast<uint64_t>(m_DrawBackgroundTransparent) << 4;
-	hash ^= static_cast<uint64_t>(m_BackgroundColor) << 5;
-	hash ^= static_cast<uint64_t>(m_BackgroundBorderColor) << 6;
-	hash ^= static_cast<uint64_t>(m_SelectedItemBackgroundColor) << 7;
+	AddToHash(hash, m_IconSeparatorMode);
+	AddToHash(hash, m_FullInnerRadius);
+	AddToHash(hash, m_BackgroundThickness);
+	AddToHash(hash, m_BackgroundSeparatorSize);
+	AddToHash(hash, m_DrawBackgroundTransparent);
+	AddToHash(hash, m_BackgroundColor);
+	AddToHash(hash, m_BackgroundBorderColor);
+	AddToHash(hash, m_SelectedItemBackgroundColor);
 
 	int i = 0;
 
@@ -283,7 +283,8 @@ HashingData PieMenu::Hash() const {
 		if (pieSlice->GetOriginalSource() == m_Owner) {
 			uint64_t sliceHash = pieSlice->Hash().m_Hash;
 			hashData.m_Constituents.push_back(sliceHash);
-			hash ^= sliceHash << (i++ % sizeof(uint64_t) * 8);
+			AddToHash(hash, sliceHash);
+			i++;
 		}
 	}
 

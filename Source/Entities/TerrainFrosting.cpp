@@ -71,11 +71,11 @@ HashingData TerrainFrosting::Hash() const {
 	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= RTE::Hash(m_FrostingMaterial->GetEntityCharacteristic());
-	hash ^= RTE::Hash(m_TargetMaterial->GetEntityCharacteristic());
-	hash ^= static_cast<uint64_t>(m_MinThickness);
-	hash ^= static_cast<uint64_t>(m_MaxThickness);
-	hash ^= static_cast<uint64_t>(m_InAirOnly);
+	AddToHash(hash, RTE::Hash(m_FrostingMaterial->GetEntityCharacteristic()));
+	AddToHash(hash, RTE::Hash(m_TargetMaterial->GetEntityCharacteristic()));
+	AddToHash(hash, m_MinThickness);
+	AddToHash(hash, m_MaxThickness);
+	AddToHash(hash, m_InAirOnly);
 
 	return hashData;
 }

@@ -240,23 +240,23 @@ HashingData LimbPath::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= m_Start.Hash().m_Hash << 0;
-	hash ^= static_cast<uint64_t>(m_StartSegCount) << 1;
+	AddToHash(hash, m_Start.Hash().m_Hash);
+	AddToHash(hash, m_StartSegCount);
 
 	for (int i = 0; i < m_Segments.size(); i++) {
 		uint64_t segmentHash = m_Segments.at(i).Hash().m_Hash;
 		hashData.m_Constituents.push_back(segmentHash);
-		hash ^= segmentHash << (i % sizeof(uint64_t) * 8);
+		AddToHash(hash, segmentHash);
 	}
 
 	hashData.m_ParseValues.push_back(m_Segments.size());
 
-	hash ^= static_cast<uint64_t>(m_FootCollisionsDisabledSegment) << 2;
-	hash ^= static_cast<uint64_t>(m_SegmentEndedThreshold) << 3;
-	hash ^= static_cast<uint64_t>(m_TravelSpeed) << 4;
-	hash ^= static_cast<uint64_t>(m_BaseTravelSpeedMultiplier) << 5;
-	hash ^= m_BaseScaleMultiplier.Hash().m_Hash << 6;
-	hash ^= static_cast<uint64_t>(m_PushForce) << 7;
+	AddToHash(hash, m_FootCollisionsDisabledSegment);
+	AddToHash(hash, m_SegmentEndedThreshold);
+	AddToHash(hash, m_TravelSpeed);
+	AddToHash(hash, m_BaseTravelSpeedMultiplier);
+	AddToHash(hash, m_BaseScaleMultiplier.Hash().m_Hash);
+	AddToHash(hash, m_PushForce);
 
 	return hashData;
 }

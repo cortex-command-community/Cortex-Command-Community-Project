@@ -269,13 +269,14 @@ HashingData BunkerAssembly::Hash() const {
 	HashingData hashData(TerrainObject::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= RTE::Hash(m_ParentAssemblyScheme) << 0;
-	hash ^= RTE::Hash(m_ParentSchemeGroup) << 1;
-	hash ^= RTE::Hash(m_SymmetricAssembly) << 2;
+	AddToHash(hash, RTE::Hash(m_ParentAssemblyScheme));
+	AddToHash(hash, RTE::Hash(m_ParentSchemeGroup));
+	AddToHash(hash, RTE::Hash(m_SymmetricAssembly));
 
 	int i = 0;
 	for (const SceneObject* placedObject: m_PlacedObjects) {
-		hash ^= placedObject->Hash().m_Hash << (i++ % (sizeof(uint64_t) * 8));
+		AddToHash(hash, placedObject->Hash().m_Hash);
+		i++;
 	}
 
 	return hashData;

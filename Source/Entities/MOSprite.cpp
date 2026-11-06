@@ -264,18 +264,18 @@ HashingData MOSprite::Hash() const {
 
 	uint64_t spriteHash = m_SpriteFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(spriteHash);
-	hash ^= spriteHash << 0;
+	AddToHash(hash, spriteHash);
 
-	hash ^= static_cast<uint64_t>(m_FrameCount) << 1;
-	hash ^= m_SpriteOffset.Hash().m_Hash << 2;
-	hash ^= static_cast<uint64_t>(m_SpriteAnimMode) << 3;
-	hash ^= static_cast<uint64_t>(m_SpriteAnimDuration) << 4;
-	hash ^= static_cast<uint64_t>(m_HFlipped) << 5;
-	hash ^= m_Rotation.Hash().m_Hash << 6;
-	hash ^= static_cast<uint64_t>(m_AngularVel) << 7;
-	hash ^= static_cast<uint64_t>(m_SettleMaterialDisabled) << 8;
-	hash ^= (m_pEntryWound ? RTE::Hash(m_pEntryWound->GetEntityCharacteristic()) : 0) << 9;
-	hash ^= (m_pExitWound ? RTE::Hash(m_pExitWound->GetEntityCharacteristic()) : 0) << 10;
+	AddToHash(hash, m_FrameCount);
+	AddToHash(hash, m_SpriteOffset.Hash().m_Hash);
+	AddToHash(hash, m_SpriteAnimMode);
+	AddToHash(hash, m_SpriteAnimDuration);
+	AddToHash(hash, m_HFlipped);
+	AddToHash(hash, m_Rotation.Hash().m_Hash);
+	AddToHash(hash, m_AngularVel);
+	AddToHash(hash, m_SettleMaterialDisabled);
+	AddToHash(hash, (m_pEntryWound ? RTE::Hash(m_pEntryWound->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, (m_pExitWound ? RTE::Hash(m_pExitWound->GetEntityCharacteristic()) : 0));
 
 	return hashData;
 }

@@ -145,13 +145,13 @@ HashingData Magazine::Hash() const {
 	HashingData hashData(Attachable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= static_cast<uint64_t>(m_RoundCount) << 1;
-	hash ^= static_cast<uint64_t>(m_FullCapacity) << 2;
-	hash ^= static_cast<uint64_t>(m_RTTRatio) << 3;
-	hash ^= (m_pRegularRound ? RTE::Hash(m_pRegularRound->GetEntityCharacteristic()) : 0) << 4;
-	hash ^= (m_pTracerRound ? RTE::Hash(m_pTracerRound->GetEntityCharacteristic()) : 0) << 5;
-	hash ^= static_cast<uint64_t>(m_Discardable) << 6;
-	hash ^= static_cast<uint64_t>(m_AIBlastRadius) << 7;
+	AddToHash(hash, m_RoundCount);
+	AddToHash(hash, m_FullCapacity);
+	AddToHash(hash, m_RTTRatio);
+	AddToHash(hash, (m_pRegularRound ? RTE::Hash(m_pRegularRound->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, (m_pTracerRound ? RTE::Hash(m_pTracerRound->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, m_Discardable);
+	AddToHash(hash, m_AIBlastRadius);
 
 	return hashData;
 }

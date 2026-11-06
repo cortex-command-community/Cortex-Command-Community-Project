@@ -92,12 +92,13 @@ HashingData Turret::Hash() const {
 	for (const HeldDevice* mountedDevice: m_MountedDevices) {
 		uint64_t mountedDeviceHash = mountedDevice->Hash().m_Hash;
 		hashData.m_Constituents.push_back(mountedDeviceHash);
-		hash ^= mountedDeviceHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, mountedDeviceHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);
 
-	hash ^= static_cast<uint64_t>(m_MountedDeviceRotationOffset) << 1;
+	AddToHash(hash, m_MountedDeviceRotationOffset);
 
 	return hashData;
 }

@@ -215,22 +215,23 @@ HashingData SLTerrain::Hash() const {
 
 	uint64_t backgroundDefaultHash = m_DefaultBGTextureFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(backgroundDefaultHash);
-	hash ^= backgroundDefaultHash << 0;
+	AddToHash(hash, backgroundDefaultHash);
 
 	uint64_t bgColorLayerHash = m_BGColorLayer->Hash().m_Hash;
 	hashData.m_Constituents.push_back(bgColorLayerHash);
-	hash ^= bgColorLayerHash << 1;
+	AddToHash(hash, bgColorLayerHash);
 
 	uint64_t fgColorLayerHash = m_FGColorLayer->Hash().m_Hash;
 	hashData.m_Constituents.push_back(fgColorLayerHash);
-	hash ^= fgColorLayerHash << 2;
+	AddToHash(hash, fgColorLayerHash);
 
 	int i = 0;
 
 	for (const TerrainFrosting* terrainFrosting: m_TerrainFrostings) {
 		uint64_t terrainFrostingHash = terrainFrosting->Hash().m_Hash;
 		hashData.m_Constituents.push_back(terrainFrostingHash);
-		hash ^= terrainFrostingHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, terrainFrostingHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);
@@ -240,7 +241,8 @@ HashingData SLTerrain::Hash() const {
 	for (const TerrainDebris* terrainDebris: m_TerrainDebris) {
 		uint64_t terrainDebrisHash = terrainDebris->Hash().m_Hash;
 		hashData.m_Constituents.push_back(terrainDebrisHash);
-		hash ^= terrainDebrisHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, terrainDebrisHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);
@@ -250,12 +252,13 @@ HashingData SLTerrain::Hash() const {
 	for (const TerrainObject* terrainObject: m_TerrainObjects) {
 		uint64_t terrainObjectHash = terrainObject->Hash().m_Hash;
 		hashData.m_Constituents.push_back(terrainObjectHash);
-		hash ^= terrainObjectHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, terrainObjectHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);
 
-	hash ^= static_cast<uint64_t>(m_OrbitDirection) << 3;
+	AddToHash(hash, m_OrbitDirection);
 
 	return hashData;
 }

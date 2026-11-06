@@ -213,41 +213,42 @@ HashingData PEmitter::Hash() const {
 	for (Emission* emission: m_EmissionList) {
 		uint64_t emissionHash = emission->Hash().m_Hash;
 		hashData.m_Constituents.push_back(emissionHash);
-		hash ^= emissionHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, emissionHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);
 
 	uint64_t emissionSoundHash = m_EmissionSound.Hash().m_Hash;
 	hashData.m_Constituents.push_back(emissionSoundHash);
-	hash ^= emissionSoundHash << 1;
+	AddToHash(hash, emissionSoundHash);
 
 	uint64_t burstSoundHash = m_BurstSound.Hash().m_Hash;
 	hashData.m_Constituents.push_back(burstSoundHash);
-	hash ^= burstSoundHash << 2;
+	AddToHash(hash, burstSoundHash);
 
 	uint64_t endSoundHash = m_EndSound.Hash().m_Hash;
 	hashData.m_Constituents.push_back(endSoundHash);
-	hash ^= endSoundHash << 3;
+	AddToHash(hash, endSoundHash);
 
-	hash ^= static_cast<uint64_t>(m_EmitEnabled) << 4;
-	hash ^= static_cast<uint64_t>(m_EmitCount) << 5;
-	hash ^= static_cast<uint64_t>(m_EmitCountLimit) << 6;
-	hash ^= static_cast<uint64_t>(m_EmissionsIgnoreThis) << 7;
-	hash ^= static_cast<uint64_t>(m_NegativeThrottleMultiplier) << 8;
-	hash ^= static_cast<uint64_t>(m_PositiveThrottleMultiplier) << 9;
-	hash ^= static_cast<uint64_t>(m_Throttle) << 10;
-	hash ^= static_cast<uint64_t>(m_BurstScale) << 11;
-	hash ^= static_cast<uint64_t>(m_BurstSpacing) << 12;
-	hash ^= static_cast<uint64_t>(m_BurstTriggered) << 13;
-	hash ^= static_cast<uint64_t>(m_PlayBurstSound) << 14;
-	hash ^= m_EmitAngle.Hash().m_Hash << 15;
-	hash ^= m_EmissionOffset.Hash().m_Hash << 0;
-	hash ^= static_cast<uint64_t>(m_FlashScale) << 1;
-	hash ^= static_cast<uint64_t>(m_FlashOnlyOnBurst) << 2;
-	hash ^= static_cast<uint64_t>(m_SustainBurstSound) << 3;
-	hash ^= static_cast<uint64_t>(m_BurstSoundFollowsEmitter) << 4;
-	hash ^= static_cast<uint64_t>(m_LoudnessOnEmit) << 5;
+	AddToHash(hash, m_EmitEnabled);
+	AddToHash(hash, m_EmitCount);
+	AddToHash(hash, m_EmitCountLimit);
+	AddToHash(hash, m_EmissionsIgnoreThis);
+	AddToHash(hash, m_NegativeThrottleMultiplier);
+	AddToHash(hash, m_PositiveThrottleMultiplier);
+	AddToHash(hash, m_Throttle);
+	AddToHash(hash, m_BurstScale);
+	AddToHash(hash, m_BurstSpacing);
+	AddToHash(hash, m_BurstTriggered);
+	AddToHash(hash, m_PlayBurstSound);
+	AddToHash(hash, m_EmitAngle.Hash().m_Hash);
+	AddToHash(hash, m_EmissionOffset.Hash().m_Hash);
+	AddToHash(hash, m_FlashScale);
+	AddToHash(hash, m_FlashOnlyOnBurst);
+	AddToHash(hash, m_SustainBurstSound);
+	AddToHash(hash, m_BurstSoundFollowsEmitter);
+	AddToHash(hash, m_LoudnessOnEmit);
 
 	return hashData;
 }

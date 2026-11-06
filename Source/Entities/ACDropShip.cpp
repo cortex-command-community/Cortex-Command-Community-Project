@@ -169,7 +169,7 @@ HashingData ACDropShip::Hash() const {
 	if (rThrusterDef) {
 		uint64_t rThrusterHash = m_pRThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(rThrusterHash);
-		hash ^= rThrusterHash << 0;
+		AddToHash(hash, rThrusterHash);
 	}
 
 	bool lThrusterDef = m_pLThruster != nullptr;
@@ -177,7 +177,7 @@ HashingData ACDropShip::Hash() const {
 	if (lThrusterDef) {
 		uint64_t lThrusterHash = m_pLThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(lThrusterHash);
-		hash ^= lThrusterHash << 1;
+		AddToHash(hash, lThrusterHash);
 	}
 
 	bool urThrusterDef = m_pURThruster != nullptr;
@@ -185,7 +185,7 @@ HashingData ACDropShip::Hash() const {
 	if (urThrusterDef) {
 		uint64_t urThrusterHash = m_pURThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(urThrusterHash);
-		hash ^= urThrusterHash << 2;
+		AddToHash(hash, urThrusterHash);
 	}
 
 	bool ulThrusterDef = m_pULThruster != nullptr;
@@ -193,7 +193,7 @@ HashingData ACDropShip::Hash() const {
 	if (ulThrusterDef) {
 		uint64_t ulThrusterHash = m_pULThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(ulThrusterHash);
-		hash ^= ulThrusterHash << 3;
+		AddToHash(hash, ulThrusterHash);
 	}
 
 	bool rHatchDef = m_pRHatch != nullptr;
@@ -201,7 +201,7 @@ HashingData ACDropShip::Hash() const {
 	if (rHatchDef) {
 		uint64_t rHatchHash = m_pRHatch->Hash().m_Hash;
 		hashData.m_Constituents.push_back(rHatchHash);
-		hash ^= rHatchHash << 4;
+		AddToHash(hash, rHatchHash);
 	}
 
 	bool lHatchDef = m_pLHatch != nullptr;
@@ -209,17 +209,17 @@ HashingData ACDropShip::Hash() const {
 	if (lHatchDef) {
 		uint64_t lHatchHash = m_pLHatch->Hash().m_Hash;
 		hashData.m_Constituents.push_back(lHatchHash);
-		hash ^= lHatchHash << 5;
+		AddToHash(hash, lHatchHash);
 	}
 
 	uint64_t hatchSwingRangeHash = m_HatchSwingRange.Hash().m_Hash;
 	hashData.m_Constituents.push_back(hatchSwingRangeHash);
-	hash ^= hatchSwingRangeHash << 6;
+	AddToHash(hash, hatchSwingRangeHash);
 
-	hash ^= static_cast<uint64_t>(m_AutoStabilize) << 7;
-	hash ^= static_cast<uint64_t>(m_MaxEngineAngle) << 8;
-	hash ^= static_cast<uint64_t>(m_LateralControlSpeed) << 9;
-	hash ^= static_cast<uint64_t>(m_HoverHeightModifier) << 10;
+	AddToHash(hash, m_AutoStabilize);
+	AddToHash(hash, m_MaxEngineAngle);
+	AddToHash(hash, m_LateralControlSpeed);
+	AddToHash(hash, m_HoverHeightModifier);
 
 	return hashData;
 }

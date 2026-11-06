@@ -88,21 +88,19 @@ HashingData SoundSet::Hash() const {
 	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= static_cast<uint64_t>(m_SoundSelectionCycleMode) << 0;
+	AddToHash(hash, m_SoundSelectionCycleMode);
 
 	for (int i = 0; i < m_SoundData.size(); i++) {
 		const SoundData& data = m_SoundData.at(i);
 
-		uint64_t hashSet = RTE::Hash(data.SoundFile.GetDataPath()) << 0;
-		hashSet ^= data.Offset.Hash().m_Hash << 1;
-		hashSet ^= std::hash<float>{}(data.MinimumAudibleDistance) << 2;
-		hashSet ^= std::hash<float>{}(data.AttenuationStartDistance) << 3;
-
-		hash ^= hashSet << (i % sizeof(uint64_t) * 8);
+		AddToHash(hash, RTE::Hash(data.SoundFile.GetDataPath()));
+		AddToHash(hash, data.Offset.Hash().m_Hash);
+		AddToHash(hash, data.MinimumAudibleDistance);
+		AddToHash(hash, data.AttenuationStartDistance);
 	}
 
 	for (int i = 0; i < m_SubSoundSets.size(); i++) {
-		hash ^= m_SubSoundSets.at(i)->Hash().m_Hash << (i % sizeof(uint64_t) * 8);
+		AddToHash(hash, m_SubSoundSets.at(i)->Hash().m_Hash);
 	}
 
 	return hashData;

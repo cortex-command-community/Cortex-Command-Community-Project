@@ -188,12 +188,12 @@ HashingData Atom::Hash() const {
 	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= m_Offset.Hash().m_Hash << 0;
-	hash ^= m_OriginalOffset.Hash().m_Hash << 1;
-	hash ^= (m_Material ? RTE::Hash(m_Material->GetEntityCharacteristic()) : 0) << 2;
-	hash ^= m_TrailColor.Hash().m_Hash << 3;
-	hash ^= static_cast<uint64_t>(m_TrailLength) << 4;
-	hash ^= static_cast<uint64_t>(m_TrailLengthVariation) << 5;
+	AddToHash(hash, m_Offset.Hash().m_Hash);
+	AddToHash(hash, m_OriginalOffset.Hash().m_Hash);
+	AddToHash(hash, (m_Material ? RTE::Hash(m_Material->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, m_TrailColor.Hash().m_Hash);
+	AddToHash(hash, m_TrailLength);
+	AddToHash(hash, m_TrailLengthVariation);
 
 	return hashData;
 }

@@ -244,18 +244,18 @@ HashingData HeldDevice::Hash() const {
 	HashingData hashData(Attachable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= static_cast<uint64_t>(m_OneHanded) << 1;
-	hash ^= static_cast<uint64_t>(m_Activated) << 12;
-	hash ^= m_StanceOffset.Hash().m_Hash << 2;
-	hash ^= m_SharpStanceOffset.Hash().m_Hash << 3;
-	hash ^= static_cast<uint64_t>(m_Supportable) << 4;
-	hash ^= m_SupportOffset.Hash().m_Hash << 5;
-	hash ^= static_cast<uint64_t>(m_UseSupportOffsetWhileReloading) << 6;
-	hash ^= static_cast<uint64_t>(m_GripStrengthMultiplier) << 7;
-	hash ^= static_cast<uint64_t>(m_MaxSharpLength) << 8;
-	hash ^= static_cast<uint64_t>(m_Loudness) << 9;
-	hash ^= static_cast<uint64_t>(m_GetsHitByMOsWhenHeld) << 10;
-	hash ^= static_cast<uint64_t>(m_VisualRecoilMultiplier) << 11;
+	AddToHash(hash, m_OneHanded);
+	AddToHash(hash, m_Activated);
+	AddToHash(hash, m_StanceOffset.Hash().m_Hash);
+	AddToHash(hash, m_SharpStanceOffset.Hash().m_Hash);
+	AddToHash(hash, m_Supportable);
+	AddToHash(hash, m_SupportOffset.Hash().m_Hash);
+	AddToHash(hash, m_UseSupportOffsetWhileReloading);
+	AddToHash(hash, m_GripStrengthMultiplier);
+	AddToHash(hash, m_MaxSharpLength);
+	AddToHash(hash, m_Loudness);
+	AddToHash(hash, m_GetsHitByMOsWhenHeld);
+	AddToHash(hash, m_VisualRecoilMultiplier);
 
 	return hashData;
 }

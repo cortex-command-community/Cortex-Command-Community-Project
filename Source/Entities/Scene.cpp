@@ -103,11 +103,12 @@ HashingData Scene::Area::Hash() const {
 	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= RTE::Hash(m_Name) << 0;
+	AddToHash(hash, RTE::Hash(m_Name));
 	int i = 0;
 
 	for (const Box* box: m_BoxList) {
-		hash ^= box->Hash().m_Hash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, box->Hash().m_Hash);
+		i++;
 	}
 
 	return hashData;
@@ -1292,42 +1293,42 @@ HashingData Scene::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= m_Location.Hash().m_Hash << 0;
-	hash ^= static_cast<uint64_t>(m_MetagamePlayable) << 1;
+	AddToHash(hash, m_Location.Hash().m_Hash);
+	AddToHash(hash, m_MetagamePlayable);
 
 	uint64_t locationHash = m_PreviewBitmapFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(locationHash);
-	hash ^= locationHash << 2;
+	AddToHash(hash, locationHash);
 
-	hash ^= RTE::Hash(m_MetasceneParent) << 3;
-	hash ^= static_cast<uint64_t>(m_IsMetagameInternal) << 4;
-	hash ^= static_cast<uint64_t>(m_IsSavedGameInternal) << 5;
-	hash ^= static_cast<uint64_t>(m_Revealed) << 6;
-	hash ^= static_cast<uint64_t>(m_OwnedByTeam) << 7;
-	hash ^= static_cast<uint64_t>(m_RoundIncome) << 8;
+	AddToHash(hash, RTE::Hash(m_MetasceneParent));
+	AddToHash(hash, m_IsMetagameInternal);
+	AddToHash(hash, m_IsSavedGameInternal);
+	AddToHash(hash, m_Revealed);
+	AddToHash(hash, m_OwnedByTeam);
+	AddToHash(hash, m_RoundIncome);
 
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
-		hash ^= static_cast<uint64_t>(m_BuildBudget[player]) << (9 + player * 4);
-		hash ^= static_cast<uint64_t>(m_BuildBudgetRatio[player]) << (10 + player * 4);
+		AddToHash(hash, m_BuildBudget[player]);
+		AddToHash(hash, m_BuildBudgetRatio[player]);
 
 		bool residentBrainDef = m_ResidentBrains[player] != nullptr;
 		hashData.m_ParseValues.push_back(residentBrainDef);
 		if (residentBrainDef) {
 			uint64_t residentBrainHash = m_ResidentBrains[player]->Hash().m_Hash;
 			hashData.m_Constituents.push_back(residentBrainHash);
-			hash ^= residentBrainHash << (11 + player * 4);
+			AddToHash(hash, residentBrainHash);
 		}
 	}
 
-	hash ^= static_cast<uint64_t>(m_AutoDesigned) << 12;
-	hash ^= static_cast<uint64_t>(m_TotalInvestment) << 13;
+	AddToHash(hash, m_AutoDesigned);
+	AddToHash(hash, m_TotalInvestment);
 
 	bool terrainDef = m_pTerrain != nullptr;
 	hashData.m_ParseValues.push_back(terrainDef);
 	if (terrainDef) {
 		uint64_t terrainHash = m_pTerrain->Hash().m_Hash;
 		hashData.m_Constituents.push_back(terrainHash);
-		hash ^= terrainHash << 14;
+		AddToHash(hash, terrainHash);
 	}
 
 	for (int set = PlacedObjectSets::PLACEONLOAD; set < PlacedObjectSets::PLACEDSETSCOUNT; ++set) {
@@ -1336,7 +1337,8 @@ HashingData Scene::Hash() const {
 		for (const SceneObject* placedObject: m_PlacedObjects[set]) {
 			uint64_t placedObjectHash = placedObject->Hash().m_Hash;
 			hashData.m_Constituents.push_back(placedObjectHash);
-			hash ^= placedObjectHash << (i++ % sizeof(uint64_t) * 8);
+			AddToHash(hash, placedObjectHash);
+			i++;
 		}
 
 		hashData.m_ParseValues.push_back(i);
@@ -1347,23 +1349,24 @@ HashingData Scene::Hash() const {
 	for (std::list<SLBackground*>::const_iterator slItr = m_BackLayerList.begin(); slItr != m_BackLayerList.end(); ++slItr) {
 		uint64_t backgroundLayerHash = RTE::Hash((*slItr)->GetEntityCharacteristic());
 		hashData.m_Constituents.push_back(backgroundLayerHash);
-		hash ^= backgroundLayerHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, backgroundLayerHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);
 
 	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
-		hash ^= m_UnseenPixelSize[team].Hash().m_Hash << 0;
+		AddToHash(hash, m_UnseenPixelSize[team].Hash().m_Hash);
 
 		bool unseenLayerDef = m_apUnseenLayer[team] != nullptr;
 		hashData.m_ParseValues.push_back(unseenLayerDef);
 		if (unseenLayerDef) {
 			uint64_t unseenLayerHash = m_apUnseenLayer[team]->Hash().m_Hash;
 			hashData.m_Constituents.push_back(unseenLayerHash);
-			hash ^= unseenLayerHash << (1 + team * 4);
+			AddToHash(hash, unseenLayerHash);
 		}
 
-		hash ^= static_cast<uint64_t>(m_ScanScheduled[team]) << 2;
+		AddToHash(hash, m_ScanScheduled[team]);
 	}
 
 	i = 0;
@@ -1371,12 +1374,13 @@ HashingData Scene::Hash() const {
 	for (Area* area: m_AreaList) {
 		uint64_t areaHash = area->Hash().m_Hash;
 		hashData.m_Constituents.push_back(areaHash);
-		hash ^= areaHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, areaHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);
 
-	hash ^= m_GlobalAcc.Hash().m_Hash << 3;
+	AddToHash(hash, m_GlobalAcc.Hash().m_Hash);
 
 	return hashData;
 }

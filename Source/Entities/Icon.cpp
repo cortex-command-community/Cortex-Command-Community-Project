@@ -85,9 +85,9 @@ HashingData Icon::Hash() const {
 
 	uint64_t fileHash = m_BitmapFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(fileHash);
-	hash ^= fileHash << 0;
+	AddToHash(hash, fileHash);
 
-	hash ^= static_cast<uint64_t>(m_FrameCount) << 1;
+	AddToHash(hash, m_FrameCount);
 
 	return hashData;
 }

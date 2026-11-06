@@ -363,7 +363,7 @@ HashingData HDFirearm::Hash() const {
 	if (magazineDef) {
 		uint64_t magazineHash = m_pMagazine->Hash().m_Hash;
 		hashData.m_Constituents.push_back(magazineHash);
-		hash ^= magazineHash << 0;
+		AddToHash(hash, magazineHash);
 	}
 
 	bool flashDef = m_pFlash != nullptr;
@@ -371,7 +371,7 @@ HashingData HDFirearm::Hash() const {
 	if (flashDef) {
 		uint64_t flashHash = m_pFlash->Hash().m_Hash;
 		hashData.m_Constituents.push_back(flashHash);
-		hash ^= flashHash << 1;
+		AddToHash(hash, flashHash);
 	}
 
 	bool preFireSoundDef = m_PreFireSound != nullptr;
@@ -379,7 +379,7 @@ HashingData HDFirearm::Hash() const {
 	if (preFireSoundDef) {
 		uint64_t preFireSoundHash = m_PreFireSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(preFireSoundHash);
-		hash ^= preFireSoundHash << 2;
+		AddToHash(hash, preFireSoundHash);
 	}
 
 	bool fireSoundDef = m_FireSound != nullptr;
@@ -387,7 +387,7 @@ HashingData HDFirearm::Hash() const {
 	if (fireSoundDef) {
 		uint64_t fireSoundHash = m_FireSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(fireSoundHash);
-		hash ^= fireSoundHash << 3;
+		AddToHash(hash, fireSoundHash);
 	}
 
 	bool fireEchoSoundDef = m_FireEchoSound != nullptr;
@@ -395,7 +395,7 @@ HashingData HDFirearm::Hash() const {
 	if (fireEchoSoundDef) {
 		uint64_t fireEchoSoundHash = m_FireEchoSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(fireEchoSoundHash);
-		hash ^= fireEchoSoundHash << 4;
+		AddToHash(hash, fireEchoSoundHash);
 	}
 
 	bool activeSoundDef = m_ActiveSound != nullptr;
@@ -403,7 +403,7 @@ HashingData HDFirearm::Hash() const {
 	if (activeSoundDef) {
 		uint64_t activeSoundHash = m_ActiveSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(activeSoundHash);
-		hash ^= activeSoundHash << 5;
+		AddToHash(hash, activeSoundHash);
 	}
 
 	bool deactivationSoundDef = m_DeactivationSound != nullptr;
@@ -411,7 +411,7 @@ HashingData HDFirearm::Hash() const {
 	if (deactivationSoundDef) {
 		uint64_t deactivationSoundHash = m_DeactivationSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(deactivationSoundHash);
-		hash ^= deactivationSoundHash << 6;
+		AddToHash(hash, deactivationSoundHash);
 	}
 
 	bool emptySoundDef = m_EmptySound != nullptr;
@@ -419,7 +419,7 @@ HashingData HDFirearm::Hash() const {
 	if (emptySoundDef) {
 		uint64_t emptySoundHash = m_EmptySound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(emptySoundHash);
-		hash ^= emptySoundHash << 7;
+		AddToHash(hash, emptySoundHash);
 	}
 
 	bool reloadStartSoundDef = m_ReloadStartSound != nullptr;
@@ -427,7 +427,7 @@ HashingData HDFirearm::Hash() const {
 	if (reloadStartSoundDef) {
 		uint64_t reloadStartSoundHash = m_ReloadStartSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(reloadStartSoundHash);
-		hash ^= reloadStartSoundHash << 8;
+		AddToHash(hash, reloadStartSoundHash);
 	}
 
 	bool reloadEndSoundDef = m_ReloadEndSound != nullptr;
@@ -435,35 +435,35 @@ HashingData HDFirearm::Hash() const {
 	if (reloadEndSoundDef) {
 		uint64_t reloadEndSoundHash = m_ReloadEndSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(reloadEndSoundHash);
-		hash ^= reloadEndSoundHash << 9;
+		AddToHash(hash, reloadEndSoundHash);
 	}
 
-	hash ^= static_cast<uint64_t>(m_ReloadEndOffset) << 10;
-	hash ^= static_cast<uint64_t>(m_RateOfFire) << 11;
-	hash ^= static_cast<uint64_t>(m_ActivationDelay) << 12;
-	hash ^= static_cast<uint64_t>(m_DeactivationDelay) << 13;
-	hash ^= static_cast<uint64_t>(m_BaseReloadTime) << 14;
-	hash ^= static_cast<uint64_t>(m_FullAuto) << 15;
-	hash ^= static_cast<uint64_t>(m_FireIgnoresThis) << 0;
-	hash ^= static_cast<uint64_t>(m_Reloadable) << 1;
-	hash ^= static_cast<uint64_t>(m_DualReloadable) << 2;
-	hash ^= static_cast<uint64_t>(m_OneHandedReloadTimeMultiplier) << 3;
-	hash ^= static_cast<uint64_t>(m_ReloadAngle) << 4;
-	hash ^= static_cast<uint64_t>(m_OneHandedReloadAngle) << 5;
-	hash ^= static_cast<uint64_t>(m_JointStiffness) << 6;
-	hash ^= static_cast<uint64_t>(m_IsAnimatedManually) << 7;
-	hash ^= static_cast<uint64_t>(m_ShakeRange) << 8;
-	hash ^= static_cast<uint64_t>(m_SharpShakeRange) << 9;
-	hash ^= static_cast<uint64_t>(m_NoSupportFactor) << 10;
-	hash ^= static_cast<uint64_t>(m_ParticleSpreadRange) << 11;
-	hash ^= static_cast<uint64_t>(m_ShellEjectAngle) << 12;
-	hash ^= static_cast<uint64_t>(m_ShellSpreadRange) << 13;
-	hash ^= static_cast<uint64_t>(m_ShellAngVelRange) << 14;
-	hash ^= static_cast<uint64_t>(m_ShellVelVariation) << 15;
-	hash ^= static_cast<uint64_t>(m_RecoilScreenShakeAmount) << 0;
-	hash ^= m_MuzzleOff.Hash().m_Hash << 1;
-	hash ^= m_EjectOff.Hash().m_Hash << 2;
-	hash ^= static_cast<uint64_t>(m_LegacyCompatibilityRoundsAlwaysFireUnflipped) << 3;
+	AddToHash(hash, m_ReloadEndOffset);
+	AddToHash(hash, m_RateOfFire);
+	AddToHash(hash, m_ActivationDelay);
+	AddToHash(hash, m_DeactivationDelay);
+	AddToHash(hash, m_BaseReloadTime);
+	AddToHash(hash, m_FullAuto);
+	AddToHash(hash, m_FireIgnoresThis);
+	AddToHash(hash, m_Reloadable);
+	AddToHash(hash, m_DualReloadable);
+	AddToHash(hash, m_OneHandedReloadTimeMultiplier);
+	AddToHash(hash, m_ReloadAngle);
+	AddToHash(hash, m_OneHandedReloadAngle);
+	AddToHash(hash, m_JointStiffness);
+	AddToHash(hash, m_IsAnimatedManually);
+	AddToHash(hash, m_ShakeRange);
+	AddToHash(hash, m_SharpShakeRange);
+	AddToHash(hash, m_NoSupportFactor);
+	AddToHash(hash, m_ParticleSpreadRange);
+	AddToHash(hash, m_ShellEjectAngle);
+	AddToHash(hash, m_ShellSpreadRange);
+	AddToHash(hash, m_ShellAngVelRange);
+	AddToHash(hash, m_ShellVelVariation);
+	AddToHash(hash, m_RecoilScreenShakeAmount);
+	AddToHash(hash, m_MuzzleOff.Hash().m_Hash);
+	AddToHash(hash, m_EjectOff.Hash().m_Hash);
+	AddToHash(hash, m_LegacyCompatibilityRoundsAlwaysFireUnflipped);
 
 	return hashData;
 }

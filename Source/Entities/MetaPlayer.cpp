@@ -156,19 +156,19 @@ HashingData MetaPlayer::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= RTE::Hash(m_Name) << 0;
-	hash ^= static_cast<uint64_t>(m_Team) << 1;
-	hash ^= static_cast<uint64_t>(m_Human) << 2;
-	hash ^= static_cast<uint64_t>(m_InGamePlayer) << 3;
-	hash ^= static_cast<uint64_t>(m_Aggressiveness) << 4;
-	hash ^= static_cast<uint64_t>(m_GameOverRound) << 5;
-	hash ^= RTE::Hash(g_PresetMan.GetDataModule(m_NativeTechModule)->GetFileName()) << 6;
-	hash ^= static_cast<uint64_t>(m_NativeCostMult) << 7;
-	hash ^= static_cast<uint64_t>(m_ForeignCostMult) << 8;
-	hash ^= static_cast<uint64_t>(m_BrainPool) << 9;
-	hash ^= static_cast<uint64_t>(m_Funds) << 10;
-	hash ^= static_cast<uint64_t>(m_OffensiveBudget) << 11;
-	hash ^= RTE::Hash(m_OffensiveTarget) << 12;
+	AddToHash(hash, RTE::Hash(m_Name));
+	AddToHash(hash, m_Team);
+	AddToHash(hash, m_Human);
+	AddToHash(hash, m_InGamePlayer);
+	AddToHash(hash, m_Aggressiveness);
+	AddToHash(hash, m_GameOverRound);
+	AddToHash(hash, RTE::Hash(g_PresetMan.GetDataModule(m_NativeTechModule)->GetFileName()));
+	AddToHash(hash, m_NativeCostMult);
+	AddToHash(hash, m_ForeignCostMult);
+	AddToHash(hash, m_BrainPool);
+	AddToHash(hash, m_Funds);
+	AddToHash(hash, m_OffensiveBudget);
+	AddToHash(hash, RTE::Hash(m_OffensiveTarget));
 
 	return hashData;
 }

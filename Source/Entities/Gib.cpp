@@ -103,17 +103,17 @@ HashingData Gib::Hash() const {
 	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= (m_GibParticle ? RTE::Hash(m_GibParticle->GetEntityCharacteristic()) : 0) << 0;
-	hash ^= m_Offset.Hash().m_Hash << 1;
-	hash ^= static_cast<uint64_t>(m_Count) << 2;
-	hash ^= static_cast<uint64_t>(m_Spread) << 3;
-	hash ^= static_cast<uint64_t>(m_MinVelocity) << 4;
-	hash ^= static_cast<uint64_t>(m_MaxVelocity) << 5;
-	hash ^= static_cast<uint64_t>(m_LifeVariation) << 6;
-	hash ^= static_cast<uint64_t>(m_InheritsVel) << 7;
-	hash ^= static_cast<uint64_t>(m_InheritsAngularVel) << 8;
-	hash ^= static_cast<uint64_t>(m_IgnoresTeamHits) << 9;
-	hash ^= static_cast<uint64_t>(m_SpreadMode) << 10;
+	AddToHash(hash, (m_GibParticle ? RTE::Hash(m_GibParticle->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, m_Offset.Hash().m_Hash);
+	AddToHash(hash, m_Count);
+	AddToHash(hash, m_Spread);
+	AddToHash(hash, m_MinVelocity);
+	AddToHash(hash, m_MaxVelocity);
+	AddToHash(hash, m_LifeVariation);
+	AddToHash(hash, m_InheritsVel);
+	AddToHash(hash, m_InheritsAngularVel);
+	AddToHash(hash, m_IgnoresTeamHits);
+	AddToHash(hash, m_SpreadMode);
 
 	return hashData;
 }

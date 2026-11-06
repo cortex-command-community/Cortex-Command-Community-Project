@@ -143,13 +143,13 @@ HashingData AEJetpack::Hash() const {
 	HashingData hashData(AEmitter::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= static_cast<uint64_t>(m_JetpackType) << 1;
-	hash ^= static_cast<uint64_t>(m_JetTimeTotal) << 2;
-	hash ^= static_cast<uint64_t>(m_JetReplenishRate) << 3;
-	hash ^= static_cast<uint64_t>(m_MinimumFuelRatio) << 4;
-	hash ^= static_cast<uint64_t>(m_JetAngleRange) << 5;
-	hash ^= static_cast<uint64_t>(m_CanAdjustAngleWhileFiring) << 6;
-	hash ^= static_cast<uint64_t>(m_AdjustsThrottleForWeight) << 7;
+	AddToHash(hash, m_JetpackType);
+	AddToHash(hash, m_JetTimeTotal);
+	AddToHash(hash, m_JetReplenishRate);
+	AddToHash(hash, m_MinimumFuelRatio);
+	AddToHash(hash, m_JetAngleRange);
+	AddToHash(hash, m_CanAdjustAngleWhileFiring);
+	AddToHash(hash, m_AdjustsThrottleForWeight);
 
 	return hashData;
 }

@@ -41,10 +41,10 @@ HashingData GenericSavedData::Hash() const {
 	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= m_SavedEncodedStrings.Hash().m_Hash << 0;
-	hash ^= m_SavedStrings.Hash().m_Hash << 1;
-	hash ^= m_SavedNumbers.Hash().m_Hash << 2;
-	hash ^= m_SavedEntities.Hash().m_Hash << 3;
+	AddToHash(hash, m_SavedEncodedStrings.Hash().m_Hash);
+	AddToHash(hash, m_SavedStrings.Hash().m_Hash);
+	AddToHash(hash, m_SavedNumbers.Hash().m_Hash);
+	AddToHash(hash, m_SavedEntities.Hash().m_Hash);
 
 	return hashData;
 }
@@ -162,8 +162,8 @@ HashingData GenericSavedData::GenericSavedEncodedStrings::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	for (const auto& [key, value]: m_Data) {
-		hash ^= RTE::Hash(key);
-		hash ^= RTE::Hash(value);
+		AddToHash(hash, RTE::Hash(key));
+		AddToHash(hash, RTE::Hash(value));
 	}
 
 	return hashData;
@@ -190,8 +190,8 @@ HashingData GenericSavedData::GenericSavedStrings::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	for (const auto& [key, value]: m_Data) {
-		hash ^= RTE::Hash(key);
-		hash ^= RTE::Hash(value);
+		AddToHash(hash, RTE::Hash(key));
+		AddToHash(hash, RTE::Hash(value));
 	}
 
 	return hashData;
@@ -219,8 +219,8 @@ HashingData GenericSavedData::GenericSavedNumbers::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	for (const auto& [key, value]: m_Data) {
-		hash ^= RTE::Hash(key);
-		hash ^= static_cast<uint64_t>(value);
+		AddToHash(hash, RTE::Hash(key));
+		AddToHash(hash, value);
 	}
 
 	return hashData;
@@ -256,8 +256,8 @@ HashingData GenericSavedData::GenericSavedEntities::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	for (const auto& [key, value]: m_Data) {
-		hash ^= RTE::Hash(key);
-		hash ^= value->Hash().m_Hash;
+		AddToHash(hash, RTE::Hash(key));
+		AddToHash(hash, value->Hash().m_Hash);
 	}
 
 	return hashData;

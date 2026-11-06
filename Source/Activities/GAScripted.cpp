@@ -166,15 +166,16 @@ HashingData GAScripted::Hash() const {
 	HashingData hashData(GameActivity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 	
-	hash ^= RTE::Hash(m_ScriptPath) << 0;
-	hash ^= RTE::Hash(m_LuaClassName) << 1;
+	AddToHash(hash, RTE::Hash(m_ScriptPath));
+	AddToHash(hash, RTE::Hash(m_LuaClassName));
 
 	int i = 0;
 
 	for (const std::unique_ptr<PieSlice>& pieSliceToAdd: m_PieSlicesToAdd) {
 		uint64_t sliceHash = pieSliceToAdd->Hash().m_Hash;
 		hashData.m_Constituents.push_back(sliceHash);
-		hash ^= sliceHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, sliceHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);
@@ -182,7 +183,8 @@ HashingData GAScripted::Hash() const {
 	i = 0;
 
 	for (const std::string& requiredArea: m_RequiredAreas) {
-		hash ^= RTE::Hash(requiredArea) << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, RTE::Hash(requiredArea));
+		i++;
 	}
 
 	return hashData;

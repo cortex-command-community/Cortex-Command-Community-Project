@@ -236,7 +236,7 @@ HashingData ACRocket::Hash() const {
 	if (rLegDef) {
 		uint64_t rLegHash = m_pRLeg->Hash().m_Hash;
 		hashData.m_Constituents.push_back(rLegHash);
-		hash ^= rLegHash << 1;
+		AddToHash(hash, rLegHash);
 	}
 
 	bool lLegDef = m_pLLeg != nullptr;
@@ -244,7 +244,7 @@ HashingData ACRocket::Hash() const {
 	if (lLegDef) {
 		uint64_t lLegHash = m_pLLeg->Hash().m_Hash;
 		hashData.m_Constituents.push_back(lLegHash);
-		hash ^= lLegHash << 2;
+		AddToHash(hash, lLegHash);
 	}
 
 	bool rFootGroupDef = m_pRFootGroup != nullptr;
@@ -252,7 +252,7 @@ HashingData ACRocket::Hash() const {
 	if (rFootGroupDef) {
 		uint64_t rFootGroupHash = m_pRFootGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(rFootGroupHash);
-		hash ^= rFootGroupHash << 3;
+		AddToHash(hash, rFootGroupHash);
 	}
 
 	bool lFootGroupDef = m_pLFootGroup != nullptr;
@@ -260,7 +260,7 @@ HashingData ACRocket::Hash() const {
 	if (lFootGroupDef) {
 		uint64_t lFootGroupHash = m_pLFootGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(lFootGroupHash);
-		hash ^= lFootGroupHash << 4;
+		AddToHash(hash, lFootGroupHash);
 	}
 
 	bool mThrusterDef = m_pMThruster != nullptr;
@@ -268,7 +268,7 @@ HashingData ACRocket::Hash() const {
 	if (mThrusterDef) {
 		uint64_t mThrusterHash = m_pMThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(mThrusterHash);
-		hash ^= mThrusterHash << 5;
+		AddToHash(hash, mThrusterHash);
 	}
 
 	bool rThrusterDef = m_pRThruster != nullptr;
@@ -276,7 +276,7 @@ HashingData ACRocket::Hash() const {
 	if (rThrusterDef) {
 		uint64_t rThrusterHash = m_pRThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(rThrusterHash);
-		hash ^= rThrusterHash << 6;
+		AddToHash(hash, rThrusterHash);
 	}
 
 	bool lThrusterDef = m_pLThruster != nullptr;
@@ -284,7 +284,7 @@ HashingData ACRocket::Hash() const {
 	if (lThrusterDef) {
 		uint64_t lThrusterHash = m_pLThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(lThrusterHash);
-		hash ^= lThrusterHash << 7;
+		AddToHash(hash, lThrusterHash);
 	}
 
 	bool urThrusterDef = m_pURThruster != nullptr;
@@ -292,7 +292,7 @@ HashingData ACRocket::Hash() const {
 	if (urThrusterDef) {
 		uint64_t urFootGroupHash = m_pURThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(urFootGroupHash);
-		hash ^= urFootGroupHash << 8;
+		AddToHash(hash, urFootGroupHash);
 	}
 
 	bool ulThrusterDef = m_pULThruster != nullptr;
@@ -300,26 +300,26 @@ HashingData ACRocket::Hash() const {
 	if (ulThrusterDef) {
 		uint64_t ulFootGroupHash = m_pULThruster->Hash().m_Hash;
 		hashData.m_Constituents.push_back(ulFootGroupHash);
-		hash ^= ulFootGroupHash << 9;
+		AddToHash(hash, ulFootGroupHash);
 	}
 
 	uint64_t rightRaisedPathHash = m_Paths[RIGHT][RAISED].Hash().m_Hash;
 	hashData.m_Constituents.push_back(rightRaisedPathHash);
-	hash ^= rightRaisedPathHash << 10;
+	AddToHash(hash, rightRaisedPathHash);
 
 	uint64_t rightLoweredPathHash = m_Paths[RIGHT][LOWERED].Hash().m_Hash;
 	hashData.m_Constituents.push_back(rightLoweredPathHash);
-	hash ^= rightLoweredPathHash << 11;
+	AddToHash(hash, rightLoweredPathHash);
 
 	uint64_t rightLoweringPathHash = m_Paths[RIGHT][LOWERING].Hash().m_Hash;
 	hashData.m_Constituents.push_back(rightLoweringPathHash);
-	hash ^= rightLoweringPathHash << 12;
+	AddToHash(hash, rightLoweringPathHash);
 
 	uint64_t rightRaisingHash = m_Paths[RIGHT][RAISING].Hash().m_Hash;
 	hashData.m_Constituents.push_back(rightRaisingHash);
-	hash ^= rightRaisingHash << 13;
+	AddToHash(hash, rightRaisingHash);
 
-	hash ^= static_cast<uint64_t>(m_MaxGimbalAngle) << 14;
+	AddToHash(hash, m_MaxGimbalAngle);
 
 	return hashData;
 }

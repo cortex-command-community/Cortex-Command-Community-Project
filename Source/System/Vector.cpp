@@ -28,8 +28,8 @@ HashingData Vector::Hash() const {
 	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= static_cast<uint64_t>(m_X) << 0;
-	hash ^= static_cast<uint64_t>(m_Y) << 1;
+	AddToHash(hash, m_X);
+	AddToHash(hash, m_Y);
 
 	return hashData;
 }

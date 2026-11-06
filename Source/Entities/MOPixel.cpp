@@ -121,15 +121,15 @@ HashingData MOPixel::Hash() const {
 
 	uint64_t atomHash = m_Atom->Hash().m_Hash;
 	hashData.m_Constituents.push_back(atomHash);
-	hash ^= atomHash << 1;
+	AddToHash(hash, atomHash);
 
 	uint64_t colorHash = m_Color.Hash().m_Hash;
 	hashData.m_Constituents.push_back(colorHash);
-	hash ^= colorHash << 2;
+	AddToHash(hash, colorHash);
 
-	hash ^= static_cast<uint64_t>(m_MinLethalRange) << 3;
-	hash ^= static_cast<uint64_t>(m_MaxLethalRange) << 4;
-	hash ^= static_cast<uint64_t>(m_Staininess) << 5;
+	AddToHash(hash, m_MinLethalRange);
+	AddToHash(hash, m_MaxLethalRange);
+	AddToHash(hash, m_Staininess);
 
 	return hashData;
 }

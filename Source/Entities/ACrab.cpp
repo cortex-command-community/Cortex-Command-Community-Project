@@ -388,7 +388,7 @@ HashingData ACrab::Hash() const {
 	if (turretDef) {
 		uint64_t turretHash = m_pTurret->Hash().m_Hash;
 		hashData.m_Constituents.push_back(turretHash);
-		hash ^= turretHash << 0;
+		AddToHash(hash, turretHash);
 	}
 
 	bool jetpackDef = m_pJetpack != nullptr;
@@ -396,7 +396,7 @@ HashingData ACrab::Hash() const {
 	if (jetpackDef) {
 		uint64_t jetpackHash = m_pJetpack->Hash().m_Hash;
 		hashData.m_Constituents.push_back(jetpackHash);
-		hash ^= jetpackHash << 1;
+		AddToHash(hash, jetpackHash);
 	}
 
 	bool lfgLegDef = m_pLFGLeg != nullptr;
@@ -404,7 +404,7 @@ HashingData ACrab::Hash() const {
 	if (lfgLegDef) {
 		uint64_t lfgLegHash = m_pLFGLeg->Hash().m_Hash;
 		hashData.m_Constituents.push_back(lfgLegHash);
-		hash ^= lfgLegHash << 2;
+		AddToHash(hash, lfgLegHash);
 	}
 
 	bool lbgLegDef = m_pLBGLeg != nullptr;
@@ -412,7 +412,7 @@ HashingData ACrab::Hash() const {
 	if (lbgLegDef) {
 		uint64_t lbgLegHash = m_pLBGLeg->Hash().m_Hash;
 		hashData.m_Constituents.push_back(lbgLegHash);
-		hash ^= lbgLegHash << 3;
+		AddToHash(hash, lbgLegHash);
 	}
 
 	bool rfgLegDef = m_pRFGLeg != nullptr;
@@ -420,7 +420,7 @@ HashingData ACrab::Hash() const {
 	if (rfgLegDef) {
 		uint64_t rfgLegHash = m_pRFGLeg->Hash().m_Hash;
 		hashData.m_Constituents.push_back(rfgLegHash);
-		hash ^= rfgLegHash << 4;
+		AddToHash(hash, rfgLegHash);
 	}
 
 	bool rbgLegDef = m_pRBGLeg != nullptr;
@@ -428,7 +428,7 @@ HashingData ACrab::Hash() const {
 	if (rbgLegDef) {
 		uint64_t rbgLegHash = m_pRBGLeg->Hash().m_Hash;
 		hashData.m_Constituents.push_back(rbgLegHash);
-		hash ^= rbgLegHash << 5;
+		AddToHash(hash, rbgLegHash);
 	}
 
 	bool lfgFootGroupDef = m_pLFGFootGroup != nullptr;
@@ -436,7 +436,7 @@ HashingData ACrab::Hash() const {
 	if (lfgFootGroupDef) {
 		uint64_t lfgFootGroupHash = m_pLFGFootGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(lfgFootGroupHash);
-		hash ^= lfgFootGroupHash << 6;
+		AddToHash(hash, lfgFootGroupHash);
 	}
 
 	bool lbgFootGroupDef = m_pLBGFootGroup != nullptr;
@@ -444,7 +444,7 @@ HashingData ACrab::Hash() const {
 	if (lbgFootGroupDef) {
 		uint64_t lbgFootGroupHash = m_pLBGFootGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(lbgFootGroupHash);
-		hash ^= lbgFootGroupHash << 7;
+		AddToHash(hash, lbgFootGroupHash);
 	}
 
 	bool rfgFootGroupDef = m_pRFGFootGroup != nullptr;
@@ -452,7 +452,7 @@ HashingData ACrab::Hash() const {
 	if (rfgFootGroupDef) {
 		uint64_t rfgFootGroupHash = m_pRFGFootGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(rfgFootGroupHash);
-		hash ^= rfgFootGroupHash << 8;
+		AddToHash(hash, rfgFootGroupHash);
 	}
 
 	bool rbgFootGroupDef = m_pRBGFootGroup != nullptr;
@@ -460,7 +460,7 @@ HashingData ACrab::Hash() const {
 	if (rbgFootGroupDef) {
 		uint64_t rbgFootGroupHash = m_pRBGFootGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(rbgFootGroupHash);
-		hash ^= rbgFootGroupHash << 9;
+		AddToHash(hash, rbgFootGroupHash);
 	}
 
 	bool strideSoundDef = m_StrideSound != nullptr;
@@ -468,36 +468,36 @@ HashingData ACrab::Hash() const {
 	if (strideSoundDef) {
 		uint64_t strideSoundHash = m_StrideSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(strideSoundHash);
-		hash ^= strideSoundHash << 10;
+		AddToHash(hash, strideSoundHash);
 	}
 
 	uint64_t leftStandPathHash = m_Paths[LEFTSIDE][FGROUND][STAND].Hash().m_Hash;
 	hashData.m_Constituents.push_back(leftStandPathHash);
-	hash ^= leftStandPathHash << 12;
+	AddToHash(hash, leftStandPathHash);
 
 	uint64_t leftWalkPathHash = m_Paths[LEFTSIDE][FGROUND][WALK].Hash().m_Hash;
 	hashData.m_Constituents.push_back(leftWalkPathHash);
-	hash ^= leftWalkPathHash << 13;
+	AddToHash(hash, leftWalkPathHash);
 
 	uint64_t leftDislodgePathHash = m_Paths[LEFTSIDE][FGROUND][DISLODGE].Hash().m_Hash;
 	hashData.m_Constituents.push_back(leftDislodgePathHash);
-	hash ^= leftDislodgePathHash << 14;
+	AddToHash(hash, leftDislodgePathHash);
 
 	uint64_t rightStandPathHash = m_Paths[RIGHTSIDE][FGROUND][STAND].Hash().m_Hash;
 	hashData.m_Constituents.push_back(rightStandPathHash);
-	hash ^= rightStandPathHash << 15;
+	AddToHash(hash, rightStandPathHash);
 
 	uint64_t rightWalkPathHash = m_Paths[RIGHTSIDE][FGROUND][WALK].Hash().m_Hash;
 	hashData.m_Constituents.push_back(rightWalkPathHash);
-	hash ^= rightWalkPathHash << 0;
+	AddToHash(hash, rightWalkPathHash);
 
 	uint64_t rightDislodgePathHash = m_Paths[RIGHTSIDE][FGROUND][DISLODGE].Hash().m_Hash;
 	hashData.m_Constituents.push_back(rightDislodgePathHash);
-	hash ^= rightDislodgePathHash << 1;
+	AddToHash(hash, rightDislodgePathHash);
 
-	hash ^= static_cast<uint64_t>(m_AimRangeUpperLimit) << 2;
-	hash ^= static_cast<uint64_t>(m_AimRangeLowerLimit) << 3;
-	hash ^= static_cast<uint64_t>(m_LockMouseAimInput) << 4;
+	AddToHash(hash, m_AimRangeUpperLimit);
+	AddToHash(hash, m_AimRangeLowerLimit);
+	AddToHash(hash, m_LockMouseAimInput);
 
 	return hashData;
 }

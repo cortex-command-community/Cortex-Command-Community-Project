@@ -55,9 +55,9 @@ HashingData ADSensor::Hash() const {
 	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= m_StartOffset.Hash().m_Hash << 0;
-	hash ^= m_SensorRay.Hash().m_Hash << 1;
-	hash ^= static_cast<uint64_t>(m_Skip) << 2;
+	AddToHash(hash, m_StartOffset.Hash().m_Hash);
+	AddToHash(hash, m_SensorRay.Hash().m_Hash);
+	AddToHash(hash, m_Skip);
 
 	return hashData;
 }

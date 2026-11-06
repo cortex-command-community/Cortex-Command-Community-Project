@@ -250,7 +250,8 @@ HashingData AEmitter::Hash() const {
 	for (Emission* emission: m_EmissionList) {
 		uint64_t emissionHash = emission->Hash().m_Hash;
 		hashData.m_Constituents.push_back(emissionHash);
-		hash ^= emissionHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, emissionHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);
@@ -260,7 +261,7 @@ HashingData AEmitter::Hash() const {
 	if (emissionSoundDef) {
 		uint64_t emissionSoundHash = m_EmissionSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(emissionSoundHash);
-		hash ^= emissionSoundHash << 1;
+		AddToHash(hash, emissionSoundHash);
 	}
 
 	bool burstSoundDef = m_BurstSound != nullptr;
@@ -268,7 +269,7 @@ HashingData AEmitter::Hash() const {
 	if (burstSoundDef) {
 		uint64_t burstSoundHash = m_BurstSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(burstSoundHash);
-		hash ^= burstSoundHash << 2;
+		AddToHash(hash, burstSoundHash);
 	}
 
 	bool endSoundDef = m_EndSound != nullptr;
@@ -276,39 +277,39 @@ HashingData AEmitter::Hash() const {
 	if (endSoundDef) {
 		uint64_t endSoundHash = m_EndSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(endSoundHash);
-		hash ^= endSoundHash << 3;
+		AddToHash(hash, endSoundHash);
 	}
 
-	hash ^= static_cast<uint64_t>(m_EmitEnabled) << 4;
-	hash ^= static_cast<uint64_t>(m_EmitCount) << 5;
-	hash ^= static_cast<uint64_t>(m_EmitCountLimit) << 6;
-	hash ^= static_cast<uint64_t>(m_EmissionsIgnoreThis) << 7;
-	hash ^= static_cast<uint64_t>(m_NegativeThrottleMultiplier) << 8;
-	hash ^= static_cast<uint64_t>(m_PositiveThrottleMultiplier) << 9;
-	hash ^= static_cast<uint64_t>(m_Throttle) << 10;
-	hash ^= static_cast<uint64_t>(m_BurstScale) << 11;
-	hash ^= static_cast<uint64_t>(m_BurstDamage) << 12;
-	hash ^= static_cast<uint64_t>(m_EmitterDamageMultiplier) << 13;
-	hash ^= static_cast<uint64_t>(m_BurstSpacing) << 14;
-	hash ^= static_cast<uint64_t>(m_BurstTriggered) << 15;
-	hash ^= static_cast<uint64_t>(m_PlayBurstSound) << 0;
-	hash ^= m_EmitAngle.Hash().m_Hash << 1;
-	hash ^= m_EmissionOffset.Hash().m_Hash << 2;
-	hash ^= static_cast<uint64_t>(m_EmitDamage) << 3;
+	AddToHash(hash, m_EmitEnabled);
+	AddToHash(hash, m_EmitCount);
+	AddToHash(hash, m_EmitCountLimit);
+	AddToHash(hash, m_EmissionsIgnoreThis);
+	AddToHash(hash, m_NegativeThrottleMultiplier);
+	AddToHash(hash, m_PositiveThrottleMultiplier);
+	AddToHash(hash, m_Throttle);
+	AddToHash(hash, m_BurstScale);
+	AddToHash(hash, m_BurstDamage);
+	AddToHash(hash, m_EmitterDamageMultiplier);
+	AddToHash(hash, m_BurstSpacing);
+	AddToHash(hash, m_BurstTriggered);
+	AddToHash(hash, m_PlayBurstSound);
+	AddToHash(hash, m_EmitAngle.Hash().m_Hash);
+	AddToHash(hash, m_EmissionOffset.Hash().m_Hash);
+	AddToHash(hash, m_EmitDamage);
 
 	bool flashDef = m_pFlash != nullptr;
 	hashData.m_ParseValues.push_back(flashDef);
 	if (flashDef) {
 		uint64_t flashHash = m_pFlash->Hash().m_Hash;
 		hashData.m_Constituents.push_back(flashHash);
-		hash ^= flashHash << 4;
+		AddToHash(hash, flashHash);
 	}
 
-	hash ^= static_cast<uint64_t>(m_FlashScale) << 5;
-	hash ^= static_cast<uint64_t>(m_FlashOnlyOnBurst) << 6;
-	hash ^= static_cast<uint64_t>(m_SustainBurstSound) << 7;
-	hash ^= static_cast<uint64_t>(m_BurstSoundFollowsEmitter) << 8;
-	hash ^= static_cast<uint64_t>(m_LoudnessOnEmit) << 9;
+	AddToHash(hash, m_FlashScale);
+	AddToHash(hash, m_FlashOnlyOnBurst);
+	AddToHash(hash, m_SustainBurstSound);
+	AddToHash(hash, m_BurstSoundFollowsEmitter);
+	AddToHash(hash, m_LoudnessOnEmit);
 
 	return hashData;
 }

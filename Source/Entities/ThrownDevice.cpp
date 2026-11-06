@@ -119,16 +119,16 @@ HashingData ThrownDevice::Hash() const {
 	if (activationSoundDef) {
 		uint64_t activationSoundHash = m_ActivationSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(activationSoundHash);
-		hash ^= activationSoundHash << 1;
+		AddToHash(hash, activationSoundHash);
 	}
 
-	hash ^= m_StartThrowOffset.Hash().m_Hash << 2;
-	hash ^= m_EndThrowOffset.Hash().m_Hash << 3;
-	hash ^= static_cast<uint64_t>(m_MinThrowVel) << 4;
-	hash ^= static_cast<uint64_t>(m_MaxThrowVel) << 5;
-	hash ^= static_cast<uint64_t>(m_TriggerDelay) << 6;
-	hash ^= static_cast<uint64_t>(m_ActivatesWhenReleased) << 7;
-	hash ^= (m_StrikerLever ? RTE::Hash(m_StrikerLever->GetEntityCharacteristic()) : 0) << 8;
+	AddToHash(hash, m_StartThrowOffset.Hash().m_Hash);
+	AddToHash(hash, m_EndThrowOffset.Hash().m_Hash);
+	AddToHash(hash, m_MinThrowVel);
+	AddToHash(hash, m_MaxThrowVel);
+	AddToHash(hash, m_TriggerDelay);
+	AddToHash(hash, m_ActivatesWhenReleased);
+	AddToHash(hash, (m_StrikerLever ? RTE::Hash(m_StrikerLever->GetEntityCharacteristic()) : 0));
 
 	return hashData;
 }

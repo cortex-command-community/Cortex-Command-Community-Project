@@ -142,20 +142,20 @@ HashingData Emission::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= (m_pEmission ? RTE::Hash(m_pEmission->GetEntityCharacteristic()) : 0) << 0;
-	hash ^= static_cast<uint64_t>(m_PPM) << 1;
-	hash ^= static_cast<uint64_t>(m_BurstSize) << 2;
-	hash ^= static_cast<uint64_t>(m_Spread) << 3;
-	hash ^= static_cast<uint64_t>(m_MinVelocity) << 4;
-	hash ^= static_cast<uint64_t>(m_MaxVelocity) << 5;
-	hash ^= static_cast<uint64_t>(m_LifeVariation) << 6;
-	hash ^= static_cast<uint64_t>(m_PushesEmitter) << 7;
-	hash ^= static_cast<uint64_t>(m_InheritsVel) << 8;
-	hash ^= static_cast<uint64_t>(m_InheritsAngularVel) << 9;
-	hash ^= m_Offset.Hash().m_Hash << 10;
-	hash ^= static_cast<uint64_t>(m_StartTimer.GetSimTimeLimitMS()) << 11;
-	hash ^= static_cast<uint64_t>(m_StopTimer.GetSimTimeLimitMS()) << 12;
-	hash ^= static_cast<uint64_t>(m_ParticleCount) << 13;
+	AddToHash(hash, (m_pEmission ? RTE::Hash(m_pEmission->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, m_PPM);
+	AddToHash(hash, m_BurstSize);
+	AddToHash(hash, m_Spread);
+	AddToHash(hash, m_MinVelocity);
+	AddToHash(hash, m_MaxVelocity);
+	AddToHash(hash, m_LifeVariation);
+	AddToHash(hash, m_PushesEmitter);
+	AddToHash(hash, m_InheritsVel);
+	AddToHash(hash, m_InheritsAngularVel);
+	AddToHash(hash, m_Offset.Hash().m_Hash);
+	AddToHash(hash, m_StartTimer.GetSimTimeLimitMS());
+	AddToHash(hash, m_StopTimer.GetSimTimeLimitMS());
+	AddToHash(hash, m_ParticleCount);
 
 	return hashData;
 }

@@ -135,14 +135,14 @@ HashingData Leg::Hash() const {
 	if (footDef) {
 		uint64_t footHash = m_Foot->Hash().m_Hash;
 		hashData.m_Constituents.push_back(footHash);
-		hash ^= footHash << 0;
+		AddToHash(hash, footHash);
 	}
 
-	hash ^= m_ContractedOffset.Hash().m_Hash << 1;
-	hash ^= m_ExtendedOffset.Hash().m_Hash << 2;
-	hash ^= m_IdleOffset.Hash().m_Hash << 3;
-	hash ^= static_cast<uint64_t>(m_WillIdle) << 4;
-	hash ^= static_cast<uint64_t>(m_MoveSpeed) << 5;
+	AddToHash(hash, m_ContractedOffset.Hash().m_Hash);
+	AddToHash(hash, m_ExtendedOffset.Hash().m_Hash);
+	AddToHash(hash, m_IdleOffset.Hash().m_Hash);
+	AddToHash(hash, m_WillIdle);
+	AddToHash(hash, m_MoveSpeed);
 
 	return hashData;
 }

@@ -98,14 +98,15 @@ HashingData Loadout::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 	
-	hash ^= (m_pDeliveryCraft ? RTE::Hash(m_pDeliveryCraft->GetEntityCharacteristic()) : 0) << 0;
+	AddToHash(hash, (m_pDeliveryCraft ? RTE::Hash(m_pDeliveryCraft->GetEntityCharacteristic()) : 0));
 
 	int i = 0;
 
 	for (const SceneObject* pCargo: m_CargoItems) {
 		uint64_t cargoHash = RTE::Hash(pCargo->GetEntityCharacteristic());
 		hashData.m_Constituents.push_back(cargoHash);
-		hash ^= cargoHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, cargoHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);

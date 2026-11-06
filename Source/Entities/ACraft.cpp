@@ -96,11 +96,11 @@ HashingData ACraft::Exit::Hash() const {
 	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= m_Offset.Hash().m_Hash << 0;
-	hash ^= m_Velocity.Hash().m_Hash << 1;
-	hash ^= static_cast<uint64_t>(m_VelSpread) << 2;
-	hash ^= static_cast<uint64_t>(m_Radius) << 3;
-	hash ^= static_cast<uint64_t>(m_Range) << 4;
+	AddToHash(hash, m_Offset.Hash().m_Hash);
+	AddToHash(hash, m_Velocity.Hash().m_Hash);
+	AddToHash(hash, m_VelSpread);
+	AddToHash(hash, m_Radius);
+	AddToHash(hash, m_Range);
 
 	return hashData;
 }
@@ -365,7 +365,7 @@ HashingData ACraft::Hash() const {
 	if (hatchOpenSoundDef) {
 		uint64_t hatchOpenSoundHash = m_HatchOpenSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(hatchOpenSoundHash);
-		hash ^= hatchOpenSoundHash << 2;
+		AddToHash(hash, hatchOpenSoundHash);
 	}
 
 	bool hatchCloseSoundDef = m_HatchCloseSound != nullptr;
@@ -374,7 +374,7 @@ HashingData ACraft::Hash() const {
 	if (hatchCloseSoundDef) {
 		uint64_t hatchCloseSoundHash = m_HatchCloseSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(hatchCloseSoundHash);
-		hash ^= hatchCloseSoundHash << 3;
+		AddToHash(hash, hatchCloseSoundHash);
 	}
 
 	bool crashSoundDef = m_CrashSound != nullptr;
@@ -383,7 +383,7 @@ HashingData ACraft::Hash() const {
 	if (crashSoundDef) {
 		uint64_t crashSoundHash = m_CrashSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(crashSoundHash);
-		hash ^= crashSoundHash << 7;
+		AddToHash(hash, crashSoundHash);
 	}
 
 	int i = 0;
@@ -391,19 +391,20 @@ HashingData ACraft::Hash() const {
 	for (std::list<Exit>::const_iterator itr = m_Exits.begin(); itr != m_Exits.end(); ++itr) {
 		uint64_t exitHash = itr->Hash().m_Hash;
 		hashData.m_Constituents.push_back(exitHash);
-		hash ^= exitHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, exitHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);
 
-	hash ^= static_cast<uint64_t>(m_HatchDelay) << 1;
-	hash ^= static_cast<uint64_t>(m_DeliveryDelayMultiplier) << 4;
-	hash ^= static_cast<uint64_t>(m_ExitInterval) << 5;
-	hash ^= static_cast<uint64_t>(m_LandingCraft) << 6;
-	hash ^= static_cast<uint64_t>(m_CanEnterOrbit) << 8;
-	hash ^= static_cast<uint64_t>(m_MaxPassengers) << 9;
-	hash ^= static_cast<uint64_t>(m_ScuttleIfFlippedTime) << 10;
-	hash ^= static_cast<uint64_t>(m_ScuttleOnDeath) << 11;
+	AddToHash(hash, m_HatchDelay);
+	AddToHash(hash, m_DeliveryDelayMultiplier);
+	AddToHash(hash, m_ExitInterval);
+	AddToHash(hash, m_LandingCraft);
+	AddToHash(hash, m_CanEnterOrbit);
+	AddToHash(hash, m_MaxPassengers);
+	AddToHash(hash, m_ScuttleIfFlippedTime);
+	AddToHash(hash, m_ScuttleOnDeath);
 
 	return hashData;
 }

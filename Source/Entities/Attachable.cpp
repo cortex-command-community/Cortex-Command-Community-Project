@@ -257,32 +257,33 @@ HashingData Attachable::Hash() const {
 	HashingData hashData(MOSRotating::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= m_ParentOffset.Hash().m_Hash << 1;
-	hash ^= static_cast<uint64_t>(m_DrawAfterParent) << 2;
-	hash ^= static_cast<uint64_t>(m_DeleteWhenRemovedFromParent) << 3;
-	hash ^= static_cast<uint64_t>(m_GibWhenRemovedFromParent) << 4;
-	hash ^= static_cast<uint64_t>(m_ApplyTransferredForcesAtOffset) << 5;
-	hash ^= static_cast<uint64_t>(m_JointStrength) << 6;
-	hash ^= static_cast<uint64_t>(m_JointStiffness) << 7;
-	hash ^= m_JointOffset.Hash().m_Hash << 8;
-	hash ^= (m_BreakWound ? RTE::Hash(m_BreakWound->GetEntityCharacteristic()) : 0) << 9;
-	hash ^= (m_ParentBreakWound ? RTE::Hash(m_ParentBreakWound->GetEntityCharacteristic()) : 0) << 10;
-	hash ^= static_cast<uint64_t>((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2) << 11;
-	hash ^= static_cast<uint64_t>(m_InheritsRotAngle) << 12;
-	hash ^= static_cast<uint64_t>(m_InheritsFrame) << 16;
-	hash ^= static_cast<uint64_t>(m_InheritedRotAngleOffset) << 13;
-	hash ^= static_cast<uint64_t>(m_MountedRotAngleOffset) << 14;
-	hash ^= static_cast<uint64_t>(m_InheritsVelWhenDetached) << 15;
-	hash ^= static_cast<uint64_t>(m_InheritsAngularVelWhenDetached) << 0;
-	hash ^= static_cast<uint64_t>(m_CollidesWithTerrainWhileAttached) << 1;
-	hash ^= static_cast<uint64_t>(m_IgnoresParticlesWhileAttached) << 2;
+	AddToHash(hash, m_ParentOffset.Hash().m_Hash);
+	AddToHash(hash, m_DrawAfterParent);
+	AddToHash(hash, m_DeleteWhenRemovedFromParent);
+	AddToHash(hash, m_GibWhenRemovedFromParent);
+	AddToHash(hash, m_ApplyTransferredForcesAtOffset);
+	AddToHash(hash, m_JointStrength);
+	AddToHash(hash, m_JointStiffness);
+	AddToHash(hash, m_JointOffset.Hash().m_Hash);
+	AddToHash(hash, (m_BreakWound ? RTE::Hash(m_BreakWound->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, (m_ParentBreakWound ? RTE::Hash(m_ParentBreakWound->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, (m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2);
+	AddToHash(hash, m_InheritsRotAngle);
+	AddToHash(hash, m_InheritsFrame);
+	AddToHash(hash, m_InheritedRotAngleOffset);
+	AddToHash(hash, m_MountedRotAngleOffset);
+	AddToHash(hash, m_InheritsVelWhenDetached);
+	AddToHash(hash, m_InheritsAngularVelWhenDetached);
+	AddToHash(hash, m_CollidesWithTerrainWhileAttached);
+	AddToHash(hash, m_IgnoresParticlesWhileAttached);
 
 	int i = 0;
 
 	for (const std::unique_ptr<PieSlice>& pieSlice: m_PieSlices) {
 		uint64_t sliceHash = pieSlice->Hash().m_Hash;
 		hashData.m_Constituents.push_back(sliceHash);
-		hash ^= sliceHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, sliceHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);

@@ -436,7 +436,7 @@ HashingData MOSRotating::Hash() const {
 	if (atomGroupDef) {
 		uint64_t atomGroupHash = m_pAtomGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(atomGroupHash);
-		hash ^= atomGroupHash << 1;
+		AddToHash(hash, atomGroupHash);
 	}
 
 	bool deepGroupDef = m_pDeepGroup != nullptr;
@@ -444,18 +444,19 @@ HashingData MOSRotating::Hash() const {
 	if (deepGroupDef) {
 		uint64_t deepGroupHash = m_pDeepGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(deepGroupHash);
-		hash ^= deepGroupHash << 2;
+		AddToHash(hash, deepGroupHash);
 	}
 
-	hash ^= static_cast<uint64_t>(m_DeepCheck) << 3;
-	hash ^= static_cast<uint64_t>(m_OrientToVel) << 4;
+	AddToHash(hash, m_DeepCheck);
+	AddToHash(hash, m_OrientToVel);
 
 	int i = 0;
 
 	for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr) {
 		uint64_t woundHash = (*itr)->Hash().m_Hash;
 		hashData.m_Constituents.push_back(woundHash);
-		hash ^= woundHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, woundHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);
@@ -466,7 +467,8 @@ HashingData MOSRotating::Hash() const {
 		if (!AttachableIsHardcoded(*aItr)) {
 			uint64_t attachableHash = (*aItr)->Hash().m_Hash;
 			hashData.m_Constituents.push_back(attachableHash);
-			hash ^= attachableHash << (i++ % sizeof(uint64_t) * 8);
+			AddToHash(hash, attachableHash);
+			i++;
 		}
 	}
 
@@ -477,24 +479,25 @@ HashingData MOSRotating::Hash() const {
 	for (auto gItr = m_Gibs.begin(); gItr != m_Gibs.end(); ++gItr) {
 		uint64_t gibHash = (*gItr)->Hash().m_Hash;
 		hashData.m_Constituents.push_back(gibHash);
-		hash ^= gibHash << (i++ % sizeof(uint64_t) * 8);
+		AddToHash(hash, gibHash);
+		i++;
 	}
 
 	hashData.m_ParseValues.push_back(i);
 
-	hash ^= static_cast<uint64_t>(m_GibImpulseLimit) << 5;
-	hash ^= static_cast<uint64_t>(m_GibWoundLimit) << 6;
-	hash ^= static_cast<uint64_t>(m_GibAtEndOfLifetime) << 7;
+	AddToHash(hash, m_GibImpulseLimit);
+	AddToHash(hash, m_GibWoundLimit);
+	AddToHash(hash, m_GibAtEndOfLifetime);
 
 	bool gibSoundDef = m_GibSound != nullptr;
 	hashData.m_ParseValues.push_back(gibSoundDef);
 	if (gibSoundDef) {
 		uint64_t gibSoundHash = m_GibSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(gibSoundHash);
-		hash ^= gibSoundHash << 8;
+		AddToHash(hash, gibSoundHash);
 	}
 
-	hash ^= static_cast<uint64_t>(m_EffectOnGib) << 9;
+	AddToHash(hash, m_EffectOnGib);
 
 	return hashData;
 }

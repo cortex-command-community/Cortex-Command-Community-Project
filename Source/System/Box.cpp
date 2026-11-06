@@ -74,9 +74,9 @@ HashingData Box::Hash() const {
 	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= m_Corner.Hash().m_Hash << 0;
-	hash ^= static_cast<uint64_t>(m_Width) << 1;
-	hash ^= static_cast<uint64_t>(m_Height) << 2;
+	AddToHash(hash, m_Corner.Hash().m_Hash);
+	AddToHash(hash, m_Width);
+	AddToHash(hash, m_Height);
 
 	return hashData;
 }

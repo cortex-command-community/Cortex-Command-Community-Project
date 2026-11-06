@@ -125,16 +125,16 @@ HashingData Deployment::Hash() const {
 	HashingData hashData(SceneObject::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= RTE::Hash(m_LoadoutName) << 0;
+	AddToHash(hash, RTE::Hash(m_LoadoutName));
 
 	uint64_t iconHash = m_Icon.Hash().m_Hash;
 	hashData.m_Constituents.push_back(iconHash);
-	hash ^= iconHash << 1;
+	AddToHash(hash, iconHash);
 
-	hash ^= static_cast<uint64_t>(m_SpawnRadius) << 2;
-	hash ^= static_cast<uint64_t>(m_WalkRadius) << 3;
-	hash ^= static_cast<uint64_t>(m_HFlipped) << 4;
-	hash ^= static_cast<uint64_t>(m_ID) << 5;
+	AddToHash(hash, m_SpawnRadius);
+	AddToHash(hash, m_WalkRadius);
+	AddToHash(hash, m_HFlipped);
+	AddToHash(hash, m_ID);
 
 	return hashData;
 }

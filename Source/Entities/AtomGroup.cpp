@@ -235,30 +235,30 @@ HashingData AtomGroup::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= RTE::Hash(m_Material->GetEntityCharacteristic()) << 0;
-	hash ^= static_cast<uint64_t>(m_AutoGenerate) << 1;
+	AddToHash(hash, RTE::Hash(m_Material->GetEntityCharacteristic()));
+	AddToHash(hash, m_AutoGenerate);
 
 	if (m_AutoGenerate) {
 		hashData.m_ParseValues.push_back(0);
 
-		hash ^= static_cast<uint64_t>(m_Resolution) << 2;
-		hash ^= static_cast<uint64_t>(m_Depth) << 3;
+		AddToHash(hash, m_Resolution);
+		AddToHash(hash, m_Depth);
 	} else {
 		hashData.m_ParseValues.push_back(m_Atoms.size());
 
 		for (int i = 0; i < m_Atoms.size(); i++) {
 			uint64_t atomHash = m_Atoms.at(i)->Hash().m_Hash;
 			hashData.m_Constituents.push_back(atomHash);
-			hash ^= atomHash << (i % sizeof(uint64_t) * 8);
+			AddToHash(hash, atomHash);
 		}
 	}
 
 	uint64_t jointHash = m_JointOffset.Hash().m_Hash;
 	hashData.m_Constituents.push_back(jointHash);
-	hash ^= jointHash << 2;
+	AddToHash(hash, jointHash);
 
-	hash ^= static_cast<uint64_t>(m_AreaDistributionType) << 3;
-	hash ^= static_cast<uint64_t>(m_AreaDistributionSurfaceAreaMultiplier) << 4;
+	AddToHash(hash, m_AreaDistributionType);
+	AddToHash(hash, m_AreaDistributionSurfaceAreaMultiplier);
 
 	return hashData;
 }

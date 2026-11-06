@@ -79,8 +79,8 @@ HashingData Matrix::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	// This compares what an orientation does, not how it got there: flipping both axes is the same as half a turn.
-	hash ^= static_cast<uint64_t>(m_Flipped[X] != m_Flipped[Y]);
-	hash ^= std::hash<float>{}(NormalizeAngleBetween0And2PI(m_Rotation + PI * m_Flipped[Y])) << 1;
+	AddToHash(hash, m_Flipped[X] != m_Flipped[Y]);
+	AddToHash(hash, std::hash<float>{}(NormalizeAngleBetween0And2PI(m_Rotation + PI * m_Flipped[Y])));
 
 	return hashData;
 }

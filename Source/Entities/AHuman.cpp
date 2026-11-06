@@ -386,37 +386,37 @@ HashingData AHuman::Hash() const {
 	HashingData hashData(Actor::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= static_cast<uint64_t>(m_ThrowPrepTime) << 1;
+	AddToHash(hash, m_ThrowPrepTime);
 
 	bool headDef = m_pHead != nullptr;
 	hashData.m_ParseValues.push_back(headDef);
 	if (headDef) {
 		uint64_t headHash = m_pHead->Hash().m_Hash;
 		hashData.m_Constituents.push_back(headHash);
-		hash ^= headHash << 2;
+		AddToHash(hash, headHash);
 	}
 
-	hash ^= static_cast<uint64_t>(m_LookToAimRatio) << 3;
+	AddToHash(hash, m_LookToAimRatio);
 
 	bool jetpackDef = m_pJetpack != nullptr;
 	hashData.m_ParseValues.push_back(jetpackDef);
 	if (jetpackDef) {
 		uint64_t jetpackHash = m_pJetpack->Hash().m_Hash;
 		hashData.m_Constituents.push_back(jetpackHash);
-		hash ^= jetpackHash << 4;
+		AddToHash(hash, jetpackHash);
 	}
 
-	hash ^= static_cast<uint64_t>(m_FGArmFlailScalar) << 5;
-	hash ^= static_cast<uint64_t>(m_BGArmFlailScalar) << 6;
-	hash ^= static_cast<uint64_t>(m_ArmSwingRate) << 7;
-	hash ^= static_cast<uint64_t>(m_DeviceArmSwayRate) << 8;
+	AddToHash(hash, m_FGArmFlailScalar);
+	AddToHash(hash, m_BGArmFlailScalar);
+	AddToHash(hash, m_ArmSwingRate);
+	AddToHash(hash, m_DeviceArmSwayRate);
 
 	bool fgArmDef = m_pFGArm != nullptr;
 	hashData.m_ParseValues.push_back(fgArmDef);
 	if (fgArmDef) {
 		uint64_t fgArmHash = m_pFGArm->Hash().m_Hash;
 		hashData.m_Constituents.push_back(fgArmHash);
-		hash ^= fgArmHash << 9;
+		AddToHash(hash, fgArmHash);
 	}
 
 	bool bgArmDef = m_pBGArm != nullptr;
@@ -424,7 +424,7 @@ HashingData AHuman::Hash() const {
 	if (bgArmDef) {
 		uint64_t bgArmHash = m_pBGArm->Hash().m_Hash;
 		hashData.m_Constituents.push_back(bgArmHash);
-		hash ^= bgArmHash << 10;
+		AddToHash(hash, bgArmHash);
 	}
 
 	bool fgLegDef = m_pFGLeg != nullptr;
@@ -432,7 +432,7 @@ HashingData AHuman::Hash() const {
 	if (fgLegDef) {
 		uint64_t fgLegHash = m_pFGLeg->Hash().m_Hash;
 		hashData.m_Constituents.push_back(fgLegHash);
-		hash ^= fgLegHash << 11;
+		AddToHash(hash, fgLegHash);
 	}
 
 	bool bgLegDef = m_pBGLeg != nullptr;
@@ -440,7 +440,7 @@ HashingData AHuman::Hash() const {
 	if (bgLegDef) {
 		uint64_t bgLegHash = m_pBGLeg->Hash().m_Hash;
 		hashData.m_Constituents.push_back(bgLegHash);
-		hash ^= bgLegHash << 12;
+		AddToHash(hash, bgLegHash);
 	}
 
 	bool fgHandGroupDef = m_pFGHandGroup != nullptr;
@@ -448,7 +448,7 @@ HashingData AHuman::Hash() const {
 	if (fgHandGroupDef) {
 		uint64_t fgHandGroupHash = m_pFGHandGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(fgHandGroupHash);
-		hash ^= fgHandGroupHash << 13;
+		AddToHash(hash, fgHandGroupHash);
 	}
 
 	bool fgFootGroupDef = m_pFGFootGroup != nullptr;
@@ -456,7 +456,7 @@ HashingData AHuman::Hash() const {
 	if (fgFootGroupDef) {
 		uint64_t fgFootGroupHash = m_pFGFootGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(fgFootGroupHash);
-		hash ^= fgFootGroupHash << 14;
+		AddToHash(hash, fgFootGroupHash);
 	}
 
 	bool bgFootGroupDef = m_pBGFootGroup != nullptr;
@@ -464,64 +464,64 @@ HashingData AHuman::Hash() const {
 	if (bgFootGroupDef) {
 		uint64_t bgFootGroupHash = m_pBGFootGroup->Hash().m_Hash;
 		hashData.m_Constituents.push_back(bgFootGroupHash);
-		hash ^= bgFootGroupHash << 15;
+		AddToHash(hash, bgFootGroupHash);
 	}
 
-	hash ^= static_cast<uint64_t>(m_MaxWalkPathCrouchShift) << 0;
+	AddToHash(hash, m_MaxWalkPathCrouchShift);
 
 	bool strideSoundDef = m_StrideSound != nullptr;
 	hashData.m_ParseValues.push_back(strideSoundDef);
 	if (strideSoundDef) {
 		uint64_t strideSoundHash = m_StrideSound->Hash().m_Hash;
 		hashData.m_Constituents.push_back(strideSoundHash);
-		hash ^= strideSoundHash << 1;
+		AddToHash(hash, strideSoundHash);
 	}
 
 	uint64_t fgStandPathHash = m_Paths[FGROUND][STAND].Hash().m_Hash;
 	hashData.m_Constituents.push_back(fgStandPathHash);
-	hash ^= fgStandPathHash << 2;
+	AddToHash(hash, fgStandPathHash);
 
 	uint64_t bgStandPathHash = m_Paths[BGROUND][STAND].Hash().m_Hash;
 	hashData.m_Constituents.push_back(bgStandPathHash);
-	hash ^= bgStandPathHash << 3;
+	AddToHash(hash, bgStandPathHash);
 
 	uint64_t walkPathHash = m_Paths[FGROUND][WALK].Hash().m_Hash;
 	hashData.m_Constituents.push_back(walkPathHash);
-	hash ^= walkPathHash << 4;
+	AddToHash(hash, walkPathHash);
 
 	uint64_t runPathHash = m_Paths[FGROUND][RUN].Hash().m_Hash;
 	hashData.m_Constituents.push_back(runPathHash);
-	hash ^= runPathHash << 5;
+	AddToHash(hash, runPathHash);
 
 	uint64_t pronePathHash = m_Paths[FGROUND][PRONE].Hash().m_Hash;
 	hashData.m_Constituents.push_back(pronePathHash);
-	hash ^= pronePathHash << 6;
+	AddToHash(hash, pronePathHash);
 
 	uint64_t crawlPathHash = m_Paths[FGROUND][CRAWL].Hash().m_Hash;
 	hashData.m_Constituents.push_back(crawlPathHash);
-	hash ^= crawlPathHash << 7;
+	AddToHash(hash, crawlPathHash);
 
 	uint64_t armCrawlPathHash = m_Paths[FGROUND][ARMCRAWL].Hash().m_Hash;
 	hashData.m_Constituents.push_back(armCrawlPathHash);
-	hash ^= armCrawlPathHash << 8;
+	AddToHash(hash, armCrawlPathHash);
 
 	uint64_t climbPathHash = m_Paths[FGROUND][CLIMB].Hash().m_Hash;
 	hashData.m_Constituents.push_back(climbPathHash);
-	hash ^= climbPathHash << 9;
+	AddToHash(hash, climbPathHash);
 
 	uint64_t jumpPathHash = m_Paths[FGROUND][JUMP].Hash().m_Hash;
 	hashData.m_Constituents.push_back(jumpPathHash);
-	hash ^= jumpPathHash << 10;
+	AddToHash(hash, jumpPathHash);
 
 	uint64_t dislodgePathHash = m_Paths[FGROUND][DISLODGE].Hash().m_Hash;
 	hashData.m_Constituents.push_back(dislodgePathHash);
-	hash ^= dislodgePathHash << 11;
+	AddToHash(hash, dislodgePathHash);
 
-	hash ^= static_cast<uint64_t>(m_RotAngleTargets[STAND]) << 12;
-	hash ^= static_cast<uint64_t>(m_RotAngleTargets[WALK]) << 13;
-	hash ^= static_cast<uint64_t>(m_RotAngleTargets[RUN]) << 14;
-	hash ^= static_cast<uint64_t>(m_RotAngleTargets[PRONE]) << 15;
-	hash ^= static_cast<uint64_t>(m_RotAngleTargets[JUMP]) << 0;
+	AddToHash(hash, m_RotAngleTargets[STAND]);
+	AddToHash(hash, m_RotAngleTargets[WALK]);
+	AddToHash(hash, m_RotAngleTargets[RUN]);
+	AddToHash(hash, m_RotAngleTargets[PRONE]);
+	AddToHash(hash, m_RotAngleTargets[JUMP]);
 
 	return hashData;
 }

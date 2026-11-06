@@ -350,13 +350,13 @@ HashingData GameActivity::Hash() const {
 	HashingData hashData(Activity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= static_cast<uint64_t>(m_CPUTeam) << 0;
-	hash ^= static_cast<uint64_t>(m_DeliveryDelay) << 1;
-	hash ^= static_cast<uint64_t>(m_BuyMenuEnabled) << 2;
+	AddToHash(hash, m_CPUTeam);
+	AddToHash(hash, m_DeliveryDelay);
+	AddToHash(hash, m_BuyMenuEnabled);
 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 		if (m_TeamActive[team]) {
-			hash ^= RTE::Hash(GetTeamTech(team)) << (team + 3);
+			AddToHash(hash, RTE::Hash(GetTeamTech(team)));
 		}
 	}
 

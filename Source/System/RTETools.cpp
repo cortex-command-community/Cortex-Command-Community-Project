@@ -215,7 +215,7 @@ namespace RTE {
 		uint64_t hash = fnv_offset_basis;
 
 		for (auto c: text) {
-			hash ^= c;
+			AddToHash(hash, c);
 			hash *= fnv_prime;
 		}
 

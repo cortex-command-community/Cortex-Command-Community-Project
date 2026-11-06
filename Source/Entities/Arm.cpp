@@ -139,24 +139,24 @@ HashingData Arm::Hash() const {
 	HashingData hashData(Attachable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= static_cast<uint64_t>(m_MaxLength) << 1;
-	hash ^= static_cast<uint64_t>(m_MoveSpeed) << 2;
+	AddToHash(hash, m_MaxLength);
+	AddToHash(hash, m_MoveSpeed);
 
-	hash ^= m_HandIdleOffset.Hash().m_Hash << 3;
+	AddToHash(hash, m_HandIdleOffset.Hash().m_Hash);
 
 	uint64_t handSpriteHash = m_HandSpriteFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(handSpriteHash);
-	hash ^= handSpriteHash << 4;
+	AddToHash(hash, handSpriteHash);
 
-	hash ^= static_cast<uint64_t>(m_GripStrength) << 5;
-	hash ^= static_cast<uint64_t>(m_ThrowStrength) << 6;
+	AddToHash(hash, m_GripStrength);
+	AddToHash(hash, m_ThrowStrength);
 
 	bool heldDeviceDef = m_HeldDevice != nullptr;
 	hashData.m_ParseValues.push_back(heldDeviceDef);
 	if (heldDeviceDef) {
 		uint64_t heldDeviceHash = m_HeldDevice->Hash().m_Hash;
 		hashData.m_Constituents.push_back(heldDeviceHash);
-		hash ^= heldDeviceHash << 7;
+		AddToHash(hash, heldDeviceHash);
 	}
 
 	return hashData;

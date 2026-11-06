@@ -75,7 +75,7 @@ HashingData TDExplosive::Hash() const {
 	HashingData hashData(ThrownDevice::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= static_cast<uint64_t>(m_IsAnimatedManually) << 1;
+	AddToHash(hash, m_IsAnimatedManually);
 
 	return hashData;
 }

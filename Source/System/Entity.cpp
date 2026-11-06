@@ -230,16 +230,16 @@ namespace RTE {
 		HashingData hashData(Serializable::Hash());
 		uint64_t& hash = hashData.m_Hash;
 
-		hash ^= RTE::Hash(m_PresetName) << 0;
-		hash ^= RTE::Hash(m_DisplayName) << 1;
-		hash ^= static_cast<uint64_t>(m_DefinedInModule) << 2;
-		hash ^= RTE::Hash(m_PresetDescription) << 3;
+		AddToHash(hash, RTE::Hash(m_PresetName));
+		AddToHash(hash, RTE::Hash(m_DisplayName));
+		AddToHash(hash, m_DefinedInModule);
+		AddToHash(hash, RTE::Hash(m_PresetDescription));
 
 		for (auto& group: m_Groups) {
-			hash ^= RTE::Hash(group) << 4;
+			AddToHash(hash, RTE::Hash(group));
 		}
 
-		hash ^= static_cast<uint64_t>(m_RandomWeight) << 5;
+		AddToHash(hash, m_RandomWeight);
 
 		return hashData;
 	}

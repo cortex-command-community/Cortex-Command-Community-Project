@@ -175,23 +175,23 @@ HashingData PieSlice::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= static_cast<uint64_t>(m_Type) << 1;
-	hash ^= static_cast<uint64_t>(m_Direction) << 1;
-	hash ^= static_cast<uint64_t>(m_Enabled) << 2;
+	AddToHash(hash, m_Type);
+	AddToHash(hash, m_Direction);
+	AddToHash(hash, m_Enabled);
 
 	uint64_t bitmapHash = m_Icon->Hash().m_Hash;
 	hashData.m_Constituents.push_back(bitmapHash);
-	hash ^= bitmapHash << 3;
+	AddToHash(hash, bitmapHash);
 
-	hash ^= (m_LuabindFunctionObject ? RTE::Hash(m_LuabindFunctionObject->GetFilePath()) : 0) << 4;
-	hash ^= RTE::Hash(m_FunctionName) << 5;
+	AddToHash(hash, (m_LuabindFunctionObject ? RTE::Hash(m_LuabindFunctionObject->GetFilePath()) : 0));
+	AddToHash(hash, RTE::Hash(m_FunctionName));
 
 	bool subPieMenuDef = m_SubPieMenu != nullptr;
 	hashData.m_ParseValues.push_back(subPieMenuDef);
 	if (subPieMenuDef) {
 		uint64_t subPieHash = m_SubPieMenu->Hash().m_Hash;
 		hashData.m_Constituents.push_back(subPieHash);
-		hash ^= subPieHash << 6;
+		AddToHash(hash, subPieHash);
 	}
 
 	return hashData;

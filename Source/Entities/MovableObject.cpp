@@ -594,63 +594,64 @@ HashingData MovableObject::Hash() const {
 	// These are all written under the assumption that the reading and writing functions are already approximately accurate.
 	// If the write function doesn't save things correctly, this got its distinction criteria from that, so it's wrong too.
 
-	hash ^= static_cast<uint64_t>(m_Mass) << 1;
-	hash ^= m_Vel.Hash().m_Hash << 2;
-	hash ^= static_cast<uint64_t>(m_Scale) << 3;
-	hash ^= static_cast<uint64_t>(m_GlobalAccScalar) << 4;
-	hash ^= static_cast<uint64_t>(m_AirResistance) << 5;
-	hash ^= static_cast<uint64_t>(m_AirThreshold) << 6;
-	hash ^= static_cast<uint64_t>(m_PinStrength) << 7;
-	hash ^= static_cast<uint64_t>(m_RestThreshold) << 8;
-	hash ^= std::hash<unsigned long>{}(m_Lifetime) << 9;
-	hash ^= static_cast<uint64_t>(m_Sharpness) << 10;
-	hash ^= static_cast<uint64_t>(m_HitsMOs) << 11;
-	hash ^= static_cast<uint64_t>(m_GetsHitByMOs) << 12;
-	hash ^= static_cast<uint64_t>(m_IgnoresTeamHits) << 13;
-	hash ^= static_cast<uint64_t>(m_IgnoresAtomGroupHits) << 14;
-	hash ^= static_cast<uint64_t>(m_IgnoresAGHitsWhenSlowerThan) << 15;
-	hash ^= static_cast<uint64_t>(m_IgnoresActorHits) << 0;
-	hash ^= static_cast<uint64_t>(m_MissionCritical) << 1;
-	hash ^= static_cast<uint64_t>(m_CanBeSquished) << 2;
-	hash ^= static_cast<uint64_t>(m_HUDVisible) << 3;
+	AddToHash(hash, m_Mass);
+	AddToHash(hash, m_Vel.Hash().m_Hash);
+	AddToHash(hash, m_Scale);
+	AddToHash(hash, m_GlobalAccScalar);
+	AddToHash(hash, m_AirResistance);
+	AddToHash(hash, m_AirThreshold);
+	AddToHash(hash, m_PinStrength);
+	AddToHash(hash, m_RestThreshold);
+	AddToHash(hash, std::hash<unsigned long>{}(m_Lifetime));
+	AddToHash(hash, m_Sharpness);
+	AddToHash(hash, m_HitsMOs);
+	AddToHash(hash, m_GetsHitByMOs);
+	AddToHash(hash, m_IgnoresTeamHits);
+	AddToHash(hash, m_IgnoresAtomGroupHits);
+	AddToHash(hash, m_IgnoresAGHitsWhenSlowerThan);
+	AddToHash(hash, m_IgnoresActorHits);
+	AddToHash(hash, m_MissionCritical);
+	AddToHash(hash, m_CanBeSquished);
+	AddToHash(hash, m_HUDVisible);
 
 	int i = 0;
 
 	for (const auto& scriptPath: m_AllLoadedScripts) {
 		if (!scriptPath.empty()) {
-			hash ^= RTE::Hash(ScriptEnabled(scriptPath) ? scriptPath : scriptPath + " disabled") << (i++ % sizeof(uint64_t) * 8);
+			AddToHash(hash, RTE::Hash(ScriptEnabled(scriptPath) ? scriptPath : scriptPath + " disabled"));
+			i++;
 		}
 	}
 
 	uint64_t effectHash = m_ScreenEffectFile.Hash().m_Hash;
 	hashData.m_Constituents.push_back(effectHash);
-	hash ^= effectHash << 4;
+	AddToHash(hash, effectHash);
 
-	hash ^= static_cast<uint64_t>(m_PostEffectEnabled) << 5;
-	hash ^= static_cast<uint64_t>(m_EffectStartTime) << 6;
-	hash ^= static_cast<uint64_t>(m_EffectStopTime) << 7;
-	hash ^= static_cast<uint64_t>(m_EffectStartStrength) << 8;
-	hash ^= static_cast<uint64_t>(m_EffectStopStrength) << 9;
-	hash ^= static_cast<uint64_t>(m_EffectAlwaysShows) << 10;
-	hash ^= static_cast<uint64_t>(m_DamageOnCollision) << 11;
-	hash ^= static_cast<uint64_t>(m_DamageOnPenetration) << 12;
-	hash ^= static_cast<uint64_t>(m_WoundDamageMultiplier) << 13;
-	hash ^= static_cast<uint64_t>(m_ApplyWoundDamageOnCollision) << 14;
-	hash ^= static_cast<uint64_t>(m_ApplyWoundBurstDamageOnCollision) << 15;
-	hash ^= static_cast<uint64_t>(m_IgnoreTerrain) << 0;
-	hash ^= static_cast<uint64_t>(m_SimUpdatesBetweenScriptedUpdates) << 1;
+	AddToHash(hash, m_PostEffectEnabled);
+	AddToHash(hash, m_EffectStartTime);
+	AddToHash(hash, m_EffectStopTime);
+	AddToHash(hash, m_EffectStartStrength);
+	AddToHash(hash, m_EffectStopStrength);
+	AddToHash(hash, m_EffectAlwaysShows);
+	AddToHash(hash, m_DamageOnCollision);
+	AddToHash(hash, m_DamageOnPenetration);
+	AddToHash(hash, m_WoundDamageMultiplier);
+	AddToHash(hash, m_ApplyWoundDamageOnCollision);
+	AddToHash(hash, m_ApplyWoundBurstDamageOnCollision);
+	AddToHash(hash, m_IgnoreTerrain);
+	AddToHash(hash, m_SimUpdatesBetweenScriptedUpdates);
 
 	for (const auto& [key, value]: m_NumberValueMap) {
-		hash ^= RTE::Hash(key) << 16;
-		hash ^= static_cast<uint64_t>(value) << 17;
+		AddToHash(hash, RTE::Hash(key));
+		AddToHash(hash, value);
 	}
 
 	for (const auto& [key, value]: m_StringValueMap) {
-		hash ^= RTE::Hash(key) << 32;
-		hash ^= RTE::Hash(value) << 33;
+		AddToHash(hash, RTE::Hash(key));
+		AddToHash(hash, RTE::Hash(value));
 	}
 
-	hash ^= static_cast<uint64_t>(m_ForceIntoMasterLuaState) << 2;
+	AddToHash(hash, m_ForceIntoMasterLuaState);
 
 	return hashData;
 }

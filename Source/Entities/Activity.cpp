@@ -337,39 +337,39 @@ HashingData Activity::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= RTE::Hash(m_Description) << 0;
-	hash ^= RTE::Hash(m_SceneName) << 1;
-	hash ^= static_cast<uint64_t>(m_MaxPlayerSupport) << 2;
-	hash ^= static_cast<uint64_t>(m_MinTeamsRequired) << 3;
-	hash ^= static_cast<uint64_t>(m_Difficulty) << 4;
-	hash ^= static_cast<uint64_t>(m_CraftOrbitAtTheEdge) << 5;
-	hash ^= static_cast<uint64_t>(m_InCampaignStage) << 6;
-	hash ^= static_cast<uint64_t>(m_ActivityState) << 7;
-	hash ^= static_cast<uint64_t>(m_AllowsUserSaving) << 8;
+	AddToHash(hash, RTE::Hash(m_Description));
+	AddToHash(hash, RTE::Hash(m_SceneName));
+	AddToHash(hash, m_MaxPlayerSupport);
+	AddToHash(hash, m_MinTeamsRequired);
+	AddToHash(hash, m_Difficulty);
+	AddToHash(hash, m_CraftOrbitAtTheEdge);
+	AddToHash(hash, m_InCampaignStage);
+	AddToHash(hash, m_ActivityState);
+	AddToHash(hash, m_AllowsUserSaving);
 
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
 		if (m_IsActive[player]) {
-			hash ^= static_cast<uint64_t>(m_Team[player]) << (4 * player);
-			hash ^= static_cast<uint64_t>(m_FundsContribution[player]) << (4 * player + 1);
-			hash ^= static_cast<uint64_t>(m_TeamFundsShare[player]) << (4 * player + 2);
-			hash ^= static_cast<uint64_t>(m_IsHuman[player]) << (4 * player + 3);
+			AddToHash(hash, m_Team[player]);
+			AddToHash(hash, m_FundsContribution[player]);
+			AddToHash(hash, m_TeamFundsShare[player]);
+			AddToHash(hash, m_IsHuman[player]);
 		}
 	}
 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-		hash ^= static_cast<uint64_t>(m_TeamFunds[team]) << (4 * team);
-		hash ^= RTE::Hash(m_TeamNames[team]) << (4 * team + 1);
+		AddToHash(hash, m_TeamFunds[team]);
+		AddToHash(hash, RTE::Hash(m_TeamNames[team]));
 
 		uint64_t teamIconHash = m_TeamIcons[team].Hash().m_Hash;
 		hashData.m_Constituents.push_back(teamIconHash);
-		hash ^= teamIconHash << (4 * team + 2);
+		AddToHash(hash, teamIconHash);
 
-		hash ^= static_cast<uint64_t>(m_TeamAISkillLevels[team]) << (4 * team + 3);
+		AddToHash(hash, m_TeamAISkillLevels[team]);
 	}
 
 	uint64_t savedValueHash = m_SavedValues.Hash().m_Hash;
 	hashData.m_Constituents.push_back(savedValueHash);
-	hash ^= savedValueHash << 9;
+	AddToHash(hash, savedValueHash);
 
 	return hashData;
 }

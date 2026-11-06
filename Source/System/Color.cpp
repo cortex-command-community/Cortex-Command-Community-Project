@@ -47,9 +47,9 @@ HashingData Color::Hash() const {
 	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= static_cast<uint64_t>(m_R) << 0;
-	hash ^= static_cast<uint64_t>(m_G) << 1;
-	hash ^= static_cast<uint64_t>(m_B) << 2;
+	AddToHash(hash, m_R);
+	AddToHash(hash, m_G);
+	AddToHash(hash, m_B);
 
 	return hashData;
 }

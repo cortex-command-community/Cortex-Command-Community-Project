@@ -90,11 +90,11 @@ HashingData SceneObject::SOPlacer::Hash() const {
 	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= (m_pObjectReference ? RTE::Hash(m_pObjectReference->GetEntityCharacteristic()) : 0) << 0;
-	hash ^= m_Offset.Hash().m_Hash << 1;
-	hash ^= static_cast<uint64_t>(m_RotAngle) << 2;
-	hash ^= static_cast<uint64_t>(m_HFlipped) << 3;
-	hash ^= static_cast<uint64_t>(m_Team) << 4;
+	AddToHash(hash, (m_pObjectReference ? RTE::Hash(m_pObjectReference->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, m_Offset.Hash().m_Hash);
+	AddToHash(hash, m_RotAngle);
+	AddToHash(hash, m_HFlipped);
+	AddToHash(hash, m_Team);
 
 	return hashData;
 }
@@ -236,12 +236,12 @@ HashingData SceneObject::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	hash ^= m_Pos.Hash().m_Hash << 0;
-	hash ^= static_cast<uint64_t>(m_OzValue) << 1;
-	hash ^= static_cast<uint64_t>(m_Buyable) << 2;
-	hash ^= static_cast<uint64_t>(m_BuyableMode) << 3;
-	hash ^= static_cast<uint64_t>(m_Team) << 4;
-	hash ^= static_cast<uint64_t>(m_PlacedByPlayer) << 5;
+	AddToHash(hash, m_Pos.Hash().m_Hash);
+	AddToHash(hash, m_OzValue);
+	AddToHash(hash, m_Buyable);
+	AddToHash(hash, m_BuyableMode);
+	AddToHash(hash, m_Team);
+	AddToHash(hash, m_PlacedByPlayer);
 
 	return hashData;
 }
