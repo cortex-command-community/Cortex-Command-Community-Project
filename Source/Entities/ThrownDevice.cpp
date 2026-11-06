@@ -58,7 +58,7 @@ int ThrownDevice::Create(const ThrownDevice& reference) {
 int ThrownDevice::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return HeldDevice::ReadProperty(propName, reader));
 
-	MatchProperty("ActivationSound", { reader >> *m_ActivationSound; });
+	MatchProperty("ActivationSound", { m_ActivationSound = std::shared_ptr<SoundContainer>(g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName)); });
 	MatchProperty("StartThrowOffset", { reader >> m_StartThrowOffset; });
 	MatchProperty("EndThrowOffset", { reader >> m_EndThrowOffset; });
 	MatchProperty("MinThrowVel", { reader >> m_MinThrowVel; });
@@ -75,7 +75,7 @@ int ThrownDevice::ReadProperty(const std::string_view& propName, Reader& reader)
 int ThrownDevice::Save(Writer& writer) const {
 	HeldDevice::Save(writer);
 
-	writer.NewPropertyWithValue("ActivationSound", *m_ActivationSound);
+	writer.NewPropertyWithValue("ActivationSound", m_ActivationSound.get());
 	writer.NewPropertyWithValue("StartThrowOffset", m_StartThrowOffset);
 	writer.NewPropertyWithValue("EndThrowOffset", m_EndThrowOffset);
 	writer.NewPropertyWithValue("MinThrowVel", m_MinThrowVel);
@@ -147,7 +147,9 @@ void ThrownDevice::ResetAllTimers() {
 void ThrownDevice::Activate() {
 	if (!m_Activated) {
 		m_ActivationTimer.Reset();
-		m_ActivationSound->Play(m_Pos);
+		if (m_ActivationSound) {
+			m_ActivationSound->Play(m_Pos);
+		}
 		if (MovableObject* strikerLever = m_StrikerLever ? dynamic_cast<MovableObject*>(m_StrikerLever->Clone()) : nullptr) {
 			Vector randomVel(m_Vel.GetMagnitude() * 0.25F + 1.0F, 0);
 

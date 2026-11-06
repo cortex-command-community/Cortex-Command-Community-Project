@@ -258,7 +258,9 @@ int AHuman::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("FGFootGroup", {
 		delete m_pFGFootGroup;
+		delete m_BackupFGFootGroup;
 		m_pFGFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		m_BackupFGFootGroup = nullptr;
 		if (m_pFGFootGroup) {
 			m_pFGFootGroup->SetOwner(this);
 			m_BackupFGFootGroup = new AtomGroup(*m_pFGFootGroup);
@@ -267,7 +269,9 @@ int AHuman::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("BGFootGroup", {
 		delete m_pBGFootGroup;
+		delete m_BackupBGFootGroup;
 		m_pBGFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		m_BackupBGFootGroup = nullptr;
 		if (m_pBGFootGroup) {
 			m_pBGFootGroup->SetOwner(this);
 			m_BackupBGFootGroup = new AtomGroup(*m_pBGFootGroup);
