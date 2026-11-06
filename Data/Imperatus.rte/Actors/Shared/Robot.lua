@@ -1,5 +1,9 @@
 function Create(self)
-	self.baseWalkSpeed = self:GetLimbPathTravelSpeed(Actor.WALK);
+	-- The walk speed is saved with the game as this script left it, so the one to scale from has to be too.
+	if not self:NumberValueExists("RobotBaseWalkSpeed") then
+		self:SetNumberValue("RobotBaseWalkSpeed", self:GetLimbPathTravelSpeed(Actor.WALK));
+	end
+	self.baseWalkSpeed = self:GetNumberValue("RobotBaseWalkSpeed");
 end
 
 function ThreadedUpdate(self)
