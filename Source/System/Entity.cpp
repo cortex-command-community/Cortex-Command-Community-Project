@@ -173,7 +173,7 @@ namespace RTE {
 		// See int Entity::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const
 
 		if (m_IsOriginalPreset) {
-			writer.NewPropertyWithValue("PresetName", GetModuleAndPresetName());
+			writer.NewPropertyWithValue("PresetName", m_PresetName);
 		} else if (!m_PresetName.empty() && m_PresetName != "None") {
 			writer.NewPropertyWithValue("InstanceName", m_PresetName);
 		}
@@ -200,7 +200,7 @@ namespace RTE {
 
 		// If our preset name differs from the reference's, somehow, we may state the distinction.
 		if (m_IsOriginalPreset) {
-			writer.NewPropertyWithValue("PresetName", GetModuleAndPresetName());
+			writer.NewPropertyWithValue("PresetName", m_PresetName);
 		} else if (m_PresetName != entityReference.m_PresetName) {
 			writer.NewPropertyWithValue("InstanceName", m_PresetName);
 		}
