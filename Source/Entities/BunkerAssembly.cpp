@@ -267,8 +267,16 @@ int BunkerAssembly::Save(Writer& writer) const {
 
 HashingData BunkerAssembly::Hash() const {
 	HashingData hashData(TerrainObject::Hash());
+	uint64_t& hash = hashData.m_Hash;
 
-	// TODO: FINISH
+	hash ^= RTE::Hash(m_ParentAssemblyScheme) << 0;
+	hash ^= RTE::Hash(m_ParentSchemeGroup) << 1;
+	hash ^= RTE::Hash(m_SymmetricAssembly) << 2;
+
+	int i = 0;
+	for (const SceneObject* placedObject: m_PlacedObjects) {
+		hash ^= placedObject->Hash().m_Hash << (i++ % (sizeof(uint64_t) * 8));
+	}
 
 	return hashData;
 }
