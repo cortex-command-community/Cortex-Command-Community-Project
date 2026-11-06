@@ -144,8 +144,7 @@ int PEmitter::Save(Writer& writer) const {
 	MOSParticle::Save(writer);
 
 	for (Emission* emission: m_EmissionList) {
-		writer.NewProperty("AddEmission");
-		writer << *emission;
+		writer.NewPropertyWithValue("AddEmission", *emission);
 	}
 
 	writer.NewPropertyWithValue("EmissionSound", m_EmissionSound);

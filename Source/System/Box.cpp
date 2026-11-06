@@ -62,10 +62,8 @@ int Box::Save(Writer& writer) const {
 
 	if (!m_Corner.IsZero())
 		writer.NewPropertyWithValue("Corner", m_Corner);
-	if (m_Width != 0.0F)
-		writer.NewPropertyWithValue("Width", m_Width);
-	if (m_Height != 0.0F)
-		writer.NewPropertyWithValue("Height", m_Height);
+	writer.NewDistinctProperty("Width", m_Width, 0.0F);
+	writer.NewDistinctProperty("Height", m_Height, 0.0F);
 
 	return 0;
 }

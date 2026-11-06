@@ -162,8 +162,7 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Save(Writer& writer) const {
 	if (m_ScaleFactor != Vector(1, 1))
 		writer.NewPropertyWithValue("ScrollRatio", m_ScrollInfo);
 
-	if (m_ScaleFactor != Vector(1, 1))
-		writer.NewPropertyWithValue("ScaleFactor", m_ScaleFactor);
+	writer.NewDistinctProperty("ScaleFactor", m_ScaleFactor, Vector(1, 1));
 
 	if (!m_OriginOffset.IsZero())
 		writer.NewPropertyWithValue("OriginPointOffset", m_OriginOffset);

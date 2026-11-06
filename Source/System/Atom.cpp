@@ -173,10 +173,8 @@ int Atom::Save(Writer& writer) const {
 		writer.NewPropertyWithValue("Material", m_Material->GetEntityCharacteristic());
 	if (m_TrailColor.GetR() != 0 || m_TrailColor.GetG() != 0 || m_TrailColor.GetB() != 0)
 		writer.NewPropertyWithValue("TrailColor", m_TrailColor);
-	if (m_TrailLength != 0)
-		writer.NewPropertyWithValue("TrailLength", m_TrailLength);
-	if (m_TrailLengthVariation != 0.0F)
-		writer.NewPropertyWithValue("TrailLengthVariation", m_TrailLengthVariation);
+	writer.NewDistinctProperty("TrailLength", m_TrailLength, 0);
+	writer.NewDistinctProperty("TrailLengthVariation", m_TrailLengthVariation, 0.0F);
 
 	return 0;
 }

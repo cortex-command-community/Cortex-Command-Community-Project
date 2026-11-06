@@ -425,8 +425,7 @@ int Actor::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("HolsterOffset", m_HolsterOffset);
 	writer.NewPropertyWithValue("ReloadOffset", m_ReloadOffset);
 	for (std::deque<MovableObject*>::const_iterator itr = m_Inventory.begin(); itr != m_Inventory.end(); ++itr) {
-		writer.NewProperty("AddInventory");
-		writer << **itr;
+		writer.NewPropertyWithValue("AddInventory", **itr);
 	}
 	writer.NewPropertyWithValue("MaxInventoryMass", m_MaxInventoryMass);
 	writer.NewPropertyWithValue("AIMode", GetAIModeToWrite());

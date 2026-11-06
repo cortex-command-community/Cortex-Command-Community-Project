@@ -182,8 +182,7 @@ int AtomGroup::Save(Writer& writer) const {
 	// Only write out Atoms if they were manually specified
 	if (!m_AutoGenerate) {
 		for (const Atom* atom: m_Atoms) {
-			writer.NewProperty("AddAtom");
-			writer << *atom;
+			writer.NewPropertyWithValue("AddAtom", *atom);
 		}
 	} else {
 		writer.NewPropertyWithValue("Resolution", m_Resolution);

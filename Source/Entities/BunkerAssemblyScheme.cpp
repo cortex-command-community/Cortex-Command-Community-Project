@@ -204,8 +204,7 @@ int BunkerAssemblyScheme::Save(Writer& writer) const {
 
 	writer.NewPropertyWithValue("BitmapFile", m_BitmapFile);
 	for (std::list<SOPlacer>::const_iterator itr = m_ChildObjects.begin(); itr != m_ChildObjects.end(); ++itr) {
-		writer.NewProperty("AddChildObject");
-		writer << (*itr);
+		writer.NewPropertyWithValue("AddChildObject", (*itr));
 	}
 
 	return 0;

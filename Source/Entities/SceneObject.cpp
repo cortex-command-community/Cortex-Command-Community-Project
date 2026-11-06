@@ -194,16 +194,12 @@ int SceneObject::Save(Writer& writer) const {
 
 	if (!m_Pos.IsZero())
 		writer.NewPropertyWithValue("Position", m_Pos);
-	if (m_OzValue != 0)
-		writer.NewPropertyWithValue("GoldValue", m_OzValue);
-	if (m_Buyable != true)
-		writer.NewPropertyWithValue("Buyable", m_Buyable);
+	writer.NewDistinctProperty("GoldValue", m_OzValue, 0);
+	writer.NewDistinctProperty("Buyable", m_Buyable, true);
 	if (m_BuyableMode != BuyableMode::NoRestrictions)
 		writer.NewPropertyWithValue("BuyableMode", static_cast<int>(m_BuyableMode));
-	if (m_Team != Activity::NoTeam)
-		writer.NewPropertyWithValue("Team", m_Team);
-	if (m_PlacedByPlayer != Players::NoPlayer)
-		writer.NewPropertyWithValue("PlacedByPlayer", m_PlacedByPlayer);
+	writer.NewDistinctProperty("Team", m_Team, Activity::NoTeam);
+	writer.NewDistinctProperty("PlacedByPlayer", m_PlacedByPlayer, Players::NoPlayer);
 
 	return 0;
 }

@@ -355,14 +355,10 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 int MOSRotating::Save(Writer& writer) const {
 	MOSprite::Save(writer);
 
-	writer.NewProperty("AtomGroup");
-	writer << m_pAtomGroup;
-	writer.NewProperty("DeepGroup");
-	writer << m_pDeepGroup;
-	writer.NewProperty("DeepCheck");
-	writer << m_DeepCheck;
-	writer.NewProperty("OrientToVel");
-	writer << m_OrientToVel;
+	writer.NewPropertyWithValue("AtomGroup", m_pAtomGroup);
+	writer.NewPropertyWithValue("DeepGroup", m_pDeepGroup);
+	writer.NewPropertyWithValue("DeepCheck", m_DeepCheck);
+	writer.NewPropertyWithValue("OrientToVel", m_OrientToVel);
 
 	for (const AEmitter* wound: m_Wounds) {
 		writer.NewPropertyWithValue("AddWound", wound);
@@ -376,12 +372,10 @@ int MOSRotating::Save(Writer& writer) const {
 	}
 
 	for (auto gItr = m_Gibs.begin(); gItr != m_Gibs.end(); ++gItr) {
-		writer.NewProperty("AddGib");
-		writer << (**gItr);
+		writer.NewPropertyWithValue("AddGib", (**gItr));
 	}
 
-	writer.NewProperty("GibImpulseLimit");
-	writer << m_GibImpulseLimit;
+	writer.NewPropertyWithValue("GibImpulseLimit", m_GibImpulseLimit);
 	writer.NewPropertyWithValue("GibWoundLimit", m_GibWoundLimit);
 	writer.NewPropertyWithValue("GibAtEndOfLifetime", m_GibAtEndOfLifetime);
 
@@ -396,8 +390,7 @@ int MOSRotating::Save(Writer& writer) const {
 		}
 	}*/
 
-	writer.NewProperty("EffectOnGib");
-	writer << m_EffectOnGib;
+	writer.NewPropertyWithValue("EffectOnGib", m_EffectOnGib);
 
 	return 0;
 }

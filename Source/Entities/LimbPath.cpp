@@ -210,8 +210,7 @@ int LimbPath::Save(Writer& writer) const {
 	writer.NewDistinctProperty("TravelSpeed", m_TravelSpeed, 0.0F);
 	writer.NewDistinctProperty("BaseTravelSpeedMultiplier", m_BaseTravelSpeedMultiplier, 1.0F);
 
-	if (m_BaseScaleMultiplier != Vector(1, 1))
-		writer.NewPropertyWithValue("BaseScaleMultiplier", m_BaseScaleMultiplier);
+	writer.NewDistinctProperty("BaseScaleMultiplier", m_BaseScaleMultiplier, Vector(1, 1));
 
 	writer.NewDistinctProperty("PushForce", m_PushForce, 0.0F);
 

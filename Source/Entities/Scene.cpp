@@ -92,8 +92,7 @@ int Scene::Area::Save(Writer& writer) const {
 		writer.NewPropertyWithValue("Name", m_Name);
 
 	for (const Box* box: m_BoxList) {
-		writer.NewProperty("AddBox");
-		writer << *box;
+		writer.NewPropertyWithValue("AddBox", *box);
 	}
 
 	return 0;
@@ -1234,8 +1233,7 @@ int Scene::Save(Writer& writer) const {
 	for (Area* area: m_AreaList) {
 		// Only write the area if it has any boxes/area at all
 		if (doFullGameSave || !(*area).HasNoArea()) {
-			writer.NewProperty("AddArea");
-			writer << *area;
+			writer.NewPropertyWithValue("AddArea", *area);
 		}
 	}
 

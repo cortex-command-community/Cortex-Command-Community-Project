@@ -201,13 +201,11 @@ namespace RTE {
 		// If our preset name differs from the reference's, somehow, we may state the distinction.
 		if (m_IsOriginalPreset) {
 			writer.NewPropertyWithValue("PresetName", m_PresetName);
-		} else if (m_PresetName != entityReference.m_PresetName) {
-			writer.NewPropertyWithValue("InstanceName", m_PresetName);
+		} else {
+			writer.NewDistinctProperty("InstanceName", m_PresetName, entityReference.m_PresetName);
 		}
 
-		if (m_DisplayName != entityReference.m_DisplayName) {
-			writer.NewPropertyWithValue("DisplayName", m_DisplayName);
-		}
+		writer.NewDistinctProperty("DisplayName", m_DisplayName, entityReference.m_DisplayName);
 
 		if (m_PresetDescription != entityReference.m_PresetDescription) {
 			WriteDescription(writer, m_PresetDescription);

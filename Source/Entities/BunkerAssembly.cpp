@@ -216,8 +216,7 @@ int BunkerAssembly::Save(Writer& writer) const {
 	// Groups are essential for BunkerAssemblies so save them, because entity seem to ignore them
 	for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {
 		if ((*itr) != m_ParentAssemblyScheme && (*itr) != m_ParentSchemeGroup) {
-			writer.NewProperty("AddToGroup");
-			writer << *itr;
+			writer.NewPropertyWithValue("AddToGroup", *itr);
 		}
 	}
 	if (m_SymmetricAssembly.size() > 0) {
@@ -230,11 +229,9 @@ int BunkerAssembly::Save(Writer& writer) const {
 	for (std::list<SceneObject*>::const_iterator oItr = m_PlacedObjects.begin(); oItr != m_PlacedObjects.end(); ++oItr) {
 		writer.NewProperty("PlaceObject");
 		writer.ObjectStart((*oItr)->GetClassName());
-		writer.NewProperty("CopyOf");
-		writer << (*oItr)->GetModuleAndPresetName();
+		writer.NewPropertyWithValue("CopyOf", (*oItr)->GetModuleAndPresetName());
 
-		writer.NewProperty("Position");
-		writer << (*oItr)->GetPos();
+		writer.NewPropertyWithValue("Position", (*oItr)->GetPos());
 
 		// Only write certain properties if they are applicable to the type of SceneObject being written
 		MOSRotating* pSpriteObj = dynamic_cast<MOSRotating*>(*oItr);

@@ -82,12 +82,9 @@ int ACraft::Exit::Save(Writer& writer) const {
 		writer.NewPropertyWithValue("Offset", m_Offset);
 	if (!m_Velocity.IsZero())
 		writer.NewPropertyWithValue("Velocity", m_Velocity);
-	if (m_VelSpread != 0.2F)
-		writer.NewPropertyWithValue("VelocitySpread", m_VelSpread);
-	if (m_Radius != 10.0F)
-		writer.NewPropertyWithValue("Radius", m_Radius);
-	if (m_Range != 35.0F)
-		writer.NewPropertyWithValue("Range", m_Range);
+	writer.NewDistinctProperty("VelocitySpread", m_VelSpread, 0.2F);
+	writer.NewDistinctProperty("Radius", m_Radius, 10.0F);
+	writer.NewDistinctProperty("Range", m_Range, 35.0F);
 
 	return 0;
 }
@@ -319,8 +316,7 @@ int ACraft::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("HatchCloseSound", m_HatchCloseSound);
 	writer.NewPropertyWithValue("CrashSound", m_CrashSound);
 	for (std::list<Exit>::const_iterator itr = m_Exits.begin(); itr != m_Exits.end(); ++itr) {
-		writer.NewProperty("AddExit");
-		writer << (*itr);
+		writer.NewPropertyWithValue("AddExit", (*itr));
 	}
 	writer.NewPropertyWithValue("HatchDelay", m_HatchDelay);
 	writer.NewPropertyWithValue("DeliveryDelayMultiplier", m_DeliveryDelayMultiplier);

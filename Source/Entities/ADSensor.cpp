@@ -45,8 +45,7 @@ int ADSensor::Save(Writer& writer) const {
 		writer.NewPropertyWithValue("StartOffset", m_StartOffset);
 	if (!m_SensorRay.IsZero())
 		writer.NewPropertyWithValue("SensorRay", m_SensorRay);
-	if (m_Skip != 3)
-		writer.NewPropertyWithValue("SkipPixels", m_Skip);
+	writer.NewDistinctProperty("SkipPixels", m_Skip, 3);
 
 	return 0;
 }
