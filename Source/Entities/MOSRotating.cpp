@@ -287,7 +287,7 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 		}
 	});
 	MatchProperty("_ClearAttachables", {
-		// Only what _AddAttachable gives back is removed. Hardcoded Attachables have their own properties, which are only written when they differ from the preset's.
+		// Only what AddAttachable gives back is removed. Hardcoded Attachables have their own properties, which are only written when they differ from the preset's.
 		reader.ReadPropValue();
 		for (auto attachableIterator = m_Attachables.begin(); attachableIterator != m_Attachables.end();) {
 			Attachable* attachable = *attachableIterator;
@@ -297,7 +297,7 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 			}
 		}
 	});
-	MatchForwards("AddAttachable") MatchForwards("AddAEmitter") MatchForwards("AddEmitter") MatchProperty("_AddAttachable", {
+	MatchForwards("AddAEmitter") MatchForwards("AddEmitter") MatchProperty("AddAttachable", {
 		Entity* readerEntity = g_PresetMan.ReadReflectedPreset(reader);
 		if (Attachable* readerAttachable = dynamic_cast<Attachable*>(readerEntity)) {
 			AddAttachable(readerAttachable);
@@ -309,7 +309,7 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 		reader.ReadPropValue();
 		RemoveWounds(GetWoundCount());
 	});
-	MatchForwards("SpecialBehaviour_AddWound") MatchProperty("_AddWound", {
+	MatchForwards("SpecialBehaviourAddWound") MatchProperty("AddWound", {
 		Entity* readerEntity = g_PresetMan.ReadReflectedPreset(reader);
 		if (AEmitter* readerWound = dynamic_cast<AEmitter*>(readerEntity)) {
 			AddWound(readerWound, readerWound->GetParentOffset());
@@ -323,7 +323,7 @@ int MOSRotating::ReadProperty(const std::string_view& propName, Reader& reader) 
 			delete gib;
 		m_Gibs.clear(); 
 	});
-	MatchForwards("AddGib") MatchProperty("_AddGib", {
+	MatchProperty("AddGib", {
 		Gib* gib = new Gib();
 		reader >> *gib;
 		m_Gibs.push_back(gib);
@@ -365,13 +365,13 @@ int MOSRotating::Save(Writer& writer) const {
 	writer << m_OrientToVel;
 
 	for (const AEmitter* wound: m_Wounds) {
-		writer.NewPropertyWithValue("_AddWound", wound);
+		writer.NewPropertyWithValue("AddWound", wound);
 	}
 
 	// Hardcoded Attachables are written through their own properties.
 	for (const Attachable* attachable: m_Attachables) {
 		if (!AttachableIsHardcoded(attachable)) {
-			writer.NewPropertyWithValue("_AddAttachable", attachable);
+			writer.NewPropertyWithValue("AddAttachable", attachable);
 		}
 	}
 
@@ -411,11 +411,11 @@ int MOSRotating::Write(Writer& writer, const Entity& entityReference, HashingDat
 	writer.NewOptionalEntityPointerProperty("DeepGroup", m_pDeepGroup, hashData);
 	writer.NewDistinctProperty("DeepCheck", m_DeepCheck, reference.m_DeepCheck);
 	writer.NewDistinctProperty("OrientToVel", m_OrientToVel, reference.m_OrientToVel);
-	writer.NewPointerSequence("_ClearWounds", "_AddWound", m_Wounds, hashData);
-	writer.NewPointerSequenceConditional("_ClearAttachables", "_AddAttachable", m_Attachables, hashData, [&](const Attachable* ptr) {
+	writer.NewPointerSequence("_ClearWounds", "AddWound", m_Wounds, hashData);
+	writer.NewPointerSequenceConditional("_ClearAttachables", "AddAttachable", m_Attachables, hashData, [&](const Attachable* ptr) {
 		return !AttachableIsHardcoded(ptr);
 	});
-	writer.NewPointerSequence("_ClearGibs", "_AddGib", m_Gibs, hashData);
+	writer.NewPointerSequence("_ClearGibs", "AddGib", m_Gibs, hashData);
 	writer.NewDistinctProperty("GibImpulseLimit", m_GibImpulseLimit, reference.m_GibImpulseLimit);
 	writer.NewDistinctProperty("GibWoundLimit", m_GibWoundLimit, reference.m_GibWoundLimit);
 	writer.NewDistinctProperty("GibAtEndOfLifetime", m_GibAtEndOfLifetime, reference.m_GibAtEndOfLifetime);

@@ -333,7 +333,7 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("HUDVisible", { reader >> m_HUDVisible; });
 	MatchProperty("_DisableScript", { EnableOrDisableScript(g_PresetMan.GetFullModulePath(reader.ReadPropValue()), false); });
 	MatchProperty("_EnableScript", { EnableOrDisableScript(g_PresetMan.GetFullModulePath(reader.ReadPropValue()), true); });
-	MatchForwards("ScriptPath") MatchProperty("_AddScriptPath", {
+	MatchProperty("ScriptPath", {
 		std::string scriptPath = g_PresetMan.GetFullModulePath(reader.ReadPropValue());
 		switch (LoadScript(scriptPath)) {
 			case 0:
@@ -396,7 +396,7 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 		reader.ReadPropValue();
 		m_StringValueMap.clear();
 	});
-	MatchForwards("AddCustomValue") MatchProperty("_AddCustomValue", { ReadCustomValueProperty(reader); });
+	MatchProperty("AddCustomValue", { ReadCustomValueProperty(reader); });
 	MatchProperty("ForceIntoMasterLuaState", { reader >> m_ForceIntoMasterLuaState; });
 
 	EndPropertyList;
@@ -531,7 +531,7 @@ int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingD
 		const bool referenceHasScript = reference.HasScript(scriptPath);
 
 		if (!referenceHasScript) {
-			writer.NewPropertyWithValue("_AddScriptPath", scriptPath);
+			writer.NewPropertyWithValue("ScriptPath", scriptPath);
 		}
 
 		// A script that's just been added starts out enabled when it's read.
@@ -566,7 +566,7 @@ int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingD
 
 	for (const auto& [key, value]: m_NumberValueMap) {
 		writer.NewLine();
-		writer.ObjectStart("_AddCustomValue = NumberValue");
+		writer.ObjectStart("AddCustomValue = NumberValue");
 		writer.NewPropertyWithValue(key, value);
 		writer.ObjectEnd();
 	}
@@ -577,7 +577,7 @@ int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingD
 
 	for (const auto& [key, value]: m_StringValueMap) {
 		writer.NewLine();
-		writer.ObjectStart("_AddCustomValue = StringValue");
+		writer.ObjectStart("AddCustomValue = StringValue");
 		writer.NewPropertyWithValue(key, value);
 		writer.ObjectEnd();
 	}

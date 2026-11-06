@@ -295,7 +295,7 @@ int ACraft::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader.ReadPropValue();
 		m_Exits.clear();
 	});
-	MatchForwards("AddExit") MatchProperty("_AddExit", {
+	MatchProperty("AddExit", {
 		Exit exit;
 		reader >> exit;
 		m_Exits.push_back(exit);
@@ -342,7 +342,7 @@ int ACraft::Write(Writer& writer, const Entity& entityReference, HashingData& ha
 	writer.NewOptionalEntityPointerProperty("HatchOpenSound", m_HatchOpenSound, hashData);
 	writer.NewOptionalEntityPointerProperty("HatchCloseSound", m_HatchCloseSound, hashData);
 	writer.NewOptionalEntityPointerProperty("CrashSound", m_CrashSound, hashData);
-	writer.NewSequence("_ClearExits", "_AddExit", m_Exits, hashData);
+	writer.NewSequence("_ClearExits", "AddExit", m_Exits, hashData);
 	writer.NewDistinctProperty("HatchDelay", m_HatchDelay, reference.m_HatchDelay);
 	writer.NewDistinctProperty("DeliveryDelayMultiplier", m_DeliveryDelayMultiplier, reference.m_DeliveryDelayMultiplier);
 	writer.NewDistinctProperty("ExitInterval", m_ExitInterval, reference.m_ExitInterval);

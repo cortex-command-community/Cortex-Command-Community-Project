@@ -134,7 +134,7 @@ int LimbPath::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_TotalLength = 0.0F;
 		m_RegularLength = 0.0F;
 	});
-	MatchForwards("AddSegment") MatchProperty("_AddSegment", {
+	MatchProperty("AddSegment", {
 		Vector segment;
 		reader >> segment;
 		m_Segments.push_back(segment);
@@ -202,7 +202,7 @@ int LimbPath::Save(Writer& writer) const {
 	writer.NewDistinctProperty("StartSegCount", m_StartSegCount, (size_t) 0);
 
 	for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr) {
-		writer.NewPropertyWithValue("_AddSegment", *itr);
+		writer.NewPropertyWithValue("AddSegment", *itr);
 	}
 
 	writer.NewDistinctProperty("EndSegCount", m_FootCollisionsDisabledSegment, -1);
@@ -225,7 +225,7 @@ int LimbPath::Write(Writer& writer, const Entity& entityReference, HashingData& 
 
 	writer.NewDistinctProperty("StartOffset", m_Start, reference.m_Start);
 	writer.NewDistinctProperty("StartSegCount", m_StartSegCount, reference.m_StartSegCount);
-	writer.NewSequence("_ClearSegments", "_AddSegment", m_Segments, hashData);
+	writer.NewSequence("_ClearSegments", "AddSegment", m_Segments, hashData);
 	writer.NewDistinctProperty("EndSegCount", m_FootCollisionsDisabledSegment, reference.m_FootCollisionsDisabledSegment);
 	writer.NewDistinctProperty("SegmentEndedThreshold", m_SegmentEndedThreshold, reference.m_SegmentEndedThreshold);
 	writer.NewDistinctProperty("TravelSpeed", m_TravelSpeed, reference.m_TravelSpeed);

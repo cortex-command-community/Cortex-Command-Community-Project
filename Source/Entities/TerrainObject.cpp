@@ -84,7 +84,7 @@ int TerrainObject::ReadProperty(const std::string_view& propName, Reader& reader
 		reader >> m_BitmapOffset;
 		m_OffsetDefined = true;
 	});
-	MatchForwards("AddChildObject") MatchProperty("_AddChildObject", {
+	MatchProperty("AddChildObject", {
 		SceneObject::SOPlacer newChildObject;
 		reader >> newChildObject;
 		newChildObject.SetTeam(m_Team);
@@ -130,7 +130,7 @@ int TerrainObject::Write(Writer& writer, const Entity& entityReference, HashingD
 	writer.NewDistinctHashedProperty("BGColorFile", m_BGColorFile, hashData);
 	writer.NewDistinctHashedProperty("MaterialFile", m_MaterialFile, hashData);
 	writer.NewDistinctProperty("BitmapOffset", m_BitmapOffset, reference.m_BitmapOffset);
-	writer.NewSequence("_ClearChildObjects", "_AddChildObject", m_ChildObjects, hashData);
+	writer.NewSequence("_ClearChildObjects", "AddChildObject", m_ChildObjects, hashData);
 
 	return 0;
 }

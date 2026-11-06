@@ -184,7 +184,7 @@ int BunkerAssemblyScheme::ReadProperty(const std::string_view& propName, Reader&
 		reader.ReadPropValue();
 		m_ChildObjects.clear();
 	});
-	MatchForwards("AddChildObject") MatchProperty("_AddChildObject", {
+	MatchProperty("AddChildObject", {
 		SOPlacer newChild;
 		reader >> newChild;
 		newChild.SetTeam(m_Team);
@@ -217,7 +217,7 @@ int BunkerAssemblyScheme::Write(Writer& writer, const Entity& entityReference, H
 	const BunkerAssemblyScheme& reference = static_cast<const BunkerAssemblyScheme&>(entityReference);
 
 	writer.NewDistinctHashedProperty("BitmapFile", m_BitmapFile, hashData);
-	writer.NewSequence("_ClearChildObjects", "_AddChildObject", m_ChildObjects, hashData);
+	writer.NewSequence("_ClearChildObjects", "AddChildObject", m_ChildObjects, hashData);
 
 	return 0;
 }

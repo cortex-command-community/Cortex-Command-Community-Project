@@ -55,7 +55,7 @@ int Turret::ReadProperty(const std::string_view& propName, Reader& reader) {
 			delete RemoveAttachable(heldDevice, false, false);
 		}
 	});
-	MatchForwards("AddMountedDevice") MatchProperty("_AddMountedDevice", { AddMountedDevice(g_PresetMan.ReadReflectedPresetOfType<HeldDevice>(reader, propName)); });
+	MatchProperty("AddMountedDevice", { AddMountedDevice(g_PresetMan.ReadReflectedPresetOfType<HeldDevice>(reader, propName)); });
 	MatchProperty("MountedDeviceRotationOffset", { reader >> m_MountedDeviceRotationOffset; });
 
 	EndPropertyList;
@@ -77,7 +77,7 @@ int Turret::Write(Writer& writer, const Entity& entityReference, HashingData& ha
 
 	const Turret& reference = static_cast<const Turret&>(entityReference);
 
-	writer.NewPointerSequence("_ClearMountedDevices", "_AddMountedDevice", m_MountedDevices, hashData);
+	writer.NewPointerSequence("_ClearMountedDevices", "AddMountedDevice", m_MountedDevices, hashData);
 	writer.NewDistinctProperty("MountedDeviceRotationOffset", m_MountedDeviceRotationOffset, reference.m_MountedDeviceRotationOffset);
 
 	return 0;

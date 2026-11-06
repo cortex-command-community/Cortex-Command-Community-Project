@@ -102,7 +102,7 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 		}
 		m_PieSlicesToAdd.clear();
 	});
-	MatchForwards("AddPieSlice") MatchProperty("_AddPieSlice", {
+	MatchProperty("AddPieSlice", {
 		if (PieSlice* pieSlice = g_PresetMan.ReadReflectedPresetOfType<PieSlice>(reader, propName)) {
 			m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(pieSlice));
 		} else {
@@ -114,7 +114,7 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader.ReadPropValue();
 		m_RequiredAreas.clear();
 	});
-	MatchForwards("AddRequiredArea") MatchProperty("_AddRequiredArea", {
+	MatchProperty("AddRequiredArea", {
 		std::string requiredArea;
 		reader >> requiredArea;
 		m_RequiredAreas.insert(requiredArea);
@@ -147,7 +147,7 @@ int GAScripted::Write(Writer& writer, const Entity& entityReference, HashingData
 
 	writer.NewDistinctProperty("ScriptPath", m_ScriptPath, reference.m_ScriptPath);
 	writer.NewDistinctProperty("LuaClassName", m_LuaClassName, reference.m_LuaClassName);
-	writer.NewPointerSequence("_ClearPieSlices", "_AddPieSlice", m_PieSlicesToAdd, hashData);
+	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", m_PieSlicesToAdd, hashData);
 
 	if (m_RequiredAreas != reference.m_RequiredAreas) {
 		if (reference.m_RequiredAreas.size() > 0) {
@@ -155,7 +155,7 @@ int GAScripted::Write(Writer& writer, const Entity& entityReference, HashingData
 		}
 
 		for (auto itr = m_RequiredAreas.begin(); itr != m_RequiredAreas.end(); ++itr) {
-			writer.NewPropertyWithValue("_AddRequiredArea", *itr);
+			writer.NewPropertyWithValue("AddRequiredArea", *itr);
 		}
 	}
 

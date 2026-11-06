@@ -152,7 +152,7 @@ int AtomGroup::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_Atoms.clear();
 		m_SubGroups.clear();
 	});
-	MatchForwards("AddAtom") MatchProperty("_AddAtom", {
+	MatchProperty("AddAtom", {
 		Atom* atom = new Atom;
 		reader >> *atom;
 		m_Atoms.push_back(atom);
@@ -214,7 +214,7 @@ int AtomGroup::Write(Writer& writer, const Entity& entityReference, HashingData&
 
 	// Only write out Atoms if they were manually specified
 	if (!m_AutoGenerate) {
-		writer.NewPointerSequence("_ClearAtoms", "_AddAtom", m_Atoms, hashData);
+		writer.NewPointerSequence("_ClearAtoms", "AddAtom", m_Atoms, hashData);
 	} else {
 		writer.NewDistinctProperty("Resolution", m_Resolution, reference.m_Resolution);
 		writer.NewDistinctProperty("Depth", m_Depth, reference.m_Depth);

@@ -221,7 +221,7 @@ int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader)
 	MatchProperty("GoldSwitchEnabled", { reader >> m_GoldSwitchEnabled; });
 	MatchProperty("RequireClearPathToOrbitSwitchEnabled", { reader >> m_RequireClearPathToOrbitSwitchEnabled; });
 	MatchProperty("BuyMenuEnabled", { reader >> m_BuyMenuEnabled; });
-	MatchProperty("_AddDelivery", {
+	MatchProperty("AddDelivery", {
 		Delivery delivery;
 		reader >> delivery;
 
@@ -271,8 +271,8 @@ int GameActivity::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("BuyMenuEnabled", m_BuyMenuEnabled);
 
 	// Note - these special behaviour properties are for saving and loading. Normally these fields are set by the Activity config GUI.
-	writer.NewPropertyWithValue("SpecialBehaviour_StartingGold", m_StartingGold);
-	writer.NewPropertyWithValue("SpecialBehaviour_FogOfWarEnabled", m_FogOfWarEnabled);
+	writer.NewPropertyWithValue("_StartingGold", m_StartingGold);
+	writer.NewPropertyWithValue("_FogOfWarEnabled", m_FogOfWarEnabled);
 
 	WriteDeliveries(writer);
 
@@ -308,7 +308,7 @@ void GameActivity::WriteDeliveries(Writer& writer) const {
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
 		for (const Delivery& delivery: m_Deliveries[team]) {
 			if (delivery.pCraft) {
-				writer.NewPropertyWithValue("_AddDelivery", delivery);
+				writer.NewPropertyWithValue("AddDelivery", delivery);
 			}
 		}
 	}

@@ -1025,7 +1025,7 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader.ReadPropValue();
 		ClearPlacedObjectSet(Scene::PlacedObjectSets::PLACEONLOAD, true);
 	});
-	MatchForwards("PlaceSceneObject") MatchForwards("PlaceMovableObject") MatchProperty("_PlaceSceneObject", {
+	MatchForwards("PlaceMovableObject") MatchProperty("PlaceSceneObject", {
 		SceneObject* pSO = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName);
 	    if (pSO) {
 		    m_PlacedObjects[PLACEONLOAD].push_back(pSO);
@@ -1035,7 +1035,7 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader.ReadPropValue();
 		ClearPlacedObjectSet(Scene::PlacedObjectSets::BLUEPRINT, true);
 	});
-	MatchForwards("BlueprintObject") MatchForwards("PlaceBlueprintObject") MatchProperty("_PlaceBlueprintObject", {
+	MatchForwards("BlueprintObject") MatchProperty("PlaceBlueprintObject", {
 		SceneObject* pSO = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName);
 	    if (pSO) {
 		    m_PlacedObjects[BLUEPRINT].push_back(pSO);
@@ -1045,7 +1045,7 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader.ReadPropValue();
 		ClearPlacedObjectSet(Scene::PlacedObjectSets::AIPLAN, true);
 	});
-	MatchForwards("PlaceAIPlanObject") MatchProperty("_PlaceAIPlanObject", {
+	MatchProperty("PlaceAIPlanObject", {
 		SceneObject* pSO = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName);
 		if (pSO) {
 			m_PlacedObjects[AIPLAN].push_back(pSO);
@@ -1057,7 +1057,7 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 			delete layer;
 		m_BackLayerList.clear();
 	});
-	MatchForwards("AddBackgroundLayer") MatchProperty("_AddBackgroundLayer", {
+	MatchProperty("AddBackgroundLayer", {
 		SLBackground* pLayer = g_PresetMan.ReadReflectedPresetOfType<SLBackground>(reader, propName);
 		RTEAssert(pLayer, "Something went wrong with reading SceneLayer");
 		if (pLayer) {
@@ -1107,7 +1107,7 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 		}
 		m_AreaList.clear();
 	});
-	MatchForwards("AddArea") MatchProperty("_AddArea", {
+	MatchProperty("AddArea", {
 		Area area;
 		reader >> area;
 		// This replaces any existing ones
@@ -1270,10 +1270,10 @@ int Scene::Write(Writer& writer, const Entity& entityReference, HashingData& has
 	writer.NewDistinctProperty("AutoDesigned", m_AutoDesigned, reference.m_AutoDesigned);
 	writer.NewDistinctProperty("TotalInvestment", m_TotalInvestment, reference.m_TotalInvestment);
 	writer.NewOptionalEntityPointerProperty("Terrain", m_pTerrain, hashData);
-	writer.NewPointerSequence("_ClearSceneObjects", "_PlaceSceneObject", m_PlacedObjects[PlacedObjectSets::PLACEONLOAD], hashData);
-	writer.NewPointerSequence("_ClearBlueprintObjects", "_PlaceBlueprintObject", m_PlacedObjects[PlacedObjectSets::BLUEPRINT], hashData);
-	writer.NewPointerSequence("_ClearAIPlanObjects", "_PlaceAIPlanObject", m_PlacedObjects[PlacedObjectSets::AIPLAN], hashData);
-	writer.NewPresetCopySequence("_ClearBackgroundLayers", "_AddBackgroundLayer", m_BackLayerList, hashData);
+	writer.NewPointerSequence("_ClearSceneObjects", "PlaceSceneObject", m_PlacedObjects[PlacedObjectSets::PLACEONLOAD], hashData);
+	writer.NewPointerSequence("_ClearBlueprintObjects", "PlaceBlueprintObject", m_PlacedObjects[PlacedObjectSets::BLUEPRINT], hashData);
+	writer.NewPointerSequence("_ClearAIPlanObjects", "PlaceAIPlanObject", m_PlacedObjects[PlacedObjectSets::AIPLAN], hashData);
+	writer.NewPresetCopySequence("_ClearBackgroundLayers", "AddBackgroundLayer", m_BackLayerList, hashData);
 
 	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
 		std::string teamNumberString = std::to_string(team + 1);
@@ -1282,7 +1282,7 @@ int Scene::Write(Writer& writer, const Entity& entityReference, HashingData& has
 		writer.NewDistinctProperty("ScanScheduledTeam" + teamNumberString, m_ScanScheduled[team], reference.m_ScanScheduled[team]);
 	}
 
-	writer.NewPointerSequence("_ClearAreas", "_AddArea", m_AreaList, hashData);
+	writer.NewPointerSequence("_ClearAreas", "AddArea", m_AreaList, hashData);
 	writer.NewDistinctProperty("GlobalAcceleration", m_GlobalAcc, reference.m_GlobalAcc);
 
 	return 0;

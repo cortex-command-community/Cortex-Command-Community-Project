@@ -149,7 +149,7 @@ int ADoor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader.ReadPropValue();
 		m_Sensors.clear();
 	});
-	MatchForwards("AddSensor") MatchProperty("_AddSensor", {
+	MatchProperty("AddSensor", {
 		ADSensor sensor;
 		reader >> sensor;
 		m_Sensors.push_back(sensor);
@@ -207,7 +207,7 @@ int ADoor::Write(Writer& writer, const Entity& entityReference, HashingData& has
 	writer.NewDistinctProperty("ClosedByDefault", m_ClosedByDefault, reference.m_ClosedByDefault);
 	writer.NewDistinctProperty("ResetDefaultDelay", m_ResetToDefaultStateDelay, reference.m_ResetToDefaultStateDelay);
 	writer.NewDistinctProperty("SensorInterval", m_SensorInterval, reference.m_SensorInterval);
-	writer.NewSequence("_ClearSensors", "_AddSensor", m_Sensors, hashData);
+	writer.NewSequence("_ClearSensors", "AddSensor", m_Sensors, hashData);
 	writer.NewDistinctProperty("DrawMaterialLayerWhenOpen", m_DrawMaterialLayerWhenOpen, reference.m_DrawMaterialLayerWhenOpen);
 	writer.NewDistinctProperty("DrawMaterialLayerWhenClosed", m_DrawMaterialLayerWhenClosed, reference.m_DrawMaterialLayerWhenClosed);
 	writer.NewOptionalEntityPointerProperty("DoorMoveStartSound", m_DoorMoveStartSound.get(), hashData);

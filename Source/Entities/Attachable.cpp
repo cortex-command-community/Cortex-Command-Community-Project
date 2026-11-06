@@ -170,7 +170,7 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader.ReadPropValue();
 		m_PieSlices.clear();
 	});
-	MatchForwards("AddPieSlice") MatchProperty("_AddPieSlice", {
+	MatchProperty("AddPieSlice", {
 		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
 		if (PieSlice* reference = dynamic_cast<PieSlice*>(entityReference)) {
 			m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(reference));
@@ -248,7 +248,7 @@ int Attachable::Write(Writer& writer, const Entity& entityReference, HashingData
 	writer.NewDistinctProperty("InheritsAngularVelWhenDetached", m_InheritsAngularVelWhenDetached, reference.m_InheritsAngularVelWhenDetached);
 	writer.NewDistinctProperty("CollidesWithTerrainWhileAttached", m_CollidesWithTerrainWhileAttached, reference.m_CollidesWithTerrainWhileAttached);
 	writer.NewDistinctProperty("IgnoresParticlesWhileAttached", m_IgnoresParticlesWhileAttached, reference.m_IgnoresParticlesWhileAttached);
-	writer.NewPointerSequence("_ClearPieSlices", "_AddPieSlice", m_PieSlices, hashData);
+	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", m_PieSlices, hashData);
 
 	return 0;
 }

@@ -105,7 +105,7 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 		// Not deleted: a copied SLTerrain shares these with what it was copied from, see Create(reference).
 		m_TerrainFrostings.clear();
 	});
-	MatchForwards("AddTerrainFrosting") MatchProperty("_AddTerrainFrosting", {
+	MatchProperty("AddTerrainFrosting", {
 		std::unique_ptr<TerrainFrosting> terrainFrosting = std::make_unique<TerrainFrosting>();
 		reader >> terrainFrosting.get();
 		m_TerrainFrostings.emplace_back(terrainFrosting.release());
@@ -115,7 +115,7 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 		// Not deleted: a copied SLTerrain shares these with what it was copied from, see Create(reference).
 		m_TerrainDebris.clear();
 	});
-	MatchForwards("AddTerrainDebris") MatchProperty("_AddTerrainDebris", {
+	MatchProperty("AddTerrainDebris", {
 		std::unique_ptr<TerrainDebris> terrainDebris = std::make_unique<TerrainDebris>();
 		reader >> terrainDebris.get();
 		m_TerrainDebris.emplace_back(terrainDebris.release());
@@ -125,7 +125,7 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 		// Not deleted: a copied SLTerrain shares these with what it was copied from, see Create(reference).
 		m_TerrainObjects.clear();
 	});
-	MatchForwards("PlaceTerrainObject") MatchProperty("_PlaceTerrainObject", {
+	MatchProperty("PlaceTerrainObject", {
 		std::unique_ptr<TerrainObject> terrainObject = std::make_unique<TerrainObject>();
 		reader >> terrainObject.get();
 		m_TerrainObjects.emplace_back(terrainObject.release());
@@ -201,9 +201,9 @@ int SLTerrain::Write(Writer& writer, const Entity& entityReference, HashingData&
 	writer.NewDistinctHashedProperty("BackgroundTexture", m_DefaultBGTextureFile, hashData);
 	writer.NewEntityPointerProperty("BGColorLayer", m_BGColorLayer, hashData);
 	writer.NewEntityPointerProperty("FGColorLayer", m_FGColorLayer, hashData);
-	writer.NewPointerSequence("_ClearTerrainFrostings", "_AddTerrainFrosting", m_TerrainFrostings, hashData);
-	writer.NewPointerSequence("_ClearTerrainDebris", "_AddTerrainDebris", m_TerrainDebris, hashData);
-	writer.NewPointerSequence("_ClearTerrainObjects", "_PlaceTerrainObject", m_TerrainObjects, hashData);
+	writer.NewPointerSequence("_ClearTerrainFrostings", "AddTerrainFrosting", m_TerrainFrostings, hashData);
+	writer.NewPointerSequence("_ClearTerrainDebris", "AddTerrainDebris", m_TerrainDebris, hashData);
+	writer.NewPointerSequence("_ClearTerrainObjects", "PlaceTerrainObject", m_TerrainObjects, hashData);
 	writer.NewDistinctProperty("OrbitDirection", m_OrbitDirection, reference.m_OrbitDirection);
 
 	return 0;

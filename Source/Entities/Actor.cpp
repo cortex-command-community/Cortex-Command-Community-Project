@@ -356,7 +356,7 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		}
 		m_Inventory.clear();
 	});
-	MatchForwards("AddInventoryDevice") MatchForwards("AddInventory") MatchProperty("_AddInventory", {
+	MatchForwards("AddInventoryDevice") MatchProperty("AddInventory", {
 		Entity* entityReference = g_PresetMan.ReadReflectedPreset(reader);
 		if (entityReference != nullptr) {
 			if (MovableObject* reference = dynamic_cast<MovableObject*>(entityReference)) {
@@ -374,7 +374,7 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader >> mode;
 		m_AIMode = static_cast<AIMode>(mode);
 	});
-	MatchForwards("SpecialBehaviour_AddAISceneWaypoint") MatchProperty("_AddAISceneWaypoint", {
+	MatchForwards("SpecialBehaviour_AddAISceneWaypoint") MatchProperty("AddAISceneWaypoint", {
 		Vector waypointToAdd;
 		reader >> waypointToAdd;
 		AddAISceneWaypoint(waypointToAdd);
@@ -457,7 +457,7 @@ void Actor::WriteAIWaypoints(Writer& writer) const {
 		return;
 	}
 
-	const std::string waypointPropertyName = "_AddAISceneWaypoint";
+	const std::string waypointPropertyName = "AddAISceneWaypoint";
 
 	if (g_MovableMan.ValidMO(m_pMOMoveTarget)) {
 		writer.NewPropertyWithValue(waypointPropertyName, m_pMOMoveTarget->GetPos());
@@ -502,7 +502,7 @@ int Actor::Write(Writer& writer, const Entity& entityReference, HashingData& has
 	writer.NewDistinctProperty("CharHeight", m_CharHeight, reference.m_CharHeight);
 	writer.NewDistinctProperty("HolsterOffset", m_HolsterOffset, reference.m_HolsterOffset);
 	writer.NewDistinctProperty("ReloadOffset", m_ReloadOffset, reference.m_ReloadOffset);
-	writer.NewPointerSequence("_ClearInventory", "_AddInventory", m_Inventory, hashData);
+	writer.NewPointerSequence("_ClearInventory", "AddInventory", m_Inventory, hashData);
 	writer.NewDistinctProperty("MaxInventoryMass", m_MaxInventoryMass, reference.m_MaxInventoryMass);
 	writer.NewDistinctProperty("AIMode", GetAIModeToWrite(), reference.m_AIMode);
 	WriteAIWaypoints(writer);

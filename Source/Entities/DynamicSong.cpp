@@ -282,7 +282,7 @@ int DynamicSong::ReadProperty(const std::string_view& propName, Reader& reader) 
 		reader.ReadPropValue();
 		m_SongSections.clear();
 	});
-	MatchForwards("AddSongSection") MatchProperty("_AddSongSection", {
+	MatchProperty("AddSongSection", {
 		DynamicSongSection songSectionToAdd;
 		reader >> songSectionToAdd;
 		for (DynamicSongSection& songSection: GetSongSections()) {
@@ -315,7 +315,7 @@ int DynamicSong::Write(Writer& writer, const Entity& entityReference, HashingDat
 	const DynamicSong& reference = static_cast<const DynamicSong&>(entityReference);
 
 	writer.NewDistinctHashedProperty("DefaultSongSection", m_DefaultSongSection, hashData);
-	writer.NewSequence("_ClearSongSections", "_AddSongSection", m_SongSections, hashData);
+	writer.NewSequence("_ClearSongSections", "AddSongSection", m_SongSections, hashData);
 
 	return 0;
 }

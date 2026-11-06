@@ -117,7 +117,7 @@ namespace RTE {
 			reader.ReadPropValue();
 			m_Groups.clear();
 		});
-		MatchForwards("AddToGroup") MatchProperty("_AddToGroup", {
+		MatchProperty("AddToGroup", {
 			std::string newGroup;
 			reader >> newGroup;
 			AddToGroup(newGroup);
@@ -192,7 +192,7 @@ namespace RTE {
 			}
 
 			for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {
-				writer.NewPropertyWithValue("_AddToGroup", *itr);
+				writer.NewPropertyWithValue("AddToGroup", *itr);
 			}
 		}
 

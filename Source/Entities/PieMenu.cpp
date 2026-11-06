@@ -207,7 +207,7 @@ int PieMenu::ReadProperty(const std::string_view& propName, Reader& reader) {
 			RemovePieSlicesByOriginalSource(m_Owner);
 		}
 	});
-	MatchForwards("AddPieSlice") MatchProperty("_AddPieSlice", {
+	MatchProperty("AddPieSlice", {
 		if (m_CurrentPieSlices.size() == 4 * PieQuadrant::c_PieQuadrantSlotCount) {
 			reader.ReportError("Pie menus cannot have more than " + std::to_string(4 * PieQuadrant::c_PieQuadrantSlotCount) + " slices. Use sub-pie menus to better organize your pie slices.");
 		}
@@ -257,7 +257,7 @@ int PieMenu::Write(Writer& writer, const Entity& entityReference, HashingData& h
 	writer.NewDistinctProperty("BackgroundColor", m_BackgroundColor, reference.m_BackgroundColor);
 	writer.NewDistinctProperty("BackgroundBorderColor", m_BackgroundBorderColor, reference.m_BackgroundBorderColor);
 	writer.NewDistinctProperty("SelectedItemBackgroundColor", m_SelectedItemBackgroundColor, reference.m_SelectedItemBackgroundColor);
-	writer.NewPointerSequenceConditional("_ClearPieSlices", "_AddPieSlice", m_CurrentPieSlices, hashData, [&](const PieSlice* slice) {
+	writer.NewPointerSequenceConditional("_ClearPieSlices", "AddPieSlice", m_CurrentPieSlices, hashData, [&](const PieSlice* slice) {
 		return slice->GetOriginalSource() == m_Owner;
 	});
 

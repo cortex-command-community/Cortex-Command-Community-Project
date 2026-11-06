@@ -111,7 +111,7 @@ int AEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 		}
 		m_EmissionList.clear();
 	});
-	MatchForwards("AddEmission") MatchProperty("_AddEmission", {
+	MatchProperty("AddEmission", {
 		Emission* emission = new Emission();
 		reader >> *emission;
 		m_EmissionList.push_back(emission);
@@ -211,7 +211,7 @@ int AEmitter::Write(Writer& writer, const Entity& entityReference, HashingData& 
 
 	const AEmitter& reference = static_cast<const AEmitter&>(entityReference);
 
-	writer.NewPointerSequence("_ClearEmissions", "_AddEmission", m_EmissionList, hashData);
+	writer.NewPointerSequence("_ClearEmissions", "AddEmission", m_EmissionList, hashData);
 	writer.NewOptionalEntityPointerProperty("EmissionSound", m_EmissionSound, hashData);
 	writer.NewOptionalEntityPointerProperty("BurstSound", m_BurstSound, hashData);
 	writer.NewOptionalEntityPointerProperty("EndSound", m_EndSound, hashData);
