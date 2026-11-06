@@ -170,7 +170,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`Enum` binding for `InputScheme.InputPreset`: `NoPreset = 0, PresetArrowKeys = 1, PresetWASDKeys = 2, PresetMouseWASDKeys = 3, PresetGenericDPad = 4, PresetGenericDualAnalog = 5, PresetGamepadSNES = 6, PresetGamepadDS4 = 7, PresetGamepadXbox360 = 8, InputPresetCount = 9`.
 
 - New `Entity` INI and Lua (R/W) property `DisplayName`, the name players see. It defaults to the `PresetName`, which is still what data and scripts use to refer to something, so several presets can now show the same name.  
-	It's shown in the buy menu, inventory, pickup and drop prompts, the scenario menu, Conquest's site labels, the global script list and the editors' object picker. The editors' lists of scenes, terrains and backgrounds, and the boxes where you name what you're saving, still use `PresetName`.  
+	It's shown in the buy menu, inventory, pickup and drop prompts, the scenario menu, Conquest's site labels, the global script list, the multiplayer lobby and the editors' object picker. The editors' lists of scenes, terrains and backgrounds, and the boxes where you name what you're saving, still use `PresetName`.  
 	A script changing an object's `PresetName` changes the name shown, unless that object has a `DisplayName` of its own.
 
 - New `Activity` Lua functions `SaveEntity(key, entity)` and `LoadEntity(key)`, to keep an `Entity` with a saved game, alongside `SaveNumber` and `SaveString`. `LoadEntity` gives you a copy, which you own.
@@ -283,12 +283,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	Leaving out an `Atom` or `AtomGroup`'s `Material` still means Air, and `None` is still fine for a part an object can go without, such as `Head = None`.
 
 - A `Loadout` in a module with a reference that's malformed, of the wrong class, or names a preset that module's data doesn't have now causes an assert, and the reference is left out if ignored.  
-	In a player's `LoadoutsP*.ini`, a reference to a module that isn't loaded is left out silently, a preset missing from a loaded module causes an assert, and anything else, including the old format, gets a message in the console.  
+	In a player's `LoadoutsP*.ini`, entries in the old format are still understood and get saved in the new one. A reference to a module that isn't loaded is left out silently, a preset missing from a loaded module causes an assert, and anything else gets a message in the console.  
 	Whatever is left out is gone from the file the next time that player's loadouts are saved, even if the mod comes back.
 
 - Saved games now only record what differs from each object's preset. In Decision Day this makes their data about a third of the size, though the terrain images still make up most of a `.ccsave`.  
 	Most of what a script changes on an object now survives saving and loading, where many properties used to go back to their preset's value. A script that multiplies a value in `Create` or when it sees a new object will multiply it again on every load, unless it marks the object to avoid that.  
-	Properties starting with an underscore, such as `_ClearGibs` and `_Activated`, are for saved games. You shouldn't need them in hand-written data.  
+	Properties starting with an underscore are special behaviour that hand-written data shouldn't need, such as clearing or removing what was copied (`_ClearGibs`, `_RemoveFromGroup`) and state only a running game has (`_Activated`).  
+	A script setting `PresetName` on an object means it no longer has a preset to compare against, so it's saved in full under `InstanceName`.  
 	Saved games made before this still load, as they only ever named presets with `CopyOf`.
 
 - Global scripts that change objects, such as Tough Units and Faster Walking, now cover every actor, including ones inside a craft. They no longer stack when a game is loaded, and they undo their changes if they're turned off partway through a game.
@@ -364,6 +365,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed disabled scripts being enabled again by loading a saved game.
 
 - Fixed Dummy's `Loadout`s having no delivery craft, as they pointed at a preset that doesn't exist.
+
+- Fixed an empty property, such as `SceneName =`, taking the next line as its value.
+
+- Fixed the `EndlessMetaGameMode` setting not being kept, as it was saved under a different name than it's read by.
+
+- Fixed a `ThrownDevice`'s `ActivationSound` being read into its preset and every copy of it.
 
 - Fixed AI actors gaining 20% more jetpack fuel every time a game was loaded.
 
