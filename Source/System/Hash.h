@@ -22,52 +22,18 @@ namespace std {
 } // namespace std
 
 namespace RTE {
-	/// Holds an arbitrary tree of hashing data for storage alongside a preset entry.
+	/// A preset's hash, along with what its Write needs to compare its parts against. Hash fills these in the order that Write takes them back out.
 	struct HashingData {
-		/// Constructor method used to instantiate a HashingData object in memory.
+		/// Constructor method used to instantiate a HashingData object in system memory.
 		/// @param hash The hash which this will initially store.
 		HashingData(uint64_t hash) :
-		    m_Hash(hash), m_Constituents(), m_ParseValues() {}
+		    m_Hash(hash) {}
 
-		///	Constructor method used to instantiate a HashingData object to be identical to another, by deep copy, and make it ready for use.
-		/// @param reference A reference to the HashingData to deep copy.
-		HashingData(const HashingData& reference) :
-			m_Hash(reference.m_Hash), m_Constituents(reference.m_Constituents), m_ParseValues(reference.m_ParseValues) {}
-
-		///	Constructor method used to steal the contents of another HashingData with move semantics, and make it ready for use.
-		/// Honestly just toying with move semantics right now, dunno if this is a bad idea.
-		/// @param reference A reference to the HashingData to steal.
-		HashingData(HashingData&& reference) noexcept {
-			m_Hash = std::move(reference.m_Hash);
-			m_Constituents = std::move(reference.m_Constituents);
-			m_ParseValues = std::move(reference.m_ParseValues);
-		}
-
-		///	Constructor method used to steal the contents of another HashingData with move semantics, and make it ready for use.
-		/// Honestly just toying with move semantics right now, dunno if this is a bad idea.
-		/// @param reference A reference to the HashingData to steal.
-		HashingData& operator()(const HashingData& reference) {
-			m_Hash = reference.m_Hash;
-			m_Constituents = reference.m_Constituents;
-			m_ParseValues = reference.m_ParseValues;
-			return *this;
-		}
-
-		///	Constructor method used to steal the contents of another HashingData with move semantics, and make it ready for use.
-		/// Honestly just toying with move semantics right now, dunno if this is a bad idea.
-		/// @param reference A reference to the HashingData to steal.
-		HashingData& operator()(HashingData&& reference) noexcept {
-			m_Hash = std::move(reference.m_Hash);
-			m_Constituents = std::move(reference.m_Constituents);
-			m_ParseValues = std::move(reference.m_ParseValues);
-			return *this;
-		}
-
-		/// The hash of the Entity represented by this hash.
+		/// The hash of the object this represents.
 		uint64_t m_Hash;
-		/// A list of the hash data for all components of this Entity.
+		/// The hashes of the parts of the object this represents.
 		std::deque<uint64_t> m_Constituents;
-		/// A list of integers for handling optional and collection properties by communicating their numeracy on a per-property basis.
+		/// How many parts each optional property or list had, so that Write knows how many to take from the constituents.
 		std::deque<size_t> m_ParseValues;
 	};
 } // namespace RTE
