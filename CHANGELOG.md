@@ -372,6 +372,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed a `ThrownDevice`'s `ActivationSound` being read into its preset and every copy of it.
 
+- Fixed a brain deployed in Decision Day's forward base waking up when a game was loaded, and spinning in place until she gibbed.
+
 - Fixed AI actors gaining 20% more jetpack fuel every time a game was loaded.
 
 - Fixed the Lower Gravity global script halving gravity again every time a game was loaded.
