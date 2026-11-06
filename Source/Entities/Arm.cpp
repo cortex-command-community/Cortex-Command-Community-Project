@@ -100,7 +100,7 @@ int Arm::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("GripStrength", { reader >> m_GripStrength; });
 	MatchProperty("ThrowStrength", { reader >> m_ThrowStrength; });
-	MatchProperty("HeldDevice", { SetHeldDevice(dynamic_cast<HeldDevice*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("HeldDevice", { SetHeldDevice(g_PresetMan.ReadReflectedPresetOfType<HeldDevice>(reader, propName)); });
 
 	EndPropertyList;
 }

@@ -82,7 +82,7 @@ int Leg::Create(const Leg& reference) {
 int Leg::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Attachable::ReadProperty(propName, reader));
 
-	MatchProperty("Foot", { SetFoot(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Foot", { SetFoot(g_PresetMan.ReadReflectedPresetOfType<Attachable>(reader, propName)); });
 	MatchProperty("ContractedOffset", {
 		reader >> m_ContractedOffset;
 		m_MinExtension = m_ContractedOffset.GetMagnitude();

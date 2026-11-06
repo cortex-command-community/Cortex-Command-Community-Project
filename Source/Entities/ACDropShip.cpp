@@ -107,12 +107,12 @@ int ACDropShip::Create(const ACDropShip& reference) {
 int ACDropShip::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return ACraft::ReadProperty(propName, reader));
 
-	MatchForwards("RThruster") MatchForwards("RightThruster") MatchProperty("RightEngine", { SetRightThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("LThruster") MatchForwards("LeftThruster") MatchProperty("LeftEngine", { SetLeftThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("URThruster") MatchProperty("UpRightThruster", { SetURightThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("ULThruster") MatchProperty("UpLeftThruster", { SetULeftThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("RHatchDoor") MatchProperty("RightHatchDoor", { SetRightHatch(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("LHatchDoor") MatchProperty("LeftHatchDoor", { SetLeftHatch(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchForwards("RThruster") MatchForwards("RightThruster") MatchProperty("RightEngine", { SetRightThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("LThruster") MatchForwards("LeftThruster") MatchProperty("LeftEngine", { SetLeftThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("URThruster") MatchProperty("UpRightThruster", { SetURightThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("ULThruster") MatchProperty("UpLeftThruster", { SetULeftThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("RHatchDoor") MatchProperty("RightHatchDoor", { SetRightHatch(g_PresetMan.ReadReflectedPresetOfType<Attachable>(reader, propName)); });
+	MatchForwards("LHatchDoor") MatchProperty("LeftHatchDoor", { SetLeftHatch(g_PresetMan.ReadReflectedPresetOfType<Attachable>(reader, propName)); });
 	MatchProperty("HatchDoorSwingRange", { reader >> m_HatchSwingRange; });
 	MatchProperty("AutoStabilize", { reader >> m_AutoStabilize; });
 	MatchProperty("MaxEngineAngle", { reader >> m_MaxEngineAngle; });

@@ -999,10 +999,10 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("ScriptSave", { reader >> m_IsSavedGameInternal; });
 	MatchProperty("OwnedByTeam", { reader >> m_OwnedByTeam; });
 	MatchProperty("RoundIncome", { reader >> m_RoundIncome; });
-	MatchProperty("P1ResidentBrain", { m_ResidentBrains[Players::PlayerOne] = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader)); });
-	MatchProperty("P2ResidentBrain", { m_ResidentBrains[Players::PlayerTwo] = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader)); });
-	MatchProperty("P3ResidentBrain", { m_ResidentBrains[Players::PlayerThree] = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader)); });
-	MatchProperty("P4ResidentBrain", { m_ResidentBrains[Players::PlayerFour] = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader)); });
+	MatchProperty("P1ResidentBrain", { m_ResidentBrains[Players::PlayerOne] = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName); });
+	MatchProperty("P2ResidentBrain", { m_ResidentBrains[Players::PlayerTwo] = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName); });
+	MatchProperty("P3ResidentBrain", { m_ResidentBrains[Players::PlayerThree] = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName); });
+	MatchProperty("P4ResidentBrain", { m_ResidentBrains[Players::PlayerFour] = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName); });
 	MatchProperty("P1BuildBudget", { reader >> m_BuildBudget[Players::PlayerOne]; });
 	MatchProperty("P2BuildBudget", { reader >> m_BuildBudget[Players::PlayerTwo]; });
 	MatchProperty("P3BuildBudget", { reader >> m_BuildBudget[Players::PlayerThree]; });
@@ -1026,7 +1026,7 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 		ClearPlacedObjectSet(Scene::PlacedObjectSets::PLACEONLOAD, true);
 	});
 	MatchForwards("PlaceSceneObject") MatchForwards("PlaceMovableObject") MatchProperty("_PlaceSceneObject", {
-		SceneObject* pSO = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader));
+		SceneObject* pSO = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName);
 	    if (pSO) {
 		    m_PlacedObjects[PLACEONLOAD].push_back(pSO);
 	    }
@@ -1036,7 +1036,7 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 		ClearPlacedObjectSet(Scene::PlacedObjectSets::BLUEPRINT, true);
 	});
 	MatchForwards("BlueprintObject") MatchForwards("PlaceBlueprintObject") MatchProperty("_PlaceBlueprintObject", {
-		SceneObject* pSO = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader));
+		SceneObject* pSO = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName);
 	    if (pSO) {
 		    m_PlacedObjects[BLUEPRINT].push_back(pSO);
 	    } 
@@ -1046,7 +1046,7 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 		ClearPlacedObjectSet(Scene::PlacedObjectSets::AIPLAN, true);
 	});
 	MatchForwards("PlaceAIPlanObject") MatchProperty("_PlaceAIPlanObject", {
-		SceneObject* pSO = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader));
+		SceneObject* pSO = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName);
 		if (pSO) {
 			m_PlacedObjects[AIPLAN].push_back(pSO);
 		}
@@ -1058,7 +1058,7 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_BackLayerList.clear();
 	});
 	MatchForwards("AddBackgroundLayer") MatchProperty("_AddBackgroundLayer", {
-		SLBackground* pLayer = dynamic_cast<SLBackground*>(g_PresetMan.ReadReflectedPreset(reader));
+		SLBackground* pLayer = g_PresetMan.ReadReflectedPresetOfType<SLBackground>(reader, propName);
 		RTEAssert(pLayer, "Something went wrong with reading SceneLayer");
 		if (pLayer) {
 			m_BackLayerList.push_back(pLayer);
@@ -1082,19 +1082,19 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
     });
 	MatchProperty("UnseenLayerTeam1", {
 	    delete m_apUnseenLayer[Activity::TeamOne];
-	    m_apUnseenLayer[Activity::TeamOne] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)); 
+	    m_apUnseenLayer[Activity::TeamOne] = g_PresetMan.ReadReflectedPresetOfType<SceneLayer>(reader, propName); 
 	});
 	MatchProperty("UnseenLayerTeam2", {
 	    delete m_apUnseenLayer[Activity::TeamTwo];
-	    m_apUnseenLayer[Activity::TeamTwo] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader));
+	    m_apUnseenLayer[Activity::TeamTwo] = g_PresetMan.ReadReflectedPresetOfType<SceneLayer>(reader, propName);
 	});
 	MatchProperty("UnseenLayerTeam3", {
 	    delete m_apUnseenLayer[Activity::TeamThree];
-	    m_apUnseenLayer[Activity::TeamThree] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)); 
+	    m_apUnseenLayer[Activity::TeamThree] = g_PresetMan.ReadReflectedPresetOfType<SceneLayer>(reader, propName); 
 	});
 	MatchProperty("UnseenLayerTeam4", {
 	    delete m_apUnseenLayer[Activity::TeamFour];
-	    m_apUnseenLayer[Activity::TeamFour] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader));
+	    m_apUnseenLayer[Activity::TeamFour] = g_PresetMan.ReadReflectedPresetOfType<SceneLayer>(reader, propName);
 	});
 	MatchProperty("ScanScheduledTeam1", { reader >> m_ScanScheduled[Activity::TeamOne]; });
 	MatchProperty("ScanScheduledTeam2", { reader >> m_ScanScheduled[Activity::TeamTwo]; });

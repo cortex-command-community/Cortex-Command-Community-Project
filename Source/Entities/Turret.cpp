@@ -47,7 +47,7 @@ void Turret::Destroy(bool notInherited) {
 int Turret::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Attachable::ReadProperty(propName, reader));
 
-	MatchProperty("MountedDevice", { SetFirstMountedDevice(dynamic_cast<HeldDevice*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("MountedDevice", { SetFirstMountedDevice(g_PresetMan.ReadReflectedPresetOfType<HeldDevice>(reader, propName)); });
 	MatchProperty("_ClearMountedDevices", {
 		reader.ReadPropValue();
 		// Removing a device also takes it out of the list, so go through a copy of it.
@@ -55,7 +55,7 @@ int Turret::ReadProperty(const std::string_view& propName, Reader& reader) {
 			delete RemoveAttachable(heldDevice, false, false);
 		}
 	});
-	MatchForwards("AddMountedDevice") MatchProperty("_AddMountedDevice", { AddMountedDevice(dynamic_cast<HeldDevice*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchForwards("AddMountedDevice") MatchProperty("_AddMountedDevice", { AddMountedDevice(g_PresetMan.ReadReflectedPresetOfType<HeldDevice>(reader, propName)); });
 	MatchProperty("MountedDeviceRotationOffset", { reader >> m_MountedDeviceRotationOffset; });
 
 	EndPropertyList;

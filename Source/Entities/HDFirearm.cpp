@@ -170,8 +170,8 @@ int HDFirearm::Create(const HDFirearm& reference) {
 int HDFirearm::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return HeldDevice::ReadProperty(propName, reader));
 
-	MatchProperty("Magazine", { SetMagazine(dynamic_cast<Magazine*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("Flash", { SetFlash(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Magazine", { SetMagazine(g_PresetMan.ReadReflectedPresetOfType<Magazine>(reader, propName)); });
+	MatchProperty("Flash", { SetFlash(g_PresetMan.ReadReflectedPresetOfType<Attachable>(reader, propName)); });
 	MatchProperty("PreFireSound", {
 		delete m_PreFireSound;
 		m_PreFireSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);

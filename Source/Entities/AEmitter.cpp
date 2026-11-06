@@ -160,7 +160,7 @@ int AEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("EmissionAngle", { reader >> m_EmitAngle; });
 	MatchProperty("EmissionOffset", { reader >> m_EmissionOffset; });
 	MatchProperty("EmissionDamage", { reader >> m_EmitDamage; });
-	MatchProperty("Flash", { SetFlash(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Flash", { SetFlash(g_PresetMan.ReadReflectedPresetOfType<Attachable>(reader, propName)); });
 	MatchProperty("FlashScale", { reader >> m_FlashScale; });
 	MatchProperty("FlashOnlyOnBurst", { reader >> m_FlashOnlyOnBurst; });
 	MatchProperty("SustainBurstSound", { reader >> m_SustainBurstSound; });

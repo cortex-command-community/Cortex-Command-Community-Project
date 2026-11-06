@@ -151,7 +151,7 @@ int BunkerAssembly::ReadProperty(const std::string_view& propName, Reader& reade
 	              });
 	MatchProperty("PlaceObject",
 	              {
-		              SceneObject* pSO = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader));
+		              SceneObject* pSO = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName);
 		              if (pSO)
 			              AddPlacedObject(pSO);
 	              });

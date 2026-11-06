@@ -112,7 +112,7 @@ int ADoor::Create(const ADoor& reference) {
 int ADoor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Actor::ReadProperty(propName, reader));
 
-	MatchProperty("Door", { SetDoor(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Door", { SetDoor(g_PresetMan.ReadReflectedPresetOfType<Attachable>(reader, propName)); });
 	MatchProperty("OpenOffset", { reader >> m_OpenOffset; });
 	MatchProperty("ClosedOffset", { reader >> m_ClosedOffset; });
 	MatchProperty("OpenClosedOffset", {
@@ -156,10 +156,10 @@ int ADoor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("DrawMaterialLayerWhenOpen", { reader >> m_DrawMaterialLayerWhenOpen; });
 	MatchProperty("DrawMaterialLayerWhenClosed", { reader >> m_DrawMaterialLayerWhenClosed; });
-	MatchProperty("DoorMoveStartSound", { m_DoorMoveStartSound.reset(dynamic_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("DoorMoveSound", { m_DoorMoveSound.reset(dynamic_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("DoorDirectionChangeSound", { m_DoorDirectionChangeSound.reset(dynamic_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("DoorMoveEndSound", { m_DoorMoveEndSound.reset(dynamic_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("DoorMoveStartSound", { m_DoorMoveStartSound.reset(g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName)); });
+	MatchProperty("DoorMoveSound", { m_DoorMoveSound.reset(g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName)); });
+	MatchProperty("DoorDirectionChangeSound", { m_DoorDirectionChangeSound.reset(g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName)); });
+	MatchProperty("DoorMoveEndSound", { m_DoorMoveEndSound.reset(g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName)); });
 
 	EndPropertyList;
 }

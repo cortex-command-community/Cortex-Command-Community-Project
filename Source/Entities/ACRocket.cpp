@@ -148,8 +148,8 @@ int ACRocket::Create(const ACRocket& reference) {
 int ACRocket::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return ACraft::ReadProperty(propName, reader));
 
-	MatchForwards("RLeg") MatchProperty("RightLeg", { SetRightLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("LLeg") MatchProperty("LeftLeg", { SetLeftLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchForwards("RLeg") MatchProperty("RightLeg", { SetRightLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
+	MatchForwards("LLeg") MatchProperty("LeftLeg", { SetLeftLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
 	MatchForwards("RFootGroup") MatchProperty("RightFootGroup", {
 		delete m_pRFootGroup;
 		m_pRFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
@@ -164,11 +164,11 @@ int ACRocket::ReadProperty(const std::string_view& propName, Reader& reader) {
 			m_pLFootGroup->SetOwner(this);
 		}
 	});
-	MatchForwards("MThruster") MatchProperty("MainThruster", { SetMainThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("RThruster") MatchProperty("RightThruster", { SetRightThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("LThruster") MatchProperty("LeftThruster", { SetLeftThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("URThruster") MatchProperty("UpRightThruster", { SetURightThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("ULThruster") MatchProperty("UpLeftThruster", { SetULeftThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchForwards("MThruster") MatchProperty("MainThruster", { SetMainThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("RThruster") MatchProperty("RightThruster", { SetRightThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("LThruster") MatchProperty("LeftThruster", { SetLeftThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("URThruster") MatchProperty("UpRightThruster", { SetURightThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("ULThruster") MatchProperty("UpLeftThruster", { SetULeftThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
 	MatchProperty("RaisedGearLimbPath", { reader >> m_Paths[RIGHT][RAISED]; });
 	MatchProperty("LoweredGearLimbPath", { reader >> m_Paths[RIGHT][LOWERED]; });
 	MatchProperty("LoweringGearLimbPath", { reader >> m_Paths[RIGHT][LOWERING]; });

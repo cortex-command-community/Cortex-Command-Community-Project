@@ -101,7 +101,7 @@ int PieSlice::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("CanBeMiddleSlice", { reader >> m_CanBeMiddleSlice; });
 	MatchProperty("Enabled", { reader >> m_Enabled; });
-	MatchProperty("Icon", { SetIcon(dynamic_cast<Icon*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Icon", { SetIcon(g_PresetMan.ReadReflectedPresetOfType<Icon>(reader, propName)); });
 	MatchProperty("ScriptPath", {
 		std::string scriptPath;
 		reader >> scriptPath;
@@ -116,7 +116,7 @@ int PieSlice::ReadProperty(const std::string_view& propName, Reader& reader) {
 			ReloadScripts();
 		}
 	});
-	MatchProperty("SubPieMenu", { SetSubPieMenu(dynamic_cast<PieMenu*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("SubPieMenu", { SetSubPieMenu(g_PresetMan.ReadReflectedPresetOfType<PieMenu>(reader, propName)); });
 	MatchProperty("DrawFlippedToMatchAbsoluteAngle", { reader >> m_DrawFlippedToMatchAbsoluteAngle; });
 
 	EndPropertyList;

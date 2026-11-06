@@ -224,12 +224,12 @@ int ACrab::Create(const ACrab& reference) {
 int ACrab::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Actor::ReadProperty(propName, reader));
 
-	MatchProperty("Turret", { SetTurret(dynamic_cast<Turret*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("Jetpack", { SetJetpack(dynamic_cast<AEJetpack*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("LFGLeg") MatchProperty("LeftFGLeg", { SetLeftFGLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("LBGLeg") MatchProperty("LeftBGLeg", { SetLeftBGLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("RFGLeg") MatchProperty("RightFGLeg", { SetRightFGLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("RBGLeg") MatchProperty("RightBGLeg", { SetRightBGLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Turret", { SetTurret(g_PresetMan.ReadReflectedPresetOfType<Turret>(reader, propName)); });
+	MatchProperty("Jetpack", { SetJetpack(g_PresetMan.ReadReflectedPresetOfType<AEJetpack>(reader, propName)); });
+	MatchForwards("LFGLeg") MatchProperty("LeftFGLeg", { SetLeftFGLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
+	MatchForwards("LBGLeg") MatchProperty("LeftBGLeg", { SetLeftBGLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
+	MatchForwards("RFGLeg") MatchProperty("RightFGLeg", { SetRightFGLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
+	MatchForwards("RBGLeg") MatchProperty("RightBGLeg", { SetRightBGLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
 	MatchForwards("LFootGroup") MatchProperty("LeftFootGroup", {
 		delete m_pLFGFootGroup;
 		delete m_pLBGFootGroup;
