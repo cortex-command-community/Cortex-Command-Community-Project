@@ -159,7 +159,7 @@ namespace RTE {
 		/// error, or the instance name was 'None'. Ownership is NOT transferred!
 		const Entity* GetEntityPreset(Reader& reader);
 
-		/// Reads a three token description of a preset, searching known presets immediately.
+		/// Reads a reference to a preset, in the form of its class, module and name, and finds that preset.
 		/// @param reader The Reader will read in a constant reference in the form <class/module/preset name>.
 		/// @param moduleMayBeUnloaded Whether the reference is allowed to outlive the module it names, as a loadout does when its mod is removed.
 		/// If so, a reference to a module that isn't loaded is silently null, and any other bad reference is a null the player may choose to ignore an assert for.
@@ -312,13 +312,12 @@ namespace RTE {
 		/// If no Entity of that description was found, "" is returned.
 		std::string GetEntityDataLocation(const std::string& type, const std::string& preset, int whichModule);
 
-		/// Gets the data file path of a previously read in (defined) Entity.
-		/// @param type The type name of the derived Entity. Ownership is NOT transferred!
+		/// Gets the hash data stored for a previously read in (defined) Entity.
+		/// @param type The type name of the derived Entity.
 		/// @param preset The preset name of the derived Entity preset.
 		/// @param whichModule Which module to try to get the entity from. If it's not found there,
 		/// the official modules will be searched also.
-		/// @return The file path of the data file that the specified Entity was read from.
-		/// If no Entity of that description was found, "" is returned.
+		/// @return The hash data of the specified Entity, or nullptr if no Entity of that description was found. Ownership is NOT transferred!
 		const HashingData* GetEntityHash(std::string type, std::string preset, int whichModule);
 
 		/// Reloads all scripted Entity Presets with the latest version of their respective script files.

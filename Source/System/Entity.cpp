@@ -82,7 +82,7 @@ namespace RTE {
 		});
 		MatchProperty("InstanceName", {
 			// Set this directly so that SetPresetName doesn't confuse that we're an orignal preset.
-			// Not sure why this is allowed, but I feel like I allowed it for a reason.
+			// This names something that is a copy of a preset, without making it a preset or needing one to refer to.
 			m_PresetName = reader.ReadPropValue();
 
 			// Indicate where this was read from
@@ -164,13 +164,7 @@ namespace RTE {
 	int Entity::Save(Writer& writer) const {
 		Serializable::Save(writer);
 
-		// Whether or not an entity is original, there is no way to be certain that every distinction is saved
-		// without simply saving every non-default characteristic. A more efficient manner of saving would take
-		// as arguments a reference for the entity to compare it's attributes against, as well hashing values,
-		// corresponding to attributes of the reference, so that the writing can determine the most efficient
-		// and accurate method of recording.
-		// 
-		// See int Entity::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const
+		// This writes everything that differs from a new object, for what has no preset to compare against. See Write for what does.
 
 		if (m_IsOriginalPreset) {
 			writer.NewPropertyWithValue("PresetName", m_PresetName);

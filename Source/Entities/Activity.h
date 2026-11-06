@@ -103,7 +103,7 @@ namespace RTE {
 #pragma endregion
 		
 #pragma region INI Handling
-		/// Records an Entity against a reference, expected to be it's preset.
+		/// Records an Entity against a reference, expected to be its preset.
 		/// @param writer A Writer that the Entity will save itself to.
 		/// @param reference A reference preset to write properties against.
 		/// @param hashData A clump of hash data for cheap property comparisons.
@@ -579,7 +579,7 @@ namespace RTE {
 		/// @param key The key of the string to load.
 		double LoadNumber(const std::string& key) { return m_SavedValues.LoadNumber(key); };
 
-		/// Saves a entity which will be stored in our ini.
+		/// Saves an Entity which will be stored in our ini.
 		/// @param key The key of the saved entity.
 		/// @param value The entity to save.
 		void SaveEntity(const std::string& key, const Entity* value) { m_SavedValues.SaveEntity(key, value); };

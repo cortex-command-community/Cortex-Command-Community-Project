@@ -190,7 +190,7 @@ int ADoor::Save(Writer& writer) const {
 }
 
 int ADoor::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	size_t constituentsConsumed = Actor::Write(writer, entityReference, hashData); // 11
+	Actor::Write(writer, entityReference, hashData);
 
 	const ADoor& reference = static_cast<const ADoor&>(entityReference);
 

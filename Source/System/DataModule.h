@@ -144,10 +144,10 @@ namespace RTE {
 		/// @return The file path of the data file that the specified Entity was read from. If no Entity of that description was found, "" is returned.
 		std::string GetEntityDataLocation(const std::string& exactType, const std::string& instance);
 
-		/// Gets the data file path of a previously read in (defined) Entity.
-		/// @param exactType The type name of the derived Entity. Ownership is NOT transferred!
+		/// Gets the hash data stored for a previously read in (defined) Entity.
+		/// @param exactType The type name of the derived Entity.
 		/// @param instance The instance name of the derived Entity instance.
-		/// @return The file path of the data file that the specified Entity was read from. If no Entity of that description was found, "" is returned.
+		/// @return The hash data of the specified Entity, or nullptr if no Entity of that description was found. Ownership is NOT transferred!
 		const HashingData* GetEntityHash(const std::string& exactType, const std::string& instance);
 
 		/// Gets a previously read in (defined) Entity, by exact type and instance name. Ownership is NOT transferred!

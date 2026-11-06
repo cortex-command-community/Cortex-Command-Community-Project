@@ -122,7 +122,7 @@ const std::string& GenericSavedData::LoadString(const std::string& key) {
 void GenericSavedData::SaveEntity(const std::string& key, const Entity* value) {
 	delete m_SavedEntities.m_Data[key];
 
-	// If we're being given a null pointer (I hope nil means null pointer), clear the key, otherwise insert a clone of the argument.
+	// If we're being given a null pointer, which is what nil becomes, clear the key, otherwise insert a clone of the argument.
 	if (value == nullptr) {
 		m_SavedEntities.m_Data.erase(key);
 	} else

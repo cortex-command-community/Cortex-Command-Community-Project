@@ -379,16 +379,6 @@ int MOSRotating::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("GibWoundLimit", m_GibWoundLimit);
 	writer.NewPropertyWithValue("GibAtEndOfLifetime", m_GibAtEndOfLifetime);
 
-	/* if (m_GibSound != nullptr) {
-		writer.NewProperty("GibSound");
-
-		if (const SoundContainer* gibSoundPreset = static_cast<const SoundContainer*>(m_GibSound->GetPreset())) {
-			m_GibSound->Write(writer, *gibSoundPreset, *g_PresetMan.GetEntityHash("SoundContainer", m_GibSound->GetPresetName(), m_GibSound->GetModuleID()));
-			writer.ObjectEnd();
-		} else {
-			writer << m_GibSound;
-		}
-	}*/
 
 	writer.NewPropertyWithValue("EffectOnGib", m_EffectOnGib);
 

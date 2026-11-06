@@ -522,7 +522,7 @@ int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingD
 	writer.NewDistinctProperty("CanBeSquished", m_CanBeSquished, reference.m_CanBeSquished);
 	writer.NewDistinctProperty("HUDVisible", m_HUDVisible, reference.m_HUDVisible);
 
-	// No need to worry about clearing scripts: you presently can't remove them anyhow, so, no problem?
+	// Scripts can't be removed, so there's no clearing them first.
 	for (const auto& scriptPath: m_AllLoadedScripts) {
 		if (scriptPath.empty()) {
 			continue;
@@ -591,8 +591,6 @@ HashingData MovableObject::Hash() const {
 	HashingData hashData(SceneObject::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	// These are all written under the assumption that the reading and writing functions are already approximately accurate.
-	// If the write function doesn't save things correctly, this got its distinction criteria from that, so it's wrong too.
 
 	AddToHash(hash, m_Mass);
 	AddToHash(hash, m_Vel.Hash().m_Hash);
