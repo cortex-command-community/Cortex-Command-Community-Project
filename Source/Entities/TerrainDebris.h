@@ -25,6 +25,13 @@ namespace RTE {
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create() override;
 
+		/// Makes the TerrainDebris object ready for use, and makes sure it was given its Materials.
+		/// @param reader A Reader that the TerrainDebris will create itself from.
+		/// @param checkType Whether there is a class name in the stream to check against to make sure the correct type is being read from the stream.
+		/// @param doCreate Whether to do any additional initialization of the object after reading in all the properties from the Reader.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		int Create(Reader& reader, bool checkType = true, bool doCreate = true) override;
+
 		/// Creates a TerrainDebris to be identical to another, by deep copy.
 		/// @param reference A reference to the TerrainDebris to deep copy.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.

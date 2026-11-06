@@ -7,11 +7,24 @@ using namespace RTE;
 const std::string TerrainFrosting::c_ClassName = "TerrainFrosting";
 
 void TerrainFrosting::Clear() {
-	m_FrostingMaterial = 0;
-	m_TargetMaterial = 0;
+	m_FrostingMaterial = nullptr;
+	m_TargetMaterial = nullptr;
 	m_MinThickness = 5;
 	m_MaxThickness = 5;
 	m_InAirOnly = true;
+}
+
+int TerrainFrosting::Create(Reader& reader, bool checkType, bool doCreate) {
+	// Once this is read, the Reader might have moved on from this file.
+	const std::string readPosition = "in file " + reader.GetCurrentFilePath() + " on line " + reader.GetCurrentFileLine();
+
+	int result = Serializable::Create(reader, checkType, doCreate);
+
+	if (m_FrostingMaterial == nullptr || m_TargetMaterial == nullptr) {
+		reader.ReportError("The TerrainFrosting " + readPosition + " needs both a FrostingMaterial and a TargetMaterial!");
+	}
+
+	return result;
 }
 
 int TerrainFrosting::ReadProperty(const std::string_view& propName, Reader& reader) {
@@ -20,19 +33,19 @@ int TerrainFrosting::ReadProperty(const std::string_view& propName, Reader& read
 	MatchProperty("FrostingMaterial", {
 		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
 		const Material* reference = dynamic_cast<const Material*>(entityReference);
-		if (entityReference == nullptr || reference != nullptr) {
+		if (reference != nullptr) {
 			m_FrostingMaterial = reference;
 		} else {
-			reader.ReportError("Tried to point FrostingMaterial to a non-Material type!");
+			reader.ReportError("Tried to point FrostingMaterial to something that isn't a Material!");
 		}
 	});
 	MatchProperty("TargetMaterial", {
 		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
 		const Material* reference = dynamic_cast<const Material*>(entityReference);
-		if (entityReference == nullptr || reference != nullptr) {
+		if (reference != nullptr) {
 			m_TargetMaterial = reference;
 		} else {
-			reader.ReportError("Tried to point TargetMaterial to a non-Material type!");
+			reader.ReportError("Tried to point TargetMaterial to something that isn't a Material!");
 		}
 	});
 	MatchProperty("MinThickness", { reader >> m_MinThickness; });

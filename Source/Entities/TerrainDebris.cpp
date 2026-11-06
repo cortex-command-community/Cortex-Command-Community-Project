@@ -39,6 +39,19 @@ int TerrainDebris::Create() {
 	return 0;
 }
 
+int TerrainDebris::Create(Reader& reader, bool checkType, bool doCreate) {
+	// Once this is read, the Reader might have moved on from this file.
+	const std::string readPosition = "in file " + reader.GetCurrentFilePath() + " on line " + reader.GetCurrentFileLine();
+
+	int result = Entity::Create(reader, checkType, doCreate);
+
+	if (m_Material == nullptr || m_TargetMaterial == nullptr) {
+		reader.ReportError("The TerrainDebris " + readPosition + " needs both a DebrisMaterial and a TargetMaterial!");
+	}
+
+	return result;
+}
+
 int TerrainDebris::Create(const TerrainDebris& reference) {
 	Entity::Create(reference);
 
@@ -73,19 +86,19 @@ int TerrainDebris::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("DebrisMaterial", {
 		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
 		const Material* reference = dynamic_cast<const Material*>(entityReference);
-		if (entityReference == nullptr || reference != nullptr) {
+		if (reference != nullptr) {
 			m_Material = reference;
 		} else {
-			reader.ReportError("Tried to point DebrisMaterial to a non-Material type!");
+			reader.ReportError("Tried to point DebrisMaterial to something that isn't a Material!");
 		}
 	});
 	MatchProperty("TargetMaterial", {
 		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader);
 		const Material* reference = dynamic_cast<const Material*>(entityReference);
-		if (entityReference == nullptr || reference != nullptr) {
+		if (reference != nullptr) {
 			m_TargetMaterial = reference;
 		} else {
-			reader.ReportError("Tried to point TargetMaterial to a non-Material type!");
+			reader.ReportError("Tried to point TargetMaterial to something that isn't a Material!");
 		}
 	});
 	MatchProperty("DebrisPlacementMode", {
