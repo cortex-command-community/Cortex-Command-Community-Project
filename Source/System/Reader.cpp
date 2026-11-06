@@ -363,26 +363,6 @@ void Reader::ReportRecoverableError(const std::string& errorDesc) const {
 	}
 }
 
-void Reader::DiscardNestedProperties() {
-	if (!DiscardEmptySpace() || m_EndOfStreams || m_IndentDifference <= 0) {
-		return;
-	}
-
-	const int parentIndent = m_PreviousIndent - m_IndentDifference;
-
-	while (m_PreviousIndent > parentIndent) {
-		ReadPropName();
-		ReadPropValue();
-
-		if (!DiscardEmptySpace() || m_EndOfStreams) {
-			break;
-		}
-	}
-
-	// The indentation so far was measured from the last nested property, but whoever reads next is at the parent's depth.
-	m_IndentDifference = m_PreviousIndent - parentIndent;
-}
-
 void Reader::ReportError(const std::string& errorDesc) const {
 	if (!m_CanFail) {
 		RTEAbort(errorDesc + "\nError happened in " + m_FilePath + " at line " + std::to_string(m_CurrentLine) + "!");

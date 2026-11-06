@@ -37,11 +37,34 @@ int Loadout::Create(const Loadout& reference) {
 	return 0;
 }
 
+/// Reads what a Loadout property refers to, from a preset reference or the form player loadouts were saved in before those existed.
+/// @param reader The Reader which is about to read the property's value.
+/// @return The preset referred to, or nullptr if it couldn't be found.
+static const Entity* ReadLoadoutReference(Reader& reader) {
+	std::string value;
+	reader >> value;
+
+	// TODO: This is dumb and requires scrutiny. The old form is a class name with the preset's name nested under it, and nothing but a player's old LoadoutsP*.ini should have it. It's here instead of anywhere shared so that it can go once those have been dealt with properly.
+	if (value != "None" && value.find('/') == std::string::npos && Entity::ClassInfo::GetClass(value) != nullptr) {
+		const std::string nestedProperty = reader.ReadPropName();
+		const std::string presetName = reader.ReadPropValue();
+		reader.NextProperty();
+
+		if (nestedProperty != "PresetName" && nestedProperty != "CopyOf") {
+			reader.ReportRecoverableError("Expected the preset's name under the old form of a Loadout reference, not " + nestedProperty);
+			return nullptr;
+		}
+		return g_PresetMan.GetEntityPreset(value, presetName);
+	}
+
+	return g_PresetMan.GetEntityPresetFromCharacteristic(value, reader, true);
+}
+
 int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 	MatchProperty("DeliveryCraft", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader, true);
+		const Entity* entityReference = ReadLoadoutReference(reader);
 		const ACraft* reference = dynamic_cast<const ACraft*>(entityReference);
 		if (entityReference != nullptr && reference == nullptr) {
 			reader.ReportRecoverableError("Tried to point DeliveryCraft to a non-ACraft type");
@@ -53,7 +76,7 @@ int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_CargoItems.clear();
 	});
 	MatchProperty("AddCargoItem", {
-		const Entity* entityReference = g_PresetMan.GetEntityPresetFromCharacteristic(reader, true);
+		const Entity* entityReference = ReadLoadoutReference(reader);
 		const MovableObject* reference = dynamic_cast<const MovableObject*>(entityReference);
 		if (reference != nullptr) {
 			m_CargoItems.push_back(reference);

@@ -386,6 +386,10 @@ const Entity* PresetMan::GetEntityPresetFromCharacteristic(Reader& reader, bool 
 	std::string characteristic;
 	reader >> characteristic;
 
+	return GetEntityPresetFromCharacteristic(characteristic, reader, moduleMayBeUnloaded);
+}
+
+const Entity* PresetMan::GetEntityPresetFromCharacteristic(const std::string& characteristic, Reader& reader, bool moduleMayBeUnloaded) {
 	// A reference can be null.
 	if (characteristic == "None") {
 		return nullptr;
@@ -415,9 +419,6 @@ const Entity* PresetMan::GetEntityPresetFromCharacteristic(Reader& reader, bool 
 			RTEAbort(error + ", in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
 		}
 		reader.ReportRecoverableError(error);
-		// A reference written in the old form has its preset name nested under it. If that was read as a property of whatever holds this reference, it would rename it, and throw the Reader's depth off for everything after.
-		reader.DiscardNestedProperties();
-
 		return nullptr;
 	}
 

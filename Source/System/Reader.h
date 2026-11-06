@@ -137,8 +137,6 @@ namespace RTE {
 		/// @param errorDesc The description of the problem.
 		void ReportRecoverableError(const std::string& errorDesc) const;
 
-		/// Discards any properties nested under the property whose value was just read, leaving this Reader ready for that property's next sibling.
-		void DiscardNestedProperties();
 #pragma endregion
 
 #pragma region Operator Overloads

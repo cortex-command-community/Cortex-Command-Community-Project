@@ -167,6 +167,13 @@ namespace RTE {
 		/// @return A const pointer to the Entity preset requested, if it was located.
 		const Entity* GetEntityPresetFromCharacteristic(Reader& reader, bool moduleMayBeUnloaded = false);
 
+		/// Finds the preset a reference refers to, for when the Reader has already read the reference.
+		/// @param characteristic The reference, in the form <class/module/preset name>.
+		/// @param reader The Reader that read the reference, for reporting errors.
+		/// @param moduleMayBeUnloaded As in the overload that reads the reference.
+		/// @return A const pointer to the Entity preset requested, if it was located.
+		const Entity* GetEntityPresetFromCharacteristic(const std::string& characteristic, Reader& reader, bool moduleMayBeUnloaded = false);
+
 		/// Reads a preset of an Entity and tries to add it to the list of
 		/// read-in instances. Regardless of whether there is a name collision,
 		/// the read-in preset will be returned, ownership TRANSFERRED!
