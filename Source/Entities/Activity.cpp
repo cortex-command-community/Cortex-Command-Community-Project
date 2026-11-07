@@ -94,6 +94,7 @@ int Activity::Create(const Activity& reference) {
 	m_ActivityState = reference.m_ActivityState;
 	m_Paused = reference.m_Paused;
 	m_AllowsUserSaving = reference.m_AllowsUserSaving;
+	m_SceneName = reference.m_SceneName;
 	m_Description = reference.m_Description;
 	m_ShowInMenus = reference.m_ShowInMenus;
 	m_HumansCanSpectate = reference.m_HumansCanSpectate;

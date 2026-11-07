@@ -39,6 +39,7 @@ int BunkerAssemblyScheme::Create() {
 int BunkerAssemblyScheme::Create(const BunkerAssemblyScheme& reference) {
 	SceneObject::Create(reference);
 
+	m_BitmapFile = reference.m_BitmapFile;
 	m_pBitmap = reference.m_pBitmap;
 	m_pPresentationBitmap = reference.m_pPresentationBitmap;
 	m_pIconBitmap = reference.m_pIconBitmap;

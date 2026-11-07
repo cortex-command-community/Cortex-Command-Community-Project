@@ -369,6 +369,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed an empty property, such as `SceneName =`, taking the next line as its value.
 
+- Fixed `ApplyWoundDamageOnCollision`, `ApplyWoundBurstDamageOnCollision`, `SceneName`, `BunkerAssemblyScheme`'s `BitmapFile` and `SLBackground`'s `IsAnimatedManually` being lost on any copy of a preset.
+
 - Fixed the `EndlessMetaGameMode` setting not being kept, as it was saved under a different name than it's read by.
 
 - Fixed a `ThrownDevice`'s `ActivationSound` being read into its preset and every copy of it.

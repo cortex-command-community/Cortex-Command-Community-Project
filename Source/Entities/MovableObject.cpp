@@ -266,6 +266,8 @@ int MovableObject::Create(const MovableObject& reference) {
 	m_RemoveOrphanTerrainMaxArea = reference.m_RemoveOrphanTerrainMaxArea;
 	m_RemoveOrphanTerrainRate = reference.m_RemoveOrphanTerrainRate;
 	m_DamageOnCollision = reference.m_DamageOnCollision;
+	m_ApplyWoundDamageOnCollision = reference.m_ApplyWoundDamageOnCollision;
+	m_ApplyWoundBurstDamageOnCollision = reference.m_ApplyWoundBurstDamageOnCollision;
 	m_DamageOnPenetration = reference.m_DamageOnPenetration;
 	m_WoundDamageMultiplier = reference.m_WoundDamageMultiplier;
 	m_IgnoreTerrain = reference.m_IgnoreTerrain;

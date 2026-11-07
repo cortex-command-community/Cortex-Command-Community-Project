@@ -86,6 +86,7 @@ int SLBackground::Create(const SLBackground& reference) {
 	m_FrameCount = reference.m_FrameCount;
 	m_SpriteAnimMode = reference.m_SpriteAnimMode;
 	m_SpriteAnimDuration = reference.m_SpriteAnimDuration;
+	m_IsAnimatedManually = reference.m_IsAnimatedManually;
 
 	m_CanAutoScrollX = reference.m_CanAutoScrollX;
 	m_CanAutoScrollY = reference.m_CanAutoScrollY;
