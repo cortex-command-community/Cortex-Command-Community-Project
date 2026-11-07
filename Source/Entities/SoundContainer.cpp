@@ -101,7 +101,11 @@ int SoundContainer::Create(const std::string& soundFilePath, bool immobile, bool
 int SoundContainer::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
-	MatchForwards("SpecialBehaviour_TopLevelSoundSet") MatchProperty("TopLevelSoundSet", { reader >> *m_TopLevelSoundSet; });
+	MatchForwards("SpecialBehaviour_TopLevelSoundSet") MatchProperty("TopLevelSoundSet", {
+		// This is the whole set, not what to add to a preset's.
+		m_TopLevelSoundSet->Destroy();
+		reader >> *m_TopLevelSoundSet;
+	});
 	MatchProperty("AddSound", { m_TopLevelSoundSet->AddSoundData(SoundSet::ReadAndGetSoundData(reader)); });
 	MatchProperty("AddSoundSet", {
 		SoundSet soundSetToAdd;
