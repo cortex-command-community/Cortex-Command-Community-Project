@@ -182,7 +182,10 @@ int AtomGroup::Save(Writer& writer) const {
 	// Only write out Atoms if they were manually specified
 	if (!m_AutoGenerate) {
 		for (const Atom* atom: m_Atoms) {
-			writer.NewPropertyWithValue("AddAtom", *atom);
+			// An Attachable's atoms are its own, and it adds them again when it's loaded.
+			if (atom->GetSubID() == 0) {
+				writer.NewPropertyWithValue("AddAtom", *atom);
+			}
 		}
 	} else {
 		writer.NewPropertyWithValue("Resolution", m_Resolution);
@@ -201,16 +204,13 @@ int AtomGroup::Write(Writer& writer, const Entity& entityReference, HashingData&
 
 	const AtomGroup& reference = static_cast<const AtomGroup&>(entityReference);
 
-	// TODO: A manual group's list includes its Attachables' atoms, which they add again when they're loaded, doubling them.
-	// Nothing shipped has a manual main group with Attachables left on it to reach this, but a mod could.
-
-
 	writer.NewPresetReferenceProperty("Material", m_Material, reference.m_Material);
 	writer.NewDistinctProperty("AutoGenerate", m_AutoGenerate, reference.m_AutoGenerate);
 
 	// Only write out Atoms if they were manually specified
 	if (!m_AutoGenerate) {
-		writer.NewPointerSequence("_ClearAtoms", "AddAtom", m_Atoms, hashData);
+		// An Attachable's atoms are its own, and it adds them again when it's loaded.
+		writer.NewPointerSequenceConditional("_ClearAtoms", "AddAtom", m_Atoms, hashData, [](const Atom* atom) { return atom->GetSubID() == 0; });
 	} else {
 		writer.NewDistinctProperty("Resolution", m_Resolution, reference.m_Resolution);
 		writer.NewDistinctProperty("Depth", m_Depth, reference.m_Depth);
@@ -240,13 +240,18 @@ HashingData AtomGroup::Hash() const {
 		AddToHash(hash, m_Resolution);
 		AddToHash(hash, m_Depth);
 	} else {
-		hashData.m_ParseValues.push_back(m_Atoms.size());
+		int ownAtomCount = 0;
 
-		for (int i = 0; i < m_Atoms.size(); i++) {
-			uint64_t atomHash = m_Atoms.at(i)->Hash().m_Hash;
-			hashData.m_Constituents.push_back(atomHash);
-			AddToHash(hash, atomHash);
+		for (const Atom* atom: m_Atoms) {
+			if (atom->GetSubID() == 0) {
+				uint64_t atomHash = atom->Hash().m_Hash;
+				hashData.m_Constituents.push_back(atomHash);
+				AddToHash(hash, atomHash);
+				ownAtomCount++;
+			}
 		}
+
+		hashData.m_ParseValues.push_back(ownAtomCount);
 	}
 
 	AddToHash(hash, m_JointOffset.Hash().m_Hash);
