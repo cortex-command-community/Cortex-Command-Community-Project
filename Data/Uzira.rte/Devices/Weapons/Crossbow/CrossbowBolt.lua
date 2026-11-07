@@ -1,5 +1,8 @@
 function Create(self)
-	self.Sharpness = self.Sharpness * RangeRand(0.9, 1.1);
+	if not self:NumberValueExists("SharpnessRandomized") then
+		self:SetNumberValue("SharpnessRandomized", 1);
+		self.Sharpness = self.Sharpness * RangeRand(0.9, 1.1);
+	end
 	self.width = math.ceil(self:GetSpriteWidth() * 0.5);
 end
 
