@@ -365,6 +365,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed Dummy's `Loadout`s having no delivery craft, as they pointed at a preset that doesn't exist.
 
+- Fixed `Base.rte`'s `Installation Brain`, `Infantry Brain` and `Evac` `Loadout`s having no delivery craft, as they pointed at a rocket in a module that loads later. They now use the Rocket MK2.
+
 - Fixed an empty property, such as `SceneName =`, taking the next line as its value.
 
 - Fixed the `EndlessMetaGameMode` setting not being kept, as it was saved under a different name than it's read by.
