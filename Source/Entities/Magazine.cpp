@@ -80,9 +80,14 @@ int Magazine::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader >> m_RoundCount;
 		m_FullCapacity = m_RoundCount;
 	});
+	MatchProperty("FullCapacity", { reader >> m_FullCapacity; });
 	MatchProperty("RTTRatio", { reader >> m_RTTRatio; });
-	MatchProperty("RegularRound", { m_pRegularRound = dynamic_cast<const Round*>(g_PresetMan.GetEntityPreset(reader)); });
-	MatchProperty("TracerRound", { m_pTracerRound = dynamic_cast<const Round*>(g_PresetMan.GetEntityPreset(reader)); });
+	MatchProperty("RegularRound", {
+		m_pRegularRound = g_PresetMan.ReadPresetReferenceOfType<Round>(reader, propName);
+	});
+	MatchProperty("TracerRound", { 
+		m_pTracerRound = g_PresetMan.ReadPresetReferenceOfType<Round>(reader, propName);
+	});
 	MatchProperty("Discardable", { reader >> m_Discardable; });
 	MatchProperty("AIBlastRadius", { reader >> m_AIBlastRadius; });
 
@@ -92,20 +97,51 @@ int Magazine::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Magazine::Save(Writer& writer) const {
 	Attachable::Save(writer);
 
-	writer.NewProperty("RoundCount");
-	writer << m_RoundCount;
-	writer.NewProperty("RTTRatio");
-	writer << m_RTTRatio;
-	writer.NewProperty("RegularRound");
-	writer << m_pRegularRound;
-	writer.NewProperty("TracerRound");
-	writer << m_pTracerRound;
-	writer.NewProperty("Discardable");
-	writer << m_Discardable;
-	writer.NewProperty("AIBlastRadius");
-	writer << m_AIBlastRadius;
+	writer.NewPropertyWithValue("RoundCount", m_RoundCount);
+	writer.NewPropertyWithValue("FullCapacity", m_FullCapacity);
+	writer.NewPropertyWithValue("RTTRatio", m_RTTRatio);
+	writer.NewPropertyWithValue("RegularRound", (m_pRegularRound ? m_pRegularRound->GetEntityCharacteristic() : "None"));
+	writer.NewPropertyWithValue("TracerRound", (m_pTracerRound ? m_pTracerRound->GetEntityCharacteristic() : "None"));
+	writer.NewPropertyWithValue("Discardable", m_Discardable);
+	writer.NewPropertyWithValue("AIBlastRadius", m_AIBlastRadius);
 
 	return 0;
+}
+
+int Magazine::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Attachable::Write(writer, entityReference, hashData);
+
+	const Magazine& reference = static_cast<const Magazine&>(entityReference);
+
+	writer.NewDistinctProperty("RoundCount", m_RoundCount, reference.m_RoundCount);
+
+	// Special casing due to the special casing on magazine reading
+	if (m_RoundCount != reference.m_RoundCount || m_FullCapacity != reference.m_FullCapacity) {
+		writer.NewPropertyWithValue("FullCapacity", m_FullCapacity);
+	}
+
+	writer.NewDistinctProperty("RTTRatio", m_RTTRatio, reference.m_RTTRatio);
+	writer.NewPresetReferenceProperty("RegularRound", m_pRegularRound, reference.m_pRegularRound);
+	writer.NewPresetReferenceProperty("TracerRound", m_pTracerRound, reference.m_pTracerRound);
+	writer.NewDistinctProperty("Discardable", m_Discardable, reference.m_Discardable);
+	writer.NewDistinctProperty("AIBlastRadius", m_AIBlastRadius, reference.m_AIBlastRadius);
+
+	return 0;
+}
+
+HashingData Magazine::Hash() const {
+	HashingData hashData(Attachable::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_RoundCount);
+	AddToHash(hash, m_FullCapacity);
+	AddToHash(hash, m_RTTRatio);
+	AddToHash(hash, (m_pRegularRound ? RTE::Hash(m_pRegularRound->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, (m_pTracerRound ? RTE::Hash(m_pTracerRound->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, m_Discardable);
+	AddToHash(hash, m_AIBlastRadius);
+
+	return hashData;
 }
 
 void Magazine::Destroy(bool notInherited) {

@@ -102,24 +102,88 @@ int Material::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 int Material::Save(Writer& writer) const {
 	Entity::Save(writer);
-	// Materials should never be altered, so no point in saving additional properties when it's a copy
-	if (m_IsOriginalPreset) {
-		writer.NewPropertyWithValue("Priority", m_Priority);
-		writer.NewPropertyWithValue("Piling", m_Piling);
-		writer.NewPropertyWithValue("StructuralIntegrity", m_Integrity);
-		writer.NewPropertyWithValue("Restitution", m_Restitution);
-		writer.NewPropertyWithValue("Friction", m_Friction);
-		writer.NewPropertyWithValue("Stickiness", m_Stickiness);
-		writer.NewPropertyWithValue("DensityKGPerVolumeL", m_VolumeDensity);
-		writer.NewPropertyWithValue("GibImpulseLimitPerVolumeL", m_GibImpulseLimitPerLiter);
-		writer.NewPropertyWithValue("GibWoundLimitPerVolumeL", m_GibWoundLimitPerLiter);
-		writer.NewPropertyWithValue("SettleMaterial", m_SettleMaterialIndex);
-		writer.NewPropertyWithValue("SpawnMaterial", m_SpawnMaterialIndex);
-		writer.NewPropertyWithValue("IsScrap", m_IsScrap);
-		writer.NewPropertyWithValue("Color", m_Color);
-		writer.NewPropertyWithValue("UseOwnColor", m_UseOwnColor);
-		writer.NewPropertyWithValue("FGTextureFile", m_FGTextureFile);
-		writer.NewPropertyWithValue("BGTextureFile", m_BGTextureFile);
-	}
+
+	writer.NewDistinctProperty("Priority", m_Priority, -1);
+	writer.NewDistinctProperty("Piling", m_Piling, 0);
+	writer.NewDistinctProperty("StructuralIntegrity", m_Integrity, 0.0F);
+	writer.NewDistinctProperty("Restitution", m_Restitution, 0.0F);
+	writer.NewDistinctProperty("Friction", m_Friction, 0.0F);
+	writer.NewDistinctProperty("Stickiness", m_Stickiness, 0.0F);
+	writer.NewDistinctProperty("DensityKGPerVolumeL", m_VolumeDensity, 0.0F);
+	writer.NewDistinctProperty("GibImpulseLimitPerVolumeL", m_GibImpulseLimitPerLiter, 0.0F);
+	writer.NewDistinctProperty("GibWoundLimitPerVolumeL", m_GibWoundLimitPerLiter, 0.0F);
+	writer.NewDistinctProperty("SettleMaterial", m_SettleMaterialIndex, (unsigned char) 0);
+	writer.NewDistinctProperty("SpawnMaterial", m_SpawnMaterialIndex, (unsigned char) 0);
+	writer.NewDistinctProperty("IsScrap", m_IsScrap, false);
+	writer.NewPropertyWithValue("Color", m_Color);
+	writer.NewDistinctProperty("UseOwnColor", m_UseOwnColor, false);
+	writer.NewPropertyWithValue("FGTextureFile", m_FGTextureFile);
+	writer.NewPropertyWithValue("BGTextureFile", m_BGTextureFile);
+
+	writer.NewDistinctProperty("Index", m_Index, 0);
+
 	return 0;
+}
+
+int Material::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const Material& reference = static_cast<const Material&>(entityReference);
+
+	writer.NewDistinctProperty("Priority", m_Priority, reference.m_Priority);
+	writer.NewDistinctProperty("Piling", m_Piling, reference.m_Piling);
+	writer.NewDistinctProperty("StructuralIntegrity", m_Integrity, reference.m_Integrity);
+	writer.NewDistinctProperty("Restitution", m_Restitution, reference.m_Restitution);
+	writer.NewDistinctProperty("Friction", m_Friction, reference.m_Friction);
+	writer.NewDistinctProperty("Stickiness", m_Stickiness, reference.m_Stickiness);
+	writer.NewDistinctProperty("DensityKGPerVolumeL", m_VolumeDensity, reference.m_VolumeDensity);
+	writer.NewDistinctProperty("GibImpulseLimitPerVolumeL", m_GibImpulseLimitPerLiter, reference.m_GibImpulseLimitPerLiter);
+	writer.NewDistinctProperty("GibWoundLimitPerVolumeL", m_GibWoundLimitPerLiter, reference.m_GibWoundLimitPerLiter);
+	writer.NewDistinctProperty("SettleMaterial", m_SettleMaterialIndex, reference.m_SettleMaterialIndex);
+	writer.NewDistinctProperty("SpawnMaterial", m_SpawnMaterialIndex, reference.m_SpawnMaterialIndex);
+	writer.NewDistinctProperty("IsScrap", m_IsScrap, reference.m_IsScrap);
+	writer.NewDistinctHashedProperty("Color", m_Color, hashData);
+	writer.NewDistinctProperty("UseOwnColor", m_UseOwnColor, reference.m_UseOwnColor);
+	writer.NewDistinctHashedProperty("FGTextureFile", m_FGTextureFile, hashData);
+	writer.NewDistinctHashedProperty("BGTextureFile", m_BGTextureFile, hashData);
+
+	writer.NewDistinctProperty("Index", m_Index, reference.m_Index);
+
+	return 0;
+}
+
+HashingData Material::Hash() const {
+	HashingData hashData(Entity::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_Priority);
+	AddToHash(hash, m_Piling);
+	AddToHash(hash, m_Integrity);
+	AddToHash(hash, m_Restitution);
+	AddToHash(hash, m_Friction);
+	AddToHash(hash, m_Stickiness);
+	AddToHash(hash, m_VolumeDensity);
+	AddToHash(hash, m_GibImpulseLimitPerLiter);
+	AddToHash(hash, m_GibWoundLimitPerLiter);
+	AddToHash(hash, m_SettleMaterialIndex);
+	AddToHash(hash, m_SpawnMaterialIndex);
+	AddToHash(hash, m_IsScrap);
+
+	uint64_t colorHash = m_Color.Hash().m_Hash;
+	hashData.m_Constituents.push_back(colorHash);
+	AddToHash(hash, colorHash);
+
+	AddToHash(hash, m_UseOwnColor);
+
+	uint64_t fgTextureHash = m_FGTextureFile.Hash().m_Hash;
+	hashData.m_Constituents.push_back(fgTextureHash);
+	AddToHash(hash, fgTextureHash);
+
+	uint64_t bgTextureHash = m_BGTextureFile.Hash().m_Hash;
+	hashData.m_Constituents.push_back(bgTextureHash);
+	AddToHash(hash, bgTextureHash);
+
+	AddToHash(hash, m_Index);
+
+	return hashData;
 }

@@ -4,6 +4,10 @@
 #include <string>
 #include <memory>
 #include <ostream>
+#include <type_traits>
+
+#include "Hash.h"
+#include "RTETools.h"
 
 namespace RTE {
 
@@ -104,6 +108,164 @@ namespace RTE {
 			*this << propValue;
 		}
 
+		/// Writes a collection of pointers where order matters, written to assume it has corresponding data in the hash structure provided.
+		/// @param clearPhrase The phrase used to wipe the contents of the collection, if the reference's is incompatible.
+		/// @param insertionPhrase The phrase used to push an element to the back of the collection.
+		/// @param propValue The sequential collection of pointers in question.
+		/// @param hashData A modifiable reference to the HashingData relevant to writing this object, which should correspond to its preset's.
+		template <typename Type>
+		void NewPointerSequence(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData) {
+			NewPointerSequenceConditional(clearPhrase, insertionPhrase, propValue, hashData, [](const auto&) { return true; });
+		}
+
+		/// Writes a collection of items where order matters, written to assume it has corresponding data in the hash structure provided.
+		/// @param clearPhrase The phrase used to wipe the contents of the collection, if the reference's is incompatible.
+		/// @param insertionPhrase The phrase used to push an element to the back of the collection.
+		/// @param propValue The sequential collection of items in question.
+		/// @param hashData A modifiable reference to the HashingData relevant to writing this object, which should correspond to its preset's.
+		template <typename Type>
+		void NewSequence(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData) {
+			WriteSequence(clearPhrase, propValue, hashData,
+			    [](const auto& item) { return item.Hash().m_Hash; },
+			    [&](const auto& item) { NewPropertyWithValue(insertionPhrase, item); },
+			    [](const auto&) { return true; });
+		}
+
+		/// Writes a collection of preset references where order matters, written to assume it has corresponding data in the hash structure provided.
+		/// @param clearPhrase The phrase used to wipe the contents of the collection, if the reference's is incompatible.
+		/// @param insertionPhrase The phrase used to push an element to the back of the collection.
+		/// @param propValue The sequential collection of items in question.
+		/// @param hashData A modifiable reference to the HashingData relevant to writing this object, which should correspond to its preset's.
+		template <typename Type>
+		void NewPresetReferenceSequence(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData) {
+			WriteSequence(clearPhrase, propValue, hashData,
+			    [](const auto& item) { return RTE::Hash(item->GetEntityCharacteristic()); },
+			    [&](const auto& item) { NewPropertyWithValue(insertionPhrase, item->GetEntityCharacteristic()); },
+			    [](const auto&) { return true; });
+		}
+
+		/// Writes a collection of unaltered copies of presets where order matters, written to assume it has corresponding data in the hash structure provided.
+		/// Each is written as a copy of its preset, for properties which read an object instead of a preset reference.
+		/// @param clearPhrase The phrase used to wipe the contents of the collection, if the reference's is incompatible.
+		/// @param insertionPhrase The phrase used to push an element to the back of the collection.
+		/// @param propValue The sequential collection of items in question.
+		/// @param hashData A modifiable reference to the HashingData relevant to writing this object, which should correspond to its preset's.
+		template <typename Type>
+		void NewPresetCopySequence(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData) {
+			WriteSequence(clearPhrase, propValue, hashData,
+			    [](const auto& item) { return RTE::Hash(item->GetEntityCharacteristic()); },
+			    [&](const auto& item) {
+				    NewProperty(insertionPhrase);
+				    item->SavePresetCopy(*this);
+			    },
+			    [](const auto&) { return true; });
+		}
+
+		/// Writes a collection of pointers where order matters, written to assume it has corresponding data in the hash structure provided, and respecting the conditional for consideration.
+		/// @param clearPhrase The phrase used to wipe the contents of the collection, if the reference's is incompatible.
+		/// @param insertionPhrase The phrase used to push an element to the back of the collection.
+		/// @param propValue The sequential collection of pointers in question.
+		/// @param hashData A modifiable reference to the HashingData relevant to writing this object, which should correspond to its preset's.
+		/// @param conditional A conditional lambda to determine if an extant value should be considered at all.
+		template <typename Type, typename Lambda>
+		void NewPointerSequenceConditional(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData, Lambda&& conditional) {
+			WriteSequence(clearPhrase, propValue, hashData,
+			    [](const auto& item) { return item->Hash().m_Hash; },
+			    [&](const auto& item) { NewPropertyWithValue(insertionPhrase, *item); },
+			    conditional);
+		}
+
+		/// If the hash data indicates that anything needs to be written, creates a new line and writes the name of the specified property, followed by its set value.
+		/// @param propName The name of the property to be written.
+		/// @param propValue The value of the property.
+		/// @param hashData A modifiable reference to the HashingData relevant to writing this object, which should correspond to its preset's.
+		template <typename Type>
+		void NewOptionalEntityPointerProperty(const std::string& propName, const Type& propValue, HashingData& hashData) {
+			if (propValue != nullptr) {
+				uint64_t thingHash = propValue->Hash().m_Hash;
+				// If we have the thing, but the reference didn't, we have to specify it.
+				bool isToRespecify = hashData.m_ParseValues.front() == 0;
+
+				if (!isToRespecify) {
+					// If both actually had the thing, then we still have to respecify if they're at all different.
+					isToRespecify = thingHash != hashData.m_Constituents.front();
+					hashData.m_Constituents.pop_front();
+				}
+
+				if (isToRespecify) {
+					// This property is, in any case, not identical to that of the reference, so write what it is.
+					NewProperty(propName);
+					*this << propValue;
+				}
+			} else if (hashData.m_ParseValues.front() != 0) {
+				// This property is null, but the reference's property was not, so clear it.
+				NewProperty(propName);
+				NoObject();
+
+				// The reference's hash for it has nothing to be compared against, eject it.
+				hashData.m_Constituents.pop_front();
+			}
+
+			// Info for parsing has been used, eject it.
+			hashData.m_ParseValues.pop_front();
+		}
+
+		/// If the hash data indicates that anything needs to be written, creates a new line and writes the name of the specified property, followed by its set value.
+		/// @param propName The name of the property to be written.
+		/// @param propValue The value of the property.
+		/// @param hashData A modifiable reference to the HashingData relevant to writing this object, which should correspond to its preset's.
+		template <typename Type>
+		void NewEntityPointerProperty(const std::string& propName, const Type& propValue, HashingData& hashData) {
+			// Specify the property if it's different from that of the reference, taking as given that both are non-null.
+			if (propValue->Hash().m_Hash != hashData.m_Constituents.front()) {
+				NewPropertyWithValue(propName, *propValue);
+			}
+
+			hashData.m_Constituents.pop_front();
+		}
+
+		/// If the comparison indicates that anything needs to be written, creates a new line and writes the name of the specified property, followed by its set value.
+		/// @param propName The name of the property to be written.
+		/// @param propValue The value of the property.
+		/// @param propReference The value of the property of the reference
+		template <typename Type>
+		void NewPresetReferenceProperty(const std::string& propName, const Type& propValue, const Type& propReference) {
+			// Preset references are straight forward, if they point to different things, write what ours point to.
+			if (propValue != propReference) {
+				NewProperty(propName);
+
+				if (propValue == nullptr) {
+					NoObject();
+				} else {
+					*this << propValue->GetEntityCharacteristic();
+				}
+			}
+		}
+
+		/// If the comparison indicates that anything needs to be written, creates a new line and writes the name of the specified property, followed by its set value.
+		/// @param propName The name of the property to be written.
+		/// @param propValue The value of the property.
+		/// @param propReference The value of the property of the reference.
+		template <typename Type>
+		void NewDistinctProperty(const std::string& propName, const Type& propValue, const std::type_identity_t<Type>& propReference) {
+			if (propValue != propReference) {
+				NewPropertyWithValue(propName, propValue);
+			}
+		}
+
+		/// If the hash data indicates that anything needs to be written, creates a new line and writes the name of the specified property, followed by its set value.
+		/// @param propName The name of the property to be written.
+		/// @param propValue The value of the property.
+		/// @param hashData A modifiable reference to the HashingData relevant to writing this object, which should correspond to its preset's.
+		template <typename Type>
+		void NewDistinctHashedProperty(const std::string& propName, const Type& propValue, HashingData& hashData) {
+			// Specify the property if it's different from that of the reference.
+			if (propValue.Hash().m_Hash != hashData.m_Constituents.front()) {
+				NewPropertyWithValue(propName, propValue);
+			}
+			hashData.m_Constituents.pop_front();
+		}
+
 		/// Marks that there is a null reference to an object here.
 		void NoObject() const { *m_Stream << "None"; }
 #pragma endregion
@@ -199,6 +361,52 @@ namespace RTE {
 		int m_IndentCount; //!< Indentation counter.
 
 	private:
+		/// Writes a collection where order matters, as only what comes after the reference's list if that's all that differs, or else clears the list and writes all of it.
+		/// @param clearPhrase The phrase used to wipe the contents of the collection, if the reference's is incompatible.
+		/// @param items The sequential collection in question.
+		/// @param hashData A modifiable reference to the HashingData relevant to writing this object, which should correspond to its preset's.
+		/// @param getHash Gets the hash of an item, to compare against the reference's.
+		/// @param writeItem Writes an item.
+		/// @param isIncluded Whether an item has any counterpart in the reference's list at all.
+		template <typename Collection, typename GetHash, typename WriteItem, typename IsIncluded>
+		void WriteSequence(const std::string& clearPhrase, const Collection& items, HashingData& hashData, GetHash&& getHash, WriteItem&& writeItem, IsIncluded&& isIncluded) {
+			bool extendsReference = true;
+			auto itemItr = items.begin();
+
+			// Every one of the reference's hashes gets used up, even after finding a difference.
+			for (size_t refIndex = 0; refIndex < hashData.m_ParseValues.front(); refIndex++) {
+				if (extendsReference) {
+					while (itemItr != items.end() && !isIncluded(*itemItr)) {
+						itemItr++;
+					}
+
+					if (itemItr == items.end() || getHash(*itemItr) != hashData.m_Constituents.front()) {
+						extendsReference = false;
+					} else {
+						itemItr++;
+					}
+				}
+
+				hashData.m_Constituents.pop_front();
+			}
+
+			if (!extendsReference) {
+				if (hashData.m_ParseValues.front() > 0) {
+					NewPropertyWithValue(clearPhrase, 1);
+				}
+
+				itemItr = items.begin();
+			}
+
+			for (; itemItr != items.end(); itemItr++) {
+				if (isIncluded(*itemItr)) {
+					writeItem(*itemItr);
+				}
+			}
+
+			hashData.m_ParseValues.pop_front();
+		}
+
 		/// Clears all the member variables of this Writer, effectively resetting the members of this abstraction level only.
 		void Clear();
 

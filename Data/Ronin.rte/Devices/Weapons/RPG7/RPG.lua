@@ -1,6 +1,9 @@
 function Create(self)
-	self.impulseLimit = self.GibImpulseLimit;
-	self.GibImpulseLimit = self.GibImpulseLimit * 3;
+	if not self:NumberValueExists("ImpulseLimit") then
+		self:SetNumberValue("ImpulseLimit", self.GibImpulseLimit);
+		self.GibImpulseLimit = self.GibImpulseLimit * 3;
+	end
+	self.impulseLimit = self:GetNumberValue("ImpulseLimit");
 end
 
 function Update(self)

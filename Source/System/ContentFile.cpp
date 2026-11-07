@@ -90,6 +90,15 @@ int ContentFile::Save(Writer& writer) const {
 	return 0;
 }
 
+HashingData ContentFile::Hash() const {
+	HashingData hashData(Serializable::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, RTE::Hash(m_DataPath));
+
+	return hashData;
+}
+
 int ContentFile::GetDataModuleID() const {
 	return (m_DataModuleID < 0) ? g_PresetMan.GetModuleIDFromPath(m_DataPath) : m_DataModuleID;
 }
@@ -108,7 +117,7 @@ void ContentFile::SetDataPath(const std::string& newDataPath) {
 }
 
 size_t ContentFile::GetHash() const {
-	return Hash(m_DataPath);
+	return RTE::Hash(m_DataPath);
 }
 
 void ContentFile::SetFormattedReaderPosition(const std::string& newPosition) {

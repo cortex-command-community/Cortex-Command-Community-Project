@@ -82,7 +82,7 @@ int Leg::Create(const Leg& reference) {
 int Leg::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Attachable::ReadProperty(propName, reader));
 
-	MatchProperty("Foot", { SetFoot(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Foot", { SetFoot(g_PresetMan.ReadReflectedPresetOfType<Attachable>(reader, propName)); });
 	MatchProperty("ContractedOffset", {
 		reader >> m_ContractedOffset;
 		m_MinExtension = m_ContractedOffset.GetMagnitude();
@@ -101,20 +101,50 @@ int Leg::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Leg::Save(Writer& writer) const {
 	Attachable::Save(writer);
 
-	writer.NewProperty("Foot");
-	writer << m_Foot;
-	writer.NewProperty("ContractedOffset");
-	writer << m_ContractedOffset;
-	writer.NewProperty("ExtendedOffset");
-	writer << m_ExtendedOffset;
-	writer.NewProperty("IdleOffset");
-	writer << m_IdleOffset;
-	writer.NewProperty("WillIdle");
-	writer << m_WillIdle;
-	writer.NewProperty("MoveSpeed");
-	writer << m_MoveSpeed;
+	writer.NewPropertyWithValue("Foot", m_Foot);
+	writer.NewPropertyWithValue("ContractedOffset", m_ContractedOffset);
+	writer.NewPropertyWithValue("ExtendedOffset", m_ExtendedOffset);
+	writer.NewPropertyWithValue("IdleOffset", m_IdleOffset);
+	writer.NewPropertyWithValue("WillIdle", m_WillIdle);
+	writer.NewPropertyWithValue("MoveSpeed", m_MoveSpeed);
 
 	return 0;
+}
+
+int Leg::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Attachable::Write(writer, entityReference, hashData);
+
+	const Leg& reference = static_cast<const Leg&>(entityReference);
+
+	writer.NewOptionalEntityPointerProperty("Foot", m_Foot, hashData);
+	writer.NewDistinctProperty("ContractedOffset", m_ContractedOffset, reference.m_ContractedOffset);
+	writer.NewDistinctProperty("ExtendedOffset", m_ExtendedOffset, reference.m_ExtendedOffset);
+	writer.NewDistinctProperty("IdleOffset", m_IdleOffset, reference.m_IdleOffset);
+	writer.NewDistinctProperty("WillIdle", m_WillIdle, reference.m_WillIdle);
+	writer.NewDistinctProperty("MoveSpeed", m_MoveSpeed, reference.m_MoveSpeed);
+
+	return 0;
+}
+
+HashingData Leg::Hash() const {
+	HashingData hashData(Attachable::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	bool footDef = m_Foot != nullptr;
+	hashData.m_ParseValues.push_back(footDef);
+	if (footDef) {
+		uint64_t footHash = m_Foot->Hash().m_Hash;
+		hashData.m_Constituents.push_back(footHash);
+		AddToHash(hash, footHash);
+	}
+
+	AddToHash(hash, m_ContractedOffset.Hash().m_Hash);
+	AddToHash(hash, m_ExtendedOffset.Hash().m_Hash);
+	AddToHash(hash, m_IdleOffset.Hash().m_Hash);
+	AddToHash(hash, m_WillIdle);
+	AddToHash(hash, m_MoveSpeed);
+
+	return hashData;
 }
 
 void Leg::SetFoot(Attachable* newFoot) {

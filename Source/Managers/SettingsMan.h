@@ -16,7 +16,8 @@ namespace RTE {
 
 	public:
 		SerializableClassNameGetter;
-		SerializableOverrideMethods;
+		int ReadProperty(const std::string_view& propName, Reader& reader) override;
+		int Save(Writer& writer) const override;
 
 #pragma region Creation
 		/// Constructor method used to instantiate a SettingsMan object in system memory. Initialize() should be called before using the object.

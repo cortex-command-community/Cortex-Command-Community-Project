@@ -109,6 +109,51 @@ int AEJetpack::Save(Writer& writer) const {
 	return 0;
 }
 
+int AEJetpack::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	AEmitter::Write(writer, entityReference, hashData);
+
+	const AEJetpack& reference = static_cast<const AEJetpack&>(entityReference);
+
+	if (m_JetpackType != reference.m_JetpackType) {
+		writer.NewProperty("JetpackType");
+		switch (m_JetpackType) {
+			default:
+			case JetpackType::Standard:
+				writer << "Standard";
+				break;
+			case JetpackType::JumpPack:
+				writer << "JumpPack";
+				break;
+		}
+	}
+
+	if (m_JetTimeTotal != reference.m_JetTimeTotal)
+		writer.NewPropertyWithValue("JumpTime", m_JetTimeTotal / 1000.0f); // Convert to seconds
+
+	writer.NewDistinctProperty("JumpReplenishRate", m_JetReplenishRate, reference.m_JetReplenishRate);
+	writer.NewDistinctProperty("MinimumFuelRatio", m_MinimumFuelRatio, reference.m_MinimumFuelRatio);
+	writer.NewDistinctProperty("JumpAngleRange", m_JetAngleRange, reference.m_JetAngleRange);
+	writer.NewDistinctProperty("CanAdjustAngleWhileFiring", m_CanAdjustAngleWhileFiring, reference.m_CanAdjustAngleWhileFiring);
+	writer.NewDistinctProperty("AdjustsThrottleForWeight", m_AdjustsThrottleForWeight, reference.m_AdjustsThrottleForWeight);
+
+	return 0;
+}
+
+HashingData AEJetpack::Hash() const {
+	HashingData hashData(AEmitter::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_JetpackType);
+	AddToHash(hash, m_JetTimeTotal);
+	AddToHash(hash, m_JetReplenishRate);
+	AddToHash(hash, m_MinimumFuelRatio);
+	AddToHash(hash, m_JetAngleRange);
+	AddToHash(hash, m_CanAdjustAngleWhileFiring);
+	AddToHash(hash, m_AdjustsThrottleForWeight);
+
+	return hashData;
+}
+
 void AEJetpack::UpdateBurstState(Actor& parentActor) {
 	const Controller& controller = *parentActor.GetController();
 

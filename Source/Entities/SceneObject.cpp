@@ -48,18 +48,15 @@ int SceneObject::SOPlacer::Create(const SOPlacer& reference) {
 int SceneObject::SOPlacer::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
-	MatchProperty("PlacedObject",
-	              {
-		              m_pObjectReference = dynamic_cast<const SceneObject*>(g_PresetMan.GetEntityPreset(reader));
-		              RTEAssert(m_pObjectReference, "Stream suggests allocating an unallocatable type in SOPlacer::Create!");
-	              });
+	MatchProperty("PlacedObject", {
+		m_pObjectReference = g_PresetMan.ReadPresetReferenceOfType<SceneObject>(reader, propName);
+	});
 	MatchProperty("Offset", { reader >> m_Offset; });
-	MatchProperty("Rotation",
-	              {
-		              Matrix rot;
-		              reader >> rot;
-		              m_RotAngle = rot.GetRadAngle();
-	              });
+	MatchProperty("Rotation", {
+		Matrix rot;
+		reader >> rot;
+		m_RotAngle = rot.GetRadAngle();
+	});
 	MatchProperty("HFlipped", { reader >> m_HFlipped; });
 	MatchProperty("Team", { reader >> m_Team; });
 
@@ -69,27 +66,31 @@ int SceneObject::SOPlacer::ReadProperty(const std::string_view& propName, Reader
 int SceneObject::SOPlacer::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewProperty("PlacedObject");
-	writer << m_pObjectReference;
-	writer.NewProperty("Offset");
-	writer << m_Offset;
-	// TODO: make generalized way of detecting defaults
-	if (m_RotAngle != 0) {
-		writer.NewProperty("Rotation");
-		Matrix rot;
-		rot.SetRadAngle(m_RotAngle);
-		writer << rot;
-	}
-	if (m_HFlipped) {
-		writer.NewProperty("HFlipped");
-		writer << m_HFlipped;
-	}
-	if (m_Team >= Activity::TeamOne) {
-		writer.NewProperty("Team");
-		writer << m_Team;
-	}
+	if (m_pObjectReference != nullptr)
+		writer.NewPropertyWithValue("PlacedObject", m_pObjectReference->GetEntityCharacteristic());
+	if (!m_Offset.IsZero())
+		writer.NewPropertyWithValue("Offset", m_Offset);
+	if (m_RotAngle != 0.0F)
+		writer.NewPropertyWithValue("Rotation", Matrix(m_RotAngle));
+	if (m_HFlipped)
+		writer.NewPropertyWithValue("HFlipped", m_HFlipped);
+	if (m_Team > Activity::NoTeam)
+		writer.NewPropertyWithValue("Team", m_Team);
 
 	return 0;
+}
+
+HashingData SceneObject::SOPlacer::Hash() const {
+	HashingData hashData(Serializable::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, (m_pObjectReference ? RTE::Hash(m_pObjectReference->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, m_Offset.Hash().m_Hash);
+	AddToHash(hash, m_RotAngle);
+	AddToHash(hash, m_HFlipped);
+	AddToHash(hash, m_Team);
+
+	return hashData;
 }
 
 SceneObject* SceneObject::SOPlacer::GetPlacedCopy(const SceneObject* pParent) const {
@@ -190,22 +191,49 @@ int SceneObject::ReadProperty(const std::string_view& propName, Reader& reader) 
 
 int SceneObject::Save(Writer& writer) const {
 	Entity::Save(writer);
-	// TODO: Make proper save system that knows not to save redundant data!
-	/*
-	    writer.NewProperty("Position");
-	    writer << m_Pos;
-	    writer.NewProperty("GoldValue");
-	    writer << m_OzValue;
-	    writer.NewProperty("Buyable");
-	    writer << m_Buyable;
-	    writer.NewProperty("BuyableMode");
-	    writer << static_cast<int>(m_BuyableMode);
-	    writer.NewProperty("Team");
-	    writer << m_Team;
-	    writer.NewProperty("PlacedByPlayer");
-	    writer << m_PlacedByPlayer;
-	*/
+
+	if (!m_Pos.IsZero())
+		writer.NewPropertyWithValue("Position", m_Pos);
+	writer.NewDistinctProperty("GoldValue", m_OzValue, 0);
+	writer.NewDistinctProperty("Buyable", m_Buyable, true);
+	if (m_BuyableMode != BuyableMode::NoRestrictions)
+		writer.NewPropertyWithValue("BuyableMode", static_cast<int>(m_BuyableMode));
+	writer.NewDistinctProperty("Team", m_Team, Activity::NoTeam);
+	writer.NewDistinctProperty("PlacedByPlayer", m_PlacedByPlayer, Players::NoPlayer);
+
 	return 0;
+}
+
+int SceneObject::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const SceneObject& reference = static_cast<const SceneObject&>(entityReference);
+
+	writer.NewDistinctProperty("Position", m_Pos, reference.m_Pos);
+	writer.NewDistinctProperty("GoldValue", m_OzValue, reference.m_OzValue);
+	writer.NewDistinctProperty("Buyable", m_Buyable, reference.m_Buyable);
+
+	if (m_BuyableMode != reference.m_BuyableMode)
+		writer.NewPropertyWithValue("BuyableMode", static_cast<int>(m_BuyableMode));
+
+	writer.NewDistinctProperty("Team", m_Team, reference.m_Team);
+	writer.NewDistinctProperty("PlacedByPlayer", m_PlacedByPlayer, reference.m_PlacedByPlayer);
+
+	return 0;
+}
+
+HashingData SceneObject::Hash() const {
+	HashingData hashData(Entity::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_Pos.Hash().m_Hash);
+	AddToHash(hash, m_OzValue);
+	AddToHash(hash, m_Buyable);
+	AddToHash(hash, m_BuyableMode);
+	AddToHash(hash, m_Team);
+	AddToHash(hash, m_PlacedByPlayer);
+
+	return hashData;
 }
 
 void SceneObject::Destroy(bool notInherited) {

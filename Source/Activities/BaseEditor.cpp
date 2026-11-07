@@ -57,11 +57,7 @@ int BaseEditor::Create(const BaseEditor& reference) {
 
 int BaseEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Activity::ReadProperty(propName, reader));
-	/*
-	    MatchProperty("CPUTeam", { reader >> m_CPUTeam; });
-	    MatchProperty("Difficulty", { reader >> m_Difficulty; });
-	    MatchProperty("DeliveryDelay", { reader >> m_DeliveryDelay; });
-	*/
+
 	EndPropertyList;
 }
 

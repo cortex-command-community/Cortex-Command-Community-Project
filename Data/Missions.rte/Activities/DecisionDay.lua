@@ -714,6 +714,16 @@ function DecisionDay:ResumeLoadedGame()
 				elseif actor:IsInGroup("Deployed Brain " .. tostring(player)) then
 					self:SetPlayerBrain(actor, player);
 
+					-- Being added to the scene makes her stable and able to move again, and a deployed brain is pinned, so she'd only spin until she gibs.
+					if not actor:IsMechanical() and IsAHuman(actor) then
+						actor.Status = Actor.INACTIVE;
+						actor:GetController().InputMode = Controller.CIM_DISABLED;
+						actor.AIMode = Actor.AIMODE_SENTRY;
+						actor:ClearAIWaypoints();
+						actor.Vel = Vector();
+						actor.AngularVel = 0;
+					end
+
 					local undeployBrainPieSlice = self.undeployBrainPieSlice:Clone();
 					undeployBrainPieSlice.Direction = Directions.Left;
 					actor.PieMenu:AddPieSliceIfPresetNameIsUnique(undeployBrainPieSlice, self);
@@ -1912,6 +1922,10 @@ function DecisionDay:DeployHumanBrain(player)
 		else
 			existingBrain.Status = Actor.INACTIVE;
 			existingBrain:GetController().InputMode = Controller.CIM_DISABLED;
+			existingBrain.AIMode = Actor.AIMODE_SENTRY;
+			existingBrain:ClearAIWaypoints();
+			existingBrain.Vel = Vector();
+			existingBrain.AngularVel = 0;
 			existingBrain.Pos.Y = existingBrain.Pos.Y - 20;
 			existingBrain.PieMenu:RemovePieSlicesByPresetName(self.deployBrainPieSlice.PresetName);
 			existingBrain.PieMenu:AddPieSliceIfPresetNameIsUnique(self.undeployBrainPieSlice, self);

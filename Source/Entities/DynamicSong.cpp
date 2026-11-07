@@ -61,16 +61,26 @@ int DynamicSongSection::Create(const DynamicSongSection& reference) {
 int DynamicSongSection::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
+	MatchProperty("_ClearTransitionSoundContainers", {
+		reader.ReadPropValue();
+		m_TransitionSoundContainers.clear();
+	});
 	MatchProperty("AddTransitionSoundContainer", {
 		SoundContainer soundContainerToAdd;
 		reader >> soundContainerToAdd;
 		m_TransitionSoundContainers.push_back(soundContainerToAdd);
+	});
+	MatchProperty("LastTransitionSoundContainerIndex", { reader >> m_LastTransitionSoundContainerIndex; });
+	MatchProperty("_ClearSoundContainers", {
+		reader.ReadPropValue();
+		m_SoundContainers.clear();
 	});
 	MatchProperty("AddSoundContainer", {
 		SoundContainer soundContainerToAdd;
 		reader >> soundContainerToAdd;
 		m_SoundContainers.push_back(soundContainerToAdd);
 	});
+	MatchProperty("LastSoundContainerIndex", { reader >> m_LastSoundContainerIndex; });
 	MatchProperty("SoundContainerSelectionCycleMode", {
 		std::string soundContainerSelectionCycleModeString = reader.ReadPropValue();
 		if (c_SoundContainerSelectionCycleModeMap.find(soundContainerSelectionCycleModeString) != c_SoundContainerSelectionCycleModeMap.end()) {
@@ -106,22 +116,65 @@ int DynamicSongSection::Save(Writer& writer) const {
 		writer << soundContainer;
 		writer.ObjectEnd();
 	}
-	writer.NewProperty("LastTransitionSoundContainerIndex");
-	writer << m_LastTransitionSoundContainerIndex;
+	writer.NewPropertyWithValue("LastTransitionSoundContainerIndex", m_LastTransitionSoundContainerIndex);
 	for (const SoundContainer& soundContainer: m_SoundContainers) {
 		writer.NewProperty("AddSoundContainer");
 		writer.ObjectStart("SoundContainer");
 		writer << soundContainer;
 		writer.ObjectEnd();
 	}
-	writer.NewProperty("LastSoundContainerIndex");
-	writer << m_LastSoundContainerIndex;
+	writer.NewPropertyWithValue("LastSoundContainerIndex", m_LastSoundContainerIndex);
 	writer.NewProperty("SoundContainerSelectionCycleMode");
 	SaveSoundContainerSelectionCycleMode(writer, m_SoundContainerSelectionCycleMode);
-	writer.NewProperty("SectionType");
-	writer << m_SectionType;
+	writer.NewPropertyWithValue("SectionType", m_SectionType);
 
 	return 0;
+}
+
+int DynamicSongSection::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const DynamicSongSection& reference = static_cast<const DynamicSongSection&>(entityReference);
+
+	writer.NewSequence("_ClearTransitionSoundContainers", "AddTransitionSoundContainer", m_TransitionSoundContainers, hashData);
+	writer.NewDistinctProperty("LastTransitionSoundContainerIndex", m_LastTransitionSoundContainerIndex, reference.m_LastTransitionSoundContainerIndex);
+	writer.NewSequence("_ClearSoundContainers", "AddSoundContainer", m_SoundContainers, hashData);
+	writer.NewDistinctProperty("LastSoundContainerIndex", m_LastSoundContainerIndex, reference.m_LastSoundContainerIndex);
+	if (m_SoundContainerSelectionCycleMode != reference.m_SoundContainerSelectionCycleMode) {
+		writer.NewProperty("SoundContainerSelectionCycleMode");
+		SaveSoundContainerSelectionCycleMode(writer, m_SoundContainerSelectionCycleMode);
+	}
+	writer.NewDistinctProperty("SectionType", m_SectionType, reference.m_SectionType);
+
+	return 0;
+}
+
+HashingData DynamicSongSection::Hash() const {
+	HashingData hashData(Entity::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_LastTransitionSoundContainerIndex);
+	AddToHash(hash, m_LastSoundContainerIndex);
+	AddToHash(hash, m_SoundContainerSelectionCycleMode);
+	AddToHash(hash, RTE::Hash(m_SectionType));
+
+	hashData.m_ParseValues.push_back(m_TransitionSoundContainers.size());
+
+	for (int i = 0; i < m_TransitionSoundContainers.size(); i++) {
+		uint64_t transitionHash = m_TransitionSoundContainers.at(i).Hash().m_Hash;
+		hashData.m_Constituents.push_back(transitionHash);
+		AddToHash(hash, transitionHash);
+	}
+
+	hashData.m_ParseValues.push_back(m_SoundContainers.size());
+
+	for (int i = 0; i < m_SoundContainers.size(); i++) {
+		uint64_t soundHash = m_SoundContainers.at(i).Hash().m_Hash;
+		hashData.m_Constituents.push_back(soundHash);
+		AddToHash(hash, soundHash);
+	}
+
+	return hashData;
 }
 
 SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
@@ -245,6 +298,10 @@ int DynamicSong::ReadProperty(const std::string_view& propName, Reader& reader) 
 		reader >> songSection;
 		m_DefaultSongSection = songSection;
 	});
+	MatchProperty("_ClearSongSections", {
+		reader.ReadPropValue();
+		m_SongSections.clear();
+	});
 	MatchProperty("AddSongSection", {
 		DynamicSongSection songSectionToAdd;
 		reader >> songSectionToAdd;
@@ -263,17 +320,42 @@ int DynamicSong::ReadProperty(const std::string_view& propName, Reader& reader) 
 int DynamicSong::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewProperty("DefaultSongSection");
-	writer.ObjectStart("DynamicSongSection");
-	writer << m_DefaultSongSection;
-	writer.ObjectEnd();
+	writer.NewPropertyWithValue("DefaultSongSection", m_DefaultSongSection);
 
 	for (const DynamicSongSection& dynamicSongSection: m_SongSections) {
-		writer.NewProperty("AddSongSection");
-		writer.ObjectStart("SoundContainer");
-		writer << dynamicSongSection;
-		writer.ObjectEnd();
+		writer.NewPropertyWithValue("AddSongSection", dynamicSongSection);
 	}
 
 	return 0;
+}
+
+int DynamicSong::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	writer.NewDistinctHashedProperty("DefaultSongSection", m_DefaultSongSection, hashData);
+	writer.NewSequence("_ClearSongSections", "AddSongSection", m_SongSections, hashData);
+
+	return 0;
+}
+
+HashingData DynamicSong::Hash() const {
+	HashingData hashData(Entity::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	uint64_t defaultHash = m_DefaultSongSection.Hash().m_Hash;
+	hashData.m_Constituents.push_back(defaultHash);
+	AddToHash(hash, defaultHash);
+
+	int i = 0;
+
+	for (const auto& songSection: m_SongSections) {
+		uint64_t sectionHash = songSection.Hash().m_Hash;
+		hashData.m_Constituents.push_back(sectionHash);
+		AddToHash(hash, sectionHash);
+		i++;
+	}
+
+	hashData.m_ParseValues.push_back(i);
+
+	return hashData;
 }

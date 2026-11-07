@@ -1,6 +1,7 @@
 #include "GenericSavedData.h"
 
 #include "Base64/base64.h"
+#include <PresetMan.h>
 
 using namespace RTE;
 
@@ -8,13 +9,15 @@ const std::string GenericSavedData::c_ClassName = "GenericSavedData";
 const std::string GenericSavedData::GenericSavedEncodedStrings::c_ClassName = "GenericSavedEncodedStrings";
 const std::string GenericSavedData::GenericSavedStrings::c_ClassName = "GenericSavedStrings";
 const std::string GenericSavedData::GenericSavedNumbers::c_ClassName = "GenericSavedNumbers";
+const std::string GenericSavedData::GenericSavedEntities::c_ClassName = "GenericSavedEntities";
 
 int GenericSavedData::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
-	MatchProperty("StringValues", { reader >> m_SavedStrings; });
 	MatchProperty("EncodedStringValues", { reader >> m_SavedEncodedStrings; });
+	MatchProperty("StringValues", { reader >> m_SavedStrings; });
 	MatchProperty("NumberValues", { reader >> m_SavedNumbers; });
+	MatchProperty("EntityValues", { reader >> m_SavedEntities; });
 
 	EndPropertyList;
 }
@@ -22,11 +25,56 @@ int GenericSavedData::ReadProperty(const std::string_view& propName, Reader& rea
 int GenericSavedData::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewPropertyWithValue("EncodedStringValues", m_SavedEncodedStrings);
-	writer.NewPropertyWithValue("StringValues", m_SavedStrings);
-	writer.NewPropertyWithValue("NumberValues", m_SavedNumbers);
+	if (!m_SavedEncodedStrings.m_Data.empty())
+		writer.NewPropertyWithValue("EncodedStringValues", m_SavedEncodedStrings);
+	if (!m_SavedStrings.m_Data.empty())
+		writer.NewPropertyWithValue("StringValues", m_SavedStrings);
+	if (!m_SavedNumbers.m_Data.empty())
+		writer.NewPropertyWithValue("NumberValues", m_SavedNumbers);
+	if (!m_SavedEntities.m_Data.empty())
+		writer.NewPropertyWithValue("EntityValues", m_SavedEntities);
 
 	return 0;
+}
+
+HashingData GenericSavedData::Hash() const {
+	HashingData hashData(Serializable::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_SavedEncodedStrings.Hash().m_Hash);
+	AddToHash(hash, m_SavedStrings.Hash().m_Hash);
+	AddToHash(hash, m_SavedNumbers.Hash().m_Hash);
+	AddToHash(hash, m_SavedEntities.Hash().m_Hash);
+
+	return hashData;
+}
+
+GenericSavedData::~GenericSavedData() {}
+
+GenericSavedData::GenericSavedEntities::GenericSavedEntities(const GenericSavedEntities& reference) {
+	for (const auto& [key, entity]: reference.m_Data) {
+		m_Data[key] = entity->Clone();
+	}
+}
+
+GenericSavedData::GenericSavedEntities& GenericSavedData::GenericSavedEntities::operator=(const GenericSavedEntities& rhs) {
+	if (this != &rhs) {
+		for (auto& [key, entity]: m_Data) {
+			delete entity;
+		}
+		m_Data.clear();
+
+		for (const auto& [key, entity]: rhs.m_Data) {
+			m_Data[key] = entity->Clone();
+		}
+	}
+	return *this;
+}
+
+GenericSavedData::GenericSavedEntities::~GenericSavedEntities() {
+	for (auto& [key, entity]: m_Data) {
+		delete entity;
+	}
 }
 
 void GenericSavedData::SaveString(const std::string& key, const std::string& value) {
@@ -71,6 +119,26 @@ const std::string& GenericSavedData::LoadString(const std::string& key) {
 	return *loadString;
 }
 
+void GenericSavedData::SaveEntity(const std::string& key, const Entity* value) {
+	delete m_SavedEntities.m_Data[key];
+
+	// If we're being given a null pointer, which is what nil becomes, clear the key, otherwise insert a clone of the argument.
+	if (value == nullptr) {
+		m_SavedEntities.m_Data.erase(key);
+	} else
+		m_SavedEntities.m_Data[key] = value->Clone();
+};
+
+Entity* GenericSavedData::LoadEntity(const std::string& key) {
+	if (!m_SavedEntities.m_Data.contains(key)) {
+		return nullptr;
+	}
+
+	Entity* entitySaved = m_SavedEntities.m_Data.at(key);
+
+	return entitySaved->Clone();
+};
+
 int GenericSavedData::GenericSavedEncodedStrings::ReadProperty(const std::string_view& propName, Reader& reader) {
 	std::string value = reader.ReadPropValue();
 	m_Data[std::string(propName)] = base64_decode(value); // until we get P0919R2.
@@ -89,6 +157,18 @@ int GenericSavedData::GenericSavedEncodedStrings::Save(Writer& writer) const {
 	return 0;
 }
 
+HashingData GenericSavedData::GenericSavedEncodedStrings::Hash() const {
+	HashingData hashData(Serializable::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	for (const auto& [key, value]: m_Data) {
+		AddToHash(hash, RTE::Hash(key));
+		AddToHash(hash, RTE::Hash(value));
+	}
+
+	return hashData;
+}
+
 int GenericSavedData::GenericSavedStrings::ReadProperty(const std::string_view& propName, Reader& reader) {
 	m_Data[std::string(propName)] = reader.ReadPropValue(); // until we get P0919R2.
 	return 0;
@@ -103,6 +183,18 @@ int GenericSavedData::GenericSavedStrings::Save(Writer& writer) const {
 		}
 	}
 	return 0;
+}
+
+HashingData GenericSavedData::GenericSavedStrings::Hash() const {
+	HashingData hashData(Serializable::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	for (const auto& [key, value]: m_Data) {
+		AddToHash(hash, RTE::Hash(key));
+		AddToHash(hash, RTE::Hash(value));
+	}
+
+	return hashData;
 }
 
 int GenericSavedData::GenericSavedNumbers::ReadProperty(const std::string_view& propName, Reader& reader) {
@@ -120,4 +212,53 @@ int GenericSavedData::GenericSavedNumbers::Save(Writer& writer) const {
 	}
 
 	return 0;
+}
+
+HashingData GenericSavedData::GenericSavedNumbers::Hash() const {
+	HashingData hashData(Serializable::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	for (const auto& [key, value]: m_Data) {
+		AddToHash(hash, RTE::Hash(key));
+		AddToHash(hash, value);
+	}
+
+	return hashData;
+}
+
+int GenericSavedData::GenericSavedEntities::ReadProperty(const std::string_view& propName, Reader& reader) {
+	Entity* value = g_PresetMan.ReadReflectedPreset(reader);
+	std::string key(propName); // until we get P0919R2.
+
+	// Whatever was stored under this key is replaced. Nothing is stored for an Entity that couldn't be read.
+	if (auto existing = m_Data.find(key); existing != m_Data.end()) {
+		delete existing->second;
+		m_Data.erase(existing);
+	}
+	if (value) {
+		m_Data[key] = value;
+	}
+	return 0;
+}
+
+int GenericSavedData::GenericSavedEntities::Save(Writer& writer) const {
+	Serializable::Save(writer);
+
+	for (const auto& [propName, value]: m_Data) {
+		writer.NewPropertyWithValue(propName, value);
+	}
+
+	return 0;
+}
+
+HashingData GenericSavedData::GenericSavedEntities::Hash() const {
+	HashingData hashData(Serializable::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	for (const auto& [key, value]: m_Data) {
+		AddToHash(hash, RTE::Hash(key));
+		AddToHash(hash, value->Hash().m_Hash);
+	}
+
+	return hashData;
 }

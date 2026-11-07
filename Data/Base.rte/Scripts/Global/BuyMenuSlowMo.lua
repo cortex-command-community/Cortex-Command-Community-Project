@@ -5,6 +5,14 @@ function BuyMenuSlowMoScript:StartScript()
 	self.originalDeltaTimeSecs = TimerMan.DeltaTimeSecs + 0
 end
 
+function BuyMenuSlowMoScript:EndScript()
+	if self.SlowMo then
+		TimerMan.DeltaTimeSecs = self.originalDeltaTimeSecs
+		TimerMan.TimeScale = self.originalTimeScale
+		self.SlowMo = false;
+	end
+end
+
 function BuyMenuSlowMoScript:UpdateScript()
 	local activity = ActivityMan:GetActivity();
 	if activity then

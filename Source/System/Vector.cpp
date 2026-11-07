@@ -23,3 +23,13 @@ int Vector::Save(Writer& writer) const {
 
 	return 0;
 }
+
+HashingData Vector::Hash() const {
+	HashingData hashData(Serializable::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_X);
+	AddToHash(hash, m_Y);
+
+	return hashData;
+}

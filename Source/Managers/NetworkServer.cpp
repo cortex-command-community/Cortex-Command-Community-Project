@@ -1589,7 +1589,7 @@ void NetworkServer::DrawStatisticsData() {
 	if (g_ActivityMan.IsInActivity()) {
 		const GameActivity* gameActivity = dynamic_cast<GameActivity*>(g_ActivityMan.GetActivity());
 		if (gameActivity) {
-			std::snprintf(buf, sizeof(buf), "Activity: %s   Players: %d", gameActivity->GetPresetName().c_str(), gameActivity->GetPlayerCount());
+			std::snprintf(buf, sizeof(buf), "Activity: %s   Players: %d", gameActivity->GetDisplayName().c_str(), gameActivity->GetPlayerCount());
 			g_FrameMan.GetLargeFont()->DrawAligned(&guiBMP, midX, 50, buf, GUIFont::Centre);
 		}
 	} else {

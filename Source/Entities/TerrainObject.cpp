@@ -90,12 +90,9 @@ int TerrainObject::ReadProperty(const std::string_view& propName, Reader& reader
 		newChildObject.SetTeam(m_Team);
 		m_ChildObjects.emplace_back(newChildObject);
 	});
-	MatchProperty("ClearChildObjects", {
-		bool clearChildObjects;
-		reader >> clearChildObjects;
-		if (clearChildObjects) {
-			m_ChildObjects.clear();
-		}
+	MatchForwards("ClearChildObjects") MatchProperty("_ClearChildObjects", {
+		reader.ReadPropValue();
+		m_ChildObjects.clear();
 	});
 
 	EndPropertyList;
@@ -122,6 +119,52 @@ int TerrainObject::Save(Writer& writer) const {
 		writer.NewPropertyWithValue("AddChildObject", childObject);
 	}
 	return 0;
+}
+
+int TerrainObject::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	SceneObject::Write(writer, entityReference, hashData);
+
+	const TerrainObject& reference = static_cast<const TerrainObject&>(entityReference);
+
+	writer.NewDistinctHashedProperty("FGColorFile", m_FGColorFile, hashData);
+	writer.NewDistinctHashedProperty("BGColorFile", m_BGColorFile, hashData);
+	writer.NewDistinctHashedProperty("MaterialFile", m_MaterialFile, hashData);
+	writer.NewDistinctProperty("BitmapOffset", m_BitmapOffset, reference.m_BitmapOffset);
+	writer.NewSequence("_ClearChildObjects", "AddChildObject", m_ChildObjects, hashData);
+
+	return 0;
+}
+
+HashingData TerrainObject::Hash() const {
+	HashingData hashData(SceneObject::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	uint64_t fgColorHash = m_FGColorFile.Hash().m_Hash;
+	hashData.m_Constituents.push_back(fgColorHash);
+	AddToHash(hash, fgColorHash);
+
+	uint64_t bgColorHash = m_BGColorFile.Hash().m_Hash;
+	hashData.m_Constituents.push_back(bgColorHash);
+	AddToHash(hash, bgColorHash);
+
+	uint64_t materialHash = m_MaterialFile.Hash().m_Hash;
+	hashData.m_Constituents.push_back(materialHash);
+	AddToHash(hash, materialHash);
+
+	AddToHash(hash, m_BitmapOffset.Hash().m_Hash);
+
+	int i = 0;
+	
+	for (const SceneObject::SOPlacer& childObject: m_ChildObjects) {
+		uint64_t childHash = childObject.Hash().m_Hash;
+		hashData.m_Constituents.push_back(childHash);
+		AddToHash(hash, childHash);
+		i++;
+	}
+
+	hashData.m_ParseValues.push_back(i);
+
+	return hashData;
 }
 
 BITMAP* TerrainObject::GetGraphicalIcon() const {

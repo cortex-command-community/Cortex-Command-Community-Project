@@ -2,6 +2,7 @@
 
 #include "Reader.h"
 #include "Writer.h"
+#include "Hash.h"
 
 #include <string>
 #include <filesystem>
@@ -14,10 +15,11 @@ namespace RTE {
 
 	public:
 #pragma region Global Macro Definitions
-/// Convenience macro to cut down on duplicate ReadProperty and Save methods in classes that extend Serializable.
+	/// Convenience macro to cut down on duplicate ReadProperty, Save and Hash methods in classes that extend Serializable.
 #define SerializableOverrideMethods \
 	int ReadProperty(const std::string_view& propName, Reader& reader) override; \
-	int Save(Writer& writer) const override;
+	int Save(Writer& writer) const override; \
+	HashingData Hash() const override;
 
 /// Convenience macro to cut down on duplicate GetClassName methods in non-poolable classes that extend Serializable.
 #define SerializableClassNameGetter \
@@ -115,6 +117,10 @@ namespace RTE {
 			writer.ObjectStart(GetClassName());
 			return 0;
 		}
+
+		/// Generates the hash value of this serializable.
+		/// @return A hash value.
+		virtual HashingData Hash() const { return HashingData(0); }
 
 		/// Replaces backslashes with forward slashes in file paths to eliminate issues with cross-platform compatibility or invalid escape sequences.
 		/// @param pathToCorrect Reference to the file path string to correct slashes in.

@@ -169,6 +169,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`InputScheme` has the Lua properties `Device` (R) and `Preset` (R), and the function `GetMappingName(inputElement)`, which gives the name of whatever the input is bound to, such as "Mouse Left".  
 	`Enum` binding for `InputScheme.InputPreset`: `NoPreset = 0, PresetArrowKeys = 1, PresetWASDKeys = 2, PresetMouseWASDKeys = 3, PresetGenericDPad = 4, PresetGenericDualAnalog = 5, PresetGamepadSNES = 6, PresetGamepadDS4 = 7, PresetGamepadXbox360 = 8, InputPresetCount = 9`.
 
+- New `Entity` INI and Lua (R/W) property `DisplayName`, the name players see. It defaults to the `PresetName`, which is still what data and scripts use to refer to something, so several presets can now show the same name.  
+	It's shown in the buy menu, inventory, pickup and drop prompts, the scenario menu, Conquest's site labels, the global script list, the multiplayer lobby and the editors' object picker. The editors' lists of scenes, terrains and backgrounds, and the boxes where you name what you're saving, still use `PresetName`.  
+	A script changing an object's `PresetName` changes the name shown, unless that object has a `DisplayName` of its own.
+
+- New `Activity` Lua functions `SaveEntity(key, entity)` and `LoadEntity(key)`, to keep an `Entity` with a saved game, alongside `SaveNumber` and `SaveString`. `LoadEntity` gives you a copy, which you own.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -255,6 +261,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - The tutorial mission is now a `GAScripted` activity, `Missions.rte/Activities/Tutorial.lua`, instead of being hardcoded in the engine. Its screens and room signs are drawn as bitmap primitives on the bunker's back wall instead of into the terrain.
 
+- INI properties that point at a preset are now constant references, written on one line as `Class/Module.rte/Preset Name`, or `None` for nothing.  
+	Something isn't made of a copy of metal, it's made of metal, so these no longer hold a copy that can be changed. This also means two definitions of one preset can no longer quietly disagree.  
+	This covers `EmittedParticle`, `Particle`, `Shell`, `StrikerLever`, `GibParticle`, `EntryWound`, `ExitWound`, `BreakWound`, `ParentBreakWound`, `RegularRound`, `TracerRound`, `Material`, `FrostingMaterial`, `TargetMaterial`, `DebrisMaterial`, `PlacedObject`, `DeliveryCraft` and `AddCargoItem`.
+	```
+	// Before
+	AddGib = Gib
+		GibParticle = MOPixel
+			CopyOf = Spark Yellow 1
+	// After
+	AddGib = Gib
+		GibParticle = MOPixel/Base.rte/Spark Yellow 1
+	```
+	To change anything about what's being pointed at, define a new named preset and point at that. An unnamed `CopyOf` with overrides already had those overrides discarded, as did a second definition of a name that already existed.  
+	The module is its folder name, in upper or lower case, with or without `.rte`. Its `ModuleName` or a path won't work. Mods need converting.
+
+- Data that can't mean anything is now an error when it's read, rather than being ignored or crashing later:  
+	A property holding an object of the wrong class, such as `Magazine = AEmitter`, or a class name that doesn't exist.  
+	A `TerrainDebris` or `TerrainFrosting` missing any of its materials.  
+	`Material = None` on a `TerrainDebris`, `TerrainFrosting`, `Atom` or `AtomGroup`.  
+	Leaving out an `Atom` or `AtomGroup`'s `Material` still means Air, and `None` is still fine for a part an object can go without, such as `Head = None`.
+
+- A `Loadout` in a module now refers to presets like any other data does, so a reference that's malformed, of the wrong class, in the old nested form, or names something that isn't loaded is an error.  
+	Nothing in a player's `LoadoutsP*.ini` is ever reported. Entries in the old format are understood and get saved in the new one. Whatever can't be used right now, such as from a mod that isn't loaded, stays in the file where it was and works again when the mod is back. A loadout with nothing usable in it isn't shown in the buy menu until then.
+
+- Saved games now only record what differs from each object's preset. In Decision Day this makes their data about a third of the size, though the terrain images still make up most of a `.ccsave`.  
+	Most of what a script changes on an object now survives saving and loading, where many properties used to go back to their preset's value. A script that multiplies a value in `Create` or when it sees a new object will multiply it again on every load, unless it marks the object to avoid that.  
+	Properties starting with an underscore are special behaviour that hand-written data shouldn't need, such as clearing or removing what was copied (`_ClearGibs`, `_RemoveFromGroup`) and state only a running game has (`_Activated`).  
+	A script setting `PresetName` on an object means it no longer has a preset to compare against, so it's saved in full under `InstanceName`.  
+	Saved games made before this still load, as they only ever named presets with `CopyOf`.
+
+- Global scripts that change objects, such as Tough Units and Faster Walking, now cover every actor, including ones inside a craft. They no longer stack when a game is loaded, and they undo their changes if they're turned off partway through a game.
+
+- `InstanceName` now names a single object without making it a preset that anything can refer to. Use `PresetName` to define a preset.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
@@ -318,6 +358,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed AI actors refusing to fire the Coalition Missile Launcher at anything beyond point-blank range, because the AI took the range of its short-lived dummy round instead of the missile's.
 
 - Fixed the terrain background layer drawing at the terrain foreground's depth, which hid primitives drawn at a depth between `DrawDepth.Default` and `DrawDepth.TerrainBackground` behind it instead of showing them on top of the background.
+
+- Fixed deliveries in transit being lost when saving, after their funds were already spent.
+
+- Fixed disabled scripts being enabled again by loading a saved game.
+
+- Fixed Dummy's `Loadout`s having no delivery craft, as they pointed at a preset that doesn't exist.
+
+- Fixed `Base.rte`'s `Installation Brain`, `Infantry Brain` and `Evac` `Loadout`s having no delivery craft, as they pointed at a rocket in a module that loads later. They now use the Rocket MK2.
+
+- Fixed an empty property, such as `SceneName =`, taking the next line as its value.
+
+- Fixed `ApplyWoundDamageOnCollision`, `ApplyWoundBurstDamageOnCollision`, `SceneName`, `BunkerAssemblyScheme`'s `BitmapFile` and `SLBackground`'s `IsAnimatedManually` being lost on any copy of a preset.
+
+- Fixed the `EndlessMetaGameMode` setting not being kept, as it was saved under a different name than it's read by.
+
+- Fixed a `ThrownDevice`'s `ActivationSound` being read into its preset and every copy of it.
+
+- Fixed a brain deployed in Decision Day's forward base waking up when a game was loaded, and spinning in place until she gibbed.
+
+- Fixed AI actors gaining 20% more jetpack fuel every time a game was loaded.
+
+- Fixed the Lower Gravity global script halving gravity again every time a game was loaded.
 
 </details>
 

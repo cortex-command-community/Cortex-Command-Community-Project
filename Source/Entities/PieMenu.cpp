@@ -199,11 +199,21 @@ int PieMenu::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("BackgroundColor", { reader >> m_BackgroundColor; });
 	MatchProperty("BackgroundBorderColor", { reader >> m_BackgroundBorderColor; });
 	MatchProperty("SelectedItemBackgroundColor", { reader >> m_SelectedItemBackgroundColor; });
+	MatchProperty("_ClearPieSlices", {
+		reader.ReadPropValue();
+		// The slices that are this menu's own are the ones written back after this. Slices put here by something else are left for it to manage.
+		RemovePieSlicesByOriginalSource(this);
+		if (m_Owner) {
+			RemovePieSlicesByOriginalSource(m_Owner);
+		}
+	});
 	MatchProperty("AddPieSlice", {
 		if (m_CurrentPieSlices.size() == 4 * PieQuadrant::c_PieQuadrantSlotCount) {
 			reader.ReportError("Pie menus cannot have more than " + std::to_string(4 * PieQuadrant::c_PieQuadrantSlotCount) + " slices. Use sub-pie menus to better organize your pie slices.");
 		}
-		if (!AddPieSlice(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader)), this)) {
+		if (PieSlice* pieSlice = g_PresetMan.ReadReflectedPresetOfType<PieSlice>(reader, propName); pieSlice == nullptr) {
+			reader.ReportError("Tried to add a pie slice that isn't one!");
+		} else if (!AddPieSlice(pieSlice, this)) {
 			reader.ReportError("Tried to add pie slice but that direction was full. Set direction to None if you don't care where the pie slice ends up.");
 		}
 	});
@@ -230,6 +240,57 @@ int PieMenu::Save(Writer& writer) const {
 	}
 
 	return 0;
+}
+
+int PieMenu::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const PieMenu& reference = static_cast<const PieMenu&>(entityReference);
+
+	if (m_IconSeparatorMode != reference.m_IconSeparatorMode)
+		writer.NewPropertyWithValue("IconSeparatorMode", static_cast<int>(m_IconSeparatorMode));
+
+	writer.NewDistinctProperty("FullInnerRadius", m_FullInnerRadius, reference.m_FullInnerRadius);
+	writer.NewDistinctProperty("BackgroundThickness", m_BackgroundThickness, reference.m_BackgroundThickness);
+	writer.NewDistinctProperty("BackgroundSeparatorSize", m_BackgroundSeparatorSize, reference.m_BackgroundSeparatorSize);
+	writer.NewDistinctProperty("DrawBackgroundTransparent", m_DrawBackgroundTransparent, reference.m_DrawBackgroundTransparent);
+	writer.NewDistinctProperty("BackgroundColor", m_BackgroundColor, reference.m_BackgroundColor);
+	writer.NewDistinctProperty("BackgroundBorderColor", m_BackgroundBorderColor, reference.m_BackgroundBorderColor);
+	writer.NewDistinctProperty("SelectedItemBackgroundColor", m_SelectedItemBackgroundColor, reference.m_SelectedItemBackgroundColor);
+	writer.NewPointerSequenceConditional("_ClearPieSlices", "AddPieSlice", m_CurrentPieSlices, hashData, [&](const PieSlice* slice) {
+		return slice->GetOriginalSource() == m_Owner;
+	});
+
+	return 0;
+}
+
+HashingData PieMenu::Hash() const {
+	HashingData hashData(Entity::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_IconSeparatorMode);
+	AddToHash(hash, m_FullInnerRadius);
+	AddToHash(hash, m_BackgroundThickness);
+	AddToHash(hash, m_BackgroundSeparatorSize);
+	AddToHash(hash, m_DrawBackgroundTransparent);
+	AddToHash(hash, m_BackgroundColor);
+	AddToHash(hash, m_BackgroundBorderColor);
+	AddToHash(hash, m_SelectedItemBackgroundColor);
+
+	int i = 0;
+
+	for (const PieSlice* pieSlice: m_CurrentPieSlices) {
+		if (pieSlice->GetOriginalSource() == m_Owner) {
+			uint64_t sliceHash = pieSlice->Hash().m_Hash;
+			hashData.m_Constituents.push_back(sliceHash);
+			AddToHash(hash, sliceHash);
+			i++;
+		}
+	}
+
+	hashData.m_ParseValues.push_back(i);
+
+	return hashData;
 }
 
 void PieMenu::SetOwner(Actor* newOwner) {

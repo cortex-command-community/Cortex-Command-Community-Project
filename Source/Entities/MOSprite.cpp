@@ -174,8 +174,12 @@ int MOSprite::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("Rotation", { reader >> m_Rotation; });
 	MatchProperty("AngularVel", { reader >> m_AngularVel; });
 	MatchProperty("SettleMaterialDisabled", { reader >> m_SettleMaterialDisabled; });
-	MatchProperty("EntryWound", { m_pEntryWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset(reader)); });
-	MatchProperty("ExitWound", { m_pExitWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset(reader)); });
+	MatchProperty("EntryWound", {
+		m_pEntryWound = g_PresetMan.ReadPresetReferenceOfType<AEmitter>(reader, propName);
+	});
+	MatchProperty("ExitWound", {
+		m_pExitWound = g_PresetMan.ReadPresetReferenceOfType<AEmitter>(reader, propName);
+	});
 
 	EndPropertyList;
 }
@@ -204,32 +208,80 @@ std::string MOSprite::GetExitWoundPresetName() const {
 
 int MOSprite::Save(Writer& writer) const {
 	MovableObject::Save(writer);
-	// TODO: Make proper save system that knows not to save redundant data!
-	/*
-	    writer.NewProperty("SpriteFile");
-	    writer << m_SpriteFile;
-	    writer.NewProperty("FrameCount");
-	    writer << m_FrameCount;
-	    writer.NewProperty("SpriteOffset");
-	    writer << m_SpriteOffset;
-	    writer.NewProperty("SpriteAnimMode");
-	    writer << m_SpriteAnimMode;
-	    writer.NewProperty("SpriteAnimDuration");
-	    writer << m_SpriteAnimDuration;
-	    writer.NewProperty("HFlipped");
-	    writer << m_HFlipped;
-	    writer.NewProperty("Rotation");
-	    writer << m_Rotation.GetRadAngle();
-	    writer.NewProperty("AngularVel");
-	    writer << m_AngularVel;
-	    writer.NewProperty("SettleMaterialDisabled");
-	    writer << m_SettleMaterialDisabled;
-	    writer.NewProperty("EntryWound");
-	    writer << m_pEntryWound;
-	    writer.NewProperty("ExitWound");
-	    writer << m_pExitWound;
-	*/
+
+	writer.NewPropertyWithValue("SpriteFile", m_SpriteFile);
+	writer.NewPropertyWithValue("FrameCount", m_FrameCount);
+	writer.NewPropertyWithValue("SpriteOffset", m_SpriteOffset);
+	writer.NewPropertyWithValue("SpriteAnimMode", m_SpriteAnimMode);
+	writer.NewPropertyWithValue("SpriteAnimDuration", m_SpriteAnimDuration);
+	writer.NewPropertyWithValue("HFlipped", m_HFlipped);
+	writer.NewPropertyWithValue("Rotation", m_Rotation);
+	writer.NewPropertyWithValue("AngularVel", m_AngularVel);
+	writer.NewPropertyWithValue("SettleMaterialDisabled", m_SettleMaterialDisabled);
+	if (m_pEntryWound)
+		writer.NewPropertyWithValue("EntryWound", m_pEntryWound->GetEntityCharacteristic());
+	if (m_pExitWound)
+		writer.NewPropertyWithValue("ExitWound", m_pExitWound->GetEntityCharacteristic());
+
+	writer.NewDistinctProperty("ForcedHFlip", m_ForcedHFlip, -1);
+
+	if (!m_IconFile.GetDataPath().empty()) {
+		writer.NewPropertyWithValue("IconFile", m_IconFile);
+	}
+
 	return 0;
+}
+
+int MOSprite::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	MovableObject::Write(writer, entityReference, hashData);
+
+	const MOSprite& reference = static_cast<const MOSprite&>(entityReference);
+
+	writer.NewDistinctHashedProperty("SpriteFile", m_SpriteFile, hashData);
+	writer.NewDistinctProperty("FrameCount", m_FrameCount, reference.m_FrameCount);
+	writer.NewDistinctProperty("SpriteOffset", m_SpriteOffset, reference.m_SpriteOffset);
+	writer.NewDistinctProperty("SpriteAnimMode", m_SpriteAnimMode, reference.m_SpriteAnimMode);
+	writer.NewDistinctProperty("SpriteAnimDuration", m_SpriteAnimDuration, reference.m_SpriteAnimDuration);
+	writer.NewDistinctProperty("HFlipped", m_HFlipped, reference.m_HFlipped);
+	writer.NewDistinctProperty("Rotation", m_Rotation, reference.m_Rotation);
+	writer.NewDistinctProperty("AngularVel", m_AngularVel, reference.m_AngularVel);
+	writer.NewDistinctProperty("SettleMaterialDisabled", m_SettleMaterialDisabled, reference.m_SettleMaterialDisabled);
+	writer.NewPresetReferenceProperty("EntryWound", m_pEntryWound, reference.m_pEntryWound);
+	writer.NewPresetReferenceProperty("ExitWound", m_pExitWound, reference.m_pExitWound);
+
+	writer.NewDistinctProperty("ForcedHFlip", m_ForcedHFlip, reference.m_ForcedHFlip);
+
+	if (m_IconFile.GetDataPath() != reference.m_IconFile.GetDataPath()) {
+		writer.NewPropertyWithValue("IconFile", m_IconFile);
+	}
+
+	return 0;
+}
+
+HashingData MOSprite::Hash() const {
+	HashingData hashData(MovableObject::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	uint64_t spriteHash = m_SpriteFile.Hash().m_Hash;
+	hashData.m_Constituents.push_back(spriteHash);
+	AddToHash(hash, spriteHash);
+
+	AddToHash(hash, m_FrameCount);
+	AddToHash(hash, m_SpriteOffset.Hash().m_Hash);
+	AddToHash(hash, m_SpriteAnimMode);
+	AddToHash(hash, m_SpriteAnimDuration);
+	AddToHash(hash, m_HFlipped);
+	AddToHash(hash, m_Rotation.Hash().m_Hash);
+	AddToHash(hash, m_AngularVel);
+	AddToHash(hash, m_SettleMaterialDisabled);
+	AddToHash(hash, (m_pEntryWound ? RTE::Hash(m_pEntryWound->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, (m_pExitWound ? RTE::Hash(m_pExitWound->GetEntityCharacteristic()) : 0));
+
+	AddToHash(hash, m_ForcedHFlip);
+
+	AddToHash(hash, RTE::Hash(m_IconFile.GetDataPath()));
+
+	return hashData;
 }
 
 void MOSprite::Destroy(bool notInherited) {

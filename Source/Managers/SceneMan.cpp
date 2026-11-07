@@ -54,7 +54,6 @@ void SceneMan::Clear() {
 	m_apMatPalette.fill(nullptr);
 	m_MaterialCount = 0;
 
-	m_MaterialCopiesVector.clear();
 
 	m_pUnseenRevealSound = nullptr;
 	m_DrawRayCastVisualizations = false;
@@ -95,14 +94,6 @@ int SceneMan::Create(const std::string& readerFile) {
 	delete reader;
 
 	return 0;
-}
-
-Material* SceneMan::AddMaterialCopy(Material* mat) {
-	Material* matCopy = dynamic_cast<Material*>(mat->Clone());
-	if (matCopy)
-		m_MaterialCopiesVector.push_back(matCopy);
-
-	return matCopy;
 }
 
 int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {

@@ -113,6 +113,13 @@ namespace RTE {
 		/// Cleans up and destroys the script state of this object, calling the Destroy callback in lua
 		void DestroyScriptState();
 
+		/// Records an Entity against a reference, expected to be its preset.
+		/// @param writer A Writer that the Entity will save itself to.
+		/// @param entityReference A reference preset to write properties against.
+		/// @param hashData A clump of hash data for cheap property comparisons.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
+
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
 		/// to destroy all inherited members also.
@@ -858,6 +865,14 @@ namespace RTE {
 		/// Function that is called when we get a new movepath.
 		/// This processes and cleans up the movepath.
 		virtual void OnNewMovePath();
+
+		/// Gets the AI mode this should be saved in, which can differ from the current one when the orders behind it can't be saved or have run out.
+		/// @return The AI mode to save.
+		AIMode GetAIModeToWrite() const;
+
+		/// Writes where this is on its way to, for when this is saved.
+		/// @param writer The Writer to write the waypoints to.
+		void WriteAIWaypoints(Writer& writer) const;
 
 		/// Starts updating this Actor's movepath.
 		virtual void UpdateMovePath();

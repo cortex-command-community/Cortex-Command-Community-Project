@@ -57,33 +57,53 @@ int SoundSet::ReadProperty(const std::string_view& propName, Reader& reader) {
 int SoundSet::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewProperty("SoundSelectionCycleMode");
-	SaveSoundSelectionCycleMode(writer, m_SoundSelectionCycleMode);
+	if (m_SoundSelectionCycleMode != SoundSelectionCycleMode::RANDOM) {
+		writer.NewProperty("SoundSelectionCycleMode");
+		SaveSoundSelectionCycleMode(writer, m_SoundSelectionCycleMode);
+	}
 
 	for (const SoundData& soundData: m_SoundData) {
 		writer.NewProperty("AddSound");
 		writer.ObjectStart("ContentFile");
 
-		writer.NewProperty("FilePath");
-		writer << soundData.SoundFile.GetDataPath();
-		writer.NewProperty("Offset");
-		writer << soundData.Offset;
-		writer.NewProperty("MinimumAudibleDistance");
-		writer << soundData.MinimumAudibleDistance;
-		writer.NewProperty("AttenuationStartDistance");
-		writer << soundData.AttenuationStartDistance;
+		writer.NewPropertyWithValue("FilePath", soundData.SoundFile.GetDataPath());
+
+		if (!soundData.Offset.IsZero())
+			writer.NewPropertyWithValue("Offset", soundData.Offset);
+
+		writer.NewDistinctProperty("MinimumAudibleDistance", soundData.MinimumAudibleDistance, 0.0F);
+		writer.NewDistinctProperty("AttenuationStartDistance", soundData.AttenuationStartDistance, -1.0F);
 
 		writer.ObjectEnd();
 	}
 
 	for (const SoundSet* subSoundSet: m_SubSoundSets) {
-		writer.NewProperty("AddSoundSet");
-		writer.ObjectStart("SoundSet");
-		writer << *subSoundSet;
-		writer.ObjectEnd();
+		writer.NewPropertyWithValue("AddSoundSet", *subSoundSet);
 	}
 
 	return 0;
+}
+
+HashingData SoundSet::Hash() const {
+	HashingData hashData(Serializable::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_SoundSelectionCycleMode);
+
+	for (int i = 0; i < m_SoundData.size(); i++) {
+		const SoundData& data = m_SoundData.at(i);
+
+		AddToHash(hash, RTE::Hash(data.SoundFile.GetDataPath()));
+		AddToHash(hash, data.Offset.Hash().m_Hash);
+		AddToHash(hash, data.MinimumAudibleDistance);
+		AddToHash(hash, data.AttenuationStartDistance);
+	}
+
+	for (int i = 0; i < m_SubSoundSets.size(); i++) {
+		AddToHash(hash, m_SubSoundSets.at(i)->Hash().m_Hash);
+	}
+
+	return hashData;
 }
 
 void SoundSet::Destroy() {

@@ -30,7 +30,8 @@ namespace RTE {
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(SceneEditor);
-		SerializableOverrideMethods;
+		int ReadProperty(const std::string_view& propName, Reader& reader) override;
+		int Save(Writer& writer) const override;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a SceneEditor object in system

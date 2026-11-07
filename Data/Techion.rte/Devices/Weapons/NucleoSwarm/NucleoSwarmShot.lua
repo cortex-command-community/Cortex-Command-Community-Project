@@ -35,7 +35,10 @@ function Create(self)
 		end
 	end
 
-	self.Vel = Vector(self.Vel.X, self.Vel.Y):DegRotate(math.random(-45, 45));
+	if not self:NumberValueExists("VelocityRandomized") then
+		self:SetNumberValue("VelocityRandomized", 1);
+		self.Vel = Vector(self.Vel.X, self.Vel.Y):DegRotate(math.random(-45, 45));
+	end
 
 	self.seekerTimer = Timer();
 	self.moveTimer = Timer();

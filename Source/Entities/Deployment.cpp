@@ -96,18 +96,47 @@ int Deployment::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Deployment::Save(Writer& writer) const {
 	SceneObject::Save(writer);
 
-	writer.NewProperty("LoadoutName");
-	writer << m_LoadoutName;
-	writer.NewProperty("Icon");
-	writer << m_Icon;
-	writer.NewProperty("SpawnRadius");
-	writer << m_SpawnRadius;
-	writer.NewProperty("WalkRadius");
-	writer << m_WalkRadius;
-	writer.NewProperty("HFlipped");
-	writer << m_HFlipped;
+	writer.NewPropertyWithValue("LoadoutName", m_LoadoutName);
+	writer.NewPropertyWithValue("Icon", m_Icon);
+	writer.NewPropertyWithValue("SpawnRadius", m_SpawnRadius);
+	writer.NewPropertyWithValue("WalkRadius", m_WalkRadius);
+	writer.NewPropertyWithValue("HFlipped", m_HFlipped);
+	writer.NewPropertyWithValue("ID", m_ID);
 
 	return 0;
+}
+
+int Deployment::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	SceneObject::Write(writer, entityReference, hashData);
+
+	const Deployment& reference = static_cast<const Deployment&>(entityReference);
+
+	writer.NewDistinctProperty("LoadoutName", m_LoadoutName, reference.m_LoadoutName);
+	writer.NewDistinctHashedProperty("Icon", m_Icon, hashData);
+	writer.NewDistinctProperty("SpawnRadius", m_SpawnRadius, reference.m_SpawnRadius);
+	writer.NewDistinctProperty("WalkRadius", m_WalkRadius, reference.m_WalkRadius);
+	writer.NewDistinctProperty("HFlipped", m_HFlipped, reference.m_HFlipped);
+	writer.NewDistinctProperty("ID", m_ID, reference.m_ID);
+
+	return 0;
+}
+
+HashingData Deployment::Hash() const {
+	HashingData hashData(SceneObject::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, RTE::Hash(m_LoadoutName));
+
+	uint64_t iconHash = m_Icon.Hash().m_Hash;
+	hashData.m_Constituents.push_back(iconHash);
+	AddToHash(hash, iconHash);
+
+	AddToHash(hash, m_SpawnRadius);
+	AddToHash(hash, m_WalkRadius);
+	AddToHash(hash, m_HFlipped);
+	AddToHash(hash, m_ID);
+
+	return hashData;
 }
 
 void Deployment::Destroy(bool notInherited) {
