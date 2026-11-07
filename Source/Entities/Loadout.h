@@ -140,7 +140,7 @@ namespace RTE {
 		std::vector<UnavailableReference> m_UnavailableCargoItems; //!< The cargo items that can't be used right now, in order.
 
 		/// Reads what a Loadout property refers to.
-		/// A player's own file is never reported on, as whatever's wrong with it is most likely just old, and it may be in the form from before preset references. A module's file is held to what the game expects of any data.
+		/// A player's own file is never reported on, as whatever's wrong with it is most likely just old, and it may be in the form from before preset references. A module's file is held to what the game expects of any data, so anything wrong with it is an error.
 		/// @param reader The Reader which is about to read the property's value.
 		/// @param asWritten Set to what was read, for keeping it if it turns out to be unusable.
 		/// @return The preset referred to, or nullptr if it couldn't be found.

@@ -403,14 +403,14 @@ static bool SplitPresetReference(const std::string& characteristic, std::string&
 	return !moduleName.empty() && !presetName.empty() && Entity::ClassInfo::GetClass(className) != nullptr;
 }
 
-const Entity* PresetMan::GetEntityPresetFromCharacteristic(Reader& reader, bool moduleMayBeUnloaded) {
+const Entity* PresetMan::GetEntityPresetFromCharacteristic(Reader& reader) {
 	std::string characteristic;
 	reader >> characteristic;
 
-	return GetEntityPresetFromCharacteristic(characteristic, reader, moduleMayBeUnloaded);
+	return GetEntityPresetFromCharacteristic(characteristic, reader);
 }
 
-const Entity* PresetMan::GetEntityPresetFromCharacteristic(const std::string& characteristic, Reader& reader, bool moduleMayBeUnloaded) {
+const Entity* PresetMan::GetEntityPresetFromCharacteristic(const std::string& characteristic, Reader& reader) {
 	// A reference can be null.
 	if (characteristic == "None") {
 		return nullptr;
@@ -421,22 +421,14 @@ const Entity* PresetMan::GetEntityPresetFromCharacteristic(const std::string& ch
 	std::string presetName;
 
 	if (!SplitPresetReference(characteristic, className, moduleName, presetName)) {
-		const std::string error = "Constant reference \"" + characteristic + "\" isn't in the form <class/module/preset name>";
-
-		if (!moduleMayBeUnloaded) {
-			RTEAbort(error + ", in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
-		}
-		reader.ReportRecoverableError(error);
+		RTEAbort("Constant reference \"" + characteristic + "\" isn't in the form <class/module/preset name>, in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
 		return nullptr;
 	}
 
 	int moduleID = GetModuleID(moduleName);
 
 	if (moduleID < 0 || moduleID >= (int)m_pDataModules.size()) {
-		if (!moduleMayBeUnloaded) {
-			RTEAbort("Unrecognized module name \"" + moduleName + "\" while reading constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
-		}
-		// There's no telling this from a module that just isn't loaded right now, which is no fault of the reference.
+		RTEAbort("Unrecognized module name \"" + moduleName + "\" while reading constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine());
 		return nullptr;
 	}
 
@@ -444,13 +436,6 @@ const Entity* PresetMan::GetEntityPresetFromCharacteristic(const std::string& ch
 
 	if (returnPreset != nullptr) {
 		return returnPreset;
-	}
-
-	if (moduleMayBeUnloaded) {
-		RTEAssert(false, "Could not find preset \"" + presetName + "\" of type \"" + className + "\" in loaded module \"" + moduleName + "\", for constant reference in file " + reader.GetCurrentFilePath() + ", shortly before line #" + reader.GetCurrentFileLine() +
-			"\nIt will be left out if this assertion is ignored.");
-
-		return nullptr;
 	}
 
 	// In an attempt to be graceful, if, despite being well formed, the constant reference points to nothing, query every module for the same specs.

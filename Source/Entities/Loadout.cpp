@@ -56,7 +56,7 @@ const Entity* Loadout::ReadReference(Reader& reader, UnavailableReference& asWri
 		reader.NextProperty();
 
 		if (!playersFile) {
-			reader.ReportRecoverableError("A Loadout in a module should refer to a preset in the form <class/module/preset name>, not with \"" + presetName + "\" nested under " + value);
+			reader.ReportError("A Loadout in a module should refer to a preset in the form <class/module/preset name>, not with \"" + presetName + "\" nested under " + value);
 		}
 
 		if (presetName.find('/') == std::string::npos) {
@@ -69,7 +69,7 @@ const Entity* Loadout::ReadReference(Reader& reader, UnavailableReference& asWri
 	}
 
 	asWritten.m_Value = value;
-	return playersFile ? g_PresetMan.FindPresetForUserdata(value) : g_PresetMan.GetEntityPresetFromCharacteristic(value, reader, true);
+	return playersFile ? g_PresetMan.FindPresetForUserdata(value) : g_PresetMan.GetEntityPresetFromCharacteristic(value, reader);
 }
 
 void Loadout::SaveUnavailableReference(Writer& writer, const std::string& propName, const UnavailableReference& reference) {
@@ -91,7 +91,7 @@ int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 		const Entity* entityReference = ReadReference(reader, asWritten);
 		const ACraft* reference = dynamic_cast<const ACraft*>(entityReference);
 		if (entityReference != nullptr && reference == nullptr && !reader.GetNonModulePath()) {
-			reader.ReportRecoverableError("Tried to point DeliveryCraft to a non-ACraft type");
+			reader.ReportError("Tried to point DeliveryCraft at a " + entityReference->GetClassName() + "!");
 		}
 		SetDeliveryCraft(reference);
 		if (reference == nullptr) {
@@ -111,7 +111,7 @@ int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 			m_CargoItems.push_back(reference);
 		} else {
 			if (entityReference != nullptr && !reader.GetNonModulePath()) {
-				reader.ReportRecoverableError("Tried to point a cargo item to a non-MovableObject type");
+				reader.ReportError("Tried to point a cargo item at a " + entityReference->GetClassName() + "!");
 			}
 			if (!asWritten.m_Value.empty()) {
 				asWritten.m_Position = m_CargoItems.size();

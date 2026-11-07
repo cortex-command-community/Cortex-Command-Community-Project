@@ -161,18 +161,15 @@ namespace RTE {
 
 		/// Reads a reference to a preset, in the form of its class, module and name, and finds that preset.
 		/// @param reader The Reader will read in a constant reference in the form <class/module/preset name>.
-		/// @param moduleMayBeUnloaded Whether the reference is allowed to outlive the module it names, as a loadout does when its mod is removed.
-		/// If so, a reference to a module that isn't loaded is silently null, and any other bad reference is a null the player may choose to ignore an assert for.
-		/// If not, any bad reference aborts, except one that names the wrong module for a preset found elsewhere, which asserts and uses that preset.
+		/// Any bad reference aborts, except one that names the wrong module for a preset found elsewhere, which asserts and uses that preset.
 		/// @return A const pointer to the Entity preset requested, if it was located.
-		const Entity* GetEntityPresetFromCharacteristic(Reader& reader, bool moduleMayBeUnloaded = false);
+		const Entity* GetEntityPresetFromCharacteristic(Reader& reader);
 
 		/// Finds the preset a reference refers to, for when the Reader has already read the reference.
 		/// @param characteristic The reference, in the form <class/module/preset name>.
 		/// @param reader The Reader that read the reference, for reporting errors.
-		/// @param moduleMayBeUnloaded As in the overload that reads the reference.
 		/// @return A const pointer to the Entity preset requested, if it was located.
-		const Entity* GetEntityPresetFromCharacteristic(const std::string& characteristic, Reader& reader, bool moduleMayBeUnloaded = false);
+		const Entity* GetEntityPresetFromCharacteristic(const std::string& characteristic, Reader& reader);
 
 		/// Finds the preset a reference in a player's own data refers to. Anything may have changed since a player's data was written, which is no fault of theirs, so this reports nothing.
 		/// A preset that's gone from a module that's still loaded may be found in an official module, as it may have moved. A module that isn't loaded is never substituted for.
