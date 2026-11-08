@@ -87,7 +87,7 @@ void PauseMenuGUI::Create(AllegroScreen* guiScreen, GUIInputWrapper* guiInput) {
 
 	m_SaveLoadMenu = std::make_unique<SaveLoadMenuGUI>(guiScreen, guiInput, true);
 	m_SettingsMenu = std::make_unique<SettingsGUI>(guiScreen, guiInput, true);
-	m_ModManagerMenu = std::make_unique<ModManagerGUI>(guiScreen, guiInput, true);
+	m_ModManagerMenu = std::make_unique<ModManagerGUI>(guiScreen, guiInput);
 }
 
 void PauseMenuGUI::SetBackButtonTargetName(const std::string& menuName) {
