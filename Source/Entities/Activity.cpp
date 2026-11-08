@@ -198,10 +198,7 @@ int Activity::ReadProperty(const std::string_view& propName, Reader& reader) {
 		for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 			std::string teamNum = std::to_string(team + 1);
 			if (propName == "Team" + teamNum + "Icon") {
-				if (Icon* icon = g_PresetMan.ReadReflectedPresetOfType<Icon>(reader, propName)) {
-					icon->Clone(&m_TeamIcons[team]);
-					delete icon;
-				}
+				reader >> m_TeamIcons[team];
 				break;
 			}
 		}
