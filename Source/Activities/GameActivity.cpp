@@ -305,9 +305,7 @@ int GameActivity::Write(Writer& writer, const Entity& entityReference, HashingDa
 void GameActivity::WriteDeliveries(Writer& writer) const {
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
 		for (const Delivery& delivery: m_Deliveries[team]) {
-			if (delivery.pCraft) {
-				writer.NewPropertyWithValue("AddDelivery", delivery);
-			}
+			writer.NewPropertyWithValue("AddDelivery", delivery);
 		}
 	}
 }
@@ -763,9 +761,6 @@ void GameActivity::SetupPlayers() {
 }
 
 int GameActivity::Start() {
-	// Activity::Start will change the state, but a game being loaded has to keep the deliveries it saved.
-	const bool isNewGame = m_ActivityState == ActivityState::NotStarted;
-
 	// Set the split screen config before the Scene (and it SceneLayers, specifially) are loaded
 	uint8_t humanCount = GetHumanCount();
 	// Depending on the resolution aspect ratio, split first horizontally (if wide screen)
@@ -788,18 +783,9 @@ int GameActivity::Start() {
 		if (!m_TeamActive[team])
 			continue;
 
-		if (isNewGame) {
-			// Clear delivery queues
-			for (std::deque<Delivery>::iterator itr = m_Deliveries[team].begin(); itr != m_Deliveries[team].end(); ++itr) {
-				delete itr->pCraft;
-			}
-
-			m_Deliveries[team].clear();
-		} else {
-			// Their remaining delays count from now, however long it took to get here.
-			for (Delivery& delivery: m_Deliveries[team]) {
-				delivery.timer.Reset();
-			}
+		// Only a loaded game has deliveries in transit, and their remaining delays count from now, however long it took to get here.
+		for (Delivery& delivery: m_Deliveries[team]) {
+			delivery.timer.Reset();
 		}
 		/* This is taken care of by the individual Activity logic
 		        // See if there are specified landing zone areas defined in the scene
