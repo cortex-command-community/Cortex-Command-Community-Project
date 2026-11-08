@@ -105,10 +105,7 @@ int GenericSavedData::GenericSavedEncodedStrings::Save(Writer& writer) const {
 HashingData GenericSavedData::GenericSavedEncodedStrings::Hash() const {
 	HashingData hashData(Serializable::Hash());
 
-	for (const auto& [key, value]: m_Data) {
-		hashData.Add(key);
-		hashData.Add(value);
-	}
+	hashData.AddUnordered(m_Data);
 
 	return hashData;
 }
@@ -132,10 +129,7 @@ int GenericSavedData::GenericSavedStrings::Save(Writer& writer) const {
 HashingData GenericSavedData::GenericSavedStrings::Hash() const {
 	HashingData hashData(Serializable::Hash());
 
-	for (const auto& [key, value]: m_Data) {
-		hashData.Add(key);
-		hashData.Add(value);
-	}
+	hashData.AddUnordered(m_Data);
 
 	return hashData;
 }
@@ -160,10 +154,7 @@ int GenericSavedData::GenericSavedNumbers::Save(Writer& writer) const {
 HashingData GenericSavedData::GenericSavedNumbers::Hash() const {
 	HashingData hashData(Serializable::Hash());
 
-	for (const auto& [key, value]: m_Data) {
-		hashData.Add(key);
-		hashData.Add(value);
-	}
+	hashData.AddUnordered(m_Data);
 
 	return hashData;
 }

@@ -61,6 +61,25 @@ namespace RTE {
 			}
 		}
 
+		/// Mixes in a collection whose order means nothing, such as an unordered_set or unordered_map, so that equal collections hash the same however their items happen to be laid out.
+		/// @param items The items, each a value Add takes, or a key and value pair of them.
+		template <typename Collection> void AddUnordered(const Collection& items) {
+			uint64_t itemHashSum = 0;
+			for (const auto& item: items) {
+				HashingData itemHash(0);
+				if constexpr (requires { item.first; item.second; }) {
+					itemHash.Add(item.first);
+					itemHash.Add(item.second);
+				} else {
+					itemHash.Add(item);
+				}
+				// Addition doesn't care which item comes first.
+				itemHashSum += itemHash.m_Hash;
+			}
+			AddToHash(m_Hash, itemHashSum);
+			AddToHash(m_Hash, items.size());
+		}
+
 		/// Mixes in a part, and keeps its hash for Writer::NewDistinctHashedProperty to compare.
 		/// @param part The part, which has a Hash function of its own.
 		template <typename Type> void AddHashed(const Type& part) { AddConstituent(part.Hash().m_Hash); }

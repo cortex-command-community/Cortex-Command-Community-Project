@@ -201,17 +201,12 @@ namespace RTE {
 
 	HashingData Entity::Hash() const {
 		HashingData hashData(Serializable::Hash());
-		uint64_t& hash = hashData.m_Hash;
 
-		AddToHash(hash, RTE::Hash(m_PresetName));
-		AddToHash(hash, m_DefinedInModule);
-		AddToHash(hash, RTE::Hash(m_PresetDescription));
-
-		for (auto& group: m_Groups) {
-			AddToHash(hash, RTE::Hash(group));
-		}
-
-		AddToHash(hash, m_RandomWeight);
+		hashData.Add(m_PresetName);
+		hashData.Add(m_DefinedInModule);
+		hashData.Add(m_PresetDescription);
+		hashData.AddUnordered(m_Groups);
+		hashData.Add(m_RandomWeight);
 
 		return hashData;
 	}

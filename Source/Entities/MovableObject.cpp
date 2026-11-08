@@ -656,15 +656,9 @@ HashingData MovableObject::Hash() const {
 	hashData.Add(m_IgnoreTerrain);
 	hashData.Add(m_SimUpdatesBetweenScriptedUpdates);
 
-	for (const auto& [key, value]: m_NumberValueMap) {
-		hashData.Add(key);
-		hashData.Add(value);
-	}
+	hashData.AddUnordered(m_NumberValueMap);
 
-	for (const auto& [key, value]: m_StringValueMap) {
-		hashData.Add(key);
-		hashData.Add(value);
-	}
+	hashData.AddUnordered(m_StringValueMap);
 
 	hashData.Add(m_ForceIntoMasterLuaState);
 
