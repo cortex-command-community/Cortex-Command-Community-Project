@@ -274,7 +274,11 @@ int GameActivity::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("_StartingGold", m_StartingGold);
 	writer.NewPropertyWithValue("_FogOfWarEnabled", m_FogOfWarEnabled);
 
-	WriteDeliveries(writer);
+	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
+		for (const Delivery& delivery: m_Deliveries[team]) {
+			writer.NewPropertyWithValue("AddDelivery", delivery);
+		}
+	}
 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 		writer.NewPropertyWithValue("Team" + std::to_string(team + 1) + "Tech", GetTeamTech(team));
@@ -293,21 +297,17 @@ int GameActivity::Write(Writer& writer, const Entity& entityReference, HashingDa
 	writer.NewPropertyWithValue("_StartingGold", m_StartingGold);
 	writer.NewPropertyWithValue("_FogOfWarEnabled", m_FogOfWarEnabled);
 
-	WriteDeliveries(writer);
+	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
+		for (const Delivery& delivery: m_Deliveries[team]) {
+			writer.NewPropertyWithValue("AddDelivery", delivery);
+		}
+	}
 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 		writer.NewPropertyWithValue("Team" + std::to_string(team + 1) + "Tech", GetTeamTech(team));
 	}
 
 	return 0;
-}
-
-void GameActivity::WriteDeliveries(Writer& writer) const {
-	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
-		for (const Delivery& delivery: m_Deliveries[team]) {
-			writer.NewPropertyWithValue("AddDelivery", delivery);
-		}
-	}
 }
 
 const std::string GameActivity::Delivery::c_ClassName = "Delivery";

@@ -582,10 +582,6 @@ namespace RTE {
 
 		// The delivery queue which contains all the info about all the made orders currently in transit to delivery
 		std::deque<Delivery> m_Deliveries[Teams::MaxTeamCount];
-
-		/// Writes every delivery in transit, for when this is saved.
-		/// @param writer The Writer to write the deliveries to.
-		void WriteDeliveries(Writer& writer) const;
 		// The box within where landing zones can be put
 		Scene::Area m_LandingZoneArea[Teams::MaxTeamCount];
 		// How wide around the brain the automatic LZ is following
