@@ -25,13 +25,6 @@ namespace RTE {
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create() override;
 
-		/// Makes the TerrainDebris object ready for use, and makes sure it was given its Materials.
-		/// @param reader A Reader that the TerrainDebris will create itself from.
-		/// @param checkType Whether there is a class name in the stream to check against to make sure the correct type is being read from the stream.
-		/// @param doCreate Whether to do any additional initialization of the object after reading in all the properties from the Reader.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Create(Reader& reader, bool checkType = true, bool doCreate = true) override;
-
 		/// Creates a TerrainDebris to be identical to another, by deep copy.
 		/// @param reference A reference to the TerrainDebris to deep copy.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
@@ -85,8 +78,8 @@ namespace RTE {
 		std::vector<BITMAP*> m_Bitmaps; //!< All the different bitmaps of this debris. Not owned.
 		int m_BitmapCount; //!< How many individual pieces this debris has.
 
-		const Material* m_Material; //!< The Material of the debris.
-		const Material* m_TargetMaterial; //!< The Material which pieces of this debris should be placed on in the terrain.
+		Material m_Material; //!< The Material of the debris.
+		Material m_TargetMaterial; //!< The Material which pieces of this debris should be placed on in the terrain.
 
 		DebrisPlacementMode m_DebrisPlacementMode; //!< This will determine how target Material checking and debris applying should behave. If set to NoPlacementRestrictions, checking will continue to penetrate down into non-air Materials to try to find the target Material.
 		bool m_OnlyBuried; //!< Whether to place a piece of this only if a spot where it fits completely buried in the terrain is found.

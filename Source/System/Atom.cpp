@@ -150,9 +150,12 @@ int Atom::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("Offset", { reader >> m_Offset; });
 	MatchProperty("OriginalOffset", { reader >> m_OriginalOffset; });
 	MatchProperty("Material", {
-		m_Material = g_PresetMan.ReadPresetReferenceOfType<Material>(reader, propName);
-		if (m_Material == nullptr) {
-			reader.ReportError("Material can't be None!");
+		Material mat;
+		mat.Reset();
+		reader >> mat;
+		m_Material = g_SceneMan.AddMaterialCopy(&mat);
+		if (!m_Material) {
+			RTEAbort("Failed to store material \"" + mat.GetPresetName() + "\". Aborting!");
 		}
 	});
 	MatchProperty("TrailColor", { reader >> m_TrailColor; });
@@ -170,7 +173,7 @@ int Atom::Save(Writer& writer) const {
 	if (!m_OriginalOffset.IsZero())
 		writer.NewPropertyWithValue("OriginalOffset", m_OriginalOffset);
 	if (m_Material != nullptr)
-		writer.NewPropertyWithValue("Material", m_Material->GetEntityCharacteristic());
+		writer.NewPropertyWithValue("Material", m_Material);
 	if (m_TrailColor.GetR() != 0 || m_TrailColor.GetG() != 0 || m_TrailColor.GetB() != 0)
 		writer.NewPropertyWithValue("TrailColor", m_TrailColor);
 	writer.NewDistinctProperty("TrailLength", m_TrailLength, 0);
@@ -185,7 +188,7 @@ HashingData Atom::Hash() const {
 
 	AddToHash(hash, m_Offset.Hash().m_Hash);
 	AddToHash(hash, m_OriginalOffset.Hash().m_Hash);
-	AddToHash(hash, (m_Material ? RTE::Hash(m_Material->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, (m_Material ? m_Material->Hash().m_Hash : 0));
 	AddToHash(hash, m_TrailColor.Hash().m_Hash);
 	AddToHash(hash, m_TrailLength);
 	AddToHash(hash, m_TrailLengthVariation);

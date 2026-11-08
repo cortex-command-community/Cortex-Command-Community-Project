@@ -133,9 +133,15 @@ int AtomGroup::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 	MatchProperty("Material", {
-		m_Material = g_PresetMan.ReadPresetReferenceOfType<Material>(reader, propName);
-		if (m_Material == nullptr) {
-			reader.ReportError("Material can't be None!");
+		Material mat;
+		mat.Reset();
+		reader >> mat;
+		m_Material = mat.GetIndex() ? g_SceneMan.GetMaterialFromID(mat.GetIndex()) : g_SceneMan.GetMaterial(mat.GetPresetName());
+
+		if (!m_Material) {
+			g_ConsoleMan.PrintString("ERROR: Failed to find matching Material preset \"" + mat.GetPresetName() + "\" " + GetFormattedReaderPosition() + ". Was it defined with AddMaterial?");
+			m_Material = g_SceneMan.GetMaterialFromID(g_MaterialAir);
+			RTEAssert(m_Material, "Failed to find matching Material preset \"" + mat.GetPresetName() + "\" or even fall back to \"Air\" " + GetFormattedReaderPosition() + ".\nAborting!");
 		}
 	});
 	MatchProperty("AutoGenerate", { reader >> m_AutoGenerate; });
@@ -176,7 +182,7 @@ int AtomGroup::ReadProperty(const std::string_view& propName, Reader& reader) {
 int AtomGroup::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewPropertyWithValue("Material", m_Material->GetEntityCharacteristic());
+	writer.NewPropertyWithPresetReference("Material", m_Material);
 	writer.NewPropertyWithValue("AutoGenerate", m_AutoGenerate);
 
 	// Only write out Atoms if they were manually specified

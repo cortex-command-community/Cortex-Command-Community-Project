@@ -1,47 +1,23 @@
 #include "TerrainFrosting.h"
 #include "SLTerrain.h"
-#include "PresetMan.h"
 
 using namespace RTE;
 
 const std::string TerrainFrosting::c_ClassName = "TerrainFrosting";
 
 void TerrainFrosting::Clear() {
-	m_FrostingMaterial = nullptr;
-	m_TargetMaterial = nullptr;
+	m_FrostingMaterial.Reset();
+	m_TargetMaterial.Reset();
 	m_MinThickness = 5;
 	m_MaxThickness = 5;
 	m_InAirOnly = true;
 }
 
-int TerrainFrosting::Create(Reader& reader, bool checkType, bool doCreate) {
-	// Once this is read, the Reader might have moved on from this file.
-	const std::string readPosition = "in file " + reader.GetCurrentFilePath() + " on line " + reader.GetCurrentFileLine();
-
-	int result = Serializable::Create(reader, checkType, doCreate);
-
-	if (m_FrostingMaterial == nullptr || m_TargetMaterial == nullptr) {
-		reader.ReportError("The TerrainFrosting " + readPosition + " needs both a FrostingMaterial and a TargetMaterial!");
-	}
-
-	return result;
-}
-
 int TerrainFrosting::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
-	MatchProperty("FrostingMaterial", {
-		m_FrostingMaterial = g_PresetMan.ReadPresetReferenceOfType<Material>(reader, propName);
-		if (m_FrostingMaterial == nullptr) {
-			reader.ReportError("FrostingMaterial can't be None!");
-		}
-	});
-	MatchProperty("TargetMaterial", {
-		m_TargetMaterial = g_PresetMan.ReadPresetReferenceOfType<Material>(reader, propName);
-		if (m_TargetMaterial == nullptr) {
-			reader.ReportError("TargetMaterial can't be None!");
-		}
-	});
+	MatchProperty("FrostingMaterial", { reader >> m_FrostingMaterial; });
+	MatchProperty("TargetMaterial", { reader >> m_TargetMaterial; });
 	MatchProperty("MinThickness", { reader >> m_MinThickness; });
 	MatchProperty("MaxThickness", { reader >> m_MaxThickness; });
 	MatchProperty("InAirOnly", { reader >> m_InAirOnly; });
@@ -52,8 +28,8 @@ int TerrainFrosting::ReadProperty(const std::string_view& propName, Reader& read
 int TerrainFrosting::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewPropertyWithValue("FrostingMaterial", m_FrostingMaterial->GetEntityCharacteristic());
-	writer.NewPropertyWithValue("TargetMaterial", m_TargetMaterial->GetEntityCharacteristic());
+	writer.NewPropertyWithValue("FrostingMaterial", m_FrostingMaterial);
+	writer.NewPropertyWithValue("TargetMaterial", m_TargetMaterial);
 	writer.NewPropertyWithValue("MinThickness", m_MinThickness);
 	writer.NewPropertyWithValue("MaxThickness", m_MaxThickness);
 	writer.NewPropertyWithValue("InAirOnly", m_InAirOnly);
@@ -65,8 +41,8 @@ HashingData TerrainFrosting::Hash() const {
 	HashingData hashData(Serializable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, RTE::Hash(m_FrostingMaterial->GetEntityCharacteristic()));
-	AddToHash(hash, RTE::Hash(m_TargetMaterial->GetEntityCharacteristic()));
+	AddToHash(hash, m_FrostingMaterial.Hash().m_Hash);
+	AddToHash(hash, m_TargetMaterial.Hash().m_Hash);
 	AddToHash(hash, m_MinThickness);
 	AddToHash(hash, m_MaxThickness);
 	AddToHash(hash, m_InAirOnly);
@@ -75,7 +51,7 @@ HashingData TerrainFrosting::Hash() const {
 }
 
 void TerrainFrosting::FrostTerrain(SLTerrain* terrain) const {
-	BITMAP* frostingTexture = m_FrostingMaterial->GetFGTexture();
+	BITMAP* frostingTexture = m_FrostingMaterial.GetFGTexture();
 	BITMAP* fgColorBitmap = terrain->GetFGColorBitmap();
 	BITMAP* matBitmap = terrain->GetBitmap();
 
@@ -89,16 +65,16 @@ void TerrainFrosting::FrostTerrain(SLTerrain* terrain) const {
 		for (int yPos = matBitmap->h - 1; yPos >= 0; --yPos) {
 			int materialCheckPixel = _getpixel(matBitmap, xPos, yPos);
 
-			if (!targetMatFound && materialCheckPixel == m_TargetMaterial->GetIndex()) {
+			if (!targetMatFound && materialCheckPixel == m_TargetMaterial.GetIndex()) {
 				targetMatFound = true;
 				appliedThickness = 0;
-			} else if (targetMatFound && materialCheckPixel != m_TargetMaterial->GetIndex() && appliedThickness <= thicknessGoal) {
+			} else if (targetMatFound && materialCheckPixel != m_TargetMaterial.GetIndex() && appliedThickness <= thicknessGoal) {
 				targetMatFound = false;
 				applyingFrosting = true;
 			}
 			if (applyingFrosting && (materialCheckPixel == MaterialColorKeys::g_MaterialAir || !m_InAirOnly) && appliedThickness <= thicknessGoal) {
-				_putpixel(fgColorBitmap, xPos, yPos, frostingTexture ? _getpixel(frostingTexture, xPos % frostingTexture->w, yPos % frostingTexture->h) : m_FrostingMaterial->GetColor().GetIndex());
-				_putpixel(matBitmap, xPos, yPos, m_FrostingMaterial->GetIndex());
+				_putpixel(fgColorBitmap, xPos, yPos, frostingTexture ? _getpixel(frostingTexture, xPos % frostingTexture->w, yPos % frostingTexture->h) : m_FrostingMaterial.GetColor().GetIndex());
+				_putpixel(matBitmap, xPos, yPos, m_FrostingMaterial.GetIndex());
 				appliedThickness++;
 			} else {
 				applyingFrosting = false;
