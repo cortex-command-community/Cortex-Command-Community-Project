@@ -1844,7 +1844,6 @@ Scene::Area* Scene::GetArea(const std::string& areaName) {
 bool Scene::RemoveArea(const std::string& areaName) {
 	for (std::list<Area*>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
 		if ((*aItr)->GetName() == areaName) {
-			delete *aItr;
 			m_AreaList.erase(aItr);
 			return true;
 		}
