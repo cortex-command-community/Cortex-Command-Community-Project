@@ -171,13 +171,12 @@ namespace RTE {
 		/// A value of "None" means the property is to hold nothing, as Writer::NewOptionalEntityPointerProperty writes it.
 		/// @param reader The Reader which is about to read the property's value.
 		/// @param propName The name of the property being read, for reporting errors.
-		/// @return The Entity read, or nullptr if the value was "None" or not of the type asked for, which is reported as an error. Ownership IS transferred!
+		/// @return The Entity read, or nullptr if the value was "None" or not of the type asked for. Ownership IS transferred!
 		template <typename Type> Type* ReadReflectedPresetOfType(Reader& reader, const std::string_view& propName) {
 			Entity* entity = ReadReflectedPreset(reader);
 			Type* entityOfType = dynamic_cast<Type*>(entity);
 
 			if (entity && !entityOfType) {
-				reader.ReportError("Tried to set " + std::string(propName) + " to a " + entity->GetClassName() + "!");
 				delete entity;
 			}
 			return entityOfType;
@@ -186,15 +185,9 @@ namespace RTE {
 		/// Reads a preset reference for a property, as GetEntityPreset does, and makes sure of its type.
 		/// @param reader The Reader which is about to read the property's value.
 		/// @param propName The name of the property being read, for reporting errors.
-		/// @return The preset referred to, or nullptr if the value was "None" or not of the type asked for, which is reported as an error. Ownership is NOT transferred!
+		/// @return The preset referred to, or nullptr if the value was "None" or not of the type asked for. Ownership is NOT transferred!
 		template <typename Type> const Type* ReadPresetReferenceOfType(Reader& reader, const std::string_view& propName) {
-			const Entity* entity = GetEntityPreset(reader);
-			const Type* entityOfType = dynamic_cast<const Type*>(entity);
-
-			if (entity && !entityOfType) {
-				reader.ReportError("Tried to point " + std::string(propName) + " at a " + entity->GetClassName() + "!");
-			}
-			return entityOfType;
+			return dynamic_cast<const Type*>(GetEntityPreset(reader));
 		}
 
 		/// Adds to a list all previously read in (defined) Entitys, by type.

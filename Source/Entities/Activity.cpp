@@ -201,8 +201,6 @@ int Activity::ReadProperty(const std::string_view& propName, Reader& reader) {
 				if (Icon* icon = g_PresetMan.ReadReflectedPresetOfType<Icon>(reader, propName)) {
 					icon->Clone(&m_TeamIcons[team]);
 					delete icon;
-				} else {
-					reader.ReportError("Could not read an Icon for " + std::string(propName) + "!");
 				}
 				break;
 			}

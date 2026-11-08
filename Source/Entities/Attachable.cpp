@@ -168,8 +168,6 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("AddPieSlice", {
 		if (PieSlice* pieSlice = g_PresetMan.ReadReflectedPresetOfType<PieSlice>(reader, propName)) {
 			m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(pieSlice));
-		} else {
-			reader.ReportError("Tried to add a pie slice that isn't one!");
 		}
 	});
 

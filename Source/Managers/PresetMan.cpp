@@ -391,11 +391,6 @@ Entity* PresetMan::ReadReflectedPreset(Reader& reader) {
 	reader >> ClassName;
 	const Entity::ClassInfo* pClass = Entity::ClassInfo::GetClass(ClassName);
 
-	// Anything but None is a mistake, and what's nested under it would otherwise be read as properties of whatever holds it.
-	if (ClassName != "None" && (!pClass || !pClass->IsConcrete())) {
-		reader.ReportError("Tried to read a \"" + ClassName + "\", which isn't a class that can be created!");
-	}
-
 	if (pClass && pClass->IsConcrete()) {
 		// Instantiate
 		Entity* pNewInstance = pClass->NewInstance();

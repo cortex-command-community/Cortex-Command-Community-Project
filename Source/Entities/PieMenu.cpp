@@ -211,9 +211,7 @@ int PieMenu::ReadProperty(const std::string_view& propName, Reader& reader) {
 		if (m_CurrentPieSlices.size() == 4 * PieQuadrant::c_PieQuadrantSlotCount) {
 			reader.ReportError("Pie menus cannot have more than " + std::to_string(4 * PieQuadrant::c_PieQuadrantSlotCount) + " slices. Use sub-pie menus to better organize your pie slices.");
 		}
-		if (PieSlice* pieSlice = g_PresetMan.ReadReflectedPresetOfType<PieSlice>(reader, propName); pieSlice == nullptr) {
-			reader.ReportError("Tried to add a pie slice that isn't one!");
-		} else if (!AddPieSlice(pieSlice, this)) {
+		if (PieSlice* pieSlice = g_PresetMan.ReadReflectedPresetOfType<PieSlice>(reader, propName); pieSlice != nullptr && !AddPieSlice(pieSlice, this)) {
 			reader.ReportError("Tried to add pie slice but that direction was full. Set direction to None if you don't care where the pie slice ends up.");
 		}
 	});
