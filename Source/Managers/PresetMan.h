@@ -159,24 +159,6 @@ namespace RTE {
 		/// error, or the instance name was 'None'. Ownership is NOT transferred!
 		const Entity* GetEntityPreset(Reader& reader);
 
-		/// Reads a reference to a preset, in the form of its class, module and name, and finds that preset.
-		/// @param reader The Reader will read in a constant reference in the form <class/module/preset name>.
-		/// Any bad reference aborts, except one that names the wrong module for a preset found elsewhere, which asserts and uses that preset.
-		/// @return A const pointer to the Entity preset requested, if it was located.
-		const Entity* GetEntityPresetFromCharacteristic(Reader& reader);
-
-		/// Finds the preset a reference refers to, for when the Reader has already read the reference.
-		/// @param characteristic The reference, in the form <class/module/preset name>.
-		/// @param reader The Reader that read the reference, for reporting errors.
-		/// @return A const pointer to the Entity preset requested, if it was located.
-		const Entity* GetEntityPresetFromCharacteristic(const std::string& characteristic, Reader& reader);
-
-		/// Finds the preset a reference in a player's own data refers to. Anything may have changed since a player's data was written, which is no fault of theirs, so this reports nothing.
-		/// A preset that's gone from a module that's still loaded may be found in an official module, as it may have moved. A module that isn't loaded is never substituted for.
-		/// @param characteristic The reference, in the form <class/module/preset name>.
-		/// @return A const pointer to the Entity preset requested, or nullptr if it can't be used right now.
-		const Entity* FindPresetForUserdata(const std::string& characteristic);
-
 		/// Reads a preset of an Entity and tries to add it to the list of
 		/// read-in instances. Regardless of whether there is a name collision,
 		/// the read-in preset will be returned, ownership TRANSFERRED!
