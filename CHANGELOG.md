@@ -319,6 +319,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed the terrain background layer drawing at the terrain foreground's depth, which hid primitives drawn at a depth between `DrawDepth.Default` and `DrawDepth.TerrainBackground` behind it instead of showing them on top of the background.
 
+- Fixed white speckles on dark terrain, such as cave backgrounds. The `Background` and `Dissolve` shaders smoothed their palette lookups, so pixels could take the colour of the neighbouring palette entry.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
