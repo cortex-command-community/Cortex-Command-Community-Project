@@ -8,10 +8,9 @@ using namespace RTE;
 ConcreteClassInfo(Loadout, Entity, 0);
 
 void Loadout::Clear() {
+	m_Complete = true;
 	m_pDeliveryCraft = 0;
 	m_CargoItems.clear();
-	m_UnavailableDeliveryCraft = UnavailableReference();
-	m_UnavailableCargoItems.clear();
 }
 
 /*
@@ -27,8 +26,7 @@ int Loadout::Create()
 int Loadout::Create(const Loadout& reference) {
 	Entity::Create(reference);
 
-	m_UnavailableDeliveryCraft = reference.m_UnavailableDeliveryCraft;
-	m_UnavailableCargoItems = reference.m_UnavailableCargoItems;
+	m_Complete = reference.m_Complete;
 	// These are preset instances, not owned by the reference or this.
 	m_pDeliveryCraft = reference.m_pDeliveryCraft;
 
@@ -39,86 +37,56 @@ int Loadout::Create(const Loadout& reference) {
 	return 0;
 }
 
-const Entity* Loadout::ReadReference(Reader& reader, UnavailableReference& asWritten) {
-	std::string value;
-	reader >> value;
-
-	if (value == "None") {
-		return nullptr;
-	}
-
-	const bool playersFile = reader.GetNonModulePath();
-
-	// This is how a player's loadouts were saved before preset references, as a class with the preset's name nested under it. Anyone's old loadouts should keep working whenever they turn up.
-	if (value.find('/') == std::string::npos && Entity::ClassInfo::GetClass(value) != nullptr) {
-		reader.ReadPropName();
-		const std::string presetName = reader.ReadPropValue();
-		reader.NextProperty();
-
-		if (!playersFile) {
-			reader.ReportError("A Loadout in a module should refer to a preset in the form <class/module/preset name>, not with \"" + presetName + "\" nested under " + value);
-		}
-
-		if (presetName.find('/') == std::string::npos) {
-			asWritten.m_Value = value;
-			asWritten.m_NestedPresetName = presetName;
-			return g_PresetMan.GetEntityPreset(value, presetName);
-		}
-
-		value += "/" + presetName;
-	}
-
-	asWritten.m_Value = value;
-	return playersFile ? g_PresetMan.FindPresetForUserdata(value) : g_PresetMan.GetEntityPresetFromCharacteristic(value, reader);
-}
-
-void Loadout::SaveUnavailableReference(Writer& writer, const std::string& propName, const UnavailableReference& reference) {
-	if (reference.m_NestedPresetName.empty()) {
-		writer.NewPropertyWithValue(propName, reference.m_Value);
-	} else {
-		writer.NewProperty(propName);
-		writer.ObjectStart(reference.m_Value);
-		writer.NewPropertyWithValue("PresetName", reference.m_NestedPresetName);
-		writer.ObjectEnd();
-	}
-}
-
 int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
-	MatchProperty("DeliveryCraft", {
-		UnavailableReference asWritten;
-		const Entity* entityReference = ReadReference(reader, asWritten);
-		const ACraft* reference = dynamic_cast<const ACraft*>(entityReference);
-		if (entityReference != nullptr && reference == nullptr && !reader.GetNonModulePath()) {
-			reader.ReportError("Tried to point DeliveryCraft at a " + entityReference->GetClassName() + "!");
-		}
-		SetDeliveryCraft(reference);
-		if (reference == nullptr) {
-			m_UnavailableDeliveryCraft = asWritten;
-		}
-	});
+	// Need to load all this stuff without the assumption that it all is available. Mods might have changed etc so things might still not be around, and that's ok.
+	MatchProperty("DeliveryCraft",
+	              {
+		              std::string className;
+		              std::string presetName;
+		              // Load class name and then preset instance name
+		              reader >> className;
+		              // Ignore the property name, just interested in the value
+		              if (reader.ReadPropName() != "PresetName")
+			              reader.ReportError("Expected property \"PresetName\" not found when reading BuyMenu Loadout settings!");
+		              // Read the preset's name and try to find it
+		              presetName = reader.ReadPropValue();
+		              // It's OK if we can't find it.. just means we aren't a complete loadout
+		              m_pDeliveryCraft = dynamic_cast<const ACraft*>(g_PresetMan.GetEntityPreset(className, presetName, -1));
+		              if (!m_pDeliveryCraft)
+			              m_Complete = false;
+		              // Artificially end reading this property since we got all we needed
+		              reader.NextProperty();
+	              });
 	MatchProperty("_ClearCargoItems", {
 		reader.ReadPropValue();
 		m_CargoItems.clear();
-		m_UnavailableCargoItems.clear();
 	});
-	MatchProperty("AddCargoItem", {
-		UnavailableReference asWritten;
-		const Entity* entityReference = ReadReference(reader, asWritten);
-		const MovableObject* reference = dynamic_cast<const MovableObject*>(entityReference);
-		if (reference != nullptr) {
-			m_CargoItems.push_back(reference);
-		} else {
-			if (entityReference != nullptr && !reader.GetNonModulePath()) {
-				reader.ReportError("Tried to point a cargo item at a " + entityReference->GetClassName() + "!");
-			}
-			if (!asWritten.m_Value.empty()) {
-				asWritten.m_Position = m_CargoItems.size();
-				m_UnavailableCargoItems.push_back(asWritten);
-			}
-		}
-	});
+	MatchProperty("AddCargoItem",
+	              {
+		              std::string className;
+		              std::string presetName;
+		              // Load class name and then preset instance name
+		              reader >> className;
+		              // Ignore the property name, just interested in the value
+		              if (reader.ReadPropName() != "PresetName")
+			              reader.ReportError("Expected property \"PresetName\" not found when reading BuyMenu Loadout settings!");
+		              // Read the preset's name and try to find it
+		              presetName = reader.ReadPropValue();
+		              // It's OK if we can't find it.. just means we aren't a complete loadout
+		              const MovableObject* pCargo = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(className, presetName, -1));
+		              if (!pCargo)
+			              m_Complete = false;
+		              // Add the found cargo item to the list
+		              else
+			              m_CargoItems.push_back(pCargo);
+
+		              // Artificially end reading this property since we got all we needed
+		              reader.NextProperty();
+
+		              pCargo = 0;
+	              });
 
 	EndPropertyList;
 }
@@ -127,22 +95,18 @@ int Loadout::Save(Writer& writer) const {
 	Entity::Save(writer);
 
 	if (m_pDeliveryCraft) {
-		writer.NewPropertyWithPresetReference("DeliveryCraft", m_pDeliveryCraft);
-	} else if (!m_UnavailableDeliveryCraft.m_Value.empty()) {
-		SaveUnavailableReference(writer, "DeliveryCraft", m_UnavailableDeliveryCraft);
+		writer.NewProperty("DeliveryCraft");
+		writer.ObjectStart(m_pDeliveryCraft->GetClassName());
+		writer.NewProperty("PresetName");
+		writer << m_pDeliveryCraft->GetModuleAndPresetName();
+		writer.ObjectEnd();
 	}
-
-	// Everything goes back where it was, as a mod coming back should find its items still in order among the rest.
-	std::vector<UnavailableReference>::const_iterator unavailable = m_UnavailableCargoItems.begin();
-	size_t position = 0;
-	for (std::list<const SceneObject*>::const_iterator itr = m_CargoItems.begin(); itr != m_CargoItems.end(); ++itr, ++position) {
-		for (; unavailable != m_UnavailableCargoItems.end() && unavailable->m_Position <= position; ++unavailable) {
-			SaveUnavailableReference(writer, "AddCargoItem", *unavailable);
-		}
-		writer.NewPropertyWithPresetReference("AddCargoItem", (*itr));
-	}
-	for (; unavailable != m_UnavailableCargoItems.end(); ++unavailable) {
-		SaveUnavailableReference(writer, "AddCargoItem", *unavailable);
+	for (std::list<const SceneObject*>::const_iterator itr = m_CargoItems.begin(); itr != m_CargoItems.end(); ++itr) {
+		writer.NewProperty("AddCargoItem");
+		writer.ObjectStart((*itr)->GetClassName());
+		writer.NewProperty("PresetName");
+		writer << (*itr)->GetModuleAndPresetName();
+		writer.ObjectEnd();
 	}
 
 	return 0;
@@ -153,29 +117,32 @@ int Loadout::Write(Writer& writer, const Entity& entityReference, HashingData& h
 
 	const Loadout& reference = static_cast<const Loadout&>(entityReference);
 
-	writer.NewPresetReferenceProperty("DeliveryCraft", m_pDeliveryCraft, reference.m_pDeliveryCraft);
-	writer.NewPresetReferenceSequence("_ClearCargoItems", "AddCargoItem", m_CargoItems, hashData);
+	// The form a Loadout reads can't say there's no craft, so a craft the preset has and this doesn't can't be written.
+	if (m_pDeliveryCraft != nullptr && m_pDeliveryCraft != reference.m_pDeliveryCraft) {
+		writer.NewProperty("DeliveryCraft");
+		writer.ObjectStart(m_pDeliveryCraft->GetClassName());
+		writer.NewPropertyWithValue("PresetName", m_pDeliveryCraft->GetModuleAndPresetName());
+		writer.ObjectEnd();
+	}
+	writer.NewPresetNameSequence("_ClearCargoItems", "AddCargoItem", m_CargoItems, hashData);
 
 	return 0;
 }
 
-
 HashingData Loadout::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
-	
+
 	AddToHash(hash, (m_pDeliveryCraft ? RTE::Hash(m_pDeliveryCraft->GetEntityCharacteristic()) : 0));
 
-	int i = 0;
-
-	for (const SceneObject* pCargo: m_CargoItems) {
-		uint64_t cargoHash = RTE::Hash(pCargo->GetEntityCharacteristic());
+	int cargoCount = 0;
+	for (const SceneObject* cargo: m_CargoItems) {
+		uint64_t cargoHash = RTE::Hash(cargo->GetEntityCharacteristic());
 		hashData.m_Constituents.push_back(cargoHash);
 		AddToHash(hash, cargoHash);
-		i++;
+		cargoCount++;
 	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.m_ParseValues.push_back(cargoCount);
 
 	return hashData;
 }

@@ -132,15 +132,21 @@ namespace RTE {
 		}
 
 		/// Writes a collection of preset references where order matters, written to assume it has corresponding data in the hash structure provided.
+		/// Each is written as its class with the preset's module and name nested under it as PresetName, the form Loadout reads.
 		/// @param clearPhrase The phrase used to wipe the contents of the collection, if the reference's is incompatible.
 		/// @param insertionPhrase The phrase used to push an element to the back of the collection.
 		/// @param propValue The sequential collection of items in question.
 		/// @param hashData A modifiable reference to the HashingData relevant to writing this object, which should correspond to its preset's.
 		template <typename Type>
-		void NewPresetReferenceSequence(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData) {
+		void NewPresetNameSequence(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData) {
 			WriteSequence(clearPhrase, propValue, hashData,
 			    [](const auto& item) { return RTE::Hash(item->GetEntityCharacteristic()); },
-			    [&](const auto& item) { NewPropertyWithPresetReference(insertionPhrase, item); },
+			    [&](const auto& item) {
+				    NewProperty(insertionPhrase);
+				    ObjectStart(item->GetClassName());
+				    NewPropertyWithValue("PresetName", item->GetModuleAndPresetName());
+				    ObjectEnd();
+			    },
 			    [](const auto&) { return true; });
 		}
 
