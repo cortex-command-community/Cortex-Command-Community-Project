@@ -21,7 +21,6 @@ namespace RTE {
 
 	void Entity::Clear() {
 		m_PresetName = "None";
-		m_DisplayName = "";
 		m_IsOriginalPreset = false;
 		m_DefinedInModule = -1;
 		m_PresetDescription.clear();
@@ -35,7 +34,6 @@ namespace RTE {
 
 	int Entity::Create(const Entity& reference) {
 		m_PresetName = reference.m_PresetName;
-		m_DisplayName = reference.m_DisplayName;
 		// Note how m_IsOriginalPreset is NOT assigned, automatically indicating that the copy is not an original Preset!
 		m_DefinedInModule = reference.m_DefinedInModule;
 		m_PresetDescription = reference.m_PresetDescription;
@@ -76,9 +74,6 @@ namespace RTE {
 			if (slashPos != std::string::npos) {
 				m_PresetName = m_PresetName.substr(slashPos + 1);
 			}
-
-			// Set display name, as default, which is safe because display name is written following preset name.
-			m_DisplayName = m_PresetName;
 		});
 		MatchProperty("InstanceName", {
 			// Set this directly so that SetPresetName doesn't confuse that we're an orignal preset.
@@ -93,9 +88,6 @@ namespace RTE {
 			if (slashPos != std::string::npos) {
 				m_PresetName = m_PresetName.substr(slashPos + 1);
 			}
-
-			// Set display name, as default, which is safe because display name is written following preset name.
-			m_DisplayName = m_PresetName;
 		});
 		MatchProperty("Description", {
 			std::string descriptionValue = reader.ReadPropValue();
@@ -111,7 +103,6 @@ namespace RTE {
 				m_PresetDescription = descriptionValue;
 			}
 		});
-		MatchProperty("DisplayName", { reader >> m_DisplayName; });
 		MatchProperty("RandomWeight", {
 			reader >> m_RandomWeight;
 			m_RandomWeight = Limit(m_RandomWeight, 100, 0);
@@ -172,10 +163,6 @@ namespace RTE {
 			writer.NewPropertyWithValue("InstanceName", m_PresetName);
 		}
 
-		if (!m_DisplayName.empty()) {
-			writer.NewPropertyWithValue("DisplayName", m_DisplayName);
-		}
-
 		if (!m_PresetDescription.empty()) {
 			WriteDescription(writer, m_PresetDescription);
 		}
@@ -201,8 +188,6 @@ namespace RTE {
 			writer.NewDistinctProperty("InstanceName", m_PresetName, entityReference.m_PresetName);
 		}
 
-		writer.NewDistinctProperty("DisplayName", m_DisplayName, entityReference.m_DisplayName);
-
 		if (m_PresetDescription != entityReference.m_PresetDescription) {
 			WriteDescription(writer, m_PresetDescription);
 		}
@@ -227,7 +212,6 @@ namespace RTE {
 		uint64_t& hash = hashData.m_Hash;
 
 		AddToHash(hash, RTE::Hash(m_PresetName));
-		AddToHash(hash, RTE::Hash(m_DisplayName));
 		AddToHash(hash, m_DefinedInModule);
 		AddToHash(hash, RTE::Hash(m_PresetDescription));
 

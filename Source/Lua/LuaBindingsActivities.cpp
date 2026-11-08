@@ -62,8 +62,6 @@ LuaBindingRegisterFunctionDefinitionForType(ActivityLuaBindings, Activity) {
 	    .def("LoadString", &Activity::LoadString)
 	    .def("SaveNumber", &Activity::SaveNumber)
 	    .def("LoadNumber", &Activity::LoadNumber)
-	    .def("SaveEntity", &Activity::SaveEntity)
-	    .def("LoadEntity", &Activity::LoadEntity, luabind::adopt(luabind::result))
 	    .def("SendMessage", &LuaAdaptersActivity::SendMessage1)
 	    .def("SendMessage", &LuaAdaptersActivity::SendMessage2)
 

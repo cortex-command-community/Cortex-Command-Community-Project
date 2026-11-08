@@ -271,21 +271,7 @@ namespace RTE {
 		// TODO: Figure out how to handle if same name was set, still make it wasgivenname = true?
 		virtual void SetPresetName(const std::string& newName, bool calledFromLua = false) { /*if (m_PresetName != newName) { m_IsOriginalPreset = true; }*/
 			m_IsOriginalPreset = calledFromLua ? m_IsOriginalPreset : true;
-			// A display name that is only following the preset name keeps following it.
-			if (m_DisplayName == m_PresetName) {
-				m_DisplayName = newName;
-			}
 			m_PresetName = newName;
-		}
-
-		/// Gets the name to show players for this Entity, as opposed to its preset name, which is what data and scripts identify it by.
-		/// @return A string reference with the display name of this Entity, or its preset name if it has none.
-		const std::string& GetDisplayName() const { return m_DisplayName.empty() ? m_PresetName : m_DisplayName; }
-
-		/// Sets the name to show players for this Entity.
-		/// @param newName A string reference with the display name of this Entity.
-		virtual void SetDisplayName(const std::string& newName) {
-			m_DisplayName = newName;
 		}
 
 		/// Gets the plain text description of this Entity's data Preset.
@@ -297,7 +283,7 @@ namespace RTE {
 		void SetDescription(const std::string& newDesc) { m_PresetDescription = newDesc; }
 
 		/// Gets a complete description of the entity, first class name, then module name (if defined in module), finally preset name, each seperated with a '/'.
-		/// This is useful for saving written references to a preset in a short and distinct form.
+		/// This is a short and distinct identity for a preset, such as for hashing references to it.
 		/// @return A string with the class, module and preset name of this Entity.
 		std::string GetEntityCharacteristic() const;
 
@@ -401,7 +387,6 @@ namespace RTE {
 		static Entity::ClassInfo m_sClass; //!< Type description of this Entity.
 
 		std::string m_PresetName; //!< The name of the Preset data this was cloned from, if any.
-		std::string m_DisplayName; //!< The name to show players for this Entity. Empty means to show the preset name.
 		std::string m_PresetDescription; //!< The description of the preset in user friendly plain text that will show up in menus etc.
 		std::string m_FormattedReaderPosition; //!< A string containing the file path and the line we were read from. Formatted to be used for logging.
 
