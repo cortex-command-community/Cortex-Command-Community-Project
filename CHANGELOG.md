@@ -255,6 +255,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - The tutorial mission is now a `GAScripted` activity, `Missions.rte/Activities/Tutorial.lua`, instead of being hardcoded in the engine. Its screens and room signs are drawn as bitmap primitives on the bunker's back wall instead of into the terrain.
 
+- <WORD THIS: saved games only record what differs from each object's preset.>  
+	<!-- Facts to cover: references to presets are written as a CopyOf of the preset instead of the whole preset. Size of a Decision Day save before and after (re-measure: the #317 numbers were taken with one-line references). Terrain images still make up most of a .ccsave. Most of what a script changes on an object now survives saving and loading. Create and StartScript run on every load, so a script that multiplies a value there multiplies it again (the shipped ones are fixed in the script data fixes PR). Pre-overhaul saves still load. -->
+
+- <WORD THIS: new special INI properties, starting with an underscore, that saves use and hand-written data shouldn't need.>  
+	<!-- Clearing what was copied: `_ClearAIPlanObjects`, `_ClearAreas`, `_ClearAtoms`, `_ClearAttachables`, `_ClearBackgroundLayers`, `_ClearBlueprintObjects`, `_ClearCargoItems`, `_ClearChildObjects`, `_ClearCustomNumberValues`, `_ClearCustomStringValues`, `_ClearEmissions`, `_ClearExits`, `_ClearGibs`, `_ClearGroups`, `_ClearInventory`, `_ClearMountedDevices`, `_ClearPieSlices`, `_ClearRequiredAreas`, `_ClearSceneObjects`, `_ClearSegments`, `_ClearSensors`, `_ClearSongSections`, `_ClearSoundContainers`, `_ClearTerrainDebris`, `_ClearTerrainFrostings`, `_ClearTerrainObjects`, `_ClearTransitionSoundContainers`, `_ClearWounds`. Removing: `_RemoveFromGroup`. Running game state: `_Activated`, `_ActivationTimerElapsedSimTimeMS`, `_DisableScript`, `_EnableScript`, `_FogOfWarEnabled`, `_NoSetDamageMultiplier`, `_StartingGold`. Check which of these the form "New `Class` INI property `Name`" should list one by one. -->
+
+- <WORD THIS: `InstanceName` now names a single object without making it a preset.>  
+	<!-- OPEN DECISION with Causeless. Saves need it: an object whose PresetName a script changed has no preset to compare against, so it's saved in full under InstanceName. With development's meaning, loading it would make it a preset. -->
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
@@ -318,6 +327,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed AI actors refusing to fire the Coalition Missile Launcher at anything beyond point-blank range, because the AI took the range of its short-lived dummy round instead of the missile's.
 
 - Fixed the terrain background layer drawing at the terrain foreground's depth, which hid primitives drawn at a depth between `DrawDepth.Default` and `DrawDepth.TerrainBackground` behind it instead of showing them on top of the background.
+
+- <WORD THIS: deliveries in transit lost when saving, after their funds were spent.> <!-- f6c190e75; check it's in 6.2.2 -->
+
+- <WORD THIS: disabled scripts enabled again by loading a saved game.> <!-- 87941d714; check it's in 6.2.2 -->
+
+- <WORD THIS: AI orders (where actors are going) lost when saving.> <!-- 42f8e9150; check it's in 6.2.2 -->
+
+- <WORD THIS: a brain deployed in Decision Day's forward base waking up on load and spinning until she gibbed.> <!-- 78b945a68; check it's in 6.2.2 -->
+
+- <WORD THIS: an empty property, such as `SceneName =`, taking the next line as its value.> <!-- 81c60a385; check it's in 6.2.2 -->
+
+- <WORD THIS: properties lost on any copy of a preset.> <!-- 3e49bfe84 and earlier: ApplyWoundDamageOnCollision, ApplyWoundBurstDamageOnCollision, SceneName, BunkerAssemblyScheme's BitmapFile, SLBackground's IsAnimatedManually; check each is in 6.2.2 -->
+
+- <WORD THIS: the `EndlessMetaGameMode` setting not kept, as it was saved under a different name than it's read by.> <!-- a286c58c6; the setting is in 6.2.2, check the mismatch is -->
+
+- <WORD THIS: a `ThrownDevice`'s `ActivationSound` read into its preset and every copy of it.> <!-- 13c0f5bb4; check it's in 6.2.2 -->
+
+- <WORD THIS: clearing a `Turret`'s mounted devices crashing.> <!-- 4893a0c60; check it's in 6.2.2 -->
+
+- <WORD THIS: an Activity's Lua `OnSave` running three times per save.> <!-- 16eb7ba3a; check it's in 6.2.2 -->
+
+- <WORD THIS: a manual `AtomGroup` gaining its Attachables' atoms, and a changed `SoundSet` re-adding its preset's sounds, on every load.> <!-- cc529d9b9, 10039f81c; probably only since saves keep script changes, so likely NOT a Fixed entry -->
 
 </details>
 
