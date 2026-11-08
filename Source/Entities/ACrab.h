@@ -72,6 +72,15 @@ namespace RTE {
 		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
+#pragma region INI Handling
+		/// Records an Entity against a reference, expected to be its preset.
+		/// @param writer A Writer that the Entity will save itself to.
+		/// @param entityReference A reference preset to write properties against.
+		/// @param hashData A clump of hash data for cheap property comparisons.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
+#pragma endregion
+
 		/// Gets the absoltue position of this' eye, or equivalent, where look
 		/// vector starts from.
 		/// @return A Vector with the absolute position of this' eye or view point.

@@ -94,8 +94,22 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("LuaClassName", {
 		reader >> m_LuaClassName;
 	});
+
+	MatchProperty("_ClearPieSlices", {
+		reader.ReadPropValue();
+		m_PieSlicesToAdd.clear();
+	});
 	MatchProperty("AddPieSlice", {
-		m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader))));
+		if (PieSlice* pieSlice = g_PresetMan.ReadReflectedPresetOfType<PieSlice>(reader, propName)) {
+			m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(pieSlice));
+		} else {
+			reader.ReportError("Tried to add a pie slice that isn't one!");
+		}
+	});
+
+	MatchProperty("_ClearRequiredAreas", {
+		reader.ReadPropValue();
+		m_RequiredAreas.clear();
 	});
 	MatchProperty("AddRequiredArea", {
 		std::string requiredArea;
@@ -107,9 +121,6 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 }
 
 int GAScripted::Save(Writer& writer) const {
-	// Hmm. We should probably be calling this prior to the writer Save, instead of const-casting.
-	const_cast<GAScripted*>(this)->RunLuaFunction("OnSave");
-
 	GameActivity::Save(writer);
 
 	writer.NewPropertyWithValue("ScriptPath", m_ScriptPath);
@@ -124,6 +135,53 @@ int GAScripted::Save(Writer& writer) const {
 	}
 
 	return 0;
+}
+
+int GAScripted::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	GameActivity::Write(writer, entityReference, hashData);
+
+	const GAScripted& reference = static_cast<const GAScripted&>(entityReference);
+
+	writer.NewDistinctProperty("ScriptPath", m_ScriptPath, reference.m_ScriptPath);
+	writer.NewDistinctProperty("LuaClassName", m_LuaClassName, reference.m_LuaClassName);
+	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", m_PieSlicesToAdd, hashData);
+
+	if (m_RequiredAreas != reference.m_RequiredAreas) {
+		if (reference.m_RequiredAreas.size() > 0) {
+			writer.NewPropertyWithValue("_ClearRequiredAreas", 1);
+		}
+
+		for (auto itr = m_RequiredAreas.begin(); itr != m_RequiredAreas.end(); ++itr) {
+			writer.NewPropertyWithValue("AddRequiredArea", *itr);
+		}
+	}
+
+	return 0;
+}
+
+HashingData GAScripted::Hash() const {
+	HashingData hashData(GameActivity::Hash());
+	uint64_t& hash = hashData.m_Hash;
+	
+	AddToHash(hash, RTE::Hash(m_ScriptPath));
+	AddToHash(hash, RTE::Hash(m_LuaClassName));
+
+	int i = 0;
+
+	for (const std::unique_ptr<PieSlice>& pieSliceToAdd: m_PieSlicesToAdd) {
+		uint64_t sliceHash = pieSliceToAdd->Hash().m_Hash;
+		hashData.m_Constituents.push_back(sliceHash);
+		AddToHash(hash, sliceHash);
+		i++;
+	}
+
+	hashData.m_ParseValues.push_back(i);
+
+	for (const std::string& requiredArea: m_RequiredAreas) {
+		AddToHash(hash, RTE::Hash(requiredArea));
+	}
+
+	return hashData;
 }
 
 void GAScripted::Destroy(bool notInherited) {

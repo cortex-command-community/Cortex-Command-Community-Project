@@ -27,7 +27,8 @@ namespace RTE {
 
 	public:
 		SerializableClassNameGetter;
-		SerializableOverrideMethods;
+		int ReadProperty(const std::string_view& propName, Reader& reader) override;
+		int Save(Writer& writer) const override;
 
 		/// Struct that holds data about the custom BuyMenu/ObjectPicker theme of this DataModule.
 		/// Themes are used when a DataModule is considered a faction and is selected to be played as in an Activity.
@@ -143,6 +144,12 @@ namespace RTE {
 		/// @return The file path of the data file that the specified Entity was read from. If no Entity of that description was found, "" is returned.
 		std::string GetEntityDataLocation(const std::string& exactType, const std::string& instance);
 
+		/// Gets the hash data stored for a previously read in (defined) Entity.
+		/// @param exactType The type name of the derived Entity.
+		/// @param instance The instance name of the derived Entity instance.
+		/// @return The hash data of the specified Entity, or nullptr if no Entity of that description was found. Ownership is NOT transferred!
+		const HashingData* GetEntityHash(const std::string& exactType, const std::string& instance);
+
 		/// Gets a previously read in (defined) Entity, by exact type and instance name. Ownership is NOT transferred!
 		/// @param exactType The exact type name of the derived Entity instance to get.
 		/// @param instance The instance name of the derived Entity instance.
@@ -234,11 +241,11 @@ namespace RTE {
 		/// Holds and owns the actual object instance pointer, and the location of the data file it was read from, as well as where in that file.
 		struct PresetEntry {
 			/// Constructor method used to instantiate a PresetEntry object in system memory.
-			PresetEntry(Entity* preset, const std::string& file) :
-			    m_EntityPreset(preset), m_FileReadFrom(file) {}
+			PresetEntry(Entity* preset, const std::string& file);
 
 			Entity* m_EntityPreset; //!< Owned by this.
 			std::string m_FileReadFrom; //!< Where the instance was read from.
+			HashingData m_Hash; //!< The hash of the preset for later comparison.
 		};
 
 		bool m_IsUserdata; //!< Whether this DataModule contains userdata written by the game (e.g saved games or editor scenes), meaning it is not an official nor a 3rd party module and is ignored anywhere where that is relevant.

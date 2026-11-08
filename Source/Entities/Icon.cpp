@@ -60,12 +60,36 @@ int Icon::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 int Icon::Save(Writer& writer) const {
 	Entity::Save(writer);
-	writer.NewProperty("BitmapFile");
-	writer << m_BitmapFile;
-	writer.NewProperty("FrameCount");
-	writer << m_FrameCount;
+
+	writer.NewPropertyWithValue("BitmapFile", m_BitmapFile);
+	writer.NewDistinctProperty("FrameCount", m_FrameCount, 0U);
 
 	return 0;
+}
+
+
+int Icon::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const Icon& reference = static_cast<const Icon&>(entityReference);
+
+	writer.NewDistinctHashedProperty("BitmapFile", m_BitmapFile, hashData);
+	writer.NewDistinctProperty("FrameCount", m_FrameCount, reference.m_FrameCount);
+
+	return 0;
+}
+
+HashingData Icon::Hash() const {
+	HashingData hashData(Entity::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	uint64_t fileHash = m_BitmapFile.Hash().m_Hash;
+	hashData.m_Constituents.push_back(fileHash);
+	AddToHash(hash, fileHash);
+
+	AddToHash(hash, m_FrameCount);
+
+	return hashData;
 }
 
 void Icon::Destroy(bool notInherited) {

@@ -271,6 +271,15 @@ namespace RTE {
 		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
 
+#pragma region INI Handling
+		/// Records an Entity against a reference, expected to be its preset.
+		/// @param writer A Writer that the Entity will save itself to.
+		/// @param entityReference A reference preset to write properties against.
+		/// @param hashData A clump of hash data for cheap property comparisons.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
+#pragma endregion
+
 		/// Makes this an original Preset in a different module than it was before.
 		/// It severs ties deeply to the old module it was saved in.
 		/// @param whichModule The ID of the new module.
@@ -794,13 +803,6 @@ namespace RTE {
 
 		/// Private member variable and method declarations
 	private:
-		/// Serializes the SceneObject via the Writer. Necessary because full serialization doesn't know how to deal with duplicate properties.
-		/// @param writer The Writer being used for serialization.
-		/// @param sceneObjectToSave The SceneObject to save.
-		/// @param isChildAttachable Convenience flag for whether or not this SceneObject is a child Attachable, and certain properties shouldn't be saved.
-		/// @param saveFullData Whether or not to save most data. Turned off for stuff like SceneEditor saves.
-		void SaveSceneObject(Writer& writer, const SceneObject* sceneObjectToSave, bool isChildAttachable, bool saveFullData) const;
-
 		/// Clears all the member variables of this Scene, effectively
 		/// resetting the members of this abstraction level only.
 		void Clear();

@@ -58,14 +58,16 @@ int ThrownDevice::Create(const ThrownDevice& reference) {
 int ThrownDevice::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return HeldDevice::ReadProperty(propName, reader));
 
-	MatchProperty("ActivationSound", { reader >> *m_ActivationSound; });
+	MatchProperty("ActivationSound", { m_ActivationSound = std::shared_ptr<SoundContainer>(g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName)); });
 	MatchProperty("StartThrowOffset", { reader >> m_StartThrowOffset; });
 	MatchProperty("EndThrowOffset", { reader >> m_EndThrowOffset; });
 	MatchProperty("MinThrowVel", { reader >> m_MinThrowVel; });
 	MatchProperty("MaxThrowVel", { reader >> m_MaxThrowVel; });
 	MatchProperty("TriggerDelay", { reader >> m_TriggerDelay; });
 	MatchProperty("ActivatesWhenReleased", { reader >> m_ActivatesWhenReleased; });
-	MatchProperty("StrikerLever", { m_StrikerLever = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(reader)); });
+	MatchProperty("StrikerLever", {
+		m_StrikerLever = g_PresetMan.ReadPresetReferenceOfType<MovableObject>(reader, propName);
+	});
 
 	EndPropertyList;
 }
@@ -73,24 +75,56 @@ int ThrownDevice::ReadProperty(const std::string_view& propName, Reader& reader)
 int ThrownDevice::Save(Writer& writer) const {
 	HeldDevice::Save(writer);
 
-	writer.NewProperty("ActivationSound");
-	writer << *m_ActivationSound;
-	writer.NewProperty("StartThrowOffset");
-	writer << m_StartThrowOffset;
-	writer.NewProperty("EndThrowOffset");
-	writer << m_EndThrowOffset;
-	writer.NewProperty("MinThrowVel");
-	writer << m_MinThrowVel;
-	writer.NewProperty("MaxThrowVel");
-	writer << m_MaxThrowVel;
-	writer.NewProperty("TriggerDelay");
-	writer << m_TriggerDelay;
-	writer.NewProperty("ActivatesWhenReleased");
-	writer << m_ActivatesWhenReleased;
-	writer.NewProperty("StrikerLever");
-	writer << m_StrikerLever;
+	writer.NewPropertyWithValue("ActivationSound", m_ActivationSound.get());
+	writer.NewPropertyWithValue("StartThrowOffset", m_StartThrowOffset);
+	writer.NewPropertyWithValue("EndThrowOffset", m_EndThrowOffset);
+	writer.NewPropertyWithValue("MinThrowVel", m_MinThrowVel);
+	writer.NewPropertyWithValue("MaxThrowVel", m_MaxThrowVel);
+	writer.NewPropertyWithValue("TriggerDelay", m_TriggerDelay);
+	writer.NewPropertyWithValue("ActivatesWhenReleased", m_ActivatesWhenReleased);
+	writer.NewPresetReferenceProperty("StrikerLever", m_StrikerLever, static_cast<const MovableObject*>(nullptr));
 
 	return 0;
+}
+
+int ThrownDevice::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	HeldDevice::Write(writer, entityReference, hashData);
+
+	const ThrownDevice& reference = static_cast<const ThrownDevice&>(entityReference);
+
+	writer.NewOptionalEntityPointerProperty("ActivationSound", m_ActivationSound.get(), hashData);
+	writer.NewDistinctProperty("StartThrowOffset", m_StartThrowOffset, reference.m_StartThrowOffset);
+	writer.NewDistinctProperty("EndThrowOffset", m_EndThrowOffset, reference.m_EndThrowOffset);
+	writer.NewDistinctProperty("MinThrowVel", m_MinThrowVel, reference.m_MinThrowVel);
+	writer.NewDistinctProperty("MaxThrowVel", m_MaxThrowVel, reference.m_MaxThrowVel);
+	writer.NewDistinctProperty("TriggerDelay", m_TriggerDelay, reference.m_TriggerDelay);
+	writer.NewDistinctProperty("ActivatesWhenReleased", m_ActivatesWhenReleased, reference.m_ActivatesWhenReleased);
+	writer.NewPresetReferenceProperty("StrikerLever", m_StrikerLever, reference.m_StrikerLever);
+
+	return 0;
+}
+
+HashingData ThrownDevice::Hash() const {
+	HashingData hashData(HeldDevice::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	bool activationSoundDef = m_ActivationSound != nullptr;
+	hashData.m_ParseValues.push_back(activationSoundDef);
+	if (activationSoundDef) {
+		uint64_t activationSoundHash = m_ActivationSound->Hash().m_Hash;
+		hashData.m_Constituents.push_back(activationSoundHash);
+		AddToHash(hash, activationSoundHash);
+	}
+
+	AddToHash(hash, m_StartThrowOffset.Hash().m_Hash);
+	AddToHash(hash, m_EndThrowOffset.Hash().m_Hash);
+	AddToHash(hash, m_MinThrowVel);
+	AddToHash(hash, m_MaxThrowVel);
+	AddToHash(hash, m_TriggerDelay);
+	AddToHash(hash, m_ActivatesWhenReleased);
+	AddToHash(hash, (m_StrikerLever ? RTE::Hash(m_StrikerLever->GetEntityCharacteristic()) : 0));
+
+	return hashData;
 }
 
 float ThrownDevice::GetCalculatedMaxThrowVelIncludingArmThrowStrength() {
@@ -113,7 +147,9 @@ void ThrownDevice::ResetAllTimers() {
 void ThrownDevice::Activate() {
 	if (!m_Activated) {
 		m_ActivationTimer.Reset();
-		m_ActivationSound->Play(m_Pos);
+		if (m_ActivationSound) {
+			m_ActivationSound->Play(m_Pos);
+		}
 		if (MovableObject* strikerLever = m_StrikerLever ? dynamic_cast<MovableObject*>(m_StrikerLever->Clone()) : nullptr) {
 			Vector randomVel(m_Vel.GetMagnitude() * 0.25F + 1.0F, 0);
 

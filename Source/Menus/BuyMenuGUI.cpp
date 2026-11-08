@@ -102,6 +102,7 @@ void BuyMenuGUI::Clear() {
 	m_pSaveButton = 0;
 	m_pDeleteButton = 0;
 	m_Loadouts.clear();
+	m_UnavailableLoadouts.clear();
 	m_SelectedLoadoutIndex = -1;
 	m_PurchaseMade = false;
 
@@ -333,6 +334,7 @@ void BuyMenuGUI::DuplicateCartItem(const int itemIndex) {
 bool BuyMenuGUI::LoadAllLoadoutsFromFile() {
 	// First clear out all loadouts
 	m_Loadouts.clear();
+	m_UnavailableLoadouts.clear();
 	m_SelectedLoadoutIndex = -1;
 	// Try to load the player's loadout settings from file, if there is one
 	char loadoutPath[256];
@@ -359,10 +361,13 @@ bool BuyMenuGUI::LoadAllLoadoutsFromFile() {
 	while (loadoutFile.ReaderOK() && loadoutFile.NextProperty()) {
 		Loadout newLoad;
 		loadoutFile >> newLoad;
-		// If we successfully found everything this loadout requires, add it to the preset menu
-		// Why be picky?
-		if (!newLoad.GetCargoList()->empty()) // newLoad.IsComplete())
+		// Anything with cargo that can be used goes in the preset menu, even if some of what it refers to can't be used right now.
+		if (!newLoad.GetCargoList()->empty()) {
 			m_Loadouts.push_back(newLoad);
+		} else if (!newLoad.IsComplete()) {
+			// There's nothing to show for this one, but it's still the player's, and it's back when what it refers to is.
+			m_UnavailableLoadouts.emplace_back(m_Loadouts.size(), newLoad);
+		}
 	}
 
 	if (m_NativeTechModule > 0) {
@@ -427,7 +432,7 @@ bool BuyMenuGUI::LoadAllLoadoutsFromFile() {
 
 bool BuyMenuGUI::SaveAllLoadoutsToFile() {
 	// Nothing to save
-	if (m_Loadouts.empty())
+	if (m_Loadouts.empty() && m_UnavailableLoadouts.empty())
 		return true;
 
 	char loadoutPath[256];
@@ -446,12 +451,19 @@ bool BuyMenuGUI::SaveAllLoadoutsToFile() {
 	// Open the file
 	Writer loadoutFile(loadoutPath, false);
 
-	// Write out all the loadouts that are user made.
-	for (const Loadout& loadoutEntry: m_Loadouts) {
-		// Don't write out preset references, they'll be read first from PresetMan on load anyway
-		if (loadoutEntry.GetPresetName() == "None") {
-			loadoutFile.NewPropertyWithValue("AddLoadout", loadoutEntry);
+	// Write out all the loadouts that are user made, with those that can't be used right now back where they were.
+	std::vector<std::pair<size_t, Loadout>>::const_iterator unavailable = m_UnavailableLoadouts.begin();
+	for (size_t i = 0; i < m_Loadouts.size(); ++i) {
+		for (; unavailable != m_UnavailableLoadouts.end() && unavailable->first <= i; ++unavailable) {
+			loadoutFile.NewPropertyWithValue("AddLoadout", unavailable->second);
 		}
+		// Don't write out preset references, they'll be read first from PresetMan on load anyway
+		if (m_Loadouts[i].GetPresetName() == "None") {
+			loadoutFile.NewPropertyWithValue("AddLoadout", m_Loadouts[i]);
+		}
+	}
+	for (; unavailable != m_UnavailableLoadouts.end(); ++unavailable) {
+		loadoutFile.NewPropertyWithValue("AddLoadout", unavailable->second);
 	}
 
 	return true;
@@ -1218,7 +1230,7 @@ void BuyMenuGUI::Update() {
 					// Add preset name at the begining to differentiate loadouts from user-defined presets
 					Loadout& loadout = m_Loadouts[pItem->m_ExtraIndex];
 					if (loadout.GetPresetName() != "None") {
-						description += loadout.GetPresetName() + ":\n";
+						description += loadout.GetDisplayName() + ":\n";
 					}
 
 					// Go through the cargo setup of each loadout and encode a meaningful label for the list item
@@ -1240,7 +1252,7 @@ void BuyMenuGUI::Update() {
 						}
 
 						// Append the name of the current cargo thing to the label
-						description += (*cItr)->GetPresetName();
+						description += (*cItr)->GetDisplayName();
 
 						// If not the last one, add a separator to the label
 						if (cItr != lastItr) {
@@ -2059,17 +2071,17 @@ void BuyMenuGUI::CategoryChange(bool focusOnCategoryTabs) {
 						if (m_OwnedItems.size() > 0 || m_OnlyShowOwnedItems) {
 							if (GetOwnedItemsAmount((*tItr)->GetModuleAndPresetName()) > 0) {
 								std::string amount = std::to_string(GetOwnedItemsAmount((*tItr)->GetModuleAndPresetName())) + " pcs";
-								m_pShopList->AddItem((*tItr)->GetPresetName(), amount, pItemBitmap, *tItr);
+								m_pShopList->AddItem((*tItr)->GetDisplayName(), amount, pItemBitmap, *tItr);
 							} else {
 								if (!m_OnlyShowOwnedItems)
-									m_pShopList->AddItem((*tItr)->GetPresetName(), (*tItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *tItr);
+									m_pShopList->AddItem((*tItr)->GetDisplayName(), (*tItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *tItr);
 								else {
 									if (m_AlwaysAllowedItems.find((*tItr)->GetModuleAndPresetName()) != m_AlwaysAllowedItems.end())
-										m_pShopList->AddItem((*tItr)->GetPresetName(), (*tItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *tItr);
+										m_pShopList->AddItem((*tItr)->GetDisplayName(), (*tItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *tItr);
 								}
 							}
 						} else {
-							m_pShopList->AddItem((*tItr)->GetPresetName(), (*tItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *tItr);
+							m_pShopList->AddItem((*tItr)->GetDisplayName(), (*tItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *tItr);
 						}
 					}
 				}
@@ -2135,10 +2147,10 @@ bool BuyMenuGUI::DeployLoadout(int index) {
 		m_pSelectedCraft = pCraft;
 
 		// Take into account whether these are native or not, and multiply the cost accordingly
-		m_pCraftBox->SetText(m_pSelectedCraft->GetPresetName());
+		m_pCraftBox->SetText(m_pSelectedCraft->GetDisplayName());
 		m_pCraftBox->SetRightText(m_pSelectedCraft->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult));
 
-		m_pCraftNameLabel->SetText(m_pSelectedCraft->GetPresetName());
+		m_pCraftNameLabel->SetText(m_pSelectedCraft->GetDisplayName());
 		m_pCraftPriceLabel->SetText(m_pSelectedCraft->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult));
 		UpdateTotalPassengersLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftPassengersLabel);
 		UpdateTotalMassLabel(dynamic_cast<const ACraft*>(m_pSelectedCraft), m_pCraftMassLabel);
@@ -2163,7 +2175,7 @@ bool BuyMenuGUI::DeployLoadout(int index) {
 			if (GetOwnedItemsAmount((*cItr)->GetModuleAndPresetName()) > 0) {
 				canAdd = false;
 				// Add manually with pcs counter
-				AddCartItem((*cItr)->GetPresetName(), "1 pc", pItemBitmap, *cItr);
+				AddCartItem((*cItr)->GetDisplayName(), "1 pc", pItemBitmap, *cItr);
 			} else
 				canAdd = false;
 		}
@@ -2172,7 +2184,7 @@ bool BuyMenuGUI::DeployLoadout(int index) {
 			canAdd = true;
 
 		if (canAdd)
-			AddCartItem((*cItr)->GetPresetName(), (*cItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *cItr);
+			AddCartItem((*cItr)->GetDisplayName(), (*cItr)->GetGoldValueString(m_NativeTechModule, m_ForeignCostMult), pItemBitmap, *cItr);
 	}
 
 	// Update labels with the new config's values

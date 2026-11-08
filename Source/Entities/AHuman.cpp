@@ -233,49 +233,57 @@ int AHuman::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Actor::ReadProperty(propName, reader));
 
 	MatchProperty("ThrowPrepTime", { reader >> m_ThrowPrepTime; });
-	MatchProperty("Head", { SetHead(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Head", { SetHead(g_PresetMan.ReadReflectedPresetOfType<Attachable>(reader, propName)); });
 	MatchProperty("LookToAimRatio", { reader >> m_LookToAimRatio; });
-	MatchProperty("Jetpack", { SetJetpack(dynamic_cast<AEJetpack*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Jetpack", { SetJetpack(g_PresetMan.ReadReflectedPresetOfType<AEJetpack>(reader, propName)); });
 	MatchProperty("FGArmFlailScalar", { reader >> m_FGArmFlailScalar; });
 	MatchProperty("BGArmFlailScalar", { reader >> m_BGArmFlailScalar; });
 	MatchProperty("ArmSwingRate", { reader >> m_ArmSwingRate; });
 	MatchProperty("DeviceArmSwayRate", { reader >> m_DeviceArmSwayRate; });
-	MatchProperty("FGArm", { SetFGArm(dynamic_cast<Arm*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("BGArm", { SetBGArm(dynamic_cast<Arm*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("FGLeg", { SetFGLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("BGLeg", { SetBGLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("FGArm", { SetFGArm(g_PresetMan.ReadReflectedPresetOfType<Arm>(reader, propName)); });
+	MatchProperty("BGArm", { SetBGArm(g_PresetMan.ReadReflectedPresetOfType<Arm>(reader, propName)); });
+	MatchProperty("FGLeg", { SetFGLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
+	MatchProperty("BGLeg", { SetBGLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
 	MatchProperty("HandGroup", {
 		delete m_pFGHandGroup;
 		delete m_pBGHandGroup;
-		m_pFGHandGroup = new AtomGroup();
-		m_pBGHandGroup = new AtomGroup();
-		reader >> m_pFGHandGroup;
-		m_pBGHandGroup->Create(*m_pFGHandGroup);
-		m_pFGHandGroup->SetOwner(this);
-		m_pBGHandGroup->SetOwner(this);
+		m_pFGHandGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		m_pBGHandGroup = nullptr;
+		if (m_pFGHandGroup) {
+			m_pBGHandGroup = new AtomGroup();
+			m_pBGHandGroup->Create(*m_pFGHandGroup);
+			m_pFGHandGroup->SetOwner(this);
+			m_pBGHandGroup->SetOwner(this);
+		}
 	});
 	MatchProperty("FGFootGroup", {
 		delete m_pFGFootGroup;
-		m_pFGFootGroup = new AtomGroup();
-		reader >> m_pFGFootGroup;
-		m_pFGFootGroup->SetOwner(this);
-		m_BackupFGFootGroup = new AtomGroup(*m_pFGFootGroup);
-		m_BackupFGFootGroup->RemoveAllAtoms();
+		delete m_BackupFGFootGroup;
+		m_pFGFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		m_BackupFGFootGroup = nullptr;
+		if (m_pFGFootGroup) {
+			m_pFGFootGroup->SetOwner(this);
+			m_BackupFGFootGroup = new AtomGroup(*m_pFGFootGroup);
+			m_BackupFGFootGroup->RemoveAllAtoms();
+		}
 	});
 	MatchProperty("BGFootGroup", {
 		delete m_pBGFootGroup;
-		m_pBGFootGroup = new AtomGroup();
-		reader >> m_pBGFootGroup;
-		m_pBGFootGroup->SetOwner(this);
-		m_BackupBGFootGroup = new AtomGroup(*m_pBGFootGroup);
-		m_BackupBGFootGroup->RemoveAllAtoms();
+		delete m_BackupBGFootGroup;
+		m_pBGFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		m_BackupBGFootGroup = nullptr;
+		if (m_pBGFootGroup) {
+			m_pBGFootGroup->SetOwner(this);
+			m_BackupBGFootGroup = new AtomGroup(*m_pBGFootGroup);
+			m_BackupBGFootGroup->RemoveAllAtoms();
+		}
 	});
 	MatchProperty("MaxWalkPathCrouchShift", { reader >> m_MaxWalkPathCrouchShift; });
 	MatchProperty("StrideSound", {
-		m_StrideSound = new SoundContainer;
-		reader >> m_StrideSound;
+		delete m_StrideSound;
+		m_StrideSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
-	MatchProperty("StandLimbPath", { reader >> m_Paths[FGROUND][STAND]; });
+	MatchForwards("StandLimbPath") MatchProperty("StandLimbPathFG", { reader >> m_Paths[FGROUND][STAND]; });
 	MatchProperty("StandLimbPathBG", { reader >> m_Paths[BGROUND][STAND]; });
 	MatchProperty("WalkLimbPath", { reader >> m_Paths[FGROUND][WALK]; });
 	MatchProperty("RunLimbPath", { reader >> m_Paths[FGROUND][RUN]; });
@@ -299,60 +307,35 @@ int AHuman::ReadProperty(const std::string_view& propName, Reader& reader) {
 int AHuman::Save(Writer& writer) const {
 	Actor::Save(writer);
 
-	writer.NewProperty("ThrowPrepTime");
-	writer << m_ThrowPrepTime;
-	writer.NewProperty("Head");
-	writer << m_pHead;
-	writer.NewProperty("LookToAimRatio");
-	writer << m_LookToAimRatio;
-	writer.NewProperty("Jetpack");
-	writer << m_pJetpack;
-	writer.NewProperty("FGArmFlailScalar");
-	writer << m_FGArmFlailScalar;
-	writer.NewProperty("BGArmFlailScalar");
-	writer << m_BGArmFlailScalar;
-	writer.NewProperty("ArmSwingRate");
-	writer << m_ArmSwingRate;
+	writer.NewPropertyWithValue("ThrowPrepTime", m_ThrowPrepTime);
+	writer.NewPropertyWithValue("Head", m_pHead);
+	writer.NewPropertyWithValue("LookToAimRatio", m_LookToAimRatio);
+	writer.NewPropertyWithValue("Jetpack", m_pJetpack);
+	writer.NewPropertyWithValue("FGArmFlailScalar", m_FGArmFlailScalar);
+	writer.NewPropertyWithValue("BGArmFlailScalar", m_BGArmFlailScalar);
+	writer.NewPropertyWithValue("ArmSwingRate", m_ArmSwingRate);
 	writer.NewPropertyWithValue("DeviceArmSwayRate", m_DeviceArmSwayRate);
-	writer.NewProperty("FGArm");
-	writer << m_pFGArm;
-	writer.NewProperty("BGArm");
-	writer << m_pBGArm;
-	writer.NewProperty("FGLeg");
-	writer << m_pFGLeg;
-	writer.NewProperty("BGLeg");
-	writer << m_pBGLeg;
-	writer.NewProperty("HandGroup");
-	writer << m_pFGHandGroup;
-	writer.NewProperty("FGFootGroup");
-	writer << m_pFGFootGroup;
-	writer.NewProperty("BGFootGroup");
-	writer << m_pBGFootGroup;
-	writer.NewProperty("MaxWalkPathCrouchShift");
-	writer << m_MaxWalkPathCrouchShift;
-	writer.NewProperty("StrideSound");
-	writer << m_StrideSound;
+	writer.NewPropertyWithValue("FGArm", m_pFGArm);
+	writer.NewPropertyWithValue("BGArm", m_pBGArm);
+	writer.NewPropertyWithValue("FGLeg", m_pFGLeg);
+	writer.NewPropertyWithValue("BGLeg", m_pBGLeg);
+	writer.NewPropertyWithValue("HandGroup", m_pFGHandGroup);
+	writer.NewPropertyWithValue("FGFootGroup", m_pFGFootGroup);
+	writer.NewPropertyWithValue("BGFootGroup", m_pBGFootGroup);
+	writer.NewPropertyWithValue("MaxWalkPathCrouchShift", m_MaxWalkPathCrouchShift);
+	writer.NewPropertyWithValue("StrideSound", m_StrideSound);
 
-	writer.NewProperty("StandLimbPath");
-	writer << m_Paths[FGROUND][STAND];
-	writer.NewProperty("StandLimbPathBG");
-	writer << m_Paths[BGROUND][STAND];
-	writer.NewProperty("WalkLimbPath");
-	writer << m_Paths[FGROUND][WALK];
-	writer.NewProperty("RunLimbPath");
-	writer << m_Paths[FGROUND][RUN];
-	writer.NewProperty("CrouchLimbPath");
-	writer << m_Paths[FGROUND][PRONE];
-	writer.NewProperty("CrawlLimbPath");
-	writer << m_Paths[FGROUND][CRAWL];
-	writer.NewProperty("ArmCrawlLimbPath");
-	writer << m_Paths[FGROUND][ARMCRAWL];
-	writer.NewProperty("ClimbLimbPath");
-	writer << m_Paths[FGROUND][CLIMB];
-	writer.NewProperty("JumpLimbPath");
-	writer << m_Paths[FGROUND][JUMP];
-	writer.NewProperty("DislodgeLimbPath");
-	writer << m_Paths[FGROUND][DISLODGE];
+	writer.NewPropertyWithValue("StandLimbPath", m_Paths[FGROUND][STAND]);
+	writer.NewPropertyWithValue("StandLimbPathBG", m_Paths[BGROUND][STAND]);
+	writer.NewPropertyWithValue("WalkLimbPath", m_Paths[FGROUND][WALK]);
+	writer.NewPropertyWithValue("RunLimbPath", m_Paths[FGROUND][RUN]);
+	writer.NewPropertyWithValue("CrouchLimbPath", m_Paths[FGROUND][PRONE]);
+	writer.NewPropertyWithValue("CrouchLimbPathBG", m_Paths[BGROUND][PRONE]);
+	writer.NewPropertyWithValue("CrawlLimbPath", m_Paths[FGROUND][CRAWL]);
+	writer.NewPropertyWithValue("ArmCrawlLimbPath", m_Paths[FGROUND][ARMCRAWL]);
+	writer.NewPropertyWithValue("ClimbLimbPath", m_Paths[FGROUND][CLIMB]);
+	writer.NewPropertyWithValue("JumpLimbPath", m_Paths[FGROUND][JUMP]);
+	writer.NewPropertyWithValue("DislodgeLimbPath", m_Paths[FGROUND][DISLODGE]);
 
 	writer.NewPropertyWithValue("StandRotAngleTarget", m_RotAngleTargets[STAND]);
 	writer.NewPropertyWithValue("WalkRotAngleTarget", m_RotAngleTargets[WALK]);
@@ -361,6 +344,196 @@ int AHuman::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("JumpRotAngleTarget", m_RotAngleTargets[JUMP]);
 
 	return 0;
+}
+
+int AHuman::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Actor::Write(writer, entityReference, hashData);
+
+	const AHuman& reference = static_cast<const AHuman&>(entityReference);
+
+	writer.NewDistinctProperty("ThrowPrepTime", m_ThrowPrepTime, reference.m_ThrowPrepTime);
+	writer.NewOptionalEntityPointerProperty("Head", m_pHead, hashData);
+	writer.NewDistinctProperty("LookToAimRatio", m_LookToAimRatio, reference.m_LookToAimRatio);
+	writer.NewOptionalEntityPointerProperty("Jetpack", m_pJetpack, hashData);
+	writer.NewDistinctProperty("FGArmFlailScalar", m_FGArmFlailScalar, reference.m_FGArmFlailScalar);
+	writer.NewDistinctProperty("BGArmFlailScalar", m_BGArmFlailScalar, reference.m_BGArmFlailScalar);
+	writer.NewDistinctProperty("ArmSwingRate", m_ArmSwingRate, reference.m_ArmSwingRate);
+	writer.NewDistinctProperty("DeviceArmSwayRate", m_DeviceArmSwayRate, reference.m_DeviceArmSwayRate);
+	writer.NewOptionalEntityPointerProperty("FGArm", m_pFGArm, hashData);
+	writer.NewOptionalEntityPointerProperty("BGArm", m_pBGArm, hashData);
+	writer.NewOptionalEntityPointerProperty("FGLeg", m_pFGLeg, hashData);
+	writer.NewOptionalEntityPointerProperty("BGLeg", m_pBGLeg, hashData);
+	writer.NewOptionalEntityPointerProperty("HandGroup", m_pFGHandGroup, hashData);
+	writer.NewOptionalEntityPointerProperty("FGFootGroup", m_pFGFootGroup, hashData);
+	writer.NewOptionalEntityPointerProperty("BGFootGroup", m_pBGFootGroup, hashData);
+	writer.NewDistinctProperty("MaxWalkPathCrouchShift", m_MaxWalkPathCrouchShift, reference.m_MaxWalkPathCrouchShift);
+	writer.NewOptionalEntityPointerProperty("StrideSound", m_StrideSound, hashData);
+	writer.NewDistinctHashedProperty("StandLimbPathFG", m_Paths[FGROUND][STAND], hashData);
+	writer.NewDistinctHashedProperty("StandLimbPathBG", m_Paths[BGROUND][STAND], hashData);
+	writer.NewDistinctHashedProperty("WalkLimbPath", m_Paths[FGROUND][WALK], hashData);
+	writer.NewDistinctHashedProperty("RunLimbPath", m_Paths[FGROUND][RUN], hashData);
+	writer.NewDistinctHashedProperty("CrouchLimbPath", m_Paths[FGROUND][PRONE], hashData);
+	writer.NewDistinctHashedProperty("CrouchLimbPathBG", m_Paths[BGROUND][PRONE], hashData);
+	writer.NewDistinctHashedProperty("CrawlLimbPath", m_Paths[FGROUND][CRAWL], hashData);
+	writer.NewDistinctHashedProperty("ArmCrawlLimbPath", m_Paths[FGROUND][ARMCRAWL], hashData);
+	writer.NewDistinctHashedProperty("ClimbLimbPath", m_Paths[FGROUND][CLIMB], hashData);
+	writer.NewDistinctHashedProperty("JumpLimbPath", m_Paths[FGROUND][JUMP], hashData);
+	writer.NewDistinctHashedProperty("DislodgeLimbPath", m_Paths[FGROUND][DISLODGE], hashData);
+	writer.NewDistinctProperty("StandRotAngleTarget", m_RotAngleTargets[STAND], reference.m_RotAngleTargets[STAND]);
+	writer.NewDistinctProperty("WalkRotAngleTarget", m_RotAngleTargets[WALK], reference.m_RotAngleTargets[WALK]);
+	writer.NewDistinctProperty("RunRotAngleTarget", m_RotAngleTargets[RUN], reference.m_RotAngleTargets[RUN]);
+	writer.NewDistinctProperty("CrouchRotAngleTarget", m_RotAngleTargets[PRONE], reference.m_RotAngleTargets[PRONE]);
+	writer.NewDistinctProperty("JumpRotAngleTarget", m_RotAngleTargets[JUMP], reference.m_RotAngleTargets[JUMP]);
+
+	return 0;
+}
+
+HashingData AHuman::Hash() const {
+	HashingData hashData(Actor::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_ThrowPrepTime);
+
+	bool headDef = m_pHead != nullptr;
+	hashData.m_ParseValues.push_back(headDef);
+	if (headDef) {
+		uint64_t headHash = m_pHead->Hash().m_Hash;
+		hashData.m_Constituents.push_back(headHash);
+		AddToHash(hash, headHash);
+	}
+
+	AddToHash(hash, m_LookToAimRatio);
+
+	bool jetpackDef = m_pJetpack != nullptr;
+	hashData.m_ParseValues.push_back(jetpackDef);
+	if (jetpackDef) {
+		uint64_t jetpackHash = m_pJetpack->Hash().m_Hash;
+		hashData.m_Constituents.push_back(jetpackHash);
+		AddToHash(hash, jetpackHash);
+	}
+
+	AddToHash(hash, m_FGArmFlailScalar);
+	AddToHash(hash, m_BGArmFlailScalar);
+	AddToHash(hash, m_ArmSwingRate);
+	AddToHash(hash, m_DeviceArmSwayRate);
+
+	bool fgArmDef = m_pFGArm != nullptr;
+	hashData.m_ParseValues.push_back(fgArmDef);
+	if (fgArmDef) {
+		uint64_t fgArmHash = m_pFGArm->Hash().m_Hash;
+		hashData.m_Constituents.push_back(fgArmHash);
+		AddToHash(hash, fgArmHash);
+	}
+
+	bool bgArmDef = m_pBGArm != nullptr;
+	hashData.m_ParseValues.push_back(bgArmDef);
+	if (bgArmDef) {
+		uint64_t bgArmHash = m_pBGArm->Hash().m_Hash;
+		hashData.m_Constituents.push_back(bgArmHash);
+		AddToHash(hash, bgArmHash);
+	}
+
+	bool fgLegDef = m_pFGLeg != nullptr;
+	hashData.m_ParseValues.push_back(fgLegDef);
+	if (fgLegDef) {
+		uint64_t fgLegHash = m_pFGLeg->Hash().m_Hash;
+		hashData.m_Constituents.push_back(fgLegHash);
+		AddToHash(hash, fgLegHash);
+	}
+
+	bool bgLegDef = m_pBGLeg != nullptr;
+	hashData.m_ParseValues.push_back(bgLegDef);
+	if (bgLegDef) {
+		uint64_t bgLegHash = m_pBGLeg->Hash().m_Hash;
+		hashData.m_Constituents.push_back(bgLegHash);
+		AddToHash(hash, bgLegHash);
+	}
+
+	bool fgHandGroupDef = m_pFGHandGroup != nullptr;
+	hashData.m_ParseValues.push_back(fgHandGroupDef);
+	if (fgHandGroupDef) {
+		uint64_t fgHandGroupHash = m_pFGHandGroup->Hash().m_Hash;
+		hashData.m_Constituents.push_back(fgHandGroupHash);
+		AddToHash(hash, fgHandGroupHash);
+	}
+
+	bool fgFootGroupDef = m_pFGFootGroup != nullptr;
+	hashData.m_ParseValues.push_back(fgFootGroupDef);
+	if (fgFootGroupDef) {
+		uint64_t fgFootGroupHash = m_pFGFootGroup->Hash().m_Hash;
+		hashData.m_Constituents.push_back(fgFootGroupHash);
+		AddToHash(hash, fgFootGroupHash);
+	}
+
+	bool bgFootGroupDef = m_pBGFootGroup != nullptr;
+	hashData.m_ParseValues.push_back(bgFootGroupDef);
+	if (bgFootGroupDef) {
+		uint64_t bgFootGroupHash = m_pBGFootGroup->Hash().m_Hash;
+		hashData.m_Constituents.push_back(bgFootGroupHash);
+		AddToHash(hash, bgFootGroupHash);
+	}
+
+	AddToHash(hash, m_MaxWalkPathCrouchShift);
+
+	bool strideSoundDef = m_StrideSound != nullptr;
+	hashData.m_ParseValues.push_back(strideSoundDef);
+	if (strideSoundDef) {
+		uint64_t strideSoundHash = m_StrideSound->Hash().m_Hash;
+		hashData.m_Constituents.push_back(strideSoundHash);
+		AddToHash(hash, strideSoundHash);
+	}
+
+	uint64_t fgStandPathHash = m_Paths[FGROUND][STAND].Hash().m_Hash;
+	hashData.m_Constituents.push_back(fgStandPathHash);
+	AddToHash(hash, fgStandPathHash);
+
+	uint64_t bgStandPathHash = m_Paths[BGROUND][STAND].Hash().m_Hash;
+	hashData.m_Constituents.push_back(bgStandPathHash);
+	AddToHash(hash, bgStandPathHash);
+
+	uint64_t walkPathHash = m_Paths[FGROUND][WALK].Hash().m_Hash;
+	hashData.m_Constituents.push_back(walkPathHash);
+	AddToHash(hash, walkPathHash);
+
+	uint64_t runPathHash = m_Paths[FGROUND][RUN].Hash().m_Hash;
+	hashData.m_Constituents.push_back(runPathHash);
+	AddToHash(hash, runPathHash);
+
+	uint64_t pronePathHash = m_Paths[FGROUND][PRONE].Hash().m_Hash;
+	hashData.m_Constituents.push_back(pronePathHash);
+	AddToHash(hash, pronePathHash);
+
+	uint64_t bgPronePathHash = m_Paths[BGROUND][PRONE].Hash().m_Hash;
+	hashData.m_Constituents.push_back(bgPronePathHash);
+	AddToHash(hash, bgPronePathHash);
+
+	uint64_t crawlPathHash = m_Paths[FGROUND][CRAWL].Hash().m_Hash;
+	hashData.m_Constituents.push_back(crawlPathHash);
+	AddToHash(hash, crawlPathHash);
+
+	uint64_t armCrawlPathHash = m_Paths[FGROUND][ARMCRAWL].Hash().m_Hash;
+	hashData.m_Constituents.push_back(armCrawlPathHash);
+	AddToHash(hash, armCrawlPathHash);
+
+	uint64_t climbPathHash = m_Paths[FGROUND][CLIMB].Hash().m_Hash;
+	hashData.m_Constituents.push_back(climbPathHash);
+	AddToHash(hash, climbPathHash);
+
+	uint64_t jumpPathHash = m_Paths[FGROUND][JUMP].Hash().m_Hash;
+	hashData.m_Constituents.push_back(jumpPathHash);
+	AddToHash(hash, jumpPathHash);
+
+	uint64_t dislodgePathHash = m_Paths[FGROUND][DISLODGE].Hash().m_Hash;
+	hashData.m_Constituents.push_back(dislodgePathHash);
+	AddToHash(hash, dislodgePathHash);
+
+	AddToHash(hash, m_RotAngleTargets[STAND]);
+	AddToHash(hash, m_RotAngleTargets[WALK]);
+	AddToHash(hash, m_RotAngleTargets[RUN]);
+	AddToHash(hash, m_RotAngleTargets[PRONE]);
+	AddToHash(hash, m_RotAngleTargets[JUMP]);
+
+	return hashData;
 }
 
 void AHuman::Destroy(bool notInherited) {
@@ -2880,15 +3053,16 @@ void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 
 				m_HUDStack -= 9;
 			}
+
 			if (m_Controller.IsState(PIE_MENU_ACTIVE) || !m_EquipHUDTimer.IsPastRealMS(700)) {
 				HeldDevice* fgEquippedItem = GetEquippedItem();
 				HeldDevice* bgEquippedItem = GetEquippedBGItem();
-				std::string equippedItemsString = (fgEquippedItem ? fgEquippedItem->GetPresetName() : "EMPTY") + (bgEquippedItem ? " | " + bgEquippedItem->GetPresetName() : "");
+				std::string equippedItemsString = (fgEquippedItem ? fgEquippedItem->GetDisplayName() : "EMPTY") + (bgEquippedItem ? " | " + bgEquippedItem->GetDisplayName() : "");
 				pSmallFont->DrawAligned(&allegroBitmap, drawPos.GetFloorIntX() + 1, drawPos.GetFloorIntY() + m_HUDStack + 3, equippedItemsString, GUIFont::Centre);
 				m_HUDStack -= 9;
 			}
 		} else {
-			std::snprintf(str, sizeof(str), "NO ARM!");
+			std::snprintf(str, sizeof(str), "NO ARMS!");
 			pSmallFont->DrawAligned(&allegroBitmap, drawPos.m_X + 2, drawPos.m_Y + m_HUDStack + 3, str, GUIFont::Centre);
 			m_HUDStack -= 9;
 		}
@@ -2934,7 +3108,7 @@ void AHuman::DrawHUD(BITMAP* pTargetBitmap, const Vector& targetPos, int whichSc
 
 		// Pickup GUI
 		if (const HeldDevice* itemInReach = GetItemInReach(); itemInReach && !m_Controller.IsState(PIE_MENU_ACTIVE)) {
-			std::snprintf(str, sizeof(str), " %c %s", -49, itemInReach->GetPresetName().c_str());
+			std::snprintf(str, sizeof(str), " %c %s", -49, itemInReach->GetDisplayName().c_str());
 			pSmallFont->DrawAligned(&allegroBitmap, drawPos.GetFloorIntX(), drawPos.GetFloorIntY() + m_HUDStack + 3, str, GUIFont::Centre);
 			m_HUDStack -= 9;
 		}
@@ -2977,7 +3151,7 @@ int AHuman::WhilePieMenuOpenListener(const PieMenu* pieMenu) {
 				if (pieSlice->GetType() == PieSliceType::Pickup) {
 					if (m_pFGArm || (m_pBGArm && itemInReach->IsOneHanded())) {
 						pieSlice->SetEnabled(m_Status != INACTIVE);
-						pieSlice->SetDescription("Pick Up " + itemInReach->GetPresetName());
+						pieSlice->SetDescription("Pick Up " + itemInReach->GetDisplayName());
 					} else {
 						pieSlice->SetEnabled(false);
 						pieSlice->SetDescription("No Arm");
@@ -3015,9 +3189,9 @@ int AHuman::WhilePieMenuOpenListener(const PieMenu* pieMenu) {
 			case PieSliceType::Drop:
 				if (const MovableObject* equippedFGItem = GetEquippedItem()) {
 					pieSlice->SetEnabled(m_Status != INACTIVE);
-					pieSlice->SetDescription("Drop " + equippedFGItem->GetPresetName());
+					pieSlice->SetDescription("Drop " + equippedFGItem->GetDisplayName());
 				} else if (const MovableObject* equippedBGItem = GetEquippedBGItem()) {
-					pieSlice->SetDescription("Drop " + equippedBGItem->GetPresetName());
+					pieSlice->SetDescription("Drop " + equippedBGItem->GetDisplayName());
 					pieSlice->SetEnabled(m_Status != INACTIVE);
 				} else if (!IsInventoryEmpty() && !m_pFGArm) {
 					pieSlice->SetEnabled(m_Status != INACTIVE);

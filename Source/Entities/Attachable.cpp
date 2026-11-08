@@ -134,12 +134,14 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("JointOffset", { reader >> m_JointOffset; });
 	MatchProperty("BreakWound", {
-		m_BreakWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset(reader));
+		m_BreakWound = g_PresetMan.ReadPresetReferenceOfType<AEmitter>(reader, propName);
 		if (!m_ParentBreakWound) {
 			m_ParentBreakWound = m_BreakWound;
 		}
 	});
-	MatchProperty("ParentBreakWound", { m_ParentBreakWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset(reader)); });
+	MatchProperty("ParentBreakWound", {
+		m_ParentBreakWound = g_PresetMan.ReadPresetReferenceOfType<AEmitter>(reader, propName);
+	});
 	MatchProperty("InheritsHFlipped", {
 		reader >> m_InheritsHFlipped;
 		if (m_InheritsHFlipped != 0 && m_InheritsHFlipped != 1) {
@@ -148,14 +150,28 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("InheritsRotAngle", { reader >> m_InheritsRotAngle; });
 	MatchForwards("InheritedRotAngleRadOffset") MatchProperty("InheritedRotAngleOffset", { reader >> m_InheritedRotAngleOffset; });
-	MatchProperty("InheritedRotAngleDegOffset", { m_InheritedRotAngleOffset = DegreesToRadians(std::stof(reader.ReadPropValue())); });
+	MatchProperty("InheritedRotAngleDegOffset", {
+		float inheritedRotAngleDegOffset;
+		reader >> inheritedRotAngleDegOffset;
+		m_InheritedRotAngleOffset = DegreesToRadians(inheritedRotAngleDegOffset);
+	});
 	MatchProperty("MountedRotAngleOffset", { reader >> m_MountedRotAngleOffset; });
 	MatchProperty("InheritsFrame", { reader >> m_InheritsFrame; });
 	MatchProperty("InheritsVelWhenDetached", { reader >> m_InheritsVelWhenDetached; });
 	MatchProperty("InheritsAngularVelWhenDetached", { reader >> m_InheritsAngularVelWhenDetached; });
 	MatchProperty("CollidesWithTerrainWhileAttached", { reader >> m_CollidesWithTerrainWhileAttached; });
 	MatchProperty("IgnoresParticlesWhileAttached", { reader >> m_IgnoresParticlesWhileAttached; });
-	MatchProperty("AddPieSlice", { m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader)))); });
+	MatchProperty("_ClearPieSlices", {
+		reader.ReadPropValue();
+		m_PieSlices.clear();
+	});
+	MatchProperty("AddPieSlice", {
+		if (PieSlice* pieSlice = g_PresetMan.ReadReflectedPresetOfType<PieSlice>(reader, propName)) {
+			m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(pieSlice));
+		} else {
+			reader.ReportError("Tried to add a pie slice that isn't one!");
+		}
+	});
 
 	EndPropertyList;
 }
@@ -173,13 +189,19 @@ int Attachable::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("JointStiffness", m_JointStiffness);
 	writer.NewPropertyWithValue("JointOffset", m_JointOffset);
 
-	writer.NewPropertyWithValue("BreakWound", m_BreakWound);
-	writer.NewPropertyWithValue("ParentBreakWound", m_ParentBreakWound);
+	if (m_BreakWound != nullptr) {
+		writer.NewPropertyWithValue("BreakWound", m_BreakWound->GetEntityCharacteristic());
+	}
+
+	if (m_ParentBreakWound != nullptr) {
+		writer.NewPropertyWithValue("ParentBreakWound", m_ParentBreakWound->GetEntityCharacteristic());
+	}
 
 	writer.NewPropertyWithValue("InheritsHFlipped", ((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2));
 	writer.NewPropertyWithValue("InheritsRotAngle", m_InheritsRotAngle);
 	writer.NewPropertyWithValue("InheritedRotAngleOffset", m_InheritedRotAngleOffset);
-  writer.NewPropertyWithValue("MountedRotAngleOffset", m_MountedRotAngleOffset);
+	writer.NewPropertyWithValue("InheritsFrame", m_InheritsFrame);
+	writer.NewPropertyWithValue("MountedRotAngleOffset", m_MountedRotAngleOffset);
 	writer.NewPropertyWithValue("InheritsVelWhenDetached", m_InheritsVelWhenDetached);
 	writer.NewPropertyWithValue("InheritsAngularVelWhenDetached", m_InheritsAngularVelWhenDetached);
 
@@ -190,7 +212,92 @@ int Attachable::Save(Writer& writer) const {
 		writer.NewPropertyWithValue("AddPieSlice", pieSlice.get());
 	}
 
+	writer.NewDistinctProperty("GibWithParentChance", m_GibWithParentChance, 0.0F);
+	writer.NewDistinctProperty("ParentGibBlastStrengthMultiplier", m_ParentGibBlastStrengthMultiplier, 1.0F);
+
+	writer.NewDistinctProperty("InheritedRotAngleDegOffset", RadiansToDegrees(m_InheritedRotAngleOffset), 0.0F);
+
 	return 0;
+}
+
+int Attachable::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	MOSRotating::Write(writer, entityReference, hashData);
+
+	const Attachable& reference = static_cast<const Attachable&>(entityReference);
+
+	writer.NewDistinctProperty("ParentOffset", m_ParentOffset, reference.m_ParentOffset);
+	writer.NewDistinctProperty("DrawAfterParent", m_DrawAfterParent, reference.m_DrawAfterParent);
+	writer.NewDistinctProperty("DeleteWhenRemovedFromParent", m_DeleteWhenRemovedFromParent, reference.m_DeleteWhenRemovedFromParent);
+	writer.NewDistinctProperty("GibWhenRemovedFromParent", m_GibWhenRemovedFromParent, reference.m_GibWhenRemovedFromParent);
+	writer.NewDistinctProperty("ApplyTransferredForcesAtOffset", m_ApplyTransferredForcesAtOffset, reference.m_ApplyTransferredForcesAtOffset);
+	writer.NewDistinctProperty("JointStrength", m_JointStrength, reference.m_JointStrength);
+	writer.NewDistinctProperty("JointStiffness", m_JointStiffness, reference.m_JointStiffness);
+	writer.NewDistinctProperty("JointOffset", m_JointOffset, reference.m_JointOffset);
+	writer.NewPresetReferenceProperty("BreakWound", m_BreakWound, reference.m_BreakWound);
+	writer.NewPresetReferenceProperty("ParentBreakWound", m_ParentBreakWound, reference.m_ParentBreakWound);
+
+	if (m_InheritsHFlipped != reference.m_InheritsHFlipped)
+		writer.NewPropertyWithValue("InheritsHFlipped", ((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2));
+
+	writer.NewDistinctProperty("InheritsRotAngle", m_InheritsRotAngle, reference.m_InheritsRotAngle);
+	writer.NewDistinctProperty("InheritedRotAngleOffset", m_InheritedRotAngleOffset, reference.m_InheritedRotAngleOffset);
+	writer.NewDistinctProperty("InheritsFrame", m_InheritsFrame, reference.m_InheritsFrame);
+	writer.NewDistinctProperty("MountedRotAngleOffset", m_MountedRotAngleOffset, reference.m_MountedRotAngleOffset);
+	writer.NewDistinctProperty("InheritsVelWhenDetached", m_InheritsVelWhenDetached, reference.m_InheritsVelWhenDetached);
+	writer.NewDistinctProperty("InheritsAngularVelWhenDetached", m_InheritsAngularVelWhenDetached, reference.m_InheritsAngularVelWhenDetached);
+	writer.NewDistinctProperty("CollidesWithTerrainWhileAttached", m_CollidesWithTerrainWhileAttached, reference.m_CollidesWithTerrainWhileAttached);
+	writer.NewDistinctProperty("IgnoresParticlesWhileAttached", m_IgnoresParticlesWhileAttached, reference.m_IgnoresParticlesWhileAttached);
+	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", m_PieSlices, hashData);
+
+	writer.NewDistinctProperty("GibWithParentChance", m_GibWithParentChance, reference.m_GibWithParentChance);
+	writer.NewDistinctProperty("ParentGibBlastStrengthMultiplier", m_ParentGibBlastStrengthMultiplier, reference.m_ParentGibBlastStrengthMultiplier);
+
+	if (m_InheritedRotAngleOffset != reference.m_InheritedRotAngleOffset) {
+		writer.NewPropertyWithValue("InheritedRotAngleDegOffset", RadiansToDegrees(m_InheritedRotAngleOffset));
+	}
+
+	return 0;
+}
+
+HashingData Attachable::Hash() const {
+	HashingData hashData(MOSRotating::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_ParentOffset.Hash().m_Hash);
+	AddToHash(hash, m_DrawAfterParent);
+	AddToHash(hash, m_DeleteWhenRemovedFromParent);
+	AddToHash(hash, m_GibWhenRemovedFromParent);
+	AddToHash(hash, m_ApplyTransferredForcesAtOffset);
+	AddToHash(hash, m_JointStrength);
+	AddToHash(hash, m_JointStiffness);
+	AddToHash(hash, m_JointOffset.Hash().m_Hash);
+	AddToHash(hash, (m_BreakWound ? RTE::Hash(m_BreakWound->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, (m_ParentBreakWound ? RTE::Hash(m_ParentBreakWound->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, (m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2);
+	AddToHash(hash, m_InheritsRotAngle);
+	AddToHash(hash, m_InheritsFrame);
+	AddToHash(hash, m_InheritedRotAngleOffset);
+	AddToHash(hash, m_MountedRotAngleOffset);
+	AddToHash(hash, m_InheritsVelWhenDetached);
+	AddToHash(hash, m_InheritsAngularVelWhenDetached);
+	AddToHash(hash, m_CollidesWithTerrainWhileAttached);
+	AddToHash(hash, m_IgnoresParticlesWhileAttached);
+
+	int i = 0;
+
+	for (const std::unique_ptr<PieSlice>& pieSlice: m_PieSlices) {
+		uint64_t sliceHash = pieSlice->Hash().m_Hash;
+		hashData.m_Constituents.push_back(sliceHash);
+		AddToHash(hash, sliceHash);
+		i++;
+	}
+
+	hashData.m_ParseValues.push_back(i);
+
+	AddToHash(hash, m_GibWithParentChance);
+	AddToHash(hash, m_ParentGibBlastStrengthMultiplier);
+
+	return hashData;
 }
 
 bool Attachable::TransferJointForces(Vector& jointForces) {

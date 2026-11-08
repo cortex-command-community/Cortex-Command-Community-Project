@@ -36,8 +36,8 @@ namespace RTE {
 
 		/// Public member variable, method and friend function declarations
 		SerializableClassNameGetter
-		SerializableOverrideMethods
-
+		int ReadProperty(const std::string_view& propName, Reader& reader) override;
+		int Save(Writer& writer) const override;
 	public:
 		enum MenuScreens {
 			ROOTBOX = 0,

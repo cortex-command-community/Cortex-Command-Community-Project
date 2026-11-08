@@ -24,7 +24,8 @@ namespace RTE {
 
 	public:
 		SerializableClassNameGetter;
-		SerializableOverrideMethods;
+		int ReadProperty(const std::string_view& propName, Reader& reader) override;
+		int Save(Writer& writer) const override;
 
 		/// Enumeration for different input scheme presets.
 		enum InputPreset {

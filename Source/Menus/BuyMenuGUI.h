@@ -485,6 +485,8 @@ namespace RTE {
 		GUIButton* m_pDeleteButton;
 		// Sets of user-defined loadouts that can be selected quickly.
 		std::vector<Loadout> m_Loadouts;
+		// The player's loadouts with nothing usable in them right now, kept out of the menu but still saved, each with its index in m_Loadouts when it was read.
+		std::vector<std::pair<size_t, Loadout>> m_UnavailableLoadouts;
 		// The selected loadout index, -1 if no loadout is selected
 		int m_SelectedLoadoutIndex;
 		// Purchase has been made

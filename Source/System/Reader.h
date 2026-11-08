@@ -86,6 +86,10 @@ namespace RTE {
 		/// Set whether this reader should skip included files.
 		/// @param skip To make reader skip included files pass true, pass false otherwise.
 		void SetSkipIncludes(bool skip) { m_SkipIncludes = skip; };
+
+		/// Gets whether this Reader is reading something other than a DataModule's data, such as a player's own files.
+		/// @return Whether this Reader is reading from a path that isn't a DataModule.
+		bool GetNonModulePath() const { return m_NonModulePath; }
 #pragma endregion
 
 #pragma region Reading Operations
@@ -132,6 +136,11 @@ namespace RTE {
 		/// Makes an error message box pop up for the user that tells them something went wrong with the reading, and where.
 		/// @param errorDesc The message describing what's wrong.
 		void ReportError(const std::string& errorDesc) const;
+
+		/// Reports a problem in the data that doesn't stop the read from carrying on. Asserts, so whoever wrote the data can see it and the player can ignore it, or if this Reader is allowed to fail, only notes it in the console.
+		/// @param errorDesc The description of the problem.
+		void ReportRecoverableError(const std::string& errorDesc) const;
+
 #pragma endregion
 
 #pragma region Operator Overloads
@@ -250,6 +259,7 @@ namespace RTE {
 		bool m_SkipIncludes; //!< Indicates whether reader should skip included files.
 		bool m_CanFail; //!< Whether it's ok for the Reader to fail reading a file and fail silently instead of aborting.
 		bool m_NonModulePath; //!< Whether this Reader is reading from path that is not a DataModule and should just read it as provided.
+		bool m_PropValueIsEmpty; //!< Whether the property name last read had nothing after it on its line, so its value is empty rather than whatever the next line holds.
 
 		std::stack<int> m_BlockCommentOpenTagLines; //<! Stores lines on which block comment open tags are encountered. Used for error reporting when a file stream ends with an open block comment.
 
@@ -268,6 +278,10 @@ namespace RTE {
 		/// It will destroy the current stream pop the top stream off the stream stack to resume reading from it instead.
 		/// @return Whether there were any stream on the stack to resume.
 		bool EndIncludeFile();
+
+		/// Discards the spacing after a property's '=', without leaving the line, to see if a value follows it.
+		/// @return Whether there is anything left on the line to be the property's value.
+		bool PropValueFollows();
 #pragma endregion
 
 		/// Clears all the member variables of this Reader, effectively resetting the members of this abstraction level only.

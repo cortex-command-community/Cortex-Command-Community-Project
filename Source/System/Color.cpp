@@ -35,11 +35,23 @@ int Color::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Color::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
+	// A Color can be read over one that's already set, such as one copied from a preset, so a channel left out wouldn't read back as 0.
 	writer.NewPropertyWithValue("R", m_R);
 	writer.NewPropertyWithValue("G", m_G);
 	writer.NewPropertyWithValue("B", m_B);
 
 	return 0;
+}
+
+HashingData Color::Hash() const {
+	HashingData hashData(Serializable::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_R);
+	AddToHash(hash, m_G);
+	AddToHash(hash, m_B);
+
+	return hashData;
 }
 
 void Color::SetRGBWithIndex(int index) {

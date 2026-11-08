@@ -1,5 +1,6 @@
 #include "TerrainDebris.h"
 #include "SLTerrain.h"
+#include "PresetMan.h"
 
 using namespace RTE;
 
@@ -17,8 +18,8 @@ void TerrainDebris::Clear() {
 	m_DebrisFile.Reset();
 	m_Bitmaps.clear();
 	m_BitmapCount = 0;
-	m_Material.Reset();
-	m_TargetMaterial.Reset();
+	m_Material = nullptr;
+	m_TargetMaterial = nullptr;
 	m_DebrisPlacementMode = DebrisPlacementMode::NoPlacementRestrictions;
 	m_OnlyBuried = false;
 	m_MinDepth = 0;
@@ -36,6 +37,19 @@ int TerrainDebris::Create() {
 	m_DebrisFile.GetAsAnimation(m_Bitmaps, m_BitmapCount);
 	RTEAssert(!m_Bitmaps.empty() && m_Bitmaps[0], "Failed to load debris bitmaps during TerrainDebris::Create!");
 	return 0;
+}
+
+int TerrainDebris::Create(Reader& reader, bool checkType, bool doCreate) {
+	// Once this is read, the Reader might have moved on from this file.
+	const std::string readPosition = "in file " + reader.GetCurrentFilePath() + " on line " + reader.GetCurrentFileLine();
+
+	int result = Entity::Create(reader, checkType, doCreate);
+
+	if (m_Material == nullptr || m_TargetMaterial == nullptr) {
+		reader.ReportError("The TerrainDebris " + readPosition + " needs both a DebrisMaterial and a TargetMaterial!");
+	}
+
+	return result;
 }
 
 int TerrainDebris::Create(const TerrainDebris& reference) {
@@ -69,8 +83,18 @@ int TerrainDebris::ReadProperty(const std::string_view& propName, Reader& reader
 		reader >> m_BitmapCount;
 		m_Bitmaps.reserve(m_BitmapCount);
 	});
-	MatchProperty("DebrisMaterial", { reader >> m_Material; });
-	MatchProperty("TargetMaterial", { reader >> m_TargetMaterial; });
+	MatchProperty("DebrisMaterial", {
+		m_Material = g_PresetMan.ReadPresetReferenceOfType<Material>(reader, propName);
+		if (m_Material == nullptr) {
+			reader.ReportError("DebrisMaterial can't be None!");
+		}
+	});
+	MatchProperty("TargetMaterial", {
+		m_TargetMaterial = g_PresetMan.ReadPresetReferenceOfType<Material>(reader, propName);
+		if (m_TargetMaterial == nullptr) {
+			reader.ReportError("TargetMaterial can't be None!");
+		}
+	});
 	MatchProperty("DebrisPlacementMode", {
 		m_DebrisPlacementMode = static_cast<DebrisPlacementMode>(std::stoi(reader.ReadPropValue()));
 		if (m_DebrisPlacementMode < DebrisPlacementMode::NoPlacementRestrictions || m_DebrisPlacementMode > DebrisPlacementMode::OnOverhangAndCavityOverhang) {
@@ -94,21 +118,69 @@ int TerrainDebris::Save(Writer& writer) const {
 	Entity::Save(writer);
 
 	writer.NewPropertyWithValue("DebrisFile", m_DebrisFile);
-	writer.NewPropertyWithValue("DebrisPieceCount", m_BitmapCount);
-	writer.NewPropertyWithValue("DebrisMaterial", m_Material);
-	writer.NewPropertyWithValue("TargetMaterial", m_TargetMaterial);
-	writer.NewPropertyWithValue("DebrisPlacementMode", m_DebrisPlacementMode);
-	writer.NewPropertyWithValue("OnlyBuried", m_OnlyBuried);
-	writer.NewPropertyWithValue("MinDepth", m_MinDepth);
-	writer.NewPropertyWithValue("MaxDepth", m_MaxDepth);
-	writer.NewPropertyWithValue("MinRotation", m_MinRotation);
-	writer.NewPropertyWithValue("MaxRotation", m_MaxRotation);
-	writer.NewPropertyWithValue("CanHFlip", m_CanHFlip);
-	writer.NewPropertyWithValue("CanVFlip", m_CanVFlip);
-	writer.NewPropertyWithValue("FlipChance", m_FlipChance);
-	writer.NewPropertyWithValue("DensityPerMeter", m_Density);
+	writer.NewDistinctProperty("DebrisPieceCount", m_BitmapCount, 0);
+	writer.NewPresetReferenceProperty("DebrisMaterial", m_Material, static_cast<const Material*>(nullptr));
+	writer.NewPresetReferenceProperty("TargetMaterial", m_TargetMaterial, static_cast<const Material*>(nullptr));
+	writer.NewDistinctProperty("DebrisPlacementMode", m_DebrisPlacementMode, DebrisPlacementMode::NoPlacementRestrictions);
+	writer.NewDistinctProperty("OnlyBuried", m_OnlyBuried, false);
+	writer.NewDistinctProperty("MinDepth", m_MinDepth, 0);
+	writer.NewDistinctProperty("MaxDepth", m_MaxDepth, 10);
+	writer.NewDistinctProperty("MinRotation", m_MinRotation, 0);
+	writer.NewDistinctProperty("MaxRotation", m_MaxRotation, 0);
+	writer.NewDistinctProperty("CanHFlip", m_CanHFlip, false);
+	writer.NewDistinctProperty("CanVFlip", m_CanVFlip, false);
+	writer.NewDistinctProperty("FlipChance", m_FlipChance, 0.5F);
+	writer.NewDistinctProperty("DensityPerMeter", m_Density, 0.01F);
 
 	return 0;
+}
+
+int TerrainDebris::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const TerrainDebris& reference = static_cast<const TerrainDebris&>(entityReference);
+
+	writer.NewDistinctHashedProperty("DebrisFile", m_DebrisFile, hashData);
+	writer.NewDistinctProperty("DebrisPieceCount", m_BitmapCount, reference.m_BitmapCount);
+	writer.NewPresetReferenceProperty("DebrisMaterial", m_Material, reference.m_Material);
+	writer.NewPresetReferenceProperty("TargetMaterial", m_TargetMaterial, reference.m_TargetMaterial);
+	writer.NewDistinctProperty("DebrisPlacementMode", m_DebrisPlacementMode, reference.m_DebrisPlacementMode);
+	writer.NewDistinctProperty("OnlyBuried", m_OnlyBuried, reference.m_OnlyBuried);
+	writer.NewDistinctProperty("MinDepth", m_MinDepth, reference.m_MinDepth);
+	writer.NewDistinctProperty("MaxDepth", m_MaxDepth, reference.m_MaxDepth);
+	writer.NewDistinctProperty("MinRotation", m_MinRotation, reference.m_MinRotation);
+	writer.NewDistinctProperty("MaxRotation", m_MaxRotation, reference.m_MaxRotation);
+	writer.NewDistinctProperty("CanHFlip", m_CanHFlip, reference.m_CanHFlip);
+	writer.NewDistinctProperty("CanVFlip", m_CanVFlip, reference.m_CanVFlip);
+	writer.NewDistinctProperty("FlipChance", m_FlipChance, reference.m_FlipChance);
+	writer.NewDistinctProperty("DensityPerMeter", m_Density, reference.m_Density);
+
+	return 0;
+}
+
+HashingData TerrainDebris::Hash() const {
+	HashingData hashData(Entity::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	uint64_t fileHash = m_DebrisFile.Hash().m_Hash;
+	hashData.m_Constituents.push_back(fileHash);
+	AddToHash(hash, fileHash);
+
+	AddToHash(hash, m_BitmapCount);
+	AddToHash(hash, RTE::Hash(m_Material->GetEntityCharacteristic()));
+	AddToHash(hash, RTE::Hash(m_TargetMaterial->GetEntityCharacteristic()));
+	AddToHash(hash, m_DebrisPlacementMode);
+	AddToHash(hash, m_OnlyBuried);
+	AddToHash(hash, m_MinDepth);
+	AddToHash(hash, m_MaxDepth);
+	AddToHash(hash, m_MinRotation);
+	AddToHash(hash, m_MaxRotation);
+	AddToHash(hash, m_CanHFlip);
+	AddToHash(hash, m_CanVFlip);
+	AddToHash(hash, m_FlipChance);
+	AddToHash(hash, m_Density);
+
+	return hashData;
 }
 
 bool TerrainDebris::GetPiecePlacementPosition(SLTerrain* terrain, Box& possiblePiecePosition) const {
@@ -148,7 +220,7 @@ bool TerrainDebris::GetPiecePlacementPosition(SLTerrain* terrain, Box& possibleP
 bool TerrainDebris::MaterialPixelIsValidTarget(int materialCheckPixel, int prevMaterialCheckPixel) const {
 	bool checkResult = true;
 
-	if (materialCheckPixel != m_TargetMaterial.GetIndex()) {
+	if (materialCheckPixel != m_TargetMaterial->GetIndex()) {
 		checkResult = false;
 	} else {
 		// TODO: Consider using disgustang bitwise/shifting junk instead of enum.
@@ -211,7 +283,7 @@ void TerrainDebris::DrawToTerrain(SLTerrain* terrain, BITMAP* bitmapToDraw, cons
 		}
 	}
 	draw_sprite(terrain->GetFGColorBitmap(), tempDrawBitmap, position.GetFloorIntX() - offsetX, position.GetFloorIntY() - offsetY);
-	draw_character_ex(terrain->GetMaterialBitmap(), tempDrawBitmap, position.GetFloorIntX() - offsetX, position.GetFloorIntY() - offsetY, m_Material.GetIndex(), -1);
+	draw_character_ex(terrain->GetMaterialBitmap(), tempDrawBitmap, position.GetFloorIntX() - offsetX, position.GetFloorIntY() - offsetY, m_Material->GetIndex(), -1);
 
 	if (tempFlipAndRotBitmap) {
 		destroy_bitmap(tempFlipAndRotBitmap);

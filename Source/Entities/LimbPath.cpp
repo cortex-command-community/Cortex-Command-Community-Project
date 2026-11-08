@@ -128,16 +128,21 @@ int LimbPath::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 	MatchProperty("StartOffset", { reader >> m_Start; });
 	MatchProperty("StartSegCount", { reader >> m_StartSegCount; });
-	MatchProperty("AddSegment",
-	              {
-		              Vector segment;
-		              reader >> segment;
-		              m_Segments.push_back(segment);
-		              m_TotalLength += segment.GetMagnitude();
-		              if (m_Segments.size() >= m_StartSegCount) {
-			              m_RegularLength += segment.GetMagnitude();
-		              }
-	              });
+	MatchProperty("_ClearSegments", {
+		reader.ReadPropValue();
+		m_Segments.clear();
+		m_TotalLength = 0.0F;
+		m_RegularLength = 0.0F;
+	});
+	MatchProperty("AddSegment", {
+		Vector segment;
+		reader >> segment;
+		m_Segments.push_back(segment);
+		m_TotalLength += segment.GetMagnitude();
+		if (m_Segments.size() >= m_StartSegCount) {
+			m_RegularLength += segment.GetMagnitude();
+		}
+	});
 	MatchProperty("EndSegCount", { reader >> m_FootCollisionsDisabledSegment; });
 	MatchProperty("SegmentEndedThreshold", { reader >> m_SegmentEndedThreshold; });
 
@@ -193,20 +198,66 @@ int LimbPath::Save(Writer& writer) const {
 	Entity::Save(writer);
 
 	writer.NewPropertyWithValue("StartOffset", m_Start);
-	writer.NewPropertyWithValue("StartSegCount", m_StartSegCount);
+
+	writer.NewDistinctProperty("StartSegCount", m_StartSegCount, (size_t) 0);
+
 	for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr) {
-		writer.NewProperty("AddSegment");
-		writer << *itr;
+		writer.NewPropertyWithValue("AddSegment", *itr);
 	}
-	writer.NewPropertyWithValue("EndSegCount", m_FootCollisionsDisabledSegment);
-	writer.NewPropertyWithValue("SegmentEndedThreshold", m_SegmentEndedThreshold);
-	
-	writer.NewPropertyWithValue("TravelSpeed", m_TravelSpeed);
-	writer.NewPropertyWithValue("BaseTravelSpeedMultiplier", m_BaseTravelSpeedMultiplier);
-	writer.NewPropertyWithValue("BaseScaleMultiplier", m_BaseScaleMultiplier);
-	writer.NewPropertyWithValue("PushForce", m_PushForce);
+
+	writer.NewDistinctProperty("EndSegCount", m_FootCollisionsDisabledSegment, -1);
+	writer.NewDistinctProperty("SegmentEndedThreshold", m_SegmentEndedThreshold, 2.5F);
+	writer.NewDistinctProperty("TravelSpeed", m_TravelSpeed, 0.0F);
+	writer.NewDistinctProperty("BaseTravelSpeedMultiplier", m_BaseTravelSpeedMultiplier, 1.0F);
+
+	writer.NewDistinctProperty("BaseScaleMultiplier", m_BaseScaleMultiplier, Vector(1, 1));
+
+	writer.NewDistinctProperty("PushForce", m_PushForce, 0.0F);
 
 	return 0;
+}
+
+int LimbPath::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const LimbPath& reference = static_cast<const LimbPath&>(entityReference);
+
+	writer.NewDistinctProperty("StartOffset", m_Start, reference.m_Start);
+	writer.NewDistinctProperty("StartSegCount", m_StartSegCount, reference.m_StartSegCount);
+	writer.NewSequence("_ClearSegments", "AddSegment", m_Segments, hashData);
+	writer.NewDistinctProperty("EndSegCount", m_FootCollisionsDisabledSegment, reference.m_FootCollisionsDisabledSegment);
+	writer.NewDistinctProperty("SegmentEndedThreshold", m_SegmentEndedThreshold, reference.m_SegmentEndedThreshold);
+	writer.NewDistinctProperty("TravelSpeed", m_TravelSpeed, reference.m_TravelSpeed);
+	writer.NewDistinctProperty("BaseTravelSpeedMultiplier", m_BaseTravelSpeedMultiplier, reference.m_BaseTravelSpeedMultiplier);
+	writer.NewDistinctProperty("BaseScaleMultiplier", m_BaseScaleMultiplier, reference.m_BaseScaleMultiplier);
+	writer.NewDistinctProperty("PushForce", m_PushForce, reference.m_PushForce);
+
+	return 0;
+}
+
+HashingData LimbPath::Hash() const {
+	HashingData hashData(Entity::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_Start.Hash().m_Hash);
+	AddToHash(hash, m_StartSegCount);
+
+	for (int i = 0; i < m_Segments.size(); i++) {
+		uint64_t segmentHash = m_Segments.at(i).Hash().m_Hash;
+		hashData.m_Constituents.push_back(segmentHash);
+		AddToHash(hash, segmentHash);
+	}
+
+	hashData.m_ParseValues.push_back(m_Segments.size());
+
+	AddToHash(hash, m_FootCollisionsDisabledSegment);
+	AddToHash(hash, m_SegmentEndedThreshold);
+	AddToHash(hash, m_TravelSpeed);
+	AddToHash(hash, m_BaseTravelSpeedMultiplier);
+	AddToHash(hash, m_BaseScaleMultiplier.Hash().m_Hash);
+	AddToHash(hash, m_PushForce);
+
+	return hashData;
 }
 
 void LimbPath::Destroy(bool notInherited) {

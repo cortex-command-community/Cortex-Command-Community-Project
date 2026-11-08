@@ -53,7 +53,17 @@ int GlobalScript::ReadProperty(const std::string_view& propName, Reader& reader)
 	MatchProperty("ScriptPath", { m_ScriptPath = CorrectBackslashesInPath(reader.ReadPropValue()); });
 	MatchProperty("LuaClassName", { reader >> m_LuaClassName; });
 	MatchProperty("LateUpdate", { reader >> m_LateUpdate; });
-	MatchProperty("AddPieSlice", { m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader)))); });
+	MatchProperty("_ClearPieSlices", {
+		reader.ReadPropValue();
+		m_PieSlicesToAdd.clear();
+	});
+	MatchProperty("AddPieSlice", {
+		if (PieSlice* pieSlice = g_PresetMan.ReadReflectedPresetOfType<PieSlice>(reader, propName)) {
+			m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(pieSlice));
+		} else {
+			reader.ReportError("Tried to add a pie slice that isn't one!");
+		}
+	});
 
 	EndPropertyList;
 }
@@ -61,15 +71,54 @@ int GlobalScript::ReadProperty(const std::string_view& propName, Reader& reader)
 int GlobalScript::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewPropertyWithValue("ScriptPath", m_ScriptPath);
-	writer.NewPropertyWithValue("LuaClassName", m_LuaClassName);
-	writer.NewPropertyWithValue("LateUpdate", m_LateUpdate);
+	if (!m_ScriptPath.empty())
+		writer.NewPropertyWithValue("ScriptPath", m_ScriptPath);
+
+	if (!m_LuaClassName.empty())
+		writer.NewPropertyWithValue("LuaClassName", m_LuaClassName);
+
+	writer.NewDistinctProperty("LateUpdate", m_LateUpdate, false);
 
 	for (const std::unique_ptr<PieSlice>& pieSliceToAdd: m_PieSlicesToAdd) {
 		writer.NewPropertyWithValue("AddPieSlice", pieSliceToAdd.get());
 	}
 
 	return 0;
+}
+
+int GlobalScript::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const GlobalScript& reference = static_cast<const GlobalScript&>(entityReference);
+
+	writer.NewDistinctProperty("ScriptPath", m_ScriptPath, reference.m_ScriptPath);
+	writer.NewDistinctProperty("LuaClassName", m_LuaClassName, reference.m_LuaClassName);
+	writer.NewDistinctProperty("LateUpdate", m_LateUpdate, reference.m_LateUpdate);
+	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", m_PieSlicesToAdd, hashData);
+
+	return 0;
+}
+
+HashingData GlobalScript::Hash() const {
+	HashingData hashData(Entity::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_LateUpdate);
+	AddToHash(hash, RTE::Hash(m_ScriptPath));
+	AddToHash(hash, RTE::Hash(m_LuaClassName));
+
+	int i = 0;
+
+	for (const auto& pieSlice: m_PieSlicesToAdd) {
+		uint64_t sliceHash = pieSlice->Hash().m_Hash;
+		hashData.m_Constituents.push_back(sliceHash);
+		AddToHash(hash, sliceHash);
+		i++;
+	}
+
+	hashData.m_ParseValues.push_back(i);
+
+	return hashData;
 }
 
 const std::vector<std::unique_ptr<PieSlice>>& GlobalScript::GetPieSlicesToAdd() const {

@@ -101,6 +101,15 @@ namespace RTE {
 			Clear();
 		}
 #pragma endregion
+		
+#pragma region INI Handling
+		/// Records an Entity against a reference, expected to be its preset.
+		/// @param writer A Writer that the Entity will save itself to.
+		/// @param entityReference A reference preset to write properties against.
+		/// @param hashData A clump of hash data for cheap property comparisons.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
+#pragma endregion
 
 #pragma region Getters and Setters
 		/// Gets the current Activity state code. See the ActivityState enumeration for values.
@@ -569,6 +578,16 @@ namespace RTE {
 		/// Loads and returns a previously saved number.
 		/// @param key The key of the string to load.
 		double LoadNumber(const std::string& key) { return m_SavedValues.LoadNumber(key); };
+
+		/// Saves an Entity which will be stored in our ini.
+		/// @param key The key of the saved entity.
+		/// @param value The entity to save.
+		void SaveEntity(const std::string& key, const Entity* value) { m_SavedValues.SaveEntity(key, value); };
+
+		/// Loads and returns a previously saved entity.
+		/// @param key The key of the entity to load.
+		/// @return A copy of the entity you requested, OWNERSHIP IS TRANSFERRED.
+		Entity* LoadEntity(const std::string& key) { return m_SavedValues.LoadEntity(key); };
 #pragma endregion
 
 	protected:

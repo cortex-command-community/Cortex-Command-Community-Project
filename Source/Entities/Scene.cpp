@@ -75,11 +75,12 @@ int Scene::Area::Create() {
 int Scene::Area::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
-	MatchProperty("AddBox",
-	              Box* box = new Box;
-	              reader >> *box;
-	              m_BoxList.push_back(box););
 	MatchProperty("Name", { reader >> m_Name; });
+	MatchProperty("AddBox", {
+		Box* box = new Box;
+		reader >> *box;
+		m_BoxList.push_back(box);
+	});
 
 	EndPropertyList;
 }
@@ -87,14 +88,29 @@ int Scene::Area::ReadProperty(const std::string_view& propName, Reader& reader) 
 int Scene::Area::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	for (Box* box: m_BoxList) {
-		writer.NewProperty("AddBox");
-		writer << *box;
+	if (!m_Name.empty())
+		writer.NewPropertyWithValue("Name", m_Name);
+
+	for (const Box* box: m_BoxList) {
+		writer.NewPropertyWithValue("AddBox", *box);
 	}
-	writer.NewProperty("Name");
-	writer << m_Name;
 
 	return 0;
+}
+
+HashingData Scene::Area::Hash() const {
+	HashingData hashData(Serializable::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, RTE::Hash(m_Name));
+	int i = 0;
+
+	for (const Box* box: m_BoxList) {
+		AddToHash(hash, box->Hash().m_Hash);
+		i++;
+	}
+
+	return hashData;
 }
 
 void Scene::Area::Destroy(bool notInherited) {
@@ -983,10 +999,10 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("ScriptSave", { reader >> m_IsSavedGameInternal; });
 	MatchProperty("OwnedByTeam", { reader >> m_OwnedByTeam; });
 	MatchProperty("RoundIncome", { reader >> m_RoundIncome; });
-	MatchProperty("P1ResidentBrain", { m_ResidentBrains[Players::PlayerOne] = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader)); });
-	MatchProperty("P2ResidentBrain", { m_ResidentBrains[Players::PlayerTwo] = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader)); });
-	MatchProperty("P3ResidentBrain", { m_ResidentBrains[Players::PlayerThree] = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader)); });
-	MatchProperty("P4ResidentBrain", { m_ResidentBrains[Players::PlayerFour] = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader)); });
+	MatchProperty("P1ResidentBrain", { m_ResidentBrains[Players::PlayerOne] = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName); });
+	MatchProperty("P2ResidentBrain", { m_ResidentBrains[Players::PlayerTwo] = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName); });
+	MatchProperty("P3ResidentBrain", { m_ResidentBrains[Players::PlayerThree] = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName); });
+	MatchProperty("P4ResidentBrain", { m_ResidentBrains[Players::PlayerFour] = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName); });
 	MatchProperty("P1BuildBudget", { reader >> m_BuildBudget[Players::PlayerOne]; });
 	MatchProperty("P2BuildBudget", { reader >> m_BuildBudget[Players::PlayerTwo]; });
 	MatchProperty("P3BuildBudget", { reader >> m_BuildBudget[Players::PlayerThree]; });
@@ -997,72 +1013,106 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("P4BuildBudgetRatio", { reader >> m_BuildBudgetRatio[Players::PlayerFour]; });
 	MatchProperty("AutoDesigned", { reader >> m_AutoDesigned; });
 	MatchProperty("TotalInvestment", { reader >> m_TotalInvestment; });
-	MatchProperty("PreviewBitmapFile",
-	              reader >> m_PreviewBitmapFile;
-	              m_pPreviewBitmap = m_PreviewBitmapFile.GetAsBitmap(COLORCONV_NONE, false););
-	MatchProperty("Terrain",
-	              delete m_pTerrain;
-	              m_pTerrain = new SLTerrain();
-	              reader >> m_pTerrain;);
-	MatchForwards("PlaceSceneObject")
-	    MatchProperty(
-	        "PlaceMovableObject",
-	        SceneObject* pSO = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader));
-	        if (pSO) {
-		        m_PlacedObjects[PLACEONLOAD].push_back(pSO);
-	        });
-	MatchProperty(
-	    "BlueprintObject",
-	    SceneObject* pSO = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader));
+	MatchProperty("PreviewBitmapFile", {
+	    reader >> m_PreviewBitmapFile;
+	    m_pPreviewBitmap = m_PreviewBitmapFile.GetAsBitmap(COLORCONV_NONE, false); 
+	});
+	MatchProperty("Terrain", {
+		delete m_pTerrain;
+		m_pTerrain = g_PresetMan.ReadReflectedPresetOfType<SLTerrain>(reader, propName);
+	});
+	MatchProperty("_ClearSceneObjects", {
+		reader.ReadPropValue();
+		ClearPlacedObjectSet(Scene::PlacedObjectSets::PLACEONLOAD, true);
+	});
+	MatchForwards("PlaceMovableObject") MatchProperty("PlaceSceneObject", {
+		SceneObject* pSO = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName);
+	    if (pSO) {
+		    m_PlacedObjects[PLACEONLOAD].push_back(pSO);
+	    }
+	});
+	MatchProperty("_ClearBlueprintObjects", {
+		reader.ReadPropValue();
+		ClearPlacedObjectSet(Scene::PlacedObjectSets::BLUEPRINT, true);
+	});
+	MatchForwards("BlueprintObject") MatchProperty("PlaceBlueprintObject", {
+		SceneObject* pSO = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName);
 	    if (pSO) {
 		    m_PlacedObjects[BLUEPRINT].push_back(pSO);
-	    });
-	MatchProperty(
-	    "PlaceAIPlanObject",
-	    SceneObject* pSO = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader));
-	    if (pSO) {
-		    m_PlacedObjects[AIPLAN].push_back(pSO);
-	    });
-	MatchProperty(
-	    "AddBackgroundLayer",
-	    SLBackground* pLayer = dynamic_cast<SLBackground*>(g_PresetMan.ReadReflectedPreset(reader));
-	    RTEAssert(pLayer, "Something went wrong with reading SceneLayer");
-	    if (pLayer) {
-		    m_BackLayerList.push_back(pLayer);
-	    });
-	MatchProperty("AllUnseenPixelSizeTeam1",
-	              // Read the desired pixel dimensions of the dynamically generated unseen map
-	              reader >> m_UnseenPixelSize[Activity::TeamOne];);
-	MatchProperty("AllUnseenPixelSizeTeam2",
-	              // Read the desired pixel dimensions of the dynamically generated unseen map
-	              reader >> m_UnseenPixelSize[Activity::TeamTwo];);
-	MatchProperty("AllUnseenPixelSizeTeam3",
-	              // Read the desired pixel dimensions of the dynamically generated unseen map
-	              reader >> m_UnseenPixelSize[Activity::TeamThree];);
-	MatchProperty("AllUnseenPixelSizeTeam4",
-	              // Read the desired pixel dimensions of the dynamically generated unseen map
-	              reader >> m_UnseenPixelSize[Activity::TeamFour];);
-	MatchProperty("UnseenLayerTeam1",
-	              delete m_apUnseenLayer[Activity::TeamOne];
-	              m_apUnseenLayer[Activity::TeamOne] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
-	MatchProperty("UnseenLayerTeam2",
-	              delete m_apUnseenLayer[Activity::TeamTwo];
-	              m_apUnseenLayer[Activity::TeamTwo] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
-	MatchProperty("UnseenLayerTeam3",
-	              delete m_apUnseenLayer[Activity::TeamThree];
-	              m_apUnseenLayer[Activity::TeamThree] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
-	MatchProperty("UnseenLayerTeam4",
-	              delete m_apUnseenLayer[Activity::TeamFour];
-	              m_apUnseenLayer[Activity::TeamFour] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
+	    } 
+	});
+	MatchProperty("_ClearAIPlanObjects", {
+		reader.ReadPropValue();
+		ClearPlacedObjectSet(Scene::PlacedObjectSets::AIPLAN, true);
+	});
+	MatchProperty("PlaceAIPlanObject", {
+		SceneObject* pSO = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName);
+		if (pSO) {
+			m_PlacedObjects[AIPLAN].push_back(pSO);
+		}
+	});
+	MatchProperty("_ClearBackgroundLayers", {
+		reader.ReadPropValue();
+		for (SLBackground* layer: m_BackLayerList)
+			delete layer;
+		m_BackLayerList.clear();
+	});
+	MatchProperty("AddBackgroundLayer", {
+		SLBackground* pLayer = g_PresetMan.ReadReflectedPresetOfType<SLBackground>(reader, propName);
+		RTEAssert(pLayer, "Something went wrong with reading SceneLayer");
+		if (pLayer) {
+			m_BackLayerList.push_back(pLayer);
+		}
+	});
+	MatchProperty("AllUnseenPixelSizeTeam1", {
+		// Read the desired pixel dimensions of the dynamically generated unseen map
+		reader >> m_UnseenPixelSize[Activity::TeamOne];
+	});
+	MatchProperty("AllUnseenPixelSizeTeam2", {
+		// Read the desired pixel dimensions of the dynamically generated unseen map
+		reader >> m_UnseenPixelSize[Activity::TeamTwo];
+	});
+    MatchProperty("AllUnseenPixelSizeTeam3", {
+		// Read the desired pixel dimensions of the dynamically generated unseen map
+		reader >> m_UnseenPixelSize[Activity::TeamThree];
+    });
+	MatchProperty("AllUnseenPixelSizeTeam4", {
+		// Read the desired pixel dimensions of the dynamically generated unseen map
+		reader >> m_UnseenPixelSize[Activity::TeamFour];
+    });
+	MatchProperty("UnseenLayerTeam1", {
+	    delete m_apUnseenLayer[Activity::TeamOne];
+	    m_apUnseenLayer[Activity::TeamOne] = g_PresetMan.ReadReflectedPresetOfType<SceneLayer>(reader, propName); 
+	});
+	MatchProperty("UnseenLayerTeam2", {
+	    delete m_apUnseenLayer[Activity::TeamTwo];
+	    m_apUnseenLayer[Activity::TeamTwo] = g_PresetMan.ReadReflectedPresetOfType<SceneLayer>(reader, propName);
+	});
+	MatchProperty("UnseenLayerTeam3", {
+	    delete m_apUnseenLayer[Activity::TeamThree];
+	    m_apUnseenLayer[Activity::TeamThree] = g_PresetMan.ReadReflectedPresetOfType<SceneLayer>(reader, propName); 
+	});
+	MatchProperty("UnseenLayerTeam4", {
+	    delete m_apUnseenLayer[Activity::TeamFour];
+	    m_apUnseenLayer[Activity::TeamFour] = g_PresetMan.ReadReflectedPresetOfType<SceneLayer>(reader, propName);
+	});
 	MatchProperty("ScanScheduledTeam1", { reader >> m_ScanScheduled[Activity::TeamOne]; });
 	MatchProperty("ScanScheduledTeam2", { reader >> m_ScanScheduled[Activity::TeamTwo]; });
 	MatchProperty("ScanScheduledTeam3", { reader >> m_ScanScheduled[Activity::TeamThree]; });
 	MatchProperty("ScanScheduledTeam4", { reader >> m_ScanScheduled[Activity::TeamFour]; });
-	MatchProperty("AddArea",
-	              Area area;
-	              reader >> area;
-	              // This replaces any existing ones
-	              SetArea(area););
+	MatchProperty("_ClearAreas", {
+		reader.ReadPropValue();
+		for (auto& area : m_AreaList) {
+			delete area;
+		}
+		m_AreaList.clear();
+	});
+	MatchProperty("AddArea", {
+		Area area;
+		reader >> area;
+		// This replaces any existing ones
+		SetArea(area);
+	});
 	MatchProperty("GlobalAcceleration", { reader >> m_GlobalAcc; });
 
 	EndPropertyList;
@@ -1071,17 +1121,20 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Scene::Save(Writer& writer) const {
 	Entity::Save(writer);
 
+
 	bool doFullGameSave = !dynamic_cast<EditorActivity*>(g_ActivityMan.GetActivity());
 
 	writer.NewPropertyWithValue("LocationOnPlanet", m_Location);
 	writer.NewPropertyWithValue("MetagamePlayable", m_MetagamePlayable);
-	// Do not save preview if it's path is empty, for example in metagame
+
 	if (m_PreviewBitmapFile.GetDataPath().length() > 0 && m_MetasceneParent.length() == 0) {
 		writer.NewPropertyWithValue("PreviewBitmapFile", m_PreviewBitmapFile);
 	}
+
 	if (m_MetasceneParent.length() > 0) {
 		writer.NewPropertyWithValue("MetasceneParent", m_MetasceneParent);
 	}
+
 	writer.NewPropertyWithValue("MetagameInternal", m_IsMetagameInternal);
 	writer.NewPropertyWithValue("ScriptSave", m_IsSavedGameInternal);
 	writer.NewPropertyWithValue("Revealed", m_Revealed);
@@ -1089,12 +1142,13 @@ int Scene::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("RoundIncome", m_RoundIncome);
 
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+
 		std::string playerNumberString = "P" + std::to_string(player + 1);
 		writer.NewPropertyWithValue(playerNumberString + "BuildBudget", m_BuildBudget[player]);
 		writer.NewPropertyWithValue(playerNumberString + "BuildBudgetRatio", m_BuildBudgetRatio[player]);
+
 		if (m_ResidentBrains[player]) {
-			writer.NewProperty(playerNumberString + "ResidentBrain");
-			SaveSceneObject(writer, m_ResidentBrains[player], false, doFullGameSave);
+			writer.NewPropertyWithValue(playerNumberString + "ResidentBrain", *m_ResidentBrains[player]);
 		}
 	}
 
@@ -1119,8 +1173,7 @@ int Scene::Save(Writer& writer) const {
 				writer.NewProperty("PlaceAIPlanObject");
 			}
 
-			// writer << placedObject;
-			SaveSceneObject(writer, placedObject, false, doFullGameSave);
+			writer << placedObject;
 		}
 	}
 
@@ -1128,315 +1181,206 @@ int Scene::Save(Writer& writer) const {
 		writer.NewProperty("AddBackgroundLayer");
 		(*slItr)->SavePresetCopy(writer);
 	}
+
 	if (!m_UnseenPixelSize[Activity::TeamOne].IsZero()) {
-		writer.NewProperty("AllUnseenPixelSizeTeam1");
-		writer << m_UnseenPixelSize[Activity::TeamOne];
+		writer.NewPropertyWithValue("AllUnseenPixelSizeTeam1", m_UnseenPixelSize[Activity::TeamOne]);
 	}
+
 	if (!m_UnseenPixelSize[Activity::TeamTwo].IsZero()) {
-		writer.NewProperty("AllUnseenPixelSizeTeam2");
-		writer << m_UnseenPixelSize[Activity::TeamTwo];
+		writer.NewPropertyWithValue("AllUnseenPixelSizeTeam2", m_UnseenPixelSize[Activity::TeamTwo]);
 	}
+
 	if (!m_UnseenPixelSize[Activity::TeamThree].IsZero()) {
-		writer.NewProperty("AllUnseenPixelSizeTeam3");
-		writer << m_UnseenPixelSize[Activity::TeamThree];
+		writer.NewPropertyWithValue("AllUnseenPixelSizeTeam3", m_UnseenPixelSize[Activity::TeamThree]);
 	}
+
 	if (!m_UnseenPixelSize[Activity::TeamFour].IsZero()) {
-		writer.NewProperty("AllUnseenPixelSizeTeam4");
-		writer << m_UnseenPixelSize[Activity::TeamFour];
+		writer.NewPropertyWithValue("AllUnseenPixelSizeTeam4", m_UnseenPixelSize[Activity::TeamFour]);
 	}
+
 	if (m_apUnseenLayer[Activity::TeamOne]) {
-		writer.NewProperty("UnseenLayerTeam1");
-		writer << m_apUnseenLayer[Activity::TeamOne];
+		writer.NewPropertyWithValue("UnseenLayerTeam1", m_apUnseenLayer[Activity::TeamOne]);
 	}
+
 	if (m_apUnseenLayer[Activity::TeamTwo]) {
-		writer.NewProperty("UnseenLayerTeam2");
-		writer << m_apUnseenLayer[Activity::TeamTwo];
+		writer.NewPropertyWithValue("UnseenLayerTeam2", m_apUnseenLayer[Activity::TeamTwo]);
 	}
+
 	if (m_apUnseenLayer[Activity::TeamThree]) {
-		writer.NewProperty("UnseenLayerTeam3");
-		writer << m_apUnseenLayer[Activity::TeamThree];
+		writer.NewPropertyWithValue("UnseenLayerTeam3", m_apUnseenLayer[Activity::TeamThree]);
 	}
+
 	if (m_apUnseenLayer[Activity::TeamFour]) {
-		writer.NewProperty("UnseenLayerTeam4");
-		writer << m_apUnseenLayer[Activity::TeamFour];
+		writer.NewPropertyWithValue("UnseenLayerTeam4", m_apUnseenLayer[Activity::TeamFour]);
 	}
+
 	if (m_ScanScheduled[Activity::TeamOne]) {
-		writer.NewProperty("ScanScheduledTeam1");
-		writer << m_ScanScheduled[Activity::TeamOne];
+		writer.NewPropertyWithValue("ScanScheduledTeam1", m_ScanScheduled[Activity::TeamOne]);
 	}
+
 	if (m_ScanScheduled[Activity::TeamTwo]) {
-		writer.NewProperty("ScanScheduledTeam2");
-		writer << m_ScanScheduled[Activity::TeamTwo];
+		writer.NewPropertyWithValue("ScanScheduledTeam2", m_ScanScheduled[Activity::TeamTwo]);
 	}
+
 	if (m_ScanScheduled[Activity::TeamThree]) {
-		writer.NewProperty("ScanScheduledTeam3");
-		writer << m_ScanScheduled[Activity::TeamThree];
+		writer.NewPropertyWithValue("ScanScheduledTeam3", m_ScanScheduled[Activity::TeamThree]);
 	}
+
 	if (m_ScanScheduled[Activity::TeamFour]) {
-		writer.NewProperty("ScanScheduledTeam4");
-		writer << m_ScanScheduled[Activity::TeamFour];
+		writer.NewPropertyWithValue("ScanScheduledTeam4", m_ScanScheduled[Activity::TeamFour]);
 	}
+
 	for (Area* area: m_AreaList) {
 		// Only write the area if it has any boxes/area at all
 		if (doFullGameSave || !(*area).HasNoArea()) {
-			writer.NewProperty("AddArea");
-			writer << *area;
+			writer.NewPropertyWithValue("AddArea", *area);
 		}
 	}
-	writer.NewProperty("GlobalAcceleration");
-	writer << m_GlobalAcc;
+
+	writer.NewPropertyWithValue("GlobalAcceleration", m_GlobalAcc);
 
 	return 0;
 }
 
-void Scene::SaveSceneObject(Writer& writer, const SceneObject* sceneObjectToSave, bool isChildAttachable, bool saveFullData) const {
-	auto WriteHardcodedAttachableOrNone = [this, &writer, &saveFullData](const std::string& propertyName, const Attachable* harcodedAttachable) {
-		if (harcodedAttachable) {
-			writer.NewProperty(propertyName);
-			SaveSceneObject(writer, harcodedAttachable, true, saveFullData);
-		} else {
-			writer.NewPropertyWithValue(propertyName, "None");
-		}
-	};
+int Scene::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
 
-	writer.ObjectStart(sceneObjectToSave->GetClassName());
-	writer.NewPropertyWithValue("CopyOf", sceneObjectToSave->GetModuleAndPresetName());
+	const Scene& reference = static_cast<const Scene&>(entityReference);
 
-	if (saveFullData) {
-		for (const std::string& group: *sceneObjectToSave->GetGroups()) {
-			writer.NewPropertyWithValue("AddToGroup", group);
+	bool doFullGameSave = !dynamic_cast<EditorActivity*>(g_ActivityMan.GetActivity());
+
+	writer.NewDistinctProperty("LocationOnPlanet", m_Location, reference.m_Location);
+	writer.NewDistinctProperty("MetagamePlayable", m_MetagamePlayable, reference.m_MetagamePlayable);
+	writer.NewDistinctHashedProperty("PreviewBitmapFile", m_PreviewBitmapFile, hashData);
+	writer.NewDistinctProperty("MetasceneParent", m_MetasceneParent, reference.m_MetasceneParent);
+	writer.NewDistinctProperty("MetagameInternal", m_IsMetagameInternal, reference.m_IsMetagameInternal);
+	writer.NewDistinctProperty("ScriptSave", m_IsSavedGameInternal, reference.m_IsSavedGameInternal);
+	writer.NewDistinctProperty("Revealed", m_Revealed, reference.m_Revealed);
+	writer.NewDistinctProperty("OwnedByTeam", m_OwnedByTeam, reference.m_OwnedByTeam);
+	writer.NewDistinctProperty("RoundIncome", m_RoundIncome, reference.m_RoundIncome);
+
+	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+		std::string playerNumberString = "P" + std::to_string(player + 1);
+		writer.NewDistinctProperty(playerNumberString + "BuildBudget", m_BuildBudget[player], reference.m_BuildBudget[player]);
+		writer.NewDistinctProperty(playerNumberString + "BuildBudgetRatio", m_BuildBudgetRatio[player], reference.m_BuildBudgetRatio[player]);
+		writer.NewOptionalEntityPointerProperty(playerNumberString + "ResidentBrain", m_ResidentBrains[player], hashData);
+	}
+
+	writer.NewDistinctProperty("AutoDesigned", m_AutoDesigned, reference.m_AutoDesigned);
+	writer.NewDistinctProperty("TotalInvestment", m_TotalInvestment, reference.m_TotalInvestment);
+	writer.NewOptionalEntityPointerProperty("Terrain", m_pTerrain, hashData);
+	writer.NewPointerSequence("_ClearSceneObjects", "PlaceSceneObject", m_PlacedObjects[PlacedObjectSets::PLACEONLOAD], hashData);
+	writer.NewPointerSequence("_ClearBlueprintObjects", "PlaceBlueprintObject", m_PlacedObjects[PlacedObjectSets::BLUEPRINT], hashData);
+	writer.NewPointerSequence("_ClearAIPlanObjects", "PlaceAIPlanObject", m_PlacedObjects[PlacedObjectSets::AIPLAN], hashData);
+	writer.NewPresetCopySequence("_ClearBackgroundLayers", "AddBackgroundLayer", m_BackLayerList, hashData);
+
+	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
+		std::string teamNumberString = std::to_string(team + 1);
+		writer.NewDistinctProperty("AllUnseenPixelSizeTeam" + teamNumberString, m_UnseenPixelSize[team], reference.m_UnseenPixelSize[team]);
+		writer.NewOptionalEntityPointerProperty("UnseenLayerTeam" + teamNumberString, m_apUnseenLayer[team], hashData);
+		writer.NewDistinctProperty("ScanScheduledTeam" + teamNumberString, m_ScanScheduled[team], reference.m_ScanScheduled[team]);
+	}
+
+	writer.NewPointerSequence("_ClearAreas", "AddArea", m_AreaList, hashData);
+	writer.NewDistinctProperty("GlobalAcceleration", m_GlobalAcc, reference.m_GlobalAcc);
+
+	return 0;
+}
+
+HashingData Scene::Hash() const {
+	HashingData hashData(Entity::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_Location.Hash().m_Hash);
+	AddToHash(hash, m_MetagamePlayable);
+
+	uint64_t previewBitmapHash = m_PreviewBitmapFile.Hash().m_Hash;
+	hashData.m_Constituents.push_back(previewBitmapHash);
+	AddToHash(hash, previewBitmapHash);
+
+	AddToHash(hash, RTE::Hash(m_MetasceneParent));
+	AddToHash(hash, m_IsMetagameInternal);
+	AddToHash(hash, m_IsSavedGameInternal);
+	AddToHash(hash, m_Revealed);
+	AddToHash(hash, m_OwnedByTeam);
+	AddToHash(hash, m_RoundIncome);
+
+	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+		AddToHash(hash, m_BuildBudget[player]);
+		AddToHash(hash, m_BuildBudgetRatio[player]);
+
+		bool residentBrainDef = m_ResidentBrains[player] != nullptr;
+		hashData.m_ParseValues.push_back(residentBrainDef);
+		if (residentBrainDef) {
+			uint64_t residentBrainHash = m_ResidentBrains[player]->Hash().m_Hash;
+			hashData.m_Constituents.push_back(residentBrainHash);
+			AddToHash(hash, residentBrainHash);
 		}
 	}
 
-	writer.NewPropertyWithValue("Position", sceneObjectToSave->GetPos());
-	writer.NewPropertyWithValue("Team", sceneObjectToSave->GetTeam());
-	if (!isChildAttachable) {
-		writer.NewPropertyWithValue("PlacedByPlayer", sceneObjectToSave->GetPlacedByPlayer());
-	}
-	if (saveFullData) {
-		writer.NewPropertyWithValue("GoldValue", sceneObjectToSave->GetGoldValue());
-	}
+	AddToHash(hash, m_AutoDesigned);
+	AddToHash(hash, m_TotalInvestment);
 
-	if (const Deployment* deploymentToSave = dynamic_cast<const Deployment*>(sceneObjectToSave); deploymentToSave && deploymentToSave->GetID() != 0) {
-		writer.NewPropertyWithValue("ID", deploymentToSave->GetID());
+	bool terrainDef = m_pTerrain != nullptr;
+	hashData.m_ParseValues.push_back(terrainDef);
+	if (terrainDef) {
+		uint64_t terrainHash = m_pTerrain->Hash().m_Hash;
+		hashData.m_Constituents.push_back(terrainHash);
+		AddToHash(hash, terrainHash);
 	}
 
-	if (const MovableObject* movableObjectToSave = dynamic_cast<const MovableObject*>(sceneObjectToSave); movableObjectToSave && saveFullData) {
-		writer.NewPropertyWithValue("HUDVisible", movableObjectToSave->GetHUDVisible());
-		writer.NewPropertyWithValue("Velocity", movableObjectToSave->GetVel());
-		writer.NewPropertyWithValue("LifeTime", movableObjectToSave->GetLifetime());
-		writer.NewPropertyWithValue("Age", movableObjectToSave->GetAge());
-		writer.NewPropertyWithValue("PinStrength", movableObjectToSave->GetPinStrength());
+	for (int set = PlacedObjectSets::PLACEONLOAD; set < PlacedObjectSets::PLACEDSETSCOUNT; ++set) {
+		int i = 0;
+
+		for (const SceneObject* placedObject: m_PlacedObjects[set]) {
+			uint64_t placedObjectHash = placedObject->Hash().m_Hash;
+			hashData.m_Constituents.push_back(placedObjectHash);
+			AddToHash(hash, placedObjectHash);
+			i++;
+		}
+
+		hashData.m_ParseValues.push_back(i);
 	}
 
-	if (const MOSprite* moSpriteToSave = dynamic_cast<const MOSprite*>(sceneObjectToSave)) {
-		writer.NewPropertyWithValue("HFlipped", moSpriteToSave->IsHFlipped());
-		if (saveFullData || dynamic_cast<const ADoor*>(moSpriteToSave)) {
-			writer.NewPropertyWithValue("Rotation", moSpriteToSave->GetRotMatrix());
-		}
-		if (saveFullData) {
-			writer.NewPropertyWithValue("AngularVel", moSpriteToSave->GetAngularVel());
-		}
+	int i = 0;
+
+	for (std::list<SLBackground*>::const_iterator slItr = m_BackLayerList.begin(); slItr != m_BackLayerList.end(); ++slItr) {
+		uint64_t backgroundLayerHash = RTE::Hash((*slItr)->GetEntityCharacteristic());
+		hashData.m_Constituents.push_back(backgroundLayerHash);
+		AddToHash(hash, backgroundLayerHash);
+		i++;
 	}
 
-	if (const MOSRotating* mosRotatingToSave = dynamic_cast<const MOSRotating*>(sceneObjectToSave)) {
-		if (saveFullData) {
-			const std::list<Attachable*>& attachablesToSave = mosRotatingToSave->GetAttachableList();
+	hashData.m_ParseValues.push_back(i);
 
-			// If this MOSRotating has any Attachables, we have to add a special behaviour property that'll delete them all so they can be re-read. This will allow us to handle Attachables with our limited serialization.
-			// Alternatively, if the MOSRotating has no Attachables but its preset does, we need to set the flag, because that means this is missing Attachables, and we don't want to magically regenerate them when a game is loaded.
-			if (!attachablesToSave.empty()) {
-				writer.NewPropertyWithValue("SpecialBehaviour_ClearAllAttachables", true);
-			} else if (const MOSRotating* presetOfMOSRotatingToSave = dynamic_cast<const MOSRotating*>(g_PresetMan.GetEntityPreset(mosRotatingToSave->GetClassName(), mosRotatingToSave->GetPresetName(), mosRotatingToSave->GetModuleID())); presetOfMOSRotatingToSave && !presetOfMOSRotatingToSave->GetAttachableList().empty()) {
-				writer.NewPropertyWithValue("SpecialBehaviour_ClearAllAttachables", true);
-			}
+	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
+		AddToHash(hash, m_UnseenPixelSize[team].Hash().m_Hash);
 
-			for (const Attachable* attachable: attachablesToSave) {
-				if (!mosRotatingToSave->AttachableIsHardcoded(attachable)) {
-					writer.NewProperty("AddAttachable");
-					SaveSceneObject(writer, attachable, true, saveFullData);
-				}
-			}
-			for (const AEmitter* wound: mosRotatingToSave->GetWoundList()) {
-				writer.NewProperty("SpecialBehaviour_AddWound");
-				SaveSceneObject(writer, wound, true, saveFullData);
-			}
+		bool unseenLayerDef = m_apUnseenLayer[team] != nullptr;
+		hashData.m_ParseValues.push_back(unseenLayerDef);
+		if (unseenLayerDef) {
+			uint64_t unseenLayerHash = m_apUnseenLayer[team]->Hash().m_Hash;
+			hashData.m_Constituents.push_back(unseenLayerHash);
+			AddToHash(hash, unseenLayerHash);
 		}
 
-		for (auto& [key, value]: mosRotatingToSave->GetStringValueMap()) {
-			writer.NewProperty("AddCustomValue");
-			writer.ObjectStart("StringValue");
-			writer.NewPropertyWithValue(key, value);
-			writer.ObjectEnd();
-		}
-
-		for (auto& [key, value]: mosRotatingToSave->GetNumberValueMap()) {
-			writer.NewProperty("AddCustomValue");
-			writer.ObjectStart("NumberValue");
-			writer.NewPropertyWithValue(key, value);
-			writer.ObjectEnd();
-		}
+		AddToHash(hash, m_ScanScheduled[team]);
 	}
 
-	if (const Attachable* attachableToSave = dynamic_cast<const Attachable*>(sceneObjectToSave); attachableToSave && saveFullData) {
-		writer.NewPropertyWithValue("ParentOffset", attachableToSave->GetParentOffset());
-		writer.NewPropertyWithValue("DrawAfterParent", attachableToSave->IsDrawnAfterParent());
-		writer.NewPropertyWithValue("DeleteWhenRemovedFromParent", attachableToSave->GetDeleteWhenRemovedFromParent());
-		writer.NewPropertyWithValue("GibWhenRemovedFromParent", attachableToSave->GetGibWhenRemovedFromParent());
-		writer.NewPropertyWithValue("JointStrength", attachableToSave->GetJointStrength());
-		writer.NewPropertyWithValue("JointStiffness", attachableToSave->GetJointStiffness());
-		writer.NewPropertyWithValue("JointOffset", attachableToSave->GetJointOffset());
-		writer.NewPropertyWithValue("InheritsHFlipped", attachableToSave->InheritsHFlipped());
-		writer.NewPropertyWithValue("InheritsRotAngle", attachableToSave->InheritsRotAngle());
-		writer.NewPropertyWithValue("InheritedRotAngleOffset", attachableToSave->GetInheritedRotAngleOffset());
-		writer.NewPropertyWithValue("InheritsFrame", attachableToSave->InheritsFrame());
-		writer.NewPropertyWithValue("CollidesWithTerrainWhileAttached", attachableToSave->GetCollidesWithTerrainWhileAttached());
+	i = 0;
 
-		if (const AEmitter* aemitterToSave = dynamic_cast<const AEmitter*>(sceneObjectToSave)) {
-			writer.NewPropertyWithValue("EmissionEnabled", aemitterToSave->IsEmitting());
-			writer.NewPropertyWithValue("EmissionCount", aemitterToSave->GetEmitCount());
-			writer.NewPropertyWithValue("EmissionCountLimit", aemitterToSave->GetEmitCountLimit());
-			writer.NewPropertyWithValue("NegativeThrottleMultiplier", aemitterToSave->GetNegativeThrottleMultiplier());
-			writer.NewPropertyWithValue("PositiveThrottleMultiplier", aemitterToSave->GetPositiveThrottleMultiplier());
-			writer.NewPropertyWithValue("Throttle", aemitterToSave->GetThrottle());
-			writer.NewPropertyWithValue("BurstScale", aemitterToSave->GetBurstScale());
-			writer.NewPropertyWithValue("BurstDamage", aemitterToSave->GetBurstDamage());
-			writer.NewPropertyWithValue("EmitterDamageMultiplier", aemitterToSave->GetEmitterDamageMultiplier());
-			writer.NewPropertyWithValue("BurstSpacing", aemitterToSave->GetBurstSpacing());
-			writer.NewPropertyWithValue("BurstTriggered", aemitterToSave->IsSetToBurst());
-			writer.NewPropertyWithValue("EmissionAngle", aemitterToSave->GetEmitAngleMatrix());
-			writer.NewPropertyWithValue("EmissionOffset", aemitterToSave->GetEmitOffset());
-			writer.NewPropertyWithValue("EmissionDamage", aemitterToSave->GetEmitDamage());
-			WriteHardcodedAttachableOrNone("Flash", aemitterToSave->GetFlash());
-		}
-
-		if (const AEJetpack* jetpackToSave = dynamic_cast<const AEJetpack*>(sceneObjectToSave)) {
-			writer.NewProperty("JetpackType");
-			switch (jetpackToSave->GetJetpackType()) {
-				default:
-				case AEJetpack::JetpackType::Standard:
-					writer << "Standard";
-					break;
-				case AEJetpack::JetpackType::JumpPack:
-					writer << "JumpPack";
-					break;
-			}
-
-			writer.NewPropertyWithValue("JumpTime", jetpackToSave->GetJetTimeTotal() / 1000.0f); // Convert to seconds
-			writer.NewPropertyWithValue("JumpReplenishRate", jetpackToSave->GetJetReplenishRate());
-			writer.NewPropertyWithValue("MinimumFuelRatio", jetpackToSave->GetMinimumFuelRatio());
-			writer.NewPropertyWithValue("JumpAngleRange", jetpackToSave->GetJetAngleRange());
-			writer.NewPropertyWithValue("CanAdjustAngleWhileFiring", jetpackToSave->GetCanAdjustAngleWhileFiring());
-		}
-
-		if (const Arm* armToSave = dynamic_cast<const Arm*>(sceneObjectToSave)) {
-			WriteHardcodedAttachableOrNone("HeldDevice", armToSave->GetHeldDevice());
-		}
-
-		if (const Leg* legToSave = dynamic_cast<const Leg*>(sceneObjectToSave)) {
-			WriteHardcodedAttachableOrNone("Foot", legToSave->GetFoot());
-		}
-
-		if (const Turret* turretToSave = dynamic_cast<const Turret*>(sceneObjectToSave)) {
-			for (const HeldDevice* heldDeviceToSave: turretToSave->GetMountedDevices()) {
-				WriteHardcodedAttachableOrNone("AddMountedDevice", heldDeviceToSave);
-			}
-		}
-
-		if (const HeldDevice* heldDeviceToSave = dynamic_cast<const HeldDevice*>(sceneObjectToSave)) {
-			writer.NewPropertyWithValue("SpecialBehaviour_Activated", heldDeviceToSave->IsActivated());
-			writer.NewPropertyWithValue("SpecialBehaviour_ActivationTimerElapsedSimTimeMS", heldDeviceToSave->GetActivationTimer().GetElapsedSimTimeMS());
-		}
-
-		if (const HDFirearm* hdFirearmToSave = dynamic_cast<const HDFirearm*>(sceneObjectToSave)) {
-			WriteHardcodedAttachableOrNone("Magazine", hdFirearmToSave->GetMagazine());
-			WriteHardcodedAttachableOrNone("Flash", hdFirearmToSave->GetFlash());
-		}
-
-		if (const Magazine* magazineToSave = dynamic_cast<const Magazine*>(sceneObjectToSave)) {
-			writer.NewPropertyWithValue("RoundCount", magazineToSave->GetRoundCount());
-		}
+	for (Area* area: m_AreaList) {
+		uint64_t areaHash = area->Hash().m_Hash;
+		hashData.m_Constituents.push_back(areaHash);
+		AddToHash(hash, areaHash);
+		i++;
 	}
 
-	if (const Actor* actorToSave = dynamic_cast<const Actor*>(sceneObjectToSave)) {
-		writer.NewPropertyWithValue("Health", actorToSave->GetHealth());
-		writer.NewPropertyWithValue("MaxHealth", actorToSave->GetMaxHealth());
-		if (saveFullData) {
-			writer.NewPropertyWithValue("Status", actorToSave->GetStatus());
-			writer.NewPropertyWithValue("PlayerControllable", actorToSave->IsPlayerControllable());
+	hashData.m_ParseValues.push_back(i);
 
-			int aiModeToSave = actorToSave->GetAIMode() == Actor::AIMode::AIMODE_SQUAD ? Actor::AIMode::AIMODE_GOTO : actorToSave->GetAIMode();
-			if (aiModeToSave == Actor::AIMode::AIMODE_GOTO && (!actorToSave->GetMOMoveTarget() && g_SceneMan.ShortestDistance(actorToSave->GetMovePathEnd(), actorToSave->GetPos(), g_SceneMan.SceneWrapsX()).MagnitudeIsLessThan(1.0F))) {
-				aiModeToSave = Actor::AIMode::AIMODE_SENTRY;
-			}
-			writer.NewPropertyWithValue("AIMode", aiModeToSave);
-			if (aiModeToSave == Actor::AIMode::AIMODE_GOTO) {
-				const std::string addWaypointPropertyName = "SpecialBehaviour_AddAISceneWaypoint";
-				if (const MovableObject* actorToSaveMOMoveTarget = actorToSave->GetMOMoveTarget()) {
-					writer.NewPropertyWithValue(addWaypointPropertyName, actorToSaveMOMoveTarget->GetPos());
-				} else {
-					writer.NewPropertyWithValue(addWaypointPropertyName, actorToSave->GetMovePathEnd());
-					for (auto& [waypointPosition, waypointObject]: actorToSave->GetWaypointList()) {
-						writer.NewPropertyWithValue(addWaypointPropertyName, waypointPosition);
-					}
-				}
-			}
-		}
+	AddToHash(hash, m_GlobalAcc.Hash().m_Hash);
 
-		if (actorToSave->GetDeploymentID()) {
-			writer.NewPropertyWithValue("DeploymentID", actorToSave->GetDeploymentID());
-		}
-
-		for (const MovableObject* inventoryItem: *actorToSave->GetInventory()) {
-			writer.NewProperty("AddInventory");
-			SaveSceneObject(writer, inventoryItem, true, saveFullData);
-		}
-
-		if (saveFullData) {
-			if (const ADoor* aDoorToSave = dynamic_cast<const ADoor*>(sceneObjectToSave)) {
-				WriteHardcodedAttachableOrNone("Door", aDoorToSave->GetDoor());
-			} else if (const AHuman* aHumanToSave = dynamic_cast<const AHuman*>(sceneObjectToSave)) {
-				WriteHardcodedAttachableOrNone("Head", aHumanToSave->GetHead());
-				WriteHardcodedAttachableOrNone("Jetpack", aHumanToSave->GetJetpack());
-				WriteHardcodedAttachableOrNone("FGArm", aHumanToSave->GetFGArm());
-				WriteHardcodedAttachableOrNone("BGArm", aHumanToSave->GetBGArm());
-				WriteHardcodedAttachableOrNone("FGLeg", aHumanToSave->GetFGLeg());
-				WriteHardcodedAttachableOrNone("BGLeg", aHumanToSave->GetBGLeg());
-			} else if (const ACrab* aCrabToSave = dynamic_cast<const ACrab*>(sceneObjectToSave)) {
-				WriteHardcodedAttachableOrNone("Turret", aCrabToSave->GetTurret());
-				WriteHardcodedAttachableOrNone("Jetpack", aCrabToSave->GetJetpack());
-				WriteHardcodedAttachableOrNone("LeftFGLeg", aCrabToSave->GetLeftFGLeg());
-				WriteHardcodedAttachableOrNone("LeftBGLeg", aCrabToSave->GetLeftBGLeg());
-				WriteHardcodedAttachableOrNone("RightFGLeg", aCrabToSave->GetRightFGLeg());
-				WriteHardcodedAttachableOrNone("RightBGLeg", aCrabToSave->GetRightBGLeg());
-			} else if (const ACRocket* acRocketToSave = dynamic_cast<const ACRocket*>(sceneObjectToSave)) {
-				WriteHardcodedAttachableOrNone("RightLeg", acRocketToSave->GetRightLeg());
-				WriteHardcodedAttachableOrNone("LeftLeg", acRocketToSave->GetLeftLeg());
-				WriteHardcodedAttachableOrNone("MainThruster", acRocketToSave->GetMainThruster());
-				WriteHardcodedAttachableOrNone("RightThruster", acRocketToSave->GetRightThruster());
-				WriteHardcodedAttachableOrNone("LeftThruster", acRocketToSave->GetLeftThruster());
-				WriteHardcodedAttachableOrNone("UpRightThruster", acRocketToSave->GetURightThruster());
-				WriteHardcodedAttachableOrNone("UpRightThruster", acRocketToSave->GetULeftThruster());
-			} else if (const ACDropShip* acDropShipToSave = dynamic_cast<const ACDropShip*>(sceneObjectToSave)) {
-				WriteHardcodedAttachableOrNone("RightThruster", acDropShipToSave->GetRightThruster());
-				WriteHardcodedAttachableOrNone("LeftThruster", acDropShipToSave->GetLeftThruster());
-				WriteHardcodedAttachableOrNone("UpRightThruster", acDropShipToSave->GetURightThruster());
-				WriteHardcodedAttachableOrNone("UpLeftThruster", acDropShipToSave->GetULeftThruster());
-				WriteHardcodedAttachableOrNone("RightHatchDoor", acDropShipToSave->GetRightHatch());
-				WriteHardcodedAttachableOrNone("LeftHatchDoor", acDropShipToSave->GetLeftHatch());
-			}
-		} else if (const AHuman* aHumanToSave = dynamic_cast<const AHuman*>(sceneObjectToSave)) {
-			if (const HeldDevice* equippedItem = aHumanToSave->GetEquippedItem()) {
-				writer.NewProperty("AddInventory");
-				SaveSceneObject(writer, equippedItem, true, saveFullData);
-			}
-			if (const HeldDevice* bgEquippedItem = aHumanToSave->GetEquippedBGItem()) {
-				writer.NewProperty("AddInventory");
-				SaveSceneObject(writer, bgEquippedItem, true, saveFullData);
-			}
-		}
-	}
-	writer.ObjectEnd();
+	return hashData;
 }
 
 void Scene::Destroy(bool notInherited) {
@@ -1900,6 +1844,7 @@ Scene::Area* Scene::GetArea(const std::string& areaName) {
 bool Scene::RemoveArea(const std::string& areaName) {
 	for (std::list<Area*>::iterator aItr = m_AreaList.begin(); aItr != m_AreaList.end(); ++aItr) {
 		if ((*aItr)->GetName() == areaName) {
+			delete *aItr;
 			m_AreaList.erase(aItr);
 			return true;
 		}

@@ -148,25 +148,27 @@ int ACRocket::Create(const ACRocket& reference) {
 int ACRocket::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return ACraft::ReadProperty(propName, reader));
 
-	MatchForwards("RLeg") MatchProperty("RightLeg", { SetRightLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("LLeg") MatchProperty("LeftLeg", { SetLeftLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchForwards("RLeg") MatchProperty("RightLeg", { SetRightLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
+	MatchForwards("LLeg") MatchProperty("LeftLeg", { SetLeftLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
 	MatchForwards("RFootGroup") MatchProperty("RightFootGroup", {
 		delete m_pRFootGroup;
-		m_pRFootGroup = new AtomGroup();
-		reader >> m_pRFootGroup;
-		m_pRFootGroup->SetOwner(this);
+		m_pRFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		if (m_pRFootGroup) {
+			m_pRFootGroup->SetOwner(this);
+		}
 	});
 	MatchForwards("LFootGroup") MatchProperty("LeftFootGroup", {
 		delete m_pLFootGroup;
-		m_pLFootGroup = new AtomGroup();
-		reader >> m_pLFootGroup;
-		m_pLFootGroup->SetOwner(this);
+		m_pLFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		if (m_pLFootGroup) {
+			m_pLFootGroup->SetOwner(this);
+		}
 	});
-	MatchForwards("MThruster") MatchProperty("MainThruster", { SetMainThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("RThruster") MatchProperty("RightThruster", { SetRightThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("LThruster") MatchProperty("LeftThruster", { SetLeftThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("URThruster") MatchProperty("UpRightThruster", { SetURightThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("ULThruster") MatchProperty("UpLeftThruster", { SetULeftThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchForwards("MThruster") MatchProperty("MainThruster", { SetMainThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("RThruster") MatchProperty("RightThruster", { SetRightThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("LThruster") MatchProperty("LeftThruster", { SetLeftThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("URThruster") MatchProperty("UpRightThruster", { SetURightThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("ULThruster") MatchProperty("UpLeftThruster", { SetULeftThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
 	MatchProperty("RaisedGearLimbPath", { reader >> m_Paths[RIGHT][RAISED]; });
 	MatchProperty("LoweredGearLimbPath", { reader >> m_Paths[RIGHT][LOWERED]; });
 	MatchProperty("LoweringGearLimbPath", { reader >> m_Paths[RIGHT][LOWERING]; });
@@ -182,36 +184,144 @@ int ACRocket::ReadProperty(const std::string_view& propName, Reader& reader) {
 int ACRocket::Save(Writer& writer) const {
 	ACraft::Save(writer);
 
-	writer.NewProperty("RLeg");
-	writer << m_pRLeg;
-	writer.NewProperty("LLeg");
-	writer << m_pLLeg;
-	writer.NewProperty("RFootGroup");
-	writer << m_pRFootGroup;
-	writer.NewProperty("LFootGroup");
-	writer << m_pLFootGroup;
-	writer.NewProperty("MThruster");
-	writer << m_pMThruster;
-	writer.NewProperty("RThruster");
-	writer << m_pRThruster;
-	writer.NewProperty("LThruster");
-	writer << m_pLThruster;
-	writer.NewProperty("URThruster");
-	writer << m_pURThruster;
-	writer.NewProperty("ULThruster");
-	writer << m_pULThruster;
-	writer.NewProperty("RaisedGearLimbPath");
-	writer << m_Paths[RIGHT][RAISED];
-	writer.NewProperty("LoweredGearLimbPath");
-	writer << m_Paths[RIGHT][LOWERED];
-	writer.NewProperty("LoweringGearLimbPath");
-	writer << m_Paths[RIGHT][LOWERING];
-	writer.NewProperty("RaisingGearLimbPath");
-	writer << m_Paths[RIGHT][RAISING];
-	writer.NewProperty("MaxGimbalAngle");
-	writer << m_MaxGimbalAngle / (c_PI / 180.0F);
+	writer.NewPropertyWithValue("RLeg", m_pRLeg);
+	writer.NewPropertyWithValue("LLeg", m_pLLeg);
+	writer.NewPropertyWithValue("RFootGroup", m_pRFootGroup);
+	writer.NewPropertyWithValue("LFootGroup", m_pLFootGroup);
+	writer.NewPropertyWithValue("MThruster", m_pMThruster);
+	writer.NewPropertyWithValue("RThruster", m_pRThruster);
+	writer.NewPropertyWithValue("LThruster", m_pLThruster);
+	writer.NewPropertyWithValue("URThruster", m_pURThruster);
+	writer.NewPropertyWithValue("ULThruster", m_pULThruster);
+	writer.NewPropertyWithValue("RaisedGearLimbPath", m_Paths[RIGHT][RAISED]);
+	writer.NewPropertyWithValue("LoweredGearLimbPath", m_Paths[RIGHT][LOWERED]);
+	writer.NewPropertyWithValue("LoweringGearLimbPath", m_Paths[RIGHT][LOWERING]);
+	writer.NewPropertyWithValue("RaisingGearLimbPath", m_Paths[RIGHT][RAISING]);
+	writer.NewPropertyWithValue("MaxGimbalAngle", m_MaxGimbalAngle / (c_PI / 180.0F));
 
 	return 0;
+}
+
+int ACRocket::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	ACraft::Write(writer, entityReference, hashData);
+
+	const ACRocket& reference = static_cast<const ACRocket&>(entityReference);
+
+	writer.NewOptionalEntityPointerProperty("RLeg", m_pRLeg, hashData);
+	writer.NewOptionalEntityPointerProperty("LLeg", m_pLLeg, hashData);
+	writer.NewOptionalEntityPointerProperty("RFootGroup", m_pRFootGroup, hashData);
+	writer.NewOptionalEntityPointerProperty("LFootGroup", m_pLFootGroup, hashData);
+	writer.NewOptionalEntityPointerProperty("MThruster", m_pMThruster, hashData);
+	writer.NewOptionalEntityPointerProperty("RThruster", m_pRThruster, hashData);
+	writer.NewOptionalEntityPointerProperty("LThruster", m_pLThruster, hashData);
+	writer.NewOptionalEntityPointerProperty("URThruster", m_pURThruster, hashData);
+	writer.NewOptionalEntityPointerProperty("ULThruster", m_pULThruster, hashData);
+	writer.NewDistinctHashedProperty("RaisedGearLimbPath", m_Paths[RIGHT][RAISED], hashData);
+	writer.NewDistinctHashedProperty("LoweredGearLimbPath", m_Paths[RIGHT][LOWERED], hashData);
+	writer.NewDistinctHashedProperty("LoweringGearLimbPath", m_Paths[RIGHT][LOWERING], hashData);
+	writer.NewDistinctHashedProperty("RaisingGearLimbPath", m_Paths[RIGHT][RAISING], hashData);
+	
+	if (m_MaxGimbalAngle != reference.m_MaxGimbalAngle)
+		writer.NewPropertyWithValue("MaxGimbalAngle", m_MaxGimbalAngle / (c_PI / 180.0F));
+
+	return 0;
+}
+
+HashingData ACRocket::Hash() const {
+	HashingData hashData(ACraft::Hash());
+	uint64_t& hash = hashData.m_Hash;
+	
+	bool rLegDef = m_pRLeg != nullptr;
+	hashData.m_ParseValues.push_back(rLegDef);
+	if (rLegDef) {
+		uint64_t rLegHash = m_pRLeg->Hash().m_Hash;
+		hashData.m_Constituents.push_back(rLegHash);
+		AddToHash(hash, rLegHash);
+	}
+
+	bool lLegDef = m_pLLeg != nullptr;
+	hashData.m_ParseValues.push_back(lLegDef);
+	if (lLegDef) {
+		uint64_t lLegHash = m_pLLeg->Hash().m_Hash;
+		hashData.m_Constituents.push_back(lLegHash);
+		AddToHash(hash, lLegHash);
+	}
+
+	bool rFootGroupDef = m_pRFootGroup != nullptr;
+	hashData.m_ParseValues.push_back(rFootGroupDef);
+	if (rFootGroupDef) {
+		uint64_t rFootGroupHash = m_pRFootGroup->Hash().m_Hash;
+		hashData.m_Constituents.push_back(rFootGroupHash);
+		AddToHash(hash, rFootGroupHash);
+	}
+
+	bool lFootGroupDef = m_pLFootGroup != nullptr;
+	hashData.m_ParseValues.push_back(lFootGroupDef);
+	if (lFootGroupDef) {
+		uint64_t lFootGroupHash = m_pLFootGroup->Hash().m_Hash;
+		hashData.m_Constituents.push_back(lFootGroupHash);
+		AddToHash(hash, lFootGroupHash);
+	}
+
+	bool mThrusterDef = m_pMThruster != nullptr;
+	hashData.m_ParseValues.push_back(mThrusterDef);
+	if (mThrusterDef) {
+		uint64_t mThrusterHash = m_pMThruster->Hash().m_Hash;
+		hashData.m_Constituents.push_back(mThrusterHash);
+		AddToHash(hash, mThrusterHash);
+	}
+
+	bool rThrusterDef = m_pRThruster != nullptr;
+	hashData.m_ParseValues.push_back(rThrusterDef);
+	if (rThrusterDef) {
+		uint64_t rThrusterHash = m_pRThruster->Hash().m_Hash;
+		hashData.m_Constituents.push_back(rThrusterHash);
+		AddToHash(hash, rThrusterHash);
+	}
+
+	bool lThrusterDef = m_pLThruster != nullptr;
+	hashData.m_ParseValues.push_back(lThrusterDef);
+	if (lThrusterDef) {
+		uint64_t lThrusterHash = m_pLThruster->Hash().m_Hash;
+		hashData.m_Constituents.push_back(lThrusterHash);
+		AddToHash(hash, lThrusterHash);
+	}
+
+	bool urThrusterDef = m_pURThruster != nullptr;
+	hashData.m_ParseValues.push_back(urThrusterDef);
+	if (urThrusterDef) {
+		uint64_t urThrusterHash = m_pURThruster->Hash().m_Hash;
+		hashData.m_Constituents.push_back(urThrusterHash);
+		AddToHash(hash, urThrusterHash);
+	}
+
+	bool ulThrusterDef = m_pULThruster != nullptr;
+	hashData.m_ParseValues.push_back(ulThrusterDef);
+	if (ulThrusterDef) {
+		uint64_t ulThrusterHash = m_pULThruster->Hash().m_Hash;
+		hashData.m_Constituents.push_back(ulThrusterHash);
+		AddToHash(hash, ulThrusterHash);
+	}
+
+	uint64_t rightRaisedPathHash = m_Paths[RIGHT][RAISED].Hash().m_Hash;
+	hashData.m_Constituents.push_back(rightRaisedPathHash);
+	AddToHash(hash, rightRaisedPathHash);
+
+	uint64_t rightLoweredPathHash = m_Paths[RIGHT][LOWERED].Hash().m_Hash;
+	hashData.m_Constituents.push_back(rightLoweredPathHash);
+	AddToHash(hash, rightLoweredPathHash);
+
+	uint64_t rightLoweringPathHash = m_Paths[RIGHT][LOWERING].Hash().m_Hash;
+	hashData.m_Constituents.push_back(rightLoweringPathHash);
+	AddToHash(hash, rightLoweringPathHash);
+
+	uint64_t rightRaisingHash = m_Paths[RIGHT][RAISING].Hash().m_Hash;
+	hashData.m_Constituents.push_back(rightRaisingHash);
+	AddToHash(hash, rightRaisingHash);
+
+	AddToHash(hash, m_MaxGimbalAngle);
+
+	return hashData;
 }
 
 void ACRocket::Destroy(bool notInherited) {

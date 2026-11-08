@@ -58,7 +58,8 @@ namespace RTE {
 		/// Public member variable, method and friend function declarations
 	public:
 		SerializableClassNameGetter;
-		SerializableOverrideMethods;
+		int ReadProperty(const std::string_view& propName, Reader& reader) override;
+		int Save(Writer& writer) const override;
 
 		/// Constructor method used to instantiate a MovableMan object in system
 		/// memory. Create() should be called before using the object.

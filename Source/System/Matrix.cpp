@@ -74,6 +74,17 @@ int Matrix::Save(Writer& writer) const {
 	return 0;
 }
 
+HashingData Matrix::Hash() const {
+	HashingData hashData(Serializable::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	// This compares what an orientation does, not how it got there: flipping both axes is the same as half a turn.
+	AddToHash(hash, m_Flipped[X] != m_Flipped[Y]);
+	AddToHash(hash, std::hash<float>{}(NormalizeAngleBetween0And2PI(m_Rotation + PI * m_Flipped[Y])));
+
+	return hashData;
+}
+
 float Matrix::GetRadAngleTo(float otherAngle) const {
 	// Rotate this' angle with the other angle so that the sought after difference angle is between the resulting angle and the x-axis
 	float difference = otherAngle - GetRadAngle();

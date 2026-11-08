@@ -4,6 +4,8 @@
 
 namespace RTE {
 
+	class Entity;
+
 	/// Helper class to save generic data.
 	class GenericSavedData : public Serializable {
 
@@ -67,6 +69,34 @@ namespace RTE {
 			static const std::string c_ClassName; //!< A string with the friendly formatted type name of this object.
 		};
 
+		/// Helper class to save generic Entities data.
+		class GenericSavedEntities : public Serializable {
+
+		public:
+			SerializableClassNameGetter;
+			SerializableOverrideMethods;
+
+			/// Constructor method used to instantiate a GenericSavedEntities object in system memory and make it ready for use.
+			GenericSavedEntities() = default;
+
+			///	Constructor method used to instantiate a GenericSavedEntities object to be identical to another, by deep copy, and make it ready for use.
+			/// @param reference A reference to the GenericSavedEntities to deep copy.
+			GenericSavedEntities(const GenericSavedEntities& reference);
+
+			/// Replaces the Entities stored in this with copies of those stored in another.
+			/// @param rhs A reference to the GenericSavedEntities to deep copy.
+			/// @return A reference to this.
+			GenericSavedEntities& operator=(const GenericSavedEntities& rhs);
+
+			/// Destructor method used to clean up a GenericSavedEntities object, and the Entities stored in it, before deletion from system memory.
+			~GenericSavedEntities() override;
+
+			std::unordered_map<std::string, Entity*> m_Data; //!< Stored Entity data. The Entities are owned by this.
+
+		private:
+			static const std::string c_ClassName; //!< A string with the friendly formatted type name of this object.
+		};
+
 	public:
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
@@ -78,15 +108,22 @@ namespace RTE {
 		/// @param reference A reference to the GenericSavedData to deep copy.
 		GenericSavedData(const GenericSavedData& reference) = default;
 
+		/// Destructor method used to clean up a GenericSavedData object before deletion from system memory.
+		virtual ~GenericSavedData();
+
 		void SaveString(const std::string& key, const std::string& value);
 		const std::string& LoadString(const std::string& key);
 
 		void SaveNumber(const std::string& key, double value) { m_SavedNumbers.m_Data[key] = value; };
 		double LoadNumber(const std::string& key) { return m_SavedNumbers.m_Data[key]; };
 
+		void SaveEntity(const std::string& key, const Entity* value);
+		Entity* LoadEntity(const std::string& key);
+
 		GenericSavedEncodedStrings m_SavedEncodedStrings; //!< Stored encoded string data.
 		GenericSavedStrings m_SavedStrings; //!< Stored string data.
 		GenericSavedNumbers m_SavedNumbers; //!< Stored number data.
+		GenericSavedEntities m_SavedEntities; //!< Stored Entity data.
 
 	private:
 		static const std::string c_ClassName; //!< A string with the friendly formatted type name of this object.

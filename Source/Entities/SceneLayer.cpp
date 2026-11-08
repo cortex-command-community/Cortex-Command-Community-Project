@@ -132,9 +132,19 @@ template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
+	MatchProperty("BitmapFile", { reader >> m_BitmapFile; });
 	MatchProperty("WrapX", { reader >> m_WrapX; });
 	MatchProperty("WrapY", { reader >> m_WrapY; });
-	MatchProperty("BitmapFile", { reader >> m_BitmapFile; });
+	MatchProperty("DrawTransparent", { reader >> m_DrawMasked; });
+	MatchProperty("ScrollRatio", {
+		// Actually read the ScrollInfo, not the ratio. The ratios will be initialized later.
+		reader >> m_ScrollInfo;
+	});
+	MatchProperty("ScaleFactor", {
+		reader >> m_ScaleFactor;
+		SetScaleFactor(m_ScaleFactor);
+	});
+	MatchProperty("OriginPointOffset", { reader >> m_OriginOffset; });
 
 	EndPropertyList;
 }
@@ -143,11 +153,58 @@ template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	writer.NewPropertyWithValue("WrapX", m_WrapX);
-	writer.NewPropertyWithValue("WrapY", m_WrapY);
 	writer.NewPropertyWithValue("BitmapFile", m_BitmapFile);
 
+	writer.NewDistinctProperty("WrapX", m_WrapX, true);
+	writer.NewDistinctProperty("WrapY", m_WrapY, true);
+	writer.NewDistinctProperty("DrawTransparent", m_DrawMasked, true);
+
+	if (m_ScaleFactor != Vector(1, 1))
+		writer.NewPropertyWithValue("ScrollRatio", m_ScrollInfo);
+
+	writer.NewDistinctProperty("ScaleFactor", m_ScaleFactor, Vector(1, 1));
+
+	if (!m_OriginOffset.IsZero())
+		writer.NewPropertyWithValue("OriginPointOffset", m_OriginOffset);
+
 	return 0;
+}
+
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>& reference = static_cast<const SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>&>(entityReference);
+
+	writer.NewDistinctHashedProperty("BitmapFile", m_BitmapFile, hashData);
+
+	writer.NewDistinctProperty("WrapX", m_WrapX, reference.m_WrapX);
+	writer.NewDistinctProperty("WrapY", m_WrapY, reference.m_WrapY);
+	writer.NewDistinctProperty("DrawTransparent", m_DrawMasked, reference.m_DrawMasked);
+	writer.NewDistinctProperty("ScrollRatio", m_ScrollInfo, reference.m_ScrollInfo);
+	writer.NewDistinctProperty("ScaleFactor", m_ScaleFactor, reference.m_ScaleFactor);
+	writer.NewDistinctProperty("OriginPointOffset", m_OriginOffset, reference.m_OriginOffset);
+
+	return 0;
+}
+
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+HashingData SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Hash() const {
+	HashingData hashData(Entity::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	uint64_t bitmapHash = m_BitmapFile.Hash().m_Hash;
+	hashData.m_Constituents.push_back(bitmapHash);
+	AddToHash(hash, bitmapHash);
+	
+	AddToHash(hash, m_WrapX);
+	AddToHash(hash, m_WrapY);
+	AddToHash(hash, m_DrawMasked);
+	AddToHash(hash, m_ScrollInfo.Hash().m_Hash);
+	AddToHash(hash, m_ScaleFactor.Hash().m_Hash);
+	AddToHash(hash, m_OriginOffset.Hash().m_Hash);
+
+	return hashData;
 }
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>

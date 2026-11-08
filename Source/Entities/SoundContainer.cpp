@@ -101,7 +101,11 @@ int SoundContainer::Create(const std::string& soundFilePath, bool immobile, bool
 int SoundContainer::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
-	MatchProperty("SpecialBehaviour_TopLevelSoundSet", { reader >> *m_TopLevelSoundSet; });
+	MatchForwards("SpecialBehaviour_TopLevelSoundSet") MatchProperty("TopLevelSoundSet", {
+		// This is the whole set, not what to add to a preset's.
+		m_TopLevelSoundSet->Destroy();
+		reader >> *m_TopLevelSoundSet;
+	});
 	MatchProperty("AddSound", { m_TopLevelSoundSet->AddSoundData(SoundSet::ReadAndGetSoundData(reader)); });
 	MatchProperty("AddSoundSet", {
 		SoundSet soundSetToAdd;
@@ -154,6 +158,8 @@ int SoundContainer::ReadProperty(const std::string_view& propName, Reader& reade
 	MatchProperty("Volume", { reader >> m_Volume; });
 	MatchProperty("Pitch", { reader >> m_Pitch; });
 	MatchProperty("PitchVariation", { reader >> m_PitchVariation; });
+	MatchProperty("WasFadedOut", { reader >> m_WasFadedOut; });
+	MatchProperty("Paused", { reader >> m_Paused; });
 
 	MatchProperty("MusicPreEntryTime", { reader >> m_MusicPreEntryTime; });
 	MatchProperty("MusicExitTime", { reader >> m_MusicExitTime; });
@@ -165,55 +171,109 @@ int SoundContainer::Save(Writer& writer) const {
 	Entity::Save(writer);
 
 	// Due to writer limitations, the top level SoundSet has to be explicitly written out, even though SoundContainer standard behaviour is to hide it in INI and just have properties be part of the SoundContainer.
-	writer.NewPropertyWithValue("SpecialBehaviour_TopLevelSoundSet", *m_TopLevelSoundSet);
+	writer.NewPropertyWithValue("TopLevelSoundSet", *m_TopLevelSoundSet);
 
-	writer.NewProperty("SoundSelectionCycleMode");
-	SoundSet::SaveSoundSelectionCycleMode(writer, m_TopLevelSoundSet->GetSoundSelectionCycleMode());
-
-	writer.NewProperty("SoundOverlapMode");
-	auto overlapModeMapEntry = std::find_if(c_SoundOverlapModeMap.begin(), c_SoundOverlapModeMap.end(), [&soundOverlapMode = m_SoundOverlapMode](auto element) { return element.second == soundOverlapMode; });
-	if (overlapModeMapEntry != c_SoundOverlapModeMap.end()) {
-		writer << overlapModeMapEntry->first;
-	} else {
-		RTEAbort("Tried to write invalid SoundOverlapMode when saving SoundContainer.");
+	if (m_SoundOverlapMode != SoundOverlapMode::OVERLAP) {
+		writer.NewProperty("SoundOverlapMode");
+		auto overlapModeMapEntry = std::find_if(c_SoundOverlapModeMap.begin(), c_SoundOverlapModeMap.end(), [&soundOverlapMode = m_SoundOverlapMode](auto element) { return element.second == soundOverlapMode; });
+		if (overlapModeMapEntry != c_SoundOverlapModeMap.end()) {
+			writer << overlapModeMapEntry->first;
+		} else {
+			RTEAbort("Tried to write invalid SoundOverlapMode when saving SoundContainer.");
+		}
 	}
-	writer.NewProperty("BusRouting");
-	writer << m_BusRouting;
-	writer.NewProperty("Immobile");
-	writer << m_Immobile;
-	writer.NewProperty("AttenuationStartDistance");
-	writer << m_AttenuationStartDistance;
-	writer.NewProperty("CustomPanValue");
-	writer << m_CustomPanValue;
-	writer.NewProperty("PanningStrengthMultiplier");
-	writer << m_PanningStrengthMultiplier;
-	writer.NewProperty("LoopSetting");
-	writer << m_Loops;
 
-	writer.NewProperty("Priority");
-	writer << m_Priority;
-	writer.NewProperty("AffectedByGlobalPitch");
-	writer << m_AffectedByGlobalPitch;
+	writer.NewDistinctProperty("BusRouting", m_BusRouting, BusRouting::SFX);
+	writer.NewDistinctProperty("Immobile", m_Immobile, false);
+	writer.NewDistinctProperty("AttenuationStartDistance", m_AttenuationStartDistance, (float) c_DefaultAttenuationStartDistance);
+	writer.NewDistinctProperty("CustomPanValue", m_CustomPanValue, 0.0F);
+	writer.NewDistinctProperty("PanningStrengthMultiplier", m_PanningStrengthMultiplier, 1.0F);
+	writer.NewDistinctProperty("LoopSetting", m_Loops, 0);
+	writer.NewDistinctProperty("Priority", m_Priority, (int) AudioMan::PRIORITY_NORMAL);
+	writer.NewDistinctProperty("AffectedByGlobalPitch", m_AffectedByGlobalPitch, true);
 
-	writer.NewProperty("Position");
-	writer << m_Pos;
-	writer.NewProperty("Volume");
-	writer << m_Volume;
-	writer.NewProperty("Pitch");
-	writer << m_Pitch;
-	writer.NewProperty("PitchVariation");
-	writer << m_PitchVariation;
+	if (!m_Pos.IsZero())
+		writer.NewPropertyWithValue("Position", m_Pos);
 
-	writer.NewProperty("WasFadedOut");
-	writer << m_WasFadedOut;
-	writer.NewProperty("Paused");
-	writer << m_Paused;
-	writer.NewProperty("MusicPreEntryTime");
-	writer << m_MusicPreEntryTime;
-	writer.NewProperty("MusicExitTime");
-	writer << m_MusicExitTime;
+	writer.NewDistinctProperty("Volume", m_Volume, 1.0F);
+	writer.NewDistinctProperty("Pitch", m_Pitch, 1.0F);
+	writer.NewDistinctProperty("PitchVariation", m_PitchVariation, 0.0F);
+	writer.NewDistinctProperty("WasFadedOut", m_WasFadedOut, false);
+	writer.NewDistinctProperty("Paused", m_Paused, false);
+	writer.NewDistinctProperty("MusicPreEntryTime", m_MusicPreEntryTime, 0.0F);
+	writer.NewDistinctProperty("MusicExitTime", m_MusicExitTime, 0.0F);
 
 	return 0;
+}
+
+int SoundContainer::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const SoundContainer& reference = static_cast<const SoundContainer&>(entityReference);
+
+	// Due to writer limitations, the top level SoundSet has to be explicitly written out, even though SoundContainer standard behaviour is to hide it in INI and just have properties be part of the SoundContainer.
+	if (m_TopLevelSoundSet->Hash().m_Hash != hashData.m_Constituents.at(0)) {
+		writer.NewPropertyWithValue("TopLevelSoundSet", *m_TopLevelSoundSet);
+	}
+
+	if (m_SoundOverlapMode != reference.m_SoundOverlapMode) {
+		writer.NewProperty("SoundOverlapMode");
+		auto overlapModeMapEntry = std::find_if(c_SoundOverlapModeMap.begin(), c_SoundOverlapModeMap.end(), [&soundOverlapMode = m_SoundOverlapMode](auto element) { return element.second == soundOverlapMode; });
+		if (overlapModeMapEntry != c_SoundOverlapModeMap.end()) {
+			writer << overlapModeMapEntry->first;
+		} else {
+			RTEAbort("Tried to write invalid SoundOverlapMode when saving SoundContainer.");
+		}
+	}
+
+	writer.NewDistinctProperty("BusRouting", m_BusRouting, reference.m_BusRouting);
+	writer.NewDistinctProperty("Immobile", m_Immobile, reference.m_Immobile);
+	writer.NewDistinctProperty("AttenuationStartDistance", m_AttenuationStartDistance, reference.m_AttenuationStartDistance);
+	writer.NewDistinctProperty("CustomPanValue", m_CustomPanValue, reference.m_CustomPanValue);
+	writer.NewDistinctProperty("PanningStrengthMultiplier", m_PanningStrengthMultiplier, reference.m_PanningStrengthMultiplier);
+	writer.NewDistinctProperty("LoopSetting", m_Loops, reference.m_Loops);
+	writer.NewDistinctProperty("Priority", m_Priority, reference.m_Priority);
+	writer.NewDistinctProperty("AffectedByGlobalPitch", m_AffectedByGlobalPitch, reference.m_AffectedByGlobalPitch);
+	writer.NewDistinctProperty("Position", m_Pos, reference.m_Pos);
+	writer.NewDistinctProperty("Volume", m_Volume, reference.m_Volume);
+	writer.NewDistinctProperty("Pitch", m_Pitch, reference.m_Pitch);
+	writer.NewDistinctProperty("PitchVariation", m_PitchVariation, reference.m_PitchVariation);
+	writer.NewDistinctProperty("WasFadedOut", m_WasFadedOut, reference.m_WasFadedOut);
+	writer.NewDistinctProperty("Paused", m_Paused, reference.m_Paused);
+	writer.NewDistinctProperty("MusicPreEntryTime", m_MusicPreEntryTime, reference.m_MusicPreEntryTime);
+	writer.NewDistinctProperty("MusicExitTime", m_MusicExitTime, reference.m_MusicExitTime);
+
+	return 0;
+}
+
+HashingData SoundContainer::Hash() const {
+	HashingData hashData(Entity::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	uint64_t topLevelSoundSetHash = m_TopLevelSoundSet->Hash().m_Hash;
+	hashData.m_Constituents.push_back(topLevelSoundSetHash);
+	AddToHash(hash, topLevelSoundSetHash);
+
+	AddToHash(hash, m_SoundOverlapMode);
+
+	AddToHash(hash, m_BusRouting);
+	AddToHash(hash, m_Immobile);
+	AddToHash(hash, m_AttenuationStartDistance);
+	AddToHash(hash, m_CustomPanValue);
+	AddToHash(hash, m_PanningStrengthMultiplier);
+	AddToHash(hash, m_Loops);
+	AddToHash(hash, m_Priority);
+	AddToHash(hash, m_AffectedByGlobalPitch);
+	AddToHash(hash, m_Pos.Hash().m_Hash);
+	AddToHash(hash, m_Volume);
+	AddToHash(hash, m_Pitch);
+	AddToHash(hash, m_PitchVariation);
+	AddToHash(hash, m_WasFadedOut);
+	AddToHash(hash, m_Paused);
+	AddToHash(hash, m_MusicPreEntryTime);
+	AddToHash(hash, m_MusicExitTime);
+
+	return hashData;
 }
 
 bool SoundContainer::HasAnySounds() const {

@@ -48,8 +48,7 @@ int Gib::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
 	MatchProperty("GibParticle", {
-		m_GibParticle = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(reader));
-		RTEAssert(m_GibParticle, "Stream suggests allocating an unallocable type in Gib::Create!");
+		m_GibParticle = g_PresetMan.ReadPresetReferenceOfType<MovableObject>(reader, propName);
 	});
 	MatchProperty("Offset", { reader >> m_Offset; });
 	MatchProperty("Count", { reader >> m_Count; });
@@ -68,33 +67,38 @@ int Gib::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Gib::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
-	writer.NewProperty("GibParticle");
-	// All of this is needed to make a preset look like not original and save as CopyOf instead of separate preset.
-	std::unique_ptr<Entity> gibEntity(m_GibParticle->Clone());
-	gibEntity->ResetOriginalPresetFlag();
-	gibEntity->Entity::Save(writer);
-	writer.ObjectEnd();
-
-	writer.NewProperty("Offset");
-	writer << m_Offset;
-
-	// These are disabled because we're writing CopyOfs. Might need these in the future if we need to write original presets.
-	/*
-	writer.NewProperty("Count");
-	writer << m_Count;
-	writer.NewProperty("Spread");
-	writer << m_Spread;
-	writer.NewProperty("MinVelocity");
-	writer << GetMinVelocity();
-	writer.NewProperty("MaxVelocity");
-	writer << GetMaxVelocity();
-	writer.NewProperty("LifeVariation");
-	writer << m_LifeVariation;
-	writer.NewProperty("InheritsVel");
-	writer << m_InheritsVel;
-	writer.NewProperty("InheritsAngularVel");
-	writer << m_InheritsAngularVel;
-	*/
+	if (m_GibParticle != nullptr)
+		writer.NewPropertyWithValue("GibParticle", m_GibParticle->GetEntityCharacteristic());
+	if (!m_Offset.IsZero())
+		writer.NewPropertyWithValue("Offset", m_Offset);
+	writer.NewDistinctProperty("Count", m_Count, 1);
+	writer.NewDistinctProperty("Spread", m_Spread, 0.1F);
+	writer.NewDistinctProperty("MinVelocity", GetMinVelocity(), 0.0F);
+	writer.NewDistinctProperty("MaxVelocity", GetMaxVelocity(), 0.0F);
+	writer.NewDistinctProperty("LifeVariation", m_LifeVariation, 0.1F);
+	writer.NewDistinctProperty("InheritsVel", m_InheritsVel, 1.0F);
+	writer.NewDistinctProperty("InheritsAngularVel", m_InheritsAngularVel, 1.0F);
+	writer.NewDistinctProperty("IgnoresTeamHits", m_IgnoresTeamHits, false);
+	writer.NewDistinctProperty("SpreadMode", m_SpreadMode, SpreadMode::SpreadRandom);
 
 	return 0;
+}
+
+HashingData Gib::Hash() const {
+	HashingData hashData(Serializable::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, (m_GibParticle ? RTE::Hash(m_GibParticle->GetEntityCharacteristic()) : 0));
+	AddToHash(hash, m_Offset.Hash().m_Hash);
+	AddToHash(hash, m_Count);
+	AddToHash(hash, m_Spread);
+	AddToHash(hash, m_MinVelocity);
+	AddToHash(hash, m_MaxVelocity);
+	AddToHash(hash, m_LifeVariation);
+	AddToHash(hash, m_InheritsVel);
+	AddToHash(hash, m_InheritsAngularVel);
+	AddToHash(hash, m_IgnoresTeamHits);
+	AddToHash(hash, m_SpreadMode);
+
+	return hashData;
 }

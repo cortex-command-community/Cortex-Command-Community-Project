@@ -101,7 +101,7 @@ int PieSlice::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("CanBeMiddleSlice", { reader >> m_CanBeMiddleSlice; });
 	MatchProperty("Enabled", { reader >> m_Enabled; });
-	MatchProperty("Icon", { SetIcon(dynamic_cast<Icon*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Icon", { SetIcon(g_PresetMan.ReadReflectedPresetOfType<Icon>(reader, propName)); });
 	MatchProperty("ScriptPath", {
 		std::string scriptPath;
 		reader >> scriptPath;
@@ -116,7 +116,7 @@ int PieSlice::ReadProperty(const std::string_view& propName, Reader& reader) {
 			ReloadScripts();
 		}
 	});
-	MatchProperty("SubPieMenu", { SetSubPieMenu(dynamic_cast<PieMenu*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("SubPieMenu", { SetSubPieMenu(g_PresetMan.ReadReflectedPresetOfType<PieMenu>(reader, propName)); });
 	MatchProperty("DrawFlippedToMatchAbsoluteAngle", { reader >> m_DrawFlippedToMatchAbsoluteAngle; });
 
 	EndPropertyList;
@@ -143,7 +143,67 @@ int PieSlice::Save(Writer& writer) const {
 		writer.NewPropertyWithValue("SubPieMenu", m_SubPieMenu.get());
 	}
 
+	writer.NewDistinctProperty("CanBeMiddleSlice", m_CanBeMiddleSlice, true);
+	writer.NewDistinctProperty("DrawFlippedToMatchAbsoluteAngle", m_DrawFlippedToMatchAbsoluteAngle, false);
+
 	return 0;
+}
+
+int PieSlice::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	Entity::Write(writer, entityReference, hashData);
+
+	const PieSlice& reference = static_cast<const PieSlice&>(entityReference);
+
+	if (m_Type != reference.m_Type) {
+		writer.NewPropertyWithValue("Type", static_cast<int>(m_Type));
+	}
+	if (m_Direction != reference.m_Direction) {
+		writer.NewPropertyWithValue("Direction", static_cast<int>(m_Direction));
+	}
+
+	writer.NewDistinctProperty("Enabled", m_Enabled, reference.m_Enabled);
+	writer.NewDistinctHashedProperty("Icon", *m_Icon, hashData);
+
+	if (m_LuabindFunctionObject && !m_FunctionName.empty()) {
+		writer.NewPropertyWithValue("ScriptPath", m_LuabindFunctionObject->GetFilePath());
+		writer.NewPropertyWithValue("FunctionName", m_FunctionName);
+	}
+
+	writer.NewOptionalEntityPointerProperty("SubPieMenu", m_SubPieMenu.get(), hashData);
+
+	writer.NewDistinctProperty("CanBeMiddleSlice", m_CanBeMiddleSlice, reference.m_CanBeMiddleSlice);
+	writer.NewDistinctProperty("DrawFlippedToMatchAbsoluteAngle", m_DrawFlippedToMatchAbsoluteAngle, reference.m_DrawFlippedToMatchAbsoluteAngle);
+
+	return 0;
+}
+
+HashingData PieSlice::Hash() const {
+	HashingData hashData(Entity::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	AddToHash(hash, m_Type);
+	AddToHash(hash, m_Direction);
+	AddToHash(hash, m_Enabled);
+
+	uint64_t bitmapHash = m_Icon->Hash().m_Hash;
+	hashData.m_Constituents.push_back(bitmapHash);
+	AddToHash(hash, bitmapHash);
+
+	AddToHash(hash, (m_LuabindFunctionObject ? RTE::Hash(m_LuabindFunctionObject->GetFilePath()) : 0));
+	AddToHash(hash, RTE::Hash(m_FunctionName));
+
+	bool subPieMenuDef = m_SubPieMenu != nullptr;
+	hashData.m_ParseValues.push_back(subPieMenuDef);
+	if (subPieMenuDef) {
+		uint64_t subPieHash = m_SubPieMenu->Hash().m_Hash;
+		hashData.m_Constituents.push_back(subPieHash);
+		AddToHash(hash, subPieHash);
+	}
+
+	AddToHash(hash, m_CanBeMiddleSlice);
+	AddToHash(hash, m_DrawFlippedToMatchAbsoluteAngle);
+
+	return hashData;
 }
 
 BITMAP* PieSlice::GetAppropriateIcon(bool sliceIsSelected) const {

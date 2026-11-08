@@ -53,7 +53,8 @@ namespace RTE {
 		/// Public member variable, method and friend function declarations
 	public:
 		SerializableClassNameGetter;
-		SerializableOverrideMethods;
+		int ReadProperty(const std::string_view& propName, Reader& reader) override;
+		int Save(Writer& writer) const override;
 
 		/// Constructor method used to instantiate a SceneMan object in system
 		/// memory. Create() should be called before using the object.
@@ -945,12 +946,6 @@ namespace RTE {
 		/// Clears the list of pixels on the unseen map that have been revealed.
 		void ClearSeenPixels();
 
-		/// Creates a copy of passed material and stores it into internal vector
-		/// to make sure there's only one material owner
-		/// @param mat Material to add.
-		/// @return Pointer to stored material.
-		Material* AddMaterialCopy(Material* mat);
-
 		/// Gets an intermediate bitmap that is used for drawing a settled MovableObject into the terrain.
 		/// @param moDiameter The diameter of the MovableObject to calculate the required bitmap size.
 		/// @return Pointer to the temp BITMAP of the appropriate size. Ownership is NOT transferred!
@@ -1001,7 +996,6 @@ namespace RTE {
 		int m_MaterialCount;
 
 		// Non original materials added by inheritance
-		std::vector<Material*> m_MaterialCopiesVector;
 
 		// Sound of an unseen pixel on an unseen layer being revealed.
 		SoundContainer* m_pUnseenRevealSound;

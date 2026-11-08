@@ -18,6 +18,13 @@ namespace RTE {
 		TerrainFrosting() {
 			Clear();
 		}
+
+		/// Makes the TerrainFrosting object ready for use, and makes sure it was given its Materials.
+		/// @param reader A Reader that the TerrainFrosting will create itself from.
+		/// @param checkType Whether there is a class name in the stream to check against to make sure the correct type is being read from the stream.
+		/// @param doCreate Whether to do any additional initialization of the object after reading in all the properties from the Reader.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		int Create(Reader& reader, bool checkType = true, bool doCreate = true) override;
 #pragma endregion
 
 #pragma region Concrete Methods
@@ -29,8 +36,8 @@ namespace RTE {
 	private:
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
-		Material m_FrostingMaterial; //!< The Material this frosting is made of.
-		Material m_TargetMaterial; //!< The Material this frosting will be placed on top of in the terrain.
+		const Material* m_FrostingMaterial; //!< The Material this frosting is made of.
+		const Material* m_TargetMaterial; //!< The Material this frosting will be placed on top of in the terrain.
 		int m_MinThickness; //!< The minimum height above the target Material, in pixels.
 		int m_MaxThickness; //!< The maximum height above the target Material, in pixels.
 		bool m_InAirOnly; //!< Whether the frosting only appears where there is air (i.e. does not appear where the terrain background layer is showing).

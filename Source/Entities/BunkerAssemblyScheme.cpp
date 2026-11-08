@@ -39,6 +39,7 @@ int BunkerAssemblyScheme::Create() {
 int BunkerAssemblyScheme::Create(const BunkerAssemblyScheme& reference) {
 	SceneObject::Create(reference);
 
+	m_BitmapFile = reference.m_BitmapFile;
 	m_pBitmap = reference.m_pBitmap;
 	m_pPresentationBitmap = reference.m_pPresentationBitmap;
 	m_pIconBitmap = reference.m_pIconBitmap;
@@ -180,13 +181,16 @@ int BunkerAssemblyScheme::ReadProperty(const std::string_view& propName, Reader&
 					              rectfill(m_pIconBitmap, x * ScaleX * scale, y * ScaleY * scale, x * ScaleX * scale + ScaleX - 1, y * ScaleY + ScaleY - 1, PAINT_COLOR_VARIABLE);
 			              }
 	              });
-	MatchProperty("AddChildObject",
-	              {
-		              SOPlacer newChild;
-		              reader >> newChild;
-		              newChild.SetTeam(m_Team);
-		              m_ChildObjects.push_back(newChild);
-	              });
+	MatchProperty("_ClearChildObjects", {
+		reader.ReadPropValue();
+		m_ChildObjects.clear();
+	});
+	MatchProperty("AddChildObject", {
+		SOPlacer newChild;
+		reader >> newChild;
+		newChild.SetTeam(m_Team);
+		m_ChildObjects.push_back(newChild);
+	});
 	MatchProperty("Limit", { reader >> m_Limit; });
 	MatchProperty("OneTypePerScene", { reader >> m_IsOneTypePerScene; });
 	MatchProperty("MaxDeployments", { reader >> m_MaxDeployments; });
@@ -199,14 +203,66 @@ int BunkerAssemblyScheme::ReadProperty(const std::string_view& propName, Reader&
 int BunkerAssemblyScheme::Save(Writer& writer) const {
 	SceneObject::Save(writer);
 
-	writer.NewProperty("BitmapFile");
-	writer << m_BitmapFile;
+	writer.NewPropertyWithValue("BitmapFile", m_BitmapFile);
 	for (std::list<SOPlacer>::const_iterator itr = m_ChildObjects.begin(); itr != m_ChildObjects.end(); ++itr) {
-		writer.NewProperty("AddChildObject");
-		writer << (*itr);
+		writer.NewPropertyWithValue("AddChildObject", (*itr));
 	}
 
+	writer.NewDistinctProperty("Limit", m_Limit, 0);
+	writer.NewDistinctProperty("OneTypePerScene", m_IsOneTypePerScene, false);
+	writer.NewDistinctProperty("MaxDeployments", m_MaxDeployments, 1);
+
+	writer.NewDistinctProperty("SymmetricScheme", m_SymmetricScheme, "");
+	writer.NewDistinctProperty("AssemblyGroup", m_AssemblyGroup, "");
+
 	return 0;
+}
+
+int BunkerAssemblyScheme::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
+	SceneObject::Write(writer, entityReference, hashData);
+
+	const BunkerAssemblyScheme& reference = static_cast<const BunkerAssemblyScheme&>(entityReference);
+
+	writer.NewDistinctHashedProperty("BitmapFile", m_BitmapFile, hashData);
+	writer.NewSequence("_ClearChildObjects", "AddChildObject", m_ChildObjects, hashData);
+
+	writer.NewDistinctProperty("Limit", m_Limit, reference.m_Limit);
+	writer.NewDistinctProperty("OneTypePerScene", m_IsOneTypePerScene, reference.m_IsOneTypePerScene);
+	writer.NewDistinctProperty("MaxDeployments", m_MaxDeployments, reference.m_MaxDeployments);
+
+	writer.NewDistinctProperty("SymmetricScheme", m_SymmetricScheme, reference.m_SymmetricScheme);
+	writer.NewDistinctProperty("AssemblyGroup", m_AssemblyGroup, reference.m_AssemblyGroup);
+
+	return 0;
+}
+
+HashingData BunkerAssemblyScheme::Hash() const {
+	HashingData hashData(SceneObject::Hash());
+	uint64_t& hash = hashData.m_Hash;
+
+	uint64_t bitmapHash = m_BitmapFile.Hash().m_Hash;
+	hashData.m_Constituents.push_back(bitmapHash);
+	AddToHash(hash, bitmapHash);
+
+	int i = 0;
+
+	for (std::list<SOPlacer>::const_iterator itr = m_ChildObjects.begin(); itr != m_ChildObjects.end(); ++itr) {
+		uint64_t childHash = (*itr).Hash().m_Hash;
+		hashData.m_Constituents.push_back(childHash);
+		AddToHash(hash, childHash);
+		i++;
+	}
+
+	hashData.m_ParseValues.push_back(i);
+
+	AddToHash(hash, m_Limit);
+	AddToHash(hash, m_IsOneTypePerScene);
+	AddToHash(hash, m_MaxDeployments);
+
+	AddToHash(hash, RTE::Hash(m_SymmetricScheme));
+	AddToHash(hash, RTE::Hash(m_AssemblyGroup));
+
+	return hashData;
 }
 
 void BunkerAssemblyScheme::Destroy(bool notInherited) {

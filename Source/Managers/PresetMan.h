@@ -159,6 +159,24 @@ namespace RTE {
 		/// error, or the instance name was 'None'. Ownership is NOT transferred!
 		const Entity* GetEntityPreset(Reader& reader);
 
+		/// Reads a reference to a preset, in the form of its class, module and name, and finds that preset.
+		/// @param reader The Reader will read in a constant reference in the form <class/module/preset name>.
+		/// Any bad reference aborts, except one that names the wrong module for a preset found elsewhere, which asserts and uses that preset.
+		/// @return A const pointer to the Entity preset requested, if it was located.
+		const Entity* GetEntityPresetFromCharacteristic(Reader& reader);
+
+		/// Finds the preset a reference refers to, for when the Reader has already read the reference.
+		/// @param characteristic The reference, in the form <class/module/preset name>.
+		/// @param reader The Reader that read the reference, for reporting errors.
+		/// @return A const pointer to the Entity preset requested, if it was located.
+		const Entity* GetEntityPresetFromCharacteristic(const std::string& characteristic, Reader& reader);
+
+		/// Finds the preset a reference in a player's own data refers to. Anything may have changed since a player's data was written, which is no fault of theirs, so this reports nothing.
+		/// A preset that's gone from a module that's still loaded may be found in an official module, as it may have moved. A module that isn't loaded is never substituted for.
+		/// @param characteristic The reference, in the form <class/module/preset name>.
+		/// @return A const pointer to the Entity preset requested, or nullptr if it can't be used right now.
+		const Entity* FindPresetForUserdata(const std::string& characteristic);
+
 		/// Reads a preset of an Entity and tries to add it to the list of
 		/// read-in instances. Regardless of whether there is a name collision,
 		/// the read-in preset will be returned, ownership TRANSFERRED!
@@ -166,6 +184,36 @@ namespace RTE {
 		/// @return A pointer to the Entity preset read in. 0 if there was an
 		/// error, or the instance name was 'None'. Ownership IS transferred!
 		Entity* ReadReflectedPreset(Reader& reader);
+
+		/// Reads an Entity for a property that owns it, as ReadReflectedPreset does, and makes sure of its type.
+		/// A value of "None" means the property is to hold nothing, as Writer::NewOptionalEntityPointerProperty writes it.
+		/// @param reader The Reader which is about to read the property's value.
+		/// @param propName The name of the property being read, for reporting errors.
+		/// @return The Entity read, or nullptr if the value was "None" or not of the type asked for, which is reported as an error. Ownership IS transferred!
+		template <typename Type> Type* ReadReflectedPresetOfType(Reader& reader, const std::string_view& propName) {
+			Entity* entity = ReadReflectedPreset(reader);
+			Type* entityOfType = dynamic_cast<Type*>(entity);
+
+			if (entity && !entityOfType) {
+				reader.ReportError("Tried to set " + std::string(propName) + " to a " + entity->GetClassName() + "!");
+				delete entity;
+			}
+			return entityOfType;
+		}
+
+		/// Reads a preset reference for a property, as GetEntityPresetFromCharacteristic does, and makes sure of its type.
+		/// @param reader The Reader which is about to read the property's value.
+		/// @param propName The name of the property being read, for reporting errors.
+		/// @return The preset referred to, or nullptr if the value was "None" or not of the type asked for, which is reported as an error. Ownership is NOT transferred!
+		template <typename Type> const Type* ReadPresetReferenceOfType(Reader& reader, const std::string_view& propName) {
+			const Entity* entity = GetEntityPresetFromCharacteristic(reader);
+			const Type* entityOfType = dynamic_cast<const Type*>(entity);
+
+			if (entity && !entityOfType) {
+				reader.ReportError("Tried to point " + std::string(propName) + " at a " + entity->GetClassName() + "!");
+			}
+			return entityOfType;
+		}
 
 		/// Adds to a list all previously read in (defined) Entitys, by type.
 		/// @param entityList Reference to a list which will get all matching Entity:s added to it.
@@ -273,6 +321,14 @@ namespace RTE {
 		/// @return The file path of the data file that the specified Entity was read from.
 		/// If no Entity of that description was found, "" is returned.
 		std::string GetEntityDataLocation(const std::string& type, const std::string& preset, int whichModule);
+
+		/// Gets the hash data stored for a previously read in (defined) Entity.
+		/// @param type The type name of the derived Entity.
+		/// @param preset The preset name of the derived Entity preset.
+		/// @param whichModule Which module to try to get the entity from. If it's not found there,
+		/// the official modules will be searched also.
+		/// @return The hash data of the specified Entity, or nullptr if no Entity of that description was found. Ownership is NOT transferred!
+		const HashingData* GetEntityHash(std::string type, std::string preset, int whichModule);
 
 		/// Reloads all scripted Entity Presets with the latest version of their respective script files.
 		void ReloadAllScripts() const;
