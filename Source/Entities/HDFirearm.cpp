@@ -356,7 +356,6 @@ int HDFirearm::Write(Writer& writer, const Entity& entityReference, HashingData&
 
 HashingData HDFirearm::Hash() const {
 	HashingData hashData(HeldDevice::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddOptionalEntityPointer(m_pMagazine);
 
@@ -378,32 +377,32 @@ HashingData HDFirearm::Hash() const {
 
 	hashData.AddOptionalEntityPointer(m_ReloadEndSound);
 
-	AddToHash(hash, m_ReloadEndOffset);
-	AddToHash(hash, m_RateOfFire);
-	AddToHash(hash, m_ActivationDelay);
-	AddToHash(hash, m_DeactivationDelay);
-	AddToHash(hash, m_BaseReloadTime);
-	AddToHash(hash, m_FullAuto);
-	AddToHash(hash, m_FireIgnoresThis);
-	AddToHash(hash, m_Reloadable);
-	AddToHash(hash, m_DualReloadable);
-	AddToHash(hash, m_OneHandedReloadTimeMultiplier);
-	AddToHash(hash, m_ReloadAngle);
-	AddToHash(hash, m_OneHandedReloadAngle);
-	AddToHash(hash, m_JointStiffness);
-	AddToHash(hash, m_IsAnimatedManually);
-	AddToHash(hash, m_ShakeRange);
-	AddToHash(hash, m_SharpShakeRange);
-	AddToHash(hash, m_NoSupportFactor);
-	AddToHash(hash, m_ParticleSpreadRange);
-	AddToHash(hash, m_ShellEjectAngle);
-	AddToHash(hash, m_ShellSpreadRange);
-	AddToHash(hash, m_ShellAngVelRange);
-	AddToHash(hash, m_ShellVelVariation);
-	AddToHash(hash, m_RecoilScreenShakeAmount);
-	AddToHash(hash, m_MuzzleOff.Hash().m_Hash);
-	AddToHash(hash, m_EjectOff.Hash().m_Hash);
-	AddToHash(hash, m_LegacyCompatibilityRoundsAlwaysFireUnflipped);
+	hashData.Add(m_ReloadEndOffset);
+	hashData.Add(m_RateOfFire);
+	hashData.Add(m_ActivationDelay);
+	hashData.Add(m_DeactivationDelay);
+	hashData.Add(m_BaseReloadTime);
+	hashData.Add(m_FullAuto);
+	hashData.Add(m_FireIgnoresThis);
+	hashData.Add(m_Reloadable);
+	hashData.Add(m_DualReloadable);
+	hashData.Add(m_OneHandedReloadTimeMultiplier);
+	hashData.Add(m_ReloadAngle);
+	hashData.Add(m_OneHandedReloadAngle);
+	hashData.Add(m_JointStiffness);
+	hashData.Add(m_IsAnimatedManually);
+	hashData.Add(m_ShakeRange);
+	hashData.Add(m_SharpShakeRange);
+	hashData.Add(m_NoSupportFactor);
+	hashData.Add(m_ParticleSpreadRange);
+	hashData.Add(m_ShellEjectAngle);
+	hashData.Add(m_ShellSpreadRange);
+	hashData.Add(m_ShellAngVelRange);
+	hashData.Add(m_ShellVelVariation);
+	hashData.Add(m_RecoilScreenShakeAmount);
+	hashData.Add(m_MuzzleOff);
+	hashData.Add(m_EjectOff);
+	hashData.Add(m_LegacyCompatibilityRoundsAlwaysFireUnflipped);
 
 	return hashData;
 }

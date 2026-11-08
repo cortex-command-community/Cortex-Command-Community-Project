@@ -39,13 +39,12 @@ int TerrainFrosting::Save(Writer& writer) const {
 
 HashingData TerrainFrosting::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_FrostingMaterial.Hash().m_Hash);
-	AddToHash(hash, m_TargetMaterial.Hash().m_Hash);
-	AddToHash(hash, m_MinThickness);
-	AddToHash(hash, m_MaxThickness);
-	AddToHash(hash, m_InAirOnly);
+	hashData.Add(m_FrostingMaterial);
+	hashData.Add(m_TargetMaterial);
+	hashData.Add(m_MinThickness);
+	hashData.Add(m_MaxThickness);
+	hashData.Add(m_InAirOnly);
 
 	return hashData;
 }

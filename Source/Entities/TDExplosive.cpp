@@ -73,9 +73,8 @@ int TDExplosive::Write(Writer& writer, const Entity& entityReference, HashingDat
 
 HashingData TDExplosive::Hash() const {
 	HashingData hashData(ThrownDevice::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_IsAnimatedManually);
+	hashData.Add(m_IsAnimatedManually);
 
 	return hashData;
 }

@@ -86,19 +86,18 @@ int Gib::Save(Writer& writer) const {
 
 HashingData Gib::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, (m_GibParticle ? RTE::Hash(m_GibParticle->GetEntityCharacteristic()) : 0));
-	AddToHash(hash, m_Offset.Hash().m_Hash);
-	AddToHash(hash, m_Count);
-	AddToHash(hash, m_Spread);
-	AddToHash(hash, m_MinVelocity);
-	AddToHash(hash, m_MaxVelocity);
-	AddToHash(hash, m_LifeVariation);
-	AddToHash(hash, m_InheritsVel);
-	AddToHash(hash, m_InheritsAngularVel);
-	AddToHash(hash, m_IgnoresTeamHits);
-	AddToHash(hash, m_SpreadMode);
+	hashData.AddPresetReference(m_GibParticle);
+	hashData.Add(m_Offset);
+	hashData.Add(m_Count);
+	hashData.Add(m_Spread);
+	hashData.Add(m_MinVelocity);
+	hashData.Add(m_MaxVelocity);
+	hashData.Add(m_LifeVariation);
+	hashData.Add(m_InheritsVel);
+	hashData.Add(m_InheritsAngularVel);
+	hashData.Add(m_IgnoresTeamHits);
+	hashData.Add(m_SpreadMode);
 
 	return hashData;
 }

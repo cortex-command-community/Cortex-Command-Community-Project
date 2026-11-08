@@ -137,17 +137,16 @@ int Arm::Write(Writer& writer, const Entity& entityReference, HashingData& hashD
 
 HashingData Arm::Hash() const {
 	HashingData hashData(Attachable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_MaxLength);
-	AddToHash(hash, m_MoveSpeed);
+	hashData.Add(m_MaxLength);
+	hashData.Add(m_MoveSpeed);
 
-	AddToHash(hash, m_HandIdleOffset.Hash().m_Hash);
+	hashData.Add(m_HandIdleOffset);
 
 	hashData.AddHashed(m_HandSpriteFile);
 
-	AddToHash(hash, m_GripStrength);
-	AddToHash(hash, m_ThrowStrength);
+	hashData.Add(m_GripStrength);
+	hashData.Add(m_ThrowStrength);
 
 	hashData.AddOptionalEntityPointer(m_HeldDevice);
 

@@ -49,6 +49,18 @@ namespace RTE {
 		HashingData(uint64_t hash) :
 		    m_Hash(hash) {}
 
+		/// Mixes in a value that Write compares directly, so nothing is kept for it: a number, bool or enum, a string, or anything with a Hash function of its own.
+		/// @param value The value to mix in.
+		template <typename Type> void Add(const Type& value) {
+			if constexpr (std::is_arithmetic_v<Type> || std::is_enum_v<Type>) {
+				AddToHash(m_Hash, value);
+			} else if constexpr (std::is_same_v<Type, std::string>) {
+				AddToHash(m_Hash, Hash(value));
+			} else {
+				AddToHash(m_Hash, value.Hash().m_Hash);
+			}
+		}
+
 		/// Mixes in a part, and keeps its hash for Writer::NewDistinctHashedProperty to compare.
 		/// @param part The part, which has a Hash function of its own.
 		template <typename Type> void AddHashed(const Type& part) { AddConstituent(part.Hash().m_Hash); }
@@ -84,6 +96,10 @@ namespace RTE {
 		template <typename Collection, typename IsIncluded> void AddPointerSequenceConditional(const Collection& items, IsIncluded&& isIncluded) {
 			AddEach(items, [](const auto& item) { return item->Hash().m_Hash; }, isIncluded);
 		}
+
+		/// Mixes in which preset a reference points at, which Writer::NewPresetReferenceProperty compares directly.
+		/// @param preset A pointer to the preset, or nullptr if there's none.
+		template <typename Pointer> void AddPresetReference(const Pointer& preset) { AddToHash(m_Hash, preset != nullptr ? Hash(preset->GetEntityCharacteristic()) : 0); }
 
 		/// Mixes in a list of presets by which preset each is, and keeps how many and which for Writer::NewPresetCopySequence or Writer::NewPresetNameSequence to compare.
 		/// @param items The presets, or unaltered copies of them.

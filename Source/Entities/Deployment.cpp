@@ -123,16 +123,15 @@ int Deployment::Write(Writer& writer, const Entity& entityReference, HashingData
 
 HashingData Deployment::Hash() const {
 	HashingData hashData(SceneObject::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, RTE::Hash(m_LoadoutName));
+	hashData.Add(m_LoadoutName);
 
 	hashData.AddHashed(m_Icon);
 
-	AddToHash(hash, m_SpawnRadius);
-	AddToHash(hash, m_WalkRadius);
-	AddToHash(hash, m_HFlipped);
-	AddToHash(hash, m_ID);
+	hashData.Add(m_SpawnRadius);
+	hashData.Add(m_WalkRadius);
+	hashData.Add(m_HFlipped);
+	hashData.Add(m_ID);
 
 	return hashData;
 }

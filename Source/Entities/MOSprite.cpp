@@ -260,24 +260,23 @@ int MOSprite::Write(Writer& writer, const Entity& entityReference, HashingData& 
 
 HashingData MOSprite::Hash() const {
 	HashingData hashData(MovableObject::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddHashed(m_SpriteFile);
 
-	AddToHash(hash, m_FrameCount);
-	AddToHash(hash, m_SpriteOffset.Hash().m_Hash);
-	AddToHash(hash, m_SpriteAnimMode);
-	AddToHash(hash, m_SpriteAnimDuration);
-	AddToHash(hash, m_HFlipped);
-	AddToHash(hash, m_Rotation.Hash().m_Hash);
-	AddToHash(hash, m_AngularVel);
-	AddToHash(hash, m_SettleMaterialDisabled);
-	AddToHash(hash, (m_pEntryWound ? RTE::Hash(m_pEntryWound->GetEntityCharacteristic()) : 0));
-	AddToHash(hash, (m_pExitWound ? RTE::Hash(m_pExitWound->GetEntityCharacteristic()) : 0));
+	hashData.Add(m_FrameCount);
+	hashData.Add(m_SpriteOffset);
+	hashData.Add(m_SpriteAnimMode);
+	hashData.Add(m_SpriteAnimDuration);
+	hashData.Add(m_HFlipped);
+	hashData.Add(m_Rotation);
+	hashData.Add(m_AngularVel);
+	hashData.Add(m_SettleMaterialDisabled);
+	hashData.AddPresetReference(m_pEntryWound);
+	hashData.AddPresetReference(m_pExitWound);
 
-	AddToHash(hash, m_ForcedHFlip);
+	hashData.Add(m_ForcedHFlip);
 
-	AddToHash(hash, RTE::Hash(m_IconFile.GetDataPath()));
+	hashData.Add(m_IconFile.GetDataPath());
 
 	return hashData;
 }

@@ -157,17 +157,16 @@ int SLBackground::Write(Writer& writer, const Entity& entityReference, HashingDa
 
 HashingData SLBackground::Hash() const {
 	HashingData hashData(StaticSceneLayer::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_FrameCount);
-	AddToHash(hash, m_SpriteAnimMode);
-	AddToHash(hash, m_SpriteAnimDuration);
-	AddToHash(hash, m_IsAnimatedManually);
-	AddToHash(hash, m_AutoScrollStepInterval);
-	AddToHash(hash, m_AutoScrollStep.Hash().m_Hash);
-	AddToHash(hash, m_CanAutoScrollX);
-	AddToHash(hash, m_CanAutoScrollY);
-	AddToHash(hash, m_IgnoreAutoScale);
+	hashData.Add(m_FrameCount);
+	hashData.Add(m_SpriteAnimMode);
+	hashData.Add(m_SpriteAnimDuration);
+	hashData.Add(m_IsAnimatedManually);
+	hashData.Add(m_AutoScrollStepInterval);
+	hashData.Add(m_AutoScrollStep);
+	hashData.Add(m_CanAutoScrollX);
+	hashData.Add(m_CanAutoScrollY);
+	hashData.Add(m_IgnoreAutoScale);
 
 	return hashData;
 }

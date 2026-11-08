@@ -82,13 +82,12 @@ int SceneObject::SOPlacer::Save(Writer& writer) const {
 
 HashingData SceneObject::SOPlacer::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, (m_pObjectReference ? RTE::Hash(m_pObjectReference->GetEntityCharacteristic()) : 0));
-	AddToHash(hash, m_Offset.Hash().m_Hash);
-	AddToHash(hash, m_RotAngle);
-	AddToHash(hash, m_HFlipped);
-	AddToHash(hash, m_Team);
+	hashData.AddPresetReference(m_pObjectReference);
+	hashData.Add(m_Offset);
+	hashData.Add(m_RotAngle);
+	hashData.Add(m_HFlipped);
+	hashData.Add(m_Team);
 
 	return hashData;
 }
@@ -224,14 +223,13 @@ int SceneObject::Write(Writer& writer, const Entity& entityReference, HashingDat
 
 HashingData SceneObject::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_Pos.Hash().m_Hash);
-	AddToHash(hash, m_OzValue);
-	AddToHash(hash, m_Buyable);
-	AddToHash(hash, m_BuyableMode);
-	AddToHash(hash, m_Team);
-	AddToHash(hash, m_PlacedByPlayer);
+	hashData.Add(m_Pos);
+	hashData.Add(m_OzValue);
+	hashData.Add(m_Buyable);
+	hashData.Add(m_BuyableMode);
+	hashData.Add(m_Team);
+	hashData.Add(m_PlacedByPlayer);
 
 	return hashData;
 }

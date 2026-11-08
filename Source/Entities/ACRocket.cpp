@@ -229,7 +229,6 @@ int ACRocket::Write(Writer& writer, const Entity& entityReference, HashingData& 
 
 HashingData ACRocket::Hash() const {
 	HashingData hashData(ACraft::Hash());
-	uint64_t& hash = hashData.m_Hash;
 	
 	hashData.AddOptionalEntityPointer(m_pRLeg);
 
@@ -257,7 +256,7 @@ HashingData ACRocket::Hash() const {
 
 	hashData.AddHashed(m_Paths[RIGHT][RAISING]);
 
-	AddToHash(hash, m_MaxGimbalAngle);
+	hashData.Add(m_MaxGimbalAngle);
 
 	return hashData;
 }

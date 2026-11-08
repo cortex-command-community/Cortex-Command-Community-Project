@@ -238,18 +238,17 @@ int BunkerAssemblyScheme::Write(Writer& writer, const Entity& entityReference, H
 
 HashingData BunkerAssemblyScheme::Hash() const {
 	HashingData hashData(SceneObject::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddHashed(m_BitmapFile);
 
 	hashData.AddSequence(m_ChildObjects);
 
-	AddToHash(hash, m_Limit);
-	AddToHash(hash, m_IsOneTypePerScene);
-	AddToHash(hash, m_MaxDeployments);
+	hashData.Add(m_Limit);
+	hashData.Add(m_IsOneTypePerScene);
+	hashData.Add(m_MaxDeployments);
 
-	AddToHash(hash, RTE::Hash(m_SymmetricScheme));
-	AddToHash(hash, RTE::Hash(m_AssemblyGroup));
+	hashData.Add(m_SymmetricScheme);
+	hashData.Add(m_AssemblyGroup);
 
 	return hashData;
 }

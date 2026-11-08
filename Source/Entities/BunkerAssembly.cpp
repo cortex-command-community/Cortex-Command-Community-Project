@@ -264,14 +264,13 @@ int BunkerAssembly::Save(Writer& writer) const {
 
 HashingData BunkerAssembly::Hash() const {
 	HashingData hashData(TerrainObject::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, RTE::Hash(m_ParentAssemblyScheme));
-	AddToHash(hash, RTE::Hash(m_ParentSchemeGroup));
-	AddToHash(hash, RTE::Hash(m_SymmetricAssembly));
+	hashData.Add(m_ParentAssemblyScheme);
+	hashData.Add(m_ParentSchemeGroup);
+	hashData.Add(m_SymmetricAssembly);
 
 	for (const SceneObject* placedObject: m_PlacedObjects) {
-		AddToHash(hash, placedObject->Hash().m_Hash);
+		hashData.Add(*placedObject);
 	}
 
 	return hashData;

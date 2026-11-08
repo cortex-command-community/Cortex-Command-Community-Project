@@ -100,12 +100,11 @@ int Scene::Area::Save(Writer& writer) const {
 
 HashingData Scene::Area::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, RTE::Hash(m_Name));
+	hashData.Add(m_Name);
 
 	for (const Box* box: m_BoxList) {
-		AddToHash(hash, box->Hash().m_Hash);
+		hashData.Add(*box);
 	}
 
 	return hashData;
@@ -1287,29 +1286,28 @@ int Scene::Write(Writer& writer, const Entity& entityReference, HashingData& has
 
 HashingData Scene::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_Location.Hash().m_Hash);
-	AddToHash(hash, m_MetagamePlayable);
+	hashData.Add(m_Location);
+	hashData.Add(m_MetagamePlayable);
 
 	hashData.AddHashed(m_PreviewBitmapFile);
 
-	AddToHash(hash, RTE::Hash(m_MetasceneParent));
-	AddToHash(hash, m_IsMetagameInternal);
-	AddToHash(hash, m_IsSavedGameInternal);
-	AddToHash(hash, m_Revealed);
-	AddToHash(hash, m_OwnedByTeam);
-	AddToHash(hash, m_RoundIncome);
+	hashData.Add(m_MetasceneParent);
+	hashData.Add(m_IsMetagameInternal);
+	hashData.Add(m_IsSavedGameInternal);
+	hashData.Add(m_Revealed);
+	hashData.Add(m_OwnedByTeam);
+	hashData.Add(m_RoundIncome);
 
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
-		AddToHash(hash, m_BuildBudget[player]);
-		AddToHash(hash, m_BuildBudgetRatio[player]);
+		hashData.Add(m_BuildBudget[player]);
+		hashData.Add(m_BuildBudgetRatio[player]);
 
 		hashData.AddOptionalEntityPointer(m_ResidentBrains[player]);
 	}
 
-	AddToHash(hash, m_AutoDesigned);
-	AddToHash(hash, m_TotalInvestment);
+	hashData.Add(m_AutoDesigned);
+	hashData.Add(m_TotalInvestment);
 
 	hashData.AddOptionalEntityPointer(m_pTerrain);
 
@@ -1320,16 +1318,16 @@ HashingData Scene::Hash() const {
 	hashData.AddPresetSequence(m_BackLayerList);
 
 	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
-		AddToHash(hash, m_UnseenPixelSize[team].Hash().m_Hash);
+		hashData.Add(m_UnseenPixelSize[team]);
 
 		hashData.AddOptionalEntityPointer(m_apUnseenLayer[team]);
 
-		AddToHash(hash, m_ScanScheduled[team]);
+		hashData.Add(m_ScanScheduled[team]);
 	}
 
 	hashData.AddPointerSequence(m_AreaList);
 
-	AddToHash(hash, m_GlobalAcc.Hash().m_Hash);
+	hashData.Add(m_GlobalAcc);
 
 	return hashData;
 }

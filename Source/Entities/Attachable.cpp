@@ -259,32 +259,31 @@ int Attachable::Write(Writer& writer, const Entity& entityReference, HashingData
 
 HashingData Attachable::Hash() const {
 	HashingData hashData(MOSRotating::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_ParentOffset.Hash().m_Hash);
-	AddToHash(hash, m_DrawAfterParent);
-	AddToHash(hash, m_DeleteWhenRemovedFromParent);
-	AddToHash(hash, m_GibWhenRemovedFromParent);
-	AddToHash(hash, m_ApplyTransferredForcesAtOffset);
-	AddToHash(hash, m_JointStrength);
-	AddToHash(hash, m_JointStiffness);
-	AddToHash(hash, m_JointOffset.Hash().m_Hash);
-	AddToHash(hash, (m_BreakWound ? RTE::Hash(m_BreakWound->GetEntityCharacteristic()) : 0));
-	AddToHash(hash, (m_ParentBreakWound ? RTE::Hash(m_ParentBreakWound->GetEntityCharacteristic()) : 0));
-	AddToHash(hash, (m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2);
-	AddToHash(hash, m_InheritsRotAngle);
-	AddToHash(hash, m_InheritsFrame);
-	AddToHash(hash, m_InheritedRotAngleOffset);
-	AddToHash(hash, m_MountedRotAngleOffset);
-	AddToHash(hash, m_InheritsVelWhenDetached);
-	AddToHash(hash, m_InheritsAngularVelWhenDetached);
-	AddToHash(hash, m_CollidesWithTerrainWhileAttached);
-	AddToHash(hash, m_IgnoresParticlesWhileAttached);
+	hashData.Add(m_ParentOffset);
+	hashData.Add(m_DrawAfterParent);
+	hashData.Add(m_DeleteWhenRemovedFromParent);
+	hashData.Add(m_GibWhenRemovedFromParent);
+	hashData.Add(m_ApplyTransferredForcesAtOffset);
+	hashData.Add(m_JointStrength);
+	hashData.Add(m_JointStiffness);
+	hashData.Add(m_JointOffset);
+	hashData.AddPresetReference(m_BreakWound);
+	hashData.AddPresetReference(m_ParentBreakWound);
+	hashData.Add((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2);
+	hashData.Add(m_InheritsRotAngle);
+	hashData.Add(m_InheritsFrame);
+	hashData.Add(m_InheritedRotAngleOffset);
+	hashData.Add(m_MountedRotAngleOffset);
+	hashData.Add(m_InheritsVelWhenDetached);
+	hashData.Add(m_InheritsAngularVelWhenDetached);
+	hashData.Add(m_CollidesWithTerrainWhileAttached);
+	hashData.Add(m_IgnoresParticlesWhileAttached);
 
 	hashData.AddPointerSequence(m_PieSlices);
 
-	AddToHash(hash, m_GibWithParentChance);
-	AddToHash(hash, m_ParentGibBlastStrengthMultiplier);
+	hashData.Add(m_GibWithParentChance);
+	hashData.Add(m_ParentGibBlastStrengthMultiplier);
 
 	return hashData;
 }

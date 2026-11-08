@@ -86,21 +86,20 @@ int SoundSet::Save(Writer& writer) const {
 
 HashingData SoundSet::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_SoundSelectionCycleMode);
+	hashData.Add(m_SoundSelectionCycleMode);
 
 	for (int i = 0; i < m_SoundData.size(); i++) {
 		const SoundData& data = m_SoundData.at(i);
 
-		AddToHash(hash, RTE::Hash(data.SoundFile.GetDataPath()));
-		AddToHash(hash, data.Offset.Hash().m_Hash);
-		AddToHash(hash, data.MinimumAudibleDistance);
-		AddToHash(hash, data.AttenuationStartDistance);
+		hashData.Add(data.SoundFile.GetDataPath());
+		hashData.Add(data.Offset);
+		hashData.Add(data.MinimumAudibleDistance);
+		hashData.Add(data.AttenuationStartDistance);
 	}
 
 	for (int i = 0; i < m_SubSoundSets.size(); i++) {
-		AddToHash(hash, m_SubSoundSets.at(i)->Hash().m_Hash);
+		hashData.Add(*m_SubSoundSets.at(i));
 	}
 
 	return hashData;

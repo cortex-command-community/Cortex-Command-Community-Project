@@ -26,10 +26,9 @@ int Vector::Save(Writer& writer) const {
 
 HashingData Vector::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_X);
-	AddToHash(hash, m_Y);
+	hashData.Add(m_X);
+	hashData.Add(m_Y);
 
 	return hashData;
 }

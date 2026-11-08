@@ -390,20 +390,19 @@ int AHuman::Write(Writer& writer, const Entity& entityReference, HashingData& ha
 
 HashingData AHuman::Hash() const {
 	HashingData hashData(Actor::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_ThrowPrepTime);
+	hashData.Add(m_ThrowPrepTime);
 
 	hashData.AddOptionalEntityPointer(m_pHead);
 
-	AddToHash(hash, m_LookToAimRatio);
+	hashData.Add(m_LookToAimRatio);
 
 	hashData.AddOptionalEntityPointer(m_pJetpack);
 
-	AddToHash(hash, m_FGArmFlailScalar);
-	AddToHash(hash, m_BGArmFlailScalar);
-	AddToHash(hash, m_ArmSwingRate);
-	AddToHash(hash, m_DeviceArmSwayRate);
+	hashData.Add(m_FGArmFlailScalar);
+	hashData.Add(m_BGArmFlailScalar);
+	hashData.Add(m_ArmSwingRate);
+	hashData.Add(m_DeviceArmSwayRate);
 
 	hashData.AddOptionalEntityPointer(m_pFGArm);
 
@@ -419,7 +418,7 @@ HashingData AHuman::Hash() const {
 
 	hashData.AddOptionalEntityPointer(m_pBGFootGroup);
 
-	AddToHash(hash, m_MaxWalkPathCrouchShift);
+	hashData.Add(m_MaxWalkPathCrouchShift);
 
 	hashData.AddOptionalEntityPointer(m_StrideSound);
 
@@ -445,11 +444,11 @@ HashingData AHuman::Hash() const {
 
 	hashData.AddHashed(m_Paths[FGROUND][DISLODGE]);
 
-	AddToHash(hash, m_RotAngleTargets[STAND]);
-	AddToHash(hash, m_RotAngleTargets[WALK]);
-	AddToHash(hash, m_RotAngleTargets[RUN]);
-	AddToHash(hash, m_RotAngleTargets[PRONE]);
-	AddToHash(hash, m_RotAngleTargets[JUMP]);
+	hashData.Add(m_RotAngleTargets[STAND]);
+	hashData.Add(m_RotAngleTargets[WALK]);
+	hashData.Add(m_RotAngleTargets[RUN]);
+	hashData.Add(m_RotAngleTargets[PRONE]);
+	hashData.Add(m_RotAngleTargets[JUMP]);
 
 	return hashData;
 }

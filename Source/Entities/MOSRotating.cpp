@@ -430,14 +430,13 @@ int MOSRotating::Write(Writer& writer, const Entity& entityReference, HashingDat
 
 HashingData MOSRotating::Hash() const {
 	HashingData hashData(MOSprite::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddOptionalEntityPointer(m_pAtomGroup);
 
 	hashData.AddOptionalEntityPointer(m_pDeepGroup);
 
-	AddToHash(hash, m_DeepCheck);
-	AddToHash(hash, m_OrientToVel);
+	hashData.Add(m_DeepCheck);
+	hashData.Add(m_OrientToVel);
 
 	hashData.AddPointerSequence(m_Wounds);
 
@@ -445,21 +444,21 @@ HashingData MOSRotating::Hash() const {
 
 	hashData.AddPointerSequence(m_Gibs);
 
-	AddToHash(hash, m_GibImpulseLimit);
-	AddToHash(hash, m_GibWoundLimit);
-	AddToHash(hash, m_GibAtEndOfLifetime);
+	hashData.Add(m_GibImpulseLimit);
+	hashData.Add(m_GibWoundLimit);
+	hashData.Add(m_GibAtEndOfLifetime);
 
 	hashData.AddOptionalEntityPointer(m_GibSound);
 
-	AddToHash(hash, m_EffectOnGib);
-	AddToHash(hash, m_DamageMultiplier);
-	AddToHash(hash, m_NoSetDamageMultiplier);
+	hashData.Add(m_EffectOnGib);
+	hashData.Add(m_DamageMultiplier);
+	hashData.Add(m_NoSetDamageMultiplier);
 
-	AddToHash(hash, m_GibBlastStrength);
-	AddToHash(hash, m_GibScreenShakeAmount);
-	AddToHash(hash, m_WoundCountAffectsImpulseLimitRatio);
-	AddToHash(hash, m_DetachAttachablesBeforeGibbingFromWounds);
-	AddToHash(hash, m_LoudnessOnGib);
+	hashData.Add(m_GibBlastStrength);
+	hashData.Add(m_GibScreenShakeAmount);
+	hashData.Add(m_WoundCountAffectsImpulseLimitRatio);
+	hashData.Add(m_DetachAttachablesBeforeGibbingFromWounds);
+	hashData.Add(m_LoudnessOnGib);
 
 	return hashData;
 }

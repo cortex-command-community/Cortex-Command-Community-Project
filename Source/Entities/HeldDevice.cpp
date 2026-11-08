@@ -279,31 +279,30 @@ int HeldDevice::Write(Writer& writer, const Entity& entityReference, HashingData
 
 HashingData HeldDevice::Hash() const {
 	HashingData hashData(Attachable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_OneHanded);
-	AddToHash(hash, m_Activated);
-	AddToHash(hash, m_StanceOffset.Hash().m_Hash);
-	AddToHash(hash, m_SharpStanceOffset.Hash().m_Hash);
-	AddToHash(hash, m_Supportable);
-	AddToHash(hash, m_SupportOffset.Hash().m_Hash);
-	AddToHash(hash, m_UseSupportOffsetWhileReloading);
-	AddToHash(hash, m_GripStrengthMultiplier);
-	AddToHash(hash, m_MaxSharpLength);
-	AddToHash(hash, m_Loudness);
-	AddToHash(hash, m_GetsHitByMOsWhenHeld);
-	AddToHash(hash, m_VisualRecoilMultiplier);
+	hashData.Add(m_OneHanded);
+	hashData.Add(m_Activated);
+	hashData.Add(m_StanceOffset);
+	hashData.Add(m_SharpStanceOffset);
+	hashData.Add(m_Supportable);
+	hashData.Add(m_SupportOffset);
+	hashData.Add(m_UseSupportOffsetWhileReloading);
+	hashData.Add(m_GripStrengthMultiplier);
+	hashData.Add(m_MaxSharpLength);
+	hashData.Add(m_Loudness);
+	hashData.Add(m_GetsHitByMOsWhenHeld);
+	hashData.Add(m_VisualRecoilMultiplier);
 
-	AddToHash(hash, m_HeldDeviceType);
-	AddToHash(hash, m_DualWieldable);
+	hashData.Add(m_HeldDeviceType);
+	hashData.Add(m_DualWieldable);
 
 	// This list has no order, so what it adds can't depend on one.
 	uint64_t pickupableByHash = 0;
 	for (const std::string& presetName: m_PickupableByPresetNames) {
 		pickupableByHash ^= RTE::Hash(presetName);
 	}
-	AddToHash(hash, pickupableByHash);
-	AddToHash(hash, m_IsUnPickupable);
+	hashData.Add(pickupableByHash);
+	hashData.Add(m_IsUnPickupable);
 
 	return hashData;
 }

@@ -151,12 +151,11 @@ int DynamicSongSection::Write(Writer& writer, const Entity& entityReference, Has
 
 HashingData DynamicSongSection::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_LastTransitionSoundContainerIndex);
-	AddToHash(hash, m_LastSoundContainerIndex);
-	AddToHash(hash, m_SoundContainerSelectionCycleMode);
-	AddToHash(hash, RTE::Hash(m_SectionType));
+	hashData.Add(m_LastTransitionSoundContainerIndex);
+	hashData.Add(m_LastSoundContainerIndex);
+	hashData.Add(m_SoundContainerSelectionCycleMode);
+	hashData.Add(m_SectionType);
 
 	hashData.AddSequence(m_TransitionSoundContainers);
 	hashData.AddSequence(m_SoundContainers);
@@ -327,7 +326,6 @@ int DynamicSong::Write(Writer& writer, const Entity& entityReference, HashingDat
 
 HashingData DynamicSong::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddHashed(m_DefaultSongSection);
 

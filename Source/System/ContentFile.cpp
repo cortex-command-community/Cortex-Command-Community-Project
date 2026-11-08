@@ -92,9 +92,8 @@ int ContentFile::Save(Writer& writer) const {
 
 HashingData ContentFile::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, RTE::Hash(m_DataPath));
+	hashData.Add(m_DataPath);
 
 	return hashData;
 }

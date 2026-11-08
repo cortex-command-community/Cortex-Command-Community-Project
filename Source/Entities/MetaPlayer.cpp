@@ -154,21 +154,20 @@ int MetaPlayer::Write(Writer& writer, const Entity& entityReference, HashingData
 
 HashingData MetaPlayer::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, RTE::Hash(m_Name));
-	AddToHash(hash, m_Team);
-	AddToHash(hash, m_Human);
-	AddToHash(hash, m_InGamePlayer);
-	AddToHash(hash, m_Aggressiveness);
-	AddToHash(hash, m_GameOverRound);
-	AddToHash(hash, RTE::Hash(g_PresetMan.GetDataModule(m_NativeTechModule)->GetFileName()));
-	AddToHash(hash, m_NativeCostMult);
-	AddToHash(hash, m_ForeignCostMult);
-	AddToHash(hash, m_BrainPool);
-	AddToHash(hash, m_Funds);
-	AddToHash(hash, m_OffensiveBudget);
-	AddToHash(hash, RTE::Hash(m_OffensiveTarget));
+	hashData.Add(m_Name);
+	hashData.Add(m_Team);
+	hashData.Add(m_Human);
+	hashData.Add(m_InGamePlayer);
+	hashData.Add(m_Aggressiveness);
+	hashData.Add(m_GameOverRound);
+	hashData.Add(g_PresetMan.GetDataModule(m_NativeTechModule)->GetFileName());
+	hashData.Add(m_NativeCostMult);
+	hashData.Add(m_ForeignCostMult);
+	hashData.Add(m_BrainPool);
+	hashData.Add(m_Funds);
+	hashData.Add(m_OffensiveBudget);
+	hashData.Add(m_OffensiveTarget);
 
 	return hashData;
 }

@@ -85,11 +85,10 @@ int Turret::Write(Writer& writer, const Entity& entityReference, HashingData& ha
 
 HashingData Turret::Hash() const {
 	HashingData hashData(Attachable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddPointerSequence(m_MountedDevices);
 
-	AddToHash(hash, m_MountedDeviceRotationOffset);
+	hashData.Add(m_MountedDeviceRotationOffset);
 
 	return hashData;
 }

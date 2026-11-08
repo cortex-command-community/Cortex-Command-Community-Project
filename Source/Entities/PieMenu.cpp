@@ -264,16 +264,15 @@ int PieMenu::Write(Writer& writer, const Entity& entityReference, HashingData& h
 
 HashingData PieMenu::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_IconSeparatorMode);
-	AddToHash(hash, m_FullInnerRadius);
-	AddToHash(hash, m_BackgroundThickness);
-	AddToHash(hash, m_BackgroundSeparatorSize);
-	AddToHash(hash, m_DrawBackgroundTransparent);
-	AddToHash(hash, m_BackgroundColor);
-	AddToHash(hash, m_BackgroundBorderColor);
-	AddToHash(hash, m_SelectedItemBackgroundColor);
+	hashData.Add(m_IconSeparatorMode);
+	hashData.Add(m_FullInnerRadius);
+	hashData.Add(m_BackgroundThickness);
+	hashData.Add(m_BackgroundSeparatorSize);
+	hashData.Add(m_DrawBackgroundTransparent);
+	hashData.Add(m_BackgroundColor);
+	hashData.Add(m_BackgroundBorderColor);
+	hashData.Add(m_SelectedItemBackgroundColor);
 
 	hashData.AddPointerSequenceConditional(m_CurrentPieSlices, [&](const auto& pieSlice) { return pieSlice->GetOriginalSource() == m_Owner; });
 

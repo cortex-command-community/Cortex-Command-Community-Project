@@ -34,11 +34,10 @@ int GenericSavedData::Save(Writer& writer) const {
 
 HashingData GenericSavedData::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_SavedEncodedStrings.Hash().m_Hash);
-	AddToHash(hash, m_SavedStrings.Hash().m_Hash);
-	AddToHash(hash, m_SavedNumbers.Hash().m_Hash);
+	hashData.Add(m_SavedEncodedStrings);
+	hashData.Add(m_SavedStrings);
+	hashData.Add(m_SavedNumbers);
 
 	return hashData;
 }
@@ -105,11 +104,10 @@ int GenericSavedData::GenericSavedEncodedStrings::Save(Writer& writer) const {
 
 HashingData GenericSavedData::GenericSavedEncodedStrings::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	for (const auto& [key, value]: m_Data) {
-		AddToHash(hash, RTE::Hash(key));
-		AddToHash(hash, RTE::Hash(value));
+		hashData.Add(key);
+		hashData.Add(value);
 	}
 
 	return hashData;
@@ -133,11 +131,10 @@ int GenericSavedData::GenericSavedStrings::Save(Writer& writer) const {
 
 HashingData GenericSavedData::GenericSavedStrings::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	for (const auto& [key, value]: m_Data) {
-		AddToHash(hash, RTE::Hash(key));
-		AddToHash(hash, RTE::Hash(value));
+		hashData.Add(key);
+		hashData.Add(value);
 	}
 
 	return hashData;
@@ -162,11 +159,10 @@ int GenericSavedData::GenericSavedNumbers::Save(Writer& writer) const {
 
 HashingData GenericSavedData::GenericSavedNumbers::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	for (const auto& [key, value]: m_Data) {
-		AddToHash(hash, RTE::Hash(key));
-		AddToHash(hash, value);
+		hashData.Add(key);
+		hashData.Add(value);
 	}
 
 	return hashData;

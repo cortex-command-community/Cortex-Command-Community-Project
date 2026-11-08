@@ -512,9 +512,8 @@ int Actor::Write(Writer& writer, const Entity& entityReference, HashingData& has
 
 HashingData Actor::Hash() const {
 	HashingData hashData(MOSRotating::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_PlayerControllable);
+	hashData.Add(m_PlayerControllable);
 
 	hashData.AddOptionalEntityPointer(m_BodyHitSound);
 
@@ -526,40 +525,40 @@ HashingData Actor::Hash() const {
 
 	hashData.AddOptionalEntityPointer(m_DeviceSwitchSound);
 
-	AddToHash(hash, m_Status);
-	AddToHash(hash, m_Health);
-	AddToHash(hash, m_MaxHealth);
-	AddToHash(hash, m_DeploymentID);
-	AddToHash(hash, m_TravelImpulseDamage);
-	AddToHash(hash, m_StableVel.Hash().m_Hash);
-	AddToHash(hash, m_StableRecoverDelay);
-	AddToHash(hash, m_CanRun);
-	AddToHash(hash, m_CrouchWalkSpeedMultiplier);
-	AddToHash(hash, m_GoldCarried);
-	AddToHash(hash, m_AimAngle);
-	AddToHash(hash, m_AimRange);
-	AddToHash(hash, m_AimDistance);
-	AddToHash(hash, m_SharpAimDelay);
-	AddToHash(hash, m_SightDistance);
-	AddToHash(hash, m_Perceptiveness);
-	AddToHash(hash, m_PainThreshold);
-	AddToHash(hash, m_CanRevealUnseen);
-	AddToHash(hash, m_CharHeight);
-	AddToHash(hash, m_HolsterOffset.Hash().m_Hash);
-	AddToHash(hash, m_ReloadOffset.Hash().m_Hash);
+	hashData.Add(m_Status);
+	hashData.Add(m_Health);
+	hashData.Add(m_MaxHealth);
+	hashData.Add(m_DeploymentID);
+	hashData.Add(m_TravelImpulseDamage);
+	hashData.Add(m_StableVel);
+	hashData.Add(m_StableRecoverDelay);
+	hashData.Add(m_CanRun);
+	hashData.Add(m_CrouchWalkSpeedMultiplier);
+	hashData.Add(m_GoldCarried);
+	hashData.Add(m_AimAngle);
+	hashData.Add(m_AimRange);
+	hashData.Add(m_AimDistance);
+	hashData.Add(m_SharpAimDelay);
+	hashData.Add(m_SightDistance);
+	hashData.Add(m_Perceptiveness);
+	hashData.Add(m_PainThreshold);
+	hashData.Add(m_CanRevealUnseen);
+	hashData.Add(m_CharHeight);
+	hashData.Add(m_HolsterOffset);
+	hashData.Add(m_ReloadOffset);
 
 	hashData.AddPointerSequence(m_Inventory);
 
-	AddToHash(hash, m_MaxInventoryMass);
-	AddToHash(hash, m_AIMode);
+	hashData.Add(m_MaxInventoryMass);
+	hashData.Add(m_AIMode);
 
 	hashData.AddOptionalEntityPointer(m_PieMenu);
 
-	AddToHash(hash, m_Organic);
-	AddToHash(hash, m_Mechanical);
-	AddToHash(hash, m_AIBaseDigStrength);
+	hashData.Add(m_Organic);
+	hashData.Add(m_Mechanical);
+	hashData.Add(m_AIBaseDigStrength);
 
-	AddToHash(hash, m_PassengerSlots);
+	hashData.Add(m_PassengerSlots);
 
 	return hashData;
 }

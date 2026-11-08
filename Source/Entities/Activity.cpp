@@ -340,40 +340,39 @@ int Activity::Write(Writer& writer, const Entity& entityReference, HashingData& 
 
 HashingData Activity::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, RTE::Hash(m_Description));
-	AddToHash(hash, RTE::Hash(m_SceneName));
-	AddToHash(hash, m_MaxPlayerSupport);
-	AddToHash(hash, m_MinTeamsRequired);
-	AddToHash(hash, m_Difficulty);
-	AddToHash(hash, m_CraftOrbitAtTheEdge);
-	AddToHash(hash, m_InCampaignStage);
-	AddToHash(hash, m_ActivityState);
-	AddToHash(hash, m_AllowsUserSaving);
+	hashData.Add(m_Description);
+	hashData.Add(m_SceneName);
+	hashData.Add(m_MaxPlayerSupport);
+	hashData.Add(m_MinTeamsRequired);
+	hashData.Add(m_Difficulty);
+	hashData.Add(m_CraftOrbitAtTheEdge);
+	hashData.Add(m_InCampaignStage);
+	hashData.Add(m_ActivityState);
+	hashData.Add(m_AllowsUserSaving);
 
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
 		if (m_IsActive[player]) {
-			AddToHash(hash, m_Team[player]);
-			AddToHash(hash, m_FundsContribution[player]);
-			AddToHash(hash, m_TeamFundsShare[player]);
-			AddToHash(hash, m_IsHuman[player]);
+			hashData.Add(m_Team[player]);
+			hashData.Add(m_FundsContribution[player]);
+			hashData.Add(m_TeamFundsShare[player]);
+			hashData.Add(m_IsHuman[player]);
 		}
 	}
 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-		AddToHash(hash, m_TeamFunds[team]);
-		AddToHash(hash, RTE::Hash(m_TeamNames[team]));
+		hashData.Add(m_TeamFunds[team]);
+		hashData.Add(m_TeamNames[team]);
 
 		hashData.AddHashed(m_TeamIcons[team]);
 
-		AddToHash(hash, m_TeamAISkillLevels[team]);
+		hashData.Add(m_TeamAISkillLevels[team]);
 	}
 
 	hashData.AddHashed(m_SavedValues);
 
-	AddToHash(hash, m_ShowInMenus);
-	AddToHash(hash, m_HumansCanSpectate);
+	hashData.Add(m_ShowInMenus);
+	hashData.Add(m_HumansCanSpectate);
 
 	return hashData;
 }

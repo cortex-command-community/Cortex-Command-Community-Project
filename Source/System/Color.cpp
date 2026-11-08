@@ -45,11 +45,10 @@ int Color::Save(Writer& writer) const {
 
 HashingData Color::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_R);
-	AddToHash(hash, m_G);
-	AddToHash(hash, m_B);
+	hashData.Add(m_R);
+	hashData.Add(m_G);
+	hashData.Add(m_B);
 
 	return hashData;
 }

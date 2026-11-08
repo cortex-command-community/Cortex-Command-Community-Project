@@ -344,15 +344,14 @@ HashingData GameActivity::Delivery::Hash() const {
 
 HashingData GameActivity::Hash() const {
 	HashingData hashData(Activity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_CPUTeam);
-	AddToHash(hash, m_DeliveryDelay);
-	AddToHash(hash, m_BuyMenuEnabled);
+	hashData.Add(m_CPUTeam);
+	hashData.Add(m_DeliveryDelay);
+	hashData.Add(m_BuyMenuEnabled);
 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
 		if (m_TeamActive[team]) {
-			AddToHash(hash, RTE::Hash(GetTeamTech(team)));
+			hashData.Add(GetTeamTech(team));
 		}
 	}
 

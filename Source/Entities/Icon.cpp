@@ -81,11 +81,10 @@ int Icon::Write(Writer& writer, const Entity& entityReference, HashingData& hash
 
 HashingData Icon::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddHashed(m_BitmapFile);
 
-	AddToHash(hash, m_FrameCount);
+	hashData.Add(m_FrameCount);
 
 	return hashData;
 }

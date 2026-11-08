@@ -70,11 +70,10 @@ int Box::Save(Writer& writer) const {
 
 HashingData Box::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_Corner.Hash().m_Hash);
-	AddToHash(hash, m_Width);
-	AddToHash(hash, m_Height);
+	hashData.Add(m_Corner);
+	hashData.Add(m_Width);
+	hashData.Add(m_Height);
 
 	return hashData;
 }

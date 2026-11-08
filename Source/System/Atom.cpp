@@ -184,14 +184,13 @@ int Atom::Save(Writer& writer) const {
 
 HashingData Atom::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_Offset.Hash().m_Hash);
-	AddToHash(hash, m_OriginalOffset.Hash().m_Hash);
-	AddToHash(hash, (m_Material ? m_Material->Hash().m_Hash : 0));
-	AddToHash(hash, m_TrailColor.Hash().m_Hash);
-	AddToHash(hash, m_TrailLength);
-	AddToHash(hash, m_TrailLengthVariation);
+	hashData.Add(m_Offset);
+	hashData.Add(m_OriginalOffset);
+	hashData.Add((m_Material ? m_Material->Hash().m_Hash : 0));
+	hashData.Add(m_TrailColor);
+	hashData.Add(m_TrailLength);
+	hashData.Add(m_TrailLengthVariation);
 
 	return hashData;
 }

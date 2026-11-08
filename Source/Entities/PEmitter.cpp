@@ -205,7 +205,6 @@ int PEmitter::Write(Writer& writer, const Entity& entityReference, HashingData& 
 
 HashingData PEmitter::Hash() const {
 	HashingData hashData(MOSParticle::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddPointerSequence(m_EmissionList);
 
@@ -215,24 +214,24 @@ HashingData PEmitter::Hash() const {
 
 	hashData.AddHashed(m_EndSound);
 
-	AddToHash(hash, m_EmitEnabled);
-	AddToHash(hash, m_EmitCount);
-	AddToHash(hash, m_EmitCountLimit);
-	AddToHash(hash, m_EmissionsIgnoreThis);
-	AddToHash(hash, m_NegativeThrottleMultiplier);
-	AddToHash(hash, m_PositiveThrottleMultiplier);
-	AddToHash(hash, m_Throttle);
-	AddToHash(hash, m_BurstScale);
-	AddToHash(hash, m_BurstSpacing);
-	AddToHash(hash, m_BurstTriggered);
-	AddToHash(hash, m_PlayBurstSound);
-	AddToHash(hash, m_EmitAngle.Hash().m_Hash);
-	AddToHash(hash, m_EmissionOffset.Hash().m_Hash);
-	AddToHash(hash, m_FlashScale);
-	AddToHash(hash, m_FlashOnlyOnBurst);
-	AddToHash(hash, m_SustainBurstSound);
-	AddToHash(hash, m_BurstSoundFollowsEmitter);
-	AddToHash(hash, m_LoudnessOnEmit);
+	hashData.Add(m_EmitEnabled);
+	hashData.Add(m_EmitCount);
+	hashData.Add(m_EmitCountLimit);
+	hashData.Add(m_EmissionsIgnoreThis);
+	hashData.Add(m_NegativeThrottleMultiplier);
+	hashData.Add(m_PositiveThrottleMultiplier);
+	hashData.Add(m_Throttle);
+	hashData.Add(m_BurstScale);
+	hashData.Add(m_BurstSpacing);
+	hashData.Add(m_BurstTriggered);
+	hashData.Add(m_PlayBurstSound);
+	hashData.Add(m_EmitAngle);
+	hashData.Add(m_EmissionOffset);
+	hashData.Add(m_FlashScale);
+	hashData.Add(m_FlashOnlyOnBurst);
+	hashData.Add(m_SustainBurstSound);
+	hashData.Add(m_BurstSoundFollowsEmitter);
+	hashData.Add(m_LoudnessOnEmit);
 
 	return hashData;
 }

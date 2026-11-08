@@ -95,13 +95,12 @@ int MetaSave::Write(Writer& writer, const Entity& entityReference, HashingData& 
 
 HashingData MetaSave::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, RTE::Hash(m_SavePath));
-	AddToHash(hash, m_PlayerCount);
-	AddToHash(hash, m_Difficulty);
-	AddToHash(hash, m_RoundCount);
-	AddToHash(hash, m_SiteCount);
+	hashData.Add(m_SavePath);
+	hashData.Add(m_PlayerCount);
+	hashData.Add(m_Difficulty);
+	hashData.Add(m_RoundCount);
+	hashData.Add(m_SiteCount);
 
 	return hashData;
 }

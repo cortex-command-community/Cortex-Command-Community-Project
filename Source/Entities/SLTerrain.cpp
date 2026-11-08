@@ -220,7 +220,6 @@ int SLTerrain::Write(Writer& writer, const Entity& entityReference, HashingData&
 
 HashingData SLTerrain::Hash() const {
 	HashingData hashData(SceneLayer::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddHashed(m_DefaultBGTextureFile);
 
@@ -234,7 +233,7 @@ HashingData SLTerrain::Hash() const {
 
 	hashData.AddPointerSequence(m_TerrainObjects);
 
-	AddToHash(hash, m_OrbitDirection);
+	hashData.Add(m_OrbitDirection);
 
 	return hashData;
 }

@@ -151,15 +151,14 @@ int GAScripted::Write(Writer& writer, const Entity& entityReference, HashingData
 
 HashingData GAScripted::Hash() const {
 	HashingData hashData(GameActivity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 	
-	AddToHash(hash, RTE::Hash(m_ScriptPath));
-	AddToHash(hash, RTE::Hash(m_LuaClassName));
+	hashData.Add(m_ScriptPath);
+	hashData.Add(m_LuaClassName);
 
 	hashData.AddPointerSequence(m_PieSlicesToAdd);
 
 	for (const std::string& requiredArea: m_RequiredAreas) {
-		AddToHash(hash, RTE::Hash(requiredArea));
+		hashData.Add(requiredArea);
 	}
 
 	return hashData;

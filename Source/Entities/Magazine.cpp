@@ -131,15 +131,14 @@ int Magazine::Write(Writer& writer, const Entity& entityReference, HashingData& 
 
 HashingData Magazine::Hash() const {
 	HashingData hashData(Attachable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_RoundCount);
-	AddToHash(hash, m_FullCapacity);
-	AddToHash(hash, m_RTTRatio);
-	AddToHash(hash, (m_pRegularRound ? RTE::Hash(m_pRegularRound->GetEntityCharacteristic()) : 0));
-	AddToHash(hash, (m_pTracerRound ? RTE::Hash(m_pTracerRound->GetEntityCharacteristic()) : 0));
-	AddToHash(hash, m_Discardable);
-	AddToHash(hash, m_AIBlastRadius);
+	hashData.Add(m_RoundCount);
+	hashData.Add(m_FullCapacity);
+	hashData.Add(m_RTTRatio);
+	hashData.AddPresetReference(m_pRegularRound);
+	hashData.AddPresetReference(m_pTracerRound);
+	hashData.Add(m_Discardable);
+	hashData.Add(m_AIBlastRadius);
 
 	return hashData;
 }

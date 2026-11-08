@@ -128,15 +128,14 @@ int Leg::Write(Writer& writer, const Entity& entityReference, HashingData& hashD
 
 HashingData Leg::Hash() const {
 	HashingData hashData(Attachable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddOptionalEntityPointer(m_Foot);
 
-	AddToHash(hash, m_ContractedOffset.Hash().m_Hash);
-	AddToHash(hash, m_ExtendedOffset.Hash().m_Hash);
-	AddToHash(hash, m_IdleOffset.Hash().m_Hash);
-	AddToHash(hash, m_WillIdle);
-	AddToHash(hash, m_MoveSpeed);
+	hashData.Add(m_ContractedOffset);
+	hashData.Add(m_ExtendedOffset);
+	hashData.Add(m_IdleOffset);
+	hashData.Add(m_WillIdle);
+	hashData.Add(m_MoveSpeed);
 
 	return hashData;
 }

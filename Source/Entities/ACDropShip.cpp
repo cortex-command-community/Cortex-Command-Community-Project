@@ -162,7 +162,6 @@ int ACDropShip::Write(Writer& writer, const Entity& entityReference, HashingData
 
 HashingData ACDropShip::Hash() const {
 	HashingData hashData(ACraft::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddOptionalEntityPointer(m_pRThruster);
 
@@ -176,12 +175,12 @@ HashingData ACDropShip::Hash() const {
 
 	hashData.AddOptionalEntityPointer(m_pLHatch);
 
-	AddToHash(hash, m_HatchSwingRange.Hash().m_Hash);
+	hashData.Add(m_HatchSwingRange);
 
-	AddToHash(hash, m_AutoStabilize);
-	AddToHash(hash, m_MaxEngineAngle);
-	AddToHash(hash, m_LateralControlSpeed);
-	AddToHash(hash, m_HoverHeightModifier);
+	hashData.Add(m_AutoStabilize);
+	hashData.Add(m_MaxEngineAngle);
+	hashData.Add(m_LateralControlSpeed);
+	hashData.Add(m_HoverHeightModifier);
 
 	return hashData;
 }

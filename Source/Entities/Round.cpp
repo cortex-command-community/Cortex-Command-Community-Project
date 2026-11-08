@@ -136,22 +136,21 @@ int Round::Write(Writer& writer, const Entity& entityReference, HashingData& has
 
 HashingData Round::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, (m_Particle ? RTE::Hash(m_Particle->GetEntityCharacteristic()) : 0));
-	AddToHash(hash, m_ParticleCount);
-	AddToHash(hash, m_FireVel);
-	AddToHash(hash, m_InheritsFirerVelocity);
-	AddToHash(hash, m_Separation);
-	AddToHash(hash, m_LifeVariation);
-	AddToHash(hash, (m_Shell ? RTE::Hash(m_Shell->GetEntityCharacteristic()) : 0));
-	AddToHash(hash, m_ShellVel);
+	hashData.AddPresetReference(m_Particle);
+	hashData.Add(m_ParticleCount);
+	hashData.Add(m_FireVel);
+	hashData.Add(m_InheritsFirerVelocity);
+	hashData.Add(m_Separation);
+	hashData.Add(m_LifeVariation);
+	hashData.AddPresetReference(m_Shell);
+	hashData.Add(m_ShellVel);
 
 	hashData.AddHashed(m_FireSound);
 
-	AddToHash(hash, m_AILifeTime);
-	AddToHash(hash, m_AIFireVel);
-	AddToHash(hash, m_AIPenetration);
+	hashData.Add(m_AILifeTime);
+	hashData.Add(m_AIFireVel);
+	hashData.Add(m_AIPenetration);
 
 	return hashData;
 }

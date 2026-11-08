@@ -179,21 +179,20 @@ int PieSlice::Write(Writer& writer, const Entity& entityReference, HashingData& 
 
 HashingData PieSlice::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_Type);
-	AddToHash(hash, m_Direction);
-	AddToHash(hash, m_Enabled);
+	hashData.Add(m_Type);
+	hashData.Add(m_Direction);
+	hashData.Add(m_Enabled);
 
 	hashData.AddEntityPointer(m_Icon);
 
-	AddToHash(hash, (m_LuabindFunctionObject ? RTE::Hash(m_LuabindFunctionObject->GetFilePath()) : 0));
-	AddToHash(hash, RTE::Hash(m_FunctionName));
+	hashData.Add((m_LuabindFunctionObject ? RTE::Hash(m_LuabindFunctionObject->GetFilePath()) : 0));
+	hashData.Add(m_FunctionName);
 
 	hashData.AddOptionalEntityPointer(m_SubPieMenu);
 
-	AddToHash(hash, m_CanBeMiddleSlice);
-	AddToHash(hash, m_DrawFlippedToMatchAbsoluteAngle);
+	hashData.Add(m_CanBeMiddleSlice);
+	hashData.Add(m_DrawFlippedToMatchAbsoluteAngle);
 
 	return hashData;
 }

@@ -99,11 +99,10 @@ int GlobalScript::Write(Writer& writer, const Entity& entityReference, HashingDa
 
 HashingData GlobalScript::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_LateUpdate);
-	AddToHash(hash, RTE::Hash(m_ScriptPath));
-	AddToHash(hash, RTE::Hash(m_LuaClassName));
+	hashData.Add(m_LateUpdate);
+	hashData.Add(m_ScriptPath);
+	hashData.Add(m_LuaClassName);
 
 	hashData.AddPointerSequence(m_PieSlicesToAdd);
 

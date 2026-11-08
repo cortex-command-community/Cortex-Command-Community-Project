@@ -75,7 +75,6 @@ int MOSParticle::Write(Writer& writer, const Entity& entityReference, HashingDat
 
 HashingData MOSParticle::Hash() const {
 	HashingData hashData(MOSprite::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddEntityPointer(m_Atom);
 

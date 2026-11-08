@@ -235,24 +235,23 @@ int AtomGroup::Write(Writer& writer, const Entity& entityReference, HashingData&
 
 HashingData AtomGroup::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, RTE::Hash(m_Material->GetEntityCharacteristic()));
-	AddToHash(hash, m_AutoGenerate);
+	hashData.AddPresetReference(m_Material);
+	hashData.Add(m_AutoGenerate);
 
 	if (m_AutoGenerate) {
 		hashData.m_ParseValues.push_back(0);
 
-		AddToHash(hash, m_Resolution);
-		AddToHash(hash, m_Depth);
+		hashData.Add(m_Resolution);
+		hashData.Add(m_Depth);
 	} else {
 		hashData.AddPointerSequenceConditional(m_Atoms, [&](const auto& atom) { return atom->GetSubID() == 0; });
 	}
 
-	AddToHash(hash, m_JointOffset.Hash().m_Hash);
+	hashData.Add(m_JointOffset);
 
-	AddToHash(hash, m_AreaDistributionType);
-	AddToHash(hash, m_AreaDistributionSurfaceAreaMultiplier);
+	hashData.Add(m_AreaDistributionType);
+	hashData.Add(m_AreaDistributionSurfaceAreaMultiplier);
 
 	return hashData;
 }

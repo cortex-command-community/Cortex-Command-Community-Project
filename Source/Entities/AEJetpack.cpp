@@ -141,15 +141,14 @@ int AEJetpack::Write(Writer& writer, const Entity& entityReference, HashingData&
 
 HashingData AEJetpack::Hash() const {
 	HashingData hashData(AEmitter::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_JetpackType);
-	AddToHash(hash, m_JetTimeTotal);
-	AddToHash(hash, m_JetReplenishRate);
-	AddToHash(hash, m_MinimumFuelRatio);
-	AddToHash(hash, m_JetAngleRange);
-	AddToHash(hash, m_CanAdjustAngleWhileFiring);
-	AddToHash(hash, m_AdjustsThrottleForWeight);
+	hashData.Add(m_JetpackType);
+	hashData.Add(m_JetTimeTotal);
+	hashData.Add(m_JetReplenishRate);
+	hashData.Add(m_MinimumFuelRatio);
+	hashData.Add(m_JetAngleRange);
+	hashData.Add(m_CanAdjustAngleWhileFiring);
+	hashData.Add(m_AdjustsThrottleForWeight);
 
 	return hashData;
 }

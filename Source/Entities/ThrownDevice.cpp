@@ -106,17 +106,16 @@ int ThrownDevice::Write(Writer& writer, const Entity& entityReference, HashingDa
 
 HashingData ThrownDevice::Hash() const {
 	HashingData hashData(HeldDevice::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddOptionalEntityPointer(m_ActivationSound);
 
-	AddToHash(hash, m_StartThrowOffset.Hash().m_Hash);
-	AddToHash(hash, m_EndThrowOffset.Hash().m_Hash);
-	AddToHash(hash, m_MinThrowVel);
-	AddToHash(hash, m_MaxThrowVel);
-	AddToHash(hash, m_TriggerDelay);
-	AddToHash(hash, m_ActivatesWhenReleased);
-	AddToHash(hash, (m_StrikerLever ? RTE::Hash(m_StrikerLever->GetEntityCharacteristic()) : 0));
+	hashData.Add(m_StartThrowOffset);
+	hashData.Add(m_EndThrowOffset);
+	hashData.Add(m_MinThrowVel);
+	hashData.Add(m_MaxThrowVel);
+	hashData.Add(m_TriggerDelay);
+	hashData.Add(m_ActivatesWhenReleased);
+	hashData.AddPresetReference(m_StrikerLever);
 
 	return hashData;
 }

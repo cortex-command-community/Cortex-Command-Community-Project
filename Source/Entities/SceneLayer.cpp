@@ -191,16 +191,15 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Write(Writer& writer, const 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 HashingData SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddHashed(m_BitmapFile);
 	
-	AddToHash(hash, m_WrapX);
-	AddToHash(hash, m_WrapY);
-	AddToHash(hash, m_DrawMasked);
-	AddToHash(hash, m_ScrollInfo.Hash().m_Hash);
-	AddToHash(hash, m_ScaleFactor.Hash().m_Hash);
-	AddToHash(hash, m_OriginOffset.Hash().m_Hash);
+	hashData.Add(m_WrapX);
+	hashData.Add(m_WrapY);
+	hashData.Add(m_DrawMasked);
+	hashData.Add(m_ScrollInfo);
+	hashData.Add(m_ScaleFactor);
+	hashData.Add(m_OriginOffset);
 
 	return hashData;
 }

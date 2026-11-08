@@ -154,30 +154,29 @@ int Material::Write(Writer& writer, const Entity& entityReference, HashingData& 
 
 HashingData Material::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_Priority);
-	AddToHash(hash, m_Piling);
-	AddToHash(hash, m_Integrity);
-	AddToHash(hash, m_Restitution);
-	AddToHash(hash, m_Friction);
-	AddToHash(hash, m_Stickiness);
-	AddToHash(hash, m_VolumeDensity);
-	AddToHash(hash, m_GibImpulseLimitPerLiter);
-	AddToHash(hash, m_GibWoundLimitPerLiter);
-	AddToHash(hash, m_SettleMaterialIndex);
-	AddToHash(hash, m_SpawnMaterialIndex);
-	AddToHash(hash, m_IsScrap);
+	hashData.Add(m_Priority);
+	hashData.Add(m_Piling);
+	hashData.Add(m_Integrity);
+	hashData.Add(m_Restitution);
+	hashData.Add(m_Friction);
+	hashData.Add(m_Stickiness);
+	hashData.Add(m_VolumeDensity);
+	hashData.Add(m_GibImpulseLimitPerLiter);
+	hashData.Add(m_GibWoundLimitPerLiter);
+	hashData.Add(m_SettleMaterialIndex);
+	hashData.Add(m_SpawnMaterialIndex);
+	hashData.Add(m_IsScrap);
 
 	hashData.AddHashed(m_Color);
 
-	AddToHash(hash, m_UseOwnColor);
+	hashData.Add(m_UseOwnColor);
 
 	hashData.AddHashed(m_FGTextureFile);
 
 	hashData.AddHashed(m_BGTextureFile);
 
-	AddToHash(hash, m_Index);
+	hashData.Add(m_Index);
 
 	return hashData;
 }

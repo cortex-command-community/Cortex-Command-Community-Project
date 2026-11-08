@@ -248,28 +248,27 @@ int SoundContainer::Write(Writer& writer, const Entity& entityReference, Hashing
 
 HashingData SoundContainer::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddEntityPointer(m_TopLevelSoundSet);
 
-	AddToHash(hash, m_SoundOverlapMode);
+	hashData.Add(m_SoundOverlapMode);
 
-	AddToHash(hash, m_BusRouting);
-	AddToHash(hash, m_Immobile);
-	AddToHash(hash, m_AttenuationStartDistance);
-	AddToHash(hash, m_CustomPanValue);
-	AddToHash(hash, m_PanningStrengthMultiplier);
-	AddToHash(hash, m_Loops);
-	AddToHash(hash, m_Priority);
-	AddToHash(hash, m_AffectedByGlobalPitch);
-	AddToHash(hash, m_Pos.Hash().m_Hash);
-	AddToHash(hash, m_Volume);
-	AddToHash(hash, m_Pitch);
-	AddToHash(hash, m_PitchVariation);
-	AddToHash(hash, m_WasFadedOut);
-	AddToHash(hash, m_Paused);
-	AddToHash(hash, m_MusicPreEntryTime);
-	AddToHash(hash, m_MusicExitTime);
+	hashData.Add(m_BusRouting);
+	hashData.Add(m_Immobile);
+	hashData.Add(m_AttenuationStartDistance);
+	hashData.Add(m_CustomPanValue);
+	hashData.Add(m_PanningStrengthMultiplier);
+	hashData.Add(m_Loops);
+	hashData.Add(m_Priority);
+	hashData.Add(m_AffectedByGlobalPitch);
+	hashData.Add(m_Pos);
+	hashData.Add(m_Volume);
+	hashData.Add(m_Pitch);
+	hashData.Add(m_PitchVariation);
+	hashData.Add(m_WasFadedOut);
+	hashData.Add(m_Paused);
+	hashData.Add(m_MusicPreEntryTime);
+	hashData.Add(m_MusicExitTime);
 
 	return hashData;
 }

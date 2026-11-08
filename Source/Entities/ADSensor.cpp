@@ -52,11 +52,10 @@ int ADSensor::Save(Writer& writer) const {
 
 HashingData ADSensor::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_StartOffset.Hash().m_Hash);
-	AddToHash(hash, m_SensorRay.Hash().m_Hash);
-	AddToHash(hash, m_Skip);
+	hashData.Add(m_StartOffset);
+	hashData.Add(m_SensorRay);
+	hashData.Add(m_Skip);
 
 	return hashData;
 }

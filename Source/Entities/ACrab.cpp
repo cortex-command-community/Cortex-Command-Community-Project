@@ -381,7 +381,6 @@ int ACrab::Write(Writer& writer, const Entity& entityReference, HashingData& has
 
 HashingData ACrab::Hash() const {
 	HashingData hashData(Actor::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddOptionalEntityPointer(m_pTurret);
 
@@ -417,9 +416,9 @@ HashingData ACrab::Hash() const {
 
 	hashData.AddHashed(m_Paths[RIGHTSIDE][FGROUND][DISLODGE]);
 
-	AddToHash(hash, m_AimRangeUpperLimit);
-	AddToHash(hash, m_AimRangeLowerLimit);
-	AddToHash(hash, m_LockMouseAimInput);
+	hashData.Add(m_AimRangeUpperLimit);
+	hashData.Add(m_AimRangeLowerLimit);
+	hashData.Add(m_LockMouseAimInput);
 
 	return hashData;
 }

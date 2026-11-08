@@ -131,9 +131,8 @@ int Loadout::Write(Writer& writer, const Entity& entityReference, HashingData& h
 
 HashingData Loadout::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, (m_pDeliveryCraft ? RTE::Hash(m_pDeliveryCraft->GetEntityCharacteristic()) : 0));
+	hashData.AddPresetReference(m_pDeliveryCraft);
 
 	hashData.AddPresetSequence(m_CargoItems);
 

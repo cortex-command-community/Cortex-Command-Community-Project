@@ -137,7 +137,6 @@ int TerrainObject::Write(Writer& writer, const Entity& entityReference, HashingD
 
 HashingData TerrainObject::Hash() const {
 	HashingData hashData(SceneObject::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddHashed(m_FGColorFile);
 
@@ -145,7 +144,7 @@ HashingData TerrainObject::Hash() const {
 
 	hashData.AddHashed(m_MaterialFile);
 
-	AddToHash(hash, m_BitmapOffset.Hash().m_Hash);
+	hashData.Add(m_BitmapOffset);
 
 	hashData.AddSequence(m_ChildObjects);
 

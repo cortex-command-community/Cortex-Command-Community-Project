@@ -612,70 +612,69 @@ int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingD
 
 HashingData MovableObject::Hash() const {
 	HashingData hashData(SceneObject::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 
-	AddToHash(hash, m_Mass);
-	AddToHash(hash, m_Vel.Hash().m_Hash);
-	AddToHash(hash, m_Scale);
-	AddToHash(hash, m_GlobalAccScalar);
-	AddToHash(hash, m_AirResistance);
-	AddToHash(hash, m_AirThreshold);
-	AddToHash(hash, m_PinStrength);
-	AddToHash(hash, m_RestThreshold);
-	AddToHash(hash, m_Lifetime);
-	AddToHash(hash, m_Sharpness);
-	AddToHash(hash, m_HitsMOs);
-	AddToHash(hash, m_GetsHitByMOs);
-	AddToHash(hash, m_IgnoresTeamHits);
-	AddToHash(hash, m_IgnoresAtomGroupHits);
-	AddToHash(hash, m_IgnoresAGHitsWhenSlowerThan);
-	AddToHash(hash, m_IgnoresActorHits);
-	AddToHash(hash, m_MissionCritical);
-	AddToHash(hash, m_CanBeSquished);
-	AddToHash(hash, m_HUDVisible);
+	hashData.Add(m_Mass);
+	hashData.Add(m_Vel);
+	hashData.Add(m_Scale);
+	hashData.Add(m_GlobalAccScalar);
+	hashData.Add(m_AirResistance);
+	hashData.Add(m_AirThreshold);
+	hashData.Add(m_PinStrength);
+	hashData.Add(m_RestThreshold);
+	hashData.Add(m_Lifetime);
+	hashData.Add(m_Sharpness);
+	hashData.Add(m_HitsMOs);
+	hashData.Add(m_GetsHitByMOs);
+	hashData.Add(m_IgnoresTeamHits);
+	hashData.Add(m_IgnoresAtomGroupHits);
+	hashData.Add(m_IgnoresAGHitsWhenSlowerThan);
+	hashData.Add(m_IgnoresActorHits);
+	hashData.Add(m_MissionCritical);
+	hashData.Add(m_CanBeSquished);
+	hashData.Add(m_HUDVisible);
 
 	for (const auto& scriptPath: m_AllLoadedScripts) {
 		if (!scriptPath.empty()) {
-			AddToHash(hash, RTE::Hash(ScriptEnabled(scriptPath) ? scriptPath : scriptPath + " disabled"));
+			hashData.Add(ScriptEnabled(scriptPath) ? scriptPath : scriptPath + " disabled");
 		}
 	}
 
 	hashData.AddHashed(m_ScreenEffectFile);
 
-	AddToHash(hash, m_PostEffectEnabled);
-	AddToHash(hash, m_EffectStartTime);
-	AddToHash(hash, m_EffectStopTime);
-	AddToHash(hash, m_EffectStartStrength);
-	AddToHash(hash, m_EffectStopStrength);
-	AddToHash(hash, m_EffectAlwaysShows);
-	AddToHash(hash, m_DamageOnCollision);
-	AddToHash(hash, m_DamageOnPenetration);
-	AddToHash(hash, m_WoundDamageMultiplier);
-	AddToHash(hash, m_ApplyWoundDamageOnCollision);
-	AddToHash(hash, m_ApplyWoundBurstDamageOnCollision);
-	AddToHash(hash, m_IgnoreTerrain);
-	AddToHash(hash, m_SimUpdatesBetweenScriptedUpdates);
+	hashData.Add(m_PostEffectEnabled);
+	hashData.Add(m_EffectStartTime);
+	hashData.Add(m_EffectStopTime);
+	hashData.Add(m_EffectStartStrength);
+	hashData.Add(m_EffectStopStrength);
+	hashData.Add(m_EffectAlwaysShows);
+	hashData.Add(m_DamageOnCollision);
+	hashData.Add(m_DamageOnPenetration);
+	hashData.Add(m_WoundDamageMultiplier);
+	hashData.Add(m_ApplyWoundDamageOnCollision);
+	hashData.Add(m_ApplyWoundBurstDamageOnCollision);
+	hashData.Add(m_IgnoreTerrain);
+	hashData.Add(m_SimUpdatesBetweenScriptedUpdates);
 
 	for (const auto& [key, value]: m_NumberValueMap) {
-		AddToHash(hash, RTE::Hash(key));
-		AddToHash(hash, value);
+		hashData.Add(key);
+		hashData.Add(value);
 	}
 
 	for (const auto& [key, value]: m_StringValueMap) {
-		AddToHash(hash, RTE::Hash(key));
-		AddToHash(hash, RTE::Hash(value));
+		hashData.Add(key);
+		hashData.Add(value);
 	}
 
-	AddToHash(hash, m_ForceIntoMasterLuaState);
+	hashData.Add(m_ForceIntoMasterLuaState);
 
-	AddToHash(hash, m_RemoveOrphanTerrainRadius);
-	AddToHash(hash, m_RemoveOrphanTerrainMaxArea);
-	AddToHash(hash, m_RemoveOrphanTerrainRate);
-	AddToHash(hash, m_EffectRotAngle);
-	AddToHash(hash, m_InheritEffectRotAngle);
-	AddToHash(hash, m_RandomizeEffectRotAngle);
-	AddToHash(hash, m_RandomizeEffectRotAngleEveryFrame);
+	hashData.Add(m_RemoveOrphanTerrainRadius);
+	hashData.Add(m_RemoveOrphanTerrainMaxArea);
+	hashData.Add(m_RemoveOrphanTerrainRate);
+	hashData.Add(m_EffectRotAngle);
+	hashData.Add(m_InheritEffectRotAngle);
+	hashData.Add(m_RandomizeEffectRotAngle);
+	hashData.Add(m_RandomizeEffectRotAngleEveryFrame);
 
 	return hashData;
 }

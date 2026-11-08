@@ -237,19 +237,18 @@ int LimbPath::Write(Writer& writer, const Entity& entityReference, HashingData& 
 
 HashingData LimbPath::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_Start.Hash().m_Hash);
-	AddToHash(hash, m_StartSegCount);
+	hashData.Add(m_Start);
+	hashData.Add(m_StartSegCount);
 
 	hashData.AddSequence(m_Segments);
 
-	AddToHash(hash, m_FootCollisionsDisabledSegment);
-	AddToHash(hash, m_SegmentEndedThreshold);
-	AddToHash(hash, m_TravelSpeed);
-	AddToHash(hash, m_BaseTravelSpeedMultiplier);
-	AddToHash(hash, m_BaseScaleMultiplier.Hash().m_Hash);
-	AddToHash(hash, m_PushForce);
+	hashData.Add(m_FootCollisionsDisabledSegment);
+	hashData.Add(m_SegmentEndedThreshold);
+	hashData.Add(m_TravelSpeed);
+	hashData.Add(m_BaseTravelSpeedMultiplier);
+	hashData.Add(m_BaseScaleMultiplier);
+	hashData.Add(m_PushForce);
 
 	return hashData;
 }

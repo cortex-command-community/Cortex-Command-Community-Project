@@ -220,23 +220,22 @@ int ADoor::Write(Writer& writer, const Entity& entityReference, HashingData& has
 
 HashingData ADoor::Hash() const {
 	HashingData hashData(Actor::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddOptionalEntityPointer(m_Door);
 
-	AddToHash(hash, m_OpenOffset.Hash().m_Hash);
-	AddToHash(hash, m_ClosedOffset.Hash().m_Hash);
-	AddToHash(hash, m_OpenAngle);
-	AddToHash(hash, m_ClosedAngle);
-	AddToHash(hash, m_DoorMoveTime);
-	AddToHash(hash, m_ClosedByDefault);
-	AddToHash(hash, m_ResetToDefaultStateDelay);
-	AddToHash(hash, m_SensorInterval);
+	hashData.Add(m_OpenOffset);
+	hashData.Add(m_ClosedOffset);
+	hashData.Add(m_OpenAngle);
+	hashData.Add(m_ClosedAngle);
+	hashData.Add(m_DoorMoveTime);
+	hashData.Add(m_ClosedByDefault);
+	hashData.Add(m_ResetToDefaultStateDelay);
+	hashData.Add(m_SensorInterval);
 
 	hashData.AddSequence(m_Sensors);
 
-	AddToHash(hash, m_DrawMaterialLayerWhenOpen);
-	AddToHash(hash, m_DrawMaterialLayerWhenClosed);
+	hashData.Add(m_DrawMaterialLayerWhenOpen);
+	hashData.Add(m_DrawMaterialLayerWhenClosed);
 
 	hashData.AddOptionalEntityPointer(m_DoorMoveStartSound);
 

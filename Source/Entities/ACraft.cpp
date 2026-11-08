@@ -91,13 +91,12 @@ int ACraft::Exit::Save(Writer& writer) const {
 
 HashingData ACraft::Exit::Hash() const {
 	HashingData hashData(Serializable::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, m_Offset.Hash().m_Hash);
-	AddToHash(hash, m_Velocity.Hash().m_Hash);
-	AddToHash(hash, m_VelSpread);
-	AddToHash(hash, m_Radius);
-	AddToHash(hash, m_Range);
+	hashData.Add(m_Offset);
+	hashData.Add(m_Velocity);
+	hashData.Add(m_VelSpread);
+	hashData.Add(m_Radius);
+	hashData.Add(m_Range);
 
 	return hashData;
 }
@@ -353,7 +352,6 @@ int ACraft::Write(Writer& writer, const Entity& entityReference, HashingData& ha
 
 HashingData ACraft::Hash() const {
 	HashingData hashData(Actor::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddOptionalEntityPointer(m_HatchOpenSound);
 
@@ -363,14 +361,14 @@ HashingData ACraft::Hash() const {
 
 	hashData.AddSequence(m_Exits);
 
-	AddToHash(hash, m_HatchDelay);
-	AddToHash(hash, m_DeliveryDelayMultiplier);
-	AddToHash(hash, m_ExitInterval);
-	AddToHash(hash, m_LandingCraft);
-	AddToHash(hash, m_CanEnterOrbit);
-	AddToHash(hash, m_MaxPassengers);
-	AddToHash(hash, m_ScuttleIfFlippedTime);
-	AddToHash(hash, m_ScuttleOnDeath);
+	hashData.Add(m_HatchDelay);
+	hashData.Add(m_DeliveryDelayMultiplier);
+	hashData.Add(m_ExitInterval);
+	hashData.Add(m_LandingCraft);
+	hashData.Add(m_CanEnterOrbit);
+	hashData.Add(m_MaxPassengers);
+	hashData.Add(m_ScuttleIfFlippedTime);
+	hashData.Add(m_ScuttleOnDeath);
 
 	return hashData;
 }

@@ -117,15 +117,14 @@ int MOPixel::Write(Writer& writer, const Entity& entityReference, HashingData& h
 
 HashingData MOPixel::Hash() const {
 	HashingData hashData(MovableObject::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddEntityPointer(m_Atom);
 
 	hashData.AddHashed(m_Color);
 
-	AddToHash(hash, m_MinLethalRange);
-	AddToHash(hash, m_MaxLethalRange);
-	AddToHash(hash, m_Staininess);
+	hashData.Add(m_MinLethalRange);
+	hashData.Add(m_MaxLethalRange);
+	hashData.Add(m_Staininess);
 
 	return hashData;
 }

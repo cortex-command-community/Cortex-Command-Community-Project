@@ -140,23 +140,22 @@ int TerrainDebris::Write(Writer& writer, const Entity& entityReference, HashingD
 
 HashingData TerrainDebris::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
 	hashData.AddHashed(m_DebrisFile);
 
-	AddToHash(hash, m_BitmapCount);
-	AddToHash(hash, m_Material.Hash().m_Hash);
-	AddToHash(hash, m_TargetMaterial.Hash().m_Hash);
-	AddToHash(hash, m_DebrisPlacementMode);
-	AddToHash(hash, m_OnlyBuried);
-	AddToHash(hash, m_MinDepth);
-	AddToHash(hash, m_MaxDepth);
-	AddToHash(hash, m_MinRotation);
-	AddToHash(hash, m_MaxRotation);
-	AddToHash(hash, m_CanHFlip);
-	AddToHash(hash, m_CanVFlip);
-	AddToHash(hash, m_FlipChance);
-	AddToHash(hash, m_Density);
+	hashData.Add(m_BitmapCount);
+	hashData.Add(m_Material);
+	hashData.Add(m_TargetMaterial);
+	hashData.Add(m_DebrisPlacementMode);
+	hashData.Add(m_OnlyBuried);
+	hashData.Add(m_MinDepth);
+	hashData.Add(m_MaxDepth);
+	hashData.Add(m_MinRotation);
+	hashData.Add(m_MaxRotation);
+	hashData.Add(m_CanHFlip);
+	hashData.Add(m_CanVFlip);
+	hashData.Add(m_FlipChance);
+	hashData.Add(m_Density);
 
 	return hashData;
 }

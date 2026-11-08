@@ -134,22 +134,21 @@ int Emission::Write(Writer& writer, const Entity& entityReference, HashingData& 
 
 HashingData Emission::Hash() const {
 	HashingData hashData(Entity::Hash());
-	uint64_t& hash = hashData.m_Hash;
 
-	AddToHash(hash, (m_pEmission ? RTE::Hash(m_pEmission->GetEntityCharacteristic()) : 0));
-	AddToHash(hash, m_PPM);
-	AddToHash(hash, m_BurstSize);
-	AddToHash(hash, m_Spread);
-	AddToHash(hash, m_MinVelocity);
-	AddToHash(hash, m_MaxVelocity);
-	AddToHash(hash, m_LifeVariation);
-	AddToHash(hash, m_PushesEmitter);
-	AddToHash(hash, m_InheritsVel);
-	AddToHash(hash, m_InheritsAngularVel);
-	AddToHash(hash, m_Offset.Hash().m_Hash);
-	AddToHash(hash, m_StartTimer.GetSimTimeLimitMS());
-	AddToHash(hash, m_StopTimer.GetSimTimeLimitMS());
-	AddToHash(hash, m_ParticleCount);
+	hashData.AddPresetReference(m_pEmission);
+	hashData.Add(m_PPM);
+	hashData.Add(m_BurstSize);
+	hashData.Add(m_Spread);
+	hashData.Add(m_MinVelocity);
+	hashData.Add(m_MaxVelocity);
+	hashData.Add(m_LifeVariation);
+	hashData.Add(m_PushesEmitter);
+	hashData.Add(m_InheritsVel);
+	hashData.Add(m_InheritsAngularVel);
+	hashData.Add(m_Offset);
+	hashData.Add(m_StartTimer.GetSimTimeLimitMS());
+	hashData.Add(m_StopTimer.GetSimTimeLimitMS());
+	hashData.Add(m_ParticleCount);
 
 	return hashData;
 }
