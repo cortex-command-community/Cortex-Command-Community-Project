@@ -144,15 +144,7 @@ int GAScripted::Write(Writer& writer, const Entity& entityReference, HashingData
 	writer.NewDistinctProperty("LuaClassName", m_LuaClassName, reference.m_LuaClassName);
 	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", m_PieSlicesToAdd, hashData);
 
-	if (m_RequiredAreas != reference.m_RequiredAreas) {
-		if (reference.m_RequiredAreas.size() > 0) {
-			writer.NewPropertyWithValue("_ClearRequiredAreas", 1);
-		}
-
-		for (auto itr = m_RequiredAreas.begin(); itr != m_RequiredAreas.end(); ++itr) {
-			writer.NewPropertyWithValue("AddRequiredArea", *itr);
-		}
-	}
+	writer.NewDistinctCollection("_ClearRequiredAreas", "AddRequiredArea", m_RequiredAreas, reference.m_RequiredAreas);
 
 	return 0;
 }

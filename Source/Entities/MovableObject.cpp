@@ -574,25 +574,27 @@ int MovableObject::Write(Writer& writer, const Entity& entityReference, HashingD
 	writer.NewDistinctProperty("SimUpdatesBetweenScriptedUpdates", m_SimUpdatesBetweenScriptedUpdates, reference.m_SimUpdatesBetweenScriptedUpdates);
 
 	if (m_NumberValueMap != reference.m_NumberValueMap) {
-		writer.NewPropertyWithValue("_ClearCustomNumberValues", 1);
-	}
-
-	for (const auto& [key, value]: m_NumberValueMap) {
-		writer.NewLine();
-		writer.ObjectStart("AddCustomValue = NumberValue");
-		writer.NewPropertyWithValue(key, value);
-		writer.ObjectEnd();
+		if (!reference.m_NumberValueMap.empty()) {
+			writer.NewPropertyWithValue("_ClearCustomNumberValues", 1);
+		}
+		for (const auto& [key, value]: m_NumberValueMap) {
+			writer.NewLine();
+			writer.ObjectStart("AddCustomValue = NumberValue");
+			writer.NewPropertyWithValue(key, value);
+			writer.ObjectEnd();
+		}
 	}
 
 	if (m_StringValueMap != reference.m_StringValueMap) {
-		writer.NewPropertyWithValue("_ClearCustomStringValues", 1);
-	}
-
-	for (const auto& [key, value]: m_StringValueMap) {
-		writer.NewLine();
-		writer.ObjectStart("AddCustomValue = StringValue");
-		writer.NewPropertyWithValue(key, value);
-		writer.ObjectEnd();
+		if (!reference.m_StringValueMap.empty()) {
+			writer.NewPropertyWithValue("_ClearCustomStringValues", 1);
+		}
+		for (const auto& [key, value]: m_StringValueMap) {
+			writer.NewLine();
+			writer.ObjectStart("AddCustomValue = StringValue");
+			writer.NewPropertyWithValue(key, value);
+			writer.ObjectEnd();
+		}
 	}
 
 	writer.NewDistinctProperty("ForceIntoMasterLuaState", m_ForceIntoMasterLuaState, reference.m_ForceIntoMasterLuaState);

@@ -192,15 +192,7 @@ namespace RTE {
 			WriteDescription(writer, m_PresetDescription);
 		}
 		
-		if (m_Groups != entityReference.m_Groups) {
-			if (entityReference.m_Groups.size() > 0) {
-				writer.NewPropertyWithValue("_ClearGroups", 1);
-			}
-
-			for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {
-				writer.NewPropertyWithValue("AddToGroup", *itr);
-			}
-		}
+		writer.NewDistinctCollection("_ClearGroups", "AddToGroup", m_Groups, entityReference.m_Groups);
 
 		writer.NewDistinctProperty("RandomWeight", m_RandomWeight, entityReference.m_RandomWeight);
 

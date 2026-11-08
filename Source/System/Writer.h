@@ -269,6 +269,23 @@ namespace RTE {
 			}
 		}
 
+		/// If a collection differs at all from the reference's, clears what was copied from the reference, if it had anything, and writes every item.
+		/// @param clearPhrase The phrase used to wipe the contents of the collection.
+		/// @param insertionPhrase The phrase used to add an item to the collection.
+		/// @param propValue The collection.
+		/// @param propReference The reference's collection.
+		template <typename Collection>
+		void NewDistinctCollection(const std::string& clearPhrase, const std::string& insertionPhrase, const Collection& propValue, const std::type_identity_t<Collection>& propReference) {
+			if (propValue != propReference) {
+				if (!propReference.empty()) {
+					NewPropertyWithValue(clearPhrase, 1);
+				}
+				for (const auto& item: propValue) {
+					NewPropertyWithValue(insertionPhrase, item);
+				}
+			}
+		}
+
 		/// If the hash data indicates that anything needs to be written, creates a new line and writes the name of the specified property, followed by its set value.
 		/// @param propName The name of the property to be written.
 		/// @param propValue The value of the property.
