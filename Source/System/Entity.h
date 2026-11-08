@@ -35,6 +35,11 @@ namespace RTE {
 	const Entity::ClassInfo& GetClass() const override { return m_sClass; } \
 	const std::string& GetClassName() const override { return m_sClass.GetName(); }
 
+/// Convenience macro to cut down on duplicate ReadProperty, Save, Hash and Write methods in classes that extend Entity.
+#define EntityOverrideMethods \
+	SerializableOverrideMethods \
+	int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
+
 /// Static method used in conjunction with ClassInfo to allocate an Entity.
 /// This function is passed into the constructor of this Entity's static ClassInfo's constructor, so that it can instantiate MovableObjects.
 /// @return A pointer to the newly dynamically allocated Entity. Ownership is transferred as well.

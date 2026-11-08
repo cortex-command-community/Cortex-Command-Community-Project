@@ -23,7 +23,7 @@ namespace RTE {
 
 	public:
 		EntityAllocation(SceneLayerImpl);
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 
 #pragma region Creation
 		/// Constructor method used to instantiate a SceneLayerImpl object in system memory. Create() should be called before using the object.
@@ -74,15 +74,6 @@ namespace RTE {
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
-#pragma endregion
-
-#pragma region INI Handling
-		/// Records an Entity against a reference, expected to be its preset.
-		/// @param writer A Writer that the Entity will save itself to.
-		/// @param entityReference A reference preset to write properties against.
-		/// @param hashData A clump of hash data for cheap property comparisons.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
 #pragma endregion
 
 #pragma region Data Handling

@@ -18,7 +18,7 @@ namespace RTE {
 
 		/// Public member variable, method and friend function declarations
 	public:
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		/// Enumeration for the different buyable modes of this SceneObject.
@@ -130,15 +130,6 @@ namespace RTE {
 		/// @return An error return value signaling sucess or any particular failure.
 		/// Anything below 0 is an error signal.
 		int Create(const SceneObject& reference);
-
-#pragma region INI Handling
-		/// Records an Entity against a reference, expected to be its preset.
-		/// @param writer A Writer that the Entity will save itself to.
-		/// @param entityReference A reference preset to write properties against.
-		/// @param hashData A clump of hash data for cheap property comparisons.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
-#pragma endregion
 
 		/// Resets the entire SceneObject, including its inherited members, to their
 		/// default settings or values.

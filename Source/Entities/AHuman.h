@@ -50,7 +50,7 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(AHuman);
 		AddScriptFunctionNames(Actor, "OnStride");
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 		DefaultPieMenuNameGetter("Default Human Pie Menu");
 
@@ -79,13 +79,6 @@ namespace RTE {
 			Clear();
 			Actor::Reset();
 		}
-
-		/// Records an Entity against a reference, expected to be its preset.
-		/// @param writer A Writer that the Entity will save itself to.
-		/// @param entityReference A reference preset to write properties against.
-		/// @param hashData A clump of hash data for cheap property comparisons.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
 
 		/// Destroys and resets (through Clear()) the SceneLayer object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)

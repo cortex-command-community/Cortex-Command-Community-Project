@@ -18,7 +18,7 @@ namespace RTE {
 
 		/// Public member variable, method and friend function declarations
 	public:
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a MOSprite object in system
@@ -58,13 +58,6 @@ namespace RTE {
 			Clear();
 			MovableObject::Reset();
 		}
-
-		/// Records an Entity against a reference, expected to be its preset.
-		/// @param writer A Writer that the Entity will save itself to.
-		/// @param entityReference A reference preset to write properties against.
-		/// @param hashData A clump of hash data for cheap property comparisons.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
 
 		/// Destroys and resets (through Clear()) the MOSprite object.
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)

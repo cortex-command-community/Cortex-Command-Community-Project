@@ -33,7 +33,7 @@ namespace RTE {
 
 		/// Public member variable, method and friend function declarations
 	public:
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		// Available placed objects sets
@@ -270,15 +270,6 @@ namespace RTE {
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
 		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
-
-#pragma region INI Handling
-		/// Records an Entity against a reference, expected to be its preset.
-		/// @param writer A Writer that the Entity will save itself to.
-		/// @param entityReference A reference preset to write properties against.
-		/// @param hashData A clump of hash data for cheap property comparisons.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
-#pragma endregion
 
 		/// Makes this an original Preset in a different module than it was before.
 		/// It severs ties deeply to the old module it was saved in.

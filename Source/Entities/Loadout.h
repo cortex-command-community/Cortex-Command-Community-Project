@@ -22,7 +22,7 @@ namespace RTE {
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(Loadout);
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a Loadout object in system
@@ -62,15 +62,6 @@ namespace RTE {
 			Clear();
 			Entity::Reset();
 		}
-
-#pragma region INI Handling
-		/// Records an Entity against a reference, expected to be its preset.
-		/// @param writer A Writer that the Entity will save itself to.
-		/// @param entityReference A reference preset to write properties against.
-		/// @param hashData A clump of hash data for cheap property comparisons.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
-#pragma endregion
 
 		/// Shows whether this loadout is complete, or some Entity within could
 		/// not be found on load.

@@ -18,7 +18,7 @@ namespace RTE {
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(HDFirearm);
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 		AddScriptFunctionNames(HeldDevice, "OnFire", "OnReload");
 
@@ -52,15 +52,6 @@ namespace RTE {
 		/// @param notInherited Whether to only destroy the members defined in this derived class, or (default: false)
 		/// to destroy all inherited members also.
 		void Destroy(bool notInherited = false) override;
-
-#pragma region INI Handling
-		/// Records an Entity against a reference, expected to be its preset.
-		/// @param writer A Writer that the Entity will save itself to.
-		/// @param entityReference A reference preset to write properties against.
-		/// @param hashData A clump of hash data for cheap property comparisons.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
-#pragma endregion
 
 		/// Gets reload end offset, in ms. This is how early the ReloadEnd
 		/// sound is played compared to actual end of reload.
