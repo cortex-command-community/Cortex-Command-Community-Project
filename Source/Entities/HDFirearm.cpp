@@ -358,85 +358,25 @@ HashingData HDFirearm::Hash() const {
 	HashingData hashData(HeldDevice::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	bool magazineDef = m_pMagazine != nullptr;
-	hashData.m_ParseValues.push_back(magazineDef);
-	if (magazineDef) {
-		uint64_t magazineHash = m_pMagazine->Hash().m_Hash;
-		hashData.m_Constituents.push_back(magazineHash);
-		AddToHash(hash, magazineHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pMagazine);
 
-	bool flashDef = m_pFlash != nullptr;
-	hashData.m_ParseValues.push_back(flashDef);
-	if (flashDef) {
-		uint64_t flashHash = m_pFlash->Hash().m_Hash;
-		hashData.m_Constituents.push_back(flashHash);
-		AddToHash(hash, flashHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pFlash);
 
-	bool preFireSoundDef = m_PreFireSound != nullptr;
-	hashData.m_ParseValues.push_back(preFireSoundDef);
-	if (preFireSoundDef) {
-		uint64_t preFireSoundHash = m_PreFireSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(preFireSoundHash);
-		AddToHash(hash, preFireSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_PreFireSound);
 
-	bool fireSoundDef = m_FireSound != nullptr;
-	hashData.m_ParseValues.push_back(fireSoundDef);
-	if (fireSoundDef) {
-		uint64_t fireSoundHash = m_FireSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(fireSoundHash);
-		AddToHash(hash, fireSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_FireSound);
 
-	bool fireEchoSoundDef = m_FireEchoSound != nullptr;
-	hashData.m_ParseValues.push_back(fireEchoSoundDef);
-	if (fireEchoSoundDef) {
-		uint64_t fireEchoSoundHash = m_FireEchoSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(fireEchoSoundHash);
-		AddToHash(hash, fireEchoSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_FireEchoSound);
 
-	bool activeSoundDef = m_ActiveSound != nullptr;
-	hashData.m_ParseValues.push_back(activeSoundDef);
-	if (activeSoundDef) {
-		uint64_t activeSoundHash = m_ActiveSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(activeSoundHash);
-		AddToHash(hash, activeSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_ActiveSound);
 
-	bool deactivationSoundDef = m_DeactivationSound != nullptr;
-	hashData.m_ParseValues.push_back(deactivationSoundDef);
-	if (deactivationSoundDef) {
-		uint64_t deactivationSoundHash = m_DeactivationSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(deactivationSoundHash);
-		AddToHash(hash, deactivationSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_DeactivationSound);
 
-	bool emptySoundDef = m_EmptySound != nullptr;
-	hashData.m_ParseValues.push_back(emptySoundDef);
-	if (emptySoundDef) {
-		uint64_t emptySoundHash = m_EmptySound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(emptySoundHash);
-		AddToHash(hash, emptySoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_EmptySound);
 
-	bool reloadStartSoundDef = m_ReloadStartSound != nullptr;
-	hashData.m_ParseValues.push_back(reloadStartSoundDef);
-	if (reloadStartSoundDef) {
-		uint64_t reloadStartSoundHash = m_ReloadStartSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(reloadStartSoundHash);
-		AddToHash(hash, reloadStartSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_ReloadStartSound);
 
-	bool reloadEndSoundDef = m_ReloadEndSound != nullptr;
-	hashData.m_ParseValues.push_back(reloadEndSoundDef);
-	if (reloadEndSoundDef) {
-		uint64_t reloadEndSoundHash = m_ReloadEndSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(reloadEndSoundHash);
-		AddToHash(hash, reloadEndSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_ReloadEndSound);
 
 	AddToHash(hash, m_ReloadEndOffset);
 	AddToHash(hash, m_RateOfFire);

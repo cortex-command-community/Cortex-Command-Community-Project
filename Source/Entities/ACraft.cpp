@@ -355,43 +355,13 @@ HashingData ACraft::Hash() const {
 	HashingData hashData(Actor::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	bool hatchOpenSoundDef = m_HatchOpenSound != nullptr;
-	hashData.m_ParseValues.push_back(hatchOpenSoundDef);
+	hashData.AddOptionalEntityPointer(m_HatchOpenSound);
 
-	if (hatchOpenSoundDef) {
-		uint64_t hatchOpenSoundHash = m_HatchOpenSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(hatchOpenSoundHash);
-		AddToHash(hash, hatchOpenSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_HatchCloseSound);
 
-	bool hatchCloseSoundDef = m_HatchCloseSound != nullptr;
-	hashData.m_ParseValues.push_back(hatchCloseSoundDef);
+	hashData.AddOptionalEntityPointer(m_CrashSound);
 
-	if (hatchCloseSoundDef) {
-		uint64_t hatchCloseSoundHash = m_HatchCloseSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(hatchCloseSoundHash);
-		AddToHash(hash, hatchCloseSoundHash);
-	}
-
-	bool crashSoundDef = m_CrashSound != nullptr;
-	hashData.m_ParseValues.push_back(crashSoundDef);
-
-	if (crashSoundDef) {
-		uint64_t crashSoundHash = m_CrashSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(crashSoundHash);
-		AddToHash(hash, crashSoundHash);
-	}
-
-	int i = 0;
-
-	for (std::list<Exit>::const_iterator itr = m_Exits.begin(); itr != m_Exits.end(); ++itr) {
-		uint64_t exitHash = itr->Hash().m_Hash;
-		hashData.m_Constituents.push_back(exitHash);
-		AddToHash(hash, exitHash);
-		i++;
-	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddSequence(m_Exits);
 
 	AddToHash(hash, m_HatchDelay);
 	AddToHash(hash, m_DeliveryDelayMultiplier);

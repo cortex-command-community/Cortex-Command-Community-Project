@@ -164,53 +164,17 @@ HashingData ACDropShip::Hash() const {
 	HashingData hashData(ACraft::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	bool rThrusterDef = m_pRThruster != nullptr;
-	hashData.m_ParseValues.push_back(rThrusterDef);
-	if (rThrusterDef) {
-		uint64_t rThrusterHash = m_pRThruster->Hash().m_Hash;
-		hashData.m_Constituents.push_back(rThrusterHash);
-		AddToHash(hash, rThrusterHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pRThruster);
 
-	bool lThrusterDef = m_pLThruster != nullptr;
-	hashData.m_ParseValues.push_back(lThrusterDef);
-	if (lThrusterDef) {
-		uint64_t lThrusterHash = m_pLThruster->Hash().m_Hash;
-		hashData.m_Constituents.push_back(lThrusterHash);
-		AddToHash(hash, lThrusterHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pLThruster);
 
-	bool urThrusterDef = m_pURThruster != nullptr;
-	hashData.m_ParseValues.push_back(urThrusterDef);
-	if (urThrusterDef) {
-		uint64_t urThrusterHash = m_pURThruster->Hash().m_Hash;
-		hashData.m_Constituents.push_back(urThrusterHash);
-		AddToHash(hash, urThrusterHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pURThruster);
 
-	bool ulThrusterDef = m_pULThruster != nullptr;
-	hashData.m_ParseValues.push_back(ulThrusterDef);
-	if (ulThrusterDef) {
-		uint64_t ulThrusterHash = m_pULThruster->Hash().m_Hash;
-		hashData.m_Constituents.push_back(ulThrusterHash);
-		AddToHash(hash, ulThrusterHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pULThruster);
 
-	bool rHatchDef = m_pRHatch != nullptr;
-	hashData.m_ParseValues.push_back(rHatchDef);
-	if (rHatchDef) {
-		uint64_t rHatchHash = m_pRHatch->Hash().m_Hash;
-		hashData.m_Constituents.push_back(rHatchHash);
-		AddToHash(hash, rHatchHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pRHatch);
 
-	bool lHatchDef = m_pLHatch != nullptr;
-	hashData.m_ParseValues.push_back(lHatchDef);
-	if (lHatchDef) {
-		uint64_t lHatchHash = m_pLHatch->Hash().m_Hash;
-		hashData.m_Constituents.push_back(lHatchHash);
-		AddToHash(hash, lHatchHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pLHatch);
 
 	AddToHash(hash, m_HatchSwingRange.Hash().m_Hash);
 

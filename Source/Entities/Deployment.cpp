@@ -127,9 +127,7 @@ HashingData Deployment::Hash() const {
 
 	AddToHash(hash, RTE::Hash(m_LoadoutName));
 
-	uint64_t iconHash = m_Icon.Hash().m_Hash;
-	hashData.m_Constituents.push_back(iconHash);
-	AddToHash(hash, iconHash);
+	hashData.AddHashed(m_Icon);
 
 	AddToHash(hash, m_SpawnRadius);
 	AddToHash(hash, m_WalkRadius);

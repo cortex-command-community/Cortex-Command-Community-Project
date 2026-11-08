@@ -432,71 +432,24 @@ HashingData MOSRotating::Hash() const {
 	HashingData hashData(MOSprite::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	bool atomGroupDef = m_pAtomGroup != nullptr;
-	hashData.m_ParseValues.push_back(atomGroupDef);
-	if (atomGroupDef) {
-		uint64_t atomGroupHash = m_pAtomGroup->Hash().m_Hash;
-		hashData.m_Constituents.push_back(atomGroupHash);
-		AddToHash(hash, atomGroupHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pAtomGroup);
 
-	bool deepGroupDef = m_pDeepGroup != nullptr;
-	hashData.m_ParseValues.push_back(deepGroupDef);
-	if (deepGroupDef) {
-		uint64_t deepGroupHash = m_pDeepGroup->Hash().m_Hash;
-		hashData.m_Constituents.push_back(deepGroupHash);
-		AddToHash(hash, deepGroupHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pDeepGroup);
 
 	AddToHash(hash, m_DeepCheck);
 	AddToHash(hash, m_OrientToVel);
 
-	int i = 0;
+	hashData.AddPointerSequence(m_Wounds);
 
-	for (auto itr = m_Wounds.begin(); itr != m_Wounds.end(); ++itr) {
-		uint64_t woundHash = (*itr)->Hash().m_Hash;
-		hashData.m_Constituents.push_back(woundHash);
-		AddToHash(hash, woundHash);
-		i++;
-	}
+	hashData.AddPointerSequenceConditional(m_Attachables, [this](const Attachable* attachable) { return !AttachableIsHardcoded(attachable); });
 
-	hashData.m_ParseValues.push_back(i);
-
-	i = 0;
-
-	for (auto aItr = m_Attachables.begin(); aItr != m_Attachables.end(); ++aItr) {
-		if (!AttachableIsHardcoded(*aItr)) {
-			uint64_t attachableHash = (*aItr)->Hash().m_Hash;
-			hashData.m_Constituents.push_back(attachableHash);
-			AddToHash(hash, attachableHash);
-			i++;
-		}
-	}
-
-	hashData.m_ParseValues.push_back(i);
-
-	i = 0;
-
-	for (auto gItr = m_Gibs.begin(); gItr != m_Gibs.end(); ++gItr) {
-		uint64_t gibHash = (*gItr)->Hash().m_Hash;
-		hashData.m_Constituents.push_back(gibHash);
-		AddToHash(hash, gibHash);
-		i++;
-	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddPointerSequence(m_Gibs);
 
 	AddToHash(hash, m_GibImpulseLimit);
 	AddToHash(hash, m_GibWoundLimit);
 	AddToHash(hash, m_GibAtEndOfLifetime);
 
-	bool gibSoundDef = m_GibSound != nullptr;
-	hashData.m_ParseValues.push_back(gibSoundDef);
-	if (gibSoundDef) {
-		uint64_t gibSoundHash = m_GibSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(gibSoundHash);
-		AddToHash(hash, gibSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_GibSound);
 
 	AddToHash(hash, m_EffectOnGib);
 	AddToHash(hash, m_DamageMultiplier);

@@ -164,16 +164,7 @@ HashingData GAScripted::Hash() const {
 	AddToHash(hash, RTE::Hash(m_ScriptPath));
 	AddToHash(hash, RTE::Hash(m_LuaClassName));
 
-	int i = 0;
-
-	for (const std::unique_ptr<PieSlice>& pieSliceToAdd: m_PieSlicesToAdd) {
-		uint64_t sliceHash = pieSliceToAdd->Hash().m_Hash;
-		hashData.m_Constituents.push_back(sliceHash);
-		AddToHash(hash, sliceHash);
-		i++;
-	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddPointerSequence(m_PieSlicesToAdd);
 
 	for (const std::string& requiredArea: m_RequiredAreas) {
 		AddToHash(hash, RTE::Hash(requiredArea));

@@ -365,16 +365,12 @@ HashingData Activity::Hash() const {
 		AddToHash(hash, m_TeamFunds[team]);
 		AddToHash(hash, RTE::Hash(m_TeamNames[team]));
 
-		uint64_t teamIconHash = m_TeamIcons[team].Hash().m_Hash;
-		hashData.m_Constituents.push_back(teamIconHash);
-		AddToHash(hash, teamIconHash);
+		hashData.AddHashed(m_TeamIcons[team]);
 
 		AddToHash(hash, m_TeamAISkillLevels[team]);
 	}
 
-	uint64_t savedValueHash = m_SavedValues.Hash().m_Hash;
-	hashData.m_Constituents.push_back(savedValueHash);
-	AddToHash(hash, savedValueHash);
+	hashData.AddHashed(m_SavedValues);
 
 	AddToHash(hash, m_ShowInMenus);
 	AddToHash(hash, m_HumansCanSpectate);

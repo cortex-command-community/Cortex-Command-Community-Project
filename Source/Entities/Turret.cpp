@@ -87,16 +87,7 @@ HashingData Turret::Hash() const {
 	HashingData hashData(Attachable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	int i = 0;
-
-	for (const HeldDevice* mountedDevice: m_MountedDevices) {
-		uint64_t mountedDeviceHash = mountedDevice->Hash().m_Hash;
-		hashData.m_Constituents.push_back(mountedDeviceHash);
-		AddToHash(hash, mountedDeviceHash);
-		i++;
-	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddPointerSequence(m_MountedDevices);
 
 	AddToHash(hash, m_MountedDeviceRotationOffset);
 

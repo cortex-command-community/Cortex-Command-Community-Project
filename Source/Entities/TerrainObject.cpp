@@ -139,30 +139,15 @@ HashingData TerrainObject::Hash() const {
 	HashingData hashData(SceneObject::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	uint64_t fgColorHash = m_FGColorFile.Hash().m_Hash;
-	hashData.m_Constituents.push_back(fgColorHash);
-	AddToHash(hash, fgColorHash);
+	hashData.AddHashed(m_FGColorFile);
 
-	uint64_t bgColorHash = m_BGColorFile.Hash().m_Hash;
-	hashData.m_Constituents.push_back(bgColorHash);
-	AddToHash(hash, bgColorHash);
+	hashData.AddHashed(m_BGColorFile);
 
-	uint64_t materialHash = m_MaterialFile.Hash().m_Hash;
-	hashData.m_Constituents.push_back(materialHash);
-	AddToHash(hash, materialHash);
+	hashData.AddHashed(m_MaterialFile);
 
 	AddToHash(hash, m_BitmapOffset.Hash().m_Hash);
 
-	int i = 0;
-	
-	for (const SceneObject::SOPlacer& childObject: m_ChildObjects) {
-		uint64_t childHash = childObject.Hash().m_Hash;
-		hashData.m_Constituents.push_back(childHash);
-		AddToHash(hash, childHash);
-		i++;
-	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddSequence(m_ChildObjects);
 
 	return hashData;
 }

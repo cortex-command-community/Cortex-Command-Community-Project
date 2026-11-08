@@ -242,13 +242,7 @@ HashingData LimbPath::Hash() const {
 	AddToHash(hash, m_Start.Hash().m_Hash);
 	AddToHash(hash, m_StartSegCount);
 
-	for (int i = 0; i < m_Segments.size(); i++) {
-		uint64_t segmentHash = m_Segments.at(i).Hash().m_Hash;
-		hashData.m_Constituents.push_back(segmentHash);
-		AddToHash(hash, segmentHash);
-	}
-
-	hashData.m_ParseValues.push_back(m_Segments.size());
+	hashData.AddSequence(m_Segments);
 
 	AddToHash(hash, m_FootCollisionsDisabledSegment);
 	AddToHash(hash, m_SegmentEndedThreshold);

@@ -185,20 +185,12 @@ HashingData PieSlice::Hash() const {
 	AddToHash(hash, m_Direction);
 	AddToHash(hash, m_Enabled);
 
-	uint64_t bitmapHash = m_Icon->Hash().m_Hash;
-	hashData.m_Constituents.push_back(bitmapHash);
-	AddToHash(hash, bitmapHash);
+	hashData.AddEntityPointer(m_Icon);
 
 	AddToHash(hash, (m_LuabindFunctionObject ? RTE::Hash(m_LuabindFunctionObject->GetFilePath()) : 0));
 	AddToHash(hash, RTE::Hash(m_FunctionName));
 
-	bool subPieMenuDef = m_SubPieMenu != nullptr;
-	hashData.m_ParseValues.push_back(subPieMenuDef);
-	if (subPieMenuDef) {
-		uint64_t subPieHash = m_SubPieMenu->Hash().m_Hash;
-		hashData.m_Constituents.push_back(subPieHash);
-		AddToHash(hash, subPieHash);
-	}
+	hashData.AddOptionalEntityPointer(m_SubPieMenu);
 
 	AddToHash(hash, m_CanBeMiddleSlice);
 	AddToHash(hash, m_DrawFlippedToMatchAbsoluteAngle);

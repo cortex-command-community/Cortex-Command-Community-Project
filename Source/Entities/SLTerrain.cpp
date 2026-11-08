@@ -222,50 +222,17 @@ HashingData SLTerrain::Hash() const {
 	HashingData hashData(SceneLayer::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	uint64_t backgroundDefaultHash = m_DefaultBGTextureFile.Hash().m_Hash;
-	hashData.m_Constituents.push_back(backgroundDefaultHash);
-	AddToHash(hash, backgroundDefaultHash);
+	hashData.AddHashed(m_DefaultBGTextureFile);
 
-	uint64_t bgColorLayerHash = m_BGColorLayer->Hash().m_Hash;
-	hashData.m_Constituents.push_back(bgColorLayerHash);
-	AddToHash(hash, bgColorLayerHash);
+	hashData.AddEntityPointer(m_BGColorLayer);
 
-	uint64_t fgColorLayerHash = m_FGColorLayer->Hash().m_Hash;
-	hashData.m_Constituents.push_back(fgColorLayerHash);
-	AddToHash(hash, fgColorLayerHash);
+	hashData.AddEntityPointer(m_FGColorLayer);
 
-	int i = 0;
+	hashData.AddPointerSequence(m_TerrainFrostings);
 
-	for (const TerrainFrosting* terrainFrosting: m_TerrainFrostings) {
-		uint64_t terrainFrostingHash = terrainFrosting->Hash().m_Hash;
-		hashData.m_Constituents.push_back(terrainFrostingHash);
-		AddToHash(hash, terrainFrostingHash);
-		i++;
-	}
+	hashData.AddPointerSequence(m_TerrainDebris);
 
-	hashData.m_ParseValues.push_back(i);
-
-	i = 0;
-
-	for (const TerrainDebris* terrainDebris: m_TerrainDebris) {
-		uint64_t terrainDebrisHash = terrainDebris->Hash().m_Hash;
-		hashData.m_Constituents.push_back(terrainDebrisHash);
-		AddToHash(hash, terrainDebrisHash);
-		i++;
-	}
-
-	hashData.m_ParseValues.push_back(i);
-
-	i = 0;
-
-	for (const TerrainObject* terrainObject: m_TerrainObjects) {
-		uint64_t terrainObjectHash = terrainObject->Hash().m_Hash;
-		hashData.m_Constituents.push_back(terrainObjectHash);
-		AddToHash(hash, terrainObjectHash);
-		i++;
-	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddPointerSequence(m_TerrainObjects);
 
 	AddToHash(hash, m_OrbitDirection);
 

@@ -281,16 +281,7 @@ HashingData Attachable::Hash() const {
 	AddToHash(hash, m_CollidesWithTerrainWhileAttached);
 	AddToHash(hash, m_IgnoresParticlesWhileAttached);
 
-	int i = 0;
-
-	for (const std::unique_ptr<PieSlice>& pieSlice: m_PieSlices) {
-		uint64_t sliceHash = pieSlice->Hash().m_Hash;
-		hashData.m_Constituents.push_back(sliceHash);
-		AddToHash(hash, sliceHash);
-		i++;
-	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddPointerSequence(m_PieSlices);
 
 	AddToHash(hash, m_GibWithParentChance);
 	AddToHash(hash, m_ParentGibBlastStrengthMultiplier);

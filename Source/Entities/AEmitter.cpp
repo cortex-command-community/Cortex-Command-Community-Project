@@ -244,40 +244,13 @@ HashingData AEmitter::Hash() const {
 	HashingData hashData(Attachable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	int i = 0;
+	hashData.AddPointerSequence(m_EmissionList);
 
-	for (Emission* emission: m_EmissionList) {
-		uint64_t emissionHash = emission->Hash().m_Hash;
-		hashData.m_Constituents.push_back(emissionHash);
-		AddToHash(hash, emissionHash);
-		i++;
-	}
+	hashData.AddOptionalEntityPointer(m_EmissionSound);
 
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddOptionalEntityPointer(m_BurstSound);
 
-	bool emissionSoundDef = m_EmissionSound != nullptr;
-	hashData.m_ParseValues.push_back(emissionSoundDef);
-	if (emissionSoundDef) {
-		uint64_t emissionSoundHash = m_EmissionSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(emissionSoundHash);
-		AddToHash(hash, emissionSoundHash);
-	}
-
-	bool burstSoundDef = m_BurstSound != nullptr;
-	hashData.m_ParseValues.push_back(burstSoundDef);
-	if (burstSoundDef) {
-		uint64_t burstSoundHash = m_BurstSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(burstSoundHash);
-		AddToHash(hash, burstSoundHash);
-	}
-
-	bool endSoundDef = m_EndSound != nullptr;
-	hashData.m_ParseValues.push_back(endSoundDef);
-	if (endSoundDef) {
-		uint64_t endSoundHash = m_EndSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(endSoundHash);
-		AddToHash(hash, endSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_EndSound);
 
 	AddToHash(hash, m_EmitEnabled);
 	AddToHash(hash, m_EmitCount);
@@ -296,13 +269,7 @@ HashingData AEmitter::Hash() const {
 	AddToHash(hash, m_EmissionOffset.Hash().m_Hash);
 	AddToHash(hash, m_EmitDamage);
 
-	bool flashDef = m_pFlash != nullptr;
-	hashData.m_ParseValues.push_back(flashDef);
-	if (flashDef) {
-		uint64_t flashHash = m_pFlash->Hash().m_Hash;
-		hashData.m_Constituents.push_back(flashHash);
-		AddToHash(hash, flashHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pFlash);
 
 	AddToHash(hash, m_FlashScale);
 	AddToHash(hash, m_FlashOnlyOnBurst);

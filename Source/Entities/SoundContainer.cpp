@@ -250,9 +250,7 @@ HashingData SoundContainer::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	uint64_t topLevelSoundSetHash = m_TopLevelSoundSet->Hash().m_Hash;
-	hashData.m_Constituents.push_back(topLevelSoundSetHash);
-	AddToHash(hash, topLevelSoundSetHash);
+	hashData.AddEntityPointer(m_TopLevelSoundSet);
 
 	AddToHash(hash, m_SoundOverlapMode);
 

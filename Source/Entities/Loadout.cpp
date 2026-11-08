@@ -135,14 +135,7 @@ HashingData Loadout::Hash() const {
 
 	AddToHash(hash, (m_pDeliveryCraft ? RTE::Hash(m_pDeliveryCraft->GetEntityCharacteristic()) : 0));
 
-	int cargoCount = 0;
-	for (const SceneObject* cargo: m_CargoItems) {
-		uint64_t cargoHash = RTE::Hash(cargo->GetEntityCharacteristic());
-		hashData.m_Constituents.push_back(cargoHash);
-		AddToHash(hash, cargoHash);
-		cargoCount++;
-	}
-	hashData.m_ParseValues.push_back(cargoCount);
+	hashData.AddPresetSequence(m_CargoItems);
 
 	return hashData;
 }

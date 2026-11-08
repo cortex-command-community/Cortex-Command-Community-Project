@@ -207,28 +207,13 @@ HashingData PEmitter::Hash() const {
 	HashingData hashData(MOSParticle::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	int i = 0;
+	hashData.AddPointerSequence(m_EmissionList);
 
-	for (Emission* emission: m_EmissionList) {
-		uint64_t emissionHash = emission->Hash().m_Hash;
-		hashData.m_Constituents.push_back(emissionHash);
-		AddToHash(hash, emissionHash);
-		i++;
-	}
+	hashData.AddHashed(m_EmissionSound);
 
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddHashed(m_BurstSound);
 
-	uint64_t emissionSoundHash = m_EmissionSound.Hash().m_Hash;
-	hashData.m_Constituents.push_back(emissionSoundHash);
-	AddToHash(hash, emissionSoundHash);
-
-	uint64_t burstSoundHash = m_BurstSound.Hash().m_Hash;
-	hashData.m_Constituents.push_back(burstSoundHash);
-	AddToHash(hash, burstSoundHash);
-
-	uint64_t endSoundHash = m_EndSound.Hash().m_Hash;
-	hashData.m_Constituents.push_back(endSoundHash);
-	AddToHash(hash, endSoundHash);
+	hashData.AddHashed(m_EndSound);
 
 	AddToHash(hash, m_EmitEnabled);
 	AddToHash(hash, m_EmitCount);

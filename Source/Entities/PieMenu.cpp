@@ -275,18 +275,7 @@ HashingData PieMenu::Hash() const {
 	AddToHash(hash, m_BackgroundBorderColor);
 	AddToHash(hash, m_SelectedItemBackgroundColor);
 
-	int i = 0;
-
-	for (const PieSlice* pieSlice: m_CurrentPieSlices) {
-		if (pieSlice->GetOriginalSource() == m_Owner) {
-			uint64_t sliceHash = pieSlice->Hash().m_Hash;
-			hashData.m_Constituents.push_back(sliceHash);
-			AddToHash(hash, sliceHash);
-			i++;
-		}
-	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddPointerSequenceConditional(m_CurrentPieSlices, [&](const auto& pieSlice) { return pieSlice->GetOriginalSource() == m_Owner; });
 
 	return hashData;
 }

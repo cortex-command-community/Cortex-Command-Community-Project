@@ -105,16 +105,7 @@ HashingData GlobalScript::Hash() const {
 	AddToHash(hash, RTE::Hash(m_ScriptPath));
 	AddToHash(hash, RTE::Hash(m_LuaClassName));
 
-	int i = 0;
-
-	for (const auto& pieSlice: m_PieSlicesToAdd) {
-		uint64_t sliceHash = pieSlice->Hash().m_Hash;
-		hashData.m_Constituents.push_back(sliceHash);
-		AddToHash(hash, sliceHash);
-		i++;
-	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddPointerSequence(m_PieSlicesToAdd);
 
 	return hashData;
 }

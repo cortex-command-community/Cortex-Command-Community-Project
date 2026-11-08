@@ -142,9 +142,7 @@ HashingData TerrainDebris::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	uint64_t fileHash = m_DebrisFile.Hash().m_Hash;
-	hashData.m_Constituents.push_back(fileHash);
-	AddToHash(hash, fileHash);
+	hashData.AddHashed(m_DebrisFile);
 
 	AddToHash(hash, m_BitmapCount);
 	AddToHash(hash, m_Material.Hash().m_Hash);

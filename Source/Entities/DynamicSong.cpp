@@ -158,21 +158,8 @@ HashingData DynamicSongSection::Hash() const {
 	AddToHash(hash, m_SoundContainerSelectionCycleMode);
 	AddToHash(hash, RTE::Hash(m_SectionType));
 
-	hashData.m_ParseValues.push_back(m_TransitionSoundContainers.size());
-
-	for (int i = 0; i < m_TransitionSoundContainers.size(); i++) {
-		uint64_t transitionHash = m_TransitionSoundContainers.at(i).Hash().m_Hash;
-		hashData.m_Constituents.push_back(transitionHash);
-		AddToHash(hash, transitionHash);
-	}
-
-	hashData.m_ParseValues.push_back(m_SoundContainers.size());
-
-	for (int i = 0; i < m_SoundContainers.size(); i++) {
-		uint64_t soundHash = m_SoundContainers.at(i).Hash().m_Hash;
-		hashData.m_Constituents.push_back(soundHash);
-		AddToHash(hash, soundHash);
-	}
+	hashData.AddSequence(m_TransitionSoundContainers);
+	hashData.AddSequence(m_SoundContainers);
 
 	return hashData;
 }
@@ -342,20 +329,9 @@ HashingData DynamicSong::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	uint64_t defaultHash = m_DefaultSongSection.Hash().m_Hash;
-	hashData.m_Constituents.push_back(defaultHash);
-	AddToHash(hash, defaultHash);
+	hashData.AddHashed(m_DefaultSongSection);
 
-	int i = 0;
-
-	for (const auto& songSection: m_SongSections) {
-		uint64_t sectionHash = songSection.Hash().m_Hash;
-		hashData.m_Constituents.push_back(sectionHash);
-		AddToHash(hash, sectionHash);
-		i++;
-	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddSequence(m_SongSections);
 
 	return hashData;
 }

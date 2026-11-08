@@ -193,9 +193,7 @@ HashingData SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	uint64_t bitmapHash = m_BitmapFile.Hash().m_Hash;
-	hashData.m_Constituents.push_back(bitmapHash);
-	AddToHash(hash, bitmapHash);
+	hashData.AddHashed(m_BitmapFile);
 	
 	AddToHash(hash, m_WrapX);
 	AddToHash(hash, m_WrapY);

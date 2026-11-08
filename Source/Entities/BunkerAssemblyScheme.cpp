@@ -240,20 +240,9 @@ HashingData BunkerAssemblyScheme::Hash() const {
 	HashingData hashData(SceneObject::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	uint64_t bitmapHash = m_BitmapFile.Hash().m_Hash;
-	hashData.m_Constituents.push_back(bitmapHash);
-	AddToHash(hash, bitmapHash);
+	hashData.AddHashed(m_BitmapFile);
 
-	int i = 0;
-
-	for (std::list<SOPlacer>::const_iterator itr = m_ChildObjects.begin(); itr != m_ChildObjects.end(); ++itr) {
-		uint64_t childHash = (*itr).Hash().m_Hash;
-		hashData.m_Constituents.push_back(childHash);
-		AddToHash(hash, childHash);
-		i++;
-	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddSequence(m_ChildObjects);
 
 	AddToHash(hash, m_Limit);
 	AddToHash(hash, m_IsOneTypePerScene);

@@ -147,9 +147,7 @@ HashingData Round::Hash() const {
 	AddToHash(hash, (m_Shell ? RTE::Hash(m_Shell->GetEntityCharacteristic()) : 0));
 	AddToHash(hash, m_ShellVel);
 
-	uint64_t fireSoundHash = m_FireSound.Hash().m_Hash;
-	hashData.m_Constituents.push_back(fireSoundHash);
-	AddToHash(hash, fireSoundHash);
+	hashData.AddHashed(m_FireSound);
 
 	AddToHash(hash, m_AILifeTime);
 	AddToHash(hash, m_AIFireVel);

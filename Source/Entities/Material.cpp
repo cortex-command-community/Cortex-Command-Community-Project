@@ -169,19 +169,13 @@ HashingData Material::Hash() const {
 	AddToHash(hash, m_SpawnMaterialIndex);
 	AddToHash(hash, m_IsScrap);
 
-	uint64_t colorHash = m_Color.Hash().m_Hash;
-	hashData.m_Constituents.push_back(colorHash);
-	AddToHash(hash, colorHash);
+	hashData.AddHashed(m_Color);
 
 	AddToHash(hash, m_UseOwnColor);
 
-	uint64_t fgTextureHash = m_FGTextureFile.Hash().m_Hash;
-	hashData.m_Constituents.push_back(fgTextureHash);
-	AddToHash(hash, fgTextureHash);
+	hashData.AddHashed(m_FGTextureFile);
 
-	uint64_t bgTextureHash = m_BGTextureFile.Hash().m_Hash;
-	hashData.m_Constituents.push_back(bgTextureHash);
-	AddToHash(hash, bgTextureHash);
+	hashData.AddHashed(m_BGTextureFile);
 
 	AddToHash(hash, m_Index);
 

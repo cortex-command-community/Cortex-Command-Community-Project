@@ -222,13 +222,7 @@ HashingData ADoor::Hash() const {
 	HashingData hashData(Actor::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	bool doorDef = m_Door != nullptr;
-	hashData.m_ParseValues.push_back(doorDef);
-	if (doorDef) {
-		uint64_t doorHash = m_Door->Hash().m_Hash;
-		hashData.m_Constituents.push_back(doorHash);
-		AddToHash(hash, doorHash);
-	}
+	hashData.AddOptionalEntityPointer(m_Door);
 
 	AddToHash(hash, m_OpenOffset.Hash().m_Hash);
 	AddToHash(hash, m_ClosedOffset.Hash().m_Hash);
@@ -239,51 +233,18 @@ HashingData ADoor::Hash() const {
 	AddToHash(hash, m_ResetToDefaultStateDelay);
 	AddToHash(hash, m_SensorInterval);
 
-	int i = 0;
-
-	for (const ADSensor& sensor: m_Sensors) {
-		uint64_t sensorHash = sensor.Hash().m_Hash;
-		hashData.m_Constituents.push_back(sensorHash);
-		AddToHash(hash, sensorHash);
-		i++;
-	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddSequence(m_Sensors);
 
 	AddToHash(hash, m_DrawMaterialLayerWhenOpen);
 	AddToHash(hash, m_DrawMaterialLayerWhenClosed);
 
-	bool doorMoveStartSoundDef = m_DoorMoveStartSound != nullptr;
-	hashData.m_ParseValues.push_back(doorMoveStartSoundDef);
-	if (doorMoveStartSoundDef) {
-		uint64_t doorMoveStartSoundHash = m_DoorMoveStartSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(doorMoveStartSoundHash);
-		AddToHash(hash, doorMoveStartSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_DoorMoveStartSound);
 
-	bool doorMoveSoundDef = m_DoorMoveSound != nullptr;
-	hashData.m_ParseValues.push_back(doorMoveSoundDef);
-	if (doorMoveSoundDef) {
-		uint64_t doorMoveSoundHash = m_DoorMoveSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(doorMoveSoundHash);
-		AddToHash(hash, doorMoveSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_DoorMoveSound);
 
-	bool doorDirectionChangeSoundDef = m_DoorDirectionChangeSound != nullptr;
-	hashData.m_ParseValues.push_back(doorDirectionChangeSoundDef);
-	if (doorDirectionChangeSoundDef) {
-		uint64_t doorDirectionChangeSoundHash = m_DoorDirectionChangeSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(doorDirectionChangeSoundHash);
-		AddToHash(hash, doorDirectionChangeSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_DoorDirectionChangeSound);
 
-	bool doorMoveEndSoundDef = m_DoorMoveEndSound != nullptr;
-	hashData.m_ParseValues.push_back(doorMoveEndSoundDef);
-	if (doorMoveEndSoundDef) {
-		uint64_t doorMoveEndSoundHash = m_DoorMoveEndSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(doorMoveEndSoundHash);
-		AddToHash(hash, doorMoveEndSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_DoorMoveEndSound);
 
 	return hashData;
 }

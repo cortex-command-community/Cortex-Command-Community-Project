@@ -108,13 +108,7 @@ HashingData ThrownDevice::Hash() const {
 	HashingData hashData(HeldDevice::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	bool activationSoundDef = m_ActivationSound != nullptr;
-	hashData.m_ParseValues.push_back(activationSoundDef);
-	if (activationSoundDef) {
-		uint64_t activationSoundHash = m_ActivationSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(activationSoundHash);
-		AddToHash(hash, activationSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_ActivationSound);
 
 	AddToHash(hash, m_StartThrowOffset.Hash().m_Hash);
 	AddToHash(hash, m_EndThrowOffset.Hash().m_Hash);

@@ -130,13 +130,7 @@ HashingData Leg::Hash() const {
 	HashingData hashData(Attachable::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	bool footDef = m_Foot != nullptr;
-	hashData.m_ParseValues.push_back(footDef);
-	if (footDef) {
-		uint64_t footHash = m_Foot->Hash().m_Hash;
-		hashData.m_Constituents.push_back(footHash);
-		AddToHash(hash, footHash);
-	}
+	hashData.AddOptionalEntityPointer(m_Foot);
 
 	AddToHash(hash, m_ContractedOffset.Hash().m_Hash);
 	AddToHash(hash, m_ExtendedOffset.Hash().m_Hash);

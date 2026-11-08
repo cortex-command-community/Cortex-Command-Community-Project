@@ -262,9 +262,7 @@ HashingData MOSprite::Hash() const {
 	HashingData hashData(MovableObject::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	uint64_t spriteHash = m_SpriteFile.Hash().m_Hash;
-	hashData.m_Constituents.push_back(spriteHash);
-	AddToHash(hash, spriteHash);
+	hashData.AddHashed(m_SpriteFile);
 
 	AddToHash(hash, m_FrameCount);
 	AddToHash(hash, m_SpriteOffset.Hash().m_Hash);

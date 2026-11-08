@@ -246,18 +246,7 @@ HashingData AtomGroup::Hash() const {
 		AddToHash(hash, m_Resolution);
 		AddToHash(hash, m_Depth);
 	} else {
-		int ownAtomCount = 0;
-
-		for (const Atom* atom: m_Atoms) {
-			if (atom->GetSubID() == 0) {
-				uint64_t atomHash = atom->Hash().m_Hash;
-				hashData.m_Constituents.push_back(atomHash);
-				AddToHash(hash, atomHash);
-				ownAtomCount++;
-			}
-		}
-
-		hashData.m_ParseValues.push_back(ownAtomCount);
+		hashData.AddPointerSequenceConditional(m_Atoms, [&](const auto& atom) { return atom->GetSubID() == 0; });
 	}
 
 	AddToHash(hash, m_JointOffset.Hash().m_Hash);

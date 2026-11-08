@@ -103,11 +103,9 @@ HashingData Scene::Area::Hash() const {
 	uint64_t& hash = hashData.m_Hash;
 
 	AddToHash(hash, RTE::Hash(m_Name));
-	int i = 0;
 
 	for (const Box* box: m_BoxList) {
 		AddToHash(hash, box->Hash().m_Hash);
-		i++;
 	}
 
 	return hashData;
@@ -1294,9 +1292,7 @@ HashingData Scene::Hash() const {
 	AddToHash(hash, m_Location.Hash().m_Hash);
 	AddToHash(hash, m_MetagamePlayable);
 
-	uint64_t previewBitmapHash = m_PreviewBitmapFile.Hash().m_Hash;
-	hashData.m_Constituents.push_back(previewBitmapHash);
-	AddToHash(hash, previewBitmapHash);
+	hashData.AddHashed(m_PreviewBitmapFile);
 
 	AddToHash(hash, RTE::Hash(m_MetasceneParent));
 	AddToHash(hash, m_IsMetagameInternal);
@@ -1309,74 +1305,29 @@ HashingData Scene::Hash() const {
 		AddToHash(hash, m_BuildBudget[player]);
 		AddToHash(hash, m_BuildBudgetRatio[player]);
 
-		bool residentBrainDef = m_ResidentBrains[player] != nullptr;
-		hashData.m_ParseValues.push_back(residentBrainDef);
-		if (residentBrainDef) {
-			uint64_t residentBrainHash = m_ResidentBrains[player]->Hash().m_Hash;
-			hashData.m_Constituents.push_back(residentBrainHash);
-			AddToHash(hash, residentBrainHash);
-		}
+		hashData.AddOptionalEntityPointer(m_ResidentBrains[player]);
 	}
 
 	AddToHash(hash, m_AutoDesigned);
 	AddToHash(hash, m_TotalInvestment);
 
-	bool terrainDef = m_pTerrain != nullptr;
-	hashData.m_ParseValues.push_back(terrainDef);
-	if (terrainDef) {
-		uint64_t terrainHash = m_pTerrain->Hash().m_Hash;
-		hashData.m_Constituents.push_back(terrainHash);
-		AddToHash(hash, terrainHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pTerrain);
 
 	for (int set = PlacedObjectSets::PLACEONLOAD; set < PlacedObjectSets::PLACEDSETSCOUNT; ++set) {
-		int i = 0;
-
-		for (const SceneObject* placedObject: m_PlacedObjects[set]) {
-			uint64_t placedObjectHash = placedObject->Hash().m_Hash;
-			hashData.m_Constituents.push_back(placedObjectHash);
-			AddToHash(hash, placedObjectHash);
-			i++;
-		}
-
-		hashData.m_ParseValues.push_back(i);
+		hashData.AddPointerSequence(m_PlacedObjects[set]);
 	}
 
-	int i = 0;
-
-	for (std::list<SLBackground*>::const_iterator slItr = m_BackLayerList.begin(); slItr != m_BackLayerList.end(); ++slItr) {
-		uint64_t backgroundLayerHash = RTE::Hash((*slItr)->GetEntityCharacteristic());
-		hashData.m_Constituents.push_back(backgroundLayerHash);
-		AddToHash(hash, backgroundLayerHash);
-		i++;
-	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddPresetSequence(m_BackLayerList);
 
 	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
 		AddToHash(hash, m_UnseenPixelSize[team].Hash().m_Hash);
 
-		bool unseenLayerDef = m_apUnseenLayer[team] != nullptr;
-		hashData.m_ParseValues.push_back(unseenLayerDef);
-		if (unseenLayerDef) {
-			uint64_t unseenLayerHash = m_apUnseenLayer[team]->Hash().m_Hash;
-			hashData.m_Constituents.push_back(unseenLayerHash);
-			AddToHash(hash, unseenLayerHash);
-		}
+		hashData.AddOptionalEntityPointer(m_apUnseenLayer[team]);
 
 		AddToHash(hash, m_ScanScheduled[team]);
 	}
 
-	i = 0;
-
-	for (Area* area: m_AreaList) {
-		uint64_t areaHash = area->Hash().m_Hash;
-		hashData.m_Constituents.push_back(areaHash);
-		AddToHash(hash, areaHash);
-		i++;
-	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddPointerSequence(m_AreaList);
 
 	AddToHash(hash, m_GlobalAcc.Hash().m_Hash);
 

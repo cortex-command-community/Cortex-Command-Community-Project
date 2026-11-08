@@ -119,13 +119,9 @@ HashingData MOPixel::Hash() const {
 	HashingData hashData(MovableObject::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	uint64_t atomHash = m_Atom->Hash().m_Hash;
-	hashData.m_Constituents.push_back(atomHash);
-	AddToHash(hash, atomHash);
+	hashData.AddEntityPointer(m_Atom);
 
-	uint64_t colorHash = m_Color.Hash().m_Hash;
-	hashData.m_Constituents.push_back(colorHash);
-	AddToHash(hash, colorHash);
+	hashData.AddHashed(m_Color);
 
 	AddToHash(hash, m_MinLethalRange);
 	AddToHash(hash, m_MaxLethalRange);

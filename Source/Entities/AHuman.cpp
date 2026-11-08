@@ -394,138 +394,56 @@ HashingData AHuman::Hash() const {
 
 	AddToHash(hash, m_ThrowPrepTime);
 
-	bool headDef = m_pHead != nullptr;
-	hashData.m_ParseValues.push_back(headDef);
-	if (headDef) {
-		uint64_t headHash = m_pHead->Hash().m_Hash;
-		hashData.m_Constituents.push_back(headHash);
-		AddToHash(hash, headHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pHead);
 
 	AddToHash(hash, m_LookToAimRatio);
 
-	bool jetpackDef = m_pJetpack != nullptr;
-	hashData.m_ParseValues.push_back(jetpackDef);
-	if (jetpackDef) {
-		uint64_t jetpackHash = m_pJetpack->Hash().m_Hash;
-		hashData.m_Constituents.push_back(jetpackHash);
-		AddToHash(hash, jetpackHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pJetpack);
 
 	AddToHash(hash, m_FGArmFlailScalar);
 	AddToHash(hash, m_BGArmFlailScalar);
 	AddToHash(hash, m_ArmSwingRate);
 	AddToHash(hash, m_DeviceArmSwayRate);
 
-	bool fgArmDef = m_pFGArm != nullptr;
-	hashData.m_ParseValues.push_back(fgArmDef);
-	if (fgArmDef) {
-		uint64_t fgArmHash = m_pFGArm->Hash().m_Hash;
-		hashData.m_Constituents.push_back(fgArmHash);
-		AddToHash(hash, fgArmHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pFGArm);
 
-	bool bgArmDef = m_pBGArm != nullptr;
-	hashData.m_ParseValues.push_back(bgArmDef);
-	if (bgArmDef) {
-		uint64_t bgArmHash = m_pBGArm->Hash().m_Hash;
-		hashData.m_Constituents.push_back(bgArmHash);
-		AddToHash(hash, bgArmHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pBGArm);
 
-	bool fgLegDef = m_pFGLeg != nullptr;
-	hashData.m_ParseValues.push_back(fgLegDef);
-	if (fgLegDef) {
-		uint64_t fgLegHash = m_pFGLeg->Hash().m_Hash;
-		hashData.m_Constituents.push_back(fgLegHash);
-		AddToHash(hash, fgLegHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pFGLeg);
 
-	bool bgLegDef = m_pBGLeg != nullptr;
-	hashData.m_ParseValues.push_back(bgLegDef);
-	if (bgLegDef) {
-		uint64_t bgLegHash = m_pBGLeg->Hash().m_Hash;
-		hashData.m_Constituents.push_back(bgLegHash);
-		AddToHash(hash, bgLegHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pBGLeg);
 
-	bool fgHandGroupDef = m_pFGHandGroup != nullptr;
-	hashData.m_ParseValues.push_back(fgHandGroupDef);
-	if (fgHandGroupDef) {
-		uint64_t fgHandGroupHash = m_pFGHandGroup->Hash().m_Hash;
-		hashData.m_Constituents.push_back(fgHandGroupHash);
-		AddToHash(hash, fgHandGroupHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pFGHandGroup);
 
-	bool fgFootGroupDef = m_pFGFootGroup != nullptr;
-	hashData.m_ParseValues.push_back(fgFootGroupDef);
-	if (fgFootGroupDef) {
-		uint64_t fgFootGroupHash = m_pFGFootGroup->Hash().m_Hash;
-		hashData.m_Constituents.push_back(fgFootGroupHash);
-		AddToHash(hash, fgFootGroupHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pFGFootGroup);
 
-	bool bgFootGroupDef = m_pBGFootGroup != nullptr;
-	hashData.m_ParseValues.push_back(bgFootGroupDef);
-	if (bgFootGroupDef) {
-		uint64_t bgFootGroupHash = m_pBGFootGroup->Hash().m_Hash;
-		hashData.m_Constituents.push_back(bgFootGroupHash);
-		AddToHash(hash, bgFootGroupHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pBGFootGroup);
 
 	AddToHash(hash, m_MaxWalkPathCrouchShift);
 
-	bool strideSoundDef = m_StrideSound != nullptr;
-	hashData.m_ParseValues.push_back(strideSoundDef);
-	if (strideSoundDef) {
-		uint64_t strideSoundHash = m_StrideSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(strideSoundHash);
-		AddToHash(hash, strideSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_StrideSound);
 
-	uint64_t fgStandPathHash = m_Paths[FGROUND][STAND].Hash().m_Hash;
-	hashData.m_Constituents.push_back(fgStandPathHash);
-	AddToHash(hash, fgStandPathHash);
+	hashData.AddHashed(m_Paths[FGROUND][STAND]);
 
-	uint64_t bgStandPathHash = m_Paths[BGROUND][STAND].Hash().m_Hash;
-	hashData.m_Constituents.push_back(bgStandPathHash);
-	AddToHash(hash, bgStandPathHash);
+	hashData.AddHashed(m_Paths[BGROUND][STAND]);
 
-	uint64_t walkPathHash = m_Paths[FGROUND][WALK].Hash().m_Hash;
-	hashData.m_Constituents.push_back(walkPathHash);
-	AddToHash(hash, walkPathHash);
+	hashData.AddHashed(m_Paths[FGROUND][WALK]);
 
-	uint64_t runPathHash = m_Paths[FGROUND][RUN].Hash().m_Hash;
-	hashData.m_Constituents.push_back(runPathHash);
-	AddToHash(hash, runPathHash);
+	hashData.AddHashed(m_Paths[FGROUND][RUN]);
 
-	uint64_t pronePathHash = m_Paths[FGROUND][PRONE].Hash().m_Hash;
-	hashData.m_Constituents.push_back(pronePathHash);
-	AddToHash(hash, pronePathHash);
+	hashData.AddHashed(m_Paths[FGROUND][PRONE]);
 
-	uint64_t bgPronePathHash = m_Paths[BGROUND][PRONE].Hash().m_Hash;
-	hashData.m_Constituents.push_back(bgPronePathHash);
-	AddToHash(hash, bgPronePathHash);
+	hashData.AddHashed(m_Paths[BGROUND][PRONE]);
 
-	uint64_t crawlPathHash = m_Paths[FGROUND][CRAWL].Hash().m_Hash;
-	hashData.m_Constituents.push_back(crawlPathHash);
-	AddToHash(hash, crawlPathHash);
+	hashData.AddHashed(m_Paths[FGROUND][CRAWL]);
 
-	uint64_t armCrawlPathHash = m_Paths[FGROUND][ARMCRAWL].Hash().m_Hash;
-	hashData.m_Constituents.push_back(armCrawlPathHash);
-	AddToHash(hash, armCrawlPathHash);
+	hashData.AddHashed(m_Paths[FGROUND][ARMCRAWL]);
 
-	uint64_t climbPathHash = m_Paths[FGROUND][CLIMB].Hash().m_Hash;
-	hashData.m_Constituents.push_back(climbPathHash);
-	AddToHash(hash, climbPathHash);
+	hashData.AddHashed(m_Paths[FGROUND][CLIMB]);
 
-	uint64_t jumpPathHash = m_Paths[FGROUND][JUMP].Hash().m_Hash;
-	hashData.m_Constituents.push_back(jumpPathHash);
-	AddToHash(hash, jumpPathHash);
+	hashData.AddHashed(m_Paths[FGROUND][JUMP]);
 
-	uint64_t dislodgePathHash = m_Paths[FGROUND][DISLODGE].Hash().m_Hash;
-	hashData.m_Constituents.push_back(dislodgePathHash);
-	AddToHash(hash, dislodgePathHash);
+	hashData.AddHashed(m_Paths[FGROUND][DISLODGE]);
 
 	AddToHash(hash, m_RotAngleTargets[STAND]);
 	AddToHash(hash, m_RotAngleTargets[WALK]);

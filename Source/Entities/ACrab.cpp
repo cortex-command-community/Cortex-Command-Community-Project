@@ -383,117 +383,39 @@ HashingData ACrab::Hash() const {
 	HashingData hashData(Actor::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	bool turretDef = m_pTurret != nullptr;
-	hashData.m_ParseValues.push_back(turretDef);
-	if (turretDef) {
-		uint64_t turretHash = m_pTurret->Hash().m_Hash;
-		hashData.m_Constituents.push_back(turretHash);
-		AddToHash(hash, turretHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pTurret);
 
-	bool jetpackDef = m_pJetpack != nullptr;
-	hashData.m_ParseValues.push_back(jetpackDef);
-	if (jetpackDef) {
-		uint64_t jetpackHash = m_pJetpack->Hash().m_Hash;
-		hashData.m_Constituents.push_back(jetpackHash);
-		AddToHash(hash, jetpackHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pJetpack);
 
-	bool lfgLegDef = m_pLFGLeg != nullptr;
-	hashData.m_ParseValues.push_back(lfgLegDef);
-	if (lfgLegDef) {
-		uint64_t lfgLegHash = m_pLFGLeg->Hash().m_Hash;
-		hashData.m_Constituents.push_back(lfgLegHash);
-		AddToHash(hash, lfgLegHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pLFGLeg);
 
-	bool lbgLegDef = m_pLBGLeg != nullptr;
-	hashData.m_ParseValues.push_back(lbgLegDef);
-	if (lbgLegDef) {
-		uint64_t lbgLegHash = m_pLBGLeg->Hash().m_Hash;
-		hashData.m_Constituents.push_back(lbgLegHash);
-		AddToHash(hash, lbgLegHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pLBGLeg);
 
-	bool rfgLegDef = m_pRFGLeg != nullptr;
-	hashData.m_ParseValues.push_back(rfgLegDef);
-	if (rfgLegDef) {
-		uint64_t rfgLegHash = m_pRFGLeg->Hash().m_Hash;
-		hashData.m_Constituents.push_back(rfgLegHash);
-		AddToHash(hash, rfgLegHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pRFGLeg);
 
-	bool rbgLegDef = m_pRBGLeg != nullptr;
-	hashData.m_ParseValues.push_back(rbgLegDef);
-	if (rbgLegDef) {
-		uint64_t rbgLegHash = m_pRBGLeg->Hash().m_Hash;
-		hashData.m_Constituents.push_back(rbgLegHash);
-		AddToHash(hash, rbgLegHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pRBGLeg);
 
-	bool lfgFootGroupDef = m_pLFGFootGroup != nullptr;
-	hashData.m_ParseValues.push_back(lfgFootGroupDef);
-	if (lfgFootGroupDef) {
-		uint64_t lfgFootGroupHash = m_pLFGFootGroup->Hash().m_Hash;
-		hashData.m_Constituents.push_back(lfgFootGroupHash);
-		AddToHash(hash, lfgFootGroupHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pLFGFootGroup);
 
-	bool lbgFootGroupDef = m_pLBGFootGroup != nullptr;
-	hashData.m_ParseValues.push_back(lbgFootGroupDef);
-	if (lbgFootGroupDef) {
-		uint64_t lbgFootGroupHash = m_pLBGFootGroup->Hash().m_Hash;
-		hashData.m_Constituents.push_back(lbgFootGroupHash);
-		AddToHash(hash, lbgFootGroupHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pLBGFootGroup);
 
-	bool rfgFootGroupDef = m_pRFGFootGroup != nullptr;
-	hashData.m_ParseValues.push_back(rfgFootGroupDef);
-	if (rfgFootGroupDef) {
-		uint64_t rfgFootGroupHash = m_pRFGFootGroup->Hash().m_Hash;
-		hashData.m_Constituents.push_back(rfgFootGroupHash);
-		AddToHash(hash, rfgFootGroupHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pRFGFootGroup);
 
-	bool rbgFootGroupDef = m_pRBGFootGroup != nullptr;
-	hashData.m_ParseValues.push_back(rbgFootGroupDef);
-	if (rbgFootGroupDef) {
-		uint64_t rbgFootGroupHash = m_pRBGFootGroup->Hash().m_Hash;
-		hashData.m_Constituents.push_back(rbgFootGroupHash);
-		AddToHash(hash, rbgFootGroupHash);
-	}
+	hashData.AddOptionalEntityPointer(m_pRBGFootGroup);
 
-	bool strideSoundDef = m_StrideSound != nullptr;
-	hashData.m_ParseValues.push_back(strideSoundDef);
-	if (strideSoundDef) {
-		uint64_t strideSoundHash = m_StrideSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(strideSoundHash);
-		AddToHash(hash, strideSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_StrideSound);
 
-	uint64_t leftStandPathHash = m_Paths[LEFTSIDE][FGROUND][STAND].Hash().m_Hash;
-	hashData.m_Constituents.push_back(leftStandPathHash);
-	AddToHash(hash, leftStandPathHash);
+	hashData.AddHashed(m_Paths[LEFTSIDE][FGROUND][STAND]);
 
-	uint64_t leftWalkPathHash = m_Paths[LEFTSIDE][FGROUND][WALK].Hash().m_Hash;
-	hashData.m_Constituents.push_back(leftWalkPathHash);
-	AddToHash(hash, leftWalkPathHash);
+	hashData.AddHashed(m_Paths[LEFTSIDE][FGROUND][WALK]);
 
-	uint64_t leftDislodgePathHash = m_Paths[LEFTSIDE][FGROUND][DISLODGE].Hash().m_Hash;
-	hashData.m_Constituents.push_back(leftDislodgePathHash);
-	AddToHash(hash, leftDislodgePathHash);
+	hashData.AddHashed(m_Paths[LEFTSIDE][FGROUND][DISLODGE]);
 
-	uint64_t rightStandPathHash = m_Paths[RIGHTSIDE][FGROUND][STAND].Hash().m_Hash;
-	hashData.m_Constituents.push_back(rightStandPathHash);
-	AddToHash(hash, rightStandPathHash);
+	hashData.AddHashed(m_Paths[RIGHTSIDE][FGROUND][STAND]);
 
-	uint64_t rightWalkPathHash = m_Paths[RIGHTSIDE][FGROUND][WALK].Hash().m_Hash;
-	hashData.m_Constituents.push_back(rightWalkPathHash);
-	AddToHash(hash, rightWalkPathHash);
+	hashData.AddHashed(m_Paths[RIGHTSIDE][FGROUND][WALK]);
 
-	uint64_t rightDislodgePathHash = m_Paths[RIGHTSIDE][FGROUND][DISLODGE].Hash().m_Hash;
-	hashData.m_Constituents.push_back(rightDislodgePathHash);
-	AddToHash(hash, rightDislodgePathHash);
+	hashData.AddHashed(m_Paths[RIGHTSIDE][FGROUND][DISLODGE]);
 
 	AddToHash(hash, m_AimRangeUpperLimit);
 	AddToHash(hash, m_AimRangeLowerLimit);

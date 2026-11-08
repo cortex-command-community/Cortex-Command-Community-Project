@@ -83,9 +83,7 @@ HashingData Icon::Hash() const {
 	HashingData hashData(Entity::Hash());
 	uint64_t& hash = hashData.m_Hash;
 
-	uint64_t fileHash = m_BitmapFile.Hash().m_Hash;
-	hashData.m_Constituents.push_back(fileHash);
-	AddToHash(hash, fileHash);
+	hashData.AddHashed(m_BitmapFile);
 
 	AddToHash(hash, m_FrameCount);
 

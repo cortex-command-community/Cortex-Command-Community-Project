@@ -516,45 +516,15 @@ HashingData Actor::Hash() const {
 
 	AddToHash(hash, m_PlayerControllable);
 
-	bool bodyHitSoundDef = m_BodyHitSound != nullptr;
-	hashData.m_ParseValues.push_back(bodyHitSoundDef);
-	if (bodyHitSoundDef) {
-		uint64_t bodyHitSoundHash = m_BodyHitSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(bodyHitSoundHash);
-		AddToHash(hash, bodyHitSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_BodyHitSound);
 
-	bool alarmSoundDef = m_AlarmSound != nullptr;
-	hashData.m_ParseValues.push_back(alarmSoundDef);
-	if (alarmSoundDef) {
-		uint64_t alarmSoundHash = m_AlarmSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(alarmSoundHash);
-		AddToHash(hash, alarmSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_AlarmSound);
 
-	bool painSoundDef = m_PainSound != nullptr;
-	hashData.m_ParseValues.push_back(painSoundDef);
-	if (painSoundDef) {
-		uint64_t painSoundHash = m_PainSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(painSoundHash);
-		AddToHash(hash, painSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_PainSound);
 
-	bool deathSoundDef = m_DeathSound != nullptr;
-	hashData.m_ParseValues.push_back(deathSoundDef);
-	if (deathSoundDef) {
-		uint64_t deathSoundHash = m_DeathSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(deathSoundHash);
-		AddToHash(hash, deathSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_DeathSound);
 
-	bool deviceSwitchSoundDef = m_DeviceSwitchSound != nullptr;
-	hashData.m_ParseValues.push_back(deviceSwitchSoundDef);
-	if (deviceSwitchSoundDef) {
-		uint64_t deviceSwitchSoundHash = m_DeviceSwitchSound->Hash().m_Hash;
-		hashData.m_Constituents.push_back(deviceSwitchSoundHash);
-		AddToHash(hash, deviceSwitchSoundHash);
-	}
+	hashData.AddOptionalEntityPointer(m_DeviceSwitchSound);
 
 	AddToHash(hash, m_Status);
 	AddToHash(hash, m_Health);
@@ -578,27 +548,12 @@ HashingData Actor::Hash() const {
 	AddToHash(hash, m_HolsterOffset.Hash().m_Hash);
 	AddToHash(hash, m_ReloadOffset.Hash().m_Hash);
 
-	int i = 0;
-
-	for (std::deque<MovableObject*>::const_iterator itr = m_Inventory.begin(); itr != m_Inventory.end(); ++itr) {
-		uint64_t inventoryItemHash = (*itr)->Hash().m_Hash;
-		hashData.m_Constituents.push_back(inventoryItemHash);
-		AddToHash(hash, inventoryItemHash);
-		i++;
-	}
-
-	hashData.m_ParseValues.push_back(i);
+	hashData.AddPointerSequence(m_Inventory);
 
 	AddToHash(hash, m_MaxInventoryMass);
 	AddToHash(hash, m_AIMode);
 
-	bool pieMenuDef = m_PieMenu != nullptr;
-	hashData.m_ParseValues.push_back(pieMenuDef);
-	if (pieMenuDef) {
-		uint64_t pieHash = m_PieMenu->Hash().m_Hash;
-		hashData.m_Constituents.push_back(pieHash);
-		AddToHash(hash, pieHash);
-	}
+	hashData.AddOptionalEntityPointer(m_PieMenu);
 
 	AddToHash(hash, m_Organic);
 	AddToHash(hash, m_Mechanical);

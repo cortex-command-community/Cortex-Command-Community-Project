@@ -639,9 +639,7 @@ HashingData MovableObject::Hash() const {
 		}
 	}
 
-	uint64_t effectHash = m_ScreenEffectFile.Hash().m_Hash;
-	hashData.m_Constituents.push_back(effectHash);
-	AddToHash(hash, effectHash);
+	hashData.AddHashed(m_ScreenEffectFile);
 
 	AddToHash(hash, m_PostEffectEnabled);
 	AddToHash(hash, m_EffectStartTime);

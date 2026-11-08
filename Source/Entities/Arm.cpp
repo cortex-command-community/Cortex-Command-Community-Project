@@ -144,20 +144,12 @@ HashingData Arm::Hash() const {
 
 	AddToHash(hash, m_HandIdleOffset.Hash().m_Hash);
 
-	uint64_t handSpriteHash = m_HandSpriteFile.Hash().m_Hash;
-	hashData.m_Constituents.push_back(handSpriteHash);
-	AddToHash(hash, handSpriteHash);
+	hashData.AddHashed(m_HandSpriteFile);
 
 	AddToHash(hash, m_GripStrength);
 	AddToHash(hash, m_ThrowStrength);
 
-	bool heldDeviceDef = m_HeldDevice != nullptr;
-	hashData.m_ParseValues.push_back(heldDeviceDef);
-	if (heldDeviceDef) {
-		uint64_t heldDeviceHash = m_HeldDevice->Hash().m_Hash;
-		hashData.m_Constituents.push_back(heldDeviceHash);
-		AddToHash(hash, heldDeviceHash);
-	}
+	hashData.AddOptionalEntityPointer(m_HeldDevice);
 
 	return hashData;
 }
