@@ -115,7 +115,7 @@ namespace RTE {
 		/// @param hashData A modifiable reference to the HashingData relevant to writing this object, which should correspond to its preset's.
 		template <typename Type>
 		void NewPointerSequence(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData) {
-			NewPointerSequenceConditional(clearPhrase, insertionPhrase, propValue, hashData, [](const auto&) { return true; });
+			NewPointerSequenceConditional(clearPhrase, insertionPhrase, propValue, hashData, AlwaysIncluded());
 		}
 
 		/// Writes a collection of items where order matters, written to assume it has corresponding data in the hash structure provided.
@@ -126,9 +126,8 @@ namespace RTE {
 		template <typename Type>
 		void NewSequence(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData) {
 			WriteSequence(clearPhrase, propValue, hashData,
-			    [](const auto& item) { return item.Hash().m_Hash; },
-			    [&](const auto& item) { NewPropertyWithValue(insertionPhrase, item); },
-			    [](const auto&) { return true; });
+			    [](const auto& item) { return PartHash(item); },
+			    [&](const auto& item) { NewPropertyWithValue(insertionPhrase, item); });
 		}
 
 		/// Writes a collection of preset references where order matters, written to assume it has corresponding data in the hash structure provided.
@@ -140,14 +139,13 @@ namespace RTE {
 		template <typename Type>
 		void NewPresetNameSequence(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData) {
 			WriteSequence(clearPhrase, propValue, hashData,
-			    [](const auto& item) { return RTE::Hash(item->GetEntityCharacteristic()); },
+			    [](const auto& item) { return PresetHash(item); },
 			    [&](const auto& item) {
 				    NewProperty(insertionPhrase);
 				    ObjectStart(item->GetClassName());
 				    NewPropertyWithValue("PresetName", item->GetModuleAndPresetName());
 				    ObjectEnd();
-			    },
-			    [](const auto&) { return true; });
+			    });
 		}
 
 		/// Writes a collection of unaltered copies of presets where order matters, written to assume it has corresponding data in the hash structure provided.
@@ -159,12 +157,11 @@ namespace RTE {
 		template <typename Type>
 		void NewPresetCopySequence(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData) {
 			WriteSequence(clearPhrase, propValue, hashData,
-			    [](const auto& item) { return RTE::Hash(item->GetEntityCharacteristic()); },
+			    [](const auto& item) { return PresetHash(item); },
 			    [&](const auto& item) {
 				    NewProperty(insertionPhrase);
 				    item->SavePresetCopy(*this);
-			    },
-			    [](const auto&) { return true; });
+			    });
 		}
 
 		/// Writes a collection of pointers where order matters, written to assume it has corresponding data in the hash structure provided, and respecting the conditional for consideration.
@@ -176,7 +173,7 @@ namespace RTE {
 		template <typename Type, typename Lambda>
 		void NewPointerSequenceConditional(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData, Lambda&& conditional) {
 			WriteSequence(clearPhrase, propValue, hashData,
-			    [](const auto& item) { return item->Hash().m_Hash; },
+			    [](const auto& item) { return PartHash(*item); },
 			    [&](const auto& item) { NewPropertyWithValue(insertionPhrase, *item); },
 			    conditional);
 		}
@@ -188,7 +185,7 @@ namespace RTE {
 		template <typename Type>
 		void NewOptionalEntityPointerProperty(const std::string& propName, const Type& propValue, HashingData& hashData) {
 			if (propValue != nullptr) {
-				uint64_t thingHash = propValue->Hash().m_Hash;
+				uint64_t thingHash = PartHash(*propValue);
 				// If we have the thing, but the reference didn't, we have to specify it.
 				bool isToRespecify = hashData.m_ParseValues.front() == 0;
 
@@ -223,7 +220,7 @@ namespace RTE {
 		template <typename Type>
 		void NewEntityPointerProperty(const std::string& propName, const Type& propValue, HashingData& hashData) {
 			// Specify the property if it's different from that of the reference, taking as given that both are non-null.
-			if (propValue->Hash().m_Hash != hashData.m_Constituents.front()) {
+			if (PartHash(*propValue) != hashData.m_Constituents.front()) {
 				NewPropertyWithValue(propName, *propValue);
 			}
 
@@ -293,7 +290,7 @@ namespace RTE {
 		template <typename Type>
 		void NewDistinctHashedProperty(const std::string& propName, const Type& propValue, HashingData& hashData) {
 			// Specify the property if it's different from that of the reference.
-			if (propValue.Hash().m_Hash != hashData.m_Constituents.front()) {
+			if (PartHash(propValue) != hashData.m_Constituents.front()) {
 				NewPropertyWithValue(propName, propValue);
 			}
 			hashData.m_Constituents.pop_front();
@@ -401,8 +398,8 @@ namespace RTE {
 		/// @param getHash Gets the hash of an item, to compare against the reference's.
 		/// @param writeItem Writes an item.
 		/// @param isIncluded Whether an item has any counterpart in the reference's list at all.
-		template <typename Collection, typename GetHash, typename WriteItem, typename IsIncluded>
-		void WriteSequence(const std::string& clearPhrase, const Collection& items, HashingData& hashData, GetHash&& getHash, WriteItem&& writeItem, IsIncluded&& isIncluded) {
+		template <typename Collection, typename GetHash, typename WriteItem, typename IsIncluded = AlwaysIncluded>
+		void WriteSequence(const std::string& clearPhrase, const Collection& items, HashingData& hashData, GetHash&& getHash, WriteItem&& writeItem, IsIncluded&& isIncluded = {}) {
 			bool extendsReference = true;
 			auto itemItr = items.begin();
 
