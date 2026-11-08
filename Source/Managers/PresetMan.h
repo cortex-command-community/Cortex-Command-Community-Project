@@ -201,12 +201,12 @@ namespace RTE {
 			return entityOfType;
 		}
 
-		/// Reads a preset reference for a property, as GetEntityPresetFromCharacteristic does, and makes sure of its type.
+		/// Reads a preset reference for a property, as GetEntityPreset does, and makes sure of its type.
 		/// @param reader The Reader which is about to read the property's value.
 		/// @param propName The name of the property being read, for reporting errors.
 		/// @return The preset referred to, or nullptr if the value was "None" or not of the type asked for, which is reported as an error. Ownership is NOT transferred!
 		template <typename Type> const Type* ReadPresetReferenceOfType(Reader& reader, const std::string_view& propName) {
-			const Entity* entity = GetEntityPresetFromCharacteristic(reader);
+			const Entity* entity = GetEntityPreset(reader);
 			const Type* entityOfType = dynamic_cast<const Type*>(entity);
 
 			if (entity && !entityOfType) {

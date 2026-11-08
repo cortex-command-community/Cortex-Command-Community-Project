@@ -68,7 +68,7 @@ int Gib::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
 	if (m_GibParticle != nullptr)
-		writer.NewPropertyWithValue("GibParticle", m_GibParticle->GetEntityCharacteristic());
+		writer.NewPropertyWithPresetReference("GibParticle", m_GibParticle);
 	if (!m_Offset.IsZero())
 		writer.NewPropertyWithValue("Offset", m_Offset);
 	writer.NewDistinctProperty("Count", m_Count, 1);

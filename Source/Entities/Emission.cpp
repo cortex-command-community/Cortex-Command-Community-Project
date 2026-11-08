@@ -91,7 +91,7 @@ int Emission::ReadProperty(const std::string_view& propName, Reader& reader) {
 int Emission::Save(Writer& writer) const {
 	Entity::Save(writer);
 
-	if (m_pEmission != nullptr) writer.NewPropertyWithValue("EmittedParticle", m_pEmission->GetEntityCharacteristic());
+	if (m_pEmission != nullptr) writer.NewPropertyWithPresetReference("EmittedParticle", m_pEmission);
 	writer.NewDistinctProperty("ParticlesPerMinute", m_PPM, 0.0F);
 	writer.NewDistinctProperty("BurstSize", m_BurstSize, 0);
 	writer.NewDistinctProperty("Spread", m_Spread, 0.0F);

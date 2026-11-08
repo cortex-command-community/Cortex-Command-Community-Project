@@ -127,7 +127,7 @@ int Loadout::Save(Writer& writer) const {
 	Entity::Save(writer);
 
 	if (m_pDeliveryCraft) {
-		writer.NewPropertyWithValue("DeliveryCraft", m_pDeliveryCraft->GetEntityCharacteristic());
+		writer.NewPropertyWithPresetReference("DeliveryCraft", m_pDeliveryCraft);
 	} else if (!m_UnavailableDeliveryCraft.m_Value.empty()) {
 		SaveUnavailableReference(writer, "DeliveryCraft", m_UnavailableDeliveryCraft);
 	}
@@ -139,7 +139,7 @@ int Loadout::Save(Writer& writer) const {
 		for (; unavailable != m_UnavailableCargoItems.end() && unavailable->m_Position <= position; ++unavailable) {
 			SaveUnavailableReference(writer, "AddCargoItem", *unavailable);
 		}
-		writer.NewPropertyWithValue("AddCargoItem", (*itr)->GetEntityCharacteristic());
+		writer.NewPropertyWithPresetReference("AddCargoItem", (*itr));
 	}
 	for (; unavailable != m_UnavailableCargoItems.end(); ++unavailable) {
 		SaveUnavailableReference(writer, "AddCargoItem", *unavailable);

@@ -219,9 +219,9 @@ int MOSprite::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("AngularVel", m_AngularVel);
 	writer.NewPropertyWithValue("SettleMaterialDisabled", m_SettleMaterialDisabled);
 	if (m_pEntryWound)
-		writer.NewPropertyWithValue("EntryWound", m_pEntryWound->GetEntityCharacteristic());
+		writer.NewPropertyWithPresetReference("EntryWound", m_pEntryWound);
 	if (m_pExitWound)
-		writer.NewPropertyWithValue("ExitWound", m_pExitWound->GetEntityCharacteristic());
+		writer.NewPropertyWithPresetReference("ExitWound", m_pExitWound);
 
 	writer.NewDistinctProperty("ForcedHFlip", m_ForcedHFlip, -1);
 

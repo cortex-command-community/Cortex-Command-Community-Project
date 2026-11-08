@@ -190,11 +190,11 @@ int Attachable::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("JointOffset", m_JointOffset);
 
 	if (m_BreakWound != nullptr) {
-		writer.NewPropertyWithValue("BreakWound", m_BreakWound->GetEntityCharacteristic());
+		writer.NewPropertyWithPresetReference("BreakWound", m_BreakWound);
 	}
 
 	if (m_ParentBreakWound != nullptr) {
-		writer.NewPropertyWithValue("ParentBreakWound", m_ParentBreakWound->GetEntityCharacteristic());
+		writer.NewPropertyWithPresetReference("ParentBreakWound", m_ParentBreakWound);
 	}
 
 	writer.NewPropertyWithValue("InheritsHFlipped", ((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2));

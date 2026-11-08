@@ -140,7 +140,7 @@ namespace RTE {
 		void NewPresetReferenceSequence(const std::string& clearPhrase, const std::string& insertionPhrase, const Type& propValue, HashingData& hashData) {
 			WriteSequence(clearPhrase, propValue, hashData,
 			    [](const auto& item) { return RTE::Hash(item->GetEntityCharacteristic()); },
-			    [&](const auto& item) { NewPropertyWithValue(insertionPhrase, item->GetEntityCharacteristic()); },
+			    [&](const auto& item) { NewPropertyWithPresetReference(insertionPhrase, item); },
 			    [](const auto&) { return true; });
 		}
 
@@ -232,13 +232,23 @@ namespace RTE {
 		void NewPresetReferenceProperty(const std::string& propName, const Type& propValue, const Type& propReference) {
 			// Preset references are straight forward, if they point to different things, write what ours point to.
 			if (propValue != propReference) {
-				NewProperty(propName);
+				NewPropertyWithPresetReference(propName, propValue);
+			}
+		}
 
-				if (propValue == nullptr) {
-					NoObject();
-				} else {
-					*this << propValue->GetEntityCharacteristic();
-				}
+		/// Creates a new line and writes the name of the specified property, followed by a reference to a preset, in the form PresetMan::GetEntityPreset reads.
+		/// @param propName The name of the property to be written.
+		/// @param preset The preset referred to, or nullptr for none.
+		template <typename Type>
+		void NewPropertyWithPresetReference(const std::string& propName, const Type* preset) {
+			NewProperty(propName);
+
+			if (preset == nullptr) {
+				NoObject();
+			} else {
+				ObjectStart(preset->GetClassName());
+				NewPropertyWithValue("CopyOf", preset->GetModuleAndPresetName());
+				ObjectEnd();
 			}
 		}
 

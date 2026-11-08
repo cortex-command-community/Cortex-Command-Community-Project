@@ -100,8 +100,8 @@ int Magazine::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("RoundCount", m_RoundCount);
 	writer.NewPropertyWithValue("FullCapacity", m_FullCapacity);
 	writer.NewPropertyWithValue("RTTRatio", m_RTTRatio);
-	writer.NewPropertyWithValue("RegularRound", (m_pRegularRound ? m_pRegularRound->GetEntityCharacteristic() : "None"));
-	writer.NewPropertyWithValue("TracerRound", (m_pTracerRound ? m_pTracerRound->GetEntityCharacteristic() : "None"));
+	writer.NewPropertyWithPresetReference("RegularRound", m_pRegularRound);
+	writer.NewPropertyWithPresetReference("TracerRound", m_pTracerRound);
 	writer.NewPropertyWithValue("Discardable", m_Discardable);
 	writer.NewPropertyWithValue("AIBlastRadius", m_AIBlastRadius);
 

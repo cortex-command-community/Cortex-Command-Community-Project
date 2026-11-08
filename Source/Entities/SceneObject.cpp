@@ -67,7 +67,7 @@ int SceneObject::SOPlacer::Save(Writer& writer) const {
 	Serializable::Save(writer);
 
 	if (m_pObjectReference != nullptr)
-		writer.NewPropertyWithValue("PlacedObject", m_pObjectReference->GetEntityCharacteristic());
+		writer.NewPropertyWithPresetReference("PlacedObject", m_pObjectReference);
 	if (!m_Offset.IsZero())
 		writer.NewPropertyWithValue("Offset", m_Offset);
 	if (m_RotAngle != 0.0F)
