@@ -12,7 +12,7 @@ namespace RTE {
 	class Shader: public Entity {
 	public:
 		EntityAllocation(Shader);
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 		/// Constructs an empty shader program, which can be initialized using `Shader::Compile`
 		Shader();

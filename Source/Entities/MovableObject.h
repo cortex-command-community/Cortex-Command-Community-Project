@@ -37,7 +37,7 @@ namespace RTE {
 		/// Public member variable, method and friend function declarations
 	public:
 		ScriptFunctionNames("Create", "Destroy", "Update", "ThreadedUpdate", "SyncedUpdate", "OnScriptDisable", "OnScriptEnable", "OnCollideWithTerrain", "OnCollideWithMO", "WhilePieMenuOpen", "OnSave", "OnMessage", "OnGlobalMessage");
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		enum MOType {

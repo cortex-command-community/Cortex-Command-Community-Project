@@ -13,7 +13,7 @@ namespace RTE {
 
 	public:
 		EntityAllocation(TerrainObject);
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 #pragma region Creation
@@ -42,6 +42,10 @@ namespace RTE {
 			}
 			Clear();
 		}
+#pragma endregion
+
+#pragma region INI Handling
+
 #pragma endregion
 
 #pragma region Getters and Setters

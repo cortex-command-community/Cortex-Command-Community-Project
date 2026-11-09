@@ -11,6 +11,9 @@ using namespace RTE;
 
 const std::string DataModule::c_ClassName = "DataModule";
 
+DataModule::PresetEntry::PresetEntry(Entity* preset, const std::string& file) :
+    m_EntityPreset(preset), m_FileReadFrom(file) {}
+
 DataModule::DataModule() {
 	Clear();
 }
@@ -90,13 +93,13 @@ int DataModule::Create(const std::string& moduleName, const ProgressCallback& pr
 
 bool DataModule::CreateOnDiskAsUserdata(const std::string& moduleName, const std::string_view& friendlyName, bool ignoreMissingItems, bool scanFolderContents) {
 	std::string moduleNameWithPackageExtension = System::GetUserdataDirectory() + moduleName + (moduleName.ends_with(System::GetModulePackageExtension()) ? "" : System::GetModulePackageExtension());
-	if (Writer writer(moduleNameWithPackageExtension + "/Index.ini", false, true); writer.WriterOK()) {
+	if (IniWriter writer(moduleNameWithPackageExtension + "/Index.ini", false, true); writer.WriterOK()) {
 		DataModule newModule;
 		newModule.m_IsUserdata = true;
 		newModule.m_FriendlyName = friendlyName;
 		newModule.m_IgnoreMissingItems = ignoreMissingItems;
 		newModule.m_ScanFolderContents = scanFolderContents;
-		newModule.Save(writer);
+		writer.WriteObject(newModule);
 		writer.EndWrite();
 	} else {
 		return false;
@@ -218,8 +221,8 @@ int DataModule::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int DataModule::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int DataModule::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
 	writer.NewPropertyWithValue("ModuleName", m_FriendlyName);
 
@@ -241,6 +244,8 @@ int DataModule::Save(Writer& writer) const {
 
 	return 0;
 }
+template int DataModule::WriteTo(IniWriter& writer) const;
+template int DataModule::WriteTo(HashWriter& writer) const;
 
 std::string DataModule::GetEntityDataLocation(const std::string& exactType, const std::string& instance) {
 	const Entity* foundEntity = GetEntityPreset(exactType, instance);

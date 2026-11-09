@@ -67,17 +67,8 @@ int GibEditor::Create(const GibEditor& reference) {
 
 int GibEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return EditorActivity::ReadProperty(propName, reader));
-	/*
-	    MatchProperty("CPUTeam", { reader >> m_CPUTeam; });
-	    MatchProperty("Difficulty", { reader >> m_Difficulty; });
-	    MatchProperty("DeliveryDelay", { reader >> m_DeliveryDelay; });
-	*/
-	EndPropertyList;
-}
 
-int GibEditor::Save(Writer& writer) const {
-	EditorActivity::Save(writer);
-	return 0;
+	EndPropertyList;
 }
 
 void GibEditor::Destroy(bool notInherited) {
@@ -582,7 +573,7 @@ bool GibEditor::SaveObject(const std::string& saveAsName, bool forceOverwrite) {
 	if (g_PresetMan.AddEntityPreset(m_pEditedObject, m_ModuleSpaceID, true, objectSavePath)) {
 		// Show the overwrite dialog only when actually overwriting a saved ini in NewData or forcing an overwrite.
 		if (!System::PathExistsCaseSensitive(objectSavePath) || forceOverwrite) {
-			if (Writer objectWriter(objectSavePath, false); !objectWriter.WriterOK()) {
+			if (IniWriter objectWriter(objectSavePath, false); !objectWriter.WriterOK()) {
 				RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + objectSavePath + "\n\nTHE EDITED OBJECT PRESET WAS NOT SAVED!!!");
 			} else {
 				std::string addObjectType;
@@ -597,8 +588,8 @@ bool GibEditor::SaveObject(const std::string& saveAsName, bool forceOverwrite) {
 					default:
 						addObjectType = "AddEffect";
 				}
-				objectWriter.NewProperty(addObjectType);
-				m_pEditedObject->Entity::Save(objectWriter);
+				objectWriter.NewProperty(PropName(addObjectType));
+				objectWriter.WriteAs<Entity>(*m_pEditedObject);
 				for (const Gib* gib: *m_pEditedObject->GetGibList()) {
 					objectWriter.NewPropertyWithValue("AddGib", *gib);
 				}

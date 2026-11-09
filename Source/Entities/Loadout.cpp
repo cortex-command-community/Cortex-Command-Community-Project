@@ -59,6 +59,10 @@ int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 		              // Artificially end reading this property since we got all we needed
 		              reader.NextProperty();
 	              });
+	MatchProperty("_ClearCargoItems", {
+		reader.ReadPropValue();
+		m_CargoItems.clear();
+	});
 	MatchProperty("AddCargoItem",
 	              {
 		              std::string className;
@@ -87,26 +91,22 @@ int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Loadout::Save(Writer& writer) const {
-	Entity::Save(writer);
+template <typename WriterType> int Loadout::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
 
-	if (m_pDeliveryCraft) {
+	// The form a Loadout reads can't say there's no craft, so a craft the preset has and this doesn't can't be written.
+	if (m_pDeliveryCraft != nullptr && writer.IsDistinct(&Loadout::m_pDeliveryCraft)) {
 		writer.NewProperty("DeliveryCraft");
 		writer.ObjectStart(m_pDeliveryCraft->GetClassName());
-		writer.NewProperty("PresetName");
-		writer << m_pDeliveryCraft->GetModuleAndPresetName();
+		writer.NewPropertyWithValue("PresetName", m_pDeliveryCraft->GetModuleAndPresetName());
 		writer.ObjectEnd();
 	}
-	for (std::list<const SceneObject*>::const_iterator itr = m_CargoItems.begin(); itr != m_CargoItems.end(); ++itr) {
-		writer.NewProperty("AddCargoItem");
-		writer.ObjectStart((*itr)->GetClassName());
-		writer.NewProperty("PresetName");
-		writer << (*itr)->GetModuleAndPresetName();
-		writer.ObjectEnd();
-	}
+	writer.NewPresetNameSequence("_ClearCargoItems", "AddCargoItem", &Loadout::m_CargoItems);
 
 	return 0;
 }
+template int Loadout::WriteTo(IniWriter& writer) const;
+template int Loadout::WriteTo(HashWriter& writer) const;
 
 /*
 void Loadout::Destroy(bool notInherited)

@@ -148,25 +148,27 @@ int ACRocket::Create(const ACRocket& reference) {
 int ACRocket::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return ACraft::ReadProperty(propName, reader));
 
-	MatchForwards("RLeg") MatchProperty("RightLeg", { SetRightLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("LLeg") MatchProperty("LeftLeg", { SetLeftLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchForwards("RLeg") MatchProperty("RightLeg", { SetRightLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
+	MatchForwards("LLeg") MatchProperty("LeftLeg", { SetLeftLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
 	MatchForwards("RFootGroup") MatchProperty("RightFootGroup", {
 		delete m_pRFootGroup;
-		m_pRFootGroup = new AtomGroup();
-		reader >> m_pRFootGroup;
-		m_pRFootGroup->SetOwner(this);
+		m_pRFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		if (m_pRFootGroup) {
+			m_pRFootGroup->SetOwner(this);
+		}
 	});
 	MatchForwards("LFootGroup") MatchProperty("LeftFootGroup", {
 		delete m_pLFootGroup;
-		m_pLFootGroup = new AtomGroup();
-		reader >> m_pLFootGroup;
-		m_pLFootGroup->SetOwner(this);
+		m_pLFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		if (m_pLFootGroup) {
+			m_pLFootGroup->SetOwner(this);
+		}
 	});
-	MatchForwards("MThruster") MatchProperty("MainThruster", { SetMainThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("RThruster") MatchProperty("RightThruster", { SetRightThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("LThruster") MatchProperty("LeftThruster", { SetLeftThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("URThruster") MatchProperty("UpRightThruster", { SetURightThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("ULThruster") MatchProperty("UpLeftThruster", { SetULeftThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchForwards("MThruster") MatchProperty("MainThruster", { SetMainThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("RThruster") MatchProperty("RightThruster", { SetRightThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("LThruster") MatchProperty("LeftThruster", { SetLeftThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("URThruster") MatchProperty("UpRightThruster", { SetURightThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("ULThruster") MatchProperty("UpLeftThruster", { SetULeftThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
 	MatchProperty("RaisedGearLimbPath", { reader >> m_Paths[RIGHT][RAISED]; });
 	MatchProperty("LoweredGearLimbPath", { reader >> m_Paths[RIGHT][LOWERED]; });
 	MatchProperty("LoweringGearLimbPath", { reader >> m_Paths[RIGHT][LOWERING]; });
@@ -179,40 +181,29 @@ int ACRocket::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int ACRocket::Save(Writer& writer) const {
-	ACraft::Save(writer);
+template <typename WriterType> int ACRocket::WriteTo(WriterType& writer) const {
+	ACraft::WriteTo(writer);
 
-	writer.NewProperty("RLeg");
-	writer << m_pRLeg;
-	writer.NewProperty("LLeg");
-	writer << m_pLLeg;
-	writer.NewProperty("RFootGroup");
-	writer << m_pRFootGroup;
-	writer.NewProperty("LFootGroup");
-	writer << m_pLFootGroup;
-	writer.NewProperty("MThruster");
-	writer << m_pMThruster;
-	writer.NewProperty("RThruster");
-	writer << m_pRThruster;
-	writer.NewProperty("LThruster");
-	writer << m_pLThruster;
-	writer.NewProperty("URThruster");
-	writer << m_pURThruster;
-	writer.NewProperty("ULThruster");
-	writer << m_pULThruster;
-	writer.NewProperty("RaisedGearLimbPath");
-	writer << m_Paths[RIGHT][RAISED];
-	writer.NewProperty("LoweredGearLimbPath");
-	writer << m_Paths[RIGHT][LOWERED];
-	writer.NewProperty("LoweringGearLimbPath");
-	writer << m_Paths[RIGHT][LOWERING];
-	writer.NewProperty("RaisingGearLimbPath");
-	writer << m_Paths[RIGHT][RAISING];
-	writer.NewProperty("MaxGimbalAngle");
-	writer << m_MaxGimbalAngle / (c_PI / 180.0F);
+	writer.NewOptionalEntityPointerProperty("RLeg", &ACRocket::m_pRLeg);
+	writer.NewOptionalEntityPointerProperty("LLeg", &ACRocket::m_pLLeg);
+	writer.NewOptionalEntityPointerProperty("RFootGroup", &ACRocket::m_pRFootGroup);
+	writer.NewOptionalEntityPointerProperty("LFootGroup", &ACRocket::m_pLFootGroup);
+	writer.NewOptionalEntityPointerProperty("MThruster", &ACRocket::m_pMThruster);
+	writer.NewOptionalEntityPointerProperty("RThruster", &ACRocket::m_pRThruster);
+	writer.NewOptionalEntityPointerProperty("LThruster", &ACRocket::m_pLThruster);
+	writer.NewOptionalEntityPointerProperty("URThruster", &ACRocket::m_pURThruster);
+	writer.NewOptionalEntityPointerProperty("ULThruster", &ACRocket::m_pULThruster);
+	writer.NewDistinctProperty("RaisedGearLimbPath", [](const ACRocket& object) -> const auto& { return object.m_Paths[RIGHT][RAISED]; });
+	writer.NewDistinctProperty("LoweredGearLimbPath", [](const ACRocket& object) -> const auto& { return object.m_Paths[RIGHT][LOWERED]; });
+	writer.NewDistinctProperty("LoweringGearLimbPath", [](const ACRocket& object) -> const auto& { return object.m_Paths[RIGHT][LOWERING]; });
+	writer.NewDistinctProperty("RaisingGearLimbPath", [](const ACRocket& object) -> const auto& { return object.m_Paths[RIGHT][RAISING]; });
+	
+	writer.NewDistinctProperty("MaxGimbalAngle", [](const ACRocket& object) { return object.m_MaxGimbalAngle / (c_PI / 180.0F); });
 
 	return 0;
 }
+template int ACRocket::WriteTo(IniWriter& writer) const;
+template int ACRocket::WriteTo(HashWriter& writer) const;
 
 void ACRocket::Destroy(bool notInherited) {
 	delete m_pBodyAG;

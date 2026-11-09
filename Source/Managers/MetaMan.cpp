@@ -244,8 +244,8 @@ int MetaMan::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int MetaMan::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int MetaMan::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
 	writer.NewPropertyWithValue("GameState", m_GameState);
 	writer.NewPropertyWithValue("GameName", m_GameName);
@@ -262,20 +262,16 @@ int MetaMan::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("TeamCount", m_TeamCount);
 
 	if (m_TeamCount >= 1) {
-		writer.NewProperty("Team1Icon");
-		m_TeamIcons[Activity::TeamOne].SavePresetCopy(writer);
+		writer.NewPropertyWithPresetReference("Team1Icon", &m_TeamIcons[Activity::TeamOne]);
 	}
 	if (m_TeamCount >= 2) {
-		writer.NewProperty("Team2Icon");
-		m_TeamIcons[Activity::TeamTwo].SavePresetCopy(writer);
+		writer.NewPropertyWithPresetReference("Team2Icon", &m_TeamIcons[Activity::TeamTwo]);
 	}
 	if (m_TeamCount >= 3) {
-		writer.NewProperty("Team3Icon");
-		m_TeamIcons[Activity::TeamThree].SavePresetCopy(writer);
+		writer.NewPropertyWithPresetReference("Team3Icon", &m_TeamIcons[Activity::TeamThree]);
 	}
 	if (m_TeamCount >= 4) {
-		writer.NewProperty("Team4Icon");
-		m_TeamIcons[Activity::TeamFour].SavePresetCopy(writer);
+		writer.NewPropertyWithPresetReference("Team4Icon", &m_TeamIcons[Activity::TeamFour]);
 	}
 
 	writer.NewPropertyWithValue("CurrentRound", m_CurrentRound);
@@ -300,6 +296,8 @@ int MetaMan::Save(Writer& writer) const {
 
 	return 0;
 }
+template int MetaMan::WriteTo(IniWriter& writer) const;
+template int MetaMan::WriteTo(HashWriter& writer) const;
 
 void MetaMan::Destroy() {
 	delete m_pMetaGUI;

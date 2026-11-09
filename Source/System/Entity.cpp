@@ -1,7 +1,10 @@
 #include "Entity.h"
+
 #include "RTETools.h"
 #include "PresetMan.h"
 #include "DataModule.h"
+
+#include <sstream>
 
 namespace RTE {
 
@@ -60,17 +63,31 @@ namespace RTE {
 				}
 			}
 		});
-		MatchForwards("PresetName") MatchProperty("InstanceName", {
+		MatchProperty("PresetName", {
 			SetPresetName(reader.ReadPropValue());
-			// Preset name might have "[ModuleName]/" preceding it, detect it here and select proper module!
+
+			// Indicate where this was read from.
+			m_DefinedInModule = reader.GetReadModuleID();
+
+			// Preset name might have "[ModuleName]/" preceding it. It's deliberately ignored: a module can't define presets in another one, tempting as it is to let modules patch each other.
 			size_t slashPos = m_PresetName.find_first_of('/');
 			if (slashPos != std::string::npos) {
 				m_PresetName = m_PresetName.substr(slashPos + 1);
 			}
-			// Mark this so that the derived class knows it should be added to the PresetMan when it's done reading all properties.
-			m_IsOriginalPreset = true;
+		});
+		MatchProperty("InstanceName", {
+			// Set this directly so that SetPresetName doesn't confuse that we're an orignal preset.
+			// This names something that is a copy of a preset, without making it a preset or needing one to refer to.
+			m_PresetName = reader.ReadPropValue();
+
 			// Indicate where this was read from
 			m_DefinedInModule = reader.GetReadModuleID();
+
+			// Preset name might have "[ModuleName]/" preceding it. It's deliberately ignored: a module can't define presets in another one, tempting as it is to let modules patch each other.
+			int slashPos = m_PresetName.find_first_of('/');
+			if (slashPos != std::string::npos) {
+				m_PresetName = m_PresetName.substr(slashPos + 1);
+			}
 		});
 		MatchProperty("Description", {
 			std::string descriptionValue = reader.ReadPropValue();
@@ -90,6 +107,10 @@ namespace RTE {
 			reader >> m_RandomWeight;
 			m_RandomWeight = Limit(m_RandomWeight, 100, 0);
 		});
+		MatchProperty("_ClearGroups", {
+			reader.ReadPropValue();
+			m_Groups.clear();
+		});
 		MatchProperty("AddToGroup", {
 			std::string newGroup;
 			reader >> newGroup;
@@ -97,49 +118,64 @@ namespace RTE {
 			// Do this in AddToGroup instead?
 			g_PresetMan.RegisterGroup(newGroup, reader.GetReadModuleID());
 		});
+		MatchProperty("_RemoveFromGroup", {
+			std::string oldGroup;
+			reader >> oldGroup;
+			RemoveFromGroup(oldGroup);
+			// Don't need to unregister group or anything.
+		});
 
 		EndPropertyList;
 	}
 
-	int Entity::Save(Writer& writer) const {
-		Serializable::Save(writer);
+	/// Writes a description in the form it's read. A property's value can only be one line, so anything longer is written as MultiLineText.
+	/// @param writer The writer to write the description with.
+	/// @param description The description to write.
+	template <typename WriterType> static void WriteDescription(WriterType& writer, const std::string& description) {
+		if (description.find('\n') == std::string::npos) {
+			writer.NewPropertyWithValue("Description", description);
+			return;
+		}
 
-		// Is an original preset definition
-		if (m_IsOriginalPreset) {
-			writer.NewPropertyWithValue("PresetName", m_PresetName);
+		writer.NewProperty("Description");
+		writer.ObjectStart("MultiLineText");
 
-			if (!m_PresetDescription.empty()) {
-				writer.NewPropertyWithValue("Description", m_PresetDescription);
+		std::istringstream lines(description);
+		std::string line;
+
+		while (std::getline(lines, line)) {
+			if (!line.empty()) {
+				writer.NewPropertyWithValue("AddLine", line);
 			}
-			// Only write out a copy reference if there is one
-		} else if (!m_PresetName.empty() && m_PresetName != "None") {
-			writer.NewPropertyWithValue("CopyOf", GetModuleAndPresetName());
 		}
 
-		// TODO: Make proper save system that knows not to save redundant data!
-		/*
-		for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {
-		    writer.NewPropertyWithValue("AddToGroup", *itr);
-		}
-		*/
-		return 0;
-	}
-
-	int Entity::SavePresetCopy(Writer& writer) const {
-		// Can only save out copies with this
-		if (m_IsOriginalPreset) {
-			RTEAbort("Tried to save out a pure Preset Copy Reference from an original Preset!");
-			return -1;
-		}
-		writer.ObjectStart(GetClassName());
-		writer.NewPropertyWithValue("CopyOf", GetModuleAndPresetName());
 		writer.ObjectEnd();
+	}
+
+	template <typename WriterType> int Entity::WriteTo(WriterType& writer) const {
+		Serializable::WriteTo(writer);
+
+		writer.WriteIdentity();
+
+		if (writer.IsDistinct(&Entity::m_PresetDescription)) {
+			WriteDescription(writer, m_PresetDescription);
+		}
+
+		writer.NewDistinctCollection("_ClearGroups", "AddToGroup", &Entity::m_Groups);
+
+		writer.NewDistinctProperty("RandomWeight", &Entity::m_RandomWeight);
 
 		return 0;
 	}
+	template int Entity::WriteTo(IniWriter& writer) const;
+	template int Entity::WriteTo(HashWriter& writer) const;
 
 	const Entity* Entity::GetPreset() const {
 		return g_PresetMan.GetEntityPreset(GetClassName(), GetPresetName(), m_DefinedInModule);
+	}
+
+	std::string Entity::GetEntityCharacteristic() const {
+		return GetClassName() + "/" + GetModuleAndPresetName();
 	}
 
 	std::string Entity::GetModuleAndPresetName() const {
@@ -314,7 +350,7 @@ namespace RTE {
 		return m_InstancesInUse;
 	}
 
-	void Entity::ClassInfo::DumpPoolMemoryInfo(const Writer& fileWriter) {
+	void Entity::ClassInfo::DumpPoolMemoryInfo(const IniWriter& fileWriter) {
 		for (const ClassInfo* itr = s_ClassHead; itr != nullptr; itr = itr->m_NextClass) {
 			if (itr->IsConcrete()) {
 				fileWriter.NewLineString(itr->GetName() + ": " + std::to_string(itr->m_InstancesInUse), false);

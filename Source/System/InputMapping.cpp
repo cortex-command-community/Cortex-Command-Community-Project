@@ -43,8 +43,8 @@ int InputMapping::ReadProperty(const std::string_view& propName, Reader& reader)
 	EndPropertyList;
 }
 
-int InputMapping::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int InputMapping::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
 	if (m_JoyButtonMap < 0 || !m_DirectionMapped) {
 		writer.NewPropertyWithValue("KeyMap", m_KeyMap);
@@ -53,6 +53,7 @@ int InputMapping::Save(Writer& writer) const {
 	if (m_MouseButtonMap >= 0) {
 		writer.NewPropertyWithValue("MouseButtonMap", m_MouseButtonMap);
 	}
+
 	if (m_JoyButtonMap >= 0) {
 		writer.NewPropertyWithValue("JoyButtonMap", m_JoyButtonMap);
 	}
@@ -64,3 +65,6 @@ int InputMapping::Save(Writer& writer) const {
 
 	return 0;
 }
+template int InputMapping::WriteTo(IniWriter& writer) const;
+template int InputMapping::WriteTo(HashWriter& writer) const;
+

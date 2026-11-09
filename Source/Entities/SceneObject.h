@@ -18,7 +18,7 @@ namespace RTE {
 
 		/// Public member variable, method and friend function declarations
 	public:
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		/// Enumeration for the different buyable modes of this SceneObject.

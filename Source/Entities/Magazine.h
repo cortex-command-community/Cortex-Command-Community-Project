@@ -18,7 +18,7 @@ namespace RTE {
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(Magazine);
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a Magazine object in system

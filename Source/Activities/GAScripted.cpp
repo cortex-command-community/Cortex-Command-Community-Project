@@ -94,8 +94,20 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("LuaClassName", {
 		reader >> m_LuaClassName;
 	});
+
+	MatchProperty("_ClearPieSlices", {
+		reader.ReadPropValue();
+		m_PieSlicesToAdd.clear();
+	});
 	MatchProperty("AddPieSlice", {
-		m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader))));
+		if (PieSlice* pieSlice = g_PresetMan.ReadReflectedPresetOfType<PieSlice>(reader, propName)) {
+			m_PieSlicesToAdd.emplace_back(std::unique_ptr<PieSlice>(pieSlice));
+		}
+	});
+
+	MatchProperty("_ClearRequiredAreas", {
+		reader.ReadPropValue();
+		m_RequiredAreas.clear();
 	});
 	MatchProperty("AddRequiredArea", {
 		std::string requiredArea;
@@ -106,25 +118,19 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int GAScripted::Save(Writer& writer) const {
-	// Hmm. We should probably be calling this prior to the writer Save, instead of const-casting.
-	const_cast<GAScripted*>(this)->RunLuaFunction("OnSave");
+template <typename WriterType> int GAScripted::WriteTo(WriterType& writer) const {
+	GameActivity::WriteTo(writer);
 
-	GameActivity::Save(writer);
+	writer.NewDistinctProperty("ScriptPath", &GAScripted::m_ScriptPath);
+	writer.NewDistinctProperty("LuaClassName", &GAScripted::m_LuaClassName);
+	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", &GAScripted::m_PieSlicesToAdd);
 
-	writer.NewPropertyWithValue("ScriptPath", m_ScriptPath);
-	writer.NewPropertyWithValue("LuaClassName", m_LuaClassName);
-
-	for (const std::unique_ptr<PieSlice>& pieSliceToAdd: m_PieSlicesToAdd) {
-		writer.NewPropertyWithValue("AddPieSlice", pieSliceToAdd.get());
-	}
-
-	for (const std::string& requiredArea: m_RequiredAreas) {
-		writer.NewPropertyWithValue("AddRequiredArea", requiredArea);
-	}
+	writer.NewDistinctCollection("_ClearRequiredAreas", "AddRequiredArea", &GAScripted::m_RequiredAreas);
 
 	return 0;
 }
+template int GAScripted::WriteTo(IniWriter& writer) const;
+template int GAScripted::WriteTo(HashWriter& writer) const;
 
 void GAScripted::Destroy(bool notInherited) {
 	// Delete global scripts

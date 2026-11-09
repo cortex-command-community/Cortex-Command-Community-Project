@@ -31,7 +31,7 @@ namespace RTE {
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(AssemblyEditor);
-		SerializableOverrideMethods;
+		int ReadProperty(const std::string_view& propName, Reader& reader) override;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a AssemblyEditor object in system

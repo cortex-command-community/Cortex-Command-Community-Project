@@ -830,7 +830,9 @@
     <ClInclude Include="Source\System\System.h" />
     <ClInclude Include="Source\System\Timer.h" />
     <ClInclude Include="Source\System\Vector.h" />
-    <ClInclude Include="Source\System\Writer.h" />
+    <ClInclude Include="Source\System\PropertyWriter.h" />
+    <ClInclude Include="Source\System\IniWriter.h" />
+    <ClInclude Include="Source\System\HashWriter.h" />
     <ClInclude Include="Source\System\MicroPather\micropather.h" />
     <ClInclude Include="Source\Renderer\raylib\raylib.h" />
     <ClInclude Include="Source\Renderer\raylib\rlconfig.h" />
@@ -1366,7 +1368,8 @@
     <ClCompile Include="Source\System\System.cpp" />
     <ClCompile Include="Source\System\Timer.cpp" />
     <ClCompile Include="Source\System\Vector.cpp" />
-    <ClCompile Include="Source\System\Writer.cpp" />
+    <ClCompile Include="Source\System\IniWriter.cpp" />
+    <ClCompile Include="Source\System\HashWriter.cpp" />
     <ClCompile Include="Source\Managers\AchievementMan.cpp" />
     <ClCompile Include="Source\Managers\ActivityMan.cpp" />
     <ClCompile Include="Source\Managers\AudioMan.cpp" />

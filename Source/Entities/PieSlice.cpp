@@ -101,7 +101,7 @@ int PieSlice::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("CanBeMiddleSlice", { reader >> m_CanBeMiddleSlice; });
 	MatchProperty("Enabled", { reader >> m_Enabled; });
-	MatchProperty("Icon", { SetIcon(dynamic_cast<Icon*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Icon", { SetIcon(g_PresetMan.ReadReflectedPresetOfType<Icon>(reader, propName)); });
 	MatchProperty("ScriptPath", {
 		std::string scriptPath;
 		reader >> scriptPath;
@@ -116,35 +116,35 @@ int PieSlice::ReadProperty(const std::string_view& propName, Reader& reader) {
 			ReloadScripts();
 		}
 	});
-	MatchProperty("SubPieMenu", { SetSubPieMenu(dynamic_cast<PieMenu*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("SubPieMenu", { SetSubPieMenu(g_PresetMan.ReadReflectedPresetOfType<PieMenu>(reader, propName)); });
 	MatchProperty("DrawFlippedToMatchAbsoluteAngle", { reader >> m_DrawFlippedToMatchAbsoluteAngle; });
 
 	EndPropertyList;
 }
 
-int PieSlice::Save(Writer& writer) const {
-	Entity::Save(writer);
+template <typename WriterType> int PieSlice::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
 
-	if (m_Type != PieSliceType::NoType) {
-		writer.NewPropertyWithValue("Type", static_cast<int>(m_Type));
-	}
-	if (m_Direction != Directions::Any) {
-		writer.NewPropertyWithValue("Direction", static_cast<int>(m_Direction));
-	}
-	if (!m_Enabled) {
-		writer.NewPropertyWithValue("Enabled", m_Enabled);
-	}
-	writer.NewPropertyWithValue("Icon", m_Icon.get());
+	writer.NewDistinctProperty("Type", [](const PieSlice& object) { return static_cast<int>(object.m_Type); });
+	writer.NewDistinctProperty("Direction", [](const PieSlice& object) { return static_cast<int>(object.m_Direction); });
+
+	writer.NewDistinctProperty("Enabled", &PieSlice::m_Enabled);
+	writer.NewEntityPointerProperty("Icon", &PieSlice::m_Icon);
+
 	if (m_LuabindFunctionObject && !m_FunctionName.empty()) {
 		writer.NewPropertyWithValue("ScriptPath", m_LuabindFunctionObject->GetFilePath());
 		writer.NewPropertyWithValue("FunctionName", m_FunctionName);
 	}
-	if (m_SubPieMenu) {
-		writer.NewPropertyWithValue("SubPieMenu", m_SubPieMenu.get());
-	}
+
+	writer.NewOptionalEntityPointerProperty("SubPieMenu", &PieSlice::m_SubPieMenu);
+
+	writer.NewDistinctProperty("CanBeMiddleSlice", &PieSlice::m_CanBeMiddleSlice);
+	writer.NewDistinctProperty("DrawFlippedToMatchAbsoluteAngle", &PieSlice::m_DrawFlippedToMatchAbsoluteAngle);
 
 	return 0;
 }
+template int PieSlice::WriteTo(IniWriter& writer) const;
+template int PieSlice::WriteTo(HashWriter& writer) const;
 
 BITMAP* PieSlice::GetAppropriateIcon(bool sliceIsSelected) const {
 	if (int iconFrameCount = m_Icon->GetFrameCount(); iconFrameCount > 0) {

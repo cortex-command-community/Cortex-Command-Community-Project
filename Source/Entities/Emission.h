@@ -17,7 +17,7 @@ namespace RTE {
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(Emission);
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a Emission object in system

@@ -15,11 +15,13 @@ int Vector::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Vector::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int Vector::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
 	writer.NewPropertyWithValue("X", m_X);
 	writer.NewPropertyWithValue("Y", m_Y);
 
 	return 0;
 }
+template int Vector::WriteTo(IniWriter& writer) const;
+template int Vector::WriteTo(HashWriter& writer) const;

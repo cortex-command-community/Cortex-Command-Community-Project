@@ -77,7 +77,7 @@ int SettingsMan::Initialize() {
 	Reader settingsReader(m_SettingsPath, false, nullptr, true, true);
 
 	if (!settingsReader.ReaderOK()) {
-		Writer settingsWriter(m_SettingsPath);
+		IniWriter settingsWriter(m_SettingsPath);
 		RTEAssert(settingsWriter.WriterOK(), "After failing to open the " + m_SettingsPath + ", could not then even create a new one to save settings to!\nAre you trying to run the game from a read-only disk?\nYou need to install the game to a writable area before running it!");
 
 		// Settings file doesn't need to be populated with anything right now besides this manager's ClassName for serialization. It will be overwritten with the full list of settings with default values from all the managers before modules start loading.
@@ -101,8 +101,8 @@ int SettingsMan::Initialize() {
 }
 
 void SettingsMan::UpdateSettingsFile() const {
-	Writer settingsWriter(m_SettingsPath);
-	g_SettingsMan.Save(settingsWriter);
+	IniWriter settingsWriter(m_SettingsPath);
+	settingsWriter.WriteObject(g_SettingsMan);
 }
 
 int SettingsMan::GetNumberOfLuaStatesOverride() const {
@@ -150,7 +150,7 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("UnheldItemsHUDDisplayRange", { SetUnheldItemsHUDDisplayRange(std::stof(reader.ReadPropValue())); });
 	MatchProperty("AlwaysDisplayUnheldItemsInStrategicMode", { reader >> m_AlwaysDisplayUnheldItemsInStrategicMode; });
 	MatchProperty("SubPieMenuHoverOpenDelay", { reader >> m_SubPieMenuHoverOpenDelay; });
-	MatchProperty("EndlessMode", { reader >> m_EndlessMetaGameMode; });
+	MatchForwards("EndlessMode") MatchProperty("EndlessMetaGameMode", { reader >> m_EndlessMetaGameMode; });
 	MatchProperty("EnableCrabBombs", { reader >> m_EnableCrabBombs; });
 	MatchProperty("CrabBombThreshold", { reader >> m_CrabBombThreshold; });
 	MatchProperty("ShowEnemyHUD", { reader >> m_ShowEnemyHUD; });
@@ -224,8 +224,8 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	EndPropertyList;
 }
 
-int SettingsMan::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int SettingsMan::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
 	writer.NewDivider(false);
 	writer.NewLineString("// Display Settings", false);
@@ -408,10 +408,12 @@ int SettingsMan::Save(Writer& writer) const {
 		writer.NewDivider(false);
 		writer.NewLineString("// Player " + playerNum, false);
 		writer.NewLine(false);
-		writer.NewPropertyWithValue("Player" + playerNum + "Scheme", g_UInputMan.m_ControlScheme[player]);
+		writer.NewPropertyWithValue(PropName("Player" + playerNum + "Scheme"), g_UInputMan.m_ControlScheme[player]);
 	}
 
 	writer.ObjectEnd();
 
 	return 0;
 }
+template int SettingsMan::WriteTo(IniWriter& writer) const;
+template int SettingsMan::WriteTo(HashWriter& writer) const;

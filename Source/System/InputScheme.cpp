@@ -77,8 +77,8 @@ int InputScheme::ReadProperty(const std::string_view& propName, Reader& reader) 
 	EndPropertyList;
 }
 
-int InputScheme::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int InputScheme::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
 	writer.NewPropertyWithValue("Device", m_ActiveDevice);
 	writer.NewPropertyWithValue("Preset", m_SchemePreset);
@@ -126,6 +126,8 @@ int InputScheme::Save(Writer& writer) const {
 
 	return 0;
 }
+template int InputScheme::WriteTo(IniWriter& writer) const;
+template int InputScheme::WriteTo(HashWriter& writer) const;
 
 void InputScheme::ResetToPlayerDefaults(Players player) {
 	switch (player) {

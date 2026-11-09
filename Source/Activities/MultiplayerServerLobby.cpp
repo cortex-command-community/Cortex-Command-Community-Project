@@ -117,11 +117,6 @@ int MultiplayerServerLobby::ReadProperty(const std::string_view& propName, Reade
 	return Activity::ReadProperty(propName, reader);
 }
 
-int MultiplayerServerLobby::Save(Writer& writer) const {
-	Activity::Save(writer);
-	return 0;
-}
-
 void MultiplayerServerLobby::Destroy(bool notInherited) {
 	delete m_pGUIController;
 	delete m_pGUIInput;

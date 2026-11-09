@@ -100,26 +100,29 @@ int Material::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Material::Save(Writer& writer) const {
-	Entity::Save(writer);
-	// Materials should never be altered, so no point in saving additional properties when it's a copy
-	if (m_IsOriginalPreset) {
-		writer.NewPropertyWithValue("Priority", m_Priority);
-		writer.NewPropertyWithValue("Piling", m_Piling);
-		writer.NewPropertyWithValue("StructuralIntegrity", m_Integrity);
-		writer.NewPropertyWithValue("Restitution", m_Restitution);
-		writer.NewPropertyWithValue("Friction", m_Friction);
-		writer.NewPropertyWithValue("Stickiness", m_Stickiness);
-		writer.NewPropertyWithValue("DensityKGPerVolumeL", m_VolumeDensity);
-		writer.NewPropertyWithValue("GibImpulseLimitPerVolumeL", m_GibImpulseLimitPerLiter);
-		writer.NewPropertyWithValue("GibWoundLimitPerVolumeL", m_GibWoundLimitPerLiter);
-		writer.NewPropertyWithValue("SettleMaterial", m_SettleMaterialIndex);
-		writer.NewPropertyWithValue("SpawnMaterial", m_SpawnMaterialIndex);
-		writer.NewPropertyWithValue("IsScrap", m_IsScrap);
-		writer.NewPropertyWithValue("Color", m_Color);
-		writer.NewPropertyWithValue("UseOwnColor", m_UseOwnColor);
-		writer.NewPropertyWithValue("FGTextureFile", m_FGTextureFile);
-		writer.NewPropertyWithValue("BGTextureFile", m_BGTextureFile);
-	}
+template <typename WriterType> int Material::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("Priority", &Material::m_Priority);
+	writer.NewDistinctProperty("Piling", &Material::m_Piling);
+	writer.NewDistinctProperty("StructuralIntegrity", &Material::m_Integrity);
+	writer.NewDistinctProperty("Restitution", &Material::m_Restitution);
+	writer.NewDistinctProperty("Friction", &Material::m_Friction);
+	writer.NewDistinctProperty("Stickiness", &Material::m_Stickiness);
+	writer.NewDistinctProperty("DensityKGPerVolumeL", &Material::m_VolumeDensity);
+	writer.NewDistinctProperty("GibImpulseLimitPerVolumeL", &Material::m_GibImpulseLimitPerLiter);
+	writer.NewDistinctProperty("GibWoundLimitPerVolumeL", &Material::m_GibWoundLimitPerLiter);
+	writer.NewDistinctProperty("SettleMaterial", &Material::m_SettleMaterialIndex);
+	writer.NewDistinctProperty("SpawnMaterial", &Material::m_SpawnMaterialIndex);
+	writer.NewDistinctProperty("IsScrap", &Material::m_IsScrap);
+	writer.NewDistinctProperty("Color", &Material::m_Color);
+	writer.NewDistinctProperty("UseOwnColor", &Material::m_UseOwnColor);
+	writer.NewDistinctProperty("FGTextureFile", &Material::m_FGTextureFile);
+	writer.NewDistinctProperty("BGTextureFile", &Material::m_BGTextureFile);
+
+	writer.NewDistinctProperty("Index", &Material::m_Index);
+
 	return 0;
 }
+template int Material::WriteTo(IniWriter& writer) const;
+template int Material::WriteTo(HashWriter& writer) const;

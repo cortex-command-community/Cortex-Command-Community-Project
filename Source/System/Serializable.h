@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Reader.h"
-#include "Writer.h"
+#include "IniWriter.h"
+#include "HashWriter.h"
 
 #include <string>
 #include <filesystem>
@@ -14,10 +15,13 @@ namespace RTE {
 
 	public:
 #pragma region Global Macro Definitions
-/// Convenience macro to cut down on duplicate ReadProperty and Save methods in classes that extend Serializable.
+	/// Convenience macro to cut down on duplicate ReadProperty and Write methods in classes that extend Serializable.
+	/// There's a Write for each writer, which all run the one WriteTo. WriteTo is defined in the class's .cpp file, and instantiated there for each writer.
 #define SerializableOverrideMethods \
 	int ReadProperty(const std::string_view& propName, Reader& reader) override; \
-	int Save(Writer& writer) const override;
+	int Write(IniWriter& writer) const override { return WriteTo(writer); } \
+	int Write(HashWriter& writer) const override { return WriteTo(writer); } \
+	template <typename WriterType> int WriteTo(WriterType& writer) const;
 
 /// Convenience macro to cut down on duplicate GetClassName methods in non-poolable classes that extend Serializable.
 #define SerializableClassNameGetter \
@@ -108,10 +112,17 @@ namespace RTE {
 		/// 0 means it was read successfully, and any nonzero indicates that a property of that name could not be found in this or base classes.
 		virtual int ReadProperty(const std::string_view& propName, Reader& reader);
 
-		/// Saves the complete state of this Serializable to an output stream for later recreation with Create(istream &stream).
-		/// @param writer A Writer that the Serializable will save itself to.
+		/// Writes this Serializable with a writer, through WriteTo. Each class overrides these with SerializableOverrideMethods.
+		/// @param writer The writer to write this with, which has this as its current object.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		virtual int Save(Writer& writer) const {
+		virtual int Write(IniWriter& writer) const { return WriteTo(writer); }
+		virtual int Write(HashWriter& writer) const { return WriteTo(writer); }
+
+		/// Writes every property of this Serializable with a writer, which decides what writing each one means: IniWriter writes what differs from the reference, HashWriter hashes everything.
+		/// A class's WriteTo writes its parent's first, then its own properties.
+		/// @param writer The writer to write this with, which has this as its current object.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		template <typename WriterType> int WriteTo(WriterType& writer) const {
 			writer.ObjectStart(GetClassName());
 			return 0;
 		}
@@ -142,18 +153,6 @@ namespace RTE {
 		/// @param operand An Serializable pointer as the right hand side operand.
 		/// @return A Reader reference for further use in an expression.
 		friend Reader& operator>>(Reader& reader, Serializable* operand);
-
-		/// A Writer insertion operator for sending a Serializable to a Writer.
-		/// @param writer A Writer reference as the left hand side operand.
-		/// @param operand A Serializable reference as the right hand side operand.
-		/// @return A Writer reference for further use in an expression.
-		friend Writer& operator<<(Writer& writer, const Serializable& operand);
-
-		/// A Writer insertion operator for sending a Serializable to a Writer.
-		/// @param writer A Writer reference as the left hand side operand.
-		/// @param operand A Serializable pointer as the right hand side operand.
-		/// @return A Writer reference for further use in an expression.
-		friend Writer& operator<<(Writer& writer, const Serializable* operand);
 #pragma endregion
 
 #pragma region Class Info

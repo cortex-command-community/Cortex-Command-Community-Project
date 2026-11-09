@@ -89,22 +89,19 @@ int MOPixel::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int MOPixel::Save(Writer& writer) const {
-	MovableObject::Save(writer);
+template <typename WriterType> int MOPixel::WriteTo(WriterType& writer) const {
+	MovableObject::WriteTo(writer);
 
-	writer.NewProperty("Atom");
-	writer << m_Atom;
-	writer.NewProperty("Color");
-	writer << m_Color;
-	writer.NewProperty("MinLethalRange");
-	writer << m_MinLethalRange;
-	writer.NewProperty("MaxLethalRange");
-	writer << m_MaxLethalRange;
-	writer.NewProperty("Staininess");
-	writer << m_Staininess;
+	writer.NewEntityPointerProperty("Atom", &MOPixel::m_Atom);
+	writer.NewDistinctProperty("Color", &MOPixel::m_Color);
+	writer.NewDistinctProperty("MinLethalRange", &MOPixel::m_MinLethalRange);
+	writer.NewDistinctProperty("MaxLethalRange", &MOPixel::m_MaxLethalRange);
+	writer.NewDistinctProperty("Staininess", &MOPixel::m_Staininess);
 
 	return 0;
 }
+template int MOPixel::WriteTo(IniWriter& writer) const;
+template int MOPixel::WriteTo(HashWriter& writer) const;
 
 void MOPixel::Destroy(bool notInherited) {
 	delete m_Atom;

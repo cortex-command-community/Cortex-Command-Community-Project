@@ -165,18 +165,28 @@ int Atom::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Atom::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int Atom::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
-	writer.NewPropertyWithValue("Offset", m_Offset);
-	writer.NewPropertyWithValue("OriginalOffset", m_OriginalOffset);
-	writer.NewPropertyWithValue("Material", m_Material);
-	writer.NewPropertyWithValue("TrailColor", m_TrailColor);
-	writer.NewPropertyWithValue("TrailLength", m_TrailLength);
-	writer.NewPropertyWithValue("TrailLengthVariation", m_TrailLengthVariation);
+	if (!m_Offset.IsZero())
+		writer.NewPropertyWithValue("Offset", m_Offset);
+	if (!m_OriginalOffset.IsZero())
+		writer.NewPropertyWithValue("OriginalOffset", m_OriginalOffset);
+	if (m_Material != nullptr)
+		writer.NewPropertyWithValue("Material", m_Material);
+	if (m_TrailColor.GetR() != 0 || m_TrailColor.GetG() != 0 || m_TrailColor.GetB() != 0)
+		writer.NewPropertyWithValue("TrailColor", m_TrailColor);
+	if (m_TrailLength != 0) {
+		writer.NewPropertyWithValue("TrailLength", m_TrailLength);
+	}
+	if (m_TrailLengthVariation != 0.0F) {
+		writer.NewPropertyWithValue("TrailLengthVariation", m_TrailLengthVariation);
+	}
 
 	return 0;
 }
+template int Atom::WriteTo(IniWriter& writer) const;
+template int Atom::WriteTo(HashWriter& writer) const;
 
 void* Atom::GetPoolMemory() {
 	std::lock_guard<std::mutex> guard(s_MemoryPoolMutex);

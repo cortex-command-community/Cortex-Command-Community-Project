@@ -100,15 +100,30 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 		m_BGColorLayer->SetZOrder(c_TerrainBGDepth);
 		reader >> m_BGColorLayer.get();
 	});
+	MatchProperty("_ClearTerrainFrostings", {
+		reader.ReadPropValue();
+		// Not deleted: a copied SLTerrain shares these with what it was copied from, see Create(reference).
+		m_TerrainFrostings.clear();
+	});
 	MatchProperty("AddTerrainFrosting", {
 		std::unique_ptr<TerrainFrosting> terrainFrosting = std::make_unique<TerrainFrosting>();
 		reader >> terrainFrosting.get();
 		m_TerrainFrostings.emplace_back(terrainFrosting.release());
 	});
+	MatchProperty("_ClearTerrainDebris", {
+		reader.ReadPropValue();
+		// Not deleted: a copied SLTerrain shares these with what it was copied from, see Create(reference).
+		m_TerrainDebris.clear();
+	});
 	MatchProperty("AddTerrainDebris", {
 		std::unique_ptr<TerrainDebris> terrainDebris = std::make_unique<TerrainDebris>();
 		reader >> terrainDebris.get();
 		m_TerrainDebris.emplace_back(terrainDebris.release());
+	});
+	MatchProperty("_ClearTerrainObjects", {
+		reader.ReadPropValue();
+		// Not deleted: a copied SLTerrain shares these with what it was copied from, see Create(reference).
+		m_TerrainObjects.clear();
 	});
 	MatchProperty("PlaceTerrainObject", {
 		std::unique_ptr<TerrainObject> terrainObject = std::make_unique<TerrainObject>();
@@ -134,38 +149,12 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int SLTerrain::Save(Writer& writer) const {
-	SceneLayer::Save(writer);
-
-	// Only write the background texture info if the background itself is not saved out as a file already, since saved, pre-rendered bitmaps don't need texturing.
-	if (m_BGColorLayer->IsLoadedFromDisk()) {
-		writer.NewPropertyWithValue("BGColorLayer", m_BGColorLayer.get());
-	} else {
-		writer.NewPropertyWithValue("BackgroundTexture", m_DefaultBGTextureFile);
-	}
-
-	// Only write the procedural parameters if the foreground itself is not saved out as a file already, since saved, pre-rendered bitmaps don't need procedural generation.
-	if (m_FGColorLayer->IsLoadedFromDisk()) {
-		writer.NewPropertyWithValue("FGColorLayer", m_FGColorLayer.get());
-	} else {
-		for (const TerrainFrosting* terrainFrosting: m_TerrainFrostings) {
-			writer.NewPropertyWithValue("AddTerrainFrosting", terrainFrosting);
-		}
-		for (const TerrainDebris* terrainDebris: m_TerrainDebris) {
-			writer.NewPropertyWithValue("AddTerrainDebris", terrainDebris);
-		}
-		for (const TerrainObject* terrainObject: m_TerrainObjects) {
-			// Write out only what is needed to place a copy of this in the Terrain
-			writer.NewProperty("PlaceTerrainObject");
-			writer.ObjectStart(terrainObject->GetClassName());
-			writer.NewPropertyWithValue("CopyOf", terrainObject->GetModuleAndPresetName());
-			writer.NewPropertyWithValue("Position", terrainObject->GetPos());
-			writer.ObjectEnd();
-		}
-	}
-
+/// Writes an orbit direction in the form it's read.
+/// @param writer The writer to write with.
+/// @param orbitDirection The direction to write.
+template <typename WriterType> static void WriteOrbitDirection(WriterType& writer, Directions orbitDirection) {
 	writer.NewProperty("OrbitDirection");
-	switch (m_OrbitDirection) {
+	switch (orbitDirection) {
 		default:
 		case Directions::Up:
 			writer << "Up";
@@ -180,9 +169,25 @@ int SLTerrain::Save(Writer& writer) const {
 			writer << "Right";
 			break;
 	}
+}
+
+template <typename WriterType> int SLTerrain::WriteTo(WriterType& writer) const {
+	SceneLayer::WriteTo(writer);
+
+	writer.NewDistinctProperty("BackgroundTexture", &SLTerrain::m_DefaultBGTextureFile);
+	writer.NewEntityPointerProperty("BGColorLayer", &SLTerrain::m_BGColorLayer);
+	writer.NewEntityPointerProperty("FGColorLayer", &SLTerrain::m_FGColorLayer);
+	writer.NewPointerSequence("_ClearTerrainFrostings", "AddTerrainFrosting", &SLTerrain::m_TerrainFrostings);
+	writer.NewPointerSequence("_ClearTerrainDebris", "AddTerrainDebris", &SLTerrain::m_TerrainDebris);
+	writer.NewPointerSequence("_ClearTerrainObjects", "PlaceTerrainObject", &SLTerrain::m_TerrainObjects);
+	if (writer.IsDistinct(&SLTerrain::m_OrbitDirection)) {
+		WriteOrbitDirection(writer, m_OrbitDirection);
+	}
 
 	return 0;
 }
+template int SLTerrain::WriteTo(IniWriter& writer) const;
+template int SLTerrain::WriteTo(HashWriter& writer) const;
 
 // TODO: Break this down and refactor.
 void SLTerrain::TexturizeTerrain() {

@@ -98,8 +98,8 @@ int MovableMan::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int MovableMan::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int MovableMan::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
 	writer << m_Actors.size();
 	for (std::deque<Actor*>::const_iterator itr = m_Actors.begin(); itr != m_Actors.end(); ++itr)
@@ -111,6 +111,8 @@ int MovableMan::Save(Writer& writer) const {
 
 	return 0;
 }
+template int MovableMan::WriteTo(IniWriter& writer) const;
+template int MovableMan::WriteTo(HashWriter& writer) const;
 
 void MovableMan::Destroy() {
 	for (std::deque<Actor*>::iterator it1 = m_Actors.begin(); it1 != m_Actors.end(); ++it1)

@@ -54,37 +54,41 @@ int SoundSet::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int SoundSet::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int SoundSet::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
-	writer.NewProperty("SoundSelectionCycleMode");
-	SaveSoundSelectionCycleMode(writer, m_SoundSelectionCycleMode);
+	if (m_SoundSelectionCycleMode != SoundSelectionCycleMode::RANDOM) {
+		writer.NewProperty("SoundSelectionCycleMode");
+		SaveSoundSelectionCycleMode(writer, m_SoundSelectionCycleMode);
+	}
 
 	for (const SoundData& soundData: m_SoundData) {
 		writer.NewProperty("AddSound");
 		writer.ObjectStart("ContentFile");
 
-		writer.NewProperty("FilePath");
-		writer << soundData.SoundFile.GetDataPath();
-		writer.NewProperty("Offset");
-		writer << soundData.Offset;
-		writer.NewProperty("MinimumAudibleDistance");
-		writer << soundData.MinimumAudibleDistance;
-		writer.NewProperty("AttenuationStartDistance");
-		writer << soundData.AttenuationStartDistance;
+		writer.NewPropertyWithValue("FilePath", soundData.SoundFile.GetDataPath());
+
+		if (!soundData.Offset.IsZero())
+			writer.NewPropertyWithValue("Offset", soundData.Offset);
+
+		if (soundData.MinimumAudibleDistance != 0.0F) {
+			writer.NewPropertyWithValue("MinimumAudibleDistance", soundData.MinimumAudibleDistance);
+		}
+		if (soundData.AttenuationStartDistance != -1.0F) {
+			writer.NewPropertyWithValue("AttenuationStartDistance", soundData.AttenuationStartDistance);
+		}
 
 		writer.ObjectEnd();
 	}
 
 	for (const SoundSet* subSoundSet: m_SubSoundSets) {
-		writer.NewProperty("AddSoundSet");
-		writer.ObjectStart("SoundSet");
-		writer << *subSoundSet;
-		writer.ObjectEnd();
+		writer.NewPropertyWithValue("AddSoundSet", *subSoundSet);
 	}
 
 	return 0;
 }
+template int SoundSet::WriteTo(IniWriter& writer) const;
+template int SoundSet::WriteTo(HashWriter& writer) const;
 
 void SoundSet::Destroy() {
 	for (const SoundSet* subSoundSet: m_SubSoundSets) {
@@ -160,7 +164,7 @@ SoundSet::SoundSelectionCycleMode SoundSet::ReadSoundSelectionCycleMode(Reader& 
 	return soundSelectionCycleModeToReturn;
 }
 
-void SoundSet::SaveSoundSelectionCycleMode(Writer& writer, SoundSelectionCycleMode soundSelectionCycleMode) {
+template <typename WriterType> void SoundSet::SaveSoundSelectionCycleMode(WriterType& writer, SoundSelectionCycleMode soundSelectionCycleMode) {
 	auto cycleModeMapEntry = std::find_if(c_SoundSelectionCycleModeMap.begin(), c_SoundSelectionCycleModeMap.end(), [&soundSelectionCycleMode = soundSelectionCycleMode](auto element) { return element.second == soundSelectionCycleMode; });
 	if (cycleModeMapEntry != c_SoundSelectionCycleModeMap.end()) {
 		writer << cycleModeMapEntry->first;

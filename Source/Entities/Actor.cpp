@@ -270,7 +270,9 @@ int Actor::Create(const Actor& reference) {
 	m_pMOMoveTarget = reference.m_pMOMoveTarget;
 	m_PrevPathTarget = reference.m_PrevPathTarget;
 	m_MoveVector = reference.m_MoveVector;
-	m_MovePath.clear();
+	// Saving works from a copy, and this is the only record of where it's going once a waypoint is under way.
+	m_MovePath = reference.m_MovePath;
+	m_PathRequest = reference.m_PathRequest;
 	m_UpdateMovePath = reference.m_UpdateMovePath;
 	m_MoveProximityLimit = reference.m_MoveProximityLimit;
 	m_AIBaseDigStrength = reference.m_AIBaseDigStrength;
@@ -293,43 +295,42 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 	MatchProperty("PlayerControllable", { reader >> m_PlayerControllable; });
 	MatchProperty("BodyHitSound", {
-		m_BodyHitSound = new SoundContainer;
-		reader >> m_BodyHitSound;
+		delete m_BodyHitSound;
+		m_BodyHitSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("AlarmSound", {
-		m_AlarmSound = new SoundContainer;
-		reader >> m_AlarmSound;
+		delete m_AlarmSound;
+		m_AlarmSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("PainSound", {
-		m_PainSound = new SoundContainer;
-		reader >> m_PainSound;
+		delete m_PainSound;
+		m_PainSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("DeathSound", {
-		m_DeathSound = new SoundContainer;
-		reader >> m_DeathSound;
+		delete m_DeathSound;
+		m_DeathSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("DeviceSwitchSound", {
-		m_DeviceSwitchSound = new SoundContainer;
-		reader >> m_DeviceSwitchSound;
+		delete m_DeviceSwitchSound;
+		m_DeviceSwitchSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("Status", { reader >> m_Status; });
 	MatchProperty("DeploymentID", { reader >> m_DeploymentID; });
 	MatchProperty("PassengerSlots", { reader >> m_PassengerSlots; });
-	MatchProperty("Health",
-	              {
-		              reader >> m_Health;
-		              m_PrevHealth = m_Health;
-		              if (m_Health > m_MaxHealth)
-			              m_MaxHealth = m_Health;
-	              });
-	MatchProperty("MaxHealth",
-	              {
-		              reader >> m_MaxHealth;
-		              if (m_MaxHealth < m_Health) {
-			              m_Health = m_MaxHealth;
-			              m_PrevHealth = m_Health;
-		              }
-	              });
+	MatchProperty("Health", {
+		reader >> m_Health;
+		m_PrevHealth = m_Health;
+		if (m_Health > m_MaxHealth) {
+			m_MaxHealth = m_Health;
+		}
+	});
+	MatchProperty("MaxHealth", {
+		reader >> m_MaxHealth;
+		if (m_MaxHealth < m_Health) {
+			m_Health = m_MaxHealth;
+			m_PrevHealth = m_Health;
+		}
+	});
 	MatchProperty("ImpulseDamageThreshold", { reader >> m_TravelImpulseDamage; });
 	MatchProperty("StableVelocityThreshold", { reader >> m_StableVel; });
 	MatchProperty("StableRecoveryDelay", { reader >> m_StableRecoverDelay; });
@@ -347,31 +348,35 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("CharHeight", { reader >> m_CharHeight; });
 	MatchProperty("HolsterOffset", { reader >> m_HolsterOffset; });
 	MatchProperty("ReloadOffset", { reader >> m_ReloadOffset; });
-	MatchForwards("AddInventoryDevice") MatchProperty("AddInventory",
-	                                                  {
-		                                                  MovableObject* pInvMO = dynamic_cast<MovableObject*>(g_PresetMan.ReadReflectedPreset(reader));
-		                                                  if (!pInvMO) {
-			                                                  reader.ReportError("Object added to inventory is broken.");
-		                                                  }
-		                                                  AddToInventoryBack(pInvMO);
-	                                                  });
+	MatchProperty("_ClearInventory", {
+		// Delete everything in the inventory, and then forget about it.
+		reader.ReadPropValue();
+		for (std::deque<MovableObject*>::const_iterator itr = m_Inventory.begin(); itr != m_Inventory.end(); ++itr) {
+			delete (*itr);
+		}
+		m_Inventory.clear();
+	});
+	MatchForwards("AddInventoryDevice") MatchProperty("AddInventory", {
+		if (MovableObject* inventoryItem = g_PresetMan.ReadReflectedPresetOfType<MovableObject>(reader, propName)) {
+			AddToInventoryBack(inventoryItem);
+		}
+	});
 	MatchProperty("MaxInventoryMass", { reader >> m_MaxInventoryMass; });
 	MatchProperty("AIMode", {
 		int mode;
 		reader >> mode;
 		m_AIMode = static_cast<AIMode>(mode);
 	});
-	MatchProperty("SpecialBehaviour_AddAISceneWaypoint", {
+	MatchForwards("SpecialBehaviour_AddAISceneWaypoint") MatchProperty("AddAISceneWaypoint", {
 		Vector waypointToAdd;
 		reader >> waypointToAdd;
 		AddAISceneWaypoint(waypointToAdd);
 	});
 	MatchProperty("PieMenu", {
-		m_PieMenu = std::unique_ptr<PieMenu>(dynamic_cast<PieMenu*>(g_PresetMan.ReadReflectedPreset(reader)));
-		if (!m_PieMenu) {
-			reader.ReportError("Failed to set Actor's pie menu. Doublecheck your name and everything is correct.");
+		m_PieMenu.reset(g_PresetMan.ReadReflectedPresetOfType<PieMenu>(reader, propName));
+		if (m_PieMenu) {
+			m_PieMenu->Create(this);
 		}
-		m_PieMenu->Create(this);
 	});
 	MatchProperty("Organic", { reader >> m_Organic; });
 	MatchProperty("Mechanical", { reader >> m_Mechanical; });
@@ -380,80 +385,79 @@ int Actor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Actor::Save(Writer& writer) const {
-	MOSRotating::Save(writer);
+Actor::AIMode Actor::GetAIModeToWrite() const {
+	// Who a squad is following can't be saved, only where they are, which makes following them the same as going there.
+	AIMode modeToWrite = m_AIMode == AIMODE_SQUAD ? AIMODE_GOTO : m_AIMode;
 
-	writer.NewPropertyWithValue("PlayerControllable", m_PlayerControllable);
-	writer.NewProperty("BodyHitSound");
-	writer << m_BodyHitSound;
-	writer.NewProperty("AlarmSound");
-	writer << m_AlarmSound;
-	writer.NewProperty("PainSound");
-	writer << m_PainSound;
-	writer.NewProperty("DeathSound");
-	writer << m_DeathSound;
-	writer.NewProperty("DeviceSwitchSound");
-	writer << m_DeviceSwitchSound;
-	writer.NewProperty("Status");
-	writer << m_Status;
-	writer.NewProperty("Health");
-	writer << m_Health;
-	writer.NewProperty("MaxHealth");
-	writer << m_MaxHealth;
-	if (m_DeploymentID) {
-		writer.NewProperty("DeploymentID");
-		writer << m_DeploymentID;
+	// With nowhere left to go, this is only standing by.
+	if (modeToWrite == AIMODE_GOTO && !m_pMOMoveTarget && m_Waypoints.empty() && m_MovePath.empty() && !m_PathRequest) {
+		modeToWrite = AIMODE_SENTRY;
 	}
-	writer.NewProperty("ImpulseDamageThreshold");
-	writer << m_TravelImpulseDamage;
-	writer.NewProperty("StableVelocityThreshold");
-	writer << m_StableVel;
-	writer.NewProperty("StableRecoveryDelay");
-	writer << m_StableRecoverDelay;
-	writer.NewProperty("CanRun");
-	writer << m_CanRun;
-	writer.NewProperty("CrouchWalkSpeedMultiplier");
-	writer << m_CrouchWalkSpeedMultiplier;
-	writer.NewProperty("GoldCarried");
-	writer << m_GoldCarried;
-	writer.NewProperty("AimAngle");
-	writer << m_AimAngle;
-	writer.NewProperty("AimRange");
-	writer << m_AimRange;
-	writer.NewProperty("AimDistance");
-	writer << m_AimDistance;
-	writer.NewProperty("SharpAimDelay");
-	writer << m_SharpAimDelay;
-	writer.NewProperty("SightDistance");
-	writer << m_SightDistance;
-	writer.NewProperty("Perceptiveness");
-	writer << m_Perceptiveness;
-	writer.NewProperty("PainThreshold");
-	writer << m_PainThreshold;
-	writer.NewProperty("CanRevealUnseen");
-	writer << m_CanRevealUnseen;
-	writer.NewProperty("CharHeight");
-	writer << m_CharHeight;
-	writer.NewProperty("HolsterOffset");
-	writer << m_HolsterOffset;
-	writer.NewPropertyWithValue("ReloadOffset", m_ReloadOffset);
-	for (std::deque<MovableObject*>::const_iterator itr = m_Inventory.begin(); itr != m_Inventory.end(); ++itr) {
-		writer.NewProperty("AddInventory");
-		writer << **itr;
-	}
-	writer.NewProperty("MaxInventoryMass");
-	writer << m_MaxInventoryMass;
-	writer.NewProperty("AIMode");
-	writer << m_AIMode;
-	writer.NewProperty("PieMenu");
-	writer << m_PieMenu.get();
 
-	writer.NewPropertyWithValue("Organic", m_Organic);
-	writer.NewPropertyWithValue("Mechanical", m_Mechanical);
-	writer.NewPropertyWithValue("AIBaseDigStrength", m_AIBaseDigStrength);
+	return modeToWrite;
+}
+
+template <typename WriterType> void Actor::WriteAIWaypoints(WriterType& writer) const {
+	if (GetAIModeToWrite() != AIMODE_GOTO) {
+		return;
+	}
+
+	if (g_MovableMan.ValidMO(m_pMOMoveTarget)) {
+		writer.NewPropertyWithValue("AddAISceneWaypoint", m_pMOMoveTarget->GetPos());
+	} else if (!m_MovePath.empty() || m_PathRequest) {
+		writer.NewPropertyWithValue("AddAISceneWaypoint", GetMovePathEnd());
+	}
+
+	for (const auto& [waypointPosition, waypointObject]: m_Waypoints) {
+		writer.NewPropertyWithValue("AddAISceneWaypoint", g_MovableMan.ValidMO(waypointObject) ? waypointObject->GetPos() : waypointPosition);
+	}
+}
+
+template <typename WriterType> int Actor::WriteTo(WriterType& writer) const {
+	MOSRotating::WriteTo(writer);
+
+	writer.NewDistinctProperty("PlayerControllable", &Actor::m_PlayerControllable);
+	writer.NewOptionalEntityPointerProperty("BodyHitSound", &Actor::m_BodyHitSound);
+	writer.NewOptionalEntityPointerProperty("AlarmSound", &Actor::m_AlarmSound);
+	writer.NewOptionalEntityPointerProperty("PainSound", &Actor::m_PainSound);
+	writer.NewOptionalEntityPointerProperty("DeathSound", &Actor::m_DeathSound);
+	writer.NewOptionalEntityPointerProperty("DeviceSwitchSound", &Actor::m_DeviceSwitchSound);
+	writer.NewDistinctProperty("Status", &Actor::m_Status);
+	writer.NewDistinctProperty("Health", &Actor::m_Health);
+	writer.NewDistinctProperty("MaxHealth", &Actor::m_MaxHealth);
+	writer.NewDistinctProperty("DeploymentID", &Actor::m_DeploymentID);
+	writer.NewDistinctProperty("ImpulseDamageThreshold", &Actor::m_TravelImpulseDamage);
+	writer.NewDistinctProperty("StableVelocityThreshold", &Actor::m_StableVel);
+	writer.NewDistinctProperty("StableRecoveryDelay", &Actor::m_StableRecoverDelay);
+	writer.NewDistinctProperty("CanRun", &Actor::m_CanRun);
+	writer.NewDistinctProperty("CrouchWalkSpeedMultiplier", &Actor::m_CrouchWalkSpeedMultiplier);
+	writer.NewDistinctProperty("GoldCarried", &Actor::m_GoldCarried);
+	writer.NewDistinctProperty("AimAngle", &Actor::m_AimAngle);
+	writer.NewDistinctProperty("AimRange", &Actor::m_AimRange);
+	writer.NewDistinctProperty("AimDistance", &Actor::m_AimDistance);
+	writer.NewDistinctProperty("SharpAimDelay", &Actor::m_SharpAimDelay);
+	writer.NewDistinctProperty("SightDistance", &Actor::m_SightDistance);
+	writer.NewDistinctProperty("Perceptiveness", &Actor::m_Perceptiveness);
+	writer.NewDistinctProperty("PainThreshold", &Actor::m_PainThreshold);
+	writer.NewDistinctProperty("CanRevealUnseen", &Actor::m_CanRevealUnseen);
+	writer.NewDistinctProperty("CharHeight", &Actor::m_CharHeight);
+	writer.NewDistinctProperty("HolsterOffset", &Actor::m_HolsterOffset);
+	writer.NewDistinctProperty("ReloadOffset", &Actor::m_ReloadOffset);
+	writer.NewPointerSequence("_ClearInventory", "AddInventory", &Actor::m_Inventory);
+	writer.NewDistinctProperty("MaxInventoryMass", &Actor::m_MaxInventoryMass);
+	writer.NewDistinctProperty("AIMode", &Actor::GetAIModeToWrite);
+	WriteAIWaypoints(writer);
+	writer.NewOptionalEntityPointerProperty("PieMenu", &Actor::m_PieMenu);
+	writer.NewDistinctProperty("Organic", &Actor::m_Organic);
+	writer.NewDistinctProperty("Mechanical", &Actor::m_Mechanical);
+	writer.NewDistinctProperty("AIBaseDigStrength", &Actor::m_AIBaseDigStrength);
+
+	writer.NewDistinctProperty("PassengerSlots", &Actor::m_PassengerSlots);
 
 	return 0;
 }
+template int Actor::WriteTo(IniWriter& writer) const;
+template int Actor::WriteTo(HashWriter& writer) const;
 
 void Actor::DestroyScriptState() {
 	for (std::deque<MovableObject*>::const_iterator itr = m_Inventory.begin(); itr != m_Inventory.end(); ++itr) {

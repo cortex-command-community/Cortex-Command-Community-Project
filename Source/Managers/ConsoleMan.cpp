@@ -159,7 +159,7 @@ void ConsoleMan::AddLoadWarningLogExtensionMismatchEntry(const std::string& path
 }
 
 void ConsoleMan::SaveLoadWarningLog(const std::string& filePath) {
-	Writer logWriter(filePath.c_str());
+	IniWriter logWriter(filePath.c_str());
 	if (logWriter.WriterOK()) {
 		logWriter << "// Warnings produced during loading:";
 		logWriter.NewLine(false);
@@ -171,7 +171,7 @@ void ConsoleMan::SaveLoadWarningLog(const std::string& filePath) {
 }
 
 void ConsoleMan::SaveInputLog(const std::string& filePath) {
-	Writer logWriter(filePath.c_str());
+	IniWriter logWriter(filePath.c_str());
 	if (logWriter.WriterOK()) {
 		for (std::deque<std::string>::reverse_iterator logItr = m_InputLog.rbegin(); logItr != m_InputLog.rend(); ++logItr) {
 			logWriter << *logItr;
@@ -186,7 +186,7 @@ void ConsoleMan::SaveInputLog(const std::string& filePath) {
 }
 
 bool ConsoleMan::SaveAllText(const std::string& filePath) {
-	Writer logWriter(filePath.c_str());
+	IniWriter logWriter(filePath.c_str());
 	if (logWriter.WriterOK()) {
 		for (const std::string& loggedString: m_OutputLog) {
 			logWriter << loggedString;

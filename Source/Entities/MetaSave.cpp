@@ -65,19 +65,16 @@ int MetaSave::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int MetaSave::Save(Writer& writer) const {
-	Entity::Save(writer);
+template <typename WriterType> int MetaSave::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
 
-	writer.NewProperty("SavePath");
-	writer << m_SavePath;
-	writer.NewProperty("PlayerCount");
-	writer << m_PlayerCount;
-	writer.NewProperty("Difficulty");
-	writer << m_Difficulty;
-	writer.NewProperty("RoundCount");
-	writer << m_RoundCount;
-	writer.NewProperty("SiteCount");
-	writer << m_SiteCount;
+	writer.NewDistinctProperty("SavePath", &MetaSave::m_SavePath);
+	writer.NewDistinctProperty("PlayerCount", &MetaSave::m_PlayerCount);
+	writer.NewDistinctProperty("Difficulty", &MetaSave::m_Difficulty);
+	writer.NewDistinctProperty("RoundCount", &MetaSave::m_RoundCount);
+	writer.NewDistinctProperty("SiteCount", &MetaSave::m_SiteCount);
 
 	return 0;
 }
+template int MetaSave::WriteTo(IniWriter& writer) const;
+template int MetaSave::WriteTo(HashWriter& writer) const;

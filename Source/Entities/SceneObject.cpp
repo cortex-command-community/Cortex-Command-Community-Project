@@ -48,49 +48,39 @@ int SceneObject::SOPlacer::Create(const SOPlacer& reference) {
 int SceneObject::SOPlacer::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
-	MatchProperty("PlacedObject",
-	              {
-		              m_pObjectReference = dynamic_cast<const SceneObject*>(g_PresetMan.GetEntityPreset(reader));
-		              RTEAssert(m_pObjectReference, "Stream suggests allocating an unallocatable type in SOPlacer::Create!");
-	              });
+	MatchProperty("PlacedObject", {
+		m_pObjectReference = g_PresetMan.ReadPresetReferenceOfType<SceneObject>(reader, propName);
+	});
 	MatchProperty("Offset", { reader >> m_Offset; });
-	MatchProperty("Rotation",
-	              {
-		              Matrix rot;
-		              reader >> rot;
-		              m_RotAngle = rot.GetRadAngle();
-	              });
+	MatchProperty("Rotation", {
+		Matrix rot;
+		reader >> rot;
+		m_RotAngle = rot.GetRadAngle();
+	});
 	MatchProperty("HFlipped", { reader >> m_HFlipped; });
 	MatchProperty("Team", { reader >> m_Team; });
 
 	EndPropertyList;
 }
 
-int SceneObject::SOPlacer::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int SceneObject::SOPlacer::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
-	writer.NewProperty("PlacedObject");
-	writer << m_pObjectReference;
-	writer.NewProperty("Offset");
-	writer << m_Offset;
-	// TODO: make generalized way of detecting defaults
-	if (m_RotAngle != 0) {
-		writer.NewProperty("Rotation");
-		Matrix rot;
-		rot.SetRadAngle(m_RotAngle);
-		writer << rot;
-	}
-	if (m_HFlipped) {
-		writer.NewProperty("HFlipped");
-		writer << m_HFlipped;
-	}
-	if (m_Team >= Activity::TeamOne) {
-		writer.NewProperty("Team");
-		writer << m_Team;
-	}
+	if (m_pObjectReference != nullptr)
+		writer.NewPropertyWithPresetReference("PlacedObject", m_pObjectReference);
+	if (!m_Offset.IsZero())
+		writer.NewPropertyWithValue("Offset", m_Offset);
+	if (m_RotAngle != 0.0F)
+		writer.NewPropertyWithValue("Rotation", Matrix(m_RotAngle));
+	if (m_HFlipped)
+		writer.NewPropertyWithValue("HFlipped", m_HFlipped);
+	if (m_Team > Activity::NoTeam)
+		writer.NewPropertyWithValue("Team", m_Team);
 
 	return 0;
 }
+template int SceneObject::SOPlacer::WriteTo(IniWriter& writer) const;
+template int SceneObject::SOPlacer::WriteTo(HashWriter& writer) const;
 
 SceneObject* SceneObject::SOPlacer::GetPlacedCopy(const SceneObject* pParent) const {
 	RTEAssert(m_pObjectReference, "No Object reference to make copy from!");
@@ -188,25 +178,22 @@ int SceneObject::ReadProperty(const std::string_view& propName, Reader& reader) 
 	EndPropertyList;
 }
 
-int SceneObject::Save(Writer& writer) const {
-	Entity::Save(writer);
-	// TODO: Make proper save system that knows not to save redundant data!
-	/*
-	    writer.NewProperty("Position");
-	    writer << m_Pos;
-	    writer.NewProperty("GoldValue");
-	    writer << m_OzValue;
-	    writer.NewProperty("Buyable");
-	    writer << m_Buyable;
-	    writer.NewProperty("BuyableMode");
-	    writer << static_cast<int>(m_BuyableMode);
-	    writer.NewProperty("Team");
-	    writer << m_Team;
-	    writer.NewProperty("PlacedByPlayer");
-	    writer << m_PlacedByPlayer;
-	*/
+template <typename WriterType> int SceneObject::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("Position", &SceneObject::m_Pos);
+	writer.NewDistinctProperty("GoldValue", &SceneObject::m_OzValue);
+	writer.NewDistinctProperty("Buyable", &SceneObject::m_Buyable);
+
+	writer.NewDistinctProperty("BuyableMode", [](const SceneObject& object) { return static_cast<int>(object.m_BuyableMode); });
+
+	writer.NewDistinctProperty("Team", &SceneObject::m_Team);
+	writer.NewDistinctProperty("PlacedByPlayer", &SceneObject::m_PlacedByPlayer);
+
 	return 0;
 }
+template int SceneObject::WriteTo(IniWriter& writer) const;
+template int SceneObject::WriteTo(HashWriter& writer) const;
 
 void SceneObject::Destroy(bool notInherited) {
 

@@ -98,38 +98,27 @@ int MetaPlayer::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int MetaPlayer::Save(Writer& writer) const {
-	Entity::Save(writer);
+template <typename WriterType> int MetaPlayer::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
 
-	writer.NewProperty("Name");
-	writer << m_Name;
-	writer.NewProperty("Team");
-	writer << m_Team;
-	writer.NewProperty("Human");
-	writer << m_Human;
-	writer.NewProperty("InGamePlayer");
-	writer << m_InGamePlayer;
-	writer.NewProperty("Aggressiveness");
-	writer << m_Aggressiveness;
-	writer.NewProperty("GameOverRound");
-	writer << m_GameOverRound;
+	writer.NewDistinctProperty("Name", &MetaPlayer::m_Name);
+	writer.NewDistinctProperty("Team", &MetaPlayer::m_Team);
+	writer.NewDistinctProperty("Human", &MetaPlayer::m_Human);
+	writer.NewDistinctProperty("InGamePlayer", &MetaPlayer::m_InGamePlayer);
+	writer.NewDistinctProperty("Aggressiveness", &MetaPlayer::m_Aggressiveness);
+	writer.NewDistinctProperty("GameOverRound", &MetaPlayer::m_GameOverRound);
 
-	// Need to write out the name, and not just the index of the module. it might change
-	writer.NewProperty("NativeTechModule");
+	writer.NewDistinctProperty("NativeTechModule", [](const MetaPlayer& object) { return g_PresetMan.GetDataModule(object.m_NativeTechModule)->GetFileName(); });
 
-	writer << g_PresetMan.GetDataModule(m_NativeTechModule)->GetFileName();
-	writer.NewProperty("NativeCostMultiplier");
-	writer << m_NativeCostMult;
-	writer.NewProperty("ForeignCostMultiplier");
-	writer << m_ForeignCostMult;
-	writer.NewProperty("BrainPool");
-	writer << m_BrainPool;
-	writer.NewProperty("Funds");
-	writer << m_Funds;
-	writer.NewProperty("OffensiveBudget");
-	writer << m_OffensiveBudget;
-	writer.NewProperty("OffensiveTarget");
-	writer << (m_OffensiveTarget.empty() ? "None" : m_OffensiveTarget);
+	writer.NewDistinctProperty("NativeCostMultiplier", &MetaPlayer::m_NativeCostMult);
+	writer.NewDistinctProperty("ForeignCostMultiplier", &MetaPlayer::m_ForeignCostMult);
+	writer.NewDistinctProperty("BrainPool", &MetaPlayer::m_BrainPool);
+	writer.NewDistinctProperty("Funds", &MetaPlayer::m_Funds);
+	writer.NewDistinctProperty("OffensiveBudget", &MetaPlayer::m_OffensiveBudget);
+
+	writer.NewDistinctProperty("OffensiveTarget", [](const MetaPlayer& object) { return object.m_OffensiveTarget.empty() ? "None" : object.m_OffensiveTarget; });
 
 	return 0;
 }
+template int MetaPlayer::WriteTo(IniWriter& writer) const;
+template int MetaPlayer::WriteTo(HashWriter& writer) const;

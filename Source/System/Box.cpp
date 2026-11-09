@@ -57,15 +57,22 @@ int Box::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Box::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int Box::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
-	writer.NewPropertyWithValue("Corner", m_Corner);
-	writer.NewPropertyWithValue("Width", m_Width);
-	writer.NewPropertyWithValue("Height", m_Height);
+	if (!m_Corner.IsZero())
+		writer.NewPropertyWithValue("Corner", m_Corner);
+	if (m_Width != 0.0F) {
+		writer.NewPropertyWithValue("Width", m_Width);
+	}
+	if (m_Height != 0.0F) {
+		writer.NewPropertyWithValue("Height", m_Height);
+	}
 
 	return 0;
 }
+template int Box::WriteTo(IniWriter& writer) const;
+template int Box::WriteTo(HashWriter& writer) const;
 
 void Box::Unflip() {
 	if (m_Width < 0) {

@@ -75,15 +75,16 @@ int Round::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
 	MatchProperty("Particle", {
-		m_Particle = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(reader));
-		RTEAssert(m_Particle, "Stream suggests allocating an unallocable type in Round::Create!");
+		m_Particle = g_PresetMan.ReadPresetReferenceOfType<MovableObject>(reader, propName);
 	});
 	MatchProperty("ParticleCount", { reader >> m_ParticleCount; });
 	MatchProperty("FireVelocity", { reader >> m_FireVel; });
 	MatchProperty("InheritsFirerVelocity", { reader >> m_InheritsFirerVelocity; });
 	MatchProperty("Separation", { reader >> m_Separation; });
 	MatchProperty("LifeVariation", { reader >> m_LifeVariation; });
-	MatchProperty("Shell", { m_Shell = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(reader)); });
+	MatchProperty("Shell", {
+		m_Shell = g_PresetMan.ReadPresetReferenceOfType<MovableObject>(reader, propName);
+	});
 	MatchProperty("ShellVelocity", { reader >> m_ShellVel; });
 	MatchProperty("FireSound", { reader >> m_FireSound; });
 	MatchProperty("AILifeTime", { reader >> m_AILifeTime; });
@@ -93,35 +94,26 @@ int Round::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Round::Save(Writer& writer) const {
-	Entity::Save(writer);
+template <typename WriterType> int Round::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
 
-	writer.NewProperty("Particle");
-	writer << m_Particle;
-	writer.NewProperty("ParticleCount");
-	writer << m_ParticleCount;
-	writer.NewProperty("FireVelocity");
-	writer << m_FireVel;
-	writer.NewPropertyWithValue("InheritsFirerVelocity", m_InheritsFirerVelocity);
-	writer.NewProperty("Separation");
-	writer << m_Separation;
-	writer.NewProperty("LifeVariation");
-	writer << m_LifeVariation;
-	writer.NewProperty("Shell");
-	writer << m_Shell;
-	writer.NewProperty("ShellVelocity");
-	writer << m_ShellVel;
-	writer.NewProperty("FireSound");
-	writer << m_FireSound;
-	writer.NewProperty("AILifeTime");
-	writer << m_AILifeTime;
-	writer.NewProperty("AIFireVel");
-	writer << m_AIFireVel;
-	writer.NewProperty("AIPenetration");
-	writer << m_AIPenetration;
+	writer.NewPresetReferenceProperty("Particle", &Round::m_Particle);
+	writer.NewDistinctProperty("ParticleCount", &Round::m_ParticleCount);
+	writer.NewDistinctProperty("FireVelocity", &Round::m_FireVel);
+	writer.NewDistinctProperty("InheritsFirerVelocity", &Round::m_InheritsFirerVelocity);
+	writer.NewDistinctProperty("Separation", &Round::m_Separation);
+	writer.NewDistinctProperty("LifeVariation", &Round::m_LifeVariation);
+	writer.NewPresetReferenceProperty("Shell", &Round::m_Shell);
+	writer.NewDistinctProperty("ShellVelocity", &Round::m_ShellVel);
+	writer.NewDistinctProperty("FireSound", &Round::m_FireSound);
+	writer.NewDistinctProperty("AILifeTime", &Round::m_AILifeTime);
+	writer.NewDistinctProperty("AIFireVel", &Round::m_AIFireVel);
+	writer.NewDistinctProperty("AIPenetration", &Round::m_AIPenetration);
 
 	return 0;
 }
+template int Round::WriteTo(IniWriter& writer) const;
+template int Round::WriteTo(HashWriter& writer) const;
 
 MovableObject* Round::PopNextParticle() {
 	MovableObject* tempParticle = (m_ParticleCount > 0) ? dynamic_cast<MovableObject*>(m_Particle->Clone()) : 0;

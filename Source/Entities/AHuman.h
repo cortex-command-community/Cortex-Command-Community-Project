@@ -50,7 +50,7 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(AHuman);
 		AddScriptFunctionNames(Actor, "OnStride");
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 		DefaultPieMenuNameGetter("Default Human Pie Menu");
 

@@ -199,11 +199,19 @@ int PieMenu::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("BackgroundColor", { reader >> m_BackgroundColor; });
 	MatchProperty("BackgroundBorderColor", { reader >> m_BackgroundBorderColor; });
 	MatchProperty("SelectedItemBackgroundColor", { reader >> m_SelectedItemBackgroundColor; });
+	MatchProperty("_ClearPieSlices", {
+		reader.ReadPropValue();
+		// The slices that are this menu's own are the ones written back after this. Slices put here by something else are left for it to manage.
+		RemovePieSlicesByOriginalSource(this);
+		if (m_Owner) {
+			RemovePieSlicesByOriginalSource(m_Owner);
+		}
+	});
 	MatchProperty("AddPieSlice", {
 		if (m_CurrentPieSlices.size() == 4 * PieQuadrant::c_PieQuadrantSlotCount) {
 			reader.ReportError("Pie menus cannot have more than " + std::to_string(4 * PieQuadrant::c_PieQuadrantSlotCount) + " slices. Use sub-pie menus to better organize your pie slices.");
 		}
-		if (!AddPieSlice(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader)), this)) {
+		if (PieSlice* pieSlice = g_PresetMan.ReadReflectedPresetOfType<PieSlice>(reader, propName); pieSlice != nullptr && !AddPieSlice(pieSlice, this)) {
 			reader.ReportError("Tried to add pie slice but that direction was full. Set direction to None if you don't care where the pie slice ends up.");
 		}
 	});
@@ -211,26 +219,26 @@ int PieMenu::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int PieMenu::Save(Writer& writer) const {
-	Entity::Save(writer);
+template <typename WriterType> int PieMenu::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
 
-	writer.NewPropertyWithValue("IconSeparatorMode", static_cast<int>(m_IconSeparatorMode));
-	writer.NewPropertyWithValue("FullInnerRadius", m_FullInnerRadius);
-	writer.NewPropertyWithValue("BackgroundThickness", m_BackgroundThickness);
-	writer.NewPropertyWithValue("BackgroundSeparatorSize", m_BackgroundSeparatorSize);
-	writer.NewPropertyWithValue("DrawBackgroundTransparent", m_DrawBackgroundTransparent);
-	writer.NewPropertyWithValue("BackgroundColor", m_BackgroundColor);
-	writer.NewPropertyWithValue("BackgroundBorderColor", m_BackgroundBorderColor);
-	writer.NewPropertyWithValue("SelectedItemBackgroundColor", m_SelectedItemBackgroundColor);
+	writer.NewDistinctProperty("IconSeparatorMode", [](const PieMenu& object) { return static_cast<int>(object.m_IconSeparatorMode); });
 
-	for (const PieSlice* pieSlice: m_CurrentPieSlices) {
-		if (pieSlice->GetOriginalSource() == m_Owner) {
-			writer.NewPropertyWithValue("AddPieSlice", pieSlice);
-		}
-	}
+	writer.NewDistinctProperty("FullInnerRadius", &PieMenu::m_FullInnerRadius);
+	writer.NewDistinctProperty("BackgroundThickness", &PieMenu::m_BackgroundThickness);
+	writer.NewDistinctProperty("BackgroundSeparatorSize", &PieMenu::m_BackgroundSeparatorSize);
+	writer.NewDistinctProperty("DrawBackgroundTransparent", &PieMenu::m_DrawBackgroundTransparent);
+	writer.NewDistinctProperty("BackgroundColor", &PieMenu::m_BackgroundColor);
+	writer.NewDistinctProperty("BackgroundBorderColor", &PieMenu::m_BackgroundBorderColor);
+	writer.NewDistinctProperty("SelectedItemBackgroundColor", &PieMenu::m_SelectedItemBackgroundColor);
+	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", &PieMenu::m_CurrentPieSlices, [](const PieMenu& owner, const PieSlice* slice) {
+		return slice->GetOriginalSource() == owner.m_Owner;
+	});
 
 	return 0;
 }
+template int PieMenu::WriteTo(IniWriter& writer) const;
+template int PieMenu::WriteTo(HashWriter& writer) const;
 
 void PieMenu::SetOwner(Actor* newOwner) {
 	RTEAssert((newOwner == nullptr) ? true : (newOwner->GetPieMenu() == this || IsSubPieMenu()), "Tried to set Pie Menu owning Actor to Actor with different Pie Menu.");

@@ -33,7 +33,7 @@ namespace RTE {
 
 		/// Public member variable, method and friend function declarations
 	public:
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		// Available placed objects sets
@@ -794,13 +794,6 @@ namespace RTE {
 
 		/// Private member variable and method declarations
 	private:
-		/// Serializes the SceneObject via the Writer. Necessary because full serialization doesn't know how to deal with duplicate properties.
-		/// @param writer The Writer being used for serialization.
-		/// @param sceneObjectToSave The SceneObject to save.
-		/// @param isChildAttachable Convenience flag for whether or not this SceneObject is a child Attachable, and certain properties shouldn't be saved.
-		/// @param saveFullData Whether or not to save most data. Turned off for stuff like SceneEditor saves.
-		void SaveSceneObject(Writer& writer, const SceneObject* sceneObjectToSave, bool isChildAttachable, bool saveFullData) const;
-
 		/// Clears all the member variables of this Scene, effectively
 		/// resetting the members of this abstraction level only.
 		void Clear();

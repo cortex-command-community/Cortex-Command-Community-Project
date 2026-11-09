@@ -95,17 +95,8 @@ int EditorActivity::Create(const EditorActivity& reference) {
 
 int EditorActivity::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(Activity::ReadProperty(propName, reader));
-	/*
-	    MatchProperty("CPUTeam", { reader >> m_CPUTeam; });
-	    MatchProperty("Difficulty", { reader >> m_Difficulty; });
-	    MatchProperty("DeliveryDelay", { reader >> m_DeliveryDelay; });
-	*/
-	EndPropertyList;
-}
 
-int EditorActivity::Save(Writer& writer) const {
-	Activity::Save(writer);
-	return 0;
+	EndPropertyList;
 }
 
 void EditorActivity::Destroy(bool notInherited) {

@@ -183,6 +183,14 @@ int GameActivity::Create(const GameActivity& reference) {
 	m_BuyMenuEnabled = reference.m_BuyMenuEnabled;
 
 	m_DeliveryDelay = reference.m_DeliveryDelay;
+
+	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
+		for (const Delivery& delivery: reference.m_Deliveries[team]) {
+			Delivery deliveryCopy = delivery;
+			deliveryCopy.pCraft = delivery.pCraft ? dynamic_cast<ACraft*>(delivery.pCraft->Clone()) : nullptr;
+			m_Deliveries[team].push_back(deliveryCopy);
+		}
+	}
 	//    m_CursorTimer = reference.m_CursorTimer;
 	//    m_GameTimer = reference.m_GameTimer;
 	//    m_GameOverTimer = reference.m_GameOverTimer;
@@ -213,6 +221,18 @@ int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader)
 	MatchProperty("GoldSwitchEnabled", { reader >> m_GoldSwitchEnabled; });
 	MatchProperty("RequireClearPathToOrbitSwitchEnabled", { reader >> m_RequireClearPathToOrbitSwitchEnabled; });
 	MatchProperty("BuyMenuEnabled", { reader >> m_BuyMenuEnabled; });
+	MatchProperty("AddDelivery", {
+		Delivery delivery;
+		reader >> delivery;
+
+		int team = delivery.pCraft ? delivery.pCraft->GetTeam() : Teams::NoTeam;
+		if (team >= Teams::TeamOne && team < Teams::MaxTeamCount) {
+			m_Deliveries[team].push_back(delivery);
+		} else {
+			reader.ReportRecoverableError("Tried to add a delivery without a craft on a team");
+			delete delivery.pCraft;
+		}
+	});
 	MatchForwards("Team1Tech")
 	    MatchForwards("Team2Tech")
 	        MatchForwards("Team3Tech")
@@ -237,29 +257,65 @@ int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader)
 			                m_TeamTechSwitchEnabled[team] = switchEnabled;
 		                }
 	                });
-	MatchProperty("SpecialBehaviour_StartingGold", { reader >> m_StartingGold; });
-	MatchProperty("SpecialBehaviour_FogOfWarEnabled", { reader >> m_FogOfWarEnabled; });
+	MatchForwards("SpecialBehaviour_StartingGold") MatchProperty("_StartingGold", { reader >> m_StartingGold; });
+	MatchForwards("SpecialBehaviour_FogOfWarEnabled") MatchProperty("_FogOfWarEnabled", { reader >> m_FogOfWarEnabled; });
 
 	EndPropertyList;
 }
 
-int GameActivity::Save(Writer& writer) const {
-	Activity::Save(writer);
+const std::string GameActivity::Delivery::c_ClassName = "Delivery";
+
+int GameActivity::Delivery::ReadProperty(const std::string_view& propName, Reader& reader) {
+	StartPropertyList(return Serializable::ReadProperty(propName, reader));
+
+	MatchProperty("Craft", { pCraft = g_PresetMan.ReadReflectedPresetOfType<ACraft>(reader, propName); });
+	MatchProperty("OrderedByPlayer", { reader >> orderedByPlayer; });
+	MatchProperty("LandingZone", { reader >> landingZone; });
+	MatchProperty("MultiOrderYOffset", { reader >> multiOrderYOffset; });
+	MatchProperty("RemainingDelay", { reader >> delay; });
+
+	EndPropertyList;
+}
+
+template <typename WriterType> int GameActivity::Delivery::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	writer.NewPropertyWithValue("OrderedByPlayer", orderedByPlayer);
+	writer.NewPropertyWithValue("LandingZone", landingZone);
+	writer.NewPropertyWithValue("MultiOrderYOffset", multiOrderYOffset);
+	// Sim time starts over on every load, so what's worth keeping is how long is left, not when this was ordered.
+	writer.NewPropertyWithValue("RemainingDelay", static_cast<long>(std::max(0.0, static_cast<double>(delay) - timer.GetElapsedSimTimeMS())));
+	writer.NewPropertyWithValue("Craft", *pCraft);
+
+	return 0;
+}
+template int GameActivity::Delivery::WriteTo(IniWriter& writer) const;
+template int GameActivity::Delivery::WriteTo(HashWriter& writer) const;
+
+template <typename WriterType> int GameActivity::WriteTo(WriterType& writer) const {
+	Activity::WriteTo(writer);
 
 	writer.NewPropertyWithValue("CPUTeam", m_CPUTeam);
 	writer.NewPropertyWithValue("DeliveryDelay", m_DeliveryDelay);
 	writer.NewPropertyWithValue("BuyMenuEnabled", m_BuyMenuEnabled);
 
-	// Note - these special behaviour properties are for saving and loading. Normally these fields are set by the Activity config GUI.
-	writer.NewPropertyWithValue("SpecialBehaviour_StartingGold", m_StartingGold);
-	writer.NewPropertyWithValue("SpecialBehaviour_FogOfWarEnabled", m_FogOfWarEnabled);
+	writer.NewPropertyWithValue("_StartingGold", m_StartingGold);
+	writer.NewPropertyWithValue("_FogOfWarEnabled", m_FogOfWarEnabled);
+
+	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
+		for (const Delivery& delivery: m_Deliveries[team]) {
+			writer.NewPropertyWithValue("AddDelivery", delivery);
+		}
+	}
 
 	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-		writer.NewPropertyWithValue("Team" + std::to_string(team + 1) + "Tech", GetTeamTech(team));
+		writer.NewPropertyWithValue(PropName("Team" + std::to_string(team + 1) + "Tech"), GetTeamTech(team));
 	}
 
 	return 0;
 }
+template int GameActivity::WriteTo(IniWriter& writer) const;
+template int GameActivity::WriteTo(HashWriter& writer) const;
 
 void GameActivity::Destroy(bool notInherited) {
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
@@ -685,14 +741,10 @@ int GameActivity::Start() {
 		if (!m_TeamActive[team])
 			continue;
 
-		m_Deliveries[team].clear();
-
-		// Clear delivery queues
-		for (std::deque<Delivery>::iterator itr = m_Deliveries[team].begin(); itr != m_Deliveries[team].end(); ++itr) {
-			delete itr->pCraft;
+		// Only a loaded game has deliveries in transit, and their remaining delays count from now, however long it took to get here.
+		for (Delivery& delivery: m_Deliveries[team]) {
+			delivery.timer.Reset();
 		}
-
-		m_Deliveries[team].clear();
 		/* This is taken care of by the individual Activity logic
 		        // See if there are specified landing zone areas defined in the scene
 		        char str[64];

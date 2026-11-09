@@ -37,7 +37,7 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(ACrab);
 		AddScriptFunctionNames(Actor, "OnStride");
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 		DefaultPieMenuNameGetter(HasObjectInGroup("Turrets") ? "Default Turret Pie Menu" : "Default Crab Pie Menu");
 

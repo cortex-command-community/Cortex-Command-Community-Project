@@ -25,6 +25,7 @@ void Reader::Clear() {
 	m_SkipIncludes = false;
 	m_CanFail = false;
 	m_NonModulePath = false;
+	m_PropValueIsEmpty = false;
 }
 
 Reader::Reader(const std::string& fileName, bool overwrites, const ProgressCallback& progressCallback, bool failOK, bool nonModulePath) {
@@ -110,6 +111,12 @@ std::string Reader::WholeFileAsString() const {
 }
 
 std::string Reader::ReadLine() {
+	// A property given nothing has an empty value. Looking further would take the next line for it.
+	if (m_PropValueIsEmpty) {
+		m_PropValueIsEmpty = false;
+		return "";
+	}
+
 	DiscardEmptySpace();
 
 	std::string retString;
@@ -139,6 +146,8 @@ std::string Reader::ReadLine() {
 }
 
 std::string Reader::ReadPropName() {
+	m_PropValueIsEmpty = false;
+
 	DiscardEmptySpace();
 
 	std::string retString;
@@ -149,6 +158,7 @@ std::string Reader::ReadPropName() {
 		peek = static_cast<char>(m_Stream->peek());
 		if (peek == '=') {
 			m_Stream->ignore(1);
+			m_PropValueIsEmpty = !PropValueFollows();
 			break;
 		}
 		if (peek == '\n' || peek == '\r' || peek == '\t') {
@@ -192,6 +202,27 @@ std::string Reader::ReadPropValue() {
 	size_t valuePos = fullLine.find_first_of('=');
 	std::string propValue = (valuePos == std::string::npos) ? fullLine : fullLine.substr(valuePos + 1);
 	return TrimString(propValue);
+}
+
+bool Reader::PropValueFollows() {
+	char peek = static_cast<char>(m_Stream->peek());
+	while (peek == ' ' || peek == '\t') {
+		m_Stream->ignore(1);
+		peek = static_cast<char>(m_Stream->peek());
+	}
+
+	if (m_Stream->eof() || peek == '\n' || peek == '\r') {
+		return false;
+	}
+
+	// A line comment isn't a value either.
+	if (peek == '/') {
+		m_Stream->get();
+		bool isComment = m_Stream->peek() == '/';
+		m_Stream->unget();
+		return !isComment;
+	}
+	return true;
 }
 
 bool Reader::NextProperty() {
@@ -322,6 +353,14 @@ bool Reader::DiscardEmptySpace() {
 		m_PreviousIndent = indent;
 	}
 	return true;
+}
+
+void Reader::ReportRecoverableError(const std::string& errorDesc) const {
+	if (!m_CanFail) {
+		RTEAssert(false, errorDesc + "\nError happened in " + m_FilePath + " at line " + std::to_string(m_CurrentLine) + "!");
+	} else {
+		g_ConsoleMan.PrintString("ERROR: " + errorDesc + " in " + m_FilePath + " at line " + std::to_string(m_CurrentLine) + ", skipping!");
+	}
 }
 
 void Reader::ReportError(const std::string& errorDesc) const {

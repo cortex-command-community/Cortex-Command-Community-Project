@@ -343,17 +343,16 @@ const Entity* PresetMan::GetEntityPreset(Reader& reader) {
 	int whichModule = reader.GetReadModuleID();
 	RTEAssert(whichModule >= 0 && whichModule < (int)m_pDataModules.size(), "Reader has an out of bounds module number!");
 
-	std::string ClassName;
-	const Entity::ClassInfo* pClass = 0;
-	Entity* pNewInstance = 0;
-	const Entity* pReturnPreset = 0;
+	const Entity* pReturnPreset = nullptr;
+
 	// Load class name and then preset instance
+	std::string ClassName;
 	reader >> ClassName;
-	pClass = Entity::ClassInfo::GetClass(ClassName);
+	const Entity::ClassInfo* pClass = Entity::ClassInfo::GetClass(ClassName);
 
 	if (pClass && pClass->IsConcrete()) {
 		// Instantiate
-		pNewInstance = pClass->NewInstance();
+		Entity* pNewInstance = pClass->NewInstance();
 
 		// Get this before reading entity, since if it's the last one in its datafile, the stream will show the parent file instead
 		std::string entityFilePath = reader.GetCurrentFilePath();
@@ -376,11 +375,9 @@ const Entity* PresetMan::GetEntityPreset(Reader& reader) {
 					pReturnPreset = m_pDataModules[i]->GetEntityPreset(pNewInstance->GetClassName(), pNewInstance->GetPresetName());
 			}
 		}
-		// Get rid of the read-in instance as its copy is now either added to the map, or discarded as there already was somehting in there of the same name.
+		// Whatever made it into the preset map was copied there, so this one's no longer needed.
 		delete pNewInstance;
-		pNewInstance = 0;
-	} else
-		pReturnPreset = 0;
+	}
 
 	return pReturnPreset;
 }
@@ -391,15 +388,12 @@ Entity* PresetMan::ReadReflectedPreset(Reader& reader) {
 	RTEAssert(whichModule >= 0 && whichModule < (int)m_pDataModules.size(), "Reader has an out of bounds module number!");
 
 	std::string ClassName;
-	const Entity::ClassInfo* pClass = 0;
-	Entity* pNewInstance = 0;
-	// Load class name and then preset instance
 	reader >> ClassName;
-	pClass = Entity::ClassInfo::GetClass(ClassName);
+	const Entity::ClassInfo* pClass = Entity::ClassInfo::GetClass(ClassName);
 
 	if (pClass && pClass->IsConcrete()) {
 		// Instantiate
-		pNewInstance = pClass->NewInstance();
+		Entity* pNewInstance = pClass->NewInstance();
 
 		// Get this before reading entity, since if it's the last one in its datafile, the stream will show the parent file instead
 		std::string entityFilePath = reader.GetCurrentFilePath();
@@ -416,7 +410,7 @@ Entity* PresetMan::ReadReflectedPreset(Reader& reader) {
 		}
 	}
 
-	return 0;
+	return nullptr;
 }
 
 bool PresetMan::GetAllOfType(std::list<Entity*>& entityList, const std::string& type, int whichModule) {

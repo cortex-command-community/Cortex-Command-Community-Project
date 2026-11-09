@@ -80,33 +80,40 @@ int Magazine::ReadProperty(const std::string_view& propName, Reader& reader) {
 		reader >> m_RoundCount;
 		m_FullCapacity = m_RoundCount;
 	});
+	MatchProperty("FullCapacity", { reader >> m_FullCapacity; });
 	MatchProperty("RTTRatio", { reader >> m_RTTRatio; });
-	MatchProperty("RegularRound", { m_pRegularRound = dynamic_cast<const Round*>(g_PresetMan.GetEntityPreset(reader)); });
-	MatchProperty("TracerRound", { m_pTracerRound = dynamic_cast<const Round*>(g_PresetMan.GetEntityPreset(reader)); });
+	MatchProperty("RegularRound", {
+		m_pRegularRound = g_PresetMan.ReadPresetReferenceOfType<Round>(reader, propName);
+	});
+	MatchProperty("TracerRound", { 
+		m_pTracerRound = g_PresetMan.ReadPresetReferenceOfType<Round>(reader, propName);
+	});
 	MatchProperty("Discardable", { reader >> m_Discardable; });
 	MatchProperty("AIBlastRadius", { reader >> m_AIBlastRadius; });
 
 	EndPropertyList;
 }
 
-int Magazine::Save(Writer& writer) const {
-	Attachable::Save(writer);
+template <typename WriterType> int Magazine::WriteTo(WriterType& writer) const {
+	Attachable::WriteTo(writer);
 
-	writer.NewProperty("RoundCount");
-	writer << m_RoundCount;
-	writer.NewProperty("RTTRatio");
-	writer << m_RTTRatio;
-	writer.NewProperty("RegularRound");
-	writer << m_pRegularRound;
-	writer.NewProperty("TracerRound");
-	writer << m_pTracerRound;
-	writer.NewProperty("Discardable");
-	writer << m_Discardable;
-	writer.NewProperty("AIBlastRadius");
-	writer << m_AIBlastRadius;
+	writer.NewDistinctProperty("RoundCount", &Magazine::m_RoundCount);
+
+	// Special casing due to the special casing on magazine reading
+	if (writer.IsDistinct(&Magazine::m_RoundCount) || writer.IsDistinct(&Magazine::m_FullCapacity)) {
+		writer.NewPropertyWithValue("FullCapacity", m_FullCapacity);
+	}
+
+	writer.NewDistinctProperty("RTTRatio", &Magazine::m_RTTRatio);
+	writer.NewPresetReferenceProperty("RegularRound", &Magazine::m_pRegularRound);
+	writer.NewPresetReferenceProperty("TracerRound", &Magazine::m_pTracerRound);
+	writer.NewDistinctProperty("Discardable", &Magazine::m_Discardable);
+	writer.NewDistinctProperty("AIBlastRadius", &Magazine::m_AIBlastRadius);
 
 	return 0;
 }
+template int Magazine::WriteTo(IniWriter& writer) const;
+template int Magazine::WriteTo(HashWriter& writer) const;
 
 void Magazine::Destroy(bool notInherited) {
 

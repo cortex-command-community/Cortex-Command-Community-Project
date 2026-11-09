@@ -14,7 +14,7 @@ namespace RTE {
 	class Activity : public Entity {
 
 	public:
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		/// Enumeration for the different states the Activity can be in.
@@ -101,6 +101,7 @@ namespace RTE {
 			Clear();
 		}
 #pragma endregion
+		
 
 #pragma region Getters and Setters
 		/// Gets the current Activity state code. See the ActivityState enumeration for values.

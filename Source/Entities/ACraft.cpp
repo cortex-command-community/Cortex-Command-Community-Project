@@ -14,6 +14,7 @@
 
 #include "GUI.h"
 #include "AllegroBitmap.h"
+#include <PresetMan.h>
 
 using namespace RTE;
 
@@ -74,22 +75,27 @@ int ACraft::Exit::ReadProperty(const std::string_view& propName, Reader& reader)
 	EndPropertyList;
 }
 
-int ACraft::Exit::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int ACraft::Exit::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
-	writer.NewProperty("Offset");
-	writer << m_Offset;
-	writer.NewProperty("Velocity");
-	writer << m_Velocity;
-	writer.NewProperty("VelocitySpread");
-	writer << m_VelSpread;
-	writer.NewProperty("Radius");
-	writer << m_Radius;
-	writer.NewProperty("Range");
-	writer << m_Range;
+	if (!m_Offset.IsZero())
+		writer.NewPropertyWithValue("Offset", m_Offset);
+	if (!m_Velocity.IsZero())
+		writer.NewPropertyWithValue("Velocity", m_Velocity);
+	if (m_VelSpread != 0.2F) {
+		writer.NewPropertyWithValue("VelocitySpread", m_VelSpread);
+	}
+	if (m_Radius != 10.0F) {
+		writer.NewPropertyWithValue("Radius", m_Radius);
+	}
+	if (m_Range != 35.0F) {
+		writer.NewPropertyWithValue("Range", m_Range);
+	}
 
 	return 0;
 }
+template int ACraft::Exit::WriteTo(IniWriter& writer) const;
+template int ACraft::Exit::WriteTo(HashWriter& writer) const;
 
 bool ACraft::Exit::CheckIfClear(const Vector& pos, Matrix& rot, float size) {
 	Vector notUsed;
@@ -265,25 +271,28 @@ int ACraft::Create(const ACraft& reference) {
 int ACraft::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Actor::ReadProperty(propName, reader));
 
-	MatchProperty("HatchDelay", { reader >> m_HatchDelay; });
 	MatchProperty("HatchOpenSound", {
-		m_HatchOpenSound = new SoundContainer;
-		reader >> m_HatchOpenSound;
+		delete m_HatchOpenSound;
+		m_HatchOpenSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("HatchCloseSound", {
-		m_HatchCloseSound = new SoundContainer;
-		reader >> m_HatchCloseSound;
+		delete m_HatchCloseSound;
+		m_HatchCloseSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("CrashSound", {
-		m_CrashSound = new SoundContainer;
-		reader >> m_CrashSound;
+		delete m_CrashSound;
+		m_CrashSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
-	MatchProperty("AddExit",
-	              {
-		              Exit exit;
-		              reader >> exit;
-		              m_Exits.push_back(exit);
-	              });
+	MatchProperty("_ClearExits", {
+		reader.ReadPropValue();
+		m_Exits.clear();
+	});
+	MatchProperty("AddExit", {
+		Exit exit;
+		reader >> exit;
+		m_Exits.push_back(exit);
+	});
+	MatchProperty("HatchDelay", { reader >> m_HatchDelay; });
 	MatchProperty("DeliveryDelayMultiplier", { reader >> m_DeliveryDelayMultiplier; });
 	MatchProperty("ExitInterval", { reader >> m_ExitInterval; });
 	MatchProperty("CanLand", { reader >> m_LandingCraft; });
@@ -295,41 +304,26 @@ int ACraft::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int ACraft::Save(Writer& writer) const {
-	Actor::Save(writer);
+template <typename WriterType> int ACraft::WriteTo(WriterType& writer) const {
+	Actor::WriteTo(writer);
 
-	writer.NewProperty("HatchDelay");
-	writer << m_HatchDelay;
-	writer.NewProperty("HatchOpenSound");
-	writer << m_HatchOpenSound;
-	writer.NewProperty("HatchCloseSound");
-	writer << m_HatchCloseSound;
-	for (std::list<Exit>::const_iterator itr = m_Exits.begin(); itr != m_Exits.end(); ++itr) {
-		writer.NewProperty("AddExit");
-		writer << (*itr);
-	}
-	writer.NewProperty("DeliveryDelayMultiplier");
-	writer << m_DeliveryDelayMultiplier;
-	writer.NewProperty("ExitInterval");
-	writer << m_ExitInterval;
-	writer.NewProperty("CanLand");
-	writer << m_LandingCraft;
-
-	writer.NewProperty("CrashSound");
-	writer << m_CrashSound;
-	
-	writer.NewProperty("CanEnterOrbit");
-	writer << m_CanEnterOrbit;
-	
-	writer.NewProperty("MaxPassengers");
-	writer << m_MaxPassengers;
-	writer.NewProperty("ScuttleIfFlippedTime");
-	writer << m_ScuttleIfFlippedTime;
-	writer.NewProperty("ScuttleOnDeath");
-	writer << m_ScuttleOnDeath;
+	writer.NewOptionalEntityPointerProperty("HatchOpenSound", &ACraft::m_HatchOpenSound);
+	writer.NewOptionalEntityPointerProperty("HatchCloseSound", &ACraft::m_HatchCloseSound);
+	writer.NewOptionalEntityPointerProperty("CrashSound", &ACraft::m_CrashSound);
+	writer.NewSequence("_ClearExits", "AddExit", &ACraft::m_Exits);
+	writer.NewDistinctProperty("HatchDelay", &ACraft::m_HatchDelay);
+	writer.NewDistinctProperty("DeliveryDelayMultiplier", &ACraft::m_DeliveryDelayMultiplier);
+	writer.NewDistinctProperty("ExitInterval", &ACraft::m_ExitInterval);
+	writer.NewDistinctProperty("CanLand", &ACraft::m_LandingCraft);
+	writer.NewDistinctProperty("CanEnterOrbit", &ACraft::m_CanEnterOrbit);
+	writer.NewDistinctProperty("MaxPassengers", &ACraft::m_MaxPassengers);
+	writer.NewDistinctProperty("ScuttleIfFlippedTime", &ACraft::m_ScuttleIfFlippedTime);
+	writer.NewDistinctProperty("ScuttleOnDeath", &ACraft::m_ScuttleOnDeath);
 
 	return 0;
 }
+template int ACraft::WriteTo(IniWriter& writer) const;
+template int ACraft::WriteTo(HashWriter& writer) const;
 
 void ACraft::Destroy(bool notInherited) {
 	delete m_HatchOpenSound;

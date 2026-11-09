@@ -90,39 +90,27 @@ int TerrainObject::ReadProperty(const std::string_view& propName, Reader& reader
 		newChildObject.SetTeam(m_Team);
 		m_ChildObjects.emplace_back(newChildObject);
 	});
-	MatchProperty("ClearChildObjects", {
-		bool clearChildObjects;
-		reader >> clearChildObjects;
-		if (clearChildObjects) {
-			m_ChildObjects.clear();
-		}
+	MatchForwards("ClearChildObjects") MatchProperty("_ClearChildObjects", {
+		reader.ReadPropValue();
+		m_ChildObjects.clear();
 	});
 
 	EndPropertyList;
 }
 
-int TerrainObject::Save(Writer& writer) const {
-	SceneObject::Save(writer);
+template <typename WriterType> int TerrainObject::WriteTo(WriterType& writer) const {
+	SceneObject::WriteTo(writer);
 
-	if (!m_FGColorFile.GetDataPath().empty()) {
-		writer.NewPropertyWithValue("FGColorFile", m_FGColorFile);
-	}
-	if (!m_BGColorFile.GetDataPath().empty()) {
-		writer.NewPropertyWithValue("BGColorFile", m_BGColorFile);
-	}
-	if (!m_MaterialFile.GetDataPath().empty()) {
-		writer.NewPropertyWithValue("MaterialFile", m_MaterialFile);
-	}
+	writer.NewDistinctProperty("FGColorFile", &TerrainObject::m_FGColorFile);
+	writer.NewDistinctProperty("BGColorFile", &TerrainObject::m_BGColorFile);
+	writer.NewDistinctProperty("MaterialFile", &TerrainObject::m_MaterialFile);
+	writer.NewDistinctProperty("BitmapOffset", &TerrainObject::m_BitmapOffset);
+	writer.NewSequence("_ClearChildObjects", "AddChildObject", &TerrainObject::m_ChildObjects);
 
-	if (m_OffsetDefined) {
-		writer.NewPropertyWithValue("BitmapOffset", m_BitmapOffset);
-	}
-
-	for (const SceneObject::SOPlacer& childObject: m_ChildObjects) {
-		writer.NewPropertyWithValue("AddChildObject", childObject);
-	}
 	return 0;
 }
+template int TerrainObject::WriteTo(IniWriter& writer) const;
+template int TerrainObject::WriteTo(HashWriter& writer) const;
 
 BITMAP* TerrainObject::GetGraphicalIcon() const {
 	if (m_FGColorBitmap) {

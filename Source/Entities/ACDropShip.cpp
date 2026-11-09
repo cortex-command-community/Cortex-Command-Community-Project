@@ -107,12 +107,12 @@ int ACDropShip::Create(const ACDropShip& reference) {
 int ACDropShip::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return ACraft::ReadProperty(propName, reader));
 
-	MatchForwards("RThruster") MatchForwards("RightThruster") MatchProperty("RightEngine", { SetRightThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("LThruster") MatchForwards("LeftThruster") MatchProperty("LeftEngine", { SetLeftThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("URThruster") MatchProperty("UpRightThruster", { SetURightThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("ULThruster") MatchProperty("UpLeftThruster", { SetULeftThruster(dynamic_cast<AEmitter*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("RHatchDoor") MatchProperty("RightHatchDoor", { SetRightHatch(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("LHatchDoor") MatchProperty("LeftHatchDoor", { SetLeftHatch(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchForwards("RThruster") MatchForwards("RightThruster") MatchProperty("RightEngine", { SetRightThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("LThruster") MatchForwards("LeftThruster") MatchProperty("LeftEngine", { SetLeftThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("URThruster") MatchProperty("UpRightThruster", { SetURightThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("ULThruster") MatchProperty("UpLeftThruster", { SetULeftThruster(g_PresetMan.ReadReflectedPresetOfType<AEmitter>(reader, propName)); });
+	MatchForwards("RHatchDoor") MatchProperty("RightHatchDoor", { SetRightHatch(g_PresetMan.ReadReflectedPresetOfType<Attachable>(reader, propName)); });
+	MatchForwards("LHatchDoor") MatchProperty("LeftHatchDoor", { SetLeftHatch(g_PresetMan.ReadReflectedPresetOfType<Attachable>(reader, propName)); });
 	MatchProperty("HatchDoorSwingRange", { reader >> m_HatchSwingRange; });
 	MatchProperty("AutoStabilize", { reader >> m_AutoStabilize; });
 	MatchProperty("MaxEngineAngle", { reader >> m_MaxEngineAngle; });
@@ -122,33 +122,25 @@ int ACDropShip::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int ACDropShip::Save(Writer& writer) const {
-	ACraft::Save(writer);
+template <typename WriterType> int ACDropShip::WriteTo(WriterType& writer) const {
+	ACraft::WriteTo(writer);
 
-	writer.NewProperty("RThruster");
-	writer << m_pRThruster;
-	writer.NewProperty("LThruster");
-	writer << m_pLThruster;
-	writer.NewProperty("URThruster");
-	writer << m_pURThruster;
-	writer.NewProperty("ULThruster");
-	writer << m_pULThruster;
-	writer.NewProperty("RHatchDoor");
-	writer << m_pRHatch;
-	writer.NewProperty("LHatchDoor");
-	writer << m_pLHatch;
-	writer.NewProperty("HatchDoorSwingRange");
-	writer << m_HatchSwingRange;
-	writer.NewProperty("AutoStabilize");
-	writer << m_AutoStabilize;
-	writer.NewProperty("MaxEngineAngle");
-	writer << m_MaxEngineAngle;
-	writer.NewProperty("LateralControlSpeed");
-	writer << m_LateralControlSpeed;
-	writer.NewPropertyWithValue("HoverHeightModifier", m_HoverHeightModifier);
+	writer.NewOptionalEntityPointerProperty("RThruster", &ACDropShip::m_pRThruster);
+	writer.NewOptionalEntityPointerProperty("LThruster", &ACDropShip::m_pLThruster);
+	writer.NewOptionalEntityPointerProperty("URThruster", &ACDropShip::m_pURThruster);
+	writer.NewOptionalEntityPointerProperty("ULThruster", &ACDropShip::m_pULThruster);
+	writer.NewOptionalEntityPointerProperty("RHatchDoor", &ACDropShip::m_pRHatch);
+	writer.NewOptionalEntityPointerProperty("LHatchDoor", &ACDropShip::m_pLHatch);
+	writer.NewDistinctProperty("HatchDoorSwingRange", &ACDropShip::m_HatchSwingRange);
+	writer.NewDistinctProperty("AutoStabilize", &ACDropShip::m_AutoStabilize);
+	writer.NewDistinctProperty("MaxEngineAngle", &ACDropShip::m_MaxEngineAngle);
+	writer.NewDistinctProperty("LateralControlSpeed", &ACDropShip::m_LateralControlSpeed);
+	writer.NewDistinctProperty("HoverHeightModifier", &ACDropShip::m_HoverHeightModifier);
 
 	return 0;
 }
+template int ACDropShip::WriteTo(IniWriter& writer) const;
+template int ACDropShip::WriteTo(HashWriter& writer) const;
 
 void ACDropShip::Destroy(bool notInherited) {
 	delete m_pBodyAG;

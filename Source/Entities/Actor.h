@@ -80,7 +80,7 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(Actor);
 		AddScriptFunctionNames(MOSRotating, "ThreadedUpdateAI", "UpdateAI", "OnControllerInputModeChange");
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a Actor object in system
@@ -858,6 +858,14 @@ namespace RTE {
 		/// Function that is called when we get a new movepath.
 		/// This processes and cleans up the movepath.
 		virtual void OnNewMovePath();
+
+		/// Gets the AI mode this should be saved in, which can differ from the current one when the orders behind it can't be saved or have run out.
+		/// @return The AI mode to save.
+		AIMode GetAIModeToWrite() const;
+
+		/// Writes where this is on its way to, for when this is saved.
+		/// @param writer The writer to write the waypoints with.
+		template <typename WriterType> void WriteAIWaypoints(WriterType& writer) const;
 
 		/// Starts updating this Actor's movepath.
 		virtual void UpdateMovePath();

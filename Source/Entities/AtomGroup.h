@@ -12,7 +12,7 @@ namespace RTE {
 
 	public:
 		EntityAllocation(AtomGroup);
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 #pragma region Creation

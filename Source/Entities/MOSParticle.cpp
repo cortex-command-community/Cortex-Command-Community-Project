@@ -57,17 +57,15 @@ int MOSParticle::ReadProperty(const std::string_view& propName, Reader& reader) 
 	EndPropertyList;
 }
 
-int MOSParticle::Save(Writer& writer) const {
-	MOSprite::Save(writer);
+template <typename WriterType> int MOSParticle::WriteTo(WriterType& writer) const {
+	MOSprite::WriteTo(writer);
 
-	// TODO: Make proper save system that knows not to save redundant data!
-	/*
-	writer.NewProperty("Atom");
-	writer << m_Atom;
-	*/
+	writer.NewEntityPointerProperty("Atom", &MOSParticle::m_Atom);
 
 	return 0;
 }
+template int MOSParticle::WriteTo(IniWriter& writer) const;
+template int MOSParticle::WriteTo(HashWriter& writer) const;
 
 void MOSParticle::Destroy(bool notInherited) {
 	delete m_Atom;

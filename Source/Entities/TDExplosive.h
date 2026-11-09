@@ -9,7 +9,7 @@ namespace RTE {
 
 	public:
 		EntityAllocation(TDExplosive);
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 #pragma region Creation

@@ -132,20 +132,35 @@ template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
+	MatchProperty("BitmapFile", { reader >> m_BitmapFile; });
 	MatchProperty("WrapX", { reader >> m_WrapX; });
 	MatchProperty("WrapY", { reader >> m_WrapY; });
-	MatchProperty("BitmapFile", { reader >> m_BitmapFile; });
+	MatchProperty("DrawTransparent", { reader >> m_DrawMasked; });
+	MatchProperty("ScrollRatio", {
+		// Actually read the ScrollInfo, not the ratio. The ratios will be initialized later.
+		reader >> m_ScrollInfo;
+	});
+	MatchProperty("ScaleFactor", {
+		reader >> m_ScaleFactor;
+		SetScaleFactor(m_ScaleFactor);
+	});
+	MatchProperty("OriginPointOffset", { reader >> m_OriginOffset; });
 
 	EndPropertyList;
 }
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
-int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Save(Writer& writer) const {
-	Entity::Save(writer);
+template <typename WriterType> int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
 
-	writer.NewPropertyWithValue("WrapX", m_WrapX);
-	writer.NewPropertyWithValue("WrapY", m_WrapY);
-	writer.NewPropertyWithValue("BitmapFile", m_BitmapFile);
+	writer.NewDistinctProperty("BitmapFile", &SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::m_BitmapFile);
+
+	writer.NewDistinctProperty("WrapX", &SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::m_WrapX);
+	writer.NewDistinctProperty("WrapY", &SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::m_WrapY);
+	writer.NewDistinctProperty("DrawTransparent", &SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::m_DrawMasked);
+	writer.NewDistinctProperty("ScrollRatio", &SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::m_ScrollInfo);
+	writer.NewDistinctProperty("ScaleFactor", &SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::m_ScaleFactor);
+	writer.NewDistinctProperty("OriginPointOffset", &SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::m_OriginOffset);
 
 	return 0;
 }
@@ -612,3 +627,11 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::ClearDrawings(BITMAP* bitma
 template class RTE::SceneLayerImpl<false>;
 template class RTE::SceneLayerImpl<false, true>;
 template class RTE::SceneLayerImpl<true>;
+
+// A class's explicit instantiation doesn't instantiate its member templates.
+template int RTE::SceneLayerImpl<false>::WriteTo(IniWriter& writer) const;
+template int RTE::SceneLayerImpl<false>::WriteTo(HashWriter& writer) const;
+template int RTE::SceneLayerImpl<false, true>::WriteTo(IniWriter& writer) const;
+template int RTE::SceneLayerImpl<false, true>::WriteTo(HashWriter& writer) const;
+template int RTE::SceneLayerImpl<true>::WriteTo(IniWriter& writer) const;
+template int RTE::SceneLayerImpl<true>::WriteTo(HashWriter& writer) const;

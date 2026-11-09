@@ -170,40 +170,42 @@ int HDFirearm::Create(const HDFirearm& reference) {
 int HDFirearm::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return HeldDevice::ReadProperty(propName, reader));
 
-	MatchProperty("Magazine", { SetMagazine(dynamic_cast<Magazine*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("Flash", { SetFlash(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Magazine", { SetMagazine(g_PresetMan.ReadReflectedPresetOfType<Magazine>(reader, propName)); });
+	MatchProperty("Flash", { SetFlash(g_PresetMan.ReadReflectedPresetOfType<Attachable>(reader, propName)); });
 	MatchProperty("PreFireSound", {
-		m_PreFireSound = new SoundContainer;
-		reader >> m_PreFireSound;
+		delete m_PreFireSound;
+		m_PreFireSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("FireSound", {
-		m_FireSound = new SoundContainer;
-		reader >> m_FireSound;
+		delete m_FireSound;
+		m_FireSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("FireEchoSound", {
-		m_FireEchoSound = new SoundContainer;
-		reader >> m_FireEchoSound;
-		m_FireEchoSound->SetSoundOverlapMode(SoundContainer::SoundOverlapMode::RESTART);
+		delete m_FireEchoSound;
+		m_FireEchoSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
+		if (m_FireEchoSound) {
+			m_FireEchoSound->SetSoundOverlapMode(SoundContainer::SoundOverlapMode::RESTART);
+		}
 	});
 	MatchProperty("ActiveSound", {
-		m_ActiveSound = new SoundContainer;
-		reader >> m_ActiveSound;
+		delete m_ActiveSound;
+		m_ActiveSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("DeactivationSound", {
-		m_DeactivationSound = new SoundContainer;
-		reader >> m_DeactivationSound;
+		delete m_DeactivationSound;
+		m_DeactivationSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("EmptySound", {
-		m_EmptySound = new SoundContainer;
-		reader >> m_EmptySound;
+		delete m_EmptySound;
+		m_EmptySound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("ReloadStartSound", {
-		m_ReloadStartSound = new SoundContainer;
-		reader >> m_ReloadStartSound;
+		delete m_ReloadStartSound;
+		m_ReloadStartSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("ReloadEndSound", {
-		m_ReloadEndSound = new SoundContainer;
-		reader >> m_ReloadEndSound;
+		delete m_ReloadEndSound;
+		m_ReloadEndSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("ReloadEndOffset", { reader >> m_ReloadEndOffset; });
 	MatchProperty("RateOfFire", { reader >> m_RateOfFire; });
@@ -250,79 +252,58 @@ int HDFirearm::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int HDFirearm::Save(Writer& writer) const {
-	HeldDevice::Save(writer);
+template <typename WriterType> int HDFirearm::WriteTo(WriterType& writer) const {
+	HeldDevice::WriteTo(writer);
 
-	writer.NewProperty("Magazine");
-	writer << m_pMagazine;
-	writer.NewProperty("Flash");
-	writer << m_pFlash;
-	writer.NewProperty("PreFireSound");
-	writer << m_PreFireSound;
-	writer.NewProperty("FireSound");
-	writer << m_FireSound;
-	writer.NewProperty("FireEchoSound");
-	writer << m_FireEchoSound;
-	writer.NewProperty("ActiveSound");
-	writer << m_ActiveSound;
-	writer.NewProperty("DeactivationSound");
-	writer << m_DeactivationSound;
-	writer.NewProperty("EmptySound");
-	writer << m_EmptySound;
-	writer.NewProperty("ReloadStartSound");
-	writer << m_ReloadStartSound;
-	writer.NewProperty("ReloadEndSound");
-	writer << m_ReloadEndSound;
-	writer.NewPropertyWithValue("ReloadEndOffset", m_ReloadEndOffset);
-	writer.NewProperty("RateOfFire");
-	writer << m_RateOfFire;
-	writer.NewProperty("ActivationDelay");
-	writer << m_ActivationDelay;
-	writer.NewProperty("DeactivationDelay");
-	writer << m_DeactivationDelay;
-	writer.NewProperty("ReloadTime");
-	writer << m_BaseReloadTime;
-	writer.NewProperty("FullAuto");
-	writer << m_FullAuto;
-	writer.NewProperty("FireIgnoresThis");
-	writer << m_FireIgnoresThis;
-	writer.NewProperty("Reloadable");
-	writer.NewPropertyWithValue("DualReloadable", m_DualReloadable);
-	writer.NewPropertyWithValue("OneHandedReloadTimeMultiplier", m_OneHandedReloadTimeMultiplier);
-	writer.NewPropertyWithValue("ReloadAngle", m_ReloadAngle);
-	writer.NewPropertyWithValue("OneHandedReloadAngle", m_OneHandedReloadAngle);
-	writer << m_Reloadable;
-	writer.NewProperty("RecoilTransmission");
-	writer << m_JointStiffness;
-	writer.NewProperty("IsAnimatedManually");
-	writer << m_IsAnimatedManually;
-	writer.NewProperty("ShakeRange");
-	writer << m_ShakeRange * 2;
-	writer.NewProperty("SharpShakeRange");
-	writer << m_SharpShakeRange * 2;
-	writer.NewProperty("NoSupportFactor");
-	writer << m_NoSupportFactor;
-	writer.NewProperty("ParticleSpreadRange");
-	writer << m_ParticleSpreadRange * 2;
-	writer.NewProperty("ShellEjectAngle");
-	writer << m_ShellEjectAngle;
-	writer.NewProperty("ShellSpreadRange");
-	writer << m_ShellSpreadRange * 2;
-	writer.NewProperty("ShellAngVelRange");
-	writer << m_ShellAngVelRange * 2;
-	writer.NewProperty("ShellVelVariation");
-	writer << m_ShellVelVariation;
-	writer.NewProperty("RecoilScreenShakeAmount");
-	writer << m_RecoilScreenShakeAmount;
-	writer.NewProperty("MuzzleOffset");
-	writer << m_MuzzleOff;
-	writer.NewProperty("EjectionOffset");
-	writer << m_EjectOff;
+	writer.NewOptionalEntityPointerProperty("Magazine", &HDFirearm::m_pMagazine);
+	writer.NewOptionalEntityPointerProperty("Flash", &HDFirearm::m_pFlash);
+	writer.NewOptionalEntityPointerProperty("PreFireSound", &HDFirearm::m_PreFireSound);
+	writer.NewOptionalEntityPointerProperty("FireSound", &HDFirearm::m_FireSound);
+	writer.NewOptionalEntityPointerProperty("FireEchoSound", &HDFirearm::m_FireEchoSound);
+	writer.NewOptionalEntityPointerProperty("ActiveSound", &HDFirearm::m_ActiveSound);
+	writer.NewOptionalEntityPointerProperty("DeactivationSound", &HDFirearm::m_DeactivationSound);
+	writer.NewOptionalEntityPointerProperty("EmptySound", &HDFirearm::m_EmptySound);
+	writer.NewOptionalEntityPointerProperty("ReloadStartSound", &HDFirearm::m_ReloadStartSound);
+	writer.NewOptionalEntityPointerProperty("ReloadEndSound", &HDFirearm::m_ReloadEndSound);
+	writer.NewDistinctProperty("ReloadEndOffset", &HDFirearm::m_ReloadEndOffset);
+	writer.NewDistinctProperty("RateOfFire", &HDFirearm::m_RateOfFire);
+	writer.NewDistinctProperty("ActivationDelay", &HDFirearm::m_ActivationDelay);
+	writer.NewDistinctProperty("DeactivationDelay", &HDFirearm::m_DeactivationDelay);
+	writer.NewDistinctProperty("ReloadTime", &HDFirearm::m_BaseReloadTime);
+	writer.NewDistinctProperty("FullAuto", &HDFirearm::m_FullAuto);
+	writer.NewDistinctProperty("FireIgnoresThis", &HDFirearm::m_FireIgnoresThis);
+	writer.NewDistinctProperty("Reloadable", &HDFirearm::m_Reloadable);
+	writer.NewDistinctProperty("DualReloadable", &HDFirearm::m_DualReloadable);
+	writer.NewDistinctProperty("OneHandedReloadTimeMultiplier", &HDFirearm::m_OneHandedReloadTimeMultiplier);
+	writer.NewDistinctProperty("ReloadAngle", &HDFirearm::m_ReloadAngle);
+	writer.NewDistinctProperty("OneHandedReloadAngle", &HDFirearm::m_OneHandedReloadAngle);
+	writer.NewDistinctProperty("RecoilTransmission", &HDFirearm::m_JointStiffness);
+	writer.NewDistinctProperty("IsAnimatedManually", &HDFirearm::m_IsAnimatedManually);
 
-	writer.NewPropertyWithValue("LegacyCompatibilityRoundsAlwaysFireUnflipped", m_LegacyCompatibilityRoundsAlwaysFireUnflipped);
+	writer.NewDistinctProperty("ShakeRange", [](const HDFirearm& object) { return object.m_ShakeRange * 2; });
+
+	writer.NewDistinctProperty("SharpShakeRange", [](const HDFirearm& object) { return object.m_SharpShakeRange * 2; });
+
+	writer.NewDistinctProperty("NoSupportFactor", &HDFirearm::m_NoSupportFactor);
+
+	writer.NewDistinctProperty("ParticleSpreadRange", [](const HDFirearm& object) { return object.m_ParticleSpreadRange * 2; });
+
+	writer.NewDistinctProperty("ShellEjectAngle", &HDFirearm::m_ShellEjectAngle);
+
+	writer.NewDistinctProperty("ShellSpreadRange", [](const HDFirearm& object) { return object.m_ShellSpreadRange * 2; });
+
+	writer.NewDistinctProperty("ShellAngVelRange", [](const HDFirearm& object) { return object.m_ShellAngVelRange * 2; });
+
+	writer.NewDistinctProperty("ShellVelVariation", &HDFirearm::m_ShellVelVariation);
+	writer.NewDistinctProperty("RecoilScreenShakeAmount", &HDFirearm::m_RecoilScreenShakeAmount);
+	writer.NewDistinctProperty("MuzzleOffset", &HDFirearm::m_MuzzleOff);
+	writer.NewDistinctProperty("EjectionOffset", &HDFirearm::m_EjectOff);
+	writer.NewDistinctProperty("LegacyCompatibilityRoundsAlwaysFireUnflipped", &HDFirearm::m_LegacyCompatibilityRoundsAlwaysFireUnflipped);
 
 	return 0;
 }
+template int HDFirearm::WriteTo(IniWriter& writer) const;
+template int HDFirearm::WriteTo(HashWriter& writer) const;
 
 void HDFirearm::Destroy(bool notInherited) {
 	if (m_PreFireSound) {

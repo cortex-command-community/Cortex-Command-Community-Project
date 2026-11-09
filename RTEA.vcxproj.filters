@@ -100,7 +100,13 @@
     <ClInclude Include="Source\System\Vector.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\Writer.h">
+    <ClInclude Include="Source\System\PropertyWriter.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\System\IniWriter.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\System\HashWriter.h">
       <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="Source\System\MicroPather\micropather.h">
@@ -697,7 +703,10 @@
     <ClCompile Include="Source\System\Vector.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="Source\System\Writer.cpp">
+    <ClCompile Include="Source\System\IniWriter.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\System\HashWriter.cpp">
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="Source\System\MicroPather\micropather.cpp">

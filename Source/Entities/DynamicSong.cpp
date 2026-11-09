@@ -61,16 +61,26 @@ int DynamicSongSection::Create(const DynamicSongSection& reference) {
 int DynamicSongSection::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
+	MatchProperty("_ClearTransitionSoundContainers", {
+		reader.ReadPropValue();
+		m_TransitionSoundContainers.clear();
+	});
 	MatchProperty("AddTransitionSoundContainer", {
 		SoundContainer soundContainerToAdd;
 		reader >> soundContainerToAdd;
 		m_TransitionSoundContainers.push_back(soundContainerToAdd);
+	});
+	MatchProperty("LastTransitionSoundContainerIndex", { reader >> m_LastTransitionSoundContainerIndex; });
+	MatchProperty("_ClearSoundContainers", {
+		reader.ReadPropValue();
+		m_SoundContainers.clear();
 	});
 	MatchProperty("AddSoundContainer", {
 		SoundContainer soundContainerToAdd;
 		reader >> soundContainerToAdd;
 		m_SoundContainers.push_back(soundContainerToAdd);
 	});
+	MatchProperty("LastSoundContainerIndex", { reader >> m_LastSoundContainerIndex; });
 	MatchProperty("SoundContainerSelectionCycleMode", {
 		std::string soundContainerSelectionCycleModeString = reader.ReadPropValue();
 		if (c_SoundContainerSelectionCycleModeMap.find(soundContainerSelectionCycleModeString) != c_SoundContainerSelectionCycleModeMap.end()) {
@@ -88,7 +98,7 @@ int DynamicSongSection::ReadProperty(const std::string_view& propName, Reader& r
 	EndPropertyList;
 }
 
-void DynamicSongSection::SaveSoundContainerSelectionCycleMode(Writer& writer, SoundContainerSelectionCycleMode soundContainerSelectionCycleMode) {
+template <typename WriterType> void DynamicSongSection::SaveSoundContainerSelectionCycleMode(WriterType& writer, SoundContainerSelectionCycleMode soundContainerSelectionCycleMode) {
 	auto cycleModeMapEntry = std::find_if(c_SoundContainerSelectionCycleModeMap.begin(), c_SoundContainerSelectionCycleModeMap.end(), [&soundContainerSelectionCycleMode = soundContainerSelectionCycleMode](auto element) { return element.second == soundContainerSelectionCycleMode; });
 	if (cycleModeMapEntry != c_SoundContainerSelectionCycleModeMap.end()) {
 		writer << cycleModeMapEntry->first;
@@ -97,32 +107,23 @@ void DynamicSongSection::SaveSoundContainerSelectionCycleMode(Writer& writer, So
 	}
 }
 
-int DynamicSongSection::Save(Writer& writer) const {
-	Entity::Save(writer);
+template <typename WriterType> int DynamicSongSection::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
 
-	for (const SoundContainer& soundContainer: m_TransitionSoundContainers) {
-		writer.NewProperty("AddTransitionSoundContainer");
-		writer.ObjectStart("SoundContainer");
-		writer << soundContainer;
-		writer.ObjectEnd();
+	writer.NewSequence("_ClearTransitionSoundContainers", "AddTransitionSoundContainer", &DynamicSongSection::m_TransitionSoundContainers);
+	writer.NewDistinctProperty("LastTransitionSoundContainerIndex", &DynamicSongSection::m_LastTransitionSoundContainerIndex);
+	writer.NewSequence("_ClearSoundContainers", "AddSoundContainer", &DynamicSongSection::m_SoundContainers);
+	writer.NewDistinctProperty("LastSoundContainerIndex", &DynamicSongSection::m_LastSoundContainerIndex);
+	if (writer.IsDistinct(&DynamicSongSection::m_SoundContainerSelectionCycleMode)) {
+		writer.NewProperty("SoundContainerSelectionCycleMode");
+		SaveSoundContainerSelectionCycleMode(writer, m_SoundContainerSelectionCycleMode);
 	}
-	writer.NewProperty("LastTransitionSoundContainerIndex");
-	writer << m_LastTransitionSoundContainerIndex;
-	for (const SoundContainer& soundContainer: m_SoundContainers) {
-		writer.NewProperty("AddSoundContainer");
-		writer.ObjectStart("SoundContainer");
-		writer << soundContainer;
-		writer.ObjectEnd();
-	}
-	writer.NewProperty("LastSoundContainerIndex");
-	writer << m_LastSoundContainerIndex;
-	writer.NewProperty("SoundContainerSelectionCycleMode");
-	SaveSoundContainerSelectionCycleMode(writer, m_SoundContainerSelectionCycleMode);
-	writer.NewProperty("SectionType");
-	writer << m_SectionType;
+	writer.NewDistinctProperty("SectionType", &DynamicSongSection::m_SectionType);
 
 	return 0;
 }
+template int DynamicSongSection::WriteTo(IniWriter& writer) const;
+template int DynamicSongSection::WriteTo(HashWriter& writer) const;
 
 SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
 	if (m_TransitionSoundContainers.empty()) {
@@ -245,6 +246,10 @@ int DynamicSong::ReadProperty(const std::string_view& propName, Reader& reader) 
 		reader >> songSection;
 		m_DefaultSongSection = songSection;
 	});
+	MatchProperty("_ClearSongSections", {
+		reader.ReadPropValue();
+		m_SongSections.clear();
+	});
 	MatchProperty("AddSongSection", {
 		DynamicSongSection songSectionToAdd;
 		reader >> songSectionToAdd;
@@ -260,20 +265,13 @@ int DynamicSong::ReadProperty(const std::string_view& propName, Reader& reader) 
 	EndPropertyList;
 }
 
-int DynamicSong::Save(Writer& writer) const {
-	Entity::Save(writer);
+template <typename WriterType> int DynamicSong::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
 
-	writer.NewProperty("DefaultSongSection");
-	writer.ObjectStart("DynamicSongSection");
-	writer << m_DefaultSongSection;
-	writer.ObjectEnd();
-
-	for (const DynamicSongSection& dynamicSongSection: m_SongSections) {
-		writer.NewProperty("AddSongSection");
-		writer.ObjectStart("SoundContainer");
-		writer << dynamicSongSection;
-		writer.ObjectEnd();
-	}
+	writer.NewDistinctProperty("DefaultSongSection", &DynamicSong::m_DefaultSongSection);
+	writer.NewSequence("_ClearSongSections", "AddSongSection", &DynamicSong::m_SongSections);
 
 	return 0;
 }
+template int DynamicSong::WriteTo(IniWriter& writer) const;
+template int DynamicSong::WriteTo(HashWriter& writer) const;

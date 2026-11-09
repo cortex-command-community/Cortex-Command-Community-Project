@@ -134,12 +134,14 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("JointOffset", { reader >> m_JointOffset; });
 	MatchProperty("BreakWound", {
-		m_BreakWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset(reader));
+		m_BreakWound = g_PresetMan.ReadPresetReferenceOfType<AEmitter>(reader, propName);
 		if (!m_ParentBreakWound) {
 			m_ParentBreakWound = m_BreakWound;
 		}
 	});
-	MatchProperty("ParentBreakWound", { m_ParentBreakWound = dynamic_cast<const AEmitter*>(g_PresetMan.GetEntityPreset(reader)); });
+	MatchProperty("ParentBreakWound", {
+		m_ParentBreakWound = g_PresetMan.ReadPresetReferenceOfType<AEmitter>(reader, propName);
+	});
 	MatchProperty("InheritsHFlipped", {
 		reader >> m_InheritsHFlipped;
 		if (m_InheritsHFlipped != 0 && m_InheritsHFlipped != 1) {
@@ -148,50 +150,65 @@ int Attachable::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("InheritsRotAngle", { reader >> m_InheritsRotAngle; });
 	MatchForwards("InheritedRotAngleRadOffset") MatchProperty("InheritedRotAngleOffset", { reader >> m_InheritedRotAngleOffset; });
-	MatchProperty("InheritedRotAngleDegOffset", { m_InheritedRotAngleOffset = DegreesToRadians(std::stof(reader.ReadPropValue())); });
+	MatchProperty("InheritedRotAngleDegOffset", {
+		float inheritedRotAngleDegOffset;
+		reader >> inheritedRotAngleDegOffset;
+		m_InheritedRotAngleOffset = DegreesToRadians(inheritedRotAngleDegOffset);
+	});
 	MatchProperty("MountedRotAngleOffset", { reader >> m_MountedRotAngleOffset; });
 	MatchProperty("InheritsFrame", { reader >> m_InheritsFrame; });
 	MatchProperty("InheritsVelWhenDetached", { reader >> m_InheritsVelWhenDetached; });
 	MatchProperty("InheritsAngularVelWhenDetached", { reader >> m_InheritsAngularVelWhenDetached; });
 	MatchProperty("CollidesWithTerrainWhileAttached", { reader >> m_CollidesWithTerrainWhileAttached; });
 	MatchProperty("IgnoresParticlesWhileAttached", { reader >> m_IgnoresParticlesWhileAttached; });
-	MatchProperty("AddPieSlice", { m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(dynamic_cast<PieSlice*>(g_PresetMan.ReadReflectedPreset(reader)))); });
+	MatchProperty("_ClearPieSlices", {
+		reader.ReadPropValue();
+		m_PieSlices.clear();
+	});
+	MatchProperty("AddPieSlice", {
+		if (PieSlice* pieSlice = g_PresetMan.ReadReflectedPresetOfType<PieSlice>(reader, propName)) {
+			m_PieSlices.emplace_back(std::unique_ptr<PieSlice>(pieSlice));
+		}
+	});
 
 	EndPropertyList;
 }
 
-int Attachable::Save(Writer& writer) const {
-	MOSRotating::Save(writer);
+template <typename WriterType> int Attachable::WriteTo(WriterType& writer) const {
+	MOSRotating::WriteTo(writer);
 
-	writer.NewPropertyWithValue("ParentOffset", m_ParentOffset);
-	writer.NewPropertyWithValue("DrawAfterParent", m_DrawAfterParent);
-	writer.NewPropertyWithValue("DeleteWhenRemovedFromParent", m_DeleteWhenRemovedFromParent);
-	writer.NewPropertyWithValue("GibWhenRemovedFromParent", m_GibWhenRemovedFromParent);
-	writer.NewPropertyWithValue("ApplyTransferredForcesAtOffset", m_ApplyTransferredForcesAtOffset);
+	writer.NewDistinctProperty("ParentOffset", &Attachable::m_ParentOffset);
+	writer.NewDistinctProperty("DrawAfterParent", &Attachable::m_DrawAfterParent);
+	writer.NewDistinctProperty("DeleteWhenRemovedFromParent", &Attachable::m_DeleteWhenRemovedFromParent);
+	writer.NewDistinctProperty("GibWhenRemovedFromParent", &Attachable::m_GibWhenRemovedFromParent);
+	writer.NewDistinctProperty("ApplyTransferredForcesAtOffset", &Attachable::m_ApplyTransferredForcesAtOffset);
+	writer.NewDistinctProperty("JointStrength", &Attachable::m_JointStrength);
+	writer.NewDistinctProperty("JointStiffness", &Attachable::m_JointStiffness);
+	writer.NewDistinctProperty("JointOffset", &Attachable::m_JointOffset);
+	writer.NewPresetReferenceProperty("BreakWound", &Attachable::m_BreakWound);
+	writer.NewPresetReferenceProperty("ParentBreakWound", &Attachable::m_ParentBreakWound);
 
-	writer.NewPropertyWithValue("JointStrength", m_JointStrength);
-	writer.NewPropertyWithValue("JointStiffness", m_JointStiffness);
-	writer.NewPropertyWithValue("JointOffset", m_JointOffset);
+	writer.NewDistinctProperty("InheritsHFlipped", [](const Attachable& object) { return ((object.m_InheritsHFlipped == 0 || object.m_InheritsHFlipped == 1) ? object.m_InheritsHFlipped : 2); });
 
-	writer.NewPropertyWithValue("BreakWound", m_BreakWound);
-	writer.NewPropertyWithValue("ParentBreakWound", m_ParentBreakWound);
+	writer.NewDistinctProperty("InheritsRotAngle", &Attachable::m_InheritsRotAngle);
+	writer.NewDistinctProperty("InheritedRotAngleOffset", &Attachable::m_InheritedRotAngleOffset);
+	writer.NewDistinctProperty("InheritsFrame", &Attachable::m_InheritsFrame);
+	writer.NewDistinctProperty("MountedRotAngleOffset", &Attachable::m_MountedRotAngleOffset);
+	writer.NewDistinctProperty("InheritsVelWhenDetached", &Attachable::m_InheritsVelWhenDetached);
+	writer.NewDistinctProperty("InheritsAngularVelWhenDetached", &Attachable::m_InheritsAngularVelWhenDetached);
+	writer.NewDistinctProperty("CollidesWithTerrainWhileAttached", &Attachable::m_CollidesWithTerrainWhileAttached);
+	writer.NewDistinctProperty("IgnoresParticlesWhileAttached", &Attachable::m_IgnoresParticlesWhileAttached);
+	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", &Attachable::m_PieSlices);
 
-	writer.NewPropertyWithValue("InheritsHFlipped", ((m_InheritsHFlipped == 0 || m_InheritsHFlipped == 1) ? m_InheritsHFlipped : 2));
-	writer.NewPropertyWithValue("InheritsRotAngle", m_InheritsRotAngle);
-	writer.NewPropertyWithValue("InheritedRotAngleOffset", m_InheritedRotAngleOffset);
-  writer.NewPropertyWithValue("MountedRotAngleOffset", m_MountedRotAngleOffset);
-	writer.NewPropertyWithValue("InheritsVelWhenDetached", m_InheritsVelWhenDetached);
-	writer.NewPropertyWithValue("InheritsAngularVelWhenDetached", m_InheritsAngularVelWhenDetached);
+	writer.NewDistinctProperty("GibWithParentChance", &Attachable::m_GibWithParentChance);
+	writer.NewDistinctProperty("ParentGibBlastStrengthMultiplier", &Attachable::m_ParentGibBlastStrengthMultiplier);
 
-	writer.NewPropertyWithValue("CollidesWithTerrainWhileAttached", m_CollidesWithTerrainWhileAttached);
-	writer.NewPropertyWithValue("IgnoresParticlesWhileAttached", m_IgnoresParticlesWhileAttached);
-
-	for (const std::unique_ptr<PieSlice>& pieSlice: m_PieSlices) {
-		writer.NewPropertyWithValue("AddPieSlice", pieSlice.get());
-	}
+	writer.NewDistinctProperty("InheritedRotAngleDegOffset", [](const Attachable& object) { return RadiansToDegrees(object.m_InheritedRotAngleOffset); });
 
 	return 0;
 }
+template int Attachable::WriteTo(IniWriter& writer) const;
+template int Attachable::WriteTo(HashWriter& writer) const;
 
 bool Attachable::TransferJointForces(Vector& jointForces) {
 	if (!m_Parent) {

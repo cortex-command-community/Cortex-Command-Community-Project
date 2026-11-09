@@ -224,12 +224,12 @@ int ACrab::Create(const ACrab& reference) {
 int ACrab::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Actor::ReadProperty(propName, reader));
 
-	MatchProperty("Turret", { SetTurret(dynamic_cast<Turret*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("Jetpack", { SetJetpack(dynamic_cast<AEJetpack*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("LFGLeg") MatchProperty("LeftFGLeg", { SetLeftFGLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("LBGLeg") MatchProperty("LeftBGLeg", { SetLeftBGLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("RFGLeg") MatchProperty("RightFGLeg", { SetRightFGLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchForwards("RBGLeg") MatchProperty("RightBGLeg", { SetRightBGLeg(dynamic_cast<Leg*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Turret", { SetTurret(g_PresetMan.ReadReflectedPresetOfType<Turret>(reader, propName)); });
+	MatchProperty("Jetpack", { SetJetpack(g_PresetMan.ReadReflectedPresetOfType<AEJetpack>(reader, propName)); });
+	MatchForwards("LFGLeg") MatchProperty("LeftFGLeg", { SetLeftFGLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
+	MatchForwards("LBGLeg") MatchProperty("LeftBGLeg", { SetLeftBGLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
+	MatchForwards("RFGLeg") MatchProperty("RightFGLeg", { SetRightFGLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
+	MatchForwards("RBGLeg") MatchProperty("RightBGLeg", { SetRightBGLeg(g_PresetMan.ReadReflectedPresetOfType<Leg>(reader, propName)); });
 	MatchForwards("LFootGroup") MatchProperty("LeftFootGroup", {
 		delete m_pLFGFootGroup;
 		delete m_pLBGFootGroup;
@@ -263,42 +263,50 @@ int ACrab::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchForwards("LFGFootGroup") MatchProperty("LeftFGFootGroup", {
 		delete m_pLFGFootGroup;
 		delete m_BackupLFGFootGroup;
-		m_pLFGFootGroup = new AtomGroup();
-		reader >> m_pLFGFootGroup;
-		m_pLFGFootGroup->SetOwner(this);
-		m_BackupLFGFootGroup = new AtomGroup(*m_pLFGFootGroup);
-		m_BackupLFGFootGroup->RemoveAllAtoms();
+		m_pLFGFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		m_BackupLFGFootGroup = nullptr;
+		if (m_pLFGFootGroup) {
+			m_pLFGFootGroup->SetOwner(this);
+			m_BackupLFGFootGroup = new AtomGroup(*m_pLFGFootGroup);
+			m_BackupLFGFootGroup->RemoveAllAtoms();
+		}
 	});
 	MatchForwards("LBGFootGroup") MatchProperty("LeftBGFootGroup", {
 		delete m_pLBGFootGroup;
 		delete m_BackupLBGFootGroup;
-		m_pLBGFootGroup = new AtomGroup();
-		reader >> m_pLBGFootGroup;
-		m_pLBGFootGroup->SetOwner(this);
-		m_BackupLBGFootGroup = new AtomGroup(*m_pLBGFootGroup);
-		m_BackupLBGFootGroup->RemoveAllAtoms();
+		m_pLBGFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		m_BackupLBGFootGroup = nullptr;
+		if (m_pLBGFootGroup) {
+			m_pLBGFootGroup->SetOwner(this);
+			m_BackupLBGFootGroup = new AtomGroup(*m_pLBGFootGroup);
+			m_BackupLBGFootGroup->RemoveAllAtoms();
+		}
 	});
 	MatchForwards("RFGFootGroup") MatchProperty("RightFGFootGroup", {
 		delete m_pRFGFootGroup;
 		delete m_BackupRFGFootGroup;
-		m_pRFGFootGroup = new AtomGroup();
-		reader >> m_pRFGFootGroup;
-		m_pRFGFootGroup->SetOwner(this);
-		m_BackupRFGFootGroup = new AtomGroup(*m_pRFGFootGroup);
-		m_BackupRFGFootGroup->RemoveAllAtoms();
+		m_pRFGFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		m_BackupRFGFootGroup = nullptr;
+		if (m_pRFGFootGroup) {
+			m_pRFGFootGroup->SetOwner(this);
+			m_BackupRFGFootGroup = new AtomGroup(*m_pRFGFootGroup);
+			m_BackupRFGFootGroup->RemoveAllAtoms();
+		}
 	});
 	MatchForwards("RBGFootGroup") MatchProperty("RightBGFootGroup", {
 		delete m_pRBGFootGroup;
 		delete m_BackupRBGFootGroup;
-		m_pRBGFootGroup = new AtomGroup();
-		reader >> m_pRBGFootGroup;
-		m_pRBGFootGroup->SetOwner(this);
-		m_BackupRBGFootGroup = new AtomGroup(*m_pRBGFootGroup);
-		m_BackupRBGFootGroup->RemoveAllAtoms();
+		m_pRBGFootGroup = g_PresetMan.ReadReflectedPresetOfType<AtomGroup>(reader, propName);
+		m_BackupRBGFootGroup = nullptr;
+		if (m_pRBGFootGroup) {
+			m_pRBGFootGroup->SetOwner(this);
+			m_BackupRBGFootGroup = new AtomGroup(*m_pRBGFootGroup);
+			m_BackupRBGFootGroup->RemoveAllAtoms();
+		}
 	});
 	MatchProperty("StrideSound", {
-		m_StrideSound = new SoundContainer;
-		reader >> m_StrideSound;
+		delete m_StrideSound;
+		m_StrideSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchForwards("LStandLimbPath") MatchProperty("LeftStandLimbPath", { reader >> m_Paths[LEFTSIDE][FGROUND][STAND]; });
 	MatchForwards("LWalkLimbPath") MatchProperty("LeftWalkLimbPath", { reader >> m_Paths[LEFTSIDE][FGROUND][WALK]; });
@@ -313,54 +321,34 @@ int ACrab::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int ACrab::Save(Writer& writer) const {
-	Actor::Save(writer);
+template <typename WriterType> int ACrab::WriteTo(WriterType& writer) const {
+	Actor::WriteTo(writer);
 
-	writer.NewProperty("Turret");
-	writer << m_pTurret;
-	writer.NewProperty("Jetpack");
-	writer << m_pJetpack;
-	writer.NewProperty("LFGLeg");
-	writer << m_pLFGLeg;
-	writer.NewProperty("LBGLeg");
-	writer << m_pLBGLeg;
-	writer.NewProperty("RFGLeg");
-	writer << m_pRFGLeg;
-	writer.NewProperty("RBGLeg");
-	writer << m_pRBGLeg;
-	writer.NewProperty("LFGFootGroup");
-	writer << m_pLFGFootGroup;
-	writer.NewProperty("LBGFootGroup");
-	writer << m_pLBGFootGroup;
-	writer.NewProperty("RFGFootGroup");
-	writer << m_pRFGFootGroup;
-	writer.NewProperty("RBGFootGroup");
-	writer << m_pRBGFootGroup;
-	writer.NewProperty("StrideSound");
-	writer << m_StrideSound;
-
-	writer.NewProperty("LStandLimbPath");
-	writer << m_Paths[LEFTSIDE][FGROUND][STAND];
-	writer.NewProperty("LWalkLimbPath");
-	writer << m_Paths[LEFTSIDE][FGROUND][WALK];
-	writer.NewProperty("LDislodgeLimbPath");
-	writer << m_Paths[LEFTSIDE][FGROUND][DISLODGE];
-	writer.NewProperty("RStandLimbPath");
-	writer << m_Paths[RIGHTSIDE][FGROUND][STAND];
-	writer.NewProperty("RWalkLimbPath");
-	writer << m_Paths[RIGHTSIDE][FGROUND][WALK];
-	writer.NewProperty("RDislodgeLimbPath");
-	writer << m_Paths[RIGHTSIDE][FGROUND][DISLODGE];
-
-	writer.NewProperty("AimRangeUpperLimit");
-	writer << m_AimRangeUpperLimit;
-	writer.NewProperty("AimRangeLowerLimit");
-	writer << m_AimRangeLowerLimit;
-	writer.NewProperty("LockMouseAimInput");
-	writer << m_LockMouseAimInput;
+	writer.NewOptionalEntityPointerProperty("Turret", &ACrab::m_pTurret);
+	writer.NewOptionalEntityPointerProperty("Jetpack", &ACrab::m_pJetpack);
+	writer.NewOptionalEntityPointerProperty("LFGLeg", &ACrab::m_pLFGLeg);
+	writer.NewOptionalEntityPointerProperty("LBGLeg", &ACrab::m_pLBGLeg);
+	writer.NewOptionalEntityPointerProperty("RFGLeg", &ACrab::m_pRFGLeg);
+	writer.NewOptionalEntityPointerProperty("RBGLeg", &ACrab::m_pRBGLeg);
+	writer.NewOptionalEntityPointerProperty("LFGFootGroup", &ACrab::m_pLFGFootGroup);
+	writer.NewOptionalEntityPointerProperty("LBGFootGroup", &ACrab::m_pLBGFootGroup);
+	writer.NewOptionalEntityPointerProperty("RFGFootGroup", &ACrab::m_pRFGFootGroup);
+	writer.NewOptionalEntityPointerProperty("RBGFootGroup", &ACrab::m_pRBGFootGroup);
+	writer.NewOptionalEntityPointerProperty("StrideSound", &ACrab::m_StrideSound);
+	writer.NewDistinctProperty("LStandLimbPath", [](const ACrab& object) -> const auto& { return object.m_Paths[LEFTSIDE][FGROUND][STAND]; });
+	writer.NewDistinctProperty("LWalkLimbPath", [](const ACrab& object) -> const auto& { return object.m_Paths[LEFTSIDE][FGROUND][WALK]; });
+	writer.NewDistinctProperty("LDislodgeLimbPath", [](const ACrab& object) -> const auto& { return object.m_Paths[LEFTSIDE][FGROUND][DISLODGE]; });
+	writer.NewDistinctProperty("RStandLimbPath", [](const ACrab& object) -> const auto& { return object.m_Paths[RIGHTSIDE][FGROUND][STAND]; });
+	writer.NewDistinctProperty("RWalkLimbPath", [](const ACrab& object) -> const auto& { return object.m_Paths[RIGHTSIDE][FGROUND][WALK]; });
+	writer.NewDistinctProperty("RDislodgeLimbPath", [](const ACrab& object) -> const auto& { return object.m_Paths[RIGHTSIDE][FGROUND][DISLODGE]; });
+	writer.NewDistinctProperty("AimRangeUpperLimit", &ACrab::m_AimRangeUpperLimit);
+	writer.NewDistinctProperty("AimRangeLowerLimit", &ACrab::m_AimRangeLowerLimit);
+	writer.NewDistinctProperty("LockMouseAimInput", &ACrab::m_LockMouseAimInput);
 
 	return 0;
 }
+template int ACrab::WriteTo(IniWriter& writer) const;
+template int ACrab::WriteTo(HashWriter& writer) const;
 
 void ACrab::Destroy(bool notInherited) {
 	delete m_pLFGFootGroup;

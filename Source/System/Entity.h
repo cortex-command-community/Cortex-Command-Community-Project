@@ -35,6 +35,10 @@ namespace RTE {
 	const Entity::ClassInfo& GetClass() const override { return m_sClass; } \
 	const std::string& GetClassName() const override { return m_sClass.GetName(); }
 
+/// Convenience macro to cut down on duplicate ReadProperty and Write methods in classes that extend Entity.
+#define EntityOverrideMethods \
+	SerializableOverrideMethods
+
 /// Static method used in conjunction with ClassInfo to allocate an Entity.
 /// This function is passed into the constructor of this Entity's static ClassInfo's constructor, so that it can instantiate MovableObjects.
 /// @return A pointer to the newly dynamically allocated Entity. Ownership is transferred as well.
@@ -143,7 +147,7 @@ namespace RTE {
 
 			/// Writes a bunch of useful debug info about the memory pools to a file.
 			/// @param fileWriter The writer to write info to.
-			static void DumpPoolMemoryInfo(const Writer& fileWriter);
+			static void DumpPoolMemoryInfo(const IniWriter& fileWriter);
 
 			/// Adds a certain number of newly allocated instances to this' pool.
 			/// @param fillAmount The number of instances to fill the pool with. If 0 is specified, the set refill amount will be used.
@@ -232,14 +236,6 @@ namespace RTE {
 		void Reset() override { Clear(); }
 #pragma endregion
 
-#pragma region INI Handling
-		/// Only saves out a Preset reference of this to the stream.
-		/// Is only applicable to objects that are not original presets and haven't been altered since they were copied from their original.
-		/// @param writer A Writer that the Entity will save itself to.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int SavePresetCopy(Writer& writer) const;
-#pragma endregion
-
 #pragma region Getters and Setters
 		/// Shows the ID of the DataModule this Entity has been defined in.
 		/// @return The ID of the module, or -1 if it hasn't been defined in any.
@@ -274,6 +270,11 @@ namespace RTE {
 		/// Sets the plain text description of this Entity's data Preset. Shouldn't be more than a couple of sentences.
 		/// @param newDesc A string reference with the preset description.
 		void SetDescription(const std::string& newDesc) { m_PresetDescription = newDesc; }
+
+		/// Gets a complete description of the entity, first class name, then module name (if defined in module), finally preset name, each seperated with a '/'.
+		/// This is a short and distinct identity for a preset, such as for hashing references to it.
+		/// @return A string with the class, module and preset name of this Entity.
+		std::string GetEntityCharacteristic() const;
 
 		/// Gets the name of this Entity's data Preset, preceded by the name of the Data Module it was defined in, separated with a '/'.
 		/// @return A string with the module and instance name of this Entity.

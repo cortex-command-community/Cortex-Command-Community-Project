@@ -266,6 +266,8 @@ int MovableObject::Create(const MovableObject& reference) {
 	m_RemoveOrphanTerrainMaxArea = reference.m_RemoveOrphanTerrainMaxArea;
 	m_RemoveOrphanTerrainRate = reference.m_RemoveOrphanTerrainRate;
 	m_DamageOnCollision = reference.m_DamageOnCollision;
+	m_ApplyWoundDamageOnCollision = reference.m_ApplyWoundDamageOnCollision;
+	m_ApplyWoundBurstDamageOnCollision = reference.m_ApplyWoundBurstDamageOnCollision;
 	m_DamageOnPenetration = reference.m_DamageOnPenetration;
 	m_WoundDamageMultiplier = reference.m_WoundDamageMultiplier;
 	m_IgnoreTerrain = reference.m_IgnoreTerrain;
@@ -294,12 +296,11 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("Velocity", { reader >> m_Vel; });
 	MatchProperty("Scale", { reader >> m_Scale; });
 	MatchProperty("GlobalAccScalar", { reader >> m_GlobalAccScalar; });
-	MatchProperty("AirResistance",
-	              {
-		              reader >> m_AirResistance;
-		              // Backwards compatibility after we made this value scaled over time
-		              m_AirResistance /= 0.01666F;
-	              });
+	MatchProperty("AirResistance", {
+		reader >> m_AirResistance;
+		// Backwards compatibility after we made this value scaled over time
+		m_AirResistance /= 0.01666F;
+	});
 	MatchProperty("AirThreshold", { reader >> m_AirThreshold; });
 	MatchProperty("PinStrength", { reader >> m_PinStrength; });
 	MatchProperty("RestThreshold", { reader >> m_RestThreshold; });
@@ -332,6 +333,8 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("MissionCritical", { reader >> m_MissionCritical; });
 	MatchProperty("CanBeSquished", { reader >> m_CanBeSquished; });
 	MatchProperty("HUDVisible", { reader >> m_HUDVisible; });
+	MatchProperty("_DisableScript", { EnableOrDisableScript(g_PresetMan.GetFullModulePath(reader.ReadPropValue()), false); });
+	MatchProperty("_EnableScript", { EnableOrDisableScript(g_PresetMan.GetFullModulePath(reader.ReadPropValue()), true); });
 	MatchProperty("ScriptPath", {
 		std::string scriptPath = g_PresetMan.GetFullModulePath(reader.ReadPropValue());
 		switch (LoadScript(scriptPath)) {
@@ -341,7 +344,7 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 				reader.ReportError("The script path " + scriptPath + " was empty.");
 				break;
 			case -2:
-				reader.ReportError("The script path " + scriptPath + "  did not point to a valid file.");
+				reader.ReportError("The script path " + scriptPath + " did not point to a valid file.");
 				break;
 			case -3:
 				reader.ReportError("The script path " + scriptPath + " is already loaded onto this object.");
@@ -387,6 +390,14 @@ int MovableObject::ReadProperty(const std::string_view& propName, Reader& reader
 	MatchProperty("ApplyWoundBurstDamageOnCollision", { reader >> m_ApplyWoundBurstDamageOnCollision; });
 	MatchProperty("IgnoreTerrain", { reader >> m_IgnoreTerrain; });
 	MatchProperty("SimUpdatesBetweenScriptedUpdates", { reader >> m_SimUpdatesBetweenScriptedUpdates; });
+	MatchProperty("_ClearCustomNumberValues", { 
+		reader.ReadPropValue();
+		m_NumberValueMap.clear();
+	});
+	MatchProperty("_ClearCustomStringValues", { 
+		reader.ReadPropValue();
+		m_StringValueMap.clear();
+	});
 	MatchProperty("AddCustomValue", { ReadCustomValueProperty(reader); });
 	MatchProperty("ForceIntoMasterLuaState", { reader >> m_ForceIntoMasterLuaState; });
 
@@ -403,6 +414,9 @@ void MovableObject::ReadCustomValueProperty(Reader& reader) {
 			SetNumberValue(customKey, std::stod(customValue));
 		} catch (const std::invalid_argument) {
 			reader.ReportError("Tried to read a non-number value for SetNumberValue.");
+		} catch (const std::out_of_range) {
+			// Too small to be represented normally, which std::stod refuses even though it was written just fine.
+			SetNumberValue(customKey, 0.0);
 		}
 	} else if (customValueType == "StringValue") {
 		SetStringValue(customKey, customValue);
@@ -413,100 +427,94 @@ void MovableObject::ReadCustomValueProperty(Reader& reader) {
 	reader.NextProperty();
 }
 
-int MovableObject::Save(Writer& writer) const {
-	SceneObject::Save(writer);
-	// TODO: Make proper save system that knows not to save redundant data!
-	// Note - this function isn't even called when saving a scene. Turns out that scene special-cases this stuff, see Scene::Save()
-	// In future, perhaps we ought to not do that. Who knows?
+template <typename WriterType> int MovableObject::WriteTo(WriterType& writer) const {
+	SceneObject::WriteTo(writer);
 
-	writer.NewProperty("Mass");
-	writer << m_Mass;
-	writer.NewProperty("Velocity");
-	writer << m_Vel;
-	writer.NewProperty("Scale");
-	writer << m_Scale;
-	writer.NewProperty("GlobalAccScalar");
-	writer << m_GlobalAccScalar;
-	writer.NewProperty("AirResistance");
-	writer << (m_AirResistance * 0.01666F); // Backwards compatibility after we made this value scaled over time
-	writer.NewProperty("AirThreshold");
-	writer << m_AirThreshold;
-	writer.NewProperty("PinStrength");
-	writer << m_PinStrength;
-	writer.NewProperty("RestThreshold");
-	writer << m_RestThreshold;
-	writer.NewProperty("LifeTime");
-	writer << m_Lifetime;
-	writer.NewProperty("Sharpness");
-	writer << m_Sharpness;
-	writer.NewProperty("HitsMOs");
-	writer << m_HitsMOs;
-	writer.NewProperty("GetsHitByMOs");
-	writer << m_GetsHitByMOs;
-	writer.NewProperty("IgnoresTeamHits");
-	writer << m_IgnoresTeamHits;
-	writer.NewProperty("IgnoresAtomGroupHits");
-	writer << m_IgnoresAtomGroupHits;
-	writer.NewProperty("IgnoresAGHitsWhenSlowerThan");
-	writer << m_IgnoresAGHitsWhenSlowerThan;
-	writer.NewProperty("IgnoresActorHits");
-	writer << m_IgnoresActorHits;
-	writer.NewProperty("MissionCritical");
-	writer << m_MissionCritical;
-	writer.NewProperty("CanBeSquished");
-	writer << m_CanBeSquished;
-	writer.NewProperty("HUDVisible");
-	writer << m_HUDVisible;
-	for (const auto& [scriptPath, scriptEnabled]: m_EnabledScripts) {
-		if (!scriptPath.empty()) {
-			writer.NewProperty("ScriptPath");
-			writer << scriptPath;
+
+	writer.NewDistinctProperty("Mass", &MovableObject::m_Mass);
+	writer.NewDistinctProperty("Velocity", &MovableObject::m_Vel);
+	writer.NewDistinctProperty("Scale", &MovableObject::m_Scale);
+	writer.NewDistinctProperty("GlobalAccScalar", &MovableObject::m_GlobalAccScalar);
+
+	writer.NewDistinctProperty("AirResistance", [](const MovableObject& object) { return object.m_AirResistance * 0.01666F; });
+
+	writer.NewDistinctProperty("AirThreshold", &MovableObject::m_AirThreshold);
+	writer.NewDistinctProperty("PinStrength", &MovableObject::m_PinStrength);
+	writer.NewDistinctProperty("RestThreshold", &MovableObject::m_RestThreshold);
+	writer.NewDistinctProperty("LifeTime", &MovableObject::m_Lifetime);
+	writer.NewDistinctProperty("Sharpness", &MovableObject::m_Sharpness);
+	writer.NewDistinctProperty("HitsMOs", &MovableObject::m_HitsMOs);
+	writer.NewDistinctProperty("GetsHitByMOs", &MovableObject::m_GetsHitByMOs);
+	writer.NewDistinctProperty("IgnoresTeamHits", &MovableObject::m_IgnoresTeamHits);
+	writer.NewDistinctProperty("IgnoresAtomGroupHits", &MovableObject::m_IgnoresAtomGroupHits);
+	writer.NewDistinctProperty("IgnoresAGHitsWhenSlowerThan", &MovableObject::m_IgnoresAGHitsWhenSlowerThan);
+	writer.NewDistinctProperty("IgnoresActorHits", &MovableObject::m_IgnoresActorHits);
+	writer.NewDistinctProperty("MissionCritical", &MovableObject::m_MissionCritical);
+	writer.NewDistinctProperty("CanBeSquished", &MovableObject::m_CanBeSquished);
+	writer.NewDistinctProperty("HUDVisible", &MovableObject::m_HUDVisible);
+
+	// Scripts can't be removed, so there's no clearing them first.
+	for (const auto& scriptPath: m_AllLoadedScripts) {
+		if (scriptPath.empty()) {
+			continue;
+		}
+
+		if (writer.IsDistinct([&scriptPath](const MovableObject& object) { return object.HasScript(scriptPath); })) {
+			writer.NewPropertyWithValue("ScriptPath", scriptPath);
+		}
+
+		// A script that's just been added starts out enabled when it's read.
+		if (writer.IsDistinct([&scriptPath](const MovableObject& object) { return !object.HasScript(scriptPath) || object.ScriptEnabled(scriptPath); })) {
+			writer.NewPropertyWithValue(ScriptEnabled(scriptPath) ? PropName("_EnableScript") : PropName("_DisableScript"), scriptPath);
 		}
 	}
-	writer.NewProperty("ScreenEffect");
-	writer << m_ScreenEffectFile;
-	writer.NewProperty("PostEffectEnabled");
-	writer << m_PostEffectEnabled;
-	writer.NewProperty("EffectStartTime");
-	writer << m_EffectStartTime;
-	writer.NewProperty("EffectStopTime");
-	writer << m_EffectStopTime;
-	writer.NewProperty("EffectStartStrength");
-	writer << (float)m_EffectStartStrength / 255.0f;
-	writer.NewProperty("EffectStopStrength");
-	writer << (float)m_EffectStopStrength / 255.0f;
-	writer.NewProperty("EffectAlwaysShows");
-	writer << m_EffectAlwaysShows;
-	writer.NewProperty("DamageOnCollision");
-	writer << m_DamageOnCollision;
-	writer.NewProperty("DamageOnPenetration");
-	writer << m_DamageOnPenetration;
-	writer.NewProperty("WoundDamageMultiplier");
-	writer << m_WoundDamageMultiplier;
-	writer.NewProperty("ApplyWoundDamageOnCollision");
-	writer << m_ApplyWoundDamageOnCollision;
-	writer.NewProperty("ApplyWoundBurstDamageOnCollision");
-	writer << m_ApplyWoundBurstDamageOnCollision;
-	writer.NewProperty("IgnoreTerrain");
-	writer << m_IgnoreTerrain;
-	writer.NewProperty("SimUpdatesBetweenScriptedUpdates");
-	writer << m_SimUpdatesBetweenScriptedUpdates;
 
-	for (const auto& [key, value]: m_NumberValueMap) {
+	writer.NewDistinctProperty("ScreenEffect", &MovableObject::m_ScreenEffectFile);
+	writer.NewDistinctProperty("PostEffectEnabled", &MovableObject::m_PostEffectEnabled);
+	writer.NewDistinctProperty("EffectStartTime", &MovableObject::m_EffectStartTime);
+	writer.NewDistinctProperty("EffectStopTime", &MovableObject::m_EffectStopTime);
+
+	writer.NewDistinctProperty("EffectStartStrength", [](const MovableObject& object) { return (float)object.m_EffectStartStrength / 255.0f; });
+
+	writer.NewDistinctProperty("EffectStopStrength", [](const MovableObject& object) { return (float)object.m_EffectStopStrength / 255.0f; });
+
+	writer.NewDistinctProperty("EffectAlwaysShows", &MovableObject::m_EffectAlwaysShows);
+	writer.NewDistinctProperty("DamageOnCollision", &MovableObject::m_DamageOnCollision);
+	writer.NewDistinctProperty("DamageOnPenetration", &MovableObject::m_DamageOnPenetration);
+	writer.NewDistinctProperty("WoundDamageMultiplier", &MovableObject::m_WoundDamageMultiplier);
+	writer.NewDistinctProperty("ApplyWoundDamageOnCollision", &MovableObject::m_ApplyWoundDamageOnCollision);
+	writer.NewDistinctProperty("ApplyWoundBurstDamageOnCollision", &MovableObject::m_ApplyWoundBurstDamageOnCollision);
+	writer.NewDistinctProperty("IgnoreTerrain", &MovableObject::m_IgnoreTerrain);
+	writer.NewDistinctProperty("SimUpdatesBetweenScriptedUpdates", &MovableObject::m_SimUpdatesBetweenScriptedUpdates);
+
+	writer.NewDistinctUnorderedCollection("_ClearCustomNumberValues", &MovableObject::m_NumberValueMap, [&writer](const auto& entry) {
+		writer.NewLine();
 		writer.ObjectStart("AddCustomValue = NumberValue");
-		writer.NewPropertyWithValue(key, value);
-	}
+		writer.NewPropertyWithValue(PropName(entry.first), entry.second);
+		writer.ObjectEnd();
+	});
 
-	for (const auto& [key, value]: m_StringValueMap) {
+	writer.NewDistinctUnorderedCollection("_ClearCustomStringValues", &MovableObject::m_StringValueMap, [&writer](const auto& entry) {
+		writer.NewLine();
 		writer.ObjectStart("AddCustomValue = StringValue");
-		writer.NewPropertyWithValue(key, value);
-	}
+		writer.NewPropertyWithValue(PropName(entry.first), entry.second);
+		writer.ObjectEnd();
+	});
 
-	writer.NewProperty("ForceIntoMasterLuaState");
-	writer << m_ForceIntoMasterLuaState;
+	writer.NewDistinctProperty("ForceIntoMasterLuaState", &MovableObject::m_ForceIntoMasterLuaState);
+
+	writer.NewDistinctProperty("RemoveOrphanTerrainRadius", &MovableObject::m_RemoveOrphanTerrainRadius);
+	writer.NewDistinctProperty("RemoveOrphanTerrainMaxArea", &MovableObject::m_RemoveOrphanTerrainMaxArea);
+	writer.NewDistinctProperty("RemoveOrphanTerrainRate", &MovableObject::m_RemoveOrphanTerrainRate);
+	writer.NewDistinctProperty("EffectRotAngle", &MovableObject::m_EffectRotAngle);
+	writer.NewDistinctProperty("InheritEffectRotAngle", &MovableObject::m_InheritEffectRotAngle);
+	writer.NewDistinctProperty("RandomizeEffectRotAngle", &MovableObject::m_RandomizeEffectRotAngle);
+	writer.NewDistinctProperty("RandomizeEffectRotAngleEveryFrame", &MovableObject::m_RandomizeEffectRotAngleEveryFrame);
 
 	return 0;
 }
+template int MovableObject::WriteTo(IniWriter& writer) const;
+template int MovableObject::WriteTo(HashWriter& writer) const;
 
 void MovableObject::DestroyScriptState() {
 	if (m_ThreadedLuaState) {

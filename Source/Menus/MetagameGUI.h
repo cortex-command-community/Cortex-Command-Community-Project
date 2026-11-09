@@ -36,8 +36,7 @@ namespace RTE {
 
 		/// Public member variable, method and friend function declarations
 		SerializableClassNameGetter
-		SerializableOverrideMethods
-
+		SerializableOverrideMethods;
 	public:
 		enum MenuScreens {
 			ROOTBOX = 0,

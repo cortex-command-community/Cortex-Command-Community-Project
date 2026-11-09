@@ -650,37 +650,32 @@ int MetagameGUI::ReadProperty(const std::string_view& propName, Reader& reader) 
 
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
-	MatchProperty("P1BoxPos",
-	              {
-		              reader >> tempPos;
-		              m_apPlayerBox[Players::PlayerOne]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
-	              });
-	MatchProperty("P2BoxPos",
-	              {
-		              reader >> tempPos;
-		              m_apPlayerBox[Players::PlayerTwo]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
-	              });
-	MatchProperty("P3BoxPos",
-	              {
-		              reader >> tempPos;
-		              m_apPlayerBox[Players::PlayerThree]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
-	              });
-	MatchProperty("P4BoxPos",
-	              {
-		              reader >> tempPos;
-		              m_apPlayerBox[Players::PlayerFour]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
-	              });
-	MatchProperty("PhaseBoxPos",
-	              {
-		              reader >> tempPos;
-		              m_pPhaseBox->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
-	              });
+	MatchProperty("P1BoxPos", {
+		reader >> tempPos;
+		m_apPlayerBox[Players::PlayerOne]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
+	});
+	MatchProperty("P2BoxPos", {
+		reader >> tempPos;
+		m_apPlayerBox[Players::PlayerTwo]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
+	});
+	MatchProperty("P3BoxPos", {
+		reader >> tempPos;
+		m_apPlayerBox[Players::PlayerThree]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
+	});
+	MatchProperty("P4BoxPos", {
+		reader >> tempPos;
+		m_apPlayerBox[Players::PlayerFour]->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
+	});
+	MatchProperty("PhaseBoxPos", {
+		reader >> tempPos;
+		m_pPhaseBox->SetPositionAbs(tempPos.GetFloorIntX(), tempPos.GetFloorIntY());
+	});
 
 	EndPropertyList;
 }
 
-int MetagameGUI::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int MetagameGUI::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
 	writer.NewPropertyWithValue("P1BoxPos", Vector(m_apPlayerBox[Players::PlayerOne]->GetXPos(), m_apPlayerBox[Players::PlayerOne]->GetYPos()));
 	writer.NewPropertyWithValue("P2BoxPos", Vector(m_apPlayerBox[Players::PlayerTwo]->GetXPos(), m_apPlayerBox[Players::PlayerTwo]->GetYPos()));
@@ -691,6 +686,8 @@ int MetagameGUI::Save(Writer& writer) const {
 
 	return 0;
 }
+template int MetagameGUI::WriteTo(IniWriter& writer) const;
+template int MetagameGUI::WriteTo(HashWriter& writer) const;
 
 void MetagameGUI::Destroy() {
 	delete m_pGUIController;
@@ -1102,10 +1099,9 @@ bool MetagameGUI::SaveGame(const std::string& saveName, const std::string& saveP
 	g_MetaMan.SaveSceneData(METASAVEPATH + saveName);
 
 	// Whichever new or existing, create a writer with the path
-	Writer metaWriter(fullSavePath);
+	IniWriter metaWriter(fullSavePath);
 	// Now that all the updated data files have been written to disk and their paths updated, send the MetaMan state for actual writing to an ini
-	if (g_MetaMan.Save(metaWriter) < 0)
-		return false;
+	metaWriter.WriteObject(g_MetaMan);
 
 	// Clear out the scene data again so we're not keeping it in memory unnecessarily
 	if (resaveSceneData)
@@ -1122,7 +1118,7 @@ bool MetagameGUI::SaveGame(const std::string& saveName, const std::string& saveP
 	g_PresetMan.AddEntityPreset(&newSave, g_PresetMan.GetModuleID(METASAVEMODULENAME), true, std::string(METASAVEPATH) + "Index.ini");
 
 	// Now write out the index file of all MetaSaves so the new save is found on next runtime
-	Writer indexWriter((std::string(METASAVEPATH) + "Index.ini").c_str());
+	IniWriter indexWriter((std::string(METASAVEPATH) + "Index.ini").c_str());
 	indexWriter.ObjectStart("DataModule");
 	indexWriter.NewPropertyWithValue("ModuleName", "Metagame Saves");
 	// Get the current list of all MetaSave Preset:s, including the new one we just saved

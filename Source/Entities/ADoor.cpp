@@ -112,7 +112,7 @@ int ADoor::Create(const ADoor& reference) {
 int ADoor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Actor::ReadProperty(propName, reader));
 
-	MatchProperty("Door", { SetDoor(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Door", { SetDoor(g_PresetMan.ReadReflectedPresetOfType<Attachable>(reader, propName)); });
 	MatchProperty("OpenOffset", { reader >> m_OpenOffset; });
 	MatchProperty("ClosedOffset", { reader >> m_ClosedOffset; });
 	MatchProperty("OpenClosedOffset", {
@@ -145,6 +145,10 @@ int ADoor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("ClosedByDefault", { reader >> m_ClosedByDefault; });
 	MatchProperty("ResetDefaultDelay", { reader >> m_ResetToDefaultStateDelay; });
 	MatchProperty("SensorInterval", { reader >> m_SensorInterval; });
+	MatchProperty("_ClearSensors", {
+		reader.ReadPropValue();
+		m_Sensors.clear();
+	});
 	MatchProperty("AddSensor", {
 		ADSensor sensor;
 		reader >> sensor;
@@ -152,54 +156,40 @@ int ADoor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	});
 	MatchProperty("DrawMaterialLayerWhenOpen", { reader >> m_DrawMaterialLayerWhenOpen; });
 	MatchProperty("DrawMaterialLayerWhenClosed", { reader >> m_DrawMaterialLayerWhenClosed; });
-	MatchProperty("DoorMoveStartSound", { m_DoorMoveStartSound.reset(dynamic_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("DoorMoveSound", { m_DoorMoveSound.reset(dynamic_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("DoorDirectionChangeSound", { m_DoorDirectionChangeSound.reset(dynamic_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("DoorMoveEndSound", { m_DoorMoveEndSound.reset(dynamic_cast<SoundContainer*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("DoorMoveStartSound", { m_DoorMoveStartSound.reset(g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName)); });
+	MatchProperty("DoorMoveSound", { m_DoorMoveSound.reset(g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName)); });
+	MatchProperty("DoorDirectionChangeSound", { m_DoorDirectionChangeSound.reset(g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName)); });
+	MatchProperty("DoorMoveEndSound", { m_DoorMoveEndSound.reset(g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName)); });
 
 	EndPropertyList;
 }
 
-int ADoor::Save(Writer& writer) const {
-	Actor::Save(writer);
+template <typename WriterType> int ADoor::WriteTo(WriterType& writer) const {
+	Actor::WriteTo(writer);
 
-	writer.NewProperty("Door");
-	writer << m_Door;
-	writer.NewProperty("OpenOffset");
-	writer << m_OpenOffset;
-	writer.NewProperty("ClosedOffset");
-	writer << m_ClosedOffset;
-	writer.NewProperty("OpenAngle");
-	writer << Matrix(m_OpenAngle);
-	writer.NewProperty("ClosedAngle");
-	writer << Matrix(m_ClosedAngle);
-	writer.NewProperty("DoorDelay");
-	writer << m_DoorMoveTime;
-	writer.NewProperty("ClosedByDefault");
-	writer << m_ClosedByDefault;
-	writer.NewProperty("ResetDefaultDelay");
-	writer << m_ResetToDefaultStateDelay;
-	writer.NewProperty("SensorInterval");
-	writer << m_SensorInterval;
-	for (const ADSensor& sensor: m_Sensors) {
-		writer.NewProperty("AddSensor");
-		writer << sensor;
-	}
-	writer.NewProperty("DrawMaterialLayerWhenOpen");
-	writer << m_DrawMaterialLayerWhenOpen;
-	writer.NewProperty("DrawMaterialLayerWhenClosed");
-	writer << m_DrawMaterialLayerWhenClosed;
-	writer.NewProperty("DoorMoveStartSound");
-	writer << m_DoorMoveStartSound.get();
-	writer.NewProperty("DoorMoveSound");
-	writer << m_DoorMoveSound.get();
-	writer.NewProperty("DoorDirectionChangeSound");
-	writer << m_DoorDirectionChangeSound.get();
-	writer.NewProperty("DoorMoveEndSound");
-	writer << m_DoorMoveEndSound.get();
+	writer.NewOptionalEntityPointerProperty("Door", &ADoor::m_Door);
+	writer.NewDistinctProperty("OpenOffset", &ADoor::m_OpenOffset);
+	writer.NewDistinctProperty("ClosedOffset", &ADoor::m_ClosedOffset);
+
+	writer.NewDistinctProperty("OpenAngle", [](const ADoor& object) { return Matrix(object.m_OpenAngle); });
+	writer.NewDistinctProperty("ClosedAngle", [](const ADoor& object) { return Matrix(object.m_ClosedAngle); });
+
+	writer.NewDistinctProperty("DoorMoveTime", &ADoor::m_DoorMoveTime);
+	writer.NewDistinctProperty("ClosedByDefault", &ADoor::m_ClosedByDefault);
+	writer.NewDistinctProperty("ResetDefaultDelay", &ADoor::m_ResetToDefaultStateDelay);
+	writer.NewDistinctProperty("SensorInterval", &ADoor::m_SensorInterval);
+	writer.NewSequence("_ClearSensors", "AddSensor", &ADoor::m_Sensors);
+	writer.NewDistinctProperty("DrawMaterialLayerWhenOpen", &ADoor::m_DrawMaterialLayerWhenOpen);
+	writer.NewDistinctProperty("DrawMaterialLayerWhenClosed", &ADoor::m_DrawMaterialLayerWhenClosed);
+	writer.NewOptionalEntityPointerProperty("DoorMoveStartSound", &ADoor::m_DoorMoveStartSound);
+	writer.NewOptionalEntityPointerProperty("DoorMoveSound", &ADoor::m_DoorMoveSound);
+	writer.NewOptionalEntityPointerProperty("DoorDirectionChangeSound", &ADoor::m_DoorDirectionChangeSound);
+	writer.NewOptionalEntityPointerProperty("DoorMoveEndSound", &ADoor::m_DoorMoveEndSound);
 
 	return 0;
 }
+template int ADoor::WriteTo(IniWriter& writer) const;
+template int ADoor::WriteTo(HashWriter& writer) const;
 
 void ADoor::Destroy(bool notInherited) {
 	if (m_DoorMoveStartSound) {

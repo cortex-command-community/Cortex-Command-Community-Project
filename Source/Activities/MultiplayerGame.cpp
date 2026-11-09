@@ -83,11 +83,6 @@ int MultiplayerGame::ReadProperty(const std::string_view& propName, Reader& read
 	return Activity::ReadProperty(propName, reader);
 }
 
-int MultiplayerGame::Save(Writer& writer) const {
-	Activity::Save(writer);
-	return 0;
-}
-
 void MultiplayerGame::Destroy(bool notInherited) {
 	g_FrameMan.SetDrawNetworkBackBuffer(false);
 	g_NetworkClient.Disconnect();

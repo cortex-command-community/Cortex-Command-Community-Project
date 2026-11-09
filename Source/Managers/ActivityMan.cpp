@@ -103,9 +103,11 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	GAScripted* activity = dynamic_cast<GAScripted*>(GetActivity());
 
 	if (!scene || !activity || (activity && activity->GetActivityState() == Activity::ActivityState::Over)) {
-		g_ConsoleMan.PrintString("ERROR: Cannot save when there's no game running, or the game is finished!");
+		g_ConsoleMan.PrintString("ERROR: Cannot save when there's no game running, or the game is finished! Or, also, if the game happens not to be scripted.");
 		return false;
 	}
+
+	activity->RunLuaFunction("OnSave");
 
 	// Get BITMAPS so save into our zip, do this async so we can copy the scene info at the same time
 	std::vector<SceneLayerInfo>* sceneLayerInfos = new std::vector<SceneLayerInfo>();
@@ -113,20 +115,10 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		*sceneLayerInfos = std::move(scene->GetCopiedSceneLayerBitmaps());
 	});
 
-	// We need a copy of our scene, because we have to do some fixup to remove PLACEONLOAD items and only keep the current MovableMan state.
+	// We need a copy of our scene, because saving points its layers at the saved game, and the scene in play has to keep what it has.
 	std::unique_ptr<Scene> modifiableScene(dynamic_cast<Scene*>(scene->Clone()));
 
-	// Delete any existing objects from our scene - we don't want to replace broken doors or repair any stuff when we load.
-	modifiableScene->ClearPlacedObjectSet(Scene::PlacedObjectSets::PLACEONLOAD, true);
-
-	// Become our own original preset, instead of being a copy of the Scene we got cloned from, so we don't still pick up the PlacedObjectSets from our parent when loading.
-	modifiableScene->SetPresetName(fileName);
-	modifiableScene->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
 	modifiableScene->SetSavedGameInternal(true);
-
-	// Make sure the terrain is also treated as an original preset, otherwise it will screw up if we save then load then save again, since it'll try to be a CopyOf of itself.
-	modifiableScene->GetTerrain()->SetPresetName(fileName);
-	modifiableScene->GetTerrain()->MigrateToModule(g_PresetMan.GetModuleID(c_UserScriptedSavesModuleName));
 
 	// See our content files to point to our save game location. This won't actually save a file here- but it allows us to set these up as in-memory ContentFiles on load
 	// Meaning that our loading code doesn't need to care about whether it's loading a savegame or a file- it just sees it as an already loaded, cached bitmap
@@ -149,7 +141,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	std::unique_ptr<std::stringstream> iniStream = std::make_unique<std::stringstream>();
 
 	// Block the main thread for a bit to let the Writer access the relevant data.
-	std::unique_ptr<Writer> writer(std::make_unique<Writer>(std::move(iniStream)));
+	std::unique_ptr<IniWriter> writer(std::make_unique<IniWriter>(std::move(iniStream)));
 	writer->NewPropertyWithValue("Activity", activity);
 
 	// Pull all stuff from MovableMan into the Scene for saving, so existing Actors/ADoors are saved, without transferring ownership, so the game can continue.
@@ -165,15 +157,17 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	writer->NewPropertyWithValue("OriginalScenePresetName", scene->GetPresetName());
 	writer->NewPropertyWithValue("PlaceObjectsIfSceneIsRestarted", g_SceneMan.GetPlaceObjectsOnLoad());
 	writer->NewPropertyWithValue("PlaceUnitsIfSceneIsRestarted", g_SceneMan.GetPlaceUnitsOnLoad());
-	writer->NewPropertyWithValue("Scene", modifiableScene.get());
+	writer->NewLine();
+	writer->NewLine();
+	writer->NewPropertyWithValue("Scene", *modifiableScene.get());
 
 	// Save a small little file with index info (activity and original scene name) so we can display info in the samegame menu without needing to decompress and read through the entire zip
 	std::unique_ptr<std::stringstream> indexStream = std::make_unique<std::stringstream>();
-	Writer* indexWriter = new Writer(std::move(indexStream));
+	IniWriter* indexWriter = new IniWriter(std::move(indexStream));
 	indexWriter->NewPropertyWithValue("ActivityName", activity->GetPresetName());
 	indexWriter->NewPropertyWithValue("OriginalScenePresetName", scene->GetPresetName());
 
-	auto saveWriterData = [fileName, sceneLayerInfos, indexWriter](Writer* mainWriter) {
+	auto saveWriterData = [fileName, sceneLayerInfos, indexWriter](IniWriter* mainWriter) {
 		// Create zip sav file
 		zipFile zippedSaveFile = zipOpen((g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ccsave").c_str(), APPEND_STATUS_CREATE);
 		if (!zippedSaveFile) {

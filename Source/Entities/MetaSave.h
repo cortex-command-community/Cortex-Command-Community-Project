@@ -9,7 +9,7 @@ namespace RTE {
 
 	public:
 		EntityAllocation(MetaSave);
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 #pragma region Creation

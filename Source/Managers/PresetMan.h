@@ -167,6 +167,29 @@ namespace RTE {
 		/// error, or the instance name was 'None'. Ownership IS transferred!
 		Entity* ReadReflectedPreset(Reader& reader);
 
+		/// Reads an Entity for a property that owns it, as ReadReflectedPreset does, and makes sure of its type.
+		/// A value of "None" means the property is to hold nothing, as PropertyWriter::NewOptionalEntityPointerProperty writes it.
+		/// @param reader The Reader which is about to read the property's value.
+		/// @param propName The name of the property being read, for reporting errors.
+		/// @return The Entity read, or nullptr if the value was "None" or not of the type asked for. Ownership IS transferred!
+		template <typename Type> Type* ReadReflectedPresetOfType(Reader& reader, const std::string_view& propName) {
+			Entity* entity = ReadReflectedPreset(reader);
+			Type* entityOfType = dynamic_cast<Type*>(entity);
+
+			if (entity && !entityOfType) {
+				delete entity;
+			}
+			return entityOfType;
+		}
+
+		/// Reads a preset reference for a property, as GetEntityPreset does, and makes sure of its type.
+		/// @param reader The Reader which is about to read the property's value.
+		/// @param propName The name of the property being read, for reporting errors.
+		/// @return The preset referred to, or nullptr if the value was "None" or not of the type asked for. Ownership is NOT transferred!
+		template <typename Type> const Type* ReadPresetReferenceOfType(Reader& reader, const std::string_view& propName) {
+			return dynamic_cast<const Type*>(GetEntityPreset(reader));
+		}
+
 		/// Adds to a list all previously read in (defined) Entitys, by type.
 		/// @param entityList Reference to a list which will get all matching Entity:s added to it.
 		/// @param type Ownership of the list or the Entitys placed in it are NOT transferred!

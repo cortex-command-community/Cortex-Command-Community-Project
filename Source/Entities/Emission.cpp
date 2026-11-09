@@ -58,13 +58,11 @@ int Emission::Create(const Emission& reference) {
 }
 
 int Emission::ReadProperty(const std::string_view& propName, Reader& reader) {
-	StartPropertyList(return Serializable::ReadProperty(propName, reader));
+	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
-	MatchProperty("EmittedParticle",
-	              {
-		              m_pEmission = dynamic_cast<const MovableObject*>(g_PresetMan.GetEntityPreset(reader));
-		              RTEAssert(m_pEmission, "Stream suggests allocating an unallocatable type in AEmitter::Emission::Create!");
-	              });
+	MatchProperty("EmittedParticle", {
+		m_pEmission = g_PresetMan.ReadPresetReferenceOfType<MovableObject>(reader, propName);
+	});
 	MatchProperty("ParticlesPerMinute", { reader >> m_PPM; });
 	MatchProperty("BurstSize", { reader >> m_BurstSize; });
 	MatchProperty("Spread", { reader >> m_Spread; });
@@ -76,53 +74,39 @@ int Emission::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("ParticleCount", { reader >> m_ParticleCount; });
 	MatchProperty("InheritsVel", { reader >> m_InheritsVel; });
 	MatchProperty("InheritsAngularVel", { reader >> m_InheritsAngularVel; });
-	MatchProperty("StartTimeMS",
-	              {
-		              double startTime;
-		              reader >> startTime;
-		              m_StartTimer.SetSimTimeLimitMS(startTime);
-	              });
-	MatchProperty("StopTimeMS",
-	              {
-		              double stopTime;
-		              reader >> stopTime;
-		              m_StopTimer.SetSimTimeLimitMS(stopTime);
-	              });
+	MatchProperty("StartTimeMS", {
+		double startTime;
+		reader >> startTime;
+		m_StartTimer.SetSimTimeLimitMS(startTime);
+	});
+	MatchProperty("StopTimeMS", {
+		double stopTime;
+		reader >> stopTime;
+		m_StopTimer.SetSimTimeLimitMS(stopTime);
+	});
 
 	EndPropertyList;
 }
 
-int Emission::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int Emission::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
 
-	writer.NewProperty("EmittedParticle");
-	writer << m_pEmission;
-	writer.NewProperty("ParticlesPerMinute");
-	writer << m_PPM;
-	writer.NewProperty("BurstSize");
-	writer << m_BurstSize;
-	writer.NewProperty("Spread");
-	writer << m_Spread;
-	writer.NewProperty("MinVelocity");
-	writer << m_MinVelocity;
-	writer.NewProperty("MaxVelocity");
-	writer << m_MaxVelocity;
-	writer.NewProperty("LifeVariation");
-	writer << m_LifeVariation;
-	writer.NewProperty("PushesEmitter");
-	writer << m_PushesEmitter;
-	writer.NewProperty("InheritsVel");
-	writer << m_InheritsVel;
-	writer.NewProperty("InheritsAngularVel");
-	writer << m_InheritsAngularVel;
-	writer.NewProperty("Offset");
-	writer << m_Offset;
-	writer.NewProperty("StartTimeMS");
-	writer << m_StartTimer.GetSimTimeLimitMS();
-	writer.NewProperty("StopTimeMS");
-	writer << m_StopTimer.GetSimTimeLimitMS();
-	writer.NewProperty("ParticleCount");
-	writer << m_ParticleCount;
+	writer.NewPresetReferenceProperty("EmittedParticle", &Emission::m_pEmission);
+	writer.NewDistinctProperty("ParticlesPerMinute", &Emission::m_PPM);
+	writer.NewDistinctProperty("BurstSize", &Emission::m_BurstSize);
+	writer.NewDistinctProperty("Spread", &Emission::m_Spread);
+	writer.NewDistinctProperty("MinVelocity", &Emission::m_MinVelocity);
+	writer.NewDistinctProperty("MaxVelocity", &Emission::m_MaxVelocity);
+	writer.NewDistinctProperty("LifeVariation", &Emission::m_LifeVariation);
+	writer.NewDistinctProperty("PushesEmitter", &Emission::m_PushesEmitter);
+	writer.NewDistinctProperty("InheritsVel", &Emission::m_InheritsVel);
+	writer.NewDistinctProperty("InheritsAngularVel", &Emission::m_InheritsAngularVel);
+	writer.NewDistinctProperty("Offset", &Emission::m_Offset);
+	writer.NewDistinctProperty("StartTimeMS", [](const Emission& object) { return object.m_StartTimer.GetSimTimeLimitMS(); });
+	writer.NewDistinctProperty("StopTimeMS", [](const Emission& object) { return object.m_StopTimer.GetSimTimeLimitMS(); });
+	writer.NewDistinctProperty("ParticleCount", &Emission::m_ParticleCount);
 
 	return 0;
 }
+template int Emission::WriteTo(IniWriter& writer) const;
+template int Emission::WriteTo(HashWriter& writer) const;

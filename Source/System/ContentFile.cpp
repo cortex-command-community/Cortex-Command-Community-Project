@@ -79,8 +79,8 @@ int ContentFile::ReadProperty(const std::string_view& propName, Reader& reader) 
 	EndPropertyList;
 }
 
-int ContentFile::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int ContentFile::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
 	if (!m_DataPath.empty()) {
 		writer.NewPropertyWithValue("FilePath", m_DataPath);
@@ -89,6 +89,8 @@ int ContentFile::Save(Writer& writer) const {
 
 	return 0;
 }
+template int ContentFile::WriteTo(IniWriter& writer) const;
+template int ContentFile::WriteTo(HashWriter& writer) const;
 
 int ContentFile::GetDataModuleID() const {
 	return (m_DataModuleID < 0) ? g_PresetMan.GetModuleIDFromPath(m_DataPath) : m_DataModuleID;
@@ -108,7 +110,7 @@ void ContentFile::SetDataPath(const std::string& newDataPath) {
 }
 
 size_t ContentFile::GetHash() const {
-	return Hash(m_DataPath);
+	return RTE::Hash(m_DataPath);
 }
 
 void ContentFile::SetFormattedReaderPosition(const std::string& newPosition) {

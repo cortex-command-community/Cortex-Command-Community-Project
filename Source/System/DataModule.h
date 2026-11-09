@@ -234,8 +234,7 @@ namespace RTE {
 		/// Holds and owns the actual object instance pointer, and the location of the data file it was read from, as well as where in that file.
 		struct PresetEntry {
 			/// Constructor method used to instantiate a PresetEntry object in system memory.
-			PresetEntry(Entity* preset, const std::string& file) :
-			    m_EntityPreset(preset), m_FileReadFrom(file) {}
+			PresetEntry(Entity* preset, const std::string& file);
 
 			Entity* m_EntityPreset; //!< Owned by this.
 			std::string m_FileReadFrom; //!< Where the instance was read from.

@@ -130,13 +130,20 @@ int BunkerAssembly::Create(const BunkerAssembly& reference) {
 int BunkerAssembly::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return SceneObject::ReadProperty(propName, reader));
 
-	// Ignore TerrainObject's specific properties, but don't let parent class process them
-	MatchProperty("FGColorFile", {});
-	MatchProperty("MaterialFile", {});
-	MatchProperty("BGColorFile", {});
-	MatchProperty("BitmapOffset", {});
-	MatchProperty("Location", {});
-	MatchProperty("AddChildObject", {});
+	// Ignore TerrainObject's specific properties, but don't let parent class process them.
+	// Their values still have to be read, or what's left of them is taken for the next property.
+	MatchForwards("FGColorFile") MatchForwards("MaterialFile") MatchProperty("BGColorFile", {
+		ContentFile ignoredFile;
+		reader >> ignoredFile;
+	});
+	MatchForwards("BitmapOffset") MatchProperty("Location", {
+		Vector ignoredVector;
+		reader >> ignoredVector;
+	});
+	MatchProperty("AddChildObject", {
+		SceneObject::SOPlacer ignoredChildObject;
+		reader >> ignoredChildObject;
+	});
 
 	MatchProperty("SymmetricAssembly",
 	              {
@@ -144,7 +151,7 @@ int BunkerAssembly::ReadProperty(const std::string_view& propName, Reader& reade
 	              });
 	MatchProperty("PlaceObject",
 	              {
-		              SceneObject* pSO = dynamic_cast<SceneObject*>(g_PresetMan.ReadReflectedPreset(reader));
+		              SceneObject* pSO = g_PresetMan.ReadReflectedPresetOfType<SceneObject>(reader, propName);
 		              if (pSO)
 			              AddPlacedObject(pSO);
 	              });
@@ -203,60 +210,45 @@ int BunkerAssembly::ReadProperty(const std::string_view& propName, Reader& reade
 	EndPropertyList;
 }
 
-int BunkerAssembly::Save(Writer& writer) const {
-	SceneObject::Save(writer);
+template <typename WriterType> int BunkerAssembly::WriteTo(WriterType& writer) const {
+	// TerrainObject's properties are made from the placed objects, and aren't read.
+	SceneObject::WriteTo(writer);
 
-	// Groups are essential for BunkerAssemblies so save them, because entity seem to ignore them
-	for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {
-		if ((*itr) != m_ParentAssemblyScheme && (*itr) != m_ParentSchemeGroup) {
-			writer.NewProperty("AddToGroup");
-			writer << *itr;
-		}
-	}
-	if (m_SymmetricAssembly.size() > 0) {
-		writer.NewProperty("SymmetricAssembly");
-		writer << m_SymmetricAssembly;
-	}
-	if (m_ParentAssemblyScheme.size() > 0) {
-		writer.NewProperty("ParentScheme");
-		writer << m_ParentAssemblyScheme;
-	}
+	writer.NewDistinctProperty("SymmetricAssembly", &BunkerAssembly::m_SymmetricAssembly);
+	writer.NewDistinctProperty("ParentScheme", &BunkerAssembly::m_ParentAssemblyScheme);
 
+	// Placed objects can't be cleared, so they're only written against a reference that has none. A copy of a preset already has the preset's.
+	if (m_PlacedObjects.empty() || !writer.IsDistinct([](const BunkerAssembly& object) { return object.m_PlacedObjects.empty(); })) {
+		return 0;
+	}
 	for (std::list<SceneObject*>::const_iterator oItr = m_PlacedObjects.begin(); oItr != m_PlacedObjects.end(); ++oItr) {
 		writer.NewProperty("PlaceObject");
 		writer.ObjectStart((*oItr)->GetClassName());
-		writer.NewProperty("CopyOf");
-		writer << (*oItr)->GetModuleAndPresetName();
+		writer.NewPropertyWithValue("CopyOf", (*oItr)->GetModuleAndPresetName());
 
-		writer.NewProperty("Position");
-		writer << (*oItr)->GetPos();
+		writer.NewPropertyWithValue("Position", (*oItr)->GetPos());
 
 		// Only write certain properties if they are applicable to the type of SceneObject being written
 		MOSRotating* pSpriteObj = dynamic_cast<MOSRotating*>(*oItr);
 		if (pSpriteObj) {
-			writer.NewProperty("HFlipped");
-			writer << pSpriteObj->IsHFlipped();
+			writer.NewPropertyWithValue("HFlipped", pSpriteObj->IsHFlipped());
 			Actor* pActor = dynamic_cast<Actor*>(pSpriteObj);
 			if (pActor) {
-				writer.NewProperty("Team");
-				writer << pActor->GetTeam();
+				writer.NewPropertyWithValue("Team", pActor->GetTeam());
 				// Rotation of doors is important
 				ADoor* pDoor = dynamic_cast<ADoor*>(pActor);
 				if (pDoor) {
-					writer.NewProperty("Rotation");
-					writer << pDoor->GetRotMatrix();
+					writer.NewPropertyWithValue("Rotation", pDoor->GetRotMatrix());
 				}
 			}
 		}
 		TerrainObject* pTObject = dynamic_cast<TerrainObject*>(*oItr);
 		if (pTObject && !pTObject->GetChildObjects().empty()) {
-			writer.NewProperty("Team");
-			writer << pTObject->GetTeam();
+			writer.NewPropertyWithValue("Team", pTObject->GetTeam());
 		}
 		Deployment* pDeployment = dynamic_cast<Deployment*>(*oItr);
 		if (pDeployment) {
-			writer.NewProperty("HFlipped");
-			writer << pDeployment->IsHFlipped();
+			writer.NewPropertyWithValue("HFlipped", pDeployment->IsHFlipped());
 		}
 
 		writer.ObjectEnd();
@@ -264,6 +256,8 @@ int BunkerAssembly::Save(Writer& writer) const {
 
 	return 0;
 }
+template int BunkerAssembly::WriteTo(IniWriter& writer) const;
+template int BunkerAssembly::WriteTo(HashWriter& writer) const;
 
 void BunkerAssembly::Destroy(bool notInherited) {
 	for (std::list<SceneObject*>::iterator oItr = m_PlacedObjects.begin(); oItr != m_PlacedObjects.end(); ++oItr) {

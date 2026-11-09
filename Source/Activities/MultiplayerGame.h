@@ -28,7 +28,7 @@ namespace RTE {
 	public:
 		// Concrete allocation and cloning definitions
 		EntityAllocation(MultiplayerGame);
-		SerializableOverrideMethods;
+		int ReadProperty(const std::string_view& propName, Reader& reader) override;
 		ClassInfoGetters;
 
 		enum MultiplayerGameMode {

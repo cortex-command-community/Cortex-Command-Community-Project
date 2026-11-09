@@ -101,7 +101,11 @@ int SoundContainer::Create(const std::string& soundFilePath, bool immobile, bool
 int SoundContainer::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
 
-	MatchProperty("SpecialBehaviour_TopLevelSoundSet", { reader >> *m_TopLevelSoundSet; });
+	MatchForwards("SpecialBehaviour_TopLevelSoundSet") MatchProperty("TopLevelSoundSet", {
+		// This is the whole set, not what to add to a preset's.
+		m_TopLevelSoundSet->Destroy();
+		reader >> *m_TopLevelSoundSet;
+	});
 	MatchProperty("AddSound", { m_TopLevelSoundSet->AddSoundData(SoundSet::ReadAndGetSoundData(reader)); });
 	MatchProperty("AddSoundSet", {
 		SoundSet soundSetToAdd;
@@ -154,6 +158,8 @@ int SoundContainer::ReadProperty(const std::string_view& propName, Reader& reade
 	MatchProperty("Volume", { reader >> m_Volume; });
 	MatchProperty("Pitch", { reader >> m_Pitch; });
 	MatchProperty("PitchVariation", { reader >> m_PitchVariation; });
+	MatchProperty("WasFadedOut", { reader >> m_WasFadedOut; });
+	MatchProperty("Paused", { reader >> m_Paused; });
 
 	MatchProperty("MusicPreEntryTime", { reader >> m_MusicPreEntryTime; });
 	MatchProperty("MusicExitTime", { reader >> m_MusicExitTime; });
@@ -161,60 +167,43 @@ int SoundContainer::ReadProperty(const std::string_view& propName, Reader& reade
 	EndPropertyList;
 }
 
-int SoundContainer::Save(Writer& writer) const {
-	Entity::Save(writer);
+template <typename WriterType> int SoundContainer::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
 
 	// Due to writer limitations, the top level SoundSet has to be explicitly written out, even though SoundContainer standard behaviour is to hide it in INI and just have properties be part of the SoundContainer.
-	writer.NewPropertyWithValue("SpecialBehaviour_TopLevelSoundSet", *m_TopLevelSoundSet);
+	writer.NewDistinctProperty("TopLevelSoundSet", [](const SoundContainer& object) -> const SoundSet& { return *object.m_TopLevelSoundSet; });
 
-	writer.NewProperty("SoundSelectionCycleMode");
-	SoundSet::SaveSoundSelectionCycleMode(writer, m_TopLevelSoundSet->GetSoundSelectionCycleMode());
-
-	writer.NewProperty("SoundOverlapMode");
-	auto overlapModeMapEntry = std::find_if(c_SoundOverlapModeMap.begin(), c_SoundOverlapModeMap.end(), [&soundOverlapMode = m_SoundOverlapMode](auto element) { return element.second == soundOverlapMode; });
-	if (overlapModeMapEntry != c_SoundOverlapModeMap.end()) {
-		writer << overlapModeMapEntry->first;
-	} else {
-		RTEAbort("Tried to write invalid SoundOverlapMode when saving SoundContainer.");
+	if (writer.IsDistinct(&SoundContainer::m_SoundOverlapMode)) {
+		writer.NewProperty("SoundOverlapMode");
+		auto overlapModeMapEntry = std::find_if(c_SoundOverlapModeMap.begin(), c_SoundOverlapModeMap.end(), [&soundOverlapMode = m_SoundOverlapMode](auto element) { return element.second == soundOverlapMode; });
+		if (overlapModeMapEntry != c_SoundOverlapModeMap.end()) {
+			writer << overlapModeMapEntry->first;
+		} else {
+			RTEAbort("Tried to write invalid SoundOverlapMode when saving SoundContainer.");
+		}
 	}
-	writer.NewProperty("BusRouting");
-	writer << m_BusRouting;
-	writer.NewProperty("Immobile");
-	writer << m_Immobile;
-	writer.NewProperty("AttenuationStartDistance");
-	writer << m_AttenuationStartDistance;
-	writer.NewProperty("CustomPanValue");
-	writer << m_CustomPanValue;
-	writer.NewProperty("PanningStrengthMultiplier");
-	writer << m_PanningStrengthMultiplier;
-	writer.NewProperty("LoopSetting");
-	writer << m_Loops;
 
-	writer.NewProperty("Priority");
-	writer << m_Priority;
-	writer.NewProperty("AffectedByGlobalPitch");
-	writer << m_AffectedByGlobalPitch;
-
-	writer.NewProperty("Position");
-	writer << m_Pos;
-	writer.NewProperty("Volume");
-	writer << m_Volume;
-	writer.NewProperty("Pitch");
-	writer << m_Pitch;
-	writer.NewProperty("PitchVariation");
-	writer << m_PitchVariation;
-
-	writer.NewProperty("WasFadedOut");
-	writer << m_WasFadedOut;
-	writer.NewProperty("Paused");
-	writer << m_Paused;
-	writer.NewProperty("MusicPreEntryTime");
-	writer << m_MusicPreEntryTime;
-	writer.NewProperty("MusicExitTime");
-	writer << m_MusicExitTime;
+	writer.NewDistinctProperty("BusRouting", &SoundContainer::m_BusRouting);
+	writer.NewDistinctProperty("Immobile", &SoundContainer::m_Immobile);
+	writer.NewDistinctProperty("AttenuationStartDistance", &SoundContainer::m_AttenuationStartDistance);
+	writer.NewDistinctProperty("CustomPanValue", &SoundContainer::m_CustomPanValue);
+	writer.NewDistinctProperty("PanningStrengthMultiplier", &SoundContainer::m_PanningStrengthMultiplier);
+	writer.NewDistinctProperty("LoopSetting", &SoundContainer::m_Loops);
+	writer.NewDistinctProperty("Priority", &SoundContainer::m_Priority);
+	writer.NewDistinctProperty("AffectedByGlobalPitch", &SoundContainer::m_AffectedByGlobalPitch);
+	writer.NewDistinctProperty("Position", &SoundContainer::m_Pos);
+	writer.NewDistinctProperty("Volume", &SoundContainer::m_Volume);
+	writer.NewDistinctProperty("Pitch", &SoundContainer::m_Pitch);
+	writer.NewDistinctProperty("PitchVariation", &SoundContainer::m_PitchVariation);
+	writer.NewDistinctProperty("WasFadedOut", &SoundContainer::m_WasFadedOut);
+	writer.NewDistinctProperty("Paused", &SoundContainer::m_Paused);
+	writer.NewDistinctProperty("MusicPreEntryTime", &SoundContainer::m_MusicPreEntryTime);
+	writer.NewDistinctProperty("MusicExitTime", &SoundContainer::m_MusicExitTime);
 
 	return 0;
 }
+template int SoundContainer::WriteTo(IniWriter& writer) const;
+template int SoundContainer::WriteTo(HashWriter& writer) const;
 
 bool SoundContainer::HasAnySounds() const {
 	return m_TopLevelSoundSet->HasAnySounds();

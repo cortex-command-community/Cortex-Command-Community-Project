@@ -25,8 +25,8 @@ int TerrainFrosting::ReadProperty(const std::string_view& propName, Reader& read
 	EndPropertyList;
 }
 
-int TerrainFrosting::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int TerrainFrosting::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
 	writer.NewPropertyWithValue("FrostingMaterial", m_FrostingMaterial);
 	writer.NewPropertyWithValue("TargetMaterial", m_TargetMaterial);
@@ -36,6 +36,8 @@ int TerrainFrosting::Save(Writer& writer) const {
 
 	return 0;
 }
+template int TerrainFrosting::WriteTo(IniWriter& writer) const;
+template int TerrainFrosting::WriteTo(HashWriter& writer) const;
 
 void TerrainFrosting::FrostTerrain(SLTerrain* terrain) const {
 	BITMAP* frostingTexture = m_FrostingMaterial.GetFGTexture();

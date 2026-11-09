@@ -104,22 +104,29 @@ int AEmitter::Create(const AEmitter& reference) {
 int AEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Attachable::ReadProperty(propName, reader));
 
+	MatchProperty("_ClearEmissions", {
+		reader.ReadPropValue();
+		for (Emission* emission: m_EmissionList) {
+			delete emission;
+		}
+		m_EmissionList.clear();
+	});
 	MatchProperty("AddEmission", {
 		Emission* emission = new Emission();
 		reader >> *emission;
 		m_EmissionList.push_back(emission);
 	});
 	MatchProperty("EmissionSound", {
-		m_EmissionSound = new SoundContainer;
-		reader >> m_EmissionSound;
+		delete m_EmissionSound;
+		m_EmissionSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("BurstSound", {
-		m_BurstSound = new SoundContainer;
-		reader >> m_BurstSound;
+		delete m_BurstSound;
+		m_BurstSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("EndSound", {
-		m_EndSound = new SoundContainer;
-		reader >> m_EndSound;
+		delete m_EndSound;
+		m_EndSound = g_PresetMan.ReadReflectedPresetOfType<SoundContainer>(reader, propName);
 	});
 	MatchProperty("EmissionEnabled", { reader >> m_EmitEnabled; });
 	MatchProperty("EmissionCount", { reader >> m_EmitCount; });
@@ -153,7 +160,7 @@ int AEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("EmissionAngle", { reader >> m_EmitAngle; });
 	MatchProperty("EmissionOffset", { reader >> m_EmissionOffset; });
 	MatchProperty("EmissionDamage", { reader >> m_EmitDamage; });
-	MatchProperty("Flash", { SetFlash(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Flash", { SetFlash(g_PresetMan.ReadReflectedPresetOfType<Attachable>(reader, propName)); });
 	MatchProperty("FlashScale", { reader >> m_FlashScale; });
 	MatchProperty("FlashOnlyOnBurst", { reader >> m_FlashOnlyOnBurst; });
 	MatchProperty("SustainBurstSound", { reader >> m_SustainBurstSound; });
@@ -163,66 +170,40 @@ int AEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int AEmitter::Save(Writer& writer) const {
-	Attachable::Save(writer);
+template <typename WriterType> int AEmitter::WriteTo(WriterType& writer) const {
+	Attachable::WriteTo(writer);
 
-	for (Emission* emission: m_EmissionList) {
-		writer.NewProperty("AddEmission");
-		writer << *emission;
-	}
-	writer.NewProperty("EmissionSound");
-	writer << m_EmissionSound;
-	writer.NewProperty("BurstSound");
-	writer << m_BurstSound;
-	writer.NewProperty("EndSound");
-	writer << m_EndSound;
-	writer.NewProperty("EmissionEnabled");
-	writer << m_EmitEnabled;
-	writer.NewProperty("EmissionCount");
-	writer << m_EmitCount;
-	writer.NewProperty("EmissionCountLimit");
-	writer << m_EmitCountLimit;
-	writer.NewProperty("EmissionsIgnoreThis");
-	writer << m_EmissionsIgnoreThis;
-	writer.NewProperty("NegativeThrottleMultiplier");
-	writer << m_NegativeThrottleMultiplier;
-	writer.NewProperty("PositiveThrottleMultiplier");
-	writer << m_PositiveThrottleMultiplier;
-	writer.NewProperty("Throttle");
-	writer << m_Throttle;
-	writer.NewProperty("BurstScale");
-	writer << m_BurstScale;
-	writer.NewProperty("BurstDamage");
-	writer << m_BurstDamage;
-	writer.NewProperty("EmitterDamageMultiplier");
-	writer << m_EmitterDamageMultiplier;
-	writer.NewProperty("BurstSpacing");
-	writer << m_BurstSpacing;
-	writer.NewProperty("BurstTriggered");
-	writer << m_BurstTriggered;
-	writer.NewProperty("PlayBurstSound");
-	writer << m_PlayBurstSound;
-	writer.NewProperty("EmissionAngle");
-	writer << m_EmitAngle;
-	writer.NewProperty("EmissionOffset");
-	writer << m_EmissionOffset;
-	writer.NewProperty("EmissionDamage");
-	writer << m_EmitDamage;
-	writer.NewProperty("Flash");
-	writer << m_pFlash;
-	writer.NewProperty("FlashScale");
-	writer << m_FlashScale;
-	writer.NewProperty("FlashOnlyOnBurst");
-	writer << m_FlashOnlyOnBurst;
-	writer.NewProperty("SustainBurstSound");
-	writer << m_SustainBurstSound;
-	writer.NewProperty("BurstSoundFollowsEmitter");
-	writer << m_BurstSoundFollowsEmitter;
-	writer.NewProperty("LoudnessOnEmit");
-	writer << m_LoudnessOnEmit;
+	writer.NewPointerSequence("_ClearEmissions", "AddEmission", &AEmitter::m_EmissionList);
+	writer.NewOptionalEntityPointerProperty("EmissionSound", &AEmitter::m_EmissionSound);
+	writer.NewOptionalEntityPointerProperty("BurstSound", &AEmitter::m_BurstSound);
+	writer.NewOptionalEntityPointerProperty("EndSound", &AEmitter::m_EndSound);
+	writer.NewDistinctProperty("EmissionEnabled", &AEmitter::m_EmitEnabled);
+	writer.NewDistinctProperty("EmissionCount", &AEmitter::m_EmitCount);
+	writer.NewDistinctProperty("EmissionCountLimit", &AEmitter::m_EmitCountLimit);
+	writer.NewDistinctProperty("EmissionsIgnoreThis", &AEmitter::m_EmissionsIgnoreThis);
+	writer.NewDistinctProperty("NegativeThrottleMultiplier", &AEmitter::m_NegativeThrottleMultiplier);
+	writer.NewDistinctProperty("PositiveThrottleMultiplier", &AEmitter::m_PositiveThrottleMultiplier);
+	writer.NewDistinctProperty("Throttle", &AEmitter::m_Throttle);
+	writer.NewDistinctProperty("BurstScale", &AEmitter::m_BurstScale);
+	writer.NewDistinctProperty("BurstDamage", &AEmitter::m_BurstDamage);
+	writer.NewDistinctProperty("EmitterDamageMultiplier", &AEmitter::m_EmitterDamageMultiplier);
+	writer.NewDistinctProperty("BurstSpacing", &AEmitter::m_BurstSpacing);
+	writer.NewDistinctProperty("BurstTriggered", &AEmitter::m_BurstTriggered);
+	writer.NewDistinctProperty("PlayBurstSound", &AEmitter::m_PlayBurstSound);
+	writer.NewDistinctProperty("EmissionAngle", &AEmitter::m_EmitAngle);
+	writer.NewDistinctProperty("EmissionOffset", &AEmitter::m_EmissionOffset);
+	writer.NewDistinctProperty("EmissionDamage", &AEmitter::m_EmitDamage);
+	writer.NewOptionalEntityPointerProperty("Flash", &AEmitter::m_pFlash);
+	writer.NewDistinctProperty("FlashScale", &AEmitter::m_FlashScale);
+	writer.NewDistinctProperty("FlashOnlyOnBurst", &AEmitter::m_FlashOnlyOnBurst);
+	writer.NewDistinctProperty("SustainBurstSound", &AEmitter::m_SustainBurstSound);
+	writer.NewDistinctProperty("BurstSoundFollowsEmitter", &AEmitter::m_BurstSoundFollowsEmitter);
+	writer.NewDistinctProperty("LoudnessOnEmit", &AEmitter::m_LoudnessOnEmit);
 
 	return 0;
 }
+template int AEmitter::WriteTo(IniWriter& writer) const;
+template int AEmitter::WriteTo(HashWriter& writer) const;
 
 void AEmitter::Destroy(bool notInherited) {
 	// Stop playback of sounds gracefully

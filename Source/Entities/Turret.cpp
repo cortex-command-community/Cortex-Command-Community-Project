@@ -47,25 +47,30 @@ void Turret::Destroy(bool notInherited) {
 int Turret::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Attachable::ReadProperty(propName, reader));
 
-	MatchProperty("MountedDevice", { SetFirstMountedDevice(dynamic_cast<HeldDevice*>(g_PresetMan.ReadReflectedPreset(reader))); });
-	MatchProperty("AddMountedDevice", { AddMountedDevice(dynamic_cast<HeldDevice*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("MountedDevice", { SetFirstMountedDevice(g_PresetMan.ReadReflectedPresetOfType<HeldDevice>(reader, propName)); });
+	MatchProperty("_ClearMountedDevices", {
+		reader.ReadPropValue();
+		// Removing a device also takes it out of the list, so go through a copy of it.
+		for (HeldDevice* heldDevice: std::vector<HeldDevice*>(m_MountedDevices)) {
+			delete RemoveAttachable(heldDevice, false, false);
+		}
+	});
+	MatchProperty("AddMountedDevice", { AddMountedDevice(g_PresetMan.ReadReflectedPresetOfType<HeldDevice>(reader, propName)); });
 	MatchProperty("MountedDeviceRotationOffset", { reader >> m_MountedDeviceRotationOffset; });
 
 	EndPropertyList;
 }
 
-int Turret::Save(Writer& writer) const {
-	Attachable::Save(writer);
+template <typename WriterType> int Turret::WriteTo(WriterType& writer) const {
+	Attachable::WriteTo(writer);
 
-	for (const HeldDevice* mountedDevice: m_MountedDevices) {
-		writer.NewProperty("AddMountedDevice");
-		writer << mountedDevice;
-	}
-	writer.NewProperty("MountedDeviceRotationOffset");
-	writer << m_MountedDeviceRotationOffset;
+	writer.NewPointerSequence("_ClearMountedDevices", "AddMountedDevice", &Turret::m_MountedDevices);
+	writer.NewDistinctProperty("MountedDeviceRotationOffset", &Turret::m_MountedDeviceRotationOffset);
 
 	return 0;
 }
+template int Turret::WriteTo(IniWriter& writer) const;
+template int Turret::WriteTo(HashWriter& writer) const;
 
 void Turret::SetFirstMountedDevice(HeldDevice* newMountedDevice) {
 	if (HasMountedDevice()) {

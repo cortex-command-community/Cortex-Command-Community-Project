@@ -15,7 +15,7 @@ namespace RTE {
 
 	public:
 		EntityAllocation(SLTerrain);
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		/// Enumeration for the different type of layers in the SLTerrain.

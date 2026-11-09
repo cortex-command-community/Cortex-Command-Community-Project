@@ -39,6 +39,7 @@ int BunkerAssemblyScheme::Create() {
 int BunkerAssemblyScheme::Create(const BunkerAssemblyScheme& reference) {
 	SceneObject::Create(reference);
 
+	m_BitmapFile = reference.m_BitmapFile;
 	m_pBitmap = reference.m_pBitmap;
 	m_pPresentationBitmap = reference.m_pPresentationBitmap;
 	m_pIconBitmap = reference.m_pIconBitmap;
@@ -180,13 +181,16 @@ int BunkerAssemblyScheme::ReadProperty(const std::string_view& propName, Reader&
 					              rectfill(m_pIconBitmap, x * ScaleX * scale, y * ScaleY * scale, x * ScaleX * scale + ScaleX - 1, y * ScaleY + ScaleY - 1, PAINT_COLOR_VARIABLE);
 			              }
 	              });
-	MatchProperty("AddChildObject",
-	              {
-		              SOPlacer newChild;
-		              reader >> newChild;
-		              newChild.SetTeam(m_Team);
-		              m_ChildObjects.push_back(newChild);
-	              });
+	MatchProperty("_ClearChildObjects", {
+		reader.ReadPropValue();
+		m_ChildObjects.clear();
+	});
+	MatchProperty("AddChildObject", {
+		SOPlacer newChild;
+		reader >> newChild;
+		newChild.SetTeam(m_Team);
+		m_ChildObjects.push_back(newChild);
+	});
 	MatchProperty("Limit", { reader >> m_Limit; });
 	MatchProperty("OneTypePerScene", { reader >> m_IsOneTypePerScene; });
 	MatchProperty("MaxDeployments", { reader >> m_MaxDeployments; });
@@ -196,18 +200,23 @@ int BunkerAssemblyScheme::ReadProperty(const std::string_view& propName, Reader&
 	EndPropertyList;
 }
 
-int BunkerAssemblyScheme::Save(Writer& writer) const {
-	SceneObject::Save(writer);
+template <typename WriterType> int BunkerAssemblyScheme::WriteTo(WriterType& writer) const {
+	SceneObject::WriteTo(writer);
 
-	writer.NewProperty("BitmapFile");
-	writer << m_BitmapFile;
-	for (std::list<SOPlacer>::const_iterator itr = m_ChildObjects.begin(); itr != m_ChildObjects.end(); ++itr) {
-		writer.NewProperty("AddChildObject");
-		writer << (*itr);
-	}
+	writer.NewDistinctProperty("BitmapFile", &BunkerAssemblyScheme::m_BitmapFile);
+	writer.NewSequence("_ClearChildObjects", "AddChildObject", &BunkerAssemblyScheme::m_ChildObjects);
+
+	writer.NewDistinctProperty("Limit", &BunkerAssemblyScheme::m_Limit);
+	writer.NewDistinctProperty("OneTypePerScene", &BunkerAssemblyScheme::m_IsOneTypePerScene);
+	writer.NewDistinctProperty("MaxDeployments", &BunkerAssemblyScheme::m_MaxDeployments);
+
+	writer.NewDistinctProperty("SymmetricScheme", &BunkerAssemblyScheme::m_SymmetricScheme);
+	writer.NewDistinctProperty("AssemblyGroup", &BunkerAssemblyScheme::m_AssemblyGroup);
 
 	return 0;
 }
+template int BunkerAssemblyScheme::WriteTo(IniWriter& writer) const;
+template int BunkerAssemblyScheme::WriteTo(HashWriter& writer) const;
 
 void BunkerAssemblyScheme::Destroy(bool notInherited) {
 	// Probably no need to delete those, as bitmaps are only created when preset is read from file

@@ -29,17 +29,23 @@ Shader::~Shader() = default;
 
 int Shader::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Entity::ReadProperty(propName, reader));
+
 	MatchProperty("VertexShader", { reader >> m_VertexPath; });
 	MatchProperty("FragmentShader", { reader >> m_FragmentPath; });
+
 	EndPropertyList;
 }
 
-int Shader::Save(Writer& writer) const {
-	Entity::Save(writer);
-	writer.NewPropertyWithValue("VertexShader", m_VertexPath);
-	writer.NewPropertyWithValue("FragmentShader", m_FragmentPath);
+template <typename WriterType> int Shader::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("VertexShader", &Shader::m_VertexPath);
+	writer.NewDistinctProperty("FragmentShader", &Shader::m_FragmentPath);
+
 	return 0;
 }
+template int Shader::WriteTo(IniWriter& writer) const;
+template int Shader::WriteTo(HashWriter& writer) const;
 
 int Shader::Create() {
 	if (m_FragmentPath.empty() || m_VertexPath.empty()) {

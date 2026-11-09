@@ -18,7 +18,7 @@ namespace RTE {
 
 		/// Public member variable, method and friend function declarations
 	public:
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a MOSprite object in system

@@ -22,7 +22,7 @@ namespace RTE {
 	public:
 		/// Concrete allocation and cloning definitions
 		EntityAllocation(LimbPath);
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a LimbPath object in system

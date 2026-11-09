@@ -93,22 +93,20 @@ int Deployment::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Deployment::Save(Writer& writer) const {
-	SceneObject::Save(writer);
+template <typename WriterType> int Deployment::WriteTo(WriterType& writer) const {
+	SceneObject::WriteTo(writer);
 
-	writer.NewProperty("LoadoutName");
-	writer << m_LoadoutName;
-	writer.NewProperty("Icon");
-	writer << m_Icon;
-	writer.NewProperty("SpawnRadius");
-	writer << m_SpawnRadius;
-	writer.NewProperty("WalkRadius");
-	writer << m_WalkRadius;
-	writer.NewProperty("HFlipped");
-	writer << m_HFlipped;
+	writer.NewDistinctProperty("LoadoutName", &Deployment::m_LoadoutName);
+	writer.NewDistinctProperty("Icon", &Deployment::m_Icon);
+	writer.NewDistinctProperty("SpawnRadius", &Deployment::m_SpawnRadius);
+	writer.NewDistinctProperty("WalkRadius", &Deployment::m_WalkRadius);
+	writer.NewDistinctProperty("HFlipped", &Deployment::m_HFlipped);
+	writer.NewDistinctProperty("ID", &Deployment::m_ID);
 
 	return 0;
 }
+template int Deployment::WriteTo(IniWriter& writer) const;
+template int Deployment::WriteTo(HashWriter& writer) const;
 
 void Deployment::Destroy(bool notInherited) {
 

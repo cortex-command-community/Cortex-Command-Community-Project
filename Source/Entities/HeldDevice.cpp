@@ -187,8 +187,8 @@ int HeldDevice::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("Loudness", { reader >> m_Loudness; });
 	MatchProperty("GetsHitByMOsWhenHeld", { reader >> m_GetsHitByMOsWhenHeld; });
 	MatchProperty("VisualRecoilMultiplier", { reader >> m_VisualRecoilMultiplier; });
-	MatchProperty("SpecialBehaviour_Activated", { reader >> m_Activated; });
-	MatchProperty("SpecialBehaviour_ActivationTimerElapsedSimTimeMS", {
+	MatchForwards("SpecialBehaviour_Activated") MatchProperty("_Activated", { reader >> m_Activated; });
+	MatchForwards("SpecialBehaviour_ActivationTimerElapsedSimTimeMS") MatchProperty("_ActivationTimerElapsedSimTimeMS", {
 		double elapsedSimTimeMS;
 		reader >> elapsedSimTimeMS;
 		m_ActivationTimer.SetElapsedSimTimeMS(elapsedSimTimeMS);
@@ -197,37 +197,55 @@ int HeldDevice::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int HeldDevice::Save(Writer& writer) const {
-	Attachable::Save(writer);
-	/*
-	    writer.NewLine();
-	    writer << "// 0 = Offensive Weapon, 1 = Tool, 2 = Shield";
-	    writer.NewProperty("HeldDeviceType");
-	    writer << m_HeldDeviceType;
-	*/
-	writer.NewProperty("OneHanded");
-	writer << m_OneHanded;
-	writer.NewProperty("StanceOffset");
-	writer << m_StanceOffset;
-	writer.NewProperty("SharpStanceOffset");
-	writer << m_SharpStanceOffset;
-	writer.NewPropertyWithValue("Supportable", m_Supportable);
-	writer.NewProperty("SupportOffset");
-	writer << m_SupportOffset;
-	writer.NewPropertyWithValue("UseSupportOffsetWhileReloading", m_UseSupportOffsetWhileReloading);
-	writer.NewProperty("GripStrengthMultiplier");
-	writer << m_GripStrengthMultiplier;
-	writer.NewProperty("SharpLength");
-	writer << m_MaxSharpLength;
-	writer.NewProperty("Loudness");
-	writer << m_Loudness;
-	writer.NewProperty("GetsHitByMOsWhenHeld");
-	writer << m_GetsHitByMOsWhenHeld;
-	writer.NewProperty("VisualRecoilMultiplier");
-	writer << m_VisualRecoilMultiplier;
+/// Writes which presets a HeldDevice can be picked up by, in the form it's read.
+/// @param writer The writer to write with.
+/// @param presetNames The names of the presets that can pick it up.
+template <typename WriterType, typename Type> static void WritePickupableBy(WriterType& writer, const Type& presetNames) {
+	if (presetNames.empty()) {
+		return;
+	}
+	writer.NewProperty("PickupableBy");
+	writer.ObjectStart("PickupableByEntries");
+	for (const std::string& presetName: presetNames) {
+		writer.NewPropertyWithValue("AddPresetNameEntry", presetName);
+	}
+	writer.ObjectEnd();
+}
+
+template <typename WriterType> int HeldDevice::WriteTo(WriterType& writer) const {
+	Attachable::WriteTo(writer);
+
+	writer.NewDistinctProperty("OneHanded", &HeldDevice::m_OneHanded);
+	writer.NewDistinctProperty("StanceOffset", &HeldDevice::m_StanceOffset);
+	writer.NewDistinctProperty("SharpStanceOffset", &HeldDevice::m_SharpStanceOffset);
+	writer.NewDistinctProperty("Supportable", &HeldDevice::m_Supportable);
+	writer.NewDistinctProperty("SupportOffset", &HeldDevice::m_SupportOffset);
+	writer.NewDistinctProperty("UseSupportOffsetWhileReloading", &HeldDevice::m_UseSupportOffsetWhileReloading);
+	writer.NewDistinctProperty("GripStrengthMultiplier", &HeldDevice::m_GripStrengthMultiplier);
+	writer.NewDistinctProperty("SharpLength", &HeldDevice::m_MaxSharpLength);
+	writer.NewDistinctProperty("Loudness", &HeldDevice::m_Loudness);
+	writer.NewDistinctProperty("GetsHitByMOsWhenHeld", &HeldDevice::m_GetsHitByMOsWhenHeld);
+	writer.NewDistinctProperty("VisualRecoilMultiplier", &HeldDevice::m_VisualRecoilMultiplier);
+
+	if (m_Activated) {
+		writer.NewPropertyWithValue("_Activated", m_Activated);
+		writer.NewPropertyWithValue("_ActivationTimerElapsedSimTimeMS", m_ActivationTimer.GetElapsedSimTimeMS());
+	}
+
+	writer.NewDistinctProperty("HeldDeviceType", &HeldDevice::m_HeldDeviceType);
+	writer.NewDistinctProperty("DualWieldable", &HeldDevice::m_DualWieldable);
+
+	if (m_IsUnPickupable && writer.IsDistinct(&HeldDevice::m_IsUnPickupable)) {
+		writer.NewPropertyWithValue("PickupableBy", "None");
+	}
+	if (writer.IsDistinct(&HeldDevice::m_PickupableByPresetNames)) {
+		WritePickupableBy(writer, m_PickupableByPresetNames);
+	}
 
 	return 0;
 }
+template int HeldDevice::WriteTo(IniWriter& writer) const;
+template int HeldDevice::WriteTo(HashWriter& writer) const;
 
 void HeldDevice::Destroy(bool notInherited) {
 

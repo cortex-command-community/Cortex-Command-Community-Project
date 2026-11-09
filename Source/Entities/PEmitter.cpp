@@ -89,6 +89,13 @@ int PEmitter::Create(const PEmitter& reference) {
 int PEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return MOSParticle::ReadProperty(propName, reader));
 
+	MatchProperty("_ClearEmissions", {
+		reader.ReadPropValue();
+		for (Emission* emission: m_EmissionList) {
+			delete emission;
+		}
+		m_EmissionList.clear();
+	});
 	MatchProperty("AddEmission", {
 		Emission* emission = new Emission();
 		reader >> *emission;
@@ -133,58 +140,36 @@ int PEmitter::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int PEmitter::Save(Writer& writer) const {
-	MOSParticle::Save(writer);
+template <typename WriterType> int PEmitter::WriteTo(WriterType& writer) const {
+	MOSParticle::WriteTo(writer);
 
-	for (Emission* emission: m_EmissionList) {
-		writer.NewProperty("AddEmission");
-		writer << *emission;
-	}
-	writer.NewProperty("EmissionSound");
-	writer << m_EmissionSound;
-	writer.NewProperty("BurstSound");
-	writer << m_BurstSound;
-	writer.NewProperty("EndSound");
-	writer << m_EndSound;
-	writer.NewProperty("EmissionEnabled");
-	writer << m_EmitEnabled;
-	writer.NewProperty("EmissionCount");
-	writer << m_EmitCount;
-	writer.NewProperty("EmissionCountLimit");
-	writer << m_EmitCountLimit;
-	writer.NewProperty("EmissionsIgnoreThis");
-	writer << m_EmissionsIgnoreThis;
-	writer.NewProperty("NegativeThrottleMultiplier");
-	writer << m_NegativeThrottleMultiplier;
-	writer.NewProperty("PositiveThrottleMultiplier");
-	writer << m_PositiveThrottleMultiplier;
-	writer.NewProperty("Throttle");
-	writer << m_Throttle;
-	writer.NewProperty("BurstScale");
-	writer << m_BurstScale;
-	writer.NewProperty("BurstSpacing");
-	writer << m_BurstSpacing;
-	writer.NewProperty("BurstTriggered");
-	writer << m_BurstTriggered;
-	writer.NewProperty("PlayBurstSound");
-	writer << m_PlayBurstSound;
-	writer.NewProperty("EmissionAngle");
-	writer << m_EmitAngle;
-	writer.NewProperty("EmissionOffset");
-	writer << m_EmissionOffset;
-	writer.NewProperty("FlashScale");
-	writer << m_FlashScale;
-	writer.NewProperty("FlashOnlyOnBurst");
-	writer << m_FlashOnlyOnBurst;
-	writer.NewProperty("SustainBurstSound");
-	writer << m_SustainBurstSound;
-	writer.NewProperty("BurstSoundFollowsEmitter");
-	writer << m_BurstSoundFollowsEmitter;
-	writer.NewProperty("LoudnessOnEmit");
-	writer << m_LoudnessOnEmit;
+	writer.NewPointerSequence("_ClearEmissions", "AddEmission", &PEmitter::m_EmissionList);
+	writer.NewDistinctProperty("EmissionSound", &PEmitter::m_EmissionSound);
+	writer.NewDistinctProperty("BurstSound", &PEmitter::m_BurstSound);
+	writer.NewDistinctProperty("EndSound", &PEmitter::m_EndSound);
+	writer.NewDistinctProperty("EmissionEnabled", &PEmitter::m_EmitEnabled);
+	writer.NewDistinctProperty("EmissionCount", &PEmitter::m_EmitCount);
+	writer.NewDistinctProperty("EmissionCountLimit", &PEmitter::m_EmitCountLimit);
+	writer.NewDistinctProperty("EmissionsIgnoreThis", &PEmitter::m_EmissionsIgnoreThis);
+	writer.NewDistinctProperty("NegativeThrottleMultiplier", &PEmitter::m_NegativeThrottleMultiplier);
+	writer.NewDistinctProperty("PositiveThrottleMultiplier", &PEmitter::m_PositiveThrottleMultiplier);
+	writer.NewDistinctProperty("Throttle", &PEmitter::m_Throttle);
+	writer.NewDistinctProperty("BurstScale", &PEmitter::m_BurstScale);
+	writer.NewDistinctProperty("BurstSpacing", &PEmitter::m_BurstSpacing);
+	writer.NewDistinctProperty("BurstTriggered", &PEmitter::m_BurstTriggered);
+	writer.NewDistinctProperty("PlayBurstSound", &PEmitter::m_PlayBurstSound);
+	writer.NewDistinctProperty("EmissionAngle", &PEmitter::m_EmitAngle);
+	writer.NewDistinctProperty("EmissionOffset", &PEmitter::m_EmissionOffset);
+	writer.NewDistinctProperty("FlashScale", &PEmitter::m_FlashScale);
+	writer.NewDistinctProperty("FlashOnlyOnBurst", &PEmitter::m_FlashOnlyOnBurst);
+	writer.NewDistinctProperty("SustainBurstSound", &PEmitter::m_SustainBurstSound);
+	writer.NewDistinctProperty("BurstSoundFollowsEmitter", &PEmitter::m_BurstSoundFollowsEmitter);
+	writer.NewDistinctProperty("LoudnessOnEmit", &PEmitter::m_LoudnessOnEmit);
 
 	return 0;
 }
+template int PEmitter::WriteTo(IniWriter& writer) const;
+template int PEmitter::WriteTo(HashWriter& writer) const;
 
 void PEmitter::Destroy(bool notInherited) {
 	// Stop playback of sounds gracefully

@@ -85,29 +85,24 @@ int AEJetpack::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int AEJetpack::Save(Writer& writer) const {
-	AEmitter::Save(writer);
+template <typename WriterType> int AEJetpack::WriteTo(WriterType& writer) const {
+	AEmitter::WriteTo(writer);
 
-	writer.NewProperty("JetpackType");
-	switch (m_JetpackType) {
-		default:
-		case JetpackType::Standard:
-			writer << "Standard";
-			break;
-		case JetpackType::JumpPack:
-			writer << "JumpPack";
-			break;
-	}
+	writer.NewDistinctProperty("JetpackType", [](const AEJetpack& object) { return std::string(object.m_JetpackType == JetpackType::JumpPack ? "JumpPack" : "Standard"); });
 
-	writer.NewPropertyWithValue("JumpTime", m_JetTimeTotal / 1000.0f); // Convert to seconds
-	writer.NewPropertyWithValue("JumpReplenishRate", m_JetReplenishRate);
-	writer.NewPropertyWithValue("MinimumFuelRatio", m_MinimumFuelRatio);
-	writer.NewPropertyWithValue("JumpAngleRange", m_JetAngleRange);
-	writer.NewPropertyWithValue("CanAdjustAngleWhileFiring", m_CanAdjustAngleWhileFiring);
-	writer.NewPropertyWithValue("AdjustsThrottleForWeight", m_AdjustsThrottleForWeight);
+	// Convert to seconds
+	writer.NewDistinctProperty("JumpTime", [](const AEJetpack& object) { return object.m_JetTimeTotal / 1000.0f; });
+
+	writer.NewDistinctProperty("JumpReplenishRate", &AEJetpack::m_JetReplenishRate);
+	writer.NewDistinctProperty("MinimumFuelRatio", &AEJetpack::m_MinimumFuelRatio);
+	writer.NewDistinctProperty("JumpAngleRange", &AEJetpack::m_JetAngleRange);
+	writer.NewDistinctProperty("CanAdjustAngleWhileFiring", &AEJetpack::m_CanAdjustAngleWhileFiring);
+	writer.NewDistinctProperty("AdjustsThrottleForWeight", &AEJetpack::m_AdjustsThrottleForWeight);
 
 	return 0;
 }
+template int AEJetpack::WriteTo(IniWriter& writer) const;
+template int AEJetpack::WriteTo(HashWriter& writer) const;
 
 void AEJetpack::UpdateBurstState(Actor& parentActor) {
 	const Controller& controller = *parentActor.GetController();

@@ -38,18 +38,21 @@ int ADSensor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int ADSensor::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int ADSensor::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
-	writer.NewProperty("StartOffset");
-	writer << m_StartOffset;
-	writer.NewProperty("SensorRay");
-	writer << m_SensorRay;
-	writer.NewProperty("SkipPixels");
-	writer << m_Skip;
+	if (!m_StartOffset.IsZero())
+		writer.NewPropertyWithValue("StartOffset", m_StartOffset);
+	if (!m_SensorRay.IsZero())
+		writer.NewPropertyWithValue("SensorRay", m_SensorRay);
+	if (m_Skip != 3) {
+		writer.NewPropertyWithValue("SkipPixels", m_Skip);
+	}
 
 	return 0;
 }
+template int ADSensor::WriteTo(IniWriter& writer) const;
+template int ADSensor::WriteTo(HashWriter& writer) const;
 
 Actor* ADSensor::SenseActor(const Vector& doorPos, const Matrix& doorRot, bool doorHFlipped, MOID ignoreMOID) {
 	Actor* sensedActor = 0;

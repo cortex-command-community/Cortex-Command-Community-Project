@@ -82,7 +82,7 @@ int Leg::Create(const Leg& reference) {
 int Leg::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Attachable::ReadProperty(propName, reader));
 
-	MatchProperty("Foot", { SetFoot(dynamic_cast<Attachable*>(g_PresetMan.ReadReflectedPreset(reader))); });
+	MatchProperty("Foot", { SetFoot(g_PresetMan.ReadReflectedPresetOfType<Attachable>(reader, propName)); });
 	MatchProperty("ContractedOffset", {
 		reader >> m_ContractedOffset;
 		m_MinExtension = m_ContractedOffset.GetMagnitude();
@@ -98,24 +98,20 @@ int Leg::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Leg::Save(Writer& writer) const {
-	Attachable::Save(writer);
+template <typename WriterType> int Leg::WriteTo(WriterType& writer) const {
+	Attachable::WriteTo(writer);
 
-	writer.NewProperty("Foot");
-	writer << m_Foot;
-	writer.NewProperty("ContractedOffset");
-	writer << m_ContractedOffset;
-	writer.NewProperty("ExtendedOffset");
-	writer << m_ExtendedOffset;
-	writer.NewProperty("IdleOffset");
-	writer << m_IdleOffset;
-	writer.NewProperty("WillIdle");
-	writer << m_WillIdle;
-	writer.NewProperty("MoveSpeed");
-	writer << m_MoveSpeed;
+	writer.NewOptionalEntityPointerProperty("Foot", &Leg::m_Foot);
+	writer.NewDistinctProperty("ContractedOffset", &Leg::m_ContractedOffset);
+	writer.NewDistinctProperty("ExtendedOffset", &Leg::m_ExtendedOffset);
+	writer.NewDistinctProperty("IdleOffset", &Leg::m_IdleOffset);
+	writer.NewDistinctProperty("WillIdle", &Leg::m_WillIdle);
+	writer.NewDistinctProperty("MoveSpeed", &Leg::m_MoveSpeed);
 
 	return 0;
 }
+template int Leg::WriteTo(IniWriter& writer) const;
+template int Leg::WriteTo(HashWriter& writer) const;
 
 void Leg::SetFoot(Attachable* newFoot) {
 	if (m_Foot && m_Foot->IsAttached()) {

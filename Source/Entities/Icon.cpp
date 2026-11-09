@@ -58,15 +58,17 @@ int Icon::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Icon::Save(Writer& writer) const {
-	Entity::Save(writer);
-	writer.NewProperty("BitmapFile");
-	writer << m_BitmapFile;
-	writer.NewProperty("FrameCount");
-	writer << m_FrameCount;
+
+template <typename WriterType> int Icon::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("BitmapFile", &Icon::m_BitmapFile);
+	writer.NewDistinctProperty("FrameCount", &Icon::m_FrameCount);
 
 	return 0;
 }
+template int Icon::WriteTo(IniWriter& writer) const;
+template int Icon::WriteTo(HashWriter& writer) const;
 
 void Icon::Destroy(bool notInherited) {
 	if (!notInherited) {

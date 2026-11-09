@@ -86,6 +86,7 @@ int SLBackground::Create(const SLBackground& reference) {
 	m_FrameCount = reference.m_FrameCount;
 	m_SpriteAnimMode = reference.m_SpriteAnimMode;
 	m_SpriteAnimDuration = reference.m_SpriteAnimDuration;
+	m_IsAnimatedManually = reference.m_IsAnimatedManually;
 
 	m_CanAutoScrollX = reference.m_CanAutoScrollX;
 	m_CanAutoScrollY = reference.m_CanAutoScrollY;
@@ -109,44 +110,31 @@ int SLBackground::ReadProperty(const std::string_view& propName, Reader& reader)
 	});
 	MatchProperty("SpriteAnimDuration", { reader >> m_SpriteAnimDuration; });
 	MatchProperty("IsAnimatedManually", { reader >> m_IsAnimatedManually; });
-	MatchProperty("DrawTransparent", { reader >> m_DrawMasked; });
-	MatchProperty("ScrollRatio", {
-		// Actually read the ScrollInfo, not the ratio. The ratios will be initialized later.
-		reader >> m_ScrollInfo;
-	});
-	MatchProperty("ScaleFactor", {
-		reader >> m_ScaleFactor;
-		SetScaleFactor(m_ScaleFactor);
-	});
-	MatchProperty("IgnoreAutoScaling", { reader >> m_IgnoreAutoScale; });
-	MatchProperty("OriginPointOffset", { reader >> m_OriginOffset; });
-	MatchProperty("CanAutoScrollX", { reader >> m_CanAutoScrollX; });
-	MatchProperty("CanAutoScrollY", { reader >> m_CanAutoScrollY; });
 	MatchProperty("AutoScrollStepInterval", { reader >> m_AutoScrollStepInterval; });
 	MatchProperty("AutoScrollStep", { reader >> m_AutoScrollStep; });
+	MatchProperty("IgnoreAutoScaling", { reader >> m_IgnoreAutoScale; });
+	MatchProperty("CanAutoScrollX", { reader >> m_CanAutoScrollX; });
+	MatchProperty("CanAutoScrollY", { reader >> m_CanAutoScrollY; });
 
 	EndPropertyList;
 }
+template <typename WriterType> int SLBackground::WriteTo(WriterType& writer) const {
+	StaticSceneLayer::WriteTo(writer);
 
-int SLBackground::Save(Writer& writer) const {
-	StaticSceneLayer::Save(writer);
-
-	writer.NewPropertyWithValue("FrameCount", m_FrameCount);
-	writer.NewPropertyWithValue("SpriteAnimMode", m_SpriteAnimMode);
-	writer.NewPropertyWithValue("SpriteAnimDuration", m_SpriteAnimDuration);
-	writer.NewPropertyWithValue("IsAnimatedManually", m_IsAnimatedManually);
-	writer.NewPropertyWithValue("DrawTransparent", m_DrawMasked);
-	writer.NewPropertyWithValue("ScrollRatio", m_ScrollInfo);
-	writer.NewPropertyWithValue("ScaleFactor", m_ScaleFactor);
-	writer.NewPropertyWithValue("IgnoreAutoScaling", m_IgnoreAutoScale);
-	writer.NewPropertyWithValue("OriginPointOffset", m_OriginOffset);
-	writer.NewPropertyWithValue("CanAutoScrollX", m_CanAutoScrollX);
-	writer.NewPropertyWithValue("CanAutoScrollY", m_CanAutoScrollY);
-	writer.NewPropertyWithValue("AutoScrollStepInterval", m_AutoScrollStepInterval);
-	writer.NewPropertyWithValue("AutoScrollStep", m_AutoScrollStep);
+	writer.NewDistinctProperty("FrameCount", &SLBackground::m_FrameCount);
+	writer.NewDistinctProperty("SpriteAnimMode", &SLBackground::m_SpriteAnimMode);
+	writer.NewDistinctProperty("SpriteAnimDuration", &SLBackground::m_SpriteAnimDuration);
+	writer.NewDistinctProperty("IsAnimatedManually", &SLBackground::m_IsAnimatedManually);
+	writer.NewDistinctProperty("AutoScrollStepInterval", &SLBackground::m_AutoScrollStepInterval);
+	writer.NewDistinctProperty("AutoScrollStep", &SLBackground::m_AutoScrollStep);
+	writer.NewDistinctProperty("IgnoreAutoScaling", &SLBackground::m_IgnoreAutoScale);
+	writer.NewDistinctProperty("CanAutoScrollX", &SLBackground::m_CanAutoScrollX);
+	writer.NewDistinctProperty("CanAutoScrollY", &SLBackground::m_CanAutoScrollY);
 
 	return 0;
 }
+template int SLBackground::WriteTo(IniWriter& writer) const;
+template int SLBackground::WriteTo(HashWriter& writer) const;
 
 void SLBackground::InitScaleFactors() {
 	if (!m_IgnoreAutoScale) {

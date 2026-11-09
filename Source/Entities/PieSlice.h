@@ -59,7 +59,7 @@ namespace RTE {
 
 	public:
 		EntityAllocation(PieSlice);
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 #pragma region Creation

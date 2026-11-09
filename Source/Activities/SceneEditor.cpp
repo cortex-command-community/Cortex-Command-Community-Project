@@ -67,17 +67,8 @@ int SceneEditor::Create(const SceneEditor& reference) {
 
 int SceneEditor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return EditorActivity::ReadProperty(propName, reader));
-	/*
-	    MatchProperty("CPUTeam", { reader >> m_CPUTeam; });
-	    MatchProperty("Difficulty", { reader >> m_Difficulty; });
-	    MatchProperty("DeliveryDelay", { reader >> m_DeliveryDelay; });
-	*/
-	EndPropertyList;
-}
 
-int SceneEditor::Save(Writer& writer) const {
-	EditorActivity::Save(writer);
-	return 0;
+	EndPropertyList;
 }
 
 void SceneEditor::Destroy(bool notInherited) {
@@ -520,7 +511,7 @@ bool SceneEditor::SaveScene(const std::string& saveAsName, bool forceOverwrite) 
 	}
 
 	if (g_PresetMan.AddEntityPreset(editedScene, m_ModuleSpaceID, forceOverwrite, sceneSavePath)) {
-		if (Writer sceneWriter(sceneSavePath, false); !sceneWriter.WriterOK()) {
+		if (IniWriter sceneWriter(sceneSavePath, false); !sceneWriter.WriterOK()) {
 			RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + sceneSavePath + "\n\nTHE EDITED SCENE PRESET WAS NOT SAVED!!!");
 		} else {
 			// TODO: Check if the ini file already exists, and then ask if overwrite.
@@ -535,7 +526,7 @@ bool SceneEditor::SaveScene(const std::string& saveAsName, bool forceOverwrite) 
 				std::string scenesFilePath(dataModuleFullPath + "/Scenes.ini");
 				bool scenesFileExists = System::PathExistsCaseSensitive(scenesFilePath);
 
-				if (Writer scenesFileWriter(scenesFilePath, true); !scenesFileWriter.WriterOK()) {
+				if (IniWriter scenesFileWriter(scenesFilePath, true); !scenesFileWriter.WriterOK()) {
 					RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + scenesFilePath + "\n\nThe edited Scene preset was saved but will not be loaded on next game start!\nPlease include the Scene preset manually!");
 				} else {
 					scenesFileWriter.NewPropertyWithValue("IncludeFile", sceneSavePath);
@@ -546,7 +537,7 @@ bool SceneEditor::SaveScene(const std::string& saveAsName, bool forceOverwrite) 
 					if (!scenesFileExists) {
 						std::string indexFilePath = dataModuleFullPath + "/Index.ini";
 
-						if (Writer indexWriter(indexFilePath, true); !indexWriter.WriterOK()) {
+						if (IniWriter indexWriter(indexFilePath, true); !indexWriter.WriterOK()) {
 							RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + indexFilePath + "\n\nThe edited Scene preset was saved but will not be loaded on next game start!\nPlease include the Scene preset manually!");
 						} else {
 							// Add extra tab since the DataModule has everything indented.

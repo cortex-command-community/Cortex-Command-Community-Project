@@ -128,16 +128,21 @@ int LimbPath::ReadProperty(const std::string_view& propName, Reader& reader) {
 
 	MatchProperty("StartOffset", { reader >> m_Start; });
 	MatchProperty("StartSegCount", { reader >> m_StartSegCount; });
-	MatchProperty("AddSegment",
-	              {
-		              Vector segment;
-		              reader >> segment;
-		              m_Segments.push_back(segment);
-		              m_TotalLength += segment.GetMagnitude();
-		              if (m_Segments.size() >= m_StartSegCount) {
-			              m_RegularLength += segment.GetMagnitude();
-		              }
-	              });
+	MatchProperty("_ClearSegments", {
+		reader.ReadPropValue();
+		m_Segments.clear();
+		m_TotalLength = 0.0F;
+		m_RegularLength = 0.0F;
+	});
+	MatchProperty("AddSegment", {
+		Vector segment;
+		reader >> segment;
+		m_Segments.push_back(segment);
+		m_TotalLength += segment.GetMagnitude();
+		if (m_Segments.size() >= m_StartSegCount) {
+			m_RegularLength += segment.GetMagnitude();
+		}
+	});
 	MatchProperty("EndSegCount", { reader >> m_FootCollisionsDisabledSegment; });
 	MatchProperty("SegmentEndedThreshold", { reader >> m_SegmentEndedThreshold; });
 
@@ -189,25 +194,23 @@ Vector LimbPath::ToWorldSpace(const Vector& position) const {
 	return m_JointPos + (RotatePoint(position * GetTotalScaleMultiplier()));
 }
 
-int LimbPath::Save(Writer& writer) const {
-	Entity::Save(writer);
+template <typename WriterType> int LimbPath::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
 
-	writer.NewPropertyWithValue("StartOffset", m_Start);
-	writer.NewPropertyWithValue("StartSegCount", m_StartSegCount);
-	for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr) {
-		writer.NewProperty("AddSegment");
-		writer << *itr;
-	}
-	writer.NewPropertyWithValue("EndSegCount", m_FootCollisionsDisabledSegment);
-	writer.NewPropertyWithValue("SegmentEndedThreshold", m_SegmentEndedThreshold);
-	
-	writer.NewPropertyWithValue("TravelSpeed", m_TravelSpeed);
-	writer.NewPropertyWithValue("BaseTravelSpeedMultiplier", m_BaseTravelSpeedMultiplier);
-	writer.NewPropertyWithValue("BaseScaleMultiplier", m_BaseScaleMultiplier);
-	writer.NewPropertyWithValue("PushForce", m_PushForce);
+	writer.NewDistinctProperty("StartOffset", &LimbPath::m_Start);
+	writer.NewDistinctProperty("StartSegCount", &LimbPath::m_StartSegCount);
+	writer.NewSequence("_ClearSegments", "AddSegment", &LimbPath::m_Segments);
+	writer.NewDistinctProperty("EndSegCount", &LimbPath::m_FootCollisionsDisabledSegment);
+	writer.NewDistinctProperty("SegmentEndedThreshold", &LimbPath::m_SegmentEndedThreshold);
+	writer.NewDistinctProperty("TravelSpeed", &LimbPath::m_TravelSpeed);
+	writer.NewDistinctProperty("BaseTravelSpeedMultiplier", &LimbPath::m_BaseTravelSpeedMultiplier);
+	writer.NewDistinctProperty("BaseScaleMultiplier", &LimbPath::m_BaseScaleMultiplier);
+	writer.NewDistinctProperty("PushForce", &LimbPath::m_PushForce);
 
 	return 0;
 }
+template int LimbPath::WriteTo(IniWriter& writer) const;
+template int LimbPath::WriteTo(HashWriter& writer) const;
 
 void LimbPath::Destroy(bool notInherited) {
 

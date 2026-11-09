@@ -33,24 +33,29 @@ namespace RTE {
 		friend struct ActivityLuaBindings;
 
 		// Keeps track of everything about a delivery in transit after purchase has been made with the menu
-		struct Delivery {
+		struct Delivery : public Serializable {
+			SerializableClassNameGetter;
+			SerializableOverrideMethods;
+
+			static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
+
 			// OWNED by this until the delivery is made!
-			ACraft* pCraft;
+			ACraft* pCraft = nullptr;
 			// Which player ordered this delivery
-			int orderedByPlayer;
+			int orderedByPlayer = Players::NoPlayer;
 			// Where to land
 			Vector landingZone;
 			// How much this delivery was offset upwards for multi-ordering, stored to help with delivery icons. If 0, this was presumably not a multi-order.
-			float multiOrderYOffset;
+			float multiOrderYOffset = 0;
 			// How long left until entry, in ms
-			long delay;
+			long delay = 0;
 			// Times how long we've been in transit
 			Timer timer;
 		};
 
 		/// Public member variable, method and friend function declarations
 	public:
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		enum ObjectiveArrowDir {

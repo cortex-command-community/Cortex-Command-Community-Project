@@ -146,6 +146,8 @@ void SaveLoadMenuGUI::PopulateSaveGamesList() {
 				              reader >> record.Activity;
 			              } else if (propName == "OriginalScenePresetName") {
 				              reader >> record.Scene;
+			              } else {
+				              reader.ReadPropValue();
 			              }
 		              }
 

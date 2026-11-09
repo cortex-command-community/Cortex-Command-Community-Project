@@ -90,26 +90,28 @@ int TerrainDebris::ReadProperty(const std::string_view& propName, Reader& reader
 	EndPropertyList;
 }
 
-int TerrainDebris::Save(Writer& writer) const {
-	Entity::Save(writer);
+template <typename WriterType> int TerrainDebris::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
 
-	writer.NewPropertyWithValue("DebrisFile", m_DebrisFile);
-	writer.NewPropertyWithValue("DebrisPieceCount", m_BitmapCount);
-	writer.NewPropertyWithValue("DebrisMaterial", m_Material);
-	writer.NewPropertyWithValue("TargetMaterial", m_TargetMaterial);
-	writer.NewPropertyWithValue("DebrisPlacementMode", m_DebrisPlacementMode);
-	writer.NewPropertyWithValue("OnlyBuried", m_OnlyBuried);
-	writer.NewPropertyWithValue("MinDepth", m_MinDepth);
-	writer.NewPropertyWithValue("MaxDepth", m_MaxDepth);
-	writer.NewPropertyWithValue("MinRotation", m_MinRotation);
-	writer.NewPropertyWithValue("MaxRotation", m_MaxRotation);
-	writer.NewPropertyWithValue("CanHFlip", m_CanHFlip);
-	writer.NewPropertyWithValue("CanVFlip", m_CanVFlip);
-	writer.NewPropertyWithValue("FlipChance", m_FlipChance);
-	writer.NewPropertyWithValue("DensityPerMeter", m_Density);
+	writer.NewDistinctProperty("DebrisFile", &TerrainDebris::m_DebrisFile);
+	writer.NewDistinctProperty("DebrisPieceCount", &TerrainDebris::m_BitmapCount);
+	writer.NewDistinctProperty("DebrisMaterial", &TerrainDebris::m_Material);
+	writer.NewDistinctProperty("TargetMaterial", &TerrainDebris::m_TargetMaterial);
+	writer.NewDistinctProperty("DebrisPlacementMode", &TerrainDebris::m_DebrisPlacementMode);
+	writer.NewDistinctProperty("OnlyBuried", &TerrainDebris::m_OnlyBuried);
+	writer.NewDistinctProperty("MinDepth", &TerrainDebris::m_MinDepth);
+	writer.NewDistinctProperty("MaxDepth", &TerrainDebris::m_MaxDepth);
+	writer.NewDistinctProperty("MinRotation", &TerrainDebris::m_MinRotation);
+	writer.NewDistinctProperty("MaxRotation", &TerrainDebris::m_MaxRotation);
+	writer.NewDistinctProperty("CanHFlip", &TerrainDebris::m_CanHFlip);
+	writer.NewDistinctProperty("CanVFlip", &TerrainDebris::m_CanVFlip);
+	writer.NewDistinctProperty("FlipChance", &TerrainDebris::m_FlipChance);
+	writer.NewDistinctProperty("DensityPerMeter", &TerrainDebris::m_Density);
 
 	return 0;
 }
+template int TerrainDebris::WriteTo(IniWriter& writer) const;
+template int TerrainDebris::WriteTo(HashWriter& writer) const;
 
 bool TerrainDebris::GetPiecePlacementPosition(SLTerrain* terrain, Box& possiblePiecePosition) const {
 	BITMAP* matBitmap = terrain->GetMaterialBitmap();

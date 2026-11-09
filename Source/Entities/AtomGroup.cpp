@@ -5,6 +5,7 @@
 #include "MOSRotating.h"
 #include "LimbPath.h"
 #include "ConsoleMan.h"
+#include "PresetMan.h"
 
 #include "tracy/Tracy.hpp"
 
@@ -69,12 +70,17 @@ int AtomGroup::Create(const AtomGroup& reference, bool onlyCopyOwnerAtoms) {
 
 	m_OwnerMOSR = nullptr; // Needs to be set manually by the new MO owner.
 	m_Material = reference.m_Material;
-	m_AutoGenerate = false; /*reference.m_AutoGenerate;*/ // TODO: Investigate if AutoGenerating here can screw something up when copy-creating over an existing AtomGroup.
+	m_AutoGenerate = reference.m_AutoGenerate;
 	m_Resolution = reference.m_Resolution;
 	m_Depth = reference.m_Depth;
 	m_JointOffset = reference.m_JointOffset;
 	m_AreaDistributionType = reference.m_AreaDistributionType;
 	m_AreaDistributionSurfaceAreaMultiplier = reference.m_AreaDistributionSurfaceAreaMultiplier;
+
+	// This can be copying over what's already here, as CopyOf does.
+	for (const Atom* atom: m_Atoms) {
+		delete atom;
+	}
 
 	m_Atoms.clear();
 	m_SubGroups.clear();
@@ -141,6 +147,14 @@ int AtomGroup::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("AutoGenerate", { reader >> m_AutoGenerate; });
 	MatchProperty("Resolution", { reader >> m_Resolution; });
 	MatchProperty("Depth", { reader >> m_Depth; });
+	MatchProperty("_ClearAtoms", {
+		reader.ReadPropValue();
+		for (const Atom* atom: m_Atoms) {
+			delete atom;
+		}
+		m_Atoms.clear();
+		m_SubGroups.clear();
+	});
 	MatchProperty("AddAtom", {
 		Atom* atom = new Atom;
 		reader >> *atom;
@@ -165,36 +179,31 @@ int AtomGroup::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int AtomGroup::Save(Writer& writer) const {
-	Entity::Save(writer);
+template <typename WriterType> int AtomGroup::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
 
-	writer.NewProperty("Material");
-	writer << m_Material;
-	writer.NewProperty("AutoGenerate");
-	writer << m_AutoGenerate;
-	writer.NewProperty("Resolution");
-	writer << m_Resolution;
-	writer.NewProperty("Depth");
-	writer << m_Depth;
+	writer.NewPresetReferenceProperty("Material", &AtomGroup::m_Material);
+	writer.NewDistinctProperty("AutoGenerate", &AtomGroup::m_AutoGenerate);
 
 	// Only write out Atoms if they were manually specified
 	if (!m_AutoGenerate) {
-		for (const Atom* atom: m_Atoms) {
-			writer.NewProperty("AddAtom");
-			writer << *atom;
-		}
+		// An Attachable's atoms are its own, and it adds them again when it's loaded. A reference that generates its atoms has none of its own to compare against.
+		writer.NewPointerSequence("_ClearAtoms", "AddAtom", &AtomGroup::m_Atoms, [](const AtomGroup& owner, const Atom* atom) { return !owner.m_AutoGenerate && atom->GetSubID() == 0; });
+	} else {
+		writer.NewDistinctProperty("Resolution", &AtomGroup::m_Resolution);
+		writer.NewDistinctProperty("Depth", &AtomGroup::m_Depth);
 	}
 
-	writer.NewProperty("JointOffset");
-	writer << m_JointOffset;
+	writer.NewDistinctProperty("JointOffset", &AtomGroup::m_JointOffset);
 
-	writer.NewProperty("AreaDistributionType");
-	writer << static_cast<std::underlying_type_t<AreaDistributionType>>(m_AreaDistributionType);
-	writer.NewProperty("AreaDistributionSurfaceAreaMultiplier");
-	writer << m_AreaDistributionSurfaceAreaMultiplier;
+	writer.NewDistinctProperty("AreaDistributionType", [](const AtomGroup& object) { return static_cast<std::underlying_type_t<AreaDistributionType>>(object.m_AreaDistributionType); });
+
+	writer.NewDistinctProperty("AreaDistributionSurfaceAreaMultiplier", &AtomGroup::m_AreaDistributionSurfaceAreaMultiplier);
 
 	return 0;
 }
+template int AtomGroup::WriteTo(IniWriter& writer) const;
+template int AtomGroup::WriteTo(HashWriter& writer) const;
 
 void AtomGroup::Destroy(bool notInherited) {
 	for (const Atom* atom: m_Atoms) {

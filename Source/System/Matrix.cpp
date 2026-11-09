@@ -66,13 +66,15 @@ int Matrix::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Matrix::Save(Writer& writer) const {
-	Serializable::Save(writer);
+template <typename WriterType> int Matrix::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
 
 	writer.NewPropertyWithValue("AngleRadians", m_Rotation);
 
 	return 0;
 }
+template int Matrix::WriteTo(IniWriter& writer) const;
+template int Matrix::WriteTo(HashWriter& writer) const;
 
 float Matrix::GetRadAngleTo(float otherAngle) const {
 	// Rotate this' angle with the other angle so that the sought after difference angle is between the resulting angle and the x-axis

@@ -29,7 +29,7 @@ namespace RTE {
 
 		// Concrete allocation and cloning definitions
 		EntityAllocation(MOSRotating);
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a MOSRotating object in system

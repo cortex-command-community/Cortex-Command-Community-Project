@@ -20,7 +20,7 @@ namespace RTE {
 
 		/// Public member variable, method and friend function declarations
 	public:
-		SerializableOverrideMethods;
+		EntityOverrideMethods;
 		ClassInfoGetters;
 		DefaultPieMenuNameGetter("Default Craft Pie Menu");
 

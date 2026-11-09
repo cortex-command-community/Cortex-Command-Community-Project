@@ -1,38 +1,42 @@
 #pragma once
 
+#include "PropertyWriter.h"
+
 #include <format>
-#include <string>
 #include <memory>
 #include <ostream>
+#include <string>
+#include <utility>
 
 namespace RTE {
 
-	/// Writes RTE objects to std::ostreams.
-	class Writer {
+	/// Writes RTE objects to std::ostreams as INI, each written only as far as it differs from its reference.
+	/// An Entity with a preset is written as a CopyOf it, one without against a new object of its class, and a Serializable held by value against what it'll be read into.
+	class IniWriter : public PropertyWriter<IniWriter> {
 
 	public:
 #pragma region Creation
-		/// Constructor method used to instantiate a Writer object in system memory. Create() should be called before using the object.
-		Writer() { Clear(); }
+		/// Constructor method used to instantiate an IniWriter object in system memory. Create() should be called before using the object.
+		IniWriter() { Clear(); }
 
-		/// Constructor method used to instantiate a Writer object in system memory and make it ready for writing to the passed in file path.
+		/// Constructor method used to instantiate an IniWriter object in system memory and make it ready for writing to the passed in file path.
 		/// @param filename Path to the file to open for writing. If the directory doesn't exist the stream will fail to open.
 		/// @param append Whether to append to the file if it exists, or to overwrite it.
 		/// @param createDir Whether to create the directory path to the file name before attempting to open the stream, in case it doesn't exist.
-		Writer(const std::string& fileName, bool append = false, bool createDir = false);
+		IniWriter(const std::string& fileName, bool append = false, bool createDir = false);
 
-		/// Constructor method used to instantiate a Writer object in system memory and make it ready for writing to the passed in file path.
+		/// Constructor method used to instantiate an IniWriter object in system memory and make it ready for writing to the passed in file path.
 		/// @param stream Stream to write to.
-		Writer(std::unique_ptr<std::ostream>&& stream);
+		IniWriter(std::unique_ptr<std::ostream>&& stream);
 
-		/// Makes the Writer object ready for use.
+		/// Makes the IniWriter object ready for use.
 		/// @param filename Path to the file to open for writing. If the directory doesn't exist the stream will fail to open.
 		/// @param append Whether to append to the file if it exists, or to overwrite it.
 		/// @param createDir Whether to create the directory path to the file name before attempting to open the stream, in case it doesn't exist.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(const std::string& fileName, bool append = false, bool createDir = false);
 
-		/// Makes the Writer object ready for use.
+		/// Makes the IniWriter object ready for use.
 		/// @param stream Stream to write to.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(std::unique_ptr<std::ostream>&& stream);
@@ -91,21 +95,39 @@ namespace RTE {
 
 		/// Creates a new line and writes the name of the property in preparation to writing it's value.
 		/// @param propName The name of the property to be written.
-		void NewProperty(const std::string& propName) const {
+		void NewProperty(PropName propName) const {
 			NewLine();
-			*m_Stream << propName + " = ";
-		}
-
-		/// Creates a new line and writes the name of the specified property, followed by its set value.
-		/// @param propName The name of the property to be written.
-		/// @param propValue The value of the property.
-		template <typename Type> void NewPropertyWithValue(const std::string& propName, const Type& propValue) {
-			NewProperty(propName);
-			*this << propValue;
+			*m_Stream << propName.m_Text << " = ";
 		}
 
 		/// Marks that there is a null reference to an object here.
 		void NoObject() const { *m_Stream << "None"; }
+
+		/// Writes an Entity's CopyOf, if it's written as a copy of a preset, and its name.
+		void WriteIdentity();
+
+		/// Writes a Serializable held by value, against the value it'll be read into.
+		/// @param value The Serializable to write.
+		/// @param referenceValue The reference's value of the same property, which this will be read into.
+		void WriteInto(const Serializable& value, const Serializable& referenceValue);
+
+		/// Writes an object only as far as one of the classes it derives from writes it, against what it would be written against as a whole, for writing just part of a preset.
+		/// @param object The object to write.
+		template <typename Class> void WriteAs(const Class& object) {
+			const auto [reference, referenceIsPreset] = ReferenceFor(object);
+			m_Frames.push_back({&object, reference, referenceIsPreset});
+			object.Class::WriteTo(*this);
+			m_Frames.pop_back();
+		}
+
+		/// Writes every item of a collection whose order means nothing.
+		/// @param items The collection.
+		/// @param writeItem Writes one item.
+		template <typename Collection, typename WriteItem> void WriteUnordered(const Collection& items, WriteItem&& writeItem) {
+			for (const auto& item: items) {
+				writeItem(item);
+			}
+		}
 #pragma endregion
 
 #pragma region Writer Status
@@ -116,7 +138,7 @@ namespace RTE {
 		/// Returns the underlying stream.
 		std::ostream* GetStream() { return m_Stream.get(); }
 
-		/// Flushes and closes the output stream of this Writer. This happens automatically at destruction but needs to be called manually if a written file must be read from in the same scope.
+		/// Flushes and closes the output stream of this IniWriter. This happens automatically at destruction but needs to be called manually if a written file must be read from in the same scope.
 		void EndWrite() {
 			m_Stream->flush();
 			m_Stream.reset();
@@ -126,69 +148,79 @@ namespace RTE {
 #pragma region Operator Overloads
 		/// Elemental types stream insertions. Stream insertion operator overloads for all the elemental types.
 		/// @param var A reference to the variable that will be written to the ostream.
-		/// @return A Writer reference for further use in an expression.
-		Writer& operator<<(const bool& var) {
+		/// @return An IniWriter reference for further use in an expression.
+		IniWriter& operator<<(const bool& var) {
 			*m_Stream << var;
 			return *this;
 		}
-		Writer& operator<<(const char& var) {
+		IniWriter& operator<<(const char& var) {
 			*m_Stream << var;
 			return *this;
 		}
-		Writer& operator<<(const unsigned char& var) {
+		IniWriter& operator<<(const unsigned char& var) {
 			int temp = var;
 			*m_Stream << temp;
 			return *this;
 		}
-		Writer& operator<<(const short& var) {
+		IniWriter& operator<<(const short& var) {
 			*m_Stream << var;
 			return *this;
 		}
-		Writer& operator<<(const unsigned short& var) {
+		IniWriter& operator<<(const unsigned short& var) {
 			*m_Stream << var;
 			return *this;
 		}
-		Writer& operator<<(const int& var) {
+		IniWriter& operator<<(const int& var) {
 			*m_Stream << var;
 			return *this;
 		}
-		Writer& operator<<(const unsigned int& var) {
+		IniWriter& operator<<(const unsigned int& var) {
 			*m_Stream << var;
 			return *this;
 		}
-		Writer& operator<<(const long& var) {
+		IniWriter& operator<<(const long& var) {
 			*m_Stream << var;
 			return *this;
 		}
-		Writer& operator<<(const long long& var) {
+		IniWriter& operator<<(const long long& var) {
 			*m_Stream << var;
 			return *this;
 		}
-		Writer& operator<<(const unsigned long& var) {
+		IniWriter& operator<<(const unsigned long& var) {
 			*m_Stream << var;
 			return *this;
 		}
-		Writer& operator<<(const unsigned long long& var) {
+		IniWriter& operator<<(const unsigned long long& var) {
 			*m_Stream << var;
 			return *this;
 		}
 		// Floating point numbers get written with as many digits as it takes for them to be read back as exactly the same number, and no more.
-		Writer& operator<<(const float& var) {
+		IniWriter& operator<<(const float& var) {
 			*m_Stream << std::format("{}", var);
 			return *this;
 		}
-		Writer& operator<<(const double& var) {
+		IniWriter& operator<<(const double& var) {
 			*m_Stream << std::format("{}", var);
 			return *this;
 		}
-		Writer& operator<<(const char* var) {
+		IniWriter& operator<<(const char* var) {
 			*m_Stream << var;
 			return *this;
 		}
-		Writer& operator<<(const std::string& var) {
+		IniWriter& operator<<(const std::string& var) {
 			*m_Stream << var;
 			return *this;
 		}
+
+		/// Writes a Serializable that's read as a new object: an Entity as a CopyOf its preset, or against a new object of its class if it has none, and anything else in full.
+		/// @param object The Serializable to write.
+		/// @return An IniWriter reference for further use in an expression.
+		IniWriter& operator<<(const Serializable& object);
+
+		/// Writes a Serializable that's read as a new object, or None if there isn't one.
+		/// @param object A pointer to the Serializable to write, or nullptr.
+		/// @return An IniWriter reference for further use in an expression.
+		IniWriter& operator<<(const Serializable* object);
 #pragma endregion
 
 	protected:
@@ -199,11 +231,16 @@ namespace RTE {
 		int m_IndentCount; //!< Indentation counter.
 
 	private:
-		/// Clears all the member variables of this Writer, effectively resetting the members of this abstraction level only.
+		/// Gets what a Serializable that's read as a new object is written against: an Entity's preset, or a new object of its class if it has none, and nothing for anything else.
+		/// @param object The Serializable about to be written.
+		/// @return What to write it against, or nullptr to write all of it, and whether that's a preset it's written as a CopyOf.
+		std::pair<const Serializable*, bool> ReferenceFor(const Serializable& object) const;
+
+		/// Clears all the member variables of this IniWriter, effectively resetting the members of this abstraction level only.
 		void Clear();
 
 		// Disallow the use of some implicit methods.
-		Writer(const Writer& reference) = delete;
-		Writer& operator=(const Writer& rhs) = delete;
+		IniWriter(const IniWriter& reference) = delete;
+		IniWriter& operator=(const IniWriter& rhs) = delete;
 	};
 } // namespace RTE

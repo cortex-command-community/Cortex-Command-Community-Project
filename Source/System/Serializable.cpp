@@ -41,20 +41,4 @@ namespace RTE {
 		}
 		return reader;
 	}
-
-	Writer& operator<<(Writer& writer, const Serializable& operand) {
-		operand.Save(writer);
-		writer.ObjectEnd();
-		return writer;
-	}
-
-	Writer& operator<<(Writer& writer, const Serializable* operand) {
-		if (operand) {
-			operand->Save(writer);
-			writer.ObjectEnd();
-		} else {
-			writer.NoObject();
-		}
-		return writer;
-	}
 } // namespace RTE
