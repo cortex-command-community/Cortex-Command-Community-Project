@@ -4,6 +4,7 @@
 
 #include "RTEError.h"
 #include "Constants.h"
+#include "Hash.h"
 
 #include <random>
 #include <memory>
@@ -294,11 +295,6 @@ namespace RTE {
 	/// @param fullPath Path to case-insensitively translate to a real path.
 	/// @return The real path. If the path doesn't exist, it returns the fullPath argument with all the existing parent directories correctly capitalized.
 	std::string GetCaseInsensitiveFullPath(const std::string& fullPath);
-
-	/// Hashes a string in a cross-compiler/platform safe way (std::hash gives different results on different compilers).
-	/// @param text Text string to hash.
-	/// @return The hash result value.
-	uint64_t Hash(const std::string& text);
 #pragma endregion
 
 #pragma region Misc

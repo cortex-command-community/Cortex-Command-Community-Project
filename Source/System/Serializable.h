@@ -2,6 +2,8 @@
 
 #include "Reader.h"
 #include "Writer.h"
+#include "IniWriter.h"
+#include "HashWriter.h"
 #include "Hash.h"
 
 #include <string>
@@ -20,6 +22,12 @@ namespace RTE {
 	int ReadProperty(const std::string_view& propName, Reader& reader) override; \
 	int Save(Writer& writer) const override; \
 	HashingData Hash() const override;
+
+/// Declares the Write method for each writer, which all run the one WriteTo. WriteTo is defined in the class's .cpp file, and instantiated there for each writer.
+#define WriterOverrideMethods \
+	int Write(IniWriter& writer) const override { return WriteTo(writer); } \
+	int Write(HashWriter& writer) const override { return WriteTo(writer); } \
+	template <typename WriterType> int WriteTo(WriterType& writer) const;
 
 /// Convenience macro to cut down on duplicate GetClassName methods in non-poolable classes that extend Serializable.
 #define SerializableClassNameGetter \
@@ -121,6 +129,21 @@ namespace RTE {
 		/// Generates the hash value of this serializable.
 		/// @return A hash value.
 		virtual HashingData Hash() const { return HashingData(0); }
+
+		/// Writes this Serializable with a writer, through WriteTo. Each class overrides these with WriterOverrideMethods.
+		/// @param writer The writer to write this with, which has this as its current object.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		virtual int Write(IniWriter& writer) const { return WriteTo(writer); }
+		virtual int Write(HashWriter& writer) const { return WriteTo(writer); }
+
+		/// Writes every property of this Serializable with a writer, which decides what writing each one means: IniWriter writes what differs from the reference, HashWriter hashes everything.
+		/// A class's WriteTo writes its parent's first, then its own properties.
+		/// @param writer The writer to write this with, which has this as its current object.
+		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
+		template <typename WriterType> int WriteTo(WriterType& writer) const {
+			writer.ObjectStart(GetClassName());
+			return 0;
+		}
 
 		/// Replaces backslashes with forward slashes in file paths to eliminate issues with cross-platform compatibility or invalid escape sequences.
 		/// @param pathToCorrect Reference to the file path string to correct slashes in.
