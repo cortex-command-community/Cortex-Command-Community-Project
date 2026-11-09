@@ -253,6 +253,24 @@ HashingData LimbPath::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int LimbPath::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("StartOffset", &LimbPath::m_Start);
+	writer.NewDistinctProperty("StartSegCount", &LimbPath::m_StartSegCount);
+	writer.NewSequence("_ClearSegments", "AddSegment", &LimbPath::m_Segments);
+	writer.NewDistinctProperty("EndSegCount", &LimbPath::m_FootCollisionsDisabledSegment);
+	writer.NewDistinctProperty("SegmentEndedThreshold", &LimbPath::m_SegmentEndedThreshold);
+	writer.NewDistinctProperty("TravelSpeed", &LimbPath::m_TravelSpeed);
+	writer.NewDistinctProperty("BaseTravelSpeedMultiplier", &LimbPath::m_BaseTravelSpeedMultiplier);
+	writer.NewDistinctProperty("BaseScaleMultiplier", &LimbPath::m_BaseScaleMultiplier);
+	writer.NewDistinctProperty("PushForce", &LimbPath::m_PushForce);
+
+	return 0;
+}
+template int LimbPath::WriteTo(IniWriter& writer) const;
+template int LimbPath::WriteTo(HashWriter& writer) const;
+
 void LimbPath::Destroy(bool notInherited) {
 
 	if (!notInherited)

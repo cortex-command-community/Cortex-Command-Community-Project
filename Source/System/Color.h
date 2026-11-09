@@ -11,6 +11,7 @@ namespace RTE {
 	public:
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
+		WriterOverrideMethods;
 
 #pragma region Creation
 		/// Constructor method used to instantiate a Color object.

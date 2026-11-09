@@ -98,7 +98,7 @@ int DynamicSongSection::ReadProperty(const std::string_view& propName, Reader& r
 	EndPropertyList;
 }
 
-void DynamicSongSection::SaveSoundContainerSelectionCycleMode(Writer& writer, SoundContainerSelectionCycleMode soundContainerSelectionCycleMode) {
+template <typename WriterType> void DynamicSongSection::SaveSoundContainerSelectionCycleMode(WriterType& writer, SoundContainerSelectionCycleMode soundContainerSelectionCycleMode) {
 	auto cycleModeMapEntry = std::find_if(c_SoundContainerSelectionCycleModeMap.begin(), c_SoundContainerSelectionCycleModeMap.end(), [&soundContainerSelectionCycleMode = soundContainerSelectionCycleMode](auto element) { return element.second == soundContainerSelectionCycleMode; });
 	if (cycleModeMapEntry != c_SoundContainerSelectionCycleModeMap.end()) {
 		writer << cycleModeMapEntry->first;
@@ -162,6 +162,24 @@ HashingData DynamicSongSection::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int DynamicSongSection::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewSequence("_ClearTransitionSoundContainers", "AddTransitionSoundContainer", &DynamicSongSection::m_TransitionSoundContainers);
+	writer.NewDistinctProperty("LastTransitionSoundContainerIndex", &DynamicSongSection::m_LastTransitionSoundContainerIndex);
+	writer.NewSequence("_ClearSoundContainers", "AddSoundContainer", &DynamicSongSection::m_SoundContainers);
+	writer.NewDistinctProperty("LastSoundContainerIndex", &DynamicSongSection::m_LastSoundContainerIndex);
+	if (writer.IsDistinct(&DynamicSongSection::m_SoundContainerSelectionCycleMode)) {
+		writer.NewProperty("SoundContainerSelectionCycleMode");
+		SaveSoundContainerSelectionCycleMode(writer, m_SoundContainerSelectionCycleMode);
+	}
+	writer.NewDistinctProperty("SectionType", &DynamicSongSection::m_SectionType);
+
+	return 0;
+}
+template int DynamicSongSection::WriteTo(IniWriter& writer) const;
+template int DynamicSongSection::WriteTo(HashWriter& writer) const;
 
 SoundContainer& DynamicSongSection::SelectTransitionSoundContainer() {
 	if (m_TransitionSoundContainers.empty()) {
@@ -333,3 +351,14 @@ HashingData DynamicSong::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int DynamicSong::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("DefaultSongSection", &DynamicSong::m_DefaultSongSection);
+	writer.NewSequence("_ClearSongSections", "AddSongSection", &DynamicSong::m_SongSections);
+
+	return 0;
+}
+template int DynamicSong::WriteTo(IniWriter& writer) const;
+template int DynamicSong::WriteTo(HashWriter& writer) const;

@@ -153,6 +153,22 @@ HashingData Arm::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int Arm::WriteTo(WriterType& writer) const {
+	Attachable::WriteTo(writer);
+
+	writer.NewDistinctProperty("MaxLength", &Arm::m_MaxLength);
+	writer.NewDistinctProperty("MoveSpeed", &Arm::m_MoveSpeed);
+	writer.NewDistinctProperty("HandIdleOffset", &Arm::m_HandIdleOffset);
+	writer.NewDistinctProperty("HandSprite", &Arm::m_HandSpriteFile);
+	writer.NewDistinctProperty("GripStrength", &Arm::m_GripStrength);
+	writer.NewDistinctProperty("ThrowStrength", &Arm::m_ThrowStrength);
+	writer.NewOptionalEntityPointerProperty("HeldDevice", &Arm::m_HeldDevice);
+
+	return 0;
+}
+template int Arm::WriteTo(IniWriter& writer) const;
+template int Arm::WriteTo(HashWriter& writer) const;
+
 void Arm::SetHandPos(const Vector& newHandPos) {
 	SetHandCurrentOffset(g_SceneMan.ShortestDistance(m_JointPos, newHandPos, g_SceneMan.SceneWrapsX() || g_SceneMan.SceneWrapsY()));
 }

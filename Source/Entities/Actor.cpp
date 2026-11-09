@@ -446,21 +446,19 @@ Actor::AIMode Actor::GetAIModeToWrite() const {
 	return modeToWrite;
 }
 
-void Actor::WriteAIWaypoints(Writer& writer) const {
+template <typename WriterType> void Actor::WriteAIWaypoints(WriterType& writer) const {
 	if (GetAIModeToWrite() != AIMODE_GOTO) {
 		return;
 	}
 
-	const std::string waypointPropertyName = "AddAISceneWaypoint";
-
 	if (g_MovableMan.ValidMO(m_pMOMoveTarget)) {
-		writer.NewPropertyWithValue(waypointPropertyName, m_pMOMoveTarget->GetPos());
+		writer.NewPropertyWithValue("AddAISceneWaypoint", m_pMOMoveTarget->GetPos());
 	} else if (!m_MovePath.empty() || m_PathRequest) {
-		writer.NewPropertyWithValue(waypointPropertyName, GetMovePathEnd());
+		writer.NewPropertyWithValue("AddAISceneWaypoint", GetMovePathEnd());
 	}
 
 	for (const auto& [waypointPosition, waypointObject]: m_Waypoints) {
-		writer.NewPropertyWithValue(waypointPropertyName, g_MovableMan.ValidMO(waypointObject) ? waypointObject->GetPos() : waypointPosition);
+		writer.NewPropertyWithValue("AddAISceneWaypoint", g_MovableMan.ValidMO(waypointObject) ? waypointObject->GetPos() : waypointPosition);
 	}
 }
 
@@ -562,6 +560,52 @@ HashingData Actor::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int Actor::WriteTo(WriterType& writer) const {
+	MOSRotating::WriteTo(writer);
+
+	writer.NewDistinctProperty("PlayerControllable", &Actor::m_PlayerControllable);
+	writer.NewOptionalEntityPointerProperty("BodyHitSound", &Actor::m_BodyHitSound);
+	writer.NewOptionalEntityPointerProperty("AlarmSound", &Actor::m_AlarmSound);
+	writer.NewOptionalEntityPointerProperty("PainSound", &Actor::m_PainSound);
+	writer.NewOptionalEntityPointerProperty("DeathSound", &Actor::m_DeathSound);
+	writer.NewOptionalEntityPointerProperty("DeviceSwitchSound", &Actor::m_DeviceSwitchSound);
+	writer.NewDistinctProperty("Status", &Actor::m_Status);
+	writer.NewDistinctProperty("Health", &Actor::m_Health);
+	writer.NewDistinctProperty("MaxHealth", &Actor::m_MaxHealth);
+	writer.NewDistinctProperty("DeploymentID", &Actor::m_DeploymentID);
+	writer.NewDistinctProperty("ImpulseDamageThreshold", &Actor::m_TravelImpulseDamage);
+	writer.NewDistinctProperty("StableVelocityThreshold", &Actor::m_StableVel);
+	writer.NewDistinctProperty("StableRecoveryDelay", &Actor::m_StableRecoverDelay);
+	writer.NewDistinctProperty("CanRun", &Actor::m_CanRun);
+	writer.NewDistinctProperty("CrouchWalkSpeedMultiplier", &Actor::m_CrouchWalkSpeedMultiplier);
+	writer.NewDistinctProperty("GoldCarried", &Actor::m_GoldCarried);
+	writer.NewDistinctProperty("AimAngle", &Actor::m_AimAngle);
+	writer.NewDistinctProperty("AimRange", &Actor::m_AimRange);
+	writer.NewDistinctProperty("AimDistance", &Actor::m_AimDistance);
+	writer.NewDistinctProperty("SharpAimDelay", &Actor::m_SharpAimDelay);
+	writer.NewDistinctProperty("SightDistance", &Actor::m_SightDistance);
+	writer.NewDistinctProperty("Perceptiveness", &Actor::m_Perceptiveness);
+	writer.NewDistinctProperty("PainThreshold", &Actor::m_PainThreshold);
+	writer.NewDistinctProperty("CanRevealUnseen", &Actor::m_CanRevealUnseen);
+	writer.NewDistinctProperty("CharHeight", &Actor::m_CharHeight);
+	writer.NewDistinctProperty("HolsterOffset", &Actor::m_HolsterOffset);
+	writer.NewDistinctProperty("ReloadOffset", &Actor::m_ReloadOffset);
+	writer.NewPointerSequence("_ClearInventory", "AddInventory", &Actor::m_Inventory);
+	writer.NewDistinctProperty("MaxInventoryMass", &Actor::m_MaxInventoryMass);
+	writer.NewDistinctProperty("AIMode", &Actor::GetAIModeToWrite);
+	WriteAIWaypoints(writer);
+	writer.NewOptionalEntityPointerProperty("PieMenu", &Actor::m_PieMenu);
+	writer.NewDistinctProperty("Organic", &Actor::m_Organic);
+	writer.NewDistinctProperty("Mechanical", &Actor::m_Mechanical);
+	writer.NewDistinctProperty("AIBaseDigStrength", &Actor::m_AIBaseDigStrength);
+
+	writer.NewDistinctProperty("PassengerSlots", &Actor::m_PassengerSlots);
+
+	return 0;
+}
+template int Actor::WriteTo(IniWriter& writer) const;
+template int Actor::WriteTo(HashWriter& writer) const;
 
 void Actor::DestroyScriptState() {
 	for (std::deque<MovableObject*>::const_iterator itr = m_Inventory.begin(); itr != m_Inventory.end(); ++itr) {

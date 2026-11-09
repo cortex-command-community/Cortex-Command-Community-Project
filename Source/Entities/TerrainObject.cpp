@@ -151,6 +151,20 @@ HashingData TerrainObject::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int TerrainObject::WriteTo(WriterType& writer) const {
+	SceneObject::WriteTo(writer);
+
+	writer.NewDistinctProperty("FGColorFile", &TerrainObject::m_FGColorFile);
+	writer.NewDistinctProperty("BGColorFile", &TerrainObject::m_BGColorFile);
+	writer.NewDistinctProperty("MaterialFile", &TerrainObject::m_MaterialFile);
+	writer.NewDistinctProperty("BitmapOffset", &TerrainObject::m_BitmapOffset);
+	writer.NewSequence("_ClearChildObjects", "AddChildObject", &TerrainObject::m_ChildObjects);
+
+	return 0;
+}
+template int TerrainObject::WriteTo(IniWriter& writer) const;
+template int TerrainObject::WriteTo(HashWriter& writer) const;
+
 BITMAP* TerrainObject::GetGraphicalIcon() const {
 	if (m_FGColorBitmap) {
 		// Check several spots on the FG bitmap, to be sure it has parts that aren't transparent. If not, show the background layer instead.

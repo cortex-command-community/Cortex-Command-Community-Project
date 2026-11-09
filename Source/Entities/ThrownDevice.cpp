@@ -120,6 +120,23 @@ HashingData ThrownDevice::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int ThrownDevice::WriteTo(WriterType& writer) const {
+	HeldDevice::WriteTo(writer);
+
+	writer.NewOptionalEntityPointerProperty("ActivationSound", &ThrownDevice::m_ActivationSound);
+	writer.NewDistinctProperty("StartThrowOffset", &ThrownDevice::m_StartThrowOffset);
+	writer.NewDistinctProperty("EndThrowOffset", &ThrownDevice::m_EndThrowOffset);
+	writer.NewDistinctProperty("MinThrowVel", &ThrownDevice::m_MinThrowVel);
+	writer.NewDistinctProperty("MaxThrowVel", &ThrownDevice::m_MaxThrowVel);
+	writer.NewDistinctProperty("TriggerDelay", &ThrownDevice::m_TriggerDelay);
+	writer.NewDistinctProperty("ActivatesWhenReleased", &ThrownDevice::m_ActivatesWhenReleased);
+	writer.NewPresetReferenceProperty("StrikerLever", &ThrownDevice::m_StrikerLever);
+
+	return 0;
+}
+template int ThrownDevice::WriteTo(IniWriter& writer) const;
+template int ThrownDevice::WriteTo(HashWriter& writer) const;
+
 float ThrownDevice::GetCalculatedMaxThrowVelIncludingArmThrowStrength() {
 	if (m_MaxThrowVel > 0) {
 		return m_MaxThrowVel;

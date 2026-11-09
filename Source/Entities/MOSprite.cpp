@@ -281,6 +281,32 @@ HashingData MOSprite::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int MOSprite::WriteTo(WriterType& writer) const {
+	MovableObject::WriteTo(writer);
+
+	writer.NewDistinctProperty("SpriteFile", &MOSprite::m_SpriteFile);
+	writer.NewDistinctProperty("FrameCount", &MOSprite::m_FrameCount);
+	writer.NewDistinctProperty("SpriteOffset", &MOSprite::m_SpriteOffset);
+	writer.NewDistinctProperty("SpriteAnimMode", &MOSprite::m_SpriteAnimMode);
+	writer.NewDistinctProperty("SpriteAnimDuration", &MOSprite::m_SpriteAnimDuration);
+	writer.NewDistinctProperty("HFlipped", &MOSprite::m_HFlipped);
+	writer.NewDistinctProperty("Rotation", &MOSprite::m_Rotation);
+	writer.NewDistinctProperty("AngularVel", &MOSprite::m_AngularVel);
+	writer.NewDistinctProperty("SettleMaterialDisabled", &MOSprite::m_SettleMaterialDisabled);
+	writer.NewPresetReferenceProperty("EntryWound", &MOSprite::m_pEntryWound);
+	writer.NewPresetReferenceProperty("ExitWound", &MOSprite::m_pExitWound);
+
+	writer.NewDistinctProperty("ForcedHFlip", &MOSprite::m_ForcedHFlip);
+
+	if (writer.IsDistinct([](const MOSprite& object) { return object.m_IconFile.GetDataPath(); })) {
+		writer.NewPropertyWithValue("IconFile", m_IconFile);
+	}
+
+	return 0;
+}
+template int MOSprite::WriteTo(IniWriter& writer) const;
+template int MOSprite::WriteTo(HashWriter& writer) const;
+
 void MOSprite::Destroy(bool notInherited) {
 	//    delete m_pEntryWound; Not doing this anymore since we're not owning
 	//    delete m_pExitWound;

@@ -140,6 +140,21 @@ HashingData Leg::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int Leg::WriteTo(WriterType& writer) const {
+	Attachable::WriteTo(writer);
+
+	writer.NewOptionalEntityPointerProperty("Foot", &Leg::m_Foot);
+	writer.NewDistinctProperty("ContractedOffset", &Leg::m_ContractedOffset);
+	writer.NewDistinctProperty("ExtendedOffset", &Leg::m_ExtendedOffset);
+	writer.NewDistinctProperty("IdleOffset", &Leg::m_IdleOffset);
+	writer.NewDistinctProperty("WillIdle", &Leg::m_WillIdle);
+	writer.NewDistinctProperty("MoveSpeed", &Leg::m_MoveSpeed);
+
+	return 0;
+}
+template int Leg::WriteTo(IniWriter& writer) const;
+template int Leg::WriteTo(HashWriter& writer) const;
+
 void Leg::SetFoot(Attachable* newFoot) {
 	if (m_Foot && m_Foot->IsAttached()) {
 		RemoveAndDeleteAttachable(m_Foot);

@@ -152,7 +152,7 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 /// Writes an orbit direction in the form it's read.
 /// @param writer The Writer to write with.
 /// @param orbitDirection The direction to write.
-static void WriteOrbitDirection(Writer& writer, Directions orbitDirection) {
+template <typename WriterType> static void WriteOrbitDirection(WriterType& writer, Directions orbitDirection) {
 	writer.NewProperty("OrbitDirection");
 	switch (orbitDirection) {
 		default:
@@ -237,6 +237,24 @@ HashingData SLTerrain::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int SLTerrain::WriteTo(WriterType& writer) const {
+	SceneLayer::WriteTo(writer);
+
+	writer.NewDistinctProperty("BackgroundTexture", &SLTerrain::m_DefaultBGTextureFile);
+	writer.NewEntityPointerProperty("BGColorLayer", &SLTerrain::m_BGColorLayer);
+	writer.NewEntityPointerProperty("FGColorLayer", &SLTerrain::m_FGColorLayer);
+	writer.NewPointerSequence("_ClearTerrainFrostings", "AddTerrainFrosting", &SLTerrain::m_TerrainFrostings);
+	writer.NewPointerSequence("_ClearTerrainDebris", "AddTerrainDebris", &SLTerrain::m_TerrainDebris);
+	writer.NewPointerSequence("_ClearTerrainObjects", "PlaceTerrainObject", &SLTerrain::m_TerrainObjects);
+	if (writer.IsDistinct(&SLTerrain::m_OrbitDirection)) {
+		WriteOrbitDirection(writer, m_OrbitDirection);
+	}
+
+	return 0;
+}
+template int SLTerrain::WriteTo(IniWriter& writer) const;
+template int SLTerrain::WriteTo(HashWriter& writer) const;
 
 // TODO: Break this down and refactor.
 void SLTerrain::TexturizeTerrain() {

@@ -248,6 +248,33 @@ HashingData ADoor::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int ADoor::WriteTo(WriterType& writer) const {
+	Actor::WriteTo(writer);
+
+	writer.NewOptionalEntityPointerProperty("Door", &ADoor::m_Door);
+	writer.NewDistinctProperty("OpenOffset", &ADoor::m_OpenOffset);
+	writer.NewDistinctProperty("ClosedOffset", &ADoor::m_ClosedOffset);
+
+	writer.NewDistinctProperty("OpenAngle", [](const ADoor& object) { return Matrix(object.m_OpenAngle); });
+	writer.NewDistinctProperty("ClosedAngle", [](const ADoor& object) { return Matrix(object.m_ClosedAngle); });
+
+	writer.NewDistinctProperty("DoorMoveTime", &ADoor::m_DoorMoveTime);
+	writer.NewDistinctProperty("ClosedByDefault", &ADoor::m_ClosedByDefault);
+	writer.NewDistinctProperty("ResetDefaultDelay", &ADoor::m_ResetToDefaultStateDelay);
+	writer.NewDistinctProperty("SensorInterval", &ADoor::m_SensorInterval);
+	writer.NewSequence("_ClearSensors", "AddSensor", &ADoor::m_Sensors);
+	writer.NewDistinctProperty("DrawMaterialLayerWhenOpen", &ADoor::m_DrawMaterialLayerWhenOpen);
+	writer.NewDistinctProperty("DrawMaterialLayerWhenClosed", &ADoor::m_DrawMaterialLayerWhenClosed);
+	writer.NewOptionalEntityPointerProperty("DoorMoveStartSound", &ADoor::m_DoorMoveStartSound);
+	writer.NewOptionalEntityPointerProperty("DoorMoveSound", &ADoor::m_DoorMoveSound);
+	writer.NewOptionalEntityPointerProperty("DoorDirectionChangeSound", &ADoor::m_DoorDirectionChangeSound);
+	writer.NewOptionalEntityPointerProperty("DoorMoveEndSound", &ADoor::m_DoorMoveEndSound);
+
+	return 0;
+}
+template int ADoor::WriteTo(IniWriter& writer) const;
+template int ADoor::WriteTo(HashWriter& writer) const;
+
 void ADoor::Destroy(bool notInherited) {
 	if (m_DoorMoveStartSound) {
 		m_DoorMoveStartSound->Stop();

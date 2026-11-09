@@ -13,6 +13,7 @@ namespace RTE {
 	public:
 		EntityAllocation(GlobalScript);
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 #pragma region Creation

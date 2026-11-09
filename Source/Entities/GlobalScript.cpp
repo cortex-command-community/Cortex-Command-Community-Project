@@ -109,6 +109,19 @@ HashingData GlobalScript::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int GlobalScript::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("ScriptPath", &GlobalScript::m_ScriptPath);
+	writer.NewDistinctProperty("LuaClassName", &GlobalScript::m_LuaClassName);
+	writer.NewDistinctProperty("LateUpdate", &GlobalScript::m_LateUpdate);
+	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", &GlobalScript::m_PieSlicesToAdd);
+
+	return 0;
+}
+template int GlobalScript::WriteTo(IniWriter& writer) const;
+template int GlobalScript::WriteTo(HashWriter& writer) const;
+
 const std::vector<std::unique_ptr<PieSlice>>& GlobalScript::GetPieSlicesToAdd() const {
 	static const std::vector<std::unique_ptr<PieSlice>> emptyVector;
 	if (!m_HasStarted || !m_IsActive || !g_SettingsMan.IsGlobalScriptEnabled(GetModuleAndPresetName())) {

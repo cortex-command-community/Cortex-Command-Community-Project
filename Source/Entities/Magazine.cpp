@@ -143,6 +143,27 @@ HashingData Magazine::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int Magazine::WriteTo(WriterType& writer) const {
+	Attachable::WriteTo(writer);
+
+	writer.NewDistinctProperty("RoundCount", &Magazine::m_RoundCount);
+
+	// Special casing due to the special casing on magazine reading
+	if (writer.IsDistinct(&Magazine::m_RoundCount) || writer.IsDistinct(&Magazine::m_FullCapacity)) {
+		writer.NewPropertyWithValue("FullCapacity", m_FullCapacity);
+	}
+
+	writer.NewDistinctProperty("RTTRatio", &Magazine::m_RTTRatio);
+	writer.NewPresetReferenceProperty("RegularRound", &Magazine::m_pRegularRound);
+	writer.NewPresetReferenceProperty("TracerRound", &Magazine::m_pTracerRound);
+	writer.NewDistinctProperty("Discardable", &Magazine::m_Discardable);
+	writer.NewDistinctProperty("AIBlastRadius", &Magazine::m_AIBlastRadius);
+
+	return 0;
+}
+template int Magazine::WriteTo(IniWriter& writer) const;
+template int Magazine::WriteTo(HashWriter& writer) const;
+
 void Magazine::Destroy(bool notInherited) {
 
 	if (!notInherited)

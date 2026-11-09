@@ -13,6 +13,7 @@ namespace RTE {
 	public:
 		EntityAllocation(ADoor);
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		enum DoorState {

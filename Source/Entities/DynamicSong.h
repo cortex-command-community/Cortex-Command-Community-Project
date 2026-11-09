@@ -10,6 +10,7 @@ namespace RTE {
 	public:
 		EntityAllocation(DynamicSongSection);
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// How the DynamicSongSection should select the next SoundContainer when SelectSoundContainer is called.
@@ -66,7 +67,7 @@ namespace RTE {
 		/// Handles writing the given SoundContainerSelectionCycleMode out to the given Writer, using the static SoundContainerSelectionCycleMap.
 		/// @param writer A Writer filled in with the property to write to.
 		/// @param soundContainerSelectionCycleMode The SoundSelectionCycleMode to write.
-		static void SaveSoundContainerSelectionCycleMode(Writer& writer, SoundContainerSelectionCycleMode soundContainerSelectionCycleMode);
+		template <typename WriterType> static void SaveSoundContainerSelectionCycleMode(WriterType& writer, SoundContainerSelectionCycleMode soundContainerSelectionCycleMode);
 #pragma endregion
 
 #pragma region Getters and Setters
@@ -139,6 +140,7 @@ namespace RTE {
 	public:
 		EntityAllocation(DynamicSong);
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 #pragma region Creation

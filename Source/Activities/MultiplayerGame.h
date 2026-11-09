@@ -30,6 +30,7 @@ namespace RTE {
 		EntityAllocation(MultiplayerGame);
 		int ReadProperty(const std::string_view& propName, Reader& reader) override;
 		int Save(Writer& writer) const override;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		enum MultiplayerGameMode {

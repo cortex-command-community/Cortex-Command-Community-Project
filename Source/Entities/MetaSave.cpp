@@ -104,3 +104,17 @@ HashingData MetaSave::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int MetaSave::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("SavePath", &MetaSave::m_SavePath);
+	writer.NewDistinctProperty("PlayerCount", &MetaSave::m_PlayerCount);
+	writer.NewDistinctProperty("Difficulty", &MetaSave::m_Difficulty);
+	writer.NewDistinctProperty("RoundCount", &MetaSave::m_RoundCount);
+	writer.NewDistinctProperty("SiteCount", &MetaSave::m_SiteCount);
+
+	return 0;
+}
+template int MetaSave::WriteTo(IniWriter& writer) const;
+template int MetaSave::WriteTo(HashWriter& writer) const;

@@ -72,6 +72,13 @@ int AreaEditor::Save(Writer& writer) const {
 	return 0;
 }
 
+template <typename WriterType> int AreaEditor::WriteTo(WriterType& writer) const {
+	EditorActivity::WriteTo(writer);
+	return 0;
+}
+template int AreaEditor::WriteTo(IniWriter& writer) const;
+template int AreaEditor::WriteTo(HashWriter& writer) const;
+
 void AreaEditor::Destroy(bool notInherited) {
 	delete m_pEditorGUI;
 

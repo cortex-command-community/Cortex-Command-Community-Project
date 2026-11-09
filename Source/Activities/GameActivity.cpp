@@ -342,6 +342,21 @@ HashingData GameActivity::Delivery::Hash() const {
 	return Serializable::Hash();
 }
 
+template <typename WriterType> int GameActivity::Delivery::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	writer.NewPropertyWithValue("OrderedByPlayer", orderedByPlayer);
+	writer.NewPropertyWithValue("LandingZone", landingZone);
+	writer.NewPropertyWithValue("MultiOrderYOffset", multiOrderYOffset);
+	// Sim time starts over on every load, so what's worth keeping is how long is left, not when this was ordered.
+	writer.NewPropertyWithValue("RemainingDelay", static_cast<long>(std::max(0.0, static_cast<double>(delay) - timer.GetElapsedSimTimeMS())));
+	writer.NewPropertyWithValue("Craft", *pCraft);
+
+	return 0;
+}
+template int GameActivity::Delivery::WriteTo(IniWriter& writer) const;
+template int GameActivity::Delivery::WriteTo(HashWriter& writer) const;
+
 HashingData GameActivity::Hash() const {
 	HashingData hashData(Activity::Hash());
 
@@ -357,6 +372,31 @@ HashingData GameActivity::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int GameActivity::WriteTo(WriterType& writer) const {
+	Activity::WriteTo(writer);
+
+	writer.NewPropertyWithValue("CPUTeam", m_CPUTeam);
+	writer.NewPropertyWithValue("DeliveryDelay", m_DeliveryDelay);
+	writer.NewPropertyWithValue("BuyMenuEnabled", m_BuyMenuEnabled);
+
+	writer.NewPropertyWithValue("_StartingGold", m_StartingGold);
+	writer.NewPropertyWithValue("_FogOfWarEnabled", m_FogOfWarEnabled);
+
+	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
+		for (const Delivery& delivery: m_Deliveries[team]) {
+			writer.NewPropertyWithValue("AddDelivery", delivery);
+		}
+	}
+
+	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
+		writer.NewPropertyWithValue(PropName("Team" + std::to_string(team + 1) + "Tech"), GetTeamTech(team));
+	}
+
+	return 0;
+}
+template int GameActivity::WriteTo(IniWriter& writer) const;
+template int GameActivity::WriteTo(HashWriter& writer) const;
 
 void GameActivity::Destroy(bool notInherited) {
 	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {

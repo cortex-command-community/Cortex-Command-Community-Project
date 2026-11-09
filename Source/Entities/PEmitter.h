@@ -21,6 +21,7 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(PEmitter);
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a PEmitter object in system

@@ -110,6 +110,21 @@ HashingData Scene::Area::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int Scene::Area::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	if (!m_Name.empty())
+		writer.NewPropertyWithValue("Name", m_Name);
+
+	for (const Box* box: m_BoxList) {
+		writer.NewPropertyWithValue("AddBox", *box);
+	}
+
+	return 0;
+}
+template int Scene::Area::WriteTo(IniWriter& writer) const;
+template int Scene::Area::WriteTo(HashWriter& writer) const;
+
 void Scene::Area::Destroy(bool notInherited) {
 	for (Box* box: m_BoxList) {
 		delete box;
@@ -1331,6 +1346,51 @@ HashingData Scene::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int Scene::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	bool doFullGameSave = !dynamic_cast<EditorActivity*>(g_ActivityMan.GetActivity());
+
+	writer.NewDistinctProperty("LocationOnPlanet", &Scene::m_Location);
+	writer.NewDistinctProperty("MetagamePlayable", &Scene::m_MetagamePlayable);
+	writer.NewDistinctProperty("PreviewBitmapFile", &Scene::m_PreviewBitmapFile);
+	writer.NewDistinctProperty("MetasceneParent", &Scene::m_MetasceneParent);
+	writer.NewDistinctProperty("MetagameInternal", &Scene::m_IsMetagameInternal);
+	writer.NewDistinctProperty("ScriptSave", &Scene::m_IsSavedGameInternal);
+	writer.NewDistinctProperty("Revealed", &Scene::m_Revealed);
+	writer.NewDistinctProperty("OwnedByTeam", &Scene::m_OwnedByTeam);
+	writer.NewDistinctProperty("RoundIncome", &Scene::m_RoundIncome);
+
+	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+		std::string playerNumberString = "P" + std::to_string(player + 1);
+		writer.NewDistinctProperty(PropName(playerNumberString + "BuildBudget"), [player](const Scene& object) { return object.m_BuildBudget[player]; });
+		writer.NewDistinctProperty(PropName(playerNumberString + "BuildBudgetRatio"), [player](const Scene& object) { return object.m_BuildBudgetRatio[player]; });
+		writer.NewOptionalEntityPointerProperty(PropName(playerNumberString + "ResidentBrain"), [player](const Scene& object) { return object.m_ResidentBrains[player]; });
+	}
+
+	writer.NewDistinctProperty("AutoDesigned", &Scene::m_AutoDesigned);
+	writer.NewDistinctProperty("TotalInvestment", &Scene::m_TotalInvestment);
+	writer.NewOptionalEntityPointerProperty("Terrain", &Scene::m_pTerrain);
+	writer.NewPointerSequence("_ClearSceneObjects", "PlaceSceneObject", [](const Scene& object) -> const auto& { return object.m_PlacedObjects[PlacedObjectSets::PLACEONLOAD]; });
+	writer.NewPointerSequence("_ClearBlueprintObjects", "PlaceBlueprintObject", [](const Scene& object) -> const auto& { return object.m_PlacedObjects[PlacedObjectSets::BLUEPRINT]; });
+	writer.NewPointerSequence("_ClearAIPlanObjects", "PlaceAIPlanObject", [](const Scene& object) -> const auto& { return object.m_PlacedObjects[PlacedObjectSets::AIPLAN]; });
+	writer.NewPresetCopySequence("_ClearBackgroundLayers", "AddBackgroundLayer", &Scene::m_BackLayerList);
+
+	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
+		std::string teamNumberString = std::to_string(team + 1);
+		writer.NewDistinctProperty(PropName("AllUnseenPixelSizeTeam" + teamNumberString), [team](const Scene& object) -> const auto& { return object.m_UnseenPixelSize[team]; });
+		writer.NewOptionalEntityPointerProperty(PropName("UnseenLayerTeam" + teamNumberString), [team](const Scene& object) { return object.m_apUnseenLayer[team]; });
+		writer.NewDistinctProperty(PropName("ScanScheduledTeam" + teamNumberString), [team](const Scene& object) { return object.m_ScanScheduled[team]; });
+	}
+
+	writer.NewPointerSequence("_ClearAreas", "AddArea", &Scene::m_AreaList);
+	writer.NewDistinctProperty("GlobalAcceleration", &Scene::m_GlobalAcc);
+
+	return 0;
+}
+template int Scene::WriteTo(IniWriter& writer) const;
+template int Scene::WriteTo(HashWriter& writer) const;
 
 void Scene::Destroy(bool notInherited) {
 	delete m_pTerrain;

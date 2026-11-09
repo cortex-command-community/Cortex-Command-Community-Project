@@ -89,6 +89,17 @@ HashingData Icon::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int Icon::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("BitmapFile", &Icon::m_BitmapFile);
+	writer.NewDistinctProperty("FrameCount", &Icon::m_FrameCount);
+
+	return 0;
+}
+template int Icon::WriteTo(IniWriter& writer) const;
+template int Icon::WriteTo(HashWriter& writer) const;
+
 void Icon::Destroy(bool notInherited) {
 	if (!notInherited) {
 		Entity::Destroy();

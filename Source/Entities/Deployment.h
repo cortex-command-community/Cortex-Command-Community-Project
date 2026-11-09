@@ -24,6 +24,7 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(Deployment);
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a Deployment object in system

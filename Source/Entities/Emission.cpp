@@ -152,3 +152,26 @@ HashingData Emission::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int Emission::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewPresetReferenceProperty("EmittedParticle", &Emission::m_pEmission);
+	writer.NewDistinctProperty("ParticlesPerMinute", &Emission::m_PPM);
+	writer.NewDistinctProperty("BurstSize", &Emission::m_BurstSize);
+	writer.NewDistinctProperty("Spread", &Emission::m_Spread);
+	writer.NewDistinctProperty("MinVelocity", &Emission::m_MinVelocity);
+	writer.NewDistinctProperty("MaxVelocity", &Emission::m_MaxVelocity);
+	writer.NewDistinctProperty("LifeVariation", &Emission::m_LifeVariation);
+	writer.NewDistinctProperty("PushesEmitter", &Emission::m_PushesEmitter);
+	writer.NewDistinctProperty("InheritsVel", &Emission::m_InheritsVel);
+	writer.NewDistinctProperty("InheritsAngularVel", &Emission::m_InheritsAngularVel);
+	writer.NewDistinctProperty("Offset", &Emission::m_Offset);
+	writer.NewDistinctProperty("StartTimeMS", [](const Emission& object) { return object.m_StartTimer.GetSimTimeLimitMS(); });
+	writer.NewDistinctProperty("StopTimeMS", [](const Emission& object) { return object.m_StopTimer.GetSimTimeLimitMS(); });
+	writer.NewDistinctProperty("ParticleCount", &Emission::m_ParticleCount);
+
+	return 0;
+}
+template int Emission::WriteTo(IniWriter& writer) const;
+template int Emission::WriteTo(HashWriter& writer) const;

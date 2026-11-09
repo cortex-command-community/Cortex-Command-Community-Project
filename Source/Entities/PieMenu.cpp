@@ -279,6 +279,27 @@ HashingData PieMenu::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int PieMenu::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("IconSeparatorMode", [](const PieMenu& object) { return static_cast<int>(object.m_IconSeparatorMode); });
+
+	writer.NewDistinctProperty("FullInnerRadius", &PieMenu::m_FullInnerRadius);
+	writer.NewDistinctProperty("BackgroundThickness", &PieMenu::m_BackgroundThickness);
+	writer.NewDistinctProperty("BackgroundSeparatorSize", &PieMenu::m_BackgroundSeparatorSize);
+	writer.NewDistinctProperty("DrawBackgroundTransparent", &PieMenu::m_DrawBackgroundTransparent);
+	writer.NewDistinctProperty("BackgroundColor", &PieMenu::m_BackgroundColor);
+	writer.NewDistinctProperty("BackgroundBorderColor", &PieMenu::m_BackgroundBorderColor);
+	writer.NewDistinctProperty("SelectedItemBackgroundColor", &PieMenu::m_SelectedItemBackgroundColor);
+	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", &PieMenu::m_CurrentPieSlices, [](const PieMenu& owner, const PieSlice* slice) {
+		return slice->GetOriginalSource() == owner.m_Owner;
+	});
+
+	return 0;
+}
+template int PieMenu::WriteTo(IniWriter& writer) const;
+template int PieMenu::WriteTo(HashWriter& writer) const;
+
 void PieMenu::SetOwner(Actor* newOwner) {
 	RTEAssert((newOwner == nullptr) ? true : (newOwner->GetPieMenu() == this || IsSubPieMenu()), "Tried to set Pie Menu owning Actor to Actor with different Pie Menu.");
 	if (m_Owner) {

@@ -67,6 +67,17 @@ HashingData Shader::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int Shader::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("VertexShader", &Shader::m_VertexPath);
+	writer.NewDistinctProperty("FragmentShader", &Shader::m_FragmentPath);
+
+	return 0;
+}
+template int Shader::WriteTo(IniWriter& writer) const;
+template int Shader::WriteTo(HashWriter& writer) const;
+
 int Shader::Create() {
 	if (m_FragmentPath.empty() || m_VertexPath.empty()) {
 		return -1;

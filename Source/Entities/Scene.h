@@ -34,6 +34,7 @@ namespace RTE {
 		/// Public member variable, method and friend function declarations
 	public:
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		// Available placed objects sets
@@ -58,6 +59,7 @@ namespace RTE {
 		public:
 			SerializableClassNameGetter;
 			SerializableOverrideMethods;
+			WriterOverrideMethods;
 
 			/// Constructor method used to instantiate a Area object in system
 			/// memory. Create() should be called before using the object.

@@ -171,6 +171,24 @@ HashingData SLBackground::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int SLBackground::WriteTo(WriterType& writer) const {
+	StaticSceneLayer::WriteTo(writer);
+
+	writer.NewDistinctProperty("FrameCount", &SLBackground::m_FrameCount);
+	writer.NewDistinctProperty("SpriteAnimMode", &SLBackground::m_SpriteAnimMode);
+	writer.NewDistinctProperty("SpriteAnimDuration", &SLBackground::m_SpriteAnimDuration);
+	writer.NewDistinctProperty("IsAnimatedManually", &SLBackground::m_IsAnimatedManually);
+	writer.NewDistinctProperty("AutoScrollStepInterval", &SLBackground::m_AutoScrollStepInterval);
+	writer.NewDistinctProperty("AutoScrollStep", &SLBackground::m_AutoScrollStep);
+	writer.NewDistinctProperty("IgnoreAutoScaling", &SLBackground::m_IgnoreAutoScale);
+	writer.NewDistinctProperty("CanAutoScrollX", &SLBackground::m_CanAutoScrollX);
+	writer.NewDistinctProperty("CanAutoScrollY", &SLBackground::m_CanAutoScrollY);
+
+	return 0;
+}
+template int SLBackground::WriteTo(IniWriter& writer) const;
+template int SLBackground::WriteTo(HashWriter& writer) const;
+
 void SLBackground::InitScaleFactors() {
 	if (!m_IgnoreAutoScale) {
 		float fitScreenScaleFactor = std::clamp(static_cast<float>(std::min(g_SceneMan.GetSceneHeight(), g_FrameMan.GetPlayerScreenHeight())) / static_cast<float>(m_MainBitmap->h), 1.0F, 2.0F);

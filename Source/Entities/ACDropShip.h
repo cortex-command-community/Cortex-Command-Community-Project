@@ -20,6 +20,7 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(ACDropShip);
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a ACDropShip object in system

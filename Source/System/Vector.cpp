@@ -32,3 +32,14 @@ HashingData Vector::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int Vector::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	writer.NewPropertyWithValue("X", m_X);
+	writer.NewPropertyWithValue("Y", m_Y);
+
+	return 0;
+}
+template int Vector::WriteTo(IniWriter& writer) const;
+template int Vector::WriteTo(HashWriter& writer) const;

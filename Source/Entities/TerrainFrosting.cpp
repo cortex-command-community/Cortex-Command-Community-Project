@@ -49,6 +49,20 @@ HashingData TerrainFrosting::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int TerrainFrosting::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	writer.NewPropertyWithValue("FrostingMaterial", m_FrostingMaterial);
+	writer.NewPropertyWithValue("TargetMaterial", m_TargetMaterial);
+	writer.NewPropertyWithValue("MinThickness", m_MinThickness);
+	writer.NewPropertyWithValue("MaxThickness", m_MaxThickness);
+	writer.NewPropertyWithValue("InAirOnly", m_InAirOnly);
+
+	return 0;
+}
+template int TerrainFrosting::WriteTo(IniWriter& writer) const;
+template int TerrainFrosting::WriteTo(HashWriter& writer) const;
+
 void TerrainFrosting::FrostTerrain(SLTerrain* terrain) const {
 	BITMAP* frostingTexture = m_FrostingMaterial.GetFGTexture();
 	BITMAP* fgColorBitmap = terrain->GetFGColorBitmap();

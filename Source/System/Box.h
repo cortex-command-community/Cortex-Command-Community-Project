@@ -14,6 +14,7 @@ namespace RTE {
 	public:
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
+		WriterOverrideMethods;
 
 		Vector m_Corner; //!< Vector position of the upper left corner of this box.
 		float m_Width; //!< Width of this box.

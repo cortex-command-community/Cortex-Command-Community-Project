@@ -374,6 +374,53 @@ HashingData Activity::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int Activity::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("Description", &Activity::m_Description);
+	writer.NewDistinctProperty("SceneName", &Activity::m_SceneName);
+	writer.NewDistinctProperty("MaxPlayerSupport", &Activity::m_MaxPlayerSupport);
+	writer.NewDistinctProperty("MinTeamsRequired", &Activity::m_MinTeamsRequired);
+	writer.NewDistinctProperty("Difficulty", &Activity::m_Difficulty);
+	writer.NewDistinctProperty("CraftOrbitAtTheEdge", &Activity::m_CraftOrbitAtTheEdge);
+	writer.NewDistinctProperty("InCampaignStage", &Activity::m_InCampaignStage);
+	writer.NewDistinctProperty("ActivityState", &Activity::m_ActivityState);
+	writer.NewDistinctProperty("AllowsUserSaving", &Activity::m_AllowsUserSaving);
+
+	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
+		std::string playerNum = std::to_string(player + 1);
+
+		// A player's team is also what marks them active or not when read, so it's written if either differs, and never for a player inactive in both.
+		writer.NewDistinctProperty(PropName("TeamOfPlayer" + playerNum), [player](const Activity& object) { return object.m_IsActive[player] ? object.m_Team[player] : static_cast<int>(Teams::NoTeam); });
+
+		writer.NewDistinctProperty(PropName("FundsContributionOfPlayer" + playerNum), [player](const Activity& object) { return object.m_FundsContribution[player]; });
+		writer.NewDistinctProperty(PropName("TeamFundsShareOfPlayer" + playerNum), [player](const Activity& object) { return object.m_TeamFundsShare[player]; });
+		writer.NewDistinctProperty(PropName("Player" + playerNum + "IsHuman"), [player](const Activity& object) { return object.m_IsHuman[player]; });
+	}
+
+	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
+		std::string teamNum = std::to_string(team + 1);
+		writer.NewDistinctProperty(PropName("Team" + teamNum + "Funds"), [team](const Activity& object) { return object.m_TeamFunds[team]; });
+
+		// A team's name is also what marks it active when read, so it's written for a team the reference doesn't have active, and never for an inactive one.
+		if (m_TeamActive[team] && writer.IsDistinct([team](const Activity& object) { return object.m_TeamActive[team] ? object.m_TeamNames[team] : std::string(); })) {
+			writer.NewPropertyWithValue(PropName("Team" + teamNum + "Name"), m_TeamNames[team]);
+		}
+
+		writer.NewDistinctProperty(PropName("Team" + teamNum + "Icon"), [team](const Activity& object) -> const auto& { return object.m_TeamIcons[team]; });
+		writer.NewDistinctProperty(PropName("Team" + teamNum + "AISkill"), [team](const Activity& object) { return object.m_TeamAISkillLevels[team]; });
+	}
+
+	writer.NewDistinctProperty("GenericSavedValues", &Activity::m_SavedValues);
+
+	writer.NewDistinctProperty("ShowInMenus", &Activity::m_ShowInMenus);
+	writer.NewDistinctProperty("HumansCanSpectate", &Activity::m_HumansCanSpectate);
+
+	return 0;
+}
+template int Activity::WriteTo(IniWriter& writer) const;
+template int Activity::WriteTo(HashWriter& writer) const;
+
 int Activity::Start() {
 	// Reseed the RNG for determinism
 	SeedRNG();

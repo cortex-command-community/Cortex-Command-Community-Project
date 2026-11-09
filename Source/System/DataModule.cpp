@@ -245,6 +245,32 @@ int DataModule::Save(Writer& writer) const {
 	return 0;
 }
 
+template <typename WriterType> int DataModule::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	writer.NewPropertyWithValue("ModuleName", m_FriendlyName);
+
+	if (!m_IsUserdata) {
+		writer.NewPropertyWithValue("Author", m_Author);
+		writer.NewPropertyWithValue("Description", m_Description);
+		writer.NewPropertyWithValue("IsFaction", m_IsFaction);
+		writer.NewPropertyWithValue("SupportedGameVersion", m_SupportedGameVersion->str());
+		writer.NewPropertyWithValue("Version", m_Version);
+		writer.NewPropertyWithValue("IconFile", m_IconFile);
+
+		// TODO: Write out all the different entity instances, each having their own relative location within the data module stored
+		// Will need the writer to be able to open different files and append to them as needed, probably done in NewEntity()
+		// writer.NewEntity()
+	} else {
+		writer.NewPropertyWithValue("ScanFolderContents", m_ScanFolderContents);
+		writer.NewPropertyWithValue("IgnoreMissingItems", m_IgnoreMissingItems);
+	}
+
+	return 0;
+}
+template int DataModule::WriteTo(IniWriter& writer) const;
+template int DataModule::WriteTo(HashWriter& writer) const;
+
 std::string DataModule::GetEntityDataLocation(const std::string& exactType, const std::string& instance) {
 	const Entity* foundEntity = GetEntityPreset(exactType, instance);
 	if (foundEntity == nullptr) {

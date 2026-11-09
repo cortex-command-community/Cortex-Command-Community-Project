@@ -93,6 +93,17 @@ HashingData Turret::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int Turret::WriteTo(WriterType& writer) const {
+	Attachable::WriteTo(writer);
+
+	writer.NewPointerSequence("_ClearMountedDevices", "AddMountedDevice", &Turret::m_MountedDevices);
+	writer.NewDistinctProperty("MountedDeviceRotationOffset", &Turret::m_MountedDeviceRotationOffset);
+
+	return 0;
+}
+template int Turret::WriteTo(IniWriter& writer) const;
+template int Turret::WriteTo(HashWriter& writer) const;
+
 void Turret::SetFirstMountedDevice(HeldDevice* newMountedDevice) {
 	if (HasMountedDevice()) {
 		RemoveAndDeleteAttachable(m_MountedDevices[0]);

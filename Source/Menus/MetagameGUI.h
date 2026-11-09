@@ -38,6 +38,7 @@ namespace RTE {
 		SerializableClassNameGetter
 		int ReadProperty(const std::string_view& propName, Reader& reader) override;
 		int Save(Writer& writer) const override;
+		WriterOverrideMethods;
 	public:
 		enum MenuScreens {
 			ROOTBOX = 0,

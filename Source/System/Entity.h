@@ -79,6 +79,7 @@ namespace RTE {
 
 	public:
 		SerializableOverrideMethods;
+		WriterOverrideMethods;
 
 #pragma region ClassInfo
 		/// The class that describes each subclass of Entity. There should be one ClassInfo static instance for every Entity child.

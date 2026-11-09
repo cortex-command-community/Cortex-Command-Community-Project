@@ -13,6 +13,7 @@ namespace RTE {
 	public:
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
+		WriterOverrideMethods;
 
 #pragma region Creation
 		/// Constructor method used to instantiate an ADSensor object in system memory. Create() should be called before using the object.

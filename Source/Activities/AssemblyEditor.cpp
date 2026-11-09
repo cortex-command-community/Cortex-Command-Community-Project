@@ -72,6 +72,13 @@ int AssemblyEditor::Save(Writer& writer) const {
 	return 0;
 }
 
+template <typename WriterType> int AssemblyEditor::WriteTo(WriterType& writer) const {
+	EditorActivity::WriteTo(writer);
+	return 0;
+}
+template int AssemblyEditor::WriteTo(IniWriter& writer) const;
+template int AssemblyEditor::WriteTo(HashWriter& writer) const;
+
 void AssemblyEditor::Destroy(bool notInherited) {
 	delete m_pEditorGUI;
 

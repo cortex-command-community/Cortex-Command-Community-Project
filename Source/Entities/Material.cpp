@@ -180,3 +180,30 @@ HashingData Material::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int Material::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("Priority", &Material::m_Priority);
+	writer.NewDistinctProperty("Piling", &Material::m_Piling);
+	writer.NewDistinctProperty("StructuralIntegrity", &Material::m_Integrity);
+	writer.NewDistinctProperty("Restitution", &Material::m_Restitution);
+	writer.NewDistinctProperty("Friction", &Material::m_Friction);
+	writer.NewDistinctProperty("Stickiness", &Material::m_Stickiness);
+	writer.NewDistinctProperty("DensityKGPerVolumeL", &Material::m_VolumeDensity);
+	writer.NewDistinctProperty("GibImpulseLimitPerVolumeL", &Material::m_GibImpulseLimitPerLiter);
+	writer.NewDistinctProperty("GibWoundLimitPerVolumeL", &Material::m_GibWoundLimitPerLiter);
+	writer.NewDistinctProperty("SettleMaterial", &Material::m_SettleMaterialIndex);
+	writer.NewDistinctProperty("SpawnMaterial", &Material::m_SpawnMaterialIndex);
+	writer.NewDistinctProperty("IsScrap", &Material::m_IsScrap);
+	writer.NewDistinctProperty("Color", &Material::m_Color);
+	writer.NewDistinctProperty("UseOwnColor", &Material::m_UseOwnColor);
+	writer.NewDistinctProperty("FGTextureFile", &Material::m_FGTextureFile);
+	writer.NewDistinctProperty("BGTextureFile", &Material::m_BGTextureFile);
+
+	writer.NewDistinctProperty("Index", &Material::m_Index);
+
+	return 0;
+}
+template int Material::WriteTo(IniWriter& writer) const;
+template int Material::WriteTo(HashWriter& writer) const;

@@ -10,6 +10,7 @@ namespace RTE {
 	public:
 		EntityAllocation(MetaSave);
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 #pragma region Creation

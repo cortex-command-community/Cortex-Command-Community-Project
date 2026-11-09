@@ -407,6 +407,59 @@ HashingData HDFirearm::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int HDFirearm::WriteTo(WriterType& writer) const {
+	HeldDevice::WriteTo(writer);
+
+	writer.NewOptionalEntityPointerProperty("Magazine", &HDFirearm::m_pMagazine);
+	writer.NewOptionalEntityPointerProperty("Flash", &HDFirearm::m_pFlash);
+	writer.NewOptionalEntityPointerProperty("PreFireSound", &HDFirearm::m_PreFireSound);
+	writer.NewOptionalEntityPointerProperty("FireSound", &HDFirearm::m_FireSound);
+	writer.NewOptionalEntityPointerProperty("FireEchoSound", &HDFirearm::m_FireEchoSound);
+	writer.NewOptionalEntityPointerProperty("ActiveSound", &HDFirearm::m_ActiveSound);
+	writer.NewOptionalEntityPointerProperty("DeactivationSound", &HDFirearm::m_DeactivationSound);
+	writer.NewOptionalEntityPointerProperty("EmptySound", &HDFirearm::m_EmptySound);
+	writer.NewOptionalEntityPointerProperty("ReloadStartSound", &HDFirearm::m_ReloadStartSound);
+	writer.NewOptionalEntityPointerProperty("ReloadEndSound", &HDFirearm::m_ReloadEndSound);
+	writer.NewDistinctProperty("ReloadEndOffset", &HDFirearm::m_ReloadEndOffset);
+	writer.NewDistinctProperty("RateOfFire", &HDFirearm::m_RateOfFire);
+	writer.NewDistinctProperty("ActivationDelay", &HDFirearm::m_ActivationDelay);
+	writer.NewDistinctProperty("DeactivationDelay", &HDFirearm::m_DeactivationDelay);
+	writer.NewDistinctProperty("ReloadTime", &HDFirearm::m_BaseReloadTime);
+	writer.NewDistinctProperty("FullAuto", &HDFirearm::m_FullAuto);
+	writer.NewDistinctProperty("FireIgnoresThis", &HDFirearm::m_FireIgnoresThis);
+	writer.NewDistinctProperty("Reloadable", &HDFirearm::m_Reloadable);
+	writer.NewDistinctProperty("DualReloadable", &HDFirearm::m_DualReloadable);
+	writer.NewDistinctProperty("OneHandedReloadTimeMultiplier", &HDFirearm::m_OneHandedReloadTimeMultiplier);
+	writer.NewDistinctProperty("ReloadAngle", &HDFirearm::m_ReloadAngle);
+	writer.NewDistinctProperty("OneHandedReloadAngle", &HDFirearm::m_OneHandedReloadAngle);
+	writer.NewDistinctProperty("RecoilTransmission", &HDFirearm::m_JointStiffness);
+	writer.NewDistinctProperty("IsAnimatedManually", &HDFirearm::m_IsAnimatedManually);
+
+	writer.NewDistinctProperty("ShakeRange", [](const HDFirearm& object) { return object.m_ShakeRange * 2; });
+
+	writer.NewDistinctProperty("SharpShakeRange", [](const HDFirearm& object) { return object.m_SharpShakeRange * 2; });
+
+	writer.NewDistinctProperty("NoSupportFactor", &HDFirearm::m_NoSupportFactor);
+
+	writer.NewDistinctProperty("ParticleSpreadRange", [](const HDFirearm& object) { return object.m_ParticleSpreadRange * 2; });
+
+	writer.NewDistinctProperty("ShellEjectAngle", &HDFirearm::m_ShellEjectAngle);
+
+	writer.NewDistinctProperty("ShellSpreadRange", [](const HDFirearm& object) { return object.m_ShellSpreadRange * 2; });
+
+	writer.NewDistinctProperty("ShellAngVelRange", [](const HDFirearm& object) { return object.m_ShellAngVelRange * 2; });
+
+	writer.NewDistinctProperty("ShellVelVariation", &HDFirearm::m_ShellVelVariation);
+	writer.NewDistinctProperty("RecoilScreenShakeAmount", &HDFirearm::m_RecoilScreenShakeAmount);
+	writer.NewDistinctProperty("MuzzleOffset", &HDFirearm::m_MuzzleOff);
+	writer.NewDistinctProperty("EjectionOffset", &HDFirearm::m_EjectOff);
+	writer.NewDistinctProperty("LegacyCompatibilityRoundsAlwaysFireUnflipped", &HDFirearm::m_LegacyCompatibilityRoundsAlwaysFireUnflipped);
+
+	return 0;
+}
+template int HDFirearm::WriteTo(IniWriter& writer) const;
+template int HDFirearm::WriteTo(HashWriter& writer) const;
+
 void HDFirearm::Destroy(bool notInherited) {
 	if (m_PreFireSound) {
 		m_PreFireSound->Stop();

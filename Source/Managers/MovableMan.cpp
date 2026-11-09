@@ -112,6 +112,22 @@ int MovableMan::Save(Writer& writer) const {
 	return 0;
 }
 
+template <typename WriterType> int MovableMan::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	writer << m_Actors.size();
+	for (std::deque<Actor*>::const_iterator itr = m_Actors.begin(); itr != m_Actors.end(); ++itr)
+		writer << **itr;
+
+	writer << m_Particles.size();
+	for (std::deque<MovableObject*>::const_iterator itr2 = m_Particles.begin(); itr2 != m_Particles.end(); ++itr2)
+		writer << **itr2;
+
+	return 0;
+}
+template int MovableMan::WriteTo(IniWriter& writer) const;
+template int MovableMan::WriteTo(HashWriter& writer) const;
+
 void MovableMan::Destroy() {
 	for (std::deque<Actor*>::iterator it1 = m_Actors.begin(); it1 != m_Actors.end(); ++it1)
 		delete (*it1);

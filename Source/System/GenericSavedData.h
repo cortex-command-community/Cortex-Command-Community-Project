@@ -13,6 +13,7 @@ namespace RTE {
 		public:
 			SerializableClassNameGetter;
 			SerializableOverrideMethods;
+			WriterOverrideMethods;
 
 			/// Constructor method used to instantiate a GenericSavedStrings object in system memory and make it ready for use.
 			GenericSavedEncodedStrings() = default;
@@ -33,6 +34,7 @@ namespace RTE {
 		public:
 			SerializableClassNameGetter;
 			SerializableOverrideMethods;
+			WriterOverrideMethods;
 
 			/// Constructor method used to instantiate a GenericSavedStrings object in system memory and make it ready for use.
 			GenericSavedStrings() = default;
@@ -53,6 +55,7 @@ namespace RTE {
 		public:
 			SerializableClassNameGetter;
 			SerializableOverrideMethods;
+			WriterOverrideMethods;
 
 			/// Constructor method used to instantiate a GenericSavedNumbers object in system memory and make it ready for use.
 			GenericSavedNumbers() = default;
@@ -70,6 +73,7 @@ namespace RTE {
 	public:
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
+		WriterOverrideMethods;
 
 		/// Constructor method used to instantiate a GenericSavedData object in system memory and make it ready for use.
 		GenericSavedData() = default;

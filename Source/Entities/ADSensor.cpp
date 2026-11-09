@@ -60,6 +60,22 @@ HashingData ADSensor::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int ADSensor::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	if (!m_StartOffset.IsZero())
+		writer.NewPropertyWithValue("StartOffset", m_StartOffset);
+	if (!m_SensorRay.IsZero())
+		writer.NewPropertyWithValue("SensorRay", m_SensorRay);
+	if (m_Skip != 3) {
+		writer.NewPropertyWithValue("SkipPixels", m_Skip);
+	}
+
+	return 0;
+}
+template int ADSensor::WriteTo(IniWriter& writer) const;
+template int ADSensor::WriteTo(HashWriter& writer) const;
+
 Actor* ADSensor::SenseActor(const Vector& doorPos, const Matrix& doorRot, bool doorHFlipped, MOID ignoreMOID) {
 	Actor* sensedActor = 0;
 	MOID foundMOID = g_SceneMan.CastMORay(doorPos + m_StartOffset.GetXFlipped(doorHFlipped) * doorRot, m_SensorRay.GetXFlipped(doorHFlipped) * doorRot, ignoreMOID, Activity::NoTeam, 0, true, m_Skip);

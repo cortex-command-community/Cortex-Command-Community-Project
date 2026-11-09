@@ -127,6 +127,58 @@ int InputScheme::Save(Writer& writer) const {
 	return 0;
 }
 
+template <typename WriterType> int InputScheme::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	writer.NewPropertyWithValue("Device", m_ActiveDevice);
+	writer.NewPropertyWithValue("Preset", m_SchemePreset);
+
+	if (m_SchemePreset == InputPreset::NoPreset) {
+		writer.NewPropertyWithValue("LeftUp", m_InputMappings[InputElements::INPUT_L_UP]);
+		writer.NewPropertyWithValue("LeftDown", m_InputMappings[InputElements::INPUT_L_DOWN]);
+		writer.NewPropertyWithValue("LeftLeft", m_InputMappings[InputElements::INPUT_L_LEFT]);
+		writer.NewPropertyWithValue("LeftRight", m_InputMappings[InputElements::INPUT_L_RIGHT]);
+		writer.NewPropertyWithValue("MoveFast", m_InputMappings[InputElements::INPUT_MOVE_FAST]);
+		writer.NewPropertyWithValue("MoveFastToggle", m_InputMappings[InputElements::INPUT_MOVE_FAST_TOGGLE]);
+		writer.NewPropertyWithValue("Fire", m_InputMappings[InputElements::INPUT_FIRE]);
+		writer.NewPropertyWithValue("Aim", m_InputMappings[InputElements::INPUT_AIM]);
+		writer.NewPropertyWithValue("AimUp", m_InputMappings[InputElements::INPUT_AIM_UP]);
+		writer.NewPropertyWithValue("AimDown", m_InputMappings[InputElements::INPUT_AIM_DOWN]);
+		writer.NewPropertyWithValue("AimLeft", m_InputMappings[InputElements::INPUT_AIM_LEFT]);
+		writer.NewPropertyWithValue("AimRight", m_InputMappings[InputElements::INPUT_AIM_RIGHT]);
+		writer.NewPropertyWithValue("PieMenuAnalog", m_InputMappings[InputElements::INPUT_PIEMENU_ANALOG]);
+		writer.NewPropertyWithValue("PieMenuDigital", m_InputMappings[InputElements::INPUT_PIEMENU_DIGITAL]);
+		writer.NewPropertyWithValue("Jump", m_InputMappings[InputElements::INPUT_JUMP]);
+		writer.NewPropertyWithValue("Crouch", m_InputMappings[InputElements::INPUT_CROUCH]);
+		writer.NewPropertyWithValue("Prone", m_InputMappings[InputElements::INPUT_PRONE]);
+		writer.NewPropertyWithValue("Next", m_InputMappings[InputElements::INPUT_NEXT]);
+		writer.NewPropertyWithValue("Prev", m_InputMappings[InputElements::INPUT_PREV]);
+		writer.NewPropertyWithValue("WeaponChangeNext", m_InputMappings[InputElements::INPUT_WEAPON_CHANGE_NEXT]);
+		writer.NewPropertyWithValue("WeaponChangePrev", m_InputMappings[InputElements::INPUT_WEAPON_CHANGE_PREV]);
+		writer.NewPropertyWithValue("WeaponPickup", m_InputMappings[InputElements::INPUT_WEAPON_PICKUP]);
+		writer.NewPropertyWithValue("WeaponDrop", m_InputMappings[InputElements::INPUT_WEAPON_DROP]);
+		writer.NewPropertyWithValue("WeaponReload", m_InputMappings[InputElements::INPUT_WEAPON_RELOAD]);
+		writer.NewPropertyWithValue("WeaponPrimaryHotkey", m_InputMappings[InputElements::INPUT_WEAPON_PRIMARY_HOTKEY]);
+		writer.NewPropertyWithValue("WeaponAuxiliaryHotkey", m_InputMappings[InputElements::INPUT_WEAPON_AUXILIARY_HOTKEY]);
+		writer.NewPropertyWithValue("ActorPrimaryHotkey", m_InputMappings[InputElements::INPUT_ACTOR_PRIMARY_HOTKEY]);
+		writer.NewPropertyWithValue("ActorAuxiliaryHotkey", m_InputMappings[InputElements::INPUT_ACTOR_AUXILIARY_HOTKEY]);
+		writer.NewPropertyWithValue("Start", m_InputMappings[InputElements::INPUT_START]);
+		writer.NewPropertyWithValue("Back", m_InputMappings[InputElements::INPUT_BACK]);
+		writer.NewPropertyWithValue("RightUp", m_InputMappings[InputElements::INPUT_R_UP]);
+		writer.NewPropertyWithValue("RightDown", m_InputMappings[InputElements::INPUT_R_DOWN]);
+		writer.NewPropertyWithValue("RightLeft", m_InputMappings[InputElements::INPUT_R_LEFT]);
+		writer.NewPropertyWithValue("RightRight", m_InputMappings[InputElements::INPUT_R_RIGHT]);
+	}
+
+	writer.NewPropertyWithValue("JoystickDeadzoneType", m_JoystickDeadzoneType);
+	writer.NewPropertyWithValue("JoystickDeadzone", m_JoystickDeadzone);
+	writer.NewPropertyWithValue("DigitalAimSpeed", m_DigitalAimSpeed);
+
+	return 0;
+}
+template int InputScheme::WriteTo(IniWriter& writer) const;
+template int InputScheme::WriteTo(HashWriter& writer) const;
+
 void InputScheme::ResetToPlayerDefaults(Players player) {
 	switch (player) {
 		case Players::PlayerOne:

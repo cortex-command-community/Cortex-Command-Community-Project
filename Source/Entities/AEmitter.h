@@ -20,6 +20,7 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(AEmitter);
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a AEmitter object in system

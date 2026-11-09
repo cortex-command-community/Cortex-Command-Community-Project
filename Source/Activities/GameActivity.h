@@ -36,6 +36,7 @@ namespace RTE {
 		struct Delivery : public Serializable {
 			SerializableClassNameGetter;
 			SerializableOverrideMethods;
+			WriterOverrideMethods;
 
 			static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
@@ -56,6 +57,7 @@ namespace RTE {
 		/// Public member variable, method and friend function declarations
 	public:
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		enum ObjectiveArrowDir {

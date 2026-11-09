@@ -197,6 +197,30 @@ HashingData PieSlice::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int PieSlice::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("Type", [](const PieSlice& object) { return static_cast<int>(object.m_Type); });
+	writer.NewDistinctProperty("Direction", [](const PieSlice& object) { return static_cast<int>(object.m_Direction); });
+
+	writer.NewDistinctProperty("Enabled", &PieSlice::m_Enabled);
+	writer.NewEntityPointerProperty("Icon", &PieSlice::m_Icon);
+
+	if (m_LuabindFunctionObject && !m_FunctionName.empty()) {
+		writer.NewPropertyWithValue("ScriptPath", m_LuabindFunctionObject->GetFilePath());
+		writer.NewPropertyWithValue("FunctionName", m_FunctionName);
+	}
+
+	writer.NewOptionalEntityPointerProperty("SubPieMenu", &PieSlice::m_SubPieMenu);
+
+	writer.NewDistinctProperty("CanBeMiddleSlice", &PieSlice::m_CanBeMiddleSlice);
+	writer.NewDistinctProperty("DrawFlippedToMatchAbsoluteAngle", &PieSlice::m_DrawFlippedToMatchAbsoluteAngle);
+
+	return 0;
+}
+template int PieSlice::WriteTo(IniWriter& writer) const;
+template int PieSlice::WriteTo(HashWriter& writer) const;
+
 BITMAP* PieSlice::GetAppropriateIcon(bool sliceIsSelected) const {
 	if (int iconFrameCount = m_Icon->GetFrameCount(); iconFrameCount > 0) {
 		if (!IsEnabled() && iconFrameCount > 2) {

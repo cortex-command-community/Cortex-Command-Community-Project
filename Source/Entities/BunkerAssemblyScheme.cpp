@@ -253,6 +253,24 @@ HashingData BunkerAssemblyScheme::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int BunkerAssemblyScheme::WriteTo(WriterType& writer) const {
+	SceneObject::WriteTo(writer);
+
+	writer.NewDistinctProperty("BitmapFile", &BunkerAssemblyScheme::m_BitmapFile);
+	writer.NewSequence("_ClearChildObjects", "AddChildObject", &BunkerAssemblyScheme::m_ChildObjects);
+
+	writer.NewDistinctProperty("Limit", &BunkerAssemblyScheme::m_Limit);
+	writer.NewDistinctProperty("OneTypePerScene", &BunkerAssemblyScheme::m_IsOneTypePerScene);
+	writer.NewDistinctProperty("MaxDeployments", &BunkerAssemblyScheme::m_MaxDeployments);
+
+	writer.NewDistinctProperty("SymmetricScheme", &BunkerAssemblyScheme::m_SymmetricScheme);
+	writer.NewDistinctProperty("AssemblyGroup", &BunkerAssemblyScheme::m_AssemblyGroup);
+
+	return 0;
+}
+template int BunkerAssemblyScheme::WriteTo(IniWriter& writer) const;
+template int BunkerAssemblyScheme::WriteTo(HashWriter& writer) const;
+
 void BunkerAssemblyScheme::Destroy(bool notInherited) {
 	// Probably no need to delete those, as bitmaps are only created when preset is read from file
 	// and then they just copy pointers in via Clone()

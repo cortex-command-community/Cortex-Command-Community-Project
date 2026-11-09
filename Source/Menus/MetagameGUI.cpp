@@ -687,6 +687,21 @@ int MetagameGUI::Save(Writer& writer) const {
 	return 0;
 }
 
+template <typename WriterType> int MetagameGUI::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	writer.NewPropertyWithValue("P1BoxPos", Vector(m_apPlayerBox[Players::PlayerOne]->GetXPos(), m_apPlayerBox[Players::PlayerOne]->GetYPos()));
+	writer.NewPropertyWithValue("P2BoxPos", Vector(m_apPlayerBox[Players::PlayerTwo]->GetXPos(), m_apPlayerBox[Players::PlayerTwo]->GetYPos()));
+	writer.NewPropertyWithValue("P3BoxPos", Vector(m_apPlayerBox[Players::PlayerThree]->GetXPos(), m_apPlayerBox[Players::PlayerThree]->GetYPos()));
+	writer.NewPropertyWithValue("P4BoxPos", Vector(m_apPlayerBox[Players::PlayerFour]->GetXPos(), m_apPlayerBox[Players::PlayerFour]->GetYPos()));
+
+	writer.NewPropertyWithValue("PhaseBoxPos", Vector(m_pPhaseBox->GetXPos(), m_pPhaseBox->GetYPos()));
+
+	return 0;
+}
+template int MetagameGUI::WriteTo(IniWriter& writer) const;
+template int MetagameGUI::WriteTo(HashWriter& writer) const;
+
 void MetagameGUI::Destroy() {
 	delete m_pGUIController;
 	delete m_pGUIInput;

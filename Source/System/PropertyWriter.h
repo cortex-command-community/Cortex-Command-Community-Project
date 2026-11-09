@@ -4,6 +4,7 @@
 
 #include <concepts>
 #include <functional>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -138,7 +139,7 @@ namespace RTE {
 			using Owner = GetterOwnerType<Getter>;
 			const Owner* reference = Reference<Owner>();
 			const auto& part = std::invoke(getter, Current<Owner>());
-			const auto* referencePart = reference ? &*std::invoke(getter, *reference) : nullptr;
+			const auto* referencePart = reference ? std::to_address(std::invoke(getter, *reference)) : nullptr;
 
 			if (part != nullptr) {
 				if (!referencePart || HashOf(*part) != HashOf(*referencePart)) {
@@ -157,7 +158,7 @@ namespace RTE {
 			using Owner = GetterOwnerType<Getter>;
 			const Owner* reference = Reference<Owner>();
 			const auto& part = std::invoke(getter, Current<Owner>());
-			const auto* referencePart = reference ? &*std::invoke(getter, *reference) : nullptr;
+			const auto* referencePart = reference ? std::to_address(std::invoke(getter, *reference)) : nullptr;
 
 			if (!referencePart || HashOf(*part) != HashOf(*referencePart)) {
 				NewPropertyWithValue(propName, *part);

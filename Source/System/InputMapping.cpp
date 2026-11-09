@@ -66,3 +66,28 @@ int InputMapping::Save(Writer& writer) const {
 	return 0;
 }
 
+template <typename WriterType> int InputMapping::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	if (m_JoyButtonMap < 0 || !m_DirectionMapped) {
+		writer.NewPropertyWithValue("KeyMap", m_KeyMap);
+	}
+
+	if (m_MouseButtonMap >= 0) {
+		writer.NewPropertyWithValue("MouseButtonMap", m_MouseButtonMap);
+	}
+
+	if (m_JoyButtonMap >= 0) {
+		writer.NewPropertyWithValue("JoyButtonMap", m_JoyButtonMap);
+	}
+
+	if (m_DirectionMapped) {
+		writer.NewPropertyWithValue("AxisMap", m_AxisMap);
+		writer.NewPropertyWithValue("DirectionMap", m_DirectionMap);
+	}
+
+	return 0;
+}
+template int InputMapping::WriteTo(IniWriter& writer) const;
+template int InputMapping::WriteTo(HashWriter& writer) const;
+

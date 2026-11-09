@@ -32,6 +32,7 @@ namespace RTE {
 		EntityAllocation(BaseEditor);
 		int ReadProperty(const std::string_view& propName, Reader& reader) override;
 		int Save(Writer& writer) const override;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a BaseEditor object in system

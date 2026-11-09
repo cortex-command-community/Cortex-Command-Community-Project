@@ -164,6 +164,20 @@ HashingData GAScripted::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int GAScripted::WriteTo(WriterType& writer) const {
+	GameActivity::WriteTo(writer);
+
+	writer.NewDistinctProperty("ScriptPath", &GAScripted::m_ScriptPath);
+	writer.NewDistinctProperty("LuaClassName", &GAScripted::m_LuaClassName);
+	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", &GAScripted::m_PieSlicesToAdd);
+
+	writer.NewDistinctCollection("_ClearRequiredAreas", "AddRequiredArea", &GAScripted::m_RequiredAreas);
+
+	return 0;
+}
+template int GAScripted::WriteTo(IniWriter& writer) const;
+template int GAScripted::WriteTo(HashWriter& writer) const;
+
 void GAScripted::Destroy(bool notInherited) {
 	// Delete global scripts
 	for (std::vector<GlobalScript*>::iterator sItr = m_GlobalScriptsList.begin(); sItr < m_GlobalScriptsList.end(); ++sItr) {

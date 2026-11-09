@@ -277,6 +277,20 @@ int SceneMan::Save(Writer& writer) const {
 	return 0;
 }
 
+template <typename WriterType> int SceneMan::WriteTo(WriterType& writer) const {
+	g_ConsoleMan.PrintString("ERROR: Tried to save SceneMan, screen does not make sense");
+
+	Serializable::WriteTo(writer);
+
+	for (int i = 0; i < m_MaterialCount; ++i) {
+		writer.NewPropertyWithValue("AddMaterial", *(m_apMatPalette.at(i)));
+	}
+
+	return 0;
+}
+template int SceneMan::WriteTo(IniWriter& writer) const;
+template int SceneMan::WriteTo(HashWriter& writer) const;
+
 void SceneMan::Destroy() {
 	for (int i = 0; i < c_PaletteEntriesNumber; ++i)
 		delete m_apMatPalette[i];

@@ -53,6 +53,19 @@ HashingData Color::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int Color::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	// A Color can be read over one that's already set, such as one copied from a preset, so a channel left out wouldn't read back as 0.
+	writer.NewPropertyWithValue("R", m_R);
+	writer.NewPropertyWithValue("G", m_G);
+	writer.NewPropertyWithValue("B", m_B);
+
+	return 0;
+}
+template int Color::WriteTo(IniWriter& writer) const;
+template int Color::WriteTo(HashWriter& writer) const;
+
 void Color::SetRGBWithIndex(int index) {
 	m_Index = std::clamp(index, 0, 255);
 

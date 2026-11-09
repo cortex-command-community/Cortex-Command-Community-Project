@@ -15,6 +15,7 @@ namespace RTE {
 
 	public:
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// Enumeration for the different states the Activity can be in.

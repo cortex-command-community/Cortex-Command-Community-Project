@@ -81,6 +81,7 @@ namespace RTE {
 		EntityAllocation(Actor);
 		AddScriptFunctionNames(MOSRotating, "ThreadedUpdateAI", "UpdateAI", "OnControllerInputModeChange");
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a Actor object in system
@@ -864,8 +865,8 @@ namespace RTE {
 		AIMode GetAIModeToWrite() const;
 
 		/// Writes where this is on its way to, for when this is saved.
-		/// @param writer The Writer to write the waypoints to.
-		void WriteAIWaypoints(Writer& writer) const;
+		/// @param writer The writer to write the waypoints with.
+		template <typename WriterType> void WriteAIWaypoints(WriterType& writer) const;
 
 		/// Starts updating this Actor's movepath.
 		virtual void UpdateMovePath();

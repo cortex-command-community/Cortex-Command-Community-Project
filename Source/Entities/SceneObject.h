@@ -19,6 +19,7 @@ namespace RTE {
 		/// Public member variable, method and friend function declarations
 	public:
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// Enumeration for the different buyable modes of this SceneObject.
@@ -39,6 +40,7 @@ namespace RTE {
 		public:
 			SerializableClassNameGetter;
 			SerializableOverrideMethods;
+			WriterOverrideMethods;
 
 			/// Constructor method used to instantiate a SOPlacer object in system
 			/// memory. Create() should be called before using the object.

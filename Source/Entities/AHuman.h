@@ -51,6 +51,7 @@ namespace RTE {
 		EntityAllocation(AHuman);
 		AddScriptFunctionNames(Actor, "OnStride");
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 		DefaultPieMenuNameGetter("Default Human Pie Menu");
 

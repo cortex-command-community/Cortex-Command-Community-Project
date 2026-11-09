@@ -66,6 +66,13 @@ int ActorEditor::Save(Writer& writer) const {
 	return 0;
 }
 
+template <typename WriterType> int ActorEditor::WriteTo(WriterType& writer) const {
+	EditorActivity::WriteTo(writer);
+	return 0;
+}
+template int ActorEditor::WriteTo(IniWriter& writer) const;
+template int ActorEditor::WriteTo(HashWriter& writer) const;
+
 void ActorEditor::Destroy(bool notInherited) {
 	delete m_pEditedActor;
 	delete m_pPicker;

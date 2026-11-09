@@ -101,6 +101,28 @@ HashingData ACraft::Exit::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int ACraft::Exit::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	if (!m_Offset.IsZero())
+		writer.NewPropertyWithValue("Offset", m_Offset);
+	if (!m_Velocity.IsZero())
+		writer.NewPropertyWithValue("Velocity", m_Velocity);
+	if (m_VelSpread != 0.2F) {
+		writer.NewPropertyWithValue("VelocitySpread", m_VelSpread);
+	}
+	if (m_Radius != 10.0F) {
+		writer.NewPropertyWithValue("Radius", m_Radius);
+	}
+	if (m_Range != 35.0F) {
+		writer.NewPropertyWithValue("Range", m_Range);
+	}
+
+	return 0;
+}
+template int ACraft::Exit::WriteTo(IniWriter& writer) const;
+template int ACraft::Exit::WriteTo(HashWriter& writer) const;
+
 bool ACraft::Exit::CheckIfClear(const Vector& pos, Matrix& rot, float size) {
 	Vector notUsed;
 	Vector ray = m_Velocity;
@@ -372,6 +394,27 @@ HashingData ACraft::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int ACraft::WriteTo(WriterType& writer) const {
+	Actor::WriteTo(writer);
+
+	writer.NewOptionalEntityPointerProperty("HatchOpenSound", &ACraft::m_HatchOpenSound);
+	writer.NewOptionalEntityPointerProperty("HatchCloseSound", &ACraft::m_HatchCloseSound);
+	writer.NewOptionalEntityPointerProperty("CrashSound", &ACraft::m_CrashSound);
+	writer.NewSequence("_ClearExits", "AddExit", &ACraft::m_Exits);
+	writer.NewDistinctProperty("HatchDelay", &ACraft::m_HatchDelay);
+	writer.NewDistinctProperty("DeliveryDelayMultiplier", &ACraft::m_DeliveryDelayMultiplier);
+	writer.NewDistinctProperty("ExitInterval", &ACraft::m_ExitInterval);
+	writer.NewDistinctProperty("CanLand", &ACraft::m_LandingCraft);
+	writer.NewDistinctProperty("CanEnterOrbit", &ACraft::m_CanEnterOrbit);
+	writer.NewDistinctProperty("MaxPassengers", &ACraft::m_MaxPassengers);
+	writer.NewDistinctProperty("ScuttleIfFlippedTime", &ACraft::m_ScuttleIfFlippedTime);
+	writer.NewDistinctProperty("ScuttleOnDeath", &ACraft::m_ScuttleOnDeath);
+
+	return 0;
+}
+template int ACraft::WriteTo(IniWriter& writer) const;
+template int ACraft::WriteTo(HashWriter& writer) const;
 
 void ACraft::Destroy(bool notInherited) {
 	delete m_HatchOpenSound;

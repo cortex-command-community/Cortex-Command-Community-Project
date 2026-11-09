@@ -42,6 +42,21 @@ HashingData GenericSavedData::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int GenericSavedData::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	if (!m_SavedEncodedStrings.m_Data.empty())
+		writer.NewPropertyWithValue("EncodedStringValues", m_SavedEncodedStrings);
+	if (!m_SavedStrings.m_Data.empty())
+		writer.NewPropertyWithValue("StringValues", m_SavedStrings);
+	if (!m_SavedNumbers.m_Data.empty())
+		writer.NewPropertyWithValue("NumberValues", m_SavedNumbers);
+
+	return 0;
+}
+template int GenericSavedData::WriteTo(IniWriter& writer) const;
+template int GenericSavedData::WriteTo(HashWriter& writer) const;
+
 void GenericSavedData::SaveString(const std::string& key, const std::string& value) {
 	if (value.length() == 0) {
 		m_SavedEncodedStrings.m_Data[key] = value;
@@ -110,6 +125,20 @@ HashingData GenericSavedData::GenericSavedEncodedStrings::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int GenericSavedData::GenericSavedEncodedStrings::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	writer.WriteUnordered(m_Data, [&writer](const auto& entry) {
+		// Need to encode as URL, so it avoids = character
+		if (!entry.second.empty()) {
+			writer.NewPropertyWithValue(PropName(entry.first), base64_encode(entry.second, true));
+		}
+	});
+	return 0;
+}
+template int GenericSavedData::GenericSavedEncodedStrings::WriteTo(IniWriter& writer) const;
+template int GenericSavedData::GenericSavedEncodedStrings::WriteTo(HashWriter& writer) const;
+
 int GenericSavedData::GenericSavedStrings::ReadProperty(const std::string_view& propName, Reader& reader) {
 	m_Data[std::string(propName)] = reader.ReadPropValue(); // until we get P0919R2.
 	return 0;
@@ -133,6 +162,19 @@ HashingData GenericSavedData::GenericSavedStrings::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int GenericSavedData::GenericSavedStrings::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	writer.WriteUnordered(m_Data, [&writer](const auto& entry) {
+		if (!entry.second.empty()) {
+			writer.NewPropertyWithValue(PropName(entry.first), entry.second);
+		}
+	});
+	return 0;
+}
+template int GenericSavedData::GenericSavedStrings::WriteTo(IniWriter& writer) const;
+template int GenericSavedData::GenericSavedStrings::WriteTo(HashWriter& writer) const;
 
 int GenericSavedData::GenericSavedNumbers::ReadProperty(const std::string_view& propName, Reader& reader) {
 	double value;
@@ -158,3 +200,13 @@ HashingData GenericSavedData::GenericSavedNumbers::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int GenericSavedData::GenericSavedNumbers::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	writer.WriteUnordered(m_Data, [&writer](const auto& entry) { writer.NewPropertyWithValue(PropName(entry.first), entry.second); });
+
+	return 0;
+}
+template int GenericSavedData::GenericSavedNumbers::WriteTo(IniWriter& writer) const;
+template int GenericSavedData::GenericSavedNumbers::WriteTo(HashWriter& writer) const;

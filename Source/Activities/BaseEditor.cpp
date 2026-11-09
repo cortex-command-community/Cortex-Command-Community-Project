@@ -66,6 +66,13 @@ int BaseEditor::Save(Writer& writer) const {
 	return 0;
 }
 
+template <typename WriterType> int BaseEditor::WriteTo(WriterType& writer) const {
+	Activity::WriteTo(writer);
+	return 0;
+}
+template int BaseEditor::WriteTo(IniWriter& writer) const;
+template int BaseEditor::WriteTo(HashWriter& writer) const;
+
 void BaseEditor::Destroy(bool notInherited) {
 	delete m_pEditorGUI;
 

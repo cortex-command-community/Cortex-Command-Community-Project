@@ -10,6 +10,7 @@ namespace RTE {
 	public:
 		EntityAllocation(ThrownDevice);
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 #pragma region Creation

@@ -92,6 +92,25 @@ HashingData SceneObject::SOPlacer::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int SceneObject::SOPlacer::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	if (m_pObjectReference != nullptr)
+		writer.NewPropertyWithPresetReference("PlacedObject", m_pObjectReference);
+	if (!m_Offset.IsZero())
+		writer.NewPropertyWithValue("Offset", m_Offset);
+	if (m_RotAngle != 0.0F)
+		writer.NewPropertyWithValue("Rotation", Matrix(m_RotAngle));
+	if (m_HFlipped)
+		writer.NewPropertyWithValue("HFlipped", m_HFlipped);
+	if (m_Team > Activity::NoTeam)
+		writer.NewPropertyWithValue("Team", m_Team);
+
+	return 0;
+}
+template int SceneObject::SOPlacer::WriteTo(IniWriter& writer) const;
+template int SceneObject::SOPlacer::WriteTo(HashWriter& writer) const;
+
 SceneObject* SceneObject::SOPlacer::GetPlacedCopy(const SceneObject* pParent) const {
 	RTEAssert(m_pObjectReference, "No Object reference to make copy from!");
 
@@ -233,6 +252,23 @@ HashingData SceneObject::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int SceneObject::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("Position", &SceneObject::m_Pos);
+	writer.NewDistinctProperty("GoldValue", &SceneObject::m_OzValue);
+	writer.NewDistinctProperty("Buyable", &SceneObject::m_Buyable);
+
+	writer.NewDistinctProperty("BuyableMode", [](const SceneObject& object) { return static_cast<int>(object.m_BuyableMode); });
+
+	writer.NewDistinctProperty("Team", &SceneObject::m_Team);
+	writer.NewDistinctProperty("PlacedByPlayer", &SceneObject::m_PlacedByPlayer);
+
+	return 0;
+}
+template int SceneObject::WriteTo(IniWriter& writer) const;
+template int SceneObject::WriteTo(HashWriter& writer) const;
 
 void SceneObject::Destroy(bool notInherited) {
 

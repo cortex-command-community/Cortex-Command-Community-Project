@@ -129,6 +129,20 @@ HashingData MOPixel::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int MOPixel::WriteTo(WriterType& writer) const {
+	MovableObject::WriteTo(writer);
+
+	writer.NewEntityPointerProperty("Atom", &MOPixel::m_Atom);
+	writer.NewDistinctProperty("Color", &MOPixel::m_Color);
+	writer.NewDistinctProperty("MinLethalRange", &MOPixel::m_MinLethalRange);
+	writer.NewDistinctProperty("MaxLethalRange", &MOPixel::m_MaxLethalRange);
+	writer.NewDistinctProperty("Staininess", &MOPixel::m_Staininess);
+
+	return 0;
+}
+template int MOPixel::WriteTo(IniWriter& writer) const;
+template int MOPixel::WriteTo(HashWriter& writer) const;
+
 void MOPixel::Destroy(bool notInherited) {
 	delete m_Atom;
 

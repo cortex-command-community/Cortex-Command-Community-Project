@@ -21,6 +21,7 @@ namespace RTE {
 	public:
 		EntityAllocation(PieMenu)
 		SerializableOverrideMethods
+		WriterOverrideMethods;
 		ClassInfoGetters
 
 #pragma region Creation

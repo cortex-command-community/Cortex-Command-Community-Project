@@ -153,6 +153,25 @@ HashingData AEJetpack::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int AEJetpack::WriteTo(WriterType& writer) const {
+	AEmitter::WriteTo(writer);
+
+	writer.NewDistinctProperty("JetpackType", [](const AEJetpack& object) { return std::string(object.m_JetpackType == JetpackType::JumpPack ? "JumpPack" : "Standard"); });
+
+	// Convert to seconds
+	writer.NewDistinctProperty("JumpTime", [](const AEJetpack& object) { return object.m_JetTimeTotal / 1000.0f; });
+
+	writer.NewDistinctProperty("JumpReplenishRate", &AEJetpack::m_JetReplenishRate);
+	writer.NewDistinctProperty("MinimumFuelRatio", &AEJetpack::m_MinimumFuelRatio);
+	writer.NewDistinctProperty("JumpAngleRange", &AEJetpack::m_JetAngleRange);
+	writer.NewDistinctProperty("CanAdjustAngleWhileFiring", &AEJetpack::m_CanAdjustAngleWhileFiring);
+	writer.NewDistinctProperty("AdjustsThrottleForWeight", &AEJetpack::m_AdjustsThrottleForWeight);
+
+	return 0;
+}
+template int AEJetpack::WriteTo(IniWriter& writer) const;
+template int AEJetpack::WriteTo(HashWriter& writer) const;
+
 void AEJetpack::UpdateBurstState(Actor& parentActor) {
 	const Controller& controller = *parentActor.GetController();
 

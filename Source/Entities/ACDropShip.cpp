@@ -185,6 +185,26 @@ HashingData ACDropShip::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int ACDropShip::WriteTo(WriterType& writer) const {
+	ACraft::WriteTo(writer);
+
+	writer.NewOptionalEntityPointerProperty("RThruster", &ACDropShip::m_pRThruster);
+	writer.NewOptionalEntityPointerProperty("LThruster", &ACDropShip::m_pLThruster);
+	writer.NewOptionalEntityPointerProperty("URThruster", &ACDropShip::m_pURThruster);
+	writer.NewOptionalEntityPointerProperty("ULThruster", &ACDropShip::m_pULThruster);
+	writer.NewOptionalEntityPointerProperty("RHatchDoor", &ACDropShip::m_pRHatch);
+	writer.NewOptionalEntityPointerProperty("LHatchDoor", &ACDropShip::m_pLHatch);
+	writer.NewDistinctProperty("HatchDoorSwingRange", &ACDropShip::m_HatchSwingRange);
+	writer.NewDistinctProperty("AutoStabilize", &ACDropShip::m_AutoStabilize);
+	writer.NewDistinctProperty("MaxEngineAngle", &ACDropShip::m_MaxEngineAngle);
+	writer.NewDistinctProperty("LateralControlSpeed", &ACDropShip::m_LateralControlSpeed);
+	writer.NewDistinctProperty("HoverHeightModifier", &ACDropShip::m_HoverHeightModifier);
+
+	return 0;
+}
+template int ACDropShip::WriteTo(IniWriter& writer) const;
+template int ACDropShip::WriteTo(HashWriter& writer) const;
+
 void ACDropShip::Destroy(bool notInherited) {
 	delete m_pBodyAG;
 

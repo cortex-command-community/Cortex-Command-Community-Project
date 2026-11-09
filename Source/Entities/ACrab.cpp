@@ -423,6 +423,35 @@ HashingData ACrab::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int ACrab::WriteTo(WriterType& writer) const {
+	Actor::WriteTo(writer);
+
+	writer.NewOptionalEntityPointerProperty("Turret", &ACrab::m_pTurret);
+	writer.NewOptionalEntityPointerProperty("Jetpack", &ACrab::m_pJetpack);
+	writer.NewOptionalEntityPointerProperty("LFGLeg", &ACrab::m_pLFGLeg);
+	writer.NewOptionalEntityPointerProperty("LBGLeg", &ACrab::m_pLBGLeg);
+	writer.NewOptionalEntityPointerProperty("RFGLeg", &ACrab::m_pRFGLeg);
+	writer.NewOptionalEntityPointerProperty("RBGLeg", &ACrab::m_pRBGLeg);
+	writer.NewOptionalEntityPointerProperty("LFGFootGroup", &ACrab::m_pLFGFootGroup);
+	writer.NewOptionalEntityPointerProperty("LBGFootGroup", &ACrab::m_pLBGFootGroup);
+	writer.NewOptionalEntityPointerProperty("RFGFootGroup", &ACrab::m_pRFGFootGroup);
+	writer.NewOptionalEntityPointerProperty("RBGFootGroup", &ACrab::m_pRBGFootGroup);
+	writer.NewOptionalEntityPointerProperty("StrideSound", &ACrab::m_StrideSound);
+	writer.NewDistinctProperty("LStandLimbPath", [](const ACrab& object) -> const auto& { return object.m_Paths[LEFTSIDE][FGROUND][STAND]; });
+	writer.NewDistinctProperty("LWalkLimbPath", [](const ACrab& object) -> const auto& { return object.m_Paths[LEFTSIDE][FGROUND][WALK]; });
+	writer.NewDistinctProperty("LDislodgeLimbPath", [](const ACrab& object) -> const auto& { return object.m_Paths[LEFTSIDE][FGROUND][DISLODGE]; });
+	writer.NewDistinctProperty("RStandLimbPath", [](const ACrab& object) -> const auto& { return object.m_Paths[RIGHTSIDE][FGROUND][STAND]; });
+	writer.NewDistinctProperty("RWalkLimbPath", [](const ACrab& object) -> const auto& { return object.m_Paths[RIGHTSIDE][FGROUND][WALK]; });
+	writer.NewDistinctProperty("RDislodgeLimbPath", [](const ACrab& object) -> const auto& { return object.m_Paths[RIGHTSIDE][FGROUND][DISLODGE]; });
+	writer.NewDistinctProperty("AimRangeUpperLimit", &ACrab::m_AimRangeUpperLimit);
+	writer.NewDistinctProperty("AimRangeLowerLimit", &ACrab::m_AimRangeLowerLimit);
+	writer.NewDistinctProperty("LockMouseAimInput", &ACrab::m_LockMouseAimInput);
+
+	return 0;
+}
+template int ACrab::WriteTo(IniWriter& writer) const;
+template int ACrab::WriteTo(HashWriter& writer) const;
+
 void ACrab::Destroy(bool notInherited) {
 	delete m_pLFGFootGroup;
 	delete m_pLBGFootGroup;

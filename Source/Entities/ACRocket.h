@@ -33,6 +33,7 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(ACRocket);
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a ACRocket object in system

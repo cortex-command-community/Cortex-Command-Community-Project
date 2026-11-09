@@ -78,6 +78,23 @@ HashingData Box::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int Box::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	if (!m_Corner.IsZero())
+		writer.NewPropertyWithValue("Corner", m_Corner);
+	if (m_Width != 0.0F) {
+		writer.NewPropertyWithValue("Width", m_Width);
+	}
+	if (m_Height != 0.0F) {
+		writer.NewPropertyWithValue("Height", m_Height);
+	}
+
+	return 0;
+}
+template int Box::WriteTo(IniWriter& writer) const;
+template int Box::WriteTo(HashWriter& writer) const;
+
 void Box::Unflip() {
 	if (m_Width < 0) {
 		m_Width = -m_Width;

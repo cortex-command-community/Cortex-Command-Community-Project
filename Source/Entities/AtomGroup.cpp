@@ -256,6 +256,32 @@ HashingData AtomGroup::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int AtomGroup::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewPresetReferenceProperty("Material", &AtomGroup::m_Material);
+	writer.NewDistinctProperty("AutoGenerate", &AtomGroup::m_AutoGenerate);
+
+	// Only write out Atoms if they were manually specified
+	if (!m_AutoGenerate) {
+		// An Attachable's atoms are its own, and it adds them again when it's loaded. A reference that generates its atoms has none of its own to compare against.
+		writer.NewPointerSequence("_ClearAtoms", "AddAtom", &AtomGroup::m_Atoms, [](const AtomGroup& owner, const Atom* atom) { return !owner.m_AutoGenerate && atom->GetSubID() == 0; });
+	} else {
+		writer.NewDistinctProperty("Resolution", &AtomGroup::m_Resolution);
+		writer.NewDistinctProperty("Depth", &AtomGroup::m_Depth);
+	}
+
+	writer.NewDistinctProperty("JointOffset", &AtomGroup::m_JointOffset);
+
+	writer.NewDistinctProperty("AreaDistributionType", [](const AtomGroup& object) { return static_cast<std::underlying_type_t<AreaDistributionType>>(object.m_AreaDistributionType); });
+
+	writer.NewDistinctProperty("AreaDistributionSurfaceAreaMultiplier", &AtomGroup::m_AreaDistributionSurfaceAreaMultiplier);
+
+	return 0;
+}
+template int AtomGroup::WriteTo(IniWriter& writer) const;
+template int AtomGroup::WriteTo(HashWriter& writer) const;
+
 void AtomGroup::Destroy(bool notInherited) {
 	for (const Atom* atom: m_Atoms) {
 		delete atom;

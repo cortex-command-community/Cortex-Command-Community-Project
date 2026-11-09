@@ -12,6 +12,7 @@ namespace RTE {
 	public:
 		EntityAllocation(Leg);
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 #pragma region Creation

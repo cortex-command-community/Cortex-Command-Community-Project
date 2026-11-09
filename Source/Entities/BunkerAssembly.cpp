@@ -276,6 +276,55 @@ HashingData BunkerAssembly::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int BunkerAssembly::WriteTo(WriterType& writer) const {
+	// TerrainObject's properties are made from the placed objects, and aren't read.
+	SceneObject::WriteTo(writer);
+
+	writer.NewDistinctProperty("SymmetricAssembly", &BunkerAssembly::m_SymmetricAssembly);
+	writer.NewDistinctProperty("ParentScheme", &BunkerAssembly::m_ParentAssemblyScheme);
+
+	// Placed objects can't be cleared, so they're only written against a reference that has none. A copy of a preset already has the preset's.
+	if (m_PlacedObjects.empty() || !writer.IsDistinct([](const BunkerAssembly& object) { return object.m_PlacedObjects.empty(); })) {
+		return 0;
+	}
+	for (std::list<SceneObject*>::const_iterator oItr = m_PlacedObjects.begin(); oItr != m_PlacedObjects.end(); ++oItr) {
+		writer.NewProperty("PlaceObject");
+		writer.ObjectStart((*oItr)->GetClassName());
+		writer.NewPropertyWithValue("CopyOf", (*oItr)->GetModuleAndPresetName());
+
+		writer.NewPropertyWithValue("Position", (*oItr)->GetPos());
+
+		// Only write certain properties if they are applicable to the type of SceneObject being written
+		MOSRotating* pSpriteObj = dynamic_cast<MOSRotating*>(*oItr);
+		if (pSpriteObj) {
+			writer.NewPropertyWithValue("HFlipped", pSpriteObj->IsHFlipped());
+			Actor* pActor = dynamic_cast<Actor*>(pSpriteObj);
+			if (pActor) {
+				writer.NewPropertyWithValue("Team", pActor->GetTeam());
+				// Rotation of doors is important
+				ADoor* pDoor = dynamic_cast<ADoor*>(pActor);
+				if (pDoor) {
+					writer.NewPropertyWithValue("Rotation", pDoor->GetRotMatrix());
+				}
+			}
+		}
+		TerrainObject* pTObject = dynamic_cast<TerrainObject*>(*oItr);
+		if (pTObject && !pTObject->GetChildObjects().empty()) {
+			writer.NewPropertyWithValue("Team", pTObject->GetTeam());
+		}
+		Deployment* pDeployment = dynamic_cast<Deployment*>(*oItr);
+		if (pDeployment) {
+			writer.NewPropertyWithValue("HFlipped", pDeployment->IsHFlipped());
+		}
+
+		writer.ObjectEnd();
+	}
+
+	return 0;
+}
+template int BunkerAssembly::WriteTo(IniWriter& writer) const;
+template int BunkerAssembly::WriteTo(HashWriter& writer) const;
+
 void BunkerAssembly::Destroy(bool notInherited) {
 	for (std::list<SceneObject*>::iterator oItr = m_PlacedObjects.begin(); oItr != m_PlacedObjects.end(); ++oItr) {
 		delete (*oItr);

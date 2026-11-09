@@ -205,6 +205,22 @@ HashingData SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Hash() const {
 }
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
+template <typename WriterType> int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("BitmapFile", &SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::m_BitmapFile);
+
+	writer.NewDistinctProperty("WrapX", &SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::m_WrapX);
+	writer.NewDistinctProperty("WrapY", &SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::m_WrapY);
+	writer.NewDistinctProperty("DrawTransparent", &SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::m_DrawMasked);
+	writer.NewDistinctProperty("ScrollRatio", &SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::m_ScrollInfo);
+	writer.NewDistinctProperty("ScaleFactor", &SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::m_ScaleFactor);
+	writer.NewDistinctProperty("OriginPointOffset", &SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::m_OriginOffset);
+
+	return 0;
+}
+
+template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Destroy(bool notInherited) {
 	if (m_MainBitmapOwned) {
 		destroy_bitmap(m_MainBitmap);
@@ -666,3 +682,11 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::ClearDrawings(BITMAP* bitma
 template class RTE::SceneLayerImpl<false>;
 template class RTE::SceneLayerImpl<false, true>;
 template class RTE::SceneLayerImpl<true>;
+
+// A class's explicit instantiation doesn't instantiate its member templates.
+template int RTE::SceneLayerImpl<false>::WriteTo(IniWriter& writer) const;
+template int RTE::SceneLayerImpl<false>::WriteTo(HashWriter& writer) const;
+template int RTE::SceneLayerImpl<false, true>::WriteTo(IniWriter& writer) const;
+template int RTE::SceneLayerImpl<false, true>::WriteTo(HashWriter& writer) const;
+template int RTE::SceneLayerImpl<true>::WriteTo(IniWriter& writer) const;
+template int RTE::SceneLayerImpl<true>::WriteTo(HashWriter& writer) const;

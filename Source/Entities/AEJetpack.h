@@ -12,6 +12,7 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(AEJetpack);
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		enum JetpackType {

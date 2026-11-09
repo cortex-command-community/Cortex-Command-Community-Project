@@ -13,6 +13,7 @@ namespace RTE {
 		EntityAllocation(MOPixel);
 		ClassInfoGetters;
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 
 #pragma region Creation
 		/// Constructor method used to instantiate a MOPixel object in system memory. Create() should be called before using the object.

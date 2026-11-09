@@ -155,6 +155,27 @@ HashingData Round::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int Round::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewPresetReferenceProperty("Particle", &Round::m_Particle);
+	writer.NewDistinctProperty("ParticleCount", &Round::m_ParticleCount);
+	writer.NewDistinctProperty("FireVelocity", &Round::m_FireVel);
+	writer.NewDistinctProperty("InheritsFirerVelocity", &Round::m_InheritsFirerVelocity);
+	writer.NewDistinctProperty("Separation", &Round::m_Separation);
+	writer.NewDistinctProperty("LifeVariation", &Round::m_LifeVariation);
+	writer.NewPresetReferenceProperty("Shell", &Round::m_Shell);
+	writer.NewDistinctProperty("ShellVelocity", &Round::m_ShellVel);
+	writer.NewDistinctProperty("FireSound", &Round::m_FireSound);
+	writer.NewDistinctProperty("AILifeTime", &Round::m_AILifeTime);
+	writer.NewDistinctProperty("AIFireVel", &Round::m_AIFireVel);
+	writer.NewDistinctProperty("AIPenetration", &Round::m_AIPenetration);
+
+	return 0;
+}
+template int Round::WriteTo(IniWriter& writer) const;
+template int Round::WriteTo(HashWriter& writer) const;
+
 MovableObject* Round::PopNextParticle() {
 	MovableObject* tempParticle = (m_ParticleCount > 0) ? dynamic_cast<MovableObject*>(m_Particle->Clone()) : 0;
 	m_ParticleCount--;

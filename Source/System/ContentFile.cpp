@@ -98,6 +98,19 @@ HashingData ContentFile::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int ContentFile::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	if (!m_DataPath.empty()) {
+		writer.NewPropertyWithValue("FilePath", m_DataPath);
+	}
+	writer.NewPropertyWithValue("IsMemoryPNG", m_IsMemoryPNG);
+
+	return 0;
+}
+template int ContentFile::WriteTo(IniWriter& writer) const;
+template int ContentFile::WriteTo(HashWriter& writer) const;
+
 int ContentFile::GetDataModuleID() const {
 	return (m_DataModuleID < 0) ? g_PresetMan.GetModuleIDFromPath(m_DataPath) : m_DataModuleID;
 }

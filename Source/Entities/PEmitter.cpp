@@ -236,6 +236,37 @@ HashingData PEmitter::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int PEmitter::WriteTo(WriterType& writer) const {
+	MOSParticle::WriteTo(writer);
+
+	writer.NewPointerSequence("_ClearEmissions", "AddEmission", &PEmitter::m_EmissionList);
+	writer.NewDistinctProperty("EmissionSound", &PEmitter::m_EmissionSound);
+	writer.NewDistinctProperty("BurstSound", &PEmitter::m_BurstSound);
+	writer.NewDistinctProperty("EndSound", &PEmitter::m_EndSound);
+	writer.NewDistinctProperty("EmissionEnabled", &PEmitter::m_EmitEnabled);
+	writer.NewDistinctProperty("EmissionCount", &PEmitter::m_EmitCount);
+	writer.NewDistinctProperty("EmissionCountLimit", &PEmitter::m_EmitCountLimit);
+	writer.NewDistinctProperty("EmissionsIgnoreThis", &PEmitter::m_EmissionsIgnoreThis);
+	writer.NewDistinctProperty("NegativeThrottleMultiplier", &PEmitter::m_NegativeThrottleMultiplier);
+	writer.NewDistinctProperty("PositiveThrottleMultiplier", &PEmitter::m_PositiveThrottleMultiplier);
+	writer.NewDistinctProperty("Throttle", &PEmitter::m_Throttle);
+	writer.NewDistinctProperty("BurstScale", &PEmitter::m_BurstScale);
+	writer.NewDistinctProperty("BurstSpacing", &PEmitter::m_BurstSpacing);
+	writer.NewDistinctProperty("BurstTriggered", &PEmitter::m_BurstTriggered);
+	writer.NewDistinctProperty("PlayBurstSound", &PEmitter::m_PlayBurstSound);
+	writer.NewDistinctProperty("EmissionAngle", &PEmitter::m_EmitAngle);
+	writer.NewDistinctProperty("EmissionOffset", &PEmitter::m_EmissionOffset);
+	writer.NewDistinctProperty("FlashScale", &PEmitter::m_FlashScale);
+	writer.NewDistinctProperty("FlashOnlyOnBurst", &PEmitter::m_FlashOnlyOnBurst);
+	writer.NewDistinctProperty("SustainBurstSound", &PEmitter::m_SustainBurstSound);
+	writer.NewDistinctProperty("BurstSoundFollowsEmitter", &PEmitter::m_BurstSoundFollowsEmitter);
+	writer.NewDistinctProperty("LoudnessOnEmit", &PEmitter::m_LoudnessOnEmit);
+
+	return 0;
+}
+template int PEmitter::WriteTo(IniWriter& writer) const;
+template int PEmitter::WriteTo(HashWriter& writer) const;
+
 void PEmitter::Destroy(bool notInherited) {
 	// Stop playback of sounds gracefully
 	if (m_EmissionSound.IsBeingPlayed()) {

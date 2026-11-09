@@ -301,6 +301,61 @@ int MetaMan::Save(Writer& writer) const {
 	return 0;
 }
 
+template <typename WriterType> int MetaMan::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	writer.NewPropertyWithValue("GameState", m_GameState);
+	writer.NewPropertyWithValue("GameName", m_GameName);
+	writer.NewPropertyWithValue("Difficulty", m_Difficulty);
+	writer.NewPropertyWithValue("Team1AISkill", m_TeamAISkill[Activity::TeamOne]);
+	writer.NewPropertyWithValue("Team2AISkill", m_TeamAISkill[Activity::TeamTwo]);
+	writer.NewPropertyWithValue("Team3AISkill", m_TeamAISkill[Activity::TeamThree]);
+	writer.NewPropertyWithValue("Team4AISkill", m_TeamAISkill[Activity::TeamFour]);
+
+	for (const MetaPlayer* metaPlayer: m_Players) {
+		writer.NewPropertyWithValue("AddPlayer", *metaPlayer);
+	}
+
+	writer.NewPropertyWithValue("TeamCount", m_TeamCount);
+
+	if (m_TeamCount >= 1) {
+		writer.NewPropertyWithPresetReference("Team1Icon", &m_TeamIcons[Activity::TeamOne]);
+	}
+	if (m_TeamCount >= 2) {
+		writer.NewPropertyWithPresetReference("Team2Icon", &m_TeamIcons[Activity::TeamTwo]);
+	}
+	if (m_TeamCount >= 3) {
+		writer.NewPropertyWithPresetReference("Team3Icon", &m_TeamIcons[Activity::TeamThree]);
+	}
+	if (m_TeamCount >= 4) {
+		writer.NewPropertyWithPresetReference("Team4Icon", &m_TeamIcons[Activity::TeamFour]);
+	}
+
+	writer.NewPropertyWithValue("CurrentRound", m_CurrentRound);
+
+	for (const Scene* metaScene: m_Scenes) {
+		// Save the scene data to a good unique prefix for the Scene's layers' bitmap files as they are saved
+		// This should be handled separately from any .ini writing
+		//(*sItr)->SaveData(writer.GetFolderPath() + m_GameName + " - " + (*sItr)->GetPresetName(), false);
+		writer.NewPropertyWithValue("AddScene", metaScene);
+	}
+
+	writer.NewPropertyWithValue("RevealedScenes", m_RevealedScenes);
+	writer.NewPropertyWithValue("RevealRate", m_RevealRate);
+	writer.NewPropertyWithValue("RevealExtra", m_RevealExtra);
+
+	for (const GAScripted* metaOffensive: m_RoundOffensives) {
+		writer.NewPropertyWithValue("AddOffensive", metaOffensive);
+	}
+
+	writer.NewPropertyWithValue("CurrentOffensive", m_CurrentOffensive);
+	writer.NewPropertyWithValue("MetaGUI", m_pMetaGUI);
+
+	return 0;
+}
+template int MetaMan::WriteTo(IniWriter& writer) const;
+template int MetaMan::WriteTo(HashWriter& writer) const;
+
 void MetaMan::Destroy() {
 	delete m_pMetaGUI;
 

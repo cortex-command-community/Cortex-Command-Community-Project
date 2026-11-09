@@ -19,6 +19,7 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(HDFirearm);
 		EntityOverrideMethods;
+		WriterOverrideMethods;
 		ClassInfoGetters;
 		AddScriptFunctionNames(HeldDevice, "OnFire", "OnReload");
 

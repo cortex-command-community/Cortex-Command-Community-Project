@@ -261,6 +261,30 @@ HashingData ACRocket::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int ACRocket::WriteTo(WriterType& writer) const {
+	ACraft::WriteTo(writer);
+
+	writer.NewOptionalEntityPointerProperty("RLeg", &ACRocket::m_pRLeg);
+	writer.NewOptionalEntityPointerProperty("LLeg", &ACRocket::m_pLLeg);
+	writer.NewOptionalEntityPointerProperty("RFootGroup", &ACRocket::m_pRFootGroup);
+	writer.NewOptionalEntityPointerProperty("LFootGroup", &ACRocket::m_pLFootGroup);
+	writer.NewOptionalEntityPointerProperty("MThruster", &ACRocket::m_pMThruster);
+	writer.NewOptionalEntityPointerProperty("RThruster", &ACRocket::m_pRThruster);
+	writer.NewOptionalEntityPointerProperty("LThruster", &ACRocket::m_pLThruster);
+	writer.NewOptionalEntityPointerProperty("URThruster", &ACRocket::m_pURThruster);
+	writer.NewOptionalEntityPointerProperty("ULThruster", &ACRocket::m_pULThruster);
+	writer.NewDistinctProperty("RaisedGearLimbPath", [](const ACRocket& object) -> const auto& { return object.m_Paths[RIGHT][RAISED]; });
+	writer.NewDistinctProperty("LoweredGearLimbPath", [](const ACRocket& object) -> const auto& { return object.m_Paths[RIGHT][LOWERED]; });
+	writer.NewDistinctProperty("LoweringGearLimbPath", [](const ACRocket& object) -> const auto& { return object.m_Paths[RIGHT][LOWERING]; });
+	writer.NewDistinctProperty("RaisingGearLimbPath", [](const ACRocket& object) -> const auto& { return object.m_Paths[RIGHT][RAISING]; });
+	
+	writer.NewDistinctProperty("MaxGimbalAngle", [](const ACRocket& object) { return object.m_MaxGimbalAngle / (c_PI / 180.0F); });
+
+	return 0;
+}
+template int ACRocket::WriteTo(IniWriter& writer) const;
+template int ACRocket::WriteTo(HashWriter& writer) const;
+
 void ACRocket::Destroy(bool notInherited) {
 	delete m_pBodyAG;
 	delete m_pRFootGroup;

@@ -171,3 +171,28 @@ HashingData MetaPlayer::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int MetaPlayer::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	writer.NewDistinctProperty("Name", &MetaPlayer::m_Name);
+	writer.NewDistinctProperty("Team", &MetaPlayer::m_Team);
+	writer.NewDistinctProperty("Human", &MetaPlayer::m_Human);
+	writer.NewDistinctProperty("InGamePlayer", &MetaPlayer::m_InGamePlayer);
+	writer.NewDistinctProperty("Aggressiveness", &MetaPlayer::m_Aggressiveness);
+	writer.NewDistinctProperty("GameOverRound", &MetaPlayer::m_GameOverRound);
+
+	writer.NewDistinctProperty("NativeTechModule", [](const MetaPlayer& object) { return g_PresetMan.GetDataModule(object.m_NativeTechModule)->GetFileName(); });
+
+	writer.NewDistinctProperty("NativeCostMultiplier", &MetaPlayer::m_NativeCostMult);
+	writer.NewDistinctProperty("ForeignCostMultiplier", &MetaPlayer::m_ForeignCostMult);
+	writer.NewDistinctProperty("BrainPool", &MetaPlayer::m_BrainPool);
+	writer.NewDistinctProperty("Funds", &MetaPlayer::m_Funds);
+	writer.NewDistinctProperty("OffensiveBudget", &MetaPlayer::m_OffensiveBudget);
+
+	writer.NewDistinctProperty("OffensiveTarget", [](const MetaPlayer& object) { return object.m_OffensiveTarget.empty() ? "None" : object.m_OffensiveTarget; });
+
+	return 0;
+}
+template int MetaPlayer::WriteTo(IniWriter& writer) const;
+template int MetaPlayer::WriteTo(HashWriter& writer) const;

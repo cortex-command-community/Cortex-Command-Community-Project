@@ -129,9 +129,9 @@ namespace RTE {
 	}
 
 	/// Writes a description in the form it's read. A property's value can only be one line, so anything longer is written as MultiLineText.
-	/// @param writer The Writer to write the description with.
+	/// @param writer The writer to write the description with.
 	/// @param description The description to write.
-	static void WriteDescription(Writer& writer, const std::string& description) {
+	template <typename WriterType> static void WriteDescription(WriterType& writer, const std::string& description) {
 		if (description.find('\n') == std::string::npos) {
 			writer.NewPropertyWithValue("Description", description);
 			return;
@@ -210,6 +210,24 @@ namespace RTE {
 
 		return hashData;
 	}
+
+	template <typename WriterType> int Entity::WriteTo(WriterType& writer) const {
+		Serializable::WriteTo(writer);
+
+		writer.WriteIdentity();
+
+		if (writer.IsDistinct(&Entity::m_PresetDescription)) {
+			WriteDescription(writer, m_PresetDescription);
+		}
+
+		writer.NewDistinctCollection("_ClearGroups", "AddToGroup", &Entity::m_Groups);
+
+		writer.NewDistinctProperty("RandomWeight", &Entity::m_RandomWeight);
+
+		return 0;
+	}
+	template int Entity::WriteTo(IniWriter& writer) const;
+	template int Entity::WriteTo(HashWriter& writer) const;
 
 	int Entity::SavePresetCopy(Writer& writer) const {
 		// Can only save out copies with this

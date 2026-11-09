@@ -136,6 +136,21 @@ HashingData Deployment::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int Deployment::WriteTo(WriterType& writer) const {
+	SceneObject::WriteTo(writer);
+
+	writer.NewDistinctProperty("LoadoutName", &Deployment::m_LoadoutName);
+	writer.NewDistinctProperty("Icon", &Deployment::m_Icon);
+	writer.NewDistinctProperty("SpawnRadius", &Deployment::m_SpawnRadius);
+	writer.NewDistinctProperty("WalkRadius", &Deployment::m_WalkRadius);
+	writer.NewDistinctProperty("HFlipped", &Deployment::m_HFlipped);
+	writer.NewDistinctProperty("ID", &Deployment::m_ID);
+
+	return 0;
+}
+template int Deployment::WriteTo(IniWriter& writer) const;
+template int Deployment::WriteTo(HashWriter& writer) const;
+
 void Deployment::Destroy(bool notInherited) {
 
 	if (!notInherited)

@@ -81,6 +81,16 @@ HashingData MOSParticle::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int MOSParticle::WriteTo(WriterType& writer) const {
+	MOSprite::WriteTo(writer);
+
+	writer.NewEntityPointerProperty("Atom", &MOSParticle::m_Atom);
+
+	return 0;
+}
+template int MOSParticle::WriteTo(IniWriter& writer) const;
+template int MOSParticle::WriteTo(HashWriter& writer) const;
+
 void MOSParticle::Destroy(bool notInherited) {
 	delete m_Atom;
 

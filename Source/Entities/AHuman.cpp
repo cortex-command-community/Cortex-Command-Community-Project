@@ -453,6 +453,48 @@ HashingData AHuman::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int AHuman::WriteTo(WriterType& writer) const {
+	Actor::WriteTo(writer);
+
+	writer.NewDistinctProperty("ThrowPrepTime", &AHuman::m_ThrowPrepTime);
+	writer.NewOptionalEntityPointerProperty("Head", &AHuman::m_pHead);
+	writer.NewDistinctProperty("LookToAimRatio", &AHuman::m_LookToAimRatio);
+	writer.NewOptionalEntityPointerProperty("Jetpack", &AHuman::m_pJetpack);
+	writer.NewDistinctProperty("FGArmFlailScalar", &AHuman::m_FGArmFlailScalar);
+	writer.NewDistinctProperty("BGArmFlailScalar", &AHuman::m_BGArmFlailScalar);
+	writer.NewDistinctProperty("ArmSwingRate", &AHuman::m_ArmSwingRate);
+	writer.NewDistinctProperty("DeviceArmSwayRate", &AHuman::m_DeviceArmSwayRate);
+	writer.NewOptionalEntityPointerProperty("FGArm", &AHuman::m_pFGArm);
+	writer.NewOptionalEntityPointerProperty("BGArm", &AHuman::m_pBGArm);
+	writer.NewOptionalEntityPointerProperty("FGLeg", &AHuman::m_pFGLeg);
+	writer.NewOptionalEntityPointerProperty("BGLeg", &AHuman::m_pBGLeg);
+	writer.NewOptionalEntityPointerProperty("HandGroup", &AHuman::m_pFGHandGroup);
+	writer.NewOptionalEntityPointerProperty("FGFootGroup", &AHuman::m_pFGFootGroup);
+	writer.NewOptionalEntityPointerProperty("BGFootGroup", &AHuman::m_pBGFootGroup);
+	writer.NewDistinctProperty("MaxWalkPathCrouchShift", &AHuman::m_MaxWalkPathCrouchShift);
+	writer.NewOptionalEntityPointerProperty("StrideSound", &AHuman::m_StrideSound);
+	writer.NewDistinctProperty("StandLimbPathFG", [](const AHuman& object) -> const auto& { return object.m_Paths[FGROUND][STAND]; });
+	writer.NewDistinctProperty("StandLimbPathBG", [](const AHuman& object) -> const auto& { return object.m_Paths[BGROUND][STAND]; });
+	writer.NewDistinctProperty("WalkLimbPath", [](const AHuman& object) -> const auto& { return object.m_Paths[FGROUND][WALK]; });
+	writer.NewDistinctProperty("RunLimbPath", [](const AHuman& object) -> const auto& { return object.m_Paths[FGROUND][RUN]; });
+	writer.NewDistinctProperty("CrouchLimbPath", [](const AHuman& object) -> const auto& { return object.m_Paths[FGROUND][PRONE]; });
+	writer.NewDistinctProperty("CrouchLimbPathBG", [](const AHuman& object) -> const auto& { return object.m_Paths[BGROUND][PRONE]; });
+	writer.NewDistinctProperty("CrawlLimbPath", [](const AHuman& object) -> const auto& { return object.m_Paths[FGROUND][CRAWL]; });
+	writer.NewDistinctProperty("ArmCrawlLimbPath", [](const AHuman& object) -> const auto& { return object.m_Paths[FGROUND][ARMCRAWL]; });
+	writer.NewDistinctProperty("ClimbLimbPath", [](const AHuman& object) -> const auto& { return object.m_Paths[FGROUND][CLIMB]; });
+	writer.NewDistinctProperty("JumpLimbPath", [](const AHuman& object) -> const auto& { return object.m_Paths[FGROUND][JUMP]; });
+	writer.NewDistinctProperty("DislodgeLimbPath", [](const AHuman& object) -> const auto& { return object.m_Paths[FGROUND][DISLODGE]; });
+	writer.NewDistinctProperty("StandRotAngleTarget", [](const AHuman& object) -> const auto& { return object.m_RotAngleTargets[STAND]; });
+	writer.NewDistinctProperty("WalkRotAngleTarget", [](const AHuman& object) -> const auto& { return object.m_RotAngleTargets[WALK]; });
+	writer.NewDistinctProperty("RunRotAngleTarget", [](const AHuman& object) -> const auto& { return object.m_RotAngleTargets[RUN]; });
+	writer.NewDistinctProperty("CrouchRotAngleTarget", [](const AHuman& object) -> const auto& { return object.m_RotAngleTargets[PRONE]; });
+	writer.NewDistinctProperty("JumpRotAngleTarget", [](const AHuman& object) -> const auto& { return object.m_RotAngleTargets[JUMP]; });
+
+	return 0;
+}
+template int AHuman::WriteTo(IniWriter& writer) const;
+template int AHuman::WriteTo(HashWriter& writer) const;
+
 void AHuman::Destroy(bool notInherited) {
 	delete m_pFGHandGroup;
 	delete m_pBGHandGroup;

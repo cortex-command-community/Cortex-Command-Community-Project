@@ -139,6 +139,23 @@ HashingData Loadout::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int Loadout::WriteTo(WriterType& writer) const {
+	Entity::WriteTo(writer);
+
+	// The form a Loadout reads can't say there's no craft, so a craft the preset has and this doesn't can't be written.
+	if (m_pDeliveryCraft != nullptr && writer.IsDistinct(&Loadout::m_pDeliveryCraft)) {
+		writer.NewProperty("DeliveryCraft");
+		writer.ObjectStart(m_pDeliveryCraft->GetClassName());
+		writer.NewPropertyWithValue("PresetName", m_pDeliveryCraft->GetModuleAndPresetName());
+		writer.ObjectEnd();
+	}
+	writer.NewPresetNameSequence("_ClearCargoItems", "AddCargoItem", &Loadout::m_CargoItems);
+
+	return 0;
+}
+template int Loadout::WriteTo(IniWriter& writer) const;
+template int Loadout::WriteTo(HashWriter& writer) const;
+
 /*
 void Loadout::Destroy(bool notInherited)
 {

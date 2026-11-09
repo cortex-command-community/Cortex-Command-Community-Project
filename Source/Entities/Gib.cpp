@@ -101,3 +101,43 @@ HashingData Gib::Hash() const {
 
 	return hashData;
 }
+
+template <typename WriterType> int Gib::WriteTo(WriterType& writer) const {
+	Serializable::WriteTo(writer);
+
+	if (m_GibParticle != nullptr)
+		writer.NewPropertyWithPresetReference("GibParticle", m_GibParticle);
+	if (!m_Offset.IsZero())
+		writer.NewPropertyWithValue("Offset", m_Offset);
+	if (m_Count != 1) {
+		writer.NewPropertyWithValue("Count", m_Count);
+	}
+	if (m_Spread != 0.1F) {
+		writer.NewPropertyWithValue("Spread", m_Spread);
+	}
+	if (GetMinVelocity() != 0.0F) {
+		writer.NewPropertyWithValue("MinVelocity", GetMinVelocity());
+	}
+	if (GetMaxVelocity() != 0.0F) {
+		writer.NewPropertyWithValue("MaxVelocity", GetMaxVelocity());
+	}
+	if (m_LifeVariation != 0.1F) {
+		writer.NewPropertyWithValue("LifeVariation", m_LifeVariation);
+	}
+	if (m_InheritsVel != 1.0F) {
+		writer.NewPropertyWithValue("InheritsVel", m_InheritsVel);
+	}
+	if (m_InheritsAngularVel != 1.0F) {
+		writer.NewPropertyWithValue("InheritsAngularVel", m_InheritsAngularVel);
+	}
+	if (m_IgnoresTeamHits != false) {
+		writer.NewPropertyWithValue("IgnoresTeamHits", m_IgnoresTeamHits);
+	}
+	if (m_SpreadMode != SpreadMode::SpreadRandom) {
+		writer.NewPropertyWithValue("SpreadMode", m_SpreadMode);
+	}
+
+	return 0;
+}
+template int Gib::WriteTo(IniWriter& writer) const;
+template int Gib::WriteTo(HashWriter& writer) const;

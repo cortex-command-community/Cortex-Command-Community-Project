@@ -288,6 +288,42 @@ HashingData Attachable::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int Attachable::WriteTo(WriterType& writer) const {
+	MOSRotating::WriteTo(writer);
+
+	writer.NewDistinctProperty("ParentOffset", &Attachable::m_ParentOffset);
+	writer.NewDistinctProperty("DrawAfterParent", &Attachable::m_DrawAfterParent);
+	writer.NewDistinctProperty("DeleteWhenRemovedFromParent", &Attachable::m_DeleteWhenRemovedFromParent);
+	writer.NewDistinctProperty("GibWhenRemovedFromParent", &Attachable::m_GibWhenRemovedFromParent);
+	writer.NewDistinctProperty("ApplyTransferredForcesAtOffset", &Attachable::m_ApplyTransferredForcesAtOffset);
+	writer.NewDistinctProperty("JointStrength", &Attachable::m_JointStrength);
+	writer.NewDistinctProperty("JointStiffness", &Attachable::m_JointStiffness);
+	writer.NewDistinctProperty("JointOffset", &Attachable::m_JointOffset);
+	writer.NewPresetReferenceProperty("BreakWound", &Attachable::m_BreakWound);
+	writer.NewPresetReferenceProperty("ParentBreakWound", &Attachable::m_ParentBreakWound);
+
+	writer.NewDistinctProperty("InheritsHFlipped", [](const Attachable& object) { return ((object.m_InheritsHFlipped == 0 || object.m_InheritsHFlipped == 1) ? object.m_InheritsHFlipped : 2); });
+
+	writer.NewDistinctProperty("InheritsRotAngle", &Attachable::m_InheritsRotAngle);
+	writer.NewDistinctProperty("InheritedRotAngleOffset", &Attachable::m_InheritedRotAngleOffset);
+	writer.NewDistinctProperty("InheritsFrame", &Attachable::m_InheritsFrame);
+	writer.NewDistinctProperty("MountedRotAngleOffset", &Attachable::m_MountedRotAngleOffset);
+	writer.NewDistinctProperty("InheritsVelWhenDetached", &Attachable::m_InheritsVelWhenDetached);
+	writer.NewDistinctProperty("InheritsAngularVelWhenDetached", &Attachable::m_InheritsAngularVelWhenDetached);
+	writer.NewDistinctProperty("CollidesWithTerrainWhileAttached", &Attachable::m_CollidesWithTerrainWhileAttached);
+	writer.NewDistinctProperty("IgnoresParticlesWhileAttached", &Attachable::m_IgnoresParticlesWhileAttached);
+	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", &Attachable::m_PieSlices);
+
+	writer.NewDistinctProperty("GibWithParentChance", &Attachable::m_GibWithParentChance);
+	writer.NewDistinctProperty("ParentGibBlastStrengthMultiplier", &Attachable::m_ParentGibBlastStrengthMultiplier);
+
+	writer.NewDistinctProperty("InheritedRotAngleDegOffset", [](const Attachable& object) { return RadiansToDegrees(object.m_InheritedRotAngleOffset); });
+
+	return 0;
+}
+template int Attachable::WriteTo(IniWriter& writer) const;
+template int Attachable::WriteTo(HashWriter& writer) const;
+
 bool Attachable::TransferJointForces(Vector& jointForces) {
 	if (!m_Parent) {
 		return false;

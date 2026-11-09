@@ -122,6 +122,13 @@ int MultiplayerServerLobby::Save(Writer& writer) const {
 	return 0;
 }
 
+template <typename WriterType> int MultiplayerServerLobby::WriteTo(WriterType& writer) const {
+	Activity::WriteTo(writer);
+	return 0;
+}
+template int MultiplayerServerLobby::WriteTo(IniWriter& writer) const;
+template int MultiplayerServerLobby::WriteTo(HashWriter& writer) const;
+
 void MultiplayerServerLobby::Destroy(bool notInherited) {
 	delete m_pGUIController;
 	delete m_pGUIInput;

@@ -463,6 +463,37 @@ HashingData MOSRotating::Hash() const {
 	return hashData;
 }
 
+template <typename WriterType> int MOSRotating::WriteTo(WriterType& writer) const {
+	MOSprite::WriteTo(writer);
+
+	writer.NewOptionalEntityPointerProperty("AtomGroup", &MOSRotating::m_pAtomGroup);
+	writer.NewOptionalEntityPointerProperty("DeepGroup", &MOSRotating::m_pDeepGroup);
+	writer.NewDistinctProperty("DeepCheck", &MOSRotating::m_DeepCheck);
+	writer.NewDistinctProperty("OrientToVel", &MOSRotating::m_OrientToVel);
+	writer.NewPointerSequence("_ClearWounds", "AddWound", &MOSRotating::m_Wounds);
+	writer.NewPointerSequence("_ClearAttachables", "AddAttachable", &MOSRotating::m_Attachables, [](const MOSRotating& owner, const Attachable* attachable) {
+		return !owner.AttachableIsHardcoded(attachable);
+	});
+	writer.NewPointerSequence("_ClearGibs", "AddGib", &MOSRotating::m_Gibs);
+	writer.NewDistinctProperty("GibImpulseLimit", &MOSRotating::m_GibImpulseLimit);
+	writer.NewDistinctProperty("GibWoundLimit", &MOSRotating::m_GibWoundLimit);
+	writer.NewDistinctProperty("GibAtEndOfLifetime", &MOSRotating::m_GibAtEndOfLifetime);
+	writer.NewOptionalEntityPointerProperty("GibSound", &MOSRotating::m_GibSound);
+	writer.NewDistinctProperty("EffectOnGib", &MOSRotating::m_EffectOnGib);
+	writer.NewDistinctProperty("DamageMultiplier", &MOSRotating::m_DamageMultiplier);
+	writer.NewDistinctProperty("_NoSetDamageMultiplier", &MOSRotating::m_NoSetDamageMultiplier);
+
+	writer.NewDistinctProperty("GibBlastStrength", &MOSRotating::m_GibBlastStrength);
+	writer.NewDistinctProperty("GibScreenShakeAmount", &MOSRotating::m_GibScreenShakeAmount);
+	writer.NewDistinctProperty("WoundCountAffectsImpulseLimitRatio", &MOSRotating::m_WoundCountAffectsImpulseLimitRatio);
+	writer.NewDistinctProperty("DetachAttachablesBeforeGibbingFromWounds", &MOSRotating::m_DetachAttachablesBeforeGibbingFromWounds);
+	writer.NewDistinctProperty("LoudnessOnGib", &MOSRotating::m_LoudnessOnGib);
+
+	return 0;
+}
+template int MOSRotating::WriteTo(IniWriter& writer) const;
+template int MOSRotating::WriteTo(HashWriter& writer) const;
+
 int MOSRotating::GetGibWoundLimit(bool includePositiveDamageAttachables, bool includeNegativeDamageAttachables, bool includeNoDamageAttachables) const {
 	int gibWoundLimit = m_GibWoundLimit;
 	if (includePositiveDamageAttachables || includeNegativeDamageAttachables || includeNoDamageAttachables) {
