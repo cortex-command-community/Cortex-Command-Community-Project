@@ -254,10 +254,11 @@ namespace RTE {
 		bool IsWrittenAsCopy() const { return m_Frames.back().m_ReferenceIsPreset; }
 
 		/// Writes an object against a reference, through its WriteTo.
+		/// It's a template only so that Serializable, which this header can't include, is complete by the time the call to Write is checked.
 		/// @param object The object to write.
 		/// @param reference What to write it against, or nullptr to write everything about it.
 		/// @param referenceIsPreset Whether the reference is a preset the object is written as a CopyOf.
-		void WriteObject(const Serializable& object, const Serializable* reference = nullptr, bool referenceIsPreset = false) {
+		template <typename Object> void WriteObject(const Object& object, const Serializable* reference = nullptr, bool referenceIsPreset = false) {
 			m_Frames.push_back({&object, reference, referenceIsPreset});
 			object.Write(Self());
 			m_Frames.pop_back();
