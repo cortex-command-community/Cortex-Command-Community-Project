@@ -46,7 +46,7 @@ namespace RTE {
 
 		/// Gets the first mounted HeldDevice of this Turret, mostly here for Lua convenience.
 		/// @return A pointer to mounted HeldDevice of this Turret. Ownership is NOT transferred!
-		HeldDevice* GetFirstMountedDevice() const { return m_MountedDevices[0]; }
+		HeldDevice* GetFirstMountedDevice() const { return m_MountedDevices.empty() ? nullptr : m_MountedDevices[0]; }
 
 		/// Sets the first mounted HeldDevice for this Turret, mostly here for Lua convenience. Ownership IS transferred!
 		/// The current first mounted HeldDevice (if there is one) will be dropped and added to MovableMan.

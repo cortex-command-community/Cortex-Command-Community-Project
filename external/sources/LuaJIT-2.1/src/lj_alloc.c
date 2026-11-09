@@ -100,8 +100,8 @@
 
 #if LJ_GC64
 #define LJ_ALLOC_MBITS		47	/* 128 TB in LJ_GC64 mode. */
-#elif LJ_TARGET_X64 && LJ_HASJIT
-/* Due to limitations in the x64 compiler backend. */
+#elif LJ_TARGET_X64
+/* Due to limitations in the x64 non-GC64 VM. */
 #define LJ_ALLOC_MBITS		31	/* 2 GB on x64 with !LJ_GC64. */
 #else
 #define LJ_ALLOC_MBITS		32	/* 4 GB on other archs with !LJ_GC64. */
@@ -540,6 +540,7 @@ struct malloc_state {
   tbinptr    treebins[NTREEBINS];
   msegment   seg;
   PRNGState  *prng;
+  PRNGState  prngstate;	/* Cortex Command: the allocator's own PRNG state, see lj_alloc_setprng. */
 };
 
 typedef struct malloc_state *mstate;
@@ -1057,7 +1058,7 @@ static size_t release_unused_segments(mstate m)
       mchunkptr p = align_as_chunk(base);
       size_t psize = chunksize(p);
       /* Can unmap if first chunk holds entire segment and not pinned */
-      if (!cinuse(p) && (char *)p + psize >= base + size - TOP_FOOT_SIZE) {
+      if (!cinuse(p) && (char *)p + psize == (char *)mem2chunk(sp)) {
 	tchunkptr tp = (tchunkptr)p;
 	if (p == m->dv) {
 	  m->dv = 0;
@@ -1251,7 +1252,15 @@ void *lj_alloc_create(PRNGState *rs)
 void lj_alloc_setprng(void *msp, PRNGState *rs)
 {
   mstate ms = (mstate)msp;
-  ms->prng = rs;
+  /*
+  ** Cortex Command: the allocator gets a copy of the PRNG to draw from from
+  ** now on, rather than sharing the global one. How many addresses it has to
+  ** try depends on how the process' memory happens to be laid out, and the
+  ** global PRNG decides when the JIT compiler compiles things, which has to
+  ** be the same on every run of the game for it to be deterministic.
+  */
+  ms->prngstate = *rs;
+  ms->prng = &ms->prngstate;
 }
 
 void lj_alloc_destroy(void *msp)

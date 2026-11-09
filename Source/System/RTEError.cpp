@@ -13,6 +13,7 @@
 #endif
 
 #include <array>
+#include <cstdio>
 #include <exception>
 #include <regex>
 #include <utility>
@@ -30,6 +31,14 @@
 #include <filesystem>
 #elif defined(__APPLE__) && defined(__MACH__)
 #include <sys/sysctl.h>
+#include <pthread.h>
+#endif
+
+#if defined(__APPLE__) && defined(__MACH__)
+// Cocoa dispatches message boxes onto the main thread, which deadlocks if a worker fires one while the main thread waits on it.
+static bool IsOnAppMainThread() { return pthread_main_np() != 0; }
+#else
+static bool IsOnAppMainThread() { return true; }
 #endif
 
 #include "backward/backward.hpp"
@@ -39,6 +48,7 @@ using namespace RTE;
 
 bool RTEError::s_CurrentlyAborting = false;
 bool RTEError::s_IgnoreAllAsserts = false;
+bool RTEError::s_DisableCrashDialogs = false;
 std::string RTEError::s_LastIgnoredAssertDescription = "";
 std::source_location RTEError::s_LastIgnoredAssertLocation = {};
 
@@ -205,10 +215,26 @@ void RTEError::SetExceptionHandlers() {
 }
 
 void RTEError::ShowMessageBox(const std::string& message) {
+	// There's no one around to dismiss a message box when headless, so it would just stall the program.
+	if (System::IsInHeadlessMode()) {
+		System::PrintToCLI(message);
+		return;
+	}
+	if (!IsOnAppMainThread()) {
+		std::fprintf(stderr, "RTE Warning (from worker thread): %s\n", message.c_str());
+		return;
+	}
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "RTE Warning! (>_<)", message.c_str(), nullptr);
 }
 
 bool RTEError::ShowAbortMessageBox(const std::string& message) {
+	if (System::IsInHeadlessMode() || s_DisableCrashDialogs) {
+		return false;
+	}
+	if (!IsOnAppMainThread()) {
+		std::fprintf(stderr, "RTE Abort (from worker thread): %s\n", message.c_str());
+		return false;
+	}
 	enum AbortMessageButton {
 		ButtonInvalid,
 		ButtonExit,
@@ -242,6 +268,15 @@ bool RTEError::ShowAbortMessageBox(const std::string& message) {
 }
 
 bool RTEError::ShowAssertMessageBox(const std::string& message) {
+	// There's no one around to choose to ignore the assert when headless, and no asking them when crash dialogs are disabled, so always abort.
+	if (System::IsInHeadlessMode() || s_DisableCrashDialogs) {
+		return true;
+	}
+	if (!IsOnAppMainThread()) {
+		// Return false (Ignore-once) so the worker can unwind; the main thread sees the assert on its next pass.
+		std::fprintf(stderr, "RTE Assert (from worker thread): %s\n", message.c_str());
+		return false;
+	}
 	enum AssertMessageButton {
 		ButtonInvalid,
 		ButtonAbort,
@@ -321,7 +356,9 @@ void RTEError::UnhandledExceptionFunc(const std::string& description, const std:
 		SDL_SetWindowFullscreen(g_WindowMan.GetWindow(), 0);
 	}
 
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "RTE CATASTROPHIC ERROR!!! (X_X)", exceptionMessage.c_str(), nullptr);
+	if (!System::IsInHeadlessMode() && !s_DisableCrashDialogs) {
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "RTE CATASTROPHIC ERROR!!! (X_X)", exceptionMessage.c_str(), nullptr);
+	}
 	AbortAction;
 }
 
@@ -585,6 +622,11 @@ bool RTEError::DumpAbortScreen() {
 }
 
 bool RTEError::DumpAbortSave() {
+	// Headless runs are automated, so they shouldn't get to overwrite an abort save from an actual play session.
+	if (System::IsInHeadlessMode()) {
+		return false;
+	}
+
 	bool success = false;
 	if (g_ActivityMan.GetActivity() && g_ActivityMan.GetActivity()->CanBeUserSaved()) {
 		success = g_ActivityMan.SaveCurrentGame("AbortSave");

@@ -138,6 +138,11 @@ namespace RTE {
 		/// @param onlyGetSelectedSoundData Whether to only get SoundData that is currently selected, or to get all SoundData in this SoundSet.
 		void GetFlattenedSoundData(std::vector<const SoundData*>& flattenedSoundData, bool onlyGetSelectedSoundData) const;
 
+		/// Gets the first SoundData in this SoundSet or its SubSoundSets that has the given FMOD sound, in the same order as GetFlattenedSoundData gives them, without flattening them all.
+		/// @param sound The FMOD sound to find the SoundData of.
+		/// @return The SoundData that has the sound, or nullptr if none does.
+		const SoundData* FindSoundData(const FMOD::Sound* sound) const;
+
 		/// Gets the vector of SubSoundSets for this SoundSet.
 		/// @return The vector of SubSoundSets for this SoundSet.
 		std::vector<SoundSet*>& GetSubSoundSets() { return m_SubSoundSets; }

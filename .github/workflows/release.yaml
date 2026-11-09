@@ -55,7 +55,8 @@ jobs:
             ${{format('--notes-start-tag {0}', env.LATEST_TAG) || ''}} \
             'CortexCommand.windows.zip#Cortex Command [v${{ steps.get-release-version.outputs.game-version }}] (Windows Release)' \
             'CortexCommand.linux.zip#Cortex Command [v${{ steps.get-release-version.outputs.game-version }}] (Linux Release)' \
-            'CortexCommand.macos.zip#Cortex Command [v${{ steps.get-release-version.outputs.game-version }}] (macOS Release)'
+            'CortexCommand.macos-arm64.zip#Cortex Command [v${{ steps.get-release-version.outputs.game-version }}] (macOS ARM64 Release)' \
+            'CortexCommand.macos-x86_64.zip#Cortex Command [v${{ steps.get-release-version.outputs.game-version }}] (macOS x86_64 Release)'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

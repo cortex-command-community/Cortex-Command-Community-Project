@@ -35,7 +35,8 @@ function OnFire(self)
 				MovableMan:AddParticle(part);
 			end
 			local cross = CreateMOSParticle("Particle Heal Effect", "Base.rte");
-			cross.Pos = target.AboveHUDPos + Vector(0, 5);
+			--Not placed by AboveHUDPos, since that goes by how the HUD was last drawn, which can't be allowed to change the simulation
+			cross.Pos = target.Pos + Vector(0, -target.Height * 0.5 - 1);
 			MovableMan:AddParticle(cross);
 			
 			if target.Status == Actor.DEAD and target.Health == target.MaxHealth and target.WoundCount == 0 then

@@ -42,11 +42,16 @@ void SpatialPartitionGrid::Reset() {
 	const Activity* activity = g_ActivityMan.GetActivity();
 	RTEAssert(activity, "Tried to reset spatial partition grid with no running Activity!");
 
+	std::array<bool, Activity::MaxTeamCount + 1> teamHasCells;
 	for (int team = Activity::NoTeam; team < Activity::MaxTeamCount; ++team) {
-		if (team == Activity::NoTeam || activity->TeamActive(team)) {
-			for (int usedCellId: m_UsedCellIds) {
-				m_Cells[team + 1][usedCellId].clear();
-				m_PhysicsCells[team + 1][usedCellId].clear();
+		teamHasCells[team + 1] = team == Activity::NoTeam || activity->TeamActive(team);
+	}
+
+	for (int usedCellId: m_UsedCellIds) {
+		for (int teamIndex = 0; teamIndex < Activity::MaxTeamCount + 1; ++teamIndex) {
+			if (teamHasCells[teamIndex]) {
+				m_Cells[teamIndex][usedCellId].clear();
+				m_PhysicsCells[teamIndex][usedCellId].clear();
 			}
 		}
 	}
@@ -67,28 +72,29 @@ void SpatialPartitionGrid::Add(const IntRect& rect, const MovableObject& mo) {
 	// We handle wrapping in GetCellIdForCellCoords, so make sure we've not already been passed wrapped data...
 	RTEAssert(topLeftCellX <= bottomRightCellX && topLeftCellY <= bottomRightCellY, "Invalidly wrapped rect passed to spatial partitioning grid!");
 
+	// Which teams' cells this goes in is the same for every cell it covers, so it's only worked out once.
+	std::array<bool, Activity::MaxTeamCount + 1> addForTeam;
 	for (int team = Activity::NoTeam; team < Activity::MaxTeamCount; ++team) {
 		bool teamActive = team == Activity::NoTeam || activity->TeamActive(team);
 		bool ignoresThisTeam = team != Activity::NoTeam && rootParentMo.IgnoresTeamHits() && team == rootParentMo.GetTeam();
-		if (!teamActive || ignoresThisTeam) {
-			continue;
-		}
-
-		for (int x = topLeftCellX; x <= bottomRightCellX; x++) {
-			for (int y = topLeftCellY; y <= bottomRightCellY; y++) {
-				int cellId = GetCellIdForCellCoords(x, y);
-
-				m_Cells[team + 1][cellId].push_back(mo.GetID());
-				if (mo.GetsHitByMOs()) {
-					m_PhysicsCells[team + 1][cellId].push_back(mo.GetID());
-				}
-			}
-		}
+		addForTeam[team + 1] = teamActive && !ignoresThisTeam;
 	}
+	const MOID moid = mo.GetID();
+	const bool getsHitByMOs = mo.GetsHitByMOs();
 
 	for (int x = topLeftCellX; x <= bottomRightCellX; x++) {
 		for (int y = topLeftCellY; y <= bottomRightCellY; y++) {
-			m_UsedCellIds.insert(GetCellIdForCellCoords(x, y));
+			int cellId = GetCellIdForCellCoords(x, y);
+
+			for (int teamIndex = 0; teamIndex < Activity::MaxTeamCount + 1; ++teamIndex) {
+				if (addForTeam[teamIndex]) {
+					m_Cells[teamIndex][cellId].push_back(moid);
+					if (getsHitByMOs) {
+						m_PhysicsCells[teamIndex][cellId].push_back(moid);
+					}
+				}
+			}
+			m_UsedCellIds.insert(cellId);
 		}
 	}
 }

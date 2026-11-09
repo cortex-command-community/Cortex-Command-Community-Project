@@ -1,3 +1,3 @@
-minilua
-buildvm
-buildvm_arch.h
+/minilua
+/buildvm
+/buildvm_arch.h

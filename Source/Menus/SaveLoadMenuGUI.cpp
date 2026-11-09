@@ -180,7 +180,13 @@ void SaveLoadMenuGUI::UpdateSaveGamesGUIList() {
 		const auto saveTime = std::chrono::system_clock::to_time_t(saveFsTime);
 #else
 		// TODO - kill this monstrosity when we move to GCC13
+		// libc++ file_clock rep is wider than system_clock; duration_cast lands it in range first.
+#if defined(_LIBCPP_VERSION)
+		auto saveFsTime = std::chrono::system_clock::time_point(
+		    std::chrono::duration_cast<std::chrono::system_clock::duration>(save.SaveDate.time_since_epoch()));
+#else
 		auto saveFsTime = std::chrono::system_clock::time_point(save.SaveDate.time_since_epoch());
+#endif
 #ifdef _WIN32
 		// Windows epoch time are the number of seconds since... 1601-01-01 00:00:00. Seriously.
 		saveFsTime -= std::chrono::seconds(11644473600LL);

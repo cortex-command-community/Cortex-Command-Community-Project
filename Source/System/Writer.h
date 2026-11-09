@@ -1,5 +1,6 @@
 #pragma once
 
+#include <format>
 #include <string>
 #include <memory>
 #include <ostream>
@@ -171,12 +172,13 @@ namespace RTE {
 			*m_Stream << var;
 			return *this;
 		}
+		// Floating point numbers get written with as many digits as it takes for them to be read back as exactly the same number, and no more.
 		Writer& operator<<(const float& var) {
-			*m_Stream << var;
+			*m_Stream << std::format("{}", var);
 			return *this;
 		}
 		Writer& operator<<(const double& var) {
-			*m_Stream << var;
+			*m_Stream << std::format("{}", var);
 			return *this;
 		}
 		Writer& operator<<(const char* var) {

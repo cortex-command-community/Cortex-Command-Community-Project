@@ -238,6 +238,7 @@ namespace RTE {
 
 		bool m_EnableVSync; //!< Whether vertical synchronization is enabled.
 		bool m_UseMultiDisplays; //!< Whether the multi-display arrangement should be ignored and only the display the main window is currently positioned at should be used for fullscreen.
+		bool m_LaunchMinimised; //!< Whether the game window starts out minimised, so that launching the game doesn't take input focus or cover other windows.
 
 		bool m_DrawPostProcessBuffer; //!< Whether to draw the PostProcessBuffer while not in Activity. Resets on Frame Clear.
 

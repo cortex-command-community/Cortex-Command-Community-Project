@@ -20,12 +20,18 @@ LuaStateWrapper::~LuaStateWrapper() {
 	Destroy();
 }
 
+bool LuaStateWrapper::UniqueIDOrder::operator()(const MovableObject* lhs, const MovableObject* rhs) const {
+	return lhs->GetUniqueID() < rhs->GetUniqueID();
+}
+
 void LuaStateWrapper::Clear() {
 	m_State = nullptr;
 	m_TempEntity = nullptr;
 	m_TempEntityVector.clear();
 	m_LastError.clear();
 	m_CurrentlyRunningScriptPath = "";
+	m_RunningAI = false;
+  m_HeapSizeAfterGarbageCollectionStep = 0;
 }
 
 void LuaStateWrapper::Initialize() {
@@ -33,7 +39,7 @@ void LuaStateWrapper::Initialize() {
 	luabind::open(m_State);
 	tracy::LuaRegister(m_State);
 
-	// We do async GC, but we still keep the normal GC on so it can catch any big spikes or runaway allocs
+	// Lua's own garbage collector is left on until StepGarbageCollection takes over from it, so it still collects while scripts are being loaded.
 	//lua_gc(m_State, LUA_GCSTOP, 0);
 
 	const luaL_Reg libsToLoad[] = {
@@ -170,6 +176,7 @@ void LuaStateWrapper::Initialize() {
 	                         RegisterLuaBindingsOfType(EntityLuaBindings, SLBackground),
 	                         RegisterLuaBindingsOfAbstractType(EntityLuaBindings, Deployment),
 	                         RegisterLuaBindingsOfType(SystemLuaBindings, DataModule),
+	                         RegisterLuaBindingsOfType(SystemLuaBindings, InputScheme),
 	                         RegisterLuaBindingsOfType(ActivityLuaBindings, Activity),
 	                         RegisterLuaBindingsOfAbstractType(ActivityLuaBindings, GameActivity),
 	                         RegisterLuaBindingsOfAbstractType(EntityLuaBindings, GlobalScript),
@@ -244,6 +251,7 @@ void LuaStateWrapper::Initialize() {
 
 	const uint64_t seed = RandomNum<uint64_t>(0, std::numeric_limits<uint64_t>::max());
 	m_RandomGenerator.Seed(seed);
+	m_AIRandomGenerator.Seed(RandomNum<uint64_t>(0, std::numeric_limits<uint64_t>::max()));
 
 	luaL_dostring(m_State,
 	              "package.path = package.path .. \";Data/Base.rte/LuaIntegration/?.lua;Data/Base.rte/LuaIntegration/?/?.lua;\"\n"
@@ -281,20 +289,29 @@ void LuaStateWrapper::Destroy() {
 	lua_close(m_State);
 }
 
+void LuaStateWrapper::SetRunningAI(bool runningAI) {
+	m_RunningAI = runningAI;
+	SetThreadRandomGenerator(runningAI ? &m_AIRandomGenerator : nullptr);
+}
+
+void LuaStateWrapper::SetRunningThreadedUpdate(bool runningThreadedUpdate) {
+	SetThreadRandomGenerator(runningThreadedUpdate ? &m_RandomGenerator : nullptr);
+}
+
 int LuaStateWrapper::SelectRand(int minInclusive, int maxInclusive) {
-	return m_RandomGenerator.RandomNum<int>(minInclusive, maxInclusive);
+	return GetActiveRandomGenerator().RandomNum<int>(minInclusive, maxInclusive);
 }
 
 double LuaStateWrapper::RangeRand(double minInclusive, double maxInclusive) {
-	return m_RandomGenerator.RandomNum<double>(minInclusive, maxInclusive);
+	return GetActiveRandomGenerator().RandomNum<double>(minInclusive, maxInclusive);
 }
 
 double LuaStateWrapper::NormalRand() {
-	return m_RandomGenerator.RandomNormalNum<double>();
+	return GetActiveRandomGenerator().RandomNormalNum<double>();
 }
 
 double LuaStateWrapper::PosRand() {
-	return m_RandomGenerator.RandomNum<double>();
+	return GetActiveRandomGenerator().RandomNum<double>();
 }
 
 // Passthrough LuaMan Functions
@@ -329,6 +346,9 @@ void LuaMan::Initialize() {
 	} else if (g_SettingsMan.GetNumberOfLuaStatesOverride() != -1) {
 		luaStateCount = g_SettingsMan.GetNumberOfLuaStatesOverride();
 	}
+
+	// Each threaded Lua state hands out unique IDs to the MOs made on its thread from a range of its own, and there's only so many of those ranges, with one going to the main thread.
+	luaStateCount = std::min(luaStateCount, (1 << MovableObject::c_UniqueIDThreadBits) - 1);
 
 	m_ScriptStates = std::vector<LuaStateWrapper>(luaStateCount);
 	for (LuaStateWrapper& luaState: m_ScriptStates) {
@@ -873,6 +893,23 @@ void LuaStateWrapper::Update() {
 	m_AddedRegisteredMOs.clear();
 }
 
+void LuaStateWrapper::StepGarbageCollection() {
+	std::lock_guard<std::recursive_mutex> lock(m_Mutex);
+
+	size_t heapSize = GetHeapSize();
+	if (m_HeapSizeAfterGarbageCollectionStep != 0) {
+		// Lua's own collector does its step multiplier's worth of collecting for each kilobyte allocated, and a step of that many kilobytes does the same, so this keeps up with what was allocated since the last step just as it would have.
+		// With nothing allocated it still does a single step, so that a cycle always gets finished.
+		// Unlike Lua's own collector, it goes straight on from one cycle into the next rather than waiting for the heap to grow first. That wait goes by an estimate of the heap that leaves out what's still to be finalized, which there's no way to get from outside Lua, and going by the whole heap instead lets it grow without end.
+		size_t allocatedSinceLastStep = heapSize > m_HeapSizeAfterGarbageCollectionStep ? heapSize - m_HeapSizeAfterGarbageCollectionStep : 0;
+		lua_gc(m_State, LUA_GCSTEP, static_cast<int>(allocatedSinceLastStep / 1024));
+	}
+
+	// Stop the Lua GC from triggering manually so we don't get spikes in work that the main thread may be waiting on
+	lua_gc(m_State, LUA_GCSTOP, 0);
+	m_HeapSizeAfterGarbageCollectionStep = GetHeapSize();
+}
+
 void LuaStateWrapper::ClearScriptTimings() {
 	m_ScriptTimings.clear();
 }
@@ -986,6 +1023,11 @@ std::string LuaStateWrapper::DescribeLuaStack() {
 		}
 	}
 	return stackDescription.str();
+}
+
+size_t LuaStateWrapper::GetHeapSize() {
+	// Lua only gives the heap size in whole kilobytes, plus the bytes left over from that, so they're put back together to get it in bytes.
+	return static_cast<size_t>(lua_gc(m_State, LUA_GCCOUNT, 0)) * 1024 + static_cast<size_t>(lua_gc(m_State, LUA_GCCOUNTB, 0));
 }
 
 LuaMan::LuaMan() {
@@ -1300,9 +1342,7 @@ void LuaMan::StartAsyncGarbageCollection() {
 		m_GarbageCollectionTask.push_back(
 		    g_ThreadMan.GetPriorityThreadPool().submit([luaState]() {
 			    ZoneScopedN("Lua Garbage Collection");
-			    std::lock_guard<std::recursive_mutex> lock(luaState->GetMutex());
-			    lua_gc(luaState->GetLuaState(), LUA_GCSTEP, 100);
-			    lua_gc(luaState->GetLuaState(), LUA_GCSTOP, 0);
+			    luaState->StepGarbageCollection();
 		    }));
 	}
 }
