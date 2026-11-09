@@ -117,17 +117,20 @@ void IniWriter::WriteInto(const Serializable& value, const Serializable& referen
 	ObjectEnd();
 }
 
-IniWriter& IniWriter::operator<<(const Serializable& object) {
+std::pair<const Serializable*, bool> IniWriter::ReferenceFor(const Serializable& object) const {
 	if (const Entity* entity = dynamic_cast<const Entity*>(&object)) {
 		if (const Entity* preset = GetPresetToWriteAgainst(*entity)) {
-			WriteObject(object, preset, true);
-		} else {
-			WriteObject(object, &GetNewObjectOfClass(*entity), false);
+			return {preset, true};
 		}
-	} else {
-		// A Serializable that isn't an Entity has no class to make a new object of, so all of it is written.
-		WriteObject(object, nullptr, false);
+		return {&GetNewObjectOfClass(*entity), false};
 	}
+	// A Serializable that isn't an Entity has no class to make a new object of, so all of it is written.
+	return {nullptr, false};
+}
+
+IniWriter& IniWriter::operator<<(const Serializable& object) {
+	const auto [reference, referenceIsPreset] = ReferenceFor(object);
+	WriteObject(object, reference, referenceIsPreset);
 	ObjectEnd();
 	return *this;
 }

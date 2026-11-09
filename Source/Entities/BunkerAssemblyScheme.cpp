@@ -200,59 +200,6 @@ int BunkerAssemblyScheme::ReadProperty(const std::string_view& propName, Reader&
 	EndPropertyList;
 }
 
-int BunkerAssemblyScheme::Save(Writer& writer) const {
-	SceneObject::Save(writer);
-
-	writer.NewPropertyWithValue("BitmapFile", m_BitmapFile);
-	for (std::list<SOPlacer>::const_iterator itr = m_ChildObjects.begin(); itr != m_ChildObjects.end(); ++itr) {
-		writer.NewPropertyWithValue("AddChildObject", (*itr));
-	}
-
-	writer.NewDistinctProperty("Limit", m_Limit, 0);
-	writer.NewDistinctProperty("OneTypePerScene", m_IsOneTypePerScene, false);
-	writer.NewDistinctProperty("MaxDeployments", m_MaxDeployments, 1);
-
-	writer.NewDistinctProperty("SymmetricScheme", m_SymmetricScheme, "");
-	writer.NewDistinctProperty("AssemblyGroup", m_AssemblyGroup, "");
-
-	return 0;
-}
-
-int BunkerAssemblyScheme::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	SceneObject::Write(writer, entityReference, hashData);
-
-	const BunkerAssemblyScheme& reference = static_cast<const BunkerAssemblyScheme&>(entityReference);
-
-	writer.NewDistinctHashedProperty("BitmapFile", m_BitmapFile, hashData);
-	writer.NewSequence("_ClearChildObjects", "AddChildObject", m_ChildObjects, hashData);
-
-	writer.NewDistinctProperty("Limit", m_Limit, reference.m_Limit);
-	writer.NewDistinctProperty("OneTypePerScene", m_IsOneTypePerScene, reference.m_IsOneTypePerScene);
-	writer.NewDistinctProperty("MaxDeployments", m_MaxDeployments, reference.m_MaxDeployments);
-
-	writer.NewDistinctProperty("SymmetricScheme", m_SymmetricScheme, reference.m_SymmetricScheme);
-	writer.NewDistinctProperty("AssemblyGroup", m_AssemblyGroup, reference.m_AssemblyGroup);
-
-	return 0;
-}
-
-HashingData BunkerAssemblyScheme::Hash() const {
-	HashingData hashData(SceneObject::Hash());
-
-	hashData.AddHashed(m_BitmapFile);
-
-	hashData.AddSequence(m_ChildObjects);
-
-	hashData.Add(m_Limit);
-	hashData.Add(m_IsOneTypePerScene);
-	hashData.Add(m_MaxDeployments);
-
-	hashData.Add(m_SymmetricScheme);
-	hashData.Add(m_AssemblyGroup);
-
-	return hashData;
-}
-
 template <typename WriterType> int BunkerAssemblyScheme::WriteTo(WriterType& writer) const {
 	SceneObject::WriteTo(writer);
 

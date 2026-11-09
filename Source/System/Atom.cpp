@@ -165,36 +165,6 @@ int Atom::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Atom::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	if (!m_Offset.IsZero())
-		writer.NewPropertyWithValue("Offset", m_Offset);
-	if (!m_OriginalOffset.IsZero())
-		writer.NewPropertyWithValue("OriginalOffset", m_OriginalOffset);
-	if (m_Material != nullptr)
-		writer.NewPropertyWithValue("Material", m_Material);
-	if (m_TrailColor.GetR() != 0 || m_TrailColor.GetG() != 0 || m_TrailColor.GetB() != 0)
-		writer.NewPropertyWithValue("TrailColor", m_TrailColor);
-	writer.NewDistinctProperty("TrailLength", m_TrailLength, 0);
-	writer.NewDistinctProperty("TrailLengthVariation", m_TrailLengthVariation, 0.0F);
-
-	return 0;
-}
-
-HashingData Atom::Hash() const {
-	HashingData hashData(Serializable::Hash());
-
-	hashData.Add(m_Offset);
-	hashData.Add(m_OriginalOffset);
-	hashData.Add((m_Material ? m_Material->Hash().m_Hash : 0));
-	hashData.Add(m_TrailColor);
-	hashData.Add(m_TrailLength);
-	hashData.Add(m_TrailLengthVariation);
-
-	return hashData;
-}
-
 template <typename WriterType> int Atom::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 

@@ -19,29 +19,6 @@ int GenericSavedData::ReadProperty(const std::string_view& propName, Reader& rea
 	EndPropertyList;
 }
 
-int GenericSavedData::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	if (!m_SavedEncodedStrings.m_Data.empty())
-		writer.NewPropertyWithValue("EncodedStringValues", m_SavedEncodedStrings);
-	if (!m_SavedStrings.m_Data.empty())
-		writer.NewPropertyWithValue("StringValues", m_SavedStrings);
-	if (!m_SavedNumbers.m_Data.empty())
-		writer.NewPropertyWithValue("NumberValues", m_SavedNumbers);
-
-	return 0;
-}
-
-HashingData GenericSavedData::Hash() const {
-	HashingData hashData(Serializable::Hash());
-
-	hashData.Add(m_SavedEncodedStrings);
-	hashData.Add(m_SavedStrings);
-	hashData.Add(m_SavedNumbers);
-
-	return hashData;
-}
-
 template <typename WriterType> int GenericSavedData::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 
@@ -105,26 +82,6 @@ int GenericSavedData::GenericSavedEncodedStrings::ReadProperty(const std::string
 	return 0;
 }
 
-int GenericSavedData::GenericSavedEncodedStrings::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	for (const auto& [propName, value]: m_Data) {
-		// Need to encode as URL, so it avoids = character
-		if (!value.empty()) {
-			writer.NewPropertyWithValue(propName, base64_encode(value, true));
-		}
-	}
-	return 0;
-}
-
-HashingData GenericSavedData::GenericSavedEncodedStrings::Hash() const {
-	HashingData hashData(Serializable::Hash());
-
-	hashData.AddUnordered(m_Data);
-
-	return hashData;
-}
-
 template <typename WriterType> int GenericSavedData::GenericSavedEncodedStrings::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 
@@ -142,25 +99,6 @@ template int GenericSavedData::GenericSavedEncodedStrings::WriteTo(HashWriter& w
 int GenericSavedData::GenericSavedStrings::ReadProperty(const std::string_view& propName, Reader& reader) {
 	m_Data[std::string(propName)] = reader.ReadPropValue(); // until we get P0919R2.
 	return 0;
-}
-
-int GenericSavedData::GenericSavedStrings::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	for (const auto& [propName, value]: m_Data) {
-		if (!value.empty()) {
-			writer.NewPropertyWithValue(propName, value);
-		}
-	}
-	return 0;
-}
-
-HashingData GenericSavedData::GenericSavedStrings::Hash() const {
-	HashingData hashData(Serializable::Hash());
-
-	hashData.AddUnordered(m_Data);
-
-	return hashData;
 }
 
 template <typename WriterType> int GenericSavedData::GenericSavedStrings::WriteTo(WriterType& writer) const {
@@ -181,24 +119,6 @@ int GenericSavedData::GenericSavedNumbers::ReadProperty(const std::string_view& 
 	reader >> value;
 	m_Data[std::string(propName)] = value; // until we get P0919R2.
 	return 0;
-}
-
-int GenericSavedData::GenericSavedNumbers::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	for (const auto& [propName, value]: m_Data) {
-		writer.NewPropertyWithValue(propName, value);
-	}
-
-	return 0;
-}
-
-HashingData GenericSavedData::GenericSavedNumbers::Hash() const {
-	HashingData hashData(Serializable::Hash());
-
-	hashData.AddUnordered(m_Data);
-
-	return hashData;
 }
 
 template <typename WriterType> int GenericSavedData::GenericSavedNumbers::WriteTo(WriterType& writer) const {

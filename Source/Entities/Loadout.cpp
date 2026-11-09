@@ -91,54 +91,6 @@ int Loadout::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Loadout::Save(Writer& writer) const {
-	Entity::Save(writer);
-
-	if (m_pDeliveryCraft) {
-		writer.NewProperty("DeliveryCraft");
-		writer.ObjectStart(m_pDeliveryCraft->GetClassName());
-		writer.NewProperty("PresetName");
-		writer << m_pDeliveryCraft->GetModuleAndPresetName();
-		writer.ObjectEnd();
-	}
-	for (std::list<const SceneObject*>::const_iterator itr = m_CargoItems.begin(); itr != m_CargoItems.end(); ++itr) {
-		writer.NewProperty("AddCargoItem");
-		writer.ObjectStart((*itr)->GetClassName());
-		writer.NewProperty("PresetName");
-		writer << (*itr)->GetModuleAndPresetName();
-		writer.ObjectEnd();
-	}
-
-	return 0;
-}
-
-int Loadout::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	Entity::Write(writer, entityReference, hashData);
-
-	const Loadout& reference = static_cast<const Loadout&>(entityReference);
-
-	// The form a Loadout reads can't say there's no craft, so a craft the preset has and this doesn't can't be written.
-	if (m_pDeliveryCraft != nullptr && m_pDeliveryCraft != reference.m_pDeliveryCraft) {
-		writer.NewProperty("DeliveryCraft");
-		writer.ObjectStart(m_pDeliveryCraft->GetClassName());
-		writer.NewPropertyWithValue("PresetName", m_pDeliveryCraft->GetModuleAndPresetName());
-		writer.ObjectEnd();
-	}
-	writer.NewPresetNameSequence("_ClearCargoItems", "AddCargoItem", m_CargoItems, hashData);
-
-	return 0;
-}
-
-HashingData Loadout::Hash() const {
-	HashingData hashData(Entity::Hash());
-
-	hashData.AddPresetReference(m_pDeliveryCraft);
-
-	hashData.AddPresetSequence(m_CargoItems);
-
-	return hashData;
-}
-
 template <typename WriterType> int Loadout::WriteTo(WriterType& writer) const {
 	Entity::WriteTo(writer);
 

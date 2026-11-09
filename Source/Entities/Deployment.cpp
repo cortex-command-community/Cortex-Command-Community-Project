@@ -93,49 +93,6 @@ int Deployment::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Deployment::Save(Writer& writer) const {
-	SceneObject::Save(writer);
-
-	writer.NewPropertyWithValue("LoadoutName", m_LoadoutName);
-	writer.NewPropertyWithValue("Icon", m_Icon);
-	writer.NewPropertyWithValue("SpawnRadius", m_SpawnRadius);
-	writer.NewPropertyWithValue("WalkRadius", m_WalkRadius);
-	writer.NewPropertyWithValue("HFlipped", m_HFlipped);
-	writer.NewPropertyWithValue("ID", m_ID);
-
-	return 0;
-}
-
-int Deployment::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	SceneObject::Write(writer, entityReference, hashData);
-
-	const Deployment& reference = static_cast<const Deployment&>(entityReference);
-
-	writer.NewDistinctProperty("LoadoutName", m_LoadoutName, reference.m_LoadoutName);
-	writer.NewDistinctHashedProperty("Icon", m_Icon, hashData);
-	writer.NewDistinctProperty("SpawnRadius", m_SpawnRadius, reference.m_SpawnRadius);
-	writer.NewDistinctProperty("WalkRadius", m_WalkRadius, reference.m_WalkRadius);
-	writer.NewDistinctProperty("HFlipped", m_HFlipped, reference.m_HFlipped);
-	writer.NewDistinctProperty("ID", m_ID, reference.m_ID);
-
-	return 0;
-}
-
-HashingData Deployment::Hash() const {
-	HashingData hashData(SceneObject::Hash());
-
-	hashData.Add(m_LoadoutName);
-
-	hashData.AddHashed(m_Icon);
-
-	hashData.Add(m_SpawnRadius);
-	hashData.Add(m_WalkRadius);
-	hashData.Add(m_HFlipped);
-	hashData.Add(m_ID);
-
-	return hashData;
-}
-
 template <typename WriterType> int Deployment::WriteTo(WriterType& writer) const {
 	SceneObject::WriteTo(writer);
 

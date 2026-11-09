@@ -11,7 +11,6 @@ namespace RTE {
 	public:
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
-		WriterOverrideMethods;
 
 		float m_Rotation; //!< The angle, represented in radians. Pi/2 points up.
 		bool m_Flipped[2]; //!< Whether or not this Matrix also mirrors the respective axes of its invoked Vectors.

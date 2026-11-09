@@ -25,30 +25,6 @@ int TerrainFrosting::ReadProperty(const std::string_view& propName, Reader& read
 	EndPropertyList;
 }
 
-int TerrainFrosting::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	writer.NewPropertyWithValue("FrostingMaterial", m_FrostingMaterial);
-	writer.NewPropertyWithValue("TargetMaterial", m_TargetMaterial);
-	writer.NewPropertyWithValue("MinThickness", m_MinThickness);
-	writer.NewPropertyWithValue("MaxThickness", m_MaxThickness);
-	writer.NewPropertyWithValue("InAirOnly", m_InAirOnly);
-
-	return 0;
-}
-
-HashingData TerrainFrosting::Hash() const {
-	HashingData hashData(Serializable::Hash());
-
-	hashData.Add(m_FrostingMaterial);
-	hashData.Add(m_TargetMaterial);
-	hashData.Add(m_MinThickness);
-	hashData.Add(m_MaxThickness);
-	hashData.Add(m_InAirOnly);
-
-	return hashData;
-}
-
 template <typename WriterType> int TerrainFrosting::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 

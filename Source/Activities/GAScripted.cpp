@@ -118,52 +118,6 @@ int GAScripted::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int GAScripted::Save(Writer& writer) const {
-	GameActivity::Save(writer);
-
-	writer.NewPropertyWithValue("ScriptPath", m_ScriptPath);
-	writer.NewPropertyWithValue("LuaClassName", m_LuaClassName);
-
-	for (const std::unique_ptr<PieSlice>& pieSliceToAdd: m_PieSlicesToAdd) {
-		writer.NewPropertyWithValue("AddPieSlice", pieSliceToAdd.get());
-	}
-
-	for (const std::string& requiredArea: m_RequiredAreas) {
-		writer.NewPropertyWithValue("AddRequiredArea", requiredArea);
-	}
-
-	return 0;
-}
-
-int GAScripted::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	GameActivity::Write(writer, entityReference, hashData);
-
-	const GAScripted& reference = static_cast<const GAScripted&>(entityReference);
-
-	writer.NewDistinctProperty("ScriptPath", m_ScriptPath, reference.m_ScriptPath);
-	writer.NewDistinctProperty("LuaClassName", m_LuaClassName, reference.m_LuaClassName);
-	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", m_PieSlicesToAdd, hashData);
-
-	writer.NewDistinctCollection("_ClearRequiredAreas", "AddRequiredArea", m_RequiredAreas, reference.m_RequiredAreas);
-
-	return 0;
-}
-
-HashingData GAScripted::Hash() const {
-	HashingData hashData(GameActivity::Hash());
-	
-	hashData.Add(m_ScriptPath);
-	hashData.Add(m_LuaClassName);
-
-	hashData.AddPointerSequence(m_PieSlicesToAdd);
-
-	for (const std::string& requiredArea: m_RequiredAreas) {
-		hashData.Add(requiredArea);
-	}
-
-	return hashData;
-}
-
 template <typename WriterType> int GAScripted::WriteTo(WriterType& writer) const {
 	GameActivity::WriteTo(writer);
 

@@ -67,18 +67,6 @@ int AssemblyEditor::ReadProperty(const std::string_view& propName, Reader& reade
 	EndPropertyList;
 }
 
-int AssemblyEditor::Save(Writer& writer) const {
-	EditorActivity::Save(writer);
-	return 0;
-}
-
-template <typename WriterType> int AssemblyEditor::WriteTo(WriterType& writer) const {
-	EditorActivity::WriteTo(writer);
-	return 0;
-}
-template int AssemblyEditor::WriteTo(IniWriter& writer) const;
-template int AssemblyEditor::WriteTo(HashWriter& writer) const;
-
 void AssemblyEditor::Destroy(bool notInherited) {
 	delete m_pEditorGUI;
 
@@ -478,7 +466,7 @@ bool AssemblyEditor::SaveAssembly(const std::string& saveAsName, bool forceOverw
 	}
 
 	if (g_PresetMan.AddEntityPreset(editedAssembly.get(), m_ModuleSpaceID, forceOverwrite, assemblySavePath)) {
-		if (Writer assemblyWriter(assemblySavePath, false); !assemblyWriter.WriterOK()) {
+		if (IniWriter assemblyWriter(assemblySavePath, false); !assemblyWriter.WriterOK()) {
 			RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + assemblySavePath + "\n\nTHE EDITED BUNKER ASSEMBLY PRESET WAS NOT SAVED!!!");
 		} else {
 			// TODO: Check if the ini file already exists, and then ask if overwrite.
@@ -492,7 +480,7 @@ bool AssemblyEditor::SaveAssembly(const std::string& saveAsName, bool forceOverw
 				std::string assembliesFilePath = dataModuleFullPath + ((dataModuleName == "Base.rte") ? "/Scenes/Objects/Bunkers/BunkerAssemblies/BunkerAssemblies.ini" : "/BunkerAssemblies/BunkerAssemblies.ini");
 				bool assembliesFileExists = System::PathExistsCaseSensitive(assembliesFilePath);
 
-				if (Writer assembliesFileWriter(assembliesFilePath, true); !assembliesFileWriter.WriterOK()) {
+				if (IniWriter assembliesFileWriter(assembliesFilePath, true); !assembliesFileWriter.WriterOK()) {
 					RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + assembliesFilePath + "\n\nThe edited Scene preset was saved but will not be loaded on next game start!\nPlease include the Scene preset manually!");
 				} else {
 					assembliesFileWriter.NewPropertyWithValue("IncludeFile", assemblySavePath);
@@ -503,7 +491,7 @@ bool AssemblyEditor::SaveAssembly(const std::string& saveAsName, bool forceOverw
 					if (!assembliesFileExists) {
 						std::string indexFilePath = dataModuleFullPath + "/Index.ini";
 
-						if (Writer indexWriter(indexFilePath, true); !indexWriter.WriterOK()) {
+						if (IniWriter indexWriter(indexFilePath, true); !indexWriter.WriterOK()) {
 							RTEError::ShowMessageBox("Failed to create Writer to path:\n\n" + indexFilePath + "\n\nThe edited Scene preset was saved but will not be loaded on next game start!\nPlease include the Scene preset manually!");
 						} else {
 							// Add extra tab since the DataModule has everything indented.

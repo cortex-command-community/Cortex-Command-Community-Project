@@ -265,18 +265,6 @@ int SceneMan::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int SceneMan::Save(Writer& writer) const {
-	g_ConsoleMan.PrintString("ERROR: Tried to save SceneMan, screen does not make sense");
-
-	Serializable::Save(writer);
-
-	for (int i = 0; i < m_MaterialCount; ++i) {
-		writer.NewPropertyWithValue("AddMaterial", *(m_apMatPalette.at(i)));
-	}
-
-	return 0;
-}
-
 template <typename WriterType> int SceneMan::WriteTo(WriterType& writer) const {
 	g_ConsoleMan.PrintString("ERROR: Tried to save SceneMan, screen does not make sense");
 

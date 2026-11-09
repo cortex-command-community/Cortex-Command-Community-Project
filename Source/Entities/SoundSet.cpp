@@ -54,57 +54,6 @@ int SoundSet::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int SoundSet::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	if (m_SoundSelectionCycleMode != SoundSelectionCycleMode::RANDOM) {
-		writer.NewProperty("SoundSelectionCycleMode");
-		SaveSoundSelectionCycleMode(writer, m_SoundSelectionCycleMode);
-	}
-
-	for (const SoundData& soundData: m_SoundData) {
-		writer.NewProperty("AddSound");
-		writer.ObjectStart("ContentFile");
-
-		writer.NewPropertyWithValue("FilePath", soundData.SoundFile.GetDataPath());
-
-		if (!soundData.Offset.IsZero())
-			writer.NewPropertyWithValue("Offset", soundData.Offset);
-
-		writer.NewDistinctProperty("MinimumAudibleDistance", soundData.MinimumAudibleDistance, 0.0F);
-		writer.NewDistinctProperty("AttenuationStartDistance", soundData.AttenuationStartDistance, -1.0F);
-
-		writer.ObjectEnd();
-	}
-
-	for (const SoundSet* subSoundSet: m_SubSoundSets) {
-		writer.NewPropertyWithValue("AddSoundSet", *subSoundSet);
-	}
-
-	return 0;
-}
-
-HashingData SoundSet::Hash() const {
-	HashingData hashData(Serializable::Hash());
-
-	hashData.Add(m_SoundSelectionCycleMode);
-
-	for (int i = 0; i < m_SoundData.size(); i++) {
-		const SoundData& data = m_SoundData.at(i);
-
-		hashData.Add(data.SoundFile.GetDataPath());
-		hashData.Add(data.Offset);
-		hashData.Add(data.MinimumAudibleDistance);
-		hashData.Add(data.AttenuationStartDistance);
-	}
-
-	for (int i = 0; i < m_SubSoundSets.size(); i++) {
-		hashData.Add(*m_SubSoundSets.at(i));
-	}
-
-	return hashData;
-}
-
 template <typename WriterType> int SoundSet::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 

@@ -12,7 +12,6 @@ namespace RTE {
 	public:
 		EntityAllocation(SLBackground);
 		EntityOverrideMethods;
-		WriterOverrideMethods;
 		ClassInfoGetters;
 
 #pragma region Creation

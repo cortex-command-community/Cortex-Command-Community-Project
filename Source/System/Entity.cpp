@@ -152,65 +152,6 @@ namespace RTE {
 		writer.ObjectEnd();
 	}
 
-	int Entity::Save(Writer& writer) const {
-		Serializable::Save(writer);
-
-		// This writes everything that differs from a new object, for what has no preset to compare against. See Write for what does.
-
-		if (m_IsOriginalPreset) {
-			writer.NewPropertyWithValue("PresetName", m_PresetName);
-		} else if (!m_PresetName.empty() && m_PresetName != "None") {
-			writer.NewPropertyWithValue("InstanceName", m_PresetName);
-		}
-
-		if (!m_PresetDescription.empty()) {
-			WriteDescription(writer, m_PresetDescription);
-		}
-
-		for (auto itr = m_Groups.begin(); itr != m_Groups.end(); ++itr) {
-		    writer.NewPropertyWithValue("AddToGroup", *itr);
-		}
-
-		writer.NewDistinctProperty("RandomWeight", m_RandomWeight, 100);
-
-		return 0;
-	}
-
-	int Entity::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-		writer.ObjectStart(GetClassName());
-
-		writer.NewPropertyWithValue("CopyOf", entityReference.GetModuleAndPresetName());
-
-		// If our preset name differs from the reference's, somehow, we may state the distinction.
-		if (m_IsOriginalPreset) {
-			writer.NewPropertyWithValue("PresetName", m_PresetName);
-		} else {
-			writer.NewDistinctProperty("InstanceName", m_PresetName, entityReference.m_PresetName);
-		}
-
-		if (m_PresetDescription != entityReference.m_PresetDescription) {
-			WriteDescription(writer, m_PresetDescription);
-		}
-		
-		writer.NewDistinctCollection("_ClearGroups", "AddToGroup", m_Groups, entityReference.m_Groups);
-
-		writer.NewDistinctProperty("RandomWeight", m_RandomWeight, entityReference.m_RandomWeight);
-
-		return 0;
-	}
-
-	HashingData Entity::Hash() const {
-		HashingData hashData(Serializable::Hash());
-
-		hashData.Add(m_PresetName);
-		hashData.Add(m_DefinedInModule);
-		hashData.Add(m_PresetDescription);
-		hashData.AddUnordered(m_Groups);
-		hashData.Add(m_RandomWeight);
-
-		return hashData;
-	}
-
 	template <typename WriterType> int Entity::WriteTo(WriterType& writer) const {
 		Serializable::WriteTo(writer);
 
@@ -228,19 +169,6 @@ namespace RTE {
 	}
 	template int Entity::WriteTo(IniWriter& writer) const;
 	template int Entity::WriteTo(HashWriter& writer) const;
-
-	int Entity::SavePresetCopy(Writer& writer) const {
-		// Can only save out copies with this
-		if (m_IsOriginalPreset) {
-			RTEAbort("Tried to save out a pure Preset Copy Reference from an original Preset!");
-			return -1;
-		}
-		writer.ObjectStart(GetClassName());
-		writer.NewPropertyWithValue("CopyOf", GetModuleAndPresetName());
-		writer.ObjectEnd();
-
-		return 0;
-	}
 
 	const Entity* Entity::GetPreset() const {
 		return g_PresetMan.GetEntityPreset(GetClassName(), GetPresetName(), m_DefinedInModule);
@@ -422,7 +350,7 @@ namespace RTE {
 		return m_InstancesInUse;
 	}
 
-	void Entity::ClassInfo::DumpPoolMemoryInfo(const Writer& fileWriter) {
+	void Entity::ClassInfo::DumpPoolMemoryInfo(const IniWriter& fileWriter) {
 		for (const ClassInfo* itr = s_ClassHead; itr != nullptr; itr = itr->m_NextClass) {
 			if (itr->IsConcrete()) {
 				fileWriter.NewLineString(itr->GetName() + ": " + std::to_string(itr->m_InstancesInUse), false);

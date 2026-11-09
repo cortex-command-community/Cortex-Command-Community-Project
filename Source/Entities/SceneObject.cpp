@@ -63,35 +63,6 @@ int SceneObject::SOPlacer::ReadProperty(const std::string_view& propName, Reader
 	EndPropertyList;
 }
 
-int SceneObject::SOPlacer::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	if (m_pObjectReference != nullptr)
-		writer.NewPropertyWithPresetReference("PlacedObject", m_pObjectReference);
-	if (!m_Offset.IsZero())
-		writer.NewPropertyWithValue("Offset", m_Offset);
-	if (m_RotAngle != 0.0F)
-		writer.NewPropertyWithValue("Rotation", Matrix(m_RotAngle));
-	if (m_HFlipped)
-		writer.NewPropertyWithValue("HFlipped", m_HFlipped);
-	if (m_Team > Activity::NoTeam)
-		writer.NewPropertyWithValue("Team", m_Team);
-
-	return 0;
-}
-
-HashingData SceneObject::SOPlacer::Hash() const {
-	HashingData hashData(Serializable::Hash());
-
-	hashData.AddPresetReference(m_pObjectReference);
-	hashData.Add(m_Offset);
-	hashData.Add(m_RotAngle);
-	hashData.Add(m_HFlipped);
-	hashData.Add(m_Team);
-
-	return hashData;
-}
-
 template <typename WriterType> int SceneObject::SOPlacer::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 
@@ -205,52 +176,6 @@ int SceneObject::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("PlacedByPlayer", { reader >> m_PlacedByPlayer; });
 
 	EndPropertyList;
-}
-
-int SceneObject::Save(Writer& writer) const {
-	Entity::Save(writer);
-
-	if (!m_Pos.IsZero())
-		writer.NewPropertyWithValue("Position", m_Pos);
-	writer.NewDistinctProperty("GoldValue", m_OzValue, 0);
-	writer.NewDistinctProperty("Buyable", m_Buyable, true);
-	if (m_BuyableMode != BuyableMode::NoRestrictions)
-		writer.NewPropertyWithValue("BuyableMode", static_cast<int>(m_BuyableMode));
-	writer.NewDistinctProperty("Team", m_Team, Activity::NoTeam);
-	writer.NewDistinctProperty("PlacedByPlayer", m_PlacedByPlayer, Players::NoPlayer);
-
-	return 0;
-}
-
-int SceneObject::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	Entity::Write(writer, entityReference, hashData);
-
-	const SceneObject& reference = static_cast<const SceneObject&>(entityReference);
-
-	writer.NewDistinctProperty("Position", m_Pos, reference.m_Pos);
-	writer.NewDistinctProperty("GoldValue", m_OzValue, reference.m_OzValue);
-	writer.NewDistinctProperty("Buyable", m_Buyable, reference.m_Buyable);
-
-	if (m_BuyableMode != reference.m_BuyableMode)
-		writer.NewPropertyWithValue("BuyableMode", static_cast<int>(m_BuyableMode));
-
-	writer.NewDistinctProperty("Team", m_Team, reference.m_Team);
-	writer.NewDistinctProperty("PlacedByPlayer", m_PlacedByPlayer, reference.m_PlacedByPlayer);
-
-	return 0;
-}
-
-HashingData SceneObject::Hash() const {
-	HashingData hashData(Entity::Hash());
-
-	hashData.Add(m_Pos);
-	hashData.Add(m_OzValue);
-	hashData.Add(m_Buyable);
-	hashData.Add(m_BuyableMode);
-	hashData.Add(m_Team);
-	hashData.Add(m_PlacedByPlayer);
-
-	return hashData;
 }
 
 template <typename WriterType> int SceneObject::WriteTo(WriterType& writer) const {

@@ -77,7 +77,7 @@ int SettingsMan::Initialize() {
 	Reader settingsReader(m_SettingsPath, false, nullptr, true, true);
 
 	if (!settingsReader.ReaderOK()) {
-		Writer settingsWriter(m_SettingsPath);
+		IniWriter settingsWriter(m_SettingsPath);
 		RTEAssert(settingsWriter.WriterOK(), "After failing to open the " + m_SettingsPath + ", could not then even create a new one to save settings to!\nAre you trying to run the game from a read-only disk?\nYou need to install the game to a writable area before running it!");
 
 		// Settings file doesn't need to be populated with anything right now besides this manager's ClassName for serialization. It will be overwritten with the full list of settings with default values from all the managers before modules start loading.
@@ -101,8 +101,8 @@ int SettingsMan::Initialize() {
 }
 
 void SettingsMan::UpdateSettingsFile() const {
-	Writer settingsWriter(m_SettingsPath);
-	g_SettingsMan.Save(settingsWriter);
+	IniWriter settingsWriter(m_SettingsPath);
+	settingsWriter.WriteObject(g_SettingsMan);
 }
 
 int SettingsMan::GetNumberOfLuaStatesOverride() const {
@@ -222,198 +222,6 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	});
 
 	EndPropertyList;
-}
-
-int SettingsMan::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	writer.NewDivider(false);
-	writer.NewLineString("// Display Settings", false);
-	writer.NewLine(false);
-	writer.NewPropertyWithValue("PaletteFile", g_FrameMan.m_PaletteFile);
-	writer.NewPropertyWithValue("ResolutionX", g_WindowMan.m_ResX);
-	writer.NewPropertyWithValue("ResolutionY", g_WindowMan.m_ResY);
-	writer.NewPropertyWithValue("ResolutionMultiplier", g_WindowMan.m_ResMultiplier);
-	writer.NewPropertyWithValue("Fullscreen", g_WindowMan.m_Fullscreen);
-	writer.NewPropertyWithValue("EnableVSync", g_WindowMan.m_EnableVSync);
-	writer.NewPropertyWithValue("UseMultiDisplays", g_WindowMan.m_UseMultiDisplays);
-	writer.NewPropertyWithValue("LaunchMinimised", g_WindowMan.m_LaunchMinimised);
-	writer.NewPropertyWithValue("TwoPlayerSplitscreenVertSplit", g_FrameMan.m_TwoPlayerVSplit);
-
-	writer.NewLine(false, 2);
-	writer.NewDivider(false);
-	writer.NewLineString("// Audio Settings", false);
-	writer.NewLine(false);
-	writer.NewPropertyWithValue("MasterVolume", g_AudioMan.m_MasterVolume * 100);
-	writer.NewPropertyWithValue("MuteMaster", g_AudioMan.m_MuteMaster);
-	writer.NewPropertyWithValue("MusicVolume", g_AudioMan.m_MusicVolume * 100);
-	writer.NewPropertyWithValue("MuteMusic", g_AudioMan.m_MuteMusic);
-	writer.NewPropertyWithValue("SoundVolume", g_AudioMan.m_SoundsVolume * 100);
-	writer.NewPropertyWithValue("MuteSounds", g_AudioMan.m_MuteSounds);
-	writer.NewPropertyWithValue("MuteAudioOnFocusLoss", g_AudioMan.m_MuteAudioOnFocusLoss);
-	writer.NewPropertyWithValue("SoundPanningEffectStrength", g_AudioMan.m_SoundPanningEffectStrength);
-
-	//////////////////////////////////////////////////
-	// TODO These need to be removed when our soundscape is sorted out. They're only here temporarily to allow for easier tweaking.
-	writer.NewPropertyWithValue("ListenerZOffset", g_AudioMan.m_ListenerZOffset);
-	writer.NewPropertyWithValue("MinimumDistanceForPanning", g_AudioMan.m_MinimumDistanceForPanning);
-	//////////////////////////////////////////////////
-
-	writer.NewLine(false, 2);
-	writer.NewDivider(false);
-	writer.NewLineString("// Gameplay Settings", false);
-	writer.NewLine(false);
-	writer.NewPropertyWithValue("ShowForeignItems", m_ShowForeignItems);
-	writer.NewPropertyWithValue("FlashOnBrainDamage", m_FlashOnBrainDamage);
-	writer.NewPropertyWithValue("BlipOnRevealUnseen", m_BlipOnRevealUnseen);
-	writer.NewPropertyWithValue("MaxUnheldItems", g_MovableMan.m_MaxDroppedItems);
-	writer.NewPropertyWithValue("UnheldItemsHUDDisplayRange", m_UnheldItemsHUDDisplayRange);
-	writer.NewPropertyWithValue("AlwaysDisplayUnheldItemsInStrategicMode", m_AlwaysDisplayUnheldItemsInStrategicMode);
-	writer.NewPropertyWithValue("SubPieMenuHoverOpenDelay", m_SubPieMenuHoverOpenDelay);
-	writer.NewPropertyWithValue("EndlessMetaGameMode", m_EndlessMetaGameMode);
-	writer.NewPropertyWithValue("EnableCrabBombs", m_EnableCrabBombs);
-	writer.NewPropertyWithValue("CrabBombThreshold", m_CrabBombThreshold);
-	writer.NewPropertyWithValue("ShowEnemyHUD", m_ShowEnemyHUD);
-	writer.NewPropertyWithValue("SmartBuyMenuNavigation", m_EnableSmartBuyMenuNavigation);
-	writer.NewPropertyWithValue("ScrapCompactingHeight", g_SceneMan.m_ScrapCompactingHeight);
-	writer.NewPropertyWithValue("AutomaticGoldDeposit", m_AutomaticGoldDeposit);
-
-	writer.NewLine(false, 2);
-	writer.NewDivider(false);
-	writer.NewLineString("// Screen Shake Settings", false);
-	writer.NewLine(false);
-	writer.NewPropertyWithValue("ScreenShakeStrength", g_CameraMan.m_ScreenShakeStrength);
-	writer.NewPropertyWithValue("ScreenShakeDecay", g_CameraMan.m_ScreenShakeDecay);
-	writer.NewPropertyWithValue("MaxScreenShakeTime", g_CameraMan.m_MaxScreenShakeTime);
-	writer.NewPropertyWithValue("DefaultShakePerUnitOfGibEnergy", g_CameraMan.m_DefaultShakePerUnitOfGibEnergy);
-	writer.NewPropertyWithValue("DefaultShakePerUnitOfRecoilEnergy", g_CameraMan.m_DefaultShakePerUnitOfRecoilEnergy);
-	writer.NewPropertyWithValue("DefaultShakeFromRecoilMaximum", g_CameraMan.m_DefaultShakeFromRecoilMaximum);
-
-	writer.NewLine(false, 2);
-	writer.NewDivider(false);
-	writer.NewLineString("// Default Activity Settings", false);
-	writer.NewLine(false);
-	writer.NewPropertyWithValue("LaunchIntoActivity", g_ActivityMan.m_LaunchIntoActivity);
-	writer.NewPropertyWithValue("DefaultActivityType", g_ActivityMan.m_DefaultActivityType);
-	writer.NewPropertyWithValue("DefaultActivityName", g_ActivityMan.m_DefaultActivityName);
-	writer.NewPropertyWithValue("DefaultSceneName", g_SceneMan.m_DefaultSceneName);
-
-	writer.NewLine(false, 2);
-	writer.NewDivider(false);
-	writer.NewLineString("// Engine Settings", false);
-	writer.NewLine(false);
-	writer.NewPropertyWithValue("DisableLuaJIT", m_DisableLuaJIT);
-	writer.NewPropertyWithValue("EnableLuaDebugging", m_EnableLuaDebugging);
-	writer.NewPropertyWithValue("DisableCrashDialogs", RTEError::s_DisableCrashDialogs);
-	writer.NewPropertyWithValue("RecommendedMOIDCount", m_RecommendedMOIDCount);
-	writer.NewPropertyWithValue("SceneBackgroundAutoScaleMode", m_SceneBackgroundAutoScaleMode);
-	writer.NewPropertyWithValue("DisableFactionBuyMenuThemes", m_DisableFactionBuyMenuThemes);
-	writer.NewPropertyWithValue("DisableFactionBuyMenuThemeCursors", m_DisableFactionBuyMenuThemeCursors);
-	writer.NewPropertyWithValue("PathFinderGridNodeSize", m_PathFinderGridNodeSize);
-	writer.NewPropertyWithValue("AIUpdateInterval", m_AIUpdateInterval);
-	writer.NewPropertyWithValue("NumberOfLuaStatesOverride", m_NumberOfLuaStatesOverride);
-	writer.NewPropertyWithValue("ForceImmediatePathingRequestCompletion", m_ForceImmediatePathingRequestCompletion);
-	writer.NewPropertyWithValue("EnableParticleSettling", g_MovableMan.m_SettlingEnabled);
-	writer.NewPropertyWithValue("EnableMOSubtraction", g_MovableMan.m_MOSubtractionEnabled);
-	writer.NewPropertyWithValue("DeltaTime", g_TimerMan.GetDeltaTimeSecs());
-
-	// No experimental settings right now :)
-	// writer.NewLine(false, 2);
-	// writer.NewDivider(false);
-	// writer.NewLineString("// Engine Settings - EXPERIMENTAL", false);
-	// writer.NewLineString("// These settings are experimental! They may break mods, crash the game, corrupt saves or worse. Use at your own risk.", false);
-	// writer.NewLine(false);
-
-	writer.NewLine(false, 2);
-	writer.NewDivider(false);
-	writer.NewLineString("// Editor Settings", false);
-	writer.NewLine(false);
-	writer.NewPropertyWithValue("AllowSavingToBase", m_AllowSavingToBase);
-	writer.NewPropertyWithValue("ShowMetaScenes", m_ShowMetaScenes);
-
-	writer.NewLine(false, 2);
-	writer.NewDivider(false);
-	writer.NewLineString("// Misc Settings", false);
-	writer.NewLine(false);
-	writer.NewPropertyWithValue("SkipIntro", m_SkipIntro);
-	writer.NewPropertyWithValue("ShowToolTips", m_ShowToolTips);
-	writer.NewPropertyWithValue("CaseSensitiveFilePaths", System::FilePathsCaseSensitive());
-	writer.NewPropertyWithValue("DisableLoadingScreenProgressReport", m_DisableLoadingScreenProgressReport);
-	writer.NewPropertyWithValue("LoadingScreenProgressReportPrecision", m_LoadingScreenProgressReportPrecision);
-	writer.NewPropertyWithValue("ConsoleScreenRatio", g_ConsoleMan.m_ConsoleScreenRatio);
-	writer.NewPropertyWithValue("ConsoleUseMonospaceFont", g_ConsoleMan.m_ConsoleUseMonospaceFont);
-	writer.NewPropertyWithValue("AdvancedPerformanceStats", g_PerformanceMan.m_AdvancedPerfStats);
-	writer.NewPropertyWithValue("MenuTransitionDurationMultiplier", m_MenuTransitionDurationMultiplier);
-
-	writer.NewLine(false, 2);
-	writer.NewDivider(false);
-	writer.NewLineString("// Modder Debug Settings", false);
-	writer.NewLine(false);
-	writer.NewPropertyWithValue("DrawAtomGroupVisualizations", m_DrawAtomGroupVisualizations);
-	writer.NewPropertyWithValue("DrawHandAndFootGroupVisualizations", m_DrawHandAndFootGroupVisualizations);
-	writer.NewPropertyWithValue("DrawLimbPathVisualizations", m_DrawLimbPathVisualizations);
-	writer.NewPropertyWithValue("DrawRaycastVisualizations", g_SceneMan.m_DrawRayCastVisualizations);
-	writer.NewPropertyWithValue("DrawPixelCheckVisualizations", g_SceneMan.m_DrawPixelCheckVisualizations);
-	writer.NewPropertyWithValue("PrintDebugInfo", m_PrintDebugInfo);
-	writer.NewPropertyWithValue("MeasureModuleLoadTime", m_MeasureModuleLoadTime);
-
-	if (!m_VisibleAssemblyGroupsList.empty()) {
-		writer.NewLine(false, 2);
-		writer.NewDivider(false);
-		writer.NewLineString("// Enabled Bunker Assembly Groups", false);
-		writer.NewLine(false);
-		for (const std::string& visibleAssembly: m_VisibleAssemblyGroupsList) {
-			writer.NewPropertyWithValue("VisibleAssemblyGroup", visibleAssembly);
-		}
-	}
-
-	if (!m_DisabledMods.empty()) {
-		writer.NewLine(false, 2);
-		writer.NewDivider(false);
-		writer.NewLineString("// Disabled Mods", false);
-		writer.NewLine(false);
-		for (const auto& [modPath, modDisabled]: m_DisabledMods) {
-			if (modDisabled) {
-				writer.NewPropertyWithValue("DisableMod", modPath);
-			}
-		}
-	}
-
-	if (!m_EnabledGlobalScripts.empty()) {
-		writer.NewLine(false, 2);
-		writer.NewDivider(false);
-		writer.NewLineString("// Enabled Global Scripts", false);
-		writer.NewLine(false);
-		for (const auto& [scriptPresetName, scriptEnabled]: m_EnabledGlobalScripts) {
-			if (scriptEnabled) {
-				writer.NewPropertyWithValue("EnableGlobalScript", scriptPresetName);
-			}
-		}
-	}
-
-	writer.NewLine(false, 2);
-	writer.NewDivider(false);
-	writer.NewLineString("// Input Mapping", false);
-	writer.NewLine(false);
-	writer.NewPropertyWithValue("ForceDisableMultimouse", g_UInputMan.m_ForceDisableMultiMouseKeyboard);
-	writer.NewPropertyWithValue("MouseSensitivity", g_UInputMan.m_MouseSensitivity);
-
-	writer.NewLine(false);
-	writer.NewLineString("// Input Devices:  0 = Keyboard Only, 1 = Mouse + Keyboard, 2 = Gamepad One, 3 = Gamepad Two, , 4 = Gamepad Three, 5 = Gamepad Four");
-	writer.NewLineString("// Scheme Presets: 0 = No Preset, 1 = Arrow Keys, 2 = WASD Keys, 3 = Mouse + WASD Keys, 4 = Generic DPad, 5 = Generic Dual Analog, 6 = SNES, 7 = DualShock 4, 8 = XBox 360");
-
-	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; player++) {
-		std::string playerNum = std::to_string(player + 1);
-		writer.NewLine(false, 2);
-		writer.NewDivider(false);
-		writer.NewLineString("// Player " + playerNum, false);
-		writer.NewLine(false);
-		writer.NewPropertyWithValue("Player" + playerNum + "Scheme", g_UInputMan.m_ControlScheme[player]);
-	}
-
-	writer.ObjectEnd();
-
-	return 0;
 }
 
 template <typename WriterType> int SettingsMan::WriteTo(WriterType& writer) const {

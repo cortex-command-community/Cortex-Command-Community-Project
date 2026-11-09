@@ -16,7 +16,6 @@ namespace RTE {
 	public:
 		EntityAllocation(SoundContainer);
 		EntityOverrideMethods;
-		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// The FMOD channelgroup/bus this sound routes through.

@@ -57,27 +57,6 @@ int Box::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Box::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	if (!m_Corner.IsZero())
-		writer.NewPropertyWithValue("Corner", m_Corner);
-	writer.NewDistinctProperty("Width", m_Width, 0.0F);
-	writer.NewDistinctProperty("Height", m_Height, 0.0F);
-
-	return 0;
-}
-
-HashingData Box::Hash() const {
-	HashingData hashData(Serializable::Hash());
-
-	hashData.Add(m_Corner);
-	hashData.Add(m_Width);
-	hashData.Add(m_Height);
-
-	return hashData;
-}
-
 template <typename WriterType> int Box::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 

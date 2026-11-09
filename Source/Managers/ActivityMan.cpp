@@ -141,7 +141,7 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 	std::unique_ptr<std::stringstream> iniStream = std::make_unique<std::stringstream>();
 
 	// Block the main thread for a bit to let the Writer access the relevant data.
-	std::unique_ptr<Writer> writer(std::make_unique<Writer>(std::move(iniStream)));
+	std::unique_ptr<IniWriter> writer(std::make_unique<IniWriter>(std::move(iniStream)));
 	writer->NewPropertyWithValue("Activity", activity);
 
 	// Pull all stuff from MovableMan into the Scene for saving, so existing Actors/ADoors are saved, without transferring ownership, so the game can continue.
@@ -163,11 +163,11 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 
 	// Save a small little file with index info (activity and original scene name) so we can display info in the samegame menu without needing to decompress and read through the entire zip
 	std::unique_ptr<std::stringstream> indexStream = std::make_unique<std::stringstream>();
-	Writer* indexWriter = new Writer(std::move(indexStream));
+	IniWriter* indexWriter = new IniWriter(std::move(indexStream));
 	indexWriter->NewPropertyWithValue("ActivityName", activity->GetPresetName());
 	indexWriter->NewPropertyWithValue("OriginalScenePresetName", scene->GetPresetName());
 
-	auto saveWriterData = [fileName, sceneLayerInfos, indexWriter](Writer* mainWriter) {
+	auto saveWriterData = [fileName, sceneLayerInfos, indexWriter](IniWriter* mainWriter) {
 		// Create zip sav file
 		zipFile zippedSaveFile = zipOpen((g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + "/" + fileName + ".ccsave").c_str(), APPEND_STATUS_CREATE);
 		if (!zippedSaveFile) {

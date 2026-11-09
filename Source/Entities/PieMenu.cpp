@@ -219,66 +219,6 @@ int PieMenu::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int PieMenu::Save(Writer& writer) const {
-	Entity::Save(writer);
-
-	writer.NewPropertyWithValue("IconSeparatorMode", static_cast<int>(m_IconSeparatorMode));
-	writer.NewPropertyWithValue("FullInnerRadius", m_FullInnerRadius);
-	writer.NewPropertyWithValue("BackgroundThickness", m_BackgroundThickness);
-	writer.NewPropertyWithValue("BackgroundSeparatorSize", m_BackgroundSeparatorSize);
-	writer.NewPropertyWithValue("DrawBackgroundTransparent", m_DrawBackgroundTransparent);
-	writer.NewPropertyWithValue("BackgroundColor", m_BackgroundColor);
-	writer.NewPropertyWithValue("BackgroundBorderColor", m_BackgroundBorderColor);
-	writer.NewPropertyWithValue("SelectedItemBackgroundColor", m_SelectedItemBackgroundColor);
-
-	for (const PieSlice* pieSlice: m_CurrentPieSlices) {
-		if (pieSlice->GetOriginalSource() == m_Owner) {
-			writer.NewPropertyWithValue("AddPieSlice", pieSlice);
-		}
-	}
-
-	return 0;
-}
-
-int PieMenu::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	Entity::Write(writer, entityReference, hashData);
-
-	const PieMenu& reference = static_cast<const PieMenu&>(entityReference);
-
-	if (m_IconSeparatorMode != reference.m_IconSeparatorMode)
-		writer.NewPropertyWithValue("IconSeparatorMode", static_cast<int>(m_IconSeparatorMode));
-
-	writer.NewDistinctProperty("FullInnerRadius", m_FullInnerRadius, reference.m_FullInnerRadius);
-	writer.NewDistinctProperty("BackgroundThickness", m_BackgroundThickness, reference.m_BackgroundThickness);
-	writer.NewDistinctProperty("BackgroundSeparatorSize", m_BackgroundSeparatorSize, reference.m_BackgroundSeparatorSize);
-	writer.NewDistinctProperty("DrawBackgroundTransparent", m_DrawBackgroundTransparent, reference.m_DrawBackgroundTransparent);
-	writer.NewDistinctProperty("BackgroundColor", m_BackgroundColor, reference.m_BackgroundColor);
-	writer.NewDistinctProperty("BackgroundBorderColor", m_BackgroundBorderColor, reference.m_BackgroundBorderColor);
-	writer.NewDistinctProperty("SelectedItemBackgroundColor", m_SelectedItemBackgroundColor, reference.m_SelectedItemBackgroundColor);
-	writer.NewPointerSequenceConditional("_ClearPieSlices", "AddPieSlice", m_CurrentPieSlices, hashData, [&](const PieSlice* slice) {
-		return slice->GetOriginalSource() == m_Owner;
-	});
-
-	return 0;
-}
-
-HashingData PieMenu::Hash() const {
-	HashingData hashData(Entity::Hash());
-
-	hashData.Add(m_IconSeparatorMode);
-	hashData.Add(m_FullInnerRadius);
-	hashData.Add(m_BackgroundThickness);
-	hashData.Add(m_BackgroundSeparatorSize);
-	hashData.Add(m_DrawBackgroundTransparent);
-	hashData.Add(m_BackgroundColor);
-	hashData.Add(m_BackgroundBorderColor);
-	hashData.Add(m_SelectedItemBackgroundColor);
-
-	hashData.AddPointerSequenceConditional(m_CurrentPieSlices, [&](const auto& pieSlice) { return pieSlice->GetOriginalSource() == m_Owner; });
-
-	return hashData;
-}
-
 template <typename WriterType> int PieMenu::WriteTo(WriterType& writer) const {
 	Entity::WriteTo(writer);
 

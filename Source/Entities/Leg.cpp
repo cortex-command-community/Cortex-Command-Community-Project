@@ -98,48 +98,6 @@ int Leg::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Leg::Save(Writer& writer) const {
-	Attachable::Save(writer);
-
-	writer.NewPropertyWithValue("Foot", m_Foot);
-	writer.NewPropertyWithValue("ContractedOffset", m_ContractedOffset);
-	writer.NewPropertyWithValue("ExtendedOffset", m_ExtendedOffset);
-	writer.NewPropertyWithValue("IdleOffset", m_IdleOffset);
-	writer.NewPropertyWithValue("WillIdle", m_WillIdle);
-	writer.NewPropertyWithValue("MoveSpeed", m_MoveSpeed);
-
-	return 0;
-}
-
-int Leg::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	Attachable::Write(writer, entityReference, hashData);
-
-	const Leg& reference = static_cast<const Leg&>(entityReference);
-
-	writer.NewOptionalEntityPointerProperty("Foot", m_Foot, hashData);
-	writer.NewDistinctProperty("ContractedOffset", m_ContractedOffset, reference.m_ContractedOffset);
-	writer.NewDistinctProperty("ExtendedOffset", m_ExtendedOffset, reference.m_ExtendedOffset);
-	writer.NewDistinctProperty("IdleOffset", m_IdleOffset, reference.m_IdleOffset);
-	writer.NewDistinctProperty("WillIdle", m_WillIdle, reference.m_WillIdle);
-	writer.NewDistinctProperty("MoveSpeed", m_MoveSpeed, reference.m_MoveSpeed);
-
-	return 0;
-}
-
-HashingData Leg::Hash() const {
-	HashingData hashData(Attachable::Hash());
-
-	hashData.AddOptionalEntityPointer(m_Foot);
-
-	hashData.Add(m_ContractedOffset);
-	hashData.Add(m_ExtendedOffset);
-	hashData.Add(m_IdleOffset);
-	hashData.Add(m_WillIdle);
-	hashData.Add(m_MoveSpeed);
-
-	return hashData;
-}
-
 template <typename WriterType> int Leg::WriteTo(WriterType& writer) const {
 	Attachable::WriteTo(writer);
 

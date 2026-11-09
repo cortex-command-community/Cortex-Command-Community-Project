@@ -64,44 +64,6 @@ int Gib::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Gib::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	if (m_GibParticle != nullptr)
-		writer.NewPropertyWithPresetReference("GibParticle", m_GibParticle);
-	if (!m_Offset.IsZero())
-		writer.NewPropertyWithValue("Offset", m_Offset);
-	writer.NewDistinctProperty("Count", m_Count, 1);
-	writer.NewDistinctProperty("Spread", m_Spread, 0.1F);
-	writer.NewDistinctProperty("MinVelocity", GetMinVelocity(), 0.0F);
-	writer.NewDistinctProperty("MaxVelocity", GetMaxVelocity(), 0.0F);
-	writer.NewDistinctProperty("LifeVariation", m_LifeVariation, 0.1F);
-	writer.NewDistinctProperty("InheritsVel", m_InheritsVel, 1.0F);
-	writer.NewDistinctProperty("InheritsAngularVel", m_InheritsAngularVel, 1.0F);
-	writer.NewDistinctProperty("IgnoresTeamHits", m_IgnoresTeamHits, false);
-	writer.NewDistinctProperty("SpreadMode", m_SpreadMode, SpreadMode::SpreadRandom);
-
-	return 0;
-}
-
-HashingData Gib::Hash() const {
-	HashingData hashData(Serializable::Hash());
-
-	hashData.AddPresetReference(m_GibParticle);
-	hashData.Add(m_Offset);
-	hashData.Add(m_Count);
-	hashData.Add(m_Spread);
-	hashData.Add(m_MinVelocity);
-	hashData.Add(m_MaxVelocity);
-	hashData.Add(m_LifeVariation);
-	hashData.Add(m_InheritsVel);
-	hashData.Add(m_InheritsAngularVel);
-	hashData.Add(m_IgnoresTeamHits);
-	hashData.Add(m_SpreadMode);
-
-	return hashData;
-}
-
 template <typename WriterType> int Gib::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 

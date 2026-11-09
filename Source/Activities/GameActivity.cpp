@@ -263,53 +263,6 @@ int GameActivity::ReadProperty(const std::string_view& propName, Reader& reader)
 	EndPropertyList;
 }
 
-int GameActivity::Save(Writer& writer) const {
-	Activity::Save(writer);
-
-	writer.NewPropertyWithValue("CPUTeam", m_CPUTeam);
-	writer.NewPropertyWithValue("DeliveryDelay", m_DeliveryDelay);
-	writer.NewPropertyWithValue("BuyMenuEnabled", m_BuyMenuEnabled);
-
-	// Note - these special behaviour properties are for saving and loading. Normally these fields are set by the Activity config GUI.
-	writer.NewPropertyWithValue("_StartingGold", m_StartingGold);
-	writer.NewPropertyWithValue("_FogOfWarEnabled", m_FogOfWarEnabled);
-
-	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
-		for (const Delivery& delivery: m_Deliveries[team]) {
-			writer.NewPropertyWithValue("AddDelivery", delivery);
-		}
-	}
-
-	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-		writer.NewPropertyWithValue("Team" + std::to_string(team + 1) + "Tech", GetTeamTech(team));
-	}
-
-	return 0;
-}
-
-int GameActivity::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	Activity::Write(writer, entityReference, hashData);
-
-	writer.NewPropertyWithValue("CPUTeam", m_CPUTeam);
-	writer.NewPropertyWithValue("DeliveryDelay", m_DeliveryDelay);
-	writer.NewPropertyWithValue("BuyMenuEnabled", m_BuyMenuEnabled);
-
-	writer.NewPropertyWithValue("_StartingGold", m_StartingGold);
-	writer.NewPropertyWithValue("_FogOfWarEnabled", m_FogOfWarEnabled);
-
-	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; ++team) {
-		for (const Delivery& delivery: m_Deliveries[team]) {
-			writer.NewPropertyWithValue("AddDelivery", delivery);
-		}
-	}
-
-	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-		writer.NewPropertyWithValue("Team" + std::to_string(team + 1) + "Tech", GetTeamTech(team));
-	}
-
-	return 0;
-}
-
 const std::string GameActivity::Delivery::c_ClassName = "Delivery";
 
 int GameActivity::Delivery::ReadProperty(const std::string_view& propName, Reader& reader) {
@@ -322,24 +275,6 @@ int GameActivity::Delivery::ReadProperty(const std::string_view& propName, Reade
 	MatchProperty("RemainingDelay", { reader >> delay; });
 
 	EndPropertyList;
-}
-
-int GameActivity::Delivery::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	writer.NewPropertyWithValue("OrderedByPlayer", orderedByPlayer);
-	writer.NewPropertyWithValue("LandingZone", landingZone);
-	writer.NewPropertyWithValue("MultiOrderYOffset", multiOrderYOffset);
-	// Sim time starts over on every load, so what's worth keeping is how long is left, not when this was ordered.
-	writer.NewPropertyWithValue("RemainingDelay", static_cast<long>(std::max(0.0, static_cast<double>(delay) - timer.GetElapsedSimTimeMS())));
-	writer.NewPropertyWithValue("Craft", *pCraft);
-
-	return 0;
-}
-
-HashingData GameActivity::Delivery::Hash() const {
-	// Presets don't have deliveries, so there's nothing for this to be compared against.
-	return Serializable::Hash();
 }
 
 template <typename WriterType> int GameActivity::Delivery::WriteTo(WriterType& writer) const {
@@ -356,22 +291,6 @@ template <typename WriterType> int GameActivity::Delivery::WriteTo(WriterType& w
 }
 template int GameActivity::Delivery::WriteTo(IniWriter& writer) const;
 template int GameActivity::Delivery::WriteTo(HashWriter& writer) const;
-
-HashingData GameActivity::Hash() const {
-	HashingData hashData(Activity::Hash());
-
-	hashData.Add(m_CPUTeam);
-	hashData.Add(m_DeliveryDelay);
-	hashData.Add(m_BuyMenuEnabled);
-
-	for (int team = Teams::TeamOne; team < Teams::MaxTeamCount; team++) {
-		if (m_TeamActive[team]) {
-			hashData.Add(GetTeamTech(team));
-		}
-	}
-
-	return hashData;
-}
 
 template <typename WriterType> int GameActivity::WriteTo(WriterType& writer) const {
 	Activity::WriteTo(writer);

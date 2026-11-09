@@ -12,7 +12,7 @@ using namespace RTE;
 const std::string DataModule::c_ClassName = "DataModule";
 
 DataModule::PresetEntry::PresetEntry(Entity* preset, const std::string& file) :
-    m_EntityPreset(preset), m_FileReadFrom(file), m_Hash(preset->Hash()) {}
+    m_EntityPreset(preset), m_FileReadFrom(file) {}
 
 DataModule::DataModule() {
 	Clear();
@@ -93,13 +93,13 @@ int DataModule::Create(const std::string& moduleName, const ProgressCallback& pr
 
 bool DataModule::CreateOnDiskAsUserdata(const std::string& moduleName, const std::string_view& friendlyName, bool ignoreMissingItems, bool scanFolderContents) {
 	std::string moduleNameWithPackageExtension = System::GetUserdataDirectory() + moduleName + (moduleName.ends_with(System::GetModulePackageExtension()) ? "" : System::GetModulePackageExtension());
-	if (Writer writer(moduleNameWithPackageExtension + "/Index.ini", false, true); writer.WriterOK()) {
+	if (IniWriter writer(moduleNameWithPackageExtension + "/Index.ini", false, true); writer.WriterOK()) {
 		DataModule newModule;
 		newModule.m_IsUserdata = true;
 		newModule.m_FriendlyName = friendlyName;
 		newModule.m_IgnoreMissingItems = ignoreMissingItems;
 		newModule.m_ScanFolderContents = scanFolderContents;
-		newModule.Save(writer);
+		writer.WriteObject(newModule);
 		writer.EndWrite();
 	} else {
 		return false;
@@ -221,30 +221,6 @@ int DataModule::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int DataModule::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	writer.NewPropertyWithValue("ModuleName", m_FriendlyName);
-
-	if (!m_IsUserdata) {
-		writer.NewPropertyWithValue("Author", m_Author);
-		writer.NewPropertyWithValue("Description", m_Description);
-		writer.NewPropertyWithValue("IsFaction", m_IsFaction);
-		writer.NewPropertyWithValue("SupportedGameVersion", m_SupportedGameVersion->str());
-		writer.NewPropertyWithValue("Version", m_Version);
-		writer.NewPropertyWithValue("IconFile", m_IconFile);
-
-		// TODO: Write out all the different entity instances, each having their own relative location within the data module stored
-		// Will need the writer to be able to open different files and append to them as needed, probably done in NewEntity()
-		// writer.NewEntity()
-	} else {
-		writer.NewPropertyWithValue("ScanFolderContents", m_ScanFolderContents);
-		writer.NewPropertyWithValue("IgnoreMissingItems", m_IgnoreMissingItems);
-	}
-
-	return 0;
-}
-
 template <typename WriterType> int DataModule::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 
@@ -288,23 +264,6 @@ std::string DataModule::GetEntityDataLocation(const std::string& exactType, cons
 	return "";
 }
 
-const HashingData* DataModule::GetEntityHash(const std::string& exactType, const std::string& instance) {
-	const Entity* foundEntity = GetEntityPreset(exactType, instance);
-	if (foundEntity == nullptr) {
-		return nullptr;
-	}
-
-	// Search for entity in instanceList
-	for (const PresetEntry& presetListEntry: m_PresetList) {
-		if (presetListEntry.m_EntityPreset == foundEntity) {
-			return &(presetListEntry.m_Hash);
-		}
-	}
-
-	RTEAbort("Tried to find allegedly existing Entity Preset Entry: " + foundEntity->GetPresetName() + ", but couldn't!");
-	return nullptr;
-}
-
 const Entity* DataModule::GetEntityPreset(const std::string& exactType, const std::string& instance) {
 	if (exactType.empty() || instance == "None" || instance.empty()) {
 		return nullptr;
@@ -344,7 +303,6 @@ bool DataModule::AddEntityPreset(Entity* entityToAdd, bool overwriteSame, const 
 					if (readFromFile != "Same") {
 						(*itr).m_FileReadFrom = readFromFile;
 					}
-					(*itr).m_Hash = existingEntity->Hash();
 					break;
 				}
 			}

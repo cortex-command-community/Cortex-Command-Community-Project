@@ -168,7 +168,7 @@ namespace RTE {
 		Entity* ReadReflectedPreset(Reader& reader);
 
 		/// Reads an Entity for a property that owns it, as ReadReflectedPreset does, and makes sure of its type.
-		/// A value of "None" means the property is to hold nothing, as Writer::NewOptionalEntityPointerProperty writes it.
+		/// A value of "None" means the property is to hold nothing, as PropertyWriter::NewOptionalEntityPointerProperty writes it.
 		/// @param reader The Reader which is about to read the property's value.
 		/// @param propName The name of the property being read, for reporting errors.
 		/// @return The Entity read, or nullptr if the value was "None" or not of the type asked for. Ownership IS transferred!
@@ -296,14 +296,6 @@ namespace RTE {
 		/// @return The file path of the data file that the specified Entity was read from.
 		/// If no Entity of that description was found, "" is returned.
 		std::string GetEntityDataLocation(const std::string& type, const std::string& preset, int whichModule);
-
-		/// Gets the hash data stored for a previously read in (defined) Entity.
-		/// @param type The type name of the derived Entity.
-		/// @param preset The preset name of the derived Entity preset.
-		/// @param whichModule Which module to try to get the entity from. If it's not found there,
-		/// the official modules will be searched also.
-		/// @return The hash data of the specified Entity, or nullptr if no Entity of that description was found. Ownership is NOT transferred!
-		const HashingData* GetEntityHash(std::string type, std::string preset, int whichModule);
 
 		/// Reloads all scripted Entity Presets with the latest version of their respective script files.
 		void ReloadAllScripts() const;

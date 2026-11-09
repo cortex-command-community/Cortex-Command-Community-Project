@@ -23,7 +23,6 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(Loadout);
 		EntityOverrideMethods;
-		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a Loadout object in system

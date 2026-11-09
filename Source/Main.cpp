@@ -161,7 +161,7 @@ void DestroyManagers() {
 	g_WindowMan.Destroy();
 
 #ifdef DEBUG_BUILD
-	Entity::ClassInfo::DumpPoolMemoryInfo(Writer("MemCleanupInfo.txt"));
+	Entity::ClassInfo::DumpPoolMemoryInfo(IniWriter("MemCleanupInfo.txt"));
 #endif
 }
 

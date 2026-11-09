@@ -94,55 +94,6 @@ int Magazine::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Magazine::Save(Writer& writer) const {
-	Attachable::Save(writer);
-
-	writer.NewPropertyWithValue("RoundCount", m_RoundCount);
-	writer.NewPropertyWithValue("FullCapacity", m_FullCapacity);
-	writer.NewPropertyWithValue("RTTRatio", m_RTTRatio);
-	writer.NewPropertyWithPresetReference("RegularRound", m_pRegularRound);
-	writer.NewPropertyWithPresetReference("TracerRound", m_pTracerRound);
-	writer.NewPropertyWithValue("Discardable", m_Discardable);
-	writer.NewPropertyWithValue("AIBlastRadius", m_AIBlastRadius);
-
-	return 0;
-}
-
-int Magazine::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	Attachable::Write(writer, entityReference, hashData);
-
-	const Magazine& reference = static_cast<const Magazine&>(entityReference);
-
-	writer.NewDistinctProperty("RoundCount", m_RoundCount, reference.m_RoundCount);
-
-	// Special casing due to the special casing on magazine reading
-	if (m_RoundCount != reference.m_RoundCount || m_FullCapacity != reference.m_FullCapacity) {
-		writer.NewPropertyWithValue("FullCapacity", m_FullCapacity);
-	}
-
-	writer.NewDistinctProperty("RTTRatio", m_RTTRatio, reference.m_RTTRatio);
-	writer.NewPresetReferenceProperty("RegularRound", m_pRegularRound, reference.m_pRegularRound);
-	writer.NewPresetReferenceProperty("TracerRound", m_pTracerRound, reference.m_pTracerRound);
-	writer.NewDistinctProperty("Discardable", m_Discardable, reference.m_Discardable);
-	writer.NewDistinctProperty("AIBlastRadius", m_AIBlastRadius, reference.m_AIBlastRadius);
-
-	return 0;
-}
-
-HashingData Magazine::Hash() const {
-	HashingData hashData(Attachable::Hash());
-
-	hashData.Add(m_RoundCount);
-	hashData.Add(m_FullCapacity);
-	hashData.Add(m_RTTRatio);
-	hashData.AddPresetReference(m_pRegularRound);
-	hashData.AddPresetReference(m_pTracerRound);
-	hashData.Add(m_Discardable);
-	hashData.Add(m_AIBlastRadius);
-
-	return hashData;
-}
-
 template <typename WriterType> int Magazine::WriteTo(WriterType& writer) const {
 	Attachable::WriteTo(writer);
 

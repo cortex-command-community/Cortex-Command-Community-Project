@@ -118,59 +118,6 @@ int SLBackground::ReadProperty(const std::string_view& propName, Reader& reader)
 
 	EndPropertyList;
 }
-int SLBackground::Save(Writer& writer) const {
-	StaticSceneLayer::Save(writer);
-
-	writer.NewDistinctProperty("FrameCount", m_FrameCount, 1);
-	writer.NewDistinctProperty("SpriteAnimMode", m_SpriteAnimMode, SpriteAnimMode::NOANIM);
-	writer.NewDistinctProperty("SpriteAnimDuration", m_SpriteAnimDuration, 1000);
-	writer.NewDistinctProperty("IsAnimatedManually", m_IsAnimatedManually, false);
-	writer.NewDistinctProperty("AutoScrollStepInterval", m_AutoScrollStepInterval, 0);
-
-	if (!m_AutoScrollStep.IsZero())
-		writer.NewPropertyWithValue("AutoScrollStep", m_AutoScrollStep);
-
-	writer.NewDistinctProperty("IgnoreAutoScaling", m_IgnoreAutoScale, false);
-	writer.NewDistinctProperty("CanAutoScrollX", m_CanAutoScrollX, false);
-	writer.NewDistinctProperty("CanAutoScrollY", m_CanAutoScrollY, false);
-
-	return 0;
-}
-
-int SLBackground::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	StaticSceneLayer::Write(writer, entityReference, hashData);
-
-	const SLBackground& reference = static_cast<const SLBackground&>(entityReference);
-
-	writer.NewDistinctProperty("FrameCount", m_FrameCount, reference.m_FrameCount);
-	writer.NewDistinctProperty("SpriteAnimMode", m_SpriteAnimMode, reference.m_SpriteAnimMode);
-	writer.NewDistinctProperty("SpriteAnimDuration", m_SpriteAnimDuration, reference.m_SpriteAnimDuration);
-	writer.NewDistinctProperty("IsAnimatedManually", m_IsAnimatedManually, reference.m_IsAnimatedManually);
-	writer.NewDistinctProperty("AutoScrollStepInterval", m_AutoScrollStepInterval, reference.m_AutoScrollStepInterval);
-	writer.NewDistinctProperty("AutoScrollStep", m_AutoScrollStep, reference.m_AutoScrollStep);
-	writer.NewDistinctProperty("IgnoreAutoScaling", m_IgnoreAutoScale, reference.m_IgnoreAutoScale);
-	writer.NewDistinctProperty("CanAutoScrollX", m_CanAutoScrollX, reference.m_CanAutoScrollX);
-	writer.NewDistinctProperty("CanAutoScrollY", m_CanAutoScrollY, reference.m_CanAutoScrollY);
-
-	return 0;
-}
-
-HashingData SLBackground::Hash() const {
-	HashingData hashData(StaticSceneLayer::Hash());
-
-	hashData.Add(m_FrameCount);
-	hashData.Add(m_SpriteAnimMode);
-	hashData.Add(m_SpriteAnimDuration);
-	hashData.Add(m_IsAnimatedManually);
-	hashData.Add(m_AutoScrollStepInterval);
-	hashData.Add(m_AutoScrollStep);
-	hashData.Add(m_CanAutoScrollX);
-	hashData.Add(m_CanAutoScrollY);
-	hashData.Add(m_IgnoreAutoScale);
-
-	return hashData;
-}
-
 template <typename WriterType> int SLBackground::WriteTo(WriterType& writer) const {
 	StaticSceneLayer::WriteTo(writer);
 

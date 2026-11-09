@@ -35,7 +35,6 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(HeldDevice);
 		EntityOverrideMethods;
-		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a HeldDevice object in system

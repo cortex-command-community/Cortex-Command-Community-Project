@@ -194,65 +194,6 @@ Vector LimbPath::ToWorldSpace(const Vector& position) const {
 	return m_JointPos + (RotatePoint(position * GetTotalScaleMultiplier()));
 }
 
-int LimbPath::Save(Writer& writer) const {
-	Entity::Save(writer);
-
-	writer.NewPropertyWithValue("StartOffset", m_Start);
-
-	writer.NewDistinctProperty("StartSegCount", m_StartSegCount, (size_t) 0);
-
-	for (std::deque<Vector>::const_iterator itr = m_Segments.begin(); itr != m_Segments.end(); ++itr) {
-		writer.NewPropertyWithValue("AddSegment", *itr);
-	}
-
-	writer.NewDistinctProperty("EndSegCount", m_FootCollisionsDisabledSegment, -1);
-	writer.NewDistinctProperty("SegmentEndedThreshold", m_SegmentEndedThreshold, 2.5F);
-	writer.NewDistinctProperty("TravelSpeed", m_TravelSpeed, 0.0F);
-	writer.NewDistinctProperty("BaseTravelSpeedMultiplier", m_BaseTravelSpeedMultiplier, 1.0F);
-
-	writer.NewDistinctProperty("BaseScaleMultiplier", m_BaseScaleMultiplier, Vector(1, 1));
-
-	writer.NewDistinctProperty("PushForce", m_PushForce, 0.0F);
-
-	return 0;
-}
-
-int LimbPath::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	Entity::Write(writer, entityReference, hashData);
-
-	const LimbPath& reference = static_cast<const LimbPath&>(entityReference);
-
-	writer.NewDistinctProperty("StartOffset", m_Start, reference.m_Start);
-	writer.NewDistinctProperty("StartSegCount", m_StartSegCount, reference.m_StartSegCount);
-	writer.NewSequence("_ClearSegments", "AddSegment", m_Segments, hashData);
-	writer.NewDistinctProperty("EndSegCount", m_FootCollisionsDisabledSegment, reference.m_FootCollisionsDisabledSegment);
-	writer.NewDistinctProperty("SegmentEndedThreshold", m_SegmentEndedThreshold, reference.m_SegmentEndedThreshold);
-	writer.NewDistinctProperty("TravelSpeed", m_TravelSpeed, reference.m_TravelSpeed);
-	writer.NewDistinctProperty("BaseTravelSpeedMultiplier", m_BaseTravelSpeedMultiplier, reference.m_BaseTravelSpeedMultiplier);
-	writer.NewDistinctProperty("BaseScaleMultiplier", m_BaseScaleMultiplier, reference.m_BaseScaleMultiplier);
-	writer.NewDistinctProperty("PushForce", m_PushForce, reference.m_PushForce);
-
-	return 0;
-}
-
-HashingData LimbPath::Hash() const {
-	HashingData hashData(Entity::Hash());
-
-	hashData.Add(m_Start);
-	hashData.Add(m_StartSegCount);
-
-	hashData.AddSequence(m_Segments);
-
-	hashData.Add(m_FootCollisionsDisabledSegment);
-	hashData.Add(m_SegmentEndedThreshold);
-	hashData.Add(m_TravelSpeed);
-	hashData.Add(m_BaseTravelSpeedMultiplier);
-	hashData.Add(m_BaseScaleMultiplier);
-	hashData.Add(m_PushForce);
-
-	return hashData;
-}
-
 template <typename WriterType> int LimbPath::WriteTo(WriterType& writer) const {
 	Entity::WriteTo(writer);
 

@@ -66,49 +66,6 @@ int GlobalScript::ReadProperty(const std::string_view& propName, Reader& reader)
 	EndPropertyList;
 }
 
-int GlobalScript::Save(Writer& writer) const {
-	Entity::Save(writer);
-
-	if (!m_ScriptPath.empty())
-		writer.NewPropertyWithValue("ScriptPath", m_ScriptPath);
-
-	if (!m_LuaClassName.empty())
-		writer.NewPropertyWithValue("LuaClassName", m_LuaClassName);
-
-	writer.NewDistinctProperty("LateUpdate", m_LateUpdate, false);
-
-	for (const std::unique_ptr<PieSlice>& pieSliceToAdd: m_PieSlicesToAdd) {
-		writer.NewPropertyWithValue("AddPieSlice", pieSliceToAdd.get());
-	}
-
-	return 0;
-}
-
-int GlobalScript::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	Entity::Write(writer, entityReference, hashData);
-
-	const GlobalScript& reference = static_cast<const GlobalScript&>(entityReference);
-
-	writer.NewDistinctProperty("ScriptPath", m_ScriptPath, reference.m_ScriptPath);
-	writer.NewDistinctProperty("LuaClassName", m_LuaClassName, reference.m_LuaClassName);
-	writer.NewDistinctProperty("LateUpdate", m_LateUpdate, reference.m_LateUpdate);
-	writer.NewPointerSequence("_ClearPieSlices", "AddPieSlice", m_PieSlicesToAdd, hashData);
-
-	return 0;
-}
-
-HashingData GlobalScript::Hash() const {
-	HashingData hashData(Entity::Hash());
-
-	hashData.Add(m_LateUpdate);
-	hashData.Add(m_ScriptPath);
-	hashData.Add(m_LuaClassName);
-
-	hashData.AddPointerSequence(m_PieSlicesToAdd);
-
-	return hashData;
-}
-
 template <typename WriterType> int GlobalScript::WriteTo(WriterType& writer) const {
 	Entity::WriteTo(writer);
 

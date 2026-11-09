@@ -98,59 +98,6 @@ int TerrainObject::ReadProperty(const std::string_view& propName, Reader& reader
 	EndPropertyList;
 }
 
-int TerrainObject::Save(Writer& writer) const {
-	SceneObject::Save(writer);
-
-	if (!m_FGColorFile.GetDataPath().empty()) {
-		writer.NewPropertyWithValue("FGColorFile", m_FGColorFile);
-	}
-	if (!m_BGColorFile.GetDataPath().empty()) {
-		writer.NewPropertyWithValue("BGColorFile", m_BGColorFile);
-	}
-	if (!m_MaterialFile.GetDataPath().empty()) {
-		writer.NewPropertyWithValue("MaterialFile", m_MaterialFile);
-	}
-
-	if (m_OffsetDefined) {
-		writer.NewPropertyWithValue("BitmapOffset", m_BitmapOffset);
-	}
-
-	for (const SceneObject::SOPlacer& childObject: m_ChildObjects) {
-		writer.NewPropertyWithValue("AddChildObject", childObject);
-	}
-	return 0;
-}
-
-int TerrainObject::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	SceneObject::Write(writer, entityReference, hashData);
-
-	const TerrainObject& reference = static_cast<const TerrainObject&>(entityReference);
-
-	writer.NewDistinctHashedProperty("FGColorFile", m_FGColorFile, hashData);
-	writer.NewDistinctHashedProperty("BGColorFile", m_BGColorFile, hashData);
-	writer.NewDistinctHashedProperty("MaterialFile", m_MaterialFile, hashData);
-	writer.NewDistinctProperty("BitmapOffset", m_BitmapOffset, reference.m_BitmapOffset);
-	writer.NewSequence("_ClearChildObjects", "AddChildObject", m_ChildObjects, hashData);
-
-	return 0;
-}
-
-HashingData TerrainObject::Hash() const {
-	HashingData hashData(SceneObject::Hash());
-
-	hashData.AddHashed(m_FGColorFile);
-
-	hashData.AddHashed(m_BGColorFile);
-
-	hashData.AddHashed(m_MaterialFile);
-
-	hashData.Add(m_BitmapOffset);
-
-	hashData.AddSequence(m_ChildObjects);
-
-	return hashData;
-}
-
 template <typename WriterType> int TerrainObject::WriteTo(WriterType& writer) const {
 	SceneObject::WriteTo(writer);
 

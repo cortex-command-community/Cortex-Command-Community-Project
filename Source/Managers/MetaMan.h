@@ -44,9 +44,7 @@ namespace RTE {
 		friend class MetaSave;
 
 		SerializableClassNameGetter;
-		int ReadProperty(const std::string_view& propName, Reader& reader) override;
-		int Save(Writer& writer) const override;
-		WriterOverrideMethods;
+		SerializableOverrideMethods;
 
 		enum MetagameState {
 			NOGAME = -1,

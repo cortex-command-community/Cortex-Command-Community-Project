@@ -28,7 +28,6 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(GAScripted);
 		EntityOverrideMethods;
-		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a GAScripted object in system

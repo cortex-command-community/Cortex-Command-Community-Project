@@ -72,54 +72,6 @@ int ThrownDevice::ReadProperty(const std::string_view& propName, Reader& reader)
 	EndPropertyList;
 }
 
-int ThrownDevice::Save(Writer& writer) const {
-	HeldDevice::Save(writer);
-
-	writer.NewPropertyWithValue("ActivationSound", m_ActivationSound.get());
-	writer.NewPropertyWithValue("StartThrowOffset", m_StartThrowOffset);
-	writer.NewPropertyWithValue("EndThrowOffset", m_EndThrowOffset);
-	writer.NewPropertyWithValue("MinThrowVel", m_MinThrowVel);
-	writer.NewPropertyWithValue("MaxThrowVel", m_MaxThrowVel);
-	writer.NewPropertyWithValue("TriggerDelay", m_TriggerDelay);
-	writer.NewPropertyWithValue("ActivatesWhenReleased", m_ActivatesWhenReleased);
-	writer.NewPresetReferenceProperty("StrikerLever", m_StrikerLever, static_cast<const MovableObject*>(nullptr));
-
-	return 0;
-}
-
-int ThrownDevice::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	HeldDevice::Write(writer, entityReference, hashData);
-
-	const ThrownDevice& reference = static_cast<const ThrownDevice&>(entityReference);
-
-	writer.NewOptionalEntityPointerProperty("ActivationSound", m_ActivationSound.get(), hashData);
-	writer.NewDistinctProperty("StartThrowOffset", m_StartThrowOffset, reference.m_StartThrowOffset);
-	writer.NewDistinctProperty("EndThrowOffset", m_EndThrowOffset, reference.m_EndThrowOffset);
-	writer.NewDistinctProperty("MinThrowVel", m_MinThrowVel, reference.m_MinThrowVel);
-	writer.NewDistinctProperty("MaxThrowVel", m_MaxThrowVel, reference.m_MaxThrowVel);
-	writer.NewDistinctProperty("TriggerDelay", m_TriggerDelay, reference.m_TriggerDelay);
-	writer.NewDistinctProperty("ActivatesWhenReleased", m_ActivatesWhenReleased, reference.m_ActivatesWhenReleased);
-	writer.NewPresetReferenceProperty("StrikerLever", m_StrikerLever, reference.m_StrikerLever);
-
-	return 0;
-}
-
-HashingData ThrownDevice::Hash() const {
-	HashingData hashData(HeldDevice::Hash());
-
-	hashData.AddOptionalEntityPointer(m_ActivationSound);
-
-	hashData.Add(m_StartThrowOffset);
-	hashData.Add(m_EndThrowOffset);
-	hashData.Add(m_MinThrowVel);
-	hashData.Add(m_MaxThrowVel);
-	hashData.Add(m_TriggerDelay);
-	hashData.Add(m_ActivatesWhenReleased);
-	hashData.AddPresetReference(m_StrikerLever);
-
-	return hashData;
-}
-
 template <typename WriterType> int ThrownDevice::WriteTo(WriterType& writer) const {
 	HeldDevice::WriteTo(writer);
 

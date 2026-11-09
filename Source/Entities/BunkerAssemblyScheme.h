@@ -43,7 +43,6 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(BunkerAssemblyScheme);
 		EntityOverrideMethods;
-		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a BunkerAssemblyScheme object in system

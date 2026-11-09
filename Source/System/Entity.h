@@ -35,10 +35,9 @@ namespace RTE {
 	const Entity::ClassInfo& GetClass() const override { return m_sClass; } \
 	const std::string& GetClassName() const override { return m_sClass.GetName(); }
 
-/// Convenience macro to cut down on duplicate ReadProperty, Save, Hash and Write methods in classes that extend Entity.
+/// Convenience macro to cut down on duplicate ReadProperty and Write methods in classes that extend Entity.
 #define EntityOverrideMethods \
-	SerializableOverrideMethods \
-	int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const override;
+	SerializableOverrideMethods
 
 /// Static method used in conjunction with ClassInfo to allocate an Entity.
 /// This function is passed into the constructor of this Entity's static ClassInfo's constructor, so that it can instantiate MovableObjects.
@@ -79,7 +78,6 @@ namespace RTE {
 
 	public:
 		SerializableOverrideMethods;
-		WriterOverrideMethods;
 
 #pragma region ClassInfo
 		/// The class that describes each subclass of Entity. There should be one ClassInfo static instance for every Entity child.
@@ -149,7 +147,7 @@ namespace RTE {
 
 			/// Writes a bunch of useful debug info about the memory pools to a file.
 			/// @param fileWriter The writer to write info to.
-			static void DumpPoolMemoryInfo(const Writer& fileWriter);
+			static void DumpPoolMemoryInfo(const IniWriter& fileWriter);
 
 			/// Adds a certain number of newly allocated instances to this' pool.
 			/// @param fillAmount The number of instances to fill the pool with. If 0 is specified, the set refill amount will be used.
@@ -236,21 +234,6 @@ namespace RTE {
 
 		/// Resets the entire Entity, including its inherited members, to their default settings or values.
 		void Reset() override { Clear(); }
-#pragma endregion
-
-#pragma region INI Handling
-		/// Only saves out a Preset reference of this to the stream.
-		/// Is only applicable to objects that are not original presets and haven't been altered since they were copied from their original.
-		/// @param writer A Writer that the Entity will save itself to.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int SavePresetCopy(Writer& writer) const;
-
-		/// Records an Entity against a reference, expected to be its preset.
-		/// @param writer A Writer that the Entity will save itself to.
-		/// @param entityReference A reference preset to write properties against.
-		/// @param hashData A clump of hash data for cheap property comparisons.
-		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		virtual int Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const;
 #pragma endregion
 
 #pragma region Getters and Setters

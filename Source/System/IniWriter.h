@@ -6,6 +6,7 @@
 #include <memory>
 #include <ostream>
 #include <string>
+#include <utility>
 
 namespace RTE {
 
@@ -109,6 +110,15 @@ namespace RTE {
 		/// @param value The Serializable to write.
 		/// @param referenceValue The reference's value of the same property, which this will be read into.
 		void WriteInto(const Serializable& value, const Serializable& referenceValue);
+
+		/// Writes an object only as far as one of the classes it derives from writes it, against what it would be written against as a whole, for writing just part of a preset.
+		/// @param object The object to write.
+		template <typename Class> void WriteAs(const Class& object) {
+			const auto [reference, referenceIsPreset] = ReferenceFor(object);
+			m_Frames.push_back({&object, reference, referenceIsPreset});
+			object.Class::WriteTo(*this);
+			m_Frames.pop_back();
+		}
 
 		/// Writes every item of a collection whose order means nothing.
 		/// @param items The collection.
@@ -221,6 +231,11 @@ namespace RTE {
 		int m_IndentCount; //!< Indentation counter.
 
 	private:
+		/// Gets what a Serializable that's read as a new object is written against: an Entity's preset, or a new object of its class if it has none, and nothing for anything else.
+		/// @param object The Serializable about to be written.
+		/// @return What to write it against, or nullptr to write all of it, and whether that's a preset it's written as a CopyOf.
+		std::pair<const Serializable*, bool> ReferenceFor(const Serializable& object) const;
+
 		/// Clears all the member variables of this IniWriter, effectively resetting the members of this abstraction level only.
 		void Clear();
 

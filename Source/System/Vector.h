@@ -18,7 +18,6 @@ namespace RTE {
 	public:
 		SerializableClassNameGetter;
 		SerializableOverrideMethods;
-		WriterOverrideMethods;
 
 		float m_X = 0.0F; //!< X value of this vector.
 		float m_Y = 0.0F; //!< Y value of this vector.

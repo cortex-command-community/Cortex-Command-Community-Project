@@ -100,9 +100,6 @@
     <ClInclude Include="Source\System\Vector.h">
       <Filter>System</Filter>
     </ClInclude>
-    <ClInclude Include="Source\System\Writer.h">
-      <Filter>System</Filter>
-    </ClInclude>
     <ClInclude Include="Source\System\PropertyWriter.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -704,9 +701,6 @@
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="Source\System\Vector.cpp">
-      <Filter>System</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\System\Writer.cpp">
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="Source\System\IniWriter.cpp">

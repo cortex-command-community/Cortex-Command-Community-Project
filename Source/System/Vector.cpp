@@ -15,24 +15,6 @@ int Vector::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Vector::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	writer.NewPropertyWithValue("X", m_X);
-	writer.NewPropertyWithValue("Y", m_Y);
-
-	return 0;
-}
-
-HashingData Vector::Hash() const {
-	HashingData hashData(Serializable::Hash());
-
-	hashData.Add(m_X);
-	hashData.Add(m_Y);
-
-	return hashData;
-}
-
 template <typename WriterType> int Vector::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 

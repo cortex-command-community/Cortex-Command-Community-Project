@@ -57,30 +57,6 @@ int MOSParticle::ReadProperty(const std::string_view& propName, Reader& reader) 
 	EndPropertyList;
 }
 
-int MOSParticle::Save(Writer& writer) const {
-	MOSprite::Save(writer);
-
-	writer.NewPropertyWithValue("Atom", m_Atom);
-
-	return 0;
-}
-
-int MOSParticle::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	MOSprite::Write(writer, entityReference, hashData);
-
-	writer.NewEntityPointerProperty("Atom", m_Atom, hashData);
-
-	return 0;
-}
-
-HashingData MOSParticle::Hash() const {
-	HashingData hashData(MOSprite::Hash());
-
-	hashData.AddEntityPointer(m_Atom);
-
-	return hashData;
-}
-
 template <typename WriterType> int MOSParticle::WriteTo(WriterType& writer) const {
 	MOSprite::WriteTo(writer);
 

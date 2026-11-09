@@ -81,7 +81,6 @@ namespace RTE {
 		EntityAllocation(Actor);
 		AddScriptFunctionNames(MOSRotating, "ThreadedUpdateAI", "UpdateAI", "OnControllerInputModeChange");
 		EntityOverrideMethods;
-		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a Actor object in system

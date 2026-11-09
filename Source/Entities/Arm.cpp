@@ -105,54 +105,6 @@ int Arm::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Arm::Save(Writer& writer) const {
-	Attachable::Save(writer);
-
-	writer.NewPropertyWithValue("MaxLength", m_MaxLength);
-	writer.NewPropertyWithValue("MoveSpeed", m_MoveSpeed);
-	writer.NewPropertyWithValue("HandIdleOffset", m_HandIdleOffset);
-	writer.NewPropertyWithValue("HandSprite", m_HandSpriteFile);
-	writer.NewPropertyWithValue("GripStrength", m_GripStrength);
-	writer.NewPropertyWithValue("ThrowStrength", m_ThrowStrength);
-	writer.NewPropertyWithValue("HeldDevice", m_HeldDevice);
-
-	return 0;
-}
-
-int Arm::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	Attachable::Write(writer, entityReference, hashData);
-
-	const Arm& reference = static_cast<const Arm&>(entityReference);
-
-	writer.NewDistinctProperty("MaxLength", m_MaxLength, reference.m_MaxLength);
-	writer.NewDistinctProperty("MoveSpeed", m_MoveSpeed, reference.m_MoveSpeed);
-	writer.NewDistinctProperty("HandIdleOffset", m_HandIdleOffset, reference.m_HandIdleOffset);
-	writer.NewDistinctHashedProperty("HandSprite", m_HandSpriteFile, hashData);
-	writer.NewDistinctProperty("GripStrength", m_GripStrength, reference.m_GripStrength);
-	writer.NewDistinctProperty("ThrowStrength", m_ThrowStrength, reference.m_ThrowStrength);
-	writer.NewOptionalEntityPointerProperty("HeldDevice", m_HeldDevice, hashData);
-
-	return 0;
-}
-
-HashingData Arm::Hash() const {
-	HashingData hashData(Attachable::Hash());
-
-	hashData.Add(m_MaxLength);
-	hashData.Add(m_MoveSpeed);
-
-	hashData.Add(m_HandIdleOffset);
-
-	hashData.AddHashed(m_HandSpriteFile);
-
-	hashData.Add(m_GripStrength);
-	hashData.Add(m_ThrowStrength);
-
-	hashData.AddOptionalEntityPointer(m_HeldDevice);
-
-	return hashData;
-}
-
 template <typename WriterType> int Arm::WriteTo(WriterType& writer) const {
 	Attachable::WriteTo(writer);
 

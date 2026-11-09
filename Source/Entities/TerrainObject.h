@@ -14,7 +14,6 @@ namespace RTE {
 	public:
 		EntityAllocation(TerrainObject);
 		EntityOverrideMethods;
-		WriterOverrideMethods;
 		ClassInfoGetters;
 
 #pragma region Creation

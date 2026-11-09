@@ -61,38 +61,6 @@ int Turret::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Turret::Save(Writer& writer) const {
-	Attachable::Save(writer);
-
-	for (const HeldDevice* mountedDevice: m_MountedDevices) {
-		writer.NewPropertyWithValue("AddMountedDevice", mountedDevice);
-	}
-	writer.NewPropertyWithValue("MountedDeviceRotationOffset", m_MountedDeviceRotationOffset);
-
-	return 0;
-}
-
-int Turret::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	Attachable::Write(writer, entityReference, hashData);
-
-	const Turret& reference = static_cast<const Turret&>(entityReference);
-
-	writer.NewPointerSequence("_ClearMountedDevices", "AddMountedDevice", m_MountedDevices, hashData);
-	writer.NewDistinctProperty("MountedDeviceRotationOffset", m_MountedDeviceRotationOffset, reference.m_MountedDeviceRotationOffset);
-
-	return 0;
-}
-
-HashingData Turret::Hash() const {
-	HashingData hashData(Attachable::Hash());
-
-	hashData.AddPointerSequence(m_MountedDevices);
-
-	hashData.Add(m_MountedDeviceRotationOffset);
-
-	return hashData;
-}
-
 template <typename WriterType> int Turret::WriteTo(WriterType& writer) const {
 	Attachable::WriteTo(writer);
 

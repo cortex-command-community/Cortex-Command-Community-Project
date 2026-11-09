@@ -674,19 +674,6 @@ int MetagameGUI::ReadProperty(const std::string_view& propName, Reader& reader) 
 	EndPropertyList;
 }
 
-int MetagameGUI::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	writer.NewPropertyWithValue("P1BoxPos", Vector(m_apPlayerBox[Players::PlayerOne]->GetXPos(), m_apPlayerBox[Players::PlayerOne]->GetYPos()));
-	writer.NewPropertyWithValue("P2BoxPos", Vector(m_apPlayerBox[Players::PlayerTwo]->GetXPos(), m_apPlayerBox[Players::PlayerTwo]->GetYPos()));
-	writer.NewPropertyWithValue("P3BoxPos", Vector(m_apPlayerBox[Players::PlayerThree]->GetXPos(), m_apPlayerBox[Players::PlayerThree]->GetYPos()));
-	writer.NewPropertyWithValue("P4BoxPos", Vector(m_apPlayerBox[Players::PlayerFour]->GetXPos(), m_apPlayerBox[Players::PlayerFour]->GetYPos()));
-
-	writer.NewPropertyWithValue("PhaseBoxPos", Vector(m_pPhaseBox->GetXPos(), m_pPhaseBox->GetYPos()));
-
-	return 0;
-}
-
 template <typename WriterType> int MetagameGUI::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 
@@ -1112,10 +1099,9 @@ bool MetagameGUI::SaveGame(const std::string& saveName, const std::string& saveP
 	g_MetaMan.SaveSceneData(METASAVEPATH + saveName);
 
 	// Whichever new or existing, create a writer with the path
-	Writer metaWriter(fullSavePath);
+	IniWriter metaWriter(fullSavePath);
 	// Now that all the updated data files have been written to disk and their paths updated, send the MetaMan state for actual writing to an ini
-	if (g_MetaMan.Save(metaWriter) < 0)
-		return false;
+	metaWriter.WriteObject(g_MetaMan);
 
 	// Clear out the scene data again so we're not keeping it in memory unnecessarily
 	if (resaveSceneData)
@@ -1132,7 +1118,7 @@ bool MetagameGUI::SaveGame(const std::string& saveName, const std::string& saveP
 	g_PresetMan.AddEntityPreset(&newSave, g_PresetMan.GetModuleID(METASAVEMODULENAME), true, std::string(METASAVEPATH) + "Index.ini");
 
 	// Now write out the index file of all MetaSaves so the new save is found on next runtime
-	Writer indexWriter((std::string(METASAVEPATH) + "Index.ini").c_str());
+	IniWriter indexWriter((std::string(METASAVEPATH) + "Index.ini").c_str());
 	indexWriter.ObjectStart("DataModule");
 	indexWriter.NewPropertyWithValue("ModuleName", "Metagame Saves");
 	// Get the current list of all MetaSave Preset:s, including the new one we just saved

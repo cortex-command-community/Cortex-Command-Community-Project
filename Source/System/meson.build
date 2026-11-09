@@ -10,7 +10,6 @@ sources += files(
 'ContentFile.cpp',
 'Controller.cpp',
 'GenericSavedData.cpp',
-'Writer.cpp',
 'IniWriter.cpp',
 'HashWriter.cpp',
 'Box.cpp',

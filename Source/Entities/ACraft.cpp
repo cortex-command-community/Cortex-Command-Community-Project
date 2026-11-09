@@ -75,32 +75,6 @@ int ACraft::Exit::ReadProperty(const std::string_view& propName, Reader& reader)
 	EndPropertyList;
 }
 
-int ACraft::Exit::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	if (!m_Offset.IsZero())
-		writer.NewPropertyWithValue("Offset", m_Offset);
-	if (!m_Velocity.IsZero())
-		writer.NewPropertyWithValue("Velocity", m_Velocity);
-	writer.NewDistinctProperty("VelocitySpread", m_VelSpread, 0.2F);
-	writer.NewDistinctProperty("Radius", m_Radius, 10.0F);
-	writer.NewDistinctProperty("Range", m_Range, 35.0F);
-
-	return 0;
-}
-
-HashingData ACraft::Exit::Hash() const {
-	HashingData hashData(Serializable::Hash());
-
-	hashData.Add(m_Offset);
-	hashData.Add(m_Velocity);
-	hashData.Add(m_VelSpread);
-	hashData.Add(m_Radius);
-	hashData.Add(m_Range);
-
-	return hashData;
-}
-
 template <typename WriterType> int ACraft::Exit::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 
@@ -328,71 +302,6 @@ int ACraft::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("ScuttleOnDeath", { reader >> m_ScuttleOnDeath; });
 
 	EndPropertyList;
-}
-
-int ACraft::Save(Writer& writer) const {
-	Actor::Save(writer);
-
-	writer.NewPropertyWithValue("HatchOpenSound", m_HatchOpenSound);
-	writer.NewPropertyWithValue("HatchCloseSound", m_HatchCloseSound);
-	writer.NewPropertyWithValue("CrashSound", m_CrashSound);
-	for (std::list<Exit>::const_iterator itr = m_Exits.begin(); itr != m_Exits.end(); ++itr) {
-		writer.NewPropertyWithValue("AddExit", (*itr));
-	}
-	writer.NewPropertyWithValue("HatchDelay", m_HatchDelay);
-	writer.NewPropertyWithValue("DeliveryDelayMultiplier", m_DeliveryDelayMultiplier);
-	writer.NewPropertyWithValue("ExitInterval", m_ExitInterval);
-	writer.NewPropertyWithValue("CanLand", m_LandingCraft);
-	writer.NewPropertyWithValue("CanEnterOrbit", m_CanEnterOrbit);
-	writer.NewPropertyWithValue("MaxPassengers", m_MaxPassengers);
-	writer.NewPropertyWithValue("ScuttleIfFlippedTime", m_ScuttleIfFlippedTime);
-	writer.NewPropertyWithValue("ScuttleOnDeath", m_ScuttleOnDeath);
-
-	return 0;
-}
-
-int ACraft::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	Actor::Write(writer, entityReference, hashData);
-
-	const ACraft& reference = static_cast<const ACraft&>(entityReference);
-
-	writer.NewOptionalEntityPointerProperty("HatchOpenSound", m_HatchOpenSound, hashData);
-	writer.NewOptionalEntityPointerProperty("HatchCloseSound", m_HatchCloseSound, hashData);
-	writer.NewOptionalEntityPointerProperty("CrashSound", m_CrashSound, hashData);
-	writer.NewSequence("_ClearExits", "AddExit", m_Exits, hashData);
-	writer.NewDistinctProperty("HatchDelay", m_HatchDelay, reference.m_HatchDelay);
-	writer.NewDistinctProperty("DeliveryDelayMultiplier", m_DeliveryDelayMultiplier, reference.m_DeliveryDelayMultiplier);
-	writer.NewDistinctProperty("ExitInterval", m_ExitInterval, reference.m_ExitInterval);
-	writer.NewDistinctProperty("CanLand", m_LandingCraft, reference.m_LandingCraft);
-	writer.NewDistinctProperty("CanEnterOrbit", m_CanEnterOrbit, reference.m_CanEnterOrbit);
-	writer.NewDistinctProperty("MaxPassengers", m_MaxPassengers, reference.m_MaxPassengers);
-	writer.NewDistinctProperty("ScuttleIfFlippedTime", m_ScuttleIfFlippedTime, reference.m_ScuttleIfFlippedTime);
-	writer.NewDistinctProperty("ScuttleOnDeath", m_ScuttleOnDeath, reference.m_ScuttleOnDeath);
-
-	return 0;
-}
-
-HashingData ACraft::Hash() const {
-	HashingData hashData(Actor::Hash());
-
-	hashData.AddOptionalEntityPointer(m_HatchOpenSound);
-
-	hashData.AddOptionalEntityPointer(m_HatchCloseSound);
-
-	hashData.AddOptionalEntityPointer(m_CrashSound);
-
-	hashData.AddSequence(m_Exits);
-
-	hashData.Add(m_HatchDelay);
-	hashData.Add(m_DeliveryDelayMultiplier);
-	hashData.Add(m_ExitInterval);
-	hashData.Add(m_LandingCraft);
-	hashData.Add(m_CanEnterOrbit);
-	hashData.Add(m_MaxPassengers);
-	hashData.Add(m_ScuttleIfFlippedTime);
-	hashData.Add(m_ScuttleOnDeath);
-
-	return hashData;
 }
 
 template <typename WriterType> int ACraft::WriteTo(WriterType& writer) const {

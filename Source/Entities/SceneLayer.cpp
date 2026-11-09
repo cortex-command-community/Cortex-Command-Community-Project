@@ -150,61 +150,6 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::ReadProperty(const std::stri
 }
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
-int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Save(Writer& writer) const {
-	Entity::Save(writer);
-
-	writer.NewPropertyWithValue("BitmapFile", m_BitmapFile);
-
-	writer.NewDistinctProperty("WrapX", m_WrapX, true);
-	writer.NewDistinctProperty("WrapY", m_WrapY, true);
-	writer.NewDistinctProperty("DrawTransparent", m_DrawMasked, true);
-
-	if (m_ScaleFactor != Vector(1, 1))
-		writer.NewPropertyWithValue("ScrollRatio", m_ScrollInfo);
-
-	writer.NewDistinctProperty("ScaleFactor", m_ScaleFactor, Vector(1, 1));
-
-	if (!m_OriginOffset.IsZero())
-		writer.NewPropertyWithValue("OriginPointOffset", m_OriginOffset);
-
-	return 0;
-}
-
-template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
-int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	Entity::Write(writer, entityReference, hashData);
-
-	const SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>& reference = static_cast<const SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>&>(entityReference);
-
-	writer.NewDistinctHashedProperty("BitmapFile", m_BitmapFile, hashData);
-
-	writer.NewDistinctProperty("WrapX", m_WrapX, reference.m_WrapX);
-	writer.NewDistinctProperty("WrapY", m_WrapY, reference.m_WrapY);
-	writer.NewDistinctProperty("DrawTransparent", m_DrawMasked, reference.m_DrawMasked);
-	writer.NewDistinctProperty("ScrollRatio", m_ScrollInfo, reference.m_ScrollInfo);
-	writer.NewDistinctProperty("ScaleFactor", m_ScaleFactor, reference.m_ScaleFactor);
-	writer.NewDistinctProperty("OriginPointOffset", m_OriginOffset, reference.m_OriginOffset);
-
-	return 0;
-}
-
-template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
-HashingData SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Hash() const {
-	HashingData hashData(Entity::Hash());
-
-	hashData.AddHashed(m_BitmapFile);
-	
-	hashData.Add(m_WrapX);
-	hashData.Add(m_WrapY);
-	hashData.Add(m_DrawMasked);
-	hashData.Add(m_ScrollInfo);
-	hashData.Add(m_ScaleFactor);
-	hashData.Add(m_OriginOffset);
-
-	return hashData;
-}
-
-template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
 template <typename WriterType> int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::WriteTo(WriterType& writer) const {
 	Entity::WriteTo(writer);
 

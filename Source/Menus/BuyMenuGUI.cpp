@@ -449,7 +449,7 @@ bool BuyMenuGUI::SaveAllLoadoutsToFile() {
 		std::snprintf(loadoutPath, sizeof(loadoutPath), "%sLoadoutsP%d.ini", System::GetUserdataDirectory().c_str(), m_pController->GetPlayer() + 1);
 
 	// Open the file
-	Writer loadoutFile(loadoutPath, false);
+	IniWriter loadoutFile(loadoutPath, false);
 
 	// Write out all the loadouts that are user made, with those that can't be used right now back where they were.
 	std::vector<std::pair<size_t, Loadout>>::const_iterator unavailable = m_UnavailableLoadouts.begin();

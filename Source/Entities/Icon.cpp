@@ -58,36 +58,6 @@ int Icon::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Icon::Save(Writer& writer) const {
-	Entity::Save(writer);
-
-	writer.NewPropertyWithValue("BitmapFile", m_BitmapFile);
-	writer.NewDistinctProperty("FrameCount", m_FrameCount, 0U);
-
-	return 0;
-}
-
-
-int Icon::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	Entity::Write(writer, entityReference, hashData);
-
-	const Icon& reference = static_cast<const Icon&>(entityReference);
-
-	writer.NewDistinctHashedProperty("BitmapFile", m_BitmapFile, hashData);
-	writer.NewDistinctProperty("FrameCount", m_FrameCount, reference.m_FrameCount);
-
-	return 0;
-}
-
-HashingData Icon::Hash() const {
-	HashingData hashData(Entity::Hash());
-
-	hashData.AddHashed(m_BitmapFile);
-
-	hashData.Add(m_FrameCount);
-
-	return hashData;
-}
 
 template <typename WriterType> int Icon::WriteTo(WriterType& writer) const {
 	Entity::WriteTo(writer);

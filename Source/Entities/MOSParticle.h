@@ -13,7 +13,6 @@ namespace RTE {
 		EntityAllocation(MOSParticle);
 		ClassInfoGetters;
 		EntityOverrideMethods;
-		WriterOverrideMethods;
 
 #pragma region Creation
 		/// Constructor method used to instantiate a MOSParticle object in system memory. Create() should be called before using the object.

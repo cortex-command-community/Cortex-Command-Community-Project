@@ -12,7 +12,6 @@ namespace RTE {
 	public:
 		SerializableClassNameGetter
 		SerializableOverrideMethods
-		WriterOverrideMethods;
 
 #pragma region Creation
 		/// Constructor method used to instantiate a TerrainFrosting object in system memory and make it ready for use.

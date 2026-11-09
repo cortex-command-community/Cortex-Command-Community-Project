@@ -61,18 +61,6 @@ int ActorEditor::ReadProperty(const std::string_view& propName, Reader& reader) 
 	EndPropertyList;
 }
 
-int ActorEditor::Save(Writer& writer) const {
-	EditorActivity::Save(writer);
-	return 0;
-}
-
-template <typename WriterType> int ActorEditor::WriteTo(WriterType& writer) const {
-	EditorActivity::WriteTo(writer);
-	return 0;
-}
-template int ActorEditor::WriteTo(IniWriter& writer) const;
-template int ActorEditor::WriteTo(HashWriter& writer) const;
-
 void ActorEditor::Destroy(bool notInherited) {
 	delete m_pEditedActor;
 	delete m_pPicker;

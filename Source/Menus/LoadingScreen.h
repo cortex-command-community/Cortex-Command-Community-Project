@@ -12,7 +12,7 @@ namespace RTE {
 	class AllegroScreen;
 	class GUIInputWrapper;
 	class GUIControlManager;
-	class Writer;
+	class IniWriter;
 	class StaticSceneLayer;
 
 	/// Handling for the loading screen composition and loading progress box when starting the game.
@@ -55,7 +55,7 @@ namespace RTE {
 #pragma endregion
 
 	private:
-		std::unique_ptr<Writer> m_LoadingLogWriter; //!< The Writer that generates the loading log.
+		std::unique_ptr<IniWriter> m_LoadingLogWriter; //!< The IniWriter that generates the loading log.
 
 		BITMAP* m_LoadingSplashBitmap; //!< BITMAP that is used for drawing the splash screen.
 		BITMAP* m_ProgressListboxBitmap; //!< BITMAP that the progress report will be drawn into.

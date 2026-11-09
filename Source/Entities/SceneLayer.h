@@ -24,7 +24,6 @@ namespace RTE {
 	public:
 		EntityAllocation(SceneLayerImpl);
 		EntityOverrideMethods;
-		WriterOverrideMethods;
 
 #pragma region Creation
 		/// Constructor method used to instantiate a SceneLayerImpl object in system memory. Create() should be called before using the object.

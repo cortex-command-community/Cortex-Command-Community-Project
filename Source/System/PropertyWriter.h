@@ -43,6 +43,11 @@ namespace RTE {
 	template <typename Result, typename Lambda, typename Argument> struct GetterOwner<Result (Lambda::*)(Argument) const> { using Type = std::remove_cvref_t<Argument>; };
 	template <typename Getter> using GetterOwnerType = typename GetterOwner<std::remove_cvref_t<Getter>>::Type;
 
+	/// Includes every item of a list, for lists that don't leave any out.
+	struct AlwaysIncluded {
+		template <typename Owner, typename Item> bool operator()(const Owner&, const Item&) const { return true; }
+	};
+
 	/// What every writer has in common: a Serializable's WriteTo is written once against this, and each writer decides what writing a property means.
 	/// IniWriter writes only what differs from the object's reference, as INI. HashWriter has no reference, so it takes in everything and hashes it.
 	///
@@ -252,7 +257,7 @@ namespace RTE {
 		/// @param object The object to write.
 		/// @param reference What to write it against, or nullptr to write everything about it.
 		/// @param referenceIsPreset Whether the reference is a preset the object is written as a CopyOf.
-		void WriteObject(const Serializable& object, const Serializable* reference, bool referenceIsPreset) {
+		void WriteObject(const Serializable& object, const Serializable* reference = nullptr, bool referenceIsPreset = false) {
 			m_Frames.push_back({&object, reference, referenceIsPreset});
 			object.Write(Self());
 			m_Frames.pop_back();

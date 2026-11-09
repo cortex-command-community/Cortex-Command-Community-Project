@@ -66,24 +66,6 @@ int Matrix::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int Matrix::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	writer.NewPropertyWithValue("AngleRadians", m_Rotation);
-
-	return 0;
-}
-
-HashingData Matrix::Hash() const {
-	HashingData hashData(Serializable::Hash());
-
-	// This compares what an orientation does, not how it got there: flipping both axes is the same as half a turn.
-	hashData.Add(m_Flipped[X] != m_Flipped[Y]);
-	hashData.Add(std::hash<float>{}(NormalizeAngleBetween0And2PI(m_Rotation + PI * m_Flipped[Y])));
-
-	return hashData;
-}
-
 template <typename WriterType> int Matrix::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 

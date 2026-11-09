@@ -99,18 +99,6 @@ int EditorActivity::ReadProperty(const std::string_view& propName, Reader& reade
 	EndPropertyList;
 }
 
-int EditorActivity::Save(Writer& writer) const {
-	Activity::Save(writer);
-	return 0;
-}
-
-template <typename WriterType> int EditorActivity::WriteTo(WriterType& writer) const {
-	Activity::WriteTo(writer);
-	return 0;
-}
-template int EditorActivity::WriteTo(IniWriter& writer) const;
-template int EditorActivity::WriteTo(HashWriter& writer) const;
-
 void EditorActivity::Destroy(bool notInherited) {
 	delete m_pGUIController;
 	delete m_pGUIInput;

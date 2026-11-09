@@ -38,28 +38,6 @@ int ADSensor::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int ADSensor::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	if (!m_StartOffset.IsZero())
-		writer.NewPropertyWithValue("StartOffset", m_StartOffset);
-	if (!m_SensorRay.IsZero())
-		writer.NewPropertyWithValue("SensorRay", m_SensorRay);
-	writer.NewDistinctProperty("SkipPixels", m_Skip, 3);
-
-	return 0;
-}
-
-HashingData ADSensor::Hash() const {
-	HashingData hashData(Serializable::Hash());
-
-	hashData.Add(m_StartOffset);
-	hashData.Add(m_SensorRay);
-	hashData.Add(m_Skip);
-
-	return hashData;
-}
-
 template <typename WriterType> int ADSensor::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 

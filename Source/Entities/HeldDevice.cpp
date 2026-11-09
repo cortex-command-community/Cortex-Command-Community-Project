@@ -198,7 +198,7 @@ int HeldDevice::ReadProperty(const std::string_view& propName, Reader& reader) {
 }
 
 /// Writes which presets a HeldDevice can be picked up by, in the form it's read.
-/// @param writer The Writer to write with.
+/// @param writer The writer to write with.
 /// @param presetNames The names of the presets that can pick it up.
 template <typename WriterType, typename Type> static void WritePickupableBy(WriterType& writer, const Type& presetNames) {
 	if (presetNames.empty()) {
@@ -210,101 +210,6 @@ template <typename WriterType, typename Type> static void WritePickupableBy(Writ
 		writer.NewPropertyWithValue("AddPresetNameEntry", presetName);
 	}
 	writer.ObjectEnd();
-}
-
-int HeldDevice::Save(Writer& writer) const {
-	Attachable::Save(writer);
-
-	writer.NewPropertyWithValue("OneHanded", m_OneHanded);
-	writer.NewPropertyWithValue("StanceOffset", m_StanceOffset);
-	writer.NewPropertyWithValue("SharpStanceOffset", m_SharpStanceOffset);
-	writer.NewPropertyWithValue("Supportable", m_Supportable);
-	writer.NewPropertyWithValue("SupportOffset", m_SupportOffset);
-	writer.NewPropertyWithValue("UseSupportOffsetWhileReloading", m_UseSupportOffsetWhileReloading);
-	writer.NewPropertyWithValue("GripStrengthMultiplier", m_GripStrengthMultiplier);
-	writer.NewPropertyWithValue("SharpLength", m_MaxSharpLength);
-	writer.NewPropertyWithValue("Loudness", m_Loudness);
-	writer.NewPropertyWithValue("GetsHitByMOsWhenHeld", m_GetsHitByMOsWhenHeld);
-	writer.NewPropertyWithValue("VisualRecoilMultiplier", m_VisualRecoilMultiplier);
-
-	writer.NewDistinctProperty("HeldDeviceType", m_HeldDeviceType, WEAPON);
-	writer.NewDistinctProperty("DualWieldable", m_DualWieldable, false);
-
-	if (m_IsUnPickupable) {
-		writer.NewPropertyWithValue("PickupableBy", "None");
-	}
-	WritePickupableBy(writer, m_PickupableByPresetNames);
-	if (m_Activated) {
-		writer.NewPropertyWithValue("_Activated", m_Activated);
-		writer.NewPropertyWithValue("_ActivationTimerElapsedSimTimeMS", m_ActivationTimer.GetElapsedSimTimeMS());
-	}
-
-	return 0;
-}
-
-int HeldDevice::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	Attachable::Write(writer, entityReference, hashData);
-
-	const HeldDevice& reference = static_cast<const HeldDevice&>(entityReference);
-
-	writer.NewDistinctProperty("OneHanded", m_OneHanded, reference.m_OneHanded);
-	writer.NewDistinctProperty("StanceOffset", m_StanceOffset, reference.m_StanceOffset);
-	writer.NewDistinctProperty("SharpStanceOffset", m_SharpStanceOffset, reference.m_SharpStanceOffset);
-	writer.NewDistinctProperty("Supportable", m_Supportable, reference.m_Supportable);
-	writer.NewDistinctProperty("SupportOffset", m_SupportOffset, reference.m_SupportOffset);
-	writer.NewDistinctProperty("UseSupportOffsetWhileReloading", m_UseSupportOffsetWhileReloading, reference.m_UseSupportOffsetWhileReloading);
-	writer.NewDistinctProperty("GripStrengthMultiplier", m_GripStrengthMultiplier, reference.m_GripStrengthMultiplier);
-	writer.NewDistinctProperty("SharpLength", m_MaxSharpLength, reference.m_MaxSharpLength);
-	writer.NewDistinctProperty("Loudness", m_Loudness, reference.m_Loudness);
-	writer.NewDistinctProperty("GetsHitByMOsWhenHeld", m_GetsHitByMOsWhenHeld, reference.m_GetsHitByMOsWhenHeld);
-	writer.NewDistinctProperty("VisualRecoilMultiplier", m_VisualRecoilMultiplier, reference.m_VisualRecoilMultiplier);
-
-	if (m_Activated) {
-		writer.NewPropertyWithValue("_Activated", m_Activated);
-		writer.NewPropertyWithValue("_ActivationTimerElapsedSimTimeMS", m_ActivationTimer.GetElapsedSimTimeMS());
-	}
-
-	writer.NewDistinctProperty("HeldDeviceType", m_HeldDeviceType, reference.m_HeldDeviceType);
-	writer.NewDistinctProperty("DualWieldable", m_DualWieldable, reference.m_DualWieldable);
-
-	if (m_IsUnPickupable && !reference.m_IsUnPickupable) {
-		writer.NewPropertyWithValue("PickupableBy", "None");
-	}
-	if (m_PickupableByPresetNames != reference.m_PickupableByPresetNames) {
-		WritePickupableBy(writer, m_PickupableByPresetNames);
-	}
-
-	return 0;
-}
-
-HashingData HeldDevice::Hash() const {
-	HashingData hashData(Attachable::Hash());
-
-	hashData.Add(m_OneHanded);
-	hashData.Add(m_Activated);
-	hashData.Add(m_StanceOffset);
-	hashData.Add(m_SharpStanceOffset);
-	hashData.Add(m_Supportable);
-	hashData.Add(m_SupportOffset);
-	hashData.Add(m_UseSupportOffsetWhileReloading);
-	hashData.Add(m_GripStrengthMultiplier);
-	hashData.Add(m_MaxSharpLength);
-	hashData.Add(m_Loudness);
-	hashData.Add(m_GetsHitByMOsWhenHeld);
-	hashData.Add(m_VisualRecoilMultiplier);
-
-	hashData.Add(m_HeldDeviceType);
-	hashData.Add(m_DualWieldable);
-
-	// This list has no order, so what it adds can't depend on one.
-	uint64_t pickupableByHash = 0;
-	for (const std::string& presetName: m_PickupableByPresetNames) {
-		pickupableByHash ^= RTE::Hash(presetName);
-	}
-	hashData.Add(pickupableByHash);
-	hashData.Add(m_IsUnPickupable);
-
-	return hashData;
 }
 
 template <typename WriterType> int HeldDevice::WriteTo(WriterType& writer) const {

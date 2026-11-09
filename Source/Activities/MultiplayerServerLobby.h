@@ -33,8 +33,6 @@ namespace RTE {
 		// Concrete allocation and cloning definitions
 		EntityAllocation(MultiplayerServerLobby);
 		int ReadProperty(const std::string_view& propName, Reader& reader) override;
-		int Save(Writer& writer) const override;
-		WriterOverrideMethods;
 		ClassInfoGetters;
 
 		/// Constructor method used to instantiate a MultiplayerServerLobby object in system

@@ -150,7 +150,7 @@ int SLTerrain::ReadProperty(const std::string_view& propName, Reader& reader) {
 }
 
 /// Writes an orbit direction in the form it's read.
-/// @param writer The Writer to write with.
+/// @param writer The writer to write with.
 /// @param orbitDirection The direction to write.
 template <typename WriterType> static void WriteOrbitDirection(WriterType& writer, Directions orbitDirection) {
 	writer.NewProperty("OrbitDirection");
@@ -169,73 +169,6 @@ template <typename WriterType> static void WriteOrbitDirection(WriterType& write
 			writer << "Right";
 			break;
 	}
-}
-
-int SLTerrain::Save(Writer& writer) const {
-	SceneLayer::Save(writer);
-
-	writer.NewPropertyWithValue("BackgroundTexture", m_DefaultBGTextureFile);
-	writer.NewPropertyWithValue("BGColorLayer", m_BGColorLayer.get());
-	writer.NewPropertyWithValue("FGColorLayer", m_FGColorLayer.get());
-
-	for (const TerrainFrosting* terrainFrosting: m_TerrainFrostings) {
-		writer.NewPropertyWithValue("AddTerrainFrosting", terrainFrosting);
-	}
-
-	for (const TerrainDebris* terrainDebris: m_TerrainDebris) {
-		writer.NewPropertyWithValue("AddTerrainDebris", terrainDebris);
-	}
-
-	for (const TerrainObject* terrainObject: m_TerrainObjects) {
-		// Write out only what is needed to place a copy of this in the Terrain
-		writer.NewProperty("PlaceTerrainObject");
-		writer.ObjectStart(terrainObject->GetClassName());
-		writer.NewPropertyWithValue("CopyOf", terrainObject->GetModuleAndPresetName());
-		writer.NewPropertyWithValue("Position", terrainObject->GetPos());
-		writer.ObjectEnd();
-	}
-
-	WriteOrbitDirection(writer, m_OrbitDirection);
-
-	return 0;
-}
-
-int SLTerrain::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	SceneLayer::Write(writer, entityReference, hashData);
-
-	const SLTerrain& reference = static_cast<const SLTerrain&>(entityReference);
-
-	writer.NewDistinctHashedProperty("BackgroundTexture", m_DefaultBGTextureFile, hashData);
-	writer.NewEntityPointerProperty("BGColorLayer", m_BGColorLayer, hashData);
-	writer.NewEntityPointerProperty("FGColorLayer", m_FGColorLayer, hashData);
-	writer.NewPointerSequence("_ClearTerrainFrostings", "AddTerrainFrosting", m_TerrainFrostings, hashData);
-	writer.NewPointerSequence("_ClearTerrainDebris", "AddTerrainDebris", m_TerrainDebris, hashData);
-	writer.NewPointerSequence("_ClearTerrainObjects", "PlaceTerrainObject", m_TerrainObjects, hashData);
-	if (m_OrbitDirection != reference.m_OrbitDirection) {
-		WriteOrbitDirection(writer, m_OrbitDirection);
-	}
-
-	return 0;
-}
-
-HashingData SLTerrain::Hash() const {
-	HashingData hashData(SceneLayer::Hash());
-
-	hashData.AddHashed(m_DefaultBGTextureFile);
-
-	hashData.AddEntityPointer(m_BGColorLayer);
-
-	hashData.AddEntityPointer(m_FGColorLayer);
-
-	hashData.AddPointerSequence(m_TerrainFrostings);
-
-	hashData.AddPointerSequence(m_TerrainDebris);
-
-	hashData.AddPointerSequence(m_TerrainObjects);
-
-	hashData.Add(m_OrbitDirection);
-
-	return hashData;
 }
 
 template <typename WriterType> int SLTerrain::WriteTo(WriterType& writer) const {

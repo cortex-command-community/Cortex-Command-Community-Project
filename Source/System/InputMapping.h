@@ -9,9 +9,7 @@ namespace RTE {
 
 	public:
 		SerializableClassNameGetter;
-		int ReadProperty(const std::string_view& propName, Reader& reader) override;
-		int Save(Writer& writer) const override;
-		WriterOverrideMethods;
+		SerializableOverrideMethods;
 
 #pragma region Creation
 		/// Constructor method used to instantiate an InputMapping object in system memory. Create() should be called before using the object.

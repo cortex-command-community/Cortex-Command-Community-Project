@@ -122,69 +122,6 @@ int ACDropShip::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int ACDropShip::Save(Writer& writer) const {
-	ACraft::Save(writer);
-
-	writer.NewPropertyWithValue("RThruster", m_pRThruster);
-	writer.NewPropertyWithValue("LThruster", m_pLThruster);
-	writer.NewPropertyWithValue("URThruster", m_pURThruster);
-	writer.NewPropertyWithValue("ULThruster", m_pULThruster);
-	writer.NewPropertyWithValue("RHatchDoor", m_pRHatch);
-	writer.NewPropertyWithValue("LHatchDoor", m_pLHatch);
-	writer.NewPropertyWithValue("HatchDoorSwingRange", m_HatchSwingRange);
-	writer.NewPropertyWithValue("AutoStabilize", m_AutoStabilize);
-	writer.NewPropertyWithValue("MaxEngineAngle", m_MaxEngineAngle);
-	writer.NewPropertyWithValue("LateralControlSpeed", m_LateralControlSpeed);
-	writer.NewPropertyWithValue("HoverHeightModifier", m_HoverHeightModifier);
-
-	return 0;
-}
-
-int ACDropShip::Write(Writer& writer, const Entity& entityReference, HashingData& hashData) const {
-	ACraft::Write(writer, entityReference, hashData);
-
-	const ACDropShip& reference = static_cast<const ACDropShip&>(entityReference);
-
-	writer.NewOptionalEntityPointerProperty("RThruster", m_pRThruster, hashData);
-	writer.NewOptionalEntityPointerProperty("LThruster", m_pLThruster, hashData);
-	writer.NewOptionalEntityPointerProperty("URThruster", m_pURThruster, hashData);
-	writer.NewOptionalEntityPointerProperty("ULThruster", m_pULThruster, hashData);
-	writer.NewOptionalEntityPointerProperty("RHatchDoor", m_pRHatch, hashData);
-	writer.NewOptionalEntityPointerProperty("LHatchDoor", m_pLHatch, hashData);
-	writer.NewDistinctProperty("HatchDoorSwingRange", m_HatchSwingRange, reference.m_HatchSwingRange);
-	writer.NewDistinctProperty("AutoStabilize", m_AutoStabilize, reference.m_AutoStabilize);
-	writer.NewDistinctProperty("MaxEngineAngle", m_MaxEngineAngle, reference.m_MaxEngineAngle);
-	writer.NewDistinctProperty("LateralControlSpeed", m_LateralControlSpeed, reference.m_LateralControlSpeed);
-	writer.NewDistinctProperty("HoverHeightModifier", m_HoverHeightModifier, reference.m_HoverHeightModifier);
-
-	return 0;
-}
-
-HashingData ACDropShip::Hash() const {
-	HashingData hashData(ACraft::Hash());
-
-	hashData.AddOptionalEntityPointer(m_pRThruster);
-
-	hashData.AddOptionalEntityPointer(m_pLThruster);
-
-	hashData.AddOptionalEntityPointer(m_pURThruster);
-
-	hashData.AddOptionalEntityPointer(m_pULThruster);
-
-	hashData.AddOptionalEntityPointer(m_pRHatch);
-
-	hashData.AddOptionalEntityPointer(m_pLHatch);
-
-	hashData.Add(m_HatchSwingRange);
-
-	hashData.Add(m_AutoStabilize);
-	hashData.Add(m_MaxEngineAngle);
-	hashData.Add(m_LateralControlSpeed);
-	hashData.Add(m_HoverHeightModifier);
-
-	return hashData;
-}
-
 template <typename WriterType> int ACDropShip::WriteTo(WriterType& writer) const {
 	ACraft::WriteTo(writer);
 

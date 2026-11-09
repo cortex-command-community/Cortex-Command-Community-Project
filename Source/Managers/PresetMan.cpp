@@ -707,34 +707,6 @@ std::string PresetMan::GetEntityDataLocation(const std::string& type, const std:
 	return pRetPath;
 }
 
-const HashingData* PresetMan::GetEntityHash(std::string type, std::string preset, int whichModule) {
-	RTEAssert(whichModule < (int)m_pDataModules.size(), "Tried to access an out of bounds data module number!");
-
-	const HashingData* pHash = nullptr;
-
-	// All modules
-	if (whichModule < 0) {
-		// Search all modules
-		for (int i = 0; i < m_pDataModules.size() && !pHash; ++i)
-			pHash = m_pDataModules[i]->GetEntityHash(type, preset);
-	}
-	// Specific module
-	else {
-		// Try to get it from the asked for module
-		pHash = m_pDataModules[whichModule]->GetEntityHash(type, preset);
-
-		// If couldn't find it in there, then try all the official modules!
-		if (!pHash) {
-			RTEAssert(m_OfficialModuleCount <= m_pDataModules.size(), "More official modules than modules loaded?!");
-			for (int i = 0; i < m_OfficialModuleCount && !pHash; ++i) {
-				pHash = m_pDataModules[i]->GetEntityHash(type, preset);
-			}
-		}
-	}
-
-	return pHash;
-}
-
 void PresetMan::ReloadAllScripts() const {
 	g_LuaMan.ClearUserModuleCache();
 	for (const DataModule* dataModule: m_pDataModules) {

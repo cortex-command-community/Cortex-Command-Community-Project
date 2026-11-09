@@ -79,25 +79,6 @@ int ContentFile::ReadProperty(const std::string_view& propName, Reader& reader) 
 	EndPropertyList;
 }
 
-int ContentFile::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	if (!m_DataPath.empty()) {
-		writer.NewPropertyWithValue("FilePath", m_DataPath);
-	}
-	writer.NewPropertyWithValue("IsMemoryPNG", m_IsMemoryPNG);
-
-	return 0;
-}
-
-HashingData ContentFile::Hash() const {
-	HashingData hashData(Serializable::Hash());
-
-	hashData.Add(m_DataPath);
-
-	return hashData;
-}
-
 template <typename WriterType> int ContentFile::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 

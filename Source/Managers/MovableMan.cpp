@@ -98,20 +98,6 @@ int MovableMan::ReadProperty(const std::string_view& propName, Reader& reader) {
 	EndPropertyList;
 }
 
-int MovableMan::Save(Writer& writer) const {
-	Serializable::Save(writer);
-
-	writer << m_Actors.size();
-	for (std::deque<Actor*>::const_iterator itr = m_Actors.begin(); itr != m_Actors.end(); ++itr)
-		writer << **itr;
-
-	writer << m_Particles.size();
-	for (std::deque<MovableObject*>::const_iterator itr2 = m_Particles.begin(); itr2 != m_Particles.end(); ++itr2)
-		writer << **itr2;
-
-	return 0;
-}
-
 template <typename WriterType> int MovableMan::WriteTo(WriterType& writer) const {
 	Serializable::WriteTo(writer);
 

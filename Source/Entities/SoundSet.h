@@ -21,7 +21,6 @@ namespace RTE {
 
 	public:
 		SerializableOverrideMethods;
-		WriterOverrideMethods;
 
 		/// How the SoundSet should choose the next sound or SoundSet to play when SelectNextSound is called.
 		enum SoundSelectionCycleMode {
@@ -60,8 +59,8 @@ namespace RTE {
 		/// @return The appropriate SoundSelectionCycleMode for the given INI value.
 		static SoundSelectionCycleMode ReadSoundSelectionCycleMode(Reader& reader);
 
-		/// Handles writing the given SoundSelectionCycleMode out to the given Writer, using the static SoundSelectionCycleMap.
-		/// @param writer A Writer filled in with the property to write to.
+		/// Handles writing the given SoundSelectionCycleMode out with the given writer, using the static SoundSelectionCycleMap.
+		/// @param writer The writer to write the property with.
 		/// @param soundSelectionCycleMode The SoundSelectionCycleMode to write.
 		template <typename WriterType> static void SaveSoundSelectionCycleMode(WriterType& writer, SoundSelectionCycleMode soundSelectionCycleMode);
 #pragma endregion
