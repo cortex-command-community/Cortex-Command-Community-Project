@@ -120,6 +120,28 @@ namespace {
 		}
 	}
 
+	/// Calls fillShape(offset) for a shape in scene coordinates, once with no offset and again offset by the scene's size for each edge of a wrapping scene that the shape hangs past, so that part of it shows on the other side.
+	template <typename FillShape>
+	void ForEachSceneWrapOffset(const Scene* scene, float minX, float minY, float maxX, float maxY, FillShape&& fillShape) {
+		const float width = static_cast<float>(scene->GetWidth());
+		const float height = static_cast<float>(scene->GetHeight());
+		const bool pastLeft = scene->WrapsX() && minX < 0;
+		const bool pastRight = scene->WrapsX() && maxX >= width;
+		const bool pastTop = scene->WrapsY() && minY < 0;
+		const bool pastBottom = scene->WrapsY() && maxY >= height;
+		for (float offsetY: {0.0F, height, -height}) {
+			if ((offsetY > 0 && !pastTop) || (offsetY < 0 && !pastBottom)) {
+				continue;
+			}
+			for (float offsetX: {0.0F, width, -width}) {
+				if ((offsetX > 0 && !pastLeft) || (offsetX < 0 && !pastRight)) {
+					continue;
+				}
+				fillShape(Vector(offsetX, offsetY));
+			}
+		}
+	}
+
 	/// Takes a span of unseen layer mask pixels out of view, first copying the live terrain under any that were in view into the team's last-seen terrain.
 	void HideUnseenLayerMaskSpan(Scene* scene, int team, int y, int startX, int endX) {
 		uint16_t* row = &Scene::GetUnseenLayerMaskHold(scene->GetUnseenLayerMask(team)->GetBitmap(), 0, y);
@@ -1274,21 +1296,23 @@ void SceneMan::RevealUnseenBox(const int posX, const int posY, const int width, 
 	}
 
 	if (SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team)) {
-		// Translate to the scaled unseen layer's coordinates
 		Vector scale = pUnseenLayerMask->GetScaleFactor();
-		int scaledX = posX / scale.m_X;
-		int scaledY = posY / scale.m_Y;
 		int scaledW = width / scale.m_X;
 		int scaledH = height / scale.m_Y;
 
-		// Fill the box for the unseen masks (plural)
+		// Fill the box for the unseen masks (plural), wrapping it around the scene's edges
 		BITMAP* maskBitmap = pUnseenLayerMask->GetBitmap();
+		BITMAP* terrainMaskBitmap = m_pCurrentScene->GetUnseenLayerTerrainMask(team)->GetBitmap();
 		const uint16_t holdUpdates = Scene::GetUnseenLayerMaskHoldUpdates(holdSeconds);
-		ForEachRectSpan(maskBitmap, scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, [maskBitmap, holdUpdates](int y, int startX, int endX) {
-			RaiseUnseenLayerMaskSpanHold(maskBitmap, y, startX, endX, holdUpdates);
+		ForEachSceneWrapOffset(m_pCurrentScene, std::min(posX, posX + width), std::min(posY, posY + height), std::max(posX, posX + width), std::max(posY, posY + height), [&](const Vector& offset) {
+			// Translate to the scaled unseen layer's coordinates
+			int scaledX = (posX + offset.m_X) / scale.m_X;
+			int scaledY = (posY + offset.m_Y) / scale.m_Y;
+			ForEachRectSpan(maskBitmap, scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, [maskBitmap, holdUpdates](int y, int startX, int endX) {
+				RaiseUnseenLayerMaskSpanHold(maskBitmap, y, startX, endX, holdUpdates);
+			});
+			rectfill(terrainMaskBitmap, scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
 		});
-		SceneLayer* pUnseenLayerTerrainMask = m_pCurrentScene->GetUnseenLayerTerrainMask(team);
-		rectfill(pUnseenLayerTerrainMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
 	}
 }
 
@@ -1298,16 +1322,18 @@ void SceneMan::RestoreUnseenBox(const int posX, const int posY, const int width,
 		return;
 
 	if (SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team)) {
-		// Translate to the scaled unseen layer's coordinates
 		Vector scale = pUnseenLayerMask->GetScaleFactor();
-		int scaledX = posX / scale.m_X;
-		int scaledY = posY / scale.m_Y;
 		int scaledW = width / scale.m_X;
 		int scaledH = height / scale.m_Y;
 
-		// Fill the box, remembering the terrain under anything that was in view first
-		ForEachRectSpan(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, [this, team](int y, int startX, int endX) {
-			HideUnseenLayerMaskSpan(m_pCurrentScene, team, y, startX, endX);
+		// Fill the box, wrapping it around the scene's edges and remembering the terrain under anything that was in view first
+		ForEachSceneWrapOffset(m_pCurrentScene, std::min(posX, posX + width), std::min(posY, posY + height), std::max(posX, posX + width), std::max(posY, posY + height), [&](const Vector& offset) {
+			// Translate to the scaled unseen layer's coordinates
+			int scaledX = (posX + offset.m_X) / scale.m_X;
+			int scaledY = (posY + offset.m_Y) / scale.m_Y;
+			ForEachRectSpan(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, [this, team](int y, int startX, int endX) {
+				HideUnseenLayerMaskSpan(m_pCurrentScene, team, y, startX, endX);
+			});
 		});
 	}
 }
@@ -1318,20 +1344,22 @@ void RTE::SceneMan::RevealUnseenTri(const Vector pos1, const Vector pos2, const 
 		return;
 
 	if (SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team)) {
-		// Translate to the scaled unseen layer's coordinates
 		Vector scale = pUnseenLayerMask->GetScaleFactor();
-		Vector pos1Scaled = pos1 / scale;
-		Vector pos2Scaled = pos2 / scale;
-		Vector pos3Scaled = pos3 / scale;
 
-		// Fill the tri for the unseen masks (plural)
+		// Fill the tri for the unseen masks (plural), wrapping it around the scene's edges
 		BITMAP* maskBitmap = pUnseenLayerMask->GetBitmap();
+		BITMAP* terrainMaskBitmap = m_pCurrentScene->GetUnseenLayerTerrainMask(team)->GetBitmap();
 		const uint16_t holdUpdates = Scene::GetUnseenLayerMaskHoldUpdates(holdSeconds);
-		ForEachTriangleSpan(maskBitmap, (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), [maskBitmap, holdUpdates](int y, int startX, int endX) {
-			RaiseUnseenLayerMaskSpanHold(maskBitmap, y, startX, endX, holdUpdates);
+		ForEachSceneWrapOffset(m_pCurrentScene, std::min({pos1.m_X, pos2.m_X, pos3.m_X}), std::min({pos1.m_Y, pos2.m_Y, pos3.m_Y}), std::max({pos1.m_X, pos2.m_X, pos3.m_X}), std::max({pos1.m_Y, pos2.m_Y, pos3.m_Y}), [&](const Vector& offset) {
+			// Translate to the scaled unseen layer's coordinates
+			Vector pos1Scaled = (pos1 + offset) / scale;
+			Vector pos2Scaled = (pos2 + offset) / scale;
+			Vector pos3Scaled = (pos3 + offset) / scale;
+			ForEachTriangleSpan(maskBitmap, (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), [maskBitmap, holdUpdates](int y, int startX, int endX) {
+				RaiseUnseenLayerMaskSpanHold(maskBitmap, y, startX, endX, holdUpdates);
+			});
+			triangle(terrainMaskBitmap, (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), g_MaskColor);
 		});
-		SceneLayer* pUnseenLayerTerrainMask = m_pCurrentScene->GetUnseenLayerTerrainMask(team);
-		triangle(pUnseenLayerTerrainMask->GetBitmap(), (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), g_MaskColor);
 	}
 }
 
@@ -1341,15 +1369,17 @@ void RTE::SceneMan::RestoreUnseenTri(const Vector pos1, const Vector pos2, const
 		return;
 
 	if (SceneLayer* pUnseenLayerMask = m_pCurrentScene->GetUnseenLayerMask(team)) {
-		// Translate to the scaled unseen layer's coordinates
 		Vector scale = pUnseenLayerMask->GetScaleFactor();
-		Vector pos1Scaled = pos1 / scale;
-		Vector pos2Scaled = pos2 / scale;
-		Vector pos3Scaled = pos3 / scale;
 
-		// Fill the tri for the unseen mask, remembering the terrain under anything that was in view first
-		ForEachTriangleSpan(pUnseenLayerMask->GetBitmap(), (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), [this, team](int y, int startX, int endX) {
-			HideUnseenLayerMaskSpan(m_pCurrentScene, team, y, startX, endX);
+		// Fill the tri for the unseen mask, wrapping it around the scene's edges and remembering the terrain under anything that was in view first
+		ForEachSceneWrapOffset(m_pCurrentScene, std::min({pos1.m_X, pos2.m_X, pos3.m_X}), std::min({pos1.m_Y, pos2.m_Y, pos3.m_Y}), std::max({pos1.m_X, pos2.m_X, pos3.m_X}), std::max({pos1.m_Y, pos2.m_Y, pos3.m_Y}), [&](const Vector& offset) {
+			// Translate to the scaled unseen layer's coordinates
+			Vector pos1Scaled = (pos1 + offset) / scale;
+			Vector pos2Scaled = (pos2 + offset) / scale;
+			Vector pos3Scaled = (pos3 + offset) / scale;
+			ForEachTriangleSpan(pUnseenLayerMask->GetBitmap(), (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), [this, team](int y, int startX, int endX) {
+				HideUnseenLayerMaskSpan(m_pCurrentScene, team, y, startX, endX);
+			});
 		});
 	}
 }
@@ -1519,8 +1549,9 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 		// Only check space if we're not due to skip any, or if this is the last step
 		if (++skipped > skip || domSteps + 1 == delta[dom]) {
 
-			// Scene wrapping
-			WrapPosition(intPos[X], intPos[Y]);
+			// Scene wrapping, only for looking at the scene. The ray's own position isn't wrapped, so what it reveals doesn't stretch back across the scene when it crosses the seam.
+			int wrappedPos[2] = {intPos[X], intPos[Y]};
+			WrapPosition(wrappedPos[X], wrappedPos[Y]);
 
 			if (!MOIDWasHit) {
 				// Gives much more stable results, we'll maybe need a better method of optimising this
@@ -1540,19 +1571,19 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 			}
 
 			// Check the strength of the terrain to see if we can penetrate further
-			materialID = GetTerrMatter(intPos[X], intPos[Y]);
+			materialID = GetTerrMatter(wrappedPos[X], wrappedPos[Y]);
 			// Get the material object
 			foundMaterial = GetMaterialFromID(materialID);
 			// See if we have hit the limits of our ray's strength
 			if (foundMaterial->GetIntegrity() >= strengthLimit) {
 				// Save the position of the end of the ray where blocked
-				endPos.SetXY(intPos[X], intPos[Y]);
+				endPos.SetXY(wrappedPos[X], wrappedPos[Y]);
 				break;
 			}
 			// Reset skip counter
 			skipped = 0;
 			if (m_pDebugLayer && m_DrawRayCastVisualizations) {
-				m_pDebugLayer->SetPixel(intPos[X], intPos[Y], 13);
+				m_pDebugLayer->SetPixel(wrappedPos[X], wrappedPos[Y], 13);
 			}
 		}
 	}
