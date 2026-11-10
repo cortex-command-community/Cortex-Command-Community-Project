@@ -36,6 +36,26 @@
 
 using namespace RTE;
 
+namespace {
+	// How far the fog of war edge smoothing reaches past what's in view or seen before, as fractions of the screen's diagonal
+	float usdfThresoldForFoV = 0.0095f;
+	float usdfOpacitySmoothingDistanceForFoV = 0.01f;
+	float usdfThresoldForNeverSeen = 0.0095f;
+	float usdfOpacitySmoothingDistanceForNeverSeen = 0.01f;
+	float scanlineAndNoiseOpacitySmoothingDistance = 0.015f;
+
+	/// Gets the length of a screen's diagonal, which the fog of war edge smoothing measures its distances against.
+	float GetScreenDiagonal(const BITMAP* screen) { return std::sqrt(static_cast<float>(screen->w * screen->w + screen->h * screen->h)); }
+
+	/// Gets how far past each edge of a screen the fog of war edge smoothing has to look, so that what's just off screen still counts.
+	/// @return The furthest the smoothing reaches, in pixels.
+	int GetFogOfWarSdfMargin(const BITMAP* screen) {
+		// Darkening and desaturating reach a smoothing distance past their threshold, and the scanlines and noise reach their own distance past the in view threshold
+		const float furthestReach = std::max({usdfThresoldForFoV + usdfOpacitySmoothingDistanceForFoV, usdfThresoldForNeverSeen + usdfOpacitySmoothingDistanceForNeverSeen, usdfThresoldForFoV + scanlineAndNoiseOpacitySmoothingDistance});
+		return static_cast<int>(std::ceil(furthestReach * GetScreenDiagonal(screen)));
+	}
+}
+
 void BitmapDeleter::operator()(BITMAP* bitmap) const { destroy_bitmap(bitmap); }
 void SurfaceDeleter::operator()(SDL_Surface* surface) const { SDL_DestroySurface(surface); }
 
@@ -262,8 +282,10 @@ void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 #define prnt(str) g_ConsoleMan.PrintString(std::to_string(str))
 #define prnt2(str) g_ConsoleMan.PrintString(str)
 	const float timeInSecs = (float)g_TimerMan.GetSimTickCount() / 1000000;
-	const int viewWidth = m_BackBuffer8->w;
-	const int viewHeight = m_BackBuffer8->h;
+	// The passes cover the screen plus a margin past each edge, so that what's just off screen still counts
+	const int sdfWidth = m_BackBuffer8->w + m_SdfMargin * 2;
+	const int sdfHeight = m_BackBuffer8->h + m_SdfMargin * 2;
+	const Vector sdfSize(static_cast<float>(sdfWidth), static_cast<float>(sdfHeight));
 
 	// Only repeat the mask past the scene's edges where the scene wraps, otherwise filtering blends each edge of the scene with the opposite one
 	glBindTexture(GL_TEXTURE_2D, inputTex);
@@ -291,14 +313,14 @@ void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 
 	GLenum buf = GL_COLOR_ATTACHMENT0;
 	glDrawBuffers(1, &buf);
-	glViewport(0, 0, viewWidth, viewHeight);
+	glViewport(0, 0, sdfWidth, sdfHeight);
 	glUseProgram(programMask);
 
 	// Set uniforms
 	SceneLayer* terrainSL = g_SceneMan.GetTerrain();
 	shaderMask.SetFloat("uTime", timeInSecs);
-	shaderMask.SetVector2f("uViewOrigin", g_CameraMan.GetOffset(0));
-	shaderMask.SetVector2f("uViewSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
+	shaderMask.SetVector2f("uViewOrigin", g_CameraMan.GetOffset(0) - Vector(static_cast<float>(m_SdfMargin), static_cast<float>(m_SdfMargin)));
+	shaderMask.SetVector2f("uViewSize", sdfSize);
 	shaderMask.SetVector2f("uSceneSize", Vector(terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
 
 	// Set Sampler2D
@@ -314,11 +336,11 @@ void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 	//2. JFA!
 	GLuint src = m_SdfTexPing, dst = m_SdfTexPong;
 
-	for (int step = std::ceil(std::max(viewWidth, viewHeight) / 2); step >= 1; step /= 2) {
+	for (int step = std::ceil(std::max(sdfWidth, sdfHeight) / 2); step >= 1; step /= 2) {
 		// Drawing to DST
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst, 0);
 
-		glViewport(0, 0, viewWidth, viewHeight);
+		glViewport(0, 0, sdfWidth, sdfHeight);
 		glUseProgram(programJFA);
 		
 		// Setting sampler2d as SRC
@@ -327,7 +349,7 @@ void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 		glUniform1i(glGetUniformLocation(programJFA, "uPrev"), 0);
 
 		shaderJFA.SetFloat("uStep", step);
-		shaderJFA.SetVector2f("uViewSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
+		shaderJFA.SetVector2f("uViewSize", sdfSize);
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -337,15 +359,16 @@ void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 	// 3. Unsigned SDF!
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, dst, 0);
 
-	glViewport(0, 0, viewWidth, viewHeight);
+	glViewport(0, 0, sdfWidth, sdfHeight);
 	glUseProgram(programUnsignedSDF);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, src);
 	glUniform1i(glGetUniformLocation(programUnsignedSDF, "uSampler"), 0);
 
-	shaderUnsignedSDF.SetFloat("uMaxDist", std::sqrt(m_BackBuffer8->w * m_BackBuffer8->w + m_BackBuffer8->h * m_BackBuffer8->h));
-	shaderUnsignedSDF.SetVector2f("uViewSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
+	// Distances stay relative to the screen's diagonal, not the margin's, so the smoothing distances mean the same as before
+	shaderUnsignedSDF.SetFloat("uMaxDist", GetScreenDiagonal(m_BackBuffer8.get()));
+	shaderUnsignedSDF.SetVector2f("uViewSize", sdfSize);
 
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -353,7 +376,7 @@ void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 	// Passthrough it to outputTex
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outputTex, 0);
 
-	glViewport(0, 0, viewWidth, viewHeight);
+	glViewport(0, 0, sdfWidth, sdfHeight);
 	glUseProgram(programPassthrough);
 
 	glActiveTexture(GL_TEXTURE0);
@@ -421,22 +444,24 @@ void FrameMan::InitOrReinitFowOglThings() {
 	
 	// But make/remake textures with differing wrapping and sizes each time
 	// GTODO:
-	auto alloc_rg32f_viewSized = [&](GLuint tex) {
-		const int viewWidth = m_BackBuffer8->w;
-		const int viewHeight = m_BackBuffer8->h;
+	auto alloc_rg32f = [&](GLuint tex, int width, int height) {
 		glBindTexture(GL_TEXTURE_2D, tex);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, viewWidth, viewHeight, 0, GL_RG, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	};
 
-	alloc_rg32f_viewSized(m_SdfTexPing);
-	alloc_rg32f_viewSized(m_SdfTexPong);
-	alloc_rg32f_viewSized(m_SdfResultFowMask);
-	alloc_rg32f_viewSized(m_SdfResultFowLastSeenTerrainMask);
-	alloc_rg32f_viewSized(m_bgLayersTex);
+	// The edge smoothing covers the screen plus however far it reaches past each edge, so that what's just off screen still counts
+	m_SdfMargin = GetFogOfWarSdfMargin(m_BackBuffer8.get());
+	const int sdfWidth = m_BackBuffer8->w + m_SdfMargin * 2;
+	const int sdfHeight = m_BackBuffer8->h + m_SdfMargin * 2;
+	alloc_rg32f(m_SdfTexPing, sdfWidth, sdfHeight);
+	alloc_rg32f(m_SdfTexPong, sdfWidth, sdfHeight);
+	alloc_rg32f(m_SdfResultFowMask, sdfWidth, sdfHeight);
+	alloc_rg32f(m_SdfResultFowLastSeenTerrainMask, sdfWidth, sdfHeight);
+	alloc_rg32f(m_bgLayersTex, m_BackBuffer8->w, m_BackBuffer8->h);
 }
 
 void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEnabled) {
@@ -452,12 +477,8 @@ void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEna
 	backgroundShader.SetVector2f("uViewSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
 	backgroundShader.SetVector2f("uSceneSize", Vector(terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
 	backgroundShader.SetFloat("uNoiseSeed", static_cast<float>(rand()) * 0.0001f);
+	backgroundShader.SetFloat("uSdfMargin", static_cast<float>(m_SdfMargin));
 
-	static float usdfThresoldForFoV = 0.0095f;
-	static float usdfOpacitySmoothingDistanceForFoV = 0.01f;
-	static float usdfThresoldForNeverSeen = 0.0095f;
-	static float usdfOpacitySmoothingDistanceForNeverSeen = 0.01f;
-	static float scanlineAndNoiseOpacitySmoothingDistance = 0.015f;
 	static float unseenNoiseIntensity = 0.02f;
 	backgroundShader.SetFloat("usdfThresoldForFoV", usdfThresoldForFoV);
 	backgroundShader.SetFloat("usdfOpacitySmoothingDistanceForFoV", usdfOpacitySmoothingDistanceForFoV);

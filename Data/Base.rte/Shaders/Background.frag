@@ -22,6 +22,7 @@ uniform bool useOneStageFoW = true;
 uniform vec2 uViewOrigin;
 uniform vec2 uViewSize;
 uniform vec2 uSceneSize;
+uniform float uSdfMargin; // How far past each edge of the screen the fog of war distance textures cover, in pixels
 
 uniform float uNoiseSeed;
 
@@ -101,8 +102,10 @@ void main() {
 
 	//const float SCANLINE_OPACITY_SMOOTHING_DISTANCE = 0.05f;
 
-	float distanceToFoV = texture(fowMaskTexture, textureUV).r - usdfThresoldForFoV;
-	float distanceToSeenBefore = texture(fowLastSeenMaskTexture, textureUV).r - usdfThresoldForNeverSeen;
+	// The distance textures cover a margin past each edge of the screen, so this screen pixel is further in
+	vec2 sdfUV = (textureUV * uViewSize + uSdfMargin) / (uViewSize + 2.0 * uSdfMargin);
+	float distanceToFoV = texture(fowMaskTexture, sdfUV).r - usdfThresoldForFoV;
+	float distanceToSeenBefore = texture(fowLastSeenMaskTexture, sdfUV).r - usdfThresoldForNeverSeen;
 	
 	bool isWithinFow = distanceToFoV < 0;
 	bool hasBeenSeen = distanceToSeenBefore < 0;

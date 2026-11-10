@@ -513,6 +513,7 @@ namespace RTE {
 		GLuint m_SdfTexPong = 0;
 		GLuint m_SdfResultFowMask = 0;
 		GLuint m_SdfResultFowLastSeenTerrainMask = 0;
+		int m_SdfMargin = 0; //!< How far past each edge of the screen the fog of war edge smoothing covers, in pixels, so that what's just off screen still counts.
 		GLuint m_bgLayersTex;
 		GLuint m_SdfVao = 0;
 		GLuint m_SdfVbo = 0;
