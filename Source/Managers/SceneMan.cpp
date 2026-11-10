@@ -75,6 +75,10 @@ namespace {
 		// To minimize blit calls we do a greedy vertical merge of the runs
 		// From that we get rectangles
 		BITMAP* fowMaskBm = scene->GetUnseenLayerMask(team)->GetBitmap();
+		// Saving runs this when aborting too, where crashing on a broken mask would hide the error that caused the abort
+		if (!fowMaskBm) {
+			return;
+		}
 		int fowMaskWidth = fowMaskBm->w;
 		int fowMaskHeight = fowMaskBm->h;
 
