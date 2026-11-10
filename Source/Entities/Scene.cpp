@@ -519,6 +519,13 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 				g_ConsoleMan.PrintString("ERROR: Loading unseen layer terrain mask " + m_apUnseenLayerTerrainMask[team]->GetPresetName() + "\'s data failed!");
 				return -1;
 			}
+			// Holds aren't saved, so make a mask the size of the loaded terrain mask with nothing in view yet
+			BITMAP* pUnseenTerrainMaskBitmap = m_apUnseenLayerTerrainMask[team]->GetBitmap();
+			BITMAP* pUnseenMaskBitmap = create_bitmap_ex(16, pUnseenTerrainMaskBitmap->w, pUnseenTerrainMaskBitmap->h);
+			clear_to_color(pUnseenMaskBitmap, 0);
+			delete m_apUnseenLayerMask[team];
+			m_apUnseenLayerMask[team] = new SceneLayer();
+			m_apUnseenLayerMask[team]->Create(pUnseenMaskBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
 		}
 	}
 
