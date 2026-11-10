@@ -1155,6 +1155,10 @@ void SceneMan::CastSeeRaysFromSky(const int screenId) {
 
 	for (int i = 0; i < rayCount; ++i) {
 		rayX = (rayX + static_cast<int>(spacing)) % GetSceneWidth();
+		// A ray starting off the side of a scene that doesn't wrap, or inside solid terrain, has no sky to see from
+		if ((!SceneWrapsX() && (rayX < 0 || rayX >= GetSceneWidth())) || GetMaterialFromID(GetTerrMatter(rayX, 0))->GetIntegrity() >= strength) {
+			continue;
+		}
 		CastSeeRay(team, Vector(static_cast<float>(rayX), 0), seeRay, ignored, strength, 0, c_FogOfWarSkyRayHoldSeconds);
 	}
 }
