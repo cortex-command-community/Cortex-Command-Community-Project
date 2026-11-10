@@ -230,6 +230,14 @@ namespace RTE {
 		/// @param value The new recoil multiplier scalar.
 		void SetVisualRecoilMultiplier(float value) { m_VisualRecoilMultiplier = value; }
 
+		/// Gets how loud this HeldDevice is when activated, i.e. the range of the alarm event that AI actors react to.
+		/// @return The loudness. 0 is silent, 1 is normal (audible from about half a screen away).
+		float GetLoudness() const { return m_Loudness; }
+
+		/// Sets how loud this HeldDevice is when activated, i.e. the range of the alarm event that AI actors react to.
+		/// @param newLoudness The new loudness. 0 is silent, 1 is normal (audible from about half a screen away).
+		void SetLoudness(float newLoudness) { m_Loudness = newLoudness; }
+
 		/// Sets the degree to which this is being aimed sharp. This will
 		/// affect the accuracy and what GetParentOffset returns.
 		/// @param sharpAim A normalized scalar between 0 (no sharp aim) to 1.0 (best aim).
