@@ -1578,8 +1578,8 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 			materialID = GetTerrMatter(wrappedPos[X], wrappedPos[Y]);
 			// Get the material object
 			foundMaterial = GetMaterialFromID(materialID);
-			// See if we have hit the limits of our ray's strength
-			if (foundMaterial->GetIntegrity() >= strengthLimit) {
+			// See if we have hit the limits of our ray's strength, or left the sides or bottom of a scene that doesn't wrap. Off the scene counts as air, but there's nothing to see there, only above the scene is open sky.
+			if (foundMaterial->GetIntegrity() >= strengthLimit || wrappedPos[X] < 0 || wrappedPos[X] >= GetSceneWidth() || wrappedPos[Y] >= GetSceneHeight()) {
 				// Save the position of the end of the ray where blocked
 				endPos.SetXY(wrappedPos[X], wrappedPos[Y]);
 				break;
