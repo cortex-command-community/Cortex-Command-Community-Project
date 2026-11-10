@@ -698,6 +698,7 @@ LuaBindingRegisterFunctionDefinitionForType(EntityLuaBindings, HeldDevice) {
 	    .addProperty("Supported", &HeldDevice::GetSupported, &HeldDevice::SetSupported)
 	    .addProperty("GetsHitByMOsWhenHeld", &HeldDevice::GetsHitByMOsWhenHeld, &HeldDevice::SetGetsHitByMOsWhenHeld)
 	    .addProperty("VisualRecoilMultiplier", &HeldDevice::GetVisualRecoilMultiplier, &HeldDevice::SetVisualRecoilMultiplier)
+	    .addProperty("Loudness", &HeldDevice::GetLoudness, &HeldDevice::SetLoudness)
 
 	    .addFunction("IsBeingHeld", &HeldDevice::IsBeingHeld)
 	    .addFunction("IsWeapon", &HeldDevice::IsWeapon)

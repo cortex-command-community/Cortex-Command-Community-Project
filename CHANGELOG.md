@@ -169,6 +169,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`InputScheme` has the Lua properties `Device` (R) and `Preset` (R), and the function `GetMappingName(inputElement)`, which gives the name of whatever the input is bound to, such as "Mouse Left".  
 	`Enum` binding for `InputScheme.InputPreset`: `NoPreset = 0, PresetArrowKeys = 1, PresetWASDKeys = 2, PresetMouseWASDKeys = 3, PresetGenericDPad = 4, PresetGenericDualAnalog = 5, PresetGamepadSNES = 6, PresetGamepadDS4 = 7, PresetGamepadXbox360 = 8, InputPresetCount = 9`.
 
+- `HeldDevice` INI property `Loudness` is now also a Lua (R/W) property. It sets the range of the alarm event a device raises when activated, which AI actors react to: 0 is silent, 1 is normal (audible from about half a screen away). Scripts can use it for things like silencers.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -322,6 +324,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed AI actors refusing to fire the Coalition Missile Launcher at anything beyond point-blank range, because the AI took the range of its short-lived dummy round instead of the missile's.
 
 - Fixed the terrain background layer drawing at the terrain foreground's depth, which hid primitives drawn at a depth between `DrawDepth.Default` and `DrawDepth.TerrainBackground` behind it instead of showing them on top of the background.
+
+- Fixed white speckles on dark terrain, such as cave backgrounds. The `Background` and `Dissolve` shaders smoothed their palette lookups, so pixels could take the colour of the neighbouring palette entry.
 
 </details>
 

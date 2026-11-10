@@ -32,21 +32,11 @@ float noise( vec2 U )
 	return mix( C.x, C.y, U.y );
 }
 
-vec4 textureAA(sampler2D tex, vec2 uv) {
-	vec2 texsize = vec2(textureSize(tex, 0));
-	vec2 uv_texspace = uv * texsize;
-	vec2 seam = floor(uv_texspace + .5);
-	uv_texspace = (uv_texspace - seam) / fwidth(uv_texspace) + seam;
-	uv_texspace = clamp(uv_texspace, seam - .5, seam + .5);
-	return texture(tex, uv_texspace / texsize);
-}
-
 void main() {
 	if (noise(gl_FragCoord.xy + textureUV) < 0.5) {
 		discard;
 	}
 	float red = texture(rteTexture, textureUV).r;
-	vec4 color = textureAA(rtePalette, vec2(red * vertexColor.r, 0.0)) * vec4(rteColor.rgb, rteColor.a * vertexColor.a);
-
-	FragColor = color;
+	// Palette entries must be fetched exactly; smoothing the lookup coordinate let neighbouring entries bleed through (e.g. dark index 100 drawn as near-white 99).
+	FragColor = texelFetch(rtePalette, ivec2(int(red * vertexColor.r * 255.0 + 0.5), 0), 0) * vec4(rteColor.rgb, rteColor.a * vertexColor.a);
 }

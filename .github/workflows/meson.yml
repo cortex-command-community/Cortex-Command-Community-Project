@@ -226,7 +226,8 @@ jobs:
           if-no-files-found: error
 
   build-macos-x86:
-    runs-on: ubuntu-latest
+    # Kept on the Ubuntu that the cached osxcross toolchain was built on, since its cache key has no Ubuntu version
+    runs-on: ubuntu-24.04
     name: MacOS Build (x86_64)
 
     env:
