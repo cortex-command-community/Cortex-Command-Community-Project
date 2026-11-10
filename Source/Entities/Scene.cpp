@@ -361,6 +361,7 @@ void Scene::Clear() {
 		m_apUnseenLayerMask[team] = nullptr; // TODO: Doesn't this leak?
 		m_apUnseenLayerTerrain[team] = nullptr;
 		m_apUnseenLayerTerrainMask[team] = nullptr;
+		m_apUnseenLayerTerrainCopiedMask[team] = nullptr;
 		m_SeenPixels[team].clear();
 		m_CleanedPixels[team].clear();
 		m_ScanScheduled[team] = false;
@@ -431,6 +432,9 @@ int Scene::Create(const Scene& reference) {
 			m_apUnseenLayerMask[team] = dynamic_cast<SceneLayer*>(reference.m_apUnseenLayerMask[team]->Clone());
 			m_apUnseenLayerTerrain[team] = dynamic_cast<SceneLayer*>(reference.m_apUnseenLayerTerrain[team]->Clone());
 			m_apUnseenLayerTerrainMask[team] = dynamic_cast<SceneLayer*>(reference.m_apUnseenLayerTerrainMask[team]->Clone());
+			if (reference.m_apUnseenLayerTerrainCopiedMask[team]) {
+				m_apUnseenLayerTerrainCopiedMask[team] = dynamic_cast<SceneLayer*>(reference.m_apUnseenLayerTerrainCopiedMask[team]->Clone());
+			}
 		}
 		else {
 			m_UnseenPixelSize[team] = reference.m_UnseenPixelSize[team];
@@ -493,10 +497,13 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 			clear_to_color(pUnseenTerrainBitmap, 255);
 			BITMAP* pUnseenTerrainMaskBitmap = create_bitmap_ex(8, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
 			clear_to_color(pUnseenTerrainMaskBitmap, 255);
+			BITMAP* pUnseenTerrainCopiedMaskBitmap = create_bitmap_ex(8, pUnseenTerrainMaskBitmap->w, pUnseenTerrainMaskBitmap->h);
+			clear_to_color(pUnseenTerrainCopiedMaskBitmap, 255);
 			// Replace any old unseen layer with the new one that is generated
 			delete m_apUnseenLayerMask[team];
 			delete m_apUnseenLayerTerrain[team];
 			delete m_apUnseenLayerTerrainMask[team];
+			delete m_apUnseenLayerTerrainCopiedMask[team];
 			m_apUnseenLayerMask[team] = new SceneLayer();
 			m_apUnseenLayerMask[team]->Create(pUnseenMaskBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
 			m_apUnseenLayerMask[team]->SetScaleFactor(m_UnseenPixelSize[team]);
@@ -506,6 +513,9 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 			m_apUnseenLayerTerrainMask[team] = new SceneLayer();
 			m_apUnseenLayerTerrainMask[team]->Create(pUnseenTerrainMaskBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
 			m_apUnseenLayerTerrainMask[team]->SetScaleFactor(m_UnseenPixelSize[team]);
+			m_apUnseenLayerTerrainCopiedMask[team] = new SceneLayer();
+			m_apUnseenLayerTerrainCopiedMask[team]->Create(pUnseenTerrainCopiedMaskBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
+			m_apUnseenLayerTerrainCopiedMask[team]->SetScaleFactor(m_UnseenPixelSize[team]);
 		}
 		// If not dynamically generated, was it custom loaded?
 		else if (m_apUnseenLayerTerrain[team]) {
@@ -519,8 +529,20 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 				g_ConsoleMan.PrintString("ERROR: Loading unseen layer terrain mask " + m_apUnseenLayerTerrainMask[team]->GetPresetName() + "\'s data failed!");
 				return -1;
 			}
-			// Holds aren't saved, so make a mask the size of the loaded terrain mask with nothing in view yet
 			BITMAP* pUnseenTerrainMaskBitmap = m_apUnseenLayerTerrainMask[team]->GetBitmap();
+			if (m_apUnseenLayerTerrainCopiedMask[team]) {
+				if (m_apUnseenLayerTerrainCopiedMask[team]->LoadData() < 0) {
+					g_ConsoleMan.PrintString("ERROR: Loading unseen layer terrain copied mask " + m_apUnseenLayerTerrainCopiedMask[team]->GetPresetName() + "\'s data failed!");
+					return -1;
+				}
+			} else {
+				// Saves from before this mask existed only copied terrain into what had been seen, and saving copies everything in view
+				BITMAP* pUnseenTerrainCopiedMaskBitmap = create_bitmap_ex(8, pUnseenTerrainMaskBitmap->w, pUnseenTerrainMaskBitmap->h);
+				blit(pUnseenTerrainMaskBitmap, pUnseenTerrainCopiedMaskBitmap, 0, 0, 0, 0, pUnseenTerrainMaskBitmap->w, pUnseenTerrainMaskBitmap->h);
+				m_apUnseenLayerTerrainCopiedMask[team] = new SceneLayer();
+				m_apUnseenLayerTerrainCopiedMask[team]->Create(pUnseenTerrainCopiedMaskBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
+			}
+			// Holds aren't saved, so make a mask the size of the loaded terrain mask with nothing in view yet
 			BITMAP* pUnseenMaskBitmap = create_bitmap_ex(16, pUnseenTerrainMaskBitmap->w, pUnseenTerrainMaskBitmap->h);
 			clear_to_color(pUnseenMaskBitmap, 0);
 			delete m_apUnseenLayerMask[team];
@@ -756,6 +778,7 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 											rectfill(m_apUnseenLayerMask[t]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, 0);
 											// 255 so it's 1.0 at compositing step
 											rectfill(m_apUnseenLayerTerrainMask[t]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, 255);
+											rectfill(m_apUnseenLayerTerrainCopiedMask[t]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, 255);
 											rectfill(m_apUnseenLayerTerrain[ownerTeam]->GetBitmap(), rescaledX, rescaledY, rescaledW, rescaledH, g_BlackColor);
 										}
 									}
@@ -922,6 +945,10 @@ int Scene::SaveData(const std::string& pathBase) {
 				g_ConsoleMan.PrintString("ERROR: Saving unseen layer terrain mask " + m_apUnseenLayerTerrainMask[team]->GetPresetName() + "\'s data failed!");
 				return -1;
 			}
+			if (m_apUnseenLayerTerrainCopiedMask[team] && m_apUnseenLayerTerrainCopiedMask[team]->SaveData(fullPathBase + " US" + str + ".png") < 0) {
+				g_ConsoleMan.PrintString("ERROR: Saving unseen layer terrain copied mask " + m_apUnseenLayerTerrainCopiedMask[team]->GetPresetName() + "\'s data failed!");
+				return -1;
+			}
 		}
 	}
 
@@ -946,6 +973,9 @@ std::vector<SceneLayerInfo> Scene::GetCopiedSceneLayerBitmaps() const {
 			);
 			layerInfos.emplace_back(std::format("UST T{}", team), m_apUnseenLayerTerrain[team]->CopyBitmap());
 			layerInfos.emplace_back(std::format("USTM T{}", team), m_apUnseenLayerTerrainMask[team]->CopyBitmap());
+			if (m_apUnseenLayerTerrainCopiedMask[team]) {
+				layerInfos.emplace_back(std::format("USTC T{}", team), m_apUnseenLayerTerrainCopiedMask[team]->CopyBitmap());
+			}
 	    }
 	}
 
@@ -1067,6 +1097,10 @@ int Scene::ClearData() {
 				g_ConsoleMan.PrintString("ERROR: Clearing unseen layer terrain mask " + m_apUnseenLayerTerrainMask[team]->GetPresetName() + "\'s data failed!");
 				return -1;
 			}
+			if (m_apUnseenLayerTerrainCopiedMask[team] && m_apUnseenLayerTerrainCopiedMask[team]->ClearData() < 0) {
+				g_ConsoleMan.PrintString("ERROR: Clearing unseen layer terrain copied mask " + m_apUnseenLayerTerrainCopiedMask[team]->GetPresetName() + "\'s data failed!");
+				return -1;
+			}
 		}
 	}
 
@@ -1171,15 +1205,27 @@ int Scene::ReadProperty(const std::string_view& propName, Reader& reader) {
 	MatchProperty("UnseenLayerTerrainMaskTeam1",
 	              delete m_apUnseenLayerTerrainMask[Activity::TeamOne];
 	              m_apUnseenLayerTerrainMask[Activity::TeamOne] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
+	MatchProperty("UnseenLayerTerrainCopiedMaskTeam1",
+	              delete m_apUnseenLayerTerrainCopiedMask[Activity::TeamOne];
+	              m_apUnseenLayerTerrainCopiedMask[Activity::TeamOne] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
 	MatchProperty("UnseenLayerTerrainMaskTeam2",
 	              delete m_apUnseenLayerTerrainMask[Activity::TeamTwo];
 	              m_apUnseenLayerTerrainMask[Activity::TeamTwo] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
+	MatchProperty("UnseenLayerTerrainCopiedMaskTeam2",
+	              delete m_apUnseenLayerTerrainCopiedMask[Activity::TeamTwo];
+	              m_apUnseenLayerTerrainCopiedMask[Activity::TeamTwo] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
 	MatchProperty("UnseenLayerTerrainMaskTeam3",
 	              delete m_apUnseenLayerTerrainMask[Activity::TeamThree];
 	              m_apUnseenLayerTerrainMask[Activity::TeamThree] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
+	MatchProperty("UnseenLayerTerrainCopiedMaskTeam3",
+	              delete m_apUnseenLayerTerrainCopiedMask[Activity::TeamThree];
+	              m_apUnseenLayerTerrainCopiedMask[Activity::TeamThree] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
 	MatchProperty("UnseenLayerTerrainMaskTeam4",
 	              delete m_apUnseenLayerTerrainMask[Activity::TeamFour];
 	              m_apUnseenLayerTerrainMask[Activity::TeamFour] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
+	MatchProperty("UnseenLayerTerrainCopiedMaskTeam4",
+	              delete m_apUnseenLayerTerrainCopiedMask[Activity::TeamFour];
+	              m_apUnseenLayerTerrainCopiedMask[Activity::TeamFour] = dynamic_cast<SceneLayer*>(g_PresetMan.ReadReflectedPreset(reader)););
 	MatchProperty("ScanScheduledTeam1", { reader >> m_ScanScheduled[Activity::TeamOne]; });
 	MatchProperty("ScanScheduledTeam2", { reader >> m_ScanScheduled[Activity::TeamTwo]; });
 	MatchProperty("ScanScheduledTeam3", { reader >> m_ScanScheduled[Activity::TeamThree]; });
@@ -1281,6 +1327,10 @@ int Scene::Save(Writer& writer) const {
 		writer << m_apUnseenLayerTerrain[Activity::TeamOne];
 		writer.NewProperty("UnseenLayerTerrainMaskTeam1");
 		writer << m_apUnseenLayerTerrainMask[Activity::TeamOne];
+		if (m_apUnseenLayerTerrainCopiedMask[Activity::TeamOne]) {
+			writer.NewProperty("UnseenLayerTerrainCopiedMaskTeam1");
+			writer << m_apUnseenLayerTerrainCopiedMask[Activity::TeamOne];
+		}
 	}
 	if (m_apUnseenLayerMask[Activity::TeamTwo]) {
 		RTEAssert(
@@ -1293,6 +1343,10 @@ int Scene::Save(Writer& writer) const {
 		writer << m_apUnseenLayerTerrain[Activity::TeamTwo];
 		writer.NewProperty("UnseenLayerTerrainMaskTeam2");
 		writer << m_apUnseenLayerTerrainMask[Activity::TeamTwo];
+		if (m_apUnseenLayerTerrainCopiedMask[Activity::TeamTwo]) {
+			writer.NewProperty("UnseenLayerTerrainCopiedMaskTeam2");
+			writer << m_apUnseenLayerTerrainCopiedMask[Activity::TeamTwo];
+		}
 	}
 	if (m_apUnseenLayerMask[Activity::TeamThree]) {
 		RTEAssert(
@@ -1305,6 +1359,10 @@ int Scene::Save(Writer& writer) const {
 		writer << m_apUnseenLayerTerrain[Activity::TeamThree];
 		writer.NewProperty("UnseenLayerTerrainMaskTeam3");
 		writer << m_apUnseenLayerTerrainMask[Activity::TeamThree];
+		if (m_apUnseenLayerTerrainCopiedMask[Activity::TeamThree]) {
+			writer.NewProperty("UnseenLayerTerrainCopiedMaskTeam3");
+			writer << m_apUnseenLayerTerrainCopiedMask[Activity::TeamThree];
+		}
 	}
 	if (m_apUnseenLayerMask[Activity::TeamFour]) {
 		RTEAssert(
@@ -1317,6 +1375,10 @@ int Scene::Save(Writer& writer) const {
 		writer << m_apUnseenLayerTerrain[Activity::TeamFour];
 		writer.NewProperty("UnseenLayerTerrainMaskTeam4");
 		writer << m_apUnseenLayerTerrainMask[Activity::TeamFour];
+		if (m_apUnseenLayerTerrainCopiedMask[Activity::TeamFour]) {
+			writer.NewProperty("UnseenLayerTerrainCopiedMaskTeam4");
+			writer << m_apUnseenLayerTerrainCopiedMask[Activity::TeamFour];
+		}
 	}
 	if (m_ScanScheduled[Activity::TeamOne]) {
 		writer.NewProperty("ScanScheduledTeam1");
@@ -1636,6 +1698,10 @@ void Scene::Destroy(bool notInherited) {
 	delete m_apUnseenLayerTerrainMask[Activity::TeamTwo];
 	delete m_apUnseenLayerTerrainMask[Activity::TeamThree];
 	delete m_apUnseenLayerTerrainMask[Activity::TeamFour];
+	delete m_apUnseenLayerTerrainCopiedMask[Activity::TeamOne];
+	delete m_apUnseenLayerTerrainCopiedMask[Activity::TeamTwo];
+	delete m_apUnseenLayerTerrainCopiedMask[Activity::TeamThree];
+	delete m_apUnseenLayerTerrainCopiedMask[Activity::TeamFour];
 
 	// if (m_PreviewBitmapOwned)
 	destroy_bitmap(m_pPreviewBitmap);
@@ -1691,6 +1757,14 @@ void Scene::FillUnseenLayerMask(Vector pixelSize, int team, bool createNow) {
 			m_apUnseenLayerTerrainMask[team] = new SceneLayer();
 			m_apUnseenLayerTerrainMask[team]->Create(pUnseenTerrainMaskBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
 			m_apUnseenLayerTerrainMask[team]->SetScaleFactor(m_apUnseenLayerMask[team]->GetScaleFactor());
+		}
+
+		if (!m_apUnseenLayerTerrainCopiedMask[team]) {
+			BITMAP* pUnseenTerrainCopiedMaskBitmap = create_bitmap_ex(8, pUnseenMaskBitmap->w, pUnseenMaskBitmap->h);
+			clear_to_color(pUnseenTerrainCopiedMaskBitmap, 255);
+			m_apUnseenLayerTerrainCopiedMask[team] = new SceneLayer();
+			m_apUnseenLayerTerrainCopiedMask[team]->Create(pUnseenTerrainCopiedMaskBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
+			m_apUnseenLayerTerrainCopiedMask[team]->SetScaleFactor(m_apUnseenLayerMask[team]->GetScaleFactor());
 		}
 	}
 }

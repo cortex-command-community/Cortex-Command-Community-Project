@@ -59,7 +59,7 @@ namespace {
 		}
 	}
 
-	/// Copies the live terrain under a rectangle of a team's unseen layer mask into the team's last-seen terrain.
+	/// Copies the live terrain under a rectangle of a team's unseen layer mask into the team's last-seen terrain, and marks it as copied.
 	void CommitMaskRectToLastSeenTerrain(Scene* scene, int team, const MaskRect& rect) {
 		Vector scale = scene->GetUnseenLayerMask(team)->GetScaleFactor();
 		int x = rect.x0 * scale.m_X;
@@ -67,6 +67,9 @@ namespace {
 		int w = (rect.x1 - rect.x0) * scale.m_X;
 		int h = (rect.y1 - rect.y0) * scale.m_Y;
 		blit(scene->GetTerrain()->GetFGColorBitmap(), scene->GetUnseenLayerTerrain(team)->GetBitmap(), x, y, x, y, w, h);
+		if (SceneLayer* copiedMask = scene->GetUnseenLayerTerrainCopiedMask(team)) {
+			rectfill(copiedMask->GetBitmap(), rect.x0, rect.y0, rect.x1 - 1, rect.y1 - 1, g_MaskColor);
+		}
 	}
 
 	/// Copies the live terrain into a team's last-seen terrain, under the runs of unseen layer mask pixels that findRuns(row, width, runs) picks out on each row of holds.
@@ -299,6 +302,9 @@ int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 			pUnseenLayerMask->SetScaleFactor(Vector(sX, sY));
 			pUnseenLayerTerrain->SetScaleFactor(Vector(1, 1));
 			pUnseenLayerTerrainMask->SetScaleFactor(Vector(sX, sY));
+			if (SceneLayer* pUnseenLayerTerrainCopiedMask = m_pCurrentScene->GetUnseenLayerTerrainCopiedMask(team)) {
+				pUnseenLayerTerrainCopiedMask->SetScaleFactor(Vector(sX, sY));
+			}
 		}
 	}
 

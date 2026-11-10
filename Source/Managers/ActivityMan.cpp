@@ -157,6 +157,11 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 			unseenLayerTerrainMask->GetContentFile().SetIsMemoryFile(true);
 			unseenLayerTerrainMask->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save USTM T{}.png", i));
 		}
+
+		if (SceneLayer* unseenLayerTerrainCopiedMask = modifiableScene->GetUnseenLayerTerrainCopiedMask(i)) {
+			unseenLayerTerrainCopiedMask->GetContentFile().SetIsMemoryFile(true);
+			unseenLayerTerrainCopiedMask->GetContentFile().SetDataPath(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save USTC T{}.png", i));
+		}
 	}
 
 	std::unique_ptr<std::stringstream> iniStream = std::make_unique<std::stringstream>();
@@ -368,6 +373,10 @@ bool ActivityMan::LoadAndLaunchGame(const std::string& fileName) {
 
 		if (unzipFileIntoBuffer(std::format("Save USTM T{}.png", i))) {
 			ContentFile::ManuallyLoadDataPNG(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save USTM T{}.png", i), loadMemPng(buffer, info.uncompressed_size));
+		}
+
+		if (unzipFileIntoBuffer(std::format("Save USTC T{}.png", i))) {
+			ContentFile::ManuallyLoadDataPNG(g_PresetMan.GetFullModulePath(c_UserScriptedSavesModuleName) + std::format("/Save USTC T{}.png", i), loadMemPng(buffer, info.uncompressed_size));
 		}
 	}
 

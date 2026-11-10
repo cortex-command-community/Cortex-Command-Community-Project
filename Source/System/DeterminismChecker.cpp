@@ -133,7 +133,7 @@ void DeterminismChecker::CheckpointSceneLayers(std::string_view label) {
 	Checkpoint(std::format("{} - Terrain material", label), hashBitmap(scene->GetTerrain()->GetMaterialBitmap()));
 
 	for (int team = Activity::Teams::TeamOne; team < Activity::Teams::MaxTeamCount; ++team) {
-		// The sim reads both the fog mask and the last-seen terrain mask. The last-seen terrain itself is only drawn.
+		// The sim reads both the fog mask and the last-seen terrain mask. The last-seen terrain itself, and which pixels of it have been copied, are only drawn.
 		if (const SceneLayer* unseenLayerMask = scene->GetUnseenLayerMask(team)) {
 			Checkpoint(std::format("{} - Team {} unseen layer mask", label, team + 1), hashBitmap(unseenLayerMask->GetBitmap()));
 		}
