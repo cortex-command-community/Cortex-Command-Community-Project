@@ -432,7 +432,10 @@ namespace RTE {
 		/// @param team The team we're talking about.
 		void MakeAllUnseen(Vector pixelSize, const int team);
 
-		// GTODO: add desc and make work with differing angles and exit in enclosed maps
+		/// Casts see rays down from the top of the scene across a screen's view, revealing what that screen's team can see from the sky. What they reveal stays in view for c_FogOfWarSkyRayHoldSeconds.
+		/// Each call tilts the rays differently, cycling between straight down and 10 degrees either way, so steep walls get seen from both sides.
+		/// Rays that would start inside terrain, or off the side of a scene that doesn't wrap, aren't cast.
+		/// @param screenId Which screen's view and team to cast for.
 		void CastSeeRaysFromSky(const int screenId);
 
 		/// Counts down how long each pixel of a team's unseen layer mask stays in view, and remembers the terrain under pixels that go out of view in the team's last-seen terrain.

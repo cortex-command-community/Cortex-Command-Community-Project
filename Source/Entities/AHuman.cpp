@@ -1376,7 +1376,6 @@ bool AHuman::Look(float FOVSpread, float range) {
 	
 	static float degreesPerRotationSegment = 0.5f;
 
-	// Not needed anymore as now we have hysteresis!
 	// Quantize it also, so it's not so exact and flickery
 	const float numRotationalSegmentsPerSide = 180.0f / degreesPerRotationSegment;
 	const float quantization = numRotationalSegmentsPerSide / c_PI;
