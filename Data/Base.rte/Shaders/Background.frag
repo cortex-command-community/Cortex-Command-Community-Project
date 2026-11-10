@@ -16,13 +16,9 @@ uniform bool rteBlendInvert = false;
 uniform bool drawMasked = false;
 
 
-vec4 textureAA(sampler2D tex, vec2 uv) {
-	vec2 texsize = vec2(textureSize(tex, 0));
-	vec2 uv_texspace = uv * texsize;
-	vec2 seam = floor(uv_texspace + .5);
-	uv_texspace = (uv_texspace - seam) / fwidth(uv_texspace) + seam;
-	uv_texspace = clamp(uv_texspace, seam - .5, seam + .5);
-	return texture(tex, uv_texspace / texsize);
+// Palette entries must be fetched exactly; smoothing the lookup coordinate let neighbouring entries bleed through (e.g. dark index 100 drawn as near-white 99).
+vec4 paletteColor(float index) {
+	return texelFetch(rtePalette, ivec2(int(index * 255.0 + 0.5), 0), 0);
 }
 
 void main() {
@@ -31,8 +27,8 @@ void main() {
 		discard;
 	}
 	if (!rteBlendInvert) {
-		FragColor = textureAA(rtePalette, vec2(red * vertexColor.r, 0.0)) * vec4(rteColor.rgb, rteColor.a * vertexColor.a);
+		FragColor = paletteColor(red * vertexColor.r) * vec4(rteColor.rgb, rteColor.a * vertexColor.a);
 	} else {
-		FragColor = vec4(vec3(1.0), 0.0) - (textureAA(rtePalette, vec2(red * vertexColor.r, 0.0)) * vec4(rteColor.rgb, -rteColor.a * vertexColor.a));
+		FragColor = vec4(vec3(1.0), 0.0) - (paletteColor(red * vertexColor.r) * vec4(rteColor.rgb, -rteColor.a * vertexColor.a));
 	}
 }
