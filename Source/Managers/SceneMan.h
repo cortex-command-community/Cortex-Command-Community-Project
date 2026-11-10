@@ -542,8 +542,8 @@ namespace RTE {
 		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal, float revealHoldSeconds, const std::vector<MOID>& ignoredMOIDs = emptyIgnoredMOIDVector);
 
 		/// Same as above, with what the ray reveals staying in view for as long as what an actor looks at does.
-		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal, const std::vector<MOID>& ignoredMOIDs = emptyIgnoredMOIDVector) {
-			return CastUnseenRay(team, start, ray, endPos, strengthLimit, skip, reveal, c_FogOfWarSeeRayHoldSeconds, ignoredMOIDs);
+		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal) {
+			return CastUnseenRay(team, start, ray, endPos, strengthLimit, skip, reveal, c_FogOfWarSeeRayHoldSeconds);
 		}
 
 		/// Traces a box along a vector and reveals pixels on the unseen layer of a team

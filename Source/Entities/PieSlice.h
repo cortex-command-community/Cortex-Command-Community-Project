@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Constants.h"
-#include "LuabindObjectWrapper.h"
+#include "LuaObjectWrapper.h"
 #include "Icon.h"
 
 namespace RTE {
@@ -142,18 +142,18 @@ namespace RTE {
 		/// @param newIcon The new Icon for this PieSlice.
 		void SetIcon(Icon* newIcon) { m_Icon = std::unique_ptr<Icon>(newIcon); }
 
-		/// Gets the LuabindObjectWrapper for the function this PieSlice should run when activated.
-		/// @return The LuabindObjectWrapper this PieSlice should run when activated.
-		const LuabindObjectWrapper* GetLuabindFunctionObjectWrapper() const { return m_LuabindFunctionObject.get(); }
+		/// Gets the LuaObjectWrapper for the function this PieSlice should run when activated.
+		/// @return The LuaObjectWrapper this PieSlice should run when activated.
+		const LuaObjectWrapper* GetLuaFunctionObjectWrapper() const { return m_LuaFunctionObject.get(); }
 
 		/// Gets the file path of the Lua file this PieSlice should run when activated, if any.
 		/// @return The file path to the script file this PieSlice should load when activated.
-		std::string GetScriptPath() const { return m_LuabindFunctionObject ? m_LuabindFunctionObject->GetFilePath() : ""; }
+		std::string GetScriptPath() const { return m_LuaFunctionObject ? m_LuaFunctionObject->GetFilePath() : ""; }
 
 		/// Sets the file path of the scripted file this PieSlice should run when activated.
 		/// @param newScriptPath The file path of the Lua file this PieSlice should run when activated.
 		void SetScriptPath(const std::string& newScriptPath) {
-			m_LuabindFunctionObject = std::make_unique<LuabindObjectWrapper>(nullptr, newScriptPath);
+			m_LuaFunctionObject = std::make_unique<LuaObjectWrapper>(nullptr, newScriptPath);
 			ReloadScripts();
 		}
 
@@ -238,7 +238,7 @@ namespace RTE {
 		bool m_Enabled; //!< Whether this PieSlice is enabled or disabled and grayed out.
 		std::unique_ptr<Icon> m_Icon; //!< The icon of this PieSlice.
 
-		std::unique_ptr<LuabindObjectWrapper> m_LuabindFunctionObject; //!< The LuabindObjectWrapper holding the function this PieSlice runs when activated.
+		std::unique_ptr<LuaObjectWrapper> m_LuaFunctionObject; //!< The LuaObjectWrapper holding the function this PieSlice runs when activated.
 		std::string m_FunctionName; //!< Name of the function in the script this PieSlice runs. Used for safely reloading scripts.
 
 		std::unique_ptr<PieMenu, PieMenuCustomDeleter> m_SubPieMenu; //!< Unique pointer to the sub-PieMenu this should open when activated.

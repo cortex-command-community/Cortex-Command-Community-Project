@@ -80,7 +80,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update -yq
-          sudo apt-get install --no-install-recommends wget liballegro4-dev libloadpng4-dev libflac++-dev luajit-5.1-dev liblua5.2-dev libminizip-dev liblz4-dev libpng++-dev libx11-dev libboost-dev libtbb-dev libsdl2-dev libsdl2-image-dev libopengl-dev libfuse2 ninja-build ccache
+          sudo apt-get install --no-install-recommends wget liballegro4-dev libloadpng4-dev libflac++-dev luajit-5.1-dev liblua5.2-dev libminizip-dev liblz4-dev libpng++-dev libx11-dev libtbb-dev libsdl2-dev libsdl2-image-dev libopengl-dev libfuse2 ninja-build ccache
           sudo pip install meson
 
       - name: ccache
@@ -226,7 +226,8 @@ jobs:
           if-no-files-found: error
 
   build-macos-x86:
-    runs-on: ubuntu-latest
+    # Kept on the Ubuntu that the cached osxcross toolchain was built on, since its cache key has no Ubuntu version
+    runs-on: ubuntu-24.04
     name: MacOS Build (x86_64)
 
     env:

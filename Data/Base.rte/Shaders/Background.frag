@@ -43,17 +43,13 @@ uniform sampler2D bgLayersTexture;
 
 const vec3 luminosityFactors = vec3(0.299, 0.587, 0.114);
 
-vec4 textureAA(sampler2D tex, vec2 uv) {
-	vec2 texsize = vec2(textureSize(tex, 0));
-	vec2 uv_texspace = uv * texsize;
-	vec2 seam = floor(uv_texspace + .5);
-	uv_texspace = (uv_texspace - seam) / fwidth(uv_texspace) + seam;
-	uv_texspace = clamp(uv_texspace, seam - .5, seam + .5);
-	return texture(tex, uv_texspace / texsize);
+// Palette entries must be fetched exactly; smoothing the lookup coordinate let neighbouring entries bleed through (e.g. dark index 100 drawn as near-white 99).
+vec4 paletteColor(float index) {
+	return texelFetch(rtePalette, ivec2(int(index * 255.0 + 0.5), 0), 0);
 }
 
 vec4 ApplyPalette(float red) {
-    vec4 col = textureAA(rtePalette, vec2(red * vertexColor.r, 0.0))
+    vec4 col = paletteColor(red * vertexColor.r)
 		* vec4(rteColor.rgb, rteColor.a * vertexColor.a);
 
     if (rteBlendInvert) {

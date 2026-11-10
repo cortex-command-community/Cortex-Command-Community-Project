@@ -169,6 +169,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 	`InputScheme` has the Lua properties `Device` (R) and `Preset` (R), and the function `GetMappingName(inputElement)`, which gives the name of whatever the input is bound to, such as "Mouse Left".  
 	`Enum` binding for `InputScheme.InputPreset`: `NoPreset = 0, PresetArrowKeys = 1, PresetWASDKeys = 2, PresetMouseWASDKeys = 3, PresetGenericDPad = 4, PresetGenericDualAnalog = 5, PresetGamepadSNES = 6, PresetGamepadDS4 = 7, PresetGamepadXbox360 = 8, InputPresetCount = 9`.
 
+- `HeldDevice` INI property `Loudness` is now also a Lua (R/W) property. It sets the range of the alarm event a device raises when activated, which AI actors react to: 0 is silent, 1 is normal (audible from about half a screen away). Scripts can use it for things like silencers.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
@@ -255,6 +257,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - The tutorial mission is now a `GAScripted` activity, `Missions.rte/Activities/Tutorial.lua`, instead of being hardcoded in the engine. Its screens and room signs are drawn as bitmap primitives on the bunker's back wall instead of into the terrain.
 
+- The Lua bindings now use LuaBridge3 instead of luabind, and the copy of boost that luabind needed is gone. Calls from Lua into the game are faster, especially method calls and property access on objects like `Actor`s. Scripts run around 30% to 45% faster.  
+	Scripts don't need any changes. Everything that worked with luabind works the same, including setting values of their own on objects, overloads, inherited enums, setting things like `actor.Pos.X` in place, and passing numbers with fractions to whole number parameters.  
+	A few things that used to raise an error now don't: functions added to a class from Lua (like `function MovableObject:Foo() end`) are also found on objects of derived classes, comparing two references to the same object with `==` gives `false`, reading something that doesn't exist from a class table gives `nil`, and functions that aren't overloaded convert their arguments the way Lua does (numbers to strings, any value to a boolean, missing arguments to `nil`) and ignore extra ones. Class tables like `Vector` are now tables instead of userdata. Error messages for calls with the wrong arguments are worded differently.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
@@ -318,6 +324,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Fixed AI actors refusing to fire the Coalition Missile Launcher at anything beyond point-blank range, because the AI took the range of its short-lived dummy round instead of the missile's.
 
 - Fixed the terrain background layer drawing at the terrain foreground's depth, which hid primitives drawn at a depth between `DrawDepth.Default` and `DrawDepth.TerrainBackground` behind it instead of showing them on top of the background.
+
+- Fixed white speckles on dark terrain, such as cave backgrounds. The `Background` and `Dissolve` shaders smoothed their palette lookups, so pixels could take the colour of the neighbouring palette entry.
 
 </details>
 
