@@ -17,7 +17,8 @@ void main() {
     vec2 fragPx = gl_FragCoord.xy;
 	
     vec2 d = abs(nearestPx - fragPx);
-	d = min(d, uViewSize - d); // toroidal wrap so we done have a seam
+	// No wrapping: the view never wraps, and wrapping the distance lit the opposite screen edge to anything in view near an edge
+	//d = min(d, uViewSize - d); // toroidal wrap so we done have a seam
 
 	float dist = length(d);
 
