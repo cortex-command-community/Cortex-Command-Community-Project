@@ -483,11 +483,18 @@ namespace RTE {
 		/// @return A bool indicating whether there was a seen pixel hidden there.
 		bool RestoreUnseen(const int posX, const int posY, const int team);
 
+		/// Reveals a box on the unseen map for a specific team, if there is any. It stays in view for as long as what an actor looks at does.
+		/// @param posX, posY The X and Y coords of the upper left corner of the box to be revealed.
+		/// @param width, height The width and height of the box to be revealed, in scene units (pixels)
+		/// @param team The team to reveal for.
+		void RevealUnseenBox(const int posX, const int posY, const int width, const int height, const int team) { RevealUnseenBox(posX, posY, width, height, team, c_FogOfWarSeeRayHoldSeconds); }
+
 		/// Reveals a box on the unseen map for a specific team, if there is any.
 		/// @param posX, posY The X and Y coords of the upper left corner of the box to be revealed.
 		/// @param width, height The width and height of the box to be revealed, in scene units (pixels)
 		/// @param team The team to reveal for.
-		void RevealUnseenBox(const int posX, const int posY, const int width, const int height, const int team);
+		/// @param holdSeconds How long the box stays in view for, in seconds.
+		void RevealUnseenBox(const int posX, const int posY, const int width, const int height, const int team, const float holdSeconds);
 
 		/// Restores a box on the unseen map for a specific team, if there is any.
 		/// @param posX, posY The X and Y coords of the upper left corner of the box to be revealed.
@@ -498,7 +505,8 @@ namespace RTE {
 		/// Reveals a tri on the unseen map for a specific team, if there is any.
 		/// @param pos1, pos2, pos3 The three corners of the tri.
 		/// @param team The team to reveal for.
-		void RevealUnseenTri(const Vector pos1, const Vector pos2, const Vector pos3, const int team);
+		/// @param holdSeconds How long the tri stays in view for, in seconds.
+		void RevealUnseenTri(const Vector pos1, const Vector pos2, const Vector pos3, const int team, const float holdSeconds);
 
 		/// Restores a tri on the unseen map for a specific team, if there is any.
 		/// @param pos1, pos2, pos3 The three corners of the tri.
@@ -529,8 +537,14 @@ namespace RTE {
 		/// @param skip For every pixel checked along the line, how many to skip between them
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @param reveal Whether the ray should reveal or restore unseen layer
+		/// @param revealHoldSeconds How long what the ray reveals stays in view for, in seconds. Not used when restoring.
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
-		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal, const std::vector<MOID>& ignoredMOIDs = emptyIgnoredMOIDVector);
+		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal, float revealHoldSeconds, const std::vector<MOID>& ignoredMOIDs = emptyIgnoredMOIDVector);
+
+		/// Same as above, with what the ray reveals staying in view for as long as what an actor looks at does.
+		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal, const std::vector<MOID>& ignoredMOIDs = emptyIgnoredMOIDVector) {
+			return CastUnseenRay(team, start, ray, endPos, strengthLimit, skip, reveal, c_FogOfWarSeeRayHoldSeconds, ignoredMOIDs);
+		}
 
 		/// Traces a box along a vector and reveals pixels on the unseen layer of a team
 		/// as long as the accumulated material strengths traced through the terrain
@@ -543,10 +557,11 @@ namespace RTE {
 		/// @param strengthLimit The material strength limit where
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
 		/// for optimization reasons. 0 = every pixel is checked.
+		/// @param holdSeconds How long what the ray sees stays in view for after it stops being seen, in seconds. Left out, it's as long as for what an actor looks at.
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
-		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, const std::vector<MOID>& ignoredMOIDs);
+		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, float holdSeconds, const std::vector<MOID>& ignoredMOIDs = emptyIgnoredMOIDVector);
 		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0) {
-			return CastSeeRay(team, start, ray, endPos, strengthLimit, skip, emptyIgnoredMOIDVector);
+			return CastSeeRay(team, start, ray, endPos, strengthLimit, skip, c_FogOfWarSeeRayHoldSeconds);
 		}
 
 		/// Traces a box along a vector and hides pixels on the unseen layer of a team

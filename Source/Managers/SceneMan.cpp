@@ -1133,7 +1133,7 @@ void SceneMan::CastSeeRaysFromSky(const int screenId) {
 
 	for (int i = 0; i < rayCount; ++i) {
 		rayX = (rayX + static_cast<int>(spacing)) % GetSceneWidth();
-		CastSeeRay(team, Vector(static_cast<float>(rayX), 0), seeRay, ignored, strength);
+		CastSeeRay(team, Vector(static_cast<float>(rayX), 0), seeRay, ignored, strength, 0, c_FogOfWarSkyRayHoldSeconds);
 	}
 }
 
@@ -1267,7 +1267,7 @@ bool SceneMan::RestoreUnseen(const int posX, const int posY, const int team) {
 	return false;
 }
 
-void SceneMan::RevealUnseenBox(const int posX, const int posY, const int width, const int height, const int team) {
+void SceneMan::RevealUnseenBox(const int posX, const int posY, const int width, const int height, const int team, const float holdSeconds) {
 	RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when revealing an unseen area!");
 	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount) {
 		return;
@@ -1283,7 +1283,7 @@ void SceneMan::RevealUnseenBox(const int posX, const int posY, const int width, 
 
 		// Fill the box for the unseen masks (plural)
 		BITMAP* maskBitmap = pUnseenLayerMask->GetBitmap();
-		const uint16_t holdUpdates = Scene::GetUnseenLayerMaskHoldUpdates(c_FogOfWarSeeRayHoldSeconds);
+		const uint16_t holdUpdates = Scene::GetUnseenLayerMaskHoldUpdates(holdSeconds);
 		ForEachRectSpan(maskBitmap, scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, [maskBitmap, holdUpdates](int y, int startX, int endX) {
 			RaiseUnseenLayerMaskSpanHold(maskBitmap, y, startX, endX, holdUpdates);
 		});
@@ -1312,7 +1312,7 @@ void SceneMan::RestoreUnseenBox(const int posX, const int posY, const int width,
 	}
 }
 
-void RTE::SceneMan::RevealUnseenTri(const Vector pos1, const Vector pos2, const Vector pos3, const int team) {
+void RTE::SceneMan::RevealUnseenTri(const Vector pos1, const Vector pos2, const Vector pos3, const int team, const float holdSeconds) {
 	RTEAssert(m_pCurrentScene, "Checking scene before the scene exists when making an area unseen!");
 	if (team < Activity::TeamOne || team >= Activity::MaxTeamCount)
 		return;
@@ -1326,7 +1326,7 @@ void RTE::SceneMan::RevealUnseenTri(const Vector pos1, const Vector pos2, const 
 
 		// Fill the tri for the unseen masks (plural)
 		BITMAP* maskBitmap = pUnseenLayerMask->GetBitmap();
-		const uint16_t holdUpdates = Scene::GetUnseenLayerMaskHoldUpdates(c_FogOfWarSeeRayHoldSeconds);
+		const uint16_t holdUpdates = Scene::GetUnseenLayerMaskHoldUpdates(holdSeconds);
 		ForEachTriangleSpan(maskBitmap, (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), [maskBitmap, holdUpdates](int y, int startX, int endX) {
 			RaiseUnseenLayerMaskSpanHold(maskBitmap, y, startX, endX, holdUpdates);
 		});
@@ -1443,7 +1443,7 @@ bool SceneMan::CastTerrainPenetrationRay(const Vector& start, const Vector& ray,
 }
 
 // TODO Every raycast should use some shared line drawing method (or maybe something more efficient if it exists, that needs looking into) instead of having a ton of duplicated code.
-bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal, const std::vector<MOID>& ignoredMOIDs) {
+bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal, float revealHoldSeconds, const std::vector<MOID>& ignoredMOIDs) {
 	if (!m_pCurrentScene->GetUnseenLayerMask(team)) {
 		return false;
 	}
@@ -1568,7 +1568,7 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 
 	// Reveal box around start
 	if (reveal) {
-		RevealUnseenBox(startMinX, startMinY, size, size, team);
+		RevealUnseenBox(startMinX, startMinY, size, size, team, revealHoldSeconds);
 	} else {
 		RestoreUnseenBox(startMinX, startMinY, size, size, team);
 	}
@@ -1580,11 +1580,11 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 	                      /*posStartX > intPos[X] && posStartY > intPos[Y]*/ false;
 	if (reveal) {
 		if (whichRects) {
-			RevealUnseenTri(Vector(startMinX, startMinY), Vector(startMaxX, startMaxY), Vector(endMinX, endMinY), team);
-			RevealUnseenTri(Vector(endMaxX, endMaxY),     Vector(startMaxX, startMaxY), Vector(endMinX, endMinY), team);
+			RevealUnseenTri(Vector(startMinX, startMinY), Vector(startMaxX, startMaxY), Vector(endMinX, endMinY), team, revealHoldSeconds);
+			RevealUnseenTri(Vector(endMaxX, endMaxY),     Vector(startMaxX, startMaxY), Vector(endMinX, endMinY), team, revealHoldSeconds);
 		} else {
-			RevealUnseenTri(Vector(endMinX, endMaxY),     Vector(endMaxX, endMinY),     Vector(startMinX, startMaxY), team);
-			RevealUnseenTri(Vector(startMaxX, startMinY), Vector(endMaxX, endMinY),     Vector(startMinX, startMaxY), team);
+			RevealUnseenTri(Vector(endMinX, endMaxY),     Vector(endMaxX, endMinY),     Vector(startMinX, startMaxY), team, revealHoldSeconds);
+			RevealUnseenTri(Vector(startMaxX, startMinY), Vector(endMaxX, endMinY),     Vector(startMinX, startMaxY), team, revealHoldSeconds);
 		}
 	} else {
 		if (whichRects) {
@@ -1598,7 +1598,7 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 
 	// Reveal the box around the end
 	if (reveal) {
-		RevealUnseenBox(endMinX, endMinY, size, size, team);
+		RevealUnseenBox(endMinX, endMinY, size, size, team, revealHoldSeconds);
 	} else {
 		RestoreUnseenBox(endMinX, endMinY, size, size, team);
 	}
@@ -1606,12 +1606,12 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 	return true;
 }
 
-bool SceneMan::CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, const std::vector<MOID>& ignoredMOIDs) {
-	return CastUnseenRay(team, start, ray, endPos, strengthLimit, skip, true, ignoredMOIDs);
+bool SceneMan::CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, float holdSeconds, const std::vector<MOID>& ignoredMOIDs) {
+	return CastUnseenRay(team, start, ray, endPos, strengthLimit, skip, true, holdSeconds, ignoredMOIDs);
 }
 
 bool SceneMan::CastUnseeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, const std::vector<MOID>& ignoredMOIDs) {
-	return CastUnseenRay(team, start, ray, endPos, strengthLimit, skip, false, ignoredMOIDs);
+	return CastUnseenRay(team, start, ray, endPos, strengthLimit, skip, false, 0.0F, ignoredMOIDs);
 }
 
 bool SceneMan::CastMaterialRay(const Vector& start, const Vector& ray, unsigned char material, Vector& result, int skip, bool wrap) {

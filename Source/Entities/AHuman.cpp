@@ -1397,13 +1397,13 @@ bool AHuman::Look(float FOVSpread, float range) {
 	const Vector bubbleCenterPos = GetPos();
 	Vector bubbleAroundActorLookVector(bubblePixelRadius, 0);
 	for (int i = 0; i < bubbleRayNum; ++i) {
-		g_SceneMan.CastSeeRay(m_Team, bubbleCenterPos, bubbleAroundActorLookVector, ignored, strength, 0);
+		g_SceneMan.CastSeeRay(m_Team, bubbleCenterPos, bubbleAroundActorLookVector, ignored, strength, 0, c_FogOfWarBubbleHoldSeconds);
 		bubbleAroundActorLookVector.RadRotate(2 * PI / bubbleRayNum);
 	}
 
 	const int rayNum = FOVSpread / degreesPerRotationSegment; 
 	for (int i = 0; i < rayNum; ++i) {
-		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, strength, 0, MOIDsToIgnore);
+		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, strength, 0, c_FogOfWarSeeRayHoldSeconds, MOIDsToIgnore);
 		lookVector.DegRotate(FOVSpread / (rayNum - 1));
 	}
 	// TODO: generate an alarm event if we spot an enemy actor?

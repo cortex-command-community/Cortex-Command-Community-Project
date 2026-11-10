@@ -39,6 +39,8 @@ namespace RTE {
 
 #pragma region Fog of War Constants
 	static constexpr float c_FogOfWarSeeRayHoldSeconds = 0.25F; //!< How long what an actor looks at stays in view after it stops being seen, in seconds.
+	static constexpr float c_FogOfWarBubbleHoldSeconds = 0.1F; //!< How long the area right around an actor stays in view after the actor leaves it, in seconds.
+	static constexpr float c_FogOfWarSkyRayHoldSeconds = 15.0F; //!< How long open ground seen from the sky stays in view after it stops being seen, in seconds.
 #pragma endregion
 
 #pragma region Graphics Constants
