@@ -1145,11 +1145,12 @@ bool SceneMan::LoadUnseenLayer(const std::string& maskBitmapPath, int team) {
 		return false;
 	}
 
-	// The file marks seen pixels with the mask color, but the unseen layer mask holds how many updates each pixel stays in view for. Seen pixels stay in view until the next update.
+	// The file marks seen pixels with the mask color, but the unseen layer mask holds how many updates each pixel stays in view for
+	const uint16_t holdUpdates = Scene::GetUnseenLayerMaskHoldUpdates(c_FogOfWarSeeRayHoldSeconds);
 	BITMAP* maskBitmap = create_bitmap_ex(16, loadedMaskBitmap->w, loadedMaskBitmap->h);
 	for (int y = 0; y < maskBitmap->h; ++y) {
 		for (int x = 0; x < maskBitmap->w; ++x) {
-			Scene::GetUnseenLayerMaskHold(maskBitmap, x, y) = getpixel(loadedMaskBitmap, x, y) == g_MaskColor ? 1 : 0;
+			Scene::GetUnseenLayerMaskHold(maskBitmap, x, y) = getpixel(loadedMaskBitmap, x, y) == g_MaskColor ? holdUpdates : 0;
 		}
 	}
 	destroy_bitmap(loadedMaskBitmap);
@@ -1222,8 +1223,8 @@ bool SceneMan::RevealUnseen(const int posX, const int posY, const int team) {
 			return false;
 		}
 
-		// Keep that pixel in view until at least the next update so it won't be detected as unseen again
-		Scene::RaiseUnseenLayerMaskHold(Scene::GetUnseenLayerMaskHold(pUnseenLayer->GetBitmap(), scaledX, scaledY), 1);
+		// Keep that pixel in view so it won't be detected as unseen again
+		Scene::RaiseUnseenLayerMaskHold(Scene::GetUnseenLayerMaskHold(pUnseenLayer->GetBitmap(), scaledX, scaledY), Scene::GetUnseenLayerMaskHoldUpdates(c_FogOfWarSeeRayHoldSeconds));
 
 		// Unseen pixels have no hold
 		if (pixel == 0) {
@@ -1280,10 +1281,11 @@ void SceneMan::RevealUnseenBox(const int posX, const int posY, const int width, 
 		int scaledW = width / scale.m_X;
 		int scaledH = height / scale.m_Y;
 
-		// Fill the box for the unseen masks (plural). It stays in view until at least the next update.
+		// Fill the box for the unseen masks (plural)
 		BITMAP* maskBitmap = pUnseenLayerMask->GetBitmap();
-		ForEachRectSpan(maskBitmap, scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, [maskBitmap](int y, int startX, int endX) {
-			RaiseUnseenLayerMaskSpanHold(maskBitmap, y, startX, endX, 1);
+		const uint16_t holdUpdates = Scene::GetUnseenLayerMaskHoldUpdates(c_FogOfWarSeeRayHoldSeconds);
+		ForEachRectSpan(maskBitmap, scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, [maskBitmap, holdUpdates](int y, int startX, int endX) {
+			RaiseUnseenLayerMaskSpanHold(maskBitmap, y, startX, endX, holdUpdates);
 		});
 		SceneLayer* pUnseenLayerTerrainMask = m_pCurrentScene->GetUnseenLayerTerrainMask(team);
 		rectfill(pUnseenLayerTerrainMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
@@ -1322,10 +1324,11 @@ void RTE::SceneMan::RevealUnseenTri(const Vector pos1, const Vector pos2, const 
 		Vector pos2Scaled = pos2 / scale;
 		Vector pos3Scaled = pos3 / scale;
 
-		// Fill the tri for the unseen masks (plural). It stays in view until at least the next update.
+		// Fill the tri for the unseen masks (plural)
 		BITMAP* maskBitmap = pUnseenLayerMask->GetBitmap();
-		ForEachTriangleSpan(maskBitmap, (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), [maskBitmap](int y, int startX, int endX) {
-			RaiseUnseenLayerMaskSpanHold(maskBitmap, y, startX, endX, 1);
+		const uint16_t holdUpdates = Scene::GetUnseenLayerMaskHoldUpdates(c_FogOfWarSeeRayHoldSeconds);
+		ForEachTriangleSpan(maskBitmap, (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), [maskBitmap, holdUpdates](int y, int startX, int endX) {
+			RaiseUnseenLayerMaskSpanHold(maskBitmap, y, startX, endX, holdUpdates);
 		});
 		SceneLayer* pUnseenLayerTerrainMask = m_pCurrentScene->GetUnseenLayerTerrainMask(team);
 		triangle(pUnseenLayerTerrainMask->GetBitmap(), (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), g_MaskColor);

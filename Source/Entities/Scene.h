@@ -401,6 +401,11 @@ namespace RTE {
 			while (currentHold < holdUpdates && !atomicHold.compare_exchange_weak(currentHold, holdUpdates, std::memory_order_relaxed)) {}
 		}
 
+		/// Converts how long to keep something in view for into a hold count for an unseen layer mask.
+		/// @param holdSeconds How long to keep it in view for, in seconds.
+		/// @return The number of sim updates to keep it in view for. Always at least 1, so it stays in view until the next update can see it again.
+		static uint16_t GetUnseenLayerMaskHoldUpdates(float holdSeconds);
+
 		/// Gets the list of pixels that have been seen on a team's unseen layer.
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
 		/// @return The list of pixel coordinates in the unseen layer's scale.

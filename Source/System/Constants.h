@@ -37,6 +37,10 @@ namespace RTE {
 	static constexpr float c_PathFindingDefaultDigStrength = 35.0F; //!< A default pathfinder penetration value that'll allow pathing through corpses, debris, and such stuff.
 #pragma endregion
 
+#pragma region Fog of War Constants
+	static constexpr float c_FogOfWarSeeRayHoldSeconds = 0.25F; //!< How long what an actor looks at stays in view after it stops being seen, in seconds.
+#pragma endregion
+
 #pragma region Graphics Constants
 	static constexpr int c_DefaultResX = 960; //!< Default game window width.
 	static constexpr int c_DefaultResY = 540; //!< Default game window height.

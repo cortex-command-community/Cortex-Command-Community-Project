@@ -498,28 +498,21 @@ namespace RTE {
 
 		void RenderBackgroundLayersBmToTexture();
 
-		void RenderFogOfWarTextureWithTimeDecay();
-
 		void FogOfWarSetup(Shader& backgroundShader);
 
 		void FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex);
 
 		void ClearFowTextures();
 
-		void InitOrReinitFowOglThings(Scene* currentScene);
+		void InitOrReinitFowOglThings();
 
 		void BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEnabled);
-
-		int fowMaskWidth = -1;
-		int fowMaskHeight = -1;
 
 		GLuint m_SdfFbo = 0;
 		GLuint m_SdfTexPing = 0;
 		GLuint m_SdfTexPong = 0;
 		GLuint m_SdfResultFowMask = 0;
 		GLuint m_SdfResultFowLastSeenTerrainMask = 0;
-		GLuint m_fowMaskTex;
-		GLuint m_fowMaskTexTempCopy;
 		GLuint m_bgLayersTex;
 		GLuint m_SdfVao = 0;
 		GLuint m_SdfVbo = 0;
@@ -529,10 +522,6 @@ namespace RTE {
 		GLuint m_SdfSeedVert = 0;
 
 		Scene* m_ScenePreviouslyUsedForOglSetup = nullptr;
-
-		// -1 on scene start
-		// GTODO: actually enforce this
-		long long fowDecayTimestampPrev = -1;
 
 		// Disallow the use of some implicit methods.
 		FrameMan(const FrameMan& reference) = delete;

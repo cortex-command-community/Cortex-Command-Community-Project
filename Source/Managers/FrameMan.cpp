@@ -128,68 +128,6 @@ void FrameMan::RenderBackgroundLayersBmToTexture() {
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
-void FrameMan::RenderFogOfWarTextureWithTimeDecay() {
-	Shader shaderDecayAllPixels, shaderPassthrough;
-	g_PresetMan.GetEntityPreset("Shader", "FowMaskDecayAllPixels")->Clone(&shaderDecayAllPixels);
-	g_PresetMan.GetEntityPreset("Shader", "Passthrough")->Clone(&shaderPassthrough);
-	GLuint programDecayAllPixels = shaderDecayAllPixels.m_ProgramID;
-	GLuint programPassthrough = shaderPassthrough.m_ProgramID;
-
-	glBindFramebuffer(GL_FRAMEBUFFER, m_SdfFbo);
-
-	// 1. Current fog texture -> temp copy!
-	glFramebufferTexture2D(GL_FRAMEBUFFER,
-	                       GL_COLOR_ATTACHMENT0,
-	                       GL_TEXTURE_2D,
-	                       m_fowMaskTexTempCopy, 0);
-
-	GLenum buf = GL_COLOR_ATTACHMENT0;
-	glDrawBuffers(1, &buf);
-	glViewport(0, 0, fowMaskWidth, fowMaskHeight);
-	glUseProgram(programPassthrough);
-
-	GLint loc = glGetUniformLocation(programPassthrough, "texToPassthrough");
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_fowMaskTex);
-	glUniform1i(loc, 0);
-
-	glBindVertexArray(m_SdfVao);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-
-	// 2. Update current fog!
-	glFramebufferTexture2D(GL_FRAMEBUFFER,
-	                       GL_COLOR_ATTACHMENT0,
-	                       GL_TEXTURE_2D,
-	                       m_fowMaskTex, 0);
-
-	glViewport(0, 0, fowMaskWidth, fowMaskHeight);
-	glUseProgram(programDecayAllPixels);
-
-	// Arbitrarily high so there is no everything-vision at activity start
-	float elapsedSecondsSinceLastCall = 10000;  
-	long long timestampCur = g_TimerMan.GetSimTickCount();
-	if (fowDecayTimestampPrev != -1) {
-		elapsedSecondsSinceLastCall = static_cast<float>(timestampCur - fowDecayTimestampPrev) / 1000000.0f;
-	}
-	fowDecayTimestampPrev = timestampCur;
-
-	shaderDecayAllPixels.SetFloat("secsSinceLastCall", elapsedSecondsSinceLastCall);
-	shaderDecayAllPixels.SetFloat("decayPerSecond", 4);
-
-	loc = glGetUniformLocation(programDecayAllPixels, "instantFowMask");
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, instantVisibleFowMaskTex.id);
-	glUniform1i(loc, 0);
-
-	loc = glGetUniformLocation(programDecayAllPixels, "previousFow");
-	glActiveTexture(GL_TEXTURE0 + 1);
-	glBindTexture(GL_TEXTURE_2D, m_fowMaskTexTempCopy);
-	glUniform1i(loc, 1);
-
-	glBindVertexArray(m_SdfVao);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
-}
-
 void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 	Scene* currentScene = g_SceneMan.GetCurrentScene();
 	if (!currentScene || !currentScene->GetUnseenLayerMask()) {
@@ -444,7 +382,7 @@ void FrameMan::ClearFowTextures() {
 	clearTextureIfNeeded(FgTerrainTex);
 }
 
-void FrameMan::InitOrReinitFowOglThings(Scene* currentScene) {
+void FrameMan::InitOrReinitFowOglThings() {
 	g_ConsoleMan.PrintString("InitOrReinitFowOglThings() called!");
 
 	static bool initHappened = false;
@@ -458,8 +396,6 @@ void FrameMan::InitOrReinitFowOglThings(Scene* currentScene) {
 		glGenTextures(1, &m_SdfTexPong);
 		glGenTextures(1, &m_SdfResultFowMask);
 		glGenTextures(1, &m_SdfResultFowLastSeenTerrainMask);
-		glGenTextures(1, &m_fowMaskTex);
-		glGenTextures(1, &m_fowMaskTexTempCopy);
 		glGenTextures(1, &m_bgLayersTex);
 		
 		// Create framebuffer
@@ -495,37 +431,11 @@ void FrameMan::InitOrReinitFowOglThings(Scene* currentScene) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	};
 
-	auto alloc_r16f_fowMaskSized = [&](GLuint tex) {
-		SceneLayer* maskSL = currentScene->GetUnseenLayerMask();
-		const int currentSceneW = currentScene->GetWidth();
-		const int currentSceneH = currentScene->GetHeight();
-		const int scaleFactorX = maskSL->GetScaleFactor().GetX();
-		const int scaleFactorY = maskSL->GetScaleFactor().GetY();
-		fowMaskWidth = currentSceneW / scaleFactorX;
-		fowMaskHeight = currentSceneH / scaleFactorY;
-		glBindTexture(GL_TEXTURE_2D, tex);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_R16F, fowMaskWidth, fowMaskHeight, 0, GL_RG, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		if (currentScene->WrapsX()) {
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		} else {
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		}
-		if (currentScene->WrapsY()) {
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		} else {
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		}
-	};
-
 	alloc_rg32f_viewSized(m_SdfTexPing);
 	alloc_rg32f_viewSized(m_SdfTexPong);
 	alloc_rg32f_viewSized(m_SdfResultFowMask);
 	alloc_rg32f_viewSized(m_SdfResultFowLastSeenTerrainMask);
 	alloc_rg32f_viewSized(m_bgLayersTex);
-	alloc_r16f_fowMaskSized(m_fowMaskTex);
-	alloc_r16f_fowMaskSized(m_fowMaskTexTempCopy);
 }
 
 void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEnabled) {
@@ -1441,14 +1351,13 @@ void FrameMan::Draw() {
 		if (currentScene != m_ScenePreviouslyUsedForOglSetup) {
 			m_ScenePreviouslyUsedForOglSetup = currentScene;
 			ClearFowTextures();
-			InitOrReinitFowOglThings(currentScene);
+			InitOrReinitFowOglThings();
 		}
 		RenderBackgroundLayersBmToTexture();
 
 		// TODO- this needs to be done above, per screen! Right now splitscreen is fucked
 		FogOfWarSetup(backgroundShader);
-		RenderFogOfWarTextureWithTimeDecay();
-		FogOfWarSetup_DoSDF(m_fowMaskTex, m_SdfResultFowMask);
+		FogOfWarSetup_DoSDF(instantVisibleFowMaskTex.id, m_SdfResultFowMask);
 		FogOfWarSetup_DoSDF(fowMaskLastSeenTex.id, m_SdfResultFowLastSeenTerrainMask);
 	}
 

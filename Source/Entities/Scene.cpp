@@ -6,6 +6,7 @@
 #include "ConsoleMan.h"
 #include "SettingsMan.h"
 #include "ThreadMan.h"
+#include "TimerMan.h"
 #include "MetaMan.h"
 #include "ContentFile.h"
 #include "SLTerrain.h"
@@ -722,8 +723,8 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 									int scaledY = std::floor(unscaledY) / scale.m_Y;
 									int scaledW = std::ceil(terrainObjectBitmap->w / scale.m_X);
 									int scaledH = std::ceil(terrainObjectBitmap->h / scale.m_Y);
-									// Fill the box for the owner ownerTeam, revealing the area that this thing is on until the next update
-									rectfill(m_apUnseenLayerMask[ownerTeam]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, 1);
+									// Fill the box for the owner ownerTeam, revealing the area that this thing is on. Nothing else is on the mask yet, so it can just be filled.
+									rectfill(m_apUnseenLayerMask[ownerTeam]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, GetUnseenLayerMaskHoldUpdates(c_FogOfWarSeeRayHoldSeconds));
 									rectfill(m_apUnseenLayerTerrainMask[ownerTeam]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
 									// Expand the box a little so the whole placed object is going to be hidden
 									scaledX -= 1;
@@ -1687,6 +1688,12 @@ void Scene::FillUnseenLayerMask(Vector pixelSize, int team, bool createNow) {
 	}
 }
 
+uint16_t Scene::GetUnseenLayerMaskHoldUpdates(float holdSeconds) {
+	// Rounded to the nearest update rather than up, since the delta time is stored slightly short and rounding up would add an update to exact times
+	float holdUpdates = std::round(holdSeconds / g_TimerMan.GetDeltaTimeSecs());
+	return static_cast<uint16_t>(std::clamp(holdUpdates, 1.0F, static_cast<float>(UINT16_MAX)));
+}
+
 void Scene::SetUnseenLayerMask(SceneLayer* pNewLayer, int team) {
 	if (team == Activity::NoTeam || !pNewLayer) {
 		return;
@@ -1732,11 +1739,12 @@ void Scene::ClearSeenMaskPixels(int team) {
 		return;
 	}
 
-	// Clear all the pixels off the map, keeping them in view until at least the next update
+	// Clear all the pixels off the map, keeping them in view
 	if (m_apUnseenLayerMask[team]) {
 		BITMAP* maskBitmap = m_apUnseenLayerMask[team]->GetBitmap();
+		const int holdUpdates = GetUnseenLayerMaskHoldUpdates(c_FogOfWarSeeRayHoldSeconds);
 		for (std::list<Vector>::iterator itr = m_SeenPixels[team].begin(); itr != m_SeenPixels[team].end(); ++itr) {
-			putpixel(maskBitmap, (*itr).m_X, (*itr).m_Y, std::max(getpixel(maskBitmap, (*itr).m_X, (*itr).m_Y), 1));
+			putpixel(maskBitmap, (*itr).m_X, (*itr).m_Y, std::max(getpixel(maskBitmap, (*itr).m_X, (*itr).m_Y), holdUpdates));
 
 			// Clean up around the removed pixels too
 			CleanOrphanUnseenLayerMaskPixel((*itr).m_X + 1, (*itr).m_Y, W, team);
@@ -1831,7 +1839,7 @@ bool Scene::CleanOrphanUnseenLayerMaskPixel(int posX, int posY, NeighborDirectio
 
 	// Orphaned enough to remove?
 	if (support <= 2.5) {
-		putpixel(m_apUnseenLayerMask[team]->GetBitmap(), posX, posY, 1);
+		putpixel(m_apUnseenLayerMask[team]->GetBitmap(), posX, posY, GetUnseenLayerMaskHoldUpdates(c_FogOfWarSeeRayHoldSeconds));
 		m_CleanedPixels[team].push_back(Vector(posX, posY));
 		return true;
 	}
