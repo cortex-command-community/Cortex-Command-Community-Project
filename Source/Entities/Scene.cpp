@@ -744,6 +744,7 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 												"Scene::LoadData, other team has unseen layer mask but not terrain, weird!"
 											);
 											// GTODO - maybe for when only the team is a player team?
+											// Nothing has been seen while loading, so there's no terrain to remember before taking this out of view
 											rectfill(m_apUnseenLayerMask[t]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, 0);
 											// 255 so it's 1.0 at compositing step
 											rectfill(m_apUnseenLayerTerrainMask[t]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, 255);

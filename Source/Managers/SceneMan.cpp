@@ -39,6 +39,97 @@ namespace {
 			Scene::RaiseUnseenLayerMaskHold(row[x], holdUpdates);
 		}
 	}
+
+	/// A run of pixels on one row of an unseen layer mask, from x0 up to but not including x1.
+	struct MaskRun {
+		int x0, x1;
+	};
+
+	/// A rectangle of unseen layer mask pixels, from x0 and y0 up to but not including x1 and y1.
+	struct MaskRect {
+		int x0, x1, y0, y1;
+	};
+
+	/// Adds a pixel to the end of a row's runs, growing the last run if the pixel is right after it.
+	void AddPixelToRuns(std::vector<MaskRun>& runs, int x) {
+		if (!runs.empty() && runs.back().x1 == x) {
+			runs.back().x1 = x + 1;
+		} else {
+			runs.push_back({x, x + 1});
+		}
+	}
+
+	/// Copies the live terrain under a rectangle of a team's unseen layer mask into the team's last-seen terrain.
+	void CommitMaskRectToLastSeenTerrain(Scene* scene, int team, const MaskRect& rect) {
+		Vector scale = scene->GetUnseenLayerMask(team)->GetScaleFactor();
+		int x = rect.x0 * scale.m_X;
+		int y = rect.y0 * scale.m_Y;
+		int w = (rect.x1 - rect.x0) * scale.m_X;
+		int h = (rect.y1 - rect.y0) * scale.m_Y;
+		blit(scene->GetTerrain()->GetFGColorBitmap(), scene->GetUnseenLayerTerrain(team)->GetBitmap(), x, y, x, y, w, h);
+	}
+
+	/// Copies the live terrain into a team's last-seen terrain, under the runs of unseen layer mask pixels that findRuns(row, width, runs) picks out on each row of holds.
+	template <typename FindRuns>
+	void CommitRunsToLastSeenTerrain(Scene* scene, int team, FindRuns&& findRuns) {
+		// To minimize blit calls we do a greedy vertical merge of the runs
+		// From that we get rectangles
+		BITMAP* fowMaskBm = scene->GetUnseenLayerMask(team)->GetBitmap();
+		int fowMaskWidth = fowMaskBm->w;
+		int fowMaskHeight = fowMaskBm->h;
+
+		std::vector<MaskRect> active;
+		std::vector<MaskRect> next;
+		std::vector<MaskRect> output;
+
+		std::vector<MaskRun> runs;
+		for (int y = 0; y < fowMaskHeight; y++) {
+			findRuns(&Scene::GetUnseenLayerMaskHold(fowMaskBm, 0, y), fowMaskWidth, runs);
+
+			next.clear();
+
+			int i = 0, j = 0;
+
+			while (i < runs.size() || j < active.size()) {
+				if (i < runs.size() && j < active.size() &&
+				    runs[i].x0 == active[j].x0 &&
+				    runs[i].x1 == active[j].x1) {
+					active[j].y1 = y + 1;
+					next.push_back(active[j]);
+					i++;
+					j++;
+				} else if (j < active.size() &&
+				           (i == runs.size() || active[j].x0 < runs[i].x0)) {
+					output.push_back(active[j]);
+					j++;
+				} else {
+					next.push_back({runs[i].x0, runs[i].x1, y, y + 1});
+					i++;
+				}
+			}
+
+			active.swap(next);
+		}
+
+		// Done!
+		output.insert(output.end(), active.begin(), active.end());
+
+		// Finally blit for previously seen terrain
+		for (const MaskRect& rect: output) {
+			CommitMaskRectToLastSeenTerrain(scene, team, rect);
+		}
+	}
+
+	/// Takes a span of unseen layer mask pixels out of view, first copying the live terrain under any that were in view into the team's last-seen terrain.
+	void HideUnseenLayerMaskSpan(Scene* scene, int team, int y, int startX, int endX) {
+		uint16_t* row = &Scene::GetUnseenLayerMaskHold(scene->GetUnseenLayerMask(team)->GetBitmap(), 0, y);
+		for (int x = startX; x <= endX; ++x) {
+			if (row[x] > 0) {
+				CommitMaskRectToLastSeenTerrain(scene, team, {x, x + 1, y, y + 1});
+				row[x] = 0;
+			}
+		}
+	}
 }
 
 SceneMan::SceneMan() {
@@ -944,6 +1035,8 @@ void SceneMan::MakeAllUnseen(Vector pixelSize, const int team) {
 		return;
 	}
 
+	// The new mask takes everything out of view at once, rather than as holds count down
+	CommitHeldPixelsToLastSeenTerrain(team);
 	m_pCurrentScene->FillUnseenLayerMask(pixelSize, team);
 }
 
@@ -952,83 +1045,31 @@ void SceneMan::CountDownUnseenLayerMaskHolds(const int team) {
 		return;
 	}
 
-	// To minimize blit calls we do a greedy vertical merge of the pixels going out of view
-	// From that we get rectangles
-	BITMAP* fowMaskBm = m_pCurrentScene->GetUnseenLayerMask(team)->GetBitmap();
-	int fowMaskWidth = fowMaskBm->w;
-	int fowMaskHeight = fowMaskBm->h;
-
-	struct Run {
-		int x0, x1;
-	};
-	struct Rect {
-		int x0, x1, y0, y1;
-	};
-
-	std::vector<Rect> active;
-	std::vector<Rect> next;
-	std::vector<Rect> output;
-
-	// Counts down a row of holds, finding the runs of pixels that go out of view now.
+	// Count down each row of holds, finding the runs of pixels that go out of view now.
 	// Pixels in view show the live terrain, so the last-seen terrain only needs to catch up with them as they go out of view.
-	auto FindRuns = [](uint16_t* row, int W, std::vector<Run>& runs) {
+	CommitRunsToLastSeenTerrain(m_pCurrentScene, team, [](uint16_t* row, int width, std::vector<MaskRun>& runs) {
 		runs.clear();
-
-		for (int x = 0; x < W; x++) {
-			if (row[x] == 0 || --row[x] > 0) {
-				continue;
-			}
-
-			if (!runs.empty() && runs.back().x1 == x) {
-				runs.back().x1 = x + 1;
-			} else {
-				runs.push_back({x, x + 1});
+		for (int x = 0; x < width; x++) {
+			if (row[x] > 0 && --row[x] == 0) {
+				AddPixelToRuns(runs, x);
 			}
 		}
-	};
+	});
+}
 
-	std::vector<Run> runs;
-	for (int y = 0; y < fowMaskHeight; y++) {
-		FindRuns(&Scene::GetUnseenLayerMaskHold(fowMaskBm, 0, y), fowMaskWidth, runs);
+void SceneMan::CommitHeldPixelsToLastSeenTerrain(const int team) {
+	if (!m_pCurrentScene || !m_pCurrentScene->GetUnseenLayerMask(team)) {
+		return;
+	}
 
-		next.clear();
-
-		int i = 0, j = 0;
-
-		while (i < runs.size() || j < active.size()) {
-			if (i < runs.size() && j < active.size() &&
-			    runs[i].x0 == active[j].x0 &&
-			    runs[i].x1 == active[j].x1) {
-				active[j].y1 = y + 1;
-				next.push_back(active[j]);
-				i++;
-				j++;
-			} else if (j < active.size() &&
-			           (i == runs.size() || active[j].x0 < runs[i].x0)) {
-				output.push_back(active[j]);
-				j++;
-			} else {
-				next.push_back({runs[i].x0, runs[i].x1, y, y + 1});
-				i++;
+	CommitRunsToLastSeenTerrain(m_pCurrentScene, team, [](uint16_t* row, int width, std::vector<MaskRun>& runs) {
+		runs.clear();
+		for (int x = 0; x < width; x++) {
+			if (row[x] > 0) {
+				AddPixelToRuns(runs, x);
 			}
 		}
-
-		active.swap(next);
-	}
-
-	// Done!
-	output.insert(output.end(), active.begin(), active.end());
-
-	// Finally blit for previously seen terrain
-	SceneLayer* pUnseenLayerTerrain = m_pCurrentScene->GetUnseenLayerTerrain(team);
-	Vector scale = m_pCurrentScene->GetUnseenLayerMask(team)->GetScaleFactor();
-	for (auto& rect: output) {
-		int x = rect.x0 * scale.m_X;
-		int y = rect.y0 * scale.m_Y;
-		int w = (rect.x1 - rect.x0) * scale.m_X;
-		int h = (rect.y1 - rect.y0) * scale.m_Y;
-		blit(m_pCurrentScene->GetTerrain()->GetFGColorBitmap(), pUnseenLayerTerrain->GetBitmap(), x, y, x, y, w, h);
-	}
+	});
 }
 
 // GTODO: a team may have several human players. Iterate over all of them
@@ -1214,8 +1255,8 @@ bool SceneMan::RestoreUnseen(const int posX, const int posY, const int team) {
 		// Make sure we're actually hiding a seen pixel that is ON the bitmap! Seen pixels have a hold, and getpixel gives -1 off the bitmap.
 		int pixel = getpixel(pUnseenLayerMask->GetBitmap(), scaledX, scaledY);
 		if (pixel > 0) {
-			// Restore that pixel on the map so it won't be detected as seen again
-			putpixel(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, 0);
+			// Restore that pixel on the map so it won't be detected as seen again, remembering the terrain under it first
+			HideUnseenLayerMaskSpan(m_pCurrentScene, team, scaledY, scaledX, scaledX);
 
 			// Show that we actually restored a seen pixel
 			return true;
@@ -1262,12 +1303,10 @@ void SceneMan::RestoreUnseenBox(const int posX, const int posY, const int width,
 		int scaledW = width / scale.m_X;
 		int scaledH = height / scale.m_Y;
 
-		// Fill the box
-		int rescaledX = scaledX * scale.m_X;
-		int rescaledY = scaledY * scale.m_Y;
-		int rescaledW = scaledW * scale.m_X;
-		int rescaledH = scaledH * scale.m_Y;
-		rectfill(pUnseenLayerMask->GetBitmap(), rescaledX, rescaledY, rescaledX + rescaledW, rescaledY + rescaledH, 0);
+		// Fill the box, remembering the terrain under anything that was in view first
+		ForEachRectSpan(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, [this, team](int y, int startX, int endX) {
+			HideUnseenLayerMaskSpan(m_pCurrentScene, team, y, startX, endX);
+		});
 	}
 }
 
@@ -1305,9 +1344,10 @@ void RTE::SceneMan::RestoreUnseenTri(const Vector pos1, const Vector pos2, const
 		Vector pos2Scaled = pos2 / scale;
 		Vector pos3Scaled = pos3 / scale;
 
-		// Fill the tri for the unseen mask
-		SceneLayer* pUnseenLayerTerrainMask = m_pCurrentScene->GetUnseenLayerTerrainMask(team);
-		triangle(pUnseenLayerMask->GetBitmap(), (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), 0);
+		// Fill the tri for the unseen mask, remembering the terrain under anything that was in view first
+		ForEachTriangleSpan(pUnseenLayerMask->GetBitmap(), (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), [this, team](int y, int startX, int endX) {
+			HideUnseenLayerMaskSpan(m_pCurrentScene, team, y, startX, endX);
+		});
 	}
 }
 

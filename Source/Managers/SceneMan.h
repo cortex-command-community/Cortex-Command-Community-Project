@@ -439,6 +439,11 @@ namespace RTE {
 		/// @param team The team we're talking about.
 		void CountDownUnseenLayerMaskHolds(const int team);
 
+		/// Remembers the live terrain under every pixel of a team's unseen layer mask that's in view, in the team's last-seen terrain.
+		/// Anything that takes pixels out of view without counting them down, or saves the last-seen terrain, has to do this first.
+		/// @param team The team we're talking about.
+		void CommitHeldPixelsToLastSeenTerrain(const int team);
+
 		/// Sets one team's view of the scene to be all seen.
 		/// @param team The team we're talking about.
 		void MakeAllSeen(const int team);

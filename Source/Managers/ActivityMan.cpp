@@ -107,6 +107,11 @@ bool ActivityMan::SaveCurrentGame(const std::string& fileName) {
 		return false;
 	}
 
+	// Pixels still in view show the live terrain, which the last-seen terrain only catches up with once they go out of view
+	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
+		g_SceneMan.CommitHeldPixelsToLastSeenTerrain(team);
+	}
+
 	// Get BITMAPS so save into our zip, do this async so we can copy the scene info at the same time
 	std::vector<SceneLayerInfo>* sceneLayerInfos = new std::vector<SceneLayerInfo>();
 	std::future<void> copyBitmaps = g_ThreadMan.GetBackgroundThreadPool().submit([&]() {
