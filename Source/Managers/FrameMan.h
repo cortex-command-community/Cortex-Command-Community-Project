@@ -315,6 +315,10 @@ namespace RTE {
 		int SaveWorldPreviewToPNG(const char* nameBase) { return SaveBitmap(ScenePreviewDump, nameBase); }
 #pragma endregion
 
+		/// Gets how far past what has been seen before the fog of war edge smoothing still draws anything. This depends on the screen's size.
+		/// @return The furthest the smoothing draws past what has been seen before, in pixels.
+		int GetFogOfWarNeverSeenReach() const;
+
 		void ClearTextures() {
 			if (instantVisibleFowMaskTex.id) {
 				rlUnloadTexture(instantVisibleFowMaskTex.id);

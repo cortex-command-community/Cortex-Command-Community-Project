@@ -72,26 +72,22 @@ namespace {
 		}
 	}
 
-	/// Copies the live terrain into a team's last-seen terrain, under the runs of unseen layer mask pixels that findRuns(row, width, runs) picks out on each row of holds.
+	/// Merges runs of unseen layer mask pixels into rectangles, so they can be copied with fewer blits.
+	/// @param y0 The first row to merge the runs of.
+	/// @param y1 The row after the last one to merge the runs of.
+	/// @param findRuns Called as findRuns(y, runs) for each row, to fill runs with the row's runs in order along it.
+	/// @return The rectangles the runs make up.
 	template <typename FindRuns>
-	void CommitRunsToLastSeenTerrain(Scene* scene, int team, FindRuns&& findRuns) {
+	std::vector<MaskRect> MergeRunsIntoRects(int y0, int y1, FindRuns&& findRuns) {
 		// To minimize blit calls we do a greedy vertical merge of the runs
 		// From that we get rectangles
-		BITMAP* fowMaskBm = scene->GetUnseenLayerMask(team)->GetBitmap();
-		// Saving runs this when aborting too, where crashing on a broken mask would hide the error that caused the abort
-		if (!fowMaskBm) {
-			return;
-		}
-		int fowMaskWidth = fowMaskBm->w;
-		int fowMaskHeight = fowMaskBm->h;
-
 		std::vector<MaskRect> active;
 		std::vector<MaskRect> next;
 		std::vector<MaskRect> output;
 
 		std::vector<MaskRun> runs;
-		for (int y = 0; y < fowMaskHeight; y++) {
-			findRuns(&Scene::GetUnseenLayerMaskHold(fowMaskBm, 0, y), fowMaskWidth, runs);
+		for (int y = y0; y < y1; y++) {
+			findRuns(y, runs);
 
 			next.clear();
 
@@ -120,11 +116,98 @@ namespace {
 
 		// Done!
 		output.insert(output.end(), active.begin(), active.end());
+		return output;
+	}
 
-		// Finally blit for previously seen terrain
-		for (const MaskRect& rect: output) {
+	/// Copies the live terrain into a team's last-seen terrain for the never-seen pixels near rectangles of its unseen layer mask, and marks them as copied.
+	/// The fog of war edge smoothing draws a little past what has been seen before, showing the live terrain there while it's in view. This keeps what was shown for once it isn't.
+	void CommitNeverSeenPixelsNearMaskRects(Scene* scene, int team, const std::vector<MaskRect>& rects) {
+		// Nothing's drawn past what has been seen before without a screen
+		const int reach = g_FrameMan.GetFogOfWarNeverSeenReach();
+		if (rects.empty() || reach <= 0) {
+			return;
+		}
+
+		BITMAP* seenMaskBitmap = scene->GetUnseenLayerTerrainMask(team)->GetBitmap();
+		const int width = seenMaskBitmap->w;
+		const int height = seenMaskBitmap->h;
+		// One more mask pixel, since the smoothing measures from partway into the mask pixels next to what has been seen, where the mask blends between them
+		const Vector scale = scene->GetUnseenLayerMask(team)->GetScaleFactor();
+		const int reachX = static_cast<int>(std::ceil(reach / scale.m_X)) + 1;
+		const int reachY = static_cast<int>(std::ceil(reach / scale.m_Y)) + 1;
+
+		// Each row's spans of pixels within reach of a rectangle, wrapped around the scene's edges where it wraps and cut off where it doesn't
+		struct RowSpan {
+			int y, x0, x1;
+		};
+		std::vector<RowSpan> spans;
+		for (const MaskRect& rect: rects) {
+			const int x0 = rect.x0 - reachX;
+			const int x1 = rect.x1 + reachX;
+			for (int y = rect.y0 - reachY; y < rect.y1 + reachY; ++y) {
+				int wrappedY = y;
+				if (y < 0 || y >= height) {
+					if (!scene->WrapsY()) {
+						continue;
+					}
+					wrappedY = ((y % height) + height) % height;
+				}
+				if (!scene->WrapsX()) {
+					spans.push_back({wrappedY, std::max(x0, 0), std::min(x1, width)});
+				} else if (x1 - x0 >= width) {
+					spans.push_back({wrappedY, 0, width});
+				} else {
+					const int wrappedX0 = ((x0 % width) + width) % width;
+					const int wrappedX1 = wrappedX0 + (x1 - x0);
+					spans.push_back({wrappedY, wrappedX0, std::min(wrappedX1, width)});
+					if (wrappedX1 > width) {
+						spans.push_back({wrappedY, 0, wrappedX1 - width});
+					}
+				}
+			}
+		}
+		if (spans.empty()) {
+			return;
+		}
+		std::sort(spans.begin(), spans.end(), [](const RowSpan& a, const RowSpan& b) { return a.y != b.y ? a.y < b.y : a.x0 < b.x0; });
+
+		// Spans on a row overlap, so each only adds the pixels past where the ones before it on the row reached
+		auto span = spans.begin();
+		const std::vector<MaskRect> neverSeenRects = MergeRunsIntoRects(spans.front().y, spans.back().y + 1, [&](int y, std::vector<MaskRun>& runs) {
+			runs.clear();
+			for (int coveredTo = 0; span != spans.end() && span->y == y; ++span) {
+				for (int x = std::max(span->x0, coveredTo); x < span->x1; ++x) {
+					if (seenMaskBitmap->line[y][x] != g_MaskColor) {
+						AddPixelToRuns(runs, x);
+					}
+				}
+				coveredTo = std::max(coveredTo, span->x1);
+			}
+		});
+		for (const MaskRect& rect: neverSeenRects) {
 			CommitMaskRectToLastSeenTerrain(scene, team, rect);
 		}
+	}
+
+	/// Copies the live terrain under rectangles of a team's unseen layer mask that are going out of view into the team's last-seen terrain, along with the never-seen pixels near them that the fog of war draws.
+	void CommitMaskRectsToLastSeenTerrain(Scene* scene, int team, const std::vector<MaskRect>& rects) {
+		for (const MaskRect& rect: rects) {
+			CommitMaskRectToLastSeenTerrain(scene, team, rect);
+		}
+		CommitNeverSeenPixelsNearMaskRects(scene, team, rects);
+	}
+
+	/// Copies the live terrain into a team's last-seen terrain, under the runs of unseen layer mask pixels that findRuns(row, width, runs) picks out on each row of holds.
+	template <typename FindRuns>
+	void CommitRunsToLastSeenTerrain(Scene* scene, int team, FindRuns&& findRuns) {
+		BITMAP* fowMaskBm = scene->GetUnseenLayerMask(team)->GetBitmap();
+		// Saving runs this when aborting too, where crashing on a broken mask would hide the error that caused the abort
+		if (!fowMaskBm) {
+			return;
+		}
+		CommitMaskRectsToLastSeenTerrain(scene, team, MergeRunsIntoRects(0, fowMaskBm->h, [&](int y, std::vector<MaskRun>& runs) {
+			findRuns(&Scene::GetUnseenLayerMaskHold(fowMaskBm, 0, y), fowMaskBm->w, runs);
+		}));
 	}
 
 	/// Calls fillShape(offset) for a shape in scene coordinates, once with no offset and again offset by the scene's size for each edge of a wrapping scene that the shape hangs past, so that part of it shows on the other side.
@@ -149,15 +232,21 @@ namespace {
 		}
 	}
 
-	/// Takes a span of unseen layer mask pixels out of view, first copying the live terrain under any that were in view into the team's last-seen terrain.
+	/// Takes a span of unseen layer mask pixels out of view, first copying the live terrain under any that were in view, and the never-seen pixels near them that the fog of war draws, into the team's last-seen terrain.
 	void HideUnseenLayerMaskSpan(Scene* scene, int team, int y, int startX, int endX) {
 		uint16_t* row = &Scene::GetUnseenLayerMaskHold(scene->GetUnseenLayerMask(team)->GetBitmap(), 0, y);
+		std::vector<MaskRun> runs;
 		for (int x = startX; x <= endX; ++x) {
 			if (row[x] > 0) {
-				CommitMaskRectToLastSeenTerrain(scene, team, {x, x + 1, y, y + 1});
+				AddPixelToRuns(runs, x);
 				row[x] = 0;
 			}
 		}
+		std::vector<MaskRect> rects;
+		for (const MaskRun& run: runs) {
+			rects.push_back({run.x0, run.x1, y, y + 1});
+		}
+		CommitMaskRectsToLastSeenTerrain(scene, team, rects);
 	}
 }
 

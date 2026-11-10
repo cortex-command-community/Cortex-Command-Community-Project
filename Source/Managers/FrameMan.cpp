@@ -56,6 +56,10 @@ namespace {
 	}
 }
 
+int FrameMan::GetFogOfWarNeverSeenReach() const {
+	return m_BackBuffer8 ? static_cast<int>(std::ceil((usdfThresoldForNeverSeen + usdfOpacitySmoothingDistanceForNeverSeen) * GetScreenDiagonal(m_BackBuffer8.get()))) : 0;
+}
+
 void BitmapDeleter::operator()(BITMAP* bitmap) const { destroy_bitmap(bitmap); }
 void SurfaceDeleter::operator()(SDL_Surface* surface) const { SDL_DestroySurface(surface); }
 
