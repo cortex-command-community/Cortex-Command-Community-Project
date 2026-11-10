@@ -12,6 +12,7 @@
 #include "SceneLayer.h"
 
 #include <array>
+#include <atomic>
 #include <cstdint>
 #include <map>
 
@@ -387,6 +388,18 @@ namespace RTE {
 		/// @param y The pixel's Y position on the mask.
 		/// @return A reference to the pixel's hold count.
 		static uint16_t& GetUnseenLayerMaskHold(BITMAP* unseenLayerMask, int x, int y) { return reinterpret_cast<uint16_t*>(unseenLayerMask->line[y])[x]; }
+
+		/// Keeps a pixel of an unseen layer mask in view for at least the given number of sim updates. A longer hold it already has is kept.
+		/// See rays on other threads can be revealing the same pixel at the same time, so this is atomic. Anything else that touches the mask has to wait for them to finish.
+		/// @param hold The pixel's hold count, from GetUnseenLayerMaskHold.
+		/// @param holdUpdates How many sim updates the pixel should stay in view for.
+		static void RaiseUnseenLayerMaskHold(uint16_t& hold, uint16_t holdUpdates) {
+			static_assert(std::atomic_ref<uint16_t>::is_always_lock_free);
+			// Relaxed is enough, the see ray threads are waited on before anything reads the mask.
+			std::atomic_ref<uint16_t> atomicHold(hold);
+			uint16_t currentHold = atomicHold.load(std::memory_order_relaxed);
+			while (currentHold < holdUpdates && !atomicHold.compare_exchange_weak(currentHold, holdUpdates, std::memory_order_relaxed)) {}
+		}
 
 		/// Gets the list of pixels that have been seen on a team's unseen layer.
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)

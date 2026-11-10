@@ -1731,10 +1731,11 @@ void Scene::ClearSeenMaskPixels(int team) {
 		return;
 	}
 
-	// Clear all the pixels off the map, keeping them in view until the next update
+	// Clear all the pixels off the map, keeping them in view until at least the next update
 	if (m_apUnseenLayerMask[team]) {
+		BITMAP* maskBitmap = m_apUnseenLayerMask[team]->GetBitmap();
 		for (std::list<Vector>::iterator itr = m_SeenPixels[team].begin(); itr != m_SeenPixels[team].end(); ++itr) {
-			putpixel(m_apUnseenLayerMask[team]->GetBitmap(), (*itr).m_X, (*itr).m_Y, 1);
+			putpixel(maskBitmap, (*itr).m_X, (*itr).m_Y, std::max(getpixel(maskBitmap, (*itr).m_X, (*itr).m_Y), 1));
 
 			// Clean up around the removed pixels too
 			CleanOrphanUnseenLayerMaskPixel((*itr).m_X + 1, (*itr).m_Y, W, team);

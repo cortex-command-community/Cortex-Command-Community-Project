@@ -795,6 +795,7 @@
     <ClInclude Include="Source\Renderer\RenderTarget.h" />
     <ClInclude Include="Source\Renderer\Shader.h" />
     <ClInclude Include="Source\Renderer\BigTexture.h" />
+    <ClInclude Include="Source\System\AllegroSpans.h" />
     <ClInclude Include="Source\System\AllegroTools.h" />
     <ClInclude Include="Source\System\Atom.h" />
     <ClInclude Include="Source\System\Base64\base64.h" />

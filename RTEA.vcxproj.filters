@@ -625,6 +625,9 @@
     <ClInclude Include="Source\System\Base64\base64.h">
       <Filter>System\Base64</Filter>
     </ClInclude>
+    <ClInclude Include="Source\System\AllegroSpans.h">
+      <Filter>System</Filter>
+    </ClInclude>
     <ClInclude Include="Source\System\AllegroTools.h">
       <Filter>System</Filter>
     </ClInclude>
