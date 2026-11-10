@@ -12,6 +12,7 @@
 #include "SceneLayer.h"
 
 #include <array>
+#include <cstdint>
 #include <map>
 
 namespace RTE {
@@ -351,7 +352,7 @@ namespace RTE {
 		/// @param m_AreaList.push_back(newArea Area to add.
 		void AddArea(Scene::Area& newArea) { m_AreaList.push_back(new Scene::Area(newArea)); }
 
-		/// Creates a new SceneLayer for a specific team and fills it with black
+		/// Creates a new SceneLayer for a specific team with nothing in view, with
 		/// pixels that end up being a specific size on the screen.
 		/// @param pixelSize A Vector with the desired dimensions of the unseen layer's chunky pixels.
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
@@ -379,6 +380,13 @@ namespace RTE {
 		/// GTODO: Name these
 		SceneLayer* GetUnseenLayerTerrain(int team = Activity::TeamOne) const { return team != Activity::NoTeam ? m_apUnseenLayerTerrain[team] : nullptr; }
 		SceneLayer* GetUnseenLayerTerrainMask(int team = Activity::TeamOne) const { return team != Activity::NoTeam ? m_apUnseenLayerTerrainMask[team] : nullptr; }
+
+		/// Gets how many more sim updates a pixel of an unseen layer mask stays in view for. 0 means it isn't in view.
+		/// @param unseenLayerMask The bitmap of an unseen layer mask. Its pixels are 16-bit hold counts, not colors.
+		/// @param x The pixel's X position on the mask.
+		/// @param y The pixel's Y position on the mask.
+		/// @return A reference to the pixel's hold count.
+		static uint16_t& GetUnseenLayerMaskHold(BITMAP* unseenLayerMask, int x, int y) { return reinterpret_cast<uint16_t*>(unseenLayerMask->line[y])[x]; }
 
 		/// Gets the list of pixels that have been seen on a team's unseen layer.
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)

@@ -484,9 +484,9 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 	for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
 		// Specified to dynamically create the unseen layer?
 		if (!m_UnseenPixelSize[team].IsZero()) {
-			// Create the bitmaps to make the unseen scene layers out of
-			BITMAP* pUnseenMaskBitmap = create_bitmap_ex(8, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
-			clear_to_color(pUnseenMaskBitmap, g_BlackColor);
+			// Create the bitmaps to make the unseen scene layers out of. The mask's pixels are hold counts, and nothing is in view yet.
+			BITMAP* pUnseenMaskBitmap = create_bitmap_ex(16, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
+			clear_to_color(pUnseenMaskBitmap, 0);
 			// We clear these to 255 to get them to be 1.0 in the compositing step
 			BITMAP* pUnseenTerrainBitmap = create_bitmap_ex(8, GetWidth(), GetHeight()); // 1-to-1, as is regular terrain
 			clear_to_color(pUnseenTerrainBitmap, 255);
@@ -722,8 +722,8 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 									int scaledY = std::floor(unscaledY) / scale.m_Y;
 									int scaledW = std::ceil(terrainObjectBitmap->w / scale.m_X);
 									int scaledH = std::ceil(terrainObjectBitmap->h / scale.m_Y);
-									// Fill the box with key color for the owner ownerTeam, revealing the area that this thing is on
-									rectfill(m_apUnseenLayerMask[ownerTeam]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
+									// Fill the box for the owner ownerTeam, revealing the area that this thing is on until the next update
+									rectfill(m_apUnseenLayerMask[ownerTeam]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, 1);
 									rectfill(m_apUnseenLayerTerrainMask[ownerTeam]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
 									// Expand the box a little so the whole placed object is going to be hidden
 									scaledX -= 1;
@@ -744,8 +744,8 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 												"Scene::LoadData, other team has unseen layer mask but not terrain, weird!"
 											);
 											// GTODO - maybe for when only the team is a player team?
+											rectfill(m_apUnseenLayerMask[t]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, 0);
 											// 255 so it's 1.0 at compositing step
-											rectfill(m_apUnseenLayerMask[t]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, 255);
 											rectfill(m_apUnseenLayerTerrainMask[t]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, 255);
 											rectfill(m_apUnseenLayerTerrain[ownerTeam]->GetBitmap(), rescaledX, rescaledY, rescaledW, rescaledH, g_BlackColor);
 										}
@@ -1652,13 +1652,13 @@ void Scene::FillUnseenLayerMask(Vector pixelSize, int team, bool createNow) {
 
 	m_UnseenPixelSize[team] = pixelSize;
 
-	// We clear the masks here to 255 so they're 1.0 at compositing step
-	
+	// We clear the terrain masks here to 255 so they're 1.0 at compositing step
+
 	// Dynamically create the unseen layer
-	// Create the bitmap to make the unseen scene layer out of
+	// Create the bitmap to make the unseen scene layer out of. Its pixels are hold counts, and nothing is in view yet.
 	if (createNow) {
-		BITMAP* pUnseenMaskBitmap = create_bitmap_ex(8, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
-		clear_to_color(pUnseenMaskBitmap, 255);
+		BITMAP* pUnseenMaskBitmap = create_bitmap_ex(16, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
+		clear_to_color(pUnseenMaskBitmap, 0);
 		// Replace any old unseen layer with the new one that is generated
 		delete m_apUnseenLayerMask[team];
 		m_apUnseenLayerMask[team] = new SceneLayer();
@@ -1731,10 +1731,10 @@ void Scene::ClearSeenMaskPixels(int team) {
 		return;
 	}
 
-	// Clear all the pixels off the map, set them to key color
+	// Clear all the pixels off the map, keeping them in view until the next update
 	if (m_apUnseenLayerMask[team]) {
 		for (std::list<Vector>::iterator itr = m_SeenPixels[team].begin(); itr != m_SeenPixels[team].end(); ++itr) {
-			putpixel(m_apUnseenLayerMask[team]->GetBitmap(), (*itr).m_X, (*itr).m_Y, g_MaskColor);
+			putpixel(m_apUnseenLayerMask[team]->GetBitmap(), (*itr).m_X, (*itr).m_Y, 1);
 
 			// Clean up around the removed pixels too
 			CleanOrphanUnseenLayerMaskPixel((*itr).m_X + 1, (*itr).m_Y, W, team);
@@ -1770,8 +1770,8 @@ bool Scene::CleanOrphanUnseenLayerMaskPixel(int posX, int posY, NeighborDirectio
 	// Do any necessary wrapping
 	m_apUnseenLayerMask[team]->WrapPosition(posX, posY);
 
-	// First check the actual position of the checked pixel, it may already been seen.
-	if (getpixel(m_apUnseenLayerMask[team]->GetBitmap(), posX, posY) == g_MaskColor) {
+	// First check the actual position of the checked pixel, it may already been seen. Seen pixels have a hold count above 0, and getpixel gives -1 off the mask.
+	if (getpixel(m_apUnseenLayerMask[team]->GetBitmap(), posX, posY) > 0) {
 		return false;
 	}
 
@@ -1782,54 +1782,54 @@ bool Scene::CleanOrphanUnseenLayerMaskPixel(int posX, int posY, NeighborDirectio
 		testPosX = posX + 1;
 		testPosY = posY;
 		m_apUnseenLayerMask[team]->WrapPosition(testPosX, testPosY);
-		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 1 : 0;
+		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) <= 0 ? 1 : 0;
 	}
 	if (checkingFrom != W) {
 		testPosX = posX - 1;
 		testPosY = posY;
 		m_apUnseenLayerMask[team]->WrapPosition(testPosX, testPosY);
-		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 1 : 0;
+		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) <= 0 ? 1 : 0;
 	}
 	if (checkingFrom != S) {
 		testPosX = posX;
 		testPosY = posY + 1;
 		m_apUnseenLayerMask[team]->WrapPosition(testPosX, testPosY);
-		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 1 : 0;
+		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) <= 0 ? 1 : 0;
 	}
 	if (checkingFrom != N) {
 		testPosX = posX;
 		testPosY = posY - 1;
 		m_apUnseenLayerMask[team]->WrapPosition(testPosX, testPosY);
-		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 1 : 0;
+		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) <= 0 ? 1 : 0;
 	}
 	if (checkingFrom != SE) {
 		testPosX = posX + 1;
 		testPosY = posY + 1;
 		m_apUnseenLayerMask[team]->WrapPosition(testPosX, testPosY);
-		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 0.5f : 0;
+		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) <= 0 ? 0.5f : 0;
 	}
 	if (checkingFrom != SW) {
 		testPosX = posX - 1;
 		testPosY = posY + 1;
 		m_apUnseenLayerMask[team]->WrapPosition(testPosX, testPosY);
-		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 0.5f : 0;
+		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) <= 0 ? 0.5f : 0;
 	}
 	if (checkingFrom != NW) {
 		testPosX = posX - 1;
 		testPosY = posY - 1;
 		m_apUnseenLayerMask[team]->WrapPosition(testPosX, testPosY);
-		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 0.5f : 0;
+		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) <= 0 ? 0.5f : 0;
 	}
 	if (checkingFrom != NE) {
 		testPosX = posX + 1;
 		testPosY = posY - 1;
 		m_apUnseenLayerMask[team]->WrapPosition(testPosX, testPosY);
-		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) != g_MaskColor ? 0.5f : 0;
+		support += getpixel(m_apUnseenLayerMask[team]->GetBitmap(), testPosX, testPosY) <= 0 ? 0.5f : 0;
 	}
 
 	// Orphaned enough to remove?
 	if (support <= 2.5) {
-		putpixel(m_apUnseenLayerMask[team]->GetBitmap(), posX, posY, g_MaskColor);
+		putpixel(m_apUnseenLayerMask[team]->GetBitmap(), posX, posY, 1);
 		m_CleanedPixels[team].push_back(Vector(posX, posY));
 		return true;
 	}
@@ -2673,8 +2673,8 @@ void Scene::Update() {
 
 	m_PathfindingUpdated = false;
 
-	// TODO: make this work with two-stage fog of war
-	if (g_SettingsMan.BlipOnRevealUnseen()) {
+	// TODO: make reveal blips work with two-stage fog of war. They used to be drawn white on the unseen layer masks, but those hold how long pixels stay in view now, not colors.
+	/*if (g_SettingsMan.BlipOnRevealUnseen()) {
 		// Highlight the pixels that have been revealed on the unseen maps
 		for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
 			if (m_apUnseenLayerMask[team]) {
@@ -2683,7 +2683,7 @@ void Scene::Update() {
 				}
 			}
 		}
-	}
+	}*/
 
 	if (m_NavigableAreasUpToDate == false) {
 		// Need to block until all current pathfinding requests are finished. Ugh, if only we had a better way (interrupt/cancel a path request to start a new one?)

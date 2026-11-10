@@ -936,8 +936,12 @@ void SceneMan::MakeAllUnseen(Vector pixelSize, const int team) {
 	m_pCurrentScene->FillUnseenLayerMask(pixelSize, team);
 }
 
-void SceneMan::CommitToLastSeenTerrainWithFowMask(const int team) {
-	// To minimize blit calls we do a greedy vertical merge of the immediately-seeing mask
+void SceneMan::CountDownUnseenLayerMaskHolds(const int team) {
+	if (!m_pCurrentScene->GetUnseenLayerMask(team)) {
+		return;
+	}
+
+	// To minimize blit calls we do a greedy vertical merge of the pixels going out of view
 	// From that we get rectangles
 	BITMAP* fowMaskBm = m_pCurrentScene->GetUnseenLayerMask(team)->GetBitmap();
 	int fowMaskWidth = fowMaskBm->w;
@@ -954,26 +958,27 @@ void SceneMan::CommitToLastSeenTerrainWithFowMask(const int team) {
 	std::vector<Rect> next;
 	std::vector<Rect> output;
 
-	auto FindRuns = [](unsigned char* row, int W, std::vector<Run>& runs) {
+	// Counts down a row of holds, finding the runs of pixels that go out of view now.
+	// Pixels in view show the live terrain, so the last-seen terrain only needs to catch up with them as they go out of view.
+	auto FindRuns = [](uint16_t* row, int W, std::vector<Run>& runs) {
 		runs.clear();
 
-		for (int x = 0; x < W;) {
-			if (row[x]) {
-				x++;
+		for (int x = 0; x < W; x++) {
+			if (row[x] == 0 || --row[x] > 0) {
 				continue;
 			}
 
-			int x0 = x;
-			while (x < W && !row[x])
-				x++;
-
-			runs.push_back({x0, x});
+			if (!runs.empty() && runs.back().x1 == x) {
+				runs.back().x1 = x + 1;
+			} else {
+				runs.push_back({x, x + 1});
+			}
 		}
 	};
 
+	std::vector<Run> runs;
 	for (int y = 0; y < fowMaskHeight; y++) {
-		std::vector<Run> runs;
-		FindRuns(fowMaskBm->line[y], fowMaskWidth, runs);
+		FindRuns(&Scene::GetUnseenLayerMaskHold(fowMaskBm, 0, y), fowMaskWidth, runs);
 
 		next.clear();
 
@@ -1082,8 +1087,23 @@ void SceneMan::CastSeeRaysFromSky(const int screenId) {
 
 bool SceneMan::LoadUnseenLayer(const std::string& maskBitmapPath, int team) {
 	ContentFile maskBitmapFile(maskBitmapPath.c_str());
+	BITMAP* loadedMaskBitmap = maskBitmapFile.GetAsBitmap(COLORCONV_NONE, false);
+	if (!loadedMaskBitmap) {
+		g_ConsoleMan.PrintString("ERROR: Loading unseen layer mask " + maskBitmapPath + " failed!");
+		return false;
+	}
+
+	// The file marks seen pixels with the mask color, but the unseen layer mask holds how many updates each pixel stays in view for. Seen pixels stay in view until the next update.
+	BITMAP* maskBitmap = create_bitmap_ex(16, loadedMaskBitmap->w, loadedMaskBitmap->h);
+	for (int y = 0; y < maskBitmap->h; ++y) {
+		for (int x = 0; x < maskBitmap->w; ++x) {
+			Scene::GetUnseenLayerMaskHold(maskBitmap, x, y) = getpixel(loadedMaskBitmap, x, y) == g_MaskColor ? 1 : 0;
+		}
+	}
+	destroy_bitmap(loadedMaskBitmap);
+
 	SceneLayer* pUnseenLayerMask = new SceneLayer();
-	if (pUnseenLayerMask->Create(maskBitmapFile.GetAsBitmap(COLORCONV_NONE, false), true, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0)) < 0) {
+	if (pUnseenLayerMask->Create(maskBitmap, true, Vector(), m_pCurrentScene->WrapsX(), m_pCurrentScene->WrapsY(), Vector(1.0, 1.0)) < 0) {
 		g_ConsoleMan.PrintString("ERROR: Loading background layer " + pUnseenLayerMask->GetPresetName() + "\'s data failed!");
 		return false;
 	}
@@ -1144,13 +1164,13 @@ bool SceneMan::RevealUnseen(const int posX, const int posY, const int team) {
 		int scaledX = posX / scale.m_X;
 		int scaledY = posY / scale.m_Y;
 
-		// Make sure we're actually revealing an unseen pixel that is ON the bitmap!
+		// Make sure we're actually revealing an unseen pixel that is ON the bitmap! Unseen pixels have no hold, and getpixel gives -1 off the bitmap.
 		int pixel = getpixel(pUnseenLayer->GetBitmap(), scaledX, scaledY);
-		if (pixel != g_MaskColor && pixel != -1) {
+		if (pixel == 0) {
 			// Add the pixel to the list of now seen pixels so it can be visually flashed
 			m_pCurrentScene->GetSeenPixels(team).push_back(Vector(scaledX, scaledY));
-			// Clear to key color that pixel on the map so it won't be detected as unseen again
-			putpixel(pUnseenLayer->GetBitmap(), scaledX, scaledY, g_MaskColor);
+			// Keep that pixel in view until the next update so it won't be detected as unseen again
+			putpixel(pUnseenLayer->GetBitmap(), scaledX, scaledY, 1);
 			// Play the reveal sound, if there's not too many already revealed this frame
 			if (g_SettingsMan.BlipOnRevealUnseen() && m_pUnseenRevealSound && m_pCurrentScene->GetSeenPixels(team).size() < 5) {
 				m_pUnseenRevealSound->Play(Vector(posX, posY));
@@ -1174,12 +1194,11 @@ bool SceneMan::RestoreUnseen(const int posX, const int posY, const int team) {
 		int scaledX = posX / scale.m_X;
 		int scaledY = posY / scale.m_Y;
 
-		// Make sure we're actually hiding a seen pixel that is ON the bitmap!
+		// Make sure we're actually hiding a seen pixel that is ON the bitmap! Seen pixels have a hold, and getpixel gives -1 off the bitmap.
 		int pixel = getpixel(pUnseenLayerMask->GetBitmap(), scaledX, scaledY);
-		if (pixel != g_BlackColor && pixel != -1) {
+		if (pixel > 0) {
 			// Restore that pixel on the map so it won't be detected as seen again
-			// 255 so it becomes 1.0 at compositing stage
-			putpixel(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, 255);
+			putpixel(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, 0);
 
 			// Show that we actually restored a seen pixel
 			return true;
@@ -1203,9 +1222,9 @@ void SceneMan::RevealUnseenBox(const int posX, const int posY, const int width, 
 		int scaledW = width / scale.m_X;
 		int scaledH = height / scale.m_Y;
 
-		// Fill the box for the unseen masks (plural)
+		// Fill the box for the unseen masks (plural). It stays in view until the next update.
 		SceneLayer* pUnseenLayerTerrainMask = m_pCurrentScene->GetUnseenLayerTerrainMask(team);
-		rectfill(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
+		rectfill(pUnseenLayerMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, 1);
 		rectfill(pUnseenLayerTerrainMask->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
 	}
 }
@@ -1228,7 +1247,7 @@ void SceneMan::RestoreUnseenBox(const int posX, const int posY, const int width,
 		int rescaledY = scaledY * scale.m_Y;
 		int rescaledW = scaledW * scale.m_X;
 		int rescaledH = scaledH * scale.m_Y;
-		rectfill(pUnseenLayerMask->GetBitmap(), rescaledX, rescaledY, rescaledX + rescaledW, rescaledY + rescaledH, g_BlackColor);
+		rectfill(pUnseenLayerMask->GetBitmap(), rescaledX, rescaledY, rescaledX + rescaledW, rescaledY + rescaledH, 0);
 	}
 }
 
@@ -1244,9 +1263,9 @@ void RTE::SceneMan::RevealUnseenTri(const Vector pos1, const Vector pos2, const 
 		Vector pos2Scaled = pos2 / scale;
 		Vector pos3Scaled = pos3 / scale;
 
-		// Fill the tri for the unseen masks (plural)
+		// Fill the tri for the unseen masks (plural). It stays in view until the next update.
 		SceneLayer* pUnseenLayerTerrainMask = m_pCurrentScene->GetUnseenLayerTerrainMask(team);
-		triangle(pUnseenLayerMask->GetBitmap(), (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), g_MaskColor);
+		triangle(pUnseenLayerMask->GetBitmap(), (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), 1);
 		triangle(pUnseenLayerTerrainMask->GetBitmap(), (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), g_MaskColor);
 	}
 }
@@ -1265,7 +1284,7 @@ void RTE::SceneMan::RestoreUnseenTri(const Vector pos1, const Vector pos2, const
 
 		// Fill the tri for the unseen mask
 		SceneLayer* pUnseenLayerTerrainMask = m_pCurrentScene->GetUnseenLayerTerrainMask(team);
-		triangle(pUnseenLayerMask->GetBitmap(), (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), g_BlackColor);
+		triangle(pUnseenLayerMask->GetBitmap(), (int)pos1Scaled.GetX(), (int)pos1Scaled.GetY(), (int)pos2Scaled.GetX(), (int)pos2Scaled.GetY(), (int)pos3Scaled.GetX(), (int)pos3Scaled.GetY(), 0);
 	}
 }
 

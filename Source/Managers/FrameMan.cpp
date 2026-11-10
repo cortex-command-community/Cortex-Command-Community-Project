@@ -215,14 +215,21 @@ void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 	fowMaskLastSeenBM.Create(currentSceneW / scaleFactorX, currentSceneH / scaleFactorY);
 	lastSeenBM.Create(currentSceneW, currentSceneH);
 
-	AllegroBitmap fowMaskBMOld(maskSL->GetBitmap());
+	BITMAP* maskBitmap = maskSL->GetBitmap();
 	AllegroBitmap fowMaskLastSeenBMOld(lastSeenTerrainMaskSL->GetBitmap()); // GTODO
 	AllegroBitmap lastSeenBMOld(lastSeenTerrainSL->GetBitmap());
 	GUIRect srcPosAndSizeRectFowMask =
-	    {0, 0, fowMaskBMOld.GetWidth(), fowMaskBMOld.GetHeight()};
+	    {0, 0, maskBitmap->w, maskBitmap->h};
 	GUIRect srcPosAndSizeRectLastSeen =
 	    {0, 0, lastSeenBMOld.GetWidth(), lastSeenBMOld.GetHeight()};
-	fowMaskBMOld.Draw(&fowMaskBM, 0, 0, &srcPosAndSizeRectFowMask);
+
+	// The mask holds how many more updates each pixel stays in view for, but drawing only needs to know which pixels are in view
+	BITMAP* fowMaskBitmap = fowMaskBM.GetBitmap();
+	for (int y = 0; y < std::min(maskBitmap->h, fowMaskBitmap->h); ++y) {
+		for (int x = 0; x < std::min(maskBitmap->w, fowMaskBitmap->w); ++x) {
+			fowMaskBitmap->line[y][x] = Scene::GetUnseenLayerMaskHold(maskBitmap, x, y) > 0 ? 0 : 255;
+		}
+	}
 	fowMaskLastSeenBMOld.Draw(&fowMaskLastSeenBM, 0, 0, &srcPosAndSizeRectFowMask);
 	lastSeenBMOld.Draw(&lastSeenBM, 0, 0, &srcPosAndSizeRectLastSeen);
 

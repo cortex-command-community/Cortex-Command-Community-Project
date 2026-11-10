@@ -435,7 +435,9 @@ namespace RTE {
 		// GTODO: add desc and make work with differing angles and exit in enclosed maps
 		void CastSeeRaysFromSky(const int screenId);
 
-		void CommitToLastSeenTerrainWithFowMask(const int team);
+		/// Counts down how long each pixel of a team's unseen layer mask stays in view, and remembers the terrain under pixels that go out of view in the team's last-seen terrain.
+		/// @param team The team we're talking about.
+		void CountDownUnseenLayerMaskHolds(const int team);
 
 		/// Sets one team's view of the scene to be all seen.
 		/// @param team The team we're talking about.

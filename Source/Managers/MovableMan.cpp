@@ -1348,15 +1348,11 @@ void MovableMan::Update() {
 	// If fog of war is enabled, then...
 	Activity* currentActivity = g_ActivityMan.GetActivity();
 	if (dynamic_cast<GameActivity*>(currentActivity)->GetFogOfWarEnabled()) {
-		// For each human player...
-		for (int playerIt = PlayerOne; playerIt < MaxPlayerCount; playerIt++) {
-			if (currentActivity->PlayerActive(playerIt) && currentActivity->PlayerHuman(playerIt)) {
-				int team = currentActivity->GetTeamOfPlayer(playerIt);
-				// Cast what's immediately seen to last-seen-terrain
-				g_SceneMan.CommitToLastSeenTerrainWithFowMask(team);
-				// Clear what was immediately seen
-				// GTODO: make this not eat a fow resolution, tweak functions accordingly
-				g_SceneMan.MakeAllUnseen(g_SceneMan.GetUnseenResolution(team), team);
+		// For each human team, once even if it has several human players...
+		for (int team = Activity::TeamOne; team < Activity::MaxTeamCount; ++team) {
+			if (currentActivity->IsHumanTeam(team)) {
+				// Count down how long what was seen stays in view, casting what goes out of view to last-seen-terrain
+				g_SceneMan.CountDownUnseenLayerMaskHolds(team);
 			}
 		}
 	}
