@@ -319,6 +319,10 @@ namespace RTE {
 		/// @return The furthest the smoothing draws past what has been seen before, in pixels.
 		int GetFogOfWarNeverSeenReach() const;
 
+		/// Gets how far past what's in view the fog of war draws the live terrain, rather than the last-seen terrain. This depends on the screen's size.
+		/// @return The furthest the live terrain is drawn past what's in view, in pixels.
+		int GetFogOfWarLiveTerrainReach() const;
+
 		void ClearTextures() {
 			if (instantVisibleFowMaskTex.id) {
 				rlUnloadTexture(instantVisibleFowMaskTex.id);

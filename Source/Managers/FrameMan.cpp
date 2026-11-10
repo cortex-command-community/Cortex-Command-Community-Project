@@ -43,6 +43,8 @@ namespace {
 	float usdfThresoldForNeverSeen = 0.0095f;
 	float usdfOpacitySmoothingDistanceForNeverSeen = 0.01f;
 	float scanlineAndNoiseOpacitySmoothingDistance = 0.015f;
+	// How far across the smoothing past what's in view the live terrain is drawn, as a fraction of its smoothing distance. Last-seen terrain is drawn past that.
+	float liveTerrainFractionOfFoVSmoothing = 1.0f;
 
 	/// Gets the length of a screen's diagonal, which the fog of war edge smoothing measures its distances against.
 	float GetScreenDiagonal(const BITMAP* screen) { return std::sqrt(static_cast<float>(screen->w * screen->w + screen->h * screen->h)); }
@@ -58,6 +60,10 @@ namespace {
 
 int FrameMan::GetFogOfWarNeverSeenReach() const {
 	return m_BackBuffer8 ? static_cast<int>(std::ceil((usdfThresoldForNeverSeen + usdfOpacitySmoothingDistanceForNeverSeen) * GetScreenDiagonal(m_BackBuffer8.get()))) : 0;
+}
+
+int FrameMan::GetFogOfWarLiveTerrainReach() const {
+	return m_BackBuffer8 ? static_cast<int>(std::ceil((usdfThresoldForFoV + liveTerrainFractionOfFoVSmoothing * usdfOpacitySmoothingDistanceForFoV) * GetScreenDiagonal(m_BackBuffer8.get()))) : 0;
 }
 
 void BitmapDeleter::operator()(BITMAP* bitmap) const { destroy_bitmap(bitmap); }

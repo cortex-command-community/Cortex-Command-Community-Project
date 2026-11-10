@@ -119,19 +119,19 @@ namespace {
 		return output;
 	}
 
-	/// Copies the live terrain into a team's last-seen terrain for the never-seen pixels near rectangles of its unseen layer mask, and marks them as copied.
-	/// The fog of war edge smoothing draws a little past what has been seen before, showing the live terrain there while it's in view. This keeps what was shown for once it isn't.
-	void CommitNeverSeenPixelsNearMaskRects(Scene* scene, int team, const std::vector<MaskRect>& rects) {
-		// Nothing's drawn past what has been seen before without a screen
-		const int reach = g_FrameMan.GetFogOfWarNeverSeenReach();
+	/// Copies the live terrain into a team's last-seen terrain for the pixels near rectangles of its unseen layer mask that shouldCopy(x, y) picks, and marks them as copied.
+	/// @param reach How far from the rectangles to copy, in scene pixels. Nothing is copied if it's 0, as it is without a screen to draw on.
+	/// @param shouldCopy Called as shouldCopy(x, y) with a pixel's position on the mask, to say whether to copy it.
+	template <typename ShouldCopy>
+	void CommitPixelsNearMaskRects(Scene* scene, int team, const std::vector<MaskRect>& rects, int reach, ShouldCopy&& shouldCopy) {
 		if (rects.empty() || reach <= 0) {
 			return;
 		}
 
-		BITMAP* seenMaskBitmap = scene->GetUnseenLayerTerrainMask(team)->GetBitmap();
-		const int width = seenMaskBitmap->w;
-		const int height = seenMaskBitmap->h;
-		// One more mask pixel, since the smoothing measures from partway into the mask pixels next to what has been seen, where the mask blends between them
+		BITMAP* maskBitmap = scene->GetUnseenLayerMask(team)->GetBitmap();
+		const int width = maskBitmap->w;
+		const int height = maskBitmap->h;
+		// One more mask pixel, since the smoothing measures from partway into the mask pixels next to what it measures from, where the mask blends between them
 		const Vector scale = scene->GetUnseenLayerMask(team)->GetScaleFactor();
 		const int reachX = static_cast<int>(std::ceil(reach / scale.m_X)) + 1;
 		const int reachY = static_cast<int>(std::ceil(reach / scale.m_Y)) + 1;
@@ -173,28 +173,45 @@ namespace {
 
 		// Spans on a row overlap, so each only adds the pixels past where the ones before it on the row reached
 		auto span = spans.begin();
-		const std::vector<MaskRect> neverSeenRects = MergeRunsIntoRects(spans.front().y, spans.back().y + 1, [&](int y, std::vector<MaskRun>& runs) {
+		const std::vector<MaskRect> nearbyRects = MergeRunsIntoRects(spans.front().y, spans.back().y + 1, [&](int y, std::vector<MaskRun>& runs) {
 			runs.clear();
 			for (int coveredTo = 0; span != spans.end() && span->y == y; ++span) {
 				for (int x = std::max(span->x0, coveredTo); x < span->x1; ++x) {
-					if (seenMaskBitmap->line[y][x] != g_MaskColor) {
+					if (shouldCopy(x, y)) {
 						AddPixelToRuns(runs, x);
 					}
 				}
 				coveredTo = std::max(coveredTo, span->x1);
 			}
 		});
-		for (const MaskRect& rect: neverSeenRects) {
+		for (const MaskRect& rect: nearbyRects) {
 			CommitMaskRectToLastSeenTerrain(scene, team, rect);
 		}
 	}
 
-	/// Copies the live terrain under rectangles of a team's unseen layer mask that are going out of view into the team's last-seen terrain, along with the never-seen pixels near them that the fog of war draws.
+	/// Copies the live terrain under rectangles of a team's unseen layer mask that are going out of view into the team's last-seen terrain, along with everything near them that the fog of war drew live.
+	/// That's what was on screen as they went out of view, so it shows nothing that wasn't seen.
 	void CommitMaskRectsToLastSeenTerrain(Scene* scene, int team, const std::vector<MaskRect>& rects) {
 		for (const MaskRect& rect: rects) {
 			CommitMaskRectToLastSeenTerrain(scene, team, rect);
 		}
-		CommitNeverSeenPixelsNearMaskRects(scene, team, rects);
+
+		// The live terrain is drawn a little past what's in view. Pixels still in view get copied once they go out of view.
+		BITMAP* maskBitmap = scene->GetUnseenLayerMask(team)->GetBitmap();
+		const int liveTerrainReach = g_FrameMan.GetFogOfWarLiveTerrainReach();
+		CommitPixelsNearMaskRects(scene, team, rects, liveTerrainReach, [maskBitmap](int x, int y) {
+			return Scene::GetUnseenLayerMaskHold(maskBitmap, x, y) == 0;
+		});
+
+		// Pixels that haven't been copied yet, which have never been seen, are drawn live too, out to where the smoothing past what has been seen before stops drawing anything
+		const int neverSeenReach = g_FrameMan.GetFogOfWarNeverSeenReach();
+		SceneLayer* copiedMask = scene->GetUnseenLayerTerrainCopiedMask(team);
+		if (copiedMask && neverSeenReach > liveTerrainReach) {
+			BITMAP* copiedMaskBitmap = copiedMask->GetBitmap();
+			CommitPixelsNearMaskRects(scene, team, rects, neverSeenReach, [maskBitmap, copiedMaskBitmap](int x, int y) {
+				return Scene::GetUnseenLayerMaskHold(maskBitmap, x, y) == 0 && copiedMaskBitmap->line[y][x] != g_MaskColor;
+			});
+		}
 	}
 
 	/// Copies the live terrain into a team's last-seen terrain, under the runs of unseen layer mask pixels that findRuns(row, width, runs) picks out on each row of holds.
@@ -232,7 +249,7 @@ namespace {
 		}
 	}
 
-	/// Takes a span of unseen layer mask pixels out of view, first copying the live terrain under any that were in view, and the never-seen pixels near them that the fog of war draws, into the team's last-seen terrain.
+	/// Takes a span of unseen layer mask pixels out of view, first copying the live terrain under any that were in view, and what the fog of war drew live near them, into the team's last-seen terrain.
 	void HideUnseenLayerMaskSpan(Scene* scene, int team, int y, int startX, int endX) {
 		uint16_t* row = &Scene::GetUnseenLayerMaskHold(scene->GetUnseenLayerMask(team)->GetBitmap(), 0, y);
 		std::vector<MaskRun> runs;
