@@ -1,0 +1,380 @@
+Cortex Command's changes to LuaBridge3, against upstream commit 64b3ec3d265578c742abd5d3939b133353952718.
+They're described in CortexCommandChanges.md. To apply them to a fresh copy of upstream, run this from the root of the repository:
+    git apply external/include/LuaBridge3/CortexCommandChanges.patch
+
+diff --git a/external/include/LuaBridge3/LuaBridge/detail/CFunctions.h b/external/include/LuaBridge3/LuaBridge/detail/CFunctions.h
+index f0d534486..83618e52a 100644
+--- a/external/include/LuaBridge3/LuaBridge/detail/CFunctions.h
++++ b/external/include/LuaBridge3/LuaBridge/detail/CFunctions.h
+@@ -2030,6 +2030,10 @@ TypeResult<T*> get_member_object(lua_State* L, bool canBeConst)
+         lua_pop(L, 1);
+     }
+ 
++    // Cortex Command: calling a method on nil (e.g. with . instead of :) is a Lua error like it was with luabind, rather than a call through a null pointer.
++    if (lua_isnil(L, selfIndex))
++        raise_lua_error(L, "Tried to call a method on nil instead of an object, use : rather than . to call methods!");
++
+     return Userdata::get<T>(L, selfIndex, canBeConst);
+ }
+ 
+@@ -2044,7 +2048,8 @@ int invoke_member_function(lua_State* L)
+ {
+     using FnTraits = function_traits<F>;
+ 
+-    LUABRIDGE_ASSERT(isfulluserdata(L, lua_upvalueindex(1)));
++    // Cortex Command: the member function pointer can also be in a light userdata, pointing to memory that's kept outside the Lua heap.
++    LUABRIDGE_ASSERT(lua_isuserdata(L, lua_upvalueindex(1)));
+ 
+     auto ptr = get_member_object<T>(L, false);
+     if (! ptr)
+@@ -2061,7 +2066,8 @@ int invoke_const_member_function(lua_State* L)
+ {
+     using FnTraits = function_traits<F>;
+ 
+-    LUABRIDGE_ASSERT(isfulluserdata(L, lua_upvalueindex(1)));
++    // Cortex Command: the member function pointer can also be in a light userdata, pointing to memory that's kept outside the Lua heap.
++    LUABRIDGE_ASSERT(lua_isuserdata(L, lua_upvalueindex(1)));
+ 
+     auto ptr = get_member_object<T>(L, true);
+     if (! ptr)
+@@ -2171,7 +2177,8 @@ int invoke_proxy_functor(lua_State* L)
+ {
+     using FnTraits = function_traits<std::remove_reference_t<F>>;
+ 
+-    LUABRIDGE_ASSERT(isfulluserdata(L, lua_upvalueindex(1)));
++    // Cortex Command: the functor can also be in a light userdata, pointing to memory that's kept outside the Lua heap.
++    LUABRIDGE_ASSERT(lua_isuserdata(L, lua_upvalueindex(1)));
+ 
+     auto& func = *align<std::remove_reference_t<F>>(lua_touserdata(L, lua_upvalueindex(1)));
+ 
+diff --git a/external/include/LuaBridge3/LuaBridge/detail/Config.h b/external/include/LuaBridge3/LuaBridge/detail/Config.h
+index e5e759207..5918c53a3 100644
+--- a/external/include/LuaBridge3/LuaBridge/detail/Config.h
++++ b/external/include/LuaBridge3/LuaBridge/detail/Config.h
+@@ -102,6 +102,18 @@
+ #define LUABRIDGE_STRICT_STACK_CONVERSIONS 0
+ #endif
+ 
++/**
++ * @brief Convert Lua numbers to C++ numbers the way luabind did. (Cortex Command addition.)
++ *
++ * When enabled, integer `Stack` specializations truncate any `LUA_TNUMBER` towards zero (as `static_cast` from `lua_Number` does) instead of
++ * rejecting numbers with a fractional part or out of the target type's range, and floating point specializations don't range-check.
++ *
++ * @note Default is disabled.
++ */
++#if !defined(LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS)
++#define LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS 0
++#endif
++
+ /**
+  * @brief Enable safe exception handling when lua is compiled as `C` and exceptions raise during execution of registered `lua_CFunction`.
+  * 
+diff --git a/external/include/LuaBridge3/LuaBridge/detail/Stack.h b/external/include/LuaBridge3/LuaBridge/detail/Stack.h
+index 94517c9e5..512124baf 100644
+--- a/external/include/LuaBridge3/LuaBridge/detail/Stack.h
++++ b/external/include/LuaBridge3/LuaBridge/detail/Stack.h
+@@ -306,10 +306,15 @@ struct Stack<int8_t>
+         if (lua_type(L, index) != LUA_TNUMBER)
+             return makeErrorCode(ErrorCode::InvalidTypeCast);
+ 
++#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
++        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
++        return static_cast<int8_t>(static_cast<long long>(lua_tonumber(L, index)));
++#else
+         if (! is_integral_representable_by<int8_t>(L, index))
+             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
+ 
+         return static_cast<int8_t>(lua_tointeger(L, index));
++#endif
+     }
+ 
+     [[nodiscard]] static bool isInstance(lua_State* L, int index)
+@@ -347,10 +352,15 @@ struct Stack<unsigned char>
+         if (lua_type(L, index) != LUA_TNUMBER)
+             return makeErrorCode(ErrorCode::InvalidTypeCast);
+ 
++#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
++        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
++        return static_cast<unsigned char>(static_cast<long long>(lua_tonumber(L, index)));
++#else
+         if (! is_integral_representable_by<unsigned char>(L, index))
+             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
+ 
+         return static_cast<unsigned char>(lua_tointeger(L, index));
++#endif
+     }
+ 
+     [[nodiscard]] static bool isInstance(lua_State* L, int index)
+@@ -387,10 +397,15 @@ struct Stack<short>
+         if (lua_type(L, index) != LUA_TNUMBER)
+             return makeErrorCode(ErrorCode::InvalidTypeCast);
+ 
++#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
++        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
++        return static_cast<short>(static_cast<long long>(lua_tonumber(L, index)));
++#else
+         if (! is_integral_representable_by<short>(L, index))
+             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
+ 
+         return static_cast<short>(lua_tointeger(L, index));
++#endif
+     }
+ 
+     [[nodiscard]] static bool isInstance(lua_State* L, int index)
+@@ -427,10 +442,15 @@ struct Stack<unsigned short>
+         if (lua_type(L, index) != LUA_TNUMBER)
+             return makeErrorCode(ErrorCode::InvalidTypeCast);
+ 
++#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
++        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
++        return static_cast<unsigned short>(static_cast<long long>(lua_tonumber(L, index)));
++#else
+         if (! is_integral_representable_by<unsigned short>(L, index))
+             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
+ 
+         return static_cast<unsigned short>(lua_tointeger(L, index));
++#endif
+     }
+ 
+     [[nodiscard]] static bool isInstance(lua_State* L, int index)
+@@ -468,10 +488,15 @@ struct Stack<int>
+         if (lua_type(L, index) != LUA_TNUMBER)
+             return makeErrorCode(ErrorCode::InvalidTypeCast);
+ 
++#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
++        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
++        return static_cast<int>(static_cast<long long>(lua_tonumber(L, index)));
++#else
+         if (! is_integral_representable_by<int>(L, index))
+             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
+ 
+         return static_cast<int>(lua_tointeger(L, index));
++#endif
+     }
+ 
+     [[nodiscard]] static bool isInstance(lua_State* L, int index)
+@@ -509,10 +534,15 @@ struct Stack<unsigned int>
+         if (lua_type(L, index) != LUA_TNUMBER)
+             return makeErrorCode(ErrorCode::InvalidTypeCast);
+ 
++#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
++        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
++        return static_cast<unsigned int>(static_cast<long long>(lua_tonumber(L, index)));
++#else
+         if (! is_integral_representable_by<unsigned int>(L, index))
+             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
+ 
+         return static_cast<unsigned int>(lua_tointeger(L, index));
++#endif
+     }
+ 
+     [[nodiscard]] static bool isInstance(lua_State* L, int index)
+@@ -550,10 +580,15 @@ struct Stack<long>
+         if (lua_type(L, index) != LUA_TNUMBER)
+             return makeErrorCode(ErrorCode::InvalidTypeCast);
+ 
++#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
++        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
++        return static_cast<long>(static_cast<long long>(lua_tonumber(L, index)));
++#else
+         if (! is_integral_representable_by<long>(L, index))
+             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
+ 
+         return static_cast<long>(lua_tointeger(L, index));
++#endif
+     }
+ 
+     [[nodiscard]] static bool isInstance(lua_State* L, int index)
+@@ -591,10 +626,15 @@ struct Stack<unsigned long>
+         if (lua_type(L, index) != LUA_TNUMBER)
+             return makeErrorCode(ErrorCode::InvalidTypeCast);
+ 
++#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
++        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
++        return static_cast<unsigned long>(static_cast<long long>(lua_tonumber(L, index)));
++#else
+         if (! is_integral_representable_by<unsigned long>(L, index))
+             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
+ 
+         return static_cast<unsigned long>(lua_tointeger(L, index));
++#endif
+     }
+ 
+     [[nodiscard]] static bool isInstance(lua_State* L, int index)
+@@ -632,10 +672,15 @@ struct Stack<long long>
+         if (lua_type(L, index) != LUA_TNUMBER)
+             return makeErrorCode(ErrorCode::InvalidTypeCast);
+ 
++#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
++        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
++        return static_cast<long long>(static_cast<long long>(lua_tonumber(L, index)));
++#else
+         if (! is_integral_representable_by<long long>(L, index))
+             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
+ 
+         return static_cast<long long>(lua_tointeger(L, index));
++#endif
+     }
+ 
+     [[nodiscard]] static bool isInstance(lua_State* L, int index)
+@@ -673,10 +718,15 @@ struct Stack<unsigned long long>
+         if (lua_type(L, index) != LUA_TNUMBER)
+             return makeErrorCode(ErrorCode::InvalidTypeCast);
+ 
++#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
++        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
++        return static_cast<unsigned long long>(static_cast<long long>(lua_tonumber(L, index)));
++#else
+         if (! is_integral_representable_by<unsigned long long>(L, index))
+             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
+ 
+         return static_cast<unsigned long long>(lua_tointeger(L, index));
++#endif
+     }
+ 
+     [[nodiscard]] static bool isInstance(lua_State* L, int index)
+@@ -715,10 +765,15 @@ struct Stack<__int128_t>
+         if (lua_type(L, index) != LUA_TNUMBER)
+             return makeErrorCode(ErrorCode::InvalidTypeCast);
+ 
++#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
++        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
++        return static_cast<__int128_t>(static_cast<long long>(lua_tonumber(L, index)));
++#else
+         if (! is_integral_representable_by<__int128_t>(L, index))
+             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
+ 
+         return static_cast<__int128_t>(lua_tointeger(L, index));
++#endif
+     }
+ 
+     [[nodiscard]] static bool isInstance(lua_State* L, int index)
+@@ -756,10 +811,15 @@ struct Stack<__uint128_t>
+         if (lua_type(L, index) != LUA_TNUMBER)
+             return makeErrorCode(ErrorCode::InvalidTypeCast);
+ 
++#if LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
++        // Cortex Command: truncate like luabind did (static_cast from lua_Number) instead of rejecting non-integral numbers.
++        return static_cast<__uint128_t>(static_cast<long long>(lua_tonumber(L, index)));
++#else
+         if (! is_integral_representable_by<__uint128_t>(L, index))
+             return makeErrorCode(ErrorCode::IntegerDoesntFitIntoLuaInteger);
+ 
+         return static_cast<__uint128_t>(lua_tointeger(L, index));
++#endif
+     }
+ 
+     [[nodiscard]] static bool isInstance(lua_State* L, int index)
+@@ -798,8 +858,10 @@ struct Stack<float>
+         if (lua_type(L, index) != LUA_TNUMBER)
+             return makeErrorCode(ErrorCode::InvalidTypeCast);
+ 
++#if !LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
+         if (! is_floating_point_representable_by<float>(L, index))
+             return makeErrorCode(ErrorCode::FloatingPointDoesntFitIntoLuaNumber);
++#endif
+ 
+         return static_cast<float>(lua_tonumber(L, index));
+     }
+@@ -839,8 +901,10 @@ struct Stack<double>
+         if (lua_type(L, index) != LUA_TNUMBER)
+             return makeErrorCode(ErrorCode::InvalidTypeCast);
+ 
++#if !LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
+         if (! is_floating_point_representable_by<double>(L, index))
+             return makeErrorCode(ErrorCode::FloatingPointDoesntFitIntoLuaNumber);
++#endif
+ 
+         return static_cast<double>(lua_tonumber(L, index));
+     }
+@@ -880,8 +944,10 @@ struct Stack<long double>
+         if (lua_type(L, index) != LUA_TNUMBER)
+             return makeErrorCode(ErrorCode::InvalidTypeCast);
+ 
++#if !LUABRIDGE_LUABIND_COMPATIBLE_NUMBERS
+         if (! is_floating_point_representable_by<long double>(L, index))
+             return makeErrorCode(ErrorCode::FloatingPointDoesntFitIntoLuaNumber);
++#endif
+ 
+         return static_cast<long double>(lua_tonumber(L, index));
+     }
+diff --git a/external/include/LuaBridge3/LuaBridge/detail/Userdata.h b/external/include/LuaBridge3/LuaBridge/detail/Userdata.h
+index 431f3823b..d2aa04625 100644
+--- a/external/include/LuaBridge3/LuaBridge/detail/Userdata.h
++++ b/external/include/LuaBridge3/LuaBridge/detail/Userdata.h
+@@ -14,6 +14,7 @@
+ #include "Result.h"
+ #include "Stack.h"
+ 
++#include <cstddef>
+ #include <stdexcept>
+ #include <type_traits>
+ 
+@@ -40,6 +41,35 @@ std::error_code getNilBadArgError(lua_State* L, int index)
+     return makeErrorCode(ErrorCode::InvalidTypeCast);
+ }
+ 
++//=================================================================================================
++/**
++ * @brief Every class an object's class can be cast to, stored in its class and const metatables. (Cortex Command addition.)
++ *
++ * When a metatable has one of these under getAncestryInfoKey(), Userdata::get finds out whether the object can be used as a T, and
++ * where the T is within it, with a single lookup and a short loop, instead of going up the parent lists and the cast tables one class
++ * at a time. That matters for deep class hierarchies, where it used to make every access to a member of a base class slow.
++ * LuaBridge never puts these in metatables itself, so it works the same as before without them.
++ */
++struct AncestryInfo
++{
++    static constexpr int MaxAncestors = 24;
++
++    const void* ClassKeys[MaxAncestors]; ///< Class registry keys of the class itself, followed by its bases, nearest first.
++    std::ptrdiff_t Offsets[MaxAncestors]; ///< What to add to a pointer to the class to get a pointer to each of those, in bytes.
++    int Count; ///< How many entries of the arrays are used.
++    bool IsConst; ///< Whether the metatable this is in is a const one.
++};
++
++/**
++ * @brief The key AncestryInfo is stored under in metatables. (Cortex Command addition.)
++ */
++[[nodiscard]] inline const void* getAncestryInfoKey() noexcept
++{
++    // A fixed value like the rest of LuaBridge's keys, rather than the address of something. Tables with keys that are addresses grow at
++    // different times from run to run, which changes when Lua's garbage collector runs, and Cortex Command's simulation has to be deterministic.
++    return reinterpret_cast<void*>(0xa9ce);
++}
++
+ //=================================================================================================
+ /**
+  * @brief Return the identity pointer for our lightuserdata tokens.
+@@ -300,6 +330,30 @@ public:
+         // Common-case fast path: compare the object's metatable directly against the registry class/const tables.
+         if (lua_getmetatable(L, absIndex)) // Stack: ..., mt
+         {
++            // Cortex Command: when the metatable says what classes its objects can be cast to, that's all that's needed.
++            lua_rawgetp_x(L, -1, getAncestryInfoKey()); // Stack: ..., mt, ancestry | nil
++            if (const auto* ancestry = static_cast<const AncestryInfo*>(lua_touserdata(L, -1)))
++            {
++                lua_pop(L, 2); // Stack: ...
++                if (! ancestry->IsConst || canBeConst)
++                {
++                    for (int i = 0; i < ancestry->Count; ++i)
++                    {
++                        if (ancestry->ClassKeys[i] == classId)
++                        {
++                            void* rawPtr = static_cast<Userdata*>(lua_touserdata(L, absIndex))->getPointer();
++                            return rawPtr ? reinterpret_cast<T*>(static_cast<char*>(rawPtr) + ancestry->Offsets[i]) : nullptr;
++                        }
++                    }
++                }
++                // It can't be used as a T, so leave it to the rest to report why.
++                lua_getmetatable(L, absIndex); // Stack: ..., mt
++            }
++            else
++            {
++                lua_pop(L, 1); // Stack: ..., mt
++            }
++
+             lua_rawgetp_x(L, LUA_REGISTRYINDEX, classId); // Stack: ..., mt, class_mt
+             if (lua_rawequal(L, -2, -1))
+             {

@@ -257,6 +257,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - The tutorial mission is now a `GAScripted` activity, `Missions.rte/Activities/Tutorial.lua`, instead of being hardcoded in the engine. Its screens and room signs are drawn as bitmap primitives on the bunker's back wall instead of into the terrain.
 
+- The Lua bindings now use LuaBridge3 instead of luabind, and the copy of boost that luabind needed is gone. Calls from Lua into the game are faster, especially method calls and property access on objects like `Actor`s. Scripts run around 30% to 45% faster.  
+	Scripts don't need any changes. Everything that worked with luabind works the same, including setting values of their own on objects, overloads, inherited enums, setting things like `actor.Pos.X` in place, and passing numbers with fractions to whole number parameters.  
+	A few things that used to raise an error now don't: functions added to a class from Lua (like `function MovableObject:Foo() end`) are also found on objects of derived classes, comparing two references to the same object with `==` gives `false`, reading something that doesn't exist from a class table gives `nil`, and functions that aren't overloaded convert their arguments the way Lua does (numbers to strings, any value to a boolean, missing arguments to `nil`) and ignore extra ones. Class tables like `Vector` are now tables instead of userdata. Error messages for calls with the wrong arguments are worded differently.
+
 </details>
 
 <details><summary><b>Fixed</b></summary>
