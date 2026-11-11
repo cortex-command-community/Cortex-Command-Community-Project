@@ -389,28 +389,28 @@ namespace RTE {
 		SceneLayer* GetUnseenLayerTerrainCopiedMask(int team = Activity::TeamOne) const { return team != Activity::NoTeam ? m_apUnseenLayerTerrainCopiedMask[team] : nullptr; }
 
 		/// Gets how many more sim updates a pixel of an unseen layer mask stays in view for. 0 means it isn't in view.
-		/// @param unseenLayerMask The bitmap of an unseen layer mask. Its pixels are 16-bit hold counts, not colors.
+		/// @param unseenLayerMask The bitmap of an unseen layer mask. Its pixels are hold counts of a byte each, not colors.
 		/// @param x The pixel's X position on the mask.
 		/// @param y The pixel's Y position on the mask.
 		/// @return A reference to the pixel's hold count.
-		static uint16_t& GetUnseenLayerMaskHold(BITMAP* unseenLayerMask, int x, int y) { return reinterpret_cast<uint16_t*>(unseenLayerMask->line[y])[x]; }
+		static uint8_t& GetUnseenLayerMaskHold(BITMAP* unseenLayerMask, int x, int y) { return unseenLayerMask->line[y][x]; }
 
 		/// Keeps a pixel of an unseen layer mask in view for at least the given number of sim updates. A longer hold it already has is kept.
 		/// See rays on other threads can be revealing the same pixel at the same time, so this is atomic. Anything else that touches the mask has to wait for them to finish.
 		/// @param hold The pixel's hold count, from GetUnseenLayerMaskHold.
 		/// @param holdUpdates How many sim updates the pixel should stay in view for.
-		static void RaiseUnseenLayerMaskHold(uint16_t& hold, uint16_t holdUpdates) {
-			static_assert(std::atomic_ref<uint16_t>::is_always_lock_free);
+		static void RaiseUnseenLayerMaskHold(uint8_t& hold, uint8_t holdUpdates) {
+			static_assert(std::atomic_ref<uint8_t>::is_always_lock_free);
 			// Relaxed is enough, the see ray threads are waited on before anything reads the mask.
-			std::atomic_ref<uint16_t> atomicHold(hold);
-			uint16_t currentHold = atomicHold.load(std::memory_order_relaxed);
+			std::atomic_ref<uint8_t> atomicHold(hold);
+			uint8_t currentHold = atomicHold.load(std::memory_order_relaxed);
 			while (currentHold < holdUpdates && !atomicHold.compare_exchange_weak(currentHold, holdUpdates, std::memory_order_relaxed)) {}
 		}
 
 		/// Converts how long to keep something in view for into a hold count for an unseen layer mask.
 		/// @param holdSeconds How long to keep it in view for, in seconds.
 		/// @return The number of sim updates to keep it in view for. Always at least 1, so it stays in view until the next update can see it again.
-		static uint16_t GetUnseenLayerMaskHoldUpdates(float holdSeconds);
+		static uint8_t GetUnseenLayerMaskHoldUpdates(float holdSeconds);
 
 		/// Gets the list of pixels that have been seen on a team's unseen layer.
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)

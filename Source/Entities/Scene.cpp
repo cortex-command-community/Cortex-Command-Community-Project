@@ -490,7 +490,7 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 		// Specified to dynamically create the unseen layer?
 		if (!m_UnseenPixelSize[team].IsZero()) {
 			// Create the bitmaps to make the unseen scene layers out of. The mask's pixels are hold counts, and nothing is in view yet.
-			BITMAP* pUnseenMaskBitmap = create_bitmap_ex(16, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
+			BITMAP* pUnseenMaskBitmap = create_bitmap_ex(8, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
 			clear_to_color(pUnseenMaskBitmap, 0);
 			// We clear these to 255 to get them to be 1.0 in the compositing step
 			BITMAP* pUnseenTerrainBitmap = create_bitmap_ex(8, GetWidth(), GetHeight()); // 1-to-1, as is regular terrain
@@ -543,7 +543,7 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 				m_apUnseenLayerTerrainCopiedMask[team]->Create(pUnseenTerrainCopiedMaskBitmap, true, Vector(), WrapsX(), WrapsY(), Vector(1.0, 1.0));
 			}
 			// Holds aren't saved, so make a mask the size of the loaded terrain mask with nothing in view yet
-			BITMAP* pUnseenMaskBitmap = create_bitmap_ex(16, pUnseenTerrainMaskBitmap->w, pUnseenTerrainMaskBitmap->h);
+			BITMAP* pUnseenMaskBitmap = create_bitmap_ex(8, pUnseenTerrainMaskBitmap->w, pUnseenTerrainMaskBitmap->h);
 			clear_to_color(pUnseenMaskBitmap, 0);
 			delete m_apUnseenLayerMask[team];
 			m_apUnseenLayerMask[team] = new SceneLayer();
@@ -1732,7 +1732,7 @@ void Scene::FillUnseenLayerMask(Vector pixelSize, int team, bool createNow) {
 	// Dynamically create the unseen layer
 	// Create the bitmap to make the unseen scene layer out of. Its pixels are hold counts, and nothing is in view yet.
 	if (createNow) {
-		BITMAP* pUnseenMaskBitmap = create_bitmap_ex(16, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
+		BITMAP* pUnseenMaskBitmap = create_bitmap_ex(8, GetWidth() / m_UnseenPixelSize[team].m_X, GetHeight() / m_UnseenPixelSize[team].m_Y);
 		clear_to_color(pUnseenMaskBitmap, 0);
 		// Replace any old unseen layer with the new one that is generated
 		delete m_apUnseenLayerMask[team];
@@ -1769,10 +1769,10 @@ void Scene::FillUnseenLayerMask(Vector pixelSize, int team, bool createNow) {
 	}
 }
 
-uint16_t Scene::GetUnseenLayerMaskHoldUpdates(float holdSeconds) {
+uint8_t Scene::GetUnseenLayerMaskHoldUpdates(float holdSeconds) {
 	// Rounded to the nearest update rather than up, since the delta time is stored slightly short and rounding up would add an update to exact times
 	float holdUpdates = std::round(holdSeconds / g_TimerMan.GetDeltaTimeSecs());
-	return static_cast<uint16_t>(std::clamp(holdUpdates, 1.0F, static_cast<float>(UINT16_MAX)));
+	return static_cast<uint8_t>(std::clamp(holdUpdates, 1.0F, static_cast<float>(UINT8_MAX)));
 }
 
 void Scene::SetUnseenLayerMask(SceneLayer* pNewLayer, int team) {

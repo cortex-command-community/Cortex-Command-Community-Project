@@ -33,8 +33,8 @@ thread_local Vector s_LastRayHitPos;
 
 namespace {
 	/// Keeps a span of unseen layer mask pixels in view for at least the given number of sim updates, the same way Scene::RaiseUnseenLayerMaskHold does for one pixel.
-	void RaiseUnseenLayerMaskSpanHold(BITMAP* maskBitmap, int y, int startX, int endX, uint16_t holdUpdates) {
-		uint16_t* row = &Scene::GetUnseenLayerMaskHold(maskBitmap, 0, y);
+	void RaiseUnseenLayerMaskSpanHold(BITMAP* maskBitmap, int y, int startX, int endX, uint8_t holdUpdates) {
+		uint8_t* row = &Scene::GetUnseenLayerMaskHold(maskBitmap, 0, y);
 		for (int x = startX; x <= endX; ++x) {
 			Scene::RaiseUnseenLayerMaskHold(row[x], holdUpdates);
 		}
@@ -251,7 +251,7 @@ namespace {
 
 	/// Takes a span of unseen layer mask pixels out of view, first copying the live terrain under any that were in view, and what the fog of war drew live near them, into the team's last-seen terrain.
 	void HideUnseenLayerMaskSpan(Scene* scene, int team, int y, int startX, int endX) {
-		uint16_t* row = &Scene::GetUnseenLayerMaskHold(scene->GetUnseenLayerMask(team)->GetBitmap(), 0, y);
+		uint8_t* row = &Scene::GetUnseenLayerMaskHold(scene->GetUnseenLayerMask(team)->GetBitmap(), 0, y);
 		std::vector<MaskRun> runs;
 		for (int x = startX; x <= endX; ++x) {
 			if (row[x] > 0) {
@@ -1186,7 +1186,7 @@ void SceneMan::CountDownUnseenLayerMaskHolds(const int team) {
 
 	// Count down each row of holds, finding the runs of pixels that go out of view now.
 	// Pixels in view show the live terrain, so the last-seen terrain only needs to catch up with them as they go out of view.
-	CommitRunsToLastSeenTerrain(m_pCurrentScene, team, [](uint16_t* row, int width, std::vector<MaskRun>& runs) {
+	CommitRunsToLastSeenTerrain(m_pCurrentScene, team, [](uint8_t* row, int width, std::vector<MaskRun>& runs) {
 		runs.clear();
 		for (int x = 0; x < width; x++) {
 			if (row[x] > 0 && --row[x] == 0) {
@@ -1201,7 +1201,7 @@ void SceneMan::CommitHeldPixelsToLastSeenTerrain(const int team) {
 		return;
 	}
 
-	CommitRunsToLastSeenTerrain(m_pCurrentScene, team, [](uint16_t* row, int width, std::vector<MaskRun>& runs) {
+	CommitRunsToLastSeenTerrain(m_pCurrentScene, team, [](uint8_t* row, int width, std::vector<MaskRun>& runs) {
 		runs.clear();
 		for (int x = 0; x < width; x++) {
 			if (row[x] > 0) {
@@ -1289,8 +1289,8 @@ bool SceneMan::LoadUnseenLayer(const std::string& maskBitmapPath, int team) {
 	}
 
 	// The file marks seen pixels with the mask color, but the unseen layer mask holds how many updates each pixel stays in view for
-	const uint16_t holdUpdates = Scene::GetUnseenLayerMaskHoldUpdates(c_FogOfWarSeeRayHoldSeconds);
-	BITMAP* maskBitmap = create_bitmap_ex(16, loadedMaskBitmap->w, loadedMaskBitmap->h);
+	const uint8_t holdUpdates = Scene::GetUnseenLayerMaskHoldUpdates(c_FogOfWarSeeRayHoldSeconds);
+	BITMAP* maskBitmap = create_bitmap_ex(8, loadedMaskBitmap->w, loadedMaskBitmap->h);
 	for (int y = 0; y < maskBitmap->h; ++y) {
 		for (int x = 0; x < maskBitmap->w; ++x) {
 			Scene::GetUnseenLayerMaskHold(maskBitmap, x, y) = getpixel(loadedMaskBitmap, x, y) == g_MaskColor ? holdUpdates : 0;
@@ -1424,7 +1424,7 @@ void SceneMan::RevealUnseenBox(const int posX, const int posY, const int width, 
 		// Fill the box for the unseen masks (plural), wrapping it around the scene's edges
 		BITMAP* maskBitmap = pUnseenLayerMask->GetBitmap();
 		BITMAP* terrainMaskBitmap = m_pCurrentScene->GetUnseenLayerTerrainMask(team)->GetBitmap();
-		const uint16_t holdUpdates = Scene::GetUnseenLayerMaskHoldUpdates(holdSeconds);
+		const uint8_t holdUpdates = Scene::GetUnseenLayerMaskHoldUpdates(holdSeconds);
 		ForEachSceneWrapOffset(m_pCurrentScene, std::min(posX, posX + width), std::min(posY, posY + height), std::max(posX, posX + width), std::max(posY, posY + height), [&](const Vector& offset) {
 			// Translate to the scaled unseen layer's coordinates
 			int scaledX = (posX + offset.m_X) / scale.m_X;
@@ -1470,7 +1470,7 @@ void RTE::SceneMan::RevealUnseenTri(const Vector pos1, const Vector pos2, const 
 		// Fill the tri for the unseen masks (plural), wrapping it around the scene's edges
 		BITMAP* maskBitmap = pUnseenLayerMask->GetBitmap();
 		BITMAP* terrainMaskBitmap = m_pCurrentScene->GetUnseenLayerTerrainMask(team)->GetBitmap();
-		const uint16_t holdUpdates = Scene::GetUnseenLayerMaskHoldUpdates(holdSeconds);
+		const uint8_t holdUpdates = Scene::GetUnseenLayerMaskHoldUpdates(holdSeconds);
 		ForEachSceneWrapOffset(m_pCurrentScene, std::min({pos1.m_X, pos2.m_X, pos3.m_X}), std::min({pos1.m_Y, pos2.m_Y, pos3.m_Y}), std::max({pos1.m_X, pos2.m_X, pos3.m_X}), std::max({pos1.m_Y, pos2.m_Y, pos3.m_Y}), [&](const Vector& offset) {
 			// Translate to the scaled unseen layer's coordinates
 			Vector pos1Scaled = (pos1 + offset) / scale;
