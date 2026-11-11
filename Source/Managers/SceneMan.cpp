@@ -395,7 +395,7 @@ int SceneMan::LoadScene(Scene* pNewScene, bool placeObjects, bool placeUnits) {
 		SceneLayer* pUnseenLayerTerrain = m_pCurrentScene->GetUnseenLayerTerrain(team);
 		SceneLayer* pUnseenLayerTerrainMask = m_pCurrentScene->GetUnseenLayerTerrainMask(team);
 		RTEAssert(
-		    ~((pUnseenLayerMask == nullptr) ^ (pUnseenLayerTerrain == nullptr)),
+		    (pUnseenLayerMask == nullptr) == (pUnseenLayerTerrain == nullptr),
 		    "SceneMan::LoadScene, unseen layer, only one of mask and terrain SL's exist, weird!"
 		);
 
