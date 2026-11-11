@@ -220,6 +220,11 @@ void ScenarioGUI::FetchActivitiesAndScenesLists() {
 	}
 	AdjustSitePointOffsetsOnPlanet(filteredScenes);
 
+	// The Scene that was selected may not be listed anymore, in which case there's no selection to go back to.
+	if (!m_SiteOffsets.contains(prevSelectedScene)) {
+		prevSelectedScene = nullptr;
+	}
+
 	presetList.clear();
 	g_PresetMan.GetAllOfType(presetList, "Activity");
 	int index = 0;
@@ -235,7 +240,7 @@ void ScenarioGUI::FetchActivitiesAndScenesLists() {
 			// Add to the activity selection ComboBox and attach the activity pointer, not passing in ownership.
 			m_ActivitySelectComboBox->AddItem(presetActivity->GetPresetName(), "", nullptr, presetActivity);
 
-			if (prevSelectedActivityIndex < 0 && presetActivity->GetClassName() == "GATutorial") {
+			if (prevSelectedActivityIndex < 0 && presetActivity->GetModuleAndPresetName() == "Base.rte/Tutorial Mission") {
 				prevSelectedActivityIndex = index;
 				prevSelectedScene = nullptr;
 			}
@@ -251,7 +256,11 @@ void ScenarioGUI::FetchActivitiesAndScenesLists() {
 	}
 }
 
-void ScenarioGUI::AdjustSitePointOffsetsOnPlanet(const std::vector<Scene*>& sceneList) const {
+void ScenarioGUI::AdjustSitePointOffsetsOnPlanet(const std::vector<Scene*>& sceneList) {
+	// The offsets live here rather than on the Scenes, which are presets shared with everything else and shouldn't be changed by laying out this menu.
+	m_SiteOffsets.clear();
+
+
 	// For each scene, if it could be on screen in some reasonable resolution, make sure it winds up on screen in all resolutions!
 	// Scenes with large location values are probably meant not to appear on screen, so don't make them.
 	// Scenes with positions that could wind up on a common display are probably meant to show always.
@@ -262,10 +271,9 @@ void ScenarioGUI::AdjustSitePointOffsetsOnPlanet(const std::vector<Scene*>& scen
 
 	for (Scene* sceneListEntry: sceneList) {
 		Vector sceneLocation(sceneListEntry->GetLocation());
+		Vector& sceneOffset = m_SiteOffsets[sceneListEntry]; // Every Scene gets an entry, zero unless moved below.
 
 		if (std::abs(sceneLocation.m_X) < halfMaxScreenWidth && std::abs(sceneLocation.m_Y) < halfMaxScreenHeight) {
-			Vector sceneOffset(0, 0);
-
 			if (sceneLocation.m_X < -halfScreenWidth + 20) {
 				sceneOffset.m_X = -halfScreenWidth + 20 - sceneLocation.m_X;
 			} else if (sceneLocation.m_X > halfScreenWidth - 20) {
@@ -277,8 +285,6 @@ void ScenarioGUI::AdjustSitePointOffsetsOnPlanet(const std::vector<Scene*>& scen
 			} else if (sceneLocation.m_Y > halfScreenHeight - 20) {
 				sceneOffset.m_Y = halfScreenHeight - 20 - sceneLocation.m_Y;
 			}
-
-			sceneListEntry->SetLocationOffset(sceneOffset);
 		}
 	}
 
@@ -292,12 +298,12 @@ void ScenarioGUI::AdjustSitePointOffsetsOnPlanet(const std::vector<Scene*>& scen
 
 		for (Scene* sceneToReposition: sceneList) {
 			Vector forceAccrued(0, 0);
-			Vector currentOffset(sceneToReposition->GetLocationOffset());
+			Vector currentOffset(m_SiteOffsets.at(sceneToReposition));
 			Vector currentPosition(sceneToReposition->GetLocation() + currentOffset);
 
 			for (const Scene* referenceScene: sceneList) {
 				if (sceneToReposition != referenceScene) {
-					Vector referencePosition(referenceScene->GetLocation() + referenceScene->GetLocationOffset());
+					Vector referencePosition(referenceScene->GetLocation() + m_SiteOffsets.at(referenceScene));
 					Vector distanceToReference(referencePosition - currentPosition);
 					
 					if (distanceToReference.MagnitudeIsLessThan(requiredDistance)) {
@@ -331,7 +337,7 @@ void ScenarioGUI::AdjustSitePointOffsetsOnPlanet(const std::vector<Scene*>& scen
 				forceAccrued.m_Y += halfScreenHeight - 20 - currentPosition.m_Y;
 			}
 
-			sceneToReposition->SetLocationOffset(currentOffset + forceAccrued);
+			m_SiteOffsets[sceneToReposition] = currentOffset + forceAccrued;
 		}
 	}
 }
@@ -342,7 +348,7 @@ void ScenarioGUI::CalculateLinesToSitePoint() {
 		return;
 	}
 
-	Vector sitePos = m_PlanetCenter + m_SelectedScene->GetLocation() + m_SelectedScene->GetLocationOffset();
+	Vector sitePos = m_PlanetCenter + m_SelectedScene->GetLocation() + m_SiteOffsets.at(m_SelectedScene);
 	if (m_SceneInfoBox->PointInside(sitePos.GetFloorIntX(), sitePos.GetFloorIntY())) {
 		return;
 	}
@@ -466,7 +472,7 @@ void ScenarioGUI::UpdateHoveredSitePointLabel(int mouseX, int mouseY) {
 		Scene* candidateScene = nullptr;
 		float sqrShortestDistance = 10.0F * 10.0F;
 		for (Scene* activityScene: *m_ActivityScenes) {
-			float sqrDistance = (m_PlanetCenter + activityScene->GetLocation() + activityScene->GetLocationOffset() - Vector(static_cast<float>(mouseX), static_cast<float>(mouseY))).GetSqrMagnitude();
+			float sqrDistance = (m_PlanetCenter + activityScene->GetLocation() + m_SiteOffsets.at(activityScene) - Vector(static_cast<float>(mouseX), static_cast<float>(mouseY))).GetSqrMagnitude();
 			if (sqrDistance < sqrShortestDistance) {
 				sqrShortestDistance = sqrDistance;
 				candidateScene = activityScene;
@@ -478,7 +484,7 @@ void ScenarioGUI::UpdateHoveredSitePointLabel(int mouseX, int mouseY) {
 			m_HoveredScene = candidateScene;
 
 			m_SitePointNameLabel->SetText(m_HoveredScene->GetPresetName());
-			Vector sceneLabelPos = m_PlanetCenter + Vector(m_HoveredScene->GetLocation() + m_HoveredScene->GetLocationOffset()) - Vector(static_cast<float>(m_SitePointNameLabel->GetWidth() / 2), 0) - Vector(0, static_cast<float>(m_SitePointNameLabel->GetHeight()) * 1.5F);
+			Vector sceneLabelPos = m_PlanetCenter + Vector(m_HoveredScene->GetLocation() + m_SiteOffsets.at(m_HoveredScene)) - Vector(static_cast<float>(m_SitePointNameLabel->GetWidth() / 2), 0) - Vector(0, static_cast<float>(m_SitePointNameLabel->GetHeight()) * 1.5F);
 			int padding = 5;
 			sceneLabelPos.SetX(static_cast<float>(std::clamp(sceneLabelPos.GetFloorIntX(), padding, m_RootBoxMaxWidth - m_SitePointNameLabel->GetWidth() - padding)));
 			sceneLabelPos.SetY(static_cast<float>(std::clamp(sceneLabelPos.GetFloorIntY(), padding, g_WindowMan.GetResY() - m_SitePointNameLabel->GetHeight() - padding)));
@@ -571,7 +577,7 @@ void ScenarioGUI::DrawSitePoints(BITMAP* drawBitmap) const {
 		} else {
 			drawColor = c_GUIColorCyan;
 		}
-		Vector sitePos(m_PlanetCenter + scenePointer->GetLocation() + scenePointer->GetLocationOffset());
+		Vector sitePos(m_PlanetCenter + scenePointer->GetLocation() + m_SiteOffsets.at(scenePointer));
 		int sitePosX = sitePos.GetFloorIntX();
 		int sitePosY = sitePos.GetFloorIntY();
 
@@ -609,7 +615,7 @@ void ScenarioGUI::DrawLinesToSitePoint(BITMAP* drawBitmap) const {
 			line(drawBitmap, lineStartX, lineStartY - 1, lineEndX, lineEndY - 1, drawColor);
 		}
 	}
-	Vector sitePos = m_PlanetCenter + m_SelectedScene->GetLocation() + m_SelectedScene->GetLocationOffset();
+	Vector sitePos = m_PlanetCenter + m_SelectedScene->GetLocation() + m_SiteOffsets.at(m_SelectedScene);
 	int sitePosX = sitePos.GetFloorIntX();
 	int sitePosY = sitePos.GetFloorIntY();
 	int circleRadius = 8;

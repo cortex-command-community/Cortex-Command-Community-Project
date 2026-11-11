@@ -72,6 +72,8 @@ namespace RTE {
 		Scene* m_SelectedScene; //!< The scene preset currently selected. Not owned.
 		Scene* m_HoveredScene; //!< The scene preset currently hovered. Not owned.
 
+		std::map<const Scene*, Vector> m_SiteOffsets; //!< How far each Scene's site point is moved from its location on the planet. Kept here so the Scene presets themselves aren't changed.
+
 		Vector m_PlanetCenter; //!< The absolute screen position of the planet center.
 		float m_PlanetRadius; //!< The screen radius of the planet.
 		std::vector<Vector> m_LineToSitePoints; //!< Collection of points that form lines from a screen point to the selected site point.
@@ -136,7 +138,7 @@ namespace RTE {
 
 		/// Adjusts the positions of the site points on the planet if they don't fit the screen or overlap.
 		/// @param sceneList Vector of Scenes to adjust positions for.
-		void AdjustSitePointOffsetsOnPlanet(const std::vector<Scene*>& sceneList) const;
+		void AdjustSitePointOffsetsOnPlanet(const std::vector<Scene*>& sceneList);
 
 		/// Calculates how to draw lines from the Scene info box to the selected site point on the planet.
 		void CalculateLinesToSitePoint();
