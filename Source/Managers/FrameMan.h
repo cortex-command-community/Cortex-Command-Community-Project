@@ -419,6 +419,7 @@ namespace RTE {
 		Texture2D lastSeenTex = {0};
 		Texture2D instantVisibleFowMaskTex = {0};
 		Texture2D fowMaskLastSeenTex = {0};
+		Texture2D lastSeenCopiedMaskTex = {0};
 		Texture2D GUITex = {0};
 		Texture2D MOColorTex = {0};
 		Texture2D BgLayersTex = {0};

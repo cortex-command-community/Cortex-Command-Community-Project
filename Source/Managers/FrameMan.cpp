@@ -235,6 +235,16 @@ void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 		}
 	}
 
+	if (SceneLayer* lastSeenTerrainCopiedMaskSL = currentScene->GetUnseenLayerTerrainCopiedMask(team)) { // Which pixels of the last-seen terrain have been copied
+		BITMAP* bm = lastSeenTerrainCopiedMaskSL->GetBitmap();
+
+		if (lastSeenCopiedMaskTex.id == 0) {
+			LoadTextureFromBitmap8(&lastSeenCopiedMaskTex, bm);
+		} else {
+			rlUpdateTexture(lastSeenCopiedMaskTex.id, 0, 0, bm->w, bm->h, lastSeenCopiedMaskTex.format, bm->line[0]);
+		}
+	}
+
 	{ // GUI
 		BITMAP* bm = m_BackBuffer8GUI.get();
 
@@ -409,6 +419,7 @@ void FrameMan::ClearFowTextures() {
 	clearTextureIfNeeded(instantVisibleFowMaskTex);
 	clearTextureIfNeeded(lastSeenTex);
 	clearTextureIfNeeded(fowMaskLastSeenTex);
+	clearTextureIfNeeded(lastSeenCopiedMaskTex);
 	clearTextureIfNeeded(GUITex);
 	clearTextureIfNeeded(MOColorTex);
 	clearTextureIfNeeded(BgLayersTex);
@@ -495,6 +506,7 @@ void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEna
 	backgroundShader.SetFloat("usdfThresoldForNeverSeen", usdfThresoldForNeverSeen);
 	backgroundShader.SetFloat("usdfOpacitySmoothingDistanceForNeverSeen", usdfOpacitySmoothingDistanceForNeverSeen);
 	backgroundShader.SetFloat("scanlineAndNoiseOpacitySmoothingDistance", scanlineAndNoiseOpacitySmoothingDistance);
+	backgroundShader.SetFloat("liveTerrainFractionOfFoVSmoothing", liveTerrainFractionOfFoVSmoothing);
 	backgroundShader.SetFloat("unseenNoiseIntensity", unseenNoiseIntensity);
 
 	static bool treatUnseenAsNeverSeen = false;
@@ -505,6 +517,7 @@ void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEna
 		rlSetUniformSampler(backgroundShader.GetUniformLocation("rteTextureLastSeen"), lastSeenTex.id); // GTODO: not just force first player screen
 		rlSetUniformSampler(backgroundShader.GetUniformLocation("fowMaskTexture"), m_SdfResultFowMask); // GTODO toggle for smooth and not in settings
 		rlSetUniformSampler(backgroundShader.GetUniformLocation("fowLastSeenMaskTexture"), m_SdfResultFowLastSeenTerrainMask);
+		rlSetUniformSampler(backgroundShader.GetUniformLocation("lastSeenTerrainCopiedMask"), lastSeenCopiedMaskTex.id);
 	}
 }
 

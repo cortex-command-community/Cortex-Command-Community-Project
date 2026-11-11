@@ -31,6 +31,7 @@ uniform float usdfOpacitySmoothingDistanceForFoV;
 uniform float usdfThresoldForNeverSeen;
 uniform float usdfOpacitySmoothingDistanceForNeverSeen;
 uniform float scanlineAndNoiseOpacitySmoothingDistance;
+uniform float liveTerrainFractionOfFoVSmoothing; // How far across the smoothing past what's in view the live terrain is drawn, as a fraction of its smoothing distance
 uniform float unseenNoiseIntensity;
 
 uniform sampler2D rteTextureLastSeen;
@@ -40,6 +41,7 @@ uniform sampler2D moColor;
 uniform sampler2D bgTerrainTex;
 uniform sampler2D fgTerrainTex;
 uniform sampler2D fowLastSeenMaskTexture;
+uniform sampler2D lastSeenTerrainCopiedMask; // Which pixels of the last-seen terrain have had terrain copied into them, at fog of war resolution
 uniform sampler2D bgLayersTexture;
 
 const vec3 luminosityFactors = vec3(0.299, 0.587, 0.114);
@@ -107,7 +109,6 @@ void main() {
 	float distanceToFoV = texture(fowMaskTexture, sdfUV).r - usdfThresoldForFoV;
 	float distanceToSeenBefore = texture(fowLastSeenMaskTexture, sdfUV).r - usdfThresoldForNeverSeen;
 	
-	bool isWithinFow = distanceToFoV < 0;
 	bool hasBeenSeen = distanceToSeenBefore < 0;
 
 	vec2 sceneUV = (uViewOrigin + textureUV * uViewSize) / uSceneSize;
@@ -134,13 +135,16 @@ void main() {
 		return;
 	}
 
-	if (useOneStageFoW || !fowEnabled || isWithinFow) {
-		if (fgTerrainVal != PALETTE_COLOR_MASK) {
+	// With fog of war, terrain is live across part of the smoothing band past what's in view, and what was last seen beyond that.
+	// Everything drawn live is copied into the last-seen terrain as it goes out of view. Anywhere it hasn't been copied yet stays live, and the never-seen darkening fades it to black.
+	bool hasLastSeenTerrain = texture(lastSeenTerrainCopiedMask, sceneUV).r < 0.5;
+	bool showLiveTerrain = useOneStageFoW || !fowEnabled || !hasLastSeenTerrain || distanceToFoV < usdfOpacitySmoothingDistanceForFoV * liveTerrainFractionOfFoVSmoothing;
+	bool showingForegroundTerrain;
+	if (showLiveTerrain) {
+		showingForegroundTerrain = fgTerrainVal != PALETTE_COLOR_MASK;
+		if (showingForegroundTerrain) {
 			// Terrain
 			FragColor = ApplyPalette(fgTerrainVal);
-		} else if (moVal != PALETTE_COLOR_MASK) {
-			// MOs
-			FragColor = ApplyPalette(moVal);
 		} else if (bgTerrainVal != PALETTE_COLOR_MASK) {
 			// Background terrain
 			FragColor = ApplyPalette(bgTerrainVal);
@@ -151,7 +155,8 @@ void main() {
 	} else {
 		// Seen before, old terrain
 		float lastSeenTerrainColor = texture(rteTextureLastSeen, sceneUV).r;
-		if (lastSeenTerrainColor == PALETTE_COLOR_MASK && drawMasked) {
+		showingForegroundTerrain = !(lastSeenTerrainColor == PALETTE_COLOR_MASK && drawMasked);
+		if (!showingForegroundTerrain) {
 			// Background terrain
 			if (bgTerrainVal != PALETTE_COLOR_MASK) {
 				FragColor = ApplyPalette(bgTerrainVal);
@@ -161,6 +166,12 @@ void main() {
 		} else {
 			FragColor = ApplyPalette(lastSeenTerrainColor);
 		}
+	}
+
+	// MOs are behind foreground terrain, and fade out across the smoothing band past what's in view
+	if (!showingForegroundTerrain && moVal != PALETTE_COLOR_MASK) {
+		float moVisibility = (useOneStageFoW || !fowEnabled) ? 1.0 : 1 - clamp(distanceToFoV / usdfOpacitySmoothingDistanceForFoV, 0, 1);
+		FragColor = mix(FragColor, ApplyPalette(moVal), moVisibility);
 	}
 
 	if (fowEnabled) {
