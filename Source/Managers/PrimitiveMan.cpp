@@ -284,7 +284,7 @@ void PrimitiveMan::DrawPrimitives(int player, BITMAP* targetBitmap, const Vector
 	if (GLAD_GL_KHR_blend_equation_advanced_coherent) {
 		rlDisableAdvancedColorBlend();
 	}
-	rlSetBlendMode(RL_BLEND_ALPHA);
+	g_FrameMan.SetBlendMode(BlendTransparency);
 	background->Begin();
 	GLint colorUniform = glGetUniformLocation(rlGetShaderCurrent(), "rteColor");
 	glUniform4f(colorUniform, 1.0f, 1.0f, 1.0f, 1.0f);

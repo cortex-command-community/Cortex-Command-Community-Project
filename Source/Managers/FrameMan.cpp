@@ -487,6 +487,7 @@ void FrameMan::InitOrReinitFowOglThings() {
 
 void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEnabled) {
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("guiTexture"), GUITex.id);
+	rlSetUniformSampler(backgroundShader.GetUniformLocation("hudLayerTexture"), m_HudLayer->GetColorTexture().id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("moColor"), MOColorTex.id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("bgTerrainTex"), BgTerrainTex.id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("fgTerrainTex"), FgTerrainTex.id);
@@ -577,6 +578,7 @@ int FrameMan::CreateBackBuffers() {
 	m_BackBuffer = std::make_unique<RenderTarget>(FloatRect(0, 0, resX, resY), FloatRect(0, 0, resX, resY), 32);
 	// GTODO
 	m_SDFBuffer = std::make_unique<RenderTarget>(FloatRect(0, 0, resX, resY), FloatRect(0, 0, resX, resY), 8);
+	m_HudLayer = std::make_unique<RenderTarget>(FloatRect(0, 0, resX, resY), FloatRect(0, 0, resX, resY), 32);
 
 	m_OverlayBitmap32 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(c_BPP, resX, resY));
 	clear_to_color(m_OverlayBitmap32.get(), 0);
@@ -806,12 +808,22 @@ void FrameMan::ClearScreenText(int whichScreen) {
 	}
 }
 
+void FrameMan::SetAlphaBlendMode() {
+	if (m_DrawingHudLayer) {
+		// The HUD layer starts out clear and is blended over the world afterwards, so its alpha has to add up how opaque everything drawn into it is. Plain alpha blending multiplies alpha by itself instead.
+		rlSetBlendFactorsSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_FUNC_ADD, GL_FUNC_ADD);
+		rlSetBlendMode(RL_BLEND_CUSTOM_SEPARATE);
+	} else {
+		rlSetBlendMode(RL_BLEND_ALPHA);
+	}
+}
+
 void FrameMan::SetBlendMode(DrawBlendMode blendMode) {
 	GLint invertLoc = rlGetLocationUniformCurrent("rteBlendInvert");
 	glUniform1i(invertLoc, 0);
 	switch (blendMode) {
 		case BlendTransparency: {
-			rlSetBlendMode(RL_BLEND_ALPHA);
+			SetAlphaBlendMode();
 			break;
 		}
 		case BlendScreen: {
@@ -847,12 +859,12 @@ void FrameMan::SetBlendMode(DrawBlendMode blendMode) {
 			break;
 		}
 		case BlendInvert: {
-			rlSetBlendMode(RL_BLEND_ALPHA);
+			SetAlphaBlendMode();
 			glUniform1i(invertLoc, 1);
 			break;
 		}
 		case BlendDissolve: {
-			rlSetBlendMode(RL_BLEND_ALPHA);
+			SetAlphaBlendMode();
 			const Shader* dissolve = dynamic_cast<const Shader*>(g_PresetMan.GetEntityPreset("Shader", "Dissolve"));
 			dissolve->Begin();
 			GLint paletteLoc = dissolve->GetUniformLocation("rtePalette");
@@ -860,7 +872,7 @@ void FrameMan::SetBlendMode(DrawBlendMode blendMode) {
 			break;
 		}
 		default: {
-			rlSetBlendMode(RL_BLEND_ALPHA);
+			SetAlphaBlendMode();
 			RTEAssert(blendMode < BlendModeCount, "Unkown blend mode selected!");
 			break;
 		}
@@ -1262,6 +1274,9 @@ void FrameMan::Draw() {
 	clear_to_color(m_BackBuffer8.get(), 0);
 	clear_to_color(m_BackBuffer8GUI.get(), 0);
 	clear_to_color(m_BackBuffer8MOColor.get(), 0);
+	// The HUD layer starts each frame clear, ready for every player screen's HUD
+	m_HudLayer->Begin(true);
+	m_HudLayer->End();
 	m_BackBuffer->Begin(true);
 
 	// Count how many split screens we'll need
@@ -1330,6 +1345,17 @@ void FrameMan::Draw() {
 
 		g_SceneMan.Draw(drawScreen, drawScreenGUI, MOColorBM.GetBitmap(), BgLayersBM.GetBitmap(), BgTerrainBM.GetBitmap(), FgTerrainBM.GetBitmap(), targetPos);
 
+		// The position of the current draw screen on the backbuffer
+		Vector screenOffset;
+
+		// If we are dealing with split screens, then deal with the fact that we need to draw the player screens to different locations on the final buffer
+		if (screenCount > 1) {
+			UpdateScreenOffsetForSplitScreen(playerScreen, screenOffset);
+		}
+
+		// The HUD and primitives go into their own layer, so they can be blended over the world once the final pass has drawn it
+		BeginHudLayer(backgroundShader, screenOffset);
+
 		g_SceneMan.DrawHUD(drawScreenGUI, targetPos);
 
 		g_PrimitiveMan.DrawPrimitives(playerScreen, drawScreenGUI, targetPos);
@@ -1346,15 +1372,9 @@ void FrameMan::Draw() {
 
 		DrawScreenText(playerScreen, playerGUIBitmap);
 
-		// The position of the current draw screen on the backbuffer
-		Vector screenOffset;
-
-		// If we are dealing with split screens, then deal with the fact that we need to draw the player screens to different locations on the final buffer
-		if (screenCount > 1) {
-			UpdateScreenOffsetForSplitScreen(playerScreen, screenOffset);
-		}
-
 		DrawScreenFlash(playerScreen, drawScreenGUI);
+
+		EndHudLayer(backgroundShader);
 
 		// Draw the intermediate draw splitscreen to the appropriate spot on the back buffer
 		blit(drawScreen, m_BackBuffer8.get(), 0, 0, screenOffset.GetFloorIntX(), screenOffset.GetFloorIntY(), drawScreen->w, drawScreen->h);
@@ -1543,6 +1563,27 @@ void FrameMan::DrawScreenFlash(int playerScreen, BITMAP* playerGUIBitmap) {
 			m_FlashScreenColor[playerScreen] = -1;
 		}
 	}
+}
+
+void FrameMan::BeginHudLayer(const Shader& backgroundShader, const Vector& screenOffset) {
+	// Switching targets draws what's already queued for the player screen, before the shader starts drawing colours
+	m_HudLayer->Begin(false);
+	// The player screen goes at its offset on the back buffer, so its HUD goes there on the layer too
+	rlTranslatef(screenOffset.m_X, screenOffset.m_Y, 0.0F);
+	backgroundShader.Begin();
+	backgroundShader.SetBool("drawingHudLayer", true);
+	m_DrawingHudLayer = true;
+	SetAlphaBlendMode();
+}
+
+void FrameMan::EndHudLayer(const Shader& backgroundShader) {
+	// Ending the layer draws what's queued for it, before the shader goes back to drawing palette indices
+	m_HudLayer->End();
+	backgroundShader.Begin();
+	backgroundShader.SetBool("drawingHudLayer", false);
+	m_DrawingHudLayer = false;
+	SetAlphaBlendMode();
+	m_PlayerScreen->Begin(false);
 }
 
 void FrameMan::DrawWorldDump(bool drawForScenePreview) const {

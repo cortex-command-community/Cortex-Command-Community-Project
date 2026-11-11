@@ -407,6 +407,8 @@ namespace RTE {
 
 		std::shared_ptr<RenderTarget> m_BackBuffer; //!< Main render backbuffer.
 		std::shared_ptr<RenderTarget> m_SDFBuffer; //!< GTODO
+		std::unique_ptr<RenderTarget> m_HudLayer; //!< The HUD and primitives drawn on the GPU, which the background shader's final pass blends over the world, beneath the GUI drawn on the CPU.
+		bool m_DrawingHudLayer = false; //!< Whether drawing is going into the HUD layer right now.
 
 		// Fog of war shit
 		AllegroBitmap lastSeenBM;
@@ -450,6 +452,19 @@ namespace RTE {
 		/// @param playerScreen The player screen the flash effect will be shown to.
 		/// @param playerGUIBitmap The bitmap the flash effect will be drawn on.
 		void DrawScreenFlash(int playerScreen, BITMAP* playerGUIBitmap);
+
+		/// Starts drawing the HUD and primitives of a player screen into the HUD layer, which the background shader's final pass blends over the world.
+		/// While drawing there, the background shader draws colours with alpha instead of palette indices, and alpha blending keeps track of how opaque the layer is.
+		/// @param backgroundShader The background shader drawing is done with.
+		/// @param screenOffset Where the player screen is on the back buffer.
+		void BeginHudLayer(const Shader& backgroundShader, const Vector& screenOffset);
+
+		/// Stops drawing into the HUD layer and goes back to drawing the player screen.
+		/// @param backgroundShader The background shader drawing is done with.
+		void EndHudLayer(const Shader& backgroundShader);
+
+		/// Sets the GL blend mode for alpha blending, keeping track of how opaque everything is while drawing into the HUD layer.
+		void SetAlphaBlendMode();
 #pragma endregion
 
 #pragma region Screen Capture

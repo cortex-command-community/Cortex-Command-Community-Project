@@ -15,6 +15,7 @@ uniform vec4 rteColor = vec4(1.0);
 uniform bool rteBlendInvert = false;
 uniform bool drawMasked = false;
 uniform bool drawingForeground = false;
+uniform bool drawingHudLayer = false; // Drawing the HUD and primitives into their own layer, as colours with alpha rather than palette indices
 uniform bool treatUnseenAsNeverSeen;
 uniform bool fowEnabled;
 uniform bool useOneStageFoW = false;
@@ -43,6 +44,7 @@ uniform sampler2D fgTerrainTex;
 uniform sampler2D fowLastSeenMaskTexture;
 uniform sampler2D lastSeenTerrainCopiedMask; // Which pixels of the last-seen terrain have had terrain copied into them, at fog of war resolution
 uniform sampler2D bgLayersTexture;
+uniform sampler2D hudLayerTexture; // The HUD and primitives drawn on the GPU, with colours already multiplied by their alpha
 
 const vec3 luminosityFactors = vec3(0.299, 0.587, 0.114);
 
@@ -126,7 +128,8 @@ void main() {
 		if (rteVal == 0.0 && drawMasked) {
 			discard;
 		}
-		FragColor = vec4(rteVal, 0.0, 0.0, 1.0);
+		// The HUD layer is blended over the finished world, so it needs real colours and alpha. Everything else is drawn as palette indices for the final pass.
+		FragColor = drawingHudLayer ? ApplyPalette(rteVal) : vec4(rteVal, 0.0, 0.0, 1.0);
 		return;
 	}
 	
@@ -191,4 +194,8 @@ void main() {
 
 		FragColor = ApplyDarkenAndDesat(FragColor, sceneUV, darken, desat);
 	}
+
+	// The HUD and primitives drawn on the GPU go over the world, fog and all, and under the GUI drawn on the CPU
+	vec4 hud = texture(hudLayerTexture, textureUV_vFlipped);
+	FragColor = vec4(hud.rgb + FragColor.rgb * (1.0 - hud.a), 1.0);
 }
