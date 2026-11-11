@@ -17,7 +17,7 @@ uniform bool drawMasked = false;
 uniform bool drawingForeground = false;
 uniform bool treatUnseenAsNeverSeen;
 uniform bool fowEnabled;
-uniform bool useOneStageFoW = true;
+uniform bool useOneStageFoW = false;
 
 uniform vec2 uViewOrigin;
 uniform vec2 uViewSize;
