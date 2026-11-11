@@ -159,6 +159,57 @@ void FrameMan::RenderBackgroundLayersBmToTexture() {
 }
 
 void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
+	// The final pass draws the whole screen from these, whether there is any fog of war or not
+	{ // GUI
+		BITMAP* bm = m_BackBuffer8GUI.get();
+
+		if (GUITex.id == 0) {
+			LoadTextureFromBitmap8(&GUITex, bm);
+		} else {
+			rlUpdateTexture(GUITex.id, 0, 0, bm->w, bm->h, GUITex.format, bm->line[0]);
+		}
+	}
+
+	{ // MOColor
+		BITMAP* bm = MOColorBM.GetBitmap();
+
+		if (MOColorTex.id == 0) {
+			LoadTextureFromBitmap8(&MOColorTex, bm);
+		} else {
+			rlUpdateTexture(MOColorTex.id, 0, 0, bm->w, bm->h, MOColorTex.format, bm->line[0]);
+		}
+	}
+
+	{ // BgLayers
+		BITMAP* bm = BgLayersBM.GetBitmap();
+
+		if (BgLayersTex.id == 0) {
+			LoadTextureFromBitmap8(&BgLayersTex, bm);
+		} else {
+			rlUpdateTexture(BgLayersTex.id, 0, 0, bm->w, bm->h, BgLayersTex.format, bm->line[0]);
+		}
+	}
+
+	{ // BgTerrain
+		BITMAP* bm = BgTerrainBM.GetBitmap();
+
+		if (BgTerrainTex.id == 0) {
+			LoadTextureFromBitmap8(&BgTerrainTex, bm);
+		} else {
+			rlUpdateTexture(BgTerrainTex.id, 0, 0, bm->w, bm->h, BgTerrainTex.format, bm->line[0]);
+		}
+	}
+
+	{ // FgTerrain
+		BITMAP* bm = FgTerrainBM.GetBitmap();
+
+		if (FgTerrainTex.id == 0) {
+			LoadTextureFromBitmap8(&FgTerrainTex, bm);
+		} else {
+			rlUpdateTexture(FgTerrainTex.id, 0, 0, bm->w, bm->h, FgTerrainTex.format, bm->line[0]);
+		}
+	}
+
 	Scene* currentScene = g_SceneMan.GetCurrentScene();
 	if (!currentScene || !currentScene->GetUnseenLayerMask()) {
 		return;
@@ -242,56 +293,6 @@ void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 			LoadTextureFromBitmap8(&lastSeenCopiedMaskTex, bm);
 		} else {
 			rlUpdateTexture(lastSeenCopiedMaskTex.id, 0, 0, bm->w, bm->h, lastSeenCopiedMaskTex.format, bm->line[0]);
-		}
-	}
-
-	{ // GUI
-		BITMAP* bm = m_BackBuffer8GUI.get();
-
-		if (GUITex.id == 0) {
-			LoadTextureFromBitmap8(&GUITex, bm);
-		} else {
-			rlUpdateTexture(GUITex.id, 0, 0, bm->w, bm->h, GUITex.format, bm->line[0]);
-		}
-	}
-
-	{ // MOColor
-		BITMAP* bm = MOColorBM.GetBitmap();
-
-		if (MOColorTex.id == 0) {
-			LoadTextureFromBitmap8(&MOColorTex, bm);
-		} else {
-			rlUpdateTexture(MOColorTex.id, 0, 0, bm->w, bm->h, MOColorTex.format, bm->line[0]);
-		}
-	}
-
-	{ // BgLayers
-		BITMAP* bm = BgLayersBM.GetBitmap();
-
-		if (BgLayersTex.id == 0) {
-			LoadTextureFromBitmap8(&BgLayersTex, bm);
-		} else {
-			rlUpdateTexture(BgLayersTex.id, 0, 0, bm->w, bm->h, BgLayersTex.format, bm->line[0]);
-		}
-	}
-
-	{ // BgTerrain
-		BITMAP* bm = BgTerrainBM.GetBitmap();
-
-		if (BgTerrainTex.id == 0) {
-			LoadTextureFromBitmap8(&BgTerrainTex, bm);
-		} else {
-			rlUpdateTexture(BgTerrainTex.id, 0, 0, bm->w, bm->h, BgTerrainTex.format, bm->line[0]);
-		}
-	}
-
-	{ // FgTerrain
-		BITMAP* bm = FgTerrainBM.GetBitmap();
-
-		if (FgTerrainTex.id == 0) {
-			LoadTextureFromBitmap8(&FgTerrainTex, bm);
-		} else {
-			rlUpdateTexture(FgTerrainTex.id, 0, 0, bm->w, bm->h, FgTerrainTex.format, bm->line[0]);
 		}
 	}
 
@@ -1413,17 +1414,19 @@ void FrameMan::Draw() {
 	bool fowEnabled;
 	Activity* currentActivity = g_ActivityMan.GetActivity();
 	fowEnabled = dynamic_cast<GameActivity*>(currentActivity)->GetFogOfWarEnabled();
-	if (fowEnabled) {
-		Scene* currentScene = g_SceneMan.GetCurrentScene();
-		if (currentScene != m_ScenePreviouslyUsedForOglSetup) {
-			m_ScenePreviouslyUsedForOglSetup = currentScene;
-			ClearFowTextures();
-			InitOrReinitFowOglThings();
-		}
-		RenderBackgroundLayersBmToTexture();
+	// The final pass draws the whole screen from these textures whether fog of war is on or not, and ignores the fog of war when it's off
+	Scene* currentScene = g_SceneMan.GetCurrentScene();
+	if (currentScene != m_ScenePreviouslyUsedForOglSetup) {
+		m_ScenePreviouslyUsedForOglSetup = currentScene;
+		ClearFowTextures();
+		InitOrReinitFowOglThings();
+	}
+	RenderBackgroundLayersBmToTexture();
 
-		// TODO- this needs to be done above, per screen! Right now splitscreen is fucked
-		FogOfWarSetup(backgroundShader);
+	// TODO- this needs to be done above, per screen! Right now splitscreen is fucked
+	FogOfWarSetup(backgroundShader);
+	// Only fog of war uses how far each pixel is from what's in view and what's been seen before
+	if (fowEnabled) {
 		FogOfWarSetup_DoSDF(instantVisibleFowMaskTex.id, m_SdfResultFowMask);
 		FogOfWarSetup_DoSDF(fowMaskLastSeenTex.id, m_SdfResultFowLastSeenTerrainMask);
 	}
