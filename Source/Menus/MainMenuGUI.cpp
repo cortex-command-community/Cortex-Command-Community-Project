@@ -1,7 +1,5 @@
 #include "MainMenuGUI.h"
 
-#include "DataModule.h"
-#include "PresetMan.h"
 #include "WindowMan.h"
 #include "FrameMan.h"
 #include "ActivityMan.h"
