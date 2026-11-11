@@ -139,7 +139,7 @@ void SaveLoadMenuGUI::PopulateSaveGamesList() {
 					  
 		              buffer[info.uncompressed_size] = 0; // need to null-terminate manually
 
-					  Reader reader(std::make_unique<std::istringstream>(buffer), record.SavePath.string(), true, nullptr, false);
+					  Reader reader(std::make_unique<std::istringstream>(buffer), record.SavePath.string(), true, false);
 		              while (reader.NextProperty()) {
 			              std::string propName = reader.ReadPropName();
 			              if (propName == "ActivityName") {

@@ -1,4 +1,5 @@
 #include "Serializable.h"
+#include "PresetMan.h"
 
 namespace RTE {
 
@@ -20,8 +21,11 @@ namespace RTE {
 				// TODO: Could not match property. Log here!
 			}
 		}
-
-		return doCreate ? Create() : 0;
+		if (GetClassName() == "Shader") {
+			return 2;
+		} else {
+			return doCreate ? Create() : 0;
+		}
 	}
 
 	int Serializable::ReadProperty(const std::string_view& propName, Reader& reader) {

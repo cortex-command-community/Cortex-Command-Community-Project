@@ -9,15 +9,19 @@
 
 using namespace RTE;
 
+// Defining statics
+std::function<void(const std::string&, bool)> DataModule::PushToProgressDisplayQueue = nullptr;
+std::function<void(const std::string&)> DataModule::AssertFromWorkerAndShutdownAll = nullptr;
+
 const std::string DataModule::c_ClassName = "DataModule";
 
 DataModule::DataModule() {
 	Clear();
 }
 
-DataModule::DataModule(const std::string& moduleName, const ProgressCallback& progressCallback) {
+DataModule::DataModule(const std::string& moduleName) {
 	Clear();
-	Create(moduleName, progressCallback);
+	Create(moduleName);
 }
 
 DataModule::~DataModule() {
@@ -45,16 +49,17 @@ void DataModule::Clear() {
 	m_ScriptPath.clear();
 	m_IsFaction = false;
 	m_IsMerchant = false;
+	AssertFromWorkerAndShutdownAll = nullptr;
 }
 
-int DataModule::Create(const std::string& moduleName, const ProgressCallback& progressCallback) {
+int DataModule::Create(const std::string& moduleName) {
 	m_FileName = std::filesystem::path(moduleName).generic_string();
 	m_ModuleID = g_PresetMan.GetModuleID(moduleName);
 	m_CrabToHumanSpawnRatio = 0;
 
 	// Report that we're starting to read a new DataModule
-	if (progressCallback) {
-		progressCallback(m_FileName + " " + static_cast<char>(-43) + " loading:", true);
+	if (DataModule::PushToProgressDisplayQueue) {
+		DataModule::PushToProgressDisplayQueue(m_FileName + " " + static_cast<char>(-43) + " loading:", true);
 	}
 
 	Reader reader;
@@ -67,20 +72,20 @@ int DataModule::Create(const std::string& moduleName, const ProgressCallback& pr
 	}
 
 	// If the module is a mod, read only its `index.ini` to validate its SupportedGameVersion.
-	if (m_ModuleID >= g_PresetMan.GetOfficialModuleCount() && !m_IsUserdata && ReadModuleProperties(moduleName, progressCallback) >= 0) {
+	if (m_ModuleID >= g_PresetMan.GetOfficialModuleCount() && !m_IsUserdata && ReadModuleProperties(moduleName) >= 0) {
 		CheckSupportedGameVersion();
 	}
 
-	if (reader.Create(indexPath, true, progressCallback) >= 0) {
+	if (reader.Create(indexPath, true) >= 0) {
 		int result = Serializable::Create(reader);
 
 		// Print an empty line to separate the end of a module from the beginning of the next one in the loading progress log.
-		if (progressCallback) {
-			progressCallback(" ", true);
+		if (DataModule::PushToProgressDisplayQueue) {
+			DataModule::PushToProgressDisplayQueue(" ", true);
 		}
 
 		if (m_ScanFolderContents) {
-			result = FindAndRead(progressCallback);
+			result = FindAndRead();
 		}
 
 		return result;
@@ -112,19 +117,19 @@ void DataModule::Destroy() {
 	Clear();
 }
 
-int DataModule::ReadModuleProperties(const std::string& moduleName, const ProgressCallback& progressCallback) {
+int DataModule::ReadModuleProperties(const std::string& moduleName) {
 	m_FileName = moduleName;
 	m_ModuleID = g_PresetMan.GetModuleID(moduleName);
 	m_CrabToHumanSpawnRatio = 0;
 
 	// Report that we're starting to read a new DataModule
-	if (progressCallback) {
-		progressCallback(m_FileName + " " + static_cast<char>(-43) + " reading properties:", true);
+	if (DataModule::PushToProgressDisplayQueue) {
+		DataModule::PushToProgressDisplayQueue(m_FileName + " " + static_cast<char>(-43) + " reading properties:", true);
 	}
 	Reader reader;
 	std::string indexPath(m_FileName + "/Index.ini");
 
-	if (reader.Create(indexPath, true, progressCallback) >= 0) {
+	if (reader.Create(indexPath, true) >= 0) {
 		reader.SetSkipIncludes(true);
 		int result = Serializable::Create(reader);
 		return result;
@@ -309,6 +314,12 @@ bool DataModule::AddEntityPreset(Entity* entityToAdd, bool overwriteSame, const 
 	} else {
 		entityToAdd->SetModuleID(m_ModuleID);
 		Entity* entityClone = entityToAdd->Clone();
+
+		//todotdotdoto
+		if (entityClone->GetClassName() == "Shader") {
+			g_PresetMan.DeferShaderCompilationToBeDoneOnMainThread(static_cast<Shader*>(entityClone));
+		}
+
 		// Mark the one we are about to add to the list as the Original now - this is now the actual Original Preset instance
 		entityClone->m_IsOriginalPreset = true;
 
@@ -436,16 +447,16 @@ void DataModule::ReloadAllScripts() const {
 	LoadScripts();
 }
 
-int DataModule::FindAndRead(const ProgressCallback& progressCallback) {
+int DataModule::FindAndRead() {
 	int result = 0;
 	const std::string directoryToScan = g_PresetMan.GetFullModulePath(m_FileName);
 	for (const std::filesystem::directory_entry& directoryEntry: std::filesystem::directory_iterator(System::GetWorkingDirectory() + directoryToScan)) {
 		if (directoryEntry.path().extension() == ".ini" && directoryEntry.path().filename() != "Index.ini") {
 			Reader iniReader;
-			if (iniReader.Create(directoryToScan + "/" + directoryEntry.path().filename().generic_string(), false, progressCallback) >= 0) {
+			if (iniReader.Create(directoryToScan + "/" + directoryEntry.path().filename().generic_string(), false) >= 0) {
 				result = Serializable::CreateSerializable(iniReader, false, true, true);
-				if (progressCallback) {
-					progressCallback(" ", true);
+				if (DataModule::PushToProgressDisplayQueue) {
+					DataModule::PushToProgressDisplayQueue(" ", true);
 				}
 			}
 		}
