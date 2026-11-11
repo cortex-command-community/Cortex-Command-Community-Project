@@ -32,6 +32,9 @@
 #include "tracy/TracyOpenGL.hpp"
 #include <SDL3_image/SDL_image.h>
 
+// SIMDe lets SSE2 code build on every platform, as NEON on ARM. Once std::simd is available on all our compilers, that can replace it.
+#include "simde/x86/sse2.h"
+
 #include <array>
 
 using namespace RTE;
@@ -242,11 +245,21 @@ void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 	GUIRect srcPosAndSizeRectLastSeen =
 	    {0, 0, lastSeenBMOld.GetWidth(), lastSeenBMOld.GetHeight()};
 
-	// The mask holds how many more updates each pixel stays in view for, but drawing only needs to know which pixels are in view
+	// The mask holds how many more updates each pixel stays in view for, but drawing only needs to know which pixels are in view: 0 for in view and 255 for not
 	BITMAP* fowMaskBitmap = fowMaskBM.GetBitmap();
+	const int width = std::min(maskBitmap->w, fowMaskBitmap->w);
 	for (int y = 0; y < std::min(maskBitmap->h, fowMaskBitmap->h); ++y) {
-		for (int x = 0; x < std::min(maskBitmap->w, fowMaskBitmap->w); ++x) {
-			fowMaskBitmap->line[y][x] = Scene::GetUnseenLayerMaskHold(maskBitmap, x, y) > 0 ? 0 : 255;
+		const uint8_t* holds = &Scene::GetUnseenLayerMaskHold(maskBitmap, 0, y);
+		uint8_t* inView = fowMaskBitmap->line[y];
+		int x = 0;
+		// 16 pixels at a time. Comparing with 0 gives 255 for each hold that's 0, and 0 for the rest.
+		const simde__m128i zero = simde_mm_setzero_si128();
+		for (; x + 16 <= width; x += 16) {
+			const simde__m128i sixteenHolds = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(holds + x));
+			simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(inView + x), simde_mm_cmpeq_epi8(sixteenHolds, zero));
+		}
+		for (; x < width; ++x) {
+			inView[x] = holds[x] > 0 ? 0 : 255;
 		}
 	}
 	fowMaskLastSeenBMOld.Draw(&fowMaskLastSeenBM, 0, 0, &srcPosAndSizeRectFowMask);

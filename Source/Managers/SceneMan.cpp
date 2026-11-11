@@ -20,6 +20,10 @@
 #include "AllegroSpans.h"
 
 #include "tracy/Tracy.hpp"
+// SIMDe lets SSE2 code build on every platform, as NEON on ARM. Once std::simd is available on all our compilers, that can replace it.
+#include "simde/x86/sse2.h"
+
+#include <bit>
 
 using namespace RTE;
 
@@ -56,6 +60,28 @@ namespace {
 			runs.back().x1 = x + 1;
 		} else {
 			runs.push_back({x, x + 1});
+		}
+	}
+
+	/// Counts a row of unseen layer mask holds down by an update, filling runs with the pixels that go out of view now. Works through 16 holds at a time.
+	void CountDownUnseenLayerMaskRow(uint8_t* row, int width, std::vector<MaskRun>& runs) {
+		const simde__m128i ones = simde_mm_set1_epi8(1);
+
+		runs.clear();
+		int x = 0;
+		for (; x + 16 <= width; x += 16) {
+			const simde__m128i holds = simde_mm_loadu_si128(reinterpret_cast<const simde__m128i*>(row + x));
+			// Subtracting saturates, so holds of 0 stay 0
+			simde_mm_storeu_si128(reinterpret_cast<simde__m128i*>(row + x), simde_mm_subs_epu8(holds, ones));
+			// Holds of exactly 1 go out of view now, one bit per pixel
+			for (int goingOutOfView = simde_mm_movemask_epi8(simde_mm_cmpeq_epi8(holds, ones)); goingOutOfView != 0; goingOutOfView &= goingOutOfView - 1) {
+				AddPixelToRuns(runs, x + std::countr_zero(static_cast<unsigned int>(goingOutOfView)));
+			}
+		}
+		for (; x < width; ++x) {
+			if (row[x] > 0 && --row[x] == 0) {
+				AddPixelToRuns(runs, x);
+			}
 		}
 	}
 
@@ -1186,14 +1212,7 @@ void SceneMan::CountDownUnseenLayerMaskHolds(const int team) {
 
 	// Count down each row of holds, finding the runs of pixels that go out of view now.
 	// Pixels in view show the live terrain, so the last-seen terrain only needs to catch up with them as they go out of view.
-	CommitRunsToLastSeenTerrain(m_pCurrentScene, team, [](uint8_t* row, int width, std::vector<MaskRun>& runs) {
-		runs.clear();
-		for (int x = 0; x < width; x++) {
-			if (row[x] > 0 && --row[x] == 0) {
-				AddPixelToRuns(runs, x);
-			}
-		}
-	});
+	CommitRunsToLastSeenTerrain(m_pCurrentScene, team, CountDownUnseenLayerMaskRow);
 }
 
 void SceneMan::CommitHeldPixelsToLastSeenTerrain(const int team) {
