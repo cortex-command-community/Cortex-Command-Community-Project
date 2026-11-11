@@ -445,6 +445,8 @@ void MainMenuGUI::HandleMetaGameNoticeScreenInputEvents(const GUIControl* guiEve
 	if (guiEventControl == m_MainMenuButtons[MenuButton::PlayTutorialButton]) {
 		m_UpdateResult = MainMenuUpdateResult::ActivityStarted;
 		SetActiveMenuScreen(MenuScreen::MainScreen);
+		g_GUISound.ExitMenuSound()->Play();
+		g_ActivityMan.SetStartTutorialActivity();
 	} else if (guiEventControl == m_MainMenuButtons[MenuButton::MetaGameContinueButton]) {
 		m_UpdateResult = MainMenuUpdateResult::MetaGameStarted;
 		SetActiveMenuScreen(MenuScreen::MainScreen);
