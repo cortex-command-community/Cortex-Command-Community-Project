@@ -1,6 +1,6 @@
 /*
 ** String handling.
-** Copyright (C) 2005-2022 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #define lj_str_c
@@ -283,7 +283,25 @@ static GCstr *lj_str_alloc(lua_State *L, const char *str, MSize len,
   s->len = len;
   s->hash = hash;
 #ifndef STRID_RESEED_INTERVAL
+#if LUAJIT_SECURITY_STRHASH
+  /*
+  ** Cortex Command: the ID is a hash of the string's contents, rather than
+  ** how many strings were made before it. Tables are hashed by string IDs,
+  ** so they decide the order pairs() goes through tables with string keys
+  ** in, and that has to be the same on every run of the game. Counted IDs
+  ** depend on when the garbage collector frees strings that get made again
+  ** later, which depends on how memory gets used, which differs from run to
+  ** run (the JIT compiler allocates depending on where it finds room for
+  ** compiled code, for one). A hash of the contents gives a string the same
+  ** ID whenever it's made. The hash has a fixed seed of its own, so it
+  ** doesn't depend on the PRNG either.
+  */
+  s->sid = (StrID)hash_dense(U64x(9e3779b9,7f4a7c15),
+			     hash_sparse(U64x(9e3779b9,7f4a7c15), str, len),
+			     str, len);
+#else
   s->sid = g->str.id++;
+#endif
 #elif STRID_RESEED_INTERVAL
   if (!g->str.idreseed--) {
     uint64_t r = lj_prng_u64(&g->prng);

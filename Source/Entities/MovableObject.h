@@ -9,10 +9,12 @@
 #include "Vector.h"
 #include "Matrix.h"
 #include "Timer.h"
-#include "LuabindObjectWrapper.h"
+#include "LuaObjectWrapper.h"
 #include "Material.h"
 #include "MovableMan.h"
 
+#include <array>
+#include <atomic>
 #include <set>
 
 struct BITMAP;
@@ -140,7 +142,7 @@ namespace RTE {
 		/// @param functionEntityArguments Optional vector of entity pointers that should be passed into the Lua function. Their internal Lua states will not be accessible. Defaults to empty.
 		/// @param functionLiteralArguments Optional vector of strings, that should be passed into the Lua function. Entries must be surrounded with escaped quotes (i.e.`\"`) they'll be passed in as-is, allowing them to act as booleans, etc.. Defaults to empty.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
-		int RunScriptedFunctionInAppropriateScripts(const std::string& functionName, bool runOnDisabledScripts = false, bool stopOnError = false, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuabindObjectWrapper*>& functionObjectArguments = std::vector<LuabindObjectWrapper*>());
+		int RunScriptedFunctionInAppropriateScripts(const std::string& functionName, bool runOnDisabledScripts = false, bool stopOnError = false, const std::vector<const Entity*>& functionEntityArguments = std::vector<const Entity*>(), const std::vector<std::string_view>& functionLiteralArguments = std::vector<std::string_view>(), const std::vector<LuaObjectWrapper*>& functionObjectArguments = std::vector<LuaObjectWrapper*>());
 
 		/// Cleans up and destroys the script state of this object, calling the Destroy callback in lua
 		virtual void DestroyScriptState();
@@ -869,7 +871,7 @@ namespace RTE {
 		virtual void PostTravel();
 
 		/// Update called prior to controller update. Ugly hack. Supposed to be done every frame.
-		virtual void PreControllerUpdate(){};
+		virtual void PreControllerUpdate() {};
 
 		/// Updates this MovableObject. Supposed to be done every frame. This also
 		/// applies and clear the accumulated impulse forces (impulses), and the
@@ -982,13 +984,19 @@ namespace RTE {
 		/// @param newRestThreshold New rest threshold value
 		void SetRestThreshold(int newRestThreshold) { m_RestThreshold = newRestThreshold; }
 
+		static constexpr int c_UniqueIDBits = 46; //!< How many bits a unique ID can take up. Scripts get unique IDs as Lua numbers, which only come out in full when turned into text if they're 14 digits or less.
+		static constexpr int c_UniqueIDThreadBits = 7; //!< How many of the upper bits of a unique ID hold the number of the thread it was handed out on.
+		static constexpr int c_UniqueIDCountBits = c_UniqueIDBits - c_UniqueIDThreadBits; //!< How many bits of a unique ID are left to count with.
+
 		/// Returns the next unique id for MO's and increments unique ID counter
+		/// The upper bits of a unique ID are the number of the thread that it was handed out on, and the rest count up separately for each thread.
+		/// So when several threads make MOs at the same time, as the threaded Lua states do, each MO still gets the same unique ID every time.
 		/// @return Returns the next unique id.
-		static long GetNextUniqueID() { return ++m_UniqueIDCounter; }
+		static int64_t GetNextUniqueID();
 
 		/// Returns this MO's unique persistent ID
 		/// @return Returns this MO's unique persistent ID
-		long GetUniqueID() const { return m_UniqueID; }
+		int64_t GetUniqueID() const { return m_UniqueID; }
 
 		/// Gets the preset name and unique ID of this MO, often useful for error messages.
 		/// @return A string containing the unique ID and preset name of this MO.
@@ -1058,11 +1066,11 @@ namespace RTE {
 
 		/// Returns the unique ID of the particle hit at the previously taken Travel
 		/// @return Unique ID of the particle hit at the previously taken Travel
-		long int HitWhatParticleUniqueID() const;
+		int64_t HitWhatParticleUniqueID() const;
 
 		/// Returns the unique ID of the particle hit at the previously taken Travel
 		/// @param id Unique ID of the particle hit at the previously taken Travel.
-		void SetHitWhatParticleUniqueID(long int id);
+		void SetHitWhatParticleUniqueID(int64_t id);
 
 		/// Returns the terrain material the previously taken Tarvel
 		/// hit, if any.
@@ -1142,8 +1150,8 @@ namespace RTE {
 		/// @param A MovableObject object which is passed in by reference.
 		// Member variables
 		static Entity::ClassInfo m_sClass;
-		// Global counter with unique ID's
-		static std::atomic<long> m_UniqueIDCounter;
+		// Counters with unique ID's, one for each thread number
+		static std::array<std::atomic<int64_t>, 1 << c_UniqueIDThreadBits> m_UniqueIDCounters;
 		// The type of MO this is, either Actor, Item, or Particle
 		int m_MOType;
 		float m_Mass; // In metric kilograms (kg).
@@ -1233,13 +1241,14 @@ namespace RTE {
 
 		struct LuaFunction {
 			bool m_ScriptIsEnabled; //!< Whether this function is in an enabled script.
-			std::unique_ptr<LuabindObjectWrapper> m_LuaFunction; //!< The lua function itself.
+			std::unique_ptr<LuaObjectWrapper> m_LuaFunction; //!< The lua function itself.
 		};
 
 		std::string m_ScriptObjectName; //!< The name of this object for script usage.
 		std::vector<std::string> m_AllLoadedScripts; //!< A vector of script for scripts applied to this object, in order of insertion.
 		std::unordered_map<std::string, bool> m_EnabledScripts; //!< A map of script paths to the enabled state of the given script.
 		std::unordered_map<std::string, std::vector<LuaFunction>> m_FunctionsAndScripts; //!< A map of function names to vectors of Lua functions. Used to maintain script execution order and avoid extraneous Lua calls.
+		bool m_HasOnCollideWithTerrainFunction; //!< Whether any of the scripts has an OnCollideWithTerrain function, so that terrain collisions, which happen all the time, don't have to look it up by name to find out.
 
 		volatile bool m_RequestedSyncedUpdate; //!< For optimisation purposes, scripts explicitly request a synced update if they want one.
 
@@ -1277,7 +1286,7 @@ namespace RTE {
 		bool m_PostEffectEnabled;
 
 		// This object's unique persistent ID
-		long m_UniqueID;
+		int64_t m_UniqueID;
 		// In which radis should we look to remove orphaned terrain on terrain penetration,
 		// must not be greater than SceneMan::ORPHANSIZE, or will be truncated
 		int m_RemoveOrphanTerrainRadius;
@@ -1300,7 +1309,7 @@ namespace RTE {
 		// Terrain material hit during last travel
 		unsigned char m_TerrainMatHit;
 		// Unique ID of particle hit this MO
-		long int m_ParticleUniqueIDHit;
+		int64_t m_ParticleUniqueIDHit;
 		// Number of sim update frame when last collision was detected
 		unsigned int m_LastCollisionSimFrameNumber;
 		int m_SimUpdatesBetweenScriptedUpdates; //!< The number of Sim updates between each scripted update for this MovableObject.

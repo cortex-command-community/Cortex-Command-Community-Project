@@ -9,6 +9,7 @@
 #include "PerformanceMan.h"
 #include "UInputMan.h"
 #include "System.h"
+#include "DeterminismChecker.h"
 
 using namespace RTE;
 
@@ -104,6 +105,14 @@ void SettingsMan::UpdateSettingsFile() const {
 	g_SettingsMan.Save(settingsWriter);
 }
 
+int SettingsMan::GetNumberOfLuaStatesOverride() const {
+	constexpr int luaStatesWhenCheckingDeterminism = 4;
+	if (m_NumberOfLuaStatesOverride == -1 && DeterminismChecker::IsActive()) {
+		return luaStatesWhenCheckingDeterminism;
+	}
+	return m_NumberOfLuaStatesOverride;
+}
+
 int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) {
 	StartPropertyList(return Serializable::ReadProperty(propName, reader));
 
@@ -114,6 +123,7 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("EnableVSync", { reader >> g_WindowMan.m_EnableVSync; });
 	MatchProperty("Fullscreen", { reader >> g_WindowMan.m_Fullscreen; });
 	MatchProperty("UseMultiDisplays", { reader >> g_WindowMan.m_UseMultiDisplays; });
+	MatchProperty("LaunchMinimised", { reader >> g_WindowMan.m_LaunchMinimised; });
 	MatchProperty("TwoPlayerSplitscreenVertSplit", { reader >> g_FrameMan.m_TwoPlayerVSplit; });
 	MatchProperty("MasterVolume", { g_AudioMan.SetMasterVolume(std::stof(reader.ReadPropValue()) / 100.0F); });
 	MatchProperty("MuteMaster", { reader >> g_AudioMan.m_MuteMaster; });
@@ -154,11 +164,18 @@ int SettingsMan::ReadProperty(const std::string_view& propName, Reader& reader) 
 	MatchProperty("DefaultShakePerUnitOfRecoilEnergy", { reader >> g_CameraMan.m_DefaultShakePerUnitOfRecoilEnergy; });
 	MatchProperty("DefaultShakeFromRecoilMaximum", { reader >> g_CameraMan.m_DefaultShakeFromRecoilMaximum; });
 	MatchProperty("LaunchIntoActivity", { reader >> g_ActivityMan.m_LaunchIntoActivity; });
-	MatchProperty("DefaultActivityType", { reader >> g_ActivityMan.m_DefaultActivityType; });
+	MatchProperty("DefaultActivityType", {
+		reader >> g_ActivityMan.m_DefaultActivityType;
+		// The tutorial was its own Activity type before it became a GAScripted.
+		if (g_ActivityMan.m_DefaultActivityType == "GATutorial") {
+			g_ActivityMan.m_DefaultActivityType = "GAScripted";
+		}
+	});
 	MatchProperty("DefaultActivityName", { reader >> g_ActivityMan.m_DefaultActivityName; });
 	MatchProperty("DefaultSceneName", { reader >> g_SceneMan.m_DefaultSceneName; });
 	MatchProperty("DisableLuaJIT", { reader >> m_DisableLuaJIT; });
 	MatchProperty("EnableLuaDebugging", { reader >> m_EnableLuaDebugging; });
+	MatchProperty("DisableCrashDialogs", { reader >> RTEError::s_DisableCrashDialogs; });
 	MatchProperty("RecommendedMOIDCount", { reader >> m_RecommendedMOIDCount; });
 	MatchProperty("SceneBackgroundAutoScaleMode", { SetSceneBackgroundAutoScaleMode(std::stoi(reader.ReadPropValue())); });
 	MatchProperty("DisableFactionBuyMenuThemes", { reader >> m_DisableFactionBuyMenuThemes; });
@@ -220,6 +237,7 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewPropertyWithValue("Fullscreen", g_WindowMan.m_Fullscreen);
 	writer.NewPropertyWithValue("EnableVSync", g_WindowMan.m_EnableVSync);
 	writer.NewPropertyWithValue("UseMultiDisplays", g_WindowMan.m_UseMultiDisplays);
+	writer.NewPropertyWithValue("LaunchMinimised", g_WindowMan.m_LaunchMinimised);
 	writer.NewPropertyWithValue("TwoPlayerSplitscreenVertSplit", g_FrameMan.m_TwoPlayerVSplit);
 
 	writer.NewLine(false, 2);
@@ -286,6 +304,7 @@ int SettingsMan::Save(Writer& writer) const {
 	writer.NewLine(false);
 	writer.NewPropertyWithValue("DisableLuaJIT", m_DisableLuaJIT);
 	writer.NewPropertyWithValue("EnableLuaDebugging", m_EnableLuaDebugging);
+	writer.NewPropertyWithValue("DisableCrashDialogs", RTEError::s_DisableCrashDialogs);
 	writer.NewPropertyWithValue("RecommendedMOIDCount", m_RecommendedMOIDCount);
 	writer.NewPropertyWithValue("SceneBackgroundAutoScaleMode", m_SceneBackgroundAutoScaleMode);
 	writer.NewPropertyWithValue("DisableFactionBuyMenuThemes", m_DisableFactionBuyMenuThemes);

@@ -25,6 +25,8 @@ function Create(self)
 	
 	--Sounds
 	self.dissipateSound = CreateSoundContainer("Dissipate Sound", "Techion.rte");
+	--The pitch is varied by the sound itself instead of rolled when it gets played. That only happens when it isn't already playing, which is up to the audio system, and that can't be what decides how many of the simulation's random numbers get used
+	self.dissipateSound.PitchVariation = 0.3;
 	self.disintegrationSound = CreateSoundContainer("Disintegration Sound", "Techion.rte");
 end
 
@@ -78,8 +80,7 @@ function OnFire(self)
 					end
 				end
 				if gooCount > 0 then
-					if self.dissipateSound:IsBeingPlayed() then
-						self.dissipateSound.Pitch = RangeRand(RangeRand(0.7, 1.3));
+					if not self.dissipateSound:IsBeingPlayed() then
 						self.dissipateSound:Play(targetMO.Pos);
 					end
 					for i = 1, gooCount do
@@ -166,8 +167,7 @@ function OnFire(self)
 					glow.Pos = hitPos;
 					MovableMan:AddParticle(glow);
 
-					if self.dissipateSound:IsBeingPlayed() then
-						self.dissipateSound.Pitch = RangeRand(RangeRand(0.7, 1.3));
+					if not self.dissipateSound:IsBeingPlayed() then
 						self.dissipateSound:Play(hitPos);
 					end
 				end

@@ -88,6 +88,9 @@
     <ClInclude Include="Source\System\Singleton.h">
       <Filter>System</Filter>
     </ClInclude>
+    <ClInclude Include="Source\System\DeterminismChecker.h">
+      <Filter>System</Filter>
+    </ClInclude>
     <ClInclude Include="Source\System\System.h">
       <Filter>System</Filter>
     </ClInclude>
@@ -385,9 +388,6 @@
     <ClInclude Include="Source\Activities\GAScripted.h">
       <Filter>Activities</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Activities\GATutorial.h">
-      <Filter>Activities</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Activities\GibEditor.h">
       <Filter>Activities</Filter>
     </ClInclude>
@@ -544,7 +544,7 @@
     <ClInclude Include="Source\Menus\InventoryMenuGUI.h">
       <Filter>Menus</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Lua\LuabindDefinitions.h">
+    <ClInclude Include="Source\Lua\LuaBridgeDefinitions.h">
       <Filter>Lua</Filter>
     </ClInclude>
     <ClInclude Include="Source\Lua\LuaBindingRegisterDefinitions.h">
@@ -559,7 +559,7 @@
     <ClInclude Include="Source\GUI\GUIWriter.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Lua\LuabindObjectWrapper.h">
+    <ClInclude Include="Source\Lua\LuaObjectWrapper.h">
       <Filter>Lua</Filter>
     </ClInclude>
     <ClInclude Include="Source\Entities\TerrainFrosting.h">
@@ -683,6 +683,9 @@
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="Source\System\Reader.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\System\DeterminismChecker.cpp">
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="Source\System\System.cpp">
@@ -979,9 +982,6 @@
     <ClCompile Include="Source\Activities\GAScripted.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Activities\GATutorial.cpp">
-      <Filter>Activities</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Activities\GibEditor.cpp">
       <Filter>Activities</Filter>
     </ClCompile>
@@ -1142,7 +1142,10 @@
     <ClCompile Include="Source\GUI\GUIWriter.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Lua\LuabindObjectWrapper.cpp">
+    <ClCompile Include="Source\Lua\LuaObjectWrapper.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Lua\LuaBridgeRegistry.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
     <ClCompile Include="Source\Lua\LuaBindingsMisc.cpp">

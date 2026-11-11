@@ -61,7 +61,7 @@ namespace RTE {
 			/// @param reference A reference to the GenericSavedNumbers to deep copy.
 			GenericSavedNumbers(const GenericSavedNumbers& reference) = default;
 
-			std::unordered_map<std::string, float> m_Data; //!< Stored number data.
+			std::unordered_map<std::string, double> m_Data; //!< Stored number data.
 
 		private:
 			static const std::string c_ClassName; //!< A string with the friendly formatted type name of this object.
@@ -81,8 +81,8 @@ namespace RTE {
 		void SaveString(const std::string& key, const std::string& value);
 		const std::string& LoadString(const std::string& key);
 
-		void SaveNumber(const std::string& key, float value) { m_SavedNumbers.m_Data[key] = value; };
-		float LoadNumber(const std::string& key) { return m_SavedNumbers.m_Data[key]; };
+		void SaveNumber(const std::string& key, double value) { m_SavedNumbers.m_Data[key] = value; };
+		double LoadNumber(const std::string& key) { return m_SavedNumbers.m_Data[key]; };
 
 		GenericSavedEncodedStrings m_SavedEncodedStrings; //!< Stored encoded string data.
 		GenericSavedStrings m_SavedStrings; //!< Stored string data.

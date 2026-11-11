@@ -44,7 +44,11 @@ int Matrix::Create(const Matrix& reference) {
 	m_Rotation = reference.m_Rotation;
 	m_Flipped[X] = reference.m_Flipped[X];
 	m_Flipped[Y] = reference.m_Flipped[Y];
-	m_ElementsUpdated = false;
+	m_Elements[0][0] = reference.m_Elements[0][0];
+	m_Elements[0][1] = reference.m_Elements[0][1];
+	m_Elements[1][0] = reference.m_Elements[1][0];
+	m_Elements[1][1] = reference.m_Elements[1][1];
+	m_ElementsUpdated = reference.m_ElementsUpdated;
 
 	return 0;
 }
@@ -112,22 +116,6 @@ Matrix& Matrix::operator=(const Matrix& rhs) {
 	m_ElementsUpdated = false;
 
 	return *this;
-}
-
-Vector Matrix::operator*(const Vector& rhs) {
-	if (!m_ElementsUpdated) {
-		UpdateElements();
-	}
-
-	Vector retVec = rhs;
-	// Apply flipping as set.
-	retVec.m_X = m_Flipped[X] ? -retVec.m_X : retVec.m_X;
-	retVec.m_Y = m_Flipped[Y] ? -retVec.m_Y : retVec.m_Y;
-
-	// Do the matrix multiplication.
-	retVec.SetXY(m_Elements[0][0] * retVec.m_X + m_Elements[0][1] * retVec.m_Y, m_Elements[1][0] * retVec.m_X + m_Elements[1][1] * retVec.m_Y);
-
-	return retVec;
 }
 
 Vector Matrix::operator/(const Vector& rhs) {

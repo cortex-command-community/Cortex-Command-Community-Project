@@ -256,14 +256,7 @@ std::vector<std::size_t> SoundContainer::GetSelectedSoundHashes() const {
 }
 
 const SoundData* SoundContainer::GetSoundDataForSound(const FMOD::Sound* sound) const {
-	std::vector<const SoundData*> flattenedSoundData;
-	m_TopLevelSoundSet->GetFlattenedSoundData(flattenedSoundData, false);
-	for (const SoundData* soundData: flattenedSoundData) {
-		if (sound == soundData->SoundObject) {
-			return soundData;
-		}
-	}
-	return nullptr;
+	return m_TopLevelSoundSet->FindSoundData(sound);
 }
 
 void SoundContainer::SetCustomPanValue(float customPanValue) {

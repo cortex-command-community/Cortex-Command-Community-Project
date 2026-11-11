@@ -140,6 +140,8 @@ function Update(self)
 			self.SAM = nil
 		end
 	elseif self.Frame > 0 and self.Vel.Largest < 12 then -- we have SAMs left
+		-- Look from above the drone. Not from AboveHUDPos, since that goes by how the HUD was last drawn, which can't be allowed to change the simulation
+		local ScanPos = self.Pos + Vector(0, -self.Height * 0.5 - 6)
 		if #self.ValidTargets < 1 then -- Find valid targets
 			if self.SearchTimer:IsPastSimMS(100) then
 				self.SearchTimer:Reset() -- Only search a few times/sec to reduce calculations per update
@@ -148,7 +150,7 @@ function Update(self)
 				local Trace = self:RotateOffset(Vector(0, -200))
 				if not SceneMan:CastStrengthRay(self.Pos, Trace, 5, Vector(), 9, -1, true) then -- Terrain str 5
 					local obstructed = false
-					local ID = SceneMan:CastMORay(self.AboveHUDPos, Trace, self.ID, self.IgnoresWhichTeam, 0, true, 15)
+					local ID = SceneMan:CastMORay(ScanPos, Trace, self.ID, self.IgnoresWhichTeam, 0, true, 15)
 					if ID < rte.NoMOID then
 						local MO = MovableMan:GetMOFromID(ID)
 						if ID ~= MO.RootID then
@@ -215,7 +217,7 @@ function Update(self)
 		else -- Check if the missile have a clear line of sight to any of the selected targets
 			local NewTarget = table.remove(self.ValidTargets).Actor -- Only check one target to reduce calculations per update
 			if NewTarget and MovableMan:ValidMO(NewTarget) and not NewTarget:IsDead() then
-				local Trace = SceneMan:ShortestDistance(self.AboveHUDPos, NewTarget.Pos, false)
+				local Trace = SceneMan:ShortestDistance(ScanPos, NewTarget.Pos, false)
 				-- Don't shoot at targets that are out of reach
 				if Trace.Magnitude < self.radarRange then
 					-- Don't shoot at targets that are very close to the brain
@@ -227,7 +229,7 @@ function Update(self)
 						-- First do a very inexact scan of half the distance to the target for friendly dropships and terrain
 						if
 							SceneMan:CastObstacleRay(
-								self.AboveHUDPos,
+								ScanPos,
 								Trace * 0.5,
 								Vector(),
 								Vector(),
@@ -238,7 +240,7 @@ function Update(self)
 							) < 0
 						then
 							-- If nothing was found, do a more exact scan for terrain all the way to the target
-							if not SceneMan:CastStrengthRay(self.AboveHUDPos, Trace, 5, Vector(), 9, -1, true) then -- Terrain str 5
+							if not SceneMan:CastStrengthRay(ScanPos, Trace, 5, Vector(), 9, -1, true) then -- Terrain str 5
 								self.SearchTimer:Reset()
 
 								-- Spawn the SAM

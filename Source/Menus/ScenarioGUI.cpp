@@ -229,7 +229,7 @@ void ScenarioGUI::FetchActivitiesAndScenesLists() {
 	g_PresetMan.GetAllOfType(presetList, "Activity");
 	int index = 0;
 	for (Entity* presetEntity: presetList) {
-		if (GameActivity* presetActivity = dynamic_cast<GameActivity*>(presetEntity)) {
+		if (GameActivity* presetActivity = dynamic_cast<GameActivity*>(presetEntity); presetActivity && presetActivity->GetShowInMenus()) {
 			std::pair<Activity*, std::vector<Scene*>> activityAndCompatibleScenes(presetActivity, std::vector<Scene*>());
 			for (Scene* filteredScene: filteredScenes) {
 				if (presetActivity->SceneIsCompatible(filteredScene)) {
@@ -240,7 +240,7 @@ void ScenarioGUI::FetchActivitiesAndScenesLists() {
 			// Add to the activity selection ComboBox and attach the activity pointer, not passing in ownership.
 			m_ActivitySelectComboBox->AddItem(presetActivity->GetPresetName(), "", nullptr, presetActivity);
 
-			if (prevSelectedActivityIndex < 0 && presetActivity->GetModuleAndPresetName() == "Base.rte/Tutorial Mission") {
+			if (prevSelectedActivityIndex < 0 && presetActivity->GetPresetName() == "Tutorial Mission") {
 				prevSelectedActivityIndex = index;
 				prevSelectedScene = nullptr;
 			}
@@ -581,12 +581,12 @@ void ScenarioGUI::DrawSitePoints(BITMAP* drawBitmap) const {
 		int sitePosX = sitePos.GetFloorIntX();
 		int sitePosY = sitePos.GetFloorIntY();
 
-		blendAmount = 70 + RandomNum(0, 40);
+		blendAmount = 70 + g_DrawRandomGenerator.RandomNum(0, 40);
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 		circlefill(drawBitmap, sitePosX, sitePosY, 4, drawColor);
 		circlefill(drawBitmap, sitePosX, sitePosY, 2, drawColor);
 
-		blendAmount = 145 + RandomNum(0, 110);
+		blendAmount = 145 + g_DrawRandomGenerator.RandomNum(0, 110);
 		set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 		circlefill(drawBitmap, sitePosX, sitePosY, 1, drawColor);
 	}
@@ -603,11 +603,11 @@ void ScenarioGUI::DrawLinesToSitePoint(BITMAP* drawBitmap) const {
 			int lineEndX = m_LineToSitePoints.at(i + 1).GetFloorIntX();
 			int lineEndY = m_LineToSitePoints.at(i + 1).GetFloorIntY();
 
-			blendAmount = 195 + RandomNum(0, 30);
+			blendAmount = 195 + g_DrawRandomGenerator.RandomNum(0, 30);
 			set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 			line(drawBitmap, lineStartX, lineStartY, lineEndX, lineEndY, drawColor);
 
-			blendAmount = 30 + RandomNum(0, 50);
+			blendAmount = 30 + g_DrawRandomGenerator.RandomNum(0, 50);
 			set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 			line(drawBitmap, lineStartX + 1, lineStartY, lineEndX + 1, lineEndY, drawColor);
 			line(drawBitmap, lineStartX - 1, lineStartY, lineEndX - 1, lineEndY, drawColor);
@@ -620,11 +620,11 @@ void ScenarioGUI::DrawLinesToSitePoint(BITMAP* drawBitmap) const {
 	int sitePosY = sitePos.GetFloorIntY();
 	int circleRadius = 8;
 
-	blendAmount = 195 + RandomNum(0, 30);
+	blendAmount = 195 + g_DrawRandomGenerator.RandomNum(0, 30);
 	set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 	circle(drawBitmap, sitePosX, sitePosY, circleRadius, drawColor);
 
-	blendAmount = 120 + RandomNum(0, 50);
+	blendAmount = 120 + g_DrawRandomGenerator.RandomNum(0, 50);
 	set_screen_blender(blendAmount, blendAmount, blendAmount, blendAmount);
 	circle(drawBitmap, sitePosX, sitePosY, circleRadius - 1, drawColor);
 }

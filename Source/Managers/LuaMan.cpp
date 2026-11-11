@@ -1,6 +1,6 @@
 #include "LuaMan.h"
 
-#include "LuabindObjectWrapper.h"
+#include "LuaObjectWrapper.h"
 #include "LuaBindingRegisterDefinitions.h"
 #include "ThreadMan.h"
 #include "System.h"
@@ -20,20 +20,25 @@ LuaStateWrapper::~LuaStateWrapper() {
 	Destroy();
 }
 
+bool LuaStateWrapper::UniqueIDOrder::operator()(const MovableObject* lhs, const MovableObject* rhs) const {
+	return lhs->GetUniqueID() < rhs->GetUniqueID();
+}
+
 void LuaStateWrapper::Clear() {
 	m_State = nullptr;
 	m_TempEntity = nullptr;
 	m_TempEntityVector.clear();
 	m_LastError.clear();
 	m_CurrentlyRunningScriptPath = "";
+	m_RunningAI = false;
+  m_HeapSizeAfterGarbageCollectionStep = 0;
 }
 
 void LuaStateWrapper::Initialize() {
 	m_State = luaL_newstate();
-	luabind::open(m_State);
 	tracy::LuaRegister(m_State);
 
-	// We do async GC, but we still keep the normal GC on so it can catch any big spikes or runaway allocs
+	// Lua's own garbage collector is left on until StepGarbageCollection takes over from it, so it still collects while scripts are being loaded.
 	//lua_gc(m_State, LUA_GCSTOP, 0);
 
 	const luaL_Reg libsToLoad[] = {
@@ -45,11 +50,11 @@ void LuaStateWrapper::Initialize() {
 	    {LUA_MATHLIBNAME, luaopen_math},
 	    {LUA_DBLIBNAME, luaopen_debug},
 
-		// These were removed for "security reasons" but we need them for debugger integration
+	    // These were removed for "security reasons" but we need them for debugger integration
 	    {LUA_IOLIBNAME, luaopen_io},
 	    {LUA_OSLIBNAME, luaopen_os},
 
-		// LuaJIT libraries
+	    // LuaJIT libraries
 	    {LUA_BITLIBNAME, luaopen_bit},
 	    {LUA_FFILIBNAME, luaopen_ffi},
 	    {LUA_JITLIBNAME, luaopen_jit},
@@ -71,179 +76,181 @@ void LuaStateWrapper::Initialize() {
 		RTEAbort("Failed to initialize LuaJIT!\nIf this error persists, please disable LuaJIT with \"Settings.ini\" property \"DisableLuaJIT\".");
 	}
 
-	// From LuaBind documentation:
-	// As mentioned in the Lua documentation, it is possible to pass an error handler function to lua_pcall(). LuaBind makes use of lua_pcall() internally when calling member functions and free functions.
-	// It is possible to set the error handler function that LuaBind will use globally:
-	// set_pcall_callback(&AddFileAndLineToError); // NOTE: this seems to do nothing because retrieving the error from the lua stack wasn't done correctly. The current error handling works just fine but might look into doing this properly sometime later.
-
 	// Register all relevant bindings to the state. Note that the order of registration is important, as bindings can't derive from an unregistered type (inheritance and all that).
-	luabind::module(m_State)[luabind::class_<LuaStateWrapper>("LuaManager")
-	                             .property("TempEntity", &LuaStateWrapper::GetTempEntity)
-	                             .property("TempEntities", &LuaStateWrapper::GetTempEntityVector, luabind::return_stl_iterator)
-	                             .def("SelectRand", &LuaStateWrapper::SelectRand)
-	                             .def("RangeRand", &LuaStateWrapper::RangeRand)
-	                             .def("PosRand", &LuaStateWrapper::PosRand)
-	                             .def("NormalRand", &LuaStateWrapper::NormalRand)
-	                             .def("GetDirectoryList", &LuaStateWrapper::DirectoryList, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
-	                             .def("GetFileList", &LuaStateWrapper::FileList, luabind::adopt(luabind::return_value) + luabind::return_stl_iterator)
-	                             .def("FileExists", &LuaStateWrapper::FileExists)
-	                             .def("DirectoryExists", &LuaStateWrapper::DirectoryExists)
-	                             .def("FileOpen", &LuaStateWrapper::FileOpen)
-	                             .def("FileClose", &LuaStateWrapper::FileClose)
-	                             .def("FileRemove", &LuaStateWrapper::FileRemove)
-	                             .def("DirectoryCreate", &LuaStateWrapper::DirectoryCreate1)
-	                             .def("DirectoryCreate", &LuaStateWrapper::DirectoryCreate2)
-	                             .def("DirectoryRemove", &LuaStateWrapper::DirectoryRemove1)
-	                             .def("DirectoryRemove", &LuaStateWrapper::DirectoryRemove2)
-	                             .def("FileRename", &LuaStateWrapper::FileRename)
-	                             .def("DirectoryRename", &LuaStateWrapper::DirectoryRename)
-	                             .def("FileReadLine", &LuaStateWrapper::FileReadLine)
-	                             .def("FileWriteLine", &LuaStateWrapper::FileWriteLine)
-	                             .def("FileEOF", &LuaStateWrapper::FileEOF),
+	m_BindingStorage = std::make_unique<LuaBinding::Storage>();
+	LuaBinding::Registry registry(m_State, *m_BindingStorage);
 
-	                         luabind::def("DeleteEntity", &LuaAdaptersUtility::DeleteEntity, luabind::adopt(_1)), // NOT a member function, so adopting _1 instead of the _2 for the first param, since there's no "this" pointer!!
-	                         luabind::def("LERP", (float (*)(float, float, float, float, float))&Lerp),
-	                         luabind::def("Lerp", (float (*)(float, float, float, float, float))&Lerp),
-	                         luabind::def("Lerp", (Vector(*)(float, float, Vector, Vector, float))&Lerp),
-	                         luabind::def("Lerp", (Matrix(*)(float, float, const Matrix&, const Matrix&, float))&Lerp),
-	                         luabind::def("EaseIn", &EaseIn),
-	                         luabind::def("EaseOut", &EaseOut),
-	                         luabind::def("EaseInOut", &EaseInOut),
-	                         luabind::def("Clamp", &Limit),
-	                         luabind::def("NormalizeAngleBetween0And2PI", &NormalizeAngleBetween0And2PI),
-	                         luabind::def("NormalizeAngleBetweenNegativePIAndPI", &NormalizeAngleBetweenNegativePIAndPI),
-	                         luabind::def("AngleWithinRange", &AngleWithinRange),
-	                         luabind::def("ClampAngle", &ClampAngle),
-	                         luabind::def("GetPPM", &LuaAdaptersUtility::GetPPM),
-	                         luabind::def("GetMPP", &LuaAdaptersUtility::GetMPP),
-	                         luabind::def("GetPPL", &LuaAdaptersUtility::GetPPL),
-	                         luabind::def("GetLPP", &LuaAdaptersUtility::GetLPP),
-	                         luabind::def("GetPathFindingFlyingJumpHeight", &LuaAdaptersUtility::GetPathFindingFlyingJumpHeight),
-	                         luabind::def("GetPathFindingDefaultDigStrength", &LuaAdaptersUtility::GetPathFindingDefaultDigStrength),
-	                         luabind::def("RoundFloatToPrecision", &RoundFloatToPrecision),
-	                         luabind::def("RoundToNearestMultiple", &RoundToNearestMultiple),
+	registry.Class<LuaStateWrapper>("LuaManager")
+	    .addProperty("TempEntity", &LuaStateWrapper::GetTempEntity)
+	    .addProperty("TempEntities", &LuaStateWrapper::GetTempEntityVector, LuaBinding::ReturnStlIterator)
+	    .addFunction("SelectRand", &LuaStateWrapper::SelectRand)
+	    .addFunction("RangeRand", &LuaStateWrapper::RangeRand)
+	    .addFunction("PosRand", &LuaStateWrapper::PosRand)
+	    .addFunction("NormalRand", &LuaStateWrapper::NormalRand)
+	    .addFunction("GetDirectoryList", &LuaStateWrapper::DirectoryList, LuaBinding::AdoptResult, LuaBinding::ReturnStlIterator)
+	    .addFunction("GetFileList", &LuaStateWrapper::FileList, LuaBinding::AdoptResult, LuaBinding::ReturnStlIterator)
+	    .addFunction("FileExists", &LuaStateWrapper::FileExists)
+	    .addFunction("DirectoryExists", &LuaStateWrapper::DirectoryExists)
+	    .addFunction("FileOpen", &LuaStateWrapper::FileOpen)
+	    .addFunction("FileClose", &LuaStateWrapper::FileClose)
+	    .addFunction("FileRemove", &LuaStateWrapper::FileRemove)
+	    .addFunction("DirectoryCreate", &LuaStateWrapper::DirectoryCreate1)
+	    .addFunction("DirectoryCreate", &LuaStateWrapper::DirectoryCreate2)
+	    .addFunction("DirectoryRemove", &LuaStateWrapper::DirectoryRemove1)
+	    .addFunction("DirectoryRemove", &LuaStateWrapper::DirectoryRemove2)
+	    .addFunction("FileRename", &LuaStateWrapper::FileRename)
+	    .addFunction("DirectoryRename", &LuaStateWrapper::DirectoryRename)
+	    .addFunction("FileReadLine", &LuaStateWrapper::FileReadLine)
+	    .addFunction("FileWriteLine", &LuaStateWrapper::FileWriteLine)
+	    .addFunction("FileEOF", &LuaStateWrapper::FileEOF);
 
-	                         RegisterLuaBindingsOfType(SystemLuaBindings, Vector),
-	                         RegisterLuaBindingsOfType(SystemLuaBindings, Box),
-	                         RegisterLuaBindingsOfType(EntityLuaBindings, Entity),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, SoundContainer),
-	                         RegisterLuaBindingsOfType(EntityLuaBindings, SoundSet),
-	                         RegisterLuaBindingsOfType(EntityLuaBindings, LimbPath),
-	                         RegisterLuaBindingsOfAbstractType(EntityLuaBindings, SceneObject),
-	                         RegisterLuaBindingsOfAbstractType(EntityLuaBindings, MovableObject),
-	                         RegisterLuaBindingsOfType(EntityLuaBindings, Material),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, MOPixel),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, TerrainObject),
-	                         RegisterLuaBindingsOfAbstractType(EntityLuaBindings, MOSprite),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, MOSParticle),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, MOSRotating),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Attachable),
-	                         RegisterLuaBindingsOfAbstractType(EntityLuaBindings, Emission),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, AEmitter),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, AEJetpack),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, PEmitter),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Actor),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, ADoor),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Arm),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Leg),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, AHuman),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, ACrab),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Turret),
-	                         RegisterLuaBindingsOfAbstractType(EntityLuaBindings, ACraft),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, ACDropShip),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, ACRocket),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, HeldDevice),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Magazine),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Round),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, HDFirearm),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, ThrownDevice),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, TDExplosive),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, PieSlice),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, PieMenu),
-	                         RegisterLuaBindingsOfType(EntityLuaBindings, Gib),
-	                         RegisterLuaBindingsOfType(SystemLuaBindings, Controller),
-	                         RegisterLuaBindingsOfType(SystemLuaBindings, Timer),
-	                         RegisterLuaBindingsOfType(SystemLuaBindings, PathRequest),
-	                         RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Scene),
-	                         RegisterLuaBindingsOfType(EntityLuaBindings, SceneArea),
-	                         RegisterLuaBindingsOfType(EntityLuaBindings, StaticSceneLayer),
-	                         RegisterLuaBindingsOfType(EntityLuaBindings, SLBackground),
-	                         RegisterLuaBindingsOfAbstractType(EntityLuaBindings, Deployment),
-	                         RegisterLuaBindingsOfType(SystemLuaBindings, DataModule),
-	                         RegisterLuaBindingsOfType(ActivityLuaBindings, Activity),
-	                         RegisterLuaBindingsOfAbstractType(ActivityLuaBindings, GameActivity),
-	                         RegisterLuaBindingsOfAbstractType(EntityLuaBindings, GlobalScript),
-	                         RegisterLuaBindingsOfType(EntityLuaBindings, MetaPlayer),
-	                         RegisterLuaBindingsOfType(GUILuaBindings, GUIBanner),
-	                         RegisterLuaBindingsOfType(GUILuaBindings, BuyMenuGUI),
-	                         RegisterLuaBindingsOfType(GUILuaBindings, SceneEditorGUI),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, ActivityMan),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, AudioMan),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, MusicMan),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, CameraMan),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, ConsoleMan),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, FrameMan),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, MetaMan),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, MovableMan),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, PerformanceMan),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, PostProcessMan),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, PresetMan),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, PrimitiveMan),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, SceneMan),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, SettingsMan),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, TimerMan),
-	                         RegisterLuaBindingsOfType(ManagerLuaBindings, UInputMan),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, GraphicalPrimitive),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, LinePrimitive),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, ArcPrimitive),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, SplinePrimitive),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, BoxPrimitive),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, BoxFillPrimitive),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, RoundedBoxPrimitive),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, RoundedBoxFillPrimitive),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, CirclePrimitive),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, CircleFillPrimitive),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, EllipsePrimitive),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, EllipseFillPrimitive),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, TrianglePrimitive),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, TriangleFillPrimitive),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, TextPrimitive),
-	                         RegisterLuaBindingsOfType(PrimitiveLuaBindings, BitmapPrimitive),
-	                         RegisterLuaBindingsOfType(InputLuaBindings, InputDevice),
-	                         RegisterLuaBindingsOfType(InputLuaBindings, InputElements),
-	                         RegisterLuaBindingsOfType(InputLuaBindings, JoyButtons),
-	                         RegisterLuaBindingsOfType(InputLuaBindings, JoyDirections),
-	                         RegisterLuaBindingsOfType(InputLuaBindings, MouseButtons),
-	                         RegisterLuaBindingsOfType(InputLuaBindings, SDL_Keycode),
-	                         RegisterLuaBindingsOfType(InputLuaBindings, SDL_Scancode),
-	                         RegisterLuaBindingsOfType(InputLuaBindings, SDL_GamepadButton),
-	                         RegisterLuaBindingsOfType(InputLuaBindings, SDL_GamepadAxis),
-	                         RegisterLuaBindingsOfType(MiscLuaBindings, AlarmEvent),
-	                         RegisterLuaBindingsOfType(MiscLuaBindings, Directions),
-	                         RegisterLuaBindingsOfType(MiscLuaBindings, DrawBlendMode),
-	                         RegisterLuaBindingsOfType(MiscLuaBindings, DrawDepth)];
+	registry.Function("DeleteEntity", &LuaAdaptersUtility::DeleteEntity, LuaBinding::AdoptArg<1>); // NOT a member function, so adopting argument 1 instead of 2 for the first param, since there's no "this" pointer!!
+	registry.Function("LERP", (float (*)(float, float, float, float, float)) & Lerp);
+	registry.Function("Lerp", (float (*)(float, float, float, float, float)) & Lerp);
+	registry.Function("Lerp", (Vector(*)(float, float, Vector, Vector, float)) & Lerp);
+	registry.Function("Lerp", (Matrix(*)(float, float, const Matrix&, const Matrix&, float)) & Lerp);
+	registry.Function("EaseIn", &EaseIn);
+	registry.Function("EaseOut", &EaseOut);
+	registry.Function("EaseInOut", &EaseInOut);
+	registry.Function("Clamp", &Limit);
+	registry.Function("NormalizeAngleBetween0And2PI", &NormalizeAngleBetween0And2PI);
+	registry.Function("NormalizeAngleBetweenNegativePIAndPI", &NormalizeAngleBetweenNegativePIAndPI);
+	registry.Function("AngleWithinRange", &AngleWithinRange);
+	registry.Function("ClampAngle", &ClampAngle);
+	registry.Function("GetPPM", &LuaAdaptersUtility::GetPPM);
+	registry.Function("GetMPP", &LuaAdaptersUtility::GetMPP);
+	registry.Function("GetPPL", &LuaAdaptersUtility::GetPPL);
+	registry.Function("GetLPP", &LuaAdaptersUtility::GetLPP);
+	registry.Function("GetPathFindingFlyingJumpHeight", &LuaAdaptersUtility::GetPathFindingFlyingJumpHeight);
+	registry.Function("GetPathFindingDefaultDigStrength", &LuaAdaptersUtility::GetPathFindingDefaultDigStrength);
+	registry.Function("RoundFloatToPrecision", &RoundFloatToPrecision);
+	registry.Function("RoundToNearestMultiple", &RoundToNearestMultiple);
+
+	RegisterLuaBindingsOfType(SystemLuaBindings, Vector);
+	RegisterLuaBindingsOfType(SystemLuaBindings, Box);
+	RegisterLuaBindingsOfType(EntityLuaBindings, Entity);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, SoundContainer);
+	RegisterLuaBindingsOfType(EntityLuaBindings, SoundSet);
+	RegisterLuaBindingsOfType(EntityLuaBindings, LimbPath);
+	RegisterLuaBindingsOfAbstractType(EntityLuaBindings, SceneObject);
+	RegisterLuaBindingsOfAbstractType(EntityLuaBindings, MovableObject);
+	RegisterLuaBindingsOfType(EntityLuaBindings, Material);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, MOPixel);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, TerrainObject);
+	RegisterLuaBindingsOfAbstractType(EntityLuaBindings, MOSprite);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, MOSParticle);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, MOSRotating);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Attachable);
+	RegisterLuaBindingsOfAbstractType(EntityLuaBindings, Emission);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, AEmitter);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, AEJetpack);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, PEmitter);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Actor);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, ADoor);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Arm);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Leg);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, AHuman);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, ACrab);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Turret);
+	RegisterLuaBindingsOfAbstractType(EntityLuaBindings, ACraft);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, ACDropShip);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, ACRocket);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, HeldDevice);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Magazine);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Round);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, HDFirearm);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, ThrownDevice);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, TDExplosive);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, PieSlice);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, PieMenu);
+	RegisterLuaBindingsOfType(EntityLuaBindings, Gib);
+	RegisterLuaBindingsOfType(SystemLuaBindings, Controller);
+	RegisterLuaBindingsOfType(SystemLuaBindings, Timer);
+	RegisterLuaBindingsOfType(SystemLuaBindings, PathRequest);
+	RegisterLuaBindingsOfConcreteType(EntityLuaBindings, Scene);
+	RegisterLuaBindingsOfType(EntityLuaBindings, SceneArea);
+	RegisterLuaBindingsOfType(EntityLuaBindings, StaticSceneLayer);
+	RegisterLuaBindingsOfType(EntityLuaBindings, SLBackground);
+	RegisterLuaBindingsOfAbstractType(EntityLuaBindings, Deployment);
+	RegisterLuaBindingsOfType(SystemLuaBindings, DataModule);
+	RegisterLuaBindingsOfType(SystemLuaBindings, InputScheme);
+	RegisterLuaBindingsOfType(ActivityLuaBindings, Activity);
+	RegisterLuaBindingsOfAbstractType(ActivityLuaBindings, GameActivity);
+	RegisterLuaBindingsOfAbstractType(EntityLuaBindings, GlobalScript);
+	RegisterLuaBindingsOfType(EntityLuaBindings, MetaPlayer);
+	RegisterLuaBindingsOfType(GUILuaBindings, GUIBanner);
+	RegisterLuaBindingsOfType(GUILuaBindings, BuyMenuGUI);
+	RegisterLuaBindingsOfType(GUILuaBindings, SceneEditorGUI);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, ActivityMan);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, AudioMan);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, MusicMan);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, CameraMan);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, ConsoleMan);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, FrameMan);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, MetaMan);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, MovableMan);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, PerformanceMan);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, PostProcessMan);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, PresetMan);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, PrimitiveMan);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, SceneMan);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, SettingsMan);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, TimerMan);
+	RegisterLuaBindingsOfType(ManagerLuaBindings, UInputMan);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, GraphicalPrimitive);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, LinePrimitive);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, ArcPrimitive);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, SplinePrimitive);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, BoxPrimitive);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, BoxFillPrimitive);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, RoundedBoxPrimitive);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, RoundedBoxFillPrimitive);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, CirclePrimitive);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, CircleFillPrimitive);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, EllipsePrimitive);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, EllipseFillPrimitive);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, TrianglePrimitive);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, TriangleFillPrimitive);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, TextPrimitive);
+	RegisterLuaBindingsOfType(PrimitiveLuaBindings, BitmapPrimitive);
+	RegisterLuaBindingsOfType(InputLuaBindings, InputDevice);
+	RegisterLuaBindingsOfType(InputLuaBindings, InputElements);
+	RegisterLuaBindingsOfType(InputLuaBindings, JoyButtons);
+	RegisterLuaBindingsOfType(InputLuaBindings, JoyDirections);
+	RegisterLuaBindingsOfType(InputLuaBindings, MouseButtons);
+	RegisterLuaBindingsOfType(InputLuaBindings, SDL_Keycode);
+	RegisterLuaBindingsOfType(InputLuaBindings, SDL_Scancode);
+	RegisterLuaBindingsOfType(InputLuaBindings, SDL_GamepadButton);
+	RegisterLuaBindingsOfType(InputLuaBindings, SDL_GamepadAxis);
+	RegisterLuaBindingsOfType(MiscLuaBindings, AlarmEvent);
+	RegisterLuaBindingsOfType(MiscLuaBindings, Directions);
+	RegisterLuaBindingsOfType(MiscLuaBindings, DrawBlendMode);
+	RegisterLuaBindingsOfType(MiscLuaBindings, DrawDepth);
+
+	registry.Finalize();
 
 	// Assign the manager instances to globals in the lua master state
-	luabind::globals(m_State)["TimerMan"] = &g_TimerMan;
-	luabind::globals(m_State)["FrameMan"] = &g_FrameMan;
-	luabind::globals(m_State)["PerformanceMan"] = &g_PerformanceMan;
-	luabind::globals(m_State)["PostProcessMan"] = &g_PostProcessMan;
-	luabind::globals(m_State)["PrimitiveMan"] = &g_PrimitiveMan;
-	luabind::globals(m_State)["PresetMan"] = &g_PresetMan;
-	luabind::globals(m_State)["AudioMan"] = &g_AudioMan;
-	luabind::globals(m_State)["MusicMan"] = &g_MusicMan;
-	luabind::globals(m_State)["UInputMan"] = &g_UInputMan;
-	luabind::globals(m_State)["SceneMan"] = &g_SceneMan;
-	luabind::globals(m_State)["ActivityMan"] = &g_ActivityMan;
-	luabind::globals(m_State)["MetaMan"] = &g_MetaMan;
-	luabind::globals(m_State)["MovableMan"] = &g_MovableMan;
-	luabind::globals(m_State)["CameraMan"] = &g_CameraMan;
-	luabind::globals(m_State)["ConsoleMan"] = &g_ConsoleMan;
-	luabind::globals(m_State)["LuaMan"] = this;
-	luabind::globals(m_State)["SettingsMan"] = &g_SettingsMan;
+	luabridge::setGlobal(m_State, &g_TimerMan, "TimerMan");
+	luabridge::setGlobal(m_State, &g_FrameMan, "FrameMan");
+	luabridge::setGlobal(m_State, &g_PerformanceMan, "PerformanceMan");
+	luabridge::setGlobal(m_State, &g_PostProcessMan, "PostProcessMan");
+	luabridge::setGlobal(m_State, &g_PrimitiveMan, "PrimitiveMan");
+	luabridge::setGlobal(m_State, &g_PresetMan, "PresetMan");
+	luabridge::setGlobal(m_State, &g_AudioMan, "AudioMan");
+	luabridge::setGlobal(m_State, &g_MusicMan, "MusicMan");
+	luabridge::setGlobal(m_State, &g_UInputMan, "UInputMan");
+	luabridge::setGlobal(m_State, &g_SceneMan, "SceneMan");
+	luabridge::setGlobal(m_State, &g_ActivityMan, "ActivityMan");
+	luabridge::setGlobal(m_State, &g_MetaMan, "MetaMan");
+	luabridge::setGlobal(m_State, &g_MovableMan, "MovableMan");
+	luabridge::setGlobal(m_State, &g_CameraMan, "CameraMan");
+	luabridge::setGlobal(m_State, &g_ConsoleMan, "ConsoleMan");
+	luabridge::setGlobal(m_State, this, "LuaMan");
+	luabridge::setGlobal(m_State, &g_SettingsMan, "SettingsMan");
 
 	const uint64_t seed = RandomNum<uint64_t>(0, std::numeric_limits<uint64_t>::max());
 	m_RandomGenerator.Seed(seed);
+	m_AIRandomGenerator.Seed(RandomNum<uint64_t>(0, std::numeric_limits<uint64_t>::max()));
 
 	luaL_dostring(m_State,
 	              "package.path = package.path .. \";Data/Base.rte/LuaIntegration/?.lua;Data/Base.rte/LuaIntegration/?/?.lua;\"\n"
@@ -279,22 +286,32 @@ void LuaStateWrapper::Initialize() {
 
 void LuaStateWrapper::Destroy() {
 	lua_close(m_State);
+	m_BindingStorage.reset();
+}
+
+void LuaStateWrapper::SetRunningAI(bool runningAI) {
+	m_RunningAI = runningAI;
+	SetThreadRandomGenerator(runningAI ? &m_AIRandomGenerator : nullptr);
+}
+
+void LuaStateWrapper::SetRunningThreadedUpdate(bool runningThreadedUpdate) {
+	SetThreadRandomGenerator(runningThreadedUpdate ? &m_RandomGenerator : nullptr);
 }
 
 int LuaStateWrapper::SelectRand(int minInclusive, int maxInclusive) {
-	return m_RandomGenerator.RandomNum<int>(minInclusive, maxInclusive);
+	return GetActiveRandomGenerator().RandomNum<int>(minInclusive, maxInclusive);
 }
 
 double LuaStateWrapper::RangeRand(double minInclusive, double maxInclusive) {
-	return m_RandomGenerator.RandomNum<double>(minInclusive, maxInclusive);
+	return GetActiveRandomGenerator().RandomNum<double>(minInclusive, maxInclusive);
 }
 
 double LuaStateWrapper::NormalRand() {
-	return m_RandomGenerator.RandomNormalNum<double>();
+	return GetActiveRandomGenerator().RandomNormalNum<double>();
 }
 
 double LuaStateWrapper::PosRand() {
-	return m_RandomGenerator.RandomNum<double>();
+	return GetActiveRandomGenerator().RandomNum<double>();
 }
 
 // Passthrough LuaMan Functions
@@ -329,6 +346,9 @@ void LuaMan::Initialize() {
 	} else if (g_SettingsMan.GetNumberOfLuaStatesOverride() != -1) {
 		luaStateCount = g_SettingsMan.GetNumberOfLuaStatesOverride();
 	}
+
+	// Each threaded Lua state hands out unique IDs to the MOs made on its thread from a range of its own, and there's only so many of those ranges, with one going to the main thread.
+	luaStateCount = std::min(luaStateCount, (1 << MovableObject::c_UniqueIDThreadBits) - 1);
 
 	m_ScriptStates = std::vector<LuaStateWrapper>(luaStateCount);
 	for (LuaStateWrapper& luaState: m_ScriptStates) {
@@ -570,7 +590,7 @@ int LuaStateWrapper::RunScriptString(const std::string& scriptString, bool conso
 	return error;
 }
 
-int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functionObject, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
+int LuaStateWrapper::RunScriptFunctionObject(const LuaObjectWrapper* functionObject, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuaObjectWrapper*>& functionObjectArguments) {
 	int status = 0;
 
 	std::lock_guard<std::recursive_mutex> lock(m_Mutex);
@@ -578,7 +598,7 @@ int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functio
 	m_CurrentlyRunningScriptPath = functionObject->GetFilePath();
 
 	lua_pushcfunction(m_State, &AddFileAndLineToError);
-	functionObject->GetLuabindObject()->push(m_State);
+	functionObject->GetLuaObject()->push(m_State);
 
 	int argumentCount = functionEntityArguments.size() + functionLiteralArguments.size() + functionObjectArguments.size();
 	if (!selfGlobalTableName.empty() && TableEntryIsDefined(selfGlobalTableName, selfGlobalTableKey)) {
@@ -589,8 +609,7 @@ int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functio
 	}
 
 	for (const Entity* functionEntityArgument: functionEntityArguments) {
-		std::unique_ptr<LuabindObjectWrapper> downCastEntityAsLuabindObjectWrapper(LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions.at(functionEntityArgument->GetClassName())(const_cast<Entity*>(functionEntityArgument), m_State));
-		downCastEntityAsLuabindObjectWrapper->GetLuabindObject()->push(m_State);
+		LuaAdaptersEntityCast::s_EntityToLuaObjectPushFunctions.at(functionEntityArgument->GetClassName())(const_cast<Entity*>(functionEntityArgument), m_State);
 	}
 
 	for (const std::string_view& functionLiteralArgument: functionLiteralArguments) {
@@ -606,12 +625,12 @@ int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functio
 		}
 	}
 
-	for (const LuabindObjectWrapper* functionObjectArgument: functionObjectArguments) {
-		if (functionObjectArgument->GetLuabindObject()->interpreter() != m_State) {
-			LuabindObjectWrapper copy = functionObjectArgument->GetCopyForState(*m_State);
-			copy.GetLuabindObject()->push(m_State);
+	for (const LuaObjectWrapper* functionObjectArgument: functionObjectArguments) {
+		if (functionObjectArgument->GetLuaObject()->state() != m_State) {
+			LuaObjectWrapper copy = functionObjectArgument->GetCopyForState(*m_State);
+			copy.GetLuaObject()->push(m_State);
 		} else {
-			functionObjectArgument->GetLuabindObject()->push(m_State);
+			functionObjectArgument->GetLuaObject()->push(m_State);
 		}
 	}
 	const std::string& path = functionObject->GetFilePath();
@@ -651,7 +670,7 @@ int LuaStateWrapper::RunScriptFunctionObject(const LuabindObjectWrapper* functio
 	return status;
 }
 
-int LuaStateWrapper::RunScriptConditionalTestFunctionObject(const LuabindObjectWrapper* functionObject, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, bool& returnParam, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuabindObjectWrapper*>& functionObjectArguments) {
+int LuaStateWrapper::RunScriptConditionalTestFunctionObject(const LuaObjectWrapper* functionObject, const std::string& selfGlobalTableName, const std::string& selfGlobalTableKey, bool& returnParam, const std::vector<const Entity*>& functionEntityArguments, const std::vector<std::string_view>& functionLiteralArguments, const std::vector<LuaObjectWrapper*>& functionObjectArguments) {
 	int status = 0;
 
 	std::lock_guard<std::recursive_mutex> lock(m_Mutex);
@@ -659,7 +678,7 @@ int LuaStateWrapper::RunScriptConditionalTestFunctionObject(const LuabindObjectW
 	m_CurrentlyRunningScriptPath = functionObject->GetFilePath();
 
 	lua_pushcfunction(m_State, &AddFileAndLineToError);
-	functionObject->GetLuabindObject()->push(m_State);
+	functionObject->GetLuaObject()->push(m_State);
 
 	int argumentCount = functionEntityArguments.size() + functionLiteralArguments.size() + functionObjectArguments.size();
 	if (!selfGlobalTableName.empty() && TableEntryIsDefined(selfGlobalTableName, selfGlobalTableKey)) {
@@ -670,8 +689,7 @@ int LuaStateWrapper::RunScriptConditionalTestFunctionObject(const LuabindObjectW
 	}
 
 	for (const Entity* functionEntityArgument: functionEntityArguments) {
-		std::unique_ptr<LuabindObjectWrapper> downCastEntityAsLuabindObjectWrapper(LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions.at(functionEntityArgument->GetClassName())(const_cast<Entity*>(functionEntityArgument), m_State));
-		downCastEntityAsLuabindObjectWrapper->GetLuabindObject()->push(m_State);
+		LuaAdaptersEntityCast::s_EntityToLuaObjectPushFunctions.at(functionEntityArgument->GetClassName())(const_cast<Entity*>(functionEntityArgument), m_State);
 	}
 
 	for (const std::string_view& functionLiteralArgument: functionLiteralArguments) {
@@ -687,12 +705,12 @@ int LuaStateWrapper::RunScriptConditionalTestFunctionObject(const LuabindObjectW
 		}
 	}
 
-	for (const LuabindObjectWrapper* functionObjectArgument: functionObjectArguments) {
-		if (functionObjectArgument->GetLuabindObject()->interpreter() != m_State) {
-			LuabindObjectWrapper copy = functionObjectArgument->GetCopyForState(*m_State);
-			copy.GetLuabindObject()->push(m_State);
+	for (const LuaObjectWrapper* functionObjectArgument: functionObjectArguments) {
+		if (functionObjectArgument->GetLuaObject()->state() != m_State) {
+			LuaObjectWrapper copy = functionObjectArgument->GetCopyForState(*m_State);
+			copy.GetLuaObject()->push(m_State);
 		} else {
-			functionObjectArgument->GetLuabindObject()->push(m_State);
+			functionObjectArgument->GetLuaObject()->push(m_State);
 		}
 	}
 
@@ -803,14 +821,17 @@ int LuaStateWrapper::RunScriptFile(const std::string& filePath, bool consoleErro
 	return error;
 }
 
-bool LuaStateWrapper::RetrieveFunctions(const std::string& funcObjectName, const std::vector<std::string>& functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper*>& outFunctionNamesAndObjects) {
+bool LuaStateWrapper::RetrieveFunctions(const std::string& funcObjectName, const std::vector<std::string>& functionNamesToLookFor, std::unordered_map<std::string, LuaObjectWrapper*>& outFunctionNamesAndObjects) {
 	std::lock_guard<std::recursive_mutex> lock(m_Mutex);
 	s_currentLuaState = this;
 
-	luabind::object funcHoldingObject = luabind::globals(m_State)[funcObjectName.c_str()];
-	if (luabind::type(funcHoldingObject) == LUA_TNIL) {
+	const int stackTop = lua_gettop(m_State);
+	lua_getglobal(m_State, funcObjectName.c_str());
+	if (lua_isnil(m_State, -1)) {
+		lua_settop(m_State, stackTop);
 		return false;
 	}
+	const int funcHoldingObjectIndex = lua_gettop(m_State);
 
 	auto& newScript = m_ScriptCache[funcObjectName.c_str()];
 	for (auto& pair: newScript.functionNamesAndObjects) {
@@ -818,22 +839,25 @@ bool LuaStateWrapper::RetrieveFunctions(const std::string& funcObjectName, const
 	}
 	newScript.functionNamesAndObjects.clear();
 	for (const std::string& functionName: functionNamesToLookFor) {
-		luabind::object functionObject = funcHoldingObject[functionName];
-		if (luabind::type(functionObject) == LUA_TFUNCTION) {
-			luabind::object* functionObjectCopyForStoring = new luabind::object(functionObject);
-			newScript.functionNamesAndObjects.try_emplace(functionName, new LuabindObjectWrapper(functionObjectCopyForStoring, funcObjectName));
+		lua_getfield(m_State, funcHoldingObjectIndex, functionName.c_str());
+		if (lua_isfunction(m_State, -1)) {
+			luabridge::LuaRef* functionObjectCopyForStoring = new luabridge::LuaRef(luabridge::LuaRef::fromStack(m_State));
+			newScript.functionNamesAndObjects.try_emplace(functionName, new LuaObjectWrapper(functionObjectCopyForStoring, funcObjectName));
+		} else {
+			lua_pop(m_State, 1);
 		}
 	}
+	lua_settop(m_State, stackTop);
 
 	for (auto& pair: newScript.functionNamesAndObjects) {
-		luabind::object* functionObjectCopyForStoring = new luabind::object(*pair.second->GetLuabindObject());
-		outFunctionNamesAndObjects.try_emplace(pair.first, new LuabindObjectWrapper(functionObjectCopyForStoring, funcObjectName));
+		luabridge::LuaRef* functionObjectCopyForStoring = new luabridge::LuaRef(*pair.second->GetLuaObject());
+		outFunctionNamesAndObjects.try_emplace(pair.first, new LuaObjectWrapper(functionObjectCopyForStoring, funcObjectName));
 	}
 
 	return true;
 }
 
-int LuaStateWrapper::RunScriptFileAndRetrieveFunctions(const std::string& filePath, const std::vector<std::string>& functionNamesToLookFor, std::unordered_map<std::string, LuabindObjectWrapper*>& outFunctionNamesAndObjects, bool forceReload) {
+int LuaStateWrapper::RunScriptFileAndRetrieveFunctions(const std::string& filePath, const std::vector<std::string>& functionNamesToLookFor, std::unordered_map<std::string, LuaObjectWrapper*>& outFunctionNamesAndObjects, bool forceReload) {
 	static bool disableCaching = false;
 	forceReload = forceReload || disableCaching;
 
@@ -843,8 +867,8 @@ int LuaStateWrapper::RunScriptFileAndRetrieveFunctions(const std::string& filePa
 	if (!forceReload && cachedScript != m_ScriptCache.end()) {
 		for (auto& pair: cachedScript->second.functionNamesAndObjects) {
 			if (std::find(functionNamesToLookFor.begin(), functionNamesToLookFor.end(), pair.first) != functionNamesToLookFor.end()) {
-				luabind::object* functionObjectCopyForStoring = new luabind::object(*pair.second->GetLuabindObject());
-				outFunctionNamesAndObjects.try_emplace(pair.first, new LuabindObjectWrapper(functionObjectCopyForStoring, filePath));
+				luabridge::LuaRef* functionObjectCopyForStoring = new luabridge::LuaRef(*pair.second->GetLuaObject());
+				outFunctionNamesAndObjects.try_emplace(pair.first, new LuaObjectWrapper(functionObjectCopyForStoring, filePath));
 			}
 		}
 
@@ -870,6 +894,23 @@ void LuaStateWrapper::Update() {
 		m_RegisteredMOs.insert(mo);
 	}
 	m_AddedRegisteredMOs.clear();
+}
+
+void LuaStateWrapper::StepGarbageCollection() {
+	std::lock_guard<std::recursive_mutex> lock(m_Mutex);
+
+	size_t heapSize = GetHeapSize();
+	if (m_HeapSizeAfterGarbageCollectionStep != 0) {
+		// Lua's own collector does its step multiplier's worth of collecting for each kilobyte allocated, and a step of that many kilobytes does the same, so this keeps up with what was allocated since the last step just as it would have.
+		// With nothing allocated it still does a single step, so that a cycle always gets finished.
+		// Unlike Lua's own collector, it goes straight on from one cycle into the next rather than waiting for the heap to grow first. That wait goes by an estimate of the heap that leaves out what's still to be finalized, which there's no way to get from outside Lua, and going by the whole heap instead lets it grow without end.
+		size_t allocatedSinceLastStep = heapSize > m_HeapSizeAfterGarbageCollectionStep ? heapSize - m_HeapSizeAfterGarbageCollectionStep : 0;
+		lua_gc(m_State, LUA_GCSTEP, static_cast<int>(allocatedSinceLastStep / 1024));
+	}
+
+	// Stop the Lua GC from triggering manually so we don't get spikes in work that the main thread may be waiting on
+	lua_gc(m_State, LUA_GCSTOP, 0);
+	m_HeapSizeAfterGarbageCollectionStep = GetHeapSize();
 }
 
 void LuaStateWrapper::ClearScriptTimings() {
@@ -985,6 +1026,11 @@ std::string LuaStateWrapper::DescribeLuaStack() {
 		}
 	}
 	return stackDescription.str();
+}
+
+size_t LuaStateWrapper::GetHeapSize() {
+	// Lua only gives the heap size in whole kilobytes, plus the bytes left over from that, so they're put back together to get it in bytes.
+	return static_cast<size_t>(lua_gc(m_State, LUA_GCCOUNT, 0)) * 1024 + static_cast<size_t>(lua_gc(m_State, LUA_GCCOUNTB, 0));
 }
 
 LuaMan::LuaMan() {
@@ -1280,7 +1326,7 @@ void LuaMan::Update() {
 	m_GarbageCollectionTask.wait();
 
 	// Apply all deletions queued from lua
-	LuabindObjectWrapper::ApplyQueuedDeletions();
+	LuaObjectWrapper::ApplyQueuedDeletions();
 }
 
 void LuaMan::StartAsyncGarbageCollection() {
@@ -1299,9 +1345,7 @@ void LuaMan::StartAsyncGarbageCollection() {
 		m_GarbageCollectionTask.push_back(
 		    g_ThreadMan.GetPriorityThreadPool().submit([luaState]() {
 			    ZoneScopedN("Lua Garbage Collection");
-			    std::lock_guard<std::recursive_mutex> lock(luaState->GetMutex());
-			    lua_gc(luaState->GetLuaState(), LUA_GCSTEP, 100);
-			    lua_gc(luaState->GetLuaState(), LUA_GCSTOP, 0);
+			    luaState->StepGarbageCollection();
 		    }));
 	}
 }

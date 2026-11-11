@@ -10,6 +10,7 @@
 #include "PostProcessMan.h"
 #include "RenderTarget.h"
 #include "GLResourceMan.h"
+#include "System.h"
 
 #include "GLCheck.h"
 #include <SDL3/SDL.h>
@@ -72,6 +73,7 @@ void WindowMan::Clear() {
 	m_Fullscreen = false;
 	m_EnableVSync = true;
 	m_UseMultiDisplays = false;
+	m_LaunchMinimised = false;
 }
 
 void WindowMan::ClearMultiDisplayData() {
@@ -184,6 +186,8 @@ void WindowMan::CreatePrimaryWindow() {
 	SDL_SetBooleanProperty(windowProps, SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN, true);
 	SDL_SetBooleanProperty(windowProps, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, true);
 	SDL_SetBooleanProperty(windowProps, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, m_Fullscreen);
+	SDL_SetBooleanProperty(windowProps, SDL_PROP_WINDOW_CREATE_HIDDEN_BOOLEAN, System::IsInHeadlessMode());
+	SDL_SetBooleanProperty(windowProps, SDL_PROP_WINDOW_CREATE_MINIMIZED_BOOLEAN, m_LaunchMinimised);
 	SDL_SetNumberProperty(windowProps, SDL_PROP_WINDOW_CREATE_X_NUMBER, windowPosX);
 	SDL_SetNumberProperty(windowProps, SDL_PROP_WINDOW_CREATE_Y_NUMBER, windowPosY);
 	SDL_SetNumberProperty(windowProps, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, m_ResX * m_ResMultiplier);
@@ -207,7 +211,8 @@ void WindowMan::CreatePrimaryWindow() {
 	SDL_GL_SwapWindow(m_PrimaryWindow.get());
 	SDL_SetCursor(NULL);
 
-	if (!m_Fullscreen && IsResolutionMaximized(m_ResX, m_ResY, m_ResMultiplier)) {
+	// Maximising a minimised window would bring it back up.
+	if (!m_Fullscreen && !m_LaunchMinimised && IsResolutionMaximized(m_ResX, m_ResY, m_ResMultiplier)) {
 		SDL_MaximizeWindow(m_PrimaryWindow.get());
 	}
 

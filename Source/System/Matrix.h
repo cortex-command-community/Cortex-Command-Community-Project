@@ -226,7 +226,21 @@ namespace RTE {
 		/// Flipping, if set, is performed before rotating.
 		/// @param rhs A Vector reference as the right hand side operand.
 		/// @return The resulting transformed Vector.
-		Vector operator*(const Vector& rhs);
+		Vector operator*(const Vector& rhs) {
+			if (!m_ElementsUpdated) {
+				UpdateElements();
+			}
+
+			Vector retVec = rhs;
+			// Apply flipping as set.
+			retVec.m_X = m_Flipped[X] ? -retVec.m_X : retVec.m_X;
+			retVec.m_Y = m_Flipped[Y] ? -retVec.m_Y : retVec.m_Y;
+
+			// Do the matrix multiplication.
+			retVec.SetXY(m_Elements[0][0] * retVec.m_X + m_Elements[0][1] * retVec.m_Y, m_Elements[1][0] * retVec.m_X + m_Elements[1][1] * retVec.m_Y);
+
+			return retVec;
+		}
 
 		/// Multiplication operator overload for Vectors with Matrices.
 		/// @param lhs A Vector reference as the left hand side operand.

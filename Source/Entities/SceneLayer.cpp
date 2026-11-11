@@ -93,6 +93,7 @@ int SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Create(const SceneLayerImpl&
 
 	m_BitmapFile = reference.m_BitmapFile;
 	m_DrawMasked = reference.m_DrawMasked;
+	m_ZOrder = reference.m_ZOrder;
 	m_WrapX = reference.m_WrapX;
 	m_WrapY = reference.m_WrapY;
 	m_OriginOffset = reference.m_OriginOffset;
@@ -334,19 +335,24 @@ bool SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::WrapPosition(int& posX, int
 	int oldX = posX;
 	int oldY = posY;
 
+	// Most positions are already inside the layer, and those are left as they are without needing the division.
 	if (m_WrapX) {
 		int width = m_ScaledDimensions.GetFloorIntX();
-		posX %= width;
-		if (posX < 0) {
-			posX += width;
+		if (posX < 0 || posX >= width) {
+			posX %= width;
+			if (posX < 0) {
+				posX += width;
+			}
 		}
 	}
 
 	if (m_WrapY) {
 		int height = m_ScaledDimensions.GetFloorIntY();
-		posY %= height;
-		if (posY < 0) {
-			posY += height;
+		if (posY < 0 || posY >= height) {
+			posY %= height;
+			if (posY < 0) {
+				posY += height;
+			}
 		}
 	}
 
