@@ -65,7 +65,7 @@ if compiler.get_argument_syntax()== 'gcc' # used for gcc compatible compilers
   buildtype_debug = get_option('debug')
   if buildtype_debug
 
-    extra_args += ['-Wno-write-strings', '-Wno-unknown-pragmas', '-Wno-deprecated-declarations', '-Wno-misleading-indentation'] # Disable #pragma region complaints and luabind auto_ptr warning
+    extra_args += ['-Wno-write-strings', '-Wno-unknown-pragmas', '-Wno-deprecated-declarations', '-Wno-misleading-indentation'] # Disable #pragma region complaints and deprecation warnings
 
     if get_option('sane_warnings')
       extra_args += ['-Wno-sign-compare', '-Wno-non-virtual-dtor', '-Wno-parentheses', '-Wno-overloaded-virtual', '-Wno-unused-variable', '-Wno-unused-function']
@@ -246,8 +246,6 @@ endif
 sdl3_image_proj = subproject('SDL3_image-3.2.4')
 sdl3_image_dep = sdl3_image_proj.get_variable('sdl3_image_dep')
 
-boost_dep = declare_dependency(include_directories: include_directories('external/include/boost_1_75'))
-meson.override_dependency('boost-175', boost_dep)
 install_rpath = prefix/get_option('fmod_dir')
 tracy_proj = subproject('tracy')
 tracy_dep = dependency('tracy')
@@ -257,11 +255,9 @@ luajit_dep = dependency('luajit')
 external_inc_dirs += luajit_proj.get_variable('luajit_source_dir')
 allegro_dep = dependency('allegro')
 loadpng_dep = dependency('loadpng')
-luabind_proj = subproject('luabind-0.7.1')
-luabind_dep = dependency('luabind')
 raknet_proj = subproject('RakNet')
 raknet_dep = dependency('RakNet')
-deps += [sdl3_dep, sdl3_image_dep, allegro_dep, luajit_dep, loadpng_dep, raknet_dep, boost_dep, tracy_dep]
+deps += [sdl3_dep, sdl3_image_dep, allegro_dep, luajit_dep, loadpng_dep, raknet_dep, tracy_dep]
 
 #### Sources Setup ####
 source_inc_dirs = []

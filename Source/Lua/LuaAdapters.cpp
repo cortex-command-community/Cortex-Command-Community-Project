@@ -1,7 +1,7 @@
 // Make sure this file is always set to NOT use pre-compiled headers and conformance mode (/permissive) otherwise everything will be on fire!
 
 #include "LuaAdapterDefinitions.h"
-#include "LuabindObjectWrapper.h"
+#include "LuaObjectWrapper.h"
 #include "LuaMan.h"
 
 #include "lj_obj.h"
@@ -10,7 +10,7 @@
 
 using namespace RTE;
 
-std::unordered_map<std::string, std::function<LuabindObjectWrapper*(Entity*, lua_State*)>> LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions = {};
+std::unordered_map<std::string, void (*)(Entity*, lua_State*)> LuaAdaptersEntityCast::s_EntityToLuaObjectPushFunctions = {};
 
 #define LuaEntityCreateFunctionsDefinitionsForType(TYPE) \
 	TYPE* LuaAdaptersEntityCreate::Create##TYPE(std::string preseName, std::string moduleName) { \
@@ -143,15 +143,17 @@ LuaEntityCloneFunctionDefinitionForType(PieMenu);
 		} \
 		return targetType; \
 	} \
-	bool LuaAdaptersEntityCast::Is##TYPE(Entity* entity) { \
-		return dynamic_cast<TYPE*>(entity) ? true : false; \
+	bool LuaAdaptersEntityCast::Is##TYPE(const Entity* entity) { \
+		return dynamic_cast<const TYPE*>(entity) ? true : false; \
 	} \
-	LuabindObjectWrapper* LuaAdaptersEntityCast::ToLuabindObject##TYPE(Entity* entity, lua_State* luaState) { \
-		return new LuabindObjectWrapper(new luabind::object(luaState, dynamic_cast<TYPE*>(entity)), ""); \
+	void LuaAdaptersEntityCast::PushAsLuaObject##TYPE(Entity* entity, lua_State* luaState) { \
+		if (auto result = luabridge::Stack<TYPE*>::push(luaState, dynamic_cast<TYPE*>(entity)); !result) { \
+			lua_pushnil(luaState); \
+		} \
 	} \
-	/* Bullshit semi-hack to automatically populate the Luabind Object cast function map that is used in LuaMan::RunScriptFunctionObject */ \
-	static const bool EntityToLuabindObjectCastMapAutoInserterForType##TYPE = []() { \
-		LuaAdaptersEntityCast::s_EntityToLuabindObjectCastFunctions.try_emplace(std::string(#TYPE), &LuaAdaptersEntityCast::ToLuabindObject##TYPE); \
+	/* Bullshit semi-hack to automatically populate the Lua object push function map that is used in LuaMan::RunScriptFunctionObject */ \
+	static const bool EntityToLuaObjectPushMapAutoInserterForType##TYPE = []() { \
+		LuaAdaptersEntityCast::s_EntityToLuaObjectPushFunctions.try_emplace(std::string(#TYPE), &LuaAdaptersEntityCast::PushAsLuaObject##TYPE); \
 		return true; \
 	}()
 
@@ -287,25 +289,47 @@ int LuaAdaptersScene::CalculatePath(Scene* luaSelfObject, const Vector& start, c
 	return -1;
 }
 
-void LuaAdaptersScene::CalculatePathAsync(Scene* luaSelfObject, const luabind::object& callback, const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team) {
+/// Calls a global Lua function with a callback ID and a value, raising any error it causes as a Lua error in the given calling Lua state, or printing it to the console if there's no calling state.
+template <typename ValueType>
+static void CallAsyncPathCallbackFunction(lua_State* luaState, const char* functionName, int callbackId, const ValueType& value, lua_State* callingState) {
+	lua_pushcfunction(luaState, &AddFileAndLineToError);
+	lua_getglobal(luaState, functionName);
+	lua_pushnumber(luaState, static_cast<lua_Number>(callbackId));
+	if constexpr (std::is_same_v<ValueType, luabridge::LuaRef>) {
+		value.push(luaState);
+	} else if (auto result = luabridge::Stack<ValueType>::push(luaState, value); !result) {
+		lua_pushnil(luaState);
+	}
+	if (lua_pcall(luaState, 2, 0, -4) != 0) {
+		std::string error = lua_tostring(luaState, -1);
+		lua_pop(luaState, 2);
+		if (callingState) {
+			LuaBinding::RaiseError(callingState, "%s", error.c_str());
+		}
+		g_ConsoleMan.PrintString("ERROR: " + error);
+		return;
+	}
+	lua_pop(luaState, 1);
+}
+
+void LuaAdaptersScene::CalculatePathAsync(Scene* luaSelfObject, const luabridge::LuaRef& callback, const Vector& start, const Vector& end, float jumpHeight, float digStrength, Activity::Teams team) {
 	team = std::clamp(team, Activity::Teams::NoTeam, Activity::Teams::TeamFour);
 
-	// So, luabind::object is a weak reference, holding just a stack and a position in the stack
-	// This means it's unsafe to store on the C++ side if we do basically anything with the lua state before using it
+	// We can't keep the reference to the callback around on the C++ side, since it might belong to a temporary Lua thread that's gone by the time the path is done.
 	// As such, we need to store this function somewhere safely within our Lua state for us to access later when we need it
-	lua_State* luaState = mainthread(G(callback.interpreter())); // Get the main thread for the state, in case we're a temp lua thread
+	lua_State* luaState = mainthread(G(callback.state())); // Get the main thread for the state, in case we're a temp lua thread
 
 	static std::atomic<int> currentCallbackId{0};
 	int thisCallbackId = currentCallbackId.fetch_add(1, std::memory_order_relaxed);
-	if (luabind::type(callback) == LUA_TFUNCTION && callback.is_valid()) {
-		luabind::call_function<void>(luaState, "_AddAsyncPathCallback", thisCallbackId, callback);
+	if (callback.isValid() && callback.isFunction()) {
+		CallAsyncPathCallbackFunction(luaState, "_AddAsyncPathCallback", thisCallbackId, callback, callback.state());
 	}
 
 	auto callLuaCallback = [luaState, thisCallbackId](std::shared_ptr<volatile PathRequest> pathRequestVol) {
 		// This callback is called from the async pathing thread, so we need to further delay this logic into the main thread (via AddLuaScriptCallback)
 		g_LuaMan.AddLuaScriptCallback([luaState, thisCallbackId, pathRequestVol]() {
-			PathRequest pathRequest = const_cast<PathRequest&>(*pathRequestVol); // erh, to work with luabind etc
-			luabind::call_function<void>(luaState, "_TriggerAsyncPathCallback", thisCallbackId, pathRequest);
+			PathRequest pathRequest = const_cast<PathRequest&>(*pathRequestVol); // Copy it out of the volatile shared state, so it can be pushed to Lua.
+			CallAsyncPathCallbackFunction(luaState, "_TriggerAsyncPathCallback", thisCallbackId, pathRequest, nullptr);
 		});
 	};
 
@@ -329,14 +353,19 @@ int LuaAdaptersSceneObject::GetBuyableMode(const SceneObject* luaSelfObject) {
 }
 
 void LuaAdaptersActivity::SendMessage1(Activity* luaSelfObject, const std::string& message) {
-	luabind::object context;
-	SendMessage2(luaSelfObject, message, context);
-}
-
-void LuaAdaptersActivity::SendMessage2(Activity* luaSelfObject, const std::string& message, luabind::object context) {
 	GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(luaSelfObject);
 	if (scriptedActivity) {
-		LuabindObjectWrapper wrapper(&context, "", false);
+		// An empty reference, which gets passed to OnMessage as nil, the same as when no context is given.
+		luabridge::LuaRef context(g_LuaMan.GetMasterScriptState().GetLuaState());
+		LuaObjectWrapper wrapper(&context, "", false);
+		scriptedActivity->RunLuaFunction("OnMessage", {}, {message}, {&wrapper});
+	}
+}
+
+void LuaAdaptersActivity::SendMessage2(Activity* luaSelfObject, const std::string& message, luabridge::LuaRef context) {
+	GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(luaSelfObject);
+	if (scriptedActivity) {
+		LuaObjectWrapper wrapper(&context, "", false);
 		scriptedActivity->RunLuaFunction("OnMessage", {}, {message}, {&wrapper});
 	}
 }
@@ -388,8 +417,8 @@ void LuaAdaptersMovableObject::SendMessage1(MovableObject* luaSelfObject, const 
 	luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, {message});
 }
 
-void LuaAdaptersMovableObject::SendMessage2(MovableObject* luaSelfObject, const std::string& message, luabind::object context) {
-	LuabindObjectWrapper wrapper(&context, "", false);
+void LuaAdaptersMovableObject::SendMessage2(MovableObject* luaSelfObject, const std::string& message, luabridge::LuaRef context) {
+	LuaObjectWrapper wrapper(&context, "", false);
 	luaSelfObject->RunScriptedFunctionInAppropriateScripts("OnMessage", false, false, {}, {message}, {&wrapper});
 }
 
@@ -521,8 +550,8 @@ void LuaAdaptersMovableMan::SendGlobalMessage1(MovableMan& movableMan, const std
 	movableMan.RunLuaFunctionOnAllMOs("OnGlobalMessage", true, {}, {message});
 }
 
-void LuaAdaptersMovableMan::SendGlobalMessage2(MovableMan& movableMan, const std::string& message, luabind::object context) {
-	LuabindObjectWrapper wrapper(&context, "", false);
+void LuaAdaptersMovableMan::SendGlobalMessage2(MovableMan& movableMan, const std::string& message, luabridge::LuaRef context) {
+	LuaObjectWrapper wrapper(&context, "", false);
 
 	GAScripted* scriptedActivity = dynamic_cast<GAScripted*>(g_ActivityMan.GetActivity());
 	if (scriptedActivity) {
@@ -618,7 +647,7 @@ std::list<Entity*>* LuaAdaptersPresetMan::GetAllEntitiesOfGroup(PresetMan& prese
 	return entityList;
 }
 
-MOID LuaAdaptersSceneMan::CastMORay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
+MOID LuaAdaptersSceneMan::CastMORay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabridge::LuaRef& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
 	std::vector<MOID> ignoreMOIDsVec = ConvertLuaTableToVectorOfType<MOID>(ignoreMOIDs);
 	return sceneMan.CastMORay(start, ray, ignoreMOIDsVec, ignoreTeam, ignoreMaterial, ignoreAllTerrain, skip);
 }
@@ -628,12 +657,12 @@ MOID LuaAdaptersSceneMan::CastMORay2(SceneMan& sceneMan, const Vector& start, co
 	return sceneMan.CastMORay(start, ray, ignoreMOIDs, ignoreTeam, ignoreMaterial, ignoreAllTerrain, skip);
 }
 
-const std::vector<MovableObject*>* LuaAdaptersSceneMan::CastAllMOsRay(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabind::object& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
+const std::vector<MovableObject*>* LuaAdaptersSceneMan::CastAllMOsRay(SceneMan& sceneMan, const Vector& start, const Vector& ray, const luabridge::LuaRef& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, bool ignoreAllTerrain, int skip) {
 	std::vector<MOID> ignoreMOIDsVec = ConvertLuaTableToVectorOfType<MOID>(ignoreMOIDs);
 	return sceneMan.CastAllMOsRay(start, ray, ignoreMOIDsVec, ignoreTeam, ignoreMaterial, ignoreAllTerrain, skip);
 }
 
-float LuaAdaptersSceneMan::CastObstacleRay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, const luabind::object& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
+float LuaAdaptersSceneMan::CastObstacleRay1(SceneMan& sceneMan, const Vector& start, const Vector& ray, Vector& obstaclePos, Vector& freePos, const luabridge::LuaRef& ignoreMOIDs, int ignoreTeam, unsigned char ignoreMaterial, int skip) {
 	std::vector<MOID> ignoreMOIDsVec = ConvertLuaTableToVectorOfType<MOID>(ignoreMOIDs);
 	return sceneMan.CastObstacleRay(start, ray, obstaclePos, freePos, ignoreMOIDsVec, ignoreTeam, ignoreMaterial, skip);
 }
@@ -649,31 +678,31 @@ const std::list<Box>* LuaAdaptersSceneMan::WrapBoxes(SceneMan& sceneMan, const B
 	return wrappedBoxes;
 }
 
-void LuaAdaptersPrimitiveMan::DrawPolygonPrimitive(PrimitiveMan& primitiveMan, const Vector& centerPos, int color, const luabind::object& verticesTable) {
+void LuaAdaptersPrimitiveMan::DrawPolygonPrimitive(PrimitiveMan& primitiveMan, const Vector& centerPos, int color, const luabridge::LuaRef& verticesTable) {
 	primitiveMan.DrawPolygonOrPolygonFillPrimitive(-1, centerPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), false);
 }
 
-void LuaAdaptersPrimitiveMan::DrawPolygonPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& centerPos, int color, const luabind::object& verticesTable) {
+void LuaAdaptersPrimitiveMan::DrawPolygonPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& centerPos, int color, const luabridge::LuaRef& verticesTable) {
 	primitiveMan.DrawPolygonOrPolygonFillPrimitive(player, centerPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), false);
 }
 
-void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitive(PrimitiveMan& primitiveMan, const Vector& startPos, int color, const luabind::object& verticesTable) {
+void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitive(PrimitiveMan& primitiveMan, const Vector& startPos, int color, const luabridge::LuaRef& verticesTable) {
 	primitiveMan.DrawPolygonOrPolygonFillPrimitive(-1, startPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), true);
 }
 
-void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& startPos, int color, const luabind::object& verticesTable) {
+void LuaAdaptersPrimitiveMan::DrawPolygonFillPrimitiveForPlayer(PrimitiveMan& primitiveMan, int player, const Vector& startPos, int color, const luabridge::LuaRef& verticesTable) {
 	primitiveMan.DrawPolygonOrPolygonFillPrimitive(player, startPos, color, ConvertLuaTableToVectorOfType<Vector*>(verticesTable), true);
 }
 
-void LuaAdaptersPrimitiveMan::DrawPrimitivesWithTransparency(PrimitiveMan& primitiveMan, int transValue, const luabind::object& primitivesTable) {
+void LuaAdaptersPrimitiveMan::DrawPrimitivesWithTransparency(PrimitiveMan& primitiveMan, int transValue, const luabridge::LuaRef& primitivesTable) {
 	primitiveMan.SchedulePrimitivesForBlendedDrawing(DrawBlendMode::BlendTransparency, transValue, transValue, transValue, BlendAmountLimits::MinBlend, ConvertLuaTableToVectorOfType<GraphicalPrimitive*>(primitivesTable));
 }
 
-void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlending(PrimitiveMan& primitiveMan, int blendMode, int blendAmount, const luabind::object& primitivesTable) {
+void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlending(PrimitiveMan& primitiveMan, int blendMode, int blendAmount, const luabridge::LuaRef& primitivesTable) {
 	primitiveMan.SchedulePrimitivesForBlendedDrawing(static_cast<DrawBlendMode>(blendMode), blendAmount, blendAmount, blendAmount, blendAmount, ConvertLuaTableToVectorOfType<GraphicalPrimitive*>(primitivesTable));
 }
 
-void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlendingPerChannel(PrimitiveMan& primitiveMan, int blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const luabind::object& primitivesTable) {
+void LuaAdaptersPrimitiveMan::DrawPrimitivesWithBlendingPerChannel(PrimitiveMan& primitiveMan, int blendMode, int blendAmountR, int blendAmountG, int blendAmountB, int blendAmountA, const luabridge::LuaRef& primitivesTable) {
 	primitiveMan.SchedulePrimitivesForBlendedDrawing(static_cast<DrawBlendMode>(blendMode), blendAmountR, blendAmountG, blendAmountB, blendAmountA, ConvertLuaTableToVectorOfType<GraphicalPrimitive*>(primitivesTable));
 }
 

@@ -591,7 +591,7 @@ function HumanBehaviors.WeaponSearch(AI, Owner, Abort)
 		
 		if MovableMan:ValidMO(movableObject) and IsHeldDevice(movableObject) then
 			local device = ToHeldDevice(movableObject);
-			if device:IsPickupableBy(Owner) and not device:IsActivated() and device.Vel.Largest < 3 and not SceneMan:IsUnseen(device.Pos.X, device.Pos.Y, Owner.Team) then
+			if device:IsPickupableBy(Owner) and (Owner.FGArm or device:IsOneHanded()) and not device:IsActivated() and device.Vel.Largest < 3 and not SceneMan:IsUnseen(device.Pos.X, device.Pos.Y, Owner.Team) then
 				local distanceToDevice = SceneMan:ShortestDistance(Owner.Pos, device.Pos, SceneMan.SceneWrapsX or SceneMan.SceneWrapsY);
 				if distanceToDevice:MagnitudeIsGreaterThan(Owner.Radius * 0.75) then
 					table.insert(devices, { device = device, distance = distanceToDevice });

@@ -1,0 +1,2 @@
+# The patch has to keep the line endings of the files it applies to, which are stored as LF.
+*.patch text eol=lf
