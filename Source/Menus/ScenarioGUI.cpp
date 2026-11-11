@@ -220,6 +220,11 @@ void ScenarioGUI::FetchActivitiesAndScenesLists() {
 	}
 	AdjustSitePointOffsetsOnPlanet(filteredScenes);
 
+	// The Scene that was selected may not be listed anymore, in which case there's no selection to go back to.
+	if (!m_SiteOffsets.contains(prevSelectedScene)) {
+		prevSelectedScene = nullptr;
+	}
+
 	presetList.clear();
 	g_PresetMan.GetAllOfType(presetList, "Activity");
 	int index = 0;
@@ -251,56 +256,88 @@ void ScenarioGUI::FetchActivitiesAndScenesLists() {
 	}
 }
 
-void ScenarioGUI::AdjustSitePointOffsetsOnPlanet(const std::vector<Scene*>& sceneList) const {
+void ScenarioGUI::AdjustSitePointOffsetsOnPlanet(const std::vector<Scene*>& sceneList) {
+	// The offsets live here rather than on the Scenes, which are presets shared with everything else and shouldn't be changed by laying out this menu.
+	m_SiteOffsets.clear();
+
+
+	// For each scene, if it could be on screen in some reasonable resolution, make sure it winds up on screen in all resolutions!
+	// Scenes with large location values are probably meant not to appear on screen, so don't make them.
+	// Scenes with positions that could wind up on a common display are probably meant to show always.
+	int halfMaxScreenWidth(g_WindowMan.GetMaxResX() / 2);
+	int halfMaxScreenHeight(g_WindowMan.GetMaxResY() / 2);
+	int halfScreenWidth(g_WindowMan.GetResX() / 2);
+	int halfScreenHeight(g_WindowMan.GetResY() / 2);
+
 	for (Scene* sceneListEntry: sceneList) {
-		int sceneYPos = (m_PlanetCenter + sceneListEntry->GetLocation() + sceneListEntry->GetLocationOffset()).GetFloorIntY();
-		if (std::abs(sceneListEntry->GetLocation().GetY()) < m_PlanetRadius + 100 && std::abs(sceneListEntry->GetLocation().GetX()) < m_PlanetRadius + 100) {
-			if (sceneYPos < 10) {
-				sceneListEntry->SetLocationOffset(sceneListEntry->GetLocationOffset() + Vector(0, static_cast<float>(10 - sceneYPos)));
-			} else if (sceneYPos > g_WindowMan.GetResY() - 10) {
-				sceneListEntry->SetLocationOffset(sceneListEntry->GetLocationOffset() + Vector(0, static_cast<float>(g_WindowMan.GetResY() - 10 - sceneYPos)));
-			} else {
-				sceneListEntry->SetLocationOffset(Vector(0, 0));
+		Vector sceneLocation(sceneListEntry->GetLocation());
+		Vector& sceneOffset = m_SiteOffsets[sceneListEntry]; // Every Scene gets an entry, zero unless moved below.
+
+		if (std::abs(sceneLocation.m_X) < halfMaxScreenWidth && std::abs(sceneLocation.m_Y) < halfMaxScreenHeight) {
+			if (sceneLocation.m_X < -halfScreenWidth + 20) {
+				sceneOffset.m_X = -halfScreenWidth + 20 - sceneLocation.m_X;
+			} else if (sceneLocation.m_X > halfScreenWidth - 20) {
+				sceneOffset.m_X = halfScreenWidth - 20 - sceneLocation.m_X;
+			}
+
+			if (sceneLocation.m_Y < -halfScreenHeight + 20) {
+				sceneOffset.m_Y = -halfScreenHeight + 20 - sceneLocation.m_Y;
+			} else if (sceneLocation.m_Y > halfScreenHeight - 20) {
+				sceneOffset.m_Y = halfScreenHeight - 20 - sceneLocation.m_Y;
 			}
 		}
 	}
-	// If site points are overlapping then move one of them towards the planet center.
-	float requiredDistance = 8.0F;
-	bool foundOverlap = true;
-	while (foundOverlap) {
+
+	// Give a good few shots at pushing scenes away from each other.
+	float requiredDistance(10.0F);
+	bool foundOverlap(true);
+	short iterations(0);
+
+	while (foundOverlap && ++iterations <= 256) {
 		foundOverlap = false;
-		for (Scene* sceneListEntry1: sceneList) {
-			for (const Scene* sceneListEntry2: sceneList) {
-				if (sceneListEntry1 != sceneListEntry2) {
-					Vector pos1 = sceneListEntry1->GetLocation() + sceneListEntry1->GetLocationOffset();
-					Vector pos2 = sceneListEntry2->GetLocation() + sceneListEntry2->GetLocationOffset();
-					Vector overlap = pos1 - pos2;
-					if (overlap.MagnitudeIsLessThan(requiredDistance)) {
+
+		for (Scene* sceneToReposition: sceneList) {
+			Vector forceAccrued(0, 0);
+			Vector currentOffset(m_SiteOffsets.at(sceneToReposition));
+			Vector currentPosition(sceneToReposition->GetLocation() + currentOffset);
+
+			for (const Scene* referenceScene: sceneList) {
+				if (sceneToReposition != referenceScene) {
+					Vector referencePosition(referenceScene->GetLocation() + m_SiteOffsets.at(referenceScene));
+					Vector distanceToReference(referencePosition - currentPosition);
+					
+					if (distanceToReference.MagnitudeIsLessThan(requiredDistance)) {
+						// If we're within pushing distance, push slightly harder than necessary every time.
+						distanceToReference.SetMagnitude(distanceToReference.GetMagnitude() + 1.0F);
+
+						// If we're on top of another, push in a "pseudo random" direction.
+						// Not actually at all random, but does keep things fairly predictable.
+						if (distanceToReference.XIsZero() || distanceToReference.YIsZero()) {
+							distanceToReference.RadRotate(iterations);
+						}
+
+						forceAccrued -= distanceToReference / 2.0F;
 						foundOverlap = true;
-						float overlapX = overlap.GetX();
-						float xDirMult = 0;
-						if (overlapX > 0 && pos1.GetX() > 0) {
-							xDirMult = -1.0F;
-						} else if (overlapX < 0 && pos1.GetX() < 0) {
-							xDirMult = 1.0F;
-						}
-						float overlapY = overlap.GetY();
-						float yDirMult = 0;
-						if (overlapY > 0 && pos1.GetY() > 0) {
-							yDirMult = -1.0F;
-						} else if (overlapY < 0 && pos1.GetY() < 0) {
-							yDirMult = 1.0F;
-						}
-						if (yDirMult != 0) {
-							sceneListEntry1->SetLocationOffset(sceneListEntry1->GetLocationOffset() + Vector(-overlapX + (requiredDistance * xDirMult), -overlapY + (requiredDistance * yDirMult)));
-						} else if (overlap.IsZero()) {
-							sceneListEntry1->SetLocationOffset(sceneListEntry1->GetLocationOffset() + Vector((pos1.GetX() > 0) ? -requiredDistance : requiredDistance, (pos1.GetY() > 0) ? -requiredDistance : requiredDistance));
-						} else {
-							sceneListEntry1->SetLocationOffset(sceneListEntry1->GetLocationOffset() + Vector(overlapX, overlapY));
-						}
 					}
 				}
 			}
+
+			// Update current position and then modify force accrued further to keep ourselves on screen.
+			currentPosition += forceAccrued;
+
+			if (currentPosition.m_X < -halfScreenWidth + 20) {
+				forceAccrued.m_X += -halfScreenWidth + 20 - currentPosition.m_X;
+			} else if (currentPosition.m_X > halfScreenWidth - 20) {
+				forceAccrued.m_X += halfScreenWidth - 20 - currentPosition.m_X;
+			}
+
+			if (currentPosition.m_Y < -halfScreenHeight + 20) {
+				forceAccrued.m_Y += -halfScreenHeight + 20 - currentPosition.m_Y;
+			} else if (currentPosition.m_Y > halfScreenHeight - 20) {
+				forceAccrued.m_Y += halfScreenHeight - 20 - currentPosition.m_Y;
+			}
+
+			m_SiteOffsets[sceneToReposition] = currentOffset + forceAccrued;
 		}
 	}
 }
@@ -311,7 +348,7 @@ void ScenarioGUI::CalculateLinesToSitePoint() {
 		return;
 	}
 
-	Vector sitePos = m_PlanetCenter + m_SelectedScene->GetLocation() + m_SelectedScene->GetLocationOffset();
+	Vector sitePos = m_PlanetCenter + m_SelectedScene->GetLocation() + m_SiteOffsets.at(m_SelectedScene);
 	if (m_SceneInfoBox->PointInside(sitePos.GetFloorIntX(), sitePos.GetFloorIntY())) {
 		return;
 	}
@@ -435,7 +472,7 @@ void ScenarioGUI::UpdateHoveredSitePointLabel(int mouseX, int mouseY) {
 		Scene* candidateScene = nullptr;
 		float sqrShortestDistance = 10.0F * 10.0F;
 		for (Scene* activityScene: *m_ActivityScenes) {
-			float sqrDistance = (m_PlanetCenter + activityScene->GetLocation() + activityScene->GetLocationOffset() - Vector(static_cast<float>(mouseX), static_cast<float>(mouseY))).GetSqrMagnitude();
+			float sqrDistance = (m_PlanetCenter + activityScene->GetLocation() + m_SiteOffsets.at(activityScene) - Vector(static_cast<float>(mouseX), static_cast<float>(mouseY))).GetSqrMagnitude();
 			if (sqrDistance < sqrShortestDistance) {
 				sqrShortestDistance = sqrDistance;
 				candidateScene = activityScene;
@@ -447,7 +484,7 @@ void ScenarioGUI::UpdateHoveredSitePointLabel(int mouseX, int mouseY) {
 			m_HoveredScene = candidateScene;
 
 			m_SitePointNameLabel->SetText(m_HoveredScene->GetPresetName());
-			Vector sceneLabelPos = m_PlanetCenter + Vector(m_HoveredScene->GetLocation() + m_HoveredScene->GetLocationOffset()) - Vector(static_cast<float>(m_SitePointNameLabel->GetWidth() / 2), 0) - Vector(0, static_cast<float>(m_SitePointNameLabel->GetHeight()) * 1.5F);
+			Vector sceneLabelPos = m_PlanetCenter + Vector(m_HoveredScene->GetLocation() + m_SiteOffsets.at(m_HoveredScene)) - Vector(static_cast<float>(m_SitePointNameLabel->GetWidth() / 2), 0) - Vector(0, static_cast<float>(m_SitePointNameLabel->GetHeight()) * 1.5F);
 			int padding = 5;
 			sceneLabelPos.SetX(static_cast<float>(std::clamp(sceneLabelPos.GetFloorIntX(), padding, m_RootBoxMaxWidth - m_SitePointNameLabel->GetWidth() - padding)));
 			sceneLabelPos.SetY(static_cast<float>(std::clamp(sceneLabelPos.GetFloorIntY(), padding, g_WindowMan.GetResY() - m_SitePointNameLabel->GetHeight() - padding)));
@@ -540,7 +577,7 @@ void ScenarioGUI::DrawSitePoints(BITMAP* drawBitmap) const {
 		} else {
 			drawColor = c_GUIColorCyan;
 		}
-		Vector sitePos(m_PlanetCenter + scenePointer->GetLocation() + scenePointer->GetLocationOffset());
+		Vector sitePos(m_PlanetCenter + scenePointer->GetLocation() + m_SiteOffsets.at(scenePointer));
 		int sitePosX = sitePos.GetFloorIntX();
 		int sitePosY = sitePos.GetFloorIntY();
 
@@ -578,7 +615,7 @@ void ScenarioGUI::DrawLinesToSitePoint(BITMAP* drawBitmap) const {
 			line(drawBitmap, lineStartX, lineStartY - 1, lineEndX, lineEndY - 1, drawColor);
 		}
 	}
-	Vector sitePos = m_PlanetCenter + m_SelectedScene->GetLocation() + m_SelectedScene->GetLocationOffset();
+	Vector sitePos = m_PlanetCenter + m_SelectedScene->GetLocation() + m_SiteOffsets.at(m_SelectedScene);
 	int sitePosX = sitePos.GetFloorIntX();
 	int sitePosY = sitePos.GetFloorIntY();
 	int circleRadius = 8;
