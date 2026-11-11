@@ -3165,15 +3165,6 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, BITMAP* targe
 				WrappedBlit(FGTerrainBm, targetFgTerrainBitmap, viewOrigin.GetX(), viewOrigin.GetY());
 			}
 
-			bool shouldDrawHUD = !g_FrameMan.IsHudDisabled(m_LastUpdatedScreen);
-			if (shouldDrawHUD) {
-				g_MovableMan.DrawHUD(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
-			}
-
-			if (shouldDrawHUD) {
-				g_ActivityMan.GetActivity()->DrawGUI(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
-			}
-
 			static bool s_drawNoGravBoxes = false;
 			if (s_drawNoGravBoxes) {
 				if (Scene::Area* noGravArea = m_pCurrentScene->GetArea("NoGravityArea")) {
@@ -3205,6 +3196,17 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, BITMAP* targe
 
 			break;
 	}
+}
+
+void SceneMan::DrawHUD(BITMAP* targetGUIBitmap, const Vector& targetPos) {
+	ZoneScoped;
+
+	if (!m_pCurrentScene || m_LayerDrawMode == LayerDrawMode::g_LayerTerrainMatter || g_FrameMan.IsHudDisabled(m_LastUpdatedScreen)) {
+		return;
+	}
+
+	g_MovableMan.DrawHUD(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
+	g_ActivityMan.GetActivity()->DrawGUI(targetGUIBitmap, targetPos, m_LastUpdatedScreen);
 }
 
 void SceneMan::ClearMOColorLayer() {

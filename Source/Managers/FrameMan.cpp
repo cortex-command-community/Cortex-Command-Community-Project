@@ -1330,6 +1330,8 @@ void FrameMan::Draw() {
 
 		g_SceneMan.Draw(drawScreen, drawScreenGUI, MOColorBM.GetBitmap(), BgLayersBM.GetBitmap(), BgTerrainBM.GetBitmap(), FgTerrainBM.GetBitmap(), targetPos);
 
+		g_SceneMan.DrawHUD(drawScreenGUI, targetPos);
+
 		g_PrimitiveMan.DrawPrimitives(playerScreen, drawScreenGUI, targetPos);
 
 		// Get only the scene-relative post effects that affect this player's screen
