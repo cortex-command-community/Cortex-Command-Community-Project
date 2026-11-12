@@ -50,6 +50,7 @@ namespace RTE {
 		DrawBlendMode m_BlendMode = DrawBlendMode::NoBlend; //!< The blending mode that will be used when drawing this primitive.
 		std::array<int, 4> m_ColorChannelBlendAmounts = {BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend, BlendAmountLimits::MinBlend}; //!< The blending amount for each color channel when drawing in blended mode.
 		float m_Depth{c_PrimitiveDepth};
+		bool m_ScreenSpace = false; //!< Whether positions are relative to the top-left of the player's screen instead of the Scene.
 
 		/// Destructor method used to clean up a GraphicalPrimitive object before deletion from system memory.
 		virtual ~GraphicalPrimitive() = default;
