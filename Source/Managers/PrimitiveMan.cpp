@@ -277,7 +277,11 @@ void PrimitiveMan::DrawPrimitives(int player, BITMAP* targetBitmap, const Vector
 				glBlendBarrierKHR();
 			}
 			rlZDepth(primitive->m_Depth);
-			primitive->DrawTiled(targetBitmap, targetPos);
+			if (primitive->m_ScreenSpace) {
+				primitive->Draw(targetBitmap, Vector());
+			} else {
+				primitive->DrawTiled(targetBitmap, targetPos);
+			}
 		}
 	}
 	rlDrawRenderBatchActive();

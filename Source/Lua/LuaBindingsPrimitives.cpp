@@ -5,7 +5,9 @@
 using namespace RTE;
 
 LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, GraphicalPrimitive) {
-	registry.Class<GraphicalPrimitive>("GraphicalPrimitive");
+	registry.Class<GraphicalPrimitive>("GraphicalPrimitive")
+
+	    .addReadWriteMember("ScreenSpace", &GraphicalPrimitive::m_ScreenSpace);
 }
 
 LuaBindingRegisterFunctionDefinitionForType(PrimitiveLuaBindings, LinePrimitive) {

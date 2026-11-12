@@ -171,6 +171,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - `HeldDevice` INI property `Loudness` is now also a Lua (R/W) property. It sets the range of the alarm event a device raises when activated, which AI actors react to: 0 is silent, 1 is normal (audible from about half a screen away). Scripts can use it for things like silencers.
 
+- New `GraphicalPrimitive` Lua property `ScreenSpace` (R/W). When true, the primitive's positions are relative to the top-left of the player's screen instead of the Scene, so HUD elements no longer jitter against the moving camera like they do when offsetting by `CameraMan:GetOffset`. Use it with primitive objects passed to `PrimitiveMan:DrawPrimitives`, e.g. `local box = BoxFillPrimitive(player, Vector(10, 10), Vector(60, 20), 13); box.ScreenSpace = true; PrimitiveMan:DrawPrimitives(0, {box})`, where `0` is the transparency amount.
+
 </details>
 
 <details><summary><b>Changed</b></summary>
