@@ -755,33 +755,7 @@ int Scene::LoadData(bool placeObjects, bool initPathfinding, bool placeUnits) {
 									// Fill the box for the owner ownerTeam, revealing the area that this thing is on. Nothing else is on the mask yet, so it can just be filled.
 									rectfill(m_apUnseenLayerMask[ownerTeam]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, GetUnseenLayerMaskHoldUpdates(c_FogOfWarSeeRayHoldSeconds));
 									rectfill(m_apUnseenLayerTerrainMask[ownerTeam]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, g_MaskColor);
-									// Expand the box a little so the whole placed object is going to be hidden
-									scaledX -= 1;
-									scaledY -= 1;
-									scaledW += 2;
-									scaledH += 2;
-									// GTODO document this
-									int rescaledX = scaledX * scale.m_X;
-									int rescaledY = scaledY * scale.m_Y;
-									int rescaledW = scaledW * scale.m_X;
-									int rescaledH = scaledH * scale.m_Y;
-									rectfill(m_apUnseenLayerTerrain[ownerTeam]->GetBitmap(), rescaledX, rescaledY, rescaledW, rescaledH, g_BlackColor);
-									// Fill the box with BLACK for all the other teams so they can't see the new developments here!
-									for (int t = Activity::TeamOne; t < Activity::MaxTeamCount; ++t) {
-										if (t != ownerTeam && m_apUnseenLayerMask[t]) {
-											RTEAssert(
-												m_apUnseenLayerTerrain[t], 
-												"Scene::LoadData, other team has unseen layer mask but not terrain, weird!"
-											);
-											// GTODO - maybe for when only the team is a player team?
-											// Nothing has been seen while loading, so there's no terrain to remember before taking this out of view
-											rectfill(m_apUnseenLayerMask[t]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, 0);
-											// 255 so it's 1.0 at compositing step
-											rectfill(m_apUnseenLayerTerrainMask[t]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, 255);
-											rectfill(m_apUnseenLayerTerrainCopiedMask[t]->GetBitmap(), scaledX, scaledY, scaledX + scaledW, scaledY + scaledH, 255);
-											rectfill(m_apUnseenLayerTerrain[ownerTeam]->GetBitmap(), rescaledX, rescaledY, rescaledW, rescaledH, g_BlackColor);
-										}
-									}
+									// Other teams keep whatever they last saw here, so they don't see the new object until they look again
 								}
 							}
 						}
