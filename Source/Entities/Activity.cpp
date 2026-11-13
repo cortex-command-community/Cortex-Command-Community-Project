@@ -306,7 +306,7 @@ int Activity::Start() {
 	g_UInputMan.DisableKeys(false);
 
 	// The fog of war's textures are made again for the new scene
-	g_FrameMan.ClearTextures();
+	g_FrameMan.ClearFowTextures();
 
 	int error = g_SceneMan.LoadScene();
 	if (error < 0) {

@@ -60,6 +60,16 @@ namespace {
 		return static_cast<int>(std::ceil(furthestReach * GetScreenDiagonal(screen)));
 	}
 
+	/// Makes a texture of two floats per pixel the given size, unfiltered and clamped to its edges, for the fog of war edge smoothing.
+	void AllocateTwoFloatTexture(GLuint texture, int width, int height) {
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	}
+
 	/// Makes a bitmap the given size, keeping the one it has if it already is. Whatever was drawn on a kept bitmap stays, so clear it if that matters.
 	void SizeBitmap(AllegroBitmap& bitmap, int width, int height) {
 		if (!bitmap.GetBitmap() || bitmap.GetWidth() != width || bitmap.GetHeight() != height) {
@@ -167,59 +177,31 @@ void FrameMan::RenderBackgroundLayersBmToTexture() {
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
-void FrameMan::FogOfWarSetup() {
-	// The final pass draws the whole screen from these, whether there is any fog of war or not
-	{ // GUI
-		BITMAP* bm = m_BackBuffer8GUI.get();
-
-		if (GUITex.id == 0) {
-			LoadTextureFromBitmap8(&GUITex, bm);
-		} else {
-			rlUpdateTexture(GUITex.id, 0, 0, bm->w, bm->h, GUITex.format, bm->line[0]);
-		}
+void FrameMan::UploadBitmapToTexture(Texture2D& texture, BITMAP* bitmap) {
+	if (texture.id != 0 && (texture.width != bitmap->w || texture.height != bitmap->h)) {
+		rlUnloadTexture(texture.id);
+		texture.id = 0;
 	}
-
-	{ // MOColor
-		BITMAP* bm = MOColorBM.GetBitmap();
-
-		if (MOColorTex.id == 0) {
-			LoadTextureFromBitmap8(&MOColorTex, bm);
-		} else {
-			rlUpdateTexture(MOColorTex.id, 0, 0, bm->w, bm->h, MOColorTex.format, bm->line[0]);
-		}
+	if (texture.id == 0) {
+		LoadTextureFromBitmap8(&texture, bitmap);
+	} else {
+		rlUpdateTexture(texture.id, 0, 0, bitmap->w, bitmap->h, texture.format, bitmap->line[0]);
 	}
+}
 
-	{ // BgTerrain
-		BITMAP* bm = BgTerrainBM.GetBitmap();
+void FrameMan::UploadScreenTextures() {
+	UploadBitmapToTexture(GUITex, m_BackBuffer8GUI.get());
+	UploadBitmapToTexture(MOColorTex, MOColorBM.GetBitmap());
+	UploadBitmapToTexture(BgTerrainTex, BgTerrainBM.GetBitmap());
+	UploadBitmapToTexture(FgTerrainTex, FgTerrainBM.GetBitmap());
+}
 
-		if (BgTerrainTex.id == 0) {
-			LoadTextureFromBitmap8(&BgTerrainTex, bm);
-		} else {
-			rlUpdateTexture(BgTerrainTex.id, 0, 0, bm->w, bm->h, BgTerrainTex.format, bm->line[0]);
-		}
-	}
-
-	{ // FgTerrain
-		BITMAP* bm = FgTerrainBM.GetBitmap();
-
-		if (FgTerrainTex.id == 0) {
-			LoadTextureFromBitmap8(&FgTerrainTex, bm);
-		} else {
-			rlUpdateTexture(FgTerrainTex.id, 0, 0, bm->w, bm->h, FgTerrainTex.format, bm->line[0]);
-		}
-	}
-
+const FrameMan::FogOfWarTeamTextures* FrameMan::UploadFogOfWarTeamTextures(int team) {
 	Scene* currentScene = g_SceneMan.GetCurrentScene();
-	if (!currentScene || !currentScene->GetUnseenLayerMask()) {
-		return;
+	SceneLayer* maskSL = currentScene ? currentScene->GetUnseenLayerMask(team) : nullptr;
+	if (!maskSL) {
+		return nullptr;
 	}
-
-	// TODO: HACK. Only the first player's team's fog of war is drawn, on every screen.
-	int team = g_ActivityMan.GetActivity()->GetTeamOfPlayer(0);
-
-	SceneLayer* maskSL = currentScene->GetUnseenLayerMask(team);
-	SceneLayer* lastSeenTerrainMaskSL = currentScene->GetUnseenLayerTerrainMask(team);
-	SceneLayer* lastSeenTerrainSL = currentScene->GetUnseenLayerTerrain(team);
 
 	BITMAP* maskBitmap = maskSL->GetBitmap();
 	// What's in view is worked out again every frame, into a bitmap that's kept for as long as the mask stays the same size
@@ -243,57 +225,22 @@ void FrameMan::FogOfWarSetup() {
 		}
 	}
 
-	// Update/make textures
-	// GTODO: update this on scene reentry (other places too)
-	// clues probably in ClearTextures()
-	{ // Fog of war mask
-		BITMAP* bm = fowMaskBM.GetBitmap();
-
-		// This is for what is currently actively looked at, non-accumulated
-		if (instantVisibleFowMaskTex.id == 0) {
-			LoadTextureFromBitmap8(&instantVisibleFowMaskTex, bm);
-		} else {
-			rlUpdateTexture(instantVisibleFowMaskTex.id, 0, 0, bm->w, bm->h, instantVisibleFowMaskTex.format, bm->line[0]);
-		}
+	FogOfWarTeamTextures& teamTextures = m_FogOfWarTeamTextures[team];
+	UploadBitmapToTexture(teamTextures.InView, fowMaskBitmap);
+	// The rest go up straight from the scene's layers
+	UploadBitmapToTexture(teamTextures.LastSeenTerrain, currentScene->GetUnseenLayerTerrain(team)->GetBitmap());
+	UploadBitmapToTexture(teamTextures.EverSeen, currentScene->GetUnseenLayerTerrainMask(team)->GetBitmap());
+	if (SceneLayer* lastSeenTerrainCopiedMaskSL = currentScene->GetUnseenLayerTerrainCopiedMask(team)) {
+		UploadBitmapToTexture(teamTextures.LastSeenTerrainCopied, lastSeenTerrainCopiedMaskSL->GetBitmap());
 	}
-	
-	{ // Fog of war last-seen terrain, straight from the scene's layer
-		BITMAP* bm = lastSeenTerrainSL->GetBitmap();
-
-		if (lastSeenTex.id == 0) {
-			LoadTextureFromBitmap8(&lastSeenTex, bm);
-		} else {
-			rlUpdateTexture(lastSeenTex.id, 0, 0, bm->w, bm->h, lastSeenTex.format, bm->line[0]);
-		}
-	}
-
-	{ // Fog of war last-seen terrain chunky 1-0 mask, straight from the scene's layer
-		BITMAP* bm = lastSeenTerrainMaskSL->GetBitmap();
-
-		if (fowMaskLastSeenTex.id == 0) {
-			LoadTextureFromBitmap8(&fowMaskLastSeenTex, bm);
-		} else {
-			rlUpdateTexture(fowMaskLastSeenTex.id, 0, 0, bm->w, bm->h, fowMaskLastSeenTex.format, bm->line[0]);
-		}
-	}
-
-	if (SceneLayer* lastSeenTerrainCopiedMaskSL = currentScene->GetUnseenLayerTerrainCopiedMask(team)) { // Which pixels of the last-seen terrain have been copied
-		BITMAP* bm = lastSeenTerrainCopiedMaskSL->GetBitmap();
-
-		if (lastSeenCopiedMaskTex.id == 0) {
-			LoadTextureFromBitmap8(&lastSeenCopiedMaskTex, bm);
-		} else {
-			rlUpdateTexture(lastSeenCopiedMaskTex.id, 0, 0, bm->w, bm->h, lastSeenCopiedMaskTex.format, bm->line[0]);
-		}
-	}
-
+	return &teamTextures;
 }
 
 // Chunky fog of war mask -> SDF!
-void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
+void FrameMan::FogOfWarSetup_DoSDF(GLuint inputTex, GLuint outputTex, const Vector& viewOrigin) {
 	// The passes cover the screen plus a margin past each edge, so that what's just off screen still counts
-	const int sdfWidth = m_BackBuffer8->w + m_SdfMargin * 2;
-	const int sdfHeight = m_BackBuffer8->h + m_SdfMargin * 2;
+	const int sdfWidth = m_SdfTexturesWidth;
+	const int sdfHeight = m_SdfTexturesHeight;
 	const Vector sdfSize(static_cast<float>(sdfWidth), static_cast<float>(sdfHeight));
 
 	// Only repeat the mask past the scene's edges where the scene wraps, otherwise filtering blends each edge of the scene with the opposite one
@@ -327,7 +274,7 @@ void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 
 	// Set uniforms
 	SceneLayer* terrainSL = g_SceneMan.GetTerrain();
-	shaderMask.SetVector2f("uViewOrigin", g_CameraMan.GetOffset(0) - Vector(static_cast<float>(m_SdfMargin), static_cast<float>(m_SdfMargin)));
+	shaderMask.SetVector2f("uViewOrigin", viewOrigin - Vector(static_cast<float>(m_SdfMargin), static_cast<float>(m_SdfMargin)));
 	shaderMask.SetVector2f("uViewSize", sdfSize);
 	shaderMask.SetVector2f("uSceneSize", Vector(terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
 
@@ -374,7 +321,7 @@ void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 	glBindTexture(GL_TEXTURE_2D, src);
 	glUniform1i(glGetUniformLocation(programUnsignedSDF, "uSampler"), 0);
 
-	// Distances stay relative to the screen's diagonal, not the margin's, so the smoothing distances mean the same as before
+	// Distances stay relative to the back buffer's diagonal, not the margin's or a split screen's, so the smoothing looks the same however the screen is split
 	shaderUnsignedSDF.SetFloat("uMaxDist", GetScreenDiagonal(m_BackBuffer8.get()));
 	shaderUnsignedSDF.SetVector2f("uViewSize", sdfSize);
 
@@ -404,10 +351,13 @@ void FrameMan::ClearFowTextures() {
 			tex.id = 0;
 		}
 	};
-	clearTextureIfNeeded(instantVisibleFowMaskTex);
-	clearTextureIfNeeded(lastSeenTex);
-	clearTextureIfNeeded(fowMaskLastSeenTex);
-	clearTextureIfNeeded(lastSeenCopiedMaskTex);
+	for (auto& [team, teamTextures]: m_FogOfWarTeamTextures) {
+		clearTextureIfNeeded(teamTextures.InView);
+		clearTextureIfNeeded(teamTextures.LastSeenTerrain);
+		clearTextureIfNeeded(teamTextures.EverSeen);
+		clearTextureIfNeeded(teamTextures.LastSeenTerrainCopied);
+	}
+	m_FogOfWarTeamTextures.clear();
 	clearTextureIfNeeded(GUITex);
 	clearTextureIfNeeded(MOColorTex);
 	clearTextureIfNeeded(BgTerrainTex);
@@ -451,28 +401,26 @@ void FrameMan::InitOrReinitFowOglThings() {
 	} 
 	
 	// But make/remake textures with differing wrapping and sizes each time
-	// Two floats per pixel, unfiltered and clamped to the edges
-	auto alloc_rg32f = [&](GLuint tex, int width, int height) {
-		glBindTexture(GL_TEXTURE_2D, tex);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	};
-
-	// The edge smoothing covers the screen plus however far it reaches past each edge, so that what's just off screen still counts
+	// The edge smoothing reaches as far past each edge of a screen as it would on the whole back buffer, so the smoothing looks the same however the screen is split
 	m_SdfMargin = GetFogOfWarSdfMargin(m_BackBuffer8.get());
-	const int sdfWidth = m_BackBuffer8->w + m_SdfMargin * 2;
-	const int sdfHeight = m_BackBuffer8->h + m_SdfMargin * 2;
-	alloc_rg32f(m_SdfTexPing, sdfWidth, sdfHeight);
-	alloc_rg32f(m_SdfTexPong, sdfWidth, sdfHeight);
-	alloc_rg32f(m_SdfResultFowMask, sdfWidth, sdfHeight);
-	alloc_rg32f(m_SdfResultFowLastSeenTerrainMask, sdfWidth, sdfHeight);
-	alloc_rg32f(m_bgLayersTex, m_BackBuffer8->w, m_BackBuffer8->h);
+	AllocateTwoFloatTexture(m_bgLayersTex, m_BackBuffer8->w, m_BackBuffer8->h);
 }
 
-void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEnabled) {
+void FrameMan::SizeSdfTextures(int screenWidth, int screenHeight) {
+	// The edge smoothing covers the screen plus however far it reaches past each edge, so that what's just off screen still counts
+	const int sdfWidth = screenWidth + m_SdfMargin * 2;
+	const int sdfHeight = screenHeight + m_SdfMargin * 2;
+	if (sdfWidth == m_SdfTexturesWidth && sdfHeight == m_SdfTexturesHeight) {
+		return;
+	}
+	m_SdfTexturesWidth = sdfWidth;
+	m_SdfTexturesHeight = sdfHeight;
+	for (GLuint texture: {m_SdfTexPing, m_SdfTexPong, m_SdfResultFowMask, m_SdfResultFowLastSeenTerrainMask}) {
+		AllocateTwoFloatTexture(texture, sdfWidth, sdfHeight);
+	}
+}
+
+void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, int screen, const Vector& screenOffset, const FogOfWarTeamTextures* fogOfWar) {
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("guiTexture"), GUITex.id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("hudLayerTexture"), m_HudLayer->GetColorTexture().id);
 	rlSetUniformSampler(backgroundShader.GetUniformLocation("moColor"), MOColorTex.id);
@@ -482,8 +430,11 @@ void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEna
 
 	//rlTexture
 	SceneLayer* terrainSL = g_SceneMan.GetTerrain();
-	backgroundShader.SetVector2f("uViewOrigin", g_CameraMan.GetOffset(0));
-	backgroundShader.SetVector2f("uViewSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
+	// The screen is drawn from its own camera, over its own part of the back buffer
+	backgroundShader.SetVector2f("uViewOrigin", g_CameraMan.GetOffset(screen));
+	backgroundShader.SetVector2f("uViewSize", Vector(m_PlayerScreen8->w, m_PlayerScreen8->h));
+	backgroundShader.SetVector2f("uScreenOffset", screenOffset);
+	backgroundShader.SetVector2f("uBackBufferSize", Vector(m_BackBuffer8->w, m_BackBuffer8->h));
 	backgroundShader.SetVector2f("uSceneSize", Vector(terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
 	backgroundShader.SetFloat("uNoiseSeed", static_cast<float>(rand()) * 0.0001f);
 	backgroundShader.SetFloat("uSdfMargin", static_cast<float>(m_SdfMargin));
@@ -499,13 +450,63 @@ void FrameMan::BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEna
 
 	static bool treatUnseenAsNeverSeen = false;
 	backgroundShader.SetBool("treatUnseenAsNeverSeen", treatUnseenAsNeverSeen);
-	backgroundShader.SetBool("fowEnabled", fowEnabled);
+	backgroundShader.SetBool("fowEnabled", fogOfWar != nullptr);
 
-	if (fowEnabled) {
-		rlSetUniformSampler(backgroundShader.GetUniformLocation("rteTextureLastSeen"), lastSeenTex.id); // GTODO: not just force first player screen
+	if (fogOfWar) {
+		rlSetUniformSampler(backgroundShader.GetUniformLocation("rteTextureLastSeen"), fogOfWar->LastSeenTerrain.id);
 		rlSetUniformSampler(backgroundShader.GetUniformLocation("fowMaskTexture"), m_SdfResultFowMask); // GTODO toggle for smooth and not in settings
 		rlSetUniformSampler(backgroundShader.GetUniformLocation("fowLastSeenMaskTexture"), m_SdfResultFowLastSeenTerrainMask);
-		rlSetUniformSampler(backgroundShader.GetUniformLocation("lastSeenTerrainCopiedMask"), lastSeenCopiedMaskTex.id);
+		rlSetUniformSampler(backgroundShader.GetUniformLocation("lastSeenTerrainCopiedMask"), fogOfWar->LastSeenTerrainCopied.id);
+	}
+}
+
+void FrameMan::DrawFinalPass(Shader& backgroundShader, int screenCount, const std::array<Vector, c_MaxScreenCount>& screenOffsets) {
+	const GameActivity* gameActivity = dynamic_cast<GameActivity*>(g_ActivityMan.GetActivity());
+	const bool fowEnabled = gameActivity && gameActivity->GetFogOfWarEnabled();
+
+	// The final pass draws every screen from these textures whether fog of war is on or not, and ignores the fog of war when it's off
+	Scene* currentScene = g_SceneMan.GetCurrentScene();
+	if (currentScene != m_ScenePreviouslyUsedForOglSetup) {
+		m_ScenePreviouslyUsedForOglSetup = currentScene;
+		ClearFowTextures();
+		InitOrReinitFowOglThings();
+	}
+	RenderBackgroundLayersBmToTexture();
+	UploadScreenTextures();
+	SizeSdfTextures(m_PlayerScreen8->w, m_PlayerScreen8->h);
+
+	// Each team's fog of war goes up once, however many screens show it
+	std::unordered_map<int, const FogOfWarTeamTextures*> uploadedFogOfWar;
+	for (int screen = 0; screen < screenCount; ++screen) {
+		const FogOfWarTeamTextures* fogOfWar = nullptr;
+		if (fowEnabled) {
+			auto [teamFogOfWar, firstScreenOfTeam] = uploadedFogOfWar.try_emplace(g_CameraMan.GetScreenTeam(screen), nullptr);
+			if (firstScreenOfTeam) {
+				teamFogOfWar->second = UploadFogOfWarTeamTextures(teamFogOfWar->first);
+			}
+			fogOfWar = teamFogOfWar->second;
+		}
+		// Only fog of war uses how far each pixel is from what's in view and what's been seen before
+		if (fogOfWar) {
+			FogOfWarSetup_DoSDF(fogOfWar->InView.id, m_SdfResultFowMask, g_CameraMan.GetOffset(screen));
+			FogOfWarSetup_DoSDF(fogOfWar->EverSeen.id, m_SdfResultFowLastSeenTerrainMask, g_CameraMan.GetOffset(screen));
+		}
+
+		backgroundShader.Begin();
+		backgroundShader.Enable();
+		BackgroundShaderSetUniforms(backgroundShader, screen, screenOffsets[screen], fogOfWar);
+		rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
+		backgroundShader.SetInt("drawMasked", 1);
+		backgroundShader.SetInt("drawingForeground", 1);
+
+		// The screen's part of the back buffer, drawn from the same part of each texture
+		m_BackBuffer->Begin(false);
+		const Rectangle screenRect{screenOffsets[screen].m_X, screenOffsets[screen].m_Y, static_cast<float>(m_PlayerScreen8->w), static_cast<float>(m_PlayerScreen8->h)};
+		DrawTexturePro(g_GLResourceMan.GetStaticTextureFromBitmap(m_BackBuffer8.get()), screenRect, screenRect, {0.0f, 0.0f}, 0.0f, {255, 255, 255, 255});
+		m_BackBuffer->End();
+
+		backgroundShader.SetInt("drawingForeground", 0);
+		backgroundShader.End();
 	}
 }
 
@@ -1263,6 +1264,17 @@ void FrameMan::Draw() {
 
 	const Activity* pActivity = g_ActivityMan.GetActivity();
 
+	// The final pass draws the back buffer from these, and each screen draws into its own part of them
+	SizeBitmap(MOColorBM, m_BackBuffer8->w, m_BackBuffer8->h);
+	SizeBitmap(FgTerrainBM, m_BackBuffer8->w, m_BackBuffer8->h);
+	SizeBitmap(BgTerrainBM, m_BackBuffer8->w, m_BackBuffer8->h);
+	clear_to_color(MOColorBM.GetBitmap(), g_RedColor);
+	clear_to_color(FgTerrainBM.GetBitmap(), 0);
+	clear_to_color(BgTerrainBM.GetBitmap(), g_RedColor);
+
+	// Where each screen is on the back buffer
+	std::array<Vector, c_MaxScreenCount> screenOffsets;
+
 	for (int playerScreen = 0; playerScreen < screenCount; ++playerScreen) {
 
 		screenRelativeEffects.clear();
@@ -1279,7 +1291,24 @@ void FrameMan::Draw() {
 
 		// rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
 		BITMAP* drawScreen = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
-		BITMAP* drawScreenGUI = (screenCount == 1) ? m_BackBuffer8GUI.get() : m_PlayerScreen8.get(); // GTODO: split screens have no GUI back buffer of their own, so their GUI goes on the player screen
+
+		// The position of the current draw screen on the backbuffer
+		Vector& screenOffset = screenOffsets[playerScreen];
+
+		// If we are dealing with split screens, then deal with the fact that we need to draw the player screens to different locations on the final buffer
+		if (screenCount > 1) {
+			UpdateScreenOffsetForSplitScreen(playerScreen, screenOffset);
+		}
+
+		// The screen's own part of the GUI, MO and terrain bitmaps
+		auto screenPartOf = [&screenOffset, drawScreen](BITMAP* bitmap) {
+			return std::unique_ptr<BITMAP, BitmapDeleter>(create_sub_bitmap(bitmap, screenOffset.GetFloorIntX(), screenOffset.GetFloorIntY(), drawScreen->w, drawScreen->h));
+		};
+		const std::unique_ptr<BITMAP, BitmapDeleter> screenGUI = screenPartOf(m_BackBuffer8GUI.get());
+		const std::unique_ptr<BITMAP, BitmapDeleter> screenMOColor = screenPartOf(MOColorBM.GetBitmap());
+		const std::unique_ptr<BITMAP, BitmapDeleter> screenBgTerrain = screenPartOf(BgTerrainBM.GetBitmap());
+		const std::unique_ptr<BITMAP, BitmapDeleter> screenFgTerrain = screenPartOf(FgTerrainBM.GetBitmap());
+		BITMAP* drawScreenGUI = screenGUI.get();
 		// Need to clear the backbuffers because Scene background layers can be too small to fill the whole backbuffer or drawn masked resulting in artifacts from the previous frame.
 		clear_to_color(drawScreenGUI, ColorKeys::g_MaskColor);
 		// If in online multiplayer mode clear to mask color otherwise the scene background layers will get drawn over.
@@ -1302,23 +1331,8 @@ void FrameMan::Draw() {
 			targetPos.m_Y += (drawScreen->h - g_SceneMan.GetSceneHeight()) / 2;
 		}
 
-		// Draw the scene, into bitmaps kept from frame to frame for as long as the screens stay the same size
-		SizeBitmap(MOColorBM, drawScreen->w, drawScreen->h);
-		SizeBitmap(FgTerrainBM, drawScreen->w, drawScreen->h);
-		SizeBitmap(BgTerrainBM, drawScreen->w, drawScreen->h);
-		clear_to_color(MOColorBM.GetBitmap(), g_RedColor);
-		clear_to_color(FgTerrainBM.GetBitmap(), 0);
-		clear_to_color(BgTerrainBM.GetBitmap(), g_RedColor);
-
-		g_SceneMan.Draw(drawScreen, MOColorBM.GetBitmap(), BgTerrainBM.GetBitmap(), FgTerrainBM.GetBitmap(), targetPos);
-
-		// The position of the current draw screen on the backbuffer
-		Vector screenOffset;
-
-		// If we are dealing with split screens, then deal with the fact that we need to draw the player screens to different locations on the final buffer
-		if (screenCount > 1) {
-			UpdateScreenOffsetForSplitScreen(playerScreen, screenOffset);
-		}
+		// Draw the scene
+		g_SceneMan.Draw(drawScreen, screenMOColor.get(), screenBgTerrain.get(), screenFgTerrain.get(), targetPos);
 
 		// The HUD and primitives go into their own layer, so they can be blended over the world once the final pass has drawn it
 		BeginHudLayer(backgroundShader, screenOffset);
@@ -1362,66 +1376,21 @@ void FrameMan::Draw() {
 	// GTODO: nothing fills the seen pixel lists any more, so this does nothing
 	g_SceneMan.ClearSeenMaskPixels();
 
-	// Draw separating lines for split-screens
+	// Draw separating lines for split-screens, with the GUI so they go over everything
 	if (m_HSplit) {
-		hline(m_BackBuffer8.get(), 0, (m_BackBuffer8->h / 2) - 1, m_BackBuffer8->w - 1, m_AlmostBlackColor);
-		hline(m_BackBuffer8.get(), 0, (m_BackBuffer8->h / 2), m_BackBuffer8->w - 1, m_AlmostBlackColor);
+		hline(m_BackBuffer8GUI.get(), 0, (m_BackBuffer8GUI->h / 2) - 1, m_BackBuffer8GUI->w - 1, m_AlmostBlackColor);
+		hline(m_BackBuffer8GUI.get(), 0, (m_BackBuffer8GUI->h / 2), m_BackBuffer8GUI->w - 1, m_AlmostBlackColor);
 	}
 	if (m_VSplit) {
-		vline(m_BackBuffer8.get(), (m_BackBuffer8->w / 2) - 1, 0, m_BackBuffer8->h - 1, m_AlmostBlackColor);
-		vline(m_BackBuffer8.get(), (m_BackBuffer8->w / 2), 0, m_BackBuffer8->h - 1, m_AlmostBlackColor);
+		vline(m_BackBuffer8GUI.get(), (m_BackBuffer8GUI->w / 2) - 1, 0, m_BackBuffer8GUI->h - 1, m_AlmostBlackColor);
+		vline(m_BackBuffer8GUI.get(), (m_BackBuffer8GUI->w / 2), 0, m_BackBuffer8GUI->h - 1, m_AlmostBlackColor);
 	}
 
 	rlEnableDepthTest();
 	rlZDepth(c_GuiDepth - 1.0f);
 	g_GLResourceMan.UpdateDynamicBitmap(m_BackBuffer8.get(), true);
 
-	// Fog of war things!
-	bool fowEnabled;
-	Activity* currentActivity = g_ActivityMan.GetActivity();
-	fowEnabled = dynamic_cast<GameActivity*>(currentActivity)->GetFogOfWarEnabled();
-	// The final pass draws the whole screen from these textures whether fog of war is on or not, and ignores the fog of war when it's off
-	Scene* currentScene = g_SceneMan.GetCurrentScene();
-	if (currentScene != m_ScenePreviouslyUsedForOglSetup) {
-		m_ScenePreviouslyUsedForOglSetup = currentScene;
-		ClearFowTextures();
-		InitOrReinitFowOglThings();
-	}
-	RenderBackgroundLayersBmToTexture();
-
-	// TODO- this needs to be done above, per screen! Right now splitscreen is fucked
-	FogOfWarSetup();
-	// Only fog of war uses how far each pixel is from what's in view and what's been seen before
-	if (fowEnabled) {
-		FogOfWarSetup_DoSDF(instantVisibleFowMaskTex.id, m_SdfResultFowMask);
-		FogOfWarSetup_DoSDF(fowMaskLastSeenTex.id, m_SdfResultFowLastSeenTerrainMask);
-	}
-
-	// Drawing begins!
-	backgroundShader.Begin();
-	backgroundShader.Enable();
-
-	BackgroundShaderSetUniforms(backgroundShader, fowEnabled);
-
-	rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
-
-	// Drawing to back buffer!
-	backgroundShader.SetInt("drawMasked", 1);
-	backgroundShader.SetInt("drawingForeground", 1);
-	
-	m_BackBuffer->Begin(false);
-	// Terrain!
-	DrawTexture(
-	    g_GLResourceMan.GetStaticTextureFromBitmap(m_BackBuffer8.get()), 
-		0.0f, 
-		0.0f, 
-		{255, 255, 255, 255}
-	);
-	m_BackBuffer->End();
-
-	backgroundShader.SetInt("drawingForeground", 0);
-
-	backgroundShader.End();
+	DrawFinalPass(backgroundShader, screenCount, screenOffsets);
 
 	rlZDepth(0);
 	if (g_ActivityMan.IsInActivity()) {

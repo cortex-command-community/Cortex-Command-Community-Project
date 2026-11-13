@@ -22,6 +22,8 @@ uniform bool useOneStageFoW = false;
 
 uniform vec2 uViewOrigin;
 uniform vec2 uViewSize;
+uniform vec2 uScreenOffset; // Where the screen being drawn is on the back buffer, in pixels
+uniform vec2 uBackBufferSize;
 uniform vec2 uSceneSize;
 uniform float uSdfMargin; // How far past each edge of the screen the fog of war distance textures cover, in pixels
 
@@ -105,12 +107,15 @@ void main() {
 
 	//const float SCANLINE_OPACITY_SMOOTHING_DISTANCE = 0.05f;
 
+	// The textures cover the whole back buffer, but the camera and the distance textures are the screen's own
+	vec2 screenPixel = textureUV * uBackBufferSize - uScreenOffset;
+
 	// The distance textures cover a margin past each edge of the screen, so this screen pixel is further in
-	vec2 sdfUV = (textureUV * uViewSize + uSdfMargin) / (uViewSize + 2.0 * uSdfMargin);
+	vec2 sdfUV = (screenPixel + uSdfMargin) / (uViewSize + 2.0 * uSdfMargin);
 	float distanceToFoV = texture(fowMaskTexture, sdfUV).r - usdfThresoldForFoV;
 	float distanceToSeenBefore = texture(fowLastSeenMaskTexture, sdfUV).r - usdfThresoldForNeverSeen;
 
-	vec2 sceneUV = (uViewOrigin + textureUV * uViewSize) / uSceneSize;
+	vec2 sceneUV = (uViewOrigin + screenPixel) / uSceneSize;
 	
 	float guiVal = texture(guiTexture, textureUV).r;
 	bool fragmentIsGui = guiVal != PALETTE_COLOR_MASK;
