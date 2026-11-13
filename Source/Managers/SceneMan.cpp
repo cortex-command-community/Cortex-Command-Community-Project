@@ -3195,7 +3195,8 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetMOColorBitmap, BITMAP* t
 			//terrain->Draw(targetDimensions, targetBox);
 			break;
 		default:
-			Vector viewOrigin = g_CameraMan.GetOffset(0);
+			// From the camera of the screen being drawn, the same one the final pass draws its fog of war from
+			Vector viewOrigin = g_CameraMan.GetOffset(m_LastUpdatedScreen);
 			// Background layers
 			if (!skipBackgroundLayers) {
 				//BITMAP* BGLayersBm = terrain->GetBitmap();
