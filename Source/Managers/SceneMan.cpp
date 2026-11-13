@@ -3169,7 +3169,7 @@ void SceneMan::Update(int screenId) {
 	}
 
 	// Update the unseen obstruction layer for this team's screen view, if there is one.
-	// GTODO: check if this is ok with
+	// GTODO: nothing reads these offsets any more, since the fog of war is drawn from textures of the whole scene
 	if (const int teamId = g_CameraMan.GetScreenTeam(screenId); teamId != Activity::NoTeam) {
 		if (m_pCurrentScene->GetUnseenLayerMask(teamId)) {
 			m_pCurrentScene->GetUnseenLayerMask(teamId)->SetOffset(offset);

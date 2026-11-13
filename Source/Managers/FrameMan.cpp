@@ -214,7 +214,7 @@ void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 		return;
 	}
 
-	// TODO: HACK
+	// TODO: HACK. Only the first player's team's fog of war is drawn, on every screen.
 	int team = g_ActivityMan.GetActivity()->GetTeamOfPlayer(0);
 
 	SceneLayer* maskSL = currentScene->GetUnseenLayerMask(team);
@@ -455,7 +455,7 @@ void FrameMan::InitOrReinitFowOglThings() {
 	} 
 	
 	// But make/remake textures with differing wrapping and sizes each time
-	// GTODO:
+	// Two floats per pixel, unfiltered and clamped to the edges
 	auto alloc_rg32f = [&](GLuint tex, int width, int height) {
 		glBindTexture(GL_TEXTURE_2D, tex);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, NULL);
@@ -536,9 +536,6 @@ int FrameMan::Initialize() {
 	// Use fastest compression in save_png().
 	_png_compression_level = 1;
 
-	// GTODO
-
-
 	return 0;
 }
 
@@ -549,7 +546,7 @@ int FrameMan::CreateBackBuffers() {
 	// Create the back buffer, this is still in 8bpp, we will do any post-processing on the PostProcessing bitmap
 	m_BackBuffer8 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX, resY));
 	ClearBackBuffer8();
-	// GTODO
+	// The GUI drawn on the CPU has its own back buffer, which the final pass draws over everything else
 	m_BackBuffer8GUI = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX, resY));
 	ClearBackBuffer8GUI();
 
@@ -1286,7 +1283,7 @@ void FrameMan::Draw() {
 
 		// rlSetUniformSampler(backgroundShader.GetUniformLocation("rtePalette"), g_PostProcessMan.GetPaletteTexture());
 		BITMAP* drawScreen = (screenCount == 1) ? m_BackBuffer8.get() : m_PlayerScreen8.get();
-		BITMAP* drawScreenGUI = (screenCount == 1) ? m_BackBuffer8GUI.get() : m_PlayerScreen8.get(); // GTODO
+		BITMAP* drawScreenGUI = (screenCount == 1) ? m_BackBuffer8GUI.get() : m_PlayerScreen8.get(); // GTODO: split screens have no GUI back buffer of their own, so their GUI goes on the player screen
 		// Need to clear the backbuffers because Scene background layers can be too small to fill the whole backbuffer or drawn masked resulting in artifacts from the previous frame.
 		clear_to_color(drawScreenGUI, ColorKeys::g_MaskColor);
 		// If in online multiplayer mode clear to mask color otherwise the scene background layers will get drawn over.
@@ -1366,7 +1363,7 @@ void FrameMan::Draw() {
 	}
 
 	// Clears the pixels that have been revealed from the unseen layers
-	// GTODO: Examine
+	// GTODO: nothing fills the seen pixel lists any more, so this does nothing
 	g_SceneMan.ClearSeenMaskPixels();
 
 	// Draw separating lines for split-screens

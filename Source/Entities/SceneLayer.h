@@ -214,6 +214,7 @@ namespace RTE {
 		/// @param targetDimensions Dimensions of the draw target.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param offsetNeedsScrollRatioAdjustment Whether the offset of this SceneLayer or the passed in offset override need to be adjusted to scroll ratio.
+		/// @param bm Unused, DrawTiled always draws this SceneLayer's own bitmap.
 		virtual void Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment = false, BITMAP* bm = nullptr);
 #pragma endregion
 
@@ -272,6 +273,7 @@ namespace RTE {
 		/// @param targetBitmap The bitmap to draw to.
 		/// @param targetBox The box on the target bitmap to limit drawing to, with the corner of box being where the scroll position lines up.
 		/// @param drawScaled Whether to use scaled drawing routines or not.
+		/// @param bm Unused, this SceneLayer's own bitmap is always drawn.
 		void DrawTiled(const Box& targetDim, const Box& targetBox, bool drawScaled, BITMAP* bm = nullptr) const;
 #pragma endregion
 

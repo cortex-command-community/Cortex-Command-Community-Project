@@ -305,7 +305,7 @@ int Activity::Start() {
 	g_UInputMan.DisableMouseMoving(false);
 	g_UInputMan.DisableKeys(false);
 
-	// GTODO fog of war
+	// The fog of war's textures are made again for the new scene
 	g_FrameMan.ClearTextures();
 
 	int error = g_SceneMan.LoadScene();

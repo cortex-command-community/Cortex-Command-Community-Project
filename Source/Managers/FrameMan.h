@@ -190,7 +190,7 @@ namespace RTE {
 		/// Clears the 8bpp backbuffer with black.
 		void ClearBackBuffer8() { clear_to_color(m_BackBuffer8.get(), 0); }
 
-		/// GTODO
+		/// Clears the 8bpp GUI backbuffer with the mask color.
 		void ClearBackBuffer8GUI() { clear_to_color(m_BackBuffer8GUI.get(), 0); }
 
 		/// Clears the 32bpp backbuffer with black.
@@ -321,6 +321,7 @@ namespace RTE {
 		/// @return The furthest the live terrain is drawn past what's in view, in pixels.
 		int GetFogOfWarLiveTerrainReach() const;
 
+		/// Unloads the fog of war's GUI, MO, in view and last-seen terrain textures, so they're made again for the next scene.
 		void ClearTextures() {
 			if (instantVisibleFowMaskTex.id) {
 				rlUnloadTexture(instantVisibleFowMaskTex.id);
@@ -393,7 +394,7 @@ namespace RTE {
 
 		std::string m_ScreenDumpName; //!< The filename of the screenshot to save.
 		std::shared_ptr<BITMAP> m_BackBuffer8; //!< Screen backbuffer, always 8bpp, gets copied to the 32bpp buffer for post-processing.
-		std::shared_ptr<BITMAP> m_BackBuffer8GUI; //!< GTODO.
+		std::shared_ptr<BITMAP> m_BackBuffer8GUI; //!< 8bpp backbuffer for the GUI drawn on the CPU, which the background shader's final pass draws over everything else.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_BackBuffer32; //!< 32bpp backbuffer, only used for post-processing.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_OverlayBitmap32; //!< 32bpp bitmap used for overlaying (fading in/out or darkening) the screen.
 		std::unique_ptr<SDL_Surface, SurfaceDeleter> m_ScreenDumpBuffer; //!< Temporary buffer for making quick screencaps. This is used for color conversion between 32bpp and 24bpp so we can save the file.
@@ -405,19 +406,19 @@ namespace RTE {
 		std::unique_ptr<RenderTarget> m_HudLayer; //!< The HUD and primitives drawn on the GPU, which the background shader's final pass blends over the world, beneath the GUI drawn on the CPU.
 		bool m_DrawingHudLayer = false; //!< Whether drawing is going into the HUD layer right now.
 
-		// Fog of war shit
-		AllegroBitmap fowMaskBM;
-		AllegroBitmap MOColorBM;
-		AllegroBitmap BgTerrainBM;
-		AllegroBitmap FgTerrainBM;
-		Texture2D lastSeenTex = {0};
-		Texture2D instantVisibleFowMaskTex = {0};
-		Texture2D fowMaskLastSeenTex = {0};
-		Texture2D lastSeenCopiedMaskTex = {0};
-		Texture2D GUITex = {0};
-		Texture2D MOColorTex = {0};
-		Texture2D FgTerrainTex = {0};
-		Texture2D BgTerrainTex = {0};
+		// What the background shader's final pass draws the screen from. Fog of war is drawn for the first player's team.
+		AllegroBitmap fowMaskBM; //!< Which pixels of the unseen layer mask are in view: 0 for in view and 255 for not.
+		AllegroBitmap MOColorBM; //!< The MOs of the player screen being drawn.
+		AllegroBitmap BgTerrainBM; //!< The background terrain of the player screen being drawn.
+		AllegroBitmap FgTerrainBM; //!< The foreground terrain of the player screen being drawn.
+		Texture2D lastSeenTex = {0}; //!< The last-seen terrain.
+		Texture2D instantVisibleFowMaskTex = {0}; //!< fowMaskBM.
+		Texture2D fowMaskLastSeenTex = {0}; //!< Which pixels have ever been seen.
+		Texture2D lastSeenCopiedMaskTex = {0}; //!< Which pixels of the last-seen terrain have had terrain copied into them.
+		Texture2D GUITex = {0}; //!< m_BackBuffer8GUI.
+		Texture2D MOColorTex = {0}; //!< MOColorBM.
+		Texture2D FgTerrainTex = {0}; //!< FgTerrainBM.
+		Texture2D BgTerrainTex = {0}; //!< BgTerrainBM.
 
 #pragma region Initialize Breakdown
 		/// Creates all the frame buffer bitmaps to be used by FrameMan. This is called during Initialize().
@@ -463,6 +464,9 @@ namespace RTE {
 		/// @param drawForScenePreview If true will skip drawing objects, post-effects and sky gradient in the WorldDump. To be used for dumping scene preview images.
 		void DrawWorldDump(bool drawForScenePreview = false) const;
 
+		/// Makes a texture of an 8bpp bitmap's palette indices, unfiltered and repeating.
+		/// @param tex The texture to make.
+		/// @param bm The bitmap to make it from.
 		void LoadTextureFromBitmap8(Texture2D* tex, BITMAP* bm);
 
 		/// Shared method for saving screenshots or individual bitmaps.
@@ -511,33 +515,44 @@ namespace RTE {
 		/// Clears all the member variables of this FrameMan, effectively resetting the members of this abstraction level only.
 		void Clear();
 
+		/// Copies the background layers drawn on the GPU into m_bgLayersTex, for the final pass.
 		void RenderBackgroundLayersBmToTexture();
 
+		/// Uploads the textures the final pass draws the screen from, and the fog of war's masks if the scene has any.
+		/// @param backgroundShader Unused.
 		void FogOfWarSetup(Shader& backgroundShader);
 
+		/// Works out how far each pixel of the screen, and the margin past it, is from the nearest pixel of a fog of war mask that isn't 255.
+		/// @param inputTex The mask, covering the whole scene.
+		/// @param outputTex The texture the distances go in.
 		void FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex);
 
+		/// Unloads all of the fog of war's textures, so they're made again for the next scene.
 		void ClearFowTextures();
 
+		/// Makes the edge smoothing's framebuffer and triangle the first time it's called, and makes its textures again at the screen's size every time.
 		void InitOrReinitFowOglThings();
 
+		/// Sets the background shader's textures and fog of war settings for the final pass.
+		/// @param backgroundShader The background shader.
+		/// @param fowEnabled Whether there is fog of war to draw.
 		void BackgroundShaderSetUniforms(Shader& backgroundShader, bool fowEnabled);
 
-		GLuint m_SdfFbo = 0;
-		GLuint m_SdfTexPing = 0;
-		GLuint m_SdfTexPong = 0;
-		GLuint m_SdfResultFowMask = 0;
-		GLuint m_SdfResultFowLastSeenTerrainMask = 0;
+		GLuint m_SdfFbo = 0; //!< The framebuffer the edge smoothing and the background layer copy draw through.
+		GLuint m_SdfTexPing = 0; //!< One of the two textures the edge smoothing passes take turns drawing into and reading from.
+		GLuint m_SdfTexPong = 0; //!< The other of the two.
+		GLuint m_SdfResultFowMask = 0; //!< How far each pixel is from what's in view.
+		GLuint m_SdfResultFowLastSeenTerrainMask = 0; //!< How far each pixel is from what's been seen before.
 		int m_SdfMargin = 0; //!< How far past each edge of the screen the fog of war edge smoothing covers, in pixels, so that what's just off screen still counts.
-		GLuint m_bgLayersTex;
-		GLuint m_SdfVao = 0;
-		GLuint m_SdfVbo = 0;
+		GLuint m_bgLayersTex; //!< The background layers drawn on the GPU, as palette indices.
+		GLuint m_SdfVao = 0; //!< The triangle covering the screen that every pass draws.
+		GLuint m_SdfVbo = 0; //!< The triangle's vertices.
 		unsigned m_SdfWidth = -1;
 		unsigned m_SdfHeight = -1;
 		GLuint m_SdfSeedFrag = 0;
 		GLuint m_SdfSeedVert = 0;
 
-		Scene* m_ScenePreviouslyUsedForOglSetup = nullptr;
+		Scene* m_ScenePreviouslyUsedForOglSetup = nullptr; //!< The scene the fog of war's textures were made for, so they're made again when it changes.
 
 		// Disallow the use of some implicit methods.
 		FrameMan(const FrameMan& reference) = delete;

@@ -366,10 +366,15 @@ namespace RTE {
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
 		void SetUnseenLayerMask(SceneLayer* pNewLayer, int team = Activity::TeamOne);
 
-		/// GTODO: Write here
 		// GTODO actually call these
+		/// Sets the last-seen terrain of a specific team.
+		/// @param pNewLayer The new SceneLayer to use as the team's last-seen terrain, at the terrain's resolution. Ownership IS XFERRED!
+		/// @param team Which team to set it for. (default: Activity::TeamOne)
 		void SetUnseenLayerTerrain(SceneLayer* pNewLayer, int team = Activity::TeamOne);
 
+		/// Sets the mask of what a specific team has ever seen.
+		/// @param pNewLayer The new SceneLayer to use as the team's mask, at the unseen layer's resolution. Ownership IS XFERRED!
+		/// @param team Which team to set it for. (default: Activity::TeamOne)
 		void SetUnseenLayerTerrainMask(SceneLayer* pNewLayer, int team = Activity::TeamOne);
 
 		/// Gets the unseen layer mask of a specific team.
@@ -378,8 +383,14 @@ namespace RTE {
 		/// specific team yet. Ownership is NOT transferred!
 		SceneLayer* GetUnseenLayerMask(int team = Activity::TeamOne) const { return team != Activity::NoTeam ? m_apUnseenLayerMask[team] : nullptr; }
 
-		/// GTODO: Name these
+		/// Gets the terrain a specific team last saw, at the terrain's resolution.
+		/// @param team Which team to get it for. (default: Activity::TeamOne)
+		/// @return A pointer to the SceneLayer of the last-seen terrain. Ownership is NOT transferred!
 		SceneLayer* GetUnseenLayerTerrain(int team = Activity::TeamOne) const { return team != Activity::NoTeam ? m_apUnseenLayerTerrain[team] : nullptr; }
+
+		/// Gets which pixels a specific team has ever seen, at the unseen layer's resolution. Seen pixels are g_MaskColor.
+		/// @param team Which team to get the mask for. (default: Activity::TeamOne)
+		/// @return A pointer to the SceneLayer of the mask. Ownership is NOT transferred!
 		SceneLayer* GetUnseenLayerTerrainMask(int team = Activity::TeamOne) const { return team != Activity::NoTeam ? m_apUnseenLayerTerrainMask[team] : nullptr; }
 
 		/// Gets which pixels of a specific team's last-seen terrain have had terrain copied into them, at the unseen layer's resolution. Copied pixels are g_MaskColor.
@@ -802,11 +813,11 @@ namespace RTE {
 		std::list<SLBackground*> m_BackLayerList;
 		// Dimensions of the pixels of the unseen layers, when they are dynamically generated. If 0, the layer was not generated
 		Vector m_UnseenPixelSize[Activity::MaxTeamCount];
-		// Layers representing the unknown areas for each team, binarily
+		// Layers holding how many more sim updates each pixel stays in view for, for each team
 		SceneLayer* m_apUnseenLayerMask[Activity::MaxTeamCount];
 		// Layers representing last seen terrain for each team, for drawing two stage fog of war
 		SceneLayer* m_apUnseenLayerTerrain[Activity::MaxTeamCount];
-		//GTODO
+		// Layers marking which pixels each team has ever seen
 		SceneLayer* m_apUnseenLayerTerrainMask[Activity::MaxTeamCount];
 		// Layers marking which pixels of the last-seen terrain have had terrain copied into them for each team, including never-seen pixels the fog of war is drawn over
 		SceneLayer* m_apUnseenLayerTerrainCopiedMask[Activity::MaxTeamCount];

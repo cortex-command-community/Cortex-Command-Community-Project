@@ -541,6 +541,7 @@ namespace RTE {
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @param reveal Whether the ray should reveal or restore unseen layer
 		/// @param revealHoldSeconds How long what the ray reveals stays in view for, in seconds. Not used when restoring.
+		/// @param ignoredMOIDs MOs the ray isn't blocked by. MOs don't block rays yet, so this does nothing.
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal, float revealHoldSeconds, const std::vector<MOID>& ignoredMOIDs = emptyIgnoredMOIDVector);
 
@@ -561,8 +562,11 @@ namespace RTE {
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @param holdSeconds How long what the ray sees stays in view for after it stops being seen, in seconds. Left out, it's as long as for what an actor looks at.
+		/// @param ignoredMOIDs MOs the ray isn't blocked by. MOs don't block rays yet, so this does nothing.
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, float holdSeconds, const std::vector<MOID>& ignoredMOIDs = emptyIgnoredMOIDVector);
+
+		/// Same as above, ignoring no MOs.
 		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0) {
 			return CastSeeRay(team, start, ray, endPos, strengthLimit, skip, c_FogOfWarSeeRayHoldSeconds);
 		}
@@ -578,8 +582,11 @@ namespace RTE {
 		/// @param strengthLimit The material strength limit where
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
 		/// for optimization reasons. 0 = every pixel is checked.
+		/// @param ignoredMOIDs MOs the ray isn't blocked by. MOs don't block rays yet, so this does nothing.
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
 		bool CastUnseeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, const std::vector<MOID>& ignoredMOIDs);
+
+		/// Same as above, ignoring no MOs.
 		bool CastUnseeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0) {
 			return CastUnseeRay(team, start, ray, endPos, strengthLimit, skip, emptyIgnoredMOIDVector);
 		}
@@ -982,7 +989,10 @@ namespace RTE {
 
 		/// Draws this SceneMan's current graphical representation to a BITMAP of choice.
 		/// @param targetBitmap A pointer to a BITMAP to draw on, appropriately sized for the split screen segment.
-		/// @param targetGUIBitmap The offset into the scene where the target bitmap's upper left corner is located.
+		/// @param targetGUIBitmap Unused.
+		/// @param targetMOColorBitmap The bitmap the MOs go on, the same size as the target bitmap.
+		/// @param targetBgTerrainBitmap The bitmap the background terrain goes on, the same size as the target bitmap.
+		/// @param targetFgTerrainBitmap The bitmap the foreground terrain goes on, the same size as the target bitmap.
 		void Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, BITMAP* targetMOColorBitmap, BITMAP* targetBgTerrainBitmap, BITMAP* targetFgTerrainBitmap, const Vector& targetPos = Vector(), bool skipBackgroundLayers = false, bool skipTerrain = false);
 
 		/// Draws the HUD of the MOs and the activity for the screen last updated, unless its HUD is disabled.
@@ -1018,6 +1028,8 @@ namespace RTE {
 		/// @param newHeight The new compacting height, in pixels.
 		void SetScrapCompactingHeight(int newHeight) { m_ScrapCompactingHeight = newHeight; }
 
+		/// Gets the current Scene, the same as GetScene. Ownership is NOT transferred!
+		/// @return A pointer to the current Scene.
 		Scene* GetCurrentScene() { return m_pCurrentScene; }
 
 		/// Protected member variable and method declarations
@@ -1080,6 +1092,7 @@ namespace RTE {
 
 		int m_ScrapCompactingHeight; //!< The maximum height of a column of scrap terrain to collapse, when the bottom pixel is knocked loose.
 
+		/// Which way see rays from the sky are tilted.
 		enum SkySeeRaysAngle {
 			StraightDown,
 			FromLeft,
@@ -1087,18 +1100,22 @@ namespace RTE {
 			Count
 		};
 
-		SkySeeRaysAngle m_SkySeeRaysAngle = SkySeeRaysAngle::StraightDown;
+		SkySeeRaysAngle m_SkySeeRaysAngle = SkySeeRaysAngle::StraightDown; //!< Which way the next see rays from the sky are tilted.
 
 		/// Private member variable and method declarations
 	private:
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
 
-		static const std::vector<int> emptyIgnoredMOIDVector;
+		static const std::vector<int> emptyIgnoredMOIDVector; //!< No MOs, for rays that don't ignore any.
 
 		/// Clears all the member variables of this SceneMan, effectively
 		/// resetting the members of this abstraction level only.
 		void Clear();
 
+		/// Fills a bitmap from a scene-sized one, starting at a position on it and wrapping around its left and right edges.
+		/// @param source The scene-sized bitmap to copy from.
+		/// @param dest The bitmap to fill.
+		/// @param source_x, source_y Where on the source to start copying from.
 		void WrappedBlit(BITMAP* source, BITMAP* dest, int source_x, int source_y);
 
 		// Disallow the use of some implicit methods.
