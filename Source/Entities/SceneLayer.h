@@ -225,9 +225,6 @@ namespace RTE {
 		BITMAP* m_MainBitmap; //!< The main BITMAP of this SceneLayer.
 	protected:
 		BITMAP* m_BackBitmap; //!< The backbuffer BITMAP of this SceneLayer.
-	public:
-		BITMAP* m_MOColorBitmap; // GTODO
-	protected:
 
 		// We use two bitmaps, as a backbuffer. While the main bitmap is being used, the secondary bitmap will be cleared on a separate thread. This is because we tend to want to clear some scene layers every frame and that is costly.
 		std::future<void> m_BitmapClearTask; //!< Task for clearing BITMAP async in background.

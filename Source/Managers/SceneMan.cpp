@@ -3184,7 +3184,7 @@ void SceneMan::Update(int screenId) {
 	}
 }
 
-void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, BITMAP* targetMOColorBitmap, BITMAP* targetBgLayersBitmap, BITMAP* targetBgTerrainBitmap, BITMAP* targetFgTerrainBitmap, const Vector& targetPos, bool skipBackgroundLayers, bool skipTerrain) {
+void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, BITMAP* targetMOColorBitmap, BITMAP* targetBgTerrainBitmap, BITMAP* targetFgTerrainBitmap, const Vector& targetPos, bool skipBackgroundLayers, bool skipTerrain) {
 	ZoneScoped;
 
 	if (!m_pCurrentScene) {

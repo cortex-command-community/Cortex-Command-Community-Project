@@ -193,8 +193,6 @@ namespace RTE {
 		/// GTODO
 		void ClearBackBuffer8GUI() { clear_to_color(m_BackBuffer8GUI.get(), 0); }
 
-		void ClearBackBuffer8MOColor() { clear_to_color(m_BackBuffer8MOColor.get(), 0); }
-
 		/// Clears the 32bpp backbuffer with black.
 		void ClearBackBuffer32() { clear_to_color(m_BackBuffer32.get(), 0); }
 
@@ -396,8 +394,6 @@ namespace RTE {
 		std::string m_ScreenDumpName; //!< The filename of the screenshot to save.
 		std::shared_ptr<BITMAP> m_BackBuffer8; //!< Screen backbuffer, always 8bpp, gets copied to the 32bpp buffer for post-processing.
 		std::shared_ptr<BITMAP> m_BackBuffer8GUI; //!< GTODO.
-		std::shared_ptr<BITMAP> m_BackBuffer8MOColor; //!< GTODO.
-		std::shared_ptr<BITMAP> m_SDFBufferBm; //!< GTODO
 		std::unique_ptr<BITMAP, BitmapDeleter> m_BackBuffer32; //!< 32bpp backbuffer, only used for post-processing.
 		std::unique_ptr<BITMAP, BitmapDeleter> m_OverlayBitmap32; //!< 32bpp bitmap used for overlaying (fading in/out or darkening) the screen.
 		std::unique_ptr<SDL_Surface, SurfaceDeleter> m_ScreenDumpBuffer; //!< Temporary buffer for making quick screencaps. This is used for color conversion between 32bpp and 24bpp so we can save the file.
@@ -406,14 +402,12 @@ namespace RTE {
 		std::unique_ptr<BITMAP, BitmapDeleter> m_ScreenDumpNamePlaceholder; //!< Dummy BITMAP for keeping naming continuity when saving ScreenDumps with multi-threading.
 
 		std::shared_ptr<RenderTarget> m_BackBuffer; //!< Main render backbuffer.
-		std::shared_ptr<RenderTarget> m_SDFBuffer; //!< GTODO
 		std::unique_ptr<RenderTarget> m_HudLayer; //!< The HUD and primitives drawn on the GPU, which the background shader's final pass blends over the world, beneath the GUI drawn on the CPU.
 		bool m_DrawingHudLayer = false; //!< Whether drawing is going into the HUD layer right now.
 
 		// Fog of war shit
 		AllegroBitmap fowMaskBM;
 		AllegroBitmap MOColorBM;
-		AllegroBitmap BgLayersBM;
 		AllegroBitmap BgTerrainBM;
 		AllegroBitmap FgTerrainBM;
 		Texture2D lastSeenTex = {0};
@@ -422,7 +416,6 @@ namespace RTE {
 		Texture2D lastSeenCopiedMaskTex = {0};
 		Texture2D GUITex = {0};
 		Texture2D MOColorTex = {0};
-		Texture2D BgLayersTex = {0};
 		Texture2D FgTerrainTex = {0};
 		Texture2D BgTerrainTex = {0};
 

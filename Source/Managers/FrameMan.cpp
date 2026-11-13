@@ -108,8 +108,6 @@ void FrameMan::Clear() {
 	m_ScreenDumpNamePlaceholder.reset();
 	m_BackBuffer8.reset();
 	m_BackBuffer8GUI.reset();
-	m_BackBuffer8MOColor.reset();
-	m_SDFBufferBm.reset();
 	m_BackBuffer32.reset();
 	m_OverlayBitmap32.reset();
 	m_PaletteFile = ContentFile("Base.rte/palette.bmp");
@@ -180,16 +178,6 @@ void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 			LoadTextureFromBitmap8(&MOColorTex, bm);
 		} else {
 			rlUpdateTexture(MOColorTex.id, 0, 0, bm->w, bm->h, MOColorTex.format, bm->line[0]);
-		}
-	}
-
-	{ // BgLayers
-		BITMAP* bm = BgLayersBM.GetBitmap();
-
-		if (BgLayersTex.id == 0) {
-			LoadTextureFromBitmap8(&BgLayersTex, bm);
-		} else {
-			rlUpdateTexture(BgLayersTex.id, 0, 0, bm->w, bm->h, BgLayersTex.format, bm->line[0]);
 		}
 	}
 
@@ -421,7 +409,6 @@ void FrameMan::ClearFowTextures() {
 	clearTextureIfNeeded(lastSeenCopiedMaskTex);
 	clearTextureIfNeeded(GUITex);
 	clearTextureIfNeeded(MOColorTex);
-	clearTextureIfNeeded(BgLayersTex);
 	clearTextureIfNeeded(BgTerrainTex);
 	clearTextureIfNeeded(FgTerrainTex);
 }
@@ -557,26 +544,15 @@ int FrameMan::CreateBackBuffers() {
 	// Create the back buffer, this is still in 8bpp, we will do any post-processing on the PostProcessing bitmap
 	m_BackBuffer8 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX, resY));
 	ClearBackBuffer8();
-	g_ConsoleMan.PrintString("AAA");
 	// GTODO
 	m_BackBuffer8GUI = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX, resY));
 	ClearBackBuffer8GUI();
-	m_BackBuffer8MOColor = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, 3200, 600));
-	m_SDFBufferBm = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX, resY));
-	/*if (SceneLayer* terrainSL = g_SceneMan.GetTerrain(); terrainSL) {
-		m_BackBuffer8MOColor = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
-	} else {
-		m_BackBuffer8MOColor = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(8, resX, resY));
-	} /**/
-	ClearBackBuffer8MOColor();
 
 	// Create the post-processing buffer, it'll be used for glow effects etc
 	m_BackBuffer32 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(c_BPP, resX, resY));
 	ClearBackBuffer32();
 
 	m_BackBuffer = std::make_unique<RenderTarget>(FloatRect(0, 0, resX, resY), FloatRect(0, 0, resX, resY), 32);
-	// GTODO
-	m_SDFBuffer = std::make_unique<RenderTarget>(FloatRect(0, 0, resX, resY), FloatRect(0, 0, resX, resY), 8);
 	m_HudLayer = std::make_unique<RenderTarget>(FloatRect(0, 0, resX, resY), FloatRect(0, 0, resX, resY), 32);
 
 	m_OverlayBitmap32 = std::unique_ptr<BITMAP, BitmapDeleter>(create_bitmap_ex(c_BPP, resX, resY));
@@ -1272,7 +1248,6 @@ void FrameMan::Draw() {
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	clear_to_color(m_BackBuffer8.get(), 0);
 	clear_to_color(m_BackBuffer8GUI.get(), 0);
-	clear_to_color(m_BackBuffer8MOColor.get(), 0);
 	// The HUD layer starts each frame clear, ready for every player screen's HUD
 	m_HudLayer->Begin(true);
 	m_HudLayer->End();
@@ -1332,17 +1307,14 @@ void FrameMan::Draw() {
 		// Draw the scene
 		MOColorBM.Destroy();
 		MOColorBM.Create(drawScreen->w, drawScreen->h, 8);
-		BgLayersBM.Destroy();
-		BgLayersBM.Create(drawScreen->w, drawScreen->h, 8);
 		FgTerrainBM.Destroy();
 		FgTerrainBM.Create(drawScreen->w, drawScreen->h, 8);
 		BgTerrainBM.Destroy();
 		BgTerrainBM.Create(drawScreen->w, drawScreen->h, 8);
 		clear_to_color(MOColorBM.GetBitmap(), g_RedColor);
-		clear_to_color(BgLayersBM.GetBitmap(), g_RedColor);
 		clear_to_color(BgTerrainBM.GetBitmap(), g_RedColor);
 
-		g_SceneMan.Draw(drawScreen, drawScreenGUI, MOColorBM.GetBitmap(), BgLayersBM.GetBitmap(), BgTerrainBM.GetBitmap(), FgTerrainBM.GetBitmap(), targetPos);
+		g_SceneMan.Draw(drawScreen, drawScreenGUI, MOColorBM.GetBitmap(), BgTerrainBM.GetBitmap(), FgTerrainBM.GetBitmap(), targetPos);
 
 		// The position of the current draw screen on the backbuffer
 		Vector screenOffset;
