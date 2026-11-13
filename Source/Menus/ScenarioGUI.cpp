@@ -180,7 +180,6 @@ void ScenarioGUI::SetSelectedLocation(LocationAndItsScenes* newSelectedLocation)
 		// Populate the variant combo box
 		m_SceneVariantComboBox->ClearList();
 		for (Scene* scene : m_SelectedLocation->Scenes) {
-			bool isModded = scene->GetModuleID() != g_PresetMan.GetModuleID("Base.rte");
 			std::string itemString = scene->GetVariantName();
 			// If the scene is from Base.rte
 			if (scene->GetModuleID() == 0) {
@@ -231,7 +230,6 @@ void ScenarioGUI::SetSelectedScene(Scene* newSelectedScene) {
 	// and if so - hide/unhide the related UI elements, make space for them if needed
 	const bool locationHasMultipleScenes = m_SelectedLocation->Scenes.size() > 1;
 	bool makeSpaceForSceneVariantUI = false;
-	constexpr int SceneDescriptionLabelInitialY = 134;
 	if (locationHasMultipleScenes) {
 		m_SceneVariantLabel->SetEnabled(true);
 		m_SceneVariantComboBox->SetEnabled(true);

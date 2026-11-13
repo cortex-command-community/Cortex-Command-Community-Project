@@ -65,10 +65,6 @@ namespace RTE {
 			const std::string& GetDotRTEName() const {
 				return Loaded ? dataModule->GetFileName() : DotRTENameIfWasntLoaded;
 			}
-			/// Gets the mod's friendly name, empty if it wasn't loaded at launch.
-			std::string GetFriendlyName() const {
-				return Loaded ? dataModule->GetFriendlyName() : "";
-			}
 			/// Gets the mod's author and description, for the description box.
 			const std::string GetDescription() const {
 				if (!Loaded) {

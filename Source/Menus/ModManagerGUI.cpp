@@ -3,7 +3,6 @@
 #include "SettingsMan.h"
 #include "PresetMan.h"
 #include "WindowMan.h"
-#include "FrameMan.h"
 #include "DataModule.h"
 #include "GlobalScript.h"
 

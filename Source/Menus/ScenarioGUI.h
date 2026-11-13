@@ -117,8 +117,6 @@ namespace RTE {
 		GUILabel* m_SceneVariantLabel;
 		GUIComboBox* m_SceneVariantComboBox;
 
-		int m_SceneDescriptionLabelInitialY; //!< Unused.
-
 #pragma region Create Breakdown
 		/// Creates all the elements that compose the Activity info box.
 		void CreateActivityInfoBox();
