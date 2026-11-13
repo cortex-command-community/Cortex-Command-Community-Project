@@ -225,25 +225,12 @@ void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 	SceneLayer* lastSeenTerrainMaskSL = currentScene->GetUnseenLayerTerrainMask(team);
 	SceneLayer* lastSeenTerrainSL = currentScene->GetUnseenLayerTerrain(team);
 
-	int currentSceneW = currentScene->GetWidth();
-	int currentSceneH = currentScene->GetHeight();
-	int scaleFactorX = maskSL->GetScaleFactor().GetX();
-	int scaleFactorY = maskSL->GetScaleFactor().GetY();
-
-	fowMaskBM.Destroy();
-	fowMaskLastSeenBM.Destroy();
-	lastSeenBM.Destroy();
-	fowMaskBM.Create(currentSceneW / scaleFactorX, currentSceneH / scaleFactorY);
-	fowMaskLastSeenBM.Create(currentSceneW / scaleFactorX, currentSceneH / scaleFactorY);
-	lastSeenBM.Create(currentSceneW, currentSceneH);
-
 	BITMAP* maskBitmap = maskSL->GetBitmap();
-	AllegroBitmap fowMaskLastSeenBMOld(lastSeenTerrainMaskSL->GetBitmap()); // GTODO
-	AllegroBitmap lastSeenBMOld(lastSeenTerrainSL->GetBitmap());
-	GUIRect srcPosAndSizeRectFowMask =
-	    {0, 0, maskBitmap->w, maskBitmap->h};
-	GUIRect srcPosAndSizeRectLastSeen =
-	    {0, 0, lastSeenBMOld.GetWidth(), lastSeenBMOld.GetHeight()};
+	// What's in view is worked out again every frame, into a bitmap that's kept for as long as the mask stays the same size
+	if (!fowMaskBM.GetBitmap() || fowMaskBM.GetWidth() != maskBitmap->w || fowMaskBM.GetHeight() != maskBitmap->h) {
+		fowMaskBM.Destroy();
+		fowMaskBM.Create(maskBitmap->w, maskBitmap->h);
+	}
 
 	// The mask holds how many more updates each pixel stays in view for, but drawing only needs to know which pixels are in view: 0 for in view and 255 for not
 	BITMAP* fowMaskBitmap = fowMaskBM.GetBitmap();
@@ -262,8 +249,6 @@ void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 			inView[x] = holds[x] > 0 ? 0 : 255;
 		}
 	}
-	fowMaskLastSeenBMOld.Draw(&fowMaskLastSeenBM, 0, 0, &srcPosAndSizeRectFowMask);
-	lastSeenBMOld.Draw(&lastSeenBM, 0, 0, &srcPosAndSizeRectLastSeen);
 
 	// Update/make textures
 	// GTODO: update this on scene reentry (other places too)
@@ -279,8 +264,8 @@ void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 		}
 	}
 	
-	{ // Fog of war last-seen terrain
-		BITMAP* bm = lastSeenBM.GetBitmap();
+	{ // Fog of war last-seen terrain, straight from the scene's layer
+		BITMAP* bm = lastSeenTerrainSL->GetBitmap();
 
 		if (lastSeenTex.id == 0) {
 			LoadTextureFromBitmap8(&lastSeenTex, bm);
@@ -289,8 +274,8 @@ void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 		}
 	}
 
-	{ // Fog of war last-seen terrain chunky 1-0 mask
-		BITMAP* bm = fowMaskLastSeenBM.GetBitmap();
+	{ // Fog of war last-seen terrain chunky 1-0 mask, straight from the scene's layer
+		BITMAP* bm = lastSeenTerrainMaskSL->GetBitmap();
 
 		if (fowMaskLastSeenTex.id == 0) {
 			LoadTextureFromBitmap8(&fowMaskLastSeenTex, bm);

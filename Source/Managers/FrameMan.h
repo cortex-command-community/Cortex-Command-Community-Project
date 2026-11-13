@@ -411,9 +411,7 @@ namespace RTE {
 		bool m_DrawingHudLayer = false; //!< Whether drawing is going into the HUD layer right now.
 
 		// Fog of war shit
-		AllegroBitmap lastSeenBM;
 		AllegroBitmap fowMaskBM;
-		AllegroBitmap fowMaskLastSeenBM;
 		AllegroBitmap MOColorBM;
 		AllegroBitmap BgLayersBM;
 		AllegroBitmap BgTerrainBM;
