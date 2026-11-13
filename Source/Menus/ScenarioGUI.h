@@ -60,27 +60,28 @@ namespace RTE {
 #pragma endregion
 
 	private:
-		bool m_FetchedActivitiesAndScenes = false; //todo
+		bool m_FetchedActivitiesAndScenes = false; //!< Whether the Activity and Scene lists were fetched, which is done the first time this menu is enabled.
 
 		int m_RootBoxMaxWidth; //!< The maximum width the root CollectionBox that holds all this menu's GUI elements. This is to constrain this menu to the primary window's display (left-most) while in multi-display fullscreen, otherwise positioning can get stupid.
 
 		std::unique_ptr<GUIControlManager> m_GUIControlManager; //!< The GUIControlManager which owns all the GUIControls of the ScenarioGUI.
 		ScenarioMenuUpdateResult m_UpdateResult; //!< The result of the ScenarioGUI update. See ScenarioMenuUpdateResult enumeration.
 
+		/// A site on the planet, and the Scenes that can be played there. Scenes at the same site are its variants.
 		struct LocationAndItsScenes {
-			RTE::Vector Location;
-			std::vector<Scene*> Scenes;
+			RTE::Vector Location; //!< Where the site is on the planet.
+			std::vector<Scene*> Scenes; //!< The Scenes at the site. Not owned.
 		};
 		using ScenesByLocationVector = std::vector<LocationAndItsScenes>;
 
-		std::map<Activity*, ScenesByLocationVector> m_ScenarioActivities; //!< The map of Activities and the Scenes compatible with each, neither of which are owned here.
+		std::map<Activity*, ScenesByLocationVector> m_ScenarioActivities; //!< The map of Activities and the sites with Scenes compatible with each, none of which are owned here.
 		const Activity* m_SelectedActivity; //!< The currently selected Activity. Not owned.
 
-		ScenesByLocationVector* m_ActivityLocations; //!< TODO REDO Pointer to the current set of Scenes being displayed. Not owned, and neither are the Scenes.
+		ScenesByLocationVector* m_ActivityLocations; //!< Pointer to the sites of the selected Activity. Not owned, and neither are the Scenes.
 		Scene* m_SelectedScene; //!< The scene preset currently selected. Not owned.
 		//Scene* m_HoveredScene; //!< The scene preset currently hovered. Not owned.
-		LocationAndItsScenes* m_SelectedLocation;
-		LocationAndItsScenes* m_HoveredLocation;
+		LocationAndItsScenes* m_SelectedLocation; //!< The site currently selected. Not owned.
+		LocationAndItsScenes* m_HoveredLocation; //!< The site currently hovered. Not owned.
 
 		Vector m_PlanetCenter; //!< The absolute screen position of the planet center.
 		float m_PlanetRadius; //!< The screen radius of the planet.
@@ -116,7 +117,7 @@ namespace RTE {
 		GUILabel* m_SceneVariantLabel;
 		GUIComboBox* m_SceneVariantComboBox;
 
-		int m_SceneDescriptionLabelInitialY;
+		int m_SceneDescriptionLabelInitialY; //!< Unused.
 
 #pragma region Create Breakdown
 		/// Creates all the elements that compose the Activity info box.
@@ -140,7 +141,8 @@ namespace RTE {
 		/// @param newSelectedScene The new selected Scene.
 		void SetSelectedScene(Scene* newSelectedScene);
 
-		//todo
+		/// Sets the currently selected site, fills the variant list with its Scenes and selects the first.
+		/// @param newSelectedLocation The new selected site, or nullptr for none.
 		void SetSelectedLocation(LocationAndItsScenes* newSelectedLocation);
 
 		/// Moves the CollectionBox that is selected as being dragged, if any.

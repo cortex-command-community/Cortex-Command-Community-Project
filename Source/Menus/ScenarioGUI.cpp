@@ -153,7 +153,7 @@ void ScenarioGUI::SetSelectedActivity(const Activity* newSelectedActivity) {
 				break;
 			}
 		}
-		// TODO REDO If it's just one location defined for the activity, then pick that
+		// If it's just one site defined for the activity, then pick that
 		if (m_ActivityLocations && m_ActivityLocations->size() == 1) {
 			m_ActivityDescriptionLabel->SetText(m_SelectedActivity->GetDescription() + "\n\nThe only site where this activity can be played has been selected for you.");
 		} else if (m_ActivityLocations && m_ActivityLocations->size() > 1) {
