@@ -59,6 +59,14 @@ namespace {
 		const float furthestReach = std::max({usdfThresoldForFoV + usdfOpacitySmoothingDistanceForFoV, usdfThresoldForNeverSeen + usdfOpacitySmoothingDistanceForNeverSeen, usdfThresoldForFoV + scanlineAndNoiseOpacitySmoothingDistance});
 		return static_cast<int>(std::ceil(furthestReach * GetScreenDiagonal(screen)));
 	}
+
+	/// Makes a bitmap the given size, keeping the one it has if it already is. Whatever was drawn on a kept bitmap stays, so clear it if that matters.
+	void SizeBitmap(AllegroBitmap& bitmap, int width, int height) {
+		if (!bitmap.GetBitmap() || bitmap.GetWidth() != width || bitmap.GetHeight() != height) {
+			bitmap.Destroy();
+			bitmap.Create(width, height, 8);
+		}
+	}
 }
 
 int FrameMan::GetFogOfWarNeverSeenReach() const {
@@ -215,10 +223,7 @@ void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 
 	BITMAP* maskBitmap = maskSL->GetBitmap();
 	// What's in view is worked out again every frame, into a bitmap that's kept for as long as the mask stays the same size
-	if (!fowMaskBM.GetBitmap() || fowMaskBM.GetWidth() != maskBitmap->w || fowMaskBM.GetHeight() != maskBitmap->h) {
-		fowMaskBM.Destroy();
-		fowMaskBM.Create(maskBitmap->w, maskBitmap->h);
-	}
+	SizeBitmap(fowMaskBM, maskBitmap->w, maskBitmap->h);
 
 	// The mask holds how many more updates each pixel stays in view for, but drawing only needs to know which pixels are in view: 0 for in view and 255 for not
 	BITMAP* fowMaskBitmap = fowMaskBM.GetBitmap();
@@ -1304,14 +1309,12 @@ void FrameMan::Draw() {
 			targetPos.m_Y += (drawScreen->h - g_SceneMan.GetSceneHeight()) / 2;
 		}
 
-		// Draw the scene
-		MOColorBM.Destroy();
-		MOColorBM.Create(drawScreen->w, drawScreen->h, 8);
-		FgTerrainBM.Destroy();
-		FgTerrainBM.Create(drawScreen->w, drawScreen->h, 8);
-		BgTerrainBM.Destroy();
-		BgTerrainBM.Create(drawScreen->w, drawScreen->h, 8);
+		// Draw the scene, into bitmaps kept from frame to frame for as long as the screens stay the same size
+		SizeBitmap(MOColorBM, drawScreen->w, drawScreen->h);
+		SizeBitmap(FgTerrainBM, drawScreen->w, drawScreen->h);
+		SizeBitmap(BgTerrainBM, drawScreen->w, drawScreen->h);
 		clear_to_color(MOColorBM.GetBitmap(), g_RedColor);
+		clear_to_color(FgTerrainBM.GetBitmap(), 0);
 		clear_to_color(BgTerrainBM.GetBitmap(), g_RedColor);
 
 		g_SceneMan.Draw(drawScreen, drawScreenGUI, MOColorBM.GetBitmap(), BgTerrainBM.GetBitmap(), FgTerrainBM.GetBitmap(), targetPos);
