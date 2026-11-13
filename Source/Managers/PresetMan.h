@@ -7,7 +7,7 @@
 /// Inclusions of header files
 #include "Entity.h"
 #include "Singleton.h"
-#include "shader.h"
+#include "Shader.h"
 
 #include <array>
 #include <list>
