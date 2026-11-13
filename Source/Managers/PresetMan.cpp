@@ -206,7 +206,9 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) 
 	}
 
 	if (loadingDone == ModuleLoadResult::Failure) {
-		RTEAssert(false, m_WorkerErrorMessage);
+		// Failures that don't come from an exception have no message of their own
+		std::lock_guard lg(m_WorkerErrorMutex);
+		RTEAssert(false, m_WorkerErrorMessage.empty() ? "Module loading failed!" : m_WorkerErrorMessage);
 	}
 
 	// Compile the shaders we've deferred
@@ -985,6 +987,10 @@ void PresetMan::PushToProgressDisplayQueue(const std::string& string, bool newIt
 }
 
 void PresetMan::AssertFromModuleLoadingWorkerAndShutdownAll(const std::string& assertString) {
+	{
+		std::lock_guard lg(g_PresetMan.m_WorkerErrorMutex);
+		g_PresetMan.m_WorkerErrorMessage = assertString;
+	}
 	g_PresetMan.m_WorkerFailed = true;
 	g_PresetMan.m_ProgressDisplayCv.notify_all();
 }

@@ -370,7 +370,7 @@ namespace RTE {
 		static void PushToProgressDisplayQueue(const std::string&, bool);
 
 		/// Tells the main thread that module loading failed, so it stops loading.
-		/// @param assertString What went wrong. It isn't kept yet, so the error shown afterwards is empty.
+		/// @param assertString What went wrong, shown once loading has stopped.
 		static void AssertFromModuleLoadingWorkerAndShutdownAll(const std::string&);
 
 		/// How the module loading thread is getting on.
@@ -422,8 +422,8 @@ namespace RTE {
 		std::atomic<bool> m_ToStopSpinlockWatchdog = false; //!< Whether the watchdog thread should stop, set when module loading throws.
 
 		std::atomic<bool> m_WorkerFailed = false; //!< Whether module loading failed.
-		std::mutex m_WorkerErrorMutex; //!< Unused.
-		std::string m_WorkerErrorMessage; //!< What went wrong if module loading failed. Nothing sets it yet.
+		std::mutex m_WorkerErrorMutex; //!< Guards m_WorkerErrorMessage.
+		std::string m_WorkerErrorMessage; //!< What went wrong if module loading failed.
 
 		/// Loads all the modules, on the module loading thread.
 		/// @param st Tells the thread to stop.
