@@ -145,13 +145,18 @@ namespace {
 		return output;
 	}
 
-	/// Copies the live terrain into a team's last-seen terrain for the pixels near rectangles of its unseen layer mask that shouldCopy(x, y) picks, and marks them as copied.
-	/// @param reach How far from the rectangles to copy, in scene pixels. Nothing is copied if it's 0, as it is without a screen to draw on.
-	/// @param shouldCopy Called as shouldCopy(x, y) with a pixel's position on the mask, to say whether to copy it.
-	template <typename ShouldCopy>
-	void CommitPixelsNearMaskRects(Scene* scene, int team, const std::vector<MaskRect>& rects, int reach, ShouldCopy&& shouldCopy) {
+	/// A row's span of unseen layer mask pixels within reach of a rectangle, from x0 up to but not including x1.
+	struct RowSpan {
+		int y, x0, x1;
+	};
+
+	/// Gets the spans of unseen layer mask pixels within a distance of rectangles of a team's mask, one for each row of each rectangle, wrapped around the scene's edges where it wraps and cut off where it doesn't.
+	/// @param reach How far from the rectangles to reach, in scene pixels. Nothing is in reach if it's 0, as it is without a screen to draw on.
+	/// @return The spans. They can overlap, and aren't in any order.
+	std::vector<RowSpan> GetSpansNearMaskRects(Scene* scene, int team, const std::vector<MaskRect>& rects, int reach) {
+		std::vector<RowSpan> spans;
 		if (rects.empty() || reach <= 0) {
-			return;
+			return spans;
 		}
 
 		BITMAP* maskBitmap = scene->GetUnseenLayerMask(team)->GetBitmap();
@@ -162,11 +167,6 @@ namespace {
 		const int reachX = static_cast<int>(std::ceil(reach / scale.m_X)) + 1;
 		const int reachY = static_cast<int>(std::ceil(reach / scale.m_Y)) + 1;
 
-		// Each row's spans of pixels within reach of a rectangle, wrapped around the scene's edges where it wraps and cut off where it doesn't
-		struct RowSpan {
-			int y, x0, x1;
-		};
-		std::vector<RowSpan> spans;
 		for (const MaskRect& rect: rects) {
 			const int x0 = rect.x0 - reachX;
 			const int x1 = rect.x1 + reachX;
@@ -192,27 +192,88 @@ namespace {
 				}
 			}
 		}
+		return spans;
+	}
+
+	/// Finds the pixels near rectangles of a team's unseen layer mask that shouldPick(x, y) picks.
+	/// @param reach How far from the rectangles to look, in scene pixels.
+	/// @param shouldPick Called as shouldPick(x, y) with a pixel's position on the mask, to say whether to pick it.
+	/// @return The rectangles the picked pixels make up.
+	template <typename ShouldPick>
+	std::vector<MaskRect> FindPixelsNearMaskRects(Scene* scene, int team, const std::vector<MaskRect>& rects, int reach, ShouldPick&& shouldPick) {
+		std::vector<RowSpan> spans = GetSpansNearMaskRects(scene, team, rects, reach);
 		if (spans.empty()) {
-			return;
+			return {};
 		}
 		std::sort(spans.begin(), spans.end(), [](const RowSpan& a, const RowSpan& b) { return a.y != b.y ? a.y < b.y : a.x0 < b.x0; });
 
 		// Spans on a row overlap, so each only adds the pixels past where the ones before it on the row reached
 		auto span = spans.begin();
-		const std::vector<MaskRect> nearbyRects = MergeRunsIntoRects(spans.front().y, spans.back().y + 1, [&](int y, std::vector<MaskRun>& runs) {
+		return MergeRunsIntoRects(spans.front().y, spans.back().y + 1, [&](int y, std::vector<MaskRun>& runs) {
 			runs.clear();
 			for (int coveredTo = 0; span != spans.end() && span->y == y; ++span) {
 				for (int x = std::max(span->x0, coveredTo); x < span->x1; ++x) {
-					if (shouldCopy(x, y)) {
+					if (shouldPick(x, y)) {
 						AddPixelToRuns(runs, x);
 					}
 				}
 				coveredTo = std::max(coveredTo, span->x1);
 			}
 		});
-		for (const MaskRect& rect: nearbyRects) {
-			CommitMaskRectToLastSeenTerrain(scene, team, rect);
+	}
+
+	/// Sets the bits for the pixels from x0 up to but not including x1 in a row of bits, one per pixel.
+	void SetPixelBits(uint64_t* rowBits, int x0, int x1) {
+		while (x0 < x1) {
+			const int bit = x0 % 64;
+			const int count = std::min(64 - bit, x1 - x0);
+			rowBits[x0 / 64] |= count == 64 ? ~0ULL : ((1ULL << count) - 1) << bit;
+			x0 += count;
 		}
+	}
+
+	/// Fills runs with the runs of pixels whose bits are set in a row of bits, one per pixel.
+	void FindRunsInPixelBits(const uint64_t* rowBits, int words, std::vector<MaskRun>& runs) {
+		runs.clear();
+		for (int word = 0; word < words; ++word) {
+			for (uint64_t bits = rowBits[word]; bits != 0;) {
+				const int start = std::countr_zero(bits);
+				const int length = std::countr_one(bits >> start);
+				const int x0 = word * 64 + start;
+				if (!runs.empty() && runs.back().x1 == x0) {
+					runs.back().x1 = x0 + length;
+				} else {
+					runs.push_back({x0, x0 + length});
+				}
+				bits = start + length >= 64 ? 0 : bits & ~(((1ULL << length) - 1) << start);
+			}
+		}
+	}
+
+	/// Finds every pixel near rectangles of a team's unseen layer mask.
+	/// Setting a bit for each pixel of every span merges the spans without sorting them or looking at each pixel.
+	/// @param reach How far from the rectangles to look, in scene pixels.
+	/// @return The rectangles the pixels make up.
+	std::vector<MaskRect> FindAllPixelsNearMaskRects(Scene* scene, int team, const std::vector<MaskRect>& rects, int reach) {
+		const std::vector<RowSpan> spans = GetSpansNearMaskRects(scene, team, rects, reach);
+		if (spans.empty()) {
+			return {};
+		}
+
+		int minY = spans.front().y;
+		int maxY = spans.front().y;
+		for (const RowSpan& span: spans) {
+			minY = std::min(minY, span.y);
+			maxY = std::max(maxY, span.y);
+		}
+		const int words = (scene->GetUnseenLayerMask(team)->GetBitmap()->w + 63) / 64;
+		std::vector<uint64_t> bits(static_cast<size_t>(maxY - minY + 1) * words, 0);
+		for (const RowSpan& span: spans) {
+			SetPixelBits(&bits[static_cast<size_t>(span.y - minY) * words], span.x0, span.x1);
+		}
+		return MergeRunsIntoRects(minY, maxY + 1, [&](int y, std::vector<MaskRun>& runs) {
+			FindRunsInPixelBits(&bits[static_cast<size_t>(y - minY) * words], words, runs);
+		});
 	}
 
 	/// Copies the live terrain under rectangles of a team's unseen layer mask that are going out of view into the team's last-seen terrain, along with everything near them that the fog of war drew live.
@@ -222,21 +283,24 @@ namespace {
 			CommitMaskRectToLastSeenTerrain(scene, team, rect);
 		}
 
-		// The live terrain is drawn a little past what's in view. Pixels still in view get copied once they go out of view.
-		BITMAP* maskBitmap = scene->GetUnseenLayerMask(team)->GetBitmap();
+		// The live terrain is drawn a little past what's in view, so all of it is copied. That takes in pixels still in view too, which does no harm: they're drawn live, and get copied again when they go out of view.
 		const int liveTerrainReach = g_FrameMan.GetFogOfWarLiveTerrainReach();
-		CommitPixelsNearMaskRects(scene, team, rects, liveTerrainReach, [maskBitmap](int x, int y) {
-			return Scene::GetUnseenLayerMaskHold(maskBitmap, x, y) == 0;
-		});
+		for (const MaskRect& rect: FindAllPixelsNearMaskRects(scene, team, rects, liveTerrainReach)) {
+			CommitMaskRectToLastSeenTerrain(scene, team, rect);
+		}
 
 		// Pixels that haven't been copied yet, which have never been seen, are drawn live too, out to where the smoothing past what has been seen before stops drawing anything
 		const int neverSeenReach = g_FrameMan.GetFogOfWarNeverSeenReach();
 		SceneLayer* copiedMask = scene->GetUnseenLayerTerrainCopiedMask(team);
 		if (copiedMask && neverSeenReach > liveTerrainReach) {
+			BITMAP* maskBitmap = scene->GetUnseenLayerMask(team)->GetBitmap();
 			BITMAP* copiedMaskBitmap = copiedMask->GetBitmap();
-			CommitPixelsNearMaskRects(scene, team, rects, neverSeenReach, [maskBitmap, copiedMaskBitmap](int x, int y) {
+			const std::vector<MaskRect> neverSeenRects = FindPixelsNearMaskRects(scene, team, rects, neverSeenReach, [maskBitmap, copiedMaskBitmap](int x, int y) {
 				return Scene::GetUnseenLayerMaskHold(maskBitmap, x, y) == 0 && copiedMaskBitmap->line[y][x] != g_MaskColor;
 			});
+			for (const MaskRect& rect: neverSeenRects) {
+				CommitMaskRectToLastSeenTerrain(scene, team, rect);
+			}
 		}
 	}
 
