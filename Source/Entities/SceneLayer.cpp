@@ -2,10 +2,8 @@
 
 #include "FrameMan.h"
 #include "SceneMan.h"
-#include "PresetMan.h"
 #include "SettingsMan.h"
 #include "ActivityMan.h"
-#include "ConsoleMan.h"
 #include "ThreadMan.h"
 #include "GLResourceMan.h"
 #include "BigTexture.h"
@@ -477,7 +475,7 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::UpdateTargetRegion(const Bo
 }
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
-void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment, BITMAP* bm) {
+void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Draw(const Box& targetDimensions, Box& targetBox, bool offsetNeedsScrollRatioAdjustment) {
 	RTEAssert(m_MainBitmap, "Data of this SceneLayerImpl has not been loaded before trying to draw!");
 	if constexpr(!STATIC_TEXTURE) {
 		RTEAssert(m_MainTexture, "Texture of this SceneLayerImpl has not been created before trying to draw!");
@@ -508,16 +506,13 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::Draw(const Box& targetDimen
 
 	bool drawScaled = m_ScaleFactor.GetX() > 1.0F || m_ScaleFactor.GetY() > 1.0F;
 
-	DrawTiled(targetDimensions, targetBox, drawScaled, bm);
+	DrawTiled(targetDimensions, targetBox, drawScaled);
 }
 
 template <bool TRACK_DRAWINGS, bool STATIC_TEXTURE>
-void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::DrawTiled(const Box& targetDimensions, const Box& targetBox, bool drawScaled, BITMAP* bm) const {
+void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::DrawTiled(const Box& targetDimensions, const Box& targetBox, bool drawScaled) const {
 	ZoneScoped;
 	TracyGpuZone("SceneLayer::DrawTiled");
-
-	bm = m_MainBitmap;
-
 	float bitmapWidth = m_ScaledDimensions.m_X;
 	float bitmapHeight = m_ScaledDimensions.m_Y;
 	int areaToCoverX = m_Offset.GetFloorIntX() + targetBox.GetCorner().GetFloorIntX() + std::min(targetDimensions.GetWidth(), targetBox.GetWidth());
@@ -539,8 +534,8 @@ void SceneLayerImpl<TRACK_DRAWINGS, STATIC_TEXTURE>::DrawTiled(const Box& target
 			float destY = targetBox.GetCorner().GetFloorIntY() + tiledOffsetY - m_Offset.GetFloorIntY();
 			if constexpr (STATIC_TEXTURE) {
 				DrawTexturePro(
-				    g_GLResourceMan.GetStaticTextureFromBitmap(bm),
-				    {0.0f, 0.0f, static_cast<float>(bm->w), static_cast<float>(bm->h)},
+				    g_GLResourceMan.GetStaticTextureFromBitmap(m_MainBitmap),
+				    {0.0f, 0.0f, static_cast<float>(m_MainBitmap->w), static_cast<float>(m_MainBitmap->h)},
 				    {destX, destY, bitmapWidth, bitmapHeight},
 				    {0.0f, 0.0f}, 0.0f, {255, 255, 255, 255});
 			} else {

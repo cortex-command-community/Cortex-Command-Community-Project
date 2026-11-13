@@ -366,17 +366,6 @@ namespace RTE {
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
 		void SetUnseenLayerMask(SceneLayer* pNewLayer, int team = Activity::TeamOne);
 
-		// GTODO actually call these
-		/// Sets the last-seen terrain of a specific team.
-		/// @param pNewLayer The new SceneLayer to use as the team's last-seen terrain, at the terrain's resolution. Ownership IS XFERRED!
-		/// @param team Which team to set it for. (default: Activity::TeamOne)
-		void SetUnseenLayerTerrain(SceneLayer* pNewLayer, int team = Activity::TeamOne);
-
-		/// Sets the mask of what a specific team has ever seen.
-		/// @param pNewLayer The new SceneLayer to use as the team's mask, at the unseen layer's resolution. Ownership IS XFERRED!
-		/// @param team Which team to set it for. (default: Activity::TeamOne)
-		void SetUnseenLayerTerrainMask(SceneLayer* pNewLayer, int team = Activity::TeamOne);
-
 		/// Gets the unseen layer mask of a specific team.
 		/// @param team Which team to get the unseen layer for. (default: Activity::TeamOne)
 		/// @return A pointer to the SceneLayer representing what hasn't been seen by a

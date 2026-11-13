@@ -411,7 +411,6 @@ void SceneMan::WrappedBlit(BITMAP* source, BITMAP* dest, int source_x, int sourc
 	int partH1 = std::min(screenH, worldH - srcY);
 
 	int partW2 = screenW - partW1;
-	int partH2 = screenH - partH1;
 
 	blit(source, dest, srcX, srcY, 0, 0, partW1, partH1);
 
@@ -1690,7 +1689,6 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 	int error, dom, sub, domSteps, skipped = skip;
 	int size = revealSize - resolution;
 	int intPos[2], delta[2], delta2[2], increment[2];
-	bool affectedAny = false;
 	unsigned char materialID;
 	Material const* foundMaterial;
 
@@ -3168,23 +3166,13 @@ void SceneMan::Update(int screenId) {
 		backgroundLayer->Update();
 	}
 
-	// Update the unseen obstruction layer for this team's screen view, if there is one.
-	// GTODO: nothing reads these offsets any more, since the fog of war is drawn from textures of the whole scene
-	if (const int teamId = g_CameraMan.GetScreenTeam(screenId); teamId != Activity::NoTeam) {
-		if (m_pCurrentScene->GetUnseenLayerMask(teamId)) {
-			m_pCurrentScene->GetUnseenLayerMask(teamId)->SetOffset(offset);
-			m_pCurrentScene->GetUnseenLayerTerrain(teamId)->SetOffset(offset);
-			m_pCurrentScene->GetUnseenLayerTerrainMask(teamId)->SetOffset(offset);
-		}
-	}
-
 	if (m_CleanTimer.GetElapsedSimTimeMS() > CLEANAIRINTERVAL) {
 		terrain->CleanAir();
 		m_CleanTimer.Reset();
 	}
 }
 
-void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, BITMAP* targetMOColorBitmap, BITMAP* targetBgTerrainBitmap, BITMAP* targetFgTerrainBitmap, const Vector& targetPos, bool skipBackgroundLayers, bool skipTerrain) {
+void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetMOColorBitmap, BITMAP* targetBgTerrainBitmap, BITMAP* targetFgTerrainBitmap, const Vector& targetPos, bool skipBackgroundLayers, bool skipTerrain) {
 	ZoneScoped;
 
 	if (!m_pCurrentScene) {
@@ -3215,7 +3203,7 @@ void SceneMan::Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, BITMAP* targe
 			Vector viewOrigin = g_CameraMan.GetOffset(0);
 			// Background layers
 			if (!skipBackgroundLayers) {
-				BITMAP* BGLayersBm = terrain->GetBitmap();
+				//BITMAP* BGLayersBm = terrain->GetBitmap();
 				//clear_to_color(BGLayersBm, g_MaskColor);
 
 				for (

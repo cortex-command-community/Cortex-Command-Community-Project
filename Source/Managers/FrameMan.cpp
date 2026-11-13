@@ -167,7 +167,7 @@ void FrameMan::RenderBackgroundLayersBmToTexture() {
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
-void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
+void FrameMan::FogOfWarSetup() {
 	// The final pass draws the whole screen from these, whether there is any fog of war or not
 	{ // GUI
 		BITMAP* bm = m_BackBuffer8GUI.get();
@@ -291,9 +291,6 @@ void FrameMan::FogOfWarSetup(Shader& backgroundShader) {
 
 // Chunky fog of war mask -> SDF!
 void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
-#define prnt(str) g_ConsoleMan.PrintString(std::to_string(str))
-#define prnt2(str) g_ConsoleMan.PrintString(str)
-	const float timeInSecs = (float)g_TimerMan.GetSimTickCount() / 1000000;
 	// The passes cover the screen plus a margin past each edge, so that what's just off screen still counts
 	const int sdfWidth = m_BackBuffer8->w + m_SdfMargin * 2;
 	const int sdfHeight = m_BackBuffer8->h + m_SdfMargin * 2;
@@ -330,7 +327,6 @@ void FrameMan::FogOfWarSetup_DoSDF(const GLuint inputTex, GLuint& outputTex) {
 
 	// Set uniforms
 	SceneLayer* terrainSL = g_SceneMan.GetTerrain();
-	shaderMask.SetFloat("uTime", timeInSecs);
 	shaderMask.SetVector2f("uViewOrigin", g_CameraMan.GetOffset(0) - Vector(static_cast<float>(m_SdfMargin), static_cast<float>(m_SdfMargin)));
 	shaderMask.SetVector2f("uViewSize", sdfSize);
 	shaderMask.SetVector2f("uSceneSize", Vector(terrainSL->GetBitmap()->w, terrainSL->GetBitmap()->h));
@@ -1314,7 +1310,7 @@ void FrameMan::Draw() {
 		clear_to_color(FgTerrainBM.GetBitmap(), 0);
 		clear_to_color(BgTerrainBM.GetBitmap(), g_RedColor);
 
-		g_SceneMan.Draw(drawScreen, drawScreenGUI, MOColorBM.GetBitmap(), BgTerrainBM.GetBitmap(), FgTerrainBM.GetBitmap(), targetPos);
+		g_SceneMan.Draw(drawScreen, MOColorBM.GetBitmap(), BgTerrainBM.GetBitmap(), FgTerrainBM.GetBitmap(), targetPos);
 
 		// The position of the current draw screen on the backbuffer
 		Vector screenOffset;
@@ -1394,7 +1390,7 @@ void FrameMan::Draw() {
 	RenderBackgroundLayersBmToTexture();
 
 	// TODO- this needs to be done above, per screen! Right now splitscreen is fucked
-	FogOfWarSetup(backgroundShader);
+	FogOfWarSetup();
 	// Only fog of war uses how far each pixel is from what's in view and what's been seen before
 	if (fowEnabled) {
 		FogOfWarSetup_DoSDF(instantVisibleFowMaskTex.id, m_SdfResultFowMask);
@@ -1411,7 +1407,6 @@ void FrameMan::Draw() {
 
 	// Drawing to back buffer!
 	backgroundShader.SetInt("drawMasked", 1);
-	backgroundShader.SetInt("toDrawFow", 1);
 	backgroundShader.SetInt("drawingForeground", 1);
 	
 	m_BackBuffer->Begin(false);
@@ -1424,7 +1419,6 @@ void FrameMan::Draw() {
 	);
 	m_BackBuffer->End();
 
-	backgroundShader.SetInt("toDrawFow", 0);
 	backgroundShader.SetInt("drawingForeground", 0);
 
 	backgroundShader.End();

@@ -989,11 +989,10 @@ namespace RTE {
 
 		/// Draws this SceneMan's current graphical representation to a BITMAP of choice.
 		/// @param targetBitmap A pointer to a BITMAP to draw on, appropriately sized for the split screen segment.
-		/// @param targetGUIBitmap Unused.
 		/// @param targetMOColorBitmap The bitmap the MOs go on, the same size as the target bitmap.
 		/// @param targetBgTerrainBitmap The bitmap the background terrain goes on, the same size as the target bitmap.
 		/// @param targetFgTerrainBitmap The bitmap the foreground terrain goes on, the same size as the target bitmap.
-		void Draw(BITMAP* targetBitmap, BITMAP* targetGUIBitmap, BITMAP* targetMOColorBitmap, BITMAP* targetBgTerrainBitmap, BITMAP* targetFgTerrainBitmap, const Vector& targetPos = Vector(), bool skipBackgroundLayers = false, bool skipTerrain = false);
+		void Draw(BITMAP* targetBitmap, BITMAP* targetMOColorBitmap, BITMAP* targetBgTerrainBitmap, BITMAP* targetFgTerrainBitmap, const Vector& targetPos = Vector(), bool skipBackgroundLayers = false, bool skipTerrain = false);
 
 		/// Draws the HUD of the MOs and the activity for the screen last updated, unless its HUD is disabled.
 		/// @param targetGUIBitmap The bitmap the HUD drawn on the CPU goes on. What's drawn on the GPU goes to whatever is being drawn to.

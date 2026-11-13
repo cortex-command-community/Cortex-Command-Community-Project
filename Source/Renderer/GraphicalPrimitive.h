@@ -59,7 +59,7 @@ namespace RTE {
 		/// @param scenePos Position on scene.
 		Vector WrapCoordinates(Vector targetPos, const Vector& scenePos) const;
 
-		void DrawTiled(BITMAP* drawScreen, const Vector& targetPos, BITMAP* bm = nullptr);
+		void DrawTiled(BITMAP* drawScreen, const Vector& targetPos);
 
 		/// Draws this primitive on provided bitmap.
 		/// @param drawScreen Bitmap to draw on.

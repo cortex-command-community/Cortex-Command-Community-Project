@@ -1761,34 +1761,6 @@ void Scene::SetUnseenLayerMask(SceneLayer* pNewLayer, int team) {
 	m_apUnseenLayerMask[team]->SetScaleFactor(Vector((float)GetTerrain()->GetBitmap()->w / (float)m_apUnseenLayerMask[team]->GetBitmap()->w, (float)GetTerrain()->GetBitmap()->h / (float)m_apUnseenLayerMask[team]->GetBitmap()->h));
 }
 
-void Scene::SetUnseenLayerTerrain(SceneLayer* pNewLayer, int team) {
-	if (team == Activity::NoTeam || !pNewLayer) {
-		return;
-	}
-
-	RTEAssert(
-	    m_apUnseenLayerMask[team],
-	    "Scene::SetUnseenLayerTerrain called with unseen layer mask unset, wrong usage!"
-	);
-
-	// Replace any old unseen layer with the new one that is generated
-	delete m_apUnseenLayerTerrain[team];
-	m_apUnseenLayerTerrain[team] = pNewLayer;
-	m_apUnseenLayerTerrain[team]->SetScaleFactor(Vector(1, 1));
-}
-
-void Scene::SetUnseenLayerTerrainMask(SceneLayer* pNewLayer, int team) {
-	if (team == Activity::NoTeam || !pNewLayer) {
-		return;
-	}
-
-	// Replace any old unseen layer with the new one that is generated
-	delete m_apUnseenLayerTerrainMask[team];
-	m_apUnseenLayerTerrainMask[team] = pNewLayer;
-	// Calculate how many times smaller the unseen map is compared to the entire terrain's dimensions, and set it as the scale factor on the Unseen layer
-	m_apUnseenLayerTerrainMask[team]->SetScaleFactor(Vector((float)GetTerrain()->GetBitmap()->w / (float)m_apUnseenLayerTerrainMask[team]->GetBitmap()->w, (float)GetTerrain()->GetBitmap()->h / (float)m_apUnseenLayerTerrainMask[team]->GetBitmap()->h));
-}
-
 void Scene::ClearSeenMaskPixels(int team) {
 	if (team == Activity::NoTeam) {
 		return;

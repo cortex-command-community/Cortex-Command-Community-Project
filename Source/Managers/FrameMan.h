@@ -519,8 +519,7 @@ namespace RTE {
 		void RenderBackgroundLayersBmToTexture();
 
 		/// Uploads the textures the final pass draws the screen from, and the fog of war's masks if the scene has any.
-		/// @param backgroundShader Unused.
-		void FogOfWarSetup(Shader& backgroundShader);
+		void FogOfWarSetup();
 
 		/// Works out how far each pixel of the screen, and the margin past it, is from the nearest pixel of a fog of war mask that isn't 255.
 		/// @param inputTex The mask, covering the whole scene.
@@ -547,10 +546,6 @@ namespace RTE {
 		GLuint m_bgLayersTex; //!< The background layers drawn on the GPU, as palette indices.
 		GLuint m_SdfVao = 0; //!< The triangle covering the screen that every pass draws.
 		GLuint m_SdfVbo = 0; //!< The triangle's vertices.
-		unsigned m_SdfWidth = -1;
-		unsigned m_SdfHeight = -1;
-		GLuint m_SdfSeedFrag = 0;
-		GLuint m_SdfSeedVert = 0;
 
 		Scene* m_ScenePreviouslyUsedForOglSetup = nullptr; //!< The scene the fog of war's textures were made for, so they're made again when it changes.
 
