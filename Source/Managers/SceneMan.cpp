@@ -1293,10 +1293,10 @@ void SceneMan::CommitHeldPixelsToLastSeenTerrain(const int team) {
 	});
 }
 
-// GTODO: a team may have several human players. Iterate over all of them
 // CastSeeRay already quantizes its positions, so no need to worry here
 void SceneMan::CastSeeRaysFromSky(const int screenId) {
 	int team = g_CameraMan.GetScreenTeam(screenId);
+	SkySeeRaysAngle& skySeeRaysAngle = m_SkySeeRaysAngles[screenId];
 
 	const int spacing = GetUnseenResolution(team).GetX();
 	int rayX = g_CameraMan.GetOffset(screenId).GetX();
@@ -1310,7 +1310,7 @@ void SceneMan::CastSeeRaysFromSky(const int screenId) {
 	// So, having hysteresis for FOW, we alternate between three angles
 	const float rotationAngle = 10.0f;
 	const float rotationAngleRad = rotationAngle * PI / 180.0f;
-	if (m_SkySeeRaysAngle != SkySeeRaysAngle::StraightDown) {
+	if (skySeeRaysAngle != SkySeeRaysAngle::StraightDown) {
 		// Being lower on the map will fuck up tilted rays,
 		// so we shift them on X depending on how much down the scene is the camera.
 		// tan = opposite (needed X shift) / adjacent (offset from top of camera) 
@@ -1321,20 +1321,19 @@ void SceneMan::CastSeeRaysFromSky(const int screenId) {
 		float extraXToCover = tan(rotationAngleRad) * g_CameraMan.GetFrameSize(screenId).GetY();
 		int extraRayCount = static_cast<int>(extraXToCover / spacing);
 
-		if (m_SkySeeRaysAngle == SkySeeRaysAngle::FromLeft) {
+		if (skySeeRaysAngle == SkySeeRaysAngle::FromLeft) {
 			seeRay.DegRotate(rotationAngle);
 			rayX -= yShiftDueToBeingLowerInScene;
 			rayX -= static_cast<int>(extraXToCover);
 			rayCount += extraRayCount;
-		} else if (m_SkySeeRaysAngle == SkySeeRaysAngle::FromRight) {
+		} else if (skySeeRaysAngle == SkySeeRaysAngle::FromRight) {
 			seeRay.DegRotate(-rotationAngle);
 			rayX += yShiftDueToBeingLowerInScene;
 			rayCount += extraRayCount;
 		}
 	}
-	// Make the next call sweep another angle
-	// TODO: make this store a value per-screen!
-	m_SkySeeRaysAngle = static_cast<SkySeeRaysAngle>((m_SkySeeRaysAngle + 1) % SkySeeRaysAngle::Count);
+	// Make this screen's next call sweep another angle
+	skySeeRaysAngle = static_cast<SkySeeRaysAngle>((skySeeRaysAngle + 1) % SkySeeRaysAngle::Count);
 
 	// If camera pans fast there can be black bars on sides of screen, so we do this:
 	float cameraXDelta = g_CameraMan.GetDeltaOffset(screenId).GetX();

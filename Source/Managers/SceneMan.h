@@ -433,7 +433,7 @@ namespace RTE {
 		void MakeAllUnseen(Vector pixelSize, const int team);
 
 		/// Casts see rays down from the top of the scene across a screen's view, revealing what that screen's team can see from the sky. What they reveal stays in view for c_FogOfWarSkyRayHoldSeconds.
-		/// Each call tilts the rays differently, cycling between straight down and 10 degrees either way, so steep walls get seen from both sides.
+		/// Each call for a screen tilts its rays differently, cycling between straight down and 10 degrees either way, so steep walls get seen from both sides.
 		/// Rays that would start inside terrain, or off the side of a scene that doesn't wrap, aren't cast.
 		/// @param screenId Which screen's view and team to cast for.
 		void CastSeeRaysFromSky(const int screenId);
@@ -1091,7 +1091,7 @@ namespace RTE {
 			Count
 		};
 
-		SkySeeRaysAngle m_SkySeeRaysAngle = SkySeeRaysAngle::StraightDown; //!< Which way the next see rays from the sky are tilted.
+		std::array<SkySeeRaysAngle, c_MaxScreenCount> m_SkySeeRaysAngles{}; //!< Which way each screen's next see rays from the sky are tilted. Each screen has its own, since screens cast them at the same time on different threads.
 
 		/// Private member variable and method declarations
 	private:
