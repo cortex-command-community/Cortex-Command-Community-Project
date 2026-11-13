@@ -1387,8 +1387,6 @@ bool AHuman::Look(float FOVSpread, float range) {
 	const float strength = c_PathFindingDefaultDigStrength;
 	Vector ignored(0, 0);
 
-	const std::vector<int> MOIDsToIgnore = {GetID()};
-
 	const float bubblePixelRadius = 36.0f;
 	static int bubbleRayNum = 32;
 	const Vector bubbleCenterPos = GetPos();
@@ -1400,7 +1398,7 @@ bool AHuman::Look(float FOVSpread, float range) {
 
 	const int rayNum = FOVSpread / degreesPerRotationSegment; 
 	for (int i = 0; i < rayNum; ++i) {
-		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, strength, 0, c_FogOfWarSeeRayHoldSeconds, MOIDsToIgnore);
+		g_SceneMan.CastSeeRay(m_Team, aimPos, lookVector, ignored, strength, 0, c_FogOfWarSeeRayHoldSeconds);
 		lookVector.DegRotate(FOVSpread / (rayNum - 1));
 	}
 	// TODO: generate an alarm event if we spot an enemy actor?

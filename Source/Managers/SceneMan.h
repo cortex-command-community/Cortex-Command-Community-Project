@@ -541,9 +541,8 @@ namespace RTE {
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @param reveal Whether the ray should reveal or restore unseen layer
 		/// @param revealHoldSeconds How long what the ray reveals stays in view for, in seconds. Not used when restoring.
-		/// @param ignoredMOIDs MOs the ray isn't blocked by. MOs don't block rays yet, so this does nothing.
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
-		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal, float revealHoldSeconds, const std::vector<MOID>& ignoredMOIDs = emptyIgnoredMOIDVector);
+		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal, float revealHoldSeconds);
 
 		/// Same as above, with what the ray reveals staying in view for as long as what an actor looks at does.
 		bool CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal) {
@@ -562,11 +561,10 @@ namespace RTE {
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
 		/// for optimization reasons. 0 = every pixel is checked.
 		/// @param holdSeconds How long what the ray sees stays in view for after it stops being seen, in seconds. Left out, it's as long as for what an actor looks at.
-		/// @param ignoredMOIDs MOs the ray isn't blocked by. MOs don't block rays yet, so this does nothing.
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
-		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, float holdSeconds, const std::vector<MOID>& ignoredMOIDs = emptyIgnoredMOIDVector);
+		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, float holdSeconds);
 
-		/// Same as above, ignoring no MOs.
+		/// Same as above, with what the ray sees staying in view for as long as what an actor looks at does.
 		bool CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0) {
 			return CastSeeRay(team, start, ray, endPos, strengthLimit, skip, c_FogOfWarSeeRayHoldSeconds);
 		}
@@ -582,14 +580,8 @@ namespace RTE {
 		/// @param strengthLimit The material strength limit where
 		/// @param skip For every pixel checked along the line, how many to skip between them (default: 0)
 		/// for optimization reasons. 0 = every pixel is checked.
-		/// @param ignoredMOIDs MOs the ray isn't blocked by. MOs don't block rays yet, so this does nothing.
 		/// @return Whether any unseen pixels were revealed as a result of this seeing.
-		bool CastUnseeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, const std::vector<MOID>& ignoredMOIDs);
-
-		/// Same as above, ignoring no MOs.
-		bool CastUnseeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0) {
-			return CastUnseeRay(team, start, ray, endPos, strengthLimit, skip, emptyIgnoredMOIDVector);
-		}
+		bool CastUnseeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip = 0);
 
 		/// Traces along a vector and gets the location of the first encountered
 		/// pixel of a specific material in the terrain.
@@ -1104,8 +1096,6 @@ namespace RTE {
 		/// Private member variable and method declarations
 	private:
 		static const std::string c_ClassName; //!< A string with the friendly-formatted type name of this object.
-
-		static const std::vector<int> emptyIgnoredMOIDVector; //!< No MOs, for rays that don't ignore any.
 
 		/// Clears all the member variables of this SceneMan, effectively
 		/// resetting the members of this abstraction level only.

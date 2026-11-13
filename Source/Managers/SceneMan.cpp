@@ -1676,15 +1676,13 @@ bool SceneMan::CastTerrainPenetrationRay(const Vector& start, const Vector& ray,
 }
 
 // TODO Every raycast should use some shared line drawing method (or maybe something more efficient if it exists, that needs looking into) instead of having a ton of duplicated code.
-bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal, float revealHoldSeconds, const std::vector<MOID>& ignoredMOIDs) {
+bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, bool reveal, float revealHoldSeconds) {
 	if (!m_pCurrentScene->GetUnseenLayerMask(team)) {
 		return false;
 	}
 
 	static int revealSize = 2;
 	const int resolution = GetUnseenResolution(team).GetLargest();
-
-	bool MOIDWasHit = false;
 
 	int error, dom, sub, domSteps, skipped = skip;
 	int size = revealSize - resolution;
@@ -1755,22 +1753,20 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 			int wrappedPos[2] = {intPos[X], intPos[Y]};
 			WrapPosition(wrappedPos[X], wrappedPos[Y]);
 
-			if (!MOIDWasHit) {
-				// Gives much more stable results, we'll maybe need a better method of optimising this
-				bool is_unseen = true; // IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y], team) || IsUnseen(intPos[X] + size, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - size, team) || IsUnseen(intPos[X], intPos[Y] + size, team);
+			// Gives much more stable results, we'll maybe need a better method of optimising this
+			//bool is_unseen = IsUnseen(intPos[X], intPos[Y], team) || IsUnseen(intPos[X] - size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] - size, team) || IsUnseen(intPos[X] + size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y] + size, team) || IsUnseen(intPos[X] - size, intPos[Y], team) || IsUnseen(intPos[X] + size, intPos[Y], team) || IsUnseen(intPos[X], intPos[Y] - size, team) || IsUnseen(intPos[X], intPos[Y] + size, team);
 
-				// Detect MOIDs
-				// If a ray hits a MOID that is vision-blocking, then finish the ray
-				// TODO: Maybe something is needed for seeing glowing objects through smoke (eg fire, muzzle flashes)
-				/* MOID hitMOID = GetMOIDPixel(intPos[X], intPos[Y], Activity::NoTeam);
-				if (hitMOID != g_NoMOID) {
-					for (auto ignoredMOID: ignoredMOIDs) {
-						if (hitMOID != ignoredMOID && g_MovableMan.GetRootMOID(hitMOID) != ignoredMOID) {
-							break;
-						}
+			// Detect MOIDs
+			// If a ray hits a MOID that is vision-blocking, then finish the ray
+			// TODO: Maybe something is needed for seeing glowing objects through smoke (eg fire, muzzle flashes)
+			/* MOID hitMOID = GetMOIDPixel(intPos[X], intPos[Y], Activity::NoTeam);
+			if (hitMOID != g_NoMOID) {
+				for (auto ignoredMOID: ignoredMOIDs) {
+					if (hitMOID != ignoredMOID && g_MovableMan.GetRootMOID(hitMOID) != ignoredMOID) {
+						break;
 					}
-				}*/
-			}
+				}
+			}*/
 
 			// Check the strength of the terrain to see if we can penetrate further
 			materialID = GetTerrMatter(wrappedPos[X], wrappedPos[Y]);
@@ -1839,12 +1835,12 @@ bool SceneMan::CastUnseenRay(int team, const Vector& start, const Vector& ray, V
 	return true;
 }
 
-bool SceneMan::CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, float holdSeconds, const std::vector<MOID>& ignoredMOIDs) {
-	return CastUnseenRay(team, start, ray, endPos, strengthLimit, skip, true, holdSeconds, ignoredMOIDs);
+bool SceneMan::CastSeeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, float holdSeconds) {
+	return CastUnseenRay(team, start, ray, endPos, strengthLimit, skip, true, holdSeconds);
 }
 
-bool SceneMan::CastUnseeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip, const std::vector<MOID>& ignoredMOIDs) {
-	return CastUnseenRay(team, start, ray, endPos, strengthLimit, skip, false, 0.0F, ignoredMOIDs);
+bool SceneMan::CastUnseeRay(int team, const Vector& start, const Vector& ray, Vector& endPos, int strengthLimit, int skip) {
+	return CastUnseenRay(team, start, ray, endPos, strengthLimit, skip, false, 0.0F);
 }
 
 bool SceneMan::CastMaterialRay(const Vector& start, const Vector& ray, unsigned char material, Vector& result, int skip, bool wrap) {
@@ -3309,6 +3305,3 @@ BITMAP* SceneMan::GetIntermediateBitmapForSettlingIntoTerrain(int moDiameter) co
 	}
 	return m_IntermediateSettlingBitmaps.back().second;
 }
-
-// Static member initialization
-const std::vector<int> SceneMan::emptyIgnoredMOIDVector = {};
