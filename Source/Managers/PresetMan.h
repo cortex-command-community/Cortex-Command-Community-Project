@@ -55,7 +55,6 @@ namespace RTE {
 		/// @param moduleName The module name to read, e.g. "Base.rte".
 		/// @param official Whether this module is 'official' or third party. If official, it has to not have any name conflicts with any other official module.
 		/// @param userdata Whether this module is a userdata module. If true, will be treated as an unofficial module.
-		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		/// @return Whether the DataModule was read and added correctly.
 		bool LoadDataModule(const std::string& moduleName, bool official, bool userdata = false);
 
@@ -65,7 +64,9 @@ namespace RTE {
 		bool LoadDataModule(const std::string& moduleName) { return LoadDataModule(moduleName, false); }
 
 		/// Loads all the official data modules individually with LoadDataModule, then proceeds to look for any non-official modules and loads them as well.
-		/// @return
+		/// They're loaded on another thread, while this one shows the progress and keeps the window responding.
+		/// @param PollSDLEventsCallback Called over and over while the modules load, to handle the window's events.
+		/// @return Whether the modules were loaded. False if the game was told to quit while loading.
 		bool LoadAllDataModules(std::function<void()> PollSDLEventsCallback);
 
 		/// Sets the single module to be loaded after the official modules. This will be the ONLY non-official module to be loaded.
@@ -348,26 +349,40 @@ namespace RTE {
 		/// @return Created actor if matching loadout was found or 0. OWNERSHIP IS TRANSFERED.
 		Actor* GetLoadout(std::string loadoutName, int moduleNumber, bool spawnDropShip);
 
+		/// Keeps a shader to compile once all the modules are loaded, since shaders can only be compiled on the main thread and modules are loaded on another.
+		/// @param shader The shader to compile. Ownership is NOT transferred!
 		void DeferShaderCompilationToBeDoneOnMainThread(Shader*);
 
+		/// Unused.
 		enum ProgressDisplayMessageType {
 			StartedNewModule,
 		};
 
+		/// Unused.
 		union ProgressDisplayArgument {
 			int Integer;
 			std::string String;
 		};
 
+		/// Queues a line for the loading screen's progress report, from the module loading thread. The main thread shows it.
+		/// @param string The line to show.
+		/// @param newItem Whether it starts a new line in the report.
 		static void PushToProgressDisplayQueue(const std::string&, bool);
 
+		/// Tells the main thread that module loading failed, so it stops loading.
+		/// @param assertString What went wrong. It isn't kept yet, so the error shown afterwards is empty.
 		static void AssertFromModuleLoadingWorkerAndShutdownAll(const std::string&);
-		
+
+		/// How the module loading thread is getting on.
 		enum ModuleLoadResult {
 			StillWorking,
 			Success,
 			Failure
 		};
+
+		/// Asserts with the module loading state, for when the main thread stops responding while modules load.
+		/// @param toDoProgressPrintOut Whether the loading screen shows the progress report.
+		/// @param loadingDone How the module loading thread is getting on.
 		void SpinlockAssert(bool, ModuleLoadResult);
 
 		/// Protected member variable and method declarations
@@ -397,23 +412,32 @@ namespace RTE {
 		std::array<std::string, 3> m_LastReloadedEntityPresetInfo; //!< Array storing the last reloaded Entity preset info (ClassName, PresetName and DataModule). Used for quick reloading via key combination.
 		bool m_ReloadEntityPresetCalledThisUpdate; //!< A flag for whether or not ReloadEntityPreset was called this update.
 
-		std::mutex m_ProgressDisplayMutex;
-		std::condition_variable m_ProgressDisplayCv;
-		using ProgressDisplayEntry = std::pair<std::string, bool>;
-		std::deque<ProgressDisplayEntry> m_ProgressDisplayDeque;
+		std::mutex m_ProgressDisplayMutex; //!< Guards the progress report queue.
+		std::condition_variable m_ProgressDisplayCv; //!< Wakes the main thread when there's progress to show, or loading has finished or failed.
+		using ProgressDisplayEntry = std::pair<std::string, bool>; //!< A line of the progress report, and whether it starts a new line.
+		std::deque<ProgressDisplayEntry> m_ProgressDisplayDeque; //!< Progress report lines from the module loading thread, for the main thread to show.
 
-		std::mutex m_SpinlockWdMutex;
-		std::condition_variable m_SpinlockWdCv;
-		std::atomic<bool> m_ToStopSpinlockWatchdog = false;
+		std::mutex m_SpinlockWdMutex; //!< For the watchdog thread to wait on.
+		std::condition_variable m_SpinlockWdCv; //!< Wakes the watchdog thread to stop it.
+		std::atomic<bool> m_ToStopSpinlockWatchdog = false; //!< Whether the watchdog thread should stop, set when module loading throws.
 
-		std::atomic<bool> m_WorkerFailed = false;
-		std::mutex m_WorkerErrorMutex;
-		std::string m_WorkerErrorMessage;
+		std::atomic<bool> m_WorkerFailed = false; //!< Whether module loading failed.
+		std::mutex m_WorkerErrorMutex; //!< Unused.
+		std::string m_WorkerErrorMessage; //!< What went wrong if module loading failed. Nothing sets it yet.
 
+		/// Loads all the modules, on the module loading thread.
+		/// @param st Tells the thread to stop.
+		/// @param loadingDone How loading is getting on, set when it finishes or fails.
+		/// @param moduleLoadElapsedTime Set to how long loading took.
 		void ModuleLoadingThreadFunction(std::stop_token st, std::atomic<ModuleLoadResult>& loadingDone, std::chrono::milliseconds& moduleLoadElapsedTime);
+
+		/// Checks every second that the main thread is still responding while modules load, on the watchdog thread.
+		/// @param st Tells the thread to stop.
+		/// @param mainThreadHeartbeat Counted up by the main thread each time around its loop.
+		/// @param spinlockDetected Set if the heartbeat didn't change for a second.
 		void SpinlockWatchdogThreadFunction(std::stop_token st, std::atomic<int>& mainThreadHeartbeat, std::atomic<bool>& spinlockDetected);
 
-		std::vector<Shader*> m_ShadersToCompile;
+		std::vector<Shader*> m_ShadersToCompile; //!< Shaders to compile on the main thread once all the modules are loaded. Not owned.
 
 		/// Iterates through the working directory to find any files matching the zipped module package extension (.rte.zip) and proceeds to extract them.
 		void FindAndExtractZippedModules() const;

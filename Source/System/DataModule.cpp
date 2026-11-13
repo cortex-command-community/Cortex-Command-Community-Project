@@ -315,7 +315,7 @@ bool DataModule::AddEntityPreset(Entity* entityToAdd, bool overwriteSame, const 
 		entityToAdd->SetModuleID(m_ModuleID);
 		Entity* entityClone = entityToAdd->Clone();
 
-		//todotdotdoto
+		// Shaders can only be compiled on the main thread, and modules load on another, so they're compiled once loading is done
 		if (entityClone->GetClassName() == "Shader") {
 			g_PresetMan.DeferShaderCompilationToBeDoneOnMainThread(static_cast<Shader*>(entityClone));
 		}

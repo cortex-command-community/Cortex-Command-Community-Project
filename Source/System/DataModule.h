@@ -45,13 +45,11 @@ namespace RTE {
 		/// Constructor method used to instantiate a DataModule object in system memory, and also do a Create() in the same line.
 		/// Create() should therefore not be called after using this constructor.
 		/// @param moduleName A string defining the path to where the content file itself is located, either within the package file, or directly on the disk.
-		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		DataModule(const std::string& moduleName);
 
 		/// Makes the DataModule object ready for use. This needs to be called after PresetMan is created.
 		/// This looks for an "index.ini" within the specified .rte directory and loads all the defined objects in that index file.
 		/// @param moduleName A string defining the name of this DataModule, e.g. "MyModule.rte".
-		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int Create(const std::string& moduleName);
 
@@ -78,7 +76,6 @@ namespace RTE {
 #pragma region INI Handling
 		/// Read module specific properties from index.ini without processing IncludeFiles and loading the whole module.
 		/// @param moduleName A string defining the name of this DataModule, e.g. "MyModule.rte".
-		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int ReadModuleProperties(const std::string& moduleName);
 
@@ -230,8 +227,8 @@ namespace RTE {
 		void ReloadAllScripts() const;
 #pragma endregion
 
-		static std::function<void(const std::string&, bool)> PushToProgressDisplayQueue;
-		static std::function<void(const std::string&)> AssertFromWorkerAndShutdownAll;
+		static std::function<void(const std::string&, bool)> PushToProgressDisplayQueue; //!< Queues a line for the loading screen's progress report while modules load. Null when the report is off.
+		static std::function<void(const std::string&)> AssertFromWorkerAndShutdownAll; //!< Tells the main thread that module loading failed. Nothing calls it yet, and Clear() resets it.
 
 	protected:
 		/// Holds and owns the actual object instance pointer, and the location of the data file it was read from, as well as where in that file.
@@ -289,7 +286,6 @@ namespace RTE {
 		void CheckSupportedGameVersion() const;
 
 		/// If ScanFolderContents is enabled in this DataModule's Index.ini, looks for any ini files in the top-level directory of the module and reads all of them in alphabetical order.
-		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this DataModule's creation.
 		/// @return An error return value signaling success or any particular failure. Anything below 0 is an error signal.
 		int FindAndRead();
 #pragma endregion

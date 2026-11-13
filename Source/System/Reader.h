@@ -19,7 +19,6 @@ namespace RTE {
 		/// Constructor method used to instantiate a Reader object in system memory and make it ready for reading from the passed in file path.
 		/// @param fileName Path to the file to open for reading. If the file doesn't exist the stream will fail to open.
 		/// @param overwrites Whether object definitions read here overwrite existing ones with the same names.
-		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.
 		/// @param failOK Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.
 		/// @param nonModulePath Whether this Reader is reading from path that is not a DataModule and should just read it as provided.
 		Reader(const std::string& fileName, bool overwrites = false, bool failOK = false, bool nonModulePath = false);
@@ -27,14 +26,12 @@ namespace RTE {
 		/// Constructor method used to instantiate a Reader object in system memory and make it ready for reading from the passed in file path.
 		/// @param stream Stream to read from.
 		/// @param overwrites Whether object definitions read here overwrite existing ones with the same names.
-		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.
 		/// @param failOK Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.
 		Reader(std::unique_ptr<std::istream>&& stream, const std::string& fileName, bool overwrites = false, bool failOK = false);
 
 		/// Makes the Reader object ready for use.
 		/// @param fileName Path to the file to open for reading. If the file doesn't exist the stream will fail to open.
 		/// @param overwrites Whether object definitions read here overwrite existing ones with the same names.
-		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.
 		/// @param failOK Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.
 		/// @return An error return value signaling success or any particular failure.  Anything below 0 is an error signal.
 		int Create(const std::string& fileName, bool overwrites = false, bool failOK = false);
@@ -42,7 +39,6 @@ namespace RTE {
 		/// Makes the Reader object ready for use.
 		/// @param stream Stream to read from.
 		/// @param overwrites Whether object definitions read here overwrite existing ones with the same names.
-		/// @param progressCallback A function pointer to a function that will be called and sent a string with information about the progress of this Reader's reading.
 		/// @param failOK Whether it's ok for the file to not be there, ie we're only trying to open, and if it's not there, then fail silently.
 		/// @return An error return value signaling success or any particular failure.  Anything below 0 is an error signal.
 		int Create(std::unique_ptr<std::istream>&& stream, const std::string& fileName, bool overwrites = false, bool failOK = false);
@@ -213,8 +209,8 @@ namespace RTE {
 		}
 #pragma endregion
 
-		static std::function<void(const std::string&, bool)> PushToProgressDisplayQueue;
-		static std::function<void(const std::string&)> AssertFromWorkerAndShutdownAll;
+		static std::function<void(const std::string&, bool)> PushToProgressDisplayQueue; //!< Queues a line for the loading screen's progress report while modules load. Null when the report is off.
+		static std::function<void(const std::string&)> AssertFromWorkerAndShutdownAll; //!< Tells the main thread that module loading failed. Nothing calls it yet, and Clear() resets it.
 
 	protected:
 		/// A struct containing information from the currently used stream.
