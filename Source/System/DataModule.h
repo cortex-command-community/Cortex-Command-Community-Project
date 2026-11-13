@@ -228,7 +228,6 @@ namespace RTE {
 #pragma endregion
 
 		static std::function<void(const std::string&, bool)> PushToProgressDisplayQueue; //!< Queues a line for the loading screen's progress report while modules load. Null when the report is off.
-		static std::function<void(const std::string&)> AssertFromWorkerAndShutdownAll; //!< Tells the main thread that module loading failed. Nothing calls it yet, and Clear() resets it.
 
 	protected:
 		/// Holds and owns the actual object instance pointer, and the location of the data file it was read from, as well as where in that file.

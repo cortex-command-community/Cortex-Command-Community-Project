@@ -124,8 +124,6 @@ bool PresetMan::LoadAllDataModules(std::function<void()> PollSDLEventsCallback) 
 
 	// No callback passing by a trickle, instead shove needed
 	// functions into statics of classes that will use them
-	DataModule::AssertFromWorkerAndShutdownAll = AssertFromModuleLoadingWorkerAndShutdownAll;
-	Reader::AssertFromWorkerAndShutdownAll = AssertFromModuleLoadingWorkerAndShutdownAll;
 	if (!g_SettingsMan.GetLoadingScreenProgressReportDisabled()) {
 		Reader::PushToProgressDisplayQueue = PushToProgressDisplayQueue;
 		DataModule::PushToProgressDisplayQueue = PushToProgressDisplayQueue;
@@ -401,9 +399,6 @@ const Entity* PresetMan::GetEntityPreset(Reader& reader) {
 	// Load class name and then preset instance
 	reader >> ClassName;
 	pClass = Entity::ClassInfo::GetClass(ClassName);
-	if (ClassName == "Shader") {
-		int a = 5;
-	}
 
 	if (pClass && pClass->IsConcrete()) {
 		// Instantiate

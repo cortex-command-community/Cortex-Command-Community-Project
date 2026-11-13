@@ -1,7 +1,5 @@
 #pragma once
 
-#include <functional>
-
 #include "Serializable.h"
 #include "RTETools.h"
 #include "glm/vec2.hpp"

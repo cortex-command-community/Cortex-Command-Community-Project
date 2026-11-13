@@ -353,17 +353,6 @@ namespace RTE {
 		/// @param shader The shader to compile. Ownership is NOT transferred!
 		void DeferShaderCompilationToBeDoneOnMainThread(Shader*);
 
-		/// Unused.
-		enum ProgressDisplayMessageType {
-			StartedNewModule,
-		};
-
-		/// Unused.
-		union ProgressDisplayArgument {
-			int Integer;
-			std::string String;
-		};
-
 		/// Queues a line for the loading screen's progress report, from the module loading thread. The main thread shows it.
 		/// @param string The line to show.
 		/// @param newItem Whether it starts a new line in the report.
