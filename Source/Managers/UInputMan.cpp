@@ -906,7 +906,15 @@ void UInputMan::HandleInputEvent(const SDL_Event& inputEvent) {
 
 			Mouse& mouse = m_MouseStates[inputEvent.motion.which];
 			mouse.id = inputEvent.motion.which;
-			mouse.position = {inputEvent.motion.x, inputEvent.motion.y};
+			// SDL keeps one cursor position shared by all mice, so with multiple mice each one has to track its own from its relative motion.
+			bool ownPosition = m_EnableMultiMouseKeyboard && inputEvent.motion.which != 0;
+			if (ownPosition) {
+				mouse.position += {inputEvent.motion.xrel, inputEvent.motion.yrel};
+				mouse.position.m_X = std::clamp(mouse.position.m_X, 0.0F, static_cast<float>(g_WindowMan.GetResX()) * g_WindowMan.GetResMultiplier() - 1.0F);
+				mouse.position.m_Y = std::clamp(mouse.position.m_Y, 0.0F, static_cast<float>(g_WindowMan.GetResY()) * g_WindowMan.GetResMultiplier() - 1.0F);
+			} else {
+				mouse.position = {inputEvent.motion.x, inputEvent.motion.y};
+			}
 			mouse.relativeMotion += {inputEvent.motion.xrel, inputEvent.motion.yrel};
 
 			m_MouseStates[0].position = {inputEvent.motion.x, inputEvent.motion.y};
@@ -917,7 +925,9 @@ void UInputMan::HandleInputEvent(const SDL_Event& inputEvent) {
 				int windowPosY = 0;
 				SDL_GetWindowPosition(SDL_GetWindowFromID(inputEvent.motion.windowID), &windowPosX, &windowPosY);
 				Vector windowCoord(static_cast<float>(g_WindowMan.GetDisplayArrangementAbsOffsetX() + windowPosX), static_cast<float>(g_WindowMan.GetDisplayArrangementAbsOffsetY() + windowPosY));
-				mouse.position += windowCoord;
+				if (!ownPosition) {
+					mouse.position += windowCoord;
+				}
 				m_MouseStates[0].position += windowCoord;
 			}
 			break;
