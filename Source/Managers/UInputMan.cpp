@@ -411,7 +411,8 @@ void UInputMan::SetMousePos(const Vector& newPos, int whichPlayer) {
 	if (!m_DisableMouseMoving && !m_TrapMousePos && ((whichPlayer == Players::NoPlayer) || (m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB && !m_EnableMultiMouseKeyboard))) {
 		SDL_WarpMouseInWindow(g_WindowMan.GetWindow(), newPos.GetFloorIntX(), newPos.GetFloorIntY());
 	} else if (whichPlayer < Players::MaxPlayerCount && whichPlayer > Players::NoPlayer && m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
-		m_MouseStates[m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse].position = newPos;
+		// Per-mouse positions are in window pixels, callers pass game pixels.
+		m_MouseStates[m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse].position = newPos * g_WindowMan.GetResMultiplier();
 	}
 }
 
@@ -907,11 +908,12 @@ void UInputMan::HandleInputEvent(const SDL_Event& inputEvent) {
 			Mouse& mouse = m_MouseStates[inputEvent.motion.which];
 			mouse.id = inputEvent.motion.which;
 			// SDL keeps one cursor position shared by all mice, so with multiple mice each one has to track its own from its relative motion.
+			// ForceMouseWithinBox keeps it inside the player's screen. It stays put while the mouse is trapped for aiming.
 			bool ownPosition = m_EnableMultiMouseKeyboard && inputEvent.motion.which != 0;
 			if (ownPosition) {
-				mouse.position += {inputEvent.motion.xrel, inputEvent.motion.yrel};
-				mouse.position.m_X = std::clamp(mouse.position.m_X, 0.0F, static_cast<float>(g_WindowMan.GetResX()) * g_WindowMan.GetResMultiplier() - 1.0F);
-				mouse.position.m_Y = std::clamp(mouse.position.m_Y, 0.0F, static_cast<float>(g_WindowMan.GetResY()) * g_WindowMan.GetResMultiplier() - 1.0F);
+				if (!mouse.relativeMode) {
+					mouse.position += {inputEvent.motion.xrel, inputEvent.motion.yrel};
+				}
 			} else {
 				mouse.position = {inputEvent.motion.x, inputEvent.motion.y};
 			}
