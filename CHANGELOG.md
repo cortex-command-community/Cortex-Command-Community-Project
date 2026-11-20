@@ -329,6 +329,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed white speckles on dark terrain, such as cave backgrounds. The `Background` and `Dissolve` shaders smoothed their palette lookups, so pixels could take the colour of the neighbouring palette entry.
 
+- Fixed split-screen players with separate mice moving each other's Buy Menu and inventory cursors. Each mouse now tracks its own cursor position instead of taking the position SDL shares between all mice.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
