@@ -228,7 +228,7 @@ void Controller::UpdatePlayerInput(std::array<bool, ControlState::CONTROLSTATECO
 	// Only actually switch when the change button(s) are released
 	// BRAIN ACTOR
 	if ((g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_NEXT) && g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_PREV)) ||
-	    (g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_NEXT) && g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PREV))) {
+		(g_UInputMan.ElementPressed(m_Player, InputElements::INPUT_NEXT) && g_UInputMan.ElementHeld(m_Player, InputElements::INPUT_PREV))) {
 		m_ControlStates[ControlState::ACTOR_BRAIN] = true;
 		// Ignore the next releases of next and previous buttons so that the brain isn't switched away form immediate after using the brain shortcut
 		m_NextIgnore = m_PrevIgnore = true;
