@@ -8,6 +8,10 @@
 
 using namespace RTE;
 
+// Defining statics
+std::function<void(const std::string&, bool)> Reader::PushToProgressDisplayQueue = nullptr;
+std::function<void(const std::string&)> Reader::AssertFromWorkerAndShutdownAll = nullptr;
+
 void Reader::Clear() {
 	m_Stream = nullptr;
 	m_FilePath.clear();
@@ -16,7 +20,6 @@ void Reader::Clear() {
 	m_IndentDifference = 0;
 	m_ObjectEndings = 0;
 	m_EndOfStreams = false;
-	m_ReportProgress = nullptr;
 	m_ReportTabs = "\t";
 	m_FileName.clear();
 	m_DataModuleName.clear();
@@ -25,20 +28,21 @@ void Reader::Clear() {
 	m_SkipIncludes = false;
 	m_CanFail = false;
 	m_NonModulePath = false;
+	AssertFromWorkerAndShutdownAll = nullptr;
 }
 
-Reader::Reader(const std::string& fileName, bool overwrites, const ProgressCallback& progressCallback, bool failOK, bool nonModulePath) {
+Reader::Reader(const std::string& fileName, bool overwrites, bool failOK, bool nonModulePath) {
 	Clear();
 	m_NonModulePath = nonModulePath;
-	Create(fileName, overwrites, progressCallback, failOK);
+	Create(fileName, overwrites, failOK);
 }
 
-Reader::Reader(std::unique_ptr<std::istream>&& stream, const std::string& fileName, bool overwrites, const ProgressCallback& progressCallback, bool failOK) {
+Reader::Reader(std::unique_ptr<std::istream>&& stream, const std::string& fileName, bool overwrites, bool failOK) {
 	Clear();
-	Create(std::move(stream), fileName, overwrites, progressCallback, failOK);
+	Create(std::move(stream), fileName, overwrites, failOK);
 }
 
-int Reader::Create(const std::string& fileName, bool overwrites, const ProgressCallback& progressCallback, bool failOK) {
+int Reader::Create(const std::string& fileName, bool overwrites, bool failOK) {
 	if (fileName.empty()) {
 		return -1;
 	}
@@ -57,10 +61,10 @@ int Reader::Create(const std::string& fileName, bool overwrites, const ProgressC
 		m_DataModuleID = g_PresetMan.GetModuleID(m_DataModuleName);
 	}
 	
-	return Create(std::make_unique<std::ifstream>(m_FilePath), fileName, overwrites, progressCallback, failOK);
+	return Create(std::make_unique<std::ifstream>(m_FilePath), fileName, overwrites, failOK);
 }
 
-int Reader::Create(std::unique_ptr<std::istream>&& stream, const std::string& fileName, bool overwrites, const ProgressCallback& progressCallback, bool failOK) {
+int Reader::Create(std::unique_ptr<std::istream>&& stream, const std::string& fileName, bool overwrites, bool failOK) {
 	// We redundantly do this following block of code in both constructors, which feels really ugly and lazy
 	if (fileName.empty()) {
 		return -1;
@@ -91,9 +95,8 @@ int Reader::Create(std::unique_ptr<std::istream>&& stream, const std::string& fi
 	m_OverwriteExisting = overwrites;
 
 	// Report that we're starting a new file
-	m_ReportProgress = progressCallback;
-	if (m_ReportProgress && m_Stream->good()) {
-		m_ReportProgress("\t" + m_FileName + " on line " + std::to_string(m_CurrentLine), true);
+	if (Reader::PushToProgressDisplayQueue && m_Stream->good()) {
+		Reader::PushToProgressDisplayQueue("\t" + m_FileName + " on line " + std::to_string(m_CurrentLine), true);
 	}
 
 	return m_Stream->good() ? 0 : -1;
@@ -249,8 +252,8 @@ bool Reader::DiscardEmptySpace() {
 			if (peek == '\n') {
 				m_CurrentLine++;
 				// Only report every few lines
-				if (m_ReportProgress && (m_CurrentLine % g_SettingsMan.LoadingScreenProgressReportPrecision() == 0)) {
-					m_ReportProgress(m_ReportTabs + m_FileName + " reading line " + std::to_string(m_CurrentLine), false);
+				if (Reader::PushToProgressDisplayQueue && (m_CurrentLine % g_SettingsMan.LoadingScreenProgressReportPrecision() == 0)) {
+					Reader::PushToProgressDisplayQueue(m_ReportTabs + m_FileName + " reading line " + std::to_string(m_CurrentLine), false);
 				}
 			}
 			indent = 0;
@@ -328,16 +331,16 @@ void Reader::ReportError(const std::string& errorDesc) const {
 	if (!m_CanFail) {
 		RTEAbort(errorDesc + "\nError happened in " + m_FilePath + " at line " + std::to_string(m_CurrentLine) + "!");
 	} else {
-		if (m_ReportProgress) {
-			m_ReportProgress(errorDesc + ", skipping!", true);
+		if (Reader::PushToProgressDisplayQueue) {
+			Reader::PushToProgressDisplayQueue(errorDesc + ", skipping!", true);
 		}
 	}
 }
 
 bool Reader::StartIncludeFile() {
 	// Report that we're including a file
-	if (m_ReportProgress) {
-		m_ReportProgress(m_ReportTabs + m_FileName + " on line " + std::to_string(m_CurrentLine) + " includes:", false);
+	if (Reader::PushToProgressDisplayQueue) {
+		Reader::PushToProgressDisplayQueue(m_ReportTabs + m_FileName + " on line " + std::to_string(m_CurrentLine) + " includes:", false);
 	}
 
 	// Get the file path from the current stream before pushing it into the StreamStack, otherwise we can't open a new stream after releasing it because we can't read.
@@ -371,20 +374,20 @@ bool Reader::StartIncludeFile() {
 	m_FileName = m_FilePath.substr(m_FilePath.find_first_of("/\\") + 1);
 
 	// Report that we're starting a new file
-	if (m_ReportProgress) {
+	if (Reader::PushToProgressDisplayQueue) {
 		m_ReportTabs = "\t";
 		for (int i = 0; i < m_StreamStack.size(); ++i) {
 			m_ReportTabs.append("\t");
 		}
-		m_ReportProgress(m_ReportTabs + m_FileName + " on line " + std::to_string(m_CurrentLine), true);
+		Reader::PushToProgressDisplayQueue(m_ReportTabs + m_FileName + " on line " + std::to_string(m_CurrentLine), true);
 	}
 	DiscardEmptySpace();
 	return true;
 }
 
 bool Reader::EndIncludeFile() {
-	if (m_ReportProgress) {
-		m_ReportProgress(m_ReportTabs + m_FileName + " - done! " + static_cast<char>(-42), false);
+	if (Reader::PushToProgressDisplayQueue) {
+		Reader::PushToProgressDisplayQueue(m_ReportTabs + m_FileName + " - done! " + static_cast<char>(-42), false);
 	}
 
 	if (m_StreamStack.empty()) {
@@ -405,12 +408,12 @@ bool Reader::EndIncludeFile() {
 	m_FileName = m_FilePath.substr(m_FilePath.find_first_of("/\\") + 1);
 
 	// Report that we're going back a file
-	if (m_ReportProgress) {
+	if (Reader::PushToProgressDisplayQueue) {
 		m_ReportTabs = "\t";
 		for (int i = 0; i < m_StreamStack.size(); ++i) {
 			m_ReportTabs.append("\t");
 		}
-		m_ReportProgress(m_ReportTabs + m_FileName + " on line " + std::to_string(m_CurrentLine), true);
+		Reader::PushToProgressDisplayQueue(m_ReportTabs + m_FileName + " on line " + std::to_string(m_CurrentLine), true);
 	}
 	DiscardEmptySpace();
 	return true;
