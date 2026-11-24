@@ -866,21 +866,18 @@ void UInputMan::HandleInputEvent(const SDL_Event& inputEvent) {
 			bool playerKeyboardDisconnected{false};
 			for (int player = PlayerOne; player < MaxPlayerCount; player++) {
 				DeviceID playerDeviceID = m_ControlScheme[player].GetDeviceID();
-				if (m_ControlScheme[player].GetDevice() == DEVICE_MOUSE_KEYB) {
-					if (playerDeviceID.mouseKeyboard.keyboard == keyboardID) {
-						playerDeviceID.mouseKeyboard.keyboard = 0;
-						playerKeyboardDisconnected = true;
-					}
-				} else if (m_ControlScheme[player].GetDevice() == DEVICE_KEYB_ONLY) {
-					if (playerDeviceID.keyboard == keyboardID) {
-						playerDeviceID.keyboard = 0;
-						playerKeyboardDisconnected = true;
-					}
+				InputDevice playerDevice = m_ControlScheme[player].GetDevice();
+				if (playerDevice == DEVICE_MOUSE_KEYB && playerDeviceID.mouseKeyboard.keyboard == keyboardID) {
+					playerDeviceID.mouseKeyboard.keyboard = 0;
+				} else if (playerDevice == DEVICE_KEYB_ONLY && playerDeviceID.keyboard == keyboardID) {
+					playerDeviceID.keyboard = 0;
+				} else {
+					continue;
 				}
-				if (playerKeyboardDisconnected) {
-					g_ConsoleMan.PrintString("INFO: Player " + std::to_string(player + 1) + " keyboard disconnected!");
-					m_PlayerMouseKeyboardKnown = false;
-				}
+				playerKeyboardDisconnected = true;
+				m_ControlScheme[player].SetDeviceID(playerDeviceID);
+				g_ConsoleMan.PrintString("INFO: Player " + std::to_string(player + 1) + " keyboard disconnected!");
+				m_PlayerMouseKeyboardKnown = false;
 			}
 			if (playerKeyboardDisconnected && g_ActivityMan.IsInActivity()) {
 				g_ActivityMan.PauseActivity();

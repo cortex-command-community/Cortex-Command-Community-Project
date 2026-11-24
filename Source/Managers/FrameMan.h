@@ -308,6 +308,11 @@ namespace RTE {
 		int SaveWorldPreviewToPNG(const char* nameBase) { return SaveBitmap(ScenePreviewDump, nameBase); }
 #pragma endregion
 
+		/// Updates the drawing position of each player screen on the backbuffer when split screen is active. This is called during Draw().
+		/// @param playerScreen The player screen to update offset for.
+		/// @param screenOffset Vector representing the screen offset.
+		void UpdateScreenOffsetForSplitScreen(int playerScreen, Vector& screenOffset) const;
+
 	private:
 		/// Enumeration with different settings for the SaveBitmap() method.
 		enum SaveBitmapMode {
@@ -380,11 +385,6 @@ namespace RTE {
 #pragma endregion
 
 #pragma region Draw Breakdown
-		/// Updates the drawing position of each player screen on the backbuffer when split screen is active. This is called during Draw().
-		/// @param playerScreen The player screen to update offset for.
-		/// @param screenOffset Vector representing the screen offset.
-		void UpdateScreenOffsetForSplitScreen(int playerScreen, Vector& screenOffset) const;
-
 		/// Draws all the text messages to the specified player screen. This is called during Draw().
 		/// @param playerScreen The player screen the text will be shown on.
 		/// @param playerGUIBitmap The bitmap the text will be drawn on.

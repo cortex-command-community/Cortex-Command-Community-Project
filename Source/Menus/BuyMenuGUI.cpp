@@ -1463,7 +1463,7 @@ void BuyMenuGUI::Update() {
 
 		// Fire button removes items from the order list, including equipment on AHumans
 		if (isKeyboardControlled ? (m_pController->IsState(PRESS_FACEBUTTON) && !m_pController->IsState(AIM_SHARP)) : (m_pController->IsState(RELEASE_FACEBUTTON) && !m_IsDragging)) {
-			if (g_UInputMan.FlagShiftState()) {
+			if ((g_UInputMan.KeyHeld(SDL_SCANCODE_LSHIFT, m_pController->GetPlayer()) || g_UInputMan.KeyHeld(SDL_SCANCODE_RSHIFT, m_pController->GetPlayer()))) {
 				ClearCartList();
 				pItem = nullptr;
 			} else {
@@ -1797,7 +1797,7 @@ void BuyMenuGUI::Update() {
 					if (pItem) {
 						if (anEvent.GetData() & GUIListBox::MOUSE_LEFT) {
 							// TODO in future it would be nice to add the concept of a modifier key to Controller, so we can do this for gamepad inputs as well.
-							if (g_UInputMan.FlagShiftState()) {
+							if ((g_UInputMan.KeyHeld(SDL_SCANCODE_LSHIFT, m_pController->GetPlayer()) || g_UInputMan.KeyHeld(SDL_SCANCODE_RSHIFT, m_pController->GetPlayer()))) {
 								ClearCartList();
 								pItem = nullptr;
 							}

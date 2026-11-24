@@ -1,6 +1,7 @@
 #include "InventoryMenuGUI.h"
 
 #include "WindowMan.h"
+#include "ActivityMan.h"
 #include "FrameMan.h"
 #include "UInputMan.h"
 #include "MovableMan.h"
@@ -203,6 +204,11 @@ int InventoryMenuGUI::SetupFullOrTransferMode() {
 		m_GUIInput = std::make_unique<GUIInputWrapper>(m_MenuController->GetPlayer());
 	}
 	RTEAssert(m_GUIControlManager->Create(m_GUIScreen.get(), m_GUIInput.get(), "Base.rte/GUIs/Skins", "InventoryMenuSkin.ini"), "Failed to create InventoryMenuGUI GUIControlManager and load it from Base.rte/GUIs/Skins/Menus/InventoryMenuSkin.ini");
+
+	// The menu is drawn in the player's own screen, so the mouse has to be offset to match in split screen.
+	Vector screenOffset;
+	g_FrameMan.UpdateScreenOffsetForSplitScreen(g_ActivityMan.GetActivity()->ScreenOfPlayer(m_MenuController->GetPlayer()), screenOffset);
+	m_GUIControlManager->SetPosOnScreen(screenOffset.GetFloorIntX(), screenOffset.GetFloorIntY());
 
 	// TODO When this is split into 2 classes, full mode should use the fonts from its gui control manager while transfer mode, will need to get its fonts from FrameMan. May be good for the ingame menu base class to have these font pointers, even if some subclasses set em up in different ways.
 	// if (!m_SmallFont) { m_SmallFont = m_GUIControlManager->GetSkin()->GetFont("FontSmall.png"); }
