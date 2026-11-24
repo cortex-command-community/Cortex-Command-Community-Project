@@ -75,9 +75,17 @@ end
 function CrabBehaviors.Sentry(AI, Owner, Abort)
 	local sweepUp = true;
 	local sweepDone = false;
-	-- to-do: refer to upper/lower limits!
-	local maxAng = Owner.AimRange; --Owner.AimRangeUpperLimit
-	local minAng = -maxAng; --Owner.AimRangeLowerLimit
+	-- The crab's aim is clamped by ACrab to its AimRangeUpperLimit/AimRangeLowerLimit, shifted by its tilt
+	-- and mirrored when flipped. Sweep against those actual limits, otherwise the sweep waits forever for an
+	-- angle the crab can never reach (e.g. when it stands on a ramp).
+	local function getAimLimits()
+		local rotAngle = Owner.RotAngle;
+		if Owner.HFlipped then
+			return Owner.AimRangeUpperLimit - rotAngle, -Owner.AimRangeLowerLimit - rotAngle;
+		end
+		return Owner.AimRangeUpperLimit + rotAngle, -Owner.AimRangeLowerLimit + rotAngle;
+	end
+	local maxAng, minAng = getAimLimits();
 	local aim;
 
 	if AI.OldTargetPos then	-- try to reacquire an old target
@@ -124,6 +132,7 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 
 	while true do	-- start by looking forward
 		aim = Owner:GetAimAngle(false);
+		maxAng, minAng = getAimLimits();
 
 		if sweepUp then
 			if aim < maxAng/3 then
@@ -161,6 +170,7 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 
 	while true do	-- look down
 		aim = Owner:GetAimAngle(false);
+		maxAng, minAng = getAimLimits();
 		if aim > minAng then
 			AI.Ctrl:SetState(Controller.AIM_DOWN, true);
 		else
@@ -177,6 +187,7 @@ function CrabBehaviors.Sentry(AI, Owner, Abort)
 
 	while true do	-- scan the area for obstacles
 		aim = Owner:GetAimAngle(false);
+		maxAng, minAng = getAimLimits();
 		if aim < maxAng then
 			AI.Ctrl:SetState(Controller.AIM_UP, true);
 		else
