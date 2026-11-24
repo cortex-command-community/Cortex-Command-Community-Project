@@ -400,7 +400,7 @@ void UInputMan::SetMouseValueAngle(float angle, int whichPlayer) {
 			m_MouseStates[0].analogAim.SetAbsRadAngle(angle);
 		} else {
 			if (auto mouse = m_MouseStates.find(m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
-				mouse->second.analogAim.SetAbsDegAngle(angle);
+				mouse->second.analogAim.SetAbsRadAngle(angle);
 			}
 		}
 	}
@@ -411,7 +411,8 @@ void UInputMan::SetMousePos(const Vector& newPos, int whichPlayer) {
 	if (!m_DisableMouseMoving && !m_TrapMousePos && ((whichPlayer == Players::NoPlayer) || (m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB && !m_EnableMultiMouseKeyboard))) {
 		SDL_WarpMouseInWindow(g_WindowMan.GetWindow(), newPos.GetFloorIntX(), newPos.GetFloorIntY());
 	} else if (whichPlayer < Players::MaxPlayerCount && whichPlayer > Players::NoPlayer && m_ControlScheme.at(whichPlayer).GetDevice() == InputDevice::DEVICE_MOUSE_KEYB) {
-		m_MouseStates[m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse].position = newPos;
+		// Per-mouse positions are in window pixels, callers pass game pixels.
+		m_MouseStates[m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse].position = newPos * g_WindowMan.GetResMultiplier();
 	}
 }
 
@@ -906,7 +907,16 @@ void UInputMan::HandleInputEvent(const SDL_Event& inputEvent) {
 
 			Mouse& mouse = m_MouseStates[inputEvent.motion.which];
 			mouse.id = inputEvent.motion.which;
-			mouse.position = {inputEvent.motion.x, inputEvent.motion.y};
+			// SDL keeps one cursor position shared by all mice, so with multiple mice each one has to track its own from its relative motion.
+			// ForceMouseWithinBox keeps it inside the player's screen. It stays put while the mouse is trapped for aiming.
+			bool ownPosition = m_EnableMultiMouseKeyboard && inputEvent.motion.which != 0;
+			if (ownPosition) {
+				if (!mouse.relativeMode) {
+					mouse.position += {inputEvent.motion.xrel, inputEvent.motion.yrel};
+				}
+			} else {
+				mouse.position = {inputEvent.motion.x, inputEvent.motion.y};
+			}
 			mouse.relativeMotion += {inputEvent.motion.xrel, inputEvent.motion.yrel};
 
 			m_MouseStates[0].position = {inputEvent.motion.x, inputEvent.motion.y};
@@ -917,7 +927,9 @@ void UInputMan::HandleInputEvent(const SDL_Event& inputEvent) {
 				int windowPosY = 0;
 				SDL_GetWindowPosition(SDL_GetWindowFromID(inputEvent.motion.windowID), &windowPosX, &windowPosY);
 				Vector windowCoord(static_cast<float>(g_WindowMan.GetDisplayArrangementAbsOffsetX() + windowPosX), static_cast<float>(g_WindowMan.GetDisplayArrangementAbsOffsetY() + windowPosY));
-				mouse.position += windowCoord;
+				if (!ownPosition) {
+					mouse.position += windowCoord;
+				}
 				m_MouseStates[0].position += windowCoord;
 			}
 			break;
