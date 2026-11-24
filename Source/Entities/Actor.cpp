@@ -1012,16 +1012,20 @@ void Actor::UpdateMovePath() {
 	float digStrength = EstimateDigStrength();
 	float jumpHeight = EstimateJumpHeight();
 
+	// Falling fast (a drop out of a ship), plan from the ground below: that is where we will land. Otherwise that ground must be under our feet:
+	// hanging on a ledge's edge or just after take-off it is the floor far below, and planning from there would make us drop to it.
+	Vector start = g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10, m_Vel.m_Y > 8.0F ? 0 : m_CharHeight * 0.5);
+
 	// If we're following someone/thing, then never advance waypoints until that thing disappears
 	if (g_MovableMan.ValidMO(m_pMOMoveTarget)) {
-		m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), m_pMOMoveTarget->GetPos(), jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
+		m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(start, m_pMOMoveTarget->GetPos(), jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
 	} else {
 		// Do we currently have a path to a static target we would like to still pursue?
 		if (m_MovePath.empty()) {
 			// Ok no path going, so get a new path to the next waypoint, if there is a next waypoint
 			if (!m_Waypoints.empty()) {
 				// Make sure the path starts from the ground and not somewhere up in the air if/when dropped out of ship
-				m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), m_Waypoints.front().first, jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
+				m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(start, m_Waypoints.front().first, jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
 
 				// If the waypoint was tied to an MO to pursue, then load it into the current MO target
 				if (g_MovableMan.ValidMO(m_Waypoints.front().second)) {
@@ -1035,12 +1039,12 @@ void Actor::UpdateMovePath() {
 			}
 			// Just try to get to the last Move Target
 			else {
-				m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), m_MoveTarget, jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
+				m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(start, m_MoveTarget, jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
 			}
 		}
 		// We had a path before trying to update, so use its last point as the final destination
 		else {
-			m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(g_SceneMan.MovePointToGround(m_Pos, m_CharHeight * 0.2, 10), Vector(m_MovePath.back()), jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
+			m_PathRequest = g_SceneMan.GetScene()->CalculatePathAsync(start, Vector(m_MovePath.back()), jumpHeight, digStrength, static_cast<Activity::Teams>(m_Team));
 		}
 	}
 

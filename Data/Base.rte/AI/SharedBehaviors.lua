@@ -435,6 +435,9 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 	Owner:RemoveNumberValue("AI_StuckForTime");
 
 	while true do
+		-- Moving through the air under gravity, as opposed to resting on a door or a ledge's edge, or floating in zero gravity.
+		-- No new path then: it would start from the ground below and throw the climb away.
+		local airborne = AI.flying and not Owner.Vel:MagnitudeIsLessThan(1) and SceneMan.GlobalAcc.Y > 0;
 		Waypoint = nil;
 		HasMovePath = false;
 
@@ -532,8 +535,11 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 			elseif not AI.flying then
 				AI.jump = false;
 				AI.lateralMoveState = Actor.LAT_STILL;
+			elseif math.abs(Owner.Vel.X) > 8 then
+				-- sputtering on in the air pushes the way we face: turn against a sideways speed no landing forgives
+				nextLatMove = Owner.Vel.X > 0 and Actor.LAT_LEFT or Actor.LAT_RIGHT;
 			end
-		elseif UpdatePathTimer:IsPastSimTimeLimit() then
+		elseif UpdatePathTimer:IsPastSimTimeLimit() and not airborne then
 			UpdatePathTimer:Reset();
 
 			AI.deviceState = AHuman.STILL;
@@ -781,7 +787,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 								-- check if we have LOS to the waypoint
 								if SceneMan:CastObstacleRay(Owner.Pos, CurrDist, Vector(), Vector(), Owner.ID, Owner.IgnoresWhichTeam, rte.grassID, 9) < 0 then
 									NoLOSTimer:Reset();
-								elseif NoLOSTimer:IsPastSimTimeLimit() then	-- calculate new path
+								elseif NoLOSTimer:IsPastSimTimeLimit() and not airborne then	-- calculate new path, once landed
 									Waypoint = nil;
 									NeedsNewPath = true; -- update the path
 									nextLatMove = Actor.LAT_STILL;
@@ -816,8 +822,8 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 							end
 
 							if Waypoint then	-- move towards the waypoint
-								-- control horizontal movement
-								if not AI.flying then
+								-- control horizontal movement; a body resting without ground contact (on a ladder, a door, a ledge's edge) has to walk too
+								if not AI.flying or Owner.Vel:MagnitudeIsLessThan(1) then
 									if CurrDist.X < -3 then
 										nextLatMove = Actor.LAT_LEFT;
 									elseif CurrDist.X > 3 then
@@ -839,10 +845,9 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 
 								if Owner.Jetpack then
 									if Owner.Jetpack.JetTimeLeft < AI.minBurstTime then
-										if not AI.flying or Owner.Vel.Y > 4 then
-											AI.jump = false; -- not enough fuel left, no point in jumping yet
-											AI.refuel = true;
-										end
+										-- Not enough fuel left: stop steering by thrust and refuel (in the air the refuel state above keeps our sideways speed in check).
+										AI.jump = false;
+										AI.refuel = true;
 									else
 										-- do we have a target we want to shoot at?
 										if Owner.Head and AI.Target and AI.canHitTarget and AI.BehaviorName ~= "AttackTarget" then
@@ -919,6 +924,9 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 												t = math.max(math.min(0.4, Owner.Jetpack.JetTimeLeft*0.001-TimerMan.AIDeltaTimeSecs*10), TimerMan.AIDeltaTimeSecs);
 											end
 
+											-- Sideways speed carries on through a long climb or drop: judge each choice by where it leaves us once level with the waypoint
+											local coastTime = math.abs(CurrDist.Y) > Owner.Height and math.min(math.abs(CurrDist.Y) / (8 * GetPPM()), 1.5) or 0;
+
 											-- when jumping (check four directions)
 											for k, Face in pairs(Facings) do
 												local JetAccel = Vector(-jetStrength, 0):RadRotate(Owner.RotAngle+1.375*math.pi+Face.facing*0.25);
@@ -929,6 +937,8 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 													JumpPos = JumpPos + Vector(-AI.jetBurstFactor, 0):AbsRotateTo(JetAccel);
 												end
 
+												JumpPos.X = JumpPos.X + (Owner.Vel.X * GetPPM() + JetAccel.X * t) * coastTime;
+
 												-- check for obstacles from the head
 												Trace = SceneMan:ShortestDistance(Owner.Pos, JumpPos, false);
 												Facings[k].range = SceneMan:ShortestDistance(Waypoint.Pos, JumpPos, false).Magnitude;
@@ -937,7 +947,7 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 											-- when falling or walking
 											local FallPos = Owner.Pos + PixelVel;
 											if AI.flying then
-												FallPos = FallPos + Accel * (t*t*0.5);
+												FallPos = FallPos + Accel * (t*t*0.5) + Vector(Owner.Vel.X * GetPPM() * coastTime, 0);
 											end
 
 											-- check for obstacles when falling/walking
@@ -951,7 +961,15 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 
 											table.sort(Facings, function(A, B) return A.range < B.range end);
 											local delta = SceneMan:ShortestDistance(Waypoint.Pos, FallPos, false).Magnitude - Facings[1].range;
-											if delta < 1 then
+											-- taking off for a waypoint beyond the ceiling only pins us against it: walk on until there is headroom
+											local lowCeiling = not AI.flying and CurrDist.Y < -Owner.Height*0.5 and SceneMan:CastStrengthRay(Owner.Pos, Vector(0, -Owner.Height*0.5), 5, Vector(), 4, rte.grassID, true);
+											-- Before taking off for a climb (once rising it is too late to change our mind):
+											local onGround = not AI.flying and Owner.Vel.Y > -1;
+											-- brake first: sideways speed away from the waypoint wastes the tank, and under one high overhead it ends against the cliff or its overhang
+											local drifting = onGround and CurrDist.Y < -Owner.Height and math.abs(Owner.Vel.X) > 1 and (Owner.Vel.X * CurrDist.X < 0 or -CurrDist.Y > 2 * math.abs(CurrDist.X));
+											-- and fill up: a tall climb needs the whole tank and the burst only a full one gives, and a second on the ground refills it
+											local thinTank = onGround and CurrDist.Y < -2*Owner.Height and Owner.Jetpack.JetTimeLeft < Owner.Jetpack.JetTimeTotal*0.95;
+											if delta < 1 or lowCeiling or drifting or thinTank then
 												AI.jump = false;
 											elseif delta > deltaToJump or (AI.flying and Owner.Jetpack.JetpackType == AEJetpack.Standard) then
 												AI.jump = true;
@@ -964,6 +982,32 @@ function SharedBehaviors.GoToWpt(AI, Owner, Abort)
 													end
 												elseif Owner.HFlipped then
 													nextLatMove = Actor.LAT_RIGHT;
+												end
+											end
+
+											-- Jump towards the waypoint when something low stands in the way (a barrier, the lip of a ledge),
+											-- or when the floor ends before a waypoint that stands on ground at about our height: do not walk into the gap.
+											local left = CurrDist.X < 0;
+											local ahead = left and -Owner.Height*0.25 or Owner.Height*0.25;
+											if not lowCeiling and not thinTank and ((NoLOSTimer.ElapsedSimTimeMS > 300 and (Obstacles[left and Obst.L_FRONT or Obst.R_FRONT] or Obstacles[left and Obst.L_LOW or Obst.R_LOW]))
+											or (not AI.flying and math.abs(CurrDist.X) > math.abs(ahead) and math.abs(CurrDist.Y) < math.abs(ahead)
+												and SceneMan:CastStrengthRay(Waypoint.Pos, Vector(0, Owner.Height*0.5), 5, Vector(), 4, rte.grassID, true)
+												and not SceneMan:CastStrengthRay(Owner.Pos + Vector(ahead, 0), Vector(0, Owner.Height), 5, Vector(), 4, rte.grassID, true))) then
+												AI.jump = true;
+												nextLatMove = left and Actor.LAT_LEFT or Actor.LAT_RIGHT;
+											end
+
+											-- climbing under an overhang: sidestep to the clear side, or back to the waypoint's column, instead of ramming it
+											if AI.jump and CurrDist.Y < 0 then
+												local function under(side) -- a wall we merely brush along does not count
+													local Shoulder = Owner.Pos + Vector(side * Owner.Height*0.12, 0);
+													return SceneMan:GetTerrMatter(Shoulder.X, Shoulder.Y) == rte.airID and SceneMan:CastStrengthRay(Shoulder, Vector(0, CurrDist.Y), 5, Vector(), 4, rte.grassID, true);
+												end
+												local underLeft, underRight = under(-1), under(1);
+												if underLeft ~= underRight then
+													nextLatMove = underLeft and Actor.LAT_RIGHT or Actor.LAT_LEFT;
+												elseif underLeft then
+													nextLatMove = left and Actor.LAT_LEFT or Actor.LAT_RIGHT;
 												end
 											end
 										end
