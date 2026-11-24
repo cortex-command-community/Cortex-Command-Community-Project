@@ -400,7 +400,7 @@ void UInputMan::SetMouseValueAngle(float angle, int whichPlayer) {
 			m_MouseStates[0].analogAim.SetAbsRadAngle(angle);
 		} else {
 			if (auto mouse = m_MouseStates.find(m_ControlScheme.at(whichPlayer).GetDeviceID().mouseKeyboard.mouse); mouse != m_MouseStates.end()) {
-				mouse->second.analogAim.SetAbsDegAngle(angle);
+				mouse->second.analogAim.SetAbsRadAngle(angle);
 			}
 		}
 	}

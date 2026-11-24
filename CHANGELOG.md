@@ -331,6 +331,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed split-screen players with separate mice moving each other's Buy Menu and inventory cursors. Each mouse now tracks its own cursor position instead of taking the position SDL shares between all mice.
 
+- Fixed sub-PieMenus (e.g. Grenade Launcher modes, Constructor options) being unusable for players with separate mice. Opening one threw the cursor to the end of the sub-PieMenu instead of its middle, because the mouse angle was set in degrees instead of radians.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
