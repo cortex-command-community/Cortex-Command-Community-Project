@@ -34,6 +34,9 @@ thread_local float s_JumpHeight = 0.0F;
 thread_local int s_JumpHeightVertical = 0;
 thread_local int s_JumpHeightDiagonal = 0;
 
+// Where the current search starts. The agent is already there, so whatever holds it up (a ledge's edge, a door, its jetpack) lets it jump from it.
+thread_local const RTE::PathNode* s_StartNode = nullptr;
+
 // What material strength the search is capable of digging through.
 // Needs to be thread-local because of how it's passed around, unfortunately it doesn't seem we can give userdata for a path agent in MicroPather.
 // TODO: Enhance MicroPather to add that capability (or write our own pather)!
@@ -191,7 +194,8 @@ int PathFinder::CalculatePath(Vector start, Vector end, std::list<Vector>& pathR
 	// If end node is invalid, there's no path
 	PathNode* endNode = GetPathNodeAtGridCoords(endNodeX, endNodeY);
 	if (endNode && endNode->m_Navigable) {
-		result = GetPather()->Solve(static_cast<void*>(GetPathNodeAtGridCoords(startNodeX, startNodeY)), static_cast<void*>(endNode), &statePath, &totalCostResult);
+		s_StartNode = GetPathNodeAtGridCoords(startNodeX, startNodeY);
+		result = GetPather()->Solve(static_cast<void*>(const_cast<PathNode*>(s_StartNode)), static_cast<void*>(endNode), &statePath, &totalCostResult);
 	}
 
 	if (result == MicroPather::NO_SOLUTION) {
@@ -340,21 +344,51 @@ void PathFinder::AdjacentCost(void* state, std::vector<micropather::StateCost>* 
 		adjacentList->push_back(adjCost);
 	}
 
-	if (isInNoGrav || NodeIsOnSolidGround(*node)) {
+	if (isInNoGrav || node == s_StartNode || NodeIsOnSolidGround(*node)) {
 		// Cost to discourage us from going up
 		const float extraUpCost = 3.0F;
 
+		// A node with a ceiling right above it is a crawl space: slow and awkward, so a last resort.
+		const float crawlCost = 10.0F;
+		auto ceilingCost = [&](const PathNode* target) {
+			return (s_JumpHeight < FLT_MAX && target->Up && target->UpMaterial->GetIntegrity() > c_PathFindingDefaultDigStrength) ? crawlCost : 0.0F;
+		};
+
 		// We can only go straight left or right if we're on solid ground, otherwise we need to go downwards
 		if (node->Left && node->Left->m_Navigable) {
-			adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->LeftMaterial) + radiatedCost;
+			adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->LeftMaterial) + ceilingCost(node->Left) + radiatedCost;
 			adjCost.state = static_cast<void*>(node->Left);
 			adjacentList->push_back(adjCost);
 		}
 
 		if (node->Right && node->Right->m_Navigable) {
-			adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->RightMaterial) + radiatedCost;
+			adjCost.cost = 1.0F + GetMaterialTransitionCost(*node->RightMaterial) + ceilingCost(node->Right) + radiatedCost;
 			adjCost.state = static_cast<void*>(node->Right);
 			adjacentList->push_back(adjCost);
+		}
+
+		// Hopping over a gap in the floor: sideways through open air to the next node that has ground under it.
+		if (s_JumpHeight < FLT_MAX && !isInNoGrav) {
+			const float hopCost = 2.0F;
+			for (bool right: {false, true}) {
+				const PathNode* currentNode = node;
+				for (int i = 0; i < s_JumpHeightVertical / 4; ++i) {
+					const PathNode* next = right ? currentNode->Right : currentNode->Left;
+					const Material* between = right ? currentNode->RightMaterial : currentNode->LeftMaterial;
+					if (next == nullptr || !next->m_Navigable || between->GetIntegrity() > c_PathFindingDefaultDigStrength) {
+						break;
+					}
+					currentNode = next;
+					if (NodeIsOnSolidGround(*currentNode)) {
+						if (i > 0) { // the neighbour itself is plain walking
+							adjCost.cost = static_cast<float>(i + 1) + hopCost + radiatedCost;
+							adjCost.state = static_cast<void*>(const_cast<PathNode*>(currentNode));
+							adjacentList->push_back(adjCost);
+						}
+						break;
+					}
+				}
+			}
 		}
 
 		// Jumping vertically

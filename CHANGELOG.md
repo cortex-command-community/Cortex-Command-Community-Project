@@ -267,6 +267,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 <details><summary><b>Fixed</b></summary>
 
+- Fixed AI actors killing themselves with their jetpack while following Go To orders. While an almost empty jetpack sputters on in mid-air they now turn against high sideways speed (it used to carry them past their waypoint into walls and long falls), and they no longer fire it while tumbling, or take off under a ceiling they cannot pass. They account for their sideways speed when choosing a thrust direction, so they land on ledges instead of overshooting them, and they rise over a low obstacle that blocks the way to the next waypoint.
+
+- Fixed AI actors throwing away a climb halfway up. A path requested while hanging on a ledge's edge or in mid-air used to start from the ground far below, so the actor dropped back down to follow it; paths now start where the actor is, and the Go To AI no longer replans without ground contact. It also brakes and waits for a full tank before taking off for a tall climb, and sidesteps an overhang instead of ramming it from below.
+
+- Pathfinding for actors that can jump: a short gap in a floor (a shaft opening, a missing bridge segment) can now be crossed sideways instead of making everything beyond it unreachable on that level, and the Go To AI flies across such a gap instead of walking into it. Passages with a ceiling right above the path node count as crawl spaces and are only used when there is no reasonable way around.
+
 - Fixed a crash on launch that could occur depending on what Microsoft Visual C++ Redistributable the user has installed.
 
 - Fixed an issue where palette index 255 was incorrectly showing as black.

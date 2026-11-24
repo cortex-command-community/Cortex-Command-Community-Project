@@ -621,7 +621,8 @@ function NativeHumanAI:Update(Owner)
 	if (not self.jump and Owner.Vel.Y > 18) then
 		self.jump = true;
 	end
-	if self.jump and Owner.Jetpack and Owner.Jetpack.JetTimeLeft > TimerMan.AIDeltaTimeMS then
+	-- never thrust while tumbling: an inverted jetpack drives us into the ground. Lying down on purpose is different: that is how we get through a low gap
+	if self.jump and Owner.Jetpack and Owner.Jetpack.JetTimeLeft > TimerMan.AIDeltaTimeMS and (self.proneState ~= AHuman.NOTPRONE or math.cos(Owner.RotAngle) > 0.5) then
 		if self.jumpState == AHuman.PREJUMP then
 			self.jumpState = AHuman.UPJUMP;
 		elseif self.jumpState ~= AHuman.UPJUMP then	-- the jetpack is off
