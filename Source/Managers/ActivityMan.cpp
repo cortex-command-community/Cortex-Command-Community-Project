@@ -514,7 +514,9 @@ int ActivityMan::StartActivity(Activity* activity) {
 	g_FrameMan.ClearScreenText();
 
 	// Reset the mouse input to the center
-	g_UInputMan.SetMouseValueMagnitude(0, g_UInputMan.MouseUsedByPlayer());
+	for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+		g_UInputMan.SetMouseValueMagnitude(0, player);
+	}
 
 	g_AudioMan.PauseIngameSounds(false);
 

@@ -1033,7 +1033,9 @@ void GameActivity::UpdateEditing() {
 			DisableAIs(false);
 			InitAIs();
 			// Reset the mouse value and pathfinding so it'll know about the newly placed stuff
-			g_UInputMan.SetMouseValueMagnitude(0, g_UInputMan.MouseUsedByPlayer());
+			for (int player = Players::PlayerOne; player < Players::MaxPlayerCount; ++player) {
+				g_UInputMan.SetMouseValueMagnitude(0, player);
+			}
 			g_SceneMan.GetScene()->ResetPathFinding();
 			// Start the in-game track
 			// g_AudioMan.ClearMusicQueue();

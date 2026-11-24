@@ -329,6 +329,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed white speckles on dark terrain, such as cave backgrounds. The `Background` and `Dissolve` shaders smoothed their palette lookups, so pixels could take the colour of the neighbouring palette entry.
 
+- Fixed the full inventory menu being unusable with a mouse for split-screen players who are not on the top-left screen. Its mouse cursor did not account for the player's screen position.
+
+- Fixed another player's Shift key clearing a player's whole Buy Menu cart when they removed a single item, for players with separate keyboards.
+
+- Fixed unplugging a player's keyboard or mouse going unnoticed when using multiple mice and keyboards. The game now pauses and the player's device is unbound, as was intended.
+
+- Fixed the mouse aim only being reset for the first mouse player when an activity starts or leaves the build phase.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
