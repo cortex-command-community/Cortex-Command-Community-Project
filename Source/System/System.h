@@ -144,7 +144,7 @@ namespace RTE {
 		static bool s_Headless; //!< Whether to run the program without presenting anything to the user, and with the simulation running as fast as it can instead of in real time.
 		static std::string s_ThisExePathAndName; //!< String containing the absolute path to this executable. Used for relaunching via abort message.
 		static std::string s_WorkingDirectory; //!< String containing the absolute path to current working directory.
-		static std::vector<size_t> s_WorkingTree; //!< Vector of the hashes of all file paths in the working directory.
+		static std::unordered_set<size_t> s_WorkingTree; //!< Set of the hashes of all file paths in the working directory.
 		static std::filesystem::file_time_type s_ProgramStartTime; //!< Low precision time point of program start for checking if a file was created after starting.
 
 		static bool s_CaseSensitive; //!< Whether case sensitivity is enforced when checking for file existence.
