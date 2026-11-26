@@ -41,7 +41,7 @@ bool System::s_ExternalModuleValidation = false;
 bool System::s_Headless = false;
 std::string System::s_ThisExePathAndName = "";
 std::string System::s_WorkingDirectory = ".";
-std::vector<size_t> System::s_WorkingTree;
+std::unordered_set<size_t> System::s_WorkingTree;
 std::filesystem::file_time_type System::s_ProgramStartTime = std::filesystem::file_time_type::clock::now();
 bool System::s_CaseSensitive = true;
 const std::string System::s_DataDirectory = "Data/";
@@ -144,13 +144,13 @@ bool System::PathExistsCaseSensitive(const std::string& pathToCheck) {
 	if (s_CaseSensitive) {
 		if (s_WorkingTree.empty()) {
 			for (const std::filesystem::directory_entry& directoryEntry: std::filesystem::recursive_directory_iterator(s_WorkingDirectory, std::filesystem::directory_options::follow_directory_symlink)) {
-				s_WorkingTree.emplace_back(Hash(directoryEntry.path().generic_string().substr(s_WorkingDirectory.length())));
+				s_WorkingTree.emplace(Hash(directoryEntry.path().generic_string().substr(s_WorkingDirectory.length())));
 			}
 		}
-		if (std::find(s_WorkingTree.begin(), s_WorkingTree.end(), Hash(pathToCheck)) != s_WorkingTree.end()) {
+		if (s_WorkingTree.contains(Hash(pathToCheck))) {
 			return true;
 		} else if (std::filesystem::exists(pathToCheck) && std::filesystem::last_write_time(pathToCheck) > s_ProgramStartTime) {
-			s_WorkingTree.emplace_back(Hash(pathToCheck));
+			s_WorkingTree.emplace(Hash(pathToCheck));
 			return true;
 		}
 		return false;

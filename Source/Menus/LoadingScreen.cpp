@@ -17,6 +17,8 @@
 #include "raylib/rlgl.h"
 #include "RenderTarget.h"
 
+#include <SDL3/SDL_events.h>
+
 using namespace RTE;
 
 LoadingScreen::LoadingScreen()  { Clear(); }
@@ -140,7 +142,18 @@ void LoadingScreen::LoadingSplashProgressReport(const std::string& reportString,
 		// Lines are drawing over the right edge of the box and we can't cap the width from DrawAligned here so redraw the right edge.
 		vline(g_LoadingScreen.m_ProgressListboxBitmap, g_LoadingScreen.m_ProgressListboxBitmap->w - 2, g_LoadingScreen.m_ProgressListboxBitmap->h - 12, g_LoadingScreen.m_ProgressListboxBitmap->h - 2, 33);
 		vline(g_LoadingScreen.m_ProgressListboxBitmap, g_LoadingScreen.m_ProgressListboxBitmap->w - 1, g_LoadingScreen.m_ProgressListboxBitmap->h - 12, g_LoadingScreen.m_ProgressListboxBitmap->h - 2, 33);
+	}
 
+	// Presenting a frame for every reported line (a vsync wait each) made loading with many mods several times slower.
+	static std::chrono::steady_clock::time_point lastPresentTime;
+	if (std::chrono::steady_clock::now() - lastPresentTime < std::chrono::milliseconds(100)) {
+		return;
+	}
+	lastPresentTime = std::chrono::steady_clock::now();
+	// Loading blocks the main loop, so pump window messages here or the OS flags the game as not responding. Pump before drawing so an exposed-event redraw can't overwrite this frame.
+	SDL_PumpEvents();
+
+	if (g_LoadingScreen.m_ProgressListboxBitmap) {
 		blit(g_LoadingScreen.m_ProgressListboxBitmap, g_FrameMan.GetBackBuffer32(), 0, 0, g_LoadingScreen.m_ProgressListboxPosX, g_LoadingScreen.m_ProgressListboxPosY, g_LoadingScreen.m_ProgressListboxBitmap->w, g_LoadingScreen.m_ProgressListboxBitmap->h);
 
 		Box loadingSplashTargetBox(Vector(0, static_cast<float>((g_WindowMan.GetResY() - g_LoadingScreen.m_LoadingBackground->GetBitmap()->h) / 2)), static_cast<float>(g_WindowMan.GetResX()), static_cast<float>(g_LoadingScreen.m_LoadingBackground->GetBitmap()->h));

@@ -329,6 +329,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Fixed white speckles on dark terrain, such as cave backgrounds. The `Background` and `Dissolve` shaders smoothed their palette lookups, so pixels could take the colour of the neighbouring palette entry.
 
+- Fixed very slow module loading with the loading progress report enabled, especially with VSync on. Every reported line presented a frame, so loading 64 mods took over 2 minutes instead of 4 seconds. The report now redraws at most 10 times a second.
+
+- Fixed the game being flagged as not responding while loading modules, e.g. after alt-tabbing. Loading now keeps handling window events.
+
+- Fixed module loading getting slower the more files are in the game folder. Every file existence check scanned a list of all files instead of using a hash lookup.
+
 </details>
 
 <details><summary><b>Removed</b></summary>
